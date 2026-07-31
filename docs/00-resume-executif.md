@@ -95,3 +95,19 @@ et démographie, revenus/pauvreté, finances locales (dépenses, dette, dotation
 budget de l'État agrégé (voté vs exécuté par mission), dette et macro nationales,
 emploi/chômage, entreprises (stocks/créations), comparaisons UE (dette, déficit,
 chômage, PIB/hab en SPA) — chaque chiffre avec panneau « D'où vient ce chiffre ? ».
+
+### État d'avancement au 31 juillet 2026
+
+En ligne : le référentiel géographique (COG 2025, y compris Métropole de Lyon,
+Collectivité européenne d'Alsace et établissements publics territoriaux du Grand
+Paris), les finances locales de l'OFGL des quatre niveaux, les groupes de
+comparaison entre communes semblables, la dette publique par sous-secteur
+(INSEE, base 2020), les comparaisons européennes (Eurostat) et le **budget de
+l'État de 2013 à 2025, voté, rectifié et exécuté** — le pont recettes → dépenses
+→ solde, avec l'écart entre la loi de finances et l'exécution.
+
+Restent à livrer : le budget de l'État par mission et programme (destination des
+crédits, et non plus seulement leur nature), les revenus et la pauvreté
+communaux, le moteur de questions en langage naturel et l'API publique
+versionnée. Le détail par mission suppose les jeux PLF, un par exercice, dont
+l'identifiant change chaque année.

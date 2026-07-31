@@ -87,6 +87,25 @@ def test_defaut_reel_de_la_lfi_2022_sur_les_prelevements_sur_recettes():
     assert quarantaine_2023 == []
 
 
+def test_recoupement_entre_les_deux_fichiers_du_producteur():
+    """La colonne « Exécution » des textes législatifs doit coïncider avec la
+    colonne de décembre des séries mensuelles. Sur 2022 elle coïncide ; c'est ce
+    même recoupement qui révèle le décalage de 2019 à 2021."""
+    clos, _ = etat.exercices({"series_longues": SERIES, "records": RECORDS})
+    votes = smb.textes_legislatifs(TEXTES)
+    assert (smb.EXECUTION, "2022") in votes  # le texte est bien lu, pas filtré
+    assert etat.recouper_execution(clos, votes) == {}
+
+    decale = dict(votes)
+    decale[(smb.EXECUTION, "2022")] = {
+        **votes[(smb.EXECUTION, "2022")],
+        smb.normaliser("Total dépenses nettes du budget général"): 1.0,
+    }
+    assert etat.recouper_execution(clos, decale) == {
+        "2022": [smb.normaliser("Total dépenses nettes du budget général")]
+    }
+
+
 def test_la_quarantaine_ecarte_les_composantes_et_garde_le_total():
     ecartees = etat._composantes_ecartees([smb.normaliser("Total prélèvements sur recettes")])
     assert smb.normaliser("PSR au profit de l'Union européenne") in ecartees

@@ -199,6 +199,31 @@ def textes(contenus: dict[str, bytes]) -> dict[tuple[str, str], dict]:
     return resultat
 
 
+def recouper_execution(
+    clos: dict[str, dict], votes: dict[tuple[str, str], dict]
+) -> dict[str, list[str]]:
+    """Deux fichiers du même producteur donnent l'exécution annuelle : les
+    séries mensuelles (colonne de décembre) et la colonne « Exécution » des
+    textes législatifs. Elles doivent coïncider.
+
+    -> {exercice: lignes qui divergent}. C'est ce recoupement qui a révélé que
+    la seconde porte, pour 2019 à 2021, les dépenses de l'exercice précédent.
+    """
+    divergences: dict[str, list[str]] = {}
+    for annee, mensuel in clos.items():
+        annuel = votes.get((smb.EXECUTION, annee))
+        if not annuel:
+            continue
+        ecarts = [
+            libelle
+            for libelle, montant in annuel.items()
+            if libelle in mensuel and abs(mensuel[libelle] - montant) > smb.TOLERANCE_EUR
+        ]
+        if ecarts:
+            divergences[annee] = sorted(ecarts)
+    return divergences
+
+
 def verifier(valeurs: dict[str, float], fonds_de_concours: bool) -> tuple[float, list[str]]:
     """-> (écart de l'identité du solde, totaux dont la décomposition ne ferme pas)."""
     ecarts = smb.controles(valeurs, fonds_de_concours)
@@ -318,6 +343,8 @@ def ecrire(conn, run_id: str, clos: dict[str, dict], votes: dict[tuple[str, str]
         resume["budgets"] += 1
 
     for (texte, annee), valeurs in sorted(votes.items()):
+        if texte not in smb.ETAPES:
+            continue  # « Exécution » : lue dans les séries mensuelles, recoupée plus haut
         type_budget, etape = smb.ETAPES[texte]
         solde, quarantaine = verifier(valeurs, fonds_de_concours=False)
         if abs(solde) > smb.TOLERANCE_EUR:
@@ -358,23 +385,21 @@ def _ecrire_observations(conn, run_id: str, clos: dict[str, dict]) -> int:
     return len(lignes)
 
 
-def tracer_controles(conn, run_id: str, resume: dict) -> None:
-    conn.execute(
-        """
-        insert into meta.data_quality_checks
-            (run_id, dataset_id, check_name, severity, passed, observed)
-        values (%s, %s, 'identite_solde_budgetaire', 'blocker', true, %s)
-        """,
-        (run_id, DATASET, Jsonb({"budgets_verifies": resume["budgets"]})),
-    )
-    conn.execute(
-        """
-        insert into meta.data_quality_checks
-            (run_id, dataset_id, check_name, severity, passed, observed)
-        values (%s, %s, 'decomposition_des_totaux', 'warning', %s, %s)
-        """,
-        (run_id, DATASET, not resume["quarantaine"], Jsonb(resume["quarantaine"])),
-    )
+def tracer_controles(conn, run_id: str, resume: dict, divergences: dict) -> None:
+    controles = [
+        ("identite_solde_budgetaire", "blocker", True, {"budgets_verifies": resume["budgets"]}),
+        ("decomposition_des_totaux", "warning", not resume["quarantaine"], resume["quarantaine"]),
+        ("execution_recoupee_entre_fichiers", "warning", not divergences, divergences),
+    ]
+    for nom, severite, passe, observe in controles:
+        conn.execute(
+            """
+            insert into meta.data_quality_checks
+                (run_id, dataset_id, check_name, severity, passed, observed)
+            values (%s, %s, %s, %s, %s, %s)
+            """,
+            (run_id, DATASET, nom, severite, passe, Jsonb(observe)),
+        )
     conn.commit()
 
 
@@ -396,8 +421,16 @@ def run(store_spec: str) -> int:
         )
         if inconnues:
             raise ValueError(f"lignes non classées par le connecteur : {', '.join(inconnues)}")
+        textes_inconnus = sorted(
+            {texte for texte, _ in votes if texte not in smb.ETAPES and texte != smb.EXECUTION}
+        )
+        if textes_inconnus:
+            raise ValueError(
+                f"textes budgétaires non reconnus : {', '.join(textes_inconnus)}"
+            )
+        divergences = recouper_execution(clos, votes)
         resume = ecrire(conn, run_id, clos, votes)
-        tracer_controles(conn, run_id, resume)
+        tracer_controles(conn, run_id, resume, divergences)
         db.finish_run(conn, run_id, "success", rows_written=resume["lignes"])
         print(
             f"budget de l'État : {resume['budgets']} budgets, {resume['lignes']} lignes,"
@@ -410,6 +443,11 @@ def run(store_spec: str) -> int:
             )
         for cle, totaux in resume["quarantaine"].items():
             print(f"quarantaine {cle} : {', '.join(totaux)} — décomposition non publiée")
+        for annee, lignes in divergences.items():
+            print(
+                f"recoupement {annee} : {', '.join(lignes)} — les deux fichiers du"
+                " producteur divergent, seules les séries mensuelles sont publiées"
+            )
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
         db.finish_run(conn, run_id, "failed", error=str(error))

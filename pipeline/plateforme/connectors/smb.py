@@ -63,6 +63,11 @@ ETAPES = {
     "Dernière LFR/LFG": ("LFR", "rectifie"),
 }
 
+# Le fichier des textes législatifs contient aussi une colonne « Exécution ».
+# Elle n'alimente rien : elle sert à recouper l'exécution lue dans les séries
+# mensuelles, et c'est ce recoupement qui a révélé son décalage sur 2019-2021.
+EXECUTION = "Exécution"
+
 
 @dataclass(frozen=True)
 class Ligne:
@@ -257,13 +262,20 @@ def series_records(records: list[dict]) -> dict[str, dict[str, float]]:
 
 
 def textes_legislatifs(contenu: bytes) -> dict[tuple[str, str], dict[str, float]]:
-    """Pièce jointe « textes législatifs » -> {(texte, exercice): {ligne: montant}}."""
+    """Pièce jointe « textes législatifs » -> {(texte, exercice): {ligne: montant}}.
+
+    Tous les textes présents sont rendus, y compris ceux que le connecteur
+    n'écrit pas : un texte inconnu doit se voir, pas disparaître dans un filtre.
+    """
     entete, lignes = lire_csv(contenu)
     colonnes = _colonnes_datees(entete, "annee")
+    textes = {ligne[5].strip() for ligne in lignes if len(ligne) > 5 and ligne[5].strip()}
     resultat: dict[tuple[str, str], dict[str, float]] = {}
-    for texte in ETAPES:
+    for texte in textes:
         par_annee = _valeurs(
-            lignes, colonnes, lambda l, t=texte: len(l) > 5 and l[5].strip() == t  # noqa: E741
+            lignes,
+            colonnes,
+            lambda ligne, attendu=texte: len(ligne) > 5 and ligne[5].strip() == attendu,
         )
         for annee, valeurs in par_annee.items():
             resultat[(texte, annee)] = valeurs
