@@ -75,6 +75,11 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "revenus" ]; then
+            python -m plateforme.normalize.revenus --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "dotations" ]; then
             # Les dotations se rattachent aux communes du référentiel et se
             # contrôlent contre le budget de l'État : les deux doivent être là.

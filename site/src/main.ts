@@ -16,7 +16,7 @@ import { afficherQuestions } from "./questions.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
-import { expressionCouleur, formater, quantiles } from "./echelle.ts";
+import { expressionCouleur, formater, parHabitantAUnSens, quantiles } from "./echelle.ts";
 import "./style.css";
 
 const COUCHES: Record<string, string> = {
@@ -149,7 +149,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
 }
 
 async function peindre(): Promise<void> {
-  const parHabitant = etat.declinaison === "habitant" && indicateurCourant().unite === "EUR";
+  const parHabitant = etat.declinaison === "habitant" && parHabitantAUnSens(indicateurCourant());
   const valeurs = await donnees.valeursCarte(etat.indicateur, etat.niveau, etat.periode);
   await chargerLotsNecessaires(etat.niveau, Object.keys(valeurs));
 
@@ -258,11 +258,21 @@ async function majComparateur(): Promise<void> {
   section.hidden = false;
 }
 
+// Libellés des thèmes connus. Un thème absent de cette table n'est pas écarté :
+// il est affiché sous une forme lisible. Filtrer sur une liste écrite en dur
+// avait déjà fait disparaître des données parfaitement publiées.
 const THEMES: Record<string, string> = {
   finances_locales: "Finances locales",
+  revenus: "Revenus et pauvreté",
+  population: "Population",
   dette: "Dette publique",
+  budget_etat: "Budget de l'État",
   europe: "Comparaisons européennes",
 };
+
+function libelleTheme(theme: string): string {
+  return THEMES[theme] ?? theme.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
+}
 
 /** Seuls les thèmes cartographiables alimentent la carte : la dette et les
  *  comparaisons européennes n'existent qu'au niveau national. */
@@ -271,10 +281,10 @@ function themesCartographiables(): string[] {
 }
 
 function construireSelecteurs(): void {
-  const disponibles = themesCartographiables().filter((t) => t in THEMES);
+  const disponibles = themesCartographiables();
   const selecteurTheme = $<HTMLSelectElement>("theme");
   selecteurTheme.innerHTML = disponibles
-    .map((t) => `<option value="${t}">${THEMES[t]}</option>`)
+    .map((t) => `<option value="${t}">${libelleTheme(t)}</option>`)
     .join("");
   if (!disponibles.includes(etat.theme)) etat.theme = disponibles[0] ?? "finances_locales";
   selecteurTheme.value = etat.theme;

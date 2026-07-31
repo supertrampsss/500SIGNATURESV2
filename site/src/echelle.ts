@@ -53,6 +53,20 @@ export function expressionCouleur(
     : "#d9d9d9";
 }
 
+/** Un montant ne se ramène à l'habitant que s'il s'additionne.
+ *
+ *  Un budget communal divisé par la population donne une dépense par habitant.
+ *  Un **niveau de vie médian** divisé par la population ne donne rien : c'est
+ *  déjà une valeur par personne, et une médiane ne s'additionne pas. La règle
+ *  suit donc la sommabilité déclarée de l'indicateur, pas sa seule unité.
+ */
+export function parHabitantAUnSens(indicateur: {
+  unite: string;
+  sommable?: boolean;
+}): boolean {
+  return indicateur.unite === "EUR" && indicateur.sommable !== false;
+}
+
 export function formater(valeur: number, unite: string, parHabitant: boolean): string {
   if (unite === "count") {
     return new Intl.NumberFormat("fr-FR").format(Math.round(valeur));

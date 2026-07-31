@@ -5,7 +5,7 @@
  */
 
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { formater } from "./echelle.ts";
+import { formater, parHabitantAUnSens } from "./echelle.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -46,7 +46,7 @@ function ligneIndicateur(
     </div>`;
   }
   const population = territoire.population;
-  const ratio = parHabitant && indicateur.unite === "EUR";
+  const ratio = parHabitant && parHabitantAUnSens(indicateur);
   if (ratio && !population) {
     return `<div class="mesure mesure--absente">
       <dt>${echapper(indicateur.libelle)}</dt>

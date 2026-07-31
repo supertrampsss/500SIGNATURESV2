@@ -10,7 +10,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { formater } from "./echelle.ts";
+import { formater, parHabitantAUnSens } from "./echelle.ts";
 
 export type Entree = { code: string; niveau: string; territoire: Territoire };
 
@@ -80,7 +80,7 @@ function cellule(
 ): string {
   const brut = entree.territoire.series[indicateur.id]?.[periode];
   if (brut === undefined) return `<td class="absente">donnée non disponible</td>`;
-  const ratio = parHabitant && indicateur.unite === "EUR";
+  const ratio = parHabitant && parHabitantAUnSens(indicateur);
   if (ratio && !entree.territoire.population) {
     return `<td class="absente">population inconnue</td>`;
   }

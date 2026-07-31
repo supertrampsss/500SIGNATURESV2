@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { expressionCouleur, formater, quantiles } from "./echelle.ts";
+import { expressionCouleur, formater, parHabitantAUnSens, quantiles } from "./echelle.ts";
 
 test("les classes répartissent les territoires en parts égales", () => {
   const echelle = quantiles([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 7);
@@ -48,4 +48,14 @@ test("les montants gardent leur unité et leur ordre de grandeur", () => {
   assert.match(formater(-124_205_673_501.55, "EUR", false), /124,2\s?Md€/);
   assert.match(formater(456, "EUR", true), /456/);
   assert.equal(formater(67_339, "count", false), "67 339".replace(" ", " "));
+});
+
+test("une médiane ne se divise pas par la population", () => {
+  // Un budget communal ramené à l'habitant a un sens ; un niveau de vie médian
+  // est déjà une valeur par personne, et une médiane ne s'additionne pas.
+  assert.equal(parHabitantAUnSens({ unite: "EUR", sommable: true }), true);
+  assert.equal(parHabitantAUnSens({ unite: "EUR", sommable: false }), false);
+  assert.equal(parHabitantAUnSens({ unite: "percent", sommable: false }), false);
+  // Catalogue ancien, sans le champ : on garde le comportement d'avant.
+  assert.equal(parHabitantAUnSens({ unite: "EUR" }), true);
 });
