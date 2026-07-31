@@ -64,6 +64,7 @@ jobs:
               --niveaux commune --depuis 2022
             python -m plateforme.normalize.dotations --store r2:plateforme-raw
             python -m plateforme.normalize.revenus --store r2:plateforme-raw
+            python -m plateforme.normalize.population --store r2:plateforme-raw
           else
             python -m plateforme.normalize.etat --store r2:plateforme-raw
             python -m plateforme.normalize.macro --store r2:plateforme-raw
