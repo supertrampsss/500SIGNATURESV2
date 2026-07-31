@@ -53,6 +53,14 @@
 > projet déposé et une loi votée. La suite passe donc par les annexes RAP ou
 > par une autre source d'exécution ; un ticket dédié plutôt qu'un raccourci.
 >
+> **T-21 (comparateur) et T-24 (état des données)** : faits. Le comparateur
+> met 2 à 5 territoires côte à côte sur les indicateurs du thème courant, avec
+> la sélection dans l'URL ; il **refuse en le motivant** une comparaison entre
+> niveaux différents, signale les périmètres qui se recouvrent et écrit
+> « donnée non disponible » plutôt que de combler un trou. L'état des données
+> affiche, jeu par jeu, la dernière lecture, le retard sur la fréquence
+> annoncée, l'issue du dernier chargement et ce que les contrôles ont relevé.
+>
 > Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
 >
 > **Prochaine étape** : la ventilation par mission (fin de T-14), puis les
