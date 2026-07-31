@@ -210,8 +210,10 @@ export function positionDansGroupe(
     </ul>
     <p class="avertissement">Groupe constitué sur des critères publiés par l'Observatoire
       des finances locales — ${echapper(description)} — et non sur un découpage propre à ce
-      site. Une position dans la distribution ne dit rien de la qualité de la gestion :
-      les compétences exercées, la géographie et les choix politiques diffèrent d'une
-      commune à l'autre.</p>
+      site. <strong>Une position basse ne signifie pas une meilleure gestion.</strong> Le
+      premier facteur d'écart est l'intercommunalité : dans une métropole intégrée, la
+      voirie, les déchets ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent
+      pas dans le budget communal. Les compétences exercées, la géographie et les choix
+      politiques diffèrent d'une commune à l'autre.</p>
   </details>`;
 }
