@@ -6,8 +6,8 @@
  * un autre pays que s'il vient d'une définition harmonisée (docs/00, §7).
  */
 
-import type { Indicateur, Territoire } from "./donnees";
-import { formater } from "./echelle";
+import type { Indicateur, Territoire } from "./donnees.ts";
+import { formater } from "./echelle.ts";
 
 const SOUS_SECTEURS = [
   "insee_dette_etat_montant",

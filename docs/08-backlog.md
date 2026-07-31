@@ -28,11 +28,22 @@
 > contours départementaux et régionaux sont reconstitués par fusion des
 > communes, sur la maille des finances locales (Alsace, Métropole de Lyon).
 >
+> **T-14 (budget de l'État)** : fait pour la **nature** de la dépense, pas
+> encore pour sa destination. Source retenue : la situation mensuelle
+> budgétaire de la DGFiP, qui publie sur la même nomenclature la loi de
+> finances initiale, la dernière loi rectificative et l'exécution — 39 budgets
+> de 2013 à 2025, 628 lignes, 15 indicateurs nationaux. Le pont recettes →
+> dépenses → solde est vérifié à l'euro par un contrôle bloquant sur les 39
+> budgets. Deux défauts du fichier producteur sont traités (docs/06) : colonne
+> « Exécution » décalée sur 2019-2021, répartition des PSR de la LFI 2022
+> corrompue. **Reste dans T-14** : la ventilation par mission et programme,
+> qui suppose les jeux PLF — un par exercice, identifiant changeant chaque
+> année — et les comptes spéciaux détaillés.
+>
 > Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
 >
-> **Prochaine étape** : T-13 (design system, skill `taste-skill`) puis T-19/T-20
-> (première carte et fiche commune) — toutes les données nécessaires sont en
-> place.
+> **Prochaine étape** : la ventilation par mission (fin de T-14), puis les
+> revenus et la pauvreté communaux.
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /
@@ -75,7 +86,7 @@ staging.
 | T-11 | Référentiel géo : COG + mouvements + Admin Express + table d'appartenance + GISCO → `geo.*` + fonction `geo.passage()` | E3 | P0 | L | T-04 | commune fusionnée test : série continue ; géométries valides ; NUTS versionnés |
 | T-12 | Ingestion finances locales OFGL (4 niveaux) + dotations → `fin.*`/`core.*` + checks totaux | E5 | P0 | L | T-07, T-11 | totaux vs publications OFGL ±0,5 % ; €/hab via dénominateur |
 | T-13 | Installer le skill design (`npx skills add https://github.com/Leonxlnx/taste-skill`) et poser le design system du site | E7 | P0 | S | T-01 | skill commité ; tokens/typo/palette validés sur 2 maquettes |
-| T-14 | Ingestion État : PLF/LFI + exécution par mission → `fin.public_budgets/lines/executions` | E5 | P0 | L | T-07 | waterfall voté/exécuté 2024 reproduit les documents officiels |
+| T-14 | Ingestion État : situation mensuelle budgétaire (nature) **faite**, PLF/LFI par mission (destination) à faire → `fin.public_budgets/lines/executions` | E5 | P0 | L | T-07 | pont voté/exécuté reproduit les soldes publiés à l'euro ; identité du solde vérifiée sur chaque exercice |
 | T-15 | Ingestion dette/macro (BDM + AFT + comptes APU COFOG) | E5 | P0 | M | T-08 | série dette 1995→ en Md€ et % PIB, sous-secteurs |
 | T-16 | Ingestion démographie + Filosofi + Sirene stocks/SIDE | E5 | P0 | L | T-08, T-11 | secret statistique rendu `confidential` (jamais 0) ; volumétrie Sirene ok |
 | T-17 | Exports publiés : JSON fiches/séries + manifeste + purge CDN | E6 | P0 | M | T-12..16 | reproductibles ; manifeste liste runs sources |

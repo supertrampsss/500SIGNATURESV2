@@ -3,6 +3,10 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    // Les imports portent leur extension .ts : sans elle, Node ne sait pas
+    // résoudre un module importé par un test (il ne devine pas les extensions).
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
     "strict": true,
     "noUnusedLocals": true,
     "skipLibCheck": true,

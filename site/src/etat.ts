@@ -13,15 +13,17 @@
  * recettes avant qu'il ne les encaisse.
  */
 
-import type { BudgetEtat, EtapeBudget, LigneBudget } from "./donnees";
-import { formater } from "./echelle";
+import type { BudgetEtat, EtapeBudget, LigneBudget } from "./donnees.ts";
+import { formater } from "./echelle.ts";
 
 const SIGNES: Record<string, string> = { recette: "+", depense: "−" };
 
+/** Échappement sans DOM : le rendu doit être testable hors navigateur. */
 function echapper(texte: string): string {
-  const noeud = document.createElement("span");
-  noeud.textContent = texte;
-  return noeud.innerHTML;
+  return texte.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string,
+  );
 }
 
 /** Barre proportionnelle : la largeur dit l'ordre de grandeur, le chiffre dit le reste. */
@@ -160,19 +162,19 @@ function avertissements(budget: BudgetEtat, exercice: string): string {
   </details>`;
 }
 
-export function afficherBudgetEtat(
-  bloc: HTMLElement,
-  budget: BudgetEtat,
-  exercice?: string,
-): boolean {
-  const exercices = Object.keys(budget.exercices)
+/** Exercices publiables : ceux dont l'exécution est connue, du plus récent au
+ *  plus ancien. Un exercice en cours n'en fait pas partie (docs/06). */
+export function exercicesDisponibles(budget: BudgetEtat): string[] {
+  return Object.keys(budget.exercices)
     .filter((annee) => budget.exercices[annee]["execute"])
     .sort()
     .reverse();
-  const choisi = exercice && exercices.includes(exercice) ? exercice : exercices[0];
-  if (!choisi) return false;
+}
 
-  bloc.innerHTML = `
+/** Rendu pur, sans DOM : c'est lui qui est testé. */
+export function rendu(budget: BudgetEtat, exercice: string): string {
+  const exercices = exercicesDisponibles(budget);
+  return `
     <h3>Budget de l'État</h3>
     <p class="champ champ--exercice">
       <label for="exercice-etat">Exercice</label>
@@ -180,15 +182,26 @@ export function afficherBudgetEtat(
         ${exercices
           .map(
             (annee) =>
-              `<option value="${annee}"${annee === choisi ? " selected" : ""}>${annee}</option>`,
+              `<option value="${annee}"${annee === exercice ? " selected" : ""}>${annee}</option>`,
           )
           .join("")}
       </select>
     </p>
-    ${pont(budget, choisi, "execute")}
-    ${comparaisonEtapes(budget, choisi)}
-    ${avertissements(budget, choisi)}`;
+    ${pont(budget, exercice, "execute")}
+    ${comparaisonEtapes(budget, exercice)}
+    ${avertissements(budget, exercice)}`;
+}
 
+export function afficherBudgetEtat(
+  bloc: HTMLElement,
+  budget: BudgetEtat,
+  exercice?: string,
+): boolean {
+  const exercices = exercicesDisponibles(budget);
+  const choisi = exercice && exercices.includes(exercice) ? exercice : exercices[0];
+  if (!choisi) return false;
+
+  bloc.innerHTML = rendu(budget, choisi);
   bloc.querySelector<HTMLSelectElement>("#exercice-etat")?.addEventListener("change", (e) => {
     afficherBudgetEtat(bloc, budget, (e.target as HTMLSelectElement).value);
   });

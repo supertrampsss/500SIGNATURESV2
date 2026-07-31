@@ -4,8 +4,8 @@
  * ratio, et il est accompagné de sa source, de sa méthode et de ses limites.
  */
 
-import type { Indicateur, Jeu, Territoire } from "./donnees";
-import { formater } from "./echelle";
+import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
+import { formater } from "./echelle.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",

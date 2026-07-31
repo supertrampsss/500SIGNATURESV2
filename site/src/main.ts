@@ -7,12 +7,12 @@ import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-import * as donnees from "./donnees";
-import type { Indicateur, Jeu, Territoire } from "./donnees";
-import { afficherFiche, positionDansGroupe } from "./fiche";
-import { afficherBudgetEtat } from "./etat";
-import { afficherNational } from "./national";
-import { expressionCouleur, formater, quantiles } from "./echelle";
+import * as donnees from "./donnees.ts";
+import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
+import { afficherFiche, positionDansGroupe } from "./fiche.ts";
+import { afficherBudgetEtat } from "./etat.ts";
+import { afficherNational } from "./national.ts";
+import { expressionCouleur, formater, quantiles } from "./echelle.ts";
 import "./style.css";
 
 const COUCHES: Record<string, string> = {
