@@ -3,6 +3,18 @@
 *Phase 3. Strictement relié aux données sourcées — le moteur est une interface
 vers les tables validées, pas un générateur de réponses.*
 
+> **État au 31/07/2026.** Le moteur n'est pas construit : il suppose le corpus
+> d'évaluation et les seuils de la décision D10, qui n'est pas tranchée. En
+> attendant, le site ne laisse pas le lecteur deviner ce qu'il sait faire — les
+> six questions auxquelles il répond réellement sont écrites en tête de page,
+> avec leur réponse courte et le lien vers la section qui la détaille
+> (`site/src/questions.ts`). Une question hors périmètre n'y figure pas, et une
+> réponse partielle porte sa réserve : « qui détient la dette » n'est pas une
+> donnée publique détaillée, « où va l'argent » est une proportion et non le
+> trajet d'un euro. Cette liste est le cahier des charges du futur moteur : ce
+> qu'il devra savoir répondre avec la même prudence, sans rien promettre de
+> plus.
+
 ## Architecture
 
 ```

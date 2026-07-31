@@ -61,7 +61,15 @@
 > affiche, jeu par jeu, la dernière lecture, le retard sur la fréquence
 > annoncée, l'issue du dernier chargement et ce que les contrôles ont relevé.
 >
-> Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
+> **Au-delà du backlog initial**, livrés le 31/07/2026 : le module « 100 € »
+> (part de chaque poste dans 100 € encaissés puis dépensés par l'État, avec le
+> refus explicite de tracer un euro), les questions d'entrée, l'API publique
+> documentée (`docs/10`) et la politique de rétention (`plateforme/retention.py`)
+> qui ramène la base sous le plafond du plan gratuit sans rien détruire
+> d'irremplaçable.
+>
+> Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08, et
+> l'arbitrage D6bis sur le volume de la base.
 >
 > **Prochaine étape** : la ventilation par mission (fin de T-14), puis les
 > revenus et la pauvreté communaux.
