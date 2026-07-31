@@ -126,10 +126,15 @@ test("dans le pont, le signe est une colonne, pas une décoration du nombre", ()
 });
 
 test("l'écart entre voté et exécuté est nommé dans le bon sens", () => {
+  // Exécuté −124,2 Md€ contre −139,0 Md€ votés : le déficit est plus faible que
+  // prévu. Dire « au-dessus du solde voté » serait exact et compris à l'envers.
   const html = rendu(BUDGET, "2025");
-  // exécuté −124,2 Md€ contre −139,0 Md€ votés : le solde final est meilleur
   assert.match(html, /14,8\s?Md€/);
-  assert.match(html, /au-dessus du solde voté/);
+  assert.match(html, /déficit constaté est[\s\S]{0,80}plus faible/);
+
+  const creuse = structuredClone(BUDGET);
+  creuse.exercices["2025"].execute.solde = -160_000_000_000;
+  assert.match(rendu(creuse, "2025"), /déficit constaté est[\s\S]{0,80}plus élevé/);
 });
 
 test("les confusions interdites sont écrites, pas sous-entendues", () => {

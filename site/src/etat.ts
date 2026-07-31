@@ -126,12 +126,26 @@ function comparaisonEtapes(budget: BudgetEtat, exercice: string): string {
     .join("");
   const vote = etapes["vote"]?.solde;
   const execute = etapes["execute"]?.solde;
+  // « Au-dessus » et « en dessous » sont ambigus sur un solde négatif : le
+  // lecteur y entend « a dépensé plus », qui peut être l'inverse du vrai. Tant
+  // que les deux soldes sont des déficits, la phrase parle du déficit.
   const ecart =
     vote != null && execute != null
-      ? `<p class="bloc__complement">L'exercice s'est terminé
-         <strong>${formater(Math.abs(execute - vote), "EUR", false)}</strong>
-         ${execute > vote ? "au-dessus" : "en dessous"} du solde voté en loi de finances
-         initiale.</p>`
+      ? `<p class="bloc__complement">${
+          vote < 0 && execute < 0
+            ? `Le déficit constaté est <strong>${formater(
+                Math.abs(execute - vote),
+                "EUR",
+                false,
+              )}</strong> ${
+                execute > vote ? "plus faible" : "plus élevé"
+              } que celui voté en loi de finances initiale.`
+            : `Le solde constaté s'écarte de <strong>${formater(
+                Math.abs(execute - vote),
+                "EUR",
+                false,
+              )}</strong> du solde voté en loi de finances initiale.`
+        }</p>`
       : "";
   return `<table class="comparaison">
       <caption>Solde budgétaire de l'exercice ${echapper(exercice)}</caption>
