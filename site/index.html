@@ -23,6 +23,10 @@
 
     <form class="commandes" id="commandes" aria-label="Choix de l'affichage">
       <p class="champ">
+        <label for="theme">Thème</label>
+        <select id="theme"></select>
+      </p>
+      <p class="champ">
         <label for="indicateur">Indicateur</label>
         <select id="indicateur"></select>
       </p>
@@ -67,6 +71,14 @@
         </p>
       </aside>
     </main>
+
+    <section class="national" id="national" hidden>
+      <h2>La France dans son ensemble</h2>
+      <div class="national__grille">
+        <article class="bloc" id="bloc-dette"></article>
+        <article class="bloc" id="bloc-europe"></article>
+      </div>
+    </section>
 
     <section id="tableau" class="tableau">
       <h2>Données affichées</h2>

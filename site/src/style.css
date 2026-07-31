@@ -358,3 +358,98 @@ thead th {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Bloc national : dette française et repères européens. */
+.national {
+  padding: 1.5rem;
+  border-top: 1px solid var(--trait);
+}
+.national h2 {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  margin: 0 0 0.9rem;
+}
+.national__grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1.25rem;
+}
+.bloc {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  padding: 1rem 1.1rem;
+}
+.bloc h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.bloc h4 {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+  font-weight: 600;
+}
+.bloc__chiffre {
+  margin: 0.5rem 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.bloc__chiffre strong {
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.bloc__complement {
+  margin: 0.1rem 0 0.6rem;
+  color: var(--encre-douce);
+  font-size: 0.88rem;
+}
+.courbe {
+  width: 100%;
+  height: 5.5rem;
+  color: var(--accent);
+  display: block;
+}
+.courbe__bornes {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.repartition {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+}
+.repartition li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--trait);
+  padding-bottom: 0.25rem;
+}
+.repartition strong {
+  font-variant-numeric: tabular-nums;
+}
+.comparaison {
+  margin-top: 0.6rem;
+}
+.comparaison td,
+.comparaison th {
+  padding: 0.35rem 0.5rem;
+}
+.comparaison tbody th {
+  font-weight: 400;
+  text-align: left;
+}
+.comparaison .souligne {
+  background: var(--papier-creuse);
+}
+.comparaison .souligne th {
+  font-weight: 700;
+}

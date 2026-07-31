@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees";
 import type { Indicateur, Jeu, Territoire } from "./donnees";
 import { afficherFiche } from "./fiche";
+import { afficherNational } from "./national";
 import { expressionCouleur, formater, quantiles } from "./echelle";
 import "./style.css";
 
@@ -20,6 +21,7 @@ const COUCHES: Record<string, string> = {
 };
 
 type Etat = {
+  theme: string;
   indicateur: string;
   niveau: string;
   periode: string;
@@ -39,6 +41,7 @@ let entites: Record<string, Territoire> = {};
 function lireUrl(): Etat {
   const p = new URLSearchParams(location.search);
   return {
+    theme: p.get("theme") ?? "finances_locales",
     indicateur: p.get("indicateur") ?? "ofgl_depenses_fonctionnement",
     niveau: p.get("niveau") ?? "commune",
     periode: p.get("periode") ?? "",
@@ -49,6 +52,7 @@ function lireUrl(): Etat {
 
 function ecrireUrl(): void {
   const p = new URLSearchParams({
+    theme: etat.theme,
     indicateur: etat.indicateur,
     niveau: etat.niveau,
     periode: etat.periode,
@@ -171,15 +175,40 @@ async function montrerFiche(code: string): Promise<void> {
     code,
     niveau: etat.niveau,
     territoire,
-    indicateurs: catalogue.filter((i) => i.theme === "finances_locales"),
+    indicateurs: catalogue.filter((i) => i.theme === etat.theme),
     jeux,
     periode: etat.periode,
     parHabitant: etat.declinaison === "habitant",
   });
 }
 
+const THEMES: Record<string, string> = {
+  finances_locales: "Finances locales",
+  dette: "Dette publique",
+  europe: "Comparaisons européennes",
+};
+
+/** Seuls les thèmes cartographiables alimentent la carte : la dette et les
+ *  comparaisons européennes n'existent qu'au niveau national. */
+function themesCartographiables(): string[] {
+  return [...new Set(catalogue.filter((i) => i.niveaux?.includes(etat.niveau)).map((i) => i.theme))];
+}
+
 function construireSelecteurs(): void {
-  const financiers = catalogue.filter((i) => i.theme === "finances_locales");
+  const disponibles = themesCartographiables().filter((t) => t in THEMES);
+  const selecteurTheme = $<HTMLSelectElement>("theme");
+  selecteurTheme.innerHTML = disponibles
+    .map((t) => `<option value="${t}">${THEMES[t]}</option>`)
+    .join("");
+  if (!disponibles.includes(etat.theme)) etat.theme = disponibles[0] ?? "finances_locales";
+  selecteurTheme.value = etat.theme;
+
+  const financiers = catalogue.filter(
+    (i) => i.theme === etat.theme && i.niveaux?.includes(etat.niveau),
+  );
+  if (!financiers.some((i) => i.id === etat.indicateur)) {
+    etat.indicateur = financiers[0]?.id ?? etat.indicateur;
+  }
   $<HTMLSelectElement>("indicateur").innerHTML = financiers
     .map((i) => `<option value="${i.id}">${i.libelle}</option>`)
     .join("");
@@ -198,6 +227,7 @@ function construireSelecteurs(): void {
 function brancherCommandes(): void {
   $("commandes").addEventListener("change", async (evenement) => {
     const cible = evenement.target as HTMLSelectElement;
+    if (cible.id === "theme") etat.theme = cible.value;
     if (cible.id === "indicateur") etat.indicateur = cible.value;
     if (cible.id === "niveau") {
       etat.niveau = cible.value;
@@ -299,6 +329,17 @@ async function demarrer(): Promise<void> {
   });
 
   brancherCommandes();
+
+  // Bloc national : indépendant de la carte, il s'affiche dès que les séries
+  // pays sont disponibles.
+  try {
+    const pays = await donnees.territoires("pays", "tous");
+    if (afficherNational($("bloc-dette"), $("bloc-europe"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+  } catch {
+    // Les séries nationales ne sont pas encore publiées : la carte reste utile.
+  }
 }
 
 demarrer().catch((erreur) => {

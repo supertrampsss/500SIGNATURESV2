@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from plateforme import db
 from plateforme.normalize.geo import make_store
 
-NIVEAUX = ["commune", "epci", "departement", "region"]
+NIVEAUX = ["commune", "epci", "departement", "region", "pays"]
 
 
 def _json(charge) -> bytes:
