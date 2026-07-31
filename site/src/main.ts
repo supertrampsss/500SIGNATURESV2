@@ -199,7 +199,12 @@ async function montrerFiche(code: string): Promise<void> {
     comparaison: groupes
       ? positionDansGroupe(territoire, quartiles, parHabitant, groupes.criteres)
       : "",
-    indicateurs: catalogue.filter((i) => i.theme === etat.theme),
+    // Filtré sur le niveau : afficher « donnée non disponible » pour un
+    // indicateur qui n'existe pas à ce niveau ferait passer une absence de
+    // définition pour une absence de mesure.
+    indicateurs: catalogue.filter(
+      (i) => i.theme === etat.theme && i.niveaux?.includes(etat.niveau),
+    ),
     jeux,
     periode: etat.periode,
     parHabitant: etat.declinaison === "habitant",

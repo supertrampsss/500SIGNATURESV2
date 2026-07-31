@@ -56,6 +56,34 @@ def manifeste(conn, version: str) -> dict:
     }
 
 
+def synchroniser_niveaux(conn) -> int:
+    """Recale `geo_levels` sur les données réellement présentes.
+
+    Le catalogue dit au site à quels niveaux un indicateur existe ; s'il se
+    trompe, le sélecteur de niveau se vide et la carte n'a plus rien à peindre.
+    Plutôt que de faire confiance à ce que chaque connecteur déclare — un
+    chargement partiel avait suffi à effacer trois niveaux — la vérité est
+    relue depuis `core.observations` avant chaque publication.
+    """
+    modifies = conn.execute(
+        """
+        update core.indicators i
+        set geo_levels = coalesce(niveaux.presents, '{}')
+        from (
+            select ind.indicator_id,
+                   (select array_agg(distinct o.geo_level order by o.geo_level)
+                      from core.observations o
+                     where o.indicator_id = ind.indicator_id) as presents
+            from core.indicators ind
+        ) as niveaux
+        where niveaux.indicator_id = i.indicator_id
+          and i.geo_levels is distinct from coalesce(niveaux.presents, '{}')
+        """
+    ).rowcount
+    conn.commit()
+    return modifies
+
+
 def indicateurs(conn) -> list[dict]:
     """La fiche en 10 points (docs/06) accompagne chaque indicateur publié."""
     lignes = conn.execute(
@@ -311,6 +339,9 @@ def publier(conn, store, version: str) -> int:
         fichiers += 1
 
     deposer("manifeste.json", manifeste(conn, version))
+    recales = synchroniser_niveaux(conn)
+    if recales:
+        print(f"catalogue : {recales} indicateurs recalés sur les niveaux réellement présents")
     catalogue = indicateurs(conn)
     deposer("indicateurs.json", catalogue)
 

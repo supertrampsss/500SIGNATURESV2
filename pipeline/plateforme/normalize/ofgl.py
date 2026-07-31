@@ -106,7 +106,15 @@ def declarer_indicateurs(conn, niveaux: list[str]) -> None:
                      time_granularity, published)
                 values (%s, 'ofgl-communes', %s, %s, %s, %s, true, %s, %s, %s, 'annuelle', true)
                 on conflict (indicator_id) do update set
-                    definition_id = excluded.definition_id, geo_levels = excluded.geo_levels,
+                    definition_id = excluded.definition_id,
+                    -- Union et non remplacement : un chargement portant sur les
+                    -- seules communes ne doit pas faire disparaître du catalogue
+                    -- les départements déjà chargés. Le niveau réel est de toute
+                    -- façon recalculé depuis les données à la publication.
+                    geo_levels = (
+                        select array_agg(distinct n order by n)
+                        from unnest(core.indicators.geo_levels || excluded.geo_levels) as n
+                    ),
                     published = true
                 """,
                 (
