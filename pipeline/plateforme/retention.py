@@ -110,7 +110,9 @@ def run(effectif: bool) -> int:
             return 0
 
         avant = taille(conn)
-        run_id = db.start_run(conn, DATASET, "retention")
+        # `backfill` : le vocabulaire des déclencheurs est contraint par le
+        # schéma, et une rétention est bien une reprise sur données existantes.
+        run_id = db.start_run(conn, DATASET, "backfill")
         try:
             supprimees = appliquer(conn, hors)
             recuperer_espace(conn)
