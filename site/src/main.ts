@@ -13,6 +13,7 @@ import { afficherFiche, positionDansGroupe } from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
+import { rendu as apercuRendu, resumer } from "./apercu.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
@@ -171,7 +172,27 @@ async function peindre(): Promise<void> {
 
   majLegende(echelle, parHabitant);
   majTableau(valeurs, parHabitant);
-  if (etat.selection) await montrerFiche(etat.selection);
+  if (etat.selection) {
+    await montrerFiche(etat.selection);
+  } else {
+    // Tant que rien n'est sélectionné, le panneau montre la couche affichée
+    // plutôt qu'une invitation vide.
+    const ramenees = Object.fromEntries(
+      Object.entries(valeurs)
+        .map(([code, brut]) => [code, parHabitant ? brut / (populations[code] ?? NaN) : brut])
+        .filter(([, v]) => Number.isFinite(v as number)),
+    ) as Record<string, number>;
+    const noms = Object.fromEntries(
+      Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
+    );
+    $("fiche").innerHTML = apercuRendu(
+      resumer(ramenees, noms),
+      indicateurCourant(),
+      etat.niveau,
+      etat.periode,
+      parHabitant,
+    );
+  }
 }
 
 async function montrerFiche(code: string): Promise<void> {
@@ -318,7 +339,6 @@ function brancherCommandes(): void {
     if (cible.id === "niveau") {
       etat.niveau = cible.value;
       etat.selection = null;
-      $("fiche").innerHTML = '<p class="fiche__vide">Choisissez un territoire.</p>';
     }
     if (cible.id === "periode") etat.periode = cible.value;
     if (cible.id === "declinaison") etat.declinaison = cible.value;
