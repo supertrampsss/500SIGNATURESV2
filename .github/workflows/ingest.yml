@@ -58,6 +58,19 @@ jobs:
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             exit $?
           fi
+          if [ "$JOB" = "ofgl" ]; then
+            # Le référentiel d'abord : les finances locales s'y rattachent.
+            python -m plateforme.normalize.geo --store r2:plateforme-raw
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux epci,departement,region --depuis 2018
+            # Communes : historique borné à 2020 pour tenir dans les 500 Mo du
+            # plan gratuit Supabase (décision D6). Les snapshots R2 couvrent
+            # 2018-2025 ; une seule commande rechargera tout au passage au
+            # plan payant.
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux commune --depuis 2020
+            exit $?
+          fi
           if [ -z "$DATASET_ID" ]; then echo "aucun dataset_id" && exit 1; fi
           if [ -n "$PARAMS" ]; then
             python -m plateforme.ingest "$DATASET_ID" --store r2:plateforme-raw --params "$PARAMS"

@@ -11,6 +11,8 @@ Usage : python -m plateforme.normalize.geo [--store r2:plateforme-raw]
 import argparse
 import json
 
+from psycopg.types.json import Jsonb
+
 from plateforme import db
 from plateforme.connectors import cog
 from plateforme.http import fetch
@@ -19,6 +21,37 @@ from plateforme.store import LocalStore, R2Store
 MILLESIME = 2025
 PUBLICATION = "8377162"  # identifiant INSEE du COG 2025 (meta.dataset_registry)
 API_GEO = "https://geo.api.gouv.fr"
+
+# Collectivités à statut particulier qui exercent les compétences d'un
+# département sans en être un au Code officiel géographique. Les omettre
+# reviendrait à effacer l'Alsace et la métropole lyonnaise des cartes
+# départementales — 3,4 millions d'habitants. Codes et périmètres repris de
+# l'OFGL, qui les traite à ce niveau ; sans chevauchement avec les départements
+# classiques (l'Alsace se substitue au Bas-Rhin et au Haut-Rhin sur tout
+# l'historique publié, la Métropole de Lyon complète le Rhône depuis 2015).
+STATUT_PARTICULIER = [
+    ("67A", "Collectivité européenne d'Alsace", "44"),
+    ("691", "Métropole de Lyon", "84"),
+]
+
+# Établissements publics territoriaux de la Métropole du Grand Paris. Ce ne sont
+# pas des EPCI à fiscalité propre — l'API Géo ne les liste donc pas — mais ils
+# portent des budgets réels pour environ quatre millions d'habitants. ATTENTION :
+# leur périmètre est inclus dans celui de la Métropole du Grand Paris ; les deux
+# niveaux ne doivent jamais être additionnés.
+TERRITOIRES_GRAND_PARIS = [
+    ("200057867", "Plaine Commune"),
+    ("200057875", "Est Ensemble"),
+    ("200057941", "Paris-Est-Marne et Bois"),
+    ("200057966", "Vallée Sud Grand Paris"),
+    ("200057974", "Grand Paris Seine Ouest"),
+    ("200057982", "Paris Ouest La Défense"),
+    ("200057990", "Boucle Nord de Seine"),
+    ("200058006", "Grand Paris Sud Est Avenir"),
+    ("200058014", "Grand-Orly Seine Bièvre"),
+    ("200058097", "Paris Terres d'Envol"),
+    ("200058790", "Grand Paris - Grand Est"),
+]
 
 FICHIERS = {
     "communes": f"v_commune_{MILLESIME}.csv",
@@ -102,6 +135,19 @@ def construire(contenus: dict[str, bytes]) -> tuple[list[dict], list[dict]]:
             }
         )
 
+    for code, nom, region in STATUT_PARTICULIER:
+        territoires.append(
+            {
+                "geo_level": "departement",
+                "geo_code": code,
+                "vintage": MILLESIME,
+                "name": nom,
+                "parent_level": "region",
+                "parent_code": region,
+                "flags": {"statut_particulier": True, "source": "OFGL"},
+            }
+        )
+
     for epci in json.loads(contenus["api_epci"]):
         territoires.append(
             {
@@ -114,6 +160,24 @@ def construire(contenus: dict[str, bytes]) -> tuple[list[dict], list[dict]]:
                 "parent_code": None,
                 "siren": epci["code"],
                 "population": epci.get("population"),
+            }
+        )
+
+    for code, nom in TERRITOIRES_GRAND_PARIS:
+        territoires.append(
+            {
+                "geo_level": "epci",
+                "geo_code": code,
+                "vintage": MILLESIME,
+                "name": nom,
+                "parent_level": None,
+                "parent_code": None,
+                "siren": code,
+                "flags": {
+                    "type": "EPT",
+                    "inclus_dans": "Métropole du Grand Paris",
+                    "source": "OFGL",
+                },
             }
         )
 
@@ -135,15 +199,21 @@ def ecrire(conn, territoires: list[dict], evenements: list[dict]) -> tuple[int, 
         cur.executemany(
             """
             insert into geo.geography_reference
-                (geo_level, geo_code, vintage, name, parent_level, parent_code, siren, population)
+                (geo_level, geo_code, vintage, name, parent_level, parent_code,
+                 siren, population, flags)
             values (%(geo_level)s, %(geo_code)s, %(vintage)s, %(name)s,
-                    %(parent_level)s, %(parent_code)s, %(siren)s, %(population)s)
+                    %(parent_level)s, %(parent_code)s, %(siren)s, %(population)s, %(flags)s)
             on conflict (geo_level, geo_code, vintage) do update set
                 name = excluded.name, parent_level = excluded.parent_level,
                 parent_code = excluded.parent_code, siren = excluded.siren,
-                population = excluded.population
+                population = excluded.population, flags = excluded.flags
             """,
-            [{"siren": None, "population": None, **t} for t in territoires],
+            [
+                {"siren": None, "population": None, "flags": Jsonb({}), **t}
+                for t in (
+                    {**t, "flags": Jsonb(t["flags"])} if "flags" in t else t for t in territoires
+                )
+            ],
         )
         # Rechargement complet de l'historique : la source republie l'intégralité
         # des mouvements à chaque millésime, un delta serait plus fragile.

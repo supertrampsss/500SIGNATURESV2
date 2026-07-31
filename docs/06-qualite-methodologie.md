@@ -52,6 +52,8 @@ Un indicateur sans fiche complète **ne peut pas** passer `published = true`
 
 | Approximation | Où | Méthode et limite |
 |---|---|---|
+| **Périmètres qui se recouvrent** | `geo.geography_reference.flags` | Deux niveaux publiés ne sont pas toujours disjoints : les établissements publics territoriaux du Grand Paris (drapeau `type: EPT`) sont inclus dans la Métropole du Grand Paris ; la Métropole de Lyon et la Collectivité européenne d'Alsace (drapeau `statut_particulier`) sont publiées au niveau départemental sans être des départements. **Ne jamais additionner** deux niveaux qui se recouvrent ; les totaux nationaux se calculent sur un seul niveau à la fois. |
+| Historique des finances communales | `core.observations` | Chargé depuis 2020 en base, pour tenir dans le plan gratuit (décision D6). Les exercices 2018-2019 sont archivés dans R2 et se rechargent en une commande au passage au plan payant. La borne réelle de chaque série est publiée avec l'indicateur. |
 | Répartition d'une **scission** de commune | `geo.geography_history.population_share` | Une commune rétablie récupère une part du territoire d'origine, calculée au prorata des **populations actuelles** des successeurs. La population d'aujourd'hui n'est pas celle de l'année du mouvement : la part est donc approchée. Quand la population d'un successeur est inconnue, le partage est égal. Les **fusions ne sont pas concernées** (part de 1, exacte). Tout indicateur dont la série traverse une scission porte le badge « Comparabilité limitée ». |
 
 ## Processus de correction

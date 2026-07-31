@@ -14,6 +14,14 @@
 > avec `geo.passage()` vérifiée sur des chaînes réelles (changement de
 > département suivi d'une fusion, fusions successives). Reste dans T-11 : les
 > **géométries** (Admin Express), traitées avec T-18 (tuiles vectorielles).
+>
+> **T-12 (finances locales OFGL)** : 5 indicateurs (dépenses et recettes de
+> fonctionnement, dépenses d'investissement, épargne brute, encours de dette)
+> plus la population de référence, sur communes, EPCI, départements et régions,
+> avec fiche publiable pour chacun et contrôle de cohérence bloquant
+> (épargne brute = recettes − dépenses). Reste : dotations (`public_transfers`)
+> et groupes de comparaison v1.
+>
 > Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
