@@ -34,6 +34,19 @@ NIVEAUX = {
 
 # Agrégats retenus : ceux qui répondent aux questions de la fiche territoire.
 # Le libellé OFGL est la clé de jointure — il fait partie du contrat de source.
+# Critères de comparaison publiés par l'OFGL lui-même. Les reprendre plutôt que
+# d'inventer nos propres strates rend le groupe de comparaison vérifiable : il
+# repose sur une classification officielle, pas sur un découpage maison.
+CRITERES = [
+    "tranche_population",
+    "rural",
+    "montagne",
+    "touristique",
+    "outre_mer",
+    "qpv",
+    "tranche_revenu_imposable_par_habitant",
+]
+
 AGREGATS = {
     "Dépenses de fonctionnement": "ofgl_depenses_fonctionnement",
     "Recettes de fonctionnement": "ofgl_recettes_fonctionnement",
@@ -50,8 +63,10 @@ def url_export(niveau: str, agregats: list[str]) -> str:
     where = quote(f"agregat in ({liste})")
     # siren identifie le budget d'origine : indispensable pour ne compter la
     # population qu'une fois par entité (voir docstring du module).
-    select = quote(f"exer,{colonne_code},siren,agregat,montant,ptot")
-    return f"{BASE}/{jeu}/exports/csv?select={select}&where={where}&limit=-1"
+    colonnes = f"exer,{colonne_code},siren,agregat,montant,ptot"
+    if niveau == "commune":
+        colonnes += "," + ",".join(CRITERES)
+    return f"{BASE}/{jeu}/exports/csv?select={quote(colonnes)}&where={where}&limit=-1"
 
 
 def lire(contenu: bytes, niveau: str) -> list[dict]:
@@ -78,6 +93,11 @@ def lire(contenu: bytes, niveau: str) -> list[dict]:
                 "value": float(montant),
                 "population": int(ligne["ptot"]) if ligne["ptot"] else None,
                 "budget": ligne.get("siren") or code,
+                "criteres": {
+                    critere: ligne[critere]
+                    for critere in CRITERES
+                    if ligne.get(critere) not in (None, "")
+                },
             }
         )
     return sortie

@@ -148,6 +148,7 @@ export function afficherFiche(
     jeux: Jeu[];
     periode: string;
     parHabitant: boolean;
+    comparaison?: string;
   },
 ): void {
   const { territoire, indicateurs, jeux, periode, parHabitant, niveau } = options;
@@ -162,8 +163,55 @@ export function afficherFiche(
         : ""
     }</p>
     <dl class="mesures">${mesures}</dl>
+    ${options.comparaison ?? ""}
     ${panneauSource(indicateurs, jeux)}
     ${panneauMethode(indicateurs)}
     ${panneauComparabilite(territoire, niveau)}
   `;
+}
+
+/**
+ * Position d'une commune parmi ses semblables. Le groupe est défini par des
+ * critères publiés par l'OFGL, affichés avec le résultat : sans eux, « communes
+ * comparables » ne veut rien dire. Aucun classement, aucun jugement — une
+ * position dans une distribution, et le nombre de communes qui la composent.
+ */
+export function positionDansGroupe(
+  territoire: Territoire,
+  quartiles: { n: number; q1: number; mediane: number; q3: number } | undefined,
+  valeurParHabitant: number | undefined,
+  criteres: string[],
+): string {
+  if (!quartiles || valeurParHabitant === undefined) return "";
+  const drapeaux = (territoire.drapeaux ?? {}) as Record<string, string>;
+  const lisible: Record<string, string> = {
+    tranche_population: "strate de population",
+    rural: "caractère rural",
+    outre_mer: "outre-mer",
+  };
+  const description = criteres
+    .map((c) => `${lisible[c] ?? c} : ${drapeaux[c] ?? "non renseigné"}`)
+    .join(" · ");
+  const situation =
+    valeurParHabitant < quartiles.q1
+      ? "sous le quart inférieur"
+      : valeurParHabitant > quartiles.q3
+        ? "au-dessus du quart supérieur"
+        : "dans la moitié centrale";
+  return `<details class="panneau">
+    <summary>Comparaison avec des communes semblables</summary>
+    <p>Parmi <strong>${quartiles.n}</strong> communes du même groupe, cette commune se situe
+      <strong>${situation}</strong> de la distribution.</p>
+    <ul class="quartiles">
+      <li><span>1<sup>er</sup> quartile</span><strong>${formater(quartiles.q1, "EUR", true)}</strong></li>
+      <li><span>Médiane</span><strong>${formater(quartiles.mediane, "EUR", true)}</strong></li>
+      <li><span>3<sup>e</sup> quartile</span><strong>${formater(quartiles.q3, "EUR", true)}</strong></li>
+      <li><span>Cette commune</span><strong>${formater(valeurParHabitant, "EUR", true)}</strong></li>
+    </ul>
+    <p class="avertissement">Groupe constitué sur des critères publiés par l'Observatoire
+      des finances locales — ${echapper(description)} — et non sur un découpage propre à ce
+      site. Une position dans la distribution ne dit rien de la qualité de la gestion :
+      les compétences exercées, la géographie et les choix politiques diffèrent d'une
+      commune à l'autre.</p>
+  </details>`;
 }

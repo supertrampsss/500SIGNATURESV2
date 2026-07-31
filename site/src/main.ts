@@ -9,7 +9,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import * as donnees from "./donnees";
 import type { Indicateur, Jeu, Territoire } from "./donnees";
-import { afficherFiche } from "./fiche";
+import { afficherFiche, positionDansGroupe } from "./fiche";
 import { afficherNational } from "./national";
 import { expressionCouleur, formater, quantiles } from "./echelle";
 import "./style.css";
@@ -37,6 +37,7 @@ let jeux: Jeu[] = [];
 let etat: Etat;
 let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
+let groupes: donnees.Comparaisons | null = null;
 
 function lireUrl(): Etat {
   const p = new URLSearchParams(location.search);
@@ -171,10 +172,25 @@ async function montrerFiche(code: string): Promise<void> {
   if (!territoire) return;
   etat.selection = code;
   ecrireUrl();
+  const quartiles =
+    etat.niveau === "commune" && groupes
+      ? groupes.groupes[etat.indicateur]?.[etat.periode]?.[
+          groupes.criteres
+            .map((c) => (territoire.drapeaux as Record<string, string>)?.[c] ?? "")
+            .join("|")
+        ]
+      : undefined;
+  const brut = territoire.series[etat.indicateur]?.[etat.periode];
+  const parHabitant =
+    brut !== undefined && territoire.population ? brut / territoire.population : undefined;
+
   afficherFiche($("fiche"), {
     code,
     niveau: etat.niveau,
     territoire,
+    comparaison: groupes
+      ? positionDansGroupe(territoire, quartiles, parHabitant, groupes.criteres)
+      : "",
     indicateurs: catalogue.filter((i) => i.theme === etat.theme),
     jeux,
     periode: etat.periode,
@@ -329,6 +345,15 @@ async function demarrer(): Promise<void> {
   });
 
   brancherCommandes();
+
+  donnees
+    .comparaisons()
+    .then((c) => {
+      groupes = c;
+    })
+    .catch(() => {
+      // Les groupes de comparaison ne sont pas publiés : la fiche reste complète.
+    });
 
   // Bloc national : indépendant de la carte, il s'affiche dès que les séries
   // pays sont disponibles.

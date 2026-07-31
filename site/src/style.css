@@ -453,3 +453,24 @@ thead th {
 .comparaison .souligne th {
   font-weight: 700;
 }
+
+.quartiles {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+.quartiles li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.quartiles strong {
+  font-variant-numeric: tabular-nums;
+}
+.quartiles li:last-child {
+  border-top: 1px solid var(--trait);
+  padding-top: 0.25rem;
+}

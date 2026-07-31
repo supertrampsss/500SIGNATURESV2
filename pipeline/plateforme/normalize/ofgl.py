@@ -6,6 +6,8 @@ Usage : python -m plateforme.normalize.ofgl [--niveaux commune,epci,departement,
 
 import argparse
 
+from psycopg.types.json import Jsonb
+
 from plateforme import db
 from plateforme.connectors import ofgl
 from plateforme.http import fetch
@@ -150,6 +152,41 @@ def observations(lignes: list[dict], depuis: int) -> tuple[list[tuple], list[tup
     )
 
 
+def enregistrer_criteres(conn, lignes: list[dict]) -> int:
+    """Range les critères de comparaison de l'OFGL dans le référentiel.
+
+    Ils décrivent le territoire, pas une mesure : leur place est dans
+    `geography_reference.flags`, d'où le comparateur les lira pour constituer
+    un groupe de communes semblables (docs/01 §3).
+    """
+    derniers: dict[str, dict] = {}
+    for ligne in lignes:
+        if ligne["criteres"]:
+            # On garde l'exercice le plus récent : les critères évoluent.
+            precedent = derniers.get(ligne["geo_code"])
+            if precedent is None or ligne["period"] >= precedent["periode"]:
+                derniers[ligne["geo_code"]] = {
+                    "periode": ligne["period"],
+                    "criteres": ligne["criteres"],
+                }
+    if not derniers:
+        return 0
+    with conn.cursor() as curseur:
+        curseur.executemany(
+            """
+            update geo.geography_reference
+            set flags = flags || %s
+            where geo_level = 'commune' and geo_code = %s and vintage = %s
+            """,
+            [
+                (Jsonb({**valeur["criteres"], "criteres_source": "OFGL"}), code, MILLESIME)
+                for code, valeur in derniers.items()
+            ],
+        )
+    conn.commit()
+    return len(derniers)
+
+
 def filtrer_territoires_connus(conn, lignes: list[tuple]) -> tuple[list[tuple], set[str]]:
     """Écarte les territoires absents du référentiel plutôt que de faire échouer le
     run entier. Les codes écartés sont renvoyés : une couverture incomplète est une
@@ -237,7 +274,11 @@ def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
             db.record_asset(
                 conn, store, run_id, dataset_id, "ofgl", f"{niveau}.csv", contenu, url, "text/csv"
             )
-            montants, populations = observations(ofgl.lire(contenu, niveau), depuis)
+            brutes = ofgl.lire(contenu, niveau)
+            if niveau == "commune":
+                criteres = enregistrer_criteres(conn, brutes)
+                print(f"critères de comparaison : {criteres} communes")
+            montants, populations = observations(brutes, depuis)
             lignes, ecartes = filtrer_territoires_connus(conn, montants + populations)
             ecrites = ecrire(conn, run_id, lignes)
             if not controler_coherence(conn, run_id, niveau):

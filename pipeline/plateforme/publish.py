@@ -118,6 +118,98 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
     return valeurs
 
 
+# Critères du groupe de comparaison, repris de la classification de l'OFGL.
+# Trois critères suffisent à constituer des groupes lisibles ; en ajouter
+# davantage produirait des groupes d'une poignée de communes, où la position
+# d'un territoire ne voudrait plus rien dire.
+CRITERES_GROUPE = ["tranche_population", "rural", "outre_mer"]
+
+
+def comparaisons(conn) -> dict:
+    """Quartiles par groupe de communes semblables, calculés à la publication.
+
+    Répondre à « ma commune dépense-t-elle plus que les communes comparables ? »
+    suppose un groupe défini publiquement. Les critères viennent de l'OFGL, pas
+    d'un découpage maison, et sont affichés avec le résultat. Les montants sont
+    ramenés par habitant : comparer des totaux entre communes de tailles
+    différentes n'aurait aucun sens.
+    """
+    lignes = conn.execute(
+        f"""
+        with base as (
+            select o.indicator_id, o.period,
+                   concat_ws('|', {", ".join(f"g.flags->>'{c}'" for c in CRITERES_GROUPE)})
+                     as groupe,
+                   o.value / nullif(pop.value, 0) as par_habitant
+            from core.observations o
+            join core.indicators i using (indicator_id)
+            join geo.geography_reference g
+              on g.geo_level = o.geo_level and g.geo_code = o.geo_code
+             and g.vintage = o.geo_vintage
+            join core.observations pop
+              on pop.indicator_id = 'ofgl_population_reference'
+             and pop.geo_level = o.geo_level and pop.geo_code = o.geo_code
+             and pop.period = o.period
+            where o.geo_level = 'commune' and i.published and i.unit = 'EUR'
+              and o.value_status = 'normal' and g.flags ? 'tranche_population'
+        )
+        select indicator_id, period, groupe, count(*),
+               percentile_cont(0.25) within group (order by par_habitant),
+               percentile_cont(0.5) within group (order by par_habitant),
+               percentile_cont(0.75) within group (order by par_habitant)
+        from base where par_habitant is not null
+        group by 1, 2, 3 having count(*) >= 20
+        """
+    ).fetchall()
+    resultat: dict = defaultdict(lambda: defaultdict(dict))
+    for indicateur, periode, groupe, effectif, q1, mediane, q3 in lignes:
+        resultat[indicateur][periode][groupe] = {
+            "n": effectif,
+            "q1": round(float(q1), 2),
+            "mediane": round(float(mediane), 2),
+            "q3": round(float(q3), 2),
+        }
+    return {"criteres": CRITERES_GROUPE, "groupes": resultat}
+
+
+def fraicheur(conn) -> list[dict]:
+    """État public de chaque jeu : dernière mise à jour, retard, contrôles.
+
+    La transparence opérationnelle fait partie du produit (docs/03 §6) : un
+    chiffre vieux de deux ans doit se voir, pas se deviner.
+    """
+    return [
+        {
+            "jeu": jeu,
+            "titre": titre,
+            "priorite": priorite,
+            "frequence": frequence,
+            "derniere_extraction": extraction.isoformat(timespec="seconds") if extraction else None,
+            "retard_jours": retard,
+            "dernier_run": statut,
+            "controles_echoues": controles,
+        }
+        for jeu, titre, priorite, frequence, extraction, retard, statut, controles in conn.execute(
+            """
+            select d.dataset_id, d.title, d.priority, d.update_frequency,
+                   max(a.fetched_at) as extraction,
+                   case when d.expected_freshness_days is null then null
+                        else greatest(0, extract(day from now() - max(a.fetched_at))::int
+                                       - d.expected_freshness_days) end,
+                   (select r.status from meta.ingestion_runs r
+                     where r.dataset_id = d.dataset_id order by r.started_at desc limit 1),
+                   (select count(*) from meta.data_quality_checks c
+                     where c.dataset_id = d.dataset_id and not c.passed and c.severity = 'blocker')
+            from meta.dataset_registry d
+            join meta.raw_assets a on a.dataset_id = d.dataset_id
+            group by d.dataset_id, d.title, d.priority, d.update_frequency,
+                     d.expected_freshness_days
+            order by d.dataset_id
+            """
+        )
+    ]
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     return {
         code: {"nom": nom, "parent": parent, "population": population, "drapeaux": drapeaux}
@@ -174,6 +266,8 @@ def publier(conn, store, version: str) -> int:
             deposer(f"territoires/{niveau}/{lot}.json", contenu)
 
     deposer("recherche.json", recherche)
+    deposer("comparaisons.json", comparaisons(conn))
+    deposer("fraicheur.json", fraicheur(conn))
     store.put("data/derniere.json", _json({"version": version}), overwrite=True)
     print(f"publication {version} : {fichiers} fichiers, {len(recherche)} territoires")
     return fichiers

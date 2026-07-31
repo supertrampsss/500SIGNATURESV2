@@ -67,6 +67,14 @@ jobs:
             python -m plateforme.normalize.europe --store r2:plateforme-raw
             exit $?
           fi
+          if [ "$JOB" = "ofgl-et-publication" ]; then
+            # Les critères de comparaison arrivent avec les finances locales :
+            # recharger l'un sans republier l'autre laisserait le site incohérent.
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux commune --depuis 2020
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "publish" ]; then
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?

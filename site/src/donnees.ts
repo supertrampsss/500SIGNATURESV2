@@ -81,4 +81,24 @@ export const territoires = (niveau: string, lot: string) =>
 /** L'index de recherche pèse deux mégaoctets : il n'est chargé qu'à la première frappe. */
 export const indexRecherche = () => lire<EntreeRecherche[]>("recherche.json");
 
+export type Comparaisons = {
+  criteres: string[];
+  groupes: Record<string, Record<string, Record<string, Quartiles>>>;
+};
+export type Quartiles = { n: number; q1: number; mediane: number; q3: number };
+
+export type Fraicheur = {
+  jeu: string;
+  titre: string;
+  priorite: string;
+  frequence: string | null;
+  derniere_extraction: string | null;
+  retard_jours: number | null;
+  dernier_run: string | null;
+  controles_echoues: number;
+};
+
+export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
+export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
+
 export const urlTuiles = () => cleTuiles;
