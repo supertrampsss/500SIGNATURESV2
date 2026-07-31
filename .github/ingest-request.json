@@ -1,4 +1,4 @@
 {
-  "dataset_id": "bdm-dette-trim",
-  "request": "2026-07-31-2"
+  "job": "geo",
+  "request": "2026-07-31-referentiel-geographique"
 }

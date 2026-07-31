@@ -48,6 +48,12 @@ Un indicateur sans fiche complète **ne peut pas** passer `published = true`
 | Série interrompue | `break_in_series` présent sur la période affichée |
 | Comparabilité limitée | secret > seuil, couverture partielle, périmètre mouvant |
 
+## Approximations assumées (à déclarer sur chaque chiffre concerné)
+
+| Approximation | Où | Méthode et limite |
+|---|---|---|
+| Répartition d'une **scission** de commune | `geo.geography_history.population_share` | Une commune rétablie récupère une part du territoire d'origine, calculée au prorata des **populations actuelles** des successeurs. La population d'aujourd'hui n'est pas celle de l'année du mouvement : la part est donc approchée. Quand la population d'un successeur est inconnue, le partage est égal. Les **fusions ne sont pas concernées** (part de 1, exacte). Tout indicateur dont la série traverse une scission porte le badge « Comparabilité limitée ». |
+
 ## Processus de correction
 
 1. Anomalie détectée (check, signalement) → issue GitHub.

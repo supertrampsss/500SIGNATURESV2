@@ -56,6 +56,9 @@ def finish_run(
     rows_written: int = 0,
     error: str | None = None,
 ) -> None:
+    # Une écriture ratée laisse la transaction avortée : sans ce rollback, tracer
+    # l'échec échouerait à son tour et masquerait l'erreur d'origine.
+    conn.rollback()
     details = Jsonb({"message": error}) if error is not None else None
     conn.execute(
         """

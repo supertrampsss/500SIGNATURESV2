@@ -1,5 +1,7 @@
 dataset_id,source_id,external_id,title,endpoint_url,format,update_frequency,expected_freshness_days,geo_granularity,time_granularity,priority,ingestion_mode,target_tables,personal_data,statistical_secrecy
-cog-communes,insee-metadonnees,,COG communes et mouvements territoriaux,https://api.insee.fr/metadonnees/geo/,JSON,annuelle,400,commune,millesime,P0,api_pull,geo.geography_reference|geo.geography_history,false,false
+cog-communes,insee-fichiers,8377162,COG 2025 (communes / mouvements depuis 1943 / departements / regions),https://www.insee.fr/fr/statistiques/fichier/8377162/v_commune_2025.csv,CSV,annuelle,400,commune,millesime,P0,file_download,geo.geography_reference|geo.geography_history,false,false
+geo-api-communes,api-geo,,Population legale et rattachements EPCI/SIREN par commune (API Geo),https://geo.api.gouv.fr/communes,JSON,continue,400,commune,millesime,P0,api_pull,geo.geography_reference,false,false
+geo-api-epci,api-geo,,Liste des EPCI a fiscalite propre (API Geo),https://geo.api.gouv.fr/epcis,JSON,continue,400,epci,millesime,P0,api_pull,geo.geography_reference,false,false
 table-appartenance-geo,insee-fichiers,,Table d'appartenance geographique des communes,https://www.insee.fr/fr/information/2028028,XLSX,annuelle,400,commune,millesime,P0,file_download,geo.geography_reference,false,false
 admin-express-cog,ign,,ADMIN EXPRESS COG (geometries administratives),https://geoservices.ign.fr/adminexpress,GPKG,annuelle,400,commune,millesime,P0,file_download,geo.geography_reference,false,false
 gisco-nuts,gisco,nuts-2024,Geometries NUTS et correspondances LAU,https://gisco-services.ec.europa.eu/distribution/v2/nuts/nuts-2024-files.json,GeoJSON,triennale,1200,nuts3,version,P0,file_download,geo.geography_reference|geo.geography_history,false,false

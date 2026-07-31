@@ -36,6 +36,7 @@ jobs:
           if [ -f .github/ingest-request.json ]; then
             echo "dataset_id=$(jq -r '.dataset_id // empty' .github/ingest-request.json)" >> "$GITHUB_OUTPUT"
             echo "params=$(jq -c '.params // empty' .github/ingest-request.json)" >> "$GITHUB_OUTPUT"
+            echo "job=$(jq -r '.job // empty' .github/ingest-request.json)" >> "$GITHUB_OUTPUT"
           fi
       - name: Run ingestion
         env:
@@ -45,7 +46,14 @@ jobs:
           CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
           DATASET_ID: ${{ inputs.dataset_id || steps.req.outputs.dataset_id }}
           PARAMS: ${{ inputs.params || steps.req.outputs.params }}
+          JOB: ${{ steps.req.outputs.job }}
         run: |
+          # Le référentiel géographique enchaîne collecte et normalisation :
+          # un référentiel sans son historique territorial serait inutilisable.
+          if [ "$JOB" = "geo" ]; then
+            python -m plateforme.normalize.geo --store r2:plateforme-raw
+            exit $?
+          fi
           if [ -z "$DATASET_ID" ]; then echo "aucun dataset_id" && exit 1; fi
           if [ -n "$PARAMS" ]; then
             python -m plateforme.ingest "$DATASET_ID" --store r2:plateforme-raw --params "$PARAMS"

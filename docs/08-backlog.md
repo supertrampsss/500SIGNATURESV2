@@ -6,8 +6,15 @@
 > manuel) ; entamés : T-06/T-07/T-08/T-09 (connecteurs de snapshot sans clé +
 > lineage ; normalisation vers les tables analytiques à venir avec T-11+).
 > T-07 couvre déjà le pattern de T-10 (Webstat est un portail Opendatasoft).
-> Restent côté propriétaire : les 3 secrets GitHub (docs/SETUP.md §3) qui
-> arment le workflow Ingestion, et une clé INSEE pour la partie Sirene de T-08.
+> Secrets GitHub en place ; premier run d'ingestion réel exécuté.
+>
+> **T-11 (référentiel géographique)** : fait pour la partie non géométrique —
+> COG 2025 (36 295 territoires : pays, régions, départements, EPCI, communes,
+> arrondissements municipaux) et **4 882 mouvements territoriaux depuis 1943**,
+> avec `geo.passage()` vérifiée sur des chaînes réelles (changement de
+> département suivi d'une fusion, fusions successives). Reste dans T-11 : les
+> **géométries** (Admin Express), traitées avec T-18 (tuiles vectorielles).
+> Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /
