@@ -12,6 +12,7 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, positionDansGroupe } from "./fiche.ts";
 import { afficherBudgetEtat } from "./etat.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
+import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
 import { expressionCouleur, formater, quantiles } from "./echelle.ts";
 import "./style.css";
@@ -29,6 +30,7 @@ type Etat = {
   periode: string;
   declinaison: string;
   selection: string | null;
+  comparaison: string[];
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -50,6 +52,7 @@ function lireUrl(): Etat {
     periode: p.get("periode") ?? "",
     declinaison: p.get("affichage") ?? "habitant",
     selection: p.get("territoire"),
+    comparaison: (p.get("comparer") ?? "").split(",").filter(Boolean).slice(0, MAXIMUM),
   };
 }
 
@@ -62,6 +65,7 @@ function ecrireUrl(): void {
     affichage: etat.declinaison,
   });
   if (etat.selection) p.set("territoire", etat.selection);
+  if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
   history.replaceState(null, "", `?${p}`);
 }
 
@@ -198,6 +202,53 @@ async function montrerFiche(code: string): Promise<void> {
     periode: etat.periode,
     parHabitant: etat.declinaison === "habitant",
   });
+  ajouterBoutonComparer(code);
+}
+
+/** Le bouton vit sur la fiche : on compare un territoire qu'on est en train de
+ *  regarder, pas une ligne d'une liste. */
+function ajouterBoutonComparer(code: string): void {
+  const dedans = etat.comparaison.includes(code);
+  const complet = !dedans && etat.comparaison.length >= MAXIMUM;
+  const bouton = document.createElement("button");
+  bouton.type = "button";
+  bouton.className = "comparer";
+  bouton.disabled = complet;
+  bouton.textContent = complet
+    ? `Comparaison complète (${MAXIMUM} territoires)`
+    : dedans
+      ? "Retirer de la comparaison"
+      : "Ajouter à la comparaison";
+  bouton.addEventListener("click", async () => {
+    etat.comparaison = dedans
+      ? etat.comparaison.filter((c) => c !== code)
+      : [...etat.comparaison, code];
+    ecrireUrl();
+    await majComparateur();
+    ajouterBoutonComparer(code);
+  });
+  $("fiche").querySelector(".comparer")?.remove();
+  $("fiche").querySelector(".fiche__meta")?.after(bouton);
+}
+
+async function majComparateur(): Promise<void> {
+  const section = $("comparateur");
+  if (!etat.comparaison.length) {
+    section.hidden = true;
+    return;
+  }
+  await chargerLotsNecessaires(etat.niveau, etat.comparaison);
+  const entrees: Entree[] = etat.comparaison
+    .filter((code) => entites[code])
+    .map((code) => ({ code, niveau: etat.niveau, territoire: entites[code] }));
+  afficherComparateur(
+    section,
+    entrees,
+    catalogue.filter((i) => i.theme === etat.theme && i.niveaux?.includes(etat.niveau)),
+    etat.periode,
+    etat.declinaison === "habitant",
+  );
+  section.hidden = false;
 }
 
 const THEMES: Record<string, string> = {
@@ -257,6 +308,7 @@ function brancherCommandes(): void {
     construireSelecteurs();
     ecrireUrl();
     await peindre();
+    await majComparateur();
   });
 
   const champ = $<HTMLInputElement>("recherche");
@@ -377,6 +429,8 @@ async function demarrer(): Promise<void> {
   } catch {
     // Budget de l'État non publié : le reste du bloc national tient debout.
   }
+
+  await majComparateur();
 
   try {
     if (afficherFraicheur($("etat-donnees"), await donnees.fraicheur())) {
