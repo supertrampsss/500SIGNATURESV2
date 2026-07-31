@@ -8,5 +8,9 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["src"]
+  // Les tests tournent avec le décapeur de types de Node, pas avec tsc :
+  // ils importent des modules node: et des chemins en .ts que le compilateur
+  // de l'application n'a pas à connaître.
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
 }
