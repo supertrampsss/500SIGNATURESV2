@@ -527,6 +527,33 @@ thead th {
   margin: 0.6rem 0 0;
 }
 
+/* Questions d'entrée : ce que le site sait faire, dit avant la carte. */
+.questions__cadre {
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--trait);
+}
+.questions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.6rem 1.5rem;
+}
+.questions li {
+  display: grid;
+  gap: 0.15rem;
+}
+.questions a {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+.questions span {
+  color: var(--encre-douce);
+  font-size: 0.78rem;
+}
+
 /* « 100 € » : deux colonnes de parts, une seule teinte, largeur proportionnelle.
    Le chiffre porte l'information, la barre ne fait qu'ordonner le regard. */
 .cent__grille {

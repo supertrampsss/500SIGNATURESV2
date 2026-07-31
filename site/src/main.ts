@@ -12,6 +12,7 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, positionDansGroupe } from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
+import { afficherQuestions } from "./questions.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
@@ -344,6 +345,7 @@ async function demarrer(): Promise<void> {
   catalogue = await donnees.indicateurs();
   etat = lireUrl();
   construireSelecteurs();
+  afficherQuestions($("questions"));
 
   $("fraicheur").textContent = `Données publiées le ${new Date(
     manifeste.genere_le,
