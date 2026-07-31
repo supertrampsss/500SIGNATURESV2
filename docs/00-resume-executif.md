@@ -102,12 +102,19 @@ En ligne : le référentiel géographique (COG 2025, y compris Métropole de Lyo
 Collectivité européenne d'Alsace et établissements publics territoriaux du Grand
 Paris), les finances locales de l'OFGL des quatre niveaux, les groupes de
 comparaison entre communes semblables, la dette publique par sous-secteur
-(INSEE, base 2020), les comparaisons européennes (Eurostat) et le **budget de
+(INSEE, base 2020), les comparaisons européennes (Eurostat), le **budget de
 l'État de 2013 à 2025, voté, rectifié et exécuté** — le pont recettes → dépenses
-→ solde, avec l'écart entre la loi de finances et l'exécution.
+→ solde — ainsi que la **dotation globale de fonctionnement** reçue par chaque
+commune, le **niveau de vie médian**, le **taux de pauvreté** et la
+**population municipale**.
+
+Ces derniers ferment une boucle : l'État inscrit un prélèvement sur recettes au
+profit des collectivités, et la série des dotations dit ce que chaque commune en
+reçoit. Les deux viennent d'administrations différentes et se contrôlent l'une
+l'autre.
 
 Restent à livrer : le budget de l'État par mission et programme (destination des
-crédits, et non plus seulement leur nature), les revenus et la pauvreté
-communaux, le moteur de questions en langage naturel et l'API publique
-versionnée. Le détail par mission suppose les jeux PLF, un par exercice, dont
-l'identifiant change chaque année.
+crédits, et non plus seulement leur nature), le chômage localisé, les
+entreprises, le moteur de questions en langage naturel. Le détail par mission
+suppose les jeux PLF, un par exercice, dont l'identifiant change chaque année —
+et qui portent le projet de loi, non la loi votée.

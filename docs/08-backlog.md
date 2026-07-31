@@ -68,6 +68,21 @@
 > qui ramène la base sous le plafond du plan gratuit sans rien détruire
 > d'irremplaçable.
 >
+> **T-16 (domaines sociaux et démographiques)** : entamé. Chargés le
+> 31/07/2026 — dotations de l'État aux communes (34 875 communes, contrôlées
+> contre le prélèvement sur recettes de l'État), niveau de vie médian
+> (30 793 communes, 88,3 %), taux de pauvreté (2 482 communes, 7,1 % — l'INSEE
+> ne le diffuse qu'au-dessus d'un seuil de taille, et la couverture réelle est
+> enregistrée avec le run), population municipale sur deux millésimes espacés
+> de dix ans. Reste : chômage localisé, entreprises, éducation, santé.
+>
+> **Deux bugs d'affichage corrigés au passage**, tous deux de la même famille —
+> une liste écrite en dur qui contredit la donnée publiée. Les niveaux
+> géographiques d'un indicateur étaient écrasés par le dernier chargement
+> partiel, ce qui vidait le site dès qu'on choisissait « Départements » ; ils
+> sont désormais relus depuis les observations à chaque publication. Et un
+> thème absent d'une table du site n'est plus écarté du sélecteur.
+>
 > Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08, et
 > l'arbitrage D6bis sur le volume de la base.
 >
