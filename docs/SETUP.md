@@ -39,14 +39,22 @@ toute la base est reconstructible depuis les snapshots R2.
 
 ## 2. Cloudflare (T-02)
 
-1. Créer un compte sur https://dash.cloudflare.com (plan Free).
-2. R2 : créer les buckets **plateforme-raw** et **plateforme-published**
-   (R2 demande l'ajout d'une carte bancaire même en usage gratuit ≤ 10 Go —
-   si c'est bloquant maintenant, le dire : les snapshots iront temporairement
-   dans le dépôt via Git LFS ou attendront, rien d'autre n'en dépend au socle).
-3. Créer un API token : My Profile → API Tokens → template « Edit Cloudflare
-   Workers » + permission R2 Read/Write, portée limitée au compte.
-4. Pages/Workers seront branchés à T-17/T-19 (`infra/cloudflare/wrangler.toml.example`).
+> **⏳ Partiellement fait le 31/07/2026** via un API token scopé (Account : R2
+> Edit, Pages Edit, Workers Edit, Settings Read ; Zone `500signatures.fr` :
+> DNS Edit — ce token EST la valeur du secret `CLOUDFLARE_API_TOKEN`) :
+> - Account ID : `8f1b454e7961068fe7a3750341fe7aaf` (valeur du secret
+>   `CLOUDFLARE_ACCOUNT_ID`) ;
+> - zone `500signatures.fr` : active, vérifiée — le DNS actuel n'est pas
+>   modifié avant le déploiement du site (T-17/T-19) ;
+> - **R2 : en attente d'une activation unique dans le dashboard**
+>   (menu R2 → activer ; carte bancaire demandée, gratuit ≤ 10 Go — l'API
+>   renvoie l'erreur 10042 tant que ce n'est pas fait). Dès l'activation :
+>   création des buckets `plateforme-raw` (hint `weur`) et
+>   `plateforme-published`, puis branchement du store R2 du pipeline.
+
+Procédure d'origine (si re-création de zéro) : compte Free, activer R2, créer
+les deux buckets, créer le token custom ci-dessus, brancher Pages/Workers à
+T-17/T-19 (`infra/cloudflare/wrangler.toml.example`).
 
 ## 3. Secrets GitHub (Settings → Secrets and variables → Actions)
 
