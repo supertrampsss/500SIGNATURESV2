@@ -54,3 +54,12 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -q -f infra/supabase/seed/load_seed.sql
       - name: Constraint tests
         run: psql -v ON_ERROR_STOP=1 -q -f infra/supabase/tests/checks.sql
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Lineage integration tests (python <-> PostGIS)
+        run: |
+          pip install -q -e ./pipeline pytest
+          pytest -q pipeline/tests
+        env:
+          PLATEFORME_TEST_DB: postgresql://postgres:postgres@localhost:5432/plateforme
