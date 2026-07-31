@@ -40,9 +40,12 @@ function retard(jours: number | null, frequence: string | null): string {
   return `${jours} j de retard sur une mise à jour ${echapper(frequence ?? "attendue")}`;
 }
 
-/** Ce que les contrôles ont relevé, en français et sans jargon d'identifiant. */
+/** Ce que les contrôles ont relevé, en français et sans jargon d'identifiant.
+ *  « Rien à signaler » et « on ne sait pas » sont deux réponses différentes :
+ *  une publication antérieure à ce champ ne doit pas se lire comme un feu vert. */
 function anomalies(jeu: Fraicheur): string {
-  if (!jeu.anomalies?.length) return "aucune anomalie relevée";
+  if (jeu.anomalies === undefined) return "non renseigné pour cette publication";
+  if (!jeu.anomalies.length) return "aucune anomalie relevée";
   return jeu.anomalies
     .map((a) => {
       const cas = Object.keys(a.constat ?? {}).filter((c) => c.includes("/") || /^\d{4}$/.test(c));

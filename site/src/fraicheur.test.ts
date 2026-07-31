@@ -73,6 +73,14 @@ test("l'absence d'anomalie est dite, pas laissée vide", () => {
   assert.match(rendu(propre), /aucune anomalie relevée/);
 });
 
+test("« rien à signaler » et « on ne sait pas » ne se confondent pas", () => {
+  // Une publication antérieure au champ ne porte pas d'anomalies : l'afficher
+  // comme un feu vert transformerait une lacune en garantie.
+  const ancienne = [{ ...JEUX[0], anomalies: undefined }];
+  assert.match(rendu(ancienne), /non renseigné pour cette publication/);
+  assert.doesNotMatch(rendu(ancienne), /aucune anomalie relevée/);
+});
+
 test("les jeux les plus récemment lus viennent en premier", () => {
   const html = rendu(JEUX);
   assert.ok(html.indexOf("Situation mensuelle") < html.indexOf("Finances des communes"));

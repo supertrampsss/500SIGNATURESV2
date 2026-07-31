@@ -96,7 +96,8 @@ export type Fraicheur = {
   retard_jours: number | null;
   dernier_run: string | null;
   controles_echoues: number;
-  anomalies: Anomalie[];
+  /** Absent des publications antérieures à ce champ : distinct d'une liste vide. */
+  anomalies?: Anomalie[];
 };
 
 /** Un contrôle en échec au dernier chargement : ce qui n'a pas été publié. */
