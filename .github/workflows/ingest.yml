@@ -38,6 +38,10 @@ jobs:
             echo "params=$(jq -c '.params // empty' .github/ingest-request.json)" >> "$GITHUB_OUTPUT"
             echo "job=$(jq -r '.job // empty' .github/ingest-request.json)" >> "$GITHUB_OUTPUT"
           fi
+      - name: Install tiling toolchain
+        # Après la lecture de la requête : c'est elle qui dit si on fait des tuiles.
+        if: steps.req.outputs.job == 'geometries'
+        run: sudo apt-get install -y -qq tippecanoe
       - name: Sync source registry
         env:
           PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
@@ -56,6 +60,11 @@ jobs:
           # un référentiel sans son historique territorial serait inutilisable.
           if [ "$JOB" = "geo" ]; then
             python -m plateforme.normalize.geo --store r2:plateforme-raw
+            exit $?
+          fi
+          if [ "$JOB" = "geometries" ]; then
+            python -m plateforme.normalize.geometries \
+              --store r2:plateforme-raw --publication r2:plateforme-published
             exit $?
           fi
           if [ "$JOB" = "ofgl" ]; then
