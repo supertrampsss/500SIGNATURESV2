@@ -1,14 +1,19 @@
 name: Deploy site
 
-# Déploiement en preview sur Cloudflare Pages. Le site porte une balise
-# noindex tant que le projet n'est pas annoncé (décision D1).
+# Déploiement sur Cloudflare Pages. Le site porte une balise noindex tant que
+# le projet n'est pas annoncé (décision D1).
+#
+# Aucun filtre de branche : le projet n'a qu'un site et qu'une branche de
+# développement, et le déploiement doit suivre le travail en cours. Le fichier
+# `deploy-request.json` permet de redéployer sans toucher au site — l'app
+# GitHub de l'agent n'a pas le droit `workflow_dispatch`.
 
 on:
   workflow_dispatch:
   push:
-    branches: [main]
     paths:
       - "site/**"
+      - ".github/deploy-request.json"
       - ".github/workflows/deploy.yml"
 
 jobs:
@@ -27,6 +32,10 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        # `--branch=main`, jamais un nom de branche de travail : Cloudflare sert
+        # les autres branches sous `<branche>.<projet>.pages.dev`, un niveau de
+        # sous-domaine que son certificat générique ne couvre pas. Le navigateur
+        # refuse alors la connexion (ERR_SSL_VERSION_OR_CIPHER_MISMATCH).
         run: |
           npx --yes wrangler@4 pages deploy site/dist \
-            --project-name=plateforme --branch=preview --commit-dirty=true
+            --project-name=plateforme --branch=main --commit-dirty=true
