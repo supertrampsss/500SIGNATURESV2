@@ -8,7 +8,7 @@ d'unicité sur (dataset_id, content_sha256) de meta.raw_assets.
 import hashlib
 import os
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import psycopg
 from psycopg.types.json import Jsonb
@@ -33,7 +33,7 @@ def get_dataset(conn: psycopg.Connection, dataset_id: str) -> dict:
     if row is None:
         raise KeyError(f"dataset inconnu du registre : {dataset_id}")
     keys = ["dataset_id", "source_id", "external_id", "endpoint_url", "ingestion_mode", "base_url"]
-    return dict(zip(keys, row))
+    return dict(zip(keys, row, strict=True))
 
 
 def start_run(conn: psycopg.Connection, dataset_id: str, trigger: str = "manual") -> str:
@@ -89,7 +89,7 @@ def record_asset(
 ) -> AssetResult:
     """Enregistre un snapshot : d'abord le lineage (détection de doublon), puis le fichier."""
     sha = hashlib.sha256(content).hexdigest()
-    ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H%M%SZ")
+    ts = datetime.now(UTC).strftime("%Y-%m-%dT%H%M%SZ")
     key = f"raw/{source_id}/{dataset_id}/{ts}/{filename}"
     row = conn.execute(
         """

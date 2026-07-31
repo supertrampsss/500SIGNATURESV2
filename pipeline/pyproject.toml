@@ -14,6 +14,11 @@ dev = ["pytest>=8", "ruff>=0.4"]
 [tool.ruff]
 line-length = 100
 
+# Jeu de règles explicite : le lint doit être identique en local et en CI,
+# quelle que soit la version de ruff installée.
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "UP", "B", "BLE"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]

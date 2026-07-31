@@ -72,7 +72,7 @@ def run(dataset_id: str, params: dict | None, store_root: str, trigger: str) -> 
         state = "inchangé (hash identique)" if result.unchanged else f"snapshot {result.key}"
         print(f"[{dataset_id}] run {run_id} : {state}")
         return 0
-    except Exception as error:  # échec tracé dans le lineage avant de remonter
+    except Exception as error:  # noqa: BLE001 — tout échec doit finir tracé dans le lineage
         db.finish_run(conn, run_id, "failed", error=str(error))
         print(f"[{dataset_id}] run {run_id} : ÉCHEC {error}", file=sys.stderr)
         return 1

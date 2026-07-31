@@ -1,5 +1,11 @@
 # 08 — Livrable 8 : backlog GitHub priorisé
 
+> **État au 31/07/2026** — fait (PR #2) : T-01, T-04, T-05 ; entamés : T-06/T-07/T-08/T-09
+> (connecteurs de snapshot sans clé + lineage ; normalisation vers les tables
+> analytiques à venir avec T-11+). T-07 couvre déjà le pattern de T-10 (Webstat
+> est un portail Opendatasoft). Bloqués sur les actions de `docs/SETUP.md`
+> (comptes + secrets) : T-02, T-03, et la partie Sirene de T-08.
+
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /
 Priorité / Effort (S-M-L-XL) / Risque / Dépendances / Tests / Definition of Done.**
