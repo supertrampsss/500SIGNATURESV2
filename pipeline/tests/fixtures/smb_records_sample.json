@@ -1,0 +1,135 @@
+{
+ "total_count": 26,
+ "results": [
+  {
+   "ligne_d_information": "Solde budgétaire",
+   "31_12_2024": -155929972365.41,
+   "31_05_2026": -93309004423.87
+  },
+  {
+   "ligne_d_information": "Total dépenses nettes du budget général",
+   "31_12_2024": 443413251207.98,
+   "31_05_2026": 195032711726.17
+  },
+  {
+   "ligne_d_information": "Dotation des pouvoirs publics",
+   "31_12_2024": 1157376416.0,
+   "31_05_2026": 1140107092.71
+  },
+  {
+   "ligne_d_information": "Dépenses de personnel",
+   "31_12_2024": 152818973789.54,
+   "31_05_2026": 67026833014.72
+  },
+  {
+   "ligne_d_information": "Dépenses de fonctionnement",
+   "31_12_2024": 76803466119.0,
+   "31_05_2026": 31090558484.79
+  },
+  {
+   "ligne_d_information": "Charges de la dette de l’Etat",
+   "31_12_2024": 50084696306.1,
+   "31_05_2026": 32723310807.67
+  },
+  {
+   "ligne_d_information": "Dépenses d’investissement",
+   "31_12_2024": 19711586261.24,
+   "31_05_2026": 10264510090.31
+  },
+  {
+   "ligne_d_information": "Dépenses d’intervention",
+   "31_12_2024": 141726812800.5,
+   "31_05_2026": 52387074220.2
+  },
+  {
+   "ligne_d_information": "Dépenses d’opérations financières",
+   "31_12_2024": 1110339515.6,
+   "31_05_2026": 400318015.77
+  },
+  {
+   "ligne_d_information": "Total prélèvements sur recettes",
+   "31_12_2024": 67733238791.8,
+   "31_05_2026": 27099553519.27
+  },
+  {
+   "ligne_d_information": "PSR au profit des collectivités territoriales",
+   "31_12_2024": 45456844973.56,
+   "31_05_2026": 15760294168.16
+  },
+  {
+   "ligne_d_information": "PSR au profit de l'Union européenne",
+   "31_12_2024": 22276393818.24,
+   "31_05_2026": 11339259351.11
+  },
+  {
+   "ligne_d_information": "Total recettes nettes du budget général",
+   "31_12_2024": 348890901383.75,
+   "31_05_2026": 147344043801.48
+  },
+  {
+   "ligne_d_information": "Total recettes fiscales",
+   "31_12_2024": 325679295289.64,
+   "31_05_2026": 134683861474.32
+  },
+  {
+   "ligne_d_information": "Impôt sur le revenu",
+   "31_12_2024": 87987247678.47,
+   "31_05_2026": 36454286477.24
+  },
+  {
+   "ligne_d_information": "Impôt sur les sociétés",
+   "31_12_2024": 57420121750.89,
+   "31_05_2026": 20828692559.51
+  },
+  {
+   "ligne_d_information": "Taxe intérieure de consommation sur les produits énergétiques",
+   "31_12_2024": 15969195151.58,
+   "31_05_2026": 5931873855.09
+  },
+  {
+   "ligne_d_information": "Taxe sur la valeur ajoutée",
+   "31_12_2024": 96758573419.46,
+   "31_05_2026": 45263592428.51
+  },
+  {
+   "ligne_d_information": "Autres recettes fiscales",
+   "31_12_2024": 67544157289.24,
+   "31_05_2026": 26205416153.97
+  },
+  {
+   "ligne_d_information": "Total recettes non fiscales",
+   "31_12_2024": 23211606094.11,
+   "31_05_2026": 12660182327.16
+  },
+  {
+   "ligne_d_information": "Solde des comptes spéciaux",
+   "31_12_2024": -2349966842.78,
+   "31_05_2026": -20725480999.16
+  },
+  {
+   "ligne_d_information": "CCF Avances aux collectivités territoriales",
+   "31_12_2024": 162503237.729996,
+   "31_05_2026": -20063796603.52
+  },
+  {
+   "ligne_d_information": "Solde des Budgets annexes",
+   "31_12_2024": 366390520.79,
+   "31_05_2026": null
+  },
+  {
+   "ligne_d_information": "Remboursements et dégrèvements d'impôts d'Etat",
+   "31_12_2024": 141568330580.19,
+   "31_05_2026": 53988681131.92
+  },
+  {
+   "ligne_d_information": "Remboursements et dégrèvements d'impôts locaux",
+   "31_12_2024": 4955165409.84,
+   "31_05_2026": 1659445320.23
+  },
+  {
+   "ligne_d_information": "Fonds de concours et attribution de produits",
+   "31_12_2024": 8309192572.61,
+   "31_05_2026": 2204698019.25
+  }
+ ]
+}

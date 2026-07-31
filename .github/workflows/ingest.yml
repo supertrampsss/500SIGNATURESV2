@@ -75,6 +75,13 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "etat" ]; then
+            # Le budget de l'État se republie dans la foulée : le pont
+            # « recettes -> dépenses -> solde » n'a de sens qu'entier.
+            python -m plateforme.normalize.etat --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "publish" ]; then
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
