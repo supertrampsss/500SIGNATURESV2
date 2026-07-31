@@ -62,6 +62,11 @@ jobs:
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             exit $?
           fi
+          if [ "$JOB" = "national" ]; then
+            python -m plateforme.normalize.macro --store r2:plateforme-raw
+            python -m plateforme.normalize.europe --store r2:plateforme-raw
+            exit $?
+          fi
           if [ "$JOB" = "publish" ]; then
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
