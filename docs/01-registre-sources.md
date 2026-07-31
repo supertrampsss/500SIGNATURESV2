@@ -1,0 +1,332 @@
+# 01 — Livrable 1 : registre complet des sources
+
+*31 juillet 2026.*
+
+## Conventions du registre
+
+**Catégories d'accès** (colonne « API/Téléch. ») :
+- **A** — API officielle exploitable directement (sans clé) ;
+- **B** — API officielle nécessitant clé, OAuth, quota ou convention ;
+- **C** — téléchargement officiel récurrent (CSV, XLSX, JSON, GeoJSON, Parquet, SDMX, XML) ;
+- **D** — fichier ponctuel ou publication non structurée (extraction prudente) ;
+- **E** — indisponible / secret statistique / non publiable ;
+- **F** — source tierce (enrichissement uniquement, jamais substitut d'une source officielle).
+
+**Priorités** : P0 = indispensable MVP ; P1 = haute valeur, phase 2 ; P2 = enrichissement,
+phase 3 ; P3 = expérimental/coût de maintenance élevé ; EXCLU = incompatible avec la
+promesse de fiabilité.
+
+**Vérification** : les URL suivies de **✓** ont répondu HTTP 200 à un test direct le
+31/07/2026. Les autres sont établies d'après la documentation officielle et marquées
+**(nv)** = à re-vérifier au moment d'écrire le connecteur. Aucune URL n'est inventée ;
+en cas de doute, le catalogue amont (data.gouv.fr, portail API INSEE) fait foi.
+
+**Licences** : LO2.0 = Licence Ouverte 2.0 / Etalab (réutilisation libre avec mention
+de la source). Les exceptions sont signalées.
+
+**Tables cibles** : elles renvoient au modèle du [02-modele-donnees.md](02-modele-donnees.md).
+Toutes les ingestions passent d'abord par `raw_assets` (snapshot R2) et `ingestion_runs` ;
+la colonne indique la table analytique finale.
+
+**Score de priorité** : la priorité P0–P3 synthétise cinq axes notés lors du benchmark —
+impact utilisateur, faisabilité, fraîcheur, fiabilité, coût de maintenance. Le détail
+axe par axe n'est pas reproduit ligne à ligne ; les cas où un axe a été déterminant
+(ex. DVF : impact fort mais volumétrie lourde) sont signalés en « Limites ».
+
+---
+
+## 1. Référentiels géographiques
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Géo | Codes officiels | INSEE | COG — Code officiel géographique (API Métadonnées `/geo` + CSV annuel) | FR | A + C | https://api.insee.fr/metadonnees/geo/ (nv) ; millésimes CSV sur insee.fr | aucune | LO2.0 | annuelle (1er janv.) | 1943→ (mouvements) | commune→région | millésime annuel | code INSEE commune, dép., région | libellés, hiérarchie, événements (fusions, scissions, changements de nom) | l'API renvoie l'état à une date ; reconstruire l'historique exige les fichiers de mouvements | **P0** | pull annuel + fichier mouvements | `geography_reference`, `geography_history` |
+| Géo | Zonages d'étude | INSEE | Table d'appartenance géographique des communes (ZE, AAV, UU, BV, EPCI) | FR | C | https://www.insee.fr/fr/information/2028028 (nv) | aucune | LO2.0 | annuelle | ~2020→ | commune | millésime | code INSEE, code EPCI (SIREN), codes zonage | appartenance commune→EPCI/zone d'emploi/aire d'attraction/unité urbaine/bassin de vie | XLSX à parser ; millésime de zonage ≠ millésime COG à surveiller | **P0** | téléchargement annuel | `geography_reference` (attributs) |
+| Géo | Périmètres intercommunaux | DGCL (Banatic) | Composition et compétences des EPCI et syndicats | FR | C | https://www.banatic.interieur.gouv.fr (nv) ; miroir data.gouv.fr | aucune | LO2.0 | trimestrielle | 2007→ | EPCI/commune | date d'extraction | SIREN groupement, code INSEE membre | périmètres, compétences, nature juridique | changements de périmètre fréquents ; à croiser avec OFGL | P1 | téléchargement trimestriel | `geography_reference`, `geography_history` |
+| Géo | Géométries administratives | IGN — Géoplateforme | ADMIN EXPRESS COG (communes, EPCI, dép., régions, arrondissements) | FR | C | https://geoservices.ign.fr/adminexpress (nv) ; téléchargement data.geopf.fr | aucune | LO2.0 | annuelle (édition COG) | éditions 2017→ | commune (polygone) | millésime | code INSEE | géométries topologiquement propres alignées COG | archives lourdes (~1 Go) ; simplification nécessaire pour tuiles | **P0** | téléchargement annuel → PostGIS → tuiles | `geography_reference.geom` |
+| Géo | Géométries infra-communales | IGN / INSEE | Contours IRIS | FR | C | https://geoservices.ign.fr/contoursiris (nv) | aucune | LO2.0 | annuelle | 2016→ | IRIS | millésime | code IRIS | polygones IRIS | données attributaires IRIS de plus en plus rares (Filosofi s'arrête à 2021 à l'IRIS) | P2 | téléchargement annuel | `geography_reference` (niveau iris) |
+| Géo | Adresse / géocodage | DINUM/IGN — BAN | API Adresse (géocodage/reverse) | FR | A | https://api-adresse.data.gouv.fr/search/ ✓ | aucune | LO2.0 | continue | n/a | adresse | n/a | id BAN, code INSEE retourné | géocodage, autocomplétion, reverse | 50 req/s/IP ; pour géocodage massif utiliser le CSV BAN ou le géocodeur batch | **P0** | appel à la volée (recherche carte) + batch CSV si besoin | pas de table (service) |
+| Géo | Découpage administratif (API) | DINUM/Etalab | API Géo (communes, EPCI, départements, régions) | FR | A | https://geo.api.gouv.fr/communes/33318 ✓ | aucune | LO2.0 | continue (COG courant) | COG courant seulement | commune→région | n/a | code INSEE, SIREN EPCI | population, appartenances, contours GeoJSON simplifiés | pas d'historique — ne remplace pas le COG millésimé | **P0** | appel utilitaire (recherche, contrôles) | complément de `geography_reference` |
+| Géo | Carroyage | INSEE | Données carroyées 200 m / 1 km (Filosofi) | FR | C | https://www.insee.fr/fr/statistiques (rubrique données carroyées) (nv) | aucune | LO2.0 | pluriannuelle | 2015, 2017, 2019, 2021 | carreau 200 m | millésime | id carreau (Inspire) | population, ménages, revenus au carreau | secret statistique (carreaux imputés) ; volumétrie ; usage cartographique surtout | P2 | téléchargement ponctuel | `public_demography` (grille) |
+| Géo | Cadastre | DGFiP/Etalab | Plan cadastral informatisé (parcelles, bâtiments) | FR | C | https://cadastre.data.gouv.fr/datasets/cadastre-etalab (nv) | aucune | LO2.0 | semestrielle | 2017→ | parcelle | édition | id parcelle | géométries parcelles/bâti | volumineux ; utile seulement pour zooms très fins ; hors MVP | P3 | téléchargement à la demande | non chargé (tuiles à la volée si besoin) |
+| Géo | Fonds de carte / services | IGN — Géoplateforme | Services WMTS/WFS/tuiles vectorielles + géocodage IGN | FR | A/B | https://data.geopf.fr (nv) | clé gratuite selon service | Licences IGN ouvertes (LO2.0 majoritaire) | continue | n/a | variable | n/a | n/a | fonds de plan, ortho, MNT | conditions par ressource à vérifier ; le fond de carte MVP peut être auto-hébergé (PMTiles) | P1 | usage service | n/a |
+| Géo | Europe — zonage | Eurostat — GISCO | Géométries NUTS 0-3 et LAU | UE | C | https://gisco-services.ec.europa.eu/distribution/v2/nuts/nuts-2024-files.json ✓ | aucune | Licence Eurostat (réutilisation libre, mention ; **pas de tuiles publiques sans mention**) | à chaque révision NUTS (~3 ans) | NUTS 2003→ | NUTS3 / LAU | version NUTS | code NUTS, code LAU (= code INSEE en France) | polygones multi-résolutions (1:1M…1:60M), correspondances NUTS↔LAU | révisions NUTS (2021→2024) cassent les séries ; stocker la version | **P0** (UE) | téléchargement par version | `geography_reference` (niveaux nuts*), `geography_history` |
+| Géo | Occupation des sols | Cerema / IGN | Artificialisation des sols (portail artificialisation) ; OCS GE | FR | C | https://artificialisation.developpement-durable.gouv.fr (nv) | aucune | LO2.0 | annuelle | 2009→ | commune | annuelle | code INSEE | flux d'artificialisation (NAF→urbanisé) | méthodo fichiers fonciers ≠ OCS GE ; à documenter | P2 | téléchargement annuel | `public_energy_environment` |
+
+**Règle structurante** : toute table analytique référence `geography_reference` par
+`(geo_code, geo_level, geo_vintage)` ; les comparaisons inter-millésimes passent par
+`geography_history` (table de passage fusions/scissions). Voir modèle de données.
+
+---
+
+## 2. Finances de l'État
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| État | Budget voté — dépenses | Direction du Budget / MEF | PLF/LFI : dépenses du BG et des BA par destination (mission/programme/action) et nature (titre) — un jeu par exercice, ex. `plf25-depenses-2025-du-bg-et-des-ba-selon-nomenclatures-destination-et-nature` | FR | A (ODS) + C | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/plf25-depenses-2025-du-bg-et-des-ba-selon-nomenclatures-destination-et-nature/records ✓ | aucune | LO2.0 | annuelle (+ LFR) | ≈2013→ (jeux par exercice) | nationale | exercice | mission, programme, action, titre | AE et CP votés, PLF puis LFI | id de dataset changeant chaque année (« plfNN-… ») ; états successifs PLF/LFI à distinguer | **P0** | pull ODS par exercice, mapping nomenclature | `public_budgets`, `public_budget_lines` |
+| État | Budget voté — recettes | Direction du Budget / MEF | PLF : recettes du budget général (évaluations Voies et moyens T1) | FR | A (ODS) | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/plf25-recettes-du-budget-general/records ✓ | aucune | LO2.0 | annuelle | ≈2013→ | nationale | exercice | ligne de recette | recettes fiscales/non fiscales évaluées | évaluations, pas encaissements — croiser avec exécution | **P0** | pull ODS par exercice | `public_budgets`, `public_budget_lines` |
+| État | Exécution budgétaire | DGFiP / Direction du Budget | Exécution du budget de l'État en AE/CP par mission-programme (jeux annuels, ex. `execution-2012-…` → dernier exercice clos) | FR | A (ODS) | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets (catalogue « execution ») ✓ (catalogue) | aucune | LO2.0 | annuelle | 2012→ | nationale | exercice | mission, programme, titre | AE/CP consommés | granularité action inégale selon les années ; ids de jeux annuels à découvrir via catalogue | **P0** | pull ODS par exercice | `public_executions` |
+| État | Résultats de la gestion | DGFiP | PLRG — projet de loi relatif aux résultats de la gestion et comptes de l'année (ex-loi de règlement) | FR | A (ODS) + D (annexes PDF) | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/projet-de-loi-relatif-aux-resultats-de-la-gestion-et-portant-approbation-des-comptes-de-lannee-plrg-2025/records (nv) | aucune | LO2.0 | annuelle | récent (≈2020→ en ODS) | nationale | exercice | mission/programme | exécution définitive, comptes approuvés | une partie du détail reste en annexes PDF (RAP) | P1 | pull ODS + extraction ciblée annexes | `public_executions` |
+| État | Situation mensuelle | DGFiP | Situation mensuelle budgétaire de l'État (+ séries longues) | FR | A (ODS) | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/situation-mensuelle-de-l-etat/records (nv) ; séries longues : `situations-mensuelles-budgetaires-series-longues` (nv) | aucune | LO2.0 | mensuelle | séries longues pluri-décennales | nationale | mois | poste budgétaire | solde, recettes, dépenses cumulées | comptabilité budgétaire infra-annuelle, non désaisonnalisée | P1 | pull mensuel | `public_executions` (mensuel) |
+| État | Dépenses fiscales | Direction du Budget | Voies et moyens tome 2 — liste et coût des dépenses fiscales | FR | A (ODS) + D | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/plf2023_voies_et_moyens_t2_liste_des_depenses_fiscales/records (nv) | aucune | LO2.0 | annuelle | ≈2013→ | nationale | exercice | numéro de dépense fiscale, impôt, mission de rattachement | coût estimé, bénéficiaires (ordre de grandeur) | coûts = estimations, fiabilité variable et notée ; jeux par exercice | P1 | pull ODS par exercice | `public_budget_lines` (type=depense_fiscale) |
+| État | Opérateurs de l'État | Direction du Budget | Jaune « Opérateurs de l'État » (liste, subventions pour charges de service public, emplois) | FR | C/D (data.gouv) | https://www.data.gouv.fr/fr/datasets/ (jaune opérateurs, par PLF) (nv) | aucune | LO2.0 | annuelle | ≈2012→ | nationale (siège) | exercice | opérateur, programme | financements État, ETPT | structuration inégale selon millésimes | P1 | téléchargement annuel | `public_transfers` |
+| État | Dette de l'État — émissions/encours | Agence France Trésor | Encours de la dette négociable, adjudications, calendrier, détention (agrégée) | FR | C + A partiel (via data.gouv/ODS) | https://www.aft.gouv.fr (rubrique statistiques) (nv) ; encours : `encours-france-…` sur data.economie.gouv.fr (nv) | aucune | LO2.0 | mensuelle | 1998→ | nationale | mois | ligne de titre (ISIN) | encours OAT/BTF, durée moyenne, taux moyens, part des non-résidents (agrégée) | **détention détaillée par créancier non publique** — seule la part agrégée des non-résidents (Banque de France) est publiable | **P0** | téléchargement mensuel | `public_debt` |
+| État | Dette & déficit APU (Maastricht) | INSEE (comptes nationaux) | BDM `CNA-2014-DETTE-APU` (annuel), `DETTE-TRIM-APU-2020` (trimestriel), déficit notifié | FR | A (SDMX) | https://api.insee.fr/series/BDM/V1/data/CNA-2014-DETTE-APU ✓ | aucune | LO2.0 | trimestrielle/annuelle | 1949→ selon séries | nationale (par sous-secteur APU) | trimestre/année | dataflow + dimensions SDMX | dette au sens de Maastricht par sous-secteur (État, ODAC, APUL, ASSO), déficit | SDMX-ML : `Accept: application/xml` obligatoire ; rebasements (base 2014/2020) = ruptures volontaires | **P0** | pull SDMX trimestriel | `public_debt`, `observations` |
+| État | Comptes des APU (COFOG) | INSEE | Comptes nationaux — dépenses des APU par fonction COFOG et sous-secteur (Melodi `DD_CNA_APU` / BDM `CNA-2014-DEP-APU`) | FR | A | https://api.insee.fr/melodi/data/DD_CNA_APU (nv) | aucune | LO2.0 | annuelle | ~70 ans | nationale | année | COFOG, sous-secteur S13 | dépense publique par fonction (santé, éducation, défense…) en Md€ et % PIB | comptabilité nationale ≠ budget de l'État ; à croiser avec Eurostat pour l'UE | **P0** | pull annuel | `observations` (+ vue `european_comparisons`) |
+| État | Masse salariale / effectifs FPE | DGAFP / MEF | Effectifs de la fonction publique de l'État (et données DGAFP) | FR | A (ODS) + C | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/effectifs-de-la-fonction-publique-de-letat/records (nv) | aucune | LO2.0 | annuelle | ~2010→ | nationale, parfois régionale | année | ministère, catégorie | ETPT, effectifs par ministère/statut | territorialisation limitée ; FPT/FPH ailleurs (SIASP via INSEE/DGCL) | P1 | pull annuel | `public_employment` |
+| État | Commande publique État | AIFE / MEF | Marchés conclus recensés sur PLACE + DECP consolidées | FR | A (ODS) + C | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/marches-publics-conclus-recenses-sur-la-plateforme-des-achats-de-letat/records (nv) ; DECP consolidées sur data.gouv.fr (nv) | aucune | LO2.0 | continue/mensuelle | 2015→ | acheteur/titulaire (SIRET, CP) | date de notification | SIRET acheteur & titulaire, code CPV | montants, objet, durée, lieu d'exécution déclaré | qualité DECP hétérogène (doublons, montants aberrants) ; nettoyage lourd | P1 | pull mensuel + dédoublonnage | `public_procurement` |
+| État | Subventions & aides versées | MEF / data.gouv | Jaune associations (effort financier de l'État), aides d'État, subventions publiées | FR | A (ODS) + C | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets (jaunes par PLF) ✓ (catalogue) | aucune | LO2.0 | annuelle | ≈2015→ | bénéficiaire (SIREN) | exercice | SIREN bénéficiaire, programme | montants versés par l'État aux associations/tiers | couverture partielle (obligation de publication > 23 k€ inégalement respectée) | P1 | pull annuel | `public_subsidies` |
+| État | Participations de l'État | APE | Rapport annuel de l'APE, portefeuille coté | FR | D | https://www.economie.gouv.fr/agence-participations-etat (nv) | aucune | LO2.0 (rapports) | annuelle | 2004→ | nationale | année | entreprise | valeur du portefeuille, dividendes | données surtout en PDF ; extraction prudente | P2 | extraction annuelle contrôlée | `public_transfers` |
+| État | Contrôle / évaluation | Cour des comptes | Rapports, données ouvertes de la Cour | FR | C/D | https://www.ccomptes.fr + organisation data.gouv.fr `cour-des-comptes` (nv) | aucune | LO2.0 | continue | longue | variable | n/a | n/a | constats chiffrés attribuables (citations N3) | pas une source de séries ; usage éditorial (citations) | P2 | référencement manuel | `citations`, `methodology_notes` |
+| État | Aide publique au développement / contributions internationales | MEAE / OCDE (CAD) | Jaune « APD » + données CAD OCDE | FR/Int | C + A (OCDE SDMX) | https://sdmx.oecd.org/public/rest/ (nv) | aucune | OCDE : réutilisation libre avec mention | annuelle | 1960→ (OCDE) | pays bénéficiaire | année | code pays, secteur CAD | APD brute/nette par pays et secteur | définitions CAD ≠ budget national ; expliquer l'écart | P2 | pull annuel | `public_transfers`, `european_comparisons` |
+| État | Prélèvement UE & fonds reçus | Commission européenne / SGAE | Budget UE : contributions et dépenses par État membre ; fonds ESI (cohesiondata) | FR/UE | A/C | https://cohesiondata.ec.europa.eu (nv) | aucune | licence UE (libre, mention) | annuelle | 2000→ | État membre / programme, parfois région | année | code pays, fonds, programme | prélèvement sur recettes, retours par fonds | « solde net » méthodologiquement contesté — publier les deux flux, pas un solde maison | P2 | pull annuel | `public_transfers`, `european_comparisons` |
+
+---
+
+## 3. Finances locales
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Loc | Communes — agrégats | OFGL | `ofgl-base-communes-consolidee` (et base simple) | FR | A (ODS) | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes-consolidee/records ✓ | aucune | LO2.0 | annuelle (N-1 à l'été) | ≈2013/2016→ | commune | exercice | code INSEE, SIREN | recettes/dépenses de fonctionnement et d'investissement, épargne brute, encours de dette, annuité — budgets principaux + annexes consolidés | agrégats (pas le détail par nature fine) ; consolidation ≠ base simple, choisir et documenter | **P0** | pull annuel API ODS (export CSV/Parquet) | `public_budget_lines` (niveau=commune), `observations` |
+| Loc | EPCI — agrégats | OFGL | `ofgl-base-gfp-consolidee` (groupements à fiscalité propre) | FR | A (ODS) | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-gfp-consolidee/records (nv) | aucune | LO2.0 | annuelle | ≈2016→ | EPCI | exercice | SIREN EPCI | mêmes agrégats que communes | périmètres EPCI mouvants → jointure via `geography_history` | **P0** | pull annuel | idem |
+| Loc | Départements / régions | OFGL | `ofgl-base-departements-consolidee`, `ofgl-base-regions-consolidee` (+ ventilation fonctionnelle départements) | FR | A (ODS) | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-departements-consolidee/records (nv) | aucune | LO2.0 | annuelle | ≈2013→ | dép./région | exercice | code INSEE | agrégats + dépenses par fonction (social, collèges, routes…) pour les départements | fusions de régions 2016 : passer par l'historique territorial | **P0** | pull annuel | idem |
+| Loc | Comptes individuels détaillés | DGFiP | Comptes individuels des communes (fichier global par exercice) et des GFP | FR | A (ODS) + C | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/comptes-individuels-des-communes-fichier-global-2023-2024/records (nv) | aucune | LO2.0 | annuelle | 2000→ (par vagues de jeux) | commune | exercice | code INSEE | détail par poste (produits/charges, fiscalité, dette, ratios légaux) | ids de jeux par période ; formats hétérogènes selon vagues | P1 | pull annuel multi-jeux | `public_budget_lines` (détail) |
+| Loc | Balances comptables | DGFiP | Agrégats comptables / balances des collectivités et EPL (par exercice) | FR | A (ODS) + C | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/agregats-comptables-des-collectivites-et-des-etablissements-publics-locaux-2023/records (nv) | aucune | LO2.0 | annuelle | ≈2010→ | budget (SIRET) | exercice | SIRET budget, compte M57/M14 | balance par compte — la matière première la plus fine | volumineux (~millions de lignes/an) ; expertise plan comptable nécessaire | P2 | téléchargement annuel (Python) | `public_budget_lines` (détail comptable) |
+| Loc | Dotations de l'État | DGCL | Dotations aux communes/EPCI/départements/régions (DGF et composantes) — republiées par OFGL (`dotations-communes`, `dotations-gfp`, …) | FR | A (ODS) | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/dotations-communes/records (nv) ; source : dotations-dgcl.interieur.gouv.fr (nv) | aucune | LO2.0 | annuelle | ≈2014→ | commune | exercice | code INSEE | DGF, DSU, DSR, dotations d'intercommunalité… | critères de répartition dans des fichiers séparés DGCL | **P0** | pull annuel | `public_transfers` |
+| Loc | Péréquation | DGCL / OFGL | FPIC — ensembles intercommunaux | FR | A (ODS) | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/fpic-ensembles-intercommunaux/records (nv) | aucune | LO2.0 | annuelle | 2012→ | ensemble intercommunal | exercice | SIREN EPCI | prélèvements/attributions FPIC | notion d'« ensemble intercommunal » ≠ EPCI seul | P2 | pull annuel | `public_transfers` |
+| Loc | Fiscalité locale — bases et taux | DGFiP (republié OFGL) | REI — recensement des éléments d'imposition | FR | A (ODS) + C | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/rei/records (nv) | aucune | LO2.0 | annuelle | 2009→ | commune | exercice | code INSEE | bases, taux, produits TFPB/TFPNB/TH résiduelle/CFE… | fichier très large (centaines de colonnes) ; réforme TH = rupture 2021 | P1 | téléchargement annuel (Python) | `public_budget_lines` (recettes fiscales), `observations` |
+| Loc | Satellites | OFGL | Syndicats, SDIS, CCAS/CIAS, EPL (bases consolidées) | FR | A (ODS) | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-sdis/records (nv) | aucune | LO2.0 | annuelle | ≈2016→ | organisme (SIREN) | exercice | SIREN | agrégats financiers des satellites | rattachement territorial multi-communes à modéliser | P2 | pull annuel | `public_budget_lines` |
+| Loc | Effectifs FPT | DGCL / INSEE (SIASP) | Effectifs de la fonction publique territoriale | FR | C | https://www.data.gouv.fr/fr/datasets/ (effectifs FPT depuis 2004) (nv) | aucune | LO2.0 | annuelle | 2004→ | dép./région, parfois strate | année | code INSEE | effectifs par cadre d'emploi/statut | pas de maille commune (secret) | P2 | téléchargement annuel | `public_employment` |
+| Loc | Métadonnées de calendrier | OFGL | `dates-cles-finances-locales` (calendrier de publication) | FR | A (ODS) | https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/dates-cles-finances-locales/records (nv) | aucune | LO2.0 | continue | n/a | n/a | n/a | n/a | dates de fraîcheur attendues | n/a | P2 | pull mensuel | `dataset_registry` (fraîcheur attendue) |
+
+**Méthodologie « groupe de comparaison »** (pour « ma commune vs communes
+comparables ») — transparente et publiée : strate de population (bornes INSEE/DGCL
+standard), densité (grille communale de densité INSEE), niveau de vie médian
+(Filosofi, en quintiles), appartenance à un EPCI de même nature, caractère
+touristique (capacité d'accueil/population, INSEE), littoral/montagne (zonages
+officiels), outre-mer traité séparément, même exercice comptable, même périmètre
+budgétaire (budgets principaux vs consolidés). Le groupe affiché liste **ses
+membres et ses critères** ; jamais de « communes similaires » opaque.
+
+---
+
+## 4. Fiscalité et prélèvements
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Fisc | Prélèvements obligatoires (vue d'ensemble) | INSEE (CN) | Comptes nationaux — recettes des APU par type de prélèvement et sous-secteur (Melodi/BDM) | FR | A | https://api.insee.fr/melodi/ ✓ (base) | aucune | LO2.0 | annuelle | 1949→ | nationale | année | nomenclature CN (D2, D5, D61…) | impôts par catégorie, cotisations, taux de PO | c'est la **seule** base légitime du module « 100 € » ; comptabilité nationale | **P0** | pull annuel | `observations` |
+| Fisc | Impôt sur le revenu localisé | DGFiP | IRCOM — impôt sur le revenu par collectivité (nb de foyers, revenu fiscal, impôt par tranche de RFR) | FR | A (ODS) + C | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/limpot-sur-le-revenu-par-collectivite-territoriale0/records (nv) | aucune | LO2.0 | annuelle | ≈2011→ | commune | année d'imposition | code INSEE | foyers fiscaux, RFR, impôt net par tranche | secret fiscal : cases masquées sous seuils ; **jamais** de microdonnées | P1 | téléchargement annuel | `observations` |
+| Fisc | Fiscalité locale des particuliers | DGFiP | Taux et cotisations TH/TF par commune (`fiscalite-locale-des-particuliers-geo`) | FR | A (ODS) | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/fiscalite-locale-des-particuliers-geo/records (nv) | aucune | LO2.0 | annuelle | ≈2015→ | commune | exercice | code INSEE | taux votés, cotisations moyennes | réforme TH : série interrompue 2018-2023 à baliser | P1 | pull annuel | `observations` |
+| Fisc | Droits de mutation | DGFiP | DMTO — attributions aux départements/communes (`dmto_attrib`, `dmto_recouv`) | FR | A (ODS) | https://data.economie.gouv.fr/api/explore/v2.1/catalog/datasets/dmto_attrib/records (nv) | aucune | LO2.0 | mensuelle/annuelle | ≈2010→ | département | mois/exercice | code INSEE dép. | montants DMTO | proxy du marché immobilier — le dire | P1 | pull annuel | `observations` |
+| Fisc | Cotisations sociales | URSSAF (open data) | Assiette, cotisations, effectifs par territoire/secteur (open.urssaf.fr) | FR | A (ODS) | https://open.urssaf.fr/api/explore/v2.1/catalog/datasets ✓ | aucune | LO2.0 | trimestrielle | ≈2004→ selon jeux | commune→région selon jeux | trimestre | code INSEE, NAF | masse salariale, effectifs salariés privés, cotisations | champ = secteur privé régime général ; MSA à part | P1 | pull trimestriel | `public_employment`, `observations` |
+| Fisc | TVA, IS, recettes fiscales État | DGFiP / Direction du Budget | Voies et moyens T1 + situation mensuelle + comptes nationaux | FR | A (ODS) | voir lignes « État » ✓ | aucune | LO2.0 | mensuelle/annuelle | longue | nationale | mois/année | ligne de recette | rendement par impôt | pas de territorialisation fiable de la TVA/IS — ne pas l'inventer | **P0** | via connecteurs État | `public_budget_lines`, `observations` |
+| Fisc | Dépenses fiscales | Direction du Budget | Voies et moyens T2 (déjà en section État) | FR | A | voir section État | aucune | LO2.0 | annuelle | ≈2013→ | nationale | exercice | n° dépense fiscale | coût des niches par impôt | estimations | P1 | idem État | `public_budget_lines` |
+| Fisc | Barèmes socio-fiscaux (pédagogie) | Etalab / DGFiP (OpenFisca) | OpenFisca France — moteur de législation ; LexImpact | FR | A | https://api.fr.openfisca.org/latest/ (nv) | aucune | Licence AGPL (code) / paramètres publics | continue | législation historisée | individu-type | n/a | paramètres législatifs | calcul de cas-types (salaire → prélèvements) | **cas-types explicitement étiquetés « simulation »**, jamais mélangés aux observations | P2 | appel à la volée (module 100 €) | aucune (calcul), `methodology_notes` |
+| Fisc | Fraude / recouvrement | DGFiP / Cour des comptes | Résultats du contrôle fiscal (rapports annuels, jeux data.gouv) | FR | C/D | https://www.data.gouv.fr ✓ (catalogue) | aucune | LO2.0 | annuelle | ≈2010→ | nationale | année | n/a | droits notifiés/recouvrés | méthodologies contestées (écart fiscal non mesuré officiellement) — publier uniquement les indicateurs officiels avec leur définition | P2 | téléchargement annuel | `observations` + `methodology_notes` |
+| Fisc | Microdonnées fiscales individuelles | DGFiP | POTE, déclarations individuelles… | FR | E | n/a | n/a | secret fiscal | n/a | n/a | n/a | n/a | n/a | n/a | **EXCLU** | n/a | n/a |
+
+---
+
+## 5. Économie, entreprises, emploi
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Éco | Répertoire d'entreprises | INSEE | API Sirene 3.11 (unités légales + établissements) | FR | B | https://api.insee.fr/api-sirene/3.11/ (nv, protégé) ; portail : https://portail-api.insee.fr | clé gratuite (`X-INSEE-Api-Key-Integration`) | LO2.0 (unités non diffusibles exclues) | quotidienne | historique depuis 1973 | établissement (adresse) | continue | SIREN/SIRET, NAF, catégorie juridique | stock et mouvements d'entreprises/établissements | quotas ; statut de diffusion partielle (personnes physiques) ; effectifs en tranches datées ; **aspirer via fichiers stock, pas via l'API** | **P0** | fichiers stock mensuels (Parquet/CSV data.gouv) + API pour requêtes unitaires | `public_companies` |
+| Éco | Sirene géolocalisé | INSEE/Etalab | Fichiers stock Sirene + géolocalisation (data.gouv) | FR | C | https://www.data.gouv.fr/fr/datasets/ (base Sirene + géolocalisation) ✓ (catalogue) | aucune | LO2.0 | mensuelle | stock courant | établissement (x,y) | mensuelle | SIRET | coordonnées des établissements | géolocalisation imparfaite (sièges de domiciliation) | P1 | téléchargement mensuel (Python) | `public_companies` |
+| Éco | Démographie d'entreprises | INSEE | Melodi `DS_SIDE_*` (stocks/créations par commune), BDM créations/défaillances | FR | A | https://api.insee.fr/melodi/ ✓ | aucune | LO2.0 | mensuelle/annuelle | 2000→ | commune | mois/année | code INSEE, NAF | créations d'entreprises/établissements, stocks | micro-entrepreneurs à distinguer (effet de régime) | **P0** | pull mensuel/annuel | `public_companies`, `observations` |
+| Éco | Défaillances | Banque de France | Webstat — défaillances d'entreprises par région/secteur | FR | A (ODS) | https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets ✓ | clé gratuite pour certains volumes (à vérifier par jeu) | LO2.0 / conditions BdF | mensuelle | 1990→ | région/dép. | mois | NAF, géo | défaillances (procédures collectives) | champ juridique précis (ouvertures de procédures) — définir | P1 | pull mensuel | `public_companies`, `observations` |
+| Éco | Annonces légales | DILA | BODACC (API + fichiers) | FR | A/C | https://www.bodacc.fr / data.dila.gouv.fr (nv) | aucune | LO2.0 | quotidienne | 2008→ | établissement | continue | SIREN | procédures, ventes, immatriculations | volume, parsing XML ; redondant avec Sirene/BdF pour le MVP | P2 | flux quotidien (si besoin) | `public_companies` |
+| Éco | Registre national des entreprises | INPI | RNE (actes, comptes annuels) | FR | B | https://data.inpi.fr (nv) | compte + conditions | licence spécifique INPI, restrictions de rediffusion | continue | 2023→ (RNE) | entreprise | continue | SIREN | comptes sociaux, bénéficiaires effectifs (accès restreint) | conditions de réutilisation à instruire juridiquement avant tout usage | P3 | à instruire | — |
+| Éco | Macro France | INSEE | BDM : PIB (`CNA-2020-PIB`, CNT trimestriels), IPC (`IPC-2025`), climat des affaires | FR | A (SDMX) | https://api.insee.fr/series/BDM/V1 ✓ | aucune | LO2.0 | mensuelle/trim. | 1949→ | nationale (parfois rég.) | mois/trim./année | idBank / dataflow | PIB, inflation, conjoncture | rebasements = ruptures ; choisir la base courante et l'afficher | **P0** | pull calé sur calendrier INSEE | `observations` |
+| Éco | Emploi/chômage localisé | INSEE | BDM `TAUX-CHOMAGE` (taux localisés trim.), Melodi RP (emploi par commune) | FR | A | https://api.insee.fr/series/BDM/V1/data/TAUX-CHOMAGE (nv) | aucune | LO2.0 | trimestrielle | 1982→ (zones d'emploi) | zone d'emploi/dép./région | trimestre | code zonage | taux de chômage localisé BIT | pas de taux BIT communal (n'existe pas) — au mieux zone d'emploi ; le dire | **P0** | pull trimestriel | `public_employment`, `observations` |
+| Éco | Demandeurs d'emploi | France Travail / Dares | Statistiques demandeurs d'emploi (API France Travail `stats-offres-demandes-emploi` ; STMT Dares) | FR | B + C | https://api.francetravail.io (nv) ; Dares : https://dares.travail-emploi.gouv.fr (nv) | OAuth2 gratuit (France Travail) | LO2.0 | mensuelle/trim. | 1996→ | commune/bassin (catégories A-E) | mois | code INSEE, catégorie | DEFM par catégorie | DEFM ≠ chômage BIT — distinction pédagogique obligatoire | P1 | pull mensuel | `public_employment` |
+| Éco | Salaires | INSEE | Melodi `DS_BTS_SAL_EQTP_SEX_AGE` (Base tous salariés, commune), BDM salaires | FR | A | https://api.insee.fr/melodi/ ✓ | aucune | LO2.0 | annuelle | ≈2015→ | commune | année | code INSEE, sexe, âge/PCS | salaire net EQTP moyen | EQTP neutralise le temps partiel (sous-estime l'écart F/H de revenu) — l'afficher | P1 | pull annuel | `observations` |
+| Éco | Revenus/pauvreté | INSEE | Melodi `DS_FILOSOFI_CC` (Filosofi 2, 2023→) | FR | A | https://api.insee.fr/melodi/data/DS_FILOSOFI_CC ✓ | aucune | LO2.0 | annuelle (N+3) | 2012→ (ancien dispositif), 2023→ (Filosofi 2) | commune (+EPCI, dép., région, zonages) | année | code géo préfixé millésime | niveau de vie médian, taux de pauvreté, déciles, Gini | **rupture 2022/2023** (Filosofi 2 ≠ Filosofi) ; secret statistique ≈1/3 des communes sans taux de pauvreté ; médianes non sommables | **P0** | pull annuel | `observations` |
+| Éco | Immobilier — transactions | DGFiP/Etalab | DVF géolocalisées (demandes de valeurs foncières) | FR | C + A (Cerema apidf) | https://files.data.gouv.fr/geo-dvf/latest/csv/ ✓ | aucune (fichiers) ; API Cerema : compte | LO2.0 | semestrielle | 2014→ (hors Alsace-Moselle-Mayotte) | mutation (parcelle) | date de mutation | id mutation, code INSEE | prix, surfaces, type de bien | ~5 M lignes/an ; nettoyage (ventes multiples, dépendances) ; **Alsace-Moselle absente** (livre foncier) — couverture à afficher | P1 (MVP si charge maîtrisée) | téléchargement semestriel (Python) + agrégats communaux précalculés | `public_housing` |
+| Éco | Loyers | ANIL/ministère Logement | Carte des loyers (indicateurs communaux) | FR | C | https://www.data.gouv.fr (indicateurs de loyers) ✓ (catalogue) | aucune | LO2.0 | annuelle | 2018→ | commune | année | code INSEE | loyer indicatif €/m² | estimations modélisées (annonces) — badge « Estimation » | P2 | téléchargement annuel | `public_housing` |
+| Éco | Commerce extérieur | Douanes (DGDDI) | Données du commerce extérieur (open data douane) | FR | A/C | https://www.douane.gouv.fr/lopen-data-des-douanes (nv) | aucune | LO2.0 | mensuelle | 2000→ | national/région, produit | mois | NC8/CPF, pays | exports/imports | secret commercial sur certaines mailles fines | P2 | pull mensuel | `observations` |
+| Éco | Crédit, épargne, taux | Banque de France | Webstat (crédit aux entreprises/ménages, taux, épargne réglementée) | FR | A (ODS) | https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets ✓ | clé selon volume | conditions BdF (majoritairement libres avec mention) | mensuelle | longue | national/région | mois | code série | encours de crédit, taux moyens | vérifier la licence jeu par jeu | P1 | pull mensuel | `observations` |
+| Éco | Permis de construire | SDES (min. Transition écologique) | Sitadel (autorisations d'urbanisme) | FR | A (ODS)/C | https://www.statistiques.developpement-durable.gouv.fr (Sitadel) (nv) | aucune | LO2.0 | mensuelle | 2013→ | commune | mois | code INSEE | logements autorisés/commencés | révisions rétroactives des séries (délais de remontée) | P2 | pull mensuel | `public_housing` |
+
+---
+
+## 6. Social, santé, éducation
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Social | Comptes de la protection sociale | DREES | Comptes de la protection sociale ; données retraites, minima sociaux (data.drees) | FR | A (ODS) + C | https://data.drees.solidarites-sante.gouv.fr/api/explore/v2.1/catalog/datasets ✓ | aucune | LO2.0 | annuelle | 1959→ (comptes) | national, dép. pour certains jeux | année | risque/régime | dépenses par risque (vieillesse, santé, famille…), bénéficiaires de minima sociaux par département | nomenclatures propres (risques) à mapper vers pédagogie | **P0** (agrégats) | pull annuel | `public_health`, `observations` |
+| Social | Sécurité sociale — comptes | DSS / CCSS | Rapports CCSS, LFSS annexes (PLACSS) | FR | D | https://www.securite-sociale.fr (nv) | aucune | LO2.0 | semestrielle | 2000→ | nationale | année | branche | soldes par branche, ONDAM | beaucoup de PDF ; extraction prudente et citée | P1 | extraction contrôlée | `public_budgets` (champ=ASSO), `citations` |
+| Social | Assurance maladie | CNAM | data.ameli (dépenses, honoraires, démographie des professionnels) | FR | A (ODS) | https://data.ameli.fr/api/explore/v2.1/catalog/datasets ✓ | aucune | LO2.0 | annuelle | ≈2010→ | département, parfois commune | année | code INSEE, spécialité | remboursements, densité de professionnels, honoraires | champ régime général ; secret sur petites mailles | P1 | pull annuel | `public_health` |
+| Social | Offre de soins | DREES/ATIH | FINESS (établissements), SAE (activité hospitalière) | FR | A/C | FINESS sur data.gouv ✓ (catalogue) ; SAE : https://www.sae-diffusion.sante.gouv.fr (nv) | aucune | LO2.0 | continue/annuelle | longue | établissement (adresse) | année | n° FINESS | établissements de santé, capacités, activité | jointure FINESS↔SIRET imparfaite | P1 | pull annuel | `public_health` |
+| Social | Accessibilité aux soins | DREES/INSEE | APL — accessibilité potentielle localisée (médecins, etc.) | FR | C | https://data.drees.solidarites-sante.gouv.fr ✓ (catalogue) | aucune | LO2.0 | pluriannuelle | 2015→ | commune | millésime | code INSEE | indicateur d'accès aux soins (déserts médicaux) | indicateur modélisé — badge « Retraité » avec méthodo DREES | P1 | téléchargement | `public_health` |
+| Social | Retraites | CNAV / DREES | data.assuranceretraite (retraités, pensions par territoire) ; EACR/EIR DREES | FR | A (ODS) + C | https://data.assuranceretraite.fr/api/explore/v2.1/catalog/datasets (nv) | aucune | LO2.0 | annuelle | ≈2010→ | dép./commune selon jeux | année | code INSEE | effectifs de retraités, pension moyenne | régime général seul à la maille fine ; tous régimes = DREES national | P1 | pull annuel | `observations` |
+| Social | Famille / minima | CNAF | data.caf (allocataires, RSA, APL, petite enfance) | FR | A (ODS) + C | https://data.caf.fr/api/explore/v2.1/catalog/datasets (nv) | aucune | LO2.0 | mensuelle/annuelle | ≈2009→ | commune | mois/année | code INSEE | allocataires par prestation | secret sur petites communes ; champ CAF (hors MSA) | P1 | pull annuel | `observations` |
+| Social | Autonomie / handicap | CNSA | data-autonomie (APA, PCH, établissements) | FR | A (ODS) | https://data-autonomie.cnsa.fr/api/explore/v2.1/catalog/datasets (nv) | aucune | LO2.0 | annuelle | ≈2017→ | département | année | code INSEE dép. | bénéficiaires, dépenses | maille départementale | P2 | pull annuel | `observations` |
+| Social | Assurance chômage | Unédic | data.unedic (comptes, allocataires) | FR | A (ODS) | https://data.unedic.org/api/explore/v2.1/catalog/datasets (nv) | aucune | LO2.0 | annuelle | 2000→ | nationale | année | n/a | dépenses/recettes AC, allocataires | nationale surtout | P2 | pull annuel | `observations` |
+| Éduc | Établissements & effectifs | MENJ (DEPP) | data.education.gouv.fr : annuaire des établissements, effectifs 1er/2d degré, IPS | FR | A (ODS) | https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets ✓ | aucune | LO2.0 | annuelle | ≈2012→ (IPS 2016→) | établissement (UAI, adresse) | rentrée scolaire | code UAI, code INSEE | effectifs, IPS (indice de position sociale), résultats DNB/bac publiables | résultats bruts ≠ valeur ajoutée (IVAL) — toujours publier les deux ou aucun | P1 | pull annuel | `public_education` |
+| Éduc | Dépense d'éducation | MENJ (DEPP) / INSEE | Compte de l'éducation ; dépense par élève | FR | C | https://www.education.gouv.fr/etat-de-l-ecole (nv) | aucune | LO2.0 | annuelle | 1980→ | nationale | année | niveau d'enseignement | DIE, dépense/élève | nationale ; territorialisation impossible proprement | P1 | téléchargement annuel | `public_education`, `observations` |
+| Éduc | Enseignement supérieur | MESR | data.enseignementsup-recherche (effectifs étudiants, insertion) | FR | A (ODS) | https://data.enseignementsup-recherche.gouv.fr/api/explore/v2.1/catalog/datasets ✓ | aucune | LO2.0 | annuelle | 2000→ | établissement/académie | année | UAI | effectifs, diplômés | périmètres d'établissements mouvants (fusions d'universités) | P2 | pull annuel | `public_education` |
+| Social | État civil | INSEE | Naissances, décès (fichiers détail + Melodi), prénoms, mariages | FR | A + C | https://api.insee.fr/melodi/ ✓ ; fichiers détail décès sur data.gouv ✓ (catalogue) | aucune | LO2.0 | mensuelle/annuelle | 1968→ (prénoms 1900→) | commune | mois/année | code INSEE | naissances, décès, prénoms | fichier détail décès = données indirectement nominatives : agréger avant publication | **P0** (naissances/décès agrégés), P1 (prénoms) | pull annuel + agrégation | `public_demography` |
+| Social | Logement social | SDES / ANCOLS | RPLS — répertoire des logements locatifs sociaux | FR | C | https://www.statistiques.developpement-durable.gouv.fr (RPLS) (nv) | aucune | LO2.0 | annuelle | 2011→ | commune | année | code INSEE | parc social, loyers, vacance | diffusion agrégée à la commune (détail restreint) | P1 | téléchargement annuel | `public_housing` |
+| Social | Hébergement d'urgence / pauvreté | DREES/DGCS | Jeux DREES (hébergement, aide sociale départementale) | FR | A (ODS) | https://data.drees.solidarites-sante.gouv.fr ✓ | aucune | LO2.0 | annuelle | ≈2012→ | département | année | code dép. | places, bénéficiaires aide sociale | maille départementale | P2 | pull annuel | `observations` |
+
+**Formulation pédagogique imposée sur les thèmes sensibles** (pauvreté, handicap,
+santé) : rappeler le champ (régime général vs tous régimes), le secret statistique,
+la différence prestation/besoin, et interdire toute lecture « mérite/démérite »
+d'un territoire. Les indicateurs modélisés (APL, loyers) portent le badge
+« Estimation » ou « Donnée retraitée » avec lien vers la méthodo du producteur.
+
+---
+
+## 7. Sécurité, justice, société
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Sécu | Délinquance enregistrée | SSMSI (min. Intérieur) | Bases communale et départementale des crimes et délits enregistrés | FR | C (data.gouv) | https://www.data.gouv.fr/fr/datasets/bases-statistiques-communale-et-departementale-de-la-delinquance-enregistree-par-la-police-et-la-gendarmerie-nationales/ ✓ (catalogue) | aucune | LO2.0 | annuelle | 2016→ | commune | année | code INSEE, indicateur | faits enregistrés par famille d'infractions, taux/1000 hab | **faits enregistrés ≠ délinquance réelle** ; secret sur petites communes (valeurs « diffusées à l'arrondissement ») ; changements de périmètre d'indicateurs | P1 | téléchargement annuel | `public_security` |
+| Sécu | Victimation | SSMSI | Enquête VRS (vécu et ressenti en matière de sécurité) | FR | C/D | https://www.interieur.gouv.fr/Interstats (nv) | aucune | LO2.0 | annuelle | 2022→ (succède à CVS 2007-2021) | nationale (parfois région) | année | n/a | victimation déclarée | non territorialisable finement ; rupture CVS→VRS | P2 | téléchargement annuel | `public_security`, `methodology_notes` |
+| Sécu | Sécurité routière | ONISR (min. Intérieur) | BAAC — accidents corporels géolocalisés | FR | C (data.gouv) | https://www.data.gouv.fr/fr/datasets/bases-de-donnees-annuelles-des-accidents-corporels-de-la-circulation-routiere-annees-de-2005-a-2023/ ✓ (catalogue) | aucune | LO2.0 | annuelle | 2005→ | accident (lat/lon) | année | id accident, code INSEE | accidents, tués, blessés | changement de définition « tué à 30 jours » (2005) ; sous-déclaration blessés légers | P1 | téléchargement annuel + agrégation communale | `public_security` |
+| Justice | Justice / prisons | Min. Justice (SDSE, DAP) | Statistiques trimestrielles population écrouée ; condamnations ; délais | FR | C/D | https://www.justice.gouv.fr/statistiques (nv) | aucune | LO2.0 | trimestrielle/annuelle | 2000→ | établissement pénitentiaire / national | trimestre | n/a | population carcérale, densité, condamnations | beaucoup de PDF/XLSX ; territorialisation limitée | P2 | téléchargement trimestriel | `public_security` |
+| Risques | Risques naturels/technologiques | BRGM / min. Écologie | Géorisques (API), base GASPAR, CatNat | FR | A | https://georisques.gouv.fr/api (nv) | aucune | LO2.0 | continue | 1982→ (CatNat) | commune | continue | code INSEE | zonages de risque, arrêtés CatNat | données réglementaires (exposition), pas événementielles | P2 | pull à la volée | `public_energy_environment` |
+| Société | Élections | Min. Intérieur | Résultats électoraux par bureau de vote / commune (data.gouv) | FR | C | https://www.data.gouv.fr/fr/pages/donnees-des-elections/ ✓ (catalogue) | aucune | LO2.0 | par scrutin | 2002→ (numérisé) | bureau de vote | scrutin | code bureau, code INSEE | résultats, participation | **jeu distinct**, jamais croisé pour inférer des causalités politiques ; formats hétérogènes par scrutin | P2 | téléchargement par scrutin | `observations` (thème isolé) |
+
+**Règles imposées au domaine sécurité** (verrous produit) : taux pour 1 000
+habitants uniquement (jamais de volumes bruts en carte), affichage systématique des
+changements de méthode, distinction enregistrements/faits/victimation, avertissement
+d'interprétation sur chaque vue, pas de classement des communes.
+
+---
+
+## 8. Transport, énergie, environnement, agriculture
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Transp | SNCF | SNCF | data.sncf.com : fréquentation des gares, ponctualité/régularité, objets trouvés… | FR | A (ODS) | https://ressources.data.sncf.com/api/explore/v2.1/catalog/datasets ✓ | aucune | LO2.0 / ODbL selon jeux | annuelle (fréquentation), mensuelle (ponctualité) | ≈2015→ | gare | année/mois | code UIC gare | voyageurs/gare, régularité par ligne | financement public SNCF non détaillé ici (→ rapports, comptes) ; ODbL = partage à l'identique, à tracer | P2 | pull annuel | `public_transport` |
+| Transp | Offre de transport public | MTE (PAN) | transport.data.gouv.fr (GTFS, arrêts, offres) | FR | A/C | https://transport.data.gouv.fr (nv) | aucune | LO2.0/ODbL | continue | courant | arrêt | courant | id GTFS | réseaux, arrêts, horaires | données d'offre, pas d'usage ; hors cœur budget | P3 | à la demande | `public_transport` |
+| Transp | Trafic routier / accidents | Cerema/ONISR | Trafic moyen journalier ; BAAC (déjà en sécurité) | FR | C | https://www.data.gouv.fr ✓ (catalogue) | aucune | LO2.0 | annuelle | 2010→ | tronçon | année | id tronçon | trafic | couverture réseau national surtout | P3 | à la demande | `public_transport` |
+| Énergie | Électricité/gaz — production & conso | RTE/Enedis/GRDF/ODRE | ODRE (opendata réseaux énergie) : conso par commune/EPCI, production par filière ; éco2mix | FR | A (ODS) | https://odre.opendatasoft.com/api/explore/v2.1/catalog/datasets ✓ ; https://data.enedis.fr (nv) | aucune | LO2.0 / licences ouvertes opérateurs | annuelle (conso locale), temps réel (éco2mix) | 2011→ | commune (conso), nationale (mix) | année/30 min | code INSEE, filière | consommation par secteur, production par filière, mix | secret commercial sur petites mailles (< seuils) ; vérifier licence par jeu | P1 (conso communale), P2 (mix) | pull annuel | `public_energy_environment` |
+| Énergie | Prix de l'énergie | SDES / Eurostat | Prix gaz/électricité (Pegase, Eurostat nrg_pc) | FR/UE | A/C | https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/ ✓ (base) | aucune | LO2.0/Eurostat | semestrielle | 2007→ | nationale | semestre | bande de consommation | prix TTC/HT par bande | comparabilité UE bonne (Eurostat) | P2 | pull semestriel | `observations`, `european_comparisons` |
+| Envir | Émissions GES | Citepa / SDES | Inventaires nationaux ; émissions territorialisées (Citepa/observatoires régionaux) | FR | C | https://www.citepa.org (nv) | aucune | licence Citepa à vérifier ; SDES LO2.0 | annuelle | 1990→ | nationale (rég. selon sources) | année | secteur | émissions par secteur | territorialisation hétérogène selon observatoires régionaux | P2 | téléchargement annuel | `public_energy_environment` |
+| Envir | Eau | OFB/BRGM (Hub'Eau) | API Hub'Eau (qualité eau potable, cours d'eau, prélèvements) | FR | A | https://hubeau.eaufrance.fr/api/v1/qualite_eau_potable/resultats_dis ✓ (JSON ; renvoie 406 si Accept: xml) | aucune | LO2.0 | continue | 2008→ selon API | commune/station | continue | code INSEE, code station | qualité de l'eau, prélèvements | volumétrie ; agréger par commune/année | P2 | pull à la demande | `public_energy_environment` |
+| Envir | Déchets | ADEME | SINOE / data.ademe.fr (déchets ménagers par collectivité) | FR | A/C | https://data.ademe.fr (nv) | aucune | LO2.0 | annuelle | 2009→ | EPCI/syndicat | année | SIREN | tonnages, coûts du service déchets | rattachement syndicats↔communes complexe | P2 | pull annuel | `public_energy_environment` |
+| Envir | Qualité de l'air | AASQA (Atmo) / Ineris | Indices et concentrations (Geod'air, AASQA régionales) | FR | A/C | https://www.geodair.fr (nv) | selon service | LO2.0 majoritaire | horaire/annuelle | 2000→ | station | heure/année | code station | concentrations polluants | interpolation spatiale = modélisation, à étiqueter | P3 | à la demande | `public_energy_environment` |
+| Agri | Agriculture | Agreste (min. Agriculture) | Recensement agricole, statistique agricole annuelle | FR | A (ODS)/C | https://agreste.agriculture.gouv.fr (nv) | aucune | LO2.0 | annuelle / décennale (RA) | RA 1970→ | commune (RA), dép. (SAA) | année | code INSEE | exploitations, surfaces, cheptels, productions | secret statistique communal fréquent | P2 | téléchargement | `observations` |
+| Agri | Aides PAC | ASP / min. Agriculture | Bénéficiaires des aides PAC (telepac data.gouv) | FR | C | https://www.data.gouv.fr (registre des bénéficiaires PAC) ✓ (catalogue) | aucune | LO2.0 (publication réglementaire UE) | annuelle | 2015→ | bénéficiaire (commune) | campagne | nom/commune du bénéficiaire | montants d'aides par bénéficiaire | données nominatives réglementaires : republier **agrégé** à la commune ; personnes physiques dépubliées après 2 ans (règlement UE) | P2 | téléchargement annuel + agrégation | `public_subsidies` (agrégats) |
+| UE-fonds | Fonds européens en France | ANCT / Commission | Liste des projets cofinancés (FEDER/FSE) ; Kohesio | FR/UE | A/C | https://kohesio.ec.europa.eu (nv) | aucune | licence UE libre | continue | 2014→ | projet (commune) | période de programmation | code projet, commune | projets, montants UE | exhaustivité et géocodage inégaux | P2 | pull par programmation | `public_subsidies`, `public_transfers` |
+
+---
+
+## 9. Europe et comparaisons internationales
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| UE | Dette/déficit Maastricht | Eurostat | `gov_10dd_edpt1` (dette/déficit EDP), `gov_10a_main` | UE | A (JSON-stat/SDMX) | https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/gov_10dd_edpt1 ✓ | aucune | Licence Eurostat (libre, mention) | semestrielle (notifications avr./oct.) | 1995→ | pays (NUTS0) | année | geo, na_item, sector, unit | dette/déficit S13 harmonisés, % PIB | c'est **la** référence de comparaison — primer sur les sources nationales pour l'UE | **P0** | pull semestriel | `european_comparisons`, `observations` |
+| UE | Dépenses par fonction | Eurostat | `gov_10a_exp` (COFOG par pays) | UE | A | même API ✓ (base) | aucune | Eurostat | annuelle | 1995→ | pays | année | geo, cofog99, na_item | dépense publique par fonction, % PIB | délai N+1/N+2 ; niveaux COFOG-2 inégalement remplis | **P0** | pull annuel | `european_comparisons` |
+| UE | PIB, PIB/hab SPA | Eurostat | `nama_10_gdp`, `nama_10_pc`, `prc_ppp_ind` | UE | A | même API ✓ (base) | aucune | Eurostat | annuelle/trim. | 1975→ | pays (rég. : `nama_10r_*`) | année/trim. | geo, na_item, unit | PIB, PIB/hab en SPA | SPA = comparaison de niveau, pas de croissance — pédagogie requise | **P0** | pull annuel | `european_comparisons` |
+| UE | Chômage harmonisé | Eurostat | `une_rt_m` (mensuel), `lfst_r_lfu3rt` (régional NUTS2) | UE | A | même API ✓ (base) | aucune | Eurostat | mensuelle | 1983→ | pays / NUTS2 | mois/année | geo, age, sex | taux de chômage BIT harmonisé | régional = enquête, intervalles de confiance larges sur petites régions | **P0** | pull mensuel | `european_comparisons` |
+| UE | Inflation IPCH | Eurostat / BCE | `prc_hicp_manr` et séries BCE | UE | A | même API ✓ ; BCE : https://data-api.ecb.europa.eu/service/data/ (nv) | aucune | Eurostat/BCE libres avec mention | mensuelle | 1996→ | pays | mois | geo, coicop | IPCH harmonisé | IPCH ≠ IPC national (poids logement) — les deux affichés côte à côte | P1 | pull mensuel | `european_comparisons` |
+| UE | Prélèvements obligatoires UE | Eurostat / Commission (DG TAXUD) | `gov_10a_taxag` ; « Taxation trends » | UE | A + C | même API ✓ (base) | aucune | Eurostat | annuelle | 1995→ | pays | année | geo, nomenclature D | recettes fiscales/cotisations par type, % PIB | définitions CN — écarts avec chiffres nationaux à expliquer | P1 | pull annuel | `european_comparisons` |
+| UE | Taux, monnaie | BCE | ECB Data Portal (taux directeurs, change, agrégats) | UE | A (SDMX) | https://data-api.ecb.europa.eu (nv) | aucune | libre avec mention | quotidienne | 1999→ | zone euro | jour | série SDMX | taux directeurs, EURIBOR, change | n/a | P1 | pull quotidien/hebdo | `observations` |
+| UE | Démographie/social UE | Eurostat | `demo_*`, `ilc_*` (SILC : pauvreté, inégalités) | UE | A | même API ✓ (base) | aucune | Eurostat | annuelle | 1990→ | pays / NUTS2 | année | geo | population, espérance de vie, AROPE, S80/S20, Gini | AROPE ≠ taux de pauvreté monétaire FR (60 % médiane) — ne jamais mélanger | P1 | pull annuel | `european_comparisons` |
+| UE | Énergie/environnement UE | Eurostat | `nrg_*`, `env_*` | UE | A | même API ✓ (base) | aucune | Eurostat | annuelle | 1990→ | pays | année | geo, siec | mix, conso, émissions | n/a | P2 | pull annuel | `european_comparisons` |
+| Int | OCDE | OCDE | API SDMX (dépenses publiques, éducation, santé, PISA) | Int | A (SDMX) | https://sdmx.oecd.org/public/rest/ (nv) | aucune | libre avec mention (CC BY 4.0) | variable | longue | pays | année | dataflow SDMX | comparaisons hors UE (UK, US, JP) | privilégier Eurostat pour l'UE ; OCDE pour le reste | P1 | pull annuel | `european_comparisons` |
+| Int | Banque mondiale | Banque mondiale | API indicateurs (WDI) | Int | A | https://api.worldbank.org/v2/ (nv) | aucune | CC BY 4.0 | annuelle | 1960→ | pays | année | code indicateur | complément monde entier | uniquement en complément, jamais pour l'UE | P2 | pull à la demande | `european_comparisons` |
+| UE | Catalogue européen | data.europa.eu | Portail européen de données (catalogue DCAT) | UE | A | https://data.europa.eu/api/hub/search/ (nv) | aucune | selon jeu | continue | n/a | n/a | n/a | DCAT | découverte de jeux | catalogue, pas source de chiffres | P2 | consultation | `dataset_registry` |
+| UE | BEI / plan de relance | BEI / Commission | Prêts BEI par pays/projet ; Recovery and Resilience Scoreboard | UE | A/C | https://data.eib.org (nv) ; https://ec.europa.eu/economy_finance/recovery-and-resilience-scoreboard (nv) | aucune | licence UE | continue | 2010→ | projet/pays | année | id projet | financements BEI, jalons FRR | granularité projet inégale | P3 | à la demande | `public_transfers` |
+
+**Règles de comparaison internationale** (verrous produit) : uniquement des agrégats
+harmonisés (Eurostat d'abord, OCDE hors UE) ; même année, même unité, même
+périmètre ; prix courants vs SPA vs volume distingués ; ruptures de série Eurostat
+(flags) reprises telles quelles ; un pays sans donnée = « donnée non disponible »,
+jamais une interpolation maison.
+
+---
+
+## 10. Catalogues et infrastructure d'accès (« plomberie »)
+
+| Domaine | Sous-domaine | Source / producteur | Jeu de données | FR/UE | API/Téléch. | URL officielle | Auth | Licence | Fréquence | Historique | Gran. géo | Gran. temp. | Identifiants clés | Données principales | Limites | Priorité | Mode d'ingestion | Table cible |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| Infra | Catalogue national | DINUM (data.gouv.fr) | API catalogue (datasets, resources, organisations) | FR | A | https://www.data.gouv.fr/api/1/ ✓ | aucune (clé pour écrire) | LO2.0 | continue | 2013→ | n/a | n/a | dataset id/slug, resource id | métadonnées + URLs stables de ressources | les URLs de ressources changent — stocker id de ressource + checksum | **P0** | pull hebdo (sync `dataset_registry`) | `dataset_registry`, `source_registry` |
+| Infra | Portails Opendatasoft | MEF, OFGL, URSSAF, CNAM, DREES, éducation, SNCF, ODRE… | API Explore v2.1 (pattern commun `/api/explore/v2.1/catalog/datasets/{id}/records` + exports CSV/Parquet) | FR | A | testés ✓ (7 portails, cf. sections) | aucune (quotas anonymes ~ 10 k appels/jour/IP selon portail) | LO2.0 sauf mention | continue | selon jeu | selon jeu | selon jeu | dataset_id | un seul connecteur générique ODS couvre ~40 % du registre | quotas par portail ; pagination `offset` plafonnée → utiliser exports | **P0** | connecteur générique ODS (exports + records) | selon jeu |
+| Infra | API INSEE | INSEE | Portail unique des API (Sirene, Melodi, BDM, Métadonnées, Données locales) | FR | A/B | https://portail-api.insee.fr (nv — SPA non scrapable) | clé seulement Sirene/Données locales | LO2.0 | continue | n/a | n/a | n/a | n/a | point d'entrée des connecteurs INSEE | ancien portail api.insee.fr/catalogue mort (tutos obsolètes) ; 30 req/min | **P0** | n/a | `source_registry` |
+| Infra | Schémas de données | DINUM | schema.data.gouv.fr (DECP, subventions, etc.) | FR | A/C | https://schema.data.gouv.fr (nv) | aucune | LO2.0 | continue | n/a | n/a | n/a | nom de schéma | schémas de validation officiels | adoption inégale par les producteurs | P1 | référence pour `data_quality_checks` | `transformations` |
+| Infra | API Entreprise / API Particulier | DINUM | API à habilitation (données non publiques) | FR | B | https://entreprise.api.gouv.fr (nv) | habilitation (cas d'usage légal) | restreint | continue | n/a | n/a | n/a | SIREN | données protégées (effectifs exacts, attestations) | réservé administrations/cas légaux — **pas pertinent** pour un produit public | EXCLU (pas de cas d'usage) | n/a | n/a |
+
+---
+
+## Matrice de priorisation
+
+### P0 — indispensable au MVP (8–12 semaines)
+
+| Bloc | Sources P0 |
+|---|---|
+| Référentiel géographique | COG INSEE + table d'appartenance + Admin Express (géométries) + API Géo + BAN (recherche) + GISCO NUTS |
+| Démographie | Populations historiques (Melodi), naissances/décès agrégés, RP (tableaux clés) |
+| Revenus/pauvreté | Filosofi 2 (`DS_FILOSOFI_CC`) |
+| Finances locales | OFGL communes/EPCI/départements/régions + dotations DGCL (via OFGL) |
+| Finances de l'État | PLF/LFI dépenses & recettes + exécution AE/CP (data.economie.gouv.fr) |
+| Dette & macro | BDM dette Maastricht + comptes APU COFOG + PIB + IPC + taux de chômage localisé |
+| Entreprises | Sirene (fichiers stock) + démographie d'entreprises Melodi |
+| Europe | Eurostat : dette/déficit, COFOG, PIB/hab SPA, chômage harmonisé |
+| Plomberie | data.gouv.fr API + connecteur générique Opendatasoft |
+
+### P1 — haute valeur, phase 2
+Comptes individuels DGFiP, REI, IRCOM, fiscalité locale particuliers, DMTO,
+URSSAF, France Travail/Dares, salaires (BTS), DVF (si pas au MVP), Sitadel/RPLS,
+data.ameli/DREES/CAF/CNAV/APL/FINESS, éducation (établissements, effectifs, IPS),
+SSMSI, BAAC, Banque de France Webstat, dépenses fiscales, PLRG, situation mensuelle,
+opérateurs, subventions/jaunes, DECP, conso énergie communale, IPCH/BCE, OCDE,
+Eurostat social/PO, Banatic, Géoplateforme services, schema.data.gouv.fr.
+
+### P2 — enrichissement, phase 3
+Balances comptables détaillées, satellites OFGL, FPIC, carroyage, IRIS, justice,
+victimation, élections, Géorisques, SNCF, Agreste, PAC (agrégée), Kohesio/fonds UE,
+Citepa, Hub'Eau, ADEME, loyers ANIL, douanes, BODACC, APE, Cour des comptes (data),
+CNSA, Unédic, OpenFisca (module 100 €), prix énergie, Eurostat énergie/env,
+Banque mondiale, data.europa.eu, effectifs FPT, APD/OCDE-CAD, budget UE.
+
+### P3 — expérimental / coût élevé
+Cadastre, GTFS/transport.data.gouv, trafic routier, qualité de l'air, BEI/FRR, RNE (INPI).
+
+### EXCLU — incompatibles avec la promesse de fiabilité
+
+| Source / donnée | Motif d'exclusion |
+|---|---|
+| Microdonnées fiscales, sociales, médicales ou judiciaires individuelles | Secret fiscal/statistique/médical ; aucune nécessité produit (art. 5 RGPD — minimisation) |
+| Patrimoine des parlementaires | Consultation en préfecture uniquement, copie et notes interdites (art. LO 135-2 code électoral) : aucun chemin légal d'acquisition |
+| API Entreprise / API Particulier | Réservées aux administrations habilitées ; pas de cas d'usage légal ici |
+| OpenSanctions | Pas de cas légal clair pour un observatoire budgétaire ; risque diffamation/homonymie |
+| OpenStreetMap comme source de chiffres | Qualité non garantie contractuellement ; **autorisé uniquement** comme couche cartographique d'appoint, licence ODbL tracée |
+| Scraping de sites sans API quand un fichier officiel existe | Règle de travail : robots.txt/CGU/licence + instabilité ; toujours préférer la publication officielle |
+| Estimations de « fraude totale » non officielles | Aucune mesure officielle exhaustive ; publier uniquement les indicateurs DGFiP/Cour des comptes avec leur méthode |
+| Données nominatives PAC personnes physiques au-delà de 2 ans | Règlement UE : dépublication obligatoire — n'ingérer que des agrégats communaux |
+
+---
+
+## Identifiants de jointure — carte du système
+
+| Identifiant | Rôle | Sources qui le portent |
+|---|---|---|
+| Code INSEE commune (+ millésime COG) | pivot territorial FR | quasi toutes |
+| SIREN/SIRET | entreprises, EPCI, budgets locaux, marchés, subventions | Sirene, OFGL, DGFiP, DECP |
+| Code EPCI (SIREN) | intercommunalité | OFGL, Banatic, INSEE |
+| Mission/programme/action + titre | budget de l'État | PLF/LFI, exécution, PLRG |
+| COFOG | fonctions de dépense (FR + UE) | INSEE CN, Eurostat |
+| NUTS/LAU (+ version) | Europe | Eurostat, GISCO (LAU FR = code INSEE) |
+| NAF rév. 2 | secteur d'activité | Sirene, URSSAF, BdF |
+| Code UAI | établissements scolaires | éducation nationale |
+| N° FINESS | établissements de santé | DREES/CNAM |
+| idBank / dataflow SDMX | séries INSEE/BCE/Eurostat/OCDE | BDM, Eurostat, BCE, OCDE |
+| Id dataset/resource data.gouv & ODS | lineage des ingestions | plomberie |
+
+## Risques de rupture transverses
+
+1. **Ids de datasets annuels** (PLF/exécution « plfNN-… ») : découverte via
+   catalogue + alerte si le jeu attendu n'apparaît pas au calendrier.
+2. **Rebasements INSEE** (comptes nationaux, IPC) et **révisions NUTS** : versions
+   stockées, séries jamais recollées silencieusement.
+3. **Migrations de portails** (le portail API INSEE a déjà changé une fois ;
+   les portails ODS peuvent changer de domaine) : contrat de connecteur = test de
+   liveness quotidien par source (`data_quality_checks`).
+4. **Réformes** (TH, Filosofi 2, VRS, M57) : table `methodology_notes` + flag de
+   rupture obligatoire sur la série.
+5. **Quotas** (INSEE 30 req/min, BAN 50 req/s, ODS ~10 k/jour) : préférer
+   systématiquement les exports de masse aux appels unitaires.
