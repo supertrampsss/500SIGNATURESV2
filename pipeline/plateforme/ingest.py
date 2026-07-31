@@ -16,7 +16,14 @@ import sys
 from plateforme import db
 from plateforme.connectors import datagouv, eurostat, insee, ods
 from plateforme.http import fetch
-from plateforme.store import LocalStore
+from plateforme.store import LocalStore, R2Store
+
+
+def make_store(spec: str):
+    """'r2:<bucket>' -> R2Store (credentials via env, cf. docs/SETUP.md) ; sinon chemin local."""
+    if spec.startswith("r2:"):
+        return R2Store.from_env(spec.removeprefix("r2:"))
+    return LocalStore(spec)
 
 
 def snapshot_for(dataset: dict, params: dict | None) -> tuple[str, bytes, str, str]:
@@ -57,9 +64,9 @@ def snapshot_for(dataset: dict, params: dict | None) -> tuple[str, bytes, str, s
     )
 
 
-def run(dataset_id: str, params: dict | None, store_root: str, trigger: str) -> int:
+def run(dataset_id: str, params: dict | None, store_spec: str, trigger: str) -> int:
     conn = db.connect()
-    store = LocalStore(store_root)
+    store = make_store(store_spec)
     dataset = db.get_dataset(conn, dataset_id)
     run_id = db.start_run(conn, dataset_id, trigger)
     try:

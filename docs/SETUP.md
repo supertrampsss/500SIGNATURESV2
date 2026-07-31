@@ -39,18 +39,20 @@ toute la base est reconstructible depuis les snapshots R2.
 
 ## 2. Cloudflare (T-02)
 
-> **⏳ Partiellement fait le 31/07/2026** via un API token scopé (Account : R2
-> Edit, Pages Edit, Workers Edit, Settings Read ; Zone `500signatures.fr` :
-> DNS Edit — ce token EST la valeur du secret `CLOUDFLARE_API_TOKEN`) :
-> - Account ID : `8f1b454e7961068fe7a3750341fe7aaf` (valeur du secret
->   `CLOUDFLARE_ACCOUNT_ID`) ;
-> - zone `500signatures.fr` : active, vérifiée — le DNS actuel n'est pas
->   modifié avant le déploiement du site (T-17/T-19) ;
-> - **R2 : en attente d'une activation unique dans le dashboard**
->   (menu R2 → activer ; carte bancaire demandée, gratuit ≤ 10 Go — l'API
->   renvoie l'erreur 10042 tant que ce n'est pas fait). Dès l'activation :
->   création des buckets `plateforme-raw` (hint `weur`) et
->   `plateforme-published`, puis branchement du store R2 du pipeline.
+> **✅ Fait le 31/07/2026** :
+> - API token scopé vérifié (Account : R2 Edit, Pages Edit, Workers Edit,
+>   Settings Read ; Zone `500signatures.fr` : DNS Edit) — ce token EST la
+>   valeur du secret `CLOUDFLARE_API_TOKEN` ; son id (non secret) est
+>   `f142f16ee69b9e33f8b2b4acd83d7f6a` (= `CLOUDFLARE_TOKEN_ID`).
+> - Account ID : `8f1b454e7961068fe7a3750341fe7aaf` (= `CLOUDFLARE_ACCOUNT_ID`).
+> - R2 activé par le propriétaire ; buckets **plateforme-raw** et
+>   **plateforme-published** créés (hint `weur`).
+> - Store R2 du pipeline branché et **testé en réel** (écriture, relecture,
+>   immutabilité, nettoyage) via l'API S3 de R2 — credentials dérivés du
+>   token : `access_key_id` = id du token, `secret_access_key` = SHA-256 du
+>   token. Un seul secret alimente donc management ET stockage.
+> - Zone `500signatures.fr` active ; le DNS n'est pas modifié avant le
+>   déploiement du site (T-17/T-19).
 
 Procédure d'origine (si re-création de zéro) : compte Free, activer R2, créer
 les deux buckets, créer le token custom ci-dessus, brancher Pages/Workers à
@@ -65,9 +67,17 @@ T-17/T-19 (`infra/cloudflare/wrangler.toml.example`).
 | `CLOUDFLARE_ACCOUNT_ID` | Dashboard → vue d'ensemble du compte | idem |
 | `INSEE_API_KEY` | clé créée sur https://portail-api.insee.fr (gratuite, pour Sirene) | connecteur T-08 |
 
-Aucun secret n'est nécessaire pour la CI actuelle (elle utilise un PostGIS
-éphémère) — le dépôt fonctionne donc dès maintenant sans ces comptes ; ils
-débloquent les tickets d'ingestion réelle (T-06+).
+Aucun secret n'est nécessaire pour la CI de validation (PostGIS éphémère).
+Les trois secrets ci-dessus alimentent le workflow **Ingestion**
+(`.github/workflows/ingest.yml`, déclenchement manuel : Actions → Ingestion →
+Run workflow → choisir un `dataset_id` du registre) : registre Supabase →
+connecteur → snapshot R2 → lineage Supabase. `CLOUDFLARE_TOKEN_ID` n'est pas
+un secret (id public du token) et est fixé dans le workflow.
+
+Note réseau : l'environnement de développement distant ne laisse sortir que du
+HTTPS — le protocole Postgres direct (port 5432) n'y passe pas. Les opérations
+SQL vers Supabase s'y font via l'API de management ; les ingestions réelles
+s'exécutent dans GitHub Actions, qui a un réseau complet.
 
 ## 4. Vérifier
 

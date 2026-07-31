@@ -1,0 +1,41 @@
+name: Ingestion
+
+# Exécute un run d'ingestion réel : registre (Supabase) -> connecteur ->
+# snapshot immuable (R2 plateforme-raw) -> lineage (Supabase).
+# Déclenchement manuel pour l'instant ; les crons par source arrivent avec
+# les tickets d'ingestion (docs/08). Secrets requis : docs/SETUP.md §3.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dataset_id:
+        description: "dataset_id du registre (meta.dataset_registry)"
+        required: true
+      params:
+        description: 'Filtres JSON optionnels, ex. {"GEO":"COM-33318","maxResult":"20"}'
+        required: false
+        default: ""
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q -e ./pipeline
+      - name: Run ingestion
+        env:
+          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+          DATASET_ID: ${{ inputs.dataset_id }}
+          PARAMS: ${{ inputs.params }}
+        run: |
+          if [ -n "$PARAMS" ]; then
+            python -m plateforme.ingest "$DATASET_ID" --store r2:plateforme-raw --params "$PARAMS"
+          else
+            python -m plateforme.ingest "$DATASET_ID" --store r2:plateforme-raw
+          fi
