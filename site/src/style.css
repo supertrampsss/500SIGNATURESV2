@@ -454,6 +454,79 @@ thead th {
   font-weight: 700;
 }
 
+/* Pont budgétaire : la largeur des barres dit l'ordre de grandeur, le chiffre
+   dit le reste. Une seule teinte, comme la carte — aucune couleur de jugement. */
+.bloc--large {
+  margin-top: 1.25rem;
+}
+.pont {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.6rem 0 1rem;
+  font-size: 0.88rem;
+}
+.pont caption {
+  text-align: left;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+  padding-bottom: 0.4rem;
+}
+.pont__ligne th {
+  font-weight: 400;
+  text-align: left;
+  padding: 0.3rem 0.5rem 0.3rem 0;
+}
+.pont__ligne--n0 th {
+  font-weight: 600;
+}
+.pont__ligne--n1 th {
+  padding-left: 1.1rem;
+}
+.pont__ligne--n2 th {
+  padding-left: 2.2rem;
+  color: var(--encre-douce);
+}
+.pont__signe {
+  width: 1.2rem;
+  text-align: center;
+  color: var(--encre-douce);
+}
+.pont__montant {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0.3rem 0.6rem;
+}
+.pont__jauge {
+  width: 40%;
+  min-width: 5rem;
+}
+.pont__barre {
+  display: block;
+  height: 0.55rem;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.pont__ligne--n1 .pont__barre {
+  opacity: 0.6;
+}
+.pont__ligne--n2 .pont__barre {
+  opacity: 0.4;
+}
+.pont__solde th,
+.pont__solde td {
+  border-top: 2px solid var(--trait);
+  padding-top: 0.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pont__solde .pont__montant {
+  font-size: 1.05rem;
+}
+.champ--exercice {
+  margin: 0.6rem 0 0;
+}
+
 .quartiles {
   list-style: none;
   margin: 0.6rem 0 0;

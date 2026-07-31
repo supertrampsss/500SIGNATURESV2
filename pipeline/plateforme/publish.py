@@ -16,6 +16,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 
 from plateforme import db
+from plateforme.connectors import smb
 from plateforme.normalize.geo import make_store
 
 NIVEAUX = ["commune", "epci", "departement", "region", "pays"]
@@ -89,6 +90,7 @@ def couples_publies(conn, niveau: str) -> list[tuple[str, str]]:
             select distinct o.indicator_id, o.period
             from core.observations o join core.indicators i using (indicator_id)
             where o.geo_level = %s and i.published and o.value_status = 'normal'
+              and o.variant = 'total'
             order by 1, 2
             """,
             (niveau,),
@@ -103,6 +105,10 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
     curseur faisait tomber la connexion sur une instance de plan gratuit. Les
     valeurs sous secret statistique ne sont pas exportées comme des zéros :
     elles sont absentes, et la fiche de l'indicateur dit pourquoi.
+
+    La carte n'affiche que la variante `total` : une série déclinée par sexe ou
+    par âge y donnerait plusieurs valeurs pour un même territoire, dont une
+    seule survivrait au hasard de l'écriture.
     """
     valeurs: dict = defaultdict(lambda: defaultdict(dict))
     for indicateur, periode in couples_publies(conn, niveau):
@@ -110,7 +116,7 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
             """
             select o.geo_code, o.value from core.observations o
             where o.geo_level = %s and o.indicator_id = %s and o.period = %s
-              and o.value_status = 'normal'
+              and o.value_status = 'normal' and o.variant = 'total'
             """,
             (niveau, indicateur, periode),
         ):
@@ -170,6 +176,64 @@ def comparaisons(conn) -> dict:
             "q3": round(float(q3), 2),
         }
     return {"criteres": CRITERES_GROUPE, "groupes": resultat}
+
+
+ETAPES_BUDGET = {
+    "vote": "Voté — loi de finances initiale",
+    "rectifie": "Rectifié — dernière loi de finances rectificative",
+    "execute": "Exécuté",
+}
+
+
+def budget_etat(conn) -> dict:
+    """Le budget de l'État vu par la loi, puis par l'exécution.
+
+    Les montants des trois étapes viennent du même fichier et de la même
+    nomenclature : l'écart entre ce qui a été voté et ce qui a été dépensé se
+    lit directement, sans rapprocher deux documents qui ne se ressemblent pas.
+    Les lignes marquées `agregat` récapitulent leurs voisines : les additionner
+    compterait deux fois.
+    """
+    exercices: dict = defaultdict(dict)
+    for annee, etape, solde, comptes, annexes in conn.execute(
+        """
+        select fiscal_year, stage, balance, special_accounts_balance,
+               annexed_budgets_balance
+        from fin.public_budgets where entity_kind = 'etat'
+        order by fiscal_year, stage
+        """
+    ):
+        exercices[str(annee)][etape] = {
+            "solde": float(solde) if solde is not None else None,
+            "solde_comptes_speciaux": float(comptes) if comptes is not None else None,
+            "solde_budgets_annexes": float(annexes) if annexes is not None else None,
+            "montants": {},
+        }
+    for annee, etape, libelle, montant in conn.execute(
+        """
+        select b.fiscal_year, b.stage, l.label, coalesce(l.cp, l.amount)
+        from fin.public_budget_lines l join fin.public_budgets b using (budget_id)
+        where b.entity_kind = 'etat' and l.label is not null
+        """
+    ):
+        exercices[str(annee)][etape]["montants"][libelle] = float(montant)
+
+    # Ce que les contrôles ont refusé de publier fait partie du jeu publié :
+    # une décomposition absente doit dire pourquoi elle l'est.
+    quarantaine = conn.execute(
+        """
+        select observed from meta.data_quality_checks
+        where dataset_id = 'execution-budget-etat'
+          and check_name = 'decomposition_des_totaux'
+        order by ran_at desc limit 1
+        """
+    ).fetchone()
+    return {
+        "etapes": [{"cle": cle, "libelle": libelle} for cle, libelle in ETAPES_BUDGET.items()],
+        "lignes": smb.ordre_de_lecture(),
+        "exercices": exercices,
+        "quarantaine": (quarantaine[0] if quarantaine else {}) or {},
+    }
 
 
 def fraicheur(conn) -> list[dict]:
@@ -267,6 +331,7 @@ def publier(conn, store, version: str) -> int:
 
     deposer("recherche.json", recherche)
     deposer("comparaisons.json", comparaisons(conn))
+    deposer("budget-etat.json", budget_etat(conn))
     deposer("fraicheur.json", fraicheur(conn))
     store.put("data/derniere.json", _json({"version": version}), overwrite=True)
     print(f"publication {version} : {fichiers} fichiers, {len(recherche)} territoires")

@@ -62,6 +62,13 @@ export function formater(valeur: number, unite: string, parHabitant: boolean): s
     currency: "EUR",
     maximumFractionDigits: parHabitant ? 0 : 0,
   };
+  // Un budget d'État se lit en milliards, un budget communal en millions :
+  // « 441 194,3 M€ » est exact et illisible.
+  if (!parHabitant && Math.abs(valeur) >= 1e9) {
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+      valeur / 1e9,
+    )} Md€`;
+  }
   if (!parHabitant && Math.abs(valeur) >= 1e6) {
     return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
       valeur / 1e6,

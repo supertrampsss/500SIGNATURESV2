@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees";
 import type { Indicateur, Jeu, Territoire } from "./donnees";
 import { afficherFiche, positionDansGroupe } from "./fiche";
+import { afficherBudgetEtat } from "./etat";
 import { afficherNational } from "./national";
 import { expressionCouleur, formater, quantiles } from "./echelle";
 import "./style.css";
@@ -364,6 +365,16 @@ async function demarrer(): Promise<void> {
     }
   } catch {
     // Les séries nationales ne sont pas encore publiées : la carte reste utile.
+  }
+
+  // Le budget de l'État a son propre fichier : il est chargé à part pour qu'une
+  // publication sans lui n'empêche pas le reste de s'afficher.
+  try {
+    if (afficherBudgetEtat($("bloc-etat"), await donnees.budgetEtat())) {
+      $("national").hidden = false;
+    }
+  } catch {
+    // Budget de l'État non publié : le reste du bloc national tient debout.
   }
 }
 

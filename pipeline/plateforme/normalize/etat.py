@@ -275,7 +275,9 @@ def _inserer_budget(
     lignes = 0
     for libelle, montant in valeurs.items():
         ligne = smb.LIGNES[libelle]
-        if not ligne.feuille or libelle in ecartees:
+        # Les soldes ne sont pas des lignes budgétaires : ils sont portés par
+        # le budget lui-même. Les totaux, eux, sont publiés mais marqués.
+        if ligne.cote is None or libelle in ecartees:
             continue
         conn.execute(
             """

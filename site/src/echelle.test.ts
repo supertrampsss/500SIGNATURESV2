@@ -42,6 +42,10 @@ test("un territoire sans population n'est pas colorié par habitant", () => {
 
 test("les montants gardent leur unité et leur ordre de grandeur", () => {
   assert.match(formater(30_761_441, "EUR", false), /30,8\s?M€/);
+  assert.match(formater(999_000_000, "EUR", false), /M€/);
+  // Un budget d'État se lit en milliards : « 441 194,3 M€ » est exact et illisible.
+  assert.match(formater(441_194_313_369.76, "EUR", false), /441,2\s?Md€/);
+  assert.match(formater(-124_205_673_501.55, "EUR", false), /124,2\s?Md€/);
   assert.match(formater(456, "EUR", true), /456/);
   assert.equal(formater(67_339, "count", false), "67 339".replace(" ", " "));
 });

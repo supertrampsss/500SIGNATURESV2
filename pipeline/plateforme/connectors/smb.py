@@ -69,8 +69,9 @@ class Ligne:
     """Une ligne d'information de la situation mensuelle.
 
     `feuille` distingue les montants qui s'additionnent sans doublon des totaux
-    et des lignes de détail : une table de lignes budgétaires où le total côtoie
-    ses composantes se laisse sommer et donne un chiffre faux.
+    qui les récapitulent. Les deux sont publiés — certains textes budgétaires ne
+    donnent que leurs totaux — mais un total porte le genre `agregat`, et une
+    table de lignes budgétaires ne se somme qu'en l'excluant.
     """
 
     libelle: str
@@ -93,9 +94,10 @@ def normaliser(libelle: str) -> str:
 # pas, mais ses sous-totaux de niveau 2 en sont la reprise exacte.
 _LIGNES = [
     Ligne("Solde budgétaire", 0, None, None, False, None, "etat_solde_budgetaire"),
-    Ligne("Total recettes nettes du budget général", 10, "recette", None, False, None,
+    Ligne("Total recettes nettes du budget général", 10, "recette", "agregat", False, None,
           "etat_recettes_nettes_bg"),
-    Ligne("Total recettes fiscales", 11, "recette", None, False, None, "etat_recettes_fiscales"),
+    Ligne("Total recettes fiscales", 11, "recette", "agregat", False, None,
+          "etat_recettes_fiscales"),
     Ligne("Impôt sur le revenu", 12, "recette", "recette_fiscale", True, None,
           "etat_impot_revenu"),
     Ligne("Impôt sur les sociétés", 13, "recette", "recette_fiscale", True, None,
@@ -109,7 +111,7 @@ _LIGNES = [
           "etat_recettes_non_fiscales"),
     Ligne("Fonds de concours et attribution de produits", 18, "recette", "recette_affectee",
           True, None, None),
-    Ligne("Total dépenses nettes du budget général", 20, "depense", None, False, None,
+    Ligne("Total dépenses nettes du budget général", 20, "depense", "agregat", False, None,
           "etat_depenses_nettes_bg"),
     Ligne("Dotation des pouvoirs publics", 21, "depense", "credit", True, "1", None),
     Ligne("Dépenses de personnel", 22, "depense", "credit", True, "2",
@@ -120,17 +122,18 @@ _LIGNES = [
     Ligne("Dépenses d'investissement", 25, "depense", "credit", True, "5", None),
     Ligne("Dépenses d'intervention", 26, "depense", "credit", True, "6", None),
     Ligne("Dépenses d'opérations financières", 27, "depense", "credit", True, "7", None),
-    Ligne("Total prélèvements sur recettes", 30, "depense", None, False, None, None),
+    Ligne("Total prélèvements sur recettes", 30, "depense", "agregat", False, None, None),
     Ligne("PSR au profit des collectivités territoriales", 31, "depense", "credit", True, None,
           "etat_psr_collectivites"),
     Ligne("PSR au profit de l'Union européenne", 32, "depense", "credit", True, None,
           "etat_psr_union_europeenne"),
     # Les remboursements et dégrèvements sont déjà retranchés des recettes et
-    # des dépenses « nettes » : informatifs, jamais additionnés au reste.
-    Ligne("Remboursements et dégrèvements d'impôts d'Etat", 40, "depense", None, False, None,
-          "etat_remboursements_impots_etat"),
-    Ligne("Remboursements et dégrèvements d'impôts locaux", 41, "depense", None, False, None,
-          None),
+    # des dépenses « nettes » : ils recouvrent donc d'autres lignes et ne
+    # s'additionnent jamais au reste.
+    Ligne("Remboursements et dégrèvements d'impôts d'Etat", 40, "depense", "agregat", False,
+          None, "etat_remboursements_impots_etat"),
+    Ligne("Remboursements et dégrèvements d'impôts locaux", 41, "depense", "agregat", False,
+          None, None),
     Ligne("Solde des comptes spéciaux", 50, None, None, False, None,
           "etat_solde_comptes_speciaux"),
     Ligne("CCF Avances aux collectivités territoriales", 51, None, None, False, None, None),
@@ -295,6 +298,35 @@ def controles(valeurs: dict[str, float], fonds_de_concours: bool) -> dict[str, f
         somme = sum(valeurs.get(normaliser(c), 0.0) for c in composantes)
         ecarts[normaliser(total)] = publie - somme
     return ecarts
+
+
+def parents() -> dict[str, str]:
+    """{ligne: total qui la contient}. La hiérarchie est déduite de SOUS_TOTAUX
+    plutôt que redéclarée : deux descriptions de la même arborescence finiraient
+    par diverger, et c'est l'affichage qui mentirait."""
+    return {
+        normaliser(composante): normaliser(total)
+        for total, composantes in SOUS_TOTAUX.items()
+        for composante in composantes
+    }
+
+
+def ordre_de_lecture() -> list[dict]:
+    """Métadonnées d'affichage des lignes, dans l'ordre du produit : recettes,
+    puis dépenses, puis soldes. L'ordre du fichier source suit la présentation
+    de la DGFiP, qui n'est pas celle d'un pont recettes → dépenses → solde."""
+    hierarchie = parents()
+    return [
+        {
+            "libelle": ligne.libelle,
+            "cote": ligne.cote,
+            "titre": ligne.titre,
+            "agregat": ligne.genre == "agregat",
+            "parent": hierarchie.get(normaliser(ligne.libelle)),
+            "indicateur": ligne.indicateur,
+        }
+        for ligne in sorted(_LIGNES, key=lambda ligne: ligne.rang)
+    ]
 
 
 def lignes_inconnues(valeurs: dict[str, float]) -> list[str]:

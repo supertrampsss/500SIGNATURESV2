@@ -98,7 +98,31 @@ export type Fraicheur = {
   controles_echoues: number;
 };
 
+export type EtapeBudget = { cle: string; libelle: string };
+export type LigneBudget = {
+  libelle: string;
+  cote: "depense" | "recette" | null;
+  titre: string | null;
+  agregat: boolean;
+  /** Total qui contient cette ligne, ou null pour une tête de rubrique. */
+  parent: string | null;
+  indicateur: string | null;
+};
+export type MontantsEtape = {
+  solde: number | null;
+  solde_comptes_speciaux: number | null;
+  solde_budgets_annexes: number | null;
+  montants: Record<string, number>;
+};
+export type BudgetEtat = {
+  etapes: EtapeBudget[];
+  lignes: LigneBudget[];
+  exercices: Record<string, Record<string, MontantsEtape>>;
+  quarantaine: Record<string, string[]>;
+};
+
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
+export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
 
 export const urlTuiles = () => cleTuiles;
