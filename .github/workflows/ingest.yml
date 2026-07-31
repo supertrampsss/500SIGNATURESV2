@@ -71,7 +71,15 @@ jobs:
             # Les critères de comparaison arrivent avec les finances locales :
             # recharger l'un sans republier l'autre laisserait le site incohérent.
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2020
+              --niveaux commune --depuis 2022
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "retention" ]; then
+            # Applique la politique de rétention puis republie : laisser des
+            # exercices dans les fichiers publiés alors qu'ils ont quitté la
+            # base rendrait le site incohérent avec sa propre source.
+            python -m plateforme.retention --appliquer
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -96,12 +104,12 @@ jobs:
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
               --niveaux epci,departement,region --depuis 2018
-            # Communes : historique borné à 2020 pour tenir dans les 500 Mo du
-            # plan gratuit Supabase (décision D6). Les snapshots R2 couvrent
-            # 2018-2025 ; une seule commande rechargera tout au passage au
-            # plan payant.
+            # Communes : historique borné à 2022 pour tenir dans les 500 Mo du
+            # plan gratuit Supabase (décision D6, politique dans
+            # plateforme/retention.py). Les snapshots R2 couvrent 2018-2025 ;
+            # une seule commande rechargera tout au passage au plan payant.
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2020
+              --niveaux commune --depuis 2022
             exit $?
           fi
           if [ -z "$DATASET_ID" ]; then echo "aucun dataset_id" && exit 1; fi
