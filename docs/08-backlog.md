@@ -36,9 +36,22 @@
 > dépenses → solde est vérifié à l'euro par un contrôle bloquant sur les 39
 > budgets. Deux défauts du fichier producteur sont traités (docs/06) : colonne
 > « Exécution » décalée sur 2019-2021, répartition des PSR de la LFI 2022
-> corrompue. **Reste dans T-14** : la ventilation par mission et programme,
-> qui suppose les jeux PLF — un par exercice, identifiant changeant chaque
-> année — et les comptes spéciaux détaillés.
+> corrompue. **Reste dans T-14** : la ventilation par mission et programme, et
+> les comptes spéciaux détaillés.
+>
+> **Obstacle constaté sur la ventilation par mission** (vérifié le 31/07/2026
+> sur le catalogue de data.economie.gouv.fr) : le « voté contre exécuté par
+> mission » demandé au plan n'est pas atteignable depuis ce portail.
+> D'un côté, les jeux détaillés par mission portent le **projet** de loi de
+> finances, pas la loi votée — `plf25-depenses-2025-selon-destination` a
+> `loi = PLF`, et son budget général hors remboursements totalise 446,9 Md€
+> contre 438,8 Md€ dans la LFI 2025 effectivement votée. De l'autre,
+> l'exécution par mission s'arrête à l'exercice 2013 (`execution-2013-…`) ; le
+> projet de loi de règlement le plus récent (`projet-de-loi-de-reglement-2020`)
+> ne contient aucun enregistrement, seulement des pièces jointes.
+> Publier le PLF seul en le présentant comme « le budget » confondrait un
+> projet déposé et une loi votée. La suite passe donc par les annexes RAP ou
+> par une autre source d'exécution ; un ticket dédié plutôt qu'un raccourci.
 >
 > Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
 >
