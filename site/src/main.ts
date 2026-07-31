@@ -11,6 +11,7 @@ import * as donnees from "./donnees.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, positionDansGroupe } from "./fiche.ts";
 import { afficherBudgetEtat } from "./etat.ts";
+import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherNational } from "./national.ts";
 import { expressionCouleur, formater, quantiles } from "./echelle.ts";
 import "./style.css";
@@ -375,6 +376,14 @@ async function demarrer(): Promise<void> {
     }
   } catch {
     // Budget de l'État non publié : le reste du bloc national tient debout.
+  }
+
+  try {
+    if (afficherFraicheur($("etat-donnees"), await donnees.fraicheur())) {
+      $("etat-donnees").hidden = false;
+    }
+  } catch {
+    // L'état des données manque : la carte reste utilisable sans lui.
   }
 }
 

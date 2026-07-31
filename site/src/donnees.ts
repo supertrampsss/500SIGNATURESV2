@@ -96,6 +96,14 @@ export type Fraicheur = {
   retard_jours: number | null;
   dernier_run: string | null;
   controles_echoues: number;
+  anomalies: Anomalie[];
+};
+
+/** Un contrôle en échec au dernier chargement : ce qui n'a pas été publié. */
+export type Anomalie = {
+  nom: string;
+  severite: string;
+  constat: Record<string, unknown> | null;
 };
 
 export type EtapeBudget = { cle: string; libelle: string };

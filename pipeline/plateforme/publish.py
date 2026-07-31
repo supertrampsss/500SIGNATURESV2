@@ -252,8 +252,11 @@ def fraicheur(conn) -> list[dict]:
             "retard_jours": retard,
             "dernier_run": statut,
             "controles_echoues": controles,
+            "anomalies": anomalies or [],
         }
-        for jeu, titre, priorite, frequence, extraction, retard, statut, controles in conn.execute(
+        for (
+            jeu, titre, priorite, frequence, extraction, retard, statut, controles, anomalies
+        ) in conn.execute(
             """
             select d.dataset_id, d.title, d.priority, d.update_frequency,
                    max(a.fetched_at) as extraction,
@@ -263,7 +266,16 @@ def fraicheur(conn) -> list[dict]:
                    (select r.status from meta.ingestion_runs r
                      where r.dataset_id = d.dataset_id order by r.started_at desc limit 1),
                    (select count(*) from meta.data_quality_checks c
-                     where c.dataset_id = d.dataset_id and not c.passed and c.severity = 'blocker')
+                     where c.dataset_id = d.dataset_id and not c.passed and c.severity = 'blocker'),
+                   -- Les contrôles du dernier run seulement : un défaut corrigé
+                   -- par le producteur ne doit pas rester affiché indéfiniment.
+                   (select jsonb_agg(jsonb_build_object(
+                             'nom', c.check_name, 'severite', c.severity, 'constat', c.observed))
+                      from meta.data_quality_checks c
+                     where c.dataset_id = d.dataset_id and not c.passed
+                       and c.run_id = (select r.run_id from meta.ingestion_runs r
+                                        where r.dataset_id = d.dataset_id
+                                        order by r.started_at desc limit 1))
             from meta.dataset_registry d
             join meta.raw_assets a on a.dataset_id = d.dataset_id
             group by d.dataset_id, d.title, d.priority, d.update_frequency,

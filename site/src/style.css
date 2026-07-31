@@ -527,6 +527,37 @@ thead th {
   margin: 0.6rem 0 0;
 }
 
+.fraicheur {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.fraicheur th,
+.fraicheur td {
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--trait);
+}
+.fraicheur tbody th {
+  font-weight: 400;
+}
+/* Un signalement se voit sans être alarmant : le contour, pas le remplissage. */
+.anomalie {
+  display: inline-block;
+  border: 1px solid var(--trait);
+  border-radius: 2px;
+  padding: 0 0.3rem;
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+.anomalie--blocker {
+  border-color: currentColor;
+  font-weight: 600;
+  color: var(--encre);
+}
+
 .quartiles {
   list-style: none;
   margin: 0.6rem 0 0;
