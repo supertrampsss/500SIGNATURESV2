@@ -19,9 +19,15 @@ def connect(db_url: str | None = None) -> psycopg.Connection:
     transformation est coupée en silence par l'infrastructure, et l'échec
     n'apparaît qu'à la requête suivante."""
     url = db_url or os.environ["PLATEFORME_DB_URL"]
-    return psycopg.connect(
+    connexion = psycopg.connect(
         url, keepalives=1, keepalives_idle=30, keepalives_interval=10, keepalives_count=5
     )
+    # Le délai par défaut vise des requêtes applicatives de quelques secondes ;
+    # un chargement par lots écrit des centaines de milliers de lignes en une
+    # instruction et le dépasse légitimement.
+    connexion.execute("set statement_timeout = '15min'")
+    connexion.commit()
+    return connexion
 
 
 def get_dataset(conn: psycopg.Connection, dataset_id: str) -> dict:

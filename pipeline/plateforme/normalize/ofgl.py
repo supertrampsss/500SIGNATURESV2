@@ -171,18 +171,24 @@ def enregistrer_criteres(conn, lignes: list[dict]) -> int:
                 }
     if not derniers:
         return 0
+    # Une seule instruction plutôt que 34 875 : autant d'allers-retours
+    # dépassaient le délai maximum d'une requête.
     with conn.cursor() as curseur:
-        curseur.executemany(
+        curseur.execute("create temp table _criteres (code text primary key, flags jsonb)")
+        with curseur.copy("copy _criteres (code, flags) from stdin") as copie:
+            for code, valeur in derniers.items():
+                copie.write_row(
+                    (code, Jsonb({**valeur["criteres"], "criteres_source": "OFGL"}))
+                )
+        curseur.execute(
             """
-            update geo.geography_reference
-            set flags = flags || %s
-            where geo_level = 'commune' and geo_code = %s and vintage = %s
+            update geo.geography_reference g set flags = g.flags || c.flags
+            from _criteres c
+            where g.geo_level = 'commune' and g.geo_code = c.code and g.vintage = %s
             """,
-            [
-                (Jsonb({**valeur["criteres"], "criteres_source": "OFGL"}), code, MILLESIME)
-                for code, valeur in derniers.items()
-            ],
+            (MILLESIME,),
         )
+        curseur.execute("drop table _criteres")
     conn.commit()
     return len(derniers)
 
@@ -214,13 +220,19 @@ def ecrire(conn, run_id: str, lignes: list[tuple]) -> int:
             "delete from core.observations where indicator_id = any(%s) and geo_level = any(%s)",
             (indicateurs, niveaux),
         )
-        with cur.copy(
-            "copy core.observations"
-            " (indicator_id, geo_level, geo_code, geo_vintage, period, value, run_id)"
-            " from stdin"
-        ) as copie:
-            for indicateur, niveau, code, periode, valeur in lignes:
-                copie.write_row((indicateur, niveau, code, MILLESIME, periode, valeur, run_id))
+        # Écriture par lots : une seule instruction pour 420 000 lignes dépasse
+        # le délai maximum, chaque vérification de clé étrangère prenant un verrou.
+        LOT = 100_000
+        for debut in range(0, len(lignes), LOT):
+            with cur.copy(
+                "copy core.observations"
+                " (indicator_id, geo_level, geo_code, geo_vintage, period, value, run_id)"
+                " from stdin"
+            ) as copie:
+                for indicateur, niveau, code, periode, valeur in lignes[debut : debut + LOT]:
+                    copie.write_row(
+                        (indicateur, niveau, code, MILLESIME, periode, valeur, run_id)
+                    )
     conn.commit()
     return len(lignes)
 
