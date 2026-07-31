@@ -1,0 +1,16 @@
+# Gabarit Wrangler — activé au ticket T-02 une fois le compte Cloudflare créé
+# (voir docs/SETUP.md). Copier vers wrangler.toml et compléter account_id.
+name = "plateforme-ingestion"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+[[r2_buckets]]
+binding = "RAW"
+bucket_name = "plateforme-raw"
+
+[[r2_buckets]]
+binding = "PUBLISHED"
+bucket_name = "plateforme-published"
+
+[triggers]
+crons = ["0 2 * * *"] # liveness quotidienne des sources (docs/03-architecture.md §1)

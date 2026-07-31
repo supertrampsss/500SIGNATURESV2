@@ -42,15 +42,15 @@
 
 ## Décisions à prendre avant de coder
 
-| # | Décision | Options | Recommandation |
+| # | Décision | Options | Recommandation / statut |
 |---|---|---|---|
-| D1 | Visibilité du repo `500signaturesv2` | privé / public | privé pendant la conception, public au lancement du MVP (crédibilité open source) |
+| D1 | Visibilité du repo `500signaturesv2` | privé / public | **Tranché le 31/07/2026 : privé** pendant la conception et le début du développement ; passage en public au lancement du MVP |
 | D2 | Nom de domaine et nom public du produit | — | à choisir avant le front (impacte SEO, partages) |
 | D3 | Périmètre DVF au MVP | inclus / phase 2 | décision à S6 sur critère de charge (doc 07) ; sinon phase 2 |
 | D4 | Fond de carte | auto-hébergé (OpenMapTiles) / service IGN | auto-hébergé PMTiles (coût nul, indépendance), IGN en option ultérieure |
 | D5 | Fréquence de publication des exports | hebdo / à chaque ingestion | hebdo au MVP (prévisibilité), sauf correctifs |
-| D6 | Budget infra mensuel plafond | — | à fixer (ordre de grandeur attendu : < 100 €/mois au MVP hors temps humain) |
-| D7 | Qui est le relecteur humain des validations méthodo | — | à désigner nominativement — bloquant pour T-12/T-14 |
+| D6 | Budget infra mensuel plafond | — | **Tranché le 31/07/2026 : plans gratuits Supabase/Cloudflare** tant qu'ils suffisent ; passage au payant une fois le produit rodé ou en cas de blocage. Conséquences assumées et documentées dans `docs/SETUP.md` (pause d'inactivité et 500 Mo Supabase Free, pas de PITR — sauvegardes compensées par dumps versionnés vers R2) |
+| D7 | Qui est le relecteur humain des validations méthodo | — | **Tranché le 31/07/2026 : le propriétaire du dépôt (`supertrampsss`)** approuve chaque nouveau connecteur et changement de méthodologie via les PRs, présentés avec un résumé en français |
 | D8 | Comptes utilisateurs (alertes territoriales, phase 3) | Supabase Auth / pas de comptes (e-mail simple) | trancher en phase 3 seulement |
 | D9 | Politique de marque vis-à-vis des producteurs (mentions, logos) | — | mentions textuelles uniquement, pas de logos sans autorisation |
 | D10 | Corpus et seuils d'évaluation du moteur de questions | — | à définir avant tout développement phase 3 |
