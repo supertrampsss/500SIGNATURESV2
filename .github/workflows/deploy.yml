@@ -1,0 +1,32 @@
+name: Deploy site
+
+# Déploiement en preview sur Cloudflare Pages. Le site porte une balise
+# noindex tant que le projet n'est pas annoncé (décision D1).
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - ".github/workflows/deploy.yml"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm ci || npm install
+        working-directory: site
+      - run: npm run build
+        working-directory: site
+      - name: Publish to Cloudflare Pages
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx --yes wrangler@4 pages deploy site/dist \
+            --project-name=plateforme --branch=preview --commit-dirty=true

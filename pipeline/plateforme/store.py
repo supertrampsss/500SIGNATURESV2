@@ -17,9 +17,9 @@ class LocalStore:
     def __init__(self, root: str | Path):
         self.root = Path(root)
 
-    def put(self, key: str, content: bytes) -> str:
+    def put(self, key: str, content: bytes, overwrite: bool = False) -> str:
         path = self.root / key
-        if path.exists():
+        if path.exists() and not overwrite:
             raise ImmutabilityError(f"snapshot déjà présent : {key}")
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(content)
@@ -76,10 +76,15 @@ class R2Store:
                 return False
             raise
 
-    def put(self, key: str, content: bytes) -> str:
-        if self._exists(key):
+    def put(self, key: str, content: bytes, overwrite: bool = False) -> str:
+        """`overwrite` n'est légitime que pour les pointeurs de version publiés
+        (data/derniere.json) : tout le reste est immuable par principe."""
+        if not overwrite and self._exists(key):
             raise ImmutabilityError(f"snapshot déjà présent : {key}")
-        self.client.put_object(Bucket=self.bucket, Key=key, Body=content)
+        self.client.put_object(
+            Bucket=self.bucket, Key=key, Body=content,
+            ContentType="application/json" if key.endswith(".json") else "application/octet-stream",
+        )
         return f"r2://{self.bucket}/{key}"
 
     def get(self, key: str) -> bytes:

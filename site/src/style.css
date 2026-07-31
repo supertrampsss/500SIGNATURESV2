@@ -1,0 +1,360 @@
+/*
+ * Langage visuel : produit d'intérêt public. Sobriété, contraste élevé,
+ * typographie système, aucune animation décorative. Les contraintes
+ * d'accessibilité priment sur l'esthétique (docs/04).
+ */
+
+:root {
+  --encre: #16191d;
+  --encre-douce: #4a5259;
+  --papier: #ffffff;
+  --papier-creuse: #f4f5f3;
+  --trait: #d7dbd8;
+  --accent: #1b4f77;
+  --alerte: #8a4b12;
+  --rayon: 6px;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--encre);
+  background: var(--papier);
+  line-height: 1.5;
+}
+
+.evitement {
+  position: absolute;
+  left: -9999px;
+}
+.evitement:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 20;
+  background: var(--papier);
+  padding: 0.6rem 1rem;
+  border: 2px solid var(--accent);
+}
+
+.entete {
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid var(--trait);
+}
+.entete h1 {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.sous-titre {
+  margin: 0.25rem 0 0;
+  color: var(--encre-douce);
+  font-size: 0.95rem;
+}
+
+.commandes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.25rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--trait);
+  background: var(--papier-creuse);
+  margin: 0;
+}
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  position: relative;
+}
+.champ label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+select,
+input[type="search"] {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier);
+  color: var(--encre);
+  min-width: 12rem;
+}
+select:focus-visible,
+input:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.champ--recherche {
+  flex: 1 1 16rem;
+}
+
+#suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.08);
+  max-height: 15rem;
+  overflow-y: auto;
+}
+#suggestions button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+#suggestions button:hover {
+  background: var(--papier-creuse);
+}
+#suggestions span {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+
+.scene {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  height: min(70vh, 44rem);
+}
+#carte {
+  height: 100%;
+}
+
+.legende {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  background: rgb(255 255 255 / 0.96);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  padding: 0.7rem 0.85rem;
+  max-width: 20rem;
+  font-size: 0.82rem;
+}
+.legende__titre {
+  margin: 0 0 0.45rem;
+  font-weight: 600;
+}
+.legende__echelle {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+.legende__echelle li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.pastille {
+  width: 1.1rem;
+  height: 0.8rem;
+  border: 1px solid rgb(0 0 0 / 0.15);
+  flex: none;
+}
+.legende__note {
+  margin: 0.5rem 0 0;
+  color: var(--encre-douce);
+  font-size: 0.75rem;
+}
+
+.fiche {
+  border-left: 1px solid var(--trait);
+  padding: 1.1rem 1.25rem;
+  overflow-y: auto;
+  background: var(--papier);
+}
+.fiche__vide,
+.erreur {
+  color: var(--encre-douce);
+}
+.erreur {
+  color: var(--alerte);
+}
+.fiche__titre {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  margin: 0;
+}
+.fiche__meta {
+  margin: 0.15rem 0 1rem;
+  color: var(--encre-douce);
+  font-size: 0.85rem;
+}
+
+.mesures {
+  margin: 0 0 1.25rem;
+}
+.mesure {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--trait);
+}
+.mesure dt {
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}
+.mesure dd {
+  margin: 0.15rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.6rem;
+}
+.mesure strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.millesime {
+  font-size: 0.75rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  color: var(--encre-douce);
+}
+.denominateur,
+.evolution {
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
+.mesure--absente dd {
+  color: var(--encre-douce);
+  font-style: italic;
+}
+
+.panneau {
+  border-top: 1px solid var(--trait);
+  padding: 0.55rem 0;
+  font-size: 0.85rem;
+}
+.panneau summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.panneau ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+.technique,
+.formule,
+.avertissement {
+  color: var(--encre-douce);
+  font-size: 0.8rem;
+}
+.avertissement {
+  margin-top: 0.7rem;
+}
+
+.tableau {
+  padding: 1.5rem;
+  border-top: 1px solid var(--trait);
+}
+.tableau h2 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  margin: 0;
+}
+.tableau__aide {
+  color: var(--encre-douce);
+  font-size: 0.85rem;
+  margin: 0.2rem 0 0.8rem;
+}
+.tableau__cadre {
+  max-height: 22rem;
+  overflow: auto;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.88rem;
+}
+caption {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  color: var(--encre-douce);
+  font-size: 0.8rem;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  border-top: 1px solid var(--trait);
+}
+td:last-child,
+th:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--papier-creuse);
+}
+
+.pied {
+  padding: 1.25rem 1.5rem 2.5rem;
+  border-top: 1px solid var(--trait);
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+@media (max-width: 60rem) {
+  .scene {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  #carte {
+    height: 60vh;
+  }
+  .fiche {
+    border-left: 0;
+    border-top: 1px solid var(--trait);
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

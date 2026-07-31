@@ -187,6 +187,12 @@ def run(departements: list[str], store_spec: str, publication_spec: str) -> int:
             version = datetime.now(UTC).strftime("%Y-%m-%d")
             cle = f"geo/{version}/territoires.pmtiles"
             publication.put(cle, contenu)
+            # Pointeur vers la version courante : la carte ne devine pas la date.
+            publication.put(
+                "geo/derniere.json",
+                json.dumps({"cle": cle, "version": version}).encode(),
+                overwrite=True,
+            )
             print(f"tuiles publiées : {cle} ({len(contenu) // 1024} Kio)")
 
         db.finish_run(conn, run_id, "success", rows_written=total)
