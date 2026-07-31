@@ -22,7 +22,17 @@
 > (épargne brute = recettes − dépenses). Reste : dotations (`public_transfers`)
 > et groupes de comparaison v1.
 >
+> **T-18 (tuiles vectorielles)** : archive PMTiles unique publiée dans R2
+> (`geo/<date>/territoires.pmtiles`, 56 Mo, zooms 0-12), trois couches —
+> 34 875 communes, 101 départements, 18 régions — outre-mer compris. Les
+> contours départementaux et régionaux sont reconstitués par fusion des
+> communes, sur la maille des finances locales (Alsace, Métropole de Lyon).
+>
 > Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
+>
+> **Prochaine étape** : T-13 (design system, skill `taste-skill`) puis T-19/T-20
+> (première carte et fiche commune) — toutes les données nécessaires sont en
+> place.
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /
