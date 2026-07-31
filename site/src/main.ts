@@ -10,7 +10,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, positionDansGroupe } from "./fiche.ts";
-import { afficherBudgetEtat } from "./etat.ts";
+import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
+import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
@@ -423,7 +424,12 @@ async function demarrer(): Promise<void> {
   // Le budget de l'État a son propre fichier : il est chargé à part pour qu'une
   // publication sans lui n'empêche pas le reste de s'afficher.
   try {
-    if (afficherBudgetEtat($("bloc-etat"), await donnees.budgetEtat())) {
+    const budget = await donnees.budgetEtat();
+    // « 100 € » d'abord : c'est la question que le lecteur se pose, le pont
+    // détaillé vient ensuite pour celui qui veut vérifier.
+    const dernier = exercicesDisponibles(budget)[0];
+    if (dernier) afficherCentEuros($("bloc-cent-euros"), budget, dernier);
+    if (afficherBudgetEtat($("bloc-etat"), budget)) {
       $("national").hidden = false;
     }
   } catch {

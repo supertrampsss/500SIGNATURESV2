@@ -527,6 +527,46 @@ thead th {
   margin: 0.6rem 0 0;
 }
 
+/* « 100 € » : deux colonnes de parts, une seule teinte, largeur proportionnelle.
+   Le chiffre porte l'information, la barre ne fait qu'ordonner le regard. */
+.cent__grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.25rem 2rem;
+  margin-top: 0.6rem;
+}
+.cent__question {
+  margin: 0 0 0.6rem;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+}
+.cent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.cent li {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  align-items: baseline;
+  gap: 0.1rem 0.6rem;
+  font-size: 0.88rem;
+}
+.cent__part {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+.cent__barre {
+  grid-column: 2;
+  height: 0.4rem;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.75;
+}
+
 .comparateur {
   width: 100%;
   border-collapse: collapse;
