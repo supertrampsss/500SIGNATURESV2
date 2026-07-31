@@ -92,7 +92,19 @@ def indicateurs(conn) -> list[dict]:
                i.accounting_frame, i.geo_levels, d.public_definition, d.technical_definition,
                d.formula, d.confidence_level, d.badges, i.dataset_id,
                (select array_agg(distinct o.period order by o.period)
-                  from core.observations o where o.indicator_id = i.indicator_id) as periodes
+                  from core.observations o where o.indicator_id = i.indicator_id) as periodes,
+               -- Les périodes disponibles dépendent du niveau : l'historique
+               -- communal est plus court que celui des départements (rétention,
+               -- D6bis). Proposer une année sans couche à peindre renverrait le
+               -- lecteur sur un fichier absent.
+               (select jsonb_object_agg(niveau, annees) from (
+                    select o.geo_level as niveau,
+                           array_agg(distinct o.period order by o.period) as annees
+                      from core.observations o
+                     where o.indicator_id = i.indicator_id and o.value_status = 'normal'
+                       and o.variant = 'total'
+                     group by o.geo_level
+                ) as par_niveau) as periodes_par_niveau
         from core.indicators i
         left join core.indicator_definitions d on d.definition_id = i.definition_id
         where i.published order by i.theme, i.label_fr
@@ -105,6 +117,7 @@ def indicateurs(conn) -> list[dict]:
             "niveaux": ligne[7], "definition": ligne[8], "definition_technique": ligne[9],
             "formule": ligne[10], "confiance": ligne[11], "badges": ligne[12],
             "jeu": ligne[13], "periodes": ligne[14] or [],
+            "periodes_par_niveau": ligne[15] or {},
         }
         for ligne in lignes
     ]

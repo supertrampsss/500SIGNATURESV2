@@ -20,6 +20,8 @@ export type Indicateur = {
   badges: string[];
   jeu: string;
   periodes: string[];
+  /** Périodes réellement disponibles à chaque niveau (docs/10). */
+  periodes_par_niveau?: Record<string, string[]>;
 };
 
 export type Jeu = {

@@ -321,7 +321,15 @@ function construireSelecteurs(): void {
     .join("");
   $<HTMLSelectElement>("indicateur").value = etat.indicateur;
 
-  const periodes = [...(indicateurCourant().periodes ?? [])].sort().reverse();
+  // Périodes du niveau affiché, pas de l'indicateur tous niveaux confondus :
+  // l'historique communal est plus court que celui des départements, et
+  // proposer une année sans couche mènerait à un fichier absent.
+  const fiche = indicateurCourant();
+  const periodes = [
+    ...(fiche.periodes_par_niveau?.[etat.niveau] ?? fiche.periodes ?? []),
+  ]
+    .sort()
+    .reverse();
   if (!periodes.includes(etat.periode)) etat.periode = periodes[0];
   $<HTMLSelectElement>("periode").innerHTML = periodes
     .map((p) => `<option value="${p}">${p}</option>`)
