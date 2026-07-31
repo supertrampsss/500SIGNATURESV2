@@ -20,6 +20,20 @@ jobs:
       - run: ruff check .
       - run: pytest -q
 
+  site:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm test
+      - run: npm run build
+
   database:
     # Rejoue toutes les migrations de zéro sur PostGIS, charge le seed du
     # registre et vérifie les contraintes structurantes (docs/02 §F).
