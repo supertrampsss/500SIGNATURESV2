@@ -20,6 +20,10 @@ from plateforme.normalize.geo import make_store
 
 NIVEAUX = ["commune", "epci", "departement", "region", "pays"]
 
+# Seuls ces niveaux ont des tuiles : produire des couches de carte pour les
+# autres coûterait des centaines de fichiers que rien ne viendrait lire.
+NIVEAUX_CARTOGRAPHIES = {"commune", "departement", "region"}
+
 
 def _json(charge) -> bytes:
     return json.dumps(charge, ensure_ascii=False, separators=(",", ":")).encode()
@@ -77,20 +81,40 @@ def indicateurs(conn) -> list[dict]:
     ]
 
 
+def couples_publies(conn, niveau: str) -> list[tuple[str, str]]:
+    return [
+        (indicateur, periode)
+        for indicateur, periode in conn.execute(
+            """
+            select distinct o.indicator_id, o.period
+            from core.observations o join core.indicators i using (indicator_id)
+            where o.geo_level = %s and i.published and o.value_status = 'normal'
+            order by 1, 2
+            """,
+            (niveau,),
+        )
+    ]
+
+
 def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float]]]:
-    """-> {indicateur: {periode: {code: valeur}}}. Les valeurs sous secret
-    statistique ne sont pas exportées comme des zéros : elles sont absentes, et
-    la fiche de l'indicateur dit pourquoi."""
+    """-> {indicateur: {periode: {code: valeur}}}.
+
+    Interrogé indicateur par indicateur : lire 1,3 million de lignes d'un seul
+    curseur faisait tomber la connexion sur une instance de plan gratuit. Les
+    valeurs sous secret statistique ne sont pas exportées comme des zéros :
+    elles sont absentes, et la fiche de l'indicateur dit pourquoi.
+    """
     valeurs: dict = defaultdict(lambda: defaultdict(dict))
-    for indicateur, periode, code, valeur in conn.execute(
-        """
-        select o.indicator_id, o.period, o.geo_code, o.value
-        from core.observations o join core.indicators i using (indicator_id)
-        where o.geo_level = %s and i.published and o.value_status = 'normal'
-        """,
-        (niveau,),
-    ):
-        valeurs[indicateur][periode][code] = float(valeur)
+    for indicateur, periode in couples_publies(conn, niveau):
+        for code, valeur in conn.execute(
+            """
+            select o.geo_code, o.value from core.observations o
+            where o.geo_level = %s and o.indicator_id = %s and o.period = %s
+              and o.value_status = 'normal'
+            """,
+            (niveau, indicateur, periode),
+        ):
+            valeurs[indicateur][periode][code] = float(valeur)
     return valeurs
 
 
@@ -127,9 +151,10 @@ def publier(conn, store, version: str) -> int:
         entites = territoires(conn, niveau)
         valeurs = valeurs_par_niveau(conn, niveau)
 
-        for indicateur, periodes in valeurs.items():
-            for periode, codes in periodes.items():
-                deposer(f"carte/{indicateur}/{niveau}/{periode}.json", codes)
+        if niveau in NIVEAUX_CARTOGRAPHIES:
+            for indicateur, periodes in valeurs.items():
+                for periode, codes in periodes.items():
+                    deposer(f"carte/{indicateur}/{niveau}/{periode}.json", codes)
 
         # Fiches : les communes sont réparties par département — un fichier par
         # commune ferait 34 875 objets à déposer à chaque publication.

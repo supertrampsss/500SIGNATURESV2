@@ -15,8 +15,13 @@ from psycopg.types.json import Jsonb
 
 
 def connect(db_url: str | None = None) -> psycopg.Connection:
+    """`keepalives` : sans eux, une connexion inactive pendant une longue
+    transformation est coupée en silence par l'infrastructure, et l'échec
+    n'apparaît qu'à la requête suivante."""
     url = db_url or os.environ["PLATEFORME_DB_URL"]
-    return psycopg.connect(url)
+    return psycopg.connect(
+        url, keepalives=1, keepalives_idle=30, keepalives_interval=10, keepalives_count=5
+    )
 
 
 def get_dataset(conn: psycopg.Connection, dataset_id: str) -> dict:
