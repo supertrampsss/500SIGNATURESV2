@@ -1,10 +1,13 @@
 # 08 — Livrable 8 : backlog GitHub priorisé
 
-> **État au 31/07/2026** — fait (PR #2) : T-01, T-04, T-05 ; entamés : T-06/T-07/T-08/T-09
-> (connecteurs de snapshot sans clé + lineage ; normalisation vers les tables
-> analytiques à venir avec T-11+). T-07 couvre déjà le pattern de T-10 (Webstat
-> est un portail Opendatasoft). Bloqués sur les actions de `docs/SETUP.md`
-> (comptes + secrets) : T-02, T-03, et la partie Sirene de T-08.
+> **État au 31/07/2026** — fait (PR #2) : T-01, T-04, T-05, et **T-03** (schéma,
+> seed et checks appliqués au projet Supabase réel via l'API de management — ne
+> manque que le secret `SUPABASE_DB_URL`, cf. docs/SETUP.md) ; entamés :
+> T-06/T-07/T-08/T-09 (connecteurs de snapshot sans clé + lineage ;
+> normalisation vers les tables analytiques à venir avec T-11+). T-07 couvre
+> déjà le pattern de T-10 (Webstat est un portail Opendatasoft). Bloqués sur
+> les actions restantes de `docs/SETUP.md` : T-02 (Cloudflare/R2), la partie
+> Sirene de T-08, et toute ingestion automatisée vers Supabase (secret).
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /
