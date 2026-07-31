@@ -45,7 +45,7 @@
 | # | Décision | Options | Recommandation / statut |
 |---|---|---|---|
 | D1 | Visibilité du repo `500signaturesv2` | privé / public | **Tranché le 31/07/2026 : privé** pendant la conception et le début du développement ; passage en public au lancement du MVP |
-| D2 | Nom de domaine et nom public du produit | — | à choisir avant le front (impacte SEO, partages) |
+| D2 | Nom de domaine et nom public du produit | — | **Tranché le 31/07/2026 : `500signatures.fr`** (domaine détenu par le propriétaire, zone déjà sur Cloudflare) ; le rattachement DNS au site se fera au déploiement (T-17/T-19) |
 | D3 | Périmètre DVF au MVP | inclus / phase 2 | décision à S6 sur critère de charge (doc 07) ; sinon phase 2 |
 | D4 | Fond de carte | auto-hébergé (OpenMapTiles) / service IGN | auto-hébergé PMTiles (coût nul, indépendance), IGN en option ultérieure |
 | D5 | Fréquence de publication des exports | hebdo / à chaque ingestion | hebdo au MVP (prévisibilité), sauf correctifs |
