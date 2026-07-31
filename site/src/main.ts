@@ -349,6 +349,13 @@ async function demarrer(): Promise<void> {
     manifeste.genere_le,
   ).toLocaleDateString("fr-FR")} · version ${manifeste.version}`;
 
+  // Le jeu de données public est le même que celui de la carte : le lien pointe
+  // vers le pointeur de version, porte d'entrée de tous les autres fichiers.
+  $("telechargement").insertAdjacentHTML(
+    "beforeend",
+    ` <a href="${donnees.racinePubliee()}/derniere.json" rel="noreferrer">Accéder aux données</a>.`,
+  );
+
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   carte = new maplibregl.Map({
     container: "carte",

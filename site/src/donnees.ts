@@ -135,3 +135,7 @@ export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
 
 export const urlTuiles = () => cleTuiles;
+
+/** Racine publique des fichiers publiés : le site n'a pas d'accès privilégié,
+ *  ce que lit la carte est ce que peut lire n'importe qui (docs/10). */
+export const racinePubliee = () => `${BASE}/data`;
