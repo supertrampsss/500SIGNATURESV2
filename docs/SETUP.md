@@ -69,10 +69,23 @@ T-17/T-19 (`infra/cloudflare/wrangler.toml.example`).
 
 Aucun secret n'est nécessaire pour la CI de validation (PostGIS éphémère).
 Les trois secrets ci-dessus alimentent le workflow **Ingestion**
-(`.github/workflows/ingest.yml`, déclenchement manuel : Actions → Ingestion →
-Run workflow → choisir un `dataset_id` du registre) : registre Supabase →
-connecteur → snapshot R2 → lineage Supabase. `CLOUDFLARE_TOKEN_ID` n'est pas
-un secret (id public du token) et est fixé dans le workflow.
+(`.github/workflows/ingest.yml`) : registre Supabase → connecteur → snapshot
+R2 → lineage Supabase. `CLOUDFLARE_TOKEN_ID` n'est pas un secret (id public du
+token) et est fixé dans le workflow.
+
+Deux façons de lancer un run :
+- **Humain** : Actions → Ingestion → « Run workflow » → saisir un `dataset_id`
+  du registre (et des filtres JSON optionnels).
+- **Agent** : committer `.github/ingest-request.json`
+  (`{"dataset_id": "...", "params": {...}}`) — l'app GitHub de l'agent n'a pas
+  la permission `workflow_dispatch`, ce fichier en tient lieu. Modifier le
+  champ libre `request` suffit à relancer le même jeu.
+
+> **✅ Premier run réel le 31/07/2026** — `bdm-dette-trim` (dette trimestrielle
+> des administrations publiques, INSEE BDM) : snapshot de 240 289 octets archivé
+> sous `raw/insee-bdm/bdm-dette-trim/2026-07-31T110611Z/data.xml` dans
+> `plateforme-raw`, run tracé `success` dans `meta.ingestion_runs` avec le SHA
+> de commit du connecteur et l'empreinte SHA-256 du contenu.
 
 Note réseau : l'environnement de développement distant ne laisse sortir que du
 HTTPS — le protocole Postgres direct (port 5432) n'y passe pas. Les opérations
