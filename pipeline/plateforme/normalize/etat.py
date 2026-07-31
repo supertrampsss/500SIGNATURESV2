@@ -325,7 +325,7 @@ def ecrire(conn, run_id: str, clos: dict[str, dict], votes: dict[tuple[str, str]
     """Reconstruit intégralement le budget de l'État : un seul connecteur écrit
     ces lignes, une reconstruction est plus simple à vérifier qu'une fusion."""
     conn.execute("delete from fin.public_budgets where entity_kind = 'etat'")
-    resume = {"budgets": 0, "lignes": 0, "quarantaine": {}, "observations": 0}
+    resume = {"budgets": 0, "lignes": 0, "quarantaine": {}, "observations": 0, "ecart_max": 0.0}
 
     for annee, valeurs in sorted(clos.items()):
         solde, quarantaine = verifier(valeurs, fonds_de_concours=True)
@@ -334,6 +334,7 @@ def ecrire(conn, run_id: str, clos: dict[str, dict], votes: dict[tuple[str, str]
                 f"exercice {annee} : le solde budgétaire publié ne se déduit pas de ses"
                 f" composantes (écart {solde:,.0f} €)"
             )
+        resume["ecart_max"] = max(resume["ecart_max"], abs(solde))
         if quarantaine:
             resume["quarantaine"][f"{annee}/execute"] = quarantaine
         type_budget, etape = TYPE_EXECUTION
@@ -352,6 +353,7 @@ def ecrire(conn, run_id: str, clos: dict[str, dict], votes: dict[tuple[str, str]
                 f"{texte} {annee} : le solde voté ne se déduit pas de ses composantes"
                 f" (écart {solde:,.0f} €)"
             )
+        resume["ecart_max"] = max(resume["ecart_max"], abs(solde))
         if quarantaine:
             resume["quarantaine"][f"{annee}/{etape}"] = quarantaine
         resume["lignes"] += _inserer_budget(
@@ -387,7 +389,18 @@ def _ecrire_observations(conn, run_id: str, clos: dict[str, dict]) -> int:
 
 def tracer_controles(conn, run_id: str, resume: dict, divergences: dict) -> None:
     controles = [
-        ("identite_solde_budgetaire", "blocker", True, {"budgets_verifies": resume["budgets"]}),
+        (
+            "identite_solde_budgetaire",
+            "blocker",
+            True,
+            # L'écart maximal rend le contrôle informatif : un contrôle qui ne
+            # peut qu'être vrai ne dit rien de la qualité de la source.
+            {
+                "budgets_verifies": resume["budgets"],
+                "ecart_maximal_euros": round(resume["ecart_max"], 2),
+                "tolerance_euros": smb.TOLERANCE_EUR,
+            },
+        ),
         ("decomposition_des_totaux", "warning", not resume["quarantaine"], resume["quarantaine"]),
         ("execution_recoupee_entre_fichiers", "warning", not divergences, divergences),
     ]
