@@ -38,6 +38,10 @@ jobs:
             echo "params=$(jq -c '.params // empty' .github/ingest-request.json)" >> "$GITHUB_OUTPUT"
             echo "job=$(jq -r '.job // empty' .github/ingest-request.json)" >> "$GITHUB_OUTPUT"
           fi
+      - name: Sync source registry
+        env:
+          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m plateforme.registry
       - name: Run ingestion
         env:
           PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
