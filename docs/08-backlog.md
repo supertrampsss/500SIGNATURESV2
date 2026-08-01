@@ -68,6 +68,28 @@
 > qui ramène la base sous le plafond du plan gratuit sans rien détruire
 > d'irremplaçable.
 >
+> **T-23, moitié `change_log`** : fait le 01/08/2026. Le journal des changements
+> est déclaré en code (`plateforme/journal.py`), synchronisé à chaque
+> publication et exporté dans `journal.json`. Trois entrées à l'ouverture, toutes
+> antérieures et jusque-là invisibles : l'exécution 2019-2021 corrigée du
+> décalage producteur, la répartition des PSR de la LFI 2022 mise en quarantaine,
+> les finances communales d'avant 2022 retirées par la rétention. **Reste dans
+> T-23** : les alertes (issue ouverte quand une source se tait plus longtemps que
+> sa fréquence annoncée) et `core.observations_revisions`, qui n'a toujours pas
+> d'écrivain — « ce chiffre a été révisé » n'est donc pas encore affichable au
+> niveau d'une valeur.
+>
+> **Sauvegarde vérifiée** (conséquence de D6, pas de PITR sur le plan gratuit) :
+> faite le 01/08/2026. Hebdomadaire, elle restaure chaque dump dans une base
+> jetable et compare table par table avant de le déposer — un fichier qui ne se
+> restaure pas fait échouer le run au lieu de passer pour une sauvegarde.
+> Première exécution réussie : 9,9 Mo, 1 067 371 observations restaurées et
+> recomptées à l'identique. Trois échecs ont précédé, tous du même genre — le
+> workflow *supposait* l'environnement au lieu de le lire : version de PostgreSQL
+> (Supabase est en 17, pas 16), schéma des extensions (`extensions`, pas
+> `public`), et une attente qui ne bouclait pas. Les trois lisent désormais la
+> source.
+>
 > **T-16 (domaines sociaux et démographiques)** : entamé. Chargés le
 > 31/07/2026 — dotations de l'État aux communes (34 875 communes, contrôlées
 > contre le prélèvement sur recettes de l'État), niveau de vie médian

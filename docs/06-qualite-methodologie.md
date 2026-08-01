@@ -92,6 +92,20 @@ mensuelles budgétaires de la DGFiP :
 4. Une correction du producteur (révision de série) est distinguée d'une
    correction de notre chaîne — deux `change_type` différents.
 
+**État au 01/08/2026.** L'étape 2 est en place : le journal est déclaré dans
+`plateforme/journal.py`, synchronisé à chaque publication et servi par
+`journal.json` ; le site l'affiche du plus récent au plus ancien, détail
+technique replié. Les entrées écrites par la plateforme portent
+`author = 'plateforme'`, la synchronisation ne touche qu'à celles-là.
+
+L'étape 3 ne l'est pas : `core.observations_revisions` n'a pas d'écrivain, donc
+aucune valeur individuelle ne porte encore « corrigé le … ». Écrire *toutes* les
+valeurs remplacées à chaque rechargement doublerait le volume, ce que D6bis
+interdit ; il faudra n'archiver que celles qui changent réellement. Tant que ce
+n'est pas fait, une correction se lit au niveau du jeu, pas de la cellule — et
+c'est ce que le site dit, plutôt que d'afficher une mention qu'il ne peut pas
+justifier.
+
 ## Écriture éditoriale
 
 - Niveau d'interprétation : les explications sont **attribuées** (INSEE, Cour des
