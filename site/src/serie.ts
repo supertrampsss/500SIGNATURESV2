@@ -67,6 +67,17 @@ export function evolution(
   )} % depuis ${echapper(depuis)}${reserve}</span>`;
 }
 
+/**
+ * Points espacés régulièrement, par rang et non par date.
+ *
+ * C'est exact tant que la série est régulière, ce que sont toutes celles
+ * publiées aujourd'hui : exercices annuels consécutifs, trimestres consécutifs.
+ * Une série trouée — 2013 puis 2023, par exemple — serait déformée : les deux
+ * points paraîtraient voisins. Les périodes coexistant sous deux formes
+ * (`2024` et `2024-Q1`), les placer à leur date demanderait de savoir les lire
+ * toutes ; d'ici là, les bornes sont écrites sous la courbe pour qu'on sache
+ * quel intervalle on regarde.
+ */
 function points(valeurs: number[]): string {
   const bas = Math.min(...valeurs);
   const haut = Math.max(...valeurs);
