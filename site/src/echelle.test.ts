@@ -148,3 +148,22 @@ test("la note du « par habitant » nomme le facteur de confusion principal", ()
   assert.match(note, /population de référence OFGL de l'exercice/);
   assert.match(note, /touristique/);
 });
+
+test("une unité inconnue se voit au lieu de passer pour des euros", () => {
+  /*
+   * La faute du 1er août n'était pas d'avoir oublié « percent » : c'était que
+   * le repli était la devise, donc faux et plausible à la fois. Une unité que
+   * ce module ne connaît pas doit sauter aux yeux du premier lecteur.
+   */
+  const rendu = formater(12.4, "PC_GDP", false);
+  assert.match(rendu, /12,4 PC_GDP/);
+  assert.doesNotMatch(rendu, /€/);
+});
+
+test("les unités connues gardent leur mise en forme", () => {
+  // Intl groupe les milliers avec une espace fine insécable, pas une espace
+  // ordinaire : l'assertion doit accepter ce que la locale produit réellement.
+  assert.match(formater(1500, "EUR", true), /€/);
+  assert.equal(formater(1500, "count", false), `1${FINE}500`);
+  assert.equal(formater(15, "percent", false), `15${FINE}%`);
+});

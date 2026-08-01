@@ -139,6 +139,15 @@ export function formater(valeur: number, unite: string, parHabitant: boolean): s
   if (unite === "percent") {
     return pourcentage(valeur);
   }
+  // Repli honnête : une unité que ce module ne connaît pas s'affiche telle
+  // quelle, à côté du nombre. Le bug du taux de pauvreté en euros venait de ce
+  // que le repli était la devise — un affichage faux mais plausible, donc
+  // invisible. Une unité inconnue doit se voir tout de suite.
+  if (unite !== "EUR") {
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+      valeur,
+    )} ${unite}`;
+  }
   const options: Intl.NumberFormatOptions = {
     style: "currency",
     currency: "EUR",
