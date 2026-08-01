@@ -69,6 +69,12 @@ export function reserves(entrees: Entree[]): string[] {
     "Un écart de dépenses n'est pas un écart de gestion : l'intercommunalité, la" +
       " géographie et les compétences exercées expliquent l'essentiel des différences.",
   );
+  notes.push(
+    "Le dénominateur d'un montant par habitant est la population permanente. Une" +
+      " commune touristique, étudiante ou frontalière sert une population bien plus" +
+      " nombreuse, et ses montants par habitant paraissent élevés sans que rien ne" +
+      " soit anormal.",
+  );
   return notes;
 }
 

@@ -105,3 +105,8 @@ test("l'unité et la période accompagnent le tableau", () => {
   assert.match(rendu([PESSAC, BORDEAUX], INDICATEURS, "2024", true), /2024, montants par habitant/);
   assert.match(rendu([PESSAC, BORDEAUX], INDICATEURS, "2024", false), /2024, montants totaux/);
 });
+
+test("la population saisonnière est toujours signalée", () => {
+  const notes = reserves([{ code: "33009", territoire: territoire("Arcachon", 11_000, 1) }]);
+  assert.ok(notes.some((n) => /touristique/.test(n)), JSON.stringify(notes));
+});

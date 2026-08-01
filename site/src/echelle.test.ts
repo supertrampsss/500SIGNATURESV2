@@ -142,3 +142,9 @@ test("une population nulle ne passe pas pour un dénominateur valide", () => {
   const vide = { population: 0, series: { ofgl_population_reference: { "2025": 0 } } };
   assert.equal(populationDeReference(vide, "2025").valeur, 0);
 });
+
+test("la note du « par habitant » nomme le facteur de confusion principal", () => {
+  const note = noteEchelle("EUR", true);
+  assert.match(note, /population de référence OFGL de l'exercice/);
+  assert.match(note, /touristique/);
+});

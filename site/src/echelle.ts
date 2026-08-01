@@ -108,7 +108,15 @@ export function pourcentage(valeur: number): string {
  *  d'unité est pire qu'une légende absente : elle affirme. */
 export function noteEchelle(unite: string, parHabitant: boolean): string {
   const classes = "Classes de valeurs égales en nombre de territoires.";
-  if (parHabitant) return `${classes} Dénominateur : population de référence OFGL.`;
+  if (parHabitant) {
+    // Le principal facteur de confusion des dépenses communales par habitant, et
+    // il se voit sur la carte : le littoral et la montagne ressortent d'abord.
+    return (
+      `${classes} Dénominateur : population de référence OFGL de l'exercice.` +
+      " Une commune touristique dépense pour une population bien plus nombreuse que" +
+      " ses habitants permanents, qui sont le dénominateur."
+    );
+  }
   if (unite === "percent") {
     return `${classes} Taux en pourcentage : ils ne s'additionnent pas et ne se ramènent pas à l'habitant.`;
   }
