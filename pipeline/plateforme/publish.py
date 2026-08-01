@@ -25,6 +25,14 @@ NIVEAUX = ["commune", "epci", "departement", "region", "pays"]
 # autres coûterait des centaines de fichiers que rien ne viendrait lire.
 NIVEAUX_CARTOGRAPHIES = {"commune", "departement", "region"}
 
+# Une carte montre une période à la fois, et personne ne consulte le chômage du
+# troisième trimestre 1982 en choroplèthe. Publier 177 trimestres a fait passer
+# la publication de cinq minutes à plus d'une heure : un fichier et une requête
+# par période et par niveau. Les séries longues restent **entières** dans les
+# fiches de territoire, qui portent toutes les périodes pour les courbes ; seule
+# la carte est bornée aux périodes récentes.
+PERIODES_CARTOGRAPHIEES = 12
+
 
 def _json(charge) -> bytes:
     return json.dumps(charge, ensure_ascii=False, separators=(",", ":")).encode()
@@ -84,27 +92,20 @@ def synchroniser_niveaux(conn) -> int:
     return modifies
 
 
-def indicateurs(conn) -> list[dict]:
-    """La fiche en 10 points (docs/06) accompagne chaque indicateur publié."""
+def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[dict]:
+    """La fiche en 10 points (docs/06) accompagne chaque indicateur publié.
+
+    `cartographiees` dit, pour chaque indicateur et chaque niveau, les périodes
+    dont la couche existe vraiment : c'est ce que le sélecteur d'année du site
+    doit proposer, sans quoi il enverrait le lecteur sur un fichier absent.
+    """
     lignes = conn.execute(
         """
         select i.indicator_id, i.label_fr, i.unit, i.theme, i.additive, i.price_basis,
                i.accounting_frame, i.geo_levels, d.public_definition, d.technical_definition,
                d.formula, d.confidence_level, d.badges, i.dataset_id,
                (select array_agg(distinct o.period order by o.period)
-                  from core.observations o where o.indicator_id = i.indicator_id) as periodes,
-               -- Les périodes disponibles dépendent du niveau : l'historique
-               -- communal est plus court que celui des départements (rétention,
-               -- D6bis). Proposer une année sans couche à peindre renverrait le
-               -- lecteur sur un fichier absent.
-               (select jsonb_object_agg(niveau, annees) from (
-                    select o.geo_level as niveau,
-                           array_agg(distinct o.period order by o.period) as annees
-                      from core.observations o
-                     where o.indicator_id = i.indicator_id and o.value_status = 'normal'
-                       and o.variant = 'total'
-                     group by o.geo_level
-                ) as par_niveau) as periodes_par_niveau
+                  from core.observations o where o.indicator_id = i.indicator_id) as periodes
         from core.indicators i
         left join core.indicator_definitions d on d.definition_id = i.definition_id
         where i.published order by i.theme, i.label_fr
@@ -117,25 +118,32 @@ def indicateurs(conn) -> list[dict]:
             "niveaux": ligne[7], "definition": ligne[8], "definition_technique": ligne[9],
             "formule": ligne[10], "confiance": ligne[11], "badges": ligne[12],
             "jeu": ligne[13], "periodes": ligne[14] or [],
-            "periodes_par_niveau": ligne[15] or {},
+            "periodes_par_niveau": cartographiees.get(ligne[0], {}),
         }
         for ligne in lignes
     ]
 
 
 def couples_publies(conn, niveau: str) -> list[tuple[str, str]]:
+    """(indicateur, période) à cartographier pour ce niveau, périodes récentes
+    d'abord bornées à `PERIODES_CARTOGRAPHIEES`."""
+    par_indicateur: dict[str, list[str]] = defaultdict(list)
+    for indicateur, periode in conn.execute(
+        """
+        select distinct o.indicator_id, o.period
+        from core.observations o join core.indicators i using (indicator_id)
+        where o.geo_level = %s and i.published and o.value_status = 'normal'
+          and o.variant = 'total'
+        order by 1, 2 desc
+        """,
+        (niveau,),
+    ):
+        if len(par_indicateur[indicateur]) < PERIODES_CARTOGRAPHIEES:
+            par_indicateur[indicateur].append(periode)
     return [
         (indicateur, periode)
-        for indicateur, periode in conn.execute(
-            """
-            select distinct o.indicator_id, o.period
-            from core.observations o join core.indicators i using (indicator_id)
-            where o.geo_level = %s and i.published and o.value_status = 'normal'
-              and o.variant = 'total'
-            order by 1, 2
-            """,
-            (niveau,),
-        )
+        for indicateur in sorted(par_indicateur)
+        for periode in sorted(par_indicateur[indicateur])
     ]
 
 
@@ -355,16 +363,16 @@ def publier(conn, store, version: str) -> int:
     recales = synchroniser_niveaux(conn)
     if recales:
         print(f"catalogue : {recales} indicateurs recalés sur les niveaux réellement présents")
-    catalogue = indicateurs(conn)
-    deposer("indicateurs.json", catalogue)
 
     recherche = []
+    cartographiees: dict[str, dict[str, list[str]]] = defaultdict(dict)
     for niveau in NIVEAUX:
         entites = territoires(conn, niveau)
         valeurs = valeurs_par_niveau(conn, niveau)
 
         if niveau in NIVEAUX_CARTOGRAPHIES:
             for indicateur, periodes in valeurs.items():
+                cartographiees[indicateur][niveau] = sorted(periodes)
                 for periode, codes in periodes.items():
                     deposer(f"carte/{indicateur}/{niveau}/{periode}.json", codes)
 
@@ -385,6 +393,9 @@ def publier(conn, store, version: str) -> int:
         for lot, contenu in groupes.items():
             deposer(f"territoires/{niveau}/{lot}.json", contenu)
 
+    # Le catalogue est déposé après la boucle : il annonce les périodes dont la
+    # couche a réellement été écrite.
+    deposer("indicateurs.json", indicateurs(conn, cartographiees))
     deposer("recherche.json", recherche)
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))

@@ -31,6 +31,9 @@ concurrency:
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    # Un run qui traîne bloque la file d'ingestion entière : mieux vaut qu'il
+    # échoue et se voie.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

@@ -41,7 +41,7 @@ Toutes les URL ci-dessous sont préfixées par `$BASE/data/$V/`.
 | Fichier | Contenu | Ordre de grandeur |
 |---|---|---|
 | `manifeste.json` | Version, date de génération, et pour chaque jeu : producteur, licence, URL source, date d'extraction réellement utilisée | 4 ko |
-| `indicateurs.json` | Catalogue : identifiant, libellé, unité, thème, cadre comptable, sommabilité, définition grand public et technique, formule, badges, périodes disponibles — et `periodes_par_niveau`, car l'historique n'a pas la même profondeur à tous les niveaux | 35 ko |
+| `indicateurs.json` | Catalogue : identifiant, libellé, unité, thème, cadre comptable, sommabilité, définition grand public et technique, formule, badges. `periodes` liste **toute** la série disponible ; `periodes_par_niveau` liste les périodes **cartographiées** — l'historique n'a pas la même profondeur à tous les niveaux, et une carte est bornée aux périodes récentes pour les séries longues. Les séries entières restent dans les fiches de territoire | 35 ko |
 | `carte/<indicateur>/<niveau>/<période>.json` | `{code territoire: valeur}` — la couche que la carte peint | 100 ko à 700 ko |
 | `territoires/<niveau>/<lot>.json` | Fiches : nom, parent, population, drapeaux, et toutes les séries du territoire. Les communes sont réparties par département (`lot` = code de département), les autres niveaux tiennent dans `tous` | 10 ko à 3 Mo |
 | `recherche.json` | Index de recherche : code, nom, niveau, parent | 2 Mo |
