@@ -28,6 +28,10 @@ concurrency:
   group: ingestion
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  issues: write # l'alerte de fraîcheur tient une issue à jour (T-23)
+
 jobs:
   ingest:
     runs-on: ubuntu-latest
@@ -155,3 +159,14 @@ jobs:
           else
             python -m plateforme.ingest "$DATASET_ID" --store r2:plateforme-raw
           fi
+
+      - name: Signaler les sources en retard ou en échec
+        # Après chaque ingestion, pas seulement au rendez-vous hebdomadaire :
+        # « source coupée ⇒ alerte < 24 h » (T-23) se tient d'autant mieux que
+        # l'état est réévalué souvent. L'issue est unique et son contenu
+        # déterministe : la réévaluer ne produit pas de bruit.
+        if: always()
+        uses: ./.github/actions/alerter
+        with:
+          db-url: ${{ secrets.SUPABASE_DB_URL }}
+          token: ${{ github.token }}
