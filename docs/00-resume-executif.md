@@ -113,8 +113,11 @@ profit des collectivités, et la série des dotations dit ce que chaque commune 
 reçoit. Les deux viennent d'administrations différentes et se contrôlent l'une
 l'autre.
 
+S'y ajoute le **taux de chômage localisé** par département et région, trimestriel
+depuis 1982, au sens du BIT.
+
 Restent à livrer : le budget de l'État par mission et programme (destination des
-crédits, et non plus seulement leur nature), le chômage localisé, les
-entreprises, le moteur de questions en langage naturel. Le détail par mission
+crédits, et non plus seulement leur nature), les entreprises, l'éducation, la
+santé, et le moteur de questions en langage naturel. Le détail par mission
 suppose les jeux PLF, un par exercice, dont l'identifiant change chaque année —
 et qui portent le projet de loi, non la loi votée.
