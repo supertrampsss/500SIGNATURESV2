@@ -1,5 +1,15 @@
 # 07 — Livrable 7 : roadmap
 
+> **Ce document décrit l'intention, pas l'état.** Où en est réellement le
+> produit : [docs/08](08-backlog.md), tenu à jour ticket par ticket.
+>
+> Au 1er août 2026, l'essentiel du MVP ci-dessous est livré et en ligne. Trois
+> écarts méritent d'être lus avec la liste : le **budget de l'État est publié par
+> nature de dépense, pas par mission** — la ventilation demandée n'est pas
+> atteignable depuis les sources ouvertes actuelles, et docs/08 dit pourquoi ;
+> **Sirene** attend une clé INSEE, les établissements venant pour l'instant du
+> jeu SIDE ; **DVF** reste hors périmètre par volumétrie (D6bis).
+
 ## MVP — 8 à 12 semaines
 
 **Fonctionnalités** : carte France → commune (choroplèthe, 4 déclinaisons),
