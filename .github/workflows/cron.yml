@@ -97,9 +97,11 @@ jobs:
           NOMBRE=$(python -c "import json;print(len(json.load(open('alertes.json'))))")
           # Une seule issue, tenue à jour. Un message par run produirait un fil
           # que personne ne lirait, ce qui revient à ne pas alerter.
-          NUMERO=$(gh issue list --state open --search "$TITRE in:title" \
-                     --json number,title \
-                     --jq "[.[] | select(.title == env.TITRE)] | first | .number // empty")
+          # Filtrage sur le titre exact plutôt que par `--search` : la recherche
+          # plein texte de GitHub normalise les accents et pourrait tout aussi
+          # bien rater l'issue que rapporter une voisine.
+          NUMERO=$(gh issue list --state open --limit 100 --json number,title \
+                     --jq '[.[] | select(.title == env.TITRE)] | first | .number // empty')
           if [ "$NOMBRE" -eq 0 ]; then
             if [ -n "$NUMERO" ]; then
               gh issue comment "$NUMERO" --body "Toutes les sources sont revenues dans leur fenêtre de fraîcheur. Fermeture automatique."
