@@ -142,9 +142,22 @@ def restaurer(chemin: Path, url_cible: str) -> None:
     )
 
 
-def verifier(url_source: str, url_cible: str) -> dict[str, int]:
-    """Compare la source et la copie restaurée. Lève à la première divergence."""
+def verifier(url_source: str, url_cible: str, avant: dict[str, int] | None = None) -> dict[str, int]:
+    """Compare la source et la copie restaurée. Lève à la première divergence.
+
+    `avant` est le comptage pris juste avant le dump. Sans lui, une ingestion
+    qui écrit pendant le dump ferait apparaître la copie comme incomplète alors
+    qu'elle est fidèle à l'instant sauvegardé : le dump serait bon et le run
+    dirait le contraire. On distingue donc les deux causes, parce qu'elles
+    n'appellent pas la même réaction.
+    """
     source, copie = comptages(url_source), comptages(url_cible)
+    if avant is not None and avant != source:
+        bougees = [f"{t} {avant[t]}→{source[t]}" for t in TEMOINS if avant[t] != source[t]]
+        raise ValueError(
+            "la base a changé pendant le dump, la vérification par comptage ne veut"
+            f" plus rien dire : {', '.join(bougees)}. Relancer hors ingestion."
+        )
     divergences = {
         table: (source[table], copie[table]) for table in TEMOINS if source[table] != copie[table]
     }
@@ -189,11 +202,12 @@ def run(url_verification: str, store_spec: str) -> int:
     print(f"PostgreSQL {majeure} de part et d'autre")
     with tempfile.TemporaryDirectory() as dossier:
         chemin = Path(dossier) / "entrepot.dump"
+        avant = comptages(url_source)
         dump(url_source, chemin)
         taille = chemin.stat().st_size
         print(f"dump : {taille / 1e6:.1f} Mo")
         restaurer(chemin, url_verification)
-        comptes = verifier(url_source, url_verification)
+        comptes = verifier(url_source, url_verification, avant)
         print("restauration vérifiée : " + ", ".join(f"{t}={n}" for t, n in comptes.items()))
         fiche = deposer(store, chemin, comptes)
         print(f"sauvegarde déposée : {fiche['cle']} ({fiche['sha256'][:12]}…)")

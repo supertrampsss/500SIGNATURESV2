@@ -23,6 +23,14 @@ on:
       - ".github/sauvegarde-request.json"
       - ".github/workflows/sauvegarde.yml"
 
+# Même file que les ingestions : une ingestion qui écrit pendant le dump
+# ferait apparaître la copie restaurée comme incomplète alors qu'elle est
+# fidèle à l'instant sauvegardé. Le run attend son tour plutôt que de crier
+# au loup.
+concurrency:
+  group: ingestion
+  cancel-in-progress: false
+
 jobs:
   sauvegarder:
     runs-on: ubuntu-latest
@@ -56,11 +64,20 @@ jobs:
           docker run -d --name verification -p 5432:5432 \
             -e POSTGRES_PASSWORD=verification -e POSTGRES_DB=verification \
             "postgis/postgis:${PG_MAJEUR}-3.5"
-          for _ in $(seq 40); do
-            docker exec verification pg_isready -U postgres -q && break
+          # Sonder depuis l'hôte, pas depuis le conteneur : c'est par TCP que
+          # le dump sera restauré. Pendant son initialisation, l'image postgres
+          # sert un serveur temporaire qui « rejette » déjà proprement — il faut
+          # donc boucler, et un `&& break` sous `bash -e` ne boucle pas.
+          for _ in $(seq 60); do
+            if pg_isready -h localhost -p 5432 -U postgres -q; then
+              echo "base de vérification prête"
+              exit 0
+            fi
             sleep 2
           done
-          docker exec verification pg_isready -U postgres
+          echo "la base de vérification n'a pas démarré en 120 s" >&2
+          docker logs verification >&2
+          exit 1
       - name: Sauvegarder et vérifier
         env:
           PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

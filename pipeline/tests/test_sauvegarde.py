@@ -40,6 +40,16 @@ def test_des_comptages_identiques_passent(monkeypatch):
     assert sauvegarde.verifier("source", "copie") == plein
 
 
+def test_une_base_qui_bouge_pendant_le_dump_ne_dit_pas_restauration_incomplete(monkeypatch):
+    """Le dump reste fidèle à l'instant sauvegardé : accuser la restauration
+    enverrait chercher un bug là où il n'y en a pas."""
+    avant = dict.fromkeys(sauvegarde.TEMOINS, 10)
+    apres = {**avant, "core.observations": 12}
+    monkeypatch.setattr(sauvegarde, "comptages", lambda url: {"source": apres, "copie": avant}[url])
+    with pytest.raises(ValueError, match="changé pendant le dump"):
+        sauvegarde.verifier("source", "copie", avant)
+
+
 @pytest.mark.parametrize(
     ("sortie", "attendu"),
     [
