@@ -26,8 +26,44 @@ journaliste, un économiste, un élu, un citoyen ou la Cour des comptes.
 
 ## État du projet
 
-Phase actuelle : **conception**. Aucun code applicatif tant que le benchmark des
-sources et l'architecture ne sont pas validés.
+**En ligne** : <https://plateforme-9sz.pages.dev>. Le socle est en production —
+ingestion, contrôles, publication, carte — et s'enrichit source par source.
+
+Au 1er août 2026 : **37 indicateurs** issus de **19 jeux de données** de six
+producteurs (INSEE, Eurostat, DGFiP / Direction du Budget, OFGL, IGN, Etalab),
+soit **1,07 million d'observations** sur 36 349 territoires.
+
+| Domaine | Ce qu'on peut lire |
+|---|---|
+| Budget de l'État (15) | Recettes, dépenses par titre, prélèvements sur recettes et solde, aux trois moments du même exercice — voté, rectifié, exécuté — de 2013 à 2025. Le pont recettes → dépenses → solde est vérifié à l'euro par un contrôle bloquant |
+| Dette publique (6) | Encours Maastricht par sous-secteur : État, organismes centraux, collectivités, Sécurité sociale |
+| Finances locales (6) | Recettes et dépenses de fonctionnement, investissement, épargne brute, encours de dette — communes, intercommunalités, départements, régions |
+| Europe (4) | Dette, déficit, chômage et PIB par habitant sur les définitions harmonisées d'Eurostat |
+| Territoires (6) | Population municipale, niveau de vie médian, taux de pauvreté, dotations de l'État, chômage localisé, établissements actifs |
+
+**Ce que le produit refuse de faire.** Il ne prétend pas suivre un euro d'impôt
+jusqu'à une dépense : cette traçabilité n'existe pas dans les comptes publics.
+Il montre un **pont explicable** entre ce qui est encaissé et ce qui est dépensé,
+et le dit là où on pourrait croire le contraire. Il ne compare pas deux
+territoires, deux pays ni deux années sans contrôler la définition, le périmètre,
+la période et l'unité — une série qui enjambe une fusion de communes le signale.
+Ce qui ne passe pas un contrôle bloquant n'est pas publié.
+
+**Vérifiabilité.** Chaque chiffre porte son producteur, sa licence, la date
+d'extraction réellement utilisée, sa définition publique et technique, et sa
+formule. Les instantanés bruts sont archivés et immuables. L'état de fraîcheur de
+chaque source, ce que les contrôles ont relevé et le journal des corrections sont
+publics. Les fichiers publiés sont documentés et réutilisables sans clé
+([docs/10](docs/10-api-publique.md)).
+
+**Limites connues, assumées.** La ventilation du budget de l'État par mission et
+programme n'est pas atteignable depuis les sources ouvertes actuelles
+(docs/08) : le projet de loi de finances n'est pas la loi votée, et l'exécution
+par mission s'arrête à l'exercice 2013. L'historique communal commence à 2022 —
+les exercices antérieurs ont été retirés pour tenir dans les 500 Mo du plan
+gratuit, et se rechargent en une commande depuis les instantanés (D6bis). Le
+moteur de questions en langage naturel (docs/05) reste en phase 3 : les questions
+auxquelles le site répond réellement sont écrites en clair sur la page d'accueil.
 
 ## Documentation
 
@@ -43,5 +79,7 @@ sources et l'architecture ne sont pas validés.
 | [docs/07-roadmap.md](docs/07-roadmap.md) | **Livrable 7** — Roadmap MVP / Phase 2 / Phase 3 |
 | [docs/08-backlog.md](docs/08-backlog.md) | **Livrable 8** — Backlog GitHub priorisé, premiers tickets |
 | [docs/09-risques-decisions.md](docs/09-risques-decisions.md) | Risques juridiques, techniques, méthodologiques, réputationnels ; décisions à prendre avant de coder |
+| [docs/10-api-publique.md](docs/10-api-publique.md) | Contrat des fichiers publiés : URL stables, contenu, ordres de grandeur, exemples vérifiés |
+| [docs/SETUP.md](docs/SETUP.md) | Mise en place : secrets, migrations, seed, déploiement |
 
 Les conventions de travail pour les agents de code sont dans [CLAUDE.md](CLAUDE.md).
