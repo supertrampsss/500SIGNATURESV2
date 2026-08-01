@@ -6,6 +6,10 @@ name: Sauvegarde vérifiée
 # Le dump est restauré dans une base jetable et comparé table par table à la
 # source avant d'être déposé. Un fichier qui ne se restaure pas n'est pas une
 # sauvegarde, et le run échoue plutôt que de laisser croire le contraire.
+#
+# La version de PostgreSQL est *lue sur la source*, jamais supposée : le premier
+# run a échoué parce que ce fichier affirmait que Supabase était en 16 alors
+# qu'il est en 17.6. Une montée de version ne doit pas casser la sauvegarde.
 
 on:
   schedule:
@@ -23,35 +27,40 @@ jobs:
   sauvegarder:
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    services:
-      # Base jetable de vérification : PostGIS obligatoire, les colonnes de
-      # `geo` référencent le type `geometry`.
-      verification:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: verification
-          POSTGRES_DB: verification
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready --health-interval 5s
-          --health-timeout 5s --health-retries 12
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -q -e ./pipeline
-      - name: Aligner le client PostgreSQL sur le serveur
-        # pg_dump refuse de parler à un serveur plus récent que lui ; on installe
-        # explicitement la version 16, celle de Supabase.
+      - name: Lire la version du serveur source
+        env:
+          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: echo "PG_MAJEUR=$(python -m plateforme.sauvegarde --version-source)" >> "$GITHUB_ENV"
+      - name: Installer le client PostgreSQL correspondant
+        # pg_dump refuse de parler à un serveur plus récent que lui. Le dépôt
+        # pgdg fournit toutes les majeures ; `$GITHUB_PATH` est préfixé, donc ce
+        # binaire l'emporte sur celui préinstallé sur le runner.
         run: |
-          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          sudo sh -c "echo 'deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main' > /etc/apt/sources.list.d/pgdg.list"
           curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
           sudo sed -i 's|deb |deb [signed-by=/usr/share/keyrings/pgdg.gpg] |' /etc/apt/sources.list.d/pgdg.list
           sudo apt-get update -qq
-          sudo apt-get install -y -qq postgresql-client-16
-          echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
+          sudo apt-get install -y -qq "postgresql-client-${PG_MAJEUR}"
+          echo "/usr/lib/postgresql/${PG_MAJEUR}/bin" >> "$GITHUB_PATH"
+      - name: Démarrer la base de vérification
+        # Un `services:` ne peut pas dépendre d'une étape : son image serait
+        # figée dans le YAML, c'est-à-dire supposée. PostGIS est obligatoire,
+        # les colonnes de `geo` référencent le type `geometry`.
+        run: |
+          docker run -d --name verification -p 5432:5432 \
+            -e POSTGRES_PASSWORD=verification -e POSTGRES_DB=verification \
+            "postgis/postgis:${PG_MAJEUR}-3.5"
+          for _ in $(seq 40); do
+            docker exec verification pg_isready -U postgres -q && break
+            sleep 2
+          done
+          docker exec verification pg_isready -U postgres
       - name: Sauvegarder et vérifier
         env:
           PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}

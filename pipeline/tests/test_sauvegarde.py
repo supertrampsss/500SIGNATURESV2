@@ -38,3 +38,43 @@ def test_des_comptages_identiques_passent(monkeypatch):
     plein = dict.fromkeys(sauvegarde.TEMOINS, 42)
     monkeypatch.setattr(sauvegarde, "comptages", lambda url: plein)
     assert sauvegarde.verifier("source", "copie") == plein
+
+
+@pytest.mark.parametrize(
+    ("sortie", "attendu"),
+    [
+        ("pg_dump (PostgreSQL) 17.6\n", 17),
+        ("pg_dump (PostgreSQL) 16.14 (Ubuntu 16.14-1.pgdg24.04+1)\n", 16),
+        ("pg_dump (PostgreSQL) 18.0 (Debian 18.0-1.pgdg13+1)\n", 18),
+    ],
+)
+def test_la_version_du_client_se_lit_quel_que_soit_le_paquet(monkeypatch, sortie, attendu):
+    """Debian ajoute son propre numéro derrière celui de PostgreSQL : prendre le
+    dernier mot donnerait `16.14-1.pgdg24.04+1)`."""
+    monkeypatch.setattr(sauvegarde, "_executer", lambda commande: sortie)
+    assert sauvegarde.version_client() == attendu
+
+
+def test_un_client_trop_ancien_dit_lequel_installer(monkeypatch):
+    """L'échec réel — `aborting because of server version mismatch` — ne nomme
+    ni la version à installer ni le fichier à corriger. Celui-ci, si."""
+    monkeypatch.setattr(sauvegarde, "version_majeure", lambda url: 17)
+    monkeypatch.setattr(sauvegarde, "version_client", lambda: 16)
+    with pytest.raises(RuntimeError, match="postgresql-client-17"):
+        sauvegarde.controler_versions("source", "cible")
+
+
+def test_une_base_de_verification_trop_ancienne_est_refusee(monkeypatch):
+    versions = {"source": 17, "cible": 16}
+    monkeypatch.setattr(sauvegarde, "version_majeure", lambda url: versions[url])
+    monkeypatch.setattr(sauvegarde, "version_client", lambda: 17)
+    with pytest.raises(RuntimeError, match="postgis/postgis:17-3.5"):
+        sauvegarde.controler_versions("source", "cible")
+
+
+def test_des_versions_plus_recentes_que_la_source_passent(monkeypatch):
+    """Lire un dump plus ancien est sans risque ; seul l'inverse casse."""
+    versions = {"source": 17, "cible": 18}
+    monkeypatch.setattr(sauvegarde, "version_majeure", lambda url: versions[url])
+    monkeypatch.setattr(sauvegarde, "version_client", lambda: 18)
+    assert sauvegarde.controler_versions("source", "cible") == 17

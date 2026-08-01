@@ -16,12 +16,20 @@ Seuls les schémas du projet sont sauvegardés. Les schémas internes de Supabas
 (authentification, stockage, files) ne nous appartiennent pas, ne se restaurent
 pas ailleurs, et n'ont rien à faire dans une archive publiable.
 
+Les versions sont lues, jamais supposées. `pg_dump` refuse de parler à un
+serveur plus récent que lui, et le message qu'il produit alors ne dit pas quoi
+corriger. La version du serveur source décide donc de celle du client et de
+celle de la base de vérification — c'est elle que le workflow interroge avant
+d'installer quoi que ce soit.
+
 Usage : python -m plateforme.sauvegarde --verification-url postgres://… [--store r2:plateforme-raw]
+       python -m plateforme.sauvegarde --version-source   # majeure du serveur, pour le workflow
 """
 
 import argparse
 import hashlib
 import os
+import re
 import subprocess
 import tempfile
 from datetime import UTC, datetime
@@ -56,6 +64,46 @@ def _executer(commande: list[str], environnement: dict | None = None) -> str:
     if resultat.returncode != 0:
         raise RuntimeError(f"{commande[0]} : {resultat.stderr.strip()[:800]}")
     return resultat.stdout
+
+
+def version_majeure(url: str) -> int:
+    with psycopg.connect(url) as connexion:
+        return int(connexion.execute("show server_version_num").fetchone()[0]) // 10_000
+
+
+def version_client() -> int:
+    """`pg_dump (PostgreSQL) 17.6` sur Debian, `… 16.14 (Ubuntu 16.14-1.pgdg…)`
+    ailleurs : on prend le premier numéro de version rencontré."""
+    sortie = _executer(["pg_dump", "--version"])
+    trouve = re.search(r"(\d+)\.\d+", sortie)
+    if not trouve:
+        raise RuntimeError(f"version de pg_dump illisible : {sortie.strip()[:200]}")
+    return int(trouve.group(1))
+
+
+def controler_versions(url_source: str, url_cible: str) -> int:
+    """Échoue avant le dump, en nommant le correctif.
+
+    Sans ce contrôle, une montée de version de Supabase produit un
+    « aborting because of server version mismatch » qui ne dit ni quelle version
+    installer ni où. L'inverse est sans risque : un client ou une cible plus
+    récents que la source savent lire son dump.
+    """
+    source = version_majeure(url_source)
+    client = version_client()
+    if client < source:
+        raise RuntimeError(
+            f"pg_dump {client} ne peut pas sauvegarder un serveur {source} :"
+            f" installer postgresql-client-{source}"
+            " (.github/workflows/sauvegarde.yml lit cette version, il suffit de relancer)"
+        )
+    cible = version_majeure(url_cible)
+    if cible < source:
+        raise RuntimeError(
+            f"la base de vérification est en PostgreSQL {cible}, la source en {source} :"
+            f" utiliser l'image postgis/postgis:{source}-3.5"
+        )
+    return source
 
 
 def dump(url: str, chemin: Path) -> Path:
@@ -137,6 +185,8 @@ def deposer(store, chemin: Path, comptes: dict[str, int]) -> dict:
 def run(url_verification: str, store_spec: str) -> int:
     url_source = os.environ["PLATEFORME_DB_URL"]
     store = make_store(store_spec)
+    majeure = controler_versions(url_source, url_verification)
+    print(f"PostgreSQL {majeure} de part et d'autre")
     with tempfile.TemporaryDirectory() as dossier:
         chemin = Path(dossier) / "entrepot.dump"
         dump(url_source, chemin)
@@ -152,11 +202,20 @@ def run(url_verification: str, store_spec: str) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--verification-url", required=True, help="base jetable où le dump est restauré"
-    )
+    parser.add_argument("--verification-url", help="base jetable où le dump est restauré")
     parser.add_argument("--store", default=".sauvegardes")
+    parser.add_argument(
+        "--version-source",
+        action="store_true",
+        help="affiche la majeure PostgreSQL de la source et sort ; le workflow s'en sert"
+        " pour installer le bon client et démarrer la bonne base de vérification",
+    )
     arguments = parser.parse_args()
+    if arguments.version_source:
+        print(version_majeure(os.environ["PLATEFORME_DB_URL"]))
+        return 0
+    if not arguments.verification_url:
+        parser.error("--verification-url est obligatoire pour sauvegarder")
     return run(arguments.verification_url, arguments.store)
 
 
