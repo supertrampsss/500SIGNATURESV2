@@ -28,11 +28,14 @@ function echapper(texte: string): string {
 }
 
 function date(iso: string): string {
-  return new Date(iso).toLocaleDateString("fr-FR", {
+  const rendu = new Date(iso).toLocaleDateString("fr-FR", {
     year: "numeric",
     month: "long",
     day: "numeric",
   });
+  // « 1 août » n'existe pas en français : le premier du mois est un ordinal, et
+  // Intl ne le connaît pas. Les autres jours restent cardinaux.
+  return rendu.replace(/^1 /, "1er ");
 }
 
 /** « À partir de 2019 » se comprend ; « effet au 2019-01-01 » demande un effort. */

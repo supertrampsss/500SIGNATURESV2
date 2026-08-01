@@ -77,3 +77,11 @@ test("l'ordre reçu est conservé : le plus récent d'abord vient du serveur", (
   const html = plat(rendu(ENTREES));
   assert.ok(html.indexOf("dépenses exécutées") < html.indexOf("finances communales"));
 });
+
+test("le premier du mois s'écrit « 1er », les autres jours non", () => {
+  const html = rendu([{ ...ENTREES[1], annonce: "2026-08-01" }]);
+  assert.match(html, /1er août 2026/);
+  const onze = rendu([{ ...ENTREES[1], annonce: "2026-08-11" }]);
+  assert.match(onze, /11 août 2026/);
+  assert.doesNotMatch(onze, /11er/);
+});
