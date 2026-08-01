@@ -7,7 +7,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { expressionCouleur, formater, noteEchelle, parHabitantAUnSens, quantiles } from "./echelle.ts";
+import {
+  expressionCouleur,
+  formater,
+  noteEchelle,
+  parHabitantAUnSens,
+  populationDeReference,
+  quantiles,
+} from "./echelle.ts";
 
 const FINE = "\u202f";
 
@@ -101,4 +108,37 @@ test("la note de légende suit l'unité au lieu de l'affirmer", () => {
   assert.match(noteEchelle("EUR", false), /euros courants/);
   assert.match(noteEchelle("count", false), /Effectifs/);
   assert.match(noteEchelle("EUR", true), /population de référence/);
+});
+
+/*
+ * Le dénominateur d'un « par habitant » est la population de l'exercice
+ * considéré. La fiche divisait toute la série par celle d'aujourd'hui, et
+ * annonçait « référence OFGL 2025 » un nombre venu du référentiel géographique
+ * (Pessac : 67 339 affichés, 67 670 à l'OFGL).
+ */
+const PESSAC = {
+  population: 67339,
+  series: {
+    ofgl_population_reference: { "2022": 66007, "2023": 66606, "2025": 67670 },
+  },
+};
+
+test("chaque exercice se divise par sa propre population", () => {
+  assert.deepEqual(populationDeReference(PESSAC, "2022"), { valeur: 66007, exercice: "2022" });
+  assert.deepEqual(populationDeReference(PESSAC, "2025"), { valeur: 67670, exercice: "2025" });
+});
+
+test("à défaut de référence OFGL, le repli est signalé et non maquillé", () => {
+  // 2024 manque dans cette série : on retombe sur le référentiel, et `exercice`
+  // vaut null pour que l'étiquette dise laquelle a servi.
+  assert.deepEqual(populationDeReference(PESSAC, "2024"), { valeur: 67339, exercice: null });
+  assert.deepEqual(populationDeReference({ population: null }, "2025"), {
+    valeur: null,
+    exercice: null,
+  });
+});
+
+test("une population nulle ne passe pas pour un dénominateur valide", () => {
+  const vide = { population: 0, series: { ofgl_population_reference: { "2025": 0 } } };
+  assert.equal(populationDeReference(vide, "2025").valeur, 0);
 });

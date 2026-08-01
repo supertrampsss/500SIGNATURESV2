@@ -10,7 +10,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { formater, parHabitantAUnSens } from "./echelle.ts";
+import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
 
 export type Entree = { code: string; niveau: string; territoire: Territoire };
 
@@ -81,10 +81,14 @@ function cellule(
   const brut = entree.territoire.series[indicateur.id]?.[periode];
   if (brut === undefined) return `<td class="absente">donnée non disponible</td>`;
   const ratio = parHabitant && parHabitantAUnSens(indicateur);
-  if (ratio && !entree.territoire.population) {
+  // Même dénominateur que la carte et la fiche : la population de l'exercice
+  // comparé. Deux territoires rapportés à deux années différentes ne se
+  // comparent pas.
+  const population = populationDeReference(entree.territoire, periode).valeur;
+  if (ratio && !population) {
     return `<td class="absente">population inconnue</td>`;
   }
-  const valeur = ratio ? brut / (entree.territoire.population as number) : brut;
+  const valeur = ratio ? brut / (population as number) : brut;
   return `<td>${formater(valeur, indicateur.unite, ratio)}</td>`;
 }
 

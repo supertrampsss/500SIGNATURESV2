@@ -67,6 +67,32 @@ export function parHabitantAUnSens(indicateur: {
   return indicateur.unite === "EUR" && indicateur.sommable !== false;
 }
 
+/** Indicateur portant, exercice par exercice, le dénominateur que l'OFGL
+ *  lui-même utilise. Il est publié comme les autres séries. */
+const POPULATION_OFGL = "ofgl_population_reference";
+
+/** Le dénominateur d'un « par habitant » est la population de **l'exercice
+ *  considéré**, pas celle d'aujourd'hui.
+ *
+ *  La fiche divisait toute la série par une population unique, celle du
+ *  référentiel géographique courant : les dépenses de 2022 d'une commune se
+ *  lisaient rapportées à ses habitants de 2025. L'écart est de quelques pour
+ *  cent sur un territoire stable, beaucoup plus sur un territoire qui a fusionné
+ *  — et l'étiquette annonçait « référence OFGL 2025 » un nombre qui ne venait
+ *  pas de l'OFGL.
+ *
+ *  Repli sur la population du référentiel quand la série manque : mieux vaut un
+ *  dénominateur approché qu'un trou, et l'étiquette dira lequel a servi. */
+export function populationDeReference(
+  territoire: { population: number | null; series?: Record<string, Record<string, number>> },
+  periode: string,
+): { valeur: number | null; exercice: string | null } {
+  const serie = territoire.series?.[POPULATION_OFGL];
+  const propre = serie?.[periode];
+  if (propre) return { valeur: propre, exercice: periode };
+  return { valeur: territoire.population, exercice: null };
+}
+
 /** Typographie française du pourcentage, définie une fois : espace fine
  *  insécable avant le signe, virgule décimale, et surtout **pas**
  *  `style: "percent"` — les valeurs publiées sont déjà en points de

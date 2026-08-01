@@ -5,7 +5,7 @@
  */
 
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { formater, parHabitantAUnSens } from "./echelle.ts";
+import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 
 const NIVEAUX: Record<string, string> = {
@@ -35,25 +35,36 @@ function ligneIndicateur(
       <dd>Donnée non disponible pour ${periode}</dd>
     </div>`;
   }
-  const population = territoire.population;
+  const denom = populationDeReference(territoire, periode);
   const ratio = parHabitant && parHabitantAUnSens(indicateur);
-  if (ratio && !population) {
+  if (ratio && !denom.valeur) {
     return `<div class="mesure mesure--absente">
       <dt>${echapper(indicateur.libelle)}</dt>
       <dd>Population inconnue : le montant par habitant n'est pas calculable</dd>
     </div>`;
   }
-  const valeur = ratio ? brut / (population as number) : brut;
+  const valeur = ratio ? brut / (denom.valeur as number) : brut;
+  // L'étiquette dit d'où vient le dénominateur : la référence OFGL de
+  // l'exercice quand elle existe, celle du référentiel géographique sinon.
   const denominateur = ratio
     ? `<span class="denominateur">par habitant — population ${new Intl.NumberFormat(
         "fr-FR",
-      ).format(population as number)} (référence OFGL ${periode})</span>`
+      ).format(denom.valeur as number)} ${
+        denom.exercice
+          ? `(référence OFGL ${echapper(denom.exercice)})`
+          : "(référentiel géographique, à défaut de référence OFGL pour cet exercice)"
+      }</span>`
     : "";
-  // La série est ramenée au même dénominateur que la valeur affichée : une
-  // courbe en euros bruts sous un chiffre par habitant raconterait autre chose.
+  // Chaque exercice se divise par SA population, pas par celle d'aujourd'hui :
+  // sinon les dépenses de 2022 se lisent rapportées aux habitants de 2025. La
+  // courbe partage le dénominateur de la valeur affichée, sans quoi elle
+  // raconterait autre chose.
   const suivie = ratio
     ? Object.fromEntries(
-        Object.entries(serie).map(([p, v]) => [p, v / (population as number)]),
+        Object.entries(serie).flatMap(([p, v]) => {
+          const pop = populationDeReference(territoire, p).valeur;
+          return pop ? [[p, v / pop] as [string, number]] : [];
+        }),
       )
     : serie;
   // Une série recalculée par le producteur dans la géographie d'aujourd'hui ne
@@ -162,7 +173,9 @@ export function afficherFiche(
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau} · code ${echapper(options.code)}${
       territoire.population
-        ? ` · ${new Intl.NumberFormat("fr-FR").format(territoire.population)} habitants`
+        ? ` · ${new Intl.NumberFormat("fr-FR").format(
+            territoire.population,
+          )} habitants <abbr title="Population municipale au sens du recensement de l'INSEE. Les montants par habitant utilisent, eux, la population de référence de l'OFGL de l'exercice concerné : deux définitions et deux millésimes différents, d'où deux nombres.">(population légale)</abbr>`
         : ""
     }</p>
     <dl class="mesures">${mesures}</dl>

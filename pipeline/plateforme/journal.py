@@ -91,6 +91,32 @@ JOURNAL: list[Changement] = [
     Changement(
         annonce="2026-08-01",
         type="correction",
+        jeu="ofgl-communes",
+        public=(
+            "Les montants par habitant ont légèrement changé. Chaque exercice est"
+            " désormais rapporté à la population de cette année-là, et non à celle"
+            " d'aujourd'hui : une dépense de 2022 se lisait divisée par les habitants"
+            " de 2025. L'écart atteint quelques pour cent sur un territoire dont la"
+            " population bouge, et davantage sur une commune qui a fusionné. Les"
+            " évolutions affichées changent d'autant : à Pessac, les dépenses de"
+            " fonctionnement par habitant progressent de 6,9 % depuis 2022, et non"
+            " de 9,6 % — la différence était la croissance de la population, que le"
+            " calcul précédent effaçait."
+        ),
+        technique=(
+            "Le dénominateur est la population de référence OFGL de l'exercice"
+            " (`ofgl_population_reference`), publiée avec les autres séries, avec"
+            " repli signalé sur la population du référentiel géographique quand elle"
+            " manque. Auparavant, une valeur unique issue du référentiel servait à"
+            " tous les exercices — et l'étiquette l'annonçait comme « référence OFGL »"
+            " alors qu'elle n'en venait pas. Carte, tableau, fiche et comparateur"
+            " partagent le même dénominateur. Les montants bruts publiés n'ont pas"
+            " changé."
+        ),
+    ),
+    Changement(
+        annonce="2026-08-01",
+        type="correction",
         jeu="melodi-filosofi-cc",
         indicateur="insee_taux_pauvrete",
         public=(

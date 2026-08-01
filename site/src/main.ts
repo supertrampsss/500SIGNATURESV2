@@ -18,7 +18,14 @@ import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
-import { expressionCouleur, formater, noteEchelle, parHabitantAUnSens, quantiles } from "./echelle.ts";
+import {
+  expressionCouleur,
+  formater,
+  noteEchelle,
+  parHabitantAUnSens,
+  populationDeReference,
+  quantiles,
+} from "./echelle.ts";
 import "./style.css";
 
 const COUCHES: Record<string, string> = {
@@ -76,8 +83,18 @@ function ecrireUrl(): void {
 async function chargerTerritoires(niveau: string, lot: string): Promise<void> {
   const paquet = await donnees.territoires(niveau, lot);
   entites = { ...entites, ...paquet };
-  for (const [code, entite] of Object.entries(paquet)) {
-    if (entite.population) populations[code] = entite.population;
+  recalculerPopulations();
+}
+
+/** Les dénominateurs suivent l'exercice affiché : une dépense de 2022 se
+ *  rapporte aux habitants de 2022, pas à ceux d'aujourd'hui. Recalculé à chaque
+ *  chargement et à chaque changement de période, pour que la carte, le tableau
+ *  et la fiche divisent tous par le même nombre. */
+function recalculerPopulations(): void {
+  populations = {};
+  for (const [code, entite] of Object.entries(entites)) {
+    const valeur = populationDeReference(entite, etat.periode).valeur;
+    if (valeur) populations[code] = valeur;
   }
 }
 
@@ -152,6 +169,7 @@ async function peindre(): Promise<void> {
   const parHabitant = etat.declinaison === "habitant" && parHabitantAUnSens(indicateurCourant());
   const valeurs = await donnees.valeursCarte(etat.indicateur, etat.niveau, etat.periode);
   await chargerLotsNecessaires(etat.niveau, Object.keys(valeurs));
+  recalculerPopulations(); // la période a pu changer depuis le dernier chargement
 
   const echantillon = Object.entries(valeurs)
     .map(([code, brut]) => (parHabitant ? brut / (populations[code] ?? NaN) : brut))
