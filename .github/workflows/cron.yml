@@ -33,6 +33,10 @@ concurrency:
   group: ingestion
   cancel-in-progress: false
 
+permissions:
+  contents: read
+  issues: write # l'alerte de fraîcheur tient une issue à jour (T-23)
+
 jobs:
   rafraichir:
     runs-on: ubuntu-latest
@@ -76,3 +80,38 @@ jobs:
           # Une seule publication à la fin : les fichiers publiés décrivent un
           # état cohérent de la base, jamais un chargement à moitié fait.
           python -m plateforme.publish --publication r2:plateforme-published
+
+      - name: Signaler les sources en retard ou en échec
+        # `always()` : c'est précisément quand le rafraîchissement échoue que
+        # l'alerte doit partir. Elle ne masque pas l'échec — l'étape précédente
+        # reste rouge — elle le nomme.
+        if: always()
+        env:
+          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          GH_TOKEN: ${{ github.token }}
+          TITRE: "Sources en retard ou en échec"
+        run: |
+          set -e
+          python -m plateforme.alertes --format json > alertes.json
+          python -m plateforme.alertes --format markdown > alertes.md
+          NOMBRE=$(python -c "import json;print(len(json.load(open('alertes.json'))))")
+          # Une seule issue, tenue à jour. Un message par run produirait un fil
+          # que personne ne lirait, ce qui revient à ne pas alerter.
+          NUMERO=$(gh issue list --state open --search "$TITRE in:title" \
+                     --json number,title \
+                     --jq "[.[] | select(.title == env.TITRE)] | first | .number // empty")
+          if [ "$NOMBRE" -eq 0 ]; then
+            if [ -n "$NUMERO" ]; then
+              gh issue comment "$NUMERO" --body "Toutes les sources sont revenues dans leur fenêtre de fraîcheur. Fermeture automatique."
+              gh issue close "$NUMERO"
+            fi
+            echo "aucune source à signaler"
+            exit 0
+          fi
+          if [ -n "$NUMERO" ]; then
+            gh issue edit "$NUMERO" --body-file alertes.md
+            echo "issue #$NUMERO mise à jour ($NOMBRE jeux)"
+          else
+            gh issue create --title "$TITRE" --body-file alertes.md
+            echo "issue ouverte ($NOMBRE jeux)"
+          fi

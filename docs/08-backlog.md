@@ -68,16 +68,27 @@
 > qui ramène la base sous le plafond du plan gratuit sans rien détruire
 > d'irremplaçable.
 >
-> **T-23, moitié `change_log`** : fait le 01/08/2026. Le journal des changements
+> **T-23, journal et alertes** : faits le 01/08/2026. Le journal des changements
 > est déclaré en code (`plateforme/journal.py`), synchronisé à chaque
 > publication et exporté dans `journal.json`. Trois entrées à l'ouverture, toutes
 > antérieures et jusque-là invisibles : l'exécution 2019-2021 corrigée du
 > décalage producteur, la répartition des PSR de la LFI 2022 mise en quarantaine,
-> les finances communales d'avant 2022 retirées par la rétention. **Reste dans
-> T-23** : les alertes (issue ouverte quand une source se tait plus longtemps que
-> sa fréquence annoncée) et `core.observations_revisions`, qui n'a toujours pas
-> d'écrivain — « ce chiffre a été révisé » n'est donc pas encore affichable au
-> niveau d'une valeur.
+> les finances communales d'avant 2022 retirées par la rétention.
+> Les alertes (`plateforme/alertes.py`) tiennent **une** issue à jour — ouverte
+> quand un jeu dépasse sa tolérance de fraîcheur, échoue au chargement ou rate un
+> contrôle bloquant ; fermée d'elle-même quand tout est rentré dans l'ordre. Un
+> message par run produirait un fil que personne ne lirait, ce qui reviendrait à
+> ne pas alerter. **Reste dans T-23** : `core.observations_revisions`, qui n'a
+> toujours pas d'écrivain — « ce chiffre a été révisé » n'est donc pas encore
+> affichable au niveau d'une valeur, et docs/06 dit pourquoi.
+>
+> **Séries dans le temps** (01/08/2026, hors backlog initial). La fiche affichait
+> « +18 % depuis 2016 » sans vérifier que le territoire avait la même surface en
+> 2016 — une série est une comparaison d'un territoire avec lui-même, et la règle
+> du périmètre s'y applique. Les 4 882 mouvements de `geo.geography_history`
+> étaient chargés mais jamais publiés : fusions et scissions accompagnent
+> désormais chaque fiche, l'évolution chiffrée est bornée au dernier périmètre
+> constant, et la courbe marque la rupture en toutes lettres.
 >
 > **Sauvegarde vérifiée** (conséquence de D6, pas de PITR sur le plan gratuit) :
 > faite le 01/08/2026. Hebdomadaire, elle restaure chaque dump dans une base
