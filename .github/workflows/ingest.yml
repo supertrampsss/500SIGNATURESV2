@@ -85,6 +85,11 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "entreprises" ]; then
+            python -m plateforme.normalize.entreprises --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "chomage" ]; then
             python -m plateforme.normalize.chomage --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published

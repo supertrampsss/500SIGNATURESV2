@@ -287,6 +287,7 @@ const THEMES: Record<string, string> = {
   revenus: "Revenus et pauvreté",
   population: "Population",
   emploi: "Emploi et chômage",
+  entreprises: "Entreprises",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
   europe: "Comparaisons européennes",
