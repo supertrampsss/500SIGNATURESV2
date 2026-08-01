@@ -6,6 +6,7 @@
 
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens } from "./echelle.ts";
+import { evolution, rendu as rendreSerie } from "./serie.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -18,17 +19,6 @@ function echapper(texte: string): string {
   const noeud = document.createElement("span");
   noeud.textContent = texte;
   return noeud.innerHTML;
-}
-
-function evolution(serie: Record<string, number>, periode: string): string {
-  const annees = Object.keys(serie).sort();
-  const premiere = annees[0];
-  if (!premiere || premiere === periode || serie[periode] === undefined) return "";
-  const depart = serie[premiere];
-  if (!depart) return "";
-  const variation = ((serie[periode] - depart) / Math.abs(depart)) * 100;
-  const signe = variation >= 0 ? "+" : "";
-  return `<span class="evolution">${signe}${variation.toFixed(1)} % depuis ${premiere}</span>`;
 }
 
 function ligneIndicateur(
@@ -59,13 +49,22 @@ function ligneIndicateur(
         "fr-FR",
       ).format(population as number)} (référence OFGL ${periode})</span>`
     : "";
+  // La série est ramenée au même dénominateur que la valeur affichée : une
+  // courbe en euros bruts sous un chiffre par habitant raconterait autre chose.
+  const suivie = ratio
+    ? Object.fromEntries(
+        Object.entries(serie).map(([p, v]) => [p, v / (population as number)]),
+      )
+    : serie;
+  const evenements = territoire.evenements ?? [];
   return `<div class="mesure">
     <dt>${echapper(indicateur.libelle)}</dt>
     <dd>
       <strong>${formater(valeur, indicateur.unite, ratio)}</strong>
       <span class="millesime">${periode}</span>
       ${denominateur}
-      ${evolution(serie, periode)}
+      ${evolution(suivie, periode, evenements)}
+      ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
     </dd>
   </div>`;
 }

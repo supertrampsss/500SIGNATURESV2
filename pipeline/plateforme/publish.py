@@ -364,9 +364,45 @@ def journal(conn) -> list[dict]:
     ]
 
 
-def territoires(conn, niveau: str) -> dict[str, dict]:
+def evenements(conn, niveau: str) -> dict[str, list[dict]]:
+    """Changements de périmètre par territoire, à la date où ils prennent effet.
+
+    Une série dans le temps est une comparaison d'un territoire avec lui-même :
+    la règle du périmètre s'y applique comme entre deux territoires. Une commune
+    née d'une fusion en 2019 n'a pas la même surface avant et après, et afficher
+    « +18 % depuis 2016 » sur ce dos-là compare deux choses différentes.
+
+    Les fusions et scissions seules sont exportées. Un changement de nom ou de
+    code ne déplace aucune frontière : le signaler ferait douter d'une série qui
+    n'a rien de douteux.
+    """
+    portee: dict[str, list[dict]] = defaultdict(list)
+    for code, type_, date, autre in conn.execute(
+        """
+        select to_code, event_type, event_date, from_code from geo.geography_history
+        where to_level = %(niveau)s and event_type in ('fusion','scission')
+        union all
+        select from_code, event_type, event_date, to_code from geo.geography_history
+        where from_level = %(niveau)s and event_type in ('fusion','scission')
+        """,
+        {"niveau": niveau},
+    ):
+        portee[code].append({"type": type_, "date": date.isoformat(), "avec": autre})
     return {
-        code: {"nom": nom, "parent": parent, "population": population, "drapeaux": drapeaux}
+        code: sorted(liste, key=lambda e: e["date"]) for code, liste in portee.items()
+    }
+
+
+def territoires(conn, niveau: str) -> dict[str, dict]:
+    changements = evenements(conn, niveau)
+    return {
+        code: {
+            "nom": nom,
+            "parent": parent,
+            "population": population,
+            "drapeaux": drapeaux,
+            "evenements": changements.get(code, []),
+        }
         for code, nom, parent, population, drapeaux in conn.execute(
             """
             select geo_code, name, parent_code, population, flags

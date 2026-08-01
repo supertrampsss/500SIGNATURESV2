@@ -248,6 +248,47 @@ summary:focus-visible {
   font-size: 0.78rem;
   color: var(--encre-douce);
 }
+.evolution__reserve {
+  font-style: italic;
+}
+
+/* Série dans le temps : une forme, pas une lecture précise. Les valeurs
+   exactes sont dans le tableau — la courbe dit seulement le sens. */
+.serie {
+  flex-basis: 100%;
+  margin-top: 0.35rem;
+}
+.serie__trace {
+  width: 100%;
+  height: 46px;
+  display: block;
+  overflow: visible;
+}
+.serie__trace polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+/* La rupture de périmètre est un trait, pas une alerte : elle informe. */
+.serie__rupture {
+  stroke: var(--encre-douce);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+.serie__bornes {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+}
+.serie__avertissement {
+  margin: 0.25rem 0 0;
+  font-size: 0.75rem;
+  color: var(--alerte);
+}
 .mesure--absente dd {
   color: var(--encre-douce);
   font-style: italic;

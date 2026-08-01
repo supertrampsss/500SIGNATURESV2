@@ -41,6 +41,9 @@ export type Territoire = {
   population: number | null;
   drapeaux: Record<string, unknown>;
   series: Record<string, Record<string, number>>;
+  /** Fusions et scissions subies : une série qui les enjambe change de sujet.
+   *  Absent des publications antérieures à ce champ. */
+  evenements?: { type: string; date: string; avec: string }[];
 };
 
 export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };
