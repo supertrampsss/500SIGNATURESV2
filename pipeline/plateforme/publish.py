@@ -16,6 +16,7 @@ from collections import defaultdict
 from datetime import UTC, datetime
 
 from plateforme import db
+from plateforme import journal as journal_declare
 from plateforme.connectors import smb
 from plateforme.normalize.geo import make_store
 
@@ -335,6 +336,34 @@ def fraicheur(conn) -> list[dict]:
     ]
 
 
+def journal(conn) -> list[dict]:
+    """Ce qui a changé depuis la mise en ligne, du plus récent au plus ancien.
+
+    Un lecteur qui a noté un chiffre l'an dernier doit pouvoir savoir s'il a
+    bougé, et pourquoi (docs/02 §1). L'export sert aussi de preuve : il est
+    publié avec les données, pas à côté.
+    """
+    return [
+        {
+            "annonce": annonce.date().isoformat(),
+            "type": type_,
+            "jeu": jeu,
+            "indicateur": indicateur,
+            "effet_au": effet.isoformat() if effet else None,
+            "public": public,
+            "technique": technique,
+        }
+        for annonce, type_, jeu, indicateur, effet, public, technique in conn.execute(
+            """
+            select announced_at, change_type, dataset_id, indicator_id,
+                   effective_date, description_public, description_technical
+            from meta.change_log
+            order by announced_at desc, change_id desc
+            """
+        )
+    ]
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     return {
         code: {"nom": nom, "parent": parent, "population": population, "drapeaux": drapeaux}
@@ -363,6 +392,10 @@ def publier(conn, store, version: str) -> int:
     recales = synchroniser_niveaux(conn)
     if recales:
         print(f"catalogue : {recales} indicateurs recalés sur les niveaux réellement présents")
+    # Le journal est déclaré en code : publier est le moment où ce que dit le
+    # dépôt devient ce que voit le public. Le synchroniser ici empêche l'export
+    # de dériver de la déclaration.
+    print(f"journal : {journal_declare.synchroniser(conn)} changements déclarés")
 
     recherche = []
     cartographiees: dict[str, dict[str, list[str]]] = defaultdict(dict)
@@ -400,6 +433,7 @@ def publier(conn, store, version: str) -> int:
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
     deposer("fraicheur.json", fraicheur(conn))
+    deposer("journal.json", journal(conn))
     store.put("data/derniere.json", _json({"version": version}), overwrite=True)
     print(f"publication {version} : {fichiers} fichiers, {len(recherche)} territoires")
     return fichiers

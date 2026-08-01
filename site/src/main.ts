@@ -15,6 +15,7 @@ import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { rendu as apercuRendu, resumer } from "./apercu.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
+import { afficherJournal } from "./journal.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
 import { expressionCouleur, formater, parHabitantAUnSens, quantiles } from "./echelle.ts";
@@ -498,6 +499,16 @@ async function demarrer(): Promise<void> {
     }
   } catch {
     // L'état des données manque : la carte reste utilisable sans lui.
+  }
+
+  try {
+    if (afficherJournal($("journal"), await donnees.journal())) {
+      $("journal").hidden = false;
+    }
+  } catch {
+    // Publication antérieure au journal, ou aucun changement déclaré : le bloc
+    // reste caché. Une liste vide dirait « rien n'a jamais bougé », ce qui n'est
+    // pas la même chose que « nous ne savons pas ».
   }
 }
 

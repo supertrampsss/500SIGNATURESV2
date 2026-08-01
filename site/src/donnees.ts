@@ -132,9 +132,21 @@ export type BudgetEtat = {
   quarantaine: Record<string, string[]>;
 };
 
+/** Une entrée du journal public : un chiffre a bougé, ou a cessé d'être servi. */
+export type Changement = {
+  annonce: string;
+  type: string;
+  jeu: string | null;
+  indicateur: string | null;
+  effet_au: string | null;
+  public: string;
+  technique: string | null;
+};
+
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
+export const journal = () => lire<Changement[]>("journal.json");
 
 export const urlTuiles = () => cleTuiles;
 
