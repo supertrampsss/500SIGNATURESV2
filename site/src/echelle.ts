@@ -67,9 +67,43 @@ export function parHabitantAUnSens(indicateur: {
   return indicateur.unite === "EUR" && indicateur.sommable !== false;
 }
 
+/** Typographie française du pourcentage, définie une fois : espace fine
+ *  insécable avant le signe, virgule décimale, et surtout **pas**
+ *  `style: "percent"` — les valeurs publiées sont déjà en points de
+ *  pourcentage, le multiplier par cent les rendrait absurdes. */
+export function pourcentage(valeur: number): string {
+  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(valeur)} %`;
+}
+
+/** La note sous la légende dit ce que sont les nombres qu'on vient de lire.
+ *
+ *  Elle était écrite en dur — « Montants en euros courants » — et s'affichait
+ *  donc aussi sous une échelle de taux de pauvreté. Une légende qui se trompe
+ *  d'unité est pire qu'une légende absente : elle affirme. */
+export function noteEchelle(unite: string, parHabitant: boolean): string {
+  const classes = "Classes de valeurs égales en nombre de territoires.";
+  if (parHabitant) return `${classes} Dénominateur : population de référence OFGL.`;
+  if (unite === "percent") {
+    return `${classes} Taux en pourcentage : ils ne s'additionnent pas et ne se ramènent pas à l'habitant.`;
+  }
+  if (unite === "count") return `${classes} Effectifs, en nombre d'unités.`;
+  return `${classes} Montants en euros courants.`;
+}
+
 export function formater(valeur: number, unite: string, parHabitant: boolean): string {
   if (unite === "count") {
     return new Intl.NumberFormat("fr-FR").format(Math.round(valeur));
+  }
+  // Un taux n'est pas une somme d'argent. Sans cette branche, tout ce qui
+  // n'était pas un effectif tombait dans le chemin devise : un taux de pauvreté
+  // de 51 % s'affichait « 51 € », légende comprise. C'est l'erreur que ce site
+  // existe pour ne pas commettre.
+  //
+  // Les valeurs sont déjà exprimées en pourcentage (12,4 vaut 12,4 %), donc pas
+  // de `style: "percent"`, qui multiplierait par cent. Espace fine insécable
+  // avant le signe, comme le veut l'usage français.
+  if (unite === "percent") {
+    return pourcentage(valeur);
   }
   const options: Intl.NumberFormatOptions = {
     style: "currency",

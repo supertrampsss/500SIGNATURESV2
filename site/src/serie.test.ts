@@ -9,17 +9,19 @@ import { test } from "node:test";
 
 import { evolution, rendu, ruptureDePerimetre, type Evenement } from "./serie.ts";
 
+const FINE = "\u202f";
+
 const SERIE = { "2018": 100, "2019": 110, "2020": 120, "2021": 132 };
 const FUSION: Evenement[] = [{ type: "fusion", date: "2020-01-01", avec: "33999" }];
 const brut = (v: number) => `${v} €`;
 
 test("sans changement de périmètre, l'évolution part du premier exercice", () => {
-  assert.match(evolution(SERIE, "2021", []), /\+32\.0 % depuis 2018/);
+  assert.equal(evolution(SERIE, "2021", []).includes(`+32${FINE}% depuis 2018`), true);
 });
 
 test("une fusion borne l'évolution au périmètre courant", () => {
   const texte = evolution(SERIE, "2021", FUSION);
-  assert.match(texte, /\+10\.0 % depuis 2020/);
+  assert.equal(texte.includes(`+10${FINE}% depuis 2020`), true);
   assert.match(texte, /depuis le changement de périmètre/);
   assert.doesNotMatch(texte, /depuis 2018/);
 });
@@ -80,6 +82,6 @@ test("une série recalculée dans la géographie courante ne se coupe pas", () =
    */
   const legales = { "2013": 17951, "2023": 17457 };
   assert.equal(ruptureDePerimetre([], Object.keys(legales)), null);
-  assert.match(evolution(legales, "2023", []), /-2\.8 % depuis 2013/);
+  assert.equal(evolution(legales, "2023", []).includes(`-2,8${FINE}% depuis 2013`), true);
   assert.doesNotMatch(evolution(legales, "2023", []), /périmètre/);
 });

@@ -18,7 +18,7 @@ import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
-import { expressionCouleur, formater, parHabitantAUnSens, quantiles } from "./echelle.ts";
+import { expressionCouleur, formater, noteEchelle, parHabitantAUnSens, quantiles } from "./echelle.ts";
 import "./style.css";
 
 const COUCHES: Record<string, string> = {
@@ -119,9 +119,7 @@ function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean)
       return `<li><span class="pastille" style="background:${couleur}"></span>${texte}</li>`;
     })
     .join("");
-  $("legende-note").textContent = parHabitant
-    ? "Classes de valeurs égales en nombre de territoires. Dénominateur : population de référence OFGL."
-    : "Classes de valeurs égales en nombre de territoires. Montants en euros courants.";
+  $("legende-note").textContent = noteEchelle(indicateur.unite, parHabitant);
 }
 
 function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
@@ -339,7 +337,18 @@ function construireSelecteurs(): void {
     .join("");
   $<HTMLSelectElement>("periode").value = etat.periode;
   $<HTMLSelectElement>("niveau").value = etat.niveau;
-  $<HTMLSelectElement>("declinaison").value = etat.declinaison;
+
+  // « Par habitant » n'a de sens que pour un montant qui s'additionne. Sur un
+  // taux ou un effectif, le calcul le refusait déjà — mais la commande restait
+  // sur « Par habitant » et annonçait donc un dénominateur qui n'existait pas.
+  // Une commande qui affirme ce qu'elle ne fait pas est un mensonge de plus.
+  const divisible = parHabitantAUnSens(fiche);
+  const declinaison = $<HTMLSelectElement>("declinaison");
+  declinaison.disabled = !divisible;
+  declinaison.value = divisible ? etat.declinaison : "total";
+  declinaison.title = divisible
+    ? ""
+    : "Cet indicateur n'est pas un montant qui s'additionne : le ramener à l'habitant n'aurait pas de sens.";
 }
 
 function brancherCommandes(): void {

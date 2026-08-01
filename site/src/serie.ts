@@ -17,6 +17,8 @@
  * dépend de rien.
  */
 
+import { pourcentage } from "./echelle.ts";
+
 export type Evenement = { type: string; date: string; avec: string };
 
 const LARGEUR = 260;
@@ -62,9 +64,9 @@ export function evolution(
   const reserve = rupture
     ? ` <span class="evolution__reserve">depuis le changement de périmètre</span>`
     : "";
-  return `<span class="evolution">${signe}${variation.toFixed(
-    1,
-  )} % depuis ${echapper(depuis)}${reserve}</span>`;
+  return `<span class="evolution">${signe}${pourcentage(variation)} depuis ${echapper(
+    depuis,
+  )}${reserve}</span>`;
 }
 
 /**

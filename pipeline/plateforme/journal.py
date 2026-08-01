@@ -89,6 +89,27 @@ JOURNAL: list[Changement] = [
         sources=["situations-mensuelles-budgetaires-series-longues"],
     ),
     Changement(
+        annonce="2026-08-01",
+        type="correction",
+        jeu="melodi-filosofi-cc",
+        indicateur="insee_taux_pauvrete",
+        public=(
+            "Les taux de pauvreté et de chômage s'affichaient avec un symbole euro :"
+            " un taux de 51 % apparaissait comme « 51 € », et la légende de la carte"
+            " annonçait des « montants en euros courants ». Les chiffres eux-mêmes"
+            " étaient justes et n'ont pas changé — seule leur unité affichée était"
+            " fausse. Si vous avez relevé l'un de ces nombres, il se lit en"
+            " pourcentage."
+        ),
+        technique=(
+            "Défaut d'affichage du site, sans effet sur les fichiers publiés : les"
+            " valeurs y ont toujours été des nombres bruts, accompagnés de leur unité"
+            " déclarée dans `indicateurs.json`. Le formateur ne connaissait que les"
+            " effectifs et les montants ; tout le reste tombait dans le chemin devise."
+            " Six indicateurs étaient concernés, dont deux cartographiés."
+        ),
+    ),
+    Changement(
         annonce="2026-07-31",
         type="deprecation",
         jeu="ofgl-communes",

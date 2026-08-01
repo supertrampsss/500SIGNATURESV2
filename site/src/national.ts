@@ -88,8 +88,8 @@ export function afficherNational(
         <strong>${formater(total[1], "EUR", false)}</strong>
         <span class="millesime">${total[0]}</span>
       </p>
-      <p class="bloc__complement">soit <strong>${totalPib[1].toFixed(1)} %</strong> du produit
-        intérieur brut</p>
+      <p class="bloc__complement">soit <strong>${formater(totalPib[1], "percent", false)}</strong>
+        du produit intérieur brut</p>
       ${courbe(france.series["insee_dette_apu_part_pib"], "percent")}
       <h4>Qui la porte</h4>
       <ul class="repartition">${detail}</ul>
@@ -101,9 +101,9 @@ export function afficherNational(
   const lignes = VOISINS.filter((code) => pays[code])
     .map((code) => {
       const series = pays[code].series;
-      const cellule = (id: string, suffixe = " %") => {
+      const cellule = (id: string) => {
         const valeur = derniere(series[id]);
-        return valeur ? `${valeur[1].toFixed(1)}${suffixe}` : "—";
+        return valeur ? formater(valeur[1], "percent", false) : "—";
       };
       return `<tr${code === "FR" ? ' class="souligne"' : ""}>
         <th scope="row">${NOMS_PAYS[code] ?? code}</th>

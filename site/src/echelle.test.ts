@@ -7,7 +7,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { expressionCouleur, formater, parHabitantAUnSens, quantiles } from "./echelle.ts";
+import { expressionCouleur, formater, noteEchelle, parHabitantAUnSens, quantiles } from "./echelle.ts";
+
+const FINE = "\u202f";
 
 test("les classes répartissent les territoires en parts égales", () => {
   const echelle = quantiles([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14], 7);
@@ -58,4 +60,45 @@ test("une médiane ne se divise pas par la population", () => {
   assert.equal(parHabitantAUnSens({ unite: "percent", sommable: false }), false);
   // Catalogue ancien, sans le champ : on garde le comportement d'avant.
   assert.equal(parHabitantAUnSens({ unite: "EUR" }), true);
+});
+
+/*
+ * Un taux affiché en euros est l'erreur que ce site existe pour ne pas
+ * commettre. Elle a été trouvée en regardant la page : le taux de pauvreté de
+ * Sainte-Foy-la-Grande, 51 %, s'affichait « 51 € », et la légende affirmait
+ * « Montants en euros courants ». Ces tests la clouent.
+ */
+test("un taux se formate en pourcentage, jamais en euros", () => {
+  // FINE = espace fine insécable U+202F, exigée avant % en typographie française
+  assert.equal(formater(51, "percent", false), `51${FINE}%`);
+  assert.equal(formater(12.4, "percent", false), `12,4${FINE}%`);
+  assert.equal(formater(117.5, "percent", false), `117,5${FINE}%`);
+  assert.doesNotMatch(formater(51, "percent", false), /€/);
+});
+
+test("le pourcentage n'est pas multiplié par cent", () => {
+  // les valeurs publiées sont déjà en points de pourcentage
+  assert.match(formater(7.7, "percent", false), /^7,7/);
+});
+
+test("un taux négatif garde son signe", () => {
+  assert.match(formater(-5.1, "percent", false), /^-5,1/);
+});
+
+test("le séparateur décimal est français partout", () => {
+  for (const rendu of [
+    formater(12.4, "percent", false),
+    formater(1.23e9, "EUR", false),
+    formater(4567, "count", false),
+  ]) {
+    assert.doesNotMatch(rendu, /\d\.\d/, rendu);
+  }
+});
+
+test("la note de légende suit l'unité au lieu de l'affirmer", () => {
+  assert.match(noteEchelle("percent", false), /pourcentage/);
+  assert.doesNotMatch(noteEchelle("percent", false), /euros/);
+  assert.match(noteEchelle("EUR", false), /euros courants/);
+  assert.match(noteEchelle("count", false), /Effectifs/);
+  assert.match(noteEchelle("EUR", true), /population de référence/);
 });
