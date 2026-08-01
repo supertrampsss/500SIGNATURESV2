@@ -1,0 +1,60 @@
+name: Sauvegarde vérifiée
+
+# Le plan gratuit Supabase n'offre pas de restauration ponctuelle (D6) : sans
+# ces dumps, une base perdue coûterait des heures de rechargement.
+#
+# Le dump est restauré dans une base jetable et comparé table par table à la
+# source avant d'être déposé. Un fichier qui ne se restaure pas n'est pas une
+# sauvegarde, et le run échoue plutôt que de laisser croire le contraire.
+
+on:
+  schedule:
+    # Hebdomadaire, dimanche 02:23 UTC — hors des créneaux d'ingestion.
+    - cron: "23 2 * * 0"
+  workflow_dispatch:
+
+jobs:
+  sauvegarder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    services:
+      # Base jetable de vérification : PostGIS obligatoire, les colonnes de
+      # `geo` référencent le type `geometry`.
+      verification:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: verification
+          POSTGRES_DB: verification
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s
+          --health-timeout 5s --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q -e ./pipeline
+      - name: Aligner le client PostgreSQL sur le serveur
+        # pg_dump refuse de parler à un serveur plus récent que lui ; on installe
+        # explicitement la version 16, celle de Supabase.
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /usr/share/keyrings/pgdg.gpg
+          sudo sed -i 's|deb |deb [signed-by=/usr/share/keyrings/pgdg.gpg] |' /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq postgresql-client-16
+          echo "/usr/lib/postgresql/16/bin" >> "$GITHUB_PATH"
+      - name: Sauvegarder et vérifier
+        env:
+          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+        # Bucket `plateforme-raw` : celui des snapshots, non exposé par le
+        # domaine public — seul `plateforme-published` l'est.
+        run: |
+          python -m plateforme.sauvegarde \
+            --verification-url "postgresql://postgres:verification@localhost:5432/verification" \
+            --store r2:plateforme-raw

@@ -17,6 +17,7 @@
 | Rupture d'API/portail (migration INSEE déjà survenue, ids ODS annuels) | élevé | tests de liveness quotidiens, découverte par catalogue, alerte < 24 h, connecteurs génériques |
 | Volumétrie (Sirene 28 M établissements, DVF 5 M/an, balances) | moyen | fichiers stock plutôt qu'API, agrégats en base, détail en Parquet R2 requêté par DuckDB |
 | Coûts Supabase/R2 dérivants | moyen | budget mensuel suivi ; exports statiques = coût de lecture nul ; alerte de coût |
+| Perte de la base (pas de restauration ponctuelle sur le plan gratuit) | élevé | **sauvegarde hebdomadaire vérifiée** (`plateforme/sauvegarde.py`) : le dump est restauré dans une base jetable et comparé table par table à la source avant dépôt dans R2. Un dump qui ne se restaure pas n'est jamais déposé — le run échoue et l'absence de sauvegarde se voit. Procédure de restauration publiée dans `sauvegardes/derniere.json` |
 | Tuiles communales lourdes | moyen | simplification par zoom, PMTiles, budget taille par couche testé en CI |
 | Dépendance à un seul mainteneur des connecteurs | moyen | connecteurs déclaratifs + doc registre = un connecteur se répare sans archéologie |
 
