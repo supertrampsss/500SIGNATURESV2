@@ -1,0 +1,77 @@
+name: Rafraîchissement programmé
+
+# « Les données doivent être mises à jour et historisées » : sans cadence, une
+# plateforme de données est une photographie. Ces deux rendez-vous rejouent des
+# connecteurs **déjà validés** — ce n'est pas une publication autonome de
+# nouveaux chiffres, c'est la même chaîne, avec les mêmes contrôles bloquants,
+# sur des données plus fraîches (docs/06).
+#
+# La cadence suit la source, pas l'envie : la situation mensuelle budgétaire
+# paraît chaque mois, les comptes nationaux chaque trimestre, les finances
+# locales une fois l'an. Interroger plus souvent ne rendrait pas les chiffres
+# plus récents, seulement les journaux plus longs.
+#
+# GitHub n'exécute les `schedule` que sur la branche par défaut : ces
+# rendez-vous ne commenceront qu'après la fusion de la PR.
+
+on:
+  schedule:
+    # Hebdomadaire, lundi 04:17 UTC — sources nationales et européennes.
+    - cron: "17 4 * * 1"
+    # Mensuel, le 3 à 03:41 UTC — référentiel géographique et finances locales.
+    # Le 3 et non le 1er : les portails publient rarement un jour férié.
+    - cron: "41 3 3 * *"
+  workflow_dispatch:
+    inputs:
+      cadence:
+        description: "hebdomadaire ou mensuel"
+        required: true
+        default: hebdomadaire
+
+# Deux ingestions simultanées écriraient dans les mêmes tables : on attend.
+concurrency:
+  group: ingestion
+  cancel-in-progress: false
+
+jobs:
+  rafraichir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q -e ./pipeline
+      - name: Sync source registry
+        env:
+          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: python -m plateforme.registry
+      - name: Rafraîchir
+        env:
+          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+          CADENCE: ${{ github.event.schedule == '41 3 3 * *' && 'mensuel' || inputs.cadence || 'hebdomadaire' }}
+        run: |
+          set -e
+          echo "cadence : $CADENCE"
+          if [ "$CADENCE" = "mensuel" ]; then
+            python -m plateforme.normalize.geo --store r2:plateforme-raw
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux epci,departement,region --depuis 2018
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux commune --depuis 2022
+            python -m plateforme.normalize.dotations --store r2:plateforme-raw
+            python -m plateforme.normalize.revenus --store r2:plateforme-raw
+            python -m plateforme.normalize.population --store r2:plateforme-raw
+          else
+            python -m plateforme.normalize.etat --store r2:plateforme-raw
+            python -m plateforme.normalize.macro --store r2:plateforme-raw
+            python -m plateforme.normalize.europe --store r2:plateforme-raw
+            python -m plateforme.normalize.chomage --store r2:plateforme-raw
+          fi
+          # Une seule publication à la fin : les fichiers publiés décrivent un
+          # état cohérent de la base, jamais un chargement à moitié fait.
+          python -m plateforme.publish --publication r2:plateforme-published

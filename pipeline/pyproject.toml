@@ -1,0 +1,34 @@
+[project]
+name = "plateforme"
+version = "0.1.0"
+description = "Pipeline d'ingestion et de transformation des données publiques (voir docs/03-architecture.md)"
+requires-python = ">=3.11"
+dependencies = [
+    "boto3>=1.34",
+    "httpx>=0.27",
+    "pmtiles>=3.4",
+    "psycopg[binary]>=3.1",
+    "shapely>=2.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.4"]
+
+[tool.ruff]
+line-length = 100
+
+# Jeu de règles explicite : le lint doit être identique en local et en CI,
+# quelle que soit la version de ruff installée.
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "UP", "B", "BLE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["plateforme*"]

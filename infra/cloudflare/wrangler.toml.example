@@ -1,0 +1,17 @@
+# Gabarit Wrangler — activé quand les Workers seront déployés (voir docs/SETUP.md).
+# Copier vers wrangler.toml.
+name = "plateforme-ingestion"
+account_id = "8f1b454e7961068fe7a3750341fe7aaf"
+main = "src/index.ts"
+compatibility_date = "2026-07-01"
+
+[[r2_buckets]]
+binding = "RAW"
+bucket_name = "plateforme-raw"
+
+[[r2_buckets]]
+binding = "PUBLISHED"
+bucket_name = "plateforme-published"
+
+[triggers]
+crons = ["0 2 * * *"] # liveness quotidienne des sources (docs/03-architecture.md §1)

@@ -1,0 +1,704 @@
+/*
+ * Langage visuel : produit d'intérêt public. Sobriété, contraste élevé,
+ * typographie système, aucune animation décorative. Les contraintes
+ * d'accessibilité priment sur l'esthétique (docs/04).
+ */
+
+:root {
+  --encre: #16191d;
+  --encre-douce: #4a5259;
+  --papier: #ffffff;
+  --papier-creuse: #f4f5f3;
+  --trait: #d7dbd8;
+  --accent: #1b4f77;
+  --alerte: #8a4b12;
+  --rayon: 6px;
+  --serif: ui-serif, Georgia, "Times New Roman", serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--sans);
+  color: var(--encre);
+  background: var(--papier);
+  line-height: 1.5;
+}
+
+.evitement {
+  position: absolute;
+  left: -9999px;
+}
+.evitement:focus {
+  left: 1rem;
+  top: 1rem;
+  z-index: 20;
+  background: var(--papier);
+  padding: 0.6rem 1rem;
+  border: 2px solid var(--accent);
+}
+
+.entete {
+  padding: 1.25rem 1.5rem 0.75rem;
+  border-bottom: 1px solid var(--trait);
+}
+.entete h1 {
+  font-family: var(--serif);
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.sous-titre {
+  margin: 0.25rem 0 0;
+  color: var(--encre-douce);
+  font-size: 0.95rem;
+}
+
+.commandes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem 1.25rem;
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--trait);
+  background: var(--papier-creuse);
+  margin: 0;
+}
+.champ {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin: 0;
+  position: relative;
+}
+.champ label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+select,
+input[type="search"] {
+  font: inherit;
+  font-size: 0.95rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier);
+  color: var(--encre);
+  min-width: 12rem;
+}
+select:focus-visible,
+input:focus-visible,
+button:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 1px;
+}
+.champ--recherche {
+  flex: 1 1 16rem;
+}
+
+#suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 15;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.08);
+  max-height: 15rem;
+  overflow-y: auto;
+}
+#suggestions button {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  background: none;
+  border: 0;
+  padding: 0.5rem 0.7rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+#suggestions button:hover {
+  background: var(--papier-creuse);
+}
+#suggestions span {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+
+.scene {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 24rem;
+  height: min(70vh, 44rem);
+}
+#carte {
+  height: 100%;
+}
+
+.legende {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  background: rgb(255 255 255 / 0.96);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  padding: 0.7rem 0.85rem;
+  max-width: 20rem;
+  font-size: 0.82rem;
+}
+.legende__titre {
+  margin: 0 0 0.45rem;
+  font-weight: 600;
+}
+.legende__echelle {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.2rem;
+}
+.legende__echelle li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.pastille {
+  width: 1.1rem;
+  height: 0.8rem;
+  border: 1px solid rgb(0 0 0 / 0.15);
+  flex: none;
+}
+.legende__note {
+  margin: 0.5rem 0 0;
+  color: var(--encre-douce);
+  font-size: 0.75rem;
+}
+
+.fiche {
+  border-left: 1px solid var(--trait);
+  padding: 1.1rem 1.25rem;
+  overflow-y: auto;
+  background: var(--papier);
+}
+.fiche__vide,
+.erreur {
+  color: var(--encre-douce);
+}
+.erreur {
+  color: var(--alerte);
+}
+.fiche__titre {
+  font-family: var(--serif);
+  font-size: 1.3rem;
+  margin: 0;
+}
+.fiche__meta {
+  margin: 0.15rem 0 1rem;
+  color: var(--encre-douce);
+  font-size: 0.85rem;
+}
+
+.mesures {
+  margin: 0 0 1.25rem;
+}
+.mesure {
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--trait);
+}
+.mesure dt {
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}
+.mesure dd {
+  margin: 0.15rem 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 0.6rem;
+}
+.mesure strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.millesime {
+  font-size: 0.75rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  color: var(--encre-douce);
+}
+.denominateur,
+.evolution {
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
+.mesure--absente dd {
+  color: var(--encre-douce);
+  font-style: italic;
+}
+
+.panneau {
+  border-top: 1px solid var(--trait);
+  padding: 0.55rem 0;
+  font-size: 0.85rem;
+}
+.panneau summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.panneau ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+.technique,
+.formule,
+.avertissement {
+  color: var(--encre-douce);
+  font-size: 0.8rem;
+}
+.avertissement {
+  margin-top: 0.7rem;
+}
+
+.tableau {
+  padding: 1.5rem;
+  border-top: 1px solid var(--trait);
+}
+.tableau h2 {
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  margin: 0;
+}
+.tableau__aide {
+  color: var(--encre-douce);
+  font-size: 0.85rem;
+  margin: 0.2rem 0 0.8rem;
+}
+.tableau__cadre {
+  max-height: 22rem;
+  overflow: auto;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.88rem;
+}
+caption {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  color: var(--encre-douce);
+  font-size: 0.8rem;
+}
+th,
+td {
+  text-align: left;
+  padding: 0.4rem 0.75rem;
+  border-top: 1px solid var(--trait);
+}
+td:last-child,
+th:last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+thead th {
+  position: sticky;
+  top: 0;
+  background: var(--papier-creuse);
+}
+
+.pied {
+  padding: 1.25rem 1.5rem 2.5rem;
+  border-top: 1px solid var(--trait);
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+  display: grid;
+  gap: 0.4rem;
+}
+
+@media (max-width: 60rem) {
+  .scene {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  #carte {
+    height: 60vh;
+  }
+  .fiche {
+    border-left: 0;
+    border-top: 1px solid var(--trait);
+    max-height: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Bloc national : dette française et repères européens. */
+.national {
+  padding: 1.5rem;
+  border-top: 1px solid var(--trait);
+}
+.national h2 {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  margin: 0 0 0.9rem;
+}
+.national__grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1.25rem;
+}
+.bloc {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  padding: 1rem 1.1rem;
+}
+.bloc h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.bloc h4 {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+  font-weight: 600;
+}
+.bloc__chiffre {
+  margin: 0.5rem 0 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.bloc__chiffre strong {
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+}
+.bloc__complement {
+  margin: 0.1rem 0 0.6rem;
+  color: var(--encre-douce);
+  font-size: 0.88rem;
+}
+.courbe {
+  width: 100%;
+  height: 5.5rem;
+  color: var(--accent);
+  display: block;
+}
+.courbe__bornes {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.1rem 0 0;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.repartition {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.88rem;
+}
+.repartition li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  border-bottom: 1px solid var(--trait);
+  padding-bottom: 0.25rem;
+}
+.repartition strong {
+  font-variant-numeric: tabular-nums;
+}
+.comparaison {
+  margin-top: 0.6rem;
+}
+.comparaison td,
+.comparaison th {
+  padding: 0.35rem 0.5rem;
+}
+.comparaison tbody th {
+  font-weight: 400;
+  text-align: left;
+}
+.comparaison .souligne {
+  background: var(--papier-creuse);
+}
+.comparaison .souligne th {
+  font-weight: 700;
+}
+
+/* Pont budgétaire : la largeur des barres dit l'ordre de grandeur, le chiffre
+   dit le reste. Une seule teinte, comme la carte — aucune couleur de jugement. */
+.bloc--large {
+  margin-top: 1.25rem;
+}
+.pont {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.6rem 0 1rem;
+  font-size: 0.88rem;
+}
+.pont caption {
+  text-align: left;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+  padding-bottom: 0.4rem;
+}
+.pont__ligne th {
+  font-weight: 400;
+  text-align: left;
+  padding: 0.3rem 0.5rem 0.3rem 0;
+}
+.pont__ligne--n0 th {
+  font-weight: 600;
+}
+.pont__ligne--n1 th {
+  padding-left: 1.1rem;
+}
+.pont__ligne--n2 th {
+  padding-left: 2.2rem;
+  color: var(--encre-douce);
+}
+.pont__signe {
+  width: 1.2rem;
+  text-align: center;
+  color: var(--encre-douce);
+}
+.pont__montant {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: 0.3rem 0.6rem;
+}
+.pont__jauge {
+  width: 40%;
+  min-width: 5rem;
+}
+.pont__barre {
+  display: block;
+  height: 0.55rem;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.pont__ligne--n1 .pont__barre {
+  opacity: 0.6;
+}
+.pont__ligne--n2 .pont__barre {
+  opacity: 0.4;
+}
+.pont__solde th,
+.pont__solde td {
+  border-top: 2px solid var(--trait);
+  padding-top: 0.5rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pont__solde .pont__montant {
+  font-size: 1.05rem;
+}
+.champ--exercice {
+  margin: 0.6rem 0 0;
+}
+
+/* Questions d'entrée : ce que le site sait faire, dit avant la carte. */
+.questions__cadre {
+  padding: 0.9rem 1.5rem;
+  border-bottom: 1px solid var(--trait);
+}
+.questions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.6rem 1.5rem;
+}
+.questions li {
+  display: grid;
+  gap: 0.15rem;
+}
+.questions a {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+.questions span {
+  color: var(--encre-douce);
+  font-size: 0.78rem;
+}
+
+/* « 100 € » : deux colonnes de parts, une seule teinte, largeur proportionnelle.
+   Le chiffre porte l'information, la barre ne fait qu'ordonner le regard. */
+.cent__grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  gap: 1.25rem 2rem;
+  margin-top: 0.6rem;
+}
+.cent__question {
+  margin: 0 0 0.6rem;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+}
+.cent {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.cent li {
+  display: grid;
+  grid-template-columns: 4.5rem 1fr;
+  align-items: baseline;
+  gap: 0.1rem 0.6rem;
+  font-size: 0.88rem;
+}
+.cent__part {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+.cent__barre {
+  grid-column: 2;
+  height: 0.4rem;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.75;
+}
+
+.comparateur {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+.comparateur caption {
+  text-align: left;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+  padding-bottom: 0.4rem;
+}
+.comparateur th,
+.comparateur td {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--trait);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.comparateur thead th,
+.comparateur tbody th {
+  text-align: left;
+  font-weight: 600;
+}
+.comparateur tbody th {
+  font-weight: 400;
+}
+/* Une valeur absente se lit comme une absence, pas comme un petit nombre. */
+.comparateur .absente {
+  color: var(--encre-douce);
+  font-style: italic;
+  font-variant-numeric: normal;
+}
+.retirer {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  color: var(--encre-douce);
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0 0.2rem;
+}
+.comparer {
+  margin: 0.4rem 0 0.8rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+}
+.comparer[disabled] {
+  cursor: not-allowed;
+  color: var(--encre-douce);
+}
+
+.fraicheur {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+.fraicheur th,
+.fraicheur td {
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--trait);
+}
+.fraicheur tbody th {
+  font-weight: 400;
+}
+/* Un signalement se voit sans être alarmant : le contour, pas le remplissage. */
+.anomalie {
+  display: inline-block;
+  border: 1px solid var(--trait);
+  border-radius: 2px;
+  padding: 0 0.3rem;
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+.anomalie--blocker {
+  border-color: currentColor;
+  font-weight: 600;
+  color: var(--encre);
+}
+
+.quartiles {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.85rem;
+}
+.quartiles li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.quartiles strong {
+  font-variant-numeric: tabular-nums;
+}
+.quartiles li:last-child {
+  border-top: 1px solid var(--trait);
+  padding-top: 0.25rem;
+}

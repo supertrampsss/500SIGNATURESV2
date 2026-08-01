@@ -1,5 +1,94 @@
 # 08 — Livrable 8 : backlog GitHub priorisé
 
+> **État au 31/07/2026** — fait (PR #2) : T-01, T-04, T-05, **T-03** (schéma,
+> seed et checks appliqués au projet Supabase réel) et **T-02** (token vérifié,
+> buckets R2 créés, store R2 du pipeline testé en réel, workflow Ingestion
+> manuel) ; entamés : T-06/T-07/T-08/T-09 (connecteurs de snapshot sans clé +
+> lineage ; normalisation vers les tables analytiques à venir avec T-11+).
+> T-07 couvre déjà le pattern de T-10 (Webstat est un portail Opendatasoft).
+> Secrets GitHub en place ; premier run d'ingestion réel exécuté.
+>
+> **T-11 (référentiel géographique)** : fait pour la partie non géométrique —
+> COG 2025 (36 295 territoires : pays, régions, départements, EPCI, communes,
+> arrondissements municipaux) et **4 882 mouvements territoriaux depuis 1943**,
+> avec `geo.passage()` vérifiée sur des chaînes réelles (changement de
+> département suivi d'une fusion, fusions successives). Reste dans T-11 : les
+> **géométries** (Admin Express), traitées avec T-18 (tuiles vectorielles).
+>
+> **T-12 (finances locales OFGL)** : 5 indicateurs (dépenses et recettes de
+> fonctionnement, dépenses d'investissement, épargne brute, encours de dette)
+> plus la population de référence, sur communes, EPCI, départements et régions,
+> avec fiche publiable pour chacun et contrôle de cohérence bloquant
+> (épargne brute = recettes − dépenses). Reste : dotations (`public_transfers`)
+> et groupes de comparaison v1.
+>
+> **T-18 (tuiles vectorielles)** : archive PMTiles unique publiée dans R2
+> (`geo/<date>/territoires.pmtiles`, 56 Mo, zooms 0-12), trois couches —
+> 34 875 communes, 101 départements, 18 régions — outre-mer compris. Les
+> contours départementaux et régionaux sont reconstitués par fusion des
+> communes, sur la maille des finances locales (Alsace, Métropole de Lyon).
+>
+> **T-14 (budget de l'État)** : fait pour la **nature** de la dépense, pas
+> encore pour sa destination. Source retenue : la situation mensuelle
+> budgétaire de la DGFiP, qui publie sur la même nomenclature la loi de
+> finances initiale, la dernière loi rectificative et l'exécution — 39 budgets
+> de 2013 à 2025, 628 lignes, 15 indicateurs nationaux. Le pont recettes →
+> dépenses → solde est vérifié à l'euro par un contrôle bloquant sur les 39
+> budgets. Deux défauts du fichier producteur sont traités (docs/06) : colonne
+> « Exécution » décalée sur 2019-2021, répartition des PSR de la LFI 2022
+> corrompue. **Reste dans T-14** : la ventilation par mission et programme, et
+> les comptes spéciaux détaillés.
+>
+> **Obstacle constaté sur la ventilation par mission** (vérifié le 31/07/2026
+> sur le catalogue de data.economie.gouv.fr) : le « voté contre exécuté par
+> mission » demandé au plan n'est pas atteignable depuis ce portail.
+> D'un côté, les jeux détaillés par mission portent le **projet** de loi de
+> finances, pas la loi votée — `plf25-depenses-2025-selon-destination` a
+> `loi = PLF`, et son budget général hors remboursements totalise 446,9 Md€
+> contre 438,8 Md€ dans la LFI 2025 effectivement votée. De l'autre,
+> l'exécution par mission s'arrête à l'exercice 2013 (`execution-2013-…`) ; le
+> projet de loi de règlement le plus récent (`projet-de-loi-de-reglement-2020`)
+> ne contient aucun enregistrement, seulement des pièces jointes.
+> Publier le PLF seul en le présentant comme « le budget » confondrait un
+> projet déposé et une loi votée. La suite passe donc par les annexes RAP ou
+> par une autre source d'exécution ; un ticket dédié plutôt qu'un raccourci.
+>
+> **T-21 (comparateur) et T-24 (état des données)** : faits. Le comparateur
+> met 2 à 5 territoires côte à côte sur les indicateurs du thème courant, avec
+> la sélection dans l'URL ; il **refuse en le motivant** une comparaison entre
+> niveaux différents, signale les périmètres qui se recouvrent et écrit
+> « donnée non disponible » plutôt que de combler un trou. L'état des données
+> affiche, jeu par jeu, la dernière lecture, le retard sur la fréquence
+> annoncée, l'issue du dernier chargement et ce que les contrôles ont relevé.
+>
+> **Au-delà du backlog initial**, livrés le 31/07/2026 : le module « 100 € »
+> (part de chaque poste dans 100 € encaissés puis dépensés par l'État, avec le
+> refus explicite de tracer un euro), les questions d'entrée, l'API publique
+> documentée (`docs/10`) et la politique de rétention (`plateforme/retention.py`)
+> qui ramène la base sous le plafond du plan gratuit sans rien détruire
+> d'irremplaçable.
+>
+> **T-16 (domaines sociaux et démographiques)** : entamé. Chargés le
+> 31/07/2026 — dotations de l'État aux communes (34 875 communes, contrôlées
+> contre le prélèvement sur recettes de l'État), niveau de vie médian
+> (30 793 communes, 88,3 %), taux de pauvreté (2 482 communes, 7,1 % — l'INSEE
+> ne le diffuse qu'au-dessus d'un seuil de taille, et la couverture réelle est
+> enregistrée avec le run), population municipale sur deux millésimes espacés
+> de dix ans. Reste : chômage localisé, entreprises, éducation, santé.
+>
+> **Deux bugs d'affichage corrigés au passage**, tous deux de la même famille —
+> une liste écrite en dur qui contredit la donnée publiée. Les niveaux
+> géographiques d'un indicateur étaient écrasés par le dernier chargement
+> partiel, ce qui vidait le site dès qu'on choisissait « Départements » ; ils
+> sont désormais relus depuis les observations à chaque publication. Et un
+> thème absent d'une table du site n'est plus écarté du sélecteur.
+>
+> Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08, et
+> l'arbitrage D6bis sur le volume de la base.
+>
+> **Prochaine étape** : la ventilation par mission (fin de T-14), puis les
+> revenus et la pauvreté communaux.
+
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /
 Priorité / Effort (S-M-L-XL) / Risque / Dépendances / Tests / Definition of Done.**
@@ -41,7 +130,7 @@ staging.
 | T-11 | Référentiel géo : COG + mouvements + Admin Express + table d'appartenance + GISCO → `geo.*` + fonction `geo.passage()` | E3 | P0 | L | T-04 | commune fusionnée test : série continue ; géométries valides ; NUTS versionnés |
 | T-12 | Ingestion finances locales OFGL (4 niveaux) + dotations → `fin.*`/`core.*` + checks totaux | E5 | P0 | L | T-07, T-11 | totaux vs publications OFGL ±0,5 % ; €/hab via dénominateur |
 | T-13 | Installer le skill design (`npx skills add https://github.com/Leonxlnx/taste-skill`) et poser le design system du site | E7 | P0 | S | T-01 | skill commité ; tokens/typo/palette validés sur 2 maquettes |
-| T-14 | Ingestion État : PLF/LFI + exécution par mission → `fin.public_budgets/lines/executions` | E5 | P0 | L | T-07 | waterfall voté/exécuté 2024 reproduit les documents officiels |
+| T-14 | Ingestion État : situation mensuelle budgétaire (nature) **faite**, PLF/LFI par mission (destination) à faire → `fin.public_budgets/lines/executions` | E5 | P0 | L | T-07 | pont voté/exécuté reproduit les soldes publiés à l'euro ; identité du solde vérifiée sur chaque exercice |
 | T-15 | Ingestion dette/macro (BDM + AFT + comptes APU COFOG) | E5 | P0 | M | T-08 | série dette 1995→ en Md€ et % PIB, sous-secteurs |
 | T-16 | Ingestion démographie + Filosofi + Sirene stocks/SIDE | E5 | P0 | L | T-08, T-11 | secret statistique rendu `confidential` (jamais 0) ; volumétrie Sirene ok |
 | T-17 | Exports publiés : JSON fiches/séries + manifeste + purge CDN | E6 | P0 | M | T-12..16 | reproductibles ; manifeste liste runs sources |

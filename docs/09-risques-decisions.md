@@ -42,15 +42,16 @@
 
 ## Décisions à prendre avant de coder
 
-| # | Décision | Options | Recommandation |
+| # | Décision | Options | Recommandation / statut |
 |---|---|---|---|
-| D1 | Visibilité du repo `500signaturesv2` | privé / public | privé pendant la conception, public au lancement du MVP (crédibilité open source) |
-| D2 | Nom de domaine et nom public du produit | — | à choisir avant le front (impacte SEO, partages) |
+| D1 | Visibilité du repo `500signaturesv2` | privé / public | **Tranché le 31/07/2026 : privé** pendant la conception et le début du développement ; passage en public au lancement du MVP |
+| D2 | Nom de domaine et nom public du produit | — | **Tranché le 31/07/2026 : `500signatures.fr`** (domaine détenu par le propriétaire, zone déjà sur Cloudflare) ; le rattachement DNS au site se fera au déploiement (T-17/T-19) |
 | D3 | Périmètre DVF au MVP | inclus / phase 2 | décision à S6 sur critère de charge (doc 07) ; sinon phase 2 |
 | D4 | Fond de carte | auto-hébergé (OpenMapTiles) / service IGN | auto-hébergé PMTiles (coût nul, indépendance), IGN en option ultérieure |
 | D5 | Fréquence de publication des exports | hebdo / à chaque ingestion | hebdo au MVP (prévisibilité), sauf correctifs |
-| D6 | Budget infra mensuel plafond | — | à fixer (ordre de grandeur attendu : < 100 €/mois au MVP hors temps humain) |
-| D7 | Qui est le relecteur humain des validations méthodo | — | à désigner nominativement — bloquant pour T-12/T-14 |
+| D6bis | Passage au plan Supabase payant | — | **À trancher maintenant : la limite est franchie.** Mesuré le 31/07/2026 en fin de journée : **608 Mo** (`pg_database_size`) pour un plan gratuit qui en annonce 500. La base accepte encore les écritures (`default_transaction_read_only = off`), mais la marge n'existe plus. Détail : `core.observations` pèse 549 Mo à elle seule (322 Mo de tables, 227 Mo d'index) pour 1 325 516 lignes, dont **1 254 714 au niveau communal — 94,7 %** ; le référentiel géographique ajoute 36 Mo. Aucun gain à attendre d'un nettoyage : les lignes mortes sont à zéro, et l'index `(geo_level, geo_code, period)`, seul candidat à la suppression, a servi 4,2 millions de fois au dernier calcul des groupes de comparaison. **Deux leviers, exclusifs :** (a) plan Pro (~25 $/mois), qui lève la contrainte et rouvre DVF, Filosofi et Sirene ; (b) réduire l'historique communal — chaque exercice communal retiré libère ≈ 87 Mo, deux exercices ramèneraient la base à ≈ 434 Mo au prix de deux années d'historique en moins sur le site. Le levier (b) est réversible : les snapshots 2018-2025 sont archivés dans R2 et se rechargent en une commande. **Levier (b) appliqué le 31/07/2026** à la demande explicite du propriétaire d'aller au bout du produit : la rétention communale à partir de 2022 a retiré 418 416 observations et ramené la base de **618 Mo à 288 Mo**, soit 212 Mo de marge sous le plafond. Le coût est deux exercices communaux d'historique en moins (2020, 2021) ; les snapshots R2 les conservent et `plateforme.normalize.ofgl --niveaux commune --depuis 2018` les recharge. La question du plan payant reste ouverte : elle se reposera avec DVF, Sirene géolocalisé ou l'historique complet. Mesures successives, pour mémoire : 390 Mo, puis 608 Mo, puis 618 Mo avant rétention, 288 Mo après. |
+| D6 | Budget infra mensuel plafond | — | **Tranché le 31/07/2026 : plans gratuits Supabase/Cloudflare** tant qu'ils suffisent ; passage au payant une fois le produit rodé ou en cas de blocage. Conséquences assumées et documentées dans `docs/SETUP.md` (pause d'inactivité et 500 Mo Supabase Free, pas de PITR — sauvegardes compensées par dumps versionnés vers R2) |
+| D7 | Qui est le relecteur humain des validations méthodo | — | **Tranché le 31/07/2026 : le propriétaire du dépôt (`supertrampsss`)** approuve chaque nouveau connecteur et changement de méthodologie via les PRs, présentés avec un résumé en français |
 | D8 | Comptes utilisateurs (alertes territoriales, phase 3) | Supabase Auth / pas de comptes (e-mail simple) | trancher en phase 3 seulement |
 | D9 | Politique de marque vis-à-vis des producteurs (mentions, logos) | — | mentions textuelles uniquement, pas de logos sans autorisation |
 | D10 | Corpus et seuils d'évaluation du moteur de questions | — | à définir avant tout développement phase 3 |

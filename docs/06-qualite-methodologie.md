@@ -48,6 +48,40 @@ Un indicateur sans fiche complète **ne peut pas** passer `published = true`
 | Série interrompue | `break_in_series` présent sur la période affichée |
 | Comparabilité limitée | secret > seuil, couverture partielle, périmètre mouvant |
 
+## Approximations assumées (à déclarer sur chaque chiffre concerné)
+
+| Approximation | Où | Méthode et limite |
+|---|---|---|
+| **Périmètres qui se recouvrent** | `geo.geography_reference.flags` | Deux niveaux publiés ne sont pas toujours disjoints : les établissements publics territoriaux du Grand Paris (drapeau `type: EPT`) sont inclus dans la Métropole du Grand Paris ; la Métropole de Lyon et la Collectivité européenne d'Alsace (drapeau `statut_particulier`) sont publiées au niveau départemental sans être des départements. **Ne jamais additionner** deux niveaux qui se recouvrent ; les totaux nationaux se calculent sur un seul niveau à la fois. |
+| Historique des finances communales | `core.observations` | Chargé depuis 2020 en base, pour tenir dans le plan gratuit (décision D6). Les exercices 2018-2019 sont archivés dans R2 et se rechargent en une commande au passage au plan payant. La borne réelle de chaque série est publiée avec l'indicateur. |
+| Répartition d'une **scission** de commune | `geo.geography_history.population_share` | Une commune rétablie récupère une part du territoire d'origine, calculée au prorata des **populations actuelles** des successeurs. La population d'aujourd'hui n'est pas celle de l'année du mouvement : la part est donc approchée. Quand la population d'un successeur est inconnue, le partage est égal. Les **fusions ne sont pas concernées** (part de 1, exacte). Tout indicateur dont la série traverse une scission porte le badge « Comparabilité limitée ». |
+| Budget de l'État : exercice en cours | `fin.public_budgets` | Seuls les exercices **clos** sont publiés. Les situations mensuelles portent un cumul depuis le 1ᵉʳ janvier : le cumul de mai ne se compare ni à une année entière, ni au même cumul d'une autre année sans le dire. L'exercice en cours n'est donc pas publié tant que sa colonne de décembre n'existe pas. |
+
+## Contrôles bloquants et quarantaine
+
+Deux façons de refuser un chiffre, aux conséquences différentes.
+
+- **Contrôle bloquant** : une identité comptable qui ne se referme pas fait
+  échouer le run. Rien n'est publié, la trace reste dans `ingestion_runs`.
+  Exemples : l'épargne brute d'une collectivité doit être la différence entre
+  ses recettes et ses dépenses de fonctionnement ; le solde budgétaire de
+  l'État doit se déduire de ses recettes, de ses dépenses, de ses prélèvements
+  sur recettes et de ses soldes annexes.
+- **Quarantaine** : quand seule une partie du jeu est en cause, elle n'est pas
+  publiée et le reste l'est. Un contrôle `warning` en garde la trace dans
+  `data_quality_checks`, et l'export dit ce qui manque et pourquoi — une
+  décomposition absente doit s'expliquer, pas disparaître.
+
+Ces contrôles ont trouvé deux défauts réels dans le fichier des situations
+mensuelles budgétaires de la DGFiP :
+
+1. la colonne « Exécution » des textes législatifs porte, pour 2019 à 2021, les
+   dépenses nettes de l'exercice précédent — jusqu'à 53 Md€ d'écart. L'exécution
+   est donc lue dans les séries mensuelles, jamais dans ce fichier ;
+2. la répartition des prélèvements sur recettes de la LFI 2022 y est corrompue
+   (les deux lignes portent des montants qui ne sont pas les leurs, alors que
+   leur total est juste). Le total est publié, la décomposition non.
+
 ## Processus de correction
 
 1. Anomalie détectée (check, signalement) → issue GitHub.

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    // Les imports portent leur extension .ts : sans elle, Node ne sait pas
+    // résoudre un module importé par un test (il ne devine pas les extensions).
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "strict": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "types": ["vite/client"]
+  },
+  // Les tests tournent avec le décapeur de types de Node, pas avec tsc :
+  // ils importent des modules node: et des chemins en .ts que le compilateur
+  // de l'application n'a pas à connaître.
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}

@@ -1,0 +1,51 @@
+{
+  "observations" : [ {
+    "attributes" : {
+      "OBS_STATUS" : "O",
+      "UNIT_MULT" : "0",
+      "CONF_STATUS" : "F"
+    },
+    "dimensions" : {
+      "GEO" : "2025-COM-33318",
+      "TIME_PERIOD" : "2023",
+      "UNIT_MEASURE" : "EUR_YR",
+      "FILOSOFI_MEASURE" : "D1_SL"
+    },
+    "measures" : {
+      "OBS_VALUE_NIVEAU" : { }
+    }
+  }, {
+    "attributes" : {
+      "OBS_STATUS" : "O",
+      "UNIT_MULT" : "0",
+      "CONF_STATUS" : "F"
+    },
+    "dimensions" : {
+      "GEO" : "2025-COM-33318",
+      "TIME_PERIOD" : "2023",
+      "UNIT_MEASURE" : "PT",
+      "FILOSOFI_MEASURE" : "S_SOC_BEN_DI"
+    },
+    "measures" : {
+      "OBS_VALUE_NIVEAU" : { }
+    }
+  } ],
+  "identifier" : "DS_FILOSOFI_CC",
+  "paging" : {
+    "first" : "https://api.insee.fr/melodi/data/DS_FILOSOFI_CC?GEO=COM-33318&maxResult=2&page=1"
+  },
+  "publisher" : {
+    "id" : "INSEE",
+    "label" : [ {
+      "content" : "Institut national de la statistique et des etudes economiques (INSEE)",
+      "lang" : "fr"
+    }, {
+      "content" : "National Institute of Statistics and Economic Studies",
+      "lang" : "en"
+    } ]
+  },
+  "title" : {
+    "en" : "Standard of living, poverty rate, and composition of disposable income in 2023",
+    "fr" : "Niveau de vie, taux de pauvreté, décomposition du revenu disponible en 2023"
+  }
+}

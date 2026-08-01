@@ -143,6 +143,13 @@ Justifications de stack :
 - **Dashboard de fraîcheur** : `pub.mv_freshness` exposée publiquement — chaque
   jeu affiche dernière mise à jour, retard vs fréquence attendue, statut du
   dernier run. La transparence opérationnelle fait partie du produit.
+  *En place* : exporté dans `fraicheur.json` et affiché sur le site sous
+  « État des données », avec ce que les contrôles du dernier chargement ont
+  relevé — nom du contrôle en français, portée du défaut, et distinction entre
+  un signalement (une partie du fichier source n'a pas été publiée) et un
+  contrôle bloquant (le run a échoué, rien n'a été publié). Un jeu dont la
+  publication est antérieure à ce champ affiche « non renseigné » et non
+  « aucune anomalie » : une lacune n'est pas une garantie.
 - **Métriques de couverture** : % de communes couvertes par indicateur/millésime,
   % de valeurs secrétisées — affichées sur les fiches méthodo.
 

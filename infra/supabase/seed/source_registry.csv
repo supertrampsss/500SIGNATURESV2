@@ -1,0 +1,17 @@
+source_id,name,producer,access_category,base_url,doc_url,auth_mode,license,country_scope
+insee-melodi,API Melodi,INSEE,A,https://api.insee.fr/melodi/,https://portail-api.insee.fr,,Licence Ouverte 2.0,FR
+insee-bdm,API BDM (SDMX),INSEE,A,https://api.insee.fr/series/BDM/V1,https://portail-api.insee.fr,,Licence Ouverte 2.0,FR
+insee-sirene,API Sirene 3.11,INSEE,B,https://api.insee.fr/api-sirene/3.11/,https://portail-api.insee.fr,cle X-INSEE-Api-Key-Integration,Licence Ouverte 2.0,FR
+insee-metadonnees,API Metadonnees (COG),INSEE,A,https://api.insee.fr/metadonnees/,https://portail-api.insee.fr,,Licence Ouverte 2.0,FR
+insee-fichiers,Fichiers insee.fr,INSEE,C,https://www.insee.fr,,,Licence Ouverte 2.0,FR
+data-gouv,data.gouv.fr,DINUM,A,https://www.data.gouv.fr/api/1/,https://doc.data.gouv.fr,,Licence Ouverte 2.0,FR
+data-economie,data.economie.gouv.fr,MEF (DGFiP / Direction du Budget),A,https://data.economie.gouv.fr/api/explore/v2.1/,https://data.economie.gouv.fr,,Licence Ouverte 2.0,FR
+ofgl,data.ofgl.fr,OFGL,A,https://data.ofgl.fr/api/explore/v2.1/,https://data.ofgl.fr,,Licence Ouverte 2.0,FR
+aft,Agence France Tresor,AFT,C,https://www.aft.gouv.fr,,,Licence Ouverte 2.0,FR
+ign,Geoplateforme / Geoservices,IGN,C,https://geoservices.ign.fr,https://geoservices.ign.fr/adminexpress,,Licence Ouverte 2.0,FR
+ban,API Adresse (BAN),DINUM / IGN,A,https://api-adresse.data.gouv.fr,https://adresse.data.gouv.fr,,Licence Ouverte 2.0,FR
+api-geo,API Geo,DINUM / Etalab,A,https://geo.api.gouv.fr,https://geo.api.gouv.fr/decoupage-administratif,,Licence Ouverte 2.0,FR
+eurostat,API de diffusion Eurostat,Eurostat,A,https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/,https://ec.europa.eu/eurostat/web/main/data/web-services,,Licence Eurostat (reutilisation libre avec mention),EU
+gisco,GISCO (geometries NUTS/LAU),Eurostat,C,https://gisco-services.ec.europa.eu,https://ec.europa.eu/eurostat/web/gisco,,Licence Eurostat (reutilisation libre avec mention),EU
+urssaf,open.urssaf.fr,URSSAF,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
+banque-de-france,Webstat,Banque de France,A,https://webstat.banque-france.fr/api/explore/v2.1/,https://webstat.banque-france.fr,cle selon volume,Conditions BdF (verifier par jeu),FR

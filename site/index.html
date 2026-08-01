@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Projet non annoncé : pas d'indexation tant que la décision D1 tient. -->
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Où va l'argent public — carte des finances locales</title>
+    <meta
+      name="description"
+      content="Les finances de chaque commune, intercommunalité, département et région de France, à partir des données officielles de l'Observatoire des finances et de la gestion publique locales."
+    />
+  </head>
+  <body>
+    <a class="evitement" href="#tableau">Aller au tableau des données</a>
+
+    <header class="entete">
+      <h1>Où va l'argent public</h1>
+      <p class="sous-titre">
+        Les finances de chaque territoire, à partir des données officielles.
+      </p>
+    </header>
+
+    <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
+
+    <form class="commandes" id="commandes" aria-label="Choix de l'affichage">
+      <p class="champ">
+        <label for="theme">Thème</label>
+        <select id="theme"></select>
+      </p>
+      <p class="champ">
+        <label for="indicateur">Indicateur</label>
+        <select id="indicateur"></select>
+      </p>
+      <p class="champ">
+        <label for="niveau">Niveau</label>
+        <select id="niveau">
+          <option value="region">Régions</option>
+          <option value="departement">Départements</option>
+          <option value="commune" selected>Communes</option>
+        </select>
+      </p>
+      <p class="champ">
+        <label for="periode">Année</label>
+        <select id="periode"></select>
+      </p>
+      <p class="champ">
+        <label for="declinaison">Affichage</label>
+        <select id="declinaison">
+          <option value="total">Montant total</option>
+          <option value="habitant" selected>Par habitant</option>
+        </select>
+      </p>
+      <p class="champ champ--recherche">
+        <label for="recherche">Rechercher un territoire</label>
+        <input id="recherche" type="search" autocomplete="off" placeholder="Pessac, Lyon, 33318…" />
+        <ul id="suggestions" role="listbox" hidden></ul>
+      </p>
+    </form>
+
+    <main class="scene">
+      <div id="carte" role="application" aria-label="Carte des territoires français"></div>
+
+      <div class="legende" id="legende" hidden>
+        <p class="legende__titre" id="legende-titre"></p>
+        <ol class="legende__echelle" id="legende-echelle"></ol>
+        <p class="legende__note" id="legende-note"></p>
+      </div>
+
+      <aside class="fiche" id="fiche" aria-live="polite">
+        <p class="fiche__vide">
+          Choisissez un territoire sur la carte ou par la recherche.
+        </p>
+      </aside>
+    </main>
+
+    <section class="national" id="national" hidden>
+      <h2>La France dans son ensemble</h2>
+      <div class="national__grille">
+        <article class="bloc" id="bloc-dette"></article>
+        <article class="bloc" id="bloc-europe"></article>
+      </div>
+      <article class="bloc bloc--large" id="bloc-cent-euros"></article>
+      <article class="bloc bloc--large" id="bloc-etat"></article>
+    </section>
+
+    <section id="comparateur" class="tableau" hidden></section>
+
+    <section id="etat-donnees" class="tableau" hidden></section>
+
+    <section id="tableau" class="tableau">
+      <h2>Données affichées</h2>
+      <p class="tableau__aide">
+        Équivalent textuel de la carte : les mêmes valeurs, triées par montant.
+      </p>
+      <div class="tableau__cadre"><table id="tableau-donnees"></table></div>
+    </section>
+
+    <footer class="pied">
+      <p id="fraicheur"></p>
+      <p>
+        Données publiques réutilisées sous Licence Ouverte 2.0. Ce site n'est pas
+        un service officiel ; il republie des chiffres produits par
+        l'administration, sans les modifier.
+      </p>
+      <p id="telechargement">
+        Les chiffres affichés sont publiés en fichiers JSON versionnés et
+        immuables, lisibles sans clé ni compte — le site les lit comme n'importe
+        qui d'autre.
+      </p>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

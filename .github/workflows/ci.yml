@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pipeline
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff pytest -e .
+      - run: ruff check .
+      - run: pytest -q
+
+  site:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: site
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm test
+      - run: npm run build
+
+  database:
+    # Rejoue toutes les migrations de zéro sur PostGIS, charge le seed du
+    # registre et vérifie les contraintes structurantes (docs/02 §F).
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: plateforme
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: plateforme
+    steps:
+      - uses: actions/checkout@v4
+      - name: Apply migrations from scratch
+        run: |
+          for f in infra/supabase/migrations/*.sql; do
+            echo "== $f"
+            psql -v ON_ERROR_STOP=1 -q -f "$f"
+          done
+      - name: Load registry seed
+        run: psql -v ON_ERROR_STOP=1 -q -f infra/supabase/seed/load_seed.sql
+      - name: Constraint tests
+        run: psql -v ON_ERROR_STOP=1 -q -f infra/supabase/tests/checks.sql
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Lineage integration tests (python <-> PostGIS)
+        run: |
+          pip install -q -e ./pipeline pytest
+          pytest -q pipeline/tests
+        env:
+          PLATEFORME_TEST_DB: postgresql://postgres:postgres@localhost:5432/plateforme
