@@ -1,8 +1,27 @@
 """La vérification de restauration décide si une sauvegarde compte ou non."""
 
+from pathlib import Path
+
 import pytest
 
 from plateforme import sauvegarde
+
+
+class FausseConnexion:
+    """Enregistre les ordres SQL sans base : ce qui compte ici est ce qui est
+    demandé, pas ce que PostgreSQL en fait."""
+
+    def __init__(self, ordres: list[str]) -> None:
+        self.ordres = ordres
+
+    def execute(self, sql, params=None):  # noqa: D102 — mime psycopg
+        self.ordres.append(sql)
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        return False
 
 
 def test_les_schemas_du_projet_seulement():
@@ -80,6 +99,20 @@ def test_une_base_de_verification_trop_ancienne_est_refusee(monkeypatch):
     monkeypatch.setattr(sauvegarde, "version_client", lambda: 17)
     with pytest.raises(RuntimeError, match="postgis/postgis:17-3.5"):
         sauvegarde.controler_versions("source", "cible")
+
+
+def test_les_extensions_sont_recreees_la_ou_la_source_les_range(monkeypatch):
+    """Supabase range PostGIS dans `extensions`, l'image Docker dans `public`.
+    Le dump qualifie le type : restaurer sans deplacer l'extension echoue."""
+    ordres: list[str] = []
+    monkeypatch.setattr(
+        sauvegarde.psycopg, "connect", lambda url, autocommit=False: FausseConnexion(ordres)
+    )
+    monkeypatch.setattr(sauvegarde, "_executer", lambda commande: "")
+    sauvegarde.restaurer(Path("entrepot.dump"), "cible", {"postgis": "extensions"})
+    assert 'create schema if not exists "extensions"' in ordres
+    assert "drop extension if exists postgis cascade" in ordres
+    assert 'create extension postgis with schema "extensions"' in ordres
 
 
 def test_des_versions_plus_recentes_que_la_source_passent(monkeypatch):

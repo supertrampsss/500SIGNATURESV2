@@ -126,16 +126,43 @@ def comptages(url: str) -> dict[str, int]:
         }
 
 
-def restaurer(chemin: Path, url_cible: str) -> None:
+EXTENSIONS = ["postgis", "pg_trgm"]
+
+
+def schemas_des_extensions(url: str) -> dict[str, str]:
+    """Où le serveur source range ses extensions.
+
+    Supabase installe PostGIS dans un schéma `extensions`, l'image Docker
+    officielle dans `public`. Le dump écrit le type pleinement qualifié
+    (`extensions.geometry`) : restaurer sur une base où il s'appelle
+    `public.geometry` échoue. Là encore, on lit plutôt que de supposer.
+    """
+    with psycopg.connect(url) as connexion:
+        return dict(
+            connexion.execute(
+                "select e.extname, n.nspname from pg_extension e"
+                " join pg_namespace n on n.oid = e.extnamespace"
+                " where e.extname = any(%s)",
+                (EXTENSIONS,),
+            ).fetchall()
+        )
+
+
+def restaurer(chemin: Path, url_cible: str, schemas: dict[str, str]) -> None:
     """Prépare la base jetable puis y déverse le dump.
 
-    PostGIS doit préexister : les colonnes de `geo` référencent le type
-    `geometry`, et un restore sur une base sans l'extension échouerait table par
-    table sans que le code de retour le dise clairement.
+    Les extensions doivent préexister *sous le nom que le dump attend* : les
+    colonnes de `geo` référencent le type `geometry`, et un restore sur une base
+    où il est ailleurs échouerait table par table. L'image PostGIS les a déjà
+    créées dans `public` ; on les recrée donc là où la source les range.
     """
     with psycopg.connect(url_cible, autocommit=True) as connexion:
-        connexion.execute("create extension if not exists postgis")
-        connexion.execute("create extension if not exists pg_trgm")
+        for extension, schema in schemas.items():
+            connexion.execute(f'create schema if not exists "{schema}"')
+            # `cascade` : sur une base jetable encore vide, rien d'utile n'en
+            # dépend — seules les extensions annexes de l'image en héritent.
+            connexion.execute(f"drop extension if exists {extension} cascade")
+            connexion.execute(f'create extension {extension} with schema "{schema}"')
     _executer(
         ["pg_restore", "--no-owner", "--no-privileges", "--exit-on-error",
          f"--dbname={url_cible}", str(chemin)]
@@ -199,14 +226,15 @@ def run(url_verification: str, store_spec: str) -> int:
     url_source = os.environ["PLATEFORME_DB_URL"]
     store = make_store(store_spec)
     majeure = controler_versions(url_source, url_verification)
-    print(f"PostgreSQL {majeure} de part et d'autre")
+    schemas = schemas_des_extensions(url_source)
+    print(f"PostgreSQL {majeure} de part et d'autre, extensions dans {schemas}")
     with tempfile.TemporaryDirectory() as dossier:
         chemin = Path(dossier) / "entrepot.dump"
         avant = comptages(url_source)
         dump(url_source, chemin)
         taille = chemin.stat().st_size
         print(f"dump : {taille / 1e6:.1f} Mo")
-        restaurer(chemin, url_verification)
+        restaurer(chemin, url_verification, schemas)
         comptes = verifier(url_source, url_verification, avant)
         print("restauration vérifiée : " + ", ".join(f"{t}={n}" for t, n in comptes.items()))
         fiche = deposer(store, chemin, comptes)
