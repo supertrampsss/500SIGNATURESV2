@@ -69,6 +69,7 @@ jobs:
             python -m plateforme.normalize.etat --store r2:plateforme-raw
             python -m plateforme.normalize.macro --store r2:plateforme-raw
             python -m plateforme.normalize.europe --store r2:plateforme-raw
+            python -m plateforme.normalize.chomage --store r2:plateforme-raw
           fi
           # Une seule publication à la fin : les fichiers publiés décrivent un
           # état cohérent de la base, jamais un chargement à moitié fait.
