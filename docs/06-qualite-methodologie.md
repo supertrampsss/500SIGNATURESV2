@@ -82,6 +82,31 @@ mensuelles budgétaires de la DGFiP :
    (les deux lignes portent des montants qui ne sont pas les leurs, alors que
    leur total est juste). Le total est publié, la décomposition non.
 
+## Séries dans le temps et changements de périmètre
+
+Une série est une comparaison d'un territoire avec lui-même : la règle du
+périmètre s'y applique comme entre deux territoires. Une commune née d'une
+fusion n'a pas la même surface avant et après, et « +18 % depuis 2016 » y
+compare deux choses différentes.
+
+**Mais tous les producteurs ne se comportent pas pareil, et confondre les deux
+cas produit une erreur dans un sens ou dans l'autre :**
+
+| Cas | Exemple | Ce que fait le site |
+|---|---|---|
+| Le producteur **recalcule** l'historique dans la géographie d'aujourd'hui | Populations légales INSEE : les millésimes 2013 et 2023 couvrent les mêmes 34 858 communes, Vire Normandie (née en 2016 de huit communes) porte 17 951 habitants **dès 2013**, et la somme 2013 vaut 65,56 M, c'est-à-dire la France de 2013 | Rien à signaler : la série est comparable de bout en bout |
+| Le producteur publie les valeurs **telles qu'elles étaient** | Comptes OFGL : le budget 2024 d'une commune est celui de la commune telle qu'elle existait en 2024 | Rupture marquée sur la courbe, évolution chiffrée bornée au dernier périmètre constant |
+
+La liste des jeux recalculés est déclarée dans `plateforme/publish.py`
+(`GEOGRAPHIE_COURANTE`) et exportée par indicateur dans `indicateurs.json`. Le
+**défaut est « non recalculé »** : rater une rupture ferait publier une
+comparaison fausse, en inventer une fait douter à tort — la seconde erreur est
+la moins grave, et se corrige en vérifiant puis en déclarant le jeu.
+
+Seules les **fusions et scissions** coupent une série. Un changement de nom ou
+de code ne déplace aucune frontière ; le signaler ferait douter d'une série qui
+n'a rien de douteux.
+
 ## Processus de correction
 
 1. Anomalie détectée (check, signalement) → issue GitHub.

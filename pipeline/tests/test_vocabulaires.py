@@ -34,3 +34,17 @@ def test_les_declencheurs_du_code_existent_dans_le_schema():
         )
     assert utilises, "aucun appel à start_run trouvé — le test ne vérifie plus rien"
     assert utilises <= permis, f"déclencheurs inconnus du schéma : {sorted(utilises - permis)}"
+
+
+def test_les_jeux_a_geographie_recalculee_existent_dans_le_registre():
+    """Un `dataset_id` mal orthographié dans `GEOGRAPHIE_COURANTE` ne lèverait
+    aucune erreur : il rendrait simplement l'exception inopérante, et le site
+    signalerait des ruptures sur une série qui n'en a pas."""
+    import csv
+
+    from plateforme.publish import GEOGRAPHIE_COURANTE
+
+    registre = RACINE / "infra/supabase/seed/dataset_registry.csv"
+    with registre.open(encoding="utf-8") as fichier:
+        connus = {ligne["dataset_id"] for ligne in csv.DictReader(fichier)}
+    assert GEOGRAPHIE_COURANTE <= connus, GEOGRAPHIE_COURANTE - connus

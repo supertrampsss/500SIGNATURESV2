@@ -56,7 +56,11 @@ function ligneIndicateur(
         Object.entries(serie).map(([p, v]) => [p, v / (population as number)]),
       )
     : serie;
-  const evenements = territoire.evenements ?? [];
+  // Une série recalculée par le producteur dans la géographie d'aujourd'hui ne
+  // se coupe pas à la fusion : ses valeurs anciennes portent déjà sur le
+  // territoire actuel. Lui signaler une rupture déclarerait incomparable une
+  // série qui ne l'est pas — c'est le cas des populations légales de l'INSEE.
+  const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
   return `<div class="mesure">
     <dt>${echapper(indicateur.libelle)}</dt>
     <dd>

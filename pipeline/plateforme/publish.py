@@ -93,6 +93,24 @@ def synchroniser_niveaux(conn) -> int:
     return modifies
 
 
+# Jeux dont le producteur **recalcule** l'historique dans la géographie
+# d'aujourd'hui. Une fusion de communes ne coupe pas ces séries : les valeurs
+# anciennes portent déjà sur le territoire actuel, et signaler une rupture
+# reviendrait à déclarer incomparable une série qui ne l'est pas.
+#
+# Vérifié, pas supposé, sur les données publiées le 01/08/2026 : les millésimes
+# 2013 et 2023 des populations légales couvrent les mêmes 34 858 communes, Vire
+# Normandie (née en 2016 de huit communes) porte 17 951 habitants dès 2013 —
+# le territoire entier, pas l'une des huit — et la somme 2013 vaut 65,56 M,
+# c'est-à-dire la France de 2013. Les comptes de l'OFGL, eux, sont ceux de la
+# commune telle qu'elle existait l'année-là : leur série se coupe.
+#
+# Le défaut est « non recalculé ». Rater une rupture ferait publier une
+# comparaison fausse ; en inventer une fait douter à tort — mais l'erreur reste
+# du côté de la prudence, et se corrige en ajoutant le jeu ici, une fois vérifié.
+GEOGRAPHIE_COURANTE = {"melodi-populations-historiques"}
+
+
 def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[dict]:
     """La fiche en 10 points (docs/06) accompagne chaque indicateur publié.
 
@@ -120,6 +138,7 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
             "formule": ligne[10], "confiance": ligne[11], "badges": ligne[12],
             "jeu": ligne[13], "periodes": ligne[14] or [],
             "periodes_par_niveau": cartographiees.get(ligne[0], {}),
+            "geographie_courante": ligne[13] in GEOGRAPHIE_COURANTE,
         }
         for ligne in lignes
     ]

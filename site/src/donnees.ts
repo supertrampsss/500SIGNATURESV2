@@ -22,6 +22,9 @@ export type Indicateur = {
   periodes: string[];
   /** Périodes réellement disponibles à chaque niveau (docs/10). */
   periodes_par_niveau?: Record<string, string[]>;
+  /** Le producteur recalcule l'historique dans la géographie d'aujourd'hui : une
+   *  fusion de communes ne coupe pas cette série. Absent = non recalculé. */
+  geographie_courante?: boolean;
 };
 
 export type Jeu = {
