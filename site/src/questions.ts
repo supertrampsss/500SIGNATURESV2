@@ -68,6 +68,14 @@ export const QUESTIONS: Question[] = [
     cible: "?theme=sante&indicateur=drees_apl_generalistes&niveau=commune",
   },
   {
+    question: "Ma commune a-t-elle encore son école ?",
+    reponse:
+      "Le nombre d'écoles, de collèges et de lycées ouverts, commune par" +
+      " commune, d'après l'annuaire de l'éducation nationale. Zéro est une" +
+      " information — et pour un collège, la carte scolaire dépasse la commune.",
+    cible: "?theme=education&indicateur=menj_ecoles&niveau=commune",
+  },
+  {
     question: "Ma commune dépense-t-elle plus que les communes comparables ?",
     reponse:
       "Sa position parmi les communes de mêmes critères, publiés avec le résultat." +

@@ -405,6 +405,7 @@ const THEMES: Record<string, string> = {
   securite_sociale: "Sécurité sociale",
   securite: "Sécurité",
   sante: "Santé",
+  education: "Éducation",
   impots_locaux: "Impôts locaux",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",

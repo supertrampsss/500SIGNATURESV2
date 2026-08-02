@@ -15,3 +15,4 @@ eurostat,API de diffusion Eurostat,Eurostat,A,https://ec.europa.eu/eurostat/api/
 gisco,GISCO (geometries NUTS/LAU),Eurostat,C,https://gisco-services.ec.europa.eu,https://ec.europa.eu/eurostat/web/gisco,,Licence Eurostat (reutilisation libre avec mention),EU
 urssaf,open.urssaf.fr,URSSAF,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
 banque-de-france,Webstat,Banque de France,A,https://webstat.banque-france.fr/api/explore/v2.1/,https://webstat.banque-france.fr,cle selon volume,Conditions BdF (verifier par jeu),FR
+data-education,data.education.gouv.fr,Ministère de l'Éducation nationale,A,https://data.education.gouv.fr/api/explore/v2.1/,https://data.education.gouv.fr,,Licence Ouverte 2.0,FR

@@ -114,6 +114,11 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "education" ]; then
+            python -m plateforme.normalize.education --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "maintenance" ]; then
             # VACUUM FULL partition par partition, puis republication : aucune
             # donnée ne change, mais la version publiée signale la fin du run
