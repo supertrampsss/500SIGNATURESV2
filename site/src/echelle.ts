@@ -24,11 +24,26 @@ export type Echelle = { bornes: number[]; couleurs: string[] };
 export function quantiles(valeurs: number[], classes = PALETTE.length): Echelle {
   const tri = valeurs.filter(Number.isFinite).sort((a, b) => a - b);
   if (tri.length === 0) return { bornes: [], couleurs: [] };
-  const bornes: number[] = [];
+  const brutes: number[] = [];
   for (let i = 1; i < classes; i += 1) {
-    bornes.push(tri[Math.floor((i / classes) * tri.length)]);
+    brutes.push(tri[Math.floor((i / classes) * tri.length)]);
   }
-  return { bornes, couleurs: PALETTE.slice(0, classes) };
+  // Une distribution massée sur une valeur — la moitié des communes ont zéro
+  // cambriolage — produit des quantiles égaux : la légende lisait « moins de
+  // 0 ‰ · 0 ‰ – 0 ‰ · 0 ‰ – 0 ‰ … », quatre classes identiques et illisibles.
+  // Les bornes se dédupliquent, une borne au niveau du minimum disparaît (sa
+  // classe serait vide), et les couleurs restantes s'étalent sur la palette
+  // pour garder le contraste clair-foncé.
+  const bornes = [...new Set(brutes)].filter((borne) => borne > tri[0]);
+  const nombre = bornes.length + 1;
+  const couleurs =
+    nombre >= PALETTE.length
+      ? PALETTE.slice(0, nombre)
+      : Array.from(
+          { length: nombre },
+          (_, i) => PALETTE[Math.round((i * (PALETTE.length - 1)) / Math.max(1, nombre - 1))],
+        );
+  return { bornes, couleurs };
 }
 
 /** Expression MapLibre : couleur d'un territoire selon sa valeur jointe. */

@@ -30,8 +30,11 @@ test("les classes répartissent les territoires en parts égales", () => {
 
 test("une valeur extrême n'écrase pas l'échelle", () => {
   const echelle = quantiles([1, 1, 1, 1, 1, 1, 1, 1_000_000_000], 4);
-  // le milieu reste dans la masse des valeurs, pas tiré par l'extrême
-  assert.ok(echelle.bornes[1] < 10);
+  // La masse des valeurs identiques se replie en une seule classe, l'extrême
+  // dans la sienne : pas de bornes en doublon tirées par la masse, pas de
+  // classe vide sous le minimum.
+  assert.deepEqual(echelle.bornes, [1_000_000_000]);
+  assert.equal(echelle.couleurs.length, 2);
 });
 
 test("aucune classe sans donnée", () => {
@@ -184,4 +187,18 @@ test("l'APL s'affiche en consultations par an, jamais en euros ni en pourcents",
   assert.match(noteEchelle("consultations_par_an", false), /habitant standardisé/);
   assert.match(noteEchelle("consultations_par_an", false), /2,5/);
   assert.match(noteEchelle("consultations_par_an", false), /modélisé/);
+});
+
+test("une distribution massée sur zéro ne produit pas de classes en doublon", () => {
+  // moitié de zéros (communes sans cambriolage), moitié de valeurs étalées
+  const valeurs = [...Array(50).fill(0), ...Array.from({ length: 50 }, (_, i) => i + 1)];
+  const echelle = quantiles(valeurs, 7);
+  for (let i = 1; i < echelle.bornes.length; i += 1) {
+    assert.ok(echelle.bornes[i] > echelle.bornes[i - 1], "bornes strictement croissantes");
+  }
+  // aucune borne au minimum : une classe « moins de 0 » serait vide
+  assert.ok(echelle.bornes[0] > 0);
+  assert.equal(echelle.couleurs.length, echelle.bornes.length + 1);
+  // le contraste survit : la classe la plus foncée reste la plus foncée
+  assert.equal(echelle.couleurs.at(-1), "#1b4f77");
 });
