@@ -5,14 +5,22 @@
  */
 
 :root {
-  --encre: #16191d;
-  --encre-douce: #4a5259;
+  --encre: #14181d;
+  --encre-douce: #5a6472;
   --papier: #ffffff;
-  --papier-creuse: #f4f5f3;
-  --trait: #d7dbd8;
+  --papier-creuse: #f1f3f5;
+  --fond: #f6f7f9;
+  --trait: #e3e6ea;
+  --trait-fort: #cdd3da;
   --accent: #1b4f77;
+  --accent-fonce: #143c5c;
+  --accent-teinte: #eaf1f7;
   --alerte: #8a4b12;
-  --rayon: 6px;
+  --rayon: 12px;
+  --rayon-s: 8px;
+  --ombre-1: 0 1px 2px rgb(20 24 29 / 0.05), 0 1px 3px rgb(20 24 29 / 0.06);
+  --ombre-2: 0 4px 14px rgb(20 24 29 / 0.08), 0 2px 4px rgb(20 24 29 / 0.05);
+  --transition: 160ms ease;
   --serif: ui-serif, Georgia, "Times New Roman", serif;
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
@@ -25,8 +33,9 @@ body {
   margin: 0;
   font-family: var(--sans);
   color: var(--encre);
-  background: var(--papier);
-  line-height: 1.5;
+  background: var(--fond);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
 }
 
 .evitement {
@@ -43,20 +52,21 @@ body {
 }
 
 .entete {
-  padding: 1.25rem 1.5rem 0.75rem;
+  padding: 2rem 1.5rem 1.1rem;
+  background: var(--papier);
   border-bottom: 1px solid var(--trait);
 }
 .entete h1 {
   font-family: var(--serif);
-  font-size: 1.6rem;
-  font-weight: 600;
+  font-size: clamp(1.7rem, 3.5vw, 2.2rem);
+  font-weight: 650;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .sous-titre {
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--encre-douce);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .commandes {
@@ -65,8 +75,12 @@ body {
   gap: 0.9rem 1.25rem;
   padding: 0.9rem 1.5rem;
   border-bottom: 1px solid var(--trait);
-  background: var(--papier-creuse);
+  background: rgb(255 255 255 / 0.92);
+  backdrop-filter: blur(8px);
   margin: 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 .champ {
   display: flex;
@@ -85,12 +99,30 @@ select,
 input[type="search"] {
   font: inherit;
   font-size: 0.95rem;
-  padding: 0.45rem 0.6rem;
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon);
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-s);
   background: var(--papier);
   color: var(--encre);
   min-width: 12rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+select {
+  appearance: none;
+  padding-right: 2rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%235a6472' stroke-width='1.8' stroke-linecap='round' d='M1.5 1.8 6 6.2l4.5-4.4'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.7rem center;
+  cursor: pointer;
+}
+select:hover,
+input[type="search"]:hover {
+  border-color: var(--accent);
+}
+select:focus-visible,
+input[type="search"]:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-teinte);
 }
 select:focus-visible,
 input:focus-visible,
@@ -144,6 +176,12 @@ summary:focus-visible {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 24rem;
   height: min(70vh, 44rem);
+  margin: 1.25rem 1.5rem;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-1);
+  overflow: hidden;
 }
 #carte {
   height: 100%;
@@ -200,6 +238,7 @@ summary:focus-visible {
   padding: 1.1rem 1.25rem;
   overflow-y: auto;
   background: var(--papier);
+  scrollbar-width: thin;
 }
 .fiche__vide,
 .erreur {
@@ -327,7 +366,11 @@ summary:focus-visible {
 
 .tableau {
   padding: 1.5rem;
-  border-top: 1px solid var(--trait);
+  margin: 0 1.5rem 1.25rem;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-1);
 }
 .tableau h2 {
   font-family: var(--serif);
@@ -342,16 +385,21 @@ summary:focus-visible {
 .tableau__export {
   font: inherit;
   font-size: 0.85rem;
-  color: var(--accent);
-  background: none;
-  border: 1px solid var(--accent);
-  border-radius: var(--rayon);
-  padding: 0.35rem 0.8rem;
-  cursor: pointer;
-}
-.tableau__export:hover {
+  font-weight: 600;
   color: #fff;
   background: var(--accent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  cursor: pointer;
+  box-shadow: var(--ombre-1);
+  transition: background var(--transition), box-shadow var(--transition),
+    transform var(--transition);
+}
+.tableau__export:hover {
+  background: var(--accent-fonce);
+  box-shadow: var(--ombre-2);
+  transform: translateY(-1px);
 }
 .tableau__cadre {
   max-height: 22rem;
@@ -385,11 +433,19 @@ thead th {
   position: sticky;
   top: 0;
   background: var(--papier-creuse);
+  z-index: 1;
+}
+tbody tr {
+  transition: background var(--transition);
+}
+tbody tr:hover {
+  background: var(--accent-teinte);
 }
 
 .pied {
-  padding: 1.25rem 1.5rem 2.5rem;
+  padding: 1.5rem 1.5rem 3rem;
   border-top: 1px solid var(--trait);
+  background: var(--papier);
   color: var(--encre-douce);
   font-size: 0.82rem;
   display: grid;
@@ -441,6 +497,10 @@ thead th {
   .tableau,
   .national {
     padding: 1rem;
+    margin: 0 0.6rem 1rem;
+  }
+  .scene {
+    margin: 0.75rem 0.6rem;
   }
 }
 
@@ -456,7 +516,11 @@ thead th {
 /* Bloc national : dette française et repères européens. */
 .national {
   padding: 1.5rem;
-  border-top: 1px solid var(--trait);
+  margin: 0 1.5rem 1.25rem;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-1);
 }
 .national h2 {
   font-family: var(--serif);
@@ -471,7 +535,9 @@ thead th {
 .bloc {
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
-  padding: 1rem 1.1rem;
+  padding: 1.1rem 1.2rem;
+  background: var(--papier);
+  box-shadow: var(--ombre-1);
 }
 .bloc h3 {
   margin: 0;
@@ -621,9 +687,12 @@ thead th {
   margin: 0.6rem 0 0;
 }
 
-/* Questions d'entrée : ce que le site sait faire, dit avant la carte. */
+/* Questions d'entrée : ce que le site sait faire, dit avant la carte.
+   Des cartes, pas une liste de liens : chaque question est une porte, et une
+   porte se voit. Le survol soulève à peine — l'affordance sans le spectacle. */
 .questions__cadre {
-  padding: 0.9rem 1.5rem;
+  padding: 1.1rem 1.5rem 1.3rem;
+  background: var(--papier);
   border-bottom: 1px solid var(--trait);
 }
 .questions {
@@ -631,21 +700,63 @@ thead th {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 0.6rem 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  gap: 0.75rem;
 }
 .questions li {
+  position: relative;
   display: grid;
-  gap: 0.15rem;
+  align-content: start;
+  gap: 0.3rem;
+  padding: 0.85rem 2.2rem 0.9rem 1rem;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-1);
+  transition: border-color var(--transition), box-shadow var(--transition),
+    transform var(--transition);
+}
+.questions li:hover {
+  border-color: var(--accent);
+  box-shadow: var(--ombre-2);
+  transform: translateY(-1px);
+}
+.questions li:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-teinte);
 }
 .questions a {
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-weight: 650;
+  font-size: 0.92rem;
+  color: var(--encre);
+  text-decoration: none;
+  line-height: 1.35;
+}
+/* Toute la carte est cliquable ; la flèche dit « ceci mène quelque part ». */
+.questions a::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+.questions a::after {
+  content: "→";
+  position: absolute;
+  top: 0.8rem;
+  right: 0.85rem;
   color: var(--accent);
+  font-weight: 600;
+  transition: transform var(--transition);
+}
+.questions li:hover a::after {
+  transform: translateX(3px);
+}
+.questions a:focus-visible {
+  outline: none;
 }
 .questions span {
   color: var(--encre-douce);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
 }
 
 /* « 100 € » : deux colonnes de parts, une seule teinte, largeur proportionnelle.
