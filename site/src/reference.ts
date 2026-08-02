@@ -43,7 +43,14 @@ export type Reference = {
 /** references.json : indicateur -> période -> niveau -> Reference */
 export type References = Record<string, Record<string, Record<string, Reference>>>;
 
-export type Repere = { libelle: string; valeur: number; nature: string };
+export type Repere = { libelle: string; valeur: number; nature: string; n: number };
+
+/** En dessous de deux territoires, un « repère » est le territoire lui-même.
+ *
+ *  Douze indicateurs nationaux ne portent que sur la France : leur repère
+ *  « Pays comparés » valait la valeur de la France, écart +0 %. Une tautologie
+ *  déguisée en comparaison — la même que celle écartée pour les régions. */
+const MINIMUM_COMPARABLE = 2;
 
 /**
  * Le repère d'un territoire est la **médiane** de ses semblables.
@@ -98,18 +105,19 @@ export function reperes(
   const sortie: Repere[] = [];
   if (niveau !== "region" && region) {
     const bloc = reference.regions[region];
-    const valeur = bloc ? valeurDe(bloc, nature, parHabitant) : null;
+    const valeur = bloc && bloc.n >= MINIMUM_COMPARABLE ? valeurDe(bloc, nature, parHabitant) : null;
     if (valeur !== null && valeur !== undefined) {
-      sortie.push({ libelle: `${ensemble} de la région`, valeur, nature });
+      sortie.push({ libelle: `${ensemble} de la région`, valeur, nature, n: bloc.n });
     }
   }
-  const ensemblier = valeurDe(reference.france, nature, parHabitant);
+  const ensemblier =
+    reference.france.n >= MINIMUM_COMPARABLE ? valeurDe(reference.france, nature, parHabitant) : null;
   if (ensemblier !== null) {
     // « Pays de France » n'aurait aucun sens : au niveau national, l'ensemble
     // de référence est celui des pays comparés, sur les définitions
     // harmonisées d'Eurostat — les seules qui rendent la comparaison honnête.
     const libelle = niveau === "pays" ? "Pays comparés" : `${ensemble} de France`;
-    sortie.push({ libelle, valeur: ensemblier, nature });
+    sortie.push({ libelle, valeur: ensemblier, nature, n: reference.france.n });
   }
   return sortie;
 }
@@ -151,7 +159,9 @@ export function rendu(
           : ` <span class="repere__ecart">${signe}${new Intl.NumberFormat("fr-FR", {
               maximumFractionDigits: 0,
             }).format(ecart)} %</span>`;
-      return `<li><span>${echapper(r.libelle)}</span>
+      // Le nombre de territoires dit ce que vaut le repère : une médiane sur
+      // 31 pays et une médiane sur 3 ne se lisent pas de la même façon.
+      return `<li><span>${echapper(r.libelle)} <span class="repere__n">(${r.n})</span></span>
         <span>${echapper(formater(r.valeur))}${chiffre}</span></li>`;
     })
     .join("");

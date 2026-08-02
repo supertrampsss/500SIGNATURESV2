@@ -115,4 +115,27 @@ test("au niveau national, l'ensemble de référence est celui des pays comparés
   const liste = reperes(monde, "pays", null, false);
   assert.deepEqual(liste.map((r) => r.libelle), ["Pays comparés"]);
   assert.equal(liste[0].valeur, 100.7);
+  assert.equal(liste[0].n, 6);
+});
+
+
+test("un repère d'un seul territoire est la France comparée à elle-même", () => {
+  /*
+   * Douze indicateurs nationaux ne portent que sur la France : `n` vaut 1, et
+   * le repère affichait la valeur de la France avec un écart de +0 %. C'est la
+   * tautologie déjà écartée pour les régions, revenue par la porte des pays.
+   */
+  const seul: Reference = {
+    nature: "mediane",
+    france: { n: 1, mediane: 117.5 },
+    regions: {},
+  };
+  assert.deepEqual(reperes(seul, "pays", null, false), []);
+});
+
+test("le nombre de territoires comparés est affiché", () => {
+  // Une médiane sur 31 pays et une médiane sur 3 ne se lisent pas pareil.
+  const html = rendu(reperes(EUROS, "commune", "75", true), 871, String);
+  assert.match(html, /\(1200\)/);
+  assert.match(html, /\(34772\)/);
 });

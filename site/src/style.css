@@ -834,3 +834,7 @@ thead th {
   color: var(--encre-douce);
   font-size: 0.82rem;
 }
+.repere__n {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
