@@ -82,6 +82,25 @@
 > toujours pas d'écrivain — « ce chiffre a été révisé » n'est donc pas encore
 > affichable au niveau d'une valeur, et docs/06 dit pourquoi.
 >
+> **2 août 2026 — les trois manques relevés face à la demande initiale.**
+> **COFOG** : « combien pour la santé, la défense, l'école ? » — la question
+> fondatrice — se répond désormais au niveau de l'ensemble des administrations
+> publiques (11 indicateurs, 34 pays, % du PIB, Eurostat harmonisé), avec un
+> bloc national France / Allemagne / zone euro. Le choix est méthodologique
+> autant que pratique : la mission Santé de l'État pèse 1,5 Md€ quand la
+> dépense publique de santé en pèse plus de 260 — un « budget de l'État par
+> mission » aurait répondu à côté. Contrôle d'identité : la somme des dix
+> fonctions redonne le total, quarantaine sinon. Ce bloc fait aussi entrer la
+> protection sociale — premier poste de la dépense publique — dans le champ.
+> **Mobile** : première vérification en 375 px. Le viewport s'étirait à 424 px
+> (tableaux larges), les commandes mangeaient 528 px : corrigé, vérifié.
+> **Impôts locaux** : taux de taxe foncière par commune (REI DGFiP,
+> 2022-2025). Deux indicateurs — le taux communal, que vote le conseil
+> municipal, et le taux global, celui de l'avis d'imposition — parce que les
+> confondre ferait accuser une commune de hausses votées ailleurs. Également :
+> maires (RNE, sans données personnelles), repères médians région/France sur
+> chaque fiche, repère « pays comparés » au niveau national.
+>
 > **Séries dans le temps** (01/08/2026, hors backlog initial). La fiche affichait
 > « +18 % depuis 2016 » sans vérifier que le territoire avait la même surface en
 > 2016 — une série est une comparaison d'un territoire avec lui-même, et la règle
