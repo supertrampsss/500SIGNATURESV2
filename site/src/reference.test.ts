@@ -104,3 +104,15 @@ test("une publication sans médiane par habitant ne sert pas la médiane brute",
   // pour un taux, l'absence est normale et la médiane brute reste le repère
   assert.equal(valeurDe({ n: 10, mediane: 16.3 }, "mediane", true), 16.3);
 });
+
+test("au niveau national, l'ensemble de référence est celui des pays comparés", () => {
+  // « Pays de France » n'aurait aucun sens.
+  const monde: Reference = {
+    nature: "mediane",
+    france: { n: 6, mediane: 100.7 },
+    regions: {},
+  };
+  const liste = reperes(monde, "pays", null, false);
+  assert.deepEqual(liste.map((r) => r.libelle), ["Pays comparés"]);
+  assert.equal(liste[0].valeur, 100.7);
+});

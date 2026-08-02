@@ -149,27 +149,33 @@ summary:focus-visible {
   height: 100%;
 }
 
+/* La légende flottait sur la carte et recouvrait le sud-ouest de la France :
+   une échelle qui cache la donnée qu'elle explique. Elle occupe désormais une
+   bande sous la carte, où elle ne masque rien. */
+.carte-zone {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: 0;
+}
 .legende {
-  position: absolute;
-  left: 1rem;
-  bottom: 1rem;
-  background: rgb(255 255 255 / 0.96);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon);
-  padding: 0.7rem 0.85rem;
-  max-width: 20rem;
-  font-size: 0.82rem;
+  border-top: 1px solid var(--trait);
+  background: var(--papier);
+  padding: 0.55rem 0.85rem;
+  font-size: 0.8rem;
 }
 .legende__titre {
-  margin: 0 0 0.45rem;
+  margin: 0 0 0.3rem;
   font-weight: 600;
 }
+/* Horizontale : une bande large se lit d'un coup d'œil, une colonne de sept
+   lignes prendrait la moitié de la hauteur de la carte. */
 .legende__echelle {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: grid;
-  gap: 0.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.9rem;
 }
 .legende__echelle li {
   display: flex;

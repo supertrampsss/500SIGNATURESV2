@@ -204,7 +204,9 @@ export function afficherFiche(
         : ""
     }</p>
     ${
-      territoire.maire
+      niveau === "commune" && !territoire.maire
+        ? `<p class="fiche__maire fiche__maire--absent">Maire : <em>non renseigné par le Répertoire National des Élus</em></p>`
+        : territoire.maire
         ? `<p class="fiche__maire">Maire : <strong>${echapper(territoire.maire.nom)}</strong>${
             territoire.maire.depuis
               ? ` <span>depuis ${echapper(

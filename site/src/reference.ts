@@ -103,8 +103,14 @@ export function reperes(
       sortie.push({ libelle: `${ensemble} de la région`, valeur, nature });
     }
   }
-  const france = valeurDe(reference.france, nature, parHabitant);
-  if (france !== null) sortie.push({ libelle: `${ensemble} de France`, valeur: france, nature });
+  const ensemblier = valeurDe(reference.france, nature, parHabitant);
+  if (ensemblier !== null) {
+    // « Pays de France » n'aurait aucun sens : au niveau national, l'ensemble
+    // de référence est celui des pays comparés, sur les définitions
+    // harmonisées d'Eurostat — les seules qui rendent la comparaison honnête.
+    const libelle = niveau === "pays" ? "Pays comparés" : `${ensemble} de France`;
+    sortie.push({ libelle, valeur: ensemblier, nature });
+  }
   return sortie;
 }
 
@@ -115,6 +121,7 @@ const ENSEMBLES: Record<string, string> = {
   epci: "Intercommunalités",
   departement: "Départements",
   region: "Régions",
+  pays: "Pays",
 };
 
 function echapper(texte: string): string {

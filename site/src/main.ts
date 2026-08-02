@@ -450,7 +450,14 @@ function construireSelecteurs(): void {
 function brancherCommandes(): void {
   $("commandes").addEventListener("change", async (evenement) => {
     const cible = evenement.target as HTMLSelectElement;
-    if (cible.id === "theme") etat.theme = cible.value;
+    if (cible.id === "theme") {
+      etat.theme = cible.value;
+      // Changer de thème remet l'année à la plus récente disponible. Sans cela,
+      // passer par un thème qui n'a qu'un millésime ancien — les établissements
+      // s'arrêtent à 2023 — laissait le lecteur sur cette année-là en revenant
+      // aux finances locales, qui vont jusqu'à 2025. Aucun message ne le disait.
+      etat.periode = "";
+    }
     if (cible.id === "indicateur") etat.indicateur = cible.value;
     if (cible.id === "niveau") {
       etat.niveau = cible.value;
@@ -464,7 +471,18 @@ function brancherCommandes(): void {
     }
     construireSelecteurs();
     ecrireUrl();
-    await peindre();
+    try {
+      await peindre();
+    } catch (erreur) {
+      // Une couche absente laissait la carte sur l'ancienne, sans un mot : le
+      // lecteur croyait regarder ce qu'il venait de choisir. Le catalogue est
+      // censé n'annoncer que des couches existantes — si l'une manque quand
+      // même, mieux vaut le dire que peindre le mauvais chiffre.
+      $("fiche").innerHTML =
+        `<p class="erreur">Cette couche n'a pas pu être chargée : ${
+          (erreur as Error).message
+        }. La carte affiche encore la sélection précédente.</p>`;
+    }
     await majComparateur();
   });
 

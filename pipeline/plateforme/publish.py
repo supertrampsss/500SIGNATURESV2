@@ -431,10 +431,22 @@ def references(conn, cartographiees: dict[str, dict[str, list[str]]]) -> dict:
       des territoires**, et rien d'autre n'aurait de sens.
     """
     sortie: dict = defaultdict(lambda: defaultdict(dict))
+    # Les pays ne sont pas cartographiés — il n'y a pas de couche `pays` — donc
+    # `cartographiees` les ignore. Sans ce complément, une fiche nationale
+    # n'aurait aucun repère, alors que c'est précisément là qu'on veut savoir
+    # « et les autres pays ? ».
+    par_indicateur = defaultdict(lambda: defaultdict(list))
+    for indicateur, niveau, periodes in (
+        (i, n, p) for i, niveaux in cartographiees.items() for n, p in niveaux.items()
+    ):
+        par_indicateur[indicateur][niveau] = list(periodes)
+    for indicateur, periode in couples_publies(conn, "pays"):
+        par_indicateur[indicateur]["pays"].append(periode)
+
     for indicateur, sommable, unite in conn.execute(
         "select indicator_id, additive, unit from core.indicators where published"
     ).fetchall():
-        for niveau, periodes in cartographiees.get(indicateur, {}).items():
+        for niveau, periodes in par_indicateur.get(indicateur, {}).items():
             for periode in periodes:
                 calcul = _reference_par_region(conn, indicateur, niveau, periode, sommable, unite)
                 if calcul:
@@ -456,6 +468,7 @@ def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) ->
             select g.geo_code, g.population,
                    case %(niveau)s
                      when 'region' then g.geo_code
+                     when 'pays' then null
                      when 'departement' then g.parent_code
                      else (select d.parent_code from geo.geography_reference d
                             where d.geo_level = 'departement' and d.geo_code = g.parent_code

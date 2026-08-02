@@ -29,6 +29,8 @@ import csv
 import io
 from collections import Counter
 
+from psycopg.types.json import Jsonb
+
 from plateforme import db
 from plateforme.http import fetch
 from plateforme.normalize.geo import MILLESIME, make_store
@@ -122,6 +124,37 @@ def ecrire(conn, run_id: str, lignes: list[dict]) -> tuple[int, int]:
     return len(gardees), len(lignes) - len(gardees)
 
 
+def enregistrer_couverture(conn, run_id: str, ecrites: int) -> dict:
+    """La source ne connaît pas tous les maires, et il faut le chiffrer.
+
+    Deux mois après les municipales de mars 2026, 2 % des communes n'ont aucune
+    ligne « Maire » dans le fichier : leurs conseillers y sont, pas leur maire.
+    Le taux varie fortement d'un département à l'autre — 8 % dans l'Ain, 19 % en
+    Guadeloupe, 0 % dans le Nord — ce qui ressemble à un remplissage inégal, pas
+    à une règle. Sans mesure, cette lacune passerait pour un choix du site.
+    """
+    total = conn.execute(
+        "select count(*) from geo.geography_reference"
+        " where geo_level = 'commune' and vintage = %s",
+        (MILLESIME,),
+    ).fetchone()[0]
+    constat = {
+        "communes_du_referentiel": total,
+        "maires_renseignes": ecrites,
+        "couverture_pct": round(100 * ecrites / total, 2) if total else None,
+    }
+    conn.execute(
+        """
+        insert into meta.data_quality_checks
+            (run_id, dataset_id, check_name, severity, passed, observed)
+        values (%s, %s, 'couverture_des_maires', 'info', true, %s)
+        """,
+        (run_id, DATASET, Jsonb(constat)),
+    )
+    conn.commit()
+    return constat
+
+
 def run(store_spec: str) -> int:
     conn = db.connect()
     store = make_store(store_spec)
@@ -136,8 +169,9 @@ def run(store_spec: str) -> int:
         lignes = maires(contenu)
         controler(lignes)
         ecrites, ecartes = ecrire(conn, run_id, lignes)
+        constat = enregistrer_couverture(conn, run_id, ecrites)
         db.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
-        print(f"maires : {ecrites} communes")
+        print(f"maires : {ecrites} communes, couverture {constat['couverture_pct']} %")
         if ecartes:
             print(f"{ecartes} communes absentes du référentiel, écartées")
         return 0
