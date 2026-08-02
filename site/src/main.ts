@@ -404,6 +404,7 @@ const THEMES: Record<string, string> = {
   fonctions: "Dépenses par fonction",
   securite_sociale: "Sécurité sociale",
   securite: "Sécurité",
+  sante: "Santé",
   impots_locaux: "Impôts locaux",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",

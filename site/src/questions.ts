@@ -59,6 +59,15 @@ export const QUESTIONS: Question[] = [
     cible: "?theme=securite&indicateur=ssmsi_cambriolages_taux&niveau=commune",
   },
   {
+    question: "Y a-t-il assez de médecins près de chez moi ?",
+    reponse:
+      "Les consultations de généraliste réellement accessibles par an et par" +
+      " habitant (APL, DREES), commune par commune, sur trois millésimes. Un" +
+      " indicateur modélisé — distance, activité des cabinets, âge de la" +
+      " population — pas un simple comptage de médecins.",
+    cible: "?theme=sante&indicateur=drees_apl_generalistes&niveau=commune",
+  },
+  {
     question: "Ma commune dépense-t-elle plus que les communes comparables ?",
     reponse:
       "Sa position parmi les communes de mêmes critères, publiés avec le résultat." +

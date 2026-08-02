@@ -42,6 +42,7 @@ from collections.abc import Iterable
 from psycopg.types.json import Jsonb
 
 from plateforme import db, revisions
+from plateforme.limites import garde_fou_volume
 from plateforme.http import fetch
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
@@ -50,10 +51,6 @@ DATASET = "ssmsi-delinquance"
 SOURCE = "data-gouv"
 DATASET_DATAGOUV = "621df2954fa5a3b5a023e23c"
 API_DATAGOUV = "https://www.data.gouv.fr/api/1"
-
-# Au-delà, on refuse d'écrire : le plan gratuit Supabase fait 500 Mo et une
-# base pleine casse toutes les ingestions suivantes, pas seulement celle-ci.
-PLAFOND_OCTETS = 470 * 1024 * 1024
 
 TOLERANCE_TAUX = 0.02  # le taux est publié à 7 décimales : l'écart honnête est infime
 
@@ -362,17 +359,6 @@ def controler_somme_communale(
             c["classe"], c["annee"]) not in exclus
     ]
     return gardees, {f"{d}/{cl}/{an}": detail for (d, cl, an), detail in fautifs.items()}
-
-
-def garde_fou_volume(conn) -> int:
-    """D6bis exécutable : mesurer avant d'écrire, refuser plutôt que déborder."""
-    taille = conn.execute("select pg_database_size(current_database())").fetchone()[0]
-    if taille > PLAFOND_OCTETS:
-        raise RuntimeError(
-            f"base à {taille // 1024 // 1024} Mo, plafond {PLAFOND_OCTETS // 1024 // 1024} Mo"
-            " (D6bis) : chargement refusé avant écriture — arbitrer le plan Supabase"
-        )
-    return taille
 
 
 def ecrire(conn, run_id: str, par_niveau: dict[str, list[dict]]) -> tuple[int, int, int]:

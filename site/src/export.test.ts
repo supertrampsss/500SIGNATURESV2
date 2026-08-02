@@ -77,4 +77,5 @@ test("le nom de fichier dit ce qu'il contient, sans accents ni surprises", () =>
 test("les unités de la délinquance se lisent en toutes lettres dans le CSV", () => {
   assert.equal(uniteLisible("pour_1000_habitants", false), "pour 1 000 habitants");
   assert.equal(uniteLisible("pour_1000_logements", false), "pour 1 000 logements");
+  assert.equal(uniteLisible("consultations_par_an", false), "consultations par an et par habitant");
 });

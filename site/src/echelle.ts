@@ -137,6 +137,13 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
       " source), le bon dénominateur des cambriolages — pas la population."
     );
   }
+  if (unite === "consultations_par_an") {
+    return (
+      `${classes} Consultations de médecin généraliste accessibles par an et par` +
+      " habitant standardisé (APL, DREES) — un indicateur modélisé, pas un comptage." +
+      " En dessous de 2,5, la DREES parle de sous-densité."
+    );
+  }
   if (unite === "count") return `${classes} Effectifs, en nombre d'unités.`;
   return `${classes} Montants en euros courants.`;
 }
@@ -163,6 +170,13 @@ export function formater(valeur: number, unite: string, parHabitant: boolean): s
     return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
       valeur,
     )} ‰`;
+  }
+  // APL : des consultations par an et par habitant — l'abréviation garde la
+  // cellule lisible, la légende porte la définition complète.
+  if (unite === "consultations_par_an") {
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+      valeur,
+    )} consult./an`;
   }
   // Repli honnête : une unité que ce module ne connaît pas s'affiche telle
   // quelle, à côté du nombre. Le bug du taux de pauvreté en euros venait de ce

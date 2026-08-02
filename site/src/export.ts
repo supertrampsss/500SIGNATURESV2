@@ -52,7 +52,9 @@ export function uniteLisible(unite: string, parHabitant: boolean): string {
             ? "pour 1 000 habitants"
             : unite === "pour_1000_logements"
               ? "pour 1 000 logements"
-              : unite;
+              : unite === "consultations_par_an"
+                ? "consultations par an et par habitant"
+                : unite;
   return parHabitant ? `${libelle} par habitant` : libelle;
 }
 

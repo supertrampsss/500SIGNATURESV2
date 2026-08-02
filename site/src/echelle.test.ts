@@ -178,3 +178,10 @@ test("les taux pour mille s'affichent en ‰ et la note nomme le bon dénominate
   // le « par habitant » n'a pas de sens sur un taux : la bascule reste fermée
   assert.equal(parHabitantAUnSens({ unite: "pour_1000_habitants", sommable: false }), false);
 });
+
+test("l'APL s'affiche en consultations par an, jamais en euros ni en pourcents", () => {
+  assert.equal(formater(2.842, "consultations_par_an", false), `2,8${FINE}consult./an`);
+  assert.match(noteEchelle("consultations_par_an", false), /habitant standardisé/);
+  assert.match(noteEchelle("consultations_par_an", false), /2,5/);
+  assert.match(noteEchelle("consultations_par_an", false), /modélisé/);
+});

@@ -74,6 +74,7 @@ jobs:
             python -m plateforme.normalize.maires --store r2:plateforme-raw
             python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
             python -m plateforme.normalize.securite --store r2:plateforme-raw
+            python -m plateforme.normalize.sante --store r2:plateforme-raw
           else
             python -m plateforme.normalize.etat --store r2:plateforme-raw
             python -m plateforme.normalize.macro --store r2:plateforme-raw
