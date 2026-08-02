@@ -452,8 +452,19 @@ def references(conn, cartographiees: dict[str, dict[str, list[str]]]) -> dict:
     for indicateur, periode in couples_publies(conn, "pays"):
         par_indicateur[indicateur]["pays"].append(periode)
 
+    # Les jeux sous secret statistique (SSMSI) n'ont pas de repères : leur
+    # ensemble communal est censuré — les petits comptes sont masqués, les
+    # zéros publiés — et une médiane calculée dessus, étiquetée « communes de
+    # France », mentirait sur son périmètre. Constaté sur Marseille : médiane
+    # nationale des cambriolages à 0 ‰ sur les seules communes diffusées.
+    # Aucun repère plutôt qu'un repère faux.
     for indicateur, sommable, unite in conn.execute(
-        "select indicator_id, additive, unit from core.indicators where published"
+        """
+        select i.indicator_id, i.additive, i.unit
+        from core.indicators i
+        join meta.dataset_registry d using (dataset_id)
+        where i.published and not coalesce(d.statistical_secrecy, false)
+        """
     ).fetchall():
         for niveau, periodes in par_indicateur.get(indicateur, {}).items():
             for periode in periodes:
