@@ -24,6 +24,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q -e ./pipeline
       - run: npm ci || npm install
         working-directory: site
       - run: npm run build
@@ -39,3 +43,15 @@ jobs:
         run: |
           npx --yes wrangler@4 pages deploy site/dist \
             --project-name=plateforme --branch=main --commit-dirty=true
+
+      - name: Autoriser le navigateur à lire les données
+        # Le site et les données ne sont pas sur la même origine. Sans politique
+        # CORS sur le bucket, la page n'affiche que « Les données n'ont pas pu
+        # être chargées » — alors que `curl` télécharge tout sans broncher.
+        # L'étape repose la politique et la vérifie en rejouant la requête du
+        # navigateur, en-tête `Origin` compris.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+        run: python -m plateforme.cors --bucket plateforme-published
