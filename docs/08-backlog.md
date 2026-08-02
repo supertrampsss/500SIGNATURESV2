@@ -197,11 +197,58 @@
 > sont désormais relus depuis les observations à chaque publication. Et un
 > thème absent d'une table du site n'est plus écarté du sélecteur.
 >
-> Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08, et
-> l'arbitrage D6bis sur le volume de la base.
+> **2 août 2026, nuit — santé, éducation, et le design qui quitte 1994.**
+> **Santé (APL DREES)** : l'accessibilité aux médecins généralistes par
+> commune (~34 000 communes, unité « consultations accessibles par an et par
+> habitant standardisé », seuil de désert médical 2,5 nommé dans la fiche).
+> Lecture par repères d'en-têtes, jamais par positions ; chargement **bloqué**
+> si l'unité annoncée par le producteur change ; Paris, Lyon et Marseille —
+> publiés par arrondissement seulement — agrégés par moyenne pondérée par la
+> population standardisée, la méthode que la DREES documente elle-même. Un
+> plafond de plausibilité à 30 a d'abord écarté une vraie valeur (Ribeyret,
+> 40 consultations/an : village alpin, dénominateur minuscule) — relevé à 100 :
+> les bornes visent les artefacts, pas les vraies valeurs hautes. **Éducation
+> (annuaire MENJ)** : écoles et collèges-lycées ouverts par commune, zéro
+> écrit pour chaque commune du référentiel — « pas d'école » est une donnée.
+> Troisième variante du piège Paris-Lyon-Marseille en trois jeux : l'annuaire
+> code par arrondissement, et le premier chargement affichait « Paris,
+> 0 école ». Le rattachement est désormais centralisé (`geo.commune_mere`) et
+> vérifié à l'écran : Paris 829 écoles, Lyon 214, Marseille 515. **Design
+> 2026** (remarque du commanditaire) : système de jetons (ombres, rayons,
+> transitions), questions en cartes cliquables, commandes en barre collante
+> avec flou, tableaux et fiches en cartes — sans toucher à la doctrine
+> d'affichage (unités, millésimes, dénominateurs dits). **Plafond de volume**
+> (D6ter) : le commanditaire passe au plan Supabase payant ; le garde-fou
+> passe de 470 Mo à 2 Go — un palier volontairement sous les 8 Go du disque,
+> à élever sur constat. Deux compactages VACUUM ont tenu la base dans la
+> fenêtre en attendant (492 → 409 Mo).
 >
-> **Prochaine étape** : la ventilation par mission (fin de T-14), puis les
-> revenus et la pauvreté communaux.
+> **2 août 2026, nuit — la conjoncture, première pièce des décryptages.**
+> Le commanditaire veut la pédagogie macroéconomique par le graphique — la
+> forme des décryptages vidéo qui font le débat public — appliquée à la
+> doctrine du site : chiffres officiels sourcés, jamais d'opinion ni de
+> prévision. Deux séries entrent (Eurostat, tous pays, depuis 2013) :
+> l'inflation IPCH mensuelle en glissement annuel et la croissance du PIB
+> trimestriel en volume par rapport au même trimestre de l'année précédente.
+> Trois protections nouvelles : l'unité de la réponse est vérifiée
+> structurellement (autre unité sous la même URL ⇒ refus, leçon du précédent
+> DREES), les bornes de plausibilité sont calibrées sur les extrêmes réels
+> (Turquie 85 % d'inflation, Irlande +20 % de PIB — les écarter serait
+> détruire du vrai), et la France absente bloque le chargement. Côté site :
+> module graphique SVG maison (échelle à pas ronds jamais ajustée pour
+> dramatiser, axe zéro marqué, **un trou dans la série casse la ligne** au
+> lieu de l'enjamber, résumé accessible), bloc « Où en est l'économie ? » —
+> phrase du dernier point, courbes France / Allemagne / Italie / Espagne /
+> zone euro, fenêtre 5 ans / 10 ans / tout, infobulle au survol — et les deux
+> contresens désamorcés par écrit : IPCH ≠ IPC INSEE, glissement annuel ≠
+> trimestre-sur-trimestre des titres de presse.
+>
+> Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
+>
+> **Prochaine étape** : sécurité communale sur les 16 classes, APL des autres
+> professions de santé, finances communales depuis 2018 (promesse D6),
+> effectifs d'élèves — puis les pages narratives des décryptages (dette,
+> inflation, croissance, chômage).
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /

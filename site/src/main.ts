@@ -20,6 +20,7 @@ import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts";
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
+import { afficherConjoncture } from "./conjoncture.ts";
 import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
@@ -653,6 +654,11 @@ async function demarrer(): Promise<void> {
   // pays sont disponibles.
   try {
     const pays = await donnees.territoires("pays", "tous");
+    // La conjoncture d'abord : c'est le pouls le plus récent, le lecteur qui
+    // arrive « pour l'économie » doit la voir avant les stocks annuels.
+    if (afficherConjoncture($("bloc-conjoncture"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
     if (afficherNational($("bloc-dette"), $("bloc-europe"), pays, catalogue)) {
       $("national").hidden = false;
     }
