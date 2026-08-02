@@ -151,6 +151,12 @@ function panneauComparabilite(territoire: Territoire, niveau: string): string {
       "Collectivité à statut particulier : elle exerce les compétences d'un département sans en être un au Code officiel géographique.",
     );
   }
+  avertissements.push(
+    "Les repères sont la médiane des territoires de même niveau — la moitié se" +
+      " situe en dessous. « Communes de la région » désigne l'ensemble des communes" +
+      " de cette région, jamais le budget du conseil régional, qui est une autre" +
+      " collectivité aux autres compétences.",
+  );
   if (niveau === "commune") {
     avertissements.push(
       "Les communes nouvelles portent l'historique de leurs communes d'origine, additionné sous le code actuel.",

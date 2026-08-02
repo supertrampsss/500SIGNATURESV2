@@ -134,7 +134,6 @@ export function rendu(
   formater: (v: number) => string,
 ): string {
   if (!liste.length) return "";
-  const nature = liste[0].nature;
   const lignes = liste
     .map((r) => {
       const ecart = r.valeur ? ((valeur - r.valeur) / Math.abs(r.valeur)) * 100 : null;
@@ -149,10 +148,8 @@ export function rendu(
         <span>${echapper(formater(r.valeur))}${chiffre}</span></li>`;
     })
     .join("");
-  const note =
-    nature === "agregat"
-      ? "Médiane des territoires comparés : la moitié se situe en dessous."
-      : "Médiane des territoires : ces valeurs ne s'additionnent pas.";
-  return `<ul class="reperes">${lignes}</ul>
-    <p class="reperes__note">${note}</p>`;
+  // Pas de note ici : répétée sous chacun des sept indicateurs d'une fiche,
+  // elle devient du bruit. Elle est dite une fois, dans le panneau de
+  // comparabilité, avec les autres réserves de lecture.
+  return `<ul class="reperes">${lignes}</ul>`;
 }

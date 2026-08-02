@@ -84,9 +84,12 @@ test("l'écart au repère est affiché, avec son signe", () => {
   assert.match(html, /\+16 %/); // 871 contre 749
 });
 
-test("la note dit de quelle nature est le repère", () => {
-  assert.match(rendu(reperes(EUROS, "commune", "75", true), 871, String), /la moitié se situe en dessous/);
-  assert.match(rendu(reperes(TAUX, "commune", "75", false), 20, String), /ne s'additionnent pas/);
+test("la note n'est pas répétée sous chaque indicateur", () => {
+  // Sept indicateurs sur une fiche, c'est sept fois la même phrase. Elle est
+  // dite une fois, dans le panneau de comparabilité.
+  const html = rendu(reperes(EUROS, "commune", "75", true), 871, String);
+  assert.doesNotMatch(html, /médiane|moitié/i);
+  assert.match(html, /Communes de la région/);
 });
 
 test("une publication sans médiane par habitant ne sert pas la médiane brute", () => {
