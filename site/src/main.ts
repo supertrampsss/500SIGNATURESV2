@@ -17,6 +17,7 @@ import { rendu as apercuRendu, resumer } from "./apercu.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
+import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts";
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import {
@@ -101,6 +102,13 @@ let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
 let groupes: donnees.Comparaisons | null = null;
 let reperes: import("./reference.ts").References | null = null;
+/** Ce que le bouton d'export téléchargera : toutes les lignes de la couche
+ *  affichée, pas les 100 que montre le tableau, avec la déclinaison qui a
+ *  servi à les calculer. */
+let exportCourant: { lignes: LigneExport[]; parHabitant: boolean } = {
+  lignes: [],
+  parHabitant: false,
+};
 
 function lireUrl(): Etat {
   const p = new URLSearchParams(location.search);
@@ -191,15 +199,28 @@ function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean)
 
 function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
   const indicateur = indicateurCourant();
-  const lignes = Object.entries(valeurs)
+  const toutes = Object.entries(valeurs)
     .map(([code, brut]) => {
       const population = populations[code];
       const valeur = parHabitant && population ? brut / population : brut;
       return { code, nom: entites[code]?.nom ?? code, valeur, calculable: !parHabitant || !!population };
     })
     .filter((l) => l.calculable)
-    .sort((a, b) => b.valeur - a.valeur)
-    .slice(0, 100);
+    .sort((a, b) => b.valeur - a.valeur);
+
+  // Le tableau montre les 100 premiers ; l'export, lui, emporte tout — un
+  // classement tronqué se lit, un fichier tronqué se réutilise de travers.
+  exportCourant = {
+    lignes: toutes.map(({ code, nom, valeur }) => ({ code, nom, valeur })),
+    parHabitant,
+  };
+  const exporter = $<HTMLButtonElement>("exporter");
+  exporter.hidden = toutes.length === 0;
+  exporter.textContent = `Télécharger en CSV — ${toutes.length.toLocaleString("fr-FR")} territoire${
+    toutes.length > 1 ? "s" : ""
+  }`;
+
+  const lignes = toutes.slice(0, 100);
   $("tableau-donnees").innerHTML = `
     <caption>${indicateur.libelle} — ${etat.periode}${parHabitant ? ", par habitant" : ""} · 100 premiers territoires</caption>
     <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">Valeur</th></tr></thead>
@@ -487,6 +508,22 @@ function brancherCommandes(): void {
         }. La carte affiche encore la sélection précédente.</p>`;
     }
     await majComparateur();
+  });
+
+  $("exporter").addEventListener("click", () => {
+    const indicateur = indicateurCourant();
+    const jeu = jeux.find((j) => j.id === indicateur.jeu);
+    telecharger(
+      enCsv(exportCourant.lignes, {
+        indicateur: indicateur.libelle,
+        unite: indicateur.unite,
+        periode: etat.periode,
+        niveau: etat.niveau,
+        parHabitant: exportCourant.parHabitant,
+        source: jeu ? `${jeu.producteur} — ${jeu.titre}` : indicateur.jeu,
+      }),
+      nomDeFichier(indicateur.libelle, etat.niveau, etat.periode),
+    );
   });
 
   const champ = $<HTMLInputElement>("recherche");

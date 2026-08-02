@@ -1,0 +1,104 @@
+/**
+ * Export CSV de ce que l'écran affiche.
+ *
+ * Le MVP promettait « exports CSV » ; le JSON versionné existe (docs/10) mais
+ * il s'adresse aux développeurs. Ce bouton s'adresse à qui veut ouvrir les
+ * chiffres dans un tableur : un journaliste, un élu, un conseil municipal.
+ *
+ * **Format tableur français, et c'est un choix dit.** Séparateur point-virgule
+ * et virgule décimale : c'est ce qu'Excel et LibreOffice en français ouvrent
+ * sans assistant ni colonne massacrée. Le BOM UTF-8 est là pour qu'Excel lise
+ * les accents. Les valeurs sont arrondies au centième : ce fichier est une vue
+ * pour tableur, pas un contrat — la réutilisation programmatique passe par le
+ * JSON versionné, qui garde la précision d'origine.
+ *
+ * **Un chiffre ne voyage pas seul** (docs/06) : chaque ligne porte l'unité, la
+ * période et le niveau, et l'en-tête nomme l'indicateur, la source et la date
+ * d'export. Un CSV anonyme retrouvé dans un dossier trois mois plus tard ne
+ * doit pas être un chiffre orphelin.
+ */
+
+export type LigneExport = {
+  code: string;
+  nom: string;
+  valeur: number;
+};
+
+function champ(texte: string): string {
+  // Guillemets doublés, champ cité si séparateur, guillemet ou saut de ligne.
+  const brut = String(texte);
+  return /[";\n\r]/.test(brut) ? `"${brut.replace(/"/g, '""')}"` : brut;
+}
+
+function nombreFrancais(valeur: number): string {
+  // Virgule décimale, pas de séparateur de milliers : les milliers espacés
+  // deviennent du texte dans un tableur. Arrondi au centième : la division
+  // par habitant produit des décimales sans fin qui n'informent personne.
+  return String(Math.round(valeur * 100) / 100).replace(".", ",");
+}
+
+/** L'unité telle qu'elle se lit dans un tableur, jamais un code interne nu
+ *  pour les unités connues — et le code tel quel pour les autres, comme à
+ *  l'écran : une unité inconnue ne devient pas des euros (echelle.ts). */
+export function uniteLisible(unite: string, parHabitant: boolean): string {
+  const libelle =
+    unite === "EUR" ? "euros" : unite === "percent" ? "%" : unite === "count" ? "nombre" : unite;
+  return parHabitant ? `${libelle} par habitant` : libelle;
+}
+
+/** Contenu CSV, pur et testé — le déclenchement du téléchargement est à part.
+ *  La date est injectable pour la même raison. */
+export function enCsv(
+  lignes: LigneExport[],
+  meta: {
+    indicateur: string;
+    unite: string;
+    periode: string;
+    niveau: string;
+    parHabitant: boolean;
+    source: string;
+  },
+  quand: Date = new Date(),
+): string {
+  const entetes = ["code", "territoire", "valeur", "unite", "periode", "niveau"];
+  const unite = uniteLisible(meta.unite, meta.parHabitant);
+  const corps = lignes.map((ligne) =>
+    [
+      champ(ligne.code),
+      champ(ligne.nom),
+      nombreFrancais(ligne.valeur),
+      champ(unite),
+      champ(meta.periode),
+      champ(meta.niveau),
+    ].join(";"),
+  );
+  const commentaires = [
+    `# ${meta.indicateur} — ${meta.periode}`,
+    `# Source : ${meta.source} · exporté le ${quand.toISOString().slice(0, 10)}`,
+    "# Licence Ouverte 2.0. Données complètes et documentées : voir « Accéder aux données » en bas de page.",
+  ];
+  // BOM : sans lui, Excel ouvre les accents en mojibake.
+  return "\uFEFF" + [...commentaires, entetes.join(";"), ...corps].join("\r\n") + "\r\n";
+}
+
+export function nomDeFichier(indicateur: string, niveau: string, periode: string): string {
+  const propre = (texte: string) =>
+    texte
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  return `${propre(indicateur)}-${propre(niveau)}-${periode}.csv`;
+}
+
+/** Déclenche le téléchargement côté navigateur. Non testé : DOM pur. */
+export function telecharger(contenu: string, fichier: string): void {
+  const blob = new Blob([contenu], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const lien = document.createElement("a");
+  lien.href = url;
+  lien.download = fichier;
+  lien.click();
+  URL.revokeObjectURL(url);
+}

@@ -339,6 +339,20 @@ summary:focus-visible {
   font-size: 0.85rem;
   margin: 0.2rem 0 0.8rem;
 }
+.tableau__export {
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--accent);
+  background: none;
+  border: 1px solid var(--accent);
+  border-radius: var(--rayon);
+  padding: 0.35rem 0.8rem;
+  cursor: pointer;
+}
+.tableau__export:hover {
+  color: #fff;
+  background: var(--accent);
+}
 .tableau__cadre {
   max-height: 22rem;
   overflow: auto;
