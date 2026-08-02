@@ -9,6 +9,7 @@ import argparse
 from psycopg.types.json import Jsonb
 
 from plateforme import db
+from plateforme.limites import garde_fou_volume
 from plateforme.connectors import ofgl
 from plateforme.http import fetch
 from plateforme.normalize.geo import MILLESIME, make_store
@@ -286,6 +287,9 @@ def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
     declarer_indicateurs(conn, niveaux)
     total = 0
     for niveau in niveaux:
+        # Mesuré à chaque niveau : le précédent vient d'écrire, et c'est ce
+        # connecteur qui porte l'essentiel du volume de la base (D6ter).
+        garde_fou_volume(conn)
         dataset_id = JEUX[niveau]
         run_id = db.start_run(conn, dataset_id, "manual")
         try:

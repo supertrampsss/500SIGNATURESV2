@@ -1,15 +1,19 @@
 """Rétention des séries volumineuses : appliquer une politique, pas un ménage.
 
-La base tourne sur le plan gratuit Supabase, plafonné à 500 Mo (décision D6).
-Les observations communales en représentent 94,7 % : six indicateurs sur
-34 875 communes et six exercices. Chaque exercice communal pèse environ 87 Mo,
-index compris.
-
 Plutôt que de supprimer des lignes à la main le jour où la base déborde, la
 politique est **déclarée ici, versionnée, et rejouable**. Elle ne détruit rien
 d'irremplaçable : les snapshots bruts de 2018 à 2025 restent dans R2, et
 `plateforme.normalize.ofgl --depuis <exercice>` recharge en une commande ce que
 cette politique retire.
+
+Historique : sous le plan gratuit (500 Mo, décision D6), la borne communale
+était 2022 — un exercice communal pèse environ 87 Mo, index compris, et les
+observations communales font l'essentiel de la base. Le passage au plan payant
+(D6ter, plafond porté à 2 Go dans `limites.py`) a tenu la promesse écrite dans
+le workflow : la borne redescend à 2018, tout l'historique publié par l'OFGL
+est servi de nouveau. La politique reste en place — elle dit désormais « tout
+garder depuis 2018 », et le jour où il faudra arbitrer à nouveau, l'arbitrage
+se fera ici, à découvert.
 
 Deux gardes-fous :
 
@@ -29,7 +33,7 @@ from plateforme import db
 
 # {niveau géographique: premier exercice conservé}. Les autres niveaux gardent
 # tout leur historique : ils pèsent 66 000 lignes contre 1,25 million.
-RETENTION = {"commune": "2022"}
+RETENTION = {"commune": "2018"}
 
 EXERCICES_MINIMUM = 2
 DATASET = "ofgl-communes"

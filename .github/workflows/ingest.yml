@@ -85,7 +85,7 @@ jobs:
             # Les critères de comparaison arrivent avec les finances locales :
             # recharger l'un sans republier l'autre laisserait le site incohérent.
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2022
+              --niveaux commune --depuis 2018
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -196,12 +196,10 @@ jobs:
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
               --niveaux epci,departement,region --depuis 2018
-            # Communes : historique borné à 2022 pour tenir dans les 500 Mo du
-            # plan gratuit Supabase (décision D6, politique dans
-            # plateforme/retention.py). Les snapshots R2 couvrent 2018-2025 ;
-            # une seule commande rechargera tout au passage au plan payant.
+            # Communes : tout l'historique OFGL depuis 2018 — promesse tenue au
+            # passage au plan payant (D6ter, retention.py aligné).
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2022
+              --niveaux commune --depuis 2018
             exit $?
           fi
           if [ -z "$DATASET_ID" ]; then echo "aucun dataset_id" && exit 1; fi

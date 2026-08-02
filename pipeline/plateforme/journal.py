@@ -141,15 +141,17 @@ JOURNAL: list[Changement] = [
         jeu="ofgl-communes",
         effet_au="2022-01-01",
         public=(
-            "Les finances communales antérieures à 2022 ne sont plus servies. Elles"
-            " restent disponibles chez le producteur, et les instantanés bruts"
-            " conservés permettent de les recharger à l'identique."
+            "Du 31 juillet au 2 août 2026, les finances communales antérieures à"
+            " 2022 n'ont pas été servies, par manque de place. Cette restriction"
+            " est levée : tout l'historique depuis 2018 est de nouveau en ligne,"
+            " rechargé à l'identique depuis les instantanés conservés."
         ),
         technique=(
             "Politique de rétention déclarée dans `plateforme/retention.py` :"
-            " 418 416 observations retirées pour tenir dans les 500 Mo du plan"
-            " gratuit (décision D6bis). Au moins deux exercices sont garantis pour"
-            " chaque niveau ; la règle est versionnée et rejouable."
+            " 418 416 observations retirées le 31/07 pour tenir dans les 500 Mo du"
+            " plan gratuit (D6bis), rechargées le 02/08 au passage au plan payant"
+            " (D6ter, plafond 2 Go) via `normalize.ofgl --depuis 2018`. La borne"
+            " de rétention est redescendue à 2018."
         ),
     ),
 ]
