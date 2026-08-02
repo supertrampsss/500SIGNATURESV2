@@ -407,6 +407,7 @@ const THEMES: Record<string, string> = {
   sante: "Santé",
   education: "Éducation",
   impots_locaux: "Impôts locaux",
+  macro: "Conjoncture",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
   europe: "Comparaisons européennes",
