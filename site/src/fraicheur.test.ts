@@ -85,3 +85,15 @@ test("les jeux les plus récemment lus viennent en premier", () => {
   const html = rendu(JEUX);
   assert.ok(html.indexOf("Situation mensuelle") < html.indexOf("Finances des communes"));
 });
+
+test("les révisions se comptent, et « non suivi » n'est pas « zéro »", () => {
+  const suivi = [{ ...JEUX[0], valeurs_revisees_90j: 202 }];
+  assert.match(rendu(suivi), /202 valeurs révisées sur 90 jours/);
+  const une = [{ ...JEUX[0], valeurs_revisees_90j: 1 }];
+  assert.match(rendu(une), /1 valeur révisée sur 90 jours/);
+  const sans = [{ ...JEUX[0], valeurs_revisees_90j: 0 }];
+  assert.match(rendu(sans), /aucune sur 90 jours/);
+  // Publication antérieure au champ : dire « aucune » inventerait une garantie.
+  assert.match(rendu(JEUX), /non suivi pour cette publication/);
+  assert.doesNotMatch(rendu(JEUX), /aucune sur 90 jours/);
+});

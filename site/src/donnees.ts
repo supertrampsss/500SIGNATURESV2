@@ -111,6 +111,10 @@ export type Fraicheur = {
   controles_echoues: number;
   /** Absent des publications antérieures à ce champ : distinct d'une liste vide. */
   anomalies?: Anomalie[];
+  /** Chiffres déjà publiés dont la valeur a changé lors d'un rechargement des
+   *  90 derniers jours. Absent des publications antérieures : « non suivi »
+   *  n'est pas « zéro révision ». */
+  valeurs_revisees_90j?: number;
 };
 
 /** Un contrôle en échec au dernier chargement : ce qui n'a pas été publié. */

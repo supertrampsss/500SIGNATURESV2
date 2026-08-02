@@ -57,6 +57,18 @@ function anomalies(jeu: Fraicheur): string {
     .join("<br />");
 }
 
+/** Un chiffre déjà publié qui bouge au rechargement suivant est une révision :
+ *  un fait normal de la statistique publique, à afficher plutôt qu'à taire.
+ *  Trois réponses distinctes : non suivi (publication antérieure au champ),
+ *  aucune, ou n valeurs révisées. */
+function revisions(jeu: Fraicheur): string {
+  if (jeu.valeurs_revisees_90j === undefined) return "non suivi pour cette publication";
+  if (jeu.valeurs_revisees_90j === 0) return "aucune sur 90 jours";
+  return `${jeu.valeurs_revisees_90j.toLocaleString("fr-FR")} valeur${
+    jeu.valeurs_revisees_90j > 1 ? "s" : ""
+  } révisée${jeu.valeurs_revisees_90j > 1 ? "s" : ""} sur 90 jours`;
+}
+
 /** Rendu pur, sans DOM : c'est lui qui est testé. */
 export function rendu(jeux: Fraicheur[]): string {
   const lignes = [...jeux]
@@ -74,6 +86,7 @@ export function rendu(jeux: Fraicheur[]): string {
               : echapper(jeu.dernier_run ?? "—")
         }</td>
         <td>${anomalies(jeu)}</td>
+        <td>${revisions(jeu)}</td>
       </tr>`,
     )
     .join("");
@@ -83,7 +96,9 @@ export function rendu(jeux: Fraicheur[]): string {
       Chaque jeu avec sa dernière lecture, son retard éventuel et ce que les contrôles
       ont relevé. Un signalement veut dire qu'une partie du fichier source n'a pas été
       publiée, pas que les chiffres affichés sont douteux : ce qui ne passe pas un
-      contrôle bloquant n'est jamais publié.
+      contrôle bloquant n'est jamais publié. Une révision est un chiffre déjà publié
+      que le producteur a réestimé depuis — c'est la vie normale de la statistique,
+      et l'ancienne valeur reste archivée.
     </p>
     <div class="tableau__cadre">
       <table class="fraicheur">
@@ -93,6 +108,7 @@ export function rendu(jeux: Fraicheur[]): string {
           <th scope="col">Fréquence</th>
           <th scope="col">Dernier chargement</th>
           <th scope="col">Contrôles</th>
+          <th scope="col">Révisions</th>
         </tr></thead>
         <tbody>${lignes}</tbody>
       </table>

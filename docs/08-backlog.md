@@ -78,9 +78,11 @@
 > quand un jeu dépasse sa tolérance de fraîcheur, échoue au chargement ou rate un
 > contrôle bloquant ; fermée d'elle-même quand tout est rentré dans l'ordre. Un
 > message par run produirait un fil que personne ne lirait, ce qui reviendrait à
-> ne pas alerter. **Reste dans T-23** : `core.observations_revisions`, qui n'a
-> toujours pas d'écrivain — « ce chiffre a été révisé » n'est donc pas encore
-> affichable au niveau d'une valeur, et docs/06 dit pourquoi.
+> ne pas alerter. **Clos le 02/08/2026** : `core.observations_revisions` a son
+> écrivain (`plateforme/revisions.py`) — seules les valeurs qui changent sont
+> archivées (D6bis), le chômage localisé l'adopte en premier, et la page « État
+> des données » compte les valeurs révisées sur 90 jours. Le « corrigé le … » à
+> la cellule reste à construire au-dessus de cette archive (docs/06).
 >
 > **2 août 2026 — les trois manques relevés face à la demande initiale.**
 > **COFOG** : « combien pour la santé, la défense, l'école ? » — la question

@@ -204,7 +204,11 @@ sommes uniquement sur des indicateurs additifs — cf. `indicators.additive`.)
 - **Index** : PK ; `(geo_level, geo_code, period)` pour les fiches territoire.
 - **Historisation** : `observations` = état courant ; les valeurs remplacées
   partent dans `core.observations_revisions` (même clé + `superseded_at`,
-  `old_value`, `run_id`) — l'utilisateur peut voir « ce chiffre a été révisé ».
+  `old_value`, `run_id` — celui du run qui a **provoqué** la révision) —
+  l'utilisateur peut voir « ce chiffre a été révisé ». Écrivain :
+  `plateforme/revisions.py`, qui n'archive que les valeurs qui changent
+  réellement (D6bis) ; adopté par le chômage localisé, extension au fil de
+  l'eau.
 - **Exemple** (fiche commune) :
 
 ```sql

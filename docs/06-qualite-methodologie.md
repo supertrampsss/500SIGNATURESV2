@@ -123,13 +123,17 @@ n'a rien de douteux.
 technique replié. Les entrées écrites par la plateforme portent
 `author = 'plateforme'`, la synchronisation ne touche qu'à celles-là.
 
-L'étape 3 ne l'est pas : `core.observations_revisions` n'a pas d'écrivain, donc
-aucune valeur individuelle ne porte encore « corrigé le … ». Écrire *toutes* les
-valeurs remplacées à chaque rechargement doublerait le volume, ce que D6bis
-interdit ; il faudra n'archiver que celles qui changent réellement. Tant que ce
-n'est pas fait, une correction se lit au niveau du jeu, pas de la cellule — et
-c'est ce que le site dit, plutôt que d'afficher une mention qu'il ne peut pas
-justifier.
+**État au 02/08/2026, étape 3.** `core.observations_revisions` a son écrivain :
+`plateforme/revisions.py` remplace les observations d'un indicateur en
+archivant *seulement* les valeurs qui changent — archiver tout à chaque
+rechargement doublerait le volume, ce que D6bis interdit. Une ligne qui
+disparaît du rechargement n'est pas archivée (elle peut refléter un chargement
+partiel, pas un retrait du producteur) ; la rétention, elle, supprime en le
+disant. Le chômage localisé, série la plus révisée du site, passe par cet
+écrivain ; les autres connecteurs migreront au fil de l'eau. La page « État des
+données » affiche le nombre de valeurs révisées sur 90 jours par jeu
+(`valeurs_revisees_90j` dans `fraicheur.json`). Le « corrigé le … » à la
+cellule, sur la fiche, reste à construire au-dessus de cette archive.
 
 ## Écriture éditoriale
 

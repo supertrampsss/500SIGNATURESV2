@@ -322,9 +322,11 @@ def fraicheur(conn) -> list[dict]:
             "dernier_run": statut,
             "controles_echoues": controles,
             "anomalies": anomalies or [],
+            "valeurs_revisees_90j": revisees,
         }
         for (
-            jeu, titre, priorite, frequence, extraction, retard, statut, controles, anomalies
+            jeu, titre, priorite, frequence, extraction, retard, statut, controles, revisees,
+            anomalies,
         ) in conn.execute(
             """
             select d.dataset_id, d.title, d.priority, d.update_frequency,
@@ -336,6 +338,13 @@ def fraicheur(conn) -> list[dict]:
                      where r.dataset_id = d.dataset_id order by r.started_at desc limit 1),
                    (select count(*) from meta.data_quality_checks c
                      where c.dataset_id = d.dataset_id and not c.passed and c.severity = 'blocker'),
+                   -- Chiffres déjà publiés qui ont bougé lors d'un rechargement
+                   -- récent : la révision est un fait public, pas un secret
+                   -- d'atelier (docs/02 §C).
+                   (select count(*) from core.observations_revisions v
+                      join meta.ingestion_runs r on r.run_id = v.run_id
+                     where r.dataset_id = d.dataset_id
+                       and v.superseded_at > now() - interval '90 days'),
                    -- Les contrôles du dernier run seulement : un défaut corrigé
                    -- par le producteur ne doit pas rester affiché indéfiniment.
                    (select jsonb_agg(jsonb_build_object(

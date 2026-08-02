@@ -27,7 +27,7 @@ Usage : python -m plateforme.normalize.chomage [--store r2:plateforme-raw]
 
 import argparse
 
-from plateforme import db
+from plateforme import db, revisions
 from plateforme.connectors import insee, sdmx
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
@@ -114,23 +114,27 @@ def declarer(conn) -> None:
     conn.commit()
 
 
-def ecrire(conn, run_id: str, lignes: list[tuple]) -> tuple[int, int]:
+def ecrire(conn, run_id: str, lignes: list[tuple]) -> tuple[int, int, int]:
+    """Remplace la série en archivant ce qui change : le chômage localisé est
+    la série la plus révisée du site — l'INSEE réestime les derniers trimestres
+    à chaque parution, et le passage de « semi-définitif » à définitif fait
+    partie de la vie du chiffre (docs/02 §C)."""
     sans_drapeaux = [ligne[:5] for ligne in lignes]
     gardees, ecartes = filtrer_territoires_connus(conn, sans_drapeaux)
     connus = {(ligne[1], ligne[2]) for ligne in gardees}
-    with conn.cursor() as curseur:
-        curseur.execute("delete from core.observations where indicator_id = %s", (INDICATEUR,))
-        with curseur.copy(
-            "copy core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
-            " period, value, quality_flags, run_id) from stdin"
-        ) as copie:
-            for cle, niveau, code, periode, valeur, drapeaux in lignes:
-                if (niveau, code) in connus:
-                    copie.write_row(
-                        (cle, niveau, code, MILLESIME, periode, valeur, drapeaux, run_id)
-                    )
+    ecrites, revisees = revisions.remplacer(
+        conn,
+        run_id,
+        [INDICATEUR],
+        ("value", "quality_flags"),
+        (
+            (cle, niveau, code, MILLESIME, periode, valeur, drapeaux)
+            for cle, niveau, code, periode, valeur, drapeaux in lignes
+            if (niveau, code) in connus
+        ),
+    )
     conn.commit()
-    return len(gardees), len(ecartes)
+    return ecrites, len(ecartes), revisees
 
 
 def run(store_spec: str) -> int:
@@ -148,7 +152,7 @@ def run(store_spec: str) -> int:
         lignes = observations(series)
         if not lignes:
             raise ValueError("aucune série de chômage localisé exploitable")
-        ecrites, ecartes = ecrire(conn, run_id, lignes)
+        ecrites, ecartes, revisees = ecrire(conn, run_id, lignes)
         territoires = len({(ligne[1], ligne[2]) for ligne in lignes})
         periodes = sorted({ligne[3] for ligne in lignes})
         db.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
@@ -156,6 +160,8 @@ def run(store_spec: str) -> int:
             f"chômage : {ecrites} observations sur {territoires} territoires, "
             f"{periodes[0]} → {periodes[-1]}"
         )
+        if revisees:
+            print(f"{revisees} valeurs déjà publiées ont changé ; les anciennes sont archivées")
         if ecartes:
             print(f"{ecartes} territoires absents du référentiel, écartés")
         return 0
