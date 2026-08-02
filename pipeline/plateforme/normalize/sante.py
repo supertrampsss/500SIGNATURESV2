@@ -242,7 +242,7 @@ def run(store_spec: str) -> int:
         conn.commit()
         db.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
         apres = conn.execute("select pg_database_size(current_database())").fetchone()[0]
-        millesimes = sorted({m for _, m, _ in lignes})
+        millesimes = sorted({m for _, m, _, _ in lignes})
         print(
             f"santé : {ecrites} observations d'APL sur {millesimes[0]}-{millesimes[-1]},"
             f" {len(ecartees)} écartées, {hors_referentiel} hors référentiel,"
