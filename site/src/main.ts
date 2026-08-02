@@ -18,6 +18,7 @@ import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { afficherNational } from "./national.ts";
+import { afficherFonctions } from "./fonctions.ts";
 import {
   expressionCouleur,
   formater,
@@ -376,6 +377,7 @@ const THEMES: Record<string, string> = {
   population: "Population",
   emploi: "Emploi et chômage",
   entreprises: "Entreprises",
+  fonctions: "Dépenses par fonction",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
   europe: "Comparaisons européennes",
@@ -606,6 +608,9 @@ async function demarrer(): Promise<void> {
   try {
     const pays = await donnees.territoires("pays", "tous");
     if (afficherNational($("bloc-dette"), $("bloc-europe"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    if (afficherFonctions($("bloc-fonctions"), pays, catalogue)) {
       $("national").hidden = false;
     }
   } catch {

@@ -13,7 +13,10 @@ BASE = "https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data"
 
 def data_url(dataset: str, params: dict | None = None) -> str:
     url = f"{BASE}/{dataset}"
-    return f"{url}?{urlencode(params)}" if params else url
+    # doseq : une liste devient une clé répétée (cofog99=GF01&cofog99=GF02…),
+    # la façon dont l'API attend un filtre à plusieurs valeurs. Sans effet sur
+    # les paramètres simples.
+    return f"{url}?{urlencode(params, doseq=True)}" if params else url
 
 
 def get_data(dataset: str, params: dict | None = None) -> dict:

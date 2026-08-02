@@ -26,6 +26,14 @@ export const QUESTIONS: Question[] = [
     cible: "#bloc-cent-euros",
   },
   {
+    question: "Combien pour la santé, l'école, la défense ?",
+    reponse:
+      "La dépense de toutes les administrations publiques par fonction, en part" +
+      " du PIB, face à l'Allemagne et à la zone euro. La santé est surtout payée" +
+      " par la Sécurité sociale, pas par le budget de l'État.",
+    cible: "#bloc-fonctions",
+  },
+  {
     question: "Ce qui a été voté a-t-il été dépensé ?",
     reponse:
       "Le budget de l'État à trois moments du même exercice — voté, rectifié," +
