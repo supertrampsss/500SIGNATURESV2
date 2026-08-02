@@ -103,6 +103,29 @@
 > maires (RNE, sans données personnelles), repères médians région/France sur
 > chaque fiche, repère « pays comparés » au niveau national.
 >
+> **2 août 2026, après-midi — quatre livraisons.** **Export CSV en un clic** :
+> le tableau des données gagne un bouton de téléchargement au format tableur
+> français (point-virgule, virgule décimale, BOM UTF-8), en-tête qui nomme
+> l'indicateur, la source, la date et la licence ; le tableau montre 100
+> territoires, le fichier les contient tous (34 772 lignes vérifiées en
+> téléchargement réel). **Archive des révisions** : `plateforme/revisions.py`
+> (voir T-23 ci-dessus), première adoption chômage + Sécu, colonne « Révisions »
+> sur l'état des données. **Comptes de la Sécurité sociale** : dépenses,
+> recettes et solde du sous-secteur S1314 (Eurostat gov_10a_main, 32 pays,
+> 2013-2025), identité recettes − dépenses = solde vérifiée pays par pays
+> (zéro quarantaine au premier chargement), bloc national « La Sécu, c'est
+> combien ? » qui dit pourquoi ce chiffre n'est pas le « trou de la Sécu »
+> parlementaire. Le premier chargement a été refusé par la contrainte des
+> 50 mots de `indicator_definitions` — la charte a fait son travail ; les
+> fiches sont resserrées et `declarer()` s'exécute désormais contre la base de
+> test en CI. **Vérification CORS durcie** : les déploiements rougissaient sur
+> un 403 anti-robot du bord R2 alors que la politique était bonne ; la
+> vérification est désormais double — relecture autoritaire de la politique
+> sur le bucket, puis rejeu navigateur (vrai User-Agent, retries) dont
+> l'inconclusif n'est toléré que si la relecture a confirmé. Incident du jour :
+> l'API BDM de l'INSEE répond 500 (panne producteur, issue d'alerte #3 tenue à
+> jour automatiquement) — le chômage se rechargera au cron de lundi.
+>
 > **Séries dans le temps** (01/08/2026, hors backlog initial). La fiche affichait
 > « +18 % depuis 2016 » sans vérifier que le territoire avait la même surface en
 > 2016 — une série est une comparaison d'un territoire avec lui-même, et la règle
