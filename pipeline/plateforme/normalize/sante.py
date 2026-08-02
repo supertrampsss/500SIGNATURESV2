@@ -31,7 +31,7 @@ from psycopg.types.json import Jsonb
 from plateforme import db, revisions
 from plateforme.http import fetch
 from plateforme.limites import garde_fou_volume
-from plateforme.normalize.geo import MILLESIME, make_store
+from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
 
 DATASET = "drees-apl"
@@ -53,9 +53,11 @@ FICHE = {
     "formule": "DREES, classeur APL, colonne « APL aux médecins généralistes »",
 }
 
-# Une valeur d'APL au-delà de ce plafond n'a jamais été observée : c'est un
-# artefact de lecture, pas une commune sur-dotée.
-PLAFOND_PLAUSIBLE = 30.0
+# Le plafond vise les artefacts de lecture — une colonne de population prise
+# pour l'APL — pas les vraies valeurs hautes : un village alpin avec un
+# médecin et peu d'habitants standardisés dépasse 40 (constaté : 05085 à
+# 40,03 en 2023, d'abord écarté à tort par un plafond à 30).
+PLAFOND_PLAUSIBLE = 100.0
 
 
 def url_courante() -> str:
@@ -101,7 +103,7 @@ def declarer(conn) -> None:
     conn.commit()
 
 
-def lire(contenu: bytes) -> tuple[list[tuple[str, str, float]], dict]:
+def lire(contenu: bytes) -> tuple[list[tuple[str, str, float, float | None]], dict]:
     """Classeur APL -> [(code commune, millésime, valeur)], écartées.
 
     Chaque feuille « APL <année> » porte un bloc d'en-tête puis les données.
@@ -132,6 +134,17 @@ def lire(contenu: bytes) -> tuple[list[tuple[str, str, float]], dict]:
                 if not cibles:
                     raise ValueError(f"{nom} : colonne des généralistes introuvable")
                 colonne = cibles[0]
+                pops = [
+                    i for i, cellule in enumerate(rangee)
+                    if str(cellule or "").strip().startswith("Population standardisée")
+                ]
+                if not pops:
+                    raise ValueError(
+                        f"{nom} : colonne de population standardisée introuvable —"
+                        " sans elle, Paris, Lyon et Marseille (publiées par"
+                        " arrondissement) ne peuvent pas s'agréger"
+                    )
+                colonne_pop = pops[0]
                 unites = next(rangees, ())
                 unite = str(unites[colonne] or "") if len(unites) > colonne else ""
                 if "par habitant standardisé" not in unite:
@@ -157,8 +170,38 @@ def lire(contenu: bytes) -> tuple[list[tuple[str, str, float]], dict]:
             if valeur < 0 or valeur > PLAFOND_PLAUSIBLE:
                 ecartees[f"{code}/{millesime}"] = f"hors plage plausible : {valeur}"
                 continue
-            lignes.append((code, millesime, valeur))
+            try:
+                pop = float(str(rangee[colonne_pop]).replace(",", "."))
+            except (TypeError, ValueError):
+                pop = None
+            lignes.append((code, millesime, valeur, pop))
     return lignes, ecartees
+
+
+def agreger_arrondissements(
+    lignes: list[tuple[str, str, float, float | None]],
+) -> list[tuple[str, str, float]]:
+    """Paris, Lyon et Marseille n'existent que par arrondissement dans le
+    classeur : la commune s'obtient par moyenne pondérée par la population
+    standardisée — la méthode d'agrégation que la DREES documente elle-même
+    en tête de feuille. Un arrondissement sans population ne peut pas être
+    pondéré : la commune n'est agrégée que si tous les siens en ont une."""
+    sorties: list[tuple[str, str, float]] = []
+    meres: dict[tuple[str, str], list[tuple[float, float | None]]] = {}
+    for code, millesime, valeur, pop in lignes:
+        mere = commune_mere(code)
+        if mere is None:
+            sorties.append((code, millesime, valeur))
+        else:
+            meres.setdefault((mere, millesime), []).append((valeur, pop))
+    for (mere, millesime), morceaux in meres.items():
+        if any(pop is None or pop <= 0 for _, pop in morceaux):
+            continue
+        total = sum(pop for _, pop in morceaux)
+        sorties.append(
+            (mere, millesime, round(sum(v * pop for v, pop in morceaux) / total, 3))
+        )
+    return sorties
 
 
 def run(store_spec: str) -> int:
@@ -179,7 +222,7 @@ def run(store_spec: str) -> int:
             raise ValueError("aucune valeur d'APL lue : le classeur a dû changer")
         candidates = [
             (INDICATEUR, "commune", code, millesime, valeur)
-            for code, millesime, valeur in lignes
+            for code, millesime, valeur in agreger_arrondissements(lignes)
         ]
         gardees, hors_referentiel = filtrer_territoires_connus(conn, candidates)
         ecrites, revisees = revisions.remplacer(

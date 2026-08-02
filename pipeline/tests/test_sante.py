@@ -27,11 +27,12 @@ def classeur(
         feuille.append([f"Millésime : {millesime}"])
         feuille.append(["Sources : Activité des médecins généralistes…"])
         feuille.append(["Code commune INSEE", "Commune", "APL aux médecins généralistes",
-                        "APL aux médecins généralistes de 65 ans ou moins"])
-        feuille.append([None, None, unite, unite])
+                        "APL aux médecins généralistes de 65 ans ou moins",
+                        "Population standardisée 2022 pour la médecine générale"])
+        feuille.append([None, None, unite, unite, "En nombre d'habitants standardisés"])
         for rangee in lignes or [
-            ("33318", "Pessac", "3.2", "3.0"),
-            ("23001", "Ahun", "1.4", "1.2"),
+            ("33318", "Pessac", "3.2", "3.0", "70000"),
+            ("23001", "Ahun", "1.4", "1.2", "1500"),
         ]:
             feuille.append(list(rangee))
     tampon = io.BytesIO()
@@ -42,10 +43,11 @@ def classeur(
 def test_le_classeur_reel_se_lit_par_reperes_pas_par_positions():
     lignes, ecartees = sante.lire(classeur())
     assert ecartees == {}
-    assert ("33318", "2023", 3.2) in lignes and ("33318", "2024", 3.2) in lignes
-    assert ("23001", "2024", 1.4) in lignes
+    assert ("33318", "2023", 3.2, 70000.0) in lignes
+    assert ("33318", "2024", 3.2, 70000.0) in lignes
+    assert ("23001", "2024", 1.4, 1500.0) in lignes
     # la colonne « 65 ans ou moins » ne fuit pas dans l'indicateur principal
-    assert all(valeur != 3.0 for _, _, valeur in lignes)
+    assert all(valeur != 3.0 for _, _, valeur, _ in lignes)
 
 
 def test_un_changement_d_unite_du_producteur_bloque_le_chargement():
@@ -58,12 +60,39 @@ def test_un_changement_d_unite_du_producteur_bloque_le_chargement():
 
 def test_les_valeurs_illisibles_ou_aberrantes_sont_ecartees_et_comptees():
     lignes, ecartees = sante.lire(
-        classeur(lignes=[("33318", "Pessac", "3.2", ""), ("23001", "Ahun", "n/a", ""),
-                         ("01001", "X", "99.9", "")])
+        classeur(lignes=[("33318", "Pessac", "3.2", "", "70000"),
+                         ("23001", "Ahun", "n/a", "", "1500"),
+                         ("01001", "X", "150.0", "", "800"),
+                         ("05085", "Ribeyret", "40.033", "", "60")])
     )
-    assert {code for code, _, _ in lignes} == {"33318"}
+    # 40 consultations existent (village alpin, peu d'habitants standardisés) :
+    # le plafond vise les artefacts de lecture, pas les vraies valeurs hautes
+    assert {code for code, _, _, _ in lignes} == {"33318", "05085"}
     assert ecartees["23001/2023"].startswith("valeur illisible")
     assert ecartees["01001/2024"].startswith("hors plage plausible")
+
+
+def test_les_arrondissements_s_agregent_a_leur_commune_par_moyenne_ponderee():
+    """La DREES ne publie Paris, Lyon et Marseille que par arrondissement, et
+    documente elle-même l'agrégation : moyenne pondérée par la population
+    standardisée. 2×100k à 2,0 et 4,0 sur 300k -> 3,5."""
+    agregees = sante.agreger_arrondissements([
+        ("13201", "2024", 2.0, 100000.0),
+        ("13202", "2024", 4.0, 300000.0),
+        ("33318", "2024", 3.2, 70000.0),
+    ])
+    assert ("13055", "2024", 3.5) in agregees
+    assert ("33318", "2024", 3.2) in agregees
+    assert all(code not in ("13201", "13202") for code, _, _ in agregees)
+
+
+def test_un_arrondissement_sans_population_bloque_l_agregation_de_sa_ville():
+    agregees = sante.agreger_arrondissements([
+        ("75101", "2024", 2.0, None),
+        ("75102", "2024", 4.0, 500000.0),
+    ])
+    # moyenne impossible à pondérer : pas de valeur inventée pour Paris
+    assert agregees == []
 
 
 def test_la_fiche_tient_la_charte_et_nomme_le_seuil():

@@ -22,6 +22,24 @@ MILLESIME = 2025
 PUBLICATION = "8377162"  # identifiant INSEE du COG 2025 (meta.dataset_registry)
 API_GEO = "https://geo.api.gouv.fr"
 
+
+def commune_mere(code: str) -> str | None:
+    """Commune de rattachement d'un arrondissement municipal, sinon None.
+
+    Paris, Lyon et Marseille apparaissent dans plusieurs sources **deux fois**
+    — la commune entière et ses arrondissements — ou seulement par
+    arrondissement. Les plages sont celles de la loi PLM, stables depuis 1982 ;
+    les centraliser ici évite qu'un connecteur les recopie de travers (la
+    borne départementale de la délinquance a écarté Marseille pour ça, et
+    l'APL de la DREES ne connaît que les arrondissements)."""
+    if "75101" <= code <= "75120":
+        return "75056"
+    if "69381" <= code <= "69389":
+        return "69123"
+    if "13201" <= code <= "13216":
+        return "13055"
+    return None
+
 # Collectivités à statut particulier qui exercent les compétences d'un
 # département sans en être un au Code officiel géographique. Les omettre
 # reviendrait à effacer l'Alsace et la métropole lyonnaise des cartes

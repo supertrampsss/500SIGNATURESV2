@@ -44,7 +44,7 @@ from psycopg.types.json import Jsonb
 from plateforme import db, revisions
 from plateforme.limites import garde_fou_volume
 from plateforme.http import fetch
-from plateforme.normalize.geo import MILLESIME, make_store
+from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
 
 DATASET = "ssmsi-delinquance"
@@ -319,15 +319,12 @@ def lire(
 
 def est_arrondissement_municipal(code: str) -> bool:
     """Paris, Lyon et Marseille figurent dans la base **deux fois** : la commune
-    entière (75056, 69123, 13055) et ses arrondissements (751xx, 6938x, 132xx).
-    Les additionner ensemble compte deux fois les trois plus grandes villes —
-    au premier chargement réel, la borne départementale écartait pour cela
-    Paris, Lyon, Marseille et toutes les communes de leurs départements."""
-    return (
-        "13201" <= code <= "13216"
-        or "69381" <= code <= "69389"
-        or "75101" <= code <= "75120"
-    )
+    entière (75056, 69123, 13055) et ses arrondissements. Les additionner
+    ensemble compte deux fois les trois plus grandes villes — au premier
+    chargement réel, la borne départementale écartait pour cela Paris, Lyon,
+    Marseille et toutes les communes de leurs départements. Les plages PLM
+    vivent dans geo.commune_mere, partagées avec les autres connecteurs."""
+    return commune_mere(code) is not None
 
 
 def controler_somme_communale(
