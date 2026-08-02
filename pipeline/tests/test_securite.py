@@ -86,6 +86,44 @@ def test_la_derniere_annee_est_retenue_meme_en_desordre():
     assert [g["annee"] for g in gardees] == ["2025"]
 
 
+def test_les_arrondissements_ne_comptent_pas_deux_fois_leur_ville():
+    """Le scénario du premier chargement réel : la base liste Marseille (13055)
+    ET ses arrondissements (132xx). Les sommer ensemble dépassait le total des
+    Bouches-du-Rhône, et le contrôle écartait Marseille de la carte."""
+    communes = [
+        {"classe": "Cambriolages de logement", "code": "13055", "annee": "2025",
+         "nombre": 4346, "taux": 1},
+        {"classe": "Cambriolages de logement", "code": "13201", "annee": "2025",
+         "nombre": 366, "taux": 1},
+        {"classe": "Cambriolages de logement", "code": "13001", "annee": "2025",
+         "nombre": 1000, "taux": 1},
+    ]
+    departements = [
+        {"classe": "Cambriolages de logement", "code": "13", "annee": "2025",
+         "nombre": 8586, "taux": 1},
+    ]
+    gardees, depassements = securite.controler_somme_communale(communes, departements)
+    assert depassements == {}
+    assert {g["code"] for g in gardees} == {"13055", "13201", "13001"}
+
+
+def test_les_ecartees_des_annees_non_chargees_sont_purgees():
+    """Le bruit d'arrondi de 2016 polluait le contrôle publié alors que seule
+    la dernière année est chargée au niveau communal."""
+    entete = ('"CODGEO_2026";"annee";"indicateur";"unite_de_compte";"nombre";'
+              '"taux_pour_mille";"est_diffuse";"insee_pop";"insee_pop_millesime";'
+              '"insee_log";"insee_log_millesime";"complement_info_nombre";"complement_info_taux"')
+    fausse_2016 = ('"02268";"2016";"Cambriolages de logement";"Infraction";"10";'
+                   '"99,0000000";"diff";"1000";"2016";"500";"2016";"NA";"NA"')
+    bonne_2025 = ('"02268";"2025";"Cambriolages de logement";"Infraction";"10";'
+                  '"20,0000000";"diff";"1000";"2023";"500";"2022";"NA";"NA"')
+    gardees, ecartees, _ = securite.lire(
+        [entete, fausse_2016, bonne_2025], "commune", seulement_derniere_annee=True
+    )
+    assert [g["annee"] for g in gardees] == ["2025"]
+    assert ecartees == {}, "l'écartée de 2016 ne concerne pas l'année chargée"
+
+
 def test_la_somme_des_communes_ne_depasse_pas_le_departement():
     communes = [
         {"classe": "Vols de véhicule", "code": "33318", "annee": "2025", "nombre": 60, "taux": 1},

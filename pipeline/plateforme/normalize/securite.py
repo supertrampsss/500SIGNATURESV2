@@ -277,9 +277,16 @@ def lire(
         annee = (rang.get("annee") or "").strip()
         if seulement_derniere_annee:
             if annee > annee_max:
-                # nouvelle année plus récente : tout ce qui précède est obsolète
+                # Nouvelle année plus récente : tout ce qui précède est
+                # obsolète — lignes gardées, écartées et couverture comprises.
+                # Sans la purge des écartées, le contrôle publiait le bruit
+                # d'arrondi d'années qu'on ne charge même pas.
                 annee_max = annee
                 gardees = [g for g in gardees if g["annee"] == annee_max]
+                ecartees = {
+                    cle: motif for cle, motif in ecartees.items()
+                    if cle.endswith(f"/{annee_max}")
+                }
                 for compte in couverture.values():
                     compte["diff"] = compte["ndiff"] = 0
             if annee < annee_max:
@@ -313,6 +320,19 @@ def lire(
     return gardees, ecartees, dict(couverture)
 
 
+def est_arrondissement_municipal(code: str) -> bool:
+    """Paris, Lyon et Marseille figurent dans la base **deux fois** : la commune
+    entière (75056, 69123, 13055) et ses arrondissements (751xx, 6938x, 132xx).
+    Les additionner ensemble compte deux fois les trois plus grandes villes —
+    au premier chargement réel, la borne départementale écartait pour cela
+    Paris, Lyon, Marseille et toutes les communes de leurs départements."""
+    return (
+        "13201" <= code <= "13216"
+        or "69381" <= code <= "69389"
+        or "75101" <= code <= "75120"
+    )
+
+
 def controler_somme_communale(
     communes: list[dict], departements: list[dict]
 ) -> tuple[list[dict], dict]:
@@ -324,6 +344,8 @@ def controler_somme_communale(
     }
     sommes: dict[tuple, int] = defaultdict(int)
     for c in communes:
+        if est_arrondissement_municipal(c["code"]):
+            continue  # déjà compté dans le total de sa commune
         sommes[(c["code"][:3] if c["code"].startswith("97") else c["code"][:2],
                 c["classe"], c["annee"])] += c["nombre"]
     fautifs = {
