@@ -18,11 +18,13 @@ sur les données, pas supposé : chaque ligne recalcule nombre/dénominateur et
 s'écarte si le taux publié ne se referme pas. Publier « pour 1 000 habitants »
 un taux calculé pour 1 000 logements doublerait le chiffre sans prévenir.
 
-**Périmètre choisi par la contrainte de volume (D6bis).** La base communale
-fait 5,2 millions de lignes ; le plan Supabase n'en absorbe pas tant. Au niveau
-communal : six classes phares, dernière année, valeurs diffusées seulement
-(le secret de diffusion du SSMSI, `ndiff`, couvre ~46 % des lignes — la
-couverture est mesurée et enregistrée par classe, jamais devinée). Aux niveaux
+**Périmètre.** Au niveau communal : les seize classes, dernière année
+diffusée, valeurs diffusées seulement (le secret de diffusion du SSMSI,
+`ndiff`, couvre ~46 % des lignes — la couverture est mesurée et enregistrée
+par classe, jamais devinée). D6bis avait d'abord limité la maille communale à
+six classes phares ; le passage au plan payant (D6ter) a levé la bride, la
+dernière année reste le choix éditorial — l'historique communal complet
+(5,2 millions de lignes) attend un besoin réel, pas un plafond. Aux niveaux
 départemental et régional : seize classes, tout l'historique 2016-2025. Les
 sous-découpages « Usage de stupéfiants (AFD) / (hors AFD) » sont exclus : ils
 recouvrent l'agrégat déjà chargé. Un garde-fou mesure la taille de la base
@@ -113,51 +115,51 @@ CLASSES = {
         "Homicides enregistrés, en victimes. Un événement rare est instable d'une"
         " année à l'autre à l'échelle d'un département : lire la tendance sur"
         " plusieurs années, jamais un écart isolé.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Tentatives d'homicide": (
         "tentatives_homicide", "Tentatives d'homicide",
         "Tentatives d'homicide enregistrées, en victimes. Série sensible aux"
         " requalifications juridiques au moment de l'enregistrement des faits.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Vols avec armes": (
         "vols_armes", "Vols avec armes",
         "Vols commis avec une arme — à feu, blanche ou par destination —"
         " enregistrés, pour 1 000 habitants.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Vols violents sans arme": (
         "vols_violents", "Vols violents sans arme",
         "Vols commis avec violence mais sans arme, enregistrés pour 1 000"
         " habitants.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Vols dans les véhicules": (
         "vols_dans_vehicules", "Vols dans les véhicules",
         "Vols d'objets à l'intérieur des véhicules, enregistrés pour 1 000"
         " habitants.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Vols d'accessoires sur véhicules": (
         "accessoires_vehicules", "Vols d'accessoires sur véhicules",
         "Vols d'accessoires sur véhicules — roues, carburant, catalyseurs —"
         " enregistrés pour 1 000 habitants.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Destructions et dégradations volontaires": (
         "degradations", "Destructions et dégradations",
         "Destructions et dégradations volontaires enregistrées, pour 1 000"
         " habitants. Le vandalisme du quotidien en fait partie ; la série dépend"
         " fortement du signalement.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Escroqueries et fraudes aux moyens de paiement": (
         "escroqueries", "Escroqueries et fraudes",
         "Escroqueries et fraudes aux moyens de paiement, en victimes enregistrées"
         " pour 1 000 habitants. Une part croissante se commet en ligne : le lieu"
         " d'enregistrement n'est pas toujours celui du préjudice.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Trafic de stupéfiants": (
         "trafic_stupefiants", "Trafic de stupéfiants",
@@ -165,14 +167,14 @@ CLASSES = {
         " habitants. Mesure l'activité des services autant que le trafic : plus"
         " de contrôles produit plus de mis en cause. Un mis en cause n'est pas"
         " un condamné.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
     "Usage de stupéfiants": (
         "usage_stupefiants", "Usage de stupéfiants",
         "Personnes mises en cause pour usage de stupéfiants, pour 1 000"
         " habitants. Reflète largement l'intensité des contrôles policiers sur"
         " la voie publique. Un mis en cause n'est pas un condamné.",
-        "population", not COMMUNAL,
+        "population", COMMUNAL,
     ),
 }
 

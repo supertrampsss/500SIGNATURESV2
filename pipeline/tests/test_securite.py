@@ -40,20 +40,28 @@ def test_pessac_porte_les_chiffres_publies_par_le_ssmsi():
         {"classe": "Cambriolages de logement", "code": "33318", "annee": "2025",
          "nombre": 355, "taux": 10.2266504}
     ]
-    # seules les six classes communales passent, et uniquement la dernière année
+    # les seize classes passent au communal (D6ter), uniquement la dernière année
     assert all(g["annee"] == "2025" for g in gardees)
     assert {securite.CLASSES[g["classe"]][4] for g in gardees} == {True}
 
 
 def test_le_secret_de_diffusion_est_compte_jamais_publie():
+    """01001 (petite commune) montre les deux faces du secret : ses classes
+    fréquentes sont sous `ndiff` et ne produisent rien, mais ses zéros
+    *diffusés* sur les classes rares (vols avec armes) sont des données — le
+    SSMSI ne censure que là où un compte non nul identifierait quelqu'un."""
     gardees, _, couverture = securite.lire(
         lignes("ssmsi_com_sample.csv"), "commune", seulement_derniere_annee=True
     )
-    codes = {g["code"] for g in gardees}
     ndiff = sum(c["ndiff"] for c in couverture.values())
     assert ndiff > 0, "la fixture doit contenir des lignes sous secret (petites communes)"
-    # une commune entièrement sous secret (01001) ne produit aucune ligne
-    assert "01001" not in codes
+    par_classe = {(g["code"], g["classe"]): g for g in gardees}
+    # la ligne ndiff (cambriolages à 01001) ne produit aucune observation…
+    assert ("01001", "Cambriolages de logement") not in par_classe
+    # …même quand la source y joint des taux « complément d'information »
+    assert ("01001", "Violences sexuelles") not in par_classe
+    # et le zéro diffusé, lui, est publié : l'absence de vol avec arme se dit
+    assert par_classe[("01001", "Vols avec armes")]["nombre"] == 0
 
 
 def test_le_mauvais_denominateur_est_detecte_ligne_a_ligne():

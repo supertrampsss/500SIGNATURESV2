@@ -144,10 +144,18 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
     ]
 
 
-def couples_publies(conn, niveau: str) -> list[tuple[str, str]]:
-    """(indicateur, période) à cartographier pour ce niveau, périodes récentes
-    d'abord bornées à `PERIODES_CARTOGRAPHIEES`."""
+def couples_publies(conn, niveau: str, borne: bool = True) -> list[tuple[str, str]]:
+    """(indicateur, période) à publier pour ce niveau, périodes récentes d'abord.
+
+    La borne `PERIODES_CARTOGRAPHIEES` protège le volume des fichiers de
+    carte : un fichier par période et par indicateur, 34 875 entrées au
+    communal. Le niveau `pays` n'est pas cartographié et ses séries portent
+    les courbes de conjoncture — une inflation mensuelle depuis 2013 fait 156
+    périodes, et la tronquer à 12 amputerait le graphique sans le dire :
+    `borne=False` publie la profondeur entière.
+    """
     par_indicateur: dict[str, list[str]] = defaultdict(list)
+    plafond = PERIODES_CARTOGRAPHIEES if borne else float("inf")
     for indicateur, periode in conn.execute(
         """
         select distinct o.indicator_id, o.period
@@ -158,7 +166,7 @@ def couples_publies(conn, niveau: str) -> list[tuple[str, str]]:
         """,
         (niveau,),
     ):
-        if len(par_indicateur[indicateur]) < PERIODES_CARTOGRAPHIEES:
+        if len(par_indicateur[indicateur]) < plafond:
             par_indicateur[indicateur].append(periode)
     return [
         (indicateur, periode)
@@ -180,7 +188,9 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
     seule survivrait au hasard de l'écriture.
     """
     valeurs: dict = defaultdict(lambda: defaultdict(dict))
-    for indicateur, periode in couples_publies(conn, niveau):
+    for indicateur, periode in couples_publies(
+        conn, niveau, borne=niveau in NIVEAUX_CARTOGRAPHIES
+    ):
         for code, valeur in conn.execute(
             """
             select o.geo_code, o.value from core.observations o
@@ -449,7 +459,7 @@ def references(conn, cartographiees: dict[str, dict[str, list[str]]]) -> dict:
         (i, n, p) for i, niveaux in cartographiees.items() for n, p in niveaux.items()
     ):
         par_indicateur[indicateur][niveau] = list(periodes)
-    for indicateur, periode in couples_publies(conn, "pays"):
+    for indicateur, periode in couples_publies(conn, "pays", borne=False):
         par_indicateur[indicateur]["pays"].append(periode)
 
     # Deux familles d'indicateurs n'ont pas de repères, parce que leur repère
