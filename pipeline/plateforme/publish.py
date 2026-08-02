@@ -24,7 +24,7 @@ NIVEAUX = ["commune", "epci", "departement", "region", "pays"]
 
 # Seuls ces niveaux ont des tuiles : produire des couches de carte pour les
 # autres coûterait des centaines de fichiers que rien ne viendrait lire.
-NIVEAUX_CARTOGRAPHIES = {"commune", "departement", "region"}
+NIVEAUX_CARTOGRAPHIES = {"commune", "epci", "departement", "region"}
 
 # Une carte montre une période à la fois, et personne ne consulte le chômage du
 # troisième trimestre 1982 en choroplèthe. Publier 177 trimestres a fait passer

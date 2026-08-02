@@ -156,8 +156,11 @@ jobs:
             exit $?
           fi
           if [ "$JOB" = "geometries" ]; then
+            # Publication dans la foulée : les fichiers de carte d'un niveau
+            # n'ont de sens que si la couche de tuiles correspondante existe.
             python -m plateforme.normalize.geometries \
               --store r2:plateforme-raw --publication r2:plateforme-published
+            python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
           if [ "$JOB" = "ofgl" ]; then
