@@ -197,6 +197,20 @@ export function afficherFiche(
           )} habitants <abbr title="Population municipale au sens du recensement de l'INSEE. Les montants par habitant utilisent, eux, la population de référence de l'OFGL de l'exercice concerné : deux définitions et deux millésimes différents, d'où deux nombres.">(population légale)</abbr>`
         : ""
     }</p>
+    ${
+      territoire.maire
+        ? `<p class="fiche__maire">Maire : <strong>${echapper(territoire.maire.nom)}</strong>${
+            territoire.maire.depuis
+              ? ` <span>depuis ${echapper(
+                  new Date(territoire.maire.depuis).toLocaleDateString("fr-FR", {
+                    month: "long",
+                    year: "numeric",
+                  }),
+                )}</span>`
+              : ""
+          }</p>`
+        : ""
+    }
     <dl class="mesures">${mesures}</dl>
     ${options.comparaison ?? ""}
     ${panneauSource(indicateurs, jeux)}

@@ -818,3 +818,13 @@ thead th {
   font-style: italic;
   color: var(--encre-douce);
 }
+
+/* Le maire : une information d'identité de la commune, pas une mesure. */
+.fiche__maire {
+  margin: -0.5rem 0 1rem;
+  font-size: 0.9rem;
+}
+.fiche__maire span {
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+}

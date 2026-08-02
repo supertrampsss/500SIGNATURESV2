@@ -2,26 +2,34 @@
  * « Est-ce beaucoup ? » — un chiffre seul ne répond pas.
  *
  * Une commune qui dépense 871 € par habitant ne dit rien tant qu'on ne sait pas
- * ce que dépensent les autres. Ce module fournit les deux repères qui manquaient :
- * l'ensemble des communes de la région, puis l'ensemble des communes de France.
+ * ce que dépensent les autres. Ce module fournit les deux repères qui
+ * manquaient : les communes de la même région, puis celles de toute la France.
  *
  * **La région de référence n'est pas le conseil régional.** Rapporter une
  * commune au budget de sa région comparerait deux collectivités qui n'exercent
- * pas les mêmes compétences. Le repère est l'agrégat des communes de cette
+ * pas les mêmes compétences. Le repère est l'ensemble des communes de cette
  * région — et le libellé le dit, sans quoi la confusion est garantie.
  *
- * **Deux natures de repère, parce que deux natures de grandeur.** Un montant
- * qui s'additionne donne un rapport agrégé : somme des montants sur somme des
- * populations, c'est-à-dire la dépense par habitant de l'ensemble. Une moyenne
- * des valeurs communales, elle, donnerait à Rochefourchat (une habitante) le
- * même poids qu'à Paris. Un taux ou une médiane ne s'additionne pas du tout :
- * le repère est alors la médiane des territoires, et l'écart ne se lit pas de
- * la même façon.
+ * **Le repère est la médiane, pas le rapport agrégé.** Les deux sont publiés et
+ * les deux sont exacts, mais ils répondent à des questions différentes.
+ * L'ensemble des communes de France dépense 1 246 € par habitant — un rapport
+ * écrasé par les grandes villes — quand la commune médiane en dépense 749.
+ * Afficher 1 246 face à une commune à 871 € lui dirait qu'elle dépense peu,
+ * alors qu'elle dépense plus que la moitié des communes françaises. La question
+ * posée est « plus que les autres ? » : c'est la médiane qui y répond.
+ *
+ * **Et la médiane du bon dénominateur.** Médiane des montants bruts et médiane
+ * des montants par habitant sont deux grandeurs, pas deux présentations : les
+ * confondre met 328 659 € en face de 871 €.
  */
-
 export type Agregat = {
   n: number;
+  /** Médiane des montants bruts. */
   mediane: number;
+  /** Médiane des montants ramenés à l'habitant : une autre grandeur, pas une
+   *  variante de présentation. Confondre les deux met 328 659 € en face de
+   *  871 €. Absent quand aucune population n'est connue. */
+  mediane_habitant?: number;
   total?: number;
   habitants?: number;
 };
@@ -37,13 +45,31 @@ export type References = Record<string, Record<string, Record<string, Reference>
 
 export type Repere = { libelle: string; valeur: number; nature: string };
 
-/** La valeur d'un agrégat, ramenée ou non à l'habitant comme la valeur affichée. */
-export function valeurDe(agregat: Agregat, nature: string, parHabitant: boolean): number | null {
-  if (nature === "agregat" && agregat.total !== undefined && agregat.habitants) {
-    return parHabitant ? agregat.total / agregat.habitants : agregat.total;
-  }
-  // Une médiane ne se divise pas : c'est déjà une valeur par territoire.
-  return nature === "mediane" ? agregat.mediane : null;
+/**
+ * Le repère d'un territoire est la **médiane** de ses semblables.
+ *
+ * « Ma commune dépense-t-elle plus que les autres ? » se répond par la médiane,
+ * pas par le rapport agrégé. Les deux sont publiés et les deux sont vrais, mais
+ * ils répondent à des questions différentes : l'ensemble des communes de France
+ * dépense 1 246 € par habitant — un chiffre écrasé par les grandes villes —
+ * quand la commune médiane en dépense 749. Afficher 1 246 face à une commune à
+ * 871 € lui dirait qu'elle dépense peu, alors qu'elle dépense plus que la
+ * moitié des communes françaises.
+ */
+export function valeurDe(agregat: Agregat, _nature: string, parHabitant: boolean): number | null {
+  // `mediane_habitant` manque pour ce qui ne se divise pas — un taux, une
+  // médiane de revenus. Le repli sur la médiane brute est alors le bon repère,
+  // et non une absence : « par habitant » n'existe simplement pas pour eux.
+  const valeur = parHabitant ? (agregat.mediane_habitant ?? agregat.mediane) : agregat.mediane;
+  return valeur ?? null;
+}
+
+/** Le rapport agrégé : ce que coûte l'échelon entier, rapporté à sa population.
+ *  Publié et documenté, mais ce n'est pas un repère de comparaison. */
+export function rapportAgrege(agregat: Agregat): number | null {
+  return agregat.total !== undefined && agregat.habitants
+    ? agregat.total / agregat.habitants
+    : null;
 }
 
 /**
@@ -65,7 +91,7 @@ export function reperes(
   const sortie: Repere[] = [];
   if (niveau !== "region" && region) {
     const bloc = reference.regions[region];
-    const valeur = bloc && valeurDe(bloc, nature, parHabitant);
+    const valeur = bloc ? valeurDe(bloc, nature, parHabitant) : null;
     if (valeur !== null && valeur !== undefined) {
       sortie.push({ libelle: `${ensemble} de la région`, valeur, nature });
     }
@@ -118,7 +144,7 @@ export function rendu(
     .join("");
   const note =
     nature === "agregat"
-      ? "Rapport de l'ensemble : total des montants sur total des habitants."
+      ? "Médiane des territoires comparés : la moitié se situe en dessous."
       : "Médiane des territoires : ces valeurs ne s'additionnent pas.";
   return `<ul class="reperes">${lignes}</ul>
     <p class="reperes__note">${note}</p>`;

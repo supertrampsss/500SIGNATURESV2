@@ -6,12 +6,26 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { rendu, reperes, valeurDe, type Reference } from "./reference.ts";
+import { rapportAgrege, rendu, reperes, valeurDe, type Reference } from "./reference.ts";
 
 const EUROS: Reference = {
   nature: "agregat",
-  france: { n: 34772, mediane: 749, total: 52_000_000_000, habitants: 65_000_000 },
-  regions: { "75": { n: 1200, mediane: 812, total: 5_000_000_000, habitants: 6_000_000 } },
+  france: {
+    n: 34772,
+    mediane: 328_659,
+    mediane_habitant: 749,
+    total: 52_000_000_000,
+    habitants: 65_000_000,
+  },
+  regions: {
+    "75": {
+      n: 1200,
+      mediane: 410_000,
+      mediane_habitant: 812,
+      total: 5_000_000_000,
+      habitants: 6_000_000,
+    },
+  },
 };
 const TAUX: Reference = {
   nature: "mediane",
@@ -19,15 +33,24 @@ const TAUX: Reference = {
   regions: { "75": { n: 90, mediane: 14.1 } },
 };
 
-test("un montant agrégé se lit en rapport, pas en moyenne de moyennes", () => {
-  // 52 Md€ / 65 M habitants = 800 €, et non la moyenne des 34 772 valeurs
-  assert.equal(valeurDe(EUROS.france, "agregat", true), 800);
-  assert.equal(valeurDe(EUROS.france, "agregat", false), 52_000_000_000);
+test("le repère est la médiane du dénominateur affiché", () => {
+  // par habitant : la médiane des montants par habitant, pas celle des bruts
+  assert.equal(valeurDe(EUROS.france, "agregat", true), 749);
+  assert.equal(valeurDe(EUROS.france, "agregat", false), 328_659);
 });
 
-test("une médiane ne se divise pas par la population", () => {
-  assert.equal(valeurDe(TAUX.france, "mediane", true), 16.3);
+test("le rapport agrégé reste disponible, mais n'est pas le repère", () => {
+  // 52 Md€ / 65 M habitants = 800 €, écrasé par les grandes villes
+  assert.equal(rapportAgrege(EUROS.france), 800);
+  assert.notEqual(valeurDe(EUROS.france, "agregat", true), rapportAgrege(EUROS.france));
+});
+
+test("un taux n'a pas de médiane par habitant : diviser un taux n'a pas de sens", () => {
+  // `mediane_habitant` est absent pour ce genre de grandeur ; le repère reste
+  // la médiane des taux, et ne devient pas nul parce qu'on regarde « par
+  // habitant » — un affichage qui n'existe pas pour un taux.
   assert.equal(valeurDe(TAUX.france, "mediane", false), 16.3);
+  assert.equal(valeurDe(TAUX.france, "mediane", true), 16.3);
 });
 
 test("une commune se compare aux communes, pas au conseil régional", () => {
@@ -56,12 +79,12 @@ test("une référence absente ne produit rien plutôt qu'un zéro", () => {
 test("l'écart au repère est affiché, avec son signe", () => {
   const html = rendu(reperes(EUROS, "commune", "75", true), 871, (v) => `${Math.round(v)} €`);
   assert.match(html, /Communes de la région/);
-  assert.match(html, /833 €/); // 5 Md€ / 6 M habitants
-  assert.match(html, /\+5 %/); // 871 contre 833
-  assert.match(html, /\+9 %/); // 871 contre 800
+  assert.match(html, /812 €/); // médiane des communes de la région
+  assert.match(html, /\+7 %/); // 871 contre 812
+  assert.match(html, /\+16 %/); // 871 contre 749
 });
 
 test("la note dit de quelle nature est le repère", () => {
-  assert.match(rendu(reperes(EUROS, "commune", "75", true), 871, String), /total des habitants/);
+  assert.match(rendu(reperes(EUROS, "commune", "75", true), 871, String), /la moitié se situe en dessous/);
   assert.match(rendu(reperes(TAUX, "commune", "75", false), 20, String), /ne s'additionnent pas/);
 });

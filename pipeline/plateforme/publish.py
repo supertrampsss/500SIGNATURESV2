@@ -484,7 +484,13 @@ def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) ->
 
     def agreger(sous_ensemble):
         valeurs = [float(v) for _, v, _ in sous_ensemble]
+        # Deux médianes, parce que la fiche affiche l'une ou l'autre : celle des
+        # montants bruts et celle des montants par habitant. Les confondre
+        # mettrait 328 659 € en face de 871 € — deux échelles sans rapport.
         bloc: dict = {"n": len(valeurs), "mediane": _mediane(valeurs)}
+        par_habitant = [float(v) / float(h) for _, v, h in sous_ensemble if h]
+        if par_habitant:
+            bloc["mediane_habitant"] = _mediane(par_habitant)
         if sommable and unite == "EUR":
             habitants = sum(float(h) for _, _, h in sous_ensemble if h)
             if habitants:
@@ -509,8 +515,30 @@ def _mediane(valeurs: list[float]) -> float:
     return tri[milieu] if len(tri) % 2 else (tri[milieu - 1] + tri[milieu]) / 2
 
 
+def maires(conn) -> dict[str, dict]:
+    """Le maire en exercice de chaque commune.
+
+    Ni date de naissance, ni sexe, ni catégorie socio-professionnelle : la
+    source les porte, la table ne les charge pas, et l'export ne peut donc pas
+    les laisser fuir.
+    """
+    try:
+        lignes = conn.execute(
+            "select geo_code, surname, given_name, since from geo.commune_officials"
+            " where role = 'maire'"
+        ).fetchall()
+    except Exception:  # noqa: BLE001 — table absente tant que 0010 n'est pas appliquée
+        conn.rollback()
+        return {}
+    return {
+        code: {"nom": f"{prenom} {nom}".strip(), "depuis": depuis.isoformat() if depuis else None}
+        for code, nom, prenom, depuis in lignes
+    }
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
+    elus = maires(conn) if niveau == "commune" else {}
     return {
         code: {
             "nom": nom,
@@ -521,6 +549,7 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
             "population": population,
             "drapeaux": drapeaux,
             "evenements": changements.get(code, []),
+            **({"maire": elus[code]} if code in elus else {}),
         }
         for code, nom, parent, region, population, drapeaux in conn.execute(
             """

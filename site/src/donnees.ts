@@ -49,6 +49,9 @@ export type Territoire = {
   evenements?: { type: string; date: string; avec: string }[];
   /** Région d'appartenance : l'ensemble auquel le territoire se compare. */
   region?: string | null;
+  /** Maire en exercice (RNE). Nom et prise de fonction seulement : ni date de
+   *  naissance, ni sexe, ni profession ne sont chargés. */
+  maire?: { nom: string; depuis: string | null };
 };
 
 export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };

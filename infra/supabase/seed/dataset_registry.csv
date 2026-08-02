@@ -33,3 +33,4 @@ eurostat-une-rt-a,eurostat,une_rt_a,Taux de chômage harmonisé annuel,https://e
 datagouv-catalogue,data-gouv,,Catalogue data.gouv.fr (liveness et decouverte),https://www.data.gouv.fr/api/1/site/,JSON,continue,7,,continue,P0,api_pull,meta.dataset_registry,false,false
 urssaf-effectifs,urssaf,,Effectifs salaries prives et masse salariale,https://open.urssaf.fr/api/explore/v2.1/catalog/datasets,JSON,trimestrielle,150,commune,trimestre,P1,ods_export,fin.public_employment,false,false
 webstat-defaillances,banque-de-france,,Defaillances d'entreprises,https://webstat.banque-france.fr/api/explore/v2.1/catalog/datasets,JSON,mensuelle,60,region,mois,P1,ods_export,fin.public_companies,false,false
+rne-conseillers-municipaux,data-gouv,5c34c4d1634f4173183a64f1,Répertoire National des Élus : conseillers municipaux (maires retenus),https://www.data.gouv.fr/api/1/datasets/5c34c4d1634f4173183a64f1/,CSV,mensuelle,120,commune,millesime,P1,file_download,geo.commune_officials,true,false
