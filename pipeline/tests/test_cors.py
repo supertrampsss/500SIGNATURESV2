@@ -72,3 +72,10 @@ def test_seules_la_lecture_et_la_prelecture_sont_ouvertes():
     [regle] = cors.REGLES
     assert set(regle["AllowedMethods"]) == {"GET", "HEAD"}
     assert regle["AllowedOrigins"] == ["*"]  # docs/10 : lisible sans clé ni compte
+
+
+def test_les_en_tetes_de_plage_sont_exposes_pour_les_tuiles():
+    """PMTiles lit l'archive par plages d'octets et se sert de `Content-Range`
+    pour en déduire la taille : non exposé, il n'est pas lisible par le JS."""
+    [regle] = cors.REGLES
+    assert {"Content-Range", "Accept-Ranges"} <= set(regle["ExposeHeaders"])

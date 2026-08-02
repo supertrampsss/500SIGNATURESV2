@@ -37,7 +37,15 @@ REGLES = [
         "AllowedOrigins": ["*"],
         "AllowedMethods": ["GET", "HEAD"],
         "AllowedHeaders": ["*"],
-        "ExposeHeaders": ["ETag", "Content-Length", "Content-Type"],
+        # `Content-Range` et `Accept-Ranges` servent aux tuiles PMTiles, lues par
+        # plages d'octets : la bibliothèque en déduit la taille de l'archive.
+        "ExposeHeaders": [
+            "ETag",
+            "Content-Length",
+            "Content-Type",
+            "Content-Range",
+            "Accept-Ranges",
+        ],
         "MaxAgeSeconds": 86400,
     }
 ]
