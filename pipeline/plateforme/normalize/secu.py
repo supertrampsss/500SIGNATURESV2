@@ -55,32 +55,32 @@ PARAMS = {
 
 TOLERANCE_PTS = 0.16  # trois valeurs arrondies à 0,1 : 0,15 au pire
 
+# La charte impose 50 mots au plus par définition grand public — et le schéma
+# le vérifie (0004). La pédagogie longue vit dans le bloc du site, pas ici.
 INDICATEURS = {
     "TE": (
         "eurostat_secu_depenses_pib",
         "Dépenses de la Sécurité sociale",
-        "Tout ce que dépensent les administrations de sécurité sociale — assurance"
-        " maladie, retraites de base et complémentaires obligatoires, famille,"
-        " assurance chômage — rapporté à la richesse produite dans l'année. En"
-        " France, c'est davantage que le budget de l'État.",
+        "Tout ce que dépensent les administrations de sécurité sociale — maladie,"
+        " retraites de base et complémentaires obligatoires, famille, assurance"
+        " chômage — rapporté à la richesse produite dans l'année. En France,"
+        " c'est davantage que le budget de l'État.",
     ),
     "TR": (
         "eurostat_secu_recettes_pib",
         "Recettes de la Sécurité sociale",
-        "Ce que reçoivent les administrations de sécurité sociale : des cotisations"
-        " sociales pour l'essentiel, complétées d'impôts et de taxes qui leur sont"
-        " affectés, comme la CSG ou des fractions de TVA. Cotisation et impôt ne"
-        " sont pas la même chose ; ce total les additionne en le disant.",
+        "Ce que reçoivent les administrations de sécurité sociale : des"
+        " cotisations sociales pour l'essentiel, complétées d'impôts et de taxes"
+        " affectés comme la CSG. Cotisation et impôt ne sont pas la même chose ;"
+        " ce total les additionne en le disant.",
     ),
     "B9": (
         "eurostat_secu_solde_pib",
         "Solde de la Sécurité sociale",
         "Recettes moins dépenses des administrations de sécurité sociale, en"
-        " comptabilité nationale. Ce n'est pas le « trou de la Sécu » débattu au"
-        " Parlement : celui-là porte sur le seul régime général (et le fonds de"
-        " solidarité vieillesse), quand ce chiffre inclut aussi l'assurance"
-        " chômage et les retraites complémentaires. Même question, deux"
-        " périmètres — ils ne se comparent pas entre eux.",
+        " comptabilité nationale. Ce n'est pas le « trou de la Sécu » des lois"
+        " de financement, qui porte sur le seul régime général : ce périmètre-ci"
+        " inclut l'assurance chômage et les retraites complémentaires.",
     ),
 }
 

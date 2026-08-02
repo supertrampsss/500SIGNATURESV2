@@ -3,7 +3,10 @@ sous-secteur S1314 — et les fiches doivent dire que ce périmètre n'est pas
 celui du « trou de la Sécu » parlementaire."""
 
 import json
+import os
 from pathlib import Path
+
+import pytest
 
 from plateforme.connectors.jsonstat import decoder
 from plateforme.normalize import secu
@@ -72,6 +75,16 @@ def test_les_fiches_desamorcent_les_pieges_de_vocabulaire():
     assert "CSG" in recettes
 
 
+def test_les_fiches_tiennent_dans_la_charte_de_cinquante_mots():
+    """Le schéma refuse toute définition publique de plus de 50 mots (0004) —
+    c'est ce qui a fait échouer le premier chargement réel. Compté ici comme le
+    SQL le compte : les segments séparés par des blancs, tirets et guillemets
+    compris."""
+    for na_item, (_, _, publique) in secu.INDICATEURS.items():
+        mots = len(publique.split())
+        assert mots <= 50, f"{na_item} : {mots} mots — la base refusera la fiche"
+
+
 def test_les_parametres_demandent_exactement_les_trois_agregats_du_s1314():
     assert secu.PARAMS["sector"] == "S1314"
     assert set(secu.PARAMS["na_item"]) == set(secu.INDICATEURS) == {"TE", "TR", "B9"}
@@ -84,3 +97,35 @@ def test_le_jeu_est_au_registre():
     with registre.open(encoding="utf-8") as fichier:
         jeux = {ligne["dataset_id"] for ligne in csv.DictReader(fichier)}
     assert secu.DATASET in jeux
+
+
+@pytest.mark.skipif(
+    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
+)
+def test_declarer_passe_les_contraintes_de_la_base():
+    """`declarer()` exécuté pour de vrai, contre le schéma réel et son seed :
+    c'est la contrainte des 50 mots — vérifiée par la base, pas par nous — qui
+    a arrêté le premier chargement en production. Un test qui n'exerce pas le
+    même chemin que la production ne prouve rien (leçon CORS, leçon d'ici)."""
+    from plateforme import db
+
+    conn = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    try:
+        secu.declarer(conn)
+        publies = {
+            ligne[0]
+            for ligne in conn.execute(
+                "select indicator_id from core.indicators where dataset_id = %s",
+                (secu.DATASET,),
+            )
+        }
+        assert publies == {fiche[0] for fiche in secu.INDICATEURS.values()}
+    finally:
+        conn.rollback()
+        conn.execute("delete from core.indicators where dataset_id = %s", (secu.DATASET,))
+        conn.execute(
+            "delete from core.indicator_definitions d where not exists"
+            " (select 1 from core.indicators i where i.definition_id = d.definition_id)"
+        )
+        conn.commit()
+        conn.close()
