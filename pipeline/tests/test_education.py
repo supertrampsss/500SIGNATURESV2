@@ -31,6 +31,20 @@ def test_le_comptage_filtre_par_type_et_par_etat():
     assert comptes["colleges_lycees"] == {"33318": 2}
 
 
+def test_les_arrondissements_comptent_pour_leur_commune():
+    """Paris affichait « 0 école » : l'annuaire code par arrondissement, et le
+    zéro écrit — honnête dans son intention — était faux. Un établissement du
+    9e arrondissement est un établissement de Paris."""
+    comptes, _ = education.compter(csv_annuaire([
+        "0751111A;75109;Ecole;OUVERT",
+        "0751112B;75120;Ecole;OUVERT",
+        "0131113C;13201;Collège;OUVERT",
+        "0691114D;69385;Lycée;OUVERT",
+    ]))
+    assert comptes["ecoles"] == {"75056": 2}
+    assert comptes["colleges_lycees"] == {"13055": 1, "69123": 1}
+
+
 def test_un_code_commune_illisible_ne_compte_pas():
     comptes, _ = education.compter(csv_annuaire(["X;331;Ecole;OUVERT", "Y;;Ecole;OUVERT"]))
     assert comptes["ecoles"] == {}

@@ -33,7 +33,7 @@ from plateforme import db, revisions
 from plateforme.connectors import ods
 from plateforme.http import fetch
 from plateforme.limites import garde_fou_volume
-from plateforme.normalize.geo import MILLESIME, make_store
+from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
 
 DATASET = "menj-annuaire-education"
 SOURCE = "data-education"
@@ -126,6 +126,12 @@ def compter(contenu: bytes) -> tuple[dict[str, Counter], int]:
             continue
         famille = TYPES.get((rang.get("type_etablissement") or "").strip())
         code = (rang.get("code_commune") or "").strip()
+        # L'annuaire code Paris, Lyon et Marseille par arrondissement : sans
+        # rattachement à la commune, Paris affichait « 0 école » — un zéro
+        # honnêtement écrit, et faux. Troisième source, troisième variante du
+        # même piège PLM ; le rattachement vit dans geo.commune_mere.
+        if len(code) == 5:
+            code = commune_mere(code) or code
         if famille and len(code) == 5:
             comptes[famille][code] += 1
     return comptes, lus
