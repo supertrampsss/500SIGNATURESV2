@@ -56,12 +56,19 @@ export type Repere = { libelle: string; valeur: number; nature: string };
  * 871 € lui dirait qu'elle dépense peu, alors qu'elle dépense plus que la
  * moitié des communes françaises.
  */
-export function valeurDe(agregat: Agregat, _nature: string, parHabitant: boolean): number | null {
-  // `mediane_habitant` manque pour ce qui ne se divise pas — un taux, une
-  // médiane de revenus. Le repli sur la médiane brute est alors le bon repère,
-  // et non une absence : « par habitant » n'existe simplement pas pour eux.
-  const valeur = parHabitant ? (agregat.mediane_habitant ?? agregat.mediane) : agregat.mediane;
-  return valeur ?? null;
+export function valeurDe(agregat: Agregat, nature: string, parHabitant: boolean): number | null {
+  if (!parHabitant) return agregat.mediane ?? null;
+  if (agregat.mediane_habitant !== undefined) return agregat.mediane_habitant;
+  // Ici `mediane_habitant` manque, et `nature` dit s'il s'agit d'une absence
+  // normale ou d'une publication trop ancienne.
+  //
+  // - `mediane` : un taux, une médiane de revenus. « Par habitant » n'existe
+  //   pas pour eux, la médiane brute EST le repère.
+  // - `agregat` : un montant divisible dont la médiane par habitant devrait
+  //   exister. Une publication antérieure à ce champ n'en a pas — et servir la
+  //   médiane des montants bruts mettrait 328 659 € en face de 871 €. Mieux
+  //   vaut aucun repère qu'un repère faux.
+  return nature === "mediane" ? (agregat.mediane ?? null) : null;
 }
 
 /** Le rapport agrégé : ce que coûte l'échelon entier, rapporté à sa population.

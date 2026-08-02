@@ -88,3 +88,16 @@ test("la note dit de quelle nature est le repère", () => {
   assert.match(rendu(reperes(EUROS, "commune", "75", true), 871, String), /la moitié se situe en dessous/);
   assert.match(rendu(reperes(TAUX, "commune", "75", false), 20, String), /ne s'additionnent pas/);
 });
+
+test("une publication sans médiane par habitant ne sert pas la médiane brute", () => {
+  /*
+   * Le champ `mediane_habitant` est apparu le 2 août. Une publication
+   * antérieure n'en a pas : replier sur `mediane` mettrait 328 659 € en face
+   * d'une commune à 871 €. Mieux vaut aucun repère qu'un repère faux.
+   */
+  const ancien = { n: 10, mediane: 328_659, total: 1, habitants: 1 };
+  assert.equal(valeurDe(ancien, "agregat", true), null);
+  assert.equal(valeurDe(ancien, "agregat", false), 328_659);
+  // pour un taux, l'absence est normale et la médiane brute reste le repère
+  assert.equal(valeurDe({ n: 10, mediane: 16.3 }, "mediane", true), 16.3);
+});
