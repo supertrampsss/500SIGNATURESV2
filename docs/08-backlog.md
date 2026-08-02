@@ -126,6 +126,23 @@
 > l'API BDM de l'INSEE répond 500 (panne producteur, issue d'alerte #3 tenue à
 > jour automatiquement) — le chômage se rechargera au cron de lundi.
 >
+> **2 août 2026, soir — la maille intercommunale.** La carte gagne le niveau
+> « Intercommunalités » : 1 255 EPCI dessinés par union exacte de leurs
+> communes membres (appartenance API Géo, libellés du référentiel), quatre
+> couches dans l'archive PMTiles, cartes et repères publiés sur huit exercices
+> (2018-2025, 1 266 EPCI avec données — l'écart, vérifié code par code, est
+> exactement les onze établissements publics territoriaux du Grand Paris :
+> porteurs de comptes OFGL mais absents de la liste des EPCI à fiscalité
+> propre de l'API Géo, leur fiche reste accessible par la recherche, sans
+> polygone). Un EPCI n'a pas de parent
+> (chevauchement départemental possible) : ses repères se limitent à
+> l'ensemble des EPCI de France, sans région fabriquée. Vérifié à l'écran :
+> carte peinte, fiche Bordeaux Métropole (dénominateur de l'exercice), clic
+> carte, export CSV à 1 266 territoires. Déploiement en deux temps — le
+> sélecteur n'a été poussé qu'avec le garde-fou « couche non chargée » actif
+> pendant la régénération des tuiles, et l'état s'est réparé seul à la
+> publication.
+>
 > **Séries dans le temps** (01/08/2026, hors backlog initial). La fiche affichait
 > « +18 % depuis 2016 » sans vérifier que le territoire avait la même surface en
 > 2016 — une série est une comparaison d'un territoire avec lui-même, et la règle
