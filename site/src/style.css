@@ -418,7 +418,8 @@ thead th {
 @media (max-width: 40rem) {
   .pont,
   .comparaison,
-  .fonctions {
+  .fonctions,
+  .secu {
     display: block;
     overflow-x: auto;
     max-width: 100%;
@@ -914,4 +915,24 @@ thead th {
   display: block;
   height: 100%;
   background: var(--accent);
+}
+
+/* La Sécu : mêmes tables sobres que les fonctions ; les soldes s'alignent en
+   chiffres tabulaires, le signe porte le sens — aucune couleur morale. */
+.secu {
+  margin-top: 0.6rem;
+}
+.secu td,
+.secu th {
+  padding: 0.35rem 0.5rem;
+}
+.secu tbody th {
+  font-weight: 400;
+  text-align: left;
+}
+.secu td {
+  font-variant-numeric: tabular-nums;
+}
+.secu--serie {
+  font-size: 0.85rem;
 }

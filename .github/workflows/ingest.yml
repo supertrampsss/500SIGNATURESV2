@@ -99,6 +99,11 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "secu" ]; then
+            python -m plateforme.normalize.secu --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "maires" ]; then
             python -m plateforme.normalize.maires --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published

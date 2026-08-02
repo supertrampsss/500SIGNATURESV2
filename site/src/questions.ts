@@ -34,6 +34,14 @@ export const QUESTIONS: Question[] = [
     cible: "#bloc-fonctions",
   },
   {
+    question: "La Sécu est-elle en déficit ?",
+    reponse:
+      "Dépenses, recettes et solde des administrations de sécurité sociale en" +
+      " part du PIB, année par année et face à l'Allemagne — en disant pourquoi" +
+      " ce chiffre n'est pas le « trou de la Sécu » des débats parlementaires.",
+    cible: "#bloc-secu",
+  },
+  {
     question: "Ce qui a été voté a-t-il été dépensé ?",
     reponse:
       "Le budget de l'État à trois moments du même exercice — voté, rectifié," +

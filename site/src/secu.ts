@@ -1,0 +1,143 @@
+/**
+ * La Sécu, c'est combien ? — dépenses, recettes et solde du sous-secteur
+ * administrations de sécurité sociale (S1314), en % du PIB.
+ *
+ * La Sécurité sociale dépense plus que l'État et le site n'en disait rien en
+ * propre. Ce bloc répond en comptabilité nationale, seule définition qui
+ * permette la comparaison France / Allemagne / zone euro — et il dit deux
+ * pièges de vocabulaire : ce solde n'est pas le « trou de la Sécu » débattu au
+ * Parlement (autre périmètre : régime général + FSV), et les recettes ne sont
+ * pas que des cotisations (CSG, fractions de TVA).
+ *
+ * Le solde s'exprime en **points de PIB**, pas en pourcentage d'un total : la
+ * différence entre deux grandeurs en % du PIB se compte en points.
+ */
+
+import type { Indicateur, Territoire } from "./donnees.ts";
+import { pourcentage } from "./echelle.ts";
+
+export const DEPENSES = "eurostat_secu_depenses_pib";
+export const RECETTES = "eurostat_secu_recettes_pib";
+export const SOLDE = "eurostat_secu_solde_pib";
+
+const COMPARES: [string, string][] = [
+  ["FR", "France"],
+  ["DE", "Allemagne"],
+  ["EA20", "Zone euro"],
+];
+
+const FINE = "\u202f";
+
+function echapper(texte: string): string {
+  return texte.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string,
+  );
+}
+
+/** Un solde se lit signé, en points de PIB : « +0,4 pt » / « −2,1 pt ». */
+export function points(valeur: number): string {
+  const texte = valeur.toLocaleString("fr-FR", {
+    signDisplay: "exceptZero",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return `${texte}${FINE}pt`;
+}
+
+function derniere(serie: Record<string, number> | undefined): [string, number] | null {
+  if (!serie) return null;
+  const periodes = Object.keys(serie).sort();
+  const p = periodes[periodes.length - 1];
+  return p ? [p, serie[p]] : null;
+}
+
+/** Rendu pur, sans DOM : c'est lui qui est testé. */
+export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[]): string {
+  const france = pays["FR"];
+  const dernieres = derniere(france?.series?.[SOLDE]);
+  if (!france || !dernieres) return "";
+  const [annee, soldeFr] = dernieres;
+  if (!catalogue.some((i) => i.id === SOLDE)) return "";
+  const valeur = (code: string, id: string): number | undefined =>
+    pays[code]?.series?.[id]?.[annee];
+
+  const depensesFr = valeur("FR", DEPENSES);
+  const recettesFr = valeur("FR", RECETTES);
+  if (depensesFr === undefined || recettesFr === undefined) return "";
+
+  // « Capacité » ou « besoin de financement » : les mots de la comptabilité
+  // nationale, pas une paraphrase — c'est ce que mesure B9.
+  const lecture =
+    soldeFr > 0
+      ? `une capacité de financement de ${points(soldeFr)} de PIB`
+      : soldeFr < 0
+        ? `un besoin de financement de ${points(Math.abs(soldeFr)).replace("+", "")} de PIB`
+        : "un solde équilibré";
+
+  const lignes = COMPARES.map(([code, nom]) => {
+    const d = valeur(code, DEPENSES);
+    const r = valeur(code, RECETTES);
+    const s = valeur(code, SOLDE);
+    // Un comparateur sans valeur cette année-là garde sa ligne, en tirets :
+    // « pas encore publié » se dit, un comparateur qui disparaît se devine.
+    const cellule = (v: number | undefined, rendu: (n: number) => string) =>
+      v === undefined ? "—" : echapper(rendu(v));
+    return `<tr>
+      <th scope="row">${echapper(nom)}</th>
+      <td>${cellule(d, pourcentage)}</td>
+      <td>${cellule(r, pourcentage)}</td>
+      <td>${cellule(s, points)}</td>
+    </tr>`;
+  }).join("");
+
+  // Le solde dans le temps : la série qui répond à « la Sécu est-elle en
+  // déficit ? » mieux qu'un chiffre isolé — le signe change d'une année à
+  // l'autre, et 2020 le montre.
+  const serieSolde = Object.entries(france.series?.[SOLDE] ?? {}).sort(([a], [b]) =>
+    a.localeCompare(b),
+  );
+  const frise = serieSolde
+    .map(
+      ([a, v]) => `<tr><th scope="row">${echapper(a)}</th>
+      <td class="${v < 0 ? "secu__besoin" : "secu__capacite"}">${echapper(points(v))}</td></tr>`,
+    )
+    .join("");
+
+  return `
+    <h3>La Sécu, c'est combien ?</h3>
+    <p class="bloc__complement">En ${echapper(annee)}, les administrations de sécurité
+      sociale françaises ont dépensé <strong>${echapper(pourcentage(depensesFr))} du produit
+      intérieur brut</strong> et reçu ${echapper(pourcentage(recettesFr))}, soit
+      ${lecture}.</p>
+    <table class="secu">
+      <caption>Sous-secteur administrations de sécurité sociale (S1314), ${echapper(
+        annee,
+      )} · % du PIB, définitions harmonisées Eurostat</caption>
+      <thead><tr><th scope="col">Territoire</th><th scope="col">Dépenses</th>
+        <th scope="col">Recettes</th><th scope="col">Solde</th></tr></thead>
+      <tbody>${lignes}</tbody>
+    </table>
+    <table class="secu secu--serie">
+      <caption>Le solde français année par année, en points de PIB</caption>
+      <thead><tr><th scope="col">Année</th><th scope="col">Solde</th></tr></thead>
+      <tbody>${frise}</tbody>
+    </table>
+    <p class="avertissement">Ce périmètre — celui de la comptabilité nationale — inclut
+      l'assurance chômage et les retraites complémentaires obligatoires. Ce n'est
+      <strong>pas le « trou de la Sécu »</strong> des lois de financement, qui ne porte que
+      sur le régime général et le fonds de solidarité vieillesse : les deux chiffres ne se
+      comparent pas. Les recettes mêlent cotisations sociales et impôts affectés (CSG,
+      fractions de TVA) — cotisation et impôt ne sont pas la même chose.</p>`;
+}
+
+export function afficherSecu(
+  bloc: HTMLElement,
+  pays: Record<string, Territoire>,
+  catalogue: Indicateur[],
+): boolean {
+  const html = rendu(pays, catalogue);
+  if (!html) return false;
+  bloc.innerHTML = html;
+  return true;
+}

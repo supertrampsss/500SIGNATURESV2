@@ -20,6 +20,7 @@ import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts";
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
+import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
   formater,
@@ -399,6 +400,7 @@ const THEMES: Record<string, string> = {
   emploi: "Emploi et chômage",
   entreprises: "Entreprises",
   fonctions: "Dépenses par fonction",
+  securite_sociale: "Sécurité sociale",
   impots_locaux: "Impôts locaux",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
@@ -649,6 +651,9 @@ async function demarrer(): Promise<void> {
       $("national").hidden = false;
     }
     if (afficherFonctions($("bloc-fonctions"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    if (afficherSecu($("bloc-secu"), pays, catalogue)) {
       $("national").hidden = false;
     }
   } catch {
