@@ -120,6 +120,23 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
   if (unite === "percent") {
     return `${classes} Taux en pourcentage : ils ne s'additionnent pas et ne se ramènent pas à l'habitant.`;
   }
+  // Les taux de délinquance enregistrée (SSMSI) : le dénominateur fait partie
+  // de l'unité — cambriolages pour 1 000 logements, le reste pour 1 000
+  // habitants — et la note doit nommer le bon, sinon elle affirme un chiffre
+  // deux fois trop petit ou trop grand.
+  if (unite === "pour_1000_habitants") {
+    return (
+      `${classes} Faits enregistrés pour 1 000 habitants (dénominateur INSEE de la` +
+      " source). Mesure les faits portés à la connaissance des forces de l'ordre," +
+      " pas l'intégralité des faits commis."
+    );
+  }
+  if (unite === "pour_1000_logements") {
+    return (
+      `${classes} Faits enregistrés pour 1 000 logements (dénominateur INSEE de la` +
+      " source), le bon dénominateur des cambriolages — pas la population."
+    );
+  }
   if (unite === "count") return `${classes} Effectifs, en nombre d'unités.`;
   return `${classes} Montants en euros courants.`;
 }
@@ -138,6 +155,14 @@ export function formater(valeur: number, unite: string, parHabitant: boolean): s
   // avant le signe, comme le veut l'usage français.
   if (unite === "percent") {
     return pourcentage(valeur);
+  }
+  // Taux pour mille (délinquance SSMSI) : le symbole ‰ est cryptique pour
+  // beaucoup — le « pour 1 000 » est écrit en toutes lettres, et la légende
+  // nomme le dénominateur exact (habitants ou logements).
+  if (unite === "pour_1000_habitants" || unite === "pour_1000_logements") {
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+      valeur,
+    )} ‰`;
   }
   // Repli honnête : une unité que ce module ne connaît pas s'affiche telle
   // quelle, à côté du nombre. Le bug du taux de pauvreté en euros venait de ce

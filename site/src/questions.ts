@@ -49,6 +49,16 @@ export const QUESTIONS: Question[] = [
     cible: "#bloc-etat",
   },
   {
+    question: "Ma commune est-elle plus cambriolée qu'ailleurs ?",
+    reponse:
+      "Les cambriolages pour 1 000 logements et cinq autres séries de délinquance" +
+      " enregistrée par la police et la gendarmerie (SSMSI), par commune. Des faits" +
+      " enregistrés — pas l'intégralité des faits commis, ni des condamnations.",
+    // L'état du site vit dans l'URL : ce lien ouvre la carte directement sur
+    // la bonne couche, sans mécanique supplémentaire.
+    cible: "?theme=securite&indicateur=ssmsi_cambriolages_taux&niveau=commune",
+  },
+  {
     question: "Ma commune dépense-t-elle plus que les communes comparables ?",
     reponse:
       "Sa position parmi les communes de mêmes critères, publiés avec le résultat." +

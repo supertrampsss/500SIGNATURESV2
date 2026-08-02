@@ -42,7 +42,17 @@ function nombreFrancais(valeur: number): string {
  *  l'écran : une unité inconnue ne devient pas des euros (echelle.ts). */
 export function uniteLisible(unite: string, parHabitant: boolean): string {
   const libelle =
-    unite === "EUR" ? "euros" : unite === "percent" ? "%" : unite === "count" ? "nombre" : unite;
+    unite === "EUR"
+      ? "euros"
+      : unite === "percent"
+        ? "%"
+        : unite === "count"
+          ? "nombre"
+          : unite === "pour_1000_habitants"
+            ? "pour 1 000 habitants"
+            : unite === "pour_1000_logements"
+              ? "pour 1 000 logements"
+              : unite;
   return parHabitant ? `${libelle} par habitant` : libelle;
 }
 

@@ -403,6 +403,7 @@ const THEMES: Record<string, string> = {
   entreprises: "Entreprises",
   fonctions: "Dépenses par fonction",
   securite_sociale: "Sécurité sociale",
+  securite: "Sécurité",
   impots_locaux: "Impôts locaux",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",

@@ -167,3 +167,14 @@ test("les unités connues gardent leur mise en forme", () => {
   assert.equal(formater(1500, "count", false), `1${FINE}500`);
   assert.equal(formater(15, "percent", false), `15${FINE}%`);
 });
+
+test("les taux pour mille s'affichent en ‰ et la note nomme le bon dénominateur", () => {
+  assert.equal(formater(10.2266504, "pour_1000_habitants", false), `10,2${FINE}‰`);
+  assert.equal(formater(3.05, "pour_1000_logements", false), `3,1${FINE}‰`);
+  assert.match(noteEchelle("pour_1000_habitants", false), /pour 1 000 habitants/);
+  assert.match(noteEchelle("pour_1000_habitants", false), /pas l'intégralité des faits commis/);
+  assert.match(noteEchelle("pour_1000_logements", false), /pour 1 000 logements/);
+  assert.match(noteEchelle("pour_1000_logements", false), /pas la population/);
+  // le « par habitant » n'a pas de sens sur un taux : la bascule reste fermée
+  assert.equal(parHabitantAUnSens({ unite: "pour_1000_habitants", sommable: false }), false);
+});
