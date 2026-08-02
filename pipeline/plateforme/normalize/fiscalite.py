@@ -26,6 +26,8 @@ Usage : python -m plateforme.normalize.fiscalite [--depuis 2022] [--store …]
 import argparse
 import csv
 import io
+from datetime import UTC, datetime
+from urllib.parse import urlencode
 
 from psycopg.types.json import Jsonb
 
@@ -57,6 +59,25 @@ INDICATEURS = {
         " au prix du bien : un taux élevé ne signifie pas une facture élevée.",
     ),
 }
+
+
+def url_export(depuis: int) -> str:
+    """URL d'export CSV, correctement encodée.
+
+    Deux leçons du premier échec (HTTP 400) : `exercice` est un champ texte et
+    l'API refuse `>=` entre textes — la borne devient une clause `IN` sur des
+    années énumérées ; et une URL se construit avec `urlencode`, jamais par
+    concaténation — les quotes et le `>` non encodés suffisaient à casser la
+    requête.
+    """
+    annees = ",".join(f"'{a}'" for a in range(depuis, datetime.now(UTC).year + 1))
+    q = urlencode(
+        {
+            "select": "exercice,dep,com,e12vote,taux_global_tfb",
+            "where": f"exercice in ({annees})",
+        }
+    )
+    return f"{ods.export_url(BASE, JEU)}?{q}"
 
 
 def declarer(conn) -> None:
@@ -174,11 +195,7 @@ def run(depuis: int, store_spec: str) -> int:
     declarer(conn)
     run_id = db.start_run(conn, DATASET, "manual")
     try:
-        url = (
-            ods.export_url(BASE, JEU)
-            + "?select=exercice,dep,com,e12vote,taux_global_tfb"
-            + f"&where=exercice>='{depuis}'"
-        )
+        url = url_export(depuis)
         contenu = fetch(url, timeout=600).content
         db.record_asset(
             conn, store, run_id, DATASET, SOURCE, f"taux-tfb-depuis-{depuis}.csv",

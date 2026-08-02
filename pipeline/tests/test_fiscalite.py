@@ -73,3 +73,12 @@ def test_le_jeu_est_au_registre():
         jeux = {ligne["dataset_id"]: ligne for ligne in module_csv.DictReader(fichier)}
     assert fiscalite.DATASET in jeux
     assert jeux[fiscalite.DATASET]["target_tables"] == "core.observations"
+
+
+def test_l_url_d_export_est_encodee_et_borne_par_enumeration():
+    """Le premier chargement a echoue en 400 : `exercice` est un champ texte,
+    l'API refuse `>=` entre textes, et l'URL etait concatenee sans encodage."""
+    url = fiscalite.url_export(2022)
+    assert "exercice+in+" in url or "exercice%20in%20" in url
+    assert "%272022%27" in url
+    assert ">" not in url.split("?", 1)[1]
