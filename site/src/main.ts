@@ -28,6 +28,51 @@ import {
 } from "./echelle.ts";
 import "./style.css";
 
+/** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
+ *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
+ *  françaises étaient introuvables autrement qu'en faisant glisser la carte à
+ *  travers l'Atlantique. Une carte de la France qui n'a pas de Guadeloupe n'est
+ *  pas une carte de la France.
+ *
+ *  Bornes géographiques, pas centres : elles cadrent le territoire quelle que
+ *  soit la taille du conteneur. */
+const VUES: Record<string, { nom: string; bornes: [[number, number], [number, number]] }> = {
+  metropole: { nom: "France métropolitaine", bornes: [[-5.3, 41.3], [9.7, 51.2]] },
+  guadeloupe: { nom: "Guadeloupe", bornes: [[-61.85, 15.8], [-60.95, 16.55]] },
+  martinique: { nom: "Martinique", bornes: [[-61.25, 14.35], [-60.75, 14.9]] },
+  guyane: { nom: "Guyane", bornes: [[-54.7, 2.0], [-51.5, 5.85]] },
+  reunion: { nom: "La Réunion", bornes: [[55.2, -21.42], [55.9, -20.85]] },
+  mayotte: { nom: "Mayotte", bornes: [[44.95, -13.05], [45.35, -12.6]] },
+};
+
+/** Le préfixe de code dit dans quelle vue se trouve un territoire. */
+const VUE_PAR_PREFIXE: Record<string, string> = {
+  "971": "guadeloupe",
+  "972": "martinique",
+  "973": "guyane",
+  "974": "reunion",
+  "976": "mayotte",
+};
+
+export function vueDuCode(code: string): string {
+  return VUE_PAR_PREFIXE[code.slice(0, 3)] ?? "metropole";
+}
+
+/** Zoom à partir duquel le liseré d'une maille devient lisible, et sa largeur.
+ *  Plus la maille est fine, plus le trait doit attendre : à l'échelle du pays,
+ *  un contour par commune efface la donnée qu'il est censé délimiter. */
+const LISERE: Record<string, number[]> = {
+  regions: [3, 0.3, 5, 0.6, 9, 1.2],
+  departements: [4.5, 0, 6, 0.4, 10, 1],
+  communes: [7, 0, 8.5, 0.3, 12, 0.8],
+};
+
+/** Expression MapLibre, sortie du littéral de calque : son type d'union ne
+ *  survit pas à l'inférence, comme pour `expressionCouleur`. */
+function largeurLisere(couche: string): unknown {
+  return ["interpolate", ["linear"], ["zoom"], ...LISERE[couche]];
+}
+
 const COUCHES: Record<string, string> = {
   commune: "communes",
   departement: "departements",
@@ -42,6 +87,7 @@ type Etat = {
   declinaison: string;
   selection: string | null;
   comparaison: string[];
+  vue: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -64,6 +110,7 @@ function lireUrl(): Etat {
     declinaison: p.get("affichage") ?? "habitant",
     selection: p.get("territoire"),
     comparaison: (p.get("comparer") ?? "").split(",").filter(Boolean).slice(0, MAXIMUM),
+    vue: p.get("vue") ?? "metropole",
   };
 }
 
@@ -75,6 +122,7 @@ function ecrireUrl(): void {
     periode: etat.periode,
     affichage: etat.declinaison,
   });
+  if (etat.vue !== "metropole") p.set("vue", etat.vue);
   if (etat.selection) p.set("territoire", etat.selection);
   if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
   history.replaceState(null, "", `?${p}`);
@@ -212,7 +260,28 @@ async function peindre(): Promise<void> {
   }
 }
 
+/** Recadre la carte sur une vue déclarée. */
+function cadrer(vue: string): void {
+  const bornes = VUES[vue]?.bornes;
+  if (bornes && carte) carte.fitBounds(bornes, { padding: 24, duration: 800 });
+}
+
+/** Amène la carte là où se trouve le territoire choisi.
+ *
+ *  Sans cela, chercher « Fort-de-France » ouvrait sa fiche et laissait la carte
+ *  sur la métropole : on lisait les chiffres d'un territoire qu'on ne voyait
+ *  pas. Le recadrage n'a lieu que si la vue change — sinon il ferait sursauter
+ *  la carte à chaque clic. */
+function suivreLaSelection(code: string): void {
+  const vue = vueDuCode(code);
+  if (vue === etat.vue) return;
+  etat.vue = vue;
+  $<HTMLSelectElement>("vue").value = vue;
+  cadrer(vue);
+}
+
 async function montrerFiche(code: string): Promise<void> {
+  suivreLaSelection(code);
   await chargerLotsNecessaires(etat.niveau, [code]);
   const territoire = entites[code];
   if (!territoire) return;
@@ -355,6 +424,13 @@ function construireSelecteurs(): void {
     .join("");
   $<HTMLSelectElement>("periode").value = etat.periode;
   $<HTMLSelectElement>("niveau").value = etat.niveau;
+  const vue = $<HTMLSelectElement>("vue");
+  if (!vue.options.length) {
+    vue.innerHTML = Object.entries(VUES)
+      .map(([cle, v]) => `<option value="${cle}">${v.nom}</option>`)
+      .join("");
+  }
+  vue.value = etat.vue;
 
   // « Par habitant » n'a de sens que pour un montant qui s'additionne. Sur un
   // taux ou un effectif, le calcul le refusait déjà — mais la commande restait
@@ -380,6 +456,10 @@ function brancherCommandes(): void {
     }
     if (cible.id === "periode") etat.periode = cible.value;
     if (cible.id === "declinaison") etat.declinaison = cible.value;
+    if (cible.id === "vue") {
+      etat.vue = cible.value;
+      cadrer(etat.vue);
+    }
     construireSelecteurs();
     ecrireUrl();
     await peindre();
@@ -454,13 +534,22 @@ async function demarrer(): Promise<void> {
             type: "line" as const,
             source: "territoires",
             "source-layer": couche,
-            paint: { "line-color": "#ffffff", "line-width": 0.4 },
+            // Un trait de largeur fixe rendait la carte illisible : à l'échelle
+            // nationale, le contour blanc de 34 772 communes couvre plus de
+            // surface que leur remplissage, et la choroplèthe se lit comme du
+            // bruit. Le trait n'apparaît donc qu'au zoom où la maille devient
+            // assez grande pour le porter — d'autant plus tard que la maille
+            // est fine.
+            paint: {
+              "line-color": "#ffffff",
+              "line-width": largeurLisere(couche) as never,
+            },
           },
         ]),
       ],
     },
-    center: [2.4, 46.6],
-    zoom: 4.8,
+    bounds: VUES[etat.vue]?.bornes ?? VUES.metropole.bornes,
+    fitBoundsOptions: { padding: 24 },
     attributionControl: { customAttribution: "IGN Admin Express · OFGL · Licence Ouverte 2.0" },
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
