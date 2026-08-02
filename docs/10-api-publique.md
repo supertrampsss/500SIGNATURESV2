@@ -57,9 +57,10 @@ Les tuiles vectorielles suivent le même principe, sous leur propre pointeur :
 curl -s $BASE/geo/derniere.json     # {"cle": "geo/2026-07-31/territoires.pmtiles", …}
 ```
 
-L'archive PMTiles (56 Mo, zooms 0-12) contient trois couches : `communes`,
-`departements`, `regions`. Elle se lit en HTTP par plages d'octets — aucun
-téléchargement complet n'est nécessaire.
+L'archive PMTiles (zooms 0-12) contient quatre couches : `communes`, `epcis`,
+`departements`, `regions` — l'intercommunale est l'union exacte des communes
+membres. Elle se lit en HTTP par plages d'octets — aucun téléchargement
+complet n'est nécessaire.
 
 ## Exemples
 

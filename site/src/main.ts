@@ -67,6 +67,7 @@ export function vueDuCode(code: string): string {
 const LISERE: Record<string, number[]> = {
   regions: [3, 0.3, 5, 0.6, 9, 1.2],
   departements: [4.5, 0, 6, 0.4, 10, 1],
+  epcis: [5, 0, 7, 0.35, 10.5, 0.9],
   communes: [7, 0, 8.5, 0.3, 12, 0.8],
 };
 
@@ -78,6 +79,7 @@ function largeurLisere(couche: string): unknown {
 
 const COUCHES: Record<string, string> = {
   commune: "communes",
+  epci: "epcis",
   departement: "departements",
   region: "regions",
 };
