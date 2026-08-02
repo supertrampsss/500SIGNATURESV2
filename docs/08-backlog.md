@@ -126,6 +126,26 @@
 > l'API BDM de l'INSEE répond 500 (panne producteur, issue d'alerte #3 tenue à
 > jour automatiquement) — le chômage se rechargera au cron de lundi.
 >
+> **2 août 2026, soirée — l'insécurité entre sur la carte** (manque relevé par
+> le commanditaire : « où sont les indicateurs d'insécurité ? »). Bases SSMSI
+> de la délinquance enregistrée : 32 indicateurs (16 classes × taux + nombre),
+> commune (6 classes phares, dernière année, 10 614 communes diffusées),
+> département et région (16 classes, 2016-2025). Le dénominateur dépend de la
+> classe — cambriolages pour 1 000 *logements*, le reste pour 1 000 habitants —
+> constaté sur les données et recalculé ligne à ligne. Le secret de diffusion
+> (~46 % des lignes communales) n'est jamais publié ; couverture par classe
+> enregistrée. Trois défauts attrapés par les contrôles et l'écran au premier
+> chargement réel, corrigés le jour même : Paris, Lyon et Marseille comptés
+> deux fois (commune + arrondissements) dans la borne départementale, qui les
+> écartait de la carte ; bruit d'arrondi d'années non chargées dans le rapport
+> d'écartées ; et deux mensonges d'affichage — un repère « Communes de
+> France » calculé sur l'ensemble censuré par le secret (médiane 0 ‰ : vraie,
+> mais l'étiquette mentait sur le périmètre → plus de repères pour les jeux
+> sous secret), et une légende « 0 ‰ – 0 ‰ » répétée quand la moitié des
+> communes sont à zéro (quantiles dédupliqués). Vérifié à l'écran : Marseille
+> 9,3 ‰ de cambriolages, repère régional médian +134 %, note de légende
+> nommant le bon dénominateur.
+>
 > **2 août 2026, soir — la maille intercommunale.** La carte gagne le niveau
 > « Intercommunalités » : 1 255 EPCI dessinés par union exacte de leurs
 > communes membres (appartenance API Géo, libellés du référentiel), quatre
