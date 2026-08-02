@@ -397,6 +397,38 @@ thead th {
   }
 }
 
+/* Téléphone : vérifié en 375 px — première fois le 2 août 2026, et le viewport
+   s'étirait à 424 px parce que les tableaux larges (pont budgétaire,
+   comparaison européenne, fonctions) imposaient leur largeur minimale à la
+   page. Un tableau large défile dans son propre cadre ; la page, jamais. */
+@media (max-width: 40rem) {
+  .pont,
+  .comparaison,
+  .fonctions {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  /* Les commandes empilées mesuraient 528 px de haut — les deux tiers du
+     premier écran. Deux colonnes suffisent, la recherche garde toute la
+     largeur. */
+  .champ {
+    flex: 1 1 40%;
+  }
+  .champ select,
+  .champ input[type="search"] {
+    min-width: 0;
+    width: 100%;
+  }
+  .champ--recherche {
+    flex-basis: 100%;
+  }
+  .tableau,
+  .national {
+    padding: 1rem;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
