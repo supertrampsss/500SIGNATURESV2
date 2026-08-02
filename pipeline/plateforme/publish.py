@@ -412,24 +412,132 @@ def evenements(conn, niveau: str) -> dict[str, list[dict]]:
     }
 
 
+def references(conn, cartographiees: dict[str, dict[str, list[str]]]) -> dict:
+    """Ce à quoi se compare un territoire : l'ensemble dont il fait partie.
+
+    **La région de référence d'une commune n'est pas le conseil régional.** Le
+    budget d'une région est celui d'une autre collectivité, qui exerce d'autres
+    compétences ; y rapporter une commune comparerait deux niveaux de
+    gouvernement. La référence est donc l'agrégat des **communes** de la même
+    région, puis de toutes les communes de France — et le libellé le dit.
+
+    Deux natures de référence, parce que deux natures de grandeur :
+
+    - un montant qui s'additionne donne un **rapport agrégé** : somme des
+      montants sur somme des populations. C'est la dépense par habitant de
+      l'ensemble, pas une moyenne de moyennes — laquelle serait tirée par les
+      milliers de communes minuscules qui pèsent chacune autant que Paris.
+    - un taux ou une médiane ne s'additionne pas : la référence est la **médiane
+      des territoires**, et rien d'autre n'aurait de sens.
+    """
+    sortie: dict = defaultdict(lambda: defaultdict(dict))
+    for indicateur, sommable, unite in conn.execute(
+        "select indicator_id, additive, unit from core.indicators where published"
+    ).fetchall():
+        for niveau, periodes in cartographiees.get(indicateur, {}).items():
+            for periode in periodes:
+                calcul = _reference_par_region(conn, indicateur, niveau, periode, sommable, unite)
+                if calcul:
+                    sortie[indicateur][periode][niveau] = calcul
+    return sortie
+
+
+def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) -> dict | None:
+    """Agrège les territoires d'un niveau, par région d'appartenance puis en tout.
+
+    La région d'une commune est le parent de son parent ; celle d'un département
+    est son parent ; une région est sa propre région. `population` vient de la
+    référence OFGL de l'exercice quand elle existe, du référentiel sinon — le
+    même dénominateur que le site.
+    """
+    lignes = conn.execute(
+        """
+        with territoire as (
+            select g.geo_code, g.population,
+                   case %(niveau)s
+                     when 'region' then g.geo_code
+                     when 'departement' then g.parent_code
+                     else (select d.parent_code from geo.geography_reference d
+                            where d.geo_level = 'departement' and d.geo_code = g.parent_code
+                              and d.vintage = g.vintage)
+                   end as region
+              from geo.geography_reference g
+             where g.geo_level = %(niveau)s
+               and g.vintage = (select max(vintage) from geo.geography_reference
+                                 where geo_level = %(niveau)s)
+        )
+        select t.region, o.value,
+               coalesce(p.value, t.population) as habitants
+          from core.observations o
+          join territoire t on t.geo_code = o.geo_code
+          left join core.observations p
+                 on p.indicator_id = 'ofgl_population_reference'
+                and p.geo_level = o.geo_level and p.geo_code = o.geo_code
+                and p.period = o.period and p.variant = 'total'
+         where o.indicator_id = %(indicateur)s and o.geo_level = %(niveau)s
+           and o.period = %(periode)s and o.value_status = 'normal' and o.variant = 'total'
+        """,
+        {"niveau": niveau, "indicateur": indicateur, "periode": periode},
+    ).fetchall()
+    if not lignes:
+        return None
+
+    def agreger(sous_ensemble):
+        valeurs = [float(v) for _, v, _ in sous_ensemble]
+        bloc: dict = {"n": len(valeurs), "mediane": _mediane(valeurs)}
+        if sommable and unite == "EUR":
+            habitants = sum(float(h) for _, _, h in sous_ensemble if h)
+            if habitants:
+                bloc["total"] = sum(valeurs)
+                bloc["habitants"] = habitants
+        return bloc
+
+    par_region: dict = defaultdict(list)
+    for ligne in lignes:
+        if ligne[0]:
+            par_region[ligne[0]].append(ligne)
+    return {
+        "nature": "agregat" if (sommable and unite == "EUR") else "mediane",
+        "france": agreger(lignes),
+        "regions": {code: agreger(membres) for code, membres in par_region.items()},
+    }
+
+
+def _mediane(valeurs: list[float]) -> float:
+    tri = sorted(valeurs)
+    milieu = len(tri) // 2
+    return tri[milieu] if len(tri) % 2 else (tri[milieu - 1] + tri[milieu]) / 2
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
     return {
         code: {
             "nom": nom,
             "parent": parent,
+            # La région d'appartenance : sans elle, le site ne saurait pas à quel
+            # ensemble comparer un territoire.
+            "region": region,
             "population": population,
             "drapeaux": drapeaux,
             "evenements": changements.get(code, []),
         }
-        for code, nom, parent, population, drapeaux in conn.execute(
+        for code, nom, parent, region, population, drapeaux in conn.execute(
             """
-            select geo_code, name, parent_code, population, flags
-            from geo.geography_reference
-            where geo_level = %s and vintage = (select max(vintage)
-                from geo.geography_reference where geo_level = %s)
+            select g.geo_code, g.name, g.parent_code,
+                   case %(niveau)s
+                     when 'region' then g.geo_code
+                     when 'departement' then g.parent_code
+                     else (select d.parent_code from geo.geography_reference d
+                            where d.geo_level = 'departement' and d.geo_code = g.parent_code
+                              and d.vintage = g.vintage)
+                   end as region,
+                   g.population, g.flags
+            from geo.geography_reference g
+            where g.geo_level = %(niveau)s and g.vintage = (select max(vintage)
+                from geo.geography_reference where geo_level = %(niveau)s)
             """,
-            (niveau, niveau),
+            {"niveau": niveau},
         )
     }
 
@@ -489,6 +597,7 @@ def publier(conn, store, version: str) -> int:
     deposer("budget-etat.json", budget_etat(conn))
     deposer("fraicheur.json", fraicheur(conn))
     deposer("journal.json", journal(conn))
+    deposer("references.json", references(conn, cartographiees))
     store.put("data/derniere.json", _json({"version": version}), overwrite=True)
     print(f"publication {version} : {fichiers} fichiers, {len(recherche)} territoires")
     return fichiers

@@ -99,6 +99,7 @@ let etat: Etat;
 let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
 let groupes: donnees.Comparaisons | null = null;
+let reperes: import("./reference.ts").References | null = null;
 
 function lireUrl(): Etat {
   const p = new URLSearchParams(location.search);
@@ -315,6 +316,7 @@ async function montrerFiche(code: string): Promise<void> {
     jeux,
     periode: etat.periode,
     parHabitant: etat.declinaison === "habitant",
+    references: reperes,
   });
   ajouterBoutonComparer(code);
 }
@@ -616,6 +618,15 @@ async function demarrer(): Promise<void> {
   } catch {
     // L'état des données manque : la carte reste utilisable sans lui.
   }
+
+  // Les repères se chargent à part : une publication qui n'en a pas doit laisser
+  // la fiche s'afficher sans eux.
+  donnees
+    .references()
+    .then((r) => {
+      reperes = r;
+    })
+    .catch(() => {});
 
   try {
     if (afficherJournal($("journal"), await donnees.journal())) {

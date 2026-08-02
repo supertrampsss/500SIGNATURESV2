@@ -48,6 +48,7 @@ Toutes les URL ci-dessous sont préfixées par `$BASE/data/$V/`.
 | `comparaisons.json` | Quartiles par groupe de communes semblables, et les critères qui définissent les groupes | 35 ko |
 | `budget-etat.json` | Budget de l'État par exercice et par étape (voté, rectifié, exécuté), lignes, soldes, et ce que les contrôles ont mis en quarantaine | 41 ko |
 | `fraicheur.json` | Pour chaque jeu : dernière extraction, retard sur la fréquence annoncée, statut du dernier chargement, contrôles en échec | 4 ko |
+| `references.json` | Ce à quoi se compare un territoire : par indicateur, période et niveau, l'agrégat de l'ensemble — **communes de la région**, puis **communes de France**. `nature` vaut `agregat` (montant sommable : `total` et `habitants`, dont le rapport est la valeur par habitant de l'ensemble) ou `mediane` (taux et médianes, qui ne s'additionnent pas). La région de référence d'une commune est l'ensemble de ses communes, **jamais le budget du conseil régional** : ce serait comparer deux niveaux de gouvernement | 250 ko |
 | `journal.json` | Journal des changements, du plus récent au plus ancien : type (`correction`, `methodology`, `break`, `revision`, `deprecation`), date d'annonce, exercice à partir duquel le changement vaut, description publique et détail technique. Un chiffre déjà publié qui a bougé se retrouve ici — c'est le fichier à consulter quand une valeur notée ne correspond plus | 3 ko |
 
 Les tuiles vectorielles suivent le même principe, sous leur propre pointeur :

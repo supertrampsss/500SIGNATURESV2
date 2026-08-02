@@ -47,6 +47,8 @@ export type Territoire = {
   /** Fusions et scissions subies : une série qui les enjambe change de sujet.
    *  Absent des publications antérieures à ce champ. */
   evenements?: { type: string; date: string; avec: string }[];
+  /** Région d'appartenance : l'ensemble auquel le territoire se compare. */
+  region?: string | null;
 };
 
 export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };
@@ -153,6 +155,7 @@ export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
 export const journal = () => lire<Changement[]>("journal.json");
+export const references = () => lire<import("./reference.ts").References>("references.json");
 
 export const urlTuiles = () => cleTuiles;
 

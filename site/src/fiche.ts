@@ -7,6 +7,7 @@
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
+import { rendu as rendreReperes, reperes, type References } from "./reference.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -26,6 +27,8 @@ function ligneIndicateur(
   territoire: Territoire,
   periode: string,
   parHabitant: boolean,
+  niveau: string,
+  toutesReferences: References | null,
 ): string {
   const serie = territoire.series[indicateur.id];
   const brut = serie?.[periode];
@@ -80,6 +83,16 @@ function ligneIndicateur(
       ${denominateur}
       ${evolution(suivie, periode, evenements)}
       ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
+      ${rendreReperes(
+        reperes(
+          toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
+          niveau,
+          territoire.region ?? null,
+          ratio,
+        ),
+        valeur,
+        (v) => formater(v, indicateur.unite, ratio),
+      )}
     </dd>
   </div>`;
 }
@@ -163,11 +176,17 @@ export function afficherFiche(
     periode: string;
     parHabitant: boolean;
     comparaison?: string;
+    /** Absent des publications antérieures aux repères : la fiche s'affiche
+     *  alors sans eux, plutôt que de refuser de s'afficher. */
+    references?: References | null;
   },
 ): void {
   const { territoire, indicateurs, jeux, periode, parHabitant, niveau } = options;
+  const references = options.references ?? null;
   const mesures = indicateurs
-    .map((indicateur) => ligneIndicateur(indicateur, territoire, periode, parHabitant))
+    .map((indicateur) =>
+      ligneIndicateur(indicateur, territoire, periode, parHabitant, niveau, references),
+    )
     .join("");
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>

@@ -789,3 +789,32 @@ thead th {
   border-top: 1px solid var(--trait);
   padding-top: 0.25rem;
 }
+
+/* Repères : « est-ce beaucoup ? ». Le même poids visuel que le dénominateur —
+   ils accompagnent le chiffre, ils ne le concurrencent pas. */
+.reperes {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  flex-basis: 100%;
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
+.reperes li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.12rem 0;
+  border-top: 1px solid var(--trait);
+}
+.repere__ecart {
+  font-variant-numeric: tabular-nums;
+  color: var(--encre);
+}
+.reperes__note {
+  flex-basis: 100%;
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--encre-douce);
+}
