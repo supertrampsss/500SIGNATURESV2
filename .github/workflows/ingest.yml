@@ -89,6 +89,11 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "fiscalite" ]; then
+            python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "cofog" ]; then
             python -m plateforme.normalize.cofog --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published

@@ -378,6 +378,7 @@ const THEMES: Record<string, string> = {
   emploi: "Emploi et chômage",
   entreprises: "Entreprises",
   fonctions: "Dépenses par fonction",
+  impots_locaux: "Impôts locaux",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
   europe: "Comparaisons européennes",
