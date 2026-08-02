@@ -29,12 +29,16 @@ test("les classes répartissent les territoires en parts égales", () => {
 });
 
 test("une valeur extrême n'écrase pas l'échelle", () => {
-  const echelle = quantiles([1, 1, 1, 1, 1, 1, 1, 1_000_000_000], 4);
-  // La masse des valeurs identiques se replie en une seule classe, l'extrême
-  // dans la sienne : pas de bornes en doublon tirées par la masse, pas de
-  // classe vide sous le minimum.
-  assert.deepEqual(echelle.bornes, [1_000_000_000]);
-  assert.equal(echelle.couleurs.length, 2);
+  // Les bornes restent dans la masse des valeurs : l'extrême vit dans la
+  // classe « et plus », il ne tire pas les seuils vers lui.
+  const etale = quantiles([1, 2, 3, 4, 5, 6, 7, 1_000_000_000], 4);
+  assert.ok(etale.bornes.every((borne) => borne <= 7));
+  // Cas dégénéré : des valeurs toutes identiques plus un extrême. Les
+  // quantiles tombent tous sur la masse — l'ancienne échelle affichait
+  // « 1 – 1 » en boucle ; la nouvelle dit une seule classe, ce qui est vrai.
+  const masse = quantiles([1, 1, 1, 1, 1, 1, 1, 1_000_000_000], 4);
+  assert.deepEqual(masse.bornes, []);
+  assert.equal(masse.couleurs.length, 1);
 });
 
 test("aucune classe sans donnée", () => {
