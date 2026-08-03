@@ -239,19 +239,25 @@ function ligneIndicateur(
     </div>`;
   }
   const { periode, valeur, brut, ratio, denom, suivie, brute, comparaisons } = mesure;
-  // L'étiquette dit d'où vient le dénominateur : la référence OFGL de
-  // l'exercice quand elle existe, celle du référentiel géographique sinon.
-  // Le dénominateur n'occupe plus une ligne : il est dit au survol de la
-  // valeur, et en détail dans « Sources et méthode ».
-  const infoDenominateur = ratio
-    ? ` title="Par habitant — population ${new Intl.NumberFormat("fr-FR").format(
-        denom.valeur as number,
-      )} (${
-        denom.exercice
-          ? `référence OFGL ${echapper(denom.exercice)}`
-          : "référentiel géographique"
-      })"`
-    : "";
+  // Ce que la valeur porte au survol : son millésime, et d'où vient son
+  // dénominateur quand c'en est un.
+  //
+  // Le millésime s'affichait en pastille à côté de chaque chiffre — trente et
+  // une pastilles sur une fiche, pour redire à chaque fois ce que le lecteur
+  // sait déjà : c'est la donnée la plus récente publiée. Il reste dit là où
+  // il se lit sans effort — colonnes du tableau, axe de la courbe — et ici,
+  // au survol, pour les mesures qui n'ont ni l'un ni l'autre.
+  const infoValeur = ` title="${
+    ratio
+      ? `${echapper(periode)} — par habitant, population ${new Intl.NumberFormat(
+          "fr-FR",
+        ).format(denom.valeur as number)} (${
+          denom.exercice
+            ? `référence OFGL ${echapper(denom.exercice)}`
+            : "référentiel géographique"
+        })`
+      : `Millésime ${echapper(periode)}`
+  }"`;
   // Une série recalculée par le producteur dans la géographie d'aujourd'hui ne
   // se coupe pas à la fusion : ses valeurs anciennes portent déjà sur le
   // territoire actuel. Lui signaler une rupture déclarerait incomparable une
@@ -279,10 +285,9 @@ function ligneIndicateur(
   }">
     <dt>${titreMesure(indicateur, surCarte)}</dt>
     <dd>
-      <strong${infoDenominateur}>${formater(valeur, indicateur.unite, ratio)}</strong>${
+      <strong${infoValeur}>${formater(valeur, indicateur.unite, ratio)}</strong>${
         ratio ? `<span class="par-quoi">par habitant</span>` : ""
       }
-      <span class="millesime">${periode}</span>
       ${autreLecture}
       ${evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie))}
       ${kpis(mesure, rang)}
@@ -721,11 +726,14 @@ function syntheseTerritoire(
     return [
       {
         id,
-        texte: `<strong>${echapper(indicateur.libelle)}</strong> ${echapper(
-          formater(valeur, indicateur.unite, ratio),
-        )}${ratio ? " par habitant" : ""} <span class="synthese__an">${echapper(
+        // Le millésime reste au survol, pas dans la phrase : quatre dates
+        // dans quatre lignes d'ouverture cassaient la lecture pour redire ce
+        // que le lecteur sait — c'est le dernier chiffre publié.
+        texte: `<strong>${echapper(indicateur.libelle)}</strong> <span title="Millésime ${echapper(
           mesure.periode,
-        )}</span>. ${echapper(situation)}`.trim(),
+        )}">${echapper(formater(valeur, indicateur.unite, ratio))}</span>${
+          ratio ? " par habitant" : ""
+        }. ${echapper(situation)}`.trim(),
       },
     ];
   });

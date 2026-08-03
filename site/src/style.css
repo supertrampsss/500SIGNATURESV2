@@ -2580,14 +2580,6 @@ body[data-vue="carte"] .pied {
   margin-top: 0.45rem;
 }
 
-/* L'année du chiffre dans la synthèse : présente, discrète. Les indicateurs
-   n'ont pas le même calendrier — un millésime muet laisserait croire qu'ils
-   parlent tous de la même année. */
-.synthese__an {
-  font-size: 0.72rem;
-  color: var(--encre-douce);
-  opacity: 0.8;
-}
 
 /* Écran étroit : les commandes de la carte remontent au-dessus du tiroir.
    Posées en bas, elles se retrouvaient derrière lui — on lisait « Guadeloupe »
