@@ -106,6 +106,12 @@ let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
 let groupes: donnees.Comparaisons | null = null;
 let reperes: import("./reference.ts").References | null = null;
+/** Valeurs actuellement peintes, déjà ramenées par habitant si demandé : le
+ *  survol et le palmarès lisent la même table que la couleur — jamais un
+ *  recalcul parallèle qui pourrait diverger de la carte. */
+let affichees: Record<string, number> = {};
+let parHabitantAffiche = false;
+let survole: string | null = null;
 /** Ce que le bouton d'export téléchargera : toutes les lignes de la couche
  *  affichée, pas les 100 que montre le tableau, avec la déclinaison qui a
  *  servi à les calculer. */
@@ -264,33 +270,88 @@ async function peindre(): Promise<void> {
 
   majLegende(echelle, parHabitant);
   majTableau(valeurs, parHabitant);
+
+  affichees = Object.fromEntries(
+    Object.entries(valeurs)
+      .map(([code, brut]) => [code, parHabitant ? brut / (populations[code] ?? NaN) : brut])
+      .filter(([, v]) => Number.isFinite(v as number)),
+  ) as Record<string, number>;
+  parHabitantAffiche = parHabitant;
+  majPalmares();
+
   if (etat.selection) {
     await montrerFiche(etat.selection);
   } else {
-    // Tant que rien n'est sélectionné, le panneau montre la couche affichée
-    // plutôt qu'une invitation vide.
-    const ramenees = Object.fromEntries(
-      Object.entries(valeurs)
-        .map(([code, brut]) => [code, parHabitant ? brut / (populations[code] ?? NaN) : brut])
-        .filter(([, v]) => Number.isFinite(v as number)),
-    ) as Record<string, number>;
-    const noms = Object.fromEntries(
-      Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
-    );
-    $("fiche").innerHTML = apercuRendu(
-      resumer(ramenees, noms),
-      indicateurCourant(),
-      etat.niveau,
-      etat.periode,
-      parHabitant,
-    );
+    afficherApercu();
   }
+}
+
+/** Tant que rien n'est sélectionné, le panneau montre la couche affichée
+ *  plutôt qu'une invitation vide. */
+function afficherApercu(): void {
+  const noms = Object.fromEntries(
+    Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
+  );
+  $("fiche").innerHTML = apercuRendu(
+    resumer(affichees, noms),
+    indicateurCourant(),
+    etat.niveau,
+    etat.periode,
+    parHabitantAffiche,
+  );
+}
+
+/** Les cinq valeurs les plus hautes et les plus basses de la couche affichée.
+ *
+ *  Même niveau, même indicateur, même période, même unité : le classement est
+ *  comparable par construction — c'est la même règle que le tableau. Il est
+ *  neutre : « haut » et « bas » sont des positions, jamais un jugement, et le
+ *  libellé nomme l'unité pour qu'un montant total ne se lise pas comme un
+ *  montant par habitant. */
+function majPalmares(): void {
+  const bloc = $("palmares");
+  const tri = Object.entries(affichees).sort(([, a], [, b]) => b - a);
+  if (tri.length < 8) {
+    bloc.hidden = true;
+    return;
+  }
+  const indicateur = indicateurCourant();
+  const nomDe = (code: string) => entites[code]?.nom ?? code;
+  const ligne = ([code, valeur]: [string, number]) =>
+    `<li><button type="button" data-code="${code}"><span>${nomDe(code)}</span>
+      <strong>${formater(valeur, indicateur.unite, parHabitantAffiche)}</strong></button></li>`;
+  bloc.innerHTML = `
+    <h3 class="palmares__titre">Repères de la couche</h3>
+    <p class="palmares__quoi">${indicateur.libelle} — ${etat.periode}${
+      parHabitantAffiche ? ", par habitant" : ""
+    }</p>
+    <p class="palmares__borne">Valeurs les plus hautes</p>
+    <ol class="palmares__liste">${tri.slice(0, 5).map(ligne).join("")}</ol>
+    <p class="palmares__borne">Valeurs les plus basses</p>
+    <ol class="palmares__liste">${tri.slice(-5).reverse().map(ligne).join("")}</ol>`;
+  bloc.hidden = false;
+  bloc.querySelectorAll<HTMLButtonElement>("button[data-code]").forEach((b) =>
+    b.addEventListener("click", () => {
+      const code = b.dataset.code;
+      if (code) void montrerFiche(code);
+    }),
+  );
+}
+
+/** Marges de cadrage : les surcouches (commandes à gauche, panneau à droite)
+ *  recouvrent la carte — un cadrage qui les ignore cacherait la Bretagne
+ *  derrière un formulaire. */
+function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
+  const large = window.innerWidth > 960;
+  return large
+    ? { top: 40, bottom: 56, left: 320, right: Math.min(420, window.innerWidth * 0.32) }
+    : { top: 128, bottom: 48, left: 16, right: 16 };
 }
 
 /** Recadre la carte sur une vue déclarée. */
 function cadrer(vue: string): void {
   const bornes = VUES[vue]?.bornes;
-  if (bornes && carte) carte.fitBounds(bornes, { padding: 24, duration: 800 });
+  if (bornes && carte) carte.fitBounds(bornes, { padding: paddingCarte(), duration: 800 });
 }
 
 /** Amène la carte là où se trouve le territoire choisi.
@@ -345,6 +406,15 @@ async function montrerFiche(code: string): Promise<void> {
     references: reperes,
   });
   ajouterBoutonComparer(code);
+  $("panneau").classList.add("panneau--selection");
+}
+
+/** Ferme la sélection : le panneau revient à l'aperçu de la couche. */
+function fermerPanneau(): void {
+  etat.selection = null;
+  ecrireUrl();
+  $("panneau").classList.remove("panneau--selection");
+  afficherApercu();
 }
 
 /** Le bouton vit sur la fiche : on compare un territoire qu'on est en train de
@@ -581,22 +651,67 @@ async function demarrer(): Promise<void> {
   );
 
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
+  // Le fond de carte donne le contexte que la choroplèthe seule n'a pas :
+  // villes, routes, relief des côtes. Il vient d'un tiers (Carto, données
+  // OpenStreetMap) — la donnée, elle, reste servie par nos fichiers. Deux
+  // couches raster encadrent la choroplèthe : le terrain passe dessous, les
+  // noms de villes repassent DESSUS pour rester lisibles sur la couleur. En
+  // cas de panne du fond, la carte de données vit seule sur le fond uni.
+  const carreaux = (variante: string) =>
+    ["a", "b", "c", "d"].map(
+      (s) => `https://${s}.basemaps.cartocdn.com/${variante}/{z}/{x}/{y}.png`,
+    );
   carte = new maplibregl.Map({
     container: "carte",
     style: {
       version: 8,
       sources: {
-        territoires: { type: "vector", url: `pmtiles://${donnees.urlTuiles()}` },
+        territoires: {
+          type: "vector",
+          url: `pmtiles://${donnees.urlTuiles()}`,
+          // Le code INSEE devient l'identifiant de figure : c'est lui qui
+          // porte l'état de survol.
+          promoteId: "code",
+        },
+        "fond-terrain": {
+          type: "raster",
+          tiles: carreaux("light_nolabels"),
+          tileSize: 256,
+          maxzoom: 19,
+          attribution: "© OpenStreetMap · © CARTO",
+        },
+        "fond-noms": {
+          type: "raster",
+          tiles: carreaux("light_only_labels"),
+          tileSize: 256,
+          maxzoom: 19,
+        },
       },
       layers: [
-        { id: "fond", type: "background", paint: { "background-color": "#f7f7f5" } },
+        { id: "fond", type: "background", paint: { "background-color": "#f2f4f6" } },
+        {
+          id: "terrain",
+          type: "raster",
+          source: "fond-terrain",
+          paint: { "raster-saturation": -0.4, "raster-opacity": 0.9 },
+        },
         ...Object.values(COUCHES).flatMap((couche) => [
           {
             id: `remplissage-${couche}`,
             type: "fill" as const,
             source: "territoires",
             "source-layer": couche,
-            paint: { "fill-color": "#d9d9d9", "fill-opacity": 0.9 },
+            paint: {
+              "fill-color": "#d9d9d9",
+              // Légèrement translucide : le terrain respire sous la donnée,
+              // et le territoire survolé se densifie.
+              "fill-opacity": [
+                "case",
+                ["boolean", ["feature-state", "survol"], false],
+                0.96,
+                0.78,
+              ] as never,
+            },
           },
           {
             id: `contour-${couche}`,
@@ -615,29 +730,109 @@ async function demarrer(): Promise<void> {
             },
           },
         ]),
+        {
+          id: "noms",
+          type: "raster",
+          source: "fond-noms",
+          paint: { "raster-opacity": 0.95 },
+        },
       ],
     },
     bounds: VUES[etat.vue]?.bornes ?? VUES.metropole.bornes,
-    fitBoundsOptions: { padding: 24 },
-    attributionControl: { customAttribution: "IGN Admin Express · OFGL · Licence Ouverte 2.0" },
+    fitBoundsOptions: { padding: paddingCarte() },
+    attributionControl: {
+      customAttribution: "IGN Admin Express · OFGL · Licence Ouverte 2.0",
+    },
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  // Poignée de diagnostic pour la vérification-écran automatisée : elle lit
+  // l'état réel des couches au lieu de le déduire des pixels.
+  Object.assign(window as object, { __carte: carte });
 
-  carte.on("load", async () => {
-    await peindre();
+  const infobulle = $("infobulle");
+  const eteindreSurvol = () => {
+    if (survole) {
+      for (const couche of Object.values(COUCHES)) {
+        carte.setFeatureState(
+          { source: "territoires", sourceLayer: couche, id: survole },
+          { survol: false },
+        );
+      }
+      survole = null;
+    }
+    infobulle.hidden = true;
+    carte.getCanvas().style.cursor = "";
+  };
+
+  // JAMAIS l'événement `load` : il attend toutes les sources, y compris le
+  // fond de carte tiers — un CDN lent, en panne ou bloqué par un bloqueur de
+  // publicité laissait la carte grise et sourde pour toujours (constaté en
+  // vérification d'écran hors ligne). La donnée ne dépend que du style : on
+  // démarre dès qu'il est prêt, les tuiles se dessinent quand elles arrivent.
+  const demarrerCarte = async () => {
+    // Les gestionnaires d'abord : ils ne dépendent pas des données, et un
+    // échec de chargement ne doit pas laisser une carte sourde en plus d'une
+    // carte grise.
+    brancherInteractionsCarte();
+    // Un échec réseau se réessaie une fois, puis se dit — une promesse
+    // rejetée qui disparaît sans trace est un mensonge d'interface.
+    try {
+      await peindre();
+    } catch {
+      try {
+        await peindre();
+      } catch {
+        $("fiche").innerHTML =
+          '<p class="erreur">Le chargement des valeurs a échoué. Recharger la page réessaiera.</p>';
+      }
+    }
+  };
+  if (carte.isStyleLoaded()) {
+    void demarrerCarte();
+  } else {
+    carte.once("styledata", () => void demarrerCarte());
+  }
+
+  function brancherInteractionsCarte(): void {
     for (const couche of Object.values(COUCHES)) {
       carte.on("click", `remplissage-${couche}`, async (evenement) => {
         const code = evenement.features?.[0]?.properties?.code as string | undefined;
         if (code) await montrerFiche(code);
       });
-      carte.on("mouseenter", `remplissage-${couche}`, () => {
+      // Le survol dit le nom et la valeur sans obliger à cliquer — la carte
+      // répond sous le curseur, elle n'est plus une image qu'on interroge à
+      // l'aveugle.
+      carte.on("mousemove", `remplissage-${couche}`, (evenement) => {
+        const figure = evenement.features?.[0];
+        const code = figure?.properties?.code as string | undefined;
+        if (!code) return;
+        if (survole !== code) {
+          eteindreSurvol();
+          survole = code;
+          carte.setFeatureState(
+            { source: "territoires", sourceLayer: couche, id: code },
+            { survol: true },
+          );
+        }
         carte.getCanvas().style.cursor = "pointer";
+        const nom = (figure?.properties?.nom as string | undefined) ?? entites[code]?.nom ?? code;
+        const valeur = affichees[code];
+        infobulle.innerHTML = `<strong>${nom}</strong>${
+          valeur === undefined
+            ? `<span>donnée non disponible</span>`
+            : `<span>${formater(valeur, indicateurCourant().unite, parHabitantAffiche)}</span>`
+        }`;
+        infobulle.hidden = false;
+        const cadre = $("carte").getBoundingClientRect();
+        const x = Math.min(evenement.point.x + 14, cadre.width - infobulle.offsetWidth - 10);
+        const y = Math.max(evenement.point.y - infobulle.offsetHeight - 12, 8);
+        infobulle.style.transform = `translate(${x}px, ${y}px)`;
       });
-      carte.on("mouseleave", `remplissage-${couche}`, () => {
-        carte.getCanvas().style.cursor = "";
-      });
+      carte.on("mouseleave", `remplissage-${couche}`, eteindreSurvol);
     }
-  });
+  }
+
+  $("panneau-fermer").addEventListener("click", fermerPanneau);
 
   brancherCommandes();
 

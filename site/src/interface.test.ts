@@ -13,12 +13,16 @@ const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
 
-test("la légende ne flotte plus au-dessus de la carte", () => {
-  // Elle recouvrait le sud-ouest de la France : une échelle qui cache la
-  // donnée qu'elle explique.
-  assert.match(PAGE, /<div class="carte-zone">[\s\S]*id="carte"[\s\S]*id="legende"[\s\S]*<\/div>/);
-  const bloc = CSS.slice(CSS.indexOf(".legende {"), CSS.indexOf(".legende__titre"));
-  assert.doesNotMatch(bloc, /position:\s*absolute/);
+test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
+  // Première version : la légende recouvrait le sud-ouest de la France. La
+  // leçon n'a pas changé quand la carte est devenue la page : les surcouches
+  // flottent, mais le cadrage réserve leurs zones (`paddingCarte`) pour que
+  // la France se dessine dans l'espace libre, jamais derrière un panneau.
+  assert.match(PAGE, /class="legende surcouche surcouche--legende"/);
+  assert.match(MAIN, /function paddingCarte\(\)/);
+  assert.match(MAIN, /fitBounds\(bornes, \{ padding: paddingCarte\(\)/);
+  assert.match(MAIN, /fitBoundsOptions: \{ padding: paddingCarte\(\) \}/);
+  assert.ok(CSS.includes(".surcouche--legende"));
 });
 
 test("changer de thème repart sur l'année la plus récente", () => {

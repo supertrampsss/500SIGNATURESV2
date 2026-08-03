@@ -11,74 +11,82 @@
       content="Les finances de chaque commune, intercommunalité, département et région de France, à partir des données officielles de l'Observatoire des finances et de la gestion publique locales."
     />
   </head>
-  <body>
+  <body class="plein-ecran">
     <a class="evitement" href="#tableau">Aller au tableau des données</a>
 
     <header class="entete">
-      <h1>Où va l'argent public</h1>
-      <p class="sous-titre">
-        Les finances de chaque territoire, à partir des données officielles.
-      </p>
-    </header>
-
-    <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
-
-    <form class="commandes" id="commandes" aria-label="Choix de l'affichage">
-      <p class="champ">
-        <label for="theme">Thème</label>
-        <select id="theme"></select>
-      </p>
-      <p class="champ">
-        <label for="indicateur">Indicateur</label>
-        <select id="indicateur"></select>
-      </p>
-      <p class="champ">
-        <label for="niveau">Niveau</label>
-        <select id="niveau">
-          <option value="region">Régions</option>
-          <option value="departement">Départements</option>
-          <option value="epci">Intercommunalités</option>
-          <option value="commune" selected>Communes</option>
-        </select>
-      </p>
-      <p class="champ">
-        <label for="periode">Année</label>
-        <select id="periode"></select>
-      </p>
-      <p class="champ">
-        <label for="vue">Territoire</label>
-        <select id="vue"></select>
-      </p>
-      <p class="champ">
-        <label for="declinaison">Affichage</label>
-        <select id="declinaison">
-          <option value="total">Montant total</option>
-          <option value="habitant" selected>Par habitant</option>
-        </select>
-      </p>
-      <p class="champ champ--recherche">
-        <label for="recherche">Rechercher un territoire</label>
+      <div class="entete__titres">
+        <h1>Où va l'argent public</h1>
+        <p class="sous-titre">Données officielles, territoire par territoire</p>
+      </div>
+      <p class="champ champ--recherche entete__recherche">
+        <label for="recherche" class="visuellement-cache">Rechercher un territoire</label>
         <input id="recherche" type="search" autocomplete="off" placeholder="Pessac, Lyon, 33318…" />
         <ul id="suggestions" role="listbox" hidden></ul>
       </p>
-    </form>
+      <nav class="entete__nav" aria-label="Sections">
+        <a href="#national">Décryptages</a>
+        <a href="#tableau">Tableau</a>
+        <a href="#etat-donnees">Fraîcheur</a>
+      </nav>
+    </header>
 
-    <main class="scene">
-      <div class="carte-zone">
-        <div id="carte" role="application" aria-label="Carte des territoires français"></div>
-        <div class="legende" id="legende" hidden>
-          <p class="legende__titre" id="legende-titre"></p>
-          <ol class="legende__echelle" id="legende-echelle"></ol>
-          <p class="legende__note" id="legende-note"></p>
-        </div>
+    <main class="atelier" aria-label="Carte interactive">
+      <div id="carte" role="application" aria-label="Carte des territoires français"></div>
+
+      <form class="commandes surcouche surcouche--commandes" id="commandes" aria-label="Choix de l'affichage">
+        <p class="champ">
+          <label for="theme">Thème</label>
+          <select id="theme"></select>
+        </p>
+        <p class="champ">
+          <label for="indicateur">Indicateur</label>
+          <select id="indicateur"></select>
+        </p>
+        <p class="champ champ--demi">
+          <label for="niveau">Niveau</label>
+          <select id="niveau">
+            <option value="region">Régions</option>
+            <option value="departement">Départements</option>
+            <option value="epci">Intercommunalités</option>
+            <option value="commune" selected>Communes</option>
+          </select>
+        </p>
+        <p class="champ champ--demi">
+          <label for="periode">Année</label>
+          <select id="periode"></select>
+        </p>
+        <p class="champ champ--demi">
+          <label for="vue">Territoire</label>
+          <select id="vue"></select>
+        </p>
+        <p class="champ champ--demi">
+          <label for="declinaison">Affichage</label>
+          <select id="declinaison">
+            <option value="total">Montant total</option>
+            <option value="habitant" selected>Par habitant</option>
+          </select>
+        </p>
+      </form>
+
+      <div class="legende surcouche surcouche--legende" id="legende" hidden>
+        <p class="legende__titre" id="legende-titre"></p>
+        <ol class="legende__echelle" id="legende-echelle"></ol>
+        <p class="legende__note" id="legende-note"></p>
       </div>
 
-      <aside class="fiche" id="fiche" aria-live="polite">
-        <p class="fiche__vide">
-          Choisissez un territoire sur la carte ou par la recherche.
-        </p>
+      <aside class="panneau surcouche" id="panneau">
+        <button type="button" class="panneau__fermer" id="panneau-fermer" aria-label="Fermer le panneau">×</button>
+        <div class="fiche" id="fiche" aria-live="polite">
+          <p class="fiche__vide">Choisissez un territoire sur la carte ou par la recherche.</p>
+        </div>
+        <div class="palmares" id="palmares" hidden></div>
       </aside>
+
+      <div class="infobulle" id="infobulle" hidden></div>
     </main>
+
+    <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
 
     <section class="national" id="national" hidden>
       <h2>La France dans son ensemble</h2>
