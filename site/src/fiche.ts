@@ -62,14 +62,16 @@ function ligneIndicateur(
   const valeur = ratio ? brut / (denom.valeur as number) : brut;
   // L'étiquette dit d'où vient le dénominateur : la référence OFGL de
   // l'exercice quand elle existe, celle du référentiel géographique sinon.
-  const denominateur = ratio
-    ? `<span class="denominateur" title="${
-        denom.exercice
-          ? `Population de référence OFGL de l'exercice ${echapper(denom.exercice)}`
-          : "Population du référentiel géographique, à défaut de référence OFGL pour cet exercice"
-      }">par habitant · pop. ${new Intl.NumberFormat("fr-FR").format(
+  // Le dénominateur n'occupe plus une ligne : il est dit au survol de la
+  // valeur, et en détail dans « Sources et méthode ».
+  const infoDenominateur = ratio
+    ? ` title="Par habitant — population ${new Intl.NumberFormat("fr-FR").format(
         denom.valeur as number,
-      )}</span>`
+      )} (${
+        denom.exercice
+          ? `référence OFGL ${echapper(denom.exercice)}`
+          : "référentiel géographique"
+      })"`
     : "";
   // Chaque exercice se divise par SA population, pas par celle d'aujourd'hui :
   // sinon les dépenses de 2022 se lisent rapportées aux habitants de 2025. La
@@ -94,8 +96,12 @@ function ligneIndicateur(
   if (!principale) {
     return `<div class="mesure mesure--compacte">
     <dt>${echapper(indicateur.libelle)}</dt>
-    <dd><strong>${formater(valeur, indicateur.unite, ratio)}</strong>
-      ${evolution(suivie, periode, evenements)}</dd>
+    <dd><strong>${formater(valeur, indicateur.unite, ratio)}</strong>${evolution(
+      suivie,
+      periode,
+      evenements,
+      true,
+    )}</dd>
   </div>`;
   }
   // L'autre lecture du même chiffre, en petit : le par-habitant montre le
@@ -115,10 +121,9 @@ function ligneIndicateur(
   return `<div class="mesure">
     <dt>${echapper(indicateur.libelle)}</dt>
     <dd>
-      <strong>${formater(valeur, indicateur.unite, ratio)}</strong>
+      <strong${infoDenominateur}>${formater(valeur, indicateur.unite, ratio)}</strong>
       <span class="millesime">${periode}</span>
       ${autreLecture}
-      ${denominateur}
       ${evolution(suivie, periode, evenements)}
       ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
       ${rendreReperes(

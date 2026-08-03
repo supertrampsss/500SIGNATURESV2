@@ -4,25 +4,32 @@
  * d'accessibilité priment sur l'esthétique (docs/04).
  */
 
+/* Palette « editorial calm » — reprise du système Zephyr du commanditaire :
+   encre nuit sur papier chaud, gris sauge pour le texte second, un seul
+   accent argile, un filet doré pour le focus. Sobre, institutionnel, calme.
+   Les bleus de la carte restent des bleus : c'est l'échelle de la donnée,
+   pas l'habillage. */
 :root {
-  --encre: #14181d;
-  --encre-douce: #5a6472;
+  --encre: #0f1b2e;
+  --encre-douce: #6e7d73;
   --papier: #ffffff;
-  --papier-creuse: #f1f3f5;
-  --fond: #f6f7f9;
-  --trait: #e3e6ea;
-  --trait-fort: #cdd3da;
-  --accent: #1b4f77;
-  --accent-fonce: #143c5c;
-  --accent-teinte: #eaf1f7;
-  --alerte: #8a4b12;
+  --papier-creuse: #f2f1ec;
+  --fond: #fbfaf6;
+  --trait: #e3e1d8;
+  --trait-fort: #c7cbc8;
+  --accent: #0f1b2e;
+  --accent-fonce: #1a2740;
+  --accent-teinte: rgb(15 27 46 / 0.06);
+  --argile: #c56a4d;
+  --dore: #b69b53;
+  --alerte: #c56a4d;
   --rayon: 12px;
   --rayon-s: 8px;
-  --ombre-1: 0 1px 2px rgb(20 24 29 / 0.05), 0 1px 3px rgb(20 24 29 / 0.06);
-  --ombre-2: 0 4px 14px rgb(20 24 29 / 0.08), 0 2px 4px rgb(20 24 29 / 0.05);
-  --transition: 160ms ease;
-  --serif: ui-serif, Georgia, "Times New Roman", serif;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --ombre-1: 0 1px 0 rgb(15 27 46 / 0.04), 0 1px 2px rgb(15 27 46 / 0.04);
+  --ombre-2: 0 8px 24px rgb(15 27 46 / 0.06);
+  --transition: 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  --serif: "Fraunces", ui-serif, Georgia, "Times New Roman", serif;
+  --sans: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -164,8 +171,8 @@ select:focus-visible,
 input:focus-visible,
 button:focus-visible,
 summary:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 1px;
+  outline: 2px solid var(--dore);
+  outline-offset: 2px;
 }
 .champ--recherche {
   flex: 1 1 16rem;
@@ -215,7 +222,7 @@ summary:focus-visible {
   position: relative;
   height: calc(100dvh - 3.6rem);
   min-height: 32rem;
-  background: #eef1f4;
+  background: #f2f1ec;
 }
 #carte {
   position: absolute;
@@ -1430,14 +1437,30 @@ tbody tr:hover {
   text-transform: none;
   letter-spacing: 0;
   margin: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .mesure--compacte dd {
   margin: 0;
   text-align: right;
+  white-space: nowrap;
+  display: flex;
+  /* la valeur ne cède jamais sa ligne : c'est le libellé qui s'abrège */
+  flex-direction: row;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 0.45rem;
 }
 .mesure--compacte .evolution {
-  display: block;
   font-size: 0.7rem;
+  color: var(--encre-douce);
+  min-width: 3.4rem;
+  text-align: right;
 }
 .mesure--compacte strong {
   font-size: 0.92rem;
@@ -1501,4 +1524,25 @@ tbody tr:hover {
 *::-webkit-scrollbar-button {
   background: transparent;
   height: 0;
+}
+
+
+/* Le bouton de comparaison redevient un geste secondaire : pilule filet,
+   pas un pavé. */
+.comparer {
+  font: inherit;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--encre-douce);
+  background: none;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  padding: 0.28rem 0.75rem;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.comparer:hover {
+  border-color: var(--encre);
+  color: var(--encre);
 }

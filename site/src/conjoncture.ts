@@ -28,11 +28,11 @@ const FINE = "\u202f";
 
 /** Pays comparés : la France en avant, trois voisins, la zone euro en repère. */
 export const PAYS: { code: string; nom: string; couleur: string; accent?: boolean; pointille?: boolean }[] = [
-  { code: "FR", nom: "France", couleur: "#1b4f77", accent: true },
-  { code: "DE", nom: "Allemagne", couleur: "#b25b2a" },
-  { code: "IT", nom: "Italie", couleur: "#3f7d5d" },
-  { code: "ES", nom: "Espagne", couleur: "#7d5185" },
-  { code: "EA20", nom: "Zone euro", couleur: "#5a6472", pointille: true },
+  { code: "FR", nom: "France", couleur: "#0f1b2e", accent: true },
+  { code: "DE", nom: "Allemagne", couleur: "#c56a4d" },
+  { code: "IT", nom: "Italie", couleur: "#6e7d73" },
+  { code: "ES", nom: "Espagne", couleur: "#b69b53" },
+  { code: "EA20", nom: "Zone euro", couleur: "#8b93a0", pointille: true },
 ];
 
 export const FENETRES: { cle: string; libelle: string; annees: number | null }[] = [

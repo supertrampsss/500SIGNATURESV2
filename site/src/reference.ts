@@ -153,12 +153,22 @@ export function rendu(
     .map((r) => {
       const ecart = r.valeur ? ((valeur - r.valeur) / Math.abs(r.valeur)) * 100 : null;
       const signe = ecart !== null && ecart >= 0 ? "+" : "";
+      // Au-delà de cinq fois le repère, le pourcentage devient absurde à
+      // l'œil (« +30 005 % » pour une station de ski) : l'écart se dit en
+      // multiple — « × 301 » — et le pourcentage exact reste au survol.
+      const rapport = r.valeur > 0 && valeur > 0 ? valeur / r.valeur : null;
       const chiffre =
         ecart === null
           ? ""
-          : ` <span class="repere__ecart">${signe}${new Intl.NumberFormat("fr-FR", {
-              maximumFractionDigits: 0,
-            }).format(ecart)} %</span>`;
+          : rapport !== null && rapport >= 5
+            ? ` <span class="repere__ecart" title="${signe}${new Intl.NumberFormat("fr-FR", {
+                maximumFractionDigits: 0,
+              }).format(ecart)} %">× ${new Intl.NumberFormat("fr-FR", {
+                maximumFractionDigits: rapport >= 10 ? 0 : 1,
+              }).format(rapport)}</span>`
+            : ` <span class="repere__ecart">${signe}${new Intl.NumberFormat("fr-FR", {
+                maximumFractionDigits: 0,
+              }).format(ecart)} %</span>`;
       // Le nombre de territoires dit ce que vaut le repère — il reste dit,
       // mais en infobulle : « (4013) » sur chaque ligne était du bruit.
       return `<li title="Médiane calculée sur ${r.n} territoires"><span>${echapper(

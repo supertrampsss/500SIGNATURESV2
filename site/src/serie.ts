@@ -50,6 +50,7 @@ export function evolution(
   serie: Record<string, number>,
   periode: string,
   evenements: Evenement[] = [],
+  courte = false,
 ): string {
   const periodes = Object.keys(serie).sort();
   const valeurCourante = serie[periode];
@@ -61,6 +62,16 @@ export function evolution(
   if (!depart) return "";
   const variation = ((valeurCourante - depart) / Math.abs(depart)) * 100;
   const signe = variation >= 0 ? "+" : "";
+  // Forme courte : le pourcentage seul, la fenêtre au survol. Répéter
+  // « depuis 2022 » sous chaque ligne d'une fiche était du bruit — la fenêtre
+  // reste dite, ligne par ligne, dans l'infobulle (elle peut différer d'une
+  // série à l'autre : rupture de périmètre, historique plus court).
+  if (courte) {
+    const titre = rupture
+      ? `depuis ${echapper(depuis)}, après le changement de périmètre`
+      : `depuis ${echapper(depuis)}`;
+    return `<span class="evolution" title="${titre}">${signe}${pourcentage(variation)}</span>`;
+  }
   const reserve = rupture
     ? ` <span class="evolution__reserve">depuis le changement de périmètre</span>`
     : "";
