@@ -76,16 +76,27 @@ export function rendu(
   niveau: string,
   periode: string,
   parHabitant: boolean,
+  /** Somme de la couche, quand l'indicateur s'additionne : le niveau national
+   *  manquait à l'écran — on lisait la dispersion sans jamais voir le total
+   *  France. Une médiane ou un taux ne s'additionnent pas : rien n'est affiché
+   *  dans ce cas plutôt qu'un nombre faux. */
+  totalNational?: number,
 ): string {
   if (!apercu) {
     return `<p class="fiche__vide">Choisissez un territoire sur la carte ou par la recherche.</p>`;
   }
   const montant = (valeur: number) => formater(valeur, indicateur.unite, parHabitant);
+  const national =
+    totalNational !== undefined && Number.isFinite(totalNational)
+      ? `<p class="apercu__national"><span>France entière</span>
+         <strong>${formater(totalNational, indicateur.unite, false)}</strong></p>`
+      : "";
   return `
     <h2 class="fiche__titre">${echapper(indicateur.libelle)}</h2>
     <p class="fiche__meta">${apercu.effectif.toLocaleString("fr-FR")} ${
       echapper(NIVEAUX[niveau] ?? niveau)
     } avec une valeur · ${echapper(periode)}${parHabitant ? " · par habitant" : ""}</p>
+    ${national}
     <p class="apercu__mediane">Médiane : <strong>${montant(apercu.mediane)}</strong></p>
     <p class="apercu__masse">La moitié se situe entre ${montant(apercu.q1)} et ${montant(
       apercu.q3,

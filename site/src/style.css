@@ -1725,3 +1725,96 @@ body[data-vue="carte"] .pied {
   font-size: 0.78rem;
   color: var(--encre);
 }
+
+
+/* Onglets du panneau : Territoire / Analyse. Tout vit dans la carte. */
+.panneau__onglets {
+  display: flex;
+  gap: 0.2rem;
+  padding: 0.5rem 2.6rem 0 0.9rem;
+  border-bottom: 1px solid var(--trait);
+  flex: 0 0 auto;
+}
+.panneau__onglets button {
+  font: inherit;
+  font-size: 0.8rem;
+  border: 0;
+  background: none;
+  color: var(--encre-douce);
+  padding: 0.35rem 0.7rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+.panneau__onglets button[aria-selected="true"] {
+  color: var(--encre);
+  border-bottom-color: var(--encre);
+  font-weight: 500;
+}
+
+/* Le volet d'analyse, dans le panneau : compact par construction. */
+#volet-analyse {
+  padding: 0.8rem 1.15rem 1rem;
+}
+.croiser__intro {
+  margin: 0 0 0.7rem;
+  font-size: 0.82rem;
+  color: var(--encre-douce);
+}
+#volet-analyse .champ {
+  margin-bottom: 0.55rem;
+}
+#volet-analyse select {
+  min-width: 0;
+  width: 100%;
+  font-size: 0.85rem;
+}
+#volet-analyse .croiser__scene {
+  padding: 0.2rem;
+}
+#volet-analyse canvas {
+  display: block;
+  width: 100%;
+}
+#volet-analyse .croiser__resume {
+  font-size: 0.88rem;
+}
+#volet-analyse .croiser__resume strong {
+  font-size: 1.05rem;
+}
+#volet-analyse .avertissement {
+  font-size: 0.72rem;
+}
+
+/* Le niveau national, en tête de l'aperçu de couche. */
+.apercu__national {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin: 0.7rem 0 0.2rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--trait);
+  color: var(--encre-douce);
+  font-size: 0.85rem;
+}
+.apercu__national strong {
+  font-size: 1.25rem;
+  color: var(--encre);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sources, dans la vue Données. */
+.source {
+  border-top: 1px solid var(--trait);
+  padding: 0.6rem 0;
+}
+.source h3 {
+  margin: 0 0 0.15rem;
+  font-size: 0.95rem;
+}
+.source p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}

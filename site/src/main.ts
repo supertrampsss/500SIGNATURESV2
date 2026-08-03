@@ -274,6 +274,8 @@ async function peindre(): Promise<void> {
 
   majLegende(echelle, parHabitant);
   majTableau(valeurs, parHabitant);
+  // L'analyse prolonge la carte : elle suit l'indicateur et le niveau choisis.
+  if (!$("volet-analyse").hidden) void majCroisement();
 
   affichees = Object.fromEntries(
     Object.entries(valeurs)
@@ -297,12 +299,20 @@ function afficherApercu(): void {
   const noms = Object.fromEntries(
     Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
   );
+  const indicateur = indicateurCourant();
+  // Le total France : seulement pour un indicateur qui s'additionne, et
+  // calculé sur les montants bruts — additionner des « par habitant » de
+  // 34 875 communes ne voudrait rien dire.
+  const total = indicateur.sommable
+    ? Object.values(brutes).reduce((somme, v) => (Number.isFinite(v) ? somme + v : somme), 0)
+    : undefined;
   $("fiche").innerHTML = apercuRendu(
     resumer(affichees, noms),
-    indicateurCourant(),
+    indicateur,
     etat.niveau,
     etat.periode,
     parHabitantAffiche,
+    total,
   );
 }
 
@@ -442,6 +452,19 @@ function ajouterBoutonComparer(code: string): void {
       : [...etat.comparaison, code];
     ecrireUrl();
     await majComparateur();
+
+  // « Sources et méthode » quitte la fiche pour la vue Données : c'est une
+  // référence qu'on consulte, pas un bandeau qu'on subit à chaque clic.
+  $("sources-contenu").innerHTML = jeux
+    .map(
+      (jeu) => `<article class="source">
+        <h3>${jeu.titre}</h3>
+        <p>${jeu.producteur} — ${jeu.licence}<br />
+        Extraction du ${new Date(jeu.extraction).toLocaleDateString("fr-FR")} ·
+        <a href="${jeu.url}" rel="noreferrer">fichier source</a></p>
+      </article>`,
+    )
+    .join("");
     ajouterBoutonComparer(code);
   });
   $("fiche").querySelector(".comparer")?.remove();
@@ -509,14 +532,35 @@ function themesCartographiables(): string[] {
   return [...new Set(catalogue.filter((i) => i.niveaux?.includes(etat.niveau)).map((i) => i.theme))];
 }
 
+/** Options d'un sélecteur d'indicateur : un groupe par thème, et en tête de
+ *  chaque groupe le thème lui-même — « Éducation » choisit son indicateur
+ *  principal, « Éducation — Écoles » choisit la série précise. Deux cases
+ *  fondues en une, sans perdre le niveau du thème. */
+function optionsIndicateurs(niveau: string, exclu?: string): string {
+  return themesCartographiables()
+    .map((theme) => {
+      const dedans = catalogue.filter(
+        (i) => i.theme === theme && i.niveaux?.includes(niveau) && i.id !== exclu,
+      );
+      if (!dedans.length) return "";
+      const options = [
+        `<option value="theme:${theme}">${libelleTheme(theme)} — tout le thème</option>`,
+        ...dedans.map((i) => `<option value="${i.id}">${libelleTheme(theme)} — ${i.libelle}</option>`),
+      ].join("");
+      return `<optgroup label="${libelleTheme(theme)}">${options}</optgroup>`;
+    })
+    .join("");
+}
+
+/** Premier indicateur d'un thème au niveau donné : ce que « tout le thème »
+ *  affiche sur la carte. */
+function premierDuTheme(theme: string, niveau: string): string | undefined {
+  return catalogue.find((i) => i.theme === theme && i.niveaux?.includes(niveau))?.id;
+}
+
 function construireSelecteurs(): void {
   const disponibles = themesCartographiables();
-  const selecteurTheme = $<HTMLSelectElement>("theme");
-  selecteurTheme.innerHTML = disponibles
-    .map((t) => `<option value="${t}">${libelleTheme(t)}</option>`)
-    .join("");
   if (!disponibles.includes(etat.theme)) etat.theme = disponibles[0] ?? "finances_locales";
-  selecteurTheme.value = etat.theme;
 
   const financiers = catalogue.filter(
     (i) => i.theme === etat.theme && i.niveaux?.includes(etat.niveau),
@@ -524,10 +568,9 @@ function construireSelecteurs(): void {
   if (!financiers.some((i) => i.id === etat.indicateur)) {
     etat.indicateur = financiers[0]?.id ?? etat.indicateur;
   }
-  $<HTMLSelectElement>("indicateur").innerHTML = financiers
-    .map((i) => `<option value="${i.id}">${i.libelle}</option>`)
-    .join("");
-  $<HTMLSelectElement>("indicateur").value = etat.indicateur;
+  const selecteur = $<HTMLSelectElement>("indicateur");
+  selecteur.innerHTML = optionsIndicateurs(etat.niveau);
+  selecteur.value = etat.indicateur;
 
   // Périodes du niveau affiché, pas de l'indicateur tous niveaux confondus :
   // l'historique communal est plus court que celui des départements, et
@@ -568,15 +611,22 @@ function construireSelecteurs(): void {
 function brancherCommandes(): void {
   $("commandes").addEventListener("change", async (evenement) => {
     const cible = evenement.target as HTMLSelectElement;
-    if (cible.id === "theme") {
-      etat.theme = cible.value;
-      // Changer de thème remet l'année à la plus récente disponible. Sans cela,
-      // passer par un thème qui n'a qu'un millésime ancien — les établissements
-      // s'arrêtent à 2023 — laissait le lecteur sur cette année-là en revenant
-      // aux finances locales, qui vont jusqu'à 2025. Aucun message ne le disait.
-      etat.periode = "";
+    if (cible.id === "indicateur") {
+      // « theme:education » = tout le thème : on prend son premier indicateur.
+      // Changer de thème remet l'année à la plus récente disponible : sinon,
+      // passer par un thème au millésime court y laissait le lecteur.
+      if (cible.value.startsWith("theme:")) {
+        const theme = cible.value.slice("theme:".length);
+        etat.theme = theme;
+        etat.indicateur = premierDuTheme(theme, etat.niveau) ?? etat.indicateur;
+        etat.periode = "";
+      } else {
+        const choisi = catalogue.find((i) => i.id === cible.value);
+        if (choisi && choisi.theme !== etat.theme) etat.periode = "";
+        etat.theme = choisi?.theme ?? etat.theme;
+        etat.indicateur = cible.value;
+      }
     }
-    if (cible.id === "indicateur") etat.indicateur = cible.value;
     if (cible.id === "niveau") {
       etat.niveau = cible.value;
       etat.selection = null;
@@ -662,49 +712,42 @@ function derniereCartographiee(indicateur: Indicateur, niveau: string): string |
   return periodes.length ? periodes[periodes.length - 1] : null;
 }
 
+/** L'axe horizontal est l'indicateur de la carte : l'analyse prolonge ce
+ *  qu'on regarde, elle ne recommence pas un formulaire. Seul le second axe
+ *  se choisit — une case au lieu de trois. */
 function remplirSelecteursCroisement(): void {
-  const niveau = $<HTMLSelectElement>("croiser-niveau").value;
-  const eligibles = catalogue.filter((i) => derniereCartographiee(i, niveau));
-  for (const [id, defaut] of [
-    ["croiser-x", "insee_niveau_vie_median"],
-    ["croiser-y", "ofgl_depenses_fonctionnement"],
-  ] as const) {
-    const select = $<HTMLSelectElement>(id);
-    const courant = select.value;
-    select.innerHTML = eligibles
-      .map(
-        (i) => `<option value="${i.id}">${libelleTheme(i.theme)} — ${i.libelle}</option>`,
-      )
-      .join("");
-    const voulu = courant && eligibles.some((i) => i.id === courant) ? courant : defaut;
-    if (eligibles.some((i) => i.id === voulu)) select.value = voulu;
-  }
+  const select = $<HTMLSelectElement>("croiser-y");
+  const courant = select.value;
+  select.innerHTML = optionsIndicateurs(etat.niveau, etat.indicateur).replaceAll(
+    /<option value="theme:[^"]*">[^<]*<\/option>/g,
+    "",
+  );
+  const eligible = (id: string) =>
+    catalogue.some((i) => i.id === id && i.niveaux?.includes(etat.niveau) && id !== etat.indicateur);
+  const defauts = [
+    "insee_niveau_vie_median",
+    "ofgl_depenses_fonctionnement",
+    "insee_population_municipale",
+  ];
+  const voulu = eligible(courant) ? courant : defauts.find(eligible);
+  if (voulu) select.value = voulu;
 }
 
 async function majCroisement(): Promise<void> {
-  // Arriver directement sur #analyses appelle cette fonction avant que le
-  // catalogue ne soit chargé : on attend le prochain appel plutôt que de
-  // s'initialiser à vide en silence.
-  if (!catalogue.length) return;
-  if (croisementPret && !$<HTMLSelectElement>("croiser-x").options.length) {
-    remplirSelecteursCroisement();
-  }
+  if (!catalogue.length || $("volet-analyse").hidden) return;
   if (!croisementPret) {
     croisementPret = true;
-    remplirSelecteursCroisement();
-    for (const id of ["croiser-niveau", "croiser-x", "croiser-y", "croiser-log"]) {
-      $(id).addEventListener("change", () => {
-        if (id === "croiser-niveau") remplirSelecteursCroisement();
-        void majCroisement();
-      });
+    for (const id of ["croiser-y", "croiser-log"]) {
+      $(id).addEventListener("change", () => void majCroisement());
     }
     window.addEventListener("resize", () => {
-      if (document.body.dataset.vue === "analyses") void majCroisement();
+      if (!$("volet-analyse").hidden) void majCroisement();
     });
     brancherSurvolCroisement();
   }
-  const niveau = $<HTMLSelectElement>("croiser-niveau").value;
-  const indX = catalogue.find((i) => i.id === $<HTMLSelectElement>("croiser-x").value);
+  remplirSelecteursCroisement();
+  const niveau = etat.niveau;
+  const indX = indicateurCourant();
   const indY = catalogue.find((i) => i.id === $<HTMLSelectElement>("croiser-y").value);
   if (!indX || !indY) return;
   const periodeX = derniereCartographiee(indX, niveau);
@@ -900,7 +943,7 @@ function brancherSurvolCroisement(): void {
 /** Trois vues — Carte, Décryptages, Données — au lieu d'un long défilement.
  *  Le lecteur choisit ce qu'il regarde ; on ne passe plus d'une carte plein
  *  écran à une pile de blocs sans transition. L'état vit dans le hash. */
-const VUES_PAGE = ["carte", "decryptages", "analyses", "donnees"] as const;
+const VUES_PAGE = ["carte", "decryptages", "donnees"] as const;
 
 function basculerVue(): void {
   const demandee = location.hash.replace("#", "");
@@ -908,9 +951,7 @@ function basculerVue(): void {
   document.body.dataset.vue = vue;
   document.querySelector<HTMLElement>(".atelier")!.hidden = vue !== "carte";
   $("vue-decryptages").hidden = vue !== "decryptages";
-  $("vue-analyses").hidden = vue !== "analyses";
   $("vue-donnees").hidden = vue !== "donnees";
-  if (vue === "analyses") void majCroisement();
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     if (a.dataset.vue === vue) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
@@ -927,9 +968,6 @@ async function demarrer(): Promise<void> {
   etat = lireUrl();
   construireSelecteurs();
   afficherQuestions($("questions"));
-  // Si la page s'est ouverte directement sur la vue Analyses, le croisement
-  // attendait le catalogue : le voilà.
-  if (document.body.dataset.vue === "analyses") void majCroisement();
 
   // Le jeu de données public est le même que celui de la carte : le lien pointe
   // vers le pointeur de version, porte d'entrée de tous les autres fichiers.
@@ -1141,6 +1179,20 @@ async function demarrer(): Promise<void> {
   }
 
   $("panneau-fermer").addEventListener("click", fermerPanneau);
+
+  // Onglets du panneau : Territoire (la fiche) et Analyse (le croisement).
+  // Tout vit dans la carte — plus d'onglet d'analyse séparé.
+  document.querySelectorAll<HTMLButtonElement>(".panneau__onglets button").forEach((bouton) => {
+    bouton.addEventListener("click", () => {
+      const voulu = bouton.dataset.volet;
+      document.querySelectorAll<HTMLButtonElement>(".panneau__onglets button").forEach((b) => {
+        b.setAttribute("aria-selected", String(b === bouton));
+      });
+      $("volet-territoire").hidden = voulu !== "territoire";
+      $("volet-analyse").hidden = voulu !== "analyse";
+      if (voulu === "analyse") void majCroisement();
+    });
+  });
 
   brancherCommandes();
 

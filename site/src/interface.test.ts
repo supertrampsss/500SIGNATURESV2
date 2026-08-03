@@ -26,7 +26,11 @@ test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
 });
 
 test("changer de thème repart sur l'année la plus récente", () => {
-  assert.match(MAIN, /cible\.id === "theme"[\s\S]{0,600}etat\.periode = ""/);
+  // Le sélecteur de thème a fusionné avec celui d'indicateur (une cellule,
+  // groupée par thème, avec l'entrée « tout le thème ») : la règle survit au
+  // changement de forme — elle porte désormais sur le sélecteur unique.
+  assert.match(MAIN, /cible\.id === "indicateur"[\s\S]{0,900}etat\.periode = ""/);
+  assert.match(MAIN, /theme:\$\{theme\}|theme:\$\{t\}|value="theme:/);
 });
 
 test("un maire absent est dit, pas laissé en blanc", () => {

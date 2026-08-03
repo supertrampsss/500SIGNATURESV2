@@ -33,7 +33,6 @@
       <nav class="entete__nav" aria-label="Vues">
         <a href="#carte" data-vue="carte">Carte</a>
         <a href="#decryptages" data-vue="decryptages">Décryptages</a>
-        <a href="#analyses" data-vue="analyses">Analyses</a>
         <a href="#donnees" data-vue="donnees">Données</a>
       </nav>
     </header>
@@ -42,10 +41,6 @@
       <div id="carte" role="application" aria-label="Carte des territoires français"></div>
 
       <form class="commandes surcouche surcouche--commandes" id="commandes" aria-label="Choix de l'affichage">
-        <p class="champ">
-          <label for="theme">Thème</label>
-          <select id="theme"></select>
-        </p>
         <p class="champ">
           <label for="indicateur">Indicateur</label>
           <select id="indicateur"></select>
@@ -88,11 +83,34 @@
 
       <aside class="panneau surcouche" id="panneau">
         <button type="button" class="panneau__fermer" id="panneau-fermer" aria-label="Fermer le panneau">×</button>
-        <div class="panneau__contenu">
+        <div class="panneau__onglets" role="tablist">
+          <button type="button" role="tab" data-volet="territoire" aria-selected="true">Territoire</button>
+          <button type="button" role="tab" data-volet="analyse" aria-selected="false">Analyse</button>
+        </div>
+        <div class="panneau__contenu" id="volet-territoire">
           <div class="fiche" id="fiche" aria-live="polite">
             <p class="fiche__vide">Choisissez un territoire sur la carte ou par la recherche.</p>
           </div>
           <div class="palmares" id="palmares" hidden></div>
+        </div>
+        <div class="panneau__contenu croiser" id="volet-analyse" hidden>
+          <p class="croiser__intro">
+            Croise l'indicateur de la carte avec un autre, sur les territoires du
+            niveau affiché. Chaque point est un territoire.
+          </p>
+          <p class="champ">
+            <label for="croiser-y">Croiser avec</label>
+            <select id="croiser-y"></select>
+          </p>
+          <p class="champ champ--case">
+            <label><input type="checkbox" id="croiser-log" /> Échelles logarithmiques</label>
+          </p>
+          <div class="croiser__scene">
+            <canvas id="croiser-canvas" role="img" aria-label="Nuage de points du croisement"></canvas>
+            <div class="infobulle" id="croiser-infobulle" hidden></div>
+          </div>
+          <p class="croiser__resume" id="croiser-resume"></p>
+          <p class="avertissement" id="croiser-note"></p>
         </div>
       </aside>
 
@@ -116,46 +134,13 @@
       </section>
     </div>
 
-    <div class="vue" id="vue-analyses" hidden>
-      <section class="tableau croiser">
-        <h2>Croiser deux indicateurs</h2>
-        <p class="tableau__aide">
-          Chaque point est un territoire. La droite est celle des moindres
-          carrés ; r mesure la corrélation linéaire — jamais une causalité.
-        </p>
-        <form class="commandes croiser__commandes" aria-label="Choix du croisement">
-          <p class="champ champ--demi">
-            <label for="croiser-niveau">Niveau</label>
-            <select id="croiser-niveau">
-              <option value="region">Régions</option>
-              <option value="departement">Départements</option>
-              <option value="epci">Intercommunalités</option>
-              <option value="commune" selected>Communes</option>
-            </select>
-          </p>
-          <p class="champ">
-            <label for="croiser-x">Axe horizontal</label>
-            <select id="croiser-x"></select>
-          </p>
-          <p class="champ">
-            <label for="croiser-y">Axe vertical</label>
-            <select id="croiser-y"></select>
-          </p>
-          <p class="champ champ--case">
-            <label><input type="checkbox" id="croiser-log" /> Échelles logarithmiques</label>
-          </p>
-        </form>
-        <div class="croiser__scene">
-          <canvas id="croiser-canvas" role="img" aria-label="Nuage de points du croisement choisi"></canvas>
-          <div class="infobulle" id="croiser-infobulle" hidden></div>
-        </div>
-        <p class="croiser__resume" id="croiser-resume"></p>
-        <p class="avertissement" id="croiser-note"></p>
-      </section>
-    </div>
-
     <div class="vue" id="vue-donnees" hidden>
     <section id="comparateur" class="tableau" hidden></section>
+
+    <section id="sources" class="tableau">
+      <h2>Sources et méthode</h2>
+      <div id="sources-contenu"></div>
+    </section>
 
     <section id="tableau" class="tableau">
       <h2>Données affichées</h2>
