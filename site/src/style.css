@@ -271,13 +271,57 @@ summary:focus-visible {
   font-size: 0.88rem;
   padding: 0.42rem 1.8rem 0.42rem 0.6rem;
 }
+/* La légende, repliée : une pastille de couleurs collée au bord gauche de la
+   carte. Ouverte en permanence, elle occupait le quart de l'écran pour une
+   information qu'on lit une fois — et sur téléphone elle recouvrait la moitié
+   du pays. Le dégradé suffit à lire la carte ; le détail attend le clic. */
 .surcouche--legende {
   left: 0.9rem;
-  bottom: 1.55rem;
-  width: 13.5rem;
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+  width: auto;
   max-width: calc(100% - 2rem);
-  padding: 0.5rem 0.65rem 0.4rem;
+  padding: 0;
   font-size: 0.72rem;
+  overflow: hidden;
+}
+.surcouche--legende[open] {
+  width: 13.5rem;
+  padding: 0.5rem 0.65rem 0.4rem;
+}
+.legende__poignee {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 4.4rem;
+  cursor: pointer;
+  list-style: none;
+}
+.legende__poignee::-webkit-details-marker {
+  display: none;
+}
+.surcouche--legende[open] .legende__poignee {
+  width: auto;
+  height: auto;
+  margin: -0.5rem -0.65rem 0.3rem;
+  padding: 0.25rem 0;
+}
+.legende__vignette {
+  display: block;
+  width: 0.55rem;
+  height: 3.2rem;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgb(15 27 46 / 0.12);
+}
+/* Ouverte, la pastille se couche : elle redevient le trait de l'échelle. */
+.surcouche--legende[open] .legende__vignette {
+  width: 2.2rem;
+  height: 0.3rem;
+}
+.legende__contenu {
+  min-width: 12rem;
 }
 .legende__echelle {
   list-style: none;
@@ -357,6 +401,9 @@ summary:focus-visible {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+.panneau__poignee {
+  display: none;
 }
 .panneau__fermer {
   position: absolute;
@@ -715,7 +762,8 @@ tbody tr:hover {
     padding: 0.6rem;
   }
   /* Le tiroir monte du bas. Sans sélection il montre la France, mais plus
-     bas : la carte doit rester manœuvrable, c'est par elle qu'on choisit. */
+     bas : la carte doit rester manœuvrable, c'est par elle qu'on choisit.
+     Sa hauteur est une variable, parce qu'on la fait glisser. */
   .panneau {
     display: flex;
     top: auto;
@@ -723,12 +771,55 @@ tbody tr:hover {
     right: 0;
     bottom: 0;
     width: auto;
-    max-height: 38dvh;
+    height: var(--tiroir, 38dvh);
+    max-height: 100%;
+    /* Au-dessus des commandes de la carte : agrandi jusqu'en haut, le tiroir
+       passait sous la barre des territoires, qui interceptait le doigt — on
+       ne pouvait plus attraper la poignée pour le redescendre. */
+    z-index: 7;
     border-radius: var(--rayon) var(--rayon) 0 0;
     border-bottom: 0;
+    padding-top: 0.9rem;
   }
   .panneau.panneau--selection {
-    max-height: 62dvh;
+    --tiroir: 62dvh;
+  }
+  /* Poignée : la barre grise du haut. Sa zone tactile déborde largement du
+     trait dessiné — un trait de 4 px ne s'attrape pas au doigt. */
+  .panneau__poignee {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1.6rem;
+    z-index: 3;
+    border: 0;
+    background: none;
+    cursor: grab;
+    touch-action: none;
+  }
+  .panneau__poignee::before {
+    content: "";
+    position: absolute;
+    top: 0.45rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2.4rem;
+    height: 0.25rem;
+    border-radius: 999px;
+    background: var(--trait-fort);
+  }
+  .panneau__poignee:active {
+    cursor: grabbing;
+  }
+  /* Pendant le glissement, aucune transition : la hauteur doit suivre le doigt
+     à l'image près. */
+  .panneau--glisse {
+    transition: none;
+  }
+  .panneau__fermer {
+    top: 1.15rem;
   }
   .panneau.panneau--selection .palmares {
     display: none; /* le tiroir mobile va à l'essentiel : la fiche */
@@ -1744,6 +1835,11 @@ body[data-vue="carte"] .pied {
 }
 
 /* Le petit tableau des exercices : les nombres sous la courbe. */
+.mini-serie__cadre {
+  overflow-x: auto;
+  scrollbar-width: thin;
+  max-width: 100%;
+}
 .mini-serie {
   width: 100%;
   border-collapse: collapse;
@@ -2576,14 +2672,15 @@ body[data-vue="carte"] .pied {
    Cette règle vient après `.carte-barre` : à spécificité égale, l'ordre
    décide, et un `@media` placé plus haut dans la feuille perdait. */
 @media (max-width: 60rem) {
-  /* Sous la barre des territoires, étroite, et surtout sans `bottom` : posée
-     en haut ET en bas, elle s'étirait sur toute la hauteur de la carte. */
+  /* Repliée, elle tient dans la marge gauche et ne recouvre rien. Ouverte,
+     elle repart du haut pour ne pas déborder sous le tiroir. */
   .surcouche--legende {
     left: 0.6rem;
+  }
+  .surcouche--legende[open] {
     top: 3.4rem;
-    bottom: auto;
-    width: auto;
-    max-width: 58%;
+    transform: none;
+    max-width: calc(100% - 1.2rem);
     padding: 0.4rem 0.55rem 0.35rem;
   }
   .carte-barre {

@@ -224,6 +224,13 @@ function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean)
     bornes.length ? `&gt; ${lisible(bornes[bornes.length - 1])}` : ""
   }</span>`;
   $("legende-note").textContent = noteEchelle(indicateur.unite, parHabitant);
+  // La pastille repliée : les mêmes couleurs, en dégradé, sur deux centimètres.
+  // Elle suffit à lire la carte — foncé, beaucoup ; clair, peu — sans rien
+  // recouvrir. Le détail attend le clic.
+  $("legende-vignette").style.background = `linear-gradient(to bottom, ${echelle.couleurs.join(
+    ", ",
+  )})`;
+  $("legende").title = `Légende — ${indicateur.libelle}`;
 }
 
 function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
@@ -516,6 +523,12 @@ function paddingCarte(): { top: number; bottom: number; left: number; right: num
   // cadrage suit donc la position réelle du tiroir, plafonnée : quand il est
   // grand ouvert, on ne dézoome pas la carte jusqu'à l'absurde.
   const zone = $("carte").getBoundingClientRect();
+  // Le cadrage initial est demandé à la construction de la carte, avant que la
+  // mise en page soit posée : la hauteur mesurée valait alors zéro, le creux du
+  // bas aussi, et la carte s'ouvrait sur le Sahara — la France hors champ,
+  // au-dessus. Sur une zone qui n'a pas encore de taille, on s'en tient à des
+  // valeurs fixes ; le vrai cadrage suit au chargement.
+  if (zone.height < 200) return { top: 96, bottom: 96, left: 16, right: 16 };
   const tiroir = $("panneau").getBoundingClientRect();
   const couvert = Math.round(zone.bottom - tiroir.top) + 12;
   const bas = Math.min(Math.round(zone.height * 0.42), Math.max(96, couvert));
@@ -622,6 +635,73 @@ async function montrerFiche(code: string): Promise<void> {
     references: reperes,
   });
   $("panneau").classList.add("panneau--selection");
+}
+
+/**
+ * Le tiroir mobile se saisit et s'agrandit, jusqu'au plein écran.
+ *
+ * Il était figé à 38 % de l'écran — 62 % une fois un territoire choisi — et
+ * la fiche se lisait par une meurtrière, sous une carte qu'on ne regardait
+ * plus. On peut désormais le tirer vers le haut jusqu'à couvrir la carte, et
+ * le redescendre. Trois arrêts, parce qu'un tiroir libre se pose toujours de
+ * travers : un aperçu, une moitié, le plein écran.
+ *
+ * Un simple appui bascule entre l'état courant et le plein écran — sur un
+ * téléphone, tout ne se fait pas au glissement.
+ */
+function tiroirRedimensionnable(): void {
+  const panneau = $("panneau");
+  const poignee = $("panneau-poignee");
+  const arrets = () => {
+    const h = window.innerHeight;
+    return [Math.round(h * 0.38), Math.round(h * 0.62), Math.round(h - 48)];
+  };
+  const poser = (hauteur: number) => panneau.style.setProperty("--tiroir", `${hauteur}px`);
+
+  let depart = 0;
+  let hauteurDepart = 0;
+  let deplace = false;
+
+  poignee.addEventListener("pointerdown", (evenement) => {
+    const e = evenement as PointerEvent;
+    if (window.innerWidth > 960) return;
+    depart = e.clientY;
+    hauteurDepart = panneau.getBoundingClientRect().height;
+    deplace = false;
+    panneau.classList.add("panneau--glisse");
+    poignee.setPointerCapture(e.pointerId);
+  });
+
+  poignee.addEventListener("pointermove", (evenement) => {
+    const e = evenement as PointerEvent;
+    if (!poignee.hasPointerCapture(e.pointerId)) return;
+    const delta = depart - e.clientY;
+    if (Math.abs(delta) > 4) deplace = true;
+    const bornes = arrets();
+    poser(Math.max(120, Math.min(bornes[bornes.length - 1], hauteurDepart + delta)));
+  });
+
+  const relacher = (evenement: Event) => {
+    const e = evenement as PointerEvent;
+    if (!poignee.hasPointerCapture(e.pointerId)) return;
+    poignee.releasePointerCapture(e.pointerId);
+    panneau.classList.remove("panneau--glisse");
+    const bornes = arrets();
+    const haut = panneau.getBoundingClientRect().height;
+    // Appui sans glissement : on bascule entre plein écran et aperçu, plutôt
+    // que de ne rien faire — c'est le geste qu'on tente d'abord.
+    if (!deplace) {
+      poser(haut > bornes[1] ? bornes[0] : bornes[2]);
+      return;
+    }
+    poser(bornes.reduce((a, b) => (Math.abs(b - haut) < Math.abs(a - haut) ? b : a)));
+  };
+  poignee.addEventListener("pointerup", relacher);
+  poignee.addEventListener("pointercancel", relacher);
+
+  // Rotation ou changement de taille : les arrêts changent, la hauteur figée
+  // en pixels ne veut plus rien dire.
+  window.addEventListener("resize", () => panneau.style.removeProperty("--tiroir"));
 }
 
 /** Ferme la sélection : le panneau revient à l'aperçu de la couche. */
@@ -764,6 +844,7 @@ function brancherCommandes(): void {
   $("fiche").addEventListener("keydown", (evenement) => {
     if ((evenement as KeyboardEvent).key === "Enter") surLigne(evenement);
   });
+  tiroirRedimensionnable();
 
   $("exporter").addEventListener("click", () => {
     const indicateur = indicateurCourant();
@@ -950,6 +1031,9 @@ async function demarrer(): Promise<void> {
   // Le zoom d'ouverture (France entière) doit donner sa maille tout de suite,
   // sinon la première peinture se fait en communes sur une vue nationale.
   carte.once("load", () => {
+    // Re-cadrage une fois la mise en page posée : à la construction, la zone
+    // de carte n'a pas encore sa hauteur et le tiroir pas encore la sienne.
+    if (window.innerWidth <= 960) cadrer(etat.vue);
     if (!etat.niveauAuto) return;
     const voulu = niveauPourZoom(carte.getZoom());
     if (voulu !== etat.niveau) {

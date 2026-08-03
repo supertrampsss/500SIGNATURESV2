@@ -451,7 +451,10 @@ function miniTableau(
           }</td>`,
       )
       .join("")}</tr>`;
-  return `<table class="mini-serie">
+  // Le tableau défile dans son propre cadre : à 393 px, quatre colonnes de
+  // milliards débordaient du panneau et la dernière — la plus récente — était
+  // coupée. La page, elle, ne défile jamais latéralement.
+  return `<div class="mini-serie__cadre"><table class="mini-serie">
     <thead><tr><td></td>${periodes
       .map((p) => `<th scope="col">${echapper(p)}</th>`)
       .join("")}</tr></thead>
@@ -459,7 +462,7 @@ function miniTableau(
       ${ligne(suffixe ?? intitule, serie, ratio)}
       ${totaux ? ligne("total", totaux, false) : ""}
     </tbody>
-  </table>`;
+  </table></div>`;
 }
 
 export function panneauSource(indicateurs: Indicateur[], jeux: Jeu[]): string {
