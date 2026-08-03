@@ -140,9 +140,20 @@ export function rendu(
   const resume = `${periodes[0]} : ${formater(valeurs[0])} — ${
     periodes[periodes.length - 1]
   } : ${formater(valeurs[valeurs.length - 1])}`;
-  // Les lignes de repère entrent dans l'échelle : sinon une médiane hors
-  // cadre serait tracée au bord et mentirait sur l'écart.
-  const utiles = reperes.filter((r) => Number.isFinite(r.valeur));
+  // Un repère très éloigné écrase la courbe : à Pessac, la dette du
+  // département (1 060 €) contre 866 € communaux tassait la série en trait
+  // plat. Un repère n'entre donc dans l'échelle que s'il reste à moins d'une
+  // amplitude de la série ; au-delà il n'est pas tracé, et sa valeur est dite
+  // en légende — mieux vaut un repère absent du dessin qu'une courbe illisible
+  // ou qu'une ligne au bord qui mentirait sur l'écart.
+  const finis = reperes.filter((r) => Number.isFinite(r.valeur));
+  const basSerie = Math.min(...valeurs);
+  const hautSerie = Math.max(...valeurs);
+  const marge = (hautSerie - basSerie || Math.abs(hautSerie) * 0.2 || 1) * 1.5;
+  const utiles = finis.filter(
+    (r) => r.valeur >= basSerie - marge && r.valeur <= hautSerie + marge,
+  );
+  const horsEchelle = finis.filter((r) => !utiles.includes(r));
   const toutes = [...valeurs, ...utiles.map((r) => r.valeur)];
   const bornes: [number, number] = [Math.min(...toutes), Math.max(...toutes)];
   const y = (valeur: number) =>
@@ -154,12 +165,17 @@ export function rendu(
         stroke-dasharray="${i === 0 ? "4 3" : "1 3"}" />`,
     )
     .join("");
-  const etiquettes = utiles
-    .map(
+  const etiquettes = [
+    ...utiles.map(
       (r) => `<span class="serie__repere-nom">${echapper(r.libelle)} :
         ${echapper(formater(r.valeur))}</span>`,
-    )
-    .join("");
+    ),
+    ...horsEchelle.map(
+      (r) => `<span class="serie__repere-nom serie__repere-nom--loin"
+        title="Trop éloigné pour être tracé sans écraser la courbe">${echapper(r.libelle)} :
+        ${echapper(formater(r.valeur))}</span>`,
+    ),
+  ].join("");
   return `<div class="serie">
     <svg viewBox="0 0 ${LARGEUR} ${HAUTEUR}" class="serie__trace" role="img"
          aria-label="${echapper(

@@ -150,14 +150,14 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
   // deux fois trop petit ou trop grand.
   if (unite === "pour_1000_habitants") {
     return (
-      `${classes} Faits enregistrés pour 1 000 habitants (dénominateur INSEE de la` +
+      `${classes} Faits enregistrés en % des habitants (dénominateur INSEE de la` +
       " source). Mesure les faits portés à la connaissance des forces de l'ordre," +
       " pas l'intégralité des faits commis."
     );
   }
   if (unite === "pour_1000_logements") {
     return (
-      `${classes} Faits enregistrés pour 1 000 logements (dénominateur INSEE de la` +
+      `${classes} Faits enregistrés en % des logements (dénominateur INSEE de la` +
       " source), le bon dénominateur des cambriolages — pas la population."
     );
   }
@@ -187,13 +187,14 @@ export function formater(valeur: number, unite: string, parHabitant: boolean): s
   if (unite === "percent") {
     return pourcentage(valeur);
   }
-  // Taux pour mille (délinquance SSMSI) : le symbole ‰ est cryptique pour
-  // beaucoup — le « pour 1 000 » est écrit en toutes lettres, et la légende
-  // nomme le dénominateur exact (habitants ou logements).
+  // Les taux pour mille de la source s'affichent en **pourcentage** : le ‰
+  // se lit « %0 » pour beaucoup de lecteurs, ce qui est pire que cryptique.
+  // La conversion est exacte (÷ 10) ; la note de légende nomme le
+  // dénominateur, car « % des logements » n'est pas « % des habitants ».
   if (unite === "pour_1000_habitants" || unite === "pour_1000_logements") {
-    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
-      valeur,
-    )} ‰`;
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
+      sansZeroNegatif(valeur / 10, 2),
+    )} %`;
   }
   // APL : des consultations par an et par habitant — l'abréviation garde la
   // cellule lisible, la légende porte la définition complète.

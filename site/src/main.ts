@@ -101,8 +101,9 @@ type Etat = {
   indicateur: string;
   /** Maille effectivement affichée. */
   niveau: string;
-  /** La maille suit le zoom : voir NIVEAU_PAR_ZOOM. Choisir un niveau à la
-   *  main la fige — un réglage explicite ne doit pas être écrasé. */
+  /** La maille suit toujours le zoom (NIVEAU_PAR_ZOOM) : ce n'est plus un
+   *  réglage. Un sélecteur de plus pour une règle que la carte applique
+   *  d'elle-même n'était que du bruit. */
   niveauAuto: boolean;
   periode: string;
   declinaison: string;
@@ -147,8 +148,8 @@ function lireUrl(): Etat {
   return {
     theme: p.get("theme") ?? "finances_locales",
     indicateur: p.get("indicateur") ?? "ofgl_depenses_fonctionnement",
-    niveau: p.get("niveau") === "auto" || !p.get("niveau") ? "region" : (p.get("niveau") as string),
-    niveauAuto: p.get("niveau") === "auto" || !p.get("niveau"),
+    niveau: p.get("niveau") ?? "region",
+    niveauAuto: true,
     // L'année n'est plus un choix : c'est toujours la plus récente publiée
     // pour l'indicateur et la maille regardés. L'affichage non plus — le
     // panneau montre désormais les deux lectures (par habitant ET total)
@@ -166,7 +167,7 @@ function ecrireUrl(): void {
   const p = new URLSearchParams({
     theme: etat.theme,
     indicateur: etat.indicateur,
-    niveau: etat.niveauAuto ? "auto" : etat.niveau,
+    niveau: etat.niveau,
     periode: etat.periode,
   });
   if (etat.vue !== "metropole") p.set("vue", etat.vue);
@@ -687,23 +688,7 @@ function optionsIndicateurs(niveau: string, exclu?: string): string {
 
 /** Maille et territoire vivent sous la carte, en pilules : ce sont des
  *  réglages de cadrage, pas des questions posées au lecteur. */
-const MAILLES: { cle: string; libelle: string }[] = [
-  { cle: "auto", libelle: "Auto" },
-  { cle: "region", libelle: "Régions" },
-  { cle: "departement", libelle: "Départements" },
-  { cle: "epci", libelle: "Intercos" },
-  { cle: "commune", libelle: "Communes" },
-];
-
 function construireBarreCarte(): void {
-  const actifMaille = etat.niveauAuto ? "auto" : etat.niveau;
-  $("pilules-niveau").innerHTML = MAILLES.map(
-    (m) => `<button type="button" data-maille="${m.cle}"
-      class="pilule${m.cle === actifMaille ? " pilule--active" : ""}"
-      aria-pressed="${m.cle === actifMaille}"${
-        m.cle === "auto" ? ' title="La maille suit le zoom"' : ""
-      }>${m.libelle}</button>`,
-  ).join("");
   $("pilules-vue").innerHTML = Object.entries(VUES)
     .map(
       ([cle, v]) => `<button type="button" data-vue-carte="${cle}"
@@ -755,18 +740,6 @@ async function choisirIndicateur(id: string): Promise<void> {
 }
 
 function brancherCommandes(): void {
-  $("pilules-niveau").addEventListener("click", async (evenement) => {
-    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-maille]");
-    const maille = bouton?.dataset.maille;
-    if (!maille) return;
-    etat.niveauAuto = maille === "auto";
-    etat.niveau = etat.niveauAuto ? niveauPourZoom(carte.getZoom()) : maille;
-    etat.selection = null;
-    construireSelecteurs();
-    ecrireUrl();
-    await peindre();
-  });
-
   $("pilules-vue").addEventListener("click", async (evenement) => {
     const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-vue-carte]");
     const vue = bouton?.dataset.vueCarte;

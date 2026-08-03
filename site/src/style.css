@@ -2072,7 +2072,9 @@ body[data-vue="carte"] .pied {
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
-/* Deux courbes : le ratio et le montant total, chacune nommée. */
+/* La courbe ne montre que la valeur affichée — doubler le dessin doublait
+   la hauteur de chaque mesure sans rien apprendre : les montants totaux se
+   lisent dans la ligne « total » du tableau. */
 .serie__quoi {
   width: 100%;
   margin: 0.5rem 0 -0.1rem;
@@ -2390,4 +2392,34 @@ body[data-vue="carte"] .pied {
 }
 .mesure__lecture:empty {
   display: none;
+}
+
+/* Un repère hors échelle est dit, pas tracé : son puce est vide. */
+.serie__repere-nom--loin::before {
+  border-top-style: dotted;
+  opacity: 0.5;
+}
+.serie__repere-nom--loin {
+  opacity: 0.75;
+}
+
+
+/* Un thème montre sa mesure phare, le reste se déplie : vingt blocs ouverts
+   d'un coup faisaient un mur. */
+.theme-groupe__compte {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0.75;
+}
+.theme-groupe__suite > summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--trait);
+  margin-top: 0.5rem;
+}
+.theme-groupe__suite > summary:hover {
+  color: var(--encre);
 }

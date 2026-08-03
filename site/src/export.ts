@@ -37,6 +37,15 @@ function nombreFrancais(valeur: number): string {
   return String(Math.round(valeur * 100) / 100).replace(".", ",");
 }
 
+/** La valeur exportée suit l'affichage : les taux pour mille de la source
+ *  sont écrits en pourcentage, comme à l'écran et comme le dit l'en-tête.
+ *  Un fichier qui contredirait la carte serait pire qu'un fichier absent. */
+export function valeurExportee(valeur: number, unite: string): number {
+  return unite === "pour_1000_habitants" || unite === "pour_1000_logements"
+    ? valeur / 10
+    : valeur;
+}
+
 /** L'unité telle qu'elle se lit dans un tableur, jamais un code interne nu
  *  pour les unités connues — et le code tel quel pour les autres, comme à
  *  l'écran : une unité inconnue ne devient pas des euros (echelle.ts). */
@@ -49,9 +58,9 @@ export function uniteLisible(unite: string, parHabitant: boolean): string {
         : unite === "count"
           ? "nombre"
           : unite === "pour_1000_habitants"
-            ? "pour 1 000 habitants"
+            ? "% des habitants"
             : unite === "pour_1000_logements"
-              ? "pour 1 000 logements"
+              ? "% des logements"
               : unite === "consultations_par_an"
                 ? "consultations par an et par habitant"
                 : unite;
@@ -78,7 +87,7 @@ export function enCsv(
     [
       champ(ligne.code),
       champ(ligne.nom),
-      nombreFrancais(ligne.valeur),
+      nombreFrancais(valeurExportee(ligne.valeur, meta.unite)),
       champ(unite),
       champ(meta.periode),
       champ(meta.niveau),

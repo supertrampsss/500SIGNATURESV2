@@ -138,22 +138,12 @@ function ligneIndicateur(
           .filter(Boolean)
           .join(" "),
       )}</p>
-      <p class="serie__quoi">${ratio ? "Par habitant" : "Montant total"}</p>
       ${rendreSerie(
         suivie,
         evenements,
         (v) => formater(v, indicateur.unite, ratio),
         comparaisonsMesure,
       )}
-      ${
-        ratio
-          ? `<p class="serie__quoi">Montant total</p>${rendreSerie(
-              serie,
-              evenements,
-              (v) => formater(v, indicateur.unite, false),
-            )}`
-          : ""
-      }
       ${miniTableau(suivie, indicateur, ratio, ratio ? serie : undefined)}
 
     </dd>
@@ -452,19 +442,35 @@ export function afficherFiche(
         )
       : "") +
     [...groupes.entries()]
-      .map(
-        ([theme, liste]) => `<div class="theme-groupe">
-          <p class="theme-groupe__titre">${echapper(options.libelleTheme?.(theme) ?? theme)}</p>
-          ${liste
-            .map((indicateur) =>
-              ligneIndicateur(
-                indicateur, territoire, periode, parHabitant, niveau, references,
-                false, undefined, options.comparateurs,
-              ),
-            )
-            .join("")}
-        </div>`,
-      )
+      .map(([theme, liste]) => {
+        // Un thème montre sa mesure phare ; le reste se déplie. Vingt blocs
+        // dépliés d'un coup faisaient un mur — le lecteur ne savait plus par
+        // où entrer, alors que tout était là.
+        const [premier, ...suite] = liste;
+        const rendreLigne = (indicateur: Indicateur) =>
+          ligneIndicateur(
+            indicateur, territoire, periode, parHabitant, niveau, references,
+            false, undefined, options.comparateurs,
+          );
+        return `<div class="theme-groupe">
+          <p class="theme-groupe__titre">${echapper(
+            options.libelleTheme?.(theme) ?? theme,
+          )} <span class="theme-groupe__compte">${liste.length} indicateur${
+            liste.length > 1 ? "s" : ""
+          }</span></p>
+          ${rendreLigne(premier)}
+          ${
+            suite.length
+              ? `<details class="theme-groupe__suite">
+                  <summary>Voir les ${suite.length} autre${
+                    suite.length > 1 ? "s" : ""
+                  } indicateur${suite.length > 1 ? "s" : ""}</summary>
+                  ${suite.map(rendreLigne).join("")}
+                </details>`
+              : ""
+          }
+        </div>`;
+      })
       .join("");
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
