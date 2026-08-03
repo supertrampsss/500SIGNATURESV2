@@ -378,8 +378,8 @@ function majPalmares(): void {
 function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
   const large = window.innerWidth > 960;
   return large
-    ? { top: 40, bottom: 56, left: 320, right: Math.min(420, window.innerWidth * 0.32) }
-    : { top: 128, bottom: 48, left: 16, right: 16 };
+    ? { top: 40, bottom: 96, left: 320, right: Math.min(420, window.innerWidth * 0.32) }
+    : { top: 128, bottom: 96, left: 16, right: 16 };
 }
 
 /** Recadre la carte sur une vue déclarée. */
@@ -398,7 +398,7 @@ function suivreLaSelection(code: string): void {
   const vue = vueDuCode(code);
   if (vue === etat.vue) return;
   etat.vue = vue;
-  $<HTMLSelectElement>("vue").value = vue;
+  construireBarreCarte();
   cadrer(vue);
 }
 
@@ -610,6 +610,36 @@ function construireListeIndicateurs(): void {
     ?.scrollIntoView({ block: "nearest" });
 }
 
+/** Maille et territoire vivent sous la carte, en pilules : ce sont des
+ *  réglages de cadrage, pas des questions posées au lecteur. Deux menus
+ *  déroulants de plus dans le panneau encombraient le choix qui compte —
+ *  l'indicateur. */
+const MAILLES: { cle: string; libelle: string }[] = [
+  { cle: "auto", libelle: "Auto" },
+  { cle: "region", libelle: "Régions" },
+  { cle: "departement", libelle: "Départements" },
+  { cle: "epci", libelle: "Intercos" },
+  { cle: "commune", libelle: "Communes" },
+];
+
+function construireBarreCarte(): void {
+  const actifMaille = etat.niveauAuto ? "auto" : etat.niveau;
+  $("pilules-niveau").innerHTML = MAILLES.map(
+    (m) => `<button type="button" data-maille="${m.cle}"
+      class="pilule${m.cle === actifMaille ? " pilule--active" : ""}"
+      aria-pressed="${m.cle === actifMaille}"${
+        m.cle === "auto" ? ' title="La maille suit le zoom"' : ""
+      }>${m.libelle}</button>`,
+  ).join("");
+  $("pilules-vue").innerHTML = Object.entries(VUES)
+    .map(
+      ([cle, v]) => `<button type="button" data-vue-carte="${cle}"
+      class="pilule${cle === etat.vue ? " pilule--active" : ""}"
+      aria-pressed="${cle === etat.vue}">${cle === "metropole" ? "Métropole" : v.nom}</button>`,
+    )
+    .join("");
+}
+
 function construireSelecteurs(): void {
   const disponibles = themesCartographiables();
   if (!disponibles.includes(etat.theme)) etat.theme = disponibles[0] ?? "finances_locales";
@@ -636,14 +666,7 @@ function construireSelecteurs(): void {
     .map((p) => `<option value="${p}">${p}</option>`)
     .join("");
   $<HTMLSelectElement>("periode").value = etat.periode;
-  $<HTMLSelectElement>("niveau").value = etat.niveauAuto ? "auto" : etat.niveau;
-  const vue = $<HTMLSelectElement>("vue");
-  if (!vue.options.length) {
-    vue.innerHTML = Object.entries(VUES)
-      .map(([cle, v]) => `<option value="${cle}">${v.nom}</option>`)
-      .join("");
-  }
-  vue.value = etat.vue;
+  construireBarreCarte();
 
   // « Par habitant » n'a de sens que pour un montant qui s'additionne. Sur un
   // taux ou un effectif, le calcul le refusait déjà — mais la commande restait
@@ -672,6 +695,28 @@ async function choisirIndicateur(id: string): Promise<void> {
 }
 
 function brancherCommandes(): void {
+  $("pilules-niveau").addEventListener("click", async (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-maille]");
+    const maille = bouton?.dataset.maille;
+    if (!maille) return;
+    etat.niveauAuto = maille === "auto";
+    etat.niveau = etat.niveauAuto ? niveauPourZoom(carte.getZoom()) : maille;
+    etat.selection = null;
+    construireSelecteurs();
+    ecrireUrl();
+    await peindre();
+  });
+
+  $("pilules-vue").addEventListener("click", async (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-vue-carte]");
+    const vue = bouton?.dataset.vueCarte;
+    if (!vue) return;
+    etat.vue = vue;
+    cadrer(vue);
+    construireBarreCarte();
+    ecrireUrl();
+  });
+
   $("liste-indicateurs").addEventListener("click", (evenement) => {
     const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>(
       "[data-indicateur]",
@@ -682,17 +727,8 @@ function brancherCommandes(): void {
 
   $("commandes").addEventListener("change", async (evenement) => {
     const cible = evenement.target as HTMLSelectElement;
-    if (cible.id === "niveau") {
-      etat.niveauAuto = cible.value === "auto";
-      etat.niveau = etat.niveauAuto ? niveauPourZoom(carte.getZoom()) : cible.value;
-      etat.selection = null;
-    }
     if (cible.id === "periode") etat.periode = cible.value;
     if (cible.id === "declinaison") etat.declinaison = cible.value;
-    if (cible.id === "vue") {
-      etat.vue = cible.value;
-      cadrer(etat.vue);
-    }
     construireSelecteurs();
     ecrireUrl();
     try {

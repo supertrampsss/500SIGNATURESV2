@@ -48,22 +48,8 @@
         <div class="indicateurs" id="liste-indicateurs" role="listbox"
              aria-label="Choix de l'indicateur"></div>
         <p class="champ champ--demi">
-          <label for="niveau">Niveau</label>
-          <select id="niveau">
-            <option value="auto" selected>Automatique (au zoom)</option>
-            <option value="region">Régions</option>
-            <option value="departement">Départements</option>
-            <option value="epci">Intercommunalités</option>
-            <option value="commune">Communes</option>
-          </select>
-        </p>
-        <p class="champ champ--demi">
           <label for="periode">Année</label>
           <select id="periode"></select>
-        </p>
-        <p class="champ champ--demi">
-          <label for="vue">Territoire</label>
-          <select id="vue"></select>
         </p>
         <p class="champ champ--demi">
           <label for="declinaison">Affichage</label>
@@ -140,6 +126,11 @@
           </div>
         </div>
       </aside>
+
+      <div class="carte-barre">
+        <div class="pilules" id="pilules-niveau" role="group" aria-label="Maille affichée"></div>
+        <div class="pilules pilules--vues" id="pilules-vue" role="group" aria-label="Territoire cadré"></div>
+      </div>
 
       <div class="infobulle" id="infobulle" hidden></div>
     </main>

@@ -2094,3 +2094,77 @@ body[data-vue="carte"] .pied {
 .mini-serie tbody tr + tr th {
   border-top: 1px solid var(--trait);
 }
+
+
+/* La barre de la carte : maille et territoire, en bas, en pilules. Ce sont
+   des réglages de cadrage — ils ne méritent pas deux menus dans le panneau. */
+.carte-barre {
+  position: absolute;
+  left: 50%;
+  bottom: 1.1rem;
+  transform: translateX(-50%);
+  z-index: 6;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  max-width: calc(100% - 2rem);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.pilules {
+  display: flex;
+  gap: 0.15rem;
+  padding: 0.2rem;
+  background: rgb(255 255 255 / 0.94);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  box-shadow: var(--ombre-2);
+}
+.pilule {
+  font: inherit;
+  font-size: 0.76rem;
+  border: 0;
+  background: none;
+  color: var(--encre-douce);
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background var(--transition), color var(--transition);
+}
+.pilule:hover {
+  background: var(--papier-creuse);
+  color: var(--encre);
+}
+.pilule--active,
+.pilule--active:hover {
+  background: var(--encre);
+  color: #fff;
+}
+/* Les vues d'outre-mer sont un cadrage secondaire : plus discrètes. */
+.pilules--vues .pilule {
+  font-size: 0.72rem;
+  padding: 0.28rem 0.6rem;
+}
+
+@media (max-width: 60rem) {
+  .carte-barre {
+    left: 0.6rem;
+    right: 0.6rem;
+    bottom: 0.6rem;
+    transform: none;
+    max-width: none;
+    justify-content: flex-start;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .pilules {
+    flex: 0 0 auto;
+  }
+  /* la légende remonte au-dessus de la barre */
+  .surcouche--legende {
+    bottom: 3.6rem;
+  }
+}
