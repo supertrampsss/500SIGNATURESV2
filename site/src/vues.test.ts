@@ -4,6 +4,7 @@
  * s'ouvrait sur un cadrage figé de la métropole.
  */
 
+import { niveauPourZoom } from "./mailles.ts";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
@@ -42,4 +43,15 @@ test("ouvrir une fiche entraîne la carte", () => {
 test("la vue voyage dans l'URL, comme le reste de l'état", () => {
   assert.match(SOURCE, /p\.set\("vue", etat\.vue\)/);
   assert.match(SOURCE, /p\.get\("vue"\)/);
+});
+
+test("la maille suit le zoom : régions de loin, communes de près", () => {
+  // On zoomait sur une ville en gardant la couche des régions, et la carte
+  // semblait ne rien avoir de plus fin — personne ne pensait au sélecteur.
+  assert.equal(niveauPourZoom(4.5), "region");
+  assert.equal(niveauPourZoom(6.2), "departement");
+  assert.equal(niveauPourZoom(7.5), "departement");
+  assert.equal(niveauPourZoom(8), "epci");
+  assert.equal(niveauPourZoom(9), "commune");
+  assert.equal(niveauPourZoom(13), "commune");
 });

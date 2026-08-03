@@ -2062,3 +2062,35 @@ body[data-vue="carte"] .pied {
   font-weight: 400;
   color: var(--encre-douce);
 }
+
+
+/* L'unité de la valeur affichée, dite en clair : « 179 € » ne disait pas
+   qu'il s'agissait d'un par-habitant — l'infobulle était trop discrète. */
+.par-quoi {
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+/* Deux courbes : le ratio et le montant total, chacune nommée. */
+.serie__quoi {
+  width: 100%;
+  margin: 0.5rem 0 -0.1rem;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.mini-serie tbody th {
+  text-align: left;
+  font-weight: 400;
+  font-size: 0.7rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+  padding-right: 0.4rem;
+  border-bottom: 0;
+}
+.mini-serie tbody tr + tr td,
+.mini-serie tbody tr + tr th {
+  border-top: 1px solid var(--trait);
+}

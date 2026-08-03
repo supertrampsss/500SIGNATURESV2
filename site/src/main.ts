@@ -40,6 +40,7 @@ import {
   populationDeReference,
   quantiles,
 } from "./echelle.ts";
+import { niveauPourZoom } from "./mailles.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -98,7 +99,11 @@ const COUCHES: Record<string, string> = {
 type Etat = {
   theme: string;
   indicateur: string;
+  /** Maille effectivement affichée. */
   niveau: string;
+  /** La maille suit le zoom : voir NIVEAU_PAR_ZOOM. Choisir un niveau à la
+   *  main la fige — un réglage explicite ne doit pas être écrasé. */
+  niveauAuto: boolean;
   periode: string;
   declinaison: string;
   selection: string | null;
@@ -137,7 +142,8 @@ function lireUrl(): Etat {
   return {
     theme: p.get("theme") ?? "finances_locales",
     indicateur: p.get("indicateur") ?? "ofgl_depenses_fonctionnement",
-    niveau: p.get("niveau") ?? "commune",
+    niveau: p.get("niveau") === "auto" || !p.get("niveau") ? "region" : (p.get("niveau") as string),
+    niveauAuto: p.get("niveau") === "auto" || !p.get("niveau"),
     periode: p.get("periode") ?? "",
     declinaison: p.get("affichage") ?? "habitant",
     selection: p.get("territoire"),
@@ -150,7 +156,7 @@ function ecrireUrl(): void {
   const p = new URLSearchParams({
     theme: etat.theme,
     indicateur: etat.indicateur,
-    niveau: etat.niveau,
+    niveau: etat.niveauAuto ? "auto" : etat.niveau,
     periode: etat.periode,
     affichage: etat.declinaison,
   });
@@ -630,7 +636,7 @@ function construireSelecteurs(): void {
     .map((p) => `<option value="${p}">${p}</option>`)
     .join("");
   $<HTMLSelectElement>("periode").value = etat.periode;
-  $<HTMLSelectElement>("niveau").value = etat.niveau;
+  $<HTMLSelectElement>("niveau").value = etat.niveauAuto ? "auto" : etat.niveau;
   const vue = $<HTMLSelectElement>("vue");
   if (!vue.options.length) {
     vue.innerHTML = Object.entries(VUES)
@@ -677,7 +683,8 @@ function brancherCommandes(): void {
   $("commandes").addEventListener("change", async (evenement) => {
     const cible = evenement.target as HTMLSelectElement;
     if (cible.id === "niveau") {
-      etat.niveau = cible.value;
+      etat.niveauAuto = cible.value === "auto";
+      etat.niveau = etat.niveauAuto ? niveauPourZoom(carte.getZoom()) : cible.value;
       etat.selection = null;
     }
     if (cible.id === "periode") etat.periode = cible.value;
@@ -1298,6 +1305,33 @@ async function demarrer(): Promise<void> {
     },
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+
+  // La maille suit le zoom quand le mode automatique est actif. `zoomend` et
+  // non `zoom` : repeindre à chaque image de l'animation rechargerait la
+  // couche des dizaines de fois pour un seul geste.
+  // Le zoom d'ouverture (France entière) doit donner sa maille tout de suite,
+  // sinon la première peinture se fait en communes sur une vue nationale.
+  carte.once("load", () => {
+    if (!etat.niveauAuto) return;
+    const voulu = niveauPourZoom(carte.getZoom());
+    if (voulu !== etat.niveau) {
+      etat.niveau = voulu;
+      construireSelecteurs();
+      ecrireUrl();
+      void peindre();
+    }
+  });
+
+  carte.on("zoomend", () => {
+    if (!etat.niveauAuto) return;
+    const voulu = niveauPourZoom(carte.getZoom());
+    if (voulu === etat.niveau) return;
+    etat.niveau = voulu;
+    etat.selection = null;
+    construireSelecteurs();
+    ecrireUrl();
+    void peindre();
+  });
   // Poignée de diagnostic pour la vérification-écran automatisée : elle lit
   // l'état réel des couches au lieu de le déduire des pixels.
   Object.assign(window as object, { __carte: carte });
@@ -1351,6 +1385,17 @@ async function demarrer(): Promise<void> {
       carte.on("click", `remplissage-${couche}`, async (evenement) => {
         const code = evenement.features?.[0]?.properties?.code as string | undefined;
         if (code) await montrerFiche(code);
+      });
+      // Double-clic : on entre dans le territoire. En mode automatique, la
+      // maille se raffine d'elle-même en arrivant — c'est le geste attendu
+      // d'une carte, plus besoin de penser au sélecteur.
+      carte.on("dblclick", `remplissage-${couche}`, (evenement) => {
+        evenement.preventDefault();
+        carte.easeTo({
+          center: evenement.lngLat,
+          zoom: Math.min(carte.getZoom() + 2.2, 12),
+          duration: 700,
+        });
       });
       // Le survol dit le nom et la valeur sans obliger à cliquer — la carte
       // répond sous le curseur, elle n'est plus une image qu'on interroge à

@@ -122,13 +122,25 @@ function ligneIndicateur(
   return `<div class="mesure">
     <dt>${echapper(indicateur.libelle)}</dt>
     <dd>
-      <strong${infoDenominateur}>${formater(valeur, indicateur.unite, ratio)}</strong>
+      <strong${infoDenominateur}>${formater(valeur, indicateur.unite, ratio)}</strong>${
+        ratio ? `<span class="par-quoi">par habitant</span>` : ""
+      }
       <span class="millesime">${periode}</span>
       ${autreLecture}
       ${evolution(suivie, periode, evenements)}
       ${kpis(indicateur, territoire, suivie, periode, valeur, rang)}
+      <p class="serie__quoi">${ratio ? "Par habitant" : "Montant total"}</p>
       ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
-      ${miniTableau(suivie, indicateur, ratio)}
+      ${
+        ratio
+          ? `<p class="serie__quoi">Montant total</p>${rendreSerie(
+              serie,
+              evenements,
+              (v) => formater(v, indicateur.unite, false),
+            )}`
+          : ""
+      }
+      ${miniTableau(suivie, indicateur, ratio, ratio ? serie : undefined)}
       ${rendreReperes(
         reperes(
           toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
@@ -211,14 +223,29 @@ function miniTableau(
   serie: Record<string, number>,
   indicateur: Indicateur,
   ratio: boolean,
+  /** La même série en montants totaux, quand la première est un ratio : les
+   *  deux lectures se lisent alors l'une sous l'autre, année par année. */
+  totaux?: Record<string, number>,
 ): string {
   const periodes = Object.keys(serie).sort().slice(-6);
   if (periodes.length < 2) return "";
+  const ligne = (libelle: string, valeurs: Record<string, number>, parHabitant: boolean) =>
+    `<tr><th scope="row">${libelle}</th>${periodes
+      .map(
+        (p) =>
+          `<td>${
+            valeurs[p] === undefined ? "—" : formater(valeurs[p], indicateur.unite, parHabitant)
+          }</td>`,
+      )
+      .join("")}</tr>`;
   return `<table class="mini-serie">
-    <thead><tr>${periodes.map((p) => `<th scope="col">${echapper(p)}</th>`).join("")}</tr></thead>
-    <tbody><tr>${periodes
-      .map((p) => `<td>${formater(serie[p], indicateur.unite, ratio)}</td>`)
-      .join("")}</tr></tbody>
+    <thead><tr><td></td>${periodes
+      .map((p) => `<th scope="col">${echapper(p)}</th>`)
+      .join("")}</tr></thead>
+    <tbody>
+      ${ligne(ratio ? "par hab." : "total", serie, ratio)}
+      ${totaux ? ligne("total", totaux, false) : ""}
+    </tbody>
   </table>`;
 }
 
