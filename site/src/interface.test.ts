@@ -29,9 +29,13 @@ test("changer de thème repart sur l'année la plus récente", () => {
   // La barre latérale gauche a disparu : le panneau de droite porte tout le
   // catalogue, thème après thème, déjà chargé. La règle vit dans
   // choisirIndicateur(), appelée au clic sur une ligne du panneau.
-  assert.match(MAIN, /async function choisirIndicateur[\s\S]{0,500}etat\.periode = ""/);
+  assert.match(MAIN, /async function choisirIndicateur[\s\S]{0,900}etat\.periode = ""/);
   assert.doesNotMatch(PAGE, /surcouche--commandes/);
   assert.match(MAIN, /\$\("fiche"\)\.addEventListener\("click", surLigne\)/);
+  // Ouvrir une mesure la porte sur la carte — mais seulement si elle existe à
+  // la maille affichée : les séries nationales n'ont pas de valeur communale.
+  assert.match(MAIN, /if \(!choisi\.niveaux\?\.includes\(etat\.niveau\)\) return;/);
+  assert.match(MAIN, /closest<HTMLElement>\("\[data-mesure\]"\)/);
 });
 
 test("un maire absent est dit, pas laissé en blanc", () => {
