@@ -345,9 +345,7 @@ function ligneIndicateur(
     indicateur.id
   }"${surCarte ? " open" : ""}>
     <summary>
-      <span class="mesure__nom">${echapper(indicateur.libelle)}${
-        surCarte ? `<span class="mesure__marque">sur la carte</span>` : ""
-      }</span>
+      <span class="mesure__nom">${echapper(indicateur.libelle)}</span>
       <span class="mesure__valeur">${formate(valeur)}</span>
     </summary>
     <div class="mesure__detail">
