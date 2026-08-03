@@ -22,6 +22,13 @@ export type Comparaison = { libelle: string; valeur: number };
 
 const SEUIL_PROCHE = 5; // en %, en deçà duquel on dit « proche de »
 
+/** Un écart de 340 % ne se lit pas au point près : au-delà de 100 %, la
+ *  précision affichée serait une fausse précision. */
+function arrondiEcart(ecart: number): number {
+  const absolu = Math.abs(ecart);
+  return absolu >= 100 ? Math.round(absolu / 10) * 10 : Math.round(absolu);
+}
+
 /** « 16 % au-dessus de la médiane des communes de France ». */
 export function lecture(
   valeur: number,
@@ -37,12 +44,49 @@ export function lecture(
   if (Math.abs(ecart) < SEUIL_PROCHE) {
     return `Proche de ${nom} (${formater(repere.valeur)}).`;
   }
-  const arrondi = Math.abs(ecart) >= 100
-    ? Math.round(Math.abs(ecart) / 10) * 10
-    : Math.round(Math.abs(ecart));
-  return `${arrondi} % ${ecart > 0 ? "au-dessus" : "en dessous"} de ${nom} (${formater(
+  return `${arrondiEcart(ecart)} % ${ecart > 0 ? "au-dessus" : "en dessous"} de ${nom} (${formater(
     repere.valeur,
   )}).`;
+}
+
+export type Ecart = { libelle: string; ecart: number };
+
+/**
+ * Ce que dit un thème pris dans son ensemble — l'agrégat honnête.
+ *
+ * **On ne somme pas les indicateurs d'un thème.** Sur la sécurité, additionner
+ * les cambriolages, les vols de véhicules, les coups et blessures et les
+ * personnes mises en cause ferait un total de victimes, de véhicules et
+ * d'auteurs : trois unités et trois périmètres dans un seul nombre. La règle du
+ * projet l'interdit, et elle a raison — ce nombre ne voudrait rien dire.
+ *
+ * Ce qui s'agrège sans mentir, c'est **l'écart au repère** : chaque indicateur
+ * est comparé à la même référence, et les écarts, eux, sont sans unité. On peut
+ * donc dire combien d'indicateurs du thème situent ce territoire au-dessus,
+ * combien en dessous, et lequel s'écarte le plus. C'est une synthèse du thème
+ * entier, pas un extrait de l'un de ses indicateurs.
+ */
+export function resumeEcarts(ecarts: Ecart[], repere: string): string {
+  const finis = ecarts.filter((e) => Number.isFinite(e.ecart));
+  if (finis.length < 2) return "";
+  const hauts = finis.filter((e) => e.ecart >= SEUIL_PROCHE).length;
+  const bas = finis.filter((e) => e.ecart <= -SEUIL_PROCHE).length;
+  const proches = finis.length - hauts - bas;
+  const morceaux = [
+    hauts ? `${hauts} au-dessus` : "",
+    bas ? `${bas} en dessous` : "",
+    proches ? `${proches} au niveau` : "",
+  ].filter(Boolean);
+  const fort = finis.reduce((a, b) => (Math.abs(b.ecart) > Math.abs(a.ecart) ? b : a));
+  const marque =
+    Math.abs(fort.ecart) >= SEUIL_PROCHE
+      ? ` Écart le plus marqué : ${fort.libelle}, ${fort.ecart > 0 ? "+" : "−"}${arrondiEcart(
+          fort.ecart,
+        )} %.`
+      : "";
+  return `Sur ${finis.length} indicateurs comparés à ${repere} : ${morceaux.join(
+    ", ",
+  )}.${marque}`;
 }
 
 /** Sens d'une série : « en hausse depuis 2022 », « stable ». */

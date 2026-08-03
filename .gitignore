@@ -4,3 +4,6 @@ node_modules/
 dist/
 __pycache__/
 .snapshots/
+
+# Scripts de vérification écran : jetables, propres à une session.
+site/shot-*.mjs

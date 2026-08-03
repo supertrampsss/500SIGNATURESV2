@@ -10,6 +10,9 @@
    Les bleus de la carte restent des bleus : c'est l'échelle de la donnée,
    pas l'habillage. */
 :root {
+  /* Hauteur du nom de territoire collé en haut du panneau : les titres de
+     thème s'y appuient pour ne pas glisser dessous. */
+  --haut-fiche: 2.85rem;
   --encre: #0f1b2e;
   --encre-douce: #6e7d73;
   --papier: #ffffff;
@@ -374,6 +377,12 @@ summary:focus-visible {
 .panneau__fermer:hover {
   background: var(--accent-teinte);
   color: var(--accent);
+}
+/* Le panneau n'est jamais vide : sans sélection, il montre la France. Le
+   bouton de fermeture n'a donc de sens qu'une fois un territoire choisi —
+   il y ramène. */
+.panneau:not(.panneau--selection) .panneau__fermer {
+  display: none;
 }
 
 .palmares {
@@ -2195,10 +2204,17 @@ body[data-vue="carte"] .pied {
 }
 .theme-groupe {
   margin-top: 1rem;
+  /* Amené par un clic, un thème se pose sous le nom du territoire au lieu de
+     passer dessous. */
+  scroll-margin-top: var(--haut-fiche);
 }
+/* Le nom du territoire est déjà collé en haut du panneau : un titre de thème
+   collé à `top: 0` glissait dessous et disparaissait, en rognant au passage la
+   première ligne du résumé — les accents des capitales s'y perdaient. Il se
+   pose donc sous lui. */
 .theme-groupe__titre {
   position: sticky;
-  top: 0;
+  top: var(--haut-fiche);
   z-index: 1;
   margin: 0 0 0.15rem;
   padding: 0.3rem 0;
@@ -2424,4 +2440,40 @@ body[data-vue="carte"] .pied {
 }
 .theme-groupe__suite > summary:hover {
   color: var(--encre);
+}
+/* Le thème dit d'abord ce qu'il vaut dans son ensemble : combien de ses
+   indicateurs situent le territoire au-dessus, combien en dessous. C'est le
+   seul agrégat honnête d'un thème — additionner ses indicateurs mêlerait des
+   unités qui ne s'additionnent pas. */
+.theme-groupe__resume {
+  margin: 0.1rem 0 0.5rem;
+  font-size: 0.79rem;
+  line-height: 1.45;
+  color: var(--encre-douce);
+  border-left: 2px solid var(--trait-fort);
+  padding-left: 0.55rem;
+}
+.theme-groupe__resume:empty {
+  display: none;
+}
+
+/* Sous l'indicateur principal, les autres se lisent en bref : titre, chiffre,
+   évolution récente. Pas de courbe — vingt courbes dans une colonne de 380 px
+   ne se lisaient plus. Un clic sur le titre porte la mesure sur la carte, où
+   elle retrouve sa courbe en tête de fiche. */
+.mesure--breve {
+  padding-top: 0.55rem;
+  margin-top: 0.55rem;
+}
+.mesure--breve .mini-serie {
+  margin-top: 0.45rem;
+}
+
+/* L'année du chiffre dans la synthèse : présente, discrète. Les indicateurs
+   n'ont pas le même calendrier — un millésime muet laisserait croire qu'ils
+   parlent tous de la même année. */
+.synthese__an {
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  opacity: 0.8;
 }

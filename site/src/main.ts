@@ -306,9 +306,61 @@ async function peindre(): Promise<void> {
   }
 }
 
-/** Tant que rien n'est sélectionné, le panneau montre la couche affichée
- *  plutôt qu'une invitation vide. */
+/** Un dénominateur n'est pas un indicateur. La population de référence OFGL
+ *  sert à calculer les montants par habitant — elle est expliquée dans
+ *  « Sources et méthode », et affichée en série elle ne produisait qu'une
+ *  ligne de plus, sous la population municipale, avec une comparaison au
+ *  département qui ne disait que la différence de taille. */
+const DENOMINATEURS = new Set(["ofgl_population_reference"]);
+
+function indicateursDeLaFiche(niveau: string): Indicateur[] {
+  return catalogue.filter((i) => i.niveaux?.includes(niveau) && !DENOMINATEURS.has(i.id));
+}
+
+/** L'indicateur qui ouvre la fiche nationale : la dette publique en % du PIB
+ *  d'abord, parce que c'est la question qu'on pose en premier. Le premier de
+ *  la liste effectivement publié l'emporte. */
+const PHARE_NATIONAL = [
+  "insee_dette_apu_part_pib",
+  "etat_solde_budgetaire",
+  "etat_depenses_nettes_bg",
+  "eurostat_chomage",
+];
+
+/**
+ * Tant que rien n'est sélectionné, le panneau montre **la France**.
+ *
+ * Il montrait jusqu'ici la dispersion de la couche affichée — médiane, quartiles
+ * — c'est-à-dire une statistique sur des territoires plutôt qu'un territoire.
+ * À l'ouverture du site, la bonne réponse à « où va l'argent public ? » est le
+ * niveau national : dette, solde budgétaire, dépenses de l'État, comparaisons
+ * européennes. On descend ensuite dans le détail en cliquant.
+ *
+ * Les mailles supérieures se chargent après la carte : tant qu'elles ne sont
+ * pas là, l'aperçu de couche tient la place plutôt qu'un panneau vide.
+ */
 function afficherApercu(): void {
+  const france = parents["FR"];
+  const nationaux = indicateursDeLaFiche("pays");
+  if (france && nationaux.length) {
+    afficherFiche($("fiche"), {
+      code: "FR",
+      niveau: "pays",
+      territoire: france,
+      principal: PHARE_NATIONAL.find((id) => france.series[id]) ?? nationaux[0]?.id,
+      // Aucune de ces séries n'est peinte sur la carte : la marquer « sur la
+      // carte » dirait au lecteur d'y chercher quelque chose qui n'y est pas.
+      marquerCarte: false,
+      indicateurs: nationaux,
+      libelleTheme,
+      comparateurs: [],
+      jeux,
+      periode: etat.periode,
+      parHabitant: etat.declinaison === "habitant",
+      references: reperes,
+    });
+    return;
+  }
   const noms = Object.fromEntries(
     Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
   );
@@ -521,7 +573,7 @@ async function montrerFiche(code: string): Promise<void> {
     // Filtré sur le niveau : afficher « donnée non disponible » pour un
     // indicateur qui n'existe pas à ce niveau ferait passer une absence de
     // définition pour une absence de mesure.
-    indicateurs: catalogue.filter((i) => i.niveaux?.includes(etat.niveau)),
+    indicateurs: indicateursDeLaFiche(etat.niveau),
     libelleTheme,
     // De quoi comparer, même pour les jeux sous secret de diffusion où
     // aucune médiane communale n'est publiable : la valeur du département,
@@ -1151,7 +1203,11 @@ async function demarrer(): Promise<void> {
   ])
     .then(([dep, reg, pays]) => {
       parents = { ...dep, ...reg, ...(pays as Record<string, Territoire>) };
+      // Le panneau d'accueil EST la fiche de la France : il ne peut donc
+      // s'afficher qu'une fois la maille « pays » arrivée. Sans ce second
+      // rendu, l'aperçu de couche restait à l'écran jusqu'au premier clic.
       if (etat.selection) void montrerFiche(etat.selection);
+      else afficherApercu();
     })
     .catch(() => {});
 

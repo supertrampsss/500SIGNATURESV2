@@ -8,13 +8,14 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 import { reperes, type References } from "./reference.ts";
-import { lecture, synthese, tendance } from "./synthese.ts";
+import { lecture, resumeEcarts, synthese, tendance } from "./synthese.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
   epci: "Intercommunalité",
   departement: "Département",
   region: "Région",
+  pays: "Niveau national",
 };
 
 function echapper(texte: string): string {
@@ -23,10 +24,130 @@ function echapper(texte: string): string {
   return noeud.innerHTML;
 }
 
+/**
+ * Jeux dont la maille supérieure est une **collectivité**, pas un territoire.
+ *
+ * L'Observatoire des finances locales publie sous le code « 33 » le budget du
+ * conseil départemental de la Gironde, pas la somme des communes qui s'y
+ * trouvent. Comparer une commune à « son département » y confronte donc deux
+ * collectivités qui n'exercent pas les mêmes compétences : les collèges, la
+ * voirie départementale et le RSA ne sont pas payés par la même. C'est
+ * exactement ce que le panneau de comparabilité interdit par ailleurs — et
+ * c'est ainsi que l'épargne brute d'une commune se retrouvait « + 2 530 % » au
+ * regard d'un conseil départemental dont l'épargne s'était effondrée.
+ *
+ * Le repère juste existe déjà pour ces jeux : la médiane des communes de la
+ * région et de France, qui compare bien des communes à des communes. Il en va
+ * de même des taux d'imposition, votés par chaque collectivité pour elle-même.
+ */
+const JEUX_COLLECTIVITE = new Set([
+  "ofgl-communes",
+  "ofgl-dotations-communes",
+  "dgfip-fiscalite-particuliers",
+]);
+
+/**
+ * Peut-on comparer ce chiffre à celui d'un territoire qui contient le nôtre ?
+ *
+ * Deux conditions, toutes deux nécessaires :
+ *
+ * 1. **La grandeur doit être normalisée.** Un volume — 130 cambriolages,
+ *    65 000 habitants, 12 écoles — rapporté à son département donnera toujours
+ *    un écart massivement négatif : il ne dit que la différence de taille.
+ *    Seuls les taux, médianes, pourcentages et montants par habitant se
+ *    comparent d'une maille à l'autre.
+ * 2. **Les deux mailles doivent mesurer la même chose** : un territoire de part
+ *    et d'autre, pas un territoire face à une collectivité.
+ */
+function comparableAuxParents(indicateur: Indicateur, ratio: boolean): boolean {
+  return (ratio || indicateur.sommable === false) && !JEUX_COLLECTIVITE.has(indicateur.jeu);
+}
+
+/** Ce qu'il y a à dire d'un indicateur pour un territoire, calculé une seule
+ *  fois : la valeur, sa période, sa série et ses points de comparaison. La
+ *  ligne détaillée, la synthèse d'ouverture et le résumé d'un thème lisent tous
+ *  ce même objet — c'est ce qui garantit qu'ils ne se contredisent pas. */
+type Mesure = {
+  periode: string;
+  valeur: number;
+  brut: number;
+  ratio: boolean;
+  denom: { valeur: number | null; exercice: string | null };
+  /** La série telle qu'elle s'affiche (par habitant si c'est un ratio). */
+  suivie: Record<string, number>;
+  /** La même série en montants bruts. */
+  brute: Record<string, number>;
+  comparaisons: { libelle: string; valeur: number }[];
+};
+
+function mesurer(
+  indicateur: Indicateur,
+  territoire: Territoire,
+  periodeCarte: string,
+  parHabitant: boolean,
+  niveau: string,
+  toutesReferences: References | null,
+  comparateurs: { libelle: string; territoire: Territoire }[],
+): Mesure | "absent" | "sans-population" {
+  const serie = territoire.series[indicateur.id];
+  // La période demandée est celle de la carte. Quand cet indicateur n'y est pas
+  // publié, on n'écrit pas « non disponible pour 2024 » : on montre son dernier
+  // millésime publié, qui s'affiche de toute façon à côté de la valeur. Les
+  // jeux n'ont pas le même calendrier — le recensement est triennal, les
+  // finances locales annuelles, l'inflation mensuelle — et refuser d'afficher
+  // ce qui existe faisait passer un décalage de calendrier pour une absence de
+  // mesure.
+  const millesimes = serie ? Object.keys(serie).sort() : [];
+  const periode =
+    serie?.[periodeCarte] !== undefined ? periodeCarte : millesimes[millesimes.length - 1];
+  const brut = periode === undefined ? undefined : serie?.[periode];
+  if (brut === undefined || serie === undefined) return "absent";
+  const denom = populationDeReference(territoire, periode);
+  const ratio = parHabitant && parHabitantAUnSens(indicateur);
+  if (ratio && !denom.valeur) return "sans-population";
+  const valeur = ratio ? brut / (denom.valeur as number) : brut;
+  // Chaque exercice se divise par SA population, pas par celle d'aujourd'hui :
+  // sinon les dépenses de 2022 se lisent rapportées aux habitants de 2025. La
+  // courbe partage le dénominateur de la valeur affichée, sans quoi elle
+  // raconterait autre chose.
+  const suivie = ratio
+    ? Object.fromEntries(
+        Object.entries(serie).flatMap(([p, v]) => {
+          const pop = populationDeReference(territoire, p).valeur;
+          return pop ? [[p, v / pop] as [string, number]] : [];
+        }),
+      )
+    : serie;
+  // Les points de comparaison, calculés une fois : ils nourrissent la phrase
+  // de lecture, les lignes tracées sur la courbe ET le résumé du thème — un
+  // seul calcul, donc aucun risque que le texte dise autre chose que le dessin.
+  const comparaisons = [
+    // La valeur du département, de la région, de la France : publiée pour
+    // ces mailles, donc disponible même sous secret de diffusion. Elle est
+    // lue au même millésime que la valeur affichée, jamais à un autre.
+    ...(comparableAuxParents(indicateur, ratio) ? comparateurs : []).flatMap((c) => {
+      const brutParent = c.territoire.series[indicateur.id]?.[periode];
+      if (brutParent === undefined) return [];
+      const popParent = populationDeReference(c.territoire, periode).valeur;
+      if (ratio && !popParent) return [];
+      return [
+        { libelle: c.libelle, valeur: ratio ? brutParent / (popParent as number) : brutParent },
+      ];
+    }),
+    ...reperes(
+      toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
+      niveau,
+      territoire.region ?? null,
+      ratio,
+    ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
+  ];
+  return { periode, valeur, brut, ratio, denom, suivie, brute: serie, comparaisons };
+}
+
 function ligneIndicateur(
   indicateur: Indicateur,
   territoire: Territoire,
-  periode: string,
+  periodeCarte: string,
   parHabitant: boolean,
   niveau: string,
   toutesReferences: References | null,
@@ -36,24 +157,30 @@ function ligneIndicateur(
   surCarte = false,
   rang?: { position: number; total: number },
   comparateurs: { libelle: string; territoire: Territoire }[] = [],
+  /** L'indicateur d'en-tête porte sa courbe ; les suivants s'en passent.
+   *  Vingt courbes empilées dans une colonne de 380 px ne se lisaient plus :
+   *  sous l'indicateur principal, on garde le titre, le chiffre et le tableau
+   *  d'évolution 2022-2025, qui disent la même chose en trois lignes. La courbe
+   *  d'un indicateur secondaire reste à un clic : le porter sur la carte le
+   *  fait passer en tête. */
+  courbe = true,
 ): string {
-  const serie = territoire.series[indicateur.id];
-  const brut = serie?.[periode];
-  if (brut === undefined) {
+  const mesure = mesurer(
+    indicateur, territoire, periodeCarte, parHabitant, niveau, toutesReferences, comparateurs,
+  );
+  if (mesure === "absent") {
     return `<div class="mesure mesure--absente">
       <dt>${titreMesure(indicateur, surCarte)}</dt>
-      <dd>Donnée non disponible pour ${periode}</dd>
+      <dd>Non publié pour ce territoire</dd>
     </div>`;
   }
-  const denom = populationDeReference(territoire, periode);
-  const ratio = parHabitant && parHabitantAUnSens(indicateur);
-  if (ratio && !denom.valeur) {
+  if (mesure === "sans-population") {
     return `<div class="mesure mesure--absente">
       <dt>${titreMesure(indicateur, surCarte)}</dt>
       <dd>Population inconnue : le montant par habitant n'est pas calculable</dd>
     </div>`;
   }
-  const valeur = ratio ? brut / (denom.valeur as number) : brut;
+  const { periode, valeur, brut, ratio, denom, suivie, brute, comparaisons } = mesure;
   // L'étiquette dit d'où vient le dénominateur : la référence OFGL de
   // l'exercice quand elle existe, celle du référentiel géographique sinon.
   // Le dénominateur n'occupe plus une ligne : il est dit au survol de la
@@ -67,18 +194,6 @@ function ligneIndicateur(
           : "référentiel géographique"
       })"`
     : "";
-  // Chaque exercice se divise par SA population, pas par celle d'aujourd'hui :
-  // sinon les dépenses de 2022 se lisent rapportées aux habitants de 2025. La
-  // courbe partage le dénominateur de la valeur affichée, sans quoi elle
-  // raconterait autre chose.
-  const suivie = ratio
-    ? Object.fromEntries(
-        Object.entries(serie).flatMap(([p, v]) => {
-          const pop = populationDeReference(territoire, p).valeur;
-          return pop ? [[p, v / pop] as [string, number]] : [];
-        }),
-      )
-    : serie;
   // Une série recalculée par le producteur dans la géographie d'aujourd'hui ne
   // se coupe pas à la fusion : ses valeurs anciennes portent déjà sur le
   // territoire actuel. Lui signaler une rupture déclarerait incomparable une
@@ -98,29 +213,9 @@ function ligneIndicateur(
           : ""
       : "";
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
-  // Les points de comparaison, calculés une fois : ils nourrissent la phrase
-  // de lecture ET les lignes tracées sur la courbe — un seul calcul, donc
-  // aucun risque que le texte dise autre chose que le dessin.
-  const comparaisonsMesure = [
-    // La valeur du département, de la région, de la France : publiée pour
-    // ces mailles, donc disponible même sous secret de diffusion.
-    ...comparateurs.flatMap((c) => {
-      const brutParent = c.territoire.series[indicateur.id]?.[periode];
-      if (brutParent === undefined) return [];
-      const popParent = populationDeReference(c.territoire, periode).valeur;
-      if (ratio && !popParent) return [];
-      return [
-        { libelle: c.libelle, valeur: ratio ? brutParent / (popParent as number) : brutParent },
-      ];
-    }),
-    ...reperes(
-      toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
-      niveau,
-      territoire.region ?? null,
-      ratio,
-    ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
-  ];
-  return `<div class="mesure${surCarte ? " mesure--carte" : ""}">
+  return `<div class="mesure${surCarte ? " mesure--carte" : ""}${
+    courbe ? "" : " mesure--breve"
+  }">
     <dt>${titreMesure(indicateur, surCarte)}</dt>
     <dd>
       <strong${infoDenominateur}>${formater(valeur, indicateur.unite, ratio)}</strong>${
@@ -129,22 +224,26 @@ function ligneIndicateur(
       <span class="millesime">${periode}</span>
       ${autreLecture}
       ${evolution(suivie, periode, evenements)}
-      ${kpis(indicateur, territoire, suivie, periode, valeur, rang)}
+      ${kpis(indicateur, territoire, suivie, periode, valeur, rang, courbe)}
       <p class="mesure__lecture">${echapper(
         [
-          lecture(valeur, comparaisonsMesure, (v) => formater(v, indicateur.unite, ratio)),
+          lecture(valeur, comparaisons, (v) => formater(v, indicateur.unite, ratio)),
           tendance(suivie),
         ]
           .filter(Boolean)
           .join(" "),
       )}</p>
-      ${rendreSerie(
-        suivie,
-        evenements,
-        (v) => formater(v, indicateur.unite, ratio),
-        comparaisonsMesure,
-      )}
-      ${miniTableau(suivie, indicateur, ratio, ratio ? serie : undefined)}
+      ${
+        courbe
+          ? rendreSerie(
+              suivie,
+              evenements,
+              (v) => formater(v, indicateur.unite, ratio),
+              comparaisons,
+            )
+          : ""
+      }
+      ${miniTableau(suivie, indicateur, ratio, ratio ? brute : undefined)}
 
     </dd>
   </div>`;
@@ -188,6 +287,10 @@ function kpis(
   periode: string,
   valeur: number,
   rang?: { position: number; total: number },
+  /** Faux pour les mesures brèves : la note « seul millésime publié » y était
+   *  répétée sous chacune des douze lignes d'un thème dont le jeu n'a qu'une
+   *  année. Le millésime est de toute façon affiché à côté du chiffre. */
+  detaille = true,
 ): string {
   const cases: string[] = [];
   const population = territoire.population;
@@ -213,7 +316,7 @@ function kpis(
     );
   }
   const millesimes = Object.keys(serie).length;
-  if (millesimes === 1) {
+  if (millesimes === 1 && detaille) {
     cases.push(
       `<div><dt>Millésime</dt><dd>${echapper(periode)}<span>seul publié à ce jour</span></dd></div>`,
     );
@@ -221,9 +324,15 @@ function kpis(
   return cases.length ? `<dl class="kpis">${cases.join("")}</dl>` : "";
 }
 
-/** Les exercices en chiffres : 2022 | 2023 | 2024 | 2025. La courbe donne la
- *  forme, le tableau donne les nombres — demandé tel quel. Six colonnes au
- *  plus : au-delà, il déborde sans rien apprendre. */
+/** Les exercices récents en chiffres : 2022 | 2023 | 2024 | 2025. La courbe
+ *  donne la forme, le tableau donne les nombres — demandé tel quel.
+ *
+ *  Le tableau commence en 2022 : au-delà il déborde de la colonne, et les
+ *  premières années se trouvent alors coupées à l'affichage — on croit lire
+ *  une série entière quand on n'en voit qu'un morceau tronqué. L'historique
+ *  complet reste dans la courbe, qui, elle, ne coupe rien. */
+const PREMIERE_ANNEE_TABLEAU = 2022;
+
 function miniTableau(
   serie: Record<string, number>,
   indicateur: Indicateur,
@@ -232,8 +341,19 @@ function miniTableau(
    *  deux lectures se lisent alors l'une sous l'autre, année par année. */
   totaux?: Record<string, number>,
 ): string {
-  const periodes = Object.keys(serie).sort().slice(-6);
+  const toutes = Object.keys(serie).sort();
+  const recentes = toutes.filter((p) => Number(p.slice(0, 4)) >= PREMIERE_ANNEE_TABLEAU);
+  // Une série arrêtée avant 2022 garde ses dernières colonnes plutôt que de
+  // disparaître : mieux vaut un tableau ancien, daté, qu'un tableau absent.
+  const periodes = (recentes.length >= 2 ? recentes : toutes).slice(-6);
   if (periodes.length < 2) return "";
+  // « total » n'a de sens que pour une grandeur qui s'additionne : sur un taux
+  // de pauvreté, la ligne « total 12,4 % » laisserait croire à une somme.
+  const intitule = ratio
+    ? "par hab."
+    : indicateur.unite === "EUR" || indicateur.unite === "count"
+      ? "total"
+      : "taux";
   const ligne = (libelle: string, valeurs: Record<string, number>, parHabitant: boolean) =>
     `<tr><th scope="row">${libelle}</th>${periodes
       .map(
@@ -248,7 +368,7 @@ function miniTableau(
       .map((p) => `<th scope="col">${echapper(p)}</th>`)
       .join("")}</tr></thead>
     <tbody>
-      ${ligne(ratio ? "par hab." : "total", serie, ratio)}
+      ${ligne(intitule, serie, ratio)}
       ${totaux ? ligne("total", totaux, false) : ""}
     </tbody>
   </table>`;
@@ -323,6 +443,90 @@ export function panneauComparabilite(territoire: Territoire, niveau: string): st
 }
 
 /**
+ * L'indicateur qui ouvre un thème.
+ *
+ * Le premier de la liste n'est pas le plus parlant : sur la sécurité, l'ordre
+ * du catalogue faisait entrer par « vols d'accessoires sur véhicules » — un
+ * détail présenté comme le résumé du thème. Ce sont ces indicateurs-ci qui
+ * ouvrent, parce qu'ils répondent à la question qu'on se pose vraiment. Un
+ * thème absent de la table garde l'ordre du catalogue ; un indicateur listé ici
+ * mais non publié pour ce territoire est simplement ignoré.
+ */
+const PHARES: Record<string, string[]> = {
+  securite: ["ssmsi_cambriolages_taux", "ssmsi_violences_hors_famille_taux"],
+  finances_locales: ["ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
+  revenus: ["insee_niveau_vie_median", "insee_taux_pauvrete"],
+  population: ["insee_population_municipale"],
+  education: ["menj_ecoles", "menj_colleges_lycees"],
+  sante: ["drees_apl_generalistes"],
+  emploi: ["insee_taux_chomage_localise"],
+  entreprises: ["insee_etablissements_actifs"],
+  impots_locaux: ["dgfip_taux_foncier_bati_global"],
+};
+
+/** Les indicateurs d'un thème, les phares d'abord. */
+function ordonnerTheme(theme: string, liste: Indicateur[]): Indicateur[] {
+  const phares = PHARES[theme] ?? [];
+  const rang = (i: Indicateur) => {
+    const place = phares.indexOf(i.id);
+    return place === -1 ? phares.length : place;
+  };
+  return [...liste].sort((a, b) => rang(a) - rang(b));
+}
+
+/**
+ * Le thème dans son ensemble, en une phrase.
+ *
+ * Un thème ne s'additionne pas : sommer cambriolages, vols de véhicules et
+ * personnes mises en cause mêlerait des victimes, des véhicules et des auteurs
+ * dans un seul nombre — trois unités, trois périmètres, aucune signification.
+ * Ce qui s'agrège sans mentir, c'est l'écart au repère : sans unité, donc
+ * comparable d'un indicateur à l'autre. La phrase dit alors du thème entier ce
+ * qu'aucun de ses indicateurs ne dit seul.
+ */
+function resumeTheme(
+  liste: Indicateur[],
+  territoire: Territoire,
+  periodeCarte: string,
+  parHabitant: boolean,
+  niveau: string,
+  references: References | null,
+  comparateurs: { libelle: string; territoire: Territoire }[],
+): string {
+  // Un seul repère pour tout le thème, sinon on compterait des écarts pris
+  // sur des références différentes : le premier comparateur disponible, ou la
+  // médiane à défaut.
+  const ecarts = liste.flatMap((indicateur) => {
+    const mesure = mesurer(
+      indicateur, territoire, periodeCarte, parHabitant, niveau, references, comparateurs,
+    );
+    if (typeof mesure === "string") return [];
+    const repere = mesure.comparaisons.find(
+      (c) => Number.isFinite(c.valeur) && c.valeur !== 0,
+    );
+    if (!repere) return [];
+    return [
+      {
+        libelle: indicateur.libelle,
+        reference: repere.libelle,
+        ecart: ((mesure.valeur - repere.valeur) / Math.abs(repere.valeur)) * 100,
+      },
+    ];
+  });
+  if (ecarts.length < 2) return "";
+  // Les écarts pris sur des repères différents ne se comptent pas ensemble :
+  // on ne garde que ceux qui partagent la référence la plus fréquente.
+  const comptes = new Map<string, number>();
+  for (const e of ecarts) comptes.set(e.reference, (comptes.get(e.reference) ?? 0) + 1);
+  const reference = [...comptes.entries()].sort((a, b) => b[1] - a[1])[0][0];
+  const phrase = resumeEcarts(
+    ecarts.filter((e) => e.reference === reference),
+    reference,
+  );
+  return phrase ? `<p class="theme-groupe__resume">${echapper(phrase)}</p>` : "";
+}
+
+/**
  * La synthèse d'ouverture : ce qu'on retiendrait de ce territoire en trois
  * lignes. Elle ne dit rien qui ne soit ailleurs dans le panneau, chiffre à
  * l'appui — elle choisit, elle n'invente pas. L'ordre est celui des questions
@@ -330,6 +534,13 @@ export function panneauComparabilite(territoire: Territoire, niveau: string): st
  * quelle dette, quels revenus, quelle délinquance.
  */
 const ORDRE_SYNTHESE = [
+  // Le niveau national d'abord : ces séries n'existent qu'au niveau « pays »,
+  // elles sont donc simplement absentes — et ignorées — sur une fiche
+  // communale. C'est ce qui permet une seule liste pour les deux échelles.
+  "insee_dette_apu_part_pib",
+  "etat_solde_budgetaire",
+  "etat_depenses_nettes_bg",
+  "eurostat_chomage",
   "insee_population_municipale",
   "ofgl_depenses_fonctionnement",
   "ofgl_encours_dette",
@@ -352,28 +563,11 @@ function syntheseTerritoire(
   const faits = ORDRE_SYNTHESE.flatMap((id) => {
     const indicateur = indicateurs.find((i) => i.id === id);
     if (!indicateur) return [];
-    const serie = territoire.series[id];
-    const brut = serie?.[periode];
-    if (brut === undefined) return [];
-    const denom = populationDeReference(territoire, periode);
-    const ratio = parHabitant && parHabitantAUnSens(indicateur);
-    if (ratio && !denom.valeur) return [];
-    const valeur = ratio ? brut / (denom.valeur as number) : brut;
-    const comparaisons = [
-      ...comparateurs.flatMap((c) => {
-        const parent = c.territoire.series[id]?.[periode];
-        if (parent === undefined) return [];
-        const pop = populationDeReference(c.territoire, periode).valeur;
-        if (ratio && !pop) return [];
-        return [{ libelle: c.libelle, valeur: ratio ? parent / (pop as number) : parent }];
-      }),
-      ...reperes(
-        references?.[id]?.[periode]?.[niveau],
-        niveau,
-        territoire.region ?? null,
-        ratio,
-      ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
-    ];
+    const mesure = mesurer(
+      indicateur, territoire, periode, parHabitant, niveau, references, comparateurs,
+    );
+    if (typeof mesure === "string") return [];
+    const { valeur, ratio, comparaisons } = mesure;
     const situation = lecture(valeur, comparaisons, (v) =>
       formater(v, indicateur.unite, ratio),
     );
@@ -382,7 +576,9 @@ function syntheseTerritoire(
         id,
         texte: `<strong>${echapper(indicateur.libelle)}</strong> ${echapper(
           formater(valeur, indicateur.unite, ratio),
-        )}${ratio ? " par habitant" : ""}. ${echapper(situation)}`.trim(),
+        )}${ratio ? " par habitant" : ""} <span class="synthese__an">${echapper(
+          mesure.periode,
+        )}</span>. ${echapper(situation)}`.trim(),
       },
     ];
   });
@@ -406,6 +602,10 @@ export function afficherFiche(
     parHabitant: boolean;
     /** L'indicateur affiché sur la carte : seul à recevoir courbe et repères. */
     principal?: string;
+    /** Faux quand la fiche ne correspond pas à ce que la carte peint — la
+     *  fiche nationale d'accueil, dont aucune série n'est cartographiée.
+     *  Écrire « sur la carte » enverrait alors chercher ce qui n'y est pas. */
+    marquerCarte?: boolean;
     /** Position du territoire dans la couche affichée, si elle est chargée. */
     rang?: { position: number; total: number };
     /** Libellé lisible d'un thème (la table vit dans main.ts). */
@@ -430,41 +630,57 @@ export function afficherFiche(
   // comprises : il n'y a plus rien à sélectionner ailleurs pour voir un
   // chiffre, on fait défiler. Cliquer une ligne la porte sur la carte.
   const groupes = new Map<string, Indicateur[]>();
+  // Le thème complet, celui de la carte compris : le résumé d'un thème porte
+  // sur tous ses indicateurs, y compris celui qui est déjà affiché en tête.
+  // L'exclure du calcul aurait donné « 13 indicateurs comparés » sous un titre
+  // qui en annonce 14.
+  const parTheme = new Map<string, Indicateur[]>();
   for (const indicateur of indicateurs) {
+    parTheme.set(indicateur.theme, [...(parTheme.get(indicateur.theme) ?? []), indicateur]);
     if (indicateur.id === principal) continue;
     groupes.set(indicateur.theme, [...(groupes.get(indicateur.theme) ?? []), indicateur]);
   }
   const mesures =
     (enTete
       ? ligneIndicateur(
-          enTete, territoire, periode, parHabitant, niveau, references, true, options.rang,
-          options.comparateurs,
+          enTete, territoire, periode, parHabitant, niveau, references,
+          options.marquerCarte !== false, options.rang, options.comparateurs, true,
         )
       : "") +
     [...groupes.entries()]
       .map(([theme, liste]) => {
-        // Un thème montre sa mesure phare ; le reste se déplie. Vingt blocs
-        // dépliés d'un coup faisaient un mur — le lecteur ne savait plus par
-        // où entrer, alors que tout était là.
-        const [premier, ...suite] = liste;
+        // Un thème s'ouvre sur ce qu'il dit dans son ensemble, puis sur ses
+        // mesures phares ; le détail se déplie. Vingt blocs dépliés d'un coup
+        // faisaient un mur — mais rien n'est pour autant tronqué : le résumé
+        // porte sur tous les indicateurs du thème, et le dépliant nomme ceux
+        // qu'il contient.
+        const complet = parTheme.get(theme) ?? liste;
+        const ordonnee = ordonnerTheme(theme, liste);
+        const ouverts = ordonnee.slice(0, (PHARES[theme] ?? []).length || 1);
+        const suite = ordonnee.slice(ouverts.length);
         const rendreLigne = (indicateur: Indicateur) =>
           ligneIndicateur(
             indicateur, territoire, periode, parHabitant, niveau, references,
-            false, undefined, options.comparateurs,
+            false, undefined, options.comparateurs, false,
           );
         return `<div class="theme-groupe">
           <p class="theme-groupe__titre">${echapper(
             options.libelleTheme?.(theme) ?? theme,
-          )} <span class="theme-groupe__compte">${liste.length} indicateur${
-            liste.length > 1 ? "s" : ""
+          )} <span class="theme-groupe__compte">${complet.length} indicateur${
+            complet.length > 1 ? "s" : ""
           }</span></p>
-          ${rendreLigne(premier)}
+          ${resumeTheme(
+            complet, territoire, periode, parHabitant, niveau, references,
+            options.comparateurs ?? [],
+          )}
+          ${ouverts.map(rendreLigne).join("")}
           ${
             suite.length
               ? `<details class="theme-groupe__suite">
-                  <summary>Voir les ${suite.length} autre${
-                    suite.length > 1 ? "s" : ""
-                  } indicateur${suite.length > 1 ? "s" : ""}</summary>
+                  <summary>Voir aussi : ${suite
+                    .slice(0, 4)
+                    .map((i) => echapper(i.libelle.toLocaleLowerCase("fr-FR")))
+                    .join(", ")}${suite.length > 4 ? `, et ${suite.length - 4} de plus` : ""}</summary>
                   ${suite.map(rendreLigne).join("")}
                 </details>`
               : ""
@@ -474,7 +690,11 @@ export function afficherFiche(
       .join("");
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
-    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau} ${echapper(options.code)}${
+    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${
+      // Le code INSEE situe une commune homonyme ; « FR » sous « France » ne
+      // situe rien.
+      niveau === "pays" ? "" : ` ${echapper(options.code)}`
+    }${
       territoire.population
         ? ` · <abbr title="Population municipale (légale) au sens du recensement de l'INSEE. Les montants par habitant utilisent, eux, la population de référence de l'OFGL de l'exercice concerné : deux définitions, deux millésimes, deux nombres.">${new Intl.NumberFormat(
             "fr-FR",
