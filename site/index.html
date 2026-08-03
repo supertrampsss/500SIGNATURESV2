@@ -94,6 +94,10 @@
           <div class="palmares" id="palmares" hidden></div>
         </div>
         <div class="panneau__contenu croiser" id="volet-analyse" hidden>
+          <div class="croiser__modes" role="group" aria-label="Mode d'analyse">
+            <button type="button" data-mode="nuage" class="croiser__mode croiser__mode--actif">Nuage</button>
+            <button type="button" data-mode="matrice" class="croiser__mode">Matrice</button>
+          </div>
           <p class="croiser__intro">
             Croise l'indicateur de la carte avec un autre, sur les territoires du
             niveau affiché. Chaque point est un territoire.
@@ -111,6 +115,20 @@
           </div>
           <p class="croiser__resume" id="croiser-resume"></p>
           <p class="avertissement" id="croiser-note"></p>
+          <div id="matrice-zone" hidden>
+            <p class="croiser__intro">
+              Tous les indicateurs du thème, croisés deux à deux. Chaque case
+              porte son r ; cliquez-en une pour voir le nuage correspondant.
+            </p>
+            <div class="matrice__cadre"><table class="matrice" id="matrice-table"></table></div>
+            <p class="matrice__echelle" aria-hidden="true">
+              <span class="matrice__negatif"></span> −1
+              <span class="matrice__zero"></span> 0
+              <span class="matrice__positif"></span> +1
+            </p>
+            <div class="matrice__paires" id="matrice-paires"></div>
+            <p class="avertissement" id="matrice-note"></p>
+          </div>
         </div>
       </aside>
 

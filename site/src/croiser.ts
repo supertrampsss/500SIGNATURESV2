@@ -98,3 +98,77 @@ export function enLog(points: PointNomme[]): PointNomme[] | null {
   if (points.some((p) => p.x <= 0 || p.y <= 0)) return null;
   return points.map((p) => ({ ...p, x: Math.log10(p.x), y: Math.log10(p.y) }));
 }
+
+
+/* ------------------------------------------------------------------ *
+ * Matrice de corrélations : tous les indicateurs deux à deux.         *
+ * ------------------------------------------------------------------ */
+
+export type SerieCroisable = {
+  id: string;
+  libelle: string;
+  /** Valeurs brutes par code territoire. */
+  valeurs: Record<string, number>;
+  /** Ramener par habitant avant de corréler ? (règle de la carte) */
+  parHabitant: boolean;
+};
+
+export type Cellule = { i: number; j: number; r: number | null; n: number };
+
+/**
+ * Matrice symétrique des r de Pearson.
+ *
+ * Chaque paire est calculée sur **son propre** ensemble de territoires
+ * communs : deux indicateurs de couverture différente (le taux de pauvreté
+ * n'est diffusé que pour 2 482 communes) ne se corrèlent que là où les deux
+ * existent. Le n de chaque cellule est donc porté avec elle — une matrice
+ * qui l'oublierait ferait comparer des coefficients calculés sur des mondes
+ * différents.
+ */
+export function matrice(
+  series: SerieCroisable[],
+  populations: Record<string, number>,
+): Cellule[] {
+  const cellules: Cellule[] = [];
+  for (let i = 0; i < series.length; i++) {
+    for (let j = 0; j <= i; j++) {
+      const a = series[i];
+      const b = series[j];
+      const points = joindre(
+        a.valeurs, b.valeurs, {}, populations, a.parHabitant, b.parHabitant,
+      );
+      cellules.push({ i, j, r: i === j ? 1 : pearson(points), n: points.length });
+    }
+  }
+  return cellules;
+}
+
+/** Couleur d'une cellule : divergente, argile pour le négatif, nuit pour le
+ *  positif, papier au milieu. L'intensité suit |r| — jamais une couleur
+ *  saturée pour une corrélation faible. */
+export function couleurCellule(r: number | null): string {
+  if (r === null) return "transparent";
+  const force = Math.min(1, Math.abs(r));
+  return r >= 0
+    ? `rgb(15 27 46 / ${(0.08 + force * 0.82).toFixed(3)})`
+    : `rgb(197 106 77 / ${(0.08 + force * 0.82).toFixed(3)})`;
+}
+
+/** Les paires les plus corrélées, hors diagonale — ce que la matrice montre
+ *  d'un coup d'œil, écrit en toutes lettres pour qui ne lit pas les couleurs. */
+export function paires(
+  cellules: Cellule[],
+  series: SerieCroisable[],
+  combien = 3,
+): { a: string; b: string; r: number; n: number }[] {
+  return cellules
+    .filter((c) => c.i !== c.j && c.r !== null)
+    .sort((x, y) => Math.abs(y.r as number) - Math.abs(x.r as number))
+    .slice(0, combien)
+    .map((c) => ({
+      a: series[c.i].libelle,
+      b: series[c.j].libelle,
+      r: c.r as number,
+      n: c.n,
+    }));
+}

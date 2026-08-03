@@ -1818,3 +1818,124 @@ body[data-vue="carte"] .pied {
   font-size: 0.85rem;
   color: var(--encre-douce);
 }
+
+
+/* Matrice de corrélations : une case = un r, la couleur porte le signe et la
+   force, le chiffre reste lisible — une heatmap sans nombres oblige à
+   deviner. */
+.croiser__modes {
+  display: flex;
+  gap: 0.2rem;
+  margin-bottom: 0.7rem;
+}
+.croiser__mode {
+  font: inherit;
+  font-size: 0.75rem;
+  border: 1px solid var(--trait);
+  background: var(--papier);
+  color: var(--encre-douce);
+  border-radius: 999px;
+  padding: 0.2rem 0.7rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.croiser__mode:hover {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+.croiser__mode--actif,
+.croiser__mode--actif:hover {
+  background: var(--encre);
+  border-color: var(--encre);
+  /* le :hover générique remettait l'encre sur l'encre : bouton actif
+     survolé = texte invisible, vu à l'écran */
+  color: #fff;
+}
+.matrice__cadre {
+  overflow-x: auto;
+}
+.matrice {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-size: 0.7rem;
+  width: 100%;
+}
+.matrice th {
+  font-weight: 400;
+  color: var(--encre-douce);
+  text-align: left;
+  white-space: nowrap;
+  padding: 0 0.3rem 0 0;
+  max-width: 9.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.matrice th[scope="col"] {
+  text-align: center;
+  padding: 0;
+}
+.matrice__case {
+  text-align: center;
+  min-width: 1.75rem;
+  padding: 0.28rem 0.05rem;
+  border-radius: 3px;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  color: var(--encre);
+  mix-blend-mode: multiply;
+}
+.matrice__case:hover,
+.matrice__case:focus-visible {
+  outline: 2px solid var(--dore);
+  outline-offset: -2px;
+}
+.matrice__echelle {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.7rem;
+  color: var(--encre-douce);
+}
+.matrice__negatif,
+.matrice__zero,
+.matrice__positif {
+  width: 2.2rem;
+  height: 0.5rem;
+  border-radius: 2px;
+  display: inline-block;
+}
+.matrice__negatif {
+  background: linear-gradient(90deg, rgb(197 106 77 / 0.9), rgb(197 106 77 / 0.1));
+}
+.matrice__zero {
+  background: var(--papier-creuse);
+  width: 0.9rem;
+}
+.matrice__positif {
+  background: linear-gradient(90deg, rgb(15 27 46 / 0.1), rgb(15 27 46 / 0.9));
+}
+.matrice__paires h4 {
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--encre-douce);
+}
+.matrice__paires ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.8rem;
+  display: grid;
+  gap: 0.25rem;
+}
+.matrice__paires li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  align-items: baseline;
+}
+.matrice__paires strong {
+  font-variant-numeric: tabular-nums;
+}

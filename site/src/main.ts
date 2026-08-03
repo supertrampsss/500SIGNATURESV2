@@ -19,7 +19,18 @@ import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts"
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import { afficherConjoncture } from "./conjoncture.ts";
-import { enLog, joindre, lectureDeR, moindresCarres, pearson, type PointNomme } from "./croiser.ts";
+import {
+  couleurCellule,
+  enLog,
+  joindre,
+  lectureDeR,
+  matrice,
+  moindresCarres,
+  paires,
+  pearson,
+  type PointNomme,
+  type SerieCroisable,
+} from "./croiser.ts";
 import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
@@ -275,7 +286,10 @@ async function peindre(): Promise<void> {
   majLegende(echelle, parHabitant);
   majTableau(valeurs, parHabitant);
   // L'analyse prolonge la carte : elle suit l'indicateur et le niveau choisis.
-  if (!$("volet-analyse").hidden) void majCroisement();
+  if (!$("volet-analyse").hidden) {
+    if (modeAnalyse === "matrice") void majMatrice();
+    else void majCroisement();
+  }
 
   affichees = Object.fromEntries(
     Object.entries(valeurs)
@@ -740,6 +754,11 @@ async function majCroisement(): Promise<void> {
     for (const id of ["croiser-y", "croiser-log"]) {
       $(id).addEventListener("change", () => void majCroisement());
     }
+    document.querySelectorAll<HTMLButtonElement>(".croiser__mode").forEach((bouton) => {
+      bouton.addEventListener("click", () =>
+        basculerModeAnalyse(bouton.dataset.mode === "matrice" ? "matrice" : "nuage"),
+      );
+    });
     window.addEventListener("resize", () => {
       if (!$("volet-analyse").hidden) void majCroisement();
     });
@@ -900,6 +919,144 @@ function dessinerCroisement(
     ctx.stroke();
     ctx.setLineDash([]);
   }
+}
+
+/** Nombre d'indicateurs croisés : au-delà, la matrice devient illisible et
+ *  le chargement pèse (600 Ko par indicateur au niveau communal). Borne dite
+ *  à l'écran quand elle s'applique — un « top 10 » muet ferait croire à
+ *  l'exhaustivité. */
+const MAXIMUM_MATRICE = 10;
+
+let modeAnalyse: "nuage" | "matrice" = "nuage";
+
+async function majMatrice(): Promise<void> {
+  const zone = $("matrice-zone");
+  const tableau = $("matrice-table");
+  const candidats = catalogue
+    .filter((i) => i.theme === etat.theme && derniereCartographiee(i, etat.niveau))
+    .slice(0, MAXIMUM_MATRICE);
+  if (candidats.length < 2) {
+    tableau.innerHTML = "";
+    $("matrice-note").textContent =
+      "Ce thème n'a qu'un indicateur à ce niveau : une matrice demande au moins deux séries.";
+    return;
+  }
+  $("matrice-note").textContent = "Chargement des séries…";
+  try {
+    const series: SerieCroisable[] = await Promise.all(
+      candidats.map(async (i) => ({
+        id: i.id,
+        libelle: i.libelle,
+        valeurs: await donnees.valeursCarte(
+          i.id, etat.niveau, derniereCartographiee(i, etat.niveau) as string,
+        ),
+        parHabitant: parHabitantAUnSens(i),
+      })),
+    );
+    await chargerLotsNecessaires(etat.niveau, Object.keys(series[0].valeurs));
+    recalculerPopulations();
+    const cellules = matrice(series, populations);
+    const valeurCellule = (i: number, j: number) =>
+      cellules.find((c) => c.i === Math.max(i, j) && c.j === Math.min(i, j));
+
+    const entete = `<tr><td></td>${series
+      .map((s, i) => `<th scope="col" title="${echapperTexte(s.libelle)}">${i + 1}</th>`)
+      .join("")}</tr>`;
+    const lignes = series
+      .map((s, i) => {
+        const cases = series
+          .map((autre, j) => {
+            const cellule = valeurCellule(i, j);
+            const r = cellule?.r ?? null;
+            const titre = `${s.libelle} × ${autre.libelle} — ${
+              r === null
+                ? `pas assez de territoires communs (${cellule?.n ?? 0})`
+                : `r = ${r.toLocaleString("fr-FR", { maximumFractionDigits: 2 })} sur ${
+                    cellule?.n ?? 0
+                  } territoires`
+            }`;
+            return `<td class="matrice__case" style="background:${couleurCellule(r)}"
+              title="${echapperTexte(titre)}" data-x="${s.id}" data-y="${autre.id}"
+              tabindex="0">${
+                r === null ? "·" : r.toLocaleString("fr-FR", { maximumFractionDigits: 2 })
+              }</td>`;
+          })
+          .join("");
+        return `<tr><th scope="row" title="${echapperTexte(s.libelle)}">${i + 1}. ${
+          s.libelle.length > 20 ? `${s.libelle.slice(0, 19)}…` : s.libelle
+        }</th>${cases}</tr>`;
+      })
+      .join("");
+    tableau.innerHTML = `${entete}${lignes}`;
+
+    tableau.querySelectorAll<HTMLElement>(".matrice__case").forEach((cellule) => {
+      const ouvrir = () => {
+        const x = cellule.dataset.x;
+        const y = cellule.dataset.y;
+        if (!x || !y || x === y) return;
+        // La carte suit : l'axe horizontal du nuage est toujours l'indicateur
+        // affiché — cliquer une case change donc aussi ce qu'on voit.
+        etat.indicateur = x;
+        etat.theme = catalogue.find((i) => i.id === x)?.theme ?? etat.theme;
+        construireSelecteurs();
+        ecrireUrl();
+        basculerModeAnalyse("nuage");
+        $<HTMLSelectElement>("croiser-y").value = y;
+        void peindre();
+      };
+      cellule.addEventListener("click", ouvrir);
+      cellule.addEventListener("keydown", (e) => {
+        if ((e as KeyboardEvent).key === "Enter") ouvrir();
+      });
+    });
+
+    const meilleures = paires(cellules, series, 3);
+    $("matrice-paires").innerHTML = meilleures.length
+      ? `<h4>Les liens les plus marqués</h4><ul>${meilleures
+          .map(
+            (p) => `<li><span>${echapperTexte(p.a)} × ${echapperTexte(p.b)}</span>
+              <strong>${p.r.toLocaleString("fr-FR", { maximumFractionDigits: 2 })}</strong></li>`,
+          )
+          .join("")}</ul>`
+      : "";
+    const tronque = catalogue.filter(
+      (i) => i.theme === etat.theme && derniereCartographiee(i, etat.niveau),
+    ).length;
+    $("matrice-note").textContent =
+      `Corrélation n'est pas causalité. Chaque case est calculée sur les seuls` +
+      ` territoires portant les deux indicateurs — le nombre varie d'une case à` +
+      ` l'autre, il est dit au survol. Millésime le plus récent de chaque série.` +
+      (tronque > MAXIMUM_MATRICE
+        ? ` ${MAXIMUM_MATRICE} indicateurs sur ${tronque} affichés.`
+        : "");
+    zone.hidden = false;
+  } catch {
+    $("matrice-note").textContent = "Le chargement de la matrice a échoué. Réessayez.";
+  }
+}
+
+function echapperTexte(texte: string): string {
+  return texte.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string,
+  );
+}
+
+function basculerModeAnalyse(mode: "nuage" | "matrice"): void {
+  modeAnalyse = mode;
+  document.querySelectorAll<HTMLButtonElement>(".croiser__mode").forEach((b) => {
+    b.classList.toggle("croiser__mode--actif", b.dataset.mode === mode);
+  });
+  const nuage = mode === "nuage";
+  for (const id of ["croiser-y", "croiser-log", "croiser-resume", "croiser-note"]) {
+    const element = $(id).closest("p") ?? $(id);
+    (element as HTMLElement).hidden = !nuage;
+  }
+  $("volet-analyse").querySelector<HTMLElement>(".croiser__scene")!.hidden = !nuage;
+  $("volet-analyse").querySelector<HTMLElement>(".croiser__intro")!.hidden = !nuage;
+  $("matrice-zone").hidden = nuage;
+  if (nuage) void majCroisement();
+  else void majMatrice();
 }
 
 function brancherSurvolCroisement(): void {
@@ -1190,7 +1347,7 @@ async function demarrer(): Promise<void> {
       });
       $("volet-territoire").hidden = voulu !== "territoire";
       $("volet-analyse").hidden = voulu !== "analyse";
-      if (voulu === "analyse") void majCroisement();
+      if (voulu === "analyse") basculerModeAnalyse(modeAnalyse);
     });
   });
 
