@@ -191,6 +191,11 @@ summary:focus-visible {
   flex: 1 1 16rem;
 }
 
+.suggestions__vide {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.82rem;
+  color: var(--encre-douce);
+}
 #suggestions {
   position: absolute;
   top: 100%;

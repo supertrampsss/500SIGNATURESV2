@@ -889,6 +889,18 @@ function brancherCommandes(): void {
 
   const champ = $<HTMLInputElement>("recherche");
   const liste = $<HTMLUListElement>("suggestions");
+  // La recherche cherchait dans la seule maille affichée. Comme cette maille
+  // suit désormais le zoom, taper « Lyon » sur une vue nationale ne trouvait
+  // rien — sans un mot d'explication — alors que le champ promet « une
+  // commune, un département ». Elle cherche maintenant partout, dit à quelle
+  // maille appartient chaque réponse, et y emmène.
+  const NIVEAUX_RECHERCHE: Record<string, string> = {
+    commune: "Commune",
+    epci: "Intercommunalité",
+    departement: "Département",
+    region: "Région",
+  };
+  const RANG_NIVEAU = ["commune", "departement", "region", "epci"];
   champ.addEventListener("input", async () => {
     const requete = champ.value.trim().toLowerCase();
     if (requete.length < 2) {
@@ -897,18 +909,44 @@ function brancherCommandes(): void {
     }
     const index = await donnees.indexRecherche();
     const trouves = index
-      .filter((e) => e.l === etat.niveau && (e.n.toLowerCase().startsWith(requete) || e.c === requete))
+      .filter((e) => e.n.toLowerCase().startsWith(requete) || e.c === requete)
+      // La maille affichée d'abord, puis communes, départements, régions : on
+      // cherche presque toujours une commune, jamais une intercommunalité.
+      .sort(
+        (a, b) =>
+          Number(b.l === etat.niveau) - Number(a.l === etat.niveau) ||
+          RANG_NIVEAU.indexOf(a.l) - RANG_NIVEAU.indexOf(b.l) ||
+          a.n.localeCompare(b.n, "fr"),
+      )
       .slice(0, 8);
-    liste.hidden = trouves.length === 0;
-    liste.innerHTML = trouves
-      .map((e) => `<li><button type="button" data-code="${e.c}">${e.n} <span>${e.c}</span></button></li>`)
-      .join("");
+    liste.hidden = false;
+    liste.innerHTML = trouves.length
+      ? trouves
+          .map(
+            (e) =>
+              `<li><button type="button" data-code="${e.c}" data-niveau="${e.l}">${e.n} <span>${
+                NIVEAUX_RECHERCHE[e.l] ?? e.l
+              }</span></button></li>`,
+          )
+          .join("")
+      : `<li class="suggestions__vide">Aucun territoire ne porte ce nom.</li>`;
   });
   liste.addEventListener("click", async (evenement) => {
     const bouton = (evenement.target as HTMLElement).closest("button");
     if (!bouton) return;
     liste.hidden = true;
     champ.value = "";
+    // Choisir une commune depuis une vue régionale change la maille : sans
+    // cela, la fiche s'ouvrait sur un territoire que la carte ne connaissait
+    // pas et le panneau restait vide.
+    const voulu = bouton.dataset.niveau as string;
+    if (voulu && voulu !== etat.niveau) {
+      etat.niveau = voulu;
+      // Le zoom ne commande plus la maille : l'utilisateur vient de la choisir.
+      etat.niveauAuto = false;
+      construireSelecteurs();
+      await peindre();
+    }
     await montrerFiche(bouton.dataset.code as string);
   });
 }
