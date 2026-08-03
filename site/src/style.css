@@ -362,7 +362,28 @@ summary:focus-visible {
 .legende__methode {
   margin-top: 0.2rem;
 }
+/* Les tableaux larges défilent dans leur cadre — encore faut-il le voir. Ces
+   ombres de bord apparaissent du côté où il reste du contenu et s'effacent
+   quand on atteint l'extrémité : sur téléphone, sans barre de défilement, une
+   colonne cachée passait pour une colonne absente. */
+.pont,
+.comparaison,
+.fonctions,
+.secu,
+.mini-serie__cadre {
+  background-image:
+    linear-gradient(to right, var(--papier) 40%, rgb(255 255 255 / 0)),
+    linear-gradient(to left, var(--papier) 40%, rgb(255 255 255 / 0)),
+    radial-gradient(farthest-side at 0 50%, rgb(15 27 46 / 0.14), rgb(15 27 46 / 0)),
+    radial-gradient(farthest-side at 100% 50%, rgb(15 27 46 / 0.14), rgb(15 27 46 / 0));
+  background-position: 0 0, 100% 0, 0 0, 100% 0;
+  background-repeat: no-repeat;
+  background-size: 2.5rem 100%, 2.5rem 100%, 0.7rem 100%, 0.7rem 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
 .legende__methode summary {
+  padding: 0.3rem 0;
   cursor: pointer;
   color: var(--encre-douce);
   font-size: 0.68rem;
@@ -412,11 +433,12 @@ summary:focus-visible {
 }
 .panneau__fermer {
   position: absolute;
-  top: 0.45rem;
-  right: 0.55rem;
+  top: 0.35rem;
+  right: 0.45rem;
   z-index: 2;
-  width: 1.7rem;
-  height: 1.7rem;
+  /* 2 rem : sous 32 px, une cible se rate au doigt. */
+  width: 2rem;
+  height: 2rem;
   border: 0;
   border-radius: 50%;
   background: var(--papier-creuse);
@@ -640,12 +662,21 @@ summary:focus-visible {
 
 .repli {
   border-top: 1px solid var(--trait);
-  padding: 0.55rem 0;
   font-size: 0.85rem;
 }
-.repli summary {
+/* Le pli est devenu la commande principale de l'onglet Données : sa ligne
+   d'ouverture doit s'attraper au doigt. À 21 px de haut on la ratait. */
+.repli > summary {
   cursor: pointer;
   font-weight: 600;
+  padding: 0.6rem 0;
+  min-height: 1.4rem;
+}
+.repli > summary:hover {
+  color: var(--argile);
+}
+.repli > *:not(summary) {
+  margin-bottom: 0.6rem;
 }
 .repli ul {
   margin: 0.6rem 0 0;
@@ -1087,60 +1118,71 @@ tbody tr:hover {
   grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
   gap: 0.75rem;
 }
+/* Une question est un pli : son intitulé se lit, sa réponse s'ouvre. Trois
+   lignes par question faisaient deux écrans de sommaire avant le premier
+   chiffre — le sommaire coûtait plus cher que ce qu'il annonce. */
 .questions li {
-  position: relative;
-  display: grid;
-  align-content: start;
-  gap: 0.3rem;
-  padding: 0.85rem 2.2rem 0.9rem 1rem;
   background: var(--papier);
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
   box-shadow: var(--ombre-1);
-  transition: border-color var(--transition), box-shadow var(--transition),
-    transform var(--transition);
+  transition: border-color var(--transition), box-shadow var(--transition);
 }
-.questions li:hover {
-  border-color: var(--accent);
-  box-shadow: var(--ombre-2);
-  transform: translateY(-1px);
-}
+.questions li:hover,
 .questions li:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-teinte);
+  box-shadow: var(--ombre-2);
 }
-.questions a {
+.questions summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.75rem 0.95rem;
   font-weight: 650;
   font-size: 0.92rem;
-  color: var(--encre);
-  text-decoration: none;
   line-height: 1.35;
+  cursor: pointer;
+  list-style: none;
 }
-/* Toute la carte est cliquable ; la flèche dit « ceci mène quelque part ». */
-.questions a::before {
-  content: "";
-  position: absolute;
-  inset: 0;
+.questions summary::-webkit-details-marker {
+  display: none;
 }
-.questions a::after {
-  content: "→";
-  position: absolute;
-  top: 0.8rem;
-  right: 0.85rem;
+.questions summary::after {
+  content: "+";
   color: var(--accent);
   font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1;
   transition: transform var(--transition);
 }
-.questions li:hover a::after {
-  transform: translateX(3px);
+.questions details[open] summary::after {
+  content: "−";
 }
-.questions a:focus-visible {
-  outline: none;
+.questions details[open] summary {
+  padding-bottom: 0.35rem;
 }
 .questions span {
+  display: block;
+  padding: 0 0.95rem;
   color: var(--encre-douce);
   font-size: 0.8rem;
   line-height: 1.45;
+}
+.questions details > a {
+  display: inline-block;
+  margin: 0.5rem 0.95rem 0.85rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+.questions details > a::after {
+  content: " →";
+  transition: margin var(--transition);
+}
+.questions details > a:hover::after {
+  margin-left: 0.2rem;
 }
 
 /* « 100 € » : deux colonnes de parts, une seule teinte, largeur proportionnelle.

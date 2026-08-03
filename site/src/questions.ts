@@ -105,14 +105,25 @@ function echapper(texte: string): string {
   );
 }
 
-/** Rendu pur, sans DOM : c'est lui qui est testé. */
+/**
+ * Rendu pur, sans DOM : c'est lui qui est testé.
+ *
+ * Chaque question tenait sur trois lignes — l'intitulé, sa réponse courte, son
+ * lien — soit 1 700 px sur un téléphone : deux écrans de sommaire avant le
+ * premier chiffre. La réponse dit pourtant quelque chose d'essentiel, ce que le
+ * site sait et ne sait pas répondre ; elle n'est donc pas supprimée, elle
+ * attend qu'on ouvre la question. Le sommaire redevient un sommaire.
+ */
 export function rendu(questions: Question[] = QUESTIONS): string {
   return `<ul class="questions">
     ${questions
       .map(
         (q) => `<li>
-          <a href="${echapper(q.cible)}">${echapper(q.question)}</a>
-          <span>${echapper(q.reponse)}</span>
+          <details>
+            <summary>${echapper(q.question)}</summary>
+            <span>${echapper(q.reponse)}</span>
+            <a href="${echapper(q.cible)}">Voir la réponse</a>
+          </details>
         </li>`,
       )
       .join("")}

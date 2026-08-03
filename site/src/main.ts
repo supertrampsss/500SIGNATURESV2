@@ -931,6 +931,34 @@ function brancherCommandes(): void {
           .join("")
       : `<li class="suggestions__vide">Aucun territoire ne porte ce nom.</li>`;
   });
+  champ.addEventListener("keydown", (evenement) => {
+    const touche = (evenement as KeyboardEvent).key;
+    if (touche === "Escape") {
+      liste.hidden = true;
+      return;
+    }
+    if (touche !== "ArrowDown" && touche !== "ArrowUp") return;
+    const boutons = [...liste.querySelectorAll<HTMLButtonElement>("button")];
+    if (!boutons.length) return;
+    evenement.preventDefault();
+    (touche === "ArrowDown" ? boutons[0] : boutons[boutons.length - 1]).focus();
+  });
+  liste.addEventListener("keydown", (evenement) => {
+    const touche = (evenement as KeyboardEvent).key;
+    const boutons = [...liste.querySelectorAll<HTMLButtonElement>("button")];
+    const place = boutons.indexOf(document.activeElement as HTMLButtonElement);
+    if (touche === "Escape") {
+      liste.hidden = true;
+      champ.focus();
+      return;
+    }
+    if (place === -1 || (touche !== "ArrowDown" && touche !== "ArrowUp")) return;
+    evenement.preventDefault();
+    const voulu = touche === "ArrowDown" ? place + 1 : place - 1;
+    // Remonter au-dessus du premier ramène au champ : on continue à taper.
+    if (voulu < 0) champ.focus();
+    else boutons[Math.min(voulu, boutons.length - 1)].focus();
+  });
   liste.addEventListener("click", async (evenement) => {
     const bouton = (evenement.target as HTMLElement).closest("button");
     if (!bouton) return;
@@ -1304,12 +1332,12 @@ async function demarrer(): Promise<void> {
     <h3 class="sources__titre">D'où viennent les chiffres</h3>
     ${jeux
       .map(
-        (jeu) => `<article class="source">
-          <h4>${jeu.titre}</h4>
+        (jeu) => `<details class="repli">
+          <summary>${jeu.titre}</summary>
           <p>${jeu.producteur} — ${jeu.licence}<br />
           Extraction du ${new Date(jeu.extraction).toLocaleDateString("fr-FR")} ·
           <a href="${jeu.url}" rel="noreferrer">fichier source</a></p>
-        </article>`,
+        </details>`,
       )
       .join("")}
     <h3 class="sources__titre">Comment chaque indicateur est défini</h3>
