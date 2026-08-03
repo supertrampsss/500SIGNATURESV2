@@ -2280,3 +2280,47 @@ body[data-vue="carte"] .pied {
   text-shadow:
     0 0 3px #fff, 0 0 3px #fff, 0 0 5px #fff, 0 1px 2px rgb(255 255 255 / 0.9);
 }
+
+
+/* Les repères tracés sur la courbe : « +57 % par rapport aux communes de la
+   région » ne disait pas à quoi la courbe se comparait — une ligne, si. */
+.serie__repere {
+  stroke: var(--argile);
+  stroke-width: 1;
+  opacity: 0.7;
+  vector-effect: non-scaling-stroke;
+}
+.serie__reperes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.8rem;
+  margin: 0.1rem 0 0;
+  font-size: 0.68rem;
+  color: var(--encre-douce);
+}
+.serie__repere-nom::before {
+  content: "";
+  display: inline-block;
+  width: 0.8rem;
+  height: 0;
+  border-top: 1px dashed var(--argile);
+  margin-right: 0.3rem;
+  vertical-align: 0.2rem;
+}
+
+/* La comparaison de territoires, dans le volet Analyse. */
+.comparaison-zone {
+  padding-bottom: 0.8rem;
+  margin-bottom: 0.8rem;
+  border-bottom: 1px solid var(--trait);
+}
+.comparaison-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+#comparaison-voir {
+  font-size: 0.78rem;
+  color: var(--encre);
+}

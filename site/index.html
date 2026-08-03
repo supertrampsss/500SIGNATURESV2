@@ -57,19 +57,6 @@
           <button type="button" role="tab" data-volet="territoire" aria-selected="true">Territoire</button>
           <button type="button" role="tab" data-volet="analyse" aria-selected="false">Analyse</button>
         </div>
-        <form class="reglages" id="commandes" aria-label="Affichage des valeurs">
-          <p class="champ champ--demi">
-            <label for="periode">Année</label>
-            <select id="periode"></select>
-          </p>
-          <p class="champ champ--demi">
-            <label for="declinaison">Affichage</label>
-            <select id="declinaison">
-              <option value="total">Montant total</option>
-              <option value="habitant" selected>Par habitant</option>
-            </select>
-          </p>
-        </form>
         <div class="panneau__contenu" id="volet-territoire">
           <div class="fiche" id="fiche" aria-live="polite">
             <p class="fiche__vide">Choisissez un territoire sur la carte ou par la recherche.</p>
@@ -77,6 +64,14 @@
           <div class="palmares" id="palmares" hidden></div>
         </div>
         <div class="panneau__contenu croiser" id="volet-analyse" hidden>
+          <section class="comparaison-zone">
+            <h3 class="panneau__section">Comparer des territoires</h3>
+            <p id="comparaison-etat" class="croiser__intro"></p>
+            <div class="comparaison-actions">
+              <button type="button" id="comparer-ajouter" class="comparer"></button>
+              <a href="#donnees" id="comparaison-voir" hidden>Voir le tableau →</a>
+            </div>
+          </section>
           <div class="croiser__modes" role="group" aria-label="Mode d'analyse">
             <button type="button" data-mode="nuage" class="croiser__mode croiser__mode--actif">Nuage</button>
             <button type="button" data-mode="matrice" class="croiser__mode">Matrice</button>

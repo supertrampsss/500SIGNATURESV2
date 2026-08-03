@@ -91,9 +91,9 @@ export function evolution(
  * toutes ; d'ici là, les bornes sont écrites sous la courbe pour qu'on sache
  * quel intervalle on regarde.
  */
-function points(valeurs: number[]): string {
-  const bas = Math.min(...valeurs);
-  const haut = Math.max(...valeurs);
+function points(valeurs: number[], bornes?: [number, number]): string {
+  const bas = bornes ? bornes[0] : Math.min(...valeurs);
+  const haut = bornes ? bornes[1] : Math.max(...valeurs);
   const amplitude = haut - bas || 1;
   return valeurs
     .map((valeur, i) => {
@@ -108,10 +108,16 @@ function points(valeurs: number[]): string {
  * Courbe de la série, avec la rupture de périmètre matérialisée.
  * Rendu pur, sans DOM : c'est lui qui est testé.
  */
+export type Repere = { libelle: string; valeur: number };
+
 export function rendu(
   serie: Record<string, number>,
   evenements: Evenement[],
   formater: (valeur: number) => string,
+  /** Médianes de comparaison, tracées comme des lignes sur la courbe : « +57 %
+   *  par rapport aux communes de la région » écrit en toutes lettres ne disait
+   *  pas à quoi la courbe se comparait. Une ligne, si. */
+  reperes: Repere[] = [],
 ): string {
   const periodes = Object.keys(serie).sort();
   if (periodes.length < 3) return ""; // deux points ne font pas une évolution
@@ -134,12 +140,39 @@ export function rendu(
   const resume = `${periodes[0]} : ${formater(valeurs[0])} — ${
     periodes[periodes.length - 1]
   } : ${formater(valeurs[valeurs.length - 1])}`;
+  // Les lignes de repère entrent dans l'échelle : sinon une médiane hors
+  // cadre serait tracée au bord et mentirait sur l'écart.
+  const utiles = reperes.filter((r) => Number.isFinite(r.valeur));
+  const toutes = [...valeurs, ...utiles.map((r) => r.valeur)];
+  const bornes: [number, number] = [Math.min(...toutes), Math.max(...toutes)];
+  const y = (valeur: number) =>
+    HAUTEUR - ((valeur - bornes[0]) / (bornes[1] - bornes[0] || 1)) * HAUTEUR;
+  const lignes = utiles
+    .map(
+      (r, i) => `<line class="serie__repere" x1="0" y1="${y(r.valeur).toFixed(1)}"
+        x2="${LARGEUR}" y2="${y(r.valeur).toFixed(1)}"
+        stroke-dasharray="${i === 0 ? "4 3" : "1 3"}" />`,
+    )
+    .join("");
+  const etiquettes = utiles
+    .map(
+      (r) => `<span class="serie__repere-nom">${echapper(r.libelle)} :
+        ${echapper(formater(r.valeur))}</span>`,
+    )
+    .join("");
   return `<div class="serie">
     <svg viewBox="0 0 ${LARGEUR} ${HAUTEUR}" class="serie__trace" role="img"
-         aria-label="${echapper(`Évolution ${resume}`)}" preserveAspectRatio="none">
-      ${marque}
-      <polyline points="${points(valeurs)}" />
+         aria-label="${echapper(
+           `Évolution ${resume}${
+             utiles.length
+               ? `. Repères : ${utiles.map((r) => `${r.libelle} ${formater(r.valeur)}`).join(", ")}`
+               : ""
+           }`,
+         )}" preserveAspectRatio="none">
+      ${marque}${lignes}
+      <polyline points="${points(valeurs, bornes)}" />
     </svg>
+    ${etiquettes ? `<p class="serie__reperes">${etiquettes}</p>` : ""}
     <p class="serie__bornes"><span>${echapper(periodes[0])}</span><span>${echapper(
       periodes[periodes.length - 1],
     )}</span></p>

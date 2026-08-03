@@ -121,6 +121,11 @@ let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
 let groupes: donnees.Comparaisons | null = null;
 let reperes: import("./reference.ts").References | null = null;
+/** Départements, régions et pays chargés à part : ils servent de points de
+ *  comparaison à n'importe quelle commune, y compris là où aucune médiane
+ *  n'est publiable (délinquance sous secret de diffusion). Table séparée
+ *  d'`entites` : mêler deux mailles fausserait noms et classements. */
+let parents: Record<string, Territoire> = {};
 /** Valeurs actuellement peintes, déjà ramenées par habitant si demandé : le
  *  survol et le palmarès lisent la même table que la couleur — jamais un
  *  recalcul parallèle qui pourrait diverger de la carte. */
@@ -144,8 +149,13 @@ function lireUrl(): Etat {
     indicateur: p.get("indicateur") ?? "ofgl_depenses_fonctionnement",
     niveau: p.get("niveau") === "auto" || !p.get("niveau") ? "region" : (p.get("niveau") as string),
     niveauAuto: p.get("niveau") === "auto" || !p.get("niveau"),
-    periode: p.get("periode") ?? "",
-    declinaison: p.get("affichage") ?? "habitant",
+    // L'année n'est plus un choix : c'est toujours la plus récente publiée
+    // pour l'indicateur et la maille regardés. L'affichage non plus — le
+    // panneau montre désormais les deux lectures (par habitant ET total)
+    // pour chaque mesure, le sélecteur ne servait plus qu'à choisir laquelle
+    // colorait la carte, et « par habitant » est la seule comparable.
+    periode: "",
+    declinaison: "habitant",
     selection: p.get("territoire"),
     comparaison: (p.get("comparer") ?? "").split(",").filter(Boolean).slice(0, MAXIMUM),
     vue: p.get("vue") ?? "metropole",
@@ -158,7 +168,6 @@ function ecrireUrl(): void {
     indicateur: etat.indicateur,
     niveau: etat.niveauAuto ? "auto" : etat.niveau,
     periode: etat.periode,
-    affichage: etat.declinaison,
   });
   if (etat.vue !== "metropole") p.set("vue", etat.vue);
   if (etat.selection) p.set("territoire", etat.selection);
@@ -305,7 +314,6 @@ async function peindre(): Promise<void> {
   ) as Record<string, number>;
   parHabitantAffiche = parHabitant;
   brutes = valeurs;
-  majPalmares();
 
   if (etat.selection) {
     await montrerFiche(etat.selection);
@@ -334,42 +342,6 @@ function afficherApercu(): void {
     etat.periode,
     parHabitantAffiche,
     total,
-  );
-}
-
-/** Les cinq valeurs les plus hautes et les plus basses de la couche affichée.
- *
- *  Même niveau, même indicateur, même période, même unité : le classement est
- *  comparable par construction — c'est la même règle que le tableau. Il est
- *  neutre : « haut » et « bas » sont des positions, jamais un jugement, et le
- *  libellé nomme l'unité pour qu'un montant total ne se lise pas comme un
- *  montant par habitant. */
-function majPalmares(): void {
-  const bloc = $("palmares");
-  const tri = Object.entries(affichees).sort(([, a], [, b]) => b - a);
-  if (tri.length < 8) {
-    bloc.hidden = true;
-    return;
-  }
-  const indicateur = indicateurCourant();
-  const nomDe = (code: string) => entites[code]?.nom ?? code;
-  const ligne = ([code, valeur]: [string, number]) =>
-    `<li><button type="button" data-code="${code}"><span>${nomDe(code)}</span>
-      <strong>${formater(valeur, indicateur.unite, parHabitantAffiche)}</strong></button></li>`;
-  bloc.innerHTML = `
-    <h3 class="palmares__titre" title="${indicateur.libelle} — ${etat.periode}${
-      parHabitantAffiche ? ", par habitant" : ""
-    }">Extrêmes de la couche</h3>
-    <p class="palmares__borne">Les plus hautes</p>
-    <ol class="palmares__liste">${tri.slice(0, 5).map(ligne).join("")}</ol>
-    <p class="palmares__borne">Les plus basses</p>
-    <ol class="palmares__liste">${tri.slice(-5).reverse().map(ligne).join("")}</ol>`;
-  bloc.hidden = false;
-  bloc.querySelectorAll<HTMLButtonElement>("button[data-code]").forEach((b) =>
-    b.addEventListener("click", () => {
-      const code = b.dataset.code;
-      if (code) void montrerFiche(code);
-    }),
   );
 }
 
@@ -567,12 +539,43 @@ async function montrerFiche(code: string): Promise<void> {
     // définition pour une absence de mesure.
     indicateurs: catalogue.filter((i) => i.niveaux?.includes(etat.niveau)),
     libelleTheme,
+    // De quoi comparer, même pour les jeux sous secret de diffusion où
+    // aucune médiane communale n'est publiable : la valeur du département,
+    // celle de la région, celle de la France. Ce sont des chiffres publiés,
+    // pas des estimations.
+    comparateurs:
+      etat.niveau === "commune" || etat.niveau === "epci"
+        ? [
+            territoire.parent && parents[territoire.parent]
+              ? { libelle: "Son département", territoire: parents[territoire.parent] }
+              : null,
+            territoire.region && parents[territoire.region]
+              ? { libelle: "Sa région", territoire: parents[territoire.region] }
+              : null,
+            parents["FR"] ? { libelle: "France", territoire: parents["FR"] } : null,
+          ].filter(Boolean as unknown as (x: unknown) => boolean) as {
+            libelle: string;
+            territoire: Territoire;
+          }[]
+        : etat.niveau === "departement"
+          ? [
+              territoire.region && parents[territoire.region]
+                ? { libelle: "Sa région", territoire: parents[territoire.region] }
+                : null,
+              parents["FR"] ? { libelle: "France", territoire: parents["FR"] } : null,
+            ].filter(Boolean as unknown as (x: unknown) => boolean) as {
+              libelle: string;
+              territoire: Territoire;
+            }[]
+          : parents["FR"]
+            ? [{ libelle: "France", territoire: parents["FR"] }]
+            : [],
     jeux,
     periode: etat.periode,
     parHabitant: etat.declinaison === "habitant",
     references: reperes,
   });
-  ajouterBoutonComparer(code);
+  majBoutonComparer();
   $("panneau").classList.add("panneau--selection");
 }
 
@@ -584,42 +587,30 @@ function fermerPanneau(): void {
   afficherApercu();
 }
 
-/** Le bouton vit sur la fiche : on compare un territoire qu'on est en train de
- *  regarder, pas une ligne d'une liste. */
-function ajouterBoutonComparer(code: string): void {
-  const dedans = etat.comparaison.includes(code);
+/** La comparaison vit dans le volet Analyse, pas sur la fiche : deux boutons
+ *  entre le nom du territoire et son premier chiffre, c'était de la pollution
+ *  devant la donnée. */
+function majBoutonComparer(): void {
+  const bouton = $<HTMLButtonElement>("comparer-ajouter");
+  const code = etat.selection;
+  const dedans = !!code && etat.comparaison.includes(code);
   const complet = !dedans && etat.comparaison.length >= MAXIMUM;
-  const bouton = document.createElement("button");
-  bouton.type = "button";
-  bouton.className = "comparer";
+  bouton.hidden = !code;
   bouton.disabled = complet;
-  bouton.textContent = complet
-    ? `Comparaison complète (${MAXIMUM} territoires)`
-    : dedans
-      ? "Retirer de la comparaison"
-      : "Ajouter à la comparaison";
-  bouton.addEventListener("click", async () => {
-    etat.comparaison = dedans
-      ? etat.comparaison.filter((c) => c !== code)
-      : [...etat.comparaison, code];
-    ecrireUrl();
-    await majComparateur();
-
-
-    ajouterBoutonComparer(code);
-  });
-  $("fiche").querySelector(".comparer")?.remove();
-  $("fiche").querySelector(".comparer-lien")?.remove();
-  $("fiche").querySelector(".fiche__meta")?.after(bouton);
-  // Le tableau de comparaison vit dans la vue Données : sans ce lien, le
-  // bouton semblait ne rien faire — il faisait, mais hors de l'écran.
-  if (etat.comparaison.length) {
-    const lien = document.createElement("a");
-    lien.className = "comparer-lien";
-    lien.href = "#donnees";
-    lien.textContent = `Voir la comparaison (${etat.comparaison.length}) →`;
-    bouton.after(lien);
-  }
+  bouton.textContent = !code
+    ? ""
+    : complet
+      ? `Comparaison complète (${MAXIMUM})`
+      : dedans
+        ? "Retirer de la comparaison"
+        : `Ajouter ${entites[code]?.nom ?? code}`;
+  const noms = etat.comparaison.map((c) => entites[c]?.nom ?? c);
+  $("comparaison-etat").textContent = noms.length
+    ? `${noms.length} territoire${noms.length > 1 ? "s" : ""} : ${noms.join(", ")}.`
+    : "Choisissez un territoire sur la carte, puis ajoutez-le pour le comparer à d'autres.";
+  const voir = $<HTMLAnchorElement>("comparaison-voir");
+  voir.hidden = etat.comparaison.length < 2;
+  voir.textContent = `Voir le tableau (${etat.comparaison.length}) →`;
 }
 
 async function majComparateur(): Promise<void> {
@@ -742,24 +733,10 @@ function construireSelecteurs(): void {
   ]
     .sort()
     .reverse();
-  if (!periodes.includes(etat.periode)) etat.periode = periodes[0];
-  $<HTMLSelectElement>("periode").innerHTML = periodes
-    .map((p) => `<option value="${p}">${p}</option>`)
-    .join("");
-  $<HTMLSelectElement>("periode").value = etat.periode;
+  // Toujours la plus récente : l'année n'est plus un réglage.
+  etat.periode = periodes[0];
   construireBarreCarte();
 
-  // « Par habitant » n'a de sens que pour un montant qui s'additionne. Sur un
-  // taux ou un effectif, le calcul le refusait déjà — mais la commande restait
-  // sur « Par habitant » et annonçait donc un dénominateur qui n'existait pas.
-  // Une commande qui affirme ce qu'elle ne fait pas est un mensonge de plus.
-  const divisible = parHabitantAUnSens(fiche);
-  const declinaison = $<HTMLSelectElement>("declinaison");
-  declinaison.disabled = !divisible;
-  declinaison.value = divisible ? etat.declinaison : "total";
-  declinaison.title = divisible
-    ? ""
-    : "Cet indicateur n'est pas un montant qui s'additionne : le ramener à l'habitant n'aurait pas de sens.";
 }
 
 async function choisirIndicateur(id: string): Promise<void> {
@@ -809,27 +786,6 @@ function brancherCommandes(): void {
   $("fiche").addEventListener("click", surLigne);
   $("fiche").addEventListener("keydown", (evenement) => {
     if ((evenement as KeyboardEvent).key === "Enter") surLigne(evenement);
-  });
-
-  $("commandes").addEventListener("change", async (evenement) => {
-    const cible = evenement.target as HTMLSelectElement;
-    if (cible.id === "periode") etat.periode = cible.value;
-    if (cible.id === "declinaison") etat.declinaison = cible.value;
-    construireSelecteurs();
-    ecrireUrl();
-    try {
-      await peindre();
-    } catch (erreur) {
-      // Une couche absente laissait la carte sur l'ancienne, sans un mot : le
-      // lecteur croyait regarder ce qu'il venait de choisir. Le catalogue est
-      // censé n'annoncer que des couches existantes — si l'une manque quand
-      // même, mieux vaut le dire que peindre le mauvais chiffre.
-      $("fiche").innerHTML =
-        `<p class="erreur">Cette couche n'a pas pu être chargée : ${
-          (erreur as Error).message
-        }. La carte affiche encore la sélection précédente.</p>`;
-    }
-    await majComparateur();
   });
 
   $("exporter").addEventListener("click", () => {
@@ -1579,6 +1535,17 @@ async function demarrer(): Promise<void> {
 
   $("panneau-fermer").addEventListener("click", fermerPanneau);
 
+  $("comparer-ajouter").addEventListener("click", async () => {
+    const code = etat.selection;
+    if (!code) return;
+    etat.comparaison = etat.comparaison.includes(code)
+      ? etat.comparaison.filter((c) => c !== code)
+      : [...etat.comparaison, code];
+    ecrireUrl();
+    await majComparateur();
+    majBoutonComparer();
+  });
+
   // Onglets du panneau : Territoire (la fiche) et Analyse (le croisement).
   // Tout vit dans la carte — plus d'onglet d'analyse séparé.
   document.querySelectorAll<HTMLButtonElement>(".panneau__onglets button").forEach((bouton) => {
@@ -1589,7 +1556,10 @@ async function demarrer(): Promise<void> {
       });
       $("volet-territoire").hidden = voulu !== "territoire";
       $("volet-analyse").hidden = voulu !== "analyse";
-      if (voulu === "analyse") basculerModeAnalyse(modeAnalyse);
+      if (voulu === "analyse") {
+        majBoutonComparer();
+        basculerModeAnalyse(modeAnalyse);
+      }
     });
   });
 
@@ -1699,11 +1669,26 @@ async function demarrer(): Promise<void> {
     </ul>`;
 
   // Les repères se chargent à part : une publication qui n'en a pas doit laisser
-  // la fiche s'afficher sans eux.
+  // la fiche s'afficher sans eux. Quand ils arrivent, la fiche ouverte est
+  // redessinée — sinon les comparaisons manquaient au premier affichage.
   donnees
     .references()
     .then((r) => {
       reperes = r;
+      if (etat.selection) void montrerFiche(etat.selection);
+    })
+    .catch(() => {});
+
+  // Les mailles supérieures, pour comparer : quelques kilo-octets, chargés une
+  // fois pour toutes.
+  Promise.all([
+    donnees.territoires("departement", "tous").catch(() => ({})),
+    donnees.territoires("region", "tous").catch(() => ({})),
+    donnees.territoires("pays", "tous").catch(() => ({})),
+  ])
+    .then(([dep, reg, pays]) => {
+      parents = { ...dep, ...reg, ...(pays as Record<string, Territoire>) };
+      if (etat.selection) void montrerFiche(etat.selection);
     })
     .catch(() => {});
 

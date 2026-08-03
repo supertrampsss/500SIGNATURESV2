@@ -7,7 +7,7 @@
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
-import { rendu as rendreReperes, reperes, type References } from "./reference.ts";
+import { reperes, type References } from "./reference.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -34,6 +34,7 @@ function ligneIndicateur(
    *  chargée) et se signale d'un mot. */
   surCarte = false,
   rang?: { position: number; total: number },
+  comparateurs: { libelle: string; territoire: Territoire }[] = [],
 ): string {
   const serie = territoire.series[indicateur.id];
   const brut = serie?.[periode];
@@ -107,7 +108,33 @@ function ligneIndicateur(
       ${evolution(suivie, periode, evenements)}
       ${kpis(indicateur, territoire, suivie, periode, valeur, rang)}
       <p class="serie__quoi">${ratio ? "Par habitant" : "Montant total"}</p>
-      ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
+      ${rendreSerie(
+        suivie,
+        evenements,
+        (v) => formater(v, indicateur.unite, ratio),
+        [
+          // La valeur du département, de la région, de la France : publiée
+          // pour ces mailles, donc disponible même sous secret de diffusion.
+          ...comparateurs.flatMap((c) => {
+            const brutParent = c.territoire.series[indicateur.id]?.[periode];
+            if (brutParent === undefined) return [];
+            const popParent = populationDeReference(c.territoire, periode).valeur;
+            if (ratio && !popParent) return [];
+            return [
+              {
+                libelle: c.libelle,
+                valeur: ratio ? brutParent / (popParent as number) : brutParent,
+              },
+            ];
+          }),
+          ...reperes(
+            toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
+            niveau,
+            territoire.region ?? null,
+            ratio,
+          ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
+        ],
+      )}
       ${
         ratio
           ? `<p class="serie__quoi">Montant total</p>${rendreSerie(
@@ -118,16 +145,7 @@ function ligneIndicateur(
           : ""
       }
       ${miniTableau(suivie, indicateur, ratio, ratio ? serie : undefined)}
-      ${rendreReperes(
-        reperes(
-          toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
-          niveau,
-          territoire.region ?? null,
-          ratio,
-        ),
-        valeur,
-        (v) => formater(v, indicateur.unite, ratio),
-      )}
+
     </dd>
   </div>`;
 }
@@ -320,6 +338,11 @@ export function afficherFiche(
     rang?: { position: number; total: number };
     /** Libellé lisible d'un thème (la table vit dans main.ts). */
     libelleTheme?: (theme: string) => string;
+    /** Territoires de comparaison (son département, sa région, la France) :
+     *  leurs valeurs se tracent sur chaque courbe. Ce sont des chiffres
+     *  publiés pour ces mailles, pas des médianes — ils existent donc même
+     *  là où le secret de diffusion interdit toute médiane communale. */
+    comparateurs?: { libelle: string; territoire: Territoire }[];
     comparaison?: string;
     /** Absent des publications antérieures aux repères : la fiche s'affiche
      *  alors sans eux, plutôt que de refuser de s'afficher. */
@@ -343,6 +366,7 @@ export function afficherFiche(
     (enTete
       ? ligneIndicateur(
           enTete, territoire, periode, parHabitant, niveau, references, true, options.rang,
+          options.comparateurs,
         )
       : "") +
     [...groupes.entries()]
@@ -353,6 +377,7 @@ export function afficherFiche(
             .map((indicateur) =>
               ligneIndicateur(
                 indicateur, territoire, periode, parHabitant, niveau, references,
+                false, undefined, options.comparateurs,
               ),
             )
             .join("")}
