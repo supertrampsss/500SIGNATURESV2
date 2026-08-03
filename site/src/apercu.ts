@@ -65,7 +65,11 @@ const NIVEAUX: Record<string, string> = {
   region: "régions",
 };
 
-/** Rendu pur, sans DOM : c'est lui qui est testé. */
+/** Rendu pur, sans DOM : c'est lui qui est testé.
+ *
+ *  Volontairement court : une phrase de médiane. Les extrêmes vivent dans le
+ *  palmarès juste en dessous — les répéter ici faisait deux blocs pour la
+ *  même information, et le lecteur ne savait plus où regarder. */
 export function rendu(
   apercu: Apercu | null,
   indicateur: Indicateur,
@@ -82,24 +86,8 @@ export function rendu(
     <p class="fiche__meta">${apercu.effectif.toLocaleString("fr-FR")} ${
       echapper(NIVEAUX[niveau] ?? niveau)
     } avec une valeur · ${echapper(periode)}${parHabitant ? " · par habitant" : ""}</p>
-    <ul class="quartiles">
-      <li><span>Quart le plus bas, en dessous de</span><strong>${montant(apercu.q1)}</strong></li>
-      <li><span>Médiane</span><strong>${montant(apercu.mediane)}</strong></li>
-      <li><span>Quart le plus haut, au-dessus de</span><strong>${montant(apercu.q3)}</strong></li>
-    </ul>
-    <dl class="mesures">
-      <div class="mesure">
-        <dt>Valeur la plus élevée</dt>
-        <dd><strong>${montant(apercu.haut.valeur)}</strong>
-          <span class="denominateur">${echapper(apercu.haut.nom)}</span></dd>
-      </div>
-      <div class="mesure">
-        <dt>Valeur la plus basse</dt>
-        <dd><strong>${montant(apercu.bas.valeur)}</strong>
-          <span class="denominateur">${echapper(apercu.bas.nom)}</span></dd>
-      </div>
-    </dl>
-    <p class="avertissement">Aperçu de la couche affichée. Aucune moyenne : sur des
-      montants aussi dissymétriques, elle serait tirée par quelques très grands
-      territoires. Choisissez un territoire pour sa fiche complète.</p>`;
+    <p class="apercu__mediane">Médiane : <strong>${montant(apercu.mediane)}</strong></p>
+    <p class="apercu__masse">La moitié se situe entre ${montant(apercu.q1)} et ${montant(
+      apercu.q3,
+    )}. Aucune moyenne : elle serait tirée par les plus grands territoires.</p>`;
 }

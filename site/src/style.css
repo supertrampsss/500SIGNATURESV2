@@ -254,9 +254,52 @@ summary:focus-visible {
 .surcouche--legende {
   left: 0.9rem;
   bottom: 1.55rem;
-  max-width: min(26rem, calc(100% - 2rem));
-  padding: 0.55rem 0.8rem;
-  font-size: 0.8rem;
+  width: 13.5rem;
+  max-width: calc(100% - 2rem);
+  padding: 0.5rem 0.65rem 0.4rem;
+  font-size: 0.72rem;
+}
+.legende__echelle {
+  list-style: none;
+  display: flex;
+  margin: 0.3rem 0 0.15rem;
+  padding: 0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.legende__echelle .pastille {
+  flex: 1 1 auto;
+  height: 0.55rem;
+  border: 0;
+  width: auto;
+}
+.legende__bornes {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.4rem;
+  margin: 0;
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.legende__bornes span {
+  white-space: nowrap;
+}
+.legende__bornes span:nth-child(2) {
+  font-size: 0.65rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.legende__methode {
+  margin-top: 0.2rem;
+}
+.legende__methode summary {
+  cursor: pointer;
+  color: var(--encre-douce);
+  font-size: 0.68rem;
+}
+.legende__methode summary:hover {
+  color: var(--accent);
 }
 
 /* L'infobulle du survol : le nom et la valeur sous le curseur, sans clic.
@@ -374,24 +417,11 @@ summary:focus-visible {
   margin-bottom: 0.25rem;
 }
 .legende__titre {
-  margin: 0 0 0.3rem;
-  font-weight: 600;
-}
-/* Horizontale : une bande large se lit d'un coup d'œil, une colonne de sept
-   lignes prendrait la moitié de la hauteur de la carte. */
-.legende__echelle {
-  list-style: none;
   margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.9rem;
-}
-.legende__echelle li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pastille {
   width: 1.1rem;
@@ -400,9 +430,9 @@ summary:focus-visible {
   flex: none;
 }
 .legende__note {
-  margin: 0.5rem 0 0;
+  margin: 0.25rem 0 0;
   color: var(--encre-douce);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
 }
 
 .fiche {
@@ -1361,4 +1391,54 @@ tbody tr:hover {
   .graphique__commandes {
     justify-content: flex-start;
   }
+}
+
+
+/* Une seule mesure en héros, les autres en lignes : le chiffre d'abord. */
+.mesure--compacte {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.8rem;
+  padding: 0.28rem 0;
+  border-bottom: 1px solid var(--trait);
+}
+.mesure--compacte dt {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--encre-douce);
+  text-transform: none;
+  letter-spacing: 0;
+  margin: 0;
+}
+.mesure--compacte dd {
+  margin: 0;
+  white-space: nowrap;
+}
+.mesure--compacte strong {
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+.mesure--compacte .evolution {
+  font-size: 0.72rem;
+}
+.panneau__section {
+  margin: 0.9rem 0 0.3rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--encre-douce);
+}
+.apercu__mediane {
+  margin: 0.6rem 0 0.1rem;
+  font-size: 1.05rem;
+}
+.apercu__mediane strong {
+  font-size: 1.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.apercu__masse {
+  margin: 0;
+  color: var(--encre-douce);
+  font-size: 0.85rem;
 }

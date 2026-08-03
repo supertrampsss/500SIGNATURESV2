@@ -180,30 +180,33 @@ function indicateurCourant(): Indicateur {
   return catalogue.find((i) => i.id === etat.indicateur) ?? catalogue[0];
 }
 
+/** Légende en rampe : une ligne de couleurs, les deux bornes, le reste en
+ *  infobulle et dans un repli. La version en liste (sept lignes de fourchettes
+ *  plus une note) mangeait un quart de la carte — trop pour une échelle. */
 function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean): void {
   const indicateur = indicateurCourant();
   $("legende").hidden = false;
-  $("legende-titre").textContent = `${indicateur.libelle} — ${etat.periode}${
-    parHabitant ? " · par habitant" : ""
-  }`;
+  $("legende-titre").textContent = indicateur.libelle;
   const bornes = [...echelle.bornes];
+  const lisible = (v: number) => formater(v, indicateur.unite, parHabitant);
   $("legende-echelle").innerHTML = echelle.couleurs
     .map((couleur, i) => {
       const bas = i === 0 ? null : bornes[i - 1];
       const haut = i < bornes.length ? bornes[i] : null;
       const texte =
         bas === null
-          ? `moins de ${formater(haut as number, indicateur.unite, parHabitant)}`
+          ? `moins de ${lisible(haut as number)}`
           : haut === null
-            ? `${formater(bas, indicateur.unite, parHabitant)} et plus`
-            : `${formater(bas, indicateur.unite, parHabitant)} – ${formater(
-                haut,
-                indicateur.unite,
-                parHabitant,
-              )}`;
-      return `<li><span class="pastille" style="background:${couleur}"></span>${texte}</li>`;
+            ? `${lisible(bas)} et plus`
+            : `${lisible(bas)} – ${lisible(haut)}`;
+      return `<li class="pastille" style="background:${couleur}" title="${texte}"></li>`;
     })
     .join("");
+  $("legende-bornes").innerHTML = `<span>${
+    bornes.length ? `&lt; ${lisible(bornes[0])}` : ""
+  }</span><span>${etat.periode}${parHabitant ? " · par hab." : ""}</span><span>${
+    bornes.length ? `&gt; ${lisible(bornes[bornes.length - 1])}` : ""
+  }</span>`;
   $("legende-note").textContent = noteEchelle(indicateur.unite, parHabitant);
 }
 
@@ -391,6 +394,7 @@ async function montrerFiche(code: string): Promise<void> {
     code,
     niveau: etat.niveau,
     territoire,
+    principal: etat.indicateur,
     comparaison: groupes
       ? positionDansGroupe(territoire, quartiles, parHabitant, groupes.criteres)
       : "",
@@ -684,6 +688,10 @@ async function demarrer(): Promise<void> {
           type: "raster",
           tiles: carreaux("light_only_labels"),
           tileSize: 256,
+          // Jamais sous le zoom 8 : aux échelles nationales, ce fond écrit
+          // les mers et les régions en anglais (« Bay of Biscay »,
+          // « Brittany ») — au-delà, les noms sont les noms locaux, français.
+          minzoom: 8,
           maxzoom: 19,
         },
       },
@@ -734,6 +742,7 @@ async function demarrer(): Promise<void> {
           id: "noms",
           type: "raster",
           source: "fond-noms",
+          minzoom: 8,
           paint: { "raster-opacity": 0.95 },
         },
       ],

@@ -29,34 +29,47 @@ function ligneIndicateur(
   parHabitant: boolean,
   niveau: string,
   toutesReferences: References | null,
+  principale = true,
 ): string {
   const serie = territoire.series[indicateur.id];
   const brut = serie?.[periode];
   if (brut === undefined) {
-    return `<div class="mesure mesure--absente">
+    // En ligne secondaire, une phrase par absence ferait plus de bruit que de
+    // sens : un tiret dit la même chose, l'infobulle précise.
+    return principale
+      ? `<div class="mesure mesure--absente">
       <dt>${echapper(indicateur.libelle)}</dt>
       <dd>Donnée non disponible pour ${periode}</dd>
+    </div>`
+      : `<div class="mesure mesure--compacte mesure--absente">
+      <dt>${echapper(indicateur.libelle)}</dt>
+      <dd title="Donnée non disponible pour ${periode}">—</dd>
     </div>`;
   }
   const denom = populationDeReference(territoire, periode);
   const ratio = parHabitant && parHabitantAUnSens(indicateur);
   if (ratio && !denom.valeur) {
-    return `<div class="mesure mesure--absente">
+    return principale
+      ? `<div class="mesure mesure--absente">
       <dt>${echapper(indicateur.libelle)}</dt>
       <dd>Population inconnue : le montant par habitant n'est pas calculable</dd>
+    </div>`
+      : `<div class="mesure mesure--compacte mesure--absente">
+      <dt>${echapper(indicateur.libelle)}</dt>
+      <dd title="Population inconnue : montant par habitant non calculable">—</dd>
     </div>`;
   }
   const valeur = ratio ? brut / (denom.valeur as number) : brut;
   // L'étiquette dit d'où vient le dénominateur : la référence OFGL de
   // l'exercice quand elle existe, celle du référentiel géographique sinon.
   const denominateur = ratio
-    ? `<span class="denominateur">par habitant — population ${new Intl.NumberFormat(
-        "fr-FR",
-      ).format(denom.valeur as number)} ${
+    ? `<span class="denominateur" title="${
         denom.exercice
-          ? `(référence OFGL ${echapper(denom.exercice)})`
-          : "(référentiel géographique, à défaut de référence OFGL pour cet exercice)"
-      }</span>`
+          ? `Population de référence OFGL de l'exercice ${echapper(denom.exercice)}`
+          : "Population du référentiel géographique, à défaut de référence OFGL pour cet exercice"
+      }">par habitant · pop. ${new Intl.NumberFormat("fr-FR").format(
+        denom.valeur as number,
+      )}</span>`
     : "";
   // Chaque exercice se divise par SA population, pas par celle d'aujourd'hui :
   // sinon les dépenses de 2022 se lisent rapportées aux habitants de 2025. La
@@ -75,6 +88,16 @@ function ligneIndicateur(
   // territoire actuel. Lui signaler une rupture déclarerait incomparable une
   // série qui ne l'est pas — c'est le cas des populations légales de l'INSEE.
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
+  // Une seule mesure porte la panoplie complète (courbe, repères,
+  // dénominateur) : celle que la carte affiche. Les autres se lisent d'une
+  // ligne — le mur de blocs identiques empêchait de trouver le chiffre.
+  if (!principale) {
+    return `<div class="mesure mesure--compacte">
+    <dt>${echapper(indicateur.libelle)}</dt>
+    <dd><strong>${formater(valeur, indicateur.unite, ratio)}</strong>
+      ${evolution(suivie, periode, evenements)}</dd>
+  </div>`;
+  }
   return `<div class="mesure">
     <dt>${echapper(indicateur.libelle)}</dt>
     <dd>
@@ -110,10 +133,8 @@ function panneauSource(indicateurs: Indicateur[], jeux: Jeu[]): string {
       </li>`,
     )
     .join("");
-  return `<details class="panneau">
-    <summary>D'où vient ce chiffre ?</summary>
-    <ul class="sources">${lignes}</ul>
-  </details>`;
+  return `<h3 class="panneau__section">D'où viennent ces chiffres ?</h3>
+    <ul class="sources">${lignes}</ul>`;
 }
 
 function panneauMethode(indicateurs: Indicateur[]): string {
@@ -126,16 +147,14 @@ function panneauMethode(indicateurs: Indicateur[]): string {
       </li>`,
     )
     .join("");
-  return `<details class="panneau">
-    <summary>Méthodologie et limites</summary>
+  return `<h3 class="panneau__section">Méthodologie et limites</h3>
     <ul class="methodes">${lignes}</ul>
     <p class="avertissement">
       Ces montants sont ceux des comptes exécutés, budgets principaux et annexes
       consolidés. Un budget voté n'est pas une dépense réalisée. Les montants par
       habitant utilisent la population retenue par l'Observatoire des finances
       locales, afin que nos ratios reproduisent exactement les siens.
-    </p>
-  </details>`;
+    </p>`;
 }
 
 function panneauComparabilite(territoire: Territoire, niveau: string): string {
@@ -165,10 +184,8 @@ function panneauComparabilite(territoire: Territoire, niveau: string): string {
   avertissements.push(
     "Comparer deux territoires suppose la même année, la même unité et le même périmètre budgétaire.",
   );
-  return `<details class="panneau">
-    <summary>Comparabilité</summary>
-    <ul>${avertissements.map((a) => `<li>${echapper(a)}</li>`).join("")}</ul>
-  </details>`;
+  return `<h3 class="panneau__section">Comparabilité</h3>
+    <ul>${avertissements.map((a) => `<li>${echapper(a)}</li>`).join("")}</ul>`;
 }
 
 export function afficherFiche(
@@ -181,6 +198,8 @@ export function afficherFiche(
     jeux: Jeu[];
     periode: string;
     parHabitant: boolean;
+    /** L'indicateur affiché sur la carte : seul à recevoir courbe et repères. */
+    principal?: string;
     comparaison?: string;
     /** Absent des publications antérieures aux repères : la fiche s'affiche
      *  alors sans eux, plutôt que de refuser de s'afficher. */
@@ -189,9 +208,17 @@ export function afficherFiche(
 ): void {
   const { territoire, indicateurs, jeux, periode, parHabitant, niveau } = options;
   const references = options.references ?? null;
-  const mesures = indicateurs
+  const principal = options.principal ?? indicateurs[0]?.id;
+  const ordonnes = [
+    ...indicateurs.filter((i) => i.id === principal),
+    ...indicateurs.filter((i) => i.id !== principal),
+  ];
+  const mesures = ordonnes
     .map((indicateur) =>
-      ligneIndicateur(indicateur, territoire, periode, parHabitant, niveau, references),
+      ligneIndicateur(
+        indicateur, territoire, periode, parHabitant, niveau, references,
+        indicateur.id === principal,
+      ),
     )
     .join("");
   cible.innerHTML = `
@@ -221,9 +248,12 @@ export function afficherFiche(
     }
     <dl class="mesures">${mesures}</dl>
     ${options.comparaison ?? ""}
-    ${panneauSource(indicateurs, jeux)}
-    ${panneauMethode(indicateurs)}
-    ${panneauComparabilite(territoire, niveau)}
+    <details class="panneau">
+      <summary>Sources et méthode</summary>
+      ${panneauSource(indicateurs, jeux)}
+      ${panneauMethode(indicateurs)}
+      ${panneauComparabilite(territoire, niveau)}
+    </details>
   `;
 }
 
