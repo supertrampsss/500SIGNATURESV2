@@ -141,7 +141,7 @@ export function rendu(
         <tbody>${lignes}</tbody>
       </table>
     </div>
-    <details class="panneau">
+    <details class="repli">
       <summary>Ce que cette comparaison suppose</summary>
       <ul>${reserves(entrees)
         .map((n) => `<li>${echapper(n)}</li>`)

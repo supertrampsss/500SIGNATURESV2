@@ -170,7 +170,7 @@ function avertissements(budget: BudgetEtat, exercice: string): string {
       );
     }
   }
-  return `<details class="panneau">
+  return `<details class="repli">
     <summary>Ce que ces chiffres ne disent pas</summary>
     <ul>${notes.map((n) => `<li>${echapper(n)}</li>`).join("")}</ul>
   </details>`;

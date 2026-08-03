@@ -112,8 +112,17 @@ export function populationDeReference(
  *  insécable avant le signe, virgule décimale, et surtout **pas**
  *  `style: "percent"` — les valeurs publiées sont déjà en points de
  *  pourcentage, le multiplier par cent les rendrait absurdes. */
+/** Une valeur qui s'arrondit à zéro s'affiche « 0 », jamais « −0 » : le signe
+ *  d'un zéro n'informe personne et fait douter de tout le reste. */
+function sansZeroNegatif(valeur: number, decimales: number): number {
+  const facteur = 10 ** decimales;
+  return Math.round(valeur * facteur) === 0 ? 0 : valeur;
+}
+
 export function pourcentage(valeur: number): string {
-  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(valeur)} %`;
+  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+    sansZeroNegatif(valeur, 1),
+  )} %`;
 }
 
 /** La note sous la légende dit ce que sont les nombres qu'on vient de lire.
@@ -226,5 +235,5 @@ export function formater(valeur: number, unite: string, parHabitant: boolean): s
       valeur / 1e3,
     )} k€`;
   }
-  return new Intl.NumberFormat("fr-FR", options).format(valeur);
+  return new Intl.NumberFormat("fr-FR", options).format(sansZeroNegatif(valeur, 0));
 }

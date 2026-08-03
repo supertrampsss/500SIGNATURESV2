@@ -263,7 +263,7 @@ export function afficherFiche(
     }
     <dl class="mesures">${mesures}</dl>
     ${options.comparaison ?? ""}
-    <details class="panneau">
+    <details class="repli">
       <summary>Sources et méthode</summary>
       ${panneauSource(indicateurs, jeux)}
       ${panneauMethode(indicateurs)}
@@ -300,7 +300,7 @@ export function positionDansGroupe(
       : valeurParHabitant > quartiles.q3
         ? "au-dessus du quart supérieur"
         : "dans la moitié centrale";
-  return `<details class="panneau">
+  return `<details class="repli">
     <summary>Comparaison avec des communes semblables</summary>
     <p>Parmi <strong>${quartiles.n}</strong> communes du même groupe, cette commune se situe
       <strong>${situation}</strong> de la distribution.</p>

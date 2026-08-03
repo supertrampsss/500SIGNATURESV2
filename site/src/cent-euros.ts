@@ -132,7 +132,7 @@ export function rendu(budget: BudgetEtat, exercice: string): string {
             spéciaux et des budgets annexes.`
         : ""
     }</p>
-    <details class="panneau">
+    <details class="repli">
       <summary>Pourquoi ce n'est pas « suivre son impôt »</summary>
       <ul>
         <li>Aucun euro n'est tracé. Le budget de l'État obéit au principe
