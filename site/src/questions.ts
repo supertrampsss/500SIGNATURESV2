@@ -96,13 +96,6 @@ export const QUESTIONS: Question[] = [
       " la Sécurité sociale. Qui la détient n'est pas une donnée publique détaillée.",
     cible: "#bloc-dette",
   },
-  {
-    question: "Ces chiffres sont-ils à jour ?",
-    reponse:
-      "La date de dernière lecture de chaque source, son retard éventuel, et ce" +
-      " que les contrôles ont relevé.",
-    cible: "#etat-donnees",
-  },
 ];
 
 function echapper(texte: string): string {

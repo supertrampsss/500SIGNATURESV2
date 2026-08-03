@@ -215,6 +215,69 @@ export function dessiner(
     })
     .join("");
 
+  // La série mise en avant est annotée : son plus haut, son plus bas et son
+  // dernier point portent leur valeur — le lecteur n'a plus à interroger la
+  // courbe pour savoir jusqu'où elle est montée.
+  const accent = series.find((s) => s.accent);
+  let annotations = "";
+  if (accent && accent.points.length >= 3) {
+    const indexPeriode = new Map(periodes.map((p, i) => [p, i]));
+    const points = accent.points
+      .filter(([p]) => indexPeriode.has(p))
+      .map(([p, v]) => ({ i: indexPeriode.get(p) as number, v }));
+    const haut2 = points.reduce((a, b) => (b.v > a.v ? b : a));
+    const bas2 = points.reduce((a, b) => (b.v < a.v ? b : a));
+    const dernier = points[points.length - 1];
+    const marques = new Map<number, { v: number; role: string }>();
+    marques.set(haut2.i, { v: haut2.v, role: "haut" });
+    if (!marques.has(bas2.i)) marques.set(bas2.i, { v: bas2.v, role: "bas" });
+    if (!marques.has(dernier.i)) marques.set(dernier.i, { v: dernier.v, role: "dernier" });
+    annotations = [...marques.entries()]
+      .map(([i, { v, role }]) => {
+        const cx = x(i);
+        const cy = y(v);
+        const versLaFin = cx > geometrie.droite - 52;
+        const texte = echapper(options.formater(v));
+        const posX = role === "dernier" && !versLaFin ? cx + 7 : cx;
+        const ancre =
+          role === "dernier" && !versLaFin ? "start" : versLaFin ? "end" : "middle";
+        const posY = role === "bas" ? cy + 16 : role === "haut" ? cy - 7 : cy - 8;
+        return `<circle class="graphique__point" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}"
+          r="3" fill="${echapper(accent.couleur)}" />
+        <text class="graphique__valeur" x="${(role === "dernier" && !versLaFin
+          ? posX
+          : versLaFin
+            ? cx - 4
+            : posX
+        ).toFixed(1)}" y="${posY.toFixed(1)}" text-anchor="${ancre}">${texte}</text>`;
+      })
+      .join("");
+    // L'aire sous la courbe de la série accent, à peine teintée : elle ancre
+    // la France sans écraser les voisins. Un trou casse l'aire comme la ligne.
+    const segments: { i: number; v: number }[][] = [[]];
+    periodes.forEach((periode, i) => {
+      const point = points.find((pt) => pt.i === i);
+      const valeurs2 = new Map(accent.points);
+      const v = valeurs2.get(periode);
+      void point;
+      if (v === undefined) {
+        if (segments[segments.length - 1].length) segments.push([]);
+      } else {
+        segments[segments.length - 1].push({ i, v });
+      }
+    });
+    const aire = segments
+      .filter((seg) => seg.length > 1)
+      .map((seg) => {
+        const dessus = seg.map(({ i, v }) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`);
+        const basGauche = `${x(seg[0].i).toFixed(1)},${geometrie.bas}`;
+        const basDroit = `${x(seg[seg.length - 1].i).toFixed(1)},${geometrie.bas}`;
+        return `<polygon class="graphique__aire" points="${basGauche} ${dessus.join(" ")} ${basDroit}" />`;
+      })
+      .join("");
+    annotations = aire + annotations;
+  }
+
   const debut = periodeLisible(periodes[0]);
   const fin = periodeLisible(periodes[periodes.length - 1]);
   const resume = `${options.titre}, de ${debut} à ${fin}. ${series
@@ -226,7 +289,7 @@ export function dessiner(
 
   const svg = `<svg viewBox="0 0 ${largeur} ${hauteur}" class="graphique__dessin" role="img"
     aria-label="${echapper(resume)}">
-    ${grille}${axeTemps}${courbes}
+    ${grille}${axeTemps}${annotations}${courbes}
   </svg>`;
   return { svg, geometrie };
 }

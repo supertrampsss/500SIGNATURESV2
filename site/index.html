@@ -30,10 +30,10 @@
         <input id="recherche" type="search" autocomplete="off" placeholder="Pessac, Lyon, 33318…" />
         <ul id="suggestions" role="listbox" hidden></ul>
       </p>
-      <nav class="entete__nav" aria-label="Sections">
-        <a href="#national">Décryptages</a>
-        <a href="#tableau">Tableau</a>
-        <a href="#etat-donnees">Fraîcheur</a>
+      <nav class="entete__nav" aria-label="Vues">
+        <a href="#carte" data-vue="carte">Carte</a>
+        <a href="#decryptages" data-vue="decryptages">Décryptages</a>
+        <a href="#donnees" data-vue="donnees">Données</a>
       </nav>
     </header>
 
@@ -98,26 +98,25 @@
       <div class="infobulle" id="infobulle" hidden></div>
     </main>
 
-    <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
+    <div class="vue" id="vue-decryptages" hidden>
+      <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
 
-    <section class="national" id="national" hidden>
-      <h2>La France dans son ensemble</h2>
-      <article class="bloc bloc--large" id="bloc-conjoncture"></article>
-      <div class="national__grille">
-        <article class="bloc" id="bloc-dette"></article>
-        <article class="bloc" id="bloc-europe"></article>
-      </div>
-      <article class="bloc bloc--large" id="bloc-cent-euros"></article>
-      <article class="bloc bloc--large" id="bloc-fonctions"></article>
-      <article class="bloc bloc--large" id="bloc-secu"></article>
-      <article class="bloc bloc--large" id="bloc-etat"></article>
-    </section>
+      <section class="national" id="national" hidden>
+        <h2>La France dans son ensemble</h2>
+        <article class="bloc bloc--large" id="bloc-conjoncture"></article>
+        <div class="national__grille">
+          <article class="bloc" id="bloc-dette"></article>
+          <article class="bloc" id="bloc-europe"></article>
+        </div>
+        <article class="bloc bloc--large" id="bloc-cent-euros"></article>
+        <article class="bloc bloc--large" id="bloc-fonctions"></article>
+        <article class="bloc bloc--large" id="bloc-secu"></article>
+        <article class="bloc bloc--large" id="bloc-etat"></article>
+      </section>
+    </div>
 
+    <div class="vue" id="vue-donnees" hidden>
     <section id="comparateur" class="tableau" hidden></section>
-
-    <section id="etat-donnees" class="tableau" hidden></section>
-
-    <section id="journal" class="tableau" hidden></section>
 
     <section id="tableau" class="tableau">
       <h2>Données affichées</h2>
@@ -129,9 +128,9 @@
       <p><button id="exporter" type="button" class="tableau__export" hidden></button></p>
       <div class="tableau__cadre"><table id="tableau-donnees"></table></div>
     </section>
+    </div>
 
     <footer class="pied">
-      <p id="fraicheur"></p>
       <p>
         Données publiques réutilisées sous Licence Ouverte 2.0. Ce site n'est pas
         un service officiel ; il republie des chiffres produits par

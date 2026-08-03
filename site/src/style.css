@@ -104,11 +104,17 @@ body {
 .entete__nav a {
   color: var(--encre-douce);
   text-decoration: none;
-  border-bottom: 1px solid transparent;
+  padding: 0.32rem 0.75rem;
+  border-radius: 999px;
+  transition: background var(--transition), color var(--transition);
 }
 .entete__nav a:hover {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
+  color: var(--encre);
+  background: var(--papier-creuse);
+}
+.entete__nav a[aria-current="page"] {
+  color: #fff;
+  background: var(--encre);
 }
 .visuellement-cache {
   position: absolute;
@@ -718,11 +724,18 @@ tbody tr:hover {
     max-width: calc(100% - 1.2rem);
     padding: 0.45rem 0.6rem;
   }
-  .entete__nav {
-    display: none;
-  }
   .sous-titre {
     display: none;
+  }
+  .entete__nav {
+    gap: 0.2rem;
+    font-size: 0.78rem;
+  }
+  .entete__nav a {
+    padding: 0.28rem 0.55rem;
+  }
+  .entete__recherche {
+    max-width: 11rem;
   }
 }
 
@@ -1545,4 +1558,96 @@ tbody tr:hover {
 .comparer:hover {
   border-color: var(--encre);
   color: var(--encre);
+}
+
+
+/* Vues : une chose à l'écran à la fois. Le pied de page accompagne les vues
+   qui se lisent, pas la carte plein écran. */
+body[data-vue="carte"] .pied {
+  display: none;
+}
+.vue {
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+/* Camembert des 100 € : la figure demandée, faite proprement — anneaux
+   nets, valeurs sur les parts lisibles, « Autres » regroupé et détaillé au
+   survol, l'exhaustif en repli dessous. */
+.camembert {
+  margin: 0.8rem 0 0;
+}
+.camembert h4 {
+  margin: 0;
+}
+.camembert__scene {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.camembert__scene svg {
+  width: 13rem;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+.camembert__segment {
+  fill: none;
+  stroke-width: 42;
+}
+.camembert__part {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.camembert__centre {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 650;
+  fill: var(--encre);
+}
+.camembert__legende {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex: 1 1 14rem;
+  font-size: 0.82rem;
+  display: grid;
+  gap: 0.28rem;
+}
+.camembert__legende li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+.camembert__legende strong {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.camembert__puce {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 3px;
+  flex: none;
+  align-self: center;
+}
+
+/* Annotations du graphique : les points qui parlent. */
+.graphique__valeur {
+  font-size: 11px;
+  font-weight: 600;
+  fill: var(--encre);
+  font-variant-numeric: tabular-nums;
+  paint-order: stroke;
+  stroke: rgb(255 255 255 / 0.85);
+  stroke-width: 3px;
+}
+.graphique__aire {
+  fill: rgb(15 27 46 / 0.05);
+  stroke: none;
+}
+.graphique__fenetre:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }

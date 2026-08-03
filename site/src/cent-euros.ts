@@ -65,6 +65,90 @@ export function repartition(
     .sort((a, b) => b.part - a.part);
 }
 
+/** Gamme catégorielle de la charte : nuit d'abord, puis les matières chaudes.
+ *  « Autres » est toujours gris brume — le regroupement n'est pas un poste. */
+const GAMME = ["#0f1b2e", "#c56a4d", "#6e7d73", "#b69b53", "#41547a", "#8b6a52", "#8b93a0", "#5d6d66"];
+const GRIS_AUTRES = "#c7cbc8";
+
+/** Regroupe les parts sous 3 € en « Autres » : un donut à douze quartiers
+ *  fins est un code-barres circulaire, pas une figure. */
+export function quartiers(
+  entrees: { libelle: string; part: number }[],
+): { libelle: string; part: number; composition?: string }[] {
+  const grosses = entrees.filter((e) => e.part >= 3);
+  const petites = entrees.filter((e) => e.part < 3);
+  const total = petites.reduce((somme, e) => somme + e.part, 0);
+  if (!petites.length) return grosses;
+  return [
+    ...grosses,
+    {
+      libelle: "Autres",
+      part: total,
+      composition: petites.map((e) => `${e.libelle} (${euros(e.part)})`).join(" · "),
+    },
+  ];
+}
+
+function camembert(
+  titre: string,
+  question: string,
+  entrees: { libelle: string; part: number }[],
+): string {
+  const parts = quartiers(entrees);
+  const rayon = 74;
+  const circonference = 2 * Math.PI * rayon;
+  let angle = 0;
+  const anneaux: string[] = [];
+  const etiquettes: string[] = [];
+  parts.forEach((e, i) => {
+    const couleur = e.libelle === "Autres" ? GRIS_AUTRES : GAMME[i % GAMME.length];
+    const longueur = (e.part / 100) * circonference;
+    const depart = (angle / 100) * circonference;
+    const milieu = ((angle + e.part / 2) / 100) * 2 * Math.PI - Math.PI / 2;
+    angle += e.part;
+    anneaux.push(`<circle class="camembert__segment" r="${rayon}" cx="110" cy="110"
+        stroke="${couleur}" stroke-dasharray="${longueur.toFixed(2)} ${(circonference - longueur).toFixed(2)}"
+        stroke-dashoffset="${(-depart).toFixed(2)}">
+        <title>${echapper(e.libelle)} — ${euros(e.part)}</title>
+      </circle>`);
+    // Les étiquettes vivent HORS du groupe pivoté : dedans, elles tournaient
+    // de 90° avec l'anneau — vu à l'écran.
+    if (e.part >= 7) {
+      etiquettes.push(`<text class="camembert__part" x="${(110 + Math.cos(milieu) * rayon).toFixed(1)}"
+          y="${(110 + Math.sin(milieu) * rayon + 4).toFixed(1)}" text-anchor="middle"
+          fill="${couleur === "#0f1b2e" || couleur === "#41547a" ? "#ffffff" : "#0f1b2e"}">${euros(e.part)}</text>`);
+    }
+  });
+  const segments = anneaux.join("");
+  const surcouche = etiquettes.join("");
+  const legende = parts
+    .map((e, i) => {
+      const couleur = e.libelle === "Autres" ? GRIS_AUTRES : GAMME[i % GAMME.length];
+      return `<li${e.composition ? ` title="${echapper(e.composition)}"` : ""}>
+        <span class="camembert__puce" style="background:${couleur}"></span>
+        <span class="camembert__libelle">${echapper(e.libelle)}</span>
+        <strong>${euros(e.part)}</strong>
+      </li>`;
+    })
+    .join("");
+  return `<figure class="camembert">
+    <figcaption>
+      <h4>${echapper(titre)}</h4>
+      <p class="cent__question">${echapper(question)}</p>
+    </figcaption>
+    <div class="camembert__scene">
+      <svg viewBox="0 0 220 220" role="img" aria-label="${echapper(
+        `${titre} ${parts.map((e) => `${e.libelle} : ${euros(e.part)}`).join(", ")}`,
+      )}">
+        <g transform="rotate(-90 110 110)">${segments}</g>
+        ${surcouche}
+        <text class="camembert__centre" x="110" y="116" text-anchor="middle">100 €</text>
+      </svg>
+      <ul class="camembert__legende">${legende}</ul>
+    </div>
+  </figure>`;
+}
+
 function colonne(
   titre: string,
   question: string,
@@ -111,17 +195,32 @@ export function rendu(budget: BudgetEtat, exercice: string): string {
   return `
     <h3>100 € du budget de l'État — exercice ${echapper(exercice)}</h3>
     <div class="cent__grille">
-      ${colonne(
+      ${camembert(
         "D'où viennent 100 € ?",
         "Part de chaque recette dans le total encaissé par l'État.",
         repartition(donnees.montants, RECETTES, recettes),
       )}
-      ${colonne(
+      ${camembert(
         "Où vont 100 € ?",
         "Part de chaque dépense dans le total décaissé par l'État.",
         repartition(donnees.montants, DEPENSES, depenses),
       )}
     </div>
+    <details class="repli">
+      <summary>Le détail ligne à ligne</summary>
+      <div class="cent__grille">
+        ${colonne(
+          "D'où viennent 100 € ?",
+          "Part de chaque recette dans le total encaissé par l'État.",
+          repartition(donnees.montants, RECETTES, recettes),
+        )}
+        ${colonne(
+          "Où vont 100 € ?",
+          "Part de chaque dépense dans le total décaissé par l'État.",
+          repartition(donnees.montants, DEPENSES, depenses),
+        )}
+      </div>
+    </details>
     <p class="bloc__complement">Sur 100 € dépensés, <strong>${euros(
       100 - empruntes,
     )}</strong> viennent des recettes de l'année ; les <strong>${euros(

@@ -68,9 +68,12 @@ test("le contenu est échappé", () => {
   assert.doesNotMatch(html, /<b>/);
 });
 
-test("la section existe dans la page", () => {
-  const page = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-  assert.ok(page.includes('id="journal"'));
+test("le journal ne s'affiche plus sur le site : c'est un outil interne", () => {
+  // Décision du commanditaire : les corrections se suivent dans GitHub
+  // (journal.py, exports JSON), pas devant le lecteur.
+  const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  assert.doesNotMatch(PAGE, /id="journal"/);
+  assert.doesNotMatch(PAGE, /id="etat-donnees"/);
 });
 
 test("l'ordre reçu est conservé : le plus récent d'abord vient du serveur", () => {

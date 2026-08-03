@@ -14,8 +14,6 @@ import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { rendu as apercuRendu, resumer } from "./apercu.ts";
-import { afficherFraicheur } from "./fraicheur.ts";
-import { afficherJournal } from "./journal.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts";
 import { afficherNational } from "./national.ts";
@@ -637,17 +635,34 @@ function brancherCommandes(): void {
   });
 }
 
+/** Trois vues — Carte, Décryptages, Données — au lieu d'un long défilement.
+ *  Le lecteur choisit ce qu'il regarde ; on ne passe plus d'une carte plein
+ *  écran à une pile de blocs sans transition. L'état vit dans le hash. */
+const VUES_PAGE = ["carte", "decryptages", "donnees"] as const;
+
+function basculerVue(): void {
+  const demandee = location.hash.replace("#", "");
+  const vue = (VUES_PAGE as readonly string[]).includes(demandee) ? demandee : "carte";
+  document.body.dataset.vue = vue;
+  document.querySelector<HTMLElement>(".atelier")!.hidden = vue !== "carte";
+  $("vue-decryptages").hidden = vue !== "decryptages";
+  $("vue-donnees").hidden = vue !== "donnees";
+  document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
+    if (a.dataset.vue === vue) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
+  });
+  window.scrollTo({ top: 0 });
+}
+
 async function demarrer(): Promise<void> {
+  window.addEventListener("hashchange", basculerVue);
+  basculerVue();
   const manifeste = await donnees.initialiser();
   jeux = manifeste.jeux;
   catalogue = await donnees.indicateurs();
   etat = lireUrl();
   construireSelecteurs();
   afficherQuestions($("questions"));
-
-  $("fraicheur").textContent = `Données publiées le ${new Date(
-    manifeste.genere_le,
-  ).toLocaleDateString("fr-FR")} · version ${manifeste.version}`;
 
   // Le jeu de données public est le même que celui de la carte : le lien pointe
   // vers le pointeur de version, porte d'entrée de tous les autres fichiers.
@@ -910,14 +925,6 @@ async function demarrer(): Promise<void> {
 
   await majComparateur();
 
-  try {
-    if (afficherFraicheur($("etat-donnees"), await donnees.fraicheur())) {
-      $("etat-donnees").hidden = false;
-    }
-  } catch {
-    // L'état des données manque : la carte reste utilisable sans lui.
-  }
-
   // Les repères se chargent à part : une publication qui n'en a pas doit laisser
   // la fiche s'afficher sans eux.
   donnees
@@ -927,15 +934,6 @@ async function demarrer(): Promise<void> {
     })
     .catch(() => {});
 
-  try {
-    if (afficherJournal($("journal"), await donnees.journal())) {
-      $("journal").hidden = false;
-    }
-  } catch {
-    // Publication antérieure au journal, ou aucun changement déclaré : le bloc
-    // reste caché. Une liste vide dirait « rien n'a jamais bougé », ce qui n'est
-    // pas la même chose que « nous ne savons pas ».
-  }
 }
 
 demarrer().catch((erreur) => {

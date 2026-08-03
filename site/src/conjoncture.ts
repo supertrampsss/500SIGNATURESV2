@@ -156,11 +156,27 @@ export function renduVolet(
     )
     .join("");
 
-  const boutons = FENETRES.map(
-    (f) => `<button type="button" class="graphique__fenetre${
-      (f.annees ?? null) === fenetre ? " graphique__fenetre--active" : ""
-    }" data-fenetre="${f.cle}">${f.libelle}</button>`,
-  ).join("");
+  // Une fenêtre plus large que l'historique publié ne change rien à la
+  // courbe : elle se désactive et le dit, plutôt que de paraître cassée.
+  // (Aujourd'hui la publication couvre douze mois ; les fenêtres s'ouvriront
+  // d'elles-mêmes quand la profondeur 2013 sera republiée.)
+  const periodes = [...new Set(series.flatMap((s) => s.points.map(([p]) => p)))];
+  const anneesDisponibles = new Set(periodes.map((p) => p.slice(0, 4))).size;
+  const fenetreUtile = (annees: number | null) =>
+    annees === null || annees < anneesDisponibles;
+  const active = fenetreUtile(fenetre) ? fenetre : null;
+  const boutons = FENETRES.map((f) => {
+    const utile = fenetreUtile(f.annees);
+    return `<button type="button" class="graphique__fenetre${
+      (f.annees ?? null) === active ? " graphique__fenetre--active" : ""
+    }"${
+      utile
+        ? ""
+        : ` disabled title="L'historique publié couvre ${anneesDisponibles} an${
+            anneesDisponibles > 1 ? "s" : ""
+          } pour l'instant"`
+    } data-fenetre="${f.cle}">${f.libelle}</button>`;
+  }).join("");
 
   return `
     <h4 class="graphique__titre">${echapper(volet.titre)}</h4>
