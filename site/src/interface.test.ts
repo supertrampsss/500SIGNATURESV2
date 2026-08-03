@@ -26,10 +26,12 @@ test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
 });
 
 test("changer de thème repart sur l'année la plus récente", () => {
-  // Le menu déroulant est devenu une liste latérale : la règle survit au
-  // changement de forme — elle vit maintenant dans choisirIndicateur().
+  // La barre latérale gauche a disparu : le panneau de droite porte tout le
+  // catalogue, thème après thème, déjà chargé. La règle vit dans
+  // choisirIndicateur(), appelée au clic sur une ligne du panneau.
   assert.match(MAIN, /async function choisirIndicateur[\s\S]{0,500}etat\.periode = ""/);
-  assert.match(PAGE, /id="liste-indicateurs"/);
+  assert.doesNotMatch(PAGE, /surcouche--commandes/);
+  assert.match(MAIN, /\$\("fiche"\)\.addEventListener\("click", surLigne\)/);
 });
 
 test("un maire absent est dit, pas laissé en blanc", () => {

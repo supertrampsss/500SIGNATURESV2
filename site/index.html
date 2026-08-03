@@ -40,25 +40,6 @@
     <main class="atelier" aria-label="Carte interactive">
       <div id="carte" role="application" aria-label="Carte des territoires français"></div>
 
-      <form class="commandes surcouche surcouche--commandes" id="commandes" aria-label="Choix de l'affichage">
-        <p class="champ champ--liste">
-          <label for="filtre-indicateur">Indicateur</label>
-          <input type="search" id="filtre-indicateur" placeholder="Filtrer…" autocomplete="off" />
-        </p>
-        <div class="indicateurs" id="liste-indicateurs" role="listbox"
-             aria-label="Choix de l'indicateur"></div>
-        <p class="champ champ--demi">
-          <label for="periode">Année</label>
-          <select id="periode"></select>
-        </p>
-        <p class="champ champ--demi">
-          <label for="declinaison">Affichage</label>
-          <select id="declinaison">
-            <option value="total">Montant total</option>
-            <option value="habitant" selected>Par habitant</option>
-          </select>
-        </p>
-      </form>
 
       <div class="legende surcouche surcouche--legende" id="legende" hidden>
         <p class="legende__titre" id="legende-titre"></p>
@@ -76,6 +57,19 @@
           <button type="button" role="tab" data-volet="territoire" aria-selected="true">Territoire</button>
           <button type="button" role="tab" data-volet="analyse" aria-selected="false">Analyse</button>
         </div>
+        <form class="reglages" id="commandes" aria-label="Affichage des valeurs">
+          <p class="champ champ--demi">
+            <label for="periode">Année</label>
+            <select id="periode"></select>
+          </p>
+          <p class="champ champ--demi">
+            <label for="declinaison">Affichage</label>
+            <select id="declinaison">
+              <option value="total">Montant total</option>
+              <option value="habitant" selected>Par habitant</option>
+            </select>
+          </p>
+        </form>
         <div class="panneau__contenu" id="volet-territoire">
           <div class="fiche" id="fiche" aria-live="polite">
             <p class="fiche__vide">Choisissez un territoire sur la carte ou par la recherche.</p>

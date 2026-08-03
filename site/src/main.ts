@@ -438,12 +438,13 @@ async function montrerFiche(code: string): Promise<void> {
     comparaison: groupes
       ? positionDansGroupe(territoire, quartiles, parHabitant, groupes.criteres)
       : "",
+    // Tous les thèmes, plus seulement celui de la carte : le panneau est
+    // désormais le seul endroit où l'on choisit — il doit tout montrer.
     // Filtré sur le niveau : afficher « donnée non disponible » pour un
     // indicateur qui n'existe pas à ce niveau ferait passer une absence de
     // définition pour une absence de mesure.
-    indicateurs: catalogue.filter(
-      (i) => i.theme === etat.theme && i.niveaux?.includes(etat.niveau),
-    ),
+    indicateurs: catalogue.filter((i) => i.niveaux?.includes(etat.niveau)),
+    libelleTheme,
     jeux,
     periode: etat.periode,
     parHabitant: etat.declinaison === "habitant",
@@ -571,49 +572,8 @@ function optionsIndicateurs(niveau: string, exclu?: string): string {
 }
 
 
-/** Tous les indicateurs à la suite dans la barre latérale, groupés par thème.
- *  Un menu déroulant cachait le catalogue : on ne voyait pas ce qui existe
- *  avant de l'ouvrir, et on ne pouvait pas comparer les intitulés d'un coup
- *  d'œil. La liste montre tout, le filtre la réduit. */
-function construireListeIndicateurs(): void {
-  const filtre = $<HTMLInputElement>("filtre-indicateur").value.trim().toLowerCase();
-  const correspond = (texte: string) => !filtre || texte.toLowerCase().includes(filtre);
-  const liste = $("liste-indicateurs");
-  liste.innerHTML = themesCartographiables()
-    .map((theme) => {
-      const dedans = catalogue.filter(
-        (i) =>
-          i.theme === theme &&
-          i.niveaux?.includes(etat.niveau) &&
-          (correspond(i.libelle) || correspond(libelleTheme(theme))),
-      );
-      if (!dedans.length) return "";
-      return `<div class="indicateurs__groupe">
-        <p class="indicateurs__theme">${libelleTheme(theme)}</p>
-        ${dedans
-          .map(
-            (i) => `<button type="button" role="option"
-              aria-selected="${i.id === etat.indicateur}"
-              class="indicateurs__item${
-                i.id === etat.indicateur ? " indicateurs__item--actif" : ""
-              }" data-indicateur="${i.id}">${i.libelle}</button>`,
-          )
-          .join("")}
-      </div>`;
-    })
-    .join("");
-  if (!liste.children.length) {
-    liste.innerHTML = `<p class="indicateurs__vide">Aucun indicateur ne correspond à ce filtre, à ce niveau.</p>`;
-  }
-  liste
-    .querySelector(".indicateurs__item--actif")
-    ?.scrollIntoView({ block: "nearest" });
-}
-
 /** Maille et territoire vivent sous la carte, en pilules : ce sont des
- *  réglages de cadrage, pas des questions posées au lecteur. Deux menus
- *  déroulants de plus dans le panneau encombraient le choix qui compte —
- *  l'indicateur. */
+ *  réglages de cadrage, pas des questions posées au lecteur. */
 const MAILLES: { cle: string; libelle: string }[] = [
   { cle: "auto", libelle: "Auto" },
   { cle: "region", libelle: "Régions" },
@@ -650,7 +610,6 @@ function construireSelecteurs(): void {
   if (!financiers.some((i) => i.id === etat.indicateur)) {
     etat.indicateur = financiers[0]?.id ?? etat.indicateur;
   }
-  construireListeIndicateurs();
 
   // Périodes du niveau affiché, pas de l'indicateur tous niveaux confondus :
   // l'historique communal est plus court que celui des départements, et
@@ -692,6 +651,8 @@ async function choisirIndicateur(id: string): Promise<void> {
   construireSelecteurs();
   ecrireUrl();
   await peindre();
+  // Le panneau se replace en haut : la mesure choisie devient le héros.
+  $("volet-territoire").scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function brancherCommandes(): void {
@@ -717,13 +678,16 @@ function brancherCommandes(): void {
     ecrireUrl();
   });
 
-  $("liste-indicateurs").addEventListener("click", (evenement) => {
-    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>(
-      "[data-indicateur]",
-    );
-    if (bouton?.dataset.indicateur) void choisirIndicateur(bouton.dataset.indicateur);
+  // Le panneau est la seule commande : cliquer une ligne porte son indicateur
+  // sur la carte.
+  const surLigne = (evenement: Event) => {
+    const ligne = (evenement.target as HTMLElement).closest<HTMLElement>("[data-indicateur]");
+    if (ligne?.dataset.indicateur) void choisirIndicateur(ligne.dataset.indicateur);
+  };
+  $("fiche").addEventListener("click", surLigne);
+  $("fiche").addEventListener("keydown", (evenement) => {
+    if ((evenement as KeyboardEvent).key === "Enter") surLigne(evenement);
   });
-  $("filtre-indicateur").addEventListener("input", () => construireListeIndicateurs());
 
   $("commandes").addEventListener("change", async (evenement) => {
     const cible = evenement.target as HTMLSelectElement;

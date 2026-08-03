@@ -55,7 +55,8 @@ function ligneIndicateur(
       <dt>${echapper(indicateur.libelle)}</dt>
       <dd>Population inconnue : le montant par habitant n'est pas calculable</dd>
     </div>`
-      : `<div class="mesure mesure--compacte mesure--absente">
+      : `<div class="mesure mesure--compacte mesure--absente" data-indicateur="${indicateur.id}"
+      role="button" tabindex="0" title="Afficher sur la carte">
       <dt>${echapper(indicateur.libelle)}</dt>
       <dd title="Population inconnue : montant par habitant non calculable">—</dd>
     </div>`;
@@ -95,7 +96,8 @@ function ligneIndicateur(
   // dénominateur) : celle que la carte affiche. Les autres se lisent d'une
   // ligne — le mur de blocs identiques empêchait de trouver le chiffre.
   if (!principale) {
-    return `<div class="mesure mesure--compacte">
+    return `<div class="mesure mesure--compacte" data-indicateur="${indicateur.id}"
+    role="button" tabindex="0" title="Afficher sur la carte">
     <dt>${echapper(indicateur.libelle)}</dt>
     <dd><strong>${formater(valeur, indicateur.unite, ratio)}</strong>${evolution(
       suivie,
@@ -331,6 +333,8 @@ export function afficherFiche(
     principal?: string;
     /** Position du territoire dans la couche affichée, si elle est chargée. */
     rang?: { position: number; total: number };
+    /** Libellé lisible d'un thème (la table vit dans main.ts). */
+    libelleTheme?: (theme: string) => string;
     comparaison?: string;
     /** Absent des publications antérieures aux repères : la fiche s'affiche
      *  alors sans eux, plutôt que de refuser de s'afficher. */
@@ -340,19 +344,36 @@ export function afficherFiche(
   const { territoire, indicateurs, periode, parHabitant, niveau } = options;
   const references = options.references ?? null;
   const principal = options.principal ?? indicateurs[0]?.id;
-  const ordonnes = [
-    ...indicateurs.filter((i) => i.id === principal),
-    ...indicateurs.filter((i) => i.id !== principal),
-  ];
-  const mesures = ordonnes
-    .map((indicateur) =>
-      ligneIndicateur(
-        indicateur, territoire, periode, parHabitant, niveau, references,
-        indicateur.id === principal,
-        indicateur.id === principal ? options.rang : undefined,
-      ),
-    )
-    .join("");
+  const enTete = indicateurs.find((i) => i.id === principal);
+  // Tout le catalogue est déjà là — les séries du territoire arrivent en un
+  // seul fichier. Les thèmes se suivent donc dans le panneau, valeurs
+  // comprises : il n'y a plus rien à sélectionner ailleurs pour voir un
+  // chiffre, on fait défiler. Cliquer une ligne la porte sur la carte.
+  const groupes = new Map<string, Indicateur[]>();
+  for (const indicateur of indicateurs) {
+    if (indicateur.id === principal) continue;
+    groupes.set(indicateur.theme, [...(groupes.get(indicateur.theme) ?? []), indicateur]);
+  }
+  const mesures =
+    (enTete
+      ? ligneIndicateur(
+          enTete, territoire, periode, parHabitant, niveau, references, true, options.rang,
+        )
+      : "") +
+    [...groupes.entries()]
+      .map(
+        ([theme, liste]) => `<div class="theme-groupe">
+          <p class="theme-groupe__titre">${echapper(options.libelleTheme?.(theme) ?? theme)}</p>
+          ${liste
+            .map((indicateur) =>
+              ligneIndicateur(
+                indicateur, territoire, periode, parHabitant, niveau, references, false,
+              ),
+            )
+            .join("")}
+        </div>`,
+      )
+      .join("");
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau} ${echapper(options.code)}${

@@ -2168,3 +2168,52 @@ body[data-vue="carte"] .pied {
     bottom: 3.6rem;
   }
 }
+
+
+/* Le panneau est la seule commande : ses réglages en tête, puis tous les
+   thèmes les uns sous les autres — on fait défiler, on ne sélectionne pas. */
+.reglages {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 1.15rem 0.6rem;
+  border-bottom: 1px solid var(--trait);
+  margin: 0;
+  flex: 0 0 auto;
+}
+.reglages .champ {
+  flex: 1 1 50%;
+}
+.reglages select {
+  min-width: 0;
+  width: 100%;
+  font-size: 0.82rem;
+  padding: 0.35rem 1.6rem 0.35rem 0.5rem;
+}
+.theme-groupe {
+  margin-top: 1rem;
+}
+.theme-groupe__titre {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0 0 0.15rem;
+  padding: 0.3rem 0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--encre-douce);
+  background: rgb(255 255 255 / 0.96);
+}
+/* Une ligne de mesure est cliquable : elle porte son indicateur sur la carte. */
+.mesure--compacte[data-indicateur] {
+  cursor: pointer;
+  border-radius: 5px;
+  padding-left: 0.3rem;
+  padding-right: 0.3rem;
+  margin: 0 -0.3rem;
+  transition: background var(--transition);
+}
+.mesure--compacte[data-indicateur]:hover,
+.mesure--compacte[data-indicateur]:focus-visible {
+  background: var(--papier-creuse);
+}
