@@ -85,7 +85,7 @@ jobs:
             # Les critères de comparaison arrivent avec les finances locales :
             # recharger l'un sans republier l'autre laisserait le site incohérent.
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2018
+              --niveaux commune --depuis 2022
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -172,6 +172,14 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "retablissement" ]; then
+            # Dépannage après passage en lecture seule (base pleine) : lève la
+            # lecture seule pour la session, applique la rétention, rend
+            # l'espace, republie. Voir plateforme/retablissement.py.
+            python -m plateforme.retablissement
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "etat" ]; then
             # Le budget de l'État se republie dans la foulée : le pont
             # « recettes -> dépenses -> solde » n'a de sens qu'entier.
@@ -196,10 +204,10 @@ jobs:
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
               --niveaux epci,departement,region --depuis 2018
-            # Communes : tout l'historique OFGL depuis 2018 — promesse tenue au
-            # passage au plan payant (D6ter, retention.py aligné).
+            # Communes : historique borné à 2022 (D6quater — la tentative 2018 du
+            # 2 août a mis la base en lecture seule : disque réel 500 Mo).
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2018
+              --niveaux commune --depuis 2022
             exit $?
           fi
           if [ -z "$DATASET_ID" ]; then echo "aucun dataset_id" && exit 1; fi

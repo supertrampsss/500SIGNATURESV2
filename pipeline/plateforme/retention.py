@@ -6,14 +6,14 @@ d'irremplaçable : les snapshots bruts de 2018 à 2025 restent dans R2, et
 `plateforme.normalize.ofgl --depuis <exercice>` recharge en une commande ce que
 cette politique retire.
 
-Historique : sous le plan gratuit (500 Mo, décision D6), la borne communale
-était 2022 — un exercice communal pèse environ 87 Mo, index compris, et les
-observations communales font l'essentiel de la base. Le passage au plan payant
-(D6ter, plafond porté à 2 Go dans `limites.py`) a tenu la promesse écrite dans
-le workflow : la borne redescend à 2018, tout l'historique publié par l'OFGL
-est servi de nouveau. La politique reste en place — elle dit désormais « tout
-garder depuis 2018 », et le jour où il faudra arbitrer à nouveau, l'arbitrage
-se fera ici, à découvert.
+Historique : borne à 2022 sous le plan gratuit (500 Mo, D6) — un exercice
+communal pèse environ 87 Mo, index compris. Le 2 août 2026, sur l'annonce d'un
+passage au plan payant, la borne est descendue à 2018 (D6ter) : le
+rechargement a rempli la base jusqu'à ce que Supabase la passe en **lecture
+seule** — le disque réel était resté à 500 Mo. La borne est revenue à 2022 le
+jour même (D6quater), et `retablissement.py` a retiré ce que l'incident avait
+chargé. Elle redescendra à 2018 sur un constat de disque élargi, pas sur une
+déclaration.
 
 Deux gardes-fous :
 
@@ -33,7 +33,7 @@ from plateforme import db
 
 # {niveau géographique: premier exercice conservé}. Les autres niveaux gardent
 # tout leur historique : ils pèsent 66 000 lignes contre 1,25 million.
-RETENTION = {"commune": "2018"}
+RETENTION = {"commune": "2022"}
 
 EXERCICES_MINIMUM = 2
 DATASET = "ofgl-communes"
@@ -100,8 +100,11 @@ def taille(conn) -> str:
     ]
 
 
-def run(effectif: bool) -> int:
-    conn = db.connect()
+def run(effectif: bool, conn=None) -> int:
+    """`conn` : une session déjà préparée (rétablissement après lecture seule)
+    peut être fournie ; sinon la connexion standard est ouverte et fermée."""
+    fournie = conn is not None
+    conn = conn if fournie else db.connect()
     try:
         hors = a_supprimer(conn)
         if not hors:
@@ -150,7 +153,8 @@ def run(effectif: bool) -> int:
             db.finish_run(conn, run_id, "failed", error=str(error))
             raise
     finally:
-        conn.close()
+        if not fournie:
+            conn.close()
 
 
 def main() -> int:

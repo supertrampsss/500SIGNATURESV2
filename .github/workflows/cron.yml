@@ -66,7 +66,7 @@ jobs:
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
               --niveaux epci,departement,region --depuis 2018
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2018
+              --niveaux commune --depuis 2022
             python -m plateforme.normalize.dotations --store r2:plateforme-raw
             python -m plateforme.normalize.revenus --store r2:plateforme-raw
             python -m plateforme.normalize.population --store r2:plateforme-raw
