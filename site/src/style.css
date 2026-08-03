@@ -1939,3 +1939,126 @@ body[data-vue="carte"] .pied {
 .matrice__paires strong {
   font-variant-numeric: tabular-nums;
 }
+
+
+/* La liste d'indicateurs de la barre latérale : tout le catalogue, à la
+   suite, groupé par thème. Un menu déroulant cachait ce qui existe. */
+.champ--liste {
+  margin-bottom: 0.35rem;
+}
+.indicateurs {
+  max-height: 42vh;
+  overflow-y: auto;
+  margin: 0 -0.25rem 0.6rem;
+  padding: 0 0.25rem;
+  scrollbar-width: thin;
+  flex: 1 1 100%;
+}
+.indicateurs__theme {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  margin: 0.5rem 0 0.15rem;
+  padding: 0.15rem 0;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--encre-douce);
+  background: rgb(255 255 255 / 0.94);
+}
+.indicateurs__groupe:first-child .indicateurs__theme {
+  margin-top: 0;
+}
+.indicateurs__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.82rem;
+  line-height: 1.35;
+  border: 0;
+  background: none;
+  color: var(--encre);
+  padding: 0.28rem 0.45rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.indicateurs__item:hover {
+  background: var(--papier-creuse);
+}
+.indicateurs__item--actif {
+  background: var(--encre);
+  color: #fff;
+}
+.indicateurs__item--actif:hover {
+  background: var(--encre);
+}
+.indicateurs__vide {
+  margin: 0.5rem 0;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+
+/* Les sources des deux séries croisées, sous le coefficient. */
+.croiser__sources {
+  margin: 0.4rem 0 0;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+}
+.croiser__sources p {
+  margin: 0 0 0.25rem;
+}
+.croiser__quoi {
+  display: block;
+  color: var(--encre);
+  font-weight: 500;
+}
+.sources__titre {
+  margin: 1.4rem 0 0.4rem;
+  font-family: var(--serif);
+  font-size: 1.05rem;
+}
+.sources__titre:first-child {
+  margin-top: 0;
+}
+.source h4 {
+  margin: 0 0 0.15rem;
+  font-size: 0.95rem;
+}
+
+
+/* Les KPI d'une mesure : densité, rang, croissance annuelle. Un nombre seul
+   n'apprend rien — ces cases le situent. */
+.kpis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.2rem;
+  width: 100%;
+}
+.kpis > div {
+  flex: 1 1 6rem;
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+  padding: 0.35rem 0.5rem;
+}
+.kpis dt {
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--encre-douce);
+  margin: 0;
+}
+.kpis dd {
+  margin: 0.05rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.kpis dd span {
+  display: block;
+  font-size: 0.66rem;
+  font-weight: 400;
+  color: var(--encre-douce);
+}

@@ -41,10 +41,12 @@
       <div id="carte" role="application" aria-label="Carte des territoires français"></div>
 
       <form class="commandes surcouche surcouche--commandes" id="commandes" aria-label="Choix de l'affichage">
-        <p class="champ">
-          <label for="indicateur">Indicateur</label>
-          <select id="indicateur"></select>
+        <p class="champ champ--liste">
+          <label for="filtre-indicateur">Indicateur</label>
+          <input type="search" id="filtre-indicateur" placeholder="Filtrer…" autocomplete="off" />
         </p>
+        <div class="indicateurs" id="liste-indicateurs" role="listbox"
+             aria-label="Choix de l'indicateur"></div>
         <p class="champ champ--demi">
           <label for="niveau">Niveau</label>
           <select id="niveau">
@@ -99,11 +101,16 @@
             <button type="button" data-mode="matrice" class="croiser__mode">Matrice</button>
           </div>
           <p class="croiser__intro">
-            Croise l'indicateur de la carte avec un autre, sur les territoires du
-            niveau affiché. Chaque point est un territoire.
+            Deux indicateurs au choix, sur les territoires du niveau affiché.
+            Chaque point est un territoire ; l'axe horizontal suit la carte
+            par défaut.
           </p>
           <p class="champ">
-            <label for="croiser-y">Croiser avec</label>
+            <label for="croiser-x">Axe horizontal</label>
+            <select id="croiser-x"></select>
+          </p>
+          <p class="champ">
+            <label for="croiser-y">Axe vertical</label>
             <select id="croiser-y"></select>
           </p>
           <p class="champ champ--case">
@@ -114,6 +121,7 @@
             <div class="infobulle" id="croiser-infobulle" hidden></div>
           </div>
           <p class="croiser__resume" id="croiser-resume"></p>
+          <div class="croiser__sources" id="croiser-sources"></div>
           <p class="avertissement" id="croiser-note"></p>
           <div id="matrice-zone" hidden>
             <p class="croiser__intro">

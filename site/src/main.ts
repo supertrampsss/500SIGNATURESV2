@@ -415,11 +415,20 @@ async function montrerFiche(code: string): Promise<void> {
   const parHabitant =
     brut !== undefined && territoire.population ? brut / territoire.population : undefined;
 
+  // Rang du territoire dans la couche affichée : « 8 512ᵉ sur 34 772 » situe
+  // un chiffre que sa seule valeur ne situe pas. Calculé sur les valeurs déjà
+  // peintes — même tri, même dénominateur que la carte.
+  const classement = Object.entries(affichees).sort(([, a], [, b]) => b - a);
+  const position = classement.findIndex(([c]) => c === code);
+  const rang =
+    position >= 0 ? { position: position + 1, total: classement.length } : undefined;
+
   afficherFiche($("fiche"), {
     code,
     niveau: etat.niveau,
     territoire,
     principal: etat.indicateur,
+    rang,
     comparaison: groupes
       ? positionDansGroupe(territoire, quartiles, parHabitant, groupes.criteres)
       : "",
@@ -467,18 +476,7 @@ function ajouterBoutonComparer(code: string): void {
     ecrireUrl();
     await majComparateur();
 
-  // « Sources et méthode » quitte la fiche pour la vue Données : c'est une
-  // référence qu'on consulte, pas un bandeau qu'on subit à chaque clic.
-  $("sources-contenu").innerHTML = jeux
-    .map(
-      (jeu) => `<article class="source">
-        <h3>${jeu.titre}</h3>
-        <p>${jeu.producteur} — ${jeu.licence}<br />
-        Extraction du ${new Date(jeu.extraction).toLocaleDateString("fr-FR")} ·
-        <a href="${jeu.url}" rel="noreferrer">fichier source</a></p>
-      </article>`,
-    )
-    .join("");
+
     ajouterBoutonComparer(code);
   });
   $("fiche").querySelector(".comparer")?.remove();
@@ -566,10 +564,44 @@ function optionsIndicateurs(niveau: string, exclu?: string): string {
     .join("");
 }
 
-/** Premier indicateur d'un thème au niveau donné : ce que « tout le thème »
- *  affiche sur la carte. */
-function premierDuTheme(theme: string, niveau: string): string | undefined {
-  return catalogue.find((i) => i.theme === theme && i.niveaux?.includes(niveau))?.id;
+
+/** Tous les indicateurs à la suite dans la barre latérale, groupés par thème.
+ *  Un menu déroulant cachait le catalogue : on ne voyait pas ce qui existe
+ *  avant de l'ouvrir, et on ne pouvait pas comparer les intitulés d'un coup
+ *  d'œil. La liste montre tout, le filtre la réduit. */
+function construireListeIndicateurs(): void {
+  const filtre = $<HTMLInputElement>("filtre-indicateur").value.trim().toLowerCase();
+  const correspond = (texte: string) => !filtre || texte.toLowerCase().includes(filtre);
+  const liste = $("liste-indicateurs");
+  liste.innerHTML = themesCartographiables()
+    .map((theme) => {
+      const dedans = catalogue.filter(
+        (i) =>
+          i.theme === theme &&
+          i.niveaux?.includes(etat.niveau) &&
+          (correspond(i.libelle) || correspond(libelleTheme(theme))),
+      );
+      if (!dedans.length) return "";
+      return `<div class="indicateurs__groupe">
+        <p class="indicateurs__theme">${libelleTheme(theme)}</p>
+        ${dedans
+          .map(
+            (i) => `<button type="button" role="option"
+              aria-selected="${i.id === etat.indicateur}"
+              class="indicateurs__item${
+                i.id === etat.indicateur ? " indicateurs__item--actif" : ""
+              }" data-indicateur="${i.id}">${i.libelle}</button>`,
+          )
+          .join("")}
+      </div>`;
+    })
+    .join("");
+  if (!liste.children.length) {
+    liste.innerHTML = `<p class="indicateurs__vide">Aucun indicateur ne correspond à ce filtre, à ce niveau.</p>`;
+  }
+  liste
+    .querySelector(".indicateurs__item--actif")
+    ?.scrollIntoView({ block: "nearest" });
 }
 
 function construireSelecteurs(): void {
@@ -582,9 +614,7 @@ function construireSelecteurs(): void {
   if (!financiers.some((i) => i.id === etat.indicateur)) {
     etat.indicateur = financiers[0]?.id ?? etat.indicateur;
   }
-  const selecteur = $<HTMLSelectElement>("indicateur");
-  selecteur.innerHTML = optionsIndicateurs(etat.niveau);
-  selecteur.value = etat.indicateur;
+  construireListeIndicateurs();
 
   // Périodes du niveau affiché, pas de l'indicateur tous niveaux confondus :
   // l'historique communal est plus court que celui des départements, et
@@ -622,25 +652,30 @@ function construireSelecteurs(): void {
     : "Cet indicateur n'est pas un montant qui s'additionne : le ramener à l'habitant n'aurait pas de sens.";
 }
 
+async function choisirIndicateur(id: string): Promise<void> {
+  const choisi = catalogue.find((i) => i.id === id);
+  if (!choisi) return;
+  // Changer de thème remet l'année à la plus récente : un thème au millésime
+  // court y laissait sinon le lecteur sans un mot.
+  if (choisi.theme !== etat.theme) etat.periode = "";
+  etat.theme = choisi.theme;
+  etat.indicateur = id;
+  construireSelecteurs();
+  ecrireUrl();
+  await peindre();
+}
+
 function brancherCommandes(): void {
+  $("liste-indicateurs").addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>(
+      "[data-indicateur]",
+    );
+    if (bouton?.dataset.indicateur) void choisirIndicateur(bouton.dataset.indicateur);
+  });
+  $("filtre-indicateur").addEventListener("input", () => construireListeIndicateurs());
+
   $("commandes").addEventListener("change", async (evenement) => {
     const cible = evenement.target as HTMLSelectElement;
-    if (cible.id === "indicateur") {
-      // « theme:education » = tout le thème : on prend son premier indicateur.
-      // Changer de thème remet l'année à la plus récente disponible : sinon,
-      // passer par un thème au millésime court y laissait le lecteur.
-      if (cible.value.startsWith("theme:")) {
-        const theme = cible.value.slice("theme:".length);
-        etat.theme = theme;
-        etat.indicateur = premierDuTheme(theme, etat.niveau) ?? etat.indicateur;
-        etat.periode = "";
-      } else {
-        const choisi = catalogue.find((i) => i.id === cible.value);
-        if (choisi && choisi.theme !== etat.theme) etat.periode = "";
-        etat.theme = choisi?.theme ?? etat.theme;
-        etat.indicateur = cible.value;
-      }
-    }
     if (cible.id === "niveau") {
       etat.niveau = cible.value;
       etat.selection = null;
@@ -729,29 +764,46 @@ function derniereCartographiee(indicateur: Indicateur, niveau: string): string |
 /** L'axe horizontal est l'indicateur de la carte : l'analyse prolonge ce
  *  qu'on regarde, elle ne recommence pas un formulaire. Seul le second axe
  *  se choisit — une case au lieu de trois. */
+/** Les DEUX axes se choisissent : n'ouvrir que le second obligeait à changer
+ *  la carte pour changer l'axe horizontal — l'analyse suivait la carte au
+ *  lieu de servir l'analyste. L'axe horizontal s'initialise sur l'indicateur
+ *  affiché, puis il est libre. */
 function remplirSelecteursCroisement(): void {
-  const select = $<HTMLSelectElement>("croiser-y");
-  const courant = select.value;
-  select.innerHTML = optionsIndicateurs(etat.niveau, etat.indicateur).replaceAll(
+  const options = optionsIndicateurs(etat.niveau).replaceAll(
     /<option value="theme:[^"]*">[^<]*<\/option>/g,
     "",
   );
   const eligible = (id: string) =>
-    catalogue.some((i) => i.id === id && i.niveaux?.includes(etat.niveau) && id !== etat.indicateur);
-  const defauts = [
+    catalogue.some((i) => i.id === id && i.niveaux?.includes(etat.niveau));
+  const defautsY = [
     "insee_niveau_vie_median",
     "ofgl_depenses_fonctionnement",
     "insee_population_municipale",
   ];
-  const voulu = eligible(courant) ? courant : defauts.find(eligible);
-  if (voulu) select.value = voulu;
+  for (const [id, defauts] of [
+    ["croiser-x", [etat.indicateur]],
+    ["croiser-y", defautsY],
+  ] as const) {
+    const select = $<HTMLSelectElement>(id);
+    const courant = select.value;
+    select.innerHTML = options;
+    const voulu = eligible(courant) ? courant : defauts.find(eligible);
+    if (voulu) select.value = voulu;
+  }
+  // Deux axes identiques ne disent rien : on décale le second.
+  const x = $<HTMLSelectElement>("croiser-x");
+  const y = $<HTMLSelectElement>("croiser-y");
+  if (x.value === y.value) {
+    const autre = [...y.options].find((o) => o.value !== x.value);
+    if (autre) y.value = autre.value;
+  }
 }
 
 async function majCroisement(): Promise<void> {
   if (!catalogue.length || $("volet-analyse").hidden) return;
   if (!croisementPret) {
     croisementPret = true;
-    for (const id of ["croiser-y", "croiser-log"]) {
+    for (const id of ["croiser-x", "croiser-y", "croiser-log"]) {
       $(id).addEventListener("change", () => void majCroisement());
     }
     document.querySelectorAll<HTMLButtonElement>(".croiser__mode").forEach((bouton) => {
@@ -766,7 +818,7 @@ async function majCroisement(): Promise<void> {
   }
   remplirSelecteursCroisement();
   const niveau = etat.niveau;
-  const indX = indicateurCourant();
+  const indX = catalogue.find((i) => i.id === $<HTMLSelectElement>("croiser-x").value);
   const indY = catalogue.find((i) => i.id === $<HTMLSelectElement>("croiser-y").value);
   if (!indX || !indY) return;
   const periodeX = derniereCartographiee(indX, niveau);
@@ -806,6 +858,19 @@ async function majCroisement(): Promise<void> {
           "fr-FR",
         )} territoires${enLogarithme ? " · échelles log, r calculé sur les logarithmes" : ""}</span>`
       : "Aucun territoire ne porte les deux indicateurs à ce niveau.";
+    // D'où viennent ces deux séries : la question se pose devant un
+    // coefficient plus encore que devant une carte.
+    $("croiser-sources").innerHTML = [indX, indY]
+      .map((indicateur) => {
+        const jeu = jeux.find((j) => j.id === indicateur.jeu);
+        if (!jeu) return "";
+        return `<p><span class="croiser__quoi">${indicateur.libelle}</span>
+          ${jeu.producteur} — ${jeu.licence}, extraction du ${new Date(
+            jeu.extraction,
+          ).toLocaleDateString("fr-FR")} ·
+          <a href="${jeu.url}" rel="noreferrer">source</a></p>`;
+      })
+      .join("");
     $("croiser-note").textContent =
       `Corrélation n'est pas causalité : un troisième facteur (taille, tourisme, densité)` +
       ` peut produire le lien. r est sensible aux valeurs extrêmes` +
@@ -1400,6 +1465,61 @@ async function demarrer(): Promise<void> {
   }
 
   await majComparateur();
+
+  // « Sources et méthode » quitte la fiche pour la vue Données : c'est une
+  // référence qu'on consulte, pas un bandeau qu'on subit à chaque clic.
+  // Elle porte tout : d'où viennent les jeux, comment chaque indicateur est
+  // défini et calculé, et ce qui rend deux territoires comparables.
+  const parTheme = new Map<string, Indicateur[]>();
+  for (const indicateur of catalogue) {
+    parTheme.set(indicateur.theme, [...(parTheme.get(indicateur.theme) ?? []), indicateur]);
+  }
+  $("sources-contenu").innerHTML = `
+    <h3 class="sources__titre">D'où viennent les chiffres</h3>
+    ${jeux
+      .map(
+        (jeu) => `<article class="source">
+          <h4>${jeu.titre}</h4>
+          <p>${jeu.producteur} — ${jeu.licence}<br />
+          Extraction du ${new Date(jeu.extraction).toLocaleDateString("fr-FR")} ·
+          <a href="${jeu.url}" rel="noreferrer">fichier source</a></p>
+        </article>`,
+      )
+      .join("")}
+    <h3 class="sources__titre">Comment chaque indicateur est défini</h3>
+    ${[...parTheme.entries()]
+      .map(
+        ([theme, liste]) => `<details class="repli">
+          <summary>${libelleTheme(theme)} (${liste.length})</summary>
+          <ul class="methodes">${liste
+            .map(
+              (i) => `<li><strong>${i.libelle}</strong> — ${i.definition}
+                <br /><span class="technique">${i.definition_technique}</span>
+                <br /><span class="formule">Calcul : ${i.formule}</span></li>`,
+            )
+            .join("")}</ul>
+        </details>`,
+      )
+      .join("")}
+    <h3 class="sources__titre">Ce qui rend deux territoires comparables</h3>
+    <ul class="methodes">
+      <li>Comparer deux territoires suppose la même année, la même unité et le
+        même périmètre budgétaire.</li>
+      <li>Les repères sont la médiane des territoires de même niveau — la moitié
+        se situe en dessous. « Communes de la région » désigne l'ensemble des
+        communes de cette région, jamais le budget du conseil régional, qui est
+        une autre collectivité aux autres compétences.</li>
+      <li>Les communes nouvelles portent l'historique de leurs communes
+        d'origine, additionné sous le code actuel.</li>
+      <li>Un établissement public territorial est inclus dans la Métropole du
+        Grand Paris : ne pas additionner les deux.</li>
+      <li>Les montants par habitant utilisent la population de référence de
+        l'Observatoire des finances locales de l'exercice concerné, afin que
+        nos ratios reproduisent exactement les siens.</li>
+      <li>Un budget voté n'est pas une dépense réalisée : les montants publiés
+        ici sont ceux des comptes exécutés, budgets principaux et annexes
+        consolidés.</li>
+    </ul>`;
 
   // Les repères se chargent à part : une publication qui n'en a pas doit laisser
   // la fiche s'afficher sans eux.

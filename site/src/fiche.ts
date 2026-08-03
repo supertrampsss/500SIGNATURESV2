@@ -30,6 +30,7 @@ function ligneIndicateur(
   niveau: string,
   toutesReferences: References | null,
   principale = true,
+  rang?: { position: number; total: number },
 ): string {
   const serie = territoire.series[indicateur.id];
   const brut = serie?.[periode];
@@ -125,6 +126,7 @@ function ligneIndicateur(
       <span class="millesime">${periode}</span>
       ${autreLecture}
       ${evolution(suivie, periode, evenements)}
+      ${kpis(indicateur, territoire, suivie, periode, valeur, rang)}
       ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
       ${miniTableau(suivie, indicateur, ratio)}
       ${rendreReperes(
@@ -139,6 +141,67 @@ function ligneIndicateur(
       )}
     </dd>
   </div>`;
+}
+
+/** Croissance annuelle moyenne, en % par an — ce qu'une évolution brute sur
+ *  plusieurs années ne dit pas : +35 % en trois ans, c'est +10,5 %/an. */
+export function croissanceAnnuelle(serie: Record<string, number>): number | null {
+  const periodes = Object.keys(serie).sort();
+  if (periodes.length < 3) return null;
+  const premiere = serie[periodes[0]];
+  const derniere = serie[periodes[periodes.length - 1]];
+  const annees = Number(periodes[periodes.length - 1].slice(0, 4)) - Number(periodes[0].slice(0, 4));
+  if (!premiere || !annees || premiere <= 0 || derniere <= 0) return null;
+  return ((derniere / premiere) ** (1 / annees) - 1) * 100;
+}
+
+/**
+ * Les repères chiffrés d'une mesure : densité, rang, croissance annuelle.
+ *
+ * Un nombre seul — « 602 076 établissements » — n'apprend rien : beaucoup ou
+ * peu, en hausse ou en baisse, où dans le pays ? Ces trois KPI répondent avec
+ * ce qui est disponible, et se taisent quand la donnée manque plutôt que
+ * d'inventer. La densité n'est calculée que pour les effectifs (un montant a
+ * déjà son « par habitant »), le rang que si la couche est chargée.
+ */
+function kpis(
+  indicateur: Indicateur,
+  territoire: Territoire,
+  serie: Record<string, number>,
+  periode: string,
+  valeur: number,
+  rang?: { position: number; total: number },
+): string {
+  const cases: string[] = [];
+  const population = territoire.population;
+  if (indicateur.unite === "count" && indicateur.sommable && population) {
+    const densite = (valeur / population) * 1000;
+    cases.push(`<div><dt>Pour 1 000 habitants</dt><dd>${new Intl.NumberFormat("fr-FR", {
+      maximumFractionDigits: densite < 10 ? 1 : 0,
+    }).format(densite)}</dd></div>`);
+  }
+  if (rang && rang.total > 1) {
+    cases.push(
+      `<div><dt>Rang</dt><dd>${new Intl.NumberFormat("fr-FR").format(rang.position)}<span>
+        sur ${new Intl.NumberFormat("fr-FR").format(rang.total)}</span></dd></div>`,
+    );
+  }
+  const cagr = croissanceAnnuelle(serie);
+  if (cagr !== null) {
+    cases.push(
+      `<div><dt>Croissance annuelle</dt><dd>${cagr >= 0 ? "+" : ""}${new Intl.NumberFormat(
+        "fr-FR",
+        { maximumFractionDigits: 1 },
+      ).format(cagr)} %<span>par an</span></dd></div>`,
+    );
+  }
+  const millesimes = Object.keys(serie).length;
+  if (millesimes === 1) {
+    cases.push(
+      `<div><dt>Millésime</dt><dd>${echapper(periode)}<span>seul publié à ce jour</span></dd></div>`,
+    );
+  }
+  return cases.length ? `<dl class="kpis">${cases.join("")}</dl>` : "";
 }
 
 /** Les exercices en chiffres : 2022 | 2023 | 2024 | 2025. La courbe donne la
@@ -159,7 +222,7 @@ function miniTableau(
   </table>`;
 }
 
-function panneauSource(indicateurs: Indicateur[], jeux: Jeu[]): string {
+export function panneauSource(indicateurs: Indicateur[], jeux: Jeu[]): string {
   const utilises = new Set(indicateurs.map((i) => i.jeu));
   const lignes = jeux
     .filter((jeu) => utilises.has(jeu.id))
@@ -176,7 +239,7 @@ function panneauSource(indicateurs: Indicateur[], jeux: Jeu[]): string {
     <ul class="sources">${lignes}</ul>`;
 }
 
-function panneauMethode(indicateurs: Indicateur[]): string {
+export function panneauMethode(indicateurs: Indicateur[]): string {
   const lignes = indicateurs
     .map(
       (i) => `<li>
@@ -196,7 +259,7 @@ function panneauMethode(indicateurs: Indicateur[]): string {
     </p>`;
 }
 
-function panneauComparabilite(territoire: Territoire, niveau: string): string {
+export function panneauComparabilite(territoire: Territoire, niveau: string): string {
   const avertissements: string[] = [];
   const drapeaux = territoire.drapeaux ?? {};
   if ((drapeaux as Record<string, unknown>).type === "EPT") {
@@ -239,13 +302,15 @@ export function afficherFiche(
     parHabitant: boolean;
     /** L'indicateur affiché sur la carte : seul à recevoir courbe et repères. */
     principal?: string;
+    /** Position du territoire dans la couche affichée, si elle est chargée. */
+    rang?: { position: number; total: number };
     comparaison?: string;
     /** Absent des publications antérieures aux repères : la fiche s'affiche
      *  alors sans eux, plutôt que de refuser de s'afficher. */
     references?: References | null;
   },
 ): void {
-  const { territoire, indicateurs, jeux, periode, parHabitant, niveau } = options;
+  const { territoire, indicateurs, periode, parHabitant, niveau } = options;
   const references = options.references ?? null;
   const principal = options.principal ?? indicateurs[0]?.id;
   const ordonnes = [
@@ -257,6 +322,7 @@ export function afficherFiche(
       ligneIndicateur(
         indicateur, territoire, periode, parHabitant, niveau, references,
         indicateur.id === principal,
+        indicateur.id === principal ? options.rang : undefined,
       ),
     )
     .join("");
@@ -287,12 +353,6 @@ export function afficherFiche(
     }
     <dl class="mesures">${mesures}</dl>
     ${options.comparaison ?? ""}
-    <details class="repli">
-      <summary>Sources et méthode</summary>
-      ${panneauSource(indicateurs, jeux)}
-      ${panneauMethode(indicateurs)}
-      ${panneauComparabilite(territoire, niveau)}
-    </details>
   `;
 }
 
