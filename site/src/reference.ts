@@ -43,7 +43,17 @@ export type Reference = {
 /** references.json : indicateur -> période -> niveau -> Reference */
 export type References = Record<string, Record<string, Record<string, Reference>>>;
 
-export type Repere = { libelle: string; valeur: number; nature: string; n: number };
+export type Repere = {
+  libelle: string;
+  valeur: number;
+  nature: string;
+  n: number;
+  /** L'ensemble comparé, au pluriel et sans article : « communes de la région »,
+   *  « pays comparés ». Il permet d'écrire la médiane en français courant —
+   *  « la moitié des communes de la région sont en dessous de 756 € » — plutôt
+   *  qu'en vocabulaire de statisticien. */
+  ensemble: string;
+};
 
 /** En dessous de deux territoires, un « repère » est le territoire lui-même.
  *
@@ -107,7 +117,11 @@ export function reperes(
     const bloc = reference.regions[region];
     const valeur = bloc && bloc.n >= MINIMUM_COMPARABLE ? valeurDe(bloc, nature, parHabitant) : null;
     if (valeur !== null && valeur !== undefined) {
-      sortie.push({ libelle: `la médiane des ${ensemble} de la région`, valeur, nature, n: bloc.n });
+      sortie.push({
+        libelle: `la médiane des ${ensemble} de la région`,
+        ensemble: `${ensemble} de la région`,
+        valeur, nature, n: bloc.n,
+      });
     }
   }
   const ensemblier =
@@ -116,9 +130,14 @@ export function reperes(
     // « Pays de France » n'aurait aucun sens : au niveau national, l'ensemble
     // de référence est celui des pays comparés, sur les définitions
     // harmonisées d'Eurostat — les seules qui rendent la comparaison honnête.
-    const libelle =
-      niveau === "pays" ? "la médiane des pays comparés" : `la médiane des ${ensemble} de France`;
-    sortie.push({ libelle, valeur: ensemblier, nature, n: reference.france.n });
+    const groupe = niveau === "pays" ? "pays européens" : `${ensemble} de France`;
+    sortie.push({
+      libelle: `la médiane des ${groupe}`,
+      ensemble: groupe,
+      valeur: ensemblier,
+      nature,
+      n: reference.france.n,
+    });
   }
   return sortie;
 }

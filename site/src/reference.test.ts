@@ -108,7 +108,7 @@ test("une publication sans médiane par habitant ne sert pas la médiane brute",
   assert.equal(valeurDe({ n: 10, mediane: 16.3 }, "mediane", true), 16.3);
 });
 
-test("au niveau national, l'ensemble de référence est celui des pays comparés", () => {
+test("au niveau national, l'ensemble de référence est celui des pays européens", () => {
   // « Pays de France » n'aurait aucun sens.
   const monde: Reference = {
     nature: "mediane",
@@ -116,7 +116,9 @@ test("au niveau national, l'ensemble de référence est celui des pays comparés
     regions: {},
   };
   const liste = reperes(monde, "pays", null, false);
-  assert.deepEqual(liste.map((r) => r.libelle), ["la médiane des pays comparés"]);
+  assert.deepEqual(liste.map((r) => r.libelle), ["la médiane des pays européens"]);
+  // L'ensemble sert à écrire la médiane en français courant, sans le mot.
+  assert.equal(liste[0].ensemble, "pays européens");
   assert.equal(liste[0].valeur, 100.7);
   assert.equal(liste[0].n, 6);
 });

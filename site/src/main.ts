@@ -830,11 +830,20 @@ function brancherCommandes(): void {
   // Le panneau est la seule commande : cliquer une ligne porte son indicateur
   // sur la carte.
   const surLigne = (evenement: Event) => {
-    // Le sommaire d'abord : une pastille de thème est aussi un bouton, mais
-    // elle ne porte rien sur la carte — elle y mène dans le panneau.
-    const pastille = (evenement.target as HTMLElement).closest<HTMLElement>("[data-ancre]");
-    if (pastille?.dataset.ancre) {
-      document.getElementById(pastille.dataset.ancre)?.scrollIntoView({ block: "start" });
+    // L'onglet d'abord : il ne porte rien sur la carte, il change ce que la
+    // fiche montre.
+    const onglet = (evenement.target as HTMLElement).closest<HTMLElement>(
+      ".onglets-themes [data-theme]",
+    );
+    if (onglet?.dataset.theme) {
+      const voulu = onglet.dataset.theme;
+      for (const bouton of document.querySelectorAll<HTMLElement>(".onglets-themes [data-theme]")) {
+        bouton.setAttribute("aria-pressed", String(bouton.dataset.theme === voulu));
+      }
+      for (const section of document.querySelectorAll<HTMLElement>(".mesures [data-theme]")) {
+        section.hidden = section.dataset.theme !== voulu;
+      }
+      onglet.scrollIntoView({ block: "nearest", inline: "center" });
       return;
     }
     const ligne = (evenement.target as HTMLElement).closest<HTMLElement>("[data-indicateur]");

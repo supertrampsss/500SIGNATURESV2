@@ -2369,12 +2369,119 @@ body[data-vue="carte"] .pied {
 }
 
 
-/* Chaque mesure est complète : son titre est le bouton qui la porte sur la
-   carte, et celle qui y est déjà se signale. */
+/* Une mesure : un nom, un chiffre. Le reste se déplie sur la ligne qu'on
+   touche — comparaison, courbe, tableau, source. Tout montrer, tout le temps,
+   pour vingt-six indicateurs, faisait dix écrans de défilement. */
 .mesure {
-  border-top: 1px solid var(--trait);
-  padding-top: 0.7rem;
-  margin-top: 0.7rem;
+  border-bottom: 1px solid var(--trait);
+}
+.mesure > summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.52rem 0;
+  cursor: pointer;
+  list-style: none;
+}
+.mesure > summary::-webkit-details-marker {
+  display: none;
+}
+.mesure > summary:hover .mesure__nom {
+  color: var(--argile);
+}
+.mesure__nom {
+  font-size: 0.88rem;
+}
+.mesure__valeur {
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.mesure__detail {
+  padding: 0 0 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+.mesure__phrase {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--encre-douce);
+}
+.mesure__pied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.15rem 0 0;
+}
+.mesure__carte {
+  font: inherit;
+  font-size: 0.78rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 1px solid var(--trait-fort);
+  background: none;
+  color: var(--encre);
+  cursor: pointer;
+}
+.mesure__carte:hover {
+  border-color: var(--argile);
+  color: var(--argile);
+}
+.mesure__source {
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+}
+.mesure--absente {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  padding: 0.52rem 0;
+  font-size: 0.88rem;
+  color: var(--encre-douce);
+}
+.mesure__absence {
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+/* Les onglets de thèmes : un thème à la fois, la fiche ne défile plus sur
+   sept thèmes pour en atteindre un huitième. */
+.onglets-themes {
+  position: sticky;
+  top: var(--haut-fiche);
+  z-index: 1;
+  display: flex;
+  gap: 0.25rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0.4rem 0 0.5rem;
+  margin-bottom: 0.1rem;
+  background: rgb(255 255 255 / 0.96);
+  backdrop-filter: blur(6px);
+  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
+}
+.onglets-themes::-webkit-scrollbar {
+  display: none;
+}
+.onglets-themes button {
+  font: inherit;
+  font-size: 0.74rem;
+  white-space: nowrap;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  border: 0;
+  background: var(--papier-creuse);
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.onglets-themes button[aria-pressed="true"] {
+  background: var(--encre);
+  color: var(--papier);
 }
 .mesure__titre {
   font: inherit;
@@ -2392,6 +2499,9 @@ body[data-vue="carte"] .pied {
   border-bottom-color: var(--trait-fort);
 }
 .mesure__marque {
+  /* « sur la carte » se coupait entre « sur la » et « carte » à 393 px, et la
+     ligne passait sur deux niveaux. */
+  white-space: nowrap;
   margin-left: 0.4rem;
   font-size: 0.62rem;
   text-transform: uppercase;
