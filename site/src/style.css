@@ -733,13 +733,6 @@ tbody tr:hover {
   .panneau.panneau--selection .palmares {
     display: none; /* le tiroir mobile va à l'essentiel : la fiche */
   }
-  .surcouche--legende {
-    left: 0.6rem;
-    top: 3.4rem;
-    bottom: auto;
-    max-width: calc(100% - 1.2rem);
-    padding: 0.45rem 0.6rem;
-  }
   .sous-titre {
     display: none;
   }
@@ -2224,10 +2217,6 @@ body[data-vue="carte"] .pied {
   .pilules {
     flex: 0 0 auto;
   }
-  /* la légende remonte au-dessus de la barre */
-  .surcouche--legende {
-    bottom: 3.6rem;
-  }
 }
 
 
@@ -2587,6 +2576,16 @@ body[data-vue="carte"] .pied {
    Cette règle vient après `.carte-barre` : à spécificité égale, l'ordre
    décide, et un `@media` placé plus haut dans la feuille perdait. */
 @media (max-width: 60rem) {
+  /* Sous la barre des territoires, étroite, et surtout sans `bottom` : posée
+     en haut ET en bas, elle s'étirait sur toute la hauteur de la carte. */
+  .surcouche--legende {
+    left: 0.6rem;
+    top: 3.4rem;
+    bottom: auto;
+    width: auto;
+    max-width: 58%;
+    padding: 0.4rem 0.55rem 0.35rem;
+  }
   .carte-barre {
     top: 0.6rem;
     bottom: auto;

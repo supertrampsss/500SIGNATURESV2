@@ -507,9 +507,19 @@ function majEtiquettes(): void {
  *  derrière un formulaire. */
 function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
   const large = window.innerWidth > 960;
-  return large
-    ? { top: 40, bottom: 96, left: 24, right: Math.min(430, window.innerWidth * 0.32) }
-    : { top: 128, bottom: 96, left: 16, right: 16 };
+  if (large) {
+    return { top: 40, bottom: 96, left: 24, right: Math.min(430, window.innerWidth * 0.32) };
+  }
+  // Téléphone : le tiroir couvre le bas de la carte. Cadrer sur le conteneur
+  // entier, comme si tout était visible, plaçait la France sous le tiroir —
+  // à l'écran il ne restait que le Grand Est et la Bourgogne. Le bas du
+  // cadrage suit donc la position réelle du tiroir, plafonnée : quand il est
+  // grand ouvert, on ne dézoome pas la carte jusqu'à l'absurde.
+  const zone = $("carte").getBoundingClientRect();
+  const tiroir = $("panneau").getBoundingClientRect();
+  const couvert = Math.round(zone.bottom - tiroir.top) + 12;
+  const bas = Math.min(Math.round(zone.height * 0.42), Math.max(96, couvert));
+  return { top: 132, bottom: bas, left: 16, right: 16 };
 }
 
 /** Recadre la carte sur une vue déclarée. */
