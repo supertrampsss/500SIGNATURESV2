@@ -1657,7 +1657,9 @@ body[data-vue="carte"] .pied {
 }
 
 
-/* Croiser deux indicateurs : la scène du nuage et sa lecture. */
+/* Croiser deux indicateurs. Le volet a quitté le panneau de la carte : ces
+   règles attendent l'onglet « Statistiques et études », où le nuage, la
+   matrice et le comparateur retrouveront la place qu'ils méritent. */
 .croiser__commandes {
   position: static;
   background: none;

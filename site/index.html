@@ -54,66 +54,11 @@
                  placeholder="Chercher une commune, un département…" />
           <ul id="suggestions" role="listbox" hidden></ul>
         </div>
-        <div class="panneau__onglets" role="tablist">
-          <button type="button" role="tab" data-volet="territoire" aria-selected="true">Territoire</button>
-          <button type="button" role="tab" data-volet="analyse" aria-selected="false">Analyse</button>
-        </div>
         <div class="panneau__contenu" id="volet-territoire">
           <div class="fiche" id="fiche" aria-live="polite">
             <p class="fiche__vide">Choisissez un territoire sur la carte ou par la recherche.</p>
           </div>
           <div class="palmares" id="palmares" hidden></div>
-        </div>
-        <div class="panneau__contenu croiser" id="volet-analyse" hidden>
-          <section class="comparaison-zone">
-            <h3 class="panneau__section">Comparer des territoires</h3>
-            <p id="comparaison-etat" class="croiser__intro"></p>
-            <div class="comparaison-actions">
-              <button type="button" id="comparer-ajouter" class="comparer"></button>
-              <a href="#donnees" id="comparaison-voir" hidden>Voir le tableau →</a>
-            </div>
-          </section>
-          <div class="croiser__modes" role="group" aria-label="Mode d'analyse">
-            <button type="button" data-mode="nuage" class="croiser__mode croiser__mode--actif">Nuage</button>
-            <button type="button" data-mode="matrice" class="croiser__mode">Matrice</button>
-          </div>
-          <p class="croiser__intro">
-            Deux indicateurs au choix, sur les territoires du niveau affiché.
-            Chaque point est un territoire ; l'axe horizontal suit la carte
-            par défaut.
-          </p>
-          <p class="champ">
-            <label for="croiser-x">Axe horizontal</label>
-            <select id="croiser-x"></select>
-          </p>
-          <p class="champ">
-            <label for="croiser-y">Axe vertical</label>
-            <select id="croiser-y"></select>
-          </p>
-          <p class="champ champ--case">
-            <label><input type="checkbox" id="croiser-log" /> Échelles logarithmiques</label>
-          </p>
-          <div class="croiser__scene">
-            <canvas id="croiser-canvas" role="img" aria-label="Nuage de points du croisement"></canvas>
-            <div class="infobulle" id="croiser-infobulle" hidden></div>
-          </div>
-          <p class="croiser__resume" id="croiser-resume"></p>
-          <div class="croiser__sources" id="croiser-sources"></div>
-          <p class="avertissement" id="croiser-note"></p>
-          <div id="matrice-zone" hidden>
-            <p class="croiser__intro">
-              Tous les indicateurs du thème, croisés deux à deux. Chaque case
-              porte son r ; cliquez-en une pour voir le nuage correspondant.
-            </p>
-            <div class="matrice__cadre"><table class="matrice" id="matrice-table"></table></div>
-            <p class="matrice__echelle" aria-hidden="true">
-              <span class="matrice__negatif"></span> −1
-              <span class="matrice__zero"></span> 0
-              <span class="matrice__positif"></span> +1
-            </p>
-            <div class="matrice__paires" id="matrice-paires"></div>
-            <p class="avertissement" id="matrice-note"></p>
-          </div>
         </div>
       </aside>
 
