@@ -19,6 +19,7 @@ import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts"
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import { afficherConjoncture } from "./conjoncture.ts";
+import { enLog, joindre, lectureDeR, moindresCarres, pearson, type PointNomme } from "./croiser.ts";
 import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
@@ -444,7 +445,17 @@ function ajouterBoutonComparer(code: string): void {
     ajouterBoutonComparer(code);
   });
   $("fiche").querySelector(".comparer")?.remove();
+  $("fiche").querySelector(".comparer-lien")?.remove();
   $("fiche").querySelector(".fiche__meta")?.after(bouton);
+  // Le tableau de comparaison vit dans la vue Données : sans ce lien, le
+  // bouton semblait ne rien faire — il faisait, mais hors de l'écran.
+  if (etat.comparaison.length) {
+    const lien = document.createElement("a");
+    lien.className = "comparer-lien";
+    lien.href = "#donnees";
+    lien.textContent = `Voir la comparaison (${etat.comparaison.length}) →`;
+    bouton.after(lien);
+  }
 }
 
 async function majComparateur(): Promise<void> {
@@ -635,10 +646,261 @@ function brancherCommandes(): void {
   });
 }
 
+/* ------------------------------------------------------------------ *
+ * Croiser deux indicateurs : nuage, droite, r de Pearson.             *
+ * ------------------------------------------------------------------ */
+
+let croisementPret = false;
+let pointsCroises: PointNomme[] = [];
+let geoCroisement: {
+  gauche: number; droite: number; haut: number; bas: number;
+  xMin: number; xMax: number; yMin: number; yMax: number;
+} | null = null;
+
+function derniereCartographiee(indicateur: Indicateur, niveau: string): string | null {
+  const periodes = indicateur.periodes_par_niveau?.[niveau] ?? [];
+  return periodes.length ? periodes[periodes.length - 1] : null;
+}
+
+function remplirSelecteursCroisement(): void {
+  const niveau = $<HTMLSelectElement>("croiser-niveau").value;
+  const eligibles = catalogue.filter((i) => derniereCartographiee(i, niveau));
+  for (const [id, defaut] of [
+    ["croiser-x", "insee_niveau_vie_median"],
+    ["croiser-y", "ofgl_depenses_fonctionnement"],
+  ] as const) {
+    const select = $<HTMLSelectElement>(id);
+    const courant = select.value;
+    select.innerHTML = eligibles
+      .map(
+        (i) => `<option value="${i.id}">${libelleTheme(i.theme)} — ${i.libelle}</option>`,
+      )
+      .join("");
+    const voulu = courant && eligibles.some((i) => i.id === courant) ? courant : defaut;
+    if (eligibles.some((i) => i.id === voulu)) select.value = voulu;
+  }
+}
+
+async function majCroisement(): Promise<void> {
+  // Arriver directement sur #analyses appelle cette fonction avant que le
+  // catalogue ne soit chargé : on attend le prochain appel plutôt que de
+  // s'initialiser à vide en silence.
+  if (!catalogue.length) return;
+  if (croisementPret && !$<HTMLSelectElement>("croiser-x").options.length) {
+    remplirSelecteursCroisement();
+  }
+  if (!croisementPret) {
+    croisementPret = true;
+    remplirSelecteursCroisement();
+    for (const id of ["croiser-niveau", "croiser-x", "croiser-y", "croiser-log"]) {
+      $(id).addEventListener("change", () => {
+        if (id === "croiser-niveau") remplirSelecteursCroisement();
+        void majCroisement();
+      });
+    }
+    window.addEventListener("resize", () => {
+      if (document.body.dataset.vue === "analyses") void majCroisement();
+    });
+    brancherSurvolCroisement();
+  }
+  const niveau = $<HTMLSelectElement>("croiser-niveau").value;
+  const indX = catalogue.find((i) => i.id === $<HTMLSelectElement>("croiser-x").value);
+  const indY = catalogue.find((i) => i.id === $<HTMLSelectElement>("croiser-y").value);
+  if (!indX || !indY) return;
+  const periodeX = derniereCartographiee(indX, niveau);
+  const periodeY = derniereCartographiee(indY, niveau);
+  if (!periodeX || !periodeY) return;
+  $("croiser-resume").textContent = "Chargement…";
+  try {
+    const [xs, ys] = await Promise.all([
+      donnees.valeursCarte(indX.id, niveau, periodeX),
+      donnees.valeursCarte(indY.id, niveau, periodeY),
+    ]);
+    await chargerLotsNecessaires(niveau, Object.keys(xs));
+    recalculerPopulations();
+    const noms = Object.fromEntries(
+      Object.entries(entites).map(([code, e]) => [code, e.nom]),
+    );
+    const ramenerX = parHabitantAUnSens(indX);
+    const ramenerY = parHabitantAUnSens(indY);
+    let points = joindre(xs, ys, noms, populations, ramenerX, ramenerY);
+    const log = $<HTMLInputElement>("croiser-log").checked;
+    let enLogarithme = false;
+    if (log) {
+      const transformes = enLog(points);
+      if (transformes) {
+        points = transformes;
+        enLogarithme = true;
+      }
+    }
+    pointsCroises = points;
+    const r = pearson(points);
+    dessinerCroisement(points, indX, indY, ramenerX, ramenerY, enLogarithme);
+    const memePeriode = periodeX === periodeY;
+    $("croiser-resume").innerHTML = points.length
+      ? `<strong>r = ${
+          r === null ? "—" : r.toLocaleString("fr-FR", { maximumFractionDigits: 2 })
+        }</strong> · ${lectureDeR(r, points.length)} <span class="croiser__n">${points.length.toLocaleString(
+          "fr-FR",
+        )} territoires${enLogarithme ? " · échelles log, r calculé sur les logarithmes" : ""}</span>`
+      : "Aucun territoire ne porte les deux indicateurs à ce niveau.";
+    $("croiser-note").textContent =
+      `Corrélation n'est pas causalité : un troisième facteur (taille, tourisme, densité)` +
+      ` peut produire le lien. r est sensible aux valeurs extrêmes` +
+      `${enLogarithme ? "" : " — l'échelle logarithmique les apaise"}.` +
+      ` ${indX.libelle} : ${periodeX}${ramenerX ? ", par habitant" : ""} ·` +
+      ` ${indY.libelle} : ${periodeY}${ramenerY ? ", par habitant" : ""}` +
+      `${memePeriode ? "" : " — millésimes différents, le croisement le dit"}.`;
+  } catch {
+    $("croiser-resume").textContent = "Le chargement du croisement a échoué. Réessayez.";
+  }
+}
+
+function dessinerCroisement(
+  points: PointNomme[],
+  indX: Indicateur,
+  indY: Indicateur,
+  ramenerX: boolean,
+  ramenerY: boolean,
+  enLogarithme: boolean,
+): void {
+  const canvas = $<HTMLCanvasElement>("croiser-canvas");
+  const largeur = Math.min(canvas.parentElement?.clientWidth || 720, 860);
+  const hauteur = Math.max(340, Math.round(largeur * 0.52));
+  const echellePixels = window.devicePixelRatio || 1;
+  canvas.width = largeur * echellePixels;
+  canvas.height = hauteur * echellePixels;
+  canvas.style.width = `${largeur}px`;
+  canvas.style.height = `${hauteur}px`;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.scale(echellePixels, echellePixels);
+  ctx.clearRect(0, 0, largeur, hauteur);
+  if (!points.length) {
+    geoCroisement = null;
+    return;
+  }
+  const marges = { gauche: 64, droite: 16, haut: 14, bas: 40 };
+  const xs = points.map((p) => p.x);
+  const ys = points.map((p) => p.y);
+  const geo = {
+    gauche: marges.gauche,
+    droite: largeur - marges.droite,
+    haut: marges.haut,
+    bas: hauteur - marges.bas,
+    xMin: Math.min(...xs), xMax: Math.max(...xs),
+    yMin: Math.min(...ys), yMax: Math.max(...ys),
+  };
+  if (geo.xMin === geo.xMax) geo.xMax += 1;
+  if (geo.yMin === geo.yMax) geo.yMax += 1;
+  geoCroisement = geo;
+  const versX = (v: number) =>
+    geo.gauche + ((v - geo.xMin) / (geo.xMax - geo.xMin)) * (geo.droite - geo.gauche);
+  const versY = (v: number) =>
+    geo.bas - ((v - geo.yMin) / (geo.yMax - geo.yMin)) * (geo.bas - geo.haut);
+
+  const style = getComputedStyle(document.documentElement);
+  const encre = style.getPropertyValue("--encre").trim() || "#0f1b2e";
+  const trait = style.getPropertyValue("--trait").trim() || "#e3e1d8";
+  const sauge = style.getPropertyValue("--encre-douce").trim() || "#6e7d73";
+  const argile = style.getPropertyValue("--argile").trim() || "#c56a4d";
+
+  const inverse = (v: number) => (enLogarithme ? 10 ** v : v);
+  const etiquette = (v: number, ramener: boolean, indicateur: Indicateur) =>
+    formater(inverse(v), indicateur.unite, ramener);
+
+  ctx.font = "11px 'Public Sans', system-ui, sans-serif";
+  ctx.fillStyle = sauge;
+  ctx.strokeStyle = trait;
+  ctx.lineWidth = 1;
+  const graduationsAxe = (min: number, max: number, n = 5) =>
+    Array.from({ length: n }, (_, i) => min + ((max - min) * i) / (n - 1));
+  for (const gy of graduationsAxe(geo.yMin, geo.yMax)) {
+    const py = versY(gy);
+    ctx.beginPath();
+    ctx.moveTo(geo.gauche, py);
+    ctx.lineTo(geo.droite, py);
+    ctx.stroke();
+    ctx.textAlign = "right";
+    ctx.fillText(etiquette(gy, ramenerY, indY), geo.gauche - 6, py + 3.5);
+  }
+  ctx.textAlign = "center";
+  for (const gx of graduationsAxe(geo.xMin, geo.xMax)) {
+    ctx.fillText(etiquette(gx, ramenerX, indX), versX(gx), geo.bas + 16);
+  }
+  ctx.fillText(indX.libelle, (geo.gauche + geo.droite) / 2, hauteur - 4);
+  ctx.save();
+  ctx.translate(11, (geo.haut + geo.bas) / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillText(indY.libelle, 0, 0);
+  ctx.restore();
+
+  // le nuage — translucide pour que la densité se voie
+  ctx.fillStyle = encre;
+  ctx.globalAlpha = points.length > 5000 ? 0.18 : points.length > 800 ? 0.3 : 0.55;
+  for (const p of points) {
+    ctx.beginPath();
+    ctx.arc(versX(p.x), versY(p.y), points.length > 5000 ? 1.6 : 2.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // la droite des moindres carrés, en argile pointillé
+  const droite = moindresCarres(points);
+  if (droite) {
+    ctx.strokeStyle = argile;
+    ctx.lineWidth = 1.6;
+    ctx.setLineDash([6, 4]);
+    ctx.beginPath();
+    ctx.moveTo(versX(geo.xMin), versY(droite.a * geo.xMin + droite.b));
+    ctx.lineTo(versX(geo.xMax), versY(droite.a * geo.xMax + droite.b));
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+}
+
+function brancherSurvolCroisement(): void {
+  const canvas = $<HTMLCanvasElement>("croiser-canvas");
+  const bulle = $("croiser-infobulle");
+  canvas.addEventListener("pointermove", (evenement) => {
+    const geo = geoCroisement;
+    if (!geo || !pointsCroises.length) return;
+    const zone = canvas.getBoundingClientRect();
+    const px = evenement.clientX - zone.left;
+    const py = evenement.clientY - zone.top;
+    const versX = (v: number) =>
+      geo.gauche + ((v - geo.xMin) / (geo.xMax - geo.xMin)) * (geo.droite - geo.gauche);
+    const versY = (v: number) =>
+      geo.bas - ((v - geo.yMin) / (geo.yMax - geo.yMin)) * (geo.bas - geo.haut);
+    let plusProche: PointNomme | null = null;
+    let distance = 12 * 12;
+    for (const p of pointsCroises) {
+      const d = (versX(p.x) - px) ** 2 + (versY(p.y) - py) ** 2;
+      if (d < distance) {
+        distance = d;
+        plusProche = p;
+      }
+    }
+    if (!plusProche) {
+      bulle.hidden = true;
+      return;
+    }
+    bulle.innerHTML = `<strong>${plusProche.nom}</strong>`;
+    bulle.hidden = false;
+    bulle.style.transform = `translate(${Math.min(px + 12, zone.width - 140)}px, ${Math.max(
+      py - 34,
+      4,
+    )}px)`;
+  });
+  canvas.addEventListener("pointerleave", () => {
+    bulle.hidden = true;
+  });
+}
+
 /** Trois vues — Carte, Décryptages, Données — au lieu d'un long défilement.
  *  Le lecteur choisit ce qu'il regarde ; on ne passe plus d'une carte plein
  *  écran à une pile de blocs sans transition. L'état vit dans le hash. */
-const VUES_PAGE = ["carte", "decryptages", "donnees"] as const;
+const VUES_PAGE = ["carte", "decryptages", "analyses", "donnees"] as const;
 
 function basculerVue(): void {
   const demandee = location.hash.replace("#", "");
@@ -646,7 +908,9 @@ function basculerVue(): void {
   document.body.dataset.vue = vue;
   document.querySelector<HTMLElement>(".atelier")!.hidden = vue !== "carte";
   $("vue-decryptages").hidden = vue !== "decryptages";
+  $("vue-analyses").hidden = vue !== "analyses";
   $("vue-donnees").hidden = vue !== "donnees";
+  if (vue === "analyses") void majCroisement();
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     if (a.dataset.vue === vue) a.setAttribute("aria-current", "page");
     else a.removeAttribute("aria-current");
@@ -663,6 +927,9 @@ async function demarrer(): Promise<void> {
   etat = lireUrl();
   construireSelecteurs();
   afficherQuestions($("questions"));
+  // Si la page s'est ouverte directement sur la vue Analyses, le croisement
+  // attendait le catalogue : le voilà.
+  if (document.body.dataset.vue === "analyses") void majCroisement();
 
   // Le jeu de données public est le même que celui de la carte : le lien pointe
   // vers le pointeur de version, porte d'entrée de tous les autres fichiers.

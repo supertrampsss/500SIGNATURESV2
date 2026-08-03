@@ -126,6 +126,7 @@ function ligneIndicateur(
       ${autreLecture}
       ${evolution(suivie, periode, evenements)}
       ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
+      ${miniTableau(suivie, indicateur, ratio)}
       ${rendreReperes(
         reperes(
           toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
@@ -138,6 +139,24 @@ function ligneIndicateur(
       )}
     </dd>
   </div>`;
+}
+
+/** Les exercices en chiffres : 2022 | 2023 | 2024 | 2025. La courbe donne la
+ *  forme, le tableau donne les nombres — demandé tel quel. Six colonnes au
+ *  plus : au-delà, il déborde sans rien apprendre. */
+function miniTableau(
+  serie: Record<string, number>,
+  indicateur: Indicateur,
+  ratio: boolean,
+): string {
+  const periodes = Object.keys(serie).sort().slice(-6);
+  if (periodes.length < 2) return "";
+  return `<table class="mini-serie">
+    <thead><tr>${periodes.map((p) => `<th scope="col">${echapper(p)}</th>`).join("")}</tr></thead>
+    <tbody><tr>${periodes
+      .map((p) => `<td>${formater(serie[p], indicateur.unite, ratio)}</td>`)
+      .join("")}</tr></tbody>
+  </table>`;
 }
 
 function panneauSource(indicateurs: Indicateur[], jeux: Jeu[]): string {

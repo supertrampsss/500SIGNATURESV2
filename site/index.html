@@ -33,6 +33,7 @@
       <nav class="entete__nav" aria-label="Vues">
         <a href="#carte" data-vue="carte">Carte</a>
         <a href="#decryptages" data-vue="decryptages">Décryptages</a>
+        <a href="#analyses" data-vue="analyses">Analyses</a>
         <a href="#donnees" data-vue="donnees">Données</a>
       </nav>
     </header>
@@ -112,6 +113,44 @@
         <article class="bloc bloc--large" id="bloc-fonctions"></article>
         <article class="bloc bloc--large" id="bloc-secu"></article>
         <article class="bloc bloc--large" id="bloc-etat"></article>
+      </section>
+    </div>
+
+    <div class="vue" id="vue-analyses" hidden>
+      <section class="tableau croiser">
+        <h2>Croiser deux indicateurs</h2>
+        <p class="tableau__aide">
+          Chaque point est un territoire. La droite est celle des moindres
+          carrés ; r mesure la corrélation linéaire — jamais une causalité.
+        </p>
+        <form class="commandes croiser__commandes" aria-label="Choix du croisement">
+          <p class="champ champ--demi">
+            <label for="croiser-niveau">Niveau</label>
+            <select id="croiser-niveau">
+              <option value="region">Régions</option>
+              <option value="departement">Départements</option>
+              <option value="epci">Intercommunalités</option>
+              <option value="commune" selected>Communes</option>
+            </select>
+          </p>
+          <p class="champ">
+            <label for="croiser-x">Axe horizontal</label>
+            <select id="croiser-x"></select>
+          </p>
+          <p class="champ">
+            <label for="croiser-y">Axe vertical</label>
+            <select id="croiser-y"></select>
+          </p>
+          <p class="champ champ--case">
+            <label><input type="checkbox" id="croiser-log" /> Échelles logarithmiques</label>
+          </p>
+        </form>
+        <div class="croiser__scene">
+          <canvas id="croiser-canvas" role="img" aria-label="Nuage de points du croisement choisi"></canvas>
+          <div class="infobulle" id="croiser-infobulle" hidden></div>
+        </div>
+        <p class="croiser__resume" id="croiser-resume"></p>
+        <p class="avertissement" id="croiser-note"></p>
       </section>
     </div>
 

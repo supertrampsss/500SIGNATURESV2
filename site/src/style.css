@@ -1655,3 +1655,73 @@ body[data-vue="carte"] .pied {
   opacity: 0.45;
   cursor: not-allowed;
 }
+
+
+/* Croiser deux indicateurs : la scène du nuage et sa lecture. */
+.croiser__commandes {
+  position: static;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  padding: 0.4rem 0 0.8rem;
+}
+.croiser__commandes .champ {
+  flex: 1 1 18rem;
+}
+.croiser__commandes .champ--demi {
+  flex: 0 1 11rem;
+}
+.champ--case {
+  justify-content: flex-end;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+}
+.champ--case input {
+  accent-color: var(--encre);
+  margin-right: 0.35rem;
+}
+.croiser__scene {
+  position: relative;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  background: var(--papier);
+  padding: 0.4rem;
+}
+.croiser__resume {
+  margin: 0.7rem 0 0.2rem;
+  font-size: 0.95rem;
+}
+.croiser__resume strong {
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+.croiser__n {
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+}
+
+/* Le petit tableau des exercices : les nombres sous la courbe. */
+.mini-serie {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.35rem 0 0.2rem;
+  font-size: 0.78rem;
+}
+.mini-serie th {
+  font-weight: 500;
+  color: var(--encre-douce);
+  text-align: right;
+  padding: 0.1rem 0.3rem;
+  border-bottom: 1px solid var(--trait);
+}
+.mini-serie td {
+  text-align: right;
+  padding: 0.22rem 0.3rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.comparer-lien {
+  margin-left: 0.6rem;
+  font-size: 0.78rem;
+  color: var(--encre);
+}
