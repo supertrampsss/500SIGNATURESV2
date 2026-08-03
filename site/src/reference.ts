@@ -107,7 +107,7 @@ export function reperes(
     const bloc = reference.regions[region];
     const valeur = bloc && bloc.n >= MINIMUM_COMPARABLE ? valeurDe(bloc, nature, parHabitant) : null;
     if (valeur !== null && valeur !== undefined) {
-      sortie.push({ libelle: `${ensemble} de la région`, valeur, nature, n: bloc.n });
+      sortie.push({ libelle: `la médiane des ${ensemble} de la région`, valeur, nature, n: bloc.n });
     }
   }
   const ensemblier =
@@ -116,7 +116,8 @@ export function reperes(
     // « Pays de France » n'aurait aucun sens : au niveau national, l'ensemble
     // de référence est celui des pays comparés, sur les définitions
     // harmonisées d'Eurostat — les seules qui rendent la comparaison honnête.
-    const libelle = niveau === "pays" ? "Pays comparés" : `${ensemble} de France`;
+    const libelle =
+      niveau === "pays" ? "la médiane des pays comparés" : `la médiane des ${ensemble} de France`;
     sortie.push({ libelle, valeur: ensemblier, nature, n: reference.france.n });
   }
   return sortie;
@@ -124,12 +125,15 @@ export function reperes(
 
 /** De quoi le repère est-il l'agrégat ? Le dire évite de laisser croire qu'on
  *  compare une commune au budget de sa région. */
+/** En minuscules : ces libellés entrent dans des phrases (« 16 % au-dessus
+ *  de la médiane des communes de France »), où une capitale au milieu se
+ *  lirait comme une faute. */
 const ENSEMBLES: Record<string, string> = {
-  commune: "Communes",
-  epci: "Intercommunalités",
-  departement: "Départements",
-  region: "Régions",
-  pays: "Pays",
+  commune: "communes",
+  epci: "intercommunalités",
+  departement: "départements",
+  region: "régions",
+  pays: "pays",
 };
 
 function echapper(texte: string): string {

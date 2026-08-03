@@ -56,19 +56,19 @@ test("un taux n'a pas de médiane par habitant : diviser un taux n'a pas de sens
 test("une commune se compare aux communes, pas au conseil régional", () => {
   const liste = reperes(EUROS, "commune", "75", true);
   assert.deepEqual(liste.map((r) => r.libelle), [
-    "Communes de la région",
-    "Communes de France",
+    "la médiane des communes de la région",
+    "la médiane des communes de France",
   ]);
 });
 
 test("une région n'a pas la région pour repère : ce serait une tautologie", () => {
   const liste = reperes(EUROS, "region", "75", true);
-  assert.deepEqual(liste.map((r) => r.libelle), ["Régions de France"]);
+  assert.deepEqual(liste.map((r) => r.libelle), ["la médiane des régions de France"]);
 });
 
 test("un territoire sans région connue garde le repère national", () => {
   assert.deepEqual(reperes(EUROS, "commune", null, true).map((r) => r.libelle), [
-    "Communes de France",
+    "la médiane des communes de France",
   ]);
 });
 
@@ -78,20 +78,21 @@ test("une référence absente ne produit rien plutôt qu'un zéro", () => {
 
 test("l'écart au repère est affiché, avec son signe", () => {
   const html = rendu(reperes(EUROS, "commune", "75", true), 871, (v) => `${Math.round(v)} €`);
-  assert.match(html, /Communes de la région/);
+  assert.match(html, /la médiane des communes de la région/);
   assert.match(html, /812 €/); // médiane des communes de la région
   assert.match(html, /\+7 %/); // 871 contre 812
   assert.match(html, /\+16 %/); // 871 contre 749
 });
 
-test("la note n'est pas répétée sous chaque indicateur", () => {
-  // Sept indicateurs sur une fiche, c'est sept fois la même phrase. Elle est
-  // dite une fois, dans le panneau de comparabilité. Le texte visible est
-  // jugé hors infobulles (title) : une infobulle n'est pas une répétition.
+test("le repère nomme la médiane, sans répéter la phrase qui l'explique", () => {
+  // Sept indicateurs sur une fiche, c'était sept fois la même explication.
+  // Le libellé porte désormais le mot « médiane » — c'est lui qui informe —
+  // et la phrase longue (« la moitié se situe en dessous ») reste dite une
+  // seule fois, dans « Sources et méthode ».
   const html = rendu(reperes(EUROS, "commune", "75", true), 871, String);
   const visible = html.replace(/title="[^"]*"/g, "");
-  assert.doesNotMatch(visible, /médiane|moitié/i);
-  assert.match(visible, /Communes de la région/);
+  assert.match(visible, /la médiane des communes de la région/);
+  assert.doesNotMatch(visible, /moitié/i);
 });
 
 test("une publication sans médiane par habitant ne sert pas la médiane brute", () => {
@@ -115,7 +116,7 @@ test("au niveau national, l'ensemble de référence est celui des pays comparés
     regions: {},
   };
   const liste = reperes(monde, "pays", null, false);
-  assert.deepEqual(liste.map((r) => r.libelle), ["Pays comparés"]);
+  assert.deepEqual(liste.map((r) => r.libelle), ["la médiane des pays comparés"]);
   assert.equal(liste[0].valeur, 100.7);
   assert.equal(liste[0].n, 6);
 });

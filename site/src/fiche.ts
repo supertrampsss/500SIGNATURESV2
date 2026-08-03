@@ -8,6 +8,7 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 import { reperes, type References } from "./reference.ts";
+import { lecture, synthese, tendance } from "./synthese.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -97,6 +98,28 @@ function ligneIndicateur(
           : ""
       : "";
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
+  // Les points de comparaison, calculés une fois : ils nourrissent la phrase
+  // de lecture ET les lignes tracées sur la courbe — un seul calcul, donc
+  // aucun risque que le texte dise autre chose que le dessin.
+  const comparaisonsMesure = [
+    // La valeur du département, de la région, de la France : publiée pour
+    // ces mailles, donc disponible même sous secret de diffusion.
+    ...comparateurs.flatMap((c) => {
+      const brutParent = c.territoire.series[indicateur.id]?.[periode];
+      if (brutParent === undefined) return [];
+      const popParent = populationDeReference(c.territoire, periode).valeur;
+      if (ratio && !popParent) return [];
+      return [
+        { libelle: c.libelle, valeur: ratio ? brutParent / (popParent as number) : brutParent },
+      ];
+    }),
+    ...reperes(
+      toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
+      niveau,
+      territoire.region ?? null,
+      ratio,
+    ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
+  ];
   return `<div class="mesure${surCarte ? " mesure--carte" : ""}">
     <dt>${titreMesure(indicateur, surCarte)}</dt>
     <dd>
@@ -107,33 +130,20 @@ function ligneIndicateur(
       ${autreLecture}
       ${evolution(suivie, periode, evenements)}
       ${kpis(indicateur, territoire, suivie, periode, valeur, rang)}
+      <p class="mesure__lecture">${echapper(
+        [
+          lecture(valeur, comparaisonsMesure, (v) => formater(v, indicateur.unite, ratio)),
+          tendance(suivie),
+        ]
+          .filter(Boolean)
+          .join(" "),
+      )}</p>
       <p class="serie__quoi">${ratio ? "Par habitant" : "Montant total"}</p>
       ${rendreSerie(
         suivie,
         evenements,
         (v) => formater(v, indicateur.unite, ratio),
-        [
-          // La valeur du département, de la région, de la France : publiée
-          // pour ces mailles, donc disponible même sous secret de diffusion.
-          ...comparateurs.flatMap((c) => {
-            const brutParent = c.territoire.series[indicateur.id]?.[periode];
-            if (brutParent === undefined) return [];
-            const popParent = populationDeReference(c.territoire, periode).valeur;
-            if (ratio && !popParent) return [];
-            return [
-              {
-                libelle: c.libelle,
-                valeur: ratio ? brutParent / (popParent as number) : brutParent,
-              },
-            ];
-          }),
-          ...reperes(
-            toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
-            niveau,
-            territoire.region ?? null,
-            ratio,
-          ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
-        ],
+        comparaisonsMesure,
       )}
       ${
         ratio
@@ -322,6 +332,78 @@ export function panneauComparabilite(territoire: Territoire, niveau: string): st
     <ul>${avertissements.map((a) => `<li>${echapper(a)}</li>`).join("")}</ul>`;
 }
 
+/**
+ * La synthèse d'ouverture : ce qu'on retiendrait de ce territoire en trois
+ * lignes. Elle ne dit rien qui ne soit ailleurs dans le panneau, chiffre à
+ * l'appui — elle choisit, elle n'invente pas. L'ordre est celui des questions
+ * que les gens posent : combien d'habitants, combien dépense la commune, avec
+ * quelle dette, quels revenus, quelle délinquance.
+ */
+const ORDRE_SYNTHESE = [
+  "insee_population_municipale",
+  "ofgl_depenses_fonctionnement",
+  "ofgl_encours_dette",
+  "insee_niveau_vie_median",
+  "insee_taux_pauvrete",
+  "ssmsi_cambriolages_taux",
+  "drees_apl_generalistes",
+  "menj_ecoles",
+];
+
+function syntheseTerritoire(
+  indicateurs: Indicateur[],
+  territoire: Territoire,
+  periode: string,
+  parHabitant: boolean,
+  comparateurs: { libelle: string; territoire: Territoire }[],
+  references: References | null,
+  niveau: string,
+): string {
+  const faits = ORDRE_SYNTHESE.flatMap((id) => {
+    const indicateur = indicateurs.find((i) => i.id === id);
+    if (!indicateur) return [];
+    const serie = territoire.series[id];
+    const brut = serie?.[periode];
+    if (brut === undefined) return [];
+    const denom = populationDeReference(territoire, periode);
+    const ratio = parHabitant && parHabitantAUnSens(indicateur);
+    if (ratio && !denom.valeur) return [];
+    const valeur = ratio ? brut / (denom.valeur as number) : brut;
+    const comparaisons = [
+      ...comparateurs.flatMap((c) => {
+        const parent = c.territoire.series[id]?.[periode];
+        if (parent === undefined) return [];
+        const pop = populationDeReference(c.territoire, periode).valeur;
+        if (ratio && !pop) return [];
+        return [{ libelle: c.libelle, valeur: ratio ? parent / (pop as number) : parent }];
+      }),
+      ...reperes(
+        references?.[id]?.[periode]?.[niveau],
+        niveau,
+        territoire.region ?? null,
+        ratio,
+      ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
+    ];
+    const situation = lecture(valeur, comparaisons, (v) =>
+      formater(v, indicateur.unite, ratio),
+    );
+    return [
+      {
+        id,
+        texte: `<strong>${echapper(indicateur.libelle)}</strong> ${echapper(
+          formater(valeur, indicateur.unite, ratio),
+        )}${ratio ? " par habitant" : ""}. ${echapper(situation)}`.trim(),
+      },
+    ];
+  });
+  const lignes = synthese(faits);
+  if (!lignes.length) return "";
+  return `<div class="synthese">
+    <p class="synthese__titre">L'essentiel</p>
+    <ul>${lignes.map((l) => `<li>${l}</li>`).join("")}</ul>
+  </div>`;
+}
+
 export function afficherFiche(
   cible: HTMLElement,
   options: {
@@ -409,6 +491,10 @@ export function afficherFiche(
           }</p>`
         : ""
     }
+    ${syntheseTerritoire(
+      indicateurs, territoire, periode, parHabitant,
+      options.comparateurs ?? [], references, niveau,
+    )}
     <dl class="mesures">${mesures}</dl>
     ${options.comparaison ?? ""}
   `;

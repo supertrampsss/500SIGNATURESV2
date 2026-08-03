@@ -2324,3 +2324,70 @@ body[data-vue="carte"] .pied {
   font-size: 0.78rem;
   color: var(--encre);
 }
+
+
+/* La recherche entre dans le panneau, dans la même langue que les pilules du
+   bas : arrondie, sans bordure lourde, avec sa loupe. */
+.recherche {
+  position: relative;
+  padding: 0.65rem 2.6rem 0.5rem 0.9rem;
+  flex: 0 0 auto;
+}
+.recherche input[type="search"] {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: var(--papier-creuse)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 15 15'%3E%3Ccircle cx='6.4' cy='6.4' r='4.6' fill='none' stroke='%236e7d73' stroke-width='1.5'/%3E%3Cpath d='M10 10l3.2 3.2' stroke='%236e7d73' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
+    no-repeat 0.75rem center;
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem 0.45rem 2.2rem;
+  font-size: 0.85rem;
+}
+.recherche input[type="search"]:hover {
+  background-color: #eceae3;
+}
+.recherche input[type="search"]:focus-visible {
+  background-color: var(--papier);
+  box-shadow: 0 0 0 2px var(--dore);
+}
+.recherche #suggestions {
+  left: 0.9rem;
+  right: 2.6rem;
+}
+
+/* La synthèse d'ouverture : l'essentiel avant le détail. */
+.synthese {
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+  padding: 0.7rem 0.85rem;
+  margin: 0.8rem 0 0.2rem;
+}
+.synthese__titre {
+  margin: 0 0 0.35rem;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--encre-douce);
+}
+.synthese ul {
+  margin: 0;
+  padding-left: 1rem;
+  font-size: 0.85rem;
+  display: grid;
+  gap: 0.28rem;
+}
+.synthese strong {
+  font-weight: 500;
+}
+
+/* La phrase qui dit ce que le chiffre veut dire. */
+.mesure__lecture {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+  width: 100%;
+}
+.mesure__lecture:empty {
+  display: none;
+}

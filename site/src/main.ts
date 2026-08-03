@@ -547,12 +547,12 @@ async function montrerFiche(code: string): Promise<void> {
       etat.niveau === "commune" || etat.niveau === "epci"
         ? [
             territoire.parent && parents[territoire.parent]
-              ? { libelle: "Son département", territoire: parents[territoire.parent] }
+              ? { libelle: "son département", territoire: parents[territoire.parent] }
               : null,
             territoire.region && parents[territoire.region]
-              ? { libelle: "Sa région", territoire: parents[territoire.region] }
+              ? { libelle: "sa région", territoire: parents[territoire.region] }
               : null,
-            parents["FR"] ? { libelle: "France", territoire: parents["FR"] } : null,
+            parents["FR"] ? { libelle: "la France", territoire: parents["FR"] } : null,
           ].filter(Boolean as unknown as (x: unknown) => boolean) as {
             libelle: string;
             territoire: Territoire;
@@ -560,15 +560,15 @@ async function montrerFiche(code: string): Promise<void> {
         : etat.niveau === "departement"
           ? [
               territoire.region && parents[territoire.region]
-                ? { libelle: "Sa région", territoire: parents[territoire.region] }
+                ? { libelle: "sa région", territoire: parents[territoire.region] }
                 : null,
-              parents["FR"] ? { libelle: "France", territoire: parents["FR"] } : null,
+              parents["FR"] ? { libelle: "la France", territoire: parents["FR"] } : null,
             ].filter(Boolean as unknown as (x: unknown) => boolean) as {
               libelle: string;
               territoire: Territoire;
             }[]
           : parents["FR"]
-            ? [{ libelle: "France", territoire: parents["FR"] }]
+            ? [{ libelle: "la France", territoire: parents["FR"] }]
             : [],
     jeux,
     periode: etat.periode,
