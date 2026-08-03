@@ -2417,20 +2417,6 @@ body[data-vue="carte"] .pied {
   gap: 0.5rem;
   margin: 0.15rem 0 0;
 }
-.mesure__carte {
-  font: inherit;
-  font-size: 0.78rem;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
-  border: 1px solid var(--trait-fort);
-  background: none;
-  color: var(--encre);
-  cursor: pointer;
-}
-.mesure__carte:hover {
-  border-color: var(--argile);
-  color: var(--argile);
-}
 .mesure__source {
   font-size: 0.72rem;
   color: var(--encre-douce);

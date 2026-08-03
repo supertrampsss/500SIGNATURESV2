@@ -53,6 +53,23 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 | 6 | `DS_SIDE_CREA_ENT_COM` | créations d'entreprises | commune | ~4 Mo |
 | 7 | `DS_MAR_PACS_DIV_SERIES` | mariages, PACS, divorces | national/région | < 1 Mo |
 
+### P0 bis — combler les indicateurs sans comparaison
+
+Un audit du 3 août (fiche commune et fiche nationale, données du 2 août) donne
+**26 indicateurs comparés sur 28 à la commune, 30 sur 41 au national**. Les
+manques restants, et ce qu'ils demandent :
+
+| Indicateurs | Manque | Ce qu'il faut charger |
+|---|---|---|
+| Écoles ; Collèges et lycées | aucun repère : l'annuaire MENJ n'est chargé qu'à la commune | le même jeu aux mailles département et région, pour comparer les densités |
+| Soldes budgétaires, prélèvements sur recettes, remboursements | pas de part d'un total : un solde n'est la part de rien, et l'imputation des PSR demande une convention comptable | rien — l'absence est la bonne réponse |
+| Dette publique en % du PIB (INSEE) | pas de repère européen au même millésime | rien : `eurostat_dette_pib`, dans le même onglet, porte la comparaison à définition et période homogènes |
+
+Les quinze lignes du budget de l'État et les six de la dette portent désormais
+leur **part dans leur propre total** — vérifiée contre les chiffres publiés :
+les quatre composantes de la dette somment au total à 0,003 % près, recettes
+fiscales plus non fiscales font exactement les recettes nettes.
+
 ### P1 — après mesure du volume réel
 
 | # | Jeu | Ce qu'on en tire | Maille |

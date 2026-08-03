@@ -5,7 +5,7 @@
  */
 
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
+import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 import { reperes, type References } from "./reference.ts";
 import { lecture, resumeEcarts, synthese } from "./synthese.ts";
@@ -95,6 +95,53 @@ type Mesure = {
    *  compare, celui de sa densité sinon. Un seul champ, pour que le résumé ne
    *  choisisse pas lui-même ce qu'il compare. */
   ecart: { reference: string; pourcent: number } | null;
+};
+
+/**
+ * Ce dont un chiffre est une part, quand aucune comparaison extérieure n'existe.
+ *
+ * Le budget de l'État et la dette publique n'ont pas d'équivalent européen
+ * publié ici : aucun autre pays ne publie « son budget général », et la dette
+ * INSEE n'est pas au même millésime que la dette Eurostat. Comparer les deux
+ * serait exactement l'erreur que ce site existe pour ne pas commettre.
+ *
+ * Il reste un repère exact, tiré de la même source et du même exercice : la
+ * part dans son total. « 51,6 Md€ » ne dit pas grand-chose ; « 11,7 % des
+ * dépenses nettes du budget général », si. Le libellé porte sa préposition :
+ * « de la dette publique », « des recettes fiscales nettes ».
+ *
+ * Chaque appartenance ci-dessous a été vérifiée contre les chiffres publiés :
+ * les quatre composantes de la dette somment au total à 0,003 % près, et
+ * recettes fiscales + non fiscales font exactement les recettes nettes. Les
+ * soldes n'y figurent pas — un solde n'est la part de rien — ni les
+ * prélèvements sur recettes, dont l'imputation demande une convention
+ * comptable que ce site n'a pas à trancher.
+ */
+const PART_DU_TOTAL: Record<string, { total: string; nom: string }> = {
+  insee_dette_etat_montant: { total: "insee_dette_apu_montant", nom: "de la dette publique" },
+  insee_dette_asso_montant: { total: "insee_dette_apu_montant", nom: "de la dette publique" },
+  insee_dette_apul_montant: { total: "insee_dette_apu_montant", nom: "de la dette publique" },
+  insee_dette_odac_montant: { total: "insee_dette_apu_montant", nom: "de la dette publique" },
+  etat_impot_revenu: { total: "etat_recettes_fiscales", nom: "des recettes fiscales nettes" },
+  etat_impot_societes: { total: "etat_recettes_fiscales", nom: "des recettes fiscales nettes" },
+  etat_tva: { total: "etat_recettes_fiscales", nom: "des recettes fiscales nettes" },
+  etat_ticpe: { total: "etat_recettes_fiscales", nom: "des recettes fiscales nettes" },
+  etat_charge_dette: {
+    total: "etat_depenses_nettes_bg",
+    nom: "des dépenses nettes du budget général",
+  },
+  etat_depenses_personnel: {
+    total: "etat_depenses_nettes_bg",
+    nom: "des dépenses nettes du budget général",
+  },
+  etat_recettes_fiscales: {
+    total: "etat_recettes_nettes_bg",
+    nom: "des recettes nettes du budget général",
+  },
+  etat_recettes_non_fiscales: {
+    total: "etat_recettes_nettes_bg",
+    nom: "des recettes nettes du budget général",
+  },
 };
 
 /** Les indicateurs qui *sont* une population. Leur densité vaut mille pour
@@ -232,7 +279,6 @@ function ligneIndicateur(
   parHabitant: boolean,
   niveau: string,
   toutesReferences: References | null,
-  jeux: Jeu[],
   /** Cet indicateur est celui peint sur la carte : il se signale d'un mot et
    *  porte le rang du territoire dans la couche. */
   surCarte = false,
@@ -274,6 +320,13 @@ function ligneIndicateur(
       }.`,
     );
   }
+  // À défaut de comparaison extérieure, la part dans son propre total : lue au
+  // même millésime, dans la même source, elle est exacte par construction.
+  const part = PART_DU_TOTAL[indicateur.id];
+  const totalPart = part ? territoire.series[part.total]?.[periode] : undefined;
+  if (part && totalPart) {
+    comparaisons.push(`Soit ${pourcentage((brut / totalPart) * 100)} ${part.nom}.`);
+  }
   // L'autre lecture d'un montant : le total quand on lit du par-habitant.
   if (indicateur.unite === "EUR" && parHabitantAUnSens(indicateur)) {
     comparaisons.push(
@@ -284,7 +337,6 @@ function ligneIndicateur(
           : "",
     );
   }
-  const jeu = jeux.find((j) => j.id === indicateur.jeu);
   const evolutionDite = evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie));
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
@@ -313,18 +365,7 @@ function ligneIndicateur(
             )} sur ${new Intl.NumberFormat("fr-FR").format(rang.total)} territoires.</p>`
           : ""
       }
-      <p class="mesure__pied">
-        ${
-          surCarte
-            ? ""
-            : `<button type="button" class="mesure__carte" data-indicateur="${indicateur.id}">Afficher sur la carte</button>`
-        }
-        ${
-          jeu
-            ? `<span class="mesure__source">${echapper(jeu.producteur)} — ${echapper(jeu.titre)}</span>`
-            : ""
-        }
-      </p>
+
     </div>
   </details>`;
 }
@@ -749,7 +790,6 @@ export function afficherFiche(
   // seul fichier. Les thèmes se suivent donc dans le panneau, valeurs
   // comprises : il n'y a plus rien à sélectionner ailleurs pour voir un
   // chiffre, on fait défiler. Cliquer une ligne la porte sur la carte.
-  const jeux = options.jeux;
   const groupes = new Map<string, Indicateur[]>();
   // Le thème complet, celui de la carte compris : le résumé d'un thème porte
   // sur tous ses indicateurs, y compris celui qui est déjà affiché en tête.
@@ -778,7 +818,7 @@ export function afficherFiche(
           ${liste
             .map((indicateur) =>
               ligneIndicateur(
-                indicateur, territoire, periode, parHabitant, niveau, references, jeux,
+                indicateur, territoire, periode, parHabitant, niveau, references,
                 indicateur.id === principal && options.marquerCarte !== false,
                 indicateur.id === principal ? options.rang : undefined,
                 options.comparateurs,
