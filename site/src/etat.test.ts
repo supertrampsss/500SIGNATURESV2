@@ -120,9 +120,9 @@ test("dans le pont, le signe est une colonne, pas une décoration du nombre", ()
   const table = html.slice(html.indexOf('<table class="pont"'), html.indexOf("</table>"));
   assert.match(table, /380,4\s?Md€/); // recettes nettes, en milliards
   assert.match(table, /124,2\s?Md€/); // solde, valeur absolue
-  assert.doesNotMatch(table, /-\d/); // aucun nombre négatif dans la colonne montant
+  assert.doesNotMatch(table, /[-−]\d/); // aucun nombre négatif dans la colonne montant
   // le tableau de comparaison, lui, montre des soldes signés : c'est leur nature
-  assert.match(html.slice(html.indexOf('<table class="comparaison"')), /-124,2\s?Md€/);
+  assert.match(html.slice(html.indexOf('<table class="comparaison"')), /−124,2\s?Md€/);
 });
 
 test("l'écart entre voté et exécuté est nommé dans le bon sens", () => {

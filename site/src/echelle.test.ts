@@ -95,8 +95,12 @@ test("le pourcentage n'est pas multiplié par cent", () => {
   assert.match(formater(7.7, "percent", false), /^7,7/);
 });
 
-test("un taux négatif garde son signe", () => {
-  assert.match(formater(-5.1, "percent", false), /^-5,1/);
+test("un taux négatif garde son signe, au signe moins typographique", () => {
+  // U+2212, pas le trait d'union du clavier : les phrases composées ailleurs
+  // dans le site écrivent « −53 % », et les deux formes se côtoyaient à
+  // l'écran dans deux dessins et deux largeurs.
+  assert.match(formater(-5.1, "percent", false), /^−5,1/);
+  assert.doesNotMatch(formater(-5.1, "percent", false), /-/);
 });
 
 test("le séparateur décimal est français partout", () => {

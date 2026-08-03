@@ -119,10 +119,23 @@ function sansZeroNegatif(valeur: number, decimales: number): number {
   return Math.round(valeur * facteur) === 0 ? 0 : valeur;
 }
 
+/**
+ * Le signe moins typographique (U+2212), pas le trait d'union du clavier.
+ *
+ * `Intl` produit « -4,1 » avec un trait d'union quand les phrases composées ici
+ * portent « −53 % ». Les deux se côtoyaient à l'écran, dans deux dessins et
+ * deux largeurs. Une seule forme partout.
+ */
+export function moins(texte: string): string {
+  return texte.replace("-", "−");
+}
+
 export function pourcentage(valeur: number): string {
-  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
-    sansZeroNegatif(valeur, 1),
-  )} %`;
+  return moins(
+    `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+      sansZeroNegatif(valeur, 1),
+    )} %`,
+  );
 }
 
 /** La note sous la légende dit ce que sont les nombres qu'on vient de lire.
@@ -173,6 +186,12 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
 }
 
 export function formater(valeur: number, unite: string, parHabitant: boolean): string {
+  // Un seul point de sortie pour la typographie du signe : les six chemins de
+  // formatage ci-dessous produisaient chacun le trait d'union d'`Intl`.
+  return moins(formaterNombre(valeur, unite, parHabitant));
+}
+
+function formaterNombre(valeur: number, unite: string, parHabitant: boolean): string {
   if (unite === "count") {
     return new Intl.NumberFormat("fr-FR").format(Math.round(valeur));
   }

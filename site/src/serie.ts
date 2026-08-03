@@ -51,6 +51,10 @@ export function evolution(
   periode: string,
   evenements: Evenement[] = [],
   courte = false,
+  /** Le rythme annuel de la même évolution. Il occupait un encadré à lui seul,
+   *  sous une ligne qui disait déjà « +275,8 % depuis 2022 » : deux fois la
+   *  même chose, dans deux dessins. Il tient ici entre parenthèses. */
+  parAn?: number | null,
 ): string {
   const periodes = Object.keys(serie).sort();
   const valeurCourante = serie[periode];
@@ -75,9 +79,17 @@ export function evolution(
   const reserve = rupture
     ? ` <span class="evolution__reserve">depuis le changement de périmètre</span>`
     : "";
+  // Sous 0,05 point, le rythme annuel n'ajoute rien à « stable » : un encadré
+  // « +0 % par an » sous une ligne « +0 % depuis 2022 » était deux fois rien.
+  const rythme =
+    parAn !== undefined && parAn !== null && Math.abs(parAn) >= 0.05
+      ? ` <span class="evolution__rythme">${parAn > 0 ? "+" : ""}${pourcentage(
+          parAn,
+        )}/an</span>`
+      : "";
   return `<span class="evolution">${signe}${pourcentage(variation)} depuis ${echapper(
     depuis,
-  )}${reserve}</span>`;
+  )}${rythme}${reserve}</span>`;
 }
 
 /**

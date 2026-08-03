@@ -714,26 +714,29 @@ tbody tr:hover {
     max-height: 40%;
     padding: 0.6rem;
   }
+  /* Le tiroir monte du bas. Sans sélection il montre la France, mais plus
+     bas : la carte doit rester manœuvrable, c'est par elle qu'on choisit. */
   .panneau {
-    display: none;
-  }
-  .panneau.panneau--selection {
     display: flex;
     top: auto;
     left: 0;
     right: 0;
     bottom: 0;
     width: auto;
-    max-height: 62dvh;
+    max-height: 38dvh;
     border-radius: var(--rayon) var(--rayon) 0 0;
     border-bottom: 0;
+  }
+  .panneau.panneau--selection {
+    max-height: 62dvh;
   }
   .panneau.panneau--selection .palmares {
     display: none; /* le tiroir mobile va à l'essentiel : la fiche */
   }
   .surcouche--legende {
     left: 0.6rem;
-    bottom: 0.6rem;
+    top: 3.4rem;
+    bottom: auto;
     max-width: calc(100% - 1.2rem);
     padding: 0.45rem 0.6rem;
   }
@@ -778,9 +781,21 @@ tbody tr:hover {
     padding: 1rem;
     margin: 0 0.6rem 1rem;
   }
+  /* 375 px : le titre en 1,2 rem sans césure plus trois onglets sans césure
+     dépassaient de 44 px, et c'est la page entière qui s'élargissait. */
   .entete {
-    gap: 0.6rem;
-    padding: 0 0.75rem;
+    gap: 0.5rem;
+    padding: 0 0.6rem;
+  }
+  .entete h1 {
+    font-size: 0.98rem;
+  }
+  .entete__nav {
+    gap: 0.1rem;
+    font-size: 0.74rem;
+  }
+  .entete__nav a {
+    padding: 0.28rem 0.42rem;
   }
 }
 
@@ -1213,25 +1228,49 @@ tbody tr:hover {
   margin: 0.4rem 0 0;
 }
 
+/* La distribution sur une ligne, pas en liste : quatre valeurs empilées
+   prenaient quatre lignes en tête de fiche pour dire une position. */
 .quartiles {
   list-style: none;
-  margin: 0.6rem 0 0;
+  margin: 0.35rem 0 0;
   padding: 0;
-  display: grid;
-  gap: 0.25rem;
-  font-size: 0.85rem;
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.75rem;
 }
 .quartiles li {
   display: flex;
-  justify-content: space-between;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+.quartiles span {
+  color: var(--encre-douce);
+  white-space: nowrap;
 }
 .quartiles strong {
   font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
 }
-.quartiles li:last-child {
-  border-top: 1px solid var(--trait);
-  padding-top: 0.25rem;
+.quartiles__ici {
+  margin-left: auto;
+  text-align: right;
+  color: var(--accent);
+}
+.quartiles__ici span {
+  color: inherit;
+}
+
+/* La position parmi les semblables, en tête de fiche. */
+.position {
+  margin: 0.7rem 0 0.2rem;
+  padding: 0.55rem 0.7rem 0.6rem;
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+}
+.position__phrase {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.4;
 }
 
 /* Repères : « est-ce beaucoup ? ». Le même poids visuel que le dénominateur —
@@ -2048,28 +2087,37 @@ body[data-vue="carte"] .pied {
   margin: 0.5rem 0 0.2rem;
   width: 100%;
 }
+/* Des puces, pas des pavés : l'encadré gris faisait trois fois la hauteur du
+   nombre qu'il portait, et deux d'entre eux suffisaient à repousser la courbe
+   hors de l'écran. Tout tient sur une ligne, en petit, à sa place. */
 .kpis > div {
-  flex: 1 1 6rem;
-  background: var(--papier-creuse);
-  border-radius: var(--rayon-s);
-  padding: 0.35rem 0.5rem;
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  padding: 0.1rem 0.45rem 0.1rem 0;
+  border-left: 2px solid var(--trait);
+  padding-left: 0.45rem;
+}
+.kpis > div:first-child {
+  border-left: 0;
+  padding-left: 0;
 }
 .kpis dt {
-  font-size: 0.66rem;
+  font-size: 0.68rem;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   color: var(--encre-douce);
   margin: 0;
 }
 .kpis dd {
-  margin: 0.05rem 0 0;
-  font-size: 0.95rem;
+  margin: 0;
+  font-size: 0.8rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .kpis dd span {
-  display: block;
-  font-size: 0.66rem;
+  margin-left: 0.3rem;
+  font-size: 0.7rem;
   font-weight: 400;
   color: var(--encre-douce);
 }
@@ -2213,9 +2261,6 @@ body[data-vue="carte"] .pied {
    première ligne du résumé — les accents des capitales s'y perdaient. Il se
    pose donc sous lui. */
 .theme-groupe__titre {
-  position: sticky;
-  top: var(--haut-fiche);
-  z-index: 1;
   margin: 0 0 0.15rem;
   padding: 0.3rem 0;
   font-size: 0.68rem;
@@ -2441,6 +2486,72 @@ body[data-vue="carte"] .pied {
 .theme-groupe__suite > summary:hover {
   color: var(--encre);
 }
+
+/* Le sommaire des thèmes. Une fiche fait cinq écrans : sans lui, atteindre
+   « Sécurité » demandait de traverser sept thèmes. Collé sous le nom du
+   territoire, il reste là pendant tout le défilement. */
+.ancres {
+  position: sticky;
+  top: var(--haut-fiche);
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0.55rem 0 0.2rem;
+  padding: 0.35rem 0 0.4rem;
+  background: rgb(255 255 255 / 0.96);
+  backdrop-filter: blur(6px);
+  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
+}
+.ancres button {
+  font: inherit;
+  font-size: 0.7rem;
+  line-height: 1.1;
+  color: var(--encre-douce);
+  background: var(--papier-creuse);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.22rem 0.5rem;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.ancres button:hover,
+.ancres button:focus-visible {
+  color: var(--encre);
+  border-color: var(--trait-fort);
+}
+
+/* Densité de la fiche : les mesures se suivent de près. L'air venait de
+   marges empilées — celle de la mesure, celle du thème, celle du tableau —
+   qui ajoutaient un demi-écran de vide par thème. */
+.mesure {
+  padding-top: 0.5rem;
+  margin-top: 0.5rem;
+}
+.mesure--breve {
+  padding-top: 0.4rem;
+  margin-top: 0.4rem;
+}
+.theme-groupe {
+  margin-top: 0.75rem;
+}
+.mesure__lecture {
+  margin-top: 0.25rem;
+}
+.mesures {
+  margin-bottom: 0.75rem;
+}
+
+/* La position parmi les communes semblables se lit avec la synthèse, en haut
+   de fiche : c'est une des questions les plus posées, elle était en dernier. */
+.repli--position {
+  margin: 0.45rem 0 0;
+}
+.repli--position > summary {
+  font-size: 0.74rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+}
 /* Le thème dit d'abord ce qu'il vaut dans son ensemble : combien de ses
    indicateurs situent le territoire au-dessus, combien en dessous. C'est le
    seul agrégat honnête d'un thème — additionner ses indicateurs mêlerait des
@@ -2476,4 +2587,27 @@ body[data-vue="carte"] .pied {
   font-size: 0.72rem;
   color: var(--encre-douce);
   opacity: 0.8;
+}
+
+/* Écran étroit : les commandes de la carte remontent au-dessus du tiroir.
+   Posées en bas, elles se retrouvaient derrière lui — on lisait « Guadeloupe »
+   par-dessus le texte de la fiche, et le clic tombait sur le mauvais élément.
+   Cette règle vient après `.carte-barre` : à spécificité égale, l'ordre
+   décide, et un `@media` placé plus haut dans la feuille perdait. */
+@media (max-width: 60rem) {
+  .carte-barre {
+    top: 0.6rem;
+    bottom: auto;
+    /* Calées à gauche, avec la place des boutons de zoom réservée à droite :
+       centrées, elles passaient dessous et le « + » devenait incliquable. */
+    left: 0.6rem;
+    right: 3.4rem;
+    transform: none;
+    max-width: none;
+    justify-content: flex-start;
+  }
+  .carte-barre .pilules {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
 }

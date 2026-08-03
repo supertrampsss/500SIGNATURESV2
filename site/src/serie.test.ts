@@ -82,6 +82,6 @@ test("une série recalculée dans la géographie courante ne se coupe pas", () =
    */
   const legales = { "2013": 17951, "2023": 17457 };
   assert.equal(ruptureDePerimetre([], Object.keys(legales)), null);
-  assert.equal(evolution(legales, "2023", []).includes(`-2,8${FINE}% depuis 2013`), true);
+  assert.equal(evolution(legales, "2023", []).includes(`−2,8${FINE}% depuis 2013`), true);
   assert.doesNotMatch(evolution(legales, "2023", []), /périmètre/);
 });

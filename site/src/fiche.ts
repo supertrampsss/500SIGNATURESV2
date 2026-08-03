@@ -78,7 +78,29 @@ type Mesure = {
   /** La même série en montants bruts. */
   brute: Record<string, number>;
   comparaisons: { libelle: string; valeur: number }[];
+  /** Un effectif rapporté à mille habitants, avec les mêmes densités calculées
+   *  pour le département et la région. « 31 écoles » ne dit pas si c'est
+   *  beaucoup ; « 0,46 école pour 1 000 habitants, 15 % au-dessus de son
+   *  département » le dit. C'est la seule comparaison honnête pour un volume :
+   *  les effectifs bruts, eux, ne mesurent que la taille du territoire. */
+  densite: { valeur: number; comparaisons: { libelle: string; valeur: number }[] } | null;
+  /** L'écart retenu pour le résumé du thème : celui de la valeur quand elle se
+   *  compare, celui de sa densité sinon. Un seul champ, pour que le résumé ne
+   *  choisisse pas lui-même ce qu'il compare. */
+  ecart: { reference: string; pourcent: number } | null;
 };
+
+/** Les indicateurs qui *sont* une population. Leur densité vaut mille pour
+ *  mille — « 1 011 pour 1 000 habitants » s'est affiché sous la population
+ *  municipale, l'écart entre deux millésimes de la même grandeur habillé en
+ *  ratio. Une population ne se rapporte pas à elle-même. */
+const POPULATIONS = new Set(["insee_population_municipale", "ofgl_population_reference"]);
+
+/** Population d'un territoire pour un ratio de densité : celle du millésime
+ *  quand elle est publiée, la population légale sinon. */
+function population(territoire: Territoire, periode: string): number | null {
+  return populationDeReference(territoire, periode).valeur ?? territoire.population ?? null;
+}
 
 function mesurer(
   indicateur: Indicateur,
@@ -141,7 +163,43 @@ function mesurer(
       ratio,
     ).map((r) => ({ libelle: r.libelle, valeur: r.valeur })),
   ];
-  return { periode, valeur, brut, ratio, denom, suivie, brute: serie, comparaisons };
+  // La densité : pour un effectif, la seule grandeur qui se compare d'une
+  // maille à l'autre. Elle n'a de sens que si l'effectif s'additionne — une
+  // médiane de revenus « pour 1 000 habitants » ne voudrait rien dire — et
+  // jamais pour une population, qui divisée par elle-même donne 1 000 : ce
+  // « KPI » s'affichait, et n'était qu'une tautologie.
+  const habitants = population(territoire, periode);
+  const densite =
+    indicateur.unite === "count" &&
+    indicateur.sommable &&
+    habitants &&
+    !POPULATIONS.has(indicateur.id)
+      ? {
+          valeur: (brut / habitants) * 1000,
+          comparaisons: comparateurs.flatMap((c) => {
+            const brutParent = c.territoire.series[indicateur.id]?.[periode];
+            const popParent = population(c.territoire, periode);
+            if (brutParent === undefined || !popParent) return [];
+            return [{ libelle: c.libelle, valeur: (brutParent / popParent) * 1000 }];
+          }),
+        }
+      : null;
+  // L'écart du résumé de thème vient de la valeur elle-même, jamais de sa
+  // densité. La sécurité publie chaque phénomène deux fois — « cambriolages »
+  // en taux et « cambriolages — nombre de faits » en effectif : compter aussi
+  // l'écart de densité du second annoncerait « 12 indicateurs » là où il y a
+  // six phénomènes, chacun pesé deux fois. La densité comparée reste affichée
+  // sur la mesure, où elle répond à « est-ce beaucoup ? » sans rien compter.
+  const repere = comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur !== 0);
+  const ecart = repere
+    ? {
+        reference: repere.libelle,
+        pourcent: ((valeur - repere.valeur) / Math.abs(repere.valeur)) * 100,
+      }
+    : null;
+  return {
+    periode, valeur, brut, ratio, denom, suivie, brute: serie, comparaisons, densite, ecart,
+  };
 }
 
 function ligneIndicateur(
@@ -198,11 +256,15 @@ function ligneIndicateur(
   // se coupe pas à la fusion : ses valeurs anciennes portent déjà sur le
   // territoire actuel. Lui signaler une rupture déclarerait incomparable une
   // série qui ne l'est pas — c'est le cas des populations légales de l'INSEE.
-  // L'autre lecture du même chiffre, en petit : le par-habitant montre le
-  // total, le total montre le par-habitant. Deux regards, une seule donnée.
+  const tableau = miniTableau(suivie, indicateur, ratio, ratio ? brute : undefined);
+  // L'autre lecture du même chiffre : le par-habitant montre le total, le
+  // total montre le par-habitant. Elle ne s'écrit que si le tableau ne la
+  // porte pas déjà ligne à ligne — sinon « soit 44,4 M€ au total » se lisait
+  // deux fois à trois centimètres d'écart.
   const autreLecture =
-    indicateur.unite === "EUR" && parHabitantAUnSens(indicateur)
-      ? ratio
+    tableau || !(indicateur.unite === "EUR" && parHabitantAUnSens(indicateur))
+      ? ""
+      : ratio
         ? `<span class="mesure__autre">soit ${formater(brut, "EUR", false)} au total</span>`
         : denom.valeur
           ? `<span class="mesure__autre">soit ${formater(
@@ -210,8 +272,7 @@ function ligneIndicateur(
               "EUR",
               true,
             )} par habitant</span>`
-          : ""
-      : "";
+          : "";
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
   return `<div class="mesure${surCarte ? " mesure--carte" : ""}${
     courbe ? "" : " mesure--breve"
@@ -223,8 +284,8 @@ function ligneIndicateur(
       }
       <span class="millesime">${periode}</span>
       ${autreLecture}
-      ${evolution(suivie, periode, evenements)}
-      ${kpis(indicateur, territoire, suivie, periode, valeur, rang, courbe)}
+      ${evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie))}
+      ${kpis(mesure, rang)}
       <p class="mesure__lecture">${echapper(
         [
           lecture(valeur, comparaisons, (v) => formater(v, indicateur.unite, ratio)),
@@ -243,8 +304,7 @@ function ligneIndicateur(
             )
           : ""
       }
-      ${miniTableau(suivie, indicateur, ratio, ratio ? brute : undefined)}
-
+      ${tableau}
     </dd>
   </div>`;
 }
@@ -271,54 +331,59 @@ export function croissanceAnnuelle(serie: Record<string, number>): number | null
   return ((derniere / premiere) ** (1 / annees) - 1) * 100;
 }
 
+/** Une densité lisible. « 0,5 école pour 1 000 habitants » ne se représente
+ *  pas ; « 1 école pour 2 200 habitants » se voit. En dessous de 1, on
+ *  retourne donc le rapport. */
+function densiteLisible(densite: number): string {
+  if (densite >= 1) {
+    return `${new Intl.NumberFormat("fr-FR", {
+      maximumFractionDigits: densite < 10 ? 1 : 0,
+    }).format(densite)} pour 1 000 hab.`;
+  }
+  if (densite <= 0) return "—";
+  return `1 pour ${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(
+    1000 / densite,
+  )} hab.`;
+}
+
 /**
- * Les repères chiffrés d'une mesure : densité, rang, croissance annuelle.
+ * Les repères chiffrés d'une mesure : densité comparée, rang.
  *
- * Un nombre seul — « 602 076 établissements » — n'apprend rien : beaucoup ou
- * peu, en hausse ou en baisse, où dans le pays ? Ces trois KPI répondent avec
- * ce qui est disponible, et se taisent quand la donnée manque plutôt que
- * d'inventer. La densité n'est calculée que pour les effectifs (un montant a
- * déjà son « par habitant »), le rang que si la couche est chargée.
+ * Un nombre seul — « 31 écoles » — n'apprend rien : beaucoup ou peu, où dans
+ * le pays ? La densité répond, et elle porte sa propre comparaison : c'est la
+ * seule façon honnête de confronter un effectif communal à son département,
+ * dont le volume brut ne dit que la taille.
+ *
+ * Le rythme annuel a quitté ces encadrés : il tient dans la ligne d'évolution,
+ * qui disait déjà la même chose une ligne plus haut.
  */
 function kpis(
-  indicateur: Indicateur,
-  territoire: Territoire,
-  serie: Record<string, number>,
-  periode: string,
-  valeur: number,
+  mesure: Mesure,
   rang?: { position: number; total: number },
-  /** Faux pour les mesures brèves : la note « seul millésime publié » y était
-   *  répétée sous chacune des douze lignes d'un thème dont le jeu n'a qu'une
-   *  année. Le millésime est de toute façon affiché à côté du chiffre. */
-  detaille = true,
 ): string {
   const cases: string[] = [];
-  const population = territoire.population;
-  if (indicateur.unite === "count" && indicateur.sommable && population) {
-    const densite = (valeur / population) * 1000;
-    cases.push(`<div><dt>Pour 1 000 habitants</dt><dd>${new Intl.NumberFormat("fr-FR", {
-      maximumFractionDigits: densite < 10 ? 1 : 0,
-    }).format(densite)}</dd></div>`);
+  if (mesure.densite) {
+    const { valeur, comparaisons } = mesure.densite;
+    const repere = comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur > 0);
+    const ecart = repere ? ((valeur - repere.valeur) / repere.valeur) * 100 : null;
+    const situation =
+      ecart === null || Math.abs(ecart) < 5
+        ? repere
+          ? `au niveau de ${repere.libelle}`
+          : ""
+        : `${ecart > 0 ? "+" : "−"}${new Intl.NumberFormat("fr-FR", {
+            maximumFractionDigits: 0,
+          }).format(Math.abs(ecart))} % vs ${repere?.libelle}`;
+    cases.push(
+      `<div><dt>Densité</dt><dd>${echapper(densiteLisible(valeur))}${
+        situation ? `<span>${echapper(situation)}</span>` : ""
+      }</dd></div>`,
+    );
   }
   if (rang && rang.total > 1) {
     cases.push(
       `<div><dt>Rang</dt><dd>${new Intl.NumberFormat("fr-FR").format(rang.position)}<span>
         sur ${new Intl.NumberFormat("fr-FR").format(rang.total)}</span></dd></div>`,
-    );
-  }
-  const cagr = croissanceAnnuelle(serie);
-  if (cagr !== null) {
-    cases.push(
-      `<div><dt>Croissance annuelle</dt><dd>${cagr >= 0 ? "+" : ""}${new Intl.NumberFormat(
-        "fr-FR",
-        { maximumFractionDigits: 1 },
-      ).format(cagr)} %<span>par an</span></dd></div>`,
-    );
-  }
-  const millesimes = Object.keys(serie).length;
-  if (millesimes === 1 && detaille) {
-    cases.push(
-      `<div><dt>Millésime</dt><dd>${echapper(periode)}<span>seul publié à ce jour</span></dd></div>`,
     );
   }
   return cases.length ? `<dl class="kpis">${cases.join("")}</dl>` : "";
@@ -332,6 +397,12 @@ function kpis(
  *  une série entière quand on n'en voit qu'un morceau tronqué. L'historique
  *  complet reste dans la courbe, qui, elle, ne coupe rien. */
 const PREMIERE_ANNEE_TABLEAU = 2022;
+
+/** Unités dont le libellé est trop long pour tenir dans chaque cellule : il
+ *  est dit une fois, dans l'intitulé de la ligne. */
+const UNITES_EN_TETE: Record<string, string> = {
+  consultations_par_an: "consult./an",
+};
 
 function miniTableau(
   serie: Record<string, number>,
@@ -354,12 +425,24 @@ function miniTableau(
     : indicateur.unite === "EUR" || indicateur.unite === "count"
       ? "total"
       : "taux";
+  // Une unité longue répétée dans chaque cellule — « 4,4 consult./an »,
+  // trois fois par ligne — mange la largeur sans rien ajouter : elle passe
+  // dans l'intitulé de la ligne, où elle est dite une fois.
+  const suffixe = UNITES_EN_TETE[indicateur.unite];
+  const cellule = (v: number) =>
+    suffixe
+      ? new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(v)
+      : formater(v, indicateur.unite, ratio);
   const ligne = (libelle: string, valeurs: Record<string, number>, parHabitant: boolean) =>
     `<tr><th scope="row">${libelle}</th>${periodes
       .map(
         (p) =>
           `<td>${
-            valeurs[p] === undefined ? "—" : formater(valeurs[p], indicateur.unite, parHabitant)
+            valeurs[p] === undefined
+              ? "—"
+              : parHabitant === ratio
+                ? cellule(valeurs[p])
+                : formater(valeurs[p], indicateur.unite, parHabitant)
           }</td>`,
       )
       .join("")}</tr>`;
@@ -368,7 +451,7 @@ function miniTableau(
       .map((p) => `<th scope="col">${echapper(p)}</th>`)
       .join("")}</tr></thead>
     <tbody>
-      ${ligne(intitule, serie, ratio)}
+      ${ligne(suffixe ?? intitule, serie, ratio)}
       ${totaux ? ligne("total", totaux, false) : ""}
     </tbody>
   </table>`;
@@ -464,6 +547,72 @@ const PHARES: Record<string, string[]> = {
   impots_locaux: ["dgfip_taux_foncier_bati_global"],
 };
 
+/**
+ * L'ordre des thèmes dans la fiche.
+ *
+ * L'ordre alphabétique faisait ouvrir un site sur l'argent public par
+ * « Éducation », et reléguait les finances locales au quatrième écran. Celui-ci
+ * suit ce qu'on vient chercher : l'argent d'abord, ce qu'il paie ensuite. Un
+ * thème absent de cette liste se range à la fin, par ordre alphabétique — il
+ * s'affiche, il n'est jamais écarté.
+ */
+const ORDRE_THEMES = [
+  // Fiche d'un territoire.
+  "finances_locales",
+  "impots_locaux",
+  "revenus",
+  "population",
+  "securite",
+  "sante",
+  "education",
+  "emploi",
+  "entreprises",
+  // Fiche nationale.
+  "budget_etat",
+  "dette",
+  "fonctions",
+  "securite_sociale",
+  "macro",
+  "europe",
+];
+
+function ordonnerThemes(themes: string[]): string[] {
+  const rang = (t: string) => {
+    const place = ORDRE_THEMES.indexOf(t);
+    return place === -1 ? ORDRE_THEMES.length : place;
+  };
+  return [...themes].sort((a, b) => rang(a) - rang(b) || a.localeCompare(b, "fr"));
+}
+
+/** Une ancre par thème, utilisable dans un attribut `id`. */
+function ancre(theme: string): string {
+  return `theme-${theme.replace(/[^a-z0-9_-]/gi, "")}`;
+}
+
+/**
+ * Le sommaire des thèmes, en pastilles.
+ *
+ * Une fiche fait cinq écrans de défilement. Sans sommaire, atteindre
+ * « Sécurité » demandait de traverser sept autres thèmes — la donnée était là,
+ * mais hors d'atteinte. Ces pastilles y mènent d'un clic ; le défilement reste
+ * possible pour qui veut tout lire.
+ */
+function ancresThemes(
+  groupes: Map<string, Indicateur[]>,
+  libelleTheme?: (theme: string) => string,
+): string {
+  const themes = ordonnerThemes([...groupes.keys()]);
+  if (themes.length < 3) return "";
+  return `<nav class="ancres" aria-label="Thèmes de la fiche">${themes
+    .map(
+      (t) =>
+        `<button type="button" data-ancre="${ancre(t)}">${echapper(
+          libelleTheme?.(t) ?? t,
+        )}</button>`,
+    )
+    .join("")}</nav>`;
+}
+
 /** Les indicateurs d'un thème, les phares d'abord. */
 function ordonnerTheme(theme: string, liste: Indicateur[]): Indicateur[] {
   const phares = PHARES[theme] ?? [];
@@ -495,21 +644,19 @@ function resumeTheme(
 ): string {
   // Un seul repère pour tout le thème, sinon on compterait des écarts pris
   // sur des références différentes : le premier comparateur disponible, ou la
-  // médiane à défaut.
+  // médiane à défaut. Pour un effectif, l'écart est celui de la densité —
+  // calculé dans `mesurer`, pas ici, pour que le résumé et la fiche disent
+  // exactement le même chiffre.
   const ecarts = liste.flatMap((indicateur) => {
     const mesure = mesurer(
       indicateur, territoire, periodeCarte, parHabitant, niveau, references, comparateurs,
     );
-    if (typeof mesure === "string") return [];
-    const repere = mesure.comparaisons.find(
-      (c) => Number.isFinite(c.valeur) && c.valeur !== 0,
-    );
-    if (!repere) return [];
+    if (typeof mesure === "string" || !mesure.ecart) return [];
     return [
       {
         libelle: indicateur.libelle,
-        reference: repere.libelle,
-        ecart: ((mesure.valeur - repere.valeur) / Math.abs(repere.valeur)) * 100,
+        reference: mesure.ecart.reference,
+        ecart: mesure.ecart.pourcent,
       },
     ];
   });
@@ -647,8 +794,9 @@ export function afficherFiche(
           options.marquerCarte !== false, options.rang, options.comparateurs, true,
         )
       : "") +
-    [...groupes.entries()]
-      .map(([theme, liste]) => {
+    ordonnerThemes([...groupes.keys()])
+      .map((theme) => {
+        const liste = groupes.get(theme) as Indicateur[];
         // Un thème s'ouvre sur ce qu'il dit dans son ensemble, puis sur ses
         // mesures phares ; le détail se déplie. Vingt blocs dépliés d'un coup
         // faisaient un mur — mais rien n'est pour autant tronqué : le résumé
@@ -663,7 +811,7 @@ export function afficherFiche(
             indicateur, territoire, periode, parHabitant, niveau, references,
             false, undefined, options.comparateurs, false,
           );
-        return `<div class="theme-groupe">
+        return `<div class="theme-groupe" id="${ancre(theme)}">
           <p class="theme-groupe__titre">${echapper(
             options.libelleTheme?.(theme) ?? theme,
           )} <span class="theme-groupe__compte">${complet.length} indicateur${
@@ -677,10 +825,19 @@ export function afficherFiche(
           ${
             suite.length
               ? `<details class="theme-groupe__suite">
-                  <summary>Voir aussi : ${suite
-                    .slice(0, 4)
-                    .map((i) => echapper(i.libelle.toLocaleLowerCase("fr-FR")))
-                    .join(", ")}${suite.length > 4 ? `, et ${suite.length - 4} de plus` : ""}</summary>
+                  <summary>${
+                    // Nommer ce qui est replié, sans écrire trois lignes pour
+                    // le dire : deux exemples suffisent à montrer la nature du
+                    // reste, le compte dit son volume.
+                    suite.length > 2
+                      ? `Voir ${suite.length} autres : ${suite
+                          .slice(0, 2)
+                          .map((i) => echapper(i.libelle.toLocaleLowerCase("fr-FR")))
+                          .join(", ")}…`
+                      : `Voir aussi : ${suite
+                          .map((i) => echapper(i.libelle.toLocaleLowerCase("fr-FR")))
+                          .join(", ")}`
+                  }</summary>
                   ${suite.map(rendreLigne).join("")}
                 </details>`
               : ""
@@ -721,8 +878,14 @@ export function afficherFiche(
       indicateurs, territoire, periode, parHabitant,
       options.comparateurs ?? [], references, niveau,
     )}
+    ${
+      // « Où se situe cette commune parmi ses semblables » est l'une des
+      // questions les plus posées : elle était en dernier, repliée, après cinq
+      // écrans de défilement. Elle se lit maintenant avec la synthèse.
+      options.comparaison ?? ""
+    }
+    ${ancresThemes(groupes, options.libelleTheme)}
     <dl class="mesures">${mesures}</dl>
-    ${options.comparaison ?? ""}
   `;
 }
 
@@ -754,22 +917,28 @@ export function positionDansGroupe(
       : valeurParHabitant > quartiles.q3
         ? "au-dessus du quart supérieur"
         : "dans la moitié centrale";
-  return `<details class="repli">
-    <summary>Comparaison avec des communes semblables</summary>
-    <p>Parmi <strong>${quartiles.n}</strong> communes du même groupe, cette commune se situe
-      <strong>${situation}</strong> de la distribution.</p>
+  // Compact, parce que ce bloc est remonté en tête de fiche : la phrase, la
+  // distribution sur une ligne, et les réserves — qui restent indispensables —
+  // à un clic. Ouvertes, elles faisaient six lignes de texte serré avant même
+  // le premier chiffre du panneau.
+  return `<section class="position">
+    <p class="position__phrase">Parmi <strong>${quartiles.n}</strong> communes semblables,
+      celle-ci se situe <strong>${situation}</strong>.</p>
     <ul class="quartiles">
       <li><span>1<sup>er</sup> quartile</span><strong>${formater(quartiles.q1, "EUR", true)}</strong></li>
       <li><span>Médiane</span><strong>${formater(quartiles.mediane, "EUR", true)}</strong></li>
       <li><span>3<sup>e</sup> quartile</span><strong>${formater(quartiles.q3, "EUR", true)}</strong></li>
-      <li><span>Cette commune</span><strong>${formater(valeurParHabitant, "EUR", true)}</strong></li>
+      <li class="quartiles__ici"><span>Ici</span><strong>${formater(valeurParHabitant, "EUR", true)}</strong></li>
     </ul>
-    <p class="avertissement">Groupe constitué sur des critères publiés par l'Observatoire
-      des finances locales — ${echapper(description)} — et non sur un découpage propre à ce
-      site. <strong>Une position basse ne signifie pas une meilleure gestion.</strong> Le
-      premier facteur d'écart est l'intercommunalité : dans une métropole intégrée, la
-      voirie, les déchets ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent
-      pas dans le budget communal. Les compétences exercées, la géographie et les choix
-      politiques diffèrent d'une commune à l'autre.</p>
-  </details>`;
+    <details class="repli repli--position">
+      <summary>Ce que cette comparaison ne dit pas</summary>
+      <p class="avertissement">Groupe constitué sur des critères publiés par l'Observatoire
+        des finances locales — ${echapper(description)} — et non sur un découpage propre à ce
+        site. <strong>Une position basse ne signifie pas une meilleure gestion.</strong> Le
+        premier facteur d'écart est l'intercommunalité : dans une métropole intégrée, la
+        voirie, les déchets ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent
+        pas dans le budget communal. Les compétences exercées, la géographie et les choix
+        politiques diffèrent d'une commune à l'autre.</p>
+    </details>
+  </section>`;
 }

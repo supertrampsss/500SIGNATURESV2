@@ -740,6 +740,13 @@ function brancherCommandes(): void {
   // Le panneau est la seule commande : cliquer une ligne porte son indicateur
   // sur la carte.
   const surLigne = (evenement: Event) => {
+    // Le sommaire d'abord : une pastille de thème est aussi un bouton, mais
+    // elle ne porte rien sur la carte — elle y mène dans le panneau.
+    const pastille = (evenement.target as HTMLElement).closest<HTMLElement>("[data-ancre]");
+    if (pastille?.dataset.ancre) {
+      document.getElementById(pastille.dataset.ancre)?.scrollIntoView({ block: "start" });
+      return;
+    }
     const ligne = (evenement.target as HTMLElement).closest<HTMLElement>("[data-indicateur]");
     if (ligne?.dataset.indicateur) void choisirIndicateur(ligne.dataset.indicateur);
   };
