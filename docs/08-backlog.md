@@ -245,10 +245,23 @@
 >
 > Reste côté propriétaire : une clé INSEE pour la partie Sirene de T-08.
 >
-> **Prochaine étape** : sécurité communale sur les 16 classes, APL des autres
-> professions de santé, finances communales depuis 2018 (promesse D6),
-> effectifs d'élèves — puis les pages narratives des décryptages (dette,
-> inflation, croissance, chômage).
+> **3 août 2026 — le plan d'ingestion devient un document.** Le commanditaire
+> demande si « tout le reste » est prévu : la réponse honnête tient dans
+> `docs/11-plan-ingestion.md`. L'API Melodi de l'INSEE expose 144 jeux, dont
+> plusieurs pèsent seuls plus que la base entière (33 millions d'observations
+> pour les migrations résidentielles croisées âge × nationalité). La règle est
+> donc écrite : d'un jeu, on charge les indicateurs agrégés à la maille du
+> territoire, jamais les croisements détaillés — « décès par commune et par
+> an » (35 000 lignes) plutôt que « décès × âge × sexe × mois » (millions).
+> Quatorze jeux sont priorisés P0/P1 avec leur volume estimé, les séries non
+> cartographiables vont à l'onglet « Statistiques et études ». P0 complet pèse
+> 50 à 60 Mo : il ne rentre pas sous le plafond actuel, l'arbitrage est posé
+> en D6quater.
+>
+> **Prochaine étape** : réactivation Supabase (propriétaire), puis dans
+> l'ordre — rétablissement, sécurité 16 classes, démographie INSEE (décès,
+> familles, logement, équipements), APL des autres professions, finances
+> communales depuis 2018, puis les pages narratives des décryptages.
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /
