@@ -291,6 +291,7 @@ async function peindre(): Promise<void> {
 
   majLegende(echelle, parHabitant);
   majTableau(valeurs, parHabitant);
+  planifierEtiquettes();
   // L'analyse prolonge la carte : elle suit l'indicateur et le niveau choisis.
   if (!$("volet-analyse").hidden) {
     if (modeAnalyse === "matrice") void majMatrice();
@@ -372,13 +373,134 @@ function majPalmares(): void {
   );
 }
 
+/* ------------------------------------------------------------------ *
+ * Étiquettes des territoires : nos noms, en français, sans survol.     *
+ * ------------------------------------------------------------------ */
+
+/** Le fond de carte tiers n'écrit ses noms qu'à partir du zoom 8 — et en
+ *  anglais en dessous, d'où le bridage. Résultat : la France entière était
+ *  muette, on devait survoler chaque forme pour savoir ce qu'on regardait.
+ *  Ces étiquettes-ci viennent de NOS tuiles : noms français du référentiel,
+ *  posés au centre de chaque territoire visible.
+ *
+ *  Elles sont en HTML plutôt qu'en couche `symbol` : une couche de symboles
+ *  exigerait un serveur de glyphes externe, quand le DOM nous donne la même
+ *  typographie que le reste du site et se limite au nombre qu'on veut. */
+const ETIQUETTES_MAXIMUM = 70;
+
+let minuteurEtiquettes: number | undefined;
+let essaisEtiquettes = 0;
+
+/** `queryRenderedFeatures` ne voit que ce qui est **dessiné** : appelée dès
+ *  la source chargée, elle renvoie zéro. On diffère donc la pose, et on
+ *  réessaie tant que rien n'est trouvé — trois fois, pas plus : une carte
+ *  vraiment vide (aucune tuile sur l'écran) ne doit pas boucler. */
+function planifierEtiquettes(reinitialiser = true): void {
+  if (reinitialiser) essaisEtiquettes = 0;
+  window.clearTimeout(minuteurEtiquettes);
+  minuteurEtiquettes = window.setTimeout(majEtiquettes, 260);
+}
+
+function majEtiquettes(): void {
+  const couche = COUCHES[etat.niveau];
+  const calque = $("etiquettes");
+  if (!carte) return;
+  // Les communes sont 34 875 : à leur échelle, le fond de carte écrit déjà
+  // les noms de villes. On n'ajoute les nôtres que sur les mailles lisibles.
+  const trop = etat.niveau === "commune" && carte.getZoom() < 9.5;
+  if (trop) {
+    calque.innerHTML = "";
+    return;
+  }
+  let figures: maplibregl.MapGeoJSONFeature[] = [];
+  try {
+    figures = carte.queryRenderedFeatures({ layers: [`remplissage-${couche}`] });
+  } catch {
+    return; // couche pas encore prête
+  }
+  if (!figures.length && essaisEtiquettes < 3) {
+    essaisEtiquettes += 1;
+    planifierEtiquettes(false);
+    return;
+  }
+  // Un territoire est découpé entre plusieurs tuiles : on réunit ses morceaux
+  // pour placer une seule étiquette, au centre de son étendue visible.
+  const etendues = new Map<string, { nom: string; xMin: number; xMax: number; yMin: number; yMax: number }>();
+  for (const figure of figures) {
+    const code = figure.properties?.code as string | undefined;
+    if (!code) continue;
+    // Les tuiles portent le code là où l'on attendait le libellé (« 28 » pour
+    // la Normandie) : le nom vient du référentiel déjà chargé.
+    const nom = entites[code]?.nom ?? (figure.properties?.nom as string | undefined);
+    if (!nom || nom === code) continue;
+    const anneaux =
+      figure.geometry.type === "Polygon"
+        ? figure.geometry.coordinates
+        : figure.geometry.type === "MultiPolygon"
+          ? figure.geometry.coordinates.flat()
+          : [];
+    for (const anneau of anneaux) {
+      for (const [lng, lat] of anneau as [number, number][]) {
+        const point = carte.project([lng, lat]);
+        const actuel = etendues.get(code);
+        if (!actuel) {
+          etendues.set(code, { nom, xMin: point.x, xMax: point.x, yMin: point.y, yMax: point.y });
+        } else {
+          actuel.xMin = Math.min(actuel.xMin, point.x);
+          actuel.xMax = Math.max(actuel.xMax, point.x);
+          actuel.yMin = Math.min(actuel.yMin, point.y);
+          actuel.yMax = Math.max(actuel.yMax, point.y);
+        }
+      }
+    }
+  }
+  const cadre = $("carte").getBoundingClientRect();
+  const marges = paddingCarte();
+  // Les plus grands d'abord : quand deux noms se disputent la place, c'est
+  // le territoire le plus visible qui garde le sien.
+  const candidats = [...etendues.values()]
+    .map((e) => ({
+      nom: e.nom,
+      x: (e.xMin + e.xMax) / 2,
+      y: (e.yMin + e.yMax) / 2,
+      taille: (e.xMax - e.xMin) * (e.yMax - e.yMin),
+      largeur: e.xMax - e.xMin,
+    }))
+    .filter(
+      (c) =>
+        c.x > marges.left && c.x < cadre.width - marges.right &&
+        c.y > marges.top && c.y < cadre.height - marges.bottom &&
+        // un territoire réduit à quelques pixels ne porte pas son nom
+        c.largeur > 34,
+    )
+    .sort((a, b) => b.taille - a.taille)
+    .slice(0, ETIQUETTES_MAXIMUM);
+
+  const poses: { x: number; y: number; demiLargeur: number }[] = [];
+  const html: string[] = [];
+  for (const c of candidats) {
+    const demiLargeur = Math.min(c.nom.length * 3.4 + 6, 70);
+    const chevauche = poses.some(
+      (p) => Math.abs(p.x - c.x) < p.demiLargeur + demiLargeur && Math.abs(p.y - c.y) < 15,
+    );
+    if (chevauche) continue;
+    poses.push({ x: c.x, y: c.y, demiLargeur });
+    html.push(
+      `<span class="etiquette" style="left:${c.x.toFixed(0)}px;top:${c.y.toFixed(0)}px">${
+        c.nom.replace(/[&<>]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[ch] as string)
+      }</span>`,
+    );
+  }
+  calque.innerHTML = html.join("");
+}
+
 /** Marges de cadrage : les surcouches (commandes à gauche, panneau à droite)
  *  recouvrent la carte — un cadrage qui les ignore cacherait la Bretagne
  *  derrière un formulaire. */
 function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
   const large = window.innerWidth > 960;
   return large
-    ? { top: 40, bottom: 96, left: 320, right: Math.min(420, window.innerWidth * 0.32) }
+    ? { top: 40, bottom: 96, left: 24, right: Math.min(430, window.innerWidth * 0.32) }
     : { top: 128, bottom: 96, left: 16, right: 16 };
 }
 
@@ -1322,6 +1444,13 @@ async function demarrer(): Promise<void> {
     }
   });
 
+  // Les étiquettes suivent le mouvement : elles sont posées en pixels.
+  carte.on("moveend", majEtiquettes);
+  carte.on("zoomend", majEtiquettes);
+  // `idle` couvre le premier rendu : peindre() s'exécute avant que les tuiles
+  // ne soient dessinées, et rien ne rappelait la pose des étiquettes.
+  carte.on("idle", majEtiquettes);
+
   carte.on("zoomend", () => {
     if (!etat.niveauAuto) return;
     const voulu = niveauPourZoom(carte.getZoom());
@@ -1334,7 +1463,10 @@ async function demarrer(): Promise<void> {
   });
   // Poignée de diagnostic pour la vérification-écran automatisée : elle lit
   // l'état réel des couches au lieu de le déduire des pixels.
-  Object.assign(window as object, { __carte: carte });
+  Object.assign(window as object, {
+    __carte: carte,
+    __diag: () => ({ entites: Object.keys(entites).length, un: entites["28"], niveau: etat.niveau }),
+  });
 
   const infobulle = $("infobulle");
   const eteindreSurvol = () => {

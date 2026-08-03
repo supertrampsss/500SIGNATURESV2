@@ -2217,3 +2217,66 @@ body[data-vue="carte"] .pied {
 .mesure--compacte[data-indicateur]:focus-visible {
   background: var(--papier-creuse);
 }
+
+
+/* Chaque mesure est complète : son titre est le bouton qui la porte sur la
+   carte, et celle qui y est déjà se signale. */
+.mesure {
+  border-top: 1px solid var(--trait);
+  padding-top: 0.7rem;
+  margin-top: 0.7rem;
+}
+.mesure__titre {
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--encre-douce);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  border-bottom: 1px dotted transparent;
+}
+.mesure__titre:hover {
+  color: var(--encre);
+  border-bottom-color: var(--trait-fort);
+}
+.mesure__marque {
+  margin-left: 0.4rem;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--argile);
+  border: 1px solid var(--argile);
+  border-radius: 999px;
+  padding: 0.05rem 0.4rem;
+  vertical-align: 0.1rem;
+}
+.mesure--carte {
+  background: rgb(197 106 77 / 0.04);
+  border-radius: var(--rayon-s);
+  padding: 0.7rem 0.55rem 0.5rem;
+  margin: 0.7rem -0.55rem;
+  border-top: 0;
+}
+
+
+/* Les noms des territoires, posés sur la carte — nos noms, en français,
+   lisibles sans survol. Halo blanc pour tenir sur n'importe quelle teinte. */
+.etiquettes {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  overflow: hidden;
+}
+.etiquette {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--encre);
+  white-space: nowrap;
+  text-shadow:
+    0 0 3px #fff, 0 0 3px #fff, 0 0 5px #fff, 0 1px 2px rgb(255 255 255 / 0.9);
+}

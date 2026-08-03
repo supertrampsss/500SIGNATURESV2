@@ -29,36 +29,26 @@ function ligneIndicateur(
   parHabitant: boolean,
   niveau: string,
   toutesReferences: References | null,
-  principale = true,
+  /** Cet indicateur est celui peint sur la carte : il porte en plus le rang
+   *  du territoire dans la couche (le seul KPI qui suppose la couche
+   *  chargée) et se signale d'un mot. */
+  surCarte = false,
   rang?: { position: number; total: number },
 ): string {
   const serie = territoire.series[indicateur.id];
   const brut = serie?.[periode];
   if (brut === undefined) {
-    // En ligne secondaire, une phrase par absence ferait plus de bruit que de
-    // sens : un tiret dit la même chose, l'infobulle précise.
-    return principale
-      ? `<div class="mesure mesure--absente">
-      <dt>${echapper(indicateur.libelle)}</dt>
+    return `<div class="mesure mesure--absente">
+      <dt>${titreMesure(indicateur, surCarte)}</dt>
       <dd>Donnée non disponible pour ${periode}</dd>
-    </div>`
-      : `<div class="mesure mesure--compacte mesure--absente">
-      <dt>${echapper(indicateur.libelle)}</dt>
-      <dd title="Donnée non disponible pour ${periode}">—</dd>
     </div>`;
   }
   const denom = populationDeReference(territoire, periode);
   const ratio = parHabitant && parHabitantAUnSens(indicateur);
   if (ratio && !denom.valeur) {
-    return principale
-      ? `<div class="mesure mesure--absente">
-      <dt>${echapper(indicateur.libelle)}</dt>
+    return `<div class="mesure mesure--absente">
+      <dt>${titreMesure(indicateur, surCarte)}</dt>
       <dd>Population inconnue : le montant par habitant n'est pas calculable</dd>
-    </div>`
-      : `<div class="mesure mesure--compacte mesure--absente" data-indicateur="${indicateur.id}"
-      role="button" tabindex="0" title="Afficher sur la carte">
-      <dt>${echapper(indicateur.libelle)}</dt>
-      <dd title="Population inconnue : montant par habitant non calculable">—</dd>
     </div>`;
   }
   const valeur = ratio ? brut / (denom.valeur as number) : brut;
@@ -91,22 +81,6 @@ function ligneIndicateur(
   // se coupe pas à la fusion : ses valeurs anciennes portent déjà sur le
   // territoire actuel. Lui signaler une rupture déclarerait incomparable une
   // série qui ne l'est pas — c'est le cas des populations légales de l'INSEE.
-  const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
-  // Une seule mesure porte la panoplie complète (courbe, repères,
-  // dénominateur) : celle que la carte affiche. Les autres se lisent d'une
-  // ligne — le mur de blocs identiques empêchait de trouver le chiffre.
-  if (!principale) {
-    return `<div class="mesure mesure--compacte" data-indicateur="${indicateur.id}"
-    role="button" tabindex="0" title="Afficher sur la carte">
-    <dt>${echapper(indicateur.libelle)}</dt>
-    <dd><strong>${formater(valeur, indicateur.unite, ratio)}</strong>${evolution(
-      suivie,
-      periode,
-      evenements,
-      true,
-    )}</dd>
-  </div>`;
-  }
   // L'autre lecture du même chiffre, en petit : le par-habitant montre le
   // total, le total montre le par-habitant. Deux regards, une seule donnée.
   const autreLecture =
@@ -121,8 +95,9 @@ function ligneIndicateur(
             )} par habitant</span>`
           : ""
       : "";
-  return `<div class="mesure">
-    <dt>${echapper(indicateur.libelle)}</dt>
+  const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
+  return `<div class="mesure${surCarte ? " mesure--carte" : ""}">
+    <dt>${titreMesure(indicateur, surCarte)}</dt>
     <dd>
       <strong${infoDenominateur}>${formater(valeur, indicateur.unite, ratio)}</strong>${
         ratio ? `<span class="par-quoi">par habitant</span>` : ""
@@ -155,6 +130,16 @@ function ligneIndicateur(
       )}
     </dd>
   </div>`;
+}
+
+/** Le titre d'une mesure : cliquable pour la porter sur la carte, et marqué
+ *  quand elle y est déjà. Chaque mesure est complète — même valeur, mêmes
+ *  courbes, même tableau : ce qui vaut pour la première vaut pour toutes. */
+function titreMesure(indicateur: Indicateur, surCarte: boolean): string {
+  return `<button type="button" class="mesure__titre" data-indicateur="${indicateur.id}"
+    title="Afficher sur la carte">${echapper(indicateur.libelle)}</button>${
+    surCarte ? `<span class="mesure__marque">sur la carte</span>` : ""
+  }`;
 }
 
 /** Croissance annuelle moyenne, en % par an — ce qu'une évolution brute sur
@@ -367,7 +352,7 @@ export function afficherFiche(
           ${liste
             .map((indicateur) =>
               ligneIndicateur(
-                indicateur, territoire, periode, parHabitant, niveau, references, false,
+                indicateur, territoire, periode, parHabitant, niveau, references,
               ),
             )
             .join("")}
