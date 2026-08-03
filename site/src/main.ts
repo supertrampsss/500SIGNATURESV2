@@ -110,6 +110,8 @@ let reperes: import("./reference.ts").References | null = null;
  *  survol et le palmarès lisent la même table que la couleur — jamais un
  *  recalcul parallèle qui pourrait diverger de la carte. */
 let affichees: Record<string, number> = {};
+/** Montants bruts de la couche : l'infobulle montre les deux lectures. */
+let brutes: Record<string, number> = {};
 let parHabitantAffiche = false;
 let survole: string | null = null;
 /** Ce que le bouton d'export téléchargera : toutes les lignes de la couche
@@ -280,6 +282,7 @@ async function peindre(): Promise<void> {
       .filter(([, v]) => Number.isFinite(v as number)),
   ) as Record<string, number>;
   parHabitantAffiche = parHabitant;
+  brutes = valeurs;
   majPalmares();
 
   if (etat.selection) {
@@ -324,13 +327,12 @@ function majPalmares(): void {
     `<li><button type="button" data-code="${code}"><span>${nomDe(code)}</span>
       <strong>${formater(valeur, indicateur.unite, parHabitantAffiche)}</strong></button></li>`;
   bloc.innerHTML = `
-    <h3 class="palmares__titre">Repères de la couche</h3>
-    <p class="palmares__quoi">${indicateur.libelle} — ${etat.periode}${
+    <h3 class="palmares__titre" title="${indicateur.libelle} — ${etat.periode}${
       parHabitantAffiche ? ", par habitant" : ""
-    }</p>
-    <p class="palmares__borne">Valeurs les plus hautes</p>
+    }">Extrêmes de la couche</h3>
+    <p class="palmares__borne">Les plus hautes</p>
     <ol class="palmares__liste">${tri.slice(0, 5).map(ligne).join("")}</ol>
-    <p class="palmares__borne">Valeurs les plus basses</p>
+    <p class="palmares__borne">Les plus basses</p>
     <ol class="palmares__liste">${tri.slice(-5).reverse().map(ligne).join("")}</ol>`;
   bloc.hidden = false;
   bloc.querySelectorAll<HTMLButtonElement>("button[data-code]").forEach((b) =>
@@ -826,10 +828,25 @@ async function demarrer(): Promise<void> {
         carte.getCanvas().style.cursor = "pointer";
         const nom = (figure?.properties?.nom as string | undefined) ?? entites[code]?.nom ?? code;
         const valeur = affichees[code];
+        const indicateur = indicateurCourant();
+        // Les deux lectures d'un montant : celle de la carte en premier,
+        // l'autre en dessous, plus discrète.
+        const autre =
+          valeur !== undefined && indicateur.unite === "EUR" && parHabitantAUnSens(indicateur)
+            ? parHabitantAffiche
+              ? `<span class="infobulle__autre">${formater(brutes[code], "EUR", false)} au total</span>`
+              : populations[code]
+                ? `<span class="infobulle__autre">${formater(
+                    brutes[code] / populations[code],
+                    "EUR",
+                    true,
+                  )} par habitant</span>`
+                : ""
+            : "";
         infobulle.innerHTML = `<strong>${nom}</strong>${
           valeur === undefined
             ? `<span>donnée non disponible</span>`
-            : `<span>${formater(valeur, indicateurCourant().unite, parHabitantAffiche)}</span>`
+            : `<span>${formater(valeur, indicateur.unite, parHabitantAffiche)}</span>${autre}`
         }`;
         infobulle.hidden = false;
         const cadre = $("carte").getBoundingClientRect();

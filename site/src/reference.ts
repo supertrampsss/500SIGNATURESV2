@@ -159,9 +159,11 @@ export function rendu(
           : ` <span class="repere__ecart">${signe}${new Intl.NumberFormat("fr-FR", {
               maximumFractionDigits: 0,
             }).format(ecart)} %</span>`;
-      // Le nombre de territoires dit ce que vaut le repère : une médiane sur
-      // 31 pays et une médiane sur 3 ne se lisent pas de la même façon.
-      return `<li><span>${echapper(r.libelle)} <span class="repere__n">(${r.n})</span></span>
+      // Le nombre de territoires dit ce que vaut le repère — il reste dit,
+      // mais en infobulle : « (4013) » sur chaque ligne était du bruit.
+      return `<li title="Médiane calculée sur ${r.n} territoires"><span>${echapper(
+        r.libelle,
+      )}</span>
         <span>${echapper(formater(r.valeur))}${chiffre}</span></li>`;
     })
     .join("");

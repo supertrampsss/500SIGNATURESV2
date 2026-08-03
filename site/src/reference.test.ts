@@ -86,10 +86,12 @@ test("l'écart au repère est affiché, avec son signe", () => {
 
 test("la note n'est pas répétée sous chaque indicateur", () => {
   // Sept indicateurs sur une fiche, c'est sept fois la même phrase. Elle est
-  // dite une fois, dans le panneau de comparabilité.
+  // dite une fois, dans le panneau de comparabilité. Le texte visible est
+  // jugé hors infobulles (title) : une infobulle n'est pas une répétition.
   const html = rendu(reperes(EUROS, "commune", "75", true), 871, String);
-  assert.doesNotMatch(html, /médiane|moitié/i);
-  assert.match(html, /Communes de la région/);
+  const visible = html.replace(/title="[^"]*"/g, "");
+  assert.doesNotMatch(visible, /médiane|moitié/i);
+  assert.match(visible, /Communes de la région/);
 });
 
 test("une publication sans médiane par habitant ne sert pas la médiane brute", () => {
@@ -133,9 +135,11 @@ test("un repère d'un seul territoire est la France comparée à elle-même", ()
   assert.deepEqual(reperes(seul, "pays", null, false), []);
 });
 
-test("le nombre de territoires comparés est affiché", () => {
+test("le nombre de territoires comparés reste dit, en infobulle", () => {
   // Une médiane sur 31 pays et une médiane sur 3 ne se lisent pas pareil.
+  // Le nombre vivait entre parenthèses sur chaque ligne — du bruit ; il est
+  // désormais dit au survol, mais toujours dit.
   const html = rendu(reperes(EUROS, "commune", "75", true), 871, String);
-  assert.match(html, /\(1200\)/);
-  assert.match(html, /\(34772\)/);
+  assert.match(html, /Médiane calculée sur 1200 territoires/);
+  assert.match(html, /Médiane calculée sur 34772 territoires/);
 });

@@ -219,5 +219,12 @@ export function formater(valeur: number, unite: string, parHabitant: boolean): s
       valeur / 1e6,
     )} M€`;
   }
+  // Le budget d'une petite commune se lit en k€ : « 195 924 € » est exact
+  // et illisible, « 196 k€ » se compare d'un coup d'œil.
+  if (!parHabitant && Math.abs(valeur) >= 1e4) {
+    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
+      valeur / 1e3,
+    )} k€`;
+  }
   return new Intl.NumberFormat("fr-FR", options).format(valeur);
 }

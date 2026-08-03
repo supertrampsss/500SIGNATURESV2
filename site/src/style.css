@@ -1442,3 +1442,18 @@ tbody tr:hover {
   color: var(--encre-douce);
   font-size: 0.85rem;
 }
+
+
+/* La seconde lecture d'un montant (total <-> par habitant) : présente,
+   jamais concurrente du chiffre principal. */
+.mesure__autre {
+  display: block;
+  color: var(--encre-douce);
+  font-size: 0.82rem;
+  margin-top: 0.05rem;
+}
+.infobulle__autre {
+  display: block;
+  font-size: 0.72rem;
+  opacity: 0.75;
+}

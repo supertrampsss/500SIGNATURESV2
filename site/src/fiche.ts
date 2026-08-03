@@ -98,11 +98,26 @@ function ligneIndicateur(
       ${evolution(suivie, periode, evenements)}</dd>
   </div>`;
   }
+  // L'autre lecture du même chiffre, en petit : le par-habitant montre le
+  // total, le total montre le par-habitant. Deux regards, une seule donnée.
+  const autreLecture =
+    indicateur.unite === "EUR" && parHabitantAUnSens(indicateur)
+      ? ratio
+        ? `<span class="mesure__autre">soit ${formater(brut, "EUR", false)} au total</span>`
+        : denom.valeur
+          ? `<span class="mesure__autre">soit ${formater(
+              brut / denom.valeur,
+              "EUR",
+              true,
+            )} par habitant</span>`
+          : ""
+      : "";
   return `<div class="mesure">
     <dt>${echapper(indicateur.libelle)}</dt>
     <dd>
       <strong>${formater(valeur, indicateur.unite, ratio)}</strong>
       <span class="millesime">${periode}</span>
+      ${autreLecture}
       ${denominateur}
       ${evolution(suivie, periode, evenements)}
       ${rendreSerie(suivie, evenements, (v) => formater(v, indicateur.unite, ratio))}
@@ -223,11 +238,11 @@ export function afficherFiche(
     .join("");
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
-    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau} · code ${echapper(options.code)}${
+    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau} ${echapper(options.code)}${
       territoire.population
-        ? ` · ${new Intl.NumberFormat("fr-FR").format(
-            territoire.population,
-          )} habitants <abbr title="Population municipale au sens du recensement de l'INSEE. Les montants par habitant utilisent, eux, la population de référence de l'OFGL de l'exercice concerné : deux définitions et deux millésimes différents, d'où deux nombres.">(population légale)</abbr>`
+        ? ` · <abbr title="Population municipale (légale) au sens du recensement de l'INSEE. Les montants par habitant utilisent, eux, la population de référence de l'OFGL de l'exercice concerné : deux définitions, deux millésimes, deux nombres.">${new Intl.NumberFormat(
+            "fr-FR",
+          ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
     ${
