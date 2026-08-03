@@ -804,6 +804,11 @@ function construireSelecteurs(): void {
 async function choisirIndicateur(id: string): Promise<void> {
   const choisi = catalogue.find((i) => i.id === id);
   if (!choisi) return;
+  // Un indicateur qui n'existe pas à la maille affichée ne se peint pas : les
+  // séries nationales — budget de l'État, dette — n'ont pas de valeur par
+  // commune. Sa fiche s'ouvre quand même, la carte reste sur ce qu'elle sait
+  // montrer plutôt que de se vider.
+  if (!choisi.niveaux?.includes(etat.niveau)) return;
   // Changer de thème remet l'année à la plus récente : un thème au millésime
   // court y laissait sinon le lecteur sans un mot.
   if (choisi.theme !== etat.theme) etat.periode = "";
@@ -844,6 +849,17 @@ function brancherCommandes(): void {
         section.hidden = section.dataset.theme !== voulu;
       }
       onglet.scrollIntoView({ block: "nearest", inline: "center" });
+      return;
+    }
+    // Ouvrir une mesure la porte sur la carte : le geste qui demande le détail
+    // est le même que celui qui veut la voir peinte. Un bouton séparé faisait
+    // deux clics pour une seule intention.
+    const mesure = (evenement.target as HTMLElement).closest<HTMLElement>("[data-mesure]");
+    if (mesure?.dataset.mesure) {
+      // Refermer une mesure ne repeint rien : on ne change la carte qu'en
+      // ouvrant, sinon un simple repli relancerait tout le rendu.
+      if ((mesure as HTMLDetailsElement).open) return;
+      void choisirIndicateur(mesure.dataset.mesure);
       return;
     }
     const ligne = (evenement.target as HTMLElement).closest<HTMLElement>("[data-indicateur]");
