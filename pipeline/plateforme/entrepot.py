@@ -355,7 +355,16 @@ def copier(
     est effacé dès qu'il est lu.
     """
     entete = f"copy {table} ({', '.join(colonnes)}) from '%s'"
-    options = " (format csv, header false, allow_quoted_nulls false)"
+    # `auto_detect false` : sans lui, DuckDB *devine* les types depuis les
+    # premières lignes et refuse le chargement quand sa devinette diffère de la
+    # table — une période « 2024 » quotée prise pour un entier, une liste vide
+    # prise pour du texte, un identifiant de run pris pour du texte plutôt qu'un
+    # UUID. Les types de la table cible sont la vérité ; le dialecte est le
+    # nôtre, on le déclare plutôt que de le laisser renifler.
+    options = (
+        " (format csv, header false, auto_detect false, delimiter ',',"
+        " quote '\"', escape '\"', allow_quoted_nulls false)"
+    )
 
     def vider(tampon: list[str]) -> None:
         with tempfile.NamedTemporaryFile(

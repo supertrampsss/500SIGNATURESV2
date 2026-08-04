@@ -458,3 +458,50 @@ def test_copier_refuse_un_guillemet_dans_une_liste_plutot_que_de_le_perdre(tmp_p
     with pytest.raises(ValueError, match="guillemet dans un élément de liste"):
         entrepot.copier(conn, "t", ["drapeaux"], [(['avec "guillemets"'],)])
     conn.close()
+
+
+def test_copier_ecrit_dans_la_vraie_table_des_observations(tmp_path):
+    """Les premiers tests de `copier` employaient une table jouet aux types
+    simples, et laissaient passer le défaut qui compte : DuckDB *devine* les
+    types du CSV depuis ses premières lignes et refuse le chargement quand sa
+    devinette diffère de la table. Une période « 2024 » quotée prise pour un
+    entier, une liste vide prise pour du texte, un identifiant de run pris pour
+    du texte plutôt qu'un UUID — trois désaccords sur `core.observations`, la
+    table la plus écrite du pipeline. Il faut donc l'écrire, elle."""
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        conn.execute(
+            "insert into geo.geography_reference (geo_level, geo_code, vintage, name)"
+            " values ('commune', '33063', 2026, 'Bordeaux')"
+        )
+        run_id = entrepot.start_run(conn, "ofgl-communes")
+        conn.commit()
+        lignes = [
+            ("insee_deces_domicilies", "commune", "33063", 2026, str(2000 + a),
+             float(a), ["inclut_une_commune_rattachee"] if a % 3 == 0 else [], run_id)
+            for a in range(1000)
+        ]
+        ecrites = entrepot.copier(
+            conn, "core.observations",
+            ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period", "value",
+             "quality_flags", "run_id"],
+            lignes,
+        )
+        assert ecrites == 1000
+        (compte,) = conn.execute("select count(*) from core.observations").fetchone()
+        assert compte == 1000
+        # La période reste du texte : « 2000 », pas 2000.
+        (periode,) = conn.execute(
+            "select period from core.observations order by period limit 1"
+        ).fetchone()
+        assert periode == "2000"
+        # Les drapeaux restent une liste, et seuls ceux qui en portaient en ont.
+        (avec,) = conn.execute(
+            "select count(*) from core.observations where len(quality_flags) > 0"
+        ).fetchone()
+        assert avec == len([a for a in range(1000) if a % 3 == 0])
+        # Le run_id reste un UUID, pas une chaîne.
+        (relu,) = conn.execute("select run_id from core.observations limit 1").fetchone()
+        assert str(relu) == str(run_id)
+    finally:
+        conn.close()

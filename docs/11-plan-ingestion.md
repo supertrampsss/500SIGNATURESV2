@@ -47,13 +47,30 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 
 | # | Jeu | Ce qu'on en tire | Maille | Volume estimé |
 |---|---|---|---|---|
-| 1 | `DS_ETAT_CIVIL_DECES_COMMUNES` | décès domiciliés par an | commune | ~4 Mo/millésime |
+| ~~1~~ | ~~`DS_ETAT_CIVIL_DECES_COMMUNES`~~ | **chargé le 4 août** — 652 211 observations, 2008-2025, quatre mailles | commune | 3 Mo |
 | 2 | `DS_RP_POPULATION_COMP` | évolution et structure de la population (indicateurs principaux) | commune | ~12 Mo |
 | 3 | `DS_RP_LOGEMENT_PRINC` | logements, résidences principales, vacance | commune | ~12 Mo |
 | 4 | `DS_RP_FAMILLE_COMP` | composition des familles | commune | ~8 Mo |
 | 5 | `DS_BPE` | équipements : commerces, sport, santé, services | commune | ~12 Mo |
 | 6 | `DS_SIDE_CREA_ENT_COM` | créations d'entreprises | commune | ~4 Mo |
 | 7 | `DS_MAR_PACS_DIV_SERIES` | mariages, PACS, divorces | national/région | < 1 Mo |
+
+**Décès domiciliés — chargé le 4 août.** Deux pièges, tous deux tranchés à la
+source plutôt qu'au jugé. L'INSEE publie les décès *survenus* et les décès
+*domiciliés* ; les premiers font exploser le chiffre des communes qui ont un
+hôpital et ne disent rien du territoire. C'est le `scopeNote` du jeu qui
+tranche : « les totaux France diffusés ici correspondent aux décès enregistrés
+en France et domiciliés en France ». Et deux statuts de la source, `K` et `W`,
+marquent une commune déléguée dont les décès sont comptés dans sa commune
+nouvelle. Les écarter, comme un premier jet le faisait, faisait tomber la somme
+des communes sous le total France de exactement ce qu'ils portaient — 140 décès
+en 2017, 98 en 2023. Ils sont donc chargés, et signalés : leur valeur couvre
+plus de territoire que la commune seule, alors que sa population ne couvre
+qu'elle.
+
+Le contrôle bloquant du connecteur est cette identité : somme des communes égale
+total France, exercice par exercice. Vérifiée au chargement réel sur les douze
+exercices que la source totalise, à l'unité près.
 
 ### P0 bis — combler les indicateurs sans comparaison
 
