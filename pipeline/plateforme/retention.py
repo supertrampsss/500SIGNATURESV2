@@ -11,7 +11,7 @@ communal pèse environ 87 Mo, index compris. Le 2 août 2026, sur l'annonce d'un
 passage au plan payant, la borne est descendue à 2018 (D6ter) : le
 rechargement a rempli la base jusqu'à ce que Supabase la passe en **lecture
 seule** — le disque réel était resté à 500 Mo. La borne est revenue à 2022 le
-jour même (D6quater), et `retablissement.py` a retiré ce que l'incident avait
+jour même (D6quater), et un job de rétablissement a retiré ce que l'incident avait
 chargé. Elle redescendra à 2018 sur un constat de disque élargi, pas sur une
 déclaration.
 
@@ -49,7 +49,7 @@ def a_supprimer(conn) -> dict[str, list[str]]:
                 "select distinct period from core.observations"
                 " where geo_level = ? order by 1",
                 (niveau,),
-            )
+            ).fetchall()
         ]
         vieux = [p for p in periodes if p < premier]
         restants = len(periodes) - len(vieux)

@@ -1,3 +1,12 @@
+> **Obsolète depuis le 04/08/2026 (D6quinquies).** L'entrepôt n'est plus une base
+> Supabase mais un fichier DuckDB versionné dans le bucket R2 `plateforme-raw`.
+> Il n'y a plus de projet à créer, de migration à appliquer, de mot de passe à
+> faire tourner ni de base à réveiller : `python -m plateforme.entrepot telecharger`
+> le rapatrie, `... televerser` le renvoie, et `infra/entrepot/schema.sql`
+> s'applique tout seul à l'ouverture. Les seuls secrets encore nécessaires sont
+> ceux de Cloudflare R2. Ce qui suit est conservé pour l'histoire de
+> l'incident D6quater et n'a plus d'usage opératoire.
+
 # SETUP — actions à réaliser par le propriétaire du dépôt
 
 Ce guide couvre les tickets **T-02** (Cloudflare) et **T-03** (Supabase) du
@@ -25,8 +34,8 @@ Procédure d'origine (conservée pour re-créer un environnement de zéro) :
 
    ```bash
    export SUPABASE_DB_URL='postgresql://postgres:...@...supabase.com:5432/postgres'
-   for f in infra/supabase/migrations/*.sql; do psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$f"; done
-   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f infra/supabase/seed/load_seed.sql
+   for f in infra/postgres-historique/*.sql; do psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f "$f"; done
+   psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f infra/seed/load_seed.sql
    psql "$SUPABASE_DB_URL" -v ON_ERROR_STOP=1 -f infra/supabase/tests/checks.sql
    ```
 

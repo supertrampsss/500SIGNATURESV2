@@ -56,13 +56,24 @@ jobs:
         # Après la lecture de la requête : c'est elle qui dit si on fait des tuiles.
         if: steps.req.outputs.job == 'geometries'
         run: sudo apt-get install -y -qq tippecanoe
+      # L'entrepôt vit dans le bucket : le runner est éphémère, il le rapatrie
+      # avant d'écrire et le renvoie après. Sans cet aller-retour, chaque
+      # exécution repartirait d'un entrepôt vide et republierait un catalogue
+      # amputé. C'est aussi la sauvegarde : le bucket versionne le fichier.
+      - name: Rapatrier l'entrepôt
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+        run: python -m plateforme.entrepot telecharger
       - name: Sync source registry
         env:
-          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
         run: python -m plateforme.registry
       - name: Run ingestion
         env:
-          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
@@ -173,10 +184,10 @@ jobs:
             exit $?
           fi
           if [ "$JOB" = "retablissement" ]; then
-            # Dépannage après passage en lecture seule (base pleine) : lève la
-            # lecture seule pour la session, applique la rétention, rend
-            # l'espace, republie. Voir plateforme/retablissement.py.
-            python -m plateforme.retablissement
+            # L'entrepôt est un fichier : il n'y a plus de base à sortir de la
+            # lecture seule ni d'espace à rendre avant d'écrire. Le job garde son
+            # nom parce que des requêtes en attente le citent, et se contente de
+            # republier depuis l'entrepôt rapatrié.
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -217,6 +228,16 @@ jobs:
             python -m plateforme.ingest "$DATASET_ID" --store r2:plateforme-raw
           fi
 
+      - name: Renvoyer l'entrepôt au bucket
+        # `always()` : un chargement qui échoue à mi-course a déjà écrit, et
+        # perdre ces écritures obligerait à tout refaire au lieu de reprendre.
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+        run: python -m plateforme.entrepot televerser
+
       - name: Signaler les sources en retard ou en échec
         # Après chaque ingestion, pas seulement au rendez-vous hebdomadaire :
         # « source coupée ⇒ alerte < 24 h » (T-23) se tient d'autant mieux que
@@ -225,5 +246,4 @@ jobs:
         if: always()
         uses: ./.github/actions/alerter
         with:
-          db-url: ${{ secrets.SUPABASE_DB_URL }}
           token: ${{ github.token }}

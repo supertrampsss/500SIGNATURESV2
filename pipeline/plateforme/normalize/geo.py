@@ -218,8 +218,8 @@ def ecrire(conn, territoires: list[dict], evenements: list[dict]) -> tuple[int, 
             insert into geo.geography_reference
                 (geo_level, geo_code, vintage, name, parent_level, parent_code,
                  siren, population, flags)
-            values (%(geo_level)s, %(geo_code)s, %(vintage)s, %(name)s,
-                    %(parent_level)s, %(parent_code)s, %(siren)s, %(population)s, %(flags)s)
+            values ($geo_level, $geo_code, $vintage, $name,
+                    $parent_level, $parent_code, $siren, $population, $flags)
             on conflict (geo_level, geo_code, vintage) do update set
                 name = excluded.name, parent_level = excluded.parent_level,
                 parent_code = excluded.parent_code, siren = excluded.siren,
@@ -240,9 +240,9 @@ def ecrire(conn, territoires: list[dict], evenements: list[dict]) -> tuple[int, 
             insert into geo.geography_history
                 (event_type, event_date, from_level, from_code, from_vintage,
                  to_level, to_code, to_vintage, population_share, source)
-            values (%(event_type)s, %(event_date)s, %(from_level)s, %(from_code)s,
-                    %(from_vintage)s, %(to_level)s, %(to_code)s, %(to_vintage)s,
-                    %(population_share)s, 'COG INSEE — mouvements communaux')
+            values ($event_type, $event_date, $from_level, $from_code,
+                    $from_vintage, $to_level, $to_code, $to_vintage,
+                    $population_share, 'COG INSEE — mouvements communaux')
             """,
             [{"population_share": None, **e} for e in evenements],
         )

@@ -17,7 +17,7 @@ coût, la sécurité ou l'usage. Ce qui n'est pas justifié n'est pas construit.
                 └───────────────┬──────────────────────────────┘
                                 ▼  transformations versionnées (Python, tests)
                 ┌──────────────────────────────────────────────┐
-                │  Supabase PostgreSQL + PostGIS                │
+                │  Entrepôt DuckDB (fichier versionné sur R2)   │
                 │  meta.* (lineage)  geo.*  core.*  fin.*  pub.*│
                 └───────┬──────────────────────────┬───────────┘
                         ▼ exports contrôlés         ▼ (phase 3)
@@ -30,7 +30,10 @@ coût, la sécurité ou l'usage. Ce qui n'est pas justifié n'est pas construit.
 ```
 
 Justifications de stack :
-- **Supabase Postgres+PostGIS** : nécessaire dès le MVP pour (a) l'historisation
+- **Entrepôt DuckDB** (depuis D6quinquies, 04/08/2026 ; Supabase auparavant) :
+  un fichier dans le bucket R2 qui sert déjà les données publiées, rapatrié au
+  début de chaque job et renvoyé à la fin. Le site ne l'interroge jamais — il lit
+  du JSON — donc rien n'exige un serveur allumé. Nécessaire pour (a) l'historisation
   territoriale relationnelle, (b) le lineage requêtable, (c) le comparateur
   (groupes de comparaison = requêtes), (d) préparer API et moteur de questions.
 - **R2** : snapshots immuables (reproductibilité) + hébergement PMTiles ; zéro
@@ -38,9 +41,9 @@ Justifications de stack :
 - **Workers/Queues/Cron** : connecteurs API légers et planification ; les gros
   volumes (Sirene stock, DVF, balances) passent par **GitHub Actions + Python**
   (pas de limite CPU/mémoire des Workers, logs CI natifs, exécution versionnée).
-- **KV/D1** : **non retenus** au MVP — aucun besoin identifié que R2 + Postgres ne
+- **KV/D1** : **non retenus** au MVP — aucun besoin identifié que R2 + l'entrepôt ne
   couvrent (règle : pas de composant sans justification).
-- **Supabase Auth** : non retenu au MVP (aucun compte utilisateur). Introduit en
+- **Authentification** : non retenue au MVP (aucun compte utilisateur). Introduite en
   phase 3 uniquement pour l'espace d'administration/validation humaine.
 
 ## 1. Collecte
@@ -90,7 +93,7 @@ Justifications de stack :
 ## 3. Stockage
 
 - **R2 `raw`** : archives immuables (rétention permanente).
-- **Supabase** : schémas `meta/geo/core/fin/pub` (doc 02). Vues matérialisées
+- **Entrepôt** : schémas `meta/geo/core/fin` (doc 02). Vues matérialisées
   `pub.*` rafraîchies en fin de run (jamais pendant : `REFRESH … CONCURRENTLY`).
 - **Exports publiés** : R2 `published/` + Pages — JSON de fiches territoire,
   séries temporelles par indicateur, index de recherche, et **PMTiles** générés
@@ -106,7 +109,7 @@ Justifications de stack :
 (latence minimale, coût nul, aucune surface d'attaque SQL).
 
 **Phase 3 — API publique versionnée** :
-- Worker « gateway » (`/v1/…`) devant Supabase (PostgREST sur les vues `pub.*`
+- Worker « gateway » (`/v1/…`) devant les fichiers publiés (les vues `pub.*`
   uniquement) — jamais d'accès direct du client à la base.
 - Endpoints : `/v1/indicators`, `/v1/observations` (filtres indicateur/geo/période,
   pagination par curseur), `/v1/territories/{level}/{code}` (fiche),
@@ -156,17 +159,18 @@ Justifications de stack :
 ## 7. Sécurité
 
 - **Secrets** : GitHub Actions Secrets (jobs CI), Cloudflare secrets (Workers),
-  Supabase Vault — jamais en clair dans le repo ; clé INSEE et future clé France
+  les secrets GitHub — jamais en clair dans le repo ; clé INSEE et future clé France
   Travail uniquement côté serveur.
-- **RLS Supabase** : activée partout ; `anon` ne voit que `pub.*` et les
+- **Contrôle d'accès** : sans objet depuis D6quinquies — l'entrepôt n'est pas un
+  service exposé, c'est un fichier privé du bucket. Auparavant : RLS, `anon` ne voyait que `pub.*` et les
   métadonnées publiques ; écriture réservée au rôle de service des pipelines.
-- **Environnements** : `dev` (Supabase branch/local) → `staging` (projet dédié,
+- **Environnements** : `dev` (entrepôt local) → `staging` (bucket dédié,
   données réelles, exports non indexés) → `prod`. Promotion par migration SQL
   versionnée (jamais de DDL manuel en prod).
-- **RBAC & audit** : rôles Postgres distincts (ingestion, refresh, lecture) ;
-  `meta.*` fait office d'audit trail des données ; audit log Supabase pour les
+- **RBAC & audit** : les droits sont ceux du bucket ;
+  `meta.*` fait office d'audit trail des données ; journaux GitHub Actions pour les
   accès admin.
-- **Sauvegardes** : PITR Supabase + dump hebdomadaire chiffré vers R2 ; les
+- **Sauvegardes** : le versionnement du bucket sur le fichier d'entrepôt lui-même ; les
   snapshots raw permettent de reconstruire la base de zéro (testé une fois par
   trimestre — restauration = test d'acceptation).
 - **RGPD** : aucune donnée personnelle d'utilisateur (pas de compte, pas de

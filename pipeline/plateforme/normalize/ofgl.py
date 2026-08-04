@@ -358,7 +358,7 @@ def ecrire(conn, run_id: str, lignes: list[tuple]) -> int:
         cur.execute(
             "delete from core.observations where indicator_id = any(?) and geo_level = any(?)",
             (indicateurs, niveaux),
-        )
+        ).fetchall()
         # Écriture par lots : une seule instruction pour 420 000 lignes dépasse
         # le délai maximum, chaque vérification de clé étrangère prenant un verrou.
         LOT = 100_000

@@ -27,7 +27,7 @@ pytestmark = pytest.mark.skipif(
 def test_ingest_smoke(dataset_id, params, tmp_path, monkeypatch):
     from plateforme.ingest import run
 
-    monkeypatch.setenv("PLATEFORME_DB_URL", tmp_path / "entrepot.duckdb")
+    monkeypatch.setenv("PLATEFORME_ENTREPOT", str(tmp_path / "entrepot.duckdb"))
     assert run(dataset_id, params, str(tmp_path), "manual") == 0
     # Rejouer immédiatement : sources JSON stables => court-circuité (hash identique).
     # BDM insère un horodatage <message:Prepared> dans chaque réponse : nouveau

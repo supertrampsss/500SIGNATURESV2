@@ -45,20 +45,37 @@ def remplacer(
     Retourne ``(écrites, révisées)``. La transaction n'est pas validée ici :
     l'appelant garde la main pour y joindre ses contrôles qualité.
     """
-    filtre_ancien = " and o.geo_level = any(%(niveaux)s)" if niveaux else ""
-    filtre = " and geo_level = any(%(niveaux)s)" if niveaux else ""
-    parametres = {
-        "run": run_id,
-        "indicateurs": list(indicateurs),
-        "niveaux": list(niveaux) if niveaux else None,
-    }
+    filtre_ancien = " and o.geo_level = any($niveaux)" if niveaux else ""
+    filtre = " and geo_level = any($niveaux)" if niveaux else ""
+    # Un paramètre nommé qui n'apparaît dans aucune requête fait échouer DuckDB,
+    # là où psycopg l'ignorait. `niveaux` n'entre donc dans le dictionnaire que
+    # lorsque le filtre l'utilise.
+    parametres = {"run": run_id, "indicateurs": list(indicateurs)}
+    if niveaux:
+        parametres["niveaux"] = list(niveaux)
     with conn.cursor() as curseur:
         # Table temporaire à l'image de la vraie : mêmes colonnes, mêmes
         # défauts (`variant = 'total'`, `value_status = 'normal'`), aucune
         # contrainte de clé étrangère à re-vérifier.
+        # `like ... including defaults` n'existe pas sous DuckDB. Les colonnes se
+        # copient par un select vide, et les deux défauts dont dépend le calcul
+        # — `variant` et `value_status` — se posent explicitement : ils portent la
+        # jointure entre l'ancien et le nouveau, une valeur nulle y ferait
+        # passer une révision pour une disparition. `quality_flags` suit : la
+        # colonne cible la refuse nulle, et sans son défaut la réinsertion
+        # échouait sur toute la table.
         curseur.execute(
-            "create temp table nouvelles_observations"
-            " (like core.observations including defaults)"
+            "create temp table nouvelles_observations as"
+            " select * from core.observations limit 0"
+        )
+        curseur.execute(
+            "alter table nouvelles_observations alter column variant set default 'total'"
+        )
+        curseur.execute(
+            "alter table nouvelles_observations alter column value_status set default 'normal'"
+        )
+        curseur.execute(
+            "alter table nouvelles_observations alter column quality_flags set default []"
         )
         ecrites = entrepot.copier(
             curseur,
@@ -68,27 +85,28 @@ def remplacer(
         )
         # L'archive d'abord, la valeur d'hier encore en place : c'est la
         # jointure entre l'ancien et le nouveau qui dit ce qui a changé.
-        curseur.execute(
-            f"""
+        archive = f"""
             insert into core.observations_revisions
                 (indicator_id, geo_level, geo_code, geo_vintage, period, variant,
                  old_value, old_status, run_id)
             select o.indicator_id, o.geo_level, o.geo_code, o.geo_vintage,
-                   o.period, o.variant, o.value, o.value_status, %(run)s
+                   o.period, o.variant, o.value, o.value_status, $run
             from core.observations o
             join nouvelles_observations n
                  using (indicator_id, geo_level, geo_code, geo_vintage, period, variant)
-            where o.indicator_id = any(%(indicateurs)s){filtre_ancien}
+            where o.indicator_id = any($indicateurs){filtre_ancien}
               and (o.value is distinct from n.value
                    or o.value_status is distinct from n.value_status)
-            """,
-            parametres,
-        )
-        revisees = curseur.rowcount
-        curseur.execute(
-            f"delete from core.observations where indicator_id = any(%(indicateurs)s){filtre}",
-            parametres,
-        )
+            """
+        curseur.execute(archive, entrepot.parametres_utiles(archive, parametres))
+        # DuckDB n'expose pas de `rowcount` après un insert : on compte les
+        # lignes archivées par ce run, ce qui est la même mesure et se lit mieux.
+        revisees = curseur.execute(
+            "select count(*) from core.observations_revisions where run_id = $run",
+            {"run": run_id},
+        ).fetchone()[0]
+        purge = f"delete from core.observations where indicator_id = any($indicateurs){filtre}"
+        curseur.execute(purge, entrepot.parametres_utiles(purge, parametres))
         curseur.execute(
             """
             insert into core.observations

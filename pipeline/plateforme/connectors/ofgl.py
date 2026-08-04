@@ -57,7 +57,7 @@ CRITERES = [
 # que « Frais de personnel » existait et n'était pas pris.
 #
 # La sélection est désormais une donnée, pas un filtre caché :
-# `infra/supabase/seed/ofgl_agregats.csv` liste **les 72**, avec pour chacun sa
+# `infra/seed/ofgl_agregats.csv` liste **les 72**, avec pour chacun sa
 # définition et sa formule comptable publiées par l'OFGL lui-même, le nombre de
 # lignes qu'il coûte, et une colonne `charge` à oui/non. Ajouter un agrégat, c'est
 # changer un mot dans ce fichier ; ce qui est écarté reste visible à côté de ce
@@ -68,7 +68,7 @@ CRITERES = [
 # aujourd'hui. Le plan Supabase gratuit plafonne à 500 Mo, la base en occupe 390 :
 # tout charger n'y tient pas, et le garde-fou de volume refusera avant écriture.
 # Le choix des agrégats est un arbitrage de plan, pas une préférence technique.
-CATALOGUE = Path(__file__).resolve().parents[3] / "infra/supabase/seed/ofgl_agregats.csv"
+CATALOGUE = Path(__file__).resolve().parents[3] / "infra/seed/ofgl_agregats.csv"
 
 
 def catalogue(chemin: Path | None = None) -> list[dict]:

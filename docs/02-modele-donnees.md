@@ -1,4 +1,12 @@
-# 02 — Livrable 2 : modèle canonique de données (Supabase PostgreSQL + PostGIS)
+# 02 — Livrable 2 : modèle canonique de données (entrepôt DuckDB)
+
+> **Depuis le 04/08/2026 (D6quinquies)**, l'entrepôt est un fichier DuckDB versionné
+> sur R2, plus une base Supabase. Le modèle ci-dessous est inchangé dans son
+> intention ; sa transcription vit dans `infra/entrepot/schema.sql`, qui documente
+> table par table ce que DuckDB ne fait pas comme Postgres — clés étrangères entre
+> schémas, clés uniques contenant NULL, partitionnement. Dix-sept tables décrites
+> ici n'ont jamais été écrites par aucun module : elles restent décrites, elles ne
+> sont plus créées.
 
 *Schéma cible. Les migrations réelles seront écrites au ticket T-04 du backlog ;
 ce document est la spécification de référence.*
@@ -21,7 +29,7 @@ ce document est la spécification de référence.*
 4. **Jamais de destruction silencieuse.** Corrections tracées dans `change_log` ;
    les runs remplacés restent en base (statut `superseded`) et les snapshots R2
    sont immuables.
-5. **Schémas Postgres** : `meta` (registres et lineage), `geo`, `core`
+5. **Schémas** : `meta` (registres et lineage), `geo`, `core`
    (indicateurs/observations), `fin` (tables métier finances), `pub` (vues et
    tables matérialisées exposées, seules accessibles au rôle public via RLS).
 

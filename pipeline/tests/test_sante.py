@@ -103,16 +103,17 @@ def test_la_fiche_tient_la_charte_et_nomme_le_seuil():
 def test_le_jeu_est_au_registre():
     import csv
 
-    registre = Path(sante.__file__).parents[3] / "infra/supabase/seed/dataset_registry.csv"
+    registre = Path(sante.__file__).parents[3] / "infra/seed/dataset_registry.csv"
     with registre.open(encoding="utf-8") as fichier:
         jeux = {r["dataset_id"] for r in csv.DictReader(fichier)}
     assert sante.DATASET in jeux
 
 
 def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
-    from plateforme import entrepot
+    from plateforme import entrepot, registry
 
     conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
     try:
         sante.declarer(conn)
         publie = conn.execute(

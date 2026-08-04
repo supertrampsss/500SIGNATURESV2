@@ -35,7 +35,7 @@ def test_le_jeu_declare_est_celui_du_registre():
     import csv
     from pathlib import Path
 
-    registre = Path(entreprises.__file__).parents[3] / "infra/supabase/seed/dataset_registry.csv"
+    registre = Path(entreprises.__file__).parents[3] / "infra/seed/dataset_registry.csv"
     with registre.open(encoding="utf-8") as fichier:
         jeux = {ligne["dataset_id"]: ligne for ligne in csv.DictReader(fichier)}
     assert entreprises.DATASET in jeux

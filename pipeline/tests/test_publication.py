@@ -9,10 +9,11 @@ from plateforme import publish
 
 
 def test_les_series_pays_gardent_leur_profondeur_entiere(tmp_path):
-    from plateforme import entrepot
+    from plateforme import entrepot, registry
     from plateforme.normalize.geo import MILLESIME
 
     conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
     indicateur = "test_serie_longue_pays"
     try:
         definition = conn.execute(

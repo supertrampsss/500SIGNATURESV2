@@ -63,7 +63,14 @@ def connect(chemin: Path | str | None = None) -> duckdb.DuckDBPyConnection:
 def telecharger(store, chemin: Path | str | None = None) -> bool:
     """Rapatrie l'entrepôt depuis le bucket. Faux s'il n'existe pas encore."""
     cible = Path(chemin or LOCAL)
-    contenu = store.get(CLE)
+    try:
+        contenu = store.get(CLE)
+    except Exception:  # noqa: BLE001
+        # Les deux implémentations de magasin signalent l'absence par une
+        # exception, chacune la sienne — FileNotFoundError en local, une erreur
+        # boto3 sur R2. Le premier chargement d'un bucket neuf n'a pas d'entrepôt
+        # à rapatrier : c'est un cas normal, pas une panne.
+        return False
     if contenu is None:
         return False
     cible.parent.mkdir(parents=True, exist_ok=True)
@@ -79,7 +86,11 @@ def televerser(store, chemin: Path | str | None = None) -> int:
     """
     source = Path(chemin or LOCAL)
     contenu = source.read_bytes()
-    store.put(CLE, contenu)
+    # `overwrite` : l'immutabilité protège les snapshots bruts, qui sont la
+    # matière première de la reproductibilité. L'entrepôt, lui, est l'état
+    # courant — il se réécrit à chaque run, et c'est le versionnement du bucket
+    # qui en garde les états antérieurs.
+    store.put(CLE, contenu, overwrite=True)
     return len(contenu)
 
 
@@ -109,6 +120,18 @@ def _octets(taille_lisible) -> int:
     if len(morceaux) != 2 or morceaux[1].lower() not in UNITES:
         return 0
     return int(float(morceaux[0]) * UNITES[morceaux[1].lower()])
+
+
+def parametres_utiles(sql: str, parametres: dict) -> dict:
+    """Ne garde que les paramètres nommés que cette requête cite vraiment.
+
+    psycopg acceptait qu'on lui passe un dictionnaire plus large que la requête ;
+    DuckDB refuse tout nom en trop. Or plusieurs requêtes du pipeline partagent un
+    même dictionnaire et n'en utilisent chacune qu'une partie — c'est plus lisible
+    que de le recomposer à chaque instruction, et ça reste vrai à condition de
+    filtrer ici.
+    """
+    return {nom: valeur for nom, valeur in parametres.items() if f"${nom}" in sql}
 
 
 def annuler(conn: duckdb.DuckDBPyConnection) -> None:
@@ -298,3 +321,40 @@ def verifier_integrite(conn: duckdb.DuckDBPyConnection) -> list[tuple[str, str, 
         if n:
             manquants.append((table, colonne, n))
     return manquants
+
+
+def _store(spec: str):
+    """Le magasin d'objets, résolu tard pour ne pas créer de cycle d'import."""
+    from plateforme.normalize.geo import make_store
+
+    return make_store(spec)
+
+
+def main() -> int:
+    """Aller-retour de l'entrepôt, appelé au début et à la fin de chaque job.
+
+    Le runner GitHub est éphémère : sans ces deux appels, chaque exécution
+    repartirait d'un entrepôt vide et republierait un catalogue amputé.
+    """
+    import argparse
+
+    analyseur = argparse.ArgumentParser(description=__doc__)
+    analyseur.add_argument("action", choices=["telecharger", "televerser"])
+    analyseur.add_argument("--store", default="r2:plateforme-raw")
+    arguments = analyseur.parse_args()
+    magasin = _store(arguments.store)
+    if arguments.action == "telecharger":
+        present = telecharger(magasin)
+        print(
+            f"entrepôt rapatrié ({LOCAL.stat().st_size // 1024 // 1024} Mo)"
+            if present
+            else "aucun entrepôt dans le bucket : le premier chargement le créera"
+        )
+        return 0
+    octets = televerser(magasin)
+    print(f"entrepôt renvoyé au bucket ({octets // 1024 // 1024} Mo)")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

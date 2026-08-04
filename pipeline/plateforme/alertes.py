@@ -58,7 +58,7 @@ def collecter(conn) -> list[dict]:
     """Ne remonte que ce qui appelle une action. Un jeu en ordre n'est pas listé :
     une alerte qui énumère tout ne dit plus rien."""
     alertes = []
-    for jeu, titre, frequence, extraction, retard, statut, bloquants in conn.execute(REQUETE):
+    for jeu, titre, frequence, extraction, retard, statut, bloquants in conn.execute(REQUETE).fetchall():
         motifs = []
         if retard:
             motifs.append(

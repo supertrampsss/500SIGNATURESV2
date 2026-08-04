@@ -19,7 +19,7 @@ class StoreMemoire:
     def __init__(self):
         self.objets: dict[str, bytes] = {}
 
-    def put(self, cle: str, contenu: bytes) -> None:
+    def put(self, cle: str, contenu: bytes, overwrite: bool = False) -> None:
         self.objets[cle] = contenu
 
     def get(self, cle: str) -> bytes | None:
@@ -280,3 +280,37 @@ def test_la_taille_de_l_entrepot_se_lit_en_octets(conn):
     assert entrepot._octets("0 bytes") == 0
     assert entrepot._octets(None) == 0
     assert entrepot._octets("unité inconnue") == 0
+
+
+class StoreStrict(StoreMemoire):
+    """Un magasin qui se comporte comme les vrais : `get` lève quand la clé
+    n'existe pas, et `put` refuse d'écraser sans qu'on le demande."""
+
+    def get(self, cle: str) -> bytes:
+        if cle not in self.objets:
+            raise FileNotFoundError(cle)
+        return self.objets[cle]
+
+    def put(self, cle: str, contenu: bytes, overwrite: bool = False) -> None:
+        if cle in self.objets and not overwrite:
+            raise RuntimeError(f"snapshot déjà présent : {cle}")
+        self.objets[cle] = contenu
+
+
+def test_un_bucket_neuf_ne_fait_pas_echouer_le_premier_run(tmp_path):
+    # Les deux magasins signalent l'absence par une exception, chacune la
+    # sienne. Le tout premier chargement n'a pas d'entrepôt à rapatrier : c'est
+    # un cas normal, pas une panne.
+    assert entrepot.telecharger(StoreStrict(), tmp_path / "absent.duckdb") is False
+
+
+def test_l_entrepot_s_ecrase_a_chaque_run(tmp_path):
+    # L'immutabilité protège les snapshots bruts, matière première de la
+    # reproductibilité. L'entrepôt est l'état courant : il se réécrit, et c'est
+    # le versionnement du bucket qui garde les états antérieurs.
+    store = StoreStrict()
+    chemin = tmp_path / "e.duckdb"
+    entrepot.connect(chemin).close()
+    entrepot.televerser(store, chemin)
+    entrepot.televerser(store, chemin)  # ne doit pas lever
+    assert len(store.objets) == 1

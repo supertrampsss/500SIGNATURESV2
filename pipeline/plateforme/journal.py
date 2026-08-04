@@ -152,7 +152,7 @@ JOURNAL: list[Changement] = [
             " 418 416 observations retirées le 31/07 (500 Mo, D6bis). Recharge"
             " 2018-2021 tentée le 02/08 sur annonce d'un plan payant (D6ter) :"
             " la base est passée en lecture seule en cours d'écriture (disque"
-            " réel inchangé), rétablie par `retablissement.py` et la borne"
+            " réel inchangé), rétablie par le job de rétablissement et la borne"
             " revenue à 2022 (D6quater)."
         ),
     ),

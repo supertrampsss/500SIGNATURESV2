@@ -11,7 +11,7 @@ import uuid
 
 import pytest
 
-from plateforme import entrepot
+from plateforme import entrepot, registry
 
 
 VINTAGE = 2099  # millésime de test : n'entre en collision avec aucune vraie donnée
@@ -22,6 +22,7 @@ def conn(tmp_path):
     from plateforme import entrepot
 
     connection = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(connection)
     yield connection
     connection.close()
 

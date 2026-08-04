@@ -15,7 +15,7 @@ def test_le_vocabulaire_est_celui_du_schema():
     """`change_type` porte une contrainte `check` : une valeur inventée ici
     ferait échouer l'insertion en production, pas en test."""
     migration = (
-        Path(journal.__file__).parents[2] / "infra/supabase/migrations/0002_meta.sql"
+        Path(journal.__file__).parents[2] / "infra/entrepot/schema.sql"
     ).read_text(encoding="utf-8")
     for type_ in journal.TYPES_PERMIS:
         assert f"'{type_}'" in migration
@@ -29,7 +29,7 @@ def test_chaque_changement_declare_un_type_connu():
 def test_les_jeux_cites_existent_dans_le_registre():
     """`dataset_id` est une clé étrangère : un jeu inconnu bloque le run."""
     registre = (
-        Path(journal.__file__).parents[2] / "infra/supabase/seed/dataset_registry.csv"
+        Path(journal.__file__).parents[2] / "infra/seed/dataset_registry.csv"
     )
     with registre.open(encoding="utf-8") as fichier:
         connus = {ligne["dataset_id"] for ligne in csv.DictReader(fichier)}

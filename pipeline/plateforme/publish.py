@@ -165,7 +165,7 @@ def couples_publies(conn, niveau: str, borne: bool = True) -> list[tuple[str, st
         order by 1, 2 desc
         """,
         (niveau,),
-    ):
+    ).fetchall():
         if len(par_indicateur[indicateur]) < plafond:
             par_indicateur[indicateur].append(periode)
     return [
@@ -198,7 +198,7 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
               and o.value_status = 'normal' and o.variant = 'total'
             """,
             (niveau, indicateur, periode),
-        ):
+        ).fetchall():
             valeurs[indicateur][periode][code] = float(valeur)
     return valeurs
 
@@ -237,7 +237,7 @@ def comparaisons(conn) -> dict:
              and pop.period = o.period
             where o.geo_level = 'commune' and i.published and i.unit = 'EUR'
               and o.value_status = 'normal' and g.flags ? 'tranche_population'
-        )
+        ).fetchall()
         select indicator_id, period, groupe, count(*),
                percentile_cont(0.25) within group (order by par_habitant),
                percentile_cont(0.5) within group (order by par_habitant),
@@ -281,7 +281,7 @@ def budget_etat(conn) -> dict:
         from fin.public_budgets where entity_kind = 'etat'
         order by fiscal_year, stage
         """
-    ):
+    ).fetchall():
         exercices[str(annee)][etape] = {
             "solde": float(solde) if solde is not None else None,
             "solde_comptes_speciaux": float(comptes) if comptes is not None else None,
@@ -294,7 +294,7 @@ def budget_etat(conn) -> dict:
         from fin.public_budget_lines l join fin.public_budgets b using (budget_id)
         where b.entity_kind = 'etat' and l.label is not null
         """
-    ):
+    ).fetchall():
         exercices[str(annee)][etape]["montants"][libelle] = float(montant)
 
     # Ce que les contrôles ont refusé de publier fait partie du jeu publié :
@@ -370,7 +370,7 @@ def fraicheur(conn) -> list[dict]:
                      d.expected_freshness_days
             order by d.dataset_id
             """
-        )
+        ).fetchall()
     ]
 
 
@@ -398,7 +398,7 @@ def journal(conn) -> list[dict]:
             from meta.change_log
             order by announced_at desc, change_id desc
             """
-        )
+        ).fetchall()
     ]
 
 
@@ -418,13 +418,13 @@ def evenements(conn, niveau: str) -> dict[str, list[dict]]:
     for code, type_, date, autre in conn.execute(
         """
         select to_code, event_type, event_date, from_code from geo.geography_history
-        where to_level = %(niveau)s and event_type in ('fusion','scission')
+        where to_level = $niveau and event_type in ('fusion','scission')
         union all
         select from_code, event_type, event_date, to_code from geo.geography_history
-        where from_level = %(niveau)s and event_type in ('fusion','scission')
+        where from_level = $niveau and event_type in ('fusion','scission')
         """,
         {"niveau": niveau},
-    ):
+    ).fetchall():
         portee[code].append({"type": type_, "date": date.isoformat(), "avec": autre})
     return {
         code: sorted(liste, key=lambda e: e["date"]) for code, liste in portee.items()
@@ -502,7 +502,7 @@ def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) ->
         """
         with territoire as (
             select g.geo_code, g.population,
-                   case %(niveau)s
+                   case $niveau
                      when 'region' then g.geo_code
                      when 'pays' then null
                      when 'departement' then g.parent_code
@@ -511,10 +511,10 @@ def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) ->
                               and d.vintage = g.vintage)
                    end as region
               from geo.geography_reference g
-             where g.geo_level = %(niveau)s
+             where g.geo_level = $niveau
                and g.vintage = (select max(vintage) from geo.geography_reference
-                                 where geo_level = %(niveau)s)
-        )
+                                 where geo_level = $niveau)
+        ).fetchall()
         select t.region, o.value,
                coalesce(p.value, t.population) as habitants
           from core.observations o
@@ -523,8 +523,8 @@ def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) ->
                  on p.indicator_id = 'ofgl_population_reference'
                 and p.geo_level = o.geo_level and p.geo_code = o.geo_code
                 and p.period = o.period and p.variant = 'total'
-         where o.indicator_id = %(indicateur)s and o.geo_level = %(niveau)s
-           and o.period = %(periode)s and o.value_status = 'normal' and o.variant = 'total'
+         where o.indicator_id = $indicateur and o.geo_level = $niveau
+           and o.period = $periode and o.value_status = 'normal' and o.variant = 'total'
         """,
         {"niveau": niveau, "indicateur": indicateur, "periode": periode},
     ).fetchall()
@@ -603,7 +603,7 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
         for code, nom, parent, region, population, drapeaux in conn.execute(
             """
             select g.geo_code, g.name, g.parent_code,
-                   case %(niveau)s
+                   case $niveau
                      when 'region' then g.geo_code
                      when 'departement' then g.parent_code
                      else (select d.parent_code from geo.geography_reference d
@@ -612,11 +612,11 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
                    end as region,
                    g.population, g.flags
             from geo.geography_reference g
-            where g.geo_level = %(niveau)s and g.vintage = (select max(vintage)
-                from geo.geography_reference where geo_level = %(niveau)s)
+            where g.geo_level = $niveau and g.vintage = (select max(vintage)
+                from geo.geography_reference where geo_level = $niveau)
             """,
             {"niveau": niveau},
-        )
+        ).fetchall()
     }
 
 

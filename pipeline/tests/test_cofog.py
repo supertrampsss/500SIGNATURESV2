@@ -69,7 +69,7 @@ def test_la_sante_dit_qui_la_paie():
 def test_le_jeu_est_au_registre():
     import csv
 
-    registre = Path(cofog.__file__).parents[3] / "infra/supabase/seed/dataset_registry.csv"
+    registre = Path(cofog.__file__).parents[3] / "infra/seed/dataset_registry.csv"
     with registre.open(encoding="utf-8") as fichier:
         jeux = {ligne["dataset_id"] for ligne in csv.DictReader(fichier)}
     assert cofog.DATASET in jeux

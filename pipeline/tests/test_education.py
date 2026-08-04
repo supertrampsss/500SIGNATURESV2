@@ -59,7 +59,7 @@ def test_le_jeu_est_au_registre():
     import csv
     from pathlib import Path
 
-    racine = Path(education.__file__).parents[3] / "infra/supabase/seed"
+    racine = Path(education.__file__).parents[3] / "infra/seed"
     with (racine / "dataset_registry.csv").open(encoding="utf-8") as fichier:
         jeux = {r["dataset_id"]: r["source_id"] for r in csv.DictReader(fichier)}
     assert jeux.get(education.DATASET) == education.SOURCE
@@ -73,10 +73,11 @@ def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris(tmp_path):
     Une commune sans école reçoit un 0 écrit, jamais une absence."""
     from collections import Counter
 
-    from plateforme import entrepot
+    from plateforme import entrepot, registry
     from plateforme.normalize.geo import MILLESIME
 
     conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
     try:
         education.declarer(conn)
         for code, nom in (("T1E", "Avec école"), ("T2E", "Sans école")):

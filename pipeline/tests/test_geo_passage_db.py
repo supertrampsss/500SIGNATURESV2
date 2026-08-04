@@ -25,9 +25,10 @@ SCISSION = [
 
 @pytest.fixture
 def conn(tmp_path):
-    from plateforme import entrepot
+    from plateforme import entrepot, registry
 
     connection = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(connection)
     yield connection
     entrepot.annuler(connection)  # aucun test ne laisse de trace
     connection.close()

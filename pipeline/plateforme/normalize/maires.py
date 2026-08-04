@@ -117,7 +117,7 @@ def ecrire(conn, run_id: str, lignes: list[dict]) -> tuple[int, int]:
                 (
                     ligne["geo_code"], MILLESIME, "maire", ligne["surname"],
                     ligne["given_name"], ligne["since"], run_id,
-                )
+                ).fetchall()
                 for ligne in gardees
             ),
         )

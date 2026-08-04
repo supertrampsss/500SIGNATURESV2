@@ -3,6 +3,7 @@ vérifient qu'elle ne parle que quand il y a quelque chose à faire."""
 
 import datetime as dt
 
+from conftest import Resultat
 from plateforme import alertes
 
 
@@ -13,7 +14,7 @@ class FausseConnexion:
         self.lignes = lignes
 
     def execute(self, sql, params=None):
-        return self.lignes
+        return Resultat(self.lignes)
 
 
 HIER = dt.datetime(2026, 7, 31, 4, 0, tzinfo=dt.UTC)

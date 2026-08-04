@@ -139,7 +139,7 @@ def enregistrer_pays(conn, codes: set[str]) -> set[str]:
             "select geo_code from geo.geography_reference where geo_level = 'pays'"
             " and vintage = ?",
             (MILLESIME,),
-        )
+        ).fetchall()
     }
 
 

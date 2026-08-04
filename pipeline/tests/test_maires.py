@@ -70,7 +70,7 @@ def test_le_registre_declare_la_donnee_personnelle():
     import csv
     from pathlib import Path
 
-    registre = Path(m.__file__).parents[3] / "infra/supabase/seed/dataset_registry.csv"
+    registre = Path(m.__file__).parents[3] / "infra/seed/dataset_registry.csv"
     with registre.open(encoding="utf-8") as fichier_csv:
         jeux = {ligne["dataset_id"]: ligne for ligne in csv.DictReader(fichier_csv)}
     assert jeux[m.DATASET]["personal_data"] == "true"

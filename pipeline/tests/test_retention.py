@@ -7,6 +7,7 @@ est une perte de données, pas un affichage bancal.
 
 import pytest
 
+from conftest import Resultat
 from plateforme import retention
 
 
@@ -18,7 +19,7 @@ class ConnexionSimulee:
 
     def execute(self, requete: str, parametres=None):
         niveau = parametres[0]
-        return [(p,) for p in sorted(self.periodes.get(niveau, []))]
+        return Resultat([(p,) for p in sorted(self.periodes.get(niveau, []))])
 
 
 def test_seuls_les_exercices_anterieurs_a_la_borne_partent():

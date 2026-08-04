@@ -163,7 +163,7 @@ def test_trente_deux_indicateurs_sans_doublon():
 def test_le_jeu_est_au_registre():
     import csv
 
-    registre = Path(securite.__file__).parents[3] / "infra/supabase/seed/dataset_registry.csv"
+    registre = Path(securite.__file__).parents[3] / "infra/seed/dataset_registry.csv"
     with registre.open(encoding="utf-8") as fichier:
         lignes_registre = {r["dataset_id"]: r for r in csv.DictReader(fichier)}
     assert securite.DATASET in lignes_registre
@@ -174,9 +174,10 @@ def test_le_jeu_est_au_registre():
 def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
     """32 fiches déclarées contre le schéma réel — la contrainte des 50 mots a
     déjà arrêté un connecteur en production ; celle-ci passe ici d'abord."""
-    from plateforme import entrepot
+    from plateforme import entrepot, registry
 
     conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
     try:
         securite.declarer(conn)
         publies = {
@@ -184,7 +185,7 @@ def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
             for ligne in conn.execute(
                 "select indicator_id from core.indicators where dataset_id = ?",
                 (securite.DATASET,),
-            )
+            ).fetchall()
         }
         assert publies == set(securite.tous_les_indicateurs())
     finally:

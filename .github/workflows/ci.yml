@@ -35,45 +35,19 @@ jobs:
       - run: npm run build
 
   database:
-    # Rejoue toutes les migrations de zéro sur PostGIS, charge le seed du
-    # registre et vérifie les contraintes structurantes (docs/02 §F).
+    # Les tests d'intégration tournaient contre un PostGIS lancé en service :
+    # ils exigeaient donc une base, un jeu de migrations rejoué, un seed chargé,
+    # et n'étaient exécutés que dans ce job. L'entrepôt est un fichier DuckDB
+    # créé à la volée : ils tournent partout, avec le reste, en quelques
+    # secondes. Ce job n'a plus de raison d'être séparé — il l'est encore le
+    # temps que la migration se stabilise, puis fusionnera avec `tests`.
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: plateforme
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 20
-    env:
-      PGHOST: localhost
-      PGUSER: postgres
-      PGPASSWORD: postgres
-      PGDATABASE: plateforme
     steps:
       - uses: actions/checkout@v4
-      - name: Apply migrations from scratch
-        run: |
-          for f in infra/supabase/migrations/*.sql; do
-            echo "== $f"
-            psql -v ON_ERROR_STOP=1 -q -f "$f"
-          done
-      - name: Load registry seed
-        run: psql -v ON_ERROR_STOP=1 -q -f infra/supabase/seed/load_seed.sql
-      - name: Constraint tests
-        run: psql -v ON_ERROR_STOP=1 -q -f infra/supabase/tests/checks.sql
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Lineage integration tests (python <-> PostGIS)
+      - name: Tests d'intégration de l'entrepôt
         run: |
           pip install -q -e ./pipeline pytest
           pytest -q pipeline/tests
-        env:
-          PLATEFORME_TEST_DB: postgresql://postgres:postgres@localhost:5432/plateforme

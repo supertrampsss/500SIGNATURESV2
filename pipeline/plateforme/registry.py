@@ -13,7 +13,7 @@ from pathlib import Path
 
 from plateforme import entrepot
 
-RACINE = Path(__file__).resolve().parents[2] / "infra/supabase/seed"
+RACINE = Path(__file__).resolve().parents[2] / "infra/seed"
 
 
 def _lire(nom: str) -> list[dict]:
@@ -35,8 +35,8 @@ def sync(conn) -> tuple[int, int]:
             insert into meta.source_registry
                 (source_id, name, producer, access_category, base_url, doc_url,
                  auth_mode, license, country_scope)
-            values (%(source_id)s, %(name)s, %(producer)s, %(access_category)s,
-                    %(base_url)s, %(doc_url)s, %(auth_mode)s, %(license)s, %(country_scope)s)
+            values ($source_id, $name, $producer, $access_category,
+                    $base_url, $doc_url, $auth_mode, $license, $country_scope)
             on conflict (source_id) do update set
                 name = excluded.name, producer = excluded.producer,
                 access_category = excluded.access_category, base_url = excluded.base_url,
@@ -52,11 +52,11 @@ def sync(conn) -> tuple[int, int]:
                  update_frequency, expected_freshness_days, geo_granularity,
                  time_granularity, priority, ingestion_mode, target_tables,
                  personal_data, statistical_secrecy)
-            values (%(dataset_id)s, %(source_id)s, %(external_id)s, %(title)s,
-                    %(endpoint_url)s, %(format)s, %(update_frequency)s,
-                    %(expected_freshness_days)s, %(geo_granularity)s, %(time_granularity)s,
-                    %(priority)s, %(ingestion_mode)s, %(target_tables)s,
-                    %(personal_data)s, %(statistical_secrecy)s)
+            values ($dataset_id, $source_id, $external_id, $title,
+                    $endpoint_url, $format, $update_frequency,
+                    $expected_freshness_days, $geo_granularity, $time_granularity,
+                    $priority, $ingestion_mode, $target_tables,
+                    $personal_data, $statistical_secrecy)
             on conflict (dataset_id) do update set
                 source_id = excluded.source_id, external_id = excluded.external_id,
                 title = excluded.title, endpoint_url = excluded.endpoint_url,

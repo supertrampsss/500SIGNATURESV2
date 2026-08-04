@@ -2,11 +2,12 @@
 en CI dans le job `database`, en local contre un PostGIS où les migrations et le
 seed sont appliqués)."""
 
+import json
 import uuid
 
 import pytest
 
-from plateforme import entrepot
+from plateforme import entrepot, registry
 
 
 
@@ -15,6 +16,7 @@ def conn(tmp_path):
     from plateforme import entrepot
 
     connection = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(connection)
     yield connection
     connection.close()
 
@@ -77,4 +79,4 @@ def test_failed_run_is_traced(conn, dataset_id):
     status, details = conn.execute(
         "select status, error_details from meta.ingestion_runs where run_id = ?", (run_id,)
     ).fetchone()
-    assert status == "failed" and details["message"] == "HTTP 503"
+    assert status == "failed" and json.loads(details)["message"] == "HTTP 503"

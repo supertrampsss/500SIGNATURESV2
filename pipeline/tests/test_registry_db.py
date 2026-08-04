@@ -12,6 +12,7 @@ def test_sync_est_idempotent_et_couvre_les_jeux_p0(tmp_path):
     from plateforme import entrepot, registry
 
     conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
     try:
         n_sources, n_jeux = registry.sync(conn)
         assert registry.sync(conn) == (n_sources, n_jeux)  # rejouable sans effet de bord

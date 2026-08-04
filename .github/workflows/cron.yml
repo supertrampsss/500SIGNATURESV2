@@ -47,13 +47,22 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -q -e ./pipeline
+      # L'entrepôt vit dans le bucket : le runner est éphémère, il le rapatrie
+      # avant d'écrire et le renvoie après.
+      - name: Rapatrier l'entrepôt
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+        run: python -m plateforme.entrepot telecharger
       - name: Sync source registry
         env:
-          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
         run: python -m plateforme.registry
       - name: Rafraîchir
         env:
-          PLATEFORME_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
@@ -96,5 +105,12 @@ jobs:
         if: always()
         uses: ./.github/actions/alerter
         with:
-          db-url: ${{ secrets.SUPABASE_DB_URL }}
           token: ${{ github.token }}
+      - name: Renvoyer l'entrepôt au bucket
+        # `always()` : un rafraîchissement qui échoue à mi-course a déjà écrit.
+        if: always()
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
+        run: python -m plateforme.entrepot televerser

@@ -5,10 +5,12 @@
 > volume que ça coûte et l'ordre dans lequel ça entre. Il est tenu à jour :
 > une ligne passe en « chargé » quand son connecteur tourne en production.
 >
-> **Bloquant en cours (D6quater)** : la base Supabase refuse les connexions
-> depuis le 2 août au soir. Aucune ingestion n'est possible avant sa
-> réactivation par le propriétaire. Tout ce qui suit est prêt à partir, dans
-> cet ordre, dès que l'écriture revient.
+> **Bloquant levé le 04/08/2026 (D6quinquies)** : l'incident D6quater — base
+> Supabase endormie, trente-six heures de données figées, réactivation possible
+> par le seul propriétaire — est clos non par une réactivation mais par une
+> sortie. L'entrepôt est désormais un fichier DuckDB versionné dans le bucket R2.
+> Il n'y a plus de base à réveiller, plus de plafond de 500 Mo à arbitrer, et
+> donc plus de rétention subie : tout ce qui suit peut partir.
 
 ## La règle qui gouverne ce plan
 
@@ -80,7 +82,7 @@ qui rendait impossible la question la plus posée sur les finances locales — l
 part des salaires dans le budget de fonctionnement.
 
 Le choix des agrégats n'est plus un filtre dans le code. Les **72** sont listés
-dans `infra/supabase/seed/ofgl_agregats.csv`, chacun avec sa définition et sa
+dans `infra/seed/ofgl_agregats.csv`, chacun avec sa définition et sa
 formule comptable publiées par l'OFGL (jeux `methodologie-ofgl-definitions-…` et
 `methodologie-ofgl-formules-…`), le nombre de lignes qu'il coûte, et une colonne
 `charge` à oui/non. Ajouter un agrégat, c'est changer un mot dans ce fichier ; ce
@@ -94,11 +96,12 @@ Mesuré le 4 août : **un agrégat = 279 865 lignes communales, 21 Mo de CSV** s
 | **Retenus (décision du 4 août)** | **72** | **14 216 512** |
 | Chargés à ce jour | 5 | 1 399 325 |
 
-Les 72 sont marqués « oui ». Le chargement multiplie par six l'empreinte OFGL,
-sur une base qui occupe déjà 390 des 500 Mo du plan gratuit : il suppose donc un
-plan payant, et le plafond de `plateforme.limites` devra être relevé en même
-temps. Le garde-fou refuse avant écriture tant que ce n'est pas fait — c'est
-voulu : mieux vaut un run qui s'arrête qu'une base saturée en lecture seule.
+Les 72 sont marqués « oui ». Le chargement multipliait par six l'empreinte OFGL,
+ce qui ne tenait pas dans les 500 Mo du plan gratuit — c'est l'une des raisons
+qui ont conduit à sortir de Supabase (D6quinquies). Sur un fichier DuckDB dans un
+bucket objet, quatorze millions de lignes tiennent pour quelques centimes par
+mois : le garde-fou de `plateforme.limites` est passé à 8 Go et ne sert plus
+qu'à repérer un connecteur en défaut.
 
 Trois agrégats — crédits de trésorerie, fonds de roulement, produit des cessions
 d'immobilisations — sont publiés par l'OFGL **sans commentaire**. Leur fiche est

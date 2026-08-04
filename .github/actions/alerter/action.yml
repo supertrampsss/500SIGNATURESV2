@@ -7,9 +7,6 @@ description: >-
 # bloc auraient divergé, et c'est l'alerte silencieuse qu'on ne remarque pas.
 
 inputs:
-  db-url:
-    description: Chaîne de connexion PostgreSQL de l'entrepôt
-    required: true
   token:
     description: "Jeton GitHub ayant le droit d'écrire les issues"
     required: true
@@ -23,7 +20,6 @@ runs:
   steps:
     - shell: bash
       env:
-        PLATEFORME_DB_URL: ${{ inputs.db-url }}
         GH_TOKEN: ${{ inputs.token }}
         TITRE: ${{ inputs.titre }}
       run: |

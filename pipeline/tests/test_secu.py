@@ -91,7 +91,7 @@ def test_les_parametres_demandent_exactement_les_trois_agregats_du_s1314():
 def test_le_jeu_est_au_registre():
     import csv
 
-    registre = Path(secu.__file__).parents[3] / "infra/supabase/seed/dataset_registry.csv"
+    registre = Path(secu.__file__).parents[3] / "infra/seed/dataset_registry.csv"
     with registre.open(encoding="utf-8") as fichier:
         jeux = {ligne["dataset_id"] for ligne in csv.DictReader(fichier)}
     assert secu.DATASET in jeux
@@ -102,9 +102,10 @@ def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
     c'est la contrainte des 50 mots — vérifiée par la base, pas par nous — qui
     a arrêté le premier chargement en production. Un test qui n'exerce pas le
     même chemin que la production ne prouve rien (leçon CORS, leçon d'ici)."""
-    from plateforme import entrepot
+    from plateforme import entrepot, registry
 
     conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
     try:
         secu.declarer(conn)
         publies = {
@@ -112,7 +113,7 @@ def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
             for ligne in conn.execute(
                 "select indicator_id from core.indicators where dataset_id = ?",
                 (secu.DATASET,),
-            )
+            ).fetchall()
         }
         assert publies == {fiche[0] for fiche in secu.INDICATEURS.values()}
     finally:
