@@ -314,3 +314,43 @@ def test_l_entrepot_s_ecrase_a_chaque_run(tmp_path):
     entrepot.televerser(store, chemin)
     entrepot.televerser(store, chemin)  # ne doit pas lever
     assert len(store.objets) == 1
+
+
+def test_une_table_referencee_se_met_a_jour_par_upsert(conn):
+    """DuckDB exécute `insert ... on conflict` comme un delete suivi d'un insert,
+    et le delete se heurte à la clé étrangère qui pointe vers la ligne. Le
+    registre des sources, celui des jeux et le catalogue d'indicateurs sont
+    pourtant réécrits à chaque run et référencés par tout le reste : sans le
+    retrait de ces clés entrantes, la deuxième ingestion échouait — la première
+    passait, puisque rien ne référençait encore rien."""
+    from plateforme import registry
+
+    run = entrepot.start_run(conn, "ofgl-communes")  # référence dataset_registry
+    entrepot.record_asset(
+        conn, StoreMemoire(), run, "ofgl-communes", "ofgl", "c.csv", b"x", "https://x"
+    )
+    registry.sync(conn)  # doit passer alors que le jeu est déjà référencé
+    assert conn.execute("select count(*) from meta.dataset_registry").fetchone()[0] > 0
+
+
+def test_un_indicateur_deja_observe_se_redeclare(conn):
+    # Même piège sur le catalogue : `declarer_indicateurs` réécrit la fiche à
+    # chaque run, et `core.observations` référence l'indicateur.
+    run = entrepot.start_run(conn, "ofgl-communes")
+    _territoire_et_indicateur(conn, run)
+    conn.execute(
+        """insert into core.observations
+             (indicator_id, geo_level, geo_code, geo_vintage, period, value, run_id)
+           values ('ofgl_depenses', 'commune', '69123', 2025, '2024', 1.0, ?)""",
+        [run],
+    )
+    conn.execute(
+        """insert into core.indicators
+             (indicator_id, dataset_id, theme, label_fr, unit, published)
+           values ('ofgl_depenses', 'ofgl-communes', 'finances_locales', 'Autre', 'EUR', false)
+           on conflict (indicator_id) do update set label_fr = excluded.label_fr"""
+    )
+    assert conn.execute(
+        "select label_fr from core.indicators where indicator_id = 'ofgl_depenses'"
+    ).fetchone() == ("Autre",)
+    assert entrepot.verifier_integrite(conn) == []

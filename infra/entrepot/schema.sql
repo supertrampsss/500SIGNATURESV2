@@ -26,6 +26,19 @@
 --     colonnaire — quatorze millions de lignes ne le gênent pas ;
 --   - pas d'index d'expression ni d'index partiel : les unicités qui en
 --     dépendaient passent par des colonnes normalisées, écrites plus bas ;
+--   - **une table référencée ne se met pas à jour par `on conflict`.** DuckDB
+--     exécute `insert ... on conflict` comme un delete suivi d'un insert, et le
+--     delete se heurte à la clé étrangère qui pointe vers la ligne. Vérifié : ni
+--     `do update` ni même `do nothing` ne passent dès qu'une autre table
+--     référence la ligne visée, et un `update` échoue lui aussi s'il touche une
+--     colonne qui porte elle-même une clé étrangère. Or le registre des sources
+--     et des jeux, le catalogue d'indicateurs et leurs fiches sont précisément
+--     des tables qu'on réécrit à chaque run et que tout le reste référence. Les
+--     clés entrantes sur ces quatre tables deviennent donc des colonnes simples,
+--     signalées par `-> table (vérifié)` et recensées par
+--     `entrepot.verifier_integrite()`. C'est la même réponse que pour les clés
+--     inter-schémas : la garantie n'est pas perdue, elle est déplacée du moment
+--     de l'écriture à celui du contrôle ;
 --   - **les clés étrangères ne traversent pas un schéma.** DuckDB refuse de les
 --     créer. Celles qui rattachaient une observation, un budget ou un maire à
 --     son run d'ingestion sont donc devenues des colonnes simples, signalées une
@@ -76,7 +89,7 @@ create table if not exists meta.source_registry (
 
 create table if not exists meta.dataset_registry (
     dataset_id              text primary key,
-    source_id               text not null references meta.source_registry (source_id),
+    source_id               text not null,  -- -> meta.source_registry (vérifié)
     external_id             text,
     title                   text not null,
     landing_url             text,
@@ -102,7 +115,7 @@ create table if not exists meta.dataset_registry (
 -- uuid, mais le lineage doit pouvoir citer le run avant de l'écrire.
 create table if not exists meta.ingestion_runs (
     run_id            uuid primary key,
-    dataset_id        text not null references meta.dataset_registry (dataset_id),
+    dataset_id        text not null,  -- -> meta.dataset_registry (vérifié)
     started_at        timestamptz not null default now(),
     finished_at       timestamptz,
     status            text not null default 'running'
@@ -121,7 +134,7 @@ create table if not exists meta.ingestion_runs (
 create table if not exists meta.raw_assets (
     asset_id                text primary key,
     run_id                  uuid not null references meta.ingestion_runs (run_id),
-    dataset_id              text not null references meta.dataset_registry (dataset_id),
+    dataset_id              text not null,  -- -> meta.dataset_registry (vérifié)
     r2_key                  text not null,
     fetched_at              timestamptz not null default now(),
     source_url              text,
@@ -136,7 +149,7 @@ create table if not exists meta.raw_assets (
 create table if not exists meta.data_quality_checks (
     check_id   bigint primary key default nextval('meta.seq_data_quality_checks'),
     run_id     uuid not null references meta.ingestion_runs (run_id),
-    dataset_id text not null references meta.dataset_registry (dataset_id),
+    dataset_id text not null,  -- -> meta.dataset_registry (vérifié)
     check_name text not null,
     severity   text not null check (severity in ('blocker','warning','info')),
     passed     boolean not null,
@@ -147,7 +160,7 @@ create table if not exists meta.data_quality_checks (
 
 create table if not exists meta.change_log (
     change_id             bigint primary key default nextval('meta.seq_change_log'),
-    dataset_id            text references meta.dataset_registry (dataset_id),
+    dataset_id            text,  -- -> meta.dataset_registry (vérifié)
     indicator_id          text,
     change_type           text not null check (change_type in
                           ('correction','methodology','break','revision','deprecation')),
@@ -235,7 +248,7 @@ create table if not exists core.indicator_definitions (
 create table if not exists core.indicators (
     indicator_id             text primary key,
     dataset_id               text not null,  -- -> meta.dataset_registry (vérifié)
-    definition_id            bigint references core.indicator_definitions (definition_id),
+    definition_id            bigint,  -- -> core.indicator_definitions (vérifié)
     theme                    text not null,
     label_fr                 text not null,
     unit                     text not null,
@@ -257,7 +270,7 @@ create table if not exists core.indicators (
 -- référencé nulle part hors de sa migration, et un moteur colonnaire n'en a pas
 -- besoin pour quatorze millions de lignes.
 create table if not exists core.observations (
-    indicator_id  text not null references core.indicators (indicator_id),
+    indicator_id  text not null,  -- -> core.indicators (vérifié)
     geo_level     text not null,
     geo_code      text not null,
     geo_vintage   smallint not null,

@@ -291,6 +291,13 @@ def copier(
 # Les rattachements que DuckDB ne sait pas contraindre, et qu'on vérifie donc
 # après coup. Chaque entrée : (table, colonne, table référencée, colonne).
 RATTACHEMENTS = [
+    ("meta.dataset_registry", "source_id", "meta.source_registry", "source_id"),
+    ("meta.ingestion_runs", "dataset_id", "meta.dataset_registry", "dataset_id"),
+    ("meta.raw_assets", "dataset_id", "meta.dataset_registry", "dataset_id"),
+    ("meta.data_quality_checks", "dataset_id", "meta.dataset_registry", "dataset_id"),
+    ("meta.change_log", "dataset_id", "meta.dataset_registry", "dataset_id"),
+    ("core.indicators", "definition_id", "core.indicator_definitions", "definition_id"),
+    ("core.observations", "indicator_id", "core.indicators", "indicator_id"),
     ("core.observations", "run_id", "meta.ingestion_runs", "run_id"),
     ("core.observations_revisions", "run_id", "meta.ingestion_runs", "run_id"),
     ("core.indicators", "dataset_id", "meta.dataset_registry", "dataset_id"),
