@@ -55,7 +55,8 @@ def test_le_schema_s_applique_deux_fois_sans_erreur(tmp_path):
         """select count(*) from information_schema.tables
            where table_schema in ('meta','geo','core','fin')"""
     ).fetchone()[0]
-    assert tables == 16
+    # 16 tables du modèle, plus la table d'empreinte du schéma.
+    assert tables == 17
     connexion.close()
 
 
@@ -354,3 +355,21 @@ def test_un_indicateur_deja_observe_se_redeclare(conn):
         "select label_fr from core.indicators where indicator_id = 'ofgl_depenses'"
     ).fetchone() == ("Autre",)
     assert entrepot.verifier_integrite(conn) == []
+
+
+def test_un_schema_qui_a_change_arrete_l_ouverture(tmp_path, monkeypatch):
+    """`create table if not exists` ne touche pas une table déjà là : une
+    contrainte retirée du fichier reste en place dans un entrepôt existant, et
+    le code tourne contre une structure qui n'est plus celle qu'il décrit.
+    L'échec se lisait alors comme un bug du code alors que le schéma était bon."""
+    chemin = tmp_path / "e.duckdb"
+    entrepot.connect(chemin).close()
+
+    autre = tmp_path / "autre-schema.sql"
+    autre.write_text(
+        entrepot.SCHEMA.read_text(encoding="utf-8") + "\n-- une virgule de plus\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(entrepot, "SCHEMA", autre)
+    with pytest.raises(entrepot.SchemaDivergent, match="autre schéma"):
+        entrepot.connect(chemin)

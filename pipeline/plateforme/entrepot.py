@@ -40,7 +40,7 @@ SCHEMA = Path(__file__).resolve().parents[2] / "infra/entrepot/schema.sql"
 # Clé du fichier d'entrepôt dans le bucket. Le nom porte la version du schéma :
 # un changement de structure produit un nouveau fichier plutôt que d'écraser
 # celui que l'ancien code sait encore lire.
-CLE = "entrepot/plateforme-v1.duckdb"
+CLE = "entrepot/plateforme-v2.duckdb"
 
 # Emplacement local du fichier pendant un run. Le runner GitHub est éphémère :
 # ce chemin ne survit pas au job, et c'est voulu — la seule copie qui fait foi
@@ -48,15 +48,45 @@ CLE = "entrepot/plateforme-v1.duckdb"
 LOCAL = Path(os.environ.get("PLATEFORME_ENTREPOT", "/tmp/plateforme.duckdb"))
 
 
+class SchemaDivergent(RuntimeError):
+    """Le fichier ouvert n'a pas été créé par ce schéma-ci."""
+
+
 def connect(chemin: Path | str | None = None) -> duckdb.DuckDBPyConnection:
-    """Ouvre l'entrepôt et applique le schéma s'il manque.
+    """Ouvre l'entrepôt, applique le schéma s'il manque, refuse s'il a changé.
 
     Le schéma est idempotent (`create ... if not exists`) : l'appliquer à chaque
     ouverture évite d'avoir à savoir si le fichier est neuf, et fait de
     `schema.sql` la seule description de la structure.
+
+    Mais `if not exists` ne touche pas une table déjà là. Une contrainte retirée
+    du fichier reste donc en place dans un entrepôt existant, et le code tourne
+    contre une structure qui n'est plus celle qu'il décrit — c'est arrivé, et
+    l'échec se lisait comme un bug du code alors que le schéma était bon.
+    L'empreinte du fichier de schéma est donc enregistrée à la création et
+    vérifiée à chaque ouverture. Un écart arrête net et dit quoi faire : DuckDB
+    n'ayant pas de mécanisme de migration ici, un changement de structure demande
+    un nouvel entrepôt — d'où la version dans le nom du fichier.
     """
+    texte = SCHEMA.read_text(encoding="utf-8")
     connexion = duckdb.connect(str(chemin or LOCAL))
-    connexion.execute(SCHEMA.read_text(encoding="utf-8"))
+    connexion.execute(texte)
+    connexion.execute(
+        "create table if not exists meta.schema_version (empreinte text primary key)"
+    )
+    empreinte = hashlib.sha256(texte.encode("utf-8")).hexdigest()
+    connues = [e for (e,) in connexion.execute("select empreinte from meta.schema_version").fetchall()]
+    if not connues:
+        connexion.execute("insert into meta.schema_version values (?)", [empreinte])
+    elif empreinte not in connues:
+        connexion.close()
+        raise SchemaDivergent(
+            f"l'entrepôt {chemin or LOCAL} a été créé par un autre schéma"
+            f" (empreinte {connues[0][:12]}, attendue {empreinte[:12]}). DuckDB"
+            " n'applique pas les changements de structure à une table existante :"
+            " incrémenter `entrepot.CLE` pour repartir d'un entrepôt neuf, puis"
+            " relancer le job « rechargement »."
+        )
     return connexion
 
 
