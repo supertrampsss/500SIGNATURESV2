@@ -75,22 +75,33 @@ def test_un_agregat_sans_definition_arrete_le_chargement(tmp_path):
             ],
         )
         ecrivain.writeheader()
+        # Un agrégat que l'OFGL ajouterait demain sans le commenter, et pour
+        # lequel personne n'aurait encore écrit de fiche.
         ecrivain.writerow({
-            "agregat": "Fonds de roulement", "indicateur": "ofgl_fonds_de_roulement",
+            "agregat": "Agrégat inédit", "indicateur": "ofgl_agregat_inedit",
             "niveaux": "commune", "lignes": "1", "charge": "oui",
             "chemin": "", "definition_ofgl": "", "formule_ofgl": "R + D",
         })
     lignes = ofgl.catalogue(chemin)
     assert lignes[0]["definition_ofgl"] == ""
-    with pytest.raises(normalisation.DefinitionManquante, match="Fonds de roulement"):
+    with pytest.raises(normalisation.DefinitionManquante, match="Agrégat inédit"):
         normalisation.fiches_depuis(lignes)
 
 
-def test_les_trois_agregats_sans_definition_ne_sont_pas_charges():
-    muets = [l for l in ofgl.catalogue() if not l["definition_ofgl"]]
-    assert {l["agregat"] for l in muets} == {
+def test_les_agregats_non_commentes_par_l_ofgl_disent_qui_les_definit():
+    # L'OFGL publie trois agrégats sans commentaire. Leur définition est écrite
+    # ici, à partir de la formule comptable qu'il publie bien — ce n'est donc pas
+    # une supposition, mais ce n'est pas non plus sa documentation. La fiche doit
+    # le dire, sans quoi le lecteur croirait lire le producteur.
+    muets = [l["agregat"] for l in ofgl.catalogue() if not l["definition_ofgl"]]
+    assert set(muets) == {
         "Crédits de trésorerie",
         "Fonds de roulement",
         "Produit des cessions d'immobilisations",
     }
-    assert all(l["charge"] == "non" for l in muets)
+    fiches = normalisation.fiches()
+    retenus = ofgl.agregats()
+    for agregat in muets:
+        _, technique, formule = fiches[retenus[agregat]]
+        assert "rédigée par ce site" in technique, agregat
+        assert formule, agregat

@@ -99,6 +99,44 @@ FICHES_REDIGEES = {
         " alors pour rembourser.",
         "Épargne brute − Remboursement du capital",
     ),
+    # Trois agrégats que l'OFGL publie sans les commenter. Leur définition est
+    # écrite ici, par nous, à partir de la formule comptable que l'OFGL publie
+    # bien — c'est elle qui dit exactement quels comptes les composent. Elles ne
+    # sont donc pas des suppositions, mais elles ne sont pas non plus de la
+    # documentation officielle : la fiche le dit.
+    "ofgl_credits_de_tresorerie": (
+        "Emprunts à très court terme mobilisés pour couvrir un décalage entre les"
+        " encaissements et les décaissements. Ils ne financent aucun investissement"
+        " et se remboursent dans l'année.",
+        "Solde créditeur du compte 519 (concours financiers à court terme)."
+        " À ne pas confondre avec l'encours de dette, qui porte les emprunts"
+        " souscrits pour investir. Définition rédigée par ce site à partir de la"
+        " formule comptable publiée par l'OFGL, qui ne commente pas cet agrégat.",
+        "SC519 (concours financiers à court terme)",
+    ),
+    "ofgl_fonds_de_roulement": (
+        "Ce que la collectivité a en réserve à la clôture de l'exercice, une fois"
+        " ses immobilisations financées. C'est une marge de trésorerie, pas un"
+        " résultat de l'année.",
+        "Comptes de stocks, de tiers et comptes financiers, nets de leurs"
+        " dépréciations, augmentés des intérêts courus et des opérations sur"
+        " capital remboursable in fine. Grandeur de bilan, arrêtée au 31 décembre :"
+        " elle ne s'additionne pas d'une année sur l'autre. Définition rédigée par"
+        " ce site à partir de la formule comptable publiée par l'OFGL, qui ne"
+        " commente pas cet agrégat.",
+        "Stocks + tiers + comptes financiers − dépréciations (+ intérêts courus)",
+    ),
+    "ofgl_produit_des_cessions_d_immobilisations": (
+        "Ce que la collectivité encaisse en vendant un bien qu'elle possédait —"
+        " terrain, bâtiment, véhicule. Une recette exceptionnelle : elle ne se"
+        " reproduit pas l'année suivante, et vendre un bien n'est pas produire une"
+        " ressource durable.",
+        "Solde créditeur du compte 775 (produits des cessions d'éléments d'actif)."
+        " Exclu des recettes de fonctionnement par l'OFGL, précisément parce qu'il"
+        " n'est pas récurrent. Définition rédigée par ce site à partir de la"
+        " formule comptable publiée par l'OFGL, qui ne commente pas cet agrégat.",
+        "CN775 (produits des cessions d'éléments d'actif)",
+    ),
     POPULATION: (
         "Population utilisée par l'Observatoire des finances locales pour calculer ses"
         " montants par habitant. La reprendre garantit que nos ratios par habitant"

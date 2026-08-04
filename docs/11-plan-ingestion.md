@@ -91,20 +91,21 @@ Mesuré le 4 août : **un agrégat = 279 865 lignes communales, 21 Mo de CSV** s
 
 | | agrégats | lignes |
 |---|---:|---:|
-| Chargés | 8 | 2 333 344 |
-| Non chargés | 64 | 11 883 168 |
-| **Total publié par l'OFGL** | **72** | **14 216 512** |
+| **Retenus (décision du 4 août)** | **72** | **14 216 512** |
+| Chargés à ce jour | 5 | 1 399 325 |
 
-Tout charger multiplierait par six l'empreinte OFGL, sur une base qui occupe déjà
-390 des 500 Mo du plan gratuit. Ce n'est pas un arbitrage technique : c'est un
-arbitrage de plan, qui appartient au propriétaire du projet. Le garde-fou de
-volume (`plateforme.limites`) refuse de toute façon avant écriture.
+Les 72 sont marqués « oui ». Le chargement multiplie par six l'empreinte OFGL,
+sur une base qui occupe déjà 390 des 500 Mo du plan gratuit : il suppose donc un
+plan payant, et le plafond de `plateforme.limites` devra être relevé en même
+temps. Le garde-fou refuse avant écriture tant que ce n'est pas fait — c'est
+voulu : mieux vaut un run qui s'arrête qu'une base saturée en lecture seule.
 
 Trois agrégats — crédits de trésorerie, fonds de roulement, produit des cessions
-d'immobilisations — sont publiés par l'OFGL **sans commentaire**. Les charger
-afficherait un montant que personne, nous compris, ne saurait expliquer : le
-chargement s'arrête net (`DefinitionManquante`) tant que leur fiche n'est pas
-rédigée.
+d'immobilisations — sont publiés par l'OFGL **sans commentaire**. Leur fiche est
+écrite ici, à partir de la formule comptable que l'OFGL publie bien : ce ne sont
+pas des suppositions, mais ce n'est pas sa documentation non plus, et la fiche
+technique le dit en toutes lettres. Tout autre agrégat sans définition arrête le
+chargement (`DefinitionManquante`) au lieu d'être publié muet.
 
 **Les classes SSMSI n'ont pas toutes la même unité de compte.** Nos définitions
 publiées le disent en toutes lettres pour certaines — « en victimes enregistrées »
