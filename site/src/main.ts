@@ -854,6 +854,22 @@ function brancherCommandes(): void {
     // Ouvrir une mesure la porte sur la carte : le geste qui demande le détail
     // est le même que celui qui veut la voir peinte. Un bouton séparé faisait
     // deux clics pour une seule intention.
+    // Le rond « i » explique, il ne replie pas : sans cela, le toucher fermait
+    // la mesure qu'on venait d'ouvrir pour la comprendre.
+    const info = (evenement.target as HTMLElement).closest<HTMLElement>("[data-info]");
+    if (info) {
+      evenement.preventDefault();
+      const pli = info.closest("details") as HTMLDetailsElement | null;
+      const definition = pli?.querySelector<HTMLElement>(".mesure__definition");
+      if (!pli || !definition) return;
+      // Demander l'explication ouvre la mesure : la définition vit dans son
+      // détail, la cacher derrière un second geste n'aurait aucun sens.
+      const montrer = definition.hidden;
+      definition.hidden = !montrer;
+      info.setAttribute("aria-expanded", String(montrer));
+      if (montrer) pli.open = true;
+      return;
+    }
     const mesure = (evenement.target as HTMLElement).closest<HTMLElement>("[data-mesure]");
     if (mesure?.dataset.mesure) {
       // Refermer une mesure ne repeint rien : on ne change la carte qu'en

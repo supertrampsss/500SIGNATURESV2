@@ -296,7 +296,7 @@ function ligneIndicateur(
       }</span>
     </div>`;
   }
-  const { periode, valeur, brut, ratio, denom, suivie, brute } = mesure;
+  const { periode, valeur, brut, ratio, suivie, brute } = mesure;
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
   const formate = (v: number) => formater(v, indicateur.unite, ratio);
 
@@ -327,16 +327,6 @@ function ligneIndicateur(
   if (part && totalPart) {
     comparaisons.push(`Soit ${pourcentage((brut / totalPart) * 100)} ${part.nom}.`);
   }
-  // L'autre lecture d'un montant : le total quand on lit du par-habitant.
-  if (indicateur.unite === "EUR" && parHabitantAUnSens(indicateur)) {
-    comparaisons.push(
-      ratio
-        ? `Soit ${formater(brut, "EUR", false)} au total.`
-        : denom.valeur
-          ? `Soit ${formater(brut / denom.valeur, "EUR", true)} par habitant.`
-          : "",
-    );
-  }
   const evolutionDite = evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie));
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
@@ -346,9 +336,12 @@ function ligneIndicateur(
   }"${surCarte ? " open" : ""}>
     <summary>
       <span class="mesure__nom">${echapper(indicateur.libelle)}</span>
+      <button type="button" class="mesure__info" data-info="${indicateur.id}"
+        aria-label="Que mesure cet indicateur ?">i</button>
       <span class="mesure__valeur">${formate(valeur)}</span>
     </summary>
     <div class="mesure__detail">
+      <p class="mesure__definition" hidden>${echapper(indicateur.definition)}</p>
       ${comparaisons
         .filter(Boolean)
         .map((phrase) => `<p class="mesure__phrase">${echapper(phrase)}</p>`)

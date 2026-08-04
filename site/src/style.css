@@ -2440,7 +2440,45 @@ body[data-vue="carte"] .pied {
 .mesure__nom {
   font-size: 0.88rem;
 }
+/* Le rond « i » : à quoi correspond l'indicateur qu'on regarde. Discret dans
+   la ligne, il ne prend la parole que si on le lui demande. */
+.mesure__info {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 1.05rem;
+  height: 1.05rem;
+  padding: 0;
+  border: 1px solid var(--trait-fort);
+  border-radius: 50%;
+  background: none;
+  color: var(--encre-douce);
+  font-family: var(--serif);
+  font-size: 0.68rem;
+  font-style: italic;
+  line-height: 1;
+  cursor: help;
+  transition: color var(--transition), border-color var(--transition);
+}
+.mesure__info:hover,
+.mesure__info[aria-expanded="true"] {
+  color: var(--argile);
+  border-color: var(--argile);
+}
+.mesure__definition {
+  margin: 0 0 0.15rem;
+  padding: 0.4rem 0.55rem;
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+  font-size: 0.8rem;
+  color: var(--encre-douce);
+}
+/* La valeur ne se laisse plus pousser par le rond : c'est elle qui tient la
+   colonne de droite. */
+.mesure > summary .mesure__nom {
+  flex: 0 1 auto;
+}
 .mesure__valeur {
+  margin-left: 0.55rem;
   font-size: 0.95rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
