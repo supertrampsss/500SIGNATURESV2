@@ -238,10 +238,11 @@ def declarer_indicateurs(conn, niveaux: list[str]) -> None:
                     -- seules communes ne doit pas faire disparaître du catalogue
                     -- les départements déjà chargés. Le niveau réel est de toute
                     -- façon recalculé depuis les données à la publication.
-                    geo_levels = (
-                        select array_agg(distinct n order by n)
-                        from unnest(core.indicators.geo_levels || excluded.geo_levels) as n
-                    ),
+                    -- En expression et non en sous-requête : DuckDB refuse un
+                    -- select dans un `do update set`.
+                    geo_levels = list_sort(list_distinct(
+                        core.indicators.geo_levels || excluded.geo_levels
+                    )),
                     published = true
                 """,
                 (
