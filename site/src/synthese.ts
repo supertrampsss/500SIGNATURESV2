@@ -36,6 +36,29 @@ function arrondiEcart(ecart: number): number {
  *  « trois fois » un excédent, il en est le contraire. Le rapport n'a de sens
  *  que du même côté de zéro — c'est vrai de tous les soldes, déficits et
  *  variations, qui changent de signe sans changer de nature. */
+/**
+ * Facteur au-delà duquel un rapport cesse de comparer.
+ *
+ * Une commune ne se compare à une médiane que si cette médiane est une
+ * grandeur. Vérifié sur la publication du 4 août : la médiane régionale des
+ * « emprunts hors gestion active de la dette » vaut **0,13 € par habitant** —
+ * plus de la moitié des communes n'empruntent rien cette année-là — et Bordeaux,
+ * à 339 € par habitant, ressortait « +254 040 % au-dessus », promu en écart le
+ * plus marqué du thème.
+ *
+ * Le nombre est exact et ne dit rien : il mesure la petitesse du dénominateur,
+ * pas la position de la commune. Passé un facteur cent, le pourcentage n'est
+ * plus une comparaison — il énonce que l'autre grandeur est à peu près nulle,
+ * ce que la phrase dit alors en toutes lettres.
+ */
+export const FACTEUR_MAXIMUM = 100;
+
+/** Le repère a-t-il une grandeur suffisante pour qu'un rapport le compare ? */
+export function repereComparable(valeur: number, repere: number): boolean {
+  if (!Number.isFinite(valeur) || !Number.isFinite(repere) || repere === 0) return false;
+  return Math.abs(valeur) <= Math.abs(repere) * FACTEUR_MAXIMUM;
+}
+
 export function memeSens(valeur: number, repere: number): boolean {
   return valeur * repere > 0;
 }
@@ -52,6 +75,12 @@ export function lecture(
   // laisse le lecteur voir l'écart plutôt que de lui en donner un faux.
   if (!memeSens(valeur, repere.valeur)) {
     return `Contre ${formater(repere.valeur)} pour ${repere.libelle}.`;
+  }
+  // Un repère cent fois plus petit que la valeur ne la situe pas : il dit que
+  // l'autre grandeur est à peu près nulle. On l'écrit ainsi plutôt que d'en
+  // tirer un pourcentage à cinq chiffres.
+  if (!repereComparable(valeur, repere.valeur)) {
+    return `Sans commune mesure : ${repere.libelle} est à ${formater(repere.valeur)}.`;
   }
   const ecart = ((valeur - repere.valeur) / Math.abs(repere.valeur)) * 100;
   // Pas de mise en minuscules : « France » deviendrait « france ». Les

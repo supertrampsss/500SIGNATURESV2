@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { compteEcarts, lecture, resumeEcarts, synthese, tendance } from "./synthese.ts";
+import { compteEcarts, lecture, resumeEcarts, synthese, tendance, repereComparable } from "./synthese.ts";
 
 const euros = (v: number) => `${Math.round(v)} €`;
 
@@ -162,4 +162,25 @@ test("un thème qui ne penche d'aucun côté ne se voit pas attribuer de camp", 
     ),
     "2 indicateurs, tous au niveau de la France.",
   );
+});
+
+test("un repère cent fois plus petit ne compare pas, il dit que l'autre est nul", () => {
+  // Constaté sur la publication du 4 août, et promu en titre du thème : la
+  // médiane régionale des « emprunts hors gestion active de la dette » vaut
+  // 0,13 € par habitant — plus de la moitié des communes n'empruntent rien —
+  // et Bordeaux, à 339 € par habitant, ressortait « +254 040 % au-dessus ».
+  // Le nombre est exact et ne dit rien : il mesure la petitesse du
+  // dénominateur, pas la position de la commune.
+  assert.equal(repereComparable(338.52, 0.1332), false);
+  assert.equal(repereComparable(1372.7, 755.73), true);
+  // La borne est le facteur cent, des deux côtés de l'échelle.
+  assert.equal(repereComparable(100, 1), true);
+  assert.equal(repereComparable(101, 1), false);
+  assert.equal(repereComparable(-338, -0.13), false);
+  // Un repère nul ne compare rien non plus.
+  assert.equal(repereComparable(10, 0), false);
+
+  const phrase = lecture(338.52, [{ libelle: "la médiane des communes de la région", valeur: 0.1332 }], (v) => `${v} €`);
+  assert.match(phrase, /Sans commune mesure/);
+  assert.doesNotMatch(phrase, /%/);
 });

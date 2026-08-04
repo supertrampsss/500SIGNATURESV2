@@ -8,7 +8,9 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 import { reperes, type References } from "./reference.ts";
-import { compteEcarts, lecture, memeSens, resumeEcarts, synthese } from "./synthese.ts";
+import {
+  compteEcarts, lecture, memeSens, repereComparable, resumeEcarts, synthese,
+} from "./synthese.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -274,7 +276,7 @@ function mesurer(
   // dont un ment.
   const repere = comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur !== 0);
   const ecart =
-    repere && memeSens(valeur, repere.valeur)
+    repere && memeSens(valeur, repere.valeur) && repereComparable(valeur, repere.valeur)
       ? {
           reference: repere.libelle,
           pourcent: ((valeur - repere.valeur) / Math.abs(repere.valeur)) * 100,
