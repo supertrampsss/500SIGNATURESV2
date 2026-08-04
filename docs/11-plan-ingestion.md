@@ -110,38 +110,49 @@ pas des suppositions, mais ce n'est pas sa documentation non plus, et la fiche
 technique le dit en toutes lettres. Tout autre agrégat sans définition arrête le
 chargement (`DefinitionManquante`) au lieu d'être publié muet.
 
-**Les classes SSMSI n'ont pas toutes la même unité de compte.** Nos définitions
-publiées le disent en toutes lettres pour certaines — « en victimes enregistrées »
-pour les violences, « personnes mises en cause » pour les stupéfiants — mais la
-définition technique se contente de « unité de compte de la source » sans la
-nommer. C'est une information indispensable pour savoir ce qui s'additionne :
-un cambriolage est un fait, une violence est une victime, un stupéfiant est un
-auteur présumé. À faire : publier l'unité de compte de chaque classe dans la
-fiche de l'indicateur, plutôt que de la laisser deviner au lecteur du site — et
-à celui qui écrit ses agrégats.
+**Les classes SSMSI n'ont pas toutes la même unité de compte — réglé le
+4 août.** La définition technique se contentait de « unité de compte de la
+source » sans la nommer. Il n'y avait pourtant rien à deviner : le SSMSI publie
+une colonne `unite_de_compte` dans ses trois bases, et elle dit quatre choses
+différentes — *infraction* pour un cambriolage ou une dégradation, *victime*
+pour une violence, *véhicule* pour un vol de voiture, *mis en cause* pour un
+fait de stupéfiants. Elle est désormais reprise telle quelle dans la fiche,
+publiée dans le catalogue, et un changement chez le producteur arrête le
+chargement.
 
-**La sécurité n'a aucun repère dans `references.json`.** Vérifié le 4 août :
-sur les 32 indicateurs SSMSI, zéro médiane publiée, à aucune maille — comme
-pour `education` (0 sur 2), `entreprises` (0 sur 1), `population` (0 sur 2) et
-`revenus` (0 sur 2). La sécurité s'en sortait jusqu'ici par les *comparateurs*
-— la valeur publiée du département et de la région — mais ce détour s'arrête à
-la région, dont le seul parent est la France, où le SSMSI ne publie rien. Une
-fiche régionale ne peut donc comparer sa délinquance à rien, et l'ouverture y
-écrit « Aucun repère publié à cette maille » faute de mieux. Ce qu'il faut :
-calculer les médianes SSMSI par maille comme pour l'OFGL, au moins commune /
-département / région, et les ajouter à l'export des repères.
+Cela a corrigé un agrégat faux. « Atteintes aux biens » additionnait les
+cambriolages et les vols de véhicules en affirmant qu'ils étaient comptés de la
+même façon. À la maille communale, une seule des six classes publiées est
+comptée en infractions : il n'y a donc pas d'agrégat homogène à cette maille, et
+la version communale a été retirée. Il en reste un au département et à la
+région, cambriolages + dégradations. La règle « une seule unité de compte par
+somme » est maintenant tenue par le code, pas par un commentaire.
 
-**Les intercommunalités n'ont pas de maille de rattachement publiée.** Leur
-enregistrement sort avec `parent: null` et `region: null` — vérifié le 4 août
-sur Bordeaux Métropole. Conséquences visibles : la fiche d'un EPCI ne se situe
-dans aucun département ni aucune région, et ses mesures ne se comparent qu'à la
-médiane nationale, là où une commune se compare aussi à son département et à sa
-région. Le rattachement existe dans la correspondance EPCI–communes déjà
-ingérée ; il reste à le porter dans l'export des territoires. Un EPCI peut
-chevaucher deux départements : le rattachement doit alors suivre la règle du
-producteur (département du siège), pas une majorité de communes calculée par
-nous. **Rien ne doit être déduit du numéro SIREN** — sa structure n'est pas une
-garantie de code départemental.
+**La sécurité n'avait aucun repère dans `references.json` — réglé le 4 août.**
+Le refus se posait par jeu, alors qu'il ne vaut que par maille. La censure du
+SSMSI ne porte que sur la base communale — c'est là, et là seulement, que le
+dictionnaire des variables déclare l'indicatrice `est_diffuse` — et elle sélectionne
+sur la valeur (moins de cinq faits sur trois ans), ce qui tire une médiane
+communale vers le haut d'un montant inconnu. Au département, la source publie
+101 départements sur 101 ; à la région, 18 sur 18. Le refus s'applique donc
+maintenant au couple (jeu, maille) : commune pour le SSMSI, commune et
+intercommunalité pour Filosofi.
+
+Restent sans repère `education` (0 sur 2), `entreprises` (0 sur 1) et
+`population` (0 sur 2) — **et c'est la bonne réponse** : ce sont des comptages
+sommables, qu'une médiane brute compare à des territoires de tailles sans
+rapport. Ce qui leur manque n'est pas une médiane mais un taux : « écoles pour
+10 000 habitants » est un indicateur à écrire, pas un repère à calculer.
+
+**Les intercommunalités n'avaient pas de maille de rattachement — réglé le
+4 août.** L'API Géo publie, pour chaque EPCI, la liste des départements et des
+régions qu'il touche : c'est le producteur qui la dresse, et **rien n'est déduit
+du numéro SIREN**. 1 166 EPCI sur 1 255 ne touchent qu'un département et le
+prennent pour parent. Les 89 autres n'en ont pas — aucune majorité de communes
+n'est calculée par nous —, mais 63 d'entre eux n'appartiennent qu'à une seule
+région, qui est publiée ; les 26 restants n'ont ni parent ni région, et la liste
+de leurs départements reste visible dans leurs drapeaux. Une fiche d'EPCI se
+compare donc à son département et à sa région, comme une commune.
 
 ### P1 — après mesure du volume réel
 
@@ -176,12 +187,10 @@ La discipline des connecteurs déjà en place s'applique sans exception :
 5. **garde-fou de volume** mesuré avant écriture (`limites.py`) ;
 6. **rechargements par l'archive des révisions**, jamais par écrasement muet.
 
-## Volume : l'arbitrage à tenir
+## Volume : l'arbitrage est clos
 
-P0 complet ≈ **50 à 60 Mo**. La base était à ~470 Mo avant l'incident, plafond
-470 Mo (D6quater, plan gratuit à 500 Mo réels). **P0 ne rentre pas sans
-arbitrage** : soit le plan Supabase passe réellement à 8 Go (Pro), soit on
-applique une rétention plus stricte sur les séries communales existantes.
-
-C'est une décision du propriétaire, pas un détail technique — elle est posée
-en D6quater (`docs/09`) et ce plan attend sa réponse.
+P0 complet ≈ **50 à 60 Mo**. La question ne se pose plus : l'entrepôt n'est plus
+une base hébergée avec un plafond de 500 Mo mais un fichier DuckDB versionné
+dans le bucket R2 (D6quinquies). Quatorze millions de lignes OFGL y tiennent
+pour quelques centimes par mois. Le garde-fou de `plateforme.limites` est passé
+à 8 Go et ne sert plus qu'à repérer un connecteur en défaut.
