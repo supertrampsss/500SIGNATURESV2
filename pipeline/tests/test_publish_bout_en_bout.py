@@ -227,3 +227,55 @@ def test_une_publication_amputee_ne_remplace_pas_le_site_en_ligne(tmp_path):
         assert pointeur == {"version": "2026-01-01T0000"}
     finally:
         conn.close()
+
+
+def test_le_secret_statistique_ne_masque_que_les_mailles_ou_il_mord(tmp_path):
+    """La sécurité n'avait de repère nulle part, à aucune maille. Le motif était
+    bon — l'ensemble communal du SSMSI est censuré, les petits comptes masqués,
+    et une médiane calculée dessus mentirait sur son périmètre — mais il ne vaut
+    qu'à la commune. Au département, la source publie 101 départements sur 101 ;
+    une fiche régionale ne pouvait donc se comparer à rien, faute d'une règle
+    posée par jeu là où elle se pose par maille."""
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        definition = conn.execute(
+            "insert into core.indicator_definitions (public_definition, confidence_level)"
+            " values ('Cambriolages enregistrés pour 1 000 logements.', 'observed')"
+            " returning definition_id"
+        ).fetchone()[0]
+        conn.execute(
+            """
+            insert into core.indicators
+                (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
+                 additive, geo_levels, time_granularity, published)
+            values ('ssmsi_cambriolages_taux', 'ssmsi-delinquance', ?, 'securite',
+                    'Cambriolages', 'pour_1000_logements', false,
+                    array['commune','departement'], 'annuelle', true)
+            """,
+            (definition,),
+        )
+        run_id = entrepot.start_run(conn, "ssmsi-delinquance")
+        for niveau, code, valeur in (
+            ("commune", "33063", 7.1), ("commune", "33281", 5.4), ("departement", "33", 6.2),
+        ):
+            conn.execute(
+                "insert into core.observations (indicator_id, geo_level, geo_code,"
+                " geo_vintage, period, value, run_id) values ('ssmsi_cambriolages_taux',"
+                " ?, ?, ?, '2023', ?, ?)",
+                (niveau, code, MILLESIME, valeur, run_id),
+            )
+        entrepot.finish_run(conn, run_id, "success")
+        conn.commit()
+
+        store = LocalStore(str(tmp_path / "publie"))
+        publish.publier(conn, store, "2026-01-01T0000")
+        references = json.loads(
+            (tmp_path / "publie" / "data" / "2026-01-01T0000" / "references.json").read_text()
+        )
+        repere = references["ssmsi_cambriolages_taux"]["2023"]
+        assert "departement" in repere, "aucun repère départemental : la fiche régionale reste muette"
+        assert repere["departement"]["nature"] == "mediane"
+        assert "commune" not in repere, "médiane calculée sur un ensemble communal censuré"
+    finally:
+        conn.close()

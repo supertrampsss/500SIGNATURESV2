@@ -475,32 +475,62 @@ def references(conn, cartographiees: dict[str, dict[str, list[str]]]) -> dict:
     for indicateur, periode in couples_publies(conn, "pays", borne=False):
         par_indicateur[indicateur]["pays"].append(periode)
 
-    # Deux familles d'indicateurs n'ont pas de repères, parce que leur repère
-    # serait faux. Les jeux sous secret statistique (SSMSI) : leur ensemble
-    # communal est censuré — petits comptes masqués, zéros publiés — et une
-    # médiane calculée dessus, étiquetée « communes de France », mentirait sur
-    # son périmètre (constaté sur Marseille : médiane nationale des
-    # cambriolages à 0 ‰). Les comptages sommables (établissements, écoles) :
-    # la médiane brute compare des territoires de tailles sans rapport —
-    # Marseille et ses 4 346 faits contre une médiane à 10 donnait
-    # « +43 360 % », un chiffre vrai qui ne dit rien. Un comptage se compare
-    # par taux ; le taux, quand il existe, est un indicateur à part entière.
-    for indicateur, sommable, unite in conn.execute(
+    # Les comptages sommables (établissements, écoles) n'ont pas de repère : la
+    # médiane brute compare des territoires de tailles sans rapport — Marseille
+    # et ses 4 346 faits contre une médiane à 10 donnait « +43 360 % », un
+    # chiffre vrai qui ne dit rien. Un comptage se compare par taux ; le taux,
+    # quand il existe, est un indicateur à part entière.
+    masque = mailles_masquees(conn)
+    for indicateur, sommable, unite, jeu in conn.execute(
         """
-        select i.indicator_id, i.additive, i.unit
+        select i.indicator_id, i.additive, i.unit, i.dataset_id
         from core.indicators i
         join meta.dataset_registry d using (dataset_id)
-        where i.published
-          and not coalesce(d.statistical_secrecy, false)
-          and not (i.additive and i.unit = 'count')
+        where i.published and not (i.additive and i.unit = 'count')
         """
     ).fetchall():
         for niveau, periodes in par_indicateur.get(indicateur, {}).items():
+            if niveau in masque.get(jeu, ()):
+                continue
             for periode in periodes:
                 calcul = _reference_par_region(conn, indicateur, niveau, periode, sommable, unite)
                 if calcul:
                     sortie[indicateur][periode][niveau] = calcul
     return sortie
+
+
+# Le secret statistique ne mord pas à toutes les mailles, et c'est vérifiable
+# plutôt que supposé.
+#
+# **SSMSI.** Le dictionnaire des variables de la source ne porte l'indicatrice
+# `est_diffuse` que dans la colonne « Communale » : seules les communes sont
+# masquées, et selon un critère qui porte sur la valeur elle-même — moins de
+# cinq faits sur trois années. Les basses valeurs disparaissent donc en bloc, et
+# une médiane des communes visibles est tirée vers le haut d'un montant inconnu.
+# Constaté : médiane nationale des cambriolages à 0 ‰ en face de Marseille.
+# Aux mailles départementale et régionale, la source publie tout — 101
+# départements sur 101, 18 régions sur 18, vérifié le 4 août sur les fichiers en
+# ligne. Une médiane y porte sur l'ensemble entier et se compare honnêtement.
+#
+# **Filosofi.** L'INSEE masque les communes et les intercommunalités trop
+# petites, pour la même raison et avec le même effet de sélection.
+#
+# Un jeu sous secret non listé ici est masqué partout : se taire ne vaut pas
+# autorisation.
+NIVEAUX_SOUS_SECRET = {
+    "ssmsi-delinquance": {"commune"},
+    "melodi-filosofi-cc": {"commune", "epci"},
+}
+
+
+def mailles_masquees(conn) -> dict[str, set[str]]:
+    """-> {jeu: mailles où le secret interdit de calculer un repère}."""
+    return {
+        jeu: NIVEAUX_SOUS_SECRET.get(jeu, set(NIVEAUX))
+        for (jeu,) in conn.execute(
+            "select dataset_id from meta.dataset_registry where statistical_secrecy"
+        ).fetchall()
+    }
 
 
 def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) -> dict | None:
