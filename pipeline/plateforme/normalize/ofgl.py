@@ -64,6 +64,36 @@ FICHES = {
         " annexes consolidés (agrégat OFGL « Encours de dette »).",
         "Encours de dette au 31/12",
     ),
+    "ofgl_frais_personnel": (
+        "Ce que la collectivité paie chaque année à ses agents : salaires, primes"
+        " et cotisations. C'est presque toujours le premier poste de son budget de"
+        " fonctionnement.",
+        "Frais de personnel de l'exercice, budget principal et budgets annexes"
+        " consolidés (agrégat OFGL « Frais de personnel »). Rémunérations et"
+        " charges sociales comprises ; ne comprend pas le personnel des"
+        " satellites — associations subventionnées, délégataires — dont la"
+        " dépense apparaît ailleurs.",
+        "Frais de personnel",
+    ),
+    "ofgl_charges_financieres": (
+        "Les intérêts que la collectivité paie sur sa dette. Ce n'est pas le"
+        " remboursement de la dette elle-même, qui figure dans les dépenses"
+        " d'investissement : c'est le prix de l'emprunt.",
+        "Charges financières de l'exercice, budget principal et budgets annexes"
+        " consolidés (agrégat OFGL « Charges financières »). Intérêts payés, à ne"
+        " pas additionner avec le remboursement du capital : les deux relèvent de"
+        " sections comptables différentes.",
+        "Charges financières",
+    ),
+    "ofgl_epargne_nette": (
+        "Ce qui reste à la collectivité une fois payés le fonctionnement et le"
+        " remboursement de sa dette. C'est ce qu'elle peut réellement consacrer à"
+        " de nouveaux équipements sans emprunter.",
+        "Épargne brute moins le remboursement du capital de la dette (agrégat"
+        " OFGL « Epargne nette »). Peut être négative : la collectivité emprunte"
+        " alors pour rembourser.",
+        "Épargne brute − Remboursement du capital",
+    ),
     POPULATION: (
         "Population utilisée par l'Observatoire des finances locales pour calculer ses"
         " montants par habitant. La reprendre garantit que nos ratios par habitant"
@@ -80,6 +110,9 @@ LIBELLES = {
     "ofgl_depenses_investissement": "Dépenses d'investissement",
     "ofgl_epargne_brute": "Épargne brute",
     "ofgl_encours_dette": "Encours de dette",
+    "ofgl_frais_personnel": "Frais de personnel",
+    "ofgl_charges_financieres": "Charges financières (intérêts de la dette)",
+    "ofgl_epargne_nette": "Épargne nette",
     POPULATION: "Population de référence OFGL",
 }
 

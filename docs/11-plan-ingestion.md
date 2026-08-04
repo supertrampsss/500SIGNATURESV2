@@ -70,6 +70,31 @@ leur **part dans leur propre total** — vérifiée contre les chiffres publiés
 les quatre composantes de la dette somment au total à 0,003 % près, recettes
 fiscales plus non fiscales font exactement les recettes nettes.
 
+**L'OFGL publie 56 agrégats, nous en chargions 5.** Vérifié le 4 août contre
+les facettes de l'API (`ofgl-base-communes-consolidee`, facette `agregat`) :
+« Frais de personnel », « Charges financières », « Épargne nette », « Annuité de
+la dette », « Dépenses d'équipement », « Impôts locaux », « Fiscalité
+reversée »… tous publiés dans le même fichier, au même format, sans surcoût
+d'extraction. Le connecteur les filtrait simplement hors de sa requête. C'est ce
+qui rendait impossible la question la plus posée sur les finances locales — la
+part des salaires dans le budget de fonctionnement.
+
+Trois sont désormais dans `connectors/ofgl.py` : frais de personnel, charges
+financières, épargne nette. Chacun coûte environ 280 000 lignes par exercice pour
+les seules communes ; le garde-fou de volume (`plateforme.limites`) refusera le
+chargement avant écriture si la marge Supabase n'y suffit pas. Les autres restent
+disponibles si l'arbitrage de volume le permet.
+
+**Les classes SSMSI n'ont pas toutes la même unité de compte.** Nos définitions
+publiées le disent en toutes lettres pour certaines — « en victimes enregistrées »
+pour les violences, « personnes mises en cause » pour les stupéfiants — mais la
+définition technique se contente de « unité de compte de la source » sans la
+nommer. C'est une information indispensable pour savoir ce qui s'additionne :
+un cambriolage est un fait, une violence est une victime, un stupéfiant est un
+auteur présumé. À faire : publier l'unité de compte de chaque classe dans la
+fiche de l'indicateur, plutôt que de la laisser deviner au lecteur du site — et
+à celui qui écrit ses agrégats.
+
 **La sécurité n'a aucun repère dans `references.json`.** Vérifié le 4 août :
 sur les 32 indicateurs SSMSI, zéro médiane publiée, à aucune maille — comme
 pour `education` (0 sur 2), `entreprises` (0 sur 1), `population` (0 sur 2) et

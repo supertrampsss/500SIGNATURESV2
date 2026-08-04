@@ -47,12 +47,25 @@ CRITERES = [
     "tranche_revenu_imposable_par_habitant",
 ]
 
+# L'OFGL publie 56 agrégats par territoire et exercice. Les cinq premiers
+# ci-dessous ont longtemps été les seuls chargés : la fiche ne pouvait donc pas
+# répondre à « quelle part du budget part en salaires ? » ni à « combien coûtent
+# les intérêts de la dette locale ? », faute d'une donnée pourtant publiée au
+# même endroit, dans le même fichier, sans surcoût d'extraction.
+#
+# Les trois suivants ouvrent ces questions. Chacun coûte environ 280 000 lignes
+# par exercice pour les seules communes : c'est le garde-fou de volume
+# (plateforme.limites) qui refusera le chargement si la marge Supabase n'y
+# suffit pas, avant toute écriture — pas une estimation faite ici.
 AGREGATS = {
     "Dépenses de fonctionnement": "ofgl_depenses_fonctionnement",
     "Recettes de fonctionnement": "ofgl_recettes_fonctionnement",
     "Dépenses d'investissement": "ofgl_depenses_investissement",
     "Epargne brute": "ofgl_epargne_brute",
     "Encours de dette": "ofgl_encours_dette",
+    "Frais de personnel": "ofgl_frais_personnel",
+    "Charges financières": "ofgl_charges_financieres",
+    "Epargne nette": "ofgl_epargne_nette",
 }
 
 

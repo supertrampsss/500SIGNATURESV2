@@ -8,6 +8,7 @@ import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 import * as donnees from "./donnees.ts";
+import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, positionDansGroupe } from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
@@ -164,9 +165,26 @@ function ecrireUrl(): void {
   history.replaceState(null, "", `?${p}`);
 }
 
+/** Les séries calculées rejoignent celles du territoire dès son chargement.
+ *
+ *  Les ajouter ici plutôt qu'à l'affichage garantit qu'elles existent partout où
+ *  les autres existent : dans la fiche, mais aussi dans les mailles supérieures
+ *  qui lui servent de comparaison. Sans cela, une commune aurait sa capacité de
+ *  désendettement sans avoir celle de son département à côté. */
+function enrichir(paquet: Record<string, Territoire>, niveau: string): Record<string, Territoire> {
+  const sortie: Record<string, Territoire> = {};
+  for (const [code, territoire] of Object.entries(paquet)) {
+    const calculees = seriesDerivees(territoire.series, niveau);
+    sortie[code] = Object.keys(calculees).length
+      ? { ...territoire, series: { ...territoire.series, ...calculees } }
+      : territoire;
+  }
+  return sortie;
+}
+
 async function chargerTerritoires(niveau: string, lot: string): Promise<void> {
   const paquet = await donnees.territoires(niveau, lot);
-  entites = { ...entites, ...paquet };
+  entites = { ...entites, ...enrichir(paquet, niveau) };
   recalculerPopulations();
 }
 
@@ -807,6 +825,12 @@ async function choisirIndicateur(id: string): Promise<void> {
   // commune. Sa fiche s'ouvre quand même, la carte reste sur ce qu'elle sait
   // montrer plutôt que de se vider.
   if (!choisi.niveaux?.includes(etat.niveau)) return;
+  // Un indicateur calculé n'a pas de couche à peindre : il est reconstitué
+  // territoire par territoire, pas publié en fichier de carte. Sa fiche s'ouvre,
+  // la carte garde ce qu'elle montrait — plutôt que de virer au gris faute de
+  // fichier. La peindre demanderait de recalculer 34 772 ratios à chaque clic ;
+  // c'est possible, ce n'est pas gratuit, et personne ne l'a demandé.
+  if (IDS_DERIVES.has(id)) return;
   // Changer de thème remet l'année à la plus récente : un thème au millésime
   // court y laissait sinon le lecteur sans un mot.
   if (choisi.theme !== etat.theme) etat.periode = "";
@@ -1052,6 +1076,10 @@ async function demarrer(): Promise<void> {
   const manifeste = await donnees.initialiser();
   jeux = manifeste.jeux;
   catalogue = await donnees.indicateurs();
+  // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
+  // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
+  // leur origine. Leur badge et leur fiche disent d'où ils viennent.
+  catalogue = [...catalogue, ...indicateursDerives(catalogue)];
   etat = lireUrl();
   construireSelecteurs();
   afficherQuestions($("questions"));
@@ -1442,7 +1470,11 @@ async function demarrer(): Promise<void> {
     donnees.territoires("pays", "tous").catch(() => ({})),
   ])
     .then(([dep, reg, pays]) => {
-      parents = { ...dep, ...reg, ...(pays as Record<string, Territoire>) };
+      parents = {
+        ...enrichir(dep as Record<string, Territoire>, "departement"),
+        ...enrichir(reg as Record<string, Territoire>, "region"),
+        ...enrichir(pays as Record<string, Territoire>, "pays"),
+      };
       // Le panneau d'accueil EST la fiche de la France : il ne peut donc
       // s'afficher qu'une fois la maille « pays » arrivée. Sans ce second
       // rendu, l'aperçu de couche restait à l'écran jusqu'au premier clic.

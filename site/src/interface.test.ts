@@ -29,12 +29,22 @@ test("changer de thème repart sur l'année la plus récente", () => {
   // La barre latérale gauche a disparu : le panneau de droite porte tout le
   // catalogue, thème après thème, déjà chargé. La règle vit dans
   // choisirIndicateur(), appelée au clic sur une ligne du panneau.
-  assert.match(MAIN, /async function choisirIndicateur[\s\S]{0,900}etat\.periode = ""/);
+  // On lit le corps de la fonction, pas une fenêtre de N caractères après son
+  // nom : chaque commentaire ajouté au-dessus de la règle faisait rougir ce
+  // test sans que la règle ait bougé, et la réponse était d'élargir la fenêtre.
+  const corps = MAIN.slice(
+    MAIN.indexOf("async function choisirIndicateur"),
+    MAIN.indexOf("function brancherCommandes"),
+  );
+  assert.ok(corps.length > 200, "corps de choisirIndicateur introuvable");
+  assert.match(corps, /etat\.periode = ""/);
   assert.doesNotMatch(PAGE, /surcouche--commandes/);
   assert.match(MAIN, /\$\("fiche"\)\.addEventListener\("click", surLigne\)/);
   // Ouvrir une mesure la porte sur la carte — mais seulement si elle existe à
-  // la maille affichée : les séries nationales n'ont pas de valeur communale.
-  assert.match(MAIN, /if \(!choisi\.niveaux\?\.includes\(etat\.niveau\)\) return;/);
+  // la maille affichée : les séries nationales n'ont pas de valeur communale,
+  // et un indicateur calculé n'a pas de couche publiée du tout.
+  assert.match(corps, /if \(!choisi\.niveaux\?\.includes\(etat\.niveau\)\) return;/);
+  assert.match(corps, /if \(IDS_DERIVES\.has\(id\)\) return;/);
   assert.match(MAIN, /closest<HTMLElement>\("\[data-mesure\]"\)/);
 });
 

@@ -142,6 +142,28 @@ const PART_DU_TOTAL: Record<string, { total: string; nom: string }> = {
     total: "etat_recettes_nettes_bg",
     nom: "des recettes nettes du budget général",
   },
+  // Les dix fonctions COFOG dans la dépense publique totale. Vérifié sur
+  // l'exercice 2023 : leur somme fait 56,90 % du PIB pour un total publié de
+  // 56,9 % — l'identité se ferme au centième de point, ces parts sont exactes.
+  // « La défense, c'est 3 % de la dépense publique » est la lecture qu'un
+  // pourcentage de PIB seul ne donne pas.
+  ...Object.fromEntries(
+    [
+      "eurostat_fonction_affaires_economiques",
+      "eurostat_fonction_defense",
+      "eurostat_fonction_enseignement",
+      "eurostat_fonction_logement",
+      "eurostat_fonction_culture",
+      "eurostat_fonction_ordre_securite",
+      "eurostat_fonction_environnement",
+      "eurostat_fonction_protection_sociale",
+      "eurostat_fonction_sante",
+      "eurostat_fonction_services_generaux",
+    ].map((id) => [
+      id,
+      { total: "eurostat_depenses_publiques_pib", nom: "de la dépense publique totale" },
+    ]),
+  ),
 };
 
 /** Les indicateurs qui *sont* une population. Leur densité vaut mille pour
@@ -830,7 +852,14 @@ function syntheseTerritoire(
                 // maille à l'autre — écrire « aucun repère » sous les 6 150 451
                 // habitants d'une région ferait passer une impossibilité de
                 // méthode pour une lacune de données.
-                comparableAuxParents(indicateur, ratio) && !POPULATIONS.has(indicateur.id)
+                //
+                // Et jamais tant que le fichier de repères n'est pas arrivé :
+                // il se charge après la fiche, qui s'affichait donc une seconde
+                // en annonçant « aucun repère publié » sous des chiffres qui en
+                // ont un. Ne rien dire est faux moins longtemps.
+                references !== null &&
+                comparableAuxParents(indicateur, ratio) &&
+                !POPULATIONS.has(indicateur.id)
                 ? `<span class="synthese__sansrepere">Aucun repère publié à cette maille.</span>`
                 : ""
           }`.trim(),
