@@ -9,6 +9,7 @@ et qu'un agrégat sans définition arrête le chargement au lieu d'être publié
 
 import csv
 import json
+from urllib.parse import quote
 
 import pytest
 
@@ -277,3 +278,34 @@ def test_les_criteres_de_comparaison_s_ajoutent_aux_drapeaux(tmp_path):
         assert drapeaux["statut_particulier"] is True
     finally:
         conn.close()
+
+
+def test_la_reprise_saute_les_lots_deja_charges(monkeypatch, tmp_path):
+    """Un lot communal coûte 195 Mo à télécharger, autant à archiver dans le
+    bucket, et deux millions de lignes à écrire — mesuré le 4 août. Quand un run
+    se fait couper, refaire depuis le premier lot serait du gaspillage : les
+    observations déjà écrites sont dans l'entrepôt, qui est renvoyé au bucket
+    même en cas d'échec."""
+    from plateforme import entrepot, registry
+    from plateforme.normalize import ofgl as normalisation
+
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
+    conn.close()
+    monkeypatch.setenv("PLATEFORME_ENTREPOT", str(tmp_path / "entrepot.duckdb"))
+
+    demandes = []
+
+    def faux_fetch(url, **_):
+        demandes.append(url)
+        raise RuntimeError("on ne va pas plus loin : seul l'ordre des lots compte")
+
+    monkeypatch.setattr(normalisation, "fetch", faux_fetch)
+    with pytest.raises(RuntimeError):
+        normalisation.run(["commune"], 2018, str(tmp_path / "brut"), depuis_lot=4)
+    # Le premier téléchargement demandé est celui du quatrième lot, pas du premier.
+    assert len(demandes) == 1
+    retenus = list(ofgl.agregats_du_niveau("commune"))
+    attendus = retenus[3 * normalisation.LOT_AGREGATS : 4 * normalisation.LOT_AGREGATS]
+    for agregat in attendus:
+        assert quote(agregat) in demandes[0] or agregat in demandes[0], agregat

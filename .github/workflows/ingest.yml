@@ -104,8 +104,13 @@ jobs:
             exit $?
           fi
           if [ "$JOB" = "rechargement-communes" ]; then
+            # `depuis_lot` reprend un chargement coupé : chaque lot communal
+            # coûte 195 Mo à télécharger et autant à archiver, et les lots déjà
+            # écrits sont dans l'entrepôt, renvoyé au bucket même en cas
+            # d'échec. Le champ `lot` de la requête dit où reprendre.
+            LOT=$(jq -r '.lot // 1' .github/ingest-request.json)
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux commune --depuis 2018
+              --niveaux commune --depuis 2018 --depuis-lot "$LOT"
             exit $?
           fi
           if [ "$JOB" = "rechargement-reste" ]; then

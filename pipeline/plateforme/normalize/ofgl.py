@@ -515,7 +515,7 @@ def controler_coherence(conn, run_id: str, niveau: str) -> bool:
 LOT_AGREGATS = 8
 
 
-def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
+def run(niveaux: list[str], depuis: int, store_spec: str, depuis_lot: int = 1) -> int:
     conn = entrepot.connect()
     store = make_store(store_spec)
     declarer_indicateurs(conn, niveaux)
@@ -534,6 +534,15 @@ def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
             for debut in range(0, len(agregats), LOT_AGREGATS):
                 lot = agregats[debut : debut + LOT_AGREGATS]
                 rang = debut // LOT_AGREGATS + 1
+                # Reprise : un lot communal coûte 195 Mo à télécharger, autant à
+                # archiver, et deux millions de lignes à écrire. Quand un run se
+                # fait couper, refaire les lots déjà écrits serait du gaspillage
+                # — les observations, elles, sont déjà dans l'entrepôt renvoyé au
+                # bucket. Le contrôle de cohérence, lui, porte sur le niveau
+                # entier et se fait donc quand même.
+                if rang < depuis_lot:
+                    print(f"  {niveau} lot {rang} : déjà chargé, passé")
+                    continue
                 url = ofgl.url_export(niveau, lot)
                 contenu = fetch(url, timeout=600).content
                 entrepot.record_asset(
@@ -575,8 +584,12 @@ def main() -> int:
     parser.add_argument("--niveaux", default="commune,epci,departement,region")
     parser.add_argument("--depuis", type=int, default=2018)
     parser.add_argument("--store", default=".snapshots")
+    parser.add_argument(
+        "--depuis-lot", type=int, default=1,
+        help="reprend au lot indiqué ; les précédents sont réputés déjà chargés",
+    )
     args = parser.parse_args()
-    return run(args.niveaux.split(","), args.depuis, args.store)
+    return run(args.niveaux.split(","), args.depuis, args.store, args.depuis_lot)
 
 
 if __name__ == "__main__":
