@@ -40,7 +40,10 @@ permissions:
 jobs:
   rafraichir:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Le rechargement complet parcourt 72 agrégats OFGL sur quatre mailles, par
+    # lots : plus long qu'un rafraîchissement ordinaire, et il vaut mieux qu'il
+    # aille au bout qu'il soit coupé au milieu d'un niveau.
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

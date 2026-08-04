@@ -411,6 +411,14 @@ def controler_coherence(conn, run_id: str, niveau: str) -> bool:
     return ecarts == 0
 
 
+# Nombre d'agrégats traités en un passage. L'OFGL en publie 72 : demander les 72
+# d'un coup pour les communes rendrait un CSV de 1,5 Go, que le connecteur
+# transforme ligne à ligne en dictionnaires — vingt millions d'objets Python, soit
+# plusieurs gigaoctets, sur un runner qui en a sept. Le découpage borne la mémoire
+# sans rien changer au résultat : chaque lot est téléchargé, écrit, puis oublié.
+LOT_AGREGATS = 8
+
+
 def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
     conn = entrepot.connect()
     store = make_store(store_spec)
@@ -418,32 +426,45 @@ def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
     total = 0
     for niveau in niveaux:
         # Mesuré à chaque niveau : le précédent vient d'écrire, et c'est ce
-        # connecteur qui porte l'essentiel du volume de la base (D6ter).
+        # connecteur qui porte l'essentiel du volume de l'entrepôt.
         garde_fou_volume(conn)
         dataset_id = JEUX[niveau]
         run_id = entrepot.start_run(conn, dataset_id, "manual")
         try:
             # Chaque maille ne connaît pas les mêmes agrégats : les allocations
             # RSA, APA et les DMTO n'existent qu'au département et à la région.
-            url = ofgl.url_export(niveau, list(ofgl.agregats_du_niveau(niveau)))
-            contenu = fetch(url, timeout=600).content
-            entrepot.record_asset(
-                conn, store, run_id, dataset_id, "ofgl", f"{niveau}.csv", contenu, url, "text/csv"
-            )
-            brutes = ofgl.lire(contenu, niveau)
-            if niveau == "commune":
-                criteres = enregistrer_criteres(conn, brutes)
-                print(f"critères de comparaison : {criteres} communes")
-            montants, populations = observations(brutes, depuis)
-            lignes, ecartes = filtrer_territoires_connus(conn, montants + populations)
-            ecrites = ecrire(conn, run_id, lignes)
+            agregats = list(ofgl.agregats_du_niveau(niveau))
+            ecrites = 0
+            for debut in range(0, len(agregats), LOT_AGREGATS):
+                lot = agregats[debut : debut + LOT_AGREGATS]
+                rang = debut // LOT_AGREGATS + 1
+                url = ofgl.url_export(niveau, lot)
+                contenu = fetch(url, timeout=600).content
+                entrepot.record_asset(
+                    conn, store, run_id, dataset_id, "ofgl",
+                    f"{niveau}-{rang:02d}.csv", contenu, url, "text/csv",
+                )
+                brutes = ofgl.lire(contenu, niveau)
+                del contenu
+                # Les critères de comparaison sont les mêmes dans tous les lots :
+                # une fois suffit, sur le premier.
+                if niveau == "commune" and debut == 0:
+                    print(f"critères de comparaison : {enregistrer_criteres(conn, brutes)} communes")
+                montants, populations = observations(brutes, depuis)
+                del brutes
+                lignes, ecartes = filtrer_territoires_connus(conn, montants + populations)
+                ecrites += ecrire(conn, run_id, lignes)
+                alerte = f" — {len(ecartes)} hors référentiel" if ecartes else ""
+                print(f"  {niveau} lot {rang} ({len(lot)} agrégats) : {len(lignes)} lignes{alerte}")
+                del montants, populations, lignes
+            # Le contrôle porte sur trois agrégats qui peuvent tomber dans des
+            # lots différents : il attend donc que le niveau soit entier.
             if not controler_coherence(conn, run_id, niveau):
                 raise ValueError(
                     f"{niveau} : l'épargne brute ne se déduit pas des recettes et dépenses"
                 )
             entrepot.finish_run(conn, run_id, "success", rows_written=ecrites)
-            alerte = f" — {len(ecartes)} territoires hors référentiel écartés" if ecartes else ""
-            print(f"{niveau} : {ecrites} observations{alerte}")
+            print(f"{niveau} : {ecrites} observations")
             total += ecrites
         except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
             entrepot.finish_run(conn, run_id, "failed", error=str(error))

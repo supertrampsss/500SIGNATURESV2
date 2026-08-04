@@ -105,3 +105,24 @@ def test_les_agregats_non_commentes_par_l_ofgl_disent_qui_les_definit():
         _, technique, formule = fiches[retenus[agregat]]
         assert "rédigée par ce site" in technique, agregat
         assert formule, agregat
+
+
+def test_les_agregats_se_chargent_par_lots_bornes():
+    """Demander les 72 agrégats d'un coup pour les communes rendrait un CSV de
+    1,5 Go, que le connecteur transforme ligne à ligne en dictionnaires : vingt
+    millions d'objets Python sur un runner qui a sept gigaoctets. Le découpage
+    borne la mémoire sans rien changer au résultat."""
+    from plateforme.normalize import ofgl as normalisation
+
+    assert normalisation.LOT_AGREGATS <= 12
+    retenus = ofgl.agregats_du_niveau("commune")
+    lots = -(-len(retenus) // normalisation.LOT_AGREGATS)
+    assert lots >= 2, "un seul lot : le découpage ne sert plus à rien"
+    # L'union des lots redonne exactement la sélection : aucun agrégat perdu
+    # entre deux passages.
+    noms = list(retenus)
+    decoupes = [
+        noms[d : d + normalisation.LOT_AGREGATS]
+        for d in range(0, len(noms), normalisation.LOT_AGREGATS)
+    ]
+    assert [nom for lot in decoupes for nom in lot] == noms
