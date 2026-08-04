@@ -154,6 +154,22 @@ communale vers le haut d'un montant inconnu. Au département, la source publie
 maintenant au couple (jeu, maille) : commune pour le SSMSI, commune et
 intercommunalité pour Filosofi.
 
+La censure est mesurée, pas invoquée. Part des communes dont la valeur est
+diffusée par le SSMSI, relevée le 4 août sur la base complète : cambriolages de
+logement **30,6 %**, escroqueries 30,2 %, destructions et dégradations 32,1 %,
+vols sans violence 32,7 %, violences intrafamiliales 34,8 %, violences
+sexuelles 40,7 %, vols de véhicule 45,6 %, violences hors famille 48,6 %, vols
+dans les véhicules 51,4 %, vols d'accessoires 52,5 %, usage de stupéfiants
+55,6 %, trafic 79,5 %, vols violents 85,1 %, vols avec armes 91,0 %. Le
+critère — moins de cinq faits sur trois années — porte sur la valeur
+elle-même : ce sont les basses valeurs qui manquent, et une médiane des
+communes visibles est tirée vers le haut d'un montant inconnu.
+
+Vérifié après correction, sur un entrepôt réel : 16 indicateurs SSMSI portent
+désormais un repère, au département (n = 101) et à la région (n = 18), aucun à
+la commune. Les 16 autres — les comptages en nombre — n'en ont pas, pour la
+raison qui suit.
+
 Restent sans repère `education` (0 sur 2), `entreprises` (0 sur 1) et
 `population` (0 sur 2) — **et c'est la bonne réponse** : ce sont des comptages
 sommables, qu'une médiane brute compare à des territoires de tailles sans
