@@ -1,5 +1,4 @@
 {
-  "job": "rechargement-communes",
-  "lot": 5,
-  "request": "2026-08-04-1730-ofgl-communes-reprise-lot-5"
+  "job": "rechargement-reste",
+  "request": "2026-08-04-2100-rechargement-reste-et-publication"
 }
