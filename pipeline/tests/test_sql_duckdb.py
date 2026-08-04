@@ -112,3 +112,42 @@ def entrepot_neuf(tmp_path_factory):
     conn = entrepot.connect(tmp_path_factory.mktemp("sql") / "entrepot.duckdb")
     yield conn
     conn.close()
+
+
+def test_aucun_fetchall_sur_autre_chose_qu_un_curseur():
+    """La conversion de PostgreSQL vers DuckDB a ajouté des `.fetchall()` au
+    mauvais endroit.
+
+    Sous psycopg, `for ligne in curseur` parcourt le résultat ; sous DuckDB,
+    `execute()` rend la connexion et il faut appeler `.fetchall()`. La reprise
+    de ces boucles a collé l'appel sur ce qui les précédait plutôt que sur
+    l'`execute` : un tuple de valeurs dans `maires.ecrire`, un `dict(...)` dans
+    `geometries.noms_epci`. Ni le parseur SQL ni les tests de déclaration ne
+    peuvent le voir — c'est du Python, et il ne casse qu'à l'exécution, sur la
+    ligne où on ne l'attend pas.
+    """
+    curseurs = {"fetchall", "fetchone", "fetchmany", "rowcount"}
+    suspects = []
+    for chemin in sorted(RACINE.rglob("*.py")):
+        for noeud in ast.walk(ast.parse(chemin.read_text())):
+            cible = None
+            if (
+                isinstance(noeud, ast.Call)
+                and isinstance(noeud.func, ast.Attribute)
+                and noeud.func.attr in curseurs
+            ):
+                cible = noeud.func.value
+            elif isinstance(noeud, ast.Attribute) and noeud.attr == "rowcount":
+                cible = noeud.value
+            if cible is None:
+                continue
+            # Licite : sur le résultat d'un execute(), ou sur une variable qui
+            # tient un curseur.
+            licite = isinstance(cible, ast.Name) or (
+                isinstance(cible, ast.Call)
+                and isinstance(cible.func, ast.Attribute)
+                and cible.func.attr in {"execute", "executemany", "sql", "cursor"}
+            )
+            if not licite:
+                suspects.append(f"{chemin.name}:{noeud.lineno} sur un {type(cible).__name__}")
+    assert not suspects, suspects

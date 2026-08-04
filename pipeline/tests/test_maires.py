@@ -75,3 +75,57 @@ def test_le_registre_declare_la_donnee_personnelle():
         jeux = {ligne["dataset_id"]: ligne for ligne in csv.DictReader(fichier_csv)}
     assert jeux[m.DATASET]["personal_data"] == "true"
     assert jeux[m.DATASET]["target_tables"] == "geo.commune_officials"
+
+
+def test_ecrire_les_maires_dans_un_vrai_entrepot(tmp_path):
+    """Le pas que rien n'exécutait. Un `.fetchall()` collé sur le tuple de
+    valeurs — reste de la conversion depuis psycopg — faisait tomber le module
+    à chaque chargement, sur une ligne où personne ne le cherchait. Ni le
+    parseur SQL ni les tests de déclaration ne pouvaient le voir : c'est du
+    Python, et `maires` n'a pas de fonction `declarer`.
+
+    Il vérifie au passage la règle qui compte : un maire rattaché à un code
+    absent du référentiel n'est pas écrit."""
+    from plateforme import entrepot, registry
+    from plateforme.normalize.geo import MILLESIME
+
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        registry.sync(conn)
+        for code, nom in (("01001", "L'Abergement-Clémenciat"), ("33063", "Bordeaux")):
+            conn.execute(
+                "insert into geo.geography_reference (geo_level, geo_code, vintage, name)"
+                " values ('commune', ?, ?, ?)",
+                (code, MILLESIME, nom),
+            )
+        conn.commit()
+        run_id = entrepot.start_run(conn, "maires-rne")
+        ecrites, ecartees = m.ecrire(
+            conn,
+            run_id,
+            [
+                {"geo_code": "01001", "surname": "Dupont", "given_name": "Marie",
+                 "since": None},
+                {"geo_code": "33063", "surname": "Martin", "given_name": "Jean",
+                 "since": None},
+                # Code absent du référentiel : écarté, pas écrit.
+                {"geo_code": "99999", "surname": "Fantôme", "given_name": "Paul",
+                 "since": None},
+            ],
+        )
+        assert (ecrites, ecartees) == (2, 1)
+        lignes = conn.execute(
+            "select geo_code, surname, given_name from geo.commune_officials"
+            " where role = 'maire' order by geo_code"
+        ).fetchall()
+        assert lignes == [("01001", "Dupont", "Marie"), ("33063", "Martin", "Jean")]
+        # Un second passage remplace au lieu d'empiler.
+        m.ecrire(conn, run_id, [
+            {"geo_code": "01001", "surname": "Nouvelle", "given_name": "Claire", "since": None},
+        ])
+        (restants,) = conn.execute(
+            "select count(*) from geo.commune_officials where role = 'maire'"
+        ).fetchone()
+        assert restants == 1
+    finally:
+        conn.close()

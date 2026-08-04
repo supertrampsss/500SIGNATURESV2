@@ -105,7 +105,7 @@ def noms_epci(conn) -> dict[str, str]:
                 from geo.geography_reference where geo_level = 'epci')
             """
         ).fetchall()
-    ).fetchall()
+    )
 
 
 def fusionner_epci(
