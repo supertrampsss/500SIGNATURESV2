@@ -222,6 +222,9 @@ def test_l_unite_de_compte_est_celle_que_publie_le_producteur():
         "Infraction", "Victime", "Victime entendue", "Mis en cause", "Véhicule"
     }
     assert set(securite.PLURIELS) == set(securite.UNITES_DE_COMPTE.values())
+    # Ajouter une classe sans dire ce qu'elle compte doit se voir ici, pas au
+    # milieu d'un chargement.
+    assert set(securite.UNITES_DE_COMPTE) == set(securite.CLASSES)
 
 
 def test_un_changement_d_unite_chez_le_producteur_arrete_le_chargement():
