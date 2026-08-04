@@ -10,6 +10,8 @@ import json
 
 import pytest
 
+import duckdb
+
 from plateforme import entrepot
 
 
@@ -373,3 +375,86 @@ def test_un_schema_qui_a_change_arrete_l_ouverture(tmp_path, monkeypatch):
     monkeypatch.setattr(entrepot, "SCHEMA", autre)
     with pytest.raises(entrepot.SchemaDivergent, match="autre schéma"):
         entrepot.connect(chemin)
+
+
+def test_copier_rend_exactement_ce_qu_on_lui_donne(tmp_path):
+    """L'écriture en masse passe par un CSV : elle doit être transparente.
+
+    Le nul et la chaîne vide sont deux choses différentes — `entity_siren` vaut
+    la chaîne vide par défaut et sa contrainte l'exige non nulle. Les guillemets,
+    les virgules et les retours à la ligne se rencontrent dans les noms de
+    communes et d'élus. Les listes portent les drapeaux de qualité.
+    """
+    import datetime
+
+    conn = duckdb.connect(str(tmp_path / "e.duckdb"))
+    conn.execute(
+        "create table t (texte text, vide text, nombre double, entier smallint,"
+        " oui boolean, jour date, moment timestamptz, doc json, drapeaux text[])"
+    )
+    cas = [
+        ("normal", "", 1.5, 3, True, datetime.date(2019, 1, 1),
+         datetime.datetime(2026, 8, 4, 12, 0, tzinfo=datetime.UTC),
+         '{"a": 1}', ["rupture"]),
+        (None, None, None, None, None, None, None, None, None),
+        ('Sainte-"Marie", sur mer', "x", -0.5, 0, False, datetime.date(2000, 2, 29),
+         None, "{}", []),
+        ("retour\nà la ligne", "\\N", 1e15, -1, None, None, None, "{}",
+         ["avec, virgule", "accentué é"]),
+    ]
+    ecrites = entrepot.copier(
+        conn, "t",
+        ["texte", "vide", "nombre", "entier", "oui", "jour", "moment", "doc", "drapeaux"],
+        cas,
+    )
+    assert ecrites == len(cas)
+    relu = conn.execute("select * from t").fetchall()
+    assert len(relu) == len(cas)
+    for attendu, obtenu in zip(cas, relu, strict=True):
+        for a, o in zip(attendu, obtenu, strict=True):
+            if isinstance(a, str) and a.startswith("{"):
+                a, o = json.loads(a), json.loads(o)
+            elif isinstance(a, list):
+                o = list(o)
+            assert a == o, f"{a!r} est revenu {o!r}"
+    conn.close()
+
+
+def test_copier_decoupe_en_lots_sans_rien_perdre(tmp_path):
+    """Le découpage borne le fichier temporaire ; il ne doit rien changer au
+    résultat, ni perdre le reste après le dernier lot plein."""
+    conn = duckdb.connect(str(tmp_path / "e.duckdb"))
+    conn.execute("create table t (n integer)")
+    ecrites = entrepot.copier(conn, "t", ["n"], ((i,) for i in range(2503)), lot=100)
+    assert ecrites == 2503
+    (compte,) = conn.execute("select count(*) from t").fetchone()
+    (somme,) = conn.execute("select sum(n) from t").fetchone()
+    assert compte == 2503
+    assert somme == sum(range(2503))
+    conn.close()
+
+
+def test_copier_ne_laisse_pas_de_fichier_derriere_lui(tmp_path, monkeypatch):
+    """Un rechargement complet écrit vingt millions de lignes : un fichier
+    temporaire oublié par lot remplirait le disque du runner."""
+    import tempfile as _t
+
+    bac = tmp_path / "temporaires"
+    bac.mkdir()
+    monkeypatch.setattr(_t, "tempdir", str(bac))
+    conn = duckdb.connect(str(tmp_path / "e.duckdb"))
+    conn.execute("create table t (n integer)")
+    entrepot.copier(conn, "t", ["n"], ((i,) for i in range(500)), lot=100)
+    assert list(bac.iterdir()) == []
+    conn.close()
+
+
+def test_copier_refuse_un_guillemet_dans_une_liste_plutot_que_de_le_perdre(tmp_path):
+    """Deux niveaux de quotage se superposent — celui du littéral de liste et
+    celui du CSV — et un guillemet à l'intérieur d'un élément ressort effacé.
+    Une valeur altérée en silence est le pire des résultats : on s'arrête."""
+    conn = duckdb.connect(str(tmp_path / "e.duckdb"))
+    conn.execute("create table t (drapeaux text[])")
+    with pytest.raises(ValueError, match="guillemet dans un élément de liste"):
+        entrepot.copier(conn, "t", ["drapeaux"], [(['avec "guillemets"'],)])
+    conn.close()

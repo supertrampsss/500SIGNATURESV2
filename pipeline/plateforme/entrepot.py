@@ -25,9 +25,11 @@ après chaque chargement. Une contrainte devient une vérification ; elle n'est 
 abandonnée en silence.
 """
 
+import datetime as _datetime
 import hashlib
 import json
 import os
+import tempfile
 import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -289,31 +291,92 @@ def record_asset(
     return AssetResult(unchanged=False, asset_id=ligne[0], key=cle)
 
 
+def _champ(valeur) -> str:
+    """Une valeur Python en un champ CSV que DuckDB relit à l'identique.
+
+    Deux conventions, et elles se tiennent l'une l'autre : `None` s'écrit champ
+    vide **non quoté**, tout le reste s'écrit **quoté**. C'est ce qui permet de
+    distinguer le nul de la chaîne vide — sans quoi `entity_siren`, dont la
+    valeur par défaut est la chaîne vide, reviendrait nul et violerait sa propre
+    contrainte. Côté lecture, `allow_quoted_nulls false` interdit à DuckDB de
+    reprendre un champ quoté vide pour un nul.
+
+    (`csv.QUOTE_NOTNULL` fait exactement cela, mais n'existe qu'à partir de
+    Python 3.12, et le paquet se veut compatible 3.11.)
+    """
+    if valeur is None:
+        return ""
+    if isinstance(valeur, (list, tuple)):
+        # Littéral de liste DuckDB, quoté élément par élément. Deux niveaux de
+        # quotage se superposent ici — celui de la liste et celui du CSV — et un
+        # guillemet à l'intérieur d'un élément ne survit pas au retour : il
+        # ressort effacé. Plutôt que d'altérer une valeur en silence, on
+        # s'arrête. Les seules listes qui passent par là sont des drapeaux de
+        # qualité, un vocabulaire fermé de jetons sans ponctuation ; qu'il en
+        # arrive un avec un guillemet signalerait un défaut en amont, pas un cas
+        # à absorber.
+        elements = [str(e) for e in valeur]
+        fautifs = [e for e in elements if '"' in e]
+        if fautifs:
+            raise ValueError(
+                f"guillemet dans un élément de liste : {fautifs[0]!r}. Le double"
+                " quotage du CSV et du littéral DuckDB ne le rend pas à"
+                " l'identique — corriger la valeur en amont plutôt que la perdre."
+            )
+        texte = "[" + ",".join(f'"{e}"' for e in elements) + "]"
+    elif isinstance(valeur, (_datetime.date, _datetime.datetime)):
+        texte = valeur.isoformat()
+    else:
+        texte = str(valeur)
+    return '"' + texte.replace('"', '""') + '"'
+
+
 def copier(
     conn: duckdb.DuckDBPyConnection,
     table: str,
     colonnes: list[str],
     lignes,
-    lot: int = 50_000,
+    lot: int = 200_000,
 ) -> int:
-    """Charge en masse. Remplace `curseur.copy()` de psycopg.
+    """Charge en masse, par un fichier CSV temporaire et un `COPY`.
 
-    DuckDB n'a pas de protocole de copie en flux : `executemany` sur des lots
-    fait le même travail, et sur un moteur en mémoire partagée il n'y a pas de
-    réseau à amortir. Le découpage en lots évite de matérialiser plusieurs
-    millions de tuples d'un coup dans le processus Python.
+    L'implémentation précédente enchaînait des `executemany`. Mesuré le 4 août
+    sur un lot réel de 2 240 000 lignes : **381 lignes par seconde**, soit
+    98 minutes — DuckDB lie et exécute la requête préparée ligne à ligne, sans
+    rien vectoriser. Écrire le même lot en CSV puis le charger par `COPY` :
+    **289 688 lignes par seconde**, soit huit secondes. Le même travail, sept
+    cent soixante fois plus vite, à l'octet près (mêmes comptes, mêmes sommes).
+
+    C'est ce qui faisait qu'un lot d'agrégats OFGL communaux coûtait plus d'une
+    heure quand son téléchargement en coûtait trois minutes.
+
+    Le découpage en lots borne ce qui est matérialisé à la fois : le fichier
+    temporaire d'un lot de 200 000 lignes pèse une dizaine de mégaoctets, et il
+    est effacé dès qu'il est lu.
     """
-    marques = ", ".join("?" for _ in colonnes)
-    sql = f"insert into {table} ({', '.join(colonnes)}) values ({marques})"
+    entete = f"copy {table} ({', '.join(colonnes)}) from '%s'"
+    options = " (format csv, header false, allow_quoted_nulls false)"
+
+    def vider(tampon: list[str]) -> None:
+        with tempfile.NamedTemporaryFile(
+            "w", suffix=".csv", encoding="utf-8", delete=False
+        ) as fichier:
+            fichier.writelines(tampon)
+            chemin = fichier.name
+        try:
+            conn.execute((entete % chemin.replace("'", "''")) + options)
+        finally:
+            Path(chemin).unlink(missing_ok=True)
+
     total, tampon = 0, []
     for ligne in lignes:
-        tampon.append(list(ligne))
+        tampon.append(",".join(map(_champ, ligne)) + "\n")
         if len(tampon) >= lot:
-            conn.executemany(sql, tampon)
+            vider(tampon)
             total += len(tampon)
             tampon = []
     if tampon:
-        conn.executemany(sql, tampon)
+        vider(tampon)
         total += len(tampon)
     return total
 
