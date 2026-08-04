@@ -37,7 +37,10 @@ jobs:
     runs-on: ubuntu-latest
     # Un run qui traîne bloque la file d'ingestion entière : mieux vaut qu'il
     # échoue et se voie.
-    timeout-minutes: 45
+    # 45 minutes suffisent à une ingestion ordinaire ; le job « rechargement »,
+    # qui reconstruit tout l'entrepôt depuis les sources, en demande beaucoup
+    # plus — et mieux vaut qu'il aille au bout qu'il soit coupé en chemin.
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -85,6 +88,38 @@ jobs:
           # un référentiel sans son historique territorial serait inutilisable.
           if [ "$JOB" = "geo" ]; then
             python -m plateforme.normalize.geo --store r2:plateforme-raw
+            exit $?
+          fi
+          if [ "$JOB" = "rechargement" ]; then
+            # Reconstruction complète de l'entrepôt depuis les sources. Sert une
+            # fois : au premier remplissage de l'entrepôt DuckDB, qui naît vide.
+            # L'ordre suit les dépendances — le référentiel géographique d'abord,
+            # tout le reste s'y rattache — et la publication vient en dernier,
+            # une seule fois, sur un état cohérent. Son garde-fou refusera de
+            # remplacer le site en ligne par un entrepôt incomplet.
+            set -e
+            python -m plateforme.normalize.geo --store r2:plateforme-raw
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux epci,departement,region --depuis 2018
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux commune --depuis 2018
+            python -m plateforme.normalize.dotations --store r2:plateforme-raw
+            python -m plateforme.normalize.revenus --store r2:plateforme-raw
+            python -m plateforme.normalize.population --store r2:plateforme-raw
+            python -m plateforme.normalize.entreprises --store r2:plateforme-raw
+            python -m plateforme.normalize.maires --store r2:plateforme-raw
+            python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
+            python -m plateforme.normalize.securite --store r2:plateforme-raw
+            python -m plateforme.normalize.sante --store r2:plateforme-raw
+            python -m plateforme.normalize.education --store r2:plateforme-raw
+            python -m plateforme.normalize.etat --store r2:plateforme-raw
+            python -m plateforme.normalize.macro --store r2:plateforme-raw
+            python -m plateforme.normalize.europe --store r2:plateforme-raw
+            python -m plateforme.normalize.chomage --store r2:plateforme-raw
+            python -m plateforme.normalize.cofog --store r2:plateforme-raw
+            python -m plateforme.normalize.secu --store r2:plateforme-raw
+            python -m plateforme.normalize.conjoncture --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
           if [ "$JOB" = "national" ]; then

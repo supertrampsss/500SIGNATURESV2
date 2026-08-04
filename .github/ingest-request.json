@@ -1,4 +1,4 @@
 {
-  "job": "geo",
-  "request": "2026-08-04-0745-premier-chargement-entrepot-duckdb"
+  "job": "rechargement",
+  "request": "2026-08-04-0825-rechargement-complet-entrepot-duckdb"
 }
