@@ -25,11 +25,11 @@ Deux gardes-fous :
 Usage : python -m plateforme.retention [--appliquer]
 """
 
+import json
 import argparse
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db
+from plateforme import entrepot
 
 # {niveau géographique: premier exercice conservé}. Les autres niveaux gardent
 # tout leur historique : ils pèsent 66 000 lignes contre 1,25 million.
@@ -47,7 +47,7 @@ def a_supprimer(conn) -> dict[str, list[str]]:
             periode
             for (periode,) in conn.execute(
                 "select distinct period from core.observations"
-                " where geo_level = %s order by 1",
+                " where geo_level = ? order by 1",
                 (niveau,),
             )
         ]
@@ -67,7 +67,7 @@ def appliquer(conn, hors: dict[str, list[str]]) -> int:
     total = 0
     for niveau, periodes in hors.items():
         supprimees = conn.execute(
-            "delete from core.observations where geo_level = %s and period = any(%s)",
+            "delete from core.observations where geo_level = ? and period = any(?)",
             (niveau, periodes),
         ).rowcount
         total += supprimees
@@ -77,34 +77,26 @@ def appliquer(conn, hors: dict[str, list[str]]) -> int:
 
 
 def recuperer_espace(conn) -> None:
-    """`vacuum full` rend l'espace au système ; un `vacuum` ordinaire le laisse
-    réutilisable par la table sans réduire la taille de la base, ce qui ne
-    règlerait pas le problème de quota."""
-    conn.rollback()
-    autocommit = conn.autocommit
-    conn.autocommit = True  # VACUUM ne s'exécute pas dans une transaction
-    try:
-        for (partition,) in conn.execute(
-            "select relname from pg_stat_user_tables where relname like 'observations_p%'"
-            " order by pg_total_relation_size(relid) desc"
-        ).fetchall():
-            conn.execute(f"vacuum full analyze core.{partition}")
-            print(f"espace récupéré sur {partition}")
-    finally:
-        conn.autocommit = autocommit
+    """Rend au fichier l'espace des lignes supprimées.
+
+    Sous Postgres il fallait un `vacuum full` par partition — l'opération qui,
+    sur une base saturée, réclamait justement l'espace qu'elle devait libérer.
+    DuckDB réécrit son fichier au checkpoint, en une instruction et sans verrou ;
+    les seize partitions d'observations n'existent plus.
+    """
+    conn.execute("force checkpoint")
+    print("espace rendu par le checkpoint")
 
 
 def taille(conn) -> str:
-    return conn.execute("select pg_size_pretty(pg_database_size(current_database()))").fetchone()[
-        0
-    ]
+    return f"{entrepot.taille(conn) // 1024 // 1024} Mo"
 
 
 def run(effectif: bool, conn=None) -> int:
     """`conn` : une session déjà préparée (rétablissement après lecture seule)
     peut être fournie ; sinon la connexion standard est ouverte et fermée."""
     fournie = conn is not None
-    conn = conn if fournie else db.connect()
+    conn = conn if fournie else entrepot.connect()
     try:
         hors = a_supprimer(conn)
         if not hors:
@@ -119,7 +111,7 @@ def run(effectif: bool, conn=None) -> int:
         avant = taille(conn)
         # `backfill` : le vocabulaire des déclencheurs est contraint par le
         # schéma, et une rétention est bien une reprise sur données existantes.
-        run_id = db.start_run(conn, DATASET, "backfill")
+        run_id = entrepot.start_run(conn, DATASET, "backfill")
         try:
             supprimees = appliquer(conn, hors)
             recuperer_espace(conn)
@@ -128,12 +120,12 @@ def run(effectif: bool, conn=None) -> int:
                 """
                 insert into meta.data_quality_checks
                     (run_id, dataset_id, check_name, severity, passed, observed)
-                values (%s, %s, 'retention_appliquee', 'info', true, %s)
+                values (?, ?, 'retention_appliquee', 'info', true, ?)
                 """,
                 (
                     run_id,
                     DATASET,
-                    Jsonb(
+                    json.dumps(
                         {
                             "politique": RETENTION,
                             "observations_retirees": supprimees,
@@ -146,11 +138,11 @@ def run(effectif: bool, conn=None) -> int:
                 ),
             )
             conn.commit()
-            db.finish_run(conn, run_id, "success", rows_written=supprimees)
+            entrepot.finish_run(conn, run_id, "success", rows_written=supprimees)
             print(f"base : {avant} -> {apres}")
             return 0
         except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-            db.finish_run(conn, run_id, "failed", error=str(error))
+            entrepot.finish_run(conn, run_id, "failed", error=str(error))
             raise
     finally:
         if not fournie:

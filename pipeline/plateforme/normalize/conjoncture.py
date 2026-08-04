@@ -38,9 +38,8 @@ Usage : python -m plateforme.normalize.conjoncture [--store r2:plateforme-raw]
 import argparse
 import json
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db, revisions
+from plateforme import entrepot, revisions
 from plateforme.connectors import eurostat
 from plateforme.connectors.jsonstat import decoder
 from plateforme.http import fetch
@@ -106,7 +105,7 @@ def declarer(conn) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, %s, 'observed',
+                values (?, ?, ?, 'observed',
                         array['Officiel','Comparaison harmonisée UE'])
                 returning definition_id
                 """,
@@ -117,8 +116,8 @@ def declarer(conn) -> None:
                 insert into core.indicators
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, accounting_frame, geo_levels, time_granularity, published)
-                values (%s, %s, %s, 'macro', %s, 'percent', false, 'nationale',
-                        array['pays'], %s, true)
+                values (?, ?, ?, 'macro', ?, 'percent', false, 'nationale',
+                        array['pays'], ?, true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                     theme = excluded.theme, time_granularity = excluded.time_granularity,
@@ -170,17 +169,17 @@ def controler_plausibilite(
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
     garde_fou_volume(conn)
     total = 0
     for indicateur, fiche in INDICATEURS.items():
-        run_id = db.start_run(conn, fiche["dataset"], "manual")
+        run_id = entrepot.start_run(conn, fiche["dataset"], "manual")
         try:
             url = eurostat.data_url(fiche["jeu"], fiche["params"])
             contenu = fetch(url, timeout=300).content
-            db.record_asset(
+            entrepot.record_asset(
                 conn, store, run_id, fiche["dataset"], "eurostat",
                 f"{indicateur}.json", contenu, url, "application/json",
             )
@@ -204,13 +203,13 @@ def run(store_spec: str) -> int:
                 """
                 insert into meta.data_quality_checks
                     (run_id, dataset_id, check_name, severity, passed, observed)
-                values (%s, %s, 'bornes_de_plausibilite', %s, %s, %s)
+                values (?, ?, 'bornes_de_plausibilite', ?, ?, ?)
                 """,
                 (run_id, fiche["dataset"], "warning" if ecartes else "info",
-                 not ecartes, Jsonb({"bornes": fiche["bornes"], "ecartes": ecartes})),
+                 not ecartes, json.dumps({"bornes": fiche["bornes"], "ecartes": ecartes})),
             )
             conn.commit()
-            db.finish_run(
+            entrepot.finish_run(
                 conn, run_id, "success", rows_read=len(points), rows_written=ecrites
             )
             total += ecrites
@@ -218,7 +217,7 @@ def run(store_spec: str) -> int:
                   f" {len({p['geo'] for p in gardes})} pays, {len(ecartes)} écartées,"
                   f" {revisees} valeurs révisées")
         except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-            db.finish_run(conn, run_id, "failed", error=str(error))
+            entrepot.finish_run(conn, run_id, "failed", error=str(error))
             raise
     conn.close()
     print(f"conjoncture : {total} observations")

@@ -22,13 +22,13 @@ bien des consultations par habitant, pas autre chose.
 Usage : python -m plateforme.normalize.sante [--store r2:plateforme-raw]
 """
 
+import json
 import argparse
 import io
 import re
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db, revisions
+from plateforme import entrepot, revisions
 from plateforme.http import fetch
 from plateforme.limites import garde_fou_volume
 from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
@@ -78,7 +78,7 @@ def declarer(conn) -> None:
             """
             insert into core.indicator_definitions
                 (public_definition, technical_definition, formula, confidence_level, badges)
-            values (%s, %s, %s, 'computed', array['Officiel'])
+            values (?, ?, ?, 'computed', array['Officiel'])
             returning definition_id
             """,
             (FICHE["public"], FICHE["technique"], FICHE["formule"]),
@@ -88,7 +88,7 @@ def declarer(conn) -> None:
             insert into core.indicators
                 (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                  additive, geo_levels, time_granularity, published)
-            values (%s, %s, %s, 'sante', %s, 'consultations_par_an', false,
+            values (?, ?, ?, 'sante', ?, 'consultations_par_an', false,
                     array['commune'], 'annuelle', true)
             on conflict (indicator_id) do update set
                 definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -205,15 +205,15 @@ def agreger_arrondissements(
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         avant = garde_fou_volume(conn)
         url = url_courante()
         contenu = fetch(url, timeout=600).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "apl-generalistes.xlsx", contenu, url,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
@@ -234,14 +234,14 @@ def run(store_spec: str) -> int:
             """
             insert into meta.data_quality_checks
                 (run_id, dataset_id, check_name, severity, passed, observed)
-            values (%s, %s, 'valeurs_dans_la_plage_plausible', %s, %s, %s)
+            values (?, ?, 'valeurs_dans_la_plage_plausible', ?, ?, ?)
             """,
             (run_id, DATASET, "warning" if ecartees else "info", not ecartees,
-             Jsonb({"ecartees": dict(list(ecartees.items())[:20]), "total": len(ecartees)})),
+             json.dumps({"ecartees": dict(list(ecartees.items())[:20]), "total": len(ecartees)})),
         )
         conn.commit()
-        db.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
-        apres = conn.execute("select pg_database_size(current_database())").fetchone()[0]
+        entrepot.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
+        apres = entrepot.taille(conn)
         millesimes = sorted({m for _, m, _, _ in lignes})
         print(
             f"santé : {ecrites} observations d'APL sur {millesimes[0]}-{millesimes[-1]},"
@@ -251,7 +251,7 @@ def run(store_spec: str) -> int:
         print(f"volume base : {avant // 1024 // 1024} -> {apres // 1024 // 1024} Mo")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

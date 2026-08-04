@@ -24,14 +24,14 @@ caractères, ce qui laisse intacts les codes corses (`2A004`) et ultramarins.
 Usage : python -m plateforme.normalize.maires [--store r2:plateforme-raw]
 """
 
+import json
 import argparse
 import csv
 import io
 from collections import Counter
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.http import fetch
 from plateforme.normalize.geo import MILLESIME, make_store
 
@@ -103,23 +103,24 @@ def ecrire(conn, run_id: str, lignes: list[dict]) -> tuple[int, int]:
             code
             for (code,) in curseur.execute(
                 "select geo_code from geo.geography_reference"
-                " where geo_level = 'commune' and vintage = %s",
+                " where geo_level = 'commune' and vintage = ?",
                 (MILLESIME,),
             ).fetchall()
         }
         gardees = [ligne for ligne in lignes if ligne["geo_code"] in connus]
         curseur.execute("delete from geo.commune_officials where role = 'maire'")
-        with curseur.copy(
-            "copy geo.commune_officials (geo_code, geo_vintage, role, surname,"
-            " given_name, since, run_id) from stdin"
-        ) as copie:
-            for ligne in gardees:
-                copie.write_row(
-                    (
-                        ligne["geo_code"], MILLESIME, "maire", ligne["surname"],
-                        ligne["given_name"], ligne["since"], run_id,
-                    )
+        entrepot.copier(
+            conn,
+            "geo.commune_officials",
+            ["geo_code", "geo_vintage", "role", "surname", "given_name", "since", "run_id"],
+            (
+                (
+                    ligne["geo_code"], MILLESIME, "maire", ligne["surname"],
+                    ligne["given_name"], ligne["since"], run_id,
                 )
+                for ligne in gardees
+            ),
+        )
     conn.commit()
     return len(gardees), len(lignes) - len(gardees)
 
@@ -135,7 +136,7 @@ def enregistrer_couverture(conn, run_id: str, ecrites: int) -> dict:
     """
     total = conn.execute(
         "select count(*) from geo.geography_reference"
-        " where geo_level = 'commune' and vintage = %s",
+        " where geo_level = 'commune' and vintage = ?",
         (MILLESIME,),
     ).fetchone()[0]
     constat = {
@@ -147,22 +148,22 @@ def enregistrer_couverture(conn, run_id: str, ecrites: int) -> dict:
         """
         insert into meta.data_quality_checks
             (run_id, dataset_id, check_name, severity, passed, observed)
-        values (%s, %s, 'couverture_des_maires', 'info', true, %s)
+        values (?, ?, 'couverture_des_maires', 'info', true, ?)
         """,
-        (run_id, DATASET, Jsonb(constat)),
+        (run_id, DATASET, json.dumps(constat)),
     )
     conn.commit()
     return constat
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         url = url_courante()
         contenu = fetch(url).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "conseillers-municipaux.csv",
             contenu, url, "text/csv",
         )
@@ -170,13 +171,13 @@ def run(store_spec: str) -> int:
         controler(lignes)
         ecrites, ecartes = ecrire(conn, run_id, lignes)
         constat = enregistrer_couverture(conn, run_id, ecrites)
-        db.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
+        entrepot.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
         print(f"maires : {ecrites} communes, couverture {constat['couverture_pct']} %")
         if ecartes:
             print(f"{ecartes} communes absentes du référentiel, écartées")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

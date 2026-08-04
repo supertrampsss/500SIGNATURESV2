@@ -29,7 +29,7 @@ Usage : python -m plateforme.journal
 import argparse
 from dataclasses import dataclass, field
 
-from plateforme import db
+from plateforme import entrepot
 
 AUTEUR = "plateforme"
 
@@ -172,14 +172,14 @@ def synchroniser(conn, journal: list[Changement] | None = None) -> int:
     if inconnus:
         raise ValueError(f"type de changement hors vocabulaire : {sorted(inconnus)}")
     with conn.cursor() as curseur:
-        curseur.execute("delete from meta.change_log where author = %s", (AUTEUR,))
+        curseur.execute("delete from meta.change_log where author = ?", (AUTEUR,))
         for changement in entrees:
             curseur.execute(
                 """
                 insert into meta.change_log
                     (dataset_id, indicator_id, change_type, description_public,
                      description_technical, effective_date, announced_at, author)
-                values (%s, %s, %s, %s, %s, %s, %s, %s)
+                values (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     changement.jeu,
@@ -198,7 +198,7 @@ def synchroniser(conn, journal: list[Changement] | None = None) -> int:
 
 def main() -> int:
     argparse.ArgumentParser().parse_args()
-    conn = db.connect()
+    conn = entrepot.connect()
     try:
         ecrites = synchroniser(conn)
         print(f"journal : {ecrites} changements déclarés")

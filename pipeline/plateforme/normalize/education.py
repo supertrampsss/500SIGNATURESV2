@@ -21,15 +21,15 @@ aussi.
 Usage : python -m plateforme.normalize.education [--store r2:plateforme-raw]
 """
 
+import json
 import argparse
 import csv
 import io
 from collections import Counter
 from datetime import UTC, datetime
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db, revisions
+from plateforme import entrepot, revisions
 from plateforme.connectors import ods
 from plateforme.http import fetch
 from plateforme.limites import garde_fou_volume
@@ -80,7 +80,7 @@ def declarer(conn) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, %s, 'observed', array['Officiel','Donnée brute'])
+                values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
                 returning definition_id
                 """,
                 (
@@ -96,7 +96,7 @@ def declarer(conn) -> None:
                 insert into core.indicators
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, geo_levels, time_granularity, published)
-                values (%s, %s, %s, 'education', %s, 'count', true,
+                values (?, ?, ?, 'education', ?, 'count', true,
                         array['commune'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -144,7 +144,7 @@ def ecrire(conn, run_id: str, comptes: dict[str, Counter]) -> tuple[int, int, in
         code for (code,) in conn.execute(
             """
             select geo_code from geo.geography_reference
-            where geo_level = 'commune' and vintage = %s
+            where geo_level = 'commune' and vintage = ?
             """,
             (MILLESIME,),
         ).fetchall()
@@ -167,15 +167,15 @@ def ecrire(conn, run_id: str, comptes: dict[str, Counter]) -> tuple[int, int, in
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         avant = garde_fou_volume(conn)
         url = url_export()
         contenu = fetch(url, timeout=600).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "annuaire-education.csv", contenu, url,
             "text/csv",
         )
@@ -191,9 +191,9 @@ def run(store_spec: str) -> int:
             """
             insert into meta.data_quality_checks
                 (run_id, dataset_id, check_name, severity, passed, observed)
-            values (%s, %s, 'effectif_de_l_annuaire_plausible', 'info', true, %s)
+            values (?, ?, 'effectif_de_l_annuaire_plausible', 'info', true, ?)
             """,
-            (run_id, DATASET, Jsonb({
+            (run_id, DATASET, json.dumps({
                 "etablissements_lus": lus,
                 "ecoles": total_ecoles,
                 "colleges_lycees": sum(comptes["colleges_lycees"].values()),
@@ -201,8 +201,8 @@ def run(store_spec: str) -> int:
             })),
         )
         conn.commit()
-        db.finish_run(conn, run_id, "success", rows_read=lus, rows_written=ecrites)
-        apres = conn.execute("select pg_database_size(current_database())").fetchone()[0]
+        entrepot.finish_run(conn, run_id, "success", rows_read=lus, rows_written=ecrites)
+        apres = entrepot.taille(conn)
         print(
             f"éducation : {ecrites} observations ({total_ecoles} écoles,"
             f" {sum(comptes['colleges_lycees'].values())} collèges-lycées),"
@@ -211,7 +211,7 @@ def run(store_spec: str) -> int:
         print(f"volume base : {avant // 1024 // 1024} -> {apres // 1024 // 1024} Mo")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

@@ -4,7 +4,6 @@ valeurs aberrantes ferait dire au site où sont les déserts médicaux avec un
 chiffre faux. Le classeur de test reproduit la structure réelle de la DREES."""
 
 import io
-import os
 from pathlib import Path
 
 import pytest
@@ -110,23 +109,20 @@ def test_le_jeu_est_au_registre():
     assert sante.DATASET in jeux
 
 
-@pytest.mark.skipif(
-    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
-)
-def test_declarer_passe_les_contraintes_de_la_base():
-    from plateforme import db
+def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
+    from plateforme import entrepot
 
-    conn = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
     try:
         sante.declarer(conn)
         publie = conn.execute(
-            "select unit, theme from core.indicators where indicator_id = %s",
+            "select unit, theme from core.indicators where indicator_id = ?",
             (sante.INDICATEUR,),
         ).fetchone()
         assert publie == ("consultations_par_an", "sante")
     finally:
-        conn.rollback()
-        conn.execute("delete from core.indicators where dataset_id = %s", (sante.DATASET,))
+        entrepot.annuler(conn)
+        conn.execute("delete from core.indicators where dataset_id = ?", (sante.DATASET,))
         conn.execute(
             "delete from core.indicator_definitions d where not exists"
             " (select 1 from core.indicators i where i.definition_id = d.definition_id)"

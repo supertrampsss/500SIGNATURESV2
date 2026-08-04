@@ -25,7 +25,7 @@ Usage : python -m plateforme.normalize.macro [--store r2:plateforme-raw]
 
 import argparse
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.connectors import insee, sdmx
 from plateforme.normalize.geo import MILLESIME, make_store
 
@@ -86,7 +86,7 @@ def declarer(conn, plan: dict[str, dict]) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, 'Comptes nationaux trimestriels, base 2020', 'observed',
+                values (?, ?, 'Comptes nationaux trimestriels, base 2020', 'observed',
                         array['Officiel','Donnée brute'])
                 returning definition_id
                 """,
@@ -98,7 +98,7 @@ def declarer(conn, plan: dict[str, dict]) -> None:
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, price_basis, accounting_frame, geo_levels,
                      time_granularity, published)
-                values (%s, %s, %s, 'dette', %s, %s, false, %s, 'nationale',
+                values (?, ?, ?, 'dette', ?, ?, false, ?, 'nationale',
                         array['pays'], 'trimestrielle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -124,26 +124,26 @@ def ecrire(conn, run_id: str, indicateur: str, entrees: list[dict]) -> int:
     if not lignes:
         return 0
     with conn.cursor() as curseur:
-        curseur.execute("delete from core.observations where indicator_id = %s", (indicateur,))
-        with curseur.copy(
-            "copy core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
-            " period, value, quality_flags, run_id) from stdin"
-        ) as copie:
-            for ligne in lignes:
-                copie.write_row(ligne)
+        curseur.execute("delete from core.observations where indicator_id = ?", (indicateur,))
+        entrepot.copier(
+            conn,
+            "core.observations",
+            ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period", "value", "quality_flags", "run_id"],
+            (ligne for ligne in lignes),
+        )
     conn.commit()
     return len(lignes)
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     plan = _plan()
     declarer(conn, plan)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         contenu = insee.bdm_sdmx(DATAFLOW)
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, "insee-bdm", "dette-apu.xml", contenu,
             f"{insee.BDM_BASE}/data/{DATAFLOW}", "application/xml",
         )
@@ -161,11 +161,11 @@ def run(store_spec: str) -> int:
                 vides.append(indicateur)
         if vides:
             raise ValueError(f"séries introuvables : {', '.join(vides)}")
-        db.finish_run(conn, run_id, "success", rows_written=total)
+        entrepot.finish_run(conn, run_id, "success", rows_written=total)
         print(f"dette : {total} observations sur {len(plan)} indicateurs")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

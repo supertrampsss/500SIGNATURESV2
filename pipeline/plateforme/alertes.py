@@ -32,7 +32,7 @@ Usage : python -m plateforme.alertes [--format markdown|json]
 import argparse
 import json
 
-from plateforme import db
+from plateforme import entrepot
 
 REQUETE = """
 select d.dataset_id, d.title, d.update_frequency,
@@ -106,7 +106,7 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--format", choices=["markdown", "json"], default="markdown")
     arguments = parser.parse_args()
-    conn = db.connect()
+    conn = entrepot.connect()
     try:
         alertes = collecter(conn)
     finally:

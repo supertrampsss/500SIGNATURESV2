@@ -26,9 +26,8 @@ Usage : python -m plateforme.normalize.cofog [--store r2:plateforme-raw]
 import argparse
 import json
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.connectors import eurostat
 from plateforme.connectors.jsonstat import decoder
 from plateforme.http import fetch
@@ -93,7 +92,7 @@ def declarer(conn) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, %s, 'observed',
+                values (?, ?, ?, 'observed',
                         array['Officiel','Comparaison harmonisée UE'])
                 returning definition_id
                 """,
@@ -109,7 +108,7 @@ def declarer(conn) -> None:
                 insert into core.indicators
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, accounting_frame, geo_levels, time_granularity, published)
-                values (%s, %s, %s, 'fonctions', %s, 'percent', false, 'nationale',
+                values (?, ?, ?, 'fonctions', ?, 'percent', false, 'nationale',
                         array['pays'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -150,14 +149,14 @@ def controler_identite(points: list[dict]) -> tuple[list[dict], dict]:
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         url = eurostat.data_url(JEU, PARAMS)
         contenu = fetch(url, timeout=300).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, "eurostat", "gov_10a_exp.json",
             contenu, url, "application/json",
         )
@@ -175,31 +174,31 @@ def run(store_spec: str) -> int:
             )
         with conn.cursor() as curseur:
             curseur.execute(
-                "delete from core.observations where indicator_id = any(%s)",
+                "delete from core.observations where indicator_id = any(?)",
                 ([TOTAL[0], *[f[0] for f in FONCTIONS.values()]],),
             )
-            with curseur.copy(
-                "copy core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
-                " period, value, quality_flags, run_id) from stdin"
-            ) as copie:
-                for ligne in lignes:
-                    copie.write_row(ligne)
+            entrepot.copier(
+                conn,
+                "core.observations",
+                ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period", "value", "quality_flags", "run_id"],
+                (ligne for ligne in lignes),
+            )
             curseur.execute(
                 """
                 insert into meta.data_quality_checks
                     (run_id, dataset_id, check_name, severity, passed, observed)
-                values (%s, %s, 'identite_somme_des_fonctions', %s, %s, %s)
+                values (?, ?, 'identite_somme_des_fonctions', ?, ?, ?)
                 """,
                 (run_id, DATASET, "warning" if ecartes else "info",
-                 not ecartes, Jsonb({"tolerance_pts": TOLERANCE_PTS, "ecartes": ecartes})),
+                 not ecartes, json.dumps({"tolerance_pts": TOLERANCE_PTS, "ecartes": ecartes})),
             )
         conn.commit()
-        db.finish_run(conn, run_id, "success", rows_read=len(points), rows_written=len(lignes))
+        entrepot.finish_run(conn, run_id, "success", rows_read=len(points), rows_written=len(lignes))
         print(f"fonctions : {len(lignes)} observations, {len({p['geo'] for p in gardes})} pays,"
               f" {len(ecartes)} pays-années en quarantaine")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

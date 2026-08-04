@@ -33,9 +33,8 @@ Usage : python -m plateforme.normalize.secu [--store r2:plateforme-raw]
 import argparse
 import json
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db, revisions
+from plateforme import entrepot, revisions
 from plateforme.connectors import eurostat
 from plateforme.connectors.jsonstat import decoder
 from plateforme.http import fetch
@@ -92,7 +91,7 @@ def declarer(conn) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, %s, 'observed',
+                values (?, ?, ?, 'observed',
                         array['Officiel','Comparaison harmonisée UE'])
                 returning definition_id
                 """,
@@ -110,7 +109,7 @@ def declarer(conn) -> None:
                 insert into core.indicators
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, accounting_frame, geo_levels, time_granularity, published)
-                values (%s, %s, %s, 'securite_sociale', %s, 'percent', false, 'nationale',
+                values (?, ?, ?, 'securite_sociale', ?, 'percent', false, 'nationale',
                         array['pays'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -147,14 +146,14 @@ def controler_identite(points: list[dict]) -> tuple[list[dict], dict]:
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         url = eurostat.data_url(JEU, PARAMS)
         contenu = fetch(url, timeout=300).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, "eurostat", "gov_10a_main.json",
             contenu, url, "application/json",
         )
@@ -176,18 +175,18 @@ def run(store_spec: str) -> int:
             """
             insert into meta.data_quality_checks
                 (run_id, dataset_id, check_name, severity, passed, observed)
-            values (%s, %s, 'identite_recettes_moins_depenses_egale_solde', %s, %s, %s)
+            values (?, ?, 'identite_recettes_moins_depenses_egale_solde', ?, ?, ?)
             """,
             (run_id, DATASET, "warning" if ecartes else "info",
-             not ecartes, Jsonb({"tolerance_pts": TOLERANCE_PTS, "ecartes": ecartes})),
+             not ecartes, json.dumps({"tolerance_pts": TOLERANCE_PTS, "ecartes": ecartes})),
         )
         conn.commit()
-        db.finish_run(conn, run_id, "success", rows_read=len(points), rows_written=ecrites)
+        entrepot.finish_run(conn, run_id, "success", rows_read=len(points), rows_written=ecrites)
         print(f"sécu : {ecrites} observations, {len({p['geo'] for p in gardes})} pays,"
               f" {len(ecartes)} pays-années en quarantaine, {revisees} valeurs révisées")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

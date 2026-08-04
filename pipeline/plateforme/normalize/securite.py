@@ -41,9 +41,8 @@ import json
 from collections import defaultdict
 from collections.abc import Iterable
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db, revisions
+from plateforme import entrepot, revisions
 from plateforme.limites import garde_fou_volume
 from plateforme.http import fetch
 from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
@@ -224,7 +223,7 @@ def declarer(conn) -> None:
                     insert into core.indicator_definitions
                         (public_definition, technical_definition, formula,
                          confidence_level, badges)
-                    values (%s, %s, %s, 'observed', array['Officiel','Donnée brute'])
+                    values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
                     returning definition_id
                     """,
                     (publique, technique, f"SSMSI, base {classe}"),
@@ -234,7 +233,7 @@ def declarer(conn) -> None:
                     insert into core.indicators
                         (indicator_id, dataset_id, definition_id, theme, label_fr,
                          unit, additive, geo_levels, time_granularity, published)
-                    values (%s, %s, %s, 'securite', %s, %s, %s, %s, 'annuelle', true)
+                    values (?, ?, ?, 'securite', ?, ?, ?, ?, 'annuelle', true)
                     on conflict (indicator_id) do update set
                         definition_id = excluded.definition_id,
                         label_fr = excluded.label_fr, theme = excluded.theme,
@@ -384,10 +383,10 @@ def ecrire(conn, run_id: str, par_niveau: dict[str, list[dict]]) -> tuple[int, i
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         taille = garde_fou_volume(conn)
         par_niveau: dict[str, list[dict]] = {}
@@ -396,7 +395,7 @@ def run(store_spec: str) -> int:
 
         url_com = url_courante("COM - Base statistique communale", "csv.gz")
         contenu_com = fetch(url_com, timeout=900).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "delinquance-communale.csv.gz",
             contenu_com, url_com, "application/gzip",
         )
@@ -412,7 +411,7 @@ def run(store_spec: str) -> int:
         ):
             url = url_courante(prefixe, "csv")
             contenu = fetch(url, timeout=300).content
-            db.record_asset(
+            entrepot.record_asset(
                 conn, store, run_id, DATASET, SOURCE, f"delinquance-{niveau}.csv",
                 contenu, url, "text/csv",
             )
@@ -443,37 +442,37 @@ def run(store_spec: str) -> int:
                 """
                 insert into meta.data_quality_checks
                     (run_id, dataset_id, check_name, severity, passed, observed)
-                values (%s, %s, 'identite_taux_egal_nombre_sur_denominateur', %s, %s, %s)
+                values (?, ?, 'identite_taux_egal_nombre_sur_denominateur', ?, ?, ?)
                 """,
                 (run_id, DATASET, "warning" if ecartees_total else "info",
                  not ecartees_total,
-                 Jsonb({"ecartees": dict(list(ecartees_total.items())[:20]),
+                 json.dumps({"ecartees": dict(list(ecartees_total.items())[:20]),
                         "total": len(ecartees_total)})),
             )
             curseur.execute(
                 """
                 insert into meta.data_quality_checks
                     (run_id, dataset_id, check_name, severity, passed, observed)
-                values (%s, %s, 'somme_des_communes_bornee_par_le_departement', %s, %s, %s)
+                values (?, ?, 'somme_des_communes_bornee_par_le_departement', ?, ?, ?)
                 """,
                 (run_id, DATASET, "warning" if depassements else "info", not depassements,
-                 Jsonb(dict(list(depassements.items())[:10]))),
+                 json.dumps(dict(list(depassements.items())[:10]))),
             )
             curseur.execute(
                 """
                 insert into meta.data_quality_checks
                     (run_id, dataset_id, check_name, severity, passed, observed)
-                values (%s, %s, 'couverture_diffusion_communale', 'info', true, %s)
+                values (?, ?, 'couverture_diffusion_communale', 'info', true, ?)
                 """,
                 (run_id, DATASET,
-                 Jsonb({"annee": annee_communale, "pct_diffuse_par_classe": diffusion})),
+                 json.dumps({"annee": annee_communale, "pct_diffuse_par_classe": diffusion})),
             )
         conn.commit()
-        db.finish_run(
+        entrepot.finish_run(
             conn, run_id, "success",
             rows_read=sum(len(v) for v in par_niveau.values()), rows_written=ecrites,
         )
-        apres = conn.execute("select pg_database_size(current_database())").fetchone()[0]
+        apres = entrepot.taille(conn)
         print(
             f"sécurité : {ecrites} observations ({annee_communale} au niveau communal),"
             f" {len(ecartees_total)} lignes écartées, {len(depassements)} couples"
@@ -484,7 +483,7 @@ def run(store_spec: str) -> int:
         print("diffusion communale (%) :", json.dumps(diffusion, ensure_ascii=False))
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

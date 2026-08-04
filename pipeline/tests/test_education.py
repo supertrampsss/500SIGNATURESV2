@@ -2,9 +2,7 @@
 « à fermer » n'est pas un « ouvert », et un service administratif n'est pas une
 école. Les valeurs de champ viennent des facettes réelles du portail."""
 
-import os
 
-import pytest
 
 from plateforme.normalize import education
 
@@ -70,28 +68,25 @@ def test_le_jeu_est_au_registre():
     assert education.SOURCE in sources
 
 
-@pytest.mark.skipif(
-    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
-)
-def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris():
+def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris(tmp_path):
     """L'invariant central : l'univers vient du référentiel, pas de l'annuaire.
     Une commune sans école reçoit un 0 écrit, jamais une absence."""
     from collections import Counter
 
-    from plateforme import db
+    from plateforme import entrepot
     from plateforme.normalize.geo import MILLESIME
 
-    conn = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
     try:
         education.declarer(conn)
         for code, nom in (("T1E", "Avec école"), ("T2E", "Sans école")):
             conn.execute(
                 "insert into geo.geography_reference (geo_level, geo_code, vintage, name)"
-                " values ('commune', %s, %s, %s)",
+                " values ('commune', ?, ?, ?)",
                 (code, MILLESIME, nom),
             )
         conn.commit()
-        run_id = db.start_run(conn, education.DATASET)
+        run_id = entrepot.start_run(conn, education.DATASET)
         comptes = {"ecoles": Counter({"T1E": 3}), "colleges_lycees": Counter()}
         ecrites, _, hors = education.ecrire(conn, run_id, comptes)
         conn.commit()
@@ -104,12 +99,12 @@ def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris():
         assert {c: float(v) for c, v in valeurs.items()} == {"T1E": 3.0, "T2E": 0.0}
         assert hors == 0
     finally:
-        conn.rollback()
+        entrepot.annuler(conn)
         conn.execute(
-            "delete from core.observations where indicator_id = any(%s)",
+            "delete from core.observations where indicator_id = any(?)",
             (list(education.INDICATEURS),),
         )
-        conn.execute("delete from core.indicators where dataset_id = %s", (education.DATASET,))
+        conn.execute("delete from core.indicators where dataset_id = ?", (education.DATASET,))
         conn.execute(
             "delete from core.indicator_definitions d where not exists"
             " (select 1 from core.indicators i where i.definition_id = d.definition_id)"
@@ -117,6 +112,6 @@ def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris():
         conn.execute(
             "delete from geo.geography_reference where geo_code in ('T1E','T2E')"
         )
-        conn.execute("delete from meta.ingestion_runs where dataset_id = %s", (education.DATASET,))
+        conn.execute("delete from meta.ingestion_runs where dataset_id = ?", (education.DATASET,))
         conn.commit()
         conn.close()

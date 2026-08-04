@@ -29,9 +29,8 @@ Usage : python -m plateforme.normalize.etat [--store r2:plateforme-raw]
 import argparse
 import json
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.connectors import smb
 from plateforme.http import fetch
 from plateforme.normalize.geo import MILLESIME, make_store
@@ -164,13 +163,13 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
     for nom in smb.PIECES_JOINTES:
         url = smb.url_piece_jointe(nom)
         contenu = fetch(url, timeout=180).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, f"{nom}.csv", contenu, url, "text/csv"
         )
         contenus[nom] = contenu
     url = smb.RECORDS_URL
     contenu = fetch(url, timeout=180).content
-    db.record_asset(
+    entrepot.record_asset(
         conn, store, run_id, DATASET, SOURCE, "records.json", contenu, url, "application/json"
     )
     contenus["records"] = contenu
@@ -249,7 +248,7 @@ def declarer(conn) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, 'Situation mensuelle budgétaire de l''État, colonne de'
+                values (?, ?, 'Situation mensuelle budgétaire de l''État, colonne de'
                         ' décembre de l''exercice', 'observed',
                         array['Officiel','Donnée brute'])
                 returning definition_id
@@ -262,7 +261,7 @@ def declarer(conn) -> None:
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, price_basis, accounting_frame, geo_levels,
                      time_granularity, published)
-                values (%s, %s, %s, 'budget_etat', %s, 'EUR', false, 'current',
+                values (?, ?, ?, 'budget_etat', ?, 'EUR', false, 'current',
                         'budgetaire', array['pays'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -287,7 +286,7 @@ def _inserer_budget(
             (geo_level, geo_code, geo_vintage, budget_type, entity_kind, fiscal_year,
              accounting_frame, stage, dataset_id, run_id,
              balance, special_accounts_balance, annexed_budgets_balance)
-        values ('pays', 'FR', %s, %s, 'etat', %s, 'budgetaire', %s, %s, %s, %s, %s, %s)
+        values ('pays', 'FR', ?, ?, 'etat', ?, 'budgetaire', ?, ?, ?, ?, ?, ?)
         returning budget_id
         """,
         (
@@ -308,7 +307,7 @@ def _inserer_budget(
             """
             insert into fin.public_budget_lines
                 (budget_id, fiscal_year, side, titre, line_kind, ae, cp, amount, label)
-            values (%s, %s, %s, %s, %s, null, %s, %s, %s)
+            values (?, ?, ?, ?, ?, null, ?, ?, ?)
             """,
             (
                 budget_id, int(annee), ligne.cote, ligne.titre, ligne.genre,
@@ -376,14 +375,15 @@ def _ecrire_observations(conn, run_id: str, clos: dict[str, dict]) -> int:
         if smb.LIGNES[libelle].indicateur
     ]
     conn.execute(
-        "delete from core.observations where indicator_id = any(%s)", (list(INDICATEURS),)
+        "delete from core.observations where indicator_id = any(?)", (list(INDICATEURS),)
     )
-    with conn.cursor() as curseur, curseur.copy(
-        "copy core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
-        " period, value, quality_flags, run_id) from stdin"
-    ) as copie:
-        for ligne in lignes:
-            copie.write_row(ligne)
+    entrepot.copier(
+        conn,
+        "core.observations",
+        ["indicator_id", "geo_level", "geo_code", "geo_vintage",
+         "period", "value", "quality_flags", "run_id"],
+        lignes,
+    )
     return len(lignes)
 
 
@@ -409,18 +409,18 @@ def tracer_controles(conn, run_id: str, resume: dict, divergences: dict) -> None
             """
             insert into meta.data_quality_checks
                 (run_id, dataset_id, check_name, severity, passed, observed)
-            values (%s, %s, %s, %s, %s, %s)
+            values (?, ?, ?, ?, ?, ?)
             """,
-            (run_id, DATASET, nom, severite, passe, Jsonb(observe)),
+            (run_id, DATASET, nom, severite, passe, json.dumps(observe)),
         )
     conn.commit()
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         contenus = collecter(conn, store, run_id)
         clos, dernier_mois = exercices(contenus)
@@ -444,7 +444,7 @@ def run(store_spec: str) -> int:
         divergences = recouper_execution(clos, votes)
         resume = ecrire(conn, run_id, clos, votes)
         tracer_controles(conn, run_id, resume, divergences)
-        db.finish_run(conn, run_id, "success", rows_written=resume["lignes"])
+        entrepot.finish_run(conn, run_id, "success", rows_written=resume["lignes"])
         print(
             f"budget de l'État : {resume['budgets']} budgets, {resume['lignes']} lignes,"
             f" {resume['observations']} observations"
@@ -463,7 +463,7 @@ def run(store_spec: str) -> int:
             )
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

@@ -373,9 +373,13 @@ create table if not exists fin.public_employment (
 -- table DuckDB — la récursion, elle, est identique.
 create or replace macro geo.passage(p_level, p_code, p_vintage, p_target) as table
 with recursive walk(code, vintage, share) as (
-    select p_code, p_vintage, 1.0
+    -- Les parts sont en double, pas en décimal. Le littéral `1.0` est un
+    -- DECIMAL(2,1) pour DuckDB : la multiplication en gardait l'échelle, et une
+    -- scission à 0,75 / 0,25 ressortait à 0,8 / 0,3 — une population réattribuée
+    -- de travers, sans erreur, sur toute comparaison inter-millésimes.
+    select p_code, p_vintage, 1.0::double
     union all
-    select h.to_code, h.to_vintage, w.share * coalesce(h.population_share, 1)
+    select h.to_code, h.to_vintage, w.share * coalesce(h.population_share, 1)::double
     from walk w
     join geo.geography_history h
       on h.from_level = p_level

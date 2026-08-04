@@ -9,13 +9,9 @@ Les codes utilisés ici sont fictifs (99xxx) : le test doit valoir aussi bien su
 une base vide qu'après le chargement du référentiel réel.
 """
 
-import os
 
 import pytest
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
-)
 
 CHAINE = [
     ("changement_code", "2015-12-31", "99060", 2014, "99382", 2015, None),
@@ -28,12 +24,12 @@ SCISSION = [
 
 
 @pytest.fixture
-def conn():
-    from plateforme import db
+def conn(tmp_path):
+    from plateforme import entrepot
 
-    connection = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    connection = entrepot.connect(tmp_path / "entrepot.duckdb")
     yield connection
-    connection.rollback()  # aucun test ne laisse de trace
+    entrepot.annuler(connection)  # aucun test ne laisse de trace
     connection.close()
 
 
@@ -43,7 +39,7 @@ def charger(conn, evenements):
         insert into geo.geography_history
             (event_type, event_date, from_level, from_code, from_vintage,
              to_level, to_code, to_vintage, population_share, source)
-        values (%s, %s, 'commune', %s, %s, 'commune', %s, %s, %s, 'test')
+        values (?, ?, 'commune', ?, ?, 'commune', ?, ?, ?, 'test')
         """,
         evenements,
     )

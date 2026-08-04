@@ -111,6 +111,19 @@ def _octets(taille_lisible) -> int:
     return int(float(morceaux[0]) * UNITES[morceaux[1].lower()])
 
 
+def annuler(conn: duckdb.DuckDBPyConnection) -> None:
+    """Annule ce qui est en cours, sans exiger qu'il y ait quelque chose.
+
+    psycopg acceptait un `rollback()` hors transaction ; DuckDB lève. Or ces
+    appels disent tous « repars propre », jamais « il y avait forcément une
+    transaction ouverte » — n'en avoir aucune est le cas normal.
+    """
+    try:
+        conn.rollback()
+    except Exception:  # noqa: BLE001 — voir la docstring
+        pass
+
+
 def get_dataset(conn: duckdb.DuckDBPyConnection, dataset_id: str) -> dict:
     ligne = conn.execute(
         """
@@ -154,7 +167,10 @@ def finish_run(
     # l'échec échouerait à son tour et masquerait l'erreur d'origine.
     try:
         conn.rollback()
-    except duckdb.Error:
+    except Exception:  # noqa: BLE001
+        # DuckDB refuse un rollback hors transaction là où psycopg l'acceptait.
+        # Ce rollback ne sert qu'à sortir d'une transaction avortée : n'en avoir
+        # aucune est le cas normal, pas une erreur à propager.
         pass
     details = json.dumps({"message": error}) if error is not None else None
     conn.execute(

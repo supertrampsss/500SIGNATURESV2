@@ -27,7 +27,7 @@ Usage : python -m plateforme.normalize.chomage [--store r2:plateforme-raw]
 
 import argparse
 
-from plateforme import db, revisions
+from plateforme import entrepot, revisions
 from plateforme.connectors import insee, sdmx
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
@@ -89,7 +89,7 @@ def declarer(conn) -> None:
             """
             insert into core.indicator_definitions
                 (public_definition, technical_definition, formula, confidence_level, badges)
-            values (%s, %s, %s, 'observed', array['Officiel','Donnée brute'])
+            values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
             returning definition_id
             """,
             (FICHE["public"], FICHE["technique"], FICHE["formule"]),
@@ -99,7 +99,7 @@ def declarer(conn) -> None:
             insert into core.indicators
                 (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                  additive, seasonal_adjustment, geo_levels, time_granularity, published)
-            values (%s, %s, %s, 'emploi', %s, 'percent', false, 'cvs-cjo',
+            values (?, ?, ?, 'emploi', ?, 'percent', false, 'cvs-cjo',
                     array['departement','region'], 'trimestrielle', true)
             on conflict (indicator_id) do update set
                 definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -138,13 +138,13 @@ def ecrire(conn, run_id: str, lignes: list[tuple]) -> tuple[int, int, int]:
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         contenu = insee.bdm_sdmx(DATAFLOW)
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "taux-chomage.xml", contenu,
             f"{insee.BDM_BASE}/data/{DATAFLOW}", "application/xml",
         )
@@ -155,7 +155,7 @@ def run(store_spec: str) -> int:
         ecrites, ecartes, revisees = ecrire(conn, run_id, lignes)
         territoires = len({(ligne[1], ligne[2]) for ligne in lignes})
         periodes = sorted({ligne[3] for ligne in lignes})
-        db.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
+        entrepot.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
         print(
             f"chômage : {ecrites} observations sur {territoires} territoires, "
             f"{periodes[0]} → {periodes[-1]}"
@@ -166,7 +166,7 @@ def run(store_spec: str) -> int:
             print(f"{ecartes} territoires absents du référentiel, écartés")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

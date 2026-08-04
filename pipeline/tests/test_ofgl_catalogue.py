@@ -37,7 +37,7 @@ def test_les_identifiants_sont_uniques_et_prefixes():
 
 def test_seuls_les_agregats_marques_oui_sont_charges():
     retenus = ofgl.agregats()
-    attendus = {l["agregat"] for l in ofgl.catalogue() if l["charge"] == "oui"}
+    attendus = {ligne_cat["agregat"] for ligne_cat in ofgl.catalogue() if ligne_cat["charge"] == "oui"}
     assert set(retenus) == attendus
     assert len(retenus) >= 5
 
@@ -48,7 +48,7 @@ def test_une_maille_ne_demande_que_ses_propres_agregats():
     # filtre qui n'y correspond à rien.
     for niveau in NIVEAUX:
         for agregat in ofgl.agregats_du_niveau(niveau):
-            ligne = next(l for l in ofgl.catalogue() if l["agregat"] == agregat)
+            ligne = next(c for c in ofgl.catalogue() if c["agregat"] == agregat)
             assert niveau in ligne["niveaux"].split(","), (niveau, agregat)
 
 
@@ -93,7 +93,7 @@ def test_les_agregats_non_commentes_par_l_ofgl_disent_qui_les_definit():
     # ici, à partir de la formule comptable qu'il publie bien — ce n'est donc pas
     # une supposition, mais ce n'est pas non plus sa documentation. La fiche doit
     # le dire, sans quoi le lecteur croirait lire le producteur.
-    muets = [l["agregat"] for l in ofgl.catalogue() if not l["definition_ofgl"]]
+    muets = [ligne_cat["agregat"] for ligne_cat in ofgl.catalogue() if not ligne_cat["definition_ofgl"]]
     assert set(muets) == {
         "Crédits de trésorerie",
         "Fonds de roulement",

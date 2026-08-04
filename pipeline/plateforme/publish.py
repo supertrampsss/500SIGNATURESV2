@@ -15,7 +15,7 @@ import json
 from collections import defaultdict
 from datetime import UTC, datetime
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme import journal as journal_declare
 from plateforme.connectors import smb
 from plateforme.normalize.geo import make_store
@@ -160,7 +160,7 @@ def couples_publies(conn, niveau: str, borne: bool = True) -> list[tuple[str, st
         """
         select distinct o.indicator_id, o.period
         from core.observations o join core.indicators i using (indicator_id)
-        where o.geo_level = %s and i.published and o.value_status = 'normal'
+        where o.geo_level = ? and i.published and o.value_status = 'normal'
           and o.variant = 'total'
         order by 1, 2 desc
         """,
@@ -194,7 +194,7 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
         for code, valeur in conn.execute(
             """
             select o.geo_code, o.value from core.observations o
-            where o.geo_level = %s and o.indicator_id = %s and o.period = %s
+            where o.geo_level = ? and o.indicator_id = ? and o.period = ?
               and o.value_status = 'normal' and o.variant = 'total'
             """,
             (niveau, indicateur, periode),
@@ -357,7 +357,7 @@ def fraicheur(conn) -> list[dict]:
                        and v.superseded_at > now() - interval '90 days'),
                    -- Les contrôles du dernier run seulement : un défaut corrigé
                    -- par le producteur ne doit pas rester affiché indéfiniment.
-                   (select jsonb_agg(jsonb_build_object(
+                   (select json_group_array(json_object(
                              'nom', c.check_name, 'severite', c.severity, 'constat', c.observed))
                       from meta.data_quality_checks c
                      where c.dataset_id = d.dataset_id and not c.passed
@@ -577,7 +577,7 @@ def maires(conn) -> dict[str, dict]:
             " where role = 'maire'"
         ).fetchall()
     except Exception:  # noqa: BLE001 — table absente tant que 0010 n'est pas appliquée
-        conn.rollback()
+        entrepot.annuler(conn)
         return {}
     return {
         code: {"nom": f"{prenom} {nom}".strip(), "depuis": depuis.isoformat() if depuis else None}
@@ -686,7 +686,7 @@ def main() -> int:
     parser.add_argument("--publication", default=".published")
     parser.add_argument("--version", default=datetime.now(UTC).strftime("%Y-%m-%dT%H%M"))
     args = parser.parse_args()
-    conn = db.connect()
+    conn = entrepot.connect()
     try:
         publier(conn, make_store(args.publication), args.version)
         return 0

@@ -11,9 +11,8 @@ Usage : python -m plateforme.normalize.geo [--store r2:plateforme-raw]
 import argparse
 import json
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.connectors import cog
 from plateforme.http import fetch
 from plateforme.store import LocalStore, R2Store
@@ -91,14 +90,14 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
     for nom, fichier in FICHIERS.items():
         url = cog.url_fichier(PUBLICATION, fichier)
         contenu = fetch(url, timeout=180).content
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, "cog-communes", "insee-fichiers", fichier, contenu, url, "text/csv"
         )
         contenus[nom] = contenu
 
     url = f"{API_GEO}/communes?fields=code,population,codeEpci,siren&format=json"
     contenu = fetch(url, timeout=180).content
-    db.record_asset(
+    entrepot.record_asset(
         conn, store, run_id, "geo-api-communes", "api-geo", "communes.json", contenu, url,
         "application/json",
     )
@@ -106,7 +105,7 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
 
     url = f"{API_GEO}/epcis?fields=code,nom,population"
     contenu = fetch(url, timeout=180).content
-    db.record_asset(
+    entrepot.record_asset(
         conn, store, run_id, "geo-api-epci", "api-geo", "epcis.json", contenu, url,
         "application/json",
     )
@@ -227,9 +226,9 @@ def ecrire(conn, territoires: list[dict], evenements: list[dict]) -> tuple[int, 
                 population = excluded.population, flags = excluded.flags
             """,
             [
-                {"siren": None, "population": None, "flags": Jsonb({}), **t}
+                {"siren": None, "population": None, "flags": json.dumps({}), **t}
                 for t in (
-                    {**t, "flags": Jsonb(t["flags"])} if "flags" in t else t for t in territoires
+                    {**t, "flags": json.dumps(t["flags"])} if "flags" in t else t for t in territoires
                 )
             ],
         )
@@ -252,17 +251,17 @@ def ecrire(conn, territoires: list[dict], evenements: list[dict]) -> tuple[int, 
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
-    run_id = db.start_run(conn, "cog-communes", "manual")
+    conn = entrepot.connect()
+    run_id = entrepot.start_run(conn, "cog-communes", "manual")
     try:
         contenus = collecter(conn, make_store(store_spec), run_id)
         territoires, evenements = construire(contenus)
         n_territoires, n_evenements = ecrire(conn, territoires, evenements)
-        db.finish_run(conn, run_id, "success", rows_written=n_territoires + n_evenements)
+        entrepot.finish_run(conn, run_id, "success", rows_written=n_territoires + n_evenements)
         print(f"référentiel : {n_territoires} territoires, {n_evenements} mouvements")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec doit finir tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

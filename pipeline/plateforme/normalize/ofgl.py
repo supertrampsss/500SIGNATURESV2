@@ -4,11 +4,11 @@ Usage : python -m plateforme.normalize.ofgl [--niveaux commune,epci,departement,
                                             [--depuis 2018] [--store r2:plateforme-raw]
 """
 
+import json
 import argparse
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.limites import garde_fou_volume
 from plateforme.connectors import ofgl
 from plateforme.http import fetch
@@ -220,7 +220,7 @@ def declarer_indicateurs(conn, niveaux: list[str]) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, %s, 'observed', array['Officiel','Donnée brute'])
+                values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
                 returning definition_id
                 """,
                 (grand_public, technique, formule),
@@ -231,7 +231,7 @@ def declarer_indicateurs(conn, niveaux: list[str]) -> None:
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, price_basis, accounting_frame, geo_levels,
                      time_granularity, published)
-                values (%s, 'ofgl-communes', %s, %s, %s, %s, true, %s, %s, %s, 'annuelle', true)
+                values (?, 'ofgl-communes', ?, ?, ?, ?, true, ?, ?, ?, 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id,
                     -- Union et non remplacement : un chargement portant sur les
@@ -309,17 +309,21 @@ def enregistrer_criteres(conn, lignes: list[dict]) -> int:
     # Une seule instruction plutôt que 34 875 : autant d'allers-retours
     # dépassaient le délai maximum d'une requête.
     with conn.cursor() as curseur:
-        curseur.execute("create temp table _criteres (code text primary key, flags jsonb)")
-        with curseur.copy("copy _criteres (code, flags) from stdin") as copie:
-            for code, valeur in derniers.items():
-                copie.write_row(
-                    (code, Jsonb({**valeur["criteres"], "criteres_source": "OFGL"}))
-                )
+        curseur.execute("create temp table _criteres (code text primary key, flags json)")
+        entrepot.copier(
+            curseur,
+            "_criteres",
+            ["code", "flags"],
+            (
+                (code, json.dumps({**valeur["criteres"], "criteres_source": "OFGL"}))
+                for code, valeur in derniers.items()
+            ),
+        )
         curseur.execute(
             """
             update geo.geography_reference g set flags = g.flags || c.flags
             from _criteres c
-            where g.geo_level = 'commune' and g.geo_code = c.code and g.vintage = %s
+            where g.geo_level = 'commune' and g.geo_code = c.code and g.vintage = ?
             """,
             (MILLESIME,),
         )
@@ -337,7 +341,7 @@ def filtrer_territoires_connus(conn, lignes: list[tuple]) -> tuple[list[tuple], 
         (niveau, code)
         for niveau, code in conn.execute(
             "select geo_level, geo_code from geo.geography_reference"
-            " where geo_level = any(%s) and vintage = %s",
+            " where geo_level = any(?) and vintage = ?",
             (niveaux, MILLESIME),
         ).fetchall()
     }
@@ -352,22 +356,22 @@ def ecrire(conn, run_id: str, lignes: list[tuple]) -> int:
         indicateurs = sorted({ligne[0] for ligne in lignes})
         niveaux = sorted({ligne[1] for ligne in lignes})
         cur.execute(
-            "delete from core.observations where indicator_id = any(%s) and geo_level = any(%s)",
+            "delete from core.observations where indicator_id = any(?) and geo_level = any(?)",
             (indicateurs, niveaux),
         )
         # Écriture par lots : une seule instruction pour 420 000 lignes dépasse
         # le délai maximum, chaque vérification de clé étrangère prenant un verrou.
         LOT = 100_000
         for debut in range(0, len(lignes), LOT):
-            with cur.copy(
-                "copy core.observations"
-                " (indicator_id, geo_level, geo_code, geo_vintage, period, value, run_id)"
-                " from stdin"
-            ) as copie:
-                for indicateur, niveau, code, periode, valeur in lignes[debut : debut + LOT]:
-                    copie.write_row(
-                        (indicateur, niveau, code, MILLESIME, periode, valeur, run_id)
-                    )
+            entrepot.copier(
+                conn,
+                "core.observations",
+                ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period", "value", "run_id"],
+                (
+                    (indicateur, niveau, code, MILLESIME, periode, valeur, run_id)
+                    for indicateur, niveau, code, periode, valeur in lignes[debut : debut + LOT]
+                ),
+            )
     conn.commit()
     return len(lignes)
 
@@ -387,7 +391,7 @@ def controler_coherence(conn, run_id: str, niveau: str) -> bool:
                  - sum(o.value) filter (where indicator_id = 'ofgl_depenses_fonctionnement')
                  - sum(o.value) filter (where indicator_id = 'ofgl_epargne_brute') as ecart
             from core.observations o
-            where o.geo_level = %s and o.indicator_id in
+            where o.geo_level = ? and o.indicator_id in
                 ('ofgl_recettes_fonctionnement','ofgl_depenses_fonctionnement','ofgl_epargne_brute')
             group by 1, 2
         ) t where abs(ecart) > 1
@@ -398,8 +402,8 @@ def controler_coherence(conn, run_id: str, niveau: str) -> bool:
         """
         insert into meta.data_quality_checks
             (run_id, dataset_id, check_name, severity, passed, observed)
-        values (%s, %s, 'epargne_brute_egale_recettes_moins_depenses', 'blocker', %s,
-                jsonb_build_object('territoires_en_ecart', %s))
+        values (?, ?, 'epargne_brute_egale_recettes_moins_depenses', 'blocker', ?,
+                json_object('territoires_en_ecart', ?))
         """,
         (run_id, JEUX[niveau], ecarts == 0, ecarts),
     )
@@ -408,7 +412,7 @@ def controler_coherence(conn, run_id: str, niveau: str) -> bool:
 
 
 def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer_indicateurs(conn, niveaux)
     total = 0
@@ -417,13 +421,13 @@ def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
         # connecteur qui porte l'essentiel du volume de la base (D6ter).
         garde_fou_volume(conn)
         dataset_id = JEUX[niveau]
-        run_id = db.start_run(conn, dataset_id, "manual")
+        run_id = entrepot.start_run(conn, dataset_id, "manual")
         try:
             # Chaque maille ne connaît pas les mêmes agrégats : les allocations
             # RSA, APA et les DMTO n'existent qu'au département et à la région.
             url = ofgl.url_export(niveau, list(ofgl.agregats_du_niveau(niveau)))
             contenu = fetch(url, timeout=600).content
-            db.record_asset(
+            entrepot.record_asset(
                 conn, store, run_id, dataset_id, "ofgl", f"{niveau}.csv", contenu, url, "text/csv"
             )
             brutes = ofgl.lire(contenu, niveau)
@@ -437,12 +441,12 @@ def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
                 raise ValueError(
                     f"{niveau} : l'épargne brute ne se déduit pas des recettes et dépenses"
                 )
-            db.finish_run(conn, run_id, "success", rows_written=ecrites)
+            entrepot.finish_run(conn, run_id, "success", rows_written=ecrites)
             alerte = f" — {len(ecartes)} territoires hors référentiel écartés" if ecartes else ""
             print(f"{niveau} : {ecrites} observations{alerte}")
             total += ecrites
         except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-            db.finish_run(conn, run_id, "failed", error=str(error))
+            entrepot.finish_run(conn, run_id, "failed", error=str(error))
             raise
     conn.close()
     print(f"total : {total} observations")

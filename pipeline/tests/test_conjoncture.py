@@ -5,7 +5,6 @@ extrêmes réels (Turquie à 85 % d'inflation, Irlande à +20 % de PIB) et arrê
 les artefacts (niveau d'indice lu comme un taux)."""
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -97,18 +96,15 @@ def test_les_jeux_sont_au_registre():
         assert jeux.get(fiche["dataset"]) == "eurostat"
 
 
-@pytest.mark.skipif(
-    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
-)
-def test_declarer_passe_les_contraintes_de_la_base():
-    from plateforme import db
+def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
+    from plateforme import entrepot
 
-    conn = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
     try:
         conjoncture.declarer(conn)
         lignes = conn.execute(
             "select indicator_id, unit, theme, time_granularity from core.indicators"
-            " where indicator_id = any(%s) order by indicator_id",
+            " where indicator_id = any(?) order by indicator_id",
             (list(conjoncture.INDICATEURS),),
         ).fetchall()
         assert lignes == [
@@ -116,9 +112,9 @@ def test_declarer_passe_les_contraintes_de_la_base():
             ("eurostat_inflation_ipch", "percent", "macro", "mensuelle"),
         ]
     finally:
-        conn.rollback()
+        entrepot.annuler(conn)
         conn.execute(
-            "delete from core.indicators where dataset_id = any(%s)",
+            "delete from core.indicators where dataset_id = any(?)",
             ([f["dataset"] for f in conjoncture.INDICATEURS.values()],),
         )
         conn.execute(

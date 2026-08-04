@@ -20,43 +20,26 @@ sur des chiffres, pas des impressions.
 Usage : python -m plateforme.maintenance
 """
 
-from plateforme import db
-
-
-def tables_a_compacter(conn) -> list[str]:
-    """Toutes les tables des schémas métier, partitions comprises, plus grosses
-    d'abord — si le temps manque, le gros est déjà fait."""
-    return [
-        nom for (nom,) in conn.execute(
-            """
-            select format('%I.%I', schemaname, tablename)
-            from pg_tables
-            where schemaname in ('core', 'geo', 'fin', 'meta', 'pub')
-            order by pg_total_relation_size(format('%I.%I', schemaname, tablename)) desc
-            """
-        ).fetchall()
-    ]
+from plateforme import entrepot
 
 
 def run() -> int:
-    conn = db.connect()
+    """Force l'écriture du fichier et dit ce qu'il pèse.
+
+    Sous Postgres, ce module lançait un `vacuum full` table par table pour rendre
+    au disque l'espace des lignes mortes — l'opération qui, sur une base saturée,
+    demandait justement l'espace qu'elle cherchait à libérer. DuckDB n'a pas ce
+    problème : le fichier est réécrit au checkpoint, et c'est la seule chose à
+    faire avant de le renvoyer au bucket.
+    """
+    conn = entrepot.connect()
     try:
-        conn.autocommit = True  # VACUUM refuse de tourner dans une transaction
-        avant_base = conn.execute("select pg_database_size(current_database())").fetchone()[0]
-        for table in tables_a_compacter(conn):
-            avant = conn.execute(
-                "select pg_total_relation_size(%s::regclass)", (table,)
-            ).fetchone()[0]
-            conn.execute(f"vacuum (full, analyze) {table}")
-            apres = conn.execute(
-                "select pg_total_relation_size(%s::regclass)", (table,)
-            ).fetchone()[0]
-            if avant - apres > 1024 * 1024:
-                print(f"{table} : {avant // 1024 // 1024} -> {apres // 1024 // 1024} Mo")
-        apres_base = conn.execute("select pg_database_size(current_database())").fetchone()[0]
+        avant = entrepot.taille(conn)
+        conn.execute("force checkpoint")
+        apres = entrepot.taille(conn)
         print(
-            f"base : {avant_base // 1024 // 1024} -> {apres_base // 1024 // 1024} Mo"
-            f" ({(avant_base - apres_base) // 1024 // 1024} Mo récupérés)"
+            f"entrepôt : {avant // 1024 // 1024} -> {apres // 1024 // 1024} Mo"
+            f" ({(avant - apres) // 1024 // 1024} Mo récupérés)"
         )
         return 0
     finally:

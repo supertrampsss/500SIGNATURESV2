@@ -20,6 +20,7 @@ périmètre, archiver ces absences fabriquerait de fausses révisions. La
 rétention (retention.py), elle, supprime en le disant.
 """
 
+from plateforme import entrepot
 from collections.abc import Iterable, Sequence
 
 CLES = ("indicator_id", "geo_level", "geo_code", "geo_vintage", "period")
@@ -59,14 +60,12 @@ def remplacer(
             "create temp table nouvelles_observations"
             " (like core.observations including defaults)"
         )
-        ecrites = 0
-        with curseur.copy(
-            f"copy nouvelles_observations ({', '.join(CLES)}, {', '.join(colonnes)},"
-            " run_id) from stdin"
-        ) as copie:
-            for ligne in lignes:
-                copie.write_row((*ligne, run_id))
-                ecrites += 1
+        ecrites = entrepot.copier(
+            curseur,
+            "nouvelles_observations",
+            [*CLES, *colonnes, "run_id"],
+            ((*ligne, run_id) for ligne in lignes),
+        )
         # L'archive d'abord, la valeur d'hier encore en place : c'est la
         # jointure entre l'ancien et le nouveau qui dit ce qui a changé.
         curseur.execute(

@@ -11,7 +11,7 @@ Usage : python -m plateforme.registry
 import csv
 from pathlib import Path
 
-from plateforme import db
+from plateforme import entrepot
 
 RACINE = Path(__file__).resolve().parents[2] / "infra/supabase/seed"
 
@@ -88,7 +88,7 @@ def sync(conn) -> tuple[int, int]:
 
 
 def main() -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     try:
         n_sources, n_jeux = sync(conn)
         print(f"registre synchronisé : {n_sources} sources, {n_jeux} jeux")

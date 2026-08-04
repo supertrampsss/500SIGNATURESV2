@@ -26,9 +26,8 @@ Usage : python -m plateforme.normalize.revenus [--store r2:plateforme-raw]
 import argparse
 import json
 
-from psycopg.types.json import Jsonb
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.connectors import insee, melodi
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
@@ -70,7 +69,7 @@ def declarer(conn) -> None:
                 """
                 insert into core.indicator_definitions
                     (public_definition, technical_definition, formula, confidence_level, badges)
-                values (%s, %s, %s, 'observed',
+                values (?, ?, ?, 'observed',
                         array['Officiel','Donnée retraitée','Comparabilité limitée'])
                 returning definition_id
                 """,
@@ -81,7 +80,7 @@ def declarer(conn) -> None:
                 insert into core.indicators
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, price_basis, geo_levels, time_granularity, published)
-                values (%s, %s, %s, 'revenus', %s, %s, false, %s,
+                values (?, ?, ?, 'revenus', ?, ?, false, ?,
                         array['commune','epci','departement','region'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -107,13 +106,13 @@ def ecrire(conn, run_id: str, indicateur: str, lignes: list[dict]) -> tuple[int,
     ]
     gardees, ecartes = filtrer_territoires_connus(conn, candidates)
     with conn.cursor() as curseur:
-        curseur.execute("delete from core.observations where indicator_id = %s", (indicateur,))
-        with curseur.copy(
-            "copy core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
-            " period, value, run_id) from stdin"
-        ) as copie:
-            for cle, niveau, code, periode, valeur in gardees:
-                copie.write_row((cle, niveau, code, MILLESIME, periode, valeur, run_id))
+        curseur.execute("delete from core.observations where indicator_id = ?", (indicateur,))
+        entrepot.copier(
+            conn,
+            "core.observations",
+            ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period", "value", "run_id"],
+            ((cle, niveau, code, MILLESIME, periode, valeur, run_id) for cle, niveau, code, periode, valeur in gardees),
+        )
     conn.commit()
     return len(gardees), len(ecartes)
 
@@ -125,22 +124,22 @@ def couverture(conn, run_id: str, constat: dict) -> None:
         """
         insert into meta.data_quality_checks
             (run_id, dataset_id, check_name, severity, passed, observed)
-        values (%s, %s, 'couverture_communale', 'info', true, %s)
+        values (?, ?, 'couverture_communale', 'info', true, ?)
         """,
-        (run_id, DATASET, Jsonb(constat)),
+        (run_id, DATASET, json.dumps(constat)),
     )
     conn.commit()
 
 
 def run(store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         communes = conn.execute(
             "select count(*) from geo.geography_reference"
-            " where geo_level = 'commune' and vintage = %s",
+            " where geo_level = 'commune' and vintage = ?",
             (MILLESIME,),
         ).fetchone()[0]
         constat: dict = {"communes_du_referentiel": communes}
@@ -148,7 +147,7 @@ def run(store_spec: str) -> int:
         for indicateur, fiche in INDICATEURS.items():
             observations = melodi.pages(JEU, {"FILOSOFI_MEASURE": fiche["mesure"]})
             url = f"{insee.MELODI_BASE}/data/{JEU}?FILOSOFI_MEASURE={fiche['mesure']}"
-            db.record_asset(
+            entrepot.record_asset(
                 conn, store, run_id, DATASET, SOURCE, f"{fiche['mesure']}.json",
                 json.dumps({"observations": observations}).encode(), url, "application/json",
             )
@@ -167,10 +166,10 @@ def run(store_spec: str) -> int:
                 f"{constat[indicateur]['part_communes']} % des communes"
             )
         couverture(conn, run_id, constat)
-        db.finish_run(conn, run_id, "success", rows_written=total)
+        entrepot.finish_run(conn, run_id, "success", rows_written=total)
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

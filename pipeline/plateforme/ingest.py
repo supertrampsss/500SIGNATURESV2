@@ -13,7 +13,7 @@ import argparse
 import json
 import sys
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.connectors import datagouv, eurostat, insee, ods
 from plateforme.http import fetch
 from plateforme.store import LocalStore, R2Store
@@ -65,22 +65,22 @@ def snapshot_for(dataset: dict, params: dict | None) -> tuple[str, bytes, str, s
 
 
 def run(dataset_id: str, params: dict | None, store_spec: str, trigger: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
-    dataset = db.get_dataset(conn, dataset_id)
-    run_id = db.start_run(conn, dataset_id, trigger)
+    dataset = entrepot.get_dataset(conn, dataset_id)
+    run_id = entrepot.start_run(conn, dataset_id, trigger)
     try:
         filename, content, source_url, content_type = snapshot_for(dataset, params)
-        result = db.record_asset(
+        result = entrepot.record_asset(
             conn, store, run_id, dataset_id, dataset["source_id"],
             filename, content, source_url, content_type,
         )
-        db.finish_run(conn, run_id, "success", rows_written=0 if result.unchanged else 1)
+        entrepot.finish_run(conn, run_id, "success", rows_written=0 if result.unchanged else 1)
         state = "inchangé (hash identique)" if result.unchanged else f"snapshot {result.key}"
         print(f"[{dataset_id}] run {run_id} : {state}")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec doit finir tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         print(f"[{dataset_id}] run {run_id} : ÉCHEC {error}", file=sys.stderr)
         return 1
     finally:

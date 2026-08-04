@@ -3,10 +3,8 @@ sous-secteur S1314 — et les fiches doivent dire que ce périmètre n'est pas
 celui du « trou de la Sécu » parlementaire."""
 
 import json
-import os
 from pathlib import Path
 
-import pytest
 
 from plateforme.connectors.jsonstat import decoder
 from plateforme.normalize import secu
@@ -99,30 +97,27 @@ def test_le_jeu_est_au_registre():
     assert secu.DATASET in jeux
 
 
-@pytest.mark.skipif(
-    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
-)
-def test_declarer_passe_les_contraintes_de_la_base():
+def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
     """`declarer()` exécuté pour de vrai, contre le schéma réel et son seed :
     c'est la contrainte des 50 mots — vérifiée par la base, pas par nous — qui
     a arrêté le premier chargement en production. Un test qui n'exerce pas le
     même chemin que la production ne prouve rien (leçon CORS, leçon d'ici)."""
-    from plateforme import db
+    from plateforme import entrepot
 
-    conn = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
     try:
         secu.declarer(conn)
         publies = {
             ligne[0]
             for ligne in conn.execute(
-                "select indicator_id from core.indicators where dataset_id = %s",
+                "select indicator_id from core.indicators where dataset_id = ?",
                 (secu.DATASET,),
             )
         }
         assert publies == {fiche[0] for fiche in secu.INDICATEURS.values()}
     finally:
-        conn.rollback()
-        conn.execute("delete from core.indicators where dataset_id = %s", (secu.DATASET,))
+        entrepot.annuler(conn)
+        conn.execute("delete from core.indicators where dataset_id = ?", (secu.DATASET,))
         conn.execute(
             "delete from core.indicator_definitions d where not exists"
             " (select 1 from core.indicators i where i.definition_id = d.definition_id)"

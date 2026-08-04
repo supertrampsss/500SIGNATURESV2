@@ -7,23 +7,21 @@ une valeur archive l'ancienne — et seulement elle. Archiver trop remplirait le
 plan Supabase (D6bis), archiver trop peu réécrirait l'histoire en silence.
 """
 
-import os
 import uuid
 
 import pytest
 
-pytestmark = pytest.mark.skipif(
-    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
-)
+from plateforme import entrepot
+
 
 VINTAGE = 2099  # millésime de test : n'entre en collision avec aucune vraie donnée
 
 
 @pytest.fixture
-def conn():
-    from plateforme import db
+def conn(tmp_path):
+    from plateforme import entrepot
 
-    connection = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    connection = entrepot.connect(tmp_path / "entrepot.duckdb")
     yield connection
     connection.close()
 
@@ -37,17 +35,17 @@ def contexte(conn):
     indicateur = f"test-ind-{uuid.uuid4().hex[:8]}"
     conn.execute(
         "insert into meta.source_registry (source_id, name, producer, access_category, license)"
-        " values (%s, 'Test', 'Test', 'A', 'LO2.0')",
+        " values (?, 'Test', 'Test', 'A', 'LO2.0')",
         (source,),
     )
     conn.execute(
         "insert into meta.dataset_registry (dataset_id, source_id, title, priority)"
-        " values (%s, %s, 'Jeu de test révisions', 'P3')",
+        " values (?, ?, 'Jeu de test révisions', 'P3')",
         (dataset, source),
     )
     conn.execute(
         "insert into core.indicators (indicator_id, dataset_id, theme, label_fr, unit)"
-        " values (%s, %s, 'test', 'Indicateur de test', 'percent')",
+        " values (?, ?, 'test', 'Indicateur de test', 'percent')",
         (indicateur, dataset),
     )
     for niveau, code, nom in [
@@ -56,30 +54,30 @@ def contexte(conn):
     ]:
         conn.execute(
             "insert into geo.geography_reference (geo_level, geo_code, vintage, name)"
-            " values (%s, %s, %s, %s)",
+            " values (?, ?, ?, ?)",
             (niveau, code, VINTAGE, nom),
         )
     conn.commit()
     yield dataset, indicateur
-    conn.rollback()
-    conn.execute("delete from core.observations where indicator_id = %s", (indicateur,))
-    conn.execute("delete from core.observations_revisions where indicator_id = %s", (indicateur,))
-    conn.execute("delete from core.indicators where indicator_id = %s", (indicateur,))
+    entrepot.annuler(conn)
+    conn.execute("delete from core.observations where indicator_id = ?", (indicateur,))
+    conn.execute("delete from core.observations_revisions where indicator_id = ?", (indicateur,))
+    conn.execute("delete from core.indicators where indicator_id = ?", (indicateur,))
     conn.execute(
-        "delete from geo.geography_reference where vintage = %s and geo_code in ('T1','T2')",
+        "delete from geo.geography_reference where vintage = ? and geo_code in ('T1','T2')",
         (VINTAGE,),
     )
-    conn.execute("delete from meta.ingestion_runs where dataset_id = %s", (dataset,))
-    conn.execute("delete from meta.dataset_registry where dataset_id = %s", (dataset,))
-    conn.execute("delete from meta.source_registry where source_id = %s", (source,))
+    conn.execute("delete from meta.ingestion_runs where dataset_id = ?", (dataset,))
+    conn.execute("delete from meta.dataset_registry where dataset_id = ?", (dataset,))
+    conn.execute("delete from meta.source_registry where source_id = ?", (source,))
     conn.commit()
 
 
 def test_seule_la_valeur_qui_change_est_archivee(conn, contexte):
-    from plateforme import db, revisions
+    from plateforme import entrepot, revisions
 
     dataset, indicateur = contexte
-    run1 = db.start_run(conn, dataset)
+    run1 = entrepot.start_run(conn, dataset)
     ecrites, revisees = revisions.remplacer(
         conn,
         run1,
@@ -94,7 +92,7 @@ def test_seule_la_valeur_qui_change_est_archivee(conn, contexte):
     assert (ecrites, revisees) == (2, 0), "premier chargement : rien à archiver"
 
     # Parution suivante : T4 est réestimé, T3 ne bouge pas, T1-2025 apparaît.
-    run2 = db.start_run(conn, dataset)
+    run2 = entrepot.start_run(conn, dataset)
     ecrites, revisees = revisions.remplacer(
         conn,
         run2,
@@ -111,7 +109,7 @@ def test_seule_la_valeur_qui_change_est_archivee(conn, contexte):
 
     archives = conn.execute(
         "select period, old_value, run_id from core.observations_revisions"
-        " where indicator_id = %s",
+        " where indicator_id = ?",
         (indicateur,),
     ).fetchall()
     assert [(p, float(v)) for p, v, _ in archives] == [("2024-Q4", 7.4)]
@@ -121,7 +119,7 @@ def test_seule_la_valeur_qui_change_est_archivee(conn, contexte):
 
     valeurs = dict(
         conn.execute(
-            "select period, value from core.observations where indicator_id = %s",
+            "select period, value from core.observations where indicator_id = ?",
             (indicateur,),
         ).fetchall()
     )
@@ -133,10 +131,10 @@ def test_seule_la_valeur_qui_change_est_archivee(conn, contexte):
 
 
 def test_le_perimetre_par_niveau_ne_touche_pas_les_autres_niveaux(conn, contexte):
-    from plateforme import db, revisions
+    from plateforme import entrepot, revisions
 
     dataset, indicateur = contexte
-    run1 = db.start_run(conn, dataset)
+    run1 = entrepot.start_run(conn, dataset)
     revisions.remplacer(
         conn,
         run1,
@@ -152,7 +150,7 @@ def test_le_perimetre_par_niveau_ne_touche_pas_les_autres_niveaux(conn, contexte
     # Rechargement des seules régions : le département survit, sans fausse
     # révision — c'est le contrat dont ofgl (chargement niveau par niveau)
     # aura besoin pour adopter l'archive à son tour.
-    run2 = db.start_run(conn, dataset)
+    run2 = entrepot.start_run(conn, dataset)
     ecrites, revisees = revisions.remplacer(
         conn,
         run2,
@@ -167,7 +165,7 @@ def test_le_perimetre_par_niveau_ne_touche_pas_les_autres_niveaux(conn, contexte
     restantes = {
         (niveau, float(valeur))
         for niveau, valeur in conn.execute(
-            "select geo_level, value from core.observations where indicator_id = %s",
+            "select geo_level, value from core.observations where indicator_id = ?",
             (indicateur,),
         ).fetchall()
     }

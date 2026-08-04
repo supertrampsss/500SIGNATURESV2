@@ -20,7 +20,7 @@ import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.http import fetch
 from plateforme.normalize.geo import API_GEO, make_store
 
@@ -208,9 +208,9 @@ def _executer(commande: list[str]) -> None:
 
 
 def run(departements: list[str], store_spec: str, publication_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store, publication = make_store(store_spec), make_store(publication_spec)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         with tempfile.TemporaryDirectory() as dossier:
             racine = Path(dossier)
@@ -225,7 +225,7 @@ def run(departements: list[str], store_spec: str, publication_spec: str) -> int:
                 chemins[nom] = racine / f"{nom}.geojsonl"
                 ecrire_geojsonseq(chemins[nom], entites)
                 total += len(entites)
-                db.record_asset(
+                entrepot.record_asset(
                     conn, store, run_id, DATASET, "ign", f"{nom}.geojsonl",
                     chemins[nom].read_bytes(), f"{API_GEO}/departements/*/communes",
                     "application/geo+json",
@@ -246,10 +246,10 @@ def run(departements: list[str], store_spec: str, publication_spec: str) -> int:
             )
             print(f"tuiles publiées : {cle} ({len(contenu) // 1024} Kio)")
 
-        db.finish_run(conn, run_id, "success", rows_written=total)
+        entrepot.finish_run(conn, run_id, "success", rows_written=total)
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

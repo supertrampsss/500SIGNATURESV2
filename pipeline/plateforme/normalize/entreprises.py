@@ -24,7 +24,7 @@ Usage : python -m plateforme.normalize.entreprises [--annee 2023] [--store …]
 import argparse
 import json
 
-from plateforme import db
+from plateforme import entrepot
 from plateforme.connectors import insee, melodi
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
@@ -54,7 +54,7 @@ def declarer(conn) -> None:
             """
             insert into core.indicator_definitions
                 (public_definition, technical_definition, formula, confidence_level, badges)
-            values (%s, %s, %s, 'observed', array['Officiel','Donnée brute'])
+            values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
             returning definition_id
             """,
             (FICHE["public"], FICHE["technique"], FICHE["formule"]),
@@ -64,7 +64,7 @@ def declarer(conn) -> None:
             insert into core.indicators
                 (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                  additive, geo_levels, time_granularity, published)
-            values (%s, %s, %s, 'entreprises', %s, 'count', true,
+            values (?, ?, ?, 'entreprises', ?, 'count', true,
                     array['commune','epci','departement','region'], 'annuelle', true)
             on conflict (indicator_id) do update set
                 definition_id = excluded.definition_id, label_fr = excluded.label_fr,
@@ -86,22 +86,22 @@ def ecrire(conn, run_id: str, lignes: list[dict]) -> tuple[int, int]:
     ]
     gardees, ecartes = filtrer_territoires_connus(conn, candidates)
     with conn.cursor() as curseur:
-        curseur.execute("delete from core.observations where indicator_id = %s", (INDICATEUR,))
-        with curseur.copy(
-            "copy core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
-            " period, value, run_id) from stdin"
-        ) as copie:
-            for cle, niveau, code, periode, valeur in gardees:
-                copie.write_row((cle, niveau, code, MILLESIME, periode, valeur, run_id))
+        curseur.execute("delete from core.observations where indicator_id = ?", (INDICATEUR,))
+        entrepot.copier(
+            conn,
+            "core.observations",
+            ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period", "value", "run_id"],
+            ((cle, niveau, code, MILLESIME, periode, valeur, run_id) for cle, niveau, code, periode, valeur in gardees),
+        )
     conn.commit()
     return len(gardees), len(ecartes)
 
 
 def run(annee: int, store_spec: str) -> int:
-    conn = db.connect()
+    conn = entrepot.connect()
     store = make_store(store_spec)
     declarer(conn)
-    run_id = db.start_run(conn, DATASET, "manual")
+    run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         params = {"SIDE_MEASURE": MESURE, "ACTIVITY": ACTIVITE, "TIME_PERIOD": str(annee)}
         observations = melodi.pages(JEU, params)
@@ -109,7 +109,7 @@ def run(annee: int, store_spec: str) -> int:
             f"{insee.MELODI_BASE}/data/{JEU}?SIDE_MEASURE={MESURE}"
             f"&ACTIVITY={ACTIVITE}&TIME_PERIOD={annee}"
         )
-        db.record_asset(
+        entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, f"unites-locales-{annee}.json",
             json.dumps({"observations": observations}).encode(), url, "application/json",
         )
@@ -117,14 +117,14 @@ def run(annee: int, store_spec: str) -> int:
         if not lignes:
             raise ValueError(f"aucun établissement lu pour {annee}")
         ecrites, ecartes = ecrire(conn, run_id, lignes)
-        db.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
+        entrepot.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
         communes = sum(1 for ligne in lignes if ligne["niveau"] == "commune")
         print(f"établissements {annee} : {ecrites} observations, {communes} communes")
         if ecartes:
             print(f"{ecartes} territoires absents du référentiel, écartés")
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
-        db.finish_run(conn, run_id, "failed", error=str(error))
+        entrepot.finish_run(conn, run_id, "failed", error=str(error))
         raise
     finally:
         conn.close()

@@ -3,10 +3,8 @@ avec le mauvais dénominateur ou une ligne sous secret publiée par erreur ferai
 dire aux chiffres ce qu'ils ne disent pas. Ces tests portent sur les fixtures
 réelles du SSMSI (Gironde/Creuse, Pessac/Paris/Bordeaux)."""
 
-import os
 from pathlib import Path
 
-import pytest
 
 from plateforme.normalize import securite
 
@@ -173,28 +171,25 @@ def test_le_jeu_est_au_registre():
     assert lignes_registre[securite.DATASET]["statistical_secrecy"] == "true"
 
 
-@pytest.mark.skipif(
-    not os.environ.get("PLATEFORME_TEST_DB"), reason="PLATEFORME_TEST_DB non défini"
-)
-def test_declarer_passe_les_contraintes_de_la_base():
+def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
     """32 fiches déclarées contre le schéma réel — la contrainte des 50 mots a
     déjà arrêté un connecteur en production ; celle-ci passe ici d'abord."""
-    from plateforme import db
+    from plateforme import entrepot
 
-    conn = db.connect(os.environ["PLATEFORME_TEST_DB"])
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
     try:
         securite.declarer(conn)
         publies = {
             ligne[0]
             for ligne in conn.execute(
-                "select indicator_id from core.indicators where dataset_id = %s",
+                "select indicator_id from core.indicators where dataset_id = ?",
                 (securite.DATASET,),
             )
         }
         assert publies == set(securite.tous_les_indicateurs())
     finally:
-        conn.rollback()
-        conn.execute("delete from core.indicators where dataset_id = %s", (securite.DATASET,))
+        entrepot.annuler(conn)
+        conn.execute("delete from core.indicators where dataset_id = ?", (securite.DATASET,))
         conn.execute(
             "delete from core.indicator_definitions d where not exists"
             " (select 1 from core.indicators i where i.definition_id = d.definition_id)"
