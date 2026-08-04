@@ -103,6 +103,22 @@ bucket objet, quatorze millions de lignes tiennent pour quelques centimes par
 mois : le garde-fou de `plateforme.limites` est passé à 8 Go et ne sert plus
 qu'à repérer un connecteur en défaut.
 
+**Ce que la publication coûte à cette échelle**, mesuré le 4 août sur un
+entrepôt fabriqué de 20 505 992 observations — 35 000 communes × 73 indicateurs
+× 8 exercices, plus les départements et les régions :
+
+| Étape | Durée |
+|---|---:|
+| Écriture des 20,5 M d'observations | 148 s |
+| Fichiers de carte (trois mailles) | 159 s |
+| Repères (72 indicateurs) | 226 s |
+| Groupes de comparaison | 6 s |
+
+Environ **six minutes**, contre un délai maximum de 330 minutes par run. La
+crainte que les repères — une requête par indicateur, par maille et par période
+— ne tiennent pas à cette échelle était donc infondée, et il valait mieux la
+mesurer que l'optimiser à l'aveugle.
+
 Trois agrégats — crédits de trésorerie, fonds de roulement, produit des cessions
 d'immobilisations — sont publiés par l'OFGL **sans commentaire**. Leur fiche est
 écrite ici, à partir de la formule comptable que l'OFGL publie bien : ce ne sont
