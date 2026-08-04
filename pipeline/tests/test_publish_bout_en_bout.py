@@ -104,18 +104,23 @@ def _remplir(conn) -> None:
     }
     for code, _, population in COMMUNES:
         for indicateur, valeur in valeurs[code].items():
+            # Trois exercices insérés dans le désordre : le catalogue doit les
+            # rendre triés, sinon le sélecteur d'année du site propose 2021
+            # après 2023.
+            for rang, periode in enumerate(("2023", "2021", "2022")):
+                conn.execute(
+                    "insert into core.observations (indicator_id, geo_level, geo_code,"
+                    " geo_vintage, period, value, run_id) values (?, 'commune', ?, ?,"
+                    " ?, ?, ?)",
+                    (indicateur, code, MILLESIME, periode, valeur - rang, run_id),
+                )
+        for periode in ("2021", "2022", "2023"):
             conn.execute(
                 "insert into core.observations (indicator_id, geo_level, geo_code,"
-                " geo_vintage, period, value, run_id) values (?, 'commune', ?, ?,"
-                " '2023', ?, ?)",
-                (indicateur, code, MILLESIME, valeur, run_id),
+                " geo_vintage, period, value, run_id) values"
+                " ('ofgl_population_reference', 'commune', ?, ?, ?, ?, ?)",
+                (code, MILLESIME, periode, float(population), run_id),
             )
-        conn.execute(
-            "insert into core.observations (indicator_id, geo_level, geo_code,"
-            " geo_vintage, period, value, run_id) values"
-            " ('ofgl_population_reference', 'commune', ?, ?, '2023', ?, ?)",
-            (code, MILLESIME, float(population), run_id),
-        )
     entrepot.finish_run(conn, run_id, "success")
 
     budget = conn.execute(
@@ -158,7 +163,7 @@ def test_publier_produit_un_jeu_complet(tmp_path):
     # `synchroniser_niveaux` relit les niveaux depuis les observations : une
     # liste transformée en chaîne par un `coalesce` mal typé se verrait ici.
     assert catalogue["ofgl_depenses_fonctionnement"]["niveaux"] == ["commune"]
-    assert catalogue["ofgl_depenses_fonctionnement"]["periodes"] == ["2023"]
+    assert catalogue["ofgl_depenses_fonctionnement"]["periodes"] == ["2021", "2022", "2023"]
 
     carte = lire("carte/ofgl_depenses_fonctionnement/commune/2023.json")
     assert carte == {"33063": 5.4e8, "33281": 1.1e8}
