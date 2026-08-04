@@ -351,7 +351,6 @@ function afficherApercu(): void {
   const nationaux = indicateursDeLaFiche("pays");
   if (france && nationaux.length) {
     afficherFiche($("fiche"), {
-      code: "FR",
       niveau: "pays",
       territoire: france,
       principal: PHARE_NATIONAL.find((id) => france.series[id]) ?? nationaux[0]?.id,
@@ -583,7 +582,6 @@ async function montrerFiche(code: string): Promise<void> {
     position >= 0 ? { position: position + 1, total: classement.length } : undefined;
 
   afficherFiche($("fiche"), {
-    code,
     niveau: etat.niveau,
     territoire,
     principal: etat.indicateur,

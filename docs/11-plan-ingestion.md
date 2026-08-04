@@ -70,6 +70,18 @@ leur **part dans leur propre total** — vérifiée contre les chiffres publiés
 les quatre composantes de la dette somment au total à 0,003 % près, recettes
 fiscales plus non fiscales font exactement les recettes nettes.
 
+**Les intercommunalités n'ont pas de maille de rattachement publiée.** Leur
+enregistrement sort avec `parent: null` et `region: null` — vérifié le 4 août
+sur Bordeaux Métropole. Conséquences visibles : la fiche d'un EPCI ne se situe
+dans aucun département ni aucune région, et ses mesures ne se comparent qu'à la
+médiane nationale, là où une commune se compare aussi à son département et à sa
+région. Le rattachement existe dans la correspondance EPCI–communes déjà
+ingérée ; il reste à le porter dans l'export des territoires. Un EPCI peut
+chevaucher deux départements : le rattachement doit alors suivre la règle du
+producteur (département du siège), pas une majorité de communes calculée par
+nous. **Rien ne doit être déduit du numéro SIREN** — sa structure n'est pas une
+garantie de code départemental.
+
 ### P1 — après mesure du volume réel
 
 | # | Jeu | Ce qu'on en tire | Maille |

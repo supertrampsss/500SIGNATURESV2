@@ -745,7 +745,6 @@ function syntheseTerritoire(
 export function afficherFiche(
   cible: HTMLElement,
   options: {
-    code: string;
     niveau: string;
     territoire: Territoire;
     indicateurs: Indicateur[];
@@ -819,13 +818,20 @@ export function afficherFiche(
         </section>`;
       })
       .join("");
+  // Situer le territoire plutôt que l'identifier. Le code INSEE figurait ici
+  // pour départager les homonymes — il y a trois Sainte-Marie et douze
+  // Saint-Martin — mais « 69123 » ne dit cela à personne : il fallait déjà
+  // connaître la réponse pour la lire. La maille du dessus la donne en clair.
+  // C'est le premier comparateur : département pour une commune ou un EPCI,
+  // région pour un département. Au-dessus, c'est la France, qui ne situe rien.
+  const dessus = options.comparateurs?.[0];
+  const situe =
+    dessus && dessus.libelle !== "la France"
+      ? ` · ${echapper(dessus.territoire.nom)}`
+      : "";
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
-    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${
-      // Le code INSEE situe une commune homonyme ; « FR » sous « France » ne
-      // situe rien.
-      niveau === "pays" ? "" : ` ${echapper(options.code)}`
-    }${
+    <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       territoire.population
         ? ` · <abbr title="Population municipale (légale) au sens du recensement de l'INSEE. Les montants par habitant utilisent, eux, la population de référence de l'OFGL de l'exercice concerné : deux définitions, deux millésimes, deux nombres.">${new Intl.NumberFormat(
             "fr-FR",
