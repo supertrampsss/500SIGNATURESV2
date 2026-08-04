@@ -96,6 +96,12 @@ jobs:
           # gaspillage pur. Chaque étape reprend là où la précédente s'est
           # arrêtée ; « rechargement » les enchaîne pour une reconstruction
           # depuis zéro.
+          if [ "$JOB" = "inventaire" ]; then
+            # Ne touche à rien : dit ce que l'entrepôt contient. Sert à savoir
+            # où reprendre un chargement coupé, plutôt qu'à le deviner.
+            python -m plateforme.inventaire
+            exit $?
+          fi
           if [ "$JOB" = "rechargement-socle" ]; then
             set -e
             python -m plateforme.normalize.geo --store r2:plateforme-raw
