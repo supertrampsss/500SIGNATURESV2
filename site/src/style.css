@@ -2697,6 +2697,15 @@ body[data-vue="carte"] .pied {
 .synthese strong {
   font-weight: 500;
 }
+/* L'agrégat du thème, sous son chiffre d'entrée : une seconde voix, plus
+   basse. Au même corps que le reste, les deux phrases pesaient pareil et on ne
+   voyait plus laquelle portait le chiffre. */
+.synthese__ensemble {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+}
 
 /* La phrase qui dit ce que le chiffre veut dire. */
 .mesure__lecture {

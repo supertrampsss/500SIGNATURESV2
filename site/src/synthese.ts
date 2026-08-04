@@ -29,6 +29,17 @@ function arrondiEcart(ecart: number): number {
   return absolu >= 100 ? Math.round(absolu / 10) * 10 : Math.round(absolu);
 }
 
+/** Deux grandeurs de signes opposés ne s'écartent pas d'un pourcentage.
+ *
+ *  Un solde de Sécurité sociale à −0,2 % du PIB comparé à une médiane
+ *  européenne de +0,1 % donnait « 300 % en dessous » : un déficit n'est pas
+ *  « trois fois » un excédent, il en est le contraire. Le rapport n'a de sens
+ *  que du même côté de zéro — c'est vrai de tous les soldes, déficits et
+ *  variations, qui changent de signe sans changer de nature. */
+export function memeSens(valeur: number, repere: number): boolean {
+  return valeur * repere > 0;
+}
+
 /** « 16 % au-dessus de la médiane des communes de France ». */
 export function lecture(
   valeur: number,
@@ -37,6 +48,11 @@ export function lecture(
 ): string {
   const repere = comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur !== 0);
   if (!repere) return "";
+  // De part et d'autre de zéro, on pose les deux chiffres côte à côte et on
+  // laisse le lecteur voir l'écart plutôt que de lui en donner un faux.
+  if (!memeSens(valeur, repere.valeur)) {
+    return `Contre ${formater(repere.valeur)} pour ${repere.libelle}.`;
+  }
   const ecart = ((valeur - repere.valeur) / Math.abs(repere.valeur)) * 100;
   // Pas de mise en minuscules : « France » deviendrait « france ». Les
   // libellés sont écrits par l'appelant, déjà dans la forme voulue.
@@ -66,9 +82,21 @@ export type Ecart = { libelle: string; ecart: number };
  * combien en dessous, et lequel s'écarte le plus. C'est une synthèse du thème
  * entier, pas un extrait de l'un de ses indicateurs.
  */
-export function resumeEcarts(ecarts: Ecart[], repere: string): string {
+export function resumeEcarts(
+  ecarts: Ecart[],
+  repere: string,
+  options: {
+    /** Nombre d'indicateurs en deçà duquel le thème ne se résume pas. */
+    minimum?: number;
+    /** Indicateur déjà nommé juste avant : le désigner de nouveau comme
+     *  « écart le plus marqué » ne ferait que répéter le chiffre qu'on vient de
+     *  lire. On prend alors le suivant. */
+    sauf?: string;
+  } = {},
+): string {
+  const { minimum = 2, sauf } = options;
   const finis = ecarts.filter((e) => Number.isFinite(e.ecart));
-  if (finis.length < 2) return "";
+  if (finis.length < minimum) return "";
   const hauts = finis.filter((e) => e.ecart >= SEUIL_PROCHE).length;
   const bas = finis.filter((e) => e.ecart <= -SEUIL_PROCHE).length;
   const proches = finis.length - hauts - bas;
@@ -77,9 +105,12 @@ export function resumeEcarts(ecarts: Ecart[], repere: string): string {
     bas ? `${bas} en dessous` : "",
     proches ? `${proches} au niveau` : "",
   ].filter(Boolean);
-  const fort = finis.reduce((a, b) => (Math.abs(b.ecart) > Math.abs(a.ecart) ? b : a));
+  const candidats = finis.filter((e) => e.libelle !== sauf);
+  const fort = candidats.length
+    ? candidats.reduce((a, b) => (Math.abs(b.ecart) > Math.abs(a.ecart) ? b : a))
+    : null;
   const marque =
-    Math.abs(fort.ecart) >= SEUIL_PROCHE
+    fort && Math.abs(fort.ecart) >= SEUIL_PROCHE
       ? ` Écart le plus marqué : ${fort.libelle}, ${fort.ecart > 0 ? "+" : "−"}${arrondiEcart(
           fort.ecart,
         )} %.`

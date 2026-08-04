@@ -8,7 +8,7 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 import { reperes, type References } from "./reference.ts";
-import { lecture, resumeEcarts, synthese } from "./synthese.ts";
+import { lecture, memeSens, resumeEcarts, synthese } from "./synthese.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -246,13 +246,18 @@ function mesurer(
   // l'écart de densité du second annoncerait « 12 indicateurs » là où il y a
   // six phénomènes, chacun pesé deux fois. La densité comparée reste affichée
   // sur la mesure, où elle répond à « est-ce beaucoup ? » sans rien compter.
+  // De part et d'autre de zéro, l'écart relatif ne veut rien dire — un solde
+  // déficitaire n'est pas « trois fois » un solde excédentaire. Il n'entre donc
+  // pas dans le décompte du thème : mieux vaut résumer cinq indicateurs que six
+  // dont un ment.
   const repere = comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur !== 0);
-  const ecart = repere
-    ? {
-        reference: repere.libelle,
-        pourcent: ((valeur - repere.valeur) / Math.abs(repere.valeur)) * 100,
-      }
-    : null;
+  const ecart =
+    repere && memeSens(valeur, repere.valeur)
+      ? {
+          reference: repere.libelle,
+          pourcent: ((valeur - repere.valeur) / Math.abs(repere.valeur)) * 100,
+        }
+      : null;
   return {
     periode, valeur, brut, ratio, denom, suivie, brute: serie, comparaisons,
     parents, medianes, densite, ecart,
@@ -543,6 +548,7 @@ export function panneauComparabilite(territoire: Territoire, niveau: string): st
  * mais non publié pour ce territoire est simplement ignoré.
  */
 const PHARES: Record<string, string[]> = {
+  // Fiche d'un territoire.
   securite: ["ssmsi_cambriolages_taux", "ssmsi_violences_hors_famille_taux"],
   finances_locales: ["ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
   revenus: ["insee_niveau_vie_median", "insee_taux_pauvrete"],
@@ -551,7 +557,21 @@ const PHARES: Record<string, string[]> = {
   sante: ["drees_apl_generalistes"],
   emploi: ["insee_taux_chomage_localise"],
   entreprises: ["insee_etablissements_actifs"],
-  impots_locaux: ["dgfip_taux_foncier_bati_global"],
+  // Le taux global, celui qui figure sur l'avis d'imposition : la part
+  // communale seule ne dit pas ce que paie le propriétaire. L'identifiant écrit
+  // ici ne correspondait à aucun indicateur publié — le thème s'ouvrait donc
+  // dans l'ordre du catalogue, sur la part communale.
+  impots_locaux: ["dgfip_taux_tfb_global", "dgfip_taux_tfb_commune"],
+  // Fiche nationale. Ces thèmes n'avaient pas de phare : ils s'ouvraient sur le
+  // premier identifiant du catalogue — « Charge de la dette de l'État » pour le
+  // budget, « Affaires économiques » pour les fonctions — c'est-à-dire sur une
+  // ligne parmi quinze, présentée comme le résumé du thème.
+  dette: ["insee_dette_apu_part_pib", "insee_dette_apu_montant"],
+  budget_etat: ["etat_solde_budgetaire", "etat_depenses_nettes_bg"],
+  fonctions: ["eurostat_depenses_publiques_pib"],
+  securite_sociale: ["eurostat_secu_solde_pib"],
+  macro: ["eurostat_inflation_ipch", "eurostat_croissance_pib"],
+  europe: ["eurostat_dette_pib", "eurostat_chomage"],
 };
 
 /**
@@ -635,7 +655,7 @@ function ordonnerTheme(theme: string, liste: Indicateur[]): Indicateur[] {
  * comparable d'un indicateur à l'autre. La phrase dit alors du thème entier ce
  * qu'aucun de ses indicateurs ne dit seul.
  */
-function resumeTheme(
+function phraseTheme(
   liste: Indicateur[],
   territoire: Territoire,
   periodeCarte: string,
@@ -643,6 +663,7 @@ function resumeTheme(
   niveau: string,
   references: References | null,
   comparateurs: { libelle: string; territoire: Territoire }[],
+  options: { minimum?: number; sauf?: string } = {},
 ): string {
   // Un seul repère pour tout le thème, sinon on compterait des écarts pris
   // sur des références différentes : le premier comparateur disponible, ou la
@@ -662,44 +683,62 @@ function resumeTheme(
       },
     ];
   });
-  if (ecarts.length < 2) return "";
+  if (ecarts.length < (options.minimum ?? 2)) return "";
   // Les écarts pris sur des repères différents ne se comptent pas ensemble :
   // on ne garde que ceux qui partagent la référence la plus fréquente.
   const comptes = new Map<string, number>();
   for (const e of ecarts) comptes.set(e.reference, (comptes.get(e.reference) ?? 0) + 1);
   const reference = [...comptes.entries()].sort((a, b) => b[1] - a[1])[0][0];
-  const phrase = resumeEcarts(
+  return resumeEcarts(
     ecarts.filter((e) => e.reference === reference),
     reference,
+    options,
+  );
+}
+
+function resumeTheme(
+  liste: Indicateur[],
+  territoire: Territoire,
+  periodeCarte: string,
+  parHabitant: boolean,
+  niveau: string,
+  references: References | null,
+  comparateurs: { libelle: string; territoire: Territoire }[],
+): string {
+  const phrase = phraseTheme(
+    liste, territoire, periodeCarte, parHabitant, niveau, references, comparateurs,
   );
   return phrase ? `<p class="theme-groupe__resume">${echapper(phrase)}</p>` : "";
 }
 
 /**
- * La synthèse d'ouverture : ce qu'on retiendrait de ce territoire en trois
- * lignes. Elle ne dit rien qui ne soit ailleurs dans le panneau, chiffre à
- * l'appui — elle choisit, elle n'invente pas. L'ordre est celui des questions
- * que les gens posent : combien d'habitants, combien dépense la commune, avec
- * quelle dette, quels revenus, quelle délinquance.
+ * La synthèse d'ouverture : ce qu'on retiendrait de ce territoire.
+ *
+ * **Un thème, une ligne — tous les thèmes.** L'écriture précédente parcourait
+ * une liste d'indicateurs fixée à la main et n'en gardait que les quatre
+ * premiers. Comme cette liste rangeait les finances en tête, les quatre places
+ * étaient toujours prises par la population, les dépenses, la dette et le
+ * niveau de vie : la sécurité, la santé et l'éducation venaient après le
+ * couperet et **ne s'affichaient jamais**, sur aucun territoire. Ce n'était pas
+ * un arbitrage éditorial, c'était une troncature — et elle penchait toujours du
+ * même côté. Le nombre de lignes suit désormais le nombre de thèmes publiés
+ * pour ce territoire ; aucun thème ne peut plus être écarté par le rang qu'on
+ * lui a donné.
+ *
+ * Chaque ligne porte deux choses :
+ *
+ * - le **chiffre d'entrée** du thème — son indicateur phare, avec sa
+ *   comparaison ;
+ * - et, quand le thème compte plusieurs indicateurs comparables à un même
+ *   repère, **l'agrégat du thème entier** : combien d'indicateurs situent ce
+ *   territoire au-dessus, combien en dessous, lequel s'écarte le plus. C'est
+ *   indispensable là où aucun indicateur ne résume le thème à lui seul : une
+ *   commune a douze mesures de délinquance, et n'en montrer qu'une revient à
+ *   choisir pour le lecteur ce qu'il doit retenir. On n'additionne toujours pas
+ *   les indicateurs entre eux — cambriolages, violences et vols de véhicules
+ *   comptent des victimes, des personnes et des véhicules — mais les écarts,
+ *   eux, sont sans unité et s'agrègent sans mentir.
  */
-const ORDRE_SYNTHESE = [
-  // Le niveau national d'abord : ces séries n'existent qu'au niveau « pays »,
-  // elles sont donc simplement absentes — et ignorées — sur une fiche
-  // communale. C'est ce qui permet une seule liste pour les deux échelles.
-  "insee_dette_apu_part_pib",
-  "etat_solde_budgetaire",
-  "etat_depenses_nettes_bg",
-  "eurostat_chomage",
-  "insee_population_municipale",
-  "ofgl_depenses_fonctionnement",
-  "ofgl_encours_dette",
-  "insee_niveau_vie_median",
-  "insee_taux_pauvrete",
-  "ssmsi_cambriolages_taux",
-  "drees_apl_generalistes",
-  "menj_ecoles",
-];
-
 function syntheseTerritoire(
   indicateurs: Indicateur[],
   territoire: Territoire,
@@ -709,32 +748,53 @@ function syntheseTerritoire(
   references: References | null,
   niveau: string,
 ): string {
-  const faits = ORDRE_SYNTHESE.flatMap((id) => {
-    const indicateur = indicateurs.find((i) => i.id === id);
-    if (!indicateur) return [];
-    const mesure = mesurer(
-      indicateur, territoire, periode, parHabitant, niveau, references, comparateurs,
-    );
-    if (typeof mesure === "string") return [];
-    const { valeur, ratio, comparaisons } = mesure;
-    const situation = lecture(valeur, comparaisons, (v) =>
-      formater(v, indicateur.unite, ratio),
-    );
-    return [
-      {
-        id,
-        // Le millésime reste au survol, pas dans la phrase : quatre dates
-        // dans quatre lignes d'ouverture cassaient la lecture pour redire ce
-        // que le lecteur sait — c'est le dernier chiffre publié.
-        texte: `<strong>${echapper(indicateur.libelle)}</strong> <span title="Millésime ${echapper(
-          mesure.periode,
-        )}">${echapper(formater(valeur, indicateur.unite, ratio))}</span>${
-          ratio ? " par habitant" : ""
-        }. ${echapper(situation)}`.trim(),
-      },
-    ];
+  const parTheme = new Map<string, Indicateur[]>();
+  for (const indicateur of indicateurs) {
+    parTheme.set(indicateur.theme, [...(parTheme.get(indicateur.theme) ?? []), indicateur]);
+  }
+  const faits = ordonnerThemes([...parTheme.keys()]).flatMap((theme) => {
+    const liste = ordonnerTheme(theme, parTheme.get(theme) as Indicateur[]);
+    // Le premier indicateur du thème réellement mesuré ici, phares d'abord :
+    // un phare non publié pour ce territoire laisse la place au suivant plutôt
+    // que de faire disparaître le thème.
+    for (const indicateur of liste) {
+      const mesure = mesurer(
+        indicateur, territoire, periode, parHabitant, niveau, references, comparateurs,
+      );
+      if (typeof mesure === "string") continue;
+      const { valeur, ratio, comparaisons } = mesure;
+      const situation = lecture(valeur, comparaisons, (v) =>
+        formater(v, indicateur.unite, ratio),
+      );
+      // Trois indicateurs au minimum pour parler d'ensemble : à deux, le résumé
+      // ne fait que redire le chiffre d'entrée et celui d'à côté, pour une
+      // phrase entière de plus dans une ouverture qui doit tenir d'un regard.
+      // Et l'écart le plus marqué ne peut pas être celui qu'on vient de citer.
+      const ensemble = phraseTheme(
+        liste, territoire, periode, parHabitant, niveau, references, comparateurs,
+        { minimum: 3, sauf: indicateur.libelle },
+      );
+      return [
+        {
+          id: theme,
+          // Le millésime reste au survol, pas dans la phrase : quatre dates
+          // dans quatre lignes d'ouverture cassaient la lecture pour redire ce
+          // que le lecteur sait — c'est le dernier chiffre publié.
+          texte: `<strong>${echapper(indicateur.libelle)}</strong> <span title="Millésime ${echapper(
+            mesure.periode,
+          )}">${echapper(formater(valeur, indicateur.unite, ratio))}</span>${
+            ratio ? " par habitant" : ""
+          }. ${echapper(situation)}${
+            ensemble ? ` <span class="synthese__ensemble">${echapper(ensemble)}</span>` : ""
+          }`.trim(),
+        },
+      ];
+    }
+    return [];
   });
-  const lignes = synthese(faits);
+  // Le plafond suit le nombre de thèmes : c'est lui qui a fait disparaître la
+  // sécurité quand il était fixé à quatre.
+  const lignes = synthese(faits, faits.length);
   if (!lignes.length) return "";
   return `<div class="synthese">
     <p class="synthese__titre">L'essentiel</p>
