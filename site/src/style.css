@@ -2423,6 +2423,7 @@ body[data-vue="carte"] .pied {
   border-bottom: 1px solid var(--trait);
 }
 .mesure > summary {
+  position: relative; /* ancre de la bulle de définition */
   display: flex;
   align-items: baseline;
   justify-content: space-between;
@@ -2452,9 +2453,12 @@ body[data-vue="carte"] .pied {
   border-radius: 50%;
   background: none;
   color: var(--encre-douce);
-  font-family: var(--serif);
+  /* Un « i » droit, pas l'italique du serif : dans un rond de 17 px, la
+     lettre penchée sortait de son cercle et se lisait comme un accent. */
+  font-family: inherit;
   font-size: 0.68rem;
-  font-style: italic;
+  font-style: normal;
+  font-weight: 600;
   line-height: 1;
   cursor: help;
   transition: color var(--transition), border-color var(--transition);
@@ -2464,13 +2468,30 @@ body[data-vue="carte"] .pied {
   color: var(--argile);
   border-color: var(--argile);
 }
+/* La définition sort en bulle par-dessus la fiche. Dépliée dans le flux, elle
+   poussait vers le bas les vingt mesures suivantes : demander ce qu'un mot veut
+   dire déplaçait tout ce qu'on était en train de lire. */
 .mesure__definition {
-  margin: 0 0 0.15rem;
-  padding: 0.4rem 0.55rem;
-  background: var(--papier-creuse);
+  position: absolute;
+  top: calc(100% - 0.3rem);
+  left: 0;
+  right: 0;
+  z-index: 8;
+  padding: 0.5rem 0.6rem;
+  background: var(--papier);
+  border: 1px solid var(--trait-fort);
   border-radius: var(--rayon-s);
+  box-shadow: 0 6px 18px rgb(15 23 42 / 0.13);
   font-size: 0.8rem;
-  color: var(--encre-douce);
+  font-weight: 400;
+  line-height: 1.45;
+  color: var(--encre);
+  text-align: left;
+  white-space: normal;
+  cursor: auto;
+}
+.mesure__definition[hidden] {
+  display: none;
 }
 /* La valeur ne se laisse plus pousser par le rond : c'est elle qui tient la
    colonne de droite. */
@@ -2601,10 +2622,13 @@ body[data-vue="carte"] .pied {
 
 /* Les repères tracés sur la courbe : « +57 % par rapport aux communes de la
    région » ne disait pas à quoi la courbe se comparait — une ligne, si. */
+/* Gris neutre, jamais la terre cuite de l'accent : une ligne orange en travers
+   d'une courbe se lit comme un seuil d'alerte, alors qu'une médiane ne juge
+   rien — c'est la même règle que pour les couleurs de la carte. */
 .serie__repere {
-  stroke: var(--argile);
+  stroke: var(--encre-douce);
   stroke-width: 1;
-  opacity: 0.7;
+  opacity: 0.55;
   vector-effect: non-scaling-stroke;
 }
 .serie__reperes {
@@ -2620,7 +2644,7 @@ body[data-vue="carte"] .pied {
   display: inline-block;
   width: 0.8rem;
   height: 0;
-  border-top: 1px dashed var(--argile);
+  border-top: 1px dashed var(--encre-douce);
   margin-right: 0.3rem;
   vertical-align: 0.2rem;
 }
@@ -2700,11 +2724,11 @@ body[data-vue="carte"] .pied {
 /* L'agrégat du thème, sous son chiffre d'entrée : une seconde voix, plus
    basse. Au même corps que le reste, les deux phrases pesaient pareil et on ne
    voyait plus laquelle portait le chiffre. */
-.synthese__ensemble {
-  display: block;
-  margin-top: 0.15rem;
-  font-size: 0.78rem;
+/* Quand aucun repère n'est publié pour ce thème à cette maille, la ligne le
+   dit au lieu de se taire — se taire ferait croire à une absence de mesure. */
+.synthese__sansrepere {
   color: var(--encre-douce);
+  font-style: italic;
 }
 
 /* La phrase qui dit ce que le chiffre veut dire. */

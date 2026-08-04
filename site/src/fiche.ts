@@ -8,7 +8,7 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 import { reperes, type References } from "./reference.ts";
-import { lecture, memeSens, resumeEcarts, synthese } from "./synthese.ts";
+import { compteEcarts, lecture, memeSens, resumeEcarts, synthese } from "./synthese.ts";
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
@@ -342,17 +342,22 @@ function ligneIndicateur(
     <summary>
       <span class="mesure__nom">${echapper(indicateur.libelle)}</span>
       <button type="button" class="mesure__info" data-info="${indicateur.id}"
-        aria-label="Que mesure cet indicateur ?">i</button>
+        aria-expanded="false" aria-label="Que mesure cet indicateur ?">i</button>
       <span class="mesure__valeur">${formate(valeur)}</span>
+      <!-- La définition sort en bulle par-dessus la fiche, elle ne pousse
+           rien : dépliée dans le flux, elle décalait toute la liste sous elle
+           à chaque fois qu'on demandait ce qu'un mot voulait dire. -->
+      <span class="mesure__definition" role="tooltip" hidden>${echapper(
+        indicateur.definition,
+      )}</span>
     </summary>
     <div class="mesure__detail">
-      <p class="mesure__definition" hidden>${echapper(indicateur.definition)}</p>
       ${comparaisons
         .filter(Boolean)
         .map((phrase) => `<p class="mesure__phrase">${echapper(phrase)}</p>`)
         .join("")}
       ${evolutionDite ? `<p class="mesure__phrase">${evolutionDite}</p>` : ""}
-      ${rendreSerie(suivie, evenements, formate, mesure.comparaisons)}
+      ${rendreSerie(suivie, evenements, formate, mesure.comparaisons, false)}
       ${miniTableau(suivie, indicateur, ratio, ratio ? brute : undefined)}
       ${
         rang && rang.total > 1
@@ -655,7 +660,7 @@ function ordonnerTheme(theme: string, liste: Indicateur[]): Indicateur[] {
  * comparable d'un indicateur à l'autre. La phrase dit alors du thème entier ce
  * qu'aucun de ses indicateurs ne dit seul.
  */
-function phraseTheme(
+function ecartsDuTheme(
   liste: Indicateur[],
   territoire: Territoire,
   periodeCarte: string,
@@ -663,8 +668,8 @@ function phraseTheme(
   niveau: string,
   references: References | null,
   comparateurs: { libelle: string; territoire: Territoire }[],
-  options: { minimum?: number; sauf?: string } = {},
-): string {
+  minimum: number,
+): { ecarts: { libelle: string; ecart: number }[]; reference: string } | null {
   // Un seul repère pour tout le thème, sinon on compterait des écarts pris
   // sur des références différentes : le premier comparateur disponible, ou la
   // médiane à défaut. Pour un effectif, l'écart est celui de la densité —
@@ -683,17 +688,14 @@ function phraseTheme(
       },
     ];
   });
-  if (ecarts.length < (options.minimum ?? 2)) return "";
+  if (ecarts.length < minimum) return null;
   // Les écarts pris sur des repères différents ne se comptent pas ensemble :
   // on ne garde que ceux qui partagent la référence la plus fréquente.
   const comptes = new Map<string, number>();
   for (const e of ecarts) comptes.set(e.reference, (comptes.get(e.reference) ?? 0) + 1);
   const reference = [...comptes.entries()].sort((a, b) => b[1] - a[1])[0][0];
-  return resumeEcarts(
-    ecarts.filter((e) => e.reference === reference),
-    reference,
-    options,
-  );
+  const retenus = ecarts.filter((e) => e.reference === reference);
+  return retenus.length < minimum ? null : { ecarts: retenus, reference };
 }
 
 function resumeTheme(
@@ -705,9 +707,11 @@ function resumeTheme(
   references: References | null,
   comparateurs: { libelle: string; territoire: Territoire }[],
 ): string {
-  const phrase = phraseTheme(
-    liste, territoire, periodeCarte, parHabitant, niveau, references, comparateurs,
+  const groupe = ecartsDuTheme(
+    liste, territoire, periodeCarte, parHabitant, niveau, references, comparateurs, 2,
   );
+  if (!groupe) return "";
+  const phrase = resumeEcarts(groupe.ecarts, groupe.reference);
   return phrase ? `<p class="theme-groupe__resume">${echapper(phrase)}</p>` : "";
 }
 
@@ -725,20 +729,35 @@ function resumeTheme(
  * pour ce territoire ; aucun thème ne peut plus être écarté par le rang qu'on
  * lui a donné.
  *
- * Chaque ligne porte deux choses :
+ * **C'est le thème qui ouvre la ligne, pas l'indicateur.** Écrite en tête, la
+ * mesure phare tenait lieu de titre : « Cambriolages de logement 0,56 % »
+ * donnait la délinquance d'une région pour un seul de ses six phénomènes,
+ * choisi par nous. Le thème nommé d'abord, l'ambiguïté disparaît — on sait de
+ * quel domaine chaque ligne parle, et que tous y sont.
  *
- * - le **chiffre d'entrée** du thème — son indicateur phare, avec sa
- *   comparaison ;
- * - et, quand le thème compte plusieurs indicateurs comparables à un même
- *   repère, **l'agrégat du thème entier** : combien d'indicateurs situent ce
- *   territoire au-dessus, combien en dessous, lequel s'écarte le plus. C'est
- *   indispensable là où aucun indicateur ne résume le thème à lui seul : une
- *   commune a douze mesures de délinquance, et n'en montrer qu'une revient à
- *   choisir pour le lecteur ce qu'il doit retenir. On n'additionne toujours pas
- *   les indicateurs entre eux — cambriolages, violences et vols de véhicules
- *   comptent des victimes, des personnes et des véhicules — mais les écarts,
- *   eux, sont sans unité et s'agrègent sans mentir.
+ * Un thème dont un indicateur porte la question qu'on se pose vraiment — « que
+ * dépense ma commune ? », « quel niveau de vie ? » — montre ce chiffre. La
+ * sécurité n'en a pas : cambriolages, violences, vols de véhicules sont six
+ * phénomènes indépendants, et aucun ne représente les autres. Sa ligne porte
+ * donc le décompte du thème entier, en une proposition. La forme longue de ce
+ * décompte — avec l'écart le plus marqué — reste sous les onglets, à sa place :
+ * elle s'affichait ici *et* là, mot pour mot, à trois centimètres d'intervalle.
  */
+const SANS_MESURE_PHARE = new Set([
+  // Six phénomènes indépendants, aucun ne parlant pour les autres. Mettre les
+  // cambriolages en tête revient à décider que c'est cela, la sécurité.
+  "securite",
+]);
+
+/** Un libellé d'indicateur enchaîné après le nom du thème : « Finances locales
+ *  — dépenses de fonctionnement ». Les sigles gardent leur casse — « PIB par
+ *  habitant » ne devient pas « pIB par habitant ». */
+function enMinusculeInitiale(texte: string): string {
+  return /^[A-ZÀÂÉÈÊÎÔÛÇ][a-zàâéèêîïôûùç]/.test(texte)
+    ? texte[0].toLocaleLowerCase("fr") + texte.slice(1)
+    : texte;
+}
+
 function syntheseTerritoire(
   indicateurs: Indicateur[],
   territoire: Territoire,
@@ -747,6 +766,7 @@ function syntheseTerritoire(
   comparateurs: { libelle: string; territoire: Territoire }[],
   references: References | null,
   niveau: string,
+  libelleTheme?: (theme: string) => string,
 ): string {
   const parTheme = new Map<string, Indicateur[]>();
   for (const indicateur of indicateurs) {
@@ -754,6 +774,22 @@ function syntheseTerritoire(
   }
   const faits = ordonnerThemes([...parTheme.keys()]).flatMap((theme) => {
     const liste = ordonnerTheme(theme, parTheme.get(theme) as Indicateur[]);
+    const nomTheme = libelleTheme?.(theme) ?? theme;
+    if (SANS_MESURE_PHARE.has(theme)) {
+      const groupe = ecartsDuTheme(
+        liste, territoire, periode, parHabitant, niveau, references, comparateurs, 2,
+      );
+      const compte = groupe ? compteEcarts(groupe.ecarts, groupe.reference) : "";
+      // Sans repère, pas de décompte — et le thème disparaissait de l'ouverture,
+      // ce qui est exactement ce qu'on cherchait à corriger. C'est le cas de la
+      // sécurité d'une région : le SSMSI ne publie rien au niveau national et
+      // n'a aucune médiane dans le fichier de repères, si bien qu'une région
+      // n'a personne à qui se comparer. On montre alors la mesure phare, sous le
+      // nom du thème, en disant que le repère manque plutôt qu'en l'inventant.
+      if (compte) {
+        return [{ id: theme, texte: `<strong>${echapper(nomTheme)}</strong> — ${echapper(compte)}` }];
+      }
+    }
     // Le premier indicateur du thème réellement mesuré ici, phares d'abord :
     // un phare non publié pour ce territoire laisse la place au suivant plutôt
     // que de faire disparaître le thème.
@@ -766,26 +802,37 @@ function syntheseTerritoire(
       const situation = lecture(valeur, comparaisons, (v) =>
         formater(v, indicateur.unite, ratio),
       );
-      // Trois indicateurs au minimum pour parler d'ensemble : à deux, le résumé
-      // ne fait que redire le chiffre d'entrée et celui d'à côté, pour une
-      // phrase entière de plus dans une ouverture qui doit tenir d'un regard.
-      // Et l'écart le plus marqué ne peut pas être celui qu'on vient de citer.
-      const ensemble = phraseTheme(
-        liste, territoire, periode, parHabitant, niveau, references, comparateurs,
-        { minimum: 3, sauf: indicateur.libelle },
-      );
+      // « Population — population municipale » : quand le libellé de la mesure
+      // reprend déjà celui du thème, le thème ne s'écrit pas deux fois.
+      const redite = indicateur.libelle
+        .toLocaleLowerCase("fr")
+        .startsWith(nomTheme.toLocaleLowerCase("fr"));
+      const entete = redite
+        ? `<strong>${echapper(indicateur.libelle)}</strong>`
+        : `<strong>${echapper(nomTheme)}</strong> — ${echapper(
+            enMinusculeInitiale(indicateur.libelle),
+          )}`;
       return [
         {
           id: theme,
           // Le millésime reste au survol, pas dans la phrase : quatre dates
           // dans quatre lignes d'ouverture cassaient la lecture pour redire ce
           // que le lecteur sait — c'est le dernier chiffre publié.
-          texte: `<strong>${echapper(indicateur.libelle)}</strong> <span title="Millésime ${echapper(
+          texte: `${entete} <span title="Millésime ${echapper(
             mesure.periode,
           )}">${echapper(formater(valeur, indicateur.unite, ratio))}</span>${
             ratio ? " par habitant" : ""
-          }. ${echapper(situation)}${
-            ensemble ? ` <span class="synthese__ensemble">${echapper(ensemble)}</span>` : ""
+          }. ${
+            situation
+              ? echapper(situation)
+              : // Le manque ne se signale que là où une comparaison aurait un
+                // sens. Un effectif ou une population ne se compare pas d'une
+                // maille à l'autre — écrire « aucun repère » sous les 6 150 451
+                // habitants d'une région ferait passer une impossibilité de
+                // méthode pour une lacune de données.
+                comparableAuxParents(indicateur, ratio) && !POPULATIONS.has(indicateur.id)
+                ? `<span class="synthese__sansrepere">Aucun repère publié à cette maille.</span>`
+                : ""
           }`.trim(),
         },
       ];
@@ -916,7 +963,7 @@ export function afficherFiche(
     }
     ${syntheseTerritoire(
       indicateurs, territoire, periode, parHabitant,
-      options.comparateurs ?? [], references, niveau,
+      options.comparateurs ?? [], references, niveau, options.libelleTheme,
     )}
     ${
       // « Où se situe cette commune parmi ses semblables » est l'une des

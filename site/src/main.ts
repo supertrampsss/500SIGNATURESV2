@@ -814,9 +814,26 @@ async function choisirIndicateur(id: string): Promise<void> {
   etat.indicateur = id;
   construireSelecteurs();
   ecrireUrl();
+  // La fiche est réécrite entièrement par `peindre`, et le panneau se replaçait
+  // en haut par-dessus le marché — « la mesure choisie devient le héros ». On ne
+  // choisit pas une mesure pour perdre sa place : ouvrir la douzième d'un thème
+  // renvoyait à l'autre bout du panneau, la mesure ouverte hors de l'écran.
+  //
+  // Restaurer le nombre de pixels ne suffit pas : la mesure choisie s'ouvre et
+  // le contenu au-dessus d'elle change de hauteur. C'est donc la mesure
+  // elle-même qu'on épingle — on la remet à la hauteur d'écran où elle était
+  // quand on l'a touchée.
+  const volet = $("volet-territoire");
+  const avant = document
+    .querySelector<HTMLElement>(`[data-mesure="${CSS.escape(id)}"]`)
+    ?.getBoundingClientRect().top;
+  const position = volet.scrollTop;
   await peindre();
-  // Le panneau se replace en haut : la mesure choisie devient le héros.
-  $("volet-territoire").scrollTo({ top: 0, behavior: "smooth" });
+  volet.scrollTop = position;
+  const apres = document
+    .querySelector<HTMLElement>(`[data-mesure="${CSS.escape(id)}"]`)
+    ?.getBoundingClientRect().top;
+  if (avant !== undefined && apres !== undefined) volet.scrollTop += apres - avant;
 }
 
 function brancherCommandes(): void {
@@ -828,6 +845,20 @@ function brancherCommandes(): void {
     cadrer(vue);
     construireBarreCarte();
     ecrireUrl();
+  });
+
+  // Une seule bulle de définition ouverte à la fois, et rien qui traîne après
+  // un nouveau rendu de la fiche.
+  const fermerDefinitions = (): void => {
+    for (const bulle of document.querySelectorAll<HTMLElement>(".mesure__definition")) {
+      bulle.hidden = true;
+    }
+    for (const bouton of document.querySelectorAll<HTMLElement>("[data-info]")) {
+      bouton.setAttribute("aria-expanded", "false");
+    }
+  };
+  document.addEventListener("keydown", (evenement) => {
+    if (evenement.key === "Escape") fermerDefinitions();
   });
 
   // Le panneau est la seule commande : cliquer une ligne porte son indicateur
@@ -857,17 +888,20 @@ function brancherCommandes(): void {
     const info = (evenement.target as HTMLElement).closest<HTMLElement>("[data-info]");
     if (info) {
       evenement.preventDefault();
-      const pli = info.closest("details") as HTMLDetailsElement | null;
-      const definition = pli?.querySelector<HTMLElement>(".mesure__definition");
-      if (!pli || !definition) return;
-      // Demander l'explication ouvre la mesure : la définition vit dans son
-      // détail, la cacher derrière un second geste n'aurait aucun sens.
+      const definition = info.parentElement?.querySelector<HTMLElement>(".mesure__definition");
+      if (!definition) return;
+      // La bulle ne déplie rien et n'ouvre pas la mesure : demander ce qu'un
+      // mot veut dire ne devait pas déplacer les vingt lignes du dessous ni
+      // faire changer la carte.
       const montrer = definition.hidden;
+      fermerDefinitions();
       definition.hidden = !montrer;
       info.setAttribute("aria-expanded", String(montrer));
-      if (montrer) pli.open = true;
       return;
     }
+    // Un clic ailleurs referme la bulle ouverte — c'est ce qu'on attend d'un
+    // dispositif qui recouvre le texte.
+    fermerDefinitions();
     const mesure = (evenement.target as HTMLElement).closest<HTMLElement>("[data-mesure]");
     if (mesure?.dataset.mesure) {
       // Refermer une mesure ne repeint rien : on ne change la carte qu'en

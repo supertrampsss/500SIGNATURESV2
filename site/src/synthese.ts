@@ -82,21 +82,9 @@ export type Ecart = { libelle: string; ecart: number };
  * combien en dessous, et lequel s'écarte le plus. C'est une synthèse du thème
  * entier, pas un extrait de l'un de ses indicateurs.
  */
-export function resumeEcarts(
-  ecarts: Ecart[],
-  repere: string,
-  options: {
-    /** Nombre d'indicateurs en deçà duquel le thème ne se résume pas. */
-    minimum?: number;
-    /** Indicateur déjà nommé juste avant : le désigner de nouveau comme
-     *  « écart le plus marqué » ne ferait que répéter le chiffre qu'on vient de
-     *  lire. On prend alors le suivant. */
-    sauf?: string;
-  } = {},
-): string {
-  const { minimum = 2, sauf } = options;
+export function resumeEcarts(ecarts: Ecart[], repere: string): string {
   const finis = ecarts.filter((e) => Number.isFinite(e.ecart));
-  if (finis.length < minimum) return "";
+  if (finis.length < 2) return "";
   const hauts = finis.filter((e) => e.ecart >= SEUIL_PROCHE).length;
   const bas = finis.filter((e) => e.ecart <= -SEUIL_PROCHE).length;
   const proches = finis.length - hauts - bas;
@@ -105,12 +93,9 @@ export function resumeEcarts(
     bas ? `${bas} en dessous` : "",
     proches ? `${proches} au niveau` : "",
   ].filter(Boolean);
-  const candidats = finis.filter((e) => e.libelle !== sauf);
-  const fort = candidats.length
-    ? candidats.reduce((a, b) => (Math.abs(b.ecart) > Math.abs(a.ecart) ? b : a))
-    : null;
+  const fort = finis.reduce((a, b) => (Math.abs(b.ecart) > Math.abs(a.ecart) ? b : a));
   const marque =
-    fort && Math.abs(fort.ecart) >= SEUIL_PROCHE
+    Math.abs(fort.ecart) >= SEUIL_PROCHE
       ? ` Écart le plus marqué : ${fort.libelle}, ${fort.ecart > 0 ? "+" : "−"}${arrondiEcart(
           fort.ecart,
         )} %.`
@@ -118,6 +103,32 @@ export function resumeEcarts(
   return `Sur ${finis.length} indicateurs comparés à ${repere} : ${morceaux.join(
     ", ",
   )}.${marque}`;
+}
+
+/**
+ * Le même agrégat, en une proposition — pour l'ouverture de la fiche.
+ *
+ * `resumeEcarts` écrit la version complète, avec le décompte des trois
+ * positions et l'écart le plus marqué. Affichée à la fois dans « L'essentiel »
+ * et sous les onglets, elle apparaissait deux fois mot pour mot à trois
+ * centimètres d'intervalle. La forme longue reste là où l'on regarde le thème ;
+ * l'ouverture n'en garde que le côté dominant, en une ligne.
+ */
+export function compteEcarts(ecarts: Ecart[], repere: string): string {
+  const finis = ecarts.filter((e) => Number.isFinite(e.ecart));
+  if (finis.length < 2) return "";
+  const hauts = finis.filter((e) => e.ecart >= SEUIL_PROCHE).length;
+  const bas = finis.filter((e) => e.ecart <= -SEUIL_PROCHE).length;
+  if (hauts === 0 && bas === 0) {
+    return `${finis.length} indicateurs, tous au niveau de ${repere}.`;
+  }
+  // À égalité, on ne désigne pas de côté : le thème ne penche pas, et prétendre
+  // le contraire sur un départage arbitraire serait le seul vrai biais ici.
+  if (hauts === bas) {
+    return `${finis.length} indicateurs, autant au-dessus qu'en dessous de ${repere}.`;
+  }
+  const [combien, sens] = hauts > bas ? [hauts, "au-dessus"] : [bas, "en dessous"];
+  return `${combien} des ${finis.length} indicateurs ${sens} de ${repere}.`;
 }
 
 /** Sens d'une série : « en hausse depuis 2022 », « stable ». */

@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { lecture, resumeEcarts, synthese, tendance } from "./synthese.ts";
+import { compteEcarts, lecture, resumeEcarts, synthese, tendance } from "./synthese.ts";
 
 const euros = (v: number) => `${Math.round(v)} €`;
 
@@ -128,37 +128,38 @@ test("de part et d'autre de zéro, on pose les deux chiffres au lieu d'un faux �
   assert.match(lecture(-2, [{ libelle: "la France", valeur: -1 }], pourcent), /100 % .*dessous/);
 });
 
-test("l'écart le plus marqué n'est pas celui qu'on vient de citer", () => {
-  const phrase = resumeEcarts(
-    [
-      { libelle: "cambriolages", ecart: 80 },
-      { libelle: "vols de véhicules", ecart: 30 },
-      { libelle: "violences", ecart: -12 },
-    ],
-    "son département",
-    { sauf: "cambriolages" },
-  );
-  assert.match(phrase, /^Sur 3 indicateurs comparés à son département/);
-  assert.match(phrase, /Écart le plus marqué : vols de véhicules, \+30 %\./);
-});
-
-test("écarté de tous les candidats, le champion disparaît plutôt que de se répéter", () => {
-  const phrase = resumeEcarts(
-    [
-      { libelle: "a", ecart: 80 },
-      { libelle: "a", ecart: 30 },
-    ],
-    "la France",
-    { sauf: "a" },
-  );
-  assert.equal(phrase, "Sur 2 indicateurs comparés à la France : 2 au-dessus.");
-});
-
-test("le seuil de résumé est réglable : à deux indicateurs, un ensemble n'en est pas un", () => {
-  const deux = [
-    { libelle: "a", ecart: 40 },
-    { libelle: "b", ecart: -30 },
+test("l'ouverture ne redit pas le résumé long : elle n'en garde que le côté dominant", () => {
+  const ecarts = [
+    { libelle: "cambriolages", ecart: 38 },
+    { libelle: "vols de véhicules", ecart: 12 },
+    { libelle: "coups et blessures", ecart: -60 },
+    { libelle: "vols sans violence", ecart: 2 },
   ];
-  assert.equal(resumeEcarts(deux, "la France", { minimum: 3 }), "");
-  assert.match(resumeEcarts(deux, "la France"), /^Sur 2 indicateurs/);
+  assert.equal(
+    compteEcarts(ecarts, "son département"),
+    "2 des 4 indicateurs au-dessus de son département.",
+  );
+});
+
+test("un thème qui ne penche d'aucun côté ne se voit pas attribuer de camp", () => {
+  assert.equal(
+    compteEcarts(
+      [
+        { libelle: "a", ecart: 40 },
+        { libelle: "b", ecart: -40 },
+      ],
+      "sa région",
+    ),
+    "2 indicateurs, autant au-dessus qu'en dessous de sa région.",
+  );
+  assert.equal(
+    compteEcarts(
+      [
+        { libelle: "a", ecart: 2 },
+        { libelle: "b", ecart: -1 },
+      ],
+      "la France",
+    ),
+    "2 indicateurs, tous au niveau de la France.",
+  );
 });

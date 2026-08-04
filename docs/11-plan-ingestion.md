@@ -70,6 +70,17 @@ leur **part dans leur propre total** — vérifiée contre les chiffres publiés
 les quatre composantes de la dette somment au total à 0,003 % près, recettes
 fiscales plus non fiscales font exactement les recettes nettes.
 
+**La sécurité n'a aucun repère dans `references.json`.** Vérifié le 4 août :
+sur les 32 indicateurs SSMSI, zéro médiane publiée, à aucune maille — comme
+pour `education` (0 sur 2), `entreprises` (0 sur 1), `population` (0 sur 2) et
+`revenus` (0 sur 2). La sécurité s'en sortait jusqu'ici par les *comparateurs*
+— la valeur publiée du département et de la région — mais ce détour s'arrête à
+la région, dont le seul parent est la France, où le SSMSI ne publie rien. Une
+fiche régionale ne peut donc comparer sa délinquance à rien, et l'ouverture y
+écrit « Aucun repère publié à cette maille » faute de mieux. Ce qu'il faut :
+calculer les médianes SSMSI par maille comme pour l'OFGL, au moins commune /
+département / région, et les ajouter à l'export des repères.
+
 **Les intercommunalités n'ont pas de maille de rattachement publiée.** Leur
 enregistrement sort avec `parent: null` et `region: null` — vérifié le 4 août
 sur Bordeaux Métropole. Conséquences visibles : la fiche d'un EPCI ne se situe

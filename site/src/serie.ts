@@ -130,6 +130,13 @@ export function rendu(
    *  par rapport aux communes de la région » écrit en toutes lettres ne disait
    *  pas à quoi la courbe se comparait. Une ligne, si. */
   reperes: Repere[] = [],
+  /** Faux quand la valeur de chaque repère est déjà écrite en toutes lettres
+   *  au-dessus du dessin. Sur la fiche, « La moitié des régions de France sont
+   *  en dessous de 92 € » précédait de trois centimètres une légende « ---- la
+   *  médiane des régions de France : 92 € » : le même nombre deux fois, dont
+   *  une en langage de graphique. La ligne, elle, reste — c'est elle qui situe
+   *  la courbe d'un coup d'œil. */
+  legende = true,
 ): string {
   const periodes = Object.keys(serie).sort();
   if (periodes.length < 3) return ""; // deux points ne font pas une évolution
@@ -200,7 +207,7 @@ export function rendu(
       ${marque}${lignes}
       <polyline points="${points(valeurs, bornes)}" />
     </svg>
-    ${etiquettes ? `<p class="serie__reperes">${etiquettes}</p>` : ""}
+    ${legende && etiquettes ? `<p class="serie__reperes">${etiquettes}</p>` : ""}
     <p class="serie__bornes"><span>${echapper(periodes[0])}</span><span>${echapper(
       periodes[periodes.length - 1],
     )}</span></p>
