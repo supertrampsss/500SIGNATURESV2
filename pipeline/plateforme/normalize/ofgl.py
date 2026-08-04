@@ -410,8 +410,14 @@ def enregistrer_criteres(conn, lignes: list[dict]) -> int:
             ),
         )
         curseur.execute(
+            # `||` fusionne deux objets JSON sous PostgreSQL ; sous DuckDB il
+            # concatène deux chaînes, et « {} » suivi de « {"rural":…} » ne se
+            # relit pas. `json_merge_patch` fait la fusion, et garde ce que les
+            # drapeaux portaient déjà — le rattachement d'une intercommunalité,
+            # par exemple, ne doit pas disparaître sous les critères de l'OFGL.
             """
-            update geo.geography_reference g set flags = g.flags || c.flags
+            update geo.geography_reference g
+               set flags = json_merge_patch(g.flags, c.flags)
             from _criteres c
             where g.geo_level = 'commune' and g.geo_code = c.code and g.vintage = ?
             """,

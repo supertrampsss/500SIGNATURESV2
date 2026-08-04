@@ -90,6 +90,45 @@ jobs:
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             exit $?
           fi
+          # Le rechargement complet, en trois étapes reprenables. L'entrepôt est
+          # un fichier renvoyé au bucket **même quand le run échoue** : refaire
+          # une demi-heure d'OFGL parce que l'étape suivante a buté serait du
+          # gaspillage pur. Chaque étape reprend là où la précédente s'est
+          # arrêtée ; « rechargement » les enchaîne pour une reconstruction
+          # depuis zéro.
+          if [ "$JOB" = "rechargement-socle" ]; then
+            set -e
+            python -m plateforme.normalize.geo --store r2:plateforme-raw
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux epci,departement,region --depuis 2018
+            exit $?
+          fi
+          if [ "$JOB" = "rechargement-communes" ]; then
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux commune --depuis 2018
+            exit $?
+          fi
+          if [ "$JOB" = "rechargement-reste" ]; then
+            set -e
+            python -m plateforme.normalize.dotations --store r2:plateforme-raw
+            python -m plateforme.normalize.revenus --store r2:plateforme-raw
+            python -m plateforme.normalize.population --store r2:plateforme-raw
+            python -m plateforme.normalize.entreprises --store r2:plateforme-raw
+            python -m plateforme.normalize.maires --store r2:plateforme-raw
+            python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
+            python -m plateforme.normalize.securite --store r2:plateforme-raw
+            python -m plateforme.normalize.sante --store r2:plateforme-raw
+            python -m plateforme.normalize.education --store r2:plateforme-raw
+            python -m plateforme.normalize.etat --store r2:plateforme-raw
+            python -m plateforme.normalize.macro --store r2:plateforme-raw
+            python -m plateforme.normalize.europe --store r2:plateforme-raw
+            python -m plateforme.normalize.chomage --store r2:plateforme-raw
+            python -m plateforme.normalize.cofog --store r2:plateforme-raw
+            python -m plateforme.normalize.secu --store r2:plateforme-raw
+            python -m plateforme.normalize.conjoncture --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "rechargement" ]; then
             # Reconstruction complète de l'entrepôt depuis les sources. Sert une
             # fois : au premier remplissage de l'entrepôt DuckDB, qui naît vide.

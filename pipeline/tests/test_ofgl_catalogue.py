@@ -8,6 +8,7 @@ et qu'un agrégat sans définition arrête le chargement au lieu d'être publié
 """
 
 import csv
+import json
 
 import pytest
 
@@ -220,5 +221,59 @@ def test_declarer_les_73_fiches_contre_un_vrai_entrepot(tmp_path):
             "select count(*) from core.indicator_definitions"
         ).fetchone()
         assert definitions == len(attendus)
+    finally:
+        conn.close()
+
+
+def test_les_criteres_de_comparaison_s_ajoutent_aux_drapeaux(tmp_path):
+    """Le pas où le rechargement du 4 août est mort, après 642 212 observations.
+
+    `flags = flags || criteres` fusionne deux objets JSON sous PostgreSQL ; sous
+    DuckDB, `||` concatène deux chaînes, et « {} » suivi de « {"rural":…} » ne
+    se relit pas. Le test de binding ne pouvait pas l'attraper : il saute les
+    requêtes qui portent sur une table temporaire, et l'expression est
+    parfaitement typée — c'est son *sens* qui change de moteur à moteur.
+
+    Il vérifie aussi que la fusion garde ce qui était là : le rattachement d'un
+    territoire ne doit pas disparaître sous les critères de l'OFGL.
+    """
+    from plateforme import entrepot, registry
+    from plateforme.normalize import ofgl as normalisation
+    from plateforme.normalize.geo import MILLESIME
+
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        registry.sync(conn)
+        conn.execute(
+            "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+            " parent_level, parent_code, flags) values ('commune', '33063', ?, 'Bordeaux',"
+            " 'departement', '33', '{\"statut_particulier\": true}')",
+            (MILLESIME,),
+        )
+        conn.commit()
+        ecrits = normalisation.enregistrer_criteres(
+            conn,
+            [
+                {
+                    "geo_code": "33063", "period": "2024",
+                    "criteres": {"tranche_population": "4", "rural": "Non"},
+                },
+                {
+                    "geo_code": "33063", "period": "2025",
+                    "criteres": {"tranche_population": "5", "rural": "Non"},
+                },
+            ],
+        )
+        assert ecrits == 1
+        (drapeaux,) = conn.execute(
+            "select flags from geo.geography_reference where geo_code = '33063'"
+        ).fetchone()
+        drapeaux = json.loads(drapeaux)
+        # L'exercice le plus récent l'emporte.
+        assert drapeaux["tranche_population"] == "5"
+        assert drapeaux["rural"] == "Non"
+        assert drapeaux["criteres_source"] == "OFGL"
+        # Et ce qui était déjà là est toujours là.
+        assert drapeaux["statut_particulier"] is True
     finally:
         conn.close()
