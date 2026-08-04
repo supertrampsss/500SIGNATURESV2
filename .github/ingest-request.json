@@ -1,4 +1,4 @@
 {
-  "job": "rechargement",
-  "request": "2026-08-04-0940-rechargement-complet-entrepot-duckdb-5"
+  "job": "rechargement-communes",
+  "request": "2026-08-04-1150-ofgl-communes-72-agregats-depuis-2018"
 }
