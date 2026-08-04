@@ -593,6 +593,9 @@ const PHARES: Record<string, string[]> = {
   sante: ["drees_apl_generalistes"],
   emploi: ["insee_taux_chomage_localise"],
   entreprises: ["insee_etablissements_actifs"],
+  // Le total plutôt qu'un domaine : « combien d'équipements chez moi »
+  // avant « combien de terrains de sport ».
+  equipements: ["insee_equipements_total"],
   // Le taux global, celui qui figure sur l'avis d'imposition : la part
   // communale seule ne dit pas ce que paie le propriétaire. L'identifiant écrit
   // ici ne correspondait à aucun indicateur publié — le thème s'ouvrait donc
@@ -630,6 +633,7 @@ const ORDRE_THEMES = [
   "education",
   "emploi",
   "entreprises",
+  "equipements",
   // Fiche nationale.
   "budget_etat",
   "dette",

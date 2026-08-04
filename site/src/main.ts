@@ -759,6 +759,7 @@ const THEMES: Record<string, string> = {
   population: "Population",
   emploi: "Emploi et chômage",
   entreprises: "Entreprises",
+  equipements: "Équipements et services",
   fonctions: "Dépenses par fonction",
   securite_sociale: "Sécurité sociale",
   securite: "Sécurité",

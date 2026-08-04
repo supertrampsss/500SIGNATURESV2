@@ -51,7 +51,7 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 | 2 | `DS_RP_POPULATION_COMP` | évolution et structure de la population (indicateurs principaux) | commune | ~12 Mo |
 | 3 | `DS_RP_LOGEMENT_PRINC` | logements, résidences principales, vacance | commune | ~12 Mo |
 | 4 | `DS_RP_FAMILLE_COMP` | composition des familles | commune | ~8 Mo |
-| 5 | `DS_BPE` | équipements : commerces, sport, santé, services | commune | ~12 Mo |
+| ~~5~~ | ~~`DS_BPE`~~ | **chargé le 4 août** — 191 209 observations, sept domaines et leur total | commune | 14 Mo |
 | 6 | `DS_SIDE_CREA_ENT_COM` | créations d'entreprises | commune | ~4 Mo |
 | 7 | `DS_MAR_PACS_DIV_SERIES` | mariages, PACS, divorces | national/région | < 1 Mo |
 
@@ -71,6 +71,27 @@ qu'elle.
 Le contrôle bloquant du connecteur est cette identité : somme des communes égale
 total France, exercice par exercice. Vérifiée au chargement réel sur les douze
 exercices que la source totalise, à l'unité près.
+
+**Équipements et services — chargé le 4 août.** La base descend à deux cent
+trente-six types, de l'orthophoniste au terrain de pétanque : 1,3 million de
+lignes communales. Seuls les **sept domaines et leur total** sont chargés, soit
+191 209 observations — la règle du plan appliquée à la lettre, le détail restant
+chez le producteur.
+
+Le contrôle bloquant est l'identité de la nomenclature : la somme des sept
+domaines égale le total publié, territoire par territoire. Vérifiée sur Bordeaux
+au chargement — 6 460 + 2 356 + 452 + 4 740 + 316 + 248 + 285 = 14 857. C'est ce
+contrôle qui attraperait le piège d'une hiérarchie servie à plat : lire le détail
+*et* le total compte chaque équipement deux fois.
+
+Trois réserves sont écrites dans les fiches, parce qu'elles changent la lecture.
+Un équipement compte pour un, quelle que soit sa taille : un hypermarché vaut une
+supérette, un cabinet de groupe vaut un praticien seul — c'est un dénombrement,
+pas une capacité. Le domaine « Services pour les particuliers » mêle la poste et
+le coiffeur : son libellé est celui du producteur, le renommer « services
+publics » ferait dire à la donnée autre chose. Et son domaine « Enseignement »
+n'est pas l'annuaire du ministère, déjà chargé : deux périmètres différents, deux
+indicateurs publiés, aucun agrégé à l'autre.
 
 ### P0 bis — combler les indicateurs sans comparaison
 
