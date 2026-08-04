@@ -79,11 +79,32 @@ d'extraction. Le connecteur les filtrait simplement hors de sa requête. C'est c
 qui rendait impossible la question la plus posée sur les finances locales — la
 part des salaires dans le budget de fonctionnement.
 
-Trois sont désormais dans `connectors/ofgl.py` : frais de personnel, charges
-financières, épargne nette. Chacun coûte environ 280 000 lignes par exercice pour
-les seules communes ; le garde-fou de volume (`plateforme.limites`) refusera le
-chargement avant écriture si la marge Supabase n'y suffit pas. Les autres restent
-disponibles si l'arbitrage de volume le permet.
+Le choix des agrégats n'est plus un filtre dans le code. Les **72** sont listés
+dans `infra/supabase/seed/ofgl_agregats.csv`, chacun avec sa définition et sa
+formule comptable publiées par l'OFGL (jeux `methodologie-ofgl-definitions-…` et
+`methodologie-ofgl-formules-…`), le nombre de lignes qu'il coûte, et une colonne
+`charge` à oui/non. Ajouter un agrégat, c'est changer un mot dans ce fichier ; ce
+qui est écarté reste visible à côté de ce qui ne l'est pas.
+
+Mesuré le 4 août : **un agrégat = 279 865 lignes communales, 21 Mo de CSV** sur
+2018-2025.
+
+| | agrégats | lignes |
+|---|---:|---:|
+| Chargés | 8 | 2 333 344 |
+| Non chargés | 64 | 11 883 168 |
+| **Total publié par l'OFGL** | **72** | **14 216 512** |
+
+Tout charger multiplierait par six l'empreinte OFGL, sur une base qui occupe déjà
+390 des 500 Mo du plan gratuit. Ce n'est pas un arbitrage technique : c'est un
+arbitrage de plan, qui appartient au propriétaire du projet. Le garde-fou de
+volume (`plateforme.limites`) refuse de toute façon avant écriture.
+
+Trois agrégats — crédits de trésorerie, fonds de roulement, produit des cessions
+d'immobilisations — sont publiés par l'OFGL **sans commentaire**. Les charger
+afficherait un montant que personne, nous compris, ne saurait expliquer : le
+chargement s'arrête net (`DefinitionManquante`) tant que leur fiche n'est pas
+rédigée.
 
 **Les classes SSMSI n'ont pas toutes la même unité de compte.** Nos définitions
 publiées le disent en toutes lettres pour certaines — « en victimes enregistrées »

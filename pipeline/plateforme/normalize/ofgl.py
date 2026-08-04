@@ -25,7 +25,12 @@ POPULATION = "ofgl_population_reference"
 
 # Fiche de chaque indicateur (docs/06 : définition grand public ≤ 50 mots,
 # définition technique, formule, unité, niveau de confiance).
-FICHES = {
+# Fiches rédigées à la main : celles des agrégats qui ouvrent la fiche
+# territoire et qu'on veut lisibles par quelqu'un qui n'a jamais vu un budget
+# communal. Les autres agrégats chargés reprennent la documentation de l'OFGL
+# — définition et formule comptable publiées par le producteur — plutôt qu'une
+# reformulation de notre cru : voir `fiches()` plus bas.
+FICHES_REDIGEES = {
     "ofgl_depenses_fonctionnement": (
         "Ce que la collectivité dépense chaque année pour faire tourner ses services :"
         " personnel, achats, subventions versées, intérêts de sa dette."
@@ -104,7 +109,7 @@ FICHES = {
     ),
 }
 
-LIBELLES = {
+LIBELLES_REDIGES = {
     "ofgl_depenses_fonctionnement": "Dépenses de fonctionnement",
     "ofgl_recettes_fonctionnement": "Recettes de fonctionnement",
     "ofgl_depenses_investissement": "Dépenses d'investissement",
@@ -117,11 +122,61 @@ LIBELLES = {
 }
 
 
+class DefinitionManquante(RuntimeError):
+    """Un agrégat retenu dont ni nous ni l'OFGL n'avons écrit la définition.
+
+    Trois agrégats sur les 72 sont dans ce cas — crédits de trésorerie, fonds de
+    roulement, produit des cessions d'immobilisations : l'OFGL les publie sans
+    les commenter. Les charger sans définition reviendrait à afficher un montant
+    que personne, nous compris, ne saurait expliquer. Le chargement s'arrête donc
+    net, et la définition se rédige avant.
+    """
+
+
+def fiches() -> dict[str, tuple[str, str, str]]:
+    """Fiche de chaque agrégat retenu : grand public, technique, formule."""
+    return fiches_depuis(ofgl.catalogue())
+
+
+def fiches_depuis(catalogue: list[dict]) -> dict[str, tuple[str, str, str]]:
+    sortie = dict(FICHES_REDIGEES)
+    for ligne in catalogue:
+        if ligne["charge"] != "oui" or ligne["indicateur"] in sortie:
+            continue
+        definition = ligne["definition_ofgl"].strip()
+        if not definition:
+            raise DefinitionManquante(
+                f"{ligne['agregat']} : aucune définition, ni chez nous ni à l'OFGL."
+                " Rédiger la fiche avant de le charger (docs/06)."
+            )
+        # Le chemin OFGL situe l'agrégat dans la hiérarchie des comptes :
+        # « Dépenses totales > Dépenses de fonctionnement > » dit qu'il en est
+        # un sous-poste, donc qu'il ne s'ajoute pas à son propre total.
+        chemin = ligne["chemin"].strip().rstrip(">").strip()
+        technique = definition + (
+            f" Sous-poste de : {chemin}." if chemin else ""
+        ) + " Définition publiée par l'Observatoire des finances et de la gestion"
+        technique += " publique locales ; agrégat calculé par lui à partir des balances"
+        technique += " comptables de la DGFiP."
+        sortie[ligne["indicateur"]] = (definition, technique, ligne["formule_ofgl"] or chemin)
+    return sortie
+
+
+def libelles() -> dict[str, str]:
+    """Libellé d'affichage : le nôtre quand il est rédigé, celui de l'OFGL sinon."""
+    sortie = dict(LIBELLES_REDIGES)
+    for ligne in ofgl.catalogue():
+        if ligne["charge"] == "oui":
+            sortie.setdefault(ligne["indicateur"], ligne["agregat"])
+    return sortie
+
+
 def declarer_indicateurs(conn, niveaux: list[str]) -> None:
     """Crée ou met à jour les fiches. Sans fiche complète, le schéma refuse la
     publication (docs/02 §C) — la définition précède donc toujours la donnée."""
     with conn.cursor() as cur:
-        for indicateur, (grand_public, technique, formule) in FICHES.items():
+        toutes, noms = fiches(), libelles()
+        for indicateur, (grand_public, technique, formule) in toutes.items():
             population = indicateur == POPULATION
             definition = cur.execute(
                 """
@@ -155,7 +210,7 @@ def declarer_indicateurs(conn, niveaux: list[str]) -> None:
                     indicateur,
                     definition,
                     "population" if population else "finances_locales",
-                    LIBELLES[indicateur],
+                    noms[indicateur],
                     "count" if population else "EUR",
                     None if population else "current",
                     None if population else "budgetaire",
@@ -326,7 +381,9 @@ def run(niveaux: list[str], depuis: int, store_spec: str) -> int:
         dataset_id = JEUX[niveau]
         run_id = db.start_run(conn, dataset_id, "manual")
         try:
-            url = ofgl.url_export(niveau, list(ofgl.AGREGATS))
+            # Chaque maille ne connaît pas les mêmes agrégats : les allocations
+            # RSA, APA et les DMTO n'existent qu'au département et à la région.
+            url = ofgl.url_export(niveau, list(ofgl.agregats_du_niveau(niveau)))
             contenu = fetch(url, timeout=600).content
             db.record_asset(
                 conn, store, run_id, dataset_id, "ofgl", f"{niveau}.csv", contenu, url, "text/csv"

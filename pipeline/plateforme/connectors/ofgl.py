@@ -20,6 +20,7 @@ extractions passent par l'export filtré, jamais par la pagination de /records �
 
 import csv
 import io
+from pathlib import Path
 from urllib.parse import quote
 
 BASE = "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets"
@@ -47,26 +48,64 @@ CRITERES = [
     "tranche_revenu_imposable_par_habitant",
 ]
 
-# L'OFGL publie 56 agrégats par territoire et exercice. Les cinq premiers
-# ci-dessous ont longtemps été les seuls chargés : la fiche ne pouvait donc pas
-# répondre à « quelle part du budget part en salaires ? » ni à « combien coûtent
-# les intérêts de la dette locale ? », faute d'une donnée pourtant publiée au
-# même endroit, dans le même fichier, sans surcoût d'extraction.
+# Le catalogue complet des agrégats OFGL, et ceux qu'on charge.
 #
-# Les trois suivants ouvrent ces questions. Chacun coûte environ 280 000 lignes
-# par exercice pour les seules communes : c'est le garde-fou de volume
-# (plateforme.limites) qui refusera le chargement si la marge Supabase n'y
-# suffit pas, avant toute écriture — pas une estimation faite ici.
-AGREGATS = {
-    "Dépenses de fonctionnement": "ofgl_depenses_fonctionnement",
-    "Recettes de fonctionnement": "ofgl_recettes_fonctionnement",
-    "Dépenses d'investissement": "ofgl_depenses_investissement",
-    "Epargne brute": "ofgl_epargne_brute",
-    "Encours de dette": "ofgl_encours_dette",
-    "Frais de personnel": "ofgl_frais_personnel",
-    "Charges financières": "ofgl_charges_financieres",
-    "Epargne nette": "ofgl_epargne_nette",
-}
+# L'OFGL publie 72 agrégats selon la maille — 56 pour les communes, 68 pour les
+# départements et les régions. Cinq étaient chargés, et ce choix n'était écrit
+# nulle part : il vivait dans un dictionnaire de ce fichier, sans la liste de ce
+# qu'il écartait ni le motif. On ne pouvait donc pas savoir, en lisant le code,
+# que « Frais de personnel » existait et n'était pas pris.
+#
+# La sélection est désormais une donnée, pas un filtre caché :
+# `infra/supabase/seed/ofgl_agregats.csv` liste **les 72**, avec pour chacun sa
+# définition et sa formule comptable publiées par l'OFGL lui-même, le nombre de
+# lignes qu'il coûte, et une colonne `charge` à oui/non. Ajouter un agrégat, c'est
+# changer un mot dans ce fichier ; ce qui est écarté reste visible à côté de ce
+# qui ne l'est pas.
+#
+# Mesuré le 4 août : un agrégat = 279 865 lignes communales (21 Mo de CSV) sur
+# 2018-2025. Les 72 représentent 14,2 millions de lignes contre 2,3 millions
+# aujourd'hui. Le plan Supabase gratuit plafonne à 500 Mo, la base en occupe 390 :
+# tout charger n'y tient pas, et le garde-fou de volume refusera avant écriture.
+# Le choix des agrégats est un arbitrage de plan, pas une préférence technique.
+CATALOGUE = Path(__file__).resolve().parents[3] / "infra/supabase/seed/ofgl_agregats.csv"
+
+
+def catalogue(chemin: Path | None = None) -> list[dict]:
+    """Les 72 agrégats publiés par l'OFGL, chargés ou non."""
+    with open(chemin or CATALOGUE, encoding="utf-8", newline="") as fichier:
+        return list(csv.DictReader(fichier))
+
+
+def agregats(chemin: Path | None = None) -> dict[str, str]:
+    """Libellé OFGL -> identifiant, pour les seuls agrégats retenus.
+
+    Le libellé OFGL est la clé de jointure du CSV d'export : il fait partie du
+    contrat de source, on ne le normalise pas.
+    """
+    return {
+        ligne["agregat"]: ligne["indicateur"]
+        for ligne in catalogue(chemin)
+        if ligne["charge"] == "oui"
+    }
+
+
+def agregats_du_niveau(niveau: str, chemin: Path | None = None) -> dict[str, str]:
+    """Ceux d'entre eux que l'OFGL publie à cette maille.
+
+    Les départements et les régions ont des agrégats que les communes n'ont pas
+    — allocations RSA, APA, DMTO. Demander à l'export d'une maille un agrégat
+    qu'elle ne connaît pas ne renvoie rien, mais fait porter à la requête un
+    filtre faux ; on n'y met que ce qui existe.
+    """
+    return {
+        ligne["agregat"]: ligne["indicateur"]
+        for ligne in catalogue(chemin)
+        if ligne["charge"] == "oui" and niveau in ligne["niveaux"].split(",")
+    }
+
+
+AGREGATS = agregats()
 
 
 def url_export(niveau: str, agregats: list[str]) -> str:
