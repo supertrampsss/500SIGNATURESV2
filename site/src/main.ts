@@ -174,7 +174,9 @@ function ecrireUrl(): void {
 function enrichir(paquet: Record<string, Territoire>, niveau: string): Record<string, Territoire> {
   const sortie: Record<string, Territoire> = {};
   for (const [code, territoire] of Object.entries(paquet)) {
-    const calculees = seriesDerivees(territoire.series, niveau);
+    // Le catalogue porte l'unité de compte de chaque série : c'est lui qui dit
+    // si les composantes d'un agrégat comptent bien la même chose.
+    const calculees = seriesDerivees(territoire.series, niveau, catalogue);
     sortie[code] = Object.keys(calculees).length
       ? { ...territoire, series: { ...territoire.series, ...calculees } }
       : territoire;

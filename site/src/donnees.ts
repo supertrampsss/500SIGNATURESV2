@@ -22,6 +22,13 @@ export type Indicateur = {
   periodes: string[];
   /** Périodes réellement disponibles à chaque niveau (docs/10). */
   periodes_par_niveau?: Record<string, string[]>;
+  /**
+   * Ce que le producteur compte, quand il le nomme : « infractions »,
+   * « victimes », « personnes mises en cause », « véhicules ». Deux séries qui
+   * ne comptent pas la même chose ne s'additionnent pas — c'est ce champ qui
+   * permet au site de le vérifier plutôt que de l'affirmer.
+   */
+  unite_de_compte?: string | null;
   /** Le producteur recalcule l'historique dans la géographie d'aujourd'hui : une
    *  fusion de communes ne coupe pas cette série. Absent = non recalculé. */
   geographie_courante?: boolean;

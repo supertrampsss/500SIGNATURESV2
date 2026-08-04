@@ -44,14 +44,14 @@ test("un exercice où une entrée manque ne produit rien : pas de trou comblé",
   assert.deepEqual(Object.keys(derivees.derive_desendettement), ["2024"]);
 });
 
-test("les agrégats de délinquance somment des faits et divisent par une seule population", () => {
+test("les agrégats de délinquance somment des infractions et divisent par une seule population", () => {
   const series = {
     ssmsi_cambriolages_nombre: { "2024": 350 },
-    ssmsi_vols_vehicules_nombre: { "2024": 150 },
+    ssmsi_degradations_nombre: { "2024": 150 },
     ofgl_population_reference: { "2024": 100_000 },
   };
-  // 500 faits pour 100 000 habitants = 5 pour mille.
-  assert.equal(seriesDerivees(series, "commune").derive_atteintes_biens["2024"], 5);
+  // 500 infractions pour 100 000 habitants = 5 pour mille.
+  assert.equal(seriesDerivees(series, "departement").derive_atteintes_biens["2024"], 5);
 });
 
 test("il manque un phénomène : l'agrégat de délinquance ne sort pas plutôt que de sous-compter", () => {
@@ -59,17 +59,20 @@ test("il manque un phénomène : l'agrégat de délinquance ne sort pas plutôt 
     ssmsi_cambriolages_nombre: { "2024": 100 },
     ofgl_population_reference: { "2024": 100_000 },
   };
-  assert.equal(seriesDerivees(series, "commune").derive_atteintes_biens, undefined);
+  assert.equal(seriesDerivees(series, "departement").derive_atteintes_biens, undefined);
 });
 
 test("un agrégat ne réunit que des classes comptées de la même façon", () => {
-  // Le SSMSI ne dénombre pas ses classes pareil : un cambriolage est un fait,
-  // une violence est une victime, un stupéfiant est une personne mise en cause.
-  // Les vols sans violence sont publiés à toutes les mailles et pourraient
-  // grossir l'agrégat des biens — mais la source les compte en victimes.
+  // Le SSMSI ne dénombre pas ses classes pareil, et il le publie lui-même : un
+  // cambriolage est une infraction, une violence une victime, un vol de voiture
+  // un véhicule, un fait de stupéfiants une personne mise en cause. Les vols
+  // sans violence et les vols de véhicules sont publiés à la commune et
+  // pourraient grossir l'agrégat des biens — mais aucun des deux n'est compté
+  // en infractions.
   const biens = trouve("derive_atteintes_biens");
   assert.ok(!biens.entrees.includes("ssmsi_vols_sans_violence_nombre"));
-  assert.match(biens.definition_technique, /comptée en victimes et non en faits/);
+  assert.ok(!biens.entrees.includes("ssmsi_vols_vehicules_nombre"));
+  assert.match(biens.definition_technique, /comptées en infractions par le SSMSI/);
   assert.match(trouve("derive_atteintes_personnes").libelle, /^Victimes de violences/);
   assert.match(trouve("derive_stupefiants").libelle, /^Personnes mises en cause/);
   // Aucun identifiant ne se retrouve dans deux familles.
@@ -83,9 +86,13 @@ test("les agrégats de délinquance ont la même composition à toutes les maill
   // Le SSMSI publie seize phénomènes au département et six à la commune. Un
   // agrégat qui prendrait ce qui est disponible donnerait à Lyon et au Rhône
   // deux mesures différentes sous le même nom, comparées dans la même phrase.
-  for (const id of ["derive_atteintes_biens", "derive_atteintes_personnes"]) {
-    assert.deepEqual(trouve(id).niveaux, ["commune", "departement", "region"]);
-  }
+  assert.deepEqual(trouve("derive_atteintes_personnes").niveaux, [
+    "commune", "departement", "region",
+  ]);
+  // Les atteintes aux biens s'arrêtent au département : à la commune, une seule
+  // des six classes publiées est comptée en infractions, et un phénomène seul
+  // n'est pas un agrégat.
+  assert.deepEqual(trouve("derive_atteintes_biens").niveaux, ["departement", "region"]);
 });
 
 test("aucune division ne se tente sur un dénominateur nul", () => {
@@ -209,4 +216,46 @@ test("un calcul en attente de sa donnée ne s'affiche pas, et s'affichera seul",
   assert.ok(!indicateursDerives(sans).some((i) => i.id === "derive_rigidite"));
   const avec = [...sans, fiche("ofgl_frais_personnel", ["commune"], ["2024"])];
   assert.ok(indicateursDerives(avec).some((i) => i.id === "derive_rigidite"));
+});
+
+test("une somme dont les composantes ne comptent pas la même chose n'est pas produite", () => {
+  // La règle 3 tenue par le code et non par un commentaire : le catalogue porte
+  // l'unité de compte publiée par le producteur, et si deux composantes n'ont
+  // pas la même, l'agrégat disparaît. C'est ce qui aurait retiré tout seul
+  // l'ancien « cambriolages + vols de véhicules », qui additionnait des
+  // infractions et des véhicules.
+  const fiche = (id: string, unite: string | null) => ({
+    id, libelle: id, unite: "count", theme: "securite", sommable: true,
+    cadre_comptable: null, niveaux: ["departement"], definition: "", 
+    definition_technique: "", formule: "", confiance: "observed", badges: [],
+    jeu: "ssmsi-delinquance", periodes: ["2024"], unite_de_compte: unite,
+  });
+  const series = {
+    ssmsi_cambriolages_nombre: { "2024": 350 },
+    ssmsi_degradations_nombre: { "2024": 150 },
+    ofgl_population_reference: { "2024": 100_000 },
+  };
+  const accord = [
+    fiche("ssmsi_cambriolages_nombre", "Infraction"),
+    fiche("ssmsi_degradations_nombre", "Infraction"),
+    fiche("ofgl_population_reference", null),
+  ];
+  assert.equal(seriesDerivees(series, "departement", accord).derive_atteintes_biens["2024"], 5);
+  assert.ok(indicateursDerives(accord).some((i) => i.id === "derive_atteintes_biens"));
+
+  const desaccord = [
+    fiche("ssmsi_cambriolages_nombre", "Infraction"),
+    fiche("ssmsi_degradations_nombre", "Véhicule"),
+    fiche("ofgl_population_reference", null),
+  ];
+  assert.equal(seriesDerivees(series, "departement", desaccord).derive_atteintes_biens, undefined);
+  assert.ok(!indicateursDerives(desaccord).some((i) => i.id === "derive_atteintes_biens"));
+
+  // Un producteur muet ne vaut pas accord : sans unité déclarée, pas de somme.
+  const muet = [
+    fiche("ssmsi_cambriolages_nombre", null),
+    fiche("ssmsi_degradations_nombre", null),
+    fiche("ofgl_population_reference", null),
+  ];
+  assert.equal(seriesDerivees(series, "departement", muet).derive_atteintes_biens, undefined);
 });

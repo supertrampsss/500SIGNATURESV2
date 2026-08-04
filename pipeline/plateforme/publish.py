@@ -128,7 +128,7 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
         """
         select i.indicator_id, i.label_fr, i.unit, i.theme, i.additive, i.price_basis,
                i.accounting_frame, i.geo_levels, d.public_definition, d.technical_definition,
-               d.formula, d.confidence_level, d.badges, i.dataset_id,
+               d.formula, d.confidence_level, d.badges, i.dataset_id, d.unit_notes,
                (select array_agg(distinct o.period order by o.period)
                   from core.observations o where o.indicator_id = i.indicator_id) as periodes
         from core.indicators i
@@ -142,7 +142,12 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
             "sommable": ligne[4], "base_prix": ligne[5], "cadre_comptable": ligne[6],
             "niveaux": ligne[7], "definition": ligne[8], "definition_technique": ligne[9],
             "formule": ligne[10], "confiance": ligne[11], "badges": ligne[12],
-            "jeu": ligne[13], "periodes": ligne[14] or [],
+            "jeu": ligne[13], "periodes": ligne[15] or [],
+            # Ce que compte l'indicateur, quand le producteur le nomme : une
+            # infraction, une victime, une personne mise en cause. Deux séries
+            # d'unités différentes ne s'additionnent pas, et le site s'en sert
+            # pour refuser de le faire.
+            "unite_de_compte": ligne[14],
             "periodes_par_niveau": cartographiees.get(ligne[0], {}),
             "geographie_courante": ligne[13] in GEOGRAPHIE_COURANTE,
         }

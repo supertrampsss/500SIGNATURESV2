@@ -5,6 +5,7 @@ réelles du SSMSI (Gironde/Creuse, Pessac/Paris/Bordeaux)."""
 
 from pathlib import Path
 
+import pytest
 
 from plateforme.normalize import securite
 
@@ -197,3 +198,42 @@ def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
         )
         conn.commit()
         conn.close()
+
+
+def test_l_unite_de_compte_est_celle_que_publie_le_producteur():
+    """Ce que compte le SSMSI n'est pas la même chose d'une classe à l'autre, et
+    ce n'est pas à nous de le deviner : la colonne `unite_de_compte` est dans ses
+    trois bases. La fiche doit dire exactement ce qu'elle dit."""
+    import csv
+    from collections import defaultdict
+
+    chemin = FIXTURES / "ssmsi_dep_sample.csv"
+    with chemin.open(encoding="utf-8") as fichier:
+        publiees = defaultdict(set)
+        for rang in csv.DictReader(fichier, delimiter=";"):
+            publiees[rang["indicateur"]].add(rang["unite_de_compte"])
+    couvertes = {c: u for c, u in publiees.items() if c in securite.CLASSES}
+    assert couvertes, "la fixture ne couvre aucune classe chargée"
+    for classe, unites in couvertes.items():
+        assert unites == {securite.UNITES_DE_COMPTE[classe]}, classe
+    # Quatre unités bien distinctes, et pas une seule « unité de compte de la
+    # source » : c'est la différence entre pouvoir additionner et ne pas pouvoir.
+    assert set(securite.UNITES_DE_COMPTE.values()) == {
+        "Infraction", "Victime", "Victime entendue", "Mis en cause", "Véhicule"
+    }
+    assert set(securite.PLURIELS) == set(securite.UNITES_DE_COMPTE.values())
+
+
+def test_un_changement_d_unite_chez_le_producteur_arrete_le_chargement():
+    """Passer de « infraction » à « victime » change la grandeur mesurée, donc
+    toute comparaison avec les années précédentes. Ça ne doit pas se charger en
+    silence."""
+    entete = ('"Code_departement";"Code_region";"annee";"indicateur";"unite_de_compte";'
+              '"nombre";"taux_pour_mille";"insee_pop";"insee_pop_millesime";'
+              '"insee_log";"insee_log_millesime"')
+    ligne = ('"33";"75";"2024";"Cambriolages de logement";"Victime";"100";'
+             '"1,0000000";"100000";"2023";"100000";"2022"')
+    with pytest.raises(securite.UniteDeCompteChangee) as erreur:
+        securite.lire([entete, ligne], "departement")
+    assert "Cambriolages de logement" in str(erreur.value)
+    assert "Victime" in str(erreur.value)

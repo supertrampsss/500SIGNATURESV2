@@ -179,6 +179,55 @@ CLASSES = {
 
 UNITES_TAUX = {"population": "pour_1000_habitants", "logements": "pour_1000_logements"}
 
+# **Ce qui est compté n'est pas la même chose d'une classe à l'autre.** Le SSMSI
+# le publie lui-même, colonne `unite_de_compte` de ses trois bases : un
+# cambriolage est une infraction, une violence est une victime, un stupéfiant
+# est une personne mise en cause, un vol de voiture est un véhicule. Quatre
+# unités, quatre grandeurs — additionner deux classes qui n'ont pas la même
+# n'a pas de sens, et le site doit pouvoir le refuser plutôt que de l'écrire.
+#
+# Relevé le 4 août 2026 dans les bases départementale et communale. Il n'est
+# pas recopié d'une note de bas de page : c'est une colonne de la donnée, et le
+# chargement vérifie ligne à ligne qu'elle n'a pas bougé.
+UNITES_DE_COMPTE = {
+    "Cambriolages de logement": "Infraction",
+    "Vols de véhicule": "Véhicule",
+    "Vols sans violence contre des personnes": "Victime entendue",
+    "Violences physiques hors cadre familial": "Victime",
+    "Violences physiques intrafamiliales": "Victime",
+    "Violences sexuelles": "Victime",
+    "Homicides": "Victime",
+    "Tentatives d'homicide": "Victime",
+    "Vols avec armes": "Infraction",
+    "Vols violents sans arme": "Infraction",
+    "Vols dans les véhicules": "Véhicule",
+    "Vols d'accessoires sur véhicules": "Véhicule",
+    "Destructions et dégradations volontaires": "Infraction",
+    "Escroqueries et fraudes aux moyens de paiement": "Victime",
+    "Trafic de stupéfiants": "Mis en cause",
+    "Usage de stupéfiants": "Mis en cause",
+}
+
+
+# Le SSMSI écrit son unité au singulier, dans sa forme à lui. Ce qui s'affiche
+# est du français : « personnes mises en cause », pas « Mis en causes ».
+PLURIELS = {
+    "Infraction": "infractions",
+    "Victime": "victimes",
+    "Victime entendue": "victimes entendues",
+    "Mis en cause": "personnes mises en cause",
+    "Véhicule": "véhicules",
+}
+
+
+class UniteDeCompteChangee(RuntimeError):
+    """Le producteur a changé ce qu'il compte pour une classe.
+
+    Ce n'est pas un détail de forme : passer de « infraction » à « victime »
+    change la grandeur mesurée, donc la série, donc toute comparaison avec les
+    années d'avant. Le chargement s'arrête pour que la fiche soit relue.
+    """
+
 
 def indicateur_taux(classe: str) -> str:
     return f"ssmsi_{CLASSES[classe][0]}_taux"
@@ -208,25 +257,33 @@ def declarer(conn) -> None:
             niveaux = (
                 ["commune", "departement", "region"] if communal else ["departement", "region"]
             )
+            compte = UNITES_DE_COMPTE[classe]
+            comptes = PLURIELS[compte]
+            rapporte = "1 000 logements" if denominateur == "logements" else "1 000 habitants"
             technique = (
-                f"Base statistique SSMSI, classe « {classe} », unité de compte de la"
-                f" source, dénominateur {denominateur} INSEE du millésime indiqué par"
-                " la source. Faits enregistrés par police et gendarmerie : ni une"
-                " mesure exhaustive de la délinquance, ni des condamnations."
+                f"Base statistique SSMSI, classe « {classe} », comptée en {comptes},"
+                f" dénominateur {denominateur} INSEE du millésime indiqué par la"
+                " source. Faits enregistrés par police et gendarmerie : ni une mesure"
+                " exhaustive de la délinquance, ni des condamnations."
             )
-            for indicateur, libelle_complet, unite in (
-                (indicateur_taux(classe), libelle, UNITES_TAUX[denominateur]),
-                (indicateur_nombre(classe), f"{libelle} — nombre de faits", "count"),
+            # L'unité de compte voyage à part du texte : c'est elle qui permet de
+            # refuser une somme entre deux classes qui ne comptent pas la même
+            # chose, ce qu'aucune phrase ne saurait faire respecter.
+            for indicateur, libelle_complet, unite, note in (
+                (indicateur_taux(classe), libelle, UNITES_TAUX[denominateur],
+                 f"{comptes} pour {rapporte}"),
+                (indicateur_nombre(classe), f"{libelle} — nombre de {comptes}",
+                 "count", comptes),
             ):
                 definition = curseur.execute(
                     """
                     insert into core.indicator_definitions
                         (public_definition, technical_definition, formula,
-                         confidence_level, badges)
-                    values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
+                         unit_notes, confidence_level, badges)
+                    values (?, ?, ?, ?, 'observed', array['Officiel','Donnée brute'])
                     returning definition_id
                     """,
-                    (publique, technique, f"SSMSI, base {classe}"),
+                    (publique, technique, f"SSMSI, base {classe}", note),
                 ).fetchone()[0]
                 curseur.execute(
                     """
@@ -272,6 +329,13 @@ def lire(
         communal = CLASSES[classe][4]
         if niveau == "commune" and not communal:
             continue
+        unite = (rang.get("unite_de_compte") or "").strip()
+        if unite and unite != UNITES_DE_COMPTE[classe]:
+            raise UniteDeCompteChangee(
+                f"« {classe} » : le SSMSI compte désormais en « {unite} », la fiche"
+                f" annonce « {UNITES_DE_COMPTE[classe]} ». Relire la définition avant"
+                " de recharger (docs/06)."
+            )
         annee = (rang.get("annee") or "").strip()
         if seulement_derniere_annee:
             if annee > annee_max:

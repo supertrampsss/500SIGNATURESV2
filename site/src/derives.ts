@@ -40,8 +40,28 @@ export type Derive = {
   formule: string;
   /** Séries nécessaires. Toutes obligatoires : voir règle 1. */
   entrees: string[];
+  /**
+   * Les séries qui sont **additionnées** entre elles, quand il y en a. Le
+   * catalogue porte l'unité de compte de chacune, telle que son producteur la
+   * publie ; si deux d'entre elles ne comptent pas la même chose, l'agrégat
+   * n'est pas produit. La règle 3 cesse ainsi d'être une phrase dans un
+   * commentaire : c'est le code qui la tient, et un changement chez le
+   * producteur la déclenche sans que personne ait à y penser.
+   */
+  sommees?: string[];
   calcul: (v: Record<string, number>) => number | null;
 };
+
+/** Vrai si les séries additionnées comptent toutes la même chose. */
+export function sommeHomogene(derive: Derive, connus: Map<string, Indicateur>): boolean {
+  if (!derive.sommees) return true;
+  const unites = new Set(
+    derive.sommees.map((id) => connus.get(id)?.unite_de_compte ?? null),
+  );
+  // Une unité inconnue ne vaut pas accord : le producteur qui ne dit pas ce
+  // qu'il compte ne permet pas d'affirmer que deux séries sont additionnables.
+  return unites.size === 1 && !unites.has(null);
+}
 
 /** Population du millésime, dénominateur des agrégats de délinquance. */
 const POPULATION = "ofgl_population_reference";
@@ -58,16 +78,22 @@ const POPULATION = "ofgl_population_reference";
  * biens » de trois phénomènes et au Rhône un de six, sous le même nom, comparés
  * l'un à l'autre dans la même phrase.
  *
- * Restent six classes communes. Mais elles ne se comptent pas pareil : nos
- * propres définitions publiées le disent — les violences sont dénombrées « en
- * victimes », les cambriolages et les vols de véhicules en faits enregistrés, et
- * les vols sans violence relèvent de la classe SSMSI « vols sans violence contre
- * des personnes », comptée en victimes. Additionner les trois reviendrait à
- * mettre des logements, des véhicules et des personnes dans une seule case —
- * exactement ce que ce site refuse de faire ailleurs. Les vols sans violence
- * sortent donc de l'agrégat des biens, et c'est dit dans sa définition.
+ * Restent six classes communes. Mais elles ne se comptent pas pareil, et ce
+ * n'est plus une lecture de nos définitions : le SSMSI publie l'unité de compte
+ * **en colonne de ses bases**, et le chargement la reprend telle quelle. Des six
+ * classes communales, une seule est comptée en infractions (les cambriolages) ;
+ * les vols de véhicules sont comptés en véhicules — un vol peut en emporter
+ * plusieurs —, les vols sans violence en victimes entendues, les trois violences
+ * en victimes.
+ *
+ * Il n'existe donc **pas** d'agrégat « atteintes aux biens » homogène à la
+ * commune : un seul phénomène n'est pas un agrégat. Il s'en construit un au
+ * département et à la région, où les dégradations volontaires — comptées en
+ * infractions elles aussi — rejoignent les cambriolages. La version communale
+ * qui additionnait cambriolages et vols de véhicules mélangeait deux unités ;
+ * elle est retirée.
  */
-const BIENS = ["ssmsi_cambriolages_nombre", "ssmsi_vols_vehicules_nombre"];
+const BIENS = ["ssmsi_cambriolages_nombre", "ssmsi_degradations_nombre"];
 const PERSONNES = [
   "ssmsi_violences_intrafamiliales_nombre",
   "ssmsi_violences_hors_famille_nombre",
@@ -238,28 +264,32 @@ export const DERIVES: Derive[] = [
     libelle: "Atteintes aux biens (2 phénomènes)",
     theme: "securite",
     unite: "pour_1000_habitants",
-    niveaux: ["commune", "departement", "region"],
+    // Pas de maille communale : au communal, une seule des six classes publiées
+    // est comptée en infractions, et un phénomène seul n'est pas un agrégat.
+    niveaux: ["departement", "region"],
     definition:
-      "Cambriolages de logement et vols de véhicules enregistrés, rapportés aux" +
-      " habitants. Deux phénomènes seulement : ce sont les seuls que la" +
-      " statistique publique publie aussi bien pour une commune que pour un" +
-      " département, et qu'elle compte de la même façon — en faits, pas en" +
-      " victimes.",
+      "Cambriolages de logement et dégradations volontaires enregistrés," +
+      " rapportés aux habitants. Deux phénomènes que la statistique publique" +
+      " compte de la même façon — en infractions — et qui peuvent donc" +
+      " s'additionner.",
     definition_technique:
-      "Somme des faits enregistrés par la police et la gendarmerie pour les" +
-      " cambriolages de logement et les vols de véhicules, divisée par la" +
-      " population de référence du même exercice. Les vols sans violence, publiés" +
-      " à toutes les mailles, en sont exclus : le SSMSI les dénombre dans sa" +
-      " classe « vols sans violence contre des personnes », comptée en victimes et" +
-      " non en faits — les additionner mettrait des logements, des véhicules et" +
-      " des personnes dans un même nombre. Les cambriolages sont ici rapportés aux" +
-      " habitants et non aux logements, contrairement au taux publié par le SSMSI" +
-      " pour ce seul phénomène : c'est le prix d'un dénominateur unique. Mesure" +
-      " les faits portés à la connaissance des forces de l'ordre, pas" +
+      "Somme des infractions enregistrées par la police et la gendarmerie pour" +
+      " les cambriolages de logement et les destructions et dégradations" +
+      " volontaires, divisée par la population de référence du même exercice." +
+      " Les deux classes sont comptées en infractions par le SSMSI, qui publie" +
+      " cette unité dans ses bases : c'est la condition de la somme. Les vols de" +
+      " véhicules en sont exclus — le SSMSI les dénombre en véhicules, et un vol" +
+      " peut en emporter plusieurs — comme les vols sans violence, comptés en" +
+      " victimes entendues. Publié à partir du département : les dégradations ne" +
+      " figurent pas dans la base communale. Les cambriolages sont ici rapportés" +
+      " aux habitants et non aux logements, contrairement au taux publié par le" +
+      " SSMSI pour ce seul phénomène : c'est le prix d'un dénominateur unique." +
+      " Mesure les faits portés à la connaissance des forces de l'ordre, pas" +
       " l'intégralité des faits commis.",
-    formule: "(Cambriolages + Vols de véhicules) ÷ Population",
+    formule: "(Cambriolages + Dégradations) ÷ Population",
     entrees: [...BIENS, POPULATION],
     calcul: pourMille(BIENS),
+    sommees: BIENS,
   },
   {
     id: "derive_atteintes_personnes",
@@ -286,6 +316,7 @@ export const DERIVES: Derive[] = [
       "(Victimes de violences intrafamiliales + hors famille + sexuelles) ÷ Population",
     entrees: [...PERSONNES, POPULATION],
     calcul: pourMille(PERSONNES),
+    sommees: PERSONNES,
   },
   {
     id: "derive_stupefiants",
@@ -312,6 +343,7 @@ export const DERIVES: Derive[] = [
     formule: "(Mis en cause pour usage + Mis en cause pour trafic) ÷ Population",
     entrees: [...STUPEFIANTS, POPULATION],
     calcul: pourMille(STUPEFIANTS),
+    sommees: STUPEFIANTS,
   },
   {
     id: "derive_dette_locale_en_revenu",
@@ -410,10 +442,13 @@ export const DERIVES: Derive[] = [
 export function seriesDerivees(
   series: Record<string, Record<string, number>>,
   niveau: string,
+  catalogue: Indicateur[] = [],
 ): Record<string, Record<string, number>> {
   const sortie: Record<string, Record<string, number>> = {};
+  const connus = new Map(catalogue.map((i) => [i.id, i]));
   for (const derive of DERIVES) {
     if (!derive.niveaux.includes(niveau)) continue;
+    if (connus.size && !sommeHomogene(derive, connus)) continue;
     if (derive.entrees.some((id) => !series[id])) continue;
     const exercices = derive.entrees
       .map((id) => Object.keys(series[id]))
@@ -442,7 +477,9 @@ export const IDS_DERIVES = new Set(DERIVES.map((d) => d.id));
 
 export function indicateursDerives(catalogue: Indicateur[]): Indicateur[] {
   const connus = new Map(catalogue.map((i) => [i.id, i]));
-  return DERIVES.filter((d) => d.entrees.every((id) => connus.has(id))).map((derive) => {
+  return DERIVES.filter(
+    (d) => d.entrees.every((id) => connus.has(id)) && sommeHomogene(d, connus),
+  ).map((derive) => {
     // Les millésimes possibles sont ceux communs aux entrées : annoncer 2018 sur
     // un ratio dont une composante commence en 2020 ferait chercher une valeur
     // qui n'existera jamais.
