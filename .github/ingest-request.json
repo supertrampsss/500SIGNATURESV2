@@ -1,4 +1,5 @@
 {
-  "job": "inventaire",
-  "request": "2026-08-04-1725-inventaire-apres-coupure"
+  "job": "rechargement-communes",
+  "lot": 5,
+  "request": "2026-08-04-1730-ofgl-communes-reprise-lot-5"
 }
