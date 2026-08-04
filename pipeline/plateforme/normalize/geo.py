@@ -103,7 +103,7 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
     )
     contenus["api_communes"] = contenu
 
-    url = f"{API_GEO}/epcis?fields=code,nom,population"
+    url = f"{API_GEO}/epcis?fields=code,nom,population,codesDepartements,codesRegions"
     contenu = fetch(url, timeout=180).content
     entrepot.record_asset(
         conn, store, run_id, "geo-api-epci", "api-geo", "epcis.json", contenu, url,
@@ -166,17 +166,33 @@ def construire(contenus: dict[str, bytes]) -> tuple[list[dict], list[dict]]:
         )
 
     for epci in json.loads(contenus["api_epci"]):
+        # Un EPCI peut chevaucher deux départements. L'API Géo publie la liste
+        # de ceux qu'il touche — c'est le producteur qui la dresse, pas nous, et
+        # rien n'est déduit du numéro SIREN. Quand elle n'en contient qu'un,
+        # c'est un parent sans ambiguïté ; sinon il n'y en a pas, et la liste
+        # reste visible dans les drapeaux pour que la fiche puisse le dire.
+        departements = epci.get("codesDepartements") or []
+        regions = epci.get("codesRegions") or []
+        drapeaux: dict = {}
+        if len(departements) != 1:
+            drapeaux["departements"] = departements
+            # À cheval sur deux départements d'une même région, l'EPCI est
+            # quand même dans cette région : le parent manque, pas la région.
+            if len(regions) == 1:
+                drapeaux["region"] = regions[0]
+            else:
+                drapeaux["regions"] = regions
         territoires.append(
             {
                 "geo_level": "epci",
                 "geo_code": epci["code"],
                 "vintage": MILLESIME,
                 "name": epci["nom"],
-                # Un EPCI peut chevaucher deux départements : pas de parent unique.
-                "parent_level": None,
-                "parent_code": None,
+                "parent_level": "departement" if len(departements) == 1 else None,
+                "parent_code": departements[0] if len(departements) == 1 else None,
                 "siren": epci["code"],
                 "population": epci.get("population"),
+                **({"flags": drapeaux} if drapeaux else {}),
             }
         )
 
@@ -193,6 +209,10 @@ def construire(contenus: dict[str, bytes]) -> tuple[list[dict], list[dict]]:
                 "flags": {
                     "type": "EPT",
                     "inclus_dans": "Métropole du Grand Paris",
+                    # La métropole du Grand Paris est tout entière en
+                    # Île-de-France : la région est certaine, le département non
+                    # (plusieurs établissements territoriaux en chevauchent deux).
+                    "region": "11",
                     "source": "OFGL",
                 },
             }

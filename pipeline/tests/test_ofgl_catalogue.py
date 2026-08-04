@@ -126,3 +126,99 @@ def test_les_agregats_se_chargent_par_lots_bornes():
         for d in range(0, len(noms), normalisation.LOT_AGREGATS)
     ]
     assert [nom for lot in decoupes for nom in lot] == noms
+
+
+def test_chaque_fiche_publique_tient_dans_la_limite():
+    """Le schéma refuse une définition publique de plus de 50 mots, et il a
+    raison — une fiche est un repère, pas une notice. Mais il la refusait au
+    milieu du chargement : le run du 4 août est mort après trois minutes sur les
+    137 mots de la définition des DMTO, alors que le compte se fait hors réseau,
+    en une milliseconde, à partir du seul fichier de sélection."""
+    from plateforme.normalize import ofgl as normalisation
+
+    trop_longues = {
+        indicateur: len(publique.split())
+        for indicateur, (publique, _, _) in normalisation.fiches().items()
+        if len(publique.split()) > normalisation.MOTS_MAXIMUM
+    }
+    assert not trop_longues, trop_longues
+
+
+def test_un_agregat_verbeux_sans_resume_arrete_le_chargement():
+    """Ajouter un agrégat dont l'OFGL écrit une définition-fleuve doit se voir
+    tout de suite, avec le nom de l'agrégat et le nombre de mots — pas se
+    traduire par un `CHECK constraint failed` vingt minutes plus tard."""
+    from plateforme.normalize import ofgl as normalisation
+
+    catalogue = [
+        {
+            "agregat": "Agrégat bavard", "indicateur": "ofgl_agregat_bavard",
+            "niveaux": "commune", "lignes": "1", "charge": "oui", "chemin": "",
+            "definition_ofgl": " ".join(["mot"] * 60), "formule_ofgl": "A + B",
+        }
+    ]
+    with pytest.raises(normalisation.ResumeManquant) as erreur:
+        normalisation.fiches_depuis(catalogue)
+    assert "Agrégat bavard" in str(erreur.value)
+    assert "60 mots" in str(erreur.value)
+
+
+def test_le_texte_entier_du_producteur_survit_dans_la_fiche_technique():
+    """Résumer la fiche publique ne doit rien retrancher au public : la
+    définition de l'OFGL, réserves comprises, reste lisible sur le site."""
+    from plateforme.normalize import ofgl as normalisation
+
+    fiches = normalisation.fiches()
+    for indicateur in normalisation.RESUMES_PUBLICS:
+        publique, technique, _ = fiches[indicateur]
+        assert publique == normalisation.RESUMES_PUBLICS[indicateur]
+        assert len(technique.split()) > normalisation.MOTS_MAXIMUM, indicateur
+    # Les deux ruptures de série de 2024 sont dites des deux côtés : c'est ce
+    # qu'un lecteur doit savoir avant de comparer 2023 à 2024.
+    for indicateur in ("ofgl_depenses_d_intervention",
+                       "ofgl_subventions_recues_et_participations"):
+        publique, technique, _ = fiches[indicateur]
+        assert "Rupture de série en 2024" in publique, indicateur
+        assert "Rupture de série en 2024" in technique, indicateur
+
+
+def test_declarer_les_73_fiches_contre_un_vrai_entrepot(tmp_path):
+    """Le pas exact où le rechargement du 4 août est mort. Il ne touche pas au
+    réseau : les fiches viennent du fichier de sélection, l'entrepôt est neuf.
+    Deux passages, parce que le second emprunte le chemin `on conflict` — celui
+    qui unit les niveaux au lieu de les écraser."""
+    from plateforme import entrepot, registry
+    from plateforme.normalize import ofgl as normalisation
+
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        registry.sync(conn)
+        normalisation.declarer_indicateurs(conn, ["commune"])
+        attendus = set(normalisation.fiches())
+        declares = {
+            code for (code,) in conn.execute(
+                "select indicator_id from core.indicators where published"
+            ).fetchall()
+        }
+        assert declares == attendus
+        # Chaque indicateur porte sa fiche : sans elle le site afficherait un
+        # montant sans dire de quoi il parle.
+        (sans_fiche,) = conn.execute(
+            "select count(*) from core.indicators where definition_id is null"
+        ).fetchone()
+        assert sans_fiche == 0
+
+        normalisation.declarer_indicateurs(conn, ["departement", "region"])
+        (niveaux,) = conn.execute(
+            "select geo_levels from core.indicators where indicator_id ="
+            " 'ofgl_depenses_fonctionnement'"
+        ).fetchone()
+        assert sorted(niveaux) == ["commune", "departement", "region"]
+        # Une fiche par indicateur, pas une par passage : les orphelines sont
+        # ramassées.
+        (definitions,) = conn.execute(
+            "select count(*) from core.indicator_definitions"
+        ).fetchone()
+        assert definitions == len(attendus)
+    finally:
+        conn.close()

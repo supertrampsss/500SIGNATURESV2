@@ -160,6 +160,86 @@ LIBELLES_REDIGES = {
 }
 
 
+# La fiche publique tient en 50 mots (docs/06, contrainte vérifiée par le
+# schéma). Treize définitions de l'OFGL dépassent — jusqu'à 137 mots pour les
+# DMTO. On ne les tronque pas : couper au cinquantième mot ferait tomber, pour
+# deux d'entre elles, la rupture de série de 2024, qui est précisément ce qu'un
+# lecteur doit savoir avant de comparer 2023 à 2024. Le texte du producteur est
+# donc gardé **entier** dans la définition technique, et la fiche publique est
+# un résumé écrit ici, fidèle, qui garde les réserves.
+MOTS_MAXIMUM = 50
+
+RESUMES_PUBLICS = {
+    "ofgl_autres_depenses_d_investissement":
+        "Solde des dépenses réelles d'investissement hors emprunts : ce qui n'est"
+        " ni remboursement d'emprunt, ni dépense d'équipement, ni subvention"
+        " d'équipement versée. On y trouve notamment les opérations sur"
+        " immobilisations financières et pour compte de tiers.",
+    "ofgl_autres_impots_et_taxes":
+        "Produits fiscaux autres que ceux de la fiscalité directe locale, nets des"
+        " reversements versés par la collectivité à ce titre et augmentés des"
+        " reversements qu'elle perçoit. Sous-poste des impôts et taxes.",
+    "ofgl_autres_recettes_d_investissement":
+        "Solde des recettes réelles d'investissement hors emprunts : ce qui n'est"
+        " ni emprunt, ni FCTVA, ni dotation ou subvention reçue. Peut comprendre"
+        " des opérations sur immobilisations financières ou pour compte de tiers.",
+    "ofgl_depenses_d_intervention":
+        "Aides et subventions versées par la collectivité à des tiers :"
+        " particuliers, associations, autres collectivités. L'un des postes des"
+        " dépenses de fonctionnement. Rupture de série en 2024 : la consolidation"
+        " avec les budgets annexes a changé de règle (voir la définition technique).",
+    "ofgl_dmto_apres_pereq":
+        "Droits de mutation à titre onéreux perçus sur les ventes immobilières,"
+        " après les prélèvements et redistributions du fonds de péréquation."
+        " Publiés pour les départements — dont Paris et la Métropole de Lyon —,"
+        " pas pour les communes ni les groupements.",
+    "ofgl_dmto_avant_pereq":
+        "Droits de mutation à titre onéreux perçus sur les ventes immobilières,"
+        " avant le fonds de péréquation : ni ses prélèvements ni ses"
+        " redistributions n'y figurent. Publiés pour les départements — dont Paris"
+        " et la Métropole de Lyon —, pas pour les communes ni les groupements.",
+    "ofgl_emprunts_hors_gad":
+        "Emprunts et dettes mobilisés par la collectivité dans l'année, hors"
+        " gestion active de la dette : les lignes de trésorerie et les emprunts de"
+        " refinancement, équilibrés en recettes et en dépenses, en sont exclus.",
+    "ofgl_fiscalite_reversee":
+        "Reversements de fiscalité reçus par la collectivité, diminués de ceux"
+        " qu'elle verse, hors fonds de péréquation. Le montant est négatif quand"
+        " elle reverse plus qu'elle ne reçoit. Sous-poste des impôts locaux.",
+    "ofgl_fonds_de_soutien_aux_emprunts_a_risque":
+        "Aides restant à recevoir au 31 décembre au titre des emprunts à risque"
+        " dont les indemnités de remboursement anticipé ont été capitalisées. En"
+        " analyse financière, ce montant peut être retranché de l'encours de dette.",
+    "ofgl_impots_locaux":
+        "Produit de la fiscalité directe locale sur les ménages et les entreprises"
+        " — taxes foncières, taxe d'habitation, CVAE —, net des reversements versés"
+        " par la collectivité et augmenté de ceux qu'elle perçoit. Sous-poste des"
+        " impôts et taxes.",
+    "ofgl_remboursements_d_emprunts_hors_gad":
+        "Dette remboursée par la collectivité dans l'année, hors gestion active de"
+        " la dette : les mouvements sur lignes de trésorerie et les réaménagements"
+        " refinancés, équilibrés en recettes et en dépenses, en sont exclus.",
+    "ofgl_subventions_recues_et_participations":
+        "Contributions versées par des tiers à la collectivité pour financer les"
+        " services qu'elle assure. Sous-poste des recettes de fonctionnement."
+        " Rupture de série en 2024 : la consolidation avec les budgets annexes a"
+        " changé de règle (voir la définition technique).",
+    "ofgl_variation_du_fonds_de_roulement":
+        "Différence entre les recettes réelles et les dépenses réelles de l'année."
+        " Elle se décompose entre ce qui vient hors dette — capacité ou besoin de"
+        " financement — et le flux net de dette.",
+}
+
+
+class ResumeManquant(RuntimeError):
+    """Une définition de l'OFGL trop longue pour la fiche publique, sans résumé.
+
+    Le chargement s'arrête là plutôt que de laisser le schéma refuser l'insertion
+    après vingt minutes de téléchargement — et plutôt que de publier une fiche
+    coupée au milieu d'une phrase.
+    """
+
+
 class DefinitionManquante(RuntimeError):
     """Un agrégat retenu dont ni nous ni l'OFGL n'avons écrit la définition.
 
@@ -196,7 +276,16 @@ def fiches_depuis(catalogue: list[dict]) -> dict[str, tuple[str, str, str]]:
         ) + " Définition publiée par l'Observatoire des finances et de la gestion"
         technique += " publique locales ; agrégat calculé par lui à partir des balances"
         technique += " comptables de la DGFiP."
-        sortie[ligne["indicateur"]] = (definition, technique, ligne["formule_ofgl"] or chemin)
+        public = definition
+        if len(public.split()) > MOTS_MAXIMUM:
+            public = RESUMES_PUBLICS.get(ligne["indicateur"], "")
+            if not public:
+                raise ResumeManquant(
+                    f"{ligne['agregat']} : définition de {len(definition.split())} mots,"
+                    f" la fiche publique en admet {MOTS_MAXIMUM}. Écrire son résumé"
+                    " dans RESUMES_PUBLICS avant de le charger (docs/06)."
+                )
+        sortie[ligne["indicateur"]] = (public, technique, ligne["formule_ofgl"] or chemin)
     return sortie
 
 

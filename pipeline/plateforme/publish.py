@@ -74,21 +74,27 @@ def synchroniser_niveaux(conn) -> int:
     chargement partiel avait suffi à effacer trois niveaux — la vérité est
     relue depuis `core.observations` avant chaque publication.
     """
+    # Compté avant d'écrire : DuckDB ne renvoie pas de `rowcount` après un
+    # `update`, et annoncer « -1 indicateurs recalés » ne renseignerait personne.
     modifies = conn.execute(
         """
-        update core.indicators i
-        set geo_levels = coalesce(niveaux.presents, '{}')
-        from (
-            select ind.indicator_id,
-                   (select array_agg(distinct o.geo_level order by o.geo_level)
-                      from core.observations o
-                     where o.indicator_id = ind.indicator_id) as presents
-            from core.indicators ind
-        ) as niveaux
-        where niveaux.indicator_id = i.indicator_id
-          and i.geo_levels is distinct from coalesce(niveaux.presents, '{}')
+        select count(*) from core.indicators i
+        where i.geo_levels is distinct from coalesce((
+            select list_sort(list_distinct(list(o.geo_level))) from core.observations o
+             where o.indicator_id = i.indicator_id), [])
         """
-    ).rowcount
+    ).fetchone()[0]
+    conn.execute(
+        """
+        update core.indicators i
+        set geo_levels = coalesce((
+            select list_sort(list_distinct(list(o.geo_level))) from core.observations o
+             where o.indicator_id = i.indicator_id), [])
+        where i.geo_levels is distinct from coalesce((
+            select list_sort(list_distinct(list(o.geo_level))) from core.observations o
+             where o.indicator_id = i.indicator_id), [])
+        """
+    )
     conn.commit()
     return modifies
 
@@ -223,7 +229,8 @@ def comparaisons(conn) -> dict:
         f"""
         with base as (
             select o.indicator_id, o.period,
-                   concat_ws('|', {", ".join(f"g.flags->>'{c}'" for c in CRITERES_GROUPE)})
+                   concat_ws('|', {", ".join(
+                       f"json_extract_string(g.flags, '$.{c}')" for c in CRITERES_GROUPE)})
                      as groupe,
                    o.value / nullif(pop.value, 0) as par_habitant
             from core.observations o
@@ -236,8 +243,9 @@ def comparaisons(conn) -> dict:
              and pop.geo_level = o.geo_level and pop.geo_code = o.geo_code
              and pop.period = o.period
             where o.geo_level = 'commune' and i.published and i.unit = 'EUR'
-              and o.value_status = 'normal' and g.flags ? 'tranche_population'
-        ).fetchall()
+              and o.value_status = 'normal'
+              and json_extract_string(g.flags, '$.tranche_population') is not null
+        )
         select indicator_id, period, groupe, count(*),
                percentile_cont(0.25) within group (order by par_habitant),
                percentile_cont(0.5) within group (order by par_habitant),
@@ -506,15 +514,20 @@ def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) ->
                      when 'region' then g.geo_code
                      when 'pays' then null
                      when 'departement' then g.parent_code
-                     else (select d.parent_code from geo.geography_reference d
-                            where d.geo_level = 'departement' and d.geo_code = g.parent_code
-                              and d.vintage = g.vintage)
+                     else coalesce(
+                            (select d.parent_code from geo.geography_reference d
+                              where d.geo_level = 'departement' and d.geo_code = g.parent_code
+                                and d.vintage = g.vintage),
+                            -- Une intercommunalité à cheval sur deux départements
+                            -- n'a pas de parent, mais peut n'être que dans une
+                            -- région : le producteur l'a dit, on le garde.
+                            json_extract_string(g.flags, '$.region'))
                    end as region
               from geo.geography_reference g
              where g.geo_level = $niveau
                and g.vintage = (select max(vintage) from geo.geography_reference
                                  where geo_level = $niveau)
-        ).fetchall()
+        )
         select t.region, o.value,
                coalesce(p.value, t.population) as habitants
           from core.observations o
@@ -606,9 +619,11 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
                    case $niveau
                      when 'region' then g.geo_code
                      when 'departement' then g.parent_code
-                     else (select d.parent_code from geo.geography_reference d
-                            where d.geo_level = 'departement' and d.geo_code = g.parent_code
-                              and d.vintage = g.vintage)
+                     else coalesce(
+                            (select d.parent_code from geo.geography_reference d
+                              where d.geo_level = 'departement' and d.geo_code = g.parent_code
+                                and d.vintage = g.vintage),
+                            json_extract_string(g.flags, '$.region'))
                    end as region,
                    g.population, g.flags
             from geo.geography_reference g
