@@ -5,7 +5,11 @@ tronquée à ses 12 derniers mois, sans que rien ne le dise."""
 
 
 
-from plateforme import publish
+import json
+
+import pytest
+
+from plateforme import entrepot, publish
 
 
 def test_les_series_pays_gardent_leur_profondeur_entiere(tmp_path):
@@ -71,3 +75,74 @@ def test_les_series_pays_gardent_leur_profondeur_entiere(tmp_path):
         )
         conn.commit()
         conn.close()
+
+
+class StoreAvecCatalogue:
+    """Un bucket qui porte déjà une publication : pointeur et catalogue."""
+
+    def __init__(self, indicateurs: int):
+        self.objets = {
+            "data/derniere.json": json.dumps({"version": "2026-08-02T1838"}).encode(),
+            "data/2026-08-02T1838/indicateurs.json": json.dumps(
+                [{"id": f"i{n}"} for n in range(indicateurs)]
+            ).encode(),
+        }
+
+    def get(self, cle):
+        if cle not in self.objets:
+            raise FileNotFoundError(cle)
+        return self.objets[cle]
+
+    def put(self, cle, contenu, overwrite=False):
+        self.objets[cle] = contenu
+
+
+def _publier_n_indicateurs(conn, combien: int) -> None:
+    conn.execute(
+        """insert into meta.source_registry (source_id, name, producer, access_category, license)
+           values ('s', 'S', 'S', 'A', 'LO2.0')"""
+    )
+    conn.execute(
+        """insert into meta.dataset_registry (dataset_id, source_id, title, priority)
+           values ('d', 's', 'D', 'P0')"""
+    )
+    for n in range(combien):
+        definition = conn.execute(
+            """insert into core.indicator_definitions (public_definition, confidence_level)
+               values ('Une définition grand public suffisamment longue pour la contrainte.', 'observed')
+               returning definition_id"""
+        ).fetchone()[0]
+        conn.execute(
+            """insert into core.indicators
+                 (indicator_id, dataset_id, definition_id, theme, label_fr, unit, published)
+               values (?, 'd', ?, 't', 'X', 'EUR', true)""",
+            [f"x{n}", definition],
+        )
+
+
+def test_un_entrepot_ampute_ne_remplace_pas_un_site_complet(tmp_path):
+    """Le pointeur est la seule chose que le site lit. Le réécrire vers une
+    publication presque vide ferait disparaître le site sans erreur nulle part —
+    les fichiers déposés seraient valides, simplement vides."""
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    _publier_n_indicateurs(conn, 10)
+    store = StoreAvecCatalogue(indicateurs=100)
+    with pytest.raises(RuntimeError, match="publication refusée"):
+        publish.controler_avant_publication(conn, store)
+    conn.close()
+
+
+def test_une_perte_marginale_ne_bloque_pas_la_publication(tmp_path):
+    # Un producteur qui décale un millésime, une classe passée sous secret :
+    # quelques indicateurs en moins sont normaux, le garde-fou ne doit pas les
+    # confondre avec un entrepôt vide.
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    _publier_n_indicateurs(conn, 95)
+    publish.controler_avant_publication(conn, StoreAvecCatalogue(indicateurs=100))
+    conn.close()
+
+
+def test_la_premiere_publication_n_a_rien_a_preserver(tmp_path):
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    publish.controler_avant_publication(conn, type("Vide", (), {"get": lambda self, c: (_ for _ in ()).throw(FileNotFoundError(c)), "put": lambda self, c, d, overwrite=False: None})())
+    conn.close()

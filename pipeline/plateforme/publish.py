@@ -620,7 +620,42 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
     }
 
 
+# Perte au-delà de laquelle une publication est refusée. Un chargement partiel
+# retire toujours quelques indicateurs — un producteur qui décale un millésime,
+# une classe sous secret statistique — mais pas le cinquième du catalogue.
+PERTE_MAXIMALE = 0.2
+
+
+def controler_avant_publication(conn, store) -> None:
+    """Refuse d'écraser le pointeur avec un jeu nettement amputé.
+
+    Le pointeur `data/derniere.json` est la seule chose que le site lit pour
+    savoir quoi afficher. Le réécrire vers une publication vide ou tronquée fait
+    disparaître le site en une commande, sans erreur nulle part : les fichiers
+    déposés sont valides, ils sont simplement presque vides.
+
+    Ce garde-fou n'existait pas. Il aurait dû : le jour où l'entrepôt est devenu
+    un fichier neuf, republier avant de l'avoir rempli aurait suffi. On compare
+    donc le catalogue qu'on s'apprête à publier à celui qui est en ligne, et on
+    s'arrête plutôt que de le remplacer par moins.
+    """
+    try:
+        pointeur = json.loads(store.get("data/derniere.json"))
+        publies = json.loads(store.get(f"data/{pointeur['version']}/indicateurs.json"))
+    except Exception:  # noqa: BLE001
+        return  # rien en ligne : la première publication n'a rien à préserver
+    avant = len(publies)
+    (apres,) = conn.execute("select count(*) from core.indicators where published").fetchone()
+    if avant and apres < avant * (1 - PERTE_MAXIMALE):
+        raise RuntimeError(
+            f"publication refusée : {apres} indicateurs contre {avant} en ligne"
+            f" (version {pointeur['version']}). Un entrepôt incomplet ne doit pas"
+            " remplacer un site complet — recharger avant de republier."
+        )
+
+
 def publier(conn, store, version: str) -> int:
+    controler_avant_publication(conn, store)
     racine = f"data/{version}"
     fichiers = 0
 

@@ -1,4 +1,4 @@
 {
-  "job": "retablissement",
-  "request": "2026-08-04-0718-retest-connexion-supabase"
+  "job": "geo",
+  "request": "2026-08-04-0745-premier-chargement-entrepot-duckdb"
 }
