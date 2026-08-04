@@ -371,7 +371,16 @@ function ligneIndicateur(
            à chaque fois qu'on demandait ce qu'un mot voulait dire. -->
       <span class="mesure__definition" role="tooltip" hidden>${echapper(
         indicateur.definition,
-      )}</span>
+      )}${
+        // Ce que compte le producteur, quand il le nomme. Sans cette ligne, rien
+        // ne dit au lecteur qu'un cambriolage est une infraction et une violence
+        // une victime — donc que les deux ne s'additionnent pas.
+        indicateur.unite_de_compte
+          ? ` <em class="mesure__compte">Compté en ${echapper(
+              indicateur.unite_de_compte,
+            )}.</em>`
+          : ""
+      }</span>
     </summary>
     <div class="mesure__detail">
       ${comparaisons

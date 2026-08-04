@@ -2493,6 +2493,15 @@ body[data-vue="carte"] .pied {
 .mesure__definition[hidden] {
   display: none;
 }
+/* Ce que compte la source — infractions, victimes, personnes mises en cause.
+   Détaché de la définition, parce que c'est une précision de lecture et non
+   une phrase de plus. */
+.mesure__compte {
+  display: block;
+  margin-top: 0.35rem;
+  font-style: normal;
+  color: var(--encre-douce);
+}
 /* La valeur ne se laisse plus pousser par le rond : c'est elle qui tient la
    colonne de droite. */
 .mesure > summary .mesure__nom {
