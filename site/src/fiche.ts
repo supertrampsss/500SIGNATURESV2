@@ -590,7 +590,7 @@ const PHARES: Record<string, string[]> = {
   securite: ["ssmsi_cambriolages_taux", "ssmsi_violences_hors_famille_taux"],
   finances_locales: ["ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
   revenus: ["insee_niveau_vie_median", "insee_taux_pauvrete"],
-  population: ["insee_population_municipale"],
+  population: ["insee_population_municipale", "insee_familles"],
   // Le parc, puis la question qu'on vient poser : combien de logements vides.
   // La part de propriétaires vient après, elle se lit sur un dénominateur.
   logement: ["insee_logements", "insee_logements_vacants"],

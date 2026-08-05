@@ -27,6 +27,27 @@ REPRISES = 8
 # passé ce délai, la connexion est morte et il vaut mieux reprendre.
 LECTURE = 60.0
 
+# Et pour l'établir, cette connexion. Un serveur qui n'a pas décroché en trente
+# secondes ne décrochera pas : laisser le délai du fichier — parfois un quart
+# d'heure — s'appliquer aussi à la connexion transformerait huit reprises en
+# deux heures d'attente.
+CONNEXION = 30.0
+
+
+def _delais(timeout: float) -> "httpx.Timeout":
+    """Délais par opération, jamais par fichier.
+
+    Le budget que passe un connecteur décrit le téléchargement entier ; httpx,
+    lui, ne connaît que des délais par opération. Les confondre fait attendre
+    une connexion morte aussi longtemps qu'un fichier de cent mégaoctets.
+    """
+    return httpx.Timeout(
+        connect=CONNEXION,
+        read=min(timeout, LECTURE),
+        write=min(timeout, LECTURE),
+        pool=min(timeout, LECTURE),
+    )
+
 
 class Tronque(RuntimeError):
     """Le serveur a rendu moins d'octets qu'il n'en avait annoncé.
@@ -92,7 +113,9 @@ def _taille_declaree(url: str, headers: dict | None, timeout: float) -> int | No
     marchent.
     """
     try:
-        reponse = httpx.head(url, headers=headers, timeout=timeout, follow_redirects=True)
+        reponse = httpx.head(
+            url, headers=headers, timeout=_delais(timeout), follow_redirects=True
+        )
     except httpx.TransportError:
         return None
     return None if reponse.status_code >= 400 else _annoncee(reponse)
@@ -124,12 +147,12 @@ def telecharger(
     entetes_base = {"Accept-Encoding": "identity", **(headers or {})}
     tampon = bytearray()
     attendu = _taille_declaree(url, entetes_base, timeout)
-    # Le délai porte sur *un* morceau, pas sur le fichier : une source qui
+    # Le délai porte sur *une* opération, pas sur le fichier : une source qui
     # s'arrête de parler doit être constatée en une minute, pas au bout du
     # budget entier. Sans ce plafond, un flux coupé à mi-parcours immobilise le
     # run cinq minutes avant que la reprise ne démarre — deux tentatives et le
     # téléchargement dépasse le quart d'heure pour quarante mégaoctets.
-    delais = httpx.Timeout(timeout, read=min(timeout, LECTURE))
+    delais = _delais(timeout)
     dernier: Exception | None = None
     for essai in range(essais):
         entetes = dict(entetes_base)

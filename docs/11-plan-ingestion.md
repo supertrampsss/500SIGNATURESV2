@@ -50,7 +50,7 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 | ~~1~~ | ~~`DS_ETAT_CIVIL_DECES_COMMUNES`~~ | **chargé le 4 août** — 652 211 observations, 2008-2025, quatre mailles | commune | 3 Mo |
 | 2 | `DS_RP_POPULATION_COMP` | évolution et structure de la population (indicateurs principaux) | commune | ~12 Mo |
 | ~~3~~ | ~~`DS_RP_LOGEMENT_PRINC`~~ | **chargé le 5 août** — 869 272 observations, huit indicateurs, 2012/2017/2023 | commune | 25 Mo |
-| 4 | `DS_RP_FAMILLE_COMP` | composition des familles | commune | ~8 Mo |
+| ~~4~~ | ~~`DS_RP_FAMILLE_COMP`~~ | **chargé le 5 août** — 470 859 observations, cinq types, 2012/2017/2023 | commune | 14 Mo |
 | ~~5~~ | ~~`DS_BPE`~~ | **chargé le 4 août** — 191 209 observations, sept domaines et leur total | commune | 14 Mo |
 | ~~6~~ | ~~`DS_SIDE_CREA_ENT_COM`~~ | **chargé le 5 août** — 438 019 observations, 2012-2025, quatre mailles | commune | 12 Mo |
 | 7 | `DS_MAR_PACS_DIV_SERIES` | mariages, PACS, divorces | national/région | < 1 Mo |
@@ -163,6 +163,29 @@ Ce jeu ouvre par ailleurs un dénominateur qui manquait : le SSMSI publie son
 taux de cambriolages **pour mille logements**, quand ce site le rapportait aux
 habitants faute d'avoir le parc. La correction est possible maintenant, elle
 n'est pas faite ici.
+
+**Familles — chargé le 5 août.** Même forme que les logements, deux mots piégés
+en plus. Une **famille n'est pas un ménage** : c'est un couple avec ou sans
+enfant, ou un parent seul avec au moins un enfant, sous le même toit. Une
+personne qui vit seule n'en forme pas une — 18,7 millions de familles en 2023
+pour 31,2 millions de résidences principales, et rapporter les unes aux autres
+donne un rapport, pas une part. Et un **« enfant » n'a pas d'âge** : est enfant
+d'une famille la personne qui vit chez un parent sans conjoint ni enfant à elle,
+fût-elle quadragénaire. La ventilation par nombre d'enfants, elle, s'arrête à
+vingt-quatre ans ; elle n'est pas chargée, et les deux comptages ne se recoupent
+pas.
+
+Trois identités bloquantes, refermées sur les 108 659 couples
+territoire-millésime à 1 × 10⁻⁵ près : monoparentales + couples sans enfant +
+couples avec enfant = total ; pères seuls + mères seules = monoparentales ;
+recomposées + traditionnelles = couples avec enfant. La troisième ne porte que
+sur 2023 — la source ne publie la distinction que sur le dernier millésime — et
+le contrôle saute les millésimes où la composante manque plutôt que de crier sur
+une donnée qui n'existe pas. La fiche des familles recomposées le dit, faute de
+quoi l'absence de série passerait pour une disparition.
+
+Vérifié au chargement : Bordeaux 2023, 60 949 familles, dont 18,6 % de
+monoparentales.
 
 ### P0 bis — combler les indicateurs sans comparaison
 
