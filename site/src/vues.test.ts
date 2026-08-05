@@ -51,7 +51,16 @@ test("la maille suit le zoom : régions de loin, communes de près", () => {
   assert.equal(niveauPourZoom(4.5), "region");
   assert.equal(niveauPourZoom(6.2), "departement");
   assert.equal(niveauPourZoom(7.5), "departement");
-  assert.equal(niveauPourZoom(8), "epci");
   assert.equal(niveauPourZoom(9), "commune");
   assert.equal(niveauPourZoom(13), "commune");
+});
+
+test("l'intercommunalité n'est plus une étape du zoom", () => {
+  // Elle l'était entre le département et la commune : en zoomant vers sa ville
+  // on traversait un découpage que personne ne reconnaît. Elle reste publiée et
+  // atteignable par la recherche, qui fixe la maille elle-même — c'est la carte
+  // qu'elle encombrait, pas le site.
+  for (let zoom = 0; zoom < 16; zoom += 0.1) {
+    assert.notEqual(niveauPourZoom(zoom), "epci", `zoom ${zoom.toFixed(1)}`);
+  }
 });
