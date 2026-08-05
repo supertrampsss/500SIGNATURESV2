@@ -7,3 +7,4 @@ __pycache__/
 
 # Scripts de vérification écran : jetables, propres à une session.
 site/shot-*.mjs
+*.egg-info/

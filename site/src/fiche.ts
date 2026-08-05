@@ -594,7 +594,10 @@ const PHARES: Record<string, string[]> = {
   education: ["menj_ecoles", "menj_colleges_lycees"],
   sante: ["drees_apl_generalistes"],
   emploi: ["insee_taux_chomage_localise"],
-  entreprises: ["insee_etablissements_actifs"],
+  // Le stock avant le flux : « combien d'entreprises ici » se répond par les
+  // établissements présents, pas par les immatriculations de l'année — qui,
+  // elles, sont comptées au siège et non là où l'activité se fait.
+  entreprises: ["insee_etablissements_actifs", "insee_creations_entreprises"],
   // Le total plutôt qu'un domaine : « combien d'équipements chez moi »
   // avant « combien de terrains de sport ».
   equipements: ["insee_equipements_total"],

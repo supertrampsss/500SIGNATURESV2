@@ -52,7 +52,7 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 | 3 | `DS_RP_LOGEMENT_PRINC` | logements, résidences principales, vacance | commune | ~12 Mo |
 | 4 | `DS_RP_FAMILLE_COMP` | composition des familles | commune | ~8 Mo |
 | ~~5~~ | ~~`DS_BPE`~~ | **chargé le 4 août** — 191 209 observations, sept domaines et leur total | commune | 14 Mo |
-| 6 | `DS_SIDE_CREA_ENT_COM` | créations d'entreprises | commune | ~4 Mo |
+| ~~6~~ | ~~`DS_SIDE_CREA_ENT_COM`~~ | **chargé le 5 août** — 438 019 observations, 2012-2025, quatre mailles | commune | 12 Mo |
 | 7 | `DS_MAR_PACS_DIV_SERIES` | mariages, PACS, divorces | national/région | < 1 Mo |
 
 **Décès domiciliés — chargé le 4 août.** Deux pièges, tous deux tranchés à la
@@ -92,6 +92,40 @@ le coiffeur : son libellé est celui du producteur, le renommer « services
 publics » ferait dire à la donnée autre chose. Et son domaine « Enseignement »
 n'est pas l'annuaire du ministère, déjà chargé : deux périmètres différents, deux
 indicateurs publiés, aucun agrégé à l'autre.
+
+**Créations d'entreprises — chargé le 5 août.** Le pendant en flux du stock
+d'établissements déjà publié, et il ne se lit pas de la même façon. Le stock
+compte des **unités locales** là où elles travaillent ; ce flux compte des
+**unités légales** là où elles sont immatriculées, c'est-à-dire au siège. Une
+société de domiciliation suffit à faire d'une commune un haut lieu de la
+création : Paris pèse 100 973 des 1 111 238 immatriculations de France en 2024,
+neuf pour cent à elle seule. La fiche publique le dit en première phrase.
+
+Le jeu croise secteur A10 et forme légale, et sert le détail *avec* les totaux
+sur la même dimension : ne charger que le croisement `_T`/`_T` n'est pas une
+simplification mais la condition pour ne pas compter chaque immatriculation dix
+fois. Le champ exclut l'agriculture — c'est la source qui le dit, et le total en
+hérite. Onze découpages sont servis ; quatre sont chargés, et les arrondissements
+municipaux de Paris, Lyon et Marseille sont écartés parce qu'ils sont déjà
+comptés dans leur commune.
+
+Le contrôle bloquant reprend celui des décès : somme des communes égale total
+France entière, exercice par exercice. Vérifié sur les **quatorze** exercices,
+à l'unité près — dont 1 111 238 en 2024 et 1 165 795 en 2025. Le total à retenir
+est `F` (France entière) et non `FM` (métropolitaine), plus bas de trente mille
+créations, puisque les communes chargées incluent les départements d'outre-mer.
+Comme pour les décès, le statut `W` marque une commune nouvelle qui reçoit les
+immatriculations d'une déléguée : chargée et signalée, pas écartée.
+
+Deux réserves sont écrites dans la fiche technique parce qu'elles interdisent
+une lecture qu'on ferait spontanément. Les entrepreneurs individuels font 74,4 %
+des immatriculations de 2024, mais la forme légale ne sépare pas le
+micro-entrepreneur du reste : ce jeu ne permet pas de dire ce que le régime doit
+à lui-même dans le doublement de la série entre 2012 et 2025. Et au communal,
+l'évolution d'une année sur l'autre est très dispersée — mesurée sur les 291
+communes d'au moins 500 créations en 2023, elle va de −34 % à +42 % en 2024
+autour d'une médiane de +4 % : un siège qui déménage suffit à faire bouger le
+chiffre.
 
 ### P0 bis — combler les indicateurs sans comparaison
 
