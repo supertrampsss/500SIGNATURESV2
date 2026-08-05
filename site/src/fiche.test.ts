@@ -13,7 +13,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { lectureDeDensite, positionDansGroupe } from "./fiche.ts";
+import { lectureDeDensite, positionDansGroupe, valeurComparable } from "./fiche.ts";
 
 const TERRITOIRE = {
   nom: "Bordeaux",
@@ -104,5 +104,58 @@ test("sans quartiles ni valeur, aucune position n'est affirmée", () => {
   assert.equal(
     positionDansGroupe(TERRITOIRE, { n: 5, q1: 1, mediane: 2, q3: 3 }, undefined, CRITERES),
     "",
+  );
+});
+
+// La Brède, Gironde, exercice 2025 : le cas mesuré. La population municipale du
+// recensement et la population de référence de l'OFGL diffèrent de 12 % ; le
+// quartile de la commune dans son groupe en dépend.
+const LA_BREDE = {
+  nom: "La Brède",
+  population: 4_386,
+  series: {
+    ofgl_depenses_fonctionnement: { "2025": 4_385_666.73 },
+    ofgl_population_reference: { "2025": 4_941 },
+  },
+  drapeaux: { tranche_population: "3", rural: "Non", outre_mer: "Non" },
+} as never;
+
+test("la valeur comparée se rapporte à la population de l'OFGL, pas à celle du recensement", () => {
+  // 4 385 666,73 / 4 941 = 888 €. Avec la population municipale (4 386) :
+  // 1 000 €. Le groupe de La Brède compte 949 communes, premier quartile 775 €
+  // et médiane 916 € : 888 € la place dans la moitié centrale, 1 000 € au-dessus
+  // de la médiane. Une commune sur douze en Gironde changeait ainsi de quartile.
+  const valeur = valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2025", {
+    base: "par_habitant",
+  });
+  assert.equal(Math.round(valeur as number), 888);
+});
+
+test("un effectif se compare pour mille habitants, un taux tel qu'il est publié", () => {
+  const pourMille = valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2025", {
+    base: "pour_mille",
+  });
+  assert.equal(Math.round(pourMille as number), 887_607);
+  const telQuel = valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2025", {
+    base: "valeur",
+  });
+  assert.equal(telQuel, 4_385_666.73);
+});
+
+test("sans population de référence, la commune n'est pas placée", () => {
+  // La publication l'écarte du calcul des quartiles : la placer quand même
+  // reviendrait à la comparer à un groupe dont elle ne fait pas partie. Sa
+  // population municipale ne peut pas servir de substitut — c'est justement
+  // l'erreur qu'on répare.
+  const valeur = valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2024", {
+    base: "par_habitant",
+  });
+  assert.equal(valeur, undefined);
+});
+
+test("un indicateur absent de la commune ne produit aucune position", () => {
+  assert.equal(
+    valeurComparable(LA_BREDE, "insee_logements_vacants", "2025", { base: "pour_mille" }),
+    undefined,
   );
 });

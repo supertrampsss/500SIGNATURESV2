@@ -31,3 +31,48 @@ export const NIVEAU_PAR_ZOOM: { jusqua: number; niveau: string }[] = [
 export function niveauPourZoom(zoom: number): string {
   return (NIVEAU_PAR_ZOOM.find((p) => zoom < p.jusqua) as { niveau: string }).niveau;
 }
+
+/** Les mailles que le site sait nommer et ouvrir, du plus fin au plus large.
+ *
+ *  L'ordre est aussi celui des suggestions de recherche : on cherche presque
+ *  toujours une commune. */
+export const NIVEAUX_RECHERCHABLES: Record<string, string> = {
+  commune: "Commune",
+  departement: "Département",
+  region: "Région",
+};
+
+export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };
+
+/**
+ * Les huit suggestions d'une frappe, dans l'ordre où elles s'affichent.
+ *
+ * Le filtre sur les mailles connues n'est pas une précaution de principe. Le
+ * site et les données ne se déploient pas ensemble : entre le déploiement qui
+ * retire l'intercommunalité et la publication qui la purge, l'index de
+ * recherche continue de la contenir. Sans ce filtre, taper « Bordeaux » aurait
+ * proposé « Bordeaux Métropole — epci », en clair, et l'ouvrir aurait affiché
+ * une fiche dont le site ne sait plus dire ce qu'elle est. Le même filtre
+ * protège l'inverse : une donnée en avance sur le code.
+ */
+export function suggestions(
+  index: EntreeRecherche[],
+  requete: string,
+  niveauAffiche: string,
+  combien = 8,
+): EntreeRecherche[] {
+  const rang = Object.keys(NIVEAUX_RECHERCHABLES);
+  const cherche = requete.trim().toLowerCase();
+  return index
+    .filter((e) => e.l in NIVEAUX_RECHERCHABLES)
+    .filter((e) => e.n.toLowerCase().startsWith(cherche) || e.c === cherche)
+    .sort(
+      (a, b) =>
+        // La maille affichée d'abord : chercher « Gironde » en vue
+        // départementale doit proposer le département avant la commune.
+        Number(b.l === niveauAffiche) - Number(a.l === niveauAffiche) ||
+        rang.indexOf(a.l) - rang.indexOf(b.l) ||
+        a.n.localeCompare(b.n, "fr"),
+    )
+    .slice(0, combien);
+}

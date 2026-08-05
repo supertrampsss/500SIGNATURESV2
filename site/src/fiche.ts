@@ -1085,6 +1085,41 @@ export function lectureDeDensite(
 }
 
 /**
+ * La valeur d'une commune, ramenée à la base sur laquelle les quartiles de son
+ * groupe ont été calculés.
+ *
+ * Le dénominateur est **la population de référence de l'OFGL de l'exercice**,
+ * jamais la population municipale du recensement. Ce sont deux nombres
+ * différents pour la même commune la même année — définitions et millésimes
+ * distincts — et la publication calcule les quartiles avec le premier. Le site
+ * plaçait la commune avec le second : deux grandeurs sur un seul axe.
+ *
+ * L'écart n'est pas théorique. Sur les 534 communes de la Gironde en 2025, 43
+ * — une sur douze — changeaient de quartile selon le dénominateur retenu. La
+ * Brède passait du deuxième au troisième : 888 € par habitant contre 1 000 €.
+ * Sur Bordeaux l'écart était de quatre euros, assez petit pour n'avoir jamais
+ * alerté.
+ *
+ * -> undefined quand la commune n'a pas de population de référence pour cet
+ * exercice : la publication l'écarte alors du calcul des quartiles, et la
+ * placer quand même serait la comparer à un groupe dont elle ne fait pas
+ * partie.
+ */
+export function valeurComparable(
+  territoire: Territoire,
+  indicateur: string,
+  periode: string,
+  base: { base: "par_habitant" | "pour_mille" | "valeur" } | undefined,
+): number | undefined {
+  const brut = territoire.series[indicateur]?.[periode];
+  if (brut === undefined) return undefined;
+  if (base?.base === "valeur") return brut;
+  const habitants = territoire.series["ofgl_population_reference"]?.[periode];
+  if (!habitants) return undefined;
+  return (brut / habitants) * (base?.base === "pour_mille" ? 1000 : 1);
+}
+
+/**
  * Position d'une commune parmi ses semblables. Le groupe est défini par des
  * critères publiés par l'OFGL, affichés avec le résultat : sans eux, « communes
  * comparables » ne veut rien dire. Aucun classement, aucun jugement — une

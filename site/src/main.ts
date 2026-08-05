@@ -10,7 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { afficherFiche, positionDansGroupe } from "./fiche.ts";
+import { afficherFiche, positionDansGroupe, valeurComparable } from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
@@ -29,7 +29,7 @@ import {
   populationDeReference,
   quantiles,
 } from "./echelle.ts";
-import { niveauPourZoom } from "./mailles.ts";
+import { NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions } from "./mailles.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -130,13 +130,30 @@ let exportCourant: { lignes: LigneExport[]; parHabitant: boolean } = {
   parHabitant: false,
 };
 
+function niveauConnu(demande: string | null): string {
+  return demande && demande in NIVEAUX_RECHERCHABLES ? demande : "region";
+}
+
 function lireUrl(): Etat {
   const p = new URLSearchParams(location.search);
   return {
     theme: p.get("theme") ?? "finances_locales",
     indicateur: p.get("indicateur") ?? "ofgl_depenses_fonctionnement",
-    niveau: p.get("niveau") ?? "region",
-    niveauAuto: true,
+    // Une maille inconnue est ramenée à la maille par défaut plutôt que prise
+    // au mot. Des liens `?niveau=epci` ont circulé pendant les mois où
+    // l'intercommunalité était publiée ; les honorer aujourd'hui ouvrirait une
+    // carte sans couche et une fiche sans intitulé, sans qu'aucune erreur ne
+    // le dise.
+    niveau: niveauConnu(p.get("niveau")),
+    // Le zoom ne commande la maille que si le lien n'en nomme aucune. Un lien
+    // partagé porte `niveau=commune&territoire=33063` ; le laisser en automatique
+    // faisait basculer la maille sur celle du cadrage d'ouverture — national,
+    // donc régions — avant même que la fiche ne soit demandée. Le lot des
+    // communes n'était alors pas chargé, `entites["33063"]` valait `undefined`,
+    // et le panneau affichait « Choisissez un territoire » sans rien dire.
+    // Quand elle apparaissait quand même, la fiche s'intitulait « Bordeaux —
+    // Région » et se comparait à la médiane des régions de France.
+    niveauAuto: !p.get("niveau"),
     // L'année n'est plus un choix : c'est toujours la plus récente publiée
     // pour l'indicateur et la maille regardés. L'affichage non plus — le
     // panneau montre désormais les deux lectures (par habitant ET total)
@@ -587,20 +604,12 @@ async function montrerFiche(code: string): Promise<void> {
             .join("|")
         ]
       : undefined;
-  const brut = territoire.series[etat.indicateur]?.[etat.periode];
   // Ce qui se compare au groupe dépend de la grandeur : une dépense et un
   // nombre de logements se rapportent aux habitants, une médiane de revenus et
   // un taux se comparent tels qu'ils sont publiés. C'est la publication qui le
   // dit, indicateur par indicateur — le site n'a pas à le deviner.
   const base = groupes?.bases?.[etat.indicateur];
-  const valeurComparee =
-    brut === undefined
-      ? undefined
-      : base?.base === "valeur"
-        ? brut
-        : territoire.population
-          ? (brut / territoire.population) * (base?.base === "pour_mille" ? 1000 : 1)
-          : undefined;
+  const valeurComparee = valeurComparable(territoire, etat.indicateur, etat.periode, base);
 
   // Rang du territoire dans la couche affichée : « 8 512ᵉ sur 34 772 » situe
   // un chiffre que sa seule valeur ne situe pas. Calculé sur les valeurs déjà
@@ -981,38 +990,22 @@ function brancherCommandes(): void {
   // suit désormais le zoom, taper « Lyon » sur une vue nationale ne trouvait
   // rien — sans un mot d'explication — alors que le champ promet « une
   // commune, un département ». Elle cherche maintenant partout, dit à quelle
-  // maille appartient chaque réponse, et y emmène.
-  const NIVEAUX_RECHERCHE: Record<string, string> = {
-    commune: "Commune",
-    departement: "Département",
-    region: "Région",
-  };
-  const RANG_NIVEAU = ["commune", "departement", "region"];
+  // maille appartient chaque réponse, et y emmène. Le tri et le filtre vivent
+  // dans `mailles.ts`, où ils sont testables.
   champ.addEventListener("input", async () => {
     const requete = champ.value.trim().toLowerCase();
     if (requete.length < 2) {
       liste.hidden = true;
       return;
     }
-    const index = await donnees.indexRecherche();
-    const trouves = index
-      .filter((e) => e.n.toLowerCase().startsWith(requete) || e.c === requete)
-      // La maille affichée d'abord, puis communes, départements, régions : on
-      // cherche presque toujours une commune.
-      .sort(
-        (a, b) =>
-          Number(b.l === etat.niveau) - Number(a.l === etat.niveau) ||
-          RANG_NIVEAU.indexOf(a.l) - RANG_NIVEAU.indexOf(b.l) ||
-          a.n.localeCompare(b.n, "fr"),
-      )
-      .slice(0, 8);
+    const trouves = suggestions(await donnees.indexRecherche(), requete, etat.niveau);
     liste.hidden = false;
     liste.innerHTML = trouves.length
       ? trouves
           .map(
             (e) =>
               `<li><button type="button" data-code="${e.c}" data-niveau="${e.l}">${e.n} <span>${
-                NIVEAUX_RECHERCHE[e.l] ?? e.l
+                NIVEAUX_RECHERCHABLES[e.l]
               }</span></button></li>`,
           )
           .join("")
