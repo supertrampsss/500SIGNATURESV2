@@ -209,6 +209,17 @@ UNITES_DE_COMPTE = {
 }
 
 
+def de(mot: str) -> str:
+    """« nombre d'infractions », pas « nombre de infractions ».
+
+    Le libellé de chaque classe se construit à partir de son unité de compte, et
+    la seule qui commence aujourd'hui par une voyelle produisait un titre
+    fautif, affiché tel quel sur la fiche. La règle vaut mieux que le cas
+    particulier : le SSMSI peut ajouter une classe demain.
+    """
+    return f"d'{mot}" if mot[:1].lower() in "aeiouyàâéèêëîïôûù" else f"de {mot}"
+
+
 # Le SSMSI écrit son unité au singulier, dans sa forme à lui. Ce qui s'affiche
 # est du français : « personnes mises en cause », pas « Mis en causes ».
 PLURIELS = {
@@ -272,7 +283,7 @@ def declarer(conn) -> None:
             for indicateur, libelle_complet, unite, note in (
                 (indicateur_taux(classe), libelle, UNITES_TAUX[denominateur],
                  f"{comptes} pour {rapporte}"),
-                (indicateur_nombre(classe), f"{libelle} — nombre de {comptes}",
+                (indicateur_nombre(classe), f"{libelle} — nombre {de(comptes)}",
                  "count", comptes),
             ):
                 definition = curseur.execute(

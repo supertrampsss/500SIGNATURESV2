@@ -240,3 +240,18 @@ def test_un_changement_d_unite_chez_le_producteur_arrete_le_chargement():
         securite.lire([entete, ligne], "departement")
     assert "Cambriolages de logement" in str(erreur.value)
     assert "Victime" in str(erreur.value)
+
+
+def test_le_libelle_elide_devant_une_voyelle():
+    """« Cambriolages de logement — nombre de infractions » s'affichait tel quel
+    sur la fiche. Le libellé se construit depuis l'unité de compte du SSMSI, et
+    « infractions » est la seule qui commence par une voyelle — aujourd'hui."""
+    assert securite.de("infractions") == "d'infractions"
+    assert securite.de("victimes") == "de victimes"
+    assert securite.de("véhicules") == "de véhicules"
+    assert securite.de("personnes mises en cause") == "de personnes mises en cause"
+    # Toutes les unités du jeu passent par là : aucune ne doit produire un
+    # libellé fautif.
+    for unite in securite.UNITES_DE_COMPTE.values():
+        rendu = securite.de(securite.PLURIELS[unite])
+        assert rendu.startswith("de ") or rendu.startswith("d'"), rendu

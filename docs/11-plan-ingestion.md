@@ -167,10 +167,12 @@ source qui le décide.
 Vérifié au chargement : Bordeaux 2023, 171 777 logements, 6,7 % de vacance,
 33,0 % de propriétaires occupants, 13,9 % de parc social.
 
-Ce jeu ouvre par ailleurs un dénominateur qui manquait : le SSMSI publie son
-taux de cambriolages **pour mille logements**, quand ce site le rapportait aux
-habitants faute d'avoir le parc. La correction est possible maintenant, elle
-n'est pas faite ici.
+Un ajout envisagé ne l'a pas été, après vérification : le taux de cambriolages
+pour mille logements **existe déjà** sur le site — le SSMSI le publie lui-même
+avec ce dénominateur, sur dix millésimes, et il est chargé depuis le 4 août. Le
+recalculer à partir du parc du recensement l'aurait remplacé par une série de
+deux points, 2017 et 2023, puisque les millésimes doivent se correspondre. Le
+dénominateur du producteur reste le bon.
 
 **Familles — chargé le 5 août.** Même forme que les logements, deux mots piégés
 en plus. Une **famille n'est pas un ménage** : c'est un couple avec ou sans
