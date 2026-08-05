@@ -20,10 +20,23 @@ const NIVEAUX: Record<string, string> = {
   pays: "Niveau national",
 };
 
+/**
+ * Échappement pur, sans DOM.
+ *
+ * La version précédente passait par `document.createElement`, ce qui avait deux
+ * conséquences. Elle rendait ce module intestable hors navigateur — les
+ * fonctions de rendu de ce fichier sont pourtant des fonctions pures, et c'est
+ * ainsi que le reste du site les teste. Et `textContent` vers `innerHTML`
+ * n'échappe pas les guillemets, alors qu'`echapper` est interpolé ici dans un
+ * attribut `title="…"` : le motif est faux même si les valeurs qui y passent
+ * aujourd'hui sont des millésimes. `questions.ts` et `conjoncture.ts`
+ * échappaient déjà ainsi.
+ */
 function echapper(texte: string): string {
-  const noeud = document.createElement("span");
-  noeud.textContent = texte;
-  return noeud.innerHTML;
+  return texte.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string,
+  );
 }
 
 /**
@@ -858,9 +871,16 @@ function syntheseTerritoire(
       );
       if (typeof mesure === "string") continue;
       const { valeur, ratio, comparaisons } = mesure;
-      const situation = lecture(valeur, comparaisons, (v) =>
-        formater(v, indicateur.unite, ratio),
-      );
+      // Un effectif ne se compare pas d'une maille à l'autre : « 171 777
+      // logements » face à un département ne dirait que la différence de
+      // taille, et `lecture` rend donc une phrase vide. Sa densité, elle, se
+      // compare — c'est même la seule grandeur qui le fasse, et la ligne
+      // détaillée l'affiche déjà. Elle manquait ici : huit des quatorze lignes
+      // de l'ouverture n'étaient qu'un nombre nu, sur une fiche dont tout
+      // l'objet est de dire si un chiffre est beaucoup.
+      const situation =
+        lecture(valeur, comparaisons, (v) => formater(v, indicateur.unite, ratio)) ||
+        lectureDeDensite(mesure.densite);
       // « Population — population municipale » : quand le libellé de la mesure
       // reprend déjà celui du thème, le thème ne s'écrit pas deux fois.
       const redite = indicateur.libelle
@@ -1043,6 +1063,29 @@ export function afficherFiche(
 }
 
 /**
+ * « 641 pour 1 000 habitants, contre 505 pour son département. »
+ *
+ * La lecture de repli d'un effectif, pour l'ouverture de la fiche. Elle ne dit
+ * rien de plus que la ligne détaillée du même indicateur — c'est la règle de la
+ * synthèse : ne rien affirmer qui ne soit ailleurs dans le panneau, chiffre à
+ * l'appui.
+ *
+ * Elle ne remplace jamais une comparaison directe : elle n'apparaît que là où
+ * il n'y en a pas, c'est-à-dire sur les grandeurs qui ne se comparent qu'une
+ * fois rapportées aux habitants.
+ */
+export function lectureDeDensite(
+  densite: { valeur: number; comparaisons: { libelle: string; valeur: number }[] } | null,
+): string {
+  if (!densite) return "";
+  const repere = densite.comparaisons.find((c) => Number.isFinite(c.valeur));
+  if (!repere) return "";
+  return `${densiteLisible(densite.valeur)}, contre ${densiteLisible(repere.valeur)} pour ${
+    repere.libelle
+  }.`;
+}
+
+/**
  * Position d'une commune parmi ses semblables. Le groupe est défini par des
  * critères publiés par l'OFGL, affichés avec le résultat : sans eux, « communes
  * comparables » ne veut rien dire. Aucun classement, aucun jugement — une
@@ -1051,10 +1094,26 @@ export function afficherFiche(
 export function positionDansGroupe(
   territoire: Territoire,
   quartiles: { n: number; q1: number; mediane: number; q3: number } | undefined,
-  valeurParHabitant: number | undefined,
+  valeurComparee: number | undefined,
   criteres: string[],
+  /** Ce à quoi se rapportent les quartiles. Une dépense et un nombre de
+   *  logements se comparent à l'habitant ; une médiane de revenus et un taux de
+   *  pauvreté se comparent tels qu'ils sont publiés. Sans cette base, les trois
+   *  quartiles s'affichaient en euros par habitant quoi qu'ils mesurent —
+   *  c'est ainsi qu'un taux de pauvreté de 11 % se serait lu « 11 € ». */
+  base: { base: "par_habitant" | "pour_mille" | "valeur"; unite: string } = {
+    base: "par_habitant",
+    unite: "EUR",
+  },
 ): string {
-  if (!quartiles || valeurParHabitant === undefined) return "";
+  if (!quartiles || valeurComparee === undefined) return "";
+  // Trois écritures, parce que trois grandeurs. Un montant se lit par habitant,
+  // un effectif pour mille habitants — « 0,04 logement vacant par habitant » ne
+  // se lit pas —, et le reste dans son unité publiée.
+  const ecrire =
+    base.base === "pour_mille"
+      ? densiteLisible
+      : (v: number) => formater(v, base.unite, base.base === "par_habitant");
   const drapeaux = (territoire.drapeaux ?? {}) as Record<string, string>;
   const lisible: Record<string, string> = {
     tranche_population: "strate de population",
@@ -1065,9 +1124,9 @@ export function positionDansGroupe(
     .map((c) => `${lisible[c] ?? c} : ${drapeaux[c] ?? "non renseigné"}`)
     .join(" · ");
   const situation =
-    valeurParHabitant < quartiles.q1
+    valeurComparee < quartiles.q1
       ? "sous le quart inférieur"
-      : valeurParHabitant > quartiles.q3
+      : valeurComparee > quartiles.q3
         ? "au-dessus du quart supérieur"
         : "dans la moitié centrale";
   // Compact, parce que ce bloc est remonté en tête de fiche : la phrase, la
@@ -1078,10 +1137,10 @@ export function positionDansGroupe(
     <p class="position__phrase">Parmi <strong>${quartiles.n}</strong> communes semblables,
       celle-ci se situe <strong>${situation}</strong>.</p>
     <ul class="quartiles">
-      <li><span>1<sup>er</sup> quartile</span><strong>${formater(quartiles.q1, "EUR", true)}</strong></li>
-      <li><span>Médiane</span><strong>${formater(quartiles.mediane, "EUR", true)}</strong></li>
-      <li><span>3<sup>e</sup> quartile</span><strong>${formater(quartiles.q3, "EUR", true)}</strong></li>
-      <li class="quartiles__ici"><span>Ici</span><strong>${formater(valeurParHabitant, "EUR", true)}</strong></li>
+      <li><span>1<sup>er</sup> quartile</span><strong>${ecrire(quartiles.q1)}</strong></li>
+      <li><span>Médiane</span><strong>${ecrire(quartiles.mediane)}</strong></li>
+      <li><span>3<sup>e</sup> quartile</span><strong>${ecrire(quartiles.q3)}</strong></li>
+      <li class="quartiles__ici"><span>Ici</span><strong>${ecrire(valeurComparee)}</strong></li>
     </ul>
     <details class="repli repli--position">
       <summary>Ce que cette comparaison ne dit pas</summary>

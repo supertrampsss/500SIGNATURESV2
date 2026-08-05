@@ -590,8 +590,19 @@ async function montrerFiche(code: string): Promise<void> {
         ]
       : undefined;
   const brut = territoire.series[etat.indicateur]?.[etat.periode];
-  const parHabitant =
-    brut !== undefined && territoire.population ? brut / territoire.population : undefined;
+  // Ce qui se compare au groupe dépend de la grandeur : une dépense et un
+  // nombre de logements se rapportent aux habitants, une médiane de revenus et
+  // un taux se comparent tels qu'ils sont publiés. C'est la publication qui le
+  // dit, indicateur par indicateur — le site n'a pas à le deviner.
+  const base = groupes?.bases?.[etat.indicateur];
+  const valeurComparee =
+    brut === undefined
+      ? undefined
+      : base?.base === "valeur"
+        ? brut
+        : territoire.population
+          ? (brut / territoire.population) * (base?.base === "pour_mille" ? 1000 : 1)
+          : undefined;
 
   // Rang du territoire dans la couche affichée : « 8 512ᵉ sur 34 772 » situe
   // un chiffre que sa seule valeur ne situe pas. Calculé sur les valeurs déjà
@@ -607,7 +618,7 @@ async function montrerFiche(code: string): Promise<void> {
     principal: etat.indicateur,
     rang,
     comparaison: groupes
-      ? positionDansGroupe(territoire, quartiles, parHabitant, groupes.criteres)
+      ? positionDansGroupe(territoire, quartiles, valeurComparee, groupes.criteres, base)
       : "",
     // Tous les thèmes, plus seulement celui de la carte : le panneau est
     // désormais le seul endroit où l'on choisit — il doit tout montrer.

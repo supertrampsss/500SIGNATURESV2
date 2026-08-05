@@ -103,6 +103,11 @@ export const indexRecherche = () => lire<EntreeRecherche[]>("recherche.json");
 
 export type Comparaisons = {
   criteres: string[];
+  /** Ce à quoi se rapportent les quartiles d'un indicateur : une dépense ou un
+   *  effectif se comparent à l'habitant, une médiane ou un taux se comparent
+   *  tels qu'ils sont publiés. Sans cette indication, l'affichage formaterait
+   *  un taux de pauvreté en euros par habitant. */
+  bases?: Record<string, { base: "par_habitant" | "pour_mille" | "valeur"; unite: string }>;
   groupes: Record<string, Record<string, Record<string, Quartiles>>>;
 };
 export type Quartiles = { n: number; q1: number; mediane: number; q3: number };

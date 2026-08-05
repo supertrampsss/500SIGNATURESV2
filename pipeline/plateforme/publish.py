@@ -224,50 +224,94 @@ CRITERES_GROUPE = ["tranche_population", "rural", "outre_mer"]
 def comparaisons(conn) -> dict:
     """Quartiles par groupe de communes semblables, calculés à la publication.
 
-    Répondre à « ma commune dépense-t-elle plus que les communes comparables ? »
+    Répondre à « ma commune est-elle comme les communes qui lui ressemblent ? »
     suppose un groupe défini publiquement. Les critères viennent de l'OFGL, pas
-    d'un découpage maison, et sont affichés avec le résultat. Les montants sont
-    ramenés par habitant : comparer des totaux entre communes de tailles
-    différentes n'aurait aucun sens.
+    d'un découpage maison, et sont affichés avec le résultat. C'est le repère le
+    plus juste dont dispose ce site : la médiane des communes de la région met
+    Bordeaux et un village de deux cents habitants dans le même sac, la strate
+    « ville de deux cent mille habitants, urbaine, métropole » compare ce qui est
+    comparable.
+
+    **Ce qui se divise par la population, et ce qui ne se divise pas.** Une
+    dépense, un effectif de logements, un nombre de chômeurs sont des grandeurs
+    qui s'additionnent : les comparer entre communes suppose de les rapporter aux
+    habitants. Une médiane de niveau de vie, un taux d'imposition, un taux de
+    cambriolage ne s'additionnent pas — ils se comparent tels qu'ils sont
+    publiés. C'est la colonne `additive` du catalogue qui tranche, et non l'unité.
+
+    Trois bases, donc. Un montant additif se rapporte à **l'habitant** — c'est
+    l'usage des finances locales. Un effectif additif se rapporte à **mille
+    habitants**, comme partout ailleurs sur ce site : quarante logements vacants
+    pour mille habitants se lit, 0,04 par habitant ne se lit pas. Le reste se
+    compare **tel quel**.
+
+    La règle précédente était l'unité : `unit = 'EUR'`. Elle laissait entrer le
+    niveau de vie médian, qui est en euros sans être additif, et le divisait par
+    le nombre d'habitants. Les quartiles publiés du 5 août donnaient, pour la
+    strate des communes rurales de trois à cinq mille habitants, « médiane
+    31,76 € » — un niveau de vie médian divisé par une population, c'est-à-dire
+    rien. Elle écartait dans le même mouvement tout ce qui n'est pas de l'argent :
+    le logement vacant, le chômage, les familles monoparentales, les diplômes
+    n'avaient pas de groupe de comparaison, alors que ce sont les questions où il
+    manque le plus.
+
+    -> {"criteres": [...], "bases": {indicateur: {"base", "unite"}},
+        "groupes": {indicateur: {période: {groupe: {n, q1, mediane, q3}}}}}
+
+    `bases` dit, pour chaque indicateur, si les quartiles sont par habitant ou
+    dans l'unité publiée : sans lui, l'affichage ne peut pas les formater sans
+    se tromper d'unité.
     """
     lignes = conn.execute(
         f"""
         with base as (
-            select o.indicator_id, o.period,
+            select o.indicator_id, o.period, i.additive, i.unit,
                    concat_ws('|', {", ".join(
                        f"json_extract_string(g.flags, '$.{c}')" for c in CRITERES_GROUPE)})
                      as groupe,
-                   o.value / nullif(pop.value, 0) as par_habitant
+                   case when not i.additive then o.value
+                        when i.unit = 'EUR' then o.value / nullif(pop.value, 0)
+                        else o.value / nullif(pop.value, 0) * 1000
+                   end as compare
             from core.observations o
             join core.indicators i using (indicator_id)
             join geo.geography_reference g
               on g.geo_level = o.geo_level and g.geo_code = o.geo_code
              and g.vintage = o.geo_vintage
-            join core.observations pop
+            left join core.observations pop
               on pop.indicator_id = 'ofgl_population_reference'
              and pop.geo_level = o.geo_level and pop.geo_code = o.geo_code
              and pop.period = o.period
-            where o.geo_level = 'commune' and i.published and i.unit = 'EUR'
+            where o.geo_level = 'commune' and i.published
               and o.value_status = 'normal'
               and json_extract_string(g.flags, '$.tranche_population') is not null
         )
-        select indicator_id, period, groupe, count(*),
-               percentile_cont(0.25) within group (order by par_habitant),
-               percentile_cont(0.5) within group (order by par_habitant),
-               percentile_cont(0.75) within group (order by par_habitant)
-        from base where par_habitant is not null
-        group by 1, 2, 3 having count(*) >= 20
+        select indicator_id, period, groupe, additive, unit, count(*),
+               percentile_cont(0.25) within group (order by compare),
+               percentile_cont(0.5) within group (order by compare),
+               percentile_cont(0.75) within group (order by compare)
+        from base where compare is not null
+        group by 1, 2, 3, 4, 5 having count(*) >= 20
         """
     ).fetchall()
     resultat: dict = defaultdict(lambda: defaultdict(dict))
-    for indicateur, periode, groupe, effectif, q1, mediane, q3 in lignes:
+    bases: dict = {}
+    for indicateur, periode, groupe, additif, unite, effectif, q1, mediane, q3 in lignes:
         resultat[indicateur][periode][groupe] = {
             "n": effectif,
             "q1": round(float(q1), 2),
             "mediane": round(float(mediane), 2),
             "q3": round(float(q3), 2),
         }
-    return {"criteres": CRITERES_GROUPE, "groupes": resultat}
+        bases[indicateur] = {
+            "base": (
+                "valeur" if not additif
+                else "par_habitant" if unite == "EUR"
+                else "pour_mille"
+            ),
+            "unite": unite,
+        }
+    return {"criteres": CRITERES_GROUPE, "bases": bases, "groupes": resultat}
 
 
 ETAPES_BUDGET = {
