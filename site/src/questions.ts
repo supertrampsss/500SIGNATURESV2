@@ -76,6 +76,40 @@ export const QUESTIONS: Question[] = [
     cible: "?theme=education&indicateur=menj_ecoles&niveau=commune",
   },
   {
+    question: "Combien de logements vides dans ma commune ?",
+    reponse:
+      "Les logements inoccupés au recensement — proposés à la vente ou à la" +
+      " location, en attente d'occupation, ou gardés vides par leur propriétaire." +
+      " Ce n'est pas le comptage fiscal de la DGFiP, qui part des locaux non" +
+      " soumis à taxe d'habitation et donne un autre chiffre.",
+    cible: "?theme=logement&indicateur=insee_logements_vacants&niveau=commune",
+  },
+  {
+    question: "Qui habite ma commune ?",
+    reponse:
+      "La répartition des habitants par catégorie sociale — cadres, employés," +
+      " ouvriers, retraités — et par tranche d'âge. La statistique commence à" +
+      " quinze ans : ce n'est pas la population entière, et il y manque tous les" +
+      " enfants.",
+    cible: "?theme=professions&indicateur=insee_pcs_cadres&niveau=commune",
+  },
+  {
+    question: "Combien de familles élèvent seules leurs enfants ?",
+    reponse:
+      "Les familles monoparentales, commune par commune, sur trois millésimes du" +
+      " recensement. Est enfant celui qui vit chez un parent sans conjoint ni" +
+      " enfant à lui, quel que soit son âge : un adulte resté au domicile compte.",
+    cible: "?theme=famille&indicateur=insee_familles_monoparentales&niveau=commune",
+  },
+  {
+    question: "Se marie-t-on encore ?",
+    reponse:
+      "Mariages, pacs et taux de nuptialité par département, depuis 1975 pour les" +
+      " mariages. Ils sont comptés là où les époux habitent et non là où la" +
+      " cérémonie a eu lieu ; les pacs s'arrêtent en 2016 hors France entière.",
+    cible: "?theme=famille&indicateur=insee_mariages&niveau=departement",
+  },
+  {
     question: "Ma commune dépense-t-elle plus que les communes comparables ?",
     reponse:
       "Sa position parmi les communes de mêmes critères, publiés avec le résultat." +

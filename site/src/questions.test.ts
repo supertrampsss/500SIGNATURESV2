@@ -65,3 +65,23 @@ test("le rendu échappe le contenu et garde l'ordre déclaré", () => {
   assert.match(html, /A &lt;b&gt;/);
   assert.ok(html.indexOf("A &lt;b&gt;") < html.indexOf(">B<"));
 });
+
+test("les questions du recensement portent la réserve qui change la lecture", () => {
+  // Le vacant du recensement n'est pas celui de la DGFiP : les deux existent,
+  // ils ne donnent pas le même nombre, et l'un pris pour l'autre fait dire au
+  // territoire l'inverse de ce qu'il vit.
+  const vides = QUESTIONS.find((q) => q.question.includes("logements vides"));
+  assert.match(vides!.reponse, /DGFiP/);
+  // La catégorie sociale n'est pas définie sous quinze ans : cette population
+  // n'est pas celle du site, et le dire évite de la prendre pour dénominateur.
+  const habitants = QUESTIONS.find((q) => q.question.includes("Qui habite"));
+  assert.match(habitants!.reponse, /quinze ans/);
+  assert.match(habitants!.reponse, /pas la population entière/);
+  // Un « enfant » du recensement n'a pas d'âge.
+  const familles = QUESTIONS.find((q) => q.question.includes("élèvent seules"));
+  assert.match(familles!.reponse, /quel que soit son âge/);
+  // Domiciliés, pas enregistrés — et une série qui s'arrête le dit.
+  const unions = QUESTIONS.find((q) => q.question.includes("marie"));
+  assert.match(unions!.reponse, /où les époux habitent/);
+  assert.match(unions!.reponse, /2016/);
+});
