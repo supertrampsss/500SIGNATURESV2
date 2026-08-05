@@ -591,6 +591,9 @@ const PHARES: Record<string, string[]> = {
   finances_locales: ["ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
   revenus: ["insee_niveau_vie_median", "insee_taux_pauvrete"],
   population: ["insee_population_municipale"],
+  // Le parc, puis la question qu'on vient poser : combien de logements vides.
+  // La part de propriétaires vient après, elle se lit sur un dénominateur.
+  logement: ["insee_logements", "insee_logements_vacants"],
   education: ["menj_ecoles", "menj_colleges_lycees"],
   sante: ["drees_apl_generalistes"],
   emploi: ["insee_taux_chomage_localise"],
@@ -633,6 +636,7 @@ const ORDRE_THEMES = [
   "impots_locaux",
   "revenus",
   "population",
+  "logement",
   "securite",
   "sante",
   "education",

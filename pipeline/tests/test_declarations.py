@@ -24,7 +24,8 @@ from plateforme import entrepot, registry
 MODULES = [
     "chomage", "cofog", "conjoncture", "creations", "deces", "dotations",
     "education", "entreprises", "equipements", "etat", "europe", "fiscalite",
-    "macro", "population", "revenus", "sante", "secu", "securite",
+    "logement", "macro", "population", "revenus", "sante", "secu",
+    "securite",
 ]
 
 

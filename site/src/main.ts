@@ -757,6 +757,7 @@ const THEMES: Record<string, string> = {
   finances_locales: "Finances locales",
   revenus: "Revenus et pauvreté",
   population: "Population",
+  logement: "Logement",
   emploi: "Emploi et chômage",
   entreprises: "Entreprises",
   equipements: "Équipements et services",

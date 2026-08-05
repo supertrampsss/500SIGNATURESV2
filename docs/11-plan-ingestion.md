@@ -49,7 +49,7 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 |---|---|---|---|---|
 | ~~1~~ | ~~`DS_ETAT_CIVIL_DECES_COMMUNES`~~ | **chargé le 4 août** — 652 211 observations, 2008-2025, quatre mailles | commune | 3 Mo |
 | 2 | `DS_RP_POPULATION_COMP` | évolution et structure de la population (indicateurs principaux) | commune | ~12 Mo |
-| 3 | `DS_RP_LOGEMENT_PRINC` | logements, résidences principales, vacance | commune | ~12 Mo |
+| ~~3~~ | ~~`DS_RP_LOGEMENT_PRINC`~~ | **chargé le 5 août** — 869 272 observations, huit indicateurs, 2012/2017/2023 | commune | 25 Mo |
 | 4 | `DS_RP_FAMILLE_COMP` | composition des familles | commune | ~8 Mo |
 | ~~5~~ | ~~`DS_BPE`~~ | **chargé le 4 août** — 191 209 observations, sept domaines et leur total | commune | 14 Mo |
 | ~~6~~ | ~~`DS_SIDE_CREA_ENT_COM`~~ | **chargé le 5 août** — 438 019 observations, 2012-2025, quatre mailles | commune | 12 Mo |
@@ -126,6 +126,43 @@ l'évolution d'une année sur l'autre est très dispersée — mesurée sur les 
 communes d'au moins 500 créations en 2023, elle va de −34 % à +42 % en 2024
 autour d'une médiane de +4 % : un siège qui déménage suffit à faire bouger le
 chiffre.
+
+**Logements et vacance — chargé le 5 août.** Le jeu le plus piégeux des trois.
+Il croise neuf dimensions et sert les agrégats *avec* leurs composantes sur les
+mêmes lignes : un filtre qui lâche ne fait rien planter, il compte le nombre de
+pièces comme des logements ou les trois-pièces comme le parc entier. Quatre
+mesures cohabitent au même format — logements, nombre de pièces, durée de
+séjour, population des ménages — et sept dimensions de détail ventilent le même
+parc. Seul le croisement où toutes valent « total » est chargé.
+
+Trois identités de la source servent de contrôle bloquant, et elles se referment
+sur les 108 659 couples territoire-millésime à 1 × 10⁻⁵ près : résidences
+principales + secondaires + vacants = parc ; propriétaires + locataires + logés
+gratuitement = résidences principales ; parc privé + parc social + meublé =
+locataires. La première attrape un croisement lu de travers, les deux autres un
+statut d'occupation filtré à côté — c'est elle qui garantit que le parc social
+affiché est bien une part des locataires et pas un total voisin.
+
+Quatre réserves entrent dans les fiches. Le **vacant du recensement** — logement
+inoccupé, proposé à la vente ou à la location, en attente d'occupation ou gardé
+vide — n'est pas le comptage fiscal de la DGFiP, qui part des locaux non soumis
+à taxe d'habitation et ne trouve ni les mêmes logements ni le même total ; l'un
+pris pour l'autre fait dire au territoire l'inverse de ce qu'il vit. Le **parc
+social du recensement** est déclaré par les ménages, quand le répertoire des
+bailleurs sociaux (RPLS) part des logements et fait seul foi pour la loi SRU. Le
+**millésime n'est pas une photographie** : il résulte de cinq années d'enquêtes
+centrées sur lui, et c'est de là que viennent les décimales — 148 377,4
+résidences principales à Bordeaux. Et le champ est **la France hors Mayotte**,
+cent départements : les fiches mahoraises n'auront pas de logements, et c'est la
+source qui le décide.
+
+Vérifié au chargement : Bordeaux 2023, 171 777 logements, 6,7 % de vacance,
+33,0 % de propriétaires occupants, 13,9 % de parc social.
+
+Ce jeu ouvre par ailleurs un dénominateur qui manquait : le SSMSI publie son
+taux de cambriolages **pour mille logements**, quand ce site le rapportait aux
+habitants faute d'avoir le parc. La correction est possible maintenant, elle
+n'est pas faite ici.
 
 ### P0 bis — combler les indicateurs sans comparaison
 
