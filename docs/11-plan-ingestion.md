@@ -394,11 +394,46 @@ compare donc à son département et à sa région, comme une commune.
 |---|---|---|---|
 | 8 | `DS_FLORES_A5` | établissements et effectifs salariés par grand secteur | commune |
 | 9 | `DS_TOUR_CAP` | capacités d'hébergement touristique | commune |
-| 10 | `DS_RP_EMPLOI_LR_PRINC` | activité, chômage au lieu de résidence | commune |
-| 11 | `DS_RP_TD_DIPLOMES_PRINC` (agrégé) | part des diplômés du supérieur | commune |
+| ~~10~~ | ~~`DS_RP_EMPLOI_LR_PRINC`~~ | **chargé le 5 août** — 724 410 observations, dix indicateurs ; couvre aussi la ligne 11 | commune |
+| ~~11~~ | ~~`DS_RP_TD_DIPLOMES_PRINC`~~ | **inutile** : les diplômes sont dans le jeu de la ligne 10, sur la même population | commune |
 | 12 | DVF (data.gouv) | prix des logements vendus | commune |
 | 13 | RPLS (SDES) | logement social | commune |
 | 14 | Élections (data.gouv) | résultats par commune | commune |
+
+**Activité, chômage et diplômes — chargé le 5 août.** Le premier P1, et il
+comble le manque le plus visible : le taux de chômage s'arrêtait au département,
+il descend maintenant à la commune. Le jeu couvre au passage la ligne 11 du
+plan — les diplômes y sont, sur la même population, ce qui épargne un second
+téléchargement de 74 Mo.
+
+**Le risque n'était pas de mal lire un fichier, mais de contredire le site.** Le
+chômage du recensement est **déclaratif** : est chômeuse la personne qui se
+déclare telle. Le taux de chômage localisé déjà publié applique les critères du
+Bureau international du travail — sans emploi, disponible, en recherche active —
+et donne un chiffre plus bas. Les deux existent, aucun n'est faux, et la fiche de
+chacun nomme l'autre. De même, ce jeu apporte une **troisième** population de
+référence : les 15-64 ans, à côté de la population municipale et des quinze ans
+et plus des catégories sociales. Chacune porte son périmètre dans son nom. Une
+mesure au passage : les deux dossiers du recensement ne donnent pas le même total
+de quinze ans et plus — 56 529 157 pour les catégories sociales, 56 485 414 ici.
+L'un des deux n'est donc pas publié, et c'est le premier qui reste.
+
+Trois identités bloquantes : actifs occupés + chômeurs = actifs et actifs +
+inactifs = 15-64 ans, sur les 108 659 couples territoire-millésime ; les sept
+niveaux de diplôme = la même population, sur les 36 223 couples de 2023 — la
+source ne ventile par diplôme que le dernier millésime.
+
+**Une seule valeur est calculée, et elle est déclarée.** « Enseignement
+supérieur » est la somme des trois niveaux que la source publie séparément
+(bac+2, bac+3/4, bac+5 et plus) : personne ne les lit un par un, ils portent la
+même population et la même unité de compte, et la formule de l'indicateur le dit.
+Si l'un des trois manque, la somme n'est pas produite — un sous-comptage
+présenté comme une mesure est pire qu'une absence.
+
+Douze croisements lus sur les cent quatre-vingt-dix-sept du jeu : 797 000 lignes
+au lieu de 17,9 millions, quarante-trois secondes. Vérifié au chargement :
+Bordeaux 2023, 191 928 habitants de 15 à 64 ans, 11,8 % de chômage au sens du
+recensement, 58,7 % de diplômés du supérieur.
 
 ### P2 — onglet « Statistiques et études », pas la carte
 

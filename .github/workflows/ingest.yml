@@ -132,6 +132,7 @@ jobs:
             python -m plateforme.normalize.famille --store r2:plateforme-raw
             python -m plateforme.normalize.professions --store r2:plateforme-raw
             python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
+            python -m plateforme.normalize.emploi --store r2:plateforme-raw
             python -m plateforme.normalize.maires --store r2:plateforme-raw
             python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
             python -m plateforme.normalize.securite --store r2:plateforme-raw
@@ -171,6 +172,7 @@ jobs:
             python -m plateforme.normalize.famille --store r2:plateforme-raw
             python -m plateforme.normalize.professions --store r2:plateforme-raw
             python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
+            python -m plateforme.normalize.emploi --store r2:plateforme-raw
             python -m plateforme.normalize.maires --store r2:plateforme-raw
             python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
             python -m plateforme.normalize.securite --store r2:plateforme-raw
@@ -290,6 +292,11 @@ jobs:
           fi
           if [ "$JOB" = "etatcivil" ]; then
             python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "emploi" ]; then
+            python -m plateforme.normalize.emploi --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

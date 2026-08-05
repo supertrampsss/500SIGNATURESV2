@@ -602,7 +602,13 @@ const PHARES: Record<string, string[]> = {
   logement: ["insee_logements", "insee_logements_vacants"],
   education: ["menj_ecoles", "menj_colleges_lycees"],
   sante: ["drees_apl_generalistes"],
-  emploi: ["insee_taux_chomage_localise"],
+  // Le taux du BIT là où il existe — département et région — puis les chiffres
+  // du recensement, seuls disponibles à la commune. Les deux ne mesurent pas la
+  // même chose, et c'est leur fiche qui le dit.
+  emploi: ["insee_taux_chomage_localise", "insee_chomeurs_rp", "insee_actifs_occupes"],
+  // Les deux bouts de la distribution : c'est leur écart qui décrit un
+  // territoire, pas le détail des niveaux intermédiaires.
+  diplomes: ["insee_diplome_superieur", "insee_diplome_aucun"],
   // Le stock avant le flux : « combien d'entreprises ici » se répond par les
   // établissements présents, pas par les immatriculations de l'année — qui,
   // elles, sont comptées au siège et non là où l'activité se fait.
@@ -648,6 +654,7 @@ const ORDRE_THEMES = [
   "securite",
   "sante",
   "education",
+  "diplomes",
   "emploi",
   "entreprises",
   "equipements",

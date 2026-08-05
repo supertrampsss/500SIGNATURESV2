@@ -761,6 +761,7 @@ const THEMES: Record<string, string> = {
   logement: "Logement",
   professions: "Professions et catégories sociales",
   emploi: "Emploi et chômage",
+  diplomes: "Diplômes de la population",
   entreprises: "Entreprises",
   equipements: "Équipements et services",
   fonctions: "Dépenses par fonction",
