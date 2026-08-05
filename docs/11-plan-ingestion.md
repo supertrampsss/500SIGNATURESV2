@@ -48,7 +48,7 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 | # | Jeu | Ce qu'on en tire | Maille | Volume estimé |
 |---|---|---|---|---|
 | ~~1~~ | ~~`DS_ETAT_CIVIL_DECES_COMMUNES`~~ | **chargé le 4 août** — 652 211 observations, 2008-2025, quatre mailles | commune | 3 Mo |
-| 2 | `DS_RP_POPULATION_COMP` | évolution et structure de la population (indicateurs principaux) | commune | ~12 Mo |
+| ~~2~~ | ~~`DS_RP_POPULATION_COMP`~~ | **chargé le 5 août** — 1 303 909 observations, douze indicateurs, 2012/2017/2023 | commune | 38 Mo |
 | ~~3~~ | ~~`DS_RP_LOGEMENT_PRINC`~~ | **chargé le 5 août** — 869 272 observations, huit indicateurs, 2012/2017/2023 | commune | 25 Mo |
 | ~~4~~ | ~~`DS_RP_FAMILLE_COMP`~~ | **chargé le 5 août** — 470 859 observations, cinq types, 2012/2017/2023 | commune | 14 Mo |
 | ~~5~~ | ~~`DS_BPE`~~ | **chargé le 4 août** — 191 209 observations, sept domaines et leur total | commune | 14 Mo |
@@ -186,6 +186,41 @@ quoi l'absence de série passerait pour une disparition.
 
 Vérifié au chargement : Bordeaux 2023, 60 949 familles, dont 18,6 % de
 monoparentales.
+
+**Catégories sociales et tranches d'âge — chargé le 5 août.** Le jeu s'appelle
+« évolution et structure de la population », et il ne contient pas la
+population : la catégorie socioprofessionnelle n'est définie qu'à partir de
+quinze ans, et **aucun total tous âges n'est publié**. 56,5 millions de personnes
+en 2023 quand la population municipale en compte 68. L'indicateur porte donc son
+âge dans son nom, et il n'est pas le dénominateur des ratios du site — le prendre
+pour tel les décalerait de dix-sept pour cent.
+
+Deux autres pièges, écrits dans les fiches. **Retraité est une catégorie, pas un
+âge** : la nomenclature range les retraités et les « autres inactifs » — étudiants
+compris — à côté des six catégories d'actifs, et le total moins les retraités ne
+donne donc pas les actifs. À Bordeaux, les 46 508 « autres inactifs » pèsent plus
+que les 41 355 retraités, et ce sont d'abord des étudiants. Et **il n'y a pas de
+catégorie 8** dans ce jeu : la huitième de la nomenclature complète y est fondue
+dans les autres inactifs, si bien qu'une somme écrite de un à huit manquerait son
+total sans prévenir.
+
+Trois identités bloquantes, refermées sur les 108 659 couples
+territoire-millésime : les huit catégories font le total, les trois tranches
+d'âge font les quinze ans et plus, hommes plus femmes font le total.
+
+**Une mesure a changé le connecteur.** Le jeu croise trois cent vingt-quatre
+combinaisons ; tout lire faisait 11,7 millions de dictionnaires en mémoire et
+deux minutes trente de lecture — de quoi tuer un runner qui tient déjà
+l'entrepôt ouvert. Quatorze croisements suffisent : les douze publiés et les deux
+sexes qui ferment la troisième identité. 1,5 million de lignes, vingt-huit
+secondes, contrôles identiques. Un test vérifie que ce filtre couvre bien toutes
+les composantes des identités — un croisement oublié ferait passer un contrôle
+qui ne contrôle rien.
+
+Les huit catégories entrent dans un thème « Professions et catégories sociales »
+distinct de « Population » : « combien sommes-nous » et « qui sommes-nous » ne
+sont pas la même question, et les mélanger ferait un thème de quinze lignes où
+l'on en cherche une.
 
 ### P0 bis — combler les indicateurs sans comparaison
 

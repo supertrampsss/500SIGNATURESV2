@@ -25,8 +25,8 @@ MODULES = [
     "chomage", "cofog", "conjoncture", "creations", "deces", "dotations",
     "education", "entreprises", "equipements", "etat", "europe", "famille",
     "fiscalite",
-    "logement", "macro", "population", "revenus", "sante", "secu",
-    "securite",
+    "logement", "macro", "population", "professions", "revenus", "sante",
+    "secu", "securite",
 ]
 
 
