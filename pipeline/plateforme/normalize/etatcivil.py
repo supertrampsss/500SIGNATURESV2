@@ -281,11 +281,13 @@ def run(store_spec: str) -> int:
     run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         archive = telecharger(URL)
+        entrepot.etape(f"archive de {len(archive) / 1e6:.0f} Mo téléchargée")
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "etat-civil-unions.zip", archive,
             URL, "application/zip",
         )
         lignes = lire(archive)
+        entrepot.etape(f"{len(lignes)} lignes lues")
         if not lignes:
             raise ValueError("aucune union lue")
         verifies = controler(lignes)
@@ -302,6 +304,7 @@ def run(store_spec: str) -> int:
         )
         conn.commit()
         ecrites, ecartes = ecrire(conn, run_id, lignes)
+        entrepot.etape(f"{ecrites} observations écrites")
         entrepot.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
         periodes = sorted({ligne["periode"] for ligne in lignes if ligne["serie"] in SERIES})
         print(

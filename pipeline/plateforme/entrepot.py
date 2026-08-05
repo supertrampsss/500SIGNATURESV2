@@ -196,6 +196,20 @@ def get_dataset(conn: duckdb.DuckDBPyConnection, dataset_id: str) -> dict:
     return dict(zip(cles, ligne, strict=True))
 
 
+def etape(message: str) -> None:
+    """Une ligne de progression dans le journal du run.
+
+    Les journaux de l'intégration continue ne sont lisibles qu'une fois le job
+    terminé : un connecteur muet jusqu'à sa dernière ligne ne dit pas, après
+    coup, lequel de ses trois temps — téléchargement, lecture, écriture — a
+    coûté deux heures. C'est arrivé le 5 août sur le lot du recensement, et il
+    n'y avait rien à lire. Chaque ligne porte son horodatage côté GitHub ; il
+    suffit qu'elle sorte, d'où le `flush` — la sortie standard d'un runner est
+    un tube, donc tamponnée par blocs.
+    """
+    print(f"  … {message}", flush=True)
+
+
 def start_run(conn: duckdb.DuckDBPyConnection, dataset_id: str, trigger: str = "manual") -> str:
     """L'identifiant est tiré côté Python : le reste du pipeline le cite avant
     même que la ligne soit écrite, et un `returning` ne le rendrait qu'après."""
