@@ -29,7 +29,7 @@ def lignes(archive) -> list[dict]:
 def test_seuls_les_territoires_du_site_sont_retenus(lignes):
     assert lignes
     assert {ligne["niveau"] for ligne in lignes} <= {
-        "commune", "epci", "departement", "region"
+        "commune", "departement", "region"
     }
 
 

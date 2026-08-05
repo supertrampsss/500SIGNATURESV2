@@ -54,7 +54,7 @@ INDICATEUR = "insee_deces_domicilies"
 # site. Les aires d'attraction, bassins de vie, unités urbaines et zones
 # d'emploi sont des zonages d'étude, pas des collectivités : ils n'ont ni fiche
 # ni budget ici, et les charger remplirait l'entrepôt sans rien éclairer.
-NIVEAUX = {"COM": "commune", "EPCI": "epci", "DEP": "departement", "REG": "region"}
+NIVEAUX = {"COM": "commune", "DEP": "departement", "REG": "region"}
 
 # `F` est la France entière. `FM` (métropolitaine) et `F_X_D976` (hors Mayotte)
 # sont deux périmètres plus étroits du même comptage : les charger sous le même
@@ -186,7 +186,7 @@ def declarer(conn) -> None:
                 (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                  additive, geo_levels, time_granularity, published)
             values (?, ?, ?, 'population', ?, 'count', true,
-                    array['commune','epci','departement','region'], 'annuelle', true)
+                    array['commune','departement','region'], 'annuelle', true)
             on conflict (indicator_id) do update set
                 definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                 theme = excluded.theme, published = true

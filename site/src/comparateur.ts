@@ -18,7 +18,6 @@ export const MAXIMUM = 5;
 
 const NIVEAUX: Record<string, string> = {
   commune: "communes",
-  epci: "intercommunalités",
   departement: "départements",
   region: "régions",
   pays: "pays",
@@ -47,12 +46,6 @@ export function refus(entrees: Entree[]): string {
 export function reserves(entrees: Entree[]): string[] {
   const notes: string[] = [];
   const drapeaux = (e: Entree) => (e.territoire.drapeaux ?? {}) as Record<string, unknown>;
-  if (entrees.some((e) => drapeaux(e).type === "EPT")) {
-    notes.push(
-      "Un établissement public territorial du Grand Paris figure dans la sélection :" +
-        " son périmètre est inclus dans celui de la Métropole du Grand Paris.",
-    );
-  }
   if (entrees.some((e) => drapeaux(e).statut_particulier)) {
     notes.push(
       "Une collectivité à statut particulier figure dans la sélection : elle exerce des" +

@@ -7,15 +7,19 @@
  * personne ne pense à faire — on zoomait sur une ville en gardant la couche
  * des régions, et la carte semblait n'avoir rien de plus fin.
  *
- * **L'intercommunalité n'est plus une étape du zoom.** Elle l'était, entre le
+ * **L'intercommunalité n'est plus une maille du site.** Elle l'était, entre le
  * département et la commune : en zoomant vers sa ville on traversait un
- * découpage que personne ne reconnaît — « CC du Val de… » — et qui n'est pas
- * ce qu'on est venu chercher. Elle reste entièrement publiée, atteignable par
- * son nom dans la recherche, par l'URL, et citée sur la fiche d'une commune :
- * c'est là qu'elle compte, parce qu'elle porte souvent plus d'argent que la
- * commune elle-même. Bordeaux Métropole dépense 1 310 € par habitant quand la
- * ville en dépense 1 373, et porte 2 420 € de dette par habitant contre 1 536.
- * La retirer de la carte ne la retire pas du site.
+ * découpage que personne ne reconnaît — « CC du Val de… » — et qui n'est pas ce
+ * qu'on est venu chercher. Elle a d'abord quitté le zoom, puis le produit
+ * entier : 1 266 territoires, 719 000 observations, 557 fichiers de carte à
+ * chaque publication et une couche de tuiles, pour un niveau sur lequel aucune
+ * des questions d'entrée ne porte.
+ *
+ * Ce qu'elle explique reste dit, là où ça compte : une commune d'une métropole
+ * intégrée ne paie ni la voirie, ni les déchets, ni l'urbanisme, et ses
+ * dépenses par habitant paraissent basses sans que rien ne soit anormal. Cet
+ * avertissement figure sur la fiche et dans le comparateur — retirer le niveau
+ * ne fait pas disparaître l'intercommunalité du réel.
  */
 
 export const NIVEAU_PAR_ZOOM: { jusqua: number; niveau: string }[] = [

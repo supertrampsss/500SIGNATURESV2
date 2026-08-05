@@ -1,8 +1,9 @@
 """Les décès domiciliés : ce qu'on charge, et surtout ce qu'on ne charge pas.
 
 La fixture est un extrait réel du fichier de l'INSEE — quelques communes, un
-département, une région, une intercommunalité, les trois France, des aires
-d'attraction et un exemple de chaque statut d'observation.
+département, une région, les trois France, et — à écarter — une
+intercommunalité, des aires d'attraction, un exemple de chaque statut
+d'observation.
 """
 
 from pathlib import Path
@@ -26,7 +27,7 @@ def test_seuls_les_territoires_du_site_sont_retenus(archive):
     éclairer."""
     lignes = deces.lire(archive)
     assert {ligne["niveau"] for ligne in lignes} <= {
-        "commune", "epci", "departement", "region"
+        "commune", "departement", "region"
     }
     assert lignes, "la fixture ne rend aucune ligne"
     # L'extrait contient deux cents aires d'attraction : aucune ne doit passer.

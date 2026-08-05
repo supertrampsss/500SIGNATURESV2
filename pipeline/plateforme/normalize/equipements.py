@@ -46,7 +46,7 @@ SOURCE = "insee-melodi"
 JEU = "DS_BPE"
 URL = "https://api.insee.fr/melodi/file/DS_BPE/DS_BPE_2025_CSV_FR"
 
-NIVEAUX = {"COM": "commune", "EPCI": "epci", "DEP": "departement", "REG": "region"}
+NIVEAUX = {"COM": "commune", "DEP": "departement", "REG": "region"}
 
 # Les sept domaines de la nomenclature, plus le total. Les libellés sont ceux
 # du producteur, repris tels quels : renommer « Services pour les particuliers »
@@ -188,7 +188,7 @@ def declarer(conn) -> None:
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, geo_levels, time_granularity, published)
                 values (?, ?, ?, 'equipements', ?, 'count', true,
-                        array['commune','epci','departement','region'], 'annuelle', true)
+                        array['commune','departement','region'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                     theme = excluded.theme, published = true

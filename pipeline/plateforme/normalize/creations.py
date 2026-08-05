@@ -60,7 +60,7 @@ INDICATEUR = "insee_creations_entreprises"
 # aires d'attraction, bassins de vie, unités urbaines et zones d'emploi sont des
 # zonages d'étude, et les arrondissements municipaux (Paris, Lyon, Marseille)
 # sont déjà comptés dans leur commune — les charger la compterait deux fois.
-NIVEAUX = {"COM": "commune", "EPCI": "epci", "DEP": "departement", "REG": "region"}
+NIVEAUX = {"COM": "commune", "DEP": "departement", "REG": "region"}
 
 # `F` est la France entière, Mayotte comprise. `FM` (métropolitaine) est le même
 # comptage sur un périmètre plus étroit : c'est `F` qui sert de total de contrôle,
@@ -221,7 +221,7 @@ def declarer(conn) -> None:
                 (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                  additive, geo_levels, time_granularity, published)
             values (?, ?, ?, 'entreprises', ?, 'count', true,
-                    array['commune','epci','departement','region'], 'annuelle', true)
+                    array['commune','departement','region'], 'annuelle', true)
             on conflict (indicator_id) do update set
                 definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                 theme = excluded.theme, published = true

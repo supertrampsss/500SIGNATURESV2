@@ -1,6 +1,6 @@
 """T-12 — Finances locales OFGL vers core.indicators / core.observations.
 
-Usage : python -m plateforme.normalize.ofgl [--niveaux commune,epci,departement,region]
+Usage : python -m plateforme.normalize.ofgl [--niveaux commune,departement,region]
                                             [--depuis 2018] [--store r2:plateforme-raw]
 """
 
@@ -16,7 +16,6 @@ from plateforme.normalize.geo import MILLESIME, make_store
 
 JEUX = {
     "commune": "ofgl-communes",
-    "epci": "ofgl-gfp",
     "departement": "ofgl-departements",
     "region": "ofgl-regions",
 }
@@ -413,8 +412,9 @@ def enregistrer_criteres(conn, lignes: list[dict]) -> int:
             # `||` fusionne deux objets JSON sous PostgreSQL ; sous DuckDB il
             # concatène deux chaînes, et « {} » suivi de « {"rural":…} » ne se
             # relit pas. `json_merge_patch` fait la fusion, et garde ce que les
-            # drapeaux portaient déjà — le rattachement d'une intercommunalité,
-            # par exemple, ne doit pas disparaître sous les critères de l'OFGL.
+            # drapeaux portaient déjà — le statut particulier d'une
+            # collectivité, par exemple, ne doit pas disparaître sous les
+            # critères de l'OFGL.
             """
             update geo.geography_reference g
                set flags = json_merge_patch(g.flags, c.flags)
@@ -581,7 +581,7 @@ def run(niveaux: list[str], depuis: int, store_spec: str, depuis_lot: int = 1) -
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--niveaux", default="commune,epci,departement,region")
+    parser.add_argument("--niveaux", default="commune,departement,region")
     parser.add_argument("--depuis", type=int, default=2018)
     parser.add_argument("--store", default=".snapshots")
     parser.add_argument(

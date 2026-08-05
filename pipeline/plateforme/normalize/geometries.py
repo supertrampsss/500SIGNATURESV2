@@ -26,8 +26,8 @@ from plateforme.normalize.geo import API_GEO, make_store
 
 DATASET = "admin-express-cog"
 
-COUCHES = ["communes", "epcis", "departements", "regions"]
-ZOOM = {"regions": (0, 8), "departements": (4, 10), "epcis": (4, 11), "communes": (8, 12)}
+COUCHES = ["communes", "departements", "regions"]
+ZOOM = {"regions": (0, 8), "departements": (4, 10), "communes": (8, 12)}
 
 METROPOLE_DE_LYON = "200046977"
 
@@ -81,56 +81,6 @@ def cadre_departemental(conn) -> dict[str, tuple[str, str]]:
         else:
             cadre[commune] = (departement, region)
     return cadre
-
-
-def appartenance_epci() -> dict[str, str]:
-    """commune -> EPCI à fiscalité propre, en une requête à l'API Géo.
-
-    L'appartenance ne vient pas du référentiel : `geography_reference` connaît
-    les EPCI mais pas leurs membres — un EPCI peut chevaucher deux départements,
-    il n'a pas de parent, et la relation commune-EPCI n'y est pas stockée.
-    """
-    communes = fetch(f"{API_GEO}/communes?fields=code,codeEpci", timeout=180).json()
-    return {c["code"]: c["codeEpci"] for c in communes if c.get("codeEpci")}
-
-
-def noms_epci(conn) -> dict[str, str]:
-    """Les libellés du référentiel, pour que la tuile porte le même nom que la
-    fiche qu'elle ouvre."""
-    return dict(
-        conn.execute(
-            """
-            select geo_code, name from geo.geography_reference
-            where geo_level = 'epci' and vintage = (select max(vintage)
-                from geo.geography_reference where geo_level = 'epci')
-            """
-        ).fetchall()
-    )
-
-
-def fusionner_epci(
-    entites: list[dict], appartenance: dict[str, str], noms: dict[str, str]
-) -> list[dict]:
-    """EPCI par union de leurs communes membres — même garantie d'emboîtement
-    que les départements : chaque polygone intercommunal est exactement la
-    somme de ses communes. Les rares communes hors EPCI (îles mono-communales)
-    n'en dessinent aucun, et c'est exact."""
-    from shapely.geometry import mapping, shape
-    from shapely.ops import unary_union
-
-    par_epci: dict[str, list] = {}
-    for entite in entites:
-        epci = appartenance.get(entite["properties"]["code"])
-        if epci:
-            par_epci.setdefault(epci, []).append(shape(entite["geometry"]))
-    return [
-        {
-            "type": "Feature",
-            "properties": {"code": code, "nom": noms.get(code, code)},
-            "geometry": mapping(unary_union(formes)),
-        }
-        for code, formes in par_epci.items()
-    ]
 
 
 def fusionner(entites: list[dict], cadre: dict[str, tuple[str, str]]) -> dict[str, list[dict]]:
@@ -217,7 +167,6 @@ def run(departements: list[str], store_spec: str, publication_spec: str) -> int:
             communes = contours_communes(departements)
             niveaux = {"communes": communes}
             niveaux.update(fusionner(communes, cadre_departemental(conn)))
-            niveaux["epcis"] = fusionner_epci(communes, appartenance_epci(), noms_epci(conn))
 
             chemins, total = {}, 0
             for nom in COUCHES:

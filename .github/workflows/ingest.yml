@@ -102,11 +102,21 @@ jobs:
             python -m plateforme.inventaire
             exit $?
           fi
+          if [ "$JOB" = "retrait-interco" ]; then
+            # Le niveau intercommunal a quitté le produit. Le code ne l'écrit
+            # plus ; ce job retire ce qui a déjà été écrit, puis republie sur
+            # l'entrepôt allégé — sans quoi le site continuerait de servir les
+            # 557 fichiers de carte d'un niveau qu'il n'affiche plus.
+            set -e
+            python -m plateforme.retrait_interco
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "rechargement-socle" ]; then
             set -e
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux epci,departement,region --depuis 2018
+              --niveaux departement,region --depuis 2018
             exit $?
           fi
           if [ "$JOB" = "rechargement-communes" ]; then
@@ -158,7 +168,7 @@ jobs:
             set -e
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux epci,departement,region --depuis 2018
+              --niveaux departement,region --depuis 2018
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
               --niveaux commune --depuis 2018
             python -m plateforme.normalize.dotations --store r2:plateforme-raw
@@ -368,7 +378,7 @@ jobs:
             # Le référentiel d'abord : les finances locales s'y rattachent.
             python -m plateforme.normalize.geo --store r2:plateforme-raw
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
-              --niveaux epci,departement,region --depuis 2018
+              --niveaux departement,region --depuis 2018
             # Communes : historique borné à 2022 (D6quater — la tentative 2018 du
             # 2 août a mis la base en lecture seule : disque réel 500 Mo).
             python -m plateforme.normalize.ofgl --store r2:plateforme-raw \

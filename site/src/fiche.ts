@@ -14,7 +14,6 @@ import {
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
-  epci: "Intercommunalité",
   departement: "Département",
   region: "Région",
   pays: "Niveau national",
@@ -1015,8 +1014,8 @@ export function afficherFiche(
   // pour départager les homonymes — il y a trois Sainte-Marie et douze
   // Saint-Martin — mais « 69123 » ne dit cela à personne : il fallait déjà
   // connaître la réponse pour la lire. La maille du dessus la donne en clair.
-  // C'est le premier comparateur : département pour une commune ou un EPCI,
-  // région pour un département. Au-dessus, c'est la France, qui ne situe rien.
+  // C'est le premier comparateur : département pour une commune, région pour
+  // un département. Au-dessus, c'est la France, qui ne situe rien.
   const dessus = options.comparateurs?.[0];
   const situe =
     dessus && dessus.libelle !== "la France"

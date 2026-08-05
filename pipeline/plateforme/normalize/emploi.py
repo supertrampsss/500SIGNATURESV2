@@ -54,7 +54,7 @@ URL = (
     "DS_RP_EMPLOI_LR_PRINC_2023_CSV_FR"
 )
 
-NIVEAUX = {"COM": "commune", "EPCI": "epci", "DEP": "departement", "REG": "region"}
+NIVEAUX = {"COM": "commune", "DEP": "departement", "REG": "region"}
 FRANCE = "F"
 TOTAL = "_T"
 
@@ -350,7 +350,7 @@ def declarer(conn) -> None:
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, geo_levels, time_granularity, published)
                 values (?, ?, ?, ?, ?, 'count', true,
-                        array['commune','epci','departement','region'], 'annuelle', true)
+                        array['commune','departement','region'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                     theme = excluded.theme, published = true

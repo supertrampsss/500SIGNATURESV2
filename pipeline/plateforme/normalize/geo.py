@@ -1,4 +1,4 @@
-"""T-11 — Référentiel géographique : COG INSEE + population/EPCI, vers geo.*.
+"""T-11 — Référentiel géographique : COG INSEE + population, vers geo.*.
 
 Un seul run couvre la chaîne : snapshots immuables des fichiers officiels, puis
 écriture du référentiel et de l'historique territorial. Les deux vont ensemble —
@@ -51,25 +51,6 @@ STATUT_PARTICULIER = [
     ("691", "Métropole de Lyon", "84"),
 ]
 
-# Établissements publics territoriaux de la Métropole du Grand Paris. Ce ne sont
-# pas des EPCI à fiscalité propre — l'API Géo ne les liste donc pas — mais ils
-# portent des budgets réels pour environ quatre millions d'habitants. ATTENTION :
-# leur périmètre est inclus dans celui de la Métropole du Grand Paris ; les deux
-# niveaux ne doivent jamais être additionnés.
-TERRITOIRES_GRAND_PARIS = [
-    ("200057867", "Plaine Commune"),
-    ("200057875", "Est Ensemble"),
-    ("200057941", "Paris-Est-Marne et Bois"),
-    ("200057966", "Vallée Sud Grand Paris"),
-    ("200057974", "Grand Paris Seine Ouest"),
-    ("200057982", "Paris Ouest La Défense"),
-    ("200057990", "Boucle Nord de Seine"),
-    ("200058006", "Grand Paris Sud Est Avenir"),
-    ("200058014", "Grand-Orly Seine Bièvre"),
-    ("200058097", "Paris Terres d'Envol"),
-    ("200058790", "Grand Paris - Grand Est"),
-]
-
 FICHIERS = {
     "communes": f"v_commune_{MILLESIME}.csv",
     "mouvements": f"v_mvt_commune_{MILLESIME}.csv",
@@ -95,21 +76,13 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
         )
         contenus[nom] = contenu
 
-    url = f"{API_GEO}/communes?fields=code,population,codeEpci,siren&format=json"
+    url = f"{API_GEO}/communes?fields=code,population,siren&format=json"
     contenu = telecharger(url, timeout=180)
     entrepot.record_asset(
         conn, store, run_id, "geo-api-communes", "api-geo", "communes.json", contenu, url,
         "application/json",
     )
     contenus["api_communes"] = contenu
-
-    url = f"{API_GEO}/epcis?fields=code,nom,population,codesDepartements,codesRegions"
-    contenu = telecharger(url, timeout=180)
-    entrepot.record_asset(
-        conn, store, run_id, "geo-api-epci", "api-geo", "epcis.json", contenu, url,
-        "application/json",
-    )
-    contenus["api_epci"] = contenu
     return contenus
 
 
@@ -162,59 +135,6 @@ def construire(contenus: dict[str, bytes]) -> tuple[list[dict], list[dict]]:
                 "parent_level": "region",
                 "parent_code": region,
                 "flags": {"statut_particulier": True, "source": "OFGL"},
-            }
-        )
-
-    for epci in json.loads(contenus["api_epci"]):
-        # Un EPCI peut chevaucher deux départements. L'API Géo publie la liste
-        # de ceux qu'il touche — c'est le producteur qui la dresse, pas nous, et
-        # rien n'est déduit du numéro SIREN. Quand elle n'en contient qu'un,
-        # c'est un parent sans ambiguïté ; sinon il n'y en a pas, et la liste
-        # reste visible dans les drapeaux pour que la fiche puisse le dire.
-        departements = epci.get("codesDepartements") or []
-        regions = epci.get("codesRegions") or []
-        drapeaux: dict = {}
-        if len(departements) != 1:
-            drapeaux["departements"] = departements
-            # À cheval sur deux départements d'une même région, l'EPCI est
-            # quand même dans cette région : le parent manque, pas la région.
-            if len(regions) == 1:
-                drapeaux["region"] = regions[0]
-            else:
-                drapeaux["regions"] = regions
-        territoires.append(
-            {
-                "geo_level": "epci",
-                "geo_code": epci["code"],
-                "vintage": MILLESIME,
-                "name": epci["nom"],
-                "parent_level": "departement" if len(departements) == 1 else None,
-                "parent_code": departements[0] if len(departements) == 1 else None,
-                "siren": epci["code"],
-                "population": epci.get("population"),
-                **({"flags": drapeaux} if drapeaux else {}),
-            }
-        )
-
-    for code, nom in TERRITOIRES_GRAND_PARIS:
-        territoires.append(
-            {
-                "geo_level": "epci",
-                "geo_code": code,
-                "vintage": MILLESIME,
-                "name": nom,
-                "parent_level": None,
-                "parent_code": None,
-                "siren": code,
-                "flags": {
-                    "type": "EPT",
-                    "inclus_dans": "Métropole du Grand Paris",
-                    # La métropole du Grand Paris est tout entière en
-                    # Île-de-France : la région est certaine, le département non
-                    # (plusieurs établissements territoriaux en chevauchent deux).
-                    "region": "11",
-                    "source": "OFGL",
-                },
             }
         )
 

@@ -77,13 +77,7 @@ test("sans population, le montant par habitant n'est pas inventé", () => {
   assert.match(rendu([PESSAC, inconnue], INDICATEURS, "2024", false), /4\s?M€/);
 });
 
-test("les périmètres qui se recouvrent sont signalés", () => {
-  const ept: Entree = {
-    code: "200057867",
-    niveau: "epci",
-    territoire: { ...territoire("Grand-Orly Seine Bièvre", 700_000, 1), drapeaux: { type: "EPT" } },
-  };
-  assert.ok(reserves([ept]).some((n) => /Métropole du Grand Paris/.test(n)));
+test("les compétences hors norme sont signalées", () => {
   const lyon: Entree = {
     code: "691",
     niveau: "departement",

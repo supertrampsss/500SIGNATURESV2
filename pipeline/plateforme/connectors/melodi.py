@@ -21,10 +21,12 @@ from plateforme.http import fetch
 
 # Préfixes de zonage Melodi -> niveaux du référentiel. Les zonages d'étude
 # (aires d'attraction, zones d'emploi, bassins de vie) n'ont pas d'équivalent
-# institutionnel : ils sont volontairement absents.
+# institutionnel : ils sont volontairement absents. L'intercommunalité l'est
+# aussi, mais pour une autre raison : elle a été retirée du produit — un niveau
+# dont le lecteur ne connaît ni les contours ni les compétences, et sur lequel
+# aucune des questions du site ne porte.
 NIVEAUX = {
     "COM": "commune",
-    "EPCI": "epci",
     "DEP": "departement",
     "REG": "region",
 }

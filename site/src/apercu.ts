@@ -60,7 +60,6 @@ export function resumer(
 
 const NIVEAUX: Record<string, string> = {
   commune: "communes",
-  epci: "intercommunalités",
   departement: "départements",
   region: "régions",
 };

@@ -34,7 +34,7 @@ def test_seuls_les_territoires_du_site_sont_retenus(lignes):
     arrondissements municipaux sont déjà comptés dans leur commune."""
     assert lignes
     assert {ligne["niveau"] for ligne in lignes} <= {
-        "commune", "epci", "departement", "region"
+        "commune", "departement", "region"
     }
 
 

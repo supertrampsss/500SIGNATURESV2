@@ -28,7 +28,6 @@ BASE = "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets"
 # Un jeu par niveau institutionnel, avec le nom de sa colonne de code.
 NIVEAUX = {
     "commune": ("ofgl-base-communes-consolidee", "com_code"),
-    "epci": ("ofgl-base-gfp-consolidee", "epci_code"),
     "departement": ("ofgl-base-departements-consolidee", "dep_code"),
     "region": ("ofgl-base-regions-consolidee", "reg_code"),
 }

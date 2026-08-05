@@ -122,7 +122,8 @@ def test_aucun_fetchall_sur_autre_chose_qu_un_curseur():
     `execute()` rend la connexion et il faut appeler `.fetchall()`. La reprise
     de ces boucles a collé l'appel sur ce qui les précédait plutôt que sur
     l'`execute` : un tuple de valeurs dans `maires.ecrire`, un `dict(...)` dans
-    `geometries.noms_epci`. Ni le parseur SQL ni les tests de déclaration ne
+    la lecture des libellés de `geometries`. Ni le parseur SQL ni les tests de
+    déclaration ne
     peuvent le voir — c'est du Python, et il ne casse qu'à l'exécution, sur la
     ligne où on ne l'attend pas.
     """

@@ -27,7 +27,7 @@ def test_seuls_les_territoires_du_site_sont_retenus(archive):
     dans leur commune, et les charger la compterait deux fois."""
     lignes = creations.lire(archive)
     assert {ligne["niveau"] for ligne in lignes} <= {
-        "commune", "epci", "departement", "region"
+        "commune", "departement", "region"
     }
     assert lignes, "la fixture ne rend aucune ligne"
     # Le bassin de vie 33063 porte le même code que Bordeaux : c'est le

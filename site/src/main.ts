@@ -68,7 +68,6 @@ export function vueDuCode(code: string): string {
 const LISERE: Record<string, number[]> = {
   regions: [3, 0.3, 5, 0.6, 9, 1.2],
   departements: [4.5, 0, 6, 0.4, 10, 1],
-  epcis: [5, 0, 7, 0.35, 10.5, 0.9],
   communes: [7, 0, 8.5, 0.3, 12, 0.8],
 };
 
@@ -80,7 +79,6 @@ function largeurLisere(couche: string): unknown {
 
 const COUCHES: Record<string, string> = {
   commune: "communes",
-  epci: "epcis",
   departement: "departements",
   region: "regions",
 };
@@ -632,7 +630,7 @@ async function montrerFiche(code: string): Promise<void> {
     // celle de la région, celle de la France. Ce sont des chiffres publiés,
     // pas des estimations.
     comparateurs:
-      etat.niveau === "commune" || etat.niveau === "epci"
+      etat.niveau === "commune"
         ? [
             territoire.parent && parents[territoire.parent]
               ? { libelle: "son département", territoire: parents[territoire.parent] }
@@ -986,11 +984,10 @@ function brancherCommandes(): void {
   // maille appartient chaque réponse, et y emmène.
   const NIVEAUX_RECHERCHE: Record<string, string> = {
     commune: "Commune",
-    epci: "Intercommunalité",
     departement: "Département",
     region: "Région",
   };
-  const RANG_NIVEAU = ["commune", "departement", "region", "epci"];
+  const RANG_NIVEAU = ["commune", "departement", "region"];
   champ.addEventListener("input", async () => {
     const requete = champ.value.trim().toLowerCase();
     if (requete.length < 2) {
@@ -1001,7 +998,7 @@ function brancherCommandes(): void {
     const trouves = index
       .filter((e) => e.n.toLowerCase().startsWith(requete) || e.c === requete)
       // La maille affichée d'abord, puis communes, départements, régions : on
-      // cherche presque toujours une commune, jamais une intercommunalité.
+      // cherche presque toujours une commune.
       .sort(
         (a, b) =>
           Number(b.l === etat.niveau) - Number(a.l === etat.niveau) ||

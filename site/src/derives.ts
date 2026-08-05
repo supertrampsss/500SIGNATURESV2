@@ -119,7 +119,7 @@ function part(numerateur: string, denominateur: string) {
   };
 }
 
-const LOCAL = ["commune", "epci", "departement", "region"];
+const LOCAL = ["commune", "departement", "region"];
 
 export const DERIVES: Derive[] = [
   {

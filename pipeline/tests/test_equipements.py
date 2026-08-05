@@ -2,8 +2,8 @@
 deux fois, et ne pas laisser croire qu'un nombre mesure un niveau de service.
 
 La fixture est un extrait réel — Bordeaux et deux voisines avec leurs totaux
-*et* quarante lignes de détail, un département, une région, une intercommunalité,
-et vingt aires d'attraction qui ne doivent pas être chargées.
+*et* quarante lignes de détail, un département, une région, une
+intercommunalité et vingt aires d'attraction qui ne doivent pas être chargées.
 """
 
 from pathlib import Path
@@ -27,9 +27,10 @@ def test_seules_les_lignes_agregees_sont_lues(archive):
     servie à plat."""
     lignes = equipements.lire(archive)
     # La fixture compte 105 lignes : 40 de détail, 20 aires d'attraction, et
-    # 45 agrégats sur les mailles qu'on charge. Une commune rurale n'a pas les
-    # sept domaines — pas de tourisme, pas de transport — d'où 45 et non 48.
-    assert len(lignes) == 45
+    # 37 agrégats sur les mailles qu'on charge — commune, département, région.
+    # Une commune rurale n'a pas les huit domaines — pas de tourisme, pas de
+    # transport — d'où 21 lignes communales pour trois communes et non 24.
+    assert len(lignes) == 37
     assert {ligne["domaine"] for ligne in lignes} == set(equipements.DOMAINES)
     # Bordeaux, elle, les a tous.
     bordeaux = [
@@ -44,7 +45,7 @@ def test_les_zonages_d_etude_sont_ecartes(archive):
     d'étude, pas des collectivités. Ils n'ont ni fiche ni budget ici."""
     lignes = equipements.lire(archive)
     assert {ligne["niveau"] for ligne in lignes} <= {
-        "commune", "epci", "departement", "region"
+        "commune", "departement", "region"
     }
 
 

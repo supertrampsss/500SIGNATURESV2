@@ -149,7 +149,6 @@ export function reperes(
  *  lirait comme une faute. */
 const ENSEMBLES: Record<string, string> = {
   commune: "communes",
-  epci: "intercommunalités",
   departement: "départements",
   region: "régions",
   pays: "pays",

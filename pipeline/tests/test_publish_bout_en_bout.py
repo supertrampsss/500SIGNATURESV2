@@ -43,20 +43,6 @@ def _remplir(conn) -> None:
         " 'region', '75')",
         (MILLESIME,),
     )
-    # Un EPCI à cheval sur deux départements : pas de parent, mais une région.
-    conn.execute(
-        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
-        " parent_level, parent_code, flags) values ('epci', '200030435', ?, ?,"
-        " null, null, '{\"departements\":[\"32\",\"40\"],\"region\":\"75\"}')",
-        (MILLESIME, "CC d'Aire-sur-l'Adour"),
-    )
-    # Et un EPCI d'un seul département : le rattachement ordinaire.
-    conn.execute(
-        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
-        " parent_level, parent_code) values ('epci', '243300316', ?,"
-        " 'Bordeaux Métropole', 'departement', '33')",
-        (MILLESIME,),
-    )
     for code, nom, population in COMMUNES:
         conn.execute(
             "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
@@ -175,13 +161,6 @@ def test_publier_produit_un_jeu_complet(tmp_path):
     # Le mouvement de périmètre voyage avec le territoire, pas dans un fichier
     # à part : une série ne se lit pas sans lui.
     assert communes["33063"]["evenements"][0]["type"] == "fusion"
-
-    epci = lire("territoires/epci/tous.json")
-    assert epci["243300316"]["parent"] == "33"
-    assert epci["243300316"]["region"] == "75"
-    # À cheval sur deux départements : pas de parent, mais la région tient.
-    assert epci["200030435"]["parent"] is None
-    assert epci["200030435"]["region"] == "75"
 
     references = lire("references.json")
     repere = references["dgfip_taux_tfb_global"]["2023"]["commune"]

@@ -16,7 +16,11 @@ import pytest
 from plateforme.connectors import ofgl
 from plateforme.normalize import ofgl as normalisation
 
-NIVEAUX = ("commune", "epci", "departement", "region")
+# Les niveaux qu'on charge. L'intercommunalité a quitté le produit ; le
+# catalogue de l'OFGL, lui, continue de la publier — c'est sa publication à
+# lui qu'il décrit, pas notre sélection.
+NIVEAUX = ("commune", "departement", "region")
+NIVEAUX_OFGL = (*NIVEAUX, "epci")
 
 
 def test_le_catalogue_liste_tous_les_agregats_publies():
@@ -28,7 +32,7 @@ def test_le_catalogue_liste_tous_les_agregats_publies():
         assert ligne["charge"] in {"oui", "non"}, ligne["agregat"]
         assert int(ligne["lignes"]) > 0, ligne["agregat"]
         assert ligne["niveaux"], ligne["agregat"]
-        assert set(ligne["niveaux"].split(",")) <= set(NIVEAUX), ligne["agregat"]
+        assert set(ligne["niveaux"].split(",")) <= set(NIVEAUX_OFGL), ligne["agregat"]
 
 
 def test_les_identifiants_sont_uniques_et_prefixes():

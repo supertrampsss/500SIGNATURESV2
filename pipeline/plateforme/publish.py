@@ -20,11 +20,11 @@ from plateforme import journal as journal_declare
 from plateforme.connectors import smb
 from plateforme.normalize.geo import make_store
 
-NIVEAUX = ["commune", "epci", "departement", "region", "pays"]
+NIVEAUX = ["commune", "departement", "region", "pays"]
 
 # Seuls ces niveaux ont des tuiles : produire des couches de carte pour les
 # autres coûterait des centaines de fichiers que rien ne viendrait lire.
-NIVEAUX_CARTOGRAPHIES = {"commune", "epci", "departement", "region"}
+NIVEAUX_CARTOGRAPHIES = {"commune", "departement", "region"}
 
 # Une carte montre une période à la fois, et personne ne consulte le chômage du
 # troisième trimestre 1982 en choroplèthe. Publier 177 trimestres a fait passer
@@ -556,14 +556,14 @@ def references(conn, cartographiees: dict[str, dict[str, list[str]]]) -> dict:
 # départements sur 101, 18 régions sur 18, vérifié le 4 août sur les fichiers en
 # ligne. Une médiane y porte sur l'ensemble entier et se compare honnêtement.
 #
-# **Filosofi.** L'INSEE masque les communes et les intercommunalités trop
-# petites, pour la même raison et avec le même effet de sélection.
+# **Filosofi.** L'INSEE masque les communes trop petites, pour la même raison et
+# avec le même effet de sélection.
 #
 # Un jeu sous secret non listé ici est masqué partout : se taire ne vaut pas
 # autorisation.
 NIVEAUX_SOUS_SECRET = {
     "ssmsi-delinquance": {"commune"},
-    "melodi-filosofi-cc": {"commune", "epci"},
+    "melodi-filosofi-cc": {"commune"},
 }
 
 
@@ -593,14 +593,12 @@ def _reference_par_region(conn, indicateur, niveau, periode, sommable, unite) ->
                      when 'region' then g.geo_code
                      when 'pays' then null
                      when 'departement' then g.parent_code
-                     else coalesce(
-                            (select d.parent_code from geo.geography_reference d
-                              where d.geo_level = 'departement' and d.geo_code = g.parent_code
-                                and d.vintage = g.vintage),
-                            -- Une intercommunalité à cheval sur deux départements
-                            -- n'a pas de parent, mais peut n'être que dans une
-                            -- région : le producteur l'a dit, on le garde.
-                            json_extract_string(g.flags, '$.region'))
+                     -- Reste la commune, dont la région est le parent de son
+                     -- parent. Le référentiel garantit ce chaînon : une commune
+                     -- sans département n'existe pas au COG.
+                     else (select d.parent_code from geo.geography_reference d
+                            where d.geo_level = 'departement' and d.geo_code = g.parent_code
+                              and d.vintage = g.vintage)
                    end as region
               from geo.geography_reference g
              where g.geo_level = $niveau
@@ -724,11 +722,9 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
                    case $niveau
                      when 'region' then g.geo_code
                      when 'departement' then g.parent_code
-                     else coalesce(
-                            (select d.parent_code from geo.geography_reference d
-                              where d.geo_level = 'departement' and d.geo_code = g.parent_code
-                                and d.vintage = g.vintage),
-                            json_extract_string(g.flags, '$.region'))
+                     else (select d.parent_code from geo.geography_reference d
+                            where d.geo_level = 'departement' and d.geo_code = g.parent_code
+                              and d.vintage = g.vintage)
                    end as region,
                    g.population, g.flags
             from geo.geography_reference g
