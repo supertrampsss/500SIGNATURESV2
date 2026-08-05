@@ -1,6 +1,10 @@
 """Client HTTP des connecteurs : retries avec backoff exponentiel et jitter.
 
 4 tentatives maximum, jamais de contournement de quota (docs/03 §1).
+
+Deux fonctions, et le choix entre elles n'est pas cosmétique. `fetch` sert une
+réponse d'API — quelques kilo-octets de JSON. `telecharger` sert un fichier, et
+sait reprendre là où la connexion a lâché.
 """
 
 import random
@@ -10,6 +14,42 @@ import httpx
 
 RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 MAX_ATTEMPTS = 4
+
+# Un téléchargement qui reprend ne recommence pas : chaque tentative avance de
+# ce qu'elle a reçu. Huit essais sur un fichier de cent mégaoctets coûtent donc
+# huit reprises, pas huit fichiers. Mesuré le 5 août sur l'API de l'INSEE : le
+# fichier des créations d'entreprises (43 Mo) demande deux passes, celui des
+# logements (98 Mo) en demande cinq.
+REPRISES = 8
+
+# Délai maximal entre deux morceaux d'un même fichier. Aucune source publique ne
+# reste muette une minute au milieu d'un corps qu'elle a commencé à servir :
+# passé ce délai, la connexion est morte et il vaut mieux reprendre.
+LECTURE = 60.0
+
+
+class Tronque(RuntimeError):
+    """Le serveur a rendu moins d'octets qu'il n'en avait annoncé.
+
+    Ce n'est pas une erreur réseau : la requête a réussi, le corps est court.
+    Sans ce contrôle, un zip amputé arrive jusqu'au connecteur, qui meurt sur
+    « File is not a zip file » — ou pire, un CSV amputé se charge en silence.
+    """
+
+
+def _annoncee(reponse: httpx.Response) -> int | None:
+    """Taille totale du fichier telle que le serveur l'annonce, si elle l'est.
+
+    Sur une réponse partielle (206), c'est le total de `Content-Range` qu'il
+    faut lire, pas le `Content-Length` — qui ne décrit que le morceau servi.
+    """
+    plage = reponse.headers.get("content-range")
+    if plage and "/" in plage:
+        total = plage.rsplit("/", 1)[1].strip()
+        if total.isdigit():
+            return int(total)
+    longueur = reponse.headers.get("content-length")
+    return int(longueur) if longueur and longueur.isdigit() else None
 
 
 def fetch(url: str, headers: dict | None = None, timeout: float = 60.0) -> httpx.Response:
@@ -23,9 +63,114 @@ def fetch(url: str, headers: dict | None = None, timeout: float = 60.0) -> httpx
                 )
             else:
                 response.raise_for_status()
-                return response
+                attendu = _annoncee(response)
+                if attendu is not None and len(response.content) < attendu:
+                    # Même défaut que dans `telecharger`, sans la reprise :
+                    # sur une réponse d'API, redemander tout ne coûte rien.
+                    last_error = Tronque(
+                        f"{url} : {len(response.content)} octets reçus sur {attendu}"
+                    )
+                else:
+                    return response
         except (httpx.TransportError, httpx.HTTPStatusError) as error:
             last_error = error
         if attempt < MAX_ATTEMPTS - 1:
             time.sleep((2**attempt) + random.uniform(0, 1))
     raise last_error
+
+
+def _taille_declaree(url: str, headers: dict | None, timeout: float) -> int | None:
+    """Taille du fichier d'après le serveur, demandée avant de le lire.
+
+    Le corps, lui, peut arriver compressé et découpé — c'est le cas derrière un
+    proxy qui ré-encode : la réponse perd son `Content-Length` et plus rien ne
+    dit qu'elle est complète. Un `HEAD` répond sur le fichier, pas sur son
+    transport, et c'est ce qui rend le contrôle possible dans les deux cas.
+
+    -> None si le serveur ne répond pas au `HEAD` ou n'annonce rien : il n'y a
+    alors rien à vérifier, et refuser par principe casserait des sources qui
+    marchent.
+    """
+    try:
+        reponse = httpx.head(url, headers=headers, timeout=timeout, follow_redirects=True)
+    except httpx.TransportError:
+        return None
+    return None if reponse.status_code >= 400 else _annoncee(reponse)
+
+
+def telecharger(
+    url: str, headers: dict | None = None, timeout: float = 300.0, essais: int = REPRISES
+) -> bytes:
+    """Télécharge un fichier entier, en reprenant là où la connexion a lâché.
+
+    Sur les gros fichiers de l'API de l'INSEE, le flux se coupe en cours de
+    route. Le corps rendu est court, sans erreur : le zip qui en sort n'est plus
+    un zip, et le connecteur meurt sur `BadZipFile` — quatre minutes de CI et un
+    entrepôt de un gigaoctet rapatrié pour rien. Le 5 août, c'est ce qui a tué le
+    premier chargement des créations d'entreprises.
+
+    La taille annoncée fait donc foi, et elle est demandée par `HEAD` avant de
+    lire quoi que ce soit — la réponse au `GET` peut n'en porter aucune. Tant
+    que le corps est plus court, la suite est redemandée par `Range` ; l'API de
+    l'INSEE répond bien en 206. Un serveur qui ignore la reprise renvoie un
+    200 : le tampon est alors vidé et la tentative repart du début, plutôt que
+    de coller deux fois le même préfixe.
+
+    Le corps est demandé sans compression de transport (`identity`). Sans cela,
+    un proxy qui gzippe à la volée rendrait des octets décompressés dont le
+    nombre ne se compare plus à la taille annoncée, et le contrôle mesurerait
+    une autre grandeur que celle qu'il croit mesurer.
+    """
+    entetes_base = {"Accept-Encoding": "identity", **(headers or {})}
+    tampon = bytearray()
+    attendu = _taille_declaree(url, entetes_base, timeout)
+    # Le délai porte sur *un* morceau, pas sur le fichier : une source qui
+    # s'arrête de parler doit être constatée en une minute, pas au bout du
+    # budget entier. Sans ce plafond, un flux coupé à mi-parcours immobilise le
+    # run cinq minutes avant que la reprise ne démarre — deux tentatives et le
+    # téléchargement dépasse le quart d'heure pour quarante mégaoctets.
+    delais = httpx.Timeout(timeout, read=min(timeout, LECTURE))
+    dernier: Exception | None = None
+    for essai in range(essais):
+        entetes = dict(entetes_base)
+        if tampon:
+            entetes["Range"] = f"bytes={len(tampon)}-"
+        try:
+            with httpx.stream(
+                "GET", url, headers=entetes, timeout=delais, follow_redirects=True
+            ) as reponse:
+                if reponse.status_code in RETRYABLE_STATUS:
+                    raise httpx.HTTPStatusError(
+                        f"HTTP {reponse.status_code}",
+                        request=reponse.request,
+                        response=reponse,
+                    )
+                reponse.raise_for_status()
+                if tampon and reponse.status_code != 206:
+                    tampon.clear()
+                if attendu is None:
+                    # Seulement en secours : une réponse tronquée peut porter
+                    # un `Content-Length` égal à ce qu'elle sert. L'écraser
+                    # avec ça reviendrait à demander au coupable sa taille.
+                    attendu = _annoncee(reponse)
+                for bloc in reponse.iter_bytes():
+                    tampon.extend(bloc)
+        except (httpx.TransportError, httpx.HTTPStatusError) as erreur:
+            dernier = erreur
+            if attendu is None:
+                # Sans taille annoncée, impossible de savoir où reprendre : la
+                # tentative suivante repart du début.
+                tampon.clear()
+        else:
+            if attendu is None or len(tampon) >= attendu:
+                break
+            dernier = Tronque(f"{url} : {len(tampon)} octets reçus sur {attendu}")
+        if essai < essais - 1:
+            time.sleep((2 ** min(essai, 4)) + random.uniform(0, 1))
+    if attendu is not None and len(tampon) != attendu:
+        raise Tronque(
+            f"{url} : {len(tampon)} octets reçus sur {attendu} après {essais} tentatives"
+        )
+    if not tampon:
+        raise dernier or Tronque(f"{url} : réponse vide")
+    return bytes(tampon)

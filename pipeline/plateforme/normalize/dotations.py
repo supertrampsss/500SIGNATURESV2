@@ -25,7 +25,7 @@ import argparse
 
 from plateforme import entrepot
 from plateforme.connectors import dgcl
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
 
@@ -134,7 +134,7 @@ def run(exercice: int, store_spec: str) -> int:
     run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         url = dgcl.url_export(exercice)
-        contenu = fetch(url, timeout=600).content
+        contenu = telecharger(url, timeout=600)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, f"dotations-{exercice}.csv", contenu,
             url, "text/csv",

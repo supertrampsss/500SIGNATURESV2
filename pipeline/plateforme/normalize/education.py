@@ -31,7 +31,7 @@ from datetime import UTC, datetime
 
 from plateforme import entrepot, revisions
 from plateforme.connectors import ods
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.limites import garde_fou_volume
 from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
 
@@ -174,7 +174,7 @@ def run(store_spec: str) -> int:
     try:
         avant = garde_fou_volume(conn)
         url = url_export()
-        contenu = fetch(url, timeout=600).content
+        contenu = telecharger(url, timeout=600)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "annuaire-education.csv", contenu, url,
             "text/csv",

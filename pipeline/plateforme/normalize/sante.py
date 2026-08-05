@@ -29,7 +29,7 @@ import re
 
 
 from plateforme import entrepot, revisions
-from plateforme.http import fetch
+from plateforme.http import fetch, telecharger
 from plateforme.limites import garde_fou_volume
 from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
@@ -212,7 +212,7 @@ def run(store_spec: str) -> int:
     try:
         avant = garde_fou_volume(conn)
         url = url_courante()
-        contenu = fetch(url, timeout=600).content
+        contenu = telecharger(url, timeout=600)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "apl-generalistes.xlsx", contenu, url,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

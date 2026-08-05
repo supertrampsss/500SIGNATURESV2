@@ -33,7 +33,7 @@ from urllib.parse import urlencode
 
 from plateforme import entrepot
 from plateforme.connectors import ods
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
 
@@ -196,7 +196,7 @@ def run(depuis: int, store_spec: str) -> int:
     run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         url = url_export(depuis)
-        contenu = fetch(url, timeout=600).content
+        contenu = telecharger(url, timeout=600)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, f"taux-tfb-depuis-{depuis}.csv",
             contenu, url, "text/csv",

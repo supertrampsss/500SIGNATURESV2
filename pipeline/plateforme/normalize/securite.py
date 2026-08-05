@@ -44,7 +44,7 @@ from collections.abc import Iterable
 
 from plateforme import entrepot, revisions
 from plateforme.limites import garde_fou_volume
-from plateforme.http import fetch
+from plateforme.http import fetch, telecharger
 from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
 
@@ -458,7 +458,7 @@ def run(store_spec: str) -> int:
         couvertures: dict[str, dict] = {}
 
         url_com = url_courante("COM - Base statistique communale", "csv.gz")
-        contenu_com = fetch(url_com, timeout=900).content
+        contenu_com = telecharger(url_com, timeout=900)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "delinquance-communale.csv.gz",
             contenu_com, url_com, "application/gzip",
@@ -474,7 +474,7 @@ def run(store_spec: str) -> int:
             ("region", "REG - Base statistique régionale"),
         ):
             url = url_courante(prefixe, "csv")
-            contenu = fetch(url, timeout=300).content
+            contenu = telecharger(url, timeout=300)
             entrepot.record_asset(
                 conn, store, run_id, DATASET, SOURCE, f"delinquance-{niveau}.csv",
                 contenu, url, "text/csv",

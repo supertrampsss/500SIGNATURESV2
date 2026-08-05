@@ -32,7 +32,7 @@ from collections import Counter
 
 
 from plateforme import entrepot
-from plateforme.http import fetch
+from plateforme.http import fetch, telecharger
 from plateforme.normalize.geo import MILLESIME, make_store
 
 DATASET = "rne-conseillers-municipaux"
@@ -162,7 +162,7 @@ def run(store_spec: str) -> int:
     run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         url = url_courante()
-        contenu = fetch(url).content
+        contenu = telecharger(url)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "conseillers-municipaux.csv",
             contenu, url, "text/csv",

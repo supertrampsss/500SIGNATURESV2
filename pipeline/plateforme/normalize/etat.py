@@ -32,7 +32,7 @@ import json
 
 from plateforme import entrepot
 from plateforme.connectors import smb
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.normalize.geo import MILLESIME, make_store
 
 DATASET = "execution-budget-etat"
@@ -162,13 +162,13 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
     contenus: dict[str, bytes] = {}
     for nom in smb.PIECES_JOINTES:
         url = smb.url_piece_jointe(nom)
-        contenu = fetch(url, timeout=180).content
+        contenu = telecharger(url, timeout=180)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, f"{nom}.csv", contenu, url, "text/csv"
         )
         contenus[nom] = contenu
     url = smb.RECORDS_URL
-    contenu = fetch(url, timeout=180).content
+    contenu = telecharger(url, timeout=180)
     entrepot.record_asset(
         conn, store, run_id, DATASET, SOURCE, "records.json", contenu, url, "application/json"
     )

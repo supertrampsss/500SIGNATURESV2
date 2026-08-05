@@ -19,7 +19,7 @@ import json
 from plateforme import entrepot
 from plateforme.connectors import eurostat
 from plateforme.connectors.jsonstat import decoder
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.normalize.geo import MILLESIME, make_store
 
 DATASET_PAR_JEU = {
@@ -153,7 +153,7 @@ def run(store_spec: str) -> int:
         run_id = entrepot.start_run(conn, dataset_id, "manual")
         try:
             url = eurostat.data_url(fiche["jeu"], fiche["params"])
-            contenu = fetch(url, timeout=300).content
+            contenu = telecharger(url, timeout=300)
             entrepot.record_asset(
                 conn, store, run_id, dataset_id, "eurostat", f"{indicateur}.json",
                 contenu, url, "application/json",

@@ -38,7 +38,7 @@ import json
 import zipfile
 
 from plateforme import entrepot
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
 
@@ -269,7 +269,7 @@ def run(store_spec: str) -> int:
     declarer(conn)
     run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
-        archive = fetch(URL, timeout=900).content
+        archive = telecharger(URL, timeout=900)
         entrepot.record_asset(
             conn, store, run_id, DATASET, SOURCE, "creations-entreprises.zip",
             archive, URL, "application/zip",

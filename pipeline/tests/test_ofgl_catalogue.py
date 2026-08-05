@@ -296,11 +296,11 @@ def test_la_reprise_saute_les_lots_deja_charges(monkeypatch, tmp_path):
 
     demandes = []
 
-    def faux_fetch(url, **_):
+    def faux_telechargement(url, **_):
         demandes.append(url)
         raise RuntimeError("on ne va pas plus loin : seul l'ordre des lots compte")
 
-    monkeypatch.setattr(normalisation, "fetch", faux_fetch)
+    monkeypatch.setattr(normalisation, "telecharger", faux_telechargement)
     with pytest.raises(RuntimeError):
         normalisation.run(["commune"], 2018, str(tmp_path / "brut"), depuis_lot=4)
     # Le premier téléchargement demandé est celui du quatrième lot, pas du premier.

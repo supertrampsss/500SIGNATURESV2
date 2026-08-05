@@ -8,7 +8,7 @@ du zonage (« 2025-COM-33318 ») — clean_geo les normalise avant toute jointur
 import re
 from urllib.parse import urlencode
 
-from plateforme.http import fetch
+from plateforme.http import fetch, telecharger
 
 MELODI_BASE = "https://api.insee.fr/melodi"
 BDM_BASE = "https://api.insee.fr/series/BDM/V1"
@@ -35,4 +35,4 @@ def melodi_observations(payload: dict) -> list[dict]:
 def bdm_sdmx(dataflow_or_series: str) -> bytes:
     """SDMX-ML brut. L'en-tête Accept est obligatoire (406 sinon)."""
     url = f"{BDM_BASE}/data/{dataflow_or_series}"
-    return fetch(url, headers={"Accept": "application/xml"}).content
+    return telecharger(url, headers={"Accept": "application/xml"})

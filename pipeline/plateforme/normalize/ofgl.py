@@ -11,7 +11,7 @@ import argparse
 from plateforme import entrepot
 from plateforme.limites import garde_fou_volume
 from plateforme.connectors import ofgl
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.normalize.geo import MILLESIME, make_store
 
 JEUX = {
@@ -544,7 +544,7 @@ def run(niveaux: list[str], depuis: int, store_spec: str, depuis_lot: int = 1) -
                     print(f"  {niveau} lot {rang} : déjà chargé, passé")
                     continue
                 url = ofgl.url_export(niveau, lot)
-                contenu = fetch(url, timeout=600).content
+                contenu = telecharger(url, timeout=600)
                 entrepot.record_asset(
                     conn, store, run_id, dataset_id, "ofgl",
                     f"{niveau}-{rang:02d}.csv", contenu, url, "text/csv",

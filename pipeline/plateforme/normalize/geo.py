@@ -14,7 +14,7 @@ import json
 
 from plateforme import entrepot
 from plateforme.connectors import cog
-from plateforme.http import fetch
+from plateforme.http import telecharger
 from plateforme.store import LocalStore, R2Store
 
 MILLESIME = 2025
@@ -89,14 +89,14 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
     contenus = {}
     for nom, fichier in FICHIERS.items():
         url = cog.url_fichier(PUBLICATION, fichier)
-        contenu = fetch(url, timeout=180).content
+        contenu = telecharger(url, timeout=180)
         entrepot.record_asset(
             conn, store, run_id, "cog-communes", "insee-fichiers", fichier, contenu, url, "text/csv"
         )
         contenus[nom] = contenu
 
     url = f"{API_GEO}/communes?fields=code,population,codeEpci,siren&format=json"
-    contenu = fetch(url, timeout=180).content
+    contenu = telecharger(url, timeout=180)
     entrepot.record_asset(
         conn, store, run_id, "geo-api-communes", "api-geo", "communes.json", contenu, url,
         "application/json",
@@ -104,7 +104,7 @@ def collecter(conn, store, run_id: str) -> dict[str, bytes]:
     contenus["api_communes"] = contenu
 
     url = f"{API_GEO}/epcis?fields=code,nom,population,codesDepartements,codesRegions"
-    contenu = fetch(url, timeout=180).content
+    contenu = telecharger(url, timeout=180)
     entrepot.record_asset(
         conn, store, run_id, "geo-api-epci", "api-geo", "epcis.json", contenu, url,
         "application/json",

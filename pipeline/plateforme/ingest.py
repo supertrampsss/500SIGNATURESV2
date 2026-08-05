@@ -15,7 +15,7 @@ import sys
 
 from plateforme import entrepot
 from plateforme.connectors import datagouv, eurostat, insee, ods
-from plateforme.http import fetch
+from plateforme.http import fetch, telecharger
 from plateforme.store import LocalStore, R2Store
 
 
@@ -57,7 +57,7 @@ def snapshot_for(dataset: dict, params: dict | None) -> tuple[str, bytes, str, s
 
     if mode == "ods_export":
         url = ods.export_url(dataset["base_url"], external, "csv")
-        return "export.csv", fetch(url, timeout=600).content, url, "text/csv"
+        return "export.csv", telecharger(url, timeout=600), url, "text/csv"
 
     raise NotImplementedError(
         f"mode {mode!r} / source {dataset['source_id']!r} : connecteur à venir (docs/08)"
