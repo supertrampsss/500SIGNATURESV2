@@ -183,3 +183,24 @@ def test_declarer_puis_redeclarer_contre_un_vrai_entrepot(tmp_path):
         assert "Somme des trois niveaux" in formule
     finally:
         conn.close()
+
+
+def test_le_superieur_herite_des_drapeaux_de_ses_composantes():
+    """Une commune nouvelle qui reçoit les diplômés d'une déléguée le signale
+    sur ses parts. La somme doit le signaler aussi : la même donnée signalée à
+    un endroit et pas à l'autre laisse croire à deux qualités différentes."""
+    lignes = [
+        {"niveau": "commune", "code": "85084", "periode": "2023", "statut": "_T",
+         "diplome": "500_RP", "valeur": 100.0, "drapeaux": []},
+        {"niveau": "commune", "code": "85084", "periode": "2023", "statut": "_T",
+         "diplome": "600_RP", "valeur": 80.0,
+         "drapeaux": [emploi.DRAPEAU_REGROUPEMENT]},
+        {"niveau": "commune", "code": "85084", "periode": "2023", "statut": "_T",
+         "diplome": "700_RP", "valeur": 20.0, "drapeaux": []},
+    ]
+    (superieur,) = [
+        v for v in emploi.valeurs_publiees(lignes)
+        if v[0] == "insee_diplome_superieur"
+    ]
+    assert superieur[4] == 200.0
+    assert superieur[5] == [emploi.DRAPEAU_REGROUPEMENT]

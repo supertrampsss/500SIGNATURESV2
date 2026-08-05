@@ -289,7 +289,10 @@ def valeurs_publiees(lignes: list[dict]) -> list[tuple]:
 
     Le supérieur est la seule valeur calculée : la somme des trois niveaux, et
     seulement quand ils sont tous les trois là — un supérieur amputé d'un niveau
-    serait un sous-comptage présenté comme une mesure.
+    serait un sous-comptage présenté comme une mesure. Il hérite des drapeaux de
+    ses composantes : une commune nouvelle qui reçoit les diplômés d'une
+    déléguée doit le signaler sur la somme comme sur les parts, faute de quoi
+    la même donnée serait signalée à un endroit et pas à l'autre.
     """
     sorties = []
     for ligne in lignes:
@@ -304,12 +307,20 @@ def valeurs_publiees(lignes: list[dict]) -> list[tuple]:
             (identifiant, ligne["niveau"], ligne["code"], ligne["periode"],
              ligne["valeur"], ligne["drapeaux"])
         )
+    marques: dict[tuple, list[str]] = {}
+    for ligne in lignes:
+        if ligne["drapeaux"] and (ligne["statut"], ligne["diplome"]) in {
+            (TOTAL, code_) for code_ in SUPERIEUR
+        }:
+            cle = (ligne["niveau"], ligne["code"], ligne["periode"])
+            marques[cle] = sorted(set(marques.get(cle, [])) | set(ligne["drapeaux"]))
     for (niveau, code, periode), valeurs in _par_cle(lignes).items():
         parts = [valeurs.get((TOTAL, code_)) for code_ in SUPERIEUR]
         if any(part is None for part in parts):
             continue
         sorties.append(
-            (DIPLOME_SUPERIEUR[0], niveau, code, periode, sum(parts), [])
+            (DIPLOME_SUPERIEUR[0], niveau, code, periode, sum(parts),
+             marques.get((niveau, code, periode), []))
         )
     return sorties
 
