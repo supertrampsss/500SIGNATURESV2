@@ -76,6 +76,11 @@ STATUTS_REGROUPES = {"W"}
 
 TOLERANCE = 0.001
 
+# Les familles et les unions — mariages, pacs, divorces — répondent à la même
+# question : comment vit-on ici. Elles partagent donc un thème, distinct de
+# « Population », qui répond à « combien sommes-nous ».
+THEME = "famille"
+
 # (nom, composantes, total). Une composante absente fait sauter le contrôle pour
 # ce territoire : c'est le cas des recomposées avant 2023, que la source ne
 # publie pas.
@@ -229,13 +234,13 @@ def declarer(conn) -> None:
                 insert into core.indicators
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, geo_levels, time_granularity, published)
-                values (?, ?, ?, 'population', ?, 'count', true,
+                values (?, ?, ?, ?, ?, 'count', true,
                         array['commune','epci','departement','region'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                     theme = excluded.theme, published = true
                 """,
-                (indicateur, DATASET, definition, libelle),
+                (indicateur, DATASET, definition, THEME, libelle),
             )
         curseur.execute(
             "delete from core.indicator_definitions d where not exists"

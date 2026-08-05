@@ -131,6 +131,7 @@ jobs:
             python -m plateforme.normalize.logement --store r2:plateforme-raw
             python -m plateforme.normalize.famille --store r2:plateforme-raw
             python -m plateforme.normalize.professions --store r2:plateforme-raw
+            python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
             python -m plateforme.normalize.maires --store r2:plateforme-raw
             python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
             python -m plateforme.normalize.securite --store r2:plateforme-raw
@@ -169,6 +170,7 @@ jobs:
             python -m plateforme.normalize.logement --store r2:plateforme-raw
             python -m plateforme.normalize.famille --store r2:plateforme-raw
             python -m plateforme.normalize.professions --store r2:plateforme-raw
+            python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
             python -m plateforme.normalize.maires --store r2:plateforme-raw
             python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
             python -m plateforme.normalize.securite --store r2:plateforme-raw
@@ -282,17 +284,24 @@ jobs:
           fi
           if [ "$JOB" = "professions" ]; then
             python -m plateforme.normalize.professions --store r2:plateforme-raw
+            python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "etatcivil" ]; then
+            python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
           if [ "$JOB" = "recensement" ]; then
-            # Les trois jeux du recensement d'un coup, publiés une seule fois :
-            # chaque publication coûte quarante minutes sur l'entrepôt entier,
-            # et trois runs séparés en gaspilleraient deux.
+            # Les trois jeux du recensement et l'état civil d'un coup, publiés
+            # une seule fois : chaque publication coûte quarante minutes sur
+            # l'entrepôt entier, et quatre runs séparés en gaspilleraient trois.
             set -e
             python -m plateforme.normalize.logement --store r2:plateforme-raw
             python -m plateforme.normalize.famille --store r2:plateforme-raw
             python -m plateforme.normalize.professions --store r2:plateforme-raw
+            python -m plateforme.normalize.etatcivil --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

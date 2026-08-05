@@ -590,7 +590,10 @@ const PHARES: Record<string, string[]> = {
   securite: ["ssmsi_cambriolages_taux", "ssmsi_violences_hors_famille_taux"],
   finances_locales: ["ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
   revenus: ["insee_niveau_vie_median", "insee_taux_pauvrete"],
-  population: ["insee_population_municipale", "insee_familles"],
+  population: ["insee_population_municipale"],
+  // Combien de familles, et combien y élèvent seules leurs enfants : les deux
+  // chiffres du thème qu'on vient chercher.
+  famille: ["insee_familles", "insee_familles_monoparentales"],
   // Les deux catégories les plus nombreuses de France, et celles dont l'écart
   // dit le plus d'un territoire : ouvriers et cadres.
   professions: ["insee_pcs_cadres", "insee_pcs_ouvriers"],
@@ -639,6 +642,7 @@ const ORDRE_THEMES = [
   "impots_locaux",
   "revenus",
   "population",
+  "famille",
   "professions",
   "logement",
   "securite",

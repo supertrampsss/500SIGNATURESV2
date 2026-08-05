@@ -45,6 +45,14 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 
 ### P0 — dès le rétablissement de la base
 
+> **Les sept lignes sont chargées au 5 août 2026.** Ce qui a coûté le plus cher
+> n'est pas le volume : c'est de trouver, jeu par jeu, la définition qui change
+> la lecture — domicilié contre enregistré, unité légale contre unité locale,
+> famille contre ménage, quinze ans et plus contre population. Chaque connecteur
+> porte au moins un contrôle bloquant tiré d'une identité de la source, parce
+> qu'un croisement lu de travers ne fait rien planter : il publie un chiffre
+> faux.
+
 | # | Jeu | Ce qu'on en tire | Maille | Volume estimé |
 |---|---|---|---|---|
 | ~~1~~ | ~~`DS_ETAT_CIVIL_DECES_COMMUNES`~~ | **chargé le 4 août** — 652 211 observations, 2008-2025, quatre mailles | commune | 3 Mo |
@@ -53,7 +61,7 @@ Chaque ligne = un connecteur, un lot d'indicateurs, un volume estimé
 | ~~4~~ | ~~`DS_RP_FAMILLE_COMP`~~ | **chargé le 5 août** — 470 859 observations, cinq types, 2012/2017/2023 | commune | 14 Mo |
 | ~~5~~ | ~~`DS_BPE`~~ | **chargé le 4 août** — 191 209 observations, sept domaines et leur total | commune | 14 Mo |
 | ~~6~~ | ~~`DS_SIDE_CREA_ENT_COM`~~ | **chargé le 5 août** — 438 019 observations, 2012-2025, quatre mailles | commune | 12 Mo |
-| 7 | `DS_MAR_PACS_DIV_SERIES` | mariages, PACS, divorces | national/région | < 1 Mo |
+| ~~7~~ | ~~`DS_MAR_PACS_DIV_SERIES`~~ | **chargé le 5 août** — 11 384 observations, cinq séries, 1975-2025 | département/région/France | < 1 Mo |
 
 **Décès domiciliés — chargé le 4 août.** Deux pièges, tous deux tranchés à la
 source plutôt qu'au jugé. L'INSEE publie les décès *survenus* et les décès
@@ -221,6 +229,31 @@ Les huit catégories entrent dans un thème « Professions et catégories social
 distinct de « Population » : « combien sommes-nous » et « qui sommes-nous » ne
 sont pas la même question, et les mélanger ferait un thème de quinze lignes où
 l'on en cherche une.
+
+**Mariages, pacs et divorces — chargé le 5 août.** Le dernier P0, et le plus
+petit : 11 384 observations pour cinq séries qui remontent à 1975 par
+département. Trois filtres décident de tout, et chacun laisserait passer un
+chiffre faux. Les mariages **domiciliés** sont chargés, pas les **enregistrés** —
+le piège des décès à l'identique : en Gironde en 2016, la source publie 5 709
+mariages domiciliés et 5 587 enregistrés, et seul le premier décrit le
+territoire. Les séries **mensuelles** nationales cohabitent avec les annuelles
+dans le même fichier ; chargées ensemble, les douze mois d'une année s'ajouteraient
+à cette année. Et la source publie **trois France** — entière, métropolitaine,
+métropole hors Île-de-France — dont deux passeraient pour le chiffre national.
+
+Contrôle bloquant : mariages de sexe opposé + de même sexe = mariages, sur les
+1 379 couples territoire-exercice où les trois termes existent, écart nul. Le
+contrôle saute les exercices antérieurs à 2013 : avant mai 2013 il n'y a pas de
+donnée manquante, il n'y a pas de mariage possible.
+
+Deux séries s'arrêtent, et les fiches le disent plutôt que de laisser un chiffre
+de 2016 voisiner un mariage de 2024 sans explication. Les **pacs** s'arrêtent en
+2016 au département et à la région ; la France entière va jusqu'à 2024. Les
+**divorces** s'arrêtent en 2016 à tous les niveaux. La raison n'est pas dans les
+métadonnées de la source, et n'est donc pas inventée ici.
+
+Vérifié au chargement : France 2024, 246 057 mariages dont 6 663 entre personnes
+de même sexe, 197 176 pacs, taux de nuptialité de 3,6 ‰.
 
 ### P0 bis — combler les indicateurs sans comparaison
 
