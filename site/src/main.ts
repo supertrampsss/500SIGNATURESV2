@@ -1251,6 +1251,22 @@ async function demarrer(): Promise<void> {
   Object.assign(window as object, {
     __carte: carte,
     __diag: () => ({ entites: Object.keys(entites).length, un: entites["28"], niveau: etat.niveau }),
+    // Le groupe de comparaison ne s'affichait pas et rien ne disait pourquoi :
+    // trois valeurs à lire — la clé construite, la période, ce qui est trouvé.
+    __groupe: (code: string) => {
+      const t = entites[code];
+      const cle = groupes?.criteres
+        .map((c) => (t?.drapeaux as Record<string, string>)?.[c] ?? "")
+        .join("|");
+      return {
+        charge: Boolean(groupes),
+        indicateur: etat.indicateur,
+        periode: etat.periode,
+        cle,
+        periodesDisponibles: Object.keys(groupes?.groupes[etat.indicateur] ?? {}),
+        trouve: groupes?.groupes[etat.indicateur]?.[etat.periode]?.[cle ?? ""],
+      };
+    },
   });
 
   const infobulle = $("infobulle");

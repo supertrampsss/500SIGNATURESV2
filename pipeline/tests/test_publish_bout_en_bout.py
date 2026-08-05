@@ -284,3 +284,28 @@ def test_le_secret_statistique_ne_masque_que_les_mailles_ou_il_mord(tmp_path):
         assert "commune" not in repere, "médiane calculée sur un ensemble communal censuré"
     finally:
         conn.close()
+
+
+def test_les_drapeaux_sortent_en_objet_pas_en_chaine(tmp_path):
+    """Le défaut qui rendait muette la question la plus posée du site.
+
+    DuckDB rend une colonne `json` en texte. Publiés tels quels, les drapeaux
+    faisaient lire `territoire.drapeaux["tranche_population"]` sur une chaîne :
+    `undefined`, donc une clé de groupe « || », donc aucun groupe trouvé, donc
+    pas de bloc « parmi N communes semblables ». Rien ne le signalait — un
+    groupe introuvable n'est pas une erreur, c'est une absence.
+    """
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        sortie = publish.territoires(conn, "commune")
+        bordeaux = sortie["33063"]
+        assert isinstance(bordeaux["drapeaux"], dict), type(bordeaux["drapeaux"])
+        # Et la clé du groupe doit se construire, pas se réduire à des barres.
+        cle = "|".join(
+            str(bordeaux["drapeaux"].get(critere, ""))
+            for critere in publish.CRITERES_GROUPE
+        )
+        assert cle.strip("|"), cle
+    finally:
+        conn.close()

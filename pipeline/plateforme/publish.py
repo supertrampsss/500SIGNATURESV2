@@ -677,6 +677,24 @@ def maires(conn) -> dict[str, dict]:
     }
 
 
+def _objet(valeur) -> dict:
+    """Une colonne JSON de DuckDB -> un objet, jamais une chaîne.
+
+    DuckDB rend `json` en texte. Le contrat publié dit un objet ; le publier en
+    chaîne ne casse rien visiblement — le site lit une clé absente et n'affiche
+    pas le bloc — et c'est bien pour cela que le défaut a tenu.
+    """
+    if isinstance(valeur, dict):
+        return valeur
+    if not valeur:
+        return {}
+    try:
+        decode = json.loads(valeur)
+    except (TypeError, ValueError):
+        return {}
+    return decode if isinstance(decode, dict) else {}
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
     elus = maires(conn) if niveau == "commune" else {}
@@ -688,7 +706,15 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
             # ensemble comparer un territoire.
             "region": region,
             "population": population,
-            "drapeaux": drapeaux,
+            # Les drapeaux sortent de DuckDB en texte JSON. Publiés tels quels,
+            # le site lisait `territoire.drapeaux["tranche_population"]` sur une
+            # chaîne et obtenait `undefined` : la clé du groupe de comparaison
+            # se construisait à « || », aucun groupe ne correspondait, et le
+            # bloc « parmi N communes semblables » ne s'affichait jamais. La
+            # question la plus posée du site est restée muette depuis la
+            # migration, sans que rien ne le signale — un objet vide n'est pas
+            # une erreur, c'est une absence.
+            "drapeaux": _objet(drapeaux),
             "evenements": changements.get(code, []),
             **({"maire": elus[code]} if code in elus else {}),
         }
