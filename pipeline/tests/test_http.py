@@ -236,3 +236,76 @@ def test_le_corps_est_demande_sans_compression_de_transport(monkeypatch):
     _brancher(monkeypatch, httpx.MockTransport(repondre))
     http.telecharger("https://exemple.test/fichier.zip")
     assert entetes == ["identity", "identity"]
+
+
+def test_une_tentative_qui_traine_est_abandonnee_et_reprise(monkeypatch):
+    """La seule façon dont ce téléchargement puisse pendre au lieu d'échouer.
+
+    Le délai de lecture ne voit que le silence : un serveur qui envoie un octet
+    juste avant chaque expiration ne le déclenche jamais. Rien n'échoue, rien
+    n'avance, et le run tient la file d'ingestion des heures — c'est ce qui a
+    motivé ce garde-fou.
+    """
+    appels: list = []
+    horloge = {"t": 0.0}
+
+    def maintenant() -> float:
+        # Le temps n'avance qu'à la lecture d'un morceau : chacun coûte le tiers
+        # du budget, donc la tentative est coupée au quatrième.
+        horloge["t"] += http.TENTATIVE / 3
+        return horloge["t"]
+
+    monkeypatch.setattr(http.time, "monotonic", maintenant)
+
+    def morceaux(depuis: int):
+        # Un serveur qui n'envoie jamais rien ne déclencherait pas le délai de
+        # lecture : il parle, il est simplement trop lent pour aboutir.
+        for debut in range(depuis, len(FICHIER), 1000):
+            yield FICHIER[debut : debut + 1000]
+
+    def repondre(requete: httpx.Request) -> httpx.Response:
+        appels.append((requete.method, requete.headers.get("range")))
+        plage = requete.headers.get("range")
+        if requete.method == "HEAD":
+            return httpx.Response(200, headers={"content-length": str(len(FICHIER))})
+        if plage:
+            debut = int(plage.removeprefix("bytes=").rstrip("-"))
+            return httpx.Response(
+                206,
+                content=morceaux(debut),
+                headers={"content-range": f"bytes {debut}-{len(FICHIER) - 1}/{len(FICHIER)}"},
+            )
+        return httpx.Response(200, content=morceaux(0))
+
+    _brancher(monkeypatch, httpx.MockTransport(repondre))
+    recu = http.telecharger("https://exemple.test/fichier.zip")
+    assert recu == FICHIER
+    # La première tentative a été coupée en route ; les suivantes ont repris à
+    # l'octet exact plutôt que de tout redemander.
+    assert appels[0] == ("HEAD", None)
+    assert appels[1] == ("GET", None)
+    assert len(appels) > 2
+    assert all(m == "GET" and p.startswith("bytes=") for m, p in appels[2:])
+
+
+def test_un_flux_qui_n_avance_jamais_finit_par_lever(monkeypatch):
+    """Abandonner une tentative ne suffit pas : il faut que l'échec arrive."""
+    horloge = {"t": 0.0}
+
+    def maintenant() -> float:
+        horloge["t"] += http.TENTATIVE
+        return horloge["t"]
+
+    monkeypatch.setattr(http.time, "monotonic", maintenant)
+
+    def repondre(requete: httpx.Request) -> httpx.Response:
+        if requete.method == "HEAD":
+            return httpx.Response(200, headers={"content-length": str(len(FICHIER))})
+        # Toujours le même préfixe, jamais la suite : le serveur ignore `Range`.
+        return httpx.Response(
+            200, content=FICHIER[:1000], headers={"content-length": str(len(FICHIER))}
+        )
+
+    _brancher(monkeypatch, httpx.MockTransport(repondre))
+    with pytest.raises(http.Tronque):
+        http.telecharger("https://exemple.test/fichier.zip", essais=3)

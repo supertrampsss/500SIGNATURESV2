@@ -33,6 +33,14 @@ LECTURE = 60.0
 # deux heures d'attente.
 CONNEXION = 30.0
 
+# Durée maximale d'une tentative, tous morceaux confondus. Le délai de lecture
+# ne voit que le silence : un serveur qui envoie un octet toutes les
+# cinquante-neuf secondes ne le déclenche jamais. Rien n'échoue, rien n'avance,
+# et le run tient la file d'ingestion des heures — c'est la seule façon dont ce
+# téléchargement puisse pendre au lieu d'échouer. Passé ce budget la tentative
+# est abandonnée, et la suivante reprend par `Range` : ce qui est reçu est gardé.
+TENTATIVE = 600.0
+
 
 def _delais(timeout: float) -> "httpx.Timeout":
     """Délais par opération, jamais par fichier.
@@ -47,6 +55,14 @@ def _delais(timeout: float) -> "httpx.Timeout":
         write=min(timeout, LECTURE),
         pool=min(timeout, LECTURE),
     )
+
+
+class TropLente(RuntimeError):
+    """La tentative n'a pas fini dans son budget de temps.
+
+    Ce n'est ni une erreur réseau ni un corps court : c'est un flux qui avance
+    trop lentement pour aboutir. La reprise garde ce qui est arrivé.
+    """
 
 
 class Tronque(RuntimeError):
@@ -139,6 +155,12 @@ def telecharger(
     200 : le tampon est alors vidé et la tentative repart du début, plutôt que
     de coller deux fois le même préfixe.
 
+    Ce qui est déjà reçu n'est jamais jeté sur une erreur : `iter_bytes` ne rend
+    que des morceaux entiers, donc le tampon est toujours un préfixe valide du
+    corps, et la tentative suivante repart de là. Une tentative qui n'aboutit pas
+    dans son budget de temps est abandonnée pour la même raison — c'est la seule
+    façon dont ce téléchargement puisse pendre au lieu d'échouer.
+
     Le corps est demandé sans compression de transport (`identity`). Sans cela,
     un proxy qui gzippe à la volée rendrait des octets décompressés dont le
     nombre ne se compare plus à la taille annoncée, et le contrôle mesurerait
@@ -176,14 +198,15 @@ def telecharger(
                     # un `Content-Length` égal à ce qu'elle sert. L'écraser
                     # avec ça reviendrait à demander au coupable sa taille.
                     attendu = _annoncee(reponse)
+                debut = time.monotonic()
                 for bloc in reponse.iter_bytes():
                     tampon.extend(bloc)
-        except (httpx.TransportError, httpx.HTTPStatusError) as erreur:
+                    if time.monotonic() - debut > TENTATIVE:
+                        raise TropLente(
+                            f"{url} : {len(tampon)} octets en {TENTATIVE:.0f} s"
+                        )
+        except (httpx.TransportError, httpx.HTTPStatusError, TropLente) as erreur:
             dernier = erreur
-            if attendu is None:
-                # Sans taille annoncée, impossible de savoir où reprendre : la
-                # tentative suivante repart du début.
-                tampon.clear()
         else:
             if attendu is None or len(tampon) >= attendu:
                 break
