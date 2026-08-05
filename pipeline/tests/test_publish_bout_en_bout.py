@@ -15,9 +15,11 @@ déposés et contrôle ce qu'ils contiennent.
 
 import json
 
+import pytest
+
 from plateforme import entrepot, publish, registry
 from plateforme.normalize.geo import MILLESIME
-from plateforme.store import LocalStore
+from plateforme.store import ImmutabilityError, LocalStore
 
 # Deux communes du même département, pour que la médiane et le groupe de
 # comparaison aient de quoi se calculer sans être un cas dégénéré.
@@ -286,5 +288,23 @@ def test_les_drapeaux_sortent_en_objet_pas_en_chaine(tmp_path):
             for critere in publish.CRITERES_GROUPE
         )
         assert cle.strip("|"), cle
+    finally:
+        conn.close()
+
+
+def test_une_version_deja_publiee_n_est_jamais_ecrasee(tmp_path):
+    """Les fichiers d'une publication ne sont plus contrôlés un par un : sur une
+    version neuve, ce `HEAD` avant chaque `PUT` doublait le coût réseau de deux
+    mille écritures sans jamais rien trouver. Le contrôle tient en une clé, en
+    tête — mais il tient."""
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        store = LocalStore(str(tmp_path / "publie"))
+        publish.publier(conn, store, "2026-01-01T0000")
+        with pytest.raises(ImmutabilityError, match="existe déjà"):
+            publish.publier(conn, store, "2026-01-01T0000")
+        # Et une version neuve passe, elle.
+        assert publish.publier(conn, store, "2026-01-01T0001") > 0
     finally:
         conn.close()

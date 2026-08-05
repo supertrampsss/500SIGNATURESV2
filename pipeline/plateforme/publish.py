@@ -19,6 +19,7 @@ from plateforme import entrepot
 from plateforme import journal as journal_declare
 from plateforme.connectors import smb
 from plateforme.normalize.geo import make_store
+from plateforme.store import Flux, ImmutabilityError
 
 NIVEAUX = ["commune", "departement", "region", "pays"]
 
@@ -770,15 +771,54 @@ def controler_avant_publication(conn, store) -> None:
         )
 
 
+def controler_version_libre(store, racine: str) -> None:
+    """Une publication n'écrase pas une publication.
+
+    Chaque fichier était protégé par un contrôle d'immutabilité : un `HEAD`
+    avant chaque `PUT`, soit deux allers-retours par fichier et deux mille
+    fichiers. Sur une version neuve — l'horodatage du run — ce contrôle ne peut
+    jamais rien trouver : il payait le prix d'une garantie qu'il n'exerçait pas.
+
+    Le vrai risque tient en une clé : deux publications à la même minute, ou une
+    republication de la même version. Il se vérifie une fois, ici, sur le
+    manifeste — le premier fichier déposé. Le reste écrit sans redemander.
+
+    La garantie d'immutabilité des instantanés bruts, elle, ne bouge pas : c'est
+    une autre racine, un autre écrivain, et `Flux` n'y est pas employé.
+    """
+    manifeste = f"{racine}/manifeste.json"
+    try:
+        store.get(manifeste)
+    except Exception:  # noqa: BLE001 — absent est le cas normal, et il se dit ainsi
+        return
+    raise ImmutabilityError(
+        f"publication refusée : {racine} existe déjà. Deux publications ne"
+        " peuvent pas partager une version — relancer avec un horodatage neuf."
+    )
+
+
 def publier(conn, store, version: str) -> int:
     controler_avant_publication(conn, store)
     racine = f"data/{version}"
-    fichiers = 0
+    controler_version_libre(store, racine)
+    with Flux(store, overwrite=True) as flux:
+        _ecrire(conn, flux, racine, version)
+        fichiers, octets = flux.fichiers, flux.octets
+    # Le pointeur en dernier, et seulement lui hors du flux : c'est le geste qui
+    # rend la publication visible, et il ne doit pas partir en même temps que
+    # les fichiers qu'il désigne. Tant qu'il n'a pas bougé, une publication
+    # interrompue n'est qu'une version que personne ne lit.
+    store.put("data/derniere.json", _json({"version": version}), overwrite=True)
+    print(f"publication {version} : {fichiers} fichiers, {octets // 1024 // 1024} Mio")
+    return fichiers
+
+
+def _ecrire(conn, flux, racine: str, version: str) -> None:
+    """Tout le jeu publié, sauf le pointeur. Séparé de `publier` pour que le
+    flux se referme — et attende ses écritures — avant que le pointeur ne bouge."""
 
     def deposer(chemin: str, charge) -> None:
-        nonlocal fichiers
-        store.put(f"{racine}/{chemin}", _json(charge))
-        fichiers += 1
+        flux.deposer(f"{racine}/{chemin}", _json(charge))
 
     deposer("manifeste.json", manifeste(conn, version))
     recales = synchroniser_niveaux(conn)
@@ -827,9 +867,7 @@ def publier(conn, store, version: str) -> int:
     deposer("fraicheur.json", fraicheur(conn))
     deposer("journal.json", journal(conn))
     deposer("references.json", references(conn, cartographiees))
-    store.put("data/derniere.json", _json({"version": version}), overwrite=True)
-    print(f"publication {version} : {fichiers} fichiers, {len(recherche)} territoires")
-    return fichiers
+    print(f"catalogue : {len(recherche)} territoires publiés")
 
 
 def main() -> int:
