@@ -160,6 +160,7 @@ jobs:
             python -m plateforme.normalize.conjoncture --store r2:plateforme-raw
             python -m plateforme.normalize.prix --store r2:plateforme-raw
             python -m plateforme.normalize.apu --store r2:plateforme-raw
+            python -m plateforme.normalize.consommation --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -205,6 +206,7 @@ jobs:
             python -m plateforme.normalize.conjoncture --store r2:plateforme-raw
             python -m plateforme.normalize.prix --store r2:plateforme-raw
             python -m plateforme.normalize.apu --store r2:plateforme-raw
+            python -m plateforme.normalize.consommation --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -253,6 +255,11 @@ jobs:
           fi
           if [ "$JOB" = "apu" ]; then
             python -m plateforme.normalize.apu --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "consommation" ]; then
+            python -m plateforme.normalize.consommation --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

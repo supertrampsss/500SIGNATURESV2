@@ -768,16 +768,50 @@ serait le nôtre, pas celui du producteur. Le jeu demande donc un travail de
 définition avant tout code — le même que celui qui a fait écarter les recettes
 et dépenses totales des APU.
 
-`DD_CNA_CONSO_MENAGES_PRODUITS` (1 044 160 observations, annuel depuis 1949)
-décrit la consommation des **ménages**, pas la dépense publique. Il éclaire le
-contexte au même titre que la croissance déjà publiée, et sa ventilation par
-produit est utilisable telle quelle.
+`DD_CNA_CONSO_MENAGES_PRODUITS` **s'est révélé plus utile que son titre ne le
+disait — chargé le 6 août.** Voir plus bas.
 
 `DS_PRENOM` (6 622 949 observations, depuis 1900) est le jeu ouvert le plus
 consulté de l'INSEE, et il ne répond à aucune des questions de ce site. Il n'a
 pas non plus d'agrégat : un prénom est une modalité parmi des milliers, quand la
 règle du plan veut « quelques indicateurs agrégés à la maille du territoire ».
 Le charger remplirait un onglet, pas une intention.
+
+**Consommation des ménages — chargement lancé le 6 août.** Deux chiffres, et
+c'est **leur écart** qui vaut le chargement. La dépense de consommation finale
+est ce que les ménages paient de leur poche : 1 527 milliards d'euros en 2024.
+La consommation finale effective est ce qu'ils consomment réellement, services
+publics compris : 2 051 milliards la même année.
+
+Les **524 milliards** d'écart portent un nom dans les comptes nationaux : les
+transferts sociaux en nature. Soins remboursés, école, logement social,
+crèches — des biens et services que les ménages consomment sans les payer,
+parce que la collectivité les paie. Sur un site qui demande « où vont mes
+impôts », c'est la réponse la plus directe qui existe, et elle ne se lit que si
+les deux chiffres sont publiés côte à côte. Aucun des deux, seul, ne la donne.
+
+Deux réserves entrent dans la fiche. Ces montants décrivent ce que les **ménages
+consomment**, pas ce que les administrations dépensent : ils ne s'additionnent
+pas aux dépenses publiques publiées par ailleurs. Et le champ est celui des
+ménages **résidents**, où qu'ils dépensent — ce qu'un Français achète à
+l'étranger y est, ce qu'un touriste achète en France n'y est pas ; la source
+porte à cet effet une correction territoriale, négative de 16 milliards en 2024.
+
+Le contrôle bloquant est une inégalité plutôt qu'une égalité : la consommation
+effective ne peut pas descendre sous la dépense, puisque les transferts en
+nature ne sont jamais négatifs. Vérifiée sur les 77 exercices de 1949 à 2025.
+Elle attraperait deux mesures inversées ou un filtre qui aurait laissé passer un
+autre secteur — les administrations et les associations sont servies sous les
+mêmes codes.
+
+**Un défaut de méthode, corrigé au premier essai.** Le jeu décline 551 produits.
+Demander toutes les lignes puis ne garder le total qu'après lecture faisait
+dépasser la page de l'API : le total disparaissait, la série revenait vide, et
+rien n'échouait. Le filtre appartient donc à la requête, pas à la lecture — et
+un test le vérifie sur l'URL.
+
+Relevé sur la source : 2024, dépense 1 527 123 M€, consommation effective
+2 051 008 M€, transferts en nature 523 885 M€.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
