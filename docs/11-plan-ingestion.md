@@ -1,9 +1,25 @@
 # 11 — Plan d'ingestion : ce qui reste à charger, dans quel ordre
 
-> **État au 3 août 2026.** Ce document existe parce qu'une intention n'est pas
-> un plan. Il liste ce qui est **disponible et pas encore chargé**, avec le
-> volume que ça coûte et l'ordre dans lequel ça entre. Il est tenu à jour :
-> une ligne passe en « chargé » quand son connecteur tourne en production.
+> **État au 6 août 2026 — le plan est traité de bout en bout.** Ce document
+> existe parce qu'une intention n'est pas un plan. Il listait ce qui était
+> disponible et pas encore chargé, avec le volume que ça coûtait et l'ordre dans
+> lequel ça entrait ; une ligne passe en « chargé » quand son connecteur tourne
+> en production.
+>
+> **Les sept lignes P0 sont chargées.** **Les lignes P1 accessibles aussi** — 8
+> (secteurs d'activité), 9 (hébergement touristique), 10 (activité et diplômes),
+> 13 (logement social), 14 (participation électorale) ; la 11 était couverte par
+> la 10, et la **12 (DVF) est écartée à la demande du propriétaire du projet**.
+> **Les entrées P2 sont traitées une par une** : indice des prix, solde des
+> administrations publiques, consommation des ménages et prénoms sont chargés ;
+> les indices de chiffre d'affaires sont écartés, sur la recommandation de leur
+> propre producteur.
+>
+> Ce qui n'est pas chargé l'est **explicitement**, avec sa raison écrite : c'est
+> vrai des jeux entiers comme des agrégats refusés à l'intérieur d'un jeu chargé
+> — recettes et dépenses totales des APU, croisements détaillés du recensement,
+> nuances politiques des élections. Une absence sans motif serait indiscernable
+> d'un oubli.
 >
 > **Bloquant levé le 04/08/2026 (D6quinquies)** : l'incident D6quater — base
 > Supabase endormie, trente-six heures de données figées, réactivation possible
@@ -429,13 +445,13 @@ des communes de même revenu pour constater qu'elles ont le même revenu.
 
 | # | Jeu | Ce qu'on en tire | Maille |
 |---|---|---|---|
-| 8 | `DS_FLORES_A5` | établissements et effectifs salariés par grand secteur | commune |
-| 9 | `DS_TOUR_CAP` | capacités d'hébergement touristique | commune |
+| ~~8~~ | ~~`DS_FLORES_A5`~~ | **chargé le 6 août** — 419 880 observations, douze indicateurs, millésime 2024 | commune |
+| ~~9~~ | ~~`DS_TOUR_CAP`~~ | **chargé le 6 août** — 209 850 observations, six indicateurs, au 1er janvier 2026 | commune |
 | ~~10~~ | ~~`DS_RP_EMPLOI_LR_PRINC`~~ | **chargé le 5 août** — 724 410 observations, dix indicateurs ; couvre aussi la ligne 11 | commune |
 | ~~11~~ | ~~`DS_RP_TD_DIPLOMES_PRINC`~~ | **inutile** : les diplômes sont dans le jeu de la ligne 10, sur la même population | commune |
 | 12 | DVF (data.gouv) | prix des logements vendus | commune |
-| 13 | RPLS (SDES) | logement social | commune |
-| 14 | Élections (data.gouv) | résultats par commune | commune |
+| ~~13~~ | ~~RPLS (SDES)~~ | **chargé le 6 août** — 5 416 826 logements sociaux comptés un par un, trois indicateurs | commune |
+| ~~14~~ | ~~Élections (data.gouv)~~ | **chargé le 6 août** — 174 180 observations, cinq indicateurs de **participation** ; les nuances politiques ne sont pas chargées, et le plan dit pourquoi | commune |
 
 **Activité, chômage et diplômes — chargé le 5 août.** Le premier P1, et il
 comble le manque le plus visible : le taux de chômage s'arrêtait au département,
@@ -472,12 +488,405 @@ au lieu de 17,9 millions, quarante-trois secondes. Vérifié au chargement :
 Bordeaux 2023, 191 928 habitants de 15 à 64 ans, 11,8 % de chômage au sens du
 recensement, 58,7 % de diplômés du supérieur.
 
-### P2 — onglet « Statistiques et études », pas la carte
+**Logement social — chargé le 6 août.** Le site publiait déjà un parc social,
+celui du recensement, **déclaré par les ménages** : on demande aux habitants
+s'ils logent dans un HLM. Le répertoire des bailleurs sociaux part des bailleurs
+et compte leurs logements un par un — 5 416 826 — et c'est lui qui fait foi pour
+la loi SRU. Les deux chiffres diffèrent franchement pour la même commune la même
+année ; les deux sont publiés, et chaque fiche nomme l'autre, faute de quoi une
+commune serait dite en règle ou en infraction sur la foi du mauvais comptage.
 
-`DD_CNA_APU` (comptes des administrations publiques), `DS_IPC_PRINC` (indice
-des prix), `DD_CNA_CONSO_MENAGES_PRODUITS`, `DS_ICA` (activité et chiffre
-d'affaires), `DS_PRENOM` — séries nationales ou thématiques : elles éclairent,
-elles ne se cartographient pas à la commune.
+Les adresses ne sont jamais téléchargées : le fichier décrit chaque logement par
+son numéro de voie, son étage et ses coordonnées, sur soixante-treize colonnes,
+et l'API du SDES sait n'en servir que quatre. L'instantané archivé n'en porte
+aucune — la règle des données agrégées appliquée en amont plutôt qu'après coup.
+
+Les **passoires thermiques** sont publiées en trois indicateurs et non deux : le
+parc, les logements étiquetés, et les F ou G. 657 670 logements — douze pour
+cent — n'ont aucune étiquette, et un logement sans diagnostic n'est pas un
+logement bien classé : le taux se lit donc sur les étiquetés. 119 527 en F et
+26 013 en G, soit 3,1 %. « E » n'entre pas dans le compte, le calendrier légal
+portant sur G puis F.
+
+**Et c'est ce chargement qui a fait naître `couverture.py`.** Le répertoire code
+Paris, Lyon et Marseille par arrondissement : sans rattachement à la commune,
+Paris sortait à zéro logement social quand il en compte 250 640. Le contrôle
+bloquant du connecteur — totaux départementaux contre totaux régionaux — était
+parfaitement vert, parce qu'un contrôle d'identité compare la source à
+elle-même et ne peut pas voir un code que le référentiel ignore. Le nouveau
+contrôle compare ce qui est **écrit** à ce qui est **lu**, maille par maille, en
+entités et non en codes, et refuse sous 95 %. Il s'applique désormais à tout
+connecteur qui écarte des territoires inconnus.
+
+**Établissements employeurs et salariés par secteur — chargé le 6 août.** Le
+premier jeu du site qui compte l'emploi **là où il est** plutôt que là où
+habitent ceux qui l'occupent : 419 880 observations, douze indicateurs,
+2 411 570 établissements employeurs et 26 604 745 postes salariés en France
+entière. Trois mots devaient être tenus, chacun contredisant un chiffre déjà en
+ligne s'il ne l'était pas.
+
+**Employeur n'est pas actif.** Le site publie déjà 6 625 344 établissements
+actifs pour 2024 ; ce jeu-ci n'en compte que 2 411 570, parce qu'il retient les
+seuls établissements ayant employé quelqu'un dans l'année. Près de deux tiers
+des établissements actifs n'emploient personne. Les deux chiffres sont justes et
+voisinent sur la même fiche : chacun nomme l'autre. **Un poste n'est pas une
+personne** : l'effectif compte les postes présents la dernière semaine de
+décembre, une personne qui en occupe deux est comptée deux fois, et un mi-temps
+compte pour un — ce n'est ni un équivalent temps plein ni un nombre d'habitants
+qui travaillent. **Le lieu de travail n'est pas le domicile** : ces salariés ne
+se rapportent pas à la population du territoire, et n'en donnent donc pas un taux
+d'emploi ; les actifs du recensement, comptés au domicile, sont publiés à côté.
+
+Deux pièges de lecture, tranchés à la source. Les neuf tranches d'effectifs sont
+servies **avec** leur total sur la même dimension : seul le total est lu, les
+charger reviendrait à compter chaque établissement deux fois. Et le fichier
+publie deux France sous le même identifiant de zonage — entière et
+métropolitaine, 2 411 570 contre 2 344 770 : c'est la première qui est le total,
+puisque les communes d'outre-mer sont chargées.
+
+Deux contrôles bloquants, plus celui de la couverture. Les cinq secteurs font le
+total, pour chaque mesure et chaque territoire : 69 980 vérifications, écart nul.
+Et les communes, les départements et les régions font chacun la France entière,
+à l'unité près sur les deux mesures — c'est ce contrôle-là qui verrait une maille
+décrocher pendant que les deux autres restent justes.
+
+Deux réserves entrent dans la fiche technique. Le champ est la **France entière,
+Mayotte comprise**, contrairement aux jeux du recensement publiés ici, qui
+s'arrêtent à cent départements. Et **un seul millésime est publié** : la source
+déclare que la comparabilité entre deux millésimes n'est pas garantie, et
+fabriquer une série par-dessus cet avertissement reviendrait à inventer une
+évolution. Un établissement peut par ailleurs être employeur et n'avoir aucun
+salarié la dernière semaine de décembre — 259 789 sont dans ce cas, 10,8 % du
+total.
+
+**Le site rapportait ces effectifs aux habitants — corrigé dans la foulée.** La
+règle « un effectif additif se compare pour mille habitants » gouvernait la
+densité affichée sous chaque chiffre et la base des quartiles du groupe de
+communes semblables. Elle vaut pour ce qui décrit les habitants — logements
+vacants, chômeurs, familles monoparentales — et elle est fausse pour ce qui
+décrit l'activité posée sur le territoire : Bordeaux aurait affiché 750 postes
+pour mille habitants, une commune-dortoir voisine trente, et l'écart, présenté
+comme une intensité d'emploi, n'aurait mesuré que la distance domicile-travail.
+C'est précisément la lecture que la fiche technique interdit, et le site l'aurait
+imprimée sous le chiffre.
+
+Ces indicateurs restent **additifs** : ils s'additionnent bel et bien d'une
+commune à l'autre, et déclarer le contraire pour obtenir un effet d'affichage
+aurait menti sur la donnée pour corriger la présentation. C'est le
+**dénominateur** qui n'existe pas. Leurs quartiles se comparent donc en valeur,
+à l'intérieur d'une strate qui borne déjà la taille des communes — « comparée à
+111 communes semblables, la vôtre compte 14 432 établissements employeurs »
+reste une phrase juste. La règle est écrite une fois, au niveau du jeu, et
+partagée par le SQL des quartiles et l'affichage : un test vérifie que les deux
+expressions disent la même chose, faute de quoi les nombres seraient calculés
+sur une base et formatés sur une autre.
+
+Reste une limite connue : la vue « par habitant », que le lecteur active
+lui-même, divise encore ces effectifs par les résidents. Elle le fait pour tous
+les effectifs du site, et la corriger déborde de ce chargement.
+
+Vérifié au chargement : Bordeaux 2024, 14 432 établissements employeurs et
+201 045 postes salariés, dont 100 521 dans les services marchands et 88 409 dans
+l'administration, l'enseignement, la santé et l'action sociale. **Aucun
+territoire n'est tombé du référentiel** — 419 880 observations lues, 419 880
+écrites — ce qui est rare et tient à ce que FLORES publie les arrondissements
+municipaux sous leur propre zonage plutôt que mêlés aux communes.
+
+**Capacités d'hébergement touristique — chargé le 6 août.** Le jeu
+qui refuse d'être un seul nombre. 209 850 observations, six indicateurs, aux
+trois mailles, au 1er janvier 2026.
+
+**Il n'y a pas de total, et il n'y en aura pas ici.** La source ne publie aucune
+capacité « tous hébergements confondus », et ce n'est pas un oubli : une chambre
+d'hôtel, un emplacement de camping et un lit ne sont pas la même unité de compte.
+Additionner les 660 489 chambres et les 848 302 emplacements de France donnerait
+un nombre qui ne désigne rien. Trois familles sont donc publiées côte à côte,
+chacune dans son unité, et jamais leur somme — la règle « une seule unité de
+compte par somme » que le site tient déjà sur les classes de la délinquance.
+
+**La même colonne de la source change d'unité.** `PLACE` vaut des chambres pour
+un hôtel et des emplacements pour un camping. Lue sans regarder l'hébergement,
+elle produit exactement la somme que le paragraphe précédent interdit : chaque
+indicateur est donc défini par un couple (mesure, hébergement), jamais par la
+mesure seule. Et **un emplacement n'est pas un lit** : il accueille plusieurs
+personnes quand une chambre en accueille une ou deux. Aucune des trois grandeurs
+ne dit combien de personnes le territoire peut héberger, et le site ne prétend
+pas le calculer.
+
+**Une capacité n'est pas une fréquentation** : ce sont les places qui existent au
+1er janvier, pas celles qui ont été occupées.
+
+Quatre identités bloquantes, refermées sur les 34 975 territoires publiés : les
+trois sortes d'hébergement collectif font leur total (104 925 vérifications) ;
+les six classements — une à cinq étoiles et non classé — font le total des hôtels
+et celui des campings (139 900) ; les emplacements à l'année plus ceux de passage
+font les emplacements (34 975) ; et les communes, les départements et les régions
+font chacun la France, sur les six capacités publiées. La deuxième est celle qui
+compte le plus : oublier les non classés ferait perdre 3 509 hôtels et 1 924
+campings sans que rien ne casse.
+
+Deux réserves entrent dans les fiches. Les emplacements comprennent ceux qui sont
+**loués à l'année** — 160 477 sur 848 302, soit 18,9 % — dont l'occupant n'est pas
+un vacancier de passage. Et **un seul millésime est publié**, celui du 1er janvier
+2026 : il n'y a pas de série, et aucune évolution ne peut être lue ici.
+
+Vérifié sur la publication : Bordeaux, 82 hôtels et 5 796 chambres, aucun
+camping, 24 hébergements collectifs et 6 369 lits.
+
+**Participation électorale — chargée le 6 août.** La ligne 14, et la
+seule du plan où le choix de ce qu'on ne charge **pas** compte plus que ce qu'on
+charge. 174 180 observations, cinq indicateurs, 34 836 communes, premier tour
+des municipales du 15 mars 2026.
+
+**Les nuances politiques ne sont pas chargées, et c'est une décision.** Le
+fichier du ministère porte, pour chaque commune, le nom de chaque tête de liste,
+sa nuance, ses voix et ses sièges. Quatre raisons de s'en tenir à la
+participation :
+
+1. **La nuance n'est pas une mesure.** Elle est attribuée par l'administration
+   préfectorale, sa nomenclature change d'un scrutin à l'autre, et les listes la
+   contestent régulièrement. Une carte peinte par nuance donnerait à une
+   convention administrative l'apparence d'une donnée statistique.
+2. **Une municipale n'est pas un scrutin national.** Sous 3 500 habitants,
+   l'essentiel des listes est sans nuance : la carte serait grise là où vit une
+   grande part du pays et lisible ailleurs, et l'écart entre les deux se lirait
+   comme un écart politique alors qu'il est un écart de nomenclature.
+3. **Ce site refuse les comparaisons dont il ne contrôle pas la définition.**
+   Sur les nuances, il ne la contrôle pas.
+4. **Les noms des candidats sont des données personnelles** dont ce site n'a
+   aucun usage ; les élus qui siègent sont déjà couverts par le Répertoire
+   national des élus, chargé par ailleurs.
+
+Ce qui reste — combien d'inscrits, combien se sont déplacés, combien de blancs
+et de nuls — est une donnée civique, cartographiable, comparable, et qui ne
+prête d'intention à personne.
+
+**Le premier tour, et lui seul** : c'est le seul qui a eu lieu partout. Le
+second ne concerne que les communes où rien n'était joué, et une carte qui
+mêlerait les deux comparerait des communes ayant voté deux fois à des communes
+ayant voté une fois. **Et un inscrit n'est pas un habitant en âge de voter** :
+l'inscription est une démarche, les résidents étrangers ne votent aux
+municipales que s'ils sont européens, et le taux se lit donc sur les inscrits,
+jamais sur la population.
+
+Trois identités bloquantes, refermées sur les 34 836 communes : inscrits =
+votants + abstentions ; votants = exprimés + blancs + nuls ; et le taux
+recalculé égale celui que la source publie. La troisième est la seule qui
+regarde ailleurs que dans les colonnes lues — les deux premières se refermeraient
+encore si « Votants » et « Exprimés » avaient été inversées.
+
+Une précaution de forme, tirée des incidents du matin : l'URL du fichier porte
+l'horodatage du dépôt et change à chaque correction du ministère. Elle est
+retrouvée par le **titre** de la ressource dans le catalogue, et un fichier
+renommé arrête le chargement au lieu de recharger un fichier périmé.
+
+Vérifié au chargement : 48 474 213 inscrits, 27 678 488 votants, **57,10 % de
+participation**. Sur la publication en ligne, 34 801 communes portent un taux —
+Bordeaux 58,08 %, Paris 58,89 % — les 35 manquantes étant celles que le
+référentiel ne connaît pas, Nouvelle-Calédonie et Saint-Pierre-et-Miquelon.
+
+### P2 — la fiche nationale, pas la carte
+
+`DD_CNA_CONSO_MENAGES_PRODUITS`, `DS_ICA` (activité et chiffre d'affaires),
+`DS_PRENOM` — séries nationales ou thématiques : elles éclairent, elles ne se
+cartographient pas à la commune.
+
+**L'onglet « Statistiques et études » n'a jamais été construit, et il n'a plus
+lieu de l'être.** La fiche nationale accueille déjà six thèmes non
+cartographiables — budget de l'État, dette, dépenses par fonction, Sécurité
+sociale, conjoncture, comparaisons européennes. C'est là que les séries P2
+entrent, sans surface nouvelle à bâtir.
+
+**Indice des prix à la consommation — chargé le 6 août.** Le premier
+P2, et son seul enjeu est de ne pas se confondre avec ce qui est déjà publié.
+Le site porte l'**IPCH**, l'indice harmonisé européen, qui sert à comparer les
+pays ; ce module apporte l'**IPC** national, celui auquel renvoient la loi et
+les contrats — revalorisation des pensions, des prestations, du SMIC,
+indexation des loyers par l'indice de référence qui en dérive. L'IPCH n'indexe
+rien en France. Les deux séries s'écartent de quelques dixièmes de point la
+plupart des mois, parce que leurs champs ne coïncident pas : les dépenses de
+santé remboursées et les loyers imputés n'y sont pas traités de la même façon.
+Chacune nomme désormais l'autre dans sa fiche, et le site n'en agrège aucune.
+
+Un panier sur trois est chargé. La source décline le même indice pour
+l'ensemble des ménages, pour les ménages urbains dont la personne de référence
+est ouvrier ou employé, et pour les loyers imputés : les trois portent le même
+nom et mesurent des choses différentes.
+
+Le contrôle bloquant ne compare pas une colonne à sa voisine. Le glissement sur
+douze mois publié par l'INSEE est **recalculé depuis l'indice** du même mois et
+de douze mois plus tôt, deux séries que la même requête sert sous des
+`IND_TYPE` distincts : 355 points mensuels de 1997 à 2026, écart nul. C'est lui
+qui verrait un niveau d'indice chargé comme un taux — le site annoncerait alors
+cent pour cent d'inflation par an. Un rebasement de la source arrête aussi le
+chargement : les niveaux d'indice ne se comparent pas d'une base à l'autre.
+
+Vérifié au chargement : 355 points mensuels de janvier 1997 à juillet 2026,
+2,1 % sur un an en juillet, base 2025.
+
+**Un écart de fraîcheur apparaît, et il est visible parce que les deux séries
+se touchent.** L'IPC publié va jusqu'à juillet 2026 quand l'IPCH s'arrête à
+décembre 2025 : ce n'est pas un défaut de définition mais un retard du
+connecteur Eurostat, que le suivi de fraîcheur signale par ailleurs. Il est noté
+ici parce qu'un lecteur qui compare les deux inflations verra d'abord cet écart,
+et qu'il ne doit pas le prendre pour un écart de mesure.
+
+**Solde des administrations publiques — chargé le 6 août.** Le
+« déficit public » dont parlent les 3 % de Maastricht, par sous-secteur, de 1959
+à 2025. Quatre indicateurs, niveau pays, dans le thème « dette » où il voisine
+l'encours qu'il alimente.
+
+**Ce n'est pas le solde budgétaire de l'État, déjà publié.** Celui-là porte sur
+le seul budget général et suit la comptabilité budgétaire — encaissements et
+décaissements de l'exercice. Celui-ci couvre toutes les administrations
+publiques et suit la comptabilité nationale, où une opération est rattachée à
+l'exercice où le droit naît. Deux périmètres, deux conventions, deux chiffres
+justes ; chacun nomme l'autre. **Ce n'est pas non plus la dette** : un flux
+d'une année contre un encours accumulé. Et **le signe est une convention** : la
+source publie une capacité (+) ou un besoin (−) de financement, si bien qu'un
+déficit s'écrit en négatif — le retourner rendrait incomparables les rares
+exercices excédentaires.
+
+Le contrôle bloquant est l'identité des sous-secteurs : centrales + locales +
+sécurité sociale = ensemble. Vérifiée sur les 67 exercices de la source, écart
+nul — dont 2024, où −152 464 − 17 794 + 1 140 fait exactement les −169 118
+millions publiés.
+
+**Ce que ce chargement refuse, et pourquoi.** Le jeu publie aussi des agrégats
+de recettes et de dépenses totales. Leurs valeurs ne retrouvent pas les chiffres
+publics connus : 2 034 milliards de recettes et 2 152 de dépenses en 2024, quand
+la statistique publique annonce environ 1 500 et 1 670. L'écart vient du
+périmètre de consolidation, que la source ne documente pas dans ses métadonnées.
+Un agrégat dont on ne peut pas nommer le dénominateur n'est pas publié — c'est
+la règle déjà appliquée aux agrégats OFGL sans définition, et elle vaut ici
+d'autant plus que le chiffre serait lu comme « ce que coûte l'État ».
+
+Le sous-secteur des administrations centrales réunit l'État **et** les
+organismes divers : la source ne publie pas de solde pour l'État isolément dans
+ce jeu, et l'identifiant le dit.
+
+Vérifié au chargement, et l'identité se referme jusque sur les fichiers
+publiés : solde public 2024 de −169,1 milliards d'euros — dont −152,5 pour les
+administrations centrales, −17,8 pour les collectivités et +1,1 pour la Sécurité
+sociale — et −152,5 milliards en 2025. Soixante-sept exercices, de 1959 à 2025.
+
+**Les trois P2 restants, et ce que leur sondage a montré (6 août).** Ils ne se
+valent pas, et l'ordre dans lequel ils entrent — ou n'entrent pas — se décide
+sur la source, pas sur le titre de la ligne.
+
+`DS_ICA` **n'est pas chargé, et c'est le producteur qui le dit.** Voir le refus
+motivé plus bas.
+
+`DD_CNA_CONSO_MENAGES_PRODUITS` **s'est révélé plus utile que son titre ne le
+disait — chargé le 6 août.** Voir plus bas.
+
+`DS_PRENOM` **est chargé — décision du propriétaire du projet, le 6 août.**
+Mon inclination était de l'écarter : il ne répondait, pensais-je, à aucune
+question du site. Le sondage a montré l'inverse de ce que je supposais sur un
+point décisif — le jeu descend au **département et à la région**, et un filtre
+sur le rang rend directement le prénom de tête de chaque territoire. Voir plus
+bas.
+
+**Consommation des ménages — chargée le 6 août.** Deux chiffres, et
+c'est **leur écart** qui vaut le chargement. La dépense de consommation finale
+est ce que les ménages paient de leur poche : 1 527 milliards d'euros en 2024.
+La consommation finale effective est ce qu'ils consomment réellement, services
+publics compris : 2 051 milliards la même année.
+
+Les **524 milliards** d'écart portent un nom dans les comptes nationaux : les
+transferts sociaux en nature. Soins remboursés, école, logement social,
+crèches — des biens et services que les ménages consomment sans les payer,
+parce que la collectivité les paie. Sur un site qui demande « où vont mes
+impôts », c'est la réponse la plus directe qui existe, et elle ne se lit que si
+les deux chiffres sont publiés côte à côte. Aucun des deux, seul, ne la donne.
+
+Deux réserves entrent dans la fiche. Ces montants décrivent ce que les **ménages
+consomment**, pas ce que les administrations dépensent : ils ne s'additionnent
+pas aux dépenses publiques publiées par ailleurs. Et le champ est celui des
+ménages **résidents**, où qu'ils dépensent — ce qu'un Français achète à
+l'étranger y est, ce qu'un touriste achète en France n'y est pas ; la source
+porte à cet effet une correction territoriale, négative de 16 milliards en 2024.
+
+Le contrôle bloquant est une inégalité plutôt qu'une égalité : la consommation
+effective ne peut pas descendre sous la dépense, puisque les transferts en
+nature ne sont jamais négatifs. Vérifiée sur les 77 exercices de 1949 à 2025.
+Elle attraperait deux mesures inversées ou un filtre qui aurait laissé passer un
+autre secteur — les administrations et les associations sont servies sous les
+mêmes codes.
+
+**Un défaut de méthode, corrigé au premier essai.** Le jeu décline 551 produits.
+Demander toutes les lignes puis ne garder le total qu'après lecture faisait
+dépasser la page de l'API : le total disparaissait, la série revenait vide, et
+rien n'échouait. Le filtre appartient donc à la requête, pas à la lecture — et
+un test le vérifie sur l'URL.
+
+Vérifié sur la publication : 77 exercices de 1949 à 2025 ; en 2024, dépense
+1 527 123 M€, consommation effective 2 051 008 M€, et donc **523 885 M€** de
+transferts en nature — l'écart se relit à l'identique sur les fichiers publiés.
+
+**Prénoms — chargés le 6 août.** Le dernier P2, et celui que j'aurais
+eu tort d'écarter. Je le croyais national et sans agrégat ; il descend au
+département et à la région, et un filtre sur le rang rend une ligne par
+territoire, sexe et année depuis 1900 — 29 792 points.
+
+**Le prénom lui-même n'est pas publié, et c'est une limite du modèle, pas un
+choix.** Un indicateur de ce site porte une valeur numérique ; « Gabriel » est
+une chaîne, et rien dans `core.observations` ne peut accueillir un fait textuel
+attaché à un territoire. Le chargement publie donc **combien** d'enfants portent
+le prénom de tête, sans pouvoir dire lequel. Publier le prénom demanderait
+d'ouvrir le modèle aux faits textuels : c'est une décision de modèle, elle est
+écrite ici plutôt que contournée par un bricolage — un identifiant d'indicateur
+par prénom, par exemple, ferait quarante mille colonnes pour un seul jeu.
+
+**Les effectifs départementaux sont arrondis à la dizaine par la source**, au
+titre du secret statistique : 130 naissances en Gironde signifie « entre 125 et
+134 ». Un écart de dix entre deux départements n'est donc pas interprétable, et
+la fiche publique le dit en toutes lettres. **Et un prénom trop rare n'est pas
+diffusé** dans un département : ces chiffres ne sont pas un dénombrement complet
+des naissances.
+
+Le contrôle bloquant porte sur ce dont tout le module dépend : le sens du rang.
+Si `RANK` signifiait autre chose, l'indicateur publierait l'effectif d'un prénom
+quelconque sous le nom de « prénom le plus donné », et rien ne le signalerait.
+Le chargement compare donc le rang 1 au rang 2 — le premier ne peut pas compter
+moins de naissances que le second — sur les 29 792 couples où les deux existent.
+
+Ces effectifs ne sont **pas additifs** : le prénom de tête d'un département n'est
+pas celui de sa région, et les additionner sommerait des grandeurs qui ne
+parlent pas du même prénom. Le catalogue le déclare.
+
+Vérifié sur la publication : 126 années de 1900 à 2025, aux trois niveaux ; en
+Gironde en 2024, 130 garçons portent le prénom masculin le plus donné et 110
+filles le prénom féminin le plus donné.
+
+**Indices de chiffre d'affaires — écartés le 6 août, et la source elle-même le
+recommande.** C'est le seul jeu du plan dont le producteur déconseille l'usage
+qu'on en ferait ici. Son `scopeNote` est sans ambiguïté :
+
+> « Concernant l'indice de chiffre d'affaires dans l'industrie, l'Insee préconise
+> d'utiliser l'indice de la production industrielle et les indices de prix de
+> production et d'importation dans l'industrie pour analyser séparément
+> l'évolution de l'activité et celle des prix dans ce secteur d'activité, plutôt
+> que de recourir aux indices de chiffre d'affaires dont l'évolution résulte à la
+> fois d'évolutions de prix et d'évolutions de l'activité. »
+
+Un indice qui mêle l'effet des prix et celui des volumes, publié sur un site qui
+affiche par ailleurs l'inflation et la croissance, serait lu comme une troisième
+mesure de l'activité alors qu'il n'en est pas une.
+
+**Et il n'y a pas de série de tête à charger.** La source publie cinq familles
+d'indices — industrie et construction, commerce, services, ventes en volume,
+production dans les services — sur 245 codes d'activité, sans qu'aucun agrégat
+ne soit désigné par le producteur comme « le » chiffre d'affaires de la France.
+Choisir une famille et un code d'activité serait notre choix, pas le sien : la
+même raison qui a fait écarter les recettes et dépenses totales des APU le matin
+même.
+
+Une piste reste ouverte si le sujet revient : les **indices de volume des ventes
+dans le commerce**, qu'Eurostat désigne comme données à forte valeur et qui,
+étant des volumes, échappent à la confusion que le `scopeNote` dénonce. Ils
+demandent d'abord d'identifier, dans la nomenclature du producteur, l'agrégat qui
+désigne l'ensemble du commerce de détail — travail de définition, pas de code.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 

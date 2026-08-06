@@ -249,6 +249,36 @@ CRITERES_GROUPE = CASCADE_CRITERES[-1]
 # la médiane bouge d'un tiers si l'une d'elles change de politique.
 GROUPE_MINIMAL = 20
 
+# Les jeux dont les effectifs sont comptés **au lieu de travail**.
+#
+# La règle « un effectif additif se rapporte à mille habitants » vaut pour ce
+# qui décrit les habitants : des logements, des chômeurs, des familles. Elle ne
+# vaut pas pour ce qui décrit l'activité posée sur le territoire. Bordeaux
+# compte 201 045 postes salariés pour 268 000 habitants ; une commune-dortoir
+# voisine en compte quelques centaines pour dix mille habitants. Rapporter les
+# uns et les autres à leurs résidents ne mesure pas une intensité d'emploi,
+# cela mesure l'écart entre là où l'on travaille et là où l'on dort — et
+# l'affiche comme si c'était la première grandeur.
+#
+# Ces indicateurs restent additifs : ils s'additionnent bel et bien d'une
+# commune à l'autre, et le catalogue ne doit pas mentir là-dessus pour obtenir
+# un effet d'affichage. C'est le **dénominateur** qui n'existe pas, pas la
+# sommabilité. Leurs quartiles se comparent donc en valeur, à l'intérieur d'une
+# strate qui borne déjà la taille des communes.
+JEUX_AU_LIEU_DE_TRAVAIL = ("melodi-flores-a5",)
+
+
+def base_de_comparaison(additif: bool, unite: str, jeu: str) -> str:
+    """Sur quelle grandeur les quartiles d'un indicateur se comparent.
+
+    Le SQL des quartiles applique la même règle : les deux doivent dire la
+    même chose, sans quoi les nombres publiés seraient calculés sur une base et
+    formatés sur une autre.
+    """
+    if not additif or jeu in JEUX_AU_LIEU_DE_TRAVAIL:
+        return "valeur"
+    return "par_habitant" if unite == "EUR" else "pour_mille"
+
 
 def comparaisons(conn) -> dict:
     """Quartiles par groupe de communes semblables, calculés à la publication.
@@ -298,7 +328,7 @@ def comparaisons(conn) -> dict:
         )
     resultat: dict = defaultdict(lambda: defaultdict(dict))
     bases: dict = {}
-    for rang, indicateur, periode, groupe, additif, unite, effectif, q1, mediane, q3 in lignes:
+    for rang, indicateur, periode, groupe, additif, unite, jeu, effectif, q1, mediane, q3 in lignes:
         resultat[indicateur][periode][f"{rang}:{groupe}"] = {
             "n": effectif,
             "q1": round(float(q1), 2),
@@ -306,11 +336,7 @@ def comparaisons(conn) -> dict:
             "q3": round(float(q3), 2),
         }
         bases[indicateur] = {
-            "base": (
-                "valeur" if not additif
-                else "par_habitant" if unite == "EUR"
-                else "pour_mille"
-            ),
+            "base": base_de_comparaison(additif, unite, jeu),
             "unite": unite,
         }
     return {
@@ -332,11 +358,17 @@ def _quartiles_du_groupe(conn, criteres: list[str]) -> list[tuple]:
     return conn.execute(
         f"""
         with base as (
-            select o.indicator_id, o.period, i.additive, i.unit,
+            select o.indicator_id, o.period, i.additive, i.unit, i.dataset_id,
                    concat_ws('|', {", ".join(
                        f"json_extract_string(g.flags, '$.{c}')" for c in criteres)})
                      as groupe,
-                   case when not i.additive then o.value
+                   -- Même règle que `base_de_comparaison` : un effectif compté
+                   -- au lieu de travail n'a pas les résidents pour
+                   -- dénominateur, et se compare donc en valeur.
+                   case when not i.additive
+                          or i.dataset_id in ({", ".join(
+                              f"'{jeu}'" for jeu in JEUX_AU_LIEU_DE_TRAVAIL)})
+                        then o.value
                         when i.unit = 'EUR' then o.value / nullif(pop.value, 0)
                         else o.value / nullif(pop.value, 0) * 1000
                    end as compare
@@ -353,12 +385,12 @@ def _quartiles_du_groupe(conn, criteres: list[str]) -> list[tuple]:
               and o.value_status = 'normal'
               and json_extract_string(g.flags, '$.tranche_population') is not null
         )
-        select indicator_id, period, groupe, additive, unit, count(*),
+        select indicator_id, period, groupe, additive, unit, dataset_id, count(*),
                percentile_cont(0.25) within group (order by compare),
                percentile_cont(0.5) within group (order by compare),
                percentile_cont(0.75) within group (order by compare)
         from base where compare is not null
-        group by 1, 2, 3, 4, 5 having count(*) >= {GROUPE_MINIMAL}
+        group by 1, 2, 3, 4, 5, 6 having count(*) >= {GROUPE_MINIMAL}
         """
     ).fetchall()
 

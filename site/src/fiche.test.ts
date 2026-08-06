@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  densiteRapportableAuxHabitants,
   groupeDeLaCommune,
   lectureDeDensite,
   positionDansGroupe,
@@ -229,4 +230,38 @@ test("les critères affichés sont ceux qui ont servi, pas une liste figée", ()
   const html = positionDansGroupe(commune, QUARTILES, 2, CASCADE[0]);
   assert.match(html, /commune de montagne/);
   assert.match(html, /commune touristique/);
+});
+
+test("un effectif compté au lieu de travail n'a pas de densité résidente", () => {
+  // Bordeaux compte 201 045 postes salariés pour 268 000 habitants, une
+  // commune-dortoir voisine quelques centaines pour dix mille. « Rapporté à la
+  // population » présenterait cet écart comme une intensité d'emploi, alors
+  // qu'il mesure la distance entre là où l'on travaille et là où l'on dort.
+  const posteSalarie = {
+    id: "insee_effectifs_salaries",
+    unite: "count",
+    sommable: true,
+    jeu: "melodi-flores-a5",
+  } as never;
+  assert.equal(densiteRapportableAuxHabitants(posteSalarie), false);
+});
+
+test("un effectif qui décrit bien les habitants garde sa densité", () => {
+  const logementVacant = {
+    id: "insee_logements_vacants",
+    unite: "count",
+    sommable: true,
+    jeu: "melodi-rp-logement",
+  } as never;
+  assert.equal(densiteRapportableAuxHabitants(logementVacant), true);
+});
+
+test("une population ne se rapporte pas à elle-même", () => {
+  const population = {
+    id: "insee_population_municipale",
+    unite: "count",
+    sommable: true,
+    jeu: "melodi-rp-population",
+  } as never;
+  assert.equal(densiteRapportableAuxHabitants(population), false);
 });
