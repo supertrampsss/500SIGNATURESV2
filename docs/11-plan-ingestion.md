@@ -752,6 +752,31 @@ ce jeu, et l'identifiant le dit.
 Relevé sur la source : solde public 2024 de −169,1 milliards d'euros, 2025 de
 −152,5 milliards.
 
+**Les trois P2 restants, et ce que leur sondage a montré (6 août).** Ils ne se
+valent pas, et l'ordre dans lequel ils entrent — ou n'entrent pas — se décide
+sur la source, pas sur le titre de la ligne.
+
+`DS_ICA` (indices de chiffre d'affaires, 891 380 observations, mensuel depuis
+1999) **n'a pas de série de tête**. La source publie cinq familles d'indices —
+industrie et construction, commerce, services, ventes en volume, production dans
+les services — sur 245 codes d'activité, avec des bases et des champs qui ne se
+recouvrent pas. Il n'existe pas de « chiffre d'affaires de la France » à
+charger : il faudrait choisir une famille et un agrégat d'activité, et ce choix
+serait le nôtre, pas celui du producteur. Le jeu demande donc un travail de
+définition avant tout code — le même que celui qui a fait écarter les recettes
+et dépenses totales des APU.
+
+`DD_CNA_CONSO_MENAGES_PRODUITS` (1 044 160 observations, annuel depuis 1949)
+décrit la consommation des **ménages**, pas la dépense publique. Il éclaire le
+contexte au même titre que la croissance déjà publiée, et sa ventilation par
+produit est utilisable telle quelle.
+
+`DS_PRENOM` (6 622 949 observations, depuis 1900) est le jeu ouvert le plus
+consulté de l'INSEE, et il ne répond à aucune des questions de ce site. Il n'a
+pas non plus d'agrégat : un prénom est une modalité parmi des milliers, quand la
+règle du plan veut « quelques indicateurs agrégés à la maille du territoire ».
+Le charger remplirait un onglet, pas une intention.
+
 ## Ce que chaque entrée doit porter avant d'être chargée
 
 La discipline des connecteurs déjà en place s'applique sans exception :
