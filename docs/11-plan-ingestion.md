@@ -888,6 +888,71 @@ dans le commerce**, qu'Eurostat désigne comme données à forte valeur et qui,
 demandent d'abord d'identifier, dans la nomenclature du producteur, l'agrégat qui
 désigne l'ensemble du commerce de détail — travail de définition, pas de code.
 
+## Deuxième vague — les sources du registre, au-delà du plan initial
+
+Le plan ci-dessus est clos. Il ne couvrait qu'un extrait du registre des sources
+(`docs/01`), qui en recense **81 rien qu'en P1, P2 et P3** quand l'entrepôt en
+charge une cinquantaine. Cette section suit la reprise du registre lui-même.
+
+**Ordre retenu**, par ce que chaque source apporte à la question « où vont mes
+impôts » et par ce qu'elle coûte à charger :
+
+| | Source | État |
+|---|---|---|
+| 1 | REI — fiscalité directe locale (DGFiP / OFGL) | **chargement lancé le 6 août** |
+| 2 | Comptes individuels des communes (DGFiP) | à sonder |
+| 3 | Dépenses fiscales — Voies et moyens t. 2 | **source ODS vide**, voir plus bas |
+| 4 | Opérateurs de l'État | à sonder |
+| 5 | Commande publique / DECP | à sonder |
+| 6 | Effectifs de la fonction publique de l'État | à sonder |
+| 7 | Exécution budgétaire par mission | 2010-2013 seulement, valeur faible |
+
+**Deux affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
+est annoncé « 2009→ » : la source n'en publie que **2024 et 2025**. Et le jeu des
+dépenses fiscales cité par son identifiant ODS —
+`plf2023_voies_et_moyens_t2_liste_des_depenses_fiscales` — **existe mais ne
+contient aucun enregistrement**, pas plus que son tome 1. Le registre portait la
+mention « (nv) », non vérifié ; elle était méritée. Les dépenses fiscales restent
+donc à trouver ailleurs, et c'est un manque qui pèse : ce sont des dizaines de
+milliards d'argent public qui ne passent par aucune ligne de dépense.
+
+**Fiscalité directe locale — chargement lancé le 6 août.** Le site publiait un
+total, « impôts locaux » de l'OFGL, et des taux. Il ne disait pas **d'où vient
+l'argent**. Ce chargement le dit : quatre produits par commune — foncier bâti,
+foncier non bâti, taxe d'habitation, cotisation foncière des entreprises — sur
+les exercices 2024 et 2025, soit 194 916 observations.
+
+Trois réserves entrent dans les fiches. **La taxe d'habitation sur les résidences
+principales n'existe plus** : supprimée pour tous en 2023, ce qui subsiste ne
+porte que sur les résidences secondaires, et une série qui enjambe cette date ne
+décrit pas le même impôt. **La CFE est le plus souvent perçue par
+l'intercommunalité** : la source ne donne un produit communal qu'à 12 100 couples
+commune-exercice contre 69 829 pour le foncier bâti, et une commune à zéro n'est
+pas une commune sans entreprises — Bordeaux en est une. Et **ces quatre produits
+ne sont pas la décomposition de l'agrégat « impôts locaux »** déjà publié, qui
+porte un autre périmètre : les additionner pour le retrouver serait une
+reconstruction, pas une mesure.
+
+**Le contrôle a dû être conçu, pas copié.** Ce jeu n'a pas de total à retrouver ;
+il a une identité comptable — base × taux + lissage = produit — que la source
+vérifie mal elle-même. Mesuré sur les 69 673 couples commune-exercice : écart
+médian 0,006 %, neuf communes sur dix sous 0,11 %, mais une queue jusqu'à 13 % sur
+308 communes, pour des corrections que la source n'expose pas. Bloquer le
+chargement sur la commune la plus atypique aurait été une fausse alerte. Le
+contrôle porte donc sur la **distribution** — médiane, part sous un pour cent — et
+sur la **somme France**, ce qui suffit à attraper le défaut qu'on cherche : un taux
+ou une base lus sur la mauvaise ligne décalent toutes les communes à la fois.
+
+**Et il a servi tout de suite.** L'export de l'OFGL commence par un BOM, qui se
+colle au nom de la première colonne : lu en `utf-8` simple, l'exercice revenait
+vide et les deux années s'écrasaient sous la même clé — la base d'une année se
+retrouvait comparée au produit de l'autre. Aucun total ne l'aurait montré ; c'est
+l'identité qui a crié. Un test rejoue le défaut.
+
+Relevé sur la source : Bordeaux 2025, 248,4 M€ de foncier bâti, 493 729 € de
+foncier non bâti, 6,3 M€ de taxe d'habitation sur les résidences secondaires,
+aucune CFE.
+
 ## Ce que chaque entrée doit porter avant d'être chargée
 
 La discipline des connecteurs déjà en place s'applique sans exception :
