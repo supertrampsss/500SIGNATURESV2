@@ -24,7 +24,7 @@ from plateforme import entrepot, registry
 MODULES = [
     "chomage", "chomage_indemnisation", "cofog", "conjoncture", "creations",
     "deces", "dotations",
-    "exonerations", "loyers", "prescriptions", "salaires",
+    "construction", "exonerations", "fonds_europeens", "loyers", "prescriptions", "salaires",
     "education", "emploi", "entreprises", "equipements", "etat", "etatcivil",
     "europe",
     "famille",
