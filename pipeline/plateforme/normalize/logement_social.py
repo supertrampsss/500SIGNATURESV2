@@ -41,10 +41,10 @@ import io
 import json
 from collections import Counter
 
-from plateforme import entrepot, revisions
+from plateforme import couverture, entrepot, revisions
 from plateforme.http import telecharger
 from plateforme.limites import garde_fou_volume
-from plateforme.normalize.geo import MILLESIME, make_store
+from plateforme.normalize.geo import MILLESIME, commune_mere, departement_cog, make_store
 
 DATASET = "rpls-logement-social"
 SOURCE = "sdes"
@@ -143,6 +143,15 @@ def compter(contenu: bytes) -> tuple[dict[str, dict[str, Counter]], int]:
         etiquette = (rang.get("DPEENERGIE") or "").strip().upper()
         for maille, colonne in MAILLES.items():
             code = (rang.get(colonne) or "").strip()
+            if maille == "departement":
+                code = departement_cog(code)
+            elif maille == "commune" and len(code) == 5:
+                # Quatrième source, quatrième fois le même piège. Le répertoire
+                # code Paris, Lyon et Marseille par arrondissement ; sans
+                # rattachement, Paris sortait à zéro logement social quand il en
+                # compte 250 640, et aucun contrôle interne au fichier ne le
+                # voyait — les totaux départementaux, eux, étaient justes.
+                code = commune_mere(code) or code
             if len(code) not in LONGUEURS[maille]:
                 continue
             comptes[maille]["parc"][code] += 1
@@ -238,25 +247,37 @@ MESURES = (
 )
 
 
-def ecrire(conn, run_id: str, comptes: dict[str, dict[str, Counter]]) -> tuple[int, int, int]:
+def ecrire(
+    conn, run_id: str, comptes: dict[str, dict[str, Counter]]
+) -> tuple[int, int, int, dict[str, int]]:
+    """Renvoie aussi, par maille, le nombre de logements **réellement écrits**.
+
+    C'est lui que `couverture.controler` compare au nombre lu : un code que le
+    référentiel ignore disparaît ici sans bruit, et c'est ce silence qu'il faut
+    mesurer.
+    """
     lignes = []
     hors_referentiel = 0
+    reconnus: dict[str, int] = {}
     for maille in MAILLES:
         connus = univers(conn, maille)
+        attendus = set(connus)
         for indicateur, mesure in MESURES:
             compte = comptes[maille][mesure]
             for code in connus:
                 lignes.append(
                     (indicateur, maille, code, MILLESIME, PERIODE, compte.get(code, 0))
                 )
-        attendus = set(connus)
+        reconnus[maille] = sum(
+            valeur for code, valeur in comptes[maille]["parc"].items() if code in attendus
+        )
         hors_referentiel += sum(
             1 for code in comptes[maille]["parc"] if code not in attendus
         )
     ecrites, revisees = revisions.remplacer(
         conn, run_id, list(INDICATEURS), ("value",), lignes
     )
-    return ecrites, revisees, hors_referentiel
+    return ecrites, revisees, hors_referentiel, reconnus
 
 
 def run(store_spec: str) -> int:
@@ -288,17 +309,23 @@ def run(store_spec: str) -> int:
                 " ou son format a changé"
             )
         totaux = controler(comptes)
-        ecrites, revisees, hors_referentiel = ecrire(conn, run_id, comptes)
+        ecrites, revisees, hors_referentiel, reconnus = ecrire(conn, run_id, comptes)
+        # Après l'écriture, avant la validation : un refus laisse l'entrepôt
+        # intact. C'est ce contrôle qui a rattrapé Paris à zéro logement social.
+        parts = couverture.controler(
+            {maille: totaux[maille]["parc"] for maille in MAILLES}, reconnus
+        )
         conn.execute(
             """
             insert into meta.data_quality_checks
                 (run_id, dataset_id, check_name, severity, passed, observed)
-            values (?, ?, 'totaux_identiques_aux_trois_mailles', 'blocker', true, ?)
+            values (?, ?, 'totaux_et_couverture_aux_trois_mailles', 'blocker', true, ?)
             """,
             (run_id, DATASET, json.dumps({
                 "logements_lus": lus,
                 "millesime": MILLESIME_RPLS,
                 "totaux": totaux,
+                "couverture": {m: round(v, 4) for m, v in parts.items()},
                 "hors_referentiel": hors_referentiel,
             })),
         )

@@ -213,7 +213,9 @@ def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
         # Tout ce qui a été lu est retrouvé au référentiel : c'est ce que
         # `controler_couverture` exige, et ce qui manquait le 6 août.
         assert reconnus == {"commune": 3, "departement": 3, "region": 3}
-        assert education.controler_couverture(comptes, reconnus) == {
+        from plateforme import couverture
+
+        assert couverture.controler({"commune": 3, "departement": 3, "region": 3}, reconnus) == {
             "commune": 1.0, "departement": 1.0, "region": 1.0
         }
         (periode,) = conn.execute(
@@ -257,12 +259,15 @@ def test_des_codes_inconnus_du_referentiel_arretent_le_run():
         "departement": {"ecoles": Counter({"033": 100}), "colleges_lycees": Counter()},
         "region": {"ecoles": Counter({"75": 100}), "colleges_lycees": Counter()},
     }
+    from plateforme import couverture
+
     # Les codes se ressemblent, les totaux coïncident : le premier contrôle passe.
     education.controler(comptes)
     # Mais rien n'a été retrouvé au référentiel côté département.
-    with pytest.raises(education.CouvertureInsuffisante, match="Code officiel"):
-        education.controler_couverture(
-            comptes, {"commune": 100, "departement": 0, "region": 100}
+    with pytest.raises(couverture.CouvertureInsuffisante, match="format"):
+        couverture.controler(
+            {"commune": 100, "departement": 100, "region": 100},
+            {"commune": 100, "departement": 0, "region": 100},
         )
 
 
@@ -270,14 +275,13 @@ def test_la_couverture_tolere_les_collectivites_hors_referentiel_departemental()
     """Saint-Pierre-et-Miquelon, Wallis, la Polynésie et la Nouvelle-Calédonie
     ont des écoles et ne sont pas des départements : leurs établissements sont
     lus et non écrits, et c'est normal. Le seuil ne doit pas s'en émouvoir."""
-    from collections import Counter
+    from plateforme import couverture
 
-    comptes = {
-        "commune": {"ecoles": Counter({"33318": 1000}), "colleges_lycees": Counter()},
-        "departement": {"ecoles": Counter({"33": 990, "988": 10}), "colleges_lycees": Counter()},
-        "region": {"ecoles": Counter({"75": 1000}), "colleges_lycees": Counter()},
-    }
-    parts = education.controler_couverture(
-        comptes, {"commune": 1000, "departement": 990, "region": 1000}
+    # 1 000 écoles lues au département, 990 rattachées : les dix autres sont en
+    # Nouvelle-Calédonie, qui a des écoles et n'est pas un département français.
+
+    parts = couverture.controler(
+        {"commune": 1000, "departement": 1000, "region": 1000},
+        {"commune": 1000, "departement": 990, "region": 1000},
     )
     assert parts["departement"] == 0.99

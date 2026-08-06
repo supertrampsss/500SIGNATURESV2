@@ -165,7 +165,7 @@ def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
                 "passoires": Counter({"L8": 3}),
             },
         }
-        _, _, hors = ls.ecrire(conn, run_id, comptes)
+        _, _, hors, reconnus = ls.ecrire(conn, run_id, comptes)
         conn.commit()
         valeurs = {
             (i, n, c): float(v)
@@ -179,6 +179,7 @@ def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
         assert valeurs[("rpls_logements_sociaux_passoires", "commune", "L1")] == 3.0
         assert valeurs[("rpls_logements_sociaux", "region", "L8")] == 40.0
         assert hors == 0
+        assert reconnus == {"commune": 40, "departement": 40, "region": 40}
     finally:
         entrepot.annuler(conn)
         conn.execute(
@@ -195,3 +196,36 @@ def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
         conn.execute("delete from meta.ingestion_runs where dataset_id = ?", (ls.DATASET,))
         conn.commit()
         conn.close()
+
+
+def test_paris_lyon_et_marseille_comptent_pour_leur_commune():
+    """Quatrième source, quatrième fois le même piège — et la seule des quatre
+    qui soit passée en production. Le répertoire code par arrondissement ; sans
+    rattachement, Paris sortait à zéro logement social quand il en compte
+    250 640. Les totaux départementaux, eux, étaient justes : aucun contrôle
+    interne au fichier ne pouvait le voir."""
+    comptes, _ = ls.compter(csv_rpls([
+        "75109;75;11;C",
+        "75120;75;11;F",
+        "13201;13;93;D",
+        "69385;69;84;",
+    ]))
+    assert comptes["commune"]["parc"] == {"75056": 2, "13055": 1, "69123": 1}
+    assert comptes["commune"]["passoires"] == {"75056": 1}
+
+
+def test_les_codes_departementaux_sont_ramenes_au_format_du_cog():
+    comptes, _ = ls.compter(csv_rpls(["33063;033;75;C", "20004;02A;94;D"]))
+    assert comptes["departement"]["parc"] == {"33": 1, "2A": 1}
+
+
+def test_une_couverture_trop_faible_arrete_le_run():
+    """Le contrôle qui aurait rattrapé Paris : 5 031 372 logements écrits à la
+    commune sur 5 416 826 lus, soit 92,9 % — sous le seuil."""
+    from plateforme import couverture
+
+    with pytest.raises(couverture.CouvertureInsuffisante, match="arrondissements"):
+        couverture.controler(
+            {"commune": 5_416_826, "departement": 5_416_826, "region": 5_416_826},
+            {"commune": 5_031_372, "departement": 5_416_826, "region": 5_416_826},
+        )

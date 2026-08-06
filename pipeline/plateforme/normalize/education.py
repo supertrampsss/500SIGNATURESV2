@@ -47,7 +47,7 @@ from collections import Counter
 from datetime import datetime
 
 
-from plateforme import entrepot, revisions
+from plateforme import couverture, entrepot, revisions
 from plateforme.connectors import ods
 from plateforme.http import telecharger
 from plateforme.limites import garde_fou_volume
@@ -295,44 +295,6 @@ class TotauxDivergents(RuntimeError):
     """Les trois mailles ne comptent pas le même annuaire."""
 
 
-# Part du fichier qu'une maille doit retrouver dans le référentiel. En dessous,
-# c'est que les codes ne parlent pas la même langue que lui. Le seuil laisse
-# passer les collectivités que le référentiel départemental ne porte pas —
-# Saint-Pierre-et-Miquelon, Wallis, la Polynésie, la Nouvelle-Calédonie — sans
-# laisser passer un format de code qui aurait glissé.
-COUVERTURE_MINIMALE = 0.95
-
-
-class CouvertureInsuffisante(RuntimeError):
-    """Trop de codes de la source sont inconnus du référentiel."""
-
-
-def controler_couverture(
-    comptes: dict[str, dict[str, Counter]], reconnus: dict[str, int]
-) -> dict[str, float]:
-    """Contrôle bloquant : ce qu'on écrit couvre bien ce qu'on a lu.
-
-    Le contrôle des totaux vérifie que le fichier est cohérent avec lui-même.
-    Il ne dit rien de l'accord entre ses codes et les nôtres — et c'est
-    précisément là qu'un défaut est passé en production : des codes
-    départementaux zéro-padés, cohérents entre eux, inconnus du référentiel, et
-    une carte départementale à 1 511 écoles au lieu de 47 109. Ce contrôle-ci
-    compare ce qui est écrit à ce qui est lu, maille par maille.
-    """
-    parts = {}
-    for maille, familles in comptes.items():
-        lu = sum(sum(compte.values()) for compte in familles.values())
-        part = reconnus[maille] / lu if lu else 1.0
-        parts[maille] = part
-        if part < COUVERTURE_MINIMALE:
-            raise CouvertureInsuffisante(
-                f"{maille} : {reconnus[maille]} sur {lu} retrouvés au référentiel"
-                f" ({100 * part:.1f} %) — les codes de la source ne sont pas au"
-                " format du Code officiel géographique"
-            )
-    return parts
-
-
 def controler(comptes: dict[str, dict[str, Counter]]) -> dict[str, dict[str, int]]:
     """Contrôle bloquant : les trois mailles totalisent le même annuaire.
 
@@ -397,7 +359,11 @@ def run(store_spec: str) -> int:
         )
         # Après l'écriture mais avant la validation : la transaction n'est pas
         # committée ici, un refus laisse donc l'entrepôt intact.
-        couverture = controler_couverture(comptes, reconnus)
+        lus_par_maille = {
+            maille: sum(sum(c.values()) for c in familles.values())
+            for maille, familles in comptes.items()
+        }
+        parts = couverture.controler(lus_par_maille, reconnus)
         conn.execute(
             """
             insert into meta.data_quality_checks
@@ -409,7 +375,7 @@ def run(store_spec: str) -> int:
                 "periode": periode,
                 "publiee": publiee,
                 "totaux": totaux,
-                "couverture": {m: round(p, 4) for m, p in couverture.items()},
+                "couverture": {m: round(v, 4) for m, v in parts.items()},
                 "hors_referentiel": hors_referentiel,
             })),
         )
