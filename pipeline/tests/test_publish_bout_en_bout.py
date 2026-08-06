@@ -128,7 +128,7 @@ def _remplir(conn) -> None:
     niches = conn.execute(
         "insert into fin.public_budgets (geo_level, geo_code, geo_vintage, budget_type,"
         " entity_kind, fiscal_year, accounting_frame, stage, dataset_id, run_id)"
-        " values ('pays', 'FR', ?, 'PLF', 'etat', 2026, 'budgetaire', 'vote',"
+        " values ('pays', 'FR', ?, 'PLF', 'etat', 2026, 'budgetaire', 'execute',"
         " 'plf-depenses-fiscales', ?) returning budget_id",
         (MILLESIME, run_id),
     ).fetchone()[0]
@@ -205,6 +205,7 @@ def test_publier_produit_un_jeu_complet(tmp_path):
 
     niches = lire("depenses-fiscales.json")
     assert niches["exercices"] == ["2026"]
+    assert niches["realise"] == "2026"
     assert niches["dispositifs"] == [{
         "numero": "200302",
         "libelle": "Crédit d'impôt en faveur de la recherche",

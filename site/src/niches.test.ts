@@ -14,15 +14,23 @@ import { MONTRES, TOTAL, raccourcir, rendu } from "./niches.ts";
 const catalogue = [{ id: TOTAL }] as Indicateur[];
 
 const pays: Record<string, Territoire> = {
-  FR: { series: { [TOTAL]: { "2026": 88_269_000_000 } } } as unknown as Territoire,
+  FR: {
+    series: { [TOTAL]: { "2024": 89_406_000_000, "2026": 88_269_000_000 } },
+  } as unknown as Territoire,
 };
 
 function dispositif(numero: string, libelle: string, montant: number) {
-  return { numero, libelle, mission: "Mission", montants: { "2026": montant } };
+  return {
+    numero,
+    libelle,
+    mission: "Mission",
+    montants: { "2024": montant, "2026": montant },
+  };
 }
 
 const niches: DepensesFiscales = {
   exercices: ["2024", "2025", "2026"],
+  realise: "2024",
   dispositifs: [
     dispositif("200302", "Crédit d'impôt en faveur de la recherche", 8_041_000_000),
     dispositif("110246", "Crédit d'impôt pour un salarié à domicile", 7_208_000_000),
@@ -33,7 +41,7 @@ const niches: DepensesFiscales = {
 test("le bloc dit le total et refuse de l'appeler une dépense", () => {
   const html = rendu(niches, pays, catalogue);
   assert.match(html, /Les niches fiscales, c'est combien/);
-  assert.match(html, /88,3 Md€/);
+  assert.match(html, /89,4 Md€/);
   assert.match(html, /n'est pas une dépense/);
   assert.match(html, /n'apparaît sur aucune ligne du\s+budget/);
 });
@@ -44,12 +52,24 @@ test("il nomme les dispositifs les plus coûteux, pas les quatre cent cinquante-
   assert.equal((html.match(/<tr>\s*<th scope="row">/g) ?? []).length, MONTRES);
   // Le décompte total reste dit : un classement de dix sur vingt-deux ne doit
   // pas se lire comme la liste entière.
-  assert.match(html, /22 dispositifs/);
+  assert.match(html, /22 dispositifs sont chiffrés sur\s+les 465/);
 });
 
 test("il dit la part que pèsent les premiers", () => {
-  // (8 041 + 7 208 + 8 × 1) / 88 269 ≈ 17 %
+  // (8 041 + 7 208 + 8 × 1) / 89 406 ≈ 17 %
   assert.match(rendu(niches, pays, catalogue), /17&nbsp;%/);
+});
+
+test("la prévision se dit à part, jamais au présent", () => {
+  const html = rendu(niches, pays, catalogue);
+  // Le chiffre annoncé est le constat 2024 ; 2026 n'a pas eu lieu.
+  assert.match(html, /En 2024, l'État renonce à percevoir/);
+  assert.match(html, /Pour 2026, le projet de loi de finances en prévoit\s+88,3 Md€/);
+});
+
+test("sans exercice constaté, il retombe sur le dernier publié", () => {
+  const sansRealise = { ...niches, realise: null };
+  assert.match(rendu(sansRealise, pays, catalogue), /En 2026, l'État renonce/);
 });
 
 test("il prévient que ce sont des chiffrages, pas des encaissements", () => {
@@ -59,7 +79,7 @@ test("il prévient que ce sont des chiffrages, pas des encaissements", () => {
 test("il ne s'affiche pas sans total publié", () => {
   assert.equal(rendu(niches, {}, catalogue), "");
   assert.equal(rendu(niches, pays, []), "");
-  assert.equal(rendu({ exercices: [], dispositifs: [] }, pays, catalogue), "");
+  assert.equal(rendu({ exercices: [], realise: null, dispositifs: [] }, pays, catalogue), "");
 });
 
 test("un libellé législatif est coupé sur un mot", () => {
@@ -71,7 +91,8 @@ test("un libellé législatif est coupé sur un mot", () => {
 
 test("ce qui vient de la source est échappé", () => {
   const piege: DepensesFiscales = {
-    exercices: ["2026"],
+    exercices: ["2024"],
+    realise: "2024",
     dispositifs: [dispositif("1", "<script>alert(1)</script>", 1_000_000)],
   };
   assert.doesNotMatch(rendu(piege, pays, catalogue), /<script>/);

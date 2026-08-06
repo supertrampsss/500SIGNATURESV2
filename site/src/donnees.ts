@@ -174,6 +174,8 @@ export type Dispositif = {
 };
 export type DepensesFiscales = {
   exercices: string[];
+  /** L'exercice constaté ; les autres sont des prévisions du même document. */
+  realise: string | null;
   dispositifs: Dispositif[];
 };
 

@@ -21,7 +21,8 @@ signalent, et elles entrent telles quelles : « ε » marque un coût inférieur
 **Les trois exercices ne se lisent pas pareil.** Le document publie un réalisé
 2024 et deux prévisions, 2025 et 2026. Ils viennent du même document et de la
 même évaluation : c'est la source qui est datée du PLF 2026, pas chaque chiffre
-séparément. Le statut de chaque observation le porte.
+séparément. Les deux prévisions portent le drapeau `provisional`, et le bloc du
+site n'annonce au présent que l'exercice réalisé.
 
 **Le contrôle qui bloque.** Le tome 2 publie un tableau récapitulatif « Dépenses
 fiscales par impôt ». Ce module en recopie les dix-sept lignes et vérifie que
@@ -58,11 +59,21 @@ TYPE = "Dépenses fiscales"
 # Colonne de la source -> exercice, et ce que le chiffre est. Le document
 # publie un réalisé et deux prévisions ; les confondre ferait lire une
 # prévision comme un constat.
+#
+# Le caractère provisoire va dans `quality_flags` et non dans `value_status`,
+# comme pour le chômage et l'état civil : `value_status` sert à dire qu'une
+# valeur est absente ou couverte par le secret, et la publication n'exporte que
+# les observations en `normal`. Une prévision marquée là serait écrite dans
+# l'entrepôt sans jamais atteindre le site.
 EXERCICES = {
-    "execution_2024_cp": ("2024", "normal"),
-    "lfi_2025_cp_ou_prevision_2025_si_depense_fiscale": ("2025", "provisional"),
-    "plf_2026_cp_ou_prevision_2026_si_depense_fiscale": ("2026", "provisional"),
+    "execution_2024_cp": ("2024", []),
+    "lfi_2025_cp_ou_prevision_2025_si_depense_fiscale": ("2025", ["provisional"]),
+    "plf_2026_cp_ou_prevision_2026_si_depense_fiscale": ("2026", ["provisional"]),
 }
+
+# L'exercice dont le chiffre est un constat et non une prévision. Le site s'en
+# sert pour ne pas annoncer au présent ce qui n'a pas encore eu lieu.
+REALISE = "2024"
 
 CHAMPS = (
     "mission", "numero_programme", "programme", "impot_si_depense_fiscale",
@@ -249,11 +260,11 @@ def lire(contenu: bytes) -> list[dict]:
         if not code:
             continue
         montants = {}
-        for colonne, (exercice, statut) in EXERCICES.items():
+        for colonne, (exercice, drapeaux) in EXERCICES.items():
             valeur = rang.get(colonne)
             if valeur is None:
                 continue
-            montants[exercice] = (float(valeur), statut)
+            montants[exercice] = (float(valeur), drapeaux)
         lignes.append({
             "code": code,
             "libelle": (rang.get("libelle") or "").strip(),
@@ -352,13 +363,13 @@ def controler(lignes: list[dict]) -> dict:
 
 
 # `revisions.remplacer` attend : cinq clés, puis ces colonnes-là.
-COLONNES = ("value", "value_status")
+COLONNES = ("value", "quality_flags")
 
 
 def lignes_a_ecrire(lignes: list[dict]) -> list[tuple]:
     """-> les observations nationales : un total, neuf catégories d'impôt."""
     lus = par_impot(lignes)
-    statuts = {exercice: statut for exercice, statut in EXERCICES.values()}
+    drapeaux = {exercice: liste for exercice, liste in EXERCICES.values()}
     ecrites = []
     for exercice in ("2024", "2025", "2026"):
         montants = [montant for (_, an), montant in lus.items() if an == exercice]
@@ -367,13 +378,13 @@ def lignes_a_ecrire(lignes: list[dict]) -> list[tuple]:
         if not montants:
             continue
         ecrites.append((TOTAL, "pays", "FR", MILLESIME, exercice, sum(montants),
-                        statuts[exercice]))
+                        drapeaux[exercice]))
         for categorie, (identifiant, _) in sorted(INDICATEURS.items()):
             montant = lus.get((categorie, exercice))
             if montant is None:
                 continue
             ecrites.append((identifiant, "pays", "FR", MILLESIME, exercice, montant,
-                            statuts[exercice]))
+                            drapeaux[exercice]))
     return ecrites
 
 
@@ -437,10 +448,11 @@ def ecrire_dispositifs(conn, run_id: str, lignes: list[dict]) -> int:
             insert into fin.public_budgets
                 (geo_level, geo_code, geo_vintage, budget_type, entity_kind,
                  fiscal_year, accounting_frame, stage, dataset_id, run_id)
-            values ('pays', 'FR', ?, 'PLF', 'etat', ?, 'budgetaire', 'vote', ?, ?)
+            values ('pays', 'FR', ?, 'PLF', 'etat', ?, 'budgetaire', ?, ?, ?)
             returning budget_id
             """,
-            (MILLESIME, int(exercice), DATASET, run_id),
+            (MILLESIME, int(exercice),
+             "execute" if exercice == REALISE else "vote", DATASET, run_id),
         ).fetchone()[0]
         for dispositif in sorted(dispositifs.values(), key=lambda d: d["code"]):
             montant = dispositif["montants"].get(exercice)

@@ -475,24 +475,31 @@ def depenses_fiscales(conn) -> dict:
     """
     dispositifs: dict[str, dict] = {}
     exercices: set[str] = set()
-    for annee, numero, libelle, mission, montant in conn.execute(
+    realises: set[str] = set()
+    for annee, etape, numero, libelle, mission, montant in conn.execute(
         """
-        select b.fiscal_year, l.chapitre, l.label, l.mission, l.amount
+        select b.fiscal_year, b.stage, l.chapitre, l.label, l.mission, l.amount
         from fin.public_budget_lines l join fin.public_budgets b using (budget_id)
         where l.line_kind = 'depense_fiscale'
         """
     ).fetchall():
         exercice = str(annee)
         exercices.add(exercice)
+        # Un même document publie un exercice constaté et des prévisions. Le
+        # site doit pouvoir les distinguer, faute de quoi il annoncerait au
+        # présent ce qui n'a pas encore eu lieu.
+        if etape == "execute":
+            realises.add(exercice)
         dispositif = dispositifs.setdefault(numero, {
             "numero": numero, "libelle": libelle, "mission": mission, "montants": {},
         })
         dispositif["montants"][exercice] = float(montant)
     if not dispositifs:
-        return {"exercices": [], "dispositifs": []}
+        return {"exercices": [], "realise": None, "dispositifs": []}
     dernier = max(exercices)
     return {
         "exercices": sorted(exercices),
+        "realise": max(realises) if realises else None,
         "dispositifs": sorted(
             dispositifs.values(),
             key=lambda d: -d["montants"].get(dernier, 0.0),

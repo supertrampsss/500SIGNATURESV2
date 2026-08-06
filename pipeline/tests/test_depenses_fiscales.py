@@ -86,14 +86,20 @@ def test_les_montants_non_chiffres_sont_absents_et_non_nuls():
     assert not df.lignes_a_ecrire(lues)
 
 
-def test_le_realise_et_les_previsions_ne_portent_pas_le_meme_statut(lignes):
+def test_le_realise_et_les_previsions_ne_portent_pas_le_meme_drapeau(lignes):
     """Le document publie un réalisé 2024 et deux prévisions. Les confondre
-    ferait lire une prévision comme un constat."""
-    statuts = {
-        periode: statut
-        for _, _, _, _, periode, _, statut in df.lignes_a_ecrire(lignes)
+    ferait lire une prévision comme un constat.
+
+    Le drapeau va dans `quality_flags` et non dans `value_status` : la
+    publication n'exporte que les observations en statut `normal`, et une
+    prévision marquée là serait écrite sans jamais atteindre le site."""
+    drapeaux = {
+        periode: tuple(liste)
+        for _, _, _, _, periode, _, liste in df.lignes_a_ecrire(lignes)
     }
-    assert statuts == {"2024": "normal", "2025": "provisional", "2026": "provisional"}
+    assert drapeaux == {"2024": (), "2025": ("provisional",), "2026": ("provisional",)}
+    assert df.COLONNES == ("value", "quality_flags")
+    assert df.REALISE == "2024"
 
 
 def test_les_fiches_disent_que_ce_n_est_pas_une_depense():
@@ -152,11 +158,14 @@ def test_l_ecriture_reelle_contre_un_vrai_entrepot(entrepot_seme, lignes):
         " and period = '2024'", (df.TOTAL,),
     ).fetchone()
     assert total == 89_406_000_000
-    (statut,) = entrepot_seme.execute(
-        "select value_status from core.observations where indicator_id = ?"
-        " and period = '2026'", (df.TOTAL,),
+    # Le statut reste `normal`, sans quoi la publication n'exporterait pas la
+    # prévision ; c'est le drapeau qui porte son caractère provisoire.
+    (statut, drapeaux) = entrepot_seme.execute(
+        "select value_status, quality_flags from core.observations"
+        " where indicator_id = ? and period = '2026'", (df.TOTAL,),
     ).fetchone()
-    assert statut == "provisional"
+    assert statut == "normal"
+    assert list(drapeaux) == ["provisional"]
 
 
 def test_le_detail_ne_se_melange_pas_au_budget_de_l_etat(entrepot_seme, lignes):

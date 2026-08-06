@@ -46,11 +46,24 @@ export function rendu(
   pays: Record<string, Territoire>,
   catalogue: Indicateur[],
 ): string {
-  const exercice = niches.exercices[niches.exercices.length - 1];
+  // Le chiffre annoncé est celui de l'exercice **constaté**, pas du dernier
+  // publié : le document porte deux prévisions, et « l'État renonce à
+  // percevoir » ne se dit pas d'une année qui n'a pas eu lieu.
+  const exercice = niches.realise ?? niches.exercices[niches.exercices.length - 1];
   if (!exercice || !niches.dispositifs.length) return "";
   if (!catalogue.some((i) => i.id === TOTAL)) return "";
   const total = pays["FR"]?.series?.[TOTAL]?.[exercice];
   if (total === undefined) return "";
+
+  // La prévision la plus lointaine, quand elle existe, se dit au conditionnel
+  // et à part — c'est ce qui empêche de la lire comme un constat.
+  const horizon = niches.exercices[niches.exercices.length - 1];
+  const prevu = horizon !== exercice ? pays["FR"]?.series?.[TOTAL]?.[horizon] : undefined;
+  const prevision =
+    prevu === undefined
+      ? ""
+      : ` Pour ${echapper(horizon)}, le projet de loi de finances en prévoit
+      ${echapper(formater(prevu, "EUR", false))}.`;
 
   const classement = niches.dispositifs
     .filter((d) => d.montants[exercice] !== undefined)
@@ -77,7 +90,7 @@ export function rendu(
       exonérations, taux réduits et crédits d'impôt. Ce n'est pas une dépense&nbsp;:
       c'est un impôt qui n'est pas encaissé, et qui n'apparaît sur aucune ligne du
       budget. Les ${MONTRES} dispositifs les plus coûteux en portent
-      ${echapper(String(part))}&nbsp;%.</p>
+      ${echapper(String(part))}&nbsp;%.${prevision}</p>
     <table class="niches">
       <caption>Dépenses fiscales chiffrées, ${echapper(exercice)} · Voies et moyens
         tome 2 annexé au projet de loi de finances pour 2026 · euros courants</caption>
@@ -87,9 +100,9 @@ export function rendu(
     </table>
     <p class="bloc__note">Ce sont des chiffrages, pas des encaissements&nbsp;: le
       document signale lui-même que leur fiabilité est inégale. Les dispositifs dont
-      le coût est inférieur à 0,5&nbsp;M€ ou non calculé sont absents de ce
-      classement, et ${echapper(String(niches.dispositifs.length))} dispositifs sont
-      recensés en tout.</p>`;
+      le coût est inférieur à 0,5&nbsp;M€ ou non calculé sont absents&nbsp;;
+      ${echapper(String(niches.dispositifs.length))} dispositifs sont chiffrés sur
+      les 465 que le document recense.</p>`;
 }
 
 export function afficherNiches(
