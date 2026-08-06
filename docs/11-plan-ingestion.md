@@ -895,7 +895,16 @@ Le plan ci-dessus est clos. Il ne couvrait qu'un extrait du registre des sources
 charge une cinquantaine. Cette section suit la reprise du registre lui-même.
 
 **Ordre retenu**, par ce que chaque source apporte à la question « où vont mes
-impôts » et par ce qu'elle coûte à charger :
+impôts » et par ce qu'elle coûte à charger. **Les six premières lignes sont
+traitées au 6 août** : deux chargées, quatre écartées avec leur raison écrite.
+
+Une leçon technique traverse cette vague et mérite d'être notée pour la
+suivante : sur data.economie.gouv.fr, **un jeu qui affiche zéro enregistrement
+peut porter la donnée en pièce jointe**. C'est ainsi que les dépenses fiscales
+ont été trouvées, et que l'état réel des effectifs de la fonction publique a pu
+être constaté au lieu d'être supposé. Un jeu vide ne se conclut donc pas depuis
+son compteur : il faut interroger
+`/api/v2/catalog/datasets/{jeu}/attachments`.
 
 | | Source | État |
 |---|---|---|
@@ -904,10 +913,10 @@ impôts » et par ce qu'elle coûte à charger :
 | ~~3~~ | ~~Dépenses fiscales — Voies et moyens t. 2~~ | **chargées le 6 août** — trouvées ailleurs que dans le jeu ODS vide |
 | 4 | Opérateurs de l'État | **écartés le 6 août** — la source ne publie plus ni crédits ni emplois |
 | 5 | Commande publique / DECP | **écartée le 6 août** — montants et lieux d'exécution non publiables |
-| 6 | Effectifs de la fonction publique de l'État | **source ODS vide**, à retrouver ailleurs |
+| 6 | Effectifs de la fonction publique de l'État | **écartés le 6 août** — la série s'arrête en 2016 |
 | 7 | Exécution budgétaire par mission | 2010-2013 seulement, valeur faible |
 
-**Deux affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
+**Trois affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
 est annoncé « 2009→ » : la source n'en publie que **2024 et 2025**. Et le jeu des
 dépenses fiscales cité par son identifiant ODS —
 `plf2023_voies_et_moyens_t2_liste_des_depenses_fiscales` — **existe mais ne
@@ -1014,14 +1023,26 @@ par département et par an, insensible aux montants aberrants. Il mesurerait la
 obligation, pas un choc économique. Une carte de ce chiffre serait lue comme
 « où va l'argent ». C'est exactement la lecture que ce site refuse de fabriquer.
 
-**Effectifs de la fonction publique de l'État — la source annoncée est vide.**
-`effectifs-de-la-fonction-publique-de-letat` existe sur data.economie.gouv.fr et
-**contient zéro enregistrement**, comme les six autres jeux DGAFP du portail
-(fonction publique territoriale, emploi par département, élections
-professionnelles). Une recherche sur data.gouv.fr pour la DGAFP ne rend rien.
-La ligne reste ouverte : la donnée existe chez le producteur, elle n'est pas
-accessible par les portails que le registre désigne. C'est un troisième point où
-le registre annonce plus que les sources ne servent.
+**Effectifs de la fonction publique — écartés le 6 août, sur l'âge de la
+série.** Le jeu annoncé par le registre, `effectifs-de-la-fonction-publique-de-letat`,
+**contient zéro enregistrement**, comme les six autres jeux DGAFP du portail. La
+même méthode que pour les dépenses fiscales a pourtant fonctionné : la donnée
+survit en **pièce jointe** du jeu vide, et elle est réelle. Le fichier
+départemental porte les effectifs physiques des trois fonctions publiques par
+région et par département, plus un taux d'administration — exactement la maille
+qui manque au site.
+
+**Il s'arrête en 2016**, et le classeur a été enregistré pour la dernière fois en
+2018. Ce sont des figures de rapport, pas une série entretenue : celui de l'État
+par ministère s'arrête au même moment. Poser sur la carte un effectif de 2016 à
+côté d'une population de 2023 ferait comparer deux Frances différentes, et la
+page de fraîcheur ne suffirait pas à empêcher la lecture. La ligne rouvrira le
+jour où la DGAFP republiera la même série au-delà de 2016 ; elle est fermée tant
+que ce n'est pas le cas.
+
+C'est le troisième point où le registre annonce plus que les sources ne servent —
+après le REI « 2009→ » qui n'a que deux exercices, et les jeux ODS de dépenses
+fiscales vides.
 
 **Fiscalité directe locale — chargée le 6 août.** Le site publiait un
 total, « impôts locaux » de l'OFGL, et des taux. Il ne disait pas **d'où vient
