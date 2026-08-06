@@ -682,7 +682,7 @@ cartographiables — budget de l'État, dette, dépenses par fonction, Sécurit�
 sociale, conjoncture, comparaisons européennes. C'est là que les séries P2
 entrent, sans surface nouvelle à bâtir.
 
-**Indice des prix à la consommation — chargement lancé le 6 août.** Le premier
+**Indice des prix à la consommation — chargé le 6 août.** Le premier
 P2, et son seul enjeu est de ne pas se confondre avec ce qui est déjà publié.
 Le site porte l'**IPCH**, l'indice harmonisé européen, qui sert à comparer les
 pays ; ce module apporte l'**IPC** national, celui auquel renvoient la loi et
@@ -706,7 +706,15 @@ qui verrait un niveau d'indice chargé comme un taux — le site annoncerait alo
 cent pour cent d'inflation par an. Un rebasement de la source arrête aussi le
 chargement : les niveaux d'indice ne se comparent pas d'une base à l'autre.
 
-Relevé sur la source : 2,1 % en juillet 2026, base 2025.
+Vérifié au chargement : 355 points mensuels de janvier 1997 à juillet 2026,
+2,1 % sur un an en juillet, base 2025.
+
+**Un écart de fraîcheur apparaît, et il est visible parce que les deux séries
+se touchent.** L'IPC publié va jusqu'à juillet 2026 quand l'IPCH s'arrête à
+décembre 2025 : ce n'est pas un défaut de définition mais un retard du
+connecteur Eurostat, que le suivi de fraîcheur signale par ailleurs. Il est noté
+ici parce qu'un lecteur qui compare les deux inflations verra d'abord cet écart,
+et qu'il ne doit pas le prendre pour un écart de mesure.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
