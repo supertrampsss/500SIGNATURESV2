@@ -53,7 +53,12 @@ COMPOSANTES_PUBLIEES = {
         " population défavorisée. Moins de mille communes en bénéficient.",
         "Montant notifié de dotation de solidarité urbaine et de cohésion sociale"
         " (DSU-CS), source DGCL diffusée par l'OFGL. Une commune sans montant"
-        " n'est pas une commune à zéro euro : elle n'est pas éligible.",
+        " n'est pas une commune à zéro euro : elle n'est pas éligible."
+        " Cette dotation n'est pas incluse dans l'agrégat « péréquations"
+        " et compensations fiscales » publié par ailleurs sur ce site :"
+        " celui-ci porte les compensations d'exonérations décidées par le"
+        " législateur, un autre poste des concours de l'État. Les deux ne"
+        " s'additionnent ni ne se décomposent l'un l'autre.",
     ),
     "dsr": (
         "dgcl_dotation_solidarite_rurale", "Dotation de solidarité rurale reçue",
@@ -62,7 +67,12 @@ COMPOSANTES_PUBLIEES = {
         " pour leur canton. Une commune urbaine n'y a pas droit.",
         "Montant notifié de dotation de solidarité rurale, toutes fractions"
         " confondues — bourg-centre, péréquation, cible. Source DGCL diffusée"
-        " par l'OFGL. L'absence de montant vaut non-éligibilité, pas zéro.",
+        " par l'OFGL. L'absence de montant vaut non-éligibilité, pas zéro."
+        " Cette dotation n'est pas incluse dans l'agrégat « péréquations"
+        " et compensations fiscales » publié par ailleurs sur ce site :"
+        " celui-ci porte les compensations d'exonérations décidées par le"
+        " législateur, un autre poste des concours de l'État. Les deux ne"
+        " s'additionnent ni ne se décomposent l'un l'autre.",
     ),
     "dnp": (
         "dgcl_dotation_nationale_perequation", "Dotation nationale de péréquation reçue",
@@ -71,7 +81,12 @@ COMPOSANTES_PUBLIEES = {
         " communes plutôt que leurs charges.",
         "Montant notifié de dotation nationale de péréquation, parts principale"
         " et majoration confondues. Source DGCL diffusée par l'OFGL. L'absence"
-        " de montant vaut non-éligibilité, pas zéro.",
+        " de montant vaut non-éligibilité, pas zéro."
+        " Cette dotation n'est pas incluse dans l'agrégat « péréquations"
+        " et compensations fiscales » publié par ailleurs sur ce site :"
+        " celui-ci porte les compensations d'exonérations décidées par le"
+        " législateur, un autre poste des concours de l'État. Les deux ne"
+        " s'additionnent ni ne se décomposent l'un l'autre.",
     ),
 }
 

@@ -96,3 +96,8 @@ def test_les_fiches_disent_que_l_absence_n_est_pas_un_zero():
     for _, (_, _, publique, technique) in dotations.COMPOSANTES_PUBLIEES.items():
         assert len(publique.split()) <= 50
         assert "éligib" in technique
+        # Le site publie déjà un agrégat OFGL « péréquations et compensations
+        # fiscales », qui porte les compensations d'exonérations et non la DGF.
+        # Sans cet avertissement, le lecteur prendrait l'un pour la
+        # décomposition de l'autre — le piège déjà rencontré sur le REI.
+        assert "ne se décomposent" in technique
