@@ -794,6 +794,7 @@ const THEMES: Record<string, string> = {
   equipements: "Équipements et services",
   tourisme: "Hébergement touristique",
   elections: "Participation électorale",
+  prenoms: "Prénoms",
   fonctions: "Dépenses par fonction",
   securite_sociale: "Sécurité sociale",
   securite: "Sécurité",

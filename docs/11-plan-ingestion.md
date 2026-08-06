@@ -771,11 +771,12 @@ et dépenses totales des APU.
 `DD_CNA_CONSO_MENAGES_PRODUITS` **s'est révélé plus utile que son titre ne le
 disait — chargé le 6 août.** Voir plus bas.
 
-`DS_PRENOM` (6 622 949 observations, depuis 1900) est le jeu ouvert le plus
-consulté de l'INSEE, et il ne répond à aucune des questions de ce site. Il n'a
-pas non plus d'agrégat : un prénom est une modalité parmi des milliers, quand la
-règle du plan veut « quelques indicateurs agrégés à la maille du territoire ».
-Le charger remplirait un onglet, pas une intention.
+`DS_PRENOM` **est chargé — décision du propriétaire du projet, le 6 août.**
+Mon inclination était de l'écarter : il ne répondait, pensais-je, à aucune
+question du site. Le sondage a montré l'inverse de ce que je supposais sur un
+point décisif — le jeu descend au **département et à la région**, et un filtre
+sur le rang rend directement le prénom de tête de chaque territoire. Voir plus
+bas.
 
 **Consommation des ménages — chargée le 6 août.** Deux chiffres, et
 c'est **leur écart** qui vaut le chargement. La dépense de consommation finale
@@ -813,6 +814,40 @@ un test le vérifie sur l'URL.
 Vérifié sur la publication : 77 exercices de 1949 à 2025 ; en 2024, dépense
 1 527 123 M€, consommation effective 2 051 008 M€, et donc **523 885 M€** de
 transferts en nature — l'écart se relit à l'identique sur les fichiers publiés.
+
+**Prénoms — chargement lancé le 6 août.** Le dernier P2, et celui que j'aurais
+eu tort d'écarter. Je le croyais national et sans agrégat ; il descend au
+département et à la région, et un filtre sur le rang rend une ligne par
+territoire, sexe et année depuis 1900 — 29 792 points.
+
+**Le prénom lui-même n'est pas publié, et c'est une limite du modèle, pas un
+choix.** Un indicateur de ce site porte une valeur numérique ; « Gabriel » est
+une chaîne, et rien dans `core.observations` ne peut accueillir un fait textuel
+attaché à un territoire. Le chargement publie donc **combien** d'enfants portent
+le prénom de tête, sans pouvoir dire lequel. Publier le prénom demanderait
+d'ouvrir le modèle aux faits textuels : c'est une décision de modèle, elle est
+écrite ici plutôt que contournée par un bricolage — un identifiant d'indicateur
+par prénom, par exemple, ferait quarante mille colonnes pour un seul jeu.
+
+**Les effectifs départementaux sont arrondis à la dizaine par la source**, au
+titre du secret statistique : 130 naissances en Gironde signifie « entre 125 et
+134 ». Un écart de dix entre deux départements n'est donc pas interprétable, et
+la fiche publique le dit en toutes lettres. **Et un prénom trop rare n'est pas
+diffusé** dans un département : ces chiffres ne sont pas un dénombrement complet
+des naissances.
+
+Le contrôle bloquant porte sur ce dont tout le module dépend : le sens du rang.
+Si `RANK` signifiait autre chose, l'indicateur publierait l'effectif d'un prénom
+quelconque sous le nom de « prénom le plus donné », et rien ne le signalerait.
+Le chargement compare donc le rang 1 au rang 2 — le premier ne peut pas compter
+moins de naissances que le second — sur les 29 792 couples où les deux existent.
+
+Ces effectifs ne sont **pas additifs** : le prénom de tête d'un département n'est
+pas celui de sa région, et les additionner sommerait des grandeurs qui ne
+parlent pas du même prénom. Le catalogue le déclare.
+
+Relevé sur la source : Gironde 2024, 130 garçons portent le prénom masculin le
+plus donné et 110 filles le prénom féminin le plus donné.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 

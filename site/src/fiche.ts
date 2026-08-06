@@ -670,6 +670,12 @@ const PHARES: Record<string, string[]> = {
   // Le taux avant les effectifs : « a-t-on voté chez moi » se répond par
   // une part, pas par un nombre d'inscrits qui ne dit que la taille.
   elections: ["elections_taux_participation", "elections_inscrits"],
+  // Les filles avant les garçons : aucune raison de principe, sinon que
+  // les deux se lisent ensemble et qu'il faut bien un ordre.
+  prenoms: [
+    "insee_prenom_premier_effectif_filles",
+    "insee_prenom_premier_effectif_garcons",
+  ],
   // Le taux global, celui qui figure sur l'avis d'imposition : la part
   // communale seule ne dit pas ce que paie le propriétaire. L'identifiant écrit
   // ici ne correspondait à aucun indicateur publié — le thème s'ouvrait donc
@@ -716,6 +722,7 @@ const ORDRE_THEMES = [
   "equipements",
   "tourisme",
   "elections",
+  "prenoms",
   // Fiche nationale.
   "budget_etat",
   "dette",
