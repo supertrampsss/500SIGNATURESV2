@@ -625,6 +625,16 @@ const PHARES: Record<string, string[]> = {
   // établissements présents, pas par les immatriculations de l'année — qui,
   // elles, sont comptées au siège et non là où l'activité se fait.
   entreprises: ["insee_etablissements_actifs", "insee_creations_entreprises"],
+  // Les deux secteurs qui emploient partout, et dont l'écart dit d'un
+  // territoire s'il vit de son marché ou de ses services publics.
+  secteurs_salaries: [
+    "insee_effectifs_salaries_services_marchands",
+    "insee_effectifs_salaries_administration_sante_social",
+  ],
+  secteurs_etablissements: [
+    "insee_etablissements_employeurs_services_marchands",
+    "insee_etablissements_employeurs_administration_sante_social",
+  ],
   // Le total plutôt qu'un domaine : « combien d'équipements chez moi »
   // avant « combien de terrains de sport ».
   equipements: ["insee_equipements_total"],
@@ -669,6 +679,8 @@ const ORDRE_THEMES = [
   "diplomes",
   "emploi",
   "entreprises",
+  "secteurs_salaries",
+  "secteurs_etablissements",
   "equipements",
   // Fiche nationale.
   "budget_etat",

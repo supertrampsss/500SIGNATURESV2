@@ -789,6 +789,8 @@ const THEMES: Record<string, string> = {
   emploi: "Emploi et chômage",
   diplomes: "Diplômes de la population",
   entreprises: "Entreprises",
+  secteurs_etablissements: "Établissements par secteur",
+  secteurs_salaries: "Salariés par secteur",
   equipements: "Équipements et services",
   fonctions: "Dépenses par fonction",
   securite_sociale: "Sécurité sociale",

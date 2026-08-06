@@ -429,12 +429,12 @@ des communes de même revenu pour constater qu'elles ont le même revenu.
 
 | # | Jeu | Ce qu'on en tire | Maille |
 |---|---|---|---|
-| 8 | `DS_FLORES_A5` | établissements et effectifs salariés par grand secteur | commune |
+| 8 | `DS_FLORES_A5` | **connecteur prêt le 6 août**, chargement à lancer — 419 880 observations, douze indicateurs, millésime 2024 | commune |
 | 9 | `DS_TOUR_CAP` | capacités d'hébergement touristique | commune |
 | ~~10~~ | ~~`DS_RP_EMPLOI_LR_PRINC`~~ | **chargé le 5 août** — 724 410 observations, dix indicateurs ; couvre aussi la ligne 11 | commune |
 | ~~11~~ | ~~`DS_RP_TD_DIPLOMES_PRINC`~~ | **inutile** : les diplômes sont dans le jeu de la ligne 10, sur la même population | commune |
 | 12 | DVF (data.gouv) | prix des logements vendus | commune |
-| 13 | RPLS (SDES) | logement social | commune |
+| ~~13~~ | ~~RPLS (SDES)~~ | **chargé le 6 août** — 5 416 826 logements sociaux comptés un par un, trois indicateurs | commune |
 | 14 | Élections (data.gouv) | résultats par commune | commune |
 
 **Activité, chômage et diplômes — chargé le 5 août.** Le premier P1, et il
@@ -471,6 +471,83 @@ Douze croisements lus sur les cent quatre-vingt-dix-sept du jeu : 797 000 lignes
 au lieu de 17,9 millions, quarante-trois secondes. Vérifié au chargement :
 Bordeaux 2023, 191 928 habitants de 15 à 64 ans, 11,8 % de chômage au sens du
 recensement, 58,7 % de diplômés du supérieur.
+
+**Logement social — chargé le 6 août.** Le site publiait déjà un parc social,
+celui du recensement, **déclaré par les ménages** : on demande aux habitants
+s'ils logent dans un HLM. Le répertoire des bailleurs sociaux part des bailleurs
+et compte leurs logements un par un — 5 416 826 — et c'est lui qui fait foi pour
+la loi SRU. Les deux chiffres diffèrent franchement pour la même commune la même
+année ; les deux sont publiés, et chaque fiche nomme l'autre, faute de quoi une
+commune serait dite en règle ou en infraction sur la foi du mauvais comptage.
+
+Les adresses ne sont jamais téléchargées : le fichier décrit chaque logement par
+son numéro de voie, son étage et ses coordonnées, sur soixante-treize colonnes,
+et l'API du SDES sait n'en servir que quatre. L'instantané archivé n'en porte
+aucune — la règle des données agrégées appliquée en amont plutôt qu'après coup.
+
+Les **passoires thermiques** sont publiées en trois indicateurs et non deux : le
+parc, les logements étiquetés, et les F ou G. 657 670 logements — douze pour
+cent — n'ont aucune étiquette, et un logement sans diagnostic n'est pas un
+logement bien classé : le taux se lit donc sur les étiquetés. 119 527 en F et
+26 013 en G, soit 3,1 %. « E » n'entre pas dans le compte, le calendrier légal
+portant sur G puis F.
+
+**Et c'est ce chargement qui a fait naître `couverture.py`.** Le répertoire code
+Paris, Lyon et Marseille par arrondissement : sans rattachement à la commune,
+Paris sortait à zéro logement social quand il en compte 250 640. Le contrôle
+bloquant du connecteur — totaux départementaux contre totaux régionaux — était
+parfaitement vert, parce qu'un contrôle d'identité compare la source à
+elle-même et ne peut pas voir un code que le référentiel ignore. Le nouveau
+contrôle compare ce qui est **écrit** à ce qui est **lu**, maille par maille, en
+entités et non en codes, et refuse sous 95 %. Il s'applique désormais à tout
+connecteur qui écarte des territoires inconnus.
+
+**Établissements employeurs et salariés par secteur — connecteur prêt le
+6 août.** Le premier jeu du site qui compte l'emploi **là où il est** plutôt que
+là où habitent ceux qui l'occupent : 419 880 observations, douze indicateurs,
+2 411 570 établissements employeurs et 26 604 745 postes salariés en France
+entière. Les chiffres qui suivent sont relevés sur l'archive réelle, contrôles
+compris ; la ligne du plan ne passera en « chargé » que lorsque le connecteur
+aura tourné en production. Trois mots devaient être tenus, chacun contredisant un
+chiffre déjà en ligne s'il ne l'était pas.
+
+**Employeur n'est pas actif.** Le site publie déjà 6 625 344 établissements
+actifs pour 2024 ; ce jeu-ci n'en compte que 2 411 570, parce qu'il retient les
+seuls établissements ayant employé quelqu'un dans l'année. Près de deux tiers
+des établissements actifs n'emploient personne. Les deux chiffres sont justes et
+voisinent sur la même fiche : chacun nomme l'autre. **Un poste n'est pas une
+personne** : l'effectif compte les postes présents la dernière semaine de
+décembre, une personne qui en occupe deux est comptée deux fois, et un mi-temps
+compte pour un — ce n'est ni un équivalent temps plein ni un nombre d'habitants
+qui travaillent. **Le lieu de travail n'est pas le domicile** : ces salariés ne
+se rapportent pas à la population du territoire, et n'en donnent donc pas un taux
+d'emploi ; les actifs du recensement, comptés au domicile, sont publiés à côté.
+
+Deux pièges de lecture, tranchés à la source. Les neuf tranches d'effectifs sont
+servies **avec** leur total sur la même dimension : seul le total est lu, les
+charger reviendrait à compter chaque établissement deux fois. Et le fichier
+publie deux France sous le même identifiant de zonage — entière et
+métropolitaine, 2 411 570 contre 2 344 770 : c'est la première qui est le total,
+puisque les communes d'outre-mer sont chargées.
+
+Deux contrôles bloquants, plus celui de la couverture. Les cinq secteurs font le
+total, pour chaque mesure et chaque territoire : 69 980 vérifications, écart nul.
+Et les communes, les départements et les régions font chacun la France entière,
+à l'unité près sur les deux mesures — c'est ce contrôle-là qui verrait une maille
+décrocher pendant que les deux autres restent justes.
+
+Deux réserves entrent dans la fiche technique. Le champ est la **France entière,
+Mayotte comprise**, contrairement aux jeux du recensement publiés ici, qui
+s'arrêtent à cent départements. Et **un seul millésime est publié** : la source
+déclare que la comparabilité entre deux millésimes n'est pas garantie, et
+fabriquer une série par-dessus cet avertissement reviendrait à inventer une
+évolution. Un établissement peut par ailleurs être employeur et n'avoir aucun
+salarié la dernière semaine de décembre — 259 789 sont dans ce cas, 10,8 % du
+total.
+
+Relevé sur l'archive réelle : Bordeaux 2024, 14 432 établissements employeurs et
+201 045 postes salariés, dont 100 521 dans les services marchands et 88 409 dans
+l'administration, l'enseignement, la santé et l'action sociale.
 
 ### P2 — onglet « Statistiques et études », pas la carte
 
