@@ -687,6 +687,7 @@ const PHARES: Record<string, string[]> = {
   // ligne parmi quinze, présentée comme le résumé du thème.
   dette: ["insee_dette_apu_part_pib", "insee_dette_apu_montant"],
   budget_etat: ["etat_solde_budgetaire", "etat_depenses_nettes_bg"],
+  depenses_fiscales: ["depense_fiscale_totale", "depense_fiscale_impot_revenu"],
   fonctions: ["eurostat_depenses_publiques_pib"],
   securite_sociale: ["eurostat_secu_solde_pib"],
   macro: ["eurostat_inflation_ipch", "eurostat_croissance_pib"],
@@ -725,6 +726,7 @@ const ORDRE_THEMES = [
   "prenoms",
   // Fiche nationale.
   "budget_etat",
+  "depenses_fiscales",
   "dette",
   "fonctions",
   "securite_sociale",

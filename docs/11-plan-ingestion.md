@@ -901,10 +901,10 @@ impôts » et par ce qu'elle coûte à charger :
 |---|---|---|
 | ~~1~~ | ~~REI — fiscalité directe locale (DGFiP / OFGL)~~ | **chargée le 6 août** |
 | 2 | Comptes individuels des communes (DGFiP) | **écartés le 6 août** — doublon qui contredirait l'OFGL |
-| 3 | Dépenses fiscales — Voies et moyens t. 2 | **source ODS vide**, voir plus bas |
-| 4 | Opérateurs de l'État | à sonder |
-| 5 | Commande publique / DECP | à sonder |
-| 6 | Effectifs de la fonction publique de l'État | à sonder |
+| ~~3~~ | ~~Dépenses fiscales — Voies et moyens t. 2~~ | **chargées le 6 août** — trouvées ailleurs que dans le jeu ODS vide |
+| 4 | Opérateurs de l'État | **écartés le 6 août** — la source ne publie plus ni crédits ni emplois |
+| 5 | Commande publique / DECP | **écartée le 6 août** — montants et lieux d'exécution non publiables |
+| 6 | Effectifs de la fonction publique de l'État | **source ODS vide**, à retrouver ailleurs |
 | 7 | Exécution budgétaire par mission | 2010-2013 seulement, valeur faible |
 
 **Deux affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
@@ -912,9 +912,116 @@ est annoncé « 2009→ » : la source n'en publie que **2024 et 2025**. Et le j
 dépenses fiscales cité par son identifiant ODS —
 `plf2023_voies_et_moyens_t2_liste_des_depenses_fiscales` — **existe mais ne
 contient aucun enregistrement**, pas plus que son tome 1. Le registre portait la
-mention « (nv) », non vérifié ; elle était méritée. Les dépenses fiscales restent
-donc à trouver ailleurs, et c'est un manque qui pèse : ce sont des dizaines de
-milliards d'argent public qui ne passent par aucune ligne de dépense.
+mention « (nv) », non vérifié ; elle était méritée. **Les dépenses fiscales ont
+donc été trouvées ailleurs et chargées le jour même** — voir plus bas.
+
+**Dépenses fiscales — chargées le 6 août, après trois impasses.** C'était le
+manque le plus lourd du registre : quatre-vingt-huit milliards d'euros que
+l'État renonce à percevoir, qui n'apparaissent sur aucune ligne de dépense et
+que le site ne disait pas. Le chemin pour y arriver mérite d'être écrit, parce
+que les trois premières portes étaient fermées.
+
+La première, celle du registre — `plf2023_voies_et_moyens_t2_liste_des_depenses_fiscales`
+— **ne contient aucun enregistrement**. La deuxième, `plf-2024-vm-tome-2_depenses-fiscales`,
+en contient 468 mais **sans un seul montant** : c'est le premier onglet du
+tableur déversé tel quel, colonnes `empty`, `empty0`, `empty1`, où le seul
+nombre est le numéro de la dépense fiscale. La troisième, la pièce jointe XLSX
+du jeu vide, porte bien les chiffrages — mais ceux du PLF 2023, réalisé 2021 :
+trois ans de retard, et aucun millésime plus récent n'existe sous cette forme.
+
+**La porte ouverte était ailleurs, dans une annexe qui ne parle pas de fiscalité.**
+Le rapport sur l'impact environnemental du budget — le « budget vert » annexé au
+PLF 2026 — cote 1 816 lignes de dépense publique, dont **483 dépenses fiscales
+avec leurs montants** : réalisé 2024, prévision 2025, prévision 2026. C'est la
+seule publication exploitable de ces chiffrages, et elle est à jour.
+
+**Le contrôle confronte deux annexes du même projet de loi.** Ce jeu n'a pas de
+somme interne à retrouver : la somme de ce qu'on a lu est toujours égale à
+elle-même, et une annexe qui ne coterait qu'une partie des niches passerait
+inaperçue. Le contrôle recopie donc les **dix-sept lignes du tableau « Dépenses
+fiscales par impôt » publié dans le tome 2**, regroupe les catégories du budget
+vert vers elles, et vérifie les vingt-sept croisements plus les trois totaux.
+Ils tombent **à l'euro près** : 89 406, 91 834 et 88 269 M€ pour 2024, 2025 et
+2026. Deux documents indépendants, produits par deux directions différentes,
+disent le même chiffre — c'est ce qui autorise à publier.
+
+**Trois réserves entrent dans les fiches.** Une dépense fiscale **n'est pas une
+dépense** : c'est une moindre recette, l'écart entre l'impôt qu'une règle
+générale aurait produit et celui que produit la règle dérogatoire. L'additionner
+aux crédits votés donnerait un total qui ne mesure rien, et le connecteur écrit
+ces lignes sous un type de budget — `PLF` — que la page du budget de l'État ne
+lit pas. Ce sont des **chiffrages, pas des encaissements**, et le document
+signale lui-même leur fiabilité inégale. Enfin les dispositifs dont le coût est
+inférieur à 0,5 M€ (« ε », 42 lignes) ou non calculé (« nc », 63 lignes) sont
+**absents et non nuls** : écrire zéro à leur place inventerait une niche
+gratuite. Un test l'a d'ailleurs prouvé nécessaire — le total lui-même sortait à
+zéro euro pour un exercice sans aucun chiffrage, ce qui aurait annoncé la fin
+des niches fiscales.
+
+**Un piège de lecture, attrapé avant écriture.** Le budget vert scinde une
+dépense fiscale en plusieurs lignes quand sa cotation environnementale diffère
+d'une part à l'autre, et chaque part porte sa fraction du coût : 483 lignes pour
+**457 dispositifs**. Sommer sans recoller aurait affiché le crédit d'impôt
+« prêt à taux zéro » à un sixième de son coût. Les parts sont recollées par
+numéro de dépense fiscale ; le total, lui, se calcule sur les lignes, ce qui est
+la même chose et se vérifie contre le tome 2.
+
+Vérifié sur la publication : le crédit d'impôt recherche, **8,0 Md€** en 2026,
+est le premier dispositif ; le crédit d'impôt pour l'emploi d'un salarié à
+domicile suit à 7,2 Md€. À eux deux ils pèsent plus que le produit de l'impôt
+sur la fortune immobilière tout entier.
+
+**Opérateurs de l'État — écartés le 6 août, faute de la donnée annoncée.** Le
+registre promet « financements État, ETPT ». Les trois fichiers récents
+(PLF 2024, 2025, 2026, ~70 Ko chacun) ne portent **ni montant ni effectif** :
+cinq colonnes, opérateur, catégorie, statut, mission et programme de
+rattachement, exercice. C'est une nomenclature, pas une mesure. Les crédits
+versés aux opérateurs existaient dans les jeux ODS du **PLF 2014** — douze ans
+de retard, et un périmètre d'opérateurs qui a changé entre-temps. Publier « le
+nombre d'opérateurs par mission » serait publier un décompte d'étiquettes
+administratives : ce site refuse déjà les nuances politiques des élections pour
+la même raison.
+
+**Commande publique / DECP — écartée le 6 août, sur deux motifs indépendants.**
+La source existe et elle est vivante : 677 111 marchés sous l'arrêté de 2022,
+702 901 sous celui de 2019, mis à jour le jour même. Elle est pourtant
+impubliable ici, et il vaut de dire pourquoi avec des nombres.
+
+*Les montants ne mesurent rien.* Dans le fichier des marchés **valides** — le
+portail a déjà écarté les invalides — **1 144 marchés sur 677 111, soit 0,17 %,
+portent 45,3 % du montant total**. Quatre marchés valent exactement
+2 147 483 647 €, c'est-à-dire 2³¹−1 : la valeur maximale d'un entier signé sur
+32 bits, pas un prix. On y trouve une location de sanitaires à 3 milliards
+d'euros, une fourniture de semences à 2 milliards, du mobilier de bureau à
+2 milliards. Le total déclaré du seul fichier 2022 atteint 956 Md€, quand la
+commande publique française se compte en centaines de milliards. Un même marché
+d'ingénierie informatique apparaît quatre fois à 2 Md€ ; un groupe (objet,
+montant) se répète trente-huit fois.
+
+*Et le lieu n'est pas une maille.* Seuls **4,2 % des marchés déclarent un code
+commune** ; 61,5 % déclarent un **code postal**, qui est un identifiant de
+tournée postale et non un territoire — il couvre plusieurs communes, et une
+commune peut en porter plusieurs. Le vocabulaire de la colonne n'est même pas
+normalisé : « Code département » et « CODE DEPARTEMENT » coexistent comme deux
+valeurs distinctes dans la même colonne du même fichier. Le contrôle de
+couverture de ce site, qui refuse en dessous de 95 % d'entités reconnues,
+écarterait ce jeu sans discussion.
+
+Reste ce qu'on aurait pu publier malgré tout : un **nombre de marchés notifiés**
+par département et par an, insensible aux montants aberrants. Il mesurerait la
+**conformité déclarative des acheteurs**, pas l'achat public — le passage de
+16 767 marchés en 2018 à 128 138 en 2019 est l'entrée en vigueur d'une
+obligation, pas un choc économique. Une carte de ce chiffre serait lue comme
+« où va l'argent ». C'est exactement la lecture que ce site refuse de fabriquer.
+
+**Effectifs de la fonction publique de l'État — la source annoncée est vide.**
+`effectifs-de-la-fonction-publique-de-letat` existe sur data.economie.gouv.fr et
+**contient zéro enregistrement**, comme les six autres jeux DGAFP du portail
+(fonction publique territoriale, emploi par département, élections
+professionnelles). Une recherche sur data.gouv.fr pour la DGAFP ne rend rien.
+La ligne reste ouverte : la donnée existe chez le producteur, elle n'est pas
+accessible par les portails que le registre désigne. C'est un troisième point où
+le registre annonce plus que les sources ne servent.
 
 **Fiscalité directe locale — chargée le 6 août.** Le site publiait un
 total, « impôts locaux » de l'OFGL, et des taux. Il ne disait pas **d'où vient

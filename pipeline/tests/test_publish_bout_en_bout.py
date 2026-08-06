@@ -124,6 +124,21 @@ def _remplir(conn) -> None:
         " 63600000000.0)",
         (budget,),
     )
+    # Une dépense fiscale, portée par l'État sans être une ligne de son budget.
+    niches = conn.execute(
+        "insert into fin.public_budgets (geo_level, geo_code, geo_vintage, budget_type,"
+        " entity_kind, fiscal_year, accounting_frame, stage, dataset_id, run_id)"
+        " values ('pays', 'FR', ?, 'PLF', 'etat', 2026, 'budgetaire', 'vote',"
+        " 'plf-depenses-fiscales', ?) returning budget_id",
+        (MILLESIME, run_id),
+    ).fetchone()[0]
+    conn.execute(
+        "insert into fin.public_budget_lines (budget_id, fiscal_year, side, mission,"
+        " chapitre, line_kind, amount, label) values (?, 2026, 'depense',"
+        " 'Recherche et enseignement supérieur', '200302', 'depense_fiscale',"
+        " 8041000000.0, 'Crédit d''impôt en faveur de la recherche')",
+        (niches,),
+    )
     conn.commit()
 
 
@@ -180,9 +195,22 @@ def test_publier_produit_un_jeu_complet(tmp_path):
 
     budget = lire("budget-etat.json")
     assert budget["exercices"]["2024"]["vote"]["solde"] == -146900000000.0
+    # La dépense fiscale insérée plus haut n'entre pas dans le pont du budget :
+    # un impôt non perçu n'est pas une ligne de dépense, et l'y laisser
+    # tomberait dans la colonne qui se referme sur le solde.
     assert budget["exercices"]["2024"]["vote"]["montants"] == {
         "Enseignement scolaire": 63600000000.0
     }
+    assert "2026" not in budget["exercices"]
+
+    niches = lire("depenses-fiscales.json")
+    assert niches["exercices"] == ["2026"]
+    assert niches["dispositifs"] == [{
+        "numero": "200302",
+        "libelle": "Crédit d'impôt en faveur de la recherche",
+        "mission": "Recherche et enseignement supérieur",
+        "montants": {"2026": 8041000000.0},
+    }]
 
     # Fraîcheur, journal, comparaisons, manifeste et recherche : leur seule
     # présence prouve que leurs requêtes s'exécutent sous DuckDB.

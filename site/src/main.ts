@@ -25,6 +25,7 @@ import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts"
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import { afficherConjoncture } from "./conjoncture.ts";
+import { afficherNiches } from "./niches.ts";
 import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
@@ -804,6 +805,7 @@ const THEMES: Record<string, string> = {
   macro: "Conjoncture",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
+  depenses_fiscales: "Niches fiscales",
   europe: "Comparaisons européennes",
 };
 
@@ -1411,6 +1413,13 @@ async function demarrer(): Promise<void> {
       $("national").hidden = false;
     }
     if (afficherSecu($("bloc-secu"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    // Les niches fiscales ont leur propre fichier — le détail des dispositifs
+    // n'a pas sa place dans une série pays — mais leur total en est un : le
+    // bloc a besoin des deux, il est donc chargé ici.
+    const niches = await donnees.depensesFiscales();
+    if (afficherNiches($("bloc-niches"), niches, pays, catalogue)) {
       $("national").hidden = false;
     }
   } catch {

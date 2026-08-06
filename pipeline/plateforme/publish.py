@@ -417,6 +417,12 @@ def budget_etat(conn) -> dict:
         select fiscal_year, stage, balance, special_accounts_balance,
                annexed_budgets_balance
         from fin.public_budgets where entity_kind = 'etat'
+          -- Les trois étapes de la page sont celles d'une loi de finances :
+          -- votée, rectifiée, exécutée. Les budgets de type `PLF` portent les
+          -- chiffrages d'annexes — les dépenses fiscales — qui n'ont ni solde
+          -- ni ligne à montrer ici ; les laisser entrer ouvrirait un exercice
+          -- vide dans le sélecteur.
+          and budget_type in ('LFI', 'LFR')
         order by fiscal_year, stage
         """
     ).fetchall():
@@ -431,6 +437,11 @@ def budget_etat(conn) -> dict:
         select b.fiscal_year, b.stage, l.label, coalesce(l.cp, l.amount)
         from fin.public_budget_lines l join fin.public_budgets b using (budget_id)
         where b.entity_kind = 'etat' and l.label is not null
+          -- Les dépenses fiscales sont portées par l'État sans être des lignes
+          -- de son budget : ce sont des impôts non perçus. Les laisser entrer
+          -- ici les ferait tomber dans le pont recettes → dépenses → solde, où
+          -- elles n'ont pas de place et fausseraient la lecture.
+          and l.line_kind <> 'depense_fiscale'
         """
     ).fetchall():
         exercices[str(annee)][etape]["montants"][libelle] = float(montant)
@@ -450,6 +461,42 @@ def budget_etat(conn) -> dict:
         "lignes": smb.ordre_de_lecture(),
         "exercices": exercices,
         "quarantaine": (quarantaine[0] if quarantaine else {}) or {},
+    }
+
+
+def depenses_fiscales(conn) -> dict:
+    """Ce que l'État renonce à percevoir, dispositif par dispositif.
+
+    Le fichier ne porte que le détail : les totaux par impôt sont des
+    indicateurs comme les autres et voyagent avec eux. Les dispositifs sont
+    triés par coût décroissant du dernier exercice publié — c'est la seule
+    lecture utile d'une liste de quatre cent cinquante-sept lignes, et elle
+    répond à la question que le lecteur pose : lesquelles coûtent cher.
+    """
+    dispositifs: dict[str, dict] = {}
+    exercices: set[str] = set()
+    for annee, numero, libelle, mission, montant in conn.execute(
+        """
+        select b.fiscal_year, l.chapitre, l.label, l.mission, l.amount
+        from fin.public_budget_lines l join fin.public_budgets b using (budget_id)
+        where l.line_kind = 'depense_fiscale'
+        """
+    ).fetchall():
+        exercice = str(annee)
+        exercices.add(exercice)
+        dispositif = dispositifs.setdefault(numero, {
+            "numero": numero, "libelle": libelle, "mission": mission, "montants": {},
+        })
+        dispositif["montants"][exercice] = float(montant)
+    if not dispositifs:
+        return {"exercices": [], "dispositifs": []}
+    dernier = max(exercices)
+    return {
+        "exercices": sorted(exercices),
+        "dispositifs": sorted(
+            dispositifs.values(),
+            key=lambda d: -d["montants"].get(dernier, 0.0),
+        ),
     }
 
 
@@ -944,6 +991,7 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("recherche.json", recherche)
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
+    deposer("depenses-fiscales.json", depenses_fiscales(conn))
     deposer("fraicheur.json", fraicheur(conn))
     deposer("journal.json", journal(conn))
     deposer("references.json", references(conn, cartographiees))

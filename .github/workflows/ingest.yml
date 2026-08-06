@@ -163,6 +163,7 @@ jobs:
             python -m plateforme.normalize.consommation --store r2:plateforme-raw
             python -m plateforme.normalize.prenoms --store r2:plateforme-raw
             python -m plateforme.normalize.impots_locaux --store r2:plateforme-raw
+            python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -211,6 +212,7 @@ jobs:
             python -m plateforme.normalize.consommation --store r2:plateforme-raw
             python -m plateforme.normalize.prenoms --store r2:plateforme-raw
             python -m plateforme.normalize.impots_locaux --store r2:plateforme-raw
+            python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -269,6 +271,11 @@ jobs:
           fi
           if [ "$JOB" = "prenoms" ]; then
             python -m plateforme.normalize.prenoms --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "depenses-fiscales" ]; then
+            python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

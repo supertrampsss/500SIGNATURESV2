@@ -165,6 +165,18 @@ export type BudgetEtat = {
   quarantaine: Record<string, string[]>;
 };
 
+/** Une dépense fiscale, dispositif par dispositif : un impôt non perçu. */
+export type Dispositif = {
+  numero: string;
+  libelle: string;
+  mission: string | null;
+  montants: Record<string, number>;
+};
+export type DepensesFiscales = {
+  exercices: string[];
+  dispositifs: Dispositif[];
+};
+
 /** Une entrée du journal public : un chiffre a bougé, ou a cessé d'être servi. */
 export type Changement = {
   annonce: string;
@@ -178,6 +190,7 @@ export type Changement = {
 
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
+export const depensesFiscales = () => lire<DepensesFiscales>("depenses-fiscales.json");
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
 export const journal = () => lire<Changement[]>("journal.json");
 export const references = () => lire<import("./reference.ts").References>("references.json");

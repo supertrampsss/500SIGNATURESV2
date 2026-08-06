@@ -370,6 +370,7 @@ summary:focus-visible {
 .comparaison,
 .fonctions,
 .secu,
+.niches,
 .mini-serie__cadre {
   background-image:
     linear-gradient(to right, var(--papier) 40%, rgb(255 255 255 / 0)),
@@ -883,7 +884,8 @@ tbody tr:hover {
   .pont,
   .comparaison,
   .fonctions,
-  .secu {
+  .secu,
+  .niches {
     display: block;
     overflow-x: auto;
     max-width: 100%;
@@ -2907,4 +2909,31 @@ body[data-vue="carte"] .pied {
     overflow-x: auto;
     scrollbar-width: none;
   }
+}
+
+/* Les niches fiscales : une liste ordonnée par coût. Le libellé porte, la
+   mission situe, le montant conclut — donc trois colonnes et rien de plus. Les
+   montants s'alignent en chiffres tabulaires, comme partout où le site compare
+   des euros. */
+.niches {
+  margin-top: 0.6rem;
+  width: 100%;
+}
+.niches td,
+.niches th {
+  padding: 0.35rem 0.5rem;
+  vertical-align: top;
+}
+.niches tbody th {
+  font-weight: 400;
+  text-align: left;
+}
+.niches__mission {
+  color: var(--encre-douce, inherit);
+  font-size: 0.9rem;
+}
+.niches__montant {
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
 }
