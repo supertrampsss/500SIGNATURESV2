@@ -899,7 +899,7 @@ impôts » et par ce qu'elle coûte à charger :
 
 | | Source | État |
 |---|---|---|
-| 1 | REI — fiscalité directe locale (DGFiP / OFGL) | **chargement lancé le 6 août** |
+| ~~1~~ | ~~REI — fiscalité directe locale (DGFiP / OFGL)~~ | **chargée le 6 août** |
 | 2 | Comptes individuels des communes (DGFiP) | à sonder |
 | 3 | Dépenses fiscales — Voies et moyens t. 2 | **source ODS vide**, voir plus bas |
 | 4 | Opérateurs de l'État | à sonder |
@@ -916,7 +916,7 @@ mention « (nv) », non vérifié ; elle était méritée. Les dépenses fiscale
 donc à trouver ailleurs, et c'est un manque qui pèse : ce sont des dizaines de
 milliards d'argent public qui ne passent par aucune ligne de dépense.
 
-**Fiscalité directe locale — chargement lancé le 6 août.** Le site publiait un
+**Fiscalité directe locale — chargée le 6 août.** Le site publiait un
 total, « impôts locaux » de l'OFGL, et des taux. Il ne disait pas **d'où vient
 l'argent**. Ce chargement le dit : quatre produits par commune — foncier bâti,
 foncier non bâti, taxe d'habitation, cotisation foncière des entreprises — sur
@@ -949,9 +949,15 @@ vide et les deux années s'écrasaient sous la même clé — la base d'une ann�
 retrouvait comparée au produit de l'autre. Aucun total ne l'aurait montré ; c'est
 l'identité qui a crié. Un test rejoue le défaut.
 
-Relevé sur la source : Bordeaux 2025, 248,4 M€ de foncier bâti, 493 729 € de
-foncier non bâti, 6,3 M€ de taxe d'habitation sur les résidences secondaires,
+Vérifié sur la publication : Bordeaux 2025, 248,4 M€ de foncier bâti, 493 729 €
+de foncier non bâti, 6,3 M€ de taxe d'habitation sur les résidences secondaires,
 aucune CFE.
+
+**Et la série montre déjà ce que la fiche annonçait.** La taxe d'habitation de
+Bordeaux passe de 10,7 M€ en 2024 à 6,3 M€ en 2025 — une chute de 41 % en un an,
+qui ne dit rien de la politique fiscale de la ville. C'est exactement la lecture
+que la réserve interdit : l'impôt lui-même a changé de périmètre, et un lecteur
+qui verrait la courbe sans la fiche conclurait de travers.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
