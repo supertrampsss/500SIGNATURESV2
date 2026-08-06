@@ -1,12 +1,23 @@
 """L'école du quotidien : le zéro d'une commune sans école est une donnée, un
 « à fermer » n'est pas un « ouvert », et un service administratif n'est pas une
-école. Les valeurs de champ viennent des facettes réelles du portail."""
+école. Les valeurs de champ viennent des facettes réelles du portail.
 
+Et la période ne vient pas de l'horloge. Elle valait `datetime.now().year` : le
+5 août 2026, l'annuaire sortait en période « 2026 » quand toutes les populations
+s'arrêtent à 2025, si bien que le groupe de communes semblables ne trouvait
+aucun dénominateur et ne s'affichait pas — sans un mot. Rejoué en janvier, le
+même instantané aurait porté une autre période et fabriqué deux rentrées
+identiques. Les tests qui suivent tiennent les deux bouts : la période sort de
+la date que le portail publie, et les trois mailles comptent le même annuaire.
+"""
 
 
 from plateforme.normalize import education
 
-ENTETE = "identifiant_de_l_etablissement;code_commune;type_etablissement;etat"
+ENTETE = (
+    "identifiant_de_l_etablissement;code_commune;code_departement;code_region;"
+    "type_etablissement;etat"
+)
 
 
 def csv_annuaire(lignes: list[str]) -> bytes:
@@ -15,18 +26,30 @@ def csv_annuaire(lignes: list[str]) -> bytes:
 
 def test_le_comptage_filtre_par_type_et_par_etat():
     comptes, lus = education.compter(csv_annuaire([
-        "0331111A;33318;Ecole;OUVERT",
-        "0331112B;33318;Ecole;OUVERT",
-        "0331113C;33318;Collège;OUVERT",
-        "0331114D;33318;Lycée;OUVERT",
-        "0331115E;33318;Ecole;A FERMER",          # encore ouvert sur le papier, plus pour longtemps
-        "0331116F;33318;Service Administratif;OUVERT",  # pas une école
-        "0331117G;33318;EREA;OUVERT",             # hors champ, dit dans le module
-        "0331118H;2A004;Ecole;OUVERT",
+        "0331111A;33318;33;75;Ecole;OUVERT",
+        "0331112B;33318;33;75;Ecole;OUVERT",
+        "0331113C;33318;33;75;Collège;OUVERT",
+        "0331114D;33318;33;75;Lycée;OUVERT",
+        "0331115E;33318;33;75;Ecole;A FERMER",          # ouvert sur le papier seulement
+        "0331116F;33318;33;75;Service Administratif;OUVERT",  # pas une école
+        "0331117G;33318;33;75;EREA;OUVERT",             # hors champ, dit dans le module
+        "0331118H;2A004;2A;94;Ecole;OUVERT",
     ]))
     assert lus == 8
-    assert comptes["ecoles"] == {"33318": 2, "2A004": 1}
-    assert comptes["colleges_lycees"] == {"33318": 2}
+    assert comptes["commune"]["ecoles"] == {"33318": 2, "2A004": 1}
+    assert comptes["commune"]["colleges_lycees"] == {"33318": 2}
+
+
+def test_les_trois_mailles_sortent_du_meme_parcours():
+    """C'est ce qui rend le contrôle bloquant possible : chaque établissement
+    porte ses trois codes sur la même ligne."""
+    comptes, _ = education.compter(csv_annuaire([
+        "A;33318;33;75;Ecole;OUVERT",
+        "B;40001;40;75;Ecole;OUVERT",
+        "C;2A004;2A;94;Ecole;OUVERT",
+    ]))
+    assert comptes["departement"]["ecoles"] == {"33": 1, "40": 1, "2A": 1}
+    assert comptes["region"]["ecoles"] == {"75": 2, "94": 1}
 
 
 def test_les_arrondissements_comptent_pour_leur_commune():
@@ -34,18 +57,80 @@ def test_les_arrondissements_comptent_pour_leur_commune():
     zéro écrit — honnête dans son intention — était faux. Un établissement du
     9e arrondissement est un établissement de Paris."""
     comptes, _ = education.compter(csv_annuaire([
-        "0751111A;75109;Ecole;OUVERT",
-        "0751112B;75120;Ecole;OUVERT",
-        "0131113C;13201;Collège;OUVERT",
-        "0691114D;69385;Lycée;OUVERT",
+        "0751111A;75109;75;11;Ecole;OUVERT",
+        "0751112B;75120;75;11;Ecole;OUVERT",
+        "0131113C;13201;13;93;Collège;OUVERT",
+        "0691114D;69385;69;84;Lycée;OUVERT",
     ]))
-    assert comptes["ecoles"] == {"75056": 2}
-    assert comptes["colleges_lycees"] == {"13055": 1, "69123": 1}
+    assert comptes["commune"]["ecoles"] == {"75056": 2}
+    assert comptes["commune"]["colleges_lycees"] == {"13055": 1, "69123": 1}
+    # Le rattachement ne déplace que la commune : le département et la région de
+    # l'établissement sont ceux que la source publie, et ils ne bougent pas.
+    assert comptes["departement"]["ecoles"] == {"75": 2}
 
 
-def test_un_code_commune_illisible_ne_compte_pas():
-    comptes, _ = education.compter(csv_annuaire(["X;331;Ecole;OUVERT", "Y;;Ecole;OUVERT"]))
-    assert comptes["ecoles"] == {}
+def test_un_code_illisible_ne_compte_pas_a_sa_maille_mais_compte_aux_autres():
+    """Les mailles sont indépendantes : un établissement dont le code commune
+    est tombé garde son département. C'est le comportement juste, et c'est
+    précisément pourquoi le contrôle bloquant ne compare pas la commune aux
+    deux autres — elle seule perd des lignes et rattache des arrondissements."""
+    comptes, _ = education.compter(csv_annuaire([
+        "X;331;33;75;Ecole;OUVERT",      # commune tronquée, département bon
+        "Y;;33;75;Ecole;OUVERT",         # commune vide, département bon
+        "Z;33318;3;75;Ecole;OUVERT",     # commune bonne, département tronqué
+    ]))
+    assert comptes["commune"]["ecoles"] == {"33318": 1}
+    assert comptes["departement"]["ecoles"] == {"33": 2}
+    assert comptes["region"]["ecoles"] == {"75": 3}
+
+
+def test_la_periode_est_l_annee_scolaire_de_la_source_pas_l_annee_de_l_horloge():
+    """Une extraction d'août décrit la rentrée en cours, pas celle qui n'a pas
+    encore eu lieu. La bascule est au 1er septembre."""
+    assert education.annee_scolaire("2026-08-06T05:01:16.150000+00:00") == "2025"
+    assert education.annee_scolaire("2026-09-01T00:00:00+00:00") == "2026"
+    assert education.annee_scolaire("2026-01-15T00:00:00Z") == "2025"
+    assert education.annee_scolaire("2025-12-31T23:59:00+00:00") == "2025"
+
+
+def test_la_date_vient_de_la_fiche_du_portail():
+    import json
+
+    fiche = json.dumps(
+        {"metas": {"default": {"data_processed": "2026-08-06T05:01:16.150000+00:00"}}}
+    ).encode()
+    assert education.date_de_la_source(fiche).startswith("2026-08-06")
+    # `modified` en secours, si le portail cesse de publier data_processed.
+    fiche = json.dumps({"metas": {"default": {"modified": "2026-03-01T00:00:00Z"}}}).encode()
+    assert education.date_de_la_source(fiche).startswith("2026-03-01")
+
+
+def test_un_portail_qui_ne_date_plus_rien_arrete_le_run():
+    """Se rabattre sur l'horloge rendrait le défaut invisible : la période
+    redeviendrait une valeur qui dépend de l'heure du runner."""
+    import json
+
+    import pytest
+
+    with pytest.raises(ValueError, match="ne date plus"):
+        education.date_de_la_source(json.dumps({"metas": {"default": {}}}).encode())
+
+
+def test_un_code_geographique_tombe_arrete_le_run():
+    """Le contrôle bloquant : trois totaux tirés d'un seul parcours doivent
+    coïncider. Un département vide fait diverger le total départemental du
+    total régional, et aucun total pris isolément ne le montrerait."""
+    from collections import Counter
+
+    import pytest
+
+    comptes = {
+        "commune": {"ecoles": Counter({"33318": 2}), "colleges_lycees": Counter()},
+        "departement": {"ecoles": Counter({"33": 1}), "colleges_lycees": Counter()},
+        "region": {"ecoles": Counter({"75": 2}), "colleges_lycees": Counter()},
+    }
+    with pytest.raises(education.TotauxDivergents, match="code géographique est tombé"):
+        education.controler(comptes)
 
 
 def test_les_fiches_tiennent_la_charte_et_disent_le_zero():
@@ -68,9 +153,11 @@ def test_le_jeu_est_au_registre():
     assert education.SOURCE in sources
 
 
-def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris(tmp_path):
+def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
     """L'invariant central : l'univers vient du référentiel, pas de l'annuaire.
-    Une commune sans école reçoit un 0 écrit, jamais une absence."""
+    Un territoire sans école reçoit un 0 écrit, jamais une absence — et les
+    collectivités à statut particulier n'en reçoivent aucun, parce qu'elles
+    appartiennent à un autre cadre départemental que celui de l'annuaire."""
     from collections import Counter
 
     from plateforme import entrepot, registry
@@ -80,25 +167,51 @@ def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris(tmp_path):
     registry.sync(conn)
     try:
         education.declarer(conn)
-        for code, nom in (("T1E", "Avec école"), ("T2E", "Sans école")):
+        for niveau, code, nom in (
+            ("commune", "T1E", "Avec école"),
+            ("commune", "T2E", "Sans école"),
+            ("departement", "T9", "Département de test"),
+            ("region", "T8", "Région de test"),
+        ):
             conn.execute(
                 "insert into geo.geography_reference (geo_level, geo_code, vintage, name)"
-                " values ('commune', ?, ?, ?)",
-                (code, MILLESIME, nom),
+                " values (?, ?, ?, ?)",
+                (niveau, code, MILLESIME, nom),
             )
+        conn.execute(
+            "insert into geo.geography_reference (geo_level, geo_code, vintage, name, flags)"
+            " values ('departement', 'T7A', ?, 'Collectivité à statut particulier',"
+            " '{\"statut_particulier\":true}')",
+            (MILLESIME,),
+        )
         conn.commit()
         run_id = entrepot.start_run(conn, education.DATASET)
-        comptes = {"ecoles": Counter({"T1E": 3}), "colleges_lycees": Counter()}
-        ecrites, _, hors = education.ecrire(conn, run_id, comptes)
+        comptes = {
+            "commune": {"ecoles": Counter({"T1E": 3}), "colleges_lycees": Counter()},
+            "departement": {"ecoles": Counter({"T9": 3}), "colleges_lycees": Counter()},
+            "region": {"ecoles": Counter({"T8": 3}), "colleges_lycees": Counter()},
+        }
+        _, _, hors = education.ecrire(conn, run_id, comptes, "2025")
         conn.commit()
-        valeurs = dict(
-            conn.execute(
-                "select geo_code, value from core.observations"
-                " where indicator_id = 'menj_ecoles' and geo_code in ('T1E','T2E')"
+        valeurs = {
+            (n, c): float(v)
+            for n, c, v in conn.execute(
+                "select geo_level, geo_code, value from core.observations"
+                " where indicator_id = 'menj_ecoles'"
             ).fetchall()
-        )
-        assert {c: float(v) for c, v in valeurs.items()} == {"T1E": 3.0, "T2E": 0.0}
+        }
+        assert valeurs == {
+            ("commune", "T1E"): 3.0,
+            ("commune", "T2E"): 0.0,
+            ("departement", "T9"): 3.0,
+            ("region", "T8"): 3.0,
+        }
+        assert ("departement", "T7A") not in valeurs
         assert hors == 0
+        (periode,) = conn.execute(
+            "select distinct period from core.observations where indicator_id = 'menj_ecoles'"
+        ).fetchone()
+        assert periode == "2025"
     finally:
         entrepot.annuler(conn)
         conn.execute(
@@ -111,7 +224,8 @@ def test_ecrire_donne_une_ligne_a_chaque_commune_zero_compris(tmp_path):
             " (select 1 from core.indicators i where i.definition_id = d.definition_id)"
         )
         conn.execute(
-            "delete from geo.geography_reference where geo_code in ('T1E','T2E')"
+            "delete from geo.geography_reference where geo_code in"
+            " ('T1E','T2E','T9','T8','T7A')"
         )
         conn.execute("delete from meta.ingestion_runs where dataset_id = ?", (education.DATASET,))
         conn.commit()

@@ -265,7 +265,7 @@ manques restants, et ce qu'ils demandent :
 
 | Indicateurs | Manque | Ce qu'il faut charger |
 |---|---|---|
-| Écoles ; Collèges et lycées | aucun repère : l'annuaire MENJ n'est chargé qu'à la commune | le même jeu aux mailles département et région, pour comparer les densités |
+| ~~Écoles ; Collèges et lycées~~ | ~~aucun repère : l'annuaire MENJ n'est chargé qu'à la commune~~ | **fait le 6 août** — chargé aux trois mailles depuis les codes que l'annuaire porte lui-même, avec pour contrôle bloquant l'égalité des totaux départemental et régional |
 | Soldes budgétaires, prélèvements sur recettes, remboursements | pas de part d'un total : un solde n'est la part de rien, et l'imputation des PSR demande une convention comptable | rien — l'absence est la bonne réponse |
 | Dette publique en % du PIB (INSEE) | pas de repère européen au même millésime | rien : `eurostat_dette_pib`, dans le même onglet, porte la comparaison à définition et période homogènes |
 
@@ -373,10 +373,24 @@ la commune. Les 16 autres — les comptages en nombre — n'en ont pas, pour la
 raison qui suit.
 
 Restent sans repère `education` (0 sur 2), `entreprises` (0 sur 1) et
-`population` (0 sur 2) — **et c'est la bonne réponse** : ce sont des comptages
-sommables, qu'une médiane brute compare à des territoires de tailles sans
-rapport. Ce qui leur manque n'est pas une médiane mais un taux : « écoles pour
-10 000 habitants » est un indicateur à écrire, pas un repère à calculer.
+`population` (0 sur 2) — **et c'est la bonne réponse pour deux d'entre eux** :
+ce sont des comptages sommables, qu'une médiane brute compare à des territoires
+de tailles sans rapport. Chacun a d'ailleurs sa contrepartie en taux, et
+celle-là porte bien un repère : `insee_taux_nuptialite`, les seize taux du
+SSMSI. Un comptage se compare par le groupe de communes semblables, qui le
+rapporte aux habitants, pas par une médiane brute.
+
+**Correction du 6 août — `education` n'y était pas pour cette raison-là.** Les
+deux indicateurs de l'annuaire n'avaient *ni* repère *ni* groupe, et le motif
+n'était pas méthodologique : leur période valait `datetime.now().year`, soit
+« 2026 », quand toutes les populations s'arrêtent à 2025. La requête des
+quartiles joint la population sur la période ; elle n'en trouvait aucune, le
+dénominateur était nul, et la comparaison disparaissait sans un mot. Deux autres
+défauts venaient avec : le même instantané rejoué en janvier aurait porté une
+autre période et fabriqué deux rentrées identiques, et une valeur qui dépend de
+l'heure du runner n'est pas reproductible depuis son instantané. La période sort
+désormais de la date de mise à jour que le portail publie (`data_processed`,
+archivée avec l'extraction), ramenée à l'année scolaire de sa rentrée.
 
 **Les intercommunalités n'avaient pas de maille de rattachement — réglé le
 4 août.** L'API Géo publie, pour chaque EPCI, la liste des départements et des
