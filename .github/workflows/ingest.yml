@@ -139,6 +139,7 @@ jobs:
             python -m plateforme.normalize.entreprises --store r2:plateforme-raw
             python -m plateforme.normalize.creations --store r2:plateforme-raw
             python -m plateforme.normalize.secteurs --store r2:plateforme-raw
+            python -m plateforme.normalize.tourisme --store r2:plateforme-raw
             python -m plateforme.normalize.logement --store r2:plateforme-raw
             python -m plateforme.normalize.famille --store r2:plateforme-raw
             python -m plateforme.normalize.professions --store r2:plateforme-raw
@@ -180,6 +181,7 @@ jobs:
             python -m plateforme.normalize.entreprises --store r2:plateforme-raw
             python -m plateforme.normalize.creations --store r2:plateforme-raw
             python -m plateforme.normalize.secteurs --store r2:plateforme-raw
+            python -m plateforme.normalize.tourisme --store r2:plateforme-raw
             python -m plateforme.normalize.logement --store r2:plateforme-raw
             python -m plateforme.normalize.famille --store r2:plateforme-raw
             python -m plateforme.normalize.professions --store r2:plateforme-raw
@@ -294,6 +296,11 @@ jobs:
           fi
           if [ "$JOB" = "secteurs" ]; then
             python -m plateforme.normalize.secteurs --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "tourisme" ]; then
+            python -m plateforme.normalize.tourisme --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

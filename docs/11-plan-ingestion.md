@@ -430,7 +430,7 @@ des communes de même revenu pour constater qu'elles ont le même revenu.
 | # | Jeu | Ce qu'on en tire | Maille |
 |---|---|---|---|
 | ~~8~~ | ~~`DS_FLORES_A5`~~ | **chargé le 6 août** — 419 880 observations, douze indicateurs, millésime 2024 | commune |
-| 9 | `DS_TOUR_CAP` | capacités d'hébergement touristique | commune |
+| 9 | `DS_TOUR_CAP` | **chargement lancé le 6 août** — 209 850 observations, six indicateurs, au 1er janvier 2026 | commune |
 | ~~10~~ | ~~`DS_RP_EMPLOI_LR_PRINC`~~ | **chargé le 5 août** — 724 410 observations, dix indicateurs ; couvre aussi la ligne 11 | commune |
 | ~~11~~ | ~~`DS_RP_TD_DIPLOMES_PRINC`~~ | **inutile** : les diplômes sont dans le jeu de la ligne 10, sur la même population | commune |
 | 12 | DVF (data.gouv) | prix des logements vendus | commune |
@@ -575,6 +575,47 @@ l'administration, l'enseignement, la santé et l'action sociale. **Aucun
 territoire n'est tombé du référentiel** — 419 880 observations lues, 419 880
 écrites — ce qui est rare et tient à ce que FLORES publie les arrondissements
 municipaux sous leur propre zonage plutôt que mêlés aux communes.
+
+**Capacités d'hébergement touristique — chargement lancé le 6 août.** Le jeu
+qui refuse d'être un seul nombre. 209 850 observations, six indicateurs, aux
+trois mailles, au 1er janvier 2026.
+
+**Il n'y a pas de total, et il n'y en aura pas ici.** La source ne publie aucune
+capacité « tous hébergements confondus », et ce n'est pas un oubli : une chambre
+d'hôtel, un emplacement de camping et un lit ne sont pas la même unité de compte.
+Additionner les 660 489 chambres et les 848 302 emplacements de France donnerait
+un nombre qui ne désigne rien. Trois familles sont donc publiées côte à côte,
+chacune dans son unité, et jamais leur somme — la règle « une seule unité de
+compte par somme » que le site tient déjà sur les classes de la délinquance.
+
+**La même colonne de la source change d'unité.** `PLACE` vaut des chambres pour
+un hôtel et des emplacements pour un camping. Lue sans regarder l'hébergement,
+elle produit exactement la somme que le paragraphe précédent interdit : chaque
+indicateur est donc défini par un couple (mesure, hébergement), jamais par la
+mesure seule. Et **un emplacement n'est pas un lit** : il accueille plusieurs
+personnes quand une chambre en accueille une ou deux. Aucune des trois grandeurs
+ne dit combien de personnes le territoire peut héberger, et le site ne prétend
+pas le calculer.
+
+**Une capacité n'est pas une fréquentation** : ce sont les places qui existent au
+1er janvier, pas celles qui ont été occupées.
+
+Quatre identités bloquantes, refermées sur les 34 975 territoires publiés : les
+trois sortes d'hébergement collectif font leur total (104 925 vérifications) ;
+les six classements — une à cinq étoiles et non classé — font le total des hôtels
+et celui des campings (139 900) ; les emplacements à l'année plus ceux de passage
+font les emplacements (34 975) ; et les communes, les départements et les régions
+font chacun la France, sur les six capacités publiées. La deuxième est celle qui
+compte le plus : oublier les non classés ferait perdre 3 509 hôtels et 1 924
+campings sans que rien ne casse.
+
+Deux réserves entrent dans les fiches. Les emplacements comprennent ceux qui sont
+**loués à l'année** — 160 477 sur 848 302, soit 18,9 % — dont l'occupant n'est pas
+un vacancier de passage. Et **un seul millésime est publié**, celui du 1er janvier
+2026 : il n'y a pas de série, et aucune évolution ne peut être lue ici.
+
+Relevé sur l'archive réelle : Bordeaux, 82 hôtels et 5 796 chambres, aucun
+camping, 24 hébergements collectifs et 6 369 lits.
 
 ### P2 — onglet « Statistiques et études », pas la carte
 

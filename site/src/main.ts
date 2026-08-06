@@ -792,6 +792,7 @@ const THEMES: Record<string, string> = {
   secteurs_etablissements: "Établissements par secteur",
   secteurs_salaries: "Salariés par secteur",
   equipements: "Équipements et services",
+  tourisme: "Hébergement touristique",
   fonctions: "Dépenses par fonction",
   securite_sociale: "Sécurité sociale",
   securite: "Sécurité",

@@ -663,6 +663,10 @@ const PHARES: Record<string, string[]> = {
   // Le total plutôt qu'un domaine : « combien d'équipements chez moi »
   // avant « combien de terrains de sport ».
   equipements: ["insee_equipements_total"],
+  // Les capacités avant les établissements : « combien de lits ici » se répond
+  // par des chambres et des emplacements, pas par un nombre d'enseignes. Les
+  // deux hébergements les plus répandus ouvrent ; le troisième suit.
+  tourisme: ["insee_hotels_chambres", "insee_campings_emplacements"],
   // Le taux global, celui qui figure sur l'avis d'imposition : la part
   // communale seule ne dit pas ce que paie le propriétaire. L'identifiant écrit
   // ici ne correspondait à aucun indicateur publié — le thème s'ouvrait donc
@@ -707,6 +711,7 @@ const ORDRE_THEMES = [
   "secteurs_salaries",
   "secteurs_etablissements",
   "equipements",
+  "tourisme",
   // Fiche nationale.
   "budget_etat",
   "dette",
