@@ -51,7 +51,7 @@ from plateforme import entrepot, revisions
 from plateforme.connectors import ods
 from plateforme.http import telecharger
 from plateforme.limites import garde_fou_volume
-from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
+from plateforme.normalize.geo import MILLESIME, commune_mere, departement_cog, make_store
 
 DATASET = "menj-annuaire-education"
 SOURCE = "data-education"
@@ -210,6 +210,11 @@ def compter(contenu: bytes) -> tuple[dict[str, dict[str, Counter]], int]:
             continue
         for niveau, colonne in COLONNES_GEO.items():
             code = (rang.get(colonne) or "").strip()
+            if niveau == "departement":
+                # « 033 » chez le producteur, « 33 » au référentiel. Voir
+                # geo.departement_cog : charger le code brut ne fait rien
+                # échouer, il vide simplement la carte départementale.
+                code = departement_cog(code)
             if niveau == "commune" and len(code) == 5:
                 # L'annuaire code Paris, Lyon et Marseille par arrondissement :
                 # sans rattachement à la commune, Paris affichait « 0 école » —
@@ -247,12 +252,20 @@ def univers(conn, niveau: str) -> list[str]:
 
 def ecrire(
     conn, run_id: str, comptes: dict[str, dict[str, Counter]], periode: str
-) -> tuple[int, int, int]:
-    """Tous les territoires du référentiel reçoivent une ligne — zéro compris."""
+) -> tuple[int, int, int, dict[str, int]]:
+    """Tous les territoires du référentiel reçoivent une ligne — zéro compris.
+
+    Renvoie aussi, par maille, le nombre d'établissements **réellement écrits** :
+    c'est lui que `controler_couverture` compare au nombre lu. Un code que le
+    référentiel ignore disparaît ici sans bruit, et c'est ce silence qu'il faut
+    mesurer.
+    """
     lignes = []
     hors_referentiel = 0
+    reconnus: dict[str, int] = {}
     for niveau in COLONNES_GEO:
         connus = univers(conn, niveau)
+        attendus = set(connus)
         for indicateur, famille in (("menj_ecoles", "ecoles"),
                                     ("menj_colleges_lycees", "colleges_lycees")):
             compte = comptes[niveau][famille]
@@ -260,7 +273,12 @@ def ecrire(
                 lignes.append(
                     (indicateur, niveau, code, MILLESIME, periode, compte.get(code, 0))
                 )
-        attendus = set(connus)
+        reconnus[niveau] = sum(
+            valeur
+            for famille in comptes[niveau].values()
+            for code, valeur in famille.items()
+            if code in attendus
+        )
         hors_referentiel += sum(
             1
             for famille in comptes[niveau].values()
@@ -270,11 +288,49 @@ def ecrire(
     ecrites, revisees = revisions.remplacer(
         conn, run_id, list(INDICATEURS), ("value",), lignes
     )
-    return ecrites, revisees, hors_referentiel
+    return ecrites, revisees, hors_referentiel, reconnus
 
 
 class TotauxDivergents(RuntimeError):
     """Les trois mailles ne comptent pas le même annuaire."""
+
+
+# Part du fichier qu'une maille doit retrouver dans le référentiel. En dessous,
+# c'est que les codes ne parlent pas la même langue que lui. Le seuil laisse
+# passer les collectivités que le référentiel départemental ne porte pas —
+# Saint-Pierre-et-Miquelon, Wallis, la Polynésie, la Nouvelle-Calédonie — sans
+# laisser passer un format de code qui aurait glissé.
+COUVERTURE_MINIMALE = 0.95
+
+
+class CouvertureInsuffisante(RuntimeError):
+    """Trop de codes de la source sont inconnus du référentiel."""
+
+
+def controler_couverture(
+    comptes: dict[str, dict[str, Counter]], reconnus: dict[str, int]
+) -> dict[str, float]:
+    """Contrôle bloquant : ce qu'on écrit couvre bien ce qu'on a lu.
+
+    Le contrôle des totaux vérifie que le fichier est cohérent avec lui-même.
+    Il ne dit rien de l'accord entre ses codes et les nôtres — et c'est
+    précisément là qu'un défaut est passé en production : des codes
+    départementaux zéro-padés, cohérents entre eux, inconnus du référentiel, et
+    une carte départementale à 1 511 écoles au lieu de 47 109. Ce contrôle-ci
+    compare ce qui est écrit à ce qui est lu, maille par maille.
+    """
+    parts = {}
+    for maille, familles in comptes.items():
+        lu = sum(sum(compte.values()) for compte in familles.values())
+        part = reconnus[maille] / lu if lu else 1.0
+        parts[maille] = part
+        if part < COUVERTURE_MINIMALE:
+            raise CouvertureInsuffisante(
+                f"{maille} : {reconnus[maille]} sur {lu} retrouvés au référentiel"
+                f" ({100 * part:.1f} %) — les codes de la source ne sont pas au"
+                " format du Code officiel géographique"
+            )
+    return parts
 
 
 def controler(comptes: dict[str, dict[str, Counter]]) -> dict[str, dict[str, int]]:
@@ -336,18 +392,24 @@ def run(store_spec: str) -> int:
                 " le format de l'annuaire a dû changer"
             )
         totaux = controler(comptes)
-        ecrites, revisees, hors_referentiel = ecrire(conn, run_id, comptes, periode)
+        ecrites, revisees, hors_referentiel, reconnus = ecrire(
+            conn, run_id, comptes, periode
+        )
+        # Après l'écriture mais avant la validation : la transaction n'est pas
+        # committée ici, un refus laisse donc l'entrepôt intact.
+        couverture = controler_couverture(comptes, reconnus)
         conn.execute(
             """
             insert into meta.data_quality_checks
                 (run_id, dataset_id, check_name, severity, passed, observed)
-            values (?, ?, 'totaux_identiques_aux_trois_mailles', 'blocker', true, ?)
+            values (?, ?, 'totaux_et_couverture_aux_trois_mailles', 'blocker', true, ?)
             """,
             (run_id, DATASET, json.dumps({
                 "etablissements_lus": lus,
                 "periode": periode,
                 "publiee": publiee,
                 "totaux": totaux,
+                "couverture": {m: round(p, 4) for m, p in couverture.items()},
                 "hors_referentiel": hors_referentiel,
             })),
         )

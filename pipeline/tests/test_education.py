@@ -26,14 +26,14 @@ def csv_annuaire(lignes: list[str]) -> bytes:
 
 def test_le_comptage_filtre_par_type_et_par_etat():
     comptes, lus = education.compter(csv_annuaire([
-        "0331111A;33318;33;75;Ecole;OUVERT",
-        "0331112B;33318;33;75;Ecole;OUVERT",
-        "0331113C;33318;33;75;Collège;OUVERT",
-        "0331114D;33318;33;75;Lycée;OUVERT",
-        "0331115E;33318;33;75;Ecole;A FERMER",          # ouvert sur le papier seulement
-        "0331116F;33318;33;75;Service Administratif;OUVERT",  # pas une école
-        "0331117G;33318;33;75;EREA;OUVERT",             # hors champ, dit dans le module
-        "0331118H;2A004;2A;94;Ecole;OUVERT",
+        "0331111A;33318;033;75;Ecole;OUVERT",
+        "0331112B;33318;033;75;Ecole;OUVERT",
+        "0331113C;33318;033;75;Collège;OUVERT",
+        "0331114D;33318;033;75;Lycée;OUVERT",
+        "0331115E;33318;033;75;Ecole;A FERMER",          # ouvert sur le papier seulement
+        "0331116F;33318;033;75;Service Administratif;OUVERT",  # pas une école
+        "0331117G;33318;033;75;EREA;OUVERT",             # hors champ, dit dans le module
+        "0331118H;2A004;02A;94;Ecole;OUVERT",
     ]))
     assert lus == 8
     assert comptes["commune"]["ecoles"] == {"33318": 2, "2A004": 1}
@@ -44,10 +44,12 @@ def test_les_trois_mailles_sortent_du_meme_parcours():
     """C'est ce qui rend le contrôle bloquant possible : chaque établissement
     porte ses trois codes sur la même ligne."""
     comptes, _ = education.compter(csv_annuaire([
-        "A;33318;33;75;Ecole;OUVERT",
-        "B;40001;40;75;Ecole;OUVERT",
-        "C;2A004;2A;94;Ecole;OUVERT",
+        "A;33318;033;75;Ecole;OUVERT",
+        "B;40001;040;75;Ecole;OUVERT",
+        "C;2A004;02A;94;Ecole;OUVERT",
     ]))
+    # Le producteur écrit « 033 », le référentiel « 33 » : sans normalisation la
+    # carte départementale sortait vide, et rien ne le signalait.
     assert comptes["departement"]["ecoles"] == {"33": 1, "40": 1, "2A": 1}
     assert comptes["region"]["ecoles"] == {"75": 2, "94": 1}
 
@@ -57,10 +59,10 @@ def test_les_arrondissements_comptent_pour_leur_commune():
     zéro écrit — honnête dans son intention — était faux. Un établissement du
     9e arrondissement est un établissement de Paris."""
     comptes, _ = education.compter(csv_annuaire([
-        "0751111A;75109;75;11;Ecole;OUVERT",
-        "0751112B;75120;75;11;Ecole;OUVERT",
-        "0131113C;13201;13;93;Collège;OUVERT",
-        "0691114D;69385;69;84;Lycée;OUVERT",
+        "0751111A;75109;075;11;Ecole;OUVERT",
+        "0751112B;75120;075;11;Ecole;OUVERT",
+        "0131113C;13201;013;93;Collège;OUVERT",
+        "0691114D;69385;069;84;Lycée;OUVERT",
     ]))
     assert comptes["commune"]["ecoles"] == {"75056": 2}
     assert comptes["commune"]["colleges_lycees"] == {"13055": 1, "69123": 1}
@@ -75,8 +77,8 @@ def test_un_code_illisible_ne_compte_pas_a_sa_maille_mais_compte_aux_autres():
     précisément pourquoi le contrôle bloquant ne compare pas la commune aux
     deux autres — elle seule perd des lignes et rattache des arrondissements."""
     comptes, _ = education.compter(csv_annuaire([
-        "X;331;33;75;Ecole;OUVERT",      # commune tronquée, département bon
-        "Y;;33;75;Ecole;OUVERT",         # commune vide, département bon
+        "X;331;033;75;Ecole;OUVERT",      # commune tronquée, département bon
+        "Y;;033;75;Ecole;OUVERT",         # commune vide, département bon
         "Z;33318;3;75;Ecole;OUVERT",     # commune bonne, département tronqué
     ]))
     assert comptes["commune"]["ecoles"] == {"33318": 1}
@@ -191,7 +193,7 @@ def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
             "departement": {"ecoles": Counter({"T9": 3}), "colleges_lycees": Counter()},
             "region": {"ecoles": Counter({"T8": 3}), "colleges_lycees": Counter()},
         }
-        _, _, hors = education.ecrire(conn, run_id, comptes, "2025")
+        _, _, hors, reconnus = education.ecrire(conn, run_id, comptes, "2025")
         conn.commit()
         valeurs = {
             (n, c): float(v)
@@ -208,6 +210,12 @@ def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
         }
         assert ("departement", "T7A") not in valeurs
         assert hors == 0
+        # Tout ce qui a été lu est retrouvé au référentiel : c'est ce que
+        # `controler_couverture` exige, et ce qui manquait le 6 août.
+        assert reconnus == {"commune": 3, "departement": 3, "region": 3}
+        assert education.controler_couverture(comptes, reconnus) == {
+            "commune": 1.0, "departement": 1.0, "region": 1.0
+        }
         (periode,) = conn.execute(
             "select distinct period from core.observations where indicator_id = 'menj_ecoles'"
         ).fetchone()
@@ -230,3 +238,46 @@ def test_ecrire_donne_une_ligne_a_chaque_territoire_zero_compris(tmp_path):
         conn.execute("delete from meta.ingestion_runs where dataset_id = ?", (education.DATASET,))
         conn.commit()
         conn.close()
+
+
+def test_des_codes_inconnus_du_referentiel_arretent_le_run():
+    """Le défaut du 6 août, en un test. Les codes départementaux du producteur
+    sont zéro-padés — « 033 » quand le référentiel dit « 33 ». Chargés tels
+    quels, ils sont parfaitement cohérents entre eux : la somme des départements
+    égale la somme des régions, le contrôle des totaux passe. Ils ne
+    correspondent simplement à aucun territoire connu, et la carte
+    départementale est sortie avec 1 511 écoles au lieu de 47 109, la Gironde à
+    zéro. Aucun contrôle interne au fichier ne pouvait le voir."""
+    from collections import Counter
+
+    import pytest
+
+    comptes = {
+        "commune": {"ecoles": Counter({"33318": 100}), "colleges_lycees": Counter()},
+        "departement": {"ecoles": Counter({"033": 100}), "colleges_lycees": Counter()},
+        "region": {"ecoles": Counter({"75": 100}), "colleges_lycees": Counter()},
+    }
+    # Les codes se ressemblent, les totaux coïncident : le premier contrôle passe.
+    education.controler(comptes)
+    # Mais rien n'a été retrouvé au référentiel côté département.
+    with pytest.raises(education.CouvertureInsuffisante, match="Code officiel"):
+        education.controler_couverture(
+            comptes, {"commune": 100, "departement": 0, "region": 100}
+        )
+
+
+def test_la_couverture_tolere_les_collectivites_hors_referentiel_departemental():
+    """Saint-Pierre-et-Miquelon, Wallis, la Polynésie et la Nouvelle-Calédonie
+    ont des écoles et ne sont pas des départements : leurs établissements sont
+    lus et non écrits, et c'est normal. Le seuil ne doit pas s'en émouvoir."""
+    from collections import Counter
+
+    comptes = {
+        "commune": {"ecoles": Counter({"33318": 1000}), "colleges_lycees": Counter()},
+        "departement": {"ecoles": Counter({"33": 990, "988": 10}), "colleges_lycees": Counter()},
+        "region": {"ecoles": Counter({"75": 1000}), "colleges_lycees": Counter()},
+    }
+    parts = education.controler_couverture(
+        comptes, {"commune": 1000, "departement": 990, "region": 1000}
+    )
+    assert parts["departement"] == 0.99

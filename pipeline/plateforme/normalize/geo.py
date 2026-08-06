@@ -39,6 +39,28 @@ def commune_mere(code: str) -> str | None:
         return "13055"
     return None
 
+def departement_cog(code: str) -> str:
+    """Code départemental au format du Code officiel géographique.
+
+    Les sources ne s'accordent pas sur la largeur. L'annuaire de l'éducation
+    écrit « 033 » et « 006 » là où le COG écrit « 33 » et « 06 » — trois
+    caractères zéro-padés contre deux. Les charger tels quels ne fait rien
+    échouer : les codes sont cohérents entre eux, la somme des départements
+    égale la somme des régions, tous les contrôles internes passent. Ils ne
+    correspondent simplement à aucun territoire du référentiel, et la carte
+    départementale sort vide — 1 511 écoles au lieu de 47 109, la Gironde à
+    zéro. C'est arrivé le 6 août, et ça a été publié.
+
+    L'outre-mer garde ses trois chiffres (971 à 978, 986 à 988), la Corse ses
+    lettres (02A -> 2A). Rien n'est deviné : les 107 valeurs de la colonne ont
+    été relevées sur le fichier complet avant d'écrire cette fonction.
+    """
+    code = (code or "").strip().upper()
+    if len(code) == 3 and code.startswith("0"):
+        return code[1:]
+    return code
+
+
 # Collectivités à statut particulier qui exercent les compétences d'un
 # département sans en être un au Code officiel géographique. Les omettre
 # reviendrait à effacer l'Alsace et la métropole lyonnaise des cartes
