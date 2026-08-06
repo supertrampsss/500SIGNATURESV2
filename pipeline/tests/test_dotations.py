@@ -47,3 +47,52 @@ def test_la_dgf_somme_les_composantes_presentes():
     # Bordeaux : forfaitaire + DSU, sans DSR — l'absence n'est pas un zéro manquant
     assert totaux[("33063", "2025")] == 43_000_000.0
     assert ("33999", "2025") not in totaux
+
+
+def test_les_composantes_se_publient_une_par_une():
+    """La DGF totale disait combien l'État verse, jamais au titre de quoi.
+    Les trois péréquations étaient déjà lues, et jetées."""
+    montants = dgcl.par_composante(dgcl.lire(CSV))
+    assert montants[("forfaitaire", "33318", "2025")] == 5000000.0
+    assert montants[("dsr", "33318", "2025")] == 250000.0
+    assert montants[("dsu", "33063", "2025")] == 3000000.0
+    # Bordeaux n'a pas de ligne DSR : non éligible, pas zéro euro.
+    assert ("dsr", "33063", "2025") not in montants
+
+
+def test_le_controle_bloque_une_perequation_sans_part_forfaitaire():
+    """Le format est long : la variable est une chaîne, et la lire de travers
+    ne fait rien planter. Une composante rattachée aux mauvaises communes se
+    verrait ici, alors qu'un total resterait juste."""
+    import pytest
+
+    from plateforme.normalize import dotations
+
+    montants = dgcl.par_composante(dgcl.lire(CSV))
+    assert dotations.controler_perequation(montants)["forfaitaire"] == 2
+    decalees = {**montants, ("dsr", "99999", "2025"): 1000.0}
+    with pytest.raises(dotations.PerequationRompue, match="sans part"):
+        dotations.controler_perequation(decalees)
+
+
+def test_le_controle_bloque_une_dsu_trop_repandue():
+    """Moins de mille communes touchent la DSU. Si elle en touchait autant que
+    la part forfaitaire, c'est que deux variables ont été confondues."""
+    import pytest
+
+    from plateforme.normalize import dotations
+
+    partout = {
+        ("forfaitaire", "33318", "2025"): 1.0,
+        ("dsu", "33318", "2025"): 1.0,
+    }
+    with pytest.raises(dotations.PerequationRompue, match="proportion est impossible"):
+        dotations.controler_perequation(partout)
+
+
+def test_les_fiches_disent_que_l_absence_n_est_pas_un_zero():
+    from plateforme.normalize import dotations
+
+    for _, (_, _, publique, technique) in dotations.COMPOSANTES_PUBLIEES.items():
+        assert len(publique.split()) <= 50
+        assert "éligib" in technique

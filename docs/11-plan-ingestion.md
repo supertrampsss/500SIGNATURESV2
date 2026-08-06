@@ -895,8 +895,9 @@ Le plan ci-dessus est clos. Il ne couvrait qu'un extrait du registre des sources
 charge une cinquantaine. Cette section suit la reprise du registre lui-même.
 
 **Ordre retenu**, par ce que chaque source apporte à la question « où vont mes
-impôts » et par ce qu'elle coûte à charger. **Les six premières lignes sont
-traitées au 6 août** : deux chargées, quatre écartées avec leur raison écrite.
+impôts » et par ce qu'elle coûte à charger. **Les dix lignes sont traitées au
+6 août** : quatre chargées, cinq écartées avec leur raison écrite, une reportée
+sur un prérequis nommé.
 
 Une leçon technique traverse cette vague et mérite d'être notée pour la
 suivante : sur data.economie.gouv.fr, **un jeu qui affiche zéro enregistrement
@@ -915,6 +916,9 @@ son compteur : il faut interroger
 | 5 | Commande publique / DECP | **écartée le 6 août** — montants et lieux d'exécution non publiables |
 | 6 | Effectifs de la fonction publique de l'État | **écartés le 6 août** — la série s'arrête en 2016 |
 | 7 | Exécution budgétaire par mission | 2010-2013 seulement, valeur faible |
+| ~~8~~ | ~~Péréquation (DSU, DSR, DNP)~~ | **chargée le 6 août** — la donnée était déjà téléchargée et jetée |
+| ~~9~~ | ~~Délais de paiement des collectivités~~ | **chargés le 6 août** |
+| 10 | Subventions & aides versées | **reportées le 6 août** — Sirene est le prérequis |
 
 **Trois affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
 est annoncé « 2009→ » : la source n'en publie que **2024 et 2025**. Et le jeu des
@@ -1111,6 +1115,64 @@ poser un second, défini autrement, donnerait deux réponses à la question « m
 commune est-elle comme les autres ? ». Si ce repère-là devait entrer un jour, ce
 serait en **remplacement** du nôtre et après comparaison des deux découpages, pas
 à côté.
+
+**Péréquation — chargée le 6 août, sans rien télécharger de nouveau.** Le
+connecteur des dotations lisait déjà les quatre composantes de la DGF — part
+forfaitaire, DSU, DSR, DNP — pour en publier la **somme**, et jetait le détail.
+Le site répondait donc « combien l'État verse » sans jamais dire « au titre de
+quoi », alors que c'est là que se lit la redistribution : la part forfaitaire
+suit la population, les trois autres corrigent. Une commune peut voir sa DGF
+baisser pendant que sa péréquation monte, et jusqu'ici la courbe ne le montrait
+pas. Trois indicateurs de plus, zéro octet de plus.
+
+La réserve qui entre dans les fiches : **une absence n'est pas un zéro**. Moins
+de mille communes touchent la DSU sur les 34 000 ; une commune sans ligne n'est
+pas une commune à zéro euro, elle n'est pas éligible. Le contrôle bloquant
+vérifie qu'aucune péréquation n'est versée à une commune sans part forfaitaire —
+le jeu est en format long, la variable est une chaîne de caractères, et la lire
+de travers ne ferait rien planter : une composante rattachée aux mauvaises
+communes laisserait le total juste.
+
+**Délais de paiement — chargés le 6 août.** En combien de jours ma commune paie
+ses fournisseurs. La loi lui en accorde trente ; c'est la mesure la plus
+concrète de ce qu'une collectivité fait subir aux entreprises qui travaillent
+pour elle, et un artisan payé à quatre-vingts jours porte la trésorerie de la
+mairie. 34 460 communes, exercice 2025.
+
+**Le piège était dans le nom d'une colonne.** La source range sous `code_insee`
+un **SIRET à quatorze chiffres** : Bordeaux y est `21330063500017`, pas `33063`.
+Lue au premier degré, cette colonne aurait placé chaque commune sur un
+territoire inexistant — sans rien casser, puisque le nombre est parfaitement
+bien formé. Le rattachement passe par les neuf premiers chiffres, le SIREN, et
+le référentiel géographique qui le porte. C'est le contrôle de couverture qui
+tient ce connecteur, pas une identité comptable : ce jeu n'en a pas, il n'a
+qu'une mesure par commune.
+
+Deux réserves dans la fiche. La moyenne est **pondérée par les montants** : une
+commune peut payer vite ses petites factures et faire attendre la plus grosse.
+Et **un délai court n'est pas une vertu budgétaire** — payer vite suppose de la
+trésorerie. Seuls les budgets principaux des communes entrent ; le délai d'un
+service des eaux ou d'un CCAS est celui d'un autre ordonnateur.
+
+**Subventions & aides versées — reportées le 6 août, avec leur condition.** Ce
+n'est pas un refus : c'est un prérequis. Les données essentielles des
+subventions existent, mais **publiées commune par commune** — 161 jeux sur
+data.gouv.fr, un par mairie ou par établissement, sans consolidation nationale
+et sans format commun. Le seul fichier national est le jaune budgétaire
+« effort financier de l'État en faveur des associations », et il pose un choix
+impossible en l'état :
+
+| Millésime | Versements | Géographie |
+|---|---|---|
+| PLF 2020 (exercice 2018) | 92 114 | **code commune COG** |
+| PLF 2023 (exercice 2021) | 102 622 | SIREN + NIC, **aucune géographie** |
+
+Le seul millésime cartographiable a huit ans, et le producteur a **retiré la
+géographie** des millésimes suivants : charger 2018 créerait une couche morte,
+que rien ne pourrait jamais prolonger. Le millésime récent est territorialisable
+— mais seulement en résolvant SIREN + NIC vers une commune, ce qui demande
+**Sirene**, jeu classé P0 au registre et pas encore chargé. La ligne rouvre le
+jour où Sirene entre ; elle est explicitement en attente, pas oubliée.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
