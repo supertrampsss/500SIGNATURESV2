@@ -1,9 +1,25 @@
 # 11 — Plan d'ingestion : ce qui reste à charger, dans quel ordre
 
-> **État au 3 août 2026.** Ce document existe parce qu'une intention n'est pas
-> un plan. Il liste ce qui est **disponible et pas encore chargé**, avec le
-> volume que ça coûte et l'ordre dans lequel ça entre. Il est tenu à jour :
-> une ligne passe en « chargé » quand son connecteur tourne en production.
+> **État au 6 août 2026 — le plan est traité de bout en bout.** Ce document
+> existe parce qu'une intention n'est pas un plan. Il listait ce qui était
+> disponible et pas encore chargé, avec le volume que ça coûtait et l'ordre dans
+> lequel ça entrait ; une ligne passe en « chargé » quand son connecteur tourne
+> en production.
+>
+> **Les sept lignes P0 sont chargées.** **Les lignes P1 accessibles aussi** — 8
+> (secteurs d'activité), 9 (hébergement touristique), 10 (activité et diplômes),
+> 13 (logement social), 14 (participation électorale) ; la 11 était couverte par
+> la 10, et la **12 (DVF) est écartée à la demande du propriétaire du projet**.
+> **Les entrées P2 sont traitées une par une** : indice des prix, solde des
+> administrations publiques, consommation des ménages et prénoms sont chargés ;
+> les indices de chiffre d'affaires sont écartés, sur la recommandation de leur
+> propre producteur.
+>
+> Ce qui n'est pas chargé l'est **explicitement**, avec sa raison écrite : c'est
+> vrai des jeux entiers comme des agrégats refusés à l'intérieur d'un jeu chargé
+> — recettes et dépenses totales des APU, croisements détaillés du recensement,
+> nuances politiques des élections. Une absence sans motif serait indiscernable
+> d'un oubli.
 >
 > **Bloquant levé le 04/08/2026 (D6quinquies)** : l'incident D6quater — base
 > Supabase endormie, trente-six heures de données figées, réactivation possible
@@ -758,15 +774,8 @@ sociale — et −152,5 milliards en 2025. Soixante-sept exercices, de 1959 à 2
 valent pas, et l'ordre dans lequel ils entrent — ou n'entrent pas — se décide
 sur la source, pas sur le titre de la ligne.
 
-`DS_ICA` (indices de chiffre d'affaires, 891 380 observations, mensuel depuis
-1999) **n'a pas de série de tête**. La source publie cinq familles d'indices —
-industrie et construction, commerce, services, ventes en volume, production dans
-les services — sur 245 codes d'activité, avec des bases et des champs qui ne se
-recouvrent pas. Il n'existe pas de « chiffre d'affaires de la France » à
-charger : il faudrait choisir une famille et un agrégat d'activité, et ce choix
-serait le nôtre, pas celui du producteur. Le jeu demande donc un travail de
-définition avant tout code — le même que celui qui a fait écarter les recettes
-et dépenses totales des APU.
+`DS_ICA` **n'est pas chargé, et c'est le producteur qui le dit.** Voir le refus
+motivé plus bas.
 
 `DD_CNA_CONSO_MENAGES_PRODUITS` **s'est révélé plus utile que son titre ne le
 disait — chargé le 6 août.** Voir plus bas.
@@ -848,6 +857,35 @@ parlent pas du même prénom. Le catalogue le déclare.
 
 Relevé sur la source : Gironde 2024, 130 garçons portent le prénom masculin le
 plus donné et 110 filles le prénom féminin le plus donné.
+
+**Indices de chiffre d'affaires — écartés le 6 août, et la source elle-même le
+recommande.** C'est le seul jeu du plan dont le producteur déconseille l'usage
+qu'on en ferait ici. Son `scopeNote` est sans ambiguïté :
+
+> « Concernant l'indice de chiffre d'affaires dans l'industrie, l'Insee préconise
+> d'utiliser l'indice de la production industrielle et les indices de prix de
+> production et d'importation dans l'industrie pour analyser séparément
+> l'évolution de l'activité et celle des prix dans ce secteur d'activité, plutôt
+> que de recourir aux indices de chiffre d'affaires dont l'évolution résulte à la
+> fois d'évolutions de prix et d'évolutions de l'activité. »
+
+Un indice qui mêle l'effet des prix et celui des volumes, publié sur un site qui
+affiche par ailleurs l'inflation et la croissance, serait lu comme une troisième
+mesure de l'activité alors qu'il n'en est pas une.
+
+**Et il n'y a pas de série de tête à charger.** La source publie cinq familles
+d'indices — industrie et construction, commerce, services, ventes en volume,
+production dans les services — sur 245 codes d'activité, sans qu'aucun agrégat
+ne soit désigné par le producteur comme « le » chiffre d'affaires de la France.
+Choisir une famille et un code d'activité serait notre choix, pas le sien : la
+même raison qui a fait écarter les recettes et dépenses totales des APU le matin
+même.
+
+Une piste reste ouverte si le sujet revient : les **indices de volume des ventes
+dans le commerce**, qu'Eurostat désigne comme données à forte valeur et qui,
+étant des volumes, échappent à la confusion que le `scopeNote` dénonce. Ils
+demandent d'abord d'identifier, dans la nomenclature du producteur, l'agrégat qui
+désigne l'ensemble du commerce de détail — travail de définition, pas de code.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
