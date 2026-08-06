@@ -824,7 +824,7 @@ Vérifié sur la publication : 77 exercices de 1949 à 2025 ; en 2024, dépense
 1 527 123 M€, consommation effective 2 051 008 M€, et donc **523 885 M€** de
 transferts en nature — l'écart se relit à l'identique sur les fichiers publiés.
 
-**Prénoms — chargement lancé le 6 août.** Le dernier P2, et celui que j'aurais
+**Prénoms — chargés le 6 août.** Le dernier P2, et celui que j'aurais
 eu tort d'écarter. Je le croyais national et sans agrégat ; il descend au
 département et à la région, et un filtre sur le rang rend une ligne par
 territoire, sexe et année depuis 1900 — 29 792 points.
@@ -855,8 +855,9 @@ Ces effectifs ne sont **pas additifs** : le prénom de tête d'un département n
 pas celui de sa région, et les additionner sommerait des grandeurs qui ne
 parlent pas du même prénom. Le catalogue le déclare.
 
-Relevé sur la source : Gironde 2024, 130 garçons portent le prénom masculin le
-plus donné et 110 filles le prénom féminin le plus donné.
+Vérifié sur la publication : 126 années de 1900 à 2025, aux trois niveaux ; en
+Gironde en 2024, 130 garçons portent le prénom masculin le plus donné et 110
+filles le prénom féminin le plus donné.
 
 **Indices de chiffre d'affaires — écartés le 6 août, et la source elle-même le
 recommande.** C'est le seul jeu du plan dont le producteur déconseille l'usage
