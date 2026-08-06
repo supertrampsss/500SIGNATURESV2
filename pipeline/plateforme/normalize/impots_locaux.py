@@ -40,7 +40,7 @@ import io
 import json
 import urllib.parse
 
-from plateforme import couverture, entrepot
+from plateforme import couverture, entrepot, revisions
 from plateforme.http import telecharger
 from plateforme.limites import garde_fou_volume
 from plateforme.normalize.geo import MILLESIME, make_store
@@ -293,25 +293,36 @@ def declarer(conn) -> None:
     conn.commit()
 
 
-def ecrire(conn, run_id: str, lignes: dict[tuple, float]) -> tuple[int, int, dict[str, float]]:
+# `revisions.remplacer` attend : cinq clés, puis ces colonnes-là.
+COLONNES = ("value",)
+
+
+def ecrire(
+    conn, run_id: str, lignes: dict[tuple, float]
+) -> tuple[int, int, int, dict[str, float]]:
+    """Remplace les produits en archivant ce qui a bougé.
+
+    L'OFGL republie le REI d'un exercice à l'autre, corrections comprises : un
+    produit rectifié après coup doit rester visible comme une révision, pas
+    disparaître sous la valeur suivante. C'est d'autant plus vrai ici que la
+    lecture du jeu porte sur le mouvement d'une année à l'autre — la taxe
+    d'habitation de Bordeaux perd 41 % entre 2024 et 2025 — et qu'un lecteur
+    qui a cité un montant doit pouvoir constater qu'il a changé.
+    """
     candidates = valeurs_publiees(lignes)
     gardees, ecartes = filtrer_territoires_connus(conn, candidates)
     noms = [identifiant for identifiant, _ in PRODUITS.values()]
-    with conn.cursor() as curseur:
-        curseur.execute(
-            "delete from core.observations where indicator_id = any(?)", (noms,)
-        )
-        entrepot.copier(
-            conn,
-            "core.observations",
-            ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period", "value",
-             "run_id"],
-            (
-                (cle, niveau, code, MILLESIME, periode, valeur, run_id)
-                for cle, niveau, code, periode, valeur in gardees
-            ),
-        )
-    return len(gardees), len(ecartes), foncier_par_maille(gardees)
+    ecrites, revisees = revisions.remplacer(
+        conn,
+        run_id,
+        noms,
+        COLONNES,
+        (
+            (cle, niveau, code, MILLESIME, periode, valeur)
+            for cle, niveau, code, periode, valeur in gardees
+        ),
+    )
+    return ecrites, len(ecartes), revisees, foncier_par_maille(gardees)
 
 
 def run(store_spec: str) -> int:
@@ -334,7 +345,7 @@ def run(store_spec: str) -> int:
         if not lignes:
             raise ValueError("aucune valeur lue")
         verifies = controler(lignes)
-        ecrites, ecartes, reconnus = ecrire(conn, run_id, lignes)
+        ecrites, ecartes, revisees, reconnus = ecrire(conn, run_id, lignes)
         entrepot.etape(f"{ecrites} observations écrites")
         lus = foncier_par_maille(valeurs_publiees(lignes))
         parts = couverture.controler(lus, reconnus)
@@ -359,7 +370,7 @@ def run(store_spec: str) -> int:
         print(
             f"impôts locaux : {ecrites} observations, exercices"
             f" {', '.join(exercices)}, {len(PRODUITS)} indicateurs,"
-            f" {ecartes} hors référentiel ;"
+            f" {ecartes} hors référentiel, {revisees} valeurs révisées ;"
             f" {verifies['communes_verifiees']} communes vérifiées,"
             f" écart médian {100 * verifies['ecart_median']:.3f} %"
         )

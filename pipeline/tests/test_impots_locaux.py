@@ -161,9 +161,10 @@ def test_l_ecriture_reelle_contre_un_vrai_entrepot(entrepot_seme, lignes):
         (il.MILLESIME,),
     )
     run_id = entrepot.start_run(entrepot_seme, il.DATASET, "manual")
-    ecrites, ecartes, reconnus = il.ecrire(entrepot_seme, run_id, lignes)
+    ecrites, ecartes, revisees, reconnus = il.ecrire(entrepot_seme, run_id, lignes)
     entrepot_seme.commit()
     assert ecrites > 0 and ecartes > 0, "les communes hors référentiel sont écartées"
+    assert revisees == 0, "rien à réviser au premier chargement"
     (valeur,) = entrepot_seme.execute(
         "select value from core.observations"
         " where indicator_id = 'dgfip_produit_foncier_bati' and geo_code = '33063'"
@@ -171,3 +172,39 @@ def test_l_ecriture_reelle_contre_un_vrai_entrepot(entrepot_seme, lignes):
     ).fetchone()
     assert valeur == 248422691.0
     assert reconnus["commune"] > 0
+
+
+def test_un_produit_corrige_est_archive_et_non_ecrase(entrepot_seme, lignes):
+    """L'OFGL republie le REI corrections comprises. Un montant rectifié après
+    coup doit rester lisible comme une révision : ce jeu se lit d'une année à
+    l'autre, et un lecteur qui a cité un produit doit pouvoir constater qu'il a
+    bougé."""
+    from plateforme import entrepot
+
+    il.declarer(entrepot_seme)
+    entrepot_seme.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code, flags) values ('commune', '33063', ?, 'Bordeaux',"
+        " null, null, '{}')",
+        (il.MILLESIME,),
+    )
+    premier = entrepot.start_run(entrepot_seme, il.DATASET, "manual")
+    il.ecrire(entrepot_seme, premier, lignes)
+    corrigees = dict(lignes)
+    corrigees[("33063", "2025", il.PRODUIT_FB)] = 250000000.0
+    second = entrepot.start_run(entrepot_seme, il.DATASET, "manual")
+    _, _, revisees, _ = il.ecrire(entrepot_seme, second, corrigees)
+    entrepot_seme.commit()
+    assert revisees == 1
+    (ancienne,) = entrepot_seme.execute(
+        "select old_value from core.observations_revisions"
+        " where indicator_id = 'dgfip_produit_foncier_bati' and geo_code = '33063'"
+        " and period = '2025'"
+    ).fetchone()
+    assert ancienne == 248422691.0
+    (courante,) = entrepot_seme.execute(
+        "select value from core.observations"
+        " where indicator_id = 'dgfip_produit_foncier_bati' and geo_code = '33063'"
+        " and period = '2025'"
+    ).fetchone()
+    assert courante == 250000000.0
