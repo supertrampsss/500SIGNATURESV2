@@ -435,7 +435,7 @@ des communes de même revenu pour constater qu'elles ont le même revenu.
 | ~~11~~ | ~~`DS_RP_TD_DIPLOMES_PRINC`~~ | **inutile** : les diplômes sont dans le jeu de la ligne 10, sur la même population | commune |
 | 12 | DVF (data.gouv) | prix des logements vendus | commune |
 | ~~13~~ | ~~RPLS (SDES)~~ | **chargé le 6 août** — 5 416 826 logements sociaux comptés un par un, trois indicateurs | commune |
-| 14 | Élections (data.gouv) | **chargement lancé le 6 août** — 174 180 observations, cinq indicateurs de **participation** ; les nuances politiques ne sont pas chargées, et le plan dit pourquoi | commune |
+| ~~14~~ | ~~Élections (data.gouv)~~ | **chargé le 6 août** — 174 180 observations, cinq indicateurs de **participation** ; les nuances politiques ne sont pas chargées, et le plan dit pourquoi | commune |
 
 **Activité, chômage et diplômes — chargé le 5 août.** Le premier P1, et il
 comble le manque le plus visible : le taux de chômage s'arrêtait au département,
@@ -617,7 +617,7 @@ un vacancier de passage. Et **un seul millésime est publié**, celui du 1er jan
 Vérifié sur la publication : Bordeaux, 82 hôtels et 5 796 chambres, aucun
 camping, 24 hébergements collectifs et 6 369 lits.
 
-**Participation électorale — chargement lancé le 6 août.** La ligne 14, et la
+**Participation électorale — chargée le 6 août.** La ligne 14, et la
 seule du plan où le choix de ce qu'on ne charge **pas** compte plus que ce qu'on
 charge. 174 180 observations, cinq indicateurs, 34 836 communes, premier tour
 des municipales du 15 mars 2026.
@@ -664,8 +664,10 @@ l'horodatage du dépôt et change à chaque correction du ministère. Elle est
 retrouvée par le **titre** de la ressource dans le catalogue, et un fichier
 renommé arrête le chargement au lieu de recharger un fichier périmé.
 
-Relevé sur l'archive réelle : 48 474 213 inscrits, 27 678 488 votants, **57,10 %
-de participation**. Bordeaux : 174 137 inscrits, 58,08 %.
+Vérifié au chargement : 48 474 213 inscrits, 27 678 488 votants, **57,10 % de
+participation**. Sur la publication en ligne, 34 801 communes portent un taux —
+Bordeaux 58,08 %, Paris 58,89 % — les 35 manquantes étant celles que le
+référentiel ne connaît pas, Nouvelle-Calédonie et Saint-Pierre-et-Miquelon.
 
 ### P2 — onglet « Statistiques et études », pas la carte
 
