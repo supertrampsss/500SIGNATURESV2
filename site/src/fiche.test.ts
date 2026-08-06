@@ -13,7 +13,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { lectureDeDensite, positionDansGroupe, valeurComparable } from "./fiche.ts";
+import {
+  groupeDeLaCommune,
+  lectureDeDensite,
+  positionDansGroupe,
+  valeurComparable,
+} from "./fiche.ts";
 
 const TERRITOIRE = {
   nom: "Bordeaux",
@@ -158,4 +163,70 @@ test("un indicateur absent de la commune ne produit aucune position", () => {
     valeurComparable(LA_BREDE, "insee_logements_vacants", "2025", { base: "pour_mille" }),
     undefined,
   );
+});
+
+// La cascade : plusieurs découpages du même ensemble, du plus fin au plus large.
+const CASCADE = [
+  ["tranche_population", "rural", "outre_mer", "montagne", "touristique"],
+  ["tranche_population", "rural", "outre_mer"],
+];
+const QUARTILES = { n: 40, q1: 1, mediane: 2, q3: 3 };
+
+test("la commune reçoit le groupe le plus fin qui existe pour elle", () => {
+  const commune = {
+    nom: "Station",
+    series: {},
+    drapeaux: {
+      tranche_population: "3",
+      rural: "Oui",
+      outre_mer: "Non",
+      montagne: "Oui",
+      touristique: "Oui",
+    },
+  } as never;
+  const trouve = groupeDeLaCommune(
+    commune,
+    { "0:3|Oui|Non|Oui|Oui": QUARTILES, "1:3|Oui|Non": { ...QUARTILES, n: 900 } },
+    CASCADE,
+  );
+  assert.equal(trouve?.quartiles.n, 40);
+  assert.deepEqual(trouve?.criteres, CASCADE[0]);
+});
+
+test("une commune trop singulière retombe sur un découpage plus large", () => {
+  // C'est tout l'intérêt de la cascade : sans elle, affiner les critères ferait
+  // disparaître le repère des communes atypiques — sans un mot, un groupe absent
+  // ne s'affiche pas.
+  const commune = {
+    nom: "Cas rare",
+    series: {},
+    drapeaux: {
+      tranche_population: "7",
+      rural: "Non",
+      outre_mer: "Oui",
+      montagne: "Oui",
+      touristique: "Oui",
+    },
+  } as never;
+  const trouve = groupeDeLaCommune(commune, { "1:7|Non|Oui": QUARTILES }, CASCADE);
+  assert.equal(trouve?.quartiles.n, 40);
+  assert.deepEqual(trouve?.criteres, CASCADE[1]);
+});
+
+test("aucun groupe ne vaut mieux qu'un groupe inventé", () => {
+  const commune = { nom: "Inconnue", series: {}, drapeaux: {} } as never;
+  assert.equal(groupeDeLaCommune(commune, { "0:x": QUARTILES }, CASCADE), undefined);
+  assert.equal(groupeDeLaCommune(commune, undefined, CASCADE), undefined);
+});
+
+test("les critères affichés sont ceux qui ont servi, pas une liste figée", () => {
+  const commune = {
+    nom: "Station",
+    series: {},
+    drapeaux: { tranche_population: "3", rural: "Oui", outre_mer: "Non", montagne: "Oui",
+                touristique: "Oui" },
+  } as never;
+  const html = positionDansGroupe(commune, QUARTILES, 2, CASCADE[0]);
+  assert.match(html, /commune de montagne/);
+  assert.match(html, /commune touristique/);
 });

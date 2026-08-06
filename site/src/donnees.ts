@@ -103,6 +103,12 @@ export const indexRecherche = () => lire<EntreeRecherche[]>("recherche.json");
 
 export type Comparaisons = {
   criteres: string[];
+  /** Les jeux de critères, du plus fin au plus large. La fiche essaie les rangs
+   *  dans l'ordre et retient le premier groupe qui existe pour sa commune :
+   *  cinq critères pour une commune ordinaire, trois pour une commune atypique,
+   *  et aucune ne perd son repère en gagnant en finesse. Absent des versions
+   *  publiées avant la cascade — `criteres` sert alors de rang unique. */
+  cascade?: string[][];
   /** Ce à quoi se rapportent les quartiles d'un indicateur : une dépense ou un
    *  effectif se comparent à l'habitant, une médiane ou un taux se comparent
    *  tels qu'ils sont publiés. Sans cette indication, l'affichage formaterait

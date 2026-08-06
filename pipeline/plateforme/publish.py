@@ -219,7 +219,35 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
 # Trois critères suffisent à constituer des groupes lisibles ; en ajouter
 # davantage produirait des groupes d'une poignée de communes, où la position
 # d'un territoire ne voudrait plus rien dire.
-CRITERES_GROUPE = ["tranche_population", "rural", "outre_mer"]
+# Les critères du groupe de communes semblables, du plus fin au plus large.
+#
+# Trois critères donnaient des groupes justes mais grossiers : une station de
+# montagne et une ville de plaine de même taille tombaient ensemble, alors que
+# l'OFGL publie précisément le caractère montagnard et touristique de chaque
+# commune — ils étaient déjà dans les drapeaux, inutilisés.
+#
+# Les ajouter tous ferait l'erreur inverse. Chaque critère multiplie le nombre
+# de strates, et une strate de trois communes ne compare plus rien : le seuil de
+# vingt les ferait simplement disparaître, et la commune perdrait le repère
+# qu'elle avait. C'est le défaut classique du sur-découpage, et il est
+# silencieux — un groupe absent ne s'affiche pas, il ne se signale pas.
+#
+# D'où la cascade. Le groupe le plus fin est calculé, et aussi les plus larges ;
+# la fiche prend le premier qui existe pour sa commune. Une commune ordinaire est
+# comparée à ses semblables sur cinq critères, une commune atypique retombe sur
+# trois, et aucune ne perd son repère. Les critères retenus sont affichés avec le
+# résultat : « comparée à 40 communes de 100 000 à 200 000 habitants, urbaines,
+# non touristiques » ne veut pas dire la même chose que « à 8 982 communes ».
+CASCADE_CRITERES = [
+    ["tranche_population", "rural", "outre_mer", "montagne", "touristique"],
+    ["tranche_population", "rural", "outre_mer"],
+    ["tranche_population", "outre_mer"],
+]
+CRITERES_GROUPE = CASCADE_CRITERES[-1]
+
+# En dessous, un groupe ne compare plus : il décrit une poignée de communes dont
+# la médiane bouge d'un tiers si l'une d'elles change de politique.
+GROUPE_MINIMAL = 20
 
 
 def comparaisons(conn) -> dict:
@@ -263,12 +291,50 @@ def comparaisons(conn) -> dict:
     dans l'unité publiée : sans lui, l'affichage ne peut pas les formater sans
     se tromper d'unité.
     """
-    lignes = conn.execute(
+    lignes = []
+    for rang, criteres in enumerate(CASCADE_CRITERES):
+        lignes.extend(
+            (rang, *ligne) for ligne in _quartiles_du_groupe(conn, criteres)
+        )
+    resultat: dict = defaultdict(lambda: defaultdict(dict))
+    bases: dict = {}
+    for rang, indicateur, periode, groupe, additif, unite, effectif, q1, mediane, q3 in lignes:
+        resultat[indicateur][periode][f"{rang}:{groupe}"] = {
+            "n": effectif,
+            "q1": round(float(q1), 2),
+            "mediane": round(float(mediane), 2),
+            "q3": round(float(q3), 2),
+        }
+        bases[indicateur] = {
+            "base": (
+                "valeur" if not additif
+                else "par_habitant" if unite == "EUR"
+                else "pour_mille"
+            ),
+            "unite": unite,
+        }
+    return {
+        # Le rang du groupe est dans sa clé : « 0:… » pour les cinq critères,
+        # « 1:… » pour trois. La fiche essaie les rangs dans l'ordre et prend le
+        # premier qui existe — c'est ce qui garantit qu'aucune commune ne perd
+        # son repère en gagnant en finesse.
+        "cascade": CASCADE_CRITERES,
+        # Conservé pour les versions du site déployées avant la cascade : elles
+        # lisent une liste plate et n'ont que faire des rangs.
+        "criteres": CRITERES_GROUPE,
+        "bases": bases,
+        "groupes": resultat,
+    }
+
+
+def _quartiles_du_groupe(conn, criteres: list[str]) -> list[tuple]:
+    """Quartiles par groupe, pour un jeu de critères donné."""
+    return conn.execute(
         f"""
         with base as (
             select o.indicator_id, o.period, i.additive, i.unit,
                    concat_ws('|', {", ".join(
-                       f"json_extract_string(g.flags, '$.{c}')" for c in CRITERES_GROUPE)})
+                       f"json_extract_string(g.flags, '$.{c}')" for c in criteres)})
                      as groupe,
                    case when not i.additive then o.value
                         when i.unit = 'EUR' then o.value / nullif(pop.value, 0)
@@ -292,27 +358,9 @@ def comparaisons(conn) -> dict:
                percentile_cont(0.5) within group (order by compare),
                percentile_cont(0.75) within group (order by compare)
         from base where compare is not null
-        group by 1, 2, 3, 4, 5 having count(*) >= 20
+        group by 1, 2, 3, 4, 5 having count(*) >= {GROUPE_MINIMAL}
         """
     ).fetchall()
-    resultat: dict = defaultdict(lambda: defaultdict(dict))
-    bases: dict = {}
-    for indicateur, periode, groupe, additif, unite, effectif, q1, mediane, q3 in lignes:
-        resultat[indicateur][periode][groupe] = {
-            "n": effectif,
-            "q1": round(float(q1), 2),
-            "mediane": round(float(mediane), 2),
-            "q3": round(float(q3), 2),
-        }
-        bases[indicateur] = {
-            "base": (
-                "valeur" if not additif
-                else "par_habitant" if unite == "EUR"
-                else "pour_mille"
-            ),
-            "unite": unite,
-        }
-    return {"criteres": CRITERES_GROUPE, "bases": bases, "groupes": resultat}
 
 
 ETAPES_BUDGET = {

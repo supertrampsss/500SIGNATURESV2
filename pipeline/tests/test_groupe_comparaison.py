@@ -80,7 +80,7 @@ def test_une_mediane_n_est_pas_divisee_par_la_population(entrepot_peuple):
     """Le défaut du 5 août. Un niveau de vie médian de vingt mille euros divisé
     par trois mille habitants donnait sept euros, publiés comme repère."""
     sortie = publish.comparaisons(entrepot_peuple)
-    groupe = "3|Oui|Non"
+    groupe = "1:3|Oui|Non"
     quartiles = sortie["groupes"]["niveau_de_vie"]["2023"][groupe]
     assert 20000 <= quartiles["mediane"] <= 22400, quartiles
     assert sortie["bases"]["niveau_de_vie"]["base"] == "valeur"
@@ -90,7 +90,7 @@ def test_un_montant_additif_reste_ramene_par_habitant(entrepot_peuple):
     """La dépense d'une commune de trois mille habitants et celle d'une de cinq
     mille ne se comparent qu'à l'habitant."""
     sortie = publish.comparaisons(entrepot_peuple)
-    quartiles = sortie["groupes"]["depense"]["2023"]["3|Oui|Non"]
+    quartiles = sortie["groupes"]["depense"]["2023"]["1:3|Oui|Non"]
     assert 500 <= quartiles["mediane"] <= 525, quartiles
     assert sortie["bases"]["depense"]["base"] == "par_habitant"
 
@@ -104,7 +104,7 @@ def test_les_effectifs_ont_desormais_un_groupe(entrepot_peuple):
     # Un effectif se rapporte à mille habitants, pas à un seul : « 36 logements
     # vacants pour mille habitants » se lit, « 0,036 par habitant » ne se lit pas.
     assert sortie["bases"]["logements_vacants"]["base"] == "pour_mille"
-    quartiles = sortie["groupes"]["logements_vacants"]["2023"]["3|Oui|Non"]
+    quartiles = sortie["groupes"]["logements_vacants"]["2023"]["1:3|Oui|Non"]
     assert 30 <= quartiles["mediane"] <= 40, quartiles
 
 
@@ -113,7 +113,7 @@ def test_un_taux_se_compare_tel_qu_il_est_publie(entrepot_peuple):
     nom. Il se compare tel quel, et sa base le dit."""
     sortie = publish.comparaisons(entrepot_peuple)
     assert sortie["bases"]["taux_de_pauvrete"] == {"base": "valeur", "unite": "percent"}
-    quartiles = sortie["groupes"]["taux_de_pauvrete"]["2023"]["3|Oui|Non"]
+    quartiles = sortie["groupes"]["taux_de_pauvrete"]["2023"]["1:3|Oui|Non"]
     assert 11.0 <= quartiles["mediane"] <= 11.5, quartiles
 
 

@@ -4,7 +4,7 @@
  * ratio, et il est accompagné de sa source, de sa méthode et de ses limites.
  */
 
-import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
+import type { Indicateur, Jeu, Quartiles, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
 import { reperes, type References } from "./reference.ts";
@@ -1120,6 +1120,36 @@ export function valeurComparable(
 }
 
 /**
+ * Le groupe le plus fin qui existe pour cette commune, et les critères qui le
+ * définissent.
+ *
+ * La publication calcule plusieurs découpages du même ensemble : cinq critères,
+ * puis trois, puis deux. Un découpage fin compare mieux — une station de
+ * montagne face à des stations de montagne — mais laisse sans groupe les
+ * communes trop singulières, dont la strate tombe sous le seuil de vingt. Les
+ * essayer dans l'ordre donne à chacune le meilleur repère qu'elle puisse avoir,
+ * plutôt que le même repère grossier pour toutes ou aucun repère pour les
+ * atypiques.
+ *
+ * Les critères retenus sont renvoyés avec les quartiles : ils ne sont pas les
+ * mêmes d'une commune à l'autre, et l'affichage doit dire lesquels ont servi.
+ */
+export function groupeDeLaCommune(
+  territoire: Territoire,
+  parIndicateur: Record<string, Quartiles> | undefined,
+  cascade: string[][],
+): { quartiles: Quartiles; criteres: string[] } | undefined {
+  if (!parIndicateur) return undefined;
+  const drapeaux = (territoire.drapeaux ?? {}) as Record<string, string>;
+  for (const [rang, criteres] of cascade.entries()) {
+    const cle = `${rang}:${criteres.map((c) => drapeaux[c] ?? "").join("|")}`;
+    const quartiles = parIndicateur[cle];
+    if (quartiles) return { quartiles, criteres };
+  }
+  return undefined;
+}
+
+/**
  * Position d'une commune parmi ses semblables. Le groupe est défini par des
  * critères publiés par l'OFGL, affichés avec le résultat : sans eux, « communes
  * comparables » ne veut rien dire. Aucun classement, aucun jugement — une
@@ -1153,6 +1183,10 @@ export function positionDansGroupe(
     tranche_population: "strate de population",
     rural: "caractère rural",
     outre_mer: "outre-mer",
+    montagne: "commune de montagne",
+    touristique: "commune touristique",
+    qpv: "quartier prioritaire",
+    tranche_revenu_imposable_par_habitant: "tranche de revenu imposable",
   };
   const description = criteres
     .map((c) => `${lisible[c] ?? c} : ${drapeaux[c] ?? "non renseigné"}`)

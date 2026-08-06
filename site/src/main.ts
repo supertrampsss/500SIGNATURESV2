@@ -10,7 +10,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { afficherFiche, positionDansGroupe, valeurComparable } from "./fiche.ts";
+import {
+  afficherFiche,
+  groupeDeLaCommune,
+  positionDansGroupe,
+  valeurComparable,
+} from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
@@ -596,14 +601,17 @@ async function montrerFiche(code: string): Promise<void> {
   if (!territoire) return;
   etat.selection = code;
   ecrireUrl();
-  const quartiles =
+  // La cascade : le groupe le plus fin qui existe pour cette commune, et les
+  // critères qui l'ont défini — ils changent d'une commune à l'autre.
+  const trouve =
     etat.niveau === "commune" && groupes
-      ? groupes.groupes[etat.indicateur]?.[etat.periode]?.[
-          groupes.criteres
-            .map((c) => (territoire.drapeaux as Record<string, string>)?.[c] ?? "")
-            .join("|")
-        ]
+      ? groupeDeLaCommune(
+          territoire,
+          groupes.groupes[etat.indicateur]?.[etat.periode],
+          groupes.cascade ?? [groupes.criteres],
+        )
       : undefined;
+  const quartiles = trouve?.quartiles;
   // Ce qui se compare au groupe dépend de la grandeur : une dépense et un
   // nombre de logements se rapportent aux habitants, une médiane de revenus et
   // un taux se comparent tels qu'ils sont publiés. C'est la publication qui le
@@ -625,7 +633,7 @@ async function montrerFiche(code: string): Promise<void> {
     principal: etat.indicateur,
     rang,
     comparaison: groupes
-      ? positionDansGroupe(territoire, quartiles, valeurComparee, groupes.criteres, base)
+      ? positionDansGroupe(territoire, quartiles, valeurComparee, trouve?.criteres ?? [], base)
       : "",
     // Tous les thèmes, plus seulement celui de la carte : le panneau est
     // désormais le seul endroit où l'on choisit — il doit tout montrer.
@@ -1245,9 +1253,10 @@ async function demarrer(): Promise<void> {
     // trois valeurs à lire — la clé construite, la période, ce qui est trouvé.
     __groupe: (code: string) => {
       const t = entites[code];
-      const cle = groupes?.criteres
-        .map((c) => (t?.drapeaux as Record<string, string>)?.[c] ?? "")
-        .join("|");
+      const cascade = groupes?.cascade ?? (groupes ? [groupes.criteres] : []);
+      const cle = cascade
+        .map((cs, r) => `${r}:${cs.map((c) => (t?.drapeaux as Record<string, string>)?.[c] ?? "").join("|")}`)
+        .join(" ou ");
       return {
         charge: Boolean(groupes),
         indicateur: etat.indicateur,
