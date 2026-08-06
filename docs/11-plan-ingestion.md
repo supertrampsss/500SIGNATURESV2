@@ -777,7 +777,7 @@ pas non plus d'agrégat : un prénom est une modalité parmi des milliers, quand
 règle du plan veut « quelques indicateurs agrégés à la maille du territoire ».
 Le charger remplirait un onglet, pas une intention.
 
-**Consommation des ménages — chargement lancé le 6 août.** Deux chiffres, et
+**Consommation des ménages — chargée le 6 août.** Deux chiffres, et
 c'est **leur écart** qui vaut le chargement. La dépense de consommation finale
 est ce que les ménages paient de leur poche : 1 527 milliards d'euros en 2024.
 La consommation finale effective est ce qu'ils consomment réellement, services
@@ -810,8 +810,9 @@ dépasser la page de l'API : le total disparaissait, la série revenait vide, et
 rien n'échouait. Le filtre appartient donc à la requête, pas à la lecture — et
 un test le vérifie sur l'URL.
 
-Relevé sur la source : 2024, dépense 1 527 123 M€, consommation effective
-2 051 008 M€, transferts en nature 523 885 M€.
+Vérifié sur la publication : 77 exercices de 1949 à 2025 ; en 2024, dépense
+1 527 123 M€, consommation effective 2 051 008 M€, et donc **523 885 M€** de
+transferts en nature — l'écart se relit à l'identique sur les fichiers publiés.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
