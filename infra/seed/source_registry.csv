@@ -17,3 +17,9 @@ urssaf,open.urssaf.fr,URSSAF,A,https://open.urssaf.fr/api/explore/v2.1/,https://
 banque-de-france,Webstat,Banque de France,A,https://webstat.banque-france.fr/api/explore/v2.1/,https://webstat.banque-france.fr,cle selon volume,Conditions BdF (verifier par jeu),FR
 data-education,data.education.gouv.fr,Ministère de l'Éducation nationale,A,https://data.education.gouv.fr/api/explore/v2.1/,https://data.education.gouv.fr,,Licence Ouverte 2.0,FR
 sdes,Service des donnees et etudes statistiques,Ministere de la transition ecologique (SDES),A,https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1,https://www.statistiques.developpement-durable.gouv.fr/catalogue,aucune,LO2.0,FR
+data-unedic,data.unedic.org,Unedic,A,https://data.unedic.org/api/explore/v2.1/,https://data.unedic.org,,Licence Ouverte 2.0,FR
+data-ameli,data.ameli.fr,CNAM,A,https://data.ameli.fr/api/explore/v2.1/,https://data.ameli.fr,,ODbL,FR
+urssaf,open.urssaf.fr,URSSAF Caisse nationale,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
+sdes,Donnees statistiques SDES,SDES (ministere de la Transition ecologique),A,https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1/,https://www.statistiques.developpement-durable.gouv.fr,,Licence Ouverte 2.0,FR
+anct,Europe en France,ANCT,C,https://www.europe-en-france.gouv.fr,https://www.europe-en-france.gouv.fr,,Licence Ouverte 2.0,FR
+anil,Carte des loyers,ANIL / DGALN,C,https://static.data.gouv.fr,https://www.data.gouv.fr,,Licence Ouverte 2.0,FR
