@@ -1,4 +1,4 @@
 {
-  "job": "impots-locaux",
-  "request": "2026-08-06-charger-le-rei-produits-par-impot"
+  "job": "depenses-fiscales",
+  "request": "2026-08-06-charger-les-depenses-fiscales-du-plf-2026"
 }
