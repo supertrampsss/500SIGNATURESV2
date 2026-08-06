@@ -88,6 +88,22 @@ def test_le_controle_echoue_si_rien_n_a_pu_etre_verifie():
         ])
 
 
+def test_un_groupe_incomplet_rompt_l_identite():
+    """Un territoire qui garde son total mais perd un secteur ne doit pas être
+    sauté : ses onze autres indicateurs se publieraient, et le contrôle des
+    mailles, qui ne somme que les totaux, ne verrait rien."""
+    ampute = [
+        {"niveau": "commune", "code": "33063", "periode": "2024",
+         "mesure": "UNIT_LOC", "secteur": secteur, "valeur": 10.0, "drapeaux": []}
+        for secteur in list(secteurs.SECTEURS)[:-1]
+    ] + [
+        {"niveau": "commune", "code": "33063", "periode": "2024",
+         "mesure": "UNIT_LOC", "secteur": "_T", "valeur": 40.0, "drapeaux": []},
+    ]
+    with pytest.raises(secteurs.IdentiteRompue, match="groupe incomplet"):
+        secteurs.controler(ampute)
+
+
 def _lignes_de_pays(par_niveau: dict[str, float]) -> list[dict]:
     """Un pays miniature : une entrée par maille, sur le seul total de secteur."""
     return [

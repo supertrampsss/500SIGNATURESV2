@@ -186,6 +186,34 @@ const PART_DU_TOTAL: Record<string, { total: string; nom: string }> = {
  *  ratio. Une population ne se rapporte pas à elle-même. */
 const POPULATIONS = new Set(["insee_population_municipale", "ofgl_population_reference"]);
 
+/** Les jeux dont les effectifs sont comptés **au lieu de travail**.
+ *
+ *  La densité « pour 1 000 habitants » suppose que les habitants soient le
+ *  dénominateur de la grandeur. C'est vrai des logements, des chômeurs, des
+ *  écoles ; c'est faux des postes salariés et des établissements employeurs,
+ *  qui sont là où l'on travaille et non là où l'on dort. Bordeaux afficherait
+ *  750 postes pour 1 000 habitants, une commune-dortoir voisine 30 : l'écart ne
+ *  mesure pas une intensité d'emploi, il mesure la distance domicile-travail, et
+ *  la phrase « rapporté à la population » le présenterait comme la première
+ *  grandeur. Ces indicateurs restent sommables — c'est le dénominateur qui
+ *  n'existe pas, pas l'additivité. */
+const JEUX_AU_LIEU_DE_TRAVAIL = new Set(["melodi-flores-a5"]);
+
+/** Les habitants du territoire sont-ils le dénominateur de cet effectif ?
+ *
+ *  Trois refus, pour trois raisons distinctes : ce qui n'est pas un effectif
+ *  (une médiane, un taux) n'a pas de densité ; une population divisée par
+ *  elle-même vaut mille pour mille ; et un effectif compté au lieu de travail
+ *  n'a pas les résidents pour dénominateur. */
+export function densiteRapportableAuxHabitants(indicateur: Indicateur): boolean {
+  return (
+    indicateur.unite === "count" &&
+    !!indicateur.sommable &&
+    !POPULATIONS.has(indicateur.id) &&
+    !JEUX_AU_LIEU_DE_TRAVAIL.has(indicateur.jeu)
+  );
+}
+
 /** Population d'un territoire pour un ratio de densité : celle du millésime
  *  quand elle est publiée, la population légale sinon. */
 function population(territoire: Territoire, periode: string): number | null {
@@ -262,10 +290,7 @@ function mesurer(
   // « KPI » s'affichait, et n'était qu'une tautologie.
   const habitants = population(territoire, periode);
   const densite =
-    indicateur.unite === "count" &&
-    indicateur.sommable &&
-    habitants &&
-    !POPULATIONS.has(indicateur.id)
+    densiteRapportableAuxHabitants(indicateur) && habitants
       ? {
           valeur: (brut / habitants) * 1000,
           comparaisons: comparateurs.flatMap((c) => {

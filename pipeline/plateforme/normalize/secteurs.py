@@ -194,6 +194,15 @@ def controler(lignes: list[dict], tolerance: float = TOLERANCE) -> dict[str, int
     C'est le contrôle qui attraperait une hiérarchie servie à plat : lire le
     détail *et* le total compterait chaque établissement deux fois, et la somme
     des parts vaudrait alors le double du total publié.
+
+    **Un groupe incomplet est une identité rompue, pas un cas à sauter.** Un
+    territoire qui a son total mais perd un secteur passerait sans bruit : ses
+    onze autres indicateurs seraient publiés, le contrôle des mailles ne somme
+    que les totaux et ne verrait rien, et un secteur manquerait sur la fiche
+    sans que rien ne l'ait signalé. La source sert les six lignes pour les
+    41 770 territoires qu'elle publie — mesuré au chargement du 6 août, aucun
+    groupe incomplet — et un jour où ce ne serait plus vrai est un jour où il
+    faut regarder, pas continuer.
     """
     table: dict[tuple, dict[str, float]] = {}
     for ligne in lignes:
@@ -201,8 +210,13 @@ def controler(lignes: list[dict], tolerance: float = TOLERANCE) -> dict[str, int
         table.setdefault(cle, {})[ligne["secteur"]] = ligne["valeur"]
     verifies = 0
     for (niveau, code, periode, mesure), valeurs in table.items():
-        if TOTAL not in valeurs or any(s not in valeurs for s in SECTEURS):
-            continue
+        manquants = [s for s in (TOTAL, *SECTEURS) if s not in valeurs]
+        if manquants:
+            raise IdentiteRompue(
+                f"groupe incomplet : {niveau} {code} en {periode}, mesure {mesure},"
+                f" n'a pas {', '.join(manquants)}. Les secteurs publiés seraient"
+                " amputés sans que la somme des mailles le montre."
+            )
         ecart = sum(valeurs[s] for s in SECTEURS) - valeurs[TOTAL]
         if abs(ecart) > tolerance:
             raise IdentiteRompue(

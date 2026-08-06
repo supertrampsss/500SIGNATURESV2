@@ -42,19 +42,22 @@ def entrepot_peuple(tmp_path):
         " confidence_level)"
         " values (1, 'x', 'observed')"
     )
-    for identifiant, unite, additif in (
-        ("ofgl_population_reference", "count", True),
-        ("depense", "EUR", True),
-        ("niveau_de_vie", "EUR", False),
-        ("logements_vacants", "count", True),
-        ("taux_de_pauvrete", "percent", False),
+    for identifiant, unite, additif, jeu in (
+        ("ofgl_population_reference", "count", True, "ofgl-communes"),
+        ("depense", "EUR", True, "ofgl-communes"),
+        ("niveau_de_vie", "EUR", False, "ofgl-communes"),
+        ("logements_vacants", "count", True, "ofgl-communes"),
+        ("taux_de_pauvrete", "percent", False, "ofgl-communes"),
+        # Un effectif compté au lieu de travail : additif comme les logements
+        # vacants, mais sans les résidents pour dénominateur.
+        ("postes_salaries", "count", True, "melodi-flores-a5"),
     ):
         conn.execute(
             "insert into core.indicators (indicator_id, dataset_id, definition_id,"
             " theme, label_fr, unit, additive, geo_levels, time_granularity, published)"
-            " values (?, 'ofgl-communes', 1, 't', ?, ?, ?, array['commune'],"
+            " values (?, ?, 1, 't', ?, ?, ?, array['commune'],"
             " 'annuelle', true)",
-            (identifiant, identifiant, unite, additif),
+            (identifiant, jeu, identifiant, unite, additif),
         )
     run_id = entrepot.start_run(conn, "ofgl-communes", "manual")
     for rang, (code, _, habitants) in enumerate(COMMUNES):
@@ -64,6 +67,7 @@ def entrepot_peuple(tmp_path):
             ("niveau_de_vie", 20000 + rang * 100),
             ("logements_vacants", 100 + rang),
             ("taux_de_pauvrete", 10 + rang * 0.1),
+            ("postes_salaries", 2000 + rang * 100),
         ):
             conn.execute(
                 "insert into core.observations (indicator_id, geo_level, geo_code,"
@@ -115,6 +119,41 @@ def test_un_taux_se_compare_tel_qu_il_est_publie(entrepot_peuple):
     assert sortie["bases"]["taux_de_pauvrete"] == {"base": "valeur", "unite": "percent"}
     quartiles = sortie["groupes"]["taux_de_pauvrete"]["2023"]["1:3|Oui|Non"]
     assert 11.0 <= quartiles["mediane"] <= 11.5, quartiles
+
+
+def test_un_effectif_au_lieu_de_travail_ne_se_divise_pas_par_les_residents(entrepot_peuple):
+    """Un poste salarié est là où l'on travaille, pas là où l'on dort. Le
+    rapporter aux habitants de la commune mesurerait la distance
+    domicile-travail en la présentant comme une intensité d'emploi — et une
+    commune de bureaux afficherait plus de postes que d'habitants.
+
+    Il reste additif : c'est le dénominateur qui n'existe pas, pas l'additivité.
+    """
+    sortie = publish.comparaisons(entrepot_peuple)
+    assert sortie["bases"]["postes_salaries"]["base"] == "valeur"
+    quartiles = sortie["groupes"]["postes_salaries"]["2023"]["1:3|Oui|Non"]
+    # La médiane est celle des valeurs brutes — 2 000 à 4 400 postes —, pas
+    # celle des postes pour mille habitants, qui vaudrait autour de 700.
+    assert 3000 <= quartiles["mediane"] <= 3400, quartiles
+
+
+def test_les_deux_expressions_de_la_regle_disent_la_meme_chose(entrepot_peuple):
+    """La base est décidée deux fois : en SQL pour calculer les quartiles, en
+    Python pour les étiqueter. Si elles divergeaient, les nombres seraient
+    calculés sur une base et formatés sur une autre — sans que rien n'échoue."""
+    sortie = publish.comparaisons(entrepot_peuple)
+    attendus = {
+        "depense": "par_habitant",
+        "logements_vacants": "pour_mille",
+        "niveau_de_vie": "valeur",
+        "postes_salaries": "valeur",
+        "taux_de_pauvrete": "valeur",
+    }
+    for identifiant, base in attendus.items():
+        assert sortie["bases"][identifiant]["base"] == base, identifiant
+    # Le SQL a bien appliqué la même règle : une base « valeur » laisse des
+    # quartiles à l'échelle des valeurs publiées, pas divisés par trois mille.
+    assert sortie["groupes"]["postes_salaries"]["2023"]["1:3|Oui|Non"]["mediane"] > 1000
 
 
 def test_chaque_indicateur_du_groupe_declare_sa_base(entrepot_peuple):

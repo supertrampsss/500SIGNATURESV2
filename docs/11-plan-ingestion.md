@@ -543,6 +543,32 @@ fabriquer une série par-dessus cet avertissement reviendrait à inventer une
 salarié la dernière semaine de décembre — 259 789 sont dans ce cas, 10,8 % du
 total.
 
+**Le site rapportait ces effectifs aux habitants — corrigé dans la foulée.** La
+règle « un effectif additif se compare pour mille habitants » gouvernait la
+densité affichée sous chaque chiffre et la base des quartiles du groupe de
+communes semblables. Elle vaut pour ce qui décrit les habitants — logements
+vacants, chômeurs, familles monoparentales — et elle est fausse pour ce qui
+décrit l'activité posée sur le territoire : Bordeaux aurait affiché 750 postes
+pour mille habitants, une commune-dortoir voisine trente, et l'écart, présenté
+comme une intensité d'emploi, n'aurait mesuré que la distance domicile-travail.
+C'est précisément la lecture que la fiche technique interdit, et le site l'aurait
+imprimée sous le chiffre.
+
+Ces indicateurs restent **additifs** : ils s'additionnent bel et bien d'une
+commune à l'autre, et déclarer le contraire pour obtenir un effet d'affichage
+aurait menti sur la donnée pour corriger la présentation. C'est le
+**dénominateur** qui n'existe pas. Leurs quartiles se comparent donc en valeur,
+à l'intérieur d'une strate qui borne déjà la taille des communes — « comparée à
+111 communes semblables, la vôtre compte 14 432 établissements employeurs »
+reste une phrase juste. La règle est écrite une fois, au niveau du jeu, et
+partagée par le SQL des quartiles et l'affichage : un test vérifie que les deux
+expressions disent la même chose, faute de quoi les nombres seraient calculés
+sur une base et formatés sur une autre.
+
+Reste une limite connue : la vue « par habitant », que le lecteur active
+lui-même, divise encore ces effectifs par les résidents. Elle le fait pour tous
+les effectifs du site, et la corriger déborde de ce chargement.
+
 Vérifié au chargement : Bordeaux 2024, 14 432 établissements employeurs et
 201 045 postes salariés, dont 100 521 dans les services marchands et 88 409 dans
 l'administration, l'enseignement, la santé et l'action sociale. **Aucun
