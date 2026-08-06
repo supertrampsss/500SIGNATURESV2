@@ -121,6 +121,42 @@ def test_declarer_puis_redeclarer_contre_un_vrai_entrepot(entrepot_seme):
     assert orphelines == 0
 
 
+def test_l_ecriture_reelle_contre_un_vrai_entrepot(entrepot_seme, series):
+    """Le chargement du 6 août a échoué ici et nulle part ailleurs : les lignes
+    portaient sept champs quand `revisions.remplacer` en attendait six pour les
+    colonnes déclarées, et c'est DuckDB qui l'a appris en production. Tous les
+    tests d'unité passaient — aucun n'écrivait.
+
+    Celui-ci écrit pour de bon, et compare la longueur des lignes à ce que la
+    fonction attend plutôt qu'à ce que le connecteur croit produire.
+    """
+    from plateforme import entrepot, revisions
+
+    prix.declarer(entrepot_seme)
+    entrepot_seme.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code, flags) values ('pays', 'FR', ?, 'France',"
+        " null, null, '{}')",
+        (prix.MILLESIME,),
+    )
+    run_id = entrepot.start_run(entrepot_seme, prix.DATASET, "manual")
+    lignes = prix.lignes_a_ecrire(series[prix.GLISSEMENT])
+    assert len(lignes[0]) == len(revisions.CLES) + len(prix.COLONNES)
+    ecrites, _ = revisions.remplacer(
+        entrepot_seme, run_id, [prix.INDICATEUR], prix.COLONNES, lignes
+    )
+    entrepot_seme.commit()
+    assert ecrites == len(lignes)
+    (compte, mini, maxi) = entrepot_seme.execute(
+        "select count(*), min(value), max(value) from core.observations"
+        " where indicator_id = ? and geo_level = 'pays' and geo_code = 'FR'",
+        (prix.INDICATEUR,),
+    ).fetchone()
+    assert compte == len(lignes)
+    # Un niveau d'indice écrit à la place d'un taux se verrait ici aussi.
+    assert -10 < mini and maxi < 30
+
+
 def test_les_deux_inflations_cohabitent_sans_se_confondre(entrepot_seme):
     """Le thème « macro » porte désormais deux inflations. Elles doivent avoir
     des identifiants et des libellés distincts, et chacune nommer l'autre."""

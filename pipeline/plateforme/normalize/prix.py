@@ -183,6 +183,21 @@ def controler_plausibilite(glissements: dict[str, float]) -> dict[str, float]:
     }
 
 
+# Les colonnes que le chargement remplace, et donc la longueur des lignes que
+# `revisions.remplacer` attend : cinq clés, puis ces colonnes-là. Un champ de
+# plus ou de moins passe tous les tests d'unité et casse à l'écriture réelle,
+# faute de quoi c'est DuckDB qui l'apprend en production.
+COLONNES = ("value",)
+
+
+def lignes_a_ecrire(glissements: dict[str, float]):
+    """-> les lignes prêtes pour `revisions.remplacer`, dans l'ordre des mois."""
+    return [
+        (INDICATEUR, "pays", "FR", MILLESIME, periode, valeur)
+        for periode, valeur in sorted(glissements.items())
+    ]
+
+
 def declarer(conn) -> None:
     with conn.cursor() as curseur:
         definition = curseur.execute(
@@ -238,11 +253,7 @@ def run(store_spec: str) -> int:
             raise IdentiteRompue("aucune valeur plausible à écrire")
         entrepot.etape(f"{len(gardes)} mois retenus")
         ecrites, revisees = revisions.remplacer(
-            conn, run_id, [INDICATEUR], ("value",),
-            (
-                (INDICATEUR, "pays", "FR", MILLESIME, periode, valeur, [])
-                for periode, valeur in sorted(gardes.items())
-            ),
+            conn, run_id, [INDICATEUR], COLONNES, lignes_a_ecrire(gardes)
         )
         periodes = sorted(gardes)
         conn.execute(
