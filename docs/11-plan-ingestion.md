@@ -895,9 +895,9 @@ Le plan ci-dessus est clos. Il ne couvrait qu'un extrait du registre des sources
 charge une cinquantaine. Cette section suit la reprise du registre lui-même.
 
 **Ordre retenu**, par ce que chaque source apporte à la question « où vont mes
-impôts » et par ce qu'elle coûte à charger. **Les dix lignes sont traitées au
-6 août** : quatre chargées, cinq écartées avec leur raison écrite, une reportée
-sur un prérequis nommé.
+impôts » et par ce qu'elle coûte à charger. **Dix-neuf lignes traitées au 6 août** :
+quatre chargées, une codée, cinq sondées et validées, huit écartées avec leur
+raison écrite, une reportée sur un prérequis nommé.
 
 Une leçon technique traverse cette vague et mérite d'être notée pour la
 suivante : sur data.economie.gouv.fr, **un jeu qui affiche zéro enregistrement
@@ -919,6 +919,15 @@ son compteur : il faut interroger
 | ~~8~~ | ~~Péréquation (DSU, DSR, DNP)~~ | **chargée le 6 août** — la donnée était déjà téléchargée et jetée |
 | ~~9~~ | ~~Délais de paiement des collectivités~~ | **chargés le 6 août** |
 | 10 | Subventions & aides versées | **reportées le 6 août** — Sirene est le prérequis |
+| ~~11~~ | ~~Droits de mutation (DMTO)~~ | **codée le 6 août** — contrôle au centime sur 130 Md€ |
+| 12 | Impôt sur le revenu localisé (IRCOM) | sondée, chargeable — mapping direction DGFiP à écrire |
+| 13 | Cotisations sociales — exonérations URSSAF | sondée, chargeable |
+| 14 | Salaires (INSEE Melodi) | sondée, chargeable |
+| 15 | Défaillances d'entreprises | **écartées le 6 août** — série gelée en 2017 |
+| 16 | Effectifs de la fonction publique territoriale | **écartés le 6 août** — 2016, et sans maille |
+| 17 | Assurance chômage (Unédic) | sondée, chargeable — masse départementale mensuelle |
+| 18 | Assurance maladie (CNAM) | sondée, chargeable — prescriptions par département |
+| 19 | Retraites | **écartées le 6 août** — aucune masse par territoire n'existe |
 
 **Trois affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
 est annoncé « 2009→ » : la source n'en publie que **2024 et 2025**. Et le jeu des
@@ -1173,6 +1182,106 @@ que rien ne pourrait jamais prolonger. Le millésime récent est territorialisab
 — mais seulement en résolvant SIREN + NIC vers une commune, ce qui demande
 **Sirene**, jeu classé P0 au registre et pas encore chargé. La ligne rouvre le
 jour où Sirene entre ; elle est explicitement en attente, pas oubliée.
+
+**Droits de mutation — codés le 6 août.** Quand un logement change de mains,
+l'acheteur paie des droits de mutation. C'est la recette la plus volatile des
+collectivités : elle suit le marché immobilier et non un vote. Les départements
+ont encaissé **16,76 Md€ en 2022 et 11,33 Md€ en 2024** — un tiers de moins en
+deux ans, sans qu'aucune décision politique ne soit en cause. Sept exercices
+complets, 2019 à 2025, 99 départements.
+
+**Le contrôle est le plus dur du dépôt.** La source publie la même masse **deux
+fois**, ventilée autrement : une fois par lieu d'encaissement (35 395 lignes),
+une fois par collectivité bénéficiaire (34 554 lignes). Les cardinalités
+diffèrent parce que la taxe communale est encaissée par la direction
+départementale et reversée aux communes — mais c'est le même argent. Les deux
+ventilations tombent **au centime**, sur 450 couples mois × taxe et
+130 326 685 268,21 €. Aucune erreur de lecture ne satisfait cette égalité par
+hasard ; c'est pourquoi les deux fichiers entiers servent de fixture, et pourquoi
+un test vérifie qu'**un centime d'écart suffit à bloquer**.
+
+Trois réserves entrent dans les fiches. **Département et communes ne
+s'additionnent pas** : deux niveaux de collectivité, deux totaux. **La part
+communale n'est pas une donnée communale** — la source l'agrège sur toutes les
+communes d'un département, et la diviser par les habitants d'une ville serait un
+contresens. Et les montants sont datés du **mois de comptabilisation**, pas de
+la transaction : la série ne se lit pas comme un indicateur du marché
+immobilier. La taxe régionale est écartée, **99,996 % de son montant n'étant pas
+localisé** dans la source. L'exercice en cours n'est pas publié : la source va
+jusqu'au mois dernier, et 2026 à côté de 2025 montrerait un effondrement qui
+n'est que le calendrier.
+
+**Trois sources sondées et validées, pas encore codées.** L'**IRCOM** donne
+l'impôt sur le revenu par commune, revenus 1992 à 2024, avec deux pièges
+mesurés : la colonne `Dép.` contient une **direction DGFiP** et non un
+département — Paris est éclaté en cinq, et le code `B31` désigne les
+non-résidents dont les « communes » sont des **pays** — et chaque commune
+détaillée apparaît **neuf fois**, huit tranches plus un total. Le contrôle
+existe et il est exact : la somme des tranches retrouve le total, zéro échec sur
+5 874 communes, une fois écartées les cellules sous secret. Les **exonérations
+de cotisations URSSAF** couvrent 2004-2025 par département, avec une identité à
+trois niveaux emboîtés — somme des départements = somme des régions = total
+France, à 0,92 € près sur 1 000,7 Md€ ; piège signalé, deux jeux aux colonnes
+homonymes diffèrent de 1,29 Md€ de périmètre. Les **salaires** de l'INSEE
+donnent le net mensuel équivalent temps plein par commune, millésime 2023, avec
+un contrôle d'égalité Paris commune / Paris département.
+
+**Défaillances d'entreprises — écartées le 6 août.** Les 640 séries de la Banque
+de France sont **toutes vides** sur son portail, pièces jointes comprises ; le
+seul fichier téléchargeable s'arrête en **septembre 2017**. Le BODACC, lui, est
+vivant — 50,2 millions d'annonces jusqu'à aujourd'hui — mais c'est une base
+d'**annonces judiciaires**, pas une statistique : 175 892 annonces de procédures
+collectives en 2024 pour un ordre de grandeur officiel de 66 000 défaillances,
+avec des rectificatifs, des annulations et un champ `jugement` sérialisé en JSON
+dans une colonne texte. Publier un décompte d'annonces sous le nom
+« défaillances » serait faux.
+
+**Effectifs de la fonction publique territoriale — écartés le 6 août.** Même
+piège de pièce jointe, même mur : la donnée existe, elle s'arrête en **2016**,
+et le fichier n'a **aucune colonne territoriale** malgré le mot « territoriale »
+dans son titre — c'est un agrégat national par type d'employeur. Le fichier
+départemental voisin s'arrête aussi en 2016. Une source plus récente existe chez
+la Caisse des dépôts, 2014-2021 par département, mais elle compte des
+**cotisants dans l'année** et non des effectifs au 31 décembre : 2,69 millions
+contre 1,9 million, les deux séries ne se raccordent pas.
+
+**Assurance chômage — sondée, chargeable, et c'est la meilleure trouvaille du
+lot.** Le jeu `evolution_indicateurs_cles_ac` de l'Unédic publie la **dépense
+d'indemnisation mensuelle en euros par département**, de janvier 2020 à décembre
+2025, géométries comprises. L'identité de contrôle est exacte : la somme des
+103 territoires égale la somme des 14 lignes d'agrégat régional, au centime —
+36 639 599 911,50 € pour 2024 des deux côtés. Deux pièges mesurés : sommer les
+117 lignes sans écarter les agrégats donne **exactement le double**, et le code
+de Saint-Martin/Saint-Barthélemy vaut littéralement `"Saint"`, tronqué à cinq
+caractères à la source.
+
+**Assurance maladie — sondée, chargeable, avec un piège de vocabulaire.** Le jeu
+`prescriptions` de la CNAM donne 2010 à 2024 par département, avec une identité
+exacte : la ligne France vaut 60 453 601 998 € en 2024, la somme de ses huit
+postes tombe au même euro, et la somme des 101 départements à six euros près.
+Mais deux voisins portent des noms trompeurs. Le jeu `honoraires` mesure ce que
+**perçoivent les professionnels**, dépassements compris — 4,54 Md€ payés par les
+ménages en 2024 — et non de l'argent public. Et le jeu nommé `depenses` n'a
+**aucune dimension géographique** : ses colonnes `dep_niv_1` et `dep_niv_2` sont
+des postes de dépense, pas des départements. Sommer sa hiérarchie donne 588,6 Md€
+pour un vrai total de 212,58 Md€, parce qu'un patient compte dans plusieurs
+pathologies.
+
+Un piège de format mérite d'être noté pour la suite : les fichiers plats de la
+CNAM écrivent les montants avec le **point comme séparateur de milliers**
+(`559.662,99`). Une conversion naïve échoue silencieusement sur 38 % des lignes
+et divise le total par 163.
+
+**Retraites — écartées le 6 août, faute de donnée.** Ce n'est pas un problème de
+millésime ni de format : **aucune masse de pensions versées par territoire n'est
+publiée en open data**. Le portail de l'Assurance retraite croise les euros avec
+le temps mais jamais avec un lieu, et croise le territoire — la **Carsat**, qui
+n'est ni la région ni le département — uniquement avec des effectifs. Son jeu
+« Montant global de la retraite » ne porte pas une masse mais une **moyenne
+mensuelle par retraité**, et sur le seul régime général, hors complémentaires.
+La DREES ne publie de pensions régionales qu'en distributions figées à fin 2016.
+Cartographier les retraites supposerait de multiplier un effectif par une
+pension moyenne : ce serait une reconstruction, pas une mesure.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
