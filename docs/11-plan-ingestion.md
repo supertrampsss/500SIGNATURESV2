@@ -402,6 +402,29 @@ région, qui est publiée ; les 26 restants n'ont ni parent ni région, et la li
 de leurs départements reste visible dans leurs drapeaux. Une fiche d'EPCI se
 compare donc à son département et à sa région, comme une commune.
 
+### Groupes de comparaison v2 — fait le 6 août
+
+Les critères passent de trois à cinq, **en cascade**. Le sur-découpage est le
+piège du sujet : chaque critère multiplie les strates, et une strate sous le
+seuil de vingt disparaît sans un mot — les communes atypiques, celles qu'un
+groupe fin sert le mieux, auraient perdu leur repère. La publication calcule
+donc trois découpages (cinq critères, trois, deux) et la fiche prend le premier
+qui existe pour sa commune.
+
+Mesuré sur la publication du 6 août : **34 534 communes sur 34 875 (99 %)**
+obtiennent le découpage fin, taille médiane d'un groupe **111 contre 635**. Les
+341 autres retombent sur trois critères. Tignes, jusque-là noyée parmi les
+communes rurales, se compare à 151 stations de montagne ; Bordeaux passe de 40
+à 25 villes comparables.
+
+Les critères affichés sous les quartiles sont ceux qui ont servi, et non une
+liste figée : ils ne sont pas les mêmes d'une commune à l'autre.
+
+Restent inutilisés `qpv` et `tranche_revenu_imposable_par_habitant`. Le premier
+est une indicatrice de présence, pas une caractéristique de la commune entière ;
+le second mêlerait un critère de résultat aux critères de contexte — comparer
+des communes de même revenu pour constater qu'elles ont le même revenu.
+
 ### P1 — après mesure du volume réel
 
 | # | Jeu | Ce qu'on en tire | Maille |
