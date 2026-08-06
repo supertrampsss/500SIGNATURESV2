@@ -634,7 +634,7 @@ def declarer(conn) -> None:
 COLONNES = ("value",)
 
 
-def ecrire(conn, run_id: str, lignes: list[Ligne]) -> tuple[int, int, int, dict, dict]:
+def ecrire(conn, run_id: str, lignes: list[Ligne]) -> tuple[int, int, int, int, dict, dict]:
     """Remplace les trois séries en archivant ce qui a bougé.
 
     La DGFiP republie IRCOM chaque année et corrige les millésimes antérieurs :
@@ -658,6 +658,10 @@ def ecrire(conn, run_id: str, lignes: list[Ligne]) -> tuple[int, int, int, dict,
         ecrites,
         len(ecartes),
         revisees,
+        # Les trois séries n'ont pas la même longueur — le secret ne masque pas
+        # les mêmes communes d'une colonne à l'autre —, alors diviser le nombre
+        # d'observations par trois donnerait un compte faux.
+        len({code for _, _, code, _, _ in gardees}),
         foyers_par_maille(candidates),
         foyers_par_maille(gardees),
     )
@@ -687,7 +691,7 @@ def run(store_spec: str) -> int:
         rapproche = controler_national(sommes_nationales(lignes), lire_national(national))
         entrepot.etape("somme des communes rapprochée du total national")
 
-        ecrites, ecartes, revisees, lus, reconnus = ecrire(conn, run_id, lignes)
+        ecrites, ecartes, revisees, communes, lus, reconnus = ecrire(conn, run_id, lignes)
         parts = couverture.controler(lus, reconnus)
         entrepot.etape(f"{ecrites} observations écrites")
 
@@ -695,7 +699,7 @@ def run(store_spec: str) -> int:
             **tranches,
             **rapproche,
             "periode": PERIODE,
-            "communes_publiees": ecrites // len(INDICATEURS),
+            "communes_publiees": communes,
             "hors_referentiel": ecartes,
             "couverture": {n: round(p, 4) for n, p in sorted(parts.items())},
         })

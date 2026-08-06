@@ -280,10 +280,12 @@ def test_l_ecriture_reelle_contre_un_vrai_entrepot(entrepot_seme, lignes):
             (code, ir.MILLESIME, nom),
         )
     run_id = entrepot.start_run(entrepot_seme, ir.DATASET, "manual")
-    ecrites, ecartes, revisees, lus, reconnus = ir.ecrire(entrepot_seme, run_id, lignes)
+    ecrites, ecartes, revisees, communes, lus, reconnus = ir.ecrire(
+        entrepot_seme, run_id, lignes
+    )
     entrepot_seme.commit()
 
-    assert ecrites == 6, "trois indicateurs sur deux communes du référentiel"
+    assert (ecrites, communes) == (6, 2), "trois indicateurs sur deux communes"
     assert ecartes > 500, "les autres communes ne sont pas au référentiel de ce test"
     assert revisees == 0
     (valeur,) = entrepot_seme.execute(
@@ -314,7 +316,7 @@ def test_un_montant_corrige_est_archive_et_non_ecrase(entrepot_seme, lignes):
         for ligne in lignes
     ]
     second = entrepot.start_run(entrepot_seme, ir.DATASET, "manual")
-    _, _, revisees, _, _ = ir.ecrire(entrepot_seme, second, corrigees)
+    _, _, revisees, _, _, _ = ir.ecrire(entrepot_seme, second, corrigees)
     entrepot_seme.commit()
 
     assert revisees == 1

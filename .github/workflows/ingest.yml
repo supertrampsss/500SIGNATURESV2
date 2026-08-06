@@ -166,6 +166,14 @@ jobs:
             python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
             python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
             python -m plateforme.normalize.mutations --store r2:plateforme-raw
+            python -m plateforme.normalize.impot_revenu --store r2:plateforme-raw
+            python -m plateforme.normalize.exonerations --store r2:plateforme-raw
+            python -m plateforme.normalize.chomage_indemnisation --store r2:plateforme-raw
+            python -m plateforme.normalize.prescriptions --store r2:plateforme-raw
+            python -m plateforme.normalize.salaires --store r2:plateforme-raw
+            python -m plateforme.normalize.loyers --store r2:plateforme-raw
+            python -m plateforme.normalize.construction --store r2:plateforme-raw
+            python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -217,6 +225,14 @@ jobs:
             python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
             python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
             python -m plateforme.normalize.mutations --store r2:plateforme-raw
+            python -m plateforme.normalize.impot_revenu --store r2:plateforme-raw
+            python -m plateforme.normalize.exonerations --store r2:plateforme-raw
+            python -m plateforme.normalize.chomage_indemnisation --store r2:plateforme-raw
+            python -m plateforme.normalize.prescriptions --store r2:plateforme-raw
+            python -m plateforme.normalize.salaires --store r2:plateforme-raw
+            python -m plateforme.normalize.loyers --store r2:plateforme-raw
+            python -m plateforme.normalize.construction --store r2:plateforme-raw
+            python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -283,6 +299,24 @@ jobs:
           # l'entrepôt comme la republication du site coûtent plus cher
           # que les chargements eux-mêmes. `set -e` : si l'un échoue, les
           # suivants ne publient pas par-dessus.
+          # La vague du 6 août : huit connecteurs écrits le même jour, qui
+          # écrivent des indicateurs disjoints. Un seul run, une seule
+          # publication — l'aller-retour de l'entrepôt coûte plus cher que
+          # les chargements. `set -e` : si l'un échoue, les suivants ne
+          # publient pas par-dessus.
+          if [ "$JOB" = "vague-aout" ]; then
+            set -e
+            python -m plateforme.normalize.impot_revenu --store r2:plateforme-raw
+            python -m plateforme.normalize.exonerations --store r2:plateforme-raw
+            python -m plateforme.normalize.chomage_indemnisation --store r2:plateforme-raw
+            python -m plateforme.normalize.prescriptions --store r2:plateforme-raw
+            python -m plateforme.normalize.salaires --store r2:plateforme-raw
+            python -m plateforme.normalize.loyers --store r2:plateforme-raw
+            python -m plateforme.normalize.construction --store r2:plateforme-raw
+            python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "finances-locales" ]; then
             set -e
             python -m plateforme.normalize.dotations --store r2:plateforme-raw

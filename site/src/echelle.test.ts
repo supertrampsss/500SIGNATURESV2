@@ -221,3 +221,13 @@ test("un délai de paiement ne se légende pas en euros", () => {
   assert.doesNotMatch(note, /euros/);
   assert.match(formater(19.85, "jours", false), /19,9 jours/);
 });
+
+test("un loyer au mètre carré ne se légende pas en euros courants", () => {
+  // 86 % des communes de la source portent le loyer d'une zone voisine : la
+  // légende doit dire que le gris est une absence de mesure, pas un zéro.
+  const note = noteEchelle("€/m²/mois", false);
+  assert.match(note, /charges comprises/);
+  assert.match(note, /reste grise/);
+  assert.doesNotMatch(note, /euros courants/);
+  assert.match(formater(12.7, "€/m²/mois", false), /12,7 €\/m²\/mois/);
+});
