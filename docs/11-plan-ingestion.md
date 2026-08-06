@@ -895,8 +895,8 @@ Le plan ci-dessus est clos. Il ne couvrait qu'un extrait du registre des sources
 charge une cinquantaine. Cette section suit la reprise du registre lui-même.
 
 **Ordre retenu**, par ce que chaque source apporte à la question « où vont mes
-impôts » et par ce qu'elle coûte à charger. **Dix-neuf lignes traitées au 6 août** :
-quatre chargées, une codée, cinq sondées et validées, huit écartées avec leur
+impôts » et par ce qu'elle coûte à charger. **Vingt-trois lignes traitées au 6 août** :
+quatre chargées, une codée, huit sondées et validées, neuf écartées avec leur
 raison écrite, une reportée sur un prérequis nommé.
 
 Une leçon technique traverse cette vague et mérite d'être notée pour la
@@ -928,6 +928,10 @@ son compteur : il faut interroger
 | 17 | Assurance chômage (Unédic) | sondée, chargeable — masse départementale mensuelle |
 | 18 | Assurance maladie (CNAM) | sondée, chargeable — prescriptions par département |
 | 19 | Retraites | **écartées le 6 août** — aucune masse par territoire n'existe |
+| 20 | Permis de construire (Sitadel) | sondée, chargeable — commune, mensuel, 2013→2026 |
+| 21 | Loyers (carte ANIL) | sondée, chargeable sous réserve — 14 % de communes fiables |
+| 22 | Fonds européens FEDER/FSE+ | sondée, chargeable pour le programmé |
+| 23 | Aides PAC | **écartées le 6 août** — aucune diffusion en masse |
 
 **Trois affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
 est annoncé « 2009→ » : la source n'en publie que **2024 et 2025**. Et le jeu des
@@ -1282,6 +1286,51 @@ mensuelle par retraité**, et sur le seul régime général, hors complémentair
 La DREES ne publie de pensions régionales qu'en distributions figées à fin 2016.
 Cartographier les retraites supposerait de multiplier un effectif par une
 pension moyenne : ce serait une reconstruction, pas une mesure.
+
+**Permis de construire — sondée, c'est la plus propre des quatre.** Le fichier
+communal mensuel du SDES couvre janvier 2013 à juin 2026, 34 945 communes,
+28,9 millions de lignes, avec une API filtrable. L'identité de contrôle est
+exacte : « Tous Logements » égale la somme des quatre types, vérifiée à Lyon
+comme au national. 370 546 logements autorisés en 2025, 239 618 commencés.
+
+Deux pièges mesurés, tous deux bloquants. Le fichier **annuel départemental** ne
+se rapproche pas du mensuel communal : l'un est en date réelle et incomplet,
+l'autre en date de prise en compte, et l'écart 2025 est de **4,3 %** — deux
+concepts, pas une erreur. Et la colonne de surface du fichier annuel
+départemental est **corrompue à la source** : 1 782 m² par logement au national
+2025, contre 75,9 m² dans le fichier communal. Les surfaces ne se chargent donc
+que depuis le mensuel communal.
+
+**Loyers — chargeable sous une réserve qui change tout.** La carte des loyers de
+l'ANIL couvre 34 900 communes, mais **86 % des valeurs ne sont pas des loyers
+communaux** : ce sont les prédictions d'une zone voisine, recopiées. La colonne
+`TYPPRED` le dit, et il n'y a que 7 244 valeurs distinctes pour 34 900 communes.
+En croisant prédiction communale, au moins trente annonces et qualité
+d'ajustement suffisante, il reste **4 869 communes exploitables, soit 14,0 %**.
+Charger sans ce filtre publierait trente mille faux loyers communaux. Il faudra
+donc charger `TYPPRED` et l'intervalle de prédiction avec la valeur, et
+n'afficher que ce qui est mesuré.
+
+**Fonds européens — chargeable pour ce qui est programmé, pas pour ce qui est
+payé.** La liste ANCT donne 16 625 opérations FEDER, FSE+ et FTJ conventionnées
+au 16 mars 2026, soit **7,88 Md€ de subvention européenne** sur 17,95 Md€ de
+dépenses éligibles. Deux contrôles tiennent : dépenses éligibles × taux de
+cofinancement = montant UE sur les 16 591 lignes renseignées, et le décompte
+d'opérations par programme correspond à l'unité près à celui publié sur le site.
+Le piège est géographique : la colonne « Région de l'opération » est **vide à
+37 %** et porte 71 valeurs distinctes pour 18 régions ; c'est le libellé de
+programme qui régionalise. Et les montants **payés** n'existent que dans un PDF
+graphique, illisible par machine — ces 7,88 Md€ sont des engagements, jamais des
+versements.
+
+**Aides PAC — écartées le 6 août, pour cause d'inaccessibilité.** L'ASP ne
+diffuse plus les bénéficiaires que par une application décisionnelle
+interactive : l'API répond 401, l'ancien portail 404, et le reste expire. Même
+accessible, la maille communale serait détruite par l'anonymisation — dès que
+moins de onze bénéficiaires d'une commune sont concernés, seul le département
+est publié, ce qui frappe précisément les campagnes où l'agriculture est
+diffuse. S'ajoute un piège de définition : la commune publiée est celle
+d'enregistrement du bénéficiaire, pas celle des parcelles aidées.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
