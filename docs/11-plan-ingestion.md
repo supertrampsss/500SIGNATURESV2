@@ -669,12 +669,44 @@ participation**. Sur la publication en ligne, 34 801 communes portent un taux �
 Bordeaux 58,08 %, Paris 58,89 % — les 35 manquantes étant celles que le
 référentiel ne connaît pas, Nouvelle-Calédonie et Saint-Pierre-et-Miquelon.
 
-### P2 — onglet « Statistiques et études », pas la carte
+### P2 — la fiche nationale, pas la carte
 
-`DD_CNA_APU` (comptes des administrations publiques), `DS_IPC_PRINC` (indice
-des prix), `DD_CNA_CONSO_MENAGES_PRODUITS`, `DS_ICA` (activité et chiffre
-d'affaires), `DS_PRENOM` — séries nationales ou thématiques : elles éclairent,
-elles ne se cartographient pas à la commune.
+`DD_CNA_APU` (comptes des administrations publiques),
+`DD_CNA_CONSO_MENAGES_PRODUITS`, `DS_ICA` (activité et chiffre d'affaires),
+`DS_PRENOM` — séries nationales ou thématiques : elles éclairent, elles ne se
+cartographient pas à la commune.
+
+**L'onglet « Statistiques et études » n'a jamais été construit, et il n'a plus
+lieu de l'être.** La fiche nationale accueille déjà six thèmes non
+cartographiables — budget de l'État, dette, dépenses par fonction, Sécurité
+sociale, conjoncture, comparaisons européennes. C'est là que les séries P2
+entrent, sans surface nouvelle à bâtir.
+
+**Indice des prix à la consommation — chargement lancé le 6 août.** Le premier
+P2, et son seul enjeu est de ne pas se confondre avec ce qui est déjà publié.
+Le site porte l'**IPCH**, l'indice harmonisé européen, qui sert à comparer les
+pays ; ce module apporte l'**IPC** national, celui auquel renvoient la loi et
+les contrats — revalorisation des pensions, des prestations, du SMIC,
+indexation des loyers par l'indice de référence qui en dérive. L'IPCH n'indexe
+rien en France. Les deux séries s'écartent de quelques dixièmes de point la
+plupart des mois, parce que leurs champs ne coïncident pas : les dépenses de
+santé remboursées et les loyers imputés n'y sont pas traités de la même façon.
+Chacune nomme désormais l'autre dans sa fiche, et le site n'en agrège aucune.
+
+Un panier sur trois est chargé. La source décline le même indice pour
+l'ensemble des ménages, pour les ménages urbains dont la personne de référence
+est ouvrier ou employé, et pour les loyers imputés : les trois portent le même
+nom et mesurent des choses différentes.
+
+Le contrôle bloquant ne compare pas une colonne à sa voisine. Le glissement sur
+douze mois publié par l'INSEE est **recalculé depuis l'indice** du même mois et
+de douze mois plus tôt, deux séries que la même requête sert sous des
+`IND_TYPE` distincts : 355 points mensuels de 1997 à 2026, écart nul. C'est lui
+qui verrait un niveau d'indice chargé comme un taux — le site annoncerait alors
+cent pour cent d'inflation par an. Un rebasement de la source arrête aussi le
+chargement : les niveaux d'indice ne se comparent pas d'une base à l'autre.
+
+Relevé sur la source : 2,1 % en juillet 2026, base 2025.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
