@@ -715,7 +715,7 @@ connecteur Eurostat, que le suivi de fraîcheur signale par ailleurs. Il est not
 ici parce qu'un lecteur qui compare les deux inflations verra d'abord cet écart,
 et qu'il ne doit pas le prendre pour un écart de mesure.
 
-**Solde des administrations publiques — chargement lancé le 6 août.** Le
+**Solde des administrations publiques — chargé le 6 août.** Le
 « déficit public » dont parlent les 3 % de Maastricht, par sous-secteur, de 1959
 à 2025. Quatre indicateurs, niveau pays, dans le thème « dette » où il voisine
 l'encours qu'il alimente.
@@ -749,8 +749,10 @@ Le sous-secteur des administrations centrales réunit l'État **et** les
 organismes divers : la source ne publie pas de solde pour l'État isolément dans
 ce jeu, et l'identifiant le dit.
 
-Relevé sur la source : solde public 2024 de −169,1 milliards d'euros, 2025 de
-−152,5 milliards.
+Vérifié au chargement, et l'identité se referme jusque sur les fichiers
+publiés : solde public 2024 de −169,1 milliards d'euros — dont −152,5 pour les
+administrations centrales, −17,8 pour les collectivités et +1,1 pour la Sécurité
+sociale — et −152,5 milliards en 2025. Soixante-sept exercices, de 1959 à 2025.
 
 **Les trois P2 restants, et ce que leur sondage a montré (6 août).** Ils ne se
 valent pas, et l'ordre dans lequel ils entrent — ou n'entrent pas — se décide
