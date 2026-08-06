@@ -22,4 +22,3 @@ data-ameli,data.ameli.fr,CNAM,A,https://data.ameli.fr/api/explore/v2.1/,https://
 urssaf,open.urssaf.fr,URSSAF Caisse nationale,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
 sdes,Donnees statistiques SDES,SDES (ministere de la Transition ecologique),A,https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1/,https://www.statistiques.developpement-durable.gouv.fr,,Licence Ouverte 2.0,FR
 anct,Europe en France,ANCT,C,https://www.europe-en-france.gouv.fr,https://www.europe-en-france.gouv.fr,,Licence Ouverte 2.0,FR
-anil,Carte des loyers,ANIL / DGALN,C,https://static.data.gouv.fr,https://www.data.gouv.fr,,Licence Ouverte 2.0,FR
