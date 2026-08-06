@@ -671,7 +671,6 @@ référentiel ne connaît pas, Nouvelle-Calédonie et Saint-Pierre-et-Miquelon.
 
 ### P2 — la fiche nationale, pas la carte
 
-`DD_CNA_APU` (comptes des administrations publiques),
 `DD_CNA_CONSO_MENAGES_PRODUITS`, `DS_ICA` (activité et chiffre d'affaires),
 `DS_PRENOM` — séries nationales ou thématiques : elles éclairent, elles ne se
 cartographient pas à la commune.
@@ -715,6 +714,43 @@ décembre 2025 : ce n'est pas un défaut de définition mais un retard du
 connecteur Eurostat, que le suivi de fraîcheur signale par ailleurs. Il est noté
 ici parce qu'un lecteur qui compare les deux inflations verra d'abord cet écart,
 et qu'il ne doit pas le prendre pour un écart de mesure.
+
+**Solde des administrations publiques — chargement lancé le 6 août.** Le
+« déficit public » dont parlent les 3 % de Maastricht, par sous-secteur, de 1959
+à 2025. Quatre indicateurs, niveau pays, dans le thème « dette » où il voisine
+l'encours qu'il alimente.
+
+**Ce n'est pas le solde budgétaire de l'État, déjà publié.** Celui-là porte sur
+le seul budget général et suit la comptabilité budgétaire — encaissements et
+décaissements de l'exercice. Celui-ci couvre toutes les administrations
+publiques et suit la comptabilité nationale, où une opération est rattachée à
+l'exercice où le droit naît. Deux périmètres, deux conventions, deux chiffres
+justes ; chacun nomme l'autre. **Ce n'est pas non plus la dette** : un flux
+d'une année contre un encours accumulé. Et **le signe est une convention** : la
+source publie une capacité (+) ou un besoin (−) de financement, si bien qu'un
+déficit s'écrit en négatif — le retourner rendrait incomparables les rares
+exercices excédentaires.
+
+Le contrôle bloquant est l'identité des sous-secteurs : centrales + locales +
+sécurité sociale = ensemble. Vérifiée sur les 67 exercices de la source, écart
+nul — dont 2024, où −152 464 − 17 794 + 1 140 fait exactement les −169 118
+millions publiés.
+
+**Ce que ce chargement refuse, et pourquoi.** Le jeu publie aussi des agrégats
+de recettes et de dépenses totales. Leurs valeurs ne retrouvent pas les chiffres
+publics connus : 2 034 milliards de recettes et 2 152 de dépenses en 2024, quand
+la statistique publique annonce environ 1 500 et 1 670. L'écart vient du
+périmètre de consolidation, que la source ne documente pas dans ses métadonnées.
+Un agrégat dont on ne peut pas nommer le dénominateur n'est pas publié — c'est
+la règle déjà appliquée aux agrégats OFGL sans définition, et elle vaut ici
+d'autant plus que le chiffre serait lu comme « ce que coûte l'État ».
+
+Le sous-secteur des administrations centrales réunit l'État **et** les
+organismes divers : la source ne publie pas de solde pour l'État isolément dans
+ce jeu, et l'identifiant le dit.
+
+Relevé sur la source : solde public 2024 de −169,1 milliards d'euros, 2025 de
+−152,5 milliards.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
