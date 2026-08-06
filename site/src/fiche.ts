@@ -667,6 +667,9 @@ const PHARES: Record<string, string[]> = {
   // par des chambres et des emplacements, pas par un nombre d'enseignes. Les
   // deux hébergements les plus répandus ouvrent ; le troisième suit.
   tourisme: ["insee_hotels_chambres", "insee_campings_emplacements"],
+  // Le taux avant les effectifs : « a-t-on voté chez moi » se répond par
+  // une part, pas par un nombre d'inscrits qui ne dit que la taille.
+  elections: ["elections_taux_participation", "elections_inscrits"],
   // Le taux global, celui qui figure sur l'avis d'imposition : la part
   // communale seule ne dit pas ce que paie le propriétaire. L'identifiant écrit
   // ici ne correspondait à aucun indicateur publié — le thème s'ouvrait donc
@@ -712,6 +715,7 @@ const ORDRE_THEMES = [
   "secteurs_etablissements",
   "equipements",
   "tourisme",
+  "elections",
   // Fiche nationale.
   "budget_etat",
   "dette",

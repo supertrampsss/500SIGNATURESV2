@@ -430,12 +430,12 @@ des communes de même revenu pour constater qu'elles ont le même revenu.
 | # | Jeu | Ce qu'on en tire | Maille |
 |---|---|---|---|
 | ~~8~~ | ~~`DS_FLORES_A5`~~ | **chargé le 6 août** — 419 880 observations, douze indicateurs, millésime 2024 | commune |
-| 9 | `DS_TOUR_CAP` | **chargement lancé le 6 août** — 209 850 observations, six indicateurs, au 1er janvier 2026 | commune |
+| ~~9~~ | ~~`DS_TOUR_CAP`~~ | **chargé le 6 août** — 209 850 observations, six indicateurs, au 1er janvier 2026 | commune |
 | ~~10~~ | ~~`DS_RP_EMPLOI_LR_PRINC`~~ | **chargé le 5 août** — 724 410 observations, dix indicateurs ; couvre aussi la ligne 11 | commune |
 | ~~11~~ | ~~`DS_RP_TD_DIPLOMES_PRINC`~~ | **inutile** : les diplômes sont dans le jeu de la ligne 10, sur la même population | commune |
 | 12 | DVF (data.gouv) | prix des logements vendus | commune |
 | ~~13~~ | ~~RPLS (SDES)~~ | **chargé le 6 août** — 5 416 826 logements sociaux comptés un par un, trois indicateurs | commune |
-| 14 | Élections (data.gouv) | résultats par commune | commune |
+| 14 | Élections (data.gouv) | **chargement lancé le 6 août** — 174 180 observations, cinq indicateurs de **participation** ; les nuances politiques ne sont pas chargées, et le plan dit pourquoi | commune |
 
 **Activité, chômage et diplômes — chargé le 5 août.** Le premier P1, et il
 comble le manque le plus visible : le taux de chômage s'arrêtait au département,
@@ -576,7 +576,7 @@ territoire n'est tombé du référentiel** — 419 880 observations lues, 419 88
 écrites — ce qui est rare et tient à ce que FLORES publie les arrondissements
 municipaux sous leur propre zonage plutôt que mêlés aux communes.
 
-**Capacités d'hébergement touristique — chargement lancé le 6 août.** Le jeu
+**Capacités d'hébergement touristique — chargé le 6 août.** Le jeu
 qui refuse d'être un seul nombre. 209 850 observations, six indicateurs, aux
 trois mailles, au 1er janvier 2026.
 
@@ -614,8 +614,58 @@ Deux réserves entrent dans les fiches. Les emplacements comprennent ceux qui so
 un vacancier de passage. Et **un seul millésime est publié**, celui du 1er janvier
 2026 : il n'y a pas de série, et aucune évolution ne peut être lue ici.
 
-Relevé sur l'archive réelle : Bordeaux, 82 hôtels et 5 796 chambres, aucun
+Vérifié sur la publication : Bordeaux, 82 hôtels et 5 796 chambres, aucun
 camping, 24 hébergements collectifs et 6 369 lits.
+
+**Participation électorale — chargement lancé le 6 août.** La ligne 14, et la
+seule du plan où le choix de ce qu'on ne charge **pas** compte plus que ce qu'on
+charge. 174 180 observations, cinq indicateurs, 34 836 communes, premier tour
+des municipales du 15 mars 2026.
+
+**Les nuances politiques ne sont pas chargées, et c'est une décision.** Le
+fichier du ministère porte, pour chaque commune, le nom de chaque tête de liste,
+sa nuance, ses voix et ses sièges. Quatre raisons de s'en tenir à la
+participation :
+
+1. **La nuance n'est pas une mesure.** Elle est attribuée par l'administration
+   préfectorale, sa nomenclature change d'un scrutin à l'autre, et les listes la
+   contestent régulièrement. Une carte peinte par nuance donnerait à une
+   convention administrative l'apparence d'une donnée statistique.
+2. **Une municipale n'est pas un scrutin national.** Sous 3 500 habitants,
+   l'essentiel des listes est sans nuance : la carte serait grise là où vit une
+   grande part du pays et lisible ailleurs, et l'écart entre les deux se lirait
+   comme un écart politique alors qu'il est un écart de nomenclature.
+3. **Ce site refuse les comparaisons dont il ne contrôle pas la définition.**
+   Sur les nuances, il ne la contrôle pas.
+4. **Les noms des candidats sont des données personnelles** dont ce site n'a
+   aucun usage ; les élus qui siègent sont déjà couverts par le Répertoire
+   national des élus, chargé par ailleurs.
+
+Ce qui reste — combien d'inscrits, combien se sont déplacés, combien de blancs
+et de nuls — est une donnée civique, cartographiable, comparable, et qui ne
+prête d'intention à personne.
+
+**Le premier tour, et lui seul** : c'est le seul qui a eu lieu partout. Le
+second ne concerne que les communes où rien n'était joué, et une carte qui
+mêlerait les deux comparerait des communes ayant voté deux fois à des communes
+ayant voté une fois. **Et un inscrit n'est pas un habitant en âge de voter** :
+l'inscription est une démarche, les résidents étrangers ne votent aux
+municipales que s'ils sont européens, et le taux se lit donc sur les inscrits,
+jamais sur la population.
+
+Trois identités bloquantes, refermées sur les 34 836 communes : inscrits =
+votants + abstentions ; votants = exprimés + blancs + nuls ; et le taux
+recalculé égale celui que la source publie. La troisième est la seule qui
+regarde ailleurs que dans les colonnes lues — les deux premières se refermeraient
+encore si « Votants » et « Exprimés » avaient été inversées.
+
+Une précaution de forme, tirée des incidents du matin : l'URL du fichier porte
+l'horodatage du dépôt et change à chaque correction du ministère. Elle est
+retrouvée par le **titre** de la ressource dans le catalogue, et un fichier
+renommé arrête le chargement au lieu de recharger un fichier périmé.
+
+Relevé sur l'archive réelle : 48 474 213 inscrits, 27 678 488 votants, **57,10 %
+de participation**. Bordeaux : 174 137 inscrits, 58,08 %.
 
 ### P2 — onglet « Statistiques et études », pas la carte
 
