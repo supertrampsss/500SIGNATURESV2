@@ -278,6 +278,19 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          # Les trois connecteurs de finances locales en un seul run : ils
+          # écrivent des indicateurs disjoints, et l'aller-retour de
+          # l'entrepôt comme la republication du site coûtent plus cher
+          # que les chargements eux-mêmes. `set -e` : si l'un échoue, les
+          # suivants ne publient pas par-dessus.
+          if [ "$JOB" = "finances-locales" ]; then
+            set -e
+            python -m plateforme.normalize.dotations --store r2:plateforme-raw
+            python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
+            python -m plateforme.normalize.mutations --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "mutations" ]; then
             python -m plateforme.normalize.mutations --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
