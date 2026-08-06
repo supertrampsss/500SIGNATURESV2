@@ -429,7 +429,7 @@ des communes de même revenu pour constater qu'elles ont le même revenu.
 
 | # | Jeu | Ce qu'on en tire | Maille |
 |---|---|---|---|
-| 8 | `DS_FLORES_A5` | **connecteur prêt le 6 août**, chargement à lancer — 419 880 observations, douze indicateurs, millésime 2024 | commune |
+| ~~8~~ | ~~`DS_FLORES_A5`~~ | **chargé le 6 août** — 419 880 observations, douze indicateurs, millésime 2024 | commune |
 | 9 | `DS_TOUR_CAP` | capacités d'hébergement touristique | commune |
 | ~~10~~ | ~~`DS_RP_EMPLOI_LR_PRINC`~~ | **chargé le 5 août** — 724 410 observations, dix indicateurs ; couvre aussi la ligne 11 | commune |
 | ~~11~~ | ~~`DS_RP_TD_DIPLOMES_PRINC`~~ | **inutile** : les diplômes sont dans le jeu de la ligne 10, sur la même population | commune |
@@ -502,14 +502,12 @@ contrôle compare ce qui est **écrit** à ce qui est **lu**, maille par maille,
 entités et non en codes, et refuse sous 95 %. Il s'applique désormais à tout
 connecteur qui écarte des territoires inconnus.
 
-**Établissements employeurs et salariés par secteur — connecteur prêt le
-6 août.** Le premier jeu du site qui compte l'emploi **là où il est** plutôt que
-là où habitent ceux qui l'occupent : 419 880 observations, douze indicateurs,
+**Établissements employeurs et salariés par secteur — chargé le 6 août.** Le
+premier jeu du site qui compte l'emploi **là où il est** plutôt que là où
+habitent ceux qui l'occupent : 419 880 observations, douze indicateurs,
 2 411 570 établissements employeurs et 26 604 745 postes salariés en France
-entière. Les chiffres qui suivent sont relevés sur l'archive réelle, contrôles
-compris ; la ligne du plan ne passera en « chargé » que lorsque le connecteur
-aura tourné en production. Trois mots devaient être tenus, chacun contredisant un
-chiffre déjà en ligne s'il ne l'était pas.
+entière. Trois mots devaient être tenus, chacun contredisant un chiffre déjà en
+ligne s'il ne l'était pas.
 
 **Employeur n'est pas actif.** Le site publie déjà 6 625 344 établissements
 actifs pour 2024 ; ce jeu-ci n'en compte que 2 411 570, parce qu'il retient les
@@ -545,9 +543,12 @@ fabriquer une série par-dessus cet avertissement reviendrait à inventer une
 salarié la dernière semaine de décembre — 259 789 sont dans ce cas, 10,8 % du
 total.
 
-Relevé sur l'archive réelle : Bordeaux 2024, 14 432 établissements employeurs et
+Vérifié au chargement : Bordeaux 2024, 14 432 établissements employeurs et
 201 045 postes salariés, dont 100 521 dans les services marchands et 88 409 dans
-l'administration, l'enseignement, la santé et l'action sociale.
+l'administration, l'enseignement, la santé et l'action sociale. **Aucun
+territoire n'est tombé du référentiel** — 419 880 observations lues, 419 880
+écrites — ce qui est rare et tient à ce que FLORES publie les arrondissements
+municipaux sous leur propre zonage plutôt que mêlés aux communes.
 
 ### P2 — onglet « Statistiques et études », pas la carte
 
