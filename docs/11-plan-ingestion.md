@@ -900,7 +900,7 @@ impôts » et par ce qu'elle coûte à charger :
 | | Source | État |
 |---|---|---|
 | ~~1~~ | ~~REI — fiscalité directe locale (DGFiP / OFGL)~~ | **chargée le 6 août** |
-| 2 | Comptes individuels des communes (DGFiP) | à sonder |
+| 2 | Comptes individuels des communes (DGFiP) | **écartés le 6 août** — doublon qui contredirait l'OFGL |
 | 3 | Dépenses fiscales — Voies et moyens t. 2 | **source ODS vide**, voir plus bas |
 | 4 | Opérateurs de l'État | à sonder |
 | 5 | Commande publique / DECP | à sonder |
@@ -958,6 +958,31 @@ Bordeaux passe de 10,7 M€ en 2024 à 6,3 M€ en 2025 — une chute de 41 % en
 qui ne dit rien de la politique fiscale de la ville. C'est exactement la lecture
 que la réserve interdit : l'impôt lui-même a changé de périmètre, et un lecteur
 qui verrait la courbe sans la fiche conclurait de travers.
+
+**Comptes individuels des communes — écartés le 6 août, parce qu'ils
+contrediraient ce qui est déjà publié.** Le fichier existe et il est riche :
+69 877 enregistrements, 252 colonnes, exercices 2023-2024. Sa convention se lit
+sans ambiguïté — les montants sont en **milliers d'euros**, les colonnes en `f`
+sont par habitant de la commune, celles en `m` sont la moyenne de la strate
+DGFiP. Rien ne s'opposait techniquement au chargement.
+
+**Ce qui s'y oppose est que le site publie déjà ces comptes, par une autre
+porte.** Les 72 agrégats de l'OFGL viennent de la même donnée DGFiP et couvrent
+recettes, dépenses, épargne et dette, commune par commune. Charger les comptes
+individuels ajouterait un second jeu de chiffres sur les mêmes lignes — et ils ne
+coïncident pas : pour Bordeaux en 2023, l'OFGL publie 353,7 M€ de dépenses de
+fonctionnement quand les comptes individuels en affichent 385,2 M€. Les deux sont
+justes sur leur périmètre, et aucun lecteur ne pourrait savoir lequel regarder.
+Ce site refuse les comparaisons dont il ne contrôle pas la définition ; il doit
+d'autant plus refuser de se contredire lui-même.
+
+Reste l'apport propre de ce fichier : la **moyenne de la strate DGFiP**, un
+repère que le site n'a pas. Mais il en a déjà un — le groupe de communes
+semblables, dont les critères sont publiés et affichés sous chaque quartile. En
+poser un second, défini autrement, donnerait deux réponses à la question « ma
+commune est-elle comme les autres ? ». Si ce repère-là devait entrer un jour, ce
+serait en **remplacement** du nôtre et après comparaison des deux découpages, pas
+à côté.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
