@@ -57,8 +57,8 @@ def test_le_schema_s_applique_deux_fois_sans_erreur(tmp_path):
         """select count(*) from information_schema.tables
            where table_schema in ('meta','geo','core','fin')"""
     ).fetchone()[0]
-    # 16 tables du modèle, plus la table d'empreinte du schéma.
-    assert tables == 17
+    # 17 tables du modèle, plus la table d'empreinte du schéma.
+    assert tables == 18
     connexion.close()
 
 
@@ -375,6 +375,94 @@ def test_un_schema_qui_a_change_arrete_l_ouverture(tmp_path, monkeypatch):
     monkeypatch.setattr(entrepot, "SCHEMA", autre)
     with pytest.raises(entrepot.SchemaDivergent, match="autre schéma"):
         entrepot.connect(chemin)
+
+
+def test_un_ancetre_declare_additif_s_adopte_sans_reconstruire(tmp_path, monkeypatch):
+    """Une table de plus n'est pas une structure qui a changé.
+
+    Le garde-fou existe parce que `create ... if not exists` ne touche pas une
+    table déjà là. Cela vaut pour une modification ; une addition est exactement
+    ce que cette clause applique correctement, puisque le texte du schéma est
+    exécuté à chaque ouverture. Reconstruire l'entrepôt entier pour une table de
+    plus coûterait un rechargement complet de toutes les sources.
+    """
+    import hashlib
+
+    chemin = tmp_path / "e.duckdb"
+    ancien = tmp_path / "ancien-schema.sql"
+    texte = entrepot.SCHEMA.read_text(encoding="utf-8")
+    ancien.write_text(texte, encoding="utf-8")
+    monkeypatch.setattr(entrepot, "SCHEMA", ancien)
+    entrepot.connect(chemin).close()
+
+    ajout = tmp_path / "avec-une-table-de-plus.sql"
+    ajout.write_text(
+        texte + "\ncreate table if not exists meta.table_de_plus (x text);\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(entrepot, "SCHEMA", ajout)
+    monkeypatch.setattr(
+        entrepot, "ANCETRES_ADDITIFS",
+        {hashlib.sha256(texte.encode("utf-8")).hexdigest()},
+    )
+    conn = entrepot.connect(chemin)
+    # La table est là : c'est le texte du schéma qui l'a créée, pas une magie.
+    assert conn.execute("select count(*) from meta.table_de_plus").fetchone() == (0,)
+    # Et l'entrepôt garde la trace des deux schémas qu'il a portés, plutôt que
+    # d'effacer celui d'avant.
+    assert len(conn.execute("select empreinte from meta.schema_version").fetchall()) == 2
+    conn.close()
+
+
+def test_un_ancetre_non_declare_arrete_toujours_l_ouverture(tmp_path, monkeypatch):
+    """La liste est une affirmation vérifiée, pas une porte ouverte.
+
+    Sans déclaration explicite, un schéma qui a changé arrête l'ouverture comme
+    avant : c'est le refus qui reste le comportement par défaut.
+    """
+    chemin = tmp_path / "e.duckdb"
+    entrepot.connect(chemin).close()
+    autre = tmp_path / "autre.sql"
+    autre.write_text(
+        entrepot.SCHEMA.read_text(encoding="utf-8")
+        + "\ncreate table if not exists meta.non_declaree (x text);\n",
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(entrepot, "SCHEMA", autre)
+    monkeypatch.setattr(entrepot, "ANCETRES_ADDITIFS", set())
+    with pytest.raises(entrepot.SchemaDivergent, match="autre schéma"):
+        entrepot.connect(chemin)
+
+
+def test_l_ancetre_declare_ne_retire_ni_ne_modifie_une_seule_ligne():
+    """L'affirmation portée par `ANCETRES_ADDITIFS` se vérifie ici.
+
+    Une entrée dans cette liste dit : « le schéma courant ne fait qu'ajouter à
+    celui-ci ». C'est vrai ou faux, et c'est vérifiable — l'ancêtre déclaré est
+    le schéma de la branche principale, et son texte doit être un préfixe de
+    lignes du texte courant, sans suppression ni modification.
+    """
+    import hashlib
+    import subprocess
+
+    if not entrepot.ANCETRES_ADDITIFS:
+        pytest.skip("aucun ancêtre déclaré")
+    depot = entrepot.SCHEMA.resolve().parents[2]
+    rendu = subprocess.run(
+        ["git", "show", "origin/main:infra/entrepot/schema.sql"],
+        capture_output=True, text=True, cwd=depot,
+    )
+    if rendu.returncode != 0:
+        pytest.skip("origin/main indisponible")
+    empreinte = hashlib.sha256(rendu.stdout.encode("utf-8")).hexdigest()
+    if empreinte not in entrepot.ANCETRES_ADDITIFS:
+        pytest.skip("l'ancêtre déclaré n'est pas le schéma de la branche principale")
+    courant = entrepot.SCHEMA.read_text(encoding="utf-8").splitlines()
+    manquantes = [ligne for ligne in rendu.stdout.splitlines() if ligne not in courant]
+    assert not manquantes, (
+        "le schéma courant retire ou modifie des lignes de l'ancêtre déclaré"
+        f" additif : {manquantes[:5]}"
+    )
 
 
 def test_copier_rend_exactement_ce_qu_on_lui_donne(tmp_path):
