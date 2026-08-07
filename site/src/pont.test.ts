@@ -143,7 +143,17 @@ test("le bloc s'affiche ouvert : c'est la question qu'on vient poser", () => {
   assert.match(html, /exercice 2025/);
   assert.match(html, /Épargne brute/);
   assert.match(html, new RegExp(`417,1${FINE}M€`));
-  assert.match(html, /Ce n&#39;est pas un déficit au sens de l&#39;État/);
+});
+
+test("aucune prose sous le tableau : dans une colonne, chaque ligne compte", () => {
+  // La réserve « ce n'est pas un déficit au sens de l'État », la méthode des
+  // contrôles et le mode d'emploi des plis prenaient plus de place que les
+  // chiffres qu'ils accompagnaient. Ils se lisent sur la page « Données ».
+  const html = rendu(BORDEAUX);
+  assert.doesNotMatch(html, /déficit au sens/);
+  assert.doesNotMatch(html, /s&#39;ouvrent sur leur composition/);
+  assert.doesNotMatch(html, /pont__lecture/);
+  assert.doesNotMatch(html, /pont__aide/);
 });
 
 test("la colonne « il reste » est ce qui fait le pont", () => {

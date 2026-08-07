@@ -3152,12 +3152,6 @@ body[data-vue="carte"] .pied {
    pour que l'addition se vérifie de l'œil. */
 .pont__ligne--report .pont__nom { font-style: italic; }
 .pont__ligne--report .pont__reste { font-weight: 400; color: var(--encre-douce); }
-.pont__lecture {
-  margin: 0.1rem 0 0.25rem;
-  font-size: 0.68rem;
-  line-height: 1.35;
-  color: var(--encre-douce);
-}
 /* Ce qui s'ouvre se voit : le libellé souligné en pointillé est la seule
    promesse faite au lecteur qu'il y a quelque chose dessous. */
 .pont__ouvrir > summary,
@@ -3203,12 +3197,6 @@ body[data-vue="carte"] .pied {
 }
 .pont__c-part { color: var(--encre-douce); opacity: 0.75; }
 .pont__c-montant { color: var(--encre); }
-.pont__aide {
-  margin: 0.45rem 0 0;
-  font-size: 0.66rem;
-  line-height: 1.35;
-  color: var(--encre-douce);
-}
 
 /* Le bouton qui porte une mesure sur la carte. Peindre relit une couche de
    34 772 territoires : ce n'est plus le prix d'un simple dépliage, c'est un

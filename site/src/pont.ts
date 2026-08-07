@@ -34,10 +34,12 @@
  * palier ; si l'un des trois contrôles échoue, il n'y a pas de pont. Un
  * enchaînement qui ne boucle pas ne s'explique pas, il s'enlève.
  *
- * **La dernière ligne n'est pas un déficit.** Une collectivité vote sa section
- * de fonctionnement en équilibre : l'écart entre tout ce qu'elle a encaissé et
- * tout ce qu'elle a payé ne se lit pas comme le solde budgétaire de l'État, qui
- * est un besoin de financement.
+ * **La dernière ligne n'est pas un déficit** au sens de l'État : une collectivité
+ * vote sa section de fonctionnement en équilibre. Cette réserve, la méthode des
+ * contrôles et le mode d'emploi des plis se lisent sur la page « Données ». Ils
+ * ont d'abord été écrits sous le tableau, où ils prenaient plus de place que les
+ * chiffres qu'ils accompagnaient — dans une barre latérale, chaque ligne de
+ * prose est une ligne de compte en moins.
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -79,7 +81,6 @@ export type Marche = {
   section: "fonctionnement" | "dette" | "investissement";
   /** Ce qu'il reste après cette marche : la colonne qui fait le pont. */
   reste: number;
-  lecture?: string;
 };
 
 /** Une composante d'un agrégat, dans l'arbre comptable de l'OFGL. */
@@ -208,7 +209,6 @@ export function marches(territoire: Territoire, exercice: string): Marche[] | nu
     {
       id: EB, libelle: "Épargne brute", montant: eb as number,
       role: "palier", section: "fonctionnement",
-      lecture: "Ce que la collectivité dégage de son fonctionnement courant.",
     },
     {
       id: REMBOURSEMENTS, libelle: "Remboursement du capital emprunté",
@@ -217,7 +217,6 @@ export function marches(territoire: Territoire, exercice: string): Marche[] | nu
     {
       id: EN, libelle: "Épargne nette", montant: en as number,
       role: "palier", section: "dette",
-      lecture: "Ce qui reste pour investir sans emprunter davantage.",
     },
     // Le report n'apporte aucun euro neuf : il redit le total de la section
     // précédente pour que l'addition de celle-ci se vérifie de l'œil.
@@ -240,8 +239,6 @@ export function marches(territoire: Territoire, exercice: string): Marche[] | nu
     {
       libelle: "Ce qui reste à la fin de l'exercice", montant: solde,
       role: "arrivee", section: "investissement",
-      lecture:
-        "L'écart entre tout ce qui est entré et tout ce qui est sorti sur l'exercice. Ce n'est pas un déficit au sens de l'État : une collectivité vote sa section de fonctionnement en équilibre.",
     },
   ];
 
@@ -364,10 +361,7 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
              ${bascule}${listes}
            </details>`
         : `<span class="pont__rangee">${rangee}</span>`;
-      const lecture = etape.lecture
-        ? `<p class="pont__lecture">${echapper(etape.lecture)}</p>`
-        : "";
-      return `<li class="pont__ligne pont__ligne--${etape.role}">${corps}${lecture}</li>`;
+      return `<li class="pont__ligne pont__ligne--${etape.role}">${corps}</li>`;
     })
     .join("");
 
@@ -379,7 +373,5 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
       <span>Étape</span><span>Mouvement</span><span>Il reste</span>
     </p>
     <ol class="pont__etapes">${lignes}</ol>
-    <p class="pont__aide">Les étapes soulignées s'ouvrent sur leur composition, et celle-ci sur la
-    sienne. Une étape ne s'ouvre que si ses composantes redonnent son total.</p>
   </section>`;
 }
