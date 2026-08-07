@@ -66,6 +66,7 @@ import argparse
 import io
 import json
 import math
+import unicodedata
 from collections import defaultdict
 
 from plateforme import couverture, entrepot, revisions
@@ -100,18 +101,29 @@ SIRENE_JEU = "base-sirene-des-entreprises-et-de-leurs-etablissements-siren-siret
 SIRENE_RESSOURCE = "StockEtablissement"
 SIRENE_CATALOGUE = f"https://www.data.gouv.fr/api/1/datasets/{SIRENE_JEU}/"
 
-# Les cinq colonnes lues sur les dix-sept du fichier. Les autres décrivent le
-# versement (objet, convention) ou l'établissement (dénomination, activité,
-# catégorie juridique) ; les nommer vaut refus explicite de les charger.
-# « Siège » et « Etat administratif » ne sont pas lues parce qu'elles ne disent
-# rien : la première vaut « Non » et la seconde « Non déterminé » sur les
-# 102 619 lignes. C'est Sirene qui donne l'état administratif.
+# Les sept colonnes lues sur les dix-sept du fichier.
+#
+# La dénomination et l'objet ont d'abord été refusés : un agrégat communal n'a
+# pas besoin de savoir qui a reçu. Mais « 353 € par habitant » ne répond pas à
+# la question qu'on vient poser — *à quelles associations* — et un total sans
+# ses bénéficiaires demande de croire sur parole. Ce document existe pour être
+# lu bénéficiaire par bénéficiaire ; le lire à moitié était le trahir.
+#
+# Les autres colonnes restent refusées, et les nommer vaut refus explicite :
+# convention, date de création, catégorie juridique, activité et sa
+# nomenclature, économie sociale et solidaire, libellé de commune (redondant
+# avec le code). « Siège » et « Etat administratif » ne sont pas lues parce
+# qu'elles ne disent rien : la première vaut « Non » et la seconde « Non
+# déterminé » sur les 102 619 lignes. C'est Sirene qui donne l'état
+# administratif.
 COLONNES_LUES = {
     "programme": "Programme",
     "siren": "SIREN",
     "nic": "NIC",
     "montant": "Montant",
     "commune": "COG : code",
+    "nom": "Dénomination",
+    "objet": "Objet 2021",
 }
 
 # Le décompte de la parution chargée. Ce n'est pas une invariante interne : la
@@ -246,6 +258,19 @@ def _siret(siren, nic) -> str:
     return f"{int(siren):09d}{int(nic):05d}"
 
 
+def _texte(valeur) -> str:
+    """Le tableur sépare tous ses mots par des espaces insécables.
+
+    « APSIS\xa0EMERGENCE » et « Transfert\xa0direct\xa0aux\xa0ménages » : le
+    document entier est composé ainsi. Publié tel quel, le nom se recopie mal,
+    ne se cherche pas et coupe au mauvais endroit. `NFKC` ramène ces espaces à
+    l'espace ordinaire, et avec elles les autres caractères de compatibilité.
+    """
+    if valeur is None:
+        return ""
+    return " ".join(unicodedata.normalize("NFKC", str(valeur)).split())
+
+
 def lire(contenu: bytes) -> list[dict]:
     """Le classeur du jaune -> [{programme, siret, montant, commune}].
 
@@ -282,10 +307,13 @@ def lire(contenu: bytes) -> list[dict]:
         if montant is None:
             continue
         lignes.append({
-            "programme": str(brut["programme"]).strip(),
+            "programme": _texte(brut["programme"]),
+            "siren": _texte(brut["siren"]),
             "siret": _siret(brut["siren"], brut["nic"]),
             "montant": round(montant, 2),
             "commune": _commune(brut["commune"]),
+            "nom": _texte(brut["nom"]),
+            "objet": _texte(brut["objet"]),
         })
     return lignes
 
@@ -552,6 +580,75 @@ def declarer(conn) -> None:
 COLONNES = ("value",)
 
 
+def beneficiaires(lignes: list[dict]) -> list[tuple]:
+    """-> [(commune, SIREN, nom, programme, objet, montant)], la plus grosse d'abord.
+
+    Le grain est le couple (bénéficiaire, programme) : le jaune porte une ligne
+    par versement, et une même association en reçoit plusieurs au titre d'un
+    même programme. Les sommer ici plutôt qu'à la lecture évite qu'un total
+    dépende de qui l'additionne.
+
+    Les mêmes exclusions que l'agrégat, et pour les mêmes raisons : les
+    bénéficiaires hors du territoire ne sont rattachés à aucune commune, et les
+    arrondissements municipaux se replient sur leur commune. Deux listes qui ne
+    filtreraient pas pareil donneraient un total de bénéficiaires différent du
+    total publié juste au-dessus.
+
+    Un versement sans SIREN identifiable n'est pas publié nommément : le jaune
+    marque 660 lignes ainsi, et sans identifiant on ne peut ni les regrouper ni
+    les vérifier. Ils restent dans l'agrégat communal, qui ne nomme personne.
+    """
+    montants: dict[tuple, float] = defaultdict(float)
+    noms: dict[tuple, str] = {}
+    objets: dict[tuple, tuple[float, str]] = {}
+    for ligne in lignes:
+        if hors_territoire(ligne["commune"]) or not ligne["siren"] or ligne["siren"] == SIREN_ABSENT:
+            continue
+        code = commune_mere(ligne["commune"]) or ligne["commune"]
+        cle = (code, ligne["siren"], ligne["programme"])
+        montants[cle] += ligne["montant"]
+        noms.setdefault(cle, ligne["nom"])
+        # L'objet du plus gros versement représente le couple : les objets se
+        # comptent par dizaines pour une association, et les concaténer ferait
+        # un paragraphe illisible sous chaque nom.
+        if ligne["objet"] and ligne["montant"] > objets.get(cle, (0.0, ""))[0]:
+            objets[cle] = (ligne["montant"], ligne["objet"])
+    return sorted(
+        (
+            (code, siren, noms[(code, siren, programme)], programme,
+             objets.get((code, siren, programme), (0.0, ""))[1] or None,
+             round(montant, 2))
+            for (code, siren, programme), montant in montants.items()
+        ),
+        key=lambda ligne: (ligne[0], -ligne[5], ligne[1]),
+    )
+
+
+def ecrire_beneficiaires(conn, run_id, lignes: list[tuple]) -> int:
+    """Remplace la liste nominative de l'exercice.
+
+    Un `delete` puis un `insert`, et non `revisions.remplacer` : ces lignes ne
+    sont pas des observations d'indicateur — elles n'ont ni identifiant
+    d'indicateur ni série dans le temps, et rien à archiver. Le jaune ne
+    republie pas un exercice passé : à chaque parution son exercice.
+    """
+    conn.execute("delete from fin.public_subsidies where fiscal_year = ?", (EXERCICE,))
+    conn.executemany(
+        """
+        insert into fin.public_subsidies
+            (fiscal_year, geo_level, geo_code, geo_vintage, beneficiary_siren,
+             beneficiary_name, programme, purpose, amount, dataset_id, run_id)
+        values (?, 'commune', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """,
+        [
+            (int(EXERCICE), code, MILLESIME, siren, nom, programme, objet, montant,
+             DATASET, run_id)
+            for code, siren, nom, programme, objet, montant in lignes
+        ],
+    )
+    return len(lignes)
+
+
 def run(store_spec: str) -> int:
     conn = entrepot.connect()
     store = make_store(store_spec)
@@ -587,6 +684,9 @@ def run(store_spec: str) -> int:
                 for identifiant, niveau, code, periode, valeur in gardees
             ],
         )
+        nommes = ecrire_beneficiaires(conn, run_id, beneficiaires(lignes))
+        entrepot.etape(f"{nommes} bénéficiaires nommés, exercice {EXERCICE}")
+
         lus = masse_par_maille(candidates)
         parts = couverture.controler(lus, masse_par_maille(gardees))
         conn.execute(
@@ -617,8 +717,8 @@ def run(store_spec: str) -> int:
             f" française ; concordance avec Sirene"
             f" {100 * verifies['taux_concordance_euros']:.3f} % des euros,"
             f" {verifies['versements_etablissement_ferme']} versements à des"
-            f" établissements fermés depuis ; {revisees} révisées,"
-            f" {len(ecartes)} hors référentiel"
+            f" établissements fermés depuis ; {nommes} bénéficiaires nommés ;"
+            f" {revisees} révisées, {len(ecartes)} hors référentiel"
         )
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage

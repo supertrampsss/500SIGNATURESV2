@@ -11,8 +11,10 @@ Usage : python -m plateforme.publish [--publication r2:plateforme-published]
 """
 
 import argparse
+import csv
 import json
 from collections import defaultdict
+from pathlib import Path
 from datetime import UTC, datetime
 
 from plateforme import entrepot
@@ -139,6 +141,52 @@ def synchroniser_niveaux(conn) -> int:
 GEOGRAPHIE_COURANTE = {"melodi-populations-historiques"}
 
 
+def hierarchie_ofgl() -> dict[str, str]:
+    """-> {indicateur: son agrégat parent}, d'après le catalogue de l'OFGL.
+
+    L'OFGL publie ses agrégats avec leur place dans l'arbre comptable — « Dépenses
+    totales > Dépenses de fonctionnement > » pour les frais de personnel. La
+    colonne est dans `infra/seed/ofgl_agregats.csv` depuis le premier jour et
+    n'était lue nulle part : le site affichait donc soixante-dix-neuf agrégats à
+    plat, dont des totaux et leurs propres composantes, sans que rien ne dise
+    lesquels contenaient lesquels.
+
+    C'est pourtant la seule chose qui manquait pour répondre à « et dans ces
+    369 millions de charges, il y a quoi ». Vérifié sur les comptes publiés : à
+    chaque niveau, les composantes redonnent leur parent au centième de pour
+    cent près.
+    """
+    from plateforme.connectors.ofgl import catalogue
+
+    lignes = [ligne for ligne in catalogue() if ligne["charge"] == "oui"]
+    par_libelle = {ligne["agregat"]: ligne["indicateur"] for ligne in lignes}
+    arbre: dict[str, str] = {}
+    for ligne in lignes:
+        maillons = [m.strip() for m in ligne["chemin"].split(">") if m.strip()]
+        # Le dernier maillon du chemin est le parent direct. Un chemin vide est
+        # une racine — épargne, encours de dette, soldes : ils ne se rangent
+        # sous rien.
+        parent = par_libelle.get(maillons[-1]) if maillons else None
+        if parent and parent != ligne["indicateur"]:
+            arbre[ligne["indicateur"]] = parent
+    return arbre
+
+
+# Le second axe de lecture d'un total : par fonction plutôt que par nature.
+#
+# Les charges de fonctionnement d'une commune se décomposent de deux façons — ce
+# qu'elle achète (personnel, achats, intérêts) et à quoi ça sert (écoles, sport,
+# culture). Les deux décrivent le même total et ne s'additionnent pas entre
+# elles ; les ranger sous le même `parent` les aurait fait sommer au double.
+# L'axe fonctionnel a donc son propre champ, et le site propose l'un ou l'autre.
+def hierarchie_fonctionnelle() -> dict[str, str]:
+    """-> {indicateur de fonction: l'agrégat qu'il décompose}."""
+    from plateforme.normalize.fonctions_communes import FONCTIONS, PARENT, RESIDU
+
+    identifiants = [identifiant for _libelle, identifiant in FONCTIONS.values()]
+    return {identifiant: PARENT for identifiant in [*identifiants, RESIDU]}
+
+
 def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[dict]:
     """La fiche en 10 points (docs/06) accompagne chaque indicateur publié.
 
@@ -158,6 +206,8 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
         where i.published order by i.theme, i.label_fr
         """
     ).fetchall()
+    arbre = hierarchie_ofgl()
+    fonctionnel = hierarchie_fonctionnelle()
     return [
         {
             "id": ligne[0], "libelle": ligne[1], "unite": ligne[2], "theme": ligne[3],
@@ -172,6 +222,14 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
             "unite_de_compte": ligne[14],
             "periodes_par_niveau": cartographiees.get(ligne[0], {}),
             "geographie_courante": ligne[13] in GEOGRAPHIE_COURANTE,
+            # L'agrégat qui contient celui-ci, quand la source en déclare un.
+            # C'est ce qui permet d'ouvrir un total sur ses composantes plutôt
+            # que de les aligner à côté de lui.
+            "parent": arbre.get(ligne[0]),
+            # L'agrégat que cet indicateur décompose **par destination**. Il ne
+            # s'additionne jamais avec les composantes par nature du même total :
+            # ce sont deux lectures du même euro.
+            "parent_fonction": fonctionnel.get(ligne[0]),
         }
         for ligne in lignes
     ]
@@ -849,6 +907,215 @@ def _objet(valeur) -> dict:
     return decode if isinstance(decode, dict) else {}
 
 
+def programmes_budgetaires() -> dict[str, dict[str, str]]:
+    """-> {numéro: {programme, mission}}, la nomenclature budgétaire figée.
+
+    Le jaune des associations ne porte que le **numéro** du programme au titre
+    duquel l'argent est versé. « 177 », ce n'est pas une réponse ; « Hébergement,
+    parcours vers le logement et insertion des personnes vulnérables », si — et
+    c'est la seule typologie disponible qui soit un vocabulaire contrôlé. Les
+    2 362 objets de convention, eux, ne se regroupent pas.
+
+    Figée en fichier de graine plutôt que lue en ligne à la publication : le
+    dépôt doit pouvoir se rejouer sans réseau, et une nomenclature qui changerait
+    entre deux publications ferait bouger des libellés sans qu'aucun commit ne le
+    montre.
+    """
+    chemin = Path(__file__).resolve().parents[2] / "infra/seed/programmes_budgetaires.csv"
+    if not chemin.exists():
+        return {}
+    with chemin.open(encoding="utf-8", newline="") as fichier:
+        return {
+            ligne["numero"]: {"programme": ligne["programme"], "mission": ligne["mission"]}
+            for ligne in csv.DictReader(fichier)
+        }
+
+
+def subventions_nominatives(conn) -> dict[str, dict[str, dict]]:
+    """Les associations subventionnées, par département puis par commune.
+
+    Un agrégat de 353 € par habitant ne répond pas à la question qu'on vient
+    poser — *à quelles associations* — et demande de croire sur parole. Le jaune
+    budgétaire est le seul document public qui descende jusqu'au bénéficiaire
+    nommé : le publier sans les noms revenait à le citer sans le montrer.
+
+    Réparti par département, comme les fiches : cinquante-trois mille lignes en
+    un fichier feraient télécharger la France entière pour lire une commune. Un
+    même bénéficiaire peut apparaître deux fois s'il reçoit au titre de deux
+    programmes ; les montants sont sommés par bénéficiaire, et le programme
+    dominant est nommé.
+
+    Les montants sont ceux de l'établissement bénéficiaire, à l'adresse de son
+    siège. Le site le dit, et refuse d'en tirer une comparaison territoriale.
+    """
+    lignes = conn.execute(
+        """
+        select geo_code, beneficiary_siren,
+               any_value(beneficiary_name) as nom,
+               arg_max(programme, amount) as programme,
+               arg_max(purpose, amount) as objet,
+               sum(amount) as montant,
+               max(fiscal_year) as exercice
+        from fin.public_subsidies
+        where geo_level = 'commune'
+        group by geo_code, beneficiary_siren
+        order by geo_code, sum(amount) desc, beneficiary_siren
+        """
+    ).fetchall()
+    if not lignes:
+        return {}
+    # Le lot est le département, déduit du code commune comme ailleurs : 97x
+    # pour l'outre-mer, les deux premiers chiffres sinon.
+    nomenclature = programmes_budgetaires()
+    lots: dict[str, dict[str, dict]] = defaultdict(dict)
+    # Le total par programme : « à quelles associations » appelle « au titre de
+    # quoi ». Un numéro ne répond pas ; le libellé de la nomenclature, si.
+    parts: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
+    for code, siren, nom, programme, objet, montant, exercice in lignes:
+        lot = code[:3] if code.startswith("97") else code[:2]
+        commune = lots[lot].setdefault(
+            code, {"exercice": str(exercice), "beneficiaires": [], "programmes": []}
+        )
+        commune["beneficiaires"].append({
+            "siren": siren,
+            "nom": nom,
+            "programme": programme,
+            "objet": objet,
+            "montant": round(montant, 2),
+        })
+        parts[code][programme] += montant
+    for communes in lots.values():
+        for code, commune in communes.items():
+            commune["programmes"] = [
+                {
+                    "code": numero,
+                    # Un numéro absent de la nomenclature garde son numéro plutôt
+                    # que de disparaître : c'est un programme supprimé depuis, pas
+                    # un versement qui n'aurait pas eu lieu.
+                    "libelle": nomenclature.get(numero, {}).get("programme")
+                    or f"Programme {numero}",
+                    "mission": nomenclature.get(numero, {}).get("mission") or "",
+                    "montant": round(total, 2),
+                }
+                for numero, total in sorted(
+                    parts[code].items(), key=lambda x: -x[1]
+                )
+            ]
+    return lots
+
+
+# Les jeux dont les codes régionaux **pavent la France** : chaque territoire y
+# est compté une fois et une seule, si bien que la somme des régions est le
+# total national.
+#
+# La liste est courte et le refus est le défaut, pour une raison qu'un exemple
+# suffit à donner : le code `69` ne désigne pas le même territoire selon la
+# source. Pour l'INSEE et le SSMSI c'est le Rhône entier ; pour l'OFGL c'est le
+# département du Rhône **hors** Métropole de Lyon, qui a son propre code. Une
+# règle générale qui sommerait « tous les départements » serait donc fausse pour
+# l'un ou pour l'autre, sans que rien ne le signale.
+#
+# Et pour les comptes des collectivités, le problème est plus profond qu'un
+# code : `ofgl_depenses_fonctionnement` au niveau commune est la somme des
+# budgets communaux, au niveau région celle des budgets régionaux. Ce sont deux
+# grandeurs différentes, et leur « total national » n'existe qu'en additionnant
+# tous les échelons — intercommunalités comprises, que ce site ne publie plus.
+# Un nombre présenté comme « la dépense de fonctionnement en France » serait
+# alors amputé sans le dire. Aucun jeu de l'OFGL n'entre donc ici.
+JEUX_QUI_PAVENT_LA_FRANCE = frozenset({
+    "ssmsi-delinquance",
+    "melodi-flores-a5",
+    "melodi-bpe",
+    "rpls-logement-social",
+    "menj-annuaire-education",
+    "anct-fonds-europeens-2021-2027",
+    "melodi-side-creations",
+})
+
+
+def agregats_nationaux(conn) -> tuple[dict[str, dict[str, float]], dict]:
+    """-> ({indicateur: {periode: total}}, ce que la méthode doit dire).
+
+    La fiche nationale n'affichait que ce qu'une source publie déjà au niveau
+    France : le budget de l'État, la dette, Eurostat. Tout ce qui est mesuré
+    territoire par territoire — la délinquance, les équipements, le logement
+    social — y manquait, alors que la donnée est là, complète, une maille plus
+    bas. « Pourquoi n'y a-t-il pas la sécurité au niveau France » est une
+    question à laquelle il n'y avait pas de bonne réponse.
+
+    L'agrégat est la **somme des régions**, et trois conditions le gouvernent.
+
+    **L'indicateur doit s'additionner.** Un taux ne se somme pas : la moyenne
+    de dix-huit taux régionaux n'est pas le taux national, elle ignore que les
+    régions n'ont pas le même poids. Seuls les indicateurs déclarés additifs
+    sont agrégés ; les taux restent absents et leur numérateur, lui, apparaît.
+
+    **Les régions doivent paver la France.** Toutes celles du référentiel
+    doivent porter une valeur pour cette période — pas 95 %, toutes. Une somme à
+    laquelle il manque une région est un total national faux, et rien dans le
+    nombre ne le dirait. Le contrôle est écrit dans le fichier de méthode plutôt
+    que supposé.
+
+    **Le jeu doit avoir une géographie statistique**, ce que `JEUX_QUI_PAVENT_LA_FRANCE`
+    déclare jeu par jeu, avec la raison du refus pour les autres.
+
+    Le total porte sur la **France entière, outre-mer compris** — dix-huit
+    régions, dont cinq d'outre-mer. Beaucoup de chiffres nationaux publiés
+    ailleurs portent sur la France métropolitaine seule : les deux ne se
+    comparent pas, et la fiche le dit.
+    """
+    attendues = {
+        code for (code,) in conn.execute(
+            """
+            select geo_code from geo.geography_reference
+             where geo_level = 'region'
+               and vintage = (select max(vintage) from geo.geography_reference
+                               where geo_level = 'region')
+            """
+        ).fetchall()
+    }
+    if not attendues:
+        return {}, {"regions_attendues": 0, "indicateurs": [], "ecartes": []}
+
+    deja = {
+        indicateur for (indicateur,) in conn.execute(
+            "select distinct indicator_id from core.observations where geo_level = 'pays'"
+        ).fetchall()
+    }
+    additifs = {
+        indicateur: jeu for indicateur, jeu in conn.execute(
+            "select indicator_id, dataset_id from core.indicators"
+            " where additive and published"
+        ).fetchall()
+    }
+
+    totaux: dict[str, dict[str, float]] = defaultdict(dict)
+    ecartes: list[dict] = []
+    for indicateur, periodes in valeurs_par_niveau(conn, "region").items():
+        jeu = additifs.get(indicateur)
+        if indicateur in deja or jeu is None or jeu not in JEUX_QUI_PAVENT_LA_FRANCE:
+            continue
+        for periode, codes in periodes.items():
+            manquantes = attendues - set(codes)
+            if manquantes:
+                ecartes.append({
+                    "indicateur": indicateur, "periode": periode,
+                    "regions_manquantes": sorted(manquantes),
+                })
+                continue
+            # Seules les régions attendues : une entrée du référentiel qui n'y
+            # serait plus compterait deux fois le même territoire.
+            totaux[indicateur][periode] = sum(codes[code] for code in attendues)
+
+    methode = {
+        "regions_attendues": len(attendues),
+        "perimetre": "France entière, outre-mer compris",
+        "indicateurs": sorted(totaux),
+        "ecartes": sorted(ecartes, key=lambda e: (e["indicateur"], e["periode"])),
+    }
+    return dict(totaux), methode
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
     elus = maires(conn) if niveau == "commune" else {}
@@ -996,6 +1263,16 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     # de dériver de la déclaration.
     print(f"journal : {journal_declare.synchroniser(conn)} changements déclarés")
 
+    # Les sommes régionales, calculées avant la boucle : elles rejoignent les
+    # séries de la France, qui n'en avait aucune pour tout ce qui se mesure
+    # territoire par territoire.
+    nationaux, methode_nationale = agregats_nationaux(conn)
+    print(
+        f"agrégats nationaux : {len(nationaux)} indicateurs sommés sur"
+        f" {methode_nationale['regions_attendues']} régions,"
+        f" {len(methode_nationale['ecartes'])} écartés faute d'une région"
+    )
+
     recherche = []
     cartographiees: dict[str, dict[str, list[str]]] = defaultdict(dict)
     for niveau in NIVEAUX:
@@ -1019,7 +1296,15 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
                 }
                 for indicateur, periodes in valeurs.items()
             }
-            groupes[lot][code] = {**entite, "series": {k: v for k, v in series.items() if v}}
+            propres = {k: v for k, v in series.items() if v}
+            if niveau == "pays" and code == "FR":
+                # Jamais par-dessus : une valeur publiée par la source prime sur
+                # notre somme, toujours. `agregats_nationaux` écarte déjà les
+                # indicateurs présents au niveau pays ; la garde reste ici pour
+                # que l'ordre des deux ne puisse pas s'inverser en silence.
+                for indicateur, periodes in nationaux.items():
+                    propres.setdefault(indicateur, periodes)
+            groupes[lot][code] = {**entite, "series": propres}
             recherche.append({"c": code, "n": entite["nom"], "l": niveau, "p": entite["parent"]})
 
         for lot, contenu in groupes.items():
@@ -1032,6 +1317,9 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
     deposer("depenses-fiscales.json", depenses_fiscales(conn))
+    deposer("agregats-nationaux.json", methode_nationale)
+    for lot, contenu in subventions_nominatives(conn).items():
+        deposer(f"subventions/commune/{lot}.json", contenu)
     deposer("fraicheur.json", fraicheur(conn))
     deposer("journal.json", journal(conn))
     deposer("references.json", references(conn, cartographiees))

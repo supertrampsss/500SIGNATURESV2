@@ -50,6 +50,32 @@ CLE = "entrepot/plateforme-v2.duckdb"
 LOCAL = Path(os.environ.get("PLATEFORME_ENTREPOT", "/tmp/plateforme.duckdb"))
 
 
+# Les schémas dont le schéma courant ne fait qu'ajouter — et que l'entrepôt peut
+# donc adopter sans être reconstruit.
+#
+# Le garde-fou d'empreinte existe pour une raison précise, écrite dans
+# `connect()` : `create ... if not exists` ne touche pas une table déjà là, si
+# bien qu'une contrainte retirée du fichier resterait en place dans un entrepôt
+# existant. Cela vaut pour une **modification**. Une **addition** — une table
+# nouvelle, une séquence nouvelle — est exactement ce que `if not exists`
+# applique correctement : le texte du schéma est exécuté à chaque ouverture,
+# donc la table apparaît, et il n'y a rien à reconstruire.
+#
+# Reconstruire l'entrepôt entier pour une table de plus coûterait un
+# rechargement complet de toutes les sources, avec le risque qu'une d'elles ait
+# entre-temps disparu. Refuser l'addition n'est donc pas le choix prudent :
+# c'est le choix coûteux.
+#
+# Une entrée ici est une affirmation vérifiable, à ne poser qu'après avoir
+# constaté que le diff ne retire ni ne modifie une seule ligne. Le test
+# `test_entrepot.py` refait ce constat sur l'ancêtre déclaré.
+ANCETRES_ADDITIFS = {
+    # 2026-08-07 — ajout de `fin.public_subsidies` et de sa séquence, pour
+    # publier les associations subventionnées bénéficiaire par bénéficiaire.
+    "db880ae9ef1690935b433fe8020e6c3856a88da99c076604071be824494f656a",
+}
+
+
 class SchemaDivergent(RuntimeError):
     """Le fichier ouvert n'a pas été créé par ce schéma-ci."""
 
@@ -79,6 +105,12 @@ def connect(chemin: Path | str | None = None) -> duckdb.DuckDBPyConnection:
     empreinte = hashlib.sha256(texte.encode("utf-8")).hexdigest()
     connues = [e for (e,) in connexion.execute("select empreinte from meta.schema_version").fetchall()]
     if not connues:
+        connexion.execute("insert into meta.schema_version values (?)", [empreinte])
+    elif empreinte not in connues and set(connues) <= ANCETRES_ADDITIFS:
+        # Le schéma courant ne fait qu'ajouter à celui qui a créé ce fichier :
+        # l'exécution du texte ci-dessus a déjà créé ce qui manquait. On
+        # enregistre la nouvelle empreinte à côté de l'ancienne, sans effacer
+        # celle-ci — l'entrepôt garde ainsi la trace des schémas qu'il a portés.
         connexion.execute("insert into meta.schema_version values (?)", [empreinte])
     elif empreinte not in connues:
         connexion.close()

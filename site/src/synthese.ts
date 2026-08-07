@@ -89,7 +89,9 @@ export function lecture(
   if (Math.abs(ecart) < SEUIL_PROCHE) {
     return `Proche de ${nom} (${formater(repere.valeur)}).`;
   }
-  return `${arrondiEcart(ecart)} % ${ecart > 0 ? "au-dessus" : "en dessous"} de ${nom} (${formater(
+  // Le signe porte le sens : « +24 % vs » se lit d'un coup d'œil là où
+  // « 24 % au-dessus de » se lisait en deux temps.
+  return `${ecart > 0 ? "+" : "−"}${arrondiEcart(ecart)} % vs ${nom} (${formater(
     repere.valeur,
   )}).`;
 }
@@ -112,26 +114,25 @@ export type Ecart = { libelle: string; ecart: number };
  * entier, pas un extrait de l'un de ses indicateurs.
  */
 export function resumeEcarts(ecarts: Ecart[], repere: string): string {
-  const finis = ecarts.filter((e) => Number.isFinite(e.ecart));
-  if (finis.length < 2) return "";
-  const hauts = finis.filter((e) => e.ecart >= SEUIL_PROCHE).length;
-  const bas = finis.filter((e) => e.ecart <= -SEUIL_PROCHE).length;
-  const proches = finis.length - hauts - bas;
-  const morceaux = [
-    hauts ? `${hauts} au-dessus` : "",
-    bas ? `${bas} en dessous` : "",
-    proches ? `${proches} au niveau` : "",
-  ].filter(Boolean);
-  const fort = finis.reduce((a, b) => (Math.abs(b.ecart) > Math.abs(a.ecart) ? b : a));
-  const marque =
-    Math.abs(fort.ecart) >= SEUIL_PROCHE
-      ? ` Écart le plus marqué : ${fort.libelle}, ${fort.ecart > 0 ? "+" : "−"}${arrondiEcart(
-          fort.ecart,
-        )} %.`
-      : "";
-  return `Sur ${finis.length} indicateurs comparés à ${repere} : ${morceaux.join(
-    ", ",
-  )}.${marque}`;
+  const marquants = ecartsMarquants(ecarts, 3);
+  // Rien de marquant, rien d'écrit. « Sur 2 indicateurs comparés : 2 au
+  // niveau » occupait une ligne pour dire qu'il n'y avait rien à dire — et
+  // les décomptes (« 13 au-dessus ») annonçaient qu'il y avait quelque chose
+  // à voir sans jamais dire quoi.
+  if (!marquants.length) return "";
+  return `Vs ${repere} : ${marquants.map(nommerEcart).join(", ")}.`;
+}
+
+/** Les écarts qui méritent d'être nommés, du plus marqué au moins marqué. */
+function ecartsMarquants(ecarts: Ecart[], combien: number): Ecart[] {
+  return ecarts
+    .filter((e) => Number.isFinite(e.ecart) && Math.abs(e.ecart) >= SEUIL_PROCHE)
+    .sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart))
+    .slice(0, combien);
+}
+
+function nommerEcart(e: Ecart): string {
+  return `${e.libelle} ${e.ecart > 0 ? "+" : "−"}${arrondiEcart(e.ecart)} %`;
 }
 
 /**
@@ -144,20 +145,12 @@ export function resumeEcarts(ecarts: Ecart[], repere: string): string {
  * l'ouverture n'en garde que le côté dominant, en une ligne.
  */
 export function compteEcarts(ecarts: Ecart[], repere: string): string {
-  const finis = ecarts.filter((e) => Number.isFinite(e.ecart));
-  if (finis.length < 2) return "";
-  const hauts = finis.filter((e) => e.ecart >= SEUIL_PROCHE).length;
-  const bas = finis.filter((e) => e.ecart <= -SEUIL_PROCHE).length;
-  if (hauts === 0 && bas === 0) {
-    return `${finis.length} indicateurs, tous au niveau de ${repere}.`;
-  }
-  // À égalité, on ne désigne pas de côté : le thème ne penche pas, et prétendre
-  // le contraire sur un départage arbitraire serait le seul vrai biais ici.
-  if (hauts === bas) {
-    return `${finis.length} indicateurs, autant au-dessus qu'en dessous de ${repere}.`;
-  }
-  const [combien, sens] = hauts > bas ? [hauts, "au-dessus"] : [bas, "en dessous"];
-  return `${combien} des ${finis.length} indicateurs ${sens} de ${repere}.`;
+  // « 13 des 15 indicateurs au-dessus de son département » ne disait pas
+  // lesquels — le seul renseignement qu'on venait chercher. Deux noms, pas
+  // un décompte ; rien de marquant, rien d'écrit.
+  const marquants = ecartsMarquants(ecarts, 2);
+  if (!marquants.length) return "";
+  return `${marquants.map(nommerEcart).join(", ")} vs ${repere}.`;
 }
 
 /** Sens d'une série : « en hausse depuis 2022 », « stable ». */

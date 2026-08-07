@@ -218,7 +218,10 @@ function formaterNombre(valeur: number, unite: string, parHabitant: boolean): st
   // Les valeurs sont déjà exprimées en pourcentage (12,4 vaut 12,4 %), donc pas
   // de `style: "percent"`, qui multiplierait par cent. Espace fine insécable
   // avant le signe, comme le veut l'usage français.
-  if (unite === "percent") {
+  // `rate` est l'ancienne unité du taux de participation, corrigée dans le
+  // connecteur mais encore présente dans les publications antérieures : sans
+  // cette branche, le site affichait « 58,1 rate ».
+  if (unite === "percent" || unite === "rate") {
     return pourcentage(valeur);
   }
   // Les taux pour mille de la source s'affichent en **pourcentage** : le ‰

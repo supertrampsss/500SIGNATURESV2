@@ -1,0 +1,87 @@
+numero,programme,mission
+101,Accès au droit et à la justice,Justice
+102,Accès et retour à l'emploi,"Travail, emploi et administration des ministères sociaux"
+103,Accompagnement des mutations économiques et développement de l'emploi,"Travail, emploi et administration des ministères sociaux"
+104,Intégration et accès à la nationalité française,"Immigration, asile et intégration"
+105,Action de la France en Europe et dans le monde,Action extérieure de l'État
+107,Administration pénitentiaire,Justice
+109,Aide à l'accès au logement,Cohésion des territoires
+110,Aide économique et financière au développement,Aide publique au développement
+111,Amélioration de la qualité de l'emploi et des relations du travail,"Travail, emploi et administration des ministères sociaux"
+112,Impulsion et coordination de la politique d'aménagement du territoire,Cohésion des territoires
+113,"Paysages, eau et biodiversité","Écologie, développement et mobilité durables"
+114,Appels en garantie de l'État (crédits évaluatifs),Engagements financiers de l'État
+119,Concours financiers aux collectivités territoriales et à leurs groupements,Relations avec les collectivités territoriales
+122,Concours spécifiques et administration,Relations avec les collectivités territoriales
+123,Conditions de vie outre-mer,Outre-mer
+124,Conduite et soutien des politiques sanitaires et sociales,"Solidarité, insertion et égalité des chances"
+126,"Conseil économique, social et environnemental",Conseil et contrôle de l'État
+129,Coordination du travail gouvernemental,Direction de l'action du Gouvernement
+131,Création,Culture
+134,Développement des entreprises et régulations,Économie
+135,"Urbanisme, territoires et amélioration de l'habitat",Cohésion des territoires
+137,Égalité entre les femmes et les hommes,"Solidarité, insertion et égalité des chances"
+138,Emploi outre-mer,Outre-mer
+139,Enseignement privé du premier et du second degrés,Enseignement scolaire
+140,Enseignement scolaire public du premier degré,Enseignement scolaire
+141,Enseignement scolaire public du second degré,Enseignement scolaire
+142,Enseignement supérieur et recherche agricoles,Recherche et enseignement supérieur
+143,Enseignement technique agricole,Enseignement scolaire
+144,Environnement et prospective de la politique de défense,Défense
+145,Accompagnement des mutations économiques et développement de l'emploi,Engagements financiers de l'État
+145,Développement des entreprises et régulations,Engagements financiers de l'État
+145,"Urbanisme, territoires et amélioration de l'habitat",Engagements financiers de l'État
+145,Épargne,Engagements financiers de l'État
+146,Équipement des forces,Défense
+147,Politique de la ville,Cohésion des territoires
+148,Fonds d'accompagnement interministériel Ressources humaines,Transformation et fonction publiques
+149,"Compétitivité et durabilité de l'agriculture, de l'agroalimentaire et de la forêt","Agriculture, alimentation, forêt et affaires rurales"
+150,Formations supérieures et recherche universitaire,Recherche et enseignement supérieur
+151,Français à l'étranger et affaires consulaires,Action extérieure de l'État
+152,Gendarmerie nationale,Sécurités
+155,Soutien des ministères sociaux,"Travail, emploi et administration des ministères sociaux"
+156,Gestion fiscale et financière de l'État et du secteur public local,Gestion des finances publiques
+157,Handicap et dépendance,"Solidarité, insertion et égalité des chances"
+158,Indemnisation des victimes des persécutions antisémites et des actes de barbarie pendant la seconde guerre mondiale,Direction de l'action du Gouvernement
+158,Indemnisation des victimes des persécutions antisémites et des actes de barbarie pendant la seconde guerre mondiale,"Monde combattant, mémoire et liens avec la Nation"
+159,"Expertise, information géographique et météorologie","Écologie, développement et mobilité durables"
+161,Sécurité civile,Sécurités
+162,Interventions territoriales de l'État,Cohésion des territoires
+163,Jeunesse et vie associative,"Sport, jeunesse et vie associative"
+164,Haut Conseil des finances publiques,Conseil et contrôle de l'État
+165,Conseil d'État et autres juridictions administratives,Conseil et contrôle de l'État
+166,Justice judiciaire,Justice
+169,Liens entre la Nation et son armée,"Anciens combattants, mémoire et liens avec la nation"
+169,Liens entre la Nation et son armée,"Monde combattant, mémoire et liens avec la Nation"
+172,Recherches scientifiques et technologiques pluridisciplinaires,Recherche et enseignement supérieur
+174,"Énergie, climat et après-mines","Écologie, développement et mobilité durables"
+175,Patrimoines,Culture
+176,Police nationale,Sécurités
+177,"Hébergement, parcours vers le logement et insertion des personnes vulnérables",Cohésion des territoires
+178,Préparation et emploi des forces,Défense
+180,Presse et médias,"Médias, livre et industries culturelles"
+181,Prévention des risques,"Écologie, développement et mobilité durables"
+182,Protection judiciaire de la jeunesse,Justice
+183,Protection maladie,Santé
+185,Diplomatie culturelle et d'influence,Action extérieure de l'État
+190,"Recherche dans les domaines de l'énergie, du développement et de la mobilité durables",Recherche et enseignement supérieur
+191,Recherche duale (civile et militaire),Recherche et enseignement supérieur
+192,Recherche et enseignement supérieur en matière économique et industrielle,Recherche et enseignement supérieur
+193,Recherche spatiale,Recherche et enseignement supérieur
+195,"Régimes de retraite des mines, de la SEITA et divers",Régimes sociaux et de retraite
+197,Régimes de retraite et de sécurité sociale des marins,Régimes sociaux et de retraite
+198,Régimes sociaux et de retraite des transports terrestres,Régimes sociaux et de retraite
+203,Infrastructures et services de transports,"Écologie, développement et mobilité durables"
+204,"Prévention, sécurité sanitaire et offre de soins",Santé
+205,"Affaires maritimes, pêches et aquaculture","Écologie, développement et mobilité durables"
+206,Sécurité et qualité sanitaires de l'alimentation,"Agriculture, alimentation, forêt et affaires rurales"
+207,Sécurité et éducation routières,Sécurités
+209,Solidarité à l'égard des pays en développement,Aide publique au développement
+212,Soutien de la politique de la défense,Défense
+214,Soutien de la politique de l'éducation nationale,Enseignement scolaire
+215,Conduite et pilotage des politiques de l'agriculture,"Agriculture, alimentation, forêt et affaires rurales"
+216,Conduite et pilotage des politiques de l'intérieur,Administration générale et territoriale de l'État
+217,"Conduite et pilotage des politiques de l'écologie, du développement et de la mobilité durables","Écologie, développement et mobilité durables"
+218,Conduite et pilotage des politiques économiques et financières,Gestion des finances publiques
+219,Sport,"Sport, jeunesse et vie associative"
+220,Statistiques et études économiques,Économie

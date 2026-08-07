@@ -11,13 +11,15 @@ import { compteEcarts, lecture, resumeEcarts, synthese, tendance, repereComparab
 const euros = (v: number) => `${Math.round(v)} €`;
 
 test("la lecture situe par rapport au premier repère disponible", () => {
+  // Le signe porte le sens : « +16 % vs » se lit d'un coup d'œil là où
+  // « 16 % au-dessus de » se lisait en deux temps.
   assert.equal(
-    lecture(866, [{ libelle: "la médiane des communes de France", valeur: 749 }], euros),
-    "16 % au-dessus de la médiane des communes de France (749 €).",
+    lecture(866, [{ libelle: "la médiane nationale", valeur: 749 }], euros),
+    "+16 % vs la médiane nationale (749 €).",
   );
   assert.equal(
     lecture(500, [{ libelle: "sa région", valeur: 1000 }], euros),
-    "50 % en dessous de sa région (1000 €).",
+    "−50 % vs sa région (1000 €).",
   );
 });
 
@@ -63,15 +65,32 @@ test("le résumé d'un thème compte les écarts au lieu d'additionner des unit�
     ],
     "son département",
   );
+  // Des noms, plus aucun décompte : « 2 au-dessus, 1 en dessous, 1 au
+  // niveau » annonçait qu'il y avait quelque chose à voir sans dire quoi.
   assert.equal(
     phrase,
-    "Sur 4 indicateurs comparés à son département : 2 au-dessus, 1 en dessous," +
-      " 1 au niveau. Écart le plus marqué : coups et blessures, −60 %.",
+    "Vs son département : coups et blessures −60 %, cambriolages +38 %," +
+      " vols de véhicules +12 %.",
   );
 });
 
-test("un thème d'un seul indicateur comparable ne se résume pas : ce serait le répéter", () => {
-  assert.equal(resumeEcarts([{ libelle: "a", ecart: 40 }], "la France"), "");
+test("le résumé s'arrête à trois noms : au-delà, c'est une liste", () => {
+  const phrase = resumeEcarts(
+    [
+      { libelle: "un", ecart: 90 },
+      { libelle: "deux", ecart: -80 },
+      { libelle: "trois", ecart: 70 },
+      { libelle: "quatre", ecart: -60 },
+      { libelle: "cinq", ecart: 50 },
+    ],
+    "la France",
+  );
+  assert.equal(phrase, "Vs la France : un +90 %, deux −80 %, trois +70 %.");
+  assert.doesNotMatch(phrase, /quatre/);
+});
+
+test("un seul écart marquant se nomme quand même : c'est lui qu'on cherche", () => {
+  assert.equal(resumeEcarts([{ libelle: "a", ecart: 40 }], "la France"), "Vs la France : a +40 %.");
   assert.equal(resumeEcarts([], "la France"), "");
 });
 
@@ -84,7 +103,8 @@ test("un écart non fini est écarté du compte plutôt que de le fausser", () =
     ],
     "la France",
   );
-  assert.match(phrase, /^Sur 2 indicateurs comparés à la France : 1 au-dessus, 1 en dessous\./);
+  // L'infini ne se nomme pas ; les deux écarts réels, si.
+  assert.equal(phrase, "Vs la France : a +40 %, c −30 %.");
 });
 
 test("au-delà de 100 %, l'écart s'arrondit à la dizaine : la précision serait fausse", () => {
@@ -96,7 +116,7 @@ test("au-delà de 100 %, l'écart s'arrondit à la dizaine : la précision serai
       ],
       "la France",
     ),
-    /Écart le plus marqué : a, \+340 %\./,
+    /Vs la France : a \+340 %\./,
   );
 });
 
@@ -108,7 +128,9 @@ test("un thème où rien ne s'écarte le dit sans désigner de champion", () => 
     ],
     "sa région",
   );
-  assert.equal(phrase, "Sur 2 indicateurs comparés à sa région : 2 au niveau.");
+  // Rien de marquant, rien d'écrit : « 2 au niveau » occupait une ligne pour
+  // dire qu'il n'y avait rien à dire.
+  assert.equal(phrase, "");
 });
 
 test("de part et d'autre de zéro, on pose les deux chiffres au lieu d'un faux écart", () => {
@@ -125,10 +147,12 @@ test("de part et d'autre de zéro, on pose les deux chiffres au lieu d'un faux �
     "Contre -0.5 % pour sa région.",
   );
   // Du même côté de zéro, deux valeurs négatives se comparent normalement.
-  assert.match(lecture(-2, [{ libelle: "la France", valeur: -1 }], pourcent), /100 % .*dessous/);
+  assert.match(lecture(-2, [{ libelle: "la France", valeur: -1 }], pourcent), /−100 % vs la France/);
 });
 
-test("l'ouverture ne redit pas le résumé long : elle n'en garde que le côté dominant", () => {
+test("l'ouverture nomme les deux écarts les plus marqués, pas un décompte", () => {
+  // « 13 des 15 indicateurs au-dessus de son département » ne disait pas
+  // lesquels — le seul renseignement qu'on venait chercher.
   const ecarts = [
     { libelle: "cambriolages", ecart: 38 },
     { libelle: "vols de véhicules", ecart: 12 },
@@ -137,11 +161,11 @@ test("l'ouverture ne redit pas le résumé long : elle n'en garde que le côté 
   ];
   assert.equal(
     compteEcarts(ecarts, "son département"),
-    "2 des 4 indicateurs au-dessus de son département.",
+    "coups et blessures −60 %, cambriolages +38 % vs son département.",
   );
 });
 
-test("un thème qui ne penche d'aucun côté ne se voit pas attribuer de camp", () => {
+test("deux écarts opposés se nomment tous deux ; rien de marquant, rien d'écrit", () => {
   assert.equal(
     compteEcarts(
       [
@@ -150,7 +174,7 @@ test("un thème qui ne penche d'aucun côté ne se voit pas attribuer de camp", 
       ],
       "sa région",
     ),
-    "2 indicateurs, autant au-dessus qu'en dessous de sa région.",
+    "a +40 %, b −40 % vs sa région.",
   );
   assert.equal(
     compteEcarts(
@@ -160,7 +184,7 @@ test("un thème qui ne penche d'aucun côté ne se voit pas attribuer de camp", 
       ],
       "la France",
     ),
-    "2 indicateurs, tous au niveau de la France.",
+    "",
   );
 });
 

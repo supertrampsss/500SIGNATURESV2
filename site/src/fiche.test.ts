@@ -13,11 +13,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import type { Indicateur } from "./donnees.ts";
 import {
   comparableAuxAutresTerritoires,
   densiteRapportableAuxHabitants,
+  ecartEnEuros,
   groupeDeLaCommune,
+  jumeaux,
   lectureDeDensite,
+  mentionAgregat,
   ongletsThemes,
   positionDansGroupe,
   rubriqueDuTheme,
@@ -31,13 +35,15 @@ const TERRITOIRE = {
 } as never;
 const CRITERES = ["tranche_population", "rural", "outre_mer"];
 
-test("un effectif sans repère direct se lit par sa densité", () => {
+test("un effectif sans repère direct se lit en pourcentage d'écart", () => {
+  // « 641 pour 1 000 hab., contre 505 pour 1 000 hab. pour son département »
+  // demandait une soustraction de tête ; « +27 % » la fait pour le lecteur.
   const phrase = lectureDeDensite({
     valeur: 641,
     comparaisons: [{ libelle: "son département", valeur: 505 }],
   });
-  assert.match(phrase, /641 pour 1 000 hab/);
-  assert.match(phrase, /contre 505 pour 1 000 hab\. pour son département/);
+  assert.match(phrase, /\+27\u202f% vs son département/);
+  assert.match(phrase, /par habitant/);
 });
 
 test("sans densité comparable, rien n'est écrit plutôt qu'un chiffre seul", () => {
@@ -49,7 +55,9 @@ test("sans densité comparable, rien n'est écrit plutôt qu'un chiffre seul", (
   );
 });
 
-test("les quartiles d'une dépense s'affichent par habitant", () => {
+test("la position dans le groupe tient en une phrase, en pourcentage", () => {
+  // Quatre lignes de quartiles demandaient de savoir ce qu'est un quartile ;
+  // « +68 % vs la médiane, dans le quart le plus haut » se comprend sans.
   const html = positionDansGroupe(
     TERRITOIRE,
     { n: 536, q1: 600, mediane: 800, q3: 1000 },
@@ -58,9 +66,9 @@ test("les quartiles d'une dépense s'affichent par habitant", () => {
     { base: "par_habitant", unite: "EUR" },
   );
   assert.match(html, /536/);
-  assert.match(html, /au-dessus du quart supérieur/);
-  // Le formateur français insère une espace insécable avant le symbole.
-  assert.match(html, /600\s?€/);
+  assert.match(html, /\+68\u202f% vs la médiane/);
+  assert.match(html, /dans le quart le plus haut/);
+  assert.doesNotMatch(html, /quartile/i);
 });
 
 test("les quartiles d'un effectif se lisent pour mille habitants", () => {
@@ -74,7 +82,7 @@ test("les quartiles d'un effectif se lisent pour mille habitants", () => {
     { base: "pour_mille", unite: "count" },
   );
   assert.doesNotMatch(html, /€/);
-  assert.match(html, /36 pour 1 000 hab/);
+  assert.match(html, /vs la médiane \(36 pour 1 000 hab/);
   assert.match(html, /dans la moitié centrale/);
 });
 
@@ -93,7 +101,10 @@ test("les quartiles d'un taux ne s'affichent pas en euros", () => {
   assert.match(html, /dans la moitié centrale/);
 });
 
-test("les critères du groupe sont affichés avec le résultat", () => {
+test("la réserve du groupe vit sur la page Données, plus dans la fiche", () => {
+  // Six lignes de texte serré avant le premier chiffre du panneau : critères
+  // du groupe et réserve sur l'intercommunalité sont repris, développés, dans
+  // « Ce qui rend deux territoires comparables ».
   const html = positionDansGroupe(
     TERRITOIRE,
     { n: 536, q1: 600, mediane: 800, q3: 1000 },
@@ -101,11 +112,9 @@ test("les critères du groupe sont affichés avec le résultat", () => {
     CRITERES,
     { base: "par_habitant", unite: "EUR" },
   );
-  // « Communes comparables » ne veut rien dire sans dire sur quoi.
-  assert.match(html, /strate de population : 7/);
-  assert.match(html, /caractère rural : Non/);
-  // Et la réserve qui compte, celle qu'on ne peut pas déduire des chiffres.
-  assert.match(html, /ne signifie pas une meilleure gestion/);
+  assert.doesNotMatch(html, /ne signifie pas une meilleure gestion/);
+  assert.doesNotMatch(html, /strate de population/);
+  assert.doesNotMatch(html, /<details/);
 });
 
 test("sans quartiles ni valeur, aucune position n'est affirmée", () => {
@@ -223,7 +232,9 @@ test("aucun groupe ne vaut mieux qu'un groupe inventé", () => {
   assert.equal(groupeDeLaCommune(commune, undefined, CASCADE), undefined);
 });
 
-test("les critères affichés sont ceux qui ont servi, pas une liste figée", () => {
+test("le groupe se nomme sans étaler ses critères dans la fiche", () => {
+  // Les critères qui ont servi restent expliqués sur la page « Données » ;
+  // dans la fiche ils faisaient une ligne de jargon avant les chiffres.
   const commune = {
     nom: "Station",
     series: {},
@@ -231,8 +242,8 @@ test("les critères affichés sont ceux qui ont servi, pas une liste figée", ()
                 touristique: "Oui" },
   } as never;
   const html = positionDansGroupe(commune, QUARTILES, 2, CASCADE[0]);
-  assert.match(html, /commune de montagne/);
-  assert.match(html, /commune touristique/);
+  assert.match(html, /communes semblables/);
+  assert.doesNotMatch(html, /commune de montagne/);
 });
 
 test("un effectif compté au lieu de travail n'a pas de densité résidente", () => {
@@ -374,4 +385,129 @@ test("un effectif compté au siège n'a pas les habitants pour dénominateur", (
     jeu: "plf-2023-effort-associations",
   } as never;
   assert.equal(densiteRapportableAuxHabitants(etablissements), false);
+});
+
+/**
+ * Trop d'indicateurs, c'est moins d'information.
+ *
+ * Soixante-dix-neuf lignes de comptes locaux et trente-deux lignes de
+ * sécurité — dont seize qui redisaient les seize autres — se faisaient défiler
+ * sans que rien n'en reste. Ces tests fixent les deux réponses : le doublon
+ * est fondu, et le reste passe derrière un pli.
+ */
+
+test("le nombre rejoint le taux : un phénomène, une ligne", () => {
+  const catalogue = [
+    { id: "ssmsi_cambriolages_taux", theme: "securite" },
+    { id: "ssmsi_cambriolages_nombre", theme: "securite" },
+    { id: "ssmsi_homicides_taux", theme: "securite" },
+    { id: "ssmsi_homicides_nombre", theme: "securite" },
+    { id: "insee_population_municipale", theme: "population" },
+  ] as never as Indicateur[];
+  const paires = jumeaux(catalogue);
+  assert.equal(paires.size, 2);
+  assert.equal(paires.get("ssmsi_cambriolages_taux")?.id, "ssmsi_cambriolages_nombre");
+  // Le taux reste la ligne : c'est lui qui se compare d'un territoire à l'autre.
+  assert.equal(paires.has("ssmsi_cambriolages_nombre"), false);
+});
+
+test("un nombre sans taux jumeau reste une ligne à lui seul", () => {
+  // La règle ne doit pas faire disparaître un indicateur qui n'a pas de
+  // jumeau : ce serait perdre une mesure pour ranger une liste.
+  const catalogue = [
+    { id: "insee_chomeurs_rp_nombre", theme: "emploi" },
+    { id: "ssmsi_cambriolages_taux", theme: "securite" },
+  ] as never as Indicateur[];
+  assert.equal(jumeaux(catalogue).size, 0);
+});
+
+test("un taux et un nombre de thèmes différents ne sont pas jumeaux", () => {
+  const catalogue = [
+    { id: "x_taux", theme: "securite" },
+    { id: "x_nombre", theme: "sante" },
+  ] as never as Indicateur[];
+  assert.equal(jumeaux(catalogue).size, 0);
+});
+
+/**
+ * Un total national obtenu en additionnant dix-huit régions n'est pas de la
+ * même nature qu'un chiffre que le producteur publie lui-même.
+ */
+
+const AGREGATS = {
+  regions_attendues: 18,
+  perimetre: "France entière, outre-mer compris",
+  indicateurs: ["ssmsi_cambriolages_nombre", "ssmsi_homicides_nombre"],
+  ecartes: [],
+};
+
+test("un total calculé par nous se dit tel, avec son périmètre", () => {
+  const liste = [
+    { id: "ssmsi_cambriolages_nombre", libelle: "a" },
+    { id: "ssmsi_homicides_nombre", libelle: "b" },
+  ] as never as Indicateur[];
+  const html = mentionAgregat(liste, AGREGATS);
+  assert.match(html, /Ces totaux sont\s+la somme des 18 régions/);
+  assert.match(html, /calculée par ce site et non publiée/);
+  // Le périmètre fait partie du chiffre : beaucoup de totaux nationaux publiés
+  // ailleurs s'arrêtent à la métropole, et les deux ne se comparent pas.
+  assert.match(html, /France entière, outre-mer compris/);
+  // Et la raison pour laquelle les taux n'y sont pas.
+  assert.match(html, /Un taux n'y figure pas/);
+});
+
+test("la mention compte les indicateurs concernés quand le thème est mixte", () => {
+  const liste = [
+    { id: "ssmsi_cambriolages_nombre", libelle: "a" },
+    { id: "publie_par_la_source", libelle: "b" },
+  ] as never as Indicateur[];
+  assert.match(mentionAgregat(liste, AGREGATS), /1 de ces totaux sont\s+la somme/);
+});
+
+test("un thème sans agrégat de notre main ne porte aucune mention", () => {
+  const liste = [{ id: "etat_solde_budgetaire", libelle: "a" }] as never as Indicateur[];
+  assert.equal(mentionAgregat(liste, AGREGATS), "");
+  // Et sans le fichier de méthode, rien n'est affirmé plutôt qu'une mention fausse.
+  assert.equal(mentionAgregat(liste, null), "");
+  assert.equal(mentionAgregat(liste, undefined), "");
+});
+
+/**
+ * Un rang ne se conteste pas ; une somme, si.
+ *
+ * « La moitié des communes de la région sont en dessous de 291 € » se lisait
+ * sous chaque ligne, deux fois, et n'apprenait rien qu'on puisse discuter.
+ */
+
+const EUROS = { id: "ofgl_depenses_fonctionnement", unite: "EUR" } as never as Indicateur;
+const TAUX = { id: "insee_taux_pauvrete", unite: "percent" } as never as Indicateur;
+const MEDIANE = { ensemble: "communes de la région", valeur: 1000 };
+
+test("l'écart à la médiane se dit en euros, pas en rang", () => {
+  // 1 373 € par habitant contre 1 000 € de médiane, sur 260 000 habitants :
+  // 97 M€ de plus. C'est le même écart, dans la seule unité dont le lecteur
+  // ait l'usage.
+  const phrase = ecartEnEuros(1373, MEDIANE, EUROS, true, 260_000);
+  assert.match(phrase ?? "", /de plus que si le montant était celui de la médiane/);
+  assert.match(phrase ?? "", /97/);
+});
+
+test("un montant total ne se remultiplie pas par la population", () => {
+  // La ligne affiche déjà des euros : remultiplier donnerait un chiffre
+  // 260 000 fois trop grand.
+  const phrase = ecartEnEuros(3_000_000, { ...MEDIANE, valeur: 1_000_000 }, EUROS, false, 260_000);
+  assert.match(phrase ?? "", /2/);
+  assert.doesNotMatch(phrase ?? "", /Md/);
+});
+
+test("sous un pour cent, l'écart est un arrondi et se dit comme tel", () => {
+  // L'annoncer en millions donnerait du poids à du bruit.
+  const phrase = ecartEnEuros(1005, MEDIANE, EUROS, true, 260_000);
+  assert.equal(phrase, "Au niveau de la médiane des communes de la région.");
+});
+
+test("un taux n'a pas d'écart en euros : la médiane reste", () => {
+  assert.equal(ecartEnEuros(11.4, MEDIANE, TAUX, false, 260_000), null);
+  // Et un montant par habitant sans population connue non plus.
+  assert.equal(ecartEnEuros(1373, MEDIANE, EUROS, true, null), null);
 });

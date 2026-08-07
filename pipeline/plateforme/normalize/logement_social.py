@@ -79,7 +79,12 @@ PLANCHER = 4_000_000
 
 INDICATEURS = {
     "rpls_logements_sociaux": (
-        "Logements sociaux",
+        # Le libellé nomme la source, pas seulement l'objet. Il a longtemps
+        # voisiné avec « Logements du parc social » du recensement, et les deux
+        # se lisaient comme un doublon alors qu'ils comptent deux choses. Le
+        # recensement n'est plus publié ; le libellé garde la précision, parce
+        # que c'est elle qui dit pourquoi ce chiffre-là fait foi.
+        "Logements sociaux (répertoire des bailleurs)",
         "Le nombre de logements locatifs sociaux du territoire, comptés un par un"
         " chez les bailleurs. C'est le comptage qui fait foi pour la loi SRU. Le"
         " parc social du recensement, déclaré par les habitants, donne un autre"

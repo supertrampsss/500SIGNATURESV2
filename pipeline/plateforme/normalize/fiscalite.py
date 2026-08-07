@@ -45,14 +45,14 @@ JEU = "fiscalite-locale-des-particuliers"
 INDICATEURS = {
     "dgfip_taux_tfb_commune": (
         "e12vote",
-        "Taux communal de taxe foncière (bâti)",
+        "Taux communal de taxe foncière",
         "La part du taux de taxe foncière sur les propriétés bâties votée par le"
         " conseil municipal. C'est la décision de la commune seule, sans"
         " l'intercommunalité ni les taxes annexes.",
     ),
     "dgfip_taux_tfb_global": (
         "taux_global_tfb",
-        "Taux global de taxe foncière (bâti)",
+        "Taux global de taxe foncière",
         "Le taux total appliqué aux propriétés bâties : commune, intercommunalité"
         " et taxes annexes réunies. C'est celui qui figure sur l'avis"
         " d'imposition. Un taux s'applique à la valeur locative cadastrale, pas"

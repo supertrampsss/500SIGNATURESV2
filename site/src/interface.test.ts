@@ -40,12 +40,24 @@ test("changer de thème repart sur l'année la plus récente", () => {
   assert.match(corps, /etat\.periode = ""/);
   assert.doesNotMatch(PAGE, /surcouche--commandes/);
   assert.match(MAIN, /\$\("fiche"\)\.addEventListener\("click", surLigne\)/);
-  // Ouvrir une mesure la porte sur la carte — mais seulement si elle existe à
-  // la maille affichée : les séries nationales n'ont pas de valeur communale,
-  // et un indicateur calculé n'a pas de couche publiée du tout.
+  // Une mesure ne se peint que si elle existe à la maille affichée : les séries
+  // nationales n'ont pas de valeur communale, et un indicateur calculé n'a pas
+  // de couche publiée du tout.
   assert.match(corps, /if \(!choisi\.niveaux\?\.includes\(etat\.niveau\)\) return;/);
   assert.match(corps, /if \(IDS_DERIVES\.has\(id\)\) return;/);
-  assert.match(MAIN, /closest<HTMLElement>\("\[data-mesure\]"\)/);
+});
+
+test("déplier une mesure ne repeint pas la carte", () => {
+  // Peindre relit une couche de 34 772 territoires et réécrit la fiche
+  // entière. Tant que ce coût était celui d'un dépliage, *lire* un chiffre
+  // coûtait le prix de *cartographier* un chiffre — à chaque ligne, sur un
+  // thème qui en compte soixante-dix-neuf.
+  assert.match(MAIN, /closest<HTMLElement>\("\[data-carte\]"\)/);
+  assert.doesNotMatch(MAIN, /closest<HTMLElement>\("\[data-mesure\]"\)/);
+  // Le bouton n'existe que là où il y a quelque chose à peindre : les mêmes
+  // refus que `choisirIndicateur`, appliqués avant de le proposer.
+  assert.match(MAIN, /function peintSurCarte\(indicateur: Indicateur\): boolean/);
+  assert.match(FICHE, /data-carte="/);
 });
 
 test("un maire absent est dit, pas laissé en blanc", () => {

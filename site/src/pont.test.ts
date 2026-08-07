@@ -11,7 +11,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { marches, montant, rendu } from "./pont.ts";
+import { composantes, marches, montant, rendu } from "./pont.ts";
+import type { Indicateur } from "./donnees.ts";
 import type { Territoire } from "./donnees.ts";
 
 /** Espace fine insécable : la typographie française avant une unité. */
@@ -48,27 +49,50 @@ function territoire(comptes: Record<string, number>): Territoire {
 
 const BORDEAUX = territoire(COMPTES);
 
-test("les neuf marches s'enchaînent des recettes au solde", () => {
+test("les marches s'enchaînent des recettes au solde, en trois blocs", () => {
   const etapes = marches(BORDEAUX, "2025");
   assert.ok(etapes);
+  // Neuf lignes d'affilée se lisent comme une liste ; trois blocs de trois se
+  // lisent comme un raisonnement.
   assert.deepEqual(
     etapes.map((e) => e.role),
-    ["depart", "flux", "palier", "flux", "palier", "flux", "flux", "flux", "arrivee"],
+    ["depart", "flux", "palier", "flux", "palier", "report", "flux", "flux", "flux", "arrivee"],
+  );
+  assert.deepEqual(
+    [...new Set(etapes.map((e) => e.section))],
+    ["fonctionnement", "dette", "investissement"],
   );
   // Une sortie porte son signe : c'est ce qui fait du pont une addition.
   assert.equal(etapes[1].montant, -369_011_621.25);
   assert.equal(etapes[2].montant, 48_126_337.27);
   // 536 663 746,47 − 538 711 875,41
-  assert.ok(Math.abs((etapes[8].montant as number) + 2_048_128.94) < 0.01);
+  assert.ok(Math.abs((etapes[9].montant as number) + 2_048_128.94) < 0.01);
 });
 
-test("chaque palier se recalcule depuis ses termes", () => {
+test("chaque bloc s'additionne de lui-même, report compris", () => {
   const etapes = marches(BORDEAUX, "2025") as NonNullable<ReturnType<typeof marches>>;
-  const [depart, fonctionnement, brute, remboursements, nette, recettesInv, emprunts, depensesInv, arrivee] =
-    etapes.map((e) => e.montant);
-  assert.ok(Math.abs(depart + fonctionnement - brute) < 1);
-  assert.ok(Math.abs(brute + remboursements - nette) < 1);
-  assert.ok(Math.abs(nette + recettesInv + emprunts + depensesInv - arrivee) < 1);
+  // Le report reprend le total du bloc précédent : sans lui, la dernière ligne
+  // tomberait d'un calcul dont deux termes sont hors du bloc.
+  for (const section of ["fonctionnement", "dette", "investissement"] as const) {
+    const bloc = etapes.filter((e) => e.section === section);
+    const total = bloc.find((e) => e.role === "palier" || e.role === "arrivee");
+    const termes = bloc.filter((e) => e.role !== "palier" && e.role !== "arrivee");
+    const somme = termes.reduce((s, e) => s + e.montant, 0);
+    // Le bloc « dette » n'a qu'un flux : son palier vaut l'épargne brute plus
+    // ce flux, et l'épargne brute est le palier du bloc d'avant.
+    const report = section === "dette" ? (etapes[2].montant as number) : 0;
+    assert.ok(
+      Math.abs(somme + report - (total?.montant as number)) < 1,
+      `${section} ne s'additionne pas`,
+    );
+  }
+});
+
+test("le report ne compte pas deux fois : il redit le palier précédent", () => {
+  const etapes = marches(BORDEAUX, "2025") as NonNullable<ReturnType<typeof marches>>;
+  const nette = etapes.find((e) => e.libelle === "Épargne nette");
+  const report = etapes.find((e) => e.role === "report");
+  assert.equal(report?.montant, nette?.montant);
 });
 
 test("un palier qui ne boucle pas retire le pont entier", () => {
@@ -76,7 +100,7 @@ test("un palier qui ne boucle pas retire le pont entier", () => {
   // marches justes et une fausse, il ne montre rien.
   const fausse = territoire({ ...COMPTES, ofgl_epargne_brute: 49_126_337.27 });
   assert.equal(marches(fausse, "2025"), null);
-  assert.equal(rendu(fausse, "2025"), "");
+  assert.equal(rendu(fausse), "");
 });
 
 test("le bouclage de la section d'investissement est contrôlé lui aussi", () => {
@@ -98,8 +122,8 @@ test("l'arrondi de publication ne casse pas le pont", () => {
 });
 
 test("un exercice sans comptes ne produit pas de bloc", () => {
-  assert.equal(rendu(BORDEAUX, null), "");
-  assert.equal(rendu(BORDEAUX, "2019"), "");
+  assert.equal(rendu(territoire({})), "");
+  assert.equal(rendu(territoire({})), "");
 });
 
 test("les montants se lisent à l'échelle de la collectivité", () => {
@@ -110,15 +134,278 @@ test("les montants se lisent à l'échelle de la collectivité", () => {
   assert.equal(montant(-820), `−820${FINE}€`);
 });
 
-test("le bloc dit son exercice, sa source et que ce n'est pas un déficit d'État", () => {
-  const html = rendu(BORDEAUX, "2025");
+test("le bloc s'affiche ouvert : c'est la question qu'on vient poser", () => {
+  const html = rendu(BORDEAUX);
+  assert.match(html, /^<section class="pont">/);
+  // Derrière un triangle à déplier, « d'un euro encaissé à ce qu'il en reste »
+  // se rangeait avec les annexes.
+  assert.doesNotMatch(html, /<details/);
   assert.match(html, /exercice 2025/);
   assert.match(html, /Épargne brute/);
   assert.match(html, new RegExp(`417,1${FINE}M€`));
-  assert.match(html, /Observatoire des finances/);
-  assert.match(html, /Ce n&#39;est pas un déficit au sens de l&#39;État/);
-  // Replié : neuf marches ouvertes pousseraient le reste de la fiche hors
-  // de l'écran.
-  assert.match(html, /^<details class="repli pont">/);
-  assert.doesNotMatch(html, /<details[^>]*\bopen\b/);
+});
+
+test("aucune prose sous le tableau : dans une colonne, chaque ligne compte", () => {
+  // La réserve « ce n'est pas un déficit au sens de l'État », la méthode des
+  // contrôles et le mode d'emploi des plis prenaient plus de place que les
+  // chiffres qu'ils accompagnaient. Ils se lisent sur la page « Données ».
+  const html = rendu(BORDEAUX);
+  assert.doesNotMatch(html, /déficit au sens/);
+  assert.doesNotMatch(html, /s&#39;ouvrent sur leur composition/);
+  assert.doesNotMatch(html, /pont__lecture/);
+  assert.doesNotMatch(html, /pont__aide/);
+});
+
+test("la colonne « il reste » est ce qui fait le pont", () => {
+  // Neuf lignes de totaux, on les trouve déjà partout ailleurs dans la fiche.
+  // Ce qui manquait, c'est le cumul : ce qu'il reste après chaque ligne.
+  const etapes = marches(BORDEAUX, "2025") as NonNullable<ReturnType<typeof marches>>;
+  assert.equal(etapes[0].reste, 417_137_958.52);
+  // 417,1 − 369,0 = 48,1, et le palier publié vaut bien cela.
+  assert.ok(Math.abs(etapes[1].reste - 48_126_337.27) < 1);
+  assert.equal(etapes[2].reste, 48_126_337.27);
+  // Le report remet le cumul à l'épargne nette : la section d'investissement
+  // repart de là et non du zéro.
+  assert.equal(etapes[5].reste, 14_392_071.16);
+  assert.ok(Math.abs((etapes[9].reste as number) + 2_048_128.94) < 0.01);
+  // À l'écran, une seule colonne : le cumul après chaque flux est exactement
+  // le palier de la ligne suivante, l'afficher doublait la moitié des nombres.
+  const html = rendu(BORDEAUX);
+  assert.doesNotMatch(html, /Il reste/);
+  assert.doesNotMatch(html, /pont__mouvement/);
+});
+
+/**
+ * Le détail du détail.
+ *
+ * L'OFGL publie ses agrégats avec leur place dans l'arbre comptable, et cette
+ * colonne n'était lue nulle part : le site alignait soixante-dix-neuf agrégats
+ * à plat, dont des totaux et leurs propres composantes, sans que rien ne dise
+ * lesquels contenaient lesquels.
+ */
+
+const CATALOGUE = [
+  { id: "ofgl_frais_personnel", libelle: "Frais de personnel",
+    parent: "ofgl_depenses_fonctionnement" },
+  { id: "ofgl_depenses_d_intervention", libelle: "Dépenses d'intervention",
+    parent: "ofgl_depenses_fonctionnement" },
+  { id: "ofgl_achats_et_charges_externes", libelle: "Achats et charges externes",
+    parent: "ofgl_depenses_fonctionnement" },
+  { id: "ofgl_charges_financieres", libelle: "Charges financières",
+    parent: "ofgl_depenses_fonctionnement" },
+  { id: "ofgl_autres_depenses_de_fonctionnement", libelle: "Autres dépenses",
+    parent: "ofgl_depenses_fonctionnement" },
+] as never as Indicateur[];
+
+// Bordeaux 2025 : les cinq composantes des 369,0 M€ de charges courantes.
+const CHARGES = {
+  ofgl_frais_personnel: 183_075_349.4,
+  ofgl_depenses_d_intervention: 86_707_384.03,
+  ofgl_achats_et_charges_externes: 85_732_072.06,
+  ofgl_charges_financieres: 8_315_268.29,
+  ofgl_autres_depenses_de_fonctionnement: 5_181_547.47,
+};
+
+test("une étape s'ouvre sur ce qu'il y a dedans", () => {
+  const bordeaux = territoire({ ...COMPTES, ...CHARGES });
+  const liste = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25, bordeaux, "2025", CATALOGUE,
+  );
+  assert.ok(liste);
+  assert.equal(liste.length, 5);
+  // La plus grosse d'abord : c'est la réponse à « où va l'argent ».
+  assert.equal(liste[0].libelle, "Frais de personnel");
+  assert.equal(Math.round(liste[0].part), 50);
+  assert.equal(liste[4].libelle, "Autres dépenses");
+  const html = rendu(bordeaux, CATALOGUE);
+  // Ouvert d'emblée : un pli fermé cache l'information qu'on est venu chercher.
+  assert.match(html, /<details class="pont__ouvrir" open>/);
+  assert.match(html, /Frais de personnel/);
+  // Le jargon comptable se traduit à l'affichage : « Dépenses d'intervention »
+  // ne dit rien à personne.
+  assert.match(html, /Aides et subventions versées/);
+  assert.doesNotMatch(html, /Dépenses d&#39;intervention/);
+});
+
+test("une décomposition partielle s'affiche avec son reste nommé", () => {
+  // Refuser tout cachait les subventions aux associations sous les dépenses
+  // d'intervention : la source ne publie pas toutes les composantes de cet
+  // agrégat, et le lecteur perdait le détail publié au motif qu'il en manquait
+  // un autre. Le reste est nommé, jamais réparti.
+  const ampute = { ...CHARGES };
+  delete (ampute as Record<string, number>).ofgl_frais_personnel;
+  const liste = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25,
+    territoire({ ...COMPTES, ...ampute }), "2025", CATALOGUE,
+  );
+  assert.ok(liste);
+  const reste = liste[liste.length - 1];
+  assert.equal(reste.libelle, "Non détaillé par la source");
+  assert.ok(Math.abs(reste.montant - 183_075_349.4) < 1);
+  const somme = liste.reduce((t, c) => t + c.montant, 0);
+  assert.ok(Math.abs(somme - 369_011_621.25) < 1);
+});
+
+test("une décomposition majoritairement inexpliquée n'explique rien", () => {
+  // Les impôts locaux n'ont qu'un enfant publié, la fiscalité reversée,
+  // négative : l'afficher donnait « non détaillé par la source : 119 % ».
+  const catalogue = [
+    ...CATALOGUE,
+    { id: "ofgl_fiscalite_reversee", libelle: "Fiscalité reversée",
+      parent: "ofgl_impots_locaux" },
+  ] as never as Indicateur[];
+  const bordeaux = territoire({ ...COMPTES, ofgl_impots_locaux: 253_975_934.62,
+    ofgl_fiscalite_reversee: -49_425_246.38 });
+  assert.equal(
+    composantes("ofgl_impots_locaux", 253_975_934.62, bordeaux, "2025", catalogue),
+    null,
+  );
+});
+
+test("des composantes qui dépassent leur total restent refusées", () => {
+  // Elles se recouvrent : les afficher compterait le même euro deux fois.
+  const gonfle = { ...CHARGES, ofgl_frais_personnel: 400_000_000 };
+  assert.equal(
+    composantes(
+      "ofgl_depenses_fonctionnement", 369_011_621.25,
+      territoire({ ...COMPTES, ...gonfle }), "2025", CATALOGUE,
+    ),
+    null,
+  );
+});
+
+test("une couverture complète ne fabrique pas de ligne de reste", () => {
+  const liste = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25,
+    territoire({ ...COMPTES, ...CHARGES }), "2025", CATALOGUE,
+  );
+  assert.ok(liste);
+  assert.doesNotMatch(JSON.stringify(liste), /Non détaillé/);
+});
+
+test("sans hiérarchie publiée, le pont s'affiche sans se déplier", () => {
+  // Les publications antérieures ne portent pas le parent : la fiche doit
+  // s'afficher quand même, avec ses neuf marches.
+  const html = rendu(BORDEAUX, []);
+  assert.match(html, /Charges courantes/);
+  assert.doesNotMatch(html, /pont__ouvrir/);
+});
+
+test("l'arrondi des composantes ne ferme pas la décomposition", () => {
+  // Chaque composante est arrondie au centime : le cumul de cinq arrondis
+  // dérive, et un contrôle trop serré fermerait tous les plis du site.
+  const derive = { ...CHARGES, ofgl_charges_financieres: 8_315_268.29 + 120 };
+  const liste = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25,
+    territoire({ ...COMPTES, ...derive }), "2025", CATALOGUE,
+  );
+  assert.notEqual(liste, null);
+});
+
+test("la source n'encombre plus la barre latérale", () => {
+  // Le pavé de méthode est repris en entier sur la page « Données », où l'on
+  // va quand on veut la méthode. Dans la fiche, il poussait les chiffres.
+  const html = rendu(BORDEAUX);
+  assert.doesNotMatch(html, /Observatoire des finances/);
+  assert.doesNotMatch(html, /loi n° 2018-32/);
+});
+
+/**
+ * Les deux lectures d'un même euro.
+ *
+ * Les charges de fonctionnement se décomposent de deux façons : ce que la
+ * commune achète — personnel, achats, intérêts — et à quoi ça sert — écoles,
+ * sport, culture. Les deux décrivent le même total et ne s'additionnent jamais
+ * entre elles. Les ranger sous le même parent les aurait fait sommer au double.
+ */
+
+const CATALOGUE_FONCTION = [
+  ...CATALOGUE,
+  { id: "fonction_commune_services_generaux", libelle: "Services généraux",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+  { id: "fonction_commune_culture", libelle: "Culture",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+  { id: "fonction_commune_sport", libelle: "Sport et jeunesse",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+  { id: "fonction_commune_retraitements_ofgl", libelle: "Retraitements de l'OFGL",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+] as never as Indicateur[];
+
+// Bordeaux 2023 : le grand livre donne 385,9 M€ là où l'OFGL en publie 353,7.
+// La onzième ligne nomme l'écart au lieu de le répartir sur les fonctions.
+const FONCTIONS = {
+  fonction_commune_services_generaux: 118_600_000,
+  fonction_commune_culture: 100_100_000,
+  fonction_commune_sport: 167_175_349.4,
+  fonction_commune_retraitements_ofgl: -16_863_728.15,
+};
+
+test("un même total se lit par nature ou par destination", () => {
+  const bordeaux = territoire({ ...COMPTES, ...CHARGES, ...FONCTIONS });
+  const nature = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25, bordeaux, "2025", CATALOGUE_FONCTION,
+  );
+  const fonction = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25, bordeaux, "2025",
+    CATALOGUE_FONCTION, "fonction",
+  );
+  assert.equal(nature?.length, 5);
+  assert.equal(fonction?.length, 4);
+  // Le même total des deux côtés : ce sont deux lectures, pas deux mesures.
+  const somme = (l: typeof nature) => (l ?? []).reduce((s, c) => s + c.montant, 0);
+  assert.ok(Math.abs(somme(nature) - somme(fonction)) < 1);
+});
+
+test("le résidu de rapprochement est nommé, pas réparti", () => {
+  // Réparti sur les fonctions, l'écart entre le grand livre et l'agrégat de
+  // l'OFGL serait devenu invisible — et chaque fonction aurait été faussée.
+  const bordeaux = territoire({ ...COMPTES, ...CHARGES, ...FONCTIONS });
+  const fonction = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25, bordeaux, "2025",
+    CATALOGUE_FONCTION, "fonction",
+  );
+  const residu = fonction?.find((c) => c.id === "fonction_commune_retraitements_ofgl");
+  assert.ok(residu);
+  assert.ok(residu.montant < 0, "le grand livre est plus large que l'agrégat");
+});
+
+test("les deux axes se proposent au choix, jamais ensemble", () => {
+  const html = rendu(territoire({ ...COMPTES, ...CHARGES, ...FONCTIONS }), CATALOGUE_FONCTION);
+  assert.match(html, /data-axe="nature" aria-pressed="true"/);
+  assert.match(html, /data-axe="fonction" aria-pressed="false"/);
+  // La seconde liste est dans le document mais masquée : additionnées, les deux
+  // compteraient le même euro deux fois.
+  assert.match(html, /<ul class="pont__composantes" data-axe="fonction" hidden>/);
+});
+
+test("sans second axe, aucune bascule à choisir", () => {
+  const html = rendu(territoire({ ...COMPTES, ...CHARGES }), CATALOGUE);
+  assert.doesNotMatch(html, /pont__axes/);
+  assert.match(html, /Frais de personnel/);
+});
+
+test("l'axe fonctionnel s'affiche sur son propre exercice, avec l'année au bouton", () => {
+  // Le grand livre paraît avec deux ans de retard sur l'OFGL : le pont est en
+  // 2025, la ventilation en 2023. Plutôt que d'attendre 2027, elle s'affiche
+  // contre l'agrégat de 2023 — c'est contre lui que la somme boucle — et le
+  // bouton porte l'année pour qu'on ne lise pas 2023 comme 2025.
+  const catalogue = [
+    ...CATALOGUE,
+    { id: "fonction_commune_culture", libelle: "Culture",
+      parent_fonction: "ofgl_depenses_fonctionnement" },
+    { id: "fonction_commune_retraitements_ofgl", libelle: "Retraitements de l'OFGL",
+      parent_fonction: "ofgl_depenses_fonctionnement" },
+  ] as never as Indicateur[];
+  const bordeaux = territoire({ ...COMPTES, ...CHARGES });
+  bordeaux.series.ofgl_depenses_fonctionnement["2023"] = 353_700_000;
+  bordeaux.series.fonction_commune_culture = { "2023": 300_000_000 };
+  bordeaux.series.fonction_commune_retraitements_ofgl = { "2023": 53_700_000 };
+  const html = rendu(bordeaux, catalogue);
+  assert.match(html, /à quoi ça sert \(2023\)/);
+  assert.match(html, /Culture/);
+});
+
+test("sans ventilation fonctionnelle publiée, pas de bouton d'axe", () => {
+  const html = rendu(territoire({ ...COMPTES, ...CHARGES }), CATALOGUE);
+  assert.doesNotMatch(html, /à quoi ça sert/);
 });

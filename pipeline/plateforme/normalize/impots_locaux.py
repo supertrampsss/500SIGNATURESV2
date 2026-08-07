@@ -59,10 +59,13 @@ DESTINATAIRE = "Commune"
 # Libellé de variable de la source -> (identifiant, libellé publié).
 PRODUITS = {
     "FB - COMMUNE / MONTANT RÉEL": (
-        "dgfip_produit_foncier_bati", "Produit de la taxe foncière (bâti)",
+        # « (bâti) » est un mot de fiscaliste : la taxe foncière que paie un
+        # propriétaire, c'est celle-ci. L'autre, minoritaire, se nomme par ce
+        # qu'elle taxe — les terrains.
+        "dgfip_produit_foncier_bati", "Produit de la taxe foncière",
     ),
     "FNB - COMMUNE / MONTANT RÉEL": (
-        "dgfip_produit_foncier_non_bati", "Produit de la taxe foncière (non bâti)",
+        "dgfip_produit_foncier_non_bati", "Produit de la taxe foncière sur les terrains",
     ),
     "TH - COMMUNE / MONTANT RÉEL THS": (
         "dgfip_produit_th_residences_secondaires",

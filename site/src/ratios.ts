@@ -169,7 +169,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: ((personnel + annuite) / recettes) * 100,
       unite: "percent",
       lecture:
-        "La part des recettes absorbée par les frais de personnel et l'annuité de la dette : ce qui est dû avant tout choix de l'année.",
+        "Sur 100 € de recettes, ce qui part déjà en salaires et en remboursement de la dette. Plus c'est haut, moins la commune a les mains libres.",
     });
   }
 
@@ -256,11 +256,5 @@ export function rendu(territoire: Territoire, niveau: string): string {
       exercice,
     )}</span></h3>
     <div class="ratios__grille">${carreaux}</div>
-    <p class="ratios__source">Calculés sur les comptes publiés par l'Observatoire des finances et
-    de la gestion publique locales (OFGL) pour le budget principal du seul exercice ${echapper(
-      exercice,
-    )}. Le plafond de désendettement est celui de la loi n° 2018-32 du 22 janvier 2018 de
-    programmation des finances publiques pour 2018-2022, art. 29 ; les autres rapports n'ont pas
-    de norme publiée et se lisent en comparant les territoires.</p>
   </section>`;
 }

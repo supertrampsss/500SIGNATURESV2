@@ -419,12 +419,19 @@ summary:focus-visible {
 }
 
 /* Le panneau territoire : la fiche et les repères de la couche, à droite,
-   par-dessus la carte — le geste mafrance que la grille d'avant interdisait. */
+   par-dessus la carte — le geste mafrance que la grille d'avant interdisait.
+
+   **Il occupe désormais près de la moitié de l'écran.** La carte tenait les
+   deux tiers et la fiche un tiers, alors que la carte répond à une question —
+   « et à côté de chez moi ? » — quand la fiche répond à toutes les autres.
+   L'enchaînement des comptes, les six rapports, les associations nommées, le
+   détail par fonction : tout cela se lisait par une meurtrière. La carte garde
+   ce qu'il lui faut pour situer, et le cadrage suit (`paddingCarte`). */
 .panneau {
   top: 0.9rem;
   right: 0.9rem;
   bottom: 1.55rem;
-  width: min(25.5rem, 36vw);
+  width: min(50rem, 60vw);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -670,10 +677,6 @@ summary:focus-visible {
   margin: 0.25rem 0 0;
   font-size: 0.72rem;
   color: var(--encre-douce);
-}
-.mesure--absente dd {
-  color: var(--encre-douce);
-  font-style: italic;
 }
 
 .repli {
@@ -2553,18 +2556,6 @@ body[data-vue="carte"] .pied {
   font-size: 0.72rem;
   color: var(--encre-douce);
 }
-.mesure--absente {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.8rem;
-  padding: 0.52rem 0;
-  font-size: 0.88rem;
-  color: var(--encre-douce);
-}
-.mesure__absence {
-  font-size: 0.78rem;
-  white-space: nowrap;
-}
 
 /* Les rubriques : quatre entrées qui tiennent sans défiler, là où la barre des
    thèmes en cachait vingt-deux hors de l'écran. Elles collent au-dessus de la
@@ -3070,115 +3061,316 @@ body[data-vue="carte"] .pied {
   color: var(--encre-douce);
 }
 
-/* Le pont. Chaque marche est une ligne de compte : libellé à gauche, montant
-   à droite, et sous les deux une barre proportionnelle à la plus grande masse
-   du pont — sans échelle commune, un remboursement de 2 % ferait la même
-   longueur qu'une recette de 100 %. */
+/* Le pont : trois colonnes en grille, dont la troisième — « il reste » — est ce
+   qui en fait un pont et non une liste. Une grille et non un tableau : une
+   composante qui s'ouvre sur les siennes doit occuper toute la largeur, et
+   imbriquée dans une cellule elle poussait la troisième colonne hors de
+   l'écran. */
+.pont { margin: 0.9rem 0 0.4rem; }
+.pont > h3 {
+  margin: 0 0 0.4rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--encre);
+}
 .pont__exercice {
   font-weight: 400;
   font-size: 0.72rem;
   color: var(--encre-douce);
   white-space: nowrap;
 }
-.pont__marches {
-  list-style: none;
-  margin: 0.4rem 0 0;
-  padding: 0;
-}
-.pont__marche {
+.pont__rangee,
+.pont__entete {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: baseline;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   column-gap: 0.5rem;
-  /* Plus d'air en dessous qu'au-dessus : à écart égal, la barre se lisait
-     comme celle de la ligne suivante. */
-  padding: 0.2rem 0 0.55rem;
+  align-items: baseline;
 }
-.pont__libelle {
-  font-size: 0.74rem;
+.pont__entete {
+  margin: 0 0 0.2rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--trait);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--encre-douce);
 }
-.pont__montant {
-  font-size: 0.78rem;
+.pont__entete span:not(:first-child) { text-align: right; }
+.pont__etapes,
+.pont__composantes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.pont__ligne { padding: 0.22rem 0; }
+.pont__nom {
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+}
+.pont__mouvement,
+.pont__reste {
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
-  color: var(--encre);
+  text-align: right;
   white-space: nowrap;
 }
-.pont__barre {
-  grid-column: 1 / -1;
-  height: 3px;
-  margin-top: 0.2rem;
-  border-radius: 2px;
-  background: var(--accent);
-  opacity: 0.55;
-}
-/* Une sortie d'argent se distingue d'une entrée à la barre, pas seulement au
-   signe : le signe se lit, la barre se voit. */
-.pont__marche[data-sens="sortie"] .pont__barre {
-  background: var(--encre-douce);
-}
-/* Un palier est un total, pas un flux : lui donner une barre le mettait en
-   concurrence visuelle avec les mouvements qu'il résume. Le trait et la
-   graisse suffisent à le distinguer. */
-.pont__marche--palier .pont__barre,
-.pont__marche--arrivee .pont__barre {
-  display: none;
-}
-/* Un palier n'est pas un flux de plus : il est le total de ce qui précède, et
-   le trait au-dessus le dit. */
-.pont__marche--palier,
-.pont__marche--arrivee {
+.pont__mouvement { color: var(--encre-douce); }
+.pont__reste { color: var(--encre); font-weight: 500; }
+/* Un palier est un total : le trait au-dessus dit que ce qui précède
+   s'additionne pour donner cette ligne-là. */
+.pont__ligne--palier,
+.pont__ligne--arrivee {
   border-top: 1px solid var(--trait-fort);
   margin-top: 0.15rem;
-  padding-top: 0.35rem;
+  padding-top: 0.3rem;
 }
-.pont__marche--palier .pont__libelle,
-.pont__marche--arrivee .pont__libelle,
-.pont__marche--palier .pont__montant,
-.pont__marche--arrivee .pont__montant {
+.pont__ligne--palier .pont__nom,
+.pont__ligne--arrivee .pont__nom,
+.pont__ligne--palier .pont__reste,
+.pont__ligne--arrivee .pont__reste {
   font-weight: 600;
   color: var(--encre);
 }
-.pont__lecture {
-  grid-column: 1 / -1;
-  margin: 0.2rem 0 0;
-  font-size: 0.68rem;
-  line-height: 1.35;
+/* Le report n'apporte aucun euro neuf : il redit le total du bloc précédent
+   pour que l'addition se vérifie de l'œil. */
+.pont__ligne--report .pont__nom { font-style: italic; }
+.pont__ligne--report .pont__reste { font-weight: 400; color: var(--encre-douce); }
+/* Ce qui s'ouvre se voit : le libellé souligné en pointillé est la seule
+   promesse faite au lecteur qu'il y a quelque chose dessous. */
+.pont__ouvrir > summary,
+.pont__sous > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.pont__ouvrir > summary::-webkit-details-marker,
+.pont__sous > summary::-webkit-details-marker { display: none; }
+.pont__ouvrir > summary .pont__nom,
+.pont__sous > summary .pont__c-nom {
+  border-bottom: 1px dotted var(--trait-fort);
+}
+.pont__ouvrir > summary .pont__nom::before,
+.pont__sous > summary .pont__c-nom::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.25rem;
+  font-size: 0.6rem;
+  color: var(--trait-fort);
+  transition: transform var(--transition);
+}
+.pont__ouvrir[open] > summary .pont__nom::before,
+.pont__sous[open] > summary .pont__c-nom::before { transform: rotate(90deg); }
+.pont__ouvrir > summary:hover .pont__nom,
+.pont__sous > summary:hover .pont__c-nom { color: var(--encre); }
+.pont__composantes { margin: 0.15rem 0 0.3rem; }
+.pont__composante { padding: 0.1rem 0; }
+/* Chaque niveau se décale : c'est le décalage qui dit « ceci est dans cela ». */
+.pont__composante[data-rang="1"] { padding-left: 0.7rem; }
+.pont__composante[data-rang="2"] { padding-left: 1.4rem; }
+.pont__composante[data-rang="3"] { padding-left: 2.1rem; }
+.pont__c-nom {
+  font-size: 0.7rem;
   color: var(--encre-douce);
 }
-.pont__source {
-  margin: 0.5rem 0 0;
-  font-size: 0.68rem;
-  line-height: 1.35;
-  color: var(--encre-douce);
-}
-
-/* Le dernier pas, dans le résumé de la ligne. Il tient à droite de la valeur,
-   sans jamais la pousser : c'est la valeur qu'on vient lire, la variation
-   n'est qu'un sens de lecture.
-
-   La couleur n'est pas un jugement. Une hausse des cambriolages et une hausse
-   des équipements sportifs prendraient le même vert ou le même rouge alors
-   qu'elles ne se lisent pas pareil — le site ne sait pas, et n'a pas à savoir,
-   dans quel sens un indicateur est « bon ». Le signe et la flèche disent la
-   direction ; c'est au lecteur de conclure. */
-.mesure__pas {
-  margin-left: 0.35rem;
+.pont__c-part,
+.pont__c-montant {
   font-size: 0.7rem;
   font-variant-numeric: tabular-nums;
+  text-align: right;
   white-space: nowrap;
+}
+.pont__c-part { color: var(--encre-douce); opacity: 0.75; }
+.pont__c-montant { color: var(--encre); }
+
+/* Le bouton qui porte une mesure sur la carte. Peindre relit une couche de
+   34 772 territoires : ce n'est plus le prix d'un simple dépliage, c'est un
+   geste qu'on demande. */
+.mesure__carte {
+  align-self: flex-start;
+  font: inherit;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.6rem;
+  margin-top: 0.15rem;
+  border: 1px solid var(--trait-fort);
+  border-radius: 999px;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.mesure__carte:hover {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--papier);
+}
+
+/* « Tout le détail » : ce que le thème garde derrière un pli. Rien n'est
+   retiré — soixante-dix-neuf lignes de nomenclature comptable qu'on fait
+   défiler sans rien en retenir ne sont pas de la richesse, mais elles restent
+   à un clic. */
+.theme-groupe__suite {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--trait);
+  padding-top: 0.35rem;
+}
+.theme-groupe__suite > summary {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+  padding: 0.2rem 0;
+  list-style: none;
+}
+.theme-groupe__suite > summary::-webkit-details-marker {
+  display: none;
+}
+.theme-groupe__suite > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.35rem;
+  font-size: 0.7rem;
+  transition: transform var(--transition);
+}
+.theme-groupe__suite[open] > summary::before {
+  transform: rotate(90deg);
+}
+.theme-groupe__suite > summary:hover {
+  color: var(--encre);
+}
+.theme-groupe__compte {
+  color: var(--encre-douce);
+  opacity: 0.8;
+}
+
+/* À quelles associations. Une liste de noms, pas un tableau : le montant se lit
+   à droite du nom, l'objet du versement dessous, en plus petit. */
+.assos {
+  margin: 0.4rem 0 0.6rem;
+}
+.assos > h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--encre);
+}
+.assos__exercice {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+/* La réserve n'est pas une note de bas de page : sans elle, une fédération
+   nationale domiciliée à Paris se lit comme de l'argent dépensé pour les
+   Parisiens. Elle se lit donc avant la liste. */
+.assos__reserve {
+  margin: 0 0 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
   color: var(--encre-douce);
 }
-.mesure__pas::before {
-  margin-right: 0.15rem;
-  font-size: 0.62rem;
+.assos__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
-.mesure__pas--hausse::before {
-  content: "▲";
+.assos__ligne {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--trait);
 }
-.mesure__pas--baisse::before {
-  content: "▼";
+.assos__nom {
+  font-size: 0.78rem;
+  color: var(--encre);
 }
-.mesure__pas--stable::before {
-  content: "=";
+.assos__montant {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--encre);
+  white-space: nowrap;
+}
+.assos__objet {
+  grid-column: 1 / -1;
+  margin-top: 0.1rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--encre-douce);
+}
+.assos__suite > summary {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+.assos__suite > summary:hover {
+  color: var(--encre);
+}
+
+/* « Ce total est notre somme, pas un chiffre publié. » La mention se lit avant
+   les chiffres du thème : après, elle serait une note de bas de page sur une
+   information qu'on a déjà prise pour argent comptant. */
+.theme-groupe__agregat {
+  margin: 0 0 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 2px solid var(--trait-fort);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--encre-douce);
+  background: var(--papier-creuse);
+}
+
+/* Les deux lectures d'un même total : ce que la commune achète, et à quoi ça
+   sert. Elles ne s'additionnent jamais entre elles — c'est le même euro, vu
+   deux fois — donc on montre l'une ou l'autre. */
+.pont__axes {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0.3rem 0 0.1rem 0.7rem;
+}
+.pont__axes button {
+  font: inherit;
+  font-size: 0.66rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.pont__axes button[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--papier);
+}
+
+/* « Au titre de quel programme » : la typologie que le jaune permet vraiment.
+   Repliée, parce qu'elle répond à une seconde question — la première étant
+   « à quelles associations », qui reste ouverte au-dessus. */
+.assos__programmes {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--trait);
+  padding-top: 0.35rem;
+}
+.assos__programmes > summary {
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+.assos__programmes > summary:hover {
+  color: var(--encre);
+}
+.assos__compte {
+  opacity: 0.8;
+}
+
+/* Les euros constants. La phrase corrige la précédente : elle se lit avec elle,
+   pas comme une remarque à côté. */
+.mesure__constants {
+  border-left: 2px solid var(--trait);
+  padding-left: 0.5rem;
+  font-size: 0.78rem;
 }

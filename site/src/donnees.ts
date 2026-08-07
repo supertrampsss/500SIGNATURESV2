@@ -29,6 +29,14 @@ export type Indicateur = {
    * permet au site de le vérifier plutôt que de l'affirmer.
    */
   unite_de_compte?: string | null;
+  /** L'agrégat qui contient celui-ci, quand la source en déclare un. C'est ce
+   *  qui permet d'ouvrir un total sur ses composantes plutôt que de les aligner
+   *  à côté de lui. Absent des publications antérieures à la hiérarchie. */
+  parent?: string | null;
+  /** L'agrégat que cet indicateur décompose **par destination** — à quoi sert
+   *  l'argent, plutôt que ce qu'on achète. Les deux axes décrivent le même
+   *  total et ne s'additionnent jamais entre eux. */
+  parent_fonction?: string | null;
   /** Le producteur recalcule l'historique dans la géographie d'aujourd'hui : une
    *  fusion de communes ne coupe pas cette série. Absent = non recalculé. */
   geographie_courante?: boolean;
@@ -179,6 +187,45 @@ export type DepensesFiscales = {
   dispositifs: Dispositif[];
 };
 
+/**
+ * Les associations subventionnées d'une commune, la plus dotée d'abord.
+ *
+ * Publié par département, comme les fiches : cinquante-trois mille lignes en un
+ * fichier feraient télécharger la France entière pour lire une commune. Absent
+ * des publications antérieures — le bloc ne s'affiche alors pas, la fiche
+ * s'affiche quand même.
+ */
+export type SubventionsCommune = {
+  exercice: string;
+  /** Le total versé au titre de chaque programme budgétaire, du plus gros au
+   *  plus petit. « À quelles associations » appelle « au titre de quoi » : le
+   *  programme est la seule typologie du jaune qui soit un vocabulaire
+   *  contrôlé. Absent des publications antérieures. */
+  programmes?: { code: string; libelle: string; mission: string; montant: number }[];
+  beneficiaires: {
+    siren: string;
+    nom: string;
+    programme: string;
+    objet: string | null;
+    montant: number;
+  }[];
+};
+
+/**
+ * Ce que la fiche France doit à nos additions plutôt qu'à une source.
+ *
+ * Un total national obtenu en sommant dix-huit régions n'est pas un chiffre
+ * publié par le producteur : c'est notre calcul, et le dire fait partie du
+ * chiffre. Le périmètre aussi — France entière, outre-mer compris, alors que
+ * beaucoup de chiffres nationaux publiés ailleurs s'arrêtent à la métropole.
+ */
+export type AgregatsNationaux = {
+  regions_attendues: number;
+  perimetre: string;
+  indicateurs: string[];
+  ecartes: { indicateur: string; periode: string; regions_manquantes: string[] }[];
+};
+
 /** Une entrée du journal public : un chiffre a bougé, ou a cessé d'être servi. */
 export type Changement = {
   annonce: string;
@@ -193,6 +240,9 @@ export type Changement = {
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const depensesFiscales = () => lire<DepensesFiscales>("depenses-fiscales.json");
+export const agregatsNationaux = () => lire<AgregatsNationaux>("agregats-nationaux.json");
+export const subventions = (lot: string) =>
+  lire<Record<string, SubventionsCommune>>(`subventions/commune/${lot}.json`);
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
 export const journal = () => lire<Changement[]>("journal.json");
 export const references = () => lire<import("./reference.ts").References>("references.json");
