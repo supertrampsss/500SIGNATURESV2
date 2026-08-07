@@ -86,7 +86,15 @@ def _annoncee(reponse: httpx.Response) -> int | None:
         if total.isdigit():
             return int(total)
     longueur = reponse.headers.get("content-length")
-    return int(longueur) if longueur and longueur.isdigit() else None
+    if not longueur or not longueur.isdigit():
+        return None
+    # `Content-Length: 0` sur une réponse qui porte un corps n'est pas une
+    # taille : c'est un serveur qui ne la connaît pas encore parce qu'il
+    # diffuse en flux. Eurostat répond ainsi sur son API de diffusion, et le
+    # prendre au mot faisait déclarer tronquées 80 Ko parfaitement reçus.
+    # Une réponse réellement vide est attrapée plus loin, sur le tampon.
+    taille = int(longueur)
+    return taille if taille > 0 else None
 
 
 def fetch(url: str, headers: dict | None = None, timeout: float = 60.0) -> httpx.Response:
@@ -213,7 +221,10 @@ def telecharger(
             dernier = Tronque(f"{url} : {len(tampon)} octets reçus sur {attendu}")
         if essai < essais - 1:
             time.sleep((2 ** min(essai, 4)) + random.uniform(0, 1))
-    if attendu is not None and len(tampon) != attendu:
+    # `<` et non `!=`, comme la condition de sortie de la boucle : les deux se
+    # contredisaient, si bien qu'un téléchargement déclaré réussi à la sortie
+    # pouvait être refusé juste après.
+    if attendu is not None and len(tampon) < attendu:
         raise Tronque(
             f"{url} : {len(tampon)} octets reçus sur {attendu} après {essais} tentatives"
         )
