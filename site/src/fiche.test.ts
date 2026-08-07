@@ -13,10 +13,12 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import type { Indicateur } from "./donnees.ts";
 import {
   comparableAuxAutresTerritoires,
   densiteRapportableAuxHabitants,
   groupeDeLaCommune,
+  jumeaux,
   lectureDeDensite,
   ongletsThemes,
   positionDansGroupe,
@@ -374,4 +376,46 @@ test("un effectif compté au siège n'a pas les habitants pour dénominateur", (
     jeu: "plf-2023-effort-associations",
   } as never;
   assert.equal(densiteRapportableAuxHabitants(etablissements), false);
+});
+
+/**
+ * Trop d'indicateurs, c'est moins d'information.
+ *
+ * Soixante-dix-neuf lignes de comptes locaux et trente-deux lignes de
+ * sécurité — dont seize qui redisaient les seize autres — se faisaient défiler
+ * sans que rien n'en reste. Ces tests fixent les deux réponses : le doublon
+ * est fondu, et le reste passe derrière un pli.
+ */
+
+test("le nombre rejoint le taux : un phénomène, une ligne", () => {
+  const catalogue = [
+    { id: "ssmsi_cambriolages_taux", theme: "securite" },
+    { id: "ssmsi_cambriolages_nombre", theme: "securite" },
+    { id: "ssmsi_homicides_taux", theme: "securite" },
+    { id: "ssmsi_homicides_nombre", theme: "securite" },
+    { id: "insee_population_municipale", theme: "population" },
+  ] as never as Indicateur[];
+  const paires = jumeaux(catalogue);
+  assert.equal(paires.size, 2);
+  assert.equal(paires.get("ssmsi_cambriolages_taux")?.id, "ssmsi_cambriolages_nombre");
+  // Le taux reste la ligne : c'est lui qui se compare d'un territoire à l'autre.
+  assert.equal(paires.has("ssmsi_cambriolages_nombre"), false);
+});
+
+test("un nombre sans taux jumeau reste une ligne à lui seul", () => {
+  // La règle ne doit pas faire disparaître un indicateur qui n'a pas de
+  // jumeau : ce serait perdre une mesure pour ranger une liste.
+  const catalogue = [
+    { id: "insee_chomeurs_rp_nombre", theme: "emploi" },
+    { id: "ssmsi_cambriolages_taux", theme: "securite" },
+  ] as never as Indicateur[];
+  assert.equal(jumeaux(catalogue).size, 0);
+});
+
+test("un taux et un nombre de thèmes différents ne sont pas jumeaux", () => {
+  const catalogue = [
+    { id: "x_taux", theme: "securite" },
+    { id: "x_nombre", theme: "sante" },
+  ] as never as Indicateur[];
+  assert.equal(jumeaux(catalogue).size, 0);
 });

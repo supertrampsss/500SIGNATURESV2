@@ -63,11 +63,31 @@ test("le résumé d'un thème compte les écarts au lieu d'additionner des unit�
     ],
     "son département",
   );
+  // Trois noms, pas un décompte : « 2 au-dessus » dit qu'il y a quelque chose à
+  // voir sans dire sur quoi, et renvoie le lecteur chercher ligne à ligne.
+  // Les écarts sont nommés du plus marqué au moins marqué, sans regarder le
+  // signe — c'est l'ampleur qui décide, pas le sens.
   assert.equal(
     phrase,
     "Sur 4 indicateurs comparés à son département : 2 au-dessus, 1 en dessous," +
-      " 1 au niveau. Écart le plus marqué : coups et blessures, −60 %.",
+      " 1 au niveau. Les écarts les plus marqués : coups et blessures (−60 %)," +
+      " cambriolages (+38 %), vols de véhicules (+12 %).",
   );
+});
+
+test("le résumé s'arrête à trois noms : au-delà, c'est une liste", () => {
+  const phrase = resumeEcarts(
+    [
+      { libelle: "un", ecart: 90 },
+      { libelle: "deux", ecart: -80 },
+      { libelle: "trois", ecart: 70 },
+      { libelle: "quatre", ecart: -60 },
+      { libelle: "cinq", ecart: 50 },
+    ],
+    "la France",
+  );
+  assert.match(phrase, /Les écarts les plus marqués : un \(\+90 %\), deux \(−80 %\), trois \(\+70 %\)\.$/);
+  assert.doesNotMatch(phrase, /quatre/);
 });
 
 test("un thème d'un seul indicateur comparable ne se résume pas : ce serait le répéter", () => {
@@ -96,7 +116,7 @@ test("au-delà de 100 %, l'écart s'arrondit à la dizaine : la précision serai
       ],
       "la France",
     ),
-    /Écart le plus marqué : a, \+340 %\./,
+    /Les écarts les plus marqués : a \(\+340 %\)\./,
   );
 });
 

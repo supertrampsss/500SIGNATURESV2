@@ -3197,3 +3197,40 @@ body[data-vue="carte"] .pied {
 .mesure__deja {
   font-style: italic;
 }
+
+/* « Tout le détail » : ce que le thème garde derrière un pli. Rien n'est
+   retiré — soixante-dix-neuf lignes de nomenclature comptable qu'on fait
+   défiler sans rien en retenir ne sont pas de la richesse, mais elles restent
+   à un clic. */
+.theme-groupe__suite {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--trait);
+  padding-top: 0.35rem;
+}
+.theme-groupe__suite > summary {
+  font-size: 0.78rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+  padding: 0.2rem 0;
+  list-style: none;
+}
+.theme-groupe__suite > summary::-webkit-details-marker {
+  display: none;
+}
+.theme-groupe__suite > summary::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.35rem;
+  font-size: 0.7rem;
+  transition: transform var(--transition);
+}
+.theme-groupe__suite[open] > summary::before {
+  transform: rotate(90deg);
+}
+.theme-groupe__suite > summary:hover {
+  color: var(--encre);
+}
+.theme-groupe__compte {
+  color: var(--encre-douce);
+  opacity: 0.8;
+}

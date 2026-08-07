@@ -122,13 +122,24 @@ export function resumeEcarts(ecarts: Ecart[], repere: string): string {
     bas ? `${bas} en dessous` : "",
     proches ? `${proches} au niveau` : "",
   ].filter(Boolean);
-  const fort = finis.reduce((a, b) => (Math.abs(b.ecart) > Math.abs(a.ecart) ? b : a));
-  const marque =
-    Math.abs(fort.ecart) >= SEUIL_PROCHE
-      ? ` Écart le plus marqué : ${fort.libelle}, ${fort.ecart > 0 ? "+" : "−"}${arrondiEcart(
-          fort.ecart,
-        )} %.`
-      : "";
+  // Trois noms, pas un décompte.
+  //
+  // « Sur 15 indicateurs comparés : 13 au-dessus » situe le territoire sans
+  // dire sur quoi — le lecteur apprend qu'il y a quelque chose à voir et
+  // repart le chercher ligne à ligne. Nommer les trois écarts les plus
+  // marqués répond à la question posée : *lesquels*.
+  //
+  // Trois, et pas cinq : au-delà, la phrase redevient une liste, et une liste
+  // ne se retient pas mieux qu'un décompte.
+  const marquants = [...finis]
+    .filter((e) => Math.abs(e.ecart) >= SEUIL_PROCHE)
+    .sort((a, b) => Math.abs(b.ecart) - Math.abs(a.ecart))
+    .slice(0, 3);
+  const nomme = (e: Ecart) =>
+    `${e.libelle} (${e.ecart > 0 ? "+" : "−"}${arrondiEcart(e.ecart)} %)`;
+  const marque = marquants.length
+    ? ` Les écarts les plus marqués : ${marquants.map(nomme).join(", ")}.`
+    : "";
   return `Sur ${finis.length} indicateurs comparés à ${repere} : ${morceaux.join(
     ", ",
   )}.${marque}`;

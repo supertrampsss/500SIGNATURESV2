@@ -403,6 +403,8 @@ function ligneIndicateur(
    *  connaît la maille affichée et les indicateurs reconstitués, qui n'ont pas
    *  de fichier de carte. */
   peintSurCarte?: (indicateur: Indicateur) => boolean,
+  /** Le nombre qui accompagne ce taux, quand la source publie les deux. */
+  jumeau?: Indicateur,
 ): string {
   const mesure = mesurer(
     indicateur, territoire, periodeCarte, parHabitant, niveau, toutesReferences, comparateurs,
@@ -446,6 +448,18 @@ function ligneIndicateur(
     comparaisons.push(
       "Ce montant est imputé à l'adresse du bénéficiaire, pas à la commune où l'action est menée :" +
         " il ne se compare pas d'un territoire à l'autre.",
+    );
+  }
+  // Le nombre derrière le taux, au même millésime. Deux lignes voisines
+  // disaient la même chose ; une phrase suffit, et elle nomme ce que la source
+  // compte — des infractions, des victimes ou des personnes mises en cause,
+  // qui ne s'additionnent pas entre eux.
+  const compte = jumeau ? territoire.series[jumeau.id]?.[periode] : undefined;
+  if (jumeau && compte !== undefined) {
+    comparaisons.push(
+      `En nombre : ${new Intl.NumberFormat("fr-FR").format(Math.round(compte))} ${
+        jumeau.unite_de_compte ?? "faits"
+      } en ${periode}.`,
     );
   }
   // À défaut de comparaison extérieure, la part dans son propre total : lue au
@@ -870,6 +884,71 @@ export function rubriqueDuTheme(theme: string): string {
  */
 const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
 
+/**
+ * Ce qu'un thème montre d'emblée. Le reste se déplie.
+ *
+ * Soixante-dix-neuf lignes de comptes locaux, ce n'est pas de la richesse,
+ * c'est un déversement de la nomenclature comptable — sous-totaux de
+ * sous-totaux compris. On les faisait défiler sans rien en retenir : à ce
+ * compte-là, publier davantage revient à publier moins.
+ *
+ * Le thème s'ouvre donc sur les lignes qui **répondent à une question**, et le
+ * reste passe derrière « Tout le détail ». Rien n'est retiré : ce qui n'est pas
+ * retenu est à un clic, dans l'ordre du catalogue.
+ *
+ * Le choix des finances locales se lit à côté de ce qui est déjà affiché
+ * au-dessus. Recettes, charges, épargne, dette, investissement figurent dans
+ * l'enchaînement et dans les six rapports : les répéter en tête du thème aurait
+ * fait trois fois le même chiffre sur un écran. Ce qui est retenu ici est
+ * exactement ce que ni l'un ni les autres ne montrent — la composition de la
+ * dépense, et d'où vient l'argent.
+ *
+ * Un thème absent de cette table s'affiche entier : la règle est une réponse à
+ * l'abondance, pas un filtre par défaut.
+ */
+const RETENUS: Record<string, string[]> = {
+  finances_locales: [
+    "ofgl_frais_personnel",
+    "ofgl_achats_et_charges_externes",
+    "ofgl_depenses_d_intervention",
+    "ofgl_subventions_aux_personnes_de_droit_prive",
+    "ofgl_depenses_d_equipement",
+    "ofgl_impots_locaux",
+    "ofgl_dotation_globale_de_fonctionnement",
+    "ofgl_perequations_et_compensations_fiscales",
+  ],
+  // Le taux global est celui de l'avis d'imposition ; la part communale seule
+  // ne dit pas ce que paie le propriétaire, et les deux côte à côte se lisaient
+  // comme deux impôts. Le non-bâti concerne une minorité de contribuables.
+  impots_locaux: [
+    "dgfip_taux_tfb_global",
+    "dgfip_produit_foncier_bati",
+    "dgfip_produit_cfe",
+    "dgfip_produit_th_residences_secondaires",
+  ],
+};
+
+/**
+ * Les jumeaux : le taux et le nombre d'un même phénomène.
+ *
+ * La sécurité publiait trente-deux lignes pour seize phénomènes — un taux et
+ * un nombre pour chacun, l'un sous l'autre, disant deux fois la même chose.
+ * C'est le doublon le plus visible du site. Le taux reste la ligne, parce
+ * qu'il se compare ; le nombre le rejoint dans son détail, en une phrase, avec
+ * ce que la source compte au juste — des infractions, des victimes ou des
+ * personnes mises en cause, qui ne s'additionnent pas entre eux.
+ */
+export function jumeaux(indicateurs: Indicateur[]): Map<string, Indicateur> {
+  const parId = new Map(indicateurs.map((i) => [i.id, i]));
+  const paires = new Map<string, Indicateur>();
+  for (const indicateur of indicateurs) {
+    if (!indicateur.id.endsWith("_nombre")) continue;
+    const taux = parId.get(`${indicateur.id.slice(0, -"_nombre".length)}_taux`);
+    if (taux && taux.theme === indicateur.theme) paires.set(taux.id, indicateur);
+  }
+  return paires;
+}
+
 function ordonnerThemes(themes: string[]): string[] {
   const rang = (t: string) => {
     const place = ORDRE_THEMES.indexOf(t);
@@ -1209,10 +1288,50 @@ export function afficherFiche(
   // L'onglet ouvert est celui de l'indicateur peint sur la carte : la fiche
   // s'ouvre sur ce que le lecteur regarde déjà.
   const themeActif = enTete?.theme ?? ordonnerThemes([...parTheme.keys()])[0] ?? "";
+  // Le nombre qui double chaque taux rejoint le taux : trente-deux lignes de
+  // sécurité pour seize phénomènes, c'était le doublon le plus visible du site.
+  const paires = jumeaux(indicateurs);
+  const doubles = new Set(paires.values());
+  const dessine = (indicateur: Indicateur) =>
+    ligneIndicateur(
+      indicateur, territoire, periode, parHabitant, niveau, references,
+      indicateur.id === principal && options.marquerCarte !== false,
+      indicateur.id === principal ? options.rang : undefined,
+      options.comparateurs,
+      options.peintSurCarte,
+      paires.get(indicateur.id),
+    );
   const mesures =
     ordonnerThemes([...parTheme.keys()])
       .map((theme) => {
-        const liste = ordonnerTheme(theme, parTheme.get(theme) as Indicateur[]);
+        const liste = ordonnerTheme(theme, parTheme.get(theme) as Indicateur[]).filter(
+          (i) => !doubles.has(i),
+        );
+        // Ce que le thème montre d'emblée, et ce qu'il garde derrière un pli.
+        // L'indicateur peint sur la carte reste toujours visible : le replier
+        // cacherait celui qu'on est en train de regarder.
+        // L'ordre de la table est celui de la lecture — ce que la collectivité
+        // dépense d'abord, d'où vient l'argent ensuite — et non l'ordre du
+        // catalogue, qui est alphabétique et ne raconte rien.
+        const retenus = RETENUS[theme];
+        const devant = retenus
+          ? liste
+              .filter((i) => retenus.includes(i.id) || i.id === principal)
+              .sort(
+                (a, b) =>
+                  (retenus.indexOf(a.id) + 1 || retenus.length + 1) -
+                  (retenus.indexOf(b.id) + 1 || retenus.length + 1),
+              )
+          : liste;
+        const derriere = retenus ? liste.filter((i) => !devant.includes(i)) : [];
+        const suite = derriere.length
+          ? `<details class="theme-groupe__suite">
+              <summary>Tout le détail des comptes <span class="theme-groupe__compte">${
+                derriere.length
+              } autres lignes</span></summary>
+              ${derriere.map(dessine).join("")}
+            </details>`
+          : "";
         return `<section class="theme-groupe" data-theme="${echapper(theme)}"${
           theme === themeActif ? "" : " hidden"
         }>
@@ -1220,17 +1339,8 @@ export function afficherFiche(
             liste, territoire, periode, parHabitant, niveau, references,
             options.comparateurs ?? [],
           )}
-          ${liste
-            .map((indicateur) =>
-              ligneIndicateur(
-                indicateur, territoire, periode, parHabitant, niveau, references,
-                indicateur.id === principal && options.marquerCarte !== false,
-                indicateur.id === principal ? options.rang : undefined,
-                options.comparateurs,
-                options.peintSurCarte,
-              ),
-            )
-            .join("")}
+          ${devant.map(dessine).join("")}
+          ${suite}
         </section>`;
       })
       .join("");
