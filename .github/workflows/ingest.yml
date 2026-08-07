@@ -273,6 +273,14 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "redeclarations" ]; then
+            # Rejouer les declarer() listés puis republier, sans réingérer.
+            # La liste vit ici : elle change avec chaque fournée de correctifs.
+            set -e
+            python -m plateforme.redeclarer defm logement
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "libelles" ]; then
             # Reland des libellés simplifiés et de l'unité du taux de
             # participation, plus le grand livre des fonctions et une seule
