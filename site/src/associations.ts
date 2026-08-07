@@ -96,6 +96,27 @@ export function rendu(subventions: SubventionsCommune | undefined): string {
       ? ` Les ${devant.length} premières portent ${part}${" "}% du total versé dans la commune.`
       : "";
 
+  // « À quelles associations » appelle « au titre de quoi ». Le programme
+  // budgétaire est la seule typologie du jaune qui soit un vocabulaire
+  // contrôlé : les 2 362 objets de convention ne se regroupent pas.
+  const programmes = subventions.programmes ?? [];
+  const parProgramme = programmes.length
+    ? `<details class="assos__programmes">
+        <summary>Au titre de quel programme <span class="assos__compte">${
+          programmes.length
+        }</span></summary>
+        <ol class="assos__liste">${programmes
+          .map(
+            (p) => `<li class="assos__ligne">
+              <span class="assos__nom">${echapper(p.libelle)}</span>
+              <span class="assos__montant">${echapper(euros(p.montant))}</span>
+              ${p.mission ? `<span class="assos__objet">${echapper(p.mission)}</span>` : ""}
+            </li>`,
+          )
+          .join("")}</ol>
+      </details>`
+    : "";
+
   return `<section class="assos">
     <h3>À quelles associations <span class="assos__exercice">exercice ${echapper(
       subventions.exercice,
@@ -111,5 +132,6 @@ export function rendu(subventions: SubventionsCommune | undefined): string {
           </details>`
         : ""
     }
+    ${parProgramme}
   </section>`;
 }

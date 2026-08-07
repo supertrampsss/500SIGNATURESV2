@@ -197,6 +197,11 @@ export type DepensesFiscales = {
  */
 export type SubventionsCommune = {
   exercice: string;
+  /** Le total versé au titre de chaque programme budgétaire, du plus gros au
+   *  plus petit. « À quelles associations » appelle « au titre de quoi » : le
+   *  programme est la seule typologie du jaune qui soit un vocabulaire
+   *  contrôlé. Absent des publications antérieures. */
+  programmes?: { code: string; libelle: string; mission: string; montant: number }[];
   beneficiaires: {
     siren: string;
     nom: string;

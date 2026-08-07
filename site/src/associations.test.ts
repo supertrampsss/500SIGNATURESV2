@@ -83,3 +83,30 @@ test("un objet de convention long est coupé sur un mot", () => {
   // Un objet court n'est pas touché.
   assert.equal(raccourcir("Insertion professionnelle"), "Insertion professionnelle");
 });
+
+test("le total par programme dit au titre de quoi l'argent est versé", () => {
+  // Les 2 362 objets de convention ne se regroupent pas ; le programme
+  // budgétaire, lui, est un vocabulaire contrôlé de quatre-vingt-un libellés.
+  const html = rendu({
+    ...THIONVILLE,
+    programmes: [
+      { code: "177", libelle: "Hébergement et insertion des personnes vulnérables",
+        mission: "Cohésion des territoires", montant: 30_000_000 },
+      { code: "163", libelle: "Jeunesse et vie associative",
+        mission: "Sport, jeunesse et vie associative", montant: 4_000_000 },
+    ],
+  });
+  assert.match(html, /Au titre de quel programme/);
+  assert.match(html, /Hébergement et insertion des personnes vulnérables/);
+  assert.match(html, /30,00 M€/);
+  // La mission situe le programme : « 177 » ne dit rien, « Cohésion des
+  // territoires » situe.
+  assert.match(html, /Cohésion des territoires/);
+});
+
+test("sans nomenclature publiée, aucun bloc de programmes", () => {
+  const html = rendu(THIONVILLE);
+  assert.doesNotMatch(html, /Au titre de quel programme/);
+  // Et la liste nominative, elle, reste.
+  assert.match(html, /APSIS EMERGENCE/);
+});

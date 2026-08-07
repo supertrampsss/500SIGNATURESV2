@@ -613,7 +613,9 @@ function majEtiquettes(): void {
 function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
   const large = window.innerWidth > 960;
   if (large) {
-    return { top: 40, bottom: 96, left: 24, right: Math.min(430, window.innerWidth * 0.32) };
+    // Le creux de droite suit la largeur réelle du panneau — `min(36rem, 48vw)`.
+    // Réglé trop court, la France se dessinait à moitié derrière la fiche.
+    return { top: 40, bottom: 96, left: 24, right: Math.min(600, window.innerWidth * 0.48) };
   }
   // Téléphone : le tiroir couvre le bas de la carte. Cadrer sur le conteneur
   // entier, comme si tout était visible, plaçait la France sous le tiroir —

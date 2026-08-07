@@ -11,8 +11,10 @@ Usage : python -m plateforme.publish [--publication r2:plateforme-published]
 """
 
 import argparse
+import csv
 import json
 from collections import defaultdict
+from pathlib import Path
 from datetime import UTC, datetime
 
 from plateforme import entrepot
@@ -905,6 +907,30 @@ def _objet(valeur) -> dict:
     return decode if isinstance(decode, dict) else {}
 
 
+def programmes_budgetaires() -> dict[str, dict[str, str]]:
+    """-> {numéro: {programme, mission}}, la nomenclature budgétaire figée.
+
+    Le jaune des associations ne porte que le **numéro** du programme au titre
+    duquel l'argent est versé. « 177 », ce n'est pas une réponse ; « Hébergement,
+    parcours vers le logement et insertion des personnes vulnérables », si — et
+    c'est la seule typologie disponible qui soit un vocabulaire contrôlé. Les
+    2 362 objets de convention, eux, ne se regroupent pas.
+
+    Figée en fichier de graine plutôt que lue en ligne à la publication : le
+    dépôt doit pouvoir se rejouer sans réseau, et une nomenclature qui changerait
+    entre deux publications ferait bouger des libellés sans qu'aucun commit ne le
+    montre.
+    """
+    chemin = Path(__file__).resolve().parents[2] / "infra/seed/programmes_budgetaires.csv"
+    if not chemin.exists():
+        return {}
+    with chemin.open(encoding="utf-8", newline="") as fichier:
+        return {
+            ligne["numero"]: {"programme": ligne["programme"], "mission": ligne["mission"]}
+            for ligne in csv.DictReader(fichier)
+        }
+
+
 def subventions_nominatives(conn) -> dict[str, dict[str, dict]]:
     """Les associations subventionnées, par département puis par commune.
 
@@ -940,10 +966,16 @@ def subventions_nominatives(conn) -> dict[str, dict[str, dict]]:
         return {}
     # Le lot est le département, déduit du code commune comme ailleurs : 97x
     # pour l'outre-mer, les deux premiers chiffres sinon.
+    nomenclature = programmes_budgetaires()
     lots: dict[str, dict[str, dict]] = defaultdict(dict)
+    # Le total par programme : « à quelles associations » appelle « au titre de
+    # quoi ». Un numéro ne répond pas ; le libellé de la nomenclature, si.
+    parts: dict[str, dict[str, float]] = defaultdict(lambda: defaultdict(float))
     for code, siren, nom, programme, objet, montant, exercice in lignes:
         lot = code[:3] if code.startswith("97") else code[:2]
-        commune = lots[lot].setdefault(code, {"exercice": str(exercice), "beneficiaires": []})
+        commune = lots[lot].setdefault(
+            code, {"exercice": str(exercice), "beneficiaires": [], "programmes": []}
+        )
         commune["beneficiaires"].append({
             "siren": siren,
             "nom": nom,
@@ -951,6 +983,24 @@ def subventions_nominatives(conn) -> dict[str, dict[str, dict]]:
             "objet": objet,
             "montant": round(montant, 2),
         })
+        parts[code][programme] += montant
+    for communes in lots.values():
+        for code, commune in communes.items():
+            commune["programmes"] = [
+                {
+                    "code": numero,
+                    # Un numéro absent de la nomenclature garde son numéro plutôt
+                    # que de disparaître : c'est un programme supprimé depuis, pas
+                    # un versement qui n'aurait pas eu lieu.
+                    "libelle": nomenclature.get(numero, {}).get("programme")
+                    or f"Programme {numero}",
+                    "mission": nomenclature.get(numero, {}).get("mission") or "",
+                    "montant": round(total, 2),
+                }
+                for numero, total in sorted(
+                    parts[code].items(), key=lambda x: -x[1]
+                )
+            ]
     return lots
 
 

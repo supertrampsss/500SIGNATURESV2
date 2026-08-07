@@ -419,12 +419,19 @@ summary:focus-visible {
 }
 
 /* Le panneau territoire : la fiche et les repères de la couche, à droite,
-   par-dessus la carte — le geste mafrance que la grille d'avant interdisait. */
+   par-dessus la carte — le geste mafrance que la grille d'avant interdisait.
+
+   **Il occupe désormais près de la moitié de l'écran.** La carte tenait les
+   deux tiers et la fiche un tiers, alors que la carte répond à une question —
+   « et à côté de chez moi ? » — quand la fiche répond à toutes les autres.
+   L'enchaînement des comptes, les six rapports, les associations nommées, le
+   détail par fonction : tout cela se lisait par une meurtrière. La carte garde
+   ce qu'il lui faut pour situer, et le cadrage suit (`paddingCarte`). */
 .panneau {
   top: 0.9rem;
   right: 0.9rem;
   bottom: 1.55rem;
-  width: min(25.5rem, 36vw);
+  width: min(36rem, 48vw);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -3368,4 +3375,25 @@ body[data-vue="carte"] .pied {
   background: var(--encre);
   border-color: var(--encre);
   color: var(--papier);
+}
+
+/* « Au titre de quel programme » : la typologie que le jaune permet vraiment.
+   Repliée, parce qu'elle répond à une seconde question — la première étant
+   « à quelles associations », qui reste ouverte au-dessus. */
+.assos__programmes {
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--trait);
+  padding-top: 0.35rem;
+}
+.assos__programmes > summary {
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+.assos__programmes > summary:hover {
+  color: var(--encre);
+}
+.assos__compte {
+  opacity: 0.8;
 }
