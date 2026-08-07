@@ -175,6 +175,7 @@ jobs:
             python -m plateforme.normalize.construction --store r2:plateforme-raw
             python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -235,6 +236,7 @@ jobs:
             python -m plateforme.normalize.construction --store r2:plateforme-raw
             python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -306,8 +308,14 @@ jobs:
           # publication — l'aller-retour de l'entrepôt coûte plus cher que
           # les chargements. `set -e` : si l'un échoue, les suivants ne
           # publient pas par-dessus.
+          if [ "$JOB" = "protection-sociale" ]; then
+            python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "subventions" ]; then
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -322,6 +330,7 @@ jobs:
             python -m plateforme.normalize.construction --store r2:plateforme-raw
             python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
