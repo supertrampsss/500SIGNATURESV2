@@ -72,6 +72,28 @@ def test_les_arrondissements_sont_ecartes_pas_replies(defm):
     assert not {code for code in codes if code.startswith(("751", "6938", "132"))}
 
 
+def test_les_cumuls_au_code_total_sont_ecartes(contenu):
+    """L'export complet porte des lignes au code commune « Total » — cinq
+    caractères, elles passaient le contrôle de longueur — qui rangent sous un
+    même code plusieurs cumuls distingués par le seul libellé (« Total France
+    métropolitaine », « Non localisés en France métropolitaine »…). Clées sur
+    (code, date), elles s'écrasaient entre elles et cassaient l'identité des
+    sexes en production (écart 316 545 sur 2015-T4). Relevées sur l'API le
+    7 août 2026, octets conformes à l'export."""
+    cumuls = (
+        "2015-T4;Total;Total;Total;Total;Total;Total France métropolitaine;"
+        "Brutes;ABC;Total;Total;5537925\r\n"
+        "2015-T4;Total;Total;Total;Total;Total;Non localisés en France "
+        "métropolitaine;Brutes;ABC;Hommes;Total;3585\r\n"
+        "2015-T4;Total;Total;Total;Total;Total;Non localisés en France "
+        "métropolitaine;Brutes;ABC;Femmes;Total;2820\r\n"
+    ).encode()
+    complet = contenu + (b"" if contenu.endswith(b"\n") else b"\r\n") + cumuls
+    defm = d.lire(complet)
+    assert not any(code == d.CUMUL for code, _ in defm)
+    d.controler(defm)
+
+
 def test_l_identite_hommes_femmes_tient_sur_tout_le_fichier(defm):
     verifies = d.controler(defm)
     assert verifies["communes"] == 540  # 534 girondines + Paris, Lyon, Marseille

@@ -77,6 +77,10 @@ TYPE = "Brutes"
 SEXES = ("Total", "Hommes", "Femmes")
 TRANCHE_TOTALE = "Total"
 
+# Le code commune des lignes de cumul du fichier (France métropolitaine,
+# non-localisés…) : pas une commune, écarté à la lecture.
+CUMUL = "Total"
+
 # La source ne publie que les quatrièmes trimestres : la valeur est une moyenne
 # d'octobre à décembre, et la période publiée est l'année. Un « 2026-T1 » qui
 # apparaîtrait serait une autre série — moyenne annuelle ? stock ? — pas une
@@ -160,6 +164,14 @@ def lire(contenu: bytes) -> dict[tuple[str, str], dict[str, int]]:
     defm: dict[tuple[str, str], dict[str, int]] = {}
     for rangee in lecteur:
         brut = {cle: rangee[rang].strip() for cle, rang in rangs.items()}
+        # « Total » — cinq caractères, il passait le contrôle de longueur —
+        # n'est pas une commune : le fichier range sous ce même code plusieurs
+        # cumuls distingués par le seul libellé (« Total France
+        # métropolitaine », « Non localisés en France métropolitaine »…), qui
+        # s'écraseraient entre eux dans le dictionnaire et casseraient
+        # l'identité des sexes. Relevé sur l'API le 7 août 2026.
+        if brut["commune"] == CUMUL:
+            continue
         if brut["categorie"] != CATEGORIE or brut["type"] != TYPE:
             raise ValueError(
                 f"catégorie « {brut['categorie']} », type « {brut['type']} » :"
