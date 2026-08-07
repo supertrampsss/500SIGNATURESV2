@@ -320,7 +320,7 @@ def declarer_indicateurs(conn, niveaux: list[str]) -> None:
                      additive, price_basis, accounting_frame, geo_levels,
                      time_granularity, published)
                 values (?, 'ofgl-communes', ?, ?, ?, ?, true, ?, ?, ?, 'annuelle', true)
-                on conflict (indicator_id) do update set
+                on conflict (indicator_id) do update set unit = excluded.unit,
                     definition_id = excluded.definition_id,
                     -- Union et non remplacement : un chargement portant sur les
                     -- seules communes ne doit pas faire disparaître du catalogue

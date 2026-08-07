@@ -813,7 +813,7 @@ const PHARES: Record<string, string[]> = {
   // Fiche d'un territoire.
   securite: ["ssmsi_cambriolages_taux", "ssmsi_violences_hors_famille_taux"],
   finances_locales: ["ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
-  revenus: ["insee_niveau_vie_median", "insee_taux_pauvrete"],
+  revenus: ["insee_niveau_vie_median", "insee_taux_pauvrete", "cnaf_foyers_rsa"],
   population: ["insee_population_municipale"],
   // Combien de familles, et combien y élèvent seules leurs enfants : les deux
   // chiffres du thème qu'on vient chercher.
@@ -829,7 +829,15 @@ const PHARES: Record<string, string[]> = {
   // Le taux du BIT là où il existe — département et région — puis les chiffres
   // du recensement, seuls disponibles à la commune. Les deux ne mesurent pas la
   // même chose, et c'est leur fiche qui le dit.
-  emploi: ["insee_taux_chomage_localise", "insee_chomeurs_rp", "insee_actifs_occupes"],
+  // Les inscrits France Travail d'abord là où ils existent : c'est le chiffre
+  // le plus récent et le plus commenté. Le taux BIT reste devant aux mailles
+  // où il est publié.
+  emploi: [
+    "insee_taux_chomage_localise",
+    "dares_defm_abc",
+    "insee_chomeurs_rp",
+    "insee_actifs_occupes",
+  ],
   // Les deux bouts de la distribution : c'est leur écart qui décrit un
   // territoire, pas le détail des niveaux intermédiaires.
   diplomes: ["insee_diplome_superieur", "insee_diplome_aucun"],
@@ -879,6 +887,7 @@ const PHARES: Record<string, string[]> = {
   // Le total des prestations d'abord, le solde ensuite : « 932 milliards »
   // situe le lecteur, « −0,4 point de PIB » ne situe personne.
   securite_sociale: ["drees_protection_sociale_total", "eurostat_secu_solde_pib"],
+  energie: ["ore_conso_electricite", "ore_conso_gaz"],
   macro: ["eurostat_inflation_ipch", "eurostat_croissance_pib"],
   europe: ["eurostat_dette_pib", "eurostat_chomage"],
 };
@@ -942,7 +951,7 @@ const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
   {
     cle: "cadre",
     libelle: "Cadre de vie",
-    themes: ["logement", "sante", "education", "securite", "equipements", "tourisme"],
+    themes: ["logement", "sante", "education", "securite", "energie", "equipements", "tourisme"],
   },
 ];
 

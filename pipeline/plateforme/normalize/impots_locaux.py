@@ -283,7 +283,7 @@ def declarer(conn) -> None:
                      time_granularity, published)
                 values (?, ?, ?, ?, ?, 'EUR', true, 'current', 'budgetaire',
                         array['commune'], 'annuelle', true)
-                on conflict (indicator_id) do update set
+                on conflict (indicator_id) do update set unit = excluded.unit,
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                     theme = excluded.theme, published = true
                 """,

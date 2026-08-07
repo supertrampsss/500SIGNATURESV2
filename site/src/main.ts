@@ -880,6 +880,7 @@ const THEMES: Record<string, string> = {
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
   depenses_fiscales: "Niches fiscales",
+  energie: "Énergie",
   europe: "Comparaisons européennes",
 };
 

@@ -325,8 +325,11 @@ test("les thèmes tiennent dans quatre rubriques", () => {
 test("un thème inconnu de la table s'affiche au lieu de disparaître", () => {
   // La règle des libellés : une liste écrite en dur avait déjà fait disparaître
   // des données parfaitement publiées.
-  const html = ongletsThemes(["finances_locales", "energie"], "finances_locales");
-  assert.match(html, /data-theme="energie"/);
+  // « transports » n'est pas dans la table : c'est le filet qui le range.
+  const html = ongletsThemes(["finances_locales", "transports"], "finances_locales");
+  assert.match(html, /data-theme="transports"/);
+  assert.equal(rubriqueDuTheme("transports"), "cadre");
+  // « energie », lui, y est désormais rangé à la main.
   assert.equal(rubriqueDuTheme("energie"), "cadre");
 });
 

@@ -118,7 +118,7 @@ def declarer(conn) -> None:
                      additive, accounting_frame, geo_levels, time_granularity, published)
                 values (?, ?, ?, 'macro', ?, 'percent', false, 'nationale',
                         array['pays'], ?, true)
-                on conflict (indicator_id) do update set
+                on conflict (indicator_id) do update set unit = excluded.unit,
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                     theme = excluded.theme, time_granularity = excluded.time_granularity,
                     published = true

@@ -248,6 +248,16 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "social-energie" ]; then
+            # La vague sociale et énergie : RSA et prime d'activité (CNAF),
+            # demandeurs d'emploi ABC (Dares), électricité et gaz (Agence ORE).
+            set -e
+            python -m plateforme.normalize.cnaf --store r2:plateforme-raw
+            python -m plateforme.normalize.defm --store r2:plateforme-raw
+            python -m plateforme.normalize.energie --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "libelles" ]; then
             # Reland des libellés simplifiés et de l'unité du taux de
             # participation, plus le grand livre des fonctions et une seule
