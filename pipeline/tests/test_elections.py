@@ -182,3 +182,46 @@ def test_declarer_puis_redeclarer_contre_un_vrai_entrepot(entrepot_seme):
         " (select 1 from core.indicators i where i.definition_id = d.definition_id)"
     ).fetchone()
     assert orphelines == 0
+
+
+def test_le_taux_de_participation_est_un_pourcentage(entrepot_seme):
+    """Le site ne connaît pas l'unité `rate` : il affichait « 58,1 rate ».
+
+    L'unité servait à deux choses — le format d'affichage et le fait que le
+    taux soit notre division et non le chiffre de la source. Ce sont deux
+    questions différentes, et la seconde a désormais sa propre liste.
+    """
+    elections.declarer(entrepot_seme)
+    unite, = entrepot_seme.execute(
+        "select unit from core.indicators where indicator_id = 'elections_taux_participation'"
+    ).fetchone()
+    assert unite == "percent"
+    niveau, = entrepot_seme.execute(
+        "select d.confidence_level from core.indicators i"
+        " join core.indicator_definitions d using (definition_id)"
+        " where i.indicator_id = 'elections_taux_participation'"
+    ).fetchone()
+    assert niveau == "computed"
+    observes = entrepot_seme.execute(
+        "select count(*) from core.indicators i"
+        " join core.indicator_definitions d using (definition_id)"
+        " where i.dataset_id = ? and d.confidence_level = 'observed'",
+        (elections.DATASET,),
+    ).fetchone()[0]
+    assert observes == len(elections.INDICATEURS) - 1
+
+
+def test_une_unite_corrigee_se_propage_a_la_redeclaration(entrepot_seme):
+    """`on conflict do update` ne touchait pas `unit` : une correction d'unité
+    ne pouvait pas atteindre un indicateur déjà déclaré, et la seule façon de
+    la faire prendre était de toucher la base à la main."""
+    elections.declarer(entrepot_seme)
+    entrepot_seme.execute(
+        "update core.indicators set unit = 'rate'"
+        " where indicator_id = 'elections_taux_participation'"
+    )
+    elections.declarer(entrepot_seme)
+    unite, = entrepot_seme.execute(
+        "select unit from core.indicators where indicator_id = 'elections_taux_participation'"
+    ).fetchone()
+    assert unite == "percent"
