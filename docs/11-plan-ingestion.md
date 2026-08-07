@@ -895,9 +895,9 @@ Le plan ci-dessus est clos. Il ne couvrait qu'un extrait du registre des sources
 charge une cinquantaine. Cette section suit la reprise du registre lui-même.
 
 **Ordre retenu**, par ce que chaque source apporte à la question « où vont mes
-impôts » et par ce qu'elle coûte à charger. **Vingt-trois lignes traitées au 6 août** :
-quatre chargées, une codée, huit sondées et validées, neuf écartées avec leur
-raison écrite, une reportée sur un prérequis nommé.
+impôts » et par ce qu'elle coûte à charger. **Vingt-trois lignes traitées, et closes** :
+treize chargées, neuf écartées avec leur raison écrite et chiffrée, une reportée
+sur un prérequis nommé. Le registre n'a plus de ligne non sondée.
 
 Une leçon technique traverse cette vague et mérite d'être notée pour la
 suivante : sur data.economie.gouv.fr, **un jeu qui affiche zéro enregistrement
@@ -919,18 +919,18 @@ son compteur : il faut interroger
 | ~~8~~ | ~~Péréquation (DSU, DSR, DNP)~~ | **chargée le 6 août** — la donnée était déjà téléchargée et jetée |
 | ~~9~~ | ~~Délais de paiement des collectivités~~ | **chargés le 6 août** |
 | 10 | Subventions & aides versées | **reportées le 6 août** — Sirene est le prérequis |
-| ~~11~~ | ~~Droits de mutation (DMTO)~~ | **codée le 6 août** — contrôle au centime sur 130 Md€ |
-| 12 | Impôt sur le revenu localisé (IRCOM) | sondée, chargeable — mapping direction DGFiP à écrire |
-| 13 | Cotisations sociales — exonérations URSSAF | sondée, chargeable |
-| 14 | Salaires (INSEE Melodi) | sondée, chargeable |
+| ~~11~~ | ~~Droits de mutation (DMTO)~~ | **chargée le 7 août** — contrôle au centime sur 130 Md€ |
+| ~~12~~ | ~~Impôt sur le revenu localisé (IRCOM)~~ | **chargé le 6 août** — 34 781 communes |
+| ~~13~~ | ~~Cotisations sociales — exonérations URSSAF~~ | **chargées le 6 août** — 22 exercices |
+| ~~14~~ | ~~Salaires (INSEE Melodi)~~ | **chargés le 6 août** — quatre mailles |
 | 15 | Défaillances d'entreprises | **écartées le 6 août** — série gelée en 2017 |
 | 16 | Effectifs de la fonction publique territoriale | **écartés le 6 août** — 2016, et sans maille |
-| 17 | Assurance chômage (Unédic) | sondée, chargeable — masse départementale mensuelle |
-| 18 | Assurance maladie (CNAM) | sondée, chargeable — prescriptions par département |
+| ~~17~~ | ~~Assurance chômage (Unédic)~~ | **chargée le 6 août** — 2020-2025 |
+| ~~18~~ | ~~Assurance maladie (CNAM)~~ | **chargée le 6 août** — prescriptions, 2010-2024 |
 | 19 | Retraites | **écartées le 6 août** — aucune masse par territoire n'existe |
-| 20 | Permis de construire (Sitadel) | sondée, chargeable — commune, mensuel, 2013→2026 |
-| 21 | Loyers (carte ANIL) | sondée, chargeable sous réserve — 14 % de communes fiables |
-| 22 | Fonds européens FEDER/FSE+ | sondée, chargeable pour le programmé |
+| ~~20~~ | ~~Permis de construire (Sitadel)~~ | **chargés le 6 août** — sept exercices |
+| ~~21~~ | ~~Loyers (carte ANIL)~~ | **chargés le 6 août** — les 14 % mesurés seulement |
+| ~~22~~ | ~~Fonds européens FEDER/FSE+~~ | **chargés le 6 août** — le programmé seulement |
 | 23 | Aides PAC | **écartées le 6 août** — aucune diffusion en masse |
 
 **Trois affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
@@ -1331,6 +1331,44 @@ moins de onze bénéficiaires d'une commune sont concernés, seul le départemen
 est publié, ce qui frappe précisément les campagnes où l'agriculture est
 diffuse. S'ajoute un piège de définition : la commune publiée est celle
 d'enregistrement du bénéficiaire, pas celle des parcelles aidées.
+
+## Ce que la vague du 6 août a mis en ligne
+
+Vérifié sur les fichiers publiés le 7 août au matin : le site publie **276
+indicateurs**, contre 257 la veille au soir.
+
+| Ce qu'on peut désormais demander | Bordeaux / Gironde |
+|---|---|
+| Impôt sur le revenu payé par la commune | 617 751 779 € (2024), 176 288 foyers |
+| Salaire net mensuel équivalent temps plein | 2 680,31 € (2023) |
+| Délai de paiement des fournisseurs | 19,85 jours (limite légale : 30) |
+| Loyer d'annonce d'un appartement | 15,99 €/m²/mois |
+| Logements autorisés dans l'année | 2 535 (2025) |
+| Dotation globale de fonctionnement | 36,5 M€ (2025), dont 1,8 M€ de DNP, aucune DSU |
+| Droits de mutation du département | 557,9 M€ (2022) → 342,1 M€ (2024) |
+| Indemnisation du chômage | 1,03 Md€ (2025) |
+| Exonérations de cotisations | 2,03 Md€ (2025) |
+| Prescriptions des médecins libéraux | 1,92 Md€ (2024) |
+
+Deux de ces lignes disent quelque chose qu'aucun total n'aurait montré. Les
+**droits de mutation de la Gironde perdent 39 % en deux ans** sans qu'aucune
+décision politique ne soit en cause — c'est le marché immobilier, et c'est
+pourquoi cette recette-là mérite d'être isolée du reste. Et **Bordeaux ne touche
+aucune dotation de solidarité urbaine** : l'absence est ici une non-éligibilité,
+pas un zéro, exactement la réserve que la fiche annonce.
+
+**Deux chantiers restent ouverts, et ils sont nommés.**
+
+Le niveau `arrondissement_municipal` n'est pas exporté par `publish.py`. Les
+loyers de Paris, Lyon et Marseille sont donc **en base et invisibles** : la carte
+les laissera gris. Ajouter un niveau au contrat de publication touche l'index de
+recherche, les fiches et les tuiles — c'est un changement qui mérite le sien.
+
+Les **subventions aux associations** attendent **Sirene**. Le seul millésime
+national portant un code commune a huit ans et le producteur a retiré la
+géographie ensuite ; le millésime récent n'est territorialisable qu'en résolvant
+SIREN + NIC vers une commune. Sirene est classé P0 au registre et débloquera
+bien plus que les subventions.
 
 ## Ce que chaque entrée doit porter avant d'être chargée
 
