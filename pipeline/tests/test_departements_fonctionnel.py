@@ -69,12 +69,15 @@ def test_le_controle_bloque_sur_un_niveau_decale(lignes):
 
 
 def test_les_deux_nomenclatures_ne_fusionnent_pas_leurs_codes(lignes):
-    """« 5 » vaut l'action sociale en M52 et l'aménagement en M57 ; « 0 »
-    s'écrit avec et sans majuscules. Grouper par code, ou par libellé, ferait
-    deux erreurs opposées."""
+    """« 5 » vaut l'action sociale en M52 et l'aménagement en M57, « 6 » les
+    réseaux en M52 et l'action économique en M57 ; « 0 » s'écrit avec et sans
+    majuscules pour le même sens. Grouper par code, ou par libellé, ferait deux
+    erreurs opposées."""
     assert f.FONCTIONS[("M52", "5")] == "ofgl_fonction_social"
     assert f.FONCTIONS[("M57", "5")] == "ofgl_fonction_territoire"
-    assert f.FONCTIONS[("M52", "2")] == f.FONCTIONS[("M57", "2")]
+    assert f.FONCTIONS[("M52", "6")] == "ofgl_fonction_territoire"
+    assert f.FONCTIONS[("M57", "6")] == "ofgl_fonction_economie"
+    assert f.FONCTIONS[("M52", "0")] == f.FONCTIONS[("M57", "0")]
     # Les vingt couples du niveau 1 sont tous connus : ni orphelin, ni deviné.
     couples = {
         (ligne[2], ligne[3]) for ligne in lignes

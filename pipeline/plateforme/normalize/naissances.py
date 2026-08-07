@@ -30,12 +30,13 @@ saut de dix mille naissances sur le total national.
 **Lyon et Marseille : l'arrondissement du domicile de la mère n'est pas toujours
 renseigné.** La source crée alors les codes `693XX — Lyon arrondissement non
 connu` et `132XX — Marseille arrondissement non connu` (et `751XX` pour Paris,
-toujours à zéro). Ces codes n'existent dans aucun référentiel géographique :
-`filtrer_territoires_connus` les écarterait et les naissances qu'ils portent
-disparaîtraient **silencieusement** de la ventilation par arrondissement — 443
-naissances sur dix-huit exercices. Elles sont rattachées à la commune mère, qui
-les porte déjà : c'est ce que le second contrôle vérifie, arrondissement par
-arrondissement et exercice par exercice.
+qui n'en porte qu'une sur dix-huit exercices). Ces codes n'existent dans aucun
+référentiel géographique : `filtrer_territoires_connus` les écarterait et les
+naissances qu'ils portent disparaîtraient **silencieusement** de la ventilation
+par arrondissement — 444 naissances sur dix-huit exercices, dont 322 à Marseille
+et 121 à Lyon. Elles sont rattachées à la commune mère, qui les porte déjà :
+c'est ce que le second contrôle vérifie, commune par commune et exercice par
+exercice.
 
 **Les deux contrôles qui bloquent.** La somme des communes doit égaler
 exactement le total France du même exercice — 659 731 en 2024, 642 905 en 2025,
@@ -103,9 +104,9 @@ ARRONDISSEMENT_INCONNU = {"693XX": "69123", "132XX": "13055", "751XX": "75056"}
 # valeur normale. `K` (« données incluses dans une autre catégorie ») marque une
 # commune déléguée dont les naissances sont comptées ailleurs : sa valeur est
 # vide, il n'y a rien à charger. `W` (« inclut les données d'une autre
-# catégorie ») marque la commune nouvelle qui les reçoit — 2 519 naissances dans
-# le fichier complet, qu'écarter ferait tomber la somme des communes sous le
-# total France. Elles sont donc chargées, et signalées : leur valeur couvre plus
+# catégorie ») marque la commune nouvelle qui les reçoit — 54 lignes communales
+# et 1 684 naissances dans le fichier complet, qu'écarter ferait tomber la somme
+# des communes sous le total France d'exactement autant. Elles sont donc chargées, et signalées : leur valeur couvre plus
 # de territoire que la commune seule, alors que sa population ne couvre qu'elle.
 # `M` est une valeur qui n'existe pas : Mayotte avant 2014.
 DRAPEAU_REGROUPEMENT = "inclut_une_commune_rattachee"
@@ -127,7 +128,7 @@ FICHE = {
     " la mère n'est pas renseigné sont regroupées par la source dans un code"
     " dédié (693XX, 132XX) qui n'appartient à aucun référentiel géographique :"
     " elles sont comptées dans la commune entière, qui les porte déjà, et"
-    " manquent donc à la ventilation par arrondissement — 443 naissances sur"
+    " manquent donc à la ventilation par arrondissement — 444 naissances sur"
     " l'ensemble des exercices. Un décompte brut, qui dépend d'abord de la"
     " structure par âge du territoire : ce n'est ni un taux de natalité ni un"
     " indicateur de fécondité.",

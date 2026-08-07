@@ -17,9 +17,10 @@ d'indicateurs lisibles. Le niveau 2 n'est pas jeté : il sert de contrôle.
 **Deux nomenclatures coexistent et leurs codes se contredisent.** Les
 départements sont passés de la M52 à la M57, mais pas la même année : de 2014
 pour les premiers à 2024 pour la plupart. Or le code `5` vaut « Aménagement des
-territoires » en M57 et « Action sociale » en M52 ; le code `2` change aussi de
-sens ; le code `0` s'écrit « Services généraux » d'un côté et « SERVICES
-GÉNÉRAUX » de l'autre. Grouper par `fonction` fusionnerait deux sens, grouper
+territoires » en M57 et « Action sociale » en M52 ; le code `6` vaut « Action
+économique » en M57 et « Réseaux et infrastructures » en M52 ; le code `0`
+s'écrit « Services généraux » d'un côté et « SERVICES GÉNÉRAUX » de l'autre —
+même sens, deux libellés. Grouper par `fonction` fusionnerait deux sens, grouper
 par `nom_fonction` laisserait dix libellés orphelins. Les vingt couples
 (nomenclature, code) sont donc mis à la main sur un jeu commun de fonctions.
 

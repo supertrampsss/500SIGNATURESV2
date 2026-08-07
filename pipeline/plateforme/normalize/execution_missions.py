@@ -343,7 +343,7 @@ def montant(texte: str | None) -> float | None:
     d'espaces (`"   -   "`). Un `float()` naïf meurt sur le troisième, et un
     `or 0` y inventerait un montant nul là où la source dit « rien à déclarer ».
     """
-    brut = (texte or "").replace(" ", "").replace(" ", "").strip()
+    brut = (texte or "").replace("\u00a0", "").replace("\u202f", "").strip()
     if not brut or set(brut) <= {"-", " "}:
         return None
     return float(brut.replace(" ", "").replace(",", "."))
@@ -468,7 +468,17 @@ def controler(exercice: str, annexes: dict[str, list[dict]]) -> dict:
             personnel_categories,
         ),
     )
+    # L'écart maximal est mesuré et tracé, y compris quand il est nul : un
+    # contrôle qui ne peut qu'être vrai ne dit rien de la qualité de la source.
+    ecart_maximal = 0.0
     for intitule, gauche, droite in controles:
+        ecart_maximal = max(
+            ecart_maximal,
+            max(
+                abs(gauche.get(mission, 0.0) - droite.get(mission, 0.0))
+                for mission in set(gauche) | set(droite)
+            ),
+        )
         ecarts = _ecarts(gauche, droite)
         if ecarts:
             mission, ecart = next(iter(sorted(ecarts.items())))
@@ -493,7 +503,7 @@ def controler(exercice: str, annexes: dict[str, list[dict]]) -> dict:
         "missions_verifiees": len(consommes_missions),
         "lignes_programme": len(annexes["programmes"]),
         "lignes_categorie": len(annexes["categories"]),
-        "ecart_maximal_euros": 0.0,
+        "ecart_maximal_euros": round(ecart_maximal, 6),
         "credits_votes": round(sum(v["votes"] for v in agregats.values()), 2),
         "credits_ouverts": round(sum(ouverts_missions.values()), 2),
         "credits_consommes_bruts": total,
