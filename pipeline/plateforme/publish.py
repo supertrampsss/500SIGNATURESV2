@@ -21,7 +21,28 @@ from plateforme.connectors import smb
 from plateforme.normalize.geo import make_store
 from plateforme.store import Flux, ImmutabilityError
 
-NIVEAUX = ["commune", "departement", "region", "pays"]
+# Les arrondissements municipaux sont publiés, mais jamais agrégés.
+#
+# Paris, Lyon et Marseille existent **deux fois** dans le référentiel : la
+# commune entière (75056, 69123, 13055) et ses 45 arrondissements, que le COG
+# rattache à leur commune mère et non à un département. Des connecteurs y
+# écrivent — la carte des loyers de l'ANIL ne connaît les trois villes que par
+# arrondissement. Ces observations étaient en base sans être publiées : la fiche
+# de Paris 1er n'existait pas.
+#
+# Le niveau entre donc dans `NIVEAUX`, qui commande les fiches de territoire et
+# l'index de recherche. Il n'entre **pas** dans `NIVEAUX_CARTOGRAPHIES` : il n'y
+# a pas de couche de tuiles pour les arrondissements (`normalize/geometries.py`
+# n'en construit que trois), et publier des fichiers de carte que rien ne peut
+# peindre ne rendrait service à personne.
+#
+# Cette seconde exclusion vaut aussi garde-fou contre le double comptage. Les
+# deux seuls calculs qui additionnent des territoires ne peuvent pas voir un
+# arrondissement : `_quartiles_du_groupe` filtre `o.geo_level = 'commune'`, et
+# `references()` ne parcourt que les niveaux cartographiés plus `pays`. Un
+# arrondissement ne s'ajoute donc jamais à sa commune mère — ni dans l'agrégat
+# France, ni dans une médiane régionale, ni dans un quartile de comparaison.
+NIVEAUX = ["commune", "arrondissement_municipal", "departement", "region", "pays"]
 
 # Seuls ces niveaux ont des tuiles : produire des couches de carte pour les
 # autres coûterait des centaines de fichiers que rien ne viendrait lire.
@@ -857,6 +878,18 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
                    case $niveau
                      when 'region' then g.geo_code
                      when 'departement' then g.parent_code
+                     -- Un arrondissement municipal a pour parent sa commune,
+                     -- pas un département : sa région est celle de sa commune
+                     -- mère, soit un chaînon de plus. Sans ce cas, les 45
+                     -- arrondissements sortaient avec `region: null` et la
+                     -- fiche n'avait plus d'ensemble auquel se rapporter.
+                     when 'arrondissement_municipal' then (
+                        select d.parent_code from geo.geography_reference d
+                         where d.geo_level = 'departement' and d.vintage = g.vintage
+                           and d.geo_code = (
+                             select c.parent_code from geo.geography_reference c
+                              where c.geo_level = 'commune' and c.geo_code = g.parent_code
+                                and c.vintage = g.vintage))
                      else (select d.parent_code from geo.geography_reference d
                             where d.geo_level = 'departement' and d.geo_code = g.parent_code
                               and d.vintage = g.vintage)
