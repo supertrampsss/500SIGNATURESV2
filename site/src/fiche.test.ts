@@ -14,6 +14,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  comparableAuxAutresTerritoires,
   densiteRapportableAuxHabitants,
   groupeDeLaCommune,
   lectureDeDensite,
@@ -337,4 +338,40 @@ test("sans deuxième rubrique, il n'y a pas de barre de rubriques", () => {
   const html = ongletsThemes(["logement", "sante", "education"], "logement");
   assert.doesNotMatch(html, /onglets-rubriques/);
   assert.match(html, /data-theme="sante"/);
+});
+
+/**
+ * Une adresse n'est pas un territoire.
+ *
+ * Les subventions de l'État aux associations sont imputées au siège du
+ * bénéficiaire : Paris porte 3,23 Md€, soit 32,5 % du total. Bordeaux
+ * s'affichait « +3 460 % au-dessus de la médiane des communes de la région »,
+ * un écart qui ne mesure ni ce que reçoivent les Bordelais ni ce que l'État y
+ * dépense — seulement où les fédérations ont leur siège.
+ */
+
+const AU_SIEGE = {
+  id: "etat_subventions_associations",
+  unite: "EUR",
+  sommable: true,
+  jeu: "plf-2023-effort-associations",
+} as never;
+
+test("un montant imputé au siège ne se compare à aucun territoire", () => {
+  assert.equal(comparableAuxAutresTerritoires(AU_SIEGE), false);
+  // Et le chiffre reste publié : c'est la comparaison qui tombe, pas la donnée.
+  assert.equal(
+    comparableAuxAutresTerritoires({ ...(AU_SIEGE as object), jeu: "ofgl-communes" } as never),
+    true,
+  );
+});
+
+test("un effectif compté au siège n'a pas les habitants pour dénominateur", () => {
+  const etablissements = {
+    id: "etat_subventions_associations_etablissements",
+    unite: "count",
+    sommable: true,
+    jeu: "plf-2023-effort-associations",
+  } as never;
+  assert.equal(densiteRapportableAuxHabitants(etablissements), false);
 });

@@ -68,9 +68,30 @@ const JEUX_COLLECTIVITE = new Set([
 ]);
 
 /**
+ * Les jeux dont la commune est celle d'un siège, pas celle où l'argent agit.
+ *
+ * Les subventions de l'État aux associations sont imputées à l'adresse de
+ * l'établissement bénéficiaire : une fédération nationale est comptée là où
+ * elle a son siège, quelle que soit la commune où son action se mène. Paris
+ * porte à ce titre 3,23 Md€, soit 32,5 % du total, et les dix premières
+ * communes 43,5 % — la fiche du jeu l'écrit déjà.
+ *
+ * Une carte qui dit où sont les sièges se lit. Un **écart à la médiane des
+ * autres communes**, lui, ne se lit pas : il présente une adresse
+ * administrative comme une intensité de financement. Bordeaux affichait ainsi
+ * « +3 460 % au-dessus de la médiane des communes de la région », qui ne
+ * mesure ni ce que reçoivent les Bordelais ni ce que l'État y dépense. C'est
+ * exactement la comparaison sans contrôle de périmètre que ce site s'interdit.
+ *
+ * Le chiffre reste publié et la série reste tracée : c'est la comparaison
+ * territoriale qui tombe, pas la donnée.
+ */
+const JEUX_AU_SIEGE = new Set(["plf-2023-effort-associations"]);
+
+/**
  * Peut-on comparer ce chiffre à celui d'un territoire qui contient le nôtre ?
  *
- * Deux conditions, toutes deux nécessaires :
+ * Trois conditions, toutes nécessaires :
  *
  * 1. **La grandeur doit être normalisée.** Un volume — 130 cambriolages,
  *    65 000 habitants, 12 écoles — rapporté à son département donnera toujours
@@ -79,9 +100,23 @@ const JEUX_COLLECTIVITE = new Set([
  *    comparent d'une maille à l'autre.
  * 2. **Les deux mailles doivent mesurer la même chose** : un territoire de part
  *    et d'autre, pas un territoire face à une collectivité.
+ * 3. **Le chiffre doit porter sur le territoire, et non sur une adresse qui
+ *    s'y trouve.** Un montant imputé au siège du bénéficiaire décrit une
+ *    domiciliation, pas le territoire.
  */
 function comparableAuxParents(indicateur: Indicateur, ratio: boolean): boolean {
-  return (ratio || indicateur.sommable === false) && !JEUX_COLLECTIVITE.has(indicateur.jeu);
+  return (
+    (ratio || indicateur.sommable === false) &&
+    !JEUX_COLLECTIVITE.has(indicateur.jeu) &&
+    !JEUX_AU_SIEGE.has(indicateur.jeu)
+  );
+}
+
+/** Un chiffre imputé au siège ne se compare à rien de territorial — ni aux
+ *  mailles qui contiennent la nôtre, ni à la médiane des autres communes, ni
+ *  par sa densité. Les trois diraient la même chose de faux. */
+export function comparableAuxAutresTerritoires(indicateur: Indicateur): boolean {
+  return !JEUX_AU_SIEGE.has(indicateur.jeu);
 }
 
 /** Ce qu'il y a à dire d'un indicateur pour un territoire, calculé une seule
@@ -217,7 +252,10 @@ export function densiteRapportableAuxHabitants(indicateur: Indicateur): boolean 
     indicateur.unite === "count" &&
     !!indicateur.sommable &&
     !POPULATIONS.has(indicateur.id) &&
-    !JEUX_AU_LIEU_DE_TRAVAIL.has(indicateur.jeu)
+    !JEUX_AU_LIEU_DE_TRAVAIL.has(indicateur.jeu) &&
+    // Quatre refus, donc : les habitants ne sont pas non plus le dénominateur
+    // d'un effectif compté à l'adresse d'un siège.
+    comparableAuxAutresTerritoires(indicateur)
   );
 }
 
@@ -280,11 +318,15 @@ function mesurer(
       { libelle: c.libelle, valeur: ratio ? brutParent / (popParent as number) : brutParent },
     ];
   });
-  const medianes = reperes(
-    toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
-    niveau,
-    territoire.region ?? null,
-    ratio,
+  const medianes = (
+    comparableAuxAutresTerritoires(indicateur)
+      ? reperes(
+          toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
+          niveau,
+          territoire.region ?? null,
+          ratio,
+        )
+      : []
   ).map((r) => ({ ensemble: r.ensemble, valeur: r.valeur, libelle: r.libelle }));
   const comparaisons = [
     ...parents,
@@ -391,6 +433,15 @@ function ligneIndicateur(
       `Rapporté à la population : ${densiteLisible(densite)}${
         repere ? `, contre ${densiteLisible(repere.valeur)} pour ${repere.libelle}` : ""
       }.`,
+    );
+  }
+  // Retirer les comparaisons laissait la ligne muette : un chiffre seul, sans
+  // un mot, se lit comme une comparaison qu'on aurait oublié de faire. La
+  // raison du refus vaut mieux que le silence.
+  if (!comparableAuxAutresTerritoires(indicateur)) {
+    comparaisons.push(
+      "Ce montant est imputé à l'adresse du bénéficiaire, pas à la commune où l'action est menée :" +
+        " il ne se compare pas d'un territoire à l'autre.",
     );
   }
   // À défaut de comparaison extérieure, la part dans son propre total : lue au
