@@ -169,7 +169,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: ((personnel + annuite) / recettes) * 100,
       unite: "percent",
       lecture:
-        "La part des recettes absorbée par les frais de personnel et l'annuité de la dette : ce qui est dû avant tout choix de l'année.",
+        "Sur 100 € de recettes, ce qui part déjà en salaires et en remboursement de la dette. Plus c'est haut, moins la commune a les mains libres.",
     });
   }
 

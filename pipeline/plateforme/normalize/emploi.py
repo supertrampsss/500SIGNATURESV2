@@ -72,7 +72,10 @@ STATUTS = {
     "_T": ("insee_population_15_64_ans", "Population de 15 à 64 ans"),
     "1T2": ("insee_actifs", "Population active"),
     "1": ("insee_actifs_occupes", "Actifs ayant un emploi"),
-    "2": ("insee_chomeurs_rp", "Chômeurs au sens du recensement"),
+    # « Chômeurs au sens du recensement » : la précision méthodologique tenait
+    # lieu de libellé. Elle vit dans la fiche, où on la lit quand on la
+    # cherche ; en titre de ligne elle noyait le mot qui informe.
+    "2": ("insee_chomeurs_rp", "Chômeurs"),
     "3": ("insee_inactifs", "Inactifs de 15 à 64 ans"),
 }
 

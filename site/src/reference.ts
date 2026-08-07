@@ -118,7 +118,10 @@ export function reperes(
     const valeur = bloc && bloc.n >= MINIMUM_COMPARABLE ? valeurDe(bloc, nature, parHabitant) : null;
     if (valeur !== null && valeur !== undefined) {
       sortie.push({
-        libelle: `la médiane des ${ensemble} de la région`,
+        // « La médiane des communes de la région » se lisait en deux temps ;
+        // « la médiane régionale » se lit d'un coup, et la fiche du repère dit
+        // sur quel ensemble elle est prise.
+        libelle: `la médiane régionale`,
         ensemble: `${ensemble} de la région`,
         valeur, nature, n: bloc.n,
       });
@@ -132,7 +135,7 @@ export function reperes(
     // harmonisées d'Eurostat — les seules qui rendent la comparaison honnête.
     const groupe = niveau === "pays" ? "pays européens" : `${ensemble} de France`;
     sortie.push({
-      libelle: `la médiane des ${groupe}`,
+      libelle: niveau === "pays" ? "la médiane européenne" : "la médiane nationale",
       ensemble: groupe,
       valeur: ensemblier,
       nature,

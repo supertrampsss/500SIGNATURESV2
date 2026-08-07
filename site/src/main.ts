@@ -614,9 +614,9 @@ function majEtiquettes(): void {
 function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
   const large = window.innerWidth > 960;
   if (large) {
-    // Le creux de droite suit la largeur réelle du panneau — `min(36rem, 48vw)`.
+    // Le creux de droite suit la largeur réelle du panneau : min(50rem, 60vw).
     // Réglé trop court, la France se dessinait à moitié derrière la fiche.
-    return { top: 40, bottom: 96, left: 24, right: Math.min(600, window.innerWidth * 0.48) };
+    return { top: 40, bottom: 96, left: 16, right: Math.min(760, window.innerWidth * 0.6) };
   }
   // Téléphone : le tiroir couvre le bas de la carte. Cadrer sur le conteneur
   // entier, comme si tout était visible, plaçait la France sous le tiroir —
@@ -1661,6 +1661,13 @@ async function demarrer(): Promise<void> {
         se situe en dessous. « Communes de la région » désigne l'ensemble des
         communes de cette région, jamais le budget du conseil régional, qui est
         une autre collectivité aux autres compétences.</li>
+      <li>Le groupe de « communes semblables » est constitué sur les critères
+        publiés par l'Observatoire des finances locales : strate de population,
+        caractère rural, outre-mer, montagne, tourisme. Une position basse ne
+        signifie pas une meilleure gestion : le premier facteur d'écart est
+        l'intercommunalité — dans une métropole intégrée, la voirie, les déchets
+        ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent pas
+        dans le budget communal.</li>
       <li>Les communes nouvelles portent l'historique de leurs communes
         d'origine, additionné sous le code actuel.</li>
       <li>Un établissement public territorial est inclus dans la Métropole du

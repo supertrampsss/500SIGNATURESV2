@@ -168,8 +168,11 @@ test("la colonne « il reste » est ce qui fait le pont", () => {
   // repart de là et non du zéro.
   assert.equal(etapes[5].reste, 14_392_071.16);
   assert.ok(Math.abs((etapes[9].reste as number) + 2_048_128.94) < 0.01);
+  // À l'écran, une seule colonne : le cumul après chaque flux est exactement
+  // le palier de la ligne suivante, l'afficher doublait la moitié des nombres.
   const html = rendu(BORDEAUX);
-  assert.match(html, /<span>Il reste<\/span>/);
+  assert.doesNotMatch(html, /Il reste/);
+  assert.doesNotMatch(html, /pont__mouvement/);
 });
 
 /**
@@ -215,29 +218,69 @@ test("une étape s'ouvre sur ce qu'il y a dedans", () => {
   assert.equal(Math.round(liste[0].part), 50);
   assert.equal(liste[4].libelle, "Autres dépenses");
   const html = rendu(bordeaux, CATALOGUE);
-  assert.match(html, /<details class="pont__ouvrir">/);
+  // Ouvert d'emblée : un pli fermé cache l'information qu'on est venu chercher.
+  assert.match(html, /<details class="pont__ouvrir" open>/);
   assert.match(html, /Frais de personnel/);
+  // Le jargon comptable se traduit à l'affichage : « Dépenses d'intervention »
+  // ne dit rien à personne.
+  assert.match(html, /Aides et subventions versées/);
+  assert.doesNotMatch(html, /Dépenses d&#39;intervention/);
 });
 
-test("une décomposition qui ne redonne pas son total ne s'ouvre pas", () => {
-  // Une ligne manquante ferait lire « voilà où va l'argent » sous une liste qui
-  // n'en explique qu'une partie — et rien dans les nombres ne le trahirait.
+test("une décomposition partielle s'affiche avec son reste nommé", () => {
+  // Refuser tout cachait les subventions aux associations sous les dépenses
+  // d'intervention : la source ne publie pas toutes les composantes de cet
+  // agrégat, et le lecteur perdait le détail publié au motif qu'il en manquait
+  // un autre. Le reste est nommé, jamais réparti.
   const ampute = { ...CHARGES };
   delete (ampute as Record<string, number>).ofgl_frais_personnel;
   const liste = composantes(
     "ofgl_depenses_fonctionnement", 369_011_621.25,
     territoire({ ...COMPTES, ...ampute }), "2025", CATALOGUE,
   );
-  assert.equal(liste, null);
+  assert.ok(liste);
+  const reste = liste[liste.length - 1];
+  assert.equal(reste.libelle, "Non détaillé par la source");
+  assert.ok(Math.abs(reste.montant - 183_075_349.4) < 1);
+  const somme = liste.reduce((t, c) => t + c.montant, 0);
+  assert.ok(Math.abs(somme - 369_011_621.25) < 1);
 });
 
-test("une composante unique n'est pas une décomposition", () => {
-  // Ce serait le même chiffre sous un autre nom.
-  const seule = composantes(
-    "ofgl_depenses_fonctionnement", 183_075_349.4,
-    territoire({ ...COMPTES, ofgl_frais_personnel: 183_075_349.4 }), "2025", CATALOGUE,
+test("une décomposition majoritairement inexpliquée n'explique rien", () => {
+  // Les impôts locaux n'ont qu'un enfant publié, la fiscalité reversée,
+  // négative : l'afficher donnait « non détaillé par la source : 119 % ».
+  const catalogue = [
+    ...CATALOGUE,
+    { id: "ofgl_fiscalite_reversee", libelle: "Fiscalité reversée",
+      parent: "ofgl_impots_locaux" },
+  ] as never as Indicateur[];
+  const bordeaux = territoire({ ...COMPTES, ofgl_impots_locaux: 253_975_934.62,
+    ofgl_fiscalite_reversee: -49_425_246.38 });
+  assert.equal(
+    composantes("ofgl_impots_locaux", 253_975_934.62, bordeaux, "2025", catalogue),
+    null,
   );
-  assert.equal(seule, null);
+});
+
+test("des composantes qui dépassent leur total restent refusées", () => {
+  // Elles se recouvrent : les afficher compterait le même euro deux fois.
+  const gonfle = { ...CHARGES, ofgl_frais_personnel: 400_000_000 };
+  assert.equal(
+    composantes(
+      "ofgl_depenses_fonctionnement", 369_011_621.25,
+      territoire({ ...COMPTES, ...gonfle }), "2025", CATALOGUE,
+    ),
+    null,
+  );
+});
+
+test("une couverture complète ne fabrique pas de ligne de reste", () => {
+  const liste = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25,
+    territoire({ ...COMPTES, ...CHARGES }), "2025", CATALOGUE,
+  );
+  assert.ok(liste);
+  assert.doesNotMatch(JSON.stringify(liste), /Non détaillé/);
 });
 
 test("sans hiérarchie publiée, le pont s'affiche sans se déplier", () => {

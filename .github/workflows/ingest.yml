@@ -248,6 +248,19 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "libelles" ]; then
+            # Reland des libellés simplifiés et de l'unité du taux de
+            # participation, plus le grand livre des fonctions et une seule
+            # publication : quatre connecteurs dont seul `declarer` a changé.
+            set -e
+            python -m plateforme.normalize.elections --store r2:plateforme-raw
+            python -m plateforme.normalize.fiscalite --store r2:plateforme-raw --depuis 2022
+            python -m plateforme.normalize.impots_locaux --store r2:plateforme-raw
+            python -m plateforme.normalize.emploi --store r2:plateforme-raw
+            python -m plateforme.normalize.fonctions_communes --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "fonctions-communes" ]; then
             python -m plateforme.normalize.fonctions_communes --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published

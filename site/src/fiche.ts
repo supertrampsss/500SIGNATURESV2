@@ -461,8 +461,8 @@ function ligneIndicateur(
     const { valeur: densite, comparaisons: voisines } = mesure.densite;
     const repere = voisines.find((c) => Number.isFinite(c.valeur) && c.valeur > 0);
     comparaisons.unshift(
-      `Rapporté à la population : ${densiteLisible(densite)}${
-        repere ? `, contre ${densiteLisible(repere.valeur)} pour ${repere.libelle}` : ""
+      `Par habitant : ${densiteLisible(densite)}${
+        repere ? ` (${signeEcart(densite, repere.valeur)} vs ${repere.libelle})` : ""
       }.`,
     );
   }
@@ -582,7 +582,7 @@ function ligneIndicateur(
         // pour qui veut la carte, et il n'apparaît que là où il y a quelque
         // chose à peindre.
         surCarte
-          ? `<p class="mesure__phrase mesure__deja">Peint sur la carte.</p>`
+          ? ""
           : peintSurCarte?.(indicateur)
           ? `<button type="button" class="mesure__carte" data-carte="${echapper(
               indicateur.id,
@@ -1230,6 +1230,29 @@ const SANS_MESURE_PHARE = new Set([
   "securite",
 ]);
 
+/**
+ * Les thèmes qui n'entrent pas dans « L'essentiel ».
+ *
+ * Quatorze lignes d'ouverture, ce n'est plus une synthèse, c'est une table des
+ * matières. Les chambres d'hôtel, le nombre d'équipements ou les salariés par
+ * secteur ne sont l'essentiel d'aucune commune : ils restent à un clic, dans
+ * leur onglet. Ce qui reste répond aux questions qu'on vient poser — l'argent,
+ * les impôts, les revenus, la population, la sécurité, la santé, le logement,
+ * l'emploi.
+ */
+const SYNTHESE_EXCLUS = new Set([
+  "tourisme",
+  "equipements",
+  "famille",
+  "professions",
+  "diplomes",
+  "entreprises",
+  "secteurs_salaries",
+  "secteurs_etablissements",
+  "prenoms",
+  "vie_associative",
+]);
+
 /** Un libellé d'indicateur enchaîné après le nom du thème : « Finances locales
  *  — dépenses de fonctionnement ». Les sigles gardent leur casse — « PIB par
  *  habitant » ne devient pas « pIB par habitant ». */
@@ -1254,6 +1277,7 @@ function syntheseTerritoire(
     parTheme.set(indicateur.theme, [...(parTheme.get(indicateur.theme) ?? []), indicateur]);
   }
   const faits = ordonnerThemes([...parTheme.keys()]).flatMap((theme) => {
+    if (SYNTHESE_EXCLUS.has(theme)) return [];
     const liste = ordonnerTheme(theme, parTheme.get(theme) as Indicateur[]);
     const nomTheme = libelleTheme?.(theme) ?? theme;
     if (SANS_MESURE_PHARE.has(theme)) {
@@ -1268,7 +1292,7 @@ function syntheseTerritoire(
       // n'a personne à qui se comparer. On montre alors la mesure phare, sous le
       // nom du thème, en disant que le repère manque plutôt qu'en l'inventant.
       if (compte) {
-        return [{ id: theme, texte: `<strong>${echapper(nomTheme)}</strong> — ${echapper(compte)}` }];
+        return [{ id: theme, texte: `<strong>${echapper(nomTheme)}</strong> : ${echapper(compte)}` }];
       }
     }
     // Le premier indicateur du thème réellement mesuré ici, phares d'abord :
@@ -1290,6 +1314,10 @@ function syntheseTerritoire(
       const situation =
         lecture(valeur, comparaisons, (v) => formater(v, indicateur.unite, ratio)) ||
         lectureDeDensite(mesure.densite);
+      // Un nombre nu ne situe pas : « salariés 100 521 » dit la taille de la
+      // ville, que la population dit déjà. Sans comparaison, pas de ligne —
+      // sauf la population elle-même, dont la taille est l'information.
+      if (!situation && !POPULATIONS.has(indicateur.id)) continue;
       // « Population — population municipale » : quand le libellé de la mesure
       // reprend déjà celui du thème, le thème ne s'écrit pas deux fois.
       const redite = indicateur.libelle
@@ -1297,7 +1325,7 @@ function syntheseTerritoire(
         .startsWith(nomTheme.toLocaleLowerCase("fr"));
       const entete = redite
         ? `<strong>${echapper(indicateur.libelle)}</strong>`
-        : `<strong>${echapper(nomTheme)}</strong> — ${echapper(
+        : `<strong>${echapper(nomTheme)}</strong> : ${echapper(
             enMinusculeInitiale(indicateur.libelle),
           )}`;
       return [
@@ -1311,23 +1339,7 @@ function syntheseTerritoire(
           )}">${echapper(formater(valeur, indicateur.unite, ratio))}</span>${
             ratio ? " par habitant" : ""
           }. ${
-            situation
-              ? echapper(situation)
-              : // Le manque ne se signale que là où une comparaison aurait un
-                // sens. Un effectif ou une population ne se compare pas d'une
-                // maille à l'autre — écrire « aucun repère » sous les 6 150 451
-                // habitants d'une région ferait passer une impossibilité de
-                // méthode pour une lacune de données.
-                //
-                // Et jamais tant que le fichier de repères n'est pas arrivé :
-                // il se charge après la fiche, qui s'affichait donc une seconde
-                // en annonçant « aucun repère publié » sous des chiffres qui en
-                // ont un. Ne rien dire est faux moins longtemps.
-                references !== null &&
-                comparableAuxParents(indicateur, ratio) &&
-                !POPULATIONS.has(indicateur.id)
-                ? `<span class="synthese__sansrepere">Aucun repère publié à cette maille.</span>`
-                : ""
+            situation ? echapper(situation) : ""
           }`.trim(),
         },
       ];
@@ -1552,11 +1564,18 @@ export function lectureDeDensite(
   densite: { valeur: number; comparaisons: { libelle: string; valeur: number }[] } | null,
 ): string {
   if (!densite) return "";
-  const repere = densite.comparaisons.find((c) => Number.isFinite(c.valeur));
+  const repere = densite.comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur > 0);
   if (!repere) return "";
-  return `${densiteLisible(densite.valeur)}, contre ${densiteLisible(repere.valeur)} pour ${
-    repere.libelle
-  }.`;
+  // Le pourcentage, pas les deux densités côte à côte : « 653 pour 1 000 hab.,
+  // contre 568 pour 1 000 hab. pour son département » demandait une
+  // soustraction de tête pour arriver à ce que « +15 % » dit tout seul.
+  return `${signeEcart(densite.valeur, repere.valeur)} vs ${repere.libelle}, par habitant.`;
+}
+
+/** « +15 % » — l'écart relatif signé, arrondi à l'entier. */
+function signeEcart(valeur: number, repere: number): string {
+  const ecart = ((valeur - repere) / repere) * 100;
+  return `${ecart >= 0 ? "+" : "−"}${Math.round(Math.abs(ecart))}\u202f%`;
 }
 
 /**
@@ -1646,54 +1665,31 @@ export function positionDansGroupe(
   },
 ): string {
   if (!quartiles || valeurComparee === undefined) return "";
-  // Trois écritures, parce que trois grandeurs. Un montant se lit par habitant,
-  // un effectif pour mille habitants — « 0,04 logement vacant par habitant » ne
-  // se lit pas —, et le reste dans son unité publiée.
+  void criteres;
   const ecrire =
     base.base === "pour_mille"
       ? densiteLisible
       : (v: number) => formater(v, base.unite, base.base === "par_habitant");
-  const drapeaux = (territoire.drapeaux ?? {}) as Record<string, string>;
-  const lisible: Record<string, string> = {
-    tranche_population: "strate de population",
-    rural: "caractère rural",
-    outre_mer: "outre-mer",
-    montagne: "commune de montagne",
-    touristique: "commune touristique",
-    qpv: "quartier prioritaire",
-    tranche_revenu_imposable_par_habitant: "tranche de revenu imposable",
-  };
-  const description = criteres
-    .map((c) => `${lisible[c] ?? c} : ${drapeaux[c] ?? "non renseigné"}`)
-    .join(" · ");
   const situation =
     valeurComparee < quartiles.q1
-      ? "sous le quart inférieur"
+      ? "dans le quart le plus bas"
       : valeurComparee > quartiles.q3
-        ? "au-dessus du quart supérieur"
+        ? "dans le quart le plus haut"
         : "dans la moitié centrale";
-  // Compact, parce que ce bloc est remonté en tête de fiche : la phrase, la
-  // distribution sur une ligne, et les réserves — qui restent indispensables —
-  // à un clic. Ouvertes, elles faisaient six lignes de texte serré avant même
-  // le premier chiffre du panneau.
+  // Une phrase, pas un tableau. Les quatre lignes de quartiles demandaient de
+  // savoir ce qu'est un quartile ; « +67 % vs la médiane, dans le quart le
+  // plus haut » se comprend sans. Les critères du groupe et la réserve sur
+  // l'intercommunalité sont sur la page « Données » — écrits ici, ils
+  // faisaient six lignes de texte avant le premier chiffre du panneau.
+  const relatif =
+    quartiles.mediane && memeSens(valeurComparee, quartiles.mediane) &&
+    repereComparable(valeurComparee, quartiles.mediane)
+      ? `${signeEcart(valeurComparee, quartiles.mediane)} vs la médiane (${ecrire(
+          quartiles.mediane,
+        )}), `
+      : `ici ${ecrire(valeurComparee)}, médiane ${ecrire(quartiles.mediane)} : `;
   return `<section class="position">
-    <p class="position__phrase">Parmi <strong>${quartiles.n}</strong> communes semblables,
-      celle-ci se situe <strong>${situation}</strong>.</p>
-    <ul class="quartiles">
-      <li><span>1<sup>er</sup> quartile</span><strong>${ecrire(quartiles.q1)}</strong></li>
-      <li><span>Médiane</span><strong>${ecrire(quartiles.mediane)}</strong></li>
-      <li><span>3<sup>e</sup> quartile</span><strong>${ecrire(quartiles.q3)}</strong></li>
-      <li class="quartiles__ici"><span>Ici</span><strong>${ecrire(valeurComparee)}</strong></li>
-    </ul>
-    <details class="repli repli--position">
-      <summary>Ce que cette comparaison ne dit pas</summary>
-      <p class="avertissement">Groupe constitué sur des critères publiés par l'Observatoire
-        des finances locales — ${echapper(description)} — et non sur un découpage propre à ce
-        site. <strong>Une position basse ne signifie pas une meilleure gestion.</strong> Le
-        premier facteur d'écart est l'intercommunalité : dans une métropole intégrée, la
-        voirie, les déchets ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent
-        pas dans le budget communal. Les compétences exercées, la géographie et les choix
-        politiques diffèrent d'une commune à l'autre.</p>
-    </details>
+    <p class="position__phrase">Parmi <strong>${quartiles.n}</strong> communes semblables :
+      ${relatif}<strong>${situation}</strong>.</p>
   </section>`;
 }

@@ -93,6 +93,24 @@ export type Composante = {
   enfants: Composante[];
 };
 
+/**
+ * Les libellés que la nomenclature comptable rend opaques.
+ *
+ * « Dépenses d'intervention » est exact et ne dit rien à personne : ce sont
+ * les aides et subventions versées. « FCTVA » est un sigle de comptable public.
+ * La traduction ne touche que l'affichage — l'identifiant et la fiche
+ * technique gardent le vocabulaire de la source.
+ */
+const TRADUCTIONS: Record<string, string> = {
+  "Dépenses d'intervention": "Aides et subventions versées",
+  FCTVA: "TVA remboursée par l'État (FCTVA)",
+  "Subventions aux personnes de droit privé": "Subventions versées aux associations et entreprises",
+};
+
+function traduire(libelle: string): string {
+  return TRADUCTIONS[libelle] ?? libelle;
+}
+
 function echapper(texte: string): string {
   return texte.replace(
     /[&<>"']/g,
@@ -131,12 +149,33 @@ export function composantes(
       const v = valeur(territoire, i.id, exercice);
       return v === undefined ? [] : [{ indicateur: i, montant: v }];
     });
-  // Une composante unique n'est pas une décomposition : c'est le même chiffre
-  // sous un autre nom.
-  if (lignes.length < 2) return null;
+  if (!lignes.length) return null;
   const somme = lignes.reduce((s, l) => s + l.montant, 0);
-  if (Math.abs(somme - total) > Math.abs(total) * TOLERANCE_DECOMPOSITION) return null;
-  return lignes
+  // Des composantes qui dépassent leur total se recouvrent : les afficher
+  // compterait le même euro deux fois. Ce cas-là reste un refus.
+  if (somme - total > Math.abs(total) * TOLERANCE_DECOMPOSITION) return null;
+  // Et une décomposition dont la majorité reste inexpliquée n'explique rien :
+  // les impôts locaux de Bordeaux n'ont qu'un enfant publié, la fiscalité
+  // reversée, négative — l'afficher donnait « non détaillé : 119 % ». La
+  // moitié au moins du total doit être nommée pour que le pli existe.
+  if (somme / total < 0.5) return null;
+  // Des composantes qui ne couvrent qu'une partie s'affichent quand même,
+  // avec le reste nommé. Refuser cachait les subventions aux associations
+  // sous les dépenses d'intervention, parce que la source ne publie pas
+  // toutes les composantes de cet agrégat — le lecteur perdait le détail
+  // publié au motif qu'il en manquait un autre.
+  const reste = total - somme;
+  const manque =
+    Math.abs(reste) > Math.abs(total) * TOLERANCE_DECOMPOSITION
+      ? [{
+          id: "",
+          libelle: "Non détaillé par la source",
+          montant: reste,
+          part: (reste / total) * 100,
+          enfants: [],
+        }]
+      : [];
+  return [...lignes
     .sort((a, b) => Math.abs(b.montant) - Math.abs(a.montant))
     .map((l) => ({
       id: l.indicateur.id,
@@ -149,7 +188,7 @@ export function composantes(
       // Toujours par nature au niveau du dessous : la fonction ne se
       // sous-décompose pas dans ce que la source publie.
       enfants: composantes(l.indicateur.id, l.montant, territoire, exercice, catalogue) ?? [],
-    }));
+    })), ...manque];
 }
 
 /** Le dernier exercice où les comptes sont là. */
@@ -288,7 +327,7 @@ function part(valeur: number): string {
 function rendreComposantes(liste: Composante[], rang = 1): string {
   return liste
     .map((c) => {
-      const rangee = `<span class="pont__c-nom">${echapper(c.libelle)}</span>
+      const rangee = `<span class="pont__c-nom">${echapper(traduire(c.libelle))}</span>
         <span class="pont__c-part">${echapper(part(c.part))}</span>
         <span class="pont__c-montant">${echapper(montant(c.montant))}</span>`;
       const corps = c.enfants.length
@@ -317,7 +356,6 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
 
   const lignes = etapes
     .map((etape) => {
-      const total = etape.role === "palier" || etape.role === "arrivee";
       const parNature = etape.id
         ? composantes(etape.id, Math.abs(etape.montant), territoire, exercice, catalogue)
         : null;
@@ -330,14 +368,13 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
           )
         : null;
       const decomposition = parNature ?? parFonction;
-      // Un palier et un report n'ont pas de mouvement : ils *sont* le reste.
-      const mouvement =
-        etape.role === "report" || total
-          ? ""
-          : `${etape.montant < 0 ? "−" : "+"}${montant(Math.abs(etape.montant))}`;
-      const rangee = `<span class="pont__nom">${echapper(etape.libelle)}</span>
-        <span class="pont__mouvement">${echapper(mouvement)}</span>
-        <span class="pont__reste">${echapper(montant(etape.reste))}</span>`;
+      // Une seule colonne de montants. Le « mouvement » et le « il reste »
+      // côte à côte doublaient la moitié des nombres : le cumul après chaque
+      // flux est exactement le palier de la ligne suivante. Chaque ligne porte
+      // son montant signé, les paliers portent le leur en gras — c'est le
+      // signe et le trait qui font lire l'addition.
+      const rangee = `<span class="pont__nom">${echapper(traduire(etape.libelle))}</span>
+        <span class="pont__reste">${echapper(montant(etape.montant))}</span>`;
       // Deux axes disponibles : le lecteur choisit lequel il regarde. Ils ne
       // s'additionnent jamais entre eux — c'est le même euro, vu deux fois.
       const bascule =
@@ -355,8 +392,10 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
              parFonction,
            )}</ul>`
         : `<ul class="pont__composantes">${rendreComposantes(decomposition)}</ul>`;
+      // Ouvert d'emblée : un pli fermé cache l'information qu'on est venu
+      // chercher, et le lecteur ne sait pas qu'elle existe.
       const corps = decomposition
-        ? `<details class="pont__ouvrir">
+        ? `<details class="pont__ouvrir" open>
              <summary class="pont__rangee">${rangee}</summary>
              ${bascule}${listes}
            </details>`
@@ -369,9 +408,6 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
     <h3>D'un euro encaissé à ce qu'il en reste <span class="pont__exercice">exercice ${echapper(
       exercice,
     )}</span></h3>
-    <p class="pont__entete" aria-hidden="true">
-      <span>Étape</span><span>Mouvement</span><span>Il reste</span>
-    </p>
     <ol class="pont__etapes">${lignes}</ol>
   </section>`;
 }
