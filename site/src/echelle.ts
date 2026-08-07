@@ -164,6 +164,13 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
       " consomme sans que ses habitants y soient pour rien."
     );
   }
+  if (unite === "m2") {
+    return (
+      `${classes} Surface consommée en hectares (1 ha = 10 000 m²). La dernière` +
+      " année est provisoire et sous-estimée : elle est révisée au millésime" +
+      " suivant."
+    );
+  }
   // Les taux de délinquance enregistrée (SSMSI) : le dénominateur fait partie
   // de l'unité — cambriolages pour 1 000 logements, le reste pour 1 000
   // habitants — et la note doit nommer le bon, sinon elle affirme un chiffre
@@ -230,6 +237,17 @@ function formaterNombre(valeur: number, unite: string, parHabitant: boolean): st
   // cette branche, le site affichait « 58,1 rate ».
   if (unite === "percent" || unite === "rate") {
     return pourcentage(valeur);
+  }
+  // La consommation d'espaces se publie en mètres carrés entiers. Au-delà de
+  // l'hectare, l'échelle monte : « 3 117 494 m² » ne se lit pas, « 312 ha »
+  // se lit — et un hectare, c'est un terrain de rugby et demi.
+  if (unite === "m2") {
+    const absolu = Math.abs(valeur);
+    const nombre = (v: number, d: number) =>
+      new Intl.NumberFormat("fr-FR", { maximumFractionDigits: d }).format(v);
+    if (absolu >= 1e5) return moins(`${nombre(valeur / 1e4, 0)} ha`);
+    if (absolu >= 1e4) return moins(`${nombre(valeur / 1e4, 1)} ha`);
+    return moins(`${nombre(valeur, 0)} m²`);
   }
   // L'énergie se publie en mégawattheures. Au-delà du millier, l'échelle
   // monte d'un cran : « 3 573 119 MWh » ne se lit pas, « 3,6 TWh » se lit.

@@ -66,6 +66,15 @@ test("les montants gardent leur unité et leur ordre de grandeur", () => {
   assert.equal(formater(67_339, "count", false), "67 339".replace(" ", " "));
 });
 
+test("la surface consommée se lit en hectares dès que le m² ne se lit plus", () => {
+  // 7 351 m² restent des m² ; la Gironde (3 117 494 m² en 2023) se lit
+  // « 312 ha », pas en millions de m².
+  assert.match(formater(7_351, "m2", false), /7\u202f351\u202fm²/);
+  assert.match(formater(13_100, "m2", false), /1,3\u202fha/);
+  assert.match(formater(3_117_494, "m2", false), /312\u202fha/);
+  assert.match(formater(-25_000, "m2", false), /−2,5\u202fha/);
+});
+
 test("une médiane ne se divise pas par la population", () => {
   // Un budget communal ramené à l'habitant a un sens ; un niveau de vie médian
   // est déjà une valeur par personne, et une médiane ne s'additionne pas.
