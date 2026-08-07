@@ -3070,3 +3070,77 @@ body[data-vue="carte"] .pied {
   line-height: 1.35;
   color: var(--encre-douce);
 }
+
+/* Le pont. Chaque marche est une ligne de compte : libellé à gauche, montant
+   à droite, et sous les deux une barre proportionnelle à la plus grande masse
+   du pont — sans échelle commune, un remboursement de 2 % ferait la même
+   longueur qu'une recette de 100 %. */
+.pont__exercice {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+.pont__marches {
+  list-style: none;
+  margin: 0.4rem 0 0;
+  padding: 0;
+}
+.pont__marche {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  column-gap: 0.5rem;
+  padding: 0.2rem 0 0.3rem;
+}
+.pont__libelle {
+  font-size: 0.74rem;
+  color: var(--encre-douce);
+}
+.pont__montant {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--encre);
+  white-space: nowrap;
+}
+.pont__barre {
+  grid-column: 1 / -1;
+  height: 3px;
+  margin-top: 0.2rem;
+  border-radius: 2px;
+  background: var(--accent);
+  opacity: 0.55;
+}
+/* Une sortie d'argent se distingue d'une entrée à la barre, pas seulement au
+   signe : le signe se lit, la barre se voit. */
+.pont__marche[data-sens="sortie"] .pont__barre {
+  background: var(--encre-douce);
+}
+/* Un palier n'est pas un flux de plus : il est le total de ce qui précède, et
+   le trait au-dessus le dit. */
+.pont__marche--palier,
+.pont__marche--arrivee {
+  border-top: 1px solid var(--trait-fort);
+  margin-top: 0.15rem;
+  padding-top: 0.35rem;
+}
+.pont__marche--palier .pont__libelle,
+.pont__marche--arrivee .pont__libelle,
+.pont__marche--palier .pont__montant,
+.pont__marche--arrivee .pont__montant {
+  font-weight: 600;
+  color: var(--encre);
+}
+.pont__lecture {
+  grid-column: 1 / -1;
+  margin: 0.2rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--encre-douce);
+}
+.pont__source {
+  margin: 0.5rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--encre-douce);
+}
