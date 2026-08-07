@@ -157,6 +157,13 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
   if (unite === "percent") {
     return `${classes} Taux en pourcentage : ils ne s'additionnent pas et ne se ramènent pas à l'habitant.`;
   }
+  if (unite === "mwh") {
+    return (
+      `${classes} Consommation en mégawattheures, toutes catégories de consommateurs` +
+      " confondues (ménages, entreprises, industrie) : une commune industrielle" +
+      " consomme sans que ses habitants y soient pour rien."
+    );
+  }
   // Les taux de délinquance enregistrée (SSMSI) : le dénominateur fait partie
   // de l'unité — cambriolages pour 1 000 logements, le reste pour 1 000
   // habitants — et la note doit nommer le bon, sinon elle affirme un chiffre
@@ -223,6 +230,16 @@ function formaterNombre(valeur: number, unite: string, parHabitant: boolean): st
   // cette branche, le site affichait « 58,1 rate ».
   if (unite === "percent" || unite === "rate") {
     return pourcentage(valeur);
+  }
+  // L'énergie se publie en mégawattheures. Au-delà du millier, l'échelle
+  // monte d'un cran : « 3 573 119 MWh » ne se lit pas, « 3,6 TWh » se lit.
+  if (unite === "mwh") {
+    const absolu = Math.abs(valeur);
+    const nombre = (v: number, d: number) =>
+      new Intl.NumberFormat("fr-FR", { maximumFractionDigits: d }).format(v);
+    if (absolu >= 1e6) return moins(`${nombre(valeur / 1e6, 1)}\u202fTWh`);
+    if (absolu >= 1e3) return moins(`${nombre(valeur / 1e3, 1)}\u202fGWh`);
+    return moins(`${nombre(valeur, 1)}\u202fMWh`);
   }
   // Les taux pour mille de la source s'affichent en **pourcentage** : le ‰
   // se lit « %0 » pour beaucoup de lecteurs, ce qui est pire que cryptique.
