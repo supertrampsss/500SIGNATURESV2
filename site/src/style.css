@@ -2991,3 +2991,82 @@ body[data-vue="carte"] .pied {
   text-align: right;
   white-space: nowrap;
 }
+
+/* Les comptes en rapports. Le bloc se lit avant les masses : « 62 millions de
+   dette » ne dit que la taille de la collectivité, « onze ans d'épargne » dit
+   sa situation. Deux colonnes, parce que la barre latérale n'en tient pas
+   trois sans réduire les chiffres à des vignettes. */
+.ratios {
+  margin: 0.9rem 0 0.4rem;
+}
+.ratios h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--encre);
+}
+.ratios__exercice {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+.ratios__grille {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem;
+}
+.ratios__carreau {
+  padding: 0.45rem 0.5rem 0.5rem;
+  border: 1px solid var(--trait);
+  border-radius: 0.35rem;
+  background: var(--papier-creuse);
+}
+.ratios__carreau h4 {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--encre-douce);
+}
+.ratios__valeur {
+  margin: 0.15rem 0 0;
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--encre);
+}
+/* Un ratio sans valeur n'est pas une case vide : c'est une phrase qui dit
+   pourquoi il n'en a pas. Elle occupe la place du chiffre. */
+.ratios__impossible {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  color: var(--alerte);
+}
+.ratios__plafond {
+  margin: 0.1rem 0 0;
+  font-size: 0.68rem;
+  color: var(--encre-douce);
+}
+/* La lecture ne s'affiche qu'au survol sur grand écran : six explications
+   empilées feraient un écran de texte avant le premier indicateur. Au toucher,
+   il n'y a pas de survol — elles restent lisibles. */
+.ratios__lecture {
+  margin: 0.25rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--encre-douce);
+}
+@media (hover: hover) and (min-width: 700px) {
+  .ratios__lecture {
+    display: none;
+  }
+  .ratios__carreau:hover .ratios__lecture,
+  .ratios__carreau:focus-within .ratios__lecture {
+    display: block;
+  }
+}
+.ratios__source {
+  margin: 0.4rem 0 0;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--encre-douce);
+}

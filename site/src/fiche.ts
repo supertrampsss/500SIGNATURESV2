@@ -7,6 +7,7 @@
 import type { Indicateur, Jeu, Quartiles, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import { evolution, rendu as rendreSerie } from "./serie.ts";
+import { rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
 import {
   compteEcarts, lecture, memeSens, repereComparable, resumeEcarts, synthese,
@@ -1183,6 +1184,12 @@ export function afficherFiche(
       // questions les plus posées : elle était en dernier, repliée, après cinq
       // écrans de défilement. Elle se lit maintenant avec la synthèse.
       options.comparaison ?? ""
+    }
+    ${
+      // Les comptes en rapports, avant le détail des masses : « 62 millions de
+      // dette » ne dit que la taille de la collectivité, « onze ans d'épargne »
+      // dit sa situation.
+      rendreRatios(territoire, niveau)
     }
     ${ongletsThemes(ordonnerThemes([...parTheme.keys()]), themeActif, options.libelleTheme)}
     <div class="mesures">${mesures}</div>
