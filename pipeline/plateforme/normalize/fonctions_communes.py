@@ -98,21 +98,16 @@ TECHNIQUE = (
     " DGFiP. Budget principal des communes seul (cbudg=1, categ='Commune'),"
     " opérations budgétaires nettes au débit des comptes de classe 6, agrégées"
     " par le premier caractère du code fonction."
-)
-
-RESERVE = (
     " La fonction décrit la destination que la commune donne à la dépense dans"
-    " ses propres comptes, selon la nomenclature M14 ou M57 : deux communes"
-    " peuvent ranger la même dépense sous deux fonctions différentes, et les"
-    " services généraux recouvrent l'administration et tout ce qui n'est pas"
-    " ventilable. C'est une imputation comptable, pas une mesure de politique"
-    " publique. Elle n'est obligatoire qu'à partir de 3 500 habitants"
-    " (art. L. 2312-3 du CGCT) : en dessous de ce seuil la commune n'en publie pas,"
-    " et ce bloc est absent de sa fiche. Le total de ces lignes est celui du grand"
-    " livre, plus large que l'agrégat de l'OFGL publié par ailleurs ; l'écart figure"
-    " en clair sous « retraitements de l'OFGL »."
+    " ses propres comptes : deux communes peuvent ranger la même dépense sous deux"
+    " fonctions différentes, et les services généraux recouvrent l'administration"
+    " et tout ce qui n'est pas ventilable. C'est une imputation comptable, pas une"
+    " mesure de politique publique. La ventilation n'est obligatoire qu'à partir"
+    " de 3 500 habitants (art. L. 2312-3 du CGCT) : en dessous de ce seuil la"
+    " commune n'en publie pas, et ce bloc est absent de sa fiche. Le total de ces"
+    " lignes est celui du grand livre, plus large que l'agrégat de l'OFGL publié"
+    " par ailleurs ; l'écart figure en clair sous « retraitements de l'OFGL »."
 )
-
 
 def url(departement: str) -> str:
     """L'export agrégé côté serveur, département par département.
@@ -253,18 +248,23 @@ def controler(sorties: list[tuple], ofgl: dict[str, float]) -> dict:
 def declarer(conn) -> None:
     with conn.cursor() as curseur:
         for tete, (libelle, identifiant) in sorted(FONCTIONS.items()):
+            # Cinquante mots maximum : c'est une contrainte du schéma, et elle a
+            # raison. Les réserves — imputation comptable, seuil de 3 500
+            # habitants, écart avec l'OFGL — vivent dans la définition technique,
+            # que la fiche affiche juste en dessous.
             publique = (
                 f"Ce que la commune dépense au titre de « {libelle.lower()} » dans son"
-                f" budget principal, hors investissement.{RESERVE}"
+                " budget principal, hors investissement, tel qu'elle le ventile"
+                " elle-même dans ses comptes."
             )
             _ecrire_indicateur(curseur, identifiant, libelle, publique, tete)
         _ecrire_indicateur(
             curseur, RESIDU, "Retraitements de l'OFGL",
             "L'écart entre les charges du grand livre et l'agrégat de dépenses de"
             " fonctionnement que l'Observatoire des finances locales publie pour la"
-            " même commune et le même exercice. L'OFGL neutralise certaines écritures"
-            " sans publier la règle exacte : cette ligne nomme l'écart plutôt que de"
-            " le répartir sur les fonctions, ce qui l'aurait rendu invisible.",
+            " même commune. L'OFGL neutralise certaines écritures sans publier sa"
+            " règle : cette ligne nomme l'écart plutôt que de le répartir sur les"
+            " fonctions, ce qui l'aurait rendu invisible.",
             None,
         )
         curseur.execute(
