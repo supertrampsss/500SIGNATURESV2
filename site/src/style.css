@@ -3234,3 +3234,70 @@ body[data-vue="carte"] .pied {
   color: var(--encre-douce);
   opacity: 0.8;
 }
+
+/* À quelles associations. Une liste de noms, pas un tableau : le montant se lit
+   à droite du nom, l'objet du versement dessous, en plus petit. */
+.assos {
+  margin: 0.4rem 0 0.6rem;
+}
+.assos > h3 {
+  margin: 0 0 0.25rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--encre);
+}
+.assos__exercice {
+  font-weight: 400;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+/* La réserve n'est pas une note de bas de page : sans elle, une fédération
+   nationale domiciliée à Paris se lit comme de l'argent dépensé pour les
+   Parisiens. Elle se lit donc avant la liste. */
+.assos__reserve {
+  margin: 0 0 0.45rem;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--encre-douce);
+}
+.assos__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.assos__ligne {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 0.5rem;
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--trait);
+}
+.assos__nom {
+  font-size: 0.78rem;
+  color: var(--encre);
+}
+.assos__montant {
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--encre);
+  white-space: nowrap;
+}
+.assos__objet {
+  grid-column: 1 / -1;
+  margin-top: 0.1rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--encre-douce);
+}
+.assos__suite > summary {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--encre-douce);
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+.assos__suite > summary:hover {
+  color: var(--encre);
+}

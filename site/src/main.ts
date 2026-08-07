@@ -255,6 +255,29 @@ function recalculerPopulations(): void {
   }
 }
 
+/**
+ * Les associations subventionnées, chargées avec le département de la commune.
+ *
+ * Un lot par département, comme les fiches : cinquante-trois mille lignes en un
+ * fichier feraient télécharger la France entière pour lire une commune. Un lot
+ * absent — publication antérieure au fichier, département sans association
+ * subventionnée — laisse le thème sur son seul agrégat plutôt que d'empêcher la
+ * fiche de s'afficher.
+ */
+const associations: Record<string, donnees.SubventionsCommune> = {};
+const lotsAssociations = new Set<string>();
+
+async function chargerAssociations(code: string): Promise<void> {
+  const lot = code.startsWith("97") ? code.slice(0, 3) : code.slice(0, 2);
+  if (lotsAssociations.has(lot)) return;
+  lotsAssociations.add(lot);
+  try {
+    Object.assign(associations, await donnees.subventions(lot));
+  } catch {
+    // Rien à dire : le thème garde son agrégat, qui ne dépend pas de ce fichier.
+  }
+}
+
 /** Les fiches communales sont réparties par département : on charge à la demande. */
 async function chargerLotsNecessaires(niveau: string, codes: string[]): Promise<void> {
   if (niveau !== "commune") {
@@ -633,7 +656,12 @@ async function montrerFiche(code: string): Promise<void> {
   // La maille de la fiche n'est pas toujours celle de la carte : un
   // arrondissement municipal se lit sans couche de tuiles.
   const niveau = niveauSelection();
-  await chargerLotsNecessaires(niveau, [code]);
+  // Les deux en parallèle : la liste nominative ne doit pas retarder la fiche,
+  // et son absence ne doit pas l'empêcher.
+  await Promise.all([
+    chargerLotsNecessaires(niveau, [code]),
+    niveau === "commune" ? chargerAssociations(code) : Promise.resolve(),
+  ]);
   const territoire = entites[code];
   if (!territoire) return;
   etat.selection = code;
@@ -715,6 +743,7 @@ async function montrerFiche(code: string): Promise<void> {
     parHabitant: etat.declinaison === "habitant",
     references: reperes,
     peintSurCarte,
+    associations: associations[code],
   });
   $("panneau").classList.add("panneau--selection");
 }

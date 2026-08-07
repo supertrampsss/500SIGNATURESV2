@@ -179,6 +179,25 @@ export type DepensesFiscales = {
   dispositifs: Dispositif[];
 };
 
+/**
+ * Les associations subventionnées d'une commune, la plus dotée d'abord.
+ *
+ * Publié par département, comme les fiches : cinquante-trois mille lignes en un
+ * fichier feraient télécharger la France entière pour lire une commune. Absent
+ * des publications antérieures — le bloc ne s'affiche alors pas, la fiche
+ * s'affiche quand même.
+ */
+export type SubventionsCommune = {
+  exercice: string;
+  beneficiaires: {
+    siren: string;
+    nom: string;
+    programme: string;
+    objet: string | null;
+    montant: number;
+  }[];
+};
+
 /** Une entrée du journal public : un chiffre a bougé, ou a cessé d'être servi. */
 export type Changement = {
   annonce: string;
@@ -193,6 +212,8 @@ export type Changement = {
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const depensesFiscales = () => lire<DepensesFiscales>("depenses-fiscales.json");
+export const subventions = (lot: string) =>
+  lire<Record<string, SubventionsCommune>>(`subventions/commune/${lot}.json`);
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
 export const journal = () => lire<Changement[]>("journal.json");
 export const references = () => lire<import("./reference.ts").References>("references.json");

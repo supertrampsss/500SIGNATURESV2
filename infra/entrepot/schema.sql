@@ -66,6 +66,7 @@ create sequence if not exists core.seq_indicator_definitions;
 create sequence if not exists fin.seq_public_budgets;
 create sequence if not exists fin.seq_public_budget_lines;
 create sequence if not exists fin.seq_public_employment;
+create sequence if not exists fin.seq_public_subsidies;
 
 -- ---------------------------------------------------------------- meta
 -- Registres et lineage (docs/02 §A).
@@ -357,6 +358,41 @@ create table if not exists fin.public_budget_lines (
     -- jamais d'AE/CP sur une recette (docs/02 §F)
     check (side <> 'recette' or (ae is null and cp is null)),
     check (ae is not null or cp is not null or amount is not null)
+);
+
+-- Les subventions de l'État aux associations, bénéficiaire par bénéficiaire.
+--
+-- Ce n'est pas une ligne de budget et la table est donc à part. `public_budget_lines`
+-- décrit un budget voté, dont la géographie est celle de la collectivité qui le
+-- vote ; ici chaque ligne porte **sa propre** commune, celle du bénéficiaire, et
+-- il y en a cinquante-trois mille pour un seul budget. Les loger sous un budget
+-- unique aurait perdu la commune, qui est justement ce qu'on veut publier.
+--
+-- `geo_code` est la commune de **l'établissement bénéficiaire**, telle que le
+-- jaune budgétaire l'a appariée au moment du versement — pas la commune où
+-- l'action est menée. Une fédération nationale est comptée à l'adresse de son
+-- siège. Les agrégats qui en découlent ne se comparent donc pas d'un territoire
+-- à l'autre, et le site refuse cette comparaison.
+--
+-- Le grain est le couple (bénéficiaire, programme) : le jaune porte une ligne
+-- par versement, et une même association reçoit plusieurs versements au titre
+-- d'un même programme. Les sommer ici plutôt qu'à la lecture évite qu'un total
+-- dépende de qui l'additionne.
+create table if not exists fin.public_subsidies (
+    subsidy_id        bigint primary key default nextval('fin.seq_public_subsidies'),
+    fiscal_year       smallint not null,
+    geo_level         text not null,
+    geo_code          text not null,
+    geo_vintage       smallint not null,
+    beneficiary_siren text not null,
+    beneficiary_name  text not null,
+    programme         text not null default '',
+    purpose           text,
+    amount            double not null,
+    currency          text not null default 'EUR',
+    dataset_id        text,  -- -> meta.dataset_registry (vérifié)
+    run_id            uuid not null,  -- -> meta.ingestion_runs (vérifié)
+    unique (fiscal_year, geo_level, geo_code, beneficiary_siren, programme)
 );
 
 -- `sector_naf` ne peut plus être NULL, pour la même raison que `entity_siren` :

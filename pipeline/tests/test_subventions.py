@@ -23,6 +23,7 @@ import csv
 import io
 import json
 import math
+from collections import defaultdict
 from pathlib import Path
 
 import pytest
@@ -37,7 +38,14 @@ FIXTURES = Path(__file__).parent / "fixtures"
 # permet à la fixture de les stocker détourés sans rien perdre.
 LARGEUR_MONTANT = 18
 
-COLONNES = ["Programme", "SIREN", "NIC", "Montant", "COG : code"]
+COLONNES = [
+    "Programme", "SIREN", "NIC", "Montant", "Dénomination", "Objet 2021", "COG : code",
+]
+
+# Les colonnes que le tableur rend en texte. Sans elles, une dénomination faite
+# de chiffres — il en existe — deviendrait un entier et perdrait ses zéros de
+# tête, exactement le défaut que la reconstruction cherche à exercer ailleurs.
+TEXTUELLES = {"Dénomination", "Objet 2021"}
 
 
 def _masse(lignes) -> float:
@@ -56,6 +64,8 @@ def _cellule(colonne: str, valeur: str):
         return valeur.rjust(LARGEUR_MONTANT, "\xa0")
     if colonne == "NIC":
         return int(valeur) if valeur else None
+    if colonne in TEXTUELLES:
+        return valeur or None
     return int(valeur) if valeur.isdigit() else valeur
 
 
@@ -136,11 +146,17 @@ def test_les_zeros_de_tete_manges_par_le_tableur_sont_rendus():
 
 def test_le_classeur_entier_se_lit(lignes):
     assert len(lignes) == 102_619
+    # Le document entier est composé d'espaces insécables — « APSIS\xa0EMERGENCE ».
+    # Publié tel quel, un nom se recopie mal, ne se cherche pas et coupe au
+    # mauvais endroit : la lecture les ramène à l'espace ordinaire.
     assert lignes[0] == {
         "programme": "101",
+        "siren": "301294831",
         "siret": "30129483100088",
         "montant": 3850.0,
         "commune": "57672",
+        "nom": "APSIS EMERGENCE",
+        "objet": "Transfert direct aux ménages qui transitent par une association",
     }
     assert round(math.fsum(ligne["montant"] for ligne in lignes), 2) == 10_543_390_140.84
     # Quatre reversements : des lignes négatives que rien n'annonce, et qu'un
@@ -151,7 +167,7 @@ def test_le_classeur_entier_se_lit(lignes):
 
 
 def test_le_classeur_refuse_de_changer_de_forme(source):
-    """La feuille et les cinq colonnes sont contrôlées, pas supposées."""
+    """La feuille et les sept colonnes sont contrôlées, pas supposées."""
     import openpyxl
 
     livre = openpyxl.load_workbook(io.BytesIO(source[0]))
@@ -437,3 +453,118 @@ def test_l_ecriture_reelle_contre_un_vrai_entrepot(entrepot_seme, lignes):
         (s.EXERCICE,),
     ).fetchone()
     assert etablissements == 568
+
+
+# --------------------------------------------------------------- les noms
+#
+# « 353 € par habitant » ne répond pas à la question qu'on vient poser — *à
+# quelles associations* — et un total sans ses bénéficiaires demande de croire
+# sur parole. Ce document existe pour être lu bénéficiaire par bénéficiaire.
+
+
+def test_les_beneficiaires_sont_nommes_et_sommes_par_programme(lignes):
+    nommes = s.beneficiaires(lignes)
+    # Le grain est le couple (bénéficiaire, programme) : une même association
+    # reçoit plusieurs versements au titre d'un même programme, et les sommer
+    # ici évite qu'un total dépende de qui l'additionne.
+    assert len(nommes) < len(lignes)
+    cles = [(code, siren, programme) for code, siren, _, programme, _, _ in nommes]
+    assert len(cles) == len(set(cles)), "un couple (bénéficiaire, programme) apparaît deux fois"
+    # APSIS EMERGENCE, Thionville, programme 101 : 3 850 + 33 330 sur les deux
+    # premières lignes de la parution, et rien d'autre.
+    apsis = [ligne for ligne in nommes if ligne[1] == "301294831" and ligne[3] == "101"]
+    assert len(apsis) == 1
+    assert apsis[0][0] == "57672"
+    assert apsis[0][2] == "APSIS EMERGENCE"
+    assert apsis[0][5] == 37_180.0
+
+
+def test_les_beneficiaires_se_classent_du_plus_gros_au_plus_petit(lignes):
+    nommes = s.beneficiaires(lignes)
+    par_commune = defaultdict(list)
+    for code, _, _, _, _, montant in nommes:
+        par_commune[code].append(montant)
+    for code, montants in par_commune.items():
+        assert montants == sorted(montants, reverse=True), f"{code} n'est pas classée"
+
+
+def test_la_liste_nominative_exclut_exactement_ce_que_l_agregat_exclut(lignes):
+    """Deux listes qui ne filtreraient pas pareil donneraient deux totaux.
+
+    L'étranger et l'outre-mer hors départements ne sont rattachés à aucune
+    commune ; les arrondissements municipaux se replient sur leur commune. La
+    liste nominative applique les mêmes règles que l'agrégat publié juste
+    au-dessus d'elle.
+    """
+    nommes = s.beneficiaires(lignes)
+    communes = {code for code, *_ in nommes}
+    assert not [code for code in communes if code.startswith(("99", "98", "975", "977", "978"))]
+    # Paris, Lyon et Marseille, jamais leurs arrondissements.
+    assert "75056" in communes
+    assert not [code for code in communes if code.startswith(("751", "6938", "132"))]
+
+
+def test_un_versement_sans_siren_reste_dans_l_agregat_mais_ne_nomme_personne(lignes):
+    """Sans identifiant, on ne peut ni regrouper ni vérifier : on ne nomme pas.
+
+    Les 660 lignes que le jaune marque « N/A » comptent dans le montant
+    communal — c'est de l'argent versé — mais n'apparaissent sous aucun nom.
+    """
+    sans = [ligne for ligne in lignes if ligne["siren"] in ("", s.SIREN_ABSENT)]
+    assert sans, "la parution porte des bénéficiaires non identifiés"
+    nommes = s.beneficiaires(lignes)
+    assert not [ligne for ligne in nommes if ligne[1] in ("", s.SIREN_ABSENT)]
+
+
+def test_l_objet_retenu_est_celui_du_plus_gros_versement(lignes):
+    """Une association reçoit au titre de dizaines d'objets différents.
+
+    Les concaténer ferait un paragraphe illisible sous chaque nom ; en prendre
+    un au hasard ferait dépendre l'affichage de l'ordre du fichier. C'est celui
+    du versement le plus important qui représente le couple.
+    """
+    from plateforme.normalize.geo import commune_mere
+
+    nommes = {(code, siren, programme): objet
+              for code, siren, _, programme, objet, _ in s.beneficiaires(lignes)}
+    # Un même SIREN peut avoir des établissements dans deux communes : la clé
+    # les sépare, et les candidats doivent l'être aussi.
+    versements = defaultdict(list)
+    for ligne in lignes:
+        if not ligne["objet"] or not ligne["siren"]:
+            continue
+        code = commune_mere(ligne["commune"]) or ligne["commune"]
+        versements[(code, ligne["siren"], ligne["programme"])].append(ligne)
+    verifies = 0
+    for cle, objet in nommes.items():
+        candidats = versements.get(cle)
+        if objet is None or not candidats:
+            continue
+        assert objet == max(candidats, key=lambda ligne: ligne["montant"])["objet"]
+        verifies += 1
+    assert verifies > 10_000, "le contrôle doit porter sur la parution, pas sur trois lignes"
+
+
+def test_l_ecriture_nominative_contre_un_vrai_entrepot(entrepot_seme, lignes):
+    from plateforme import entrepot
+
+    _semer_le_jeu(entrepot_seme)
+    s.declarer(entrepot_seme)
+    run_id = entrepot.start_run(entrepot_seme, s.DATASET, "manual")
+    nommes = [ligne for ligne in s.beneficiaires(lignes) if ligne[0] == "57672"]
+    ecrites = s.ecrire_beneficiaires(entrepot_seme, run_id, nommes)
+    entrepot_seme.commit()
+    assert ecrites == len(nommes)
+    (compte, masse) = entrepot_seme.execute(
+        "select count(*), sum(amount) from fin.public_subsidies where geo_code = '57672'"
+    ).fetchone()
+    assert compte == len(nommes)
+    assert round(masse, 2) == round(math.fsum(ligne[5] for ligne in nommes), 2)
+    # Recharger le même exercice remplace, il n'empile pas : sans le `delete`,
+    # une seconde parution doublerait chaque bénéficiaire.
+    s.ecrire_beneficiaires(entrepot_seme, run_id, nommes)
+    entrepot_seme.commit()
+    (apres,) = entrepot_seme.execute(
+        "select count(*) from fin.public_subsidies where geo_code = '57672'"
+    ).fetchone()
+    assert apres == compte

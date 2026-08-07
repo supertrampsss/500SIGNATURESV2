@@ -4,9 +4,16 @@
  * ratio, et il est accompagné de sa source, de sa méthode et de ses limites.
  */
 
-import type { Indicateur, Jeu, Quartiles, Territoire } from "./donnees.ts";
+import type {
+  Indicateur,
+  Jeu,
+  Quartiles,
+  SubventionsCommune,
+  Territoire,
+} from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import { dernierPas, evolution, rendu as rendreSerie } from "./serie.ts";
+import { rendu as rendreAssociations } from "./associations.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { exerciceDesComptes, rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
@@ -1264,6 +1271,9 @@ export function afficherFiche(
     /** Cet indicateur a-t-il une couche à peindre ? Sans ce prédicat, aucune
      *  mesure ne propose la carte — c'est le repli sûr. */
     peintSurCarte?: (indicateur: Indicateur) => boolean;
+    /** Les associations subventionnées de cette commune. Chargées à part, par
+     *  département : absentes, le thème garde son seul agrégat. */
+    associations?: SubventionsCommune;
   },
 ): void {
   const { territoire, indicateurs, periode, parHabitant, niveau } = options;
@@ -1339,6 +1349,7 @@ export function afficherFiche(
             liste, territoire, periode, parHabitant, niveau, references,
             options.comparateurs ?? [],
           )}
+          ${theme === "vie_associative" ? rendreAssociations(options.associations) : ""}
           ${devant.map(dessine).join("")}
           ${suite}
         </section>`;

@@ -849,6 +849,55 @@ def _objet(valeur) -> dict:
     return decode if isinstance(decode, dict) else {}
 
 
+def subventions_nominatives(conn) -> dict[str, dict[str, dict]]:
+    """Les associations subventionnées, par département puis par commune.
+
+    Un agrégat de 353 € par habitant ne répond pas à la question qu'on vient
+    poser — *à quelles associations* — et demande de croire sur parole. Le jaune
+    budgétaire est le seul document public qui descende jusqu'au bénéficiaire
+    nommé : le publier sans les noms revenait à le citer sans le montrer.
+
+    Réparti par département, comme les fiches : cinquante-trois mille lignes en
+    un fichier feraient télécharger la France entière pour lire une commune. Un
+    même bénéficiaire peut apparaître deux fois s'il reçoit au titre de deux
+    programmes ; les montants sont sommés par bénéficiaire, et le programme
+    dominant est nommé.
+
+    Les montants sont ceux de l'établissement bénéficiaire, à l'adresse de son
+    siège. Le site le dit, et refuse d'en tirer une comparaison territoriale.
+    """
+    lignes = conn.execute(
+        """
+        select geo_code, beneficiary_siren,
+               any_value(beneficiary_name) as nom,
+               arg_max(programme, amount) as programme,
+               arg_max(purpose, amount) as objet,
+               sum(amount) as montant,
+               max(fiscal_year) as exercice
+        from fin.public_subsidies
+        where geo_level = 'commune'
+        group by geo_code, beneficiary_siren
+        order by geo_code, sum(amount) desc, beneficiary_siren
+        """
+    ).fetchall()
+    if not lignes:
+        return {}
+    # Le lot est le département, déduit du code commune comme ailleurs : 97x
+    # pour l'outre-mer, les deux premiers chiffres sinon.
+    lots: dict[str, dict[str, dict]] = defaultdict(dict)
+    for code, siren, nom, programme, objet, montant, exercice in lignes:
+        lot = code[:3] if code.startswith("97") else code[:2]
+        commune = lots[lot].setdefault(code, {"exercice": str(exercice), "beneficiaires": []})
+        commune["beneficiaires"].append({
+            "siren": siren,
+            "nom": nom,
+            "programme": programme,
+            "objet": objet,
+            "montant": round(montant, 2),
+        })
+    return lots
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
     elus = maires(conn) if niveau == "commune" else {}
@@ -1032,6 +1081,8 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
     deposer("depenses-fiscales.json", depenses_fiscales(conn))
+    for lot, contenu in subventions_nominatives(conn).items():
+        deposer(f"subventions/commune/{lot}.json", contenu)
     deposer("fraicheur.json", fraicheur(conn))
     deposer("journal.json", journal(conn))
     deposer("references.json", references(conn, cartographiees))
