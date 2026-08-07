@@ -134,3 +134,32 @@ test("un taux négatif porte le signe moins, pas le trait d'union", () => {
   const html = rendu(deficitaire, "commune");
   assert.match(html, new RegExp(`<p class="ratios__valeur">−5,0${FINE}%</p>`));
 });
+
+test("chaque rapport dit son mouvement vs l'exercice précédent, dans son unité", () => {
+  // Un taux qui passe de 10 à 12 % gagne deux points, il ne « monte pas de
+  // 20 % » ; la dette par habitant bouge en euros.
+  const t = {
+    nom: "X", parent: "33", population: 1000, drapeaux: {},
+    series: {
+      ofgl_recettes_fonctionnement: { "2024": 1_000_000, "2025": 1_000_000 },
+      ofgl_epargne_brute: { "2024": 100_000, "2025": 120_000 },
+      ofgl_encours_dette: { "2024": 500_000, "2025": 480_000 },
+      ofgl_population_reference: { "2024": 1_000, "2025": 1_000 },
+    },
+  } as never;
+  const html = rendu(t, "commune");
+  assert.match(html, /\+2,0 pt vs 2024/); // taux d'épargne 10 → 12 %
+  assert.match(html, /−20 € vs 2024/); // dette par habitant 500 → 480 €
+});
+
+test("sans exercice précédent, aucun mouvement n'est écrit", () => {
+  const t = {
+    nom: "X", parent: "33", population: 1000, drapeaux: {},
+    series: {
+      ofgl_recettes_fonctionnement: { "2025": 1_000_000 },
+      ofgl_epargne_brute: { "2025": 120_000 },
+      ofgl_encours_dette: { "2025": 480_000 },
+    },
+  } as never;
+  assert.doesNotMatch(rendu(t, "commune"), /ratios__evolution/);
+});

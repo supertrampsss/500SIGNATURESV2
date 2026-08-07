@@ -11,7 +11,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { composantes, marches, montant, rendu } from "./pont.ts";
+import { composantes, marches, montant, rendu, variationTexte } from "./pont.ts";
 import type { Indicateur } from "./donnees.ts";
 import type { Territoire } from "./donnees.ts";
 
@@ -408,4 +408,86 @@ test("l'axe fonctionnel s'affiche sur son propre exercice, avec l'année au bout
 test("sans ventilation fonctionnelle publiée, pas de bouton d'axe", () => {
   const html = rendu(territoire({ ...COMPTES, ...CHARGES }), CATALOGUE);
   assert.doesNotMatch(html, /à quoi ça sert/);
+});
+
+/**
+ * Voir les variations est la moitié de la question « où va l'argent » : chaque
+ * marche porte son évolution vs l'exercice précédent, quand il est publié.
+ */
+
+/** Les mêmes comptes sur deux exercices : 2024 uniformément 10 % plus bas,
+ *  sauf les frais que le test fait bouger. */
+function bordeauxSurDeuxAns(): Territoire {
+  const t = territoire(COMPTES);
+  for (const [id, v] of Object.entries(COMPTES)) {
+    (t.series as Record<string, Record<string, number>>)[id]["2024"] = v / 1.1;
+  }
+  return t;
+}
+
+test("chaque marche dit son évolution vs l'exercice précédent", () => {
+  const etapes = marches(bordeauxSurDeuxAns(), "2025");
+  assert.ok(etapes);
+  const depart = etapes.find((e) => e.role === "depart");
+  assert.ok(depart && depart.variation !== null && depart.variation !== undefined);
+  assert.ok(Math.abs((depart.variation as number) - 10) < 0.01, `${depart.variation}`);
+  // Le report redit l'épargne nette : pas de variation, ce serait la même deux fois.
+  const report = etapes.find((e) => e.role === "report");
+  assert.equal(report?.variation, null);
+  // L'arrivée compare le solde au solde de l'exercice d'avant.
+  const arrivee = etapes.find((e) => e.role === "arrivee");
+  assert.ok(arrivee && arrivee.variation !== null && arrivee.variation !== undefined);
+});
+
+test("sans exercice précédent publié, aucune variation n'est écrite", () => {
+  const etapes = marches(BORDEAUX, "2025");
+  assert.ok(etapes);
+  assert.ok(etapes.every((e) => e.variation === null || e.variation === undefined));
+  const html = rendu(BORDEAUX);
+  assert.doesNotMatch(html, /évolutions vs/);
+  assert.doesNotMatch(html, /pont__var/);
+});
+
+test("une épargne qui remonte de −2 à −1 M€ s'améliore, elle ne « baisse » pas", () => {
+  // La variation se calcule sur la grandeur comptable brute, pas sur le
+  // montant signé de l'affichage.
+  const comptes = { ...COMPTES };
+  const t = territoire(comptes);
+  const series = t.series as Record<string, Record<string, number>>;
+  for (const [id, v] of Object.entries(comptes)) series[id]["2024"] = v;
+  series.ofgl_epargne_brute = { "2024": -2_000_000, "2025": -1_000_000 };
+  // Les identités du pont doivent boucler : on ajuste les termes voisins.
+  series.ofgl_depenses_fonctionnement = {
+    "2024": comptes.ofgl_recettes_fonctionnement + 2_000_000,
+    "2025": comptes.ofgl_recettes_fonctionnement + 1_000_000,
+  };
+  series.ofgl_epargne_nette = {
+    "2024": -2_000_000 - comptes.ofgl_remboursements_d_emprunts_hors_gad,
+    "2025": -1_000_000 - comptes.ofgl_remboursements_d_emprunts_hors_gad,
+  };
+  series.ofgl_recettes_totales = {
+    "2024": comptes.ofgl_recettes_totales,
+    "2025": comptes.ofgl_recettes_totales,
+  };
+  // dt = rt − solde, le solde étant l'identité de la section d'investissement.
+  series.ofgl_depenses_totales = Object.fromEntries(
+    ["2024", "2025"].map((a) => [
+      a,
+      comptes.ofgl_recettes_totales -
+        (series.ofgl_epargne_nette[a] +
+          comptes.ofgl_recettes_d_investissement_hors_emprunts +
+          comptes.ofgl_emprunts_hors_gad -
+          comptes.ofgl_depenses_d_investissement_hors_remb),
+    ]),
+  );
+  const etapes = marches(t, "2025");
+  assert.ok(etapes);
+  const eb = etapes.find((e) => e.id === "ofgl_epargne_brute");
+  assert.ok(eb && (eb.variation as number) > 0, `${eb?.variation}`);
+});
+
+test("la variation s'écrit à l'échelle de sa taille", () => {
+  assert.equal(variationTexte(3.94), `+3,9${FINE}%`);
+  assert.equal(variationTexte(-42.4), `−42${FINE}%`);
+  assert.equal(variationTexte(337), `+340${FINE}%`);
 });
