@@ -432,7 +432,8 @@ function ligneIndicateur(
         .map((phrase) => `<p class="mesure__phrase">${echapper(phrase)}</p>`)
         .join("")}
       ${evolutionDite ? `<p class="mesure__phrase">${evolutionDite}</p>` : ""}
-      ${rendreSerie(suivie, evenements, formate, mesure.comparaisons, false)}
+      ${rendreSerie(suivie, evenements, formate, mesure.comparaisons, false,
+        territoire.maire?.depuis)}
       ${miniTableau(suivie, indicateur, ratio, ratio ? brute : undefined)}
       ${
         rang && rang.total > 1

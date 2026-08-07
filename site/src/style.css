@@ -644,6 +644,14 @@ summary:focus-visible {
   stroke-dasharray: 3 3;
   vector-effect: non-scaling-stroke;
 }
+/* Le mandat n'est pas une rupture : le trait est plus pâle que celui du
+   périmètre, et continu, pour qu'on ne lise pas une coupure là où la mesure
+   est restée identique. */
+.serie__mandat {
+  stroke: var(--trait);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
 .serie__bornes {
   display: flex;
   justify-content: space-between;
@@ -655,6 +663,13 @@ summary:focus-visible {
   margin: 0.25rem 0 0;
   font-size: 0.75rem;
   color: var(--alerte);
+}
+/* Ce repère situe, il n'explique pas : ni la couleur d'alerte, ni celle de
+   l'accent — la note doit se lire comme une légende, pas comme une thèse. */
+.serie__mandat-note {
+  margin: 0.25rem 0 0;
+  font-size: 0.72rem;
+  color: var(--encre-douce);
 }
 .mesure--absente dd {
   color: var(--encre-douce);

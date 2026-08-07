@@ -122,6 +122,38 @@ function points(valeurs: number[], bornes?: [number, number]): string {
  */
 export type Repere = { libelle: string; valeur: number };
 
+/**
+ * Le début du mandat en cours, marqué sur la série.
+ *
+ * « Un budget est voté par quelqu'un », écrit le connecteur des maires. Une
+ * série de huit exercices en traverse souvent une élection sans rien en dire,
+ * et le lecteur n'a alors aucun moyen de savoir qui décidait quand.
+ *
+ * **Ce n'est pas une rupture de périmètre, et il ne faut surtout pas les
+ * confondre.** Une fusion de communes fait porter la série sur un autre
+ * territoire : comparer de part et d'autre est une faute, et l'évolution
+ * chiffrée s'arrête au dernier périmètre constant. Un changement de mandature
+ * ne change rien à ce qui est mesuré — le territoire est le même, les euros
+ * sont les mêmes, l'évolution reste calculable de bout en bout. C'est un
+ * **repère de lecture**, pas un avertissement sur la donnée.
+ *
+ * Et le site n'en tire aucune conclusion. Il ne dit pas qu'un maire est
+ * responsable de ce que la courbe fait : les droits de mutation suivent le
+ * marché immobilier, la dotation globale est fixée par l'État, le RSA est
+ * départemental, et un investissement décidé une année se paie deux ans plus
+ * tard. Le repère dit qui était en fonction. Le lecteur conclut, ou pas.
+ */
+export function debutDeMandat(
+  depuis: string | null | undefined,
+  periodes: string[],
+): string | null {
+  if (!depuis || periodes.length < 2) return null;
+  const annee = depuis.slice(0, 4);
+  // Bornes exclues : un repère sur le premier ou le dernier point se confond
+  // avec le bord du dessin et n'apprend rien.
+  return annee > periodes[0] && annee < periodes[periodes.length - 1] ? annee : null;
+}
+
 export function rendu(
   serie: Record<string, number>,
   evenements: Evenement[],
@@ -137,6 +169,8 @@ export function rendu(
    *  une en langage de graphique. La ligne, elle, reste — c'est elle qui situe
    *  la courbe d'un coup d'œil. */
   legende = true,
+  /** Date de prise de fonction du maire en exercice, quand elle est connue. */
+  mandatDepuis?: string | null,
 ): string {
   const periodes = Object.keys(serie).sort();
   if (periodes.length < 3) return ""; // deux points ne font pas une évolution
@@ -148,6 +182,16 @@ export function rendu(
       ? `<line class="serie__rupture" x1="${((indice / (periodes.length - 1)) * LARGEUR).toFixed(
           1,
         )}" y1="0" x2="${((indice / (periodes.length - 1)) * LARGEUR).toFixed(
+          1,
+        )}" y2="${HAUTEUR}" />`
+      : "";
+  const mandat = debutDeMandat(mandatDepuis, periodes);
+  const indiceMandat = mandat ? periodes.indexOf(mandat) : -1;
+  const marqueMandat =
+    indiceMandat > 0
+      ? `<line class="serie__mandat" x1="${((indiceMandat / (periodes.length - 1)) * LARGEUR).toFixed(
+          1,
+        )}" y1="0" x2="${((indiceMandat / (periodes.length - 1)) * LARGEUR).toFixed(
           1,
         )}" y2="${HAUTEUR}" />`
       : "";
@@ -195,6 +239,11 @@ export function rendu(
         ${echapper(formater(r.valeur))}</span>`,
     ),
   ].join("");
+  const noteMandat = mandat
+    ? `<p class="serie__mandat-note">Le maire en exercice a pris ses fonctions en
+        ${echapper(mandat)}. Un budget se décide à plusieurs niveaux et se paie
+        sur plusieurs années&nbsp;: ce repère situe, il n'explique pas.</p>`
+    : "";
   return `<div class="serie">
     <svg viewBox="0 0 ${LARGEUR} ${HAUTEUR}" class="serie__trace" role="img"
          aria-label="${echapper(
@@ -202,15 +251,15 @@ export function rendu(
              utiles.length
                ? `. Repères : ${utiles.map((r) => `${r.libelle} ${formater(r.valeur)}`).join(", ")}`
                : ""
-           }`,
+           }${mandat ? `. Le maire en exercice a pris ses fonctions en ${mandat}` : ""}`,
          )}" preserveAspectRatio="none">
-      ${marque}${lignes}
+      ${marqueMandat}${marque}${lignes}
       <polyline points="${points(valeurs, bornes)}" />
     </svg>
     ${legende && etiquettes ? `<p class="serie__reperes">${etiquettes}</p>` : ""}
     <p class="serie__bornes"><span>${echapper(periodes[0])}</span><span>${echapper(
       periodes[periodes.length - 1],
     )}</span></p>
-    ${avertissement}
+    ${avertissement}${noteMandat}
   </div>`;
 }

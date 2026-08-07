@@ -7,7 +7,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { evolution, rendu, ruptureDePerimetre, type Evenement } from "./serie.ts";
+import {
+  debutDeMandat,
+  evolution,
+  rendu,
+  ruptureDePerimetre,
+  type Evenement,
+} from "./serie.ts";
 
 const FINE = "\u202f";
 
@@ -84,4 +90,45 @@ test("une série recalculée dans la géographie courante ne se coupe pas", () =
   assert.equal(ruptureDePerimetre([], Object.keys(legales)), null);
   assert.equal(evolution(legales, "2023", []).includes(`−2,8${FINE}% depuis 2013`), true);
   assert.doesNotMatch(evolution(legales, "2023", []), /périmètre/);
+});
+
+test("le début du mandat se marque, mais seulement entre les bornes", () => {
+  const periodes = ["2018", "2019", "2020", "2021", "2022"];
+  assert.equal(debutDeMandat("2020-05-23", periodes), "2020");
+  // Un repère sur le premier ou le dernier point se confond avec le bord.
+  assert.equal(debutDeMandat("2018-01-01", periodes), null);
+  assert.equal(debutDeMandat("2022-07-01", periodes), null);
+  // Hors de la série, ou inconnu.
+  assert.equal(debutDeMandat("2014-04-05", periodes), null);
+  assert.equal(debutDeMandat(null, periodes), null);
+  assert.equal(debutDeMandat("2020-05-23", ["2020"]), null);
+});
+
+test("un changement de mandature n'est pas une rupture de périmètre", () => {
+  // C'est la distinction qui compte : une fusion fait porter la série sur un
+  // autre territoire et interdit de comparer de part et d'autre ; un
+  // changement de maire ne change rien à ce qui est mesuré.
+  const serie = { "2018": 100, "2019": 110, "2020": 120, "2021": 130 };
+  const html = rendu(serie, [], (v) => `${v} €`, [], true, "2020-05-23");
+  assert.match(html, /serie__mandat/);
+  assert.doesNotMatch(html, /serie__rupture/);
+  assert.doesNotMatch(html, /ne portent pas sur le même territoire/);
+  // L'évolution reste calculée de bout en bout.
+  assert.match(evolution(serie, "2021", []), /2018/);
+});
+
+test("le repère de mandature dit qu'il n'explique rien", () => {
+  const serie = { "2018": 100, "2019": 110, "2020": 120, "2021": 130 };
+  const html = rendu(serie, [], (v) => `${v} €`, [], true, "2020-05-23");
+  assert.match(html, /pris ses fonctions en\s+2020/);
+  assert.match(html, /il n'explique pas/);
+  // Un lecteur d'écran ne voit pas le trait : l'équivalent textuel le porte.
+  assert.match(html, /aria-label="[^"]*pris ses fonctions en 2020/);
+});
+
+test("sans maire connu, la série est inchangée", () => {
+  const serie = { "2018": 100, "2019": 110, "2020": 120 };
+  const html = rendu(serie, [], (v) => `${v} €`, [], true, null);
+  assert.doesNotMatch(html, /serie__mandat/);
+  assert.doesNotMatch(html, /pris ses fonctions/);
 });
