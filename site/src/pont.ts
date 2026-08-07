@@ -197,6 +197,23 @@ export function composantes(
     })), ...manque];
 }
 
+/** Le dernier exercice où la ventilation fonctionnelle d'un agrégat existe,
+ *  parmi ceux où l'agrégat lui-même est publié : la somme doit avoir un total
+ *  à redonner. */
+export function dernierExerciceFonction(
+  parent: string,
+  territoire: Territoire,
+  catalogue: Indicateur[],
+): string | null {
+  const parents = Object.keys(territoire.series?.[parent] ?? {});
+  const exercices = catalogue
+    .filter((i) => i.parent_fonction === parent)
+    .flatMap((i) => Object.keys(territoire.series?.[i.id] ?? {}))
+    .filter((e) => parents.includes(e))
+    .sort();
+  return exercices.length ? exercices[exercices.length - 1] : null;
+}
+
 /** Le dernier exercice où les comptes sont là. */
 export function exerciceDuPont(territoire: Territoire): string | null {
   const annees = Object.keys(territoire.series?.[RF] ?? {});
@@ -368,12 +385,29 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
       // Le second axe : à quoi sert l'argent, plutôt que ce qu'on achète.
       // « Achats et charges externes » ne se discute pas ; « 23 M€ pour le
       // sport » se discute.
-      const parFonction = etape.id
-        ? composantes(
-            etape.id, Math.abs(etape.montant), territoire, exercice, catalogue, "fonction",
-          )
+      //
+      // Son exercice n'est pas forcément celui du pont : le grand livre parait
+      // avec deux ans de retard sur l'OFGL. Plutôt que d'attendre 2027 pour
+      // montrer 2025, la ventilation s'affiche sur son propre exercice, contre
+      // l'agrégat de ce même exercice — c'est contre lui que la somme boucle —
+      // et le bouton porte l'année quand elle diffère.
+      const exerciceFonction = etape.id
+        ? dernierExerciceFonction(etape.id, territoire, catalogue)
         : null;
-      const decomposition = parNature ?? parFonction;
+      const totalFonction =
+        etape.id && exerciceFonction ? valeur(territoire, etape.id, exerciceFonction) : undefined;
+      const parFonction =
+        etape.id && exerciceFonction && totalFonction
+          ? composantes(
+              etape.id, Math.abs(totalFonction), territoire, exerciceFonction, catalogue,
+              "fonction",
+            )
+          : null;
+      // Sans bascule, pas d'axe fonctionnel d'un autre exercice : une liste
+      // 2023 sous une ligne 2025, sans bouton pour porter l'année, se lirait
+      // comme du 2025.
+      const decomposition =
+        parNature ?? (exerciceFonction === exercice ? parFonction : null);
       // Une seule colonne de montants. Le « mouvement » et le « il reste »
       // côte à côte doublaient la moitié des nombres : le cumul après chaque
       // flux est exactement le palier de la ligne suivante. Chaque ligne porte
@@ -387,7 +421,11 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
         parNature && parFonction
           ? `<p class="pont__axes" role="group" aria-label="Décomposer par">
                <button type="button" data-axe="nature" aria-pressed="true">ce qu'elle achète</button>
-               <button type="button" data-axe="fonction" aria-pressed="false">à quoi ça sert</button>
+               <button type="button" data-axe="fonction" aria-pressed="false">à quoi ça sert${
+                 exerciceFonction && exerciceFonction !== exercice
+                   ? ` (${echapper(exerciceFonction)})`
+                   : ""
+               }</button>
              </p>`
           : "";
       const listes = !decomposition

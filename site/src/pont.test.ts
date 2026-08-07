@@ -383,3 +383,29 @@ test("sans second axe, aucune bascule à choisir", () => {
   assert.doesNotMatch(html, /pont__axes/);
   assert.match(html, /Frais de personnel/);
 });
+
+test("l'axe fonctionnel s'affiche sur son propre exercice, avec l'année au bouton", () => {
+  // Le grand livre paraît avec deux ans de retard sur l'OFGL : le pont est en
+  // 2025, la ventilation en 2023. Plutôt que d'attendre 2027, elle s'affiche
+  // contre l'agrégat de 2023 — c'est contre lui que la somme boucle — et le
+  // bouton porte l'année pour qu'on ne lise pas 2023 comme 2025.
+  const catalogue = [
+    ...CATALOGUE,
+    { id: "fonction_commune_culture", libelle: "Culture",
+      parent_fonction: "ofgl_depenses_fonctionnement" },
+    { id: "fonction_commune_retraitements_ofgl", libelle: "Retraitements de l'OFGL",
+      parent_fonction: "ofgl_depenses_fonctionnement" },
+  ] as never as Indicateur[];
+  const bordeaux = territoire({ ...COMPTES, ...CHARGES });
+  bordeaux.series.ofgl_depenses_fonctionnement["2023"] = 353_700_000;
+  bordeaux.series.fonction_commune_culture = { "2023": 300_000_000 };
+  bordeaux.series.fonction_commune_retraitements_ofgl = { "2023": 53_700_000 };
+  const html = rendu(bordeaux, catalogue);
+  assert.match(html, /à quoi ça sert \(2023\)/);
+  assert.match(html, /Culture/);
+});
+
+test("sans ventilation fonctionnelle publiée, pas de bouton d'axe", () => {
+  const html = rendu(territoire({ ...COMPTES, ...CHARGES }), CATALOGUE);
+  assert.doesNotMatch(html, /à quoi ça sert/);
+});
