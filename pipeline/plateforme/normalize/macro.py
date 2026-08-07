@@ -100,7 +100,7 @@ def declarer(conn, plan: dict[str, dict]) -> None:
                      time_granularity, published)
                 values (?, ?, ?, 'dette', ?, ?, false, ?, 'nationale',
                         array['pays'], 'trimestrielle', true)
-                on conflict (indicator_id) do update set
+                on conflict (indicator_id) do update set unit = excluded.unit,
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                     time_granularity = excluded.time_granularity, published = true
                 """,

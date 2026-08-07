@@ -101,7 +101,7 @@ def declarer(conn) -> None:
                  additive, seasonal_adjustment, geo_levels, time_granularity, published)
             values (?, ?, ?, 'emploi', ?, 'percent', false, 'cvs-cjo',
                     array['departement','region'], 'trimestrielle', true)
-            on conflict (indicator_id) do update set
+            on conflict (indicator_id) do update set unit = excluded.unit,
                 definition_id = excluded.definition_id, label_fr = excluded.label_fr,
                 theme = excluded.theme, additive = false, published = true
             """,

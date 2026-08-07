@@ -426,7 +426,7 @@ def declarer(conn) -> None:
                  additive, price_basis, geo_levels, time_granularity, published)
             values (?, ?, ?, ?, ?, 'EUR', true, 'current', array['region'],
                     'pluriannuelle', true)
-            on conflict (indicator_id) do update set
+            on conflict (indicator_id) do update set unit = excluded.unit,
                 definition_id = excluded.definition_id,
                 label_fr = excluded.label_fr,
                 theme = excluded.theme, published = true

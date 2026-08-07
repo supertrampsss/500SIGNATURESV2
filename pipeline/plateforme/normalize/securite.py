@@ -302,7 +302,7 @@ def declarer(conn) -> None:
                         (indicator_id, dataset_id, definition_id, theme, label_fr,
                          unit, additive, geo_levels, time_granularity, published)
                     values (?, ?, ?, 'securite', ?, ?, ?, ?, 'annuelle', true)
-                    on conflict (indicator_id) do update set
+                    on conflict (indicator_id) do update set unit = excluded.unit,
                         definition_id = excluded.definition_id,
                         label_fr = excluded.label_fr, theme = excluded.theme,
                         published = true
