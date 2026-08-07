@@ -884,6 +884,9 @@ const THEMES: Record<string, string> = {
   budget_etat: "Budget de l'État",
   depenses_fiscales: "Niches fiscales",
   energie: "Énergie",
+  transports: "Transports",
+  environnement: "Environnement",
+  justice: "Justice",
   europe: "Comparaisons européennes",
 };
 

@@ -805,6 +805,14 @@ const PHARES: Record<string, string[]> = {
   // Le total plutôt qu'un domaine : « combien d'équipements chez moi »
   // avant « combien de terrains de sport ».
   equipements: ["insee_equipements_total"],
+  // Le parc avant sa composition : « combien de voitures ici », puis la part
+  // qui roule à l'électrique.
+  transports: ["sdes_parc_voitures", "sdes_part_voitures_electriques"],
+  // Le flux consommé d'abord ; la part destinée à l'habitat le précise.
+  environnement: ["cerema_espaces_consommes", "cerema_espaces_consommes_habitat"],
+  // La surpopulation avant l'effectif : « la prison d'ici déborde-t-elle »
+  // se répond par une densité, pas par un nombre de détenus.
+  justice: ["justice_densite_carcerale", "justice_personnes_detenues"],
   // Les capacités avant les établissements : « combien de lits ici » se répond
   // par des chambres et des emplacements, pas par un nombre d'enseignes. Les
   // deux hébergements les plus répandus ouvrent ; le troisième suit.
@@ -898,7 +906,10 @@ const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
   {
     cle: "cadre",
     libelle: "Cadre de vie",
-    themes: ["logement", "sante", "education", "securite", "energie", "equipements", "tourisme"],
+    themes: [
+      "logement", "sante", "education", "securite", "justice", "energie",
+      "transports", "environnement", "equipements", "tourisme",
+    ],
   },
 ];
 

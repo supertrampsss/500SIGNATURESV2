@@ -258,6 +258,21 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "territoires-vague-2" ]; then
+            # La deuxième vague territoriale : parc automobile (SDES),
+            # consommation d'espaces (Cerema), population carcérale (Justice).
+            # Plus la redéclaration des libellés corrigés par l'audit qualité :
+            # seuls leurs declarer() ont changé, réingérer serait payer un
+            # téléchargement pour un libellé.
+            set -e
+            python -m plateforme.normalize.transports --store r2:plateforme-raw
+            python -m plateforme.normalize.artificialisation --store r2:plateforme-raw
+            python -m plateforme.normalize.prisons --store r2:plateforme-raw
+            python -m plateforme.redeclarer departements_fonctionnel emploi \
+              execution_missions logement logement_social macro securite subventions
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "libelles" ]; then
             # Reland des libellés simplifiés et de l'unité du taux de
             # participation, plus le grand livre des fonctions et une seule
