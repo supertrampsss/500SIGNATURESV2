@@ -1,4 +1,4 @@
-exer;dep_code;dep_name;categ;nomen;fonction;nom_fonction;agregat;niveau_hierarchique;type_de_budget;montant
+﻿exer;dep_code;dep_name;categ;nomen;fonction;nom_fonction;agregat;niveau_hierarchique;type_de_budget;montant
 2018;01;Ain;DEPT;M52;5;Action sociale;Allocations APA;1;Budget principal;47416963.08
 2018;01;Ain;DEPT;M52;55;Personnes dépendantes (APA);Allocations APA;2;Budget principal;47416963.08
 2018;01;Ain;DEPT;M52;5;Action sociale;Allocations PCH;1;Budget principal;18420090.62

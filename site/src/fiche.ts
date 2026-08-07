@@ -694,7 +694,9 @@ const PHARES: Record<string, string[]> = {
   budget_etat: ["etat_solde_budgetaire", "etat_depenses_nettes_bg"],
   depenses_fiscales: ["depense_fiscale_totale", "depense_fiscale_impot_revenu"],
   fonctions: ["eurostat_depenses_publiques_pib"],
-  securite_sociale: ["eurostat_secu_solde_pib"],
+  // Le total des prestations d'abord, le solde ensuite : « 932 milliards »
+  // situe le lecteur, « −0,4 point de PIB » ne situe personne.
+  securite_sociale: ["drees_protection_sociale_total", "eurostat_secu_solde_pib"],
   macro: ["eurostat_inflation_ipch", "eurostat_croissance_pib"],
   europe: ["eurostat_dette_pib", "eurostat_chomage"],
 };
