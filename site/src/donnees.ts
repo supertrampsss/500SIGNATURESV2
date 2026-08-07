@@ -33,6 +33,10 @@ export type Indicateur = {
    *  qui permet d'ouvrir un total sur ses composantes plutôt que de les aligner
    *  à côté de lui. Absent des publications antérieures à la hiérarchie. */
   parent?: string | null;
+  /** L'agrégat que cet indicateur décompose **par destination** — à quoi sert
+   *  l'argent, plutôt que ce qu'on achète. Les deux axes décrivent le même
+   *  total et ne s'additionnent jamais entre eux. */
+  parent_fonction?: string | null;
   /** Le producteur recalcule l'historique dans la géographie d'aujourd'hui : une
    *  fusion de communes ne coupe pas cette série. Absent = non recalculé. */
   geographie_courante?: boolean;

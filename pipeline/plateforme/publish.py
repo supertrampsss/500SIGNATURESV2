@@ -170,6 +170,21 @@ def hierarchie_ofgl() -> dict[str, str]:
     return arbre
 
 
+# Le second axe de lecture d'un total : par fonction plutôt que par nature.
+#
+# Les charges de fonctionnement d'une commune se décomposent de deux façons — ce
+# qu'elle achète (personnel, achats, intérêts) et à quoi ça sert (écoles, sport,
+# culture). Les deux décrivent le même total et ne s'additionnent pas entre
+# elles ; les ranger sous le même `parent` les aurait fait sommer au double.
+# L'axe fonctionnel a donc son propre champ, et le site propose l'un ou l'autre.
+def hierarchie_fonctionnelle() -> dict[str, str]:
+    """-> {indicateur de fonction: l'agrégat qu'il décompose}."""
+    from plateforme.normalize.fonctions_communes import FONCTIONS, PARENT, RESIDU
+
+    identifiants = [identifiant for _libelle, identifiant in FONCTIONS.values()]
+    return {identifiant: PARENT for identifiant in [*identifiants, RESIDU]}
+
+
 def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[dict]:
     """La fiche en 10 points (docs/06) accompagne chaque indicateur publié.
 
@@ -190,6 +205,7 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
         """
     ).fetchall()
     arbre = hierarchie_ofgl()
+    fonctionnel = hierarchie_fonctionnelle()
     return [
         {
             "id": ligne[0], "libelle": ligne[1], "unite": ligne[2], "theme": ligne[3],
@@ -208,6 +224,10 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
             # C'est ce qui permet d'ouvrir un total sur ses composantes plutôt
             # que de les aligner à côté de lui.
             "parent": arbre.get(ligne[0]),
+            # L'agrégat que cet indicateur décompose **par destination**. Il ne
+            # s'additionne jamais avec les composantes par nature du même total :
+            # ce sont deux lectures du même euro.
+            "parent_fonction": fonctionnel.get(ligne[0]),
         }
         for ligne in lignes
     ]

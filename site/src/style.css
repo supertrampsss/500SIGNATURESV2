@@ -3344,3 +3344,28 @@ body[data-vue="carte"] .pied {
   color: var(--encre-douce);
   background: var(--papier-creuse);
 }
+
+/* Les deux lectures d'un même total : ce que la commune achète, et à quoi ça
+   sert. Elles ne s'additionnent jamais entre elles — c'est le même euro, vu
+   deux fois — donc on montre l'une ou l'autre. */
+.pont__axes {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0.3rem 0 0.1rem 0.7rem;
+}
+.pont__axes button {
+  font: inherit;
+  font-size: 0.66rem;
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--trait);
+  border-radius: 999px;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.pont__axes button[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--papier);
+}

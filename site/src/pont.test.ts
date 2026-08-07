@@ -256,3 +256,77 @@ test("la source n'encombre plus la barre latérale", () => {
   assert.doesNotMatch(html, /Observatoire des finances/);
   assert.doesNotMatch(html, /loi n° 2018-32/);
 });
+
+/**
+ * Les deux lectures d'un même euro.
+ *
+ * Les charges de fonctionnement se décomposent de deux façons : ce que la
+ * commune achète — personnel, achats, intérêts — et à quoi ça sert — écoles,
+ * sport, culture. Les deux décrivent le même total et ne s'additionnent jamais
+ * entre elles. Les ranger sous le même parent les aurait fait sommer au double.
+ */
+
+const CATALOGUE_FONCTION = [
+  ...CATALOGUE,
+  { id: "fonction_commune_services_generaux", libelle: "Services généraux",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+  { id: "fonction_commune_culture", libelle: "Culture",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+  { id: "fonction_commune_sport", libelle: "Sport et jeunesse",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+  { id: "fonction_commune_retraitements_ofgl", libelle: "Retraitements de l'OFGL",
+    parent_fonction: "ofgl_depenses_fonctionnement" },
+] as never as Indicateur[];
+
+// Bordeaux 2023 : le grand livre donne 385,9 M€ là où l'OFGL en publie 353,7.
+// La onzième ligne nomme l'écart au lieu de le répartir sur les fonctions.
+const FONCTIONS = {
+  fonction_commune_services_generaux: 118_600_000,
+  fonction_commune_culture: 100_100_000,
+  fonction_commune_sport: 167_175_349.4,
+  fonction_commune_retraitements_ofgl: -16_863_728.15,
+};
+
+test("un même total se lit par nature ou par destination", () => {
+  const bordeaux = territoire({ ...COMPTES, ...CHARGES, ...FONCTIONS });
+  const nature = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25, bordeaux, "2025", CATALOGUE_FONCTION,
+  );
+  const fonction = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25, bordeaux, "2025",
+    CATALOGUE_FONCTION, "fonction",
+  );
+  assert.equal(nature?.length, 5);
+  assert.equal(fonction?.length, 4);
+  // Le même total des deux côtés : ce sont deux lectures, pas deux mesures.
+  const somme = (l: typeof nature) => (l ?? []).reduce((s, c) => s + c.montant, 0);
+  assert.ok(Math.abs(somme(nature) - somme(fonction)) < 1);
+});
+
+test("le résidu de rapprochement est nommé, pas réparti", () => {
+  // Réparti sur les fonctions, l'écart entre le grand livre et l'agrégat de
+  // l'OFGL serait devenu invisible — et chaque fonction aurait été faussée.
+  const bordeaux = territoire({ ...COMPTES, ...CHARGES, ...FONCTIONS });
+  const fonction = composantes(
+    "ofgl_depenses_fonctionnement", 369_011_621.25, bordeaux, "2025",
+    CATALOGUE_FONCTION, "fonction",
+  );
+  const residu = fonction?.find((c) => c.id === "fonction_commune_retraitements_ofgl");
+  assert.ok(residu);
+  assert.ok(residu.montant < 0, "le grand livre est plus large que l'agrégat");
+});
+
+test("les deux axes se proposent au choix, jamais ensemble", () => {
+  const html = rendu(territoire({ ...COMPTES, ...CHARGES, ...FONCTIONS }), CATALOGUE_FONCTION);
+  assert.match(html, /data-axe="nature" aria-pressed="true"/);
+  assert.match(html, /data-axe="fonction" aria-pressed="false"/);
+  // La seconde liste est dans le document mais masquée : additionnées, les deux
+  // compteraient le même euro deux fois.
+  assert.match(html, /<ul class="pont__composantes" data-axe="fonction" hidden>/);
+});
+
+test("sans second axe, aucune bascule à choisir", () => {
+  const html = rendu(territoire({ ...COMPTES, ...CHARGES }), CATALOGUE);
+  assert.doesNotMatch(html, /pont__axes/);
+  assert.match(html, /Frais de personnel/);
+});

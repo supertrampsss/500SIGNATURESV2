@@ -118,10 +118,14 @@ export function composantes(
   territoire: Territoire,
   exercice: string,
   catalogue: Indicateur[],
+  /** « nature » : ce que la commune achète — personnel, achats, intérêts.
+   *  « fonction » : à quoi ça sert — écoles, sport, culture. Deux lectures du
+   *  même euro, qui ne s'additionnent jamais entre elles. */
+  axe: "nature" | "fonction" = "nature",
 ): Composante[] | null {
   if (!total) return null;
   const lignes = catalogue
-    .filter((i) => i.parent === parent)
+    .filter((i) => (axe === "fonction" ? i.parent_fonction : i.parent) === parent)
     .flatMap((i) => {
       const v = valeur(territoire, i.id, exercice);
       return v === undefined ? [] : [{ indicateur: i, montant: v }];
@@ -141,6 +145,8 @@ export function composantes(
       // Récursif : « Impôts et taxes » s'ouvre sur les impôts locaux et les
       // autres impôts, qui s'ouvrent à leur tour. Autant de niveaux que la
       // source en publie.
+      // Toujours par nature au niveau du dessous : la fonction ne se
+      // sous-décompose pas dans ce que la source publie.
       enfants: composantes(l.indicateur.id, l.montant, territoire, exercice, catalogue) ?? [],
     }));
 }
@@ -315,9 +321,18 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
   const lignes = etapes
     .map((etape) => {
       const total = etape.role === "palier" || etape.role === "arrivee";
-      const decomposition = etape.id
+      const parNature = etape.id
         ? composantes(etape.id, Math.abs(etape.montant), territoire, exercice, catalogue)
         : null;
+      // Le second axe : à quoi sert l'argent, plutôt que ce qu'on achète.
+      // « Achats et charges externes » ne se discute pas ; « 23 M€ pour le
+      // sport » se discute.
+      const parFonction = etape.id
+        ? composantes(
+            etape.id, Math.abs(etape.montant), territoire, exercice, catalogue, "fonction",
+          )
+        : null;
+      const decomposition = parNature ?? parFonction;
       // Un palier et un report n'ont pas de mouvement : ils *sont* le reste.
       const mouvement =
         etape.role === "report" || total
@@ -326,10 +341,27 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
       const rangee = `<span class="pont__nom">${echapper(etape.libelle)}</span>
         <span class="pont__mouvement">${echapper(mouvement)}</span>
         <span class="pont__reste">${echapper(montant(etape.reste))}</span>`;
+      // Deux axes disponibles : le lecteur choisit lequel il regarde. Ils ne
+      // s'additionnent jamais entre eux — c'est le même euro, vu deux fois.
+      const bascule =
+        parNature && parFonction
+          ? `<p class="pont__axes" role="group" aria-label="Décomposer par">
+               <button type="button" data-axe="nature" aria-pressed="true">ce qu'elle achète</button>
+               <button type="button" data-axe="fonction" aria-pressed="false">à quoi ça sert</button>
+             </p>`
+          : "";
+      const listes = !decomposition
+        ? ""
+        : parNature && parFonction
+        ? `<ul class="pont__composantes" data-axe="nature">${rendreComposantes(parNature)}</ul>
+           <ul class="pont__composantes" data-axe="fonction" hidden>${rendreComposantes(
+             parFonction,
+           )}</ul>`
+        : `<ul class="pont__composantes">${rendreComposantes(decomposition)}</ul>`;
       const corps = decomposition
         ? `<details class="pont__ouvrir">
              <summary class="pont__rangee">${rangee}</summary>
-             <ul class="pont__composantes">${rendreComposantes(decomposition)}</ul>
+             ${bascule}${listes}
            </details>`
         : `<span class="pont__rangee">${rangee}</span>`;
       const lecture = etape.lecture

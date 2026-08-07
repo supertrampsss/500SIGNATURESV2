@@ -1077,6 +1077,21 @@ function brancherCommandes(): void {
     // Un clic ailleurs referme la bulle ouverte — c'est ce qu'on attend d'un
     // dispositif qui recouvre le texte.
     fermerDefinitions();
+    // Les deux lectures d'un même total : ce que la commune achète, et à quoi
+    // ça sert. Elles ne s'additionnent jamais entre elles — c'est le même euro,
+    // vu deux fois — donc on montre l'une ou l'autre, jamais les deux.
+    const axe = (evenement.target as HTMLElement).closest<HTMLElement>("[data-axe]");
+    if (axe?.dataset.axe && axe.tagName === "BUTTON") {
+      const voulu = axe.dataset.axe;
+      const bloc = axe.closest(".pont__ouvrir");
+      for (const bouton of bloc?.querySelectorAll<HTMLElement>("button[data-axe]") ?? []) {
+        bouton.setAttribute("aria-pressed", String(bouton.dataset.axe === voulu));
+      }
+      for (const liste of bloc?.querySelectorAll<HTMLElement>("ul[data-axe]") ?? []) {
+        liste.hidden = liste.dataset.axe !== voulu;
+      }
+      return;
+    }
     // La carte ne suit plus le dépliage, elle suit ce bouton.
     //
     // Ouvrir une mesure la portait sur la carte. Peindre relit une couche de
