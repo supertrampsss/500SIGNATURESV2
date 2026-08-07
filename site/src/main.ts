@@ -966,6 +966,35 @@ function brancherCommandes(): void {
   const surLigne = (evenement: Event) => {
     // L'onglet d'abord : il ne porte rien sur la carte, il change ce que la
     // fiche montre.
+    // Changer de rubrique ouvre son premier thème : laisser la fiche sur le
+    // thème d'une autre rubrique afficherait un contenu que plus aucun onglet
+    // enfoncé ne désigne.
+    const rubrique = (evenement.target as HTMLElement).closest<HTMLElement>(
+      ".onglets-rubriques [data-rubrique]",
+    );
+    if (rubrique?.dataset.rubrique) {
+      const voulue = rubrique.dataset.rubrique;
+      for (const bouton of document.querySelectorAll<HTMLElement>(
+        ".onglets-rubriques [data-rubrique]",
+      )) {
+        bouton.setAttribute("aria-pressed", String(bouton.dataset.rubrique === voulue));
+      }
+      let premier = "";
+      for (const barre of document.querySelectorAll<HTMLElement>(
+        ".onglets-themes[data-rubrique]",
+      )) {
+        barre.hidden = barre.dataset.rubrique !== voulue;
+        if (barre.dataset.rubrique !== voulue) continue;
+        premier = barre.querySelector<HTMLElement>("[data-theme]")?.dataset.theme ?? "";
+      }
+      for (const bouton of document.querySelectorAll<HTMLElement>(".onglets-themes [data-theme]")) {
+        bouton.setAttribute("aria-pressed", String(bouton.dataset.theme === premier));
+      }
+      for (const section of document.querySelectorAll<HTMLElement>(".mesures [data-theme]")) {
+        section.hidden = section.dataset.theme !== premier;
+      }
+      return;
+    }
     const onglet = (evenement.target as HTMLElement).closest<HTMLElement>(
       ".onglets-themes [data-theme]",
     );

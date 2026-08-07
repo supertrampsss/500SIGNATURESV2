@@ -2566,11 +2566,50 @@ body[data-vue="carte"] .pied {
   white-space: nowrap;
 }
 
+/* Les rubriques : quatre entrées qui tiennent sans défiler, là où la barre des
+   thèmes en cachait vingt-deux hors de l'écran. Elles collent au-dessus de la
+   barre des thèmes, qui descend d'autant. */
+.onglets-rubriques {
+  position: sticky;
+  top: var(--haut-fiche);
+  z-index: 2;
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.5rem 0 0.35rem;
+  background: rgb(255 255 255 / 0.96);
+  backdrop-filter: blur(6px);
+  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
+}
+.onglets-rubriques button {
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex: 1;
+  padding: 0.3rem 0.4rem;
+  border: 0;
+  border-bottom: 2px solid var(--trait);
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition);
+}
+.onglets-rubriques button[aria-pressed="true"] {
+  color: var(--encre);
+  border-bottom-color: var(--encre);
+}
+/* Une rubrique d'un seul thème garde sa barre dans le document — c'est elle qui
+   dit quel thème ouvrir — mais un onglet unique et toujours enfoncé n'a rien à
+   montrer au lecteur. */
+.onglets-themes[data-seul] {
+  display: none;
+}
+
 /* Les onglets de thèmes : un thème à la fois, la fiche ne défile plus sur
    sept thèmes pour en atteindre un huitième. */
 .onglets-themes {
   position: sticky;
-  top: var(--haut-fiche);
+  top: calc(var(--haut-fiche) + 2.4rem);
   z-index: 1;
   display: flex;
   gap: 0.25rem;

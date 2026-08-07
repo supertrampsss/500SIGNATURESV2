@@ -703,44 +703,80 @@ const PHARES: Record<string, string[]> = {
 };
 
 /**
+ * Les rubriques : quatre entrées pour vingt-six thèmes.
+ *
+ * Vingt-six onglets sur une seule ligne, c'est une barre qu'il faut faire
+ * défiler pour savoir ce qu'elle contient : le lecteur ne voit jamais l'offre
+ * entière, donc il ne cherche que ce qu'il apercevait déjà. Deux niveaux la
+ * rendent lisible d'un coup d'œil — quatre entrées tiennent sans défilement, et
+ * chacune ouvre au plus neuf thèmes.
+ *
+ * Le découpage suit la question posée, pas la source. Les revenus des ménages
+ * sont rangés avec les habitants et non avec l'argent public : « combien
+ * gagne-t-on ici » n'est pas « où va l'impôt », et les confondre ferait lire
+ * un salaire comme une dépense publique. L'ordre à l'intérieur d'une rubrique
+ * reste celui de ce qu'on vient chercher, l'argent en premier.
+ *
+ * Un thème absent de cette table n'est pas écarté : il se range dans la
+ * dernière rubrique. C'est la même règle que pour les libellés — une liste
+ * écrite en dur avait déjà fait disparaître des données publiées.
+ */
+const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
+  {
+    cle: "argent",
+    libelle: "L'argent public",
+    themes: [
+      "finances_locales",
+      "impots_locaux",
+      "budget_etat",
+      "depenses_fiscales",
+      "dette",
+      "fonctions",
+      "securite_sociale",
+      "macro",
+      "europe",
+    ],
+  },
+  {
+    cle: "habitants",
+    libelle: "Les habitants",
+    themes: ["population", "revenus", "famille", "diplomes", "elections", "prenoms"],
+  },
+  {
+    cle: "travail",
+    libelle: "Le travail",
+    themes: [
+      "emploi",
+      "professions",
+      "entreprises",
+      "secteurs_salaries",
+      "secteurs_etablissements",
+    ],
+  },
+  {
+    cle: "cadre",
+    libelle: "Le cadre de vie",
+    themes: ["logement", "sante", "education", "securite", "equipements", "tourisme"],
+  },
+];
+
+/** La rubrique d'un thème. Un thème inconnu tombe dans la dernière, il ne
+ *  disparaît pas. */
+export function rubriqueDuTheme(theme: string): string {
+  const trouvee = RUBRIQUES.find((r) => r.themes.includes(theme));
+  return (trouvee ?? RUBRIQUES[RUBRIQUES.length - 1]).cle;
+}
+
+/**
  * L'ordre des thèmes dans la fiche.
  *
  * L'ordre alphabétique faisait ouvrir un site sur l'argent public par
  * « Éducation », et reléguait les finances locales au quatrième écran. Celui-ci
- * suit ce qu'on vient chercher : l'argent d'abord, ce qu'il paie ensuite. Un
- * thème absent de cette liste se range à la fin, par ordre alphabétique — il
- * s'affiche, il n'est jamais écarté.
+ * découle des rubriques, pour qu'il n'y ait qu'une seule table à tenir à jour :
+ * deux listes séparées se seraient contredites au premier thème ajouté. Un
+ * thème absent se range à la fin, par ordre alphabétique.
  */
-const ORDRE_THEMES = [
-  // Fiche d'un territoire.
-  "finances_locales",
-  "impots_locaux",
-  "revenus",
-  "population",
-  "famille",
-  "professions",
-  "logement",
-  "securite",
-  "sante",
-  "education",
-  "diplomes",
-  "emploi",
-  "entreprises",
-  "secteurs_salaries",
-  "secteurs_etablissements",
-  "equipements",
-  "tourisme",
-  "elections",
-  "prenoms",
-  // Fiche nationale.
-  "budget_etat",
-  "depenses_fiscales",
-  "dette",
-  "fonctions",
-  "securite_sociale",
-  "macro",
-  "europe",
-];
+const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
 
 function ordonnerThemes(themes: string[]): string[] {
   const rang = (t: string) => {
@@ -751,27 +787,56 @@ function ordonnerThemes(themes: string[]): string[] {
 }
 
 /**
- * Les onglets de thèmes : un thème à la fois.
+ * Les onglets : une rubrique et, dedans, un thème à la fois.
  *
- * Empilés, les huit thèmes faisaient cinq écrans de défilement et il fallait
+ * Empilés, les thèmes faisaient cinq écrans de défilement et il fallait
  * traverser sept thèmes pour atteindre le huitième. En onglets, la hauteur de
  * la fiche ne dépend plus du nombre d'indicateurs : cinquante de plus n'y
  * changeraient rien.
+ *
+ * La barre des thèmes d'une rubrique existe dans le document même quand elle
+ * ne s'affiche pas — c'est elle qui dit quel thème ouvrir en changeant de
+ * rubrique. Une rubrique d'un seul thème garde donc sa barre, marquée
+ * `data-seul` : un onglet unique, toujours enfoncé, ne se clique pas, mais
+ * l'ouverture de la rubrique doit quand même savoir où aller.
  */
-function ongletsThemes(
+export function ongletsThemes(
   themes: string[],
   actif: string,
   libelleTheme?: (theme: string) => string,
 ): string {
   if (themes.length < 2) return "";
-  return `<nav class="onglets-themes" aria-label="Thèmes de la fiche">${themes
-    .map(
-      (t) =>
-        `<button type="button" data-theme="${echapper(t)}" aria-pressed="${t === actif}">${echapper(
-          libelleTheme?.(t) ?? t,
-        )}</button>`,
-    )
-    .join("")}</nav>`;
+  const rubriques = RUBRIQUES.map((r) => r.cle).filter((cle) =>
+    themes.some((t) => rubriqueDuTheme(t) === cle),
+  );
+  const rubriqueActive = rubriqueDuTheme(actif);
+  const barreRubriques =
+    rubriques.length < 2
+      ? ""
+      : `<nav class="onglets-rubriques" aria-label="Rubriques de la fiche">${rubriques
+          .map((cle) => {
+            const libelle = RUBRIQUES.find((r) => r.cle === cle)?.libelle ?? cle;
+            return `<button type="button" data-rubrique="${echapper(
+              cle,
+            )}" aria-pressed="${cle === rubriqueActive}">${echapper(libelle)}</button>`;
+          })
+          .join("")}</nav>`;
+  const barresThemes = rubriques
+    .map((cle) => {
+      const siens = themes.filter((t) => rubriqueDuTheme(t) === cle);
+      return `<nav class="onglets-themes" data-rubrique="${echapper(cle)}"${
+        siens.length < 2 ? " data-seul" : ""
+      }${cle === rubriqueActive ? "" : " hidden"} aria-label="Thèmes de la rubrique">${siens
+        .map(
+          (t) =>
+            `<button type="button" data-theme="${echapper(t)}" aria-pressed="${
+              t === actif
+            }">${echapper(libelleTheme?.(t) ?? t)}</button>`,
+        )
+        .join("")}</nav>`;
+    })
+    .join("");
+  return `${barreRubriques}${barresThemes}`;
 }
 
 /** Les indicateurs d'un thème, les phares d'abord. */
