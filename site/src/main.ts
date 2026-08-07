@@ -463,6 +463,7 @@ function afficherApercu(): void {
       references: reperes,
       peintSurCarte,
       agregats,
+      inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
     });
     return;
   }
@@ -749,6 +750,7 @@ async function montrerFiche(code: string): Promise<void> {
     peintSurCarte,
     associations: associations[code],
     agregats,
+    inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
   });
   $("panneau").classList.add("panneau--selection");
 }

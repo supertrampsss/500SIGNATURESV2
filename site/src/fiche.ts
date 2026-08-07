@@ -13,8 +13,14 @@ import type {
   Territoire,
 } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
-import { dernierPas, evolution, rendu as rendreSerie } from "./serie.ts";
+import {
+  dernierPas,
+  evolution,
+  rendu as rendreSerie,
+  ruptureDePerimetre,
+} from "./serie.ts";
 import { rendu as rendreAssociations } from "./associations.ts";
+import { enEurosConstants } from "./euros-constants.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
@@ -413,6 +419,8 @@ function ligneIndicateur(
   peintSurCarte?: (indicateur: Indicateur) => boolean,
   /** Le nombre qui accompagne ce taux, quand la source publie les deux. */
   jumeau?: Indicateur,
+  /** Ce dont la ligne a besoin en plus d'elle-même : le déflateur national. */
+  options?: { inflation?: Record<string, number> },
 ): string {
   const mesure = mesurer(
     indicateur, territoire, periodeCarte, parHabitant, niveau, toutesReferences, comparateurs,
@@ -487,6 +495,25 @@ function ligneIndicateur(
     comparaisons.push(`Soit ${pourcentage((brut / totalPart) * 100)} ${part.nom}.`);
   }
   const evolutionDite = evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie));
+  // « +20,3 % depuis 2018 » est d'abord une évolution des prix : entre 2018 et
+  // 2025, un euro a perdu près d'un cinquième de son pouvoir d'achat. Afficher
+  // la hausse nue laisse le lecteur conclure de travers, et toujours dans le
+  // même sens.
+  const periodes = Object.keys(suivie).sort();
+  const rupture = ruptureDePerimetre(evenements, periodes);
+  const depart = periodes.find((p) => (rupture ? p >= rupture : true));
+  const constants =
+    depart && depart !== periode
+      ? enEurosConstants(suivie, depart, periode, indicateur.unite, options?.inflation)
+      : null;
+  const phraseConstants = constants
+    ? `<p class="mesure__phrase mesure__constants">Dont ${pourcentage(
+        constants.inflation,
+      )} de hausse des prix : ${
+        constants.reel >= 0 ? "+" : "−"
+      }${pourcentage(Math.abs(constants.reel))} en euros constants. L'indice des prix est
+      national, il ne dit pas ce que les prix ont fait ici.</p>`
+    : "";
   // Le sens du dernier mouvement, lisible sans rien ouvrir. L'évolution longue
   // reste dans le détail : elle demande de savoir depuis quand, ce qui ne tient
   // pas dans un résumé de ligne.
@@ -530,6 +557,7 @@ function ligneIndicateur(
         .map((phrase) => `<p class="mesure__phrase">${echapper(phrase)}</p>`)
         .join("")}
       ${evolutionDite ? `<p class="mesure__phrase">${evolutionDite}</p>` : ""}
+      ${phraseConstants}
       ${rendreSerie(suivie, evenements, formate, mesure.comparaisons, false,
         territoire.maire?.depuis)}
       ${miniTableau(suivie, indicateur, ratio, ratio ? brute : undefined)}
@@ -1353,6 +1381,9 @@ export function afficherFiche(
     /** Les indicateurs dont la valeur nationale est notre somme des régions.
      *  Absents, aucune mention n'est faite — plutôt qu'une mention fausse. */
     agregats?: AgregatsNationaux | null;
+    /** L'indice des prix national, pour dire ce qu'une évolution doit à
+     *  l'inflation. Absent, la phrase n'est pas écrite. */
+    inflation?: Record<string, number>;
   },
 ): void {
   const { territoire, indicateurs, periode, parHabitant, niveau } = options;

@@ -3397,3 +3397,11 @@ body[data-vue="carte"] .pied {
 .assos__compte {
   opacity: 0.8;
 }
+
+/* Les euros constants. La phrase corrige la précédente : elle se lit avec elle,
+   pas comme une remarque à côté. */
+.mesure__constants {
+  border-left: 2px solid var(--trait);
+  padding-left: 0.5rem;
+  font-size: 0.78rem;
+}
