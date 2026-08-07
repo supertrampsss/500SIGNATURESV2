@@ -429,15 +429,24 @@ function ligneIndicateur(
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
   const formate = (v: number) => formater(v, indicateur.unite, ratio);
 
-  // Les comparaisons en français courant. « La médiane des communes de la
-  // région » est du vocabulaire de statisticien : ce que la médiane dit, c'est
-  // que la moitié des communes sont en dessous. On l'écrit comme ça.
+  // Les comparaisons en français courant, et surtout : en euros.
+  //
+  // « La moitié des communes de la région sont en dessous de 291 € » se lisait
+  // sous chaque ligne, deux fois — région puis France — et n'apprenait rien
+  // qu'on puisse discuter. Un rang ne se conteste pas ; une somme, si. La
+  // phrase dit donc ce que l'écart **pèse** : « 22,3 M€ de plus que si la
+  // commune dépensait comme la médiane des communes de la région ». C'est le
+  // même écart, converti dans la seule unité dont le lecteur ait l'usage.
+  //
+  // Une seule médiane, celle de la région : la seconde disait la même chose sur
+  // un ensemble plus lointain, pour deux fois la place.
   const comparaisons = [
     ...mesure.parents.map(
       (c) => `${majuscule(c.libelle)} : ${formate(c.valeur)}.`,
     ),
-    ...mesure.medianes.map(
-      (m) => `La moitié des ${m.ensemble} sont en dessous de ${formate(m.valeur)}.`,
+    ...mesure.medianes.slice(0, 1).map((m) =>
+      ecartEnEuros(valeur, m, indicateur, ratio, population(territoire, periode)) ??
+      `La moitié des ${m.ensemble} sont en dessous de ${formate(m.valeur)}.`,
     ),
   ];
   if (mesure.densite) {
@@ -554,6 +563,45 @@ function ligneIndicateur(
       }
     </div>
   </details>`;
+}
+
+/**
+ * Ce que l'écart à la médiane pèse, en euros.
+ *
+ * Un pourcentage ne se conteste pas — il est vrai ou faux, et de toute façon
+ * abstrait. Une somme se conteste : elle a un ordre de grandeur qu'on peut
+ * comparer à un budget, à un équipement, à un impôt. « 22,3 M€ de plus que la
+ * médiane » est une phrase dont on peut faire quelque chose ; « au-dessus de
+ * huit communes sur dix », non.
+ *
+ * La conversion n'a de sens que sur une grandeur monétaire. Sur un taux, une
+ * densité ou un effectif, la phrase de médiane reste — c'est la fonction
+ * appelante qui retombe dessus quand celle-ci renvoie `null`.
+ *
+ * L'écart se calcule dans l'unité **affichée** puis se ramène au total : si la
+ * ligne montre des euros par habitant, il faut remultiplier par la population,
+ * faute de quoi on annoncerait vingt-deux euros là où il y en a vingt-deux
+ * millions.
+ */
+export function ecartEnEuros(
+  valeur: number,
+  mediane: { ensemble: string; valeur: number },
+  indicateur: Indicateur,
+  ratio: boolean,
+  habitants: number | null,
+): string | null {
+  if (indicateur.unite !== "EUR" || !Number.isFinite(mediane.valeur)) return null;
+  if (ratio && !habitants) return null;
+  const ecart = (valeur - mediane.valeur) * (ratio ? (habitants as number) : 1);
+  // Sous 1 %, l'écart n'est pas une différence, c'est un arrondi : l'annoncer
+  // en millions donnerait du poids à du bruit.
+  if (!mediane.valeur || Math.abs(valeur - mediane.valeur) / Math.abs(mediane.valeur) < 0.01) {
+    return `Au niveau de la médiane des ${mediane.ensemble}.`;
+  }
+  const somme = formater(Math.abs(ecart), "EUR", false);
+  return ecart > 0
+    ? `${somme} de plus que si le montant était celui de la médiane des ${mediane.ensemble}.`
+    : `${somme} de moins que si le montant était celui de la médiane des ${mediane.ensemble}.`;
 }
 
 /** « son département » en tête de phrase. */

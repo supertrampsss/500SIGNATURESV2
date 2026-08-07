@@ -17,6 +17,7 @@ import type { Indicateur } from "./donnees.ts";
 import {
   comparableAuxAutresTerritoires,
   densiteRapportableAuxHabitants,
+  ecartEnEuros,
   groupeDeLaCommune,
   jumeaux,
   lectureDeDensite,
@@ -462,4 +463,44 @@ test("un thème sans agrégat de notre main ne porte aucune mention", () => {
   // Et sans le fichier de méthode, rien n'est affirmé plutôt qu'une mention fausse.
   assert.equal(mentionAgregat(liste, null), "");
   assert.equal(mentionAgregat(liste, undefined), "");
+});
+
+/**
+ * Un rang ne se conteste pas ; une somme, si.
+ *
+ * « La moitié des communes de la région sont en dessous de 291 € » se lisait
+ * sous chaque ligne, deux fois, et n'apprenait rien qu'on puisse discuter.
+ */
+
+const EUROS = { id: "ofgl_depenses_fonctionnement", unite: "EUR" } as never as Indicateur;
+const TAUX = { id: "insee_taux_pauvrete", unite: "percent" } as never as Indicateur;
+const MEDIANE = { ensemble: "communes de la région", valeur: 1000 };
+
+test("l'écart à la médiane se dit en euros, pas en rang", () => {
+  // 1 373 € par habitant contre 1 000 € de médiane, sur 260 000 habitants :
+  // 97 M€ de plus. C'est le même écart, dans la seule unité dont le lecteur
+  // ait l'usage.
+  const phrase = ecartEnEuros(1373, MEDIANE, EUROS, true, 260_000);
+  assert.match(phrase ?? "", /de plus que si le montant était celui de la médiane/);
+  assert.match(phrase ?? "", /97/);
+});
+
+test("un montant total ne se remultiplie pas par la population", () => {
+  // La ligne affiche déjà des euros : remultiplier donnerait un chiffre
+  // 260 000 fois trop grand.
+  const phrase = ecartEnEuros(3_000_000, { ...MEDIANE, valeur: 1_000_000 }, EUROS, false, 260_000);
+  assert.match(phrase ?? "", /2/);
+  assert.doesNotMatch(phrase ?? "", /Md/);
+});
+
+test("sous un pour cent, l'écart est un arrondi et se dit comme tel", () => {
+  // L'annoncer en millions donnerait du poids à du bruit.
+  const phrase = ecartEnEuros(1005, MEDIANE, EUROS, true, 260_000);
+  assert.equal(phrase, "Au niveau de la médiane des communes de la région.");
+});
+
+test("un taux n'a pas d'écart en euros : la médiane reste", () => {
+  assert.equal(ecartEnEuros(11.4, MEDIANE, TAUX, false, 260_000), null);
+  // Et un montant par habitant sans population connue non plus.
+  assert.equal(ecartEnEuros(1373, MEDIANE, EUROS, true, null), null);
 });

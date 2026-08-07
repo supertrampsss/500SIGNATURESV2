@@ -135,17 +135,30 @@ def test_seule_la_France_entiere_sert_de_total(archive):
     assert round(totaux["2012"]) == 34037824
 
 
-def test_les_fiches_disent_le_vacant_le_social_et_le_recensement():
-    """Trois confusions coûteuses, et elles sont toutes dans les fiches.
+def test_le_parc_social_du_recensement_est_lu_mais_plus_publie():
+    """Deux nombres de logements sociaux pour la même commune, c'était un de trop.
 
-    Le vacant du recensement n'est pas celui de la DGFiP ; le parc social
-    déclaré au recensement n'est pas le répertoire qui fait foi pour la loi ; et
-    un millésime du recensement n'est pas une photographie."""
+    Bordeaux : 20 552 au recensement, déclarés par les habitants en 2023 ; 24 014
+    au répertoire des bailleurs, comptés logement par logement en 2025. Les deux
+    sont justes, aucun lecteur ne pouvait savoir lequel regarder, et les deux
+    libellés voisins se lisaient comme un doublon. Reste celui qui fait foi pour
+    la loi SRU. Celui-ci continue d'être lu, parce que l'identité de la source en
+    a besoin.
+    """
+    assert "221" in logement.STATUTS_DE_CONTROLE
+    assert "221" not in logement.STATUTS
+    assert "insee_residences_principales_parc_social" not in logement.PUBLIQUE
+    assert "insee_residences_principales_parc_social" not in dict(logement.indicateurs())
+    # L'identité qui a besoin de lui reste en place.
+    identites = [nom for nom, *_ in logement.IDENTITES]
+    assert "parcs_egalent_les_locataires" in identites
+
+
+def test_les_fiches_disent_le_vacant_et_le_recensement():
+    """Deux confusions coûteuses, et elles sont dans les fiches : le vacant du
+    recensement n'est pas celui de la DGFiP, et un millésime du recensement
+    n'est pas une photographie."""
     assert "DGFiP" in logement.PUBLIQUE["insee_logements_vacants"]
-    assert "répertoire" in logement.PUBLIQUE["insee_residences_principales_parc_social"]
-    assert "obligations légales" in logement.PUBLIQUE[
-        "insee_residences_principales_parc_social"
-    ]
     for identifiant, texte in logement.PUBLIQUE.items():
         assert len(texte.split()) <= 50, f"{identifiant} : {len(texte.split())} mots"
     assert "hors Mayotte" in logement.TECHNIQUE

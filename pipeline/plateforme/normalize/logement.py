@@ -92,13 +92,23 @@ CATEGORIES = {
 STATUTS = {
     "100": ("insee_residences_principales_proprietaire", "Propriétaires occupants"),
     "200": ("insee_residences_principales_locataire", "Logements loués"),
-    "221": ("insee_residences_principales_parc_social", "Logements du parc social"),
     "300": ("insee_residences_principales_gratuit", "Occupants à titre gratuit"),
 }
-# Le parc privé vide et le meublé ne sont pas publiés mais sont lus : ils
-# ferment la troisième identité, celle qui dit que le parc social qu'on affiche
-# est bien une part des locataires et pas un total voisin.
-STATUTS_DE_CONTROLE = ("211", "212_222")
+# Le parc privé vide, le meublé et le parc social ne sont pas publiés mais sont
+# lus : ils ferment la troisième identité, celle qui dit que les locataires se
+# décomposent bien en parc privé et parc social.
+#
+# **Le parc social du recensement a cessé d'être publié le 7 août.** Le site
+# donnait deux nombres de logements sociaux pour la même commune : 20 552 ici
+# pour Bordeaux, 24 014 au répertoire des bailleurs. Les deux sont justes — le
+# premier est déclaré par les habitants au recensement de 2023, le second compté
+# logement par logement chez les bailleurs en 2025 — mais aucun lecteur ne
+# pouvait savoir lequel regarder, et les deux libellés voisins se lisaient comme
+# un doublon. C'est le répertoire des bailleurs qui reste : c'est lui qui fait
+# foi pour la loi SRU, il est plus récent, et il compte des logements plutôt que
+# des déclarations. Celui-ci reste lu, parce que l'identité de la source en a
+# besoin ; il n'est simplement plus affiché.
+STATUTS_DE_CONTROLE = ("211", "212_222", "221")
 
 # `W` — « inclut les données d'une autre catégorie » — marque une commune
 # nouvelle qui a absorbé une déléguée et reçoit ses logements ; `K` marque la
@@ -133,10 +143,6 @@ PUBLIQUE = {
     " taux de propriétaires occupants du territoire.",
     "insee_residences_principales_locataire": "Les résidences principales louées,"
     " parc privé et parc social confondus, meublé compris.",
-    "insee_residences_principales_parc_social": "Les résidences principales louées"
-    " vides dans le parc social, telles que leurs occupants les déclarent au"
-    " recensement. Ce n'est pas le décompte du répertoire des bailleurs sociaux, seul"
-    " à servir aux obligations légales de la commune.",
     "insee_residences_principales_gratuit": "Les résidences principales occupées sans"
     " payer de loyer : logement de fonction, hébergement par un proche.",
 }
