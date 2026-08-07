@@ -157,7 +157,7 @@ THEME = "vie_associative"
 
 INDICATEURS = {
     "etat_subventions_associations": (
-        "Subventions de l'État aux associations (2021)",
+        "Subventions de l'État aux associations",
         "Ce que l'État a versé aux associations en 2021, dans la commune de"
         " l'établissement bénéficiaire — pas celle où l'action est menée. Une"
         " fédération nationale compte là où elle est domiciliée : Paris pèse un"
@@ -168,7 +168,7 @@ INDICATEURS = {
         " dans la commune, exercice 2021",
     ),
     "etat_subventions_associations_etablissements": (
-        "Établissements associatifs subventionnés par l'État (2021)",
+        "Établissements associatifs subventionnés par l'État",
         "Combien d'établissements associatifs domiciliés dans la commune ont reçu"
         " au moins un versement de l'État en 2021. Ce nombre sert de dénominateur"
         " au montant : un million d'euros pour une association et pour trois"

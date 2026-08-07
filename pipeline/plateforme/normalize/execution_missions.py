@@ -622,14 +622,14 @@ def fiches(mission: str) -> list[tuple[str, str, str]]:
     return [
         (
             vote,
-            f"{mission} — crédits votés",
+            f"{mission} (crédits votés)",
             f"Ce que la loi de finances initiale a prévu pour {objet}. C'est une"
             " décision, pas une dépense : les reports et les mouvements de l'année"
             " s'y ajoutent, et tout n'est pas consommé.",
         ),
         (
             consomme,
-            f"{mission} — crédits consommés",
+            f"{mission} (crédits consommés)",
             f"Ce que l'État a réellement payé en un an pour {objet}. Montant brut :"
             " les remboursements d'impôts n'en sont pas déduits, ils forment une"
             " mission à part.",

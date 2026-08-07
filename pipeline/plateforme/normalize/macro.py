@@ -67,7 +67,7 @@ def _plan() -> dict[str, dict]:
         if secteur == "S13":  # la part de PIB n'est publiée que pour le total
             plan["insee_dette_apu_part_pib"] = {
                 "filtres": {**base, "UNIT_MEASURE": "POURCENT"},
-                "libelle": "Dette publique en % du PIB",
+                "libelle": "Dette publique en % du PIB (définition INSEE)",
                 "public": "La dette rapportée à la richesse produite en un an."
                 " C'est la mesure retenue pour comparer les pays européens,"
                 f" parce qu'{pronom} tient compte de la taille de l'économie.",

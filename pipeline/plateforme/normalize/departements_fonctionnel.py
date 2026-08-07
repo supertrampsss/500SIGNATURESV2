@@ -384,6 +384,14 @@ def masse_par_maille(candidates) -> dict[str, float]:
     return dict(par_maille)
 
 
+# Les trois allocations font doublon avec les indicateurs OFGL du thème
+# finances locales (« Allocations RSA », APA, PCH), qui portent un parent et
+# alimentent donc le pont : deux lignes pour le même versement sur la même
+# fiche. Elles restent lues et écrites — la ventilation fonctionnelle en a
+# besoin pour ses identités — mais ne sont plus affichées.
+NON_PUBLIES = {"ofgl_allocation_rsa", "ofgl_allocation_apa", "ofgl_allocation_pch"}
+
+
 def declarer(conn) -> None:
     with conn.cursor() as curseur:
         for identifiant, (libelle, publique) in sorted(INDICATEURS.items()):
@@ -410,13 +418,14 @@ def declarer(conn) -> None:
                      additive, price_basis, accounting_frame, geo_levels,
                      time_granularity, published)
                 values (?, ?, ?, ?, ?, 'EUR', true, 'current', 'budgetaire',
-                        array['departement'], 'annuelle', true)
+                        array['departement'], 'annuelle', ?)
                 on conflict (indicator_id) do update set unit = excluded.unit,
                     definition_id = excluded.definition_id,
                     label_fr = excluded.label_fr,
-                    theme = excluded.theme, published = true
+                    theme = excluded.theme, published = excluded.published
                 """,
-                (identifiant, DATASET, definition, THEME, libelle),
+                (identifiant, DATASET, definition, THEME, libelle,
+                 identifiant not in NON_PUBLIES),
             )
         curseur.execute(
             "delete from core.indicator_definitions d where not exists"
