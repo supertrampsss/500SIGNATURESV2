@@ -394,8 +394,10 @@ def controler(lignes: list[dict], sirene: dict[str, tuple[str, str]]) -> dict:
     divergents = [
         ligne for ligne in resolues if sirene[ligne["siret"]][0] != ligne["commune"]
     ]
-    masse_accord = masse_resolues - math.fsum(ligne["montant"] for ligne in divergents)
-    concordance = masse_accord / masse_resolues if masse_resolues else 0.0
+    masse_divergents = math.fsum(ligne["montant"] for ligne in divergents)
+    concordance = (
+        (masse_resolues - masse_divergents) / masse_resolues if masse_resolues else 0.0
+    )
     if concordance < CONCORDANCE_MINIMALE:
         divergent = divergents[0]
         raise ConcordanceRompue(
@@ -417,7 +419,7 @@ def controler(lignes: list[dict], sirene: dict[str, tuple[str, str]]) -> dict:
         "taux_resolution_euros": resolution,
         "taux_concordance_euros": concordance,
         "desaccords": len(divergents),
-        "masse_desaccords": round(masse_resolues - masse_accord, 2),
+        "masse_desaccords": round(masse_divergents, 2),
         # Ce que Sirene apprend et que le jaune ne dit pas : sa colonne
         # « Etat administratif » vaut « Non déterminé » sur toutes ses lignes.
         "versements_etablissement_ferme": len(fermes),
