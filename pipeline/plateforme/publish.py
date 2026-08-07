@@ -21,7 +21,28 @@ from plateforme.connectors import smb
 from plateforme.normalize.geo import make_store
 from plateforme.store import Flux, ImmutabilityError
 
-NIVEAUX = ["commune", "departement", "region", "pays"]
+# Les arrondissements municipaux sont publiés, mais jamais agrégés.
+#
+# Paris, Lyon et Marseille existent **deux fois** dans le référentiel : la
+# commune entière (75056, 69123, 13055) et ses 45 arrondissements, que le COG
+# rattache à leur commune mère et non à un département. Des connecteurs y
+# écrivent — la carte des loyers de l'ANIL ne connaît les trois villes que par
+# arrondissement. Ces observations étaient en base sans être publiées : la fiche
+# de Paris 1er n'existait pas.
+#
+# Le niveau entre donc dans `NIVEAUX`, qui commande les fiches de territoire et
+# l'index de recherche. Il n'entre **pas** dans `NIVEAUX_CARTOGRAPHIES` : il n'y
+# a pas de couche de tuiles pour les arrondissements (`normalize/geometries.py`
+# n'en construit que trois), et publier des fichiers de carte que rien ne peut
+# peindre ne rendrait service à personne.
+#
+# Cette seconde exclusion vaut aussi garde-fou contre le double comptage. Les
+# deux seuls calculs qui additionnent des territoires ne peuvent pas voir un
+# arrondissement : `_quartiles_du_groupe` filtre `o.geo_level = 'commune'`, et
+# `references()` ne parcourt que les niveaux cartographiés plus `pays`. Un
+# arrondissement ne s'ajoute donc jamais à sa commune mère — ni dans l'agrégat
+# France, ni dans une médiane régionale, ni dans un quartile de comparaison.
+NIVEAUX = ["commune", "arrondissement_municipal", "departement", "region", "pays"]
 
 # Seuls ces niveaux ont des tuiles : produire des couches de carte pour les
 # autres coûterait des centaines de fichiers que rien ne viendrait lire.
@@ -417,6 +438,12 @@ def budget_etat(conn) -> dict:
         select fiscal_year, stage, balance, special_accounts_balance,
                annexed_budgets_balance
         from fin.public_budgets where entity_kind = 'etat'
+          -- Les trois étapes de la page sont celles d'une loi de finances :
+          -- votée, rectifiée, exécutée. Les budgets de type `PLF` portent les
+          -- chiffrages d'annexes — les dépenses fiscales — qui n'ont ni solde
+          -- ni ligne à montrer ici ; les laisser entrer ouvrirait un exercice
+          -- vide dans le sélecteur.
+          and budget_type in ('LFI', 'LFR')
         order by fiscal_year, stage
         """
     ).fetchall():
@@ -431,6 +458,11 @@ def budget_etat(conn) -> dict:
         select b.fiscal_year, b.stage, l.label, coalesce(l.cp, l.amount)
         from fin.public_budget_lines l join fin.public_budgets b using (budget_id)
         where b.entity_kind = 'etat' and l.label is not null
+          -- Les dépenses fiscales sont portées par l'État sans être des lignes
+          -- de son budget : ce sont des impôts non perçus. Les laisser entrer
+          -- ici les ferait tomber dans le pont recettes → dépenses → solde, où
+          -- elles n'ont pas de place et fausseraient la lecture.
+          and l.line_kind <> 'depense_fiscale'
         """
     ).fetchall():
         exercices[str(annee)][etape]["montants"][libelle] = float(montant)
@@ -450,6 +482,49 @@ def budget_etat(conn) -> dict:
         "lignes": smb.ordre_de_lecture(),
         "exercices": exercices,
         "quarantaine": (quarantaine[0] if quarantaine else {}) or {},
+    }
+
+
+def depenses_fiscales(conn) -> dict:
+    """Ce que l'État renonce à percevoir, dispositif par dispositif.
+
+    Le fichier ne porte que le détail : les totaux par impôt sont des
+    indicateurs comme les autres et voyagent avec eux. Les dispositifs sont
+    triés par coût décroissant du dernier exercice publié — c'est la seule
+    lecture utile d'une liste de quatre cent cinquante-sept lignes, et elle
+    répond à la question que le lecteur pose : lesquelles coûtent cher.
+    """
+    dispositifs: dict[str, dict] = {}
+    exercices: set[str] = set()
+    realises: set[str] = set()
+    for annee, etape, numero, libelle, mission, montant in conn.execute(
+        """
+        select b.fiscal_year, b.stage, l.chapitre, l.label, l.mission, l.amount
+        from fin.public_budget_lines l join fin.public_budgets b using (budget_id)
+        where l.line_kind = 'depense_fiscale'
+        """
+    ).fetchall():
+        exercice = str(annee)
+        exercices.add(exercice)
+        # Un même document publie un exercice constaté et des prévisions. Le
+        # site doit pouvoir les distinguer, faute de quoi il annoncerait au
+        # présent ce qui n'a pas encore eu lieu.
+        if etape == "execute":
+            realises.add(exercice)
+        dispositif = dispositifs.setdefault(numero, {
+            "numero": numero, "libelle": libelle, "mission": mission, "montants": {},
+        })
+        dispositif["montants"][exercice] = float(montant)
+    if not dispositifs:
+        return {"exercices": [], "realise": None, "dispositifs": []}
+    dernier = max(exercices)
+    return {
+        "exercices": sorted(exercices),
+        "realise": max(realises) if realises else None,
+        "dispositifs": sorted(
+            dispositifs.values(),
+            key=lambda d: -d["montants"].get(dernier, 0.0),
+        ),
     }
 
 
@@ -803,6 +878,18 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
                    case $niveau
                      when 'region' then g.geo_code
                      when 'departement' then g.parent_code
+                     -- Un arrondissement municipal a pour parent sa commune,
+                     -- pas un département : sa région est celle de sa commune
+                     -- mère, soit un chaînon de plus. Sans ce cas, les 45
+                     -- arrondissements sortaient avec `region: null` et la
+                     -- fiche n'avait plus d'ensemble auquel se rapporter.
+                     when 'arrondissement_municipal' then (
+                        select d.parent_code from geo.geography_reference d
+                         where d.geo_level = 'departement' and d.vintage = g.vintage
+                           and d.geo_code = (
+                             select c.parent_code from geo.geography_reference c
+                              where c.geo_level = 'commune' and c.geo_code = g.parent_code
+                                and c.vintage = g.vintage))
                      else (select d.parent_code from geo.geography_reference d
                             where d.geo_level = 'departement' and d.geo_code = g.parent_code
                               and d.vintage = g.vintage)
@@ -944,6 +1031,7 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("recherche.json", recherche)
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
+    deposer("depenses-fiscales.json", depenses_fiscales(conn))
     deposer("fraicheur.json", fraicheur(conn))
     deposer("journal.json", journal(conn))
     deposer("references.json", references(conn, cartographiees))

@@ -181,6 +181,21 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
       " En dessous de 2,5, la DREES parle de sous-densité."
     );
   }
+  if (unite === "€/m²/mois") {
+    return (
+      `${classes} Loyer d'annonce au mètre carré, charges comprises, pour un` +
+      " logement vide. Il n'est mesuré que là où la source a assez d'annonces —" +
+      " ailleurs la commune reste grise plutôt que d'afficher le loyer du" +
+      " voisinage."
+    );
+  }
+  if (unite === "jours") {
+    return (
+      `${classes} Délai global de paiement moyen, en jours. La loi en accorde` +
+      " trente aux collectivités ; un délai court suppose de la trésorerie et" +
+      " n'est pas en soi une vertu budgétaire."
+    );
+  }
   if (unite === "count") return `${classes} Effectifs, en nombre d'unités.`;
   return `${classes} Montants en euros courants.`;
 }

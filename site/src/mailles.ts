@@ -35,12 +35,28 @@ export function niveauPourZoom(zoom: number): string {
 /** Les mailles que le site sait nommer et ouvrir, du plus fin au plus large.
  *
  *  L'ordre est aussi celui des suggestions de recherche : on cherche presque
- *  toujours une commune. */
+ *  toujours une commune.
+ *
+ *  **Toutes ne sont pas des couches de carte.** L'arrondissement municipal se
+ *  cherche et se lit, mais il n'a pas de tuiles : Paris, Lyon et Marseille
+ *  n'existent que par arrondissement dans la carte des loyers, et sans cette
+ *  entrée leurs fiches restaient introuvables. Voir `MAILLES_HORS_CARTE`. */
 export const NIVEAUX_RECHERCHABLES: Record<string, string> = {
   commune: "Commune",
+  arrondissement_municipal: "Arrondissement",
   departement: "Département",
   region: "Région",
 };
+
+/** Mailles cherchables dont la carte n'a pas de couche.
+ *
+ *  Il n'existe pas de tuiles d'arrondissements municipaux — `geometries.py` n'en
+ *  construit que trois, communes, départements, régions — et la publication ne
+ *  produit donc aucun fichier `carte/…/arrondissement_municipal/…`. Ouvrir la
+ *  fiche d'un arrondissement ne doit pas faire changer la couche affichée :
+ *  `peindre()` demanderait un calque inexistant et la carte tomberait. La fiche
+ *  s'ouvre, la carte reste où elle est. */
+export const MAILLES_HORS_CARTE = new Set(["arrondissement_municipal"]);
 
 export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };
 

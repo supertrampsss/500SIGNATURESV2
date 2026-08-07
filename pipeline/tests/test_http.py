@@ -309,3 +309,27 @@ def test_un_flux_qui_n_avance_jamais_finit_par_lever(monkeypatch):
     _brancher(monkeypatch, httpx.MockTransport(repondre))
     with pytest.raises(http.Tronque):
         http.telecharger("https://exemple.test/fichier.zip", essais=3)
+
+
+def test_une_longueur_annoncee_a_zero_n_est_pas_une_longueur(monkeypatch):
+    """Eurostat diffuse en flux et annonce `Content-Length: 0` sur une réponse
+    qui porte 80 Ko. Le prendre au mot faisait échouer le chargement des
+    prélèvements obligatoires européens sur une troncature imaginaire."""
+    _brancher(monkeypatch, httpx.MockTransport(
+        lambda requete: httpx.Response(
+            200, content=b"x" * 80_200, headers={"content-length": "0"}
+        )
+    ))
+    assert len(http.telecharger("https://exemple/flux")) == 80_200
+
+
+def test_une_reponse_vraiment_vide_reste_une_erreur(monkeypatch):
+    """La correction précédente ne doit pas laisser passer le cas qu'elle
+    ressemble : zéro octet annoncé *et* zéro octet servi."""
+    _brancher(monkeypatch, httpx.MockTransport(
+        lambda requete: httpx.Response(
+            200, content=b"", headers={"content-length": "0"}
+        )
+    ))
+    with pytest.raises(http.Tronque, match="vide"):
+        http.telecharger("https://exemple/vide")

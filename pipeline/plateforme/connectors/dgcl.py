@@ -75,6 +75,21 @@ def lire(contenu: bytes) -> list[dict]:
     return lignes
 
 
+def par_composante(lignes: list[dict]) -> dict[tuple[str, str, str], float]:
+    """{(composante, code commune, exercice): montant}.
+
+    La somme de la DGF cachait ce que le lecteur vient chercher : la part
+    forfaitaire suit la population, les trois autres corrigent — la DSU pour
+    les charges urbaines, la DSR pour la ruralité, la DNP pour les ressources.
+    Une commune peut voir sa DGF baisser pendant que sa péréquation monte.
+    """
+    montants: dict[tuple[str, str, str], float] = {}
+    for ligne in lignes:
+        cle = (ligne["composante"], ligne["code"], ligne["exercice"])
+        montants[cle] = montants.get(cle, 0.0) + ligne["montant"]
+    return montants
+
+
 def dgf(lignes: list[dict]) -> dict[tuple[str, str], float]:
     """{(code commune, exercice): DGF totale}. La somme des composantes présentes
     — une commune sans DSU reçoit une DGF sans DSU, ce n'est pas une lacune."""

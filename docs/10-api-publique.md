@@ -43,7 +43,7 @@ Toutes les URL ci-dessous sont préfixées par `$BASE/data/$V/`.
 | `manifeste.json` | Version, date de génération, et pour chaque jeu : producteur, licence, URL source, date d'extraction réellement utilisée | 4 ko |
 | `indicateurs.json` | Catalogue : identifiant, libellé, unité, thème, cadre comptable, sommabilité, définition grand public et technique, formule, badges, `geographie_courante` (le producteur recalcule-t-il son historique dans les communes d'aujourd'hui — si oui, une fusion ne coupe pas la série). `periodes` liste **toute** la série disponible ; `periodes_par_niveau` liste les périodes **cartographiées** — l'historique n'a pas la même profondeur à tous les niveaux, et une carte est bornée aux périodes récentes pour les séries longues. Les séries entières restent dans les fiches de territoire | 35 ko |
 | `carte/<indicateur>/<niveau>/<période>.json` | `{code territoire: valeur}` — la couche que la carte peint | 100 ko à 700 ko |
-| `territoires/<niveau>/<lot>.json` | Fiches : nom, parent, population, drapeaux, `evenements` (fusions et scissions subies, avec leur date — une série qui les enjambe ne porte pas sur le même territoire de bout en bout) et toutes les séries du territoire. Les communes sont réparties par département (`lot` = code de département), les autres niveaux tiennent dans `tous` | 10 ko à 3 Mo |
+| `territoires/<niveau>/<lot>.json` | Fiches : nom, parent, population, drapeaux, `evenements` (fusions et scissions subies, avec leur date — une série qui les enjambe ne porte pas sur le même territoire de bout en bout) et toutes les séries du territoire. Les communes sont réparties par département (`lot` = code de département), les autres niveaux tiennent dans `tous`. Niveaux publiés : `commune`, `arrondissement_municipal` (les 45 arrondissements de Paris, Lyon et Marseille — **ils recouvrent leur commune mère, voir la règle 2 ci-dessous**), `departement`, `region`, `pays`. Seuls les trois premiers de la carte ont une couche `carte/` | 10 ko à 3 Mo |
 | `recherche.json` | Index de recherche : code, nom, niveau, parent | 2 Mo |
 | `comparaisons.json` | Quartiles par groupe de communes semblables, et les critères qui définissent les groupes | 35 ko |
 | `budget-etat.json` | Budget de l'État par exercice et par étape (voté, rectifié, exécuté), lignes, soldes, et ce que les contrôles ont mis en quarantaine | 41 ko |
@@ -111,7 +111,13 @@ Trois règles, les mêmes que pour le site (docs/06) :
    territoriaux sont inclus dans la Métropole du Grand Paris, la Métropole de
    Lyon et la Collectivité européenne d'Alsace sont publiées au niveau
    départemental sans être des départements. Ces cas portent un drapeau dans la
-   fiche du territoire.
+   fiche du territoire. **Un arrondissement municipal recouvre entièrement sa
+   commune mère** : Paris (75056) et ses vingt arrondissements (75101 à 75120)
+   sont deux fois le même territoire, comme Lyon (69123, 69381-69389) et
+   Marseille (13055, 13201-13216). Les additionner compte deux fois les trois
+   plus grandes villes de France. Le niveau se lit dans `recherche.json` et dans
+   le chemin du fichier de territoires ; `references.json` et
+   `comparaisons.json`, eux, n'agrègent jamais un arrondissement.
 3. **Une comparaison suppose la même année, la même unité, le même périmètre.**
    Le comparateur du site refuse une comparaison entre niveaux différents ; une
    réutilisation devrait faire de même.

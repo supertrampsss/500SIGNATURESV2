@@ -12,9 +12,17 @@ le FCTVA et des compensations d'exonérations. Si la somme des DGF communales
 dépassait ce prélèvement, l'un des deux chiffres serait faux — le run échoue
 plutôt que de publier.
 
-**Volume.** Un seul indicateur est publié, la DGF totale, et un seul exercice
-par défaut : la base tourne à l'étroit sur le plan gratuit (D6bis). Les quatre
-composantes restent dans le snapshot R2 et se chargent en changeant une ligne.
+**Quatre indicateurs, pas un.** La DGF totale répondait « combien l'État verse »
+sans dire « au titre de quoi ». Les trois dotations de péréquation — DSU pour
+les charges urbaines, DSR pour la ruralité, DNP pour les écarts de ressources —
+étaient déjà téléchargées pour calculer la somme, et jetées. Elles sont publiées
+telles quelles : c'est là que se lit la redistribution, et une commune peut voir
+sa DGF baisser pendant que sa péréquation monte.
+
+**Une absence n'est pas un zéro.** Moins de mille communes touchent la DSU. Une
+commune sans ligne n'est pas une commune à zéro euro : elle n'est pas éligible,
+et le contrôle vérifie qu'aucune péréquation n'est versée hors de la population
+qui reçoit une part forfaitaire.
 
 Usage : python -m plateforme.normalize.dotations [--exercice 2025] [--store …]
 """
@@ -33,6 +41,60 @@ DATASET = "ofgl-dotations-communes"
 SOURCE = "ofgl"
 INDICATEUR = "dgcl_dotation_globale_fonctionnement"
 
+# Les trois dotations de péréquation, déjà téléchargées pour calculer la DGF et
+# jusqu'ici jetées. Publier leur somme sans elles répondait « combien l'État
+# verse » sans jamais dire « au titre de quoi » — et c'est là que se lit la
+# redistribution : la part forfaitaire suit la population, celles-ci corrigent.
+COMPOSANTES_PUBLIEES = {
+    "dsu": (
+        "dgcl_dotation_solidarite_urbaine", "Dotation de solidarité urbaine reçue",
+        "Ce que la commune reçoit de l'État au titre de la solidarité urbaine :"
+        " une dotation réservée aux villes qui cumulent charges de centre et"
+        " population défavorisée. Moins de mille communes en bénéficient.",
+        "Montant notifié de dotation de solidarité urbaine et de cohésion sociale"
+        " (DSU-CS), source DGCL diffusée par l'OFGL. Une commune sans montant"
+        " n'est pas une commune à zéro euro : elle n'est pas éligible."
+        " Cette dotation n'est pas incluse dans l'agrégat « péréquations"
+        " et compensations fiscales » publié par ailleurs sur ce site :"
+        " celui-ci porte les compensations d'exonérations décidées par le"
+        " législateur, un autre poste des concours de l'État. Les deux ne"
+        " s'additionnent ni ne se décomposent l'un l'autre.",
+    ),
+    "dsr": (
+        "dgcl_dotation_solidarite_rurale", "Dotation de solidarité rurale reçue",
+        "Ce que la commune reçoit de l'État au titre de la solidarité rurale."
+        " Elle vise les communes peu peuplées et celles qui font bourg-centre"
+        " pour leur canton. Une commune urbaine n'y a pas droit.",
+        "Montant notifié de dotation de solidarité rurale, toutes fractions"
+        " confondues — bourg-centre, péréquation, cible. Source DGCL diffusée"
+        " par l'OFGL. L'absence de montant vaut non-éligibilité, pas zéro."
+        " Cette dotation n'est pas incluse dans l'agrégat « péréquations"
+        " et compensations fiscales » publié par ailleurs sur ce site :"
+        " celui-ci porte les compensations d'exonérations décidées par le"
+        " législateur, un autre poste des concours de l'État. Les deux ne"
+        " s'additionnent ni ne se décomposent l'un l'autre.",
+    ),
+    "dnp": (
+        "dgcl_dotation_nationale_perequation", "Dotation nationale de péréquation reçue",
+        "Ce que la commune reçoit au titre de la dotation nationale de"
+        " péréquation, qui corrige les écarts de ressources fiscales entre"
+        " communes plutôt que leurs charges.",
+        "Montant notifié de dotation nationale de péréquation, parts principale"
+        " et majoration confondues. Source DGCL diffusée par l'OFGL. L'absence"
+        " de montant vaut non-éligibilité, pas zéro."
+        " Cette dotation n'est pas incluse dans l'agrégat « péréquations"
+        " et compensations fiscales » publié par ailleurs sur ce site :"
+        " celui-ci porte les compensations d'exonérations décidées par le"
+        " législateur, un autre poste des concours de l'État. Les deux ne"
+        " s'additionnent ni ne se décomposent l'un l'autre.",
+    ),
+}
+
+
+class PerequationRompue(RuntimeError):
+    """Une péréquation versée à une commune qui n'a pas de part forfaitaire."""
+
+
 FICHE = {
     "libelle": "Dotation globale de fonctionnement reçue",
     "public": "Ce que l'État verse chaque année à la commune pour son"
@@ -46,30 +108,43 @@ FICHE = {
 
 
 def declarer(conn) -> None:
+    fiches = [
+        (INDICATEUR, FICHE["libelle"], FICHE["public"], FICHE["technique"],
+         FICHE["formule"]),
+        *(
+            (identifiant, libelle, publique, technique,
+             f"Montant notifié, composante « {composante.upper()} »")
+            for composante, (identifiant, libelle, publique, technique)
+            in sorted(COMPOSANTES_PUBLIEES.items())
+        ),
+    ]
     with conn.cursor() as curseur:
-        definition = curseur.execute(
-            """
-            insert into core.indicator_definitions
-                (public_definition, technical_definition, formula, confidence_level, badges)
-            values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
-            returning definition_id
-            """,
-            (FICHE["public"], FICHE["technique"], FICHE["formule"]),
-        ).fetchone()[0]
-        curseur.execute(
-            """
-            insert into core.indicators
-                (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
-                 additive, price_basis, accounting_frame, geo_levels,
-                 time_granularity, published)
-            values (?, ?, ?, 'finances_locales', ?, 'EUR', true, 'current',
-                    'budgetaire', array['commune'], 'annuelle', true)
-            on conflict (indicator_id) do update set
-                definition_id = excluded.definition_id, label_fr = excluded.label_fr,
-                theme = excluded.theme, published = true
-            """,
-            (INDICATEUR, DATASET, definition, FICHE["libelle"]),
-        )
+        for identifiant, libelle, publique, technique, formule in fiches:
+            definition = curseur.execute(
+                """
+                insert into core.indicator_definitions
+                    (public_definition, technical_definition, formula,
+                     confidence_level, badges)
+                values (?, ?, ?, 'observed', array['Officiel','Donnée brute'])
+                returning definition_id
+                """,
+                (publique, technique, formule),
+            ).fetchone()[0]
+            curseur.execute(
+                """
+                insert into core.indicators
+                    (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
+                     additive, price_basis, accounting_frame, geo_levels,
+                     time_granularity, published)
+                values (?, ?, ?, 'finances_locales', ?, 'EUR', true, 'current',
+                        'budgetaire', array['commune'], 'annuelle', true)
+                on conflict (indicator_id) do update set
+                    definition_id = excluded.definition_id,
+                    label_fr = excluded.label_fr,
+                    theme = excluded.theme, published = true
+                """,
+                (identifiant, DATASET, definition, libelle),
+            )
         curseur.execute(
             "delete from core.indicator_definitions d where not exists"
             " (select 1 from core.indicators i where i.definition_id = d.definition_id)"
@@ -109,6 +184,74 @@ def controler_contre_l_etat(conn, run_id: str, exercice: str, total: float) -> t
     return passe, constat
 
 
+def controler_perequation(montants: dict[tuple[str, str, str], float]) -> dict:
+    """Aucune péréquation sans part forfaitaire, et pas plus de DSU que de DGF.
+
+    Ce jeu est en format long : la variable est une chaîne, et la lire de
+    travers ne fait rien planter. Ces deux inégalités attrapent le décalage —
+    une composante rattachée aux mauvaises communes se verrait aussitôt, alors
+    qu'un total resterait juste.
+    """
+    forfaitaires = {
+        (code, exercice) for (composante, code, exercice) in montants
+        if composante == "forfaitaire"
+    }
+    if not forfaitaires:
+        raise PerequationRompue("aucune part forfaitaire lue")
+    orphelines = sorted(
+        (code, exercice) for (composante, code, exercice) in montants
+        if composante != "forfaitaire" and (code, exercice) not in forfaitaires
+    )
+    if orphelines:
+        exemples = ", ".join(f"{code} en {an}" for code, an in orphelines[:3])
+        raise PerequationRompue(
+            f"{len(orphelines)} communes reçoivent une péréquation sans part"
+            f" forfaitaire ({exemples}). La DGF se construit sur la part"
+            " forfaitaire : une composante est rattachée aux mauvaises communes."
+        )
+    beneficiaires = {
+        composante: len({
+            (code, exercice) for (c, code, exercice) in montants if c == composante
+        })
+        for composante in dgcl.COMPOSANTES.values()
+    }
+    if beneficiaires["dsu"] >= beneficiaires["forfaitaire"]:
+        raise PerequationRompue(
+            f"{beneficiaires['dsu']} communes touchent la DSU pour"
+            f" {beneficiaires['forfaitaire']} parts forfaitaires : la DSU est"
+            " réservée à une minorité de villes, cette proportion est impossible."
+        )
+    return beneficiaires
+
+
+def ecrire_composantes(
+    conn, run_id: str, montants: dict[tuple[str, str, str], float]
+) -> int:
+    lignes = [
+        (COMPOSANTES_PUBLIEES[composante][0], "commune", code, periode, montant)
+        for (composante, code, periode), montant in sorted(montants.items())
+        if composante in COMPOSANTES_PUBLIEES
+    ]
+    gardees, _ = filtrer_territoires_connus(conn, lignes)
+    noms = [identifiant for identifiant, *_ in COMPOSANTES_PUBLIEES.values()]
+    with conn.cursor() as curseur:
+        curseur.execute(
+            "delete from core.observations where indicator_id = any(?)", (noms,)
+        )
+        entrepot.copier(
+            conn,
+            "core.observations",
+            ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period",
+             "value", "run_id"],
+            (
+                (indicateur, niveau, code, MILLESIME, periode, valeur, run_id)
+                for indicateur, niveau, code, periode, valeur in gardees
+            ),
+        )
+    conn.commit()
+    return len(gardees)
+
+
 def ecrire(conn, run_id: str, totaux: dict[tuple[str, str], float]) -> tuple[int, set[str]]:
     lignes = [
         (INDICATEUR, "commune", code, periode, montant)
@@ -143,7 +286,20 @@ def run(exercice: int, store_spec: str) -> int:
         if not brutes:
             raise ValueError(f"exercice {exercice} : aucune ligne de montant lue")
         totaux = dgcl.dgf(brutes)
+        montants = dgcl.par_composante(brutes)
+        beneficiaires = controler_perequation(montants)
         ecrites, ecartes = ecrire(conn, run_id, totaux)
+        detaillees = ecrire_composantes(conn, run_id, montants)
+        conn.execute(
+            """
+            insert into meta.data_quality_checks
+                (run_id, dataset_id, check_name, severity, passed, observed)
+            values (?, ?, 'perequation_adossee_a_la_part_forfaitaire', 'blocker',
+                    true, ?)
+            """,
+            (run_id, DATASET, json.dumps(beneficiaires)),
+        )
+        conn.commit()
         total = sum(totaux.values())
         passe, constat = controler_contre_l_etat(conn, run_id, str(exercice), total)
         if not passe:
@@ -155,7 +311,9 @@ def run(exercice: int, store_spec: str) -> int:
         entrepot.finish_run(conn, run_id, "success", rows_read=len(brutes), rows_written=ecrites)
         print(
             f"dotations {exercice} : {ecrites} communes, "
-            f"{total / 1e9:.2f} Md€ de DGF"
+            f"{total / 1e9:.2f} Md€ de DGF, {detaillees} montants de péréquation"
+            f" ({beneficiaires['dsu']} DSU, {beneficiaires['dsr']} DSR,"
+            f" {beneficiaires['dnp']} DNP)"
             + (f", {constat['part']} % du prélèvement sur recettes" if constat["part"] else "")
         )
         if ecartes:

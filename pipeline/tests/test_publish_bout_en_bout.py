@@ -124,6 +124,21 @@ def _remplir(conn) -> None:
         " 63600000000.0)",
         (budget,),
     )
+    # Une dépense fiscale, portée par l'État sans être une ligne de son budget.
+    niches = conn.execute(
+        "insert into fin.public_budgets (geo_level, geo_code, geo_vintage, budget_type,"
+        " entity_kind, fiscal_year, accounting_frame, stage, dataset_id, run_id)"
+        " values ('pays', 'FR', ?, 'PLF', 'etat', 2026, 'budgetaire', 'execute',"
+        " 'plf-depenses-fiscales', ?) returning budget_id",
+        (MILLESIME, run_id),
+    ).fetchone()[0]
+    conn.execute(
+        "insert into fin.public_budget_lines (budget_id, fiscal_year, side, mission,"
+        " chapitre, line_kind, amount, label) values (?, 2026, 'depense',"
+        " 'Recherche et enseignement supérieur', '200302', 'depense_fiscale',"
+        " 8041000000.0, 'Crédit d''impôt en faveur de la recherche')",
+        (niches,),
+    )
     conn.commit()
 
 
@@ -180,9 +195,23 @@ def test_publier_produit_un_jeu_complet(tmp_path):
 
     budget = lire("budget-etat.json")
     assert budget["exercices"]["2024"]["vote"]["solde"] == -146900000000.0
+    # La dépense fiscale insérée plus haut n'entre pas dans le pont du budget :
+    # un impôt non perçu n'est pas une ligne de dépense, et l'y laisser
+    # tomberait dans la colonne qui se referme sur le solde.
     assert budget["exercices"]["2024"]["vote"]["montants"] == {
         "Enseignement scolaire": 63600000000.0
     }
+    assert "2026" not in budget["exercices"]
+
+    niches = lire("depenses-fiscales.json")
+    assert niches["exercices"] == ["2026"]
+    assert niches["realise"] == "2026"
+    assert niches["dispositifs"] == [{
+        "numero": "200302",
+        "libelle": "Crédit d'impôt en faveur de la recherche",
+        "mission": "Recherche et enseignement supérieur",
+        "montants": {"2026": 8041000000.0},
+    }]
 
     # Fraîcheur, journal, comparaisons, manifeste et recherche : leur seule
     # présence prouve que leurs requêtes s'exécutent sous DuckDB.
@@ -290,6 +319,147 @@ def test_les_drapeaux_sortent_en_objet_pas_en_chaine(tmp_path):
         assert cle.strip("|"), cle
     finally:
         conn.close()
+
+
+# Paris et son 1er arrondissement : la commune mère et sa sous-entité, avec la
+# même strate de comparaison. C'est le piège que ce fixture pose exprès — si un
+# agrégat cessait de filtrer sur le niveau, les deux tomberaient dans le même sac.
+PARIS = ("75056", "Paris", 2_145_906, 8.0e9)
+PARIS_1ER = ("75101", "Paris 1er Arrondissement", 16_266, 3.0e8)
+STRATE_PARIS = (
+    '{"tranche_population":"plus de 200 000","rural":false,"outre_mer":false}'
+)
+
+
+def _semer_paris(conn) -> None:
+    """Ajoute Paris, son département, sa région et son 1er arrondissement.
+
+    L'arrondissement porte une observation du **même** indicateur additif que sa
+    commune mère : c'est ce qui rend le double comptage visible s'il survient.
+    """
+    conn.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code) values ('region', '11', ?, 'Île-de-France',"
+        " 'pays', 'FR')",
+        (MILLESIME,),
+    )
+    conn.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code) values ('departement', '75', ?, 'Paris',"
+        " 'region', '11')",
+        (MILLESIME,),
+    )
+    conn.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code, population, flags) values ('commune', ?, ?, ?,"
+        f" 'departement', '75', ?, '{STRATE_PARIS}')",
+        (PARIS[0], MILLESIME, PARIS[1], PARIS[2]),
+    )
+    # Le COG rattache un arrondissement municipal à sa **commune**, pas à un
+    # département : c'est ce chaînon supplémentaire que `territoires()` remonte
+    # pour lui trouver une région.
+    conn.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code, population, flags) values"
+        f" ('arrondissement_municipal', ?, ?, ?, 'commune', ?, ?, '{STRATE_PARIS}')",
+        (PARIS_1ER[0], MILLESIME, PARIS_1ER[1], PARIS[0], PARIS_1ER[2]),
+    )
+
+    run_id = entrepot.start_run(conn, "ofgl-communes")
+    for niveau, (code, _, population, depense) in (
+        ("commune", PARIS),
+        ("arrondissement_municipal", PARIS_1ER),
+    ):
+        for indicateur, valeur in (
+            ("ofgl_depenses_fonctionnement", depense),
+            ("ofgl_population_reference", float(population)),
+        ):
+            conn.execute(
+                "insert into core.observations (indicator_id, geo_level, geo_code,"
+                " geo_vintage, period, value, run_id) values (?, ?, ?, ?, '2023', ?, ?)",
+                (indicateur, niveau, code, MILLESIME, valeur, run_id),
+            )
+    entrepot.finish_run(conn, run_id, "success")
+    conn.commit()
+
+
+def test_un_arrondissement_municipal_est_publie_sans_etre_compte_deux_fois(
+    tmp_path, monkeypatch
+):
+    """Les 45 arrondissements de Paris, Lyon et Marseille étaient en base et
+    invisibles : `loyers.py` y écrit, `publish.py` ne connaissait pas le niveau.
+    La fiche de Paris 1er n'existait pas.
+
+    Les publier ne doit rien ajouter nulle part ailleurs. Paris et ses
+    arrondissements coexistent dans le référentiel ; les additionner compterait
+    deux fois la plus grande ville de France. Le test le vérifie là où ça
+    pourrait arriver : l'agrégat France, l'agrégat régional, et les quartiles du
+    groupe de communes semblables.
+    """
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        _semer_paris(conn)
+        store = LocalStore(str(tmp_path / "publie"))
+        publish.publier(conn, store, "2026-01-01T0000")
+
+        # Les quartiles se calculent hors publication : le seuil de vingt
+        # communes ne peut pas être atteint par un fixture, on l'abaisse pour
+        # que le groupe de Paris existe et se compte.
+        monkeypatch.setattr(publish, "GROUPE_MINIMAL", 1)
+        quartiles = publish.comparaisons(conn)["groupes"]
+    finally:
+        conn.close()
+
+    racine = tmp_path / "publie" / "data" / "2026-01-01T0000"
+    lire = lambda nom: json.loads((racine / nom).read_text())  # noqa: E731
+
+    # 1. La fiche sort, avec sa région remontée par-dessus sa commune mère.
+    arrondissements = lire("territoires/arrondissement_municipal/tous.json")
+    paris_1er = arrondissements[PARIS_1ER[0]]
+    assert paris_1er["nom"] == PARIS_1ER[1]
+    assert paris_1er["parent"] == PARIS[0]
+    assert paris_1er["region"] == "11", "la région d'un arrondissement est celle de sa commune"
+    assert paris_1er["series"]["ofgl_depenses_fonctionnement"]["2023"] == PARIS_1ER[3]
+
+    # 2. Elle est trouvable : sans entrée d'index, la fiche n'a pas de porte.
+    index = {t["c"]: t for t in lire("recherche.json")}
+    assert index[PARIS_1ER[0]]["l"] == "arrondissement_municipal"
+    assert index[PARIS_1ER[0]]["n"] == PARIS_1ER[1]
+
+    # 3. Aucune couche de carte : il n'existe pas de tuiles d'arrondissements
+    # (`normalize/geometries.py` n'en construit que trois), et un fichier que
+    # rien ne peut peindre est un fichier de trop.
+    assert not (racine / "carte" / "ofgl_depenses_fonctionnement"
+                / "arrondissement_municipal").exists()
+
+    # 4. Aucun agrégat n'a vu passer l'arrondissement.
+    references = lire("references.json")["ofgl_depenses_fonctionnement"]["2023"]
+    assert "arrondissement_municipal" not in references
+    france = references["commune"]["france"]
+    assert france["n"] == 3, "trois communes : Bordeaux, Mérignac, Paris"
+    assert france["total"] == 5.4e8 + 1.1e8 + PARIS[3]
+    assert france["habitants"] == 260958 + 72099 + PARIS[2]
+    # L'agrégat régional le plus exposé : la seule commune d'Île-de-France est
+    # Paris, et son arrondissement porte la même région.
+    ile_de_france = references["commune"]["regions"]["11"]
+    assert ile_de_france["n"] == 1
+    assert ile_de_france["total"] == PARIS[3]
+
+    # 5. Et les quartiles du groupe de communes semblables non plus : la strate
+    # de Paris ne contient que Paris, pas Paris plus son 1er arrondissement.
+    groupe_de_paris = [
+        bloc
+        for cle, bloc in quartiles["ofgl_depenses_fonctionnement"]["2023"].items()
+        if "plus de 200 000" in cle
+    ]
+    assert groupe_de_paris, "la strate de Paris devrait exister"
+    assert all(bloc["n"] == 1 for bloc in groupe_de_paris)
+    # La médiane est la dépense par habitant de Paris seule ; y ajouter
+    # l'arrondissement la déplacerait.
+    assert all(
+        bloc["mediane"] == round(PARIS[3] / PARIS[2], 2) for bloc in groupe_de_paris
+    )
 
 
 def test_une_version_deja_publiee_n_est_jamais_ecrasee(tmp_path):

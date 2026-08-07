@@ -55,6 +55,23 @@ test("la maille suit le zoom : régions de loin, communes de près", () => {
   assert.equal(niveauPourZoom(13), "commune");
 });
 
+test("la fiche d'un arrondissement s'ouvre sans faire changer la carte de couche", () => {
+  // Deux mailles, pas une : celle que la carte peint, et celle du territoire
+  // ouvert. Les confondre ferait demander `remplissage-undefined` à MapLibre
+  // dès qu'on ouvre Paris 1er depuis la recherche.
+  assert.match(SOURCE, /function niveauSelection\(\): string \{\s*return etat\.maille \?\? etat\.niveau;/);
+  assert.match(SOURCE, /async function montrerFiche[^}]*const niveau = niveauSelection\(\)/s);
+  // La maille de la carte se valide sur les couches de tuiles, pas sur les
+  // mailles cherchables : `?niveau=arrondissement_municipal` ne doit pas passer.
+  assert.match(SOURCE, /function niveauConnu[^}]*demande in COUCHES/s);
+  // Choisir un arrondissement dans la recherche ne bascule pas la carte.
+  assert.match(SOURCE, /etat\.maille = MAILLES_HORS_CARTE\.has\(voulu\) \? voulu : null;/);
+  // Et la maille voyage dans l'URL : sans elle, recharger un lien vers Paris
+  // 1er chercherait 75101 dans le lot des communes du 75 et n'y trouverait rien.
+  assert.match(SOURCE, /p\.set\("maille", etat\.maille\)/);
+  assert.match(SOURCE, /p\.get\("maille"\)/);
+});
+
 test("l'intercommunalité n'est plus une maille du site", () => {
   // Elle l'était entre le département et la commune : en zoomant vers sa ville
   // on traversait un découpage que personne ne reconnaît. Elle a quitté le zoom,

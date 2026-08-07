@@ -25,6 +25,7 @@ import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts"
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import { afficherConjoncture } from "./conjoncture.ts";
+import { afficherNiches } from "./niches.ts";
 import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
@@ -34,7 +35,9 @@ import {
   populationDeReference,
   quantiles,
 } from "./echelle.ts";
-import { NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions } from "./mailles.ts";
+import {
+  MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
+} from "./mailles.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -97,6 +100,12 @@ type Etat = {
    *  réglage. Un sélecteur de plus pour une règle que la carte applique
    *  d'elle-même n'était que du bruit. */
   niveauAuto: boolean;
+  /** Maille du territoire ouvert, quand ce n'est pas celle de la carte.
+   *
+   *  Un arrondissement municipal n'a pas de couche de tuiles : sa fiche s'ouvre
+   *  sans que la carte change de calque, sinon `peindre()` demanderait
+   *  `remplissage-undefined`. `null` = la sélection est à la maille affichée. */
+  maille: string | null;
   periode: string;
   declinaison: string;
   selection: string | null;
@@ -135,8 +144,26 @@ let exportCourant: { lignes: LigneExport[]; parHabitant: boolean } = {
   parHabitant: false,
 };
 
+/** La maille de la **carte** : elle doit avoir une couche de tuiles.
+ *
+ *  Le contrôle portait sur les mailles cherchables. Elles coïncidaient tant que
+ *  toutes avaient une couche ; l'arrondissement municipal se cherche sans en
+ *  avoir, et `?niveau=arrondissement_municipal` aurait fait peindre un calque
+ *  inexistant. C'est `COUCHES` qui fait foi ici. */
 function niveauConnu(demande: string | null): string {
-  return demande && demande in NIVEAUX_RECHERCHABLES ? demande : "region";
+  return demande && demande in COUCHES ? demande : "region";
+}
+
+/** La maille cherchable d'une sélection hors carte, sinon `null`. */
+function mailleConnue(demande: string | null): string | null {
+  return demande && MAILLES_HORS_CARTE.has(demande) && demande in NIVEAUX_RECHERCHABLES
+    ? demande
+    : null;
+}
+
+/** La maille du territoire ouvert : celle de la carte, sauf sélection hors carte. */
+function niveauSelection(): string {
+  return etat.maille ?? etat.niveau;
 }
 
 function lireUrl(): Etat {
@@ -159,6 +186,11 @@ function lireUrl(): Etat {
     // Quand elle apparaissait quand même, la fiche s'intitulait « Bordeaux —
     // Région » et se comparait à la médiane des régions de France.
     niveauAuto: !p.get("niveau"),
+    // Un lien vers la fiche de Paris 1er porte `maille=arrondissement_municipal`
+    // en plus de `niveau` : sans elle, le rechargement chercherait 75101 dans le
+    // lot des communes du 75, ne l'y trouverait pas, et le panneau resterait
+    // muet — le même défaut que celui décrit juste au-dessus.
+    maille: mailleConnue(p.get("maille")),
     // L'année n'est plus un choix : c'est toujours la plus récente publiée
     // pour l'indicateur et la maille regardés. L'affichage non plus — le
     // panneau montre désormais les deux lectures (par habitant ET total)
@@ -181,6 +213,7 @@ function ecrireUrl(): void {
   });
   if (etat.vue !== "metropole") p.set("vue", etat.vue);
   if (etat.selection) p.set("territoire", etat.selection);
+  if (etat.maille) p.set("maille", etat.maille);
   if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
   history.replaceState(null, "", `?${p}`);
 }
@@ -596,7 +629,10 @@ function suivreLaSelection(code: string): void {
 
 async function montrerFiche(code: string): Promise<void> {
   suivreLaSelection(code);
-  await chargerLotsNecessaires(etat.niveau, [code]);
+  // La maille de la fiche n'est pas toujours celle de la carte : un
+  // arrondissement municipal se lit sans couche de tuiles.
+  const niveau = niveauSelection();
+  await chargerLotsNecessaires(niveau, [code]);
   const territoire = entites[code];
   if (!territoire) return;
   etat.selection = code;
@@ -604,7 +640,7 @@ async function montrerFiche(code: string): Promise<void> {
   // La cascade : le groupe le plus fin qui existe pour cette commune, et les
   // critères qui l'ont défini — ils changent d'une commune à l'autre.
   const trouve =
-    etat.niveau === "commune" && groupes
+    niveau === "commune" && groupes
       ? groupeDeLaCommune(
           territoire,
           groupes.groupes[etat.indicateur]?.[etat.periode],
@@ -628,7 +664,7 @@ async function montrerFiche(code: string): Promise<void> {
     position >= 0 ? { position: position + 1, total: classement.length } : undefined;
 
   afficherFiche($("fiche"), {
-    niveau: etat.niveau,
+    niveau,
     territoire,
     principal: etat.indicateur,
     rang,
@@ -640,14 +676,14 @@ async function montrerFiche(code: string): Promise<void> {
     // Filtré sur le niveau : afficher « donnée non disponible » pour un
     // indicateur qui n'existe pas à ce niveau ferait passer une absence de
     // définition pour une absence de mesure.
-    indicateurs: indicateursDeLaFiche(etat.niveau),
+    indicateurs: indicateursDeLaFiche(niveau),
     libelleTheme,
     // De quoi comparer, même pour les jeux sous secret de diffusion où
     // aucune médiane communale n'est publiable : la valeur du département,
     // celle de la région, celle de la France. Ce sont des chiffres publiés,
     // pas des estimations.
     comparateurs:
-      etat.niveau === "commune"
+      niveau === "commune"
         ? [
             territoire.parent && parents[territoire.parent]
               ? { libelle: "son département", territoire: parents[territoire.parent] }
@@ -660,7 +696,7 @@ async function montrerFiche(code: string): Promise<void> {
             libelle: string;
             territoire: Territoire;
           }[]
-        : etat.niveau === "departement"
+        : niveau === "departement"
           ? [
               territoire.region && parents[territoire.region]
                 ? { libelle: "sa région", territoire: parents[territoire.region] }
@@ -751,6 +787,7 @@ function tiroirRedimensionnable(): void {
 /** Ferme la sélection : le panneau revient à l'aperçu de la couche. */
 function fermerPanneau(): void {
   etat.selection = null;
+  etat.maille = null;
   ecrireUrl();
   $("panneau").classList.remove("panneau--selection");
   afficherApercu();
@@ -804,6 +841,7 @@ const THEMES: Record<string, string> = {
   macro: "Conjoncture",
   dette: "Dette publique",
   budget_etat: "Budget de l'État",
+  depenses_fiscales: "Niches fiscales",
   europe: "Comparaisons européennes",
 };
 
@@ -928,6 +966,35 @@ function brancherCommandes(): void {
   const surLigne = (evenement: Event) => {
     // L'onglet d'abord : il ne porte rien sur la carte, il change ce que la
     // fiche montre.
+    // Changer de rubrique ouvre son premier thème : laisser la fiche sur le
+    // thème d'une autre rubrique afficherait un contenu que plus aucun onglet
+    // enfoncé ne désigne.
+    const rubrique = (evenement.target as HTMLElement).closest<HTMLElement>(
+      ".onglets-rubriques [data-rubrique]",
+    );
+    if (rubrique?.dataset.rubrique) {
+      const voulue = rubrique.dataset.rubrique;
+      for (const bouton of document.querySelectorAll<HTMLElement>(
+        ".onglets-rubriques [data-rubrique]",
+      )) {
+        bouton.setAttribute("aria-pressed", String(bouton.dataset.rubrique === voulue));
+      }
+      let premier = "";
+      for (const barre of document.querySelectorAll<HTMLElement>(
+        ".onglets-themes[data-rubrique]",
+      )) {
+        barre.hidden = barre.dataset.rubrique !== voulue;
+        if (barre.dataset.rubrique !== voulue) continue;
+        premier = barre.querySelector<HTMLElement>("[data-theme]")?.dataset.theme ?? "";
+      }
+      for (const bouton of document.querySelectorAll<HTMLElement>(".onglets-themes [data-theme]")) {
+        bouton.setAttribute("aria-pressed", String(bouton.dataset.theme === premier));
+      }
+      for (const section of document.querySelectorAll<HTMLElement>(".mesures [data-theme]")) {
+        section.hidden = section.dataset.theme !== premier;
+      }
+      return;
+    }
     const onglet = (evenement.target as HTMLElement).closest<HTMLElement>(
       ".onglets-themes [data-theme]",
     );
@@ -1061,7 +1128,11 @@ function brancherCommandes(): void {
     // cela, la fiche s'ouvrait sur un territoire que la carte ne connaissait
     // pas et le panneau restait vide.
     const voulu = bouton.dataset.niveau as string;
-    if (voulu && voulu !== etat.niveau) {
+    // Sauf pour une maille sans couche de tuiles — un arrondissement municipal.
+    // Y basculer la carte lui ferait peindre un calque inexistant ; sa fiche
+    // s'ouvre donc par-dessus la carte laissée telle quelle.
+    etat.maille = MAILLES_HORS_CARTE.has(voulu) ? voulu : null;
+    if (voulu && !etat.maille && voulu !== etat.niveau) {
       etat.niveau = voulu;
       // Le zoom ne commande plus la maille : l'utilisateur vient de la choisir.
       etat.niveauAuto = false;
@@ -1245,6 +1316,7 @@ async function demarrer(): Promise<void> {
     if (voulu === etat.niveau) return;
     etat.niveau = voulu;
     etat.selection = null;
+    etat.maille = null;
     construireSelecteurs();
     ecrireUrl();
     void peindre();
@@ -1321,6 +1393,9 @@ async function demarrer(): Promise<void> {
     for (const couche of Object.values(COUCHES)) {
       carte.on("click", `remplissage-${couche}`, async (evenement) => {
         const code = evenement.features?.[0]?.properties?.code as string | undefined;
+        // Un clic sur la carte sélectionne toujours à la maille peinte : il
+        // referme une fiche d'arrondissement ouverte par la recherche.
+        etat.maille = null;
         if (code) await montrerFiche(code);
       });
       // Double-clic : on entre dans le territoire. En mode automatique, la
@@ -1411,6 +1486,13 @@ async function demarrer(): Promise<void> {
       $("national").hidden = false;
     }
     if (afficherSecu($("bloc-secu"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    // Les niches fiscales ont leur propre fichier — le détail des dispositifs
+    // n'a pas sa place dans une série pays — mais leur total en est un : le
+    // bloc a besoin des deux, il est donc chargé ici.
+    const niches = await donnees.depensesFiscales();
+    if (afficherNiches($("bloc-niches"), niches, pays, catalogue)) {
       $("national").hidden = false;
     }
   } catch {

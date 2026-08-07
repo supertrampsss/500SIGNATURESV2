@@ -7,7 +7,9 @@
  * plus. Le retrait de l'intercommunalité a rendu cet écart concret.
  */
 
-import { NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions } from "./mailles.ts";
+import {
+  MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
+} from "./mailles.ts";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -64,4 +66,26 @@ test("la maille suit le zoom", () => {
   assert.equal(niveauPourZoom(4.5), "region");
   assert.equal(niveauPourZoom(7.5), "departement");
   assert.equal(niveauPourZoom(9), "commune");
+});
+
+test("un arrondissement municipal se cherche", () => {
+  // Paris, Lyon et Marseille n'existent que par arrondissement dans la carte
+  // des loyers : leurs 45 arrondissements étaient en base, publiés par personne
+  // et cherchables nulle part. « Paris 1er » ne rendait rien.
+  const index = [entree("75101", "Paris 1er Arrondissement", "arrondissement_municipal")];
+  assert.equal(suggestions(index, "paris 1er", "commune")[0]?.c, "75101");
+  assert.ok(NIVEAUX_RECHERCHABLES["arrondissement_municipal"]);
+});
+
+test("une maille sans tuiles n'est jamais une maille de carte", () => {
+  // Il n'existe pas de couche d'arrondissements — `geometries.py` n'en
+  // construit que trois. Laisser le zoom y basculer ferait peindre un calque
+  // inexistant : la carte tomberait, et la publication n'a de toute façon aucun
+  // fichier `carte/…/arrondissement_municipal/…` à lui donner.
+  for (const maille of MAILLES_HORS_CARTE) {
+    assert.ok(NIVEAUX_RECHERCHABLES[maille], `${maille} doit rester cherchable`);
+    for (let zoom = 0; zoom < 16; zoom += 0.1) {
+      assert.notEqual(niveauPourZoom(zoom), maille, `zoom ${zoom.toFixed(1)}`);
+    }
+  }
 });

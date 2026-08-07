@@ -22,7 +22,9 @@ from plateforme import entrepot, registry
 # `geometries` et `maires` n'en ont pas : ils écrivent dans le référentiel, pas
 # dans le catalogue.
 MODULES = [
-    "chomage", "cofog", "conjoncture", "creations", "deces", "dotations",
+    "chomage", "chomage_indemnisation", "cofog", "conjoncture", "creations",
+    "deces", "departements_fonctionnel", "dotations",
+    "construction", "execution_missions", "exonerations", "fonds_europeens", "impot_revenu", "loyers", "naissances", "prelevements_ue", "prescriptions", "protection_sociale", "salaires", "subventions",
     "education", "emploi", "entreprises", "equipements", "etat", "etatcivil",
     "europe",
     "famille",

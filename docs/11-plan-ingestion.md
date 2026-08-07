@@ -888,6 +888,495 @@ dans le commerce**, qu'Eurostat désigne comme données à forte valeur et qui,
 demandent d'abord d'identifier, dans la nomenclature du producteur, l'agrégat qui
 désigne l'ensemble du commerce de détail — travail de définition, pas de code.
 
+## Deuxième vague — les sources du registre, au-delà du plan initial
+
+Le plan ci-dessus est clos. Il ne couvrait qu'un extrait du registre des sources
+(`docs/01`), qui en recense **81 rien qu'en P1, P2 et P3** quand l'entrepôt en
+charge une cinquantaine. Cette section suit la reprise du registre lui-même.
+
+**Ordre retenu**, par ce que chaque source apporte à la question « où vont mes
+impôts » et par ce qu'elle coûte à charger. **Vingt-trois lignes traitées, et closes** :
+treize chargées, neuf écartées avec leur raison écrite et chiffrée, une reportée
+sur un prérequis nommé. Le registre n'a plus de ligne non sondée.
+
+Une leçon technique traverse cette vague et mérite d'être notée pour la
+suivante : sur data.economie.gouv.fr, **un jeu qui affiche zéro enregistrement
+peut porter la donnée en pièce jointe**. C'est ainsi que les dépenses fiscales
+ont été trouvées, et que l'état réel des effectifs de la fonction publique a pu
+être constaté au lieu d'être supposé. Un jeu vide ne se conclut donc pas depuis
+son compteur : il faut interroger
+`/api/v2/catalog/datasets/{jeu}/attachments`.
+
+| | Source | État |
+|---|---|---|
+| ~~1~~ | ~~REI — fiscalité directe locale (DGFiP / OFGL)~~ | **chargée le 6 août** |
+| 2 | Comptes individuels des communes (DGFiP) | **écartés le 6 août** — doublon qui contredirait l'OFGL |
+| ~~3~~ | ~~Dépenses fiscales — Voies et moyens t. 2~~ | **chargées le 6 août** — trouvées ailleurs que dans le jeu ODS vide |
+| 4 | Opérateurs de l'État | **écartés le 6 août** — la source ne publie plus ni crédits ni emplois |
+| 5 | Commande publique / DECP | **écartée le 6 août** — montants et lieux d'exécution non publiables |
+| 6 | Effectifs de la fonction publique de l'État | **écartés le 6 août** — la série s'arrête en 2016 |
+| 7 | Exécution budgétaire par mission | 2010-2013 seulement, valeur faible |
+| ~~8~~ | ~~Péréquation (DSU, DSR, DNP)~~ | **chargée le 6 août** — la donnée était déjà téléchargée et jetée |
+| ~~9~~ | ~~Délais de paiement des collectivités~~ | **chargés le 6 août** |
+| 10 | Subventions & aides versées | **reportées le 6 août** — Sirene est le prérequis |
+| ~~11~~ | ~~Droits de mutation (DMTO)~~ | **chargée le 7 août** — contrôle au centime sur 130 Md€ |
+| ~~12~~ | ~~Impôt sur le revenu localisé (IRCOM)~~ | **chargé le 6 août** — 34 781 communes |
+| ~~13~~ | ~~Cotisations sociales — exonérations URSSAF~~ | **chargées le 6 août** — 22 exercices |
+| ~~14~~ | ~~Salaires (INSEE Melodi)~~ | **chargés le 6 août** — quatre mailles |
+| 15 | Défaillances d'entreprises | **écartées le 6 août** — série gelée en 2017 |
+| 16 | Effectifs de la fonction publique territoriale | **écartés le 6 août** — 2016, et sans maille |
+| ~~17~~ | ~~Assurance chômage (Unédic)~~ | **chargée le 6 août** — 2020-2025 |
+| ~~18~~ | ~~Assurance maladie (CNAM)~~ | **chargée le 6 août** — prescriptions, 2010-2024 |
+| 19 | Retraites | **écartées le 6 août** — aucune masse par territoire n'existe |
+| ~~20~~ | ~~Permis de construire (Sitadel)~~ | **chargés le 6 août** — sept exercices |
+| ~~21~~ | ~~Loyers (carte ANIL)~~ | **chargés le 6 août** — les 14 % mesurés seulement |
+| ~~22~~ | ~~Fonds européens FEDER/FSE+~~ | **chargés le 6 août** — le programmé seulement |
+| 23 | Aides PAC | **écartées le 6 août** — aucune diffusion en masse |
+
+**Trois affirmations du registre ne tiennent pas, vérifiées le 6 août.** Le REI y
+est annoncé « 2009→ » : la source n'en publie que **2024 et 2025**. Et le jeu des
+dépenses fiscales cité par son identifiant ODS —
+`plf2023_voies_et_moyens_t2_liste_des_depenses_fiscales` — **existe mais ne
+contient aucun enregistrement**, pas plus que son tome 1. Le registre portait la
+mention « (nv) », non vérifié ; elle était méritée. **Les dépenses fiscales ont
+donc été trouvées ailleurs et chargées le jour même** — voir plus bas.
+
+**Dépenses fiscales — chargées le 6 août, après trois impasses.** C'était le
+manque le plus lourd du registre : quatre-vingt-huit milliards d'euros que
+l'État renonce à percevoir, qui n'apparaissent sur aucune ligne de dépense et
+que le site ne disait pas. Le chemin pour y arriver mérite d'être écrit, parce
+que les trois premières portes étaient fermées.
+
+La première, celle du registre — `plf2023_voies_et_moyens_t2_liste_des_depenses_fiscales`
+— **ne contient aucun enregistrement**. La deuxième, `plf-2024-vm-tome-2_depenses-fiscales`,
+en contient 468 mais **sans un seul montant** : c'est le premier onglet du
+tableur déversé tel quel, colonnes `empty`, `empty0`, `empty1`, où le seul
+nombre est le numéro de la dépense fiscale. La troisième, la pièce jointe XLSX
+du jeu vide, porte bien les chiffrages — mais ceux du PLF 2023, réalisé 2021 :
+trois ans de retard, et aucun millésime plus récent n'existe sous cette forme.
+
+**La porte ouverte était ailleurs, dans une annexe qui ne parle pas de fiscalité.**
+Le rapport sur l'impact environnemental du budget — le « budget vert » annexé au
+PLF 2026 — cote 1 816 lignes de dépense publique, dont **483 dépenses fiscales
+avec leurs montants** : réalisé 2024, prévision 2025, prévision 2026. C'est la
+seule publication exploitable de ces chiffrages, et elle est à jour.
+
+**Le contrôle confronte deux annexes du même projet de loi.** Ce jeu n'a pas de
+somme interne à retrouver : la somme de ce qu'on a lu est toujours égale à
+elle-même, et une annexe qui ne coterait qu'une partie des niches passerait
+inaperçue. Le contrôle recopie donc les **dix-sept lignes du tableau « Dépenses
+fiscales par impôt » publié dans le tome 2**, regroupe les catégories du budget
+vert vers elles, et vérifie les vingt-sept croisements plus les trois totaux.
+Ils tombent **à l'euro près** : 89 406, 91 834 et 88 269 M€ pour 2024, 2025 et
+2026. Deux documents indépendants, produits par deux directions différentes,
+disent le même chiffre — c'est ce qui autorise à publier.
+
+**Trois réserves entrent dans les fiches.** Une dépense fiscale **n'est pas une
+dépense** : c'est une moindre recette, l'écart entre l'impôt qu'une règle
+générale aurait produit et celui que produit la règle dérogatoire. L'additionner
+aux crédits votés donnerait un total qui ne mesure rien, et le connecteur écrit
+ces lignes sous un type de budget — `PLF` — que la page du budget de l'État ne
+lit pas. Ce sont des **chiffrages, pas des encaissements**, et le document
+signale lui-même leur fiabilité inégale. Enfin les dispositifs dont le coût est
+inférieur à 0,5 M€ (« ε », 42 lignes) ou non calculé (« nc », 63 lignes) sont
+**absents et non nuls** : écrire zéro à leur place inventerait une niche
+gratuite. Un test l'a d'ailleurs prouvé nécessaire — le total lui-même sortait à
+zéro euro pour un exercice sans aucun chiffrage, ce qui aurait annoncé la fin
+des niches fiscales.
+
+**Un piège de lecture, attrapé avant écriture.** Le budget vert scinde une
+dépense fiscale en plusieurs lignes quand sa cotation environnementale diffère
+d'une part à l'autre, et chaque part porte sa fraction du coût : 483 lignes pour
+**457 dispositifs**. Sommer sans recoller aurait affiché le crédit d'impôt
+« prêt à taux zéro » à un sixième de son coût. Les parts sont recollées par
+numéro de dépense fiscale ; le total, lui, se calcule sur les lignes, ce qui est
+la même chose et se vérifie contre le tome 2.
+
+Vérifié sur la publication : le crédit d'impôt recherche, **8,0 Md€** en 2026,
+est le premier dispositif ; le crédit d'impôt pour l'emploi d'un salarié à
+domicile suit à 7,2 Md€. À eux deux ils pèsent plus que le produit de l'impôt
+sur la fortune immobilière tout entier.
+
+**Opérateurs de l'État — écartés le 6 août, faute de la donnée annoncée.** Le
+registre promet « financements État, ETPT ». Les trois fichiers récents
+(PLF 2024, 2025, 2026, ~70 Ko chacun) ne portent **ni montant ni effectif** :
+cinq colonnes, opérateur, catégorie, statut, mission et programme de
+rattachement, exercice. C'est une nomenclature, pas une mesure. Les crédits
+versés aux opérateurs existaient dans les jeux ODS du **PLF 2014** — douze ans
+de retard, et un périmètre d'opérateurs qui a changé entre-temps. Publier « le
+nombre d'opérateurs par mission » serait publier un décompte d'étiquettes
+administratives : ce site refuse déjà les nuances politiques des élections pour
+la même raison.
+
+**Commande publique / DECP — écartée le 6 août, sur deux motifs indépendants.**
+La source existe et elle est vivante : 677 111 marchés sous l'arrêté de 2022,
+702 901 sous celui de 2019, mis à jour le jour même. Elle est pourtant
+impubliable ici, et il vaut de dire pourquoi avec des nombres.
+
+*Les montants ne mesurent rien.* Dans le fichier des marchés **valides** — le
+portail a déjà écarté les invalides — **1 144 marchés sur 677 111, soit 0,17 %,
+portent 45,3 % du montant total**. Quatre marchés valent exactement
+2 147 483 647 €, c'est-à-dire 2³¹−1 : la valeur maximale d'un entier signé sur
+32 bits, pas un prix. On y trouve une location de sanitaires à 3 milliards
+d'euros, une fourniture de semences à 2 milliards, du mobilier de bureau à
+2 milliards. Le total déclaré du seul fichier 2022 atteint 956 Md€, quand la
+commande publique française se compte en centaines de milliards. Un même marché
+d'ingénierie informatique apparaît quatre fois à 2 Md€ ; un groupe (objet,
+montant) se répète trente-huit fois.
+
+*Et le lieu n'est pas une maille.* Seuls **4,2 % des marchés déclarent un code
+commune** ; 61,5 % déclarent un **code postal**, qui est un identifiant de
+tournée postale et non un territoire — il couvre plusieurs communes, et une
+commune peut en porter plusieurs. Le vocabulaire de la colonne n'est même pas
+normalisé : « Code département » et « CODE DEPARTEMENT » coexistent comme deux
+valeurs distinctes dans la même colonne du même fichier. Le contrôle de
+couverture de ce site, qui refuse en dessous de 95 % d'entités reconnues,
+écarterait ce jeu sans discussion.
+
+Reste ce qu'on aurait pu publier malgré tout : un **nombre de marchés notifiés**
+par département et par an, insensible aux montants aberrants. Il mesurerait la
+**conformité déclarative des acheteurs**, pas l'achat public — le passage de
+16 767 marchés en 2018 à 128 138 en 2019 est l'entrée en vigueur d'une
+obligation, pas un choc économique. Une carte de ce chiffre serait lue comme
+« où va l'argent ». C'est exactement la lecture que ce site refuse de fabriquer.
+
+**Effectifs de la fonction publique — écartés le 6 août, sur l'âge de la
+série.** Le jeu annoncé par le registre, `effectifs-de-la-fonction-publique-de-letat`,
+**contient zéro enregistrement**, comme les six autres jeux DGAFP du portail. La
+même méthode que pour les dépenses fiscales a pourtant fonctionné : la donnée
+survit en **pièce jointe** du jeu vide, et elle est réelle. Le fichier
+départemental porte les effectifs physiques des trois fonctions publiques par
+région et par département, plus un taux d'administration — exactement la maille
+qui manque au site.
+
+**Il s'arrête en 2016**, et le classeur a été enregistré pour la dernière fois en
+2018. Ce sont des figures de rapport, pas une série entretenue : celui de l'État
+par ministère s'arrête au même moment. Poser sur la carte un effectif de 2016 à
+côté d'une population de 2023 ferait comparer deux Frances différentes, et la
+page de fraîcheur ne suffirait pas à empêcher la lecture. La ligne rouvrira le
+jour où la DGAFP republiera la même série au-delà de 2016 ; elle est fermée tant
+que ce n'est pas le cas.
+
+C'est le troisième point où le registre annonce plus que les sources ne servent —
+après le REI « 2009→ » qui n'a que deux exercices, et les jeux ODS de dépenses
+fiscales vides.
+
+**Fiscalité directe locale — chargée le 6 août.** Le site publiait un
+total, « impôts locaux » de l'OFGL, et des taux. Il ne disait pas **d'où vient
+l'argent**. Ce chargement le dit : quatre produits par commune — foncier bâti,
+foncier non bâti, taxe d'habitation, cotisation foncière des entreprises — sur
+les exercices 2024 et 2025, soit 194 916 observations.
+
+Trois réserves entrent dans les fiches. **La taxe d'habitation sur les résidences
+principales n'existe plus** : supprimée pour tous en 2023, ce qui subsiste ne
+porte que sur les résidences secondaires, et une série qui enjambe cette date ne
+décrit pas le même impôt. **La CFE est le plus souvent perçue par
+l'intercommunalité** : la source ne donne un produit communal qu'à 12 100 couples
+commune-exercice contre 69 829 pour le foncier bâti, et une commune à zéro n'est
+pas une commune sans entreprises — Bordeaux en est une. Et **ces quatre produits
+ne sont pas la décomposition de l'agrégat « impôts locaux »** déjà publié, qui
+porte un autre périmètre : les additionner pour le retrouver serait une
+reconstruction, pas une mesure.
+
+**Le contrôle a dû être conçu, pas copié.** Ce jeu n'a pas de total à retrouver ;
+il a une identité comptable — base × taux + lissage = produit — que la source
+vérifie mal elle-même. Mesuré sur les 69 673 couples commune-exercice : écart
+médian 0,006 %, neuf communes sur dix sous 0,11 %, mais une queue jusqu'à 13 % sur
+308 communes, pour des corrections que la source n'expose pas. Bloquer le
+chargement sur la commune la plus atypique aurait été une fausse alerte. Le
+contrôle porte donc sur la **distribution** — médiane, part sous un pour cent — et
+sur la **somme France**, ce qui suffit à attraper le défaut qu'on cherche : un taux
+ou une base lus sur la mauvaise ligne décalent toutes les communes à la fois.
+
+**Et il a servi tout de suite.** L'export de l'OFGL commence par un BOM, qui se
+colle au nom de la première colonne : lu en `utf-8` simple, l'exercice revenait
+vide et les deux années s'écrasaient sous la même clé — la base d'une année se
+retrouvait comparée au produit de l'autre. Aucun total ne l'aurait montré ; c'est
+l'identité qui a crié. Un test rejoue le défaut.
+
+Vérifié sur la publication : Bordeaux 2025, 248,4 M€ de foncier bâti, 493 729 €
+de foncier non bâti, 6,3 M€ de taxe d'habitation sur les résidences secondaires,
+aucune CFE.
+
+**Et la série montre déjà ce que la fiche annonçait.** La taxe d'habitation de
+Bordeaux passe de 10,7 M€ en 2024 à 6,3 M€ en 2025 — une chute de 41 % en un an,
+qui ne dit rien de la politique fiscale de la ville. C'est exactement la lecture
+que la réserve interdit : l'impôt lui-même a changé de périmètre, et un lecteur
+qui verrait la courbe sans la fiche conclurait de travers.
+
+**Comptes individuels des communes — écartés le 6 août, parce qu'ils
+contrediraient ce qui est déjà publié.** Le fichier existe et il est riche :
+69 877 enregistrements, 252 colonnes, exercices 2023-2024. Sa convention se lit
+sans ambiguïté — les montants sont en **milliers d'euros**, les colonnes en `f`
+sont par habitant de la commune, celles en `m` sont la moyenne de la strate
+DGFiP. Rien ne s'opposait techniquement au chargement.
+
+**Ce qui s'y oppose est que le site publie déjà ces comptes, par une autre
+porte.** Les 72 agrégats de l'OFGL viennent de la même donnée DGFiP et couvrent
+recettes, dépenses, épargne et dette, commune par commune. Charger les comptes
+individuels ajouterait un second jeu de chiffres sur les mêmes lignes — et ils ne
+coïncident pas : pour Bordeaux en 2023, l'OFGL publie 353,7 M€ de dépenses de
+fonctionnement quand les comptes individuels en affichent 385,2 M€. Les deux sont
+justes sur leur périmètre, et aucun lecteur ne pourrait savoir lequel regarder.
+Ce site refuse les comparaisons dont il ne contrôle pas la définition ; il doit
+d'autant plus refuser de se contredire lui-même.
+
+Reste l'apport propre de ce fichier : la **moyenne de la strate DGFiP**, un
+repère que le site n'a pas. Mais il en a déjà un — le groupe de communes
+semblables, dont les critères sont publiés et affichés sous chaque quartile. En
+poser un second, défini autrement, donnerait deux réponses à la question « ma
+commune est-elle comme les autres ? ». Si ce repère-là devait entrer un jour, ce
+serait en **remplacement** du nôtre et après comparaison des deux découpages, pas
+à côté.
+
+**Péréquation — chargée le 6 août, sans rien télécharger de nouveau.** Le
+connecteur des dotations lisait déjà les quatre composantes de la DGF — part
+forfaitaire, DSU, DSR, DNP — pour en publier la **somme**, et jetait le détail.
+Le site répondait donc « combien l'État verse » sans jamais dire « au titre de
+quoi », alors que c'est là que se lit la redistribution : la part forfaitaire
+suit la population, les trois autres corrigent. Une commune peut voir sa DGF
+baisser pendant que sa péréquation monte, et jusqu'ici la courbe ne le montrait
+pas. Trois indicateurs de plus, zéro octet de plus.
+
+La réserve qui entre dans les fiches : **une absence n'est pas un zéro**. Moins
+de mille communes touchent la DSU sur les 34 000 ; une commune sans ligne n'est
+pas une commune à zéro euro, elle n'est pas éligible. Le contrôle bloquant
+vérifie qu'aucune péréquation n'est versée à une commune sans part forfaitaire —
+le jeu est en format long, la variable est une chaîne de caractères, et la lire
+de travers ne ferait rien planter : une composante rattachée aux mauvaises
+communes laisserait le total juste.
+
+**Délais de paiement — chargés le 6 août.** En combien de jours ma commune paie
+ses fournisseurs. La loi lui en accorde trente ; c'est la mesure la plus
+concrète de ce qu'une collectivité fait subir aux entreprises qui travaillent
+pour elle, et un artisan payé à quatre-vingts jours porte la trésorerie de la
+mairie. 34 460 communes, exercice 2025.
+
+**Le piège était dans le nom d'une colonne.** La source range sous `code_insee`
+un **SIRET à quatorze chiffres** : Bordeaux y est `21330063500017`, pas `33063`.
+Lue au premier degré, cette colonne aurait placé chaque commune sur un
+territoire inexistant — sans rien casser, puisque le nombre est parfaitement
+bien formé. Le rattachement passe par les neuf premiers chiffres, le SIREN, et
+le référentiel géographique qui le porte. C'est le contrôle de couverture qui
+tient ce connecteur, pas une identité comptable : ce jeu n'en a pas, il n'a
+qu'une mesure par commune.
+
+Deux réserves dans la fiche. La moyenne est **pondérée par les montants** : une
+commune peut payer vite ses petites factures et faire attendre la plus grosse.
+Et **un délai court n'est pas une vertu budgétaire** — payer vite suppose de la
+trésorerie. Seuls les budgets principaux des communes entrent ; le délai d'un
+service des eaux ou d'un CCAS est celui d'un autre ordonnateur.
+
+**Subventions & aides versées — reportées le 6 août, avec leur condition.** Ce
+n'est pas un refus : c'est un prérequis. Les données essentielles des
+subventions existent, mais **publiées commune par commune** — 161 jeux sur
+data.gouv.fr, un par mairie ou par établissement, sans consolidation nationale
+et sans format commun. Le seul fichier national est le jaune budgétaire
+« effort financier de l'État en faveur des associations », et il pose un choix
+impossible en l'état :
+
+| Millésime | Versements | Géographie |
+|---|---|---|
+| PLF 2020 (exercice 2018) | 92 114 | **code commune COG** |
+| PLF 2023 (exercice 2021) | 102 622 | SIREN + NIC, **aucune géographie** |
+
+Le seul millésime cartographiable a huit ans, et le producteur a **retiré la
+géographie** des millésimes suivants : charger 2018 créerait une couche morte,
+que rien ne pourrait jamais prolonger. Le millésime récent est territorialisable
+— mais seulement en résolvant SIREN + NIC vers une commune, ce qui demande
+**Sirene**, jeu classé P0 au registre et pas encore chargé. La ligne rouvre le
+jour où Sirene entre ; elle est explicitement en attente, pas oubliée.
+
+**Droits de mutation — codés le 6 août.** Quand un logement change de mains,
+l'acheteur paie des droits de mutation. C'est la recette la plus volatile des
+collectivités : elle suit le marché immobilier et non un vote. Les départements
+ont encaissé **16,76 Md€ en 2022 et 11,33 Md€ en 2024** — un tiers de moins en
+deux ans, sans qu'aucune décision politique ne soit en cause. Sept exercices
+complets, 2019 à 2025, 99 départements.
+
+**Le contrôle est le plus dur du dépôt.** La source publie la même masse **deux
+fois**, ventilée autrement : une fois par lieu d'encaissement (35 395 lignes),
+une fois par collectivité bénéficiaire (34 554 lignes). Les cardinalités
+diffèrent parce que la taxe communale est encaissée par la direction
+départementale et reversée aux communes — mais c'est le même argent. Les deux
+ventilations tombent **au centime**, sur 450 couples mois × taxe et
+130 326 685 268,21 €. Aucune erreur de lecture ne satisfait cette égalité par
+hasard ; c'est pourquoi les deux fichiers entiers servent de fixture, et pourquoi
+un test vérifie qu'**un centime d'écart suffit à bloquer**.
+
+Trois réserves entrent dans les fiches. **Département et communes ne
+s'additionnent pas** : deux niveaux de collectivité, deux totaux. **La part
+communale n'est pas une donnée communale** — la source l'agrège sur toutes les
+communes d'un département, et la diviser par les habitants d'une ville serait un
+contresens. Et les montants sont datés du **mois de comptabilisation**, pas de
+la transaction : la série ne se lit pas comme un indicateur du marché
+immobilier. La taxe régionale est écartée, **99,996 % de son montant n'étant pas
+localisé** dans la source. L'exercice en cours n'est pas publié : la source va
+jusqu'au mois dernier, et 2026 à côté de 2025 montrerait un effondrement qui
+n'est que le calendrier.
+
+**Trois sources sondées et validées, pas encore codées.** L'**IRCOM** donne
+l'impôt sur le revenu par commune, revenus 1992 à 2024, avec deux pièges
+mesurés : la colonne `Dép.` contient une **direction DGFiP** et non un
+département — Paris est éclaté en cinq, et le code `B31` désigne les
+non-résidents dont les « communes » sont des **pays** — et chaque commune
+détaillée apparaît **neuf fois**, huit tranches plus un total. Le contrôle
+existe et il est exact : la somme des tranches retrouve le total, zéro échec sur
+5 874 communes, une fois écartées les cellules sous secret. Les **exonérations
+de cotisations URSSAF** couvrent 2004-2025 par département, avec une identité à
+trois niveaux emboîtés — somme des départements = somme des régions = total
+France, à 0,92 € près sur 1 000,7 Md€ ; piège signalé, deux jeux aux colonnes
+homonymes diffèrent de 1,29 Md€ de périmètre. Les **salaires** de l'INSEE
+donnent le net mensuel équivalent temps plein par commune, millésime 2023, avec
+un contrôle d'égalité Paris commune / Paris département.
+
+**Défaillances d'entreprises — écartées le 6 août.** Les 640 séries de la Banque
+de France sont **toutes vides** sur son portail, pièces jointes comprises ; le
+seul fichier téléchargeable s'arrête en **septembre 2017**. Le BODACC, lui, est
+vivant — 50,2 millions d'annonces jusqu'à aujourd'hui — mais c'est une base
+d'**annonces judiciaires**, pas une statistique : 175 892 annonces de procédures
+collectives en 2024 pour un ordre de grandeur officiel de 66 000 défaillances,
+avec des rectificatifs, des annulations et un champ `jugement` sérialisé en JSON
+dans une colonne texte. Publier un décompte d'annonces sous le nom
+« défaillances » serait faux.
+
+**Effectifs de la fonction publique territoriale — écartés le 6 août.** Même
+piège de pièce jointe, même mur : la donnée existe, elle s'arrête en **2016**,
+et le fichier n'a **aucune colonne territoriale** malgré le mot « territoriale »
+dans son titre — c'est un agrégat national par type d'employeur. Le fichier
+départemental voisin s'arrête aussi en 2016. Une source plus récente existe chez
+la Caisse des dépôts, 2014-2021 par département, mais elle compte des
+**cotisants dans l'année** et non des effectifs au 31 décembre : 2,69 millions
+contre 1,9 million, les deux séries ne se raccordent pas.
+
+**Assurance chômage — sondée, chargeable, et c'est la meilleure trouvaille du
+lot.** Le jeu `evolution_indicateurs_cles_ac` de l'Unédic publie la **dépense
+d'indemnisation mensuelle en euros par département**, de janvier 2020 à décembre
+2025, géométries comprises. L'identité de contrôle est exacte : la somme des
+103 territoires égale la somme des 14 lignes d'agrégat régional, au centime —
+36 639 599 911,50 € pour 2024 des deux côtés. Deux pièges mesurés : sommer les
+117 lignes sans écarter les agrégats donne **exactement le double**, et le code
+de Saint-Martin/Saint-Barthélemy vaut littéralement `"Saint"`, tronqué à cinq
+caractères à la source.
+
+**Assurance maladie — sondée, chargeable, avec un piège de vocabulaire.** Le jeu
+`prescriptions` de la CNAM donne 2010 à 2024 par département, avec une identité
+exacte : la ligne France vaut 60 453 601 998 € en 2024, la somme de ses huit
+postes tombe au même euro, et la somme des 101 départements à six euros près.
+Mais deux voisins portent des noms trompeurs. Le jeu `honoraires` mesure ce que
+**perçoivent les professionnels**, dépassements compris — 4,54 Md€ payés par les
+ménages en 2024 — et non de l'argent public. Et le jeu nommé `depenses` n'a
+**aucune dimension géographique** : ses colonnes `dep_niv_1` et `dep_niv_2` sont
+des postes de dépense, pas des départements. Sommer sa hiérarchie donne 588,6 Md€
+pour un vrai total de 212,58 Md€, parce qu'un patient compte dans plusieurs
+pathologies.
+
+Un piège de format mérite d'être noté pour la suite : les fichiers plats de la
+CNAM écrivent les montants avec le **point comme séparateur de milliers**
+(`559.662,99`). Une conversion naïve échoue silencieusement sur 38 % des lignes
+et divise le total par 163.
+
+**Retraites — écartées le 6 août, faute de donnée.** Ce n'est pas un problème de
+millésime ni de format : **aucune masse de pensions versées par territoire n'est
+publiée en open data**. Le portail de l'Assurance retraite croise les euros avec
+le temps mais jamais avec un lieu, et croise le territoire — la **Carsat**, qui
+n'est ni la région ni le département — uniquement avec des effectifs. Son jeu
+« Montant global de la retraite » ne porte pas une masse mais une **moyenne
+mensuelle par retraité**, et sur le seul régime général, hors complémentaires.
+La DREES ne publie de pensions régionales qu'en distributions figées à fin 2016.
+Cartographier les retraites supposerait de multiplier un effectif par une
+pension moyenne : ce serait une reconstruction, pas une mesure.
+
+**Permis de construire — sondée, c'est la plus propre des quatre.** Le fichier
+communal mensuel du SDES couvre janvier 2013 à juin 2026, 34 945 communes,
+28,9 millions de lignes, avec une API filtrable. L'identité de contrôle est
+exacte : « Tous Logements » égale la somme des quatre types, vérifiée à Lyon
+comme au national. 370 546 logements autorisés en 2025, 239 618 commencés.
+
+Deux pièges mesurés, tous deux bloquants. Le fichier **annuel départemental** ne
+se rapproche pas du mensuel communal : l'un est en date réelle et incomplet,
+l'autre en date de prise en compte, et l'écart 2025 est de **4,3 %** — deux
+concepts, pas une erreur. Et la colonne de surface du fichier annuel
+départemental est **corrompue à la source** : 1 782 m² par logement au national
+2025, contre 75,9 m² dans le fichier communal. Les surfaces ne se chargent donc
+que depuis le mensuel communal.
+
+**Loyers — chargeable sous une réserve qui change tout.** La carte des loyers de
+l'ANIL couvre 34 900 communes, mais **86 % des valeurs ne sont pas des loyers
+communaux** : ce sont les prédictions d'une zone voisine, recopiées. La colonne
+`TYPPRED` le dit, et il n'y a que 7 244 valeurs distinctes pour 34 900 communes.
+En croisant prédiction communale, au moins trente annonces et qualité
+d'ajustement suffisante, il reste **4 869 communes exploitables, soit 14,0 %**.
+Charger sans ce filtre publierait trente mille faux loyers communaux. Il faudra
+donc charger `TYPPRED` et l'intervalle de prédiction avec la valeur, et
+n'afficher que ce qui est mesuré.
+
+**Fonds européens — chargeable pour ce qui est programmé, pas pour ce qui est
+payé.** La liste ANCT donne 16 625 opérations FEDER, FSE+ et FTJ conventionnées
+au 16 mars 2026, soit **7,88 Md€ de subvention européenne** sur 17,95 Md€ de
+dépenses éligibles. Deux contrôles tiennent : dépenses éligibles × taux de
+cofinancement = montant UE sur les 16 591 lignes renseignées, et le décompte
+d'opérations par programme correspond à l'unité près à celui publié sur le site.
+Le piège est géographique : la colonne « Région de l'opération » est **vide à
+37 %** et porte 71 valeurs distinctes pour 18 régions ; c'est le libellé de
+programme qui régionalise. Et les montants **payés** n'existent que dans un PDF
+graphique, illisible par machine — ces 7,88 Md€ sont des engagements, jamais des
+versements.
+
+**Aides PAC — écartées le 6 août, pour cause d'inaccessibilité.** L'ASP ne
+diffuse plus les bénéficiaires que par une application décisionnelle
+interactive : l'API répond 401, l'ancien portail 404, et le reste expire. Même
+accessible, la maille communale serait détruite par l'anonymisation — dès que
+moins de onze bénéficiaires d'une commune sont concernés, seul le département
+est publié, ce qui frappe précisément les campagnes où l'agriculture est
+diffuse. S'ajoute un piège de définition : la commune publiée est celle
+d'enregistrement du bénéficiaire, pas celle des parcelles aidées.
+
+## Ce que la vague du 6 août a mis en ligne
+
+Vérifié sur les fichiers publiés le 7 août au matin : le site publie **276
+indicateurs**, contre 257 la veille au soir.
+
+| Ce qu'on peut désormais demander | Bordeaux / Gironde |
+|---|---|
+| Impôt sur le revenu payé par la commune | 617 751 779 € (2024), 176 288 foyers |
+| Salaire net mensuel équivalent temps plein | 2 680,31 € (2023) |
+| Délai de paiement des fournisseurs | 19,85 jours (limite légale : 30) |
+| Loyer d'annonce d'un appartement | 15,99 €/m²/mois |
+| Logements autorisés dans l'année | 2 535 (2025) |
+| Dotation globale de fonctionnement | 36,5 M€ (2025), dont 1,8 M€ de DNP, aucune DSU |
+| Droits de mutation du département | 557,9 M€ (2022) → 342,1 M€ (2024) |
+| Indemnisation du chômage | 1,03 Md€ (2025) |
+| Exonérations de cotisations | 2,03 Md€ (2025) |
+| Prescriptions des médecins libéraux | 1,92 Md€ (2024) |
+
+Deux de ces lignes disent quelque chose qu'aucun total n'aurait montré. Les
+**droits de mutation de la Gironde perdent 39 % en deux ans** sans qu'aucune
+décision politique ne soit en cause — c'est le marché immobilier, et c'est
+pourquoi cette recette-là mérite d'être isolée du reste. Et **Bordeaux ne touche
+aucune dotation de solidarité urbaine** : l'absence est ici une non-éligibilité,
+pas un zéro, exactement la réserve que la fiche annonce.
+
+**Un chantier reste ouvert, et il est nommé.**
+
+Le niveau `arrondissement_municipal` est désormais exporté par `publish.py` :
+les 45 arrondissements de Paris, Lyon et Marseille ont leur fiche
+(`territoires/arrondissement_municipal/tous.json`) et leur entrée dans l'index
+de recherche. Ils ne sont **pas** cartographiés — il n'existe pas de couche de
+tuiles pour eux, et cette exclusion vaut aussi garde-fou : les seuls calculs qui
+additionnent des territoires (quartiles du groupe de comparaison, agrégats de
+`references.json`) ne parcourent que les niveaux cartographiés, et ne peuvent
+donc jamais ajouter un arrondissement à sa commune mère. Côté site, leur fiche
+s'ouvre depuis la recherche sans faire changer la carte de couche. Ce qui reste
+à faire, si on le veut un jour : une couche de tuiles d'arrondissements, seule
+manière de peindre Paris, Lyon et Marseille en choroplèthe.
+
+Les **subventions aux associations** attendent **Sirene**. Le seul millésime
+national portant un code commune a huit ans et le producteur a retiré la
+géographie ensuite ; le millésime récent n'est territorialisable qu'en résolvant
+SIREN + NIC vers une commune. Sirene est classé P0 au registre et débloquera
+bien plus que les subventions.
+
 ## Ce que chaque entrée doit porter avant d'être chargée
 
 La discipline des connecteurs déjà en place s'applique sans exception :

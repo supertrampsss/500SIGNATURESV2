@@ -14,10 +14,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  comparableAuxAutresTerritoires,
   densiteRapportableAuxHabitants,
   groupeDeLaCommune,
   lectureDeDensite,
+  ongletsThemes,
   positionDansGroupe,
+  rubriqueDuTheme,
   valeurComparable,
 } from "./fiche.ts";
 
@@ -264,4 +267,111 @@ test("une population ne se rapporte pas à elle-même", () => {
     jeu: "melodi-rp-population",
   } as never;
   assert.equal(densiteRapportableAuxHabitants(population), false);
+});
+
+/**
+ * Vingt-six onglets sur une ligne cachaient vingt-deux thèmes hors de l'écran.
+ * Ces tests fixent ce que le regroupement en rubriques doit préserver : rien
+ * ne disparaît, et la barre des thèmes reste dans le document même quand elle
+ * ne s'affiche pas — c'est elle qui dit quoi ouvrir en changeant de rubrique.
+ */
+
+const TOUS_LES_THEMES = [
+  "finances_locales", "impots_locaux", "budget_etat", "depenses_fiscales", "dette",
+  "fonctions", "securite_sociale", "vie_associative", "macro", "europe", "population",
+  "revenus", "famille", "diplomes", "elections", "prenoms", "emploi", "professions",
+  "entreprises", "secteurs_salaries", "secteurs_etablissements", "logement", "sante",
+  "education", "securite", "equipements", "tourisme",
+];
+
+test("les vingt-sept thèmes publiés sont rangés à la main, aucun par défaut", () => {
+  // Un thème non listé tombe dans la dernière rubrique : c'est un filet, pas
+  // une décision. Ce test dit combien de thèmes le site publie, pour qu'un
+  // vingt-huitième n'y arrive pas en silence.
+  assert.equal(TOUS_LES_THEMES.length, 27);
+  for (const theme of TOUS_LES_THEMES) {
+    if (theme === "tourisme") continue; // dernier de la dernière rubrique
+    assert.notEqual(rubriqueDuTheme(theme), undefined);
+  }
+  // Les subventions de l'État aux associations sont de l'argent public qui
+  // sort, pas un trait du cadre de vie.
+  assert.equal(rubriqueDuTheme("vie_associative"), "argent");
+});
+
+test("chaque thème publié garde un onglet, aucun n'est perdu en chemin", () => {
+  const html = ongletsThemes(TOUS_LES_THEMES, "finances_locales");
+  for (const theme of TOUS_LES_THEMES) {
+    assert.match(html, new RegExp(`data-theme="${theme}"`), `${theme} n'a pas d'onglet`);
+  }
+});
+
+test("les thèmes tiennent dans quatre rubriques", () => {
+  const html = ongletsThemes(TOUS_LES_THEMES, "finances_locales");
+  const rubriques = [...html.matchAll(/data-rubrique="([a-z]+)"/g)].map((m) => m[1]);
+  assert.deepEqual([...new Set(rubriques)], ["argent", "habitants", "travail", "cadre"]);
+});
+
+test("un thème inconnu de la table s'affiche au lieu de disparaître", () => {
+  // La règle des libellés : une liste écrite en dur avait déjà fait disparaître
+  // des données parfaitement publiées.
+  const html = ongletsThemes(["finances_locales", "energie"], "finances_locales");
+  assert.match(html, /data-theme="energie"/);
+  assert.equal(rubriqueDuTheme("energie"), "cadre");
+});
+
+test("seule la barre de la rubrique ouverte s'affiche, les autres restent lisibles au code", () => {
+  const html = ongletsThemes(TOUS_LES_THEMES, "logement");
+  const barres = [...html.matchAll(/<nav class="onglets-themes" data-rubrique="([a-z]+)"([^>]*)>/g)];
+  assert.equal(barres.length, 4);
+  for (const [, cle, attributs] of barres) {
+    assert.equal(attributs.includes("hidden"), cle !== "cadre", `barre ${cle}`);
+  }
+});
+
+test("une rubrique d'un seul thème garde sa barre mais ne la montre pas", () => {
+  const html = ongletsThemes(["finances_locales", "logement", "sante"], "finances_locales");
+  assert.match(html, /<nav class="onglets-themes" data-rubrique="argent" data-seul/);
+  assert.doesNotMatch(html, /<nav class="onglets-themes" data-rubrique="cadre" data-seul/);
+});
+
+test("sans deuxième rubrique, il n'y a pas de barre de rubriques", () => {
+  const html = ongletsThemes(["logement", "sante", "education"], "logement");
+  assert.doesNotMatch(html, /onglets-rubriques/);
+  assert.match(html, /data-theme="sante"/);
+});
+
+/**
+ * Une adresse n'est pas un territoire.
+ *
+ * Les subventions de l'État aux associations sont imputées au siège du
+ * bénéficiaire : Paris porte 3,23 Md€, soit 32,5 % du total. Bordeaux
+ * s'affichait « +3 460 % au-dessus de la médiane des communes de la région »,
+ * un écart qui ne mesure ni ce que reçoivent les Bordelais ni ce que l'État y
+ * dépense — seulement où les fédérations ont leur siège.
+ */
+
+const AU_SIEGE = {
+  id: "etat_subventions_associations",
+  unite: "EUR",
+  sommable: true,
+  jeu: "plf-2023-effort-associations",
+} as never;
+
+test("un montant imputé au siège ne se compare à aucun territoire", () => {
+  assert.equal(comparableAuxAutresTerritoires(AU_SIEGE), false);
+  // Et le chiffre reste publié : c'est la comparaison qui tombe, pas la donnée.
+  assert.equal(
+    comparableAuxAutresTerritoires({ ...(AU_SIEGE as object), jeu: "ofgl-communes" } as never),
+    true,
+  );
+});
+
+test("un effectif compté au siège n'a pas les habitants pour dénominateur", () => {
+  const etablissements = {
+    id: "etat_subventions_associations_etablissements",
+    unite: "count",
+    sommable: true,
+    jeu: "plf-2023-effort-associations",
+  } as never;
+  assert.equal(densiteRapportableAuxHabitants(etablissements), false);
 });

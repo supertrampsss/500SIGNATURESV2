@@ -12,6 +12,10 @@ dependencies = [
     "pytz>=2024.1",
     "shapely>=2.0",
     "openpyxl>=3.1",
+    # Le total national de l'IRCOM est un .xls binaire (BIFF), que
+    # openpyxl ne sait pas lire — et c'est lui qui sert de référence au
+    # contrôle de rapprochement.
+    "xlrd>=2.0",
 ]
 
 [project.optional-dependencies]

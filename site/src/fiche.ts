@@ -6,7 +6,9 @@
 
 import type { Indicateur, Jeu, Quartiles, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
-import { evolution, rendu as rendreSerie } from "./serie.ts";
+import { dernierPas, evolution, rendu as rendreSerie } from "./serie.ts";
+import { rendu as rendrePont } from "./pont.ts";
+import { exerciceDesComptes, rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
 import {
   compteEcarts, lecture, memeSens, repereComparable, resumeEcarts, synthese,
@@ -14,6 +16,11 @@ import {
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
+  // Paris, Lyon et Marseille n'existent que par arrondissement dans certaines
+  // sources — la carte des loyers de l'ANIL, par exemple, dont les codes 75056,
+  // 69123 et 13055 sont absents. Sans intitulé, leur fiche s'ouvrait sur le nom
+  // technique de la maille.
+  arrondissement_municipal: "Arrondissement municipal",
   departement: "Département",
   region: "Région",
   pays: "Niveau national",
@@ -61,9 +68,30 @@ const JEUX_COLLECTIVITE = new Set([
 ]);
 
 /**
+ * Les jeux dont la commune est celle d'un siège, pas celle où l'argent agit.
+ *
+ * Les subventions de l'État aux associations sont imputées à l'adresse de
+ * l'établissement bénéficiaire : une fédération nationale est comptée là où
+ * elle a son siège, quelle que soit la commune où son action se mène. Paris
+ * porte à ce titre 3,23 Md€, soit 32,5 % du total, et les dix premières
+ * communes 43,5 % — la fiche du jeu l'écrit déjà.
+ *
+ * Une carte qui dit où sont les sièges se lit. Un **écart à la médiane des
+ * autres communes**, lui, ne se lit pas : il présente une adresse
+ * administrative comme une intensité de financement. Bordeaux affichait ainsi
+ * « +3 460 % au-dessus de la médiane des communes de la région », qui ne
+ * mesure ni ce que reçoivent les Bordelais ni ce que l'État y dépense. C'est
+ * exactement la comparaison sans contrôle de périmètre que ce site s'interdit.
+ *
+ * Le chiffre reste publié et la série reste tracée : c'est la comparaison
+ * territoriale qui tombe, pas la donnée.
+ */
+const JEUX_AU_SIEGE = new Set(["plf-2023-effort-associations"]);
+
+/**
  * Peut-on comparer ce chiffre à celui d'un territoire qui contient le nôtre ?
  *
- * Deux conditions, toutes deux nécessaires :
+ * Trois conditions, toutes nécessaires :
  *
  * 1. **La grandeur doit être normalisée.** Un volume — 130 cambriolages,
  *    65 000 habitants, 12 écoles — rapporté à son département donnera toujours
@@ -72,9 +100,23 @@ const JEUX_COLLECTIVITE = new Set([
  *    comparent d'une maille à l'autre.
  * 2. **Les deux mailles doivent mesurer la même chose** : un territoire de part
  *    et d'autre, pas un territoire face à une collectivité.
+ * 3. **Le chiffre doit porter sur le territoire, et non sur une adresse qui
+ *    s'y trouve.** Un montant imputé au siège du bénéficiaire décrit une
+ *    domiciliation, pas le territoire.
  */
 function comparableAuxParents(indicateur: Indicateur, ratio: boolean): boolean {
-  return (ratio || indicateur.sommable === false) && !JEUX_COLLECTIVITE.has(indicateur.jeu);
+  return (
+    (ratio || indicateur.sommable === false) &&
+    !JEUX_COLLECTIVITE.has(indicateur.jeu) &&
+    !JEUX_AU_SIEGE.has(indicateur.jeu)
+  );
+}
+
+/** Un chiffre imputé au siège ne se compare à rien de territorial — ni aux
+ *  mailles qui contiennent la nôtre, ni à la médiane des autres communes, ni
+ *  par sa densité. Les trois diraient la même chose de faux. */
+export function comparableAuxAutresTerritoires(indicateur: Indicateur): boolean {
+  return !JEUX_AU_SIEGE.has(indicateur.jeu);
 }
 
 /** Ce qu'il y a à dire d'un indicateur pour un territoire, calculé une seule
@@ -210,7 +252,10 @@ export function densiteRapportableAuxHabitants(indicateur: Indicateur): boolean 
     indicateur.unite === "count" &&
     !!indicateur.sommable &&
     !POPULATIONS.has(indicateur.id) &&
-    !JEUX_AU_LIEU_DE_TRAVAIL.has(indicateur.jeu)
+    !JEUX_AU_LIEU_DE_TRAVAIL.has(indicateur.jeu) &&
+    // Quatre refus, donc : les habitants ne sont pas non plus le dénominateur
+    // d'un effectif compté à l'adresse d'un siège.
+    comparableAuxAutresTerritoires(indicateur)
   );
 }
 
@@ -273,11 +318,15 @@ function mesurer(
       { libelle: c.libelle, valeur: ratio ? brutParent / (popParent as number) : brutParent },
     ];
   });
-  const medianes = reperes(
-    toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
-    niveau,
-    territoire.region ?? null,
-    ratio,
+  const medianes = (
+    comparableAuxAutresTerritoires(indicateur)
+      ? reperes(
+          toutesReferences?.[indicateur.id]?.[periode]?.[niveau],
+          niveau,
+          territoire.region ?? null,
+          ratio,
+        )
+      : []
   ).map((r) => ({ ensemble: r.ensemble, valeur: r.valeur, libelle: r.libelle }));
   const comparaisons = [
     ...parents,
@@ -386,6 +435,15 @@ function ligneIndicateur(
       }.`,
     );
   }
+  // Retirer les comparaisons laissait la ligne muette : un chiffre seul, sans
+  // un mot, se lit comme une comparaison qu'on aurait oublié de faire. La
+  // raison du refus vaut mieux que le silence.
+  if (!comparableAuxAutresTerritoires(indicateur)) {
+    comparaisons.push(
+      "Ce montant est imputé à l'adresse du bénéficiaire, pas à la commune où l'action est menée :" +
+        " il ne se compare pas d'un territoire à l'autre.",
+    );
+  }
   // À défaut de comparaison extérieure, la part dans son propre total : lue au
   // même millésime, dans la même source, elle est exacte par construction.
   const part = PART_DU_TOTAL[indicateur.id];
@@ -394,6 +452,15 @@ function ligneIndicateur(
     comparaisons.push(`Soit ${pourcentage((brut / totalPart) * 100)} ${part.nom}.`);
   }
   const evolutionDite = evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie));
+  // Le sens du dernier mouvement, lisible sans rien ouvrir. L'évolution longue
+  // reste dans le détail : elle demande de savoir depuis quand, ce qui ne tient
+  // pas dans un résumé de ligne.
+  const pas = dernierPas(suivie, indicateur.unite, evenements, periode);
+  const pastille = pas
+    ? `<span class="mesure__pas mesure__pas--${pas.sens}" title="${echapper(
+        `de ${pas.depuis} à ${pas.jusqua}`,
+      )}">${echapper(pas.texte)}</span>`
+    : "";
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
   // son détail n'a pas à être demandé.
@@ -405,6 +472,7 @@ function ligneIndicateur(
       <button type="button" class="mesure__info" data-info="${indicateur.id}"
         aria-expanded="false" aria-label="Que mesure cet indicateur ?">i</button>
       <span class="mesure__valeur">${formate(valeur)}</span>
+      ${pastille}
       <!-- La définition sort en bulle par-dessus la fiche, elle ne pousse
            rien : dépliée dans le flux, elle décalait toute la liste sous elle
            à chaque fois qu'on demandait ce qu'un mot voulait dire. -->
@@ -427,7 +495,8 @@ function ligneIndicateur(
         .map((phrase) => `<p class="mesure__phrase">${echapper(phrase)}</p>`)
         .join("")}
       ${evolutionDite ? `<p class="mesure__phrase">${evolutionDite}</p>` : ""}
-      ${rendreSerie(suivie, evenements, formate, mesure.comparaisons, false)}
+      ${rendreSerie(suivie, evenements, formate, mesure.comparaisons, false,
+        territoire.maire?.depuis)}
       ${miniTableau(suivie, indicateur, ratio, ratio ? brute : undefined)}
       ${
         rang && rang.total > 1
@@ -687,50 +756,95 @@ const PHARES: Record<string, string[]> = {
   // ligne parmi quinze, présentée comme le résumé du thème.
   dette: ["insee_dette_apu_part_pib", "insee_dette_apu_montant"],
   budget_etat: ["etat_solde_budgetaire", "etat_depenses_nettes_bg"],
+  depenses_fiscales: ["depense_fiscale_totale", "depense_fiscale_impot_revenu"],
   fonctions: ["eurostat_depenses_publiques_pib"],
-  securite_sociale: ["eurostat_secu_solde_pib"],
+  // Le total des prestations d'abord, le solde ensuite : « 932 milliards »
+  // situe le lecteur, « −0,4 point de PIB » ne situe personne.
+  securite_sociale: ["drees_protection_sociale_total", "eurostat_secu_solde_pib"],
   macro: ["eurostat_inflation_ipch", "eurostat_croissance_pib"],
   europe: ["eurostat_dette_pib", "eurostat_chomage"],
 };
+
+/**
+ * Les rubriques : quatre entrées pour vingt-six thèmes.
+ *
+ * Vingt-six onglets sur une seule ligne, c'est une barre qu'il faut faire
+ * défiler pour savoir ce qu'elle contient : le lecteur ne voit jamais l'offre
+ * entière, donc il ne cherche que ce qu'il apercevait déjà. Deux niveaux la
+ * rendent lisible d'un coup d'œil — quatre entrées tiennent sans défilement, et
+ * chacune ouvre au plus neuf thèmes.
+ *
+ * Le découpage suit la question posée, pas la source. Les revenus des ménages
+ * sont rangés avec les habitants et non avec l'argent public : « combien
+ * gagne-t-on ici » n'est pas « où va l'impôt », et les confondre ferait lire
+ * un salaire comme une dépense publique. L'ordre à l'intérieur d'une rubrique
+ * reste celui de ce qu'on vient chercher, l'argent en premier.
+ *
+ * Un thème absent de cette table n'est pas écarté : il se range dans la
+ * dernière rubrique. C'est la même règle que pour les libellés — une liste
+ * écrite en dur avait déjà fait disparaître des données publiées.
+ */
+const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
+  {
+    cle: "argent",
+    libelle: "Argent public",
+    themes: [
+      "finances_locales",
+      "impots_locaux",
+      "budget_etat",
+      "depenses_fiscales",
+      "dette",
+      "fonctions",
+      "securite_sociale",
+      // Les subventions de l'État aux associations sont de l'argent public qui
+      // sort, pas un trait du cadre de vie : c'est à ce titre qu'elles se
+      // rangent ici. La règle de repli les avait mises dans la dernière
+      // rubrique, ce qui était un défaut de table et non une décision.
+      "vie_associative",
+      "macro",
+      "europe",
+    ],
+  },
+  {
+    cle: "habitants",
+    libelle: "Habitants",
+    themes: ["population", "revenus", "famille", "diplomes", "elections", "prenoms"],
+  },
+  {
+    cle: "travail",
+    libelle: "Travail",
+    themes: [
+      "emploi",
+      "professions",
+      "entreprises",
+      "secteurs_salaries",
+      "secteurs_etablissements",
+    ],
+  },
+  {
+    cle: "cadre",
+    libelle: "Cadre de vie",
+    themes: ["logement", "sante", "education", "securite", "equipements", "tourisme"],
+  },
+];
+
+/** La rubrique d'un thème. Un thème inconnu tombe dans la dernière, il ne
+ *  disparaît pas. */
+export function rubriqueDuTheme(theme: string): string {
+  const trouvee = RUBRIQUES.find((r) => r.themes.includes(theme));
+  return (trouvee ?? RUBRIQUES[RUBRIQUES.length - 1]).cle;
+}
 
 /**
  * L'ordre des thèmes dans la fiche.
  *
  * L'ordre alphabétique faisait ouvrir un site sur l'argent public par
  * « Éducation », et reléguait les finances locales au quatrième écran. Celui-ci
- * suit ce qu'on vient chercher : l'argent d'abord, ce qu'il paie ensuite. Un
- * thème absent de cette liste se range à la fin, par ordre alphabétique — il
- * s'affiche, il n'est jamais écarté.
+ * découle des rubriques, pour qu'il n'y ait qu'une seule table à tenir à jour :
+ * deux listes séparées se seraient contredites au premier thème ajouté. Un
+ * thème absent se range à la fin, par ordre alphabétique.
  */
-const ORDRE_THEMES = [
-  // Fiche d'un territoire.
-  "finances_locales",
-  "impots_locaux",
-  "revenus",
-  "population",
-  "famille",
-  "professions",
-  "logement",
-  "securite",
-  "sante",
-  "education",
-  "diplomes",
-  "emploi",
-  "entreprises",
-  "secteurs_salaries",
-  "secteurs_etablissements",
-  "equipements",
-  "tourisme",
-  "elections",
-  "prenoms",
-  // Fiche nationale.
-  "budget_etat",
-  "dette",
-  "fonctions",
-  "securite_sociale",
-  "macro",
-  "europe",
-];
+const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
 
 function ordonnerThemes(themes: string[]): string[] {
   const rang = (t: string) => {
@@ -741,27 +855,56 @@ function ordonnerThemes(themes: string[]): string[] {
 }
 
 /**
- * Les onglets de thèmes : un thème à la fois.
+ * Les onglets : une rubrique et, dedans, un thème à la fois.
  *
- * Empilés, les huit thèmes faisaient cinq écrans de défilement et il fallait
+ * Empilés, les thèmes faisaient cinq écrans de défilement et il fallait
  * traverser sept thèmes pour atteindre le huitième. En onglets, la hauteur de
  * la fiche ne dépend plus du nombre d'indicateurs : cinquante de plus n'y
  * changeraient rien.
+ *
+ * La barre des thèmes d'une rubrique existe dans le document même quand elle
+ * ne s'affiche pas — c'est elle qui dit quel thème ouvrir en changeant de
+ * rubrique. Une rubrique d'un seul thème garde donc sa barre, marquée
+ * `data-seul` : un onglet unique, toujours enfoncé, ne se clique pas, mais
+ * l'ouverture de la rubrique doit quand même savoir où aller.
  */
-function ongletsThemes(
+export function ongletsThemes(
   themes: string[],
   actif: string,
   libelleTheme?: (theme: string) => string,
 ): string {
   if (themes.length < 2) return "";
-  return `<nav class="onglets-themes" aria-label="Thèmes de la fiche">${themes
-    .map(
-      (t) =>
-        `<button type="button" data-theme="${echapper(t)}" aria-pressed="${t === actif}">${echapper(
-          libelleTheme?.(t) ?? t,
-        )}</button>`,
-    )
-    .join("")}</nav>`;
+  const rubriques = RUBRIQUES.map((r) => r.cle).filter((cle) =>
+    themes.some((t) => rubriqueDuTheme(t) === cle),
+  );
+  const rubriqueActive = rubriqueDuTheme(actif);
+  const barreRubriques =
+    rubriques.length < 2
+      ? ""
+      : `<nav class="onglets-rubriques" aria-label="Rubriques de la fiche">${rubriques
+          .map((cle) => {
+            const libelle = RUBRIQUES.find((r) => r.cle === cle)?.libelle ?? cle;
+            return `<button type="button" data-rubrique="${echapper(
+              cle,
+            )}" aria-pressed="${cle === rubriqueActive}">${echapper(libelle)}</button>`;
+          })
+          .join("")}</nav>`;
+  const barresThemes = rubriques
+    .map((cle) => {
+      const siens = themes.filter((t) => rubriqueDuTheme(t) === cle);
+      return `<nav class="onglets-themes" data-rubrique="${echapper(cle)}"${
+        siens.length < 2 ? " data-seul" : ""
+      }${cle === rubriqueActive ? "" : " hidden"} aria-label="Thèmes de la rubrique">${siens
+        .map(
+          (t) =>
+            `<button type="button" data-theme="${echapper(t)}" aria-pressed="${
+              t === actif
+            }">${echapper(libelleTheme?.(t) ?? t)}</button>`,
+        )
+        .join("")}</nav>`;
+    })
+    .join("");
+  return `${barreRubriques}${barresThemes}`;
 }
 
 /** Les indicateurs d'un thème, les phares d'abord. */
@@ -1108,6 +1251,17 @@ export function afficherFiche(
       // questions les plus posées : elle était en dernier, repliée, après cinq
       // écrans de défilement. Elle se lit maintenant avec la synthèse.
       options.comparaison ?? ""
+    }
+    ${
+      // Les comptes en rapports, avant le détail des masses : « 62 millions de
+      // dette » ne dit que la taille de la collectivité, « onze ans d'épargne »
+      // dit sa situation.
+      rendreRatios(territoire, niveau)
+    }
+    ${
+      // Puis l'enchaînement lui-même, replié : les rapports disent si ça tient,
+      // le pont dit où l'argent passe.
+      rendrePont(territoire, exerciceDesComptes(territoire))
     }
     ${ongletsThemes(ordonnerThemes([...parTheme.keys()]), themeActif, options.libelleTheme)}
     <div class="mesures">${mesures}</div>

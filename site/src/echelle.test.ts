@@ -212,3 +212,22 @@ test("une distribution massée sur zéro ne produit pas de classes en doublon", 
   // le contraste survit : la classe la plus foncée reste la plus foncée
   assert.equal(echelle.couleurs.at(-1), "#1b4f77");
 });
+
+test("un délai de paiement ne se légende pas en euros", () => {
+  // Le repli de `noteLegende` était « Montants en euros courants » : une unité
+  // inconnue annonçait une somme d'argent sous une durée.
+  const note = noteEchelle("jours", false);
+  assert.match(note, /en jours/);
+  assert.doesNotMatch(note, /euros/);
+  assert.match(formater(19.85, "jours", false), /19,9 jours/);
+});
+
+test("un loyer au mètre carré ne se légende pas en euros courants", () => {
+  // 86 % des communes de la source portent le loyer d'une zone voisine : la
+  // légende doit dire que le gris est une absence de mesure, pas un zéro.
+  const note = noteEchelle("€/m²/mois", false);
+  assert.match(note, /charges comprises/);
+  assert.match(note, /reste grise/);
+  assert.doesNotMatch(note, /euros courants/);
+  assert.match(formater(12.7, "€/m²/mois", false), /12,7 €\/m²\/mois/);
+});

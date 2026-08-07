@@ -88,7 +88,7 @@ INDICATEURS = {
         "Nombre de votants",
     ),
     "elections_taux_participation": (
-        "Taux de participation", "rate", "% des inscrits",
+        "Taux de participation", "percent", "% des inscrits",
         "La part des électeurs inscrits qui se sont déplacés au premier tour des"
         " municipales de 2026 : 57,1 % en France. Une élection municipale ne se compare"
         " pas à une présidentielle, dont la participation est bien plus forte.",
@@ -110,6 +110,12 @@ INDICATEURS = {
 
 # Un taux ne s'additionne pas d'une commune à l'autre.
 ADDITIFS = {cle for cle, (_, unite, *_) in INDICATEURS.items() if unite == "count"}
+
+# Ce que la source ne publie pas : le taux est notre division, pas son chiffre.
+# La condition portait sur l'unité `rate`, qui servait donc à deux choses — le
+# format d'affichage et la provenance. Le site ne connaît pas `rate` : il
+# affichait « 58,1 rate » là où il fallait lire « 58,1 % ».
+CALCULES = {"elections_taux_participation"}
 
 TECHNIQUE = (
     "Résultats officiels du premier tour des élections municipales du 15 mars 2026,"
@@ -283,7 +289,7 @@ def declarer(conn) -> None:
                 returning definition_id
                 """,
                 (publique, TECHNIQUE, formule, notes,
-                 "computed" if unite == "rate" else "observed"),
+                 "computed" if cle in CALCULES else "observed"),
             ).fetchone()[0]
             curseur.execute(
                 """
@@ -293,7 +299,7 @@ def declarer(conn) -> None:
                 values (?, ?, ?, ?, ?, ?, ?, array['commune'], 'annuelle', true)
                 on conflict (indicator_id) do update set
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
-                    theme = excluded.theme, published = true
+                    theme = excluded.theme, unit = excluded.unit, published = true
                 """,
                 (cle, DATASET, definition, THEME, libelle, unite, cle in ADDITIFS),
             )
