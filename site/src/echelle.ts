@@ -149,7 +149,7 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
     // Le principal facteur de confusion des dépenses communales par habitant, et
     // il se voit sur la carte : le littoral et la montagne ressortent d'abord.
     return (
-      `${classes} Dénominateur : population de référence OFGL de l'exercice.` +
+      `${classes} Dénominateur : population de référence de l'Observatoire des finances locales.` +
       " Une commune touristique dépense pour une population bien plus nombreuse que" +
       " ses habitants permanents, qui sont le dénominateur."
     );
@@ -178,20 +178,20 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
   if (unite === "pour_1000_logements") {
     return (
       `${classes} Faits enregistrés en % des logements (dénominateur INSEE de la` +
-      " source), le bon dénominateur des cambriolages — pas la population."
+      " source), le bon dénominateur des cambriolages : pas la population."
     );
   }
   if (unite === "consultations_par_an") {
     return (
       `${classes} Consultations de médecin généraliste accessibles par an et par` +
-      " habitant standardisé (APL, DREES) — un indicateur modélisé, pas un comptage." +
+      " habitant standardisé, calculé par la DREES : un indicateur modélisé, pas un comptage." +
       " En dessous de 2,5, la DREES parle de sous-densité."
     );
   }
   if (unite === "€/m²/mois") {
     return (
       `${classes} Loyer d'annonce au mètre carré, charges comprises, pour un` +
-      " logement vide. Il n'est mesuré que là où la source a assez d'annonces —" +
+      " logement vide. Il n'est mesuré que là où la source a assez d'annonces ;" +
       " ailleurs la commune reste grise plutôt que d'afficher le loyer du" +
       " voisinage."
     );

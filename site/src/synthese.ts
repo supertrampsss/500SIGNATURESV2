@@ -120,7 +120,7 @@ export function resumeEcarts(ecarts: Ecart[], repere: string): string {
   // les décomptes (« 13 au-dessus ») annonçaient qu'il y avait quelque chose
   // à voir sans jamais dire quoi.
   if (!marquants.length) return "";
-  return `Vs ${repere} : ${marquants.map(nommerEcart).join(", ")}.`;
+  return `Face à ${repere} : ${marquants.map(nommerEcart).join(", ")}.`;
 }
 
 /** Les écarts qui méritent d'être nommés, du plus marqué au moins marqué. */
@@ -151,18 +151,6 @@ export function compteEcarts(ecarts: Ecart[], repere: string): string {
   const marquants = ecartsMarquants(ecarts, 2);
   if (!marquants.length) return "";
   return `${marquants.map(nommerEcart).join(", ")} vs ${repere}.`;
-}
-
-/** Sens d'une série : « en hausse depuis 2022 », « stable ». */
-export function tendance(serie: Record<string, number>): string {
-  const periodes = Object.keys(serie).sort();
-  if (periodes.length < 3) return "";
-  const premiere = serie[periodes[0]];
-  const derniere = serie[periodes[periodes.length - 1]];
-  if (!premiere) return "";
-  const variation = ((derniere - premiere) / Math.abs(premiere)) * 100;
-  if (Math.abs(variation) < SEUIL_PROCHE) return `Stable depuis ${periodes[0]}.`;
-  return `En ${variation > 0 ? "hausse" : "baisse"} depuis ${periodes[0]}.`;
 }
 
 export type FaitSynthese = {

@@ -156,7 +156,7 @@ test("une population nulle ne passe pas pour un dénominateur valide", () => {
 
 test("la note du « par habitant » nomme le facteur de confusion principal", () => {
   const note = noteEchelle("EUR", true);
-  assert.match(note, /population de référence OFGL de l'exercice/);
+  assert.match(note, /population de référence de l'Observatoire des finances locales/);
   assert.match(note, /touristique/);
 });
 

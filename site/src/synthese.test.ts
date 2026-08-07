@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { compteEcarts, lecture, resumeEcarts, synthese, tendance, repereComparable } from "./synthese.ts";
+import { compteEcarts, lecture, resumeEcarts, synthese, repereComparable } from "./synthese.ts";
 
 const euros = (v: number) => `${Math.round(v)} €`;
 
@@ -31,16 +31,6 @@ test("sans repère utilisable, la lecture se tait plutôt que d'inventer", () =>
   assert.equal(lecture(866, [], euros), "");
   assert.equal(lecture(866, [{ libelle: "x", valeur: 0 }], euros), "");
   assert.equal(lecture(866, [{ libelle: "x", valeur: NaN }], euros), "");
-});
-
-test("la tendance dit le sens, et « stable » quand il n'y en a pas", () => {
-  assert.equal(tendance({ "2022": 100, "2023": 110, "2024": 130 }), "En hausse depuis 2022.");
-  assert.equal(tendance({ "2022": 130, "2023": 110, "2024": 100 }), "En baisse depuis 2022.");
-  assert.equal(tendance({ "2022": 100, "2023": 101, "2024": 102 }), "Stable depuis 2022.");
-});
-
-test("une série trop courte ne produit pas de tendance", () => {
-  assert.equal(tendance({ "2024": 100, "2025": 200 }), "");
 });
 
 test("la synthèse retient les faits disponibles, jamais un trou comblé", () => {
@@ -69,7 +59,7 @@ test("le résumé d'un thème compte les écarts au lieu d'additionner des unit�
   // niveau » annonçait qu'il y avait quelque chose à voir sans dire quoi.
   assert.equal(
     phrase,
-    "Vs son département : coups et blessures −60 %, cambriolages +38 %," +
+    "Face à son département : coups et blessures −60 %, cambriolages +38 %," +
       " vols de véhicules +12 %.",
   );
 });
@@ -85,12 +75,12 @@ test("le résumé s'arrête à trois noms : au-delà, c'est une liste", () => {
     ],
     "la France",
   );
-  assert.equal(phrase, "Vs la France : un +90 %, deux −80 %, trois +70 %.");
+  assert.equal(phrase, "Face à la France : un +90 %, deux −80 %, trois +70 %.");
   assert.doesNotMatch(phrase, /quatre/);
 });
 
 test("un seul écart marquant se nomme quand même : c'est lui qu'on cherche", () => {
-  assert.equal(resumeEcarts([{ libelle: "a", ecart: 40 }], "la France"), "Vs la France : a +40 %.");
+  assert.equal(resumeEcarts([{ libelle: "a", ecart: 40 }], "la France"), "Face à la France : a +40 %.");
   assert.equal(resumeEcarts([], "la France"), "");
 });
 
@@ -104,7 +94,7 @@ test("un écart non fini est écarté du compte plutôt que de le fausser", () =
     "la France",
   );
   // L'infini ne se nomme pas ; les deux écarts réels, si.
-  assert.equal(phrase, "Vs la France : a +40 %, c −30 %.");
+  assert.equal(phrase, "Face à la France : a +40 %, c −30 %.");
 });
 
 test("au-delà de 100 %, l'écart s'arrondit à la dizaine : la précision serait fausse", () => {
@@ -116,7 +106,7 @@ test("au-delà de 100 %, l'écart s'arrondit à la dizaine : la précision serai
       ],
       "la France",
     ),
-    /Vs la France : a \+340 %\./,
+    /Face à la France : a \+340 %\./,
   );
 });
 

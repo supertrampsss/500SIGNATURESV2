@@ -153,7 +153,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: encours / habitants,
       unite: "euro_par_habitant",
       lecture:
-        "L'encours rapporté à la population de référence de l'OFGL du même exercice, et non à celle du recensement : deux définitions, deux millésimes.",
+        "L'encours rapporté à la population de référence des ratios officiels, pas à la population municipale du recensement.",
     });
   }
 

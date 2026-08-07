@@ -507,8 +507,7 @@ function ligneIndicateur(
         constants.inflation,
       )} de hausse des prix : ${
         constants.reel >= 0 ? "+" : "−"
-      }${pourcentage(Math.abs(constants.reel))} en euros constants. L'indice des prix est
-      national, il ne dit pas ce que les prix ont fait ici.</p>`
+      }${pourcentage(Math.abs(constants.reel))} en euros constants.</p>`
     : "";
   // Le sens du dernier mouvement, lisible sans rien ouvrir. L'évolution longue
   // reste dans le détail : elle demande de savoir depuis quand, ce qui ne tient
@@ -561,7 +560,9 @@ function ligneIndicateur(
         rang && rang.total > 1
           ? `<p class="mesure__phrase">Rang ${new Intl.NumberFormat("fr-FR").format(
               rang.position,
-            )} sur ${new Intl.NumberFormat("fr-FR").format(rang.total)} territoires.</p>`
+            )} sur ${new Intl.NumberFormat("fr-FR").format(
+              rang.total,
+            )} territoires, du plus haut au plus bas.</p>`
           : ""
       }
       ${
@@ -654,7 +655,7 @@ function densiteLisible(densite: number): string {
       maximumFractionDigits: densite < 10 ? 1 : 0,
     }).format(densite)} pour 1 000 hab.`;
   }
-  if (densite <= 0) return "—";
+  if (densite <= 0) return "";
   return `1 pour ${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(
     1000 / densite,
   )} hab.`;
@@ -729,74 +730,6 @@ function miniTableau(
       ${totaux ? ligne("total", totaux, false) : ""}
     </tbody>
   </table></div>`;
-}
-
-export function panneauSource(indicateurs: Indicateur[], jeux: Jeu[]): string {
-  const utilises = new Set(indicateurs.map((i) => i.jeu));
-  const lignes = jeux
-    .filter((jeu) => utilises.has(jeu.id))
-    .map(
-      (jeu) => `<li>
-        <strong>${echapper(jeu.titre)}</strong><br />
-        ${echapper(jeu.producteur)} — ${echapper(jeu.licence)}<br />
-        Extraction du ${new Date(jeu.extraction).toLocaleDateString("fr-FR")} ·
-        <a href="${echapper(jeu.url)}" rel="noreferrer">fichier source</a>
-      </li>`,
-    )
-    .join("");
-  return `<h3 class="panneau__section">D'où viennent ces chiffres ?</h3>
-    <ul class="sources">${lignes}</ul>`;
-}
-
-export function panneauMethode(indicateurs: Indicateur[]): string {
-  const lignes = indicateurs
-    .map(
-      (i) => `<li>
-        <strong>${echapper(i.libelle)}</strong> — ${echapper(i.definition)}
-        <br /><span class="technique">${echapper(i.definition_technique)}</span>
-        <br /><span class="formule">Calcul : ${echapper(i.formule)}</span>
-      </li>`,
-    )
-    .join("");
-  return `<h3 class="panneau__section">Méthodologie et limites</h3>
-    <ul class="methodes">${lignes}</ul>
-    <p class="avertissement">
-      Ces montants sont ceux des comptes exécutés, budgets principaux et annexes
-      consolidés. Un budget voté n'est pas une dépense réalisée. Les montants par
-      habitant utilisent la population retenue par l'Observatoire des finances
-      locales, afin que nos ratios reproduisent exactement les siens.
-    </p>`;
-}
-
-export function panneauComparabilite(territoire: Territoire, niveau: string): string {
-  const avertissements: string[] = [];
-  const drapeaux = territoire.drapeaux ?? {};
-  if ((drapeaux as Record<string, unknown>).type === "EPT") {
-    avertissements.push(
-      "Établissement public territorial : son périmètre est inclus dans celui de la Métropole du Grand Paris. Ne pas additionner les deux.",
-    );
-  }
-  if ((drapeaux as Record<string, unknown>).statut_particulier) {
-    avertissements.push(
-      "Collectivité à statut particulier : elle exerce les compétences d'un département sans en être un au Code officiel géographique.",
-    );
-  }
-  avertissements.push(
-    "Les repères sont la médiane des territoires de même niveau — la moitié se" +
-      " situe en dessous. « Communes de la région » désigne l'ensemble des communes" +
-      " de cette région, jamais le budget du conseil régional, qui est une autre" +
-      " collectivité aux autres compétences.",
-  );
-  if (niveau === "commune") {
-    avertissements.push(
-      "Les communes nouvelles portent l'historique de leurs communes d'origine, additionné sous le code actuel.",
-    );
-  }
-  avertissements.push(
-    "Comparer deux territoires suppose la même année, la même unité et le même périmètre budgétaire.",
-  );
-  return `<h3 class="panneau__section">Comparabilité</h3>
-    <ul>${avertissements.map((a) => `<li>${echapper(a)}</li>`).join("")}</ul>`;
 }
 
 /**
@@ -1445,6 +1378,7 @@ export function afficherFiche(
       options.comparateurs,
       options.peintSurCarte,
       paires.get(indicateur.id),
+      { inflation: options.inflation },
     );
   const mesures =
     ordonnerThemes([...parTheme.keys()])
@@ -1506,15 +1440,13 @@ export function afficherFiche(
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
       territoire.population
-        ? ` · <abbr title="Population municipale (légale) au sens du recensement de l'INSEE. Les montants par habitant utilisent, eux, la population de référence de l'OFGL de l'exercice concerné : deux définitions, deux millésimes, deux nombres.">${new Intl.NumberFormat(
+        ? ` · <abbr title="Population municipale (INSEE). Les montants par habitant utilisent la population de référence de l'Observatoire des finances locales : détail dans Sources et méthode.">${new Intl.NumberFormat(
             "fr-FR",
           ).format(territoire.population)} hab.</abbr>`
         : ""
     }</p>
     ${
-      niveau === "commune" && !territoire.maire
-        ? `<p class="fiche__maire fiche__maire--absent">Maire : <em>non renseigné par le Répertoire National des Élus</em></p>`
-        : territoire.maire
+      territoire.maire
         ? `<p class="fiche__maire">Maire : <strong>${echapper(territoire.maire.nom)}</strong>${
             territoire.maire.depuis
               ? ` <span>depuis ${echapper(
