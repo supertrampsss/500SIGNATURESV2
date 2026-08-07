@@ -37,7 +37,7 @@ de séparateur décimal ou de ligne oubliée ne satisfait cette égalité par ha
 tronqués : huit cellules y sont écrites en notation scientifique
 (`1,44146E+11`), qui ne retient que six chiffres significatifs et perd jusqu'à
 10⁵ €. La mission « Remboursements et dégrèvements » y diverge de 83 650,28 €
-entre deux annexes, et trente autres missions d'une fraction d'euro. Un exercice
+entre deux annexes, et vingt-six autres d'une fraction d'euro. Un exercice
 dont une cellule a perdu ses chiffres est écarté, et le refus est tracé — plutôt
 que de desserrer pour lui un contrôle qui, desserré, ne vérifierait plus rien.
 
@@ -363,7 +363,9 @@ def cellules_degradees(rangs: list[dict]) -> int:
         1
         for rang in rangs
         for valeur in rang.values()
-        if valeur and NOTATION_SCIENTIFIQUE.search(valeur)
+        # `csv.DictReader` range les colonnes en trop dans une liste : une ligne
+        # mal formée ne doit pas faire tomber le comptage avant le contrôle.
+        if isinstance(valeur, str) and NOTATION_SCIENTIFIQUE.search(valeur)
     )
 
 
@@ -476,9 +478,11 @@ def controler(exercice: str, annexes: dict[str, list[dict]]) -> dict:
     Les trois annexes ont trois cardinalités — 33 missions, 177 lignes de
     programme, 855 lignes de catégorie — et sont produites séparément. Une
     colonne mal choisie, un séparateur décimal mal lu, une ligne écartée par
-    erreur : aucune de ces fautes ne laisse les trois totaux égaux. Le contrôle
-    porte sur trois grandeurs, mission par mission : les crédits consommés, les
-    crédits ouverts, et les dépenses de personnel.
+    erreur : aucune de ces fautes ne laisse les trois totaux égaux. Quatre
+    comparaisons, mission par mission : les crédits consommés contre chacune des
+    deux annexes détaillées, les crédits ouverts, et les dépenses de personnel —
+    seul titre que les deux annexes découpent pareil, l'une ne distinguant que
+    « Titre 2 » et « Autres titres » là où l'autre numérote les sept titres.
     """
     missions = {
         (rang.get("Mission") or "").strip(): rang for rang in annexes["missions"]

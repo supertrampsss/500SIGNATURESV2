@@ -175,6 +175,7 @@ jobs:
             python -m plateforme.normalize.construction --store r2:plateforme-raw
             python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.normalize.execution_missions --store r2:plateforme-raw
             python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
             python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
@@ -239,6 +240,7 @@ jobs:
             python -m plateforme.normalize.construction --store r2:plateforme-raw
             python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.normalize.execution_missions --store r2:plateforme-raw
             python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
             python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
@@ -318,28 +320,27 @@ jobs:
           # plutôt qu'à « combien ». Un seul run, une seule publication.
           if [ "$JOB" = "vague-aout-2" ]; then
             set -e
+            python -m plateforme.normalize.execution_missions --store r2:plateforme-raw
             python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
             python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
             python -m plateforme.normalize.naissances --store r2:plateforme-raw
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "execution-missions" ]; then
+            python -m plateforme.normalize.execution_missions --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
           if [ "$JOB" = "protection-sociale" ]; then
             python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
-            python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
-            python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
-            python -m plateforme.normalize.naissances --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
           if [ "$JOB" = "subventions" ]; then
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
-            python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
-            python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
-            python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
-            python -m plateforme.normalize.naissances --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
@@ -354,6 +355,7 @@ jobs:
             python -m plateforme.normalize.construction --store r2:plateforme-raw
             python -m plateforme.normalize.fonds_europeens --store r2:plateforme-raw
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
+            python -m plateforme.normalize.execution_missions --store r2:plateforme-raw
             python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
             python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
             python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
