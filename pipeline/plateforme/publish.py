@@ -898,6 +898,118 @@ def subventions_nominatives(conn) -> dict[str, dict[str, dict]]:
     return lots
 
 
+# Les jeux dont les codes régionaux **pavent la France** : chaque territoire y
+# est compté une fois et une seule, si bien que la somme des régions est le
+# total national.
+#
+# La liste est courte et le refus est le défaut, pour une raison qu'un exemple
+# suffit à donner : le code `69` ne désigne pas le même territoire selon la
+# source. Pour l'INSEE et le SSMSI c'est le Rhône entier ; pour l'OFGL c'est le
+# département du Rhône **hors** Métropole de Lyon, qui a son propre code. Une
+# règle générale qui sommerait « tous les départements » serait donc fausse pour
+# l'un ou pour l'autre, sans que rien ne le signale.
+#
+# Et pour les comptes des collectivités, le problème est plus profond qu'un
+# code : `ofgl_depenses_fonctionnement` au niveau commune est la somme des
+# budgets communaux, au niveau région celle des budgets régionaux. Ce sont deux
+# grandeurs différentes, et leur « total national » n'existe qu'en additionnant
+# tous les échelons — intercommunalités comprises, que ce site ne publie plus.
+# Un nombre présenté comme « la dépense de fonctionnement en France » serait
+# alors amputé sans le dire. Aucun jeu de l'OFGL n'entre donc ici.
+JEUX_QUI_PAVENT_LA_FRANCE = frozenset({
+    "ssmsi-delinquance",
+    "melodi-flores-a5",
+    "melodi-bpe",
+    "rpls-logement-social",
+    "menj-annuaire-education",
+    "anct-fonds-europeens-2021-2027",
+    "melodi-side-creations",
+})
+
+
+def agregats_nationaux(conn) -> tuple[dict[str, dict[str, float]], dict]:
+    """-> ({indicateur: {periode: total}}, ce que la méthode doit dire).
+
+    La fiche nationale n'affichait que ce qu'une source publie déjà au niveau
+    France : le budget de l'État, la dette, Eurostat. Tout ce qui est mesuré
+    territoire par territoire — la délinquance, les équipements, le logement
+    social — y manquait, alors que la donnée est là, complète, une maille plus
+    bas. « Pourquoi n'y a-t-il pas la sécurité au niveau France » est une
+    question à laquelle il n'y avait pas de bonne réponse.
+
+    L'agrégat est la **somme des régions**, et trois conditions le gouvernent.
+
+    **L'indicateur doit s'additionner.** Un taux ne se somme pas : la moyenne
+    de dix-huit taux régionaux n'est pas le taux national, elle ignore que les
+    régions n'ont pas le même poids. Seuls les indicateurs déclarés additifs
+    sont agrégés ; les taux restent absents et leur numérateur, lui, apparaît.
+
+    **Les régions doivent paver la France.** Toutes celles du référentiel
+    doivent porter une valeur pour cette période — pas 95 %, toutes. Une somme à
+    laquelle il manque une région est un total national faux, et rien dans le
+    nombre ne le dirait. Le contrôle est écrit dans le fichier de méthode plutôt
+    que supposé.
+
+    **Le jeu doit avoir une géographie statistique**, ce que `JEUX_QUI_PAVENT_LA_FRANCE`
+    déclare jeu par jeu, avec la raison du refus pour les autres.
+
+    Le total porte sur la **France entière, outre-mer compris** — dix-huit
+    régions, dont cinq d'outre-mer. Beaucoup de chiffres nationaux publiés
+    ailleurs portent sur la France métropolitaine seule : les deux ne se
+    comparent pas, et la fiche le dit.
+    """
+    attendues = {
+        code for (code,) in conn.execute(
+            """
+            select geo_code from geo.geography_reference
+             where geo_level = 'region'
+               and vintage = (select max(vintage) from geo.geography_reference
+                               where geo_level = 'region')
+            """
+        ).fetchall()
+    }
+    if not attendues:
+        return {}, {"regions_attendues": 0, "indicateurs": [], "ecartes": []}
+
+    deja = {
+        indicateur for (indicateur,) in conn.execute(
+            "select distinct indicator_id from core.observations where geo_level = 'pays'"
+        ).fetchall()
+    }
+    additifs = {
+        indicateur: jeu for indicateur, jeu in conn.execute(
+            "select indicator_id, dataset_id from core.indicators"
+            " where additive and published"
+        ).fetchall()
+    }
+
+    totaux: dict[str, dict[str, float]] = defaultdict(dict)
+    ecartes: list[dict] = []
+    for indicateur, periodes in valeurs_par_niveau(conn, "region").items():
+        jeu = additifs.get(indicateur)
+        if indicateur in deja or jeu is None or jeu not in JEUX_QUI_PAVENT_LA_FRANCE:
+            continue
+        for periode, codes in periodes.items():
+            manquantes = attendues - set(codes)
+            if manquantes:
+                ecartes.append({
+                    "indicateur": indicateur, "periode": periode,
+                    "regions_manquantes": sorted(manquantes),
+                })
+                continue
+            # Seules les régions attendues : une entrée du référentiel qui n'y
+            # serait plus compterait deux fois le même territoire.
+            totaux[indicateur][periode] = sum(codes[code] for code in attendues)
+
+    methode = {
+        "regions_attendues": len(attendues),
+        "perimetre": "France entière, outre-mer compris",
+        "indicateurs": sorted(totaux),
+        "ecartes": sorted(ecartes, key=lambda e: (e["indicateur"], e["periode"])),
+    }
+    return dict(totaux), methode
+
+
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
     elus = maires(conn) if niveau == "commune" else {}
@@ -1045,6 +1157,16 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     # de dériver de la déclaration.
     print(f"journal : {journal_declare.synchroniser(conn)} changements déclarés")
 
+    # Les sommes régionales, calculées avant la boucle : elles rejoignent les
+    # séries de la France, qui n'en avait aucune pour tout ce qui se mesure
+    # territoire par territoire.
+    nationaux, methode_nationale = agregats_nationaux(conn)
+    print(
+        f"agrégats nationaux : {len(nationaux)} indicateurs sommés sur"
+        f" {methode_nationale['regions_attendues']} régions,"
+        f" {len(methode_nationale['ecartes'])} écartés faute d'une région"
+    )
+
     recherche = []
     cartographiees: dict[str, dict[str, list[str]]] = defaultdict(dict)
     for niveau in NIVEAUX:
@@ -1068,7 +1190,15 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
                 }
                 for indicateur, periodes in valeurs.items()
             }
-            groupes[lot][code] = {**entite, "series": {k: v for k, v in series.items() if v}}
+            propres = {k: v for k, v in series.items() if v}
+            if niveau == "pays" and code == "FR":
+                # Jamais par-dessus : une valeur publiée par la source prime sur
+                # notre somme, toujours. `agregats_nationaux` écarte déjà les
+                # indicateurs présents au niveau pays ; la garde reste ici pour
+                # que l'ordre des deux ne puisse pas s'inverser en silence.
+                for indicateur, periodes in nationaux.items():
+                    propres.setdefault(indicateur, periodes)
+            groupes[lot][code] = {**entite, "series": propres}
             recherche.append({"c": code, "n": entite["nom"], "l": niveau, "p": entite["parent"]})
 
         for lot, contenu in groupes.items():
@@ -1081,6 +1211,7 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
     deposer("depenses-fiscales.json", depenses_fiscales(conn))
+    deposer("agregats-nationaux.json", methode_nationale)
     for lot, contenu in subventions_nominatives(conn).items():
         deposer(f"subventions/commune/{lot}.json", contenu)
     deposer("fraicheur.json", fraicheur(conn))

@@ -3301,3 +3301,16 @@ body[data-vue="carte"] .pied {
 .assos__suite > summary:hover {
   color: var(--encre);
 }
+
+/* « Ce total est notre somme, pas un chiffre publié. » La mention se lit avant
+   les chiffres du thème : après, elle serait une note de bas de page sur une
+   information qu'on a déjà prise pour argent comptant. */
+.theme-groupe__agregat {
+  margin: 0 0 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-left: 2px solid var(--trait-fort);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--encre-douce);
+  background: var(--papier-creuse);
+}

@@ -198,6 +198,21 @@ export type SubventionsCommune = {
   }[];
 };
 
+/**
+ * Ce que la fiche France doit à nos additions plutôt qu'à une source.
+ *
+ * Un total national obtenu en sommant dix-huit régions n'est pas un chiffre
+ * publié par le producteur : c'est notre calcul, et le dire fait partie du
+ * chiffre. Le périmètre aussi — France entière, outre-mer compris, alors que
+ * beaucoup de chiffres nationaux publiés ailleurs s'arrêtent à la métropole.
+ */
+export type AgregatsNationaux = {
+  regions_attendues: number;
+  perimetre: string;
+  indicateurs: string[];
+  ecartes: { indicateur: string; periode: string; regions_manquantes: string[] }[];
+};
+
 /** Une entrée du journal public : un chiffre a bougé, ou a cessé d'être servi. */
 export type Changement = {
   annonce: string;
@@ -212,6 +227,7 @@ export type Changement = {
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const depensesFiscales = () => lire<DepensesFiscales>("depenses-fiscales.json");
+export const agregatsNationaux = () => lire<AgregatsNationaux>("agregats-nationaux.json");
 export const subventions = (lot: string) =>
   lire<Record<string, SubventionsCommune>>(`subventions/commune/${lot}.json`);
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");

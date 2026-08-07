@@ -478,3 +478,133 @@ def test_une_version_deja_publiee_n_est_jamais_ecrasee(tmp_path):
         assert publish.publier(conn, store, "2026-01-01T0001") > 0
     finally:
         conn.close()
+
+
+def _semer_deux_regions(conn, indicateur="ssmsi_cambriolages_nombre", jeu="ssmsi-delinquance"):
+    """Deux régions au référentiel, et un indicateur additif qui les couvre.
+
+    Deux suffisent : le contrôle porte sur « toutes les régions attendues », pas
+    sur leur nombre.
+    """
+    from plateforme import entrepot
+
+    # `_remplir` a déjà posé la Nouvelle-Aquitaine : seule l'Île-de-France
+    # s'ajoute, et le référentiel en compte alors deux.
+    conn.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code) values ('region', '11', ?, 'Île-de-France',"
+        " 'pays', 'FR')",
+        (MILLESIME,),
+    )
+    definition = conn.execute(
+        "insert into core.indicator_definitions (public_definition, technical_definition,"
+        " confidence_level) values ('Cambriolages enregistrés.', 'Base SSMSI.',"
+        " 'observed') returning definition_id"
+    ).fetchone()[0]
+    conn.execute(
+        """
+        insert into core.indicators
+            (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
+             additive, geo_levels, time_granularity, published)
+        values (?, ?, ?, 'securite', 'Cambriolages', 'count', true,
+                array['region'], 'annuelle', true)
+        """,
+        (indicateur, jeu, definition),
+    )
+    run_id = entrepot.start_run(conn, jeu)
+    for code, valeur in (("75", 12_000.0), ("11", 30_000.0)):
+        conn.execute(
+            "insert into core.observations (indicator_id, geo_level, geo_code,"
+            " geo_vintage, period, value, run_id) values (?, 'region', ?, ?, '2025', ?, ?)",
+            (indicateur, code, MILLESIME, valeur, run_id),
+        )
+    entrepot.finish_run(conn, run_id, "success")
+    return run_id
+
+
+def test_la_france_recoit_la_somme_des_regions(tmp_path):
+    """« Pourquoi n'y a-t-il pas la sécurité au niveau France ? »
+
+    La fiche nationale n'affichait que ce qu'une source publie déjà au niveau
+    France. Tout ce qui se mesure territoire par territoire y manquait, alors
+    que la donnée est là, complète, une maille plus bas.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_deux_regions(conn)
+    conn.commit()
+    totaux, methode = publish.agregats_nationaux(conn)
+    assert totaux["ssmsi_cambriolages_nombre"]["2025"] == 42_000.0
+    assert methode["regions_attendues"] == 2
+    assert methode["ecartes"] == []
+    assert methode["perimetre"] == "France entière, outre-mer compris"
+    conn.close()
+
+
+def test_une_region_manquante_annule_le_total_national(tmp_path):
+    """Une somme à laquelle il manque une région est un total national faux, et
+    rien dans le nombre ne le dirait."""
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_deux_regions(conn)
+    conn.execute("delete from core.observations where geo_code = '11' and geo_level = 'region'")
+    conn.commit()
+    totaux, methode = publish.agregats_nationaux(conn)
+    assert "ssmsi_cambriolages_nombre" not in totaux
+    assert methode["ecartes"] == [
+        {"indicateur": "ssmsi_cambriolages_nombre", "periode": "2025",
+         "regions_manquantes": ["11"]}
+    ]
+    conn.close()
+
+
+def test_un_taux_ne_se_somme_pas_d_une_region_a_l_autre(tmp_path):
+    """La moyenne de dix-huit taux régionaux n'est pas le taux national : elle
+    ignore que les régions n'ont pas le même poids."""
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_deux_regions(conn)
+    conn.execute("update core.indicators set additive = false, unit = 'percent'"
+                 " where indicator_id = 'ssmsi_cambriolages_nombre'")
+    conn.commit()
+    totaux, _ = publish.agregats_nationaux(conn)
+    assert totaux == {}
+    conn.close()
+
+
+def test_les_comptes_des_collectivites_ne_font_pas_un_total_national(tmp_path):
+    """Le refus qui compte, et il est de principe.
+
+    `ofgl_depenses_fonctionnement` au niveau commune est la somme des budgets
+    communaux, au niveau région celle des budgets régionaux : deux grandeurs
+    différentes, dont le « total national » n'existe qu'en additionnant tous les
+    échelons — intercommunalités comprises, que ce site ne publie plus. Un
+    nombre présenté comme « la dépense de fonctionnement en France » serait
+    amputé sans le dire.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_deux_regions(conn, indicateur="ofgl_depenses_regionales", jeu="ofgl-communes")
+    conn.commit()
+    totaux, _ = publish.agregats_nationaux(conn)
+    assert totaux == {}
+    assert "ofgl-communes" not in publish.JEUX_QUI_PAVENT_LA_FRANCE
+    conn.close()
+
+
+def test_une_valeur_publiee_par_la_source_prime_sur_notre_somme(tmp_path):
+    """Notre calcul ne recouvre jamais une mesure du producteur."""
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    run_id = _semer_deux_regions(conn)
+    conn.execute(
+        "insert into core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
+        " period, value, run_id) values ('ssmsi_cambriolages_nombre', 'pays', 'FR', ?,"
+        " '2025', 41000.0, ?)",
+        (MILLESIME, run_id),
+    )
+    conn.commit()
+    totaux, methode = publish.agregats_nationaux(conn)
+    assert totaux == {}
+    assert methode["indicateurs"] == []
+    conn.close()

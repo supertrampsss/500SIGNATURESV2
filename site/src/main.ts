@@ -123,6 +123,7 @@ let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
 let groupes: donnees.Comparaisons | null = null;
 let reperes: import("./reference.ts").References | null = null;
+let agregats: donnees.AgregatsNationaux | null = null;
 /** Départements, régions et pays chargés à part : ils servent de points de
  *  comparaison à n'importe quelle commune, y compris là où aucune médiane
  *  n'est publiable (délinquance sous secret de diffusion). Table séparée
@@ -461,6 +462,7 @@ function afficherApercu(): void {
       parHabitant: etat.declinaison === "habitant",
       references: reperes,
       peintSurCarte,
+      agregats,
     });
     return;
   }
@@ -744,6 +746,7 @@ async function montrerFiche(code: string): Promise<void> {
     references: reperes,
     peintSurCarte,
     associations: associations[code],
+    agregats,
   });
   $("panneau").classList.add("panneau--selection");
 }
@@ -1650,6 +1653,16 @@ async function demarrer(): Promise<void> {
         ici sont ceux des comptes exécutés, budgets principaux et annexes
         consolidés.</li>
     </ul>`;
+
+  // La méthode des agrégats nationaux se charge à part elle aussi : absente,
+  // aucune mention n'est faite — plutôt qu'une mention fausse.
+  donnees
+    .agregatsNationaux()
+    .then((a) => {
+      agregats = a;
+      if (etat.selection) void montrerFiche(etat.selection);
+    })
+    .catch(() => {});
 
   // Les repères se chargent à part : une publication qui n'en a pas doit laisser
   // la fiche s'afficher sans eux. Quand ils arrivent, la fiche ouverte est

@@ -20,6 +20,7 @@ import {
   groupeDeLaCommune,
   jumeaux,
   lectureDeDensite,
+  mentionAgregat,
   ongletsThemes,
   positionDansGroupe,
   rubriqueDuTheme,
@@ -418,4 +419,47 @@ test("un taux et un nombre de thèmes différents ne sont pas jumeaux", () => {
     { id: "x_nombre", theme: "sante" },
   ] as never as Indicateur[];
   assert.equal(jumeaux(catalogue).size, 0);
+});
+
+/**
+ * Un total national obtenu en additionnant dix-huit régions n'est pas de la
+ * même nature qu'un chiffre que le producteur publie lui-même.
+ */
+
+const AGREGATS = {
+  regions_attendues: 18,
+  perimetre: "France entière, outre-mer compris",
+  indicateurs: ["ssmsi_cambriolages_nombre", "ssmsi_homicides_nombre"],
+  ecartes: [],
+};
+
+test("un total calculé par nous se dit tel, avec son périmètre", () => {
+  const liste = [
+    { id: "ssmsi_cambriolages_nombre", libelle: "a" },
+    { id: "ssmsi_homicides_nombre", libelle: "b" },
+  ] as never as Indicateur[];
+  const html = mentionAgregat(liste, AGREGATS);
+  assert.match(html, /Ces totaux sont\s+la somme des 18 régions/);
+  assert.match(html, /calculée par ce site et non publiée/);
+  // Le périmètre fait partie du chiffre : beaucoup de totaux nationaux publiés
+  // ailleurs s'arrêtent à la métropole, et les deux ne se comparent pas.
+  assert.match(html, /France entière, outre-mer compris/);
+  // Et la raison pour laquelle les taux n'y sont pas.
+  assert.match(html, /Un taux n'y figure pas/);
+});
+
+test("la mention compte les indicateurs concernés quand le thème est mixte", () => {
+  const liste = [
+    { id: "ssmsi_cambriolages_nombre", libelle: "a" },
+    { id: "publie_par_la_source", libelle: "b" },
+  ] as never as Indicateur[];
+  assert.match(mentionAgregat(liste, AGREGATS), /1 de ces totaux sont\s+la somme/);
+});
+
+test("un thème sans agrégat de notre main ne porte aucune mention", () => {
+  const liste = [{ id: "etat_solde_budgetaire", libelle: "a" }] as never as Indicateur[];
+  assert.equal(mentionAgregat(liste, AGREGATS), "");
+  // Et sans le fichier de méthode, rien n'est affirmé plutôt qu'une mention fausse.
+  assert.equal(mentionAgregat(liste, null), "");
+  assert.equal(mentionAgregat(liste, undefined), "");
 });

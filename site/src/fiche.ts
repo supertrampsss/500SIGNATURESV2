@@ -5,6 +5,7 @@
  */
 
 import type {
+  AgregatsNationaux,
   Indicateur,
   Jeu,
   Quartiles,
@@ -1017,6 +1018,33 @@ export function ongletsThemes(
   return `${barreRubriques}${barresThemes}`;
 }
 
+/**
+ * « Ce total est notre somme, pas un chiffre publié. »
+ *
+ * Un total national obtenu en additionnant dix-huit régions n'est pas de la
+ * même nature qu'un chiffre que le producteur publie lui-même. Le taire
+ * reviendrait à faire passer notre calcul pour sa mesure — et le périmètre
+ * change aussi : nos sommes portent sur la France entière, outre-mer compris,
+ * alors que beaucoup de chiffres nationaux publiés ailleurs s'arrêtent à la
+ * métropole. Les deux ne se comparent pas.
+ *
+ * La phrase n'apparaît que sur les thèmes concernés, et seulement si au moins
+ * un indicateur du thème en relève : ailleurs, elle serait du bruit.
+ */
+export function mentionAgregat(
+  liste: Indicateur[],
+  agregats?: AgregatsNationaux | null,
+): string {
+  if (!agregats?.indicateurs?.length) return "";
+  const concernes = liste.filter((i) => agregats.indicateurs.includes(i.id));
+  if (!concernes.length) return "";
+  return `<p class="theme-groupe__agregat">${
+    concernes.length === liste.length ? "Ces totaux sont" : `${concernes.length} de ces totaux sont`
+  } la somme des ${agregats.regions_attendues} régions, calculée par ce site et non publiée
+  telle quelle : ${echapper(agregats.perimetre)}. Un taux n'y figure pas — il ne s'additionne
+  pas d'une région à l'autre.</p>`;
+}
+
 /** Les indicateurs d'un thème, les phares d'abord. */
 function ordonnerTheme(theme: string, liste: Indicateur[]): Indicateur[] {
   const phares = PHARES[theme] ?? [];
@@ -1274,6 +1302,9 @@ export function afficherFiche(
     /** Les associations subventionnées de cette commune. Chargées à part, par
      *  département : absentes, le thème garde son seul agrégat. */
     associations?: SubventionsCommune;
+    /** Les indicateurs dont la valeur nationale est notre somme des régions.
+     *  Absents, aucune mention n'est faite — plutôt qu'une mention fausse. */
+    agregats?: AgregatsNationaux | null;
   },
 ): void {
   const { territoire, indicateurs, periode, parHabitant, niveau } = options;
@@ -1300,7 +1331,15 @@ export function afficherFiche(
   const themeActif = enTete?.theme ?? ordonnerThemes([...parTheme.keys()])[0] ?? "";
   // Le nombre qui double chaque taux rejoint le taux : trente-deux lignes de
   // sécurité pour seize phénomènes, c'était le doublon le plus visible du site.
-  const paires = jumeaux(indicateurs);
+  //
+  // Mais seulement là où le taux existe. Au niveau France, la délinquance n'a
+  // que ses effectifs — un taux ne s'additionne pas, la moyenne de dix-huit
+  // taux régionaux n'est pas le taux national. Replier le nombre derrière un
+  // taux absent aurait vidé le thème entier : le doublon disparaissait, et la
+  // mesure avec lui.
+  const paires = new Map(
+    [...jumeaux(indicateurs)].filter(([taux]) => territoire.series?.[taux] !== undefined),
+  );
   const doubles = new Set(paires.values());
   const dessine = (indicateur: Indicateur) =>
     ligneIndicateur(
@@ -1349,6 +1388,7 @@ export function afficherFiche(
             liste, territoire, periode, parHabitant, niveau, references,
             options.comparateurs ?? [],
           )}
+          ${mentionAgregat(liste, options.agregats)}
           ${theme === "vie_associative" ? rendreAssociations(options.associations) : ""}
           ${devant.map(dessine).join("")}
           ${suite}
