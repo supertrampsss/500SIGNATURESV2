@@ -14,6 +14,11 @@ import {
 
 const NIVEAUX: Record<string, string> = {
   commune: "Commune",
+  // Paris, Lyon et Marseille n'existent que par arrondissement dans certaines
+  // sources — la carte des loyers de l'ANIL, par exemple, dont les codes 75056,
+  // 69123 et 13055 sont absents. Sans intitulé, leur fiche s'ouvrait sur le nom
+  // technique de la maille.
+  arrondissement_municipal: "Arrondissement municipal",
   departement: "Département",
   region: "Région",
   pays: "Niveau national",

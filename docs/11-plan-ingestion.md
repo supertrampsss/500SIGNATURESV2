@@ -1357,12 +1357,19 @@ pourquoi cette recette-là mérite d'être isolée du reste. Et **Bordeaux ne to
 aucune dotation de solidarité urbaine** : l'absence est ici une non-éligibilité,
 pas un zéro, exactement la réserve que la fiche annonce.
 
-**Deux chantiers restent ouverts, et ils sont nommés.**
+**Un chantier reste ouvert, et il est nommé.**
 
-Le niveau `arrondissement_municipal` n'est pas exporté par `publish.py`. Les
-loyers de Paris, Lyon et Marseille sont donc **en base et invisibles** : la carte
-les laissera gris. Ajouter un niveau au contrat de publication touche l'index de
-recherche, les fiches et les tuiles — c'est un changement qui mérite le sien.
+Le niveau `arrondissement_municipal` est désormais exporté par `publish.py` :
+les 45 arrondissements de Paris, Lyon et Marseille ont leur fiche
+(`territoires/arrondissement_municipal/tous.json`) et leur entrée dans l'index
+de recherche. Ils ne sont **pas** cartographiés — il n'existe pas de couche de
+tuiles pour eux, et cette exclusion vaut aussi garde-fou : les seuls calculs qui
+additionnent des territoires (quartiles du groupe de comparaison, agrégats de
+`references.json`) ne parcourent que les niveaux cartographiés, et ne peuvent
+donc jamais ajouter un arrondissement à sa commune mère. Côté site, leur fiche
+s'ouvre depuis la recherche sans faire changer la carte de couche. Ce qui reste
+à faire, si on le veut un jour : une couche de tuiles d'arrondissements, seule
+manière de peindre Paris, Lyon et Marseille en choroplèthe.
 
 Les **subventions aux associations** attendent **Sirene**. Le seul millésime
 national portant un code commune a huit ans et le producteur a retiré la
