@@ -111,7 +111,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: (epargne / recettes) * 100,
       unite: "percent",
       lecture:
-        "Ce qui reste des recettes de fonctionnement une fois les charges courantes payées. C'est de là que viennent l'investissement et le remboursement de la dette.",
+        "Ce qui reste des recettes une fois les charges courantes payées. C'est de là que viennent l'investissement et le remboursement de la dette.",
     });
   }
 
@@ -127,7 +127,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
             valeur: encours / epargne,
             unite: "annees",
             lecture:
-              "Le nombre d'années d'épargne brute qu'il faudrait pour rembourser toute la dette, à épargne inchangée et sans nouvel emprunt.",
+              "Le nombre d'années d'épargne qu'il faudrait pour rembourser toute la dette, à épargne inchangée et sans nouvel emprunt.",
             plafond: PLAFOND[niveau],
           }
         : {
@@ -135,7 +135,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
             libelle: "Capacité de désendettement",
             unite: "annees",
             lecture:
-              "Le nombre d'années d'épargne brute qu'il faudrait pour rembourser toute la dette, à épargne inchangée et sans nouvel emprunt.",
+              "Le nombre d'années d'épargne qu'il faudrait pour rembourser toute la dette, à épargne inchangée et sans nouvel emprunt.",
             impossible:
               epargne === undefined
                 ? "L'épargne brute n'est pas publiée pour cet exercice."
@@ -153,7 +153,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: encours / habitants,
       unite: "euro_par_habitant",
       lecture:
-        "L'encours de dette rapporté à la population de référence de l'OFGL pour le même exercice — pas à la population municipale du recensement, qui n'a ni le même millésime ni la même définition.",
+        "L'encours rapporté à la population de référence de l'OFGL du même exercice, et non à celle du recensement : deux définitions, deux millésimes.",
     });
   }
 
@@ -169,7 +169,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: ((personnel + annuite) / recettes) * 100,
       unite: "percent",
       lecture:
-        "La part des recettes de fonctionnement absorbée par les frais de personnel et l'annuité de la dette : ce qui est dû avant tout choix de l'année.",
+        "La part des recettes absorbée par les frais de personnel et l'annuité de la dette : ce qui est dû avant tout choix de l'année.",
     });
   }
 
@@ -181,7 +181,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: (equipement / recettes) * 100,
       unite: "percent",
       lecture:
-        "Les dépenses d'équipement rapportées aux recettes de fonctionnement. Un investissement se fait par à-coups : une seule année ne décrit pas une politique.",
+        "Les dépenses d'équipement rapportées aux recettes. L'investissement se fait par à-coups : une année ne décrit pas une politique.",
     });
   }
 
@@ -193,7 +193,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: (dgf / recettes) * 100,
       unite: "percent",
       lecture:
-        "La part des recettes de fonctionnement versée par l'État au titre de la dotation globale de fonctionnement. Ce n'est pas tout ce que l'État verse : les autres dotations et les compensations d'exonérations sont comptées ailleurs.",
+        "La part des recettes versée par l'État au titre de la dotation globale de fonctionnement. Les autres dotations sont comptées ailleurs.",
     });
   }
 

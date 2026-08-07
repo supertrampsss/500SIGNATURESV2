@@ -736,7 +736,7 @@ const PHARES: Record<string, string[]> = {
 const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
   {
     cle: "argent",
-    libelle: "L'argent public",
+    libelle: "Argent public",
     themes: [
       "finances_locales",
       "impots_locaux",
@@ -756,12 +756,12 @@ const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
   },
   {
     cle: "habitants",
-    libelle: "Les habitants",
+    libelle: "Habitants",
     themes: ["population", "revenus", "famille", "diplomes", "elections", "prenoms"],
   },
   {
     cle: "travail",
-    libelle: "Le travail",
+    libelle: "Travail",
     themes: [
       "emploi",
       "professions",
@@ -772,7 +772,7 @@ const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
   },
   {
     cle: "cadre",
-    libelle: "Le cadre de vie",
+    libelle: "Cadre de vie",
     themes: ["logement", "sante", "education", "securite", "equipements", "tourisme"],
   },
 ];

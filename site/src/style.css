@@ -2582,11 +2582,14 @@ body[data-vue="carte"] .pied {
 }
 .onglets-rubriques button {
   font: inherit;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 600;
   white-space: nowrap;
-  flex: 1;
-  padding: 0.3rem 0.4rem;
+  /* Quatre entrées se partagent la largeur sans jamais défiler : c'est la
+     raison d'être des rubriques. Elles peuvent donc rétrécir. */
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 0.3rem 0.2rem;
   border: 0;
   border-bottom: 2px solid var(--trait);
   background: none;
@@ -2600,8 +2603,13 @@ body[data-vue="carte"] .pied {
 }
 /* Une rubrique d'un seul thème garde sa barre dans le document — c'est elle qui
    dit quel thème ouvrir — mais un onglet unique et toujours enfoncé n'a rien à
-   montrer au lecteur. */
-.onglets-themes[data-seul] {
+   montrer au lecteur.
+
+   Et `display: flex` sur `.onglets-themes` l'emportait sur la règle `[hidden]`
+   du navigateur : les quatre barres s'affichaient ensemble, l'une sous
+   l'autre, tous thèmes confondus. La rubrique ne servait plus à rien. */
+.onglets-themes[data-seul],
+.onglets-themes[hidden] {
   display: none;
 }
 
@@ -3046,23 +3054,14 @@ body[data-vue="carte"] .pied {
   font-size: 0.68rem;
   color: var(--encre-douce);
 }
-/* La lecture ne s'affiche qu'au survol sur grand écran : six explications
-   empilées feraient un écran de texte avant le premier indicateur. Au toucher,
-   il n'y a pas de survol — elles restent lisibles. */
+/* La lecture s'affiche toujours. La cacher derrière un survol la retirait aux
+   écrans tactiles sans survol et à quiconque ne pense pas à survoler — c'est-à-
+   dire à la plupart. Les phrases ont été raccourcies à la place. */
 .ratios__lecture {
   margin: 0.25rem 0 0;
   font-size: 0.68rem;
   line-height: 1.35;
   color: var(--encre-douce);
-}
-@media (hover: hover) and (min-width: 700px) {
-  .ratios__lecture {
-    display: none;
-  }
-  .ratios__carreau:hover .ratios__lecture,
-  .ratios__carreau:focus-within .ratios__lecture {
-    display: block;
-  }
 }
 .ratios__source {
   margin: 0.4rem 0 0;
@@ -3091,7 +3090,9 @@ body[data-vue="carte"] .pied {
   grid-template-columns: 1fr auto;
   align-items: baseline;
   column-gap: 0.5rem;
-  padding: 0.2rem 0 0.3rem;
+  /* Plus d'air en dessous qu'au-dessus : à écart égal, la barre se lisait
+     comme celle de la ligne suivante. */
+  padding: 0.2rem 0 0.55rem;
 }
 .pont__libelle {
   font-size: 0.74rem;
@@ -3115,6 +3116,13 @@ body[data-vue="carte"] .pied {
    signe : le signe se lit, la barre se voit. */
 .pont__marche[data-sens="sortie"] .pont__barre {
   background: var(--encre-douce);
+}
+/* Un palier est un total, pas un flux : lui donner une barre le mettait en
+   concurrence visuelle avec les mouvements qu'il résume. Le trait et la
+   graisse suffisent à le distinguer. */
+.pont__marche--palier .pont__barre,
+.pont__marche--arrivee .pont__barre {
+  display: none;
 }
 /* Un palier n'est pas un flux de plus : il est le total de ce qui précède, et
    le trait au-dessus le dit. */
