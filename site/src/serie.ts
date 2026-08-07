@@ -93,6 +93,62 @@ export function evolution(
 }
 
 /**
+ * Le dernier pas : ce qui a changé depuis la période d'avant.
+ *
+ * L'évolution longue — « +27 % depuis 2016 » — est déjà dite dans le détail de
+ * chaque mesure, mais il faut ouvrir la ligne pour la lire. Ce qu'on veut voir
+ * sans rien ouvrir, c'est le sens du dernier mouvement. Il tient dans le
+ * résumé de la ligne, à côté de la valeur.
+ *
+ * **Un taux ne varie pas en pourcentage.** Un taux de pauvreté qui passe de
+ * 12,0 % à 12,6 % a gagné 0,6 point, pas 5 %. Écrire « +5 % » là serait un
+ * pourcentage de pourcentage, c'est-à-dire le genre de nombre qu'on cite dans
+ * un débat sans que personne ne sache ce qu'il compte. Les taux varient donc
+ * en points, tout le reste en pourcentage.
+ *
+ * **Et un pas ne franchit pas une fusion.** Si un changement de périmètre tombe
+ * entre les deux derniers points, les deux valeurs ne portent pas sur le même
+ * territoire : il n'y a pas de variation à dire, et le résumé n'en dit aucune.
+ */
+export function dernierPas(
+  serie: Record<string, number>,
+  unite: string,
+  evenements: Evenement[] = [],
+  /** La période affichée sur la ligne. Le pas s'arrête là et non à la fin de
+   *  la série : une variation qui court jusqu'à 2025 sous une valeur de 2023
+   *  ferait lire l'une pour l'autre. */
+  arrivee?: string,
+): { texte: string; sens: "hausse" | "baisse" | "stable"; depuis: string; jusqua: string } | null {
+  const periodes = Object.keys(serie).sort();
+  if (periodes.length < 2) return null;
+  const fin = arrivee !== undefined ? periodes.indexOf(arrivee) : periodes.length - 1;
+  if (fin < 1) return null;
+  const jusqua = periodes[fin];
+  const depuis = periodes[fin - 1];
+  if (ruptureDePerimetre(evenements, [depuis, jusqua])) return null;
+  const avant = serie[depuis];
+  const apres = serie[jusqua];
+  if (!Number.isFinite(avant) || !Number.isFinite(apres)) return null;
+  // Une base nulle n'a pas de variation relative : passer de 0 à 3 n'est pas
+  // « +∞ % », c'est « 3 là où il n'y avait rien ». La ligne le montre déjà par
+  // sa valeur ; le résumé se tait.
+  if (unite !== "percent" && avant === 0) return null;
+  const ecart = unite === "percent" ? apres - avant : ((apres - avant) / Math.abs(avant)) * 100;
+  // Le seuil est celui de l'affichage, pas une convention : sous 0,05, le
+  // nombre s'arrondit à « 0 » et une flèche de hausse au-dessus d'un zéro
+  // affirmerait un mouvement que le chiffre ne montre pas.
+  const sens = Math.abs(ecart) < 0.05 ? "stable" : ecart > 0 ? "hausse" : "baisse";
+  const signe = sens === "hausse" ? "+" : "";
+  const nombre = pourcentage(ecart);
+  return {
+    texte: unite === "percent" ? `${signe}${nombre.replace(/%$/, "pt")}` : `${signe}${nombre}`,
+    sens,
+    depuis,
+    jusqua,
+  };
+}
+
+/**
  * Points espacés régulièrement, par rang et non par date.
  *
  * C'est exact tant que la série est régulière, ce que sont toutes celles

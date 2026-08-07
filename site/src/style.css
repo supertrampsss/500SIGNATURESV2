@@ -3144,3 +3144,33 @@ body[data-vue="carte"] .pied {
   line-height: 1.35;
   color: var(--encre-douce);
 }
+
+/* Le dernier pas, dans le résumé de la ligne. Il tient à droite de la valeur,
+   sans jamais la pousser : c'est la valeur qu'on vient lire, la variation
+   n'est qu'un sens de lecture.
+
+   La couleur n'est pas un jugement. Une hausse des cambriolages et une hausse
+   des équipements sportifs prendraient le même vert ou le même rouge alors
+   qu'elles ne se lisent pas pareil — le site ne sait pas, et n'a pas à savoir,
+   dans quel sens un indicateur est « bon ». Le signe et la flèche disent la
+   direction ; c'est au lecteur de conclure. */
+.mesure__pas {
+  margin-left: 0.35rem;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--encre-douce);
+}
+.mesure__pas::before {
+  margin-right: 0.15rem;
+  font-size: 0.62rem;
+}
+.mesure__pas--hausse::before {
+  content: "▲";
+}
+.mesure__pas--baisse::before {
+  content: "▼";
+}
+.mesure__pas--stable::before {
+  content: "=";
+}

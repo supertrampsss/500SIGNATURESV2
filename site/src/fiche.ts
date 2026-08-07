@@ -6,7 +6,7 @@
 
 import type { Indicateur, Jeu, Quartiles, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
-import { evolution, rendu as rendreSerie } from "./serie.ts";
+import { dernierPas, evolution, rendu as rendreSerie } from "./serie.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { exerciceDesComptes, rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
@@ -401,6 +401,15 @@ function ligneIndicateur(
     comparaisons.push(`Soit ${pourcentage((brut / totalPart) * 100)} ${part.nom}.`);
   }
   const evolutionDite = evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie));
+  // Le sens du dernier mouvement, lisible sans rien ouvrir. L'évolution longue
+  // reste dans le détail : elle demande de savoir depuis quand, ce qui ne tient
+  // pas dans un résumé de ligne.
+  const pas = dernierPas(suivie, indicateur.unite, evenements, periode);
+  const pastille = pas
+    ? `<span class="mesure__pas mesure__pas--${pas.sens}" title="${echapper(
+        `de ${pas.depuis} à ${pas.jusqua}`,
+      )}">${echapper(pas.texte)}</span>`
+    : "";
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
   // son détail n'a pas à être demandé.
@@ -412,6 +421,7 @@ function ligneIndicateur(
       <button type="button" class="mesure__info" data-info="${indicateur.id}"
         aria-expanded="false" aria-label="Que mesure cet indicateur ?">i</button>
       <span class="mesure__valeur">${formate(valeur)}</span>
+      ${pastille}
       <!-- La définition sort en bulle par-dessus la fiche, elle ne pousse
            rien : dépliée dans le flux, elle décalait toute la liste sous elle
            à chaque fois qu'on demandait ce qu'un mot voulait dire. -->

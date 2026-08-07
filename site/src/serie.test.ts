@@ -9,6 +9,7 @@ import { test } from "node:test";
 
 import {
   debutDeMandat,
+  dernierPas,
   evolution,
   rendu,
   ruptureDePerimetre,
@@ -131,4 +132,65 @@ test("sans maire connu, la série est inchangée", () => {
   const html = rendu(serie, [], (v) => `${v} €`, [], true, null);
   assert.doesNotMatch(html, /serie__mandat/);
   assert.doesNotMatch(html, /pris ses fonctions/);
+});
+
+/**
+ * Le dernier pas se lit sans rien ouvrir. Ces tests fixent les deux pièges :
+ * un taux ne varie pas en pourcentage, et un pas ne franchit pas une fusion.
+ */
+
+test("un taux varie en points, pas en pourcentage", () => {
+  // 12,0 % à 12,6 %, c'est +0,6 point. Écrire « +5 % » serait un pourcentage
+  // de pourcentage : le genre de nombre qu'on cite sans savoir ce qu'il compte.
+  const pas = dernierPas({ "2022": 12.0, "2023": 12.6 }, "percent");
+  assert.equal(pas?.texte, `+0,6${FINE}pt`);
+  assert.equal(pas?.sens, "hausse");
+});
+
+test("un effectif varie en pourcentage", () => {
+  const pas = dernierPas({ "2022": 100, "2023": 110 }, "count");
+  assert.equal(pas?.texte, `+10${FINE}%`);
+  assert.equal(pas?.depuis, "2022");
+  assert.equal(pas?.jusqua, "2023");
+});
+
+test("un pas ne franchit pas un changement de périmètre", () => {
+  const fusion = [{ type: "fusion", date: "2023-01-01", avec: "Ailleurs" }];
+  assert.equal(dernierPas({ "2022": 100, "2023": 190 }, "count", fusion), null);
+  // La fusion est antérieure aux deux derniers points : ceux-là se comparent.
+  assert.notEqual(dernierPas({ "2022": 180, "2023": 190 }, "count", [
+    { type: "fusion", date: "2021-01-01", avec: "Ailleurs" },
+  ]), null);
+});
+
+test("une base nulle n'a pas de variation relative", () => {
+  // Passer de 0 à 3 n'est pas « +∞ % » : la ligne le montre par sa valeur.
+  assert.equal(dernierPas({ "2022": 0, "2023": 3 }, "count"), null);
+  // Un taux, lui, se compare en points même depuis zéro.
+  assert.equal(dernierPas({ "2022": 0, "2023": 3 }, "percent")?.texte, `+3${FINE}pt`);
+});
+
+test("sous le seuil d'affichage, le pas est stable et non une hausse", () => {
+  // Une flèche de hausse au-dessus d'un « 0 % » affirmerait un mouvement que
+  // le chiffre ne montre pas.
+  const pas = dernierPas({ "2022": 100_000, "2023": 100_020 }, "count");
+  assert.equal(pas?.sens, "stable");
+  assert.equal(pas?.texte, `0${FINE}%`);
+});
+
+test("une série d'un seul point n'a pas de pas", () => {
+  assert.equal(dernierPas({ "2023": 100 }, "count"), null);
+  assert.equal(dernierPas({}, "count"), null);
+});
+
+test("le pas s'arrête à la période affichée, pas à la fin de la série", () => {
+  // La carte montre 2023 : une variation qui courrait jusqu'à 2025 se lirait
+  // comme celle de la valeur affichée au-dessus.
+  const serie = { "2022": 100, "2023": 110, "2024": 200, "2025": 400 };
+  const pas = dernierPas(serie, "count", [], "2023");
+  assert.equal(pas?.jusqua, "2023");
+  assert.equal(pas?.texte, `+10${FINE}%`);
+  // Une période qui n'est pas dans la série, ou qui l'ouvre, n'a pas de pas.
+  assert.equal(dernierPas(serie, "count", [], "2022"), null);
+  assert.equal(dernierPas(serie, "count", [], "2019"), null);
 });
