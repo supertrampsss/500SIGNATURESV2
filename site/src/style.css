@@ -678,10 +678,6 @@ summary:focus-visible {
   font-size: 0.72rem;
   color: var(--encre-douce);
 }
-.mesure--absente dd {
-  color: var(--encre-douce);
-  font-style: italic;
-}
 
 .repli {
   border-top: 1px solid var(--trait);
@@ -2559,18 +2555,6 @@ body[data-vue="carte"] .pied {
 .mesure__source {
   font-size: 0.72rem;
   color: var(--encre-douce);
-}
-.mesure--absente {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.8rem;
-  padding: 0.52rem 0;
-  font-size: 0.88rem;
-  color: var(--encre-douce);
-}
-.mesure__absence {
-  font-size: 0.78rem;
-  white-space: nowrap;
 }
 
 /* Les rubriques : quatre entrées qui tiennent sans défiler, là où la barre des

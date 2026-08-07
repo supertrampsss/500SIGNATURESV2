@@ -425,14 +425,10 @@ function ligneIndicateur(
   const mesure = mesurer(
     indicateur, territoire, periodeCarte, parHabitant, niveau, toutesReferences, comparateurs,
   );
-  if (typeof mesure === "string") {
-    return `<div class="mesure mesure--absente">
-      <span class="mesure__nom">${echapper(indicateur.libelle)}</span>
-      <span class="mesure__absence">${
-        mesure === "absent" ? "non publié ici" : "population inconnue"
-      }</span>
-    </div>`;
-  }
+  // Une donnée absente n'écrit rien. « Non publié ici » occupait la place
+  // d'un chiffre pour dire qu'il n'y en avait pas, sur des fiches où des
+  // dizaines de lignes pouvaient le répéter.
+  if (typeof mesure === "string") return "";
   const { periode, valeur, brut, ratio, suivie, brute } = mesure;
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
   const formate = (v: number) => formater(v, indicateur.unite, ratio);

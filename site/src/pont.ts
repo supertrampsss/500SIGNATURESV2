@@ -104,7 +104,13 @@ export type Composante = {
 const TRADUCTIONS: Record<string, string> = {
   "Dépenses d'intervention": "Aides et subventions versées",
   FCTVA: "TVA remboursée par l'État (FCTVA)",
-  "Subventions aux personnes de droit privé": "Subventions versées aux associations et entreprises",
+  // Le compte ne sépare pas les associations des entreprises : M14 n'a qu'un
+  // compte 6574 sans subdivision, et en M57 Bordeaux inscrit 44,9 M€ sur 45,9
+  // dans le sous-compte « autres personnes de droit privé ». Écrire l'un des
+  // deux mots serait inventer une ventilation que la comptabilité ne fait pas.
+  // Les bénéficiaires nommés, eux, existent pour les versements de l'État :
+  // c'est l'onglet Vie associative.
+  "Subventions aux personnes de droit privé": "Subventions versées aux organismes privés",
 };
 
 function traduire(libelle: string): string {
