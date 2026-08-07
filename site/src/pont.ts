@@ -50,13 +50,24 @@ const TOLERANCE_RELATIVE = 1e-6;
 export type Marche = {
   libelle: string;
   montant: number;
-  /** `depart` ouvre, `flux` s'ajoute ou se retranche, `palier` est un total
-   *  intermédiaire publié par l'OFGL, `arrivee` clôt. */
-  role: "depart" | "flux" | "palier" | "arrivee";
+  /** `depart` ouvre une section, `flux` s'ajoute ou se retranche, `report`
+   *  reprend le total de la section précédente sans rien mesurer de neuf,
+   *  `palier` est un total intermédiaire publié par l'OFGL, `arrivee` clôt. */
+  role: "depart" | "flux" | "report" | "palier" | "arrivee";
+  /** Le bloc auquel la marche appartient. Neuf lignes d'affilée se lisent
+   *  comme une liste ; trois blocs de trois se lisent comme un raisonnement. */
+  section: "fonctionnement" | "dette" | "investissement";
   /** Ce que la ligne dit, pour les paliers seulement : un flux se lit tout
    *  seul, un palier a besoin qu'on dise ce qu'il est. */
   lecture?: string;
 };
+
+/** Les trois temps de l'exercice, dans l'ordre où ils se produisent. */
+export const SECTIONS: { cle: Marche["section"]; titre: string }[] = [
+  { cle: "fonctionnement", titre: "Ce que l'année rapporte et ce qu'elle coûte" },
+  { cle: "dette", titre: "Ce que la dette prélève" },
+  { cle: "investissement", titre: "Ce qui est investi, et avec quoi" },
+];
 
 function valeur(territoire: Territoire, id: string, exercice: string): number | undefined {
   const v = territoire.series?.[id]?.[exercice];
@@ -105,36 +116,71 @@ export function marches(territoire: Territoire, exercice: string): Marche[] | nu
   }
 
   return [
-    { libelle: "Recettes de fonctionnement", montant: rf as number, role: "depart" },
-    { libelle: "Dépenses de fonctionnement", montant: -(df as number), role: "flux" },
+    {
+      libelle: "Recettes de fonctionnement",
+      montant: rf as number,
+      role: "depart",
+      section: "fonctionnement",
+    },
+    {
+      libelle: "Charges courantes",
+      montant: -(df as number),
+      role: "flux",
+      section: "fonctionnement",
+    },
     {
       libelle: "Épargne brute",
       montant: eb as number,
       role: "palier",
+      section: "fonctionnement",
       lecture: "Ce que la collectivité dégage de son fonctionnement courant.",
     },
-    { libelle: "Remboursements d'emprunts", montant: -(remboursements as number), role: "flux" },
+    {
+      libelle: "Remboursement du capital emprunté",
+      montant: -(remboursements as number),
+      role: "flux",
+      section: "dette",
+    },
     {
       libelle: "Épargne nette",
       montant: en as number,
       role: "palier",
+      section: "dette",
       lecture: "Ce qui reste pour investir sans emprunter davantage.",
     },
+    // Le report n'apporte aucun euro neuf : il redit le total de la section
+    // précédente pour que l'addition de celle-ci se vérifie de l'œil. Sans
+    // lui, la dernière ligne tombait d'un calcul dont deux termes étaient
+    // hors du bloc.
     {
-      libelle: "Recettes d'investissement hors emprunts",
+      libelle: "Report de l'épargne nette",
+      montant: en as number,
+      role: "report",
+      section: "investissement",
+    },
+    {
+      libelle: "Subventions et recettes d'investissement",
       montant: investissementRecettes as number,
       role: "flux",
+      section: "investissement",
     },
-    { libelle: "Emprunts de l'année", montant: emprunts as number, role: "flux" },
+    {
+      libelle: "Emprunts nouveaux",
+      montant: emprunts as number,
+      role: "flux",
+      section: "investissement",
+    },
     {
       libelle: "Dépenses d'investissement",
       montant: -(investissementDepenses as number),
       role: "flux",
+      section: "investissement",
     },
     {
-      libelle: "Recettes totales − dépenses totales",
+      libelle: "Ce qui reste à la fin de l'exercice",
       montant: (rt as number) - (dt as number),
       role: "arrivee",
+      section: "investissement",
       lecture:
         "L'écart entre tout ce qui est entré et tout ce qui est sorti sur l'exercice. Ce n'est pas un déficit au sens de l'État : une collectivité vote sa section de fonctionnement en équilibre.",
     },
@@ -164,43 +210,82 @@ export function montant(valeur: number): string {
   return `${signe}${format(absolu, 0)} €`;
 }
 
-/** Rendu pur, sans DOM : c'est lui qui est testé. */
+/**
+ * Sur 100 € encaissés, ce qui part et ce qui reste.
+ *
+ * Une phrase avant le tableau. Les barres proportionnelles ligne à ligne
+ * n'aidaient personne : neuf longueurs à comparer entre elles, sans repère
+ * commun, c'est un dessin de plus à déchiffrer avant de lire les chiffres. Un
+ * seul rapport, dit en français, remplace les neuf.
+ */
+export function surCentEuros(etapes: Marche[]): string {
+  const trouver = (libelle: string) => etapes.find((e) => e.libelle === libelle)?.montant;
+  const recettes = trouver("Recettes de fonctionnement");
+  const charges = trouver("Charges courantes");
+  const dette = trouver("Remboursement du capital emprunté");
+  const nette = trouver("Épargne nette");
+  if (!recettes || charges === undefined || dette === undefined || nette === undefined) return "";
+  const pour100 = (v: number) =>
+    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+      .format(Math.abs(v / recettes) * 100)
+      .replace("-", "−");
+  const reste = nette >= 0 ? "il reste" : "il manque";
+  return `Sur 100${FINE}€ de recettes de fonctionnement, ${pour100(charges)}${FINE}€ paient les
+    charges courantes et ${pour100(dette)}${FINE}€ remboursent le capital emprunté :
+    ${reste} ${pour100(nette)}${FINE}€.`;
+}
+
+/** Espace fine insécable : la typographie française avant une unité. */
+const FINE = "\u202f";
+
+/** Le signe qui ouvre la ligne. C'est lui qui fait lire une addition plutôt
+ *  qu'une liste — il tient sa propre colonne, aligné d'une ligne à l'autre. */
+function signe(marche: Marche): string {
+  if (marche.role === "palier" || marche.role === "arrivee") return "=";
+  if (marche.role === "depart" || marche.role === "report") return "";
+  return marche.montant < 0 ? "−" : "+";
+}
+
+/**
+ * Rendu pur, sans DOM : c'est lui qui est testé.
+ *
+ * Ouvert, et non replié. « D'un euro encaissé à ce qu'il en reste » est la
+ * question que le lecteur vient poser : la mettre derrière un triangle à
+ * déplier revenait à la ranger avec les annexes.
+ */
 export function rendu(territoire: Territoire, exercice: string | null): string {
   if (!exercice) return "";
   const etapes = marches(territoire, exercice);
   if (!etapes) return "";
-  // La barre de chaque ligne est proportionnelle à la plus grande masse du
-  // pont — les recettes de fonctionnement, sauf exercice hors norme. Sans
-  // échelle commune, un remboursement de 2 % ferait la même longueur qu'une
-  // recette de 100 %.
-  const echelle = Math.max(...etapes.map((e) => Math.abs(e.montant))) || 1;
-  const lignes = etapes
-    .map((etape) => {
-      const largeur = ((Math.abs(etape.montant) / echelle) * 100).toFixed(1);
-      const lecture = etape.lecture
-        ? `<p class="pont__lecture">${echapper(etape.lecture)}</p>`
-        : "";
-      return `<li class="pont__marche pont__marche--${etape.role}"${
-        etape.montant < 0 ? ' data-sens="sortie"' : ""
-      }>
-        <span class="pont__libelle">${echapper(etape.libelle)}</span>
-        <span class="pont__montant">${echapper(montant(etape.montant))}</span>
-        <span class="pont__barre" style="width:${largeur}%" aria-hidden="true"></span>
-        ${lecture}
+
+  const blocs = SECTIONS.filter((section) => etapes.some((e) => e.section === section.cle))
+    .map((section) => {
+      const lignes = etapes
+        .filter((e) => e.section === section.cle)
+        .map((etape) => {
+          const lecture = etape.lecture
+            ? `<p class="pont__lecture">${echapper(etape.lecture)}</p>`
+            : "";
+          return `<li class="pont__marche pont__marche--${etape.role}">
+            <span class="pont__signe" aria-hidden="true">${signe(etape)}</span>
+            <span class="pont__libelle">${echapper(etape.libelle)}</span>
+            <span class="pont__montant">${echapper(montant(etape.montant))}</span>
+            ${lecture}
+          </li>`;
+        })
+        .join("");
+      return `<li class="pont__section">
+        <h4>${echapper(section.titre)}</h4>
+        <ol class="pont__marches">${lignes}</ol>
       </li>`;
     })
     .join("");
-  // Replié par défaut : neuf marches ouvertes pousseraient les six rapports et
-  // le premier indicateur hors de l'écran, et la barre latérale n'a qu'une
-  // hauteur.
-  return `<details class="repli pont">
-    <summary>D'un euro encaissé à ce qu'il en reste <span class="pont__exercice">exercice ${echapper(
+
+  return `<section class="pont">
+    <h3>D'un euro encaissé à ce qu'il en reste <span class="pont__exercice">exercice ${echapper(
       exercice,
-    )}</span></summary>
-    <ol class="pont__marches">${lignes}</ol>
-    <p class="pont__source">Enchaînement des agrégats du budget principal publiés par
-    l'Observatoire des finances et de la gestion publique locales (OFGL) pour l'exercice
-    ${echapper(exercice)}. Chaque palier est recalculé depuis ses termes et confronté à
-    l'agrégat publié : le bloc ne s'affiche pas si l'un des trois contrôles échoue.</p>
-  </details>`;
+    )}</span></h3>
+    <p class="pont__cent">${surCentEuros(etapes)}</p>
+    <ol class="pont__sections">${blocs}</ol>
+  </section>`;
 }

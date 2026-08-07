@@ -256,11 +256,5 @@ export function rendu(territoire: Territoire, niveau: string): string {
       exercice,
     )}</span></h3>
     <div class="ratios__grille">${carreaux}</div>
-    <p class="ratios__source">Calculés sur les comptes publiés par l'Observatoire des finances et
-    de la gestion publique locales (OFGL) pour le budget principal du seul exercice ${echapper(
-      exercice,
-    )}. Le plafond de désendettement est celui de la loi n° 2018-32 du 22 janvier 2018 de
-    programmation des finances publiques pour 2018-2022, art. 29 ; les autres rapports n'ont pas
-    de norme publiée et se lisent en comparant les territoires.</p>
   </section>`;
 }

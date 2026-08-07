@@ -11,7 +11,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { marches, montant, rendu } from "./pont.ts";
+import { marches, montant, rendu, surCentEuros } from "./pont.ts";
 import type { Territoire } from "./donnees.ts";
 
 /** Espace fine insécable : la typographie française avant une unité. */
@@ -48,27 +48,50 @@ function territoire(comptes: Record<string, number>): Territoire {
 
 const BORDEAUX = territoire(COMPTES);
 
-test("les neuf marches s'enchaînent des recettes au solde", () => {
+test("les marches s'enchaînent des recettes au solde, en trois blocs", () => {
   const etapes = marches(BORDEAUX, "2025");
   assert.ok(etapes);
+  // Neuf lignes d'affilée se lisent comme une liste ; trois blocs de trois se
+  // lisent comme un raisonnement.
   assert.deepEqual(
     etapes.map((e) => e.role),
-    ["depart", "flux", "palier", "flux", "palier", "flux", "flux", "flux", "arrivee"],
+    ["depart", "flux", "palier", "flux", "palier", "report", "flux", "flux", "flux", "arrivee"],
+  );
+  assert.deepEqual(
+    [...new Set(etapes.map((e) => e.section))],
+    ["fonctionnement", "dette", "investissement"],
   );
   // Une sortie porte son signe : c'est ce qui fait du pont une addition.
   assert.equal(etapes[1].montant, -369_011_621.25);
   assert.equal(etapes[2].montant, 48_126_337.27);
   // 536 663 746,47 − 538 711 875,41
-  assert.ok(Math.abs((etapes[8].montant as number) + 2_048_128.94) < 0.01);
+  assert.ok(Math.abs((etapes[9].montant as number) + 2_048_128.94) < 0.01);
 });
 
-test("chaque palier se recalcule depuis ses termes", () => {
+test("chaque bloc s'additionne de lui-même, report compris", () => {
   const etapes = marches(BORDEAUX, "2025") as NonNullable<ReturnType<typeof marches>>;
-  const [depart, fonctionnement, brute, remboursements, nette, recettesInv, emprunts, depensesInv, arrivee] =
-    etapes.map((e) => e.montant);
-  assert.ok(Math.abs(depart + fonctionnement - brute) < 1);
-  assert.ok(Math.abs(brute + remboursements - nette) < 1);
-  assert.ok(Math.abs(nette + recettesInv + emprunts + depensesInv - arrivee) < 1);
+  // Le report reprend le total du bloc précédent : sans lui, la dernière ligne
+  // tomberait d'un calcul dont deux termes sont hors du bloc.
+  for (const section of ["fonctionnement", "dette", "investissement"] as const) {
+    const bloc = etapes.filter((e) => e.section === section);
+    const total = bloc.find((e) => e.role === "palier" || e.role === "arrivee");
+    const termes = bloc.filter((e) => e.role !== "palier" && e.role !== "arrivee");
+    const somme = termes.reduce((s, e) => s + e.montant, 0);
+    // Le bloc « dette » n'a qu'un flux : son palier vaut l'épargne brute plus
+    // ce flux, et l'épargne brute est le palier du bloc d'avant.
+    const report = section === "dette" ? (etapes[2].montant as number) : 0;
+    assert.ok(
+      Math.abs(somme + report - (total?.montant as number)) < 1,
+      `${section} ne s'additionne pas`,
+    );
+  }
+});
+
+test("le report ne compte pas deux fois : il redit le palier précédent", () => {
+  const etapes = marches(BORDEAUX, "2025") as NonNullable<ReturnType<typeof marches>>;
+  const nette = etapes.find((e) => e.libelle === "Épargne nette");
+  const report = etapes.find((e) => e.role === "report");
+  assert.equal(report?.montant, nette?.montant);
 });
 
 test("un palier qui ne boucle pas retire le pont entier", () => {
@@ -110,15 +133,40 @@ test("les montants se lisent à l'échelle de la collectivité", () => {
   assert.equal(montant(-820), `−820${FINE}€`);
 });
 
-test("le bloc dit son exercice, sa source et que ce n'est pas un déficit d'État", () => {
+test("le bloc s'affiche ouvert : c'est la question qu'on vient poser", () => {
   const html = rendu(BORDEAUX, "2025");
+  assert.match(html, /^<section class="pont">/);
+  // Derrière un triangle à déplier, « d'un euro encaissé à ce qu'il en reste »
+  // se rangeait avec les annexes.
+  assert.doesNotMatch(html, /<details/);
   assert.match(html, /exercice 2025/);
   assert.match(html, /Épargne brute/);
   assert.match(html, new RegExp(`417,1${FINE}M€`));
-  assert.match(html, /Observatoire des finances/);
   assert.match(html, /Ce n&#39;est pas un déficit au sens de l&#39;État/);
-  // Replié : neuf marches ouvertes pousseraient le reste de la fiche hors
-  // de l'écran.
-  assert.match(html, /^<details class="repli pont">/);
-  assert.doesNotMatch(html, /<details[^>]*\bopen\b/);
+});
+
+test("le signe tient sa colonne : on lit une addition, pas une liste", () => {
+  const html = rendu(BORDEAUX, "2025");
+  assert.match(html, /<span class="pont__signe" aria-hidden="true">−<\/span>/);
+  assert.match(html, /<span class="pont__signe" aria-hidden="true">\+<\/span>/);
+  assert.match(html, /<span class="pont__signe" aria-hidden="true">=<\/span>/);
+});
+
+test("une phrase remplace les neuf barres à comparer entre elles", () => {
+  // 369 011 621,25 / 417 137 958,52 = 88,46 % ;
+  // 33 734 266,11 / 417 137 958,52 = 8,09 % ; reste 3,45 %.
+  const phrase = surCentEuros(marches(BORDEAUX, "2025") as never);
+  assert.match(phrase, new RegExp(`88,46${FINE}€ paient les`));
+  assert.match(phrase, new RegExp(`8,09${FINE}€ remboursent`));
+  assert.match(phrase, new RegExp(`il reste 3,45${FINE}€`));
+  // Et plus aucune barre proportionnelle ligne à ligne.
+  assert.doesNotMatch(rendu(BORDEAUX, "2025"), /pont__barre/);
+});
+
+test("la source n'encombre plus la barre latérale", () => {
+  // Le pavé de méthode est repris en entier sur la page « Données », où l'on
+  // va quand on veut la méthode. Dans la fiche, il poussait les chiffres.
+  const html = rendu(BORDEAUX, "2025");
+  assert.doesNotMatch(html, /Observatoire des finances/);
+  assert.doesNotMatch(html, /loi n° 2018-32/);
 });

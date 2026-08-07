@@ -114,13 +114,15 @@ test("sans comptes, pas de bloc plutôt qu'un bloc vide", () => {
   );
 });
 
-test("le bloc nomme son exercice, sa source et le texte du plafond", () => {
+test("le bloc nomme son exercice et le plafond, sans le pavé de méthode", () => {
   const html = rendu(SAINE, "commune");
   assert.match(html, /exercice 2024/);
   assert.match(html, /11,0 ans/);
   assert.match(html, /Plafond national de référence : 12 ans/);
-  assert.match(html, /Observatoire des finances et\s+de la gestion publique locales/);
-  assert.match(html, /loi n° 2018-32 du 22 janvier 2018/);
+  // La source et la méthode sont reprises en entier sur la page « Données ».
+  // Dans la barre latérale, elles poussaient les chiffres hors de l'écran.
+  assert.doesNotMatch(html, /Observatoire des finances/);
+  assert.doesNotMatch(html, /loi n° 2018-32/);
 });
 
 test("un taux négatif porte le signe moins, pas le trait d'union", () => {

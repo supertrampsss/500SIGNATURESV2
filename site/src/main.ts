@@ -437,6 +437,7 @@ function afficherApercu(): void {
       periode: etat.periode,
       parHabitant: etat.declinaison === "habitant",
       references: reperes,
+      peintSurCarte,
     });
     return;
   }
@@ -713,6 +714,7 @@ async function montrerFiche(code: string): Promise<void> {
     periode: etat.periode,
     parHabitant: etat.declinaison === "habitant",
     references: reperes,
+    peintSurCarte,
   });
   $("panneau").classList.add("panneau--selection");
 }
@@ -893,6 +895,18 @@ function construireSelecteurs(): void {
 
 }
 
+/**
+ * Cet indicateur a-t-il une couche à peindre, ici et maintenant ?
+ *
+ * Mêmes refus que `choisirIndicateur` — une série nationale n'existe pas par
+ * commune, un indicateur reconstitué n'a pas de fichier de carte. Écrit à part
+ * pour que la fiche puisse le demander *avant* de proposer le bouton : un
+ * bouton qui ne fait rien est pire que pas de bouton.
+ */
+function peintSurCarte(indicateur: Indicateur): boolean {
+  return !!indicateur.niveaux?.includes(etat.niveau) && !IDS_DERIVES.has(indicateur.id);
+}
+
 async function choisirIndicateur(id: string): Promise<void> {
   const choisi = catalogue.find((i) => i.id === id);
   if (!choisi) return;
@@ -1031,12 +1045,16 @@ function brancherCommandes(): void {
     // Un clic ailleurs referme la bulle ouverte — c'est ce qu'on attend d'un
     // dispositif qui recouvre le texte.
     fermerDefinitions();
-    const mesure = (evenement.target as HTMLElement).closest<HTMLElement>("[data-mesure]");
-    if (mesure?.dataset.mesure) {
-      // Refermer une mesure ne repeint rien : on ne change la carte qu'en
-      // ouvrant, sinon un simple repli relancerait tout le rendu.
-      if ((mesure as HTMLDetailsElement).open) return;
-      void choisirIndicateur(mesure.dataset.mesure);
+    // La carte ne suit plus le dépliage, elle suit ce bouton.
+    //
+    // Ouvrir une mesure la portait sur la carte. Peindre relit une couche de
+    // 34 772 territoires et réécrit la fiche entière : *lire* un chiffre
+    // coûtait donc le prix de *cartographier* un chiffre, à chaque ligne. Sur
+    // un thème à soixante-dix-neuf indicateurs, la lecture devenait
+    // impraticable. Déplier ne fait plus que déplier.
+    const versLaCarte = (evenement.target as HTMLElement).closest<HTMLElement>("[data-carte]");
+    if (versLaCarte?.dataset.carte) {
+      void choisirIndicateur(versLaCarte.dataset.carte);
       return;
     }
     const ligne = (evenement.target as HTMLElement).closest<HTMLElement>("[data-indicateur]");
@@ -1551,6 +1569,39 @@ async function demarrer(): Promise<void> {
         </details>`,
       )
       .join("")}
+    <h3 class="sources__titre">Comment les comptes d'une collectivité sont lus</h3>
+    <ul class="methodes">
+      <li>Les six rapports et l'enchaînement « d'un euro encaissé à ce qu'il en
+        reste » sont calculés sur les agrégats du <strong>budget principal</strong>
+        publiés par l'Observatoire des finances et de la gestion publique locales
+        (OFGL). Les budgets annexes n'y sont pas.</li>
+      <li>Les six rapports portent tous sur un <strong>exercice unique</strong> : un
+        rapport dont un terme manque pour cette année-là n'est pas calculé sur
+        l'année d'à côté, il n'est pas affiché.</li>
+      <li>Le seul seuil chiffré du site est le <strong>plafond national de
+        référence</strong> de la capacité de désendettement — loi n° 2018-32 du
+        22 janvier 2018 de programmation des finances publiques pour 2018-2022,
+        art. 29 : douze années pour les communes et les intercommunalités à
+        fiscalité propre, dix pour les départements, neuf pour les régions. Les
+        autres rapports n'ont pas de norme publiée et n'en portent aucune ; ils se
+        lisent en comparant les territoires.</li>
+      <li>Une <strong>épargne brute nulle ou négative</strong> ne donne pas une
+        capacité de désendettement très grande : elle n'en donne aucune. Le
+        quotient n'existe pas, et le site l'écrit plutôt que d'afficher un nombre
+        d'années négatif.</li>
+      <li>Chaque palier de l'enchaînement — épargne brute, épargne nette, solde —
+        est <strong>recalculé depuis ses termes puis confronté à l'agrégat publié</strong>
+        pour ce même palier. Si l'un des trois contrôles échoue, l'enchaînement
+        n'est pas affiché du tout.</li>
+      <li>La dernière ligne de l'enchaînement <strong>n'est pas un déficit</strong> au
+        sens de l'État. Une collectivité vote sa section de fonctionnement en
+        équilibre : c'est l'écart entre tout ce qui est entré et tout ce qui est
+        sorti sur l'exercice.</li>
+      <li>La dette par habitant se divise par la <strong>population de référence de
+        l'OFGL</strong> de l'exercice, et non par la population municipale du
+        recensement affichée en tête de fiche : deux définitions, deux
+        millésimes, deux nombres.</li>
+    </ul>
     <h3 class="sources__titre">Ce qui rend deux territoires comparables</h3>
     <ul class="methodes">
       <li>Comparer deux territoires suppose la même année, la même unité et le

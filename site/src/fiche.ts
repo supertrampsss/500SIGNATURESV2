@@ -399,6 +399,10 @@ function ligneIndicateur(
   surCarte = false,
   rang?: { position: number; total: number },
   comparateurs: { libelle: string; territoire: Territoire }[] = [],
+  /** Cet indicateur a-t-il une couche à peindre ? Seul `main.ts` le sait — il
+   *  connaît la maille affichée et les indicateurs reconstitués, qui n'ont pas
+   *  de fichier de carte. */
+  peintSurCarte?: (indicateur: Indicateur) => boolean,
 ): string {
   const mesure = mesurer(
     indicateur, territoire, periodeCarte, parHabitant, niveau, toutesReferences, comparateurs,
@@ -505,7 +509,27 @@ function ligneIndicateur(
             )} sur ${new Intl.NumberFormat("fr-FR").format(rang.total)} territoires.</p>`
           : ""
       }
-
+      ${
+        // Peindre la carte est devenu un geste à part.
+        //
+        // Ouvrir une mesure la portait sur la carte : un seul clic pour deux
+        // intentions, ce qui était le but. Mais peindre relit une couche de
+        // 34 772 territoires et réécrit la fiche entière — si bien que *lire*
+        // un chiffre coûtait le prix de *cartographier* un chiffre, à chaque
+        // ligne dépliée. Sur un thème à soixante-dix-neuf indicateurs, la
+        // lecture devenait impraticable.
+        //
+        // Déplier ne fait donc plus rien d'autre que déplier. Le bouton reste
+        // pour qui veut la carte, et il n'apparaît que là où il y a quelque
+        // chose à peindre.
+        surCarte
+          ? `<p class="mesure__phrase mesure__deja">Peint sur la carte.</p>`
+          : peintSurCarte?.(indicateur)
+          ? `<button type="button" class="mesure__carte" data-carte="${echapper(
+              indicateur.id,
+            )}">Voir sur la carte</button>`
+          : ""
+      }
     </div>
   </details>`;
 }
@@ -1158,6 +1182,9 @@ export function afficherFiche(
     /** Absent des publications antérieures aux repères : la fiche s'affiche
      *  alors sans eux, plutôt que de refuser de s'afficher. */
     references?: References | null;
+    /** Cet indicateur a-t-il une couche à peindre ? Sans ce prédicat, aucune
+     *  mesure ne propose la carte — c'est le repli sûr. */
+    peintSurCarte?: (indicateur: Indicateur) => boolean;
   },
 ): void {
   const { territoire, indicateurs, periode, parHabitant, niveau } = options;
@@ -1200,6 +1227,7 @@ export function afficherFiche(
                 indicateur.id === principal && options.marquerCarte !== false,
                 indicateur.id === principal ? options.rang : undefined,
                 options.comparateurs,
+                options.peintSurCarte,
               ),
             )
             .join("")}
