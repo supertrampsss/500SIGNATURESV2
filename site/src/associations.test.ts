@@ -29,7 +29,10 @@ test("les associations sont nommées, avec leur montant", () => {
   const html = rendu(THIONVILLE);
   assert.match(html, /APSIS EMERGENCE/);
   assert.match(html, /Ligue de l&#39;enseignement/);
-  assert.match(html, /37\s?180/);
+  // Tout en millions d'euros, deux décimales : une colonne où les unités
+  // changent d'une ligne à l'autre ne se compare pas d'un coup d'œil.
+  assert.match(html, /0,04 M€/);
+  assert.match(html, /0,01 M€/);
   assert.match(html, /Transfert direct aux ménages/);
 });
 

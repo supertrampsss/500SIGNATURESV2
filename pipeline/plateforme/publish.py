@@ -139,6 +139,37 @@ def synchroniser_niveaux(conn) -> int:
 GEOGRAPHIE_COURANTE = {"melodi-populations-historiques"}
 
 
+def hierarchie_ofgl() -> dict[str, str]:
+    """-> {indicateur: son agrégat parent}, d'après le catalogue de l'OFGL.
+
+    L'OFGL publie ses agrégats avec leur place dans l'arbre comptable — « Dépenses
+    totales > Dépenses de fonctionnement > » pour les frais de personnel. La
+    colonne est dans `infra/seed/ofgl_agregats.csv` depuis le premier jour et
+    n'était lue nulle part : le site affichait donc soixante-dix-neuf agrégats à
+    plat, dont des totaux et leurs propres composantes, sans que rien ne dise
+    lesquels contenaient lesquels.
+
+    C'est pourtant la seule chose qui manquait pour répondre à « et dans ces
+    369 millions de charges, il y a quoi ». Vérifié sur les comptes publiés : à
+    chaque niveau, les composantes redonnent leur parent au centième de pour
+    cent près.
+    """
+    from plateforme.connectors.ofgl import catalogue
+
+    lignes = [ligne for ligne in catalogue() if ligne["charge"] == "oui"]
+    par_libelle = {ligne["agregat"]: ligne["indicateur"] for ligne in lignes}
+    arbre: dict[str, str] = {}
+    for ligne in lignes:
+        maillons = [m.strip() for m in ligne["chemin"].split(">") if m.strip()]
+        # Le dernier maillon du chemin est le parent direct. Un chemin vide est
+        # une racine — épargne, encours de dette, soldes : ils ne se rangent
+        # sous rien.
+        parent = par_libelle.get(maillons[-1]) if maillons else None
+        if parent and parent != ligne["indicateur"]:
+            arbre[ligne["indicateur"]] = parent
+    return arbre
+
+
 def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[dict]:
     """La fiche en 10 points (docs/06) accompagne chaque indicateur publié.
 
@@ -158,6 +189,7 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
         where i.published order by i.theme, i.label_fr
         """
     ).fetchall()
+    arbre = hierarchie_ofgl()
     return [
         {
             "id": ligne[0], "libelle": ligne[1], "unite": ligne[2], "theme": ligne[3],
@@ -172,6 +204,10 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
             "unite_de_compte": ligne[14],
             "periodes_par_niveau": cartographiees.get(ligne[0], {}),
             "geographie_courante": ligne[13] in GEOGRAPHIE_COURANTE,
+            # L'agrégat qui contient celui-ci, quand la source en déclare un.
+            # C'est ce qui permet d'ouvrir un total sur ses composantes plutôt
+            # que de les aligner à côté de lui.
+            "parent": arbre.get(ligne[0]),
         }
         for ligne in lignes
     ]

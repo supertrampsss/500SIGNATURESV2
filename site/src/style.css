@@ -3070,16 +3070,14 @@ body[data-vue="carte"] .pied {
   color: var(--encre-douce);
 }
 
-/* Le pont, en trois blocs. Les barres proportionnelles ligne à ligne
-   n'aidaient personne : neuf longueurs à comparer entre elles, sans repère
-   commun, c'était un dessin de plus à déchiffrer avant de lire les chiffres.
-   À la place, une colonne de signes — c'est elle qui fait lire une addition
-   plutôt qu'une liste — et une seule phrase pour dire les proportions. */
-.pont {
-  margin: 0.9rem 0 0.4rem;
-}
+/* Le pont : trois colonnes en grille, dont la troisième — « il reste » — est ce
+   qui en fait un pont et non une liste. Une grille et non un tableau : une
+   composante qui s'ouvre sur les siennes doit occuper toute la largeur, et
+   imbriquée dans une cellule elle poussait la troisième colonne hors de
+   l'écran. */
+.pont { margin: 0.9rem 0 0.4rem; }
 .pont > h3 {
-  margin: 0 0 0.35rem;
+  margin: 0 0 0.4rem;
   font-size: 0.82rem;
   font-weight: 600;
   color: var(--encre);
@@ -3090,85 +3088,117 @@ body[data-vue="carte"] .pied {
   color: var(--encre-douce);
   white-space: nowrap;
 }
-.pont__cent {
-  margin: 0 0 0.6rem;
-  font-size: 0.76rem;
-  line-height: 1.4;
+.pont__rangee,
+.pont__entete {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  column-gap: 0.5rem;
+  align-items: baseline;
+}
+.pont__entete {
+  margin: 0 0 0.2rem;
+  padding-bottom: 0.2rem;
+  border-bottom: 1px solid var(--trait);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   color: var(--encre-douce);
 }
-.pont__sections,
-.pont__marches {
+.pont__entete span:not(:first-child) { text-align: right; }
+.pont__etapes,
+.pont__composantes {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.pont__section + .pont__section {
-  margin-top: 0.75rem;
-}
-.pont__section h4 {
-  margin: 0 0 0.15rem;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+.pont__ligne { padding: 0.22rem 0; }
+.pont__nom {
+  font-size: 0.75rem;
   color: var(--encre-douce);
 }
-/* Trois colonnes : le signe, le libellé, le montant. Le signe a une largeur
-   fixe pour que les plus et les moins s'alignent d'une ligne à l'autre —
-   alignés, ils se lisent comme une opération ; décalés, comme de la
-   ponctuation. */
-.pont__marche {
-  display: grid;
-  grid-template-columns: 0.9rem 1fr auto;
-  align-items: baseline;
-  column-gap: 0.3rem;
-  padding: 0.22rem 0;
-}
-.pont__signe {
-  font-size: 0.8rem;
+.pont__mouvement,
+.pont__reste {
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
-  color: var(--encre-douce);
-  text-align: center;
-}
-.pont__libelle {
-  font-size: 0.78rem;
-  color: var(--encre-douce);
-}
-.pont__montant {
-  font-size: 0.8rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--encre);
+  text-align: right;
   white-space: nowrap;
 }
+.pont__mouvement { color: var(--encre-douce); }
+.pont__reste { color: var(--encre); font-weight: 500; }
 /* Un palier est un total : le trait au-dessus dit que ce qui précède
    s'additionne pour donner cette ligne-là. */
-.pont__marche--palier,
-.pont__marche--arrivee {
+.pont__ligne--palier,
+.pont__ligne--arrivee {
   border-top: 1px solid var(--trait-fort);
-  margin-top: 0.1rem;
-  padding-top: 0.32rem;
+  margin-top: 0.15rem;
+  padding-top: 0.3rem;
 }
-.pont__marche--palier .pont__libelle,
-.pont__marche--arrivee .pont__libelle,
-.pont__marche--palier .pont__montant,
-.pont__marche--arrivee .pont__montant,
-.pont__marche--palier .pont__signe,
-.pont__marche--arrivee .pont__signe {
+.pont__ligne--palier .pont__nom,
+.pont__ligne--arrivee .pont__nom,
+.pont__ligne--palier .pont__reste,
+.pont__ligne--arrivee .pont__reste {
   font-weight: 600;
   color: var(--encre);
 }
 /* Le report n'apporte aucun euro neuf : il redit le total du bloc précédent
-   pour que l'addition de celui-ci se vérifie de l'œil. En italique clair,
-   pour qu'on ne le compte pas deux fois. */
-.pont__marche--report .pont__libelle,
-.pont__marche--report .pont__montant {
-  font-style: italic;
+   pour que l'addition se vérifie de l'œil. */
+.pont__ligne--report .pont__nom { font-style: italic; }
+.pont__ligne--report .pont__reste { font-weight: 400; color: var(--encre-douce); }
+.pont__lecture {
+  margin: 0.1rem 0 0.25rem;
+  font-size: 0.68rem;
+  line-height: 1.35;
   color: var(--encre-douce);
 }
-.pont__lecture {
-  grid-column: 2 / -1;
-  margin: 0.1rem 0 0;
-  font-size: 0.68rem;
+/* Ce qui s'ouvre se voit : le libellé souligné en pointillé est la seule
+   promesse faite au lecteur qu'il y a quelque chose dessous. */
+.pont__ouvrir > summary,
+.pont__sous > summary {
+  cursor: pointer;
+  list-style: none;
+}
+.pont__ouvrir > summary::-webkit-details-marker,
+.pont__sous > summary::-webkit-details-marker { display: none; }
+.pont__ouvrir > summary .pont__nom,
+.pont__sous > summary .pont__c-nom {
+  border-bottom: 1px dotted var(--trait-fort);
+}
+.pont__ouvrir > summary .pont__nom::before,
+.pont__sous > summary .pont__c-nom::before {
+  content: "▸";
+  display: inline-block;
+  margin-right: 0.25rem;
+  font-size: 0.6rem;
+  color: var(--trait-fort);
+  transition: transform var(--transition);
+}
+.pont__ouvrir[open] > summary .pont__nom::before,
+.pont__sous[open] > summary .pont__c-nom::before { transform: rotate(90deg); }
+.pont__ouvrir > summary:hover .pont__nom,
+.pont__sous > summary:hover .pont__c-nom { color: var(--encre); }
+.pont__composantes { margin: 0.15rem 0 0.3rem; }
+.pont__composante { padding: 0.1rem 0; }
+/* Chaque niveau se décale : c'est le décalage qui dit « ceci est dans cela ». */
+.pont__composante[data-rang="1"] { padding-left: 0.7rem; }
+.pont__composante[data-rang="2"] { padding-left: 1.4rem; }
+.pont__composante[data-rang="3"] { padding-left: 2.1rem; }
+.pont__c-nom {
+  font-size: 0.7rem;
+  color: var(--encre-douce);
+}
+.pont__c-part,
+.pont__c-montant {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.pont__c-part { color: var(--encre-douce); opacity: 0.75; }
+.pont__c-montant { color: var(--encre); }
+.pont__aide {
+  margin: 0.45rem 0 0;
+  font-size: 0.66rem;
   line-height: 1.35;
   color: var(--encre-douce);
 }

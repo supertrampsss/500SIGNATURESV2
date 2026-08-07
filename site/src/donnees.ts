@@ -29,6 +29,10 @@ export type Indicateur = {
    * permet au site de le vérifier plutôt que de l'affirmer.
    */
   unite_de_compte?: string | null;
+  /** L'agrégat qui contient celui-ci, quand la source en déclare un. C'est ce
+   *  qui permet d'ouvrir un total sur ses composantes plutôt que de les aligner
+   *  à côté de lui. Absent des publications antérieures à la hiérarchie. */
+  parent?: string | null;
   /** Le producteur recalcule l'historique dans la géographie d'aujourd'hui : une
    *  fusion de communes ne coupe pas cette série. Absent = non recalculé. */
   geographie_courante?: boolean;

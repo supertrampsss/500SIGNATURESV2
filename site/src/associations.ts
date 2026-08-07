@@ -39,14 +39,23 @@ function echapper(texte: string): string {
   );
 }
 
+/**
+ * Tout en millions d'euros, deux décimales, sans exception.
+ *
+ * Une colonne où les unités changent d'une ligne à l'autre — 10,2 M€ puis
+ * 480 k€ puis 3 200 € — ne se compare pas d'un coup d'œil : il faut convertir
+ * de tête à chaque ligne. Une seule unité pour toute la liste, et l'œil descend
+ * la colonne sans rien recalculer. Les deux décimales font le prix de ce
+ * choix : un versement de quelques milliers d'euros s'affiche « 0,00 M€ », et
+ * c'est le bon ordre de grandeur — à côté de dix millions, il n'est rien.
+ */
 function euros(valeur: number): string {
-  return new Intl.NumberFormat("fr-FR", {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: 0,
+  return `${new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   })
-    .format(valeur)
-    .replace("-", "−");
+    .format(valeur / 1e6)
+    .replace("-", "−")} M€`;
 }
 
 /** Un objet de convention fait parfois trois lignes : il est coupé sur un mot. */

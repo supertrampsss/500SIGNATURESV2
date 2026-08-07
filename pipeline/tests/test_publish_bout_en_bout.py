@@ -608,3 +608,36 @@ def test_une_valeur_publiee_par_la_source_prime_sur_notre_somme(tmp_path):
     assert totaux == {}
     assert methode["indicateurs"] == []
     conn.close()
+
+
+def test_la_hierarchie_de_l_ofgl_est_publiee_avec_le_catalogue():
+    """La colonne était là depuis le premier jour et n'était lue nulle part.
+
+    Le site alignait soixante-dix-neuf agrégats à plat, dont des totaux et leurs
+    propres composantes, sans que rien ne dise lesquels contenaient lesquels.
+    C'est pourtant la seule chose qui manquait pour répondre à « et dans ces
+    369 millions de charges, il y a quoi ».
+    """
+    arbre = publish.hierarchie_ofgl()
+    assert arbre["ofgl_frais_personnel"] == "ofgl_depenses_fonctionnement"
+    assert arbre["ofgl_impots_locaux"] == "ofgl_impots_et_taxes"
+    # Deux niveaux : les impôts locaux sont dans les impôts et taxes, qui sont
+    # dans les recettes de fonctionnement.
+    assert arbre["ofgl_impots_et_taxes"] == "ofgl_recettes_fonctionnement"
+    # Une racine ne se range sous rien : l'épargne brute est un solde, pas une
+    # composante d'un total.
+    assert "ofgl_epargne_brute" not in arbre
+    # Et rien ne se contient soi-même, ce qui ferait boucler l'affichage.
+    assert not [cle for cle, parent in arbre.items() if cle == parent]
+
+
+def test_aucun_agregat_n_est_son_propre_ancetre(tmp_path):
+    """Un cycle dans l'arbre ferait tourner l'ouverture des composantes sans fin."""
+    arbre = publish.hierarchie_ofgl()
+    for depart in arbre:
+        vus = {depart}
+        courant = arbre.get(depart)
+        while courant is not None:
+            assert courant not in vus, f"cycle sur {depart}"
+            vus.add(courant)
+            courant = arbre.get(courant)

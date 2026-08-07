@@ -16,7 +16,7 @@ import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from
 import { dernierPas, evolution, rendu as rendreSerie } from "./serie.ts";
 import { rendu as rendreAssociations } from "./associations.ts";
 import { rendu as rendrePont } from "./pont.ts";
-import { exerciceDesComptes, rendu as rendreRatios } from "./ratios.ts";
+import { rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
 import {
   compteEcarts, lecture, memeSens, repereComparable, resumeEcarts, synthese,
@@ -1450,7 +1450,7 @@ export function afficherFiche(
     ${
       // Puis l'enchaînement lui-même, replié : les rapports disent si ça tient,
       // le pont dit où l'argent passe.
-      rendrePont(territoire, exerciceDesComptes(territoire))
+      rendrePont(territoire, indicateurs)
     }
     ${ongletsThemes(ordonnerThemes([...parTheme.keys()]), themeActif, options.libelleTheme)}
     <div class="mesures">${mesures}</div>
