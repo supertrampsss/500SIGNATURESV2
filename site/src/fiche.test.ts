@@ -277,11 +277,25 @@ test("une population ne se rapporte pas à elle-même", () => {
 
 const TOUS_LES_THEMES = [
   "finances_locales", "impots_locaux", "budget_etat", "depenses_fiscales", "dette",
-  "fonctions", "securite_sociale", "macro", "europe", "population", "revenus", "famille",
-  "diplomes", "elections", "prenoms", "emploi", "professions", "entreprises",
-  "secteurs_salaries", "secteurs_etablissements", "logement", "sante", "education",
-  "securite", "equipements", "tourisme",
+  "fonctions", "securite_sociale", "vie_associative", "macro", "europe", "population",
+  "revenus", "famille", "diplomes", "elections", "prenoms", "emploi", "professions",
+  "entreprises", "secteurs_salaries", "secteurs_etablissements", "logement", "sante",
+  "education", "securite", "equipements", "tourisme",
 ];
+
+test("les vingt-sept thèmes publiés sont rangés à la main, aucun par défaut", () => {
+  // Un thème non listé tombe dans la dernière rubrique : c'est un filet, pas
+  // une décision. Ce test dit combien de thèmes le site publie, pour qu'un
+  // vingt-huitième n'y arrive pas en silence.
+  assert.equal(TOUS_LES_THEMES.length, 27);
+  for (const theme of TOUS_LES_THEMES) {
+    if (theme === "tourisme") continue; // dernier de la dernière rubrique
+    assert.notEqual(rubriqueDuTheme(theme), undefined);
+  }
+  // Les subventions de l'État aux associations sont de l'argent public qui
+  // sort, pas un trait du cadre de vie.
+  assert.equal(rubriqueDuTheme("vie_associative"), "argent");
+});
 
 test("chaque thème publié garde un onglet, aucun n'est perdu en chemin", () => {
   const html = ongletsThemes(TOUS_LES_THEMES, "finances_locales");
@@ -290,7 +304,7 @@ test("chaque thème publié garde un onglet, aucun n'est perdu en chemin", () =>
   }
 });
 
-test("les vingt-six thèmes tiennent dans quatre rubriques", () => {
+test("les thèmes tiennent dans quatre rubriques", () => {
   const html = ongletsThemes(TOUS_LES_THEMES, "finances_locales");
   const rubriques = [...html.matchAll(/data-rubrique="([a-z]+)"/g)].map((m) => m[1]);
   assert.deepEqual([...new Set(rubriques)], ["argent", "habitants", "travail", "cadre"]);

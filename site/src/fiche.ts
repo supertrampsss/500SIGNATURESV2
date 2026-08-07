@@ -745,6 +745,11 @@ const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
       "dette",
       "fonctions",
       "securite_sociale",
+      // Les subventions de l'État aux associations sont de l'argent public qui
+      // sort, pas un trait du cadre de vie : c'est à ce titre qu'elles se
+      // rangent ici. La règle de repli les avait mises dans la dernière
+      // rubrique, ce qui était un défaut de table et non une décision.
+      "vie_associative",
       "macro",
       "europe",
     ],
