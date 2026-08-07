@@ -24,6 +24,7 @@ import { enEurosConstants } from "./euros-constants.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
+import { traduire } from "./traductions.ts";
 import {
   compteEcarts, lecture, memeSens, repereComparable, resumeEcarts, synthese,
 } from "./synthese.ts";
@@ -477,11 +478,24 @@ function ligneIndicateur(
   // qui ne s'additionnent pas entre eux.
   const compte = jumeau ? territoire.series[jumeau.id]?.[periode] : undefined;
   if (jumeau && compte !== undefined) {
-    comparaisons.push(
-      `En nombre : ${new Intl.NumberFormat("fr-FR").format(Math.round(compte))} ${
-        jumeau.unite_de_compte ?? "faits"
-      } en ${periode}.`,
-    );
+    if (jumeau.id.endsWith("_credits_votes")) {
+      // Un budget voté n'est pas une dépense réalisée : la ligne porte
+      // l'exécuté, le voté la rejoint avec son écart d'exécution chiffré.
+      const ecart = compte ? ((brut - compte) / Math.abs(compte)) * 100 : null;
+      comparaisons.push(
+        `Crédits votés : ${formater(compte, indicateur.unite, false)}${
+          ecart !== null && Math.abs(ecart) >= 0.05
+            ? ` ; exécution ${ecart >= 0 ? "+" : "−"}${pourcentage(Math.abs(ecart))} vs voté`
+            : ""
+        }.`,
+      );
+    } else {
+      comparaisons.push(
+        `En nombre : ${new Intl.NumberFormat("fr-FR").format(Math.round(compte))} ${
+          NOM_DU_COMPTE[jumeau.id] ?? jumeau.unite_de_compte ?? "faits"
+        } en ${periode}.`,
+      );
+    }
   }
   // À défaut de comparaison extérieure, la part dans son propre total : lue au
   // même millésime, dans la même source, elle est exacte par construction.
@@ -525,7 +539,7 @@ function ligneIndicateur(
     indicateur.id
   }"${surCarte ? " open" : ""}>
     <summary>
-      <span class="mesure__nom">${echapper(indicateur.libelle)}</span>
+      <span class="mesure__nom">${echapper(traduire(indicateur.libelle))}</span>
       <button type="button" class="mesure__info" data-info="${indicateur.id}"
         aria-expanded="false" aria-label="Que mesure cet indicateur ?">i</button>
       <span class="mesure__valeur">${formate(valeur)}</span>
@@ -928,6 +942,22 @@ const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
  * Un thème absent de cette table s'affiche entier : la règle est une réponse à
  * l'abondance, pas un filtre par défaut.
  */
+/**
+ * Les lignes qui redisent une autre ligne du même thème, repliées d'office.
+ *
+ * « Population active » est la somme des occupés et des chômeurs, tous deux
+ * affichés ; l'IPC double l'IPCH qui sert de déflateur au site entier ; la
+ * consommation effective double la dépense de consommation, le concept usuel.
+ * Rien n'est supprimé : tout reste derrière « Tout le détail ».
+ */
+const REPLIES = new Set([
+  "insee_actifs",
+  "insee_inactifs",
+  "insee_population_15_64_ans",
+  "insee_inflation_ipc",
+  "insee_conso_menages_effective",
+]);
+
 const RETENUS: Record<string, string[]> = {
   finances_locales: [
     "ofgl_frais_personnel",
@@ -964,12 +994,48 @@ export function jumeaux(indicateurs: Indicateur[]): Map<string, Indicateur> {
   const parId = new Map(indicateurs.map((i) => [i.id, i]));
   const paires = new Map<string, Indicateur>();
   for (const indicateur of indicateurs) {
-    if (!indicateur.id.endsWith("_nombre")) continue;
-    const taux = parId.get(`${indicateur.id.slice(0, -"_nombre".length)}_taux`);
-    if (taux && taux.theme === indicateur.theme) paires.set(taux.id, indicateur);
+    if (indicateur.id.endsWith("_nombre")) {
+      const taux = parId.get(`${indicateur.id.slice(0, -"_nombre".length)}_taux`);
+      if (taux && taux.theme === indicateur.theme) paires.set(taux.id, indicateur);
+    }
+    // Le budget voté rejoint le budget exécuté : deux lignes muettes l'une sur
+    // l'autre pour chaque mission de l'État, alors que la seule information
+    // du voté est son écart à l'exécuté — et il est chiffré dans la phrase.
+    if (indicateur.id.endsWith("_credits_votes")) {
+      const consommes = parId.get(
+        `${indicateur.id.slice(0, -"_credits_votes".length)}_credits_consommes`,
+      );
+      if (consommes) paires.set(consommes.id, indicateur);
+    }
+  }
+  // Les paires que la convention de nommage n'attrape pas : même phénomène,
+  // deux comptages, la capacité reste la ligne et l'autre devient une phrase.
+  for (const [principal, second] of PAIRES_EXPLICITES) {
+    const p = parId.get(principal);
+    const s = parId.get(second);
+    if (p && s && p.theme === s.theme) paires.set(principal, s);
   }
   return paires;
 }
+
+/** [ligne affichée, comptage replié en phrase]. */
+const PAIRES_EXPLICITES: [string, string][] = [
+  ["insee_hotels_chambres", "insee_hotels"],
+  ["insee_campings_emplacements", "insee_campings"],
+  ["insee_hebergements_collectifs_lits", "insee_hebergements_collectifs"],
+  // Votants = inscrits × participation : la troisième ligne n'apprend rien.
+  ["elections_taux_participation", "elections_votants"],
+  ["etat_subventions_associations", "etat_subventions_associations_etablissements"],
+];
+
+/** Ce que compte le jumeau replié, quand ce n'est pas dans ses métadonnées. */
+const NOM_DU_COMPTE: Record<string, string> = {
+  insee_hotels: "hôtels",
+  insee_campings: "campings",
+  insee_hebergements_collectifs: "hébergements collectifs",
+  elections_votants: "votants",
+  etat_subventions_associations_etablissements: "établissements bénéficiaires",
+};
 
 function ordonnerThemes(themes: string[]): string[] {
   const rang = (t: string) => {
@@ -1101,7 +1167,7 @@ function ecartsDuTheme(
     if (typeof mesure === "string" || !mesure.ecart) return [];
     return [
       {
-        libelle: indicateur.libelle,
+        libelle: traduire(indicateur.libelle),
         reference: mesure.ecart.reference,
         ecart: mesure.ecart.pourcent,
       },
@@ -1393,19 +1459,23 @@ export function afficherFiche(
         // dépense d'abord, d'où vient l'argent ensuite — et non l'ordre du
         // catalogue, qui est alphabétique et ne raconte rien.
         const retenus = RETENUS[theme];
+        // Les lignes-identités passent derrière le pli même sans liste RETENUS :
+        // « population active » redit « occupés + chômeurs », deux inflations
+        // côte à côte se lisent comme une erreur.
+        const visibles = liste.filter((i) => i.id === principal || !REPLIES.has(i.id));
         const devant = retenus
-          ? liste
+          ? visibles
               .filter((i) => retenus.includes(i.id) || i.id === principal)
               .sort(
                 (a, b) =>
                   (retenus.indexOf(a.id) + 1 || retenus.length + 1) -
                   (retenus.indexOf(b.id) + 1 || retenus.length + 1),
               )
-          : liste;
-        const derriere = retenus ? liste.filter((i) => !devant.includes(i)) : [];
+          : visibles;
+        const derriere = liste.filter((i) => !devant.includes(i));
         const suite = derriere.length
           ? `<details class="theme-groupe__suite">
-              <summary>Tout le détail des comptes <span class="theme-groupe__compte">${
+              <summary>Tout le détail <span class="theme-groupe__compte">${
                 derriere.length
               } autres lignes</span></summary>
               ${derriere.map(dessine).join("")}

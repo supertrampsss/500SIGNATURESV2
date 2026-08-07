@@ -9,6 +9,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
+import { traduire } from "./traductions.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import {
   afficherFiche,
@@ -299,7 +300,7 @@ function indicateurCourant(): Indicateur {
 function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean): void {
   const indicateur = indicateurCourant();
   $("legende").hidden = false;
-  $("legende-titre").textContent = indicateur.libelle;
+  $("legende-titre").textContent = traduire(indicateur.libelle);
   const bornes = [...echelle.bornes];
   const lisible = (v: number) => formater(v, indicateur.unite, parHabitant);
   $("legende-echelle").innerHTML = echelle.couleurs
@@ -327,7 +328,7 @@ function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean)
   $("legende-vignette").style.background = `linear-gradient(to bottom, ${echelle.couleurs.join(
     ", ",
   )})`;
-  $("legende").title = `Légende : ${indicateur.libelle}`;
+  $("legende").title = `Légende : ${traduire(indicateur.libelle)}`;
 }
 
 function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
@@ -355,7 +356,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
 
   const lignes = toutes.slice(0, 100);
   $("tableau-donnees").innerHTML = `
-    <caption>${indicateur.libelle}, ${etat.periode}${parHabitant ? ", par habitant" : ""} · 100 premiers territoires</caption>
+    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""} · 100 premiers territoires</caption>
     <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">Valeur</th></tr></thead>
     <tbody>${lignes
       .map(

@@ -43,6 +43,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { traduire } from "./traductions.ts";
 
 const RF = "ofgl_recettes_fonctionnement";
 const DF = "ofgl_depenses_fonctionnement";
@@ -92,30 +93,6 @@ export type Composante = {
   part: number;
   enfants: Composante[];
 };
-
-/**
- * Les libellés que la nomenclature comptable rend opaques.
- *
- * « Dépenses d'intervention » est exact et ne dit rien à personne : ce sont
- * les aides et subventions versées. « FCTVA » est un sigle de comptable public.
- * La traduction ne touche que l'affichage — l'identifiant et la fiche
- * technique gardent le vocabulaire de la source.
- */
-const TRADUCTIONS: Record<string, string> = {
-  "Dépenses d'intervention": "Aides et subventions versées",
-  FCTVA: "TVA remboursée par l'État (FCTVA)",
-  // Le compte ne sépare pas les associations des entreprises : M14 n'a qu'un
-  // compte 6574 sans subdivision, et en M57 Bordeaux inscrit 44,9 M€ sur 45,9
-  // dans le sous-compte « autres personnes de droit privé ». Écrire l'un des
-  // deux mots serait inventer une ventilation que la comptabilité ne fait pas.
-  // Les bénéficiaires nommés, eux, existent pour les versements de l'État :
-  // c'est l'onglet Vie associative.
-  "Subventions aux personnes de droit privé": "Subventions versées aux organismes privés",
-};
-
-function traduire(libelle: string): string {
-  return TRADUCTIONS[libelle] ?? libelle;
-}
 
 function echapper(texte: string): string {
   return texte.replace(

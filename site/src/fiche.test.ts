@@ -432,6 +432,35 @@ test("un taux et un nombre de thèmes différents ne sont pas jumeaux", () => {
   assert.equal(jumeaux(catalogue).size, 0);
 });
 
+test("les paires hors convention de nommage se replient aussi", () => {
+  // Hôtels et chambres, votants et taux de participation : même phénomène,
+  // deux comptages, la convention _taux/_nombre ne les attrapait pas.
+  const catalogue = [
+    { id: "insee_hotels", theme: "tourisme" },
+    { id: "insee_hotels_chambres", theme: "tourisme" },
+    { id: "elections_votants", theme: "elections" },
+    { id: "elections_taux_participation", theme: "elections" },
+  ] as never as Indicateur[];
+  const paires = jumeaux(catalogue);
+  assert.equal(paires.get("insee_hotels_chambres")?.id, "insee_hotels");
+  assert.equal(paires.get("elections_taux_participation")?.id, "elections_votants");
+  // La capacité et le taux restent les lignes ; l'enseigne et les votants
+  // deviennent des phrases.
+  assert.equal(paires.has("insee_hotels"), false);
+});
+
+test("le budget voté rejoint le budget exécuté, mission par mission", () => {
+  const catalogue = [
+    { id: "etat_mission_defense_credits_votes", theme: "budget_etat" },
+    { id: "etat_mission_defense_credits_consommes", theme: "budget_etat" },
+  ] as never as Indicateur[];
+  const paires = jumeaux(catalogue);
+  assert.equal(
+    paires.get("etat_mission_defense_credits_consommes")?.id,
+    "etat_mission_defense_credits_votes",
+  );
+});
+
 /**
  * Un total national obtenu en additionnant dix-huit régions n'est pas de la
  * même nature qu'un chiffre que le producteur publie lui-même.
