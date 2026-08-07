@@ -415,6 +415,61 @@ def _ecarts(gauche: dict[str, float], droite: dict[str, float]) -> dict[str, flo
     }
 
 
+def apparier_programmes(annexes: dict[str, list[dict]]) -> dict[str, int]:
+    """Les deux annexes détaillées décrivent-elles les mêmes programmes ?
+
+    Le numéro du programme est collé à son libellé (« Action de la France en
+    Europe et dans le monde - 105 ») : il est découpé, jamais pris pour un nom,
+    faute de quoi un programme renommé en cours de série en ferait deux. Sur les
+    trois exercices sondés, l'annexe des catégories couvre tous les programmes de
+    l'annexe des crédits sauf quatre, qui n'ont **rien consommé** — un programme
+    absent qui aurait consommé quelque chose signalerait, lui, une lecture fausse.
+    """
+    def cles(rangs: list[dict]) -> set[tuple[str, str]]:
+        return {
+            (
+                (rang.get("Mission") or "").strip(),
+                decouper_programme(rang.get("Programme") or "")[1],
+            )
+            for rang in rangs
+        }
+
+    credits, categories = cles(annexes["programmes"]), cles(annexes["categories"])
+    sans_numero = sorted(mission for mission, numero in credits | categories if not numero)
+    if sans_numero:
+        raise MissionsDivergentes(
+            f"{len(sans_numero)} programme(s) sans numéro dans leur libellé, par"
+            f" exemple pour la mission « {sans_numero[0]} » : la source a changé"
+            " de nomenclature."
+        )
+    orphelins = sorted(categories - credits)
+    if orphelins:
+        raise MissionsDivergentes(
+            f"{len(orphelins)} programme(s) présents dans l'annexe des catégories"
+            f" et absents de celle des crédits, par exemple {orphelins[0]}."
+        )
+    consommes: dict[tuple[str, str], float] = defaultdict(float)
+    for rang in annexes["programmes"]:
+        cle = (
+            (rang.get("Mission") or "").strip(),
+            decouper_programme(rang.get("Programme") or "")[1],
+        )
+        consommes[cle] += montant(rang.get("Depenses_constatees")) or 0.0
+    depensiers = sorted(
+        cle for cle in credits - categories if round(consommes[cle], 2) != 0
+    )
+    if depensiers:
+        raise MissionsDivergentes(
+            f"{len(depensiers)} programme(s) absents de l'annexe des catégories"
+            f" alors qu'ils ont consommé des crédits, par exemple {depensiers[0]}"
+            f" à {consommes[depensiers[0]]:,.2f} €."
+        )
+    return {
+        "programmes": len(credits),
+        "programmes_sans_categorie_et_sans_depense": len(credits - categories),
+    }
+
+
 def controler(exercice: str, annexes: dict[str, list[dict]]) -> dict:
     """Le même exercice, ventilé trois fois : les trois doivent tomber au centime.
 
@@ -470,6 +525,9 @@ def controler(exercice: str, annexes: dict[str, list[dict]]) -> dict:
     )
     # L'écart maximal est mesuré et tracé, y compris quand il est nul : un
     # contrôle qui ne peut qu'être vrai ne dit rien de la qualité de la source.
+    # Il est arrondi au centime comme la comparaison elle-même : cumuler 855
+    # flottants laisse un résidu de l'ordre de 10⁻⁵ €, qui est notre arithmétique
+    # binaire et non un écart du producteur.
     ecart_maximal = 0.0
     for intitule, gauche, droite in controles:
         ecart_maximal = max(
@@ -489,6 +547,7 @@ def controler(exercice: str, annexes: dict[str, list[dict]]) -> dict:
                 " exercice."
             )
 
+    programmes = apparier_programmes(annexes)
     inconnues = sorted(set(consommes_missions) - set(MISSIONS) - set(ALIAS))
     if inconnues:
         raise MissionsDivergentes(
@@ -503,7 +562,8 @@ def controler(exercice: str, annexes: dict[str, list[dict]]) -> dict:
         "missions_verifiees": len(consommes_missions),
         "lignes_programme": len(annexes["programmes"]),
         "lignes_categorie": len(annexes["categories"]),
-        "ecart_maximal_euros": round(ecart_maximal, 6),
+        **programmes,
+        "ecart_maximal_euros": round(ecart_maximal, 2),
         "credits_votes": round(sum(v["votes"] for v in agregats.values()), 2),
         "credits_ouverts": round(sum(ouverts_missions.values()), 2),
         "credits_consommes_bruts": total,
@@ -541,7 +601,7 @@ def identifiants(slug: str) -> tuple[str, str]:
 def indicateurs() -> list[str]:
     return sorted(
         identifiant
-        for _, (slug, _) in MISSIONS.items()
+        for slug, _ in MISSIONS.values()
         for identifiant in identifiants(slug)
     )
 

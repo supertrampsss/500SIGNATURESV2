@@ -106,8 +106,9 @@ ARRONDISSEMENT_INCONNU = {"693XX": "69123", "132XX": "13055", "751XX": "75056"}
 # vide, il n'y a rien à charger. `W` (« inclut les données d'une autre
 # catégorie ») marque la commune nouvelle qui les reçoit — 54 lignes communales
 # et 1 684 naissances dans le fichier complet, qu'écarter ferait tomber la somme
-# des communes sous le total France d'exactement autant. Elles sont donc chargées, et signalées : leur valeur couvre plus
-# de territoire que la commune seule, alors que sa population ne couvre qu'elle.
+# des communes sous le total France d'exactement autant. Elles sont donc
+# chargées, et signalées : leur valeur couvre plus de territoire que la commune
+# seule, alors que sa population, elle, ne couvre qu'elle.
 # `M` est une valeur qui n'existe pas : Mayotte avant 2014.
 DRAPEAU_REGROUPEMENT = "inclut_une_commune_rattachee"
 STATUTS_REGROUPES = {"W"}
