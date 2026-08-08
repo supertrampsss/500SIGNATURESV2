@@ -921,6 +921,7 @@ async function montrerFiche(code: string): Promise<void> {
     inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
   });
   $("panneau").classList.add("panneau--selection");
+  majEtatTiroir();
   injecterActionsFiche();
 }
 
@@ -1003,7 +1004,11 @@ function tiroirRedimensionnable(): void {
     const h = window.innerHeight;
     return [Math.round(h * 0.38), Math.round(h * 0.62), Math.round(h - 48)];
   };
-  const poser = (hauteur: number) => panneau.style.setProperty("--tiroir", `${hauteur}px`);
+  const poser = (hauteur: number) => {
+    panneau.style.setProperty("--tiroir", `${hauteur}px`);
+    majEtatTiroir(hauteur);
+  };
+  majEtatTiroir();
 
   let depart = 0;
   let hauteurDepart = 0;
@@ -1063,7 +1068,29 @@ function tiroirRedimensionnable(): void {
 
   // Rotation ou changement de taille : les arrêts changent, la hauteur figée
   // en pixels ne veut plus rien dire.
-  window.addEventListener("resize", () => panneau.style.removeProperty("--tiroir"));
+  window.addEventListener("resize", () => {
+    panneau.style.removeProperty("--tiroir");
+    majEtatTiroir();
+  });
+}
+
+/**
+ * `aria-expanded` de la poignée : le tiroir est-il agrandi au-delà de son repos ?
+ *
+ * Calculé sur la hauteur **visée**, jamais sur la hauteur mesurée : le panneau
+ * est en transition à l'instant où son état change, et la mesure donnerait
+ * encore l'état précédent.
+ */
+function majEtatTiroir(visee?: number): void {
+  const panneau = $("panneau");
+  const repos = window.innerHeight * 0.38;
+  const fige = parseFloat(panneau.style.getPropertyValue("--tiroir"));
+  const haut =
+    visee ??
+    (Number.isFinite(fige)
+      ? fige
+      : window.innerHeight * (panneau.classList.contains("panneau--selection") ? 0.62 : 0.38));
+  $("panneau-poignee").setAttribute("aria-expanded", String(haut > repos + 1));
 }
 
 /**
@@ -1091,6 +1118,7 @@ function fermerPanneau(): void {
   const panneau = $("panneau");
   panneau.classList.remove("panneau--selection");
   panneau.style.removeProperty("--tiroir");
+  majEtatTiroir();
   // La maille suivait le territoire choisi ; sans territoire, elle suit le zoom.
   etat.niveauAuto = true;
   const lisible = carte ? niveauPourZoom(carte.getZoom()) : etat.niveau;
@@ -1118,13 +1146,16 @@ function injecterActionsFiche(): void {
   const code = etat.selection;
   if (!code) return;
   fiche.querySelector(".fiche__actions")?.remove();
-  const ancre = fiche.querySelector(".fiche__meta") ?? fiche.querySelector(".fiche__titre");
+  const ancre =
+    fiche.querySelector<HTMLElement>(".fiche__maire") ??
+    fiche.querySelector<HTMLElement>(".fiche__meta") ??
+    fiche.querySelector<HTMLElement>(".fiche__titre");
   if (!ancre) return;
   const dedans = etat.comparaison.includes(code);
   const complet = !dedans && etat.comparaison.length >= MAXIMUM;
   ancre.insertAdjacentHTML(
     "afterend",
-    `<p class="fiche__actions" style="margin:var(--espace-4) 0 var(--espace-5)">
+    `<p class="fiche__actions">
       <button type="button" class="tableau__export" data-comparer="${code}"${
         complet
           ? ` disabled title="La comparaison est complète : ${MAXIMUM} territoires au maximum."`
@@ -1260,10 +1291,24 @@ function construireSelecteurCarte(): void {
     boite = document.createElement("div");
     boite.id = "pilules-indicateur";
     boite.className = "pilules";
-    boite.innerHTML = `<select id="carte-indicateur" class="pilule"
+    // Un `select` natif, pas un menu maison : il est déjà accessible au
+    // clavier, au lecteur d'écran et au doigt, et il sait grouper.
+    // Les réglages en ligne ne font que le ramener à la taille des pilules
+    // voisines ; le dessin (chevron, anneau de focus) reste celui de la
+    // feuille de style. `.pilule` conviendrait mieux, mais son `background:
+    // none` effacerait le chevron : à demander en règle `.pilules select`.
+    boite.innerHTML = `<select id="carte-indicateur"
       aria-label="Indicateur peint sur la carte"
-      style="max-width:min(20rem, 48vw)"></select>`;
+      style="border:0;min-height:1.75rem;min-width:0;max-width:min(20rem, 48vw);
+             font-size:var(--texte-s);color:var(--encre-douce);
+             background-color:transparent;border-radius:var(--rayon-pilule);
+             padding:var(--espace-2) var(--espace-8) var(--espace-2) var(--espace-5)"></select>`;
     barre.prepend(boite);
+    // Sur téléphone la barre défile horizontalement : l'ancrage du défilement
+    // compense l'insertion en tête pour garder les pilules à leur place, et le
+    // sélecteur naissait hors écran, à gauche. Il ouvre la barre, il doit être
+    // ce qu'on voit en premier.
+    barre.scrollLeft = 0;
     boite.querySelector("select")?.addEventListener("change", (evenement) => {
       const choisi = (evenement.target as HTMLSelectElement).value;
       if (choisi) void choisirIndicateur(choisi);
@@ -1864,6 +1909,13 @@ async function demarrer(): Promise<void> {
     },
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  // Le canevas est dans l'ordre de tabulation par défaut : à la cinquième
+  // tabulation, le focus entrait dans la carte et n'en ressortait plus, sur un
+  // élément qui n'offre rien au clavier. Les commandes, elles, restent
+  // atteignables : les boutons de zoom sont des `button` posés à côté du
+  // canevas, pas dedans, et le tableau de la vue Données donne l'équivalent
+  // textuel de ce que la carte peint.
+  carte.getCanvas().setAttribute("tabindex", "-1");
 
   // La maille suit le zoom quand le mode automatique est actif. `zoomend` et
   // non `zoom` : repeindre à chaque image de l'animation rechargerait la

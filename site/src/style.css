@@ -650,7 +650,9 @@ summary:focus-visible,
   position: absolute;
   top: 0.35rem;
   right: 0.45rem;
-  z-index: 2;
+  /* Devant la poignée du tiroir : depuis qu'elle fait 44 px de haut, sa zone
+     de frappe passe sous le centre du « × » et interceptait la fermeture. */
+  z-index: 4;
   /* 2 rem : sous 32 px, une cible se rate au doigt. */
   width: 2rem;
   height: 2rem;
@@ -786,6 +788,12 @@ summary:focus-visible,
 }
 .fiche .fiche__maire {
   order: -2;
+}
+/* Les actions de la fiche (comparer) suivent l'identité du territoire et
+   précèdent les barres d'onglets : sans rang, elles tombaient sous elles. */
+.fiche .fiche__actions {
+  order: -2;
+  margin: var(--espace-4) 0 var(--espace-5);
 }
 .fiche .onglets-rubriques,
 .fiche .onglets-themes {
@@ -2570,6 +2578,21 @@ body[data-vue="carte"] .pied {
    donc *sous* le panneau et la rangée Métropole…Mayotte recouvrait la
    dernière ligne de la fiche. Elle se centre maintenant sur la zone de carte
    réellement visible, entre le bord gauche et le panneau. */
+/* Le sélecteur d'indicateur de la carte porte la forme des pilules qui le
+   suivent, sans leur `background: none` qui effacerait son chevron natif. Sa
+   zone de frappe suit la même règle que les autres commandes. */
+.carte-barre select {
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font: inherit;
+  font-size: var(--texte-xs);
+  max-width: 16rem;
+}
+
 .carte-barre {
   position: absolute;
   left: 0.9rem;
