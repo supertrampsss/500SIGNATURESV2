@@ -139,7 +139,50 @@ def _remplir(conn) -> None:
         " 8041000000.0, 'Crédit d''impôt en faveur de la recherche')",
         (niches,),
     )
+    _budget_ligne_a_ligne(conn, run_id)
     conn.commit()
+
+
+# Une mission, son programme, son action et sa sous-action, plus deux familles
+# de recettes dont une qui se déduit : de quoi éprouver l'arbre publié au
+# simulateur sans réécrire les deux mille cinq cents lignes d'un exercice réel.
+DESTINATION = [
+    ("depense", "mission", "DA", None, "Défense", 60_003_543_448.0, 1),
+    ("depense", "programme", "146", "DA", "Équipement des forces", 60_003_543_448.0, 1),
+    ("depense", "action", "146-09", "146", "Engagement et combat", 60_003_543_448.0, 1),
+    ("depense", "sous_action", "146-09-63", "146-09",
+     "Frapper à distance - Porte-avions", 60_003_543_448.0, 1),
+    ("recette", "famille", "RF", None, "Recettes fiscales", 79_769_187_030.0, 1),
+    ("recette", "ligne", "1301", "RF", "Impôt sur les sociétés", 79_769_187_030.0, 1),
+    ("recette", "famille", "PSR-UE", None,
+     "Prélèvement sur les recettes de l'État au profit de l'Union européenne",
+     23_320_855_052.0, -1),
+    ("recette", "ligne", "3201", "PSR-UE",
+     "Prélèvement sur les recettes de l'État au profit du budget de l'Union européenne",
+     23_320_855_052.0, -1),
+]
+
+
+def _budget_ligne_a_ligne(conn, run_id: str) -> None:
+    conn.execute(
+        "insert or ignore into meta.dataset_registry (dataset_id, source_id, title,"
+        " priority) values ('plf-budget-lignes', 'data-economie', 'PLF, budget de"
+        " l''État ligne à ligne', 'P1')"
+    )
+    for cote, niveau, code, parent, libelle, montant, signe in DESTINATION:
+        conn.execute(
+            """
+            insert into fin.state_budget_detail
+                (fiscal_year, law, side, node_level, code, parent_code, label,
+                 amount, sign, measure, dataset_id, run_id)
+            values (2025, 'PLF', ?, ?, ?, ?, ?, ?, ?, ?, 'plf-budget-lignes', ?)
+            """,
+            (
+                cote, niveau, code, parent, libelle, montant, signe,
+                "credit_de_paiement" if cote == "depense" else "montant_recettes_plf",
+                run_id,
+            ),
+        )
 
 
 def test_publier_produit_un_jeu_complet(tmp_path):
@@ -210,11 +253,38 @@ def test_publier_produit_un_jeu_complet(tmp_path):
     assert budget["exercices"]["2024"]["vote"]["solde"] == -146900000000.0
     # La dépense fiscale insérée plus haut n'entre pas dans le pont du budget :
     # un impôt non perçu n'est pas une ligne de dépense, et l'y laisser
-    # tomberait dans la colonne qui se referme sur le solde.
+    # tomberait dans la colonne qui se referme sur le solde. La nomenclature par
+    # destination non plus, et pour une raison plus forte : elle vit dans sa
+    # propre table, hors d'atteinte de la requête qui construit cette page.
     assert budget["exercices"]["2024"]["vote"]["montants"] == {
         "Enseignement scolaire": 63600000000.0
     }
     assert "2026" not in budget["exercices"]
+    assert "2025" not in budget["exercices"]
+
+    # Le budget réglable ligne à ligne : un fichier par exercice, plus l'index.
+    assert lire("simulateur/index.json") == ["2025"]
+    simulateur = lire("simulateur/etat-2025.json")
+    assert simulateur["loi"] == "PLF"
+    assert simulateur["mesure"] == "credit_de_paiement"
+    assert simulateur["unite"] == "EUR"
+    # L'arbre est reconstruit depuis `parent_code` : quatre lignes à plat en
+    # base, quatre niveaux emboîtés dans le fichier, et la sous-action est une
+    # feuille — c'est l'absence de la clé `enfants` qui le dit.
+    mission = simulateur["depenses"][0]
+    programme = mission["enfants"][0]
+    action = programme["enfants"][0]
+    sous_action = action["enfants"][0]
+    assert [mission["c"], programme["c"], action["c"], sous_action["c"]] == [
+        "DA", "146", "146-09", "146-09-63"
+    ]
+    assert mission["v"] == sous_action["v"] == 60003543448
+    assert "enfants" not in sous_action
+    # Les prélèvements sur recettes se déduisent : leur signe est publié, faute
+    # de quoi le simulateur les ajouterait aux recettes de l'État.
+    assert [(g["t"].split(" ")[0], g["signe"]) for g in simulateur["recettes"]] == [
+        ("Recettes", 1), ("Prélèvement", -1)
+    ]
 
     niches = lire("depenses-fiscales.json")
     assert niches["exercices"] == ["2026"]
@@ -758,3 +828,47 @@ def test_l_index_porte_le_denominateur_de_chaque_exercice(tmp_path):
         autre = json.loads((racine / "territoires" / niveau / "index.json").read_text())
         assert autre["denominateur"] == publish.DENOMINATEUR
 
+
+
+def test_la_nomenclature_par_destination_ne_touche_pas_le_pont_du_budget_de_l_etat(tmp_path):
+    """La page nationale ferme un pont recettes -> dépenses -> solde. Les deux
+    mille cinq cents lignes de la nomenclature par destination décrivent le même
+    État, à un autre moment et à une autre maille : tombées dans ce pont, elles
+    doubleraient des dépenses déjà comptées et déplaceraient le solde publié.
+
+    La preuve est faite par différence : `budget_etat()` est calculé sans elles,
+    puis avec, et les deux doivent être identiques au caractère près. C'est aussi
+    ce qui garantit qu'une future requête de la page ne pourra pas les capter par
+    inadvertance — elles ne sont pas dans les tables qu'elle lit.
+    """
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        conn.execute("delete from fin.state_budget_detail")
+        conn.commit()
+        sans = json.dumps(publish.budget_etat(conn), sort_keys=True)
+
+        run_id = entrepot.start_run(conn, "ofgl-communes")
+        _budget_ligne_a_ligne(conn, run_id)
+        entrepot.finish_run(conn, run_id, "success")
+        conn.commit()
+        avec = json.dumps(publish.budget_etat(conn), sort_keys=True)
+
+        assert (
+            conn.execute("select count(*) from fin.state_budget_detail").fetchone()[0]
+            == len(DESTINATION)
+        )
+        assert avec == sans
+        # Et le connecteur de la situation mensuelle reconstruit son budget sans
+        # buter dessus : ses lignes ne pendent à aucun `fin.public_budgets`.
+        conn.execute("delete from fin.public_budget_lines where budget_id in"
+                     " (select budget_id from fin.public_budgets where budget_type = 'PLF')")
+        conn.execute("delete from fin.public_budgets where budget_type = 'PLF'")
+        conn.execute("delete from fin.public_budget_lines")
+        conn.execute("delete from fin.public_budgets where entity_kind = 'etat'")
+        assert (
+            conn.execute("select count(*) from fin.state_budget_detail").fetchone()[0]
+            == len(DESTINATION)
+        )
+    finally:
+        conn.close()

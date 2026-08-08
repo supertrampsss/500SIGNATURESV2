@@ -67,6 +67,7 @@ create sequence if not exists fin.seq_public_budgets;
 create sequence if not exists fin.seq_public_budget_lines;
 create sequence if not exists fin.seq_public_employment;
 create sequence if not exists fin.seq_public_subsidies;
+create sequence if not exists fin.seq_state_budget_detail;
 
 -- ---------------------------------------------------------------- meta
 -- Registres et lineage (docs/02 §A).
@@ -393,6 +394,53 @@ create table if not exists fin.public_subsidies (
     dataset_id        text,  -- -> meta.dataset_registry (vérifié)
     run_id            uuid not null,  -- -> meta.ingestion_runs (vérifié)
     unique (fiscal_year, geo_level, geo_code, beneficiary_siren, programme)
+);
+
+-- Le budget de l'État ligne à ligne, à toute profondeur de sa nomenclature.
+--
+-- Ce n'est pas une ligne de `fin.public_budget_lines`, et la table est donc à
+-- part, pour trois raisons qui tiennent toutes à la structure :
+--
+--   - **la hiérarchie est l'objet même.** `public_budget_lines` porte mission,
+--     programme, action et sous-action comme quatre colonnes plates, sans lien
+--     de parenté : impossible d'y lire l'arbre qu'un simulateur doit rendre, ni
+--     d'y écrire qu'un nœud est la somme de ses enfants. Ici, `parent_code`
+--     porte l'arbre, et un nœud sans enfant est une feuille.
+--   - **`line_kind` ne peut pas s'étendre.** Sa contrainte `check` énumère six
+--     valeurs ; en ajouter une septième modifierait une table existante, ce que
+--     `create table if not exists` n'applique pas à un entrepôt déjà créé. Les
+--     lignes de destination y entreraient donc sous un genre qui ment.
+--   - **`fin.public_budgets` est reconstruit en entier** par le connecteur de la
+--     situation mensuelle (`delete from fin.public_budgets where entity_kind =
+--     'etat'`). Des lignes de destination accrochées à un budget d'État seraient
+--     effacées à son passage — et, la clé étrangère interdisant de supprimer un
+--     budget encore référencé, le feraient d'abord échouer.
+--
+-- Aucune colonne géographique : le budget de l'État est national par
+-- construction, et un `geo_code = 'FR'` répété deux mille cinq cents fois ne
+-- dirait rien de plus.
+--
+-- `amount` d'un nœud vaut la somme de ses enfants, garantie à l'écriture. `sign`
+-- vaut -1 pour les prélèvements sur recettes, qui se **déduisent** des recettes
+-- de l'État : les sommer avec les autres donnerait un budget qui n'existe pas.
+create table if not exists fin.state_budget_detail (
+    detail_id   bigint primary key default nextval('fin.seq_state_budget_detail'),
+    fiscal_year smallint not null,
+    -- 'PLF' : un projet de loi de finances, ni une loi votée ni une exécution.
+    law         text not null,
+    side        text not null check (side in ('depense','recette')),
+    node_level  text not null check (node_level in
+                ('mission','programme','action','sous_action','famille','ligne')),
+    code        text not null,
+    parent_code text,
+    label       text not null,
+    amount      double not null,
+    sign        smallint not null default 1 check (sign in (-1, 1)),
+    measure     text not null,
+    currency    text not null default 'EUR',
+    dataset_id  text,  -- -> meta.dataset_registry (vérifié)
+    run_id      uuid not null,  -- -> meta.ingestion_runs (vérifié)
+    unique (fiscal_year, side, code)
 );
 
 -- `sector_naf` ne peut plus être NULL, pour la même raison que `entity_siren` :

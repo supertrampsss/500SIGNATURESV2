@@ -587,6 +587,96 @@ def depenses_fiscales(conn) -> dict:
     }
 
 
+def _montant_publie(valeur) -> float | int:
+    """Un euro entier s'écrit sans décimale : deux octets de moins par nœud, et
+    mille lignes de moins à lire quand on ouvre le fichier à la main."""
+    montant = round(float(valeur), 2)
+    return int(montant) if montant == int(montant) else montant
+
+
+def simulateur(conn) -> dict[str, dict]:
+    """Le budget de l'État réglable ligne à ligne : un fichier par exercice.
+
+    L'arbre est reconstruit depuis `fin.state_budget_detail`, où il est porté par
+    `parent_code` : une feuille est un nœud que personne ne réclame comme parent,
+    à n'importe quelle profondeur — une action sans sous-action en est une, comme
+    une sous-action. C'est ce qui distingue une feuille dans le fichier publié,
+    pas son niveau.
+
+    Le tri est par montant décroissant à chaque étage. Ce n'est pas un détail
+    d'affichage : une nomenclature triée par code met « Action extérieure de
+    l'État » devant « Enseignement scolaire », et le lecteur qui cherche où sont
+    les masses ouvre trente missions avant d'en trouver une qui pèse.
+
+    Les groupes de recettes sortent dans l'ordre du barème : ce qui s'ajoute
+    d'abord, ce qui se retranche ensuite, chaque bloc du plus lourd au plus léger.
+    """
+    exercices: dict[str, dict] = {}
+    # La clé porte le côté du budget : les codes de mission (« RD ») et les codes
+    # de famille de recettes (« RF ») viennent de deux nomenclatures qui ne se
+    # sont jamais parlé, et rien n'interdit qu'elles se croisent un jour. Sans le
+    # côté dans la clé, les lignes d'une famille tomberaient sous une mission.
+    enfants: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    racines: dict[str, list[dict]] = defaultdict(list)
+    tous: list[tuple[str, str, dict]] = []
+    groupes: dict[tuple[str, str], dict] = {}
+    for annee, loi, cote, niveau, code, parent, libelle, montant, signe, mesure, devise in (
+        conn.execute(
+            """
+            select fiscal_year, law, side, node_level, code, parent_code, label,
+                   amount, sign, measure, currency
+            from fin.state_budget_detail order by fiscal_year, side, code
+            """
+        ).fetchall()
+    ):
+        exercice = str(annee)
+        if niveau == "famille":
+            groupes[(exercice, code)] = {
+                "t": libelle, "signe": int(signe), "lignes": [],
+                "poids": _montant_publie(montant),
+            }
+            continue
+        noeud = {"c": code, "l": libelle, "v": _montant_publie(montant)}
+        if cote == "recette":
+            enfants[(exercice, cote, parent)].append(noeud)
+            continue
+        exercices.setdefault(
+            exercice, {"exercice": exercice, "loi": loi, "mesure": mesure, "unite": devise}
+        )
+        tous.append((exercice, code, noeud))
+        if parent:
+            enfants[(exercice, cote, parent)].append(noeud)
+        else:
+            racines[exercice].append(noeud)
+
+    def par_valeur(noeud: dict) -> float:
+        return -noeud["v"]
+
+    for exercice, code, noeud in tous:
+        lignes = enfants.get((exercice, "depense", code))
+        if lignes:
+            noeud["enfants"] = sorted(lignes, key=par_valeur)
+    recettes: dict[str, list[dict]] = defaultdict(list)
+    for (exercice, code), groupe in sorted(
+        groupes.items(), key=lambda item: (-item[1]["signe"], -item[1]["poids"])
+    ):
+        recettes[exercice].append(
+            {
+                "t": groupe["t"],
+                "signe": groupe["signe"],
+                "lignes": sorted(enfants.get((exercice, "recette", code), []), key=par_valeur),
+            }
+        )
+    return {
+        exercice: {
+            **budget,
+            "depenses": sorted(racines[exercice], key=par_valeur),
+            "recettes": recettes[exercice],
+        }
+        for exercice, budget in sorted(exercices.items())
+    }
+
+
 def fraicheur(conn) -> list[dict]:
     """État public de chaque jeu : dernière mise à jour, retard, contrôles.
 
@@ -1393,6 +1483,14 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
     deposer("depenses-fiscales.json", depenses_fiscales(conn))
+    # Un fichier par exercice : le simulateur en ouvre un seul à la fois, et le
+    # plus récent (105 Ko compacts pour 2025) est déjà à la limite de ce qu'on
+    # peut demander à un téléphone. L'index dit lesquels existent, du plus récent
+    # au plus ancien : c'est lui que le site lit d'abord.
+    budgets = simulateur(conn)
+    for exercice, budget in budgets.items():
+        deposer(f"simulateur/etat-{exercice}.json", budget)
+    deposer("simulateur/index.json", sorted(budgets, reverse=True))
     deposer("agregats-nationaux.json", methode_nationale)
     for lot, contenu in subventions_nominatives(conn).items():
         deposer(f"subventions/commune/{lot}.json", contenu)

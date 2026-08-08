@@ -73,6 +73,12 @@ ANCETRES_ADDITIFS = {
     # 2026-08-07 — ajout de `fin.public_subsidies` et de sa séquence, pour
     # publier les associations subventionnées bénéficiaire par bénéficiaire.
     "db880ae9ef1690935b433fe8020e6c3856a88da99c076604071be824494f656a",
+    # 2026-08-08 — ajout de `fin.state_budget_detail` et de sa séquence, pour
+    # publier le budget de l'État à toute profondeur de sa nomenclature par
+    # destination. Le diff ne retire ni ne modifie une ligne : deux blocs
+    # ajoutés, l'un après la séquence des subventions, l'autre avant
+    # `fin.public_employment`.
+    "ceec7e7e746cf4050cfb8b8d78bd9d2a4db57ef741c37b06851696775cb63a97",
 }
 
 
@@ -453,6 +459,8 @@ RATTACHEMENTS = [
     ("fin.public_budgets", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.public_budgets", "dataset_id", "meta.dataset_registry", "dataset_id"),
     ("fin.public_employment", "run_id", "meta.ingestion_runs", "run_id"),
+    ("fin.state_budget_detail", "run_id", "meta.ingestion_runs", "run_id"),
+    ("fin.state_budget_detail", "dataset_id", "meta.dataset_registry", "dataset_id"),
 ]
 
 
