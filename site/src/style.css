@@ -3436,6 +3436,22 @@ body[data-vue="carte"] .pied {
   column-gap: 0.5rem;
   align-items: baseline;
 }
+/* Une composante porte sa part, son montant et son évolution : quatre colonnes.
+   La cellule d'évolution est rendue même vide, et de largeur fixe — sinon le
+   bord droit des montants oscille d'une ligne à l'autre selon la longueur de
+   la variation, et la colonne cesse de se lire d'un trait. */
+.pont__rangee--composante {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+.pont__evolution,
+.pont__c-evolution {
+  min-width: 4.2rem;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
 .pont__entete {
   margin: 0 0 0.2rem;
   padding-bottom: var(--espace-2);
@@ -3458,23 +3474,13 @@ body[data-vue="carte"] .pied {
   font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
-.pont__mouvement,
 .pont__reste {
   font-size: var(--texte-xs);
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
-}
-.pont__mouvement { color: var(--encre-douce); }
-.pont__reste { color: var(--encre); font-weight: 500; }
-/* L'évolution vs l'exercice précédent, sous le montant : petite, grise,
-   tabulaire — le montant reste la ligne, la variation la commente. */
-.pont__var {
-  display: block;
-  font-size: var(--texte-xs);
-  font-weight: 400;
-  color: var(--encre-douce);
-  font-variant-numeric: tabular-nums;
+  color: var(--encre);
+  font-weight: 500;
 }
 /* Un palier est un total : le trait au-dessus dit que ce qui précède
    s'additionne pour donner cette ligne-là. */
@@ -3513,7 +3519,7 @@ body[data-vue="carte"] .pied {
   content: "▸";
   display: inline-block;
   margin-right: 0.25rem;
-  font-size: var(--texte-xs);
+  font-size: var(--texte-s);
   /* Était `--trait-fort` : 1,64:1, invisible. Un marqueur d'ouverture est un
      indicateur non textuel — seuil 3:1 (WCAG 1.4.11) — et c'est la seule
      affordance du pli. */
@@ -3526,10 +3532,14 @@ body[data-vue="carte"] .pied {
 .pont__sous > summary:hover .pont__c-nom { color: var(--encre); }
 .pont__composantes { margin: 0.15rem 0 0.3rem; }
 .pont__composante { padding: var(--espace-1) 0; }
-/* Chaque niveau se décale : c'est le décalage qui dit « ceci est dans cela ». */
-.pont__composante[data-rang="1"] { padding-left: var(--espace-5); }
-.pont__composante[data-rang="2"] { padding-left: var(--espace-7); }
-.pont__composante[data-rang="3"] { padding-left: var(--espace-8); }
+/* Chaque niveau se décale, et un trait le rattache à ce qui le contient : à
+   11 px d'écart, les rangs 2 et 3 ne se distinguaient plus. L'indentation est
+   cumulative — chaque liste imbriquée décale la suivante. */
+.pont__composantes[data-rang] {
+  margin-left: var(--espace-3);
+  padding-left: var(--espace-4);
+  border-left: 1px solid var(--trait);
+}
 .pont__c-nom {
   font-size: var(--texte-xs);
   color: var(--encre-douce);
@@ -3966,4 +3976,29 @@ summary.pont__rangee,
   animation-fill-mode: both;
   animation-timeline: --defile-barre;
   background: linear-gradient(to left, rgb(255 255 255 / 0.94), rgb(255 255 255 / 0));
+}
+
+/* Le nombre d'habitants porte une infobulle, pas un lien : le pointillé que le
+   navigateur met sous un `abbr` le faisait prendre pour cliquable. */
+.fiche__habitants {
+  text-decoration: none;
+  border-bottom: 0;
+  cursor: help;
+}
+
+/* Un thème qui n'est pas mesuré à cette maille dit où il l'est, et y emmène. */
+.theme-groupe__ailleurs {
+  margin: var(--espace-5) 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Ce que le mini-tableau montre, et sur combien : six colonnes muettes tirées
+   d'une série de dix-neuf laissaient croire à la série entière. */
+.mini-serie__fenetre {
+  caption-side: top;
+  text-align: left;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  padding-bottom: var(--espace-1);
 }

@@ -100,6 +100,12 @@ const LISERE: Record<string, number[]> = {
 
 /** Expression MapLibre, sortie du littéral de calque : son type d'union ne
  *  survit pas à l'inférence, comme pour `expressionCouleur`. */
+/** Ce que le tableau montre, quand il ne montre pas tout : « 100 premiers
+ *  territoires » s'affichait au-dessus de dix-sept lignes. */
+function fenetreDuTableau(total: number): string {
+  return total > 100 ? ` · 100 premiers territoires sur ${total.toLocaleString("fr-FR")}` : "";
+}
+
 function largeurLisere(couche: string): unknown {
   return ["interpolate", ["linear"], ["zoom"], ...LISERE[couche]];
 }
@@ -402,7 +408,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
     .filter((l) => l.calculable)
     .sort((a, b) => b.valeur - a.valeur);
 
-  // Le tableau montre les 100 premiers ; l'export, lui, emporte tout — un
+  // Le tableau montre les 100 premiers ; l'export, lui, emporte tout : un
   // classement tronqué se lit, un fichier tronqué se réutilise de travers.
   exportCourant = {
     lignes: toutes.map(({ code, nom, valeur }) => ({ code, nom, valeur })),
@@ -416,7 +422,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
 
   const lignes = toutes.slice(0, 100);
   $("tableau-donnees").innerHTML = `
-    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""} · 100 premiers territoires</caption>
+    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""}${fenetreDuTableau(toutes.length)}</caption>
     <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">Valeur</th></tr></thead>
     <tbody>${lignes
       .map(
