@@ -462,27 +462,6 @@ summary:focus-visible,
   border-radius: var(--rayon);
   box-shadow: var(--ombre-2);
 }
-.surcouche--commandes {
-  top: 0.9rem;
-  left: 0.9rem;
-  width: 17.5rem;
-  max-height: calc(100% - 2rem);
-  overflow-y: auto;
-  padding: var(--espace-5) var(--espace-6);
-  scrollbar-width: thin;
-}
-.surcouche--commandes .champ {
-  flex: 1 1 100%;
-}
-.surcouche--commandes .champ--demi {
-  flex: 1 1 42%;
-}
-.surcouche--commandes select {
-  min-width: 0;
-  width: 100%;
-  font-size: var(--texte-m);
-  padding: var(--espace-3) var(--espace-8) var(--espace-3) var(--espace-4);
-}
 /* La légende, repliée : une pastille de couleurs collée au bord gauche de la
    carte. Ouverte en permanence, elle occupait le quart de l'écran pour une
    information qu'on lit une fois — et sur téléphone elle recouvrait la moitié
@@ -695,35 +674,6 @@ summary:focus-visible,
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--encre-douce);
-}
-.palmares__liste {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.palmares__liste button {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.8rem;
-  background: none;
-  border: 0;
-  font: inherit;
-  font-size: var(--texte-m);
-  padding: var(--espace-2) var(--espace-3);
-  cursor: pointer;
-  border-radius: var(--rayon-s);
-  text-align: left;
-  transition: background var(--transition);
-}
-.palmares__liste button:hover {
-  background: var(--accent-teinte);
-}
-.palmares__liste strong {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
 }
 
 .surcouche--legende .legende__titre {
@@ -1049,20 +999,6 @@ tbody tr:hover {
 }
 
 @media (max-width: 60rem) {
-  /* Écran étroit : les commandes deviennent une grille compacte en haut de la
-     carte, la fiche un tiroir qui monte du bas quand un territoire est choisi
-     — la carte reste visible derrière, on ne quitte jamais la page. */
-  .surcouche--commandes {
-    left: 0.6rem;
-    right: 0.6rem;
-    top: 0.6rem;
-    width: auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
-    max-height: 40%;
-    padding: var(--espace-4);
-  }
   /* Le tiroir monte du bas. Sans sélection il montre la France, mais plus
      bas : la carte doit rester manœuvrable, c'est par elle qu'on choisit.
      Sa hauteur est une variable, parce qu'on la fait glisser. */
@@ -1159,9 +1095,6 @@ tbody tr:hover {
   .champ input[type="search"] {
     min-width: 0;
     width: 100%;
-  }
-  .surcouche--commandes .champ label {
-    font-size: var(--texte-xs);
   }
   .tableau,
   .national {
@@ -2183,37 +2116,9 @@ body[data-vue="carte"] .pied {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.comparer-lien {
-  margin-left: 0.6rem;
-  font-size: var(--texte-s);
-  color: var(--encre);
-}
 
 
 /* Onglets du panneau : Territoire / Analyse. Tout vit dans la carte. */
-.panneau__onglets {
-  display: flex;
-  gap: 0.2rem;
-  padding: var(--espace-4) calc(var(--espace-8) + var(--espace-4)) 0 var(--espace-6);
-  border-bottom: 1px solid var(--trait);
-  flex: 0 0 auto;
-}
-.panneau__onglets button {
-  font: inherit;
-  font-size: var(--texte-s);
-  border: 0;
-  background: none;
-  color: var(--encre-douce);
-  padding: var(--espace-3) var(--espace-5);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-}
-.panneau__onglets button[aria-selected="true"] {
-  color: var(--encre);
-  border-bottom-color: var(--encre);
-  font-weight: 500;
-}
 
 /* Le volet d'analyse, dans le panneau : compact par construction. */
 #volet-analyse {
@@ -2408,59 +2313,6 @@ body[data-vue="carte"] .pied {
    suite, groupé par thème. Un menu déroulant cachait ce qui existe. */
 .champ--liste {
   margin-bottom: 0.35rem;
-}
-.indicateurs {
-  max-height: 42vh;
-  overflow-y: auto;
-  margin: 0 -0.25rem 0.6rem;
-  padding: 0 var(--espace-2);
-  scrollbar-width: thin;
-  flex: 1 1 100%;
-}
-.indicateurs__theme {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin: 0.5rem 0 0.15rem;
-  padding: var(--espace-1) 0;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--encre-douce);
-  background: rgb(255 255 255 / 0.94);
-}
-.indicateurs__groupe:first-child .indicateurs__theme {
-  margin-top: 0;
-}
-.indicateurs__item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  font-size: var(--texte-s);
-  line-height: 1.35;
-  border: 0;
-  background: none;
-  color: var(--encre);
-  padding: var(--espace-2) var(--espace-4);
-  border-radius: var(--rayon-s);
-  cursor: pointer;
-  transition: background var(--transition);
-}
-.indicateurs__item:hover {
-  background: var(--papier-creuse);
-}
-.indicateurs__item--actif {
-  background: var(--encre);
-  color: #fff;
-}
-.indicateurs__item--actif:hover {
-  background: var(--encre);
-}
-.indicateurs__vide {
-  margin: 0.5rem 0;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
 }
 
 /* Les sources des deux séries croisées, sous le coefficient. */
@@ -2982,21 +2834,6 @@ body[data-vue="carte"] .pied {
   background: var(--encre);
   color: var(--papier);
 }
-.mesure__titre {
-  font: inherit;
-  font-size: var(--texte-m);
-  color: var(--encre-douce);
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  border-bottom: 1px dotted transparent;
-}
-.mesure__titre:hover {
-  color: var(--encre);
-  border-bottom-color: var(--trait-fort);
-}
 .mesure--carte {
   background: rgb(197 106 77 / 0.035);
   border-radius: var(--rayon-s);
@@ -3183,36 +3020,6 @@ body[data-vue="carte"] .pied {
 /* Le sommaire des thèmes. Une fiche fait cinq écrans : sans lui, atteindre
    « Sécurité » demandait de traverser sept thèmes. Collé sous le nom du
    territoire, il reste là pendant tout le défilement. */
-.ancres {
-  position: sticky;
-  top: var(--haut-fiche);
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin: 0.55rem 0 0.2rem;
-  padding: var(--espace-3) 0 var(--espace-3);
-  background: rgb(255 255 255 / 0.96);
-  backdrop-filter: blur(6px);
-  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
-}
-.ancres button {
-  font: inherit;
-  font-size: var(--texte-xs);
-  line-height: 1.1;
-  color: var(--encre-douce);
-  background: var(--papier-creuse);
-  border: 1px solid transparent;
-  border-radius: var(--rayon-pilule);
-  padding: var(--espace-2) var(--espace-4);
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-}
-.ancres button:hover,
-.ancres button:focus-visible {
-  color: var(--encre);
-  border-color: var(--trait-fort);
-}
 
 /* Densité de la fiche : les mesures se suivent de près. L'air venait de
    marges empilées — celle de la mesure, celle du thème, celle du tableau —
