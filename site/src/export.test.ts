@@ -8,7 +8,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { enCsv, nomDeFichier, uniteLisible } from "./export.ts";
+import { enCsv, enCsvEvolution, nomDeFichier, uniteLisible } from "./export.ts";
 
 const QUAND = new Date("2026-08-02T14:00:00Z");
 const META = {
@@ -72,6 +72,43 @@ test("le nom de fichier dit ce qu'il contient, sans accents ni surprises", () =>
     nomDeFichier("Taux global de taxe foncière (bâti)", "commune", "2025"),
     "taux-global-de-taxe-fonciere-bati-commune-2025.csv",
   );
+});
+
+test("l'export d'évolution porte les deux millésimes, la variation et son unité", () => {
+  const csv = enCsvEvolution(
+    [{ code: "33318", nom: "Pessac", avant: 100, apres: 110, variation: 10 }],
+    { ...META, periodeAvant: "2023", periodeApres: "2024" },
+    QUAND,
+  );
+  const lignes = csv.slice(1).split("\r\n");
+  assert.equal(lignes[0], "# Dépenses de fonctionnement — évolution 2024 vs 2023");
+  assert.equal(
+    lignes[3],
+    "code;territoire;valeur_2023;valeur_2024;variation;unite_variation;unite;niveau",
+  );
+  assert.equal(lignes[4], "33318;Pessac;100;110;10;%;euros par habitant;commune");
+});
+
+test("dans l'export d'évolution, un taux varie en points et les ‰ suivent l'écran", () => {
+  const taux = enCsvEvolution(
+    [{ code: "01", nom: "A", avant: 10, apres: 12, variation: 2 }],
+    { ...META, unite: "percent", parHabitant: false, periodeAvant: "2023", periodeApres: "2024" },
+    QUAND,
+  );
+  assert.ok(taux.includes(";10;12;2;points;%;"));
+  // Les pour-mille s'exportent ÷ 10, valeurs ET variation, comme à l'écran.
+  const mille = enCsvEvolution(
+    [{ code: "01", nom: "A", avant: 30, apres: 25, variation: -5 }],
+    {
+      ...META,
+      unite: "pour_1000_habitants",
+      parHabitant: false,
+      periodeAvant: "2023",
+      periodeApres: "2024",
+    },
+    QUAND,
+  );
+  assert.ok(mille.includes(";3;2,5;-0,5;points;% des habitants;"));
 });
 
 test("les unités de la délinquance se lisent en toutes lettres dans le CSV", () => {

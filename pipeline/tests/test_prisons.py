@@ -2,8 +2,13 @@
 
 `justice_ecroues_etablissements_sample.xlsx` est le fichier mensuel DGAP du
 1er juillet 2026, téléchargé le 7 août 2026 et gardé entier (1,1 Mo) — aucun
-octet fabriqué. `justice_page_mensuelle_sample.html` est la page de la rubrique
-téléchargée le même jour, celle où le connecteur retrouve le lien du mois.
+octet fabriqué. `justice_page_mensuelle_sample.html` est la page annuelle 2026
+de la rubrique, téléchargée le même jour ; `justice_page_mensuelle_2025_sample.html`
+est la page 2025 (téléchargée le 8 août 2026), celle qui porte les douze mois
+de 2025 — dont mai, seul mois publié sous un autre nom de fichier. Les classeurs
+des dix-huit autres mois pèseraient 20 Mo : la logique multi-mois est testée
+sur leurs témoins France entière relevés à la main (SERIE_FRANCE) et, pour
+l'écriture, en réutilisant le vrai classeur sous une seconde période.
 
 Témoins relevés à la main sur la publication : France entière 89 446 écroués
 détenus pour 63 289 places opérationnelles ; CP de Bordeaux-Gradignan, quartier
@@ -32,6 +37,20 @@ FIXTURES = Path(__file__).parent / "fixtures"
 DETENUS_LUS = 89_283.0
 PLACES_LUES = 63_146.0
 COM_DETENUS = 1_455.0  # Polynésie, Nouvelle-Calédonie, Wallis, Saint-Pierre-et-Miquelon
+
+# Le total France entière publié (Tab8) de chaque classeur xlsx disponible,
+# relevé à la main le 8 août 2026 sur les dix-neuf fichiers : la série que le
+# contrôle de continuité doit accepter telle quelle. La plus forte variation
+# mensuelle est +1,17 % (2026-03 -> 2026-04).
+SERIE_FRANCE = {
+    "2025-01": 80_669.0, "2025-02": 81_599.0, "2025-03": 82_152.0,
+    "2025-04": 82_921.0, "2025-05": 83_681.0, "2025-06": 84_447.0,
+    "2025-07": 84_951.0, "2025-08": 84_177.0, "2025-09": 84_311.0,
+    "2025-10": 84_862.0, "2025-11": 85_373.0, "2025-12": 86_229.0,
+    "2026-01": 86_140.0, "2026-02": 86_645.0, "2026-03": 87_126.0,
+    "2026-04": 88_145.0, "2026-05": 88_654.0, "2026-06": 88_829.0,
+    "2026-07": 89_446.0,
+}
 
 
 @pytest.fixture(scope="module")
@@ -65,19 +84,44 @@ def test_la_fixture_reelle_porte_les_temoins(lu):
     assert sum(q[4] for q in lu["quartiers"] if q[4] is not None) == DETENUS_LUS
 
 
-def test_l_url_du_mois_se_retrouve_dans_la_page():
-    """L'URL n'est pas constructible : le dossier est le mois de mise en ligne
-    (le fichier de février 2026 vit dans /2026-03/). Seul le nom du fichier
-    porte le mois des données, et c'est lui qui départage les parutions."""
-    page = (FIXTURES / "justice_page_mensuelle_sample.html").read_text(encoding="utf-8")
-    adresse, periode = p.trouver_url(page)
-    assert adresse == (
+def test_les_urls_de_tous_les_mois_se_retrouvent_dans_les_pages():
+    """Les URLs ne sont pas constructibles : le dossier est le mois de mise en
+    ligne (le fichier de février 2026 vit dans /2026-03/). Seul le nom du
+    fichier porte le mois des données, et les deux pages annuelles réunies
+    portent la série entière — mai 2025 sous son nom dérogatoire."""
+    page_2025 = (FIXTURES / "justice_page_mensuelle_2025_sample.html").read_text(
+        encoding="utf-8"
+    )
+    page_2026 = (FIXTURES / "justice_page_mensuelle_sample.html").read_text(encoding="utf-8")
+    liens = p.trouver_urls([page_2025, page_2026])
+    assert [periode for _, periode in liens] == (
+        [f"2025-{mois:02d}" for mois in range(1, 13)]
+        + [f"2026-{mois:02d}" for mois in range(1, 8)]
+    )
+    adresses = {periode: adresse for adresse, periode in liens}
+    assert adresses["2026-07"] == (
         "https://www.justice.gouv.fr/sites/default/files/2026-07/"
         "statistique_etablissements_personnes_ecrouees_01072026.xlsx"
     )
-    assert periode == "2026-07"
+    # Le dossier de février 2026 est /2026-03/ : mois de mise en ligne.
+    assert adresses["2026-02"] == (
+        "https://www.justice.gouv.fr/sites/default/files/2026-03/"
+        "statistique_etablissements_personnes_ecrouees_01022026.xlsx"
+    )
+    # Mai 2025, seule parution sous un autre nom : retrouvée par son motif
+    # dédié, jamais construite (l'URL canonique répond 404).
+    assert adresses["2025-05"] == (
+        "https://www.justice.gouv.fr/sites/default/files/2025-05/"
+        "Statistique_des_etablissements_2025-05-01.xlsx"
+    )
     with pytest.raises(ValueError, match="renommé"):
-        p.trouver_url("<html>rien</html>")
+        p.trouver_urls(["<html>rien</html>"])
+    # Deux fichiers différents pour le même mois : page en travaux, refus.
+    with pytest.raises(ValueError, match="deux fichiers"):
+        p.trouver_urls([
+            adresses["2026-07"].join(('href="', '"')),
+            adresses["2026-07"].replace("/2026-07/", "/2026-08/").join(('href="', '"')),
+        ])
 
 
 def _classeur_remanie(contenu: bytes, retoucher) -> bytes:
@@ -103,6 +147,21 @@ def test_la_lecture_refuse_un_classeur_remanie(contenu):
         p.lire(_classeur_remanie(
             contenu, lambda livre: livre["Tab14"].cell(row=7, column=5, value="Détenus")
         ))
+
+
+def test_une_cellule_vide_se_lit_comme_un_quartier_nc(contenu):
+    """Quatre quartiers de juin et décembre 2025 publient une cellule vide au
+    lieu de « NC » (CP Maubeuge, CP Château-Thierry, CP Sud Francilien,
+    MA Versailles) : même sens, même traitement — l'effectif n'est pas connu,
+    la ligne garde ses places et ne compte pas zéro détenu. Rejoué ici sur la
+    première ligne du classeur réel (CD Bédenac)."""
+    def vider(livre):
+        livre["Tab14"].cell(row=8, column=5, value="")
+        livre["Tab14"].cell(row=8, column=6, value="")
+
+    lu = p.lire(_classeur_remanie(contenu, vider))
+    assert ("Tab14", "CD BEDENAC", "CD/QCD", 194.0, None, None) in lu["quartiers"]
+    assert sum(1 for q in lu["quartiers"] if q[4] is None) == 7
 
 
 def test_les_densites_publiees_se_recalculent(lu):
@@ -167,6 +226,28 @@ def test_le_temoin_national_est_exige_sur_le_fichier_de_juillet_2026(lu):
     ampute = [q for q in lu["quartiers"] if q[0] not in ("Tab19", "Tab20")]
     with pytest.raises(p.DonneesCarceralesIncoherentes, match="tronquée"):
         p.controler_national(ampute, lu["france"], lu["periode"])
+
+
+def test_la_serie_mensuelle_se_tient_sans_trou_ni_saut():
+    """Les dix-neuf totaux France relevés à la main passent tels quels — la
+    plus forte variation réelle est +1,17 %. Un trou (mois disparu des pages)
+    ou un saut de plus de 3 % (classeur lu de travers) bloquent : chaque
+    contrôle par classeur compare un classeur à lui-même, seule la série voit
+    une lecture cohérente avec elle-même mais fausse."""
+    continuite = p.controler_serie(SERIE_FRANCE)
+    assert continuite["mois"] == 19
+    assert continuite["entre"] == "2026-03 -> 2026-04"
+    assert 0.011 < continuite["variation_maximale"] < 0.012
+    assert p.controler_serie({"2026-07": 89_446.0})["mois"] == 1
+
+    troue = {periode: valeur for periode, valeur in SERIE_FRANCE.items()
+             if periode != "2025-06"}
+    with pytest.raises(p.DonneesCarceralesIncoherentes, match="trou"):
+        p.controler_serie(troue)
+    # Le passage d'année n'est pas un trou : décembre 2025 -> janvier 2026.
+    assert p._mois_suivant("2025-12") == "2026-01"
+    with pytest.raises(p.DonneesCarceralesIncoherentes, match="lu de travers"):
+        p.controler_serie({**SERIE_FRANCE, "2026-07": 93_000.0})
 
 
 def test_chaque_etablissement_trouve_sa_commune_au_crosswalk(lu, crosswalk):
@@ -263,6 +344,9 @@ def test_les_fiches_portent_les_reserves():
     assert "licence ouverte 2.0" in p.TECHNIQUE
     assert "pas constructible" in p.TECHNIQUE
     assert "NC" in p.TECHNIQUE and "jamais répartis" in p.TECHNIQUE
+    # La profondeur de la série : xlsx depuis janvier 2025, PDF seul avant.
+    assert "1er janvier 2025" in p.TECHNIQUE
+    assert "PDF" in p.TECHNIQUE and "ne sont pas chargés" in p.TECHNIQUE
 
 
 def _semer_le_jeu(conn) -> None:
@@ -358,3 +442,48 @@ def test_l_ecriture_reelle_contre_un_vrai_entrepot(entrepot_seme, lu, crosswalk)
     assert observations[(p.DETENUS, "region", "75")] == 7_182.0
     assert observations[(p.DENSITE, "region", "75")] == 131.9
     assert observations[(p.DETENUS, "pays", "FR")] == 7_182.0
+
+    # L'historique entier passe par UN remplacement : les sommes du vrai
+    # classeur, écrites sous deux périodes dans le même appel, coexistent.
+    # Puis un remplacement qui n'apporte qu'un mois purge l'autre — c'est
+    # exactement pourquoi run() charge tous les mois dans le même run.
+    deux_mois = candidates + p.aggreger(communes, regions, "2026-06")
+    gardees, _ = filtrer_territoires_connus(entrepot_seme, deux_mois)
+    run_2 = entrepot.start_run(entrepot_seme, p.DATASET, "manual")
+    ecrites, revisees = revisions.remplacer(
+        entrepot_seme, run_2, sorted(p.INDICATEURS), p.COLONNES,
+        [
+            (indicateur, niveau, code, MILLESIME, periode, valeur)
+            for indicateur, niveau, code, periode, valeur in gardees
+        ],
+    )
+    entrepot_seme.commit()
+    assert ecrites == 16, "les deux mois, aux quatre niveaux"
+    assert revisees == 0, "mêmes valeurs qu'au premier run : rien n'est révisé"
+    periodes = {
+        periode for (periode,) in entrepot_seme.execute(
+            "select distinct period from core.observations where indicator_id in"
+            " (select indicator_id from core.indicators where dataset_id = ?)",
+            (p.DATASET,),
+        ).fetchall()
+    }
+    assert periodes == {"2026-06", "2026-07"}
+
+    gardees_seules, _ = filtrer_territoires_connus(entrepot_seme, candidates)
+    run_3 = entrepot.start_run(entrepot_seme, p.DATASET, "manual")
+    revisions.remplacer(
+        entrepot_seme, run_3, sorted(p.INDICATEURS), p.COLONNES,
+        [
+            (indicateur, niveau, code, MILLESIME, periode, valeur)
+            for indicateur, niveau, code, periode, valeur in gardees_seules
+        ],
+    )
+    entrepot_seme.commit()
+    periodes = {
+        periode for (periode,) in entrepot_seme.execute(
+            "select distinct period from core.observations where indicator_id in"
+            " (select indicator_id from core.indicators where dataset_id = ?)",
+            (p.DATASET,),
+        ).fetchall()
+    }
+    assert periodes == {"2026-07"}, "2026-06 purgé : un chargement partiel efface le reste"

@@ -22,7 +22,20 @@ import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { rendu as apercuRendu, resumer } from "./apercu.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
-import { enCsv, nomDeFichier, telecharger, type LigneExport } from "./export.ts";
+import {
+  enCsv, enCsvEvolution, nomDeFichier, telecharger,
+  type LigneExport, type LigneExportEvolution,
+} from "./export.ts";
+import {
+  coucheEvolution,
+  echelleDivergente,
+  formaterVariation,
+  libelleEvolution,
+  modeVariation,
+  noteEvolution,
+  type Evolution,
+  type ModeVariation,
+} from "./evolution-carte.ts";
 import { afficherNational } from "./national.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import { afficherConjoncture } from "./conjoncture.ts";
@@ -109,6 +122,10 @@ type Etat = {
   maille: string | null;
   periode: string;
   declinaison: string;
+  /** Ce que la carte peint : le dernier niveau publié, ou l'évolution entre
+   *  les deux derniers millésimes. « evolution » n'est possible que si
+   *  l'indicateur a au moins deux périodes à la maille affichée. */
+  mode: string;
   selection: string | null;
   comparaison: string[];
   vue: string;
@@ -137,6 +154,14 @@ let affichees: Record<string, number> = {};
 /** Montants bruts de la couche : l'infobulle montre les deux lectures. */
 let brutes: Record<string, number> = {};
 let parHabitantAffiche = false;
+/** La couche d'évolution affichée, quand c'en est une : la variation peinte,
+ *  mais aussi les deux valeurs dont elle vient — l'infobulle montre les
+ *  trois. `null` = la carte montre un niveau. */
+let evolutionAffichee: {
+  couche: Record<string, Evolution>;
+  mode: ModeVariation;
+  avant: string;
+} | null = null;
 let survole: string | null = null;
 /** Ce que le bouton d'export téléchargera : toutes les lignes de la couche
  *  affichée, pas les 100 que montre le tableau, avec la déclinaison qui a
@@ -145,6 +170,9 @@ let exportCourant: { lignes: LigneExport[]; parHabitant: boolean } = {
   lignes: [],
   parHabitant: false,
 };
+/** En mode évolution, l'export emporte les deux millésimes et la variation :
+ *  non nul seulement quand c'est la couche affichée. */
+let exportEvolution: { lignes: LigneExportEvolution[]; avant: string } | null = null;
 
 /** La maille de la **carte** : elle doit avoir une couche de tuiles.
  *
@@ -200,6 +228,9 @@ function lireUrl(): Etat {
     // colorait la carte, et « par habitant » est la seule comparable.
     periode: "",
     declinaison: "habitant",
+    // Repli silencieux sur le niveau si l'indicateur n'a qu'un millésime à
+    // cette maille : `construireSelecteurs` tranche, l'URL propose.
+    mode: p.get("mode") === "evolution" ? "evolution" : "niveau",
     selection: p.get("territoire"),
     comparaison: (p.get("comparer") ?? "").split(",").filter(Boolean).slice(0, MAXIMUM),
     vue: p.get("vue") ?? "metropole",
@@ -214,6 +245,7 @@ function ecrireUrl(): void {
     periode: etat.periode,
   });
   if (etat.vue !== "metropole") p.set("vue", etat.vue);
+  if (etat.mode === "evolution") p.set("mode", "evolution");
   if (etat.selection) p.set("territoire", etat.selection);
   if (etat.maille) p.set("maille", etat.maille);
   if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
@@ -297,12 +329,20 @@ function indicateurCourant(): Indicateur {
 /** Légende en rampe : une ligne de couleurs, les deux bornes, le reste en
  *  infobulle et dans un repli. La version en liste (sept lignes de fourchettes
  *  plus une note) mangeait un quart de la carte — trop pour une échelle. */
-function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean): void {
+function majLegende(
+  echelle: ReturnType<typeof quantiles>,
+  parHabitant: boolean,
+  evolution?: { avant: string; mode: ModeVariation },
+): void {
   const indicateur = indicateurCourant();
   $("legende").hidden = false;
   $("legende-titre").textContent = traduire(indicateur.libelle);
   const bornes = [...echelle.bornes];
-  const lisible = (v: number) => formater(v, indicateur.unite, parHabitant);
+  // En mode évolution, les bornes sont des variations : signées, et en points
+  // pour un taux — les formater en niveaux ferait mentir la légende.
+  const lisible = evolution
+    ? (v: number) => formaterVariation(v, indicateur.unite, evolution.mode)
+    : (v: number) => formater(v, indicateur.unite, parHabitant);
   $("legende-echelle").innerHTML = echelle.couleurs
     .map((couleur, i) => {
       const bas = i === 0 ? null : bornes[i - 1];
@@ -316,12 +356,20 @@ function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean)
       return `<li class="pastille" style="background:${couleur}" title="${texte}"></li>`;
     })
     .join("");
+  // La légende dit ce qu'elle montre : un millésime, ou « Évolution 2024 vs
+  // 2023, en % » — sans quoi une carte de variations se lirait comme une
+  // carte de niveaux.
+  const titrePeriode = evolution
+    ? libelleEvolution(evolution.avant, etat.periode, evolution.mode)
+    : `${etat.periode}${parHabitant ? " · par hab." : ""}`;
   $("legende-bornes").innerHTML = `<span>${
     bornes.length ? `&lt; ${lisible(bornes[0])}` : ""
-  }</span><span>${etat.periode}${parHabitant ? " · par hab." : ""}</span><span>${
+  }</span><span>${titrePeriode}</span><span>${
     bornes.length ? `&gt; ${lisible(bornes[bornes.length - 1])}` : ""
   }</span>`;
-  $("legende-note").textContent = noteEchelle(indicateur.unite, parHabitant);
+  $("legende-note").textContent = evolution
+    ? noteEvolution(evolution.mode, parHabitant)
+    : noteEchelle(indicateur.unite, parHabitant);
   // La pastille repliée : les mêmes couleurs, en dégradé, sur deux centimètres.
   // Elle suffit à lire la carte — foncé, beaucoup ; clair, peu — sans rien
   // recouvrir. Le détail attend le clic.
@@ -370,39 +418,137 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
       .join("")}</tbody>`;
 }
 
+/** Le tableau et l'export suivent la couche affichée : en mode évolution, les
+ *  deux millésimes et la variation — un classement de variations sans les
+ *  valeurs dont elles viennent ne se vérifierait pas. */
+function majTableauEvolution(
+  couche: Record<string, Evolution>,
+  mode: ModeVariation,
+  periodePrecedente: string,
+  parHabitant: boolean,
+): void {
+  const indicateur = indicateurCourant();
+  const toutes = Object.entries(couche)
+    .map(([code, e]) => ({ code, nom: entites[code]?.nom ?? code, ...e }))
+    .sort((a, b) => b.variation - a.variation);
+
+  exportEvolution = {
+    lignes: toutes.map(({ code, nom, avant, apres, variation }) => ({
+      code, nom, avant, apres, variation,
+    })),
+    avant: periodePrecedente,
+  };
+  const exporter = $<HTMLButtonElement>("exporter");
+  exporter.hidden = toutes.length === 0;
+  exporter.textContent = `Télécharger en CSV (${toutes.length.toLocaleString("fr-FR")} territoire${
+    toutes.length > 1 ? "s" : ""
+  })`;
+
+  const lignes = toutes.slice(0, 100);
+  const lisible = (v: number) => formater(v, indicateur.unite, parHabitant);
+  $("tableau-donnees").innerHTML = `
+    <caption>${traduire(indicateur.libelle)}, évolution ${etat.periode} vs ${periodePrecedente}${
+      parHabitant ? ", par habitant" : ""
+    } · 100 premiers territoires</caption>
+    <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">${periodePrecedente}</th><th scope="col">${etat.periode}</th><th scope="col">Variation</th></tr></thead>
+    <tbody>${lignes
+      .map(
+        (l) =>
+          `<tr><td>${l.nom}</td><td>${l.code}</td><td>${lisible(l.avant)}</td><td>${lisible(
+            l.apres,
+          )}</td><td>${formaterVariation(l.variation, indicateur.unite, mode)}</td></tr>`,
+      )
+      .join("")}</tbody>`;
+}
+
+/** Montre la couche de la maille affichée et lui applique sa couleur. */
+function appliquerCouche(expression: unknown): void {
+  for (const [niveau, couche] of Object.entries(COUCHES)) {
+    const visible = niveau === etat.niveau;
+    carte.setLayoutProperty(`remplissage-${couche}`, "visibility", visible ? "visible" : "none");
+    carte.setLayoutProperty(`contour-${couche}`, "visibility", visible ? "visible" : "none");
+  }
+  carte.setPaintProperty(`remplissage-${COUCHES[etat.niveau]}`, "fill-color", expression as never);
+}
+
+/**
+ * Peint la variation entre les deux derniers millésimes publiés à cette
+ * maille. Calculée sur la déclinaison affichée : la variation d'un montant
+ * par habitant n'est pas celle du montant brut — la population bouge aussi —
+ * et chaque millésime se divise par SA population de référence.
+ */
+async function peindreEvolution(
+  valeurs: Record<string, number>,
+  periodePrecedente: string,
+  parHabitant: boolean,
+): Promise<void> {
+  const indicateur = indicateurCourant();
+  const mode = modeVariation(indicateur.unite);
+  const precedentes = await donnees.valeursCarte(etat.indicateur, etat.niveau, periodePrecedente);
+  const decliner = (bruts: Record<string, number>, periode: string): Record<string, number> => {
+    if (!parHabitant) return bruts;
+    const sortie: Record<string, number> = {};
+    for (const [code, brut] of Object.entries(bruts)) {
+      const entite = entites[code];
+      const population = entite ? populationDeReference(entite, periode).valeur : null;
+      if (population) sortie[code] = brut / population; // pas de dénominateur, pas de ratio
+    }
+    return sortie;
+  };
+  const couche = coucheEvolution(
+    decliner(precedentes, periodePrecedente),
+    decliner(valeurs, etat.periode),
+    mode,
+  );
+  const variations = Object.fromEntries(
+    Object.entries(couche).map(([code, e]) => [code, e.variation]),
+  );
+  const echelle = echelleDivergente(Object.values(variations));
+  // Les variations sont déjà déclinées : pas de division supplémentaire ici.
+  appliquerCouche(expressionCouleur(variations, echelle, false, {}));
+
+  majLegende(echelle, parHabitant, { avant: periodePrecedente, mode });
+  majTableauEvolution(couche, mode, periodePrecedente, parHabitant);
+  planifierEtiquettes();
+
+  affichees = variations;
+  parHabitantAffiche = parHabitant;
+  brutes = valeurs;
+  evolutionAffichee = { couche, mode, avant: periodePrecedente };
+}
+
 async function peindre(): Promise<void> {
   const parHabitant = etat.declinaison === "habitant" && parHabitantAUnSens(indicateurCourant());
   const valeurs = await donnees.valeursCarte(etat.indicateur, etat.niveau, etat.periode);
   await chargerLotsNecessaires(etat.niveau, Object.keys(valeurs));
   recalculerPopulations(); // la période a pu changer depuis le dernier chargement
 
-  const echantillon = Object.entries(valeurs)
-    .map(([code, brut]) => (parHabitant ? brut / (populations[code] ?? NaN) : brut))
-    .filter(Number.isFinite);
-  const echelle = quantiles(echantillon);
+  const periodes = periodesDuNiveau();
+  if (etat.mode === "evolution" && periodes.length >= 2) {
+    await peindreEvolution(valeurs, periodes[1], parHabitant);
+  } else {
+    evolutionAffichee = null;
+    exportEvolution = null;
 
-  for (const [niveau, couche] of Object.entries(COUCHES)) {
-    const visible = niveau === etat.niveau;
-    carte.setLayoutProperty(`remplissage-${couche}`, "visibility", visible ? "visible" : "none");
-    carte.setLayoutProperty(`contour-${couche}`, "visibility", visible ? "visible" : "none");
+    const echantillon = Object.entries(valeurs)
+      .map(([code, brut]) => (parHabitant ? brut / (populations[code] ?? NaN) : brut))
+      .filter(Number.isFinite);
+    const echelle = quantiles(echantillon);
+
+    appliquerCouche(expressionCouleur(valeurs, echelle, parHabitant, populations));
+
+    majLegende(echelle, parHabitant);
+    majTableau(valeurs, parHabitant);
+    planifierEtiquettes();
+
+    affichees = Object.fromEntries(
+      Object.entries(valeurs)
+        .map(([code, brut]) => [code, parHabitant ? brut / (populations[code] ?? NaN) : brut])
+        .filter(([, v]) => Number.isFinite(v as number)),
+    ) as Record<string, number>;
+    parHabitantAffiche = parHabitant;
+    brutes = valeurs;
   }
-  carte.setPaintProperty(
-    `remplissage-${COUCHES[etat.niveau]}`,
-    "fill-color",
-    expressionCouleur(valeurs, echelle, parHabitant, populations) as never,
-  );
-
-  majLegende(echelle, parHabitant);
-  majTableau(valeurs, parHabitant);
-  planifierEtiquettes();
-
-  affichees = Object.fromEntries(
-    Object.entries(valeurs)
-      .map(([code, brut]) => [code, parHabitant ? brut / (populations[code] ?? NaN) : brut])
-      .filter(([, v]) => Number.isFinite(v as number)),
-  ) as Record<string, number>;
-  parHabitantAffiche = parHabitant;
-  brutes = valeurs;
 
   if (etat.selection) {
     await montrerFiche(etat.selection);
@@ -468,6 +614,11 @@ function afficherApercu(): void {
     });
     return;
   }
+  // L'aperçu de repli résume des niveaux (minimum, médiane, total) : en mode
+  // évolution, `affichees` porte des variations et ce résumé serait formaté
+  // comme des niveaux. On garde le panneau tel quel — la fiche France le
+  // remplace dès que la maille pays est chargée.
+  if (evolutionAffichee) return;
   const noms = Object.fromEntries(
     Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
   );
@@ -695,8 +846,12 @@ async function montrerFiche(code: string): Promise<void> {
   // peintes — même tri, même dénominateur que la carte.
   const classement = Object.entries(affichees).sort(([, a], [, b]) => b - a);
   const position = classement.findIndex(([c]) => c === code);
+  // En mode évolution, la couche affichée classe des variations quand la fiche
+  // montre des niveaux : annoncer ce rang-là sous ce chiffre-ci mentirait.
   const rang =
-    position >= 0 ? { position: position + 1, total: classement.length } : undefined;
+    position >= 0 && !evolutionAffichee
+      ? { position: position + 1, total: classement.length }
+      : undefined;
 
   afficherFiche($("fiche"), {
     niveau,
@@ -912,6 +1067,40 @@ function construireBarreCarte(): void {
     .join("");
 }
 
+/** Périodes du niveau affiché, la plus récente d'abord — pas de l'indicateur
+ *  tous niveaux confondus : l'historique communal est plus court que celui
+ *  des départements, et proposer une année sans couche mènerait à un fichier
+ *  absent. */
+function periodesDuNiveau(): string[] {
+  const fiche = indicateurCourant();
+  return [...(fiche.periodes_par_niveau?.[etat.niveau] ?? fiche.periodes ?? [])].sort().reverse();
+}
+
+/** Le bouton Niveau / Évolution, avec les pilules de cadrage sous la carte.
+ *  Il n'apparaît que si l'indicateur a au moins deux millésimes à la maille
+ *  affichée : un bouton qui ne fait rien est pire que pas de bouton. */
+function construireBarreMode(): void {
+  const conteneur = $("pilules-mode");
+  if (periodesDuNiveau().length < 2) {
+    conteneur.hidden = true;
+    conteneur.innerHTML = "";
+    return;
+  }
+  conteneur.hidden = false;
+  conteneur.innerHTML = (
+    [
+      ["niveau", "Niveau"],
+      ["evolution", "Évolution"],
+    ] as const
+  )
+    .map(
+      ([cle, libelle]) => `<button type="button" data-mode-carte="${cle}"
+      class="pilule${cle === etat.mode ? " pilule--active" : ""}"
+      aria-pressed="${cle === etat.mode}">${libelle}</button>`,
+    )
+    .join("");
+}
+
 function construireSelecteurs(): void {
   const disponibles = themesCartographiables();
   if (!disponibles.includes(etat.theme)) etat.theme = disponibles[0] ?? "finances_locales";
@@ -923,19 +1112,14 @@ function construireSelecteurs(): void {
     etat.indicateur = financiers[0]?.id ?? etat.indicateur;
   }
 
-  // Périodes du niveau affiché, pas de l'indicateur tous niveaux confondus :
-  // l'historique communal est plus court que celui des départements, et
-  // proposer une année sans couche mènerait à un fichier absent.
-  const fiche = indicateurCourant();
-  const periodes = [
-    ...(fiche.periodes_par_niveau?.[etat.niveau] ?? fiche.periodes ?? []),
-  ]
-    .sort()
-    .reverse();
+  const periodes = periodesDuNiveau();
   // Toujours la plus récente : l'année n'est plus un réglage.
   etat.periode = periodes[0];
+  // L'évolution demande deux millésimes publiés à cette maille : à moins,
+  // retour au niveau — proprement, bouton masqué compris.
+  if (periodes.length < 2) etat.mode = "niveau";
   construireBarreCarte();
-
+  construireBarreMode();
 }
 
 /**
@@ -1002,6 +1186,18 @@ function brancherCommandes(): void {
     cadrer(vue);
     construireBarreCarte();
     ecrireUrl();
+  });
+
+  // Niveau ou évolution : le choix repeint la carte, la légende, le tableau
+  // et l'export — tous suivent la couche affichée.
+  $("pilules-mode").addEventListener("click", async (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-mode-carte]");
+    const mode = bouton?.dataset.modeCarte;
+    if (!mode || mode === etat.mode) return;
+    etat.mode = mode;
+    construireBarreMode();
+    ecrireUrl();
+    await peindre();
   });
 
   // Une seule bulle de définition ouverte à la fois, et rien qui traîne après
@@ -1127,6 +1323,25 @@ function brancherCommandes(): void {
   $("exporter").addEventListener("click", () => {
     const indicateur = indicateurCourant();
     const jeu = jeux.find((j) => j.id === indicateur.jeu);
+    if (exportEvolution) {
+      telecharger(
+        enCsvEvolution(exportEvolution.lignes, {
+          indicateur: indicateur.libelle,
+          unite: indicateur.unite,
+          periodeAvant: exportEvolution.avant,
+          periodeApres: etat.periode,
+          niveau: etat.niveau,
+          parHabitant: parHabitantAffiche,
+          source: jeu ? `${jeu.producteur}, ${jeu.titre}` : indicateur.jeu,
+        }),
+        nomDeFichier(
+          indicateur.libelle,
+          etat.niveau,
+          `evolution-${exportEvolution.avant}-${etat.periode}`,
+        ),
+      );
+      return;
+    }
     telecharger(
       enCsv(exportCourant.lignes, {
         indicateur: indicateur.libelle,
@@ -1504,25 +1719,44 @@ async function demarrer(): Promise<void> {
         const nom = (figure?.properties?.nom as string | undefined) ?? entites[code]?.nom ?? code;
         const valeur = affichees[code];
         const indicateur = indicateurCourant();
-        // Les deux lectures d'un montant : celle de la carte en premier,
-        // l'autre en dessous, plus discrète.
-        const autre =
-          valeur !== undefined && indicateur.unite === "EUR" && parHabitantAUnSens(indicateur)
-            ? parHabitantAffiche
-              ? `<span class="infobulle__autre">${formater(brutes[code], "EUR", false)} au total</span>`
-              : populations[code]
-                ? `<span class="infobulle__autre">${formater(
-                    brutes[code] / populations[code],
-                    "EUR",
-                    true,
-                  )} par habitant</span>`
-                : ""
-            : "";
-        infobulle.innerHTML = `<strong>${nom}</strong>${
-          valeur === undefined
-            ? `<span>non publié pour ce territoire</span>`
-            : `<span>${formater(valeur, indicateur.unite, parHabitantAffiche)}</span>${autre}`
-        }`;
+        // En mode évolution : la variation signée, ET les deux valeurs dont
+        // elle vient — une variation seule ne se vérifie pas.
+        if (evolutionAffichee) {
+          const e = evolutionAffichee.couche[code];
+          infobulle.innerHTML = `<strong>${nom}</strong>${
+            e
+              ? `<span>${formaterVariation(
+                  e.variation,
+                  indicateur.unite,
+                  evolutionAffichee.mode,
+                )}</span><span class="infobulle__autre">${evolutionAffichee.avant} : ${formater(
+                  e.avant,
+                  indicateur.unite,
+                  parHabitantAffiche,
+                )}, ${etat.periode} : ${formater(e.apres, indicateur.unite, parHabitantAffiche)}</span>`
+              : `<span>pas publié dans les deux années, ou partait de zéro</span>`
+          }`;
+        } else {
+          // Les deux lectures d'un montant : celle de la carte en premier,
+          // l'autre en dessous, plus discrète.
+          const autre =
+            valeur !== undefined && indicateur.unite === "EUR" && parHabitantAUnSens(indicateur)
+              ? parHabitantAffiche
+                ? `<span class="infobulle__autre">${formater(brutes[code], "EUR", false)} au total</span>`
+                : populations[code]
+                  ? `<span class="infobulle__autre">${formater(
+                      brutes[code] / populations[code],
+                      "EUR",
+                      true,
+                    )} par habitant</span>`
+                  : ""
+              : "";
+          infobulle.innerHTML = `<strong>${nom}</strong>${
+            valeur === undefined
+              ? `<span>non publié pour ce territoire</span>`
+              : `<span>${formater(valeur, indicateur.unite, parHabitantAffiche)}</span>${autre}`
+          }`;
+        }
         infobulle.hidden = false;
         const cadre = $("carte").getBoundingClientRect();
         const x = Math.min(evenement.point.x + 14, cadre.width - infobulle.offsetWidth - 10);

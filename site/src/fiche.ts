@@ -189,6 +189,20 @@ type Mesure = {
  * comptable que ce site n'a pas à trancher.
  */
 const PART_DU_TOTAL: Record<string, { total: string; nom: string }> = {
+  // « Ma taxe foncière, ça pèse combien dans ce que la commune encaisse ? »
+  // Produits DGFiP rapportés aux recettes de fonctionnement OFGL : deux
+  // sources, même exercice, et le périmètre est contrôlé — la somme des
+  // produits DGFiP (foncier bâti + CFE + TH résidences secondaires) reste
+  // contenue dans les impôts locaux OFGL, à moins de 7 % près sur
+  // l'échantillon vérifié (l'écart est le non-bâti et les majorations).
+  dgfip_produit_foncier_bati: {
+    total: "ofgl_recettes_fonctionnement",
+    nom: "des recettes de fonctionnement de la collectivité",
+  },
+  dgfip_produit_th_residences_secondaires: {
+    total: "ofgl_recettes_fonctionnement",
+    nom: "des recettes de fonctionnement de la collectivité",
+  },
   insee_dette_etat_montant: { total: "insee_dette_apu_montant", nom: "de la dette publique" },
   insee_dette_asso_montant: { total: "insee_dette_apu_montant", nom: "de la dette publique" },
   insee_dette_apul_montant: { total: "insee_dette_apu_montant", nom: "de la dette publique" },
@@ -497,8 +511,10 @@ function ligneIndicateur(
       );
     }
   }
-  // À défaut de comparaison extérieure, la part dans son propre total : lue au
-  // même millésime, dans la même source, elle est exacte par construction.
+  // À défaut de comparaison extérieure, la part dans son total : lue au même
+  // millésime. Dans la même source elle est exacte par construction ; entre
+  // deux sources, elle n'entre dans la table qu'après contrôle du périmètre
+  // (voir les impôts locaux DGFiP dans les recettes OFGL).
   const part = PART_DU_TOTAL[indicateur.id];
   const totalPart = part ? territoire.series[part.total]?.[periode] : undefined;
   if (part && totalPart) {

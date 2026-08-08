@@ -5,6 +5,15 @@ places : la photo mensuelle de la statistique des établissements pénitentiaire
 (DGAP, sous-direction de la statistique et des études), établissement par
 établissement, rattachée à la **commune d'implantation** de la prison.
 
+**Tous les mois, dans le même run.** `revisions.remplacer` purge l'indicateur
+entier avant de réécrire : charger un seul mois effacerait les autres. Le run
+charge donc l'historique complet au format xlsx — chaque mois depuis le
+1er janvier 2025, première parution sous ce format ; avant, la statistique
+n'existe qu'en PDF, hors périmètre. Un contrôle de série borne le mouvement du
+total France d'un mois au suivant : une rupture de lecture — un classeur de
+2025 lu avec les yeux de 2026 — se voit là, pas dans les contrôles internes à
+chaque classeur.
+
 **La commune d'implantation, pas la commune d'origine.** Le chiffre d'une
 commune décrit la prison qui s'y trouve, jamais d'où viennent les détenus.
 Gradignan porte les détenus du CP de Bordeaux-Gradignan ; Bordeaux n'en porte
@@ -22,10 +31,12 @@ une maison d'arrêt de 50 places et à Fleury-Mérogis.
 **L'URL du fichier n'est pas constructible.** Le dossier de l'URL est le mois de
 *mise en ligne*, pas celui des données (le fichier de février 2026 vit dans
 `/2026-03/`). Le téléchargement officiel est la page annuelle de la rubrique
-« statistiques mensuelles » : elle est lue, archivée, et le lien xlsx le plus
-récent y est retrouvé par son nom (`…_01MMAAAA.xlsx`, où MMAAAA est le mois des
-données). Le mois annoncé par le nom du fichier est recoupé avec la date écrite
-dans le classeur.
+« statistiques mensuelles » — une page par année, chacune avec son slug — :
+chaque page est lue, archivée, et les liens xlsx y sont retrouvés par leur nom
+(`…_01MMAAAA.xlsx`, où MMAAAA est le mois des données). Le mois annoncé par le
+nom du fichier est recoupé avec la date écrite dans le classeur. Une seule
+parution déroge au nom canonique — mai 2025, publié
+`Statistique_des_etablissements_2025-05-01.xlsx` — et a son motif dédié.
 
 **Ce que les totaux publiés portent et que les lignes n'ont pas.** Quelques
 quartiers sont publiés « NC » (effectif non communiqué) et quelques détenus
@@ -45,6 +56,7 @@ import csv
 import io
 import json
 import re
+from collections.abc import Sequence
 from pathlib import Path
 
 from plateforme import couverture, entrepot, revisions
@@ -57,12 +69,16 @@ DATASET = "justice-detenus-etablissements"
 SOURCE = "justice-sdse"
 THEME = "justice"
 
-# La page annuelle de la rubrique. Le suffixe « -11 » est celui de 2026 : quand
-# le ministère ouvrira la page 2027, c'est cette constante qu'il faudra pointer
-# vers le nouveau slug — le lien xlsx le plus récent est retrouvé dedans.
-PAGE = (
+# Les pages annuelles de la rubrique, une par année de données : « -9 » porte
+# 2025 (première année au format xlsx), « -11 » porte 2026. Quand le ministère
+# ouvrira la page 2027, c'est ici qu'il faudra ajouter le nouveau slug — les
+# liens xlsx de chaque page sont retrouvés dedans. Le slug « -10 », lui, porte
+# les archives 2022 en PDF seulement : hors périmètre.
+PAGES = (
     "https://www.justice.gouv.fr/documentation/etudes-et-statistiques/"
-    "statistiques-mensuelles-population-detenue-ecrouee-11"
+    "statistiques-mensuelles-population-detenue-ecrouee-9",
+    "https://www.justice.gouv.fr/documentation/etudes-et-statistiques/"
+    "statistiques-mensuelles-population-detenue-ecrouee-11",
 )
 
 # Le nom du fichier porte le mois des données (01MMAAAA : situation au 1er du
@@ -71,6 +87,16 @@ PAGE = (
 LIEN = re.compile(
     r'href="(https://www\.justice\.gouv\.fr/sites/default/files/[^"]+/'
     r"statistique_etablissements_personnes_ecrouees_01(\d{2})(\d{4})\.xlsx)\""
+)
+
+# La seule parution qui déroge au nom canonique : mai 2025 est publié
+# « Statistique_des_etablissements_2025-05-01.xlsx » (constaté le 8 août 2026
+# sur la page 2025 ; l'URL canonique répond 404). Le lien reste retrouvé dans
+# la page, jamais construit, et le mois du nom reste recoupé avec la date
+# écrite dans le classeur.
+LIEN_ALIAS = re.compile(
+    r'href="(https://www\.justice\.gouv\.fr/sites/default/files/[^"]+/'
+    r"Statistique_des_etablissements_(\d{4})-(\d{2})-01\.xlsx)\""
 )
 
 # Le crosswalk figé établissement -> commune d'implantation. Construit une fois
@@ -107,11 +133,14 @@ EN_TETE = (
 )
 
 # Ce que la colonne « Ecroués détenus » a le droit de porter d'autre qu'un
-# nombre : NC, effectif non communiqué. La densité publie en plus « -- »
-# (capacité nulle, personne) et « Inf » (capacité nulle, des détenus quand
-# même — CP Vendin-le-Vieil au 1er juillet 2026).
+# nombre : NC, effectif non communiqué — ou une cellule vide, qui dit la même
+# chose sans le dire (CP Château-Thierry et CP Maubeuge au 1er juin 2025,
+# CP Sud Francilien et MA Versailles au 1er décembre 2025 : effectif et
+# densité vides, quartier compté dans le total publié de la DISP). La densité
+# publie en plus « -- » (capacité nulle, personne) et « Inf » (capacité nulle,
+# des détenus quand même — CP Vendin-le-Vieil au 1er juillet 2026).
 NON_COMMUNIQUE = "NC"
-DENSITE_SANS_OBJET = {"--", "Inf", NON_COMMUNIQUE}
+DENSITE_SANS_OBJET = {"--", "Inf", NON_COMMUNIQUE, ""}
 
 # La date écrite dans chaque onglet, recoupée avec le mois du nom de fichier.
 DATE_CLASSEUR = re.compile(r"Effectifs actualisés au 1er (\w+) (\d{4})")
@@ -126,10 +155,12 @@ MOIS_FRANCAIS = {
 TOLERANCE_DENSITE = 0.1
 
 # Part des détenus d'une DISP que ses lignes d'établissement peuvent ne pas
-# porter (quartiers NC + détenus non ventilés). Mesuré au 1er juillet 2026 :
-# 1,3 % à Toulouse (99 détenus NC), 0,4 % outre-mer, 0,3 % à Rennes. Au-delà de
-# 2 %, ce n'est plus du secret ponctuel, c'est une lecture amputée.
-TOLERANCE_DISP = 0.02
+# porter (quartiers NC + détenus non ventilés). Mesuré sur les 19 classeurs de
+# janvier 2025 à juillet 2026 : 1,3 à 1,4 % à Toulouse chaque mois (quartiers
+# NC), et un pic à 2,46 % à Lille au 1er juillet 2025 — le quartier CD de
+# Maubeuge (198 places) passe NC en juin et juillet. Au-delà de 3 %, ce n'est
+# plus du secret ponctuel, c'est une lecture amputée.
+TOLERANCE_DISP = 0.03
 
 # La somme France entière des lignes lisibles contre le total publié : 0,18 %
 # d'écart mesuré (NC + non ventilés), tolérance 0,5 %.
@@ -148,6 +179,12 @@ TEMOIN_PLACES = 63_289
 # autre.
 BORNES_DETENUS = (80_000, 100_000)
 BORNES_PLACES = (60_000, 70_000)
+
+# D'un mois au suivant, le total France publié ne saute pas : la plus forte
+# variation mesurée de janvier 2025 à juillet 2026 est +1,17 % (mars à avril
+# 2026). Un classeur mal lu — une ligne prise pour une autre — casse cette
+# continuité bien avant de sortir des bornes d'ordre de grandeur.
+TOLERANCE_SERIE = 0.03
 
 DETENUS = "justice_personnes_detenues"
 DENSITE = "justice_densite_carcerale"
@@ -209,13 +246,16 @@ TECHNIQUE = (
     " niveau pays somme la France entière, établissements des collectivités"
     " d'outre-mer compris (Polynésie française, Nouvelle-Calédonie, Wallis,"
     " Saint-Pierre-et-Miquelon), qui n'apparaissent à aucune maille communale"
-    " ou départementale faute de territoire au référentiel. Licence : le"
-    " fichier ne porte pas de licence propre ; les mentions légales de"
+    " ou départementale faute de territoire au référentiel. La série mensuelle"
+    " court du 1er janvier 2025 — première parution au format xlsx — au dernier"
+    " mois publié, sans trou, et le run la recharge entière ; les mois"
+    " antérieurs à 2025 n'existent qu'en PDF et ne sont pas chargés. Licence :"
+    " le fichier ne porte pas de licence propre ; les mentions légales de"
     " justice.gouv.fr placent les contenus du site sous licence ouverte 2.0"
     " (Etalab) par défaut. L'URL du fichier n'est pas constructible (le dossier"
-    " est le mois de mise en ligne, pas celui des données) : la page annuelle"
-    " de la rubrique est lue et archivée, et le lien xlsx le plus récent y est"
-    " retrouvé par son nom, qui porte le mois des données."
+    " est le mois de mise en ligne, pas celui des données) : les pages"
+    " annuelles de la rubrique sont lues et archivées, et chaque lien xlsx y"
+    " est retrouvé par son nom, qui porte le mois des données."
 )
 
 
@@ -227,22 +267,35 @@ class EtablissementInconnu(RuntimeError):
     """Un établissement du fichier n'est pas au crosswalk : maintenance requise."""
 
 
-def trouver_url(page: str) -> tuple[str, str]:
-    """-> (URL du xlsx le plus récent, période « AAAA-MM » de ses données).
+def trouver_urls(pages: Sequence[str]) -> list[tuple[str, str]]:
+    """-> [(URL xlsx, période « AAAA-MM »)], tous les mois, du plus ancien au récent.
 
-    Le lien est retrouvé dans la page plutôt que construit : le dossier de
-    l'URL change avec le mois de mise en ligne, seul le nom du fichier dit le
-    mois des données.
+    Les liens sont retrouvés dans les pages plutôt que construits : le dossier
+    de l'URL change avec le mois de mise en ligne, seul le nom du fichier dit
+    le mois des données. Deux fichiers différents pour le même mois seraient
+    une page en travaux : lecture refusée plutôt qu'un choix silencieux.
     """
-    liens = LIEN.findall(page)
-    if not liens:
+    par_periode: dict[str, str] = {}
+    for page in pages:
+        trouves = [(adresse, f"{annee}-{mois}") for adresse, mois, annee in LIEN.findall(page)]
+        trouves += [
+            (adresse, f"{annee}-{mois}") for adresse, annee, mois in LIEN_ALIAS.findall(page)
+        ]
+        for adresse, periode in trouves:
+            if par_periode.get(periode, adresse) != adresse:
+                raise ValueError(
+                    f"deux fichiers différents pour {periode} :"
+                    f" {par_periode[periode]} et {adresse} — la page est en"
+                    " travaux, il faut regarder avant de recharger"
+                )
+            par_periode[periode] = adresse
+    if not par_periode:
         raise ValueError(
             f"aucun fichier « statistique_etablissements_personnes_ecrouees_01MMAAAA.xlsx »"
-            f" sur {PAGE} : le ministère a renommé son fichier ou déplacé la"
-            " page (le slug change chaque année), il faut regarder avant de recharger"
+            f" sur {PAGES} : le ministère a renommé son fichier ou déplacé les"
+            " pages (le slug change chaque année), il faut regarder avant de recharger"
         )
-    adresse, mois, annee = max(liens, key=lambda lien: (lien[2], lien[1]))
-    return adresse, f"{annee}-{mois}"
+    return [(par_periode[periode], periode) for periode in sorted(par_periode)]
 
 
 def charger_crosswalk(chemin: Path = CROSSWALK) -> dict[str, str]:
@@ -270,8 +323,8 @@ def _nombre(valeur) -> float:
 
 
 def _densite(valeur) -> float | None:
-    """« 205,6 % » -> 205.6 ; NC, -- et Inf -> None. Lève sur le reste."""
-    texte = str(valeur).strip()
+    """« 205,6 % » -> 205.6 ; NC, --, Inf et vide -> None. Lève sur le reste."""
+    texte = "" if valeur is None else str(valeur).strip()
     if texte in DENSITE_SANS_OBJET:
         return None
     if not texte.endswith("%"):
@@ -330,7 +383,9 @@ def lire(contenu: bytes) -> dict:
                 continue
             if str(etablissement).startswith(("(1)", "Capacité", "Densité")):
                 break  # les renvois de bas d'onglet
-            detenus = None if str(rangee[4]).strip() == NON_COMMUNIQUE else _nombre(rangee[4])
+            # Une cellule vide dit NC sans le dire (juin et décembre 2025).
+            brut = "" if rangee[4] is None else str(rangee[4]).strip()
+            detenus = None if brut in ("", NON_COMMUNIQUE) else _nombre(rangee[4])
             quartiers.append((
                 onglet, str(etablissement), str(rangee[1]),
                 _nombre(rangee[3]), detenus, _densite(rangee[5]),
@@ -460,6 +515,50 @@ def controler_national(quartiers: list[tuple], france: dict, periode: str) -> di
         "places_publiees": places_publiees,
         "detenus_lus": detenus,
         "ecart_relatif": round(ecart, 5),
+    }
+
+
+def _mois_suivant(periode: str) -> str:
+    """« 2025-12 » -> « 2026-01 »."""
+    annee, mois = int(periode[:4]), int(periode[5:])
+    return f"{annee + mois // 12}-{mois % 12 + 1:02d}"
+
+
+def controler_serie(serie: dict[str, float]) -> dict:
+    """La série des totaux France se tient : aucun trou, aucun saut.
+
+    Chaque contrôle par classeur compare un classeur à lui-même : un fichier de
+    2025 lu de travers mais cohérent avec lui-même les passerait tous. D'un
+    mois au suivant, le parc carcéral bouge de moins d'un point et demi
+    (mesuré 2025-2026) : un total qui saute de plus de TOLERANCE_SERIE est une
+    rupture de lecture, pas une vague d'incarcérations. Et un mois manquant
+    n'est pas un cas à absorber : le remplacement couvrant l'indicateur entier,
+    un mois disparu des pages annuelles disparaîtrait de l'entrepôt en silence.
+    -> {mois contrôlés, variation maximale, où} pour les contrôles qualité.
+    """
+    periodes = sorted(serie)
+    variation_max, entre = 0.0, None
+    for avant, apres in zip(periodes, periodes[1:], strict=False):
+        if apres != _mois_suivant(avant):
+            raise DonneesCarceralesIncoherentes(
+                f"trou dans la série mensuelle : rien entre {avant} et {apres}."
+                " Un mois publié a quitté les pages annuelles ou son lien a"
+                " changé de nom — recharger sans lui l'effacerait de l'entrepôt."
+            )
+        variation = abs(serie[apres] - serie[avant]) / serie[avant]
+        if variation > TOLERANCE_SERIE:
+            raise DonneesCarceralesIncoherentes(
+                f"de {avant} à {apres}, le total France passe de"
+                f" {serie[avant]:.0f} à {serie[apres]:.0f} détenus"
+                f" ({100 * variation:.1f} % pour {100 * TOLERANCE_SERIE:.0f} %"
+                " tolérés) : un des deux classeurs a été lu de travers."
+            )
+        if variation > variation_max:
+            variation_max, entre = variation, f"{avant} -> {apres}"
+    return {
+        "mois": len(periodes),
+        "variation_maximale": round(variation_max, 4),
+        "entre": entre,
     }
 
 
@@ -607,43 +706,71 @@ def run(store_spec: str) -> int:
     run_id = entrepot.start_run(conn, DATASET, "manual")
     try:
         garde_fou_volume(conn)
-        page = telecharger(PAGE, timeout=120)
-        entrepot.record_asset(
-            conn, store, run_id, DATASET, SOURCE, "page-statistiques-mensuelles.html",
-            page, PAGE, "text/html",
-        )
-        adresse, periode_fichier = trouver_url(page.decode("utf-8", errors="replace"))
-        contenu = telecharger(adresse, timeout=600)
-        entrepot.etape(f"{len(contenu) // 1024} Ko reçus pour {periode_fichier}")
-        entrepot.record_asset(
-            conn, store, run_id, DATASET, SOURCE, adresse.rsplit("/", 1)[-1],
-            contenu, adresse,
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-        lu = lire(contenu)
-        if lu["periode"] != periode_fichier:
-            raise DonneesCarceralesIncoherentes(
-                f"le nom du fichier annonce {periode_fichier}, le classeur dit"
-                f" {lu['periode']} : la page a servi un fichier sous un mauvais nom"
+        pages = []
+        for adresse_page in PAGES:
+            page = telecharger(adresse_page, timeout=120)
+            entrepot.record_asset(
+                conn, store, run_id, DATASET, SOURCE,
+                f"page-{adresse_page.rsplit('/', 1)[-1]}.html",
+                page, adresse_page, "text/html",
             )
-        entrepot.etape(f"{len(lu['quartiers'])} lignes établissement-quartier lues")
-
-        densites = controler_densites(lu["quartiers"])
-        manquants = controler_disp(lu["quartiers"], lu["totaux"])
-        national = controler_national(lu["quartiers"], lu["france"], lu["periode"])
+            pages.append(page.decode("utf-8", errors="replace"))
+        liens = trouver_urls(pages)
         crosswalk = charger_crosswalk()
-        etablissements = controler_crosswalk(lu["quartiers"], crosswalk)
-
-        communes = par_commune(lu["quartiers"], crosswalk)
         regions = dict(conn.execute(
             "select geo_code, parent_code from geo.geography_reference"
             " where geo_level = 'departement' and vintage = ?", (MILLESIME,),
         ).fetchall())
-        candidates = aggreger(communes, regions, lu["periode"])
-        gardees, ecartes = filtrer_territoires_connus(conn, candidates)
-        # Le remplacement couvre l'indicateur entier : le jour où l'historique
-        # mensuel sera chargé, tous les mois devront l'être dans le même run,
-        # comme la CNAF recharge ses cinq millésimes.
+
+        # Tous les mois dans le même run : `revisions.remplacer` purge
+        # l'indicateur entier, un chargement partiel effacerait le reste.
+        candidates: list[tuple] = []
+        gardees: list[tuple] = []
+        ecartes: set[str] = set()
+        serie: dict[str, float] = {}
+        par_periode: dict[str, dict] = {}
+        lignes_lues = 0
+        for adresse, periode_fichier in liens:
+            contenu = telecharger(adresse, timeout=600)
+            entrepot.record_asset(
+                conn, store, run_id, DATASET, SOURCE, adresse.rsplit("/", 1)[-1],
+                contenu, adresse,
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
+            lu = lire(contenu)
+            if lu["periode"] != periode_fichier:
+                raise DonneesCarceralesIncoherentes(
+                    f"le nom du fichier annonce {periode_fichier}, le classeur dit"
+                    f" {lu['periode']} : la page a servi un fichier sous un mauvais nom"
+                )
+            lignes_lues += len(lu["quartiers"])
+            densites = controler_densites(lu["quartiers"])
+            manquants = controler_disp(lu["quartiers"], lu["totaux"])
+            national = controler_national(lu["quartiers"], lu["france"], lu["periode"])
+            etablissements = controler_crosswalk(lu["quartiers"], crosswalk)
+            communes = par_commune(lu["quartiers"], crosswalk)
+            du_mois = aggreger(communes, regions, lu["periode"])
+            gardees_mois, ecartes_mois = filtrer_territoires_connus(conn, du_mois)
+            candidates += du_mois
+            gardees += gardees_mois
+            ecartes |= ecartes_mois
+            serie[lu["periode"]] = national["detenus_publies"]
+            par_periode[lu["periode"]] = {
+                "etablissements": etablissements,
+                "densites_verifiees": densites,
+                "quartiers_nc": sum(1 for q in lu["quartiers"] if q[4] is None),
+                "detenus_manquants_par_disp": {
+                    disp: valeur for disp, valeur in sorted(manquants.items()) if valeur
+                },
+                **national,
+            }
+            entrepot.etape(
+                f"{lu['periode']} : {len(contenu) // 1024} Ko,"
+                f" {len(lu['quartiers'])} lignes,"
+                f" {national['detenus_publies']:.0f} détenus publiés"
+            )
+        continuite = controler_serie(serie)
+
         ecrites, revisees = revisions.remplacer(
             conn, run_id, sorted(INDICATEURS), COLONNES,
             [
@@ -654,35 +781,32 @@ def run(store_spec: str) -> int:
         parts = couverture.controler(
             detenus_par_maille(candidates), detenus_par_maille(gardees)
         )
-        nc = sum(1 for q in lu["quartiers"] if q[4] is None)
         conn.execute(
             """
             insert into meta.data_quality_checks
                 (run_id, dataset_id, check_name, severity, passed, observed)
-            values (?, ?, 'densites_disp_et_temoin_national', 'blocker', true, ?)
+            values (?, ?, 'densites_disp_serie_et_temoin_national', 'blocker', true, ?)
             """,
             (run_id, DATASET, json.dumps({
-                "periode": lu["periode"],
-                "etablissements": etablissements,
-                "densites_verifiees": densites,
-                "quartiers_nc": nc,
-                "detenus_manquants_par_disp": {
-                    disp: valeur for disp, valeur in sorted(manquants.items()) if valeur
-                },
-                **national,
+                "serie": continuite,
+                "par_periode": {p: par_periode[p] for p in sorted(par_periode)},
                 "hors_referentiel": sorted(ecartes),
                 "couverture": {n: round(p, 4) for n, p in sorted(parts.items())},
             })),
         )
         conn.commit()
         entrepot.finish_run(
-            conn, run_id, "success", rows_read=len(lu["quartiers"]), rows_written=ecrites
+            conn, run_id, "success", rows_read=lignes_lues, rows_written=ecrites
         )
+        periodes = sorted(serie)
+        dernier = par_periode[periodes[-1]]
         print(
-            f"prisons : {ecrites} observations au {lu['periode']} sur"
-            f" {etablissements} établissements et {len(communes)} communes"
-            f" d'implantation ; {national['detenus_lus']:.0f} détenus lus pour"
-            f" {national['detenus_publies']:.0f} publiés, {nc} quartiers NC,"
+            f"prisons : {ecrites} observations sur {len(periodes)} mois"
+            f" ({periodes[0]} -> {periodes[-1]}), variation maximale"
+            f" {100 * continuite['variation_maximale']:.2f} % ;"
+            f" au {periodes[-1]}, {dernier['detenus_lus']:.0f} détenus lus pour"
+            f" {dernier['detenus_publies']:.0f} publiés sur"
+            f" {dernier['etablissements']} établissements ;"
             f" {len(ecartes)} territoires hors référentiel, {revisees} valeurs révisées"
         )
         return 0
