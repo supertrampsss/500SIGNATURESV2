@@ -26,7 +26,7 @@ import { rendu as rendreRatios } from "./ratios.ts";
 import { reperes, type References } from "./reference.ts";
 import { traduire } from "./traductions.ts";
 import {
-  compteEcarts, lecture, memeSens, repereComparable, resumeEcarts, synthese,
+  compteEcarts, lecture, memeSens, resumeEcarts, synthese,
 } from "./synthese.ts";
 
 const NIVEAUX: Record<string, string> = {
@@ -390,8 +390,12 @@ function mesurer(
   // pas dans le décompte du thème : mieux vaut résumer cinq indicateurs que six
   // dont un ment.
   const repere = comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur !== 0);
+  // Le seuil est celui de la fiche entière (FACTEUR_ECART), plus serré que
+  // celui des repères de lecture : « Autres dépenses de fonctionnement
+  // +7 980 % » ne résumait pas un thème, il disait qu'une médiane régionale
+  // est proche de zéro.
   const ecart =
-    repere && memeSens(valeur, repere.valeur) && repereComparable(valeur, repere.valeur)
+    repere && ecartALEchelle(valeur, repere.valeur)
       ? {
           reference: repere.libelle,
           pourcent: ((valeur - repere.valeur) / Math.abs(repere.valeur)) * 100,
@@ -1402,9 +1406,16 @@ function syntheseTerritoire(
       // détaillée l'affiche déjà. Elle manquait ici : huit des quatorze lignes
       // de l'ouverture n'étaient qu'un nombre nu, sur une fiche dont tout
       // l'objet est de dire si un chiffre est beaucoup.
+      const formate = (v: number) => formater(v, indicateur.unite, ratio);
+      // « Dépenses de fonctionnement 19 512 € par habitant. +2 280 % vs la
+      // médiane régionale (819 €) » : le pourcentage mesure la petitesse de la
+      // médiane, pas la commune. Les repères hors d'échelle sont retirés avant
+      // que `lecture` n'en tire un rapport ; s'il n'en reste aucun, le repère
+      // se pose tel quel à côté du chiffre plutôt que de disparaître.
       const situation =
-        lecture(valeur, comparaisons, (v) => formater(v, indicateur.unite, ratio)) ||
-        lectureDeDensite(mesure.densite);
+        lecture(valeur, reperesALEchelle(valeur, comparaisons), formate) ||
+        lectureDeDensite(mesure.densite) ||
+        contreLeRepere(comparaisons, formate);
       // Un nombre nu ne situe pas : « salariés 100 521 » dit la taille de la
       // ville, que la population dit déjà. Sans comparaison, pas de ligne —
       // sauf la population elle-même, dont la taille est l'information.
@@ -1828,11 +1839,43 @@ function signeEcart(valeur: number, repere: number): string {
  */
 const FACTEUR_ECART = 10;
 
+function ecartALEchelle(valeur: number, repere: number): boolean {
+  return (
+    Number.isFinite(valeur) && Number.isFinite(repere) && repere !== 0 &&
+    memeSens(valeur, repere) &&
+    Math.abs(valeur) <= Math.abs(repere) * FACTEUR_ECART
+  );
+}
+
 function ecartRelatif(valeur: number, repere: number): string | null {
-  if (!Number.isFinite(valeur) || !Number.isFinite(repere) || repere === 0) return null;
-  if (!memeSens(valeur, repere)) return null;
-  if (Math.abs(valeur) > Math.abs(repere) * FACTEUR_ECART) return null;
-  return signeEcart(valeur, repere);
+  return ecartALEchelle(valeur, repere) ? signeEcart(valeur, repere) : null;
+}
+
+/** Les repères qu'on peut encore convertir en pourcentage, pour les fonctions
+ *  de `synthese.ts` qui s'en chargent elles-mêmes. Un repère de signe opposé
+ *  n'est pas écarté : `lecture` sait le dire en posant les deux chiffres, et
+ *  c'est ce qu'on veut. Seule l'échelle est en cause. */
+function reperesALEchelle(
+  valeur: number,
+  comparaisons: { libelle: string; valeur: number }[],
+): { libelle: string; valeur: number }[] {
+  return comparaisons.filter(
+    (c) =>
+      !Number.isFinite(c.valeur) || c.valeur === 0 ||
+      !memeSens(valeur, c.valeur) ||
+      ecartALEchelle(valeur, c.valeur),
+  );
+}
+
+/** Le repère posé à côté du chiffre, sans pourcentage. La tournure est celle
+ *  que `lecture` emploie déjà pour deux grandeurs de signes opposés : une
+ *  seule forme dans toute la fiche pour « voici les deux nombres ». */
+function contreLeRepere(
+  comparaisons: { libelle: string; valeur: number }[],
+  formate: (v: number) => string,
+): string {
+  const repere = comparaisons.find((c) => Number.isFinite(c.valeur) && c.valeur !== 0);
+  return repere ? `Contre ${formate(repere.valeur)} pour ${repere.libelle}.` : "";
 }
 
 /**

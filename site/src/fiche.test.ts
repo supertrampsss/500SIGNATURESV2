@@ -721,6 +721,56 @@ test("le territoire parent de l'en-tête est un bouton, pas un mot gris", () => 
   );
 });
 
+/**
+ * L'ouverture de la fiche non plus ne convertit pas l'infini en pourcentage.
+ *
+ * « Dépenses de fonctionnement 19 512 € par habitant. +2 280 % vs la médiane
+ * régionale (819 €) » : le nombre est exact et ne dit que la petitesse de la
+ * médiane. Les repères hors d'échelle sont retirés avant qu'on n'en tire un
+ * rapport, et le repère se pose alors tel quel plutôt que de disparaître.
+ */
+
+const TAUX_LOCAL = {
+  id: "dgfip_taux_tfb_global", libelle: "Taux global de taxe foncière", unite: "percent",
+  theme: "impots_locaux", sommable: false, niveaux: ["commune", "departement"],
+  definition: "", jeu: "dgfip-taux",
+} as never as Indicateur;
+
+function essentiel(valeurParent: number): string {
+  const commune = {
+    nom: "Rochefourchat", parent: "26", region: "84", population: 2, drapeaux: {},
+    series: { dgfip_taux_tfb_global: { "2024": 40 } },
+  } as never;
+  const parent = {
+    nom: "Drôme", parent: "84", region: "84", population: 520_000, drapeaux: {},
+    series: { dgfip_taux_tfb_global: { "2024": valeurParent } },
+  } as never;
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: commune,
+    indicateurs: [TAUX_LOCAL],
+    principal: "dgfip_taux_tfb_global",
+    jeux: [],
+    periode: "2024",
+    parHabitant: false,
+    comparateurs: [{ libelle: "son département", territoire: parent }],
+    libelleTheme: () => "Impôts locaux",
+  });
+  return cible.innerHTML;
+}
+
+test("un repère quasi nul se pose à côté du chiffre, il ne devient pas un pourcentage", () => {
+  // 40 % face à 0,5 % : facteur 80, soit « +7 900 % ».
+  const html = essentiel(0.5);
+  assert.doesNotMatch(html, /\+\d[\d\s ]*%/);
+  assert.match(html, /Contre 0,5\s?% pour son département\./);
+});
+
+test("un repère à l'échelle garde son pourcentage", () => {
+  assert.match(essentiel(20), /\+100\s?% vs son département/);
+});
+
 test("la population porte son infobulle sans se faire passer pour un lien", () => {
   const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
   assert.match(html, /<abbr class="fiche__habitants" title="Population municipale/);
