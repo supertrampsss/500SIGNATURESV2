@@ -74,7 +74,7 @@ CLASSES = {
         "vols_vehicules", "Vols de véhicules",
         "Les vols de voitures, motos et autres véhicules enregistrés, pour 1 000"
         " habitants. Comptés là où le vol est commis : une commune très fréquentée"
-        " — gare, zone commerciale — voit son taux gonflé par rapport à sa seule"
+        " (gare, zone commerciale) voit son taux gonflé par rapport à sa seule"
         " population résidente.",
         "population", COMMUNAL,
     ),
@@ -90,7 +90,7 @@ CLASSES = {
         "violences_hors_famille", "Violences physiques (hors famille)",
         "Coups et blessures volontaires hors du cadre familial, en victimes"
         " enregistrées pour 1 000 habitants. Mesure les faits portés à la"
-        " connaissance des forces de l'ordre — pas toutes les violences subies.",
+        " connaissance des forces de l'ordre, pas toutes les violences subies.",
         "population", COMMUNAL,
     ),
     "Violences physiques intrafamiliales": (
@@ -124,7 +124,7 @@ CLASSES = {
     ),
     "Vols avec armes": (
         "vols_armes", "Vols avec armes",
-        "Vols commis avec une arme — à feu, blanche ou par destination —"
+        "Vols commis avec une arme (à feu, blanche ou par destination)"
         " enregistrés, pour 1 000 habitants.",
         "population", COMMUNAL,
     ),
@@ -142,7 +142,7 @@ CLASSES = {
     ),
     "Vols d'accessoires sur véhicules": (
         "accessoires_vehicules", "Vols d'accessoires sur véhicules",
-        "Vols d'accessoires sur véhicules — roues, carburant, catalyseurs —"
+        "Vols d'accessoires sur véhicules (roues, carburant, catalyseurs)"
         " enregistrés pour 1 000 habitants.",
         "population", COMMUNAL,
     ),

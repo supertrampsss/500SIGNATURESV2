@@ -49,7 +49,7 @@ function anomalies(jeu: Fraicheur): string {
   return jeu.anomalies
     .map((a) => {
       const cas = Object.keys(a.constat ?? {}).filter((c) => c.includes("/") || /^\d{4}$/.test(c));
-      const portee = cas.length ? ` — ${cas.sort().join(", ")}` : "";
+      const portee = cas.length ? ` : ${cas.sort().join(", ")}` : "";
       return `<span class="anomalie anomalie--${echapper(a.severite)}">${echapper(
         SEVERITES[a.severite] ?? a.severite,
       )}</span> ${echapper(CONTROLES[a.nom] ?? a.nom)}${echapper(portee)}`;
@@ -97,7 +97,7 @@ export function rendu(jeux: Fraicheur[]): string {
       ont relevé. Un signalement veut dire qu'une partie du fichier source n'a pas été
       publiée, pas que les chiffres affichés sont douteux : ce qui ne passe pas un
       contrôle bloquant n'est jamais publié. Une révision est un chiffre déjà publié
-      que le producteur a réestimé depuis — c'est la vie normale de la statistique,
+      que le producteur a réestimé depuis : c'est la vie normale de la statistique,
       et l'ancienne valeur reste archivée.
     </p>
     <div class="tableau__cadre">

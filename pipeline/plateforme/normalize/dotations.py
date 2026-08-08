@@ -66,7 +66,7 @@ COMPOSANTES_PUBLIEES = {
         " Elle vise les communes peu peuplées et celles qui font bourg-centre"
         " pour leur canton. Une commune urbaine n'y a pas droit.",
         "Montant notifié de dotation de solidarité rurale, toutes fractions"
-        " confondues — bourg-centre, péréquation, cible. Source DGCL diffusée"
+        " confondues : bourg-centre, péréquation, cible. Source DGCL diffusée"
         " par l'OFGL. L'absence de montant vaut non-éligibilité, pas zéro."
         " Cette dotation n'est pas incluse dans l'agrégat « péréquations"
         " et compensations fiscales » publié par ailleurs sur ce site :"

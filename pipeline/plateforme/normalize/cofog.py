@@ -69,7 +69,7 @@ FONCTIONS = {
              "Le développement du logement et des équipements collectifs,"
              " l'éclairage public, l'alimentation en eau."),
     "GF07": ("eurostat_fonction_sante", "Santé",
-             "Hôpitaux, soins de ville, médicaments — pour l'essentiel financés par"
+             "Hôpitaux, soins de ville, médicaments : pour l'essentiel financés par"
              " la Sécurité sociale, pas par le budget de l'État."),
     "GF08": ("eurostat_fonction_culture", "Loisirs, culture et culte",
              "Sport, culture, audiovisuel public et cultes."),

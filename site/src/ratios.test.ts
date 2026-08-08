@@ -152,6 +152,18 @@ test("chaque rapport dit son mouvement vs l'exercice précédent, dans son unit�
   assert.match(html, /−20 € vs 2024/); // dette par habitant 500 → 480 €
 });
 
+test("la lecture d'un carreau tient en une ligne, pas en un paragraphe", () => {
+  // À 390 px, un carreau fait 172 px de large : 139 caractères de gris à
+  // 10,88 px y font un mur. La définition d'un ratio vit dans « Sources et
+  // méthode » ; le carreau ne garde que ce que le rapport veut dire.
+  for (const ratio of ratios(SAINE, "commune", "2024")) {
+    assert.ok(
+      ratio.lecture.length <= 90,
+      `${ratio.cle} : ${ratio.lecture.length} caractères`,
+    );
+  }
+});
+
 test("sans exercice précédent, aucun mouvement n'est écrit", () => {
   const t = {
     nom: "X", parent: "33", population: 1000, drapeaux: {},

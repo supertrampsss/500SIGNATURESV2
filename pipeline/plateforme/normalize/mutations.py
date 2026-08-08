@@ -92,8 +92,8 @@ TECHNIQUE = (
     " pas comme un indicateur conjoncturel du marché immobilier. La"
     " codification suit les directions de la DGFiP : le Bas-Rhin est agrégé au"
     " Haut-Rhin depuis la création de la Collectivité européenne d'Alsace, et"
-    " les deux départements corses depuis celle de la Collectivité de Corse —"
-    " une série longue y change donc de périmètre."
+    " les deux départements corses depuis celle de la Collectivité de Corse."
+    " Une série longue y change donc de périmètre."
 )
 
 

@@ -86,7 +86,7 @@ INDICATEURS = {
     "cnaf_foyers_rsa": (
         "Foyers allocataires du RSA",
         "Les foyers de la commune qui perçoivent le RSA au 31 décembre, au"
-        " régime CAF seul — la MSA, qui couvre le monde agricole, manque. Un"
+        " régime CAF seul : la MSA, qui couvre le monde agricole, manque. Un"
         " foyer regroupe allocataire, conjoint et personnes à charge : ce n'est"
         " pas le nombre de personnes couvertes.",
         "count",
@@ -103,7 +103,7 @@ INDICATEURS = {
     "cnaf_foyers_prime_activite": (
         "Foyers allocataires de la prime d'activité",
         "Les foyers de la commune qui perçoivent la prime d'activité au"
-        " 31 décembre, au régime CAF seul — la MSA, qui couvre le monde"
+        " 31 décembre, au régime CAF seul : la MSA, qui couvre le monde"
         " agricole, manque. Un foyer regroupe allocataire, conjoint et personnes"
         " à charge : ce n'est pas le nombre de personnes couvertes.",
         "count",
@@ -122,14 +122,14 @@ INDICATEURS = {
 TECHNIQUE = (
     "Fichier « Toutes prestations [Communal] » de la CNAF (data.caf.fr, jeu"
     " s_ben_com_f), photo au 31 décembre de chaque année, 2020 à 2024, publiée"
-    " sous l'année. Champ : allocataires du **régime des CAF seul** — la MSA,"
+    " sous l'année. Champ : allocataires du **régime des CAF seul**. La MSA,"
     " qui sert les mêmes prestations au monde agricole, n'y est pas. L'unité"
-    " est le **foyer allocataire** — l'allocataire, son conjoint, ses personnes"
-    " à charge — et non la personne couverte : les personnes sont plus"
+    " est le **foyer allocataire** (l'allocataire, son conjoint, ses personnes"
+    " à charge) et non la personne couverte : les personnes sont plus"
     " nombreuses que les foyers. Les **montants sont ceux du seul mois de"
     " décembre**, pas de l'année. Secret statistique : les foyers sont arrondis"
     " au multiple de 5 et les montants à la centaine d'euros, si bien que les"
-    " sommes de communes portent un léger bruit d'arrondi — la somme France"
+    " sommes de communes portent un léger bruit d'arrondi. La somme France"
     " entière reste à moins de 0,7 % du national exact publié par la CNAF"
     " (jeu s_ben_nat), qui sert de contrôle bloquant à 1,5 %. Les allocataires"
     " non rattachés à une commune sont agrégés par la source sous un code vide"

@@ -33,7 +33,7 @@ test("le fichier s'ouvre en français : BOM, point-virgule, virgule décimale, C
 test("l'en-tête nomme l'indicateur, la source, la date et la licence", () => {
   const csv = enCsv([], META, QUAND);
   const lignes = csv.slice(1).split("\r\n");
-  assert.equal(lignes[0], "# Dépenses de fonctionnement — 2024");
+  assert.equal(lignes[0], "# Dépenses de fonctionnement, 2024");
   assert.equal(lignes[1], "# Source : OFGL — Comptes des communes · exporté le 2026-08-02");
   assert.match(lignes[2], /^# Licence Ouverte 2\.0\./);
 });
@@ -81,7 +81,7 @@ test("l'export d'évolution porte les deux millésimes, la variation et son unit
     QUAND,
   );
   const lignes = csv.slice(1).split("\r\n");
-  assert.equal(lignes[0], "# Dépenses de fonctionnement — évolution 2024 vs 2023");
+  assert.equal(lignes[0], "# Dépenses de fonctionnement, évolution 2024 vs 2023");
   assert.equal(
     lignes[3],
     "code;territoire;valeur_2023;valeur_2024;variation;unite_variation;unite;niveau",

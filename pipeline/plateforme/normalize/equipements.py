@@ -71,7 +71,7 @@ PUBLIQUE = {
     " taille.",
     "A": "Les services de proximité : poste, banque, garage, restaurant, coiffeur,"
     " pompes funèbres, gendarmerie. Le domaine mêle services publics et commerces de"
-    " service — c'est le découpage de la statistique publique, pas le nôtre.",
+    " service : c'est le découpage de la statistique publique, pas le nôtre.",
     "B": "Les commerces recensés dans la commune, de l'hypermarché à la supérette."
     " Chacun compte pour un : le nombre ne dit rien des surfaces ni des chiffres"
     " d'affaires.",
@@ -92,8 +92,8 @@ PUBLIQUE = {
 
 TECHNIQUE = (
     "Base permanente des équipements, millésime 2025, mesure « nombre"
-    " d'équipements » agrégée au domaine — la base descend à deux cent trente-six"
-    " types, non chargés ici. Un dénombrement, pas une capacité : la taille de"
+    " d'équipements » agrégée au domaine (la base descend à deux cent trente-six"
+    " types, non chargés ici). Un dénombrement, pas une capacité : la taille de"
     " l'équipement n'entre pas dans le compte. La nomenclature évolue d'un"
     " millésime à l'autre (la police change de code entre 2024 et 2025, six types"
     " apparaissent), ce qui interdit de comparer deux millésimes sans vérifier le"

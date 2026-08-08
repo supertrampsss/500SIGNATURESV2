@@ -113,7 +113,7 @@ TECHNIQUE = (
     " 2024, en cinq grands secteurs d'activité (nomenclature A5). Champ :"
     " établissements employeurs durant l'année et actifs la dernière semaine de"
     " décembre, hors secteur de la défense et hors particuliers employeurs, France"
-    " entière — Mayotte comprise, contrairement aux jeux du recensement publiés ici."
+    " entière (Mayotte comprise, contrairement aux jeux du recensement publiés ici)."
     " L'unité de compte des effectifs est le poste, pas la personne ni l'équivalent"
     " temps plein : un salarié qui occupe deux postes est compté deux fois, un"
     " mi-temps compte pour un. Les établissements sont comptés au lieu de travail,"
@@ -294,10 +294,10 @@ def fiches() -> dict[str, dict[str, str]]:
                 "libelle": nom,
                 "theme": theme_secteur,
                 "public": (
-                    f"Les établissements employeurs du secteur « {nom} » — {contenu} —"
+                    f"Les établissements employeurs du secteur « {nom} » ({contenu}),"
                     " comptés là où ils travaillent, et non au siège de l'entreprise."
                     if mesure == "UNIT_LOC"
-                    else f"Les postes salariés du secteur « {nom} » — {contenu} —"
+                    else f"Les postes salariés du secteur « {nom} » ({contenu}),"
                     " comptés sur le lieu de travail. Une personne qui occupe deux"
                     " postes est comptée deux fois."
                 ),

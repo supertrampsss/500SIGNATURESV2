@@ -121,7 +121,7 @@ TECHNIQUE = (
     " époux : à distinguer des mariages enregistrés, publiés par la même source et"
     " rattachés au lieu de célébration. Séries annuelles ; la source publie aussi"
     " des séries mensuelles nationales, non chargées. Niveaux : département, région"
-    " et France entière — les agrégats « France métropolitaine » et « métropole hors"
+    " et France entière. Les agrégats « France métropolitaine » et « métropole hors"
     " Île-de-France » sont écartés, ils passeraient pour le chiffre national. Les"
     " mariages remontent à 1975 par département et à 1901 pour la France, les"
     " mariages entre personnes de même sexe à 2013, le taux de nuptialité à 2007 par"

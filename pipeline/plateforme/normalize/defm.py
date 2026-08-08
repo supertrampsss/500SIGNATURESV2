@@ -111,8 +111,8 @@ TEMOIN_GIRONDE = 142_570
 TEMOIN_TOLERANCE = 0.005
 
 PUBLIQUE = (
-    "Le nombre d'inscrits à France Travail en catégories A, B et C — sans"
-    " emploi ou en activité réduite —, en moyenne sur le quatrième trimestre,"
+    "Le nombre d'inscrits à France Travail en catégories A, B et C (sans"
+    " emploi ou en activité réduite), en moyenne sur le quatrième trimestre,"
     " pas au 31 décembre. Arrondi à cinq près. Ce n'est ni le chômage au sens"
     " du BIT, ni celui déclaré au recensement."
 )
@@ -120,16 +120,16 @@ PUBLIQUE = (
 TECHNIQUE = (
     "Demandeurs d'emploi en fin de mois (DEFM) inscrits à France Travail en"
     " catégories A, B et C (tenus à des actes positifs de recherche d'emploi,"
-    " sans emploi ou en activité réduite), moyenne du quatrième trimestre —"
+    " sans emploi ou en activité réduite), moyenne du quatrième trimestre,"
     " et non stock au 31 décembre. Données brutes, non corrigées des"
     " variations saisonnières ; chaque valeur est arrondie par la Dares au"
     " multiple de 5. Codes communes au COG 2024 ; la source publie Paris,"
-    " Lyon et Marseille à la fois en commune entière et par arrondissement —"
+    " Lyon et Marseille à la fois en commune entière et par arrondissement :"
     " seule la commune est chargée, les additionner la doublerait."
     " **Rupture attendue en 2025** : la loi pour le plein emploi inscrit"
     " automatiquement les bénéficiaires du RSA à France Travail depuis le"
     " 1er janvier 2025, ce qui gonfle les inscriptions à marché du travail"
-    " inchangé — le millésime 2025 ne sera pas comparable aux précédents."
+    " inchangé. Le millésime 2025 ne sera pas comparable aux précédents."
     " Ne pas confondre avec le taux de chômage localisé (chômeurs au sens du"
     " BIT, maille départementale) ni avec les chômeurs déclarés au"
     " recensement : les trois populations diffèrent de plusieurs centaines de"

@@ -123,12 +123,12 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
       <thead><tr><th scope="col">Année</th><th scope="col">Solde</th></tr></thead>
       <tbody>${frise}</tbody>
     </table>
-    <p class="avertissement">Ce périmètre — celui de la comptabilité nationale — inclut
+    <p class="avertissement">Ce périmètre, celui de la comptabilité nationale, inclut
       l'assurance chômage et les retraites complémentaires obligatoires. Ce n'est
       <strong>pas le « trou de la Sécu »</strong> des lois de financement, qui ne porte que
       sur le régime général et le fonds de solidarité vieillesse : les deux chiffres ne se
       comparent pas. Les recettes mêlent cotisations sociales et impôts affectés (CSG,
-      fractions de TVA) — cotisation et impôt ne sont pas la même chose.</p>`;
+      fractions de TVA) : cotisation et impôt ne sont pas la même chose.</p>`;
 }
 
 export function afficherSecu(

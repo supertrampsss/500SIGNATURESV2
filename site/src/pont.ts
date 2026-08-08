@@ -379,6 +379,22 @@ function part(valeur: number): string {
 }
 
 /**
+ * L'évolution, dans sa propre cellule.
+ *
+ * Rendue sous le montant, en `display: block`, elle décalait la ligne suivante
+ * d'une demi-hauteur : le regard qui descend la colonne des montants zigzaguait
+ * au lieu de tomber droit. Elle occupe donc une colonne à elle, à droite du
+ * montant, et la cellule est écrite même quand il n'y a rien à dire : une
+ * cellule absente laisserait le montant de cette ligne-là se recaler sur le
+ * bord droit, seul de sa colonne.
+ */
+function celluleEvolution(variation: number | null | undefined, classe: string): string {
+  return `<span class="${classe}">${
+    variation === null || variation === undefined ? "" : echapper(variationTexte(variation))
+  }</span>`;
+}
+
+/**
  * Les composantes, en cascade.
  *
  * Une grille et non un tableau. Un tableau alignait les trois colonnes, mais
@@ -386,23 +402,27 @@ function part(valeur: number): string {
  * imbriquée dans la première cellule, sa propre grille se comprimait et
  * poussait la colonne « il reste » hors de l'écran. La grille, elle, se répète
  * à chaque niveau sans jamais sortir de sa colonne.
+ *
+ * La profondeur se lit sur deux marques, pas sur onze pixels de décalage : le
+ * `data-rang` de chaque composante, et celui de la liste qui les porte — c'est
+ * lui qui permet de tirer un trait de rattachement d'un niveau à l'autre.
  */
 function rendreComposantes(liste: Composante[], rang = 1): string {
   return liste
     .map((c) => {
       const rangee = `<span class="pont__c-nom">${echapper(traduire(c.libelle))}</span>
         <span class="pont__c-part">${echapper(part(c.part))}</span>
-        <span class="pont__c-montant">${echapper(montant(c.montant))}${
-          c.variation !== null && c.variation !== undefined
-            ? `<small class="pont__var">${echapper(variationTexte(c.variation))}</small>`
-            : ""
-        }</span>`;
+        <span class="pont__c-montant">${echapper(montant(c.montant))}</span>
+        ${celluleEvolution(c.variation, "pont__c-evolution")}`;
       const corps = c.enfants.length
         ? `<details class="pont__sous">
-             <summary class="pont__rangee">${rangee}</summary>
-             <ul class="pont__composantes">${rendreComposantes(c.enfants, rang + 1)}</ul>
+             <summary class="pont__rangee pont__rangee--composante">${rangee}</summary>
+             <ul class="pont__composantes" data-rang="${rang + 1}">${rendreComposantes(
+               c.enfants,
+               rang + 1,
+             )}</ul>
            </details>`
-        : `<span class="pont__rangee">${rangee}</span>`;
+        : `<span class="pont__rangee pont__rangee--composante">${rangee}</span>`;
       return `<li class="pont__composante" data-rang="${rang}">${corps}</li>`;
     })
     .join("");
@@ -462,11 +482,8 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
       // son montant signé, les paliers portent le leur en gras — c'est le
       // signe et le trait qui font lire l'addition.
       const rangee = `<span class="pont__nom">${echapper(traduire(etape.libelle))}</span>
-        <span class="pont__reste">${echapper(montant(etape.montant))}${
-          etape.variation !== null && etape.variation !== undefined
-            ? `<small class="pont__var">${echapper(variationTexte(etape.variation))}</small>`
-            : ""
-        }</span>`;
+        <span class="pont__reste">${echapper(montant(etape.montant))}</span>
+        ${celluleEvolution(etape.variation, "pont__evolution")}`;
       // Deux axes disponibles : le lecteur choisit lequel il regarde. Ils ne
       // s'additionnent jamais entre eux — c'est le même euro, vu deux fois.
       const bascule =

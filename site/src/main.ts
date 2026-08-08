@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
+import { emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import {
   afficherFiche,
@@ -52,6 +53,10 @@ import {
 import {
   MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
 } from "./mailles.ts";
+import { creerGarde } from "./garde-geste.ts";
+import { creerFile, squeletteFiche } from "./chargement.ts";
+import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
+import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -95,6 +100,12 @@ const LISERE: Record<string, number[]> = {
 
 /** Expression MapLibre, sortie du littéral de calque : son type d'union ne
  *  survit pas à l'inférence, comme pour `expressionCouleur`. */
+/** Ce que le tableau montre, quand il ne montre pas tout : « 100 premiers
+ *  territoires » s'affichait au-dessus de dix-sept lignes. */
+function fenetreDuTableau(total: number): string {
+  return total > 100 ? ` · 100 premiers territoires sur ${total.toLocaleString("fr-FR")}` : "";
+}
+
 function largeurLisere(couche: string): unknown {
   return ["interpolate", ["linear"], ["zoom"], ...LISERE[couche]];
 }
@@ -173,6 +184,13 @@ let exportCourant: { lignes: LigneExport[]; parHabitant: boolean } = {
 /** En mode évolution, l'export emporte les deux millésimes et la variation :
  *  non nul seulement quand c'est la couche affichée. */
 let exportEvolution: { lignes: LigneExportEvolution[]; avant: string } | null = null;
+/** Le clic de compatibilité qui suit un geste sur la poignée du tiroir : il
+ *  part vers la carte, qui vient d'apparaître sous le doigt. Voir
+ *  `garde-geste.ts` pour le mécanisme. */
+const gardePoignee = creerGarde();
+/** Une ouverture de fiche à la fois : le double-clic ne relance rien, et un
+ *  ticket périmé n'écrit plus. */
+const fileOuverture = creerFile();
 
 /** La maille de la **carte** : elle doit avoir une couche de tuiles.
  *
@@ -390,7 +408,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
     .filter((l) => l.calculable)
     .sort((a, b) => b.valeur - a.valeur);
 
-  // Le tableau montre les 100 premiers ; l'export, lui, emporte tout — un
+  // Le tableau montre les 100 premiers ; l'export, lui, emporte tout : un
   // classement tronqué se lit, un fichier tronqué se réutilise de travers.
   exportCourant = {
     lignes: toutes.map(({ code, nom, valeur }) => ({ code, nom, valeur })),
@@ -404,7 +422,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
 
   const lignes = toutes.slice(0, 100);
   $("tableau-donnees").innerHTML = `
-    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""} · 100 premiers territoires</caption>
+    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""}${fenetreDuTableau(toutes.length)}</caption>
     <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">Valeur</th></tr></thead>
     <tbody>${lignes
       .map(
@@ -909,6 +927,68 @@ async function montrerFiche(code: string): Promise<void> {
     inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
   });
   $("panneau").classList.add("panneau--selection");
+  majEtatTiroir();
+  injecterActionsFiche();
+}
+
+/**
+ * Ouvre un territoire depuis une commande du lecteur : suggestion de recherche,
+ * maille supérieure de l'en-tête, forme cliquée sur la carte.
+ *
+ * Trois choses que `montrerFiche` seule ne fait pas :
+ *
+ * 1. **Un retour visuel immédiat.** Charger une fiche communale demandait
+ *    dix-sept secondes pendant lesquelles rien ne bougeait : l'ancienne fiche
+ *    restait à l'écran, et le lecteur croyait que son clic n'avait pas pris. Le
+ *    squelette prend la place tout de suite, avec le nom demandé.
+ * 2. **Un affichage progressif.** La fiche ne dépend que du lot de son
+ *    département ; la carte, elle, relit une couche entière et les cent un lots
+ *    qui la couvrent. On affiche donc la fiche d'abord, la carte ensuite, qui
+ *    réécrit la fiche une seconde fois avec son rang dans la couche.
+ * 3. **Une seule ouverture à la fois.** Le même territoire redemandé ne relance
+ *    rien, un autre prend la main, et le ticket périmé cesse d'écrire.
+ */
+async function ouvrirTerritoire(
+  code: string,
+  niveauDemande: string | null,
+  nom?: string,
+): Promise<void> {
+  const ticket = fileOuverture.ouvrir(code);
+  if (ticket === null) return;
+  const panneau = $("fiche");
+  panneau.setAttribute("aria-busy", "true");
+  panneau.innerHTML = squeletteFiche(nom ?? entites[code]?.nom ?? parents[code]?.nom ?? "");
+  $("volet-territoire").scrollTop = 0;
+  try {
+    // La maille demandée, ou celle que la carte peint quand la commande n'en
+    // nomme aucune. Une maille sans couche de tuiles — un arrondissement
+    // municipal — s'ouvre par-dessus la carte laissée telle quelle : y basculer
+    // le calque lui ferait peindre un remplissage inexistant.
+    const voulu = niveauDemande ?? etat.niveau;
+    etat.maille = MAILLES_HORS_CARTE.has(voulu) ? voulu : null;
+    if (!etat.maille && voulu !== etat.niveau) {
+      etat.niveau = voulu;
+      // Le zoom ne commande plus la maille : le lecteur vient de la choisir.
+      etat.niveauAuto = false;
+      construireSelecteurs();
+      await montrerFiche(code);
+      if (!fileOuverture.courant(ticket)) return;
+      await peindre();
+      return;
+    }
+    await montrerFiche(code);
+  } finally {
+    if (fileOuverture.courant(ticket)) {
+      panneau.removeAttribute("aria-busy");
+      // Lot absent ou illisible : le squelette ne peut pas rester à la place
+      // d'une fiche qui ne viendra pas.
+      if (panneau.querySelector(".fiche__chargement")) {
+        panneau.innerHTML =
+          '<p class="erreur">Les données de ce territoire n\'ont pas pu être chargées.</p>';
+      }
+    }
+    fileOuverture.fermer(ticket);
+  }
 }
 
 /**
@@ -930,7 +1010,11 @@ function tiroirRedimensionnable(): void {
     const h = window.innerHeight;
     return [Math.round(h * 0.38), Math.round(h * 0.62), Math.round(h - 48)];
   };
-  const poser = (hauteur: number) => panneau.style.setProperty("--tiroir", `${hauteur}px`);
+  const poser = (hauteur: number) => {
+    panneau.style.setProperty("--tiroir", `${hauteur}px`);
+    majEtatTiroir(hauteur);
+  };
+  majEtatTiroir();
 
   let depart = 0;
   let hauteurDepart = 0;
@@ -955,10 +1039,25 @@ function tiroirRedimensionnable(): void {
     poser(Math.max(120, Math.min(bornes[bornes.length - 1], hauteurDepart + delta)));
   });
 
+  // Le clic de compatibilité qui suit un `touchend` est routé vers l'élément
+  // qui se trouve sous le doigt **au moment du clic**. Relâcher la poignée
+  // réduit le tiroir : son bord haut descend sous le point touché, et ce clic
+  // partait à la carte, qui sélectionnait la commune peinte à cet endroit.
+  // Fiche de Bordeaux, tap sur la poignée, fiche de « Civray ».
+  //
+  // Deux verrous, parce qu'aucun des deux ne couvre tous les navigateurs :
+  // annuler le `touchend` supprime le clic de compatibilité à la source, et la
+  // garde temporelle absorbe celui qu'un navigateur émettrait quand même.
+  poignee.addEventListener("touchend", (evenement) => {
+    if (window.innerWidth > 960) return;
+    evenement.preventDefault();
+  });
+
   const relacher = (evenement: Event) => {
     const e = evenement as PointerEvent;
     if (!poignee.hasPointerCapture(e.pointerId)) return;
     poignee.releasePointerCapture(e.pointerId);
+    gardePoignee.armer();
     panneau.classList.remove("panneau--glisse");
     const bornes = arrets();
     const haut = panneau.getBoundingClientRect().height;
@@ -975,16 +1074,115 @@ function tiroirRedimensionnable(): void {
 
   // Rotation ou changement de taille : les arrêts changent, la hauteur figée
   // en pixels ne veut plus rien dire.
-  window.addEventListener("resize", () => panneau.style.removeProperty("--tiroir"));
+  window.addEventListener("resize", () => {
+    panneau.style.removeProperty("--tiroir");
+    majEtatTiroir();
+  });
 }
 
-/** Ferme la sélection : le panneau revient à l'aperçu de la couche. */
+/**
+ * `aria-expanded` de la poignée : le tiroir est-il agrandi au-delà de son repos ?
+ *
+ * Calculé sur la hauteur **visée**, jamais sur la hauteur mesurée : le panneau
+ * est en transition à l'instant où son état change, et la mesure donnerait
+ * encore l'état précédent.
+ */
+function majEtatTiroir(visee?: number): void {
+  const panneau = $("panneau");
+  const repos = window.innerHeight * 0.38;
+  const fige = parseFloat(panneau.style.getPropertyValue("--tiroir"));
+  const haut =
+    visee ??
+    (Number.isFinite(fige)
+      ? fige
+      : window.innerHeight * (panneau.classList.contains("panneau--selection") ? 0.62 : 0.38));
+  $("panneau-poignee").setAttribute("aria-expanded", String(haut > repos + 1));
+}
+
+/**
+ * L'état « fiche fermée ».
+ *
+ * Le « × » ne fermait rien : il ramenait à la fiche France, panneau toujours
+ * grand ouvert, carte laissée en maille commune — une France pointilliste
+ * illisible au cadrage national.
+ *
+ * L'état retenu, le plus simple qui ne perde rien :
+ *
+ * - **le panneau se replie** sur sa taille de repos (le tiroir mobile revient à
+ *   l'aperçu, et la hauteur qu'un glissement avait figée est relâchée) ;
+ * - **le panneau garde la recherche et la fiche France** : c'est le contenu
+ *   d'accueil, il n'y a rien à masquer et rien à recharger ;
+ * - **la carte remonte à une maille lisible** : la maille redevient celle que
+ *   le zoom commande. Zoomé sur une agglomération, on garde les communes ;
+ *   revenu au cadrage national, on remonte aux régions. Rien n'est perdu : le
+ *   territoire fermé se retrouve d'un clic sur la carte ou par la recherche, et
+ *   le lien de la page cesse de le nommer.
+ */
 function fermerPanneau(): void {
   etat.selection = null;
   etat.maille = null;
+  const panneau = $("panneau");
+  panneau.classList.remove("panneau--selection");
+  panneau.style.removeProperty("--tiroir");
+  majEtatTiroir();
+  // La maille suivait le territoire choisi ; sans territoire, elle suit le zoom.
+  etat.niveauAuto = true;
+  const lisible = carte ? niveauPourZoom(carte.getZoom()) : etat.niveau;
   ecrireUrl();
-  $("panneau").classList.remove("panneau--selection");
+  if (lisible !== etat.niveau) {
+    etat.niveau = lisible;
+    construireSelecteurs();
+    ecrireUrl();
+    void peindre();
+    return;
+  }
   afficherApercu();
+}
+
+/**
+ * Les actions de l'en-tête de fiche, posées après chaque rendu.
+ *
+ * Le comparateur n'était atteignable que par le paramètre d'URL `?comparer=` :
+ * aucun bouton n'y menait. Celui-ci ajoute le territoire ouvert à la
+ * comparaison et bascule vers la vue Données, où le tableau se lit. Sur un
+ * territoire déjà comparé, il l'en retire.
+ */
+function injecterActionsFiche(): void {
+  const fiche = $("fiche");
+  const code = etat.selection;
+  if (!code) return;
+  fiche.querySelector(".fiche__actions")?.remove();
+  const ancre =
+    fiche.querySelector<HTMLElement>(".fiche__maire") ??
+    fiche.querySelector<HTMLElement>(".fiche__meta") ??
+    fiche.querySelector<HTMLElement>(".fiche__titre");
+  if (!ancre) return;
+  const dedans = etat.comparaison.includes(code);
+  const complet = !dedans && etat.comparaison.length >= MAXIMUM;
+  ancre.insertAdjacentHTML(
+    "afterend",
+    `<p class="fiche__actions">
+      <button type="button" class="tableau__export" data-comparer="${code}"${
+        complet
+          ? ` disabled title="La comparaison est complète : ${MAXIMUM} territoires au maximum."`
+          : ""
+      }>${dedans ? "Retirer de la comparaison" : "Comparer"}</button>
+    </p>`,
+  );
+}
+
+/** Ajoute ou retire un territoire de la comparaison, et va la montrer. */
+async function basculerComparaison(code: string): Promise<void> {
+  const dedans = etat.comparaison.includes(code);
+  etat.comparaison = dedans
+    ? etat.comparaison.filter((c) => c !== code)
+    : [...etat.comparaison, code].slice(0, MAXIMUM);
+  ecrireUrl();
+  await majComparateur();
+  if (etat.selection) injecterActionsFiche();
+  // On n'emmène le lecteur au tableau que quand il vient d'y ajouter quelque
+  // chose : retirer un territoire depuis sa fiche ne doit pas le déplacer.
+  if (!dedans) location.hash = "#donnees";
 }
 
 async function majComparateur(): Promise<void> {
@@ -1006,6 +1204,21 @@ async function majComparateur(): Promise<void> {
     etat.periode,
     etat.declinaison === "habitant",
   );
+  // Sous deux territoires, le tableau n'est pas dessiné : sans cette liste, on
+  // ne pourrait pas défaire une sélection d'un seul territoire. Au-delà, les
+  // en-têtes de colonnes portent déjà leur « × ».
+  if (etat.comparaison.length < 2) {
+    section.insertAdjacentHTML(
+      "beforeend",
+      `<div class="pilules" style="display:inline-flex;flex-wrap:wrap">${etat.comparaison
+        .map(
+          (code) => `<button type="button" class="pilule" data-retirer="${code}">${
+            entites[code]?.nom ?? parents[code]?.nom ?? code
+          } ×</button>`,
+        )
+        .join("")}</div>`,
+    );
+  }
   section.hidden = false;
 }
 
@@ -1067,6 +1280,58 @@ function construireBarreCarte(): void {
     .join("");
 }
 
+/**
+ * Le sélecteur d'indicateur de la carte, à côté des pilules.
+ *
+ * La carte ne se pilotait que par « Voir sur la carte », replié dans le détail
+ * d'une mesure du panneau : pour peindre le chômage, il fallait déjà savoir où
+ * le chercher. Le sélecteur est construit en JS, dans la barre existante, et
+ * n'offre que ce qui se peint à la maille affichée (`peintSurCarte`), groupé
+ * par thème cartographiable.
+ */
+function construireSelecteurCarte(): void {
+  const barre = document.querySelector<HTMLElement>(".carte-barre");
+  if (!barre) return;
+  let boite = document.getElementById("pilules-indicateur");
+  if (!boite) {
+    boite = document.createElement("div");
+    boite.id = "pilules-indicateur";
+    boite.className = "pilules";
+    // Un `select` natif, pas un menu maison : il est déjà accessible au
+    // clavier, au lecteur d'écran et au doigt, et il sait grouper.
+    // Les réglages en ligne ne font que le ramener à la taille des pilules
+    // voisines ; le dessin (chevron, anneau de focus) reste celui de la
+    // feuille de style. `.pilule` conviendrait mieux, mais son `background:
+    // none` effacerait le chevron : à demander en règle `.pilules select`.
+    boite.innerHTML = `<select id="carte-indicateur"
+      aria-label="Indicateur peint sur la carte"
+      style="border:0;min-height:1.75rem;min-width:0;max-width:min(20rem, 48vw);
+             font-size:var(--texte-s);color:var(--encre-douce);
+             background-color:transparent;border-radius:var(--rayon-pilule);
+             padding:var(--espace-2) var(--espace-8) var(--espace-2) var(--espace-5)"></select>`;
+    barre.prepend(boite);
+    // Sur téléphone la barre défile horizontalement : l'ancrage du défilement
+    // compense l'insertion en tête pour garder les pilules à leur place, et le
+    // sélecteur naissait hors écran, à gauche. Il ouvre la barre, il doit être
+    // ce qu'on voit en premier.
+    barre.scrollLeft = 0;
+    boite.querySelector("select")?.addEventListener("change", (evenement) => {
+      const choisi = (evenement.target as HTMLSelectElement).value;
+      if (choisi) void choisirIndicateur(choisi);
+    });
+  }
+  const groupes = groupesCarte(
+    catalogue,
+    themesCartographiables(),
+    peintSurCarte,
+    libelleTheme,
+    traduire,
+  );
+  boite.hidden = nombreDeChoix(groupes) === 0;
+  const select = boite.querySelector("select");
+  if (select) select.innerHTML = rendreSelecteur(groupes, etat.indicateur);
+}
+
 /** Périodes du niveau affiché, la plus récente d'abord — pas de l'indicateur
  *  tous niveaux confondus : l'historique communal est plus court que celui
  *  des départements, et proposer une année sans couche mènerait à un fichier
@@ -1120,6 +1385,7 @@ function construireSelecteurs(): void {
   if (periodes.length < 2) etat.mode = "niveau";
   construireBarreCarte();
   construireBarreMode();
+  construireSelecteurCarte();
 }
 
 /**
@@ -1217,7 +1483,26 @@ function brancherCommandes(): void {
   // Le panneau est la seule commande : cliquer une ligne porte son indicateur
   // sur la carte.
   const surLigne = (evenement: Event) => {
-    // L'onglet d'abord : il ne porte rien sur la carte, il change ce que la
+    // La maille du dessus, dans l'en-tête : « Commune · Gironde » se remonte
+    // d'un clic. Sans cela, revenir au département exigeait de retaper son nom
+    // dans la recherche. Même chemin qu'une suggestion : la maille de la carte
+    // suit si le territoire visé n'est pas de celle qui est peinte.
+    const parent = (evenement.target as HTMLElement).closest<HTMLElement>(".fiche__parent");
+    if (parent?.dataset.code) {
+      void ouvrirTerritoire(
+        parent.dataset.code,
+        parent.dataset.niveau ?? null,
+        parent.textContent?.trim(),
+      );
+      return;
+    }
+    // Ajouter le territoire ouvert à la comparaison, ou l'en retirer.
+    const comparer = (evenement.target as HTMLElement).closest<HTMLElement>("[data-comparer]");
+    if (comparer?.dataset.comparer) {
+      void basculerComparaison(comparer.dataset.comparer);
+      return;
+    }
+    // L'onglet ensuite : il ne porte rien sur la carte, il change ce que la
     // fiche montre.
     // Changer de rubrique ouvre son premier thème : laisser la fiche sur le
     // thème d'une autre rubrique afficherait un contenu que plus aucun onglet
@@ -1417,20 +1702,76 @@ function brancherCommandes(): void {
     champ.value = "";
     // Choisir une commune depuis une vue régionale change la maille : sans
     // cela, la fiche s'ouvrait sur un territoire que la carte ne connaissait
-    // pas et le panneau restait vide.
-    const voulu = bouton.dataset.niveau as string;
-    // Sauf pour une maille sans couche de tuiles — un arrondissement municipal.
-    // Y basculer la carte lui ferait peindre un calque inexistant ; sa fiche
-    // s'ouvre donc par-dessus la carte laissée telle quelle.
-    etat.maille = MAILLES_HORS_CARTE.has(voulu) ? voulu : null;
-    if (voulu && !etat.maille && voulu !== etat.niveau) {
-      etat.niveau = voulu;
-      // Le zoom ne commande plus la maille : l'utilisateur vient de la choisir.
-      etat.niveauAuto = false;
-      construireSelecteurs();
-      await peindre();
-    }
-    await montrerFiche(bouton.dataset.code as string);
+    // pas et le panneau restait vide. Le nom vient de la suggestion : le
+    // squelette peut l'annoncer avant que le moindre octet soit chargé.
+    await ouvrirTerritoire(
+      bouton.dataset.code as string,
+      bouton.dataset.niveau ?? null,
+      bouton.firstChild?.textContent?.trim(),
+    );
+  });
+
+  // Retirer un territoire de la comparaison : les « × » des en-têtes du
+  // tableau (rendus par `comparateur.ts`) et les pilules de rappel.
+  $("comparateur").addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-retirer]");
+    const code = bouton?.dataset.retirer;
+    if (code) void basculerComparaison(code);
+  });
+}
+
+/**
+ * Le sommaire de « Sources et méthode », posé en tête de la section.
+ *
+ * La page pèse un demi-million de caractères en quatre-vingt-quatorze plis
+ * empilés : c'est elle qui fonde la confiance, et personne n'y trouvait la
+ * définition qu'il cherchait. Le contenu ne change pas ; on ajoute devant la
+ * liste des thèmes avec leur nombre d'indicateurs, et un filtre qui masque les
+ * entrées sans rapport. Le filtre porte aussi sur les noms d'indicateurs :
+ * « chômage » trouve « Emploi et chômage » sans qu'on ait à deviner le thème.
+ */
+function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
+  const entrees: EntreeSommaire[] = parTheme.map(([theme, liste]) => ({
+    ancre: `methode-${theme}`,
+    libelle: libelleTheme(theme),
+    nombre: liste.length,
+    termes: liste.map((i) => traduire(i.libelle)).join(" "),
+  }));
+  $("sources-contenu").insertAdjacentHTML(
+    "afterbegin",
+    `<nav class="sources__sommaire" aria-label="Sommaire des thèmes" style="margin:0 0 var(--espace-7)">
+      <h3 class="sources__titre">Ce que contient cette page</h3>
+      <p class="tableau__aide">${entrees.length} thèmes, ${entrees.reduce(
+        (total, e) => total + e.nombre,
+        0,
+      )} indicateurs définis.</p>
+      <div class="recherche" style="padding:0 0 var(--espace-5)">
+        <label class="visuellement-cache" for="sommaire-filtre">Filtrer les thèmes</label>
+        <input id="sommaire-filtre" type="search" autocomplete="off"
+               placeholder="Filtrer par thème ou par indicateur" />
+      </div>
+      <ul id="sommaire-liste" style="list-style:none;margin:0;padding:0;column-width:14rem;column-gap:var(--espace-7)">${rendreSommaire(
+        entrees,
+      )}</ul>
+      <p id="sommaire-vide" class="tableau__aide" hidden>Aucun thème ne porte ce nom.</p>
+    </nav>`,
+  );
+
+  const liste = $("sommaire-liste");
+  liste.addEventListener("click", (evenement) => {
+    const ancre = (evenement.target as HTMLElement).closest<HTMLElement>("[data-ancre]")?.dataset
+      .ancre;
+    if (!ancre) return;
+    const pli = document.getElementById(ancre) as HTMLDetailsElement | null;
+    if (!pli) return;
+    pli.open = true;
+    pli.scrollIntoView({ block: "start", behavior: "smooth" });
+  });
+
+  $<HTMLInputElement>("sommaire-filtre").addEventListener("input", (evenement) => {
+    const retenues = filtrer(entrees, (evenement.target as HTMLInputElement).value);
+    liste.innerHTML = rendreSommaire(retenues);
+    $("sommaire-vide").hidden = retenues.length > 0;
   });
 }
 
@@ -1574,6 +1915,13 @@ async function demarrer(): Promise<void> {
     },
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  // Le canevas est dans l'ordre de tabulation par défaut : à la cinquième
+  // tabulation, le focus entrait dans la carte et n'en ressortait plus, sur un
+  // élément qui n'offre rien au clavier. Les commandes, elles, restent
+  // atteignables : les boutons de zoom sont des `button` posés à côté du
+  // canevas, pas dedans, et le tableau de la vue Données donne l'équivalent
+  // textuel de ce que la carte peint.
+  carte.getCanvas().setAttribute("tabindex", "-1");
 
   // La maille suit le zoom quand le mode automatique est actif. `zoomend` et
   // non `zoom` : repeindre à chaque image de l'animation rechargerait la
@@ -1683,11 +2031,14 @@ async function demarrer(): Promise<void> {
   function brancherInteractionsCarte(): void {
     for (const couche of Object.values(COUCHES)) {
       carte.on("click", `remplissage-${couche}`, async (evenement) => {
+        // Ce clic vient-il du geste qu'on vient de faire sur la poignée du
+        // tiroir ? Alors il ne désigne pas un territoire, il désigne le vide
+        // que la poignée a laissé sous le doigt.
+        if (gardePoignee.absorbe()) return;
         const code = evenement.features?.[0]?.properties?.code as string | undefined;
         // Un clic sur la carte sélectionne toujours à la maille peinte : il
         // referme une fiche d'arrondissement ouverte par la recherche.
-        etat.maille = null;
-        if (code) await montrerFiche(code);
+        if (code) await ouvrirTerritoire(code, etat.niveau);
       });
       // Double-clic : on entre dans le territoire. En mode automatique, la
       // maille se raffine d'elle-même en arrivant — c'est le geste attendu
@@ -1849,13 +2200,13 @@ async function demarrer(): Promise<void> {
     <h3 class="sources__titre">Comment chaque indicateur est défini</h3>
     ${[...parTheme.entries()]
       .map(
-        ([theme, liste]) => `<details class="repli">
+        ([theme, liste]) => `<details class="repli" id="methode-${theme}">
           <summary>${libelleTheme(theme)} (${liste.length})</summary>
           <ul class="methodes">${liste
             .map(
-              (i) => `<li><strong>${i.libelle}</strong> : ${i.definition}
-                <br /><span class="technique">${i.definition_technique}</span>
-                <br /><span class="formule">Calcul : ${i.formule}</span></li>`,
+              (i) => `<li><strong>${emphase(traduire(i.libelle))}</strong> : ${emphase(i.definition)}
+                <br /><span class="technique">${emphase(i.definition_technique)}</span>
+                <br /><span class="formule">Calcul : ${emphase(i.formule)}</span></li>`,
             )
             .join("")}</ul>
         </details>`,
@@ -1871,7 +2222,7 @@ async function demarrer(): Promise<void> {
         rapport dont un terme manque pour cette année-là n'est pas calculé sur
         l'année d'à côté, il n'est pas affiché.</li>
       <li>Le seul seuil chiffré du site est le <strong>plafond national de
-        référence</strong> de la capacité de désendettement — loi n° 2018-32 du
+        référence</strong> de la capacité de désendettement, fixé par la loi n° 2018-32 du
         22 janvier 2018 de programmation des finances publiques pour 2018-2022,
         art. 29 : douze années pour les communes et les intercommunalités à
         fiscalité propre, dix pour les départements, neuf pour les régions. Les
@@ -1906,7 +2257,7 @@ async function demarrer(): Promise<void> {
         publiés par l'Observatoire des finances locales : strate de population,
         caractère rural, outre-mer, montagne, tourisme. Une position basse ne
         signifie pas une meilleure gestion : le premier facteur d'écart est
-        l'intercommunalité — dans une métropole intégrée, la voirie, les déchets
+        l'intercommunalité : dans une métropole intégrée, la voirie, les déchets
         ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent pas
         dans le budget communal.</li>
       <li>Les communes nouvelles portent l'historique de leurs communes
@@ -1927,6 +2278,8 @@ async function demarrer(): Promise<void> {
         Un budget se décide à plusieurs niveaux et se paie sur plusieurs
         années : ce repère situe, il n'explique pas.</li>
     </ul>`;
+
+  brancherSommaireSources([...parTheme.entries()]);
 
   // La méthode des agrégats nationaux se charge à part elle aussi : absente,
   // aucune mention n'est faite — plutôt qu'une mention fausse.

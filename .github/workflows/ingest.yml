@@ -282,7 +282,13 @@ jobs:
             # Rejouer les declarer() listés puis republier, sans réingérer.
             # La liste vit ici : elle change avec chaque fournée de correctifs.
             set -e
-            python -m plateforme.redeclarer defm logement
+            python -m plateforme.redeclarer artificialisation chomage_indemnisation cnaf \
+              cofog consommation construction creations defm departements_fonctionnel \
+              dotations elections emploi energie equipements etatcivil execution_missions \
+              exonerations famille fonds_europeens impot_revenu impots_locaux logement \
+              logement_social loyers mutations naissances ofgl prelevements_ue prisons \
+              prix professions protection_sociale salaires sante secteurs secu securite \
+              subventions tourisme transports
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

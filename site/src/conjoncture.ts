@@ -128,7 +128,7 @@ const VOLETS: Volet[] = [
       } de <strong>${sansSigne(fr)}</strong> par rapport au même trimestre de l'année précédente` +
       (ea === undefined ? "." : ` (zone euro : ${taux(ea)}).`),
     note:
-      "PIB en volume — hors effet des prix — comparé au <strong>même trimestre de l'année" +
+      "PIB en volume, hors effet des prix, comparé au <strong>même trimestre de l'année" +
       " précédente</strong>, corrigé des saisons. Les « +0,3 % » des titres de presse comparent" +
       " un trimestre au précédent : c'est un autre chiffre, les deux sont justes.",
   },
@@ -186,7 +186,7 @@ export function renduVolet(
       <div class="graphique__cadre">${svg}<div class="graphique__infobulle" hidden></div></div>
       <p class="graphique__legende">${legende}</p>
     </div>
-    <p class="avertissement">${volet.note} Source : Eurostat, dernière valeur publiée —
+    <p class="avertissement">${volet.note} Source : Eurostat, dernière valeur publiée,
       jamais de prévision ici.</p>`;
 }
 
@@ -222,7 +222,19 @@ function attacherVolet(
   if (!cadre || !bulle) return;
 
   const redessiner = () => {
-    const largeur = Math.max(320, Math.round(cadre.clientWidth || 720));
+    // `largeur` est la largeur **de rendu** : les tailles de texte du dessin
+    // sont en unités du viewBox, et un graphique qui se déclare plus large
+    // qu'il ne sera affiché rétrécit ses étiquettes d'autant — à 390 px, un
+    // viewBox de 720 les rendait à cinq pixels. Le volet est attaché alors que
+    // la page Décryptages est encore masquée, `clientWidth` vaut zéro : le
+    // repli suit la fenêtre plutôt qu'une largeur d'écran large en dur.
+    //
+    // Aucun plancher au-dessus de la largeur réelle : arrondir 252 px à 320
+    // suffisait à ramener l'échelle sous 1 et les étiquettes sous douze pixels.
+    // Le plancher ne protège que du dessin dégénéré.
+    const secours =
+      typeof window === "undefined" ? 720 : Math.min(720, Math.max(240, window.innerWidth - 88));
+    const largeur = Math.max(200, Math.round(cadre.clientWidth) || secours);
     etat.series = extraireSeries(pays, volet.indicateur, etat.fenetre);
     const { svg, geometrie } = dessiner(etat.series, {
       largeur,

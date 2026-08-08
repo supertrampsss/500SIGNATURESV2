@@ -109,7 +109,7 @@ function camembert(
     anneaux.push(`<circle class="camembert__segment" r="${rayon}" cx="110" cy="110"
         stroke="${couleur}" stroke-dasharray="${longueur.toFixed(2)} ${(circonference - longueur).toFixed(2)}"
         stroke-dashoffset="${(-depart).toFixed(2)}">
-        <title>${echapper(e.libelle)} — ${euros(e.part)}</title>
+        <title>${echapper(e.libelle)} : ${euros(e.part)}</title>
       </circle>`);
     // Les étiquettes vivent HORS du groupe pivoté : dedans, elles tournaient
     // de 90° avec l'anneau — vu à l'écran.
@@ -193,7 +193,7 @@ export function rendu(budget: BudgetEtat, exercice: string): string {
   const solde = donnees.solde;
 
   return `
-    <h3>100 € du budget de l'État — exercice ${echapper(exercice)}</h3>
+    <h3>100 € du budget de l'État <span class="cent-euros__exercice">exercice ${echapper(exercice)}</span></h3>
     <div class="cent__grille">
       ${camembert(
         "D'où viennent 100 € ?",
@@ -245,7 +245,7 @@ export function rendu(budget: BudgetEtat, exercice: string): string {
           budgétaire, nets des remboursements et dégrèvements d'impôts.</li>
         <li>Les prélèvements sur recettes reversés aux collectivités et à l'Union
           européenne sont comptés comme des emplois, parce que c'est ce qu'ils sont
-          du point de vue du contribuable — même si la comptabilité budgétaire les
+          du point de vue du contribuable, même si la comptabilité budgétaire les
           retire des recettes plutôt que de les inscrire en dépenses.</li>
       </ul>
     </details>`;

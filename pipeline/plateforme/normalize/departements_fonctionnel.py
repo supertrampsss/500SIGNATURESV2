@@ -130,8 +130,8 @@ INDICATEURS = {
         "Santé et action sociale",
         "Ce que le département consacre à l'aide sociale : RSA, aide aux"
         " personnes âgées et handicapées, protection de l'enfance, prévention"
-        " santé. C'est de loin sa première mission — environ la moitié de ses"
-        " dépenses.",
+        " santé. C'est de loin sa première mission (environ la moitié de ses"
+        " dépenses).",
     ),
     "ofgl_fonction_territoire": (
         "Transports, réseaux et aménagement",
@@ -142,8 +142,8 @@ INDICATEURS = {
     ),
     "ofgl_fonction_enseignement": (
         "Enseignement et formation",
-        "Ce que le département consacre aux collèges — construction,"
-        " entretien, personnels techniques, restauration — et à la formation."
+        "Ce que le département consacre aux collèges (construction,"
+        " entretien, personnels techniques, restauration) et à la formation."
         " Il ne paie pas les enseignants, qui relèvent de l'État.",
     ),
     "ofgl_fonction_services_generaux": (
@@ -203,16 +203,16 @@ TECHNIQUE = (
     " total : les additionner le doublerait, et le contrôle de chargement"
     " vérifie qu'ils coïncident. Deux nomenclatures coexistent, la M52 et la"
     " M57 : chaque département a basculé de l'une à l'autre entre 2014 et 2024,"
-    " et leurs codes de fonction ne portent pas le même sens — les vingt"
+    " et leurs codes de fonction ne portent pas le même sens. Les vingt"
     " couples (nomenclature, code) sont remis à la main sur un jeu commun de"
     " sept fonctions. Transports, réseaux, aménagement et environnement sont"
     " réunis parce que c'est la seule frontière que la bascule déplace"
     " nettement. Les allocations de RSA, d'APA et de PCH sont des sous-postes"
     " de la santé et de l'action sociale : elles ne s'ajoutent pas aux"
     " fonctions. Le total fonctionnel est inférieur au total de la base"
-    " consolidée du même producteur — 90 970 604 845 € contre"
+    " consolidée du même producteur (90 970 604 845 € contre"
     " 92 214 917 974 € en 2024, soit 1,244 Md€ et 1,35 % d'écart sur 91 des 97"
-    " entités : une part du budget n'est rattachée à aucune fonction. Toute"
+    " entités) : une part du budget n'est rattachée à aucune fonction. Toute"
     " part de fonction doit donc se calculer sur le total fonctionnel publié"
     " ici, jamais sur le budget consolidé. Périmètre : les 97 entités"
     " départementales de l'OFGL, Paris et la Métropole de Lyon compris ;"

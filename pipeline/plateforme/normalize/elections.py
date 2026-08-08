@@ -127,7 +127,7 @@ TECHNIQUE = (
     " de moins de 3 500 habitants, l'essentiel des listes n'en porte pas. Seul le"
     " premier tour est chargé : c'est le seul qui a eu lieu dans les 34 836 communes,"
     " le second ne concernant que celles où aucune liste n'a été élue d'emblée. Un"
-    " électeur inscrit n'est pas un habitant en âge de voter — l'inscription est une"
+    " électeur inscrit n'est pas un habitant en âge de voter. L'inscription est une"
     " démarche, et les résidents étrangers ne votent aux municipales que s'ils sont"
     " ressortissants de l'Union européenne : le taux de participation se lit sur les"
     " inscrits et jamais sur la population. Les bulletins blancs, comptés séparément"

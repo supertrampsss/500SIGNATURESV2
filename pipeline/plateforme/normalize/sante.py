@@ -45,7 +45,7 @@ FICHE = {
     "public": "Le nombre de consultations de médecin généraliste réellement"
     " accessibles par an et par habitant, selon la distance aux cabinets, leur"
     " activité et l'âge de la population. En dessous de 2,5, la DREES parle de"
-    " sous-densité — ce qu'on appelle un désert médical.",
+    " sous-densité, ce qu'on appelle un désert médical.",
     "technique": "Accessibilité potentielle localisée (APL) aux médecins"
     " généralistes, DREES, en consultations/visites accessibles par an par"
     " habitant standardisé. Indicateur modélisé (accès à moins de 20 minutes,"

@@ -15,9 +15,11 @@ import { test } from "node:test";
 
 import type { Indicateur } from "./donnees.ts";
 import {
+  afficherFiche,
   comparableAuxAutresTerritoires,
   densiteRapportableAuxHabitants,
   ecartEnEuros,
+  fenetreLisible,
   groupeDeLaCommune,
   jumeaux,
   lectureDeDensite,
@@ -478,7 +480,7 @@ test("un total calculé par nous se dit tel, avec son périmètre", () => {
     { id: "ssmsi_cambriolages_nombre", libelle: "a" },
     { id: "ssmsi_homicides_nombre", libelle: "b" },
   ] as never as Indicateur[];
-  const html = mentionAgregat(liste, AGREGATS);
+  const html = mentionAgregat(liste, AGREGATS, "pays");
   assert.match(html, /Ces totaux sont\s+la somme des 18 régions/);
   assert.match(html, /calculée par ce site et non publiée/);
   // Le périmètre fait partie du chiffre : beaucoup de totaux nationaux publiés
@@ -493,15 +495,27 @@ test("la mention compte les indicateurs concernés quand le thème est mixte", (
     { id: "ssmsi_cambriolages_nombre", libelle: "a" },
     { id: "publie_par_la_source", libelle: "b" },
   ] as never as Indicateur[];
-  assert.match(mentionAgregat(liste, AGREGATS), /1 de ces totaux sont\s+la somme/);
+  assert.match(mentionAgregat(liste, AGREGATS, "pays"), /1 de ces totaux sont\s+la somme/);
 });
 
 test("un thème sans agrégat de notre main ne porte aucune mention", () => {
   const liste = [{ id: "etat_solde_budgetaire", libelle: "a" }] as never as Indicateur[];
-  assert.equal(mentionAgregat(liste, AGREGATS), "");
+  assert.equal(mentionAgregat(liste, AGREGATS, "pays"), "");
   // Et sans le fichier de méthode, rien n'est affirmé plutôt qu'une mention fausse.
-  assert.equal(mentionAgregat(liste, null), "");
-  assert.equal(mentionAgregat(liste, undefined), "");
+  assert.equal(mentionAgregat(liste, null, "pays"), "");
+  assert.equal(mentionAgregat(liste, undefined, "pays"), "");
+});
+
+test("la somme des régions ne se mentionne que sur la fiche France", () => {
+  // Elle s'affichait sur le thème Logement d'une fiche communale : le chiffre
+  // de la commune vient du producteur, notre addition ne le concerne pas.
+  const liste = [
+    { id: "ssmsi_cambriolages_nombre", libelle: "a" },
+  ] as never as Indicateur[];
+  for (const niveau of ["commune", "departement", "region"]) {
+    assert.equal(mentionAgregat(liste, AGREGATS, niveau), "", niveau);
+  }
+  assert.match(mentionAgregat(liste, AGREGATS, "pays"), /la somme des 18 régions/);
 });
 
 /**
@@ -542,4 +556,232 @@ test("un taux n'a pas d'écart en euros : la médiane reste", () => {
   assert.equal(ecartEnEuros(11.4, MEDIANE, TAUX, false, 260_000), null);
   // Et un montant par habitant sans population connue non plus.
   assert.equal(ecartEnEuros(1373, MEDIANE, EUROS, true, null), null);
+});
+
+/**
+ * Les extrêmes, amortis.
+ *
+ * Rochefourchat, deux habitants : la fiche écrivait « chômeurs 0, −100 % vs
+ * son département », « +2 280 % vs la médiane », « Parmi 959 communes
+ * semblables : +1 178 % ». Tous exacts, tous illisibles — ils mesurent la
+ * petitesse du dénominateur, pas la position de la commune. Passé un ordre de
+ * grandeur, on pose les deux chiffres au lieu d'un pourcentage ; de part et
+ * d'autre de zéro, il n'y a pas de pourcentage du tout.
+ */
+
+test("au-delà d'un ordre de grandeur, l'écart se pose en deux chiffres", () => {
+  // 12 000 pour 1 000 hab. face à 505 : facteur 24, soit « +2 276 % ».
+  const phrase = lectureDeDensite({
+    valeur: 12_000,
+    comparaisons: [{ libelle: "son département", valeur: 505 }],
+  });
+  assert.doesNotMatch(phrase, /%/);
+  assert.match(phrase, /12\s?000 pour 1\s?000 hab\. ici/);
+  assert.match(phrase, /505 pour 1\s?000 hab\. pour son département/);
+  // Un écart qui reste dans l'ordre de grandeur garde son pourcentage.
+  assert.match(
+    lectureDeDensite({ valeur: 2_000, comparaisons: [{ libelle: "son département", valeur: 505 }] }),
+    /\+296 %/,
+  );
+});
+
+test("un effectif nul ne baisse pas de cent pour cent, il est nul", () => {
+  // « écoles 0, −100 % vs son département » : le signe suggère une baisse là
+  // où il n'y a qu'une absence, et le zéro est déjà écrit à côté.
+  const phrase = lectureDeDensite({
+    valeur: 0,
+    comparaisons: [{ libelle: "son département", valeur: 4.2 }],
+  });
+  assert.doesNotMatch(phrase, /−100/);
+  assert.match(phrase, /0 pour 1\s?000 hab\. ici/);
+  assert.match(phrase, /4,2 pour 1\s?000 hab\. pour son département/);
+});
+
+test("la position dans le groupe se tait plutôt que d'annoncer +1 178 %", () => {
+  const html = positionDansGroupe(
+    TERRITOIRE,
+    { n: 959, q1: 40, mediane: 60, q3: 90 },
+    768, // facteur 12,8 vs la médiane
+    CRITERES,
+    { base: "par_habitant", unite: "EUR" },
+  );
+  assert.doesNotMatch(html, /1\s?178/);
+  assert.doesNotMatch(html, /vs la médiane/);
+  // Les deux chiffres, et la situation dans la distribution : rien d'inventé.
+  assert.match(html, /ici 768\s?€/);
+  assert.match(html, /médiane 60\s?€/);
+  assert.match(html, /dans le quart le plus haut/);
+});
+
+test("un écart hors d'échelle ne se convertit pas en contrefactuel d'euros", () => {
+  // « 22,3 M€ de plus que si le montant était celui de la médiane » suppose
+  // que la médiane soit une grandeur : à 0,13 € par habitant, elle ne l'est pas.
+  assert.equal(ecartEnEuros(339, { ensemble: "communes de la région", valeur: 0.13 }, EUROS, true, 260_000), null);
+  // Et de part et d'autre de zéro non plus.
+  assert.equal(ecartEnEuros(-500, MEDIANE, EUROS, false, 260_000), null);
+  assert.equal(ecartEnEuros(1373, { ...MEDIANE, valeur: 0 }, EUROS, true, 260_000), null);
+});
+
+/**
+ * Ce qu'un mini-tableau montre, il le dit.
+ *
+ * Six colonnes sur dix-neuf points publiés, sans un mot, se lisaient comme la
+ * série entière.
+ */
+
+test("le tableau nomme sa fenêtre et le nombre de points qu'il laisse derrière", () => {
+  assert.equal(
+    fenetreLisible(["2020", "2021", "2022", "2023"], 12),
+    "4 derniers exercices sur 12 publiés",
+  );
+  assert.equal(
+    fenetreLisible(["2025-01", "2025-02", "2025-03", "2025-04", "2025-05", "2025-06"], 19),
+    "6 derniers mois sur 19 publiés",
+  );
+  assert.equal(fenetreLisible(["2024-Q1", "2024-Q2"], 8), "2 derniers trimestres sur 8 publiés");
+  // Tout est montré : on ne promet pas un reste qui n'existe pas.
+  assert.equal(fenetreLisible(["2023", "2024"], 2), "2 exercices publiés");
+});
+
+/**
+ * Une donnée absente n'écrit rien, et cela vaut pour la navigation.
+ *
+ * L'onglet « Justice » s'affichait sur chaque fiche communale et ouvrait une
+ * section blanche : la densité carcérale n'est mesurée qu'au département.
+ */
+
+const JUSTICE = {
+  id: "justice_densite_carcerale", libelle: "Densité carcérale", unite: "percent",
+  theme: "justice", sommable: false, niveaux: ["commune", "departement"],
+  definition: "", jeu: "justice-prisons",
+} as never as Indicateur;
+const POPULATION_MUNICIPALE = {
+  id: "insee_population_municipale", libelle: "Population municipale", unite: "count",
+  theme: "population", sommable: true, niveaux: ["commune", "departement"],
+  definition: "", jeu: "melodi-rp-population",
+} as never as Indicateur;
+
+const BORDEAUX = {
+  nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {},
+  series: { insee_population_municipale: { "2022": 267_991 } },
+} as never;
+const GIRONDE = {
+  nom: "Gironde", parent: "75", region: "75", population: 1_643_000, drapeaux: {},
+  series: {
+    insee_population_municipale: { "2022": 1_643_000 },
+    justice_densite_carcerale: { "2024": 131.9 },
+  },
+} as never;
+
+function ficheRendue(comparateurs: { libelle: string; territoire: never }[]): string {
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: BORDEAUX,
+    indicateurs: [POPULATION_MUNICIPALE, JUSTICE],
+    principal: "insee_population_municipale",
+    jeux: [],
+    periode: "2022",
+    parHabitant: false,
+    comparateurs,
+    libelleTheme: (t) => (t === "justice" ? "Justice" : "Population"),
+  });
+  return cible.innerHTML;
+}
+
+test("un thème sans aucune mesure ici renvoie vers la maille qui la porte", () => {
+  const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
+  // L'onglet reste : la donnée existe, une maille au-dessus.
+  assert.match(html, /data-theme="justice"/);
+  // Et il n'ouvre pas sur du blanc.
+  assert.match(html, /Ce thème n'est pas mesuré ici, mais au département/);
+  assert.match(
+    html,
+    /<button type="button" class="fiche__parent" data-code="33" data-niveau="departement">Gironde<\/button>/,
+  );
+  // Aucune ligne de mesure fantôme dans la section.
+  assert.doesNotMatch(html, /data-mesure="justice_densite_carcerale"/);
+});
+
+test("un thème que personne ne mesure ne garde pas d'onglet", () => {
+  // Sans maille porteuse connue, il n'y a rien à proposer : l'onglet disparaît
+  // plutôt que d'être un cul-de-sac.
+  const html = ficheRendue([]);
+  assert.doesNotMatch(html, /data-theme="justice"/);
+  assert.doesNotMatch(html, /theme-groupe__ailleurs/);
+  // Le thème qui a des chiffres, lui, reste.
+  assert.match(html, /data-theme="population"/);
+});
+
+test("« L'essentiel » est un titre, pas un span en petites capitales", () => {
+  // Premier bloc de la fiche, et pourtant absent du plan du document : au
+  // lecteur d'écran il n'existait pas. Le niveau suit celui des autres sections
+  // de la fiche (le territoire est en h2), la classe porte toujours le style.
+  const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
+  assert.match(html, /<h3 class="synthese__titre">L'essentiel<\/h3>/);
+  assert.doesNotMatch(html, /<p class="synthese__titre">/);
+});
+
+test("le territoire parent de l'en-tête est un bouton, pas un mot gris", () => {
+  const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
+  assert.match(
+    html,
+    /Commune · <button type="button" class="fiche__parent" data-code="33" data-niveau="departement">Gironde<\/button>/,
+  );
+});
+
+/**
+ * L'ouverture de la fiche non plus ne convertit pas l'infini en pourcentage.
+ *
+ * « Dépenses de fonctionnement 19 512 € par habitant. +2 280 % vs la médiane
+ * régionale (819 €) » : le nombre est exact et ne dit que la petitesse de la
+ * médiane. Les repères hors d'échelle sont retirés avant qu'on n'en tire un
+ * rapport, et le repère se pose alors tel quel plutôt que de disparaître.
+ */
+
+const TAUX_LOCAL = {
+  id: "dgfip_taux_tfb_global", libelle: "Taux global de taxe foncière", unite: "percent",
+  theme: "impots_locaux", sommable: false, niveaux: ["commune", "departement"],
+  definition: "", jeu: "dgfip-taux",
+} as never as Indicateur;
+
+function essentiel(valeurParent: number): string {
+  const commune = {
+    nom: "Rochefourchat", parent: "26", region: "84", population: 2, drapeaux: {},
+    series: { dgfip_taux_tfb_global: { "2024": 40 } },
+  } as never;
+  const parent = {
+    nom: "Drôme", parent: "84", region: "84", population: 520_000, drapeaux: {},
+    series: { dgfip_taux_tfb_global: { "2024": valeurParent } },
+  } as never;
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: commune,
+    indicateurs: [TAUX_LOCAL],
+    principal: "dgfip_taux_tfb_global",
+    jeux: [],
+    periode: "2024",
+    parHabitant: false,
+    comparateurs: [{ libelle: "son département", territoire: parent }],
+    libelleTheme: () => "Impôts locaux",
+  });
+  return cible.innerHTML;
+}
+
+test("un repère quasi nul se pose à côté du chiffre, il ne devient pas un pourcentage", () => {
+  // 40 % face à 0,5 % : facteur 80, soit « +7 900 % ».
+  const html = essentiel(0.5);
+  assert.doesNotMatch(html, /\+\d[\d\s ]*%/);
+  assert.match(html, /Contre 0,5\s?% pour son département\./);
+});
+
+test("un repère à l'échelle garde son pourcentage", () => {
+  assert.match(essentiel(20), /\+100\s?% vs son département/);
+});
+
+test("la population porte son infobulle sans se faire passer pour un lien", () => {
+  const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
+  assert.match(html, /<abbr class="fiche__habitants" title="Population municipale/);
+  assert.match(html, /267\s?991 hab\./);
 });

@@ -641,3 +641,61 @@ def test_aucun_agregat_n_est_son_propre_ancetre(tmp_path):
             assert courant not in vus, f"cycle sur {depart}"
             vus.add(courant)
             courant = arbre.get(courant)
+
+def test_les_fiches_gardent_la_serie_entiere_quand_la_carte_se_borne(tmp_path):
+    """Dix-neuf mois de série mensuelle : la fiche les porte tous, la carte
+    n'en peint que les douze derniers.
+
+    La borne `PERIODES_CARTOGRAPHIEES` protège le nombre de fichiers de carte,
+    pas les courbes : appliquée aux séries de fiche, elle a servi 12 mois de
+    population carcérale quand l'entrepôt en portait 19 — sans qu'aucun
+    affichage ne dise l'amputation.
+    """
+    conn = entrepot.connect(str(tmp_path / "entrepot.duckdb"))
+    _remplir(conn)
+    definition = conn.execute(
+        "insert into core.indicator_definitions (public_definition,"
+        " technical_definition, confidence_level) values ('Personnes détenues.',"
+        " 'Statistique mensuelle DGAP.', 'observed') returning definition_id"
+    ).fetchone()[0]
+    conn.execute(
+        """
+        insert into core.indicators
+            (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
+             additive, geo_levels, time_granularity, published)
+        values ('justice_personnes_detenues', 'ofgl-communes', ?, 'justice',
+                'Personnes détenues', 'count', true, array['commune'],
+                'mensuelle', true)
+        """,
+        (definition,),
+    )
+    run_id = entrepot.start_run(conn, "ofgl-communes")
+    periodes = [f"{annee}-{mois:02d}" for annee in (2025, 2026)
+                for mois in range(1, 13)][:19]
+    for rang, periode in enumerate(periodes):
+        conn.execute(
+            "insert into core.observations (indicator_id, geo_level, geo_code,"
+            " geo_vintage, period, value, run_id) values"
+            " ('justice_personnes_detenues', 'commune', '33063', ?, ?, ?, ?)",
+            (MILLESIME, periode, 500.0 + rang, run_id),
+        )
+    entrepot.finish_run(conn, run_id, "success")
+    conn.commit()
+
+    store = LocalStore(str(tmp_path / "publication"))
+    version = "2026-01-01T0000"
+    publish.publier(conn, store, version)
+    racine = tmp_path / "publication" / "data" / version
+
+    fiches = json.loads((racine / "territoires" / "commune" / "33.json").read_text())
+    serie = fiches["33063"]["series"]["justice_personnes_detenues"]
+    assert len(serie) == 19 and serie["2025-01"] == 500.0
+
+    cartes = sorted((racine / "carte" / "justice_personnes_detenues" / "commune").iterdir())
+    assert len(cartes) == publish.PERIODES_CARTOGRAPHIEES
+    assert cartes[0].name == "2025-08.json" and cartes[-1].name == "2026-07.json"
+
+    catalogue = json.loads((racine / "indicateurs.json").read_text())
+    fiche = next(i for i in catalogue if i["id"] == "justice_personnes_detenues")
+    assert fiche["periodes_par_niveau"]["commune"][0] == "2025-08"
+

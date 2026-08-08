@@ -60,9 +60,9 @@ INDICATEURS = {
     "TE": (
         "eurostat_secu_depenses_pib",
         "Dépenses de la Sécurité sociale",
-        "Tout ce que dépensent les administrations de sécurité sociale — maladie,"
+        "Tout ce que dépensent les administrations de sécurité sociale (maladie,"
         " retraites de base et complémentaires obligatoires, famille, assurance"
-        " chômage — rapporté à la richesse produite dans l'année. En France,"
+        " chômage) rapporté à la richesse produite dans l'année. En France,"
         " c'est davantage que le budget de l'État.",
     ),
     "TR": (

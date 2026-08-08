@@ -47,8 +47,8 @@ FICHES_REDIGEES = {
         "Recettes de fonctionnement",
     ),
     "ofgl_depenses_investissement": (
-        "Ce que la collectivité consacre chaque année à ses équipements durables —"
-        " bâtiments, voirie, matériel — et au remboursement du capital de sa dette.",
+        "Ce que la collectivité consacre chaque année à ses équipements durables"
+        " (bâtiments, voirie, matériel) et au remboursement du capital de sa dette.",
         "Dépenses réelles d'investissement de l'exercice, remboursements d'emprunts"
         " compris (agrégat OFGL « Dépenses d'investissement »).",
         "Dépenses d'investissement",
@@ -75,7 +75,7 @@ FICHES_REDIGEES = {
         "Frais de personnel de l'exercice, budget principal et budgets annexes"
         " consolidés (agrégat OFGL « Frais de personnel »). Rémunérations et"
         " charges sociales comprises ; ne comprend pas le personnel des"
-        " satellites — associations subventionnées, délégataires — dont la"
+        " satellites (associations subventionnées, délégataires), dont la"
         " dépense apparaît ailleurs.",
         "Frais de personnel",
     ),
@@ -126,8 +126,8 @@ FICHES_REDIGEES = {
         "Stocks + tiers + comptes financiers − dépréciations (+ intérêts courus)",
     ),
     "ofgl_produit_des_cessions_d_immobilisations": (
-        "Ce que la collectivité encaisse en vendant un bien qu'elle possédait —"
-        " terrain, bâtiment, véhicule. Une recette exceptionnelle : elle ne se"
+        "Ce que la collectivité encaisse en vendant un bien qu'elle possédait"
+        " (terrain, bâtiment, véhicule). Une recette exceptionnelle : elle ne se"
         " reproduit pas l'année suivante, et vendre un bien n'est pas produire une"
         " ressource durable.",
         "Solde créditeur du compte 775 (produits des cessions d'éléments d'actif)."
@@ -190,13 +190,13 @@ RESUMES_PUBLICS = {
     "ofgl_dmto_apres_pereq":
         "Droits de mutation à titre onéreux perçus sur les ventes immobilières,"
         " après les prélèvements et redistributions du fonds de péréquation."
-        " Publiés pour les départements — dont Paris et la Métropole de Lyon —,"
+        " Publiés pour les départements (dont Paris et la Métropole de Lyon),"
         " pas pour les communes ni les groupements.",
     "ofgl_dmto_avant_pereq":
         "Droits de mutation à titre onéreux perçus sur les ventes immobilières,"
         " avant le fonds de péréquation : ni ses prélèvements ni ses"
-        " redistributions n'y figurent. Publiés pour les départements — dont Paris"
-        " et la Métropole de Lyon —, pas pour les communes ni les groupements.",
+        " redistributions n'y figurent. Publiés pour les départements (dont Paris"
+        " et la Métropole de Lyon), pas pour les communes ni les groupements.",
     "ofgl_emprunts_hors_gad":
         "Emprunts et dettes mobilisés par la collectivité dans l'année, hors"
         " gestion active de la dette : les lignes de trésorerie et les emprunts de"
@@ -211,7 +211,7 @@ RESUMES_PUBLICS = {
         " analyse financière, ce montant peut être retranché de l'encours de dette.",
     "ofgl_impots_locaux":
         "Produit de la fiscalité directe locale sur les ménages et les entreprises"
-        " — taxes foncières, taxe d'habitation, CVAE —, net des reversements versés"
+        " (taxes foncières, taxe d'habitation, CVAE), net des reversements versés"
         " par la collectivité et augmenté de ceux qu'elle perçoit. Sous-poste des"
         " impôts et taxes.",
     "ofgl_remboursements_d_emprunts_hors_gad":
@@ -225,8 +225,8 @@ RESUMES_PUBLICS = {
         " changé de règle (voir la définition technique).",
     "ofgl_variation_du_fonds_de_roulement":
         "Différence entre les recettes réelles et les dépenses réelles de l'année."
-        " Elle se décompose entre ce qui vient hors dette — capacité ou besoin de"
-        " financement — et le flux net de dette.",
+        " Elle se décompose entre ce qui vient hors dette (capacité ou besoin de"
+        " financement) et le flux net de dette.",
 }
 
 

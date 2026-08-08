@@ -4,17 +4,84 @@
  * d'accessibilité priment sur l'esthétique (docs/04).
  */
 
+/* ==========================================================================
+   DÉCISIONS DE SYSTÈME — assumées, pas oubliées (audit front, points 22 et 23)
+   ==========================================================================
+
+   1. PAS DE MODE SOMBRE. Ce site est un papier institutionnel unique : encre
+      nuit sur papier chaud, un seul état. Ce n'est pas un oubli, c'est un
+      choix. Un site civique dont la monnaie est la confiance gagne à n'avoir
+      qu'un seul rendu de référence — celui qu'on peut citer, imprimer et
+      comparer à une capture. Aucune règle `prefers-color-scheme` n'existe
+      donc dans cette feuille, et il ne faut pas en ajouter sans rouvrir la
+      décision. En contrepartie, deux obligations tenues ici :
+        - `color-scheme: light` est déclaré, pour que les contrôles natifs
+          (champs, ascenseurs, sélecteurs) ne soient pas repeints en sombre
+          par le système par-dessus un fond clair ;
+        - `body` peint un fond explicite (`--fond`), jamais transparent.
+
+   2. `--accent` EST IDENTIQUE À `--encre`. Le site n'a pas de couleur
+      d'action : une action se marque par la forme (pilule, filet, soulignement
+      pointillé), pas par la couleur. L'argile reste réservée au survol et aux
+      états d'attention, le doré au seul anneau de focus. C'est cohérent avec
+      la règle éditoriale « aucune couleur de jugement » qui gouverne la carte
+      et les graphiques : si le rouge ne juge pas une donnée, le bleu ne doit
+      pas non plus désigner un bouton. `--accent` est conservé comme nom de
+      rôle — le jour où l'on promeut l'argile en accent d'action, un seul
+      token change.
+
+   3. CONTRASTE. Toutes les paires texte/fond de cette feuille visent AA
+      (4,5:1), les indicateurs non textuels (anneau de focus, jauges) visent
+      3:1. Les valeurs des tokens ci-dessous ont été choisies par calcul de
+      luminance relative WCAG, pas à l'œil.
+
+   4. RAYONS — trois rôles, quatre tokens, aucune valeur en dur :
+        --rayon-pilule (999px) : élément interactif en pilule (pilules de la
+            carte, onglets de thème, boutons filet, ancres, millésime).
+        --rayon        (12px)  : bloc ou carte (panneau, surcouche, tableau,
+            question, cadre de tableau).
+        --rayon-s      (8px)   : champ de saisie ou petit bloc (infobulle,
+            carreau, encart, ligne survolée).
+        --rayon-xs     (3px)   : micro-forme (jauge, barre, pastille, puce,
+            étiquette d'anomalie) — trop petite pour porter 8px.
+      Seule exception admise : `border-radius: 50%`, qui n'est pas un rayon
+      mais une forme (le rond du bouton fermer, le rond du « i »).
+
+   5. POINTS DE RUPTURE — deux seuils, en rem, et rien d'autre. Les media
+      queries n'acceptant pas les variables, ils sont documentés ici et
+      répétés à l'identique dans la feuille :
+        --bp-moyen : 60rem (960px) — la carte cesse d'être un poste de
+            travail : le panneau devient un tiroir qui monte du bas.
+        --bp-petit : 40rem (640px) — téléphone : les tableaux larges
+            défilent dans leur cadre, l'en-tête se resserre.
+      `@media (max-width: 640px)` a été réécrit `40rem` : même seuil, une
+      seule unité.
+   ========================================================================== */
+
 /* Palette « editorial calm » — reprise du système Zephyr du commanditaire :
    encre nuit sur papier chaud, gris sauge pour le texte second, un seul
    accent argile, un filet doré pour le focus. Sobre, institutionnel, calme.
    Les bleus de la carte restent des bleus : c'est l'échelle de la donnée,
    pas l'habillage. */
 :root {
+  color-scheme: light;
   /* Hauteur du nom de territoire collé en haut du panneau : les titres de
      thème s'y appuient pour ne pas glisser dessous. */
-  --haut-fiche: 2.85rem;
+  /* 3,1rem : la hauteur réelle du titre collant (20px de corps × 1,55, plus
+     son rembourrage). À 2,85rem la barre des rubriques glissait de 3 px sous
+     le nom du territoire. */
+  --haut-fiche: 3.1rem;
+  /* Largeur du panneau de droite. Nommée parce que la barre de pilules de la
+     carte doit s'arrêter avant lui : centrée sur la fenêtre entière, elle
+     passait dessous à 1440 px et recouvrait la dernière ligne de la fiche. */
+  --panneau-largeur: min(50rem, 60vw);
   --encre: #0f1b2e;
-  --encre-douce: #6e7d73;
+  /* Gris second. #6e7d73 donnait 4,34:1 sur le papier blanc et 3,83:1 sur les
+     carreaux #f2f1ec : sous AA des deux côtés, alors qu'il porte les
+     sous-titres, les lectures, les légendes et les pilules inactives. Même
+     teinte (vert-gris désaturé, H≈138), luminosité HSL descendue de 46 % à
+     41 % : 5,27:1 sur blanc, 4,66:1 sur les carreaux, 5,05:1 sur le fond. */
+  --encre-douce: #626f66;
   --papier: #ffffff;
   --papier-creuse: #f2f1ec;
   --fond: #fbfaf6;
@@ -23,11 +90,48 @@
   --accent: #0f1b2e;
   --accent-fonce: #1a2740;
   --accent-teinte: rgb(15 27 46 / 0.06);
-  --argile: #c56a4d;
-  --dore: #b69b53;
-  --alerte: #c56a4d;
+  /* Argile : la terre cuite servait de couleur de texte (survol d'un nom de
+     mesure, mesure portée sur la carte) à 3,79:1. Assombrie à teinte
+     constante jusqu'à 5,12:1 sur blanc et 4,53:1 sur les carreaux. */
+  --argile: #ad5438;
+  /* Doré : uniquement l'anneau de focus, jamais du texte. Un anneau est un
+     indicateur non textuel : le seuil est 3:1 (WCAG 1.4.11), pas 4,5. À
+     #b69b53 il tombait à 2,69:1 sur blanc — invisible là où il compte. */
+  --dore: #96793a;
+  --alerte: #ad5438;
+  /* Taille minimale d'une cible tactile : 44px (WCAG 2.5.5). Nommée, parce
+     qu'elle sert de hauteur de rangée, de hauteur de barre et de zone de
+     frappe étendue — trois endroits qui doivent bouger ensemble. */
+  --cible: 2.75rem;
+  --rayon-pilule: 999px;
   --rayon: 12px;
   --rayon-s: 8px;
+  --rayon-xs: 3px;
+  /* Échelle typographique — 8 crans, ancrés sur des pixels entiers à racine
+     16px. Avant : 29 tailles distinctes, dont une nappe de micro-labels de
+     9,9 à 11,8 px. Plancher : 0,75rem = 12px, sans exception, parce qu'aucun
+     texte de cette interface n'est décoratif — une évolution en 9,9px est
+     une donnée, pas un ornement. */
+  --texte-xs: 0.75rem;    /* 12px — labels, notes, lectures, micro-tableaux */
+  --texte-s: 0.8125rem;   /* 13px — texte second, phrases de mesure */
+  --texte-m: 0.875rem;    /* 14px — corps courant du panneau et des tableaux */
+  --texte-l: 1rem;        /* 16px — corps des blocs, sous-titres de bloc */
+  --texte-xl: 1.125rem;   /* 18px — chiffre de mesure, titre de section */
+  --texte-xxl: 1.25rem;   /* 20px — titre de fiche, titre de vue */
+  --texte-3xl: 1.5rem;    /* 24px — chiffre d'aperçu */
+  --texte-4xl: 1.75rem;   /* 28px — chiffre héros d'un bloc national */
+  /* Échelle d'espacement — 8 crans, mêmes pixels entiers. Avant : 84 valeurs
+     de padding distinctes. Les réservations de place pour un contrôle
+     superposé (flèche de select, loupe, bouton fermer) et les échelles
+     d'indentation se calculent depuis ces crans, jamais en dur. */
+  --espace-1: 0.125rem;   /* 2px  — interligne d'étiquette */
+  --espace-2: 0.25rem;    /* 4px  — pilule serrée, case de matrice */
+  --espace-3: 0.375rem;   /* 6px  — ligne de liste, cellule de tableau */
+  --espace-4: 0.5rem;     /* 8px  — bouton, ligne de mesure */
+  --espace-5: 0.75rem;    /* 12px — encart, en-tête de barre */
+  --espace-6: 1rem;       /* 16px — gouttière de fiche, bloc */
+  --espace-7: 1.5rem;     /* 24px — carte de contenu, section */
+  --espace-8: 2rem;       /* 32px — respiration de page */
   --ombre-1: 0 1px 0 rgb(15 27 46 / 0.04), 0 1px 2px rgb(15 27 46 / 0.04);
   --ombre-2: 0 8px 24px rgb(15 27 46 / 0.06);
   --transition: 200ms cubic-bezier(0.22, 0.61, 0.36, 1);
@@ -37,6 +141,97 @@
      porte le texte avec la même tenue administrative. */
   --serif: "Spectral", ui-serif, Georgia, "Times New Roman", serif;
   --sans: "Public Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* Polices auto-hébergées. Le `<link>` vers fonts.googleapis.com bloquait le
+   premier rendu et transférait l'adresse IP de chaque lecteur hors de l'Union
+   européenne — la CNIL l'a jugé non conforme au RGPD pour un service public
+   (délibération sur Google Fonts, 2022). Spectral et Public Sans sont sous
+   SIL Open Font License 1.1 : les fichiers sont copiés dans public/polices/.
+   `swap` : le texte s'affiche tout de suite dans la police de repli et bascule
+   à l'arrivée du woff2 — jamais de page blanche.
+   Public Sans est une police variable (axe wght) : un seul fichier par
+   sous-ensemble couvre 400, 500, 600 et le 650 des titres de question.
+   Spectral est statique : un fichier par graisse réellement utilisée. */
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/polices/public-sans-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Public Sans";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/polices/public-sans-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/polices/spectral-500-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/polices/spectral-500-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/polices/spectral-600-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/polices/spectral-600-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/polices/spectral-700-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Spectral";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/polices/spectral-700-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF,
+    U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020,
+    U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
 * {
@@ -60,8 +255,11 @@ body {
   left: 1rem;
   top: 1rem;
   z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
   background: var(--papier);
-  padding: 0.6rem 1rem;
+  padding: var(--espace-4) var(--espace-6);
   border: 2px solid var(--accent);
 }
 
@@ -71,7 +269,7 @@ body {
   display: flex;
   align-items: center;
   gap: 1.25rem;
-  padding: 0 1.25rem;
+  padding: 0 var(--espace-7);
   min-height: 3.6rem;
   background: var(--papier);
   border-bottom: 1px solid var(--trait);
@@ -81,7 +279,7 @@ body {
 }
 .entete h1 {
   font-family: var(--serif);
-  font-size: 1.2rem;
+  font-size: var(--texte-xl);
   font-weight: 650;
   margin: 0;
   letter-spacing: -0.01em;
@@ -90,7 +288,7 @@ body {
 .sous-titre {
   margin: 0;
   color: var(--encre-douce);
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
 }
 .entete__titres {
   display: flex;
@@ -105,14 +303,14 @@ body {
   margin-left: auto;
   display: flex;
   gap: 1.1rem;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   white-space: nowrap;
 }
 .entete__nav a {
   color: var(--encre-douce);
   text-decoration: none;
-  padding: 0.32rem 0.75rem;
-  border-radius: 999px;
+  padding: var(--espace-3) var(--espace-5);
+  border-radius: var(--rayon-pilule);
   transition: background var(--transition), color var(--transition);
 }
 .entete__nav a:hover {
@@ -146,7 +344,7 @@ body {
   position: relative;
 }
 .champ label {
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--encre-douce);
@@ -154,8 +352,10 @@ body {
 select,
 input[type="search"] {
   font: inherit;
-  font-size: 0.95rem;
-  padding: 0.5rem 0.7rem;
+  /* 2,75rem : un champ est une cible tactile comme une autre. */
+  min-height: var(--cible);
+  font-size: var(--texte-l);
+  padding: var(--espace-4) var(--espace-5);
   border: 1px solid var(--trait-fort);
   border-radius: var(--rayon-s);
   background: var(--papier);
@@ -165,7 +365,7 @@ input[type="search"] {
 }
 select {
   appearance: none;
-  padding-right: 2rem;
+  padding-right: var(--espace-8);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%235a6472' stroke-width='1.8' stroke-linecap='round' d='M1.5 1.8 6 6.2l4.5-4.4'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.7rem center;
@@ -180,10 +380,17 @@ input[type="search"]:focus-visible {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-teinte);
 }
+/* Un seul anneau de focus pour tout le site. Les liens en étaient exclus :
+   l'en-tête et le lien d'évitement gardaient l'anneau bleu du navigateur
+   pendant que tout le reste passait à l'or — au clavier, la même touche
+   changeait de langage visuel entre la navigation et la page. `:focus-visible`
+   partout : l'anneau se montre à la tabulation, jamais au clic. */
+a:focus-visible,
 select:focus-visible,
 input:focus-visible,
 button:focus-visible,
-summary:focus-visible {
+summary:focus-visible,
+[tabindex]:focus-visible {
   outline: 2px solid var(--dore);
   outline-offset: 2px;
 }
@@ -192,8 +399,8 @@ summary:focus-visible {
 }
 
 .suggestions__vide {
-  padding: 0.5rem 0.75rem;
-  font-size: 0.82rem;
+  padding: var(--espace-4) var(--espace-5);
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 #suggestions {
@@ -218,7 +425,7 @@ summary:focus-visible {
   font: inherit;
   background: none;
   border: 0;
-  padding: 0.5rem 0.7rem;
+  padding: var(--espace-4) var(--espace-5);
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -261,7 +468,7 @@ summary:focus-visible {
   width: 17.5rem;
   max-height: calc(100% - 2rem);
   overflow-y: auto;
-  padding: 0.85rem 0.9rem;
+  padding: var(--espace-5) var(--espace-6);
   scrollbar-width: thin;
 }
 .surcouche--commandes .champ {
@@ -273,8 +480,8 @@ summary:focus-visible {
 .surcouche--commandes select {
   min-width: 0;
   width: 100%;
-  font-size: 0.88rem;
-  padding: 0.42rem 1.8rem 0.42rem 0.6rem;
+  font-size: var(--texte-m);
+  padding: var(--espace-3) var(--espace-8) var(--espace-3) var(--espace-4);
 }
 /* La légende, repliée : une pastille de couleurs collée au bord gauche de la
    carte. Ouverte en permanence, elle occupait le quart de l'écran pour une
@@ -288,12 +495,12 @@ summary:focus-visible {
   width: auto;
   max-width: calc(100% - 2rem);
   padding: 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   overflow: hidden;
 }
 .surcouche--legende[open] {
   width: 13.5rem;
-  padding: 0.5rem 0.65rem 0.4rem;
+  padding: var(--espace-4) var(--espace-5) var(--espace-3);
 }
 .legende__poignee {
   display: flex;
@@ -311,13 +518,13 @@ summary:focus-visible {
   width: auto;
   height: auto;
   margin: -0.5rem -0.65rem 0.3rem;
-  padding: 0.25rem 0;
+  padding: var(--espace-2) 0;
 }
 .legende__vignette {
   display: block;
   width: 0.55rem;
   height: 3.2rem;
-  border-radius: 999px;
+  border-radius: var(--rayon-pilule);
   box-shadow: 0 0 0 1px rgb(15 27 46 / 0.12);
 }
 /* Ouverte, la pastille se couche : elle redevient le trait de l'échelle. */
@@ -333,7 +540,7 @@ summary:focus-visible {
   display: flex;
   margin: 0.3rem 0 0.15rem;
   padding: 0;
-  border-radius: 3px;
+  border-radius: var(--rayon-xs);
   overflow: hidden;
 }
 .legende__echelle .pastille {
@@ -355,7 +562,7 @@ summary:focus-visible {
   white-space: nowrap;
 }
 .legende__bornes span:nth-child(2) {
-  font-size: 0.65rem;
+  font-size: var(--texte-xs);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -384,10 +591,10 @@ summary:focus-visible {
 }
 
 .legende__methode summary {
-  padding: 0.3rem 0;
+  padding: var(--espace-2) 0;
   cursor: pointer;
   color: var(--encre-douce);
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
 }
 .legende__methode summary:hover {
   color: var(--accent);
@@ -403,9 +610,9 @@ summary:focus-visible {
   pointer-events: none;
   background: rgb(20 24 29 / 0.92);
   color: #fff;
-  padding: 0.4rem 0.65rem;
+  padding: var(--espace-3) var(--espace-5);
   border-radius: var(--rayon-s);
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   line-height: 1.4;
   max-width: 16rem;
 }
@@ -431,7 +638,7 @@ summary:focus-visible {
   top: 0.9rem;
   right: 0.9rem;
   bottom: 1.55rem;
-  width: min(50rem, 60vw);
+  width: var(--panneau-largeur);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -443,7 +650,9 @@ summary:focus-visible {
   position: absolute;
   top: 0.35rem;
   right: 0.45rem;
-  z-index: 2;
+  /* Devant la poignée du tiroir : depuis qu'elle fait 44 px de haut, sa zone
+     de frappe passe sous le centre du « × » et interceptait la fermeture. */
+  z-index: 4;
   /* 2 rem : sous 32 px, une cible se rate au doigt. */
   width: 2rem;
   height: 2rem;
@@ -451,7 +660,7 @@ summary:focus-visible {
   border-radius: 50%;
   background: var(--papier-creuse);
   color: var(--encre-douce);
-  font-size: 1.05rem;
+  font-size: var(--texte-l);
   line-height: 1;
   cursor: pointer;
   transition: background var(--transition), color var(--transition);
@@ -469,20 +678,20 @@ summary:focus-visible {
 
 .palmares {
   border-top: 1px solid var(--trait);
-  padding: 0.7rem 1.15rem 0.9rem;
+  padding: var(--espace-5) var(--espace-6) var(--espace-6);
 }
 .palmares__titre {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: var(--texte-l);
 }
 .palmares__quoi {
   margin: 0.1rem 0 0.2rem;
-  font-size: 0.76rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 .palmares__borne {
   margin: 0.55rem 0 0.1rem;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--encre-douce);
@@ -501,10 +710,10 @@ summary:focus-visible {
   background: none;
   border: 0;
   font: inherit;
-  font-size: 0.85rem;
-  padding: 0.26rem 0.35rem;
+  font-size: var(--texte-m);
+  padding: var(--espace-2) var(--espace-3);
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: var(--rayon-s);
   text-align: left;
   transition: background var(--transition);
 }
@@ -536,7 +745,7 @@ summary:focus-visible {
 .legende__note {
   margin: 0.25rem 0 0;
   color: var(--encre-douce);
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
 }
 
 /* Un seul ascenseur pour tout le panneau : fiche et extrêmes défilent
@@ -550,7 +759,45 @@ summary:focus-visible {
   min-height: 0;
 }
 .fiche {
-  padding: 1rem 1.15rem;
+  padding: var(--espace-6) var(--espace-6);
+  /* Colonne flex — pour une seule raison : `order`.
+     Les quatre rubriques et les vingt-six thèmes sont rendus par fiche.ts
+     *après* les ratios et le pont, c'est-à-dire à 2 282 px de défilement
+     mesurés à l'audit. `position: sticky` ne remonte rien : un élément collant
+     ne colle qu'à partir de sa place dans le flux, et personne ne découvrait
+     donc l'étendue de la fiche. Le DOM appartient à fiche.ts ; l'ordre visuel,
+     lui, se règle ici. Les barres remontent sous le nom du territoire, où
+     elles étaient attendues, et redeviennent collantes utiles.
+     Effet de bord assumé : en flex, les marges verticales ne fusionnent plus.
+     Les écarts entre blocs de la fiche s'additionnent au lieu de se recouvrir
+     — quelques pixels, vérifiés au navigateur. */
+  display: flex;
+  flex-direction: column;
+}
+.fiche > * {
+  /* les enfants d'une colonne flex ne se compriment pas : un tableau large
+     doit défiler dans son cadre, pas rétrécir la colonne */
+  flex: 0 0 auto;
+  min-width: 0;
+}
+.fiche .fiche__titre {
+  order: -4;
+}
+.fiche .fiche__meta {
+  order: -3;
+}
+.fiche .fiche__maire {
+  order: -2;
+}
+/* Les actions de la fiche (comparer) suivent l'identité du territoire et
+   précèdent les barres d'onglets : sans rang, elles tombaient sous elles. */
+.fiche .fiche__actions {
+  order: -2;
+  margin: var(--espace-4) 0 var(--espace-5);
+}
+.fiche .onglets-rubriques,
+.fiche .onglets-themes {
+  order: -1;
 }
 /* Le nom du territoire reste lisible en défilant : des chiffres sans leur
    territoire ne veulent rien dire. */
@@ -564,7 +811,7 @@ summary:focus-visible {
   box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
   backdrop-filter: blur(6px);
   margin: -1rem 0 0.2rem;
-  padding: 0.85rem 1.2rem 0.35rem 0;
+  padding: var(--espace-5) var(--espace-6) var(--espace-3) 0;
 }
 .fiche svg {
   max-width: 100%;
@@ -578,24 +825,24 @@ summary:focus-visible {
 }
 .fiche__titre {
   font-family: var(--serif);
-  font-size: 1.3rem;
+  font-size: var(--texte-xxl);
   margin: 0;
 }
 .fiche__meta {
   margin: 0.15rem 0 1rem;
   color: var(--encre-douce);
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 
 .mesures {
   margin: 0 0 1.25rem;
 }
 .mesure {
-  padding: 0.6rem 0;
+  padding: var(--espace-4) 0;
   border-top: 1px solid var(--trait);
 }
 .mesure dt {
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   color: var(--encre-douce);
 }
 .mesure dd {
@@ -606,20 +853,20 @@ summary:focus-visible {
   gap: 0.4rem 0.6rem;
 }
 .mesure strong {
-  font-size: 1.15rem;
+  font-size: var(--texte-xl);
   font-variant-numeric: tabular-nums;
 }
 .millesime {
-  font-size: 0.75rem;
-  padding: 0.05rem 0.4rem;
+  font-size: var(--texte-xs);
+  padding: var(--espace-1) var(--espace-3);
   border: 1px solid var(--trait);
-  border-radius: 999px;
+  border-radius: var(--rayon-pilule);
   color: var(--encre-douce);
 }
 .denominateur,
 .evolution {
   flex-basis: 100%;
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 .evolution__reserve {
@@ -663,32 +910,32 @@ summary:focus-visible {
   display: flex;
   justify-content: space-between;
   margin: 0.1rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 .serie__avertissement {
   margin: 0.25rem 0 0;
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
   color: var(--alerte);
 }
 /* Ce repère situe, il n'explique pas : ni la couleur d'alerte, ni celle de
    l'accent — la note doit se lire comme une légende, pas comme une thèse. */
 .serie__mandat-note {
   margin: 0.25rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 
 .repli {
   border-top: 1px solid var(--trait);
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 /* Le pli est devenu la commande principale de l'onglet Données : sa ligne
    d'ouverture doit s'attraper au doigt. À 21 px de haut on la ratait. */
 .repli > summary {
   cursor: pointer;
   font-weight: 600;
-  padding: 0.6rem 0;
+  padding: var(--espace-4) 0;
   min-height: 1.4rem;
 }
 .repli > summary:hover {
@@ -699,7 +946,7 @@ summary:focus-visible {
 }
 .repli ul {
   margin: 0.6rem 0 0;
-  padding-left: 1.1rem;
+  padding-left: var(--espace-6);
   display: grid;
   gap: 0.6rem;
 }
@@ -707,14 +954,14 @@ summary:focus-visible {
 .formule,
 .avertissement {
   color: var(--encre-douce);
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
 }
 .avertissement {
   margin-top: 0.7rem;
 }
 
 .tableau {
-  padding: 1.5rem;
+  padding: var(--espace-7);
   margin: 0 1.5rem 1.25rem;
   background: var(--papier);
   border: 1px solid var(--trait);
@@ -723,23 +970,23 @@ summary:focus-visible {
 }
 .tableau h2 {
   font-family: var(--serif);
-  font-size: 1.15rem;
+  font-size: var(--texte-xl);
   margin: 0;
 }
 .tableau__aide {
   color: var(--encre-douce);
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   margin: 0.2rem 0 0.8rem;
 }
 .tableau__export {
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   font-weight: 600;
   color: #fff;
   background: var(--accent);
   border: 1px solid var(--accent);
-  border-radius: 999px;
-  padding: 0.45rem 1rem;
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-4) var(--espace-6);
   cursor: pointer;
   box-shadow: var(--ombre-1);
   transition: background var(--transition), box-shadow var(--transition),
@@ -759,18 +1006,18 @@ summary:focus-visible {
 table {
   border-collapse: collapse;
   width: 100%;
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 caption {
   text-align: left;
-  padding: 0.6rem 0.75rem;
+  padding: var(--espace-4) var(--espace-5);
   color: var(--encre-douce);
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
 }
 th,
 td {
   text-align: left;
-  padding: 0.4rem 0.75rem;
+  padding: var(--espace-3) var(--espace-5);
   border-top: 1px solid var(--trait);
 }
 td:last-child,
@@ -792,11 +1039,11 @@ tbody tr:hover {
 }
 
 .pied {
-  padding: 1.5rem 1.5rem 3rem;
+  padding: var(--espace-7) var(--espace-7) calc(var(--espace-8) * 1.5);
   border-top: 1px solid var(--trait);
   background: var(--papier);
   color: var(--encre-douce);
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   display: grid;
   gap: 0.4rem;
 }
@@ -814,7 +1061,7 @@ tbody tr:hover {
     grid-template-columns: 1fr 1fr;
     gap: 0.45rem;
     max-height: 40%;
-    padding: 0.6rem;
+    padding: var(--espace-4);
   }
   /* Le tiroir monte du bas. Sans sélection il montre la France, mais plus
      bas : la carte doit rester manœuvrable, c'est par elle qu'on choisit.
@@ -834,7 +1081,7 @@ tbody tr:hover {
     z-index: 7;
     border-radius: var(--rayon) var(--rayon) 0 0;
     border-bottom: 0;
-    padding-top: 0.9rem;
+    padding-top: var(--espace-6);
   }
   .panneau.panneau--selection {
     --tiroir: 62dvh;
@@ -862,7 +1109,7 @@ tbody tr:hover {
     transform: translateX(-50%);
     width: 2.4rem;
     height: 0.25rem;
-    border-radius: 999px;
+    border-radius: var(--rayon-pilule);
     background: var(--trait-fort);
   }
   .panneau__poignee:active {
@@ -884,10 +1131,10 @@ tbody tr:hover {
   }
   .entete__nav {
     gap: 0.2rem;
-    font-size: 0.78rem;
+    font-size: var(--texte-s);
   }
   .entete__nav a {
-    padding: 0.28rem 0.55rem;
+    padding: var(--espace-2) var(--espace-4);
   }
   .entete__recherche {
     max-width: 11rem;
@@ -914,28 +1161,28 @@ tbody tr:hover {
     width: 100%;
   }
   .surcouche--commandes .champ label {
-    font-size: 0.66rem;
+    font-size: var(--texte-xs);
   }
   .tableau,
   .national {
-    padding: 1rem;
+    padding: var(--espace-6);
     margin: 0 0.6rem 1rem;
   }
   /* 375 px : le titre en 1,2 rem sans césure plus trois onglets sans césure
      dépassaient de 44 px, et c'est la page entière qui s'élargissait. */
   .entete {
     gap: 0.5rem;
-    padding: 0 0.6rem;
+    padding: 0 var(--espace-4);
   }
   .entete h1 {
-    font-size: 0.98rem;
+    font-size: var(--texte-l);
   }
   .entete__nav {
     gap: 0.1rem;
-    font-size: 0.74rem;
+    font-size: var(--texte-xs);
   }
   .entete__nav a {
-    padding: 0.28rem 0.42rem;
+    padding: var(--espace-2) var(--espace-3);
   }
 }
 
@@ -950,7 +1197,7 @@ tbody tr:hover {
 
 /* Bloc national : dette française et repères européens. */
 .national {
-  padding: 1.5rem;
+  padding: var(--espace-7);
   margin: 0 1.5rem 1.25rem;
   background: var(--papier);
   border: 1px solid var(--trait);
@@ -959,7 +1206,7 @@ tbody tr:hover {
 }
 .national h2 {
   font-family: var(--serif);
-  font-size: 1.25rem;
+  font-size: var(--texte-xxl);
   margin: 0 0 0.9rem;
 }
 .national__grille {
@@ -970,17 +1217,17 @@ tbody tr:hover {
 .bloc {
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
-  padding: 1.1rem 1.2rem;
+  padding: var(--espace-6) var(--espace-6);
   background: var(--papier);
   box-shadow: var(--ombre-1);
 }
 .bloc h3 {
   margin: 0;
-  font-size: 1rem;
+  font-size: var(--texte-l);
 }
 .bloc h4 {
   margin: 1rem 0 0.4rem;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   color: var(--encre-douce);
   font-weight: 600;
 }
@@ -991,13 +1238,13 @@ tbody tr:hover {
   gap: 0.5rem;
 }
 .bloc__chiffre strong {
-  font-size: 1.7rem;
+  font-size: var(--texte-4xl);
   font-variant-numeric: tabular-nums;
 }
 .bloc__complement {
   margin: 0.1rem 0 0.6rem;
   color: var(--encre-douce);
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 .courbe {
   width: 100%;
@@ -1009,7 +1256,7 @@ tbody tr:hover {
   display: flex;
   justify-content: space-between;
   margin: 0.1rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   font-variant-numeric: tabular-nums;
 }
@@ -1019,14 +1266,14 @@ tbody tr:hover {
   padding: 0;
   display: grid;
   gap: 0.3rem;
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 .repartition li {
   display: flex;
   justify-content: space-between;
   gap: 1rem;
   border-bottom: 1px solid var(--trait);
-  padding-bottom: 0.25rem;
+  padding-bottom: var(--espace-2);
 }
 .repartition strong {
   font-variant-numeric: tabular-nums;
@@ -1036,7 +1283,7 @@ tbody tr:hover {
 }
 .comparaison td,
 .comparaison th {
-  padding: 0.35rem 0.5rem;
+  padding: var(--espace-3) var(--espace-4);
 }
 .comparaison tbody th {
   font-weight: 400;
@@ -1058,27 +1305,27 @@ tbody tr:hover {
   width: 100%;
   border-collapse: collapse;
   margin: 0.6rem 0 1rem;
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 .pont caption {
   text-align: left;
   color: var(--encre-douce);
-  font-size: 0.82rem;
-  padding-bottom: 0.4rem;
+  font-size: var(--texte-s);
+  padding-bottom: var(--espace-3);
 }
 .pont__ligne th {
   font-weight: 400;
   text-align: left;
-  padding: 0.3rem 0.5rem 0.3rem 0;
+  padding: var(--espace-2) var(--espace-4) var(--espace-2) 0;
 }
 .pont__ligne--n0 th {
   font-weight: 600;
 }
 .pont__ligne--n1 th {
-  padding-left: 1.1rem;
+  padding-left: var(--espace-6);
 }
 .pont__ligne--n2 th {
-  padding-left: 2.2rem;
+  padding-left: var(--espace-8);
   color: var(--encre-douce);
 }
 .pont__signe {
@@ -1090,7 +1337,7 @@ tbody tr:hover {
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-  padding: 0.3rem 0.6rem;
+  padding: var(--espace-2) var(--espace-4);
 }
 .pont__jauge {
   width: 40%;
@@ -1099,7 +1346,7 @@ tbody tr:hover {
 .pont__barre {
   display: block;
   height: 0.55rem;
-  border-radius: 2px;
+  border-radius: var(--rayon-xs);
   background: var(--accent);
 }
 .pont__ligne--n1 .pont__barre {
@@ -1111,12 +1358,12 @@ tbody tr:hover {
 .pont__solde th,
 .pont__solde td {
   border-top: 2px solid var(--trait);
-  padding-top: 0.5rem;
+  padding-top: var(--espace-4);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
 .pont__solde .pont__montant {
-  font-size: 1.05rem;
+  font-size: var(--texte-l);
 }
 .champ--exercice {
   margin: 0.6rem 0 0;
@@ -1126,7 +1373,7 @@ tbody tr:hover {
    Des cartes, pas une liste de liens : chaque question est une porte, et une
    porte se voit. Le survol soulève à peine — l'affordance sans le spectacle. */
 .questions__cadre {
-  padding: 1.1rem 1.5rem 1.3rem;
+  padding: var(--espace-6) var(--espace-7) var(--espace-7);
   background: var(--papier);
   border-bottom: 1px solid var(--trait);
 }
@@ -1158,9 +1405,9 @@ tbody tr:hover {
   align-items: center;
   justify-content: space-between;
   gap: 0.6rem;
-  padding: 0.75rem 0.95rem;
+  padding: var(--espace-5) var(--espace-6);
   font-weight: 650;
-  font-size: 0.92rem;
+  font-size: var(--texte-m);
   line-height: 1.35;
   cursor: pointer;
   list-style: none;
@@ -1172,7 +1419,7 @@ tbody tr:hover {
   content: "+";
   color: var(--accent);
   font-weight: 600;
-  font-size: 1.05rem;
+  font-size: var(--texte-l);
   line-height: 1;
   transition: transform var(--transition);
 }
@@ -1180,19 +1427,19 @@ tbody tr:hover {
   content: "−";
 }
 .questions details[open] summary {
-  padding-bottom: 0.35rem;
+  padding-bottom: var(--espace-3);
 }
 .questions span {
   display: block;
-  padding: 0 0.95rem;
+  padding: 0 var(--espace-6);
   color: var(--encre-douce);
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   line-height: 1.45;
 }
 .questions details > a {
   display: inline-block;
   margin: 0.5rem 0.95rem 0.85rem;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   font-weight: 600;
   color: var(--accent);
   text-decoration: none;
@@ -1216,7 +1463,7 @@ tbody tr:hover {
 .cent__question {
   margin: 0 0 0.6rem;
   color: var(--encre-douce);
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
 }
 .cent {
   list-style: none;
@@ -1230,7 +1477,7 @@ tbody tr:hover {
   grid-template-columns: 4.5rem 1fr;
   align-items: baseline;
   gap: 0.1rem 0.6rem;
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 .cent__part {
   font-variant-numeric: tabular-nums;
@@ -1240,7 +1487,7 @@ tbody tr:hover {
 .cent__barre {
   grid-column: 2;
   height: 0.4rem;
-  border-radius: 2px;
+  border-radius: var(--rayon-xs);
   background: var(--accent);
   opacity: 0.75;
 }
@@ -1248,17 +1495,17 @@ tbody tr:hover {
 .comparateur {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 .comparateur caption {
   text-align: left;
   color: var(--encre-douce);
-  font-size: 0.82rem;
-  padding-bottom: 0.4rem;
+  font-size: var(--texte-s);
+  padding-bottom: var(--espace-3);
 }
 .comparateur th,
 .comparateur td {
-  padding: 0.4rem 0.6rem;
+  padding: var(--espace-3) var(--espace-4);
   border-bottom: 1px solid var(--trait);
   text-align: right;
   font-variant-numeric: tabular-nums;
@@ -1283,19 +1530,19 @@ tbody tr:hover {
   background: none;
   cursor: pointer;
   color: var(--encre-douce);
-  font-size: 1rem;
+  font-size: var(--texte-l);
   line-height: 1;
-  padding: 0 0.2rem;
+  padding: 0 var(--espace-2);
 }
 .comparer {
   margin: 0.4rem 0 0.8rem;
-  padding: 0.35rem 0.7rem;
+  padding: var(--espace-3) var(--espace-5);
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
   background: none;
   cursor: pointer;
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 .comparer[disabled] {
   cursor: not-allowed;
@@ -1305,11 +1552,11 @@ tbody tr:hover {
 .fraicheur {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 .fraicheur th,
 .fraicheur td {
-  padding: 0.4rem 0.6rem;
+  padding: var(--espace-3) var(--espace-4);
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid var(--trait);
@@ -1321,9 +1568,9 @@ tbody tr:hover {
 .anomalie {
   display: inline-block;
   border: 1px solid var(--trait);
-  border-radius: 2px;
-  padding: 0 0.3rem;
-  font-size: 0.75rem;
+  border-radius: var(--rayon-xs);
+  padding: 0 var(--espace-2);
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   white-space: nowrap;
 }
@@ -1343,7 +1590,7 @@ tbody tr:hover {
   max-width: 62ch;
 }
 .journal__entree {
-  padding: 0.9rem 0;
+  padding: var(--espace-6) 0;
   border-bottom: 1px solid var(--trait);
 }
 .journal__entete {
@@ -1352,13 +1599,13 @@ tbody tr:hover {
   align-items: baseline;
   gap: 0.5rem;
   margin: 0 0 0.35rem;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 .journal__type {
   border: 1px solid var(--trait);
-  border-radius: 2px;
-  padding: 0 0.35rem;
+  border-radius: var(--rayon-xs);
+  padding: 0 var(--espace-3);
   font-weight: 600;
   color: var(--encre);
   white-space: nowrap;
@@ -1368,7 +1615,7 @@ tbody tr:hover {
 }
 .journal__technique {
   margin-top: 0.5rem;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   color: var(--encre-douce);
 }
 .journal__technique summary {
@@ -1387,7 +1634,7 @@ tbody tr:hover {
   padding: 0;
   display: flex;
   gap: 0.6rem;
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
 }
 .quartiles li {
   display: flex;
@@ -1400,7 +1647,7 @@ tbody tr:hover {
 }
 .quartiles strong {
   font-variant-numeric: tabular-nums;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 .quartiles__ici {
   margin-left: auto;
@@ -1414,13 +1661,13 @@ tbody tr:hover {
 /* La position parmi les semblables, en tête de fiche. */
 .position {
   margin: 0.7rem 0 0.2rem;
-  padding: 0.55rem 0.7rem 0.6rem;
+  padding: var(--espace-4) var(--espace-5) var(--espace-4);
   background: var(--papier-creuse);
   border-radius: var(--rayon-s);
 }
 .position__phrase {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   line-height: 1.4;
 }
 
@@ -1431,14 +1678,14 @@ tbody tr:hover {
   margin: 0.4rem 0 0;
   padding: 0;
   flex-basis: 100%;
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 .reperes li {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.12rem 0;
+  padding: var(--espace-1) 0;
   border-top: 1px solid var(--trait);
 }
 .repere__ecart {
@@ -1448,7 +1695,7 @@ tbody tr:hover {
 .reperes__note {
   flex-basis: 100%;
   margin: 0.25rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   font-style: italic;
   color: var(--encre-douce);
 }
@@ -1456,15 +1703,17 @@ tbody tr:hover {
 /* Le maire : une information d'identité de la commune, pas une mesure. */
 .fiche__maire {
   margin: -0.5rem 0 1rem;
-  font-size: 0.9rem;
+  font-size: var(--texte-m);
 }
 .fiche__maire span {
   color: var(--encre-douce);
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
 }
 .repere__n {
   font-variant-numeric: tabular-nums;
-  opacity: 0.7;
+  /* Pas d'`opacity` : à 0,7 ce gris tombait à 2,90:1 sur le papier. Une
+     opacité n'est pas une nuance typographique, c'est une perte de contraste
+     qui ne se voit pas dans le token. La discrétion vient de la taille. */
 }
 
 /* Fonctions COFOG : la barre dit la part dans le total, le chiffre dit le reste. */
@@ -1473,7 +1722,7 @@ tbody tr:hover {
 }
 .fonctions td,
 .fonctions th {
-  padding: 0.35rem 0.5rem;
+  padding: var(--espace-3) var(--espace-4);
 }
 .fonctions tbody th {
   font-weight: 400;
@@ -1487,7 +1736,7 @@ tbody tr:hover {
   width: 6.5rem;
   height: 0.55rem;
   background: var(--papier-creuse);
-  border-radius: 2px;
+  border-radius: var(--rayon-xs);
   overflow: hidden;
   vertical-align: baseline;
   margin-right: 0.45rem;
@@ -1505,7 +1754,7 @@ tbody tr:hover {
 }
 .secu td,
 .secu th {
-  padding: 0.35rem 0.5rem;
+  padding: var(--espace-3) var(--espace-4);
 }
 .secu tbody th {
   font-weight: 400;
@@ -1515,7 +1764,7 @@ tbody tr:hover {
   font-variant-numeric: tabular-nums;
 }
 .secu--serie {
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 
 /* Le graphique de conjoncture : la pièce des décryptages. Courbes sobres,
@@ -1539,9 +1788,9 @@ tbody tr:hover {
   background: var(--papier);
   color: var(--encre-douce);
   font: inherit;
-  font-size: 0.8rem;
-  padding: 0.22rem 0.7rem;
-  border-radius: 999px;
+  font-size: var(--texte-s);
+  padding: var(--espace-2) var(--espace-5);
+  border-radius: var(--rayon-pilule);
   cursor: pointer;
   transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
@@ -1577,7 +1826,12 @@ tbody tr:hover {
 }
 .graphique__etiquette {
   fill: var(--encre-douce);
-  font-size: 11px;
+  /* Unités du viewBox (720×300), pas des pixels CSS : le SVG est mis à
+     l'échelle par sa largeur. Sur un écran large elles rendent ~15px, sur un
+     téléphone ~5px — l'échelle typographique de la page ne s'applique pas
+     ici, c'est la géométrie du dessin qui décide. Voir la note « graphique »
+     du rendu : le correctif tient dans le viewBox, pas dans la feuille. */
+  font-size: 12px;
   font-family: var(--sans);
 }
 .graphique__serie polyline {
@@ -1601,8 +1855,8 @@ tbody tr:hover {
   border: 1px solid var(--trait);
   border-radius: var(--rayon-s);
   box-shadow: var(--ombre-2);
-  padding: 0.45rem 0.65rem;
-  font-size: 0.8rem;
+  padding: var(--espace-4) var(--espace-5);
+  font-size: var(--texte-s);
   line-height: 1.5;
   pointer-events: none;
   font-variant-numeric: tabular-nums;
@@ -1612,7 +1866,7 @@ tbody tr:hover {
   flex-wrap: wrap;
   gap: 0.3rem 1rem;
   margin: 0.5rem 0 0;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 .graphique__legende-item {
@@ -1624,13 +1878,14 @@ tbody tr:hover {
   display: inline-block;
   width: 16px;
   height: 3px;
-  border-radius: 2px;
+  border-radius: var(--rayon-xs);
   background: var(--serie, var(--encre-douce));
 }
 .graphique__legende-item--pointille .graphique__puce {
   background: repeating-linear-gradient(90deg, var(--serie) 0 4px, transparent 4px 7px);
 }
-@media (max-width: 640px) {
+/* --bp-petit : 40rem = 640px, réécrit en rem (une seule unité). */
+@media (max-width: 40rem) {
   .graphique__commandes {
     justify-content: flex-start;
   }
@@ -1643,11 +1898,11 @@ tbody tr:hover {
   justify-content: space-between;
   align-items: baseline;
   gap: 0.8rem;
-  padding: 0.28rem 0;
+  padding: var(--espace-2) 0;
   border-bottom: 1px solid var(--trait);
 }
 .mesure--compacte dt {
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   font-weight: 400;
   color: var(--encre-douce);
   text-transform: none;
@@ -1673,37 +1928,37 @@ tbody tr:hover {
   gap: 0.45rem;
 }
 .mesure--compacte .evolution {
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   min-width: 3.4rem;
   text-align: right;
 }
 .mesure--compacte strong {
-  font-size: 0.92rem;
+  font-size: var(--texte-m);
   font-variant-numeric: tabular-nums;
 }
 .mesure--compacte .evolution {
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
 }
 .panneau__section {
   margin: 0.9rem 0 0.3rem;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--encre-douce);
 }
 .apercu__mediane {
   margin: 0.6rem 0 0.1rem;
-  font-size: 1.05rem;
+  font-size: var(--texte-l);
 }
 .apercu__mediane strong {
-  font-size: 1.5rem;
+  font-size: var(--texte-3xl);
   font-variant-numeric: tabular-nums;
 }
 .apercu__masse {
   margin: 0;
   color: var(--encre-douce);
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 
 
@@ -1712,12 +1967,12 @@ tbody tr:hover {
 .mesure__autre {
   display: block;
   color: var(--encre-douce);
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   margin-top: 0.05rem;
 }
 .infobulle__autre {
   display: block;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   opacity: 0.75;
 }
 
@@ -1734,7 +1989,7 @@ tbody tr:hover {
 }
 *::-webkit-scrollbar-thumb {
   background: var(--trait-fort);
-  border-radius: 8px;
+  border-radius: var(--rayon-s);
 }
 *::-webkit-scrollbar-track,
 *::-webkit-scrollbar-button {
@@ -1747,14 +2002,14 @@ tbody tr:hover {
    pas un pavé. */
 .comparer {
   font: inherit;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--encre-douce);
   background: none;
   border: 1px solid var(--trait);
-  border-radius: 999px;
-  padding: 0.28rem 0.75rem;
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-2) var(--espace-5);
   cursor: pointer;
   transition: border-color var(--transition), color var(--transition);
 }
@@ -1799,7 +2054,8 @@ body[data-vue="carte"] .pied {
   stroke-width: 42;
 }
 .camembert__part {
-  font-size: 12px;
+  /* Unités du viewBox 220×220, rendu à 13rem : ~12,3px à l'écran. */
+  font-size: 13px;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
@@ -1814,7 +2070,7 @@ body[data-vue="carte"] .pied {
   margin: 0;
   padding: 0;
   flex: 1 1 14rem;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   display: grid;
   gap: 0.28rem;
 }
@@ -1831,14 +2087,15 @@ body[data-vue="carte"] .pied {
 .camembert__puce {
   width: 0.7rem;
   height: 0.7rem;
-  border-radius: 3px;
+  border-radius: var(--rayon-xs);
   flex: none;
   align-self: center;
 }
 
 /* Annotations du graphique : les points qui parlent. */
 .graphique__valeur {
-  font-size: 11px;
+  /* Unités du viewBox — voir .graphique__etiquette. */
+  font-size: 12px;
   font-weight: 600;
   fill: var(--encre);
   font-variant-numeric: tabular-nums;
@@ -1864,7 +2121,7 @@ body[data-vue="carte"] .pied {
   background: none;
   border: 0;
   box-shadow: none;
-  padding: 0.4rem 0 0.8rem;
+  padding: var(--espace-3) 0 var(--espace-5);
 }
 .croiser__commandes .champ {
   flex: 1 1 18rem;
@@ -1874,7 +2131,7 @@ body[data-vue="carte"] .pied {
 }
 .champ--case {
   justify-content: flex-end;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   color: var(--encre-douce);
 }
 .champ--case input {
@@ -1886,19 +2143,19 @@ body[data-vue="carte"] .pied {
   border: 1px solid var(--trait);
   border-radius: var(--rayon-s);
   background: var(--papier);
-  padding: 0.4rem;
+  padding: var(--espace-3);
 }
 .croiser__resume {
   margin: 0.7rem 0 0.2rem;
-  font-size: 0.95rem;
+  font-size: var(--texte-l);
 }
 .croiser__resume strong {
-  font-size: 1.15rem;
+  font-size: var(--texte-xl);
   font-variant-numeric: tabular-nums;
 }
 .croiser__n {
   color: var(--encre-douce);
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
 }
 
 /* Le petit tableau des exercices : les nombres sous la courbe. */
@@ -1911,24 +2168,24 @@ body[data-vue="carte"] .pied {
   width: 100%;
   border-collapse: collapse;
   margin: 0.35rem 0 0.2rem;
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
 }
 .mini-serie th {
   font-weight: 500;
   color: var(--encre-douce);
   text-align: right;
-  padding: 0.1rem 0.3rem;
+  padding: var(--espace-1) var(--espace-2);
   border-bottom: 1px solid var(--trait);
 }
 .mini-serie td {
   text-align: right;
-  padding: 0.22rem 0.3rem;
+  padding: var(--espace-2) var(--espace-2);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .comparer-lien {
   margin-left: 0.6rem;
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   color: var(--encre);
 }
 
@@ -1937,17 +2194,17 @@ body[data-vue="carte"] .pied {
 .panneau__onglets {
   display: flex;
   gap: 0.2rem;
-  padding: 0.5rem 2.6rem 0 0.9rem;
+  padding: var(--espace-4) calc(var(--espace-8) + var(--espace-4)) 0 var(--espace-6);
   border-bottom: 1px solid var(--trait);
   flex: 0 0 auto;
 }
 .panneau__onglets button {
   font: inherit;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   border: 0;
   background: none;
   color: var(--encre-douce);
-  padding: 0.35rem 0.7rem;
+  padding: var(--espace-3) var(--espace-5);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
@@ -1960,11 +2217,11 @@ body[data-vue="carte"] .pied {
 
 /* Le volet d'analyse, dans le panneau : compact par construction. */
 #volet-analyse {
-  padding: 0.8rem 1.15rem 1rem;
+  padding: var(--espace-5) var(--espace-6) var(--espace-6);
 }
 .croiser__intro {
   margin: 0 0 0.7rem;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 #volet-analyse .champ {
@@ -1973,23 +2230,23 @@ body[data-vue="carte"] .pied {
 #volet-analyse select {
   min-width: 0;
   width: 100%;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 #volet-analyse .croiser__scene {
-  padding: 0.2rem;
+  padding: var(--espace-2);
 }
 #volet-analyse canvas {
   display: block;
   width: 100%;
 }
 #volet-analyse .croiser__resume {
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 #volet-analyse .croiser__resume strong {
-  font-size: 1.05rem;
+  font-size: var(--texte-l);
 }
 #volet-analyse .avertissement {
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
 }
 
 /* Le niveau national, en tête de l'aperçu de couche. */
@@ -1999,13 +2256,13 @@ body[data-vue="carte"] .pied {
   align-items: baseline;
   gap: 0.8rem;
   margin: 0.7rem 0 0.2rem;
-  padding-bottom: 0.35rem;
+  padding-bottom: var(--espace-3);
   border-bottom: 1px solid var(--trait);
   color: var(--encre-douce);
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
 }
 .apercu__national strong {
-  font-size: 1.25rem;
+  font-size: var(--texte-xxl);
   color: var(--encre);
   font-variant-numeric: tabular-nums;
 }
@@ -2013,15 +2270,15 @@ body[data-vue="carte"] .pied {
 /* Sources, dans la vue Données. */
 .source {
   border-top: 1px solid var(--trait);
-  padding: 0.6rem 0;
+  padding: var(--espace-4) 0;
 }
 .source h3 {
   margin: 0 0 0.15rem;
-  font-size: 0.95rem;
+  font-size: var(--texte-l);
 }
 .source p {
   margin: 0;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   color: var(--encre-douce);
 }
 
@@ -2036,12 +2293,12 @@ body[data-vue="carte"] .pied {
 }
 .croiser__mode {
   font: inherit;
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
   border: 1px solid var(--trait);
   background: var(--papier);
   color: var(--encre-douce);
-  border-radius: 999px;
-  padding: 0.2rem 0.7rem;
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-2) var(--espace-5);
   cursor: pointer;
   transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
@@ -2063,7 +2320,7 @@ body[data-vue="carte"] .pied {
 .matrice {
   border-collapse: separate;
   border-spacing: 2px;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   width: 100%;
 }
 .matrice th {
@@ -2071,7 +2328,7 @@ body[data-vue="carte"] .pied {
   color: var(--encre-douce);
   text-align: left;
   white-space: nowrap;
-  padding: 0 0.3rem 0 0;
+  padding: 0 var(--espace-2) 0 0;
   max-width: 9.5rem;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -2083,8 +2340,8 @@ body[data-vue="carte"] .pied {
 .matrice__case {
   text-align: center;
   min-width: 1.75rem;
-  padding: 0.28rem 0.05rem;
-  border-radius: 3px;
+  padding: var(--espace-2) var(--espace-1);
+  border-radius: var(--rayon-xs);
   font-variant-numeric: tabular-nums;
   cursor: pointer;
   color: var(--encre);
@@ -2100,7 +2357,7 @@ body[data-vue="carte"] .pied {
   align-items: center;
   gap: 0.3rem;
   margin: 0.5rem 0 0;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 .matrice__negatif,
@@ -2108,7 +2365,7 @@ body[data-vue="carte"] .pied {
 .matrice__positif {
   width: 2.2rem;
   height: 0.5rem;
-  border-radius: 2px;
+  border-radius: var(--rayon-xs);
   display: inline-block;
 }
 .matrice__negatif {
@@ -2123,7 +2380,7 @@ body[data-vue="carte"] .pied {
 }
 .matrice__paires h4 {
   margin: 0.9rem 0 0.3rem;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: var(--encre-douce);
@@ -2132,7 +2389,7 @@ body[data-vue="carte"] .pied {
   list-style: none;
   margin: 0;
   padding: 0;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   display: grid;
   gap: 0.25rem;
 }
@@ -2156,7 +2413,7 @@ body[data-vue="carte"] .pied {
   max-height: 42vh;
   overflow-y: auto;
   margin: 0 -0.25rem 0.6rem;
-  padding: 0 0.25rem;
+  padding: 0 var(--espace-2);
   scrollbar-width: thin;
   flex: 1 1 100%;
 }
@@ -2165,8 +2422,8 @@ body[data-vue="carte"] .pied {
   top: 0;
   z-index: 1;
   margin: 0.5rem 0 0.15rem;
-  padding: 0.15rem 0;
-  font-size: 0.68rem;
+  padding: var(--espace-1) 0;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--encre-douce);
@@ -2180,13 +2437,13 @@ body[data-vue="carte"] .pied {
   width: 100%;
   text-align: left;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   line-height: 1.35;
   border: 0;
   background: none;
   color: var(--encre);
-  padding: 0.28rem 0.45rem;
-  border-radius: 6px;
+  padding: var(--espace-2) var(--espace-4);
+  border-radius: var(--rayon-s);
   cursor: pointer;
   transition: background var(--transition);
 }
@@ -2202,14 +2459,14 @@ body[data-vue="carte"] .pied {
 }
 .indicateurs__vide {
   margin: 0.5rem 0;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 
 /* Les sources des deux séries croisées, sous le coefficient. */
 .croiser__sources {
   margin: 0.4rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 .croiser__sources p {
@@ -2223,14 +2480,14 @@ body[data-vue="carte"] .pied {
 .sources__titre {
   margin: 1.4rem 0 0.4rem;
   font-family: var(--serif);
-  font-size: 1.05rem;
+  font-size: var(--texte-l);
 }
 .sources__titre:first-child {
   margin-top: 0;
 }
 .source h4 {
   margin: 0 0 0.15rem;
-  font-size: 0.95rem;
+  font-size: var(--texte-l);
 }
 
 
@@ -2250,16 +2507,16 @@ body[data-vue="carte"] .pied {
   display: flex;
   align-items: baseline;
   gap: 0.3rem;
-  padding: 0.1rem 0.45rem 0.1rem 0;
+  padding: var(--espace-1) var(--espace-4) var(--espace-1) 0;
   border-left: 2px solid var(--trait);
-  padding-left: 0.45rem;
+  padding-left: var(--espace-4);
 }
 .kpis > div:first-child {
   border-left: 0;
   padding-left: 0;
 }
 .kpis dt {
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--encre-douce);
@@ -2267,13 +2524,13 @@ body[data-vue="carte"] .pied {
 }
 .kpis dd {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 .kpis dd span {
   margin-left: 0.3rem;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   font-weight: 400;
   color: var(--encre-douce);
 }
@@ -2282,7 +2539,7 @@ body[data-vue="carte"] .pied {
 /* L'unité de la valeur affichée, dite en clair : « 179 € » ne disait pas
    qu'il s'agissait d'un par-habitant — l'infobulle était trop discrète. */
 .par-quoi {
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2293,7 +2550,7 @@ body[data-vue="carte"] .pied {
 .serie__quoi {
   width: 100%;
   margin: 0.5rem 0 -0.1rem;
-  font-size: 0.66rem;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--encre-douce);
@@ -2301,10 +2558,10 @@ body[data-vue="carte"] .pied {
 .mini-serie tbody th {
   text-align: left;
   font-weight: 400;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   white-space: nowrap;
-  padding-right: 0.4rem;
+  padding-right: var(--espace-3);
   border-bottom: 0;
 }
 .mini-serie tbody tr + tr td,
@@ -2314,40 +2571,94 @@ body[data-vue="carte"] .pied {
 
 
 /* La barre de la carte : maille et territoire, en bas, en pilules. Ce sont
-   des réglages de cadrage — ils ne méritent pas deux menus dans le panneau. */
+   des réglages de cadrage — ils ne méritent pas deux menus dans le panneau.
+
+   Elle était centrée sur la fenêtre entière (`left: 50%` + translation) : à
+   1440 px, le panneau occupe 800 px à droite, le centre de la fenêtre tombe
+   donc *sous* le panneau et la rangée Métropole…Mayotte recouvrait la
+   dernière ligne de la fiche. Elle se centre maintenant sur la zone de carte
+   réellement visible, entre le bord gauche et le panneau. */
+/* Le sélecteur d'indicateur de la carte porte la forme des pilules qui le
+   suivent, sans leur `background: none` qui effacerait son chevron natif. Sa
+   zone de frappe suit la même règle que les autres commandes. */
+.carte-barre select {
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font: inherit;
+  font-size: var(--texte-xs);
+  max-width: 16rem;
+}
+
 .carte-barre {
   position: absolute;
-  left: 50%;
+  left: 0.9rem;
+  right: calc(var(--panneau-largeur) + 1.8rem);
   bottom: 1.1rem;
-  transform: translateX(-50%);
   z-index: 6;
   display: flex;
   gap: 0.5rem;
   align-items: center;
-  max-width: calc(100% - 2rem);
   flex-wrap: wrap;
   justify-content: center;
 }
+/* Un groupe de pilules plus large que la place disponible défile, et le dit.
+   Mesuré à l'audit : 960 px de pilules pour 351 visibles sur téléphone, la
+   dernière coupée net — rien ne distinguait « coupé » de « fini ».
+   Le dégradé est un pseudo-élément *collant* dans le défilement, pas un
+   `mask-image` : un masque aurait effacé l'ombre portée qui décolle la barre
+   de la carte. Collé au bord droit du port de défilement, il se superpose au
+   contenu qui reste à découvrir ; quand tout tient, il se pose sur le fond
+   blanc de la barre et devient invisible tout seul.
+   Le rembourrage vertical monte à 8 px : c'est lui qui donne aux pilules leurs
+   44 px de zone de frappe sans grossir leur dessin (voir « cibles tactiles »). */
 .pilules {
   display: flex;
   gap: 0.15rem;
-  padding: 0.2rem;
+  padding: var(--espace-4) var(--espace-2);
   background: rgb(255 255 255 / 0.94);
   backdrop-filter: blur(10px);
   border: 1px solid var(--trait);
-  border-radius: 999px;
+  border-radius: var(--rayon-pilule);
   box-shadow: var(--ombre-2);
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+}
+.pilules::-webkit-scrollbar {
+  display: none;
+}
+.pilules::after {
+  content: "";
+  position: sticky;
+  right: 0;
+  flex: 0 0 1.5rem;
+  margin-left: -1.5rem;
+  align-self: stretch;
+  pointer-events: none;
+  background: linear-gradient(to left, var(--papier), rgb(255 255 255 / 0));
 }
 .pilule {
   font: inherit;
-  font-size: 0.76rem;
+  font-size: var(--texte-s);
   border: 0;
   background: none;
   color: var(--encre-douce);
-  padding: 0.28rem 0.7rem;
-  border-radius: 999px;
+  /* 1,75rem : les deux familles de pilules (mode et vues) ont la même hauteur
+     de boîte, donc la même zone de frappe, malgré deux corps différents. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: var(--espace-2) var(--espace-5);
+  border-radius: var(--rayon-pilule);
   cursor: pointer;
   white-space: nowrap;
+  scroll-snap-align: center;
   transition: background var(--transition), color var(--transition);
 }
 .pilule:hover {
@@ -2361,8 +2672,8 @@ body[data-vue="carte"] .pied {
 }
 /* Les vues d'outre-mer sont un cadrage secondaire : plus discrètes. */
 .pilules--vues .pilule {
-  font-size: 0.72rem;
-  padding: 0.28rem 0.6rem;
+  font-size: var(--texte-xs);
+  padding: var(--espace-2) var(--espace-4);
 }
 
 @media (max-width: 60rem) {
@@ -2377,8 +2688,17 @@ body[data-vue="carte"] .pied {
     flex-wrap: nowrap;
     scrollbar-width: none;
   }
+  /* Les groupes gardent leur largeur : rétrécis, ils tombaient à 126 px, trois
+     minuscules ascenseurs côte à côte. C'est la barre entière qui défile, avec
+     calage : le groupe suivant se pose sous le doigt au lieu de rester coupé
+     au milieu d'un mot. */
   .pilules {
     flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+  .carte-barre {
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 0.6rem;
   }
 }
 
@@ -2388,7 +2708,7 @@ body[data-vue="carte"] .pied {
 .reglages {
   display: flex;
   gap: 0.5rem;
-  padding: 0.5rem 1.15rem 0.6rem;
+  padding: var(--espace-4) var(--espace-6) var(--espace-4);
   border-bottom: 1px solid var(--trait);
   margin: 0;
   flex: 0 0 auto;
@@ -2399,8 +2719,8 @@ body[data-vue="carte"] .pied {
 .reglages select {
   min-width: 0;
   width: 100%;
-  font-size: 0.82rem;
-  padding: 0.35rem 1.6rem 0.35rem 0.5rem;
+  font-size: var(--texte-s);
+  padding: var(--espace-3) var(--espace-7) var(--espace-3) var(--espace-4);
 }
 .theme-groupe {
   margin-top: 1rem;
@@ -2414,8 +2734,8 @@ body[data-vue="carte"] .pied {
    pose donc sous lui. */
 .theme-groupe__titre {
   margin: 0 0 0.15rem;
-  padding: 0.3rem 0;
-  font-size: 0.68rem;
+  padding: var(--espace-2) 0;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--encre-douce);
@@ -2424,9 +2744,9 @@ body[data-vue="carte"] .pied {
 /* Une ligne de mesure est cliquable : elle porte son indicateur sur la carte. */
 .mesure--compacte[data-indicateur] {
   cursor: pointer;
-  border-radius: 5px;
-  padding-left: 0.3rem;
-  padding-right: 0.3rem;
+  border-radius: var(--rayon-xs);
+  padding-left: var(--espace-2);
+  padding-right: var(--espace-2);
   margin: 0 -0.3rem;
   transition: background var(--transition);
 }
@@ -2448,7 +2768,7 @@ body[data-vue="carte"] .pied {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.8rem;
-  padding: 0.52rem 0;
+  padding: var(--espace-4) 0;
   cursor: pointer;
   list-style: none;
 }
@@ -2459,7 +2779,7 @@ body[data-vue="carte"] .pied {
   color: var(--argile);
 }
 .mesure__nom {
-  font-size: 0.88rem;
+  font-size: var(--texte-m);
 }
 /* Le rond « i » : à quoi correspond l'indicateur qu'on regarde. Discret dans
    la ligne, il ne prend la parole que si on le lui demande. */
@@ -2476,7 +2796,7 @@ body[data-vue="carte"] .pied {
   /* Un « i » droit, pas l'italique du serif : dans un rond de 17 px, la
      lettre penchée sortait de son cercle et se lisait comme un accent. */
   font-family: inherit;
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   font-style: normal;
   font-weight: 600;
   line-height: 1;
@@ -2497,12 +2817,12 @@ body[data-vue="carte"] .pied {
   left: 0;
   right: 0;
   z-index: 8;
-  padding: 0.5rem 0.6rem;
+  padding: var(--espace-4) var(--espace-4);
   background: var(--papier);
   border: 1px solid var(--trait-fort);
   border-radius: var(--rayon-s);
   box-shadow: 0 6px 18px rgb(15 23 42 / 0.13);
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   font-weight: 400;
   line-height: 1.45;
   color: var(--encre);
@@ -2529,20 +2849,20 @@ body[data-vue="carte"] .pied {
 }
 .mesure__valeur {
   margin-left: 0.55rem;
-  font-size: 0.95rem;
+  font-size: var(--texte-l);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .mesure__detail {
-  padding: 0 0 0.75rem;
+  padding: 0 0 var(--espace-5);
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
 }
 .mesure__phrase {
   margin: 0;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
 }
 .mesure__pied {
@@ -2553,34 +2873,39 @@ body[data-vue="carte"] .pied {
   margin: 0.15rem 0 0;
 }
 .mesure__source {
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 
 /* Les rubriques : quatre entrées qui tiennent sans défiler, là où la barre des
    thèmes en cachait vingt-deux hors de l'écran. Elles collent au-dessus de la
-   barre des thèmes, qui descend d'autant. */
+   barre des thèmes, qui descend d'autant.
+   `min-height: var(--cible)` : la barre fait exactement la hauteur d'une cible
+   tactile, pour que la zone de frappe étendue des onglets ne déborde ni sur le
+   nom du territoire au-dessus ni sur la barre des thèmes en dessous. */
 .onglets-rubriques {
   position: sticky;
   top: var(--haut-fiche);
   z-index: 2;
   display: flex;
+  align-items: stretch;
+  min-height: var(--cible);
   gap: 0.3rem;
-  padding: 0.5rem 0 0.35rem;
+  padding: 0;
   background: rgb(255 255 255 / 0.96);
   backdrop-filter: blur(6px);
   box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
 }
 .onglets-rubriques button {
   font: inherit;
-  font-size: 0.74rem;
+  font-size: var(--texte-xs);
   font-weight: 600;
   white-space: nowrap;
   /* Quatre entrées se partagent la largeur sans jamais défiler : c'est la
      raison d'être des rubriques. Elles peuvent donc rétrécir. */
   flex: 1 1 auto;
   min-width: 0;
-  padding: 0.3rem 0.2rem;
+  padding: var(--espace-2) var(--espace-2);
   border: 0;
   border-bottom: 2px solid var(--trait);
   background: none;
@@ -2605,16 +2930,24 @@ body[data-vue="carte"] .pied {
 }
 
 /* Les onglets de thèmes : un thème à la fois, la fiche ne défile plus sur
-   sept thèmes pour en atteindre un huitième. */
+   sept thèmes pour en atteindre un huitième.
+   Mesuré à l'audit : 893 px de thèmes pour 761 px visibles, sans rien qui dise
+   qu'il en reste. Le dégradé collant du bord droit le dit maintenant, et
+   `scroll-snap` cale l'onglet suivant sous le doigt. Le décalage collant part
+   de la hauteur exacte de la barre des rubriques (2,75rem). */
 .onglets-themes {
   position: sticky;
-  top: calc(var(--haut-fiche) + 2.4rem);
+  top: calc(var(--haut-fiche) + var(--cible));
   z-index: 1;
   display: flex;
+  align-items: center;
+  min-height: var(--cible);
   gap: 0.25rem;
   overflow-x: auto;
   scrollbar-width: none;
-  padding: 0.4rem 0 0.5rem;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  padding: 0;
   margin-bottom: 0.1rem;
   background: rgb(255 255 255 / 0.96);
   backdrop-filter: blur(6px);
@@ -2623,12 +2956,22 @@ body[data-vue="carte"] .pied {
 .onglets-themes::-webkit-scrollbar {
   display: none;
 }
+.onglets-themes::after {
+  content: "";
+  position: sticky;
+  right: 0;
+  flex: 0 0 1.75rem;
+  margin-left: -1.75rem;
+  align-self: stretch;
+  pointer-events: none;
+  background: linear-gradient(to left, var(--papier), rgb(255 255 255 / 0));
+}
 .onglets-themes button {
   font: inherit;
-  font-size: 0.74rem;
+  font-size: var(--texte-xs);
   white-space: nowrap;
-  padding: 0.25rem 0.6rem;
-  border-radius: 999px;
+  padding: var(--espace-2) var(--espace-4);
+  border-radius: var(--rayon-pilule);
   border: 0;
   background: var(--papier-creuse);
   color: var(--encre-douce);
@@ -2641,7 +2984,7 @@ body[data-vue="carte"] .pied {
 }
 .mesure__titre {
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--texte-m);
   color: var(--encre-douce);
   background: none;
   border: 0;
@@ -2675,7 +3018,7 @@ body[data-vue="carte"] .pied {
 .etiquette {
   position: absolute;
   transform: translate(-50%, -50%);
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   font-weight: 500;
   color: var(--encre);
   white-space: nowrap;
@@ -2700,7 +3043,7 @@ body[data-vue="carte"] .pied {
   flex-wrap: wrap;
   gap: 0.15rem 0.8rem;
   margin: 0.1rem 0 0;
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 .serie__repere-nom::before {
@@ -2715,7 +3058,7 @@ body[data-vue="carte"] .pied {
 
 /* La comparaison de territoires, dans le volet Analyse. */
 .comparaison-zone {
-  padding-bottom: 0.8rem;
+  padding-bottom: var(--espace-5);
   margin-bottom: 0.8rem;
   border-bottom: 1px solid var(--trait);
 }
@@ -2726,7 +3069,7 @@ body[data-vue="carte"] .pied {
   flex-wrap: wrap;
 }
 #comparaison-voir {
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   color: var(--encre);
 }
 
@@ -2735,7 +3078,7 @@ body[data-vue="carte"] .pied {
    bas : arrondie, sans bordure lourde, avec sa loupe. */
 .recherche {
   position: relative;
-  padding: 0.65rem 2.6rem 0.5rem 0.9rem;
+  padding: var(--espace-5) calc(var(--espace-8) + var(--espace-4)) var(--espace-4) var(--espace-6);
   flex: 0 0 auto;
 }
 .recherche input[type="search"] {
@@ -2745,9 +3088,9 @@ body[data-vue="carte"] .pied {
   background: var(--papier-creuse)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 15 15'%3E%3Ccircle cx='6.4' cy='6.4' r='4.6' fill='none' stroke='%236e7d73' stroke-width='1.5'/%3E%3Cpath d='M10 10l3.2 3.2' stroke='%236e7d73' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
     no-repeat 0.75rem center;
-  border-radius: 999px;
-  padding: 0.45rem 0.9rem 0.45rem 2.2rem;
-  font-size: 0.85rem;
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-4) var(--espace-6) var(--espace-4) var(--espace-8);
+  font-size: var(--texte-m);
 }
 .recherche input[type="search"]:hover {
   background-color: #eceae3;
@@ -2758,27 +3101,27 @@ body[data-vue="carte"] .pied {
 }
 .recherche #suggestions {
   left: 0.9rem;
-  right: 2.6rem;
+  right: calc(var(--espace-8) + var(--espace-4));
 }
 
 /* La synthèse d'ouverture : l'essentiel avant le détail. */
 .synthese {
   background: var(--papier-creuse);
   border-radius: var(--rayon-s);
-  padding: 0.7rem 0.85rem;
+  padding: var(--espace-5) var(--espace-5);
   margin: 0.8rem 0 0.2rem;
 }
 .synthese__titre {
   margin: 0 0 0.35rem;
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--encre-douce);
 }
 .synthese ul {
   margin: 0;
-  padding-left: 1rem;
-  font-size: 0.85rem;
+  padding-left: var(--espace-6);
+  font-size: var(--texte-m);
   display: grid;
   gap: 0.28rem;
 }
@@ -2798,7 +3141,7 @@ body[data-vue="carte"] .pied {
 /* La phrase qui dit ce que le chiffre veut dire. */
 .mesure__lecture {
   margin: 0.35rem 0 0;
-  font-size: 0.8rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
   width: 100%;
 }
@@ -2811,8 +3154,10 @@ body[data-vue="carte"] .pied {
   border-top-style: dotted;
   opacity: 0.5;
 }
+/* Un repère hors échelle se dit par sa puce pointillée et par l'italique, pas
+   par une opacité qui le ferait passer sous AA. */
 .serie__repere-nom--loin {
-  opacity: 0.75;
+  font-style: italic;
 }
 
 
@@ -2822,13 +3167,12 @@ body[data-vue="carte"] .pied {
   font-weight: 400;
   text-transform: none;
   letter-spacing: 0;
-  opacity: 0.75;
 }
 .theme-groupe__suite > summary {
   cursor: pointer;
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
-  padding: 0.4rem 0;
+  padding: var(--espace-3) 0;
   border-top: 1px solid var(--trait);
   margin-top: 0.5rem;
 }
@@ -2847,20 +3191,20 @@ body[data-vue="carte"] .pied {
   flex-wrap: wrap;
   gap: 0.25rem;
   margin: 0.55rem 0 0.2rem;
-  padding: 0.35rem 0 0.4rem;
+  padding: var(--espace-3) 0 var(--espace-3);
   background: rgb(255 255 255 / 0.96);
   backdrop-filter: blur(6px);
   box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
 }
 .ancres button {
   font: inherit;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   line-height: 1.1;
   color: var(--encre-douce);
   background: var(--papier-creuse);
   border: 1px solid transparent;
-  border-radius: 999px;
-  padding: 0.22rem 0.5rem;
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-2) var(--espace-4);
   cursor: pointer;
   transition: background var(--transition), color var(--transition);
 }
@@ -2874,11 +3218,11 @@ body[data-vue="carte"] .pied {
    marges empilées — celle de la mesure, celle du thème, celle du tableau —
    qui ajoutaient un demi-écran de vide par thème. */
 .mesure {
-  padding-top: 0.5rem;
+  padding-top: var(--espace-4);
   margin-top: 0.5rem;
 }
 .mesure--breve {
-  padding-top: 0.4rem;
+  padding-top: var(--espace-3);
   margin-top: 0.4rem;
 }
 .theme-groupe {
@@ -2897,7 +3241,7 @@ body[data-vue="carte"] .pied {
   margin: 0.45rem 0 0;
 }
 .repli--position > summary {
-  font-size: 0.74rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   cursor: pointer;
 }
@@ -2907,11 +3251,11 @@ body[data-vue="carte"] .pied {
    unités qui ne s'additionnent pas. */
 .theme-groupe__resume {
   margin: 0.1rem 0 0.5rem;
-  font-size: 0.79rem;
+  font-size: var(--texte-s);
   line-height: 1.45;
   color: var(--encre-douce);
   border-left: 2px solid var(--trait-fort);
-  padding-left: 0.55rem;
+  padding-left: var(--espace-4);
 }
 .theme-groupe__resume:empty {
   display: none;
@@ -2922,7 +3266,7 @@ body[data-vue="carte"] .pied {
    ne se lisaient plus. Un clic sur le titre porte la mesure sur la carte, où
    elle retrouve sa courbe en tête de fiche. */
 .mesure--breve {
-  padding-top: 0.55rem;
+  padding-top: var(--espace-4);
   margin-top: 0.55rem;
 }
 .mesure--breve .mini-serie {
@@ -2945,7 +3289,7 @@ body[data-vue="carte"] .pied {
     top: 3.4rem;
     transform: none;
     max-width: calc(100% - 1.2rem);
-    padding: 0.4rem 0.55rem 0.35rem;
+    padding: var(--espace-3) var(--espace-4) var(--espace-3);
   }
   .carte-barre {
     top: 0.6rem;
@@ -2974,7 +3318,7 @@ body[data-vue="carte"] .pied {
 }
 .niches td,
 .niches th {
-  padding: 0.35rem 0.5rem;
+  padding: var(--espace-3) var(--espace-4);
   vertical-align: top;
 }
 .niches tbody th {
@@ -2983,7 +3327,7 @@ body[data-vue="carte"] .pied {
 }
 .niches__mission {
   color: var(--encre-douce, inherit);
-  font-size: 0.9rem;
+  font-size: var(--texte-m);
 }
 .niches__montant {
   font-variant-numeric: tabular-nums;
@@ -3000,13 +3344,13 @@ body[data-vue="carte"] .pied {
 }
 .ratios h3 {
   margin: 0 0 0.5rem;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   font-weight: 600;
   color: var(--encre);
 }
 .ratios__exercice {
   font-weight: 400;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   white-space: nowrap;
 }
@@ -3016,26 +3360,26 @@ body[data-vue="carte"] .pied {
   gap: 0.4rem;
 }
 .ratios__carreau {
-  padding: 0.45rem 0.5rem 0.5rem;
+  padding: var(--espace-4) var(--espace-4) var(--espace-4);
   border: 1px solid var(--trait);
-  border-radius: 0.35rem;
+  border-radius: var(--rayon-s);
   background: var(--papier-creuse);
 }
 .ratios__carreau h4 {
   margin: 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   font-weight: 500;
   color: var(--encre-douce);
 }
 .ratios__valeur {
   margin: 0.15rem 0 0;
-  font-size: 1.05rem;
+  font-size: var(--texte-l);
   font-variant-numeric: tabular-nums;
   color: var(--encre);
 }
 .ratios__evolution {
   margin: 0;
-  font-size: 0.62rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   font-variant-numeric: tabular-nums;
 }
@@ -3043,12 +3387,12 @@ body[data-vue="carte"] .pied {
    pourquoi il n'en a pas. Elle occupe la place du chiffre. */
 .ratios__impossible {
   margin: 0.15rem 0 0;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--alerte);
 }
 .ratios__plafond {
   margin: 0.1rem 0 0;
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 /* La lecture s'affiche toujours. La cacher derrière un survol la retirait aux
@@ -3056,13 +3400,13 @@ body[data-vue="carte"] .pied {
    dire à la plupart. Les phrases ont été raccourcies à la place. */
 .ratios__lecture {
   margin: 0.25rem 0 0;
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   line-height: 1.35;
   color: var(--encre-douce);
 }
 .ratios__source {
   margin: 0.4rem 0 0;
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   line-height: 1.35;
   color: var(--encre-douce);
 }
@@ -3075,13 +3419,13 @@ body[data-vue="carte"] .pied {
 .pont { margin: 0.9rem 0 0.4rem; }
 .pont > h3 {
   margin: 0 0 0.4rem;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   font-weight: 600;
   color: var(--encre);
 }
 .pont__exercice {
   font-weight: 400;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   white-space: nowrap;
 }
@@ -3092,11 +3436,27 @@ body[data-vue="carte"] .pied {
   column-gap: 0.5rem;
   align-items: baseline;
 }
+/* Une composante porte sa part, son montant et son évolution : quatre colonnes.
+   La cellule d'évolution est rendue même vide, et de largeur fixe — sinon le
+   bord droit des montants oscille d'une ligne à l'autre selon la longueur de
+   la variation, et la colonne cesse de se lire d'un trait. */
+.pont__rangee--composante {
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+}
+.pont__evolution,
+.pont__c-evolution {
+  min-width: 4.2rem;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
 .pont__entete {
   margin: 0 0 0.2rem;
-  padding-bottom: 0.2rem;
+  padding-bottom: var(--espace-2);
   border-bottom: 1px solid var(--trait);
-  font-size: 0.58rem;
+  font-size: var(--texte-xs);
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -3109,28 +3469,18 @@ body[data-vue="carte"] .pied {
   margin: 0;
   padding: 0;
 }
-.pont__ligne { padding: 0.22rem 0; }
+.pont__ligne { padding: var(--espace-2) 0; }
 .pont__nom {
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
-.pont__mouvement,
 .pont__reste {
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
-}
-.pont__mouvement { color: var(--encre-douce); }
-.pont__reste { color: var(--encre); font-weight: 500; }
-/* L'évolution vs l'exercice précédent, sous le montant : petite, grise,
-   tabulaire — le montant reste la ligne, la variation la commente. */
-.pont__var {
-  display: block;
-  font-size: 0.62rem;
-  font-weight: 400;
-  color: var(--encre-douce);
-  font-variant-numeric: tabular-nums;
+  color: var(--encre);
+  font-weight: 500;
 }
 /* Un palier est un total : le trait au-dessus dit que ce qui précède
    s'additionne pour donner cette ligne-là. */
@@ -3138,7 +3488,7 @@ body[data-vue="carte"] .pied {
 .pont__ligne--arrivee {
   border-top: 1px solid var(--trait-fort);
   margin-top: 0.15rem;
-  padding-top: 0.3rem;
+  padding-top: var(--espace-2);
 }
 .pont__ligne--palier .pont__nom,
 .pont__ligne--arrivee .pont__nom,
@@ -3169,8 +3519,11 @@ body[data-vue="carte"] .pied {
   content: "▸";
   display: inline-block;
   margin-right: 0.25rem;
-  font-size: 0.6rem;
-  color: var(--trait-fort);
+  font-size: var(--texte-s);
+  /* Était `--trait-fort` : 1,64:1, invisible. Un marqueur d'ouverture est un
+     indicateur non textuel — seuil 3:1 (WCAG 1.4.11) — et c'est la seule
+     affordance du pli. */
+  color: var(--encre-douce);
   transition: transform var(--transition);
 }
 .pont__ouvrir[open] > summary .pont__nom::before,
@@ -3178,23 +3531,28 @@ body[data-vue="carte"] .pied {
 .pont__ouvrir > summary:hover .pont__nom,
 .pont__sous > summary:hover .pont__c-nom { color: var(--encre); }
 .pont__composantes { margin: 0.15rem 0 0.3rem; }
-.pont__composante { padding: 0.1rem 0; }
-/* Chaque niveau se décale : c'est le décalage qui dit « ceci est dans cela ». */
-.pont__composante[data-rang="1"] { padding-left: 0.7rem; }
-.pont__composante[data-rang="2"] { padding-left: 1.4rem; }
-.pont__composante[data-rang="3"] { padding-left: 2.1rem; }
+.pont__composante { padding: var(--espace-1) 0; }
+/* Chaque niveau se décale, et un trait le rattache à ce qui le contient : à
+   11 px d'écart, les rangs 2 et 3 ne se distinguaient plus. L'indentation est
+   cumulative — chaque liste imbriquée décale la suivante. */
+.pont__composantes[data-rang] {
+  margin-left: var(--espace-3);
+  padding-left: var(--espace-4);
+  border-left: 1px solid var(--trait);
+}
 .pont__c-nom {
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
 .pont__c-part,
 .pont__c-montant {
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
 }
-.pont__c-part { color: var(--encre-douce); opacity: 0.75; }
+/* Sans opacité : 0,75 ramenait ce gris à 3,17:1. */
+.pont__c-part { color: var(--encre-douce); }
 .pont__c-montant { color: var(--encre); }
 
 /* Le bouton qui porte une mesure sur la carte. Peindre relit une couche de
@@ -3203,11 +3561,11 @@ body[data-vue="carte"] .pied {
 .mesure__carte {
   align-self: flex-start;
   font: inherit;
-  font-size: 0.75rem;
-  padding: 0.2rem 0.6rem;
+  font-size: var(--texte-xs);
+  padding: var(--espace-2) var(--espace-4);
   margin-top: 0.15rem;
   border: 1px solid var(--trait-fort);
-  border-radius: 999px;
+  border-radius: var(--rayon-pilule);
   background: none;
   color: var(--encre-douce);
   cursor: pointer;
@@ -3226,13 +3584,13 @@ body[data-vue="carte"] .pied {
 .theme-groupe__suite {
   margin-top: 0.5rem;
   border-top: 1px solid var(--trait);
-  padding-top: 0.35rem;
+  padding-top: var(--espace-3);
 }
 .theme-groupe__suite > summary {
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   color: var(--encre-douce);
   cursor: pointer;
-  padding: 0.2rem 0;
+  padding: var(--espace-2) 0;
   list-style: none;
 }
 .theme-groupe__suite > summary::-webkit-details-marker {
@@ -3242,7 +3600,7 @@ body[data-vue="carte"] .pied {
   content: "▸";
   display: inline-block;
   margin-right: 0.35rem;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   transition: transform var(--transition);
 }
 .theme-groupe__suite[open] > summary::before {
@@ -3253,7 +3611,6 @@ body[data-vue="carte"] .pied {
 }
 .theme-groupe__compte {
   color: var(--encre-douce);
-  opacity: 0.8;
 }
 
 /* À quelles associations. Une liste de noms, pas un tableau : le montant se lit
@@ -3263,13 +3620,13 @@ body[data-vue="carte"] .pied {
 }
 .assos > h3 {
   margin: 0 0 0.25rem;
-  font-size: 0.82rem;
+  font-size: var(--texte-s);
   font-weight: 600;
   color: var(--encre);
 }
 .assos__exercice {
   font-weight: 400;
-  font-size: 0.72rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   white-space: nowrap;
 }
@@ -3278,7 +3635,7 @@ body[data-vue="carte"] .pied {
    Parisiens. Elle se lit donc avant la liste. */
 .assos__reserve {
   margin: 0 0 0.45rem;
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   line-height: 1.4;
   color: var(--encre-douce);
 }
@@ -3291,15 +3648,15 @@ body[data-vue="carte"] .pied {
   display: grid;
   grid-template-columns: 1fr auto;
   column-gap: 0.5rem;
-  padding: 0.3rem 0;
+  padding: var(--espace-2) 0;
   border-top: 1px solid var(--trait);
 }
 .assos__nom {
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   color: var(--encre);
 }
 .assos__montant {
-  font-size: 0.78rem;
+  font-size: var(--texte-s);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--encre);
@@ -3308,16 +3665,16 @@ body[data-vue="carte"] .pied {
 .assos__objet {
   grid-column: 1 / -1;
   margin-top: 0.1rem;
-  font-size: 0.68rem;
+  font-size: var(--texte-xs);
   line-height: 1.35;
   color: var(--encre-douce);
 }
 .assos__suite > summary {
   margin-top: 0.35rem;
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   cursor: pointer;
-  padding: 0.2rem 0;
+  padding: var(--espace-2) 0;
 }
 .assos__suite > summary:hover {
   color: var(--encre);
@@ -3328,9 +3685,9 @@ body[data-vue="carte"] .pied {
    information qu'on a déjà prise pour argent comptant. */
 .theme-groupe__agregat {
   margin: 0 0 0.5rem;
-  padding: 0.35rem 0.5rem;
+  padding: var(--espace-3) var(--espace-4);
   border-left: 2px solid var(--trait-fort);
-  font-size: 0.7rem;
+  font-size: var(--texte-xs);
   line-height: 1.4;
   color: var(--encre-douce);
   background: var(--papier-creuse);
@@ -3346,10 +3703,10 @@ body[data-vue="carte"] .pied {
 }
 .pont__axes button {
   font: inherit;
-  font-size: 0.66rem;
-  padding: 0.1rem 0.45rem;
+  font-size: var(--texte-xs);
+  padding: var(--espace-1) var(--espace-4);
   border: 1px solid var(--trait);
-  border-radius: 999px;
+  border-radius: var(--rayon-pilule);
   background: none;
   color: var(--encre-douce);
   cursor: pointer;
@@ -3367,25 +3724,281 @@ body[data-vue="carte"] .pied {
 .assos__programmes {
   margin-top: 0.5rem;
   border-top: 1px solid var(--trait);
-  padding-top: 0.35rem;
+  padding-top: var(--espace-3);
 }
 .assos__programmes > summary {
-  font-size: 0.75rem;
+  font-size: var(--texte-xs);
   color: var(--encre-douce);
   cursor: pointer;
-  padding: 0.2rem 0;
+  padding: var(--espace-2) 0;
 }
 .assos__programmes > summary:hover {
   color: var(--encre);
 }
+/* Le compte se lit : à 0,8 d'opacité il tombait à 3,49:1. */
 .assos__compte {
-  opacity: 0.8;
+  color: var(--encre-douce);
 }
 
 /* Les euros constants. La phrase corrige la précédente : elle se lit avec elle,
    pas comme une remarque à côté. */
 .mesure__constants {
   border-left: 2px solid var(--trait);
-  padding-left: 0.5rem;
-  font-size: 0.78rem;
+  padding-left: var(--espace-4);
+  font-size: var(--texte-s);
+}
+
+
+/* ==========================================================================
+   CIBLES TACTILES — 44 × 44 px de zone de frappe (WCAG 2.5.5)
+   ==========================================================================
+   Mesuré à l'audit : le rond « i » faisait 16 px, les pilules 27, les onglets
+   29, la poignée du tiroir 25, « Voir sur la carte » 26. Sur un téléphone,
+   toutes ces commandes se ratent — et la plus ratée d'entre elles, la poignée,
+   fait perdre son territoire au lecteur.
+
+   Deux méthodes, jamais une troisième :
+
+   1. RANGÉES pleine largeur (lignes de mesure, suggestions, plis) : on ne
+      peut pas les élargir, elles occupent déjà toute la colonne. Leur hauteur
+      monte donc à 2,75rem — c'est la seule dimension qui manquait.
+
+   2. BOUTONS DESSINÉS PETITS, isolés dans une barre : un pseudo-élément
+      transparent de 44 px, centré sur le bouton, étend la zone de frappe sans
+      toucher au dessin. Règle de sûreté : la barre qui les porte fait elle
+      aussi 44 px de haut (`min-height` sur `.pilules`, `.onglets-*`), pour que
+      deux zones étendues ne se recouvrent jamais. Une cible qui déborde sur sa
+      voisine est pire qu'une cible trop petite : elle déclenche la mauvaise
+      action au lieu de n'en déclencher aucune. */
+
+.mesure__info,
+.mesure__carte,
+.fiche__parent,
+.pilule,
+.onglets-rubriques button,
+.onglets-themes button,
+.graphique__fenetre,
+.pont__axes button,
+.retirer,
+.comparer,
+.tableau__export,
+.entete__nav a,
+.legende__poignee {
+  position: relative;
+}
+.mesure__info::after,
+.mesure__carte::after,
+.fiche__parent::after,
+.pilule::after,
+.onglets-rubriques button::after,
+.onglets-themes button::after,
+.graphique__fenetre::after,
+.pont__axes button::after,
+.retirer::after,
+.comparer::after,
+.tableau__export::after,
+.entete__nav a::after,
+.legende__poignee::after,
+.panneau__fermer::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: var(--cible);
+  min-height: var(--cible);
+  transform: translate(-50%, -50%);
+}
+
+/* La pastille repliée de la légende est plus étroite que 44 px et son cadre
+   la rognait (`overflow: hidden`, qui n'existe que pour l'ouverture). Repliée,
+   elle n'a rien à rogner : la zone de frappe peut donc déborder sur la carte,
+   sans que le dessin de la pastille change d'un pixel. */
+.surcouche--legende:not([open]) {
+  overflow: visible;
+}
+
+/* Rangées : la hauteur est la seule dimension disponible. */
+.mesure > summary,
+.mesure--compacte[data-indicateur],
+#suggestions button,
+.questions summary {
+  min-height: var(--cible);
+}
+/* Les lignes dépliables du pont sont des rangées en grille : `align-content`
+   recentre leur contenu dans la hauteur imposée, sinon le montant se colle en
+   haut et laisse un vide sous lui. */
+summary.pont__rangee,
+.pont__ouvrir > summary,
+.pont__sous > summary {
+  min-height: var(--cible);
+  align-content: center;
+}
+.mesure > summary,
+.mesure--compacte[data-indicateur] {
+  /* centré, et non plus aligné sur la ligne de base : dans une rangée dont la
+     hauteur est imposée, l'alignement par la ligne de base collait le texte en
+     haut et laissait un vide sous lui. */
+  align-items: center;
+}
+
+/* Plis qui gardent le marqueur natif du navigateur : on ne peut pas leur
+   ajouter de pseudo-élément sans le perdre. Leur rembourrage vertical suffit
+   à porter la rangée à 44 px. */
+.repli > summary,
+.legende__methode summary,
+.journal__technique summary,
+.assos__suite > summary,
+.assos__programmes > summary,
+.theme-groupe__suite > summary {
+  min-height: var(--cible);
+  display: flex;
+  align-items: center;
+}
+
+/* La poignée du tiroir mobile : 25 px de haut pour le geste le plus lourd de
+   l'interface (redimensionner la fiche). Portée à 44, et la fiche démarre
+   d'autant plus bas — c'est la poignée qui recule, pas le contenu qui rétrécit. */
+@media (max-width: 60rem) {
+  .panneau {
+    padding-top: var(--cible);
+  }
+  .panneau__poignee {
+    height: var(--cible);
+  }
+  .panneau__poignee::before {
+    top: 0.7rem;
+  }
+  .panneau__fermer {
+    top: 1.6rem;
+  }
+}
+
+/* ==========================================================================
+   LARGEUR DE LECTURE — ~70 caractères (audit, point 17)
+   ==========================================================================
+   Les paragraphes des Décryptages couraient sur 1 013 px, soit environ 140
+   caractères par ligne : au retour à la ligne, l'œil ne retrouve plus la
+   suivante. 70ch est la borne haute de la fourchette de lisibilité usuelle.
+   Elle ne s'applique qu'à la prose : ni les tableaux, ni les grilles, ni les
+   listes de chiffres, dont la largeur porte de l'information. */
+.bloc > p,
+.bloc__complement,
+.questions span,
+.avertissement,
+.technique,
+.formule,
+.source p,
+.tableau__aide,
+.pied p,
+.assos__reserve,
+.theme-groupe__agregat,
+.mesure__lecture,
+.ratios__lecture {
+  max-width: 70ch;
+}
+
+
+/* Les boutons de zoom de MapLibre arrivent à 29 px : la bibliothèque ne
+   connaît pas notre règle. Même traitement que les nôtres — le dessin du
+   « + » ne bouge pas, seule la zone de frappe s'étend. */
+.maplibregl-ctrl button,
+.maplibregl-ctrl summary {
+  position: relative;
+}
+.maplibregl-ctrl button::after,
+.maplibregl-ctrl summary::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
+  min-width: var(--cible);
+  min-height: var(--cible);
+  transform: translate(-50%, -50%);
+}
+
+/* Le dégradé n'apparaît que s'il reste vraiment quelque chose à découvrir, et
+   s'efface en fin de course : il est piloté par une animation liée au
+   défilement de sa propre barre (`animation-timeline: scroll(self inline)`).
+   État de base : invisible. Là où les animations de défilement n'existent pas
+   encore (Firefox), rien ne s'affiche — pas d'affordance, mais surtout pas de
+   dernière pilule voilée sans raison. */
+@keyframes bord-il-en-reste {
+  0%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.pilules::after,
+.onglets-themes::after {
+  opacity: 0;
+  /* Chronologie *nommée*, portée par la barre elle-même : `scroll(self)` ne
+     marche pas depuis un pseudo-élément — « self », c'est le pseudo, qui ne
+     défile pas (vérifié au navigateur, opacité figée à 0).
+     Et longhands, pas la forme courte : `animation:` impose une durée de 0s,
+     qui désactive toute chronologie de défilement. `auto` = toute la course. */
+  animation-name: bord-il-en-reste;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --defile-barre;
+}
+.pilules,
+.onglets-themes,
+.carte-barre {
+  scroll-timeline-name: --defile-barre;
+  scroll-timeline-axis: inline;
+}
+/* Sur téléphone, c'est la barre entière qui défile — les groupes de pilules y
+   gardent leur largeur, et le groupe suivant (Métropole…Mayotte) sort de
+   l'écran sans rien annoncer : 960 px de pilules pour 351 visibles. Son
+   dégradé est plus pâle que celui des barres blanches, parce qu'il se pose sur
+   la carte : c'est la barre qui continue, pas la carte qui s'efface. Il ne
+   naît que si la barre déborde vraiment, et meurt en fin de course. */
+.carte-barre::after {
+  content: "";
+  position: sticky;
+  right: 0;
+  flex: 0 0 2rem;
+  margin-left: -2rem;
+  align-self: stretch;
+  pointer-events: none;
+  opacity: 0;
+  animation-name: bord-il-en-reste;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --defile-barre;
+  background: linear-gradient(to left, rgb(255 255 255 / 0.94), rgb(255 255 255 / 0));
+}
+
+/* Le nombre d'habitants porte une infobulle, pas un lien : le pointillé que le
+   navigateur met sous un `abbr` le faisait prendre pour cliquable. */
+.fiche__habitants {
+  text-decoration: none;
+  border-bottom: 0;
+  cursor: help;
+}
+
+/* Un thème qui n'est pas mesuré à cette maille dit où il l'est, et y emmène. */
+.theme-groupe__ailleurs {
+  margin: var(--espace-5) 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Ce que le mini-tableau montre, et sur combien : six colonnes muettes tirées
+   d'une série de dix-neuf laissaient croire à la série entière. */
+.mini-serie__fenetre {
+  caption-side: top;
+  text-align: left;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  padding-bottom: var(--espace-1);
 }

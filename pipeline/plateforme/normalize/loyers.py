@@ -94,8 +94,8 @@ INDICATEURS = {
         "Loyer d'annonce des appartements, au m²",
         "Ce qu'un appartement vide se loue au mètre carré chaque mois, charges"
         " comprises, d'après les annonces. Bien de référence : 52 m². Publié"
-        " pour les seules communes où la source mesure un loyer sur place —"
-        " 14 % d'entre elles ; ailleurs, elle recopie la zone voisine.",
+        " pour les seules communes où la source mesure un loyer sur place"
+        " (14 % d'entre elles) ; ailleurs, elle recopie la zone voisine.",
         "20251211-145010/pred-app-mef-dhup.csv",
     ),
     "anil_loyer_maison": (
@@ -112,14 +112,14 @@ TECHNIQUE = (
     "Loyer d'**annonce** au mètre carré et par mois, **charges comprises**,"
     " pour un logement **vide** (non meublé) mis en location au 3e trimestre"
     " 2025 : appartement de référence de 52 m², maison de référence de 92 m². Ce"
-    " n'est pas un loyer pratiqué — le parc en place se reloue moins souvent et"
-    " moins cher que le parc annoncé —, et le dédoublonnage des annonces est"
+    " n'est pas un loyer pratiqué (le parc en place se reloue moins souvent et"
+    " moins cher que le parc annoncé), et le dédoublonnage des annonces est"
     " imparfait, l'ANIL le reconnaît. La valeur est **prédite par un modèle**,"
     " pas relevée : la source l'accompagne d'un intervalle de prédiction large"
     " de 46 % de la valeur en médiane, soit environ ±23 %, et de 55 % au"
     " neuvième décile. **Seules les communes dont la prédiction est estimée sur"
-    " leurs propres annonces sont publiées — 14 % des 34 900 communes du fichier"
-    " pour les appartements, 10 % pour les maisons.** Pour les autres, la source"
+    " leurs propres annonces sont publiées (14 % des 34 900 communes du fichier"
+    " pour les appartements, 10 % pour les maisons).** Pour les autres, la source"
     " recopie la prédiction de la zone voisine ou de l'EPCI, sans que la valeur"
     " affichée le signale. Paris, Lyon et Marseille ne figurent que par"
     " arrondissement et ne sont pas agrégées, faute de pondération publiée."

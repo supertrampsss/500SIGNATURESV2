@@ -216,7 +216,7 @@ INDICATEURS = {
 MESURES = tuple(fiche["mesure"] for fiche in INDICATEURS.values())
 
 TECHNIQUE = (
-    "IRCOM — l'impôt sur le revenu par collectivité territoriale, DGFiP"
+    "IRCOM, l'impôt sur le revenu par collectivité territoriale, DGFiP"
     " (Département des études et statistiques fiscales), millésime 2025 portant"
     " sur les **revenus 2024**. Le périmètre est celui de l'impôt **émis par voie"
     " de rôle** : hors prélèvement forfaitaire obligatoire sur les revenus de"

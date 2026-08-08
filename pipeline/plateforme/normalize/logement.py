@@ -132,7 +132,7 @@ PUBLIQUE = {
     " qui y a sa résidence principale. Un logement, un ménage : c'est aussi le nombre"
     " de ménages du territoire.",
     "insee_residences_secondaires": "Les logements occupés une partie de l'année"
-    " seulement — résidences de vacances, pieds-à-terre professionnels. La source"
+    " seulement : résidences de vacances, pieds-à-terre professionnels. La source"
     " compte ensemble les résidences secondaires et les logements occasionnels.",
     "insee_logements_vacants": "Les logements inoccupés au moment de l'enquête :"
     " proposés à la vente ou à la location, en attente d'occupation, ou gardés vides"
@@ -149,9 +149,9 @@ PUBLIQUE = {
 
 TECHNIQUE = (
     "Recensement de la population, dossier complet « Logements », mesure"
-    " « Logements » croisée au total de toutes les dimensions de détail — type,"
+    " « Logements » croisée au total de toutes les dimensions de détail (type,"
     " pièces, chauffage, période d'achèvement, équipement automobile, ancienneté"
-    " d'emménagement — que le jeu publie sur les mêmes lignes. Champ : France hors"
+    " d'emménagement) que le jeu publie sur les mêmes lignes. Champ : France hors"
     " Mayotte, cent départements. Trois millésimes : 2012, 2017, 2023. Le millésime"
     " est le résultat de cinq années d'enquêtes centrées sur lui, et non une"
     " photographie au 1ᵉʳ janvier : les communes de moins de dix mille habitants sont"

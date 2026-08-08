@@ -8,12 +8,14 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  LARGEUR_ETROITE,
   dessiner,
   graduations,
   graduationsTemps,
   pasArrondi,
   periodeAuPoint,
   periodeLisible,
+  typographieDuDessin,
   type Serie,
 } from "./graphique.ts";
 
@@ -121,4 +123,33 @@ test("une abscisse de pointeur retombe sur la période la plus proche", () => {
 
 test("sans donnée, pas de dessin", () => {
   assert.equal(dessiner([], { formater: FORMATER, titre: "Vide" }).svg, "");
+});
+
+/**
+ * Les tailles de texte du graphique sont en unités du viewBox : la feuille de
+ * style ne peut rien y faire, c'est la géométrie du dessin qui décide. Sur un
+ * téléphone, les étiquettes d'axe se rendaient à cinq pixels.
+ */
+
+test("un dessin étroit resserre ses marges et grossit ses étiquettes", () => {
+  const etroit = typographieDuDessin(340);
+  const large = typographieDuDessin(720);
+  assert.ok(etroit.corps >= 13, `${etroit.corps}`);
+  assert.equal(large.corps, 12);
+  // Quarante-six unités de gouttière sur 340, c'est un septième du dessin.
+  assert.ok(etroit.marges.gauche < large.marges.gauche);
+  // Le seuil est celui du téléphone, pas une valeur au hasard.
+  assert.equal(typographieDuDessin(LARGEUR_ETROITE).corps, 12);
+  assert.equal(typographieDuDessin(LARGEUR_ETROITE - 1).corps, 13);
+});
+
+test("chaque texte porte sa taille, aucune ne dépend de la seule feuille de style", () => {
+  const { svg } = dessiner(SERIES, { largeur: 340, formater: FORMATER, titre: "Inflation" });
+  const textes = svg.match(/<text[^>]*>/g) ?? [];
+  assert.ok(textes.length > 0);
+  for (const t of textes) assert.match(t, /font-size="13"/, t);
+  // Et la courbe reste dans le cadre resserré.
+  const { geometrie } = dessiner(SERIES, { largeur: 340, formater: FORMATER, titre: "Inflation" });
+  assert.equal(geometrie.gauche, 34);
+  assert.equal(geometrie.droite, 330);
 });

@@ -72,7 +72,7 @@ MESURES = {
         "insee_conso_menages_depense", "Dépense de consommation des ménages",
         "Ce que les ménages paient de leur poche en un an : logement, nourriture,"
         " transport, loisirs. N'y figure pas ce que la collectivité leur fournit"
-        " sans le leur facturer — soins remboursés, école, logement social.",
+        " sans le leur facturer : soins remboursés, école, logement social.",
     ),
     "P4": (
         "insee_conso_menages_effective", "Consommation effective des ménages",
@@ -91,10 +91,10 @@ TECHNIQUE = (
     " courante et en niveau, tous produits confondus, en millions d'euros à la"
     " source et convertis en euros ici. La dépense de consommation finale (P31) est"
     " ce que les ménages financent eux-mêmes ; la consommation finale effective"
-    " (P4) y ajoute les transferts sociaux en nature — les biens et services"
+    " (P4) y ajoute les transferts sociaux en nature (les biens et services"
     " individualisables que les administrations publiques et les associations"
     " leur fournissent gratuitement ou à prix réduit, soins remboursés, éducation,"
-    " logement social. L'écart entre les deux est donc, par construction, la valeur"
+    " logement social). L'écart entre les deux est donc, par construction, la valeur"
     " de ces transferts, et il ne peut pas être négatif. Ces montants décrivent ce"
     " que les ménages consomment et non ce que les administrations dépensent : ils"
     " ne s'additionnent pas aux dépenses publiques publiées par ailleurs sur ce"
