@@ -18,6 +18,8 @@
  * doit pas être un chiffre orphelin.
  */
 
+import { modeVariation, variationExportee } from "./evolution-carte.ts";
+
 export type LigneExport = {
   code: string;
   nom: string;
@@ -99,6 +101,63 @@ export function enCsv(
     "# Licence Ouverte 2.0. Données complètes et documentées : voir « Accéder aux données » en bas de page.",
   ];
   // BOM : sans lui, Excel ouvre les accents en mojibake.
+  return "\uFEFF" + [...commentaires, entetes.join(";"), ...corps].join("\r\n") + "\r\n";
+}
+
+export type LigneExportEvolution = {
+  code: string;
+  nom: string;
+  avant: number;
+  apres: number;
+  variation: number;
+};
+
+/** L'export du mode évolution suit la couche affichée : les deux millésimes et
+ *  la variation, avec son unité propre — « % » pour une grandeur additive,
+ *  « points » pour un taux. Mêmes conventions tableur qu'`enCsv`. */
+export function enCsvEvolution(
+  lignes: LigneExportEvolution[],
+  meta: {
+    indicateur: string;
+    unite: string;
+    periodeAvant: string;
+    periodeApres: string;
+    niveau: string;
+    parHabitant: boolean;
+    source: string;
+  },
+  quand: Date = new Date(),
+): string {
+  const mode = modeVariation(meta.unite);
+  const entetes = [
+    "code",
+    "territoire",
+    `valeur_${meta.periodeAvant}`,
+    `valeur_${meta.periodeApres}`,
+    "variation",
+    "unite_variation",
+    "unite",
+    "niveau",
+  ];
+  const unite = uniteLisible(meta.unite, meta.parHabitant);
+  const uniteVariation = mode === "points" ? "points" : "%";
+  const corps = lignes.map((ligne) =>
+    [
+      champ(ligne.code),
+      champ(ligne.nom),
+      nombreFrancais(valeurExportee(ligne.avant, meta.unite)),
+      nombreFrancais(valeurExportee(ligne.apres, meta.unite)),
+      nombreFrancais(variationExportee(ligne.variation, meta.unite, mode)),
+      champ(uniteVariation),
+      champ(unite),
+      champ(meta.niveau),
+    ].join(";"),
+  );
+  const commentaires = [
+    `# ${meta.indicateur} — évolution ${meta.periodeApres} vs ${meta.periodeAvant}`,
+    `# Source : ${meta.source} · exporté le ${quand.toISOString().slice(0, 10)}`,
+    "# Licence Ouverte 2.0. Données complètes et documentées : voir « Accéder aux données » en bas de page.",
+  ];
   return "\uFEFF" + [...commentaires, entetes.join(";"), ...corps].join("\r\n") + "\r\n";
 }
 
