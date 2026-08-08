@@ -43,6 +43,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { traduire } from "./traductions.ts";
 
 const RF = "ofgl_recettes_fonctionnement";
 const DF = "ofgl_depenses_fonctionnement";
@@ -81,6 +82,10 @@ export type Marche = {
   section: "fonctionnement" | "dette" | "investissement";
   /** Ce qu'il reste après cette marche : la colonne qui fait le pont. */
   reste: number;
+  /** L'évolution vs l'exercice précédent, en %, ou `null` s'il n'est pas
+   *  publié : voir les variations est la moitié de la question « où va
+   *  l'argent ». */
+  variation?: number | null;
 };
 
 /** Une composante d'un agrégat, dans l'arbre comptable de l'OFGL. */
@@ -90,32 +95,10 @@ export type Composante = {
   montant: number;
   /** Sa part du total qu'elle décompose. */
   part: number;
+  /** Son évolution vs l'exercice précédent, en %, quand il est publié. */
+  variation?: number | null;
   enfants: Composante[];
 };
-
-/**
- * Les libellés que la nomenclature comptable rend opaques.
- *
- * « Dépenses d'intervention » est exact et ne dit rien à personne : ce sont
- * les aides et subventions versées. « FCTVA » est un sigle de comptable public.
- * La traduction ne touche que l'affichage — l'identifiant et la fiche
- * technique gardent le vocabulaire de la source.
- */
-const TRADUCTIONS: Record<string, string> = {
-  "Dépenses d'intervention": "Aides et subventions versées",
-  FCTVA: "TVA remboursée par l'État (FCTVA)",
-  // Le compte ne sépare pas les associations des entreprises : M14 n'a qu'un
-  // compte 6574 sans subdivision, et en M57 Bordeaux inscrit 44,9 M€ sur 45,9
-  // dans le sous-compte « autres personnes de droit privé ». Écrire l'un des
-  // deux mots serait inventer une ventilation que la comptabilité ne fait pas.
-  // Les bénéficiaires nommés, eux, existent pour les versements de l'État :
-  // c'est l'onglet Vie associative.
-  "Subventions aux personnes de droit privé": "Subventions versées aux organismes privés",
-};
-
-function traduire(libelle: string): string {
-  return TRADUCTIONS[libelle] ?? libelle;
-}
 
 function echapper(texte: string): string {
   return texte.replace(
@@ -127,6 +110,21 @@ function echapper(texte: string): string {
 function valeur(territoire: Territoire, id: string, exercice: string): number | undefined {
   const v = territoire.series?.[id]?.[exercice];
   return typeof v === "number" && Number.isFinite(v) ? v : undefined;
+}
+
+/** L'exercice publié juste avant celui du pont, ou `null`. */
+export function exercicePrecedent(territoire: Territoire, exercice: string): string | null {
+  const annees = Object.keys(territoire.series?.[RF] ?? {})
+    .filter((a) => a < exercice)
+    .sort();
+  return annees.length ? annees[annees.length - 1] : null;
+}
+
+/** L'évolution en %, ou `null` quand le passé manque ou vaut zéro : un
+ *  pourcentage d'un zéro ne mesure rien. */
+function evolutionEnPourcent(courant: number, precedent: number | undefined): number | null {
+  if (precedent === undefined || precedent === 0) return null;
+  return ((courant - precedent) / Math.abs(precedent)) * 100;
 }
 
 /**
@@ -147,6 +145,10 @@ export function composantes(
    *  « fonction » : à quoi ça sert — écoles, sport, culture. Deux lectures du
    *  même euro, qui ne s'additionnent jamais entre elles. */
   axe: "nature" | "fonction" = "nature",
+  /** L'exercice d'avant, pour chiffrer l'évolution de chaque composante.
+   *  `null` sur l'axe fonctionnel affiché sur un autre exercice : une
+   *  variation sans année de départ claire serait un chiffre menteur. */
+  precedent: string | null = null,
 ): Composante[] | null {
   if (!total) return null;
   const lignes = catalogue
@@ -188,12 +190,15 @@ export function composantes(
       libelle: l.indicateur.libelle,
       montant: l.montant,
       part: (l.montant / total) * 100,
+      variation: precedent
+        ? evolutionEnPourcent(l.montant, valeur(territoire, l.indicateur.id, precedent))
+        : null,
       // Récursif : « Impôts et taxes » s'ouvre sur les impôts locaux et les
       // autres impôts, qui s'ouvrent à leur tour. Autant de niveaux que la
       // source en publie.
       // Toujours par nature au niveau du dessous : la fonction ne se
       // sous-décompose pas dans ce que la source publie.
-      enfants: composantes(l.indicateur.id, l.montant, territoire, exercice, catalogue) ?? [],
+      enfants: composantes(l.indicateur.id, l.montant, territoire, exercice, catalogue, "nature", precedent) ?? [],
     })), ...manque];
 }
 
@@ -306,13 +311,40 @@ export function marches(territoire: Territoire, exercice: string): Marche[] | nu
 
   // La colonne « il reste » : le cumul, remis au palier chaque fois que la
   // source en publie un. C'est elle qui fait d'une liste un pont.
+  //
+  // Et chaque marche porte son évolution vs l'exercice précédent : voir que
+  // les frais de personnel montent est la moitié de la question « où va
+  // l'argent ». Le report n'en porte pas — il redit l'épargne nette — et
+  // l'arrivée compare le solde au solde.
+  const precedent = exercicePrecedent(territoire, exercice);
+  const anterieure = (id: string | undefined) =>
+    precedent && id ? valeur(territoire, id, precedent) : undefined;
+  const soldePrecedent =
+    precedent !== null
+      ? (() => {
+          const rtP = valeur(territoire, RT, precedent);
+          const dtP = valeur(territoire, DT, precedent);
+          return rtP !== undefined && dtP !== undefined ? rtP - dtP : undefined;
+        })()
+      : undefined;
   let cumul = 0;
   return brut.map((marche) => {
     cumul =
       marche.role === "palier" || marche.role === "arrivee" || marche.role === "report"
         ? marche.montant
         : cumul + marche.montant;
-    return { ...marche, reste: cumul };
+    const variation =
+      marche.role === "report"
+        ? null
+        : marche.role === "arrivee"
+          ? evolutionEnPourcent(marche.montant, soldePrecedent)
+          : evolutionEnPourcent(
+              // La grandeur comptable brute, pas le montant signé de
+              // l'affichage : une épargne qui passe de −2 à −1 M€ s'améliore.
+              valeur(territoire, marche.id as string, exercice) as number,
+              anterieure(marche.id),
+            );
+    return { ...marche, reste: cumul, variation };
   });
 }
 
@@ -330,6 +362,14 @@ export function montant(valeur: number): string {
   if (absolu >= 1e6) return `${signe}${format(absolu / 1e6, 1)}${FINE}M€`;
   if (absolu >= 1e3) return `${signe}${format(absolu / 1e3, 0)}${FINE}k€`;
   return `${signe}${format(absolu, 0)}${FINE}€`;
+}
+
+/** « +4 % » : l'évolution d'une ligne, arrondie à ce que sa taille justifie. */
+export function variationTexte(v: number): string {
+  const absolu = Math.abs(v);
+  const arrondi =
+    absolu >= 100 ? Math.round(absolu / 10) * 10 : absolu >= 10 ? Math.round(absolu) : Math.round(absolu * 10) / 10;
+  return `${v >= 0 ? "+" : "−"}${new Intl.NumberFormat("fr-FR").format(arrondi)}${FINE}%`;
 }
 
 function part(valeur: number): string {
@@ -352,7 +392,11 @@ function rendreComposantes(liste: Composante[], rang = 1): string {
     .map((c) => {
       const rangee = `<span class="pont__c-nom">${echapper(traduire(c.libelle))}</span>
         <span class="pont__c-part">${echapper(part(c.part))}</span>
-        <span class="pont__c-montant">${echapper(montant(c.montant))}</span>`;
+        <span class="pont__c-montant">${echapper(montant(c.montant))}${
+          c.variation !== null && c.variation !== undefined
+            ? `<small class="pont__var">${echapper(variationTexte(c.variation))}</small>`
+            : ""
+        }</span>`;
       const corps = c.enfants.length
         ? `<details class="pont__sous">
              <summary class="pont__rangee">${rangee}</summary>
@@ -376,11 +420,15 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
   if (!exercice) return "";
   const etapes = marches(territoire, exercice);
   if (!etapes) return "";
+  const precedent = exercicePrecedent(territoire, exercice);
 
   const lignes = etapes
     .map((etape) => {
       const parNature = etape.id
-        ? composantes(etape.id, Math.abs(etape.montant), territoire, exercice, catalogue)
+        ? composantes(
+            etape.id, Math.abs(etape.montant), territoire, exercice, catalogue,
+            "nature", precedent,
+          )
         : null;
       // Le second axe : à quoi sert l'argent, plutôt que ce qu'on achète.
       // « Achats et charges externes » ne se discute pas ; « 23 M€ pour le
@@ -414,7 +462,11 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
       // son montant signé, les paliers portent le leur en gras — c'est le
       // signe et le trait qui font lire l'addition.
       const rangee = `<span class="pont__nom">${echapper(traduire(etape.libelle))}</span>
-        <span class="pont__reste">${echapper(montant(etape.montant))}</span>`;
+        <span class="pont__reste">${echapper(montant(etape.montant))}${
+          etape.variation !== null && etape.variation !== undefined
+            ? `<small class="pont__var">${echapper(variationTexte(etape.variation))}</small>`
+            : ""
+        }</span>`;
       // Deux axes disponibles : le lecteur choisit lequel il regarde. Ils ne
       // s'additionnent jamais entre eux — c'est le même euro, vu deux fois.
       const bascule =
@@ -451,7 +503,11 @@ export function rendu(territoire: Territoire, catalogue: Indicateur[] = []): str
   return `<section class="pont">
     <h3>D'un euro encaissé à ce qu'il en reste <span class="pont__exercice">exercice ${echapper(
       exercice,
-    )}</span></h3>
+    )}${
+      precedent && etapes.some((e) => e.variation !== null && e.variation !== undefined)
+        ? `, évolutions vs ${echapper(precedent)}`
+        : ""
+    }</span></h3>
     <ol class="pont__etapes">${lignes}</ol>
   </section>`;
 }

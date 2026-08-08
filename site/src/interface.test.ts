@@ -60,6 +60,8 @@ test("déplier une mesure ne repeint pas la carte", () => {
   assert.match(FICHE, /data-carte="/);
 });
 
-test("un maire absent est dit, pas laissé en blanc", () => {
-  assert.match(FICHE, /non renseigné par le Répertoire National des Élus/);
+test("un maire absent n'écrit rien, comme toute donnée absente", () => {
+  // « Maire : non renseigné » occupait une ligne pour dire qu'il n'y avait
+  // rien à dire, en contradiction avec la règle de la fiche.
+  assert.doesNotMatch(FICHE, /non renseigné par le Répertoire/);
 });

@@ -3033,6 +3033,12 @@ body[data-vue="carte"] .pied {
   font-variant-numeric: tabular-nums;
   color: var(--encre);
 }
+.ratios__evolution {
+  margin: 0;
+  font-size: 0.62rem;
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
 /* Un ratio sans valeur n'est pas une case vide : c'est une phrase qui dit
    pourquoi il n'en a pas. Elle occupe la place du chiffre. */
 .ratios__impossible {
@@ -3117,6 +3123,15 @@ body[data-vue="carte"] .pied {
 }
 .pont__mouvement { color: var(--encre-douce); }
 .pont__reste { color: var(--encre); font-weight: 500; }
+/* L'évolution vs l'exercice précédent, sous le montant : petite, grise,
+   tabulaire — le montant reste la ligne, la variation la commente. */
+.pont__var {
+  display: block;
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
 /* Un palier est un total : le trait au-dessus dit que ce qui précède
    s'additionne pour donner cette ligne-là. */
 .pont__ligne--palier,

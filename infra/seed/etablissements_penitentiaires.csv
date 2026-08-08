@@ -1,0 +1,199 @@
+# Rattachement etablissement penitentiaire -> commune d'implantation (code INSEE, COG 2025).
+# Construit le 2026-08-07 par jointure sur le nom entre le fichier mensuel DGAP
+# « statistique_etablissements_personnes_ecrouees » (onglets Tab14-Tab23) et la Base de
+# donnees locales de l'annuaire de l'administration (DILA, licence ouverte 2.0,
+# https://lecomarquage.service-public.gouv.fr/donnees_locales_v4/all_latest.tar.bz2,
+# types maison_arret / centre_penitentiaire / centre_detention / maison_centrale / csl / esm).
+# La jointure floue a ete faite UNE fois puis verifiee a la main ; ce fichier est le
+# resultat fige. Le connecteur (plateforme/normalize/prisons.py) le lit tel quel et ne
+# refait jamais le rapprochement : un etablissement du xlsx absent d'ici bloque le run.
+# provenance = annuaire (appariement exact sur le nom) ou manuel (resolu a la main,
+# la colonne reference dit depuis quoi). Les arrondissements municipaux sont replies
+# sur leur commune (CP de Marseille-Baumettes : 13209 -> 13055).
+etablissement,code_commune,provenance,reference
+CD ARGENTAN,61006,annuaire,Centre de détention d'Argentan
+CD BAPAUME,62080,annuaire,Centre de détention de Bapaume
+CD BEDENAC,17038,annuaire,Centre de détention de Bédenac
+CD CASABIANDA,2B009,manuel,"CD de Casabianda-Aléria (annuaire), Aléria"
+CD CHATEAUDUN,28088,annuaire,Centre de détention de Châteaudun
+CD ECROUVES,54174,annuaire,Centre de détention d'Ecrouves
+CD EYSSES,47323,manuel,CD d'Eysses-Villeneuve-sur-Lot (annuaire)
+CD JOUX LA VILLE,89208,annuaire,Centre de détention de Joux-la-Ville
+CD KONE,98811,annuaire,Centre de détention de Koné
+CD LE PORT,97407,manuel,CD du Port (la Réunion) (annuaire)
+CD MAUZAC,24260,annuaire,Centre de détention de Mauzac
+CD MELUN,77288,annuaire,Centre de détention de Melun
+CD MONTMEDY,55351,annuaire,Centre de détention de Montmédy
+CD MURET,31395,annuaire,Centre de détention de Muret
+CD NEUVIC SUR L ISLE,24309,annuaire,Centre de détention de Neuvic-sur-l'Isle
+CD OERMINGEN,67355,annuaire,Centre de détention d'Oermingen
+CD ROANNE,42187,annuaire,Centre de détention de Roanne
+CD SALON DE PROVENCE,13103,annuaire,Centre de détention de Salon-de-Provence
+CD ST MIHIEL,55463,annuaire,Centre de détention de Saint-Mihiel
+CD ST SULPICE LA POINTE,81271,annuaire,Centre de détention de Saint-Sulpice-la-Pointe
+CD TARASCON,13108,annuaire,Centre de détention de Tarascon
+CD TATUTU DE PAPEARI,98747,annuaire,Centre de détention de Tatutu de Papeari
+CD TOUL,54528,annuaire,Centre de détention de Toul
+CD UZERCHE,19276,annuaire,Centre de détention d'Uzerche
+CD VAL DE REUIL,27701,annuaire,Centre de détention de Val-de-Reuil
+CD VILLENAUXE LA GRANDE,10420,annuaire,Centre de détention de Villenauxe-la Grande
+CP AITON,73007,annuaire,Centre pénitentiaire d'Aiton
+CP AIX LUYNES,13001,annuaire,Centre pénitentiaire d'Aix-Luynes
+CP ALENCON CONDE SUR SARTHE,61117,annuaire,Centre pénitentiaire d'Alençon-Condé sur Sarthe
+CP AVIGNON LE PONTET,84092,annuaire,Centre pénitentiaire d'Avignon-le Pontet
+CP BAIE MAHAULT,97103,annuaire,Centre pénitentiaire de Baie-Mahault
+CP BEAUVAIS,60057,annuaire,Centre pénitentiaire de Beauvais
+CP BEZIERS,34032,annuaire,Centre pénitentiaire de Béziers
+CP BOIS D ARCY,78073,annuaire,Centre pénitentiaire de Bois-d'Arcy
+CP BORDEAUX GRADIGNAN,33192,annuaire,Centre pénitentiaire de Bordeaux-Gradignan
+CP BORGO,2B042,annuaire,Centre pénitentiaire de Borgo
+CP BOURG EN BRESSE,01053,annuaire,Centre pénitentiaire de Bourg-en-Bresse
+CP CAEN,14118,annuaire,Centre pénitentiaire de Caen
+CP CAEN IFS,14341,annuaire,Centre pénitentiaire de Caen-Ifs
+CP CHATEAU THIERRY,02168,annuaire,Centre pénitentiaire de Château-Thierry
+CP CHATEAUROUX,36044,annuaire,Centre pénitentiaire de Châteauroux
+CP DUCOS,97207,annuaire,Centre pénitentiaire de Ducos
+CP FAAA NUUTANIA,98715,manuel,"CP de Faa'a-Nuutania (annuaire), Polynésie française"
+CP FLEURY MEROGIS,91235,annuaire,Centre pénitentiaire de Fleury-Mérogis
+CP FRESNES,94034,annuaire,Centre pénitentiaire de Fresnes
+CP FRESNES - Villejuif,94076,manuel,quartier de semi-liberté du CP de Fresnes situé à Villejuif
+CP GRENOBLE VARCES,38524,annuaire,Centre pénitentiaire de Grenoble-Varces
+CP LANNEMEZAN,65258,annuaire,Centre pénitentiaire de Lannemezan
+CP LAON,02408,annuaire,Centre pénitentiaire de Laon
+CP LE HAVRE,76563,manuel,"CP du Havre (annuaire), implante a Saint-Aubin-Routot"
+CP LE MANS LES CROISETTES,72095,manuel,"CP du Mans-Les-Croisettes (annuaire), Coulaines"
+CP LIANCOURT,60360,annuaire,Centre pénitentiaire de Liancourt
+CP LILLE ANNOEULLIN,59011,annuaire,Centre pénitentiaire de Lille-Annoeullin
+CP LILLE LOOS SEQUEDIN,59566,annuaire,Centre pénitentiaire de Lille-Loos-Sequedin
+CP LONGUENESSE,62525,annuaire,Centre pénitentiaire de Longuenesse
+CP LORIENT,56162,manuel,"CP de Lorient-Ploemeur (annuaire), Ploemeur"
+CP MAJICAVO,97611,annuaire,Centre pénitentiaire de Majicavo
+CP MARSEILLE,13055,manuel,"CP de Marseille-Baumettes (annuaire 13209, 9e arr., replié sur Marseille)"
+CP MATA UTU,98613,annuaire,Centre pénitentiaire de Mata-Utu
+CP MAUBEUGE,59392,annuaire,Centre pénitentiaire de Maubeuge
+CP MEAUX CHAUCONIN NEUFMONTIERS,77335,manuel,"l'annuaire donne 77284 (Meaux, adresse postale) ; l'etablissement est implante a Chauconin-Neufmontiers"
+CP METZ,57463,annuaire,Centre pénitentiaire de Metz
+CP MONT DE MARSAN,40192,annuaire,Centre pénitentiaire de Mont-De-Marsan
+CP MOULINS YZEURE,03180,annuaire,Centre pénitentiaire de Moulins-Yzeure
+CP MULHOUSE LUTTERBACH,68195,annuaire,Centre pénitentiaire de Mulhouse Lutterbach
+CP NANTERRE,92050,manuel,CP de Nanterre-Hauts-de-Seine (annuaire)
+CP NANTES,44109,annuaire,Centre pénitentiaire de Nantes
+CP NOUMEA,98818,annuaire,Centre pénitentiaire de Nouméa
+CP ORLEANS SARAN,45302,annuaire,Centre pénitentiaire d'Orléans-Saran
+CP OSNY PONTOISE,95476,annuaire,Centre pénitentiaire d'Osny-Pontoise
+CP PARIS LA SANTE,75056,annuaire,Centre pénitentiaire de Paris La Santé
+CP PERPIGNAN,66136,annuaire,Centre pénitentiaire de Perpignan
+CP POITIERS VIVONNE,86293,annuaire,Centre pénitentiaire de Poitiers-Vivonne
+CP REMIRE MONTJOLY,97305,annuaire,Centre pénitentiaire de Remire-Montjoly
+CP RENNES,35353,annuaire,Centre pénitentiaire de Rennes
+CP RENNES VEZIN,35353,manuel,CP de Rennes-Vezin le Coquet (annuaire)
+CP RIOM,63300,annuaire,Centre pénitentiaire de Riom
+CP SEINE SAINT DENIS,93078,annuaire,Centre pénitentiaire de Seine-Saint-Denis
+CP ST DENIS,97411,annuaire,Centre pénitentiaire de Saint-Denis
+CP ST ETIENNE LA TALAUDIERE,42305,annuaire,Centre pénitentiaire de Saint-Etienne La-Talaudière
+CP ST PIERRE ET MIQUELON,97502,annuaire,Centre pénitentiaire de Saint-Pierre-et-Miquelon
+CP ST QUENTIN FALLAVIER,38449,annuaire,Centre pénitentiaire de Saint-Quentin-Fallavier
+CP SUD FRANCILIEN,77384,annuaire,Centre pénitentiaire du Sud-Francilien
+CP TAIOHAE,98731,annuaire,Centre pénitentiaire de Taiohae
+CP TOULON LA FARLEDE,83137,annuaire,Centre pénitentiaire de Toulon-La Farlède
+CP TOULOUSE SEYSSES,31547,annuaire,Centre pénitentiaire de Toulouse-Seysses
+CP TROYES LAVAU,10191,annuaire,Centre pénitentiaire de Troyes-Lavau
+CP UTUROA,98758,annuaire,Centre pénitentiaire d'Uturoa
+CP VALENCE,26362,annuaire,Centre pénitentiaire de Valence
+CP VARENNES LE GRAND,71555,annuaire,Centre pénitentiaire de Varennes-le-Grand
+CP VENDIN LE VIEIL,62842,annuaire,Centre pénitentiaire de Vendin le Vieil
+CP VILLEFRANCHE SUR SAONE,69264,annuaire,Centre pénitentiaire de Villefranche-sur-Saône
+CP VILLENEUVE LES MAGUELONE,34337,annuaire,Centre pénitentiaire de Villeneuve-les-Maguelone
+CSL BESANCON,25056,annuaire,Centre de semi-liberté de Besançon
+CSL CORBEIL ESSONNES,91174,annuaire,Centre de semi-liberté de Corbeil-Essonnes
+CSL GAGNY,93032,annuaire,Centre de semi-liberté de Gagny
+CSL LYON,69123,annuaire,Centre de semi-liberté de Lyon
+CSL MAXEVILLE,54357,annuaire,Centre de semi-liberté de Maxéville
+CSL MELUN,77288,annuaire,Centre de semi-liberté de Melun
+CSL MONTARGIS,45208,annuaire,Centre de semi-liberté de Montargis
+CSL SOUFFELWEYERSHEIM,67471,annuaire,Centre de semi-liberté de Souffelweyersheim
+CSL VAL DE BRIEY,54099,annuaire,Centre de semi-liberté du Val de Briey
+EPM LAVAUR,81140,annuaire,Etablissement pénitentiaire spécialisé pour mineurs de Lavaur
+EPM MARSEILLE,13055,annuaire,Etablissement pénitentiaire spécialisé pour mineurs de Marseille
+EPM ORVAULT,44114,annuaire,Etablissement pénitentiaire spécialisé pour mineurs d'Orvault
+EPM PORCHEVILLE,78501,annuaire,Etablissement pénitentiaire spécialisé pour mineurs de Porcheville
+EPM QUIEVRECHAIN,59484,annuaire,Etablissement pénitentiaire spécialisé pour mineurs de Quiévrechain
+EPM RHONE,69282,annuaire,Etablissement pénitentiaire spécialisé pour mineurs du Rhône
+MA AGEN,47001,annuaire,Maison d'arrêt d'Agen
+MA AJACCIO,2A004,annuaire,Maison d'arrêt d'Ajaccio
+MA ALBI,81004,annuaire,Maison d'arrêt d'Albi
+MA AMIENS,80021,annuaire,Maison d'arrêt d'Amiens
+MA ANGERS,49007,annuaire,Maison d'arrêt d'Angers
+MA ANGOULEME,16015,annuaire,Maison d'arrêt d'Angoulême
+MA ARRAS,62041,annuaire,Maison d'arrêt d'Arras
+MA AURILLAC,15014,annuaire,Maison d'arrêt d'Aurillac
+MA AUXERRE,89024,annuaire,Maison d'arrêt d'Auxerre
+MA BAR LE DUC,55029,annuaire,Maison d'arrêt de Bar-le-Duc
+MA BASSE TERRE,97105,manuel,"absent de l'annuaire (seul un point-justice y figure), Basse-Terre"
+MA BAYONNE,64102,annuaire,Maison d'arrêt de Bayonne
+MA BELFORT,90010,annuaire,Maison d'arrêt de Belfort
+MA BESANCON,25056,annuaire,Maison d'arrêt de Besançon
+MA BETHUNE,62119,annuaire,Maison d'arrêt de Béthune
+MA BLOIS,41018,annuaire,Maison d'arrêt de Blois
+MA BONNEVILLE,74042,annuaire,Maison d'arrêt de Bonneville
+MA BOURGES,18033,annuaire,Maison d'arrêt de Bourges
+MA BREST,29019,annuaire,Maison d'arrêt de Brest
+MA CARCASSONNE,11069,annuaire,Maison d'arrêt de Carcassonne
+MA CHALONS EN CHAMPAGNE,51108,annuaire,Maison d'arrêt de Châlons-en-Champagne
+MA CHAMBERY,73065,annuaire,Maison d'arrêt de Chambéry
+MA CHARLEVILLE MEZIERES,08105,annuaire,Maison d'arrêt de Charleville-Mézières
+MA CHAUMONT,52121,annuaire,Maison d'arrêt de Chaumont
+MA CHERBOURG,50129,annuaire,Maison d'arrêt de Cherbourg
+MA COUTANCES,50147,manuel,"annuaire ne porte que le point-justice de la MA, Coutances"
+MA DIGNE LES BAINS,04070,annuaire,Maison d'arrêt de Digne-les-Bains
+MA DIJON,21231,annuaire,Maison d'arrêt de Dijon
+MA DOUAI,59178,annuaire,Maison d'arrêt de Douai
+MA DRAGUIGNAN,83050,annuaire,Maison d'arrêt de Draguignan
+MA DUNKERQUE,59183,annuaire,Maison d'arrêt de Dunkerque
+MA EPINAL,88160,annuaire,Maison d'arrêt d'Epinal
+MA EVREUX,27229,annuaire,Maison d'arrêt d'Evreux
+MA FOIX,09122,annuaire,Maison d'arrêt de Foix
+MA FONTENAY LE COMTE,85092,annuaire,Maison d'arrêt de Fontenay-le-Comte
+MA GAP,05061,annuaire,Maison d'arrêt de Gap
+MA GRASSE,06069,annuaire,Maison d'arrêt de Grasse
+MA GUERET,23096,annuaire,Maison d'arrêt de Guéret
+MA LA ROCHE SUR YON,85191,annuaire,Maison d'arrêt de La Roche-sur-Yon
+MA LAVAL,53130,annuaire,Maison d'arrêt de Laval
+MA LE PUY EN VELAY,43041,manuel,MA du Puy-en-Velay (annuaire)
+MA LIMOGES,87085,annuaire,Maison d'arrêt de Limoges
+MA LONS LE SAUNIER,39300,annuaire,Maison d'arrêt de Lons-le-Saunier
+MA LYON CORBAS,69273,annuaire,Maison d'arrêt de Lyon-Corbas
+MA MENDE,48095,annuaire,Maison d'arrêt de Mende
+MA MONTAUBAN,82121,annuaire,Maison d'arrêt de Montauban
+MA MONTBELIARD,25388,annuaire,Maison d'arrêt de Montbéliard
+MA MONTLUCON,03185,annuaire,Maison d'arrêt de Montluçon
+MA NANCY MAXEVILLE,54357,annuaire,Maison d'arrêt de Nancy-Maxéville
+MA NEVERS,58194,annuaire,Maison d'arrêt de Nevers
+MA NICE,06088,annuaire,Maison d'arrêt de Nice
+MA NIMES,30189,annuaire,Maison d'arrêt de Nîmes
+MA NIORT,79191,annuaire,Maison d'arrêt de Niort
+MA PAU,64445,annuaire,Maison d'arrêt de Pau
+MA PERIGUEUX,24322,annuaire,Maison d'arrêt de Périgueux
+MA PRIVAS,07186,annuaire,Maison d'arrêt de Privas
+MA REIMS,51454,annuaire,Maison d'arrêt de Reims
+MA ROCHEFORT,17299,annuaire,Maison d'arrêt de Rochefort
+MA RODEZ,12202,annuaire,Maison d'arrêt de Rodez
+MA ROUEN,76540,annuaire,Maison d'arrêt de Rouen
+MA SAINTES,17415,annuaire,Maison d'arrêt de Saintes
+MA SARREGUEMINES,57750,annuaire,Maison d'arrêt de Sarreguemines
+MA ST BRIEUC,22278,annuaire,Maison d'arrêt de Saint-Brieuc
+MA ST MALO,35288,annuaire,Maison d'arrêt de Saint-Malo
+MA ST PIERRE,97416,manuel,MA de Saint-Pierre-de-la-Réunion (annuaire)
+MA STRASBOURG,67482,annuaire,Maison d'arrêt de Strasbourg
+MA TARBES,65440,annuaire,Maison d'arrêt de Tarbes
+MA TOURS,37261,annuaire,Maison d'arrêt de Tours
+MA TULLE,19272,annuaire,Maison d'arrêt de Tulle
+MA VALENCIENNES,59606,annuaire,Maison d'arrêt de Valenciennes
+MA VANNES,56260,annuaire,Maison d'arrêt de Vannes
+MA VERSAILLES,78646,annuaire,Maison d'arrêt de Versailles
+MA VESOUL,70550,annuaire,Maison d'arrêt de Vesoul
+MC ARLES,13004,annuaire,Maison centrale d'Arles
+MC ENSISHEIM,68082,annuaire,Maison centrale d'Ensisheim
+MC POISSY,78498,annuaire,Maison centrale de Poissy
+MC ST MARTIN DE RE,17369,annuaire,Maison centrale de Saint-Martin-de-Ré
+MC ST MAUR,36202,annuaire,Maison centrale de Saint-Maur

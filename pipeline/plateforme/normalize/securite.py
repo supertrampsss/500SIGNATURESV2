@@ -283,7 +283,7 @@ def declarer(conn) -> None:
             for indicateur, libelle_complet, unite, note in (
                 (indicateur_taux(classe), libelle, UNITES_TAUX[denominateur],
                  f"{comptes} pour {rapporte}"),
-                (indicateur_nombre(classe), f"{libelle} — nombre {de(comptes)}",
+                (indicateur_nombre(classe), f"{libelle}, nombre {de(comptes)}",
                  "count", comptes),
             ):
                 definition = curseur.execute(

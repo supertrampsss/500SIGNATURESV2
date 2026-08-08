@@ -256,7 +256,7 @@ export function rendu(
         rupture,
       )} : les valeurs antérieures ne portent pas sur le même territoire.</p>`
     : "";
-  const resume = `${periodes[0]} : ${formater(valeurs[0])} — ${
+  const resume = `${periodes[0]} : ${formater(valeurs[0])}, ${
     periodes[periodes.length - 1]
   } : ${formater(valeurs[valeurs.length - 1])}`;
   // Un repère très éloigné écrase la courbe : à Pessac, la dette du
@@ -295,10 +295,13 @@ export function rendu(
         ${echapper(formater(r.valeur))}</span>`,
     ),
   ].join("");
+  // La réserve (« un budget se décide à plusieurs niveaux ») est dite une fois,
+  // dans « Sources et méthode » : répétée sous chaque courbe d'une même fiche,
+  // elle devenait du bruit. Le trait reste, et l'année vit dans l'aria-label.
   const noteMandat = mandat
-    ? `<p class="serie__mandat-note">Le maire en exercice a pris ses fonctions en
-        ${echapper(mandat)}. Un budget se décide à plusieurs niveaux et se paie
-        sur plusieurs années&nbsp;: ce repère situe, il n'explique pas.</p>`
+    ? `<p class="serie__mandat-note">Trait vertical : prise de fonctions du maire (${echapper(
+        mandat,
+      )}).</p>`
     : "";
   return `<div class="serie">
     <svg viewBox="0 0 ${LARGEUR} ${HAUTEUR}" class="serie__trace" role="img"

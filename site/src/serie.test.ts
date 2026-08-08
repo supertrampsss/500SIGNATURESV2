@@ -72,7 +72,7 @@ test("une série plate ne divise pas par zéro", () => {
 test("le graphique porte un équivalent textuel", () => {
   const html = rendu(SERIE, [], brut);
   assert.match(html, /role="img"/);
-  assert.match(html, /aria-label="Évolution 2018 : 100 € — 2021 : 132 €"/);
+  assert.match(html, /aria-label="Évolution 2018 : 100 €, 2021 : 132 €"/);
 });
 
 test("une valeur de départ nulle ne produit pas d'infini", () => {
@@ -118,11 +118,13 @@ test("un changement de mandature n'est pas une rupture de périmètre", () => {
   assert.match(evolution(serie, "2021", []), /2018/);
 });
 
-test("le repère de mandature dit qu'il n'explique rien", () => {
+test("le repère de mandature se nomme en une ligne, sans pavé répété", () => {
+  // La réserve (« un budget se décide à plusieurs niveaux ») est dite une
+  // fois, dans Sources et méthode : sous chaque courbe, c'était du bruit.
   const serie = { "2018": 100, "2019": 110, "2020": 120, "2021": 130 };
   const html = rendu(serie, [], (v) => `${v} €`, [], true, "2020-05-23");
-  assert.match(html, /pris ses fonctions en\s+2020/);
-  assert.match(html, /il n'explique pas/);
+  assert.match(html, /prise de fonctions du maire \(2020\)/);
+  assert.doesNotMatch(html, /il n'explique pas/);
   // Un lecteur d'écran ne voit pas le trait : l'équivalent textuel le porte.
   assert.match(html, /aria-label="[^"]*pris ses fonctions en 2020/);
 });

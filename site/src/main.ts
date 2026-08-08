@@ -9,6 +9,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
+import { traduire } from "./traductions.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import {
   afficherFiche,
@@ -299,7 +300,7 @@ function indicateurCourant(): Indicateur {
 function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean): void {
   const indicateur = indicateurCourant();
   $("legende").hidden = false;
-  $("legende-titre").textContent = indicateur.libelle;
+  $("legende-titre").textContent = traduire(indicateur.libelle);
   const bornes = [...echelle.bornes];
   const lisible = (v: number) => formater(v, indicateur.unite, parHabitant);
   $("legende-echelle").innerHTML = echelle.couleurs
@@ -327,7 +328,7 @@ function majLegende(echelle: ReturnType<typeof quantiles>, parHabitant: boolean)
   $("legende-vignette").style.background = `linear-gradient(to bottom, ${echelle.couleurs.join(
     ", ",
   )})`;
-  $("legende").title = `Légende — ${indicateur.libelle}`;
+  $("legende").title = `Légende : ${traduire(indicateur.libelle)}`;
 }
 
 function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
@@ -349,13 +350,13 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
   };
   const exporter = $<HTMLButtonElement>("exporter");
   exporter.hidden = toutes.length === 0;
-  exporter.textContent = `Télécharger en CSV — ${toutes.length.toLocaleString("fr-FR")} territoire${
+  exporter.textContent = `Télécharger en CSV (${toutes.length.toLocaleString("fr-FR")} territoire${
     toutes.length > 1 ? "s" : ""
-  }`;
+  })`;
 
   const lignes = toutes.slice(0, 100);
   $("tableau-donnees").innerHTML = `
-    <caption>${indicateur.libelle} — ${etat.periode}${parHabitant ? ", par habitant" : ""} · 100 premiers territoires</caption>
+    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""} · 100 premiers territoires</caption>
     <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">Valeur</th></tr></thead>
     <tbody>${lignes
       .map(
@@ -844,7 +845,9 @@ async function majComparateur(): Promise<void> {
   afficherComparateur(
     section,
     entrees,
-    catalogue.filter((i) => i.theme === etat.theme && i.niveaux?.includes(etat.niveau)),
+    catalogue.filter(
+      (i) => i.theme === etat.theme && i.niveaux?.includes(etat.niveau) && !DENOMINATEURS.has(i.id),
+    ),
     etat.periode,
     etat.declinaison === "habitant",
   );
@@ -881,6 +884,9 @@ const THEMES: Record<string, string> = {
   budget_etat: "Budget de l'État",
   depenses_fiscales: "Niches fiscales",
   energie: "Énergie",
+  transports: "Transports",
+  environnement: "Environnement",
+  justice: "Justice",
   europe: "Comparaisons européennes",
 };
 
@@ -1128,7 +1134,7 @@ function brancherCommandes(): void {
         periode: etat.periode,
         niveau: etat.niveau,
         parHabitant: exportCourant.parHabitant,
-        source: jeu ? `${jeu.producteur} — ${jeu.titre}` : indicateur.jeu,
+        source: jeu ? `${jeu.producteur}, ${jeu.titre}` : indicateur.jeu,
       }),
       nomDeFichier(indicateur.libelle, etat.niveau, etat.periode),
     );
@@ -1514,7 +1520,7 @@ async function demarrer(): Promise<void> {
             : "";
         infobulle.innerHTML = `<strong>${nom}</strong>${
           valeur === undefined
-            ? `<span>donnée non disponible</span>`
+            ? `<span>non publié pour ce territoire</span>`
             : `<span>${formater(valeur, indicateur.unite, parHabitantAffiche)}</span>${autre}`
         }`;
         infobulle.hidden = false;
@@ -1600,7 +1606,7 @@ async function demarrer(): Promise<void> {
       .map(
         (jeu) => `<details class="repli">
           <summary>${jeu.titre}</summary>
-          <p>${jeu.producteur} — ${jeu.licence}<br />
+          <p>${jeu.producteur} · ${jeu.licence}<br />
           Extraction du ${new Date(jeu.extraction).toLocaleDateString("fr-FR")} ·
           <a href="${jeu.url}" rel="noreferrer">fichier source</a></p>
         </details>`,
@@ -1613,7 +1619,7 @@ async function demarrer(): Promise<void> {
           <summary>${libelleTheme(theme)} (${liste.length})</summary>
           <ul class="methodes">${liste
             .map(
-              (i) => `<li><strong>${i.libelle}</strong> — ${i.definition}
+              (i) => `<li><strong>${i.libelle}</strong> : ${i.definition}
                 <br /><span class="technique">${i.definition_technique}</span>
                 <br /><span class="formule">Calcul : ${i.formule}</span></li>`,
             )
@@ -1641,7 +1647,7 @@ async function demarrer(): Promise<void> {
         capacité de désendettement très grande : elle n'en donne aucune. Le
         quotient n'existe pas, et le site l'écrit plutôt que d'afficher un nombre
         d'années négatif.</li>
-      <li>Chaque palier de l'enchaînement — épargne brute, épargne nette, solde —
+      <li>Chaque palier de l'enchaînement (épargne brute, épargne nette, solde)
         est <strong>recalculé depuis ses termes puis confronté à l'agrégat publié</strong>
         pour ce même palier. Si l'un des trois contrôles échoue, l'enchaînement
         n'est pas affiché du tout.</li>
@@ -1658,7 +1664,7 @@ async function demarrer(): Promise<void> {
     <ul class="methodes">
       <li>Comparer deux territoires suppose la même année, la même unité et le
         même périmètre budgétaire.</li>
-      <li>Les repères sont la médiane des territoires de même niveau — la moitié
+      <li>Les repères sont la médiane des territoires de même niveau : la moitié
         se situe en dessous. « Communes de la région » désigne l'ensemble des
         communes de cette région, jamais le budget du conseil régional, qui est
         une autre collectivité aux autres compétences.</li>
@@ -1677,8 +1683,15 @@ async function demarrer(): Promise<void> {
         l'Observatoire des finances locales de l'exercice concerné, afin que
         nos ratios reproduisent exactement les siens.</li>
       <li>Un budget voté n'est pas une dépense réalisée : les montants publiés
-        ici sont ceux des comptes exécutés, budgets principaux et annexes
-        consolidés.</li>
+        ici sont ceux des comptes exécutés. Les masses de la fiche consolident
+        budgets principaux et annexes ; les six rapports et l'enchaînement,
+        eux, portent sur le seul budget principal.</li>
+      <li>Les évolutions « en euros constants » utilisent l'indice des prix
+        national : il ne dit pas ce que les prix ont fait dans chaque
+        territoire.</li>
+      <li>Le trait vertical des courbes marque la prise de fonctions du maire.
+        Un budget se décide à plusieurs niveaux et se paie sur plusieurs
+        années : ce repère situe, il n'explique pas.</li>
     </ul>`;
 
   // La méthode des agrégats nationaux se charge à part elle aussi : absente,

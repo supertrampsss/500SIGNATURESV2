@@ -290,7 +290,7 @@ def declarer(conn) -> None:
             insert into core.indicators
                 (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                  additive, geo_levels, time_granularity, published)
-            values (?, ?, ?, ?, 'Demandeurs d''emploi (catégories A, B, C)', ?,
+            values (?, ?, ?, ?, 'Inscrits à France Travail (catégories A, B, C)', ?,
                     true, array['commune'], 'annuelle', true)
             on conflict (indicator_id) do update set unit = excluded.unit,
                 definition_id = excluded.definition_id, label_fr = excluded.label_fr,

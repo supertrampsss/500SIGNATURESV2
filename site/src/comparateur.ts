@@ -11,6 +11,7 @@
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { formater, parHabitantAUnSens, populationDeReference } from "./echelle.ts";
+import { traduire } from "./traductions.ts";
 
 export type Entree = { code: string; niveau: string; territoire: Territoire };
 
@@ -118,7 +119,7 @@ export function rendu(
   const lignes = indicateurs
     .map(
       (indicateur) => `<tr>
-        <th scope="row">${echapper(indicateur.libelle)}</th>
+        <th scope="row">${echapper(traduire(indicateur.libelle))}</th>
         ${entrees.map((e) => cellule(indicateur, e, periode, parHabitant)).join("")}
       </tr>`,
     )

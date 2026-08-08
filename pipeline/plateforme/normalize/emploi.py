@@ -75,7 +75,7 @@ STATUTS = {
     # « Chômeurs au sens du recensement » : la précision méthodologique tenait
     # lieu de libellé. Elle vit dans la fiche, où on la lit quand on la
     # cherche ; en titre de ligne elle noyait le mot qui informe.
-    "2": ("insee_chomeurs_rp", "Chômeurs"),
+    "2": ("insee_chomeurs_rp", "Chômeurs déclarés (recensement)"),
     "3": ("insee_inactifs", "Inactifs de 15 à 64 ans"),
 }
 

@@ -348,6 +348,14 @@ def declarer(conn) -> None:
                 """,
                 (indicateur, DATASET, definition, libelle),
             )
+        # Retirer un indicateur de `indicateurs()` ne suffit pas : sa ligne
+        # déjà déclarée garde published = true pour toujours, et le parc
+        # social du recensement est resté publié un jour de plus que prévu.
+        # La dépublication s'écrit.
+        curseur.execute(
+            "update core.indicators set published = false"
+            " where indicator_id = 'insee_residences_principales_parc_social'"
+        )
         curseur.execute(
             "delete from core.indicator_definitions d where not exists"
             " (select 1 from core.indicators i where i.definition_id = d.definition_id)"

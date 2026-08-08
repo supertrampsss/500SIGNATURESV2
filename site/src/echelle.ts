@@ -149,7 +149,7 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
     // Le principal facteur de confusion des dépenses communales par habitant, et
     // il se voit sur la carte : le littoral et la montagne ressortent d'abord.
     return (
-      `${classes} Dénominateur : population de référence OFGL de l'exercice.` +
+      `${classes} Dénominateur : population de référence de l'Observatoire des finances locales.` +
       " Une commune touristique dépense pour une population bien plus nombreuse que" +
       " ses habitants permanents, qui sont le dénominateur."
     );
@@ -162,6 +162,13 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
       `${classes} Consommation en mégawattheures, toutes catégories de consommateurs` +
       " confondues (ménages, entreprises, industrie) : une commune industrielle" +
       " consomme sans que ses habitants y soient pour rien."
+    );
+  }
+  if (unite === "m2") {
+    return (
+      `${classes} Surface consommée en hectares (1 ha = 10 000 m²). La dernière` +
+      " année est provisoire et sous-estimée : elle est révisée au millésime" +
+      " suivant."
     );
   }
   // Les taux de délinquance enregistrée (SSMSI) : le dénominateur fait partie
@@ -178,20 +185,20 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
   if (unite === "pour_1000_logements") {
     return (
       `${classes} Faits enregistrés en % des logements (dénominateur INSEE de la` +
-      " source), le bon dénominateur des cambriolages — pas la population."
+      " source), le bon dénominateur des cambriolages : pas la population."
     );
   }
   if (unite === "consultations_par_an") {
     return (
       `${classes} Consultations de médecin généraliste accessibles par an et par` +
-      " habitant standardisé (APL, DREES) — un indicateur modélisé, pas un comptage." +
+      " habitant standardisé, calculé par la DREES : un indicateur modélisé, pas un comptage." +
       " En dessous de 2,5, la DREES parle de sous-densité."
     );
   }
   if (unite === "€/m²/mois") {
     return (
       `${classes} Loyer d'annonce au mètre carré, charges comprises, pour un` +
-      " logement vide. Il n'est mesuré que là où la source a assez d'annonces —" +
+      " logement vide. Il n'est mesuré que là où la source a assez d'annonces ;" +
       " ailleurs la commune reste grise plutôt que d'afficher le loyer du" +
       " voisinage."
     );
@@ -230,6 +237,17 @@ function formaterNombre(valeur: number, unite: string, parHabitant: boolean): st
   // cette branche, le site affichait « 58,1 rate ».
   if (unite === "percent" || unite === "rate") {
     return pourcentage(valeur);
+  }
+  // La consommation d'espaces se publie en mètres carrés entiers. Au-delà de
+  // l'hectare, l'échelle monte : « 3 117 494 m² » ne se lit pas, « 312 ha »
+  // se lit — et un hectare, c'est un terrain de rugby et demi.
+  if (unite === "m2") {
+    const absolu = Math.abs(valeur);
+    const nombre = (v: number, d: number) =>
+      new Intl.NumberFormat("fr-FR", { maximumFractionDigits: d }).format(v);
+    if (absolu >= 1e5) return moins(`${nombre(valeur / 1e4, 0)} ha`);
+    if (absolu >= 1e4) return moins(`${nombre(valeur / 1e4, 1)} ha`);
+    return moins(`${nombre(valeur, 0)} m²`);
   }
   // L'énergie se publie en mégawattheures. Au-delà du millier, l'échelle
   // monte d'un cran : « 3 573 119 MWh » ne se lit pas, « 3,6 TWh » se lit.

@@ -153,7 +153,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: encours / habitants,
       unite: "euro_par_habitant",
       lecture:
-        "L'encours rapporté à la population de référence de l'OFGL du même exercice, et non à celle du recensement : deux définitions, deux millésimes.",
+        "L'encours rapporté à la population de référence des ratios officiels, pas à la population municipale du recensement.",
     });
   }
 
@@ -200,6 +200,26 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
   return liste;
 }
 
+/** Le mouvement d'un rapport, dans l'unité où il se lit : des points pour un
+ *  taux (un taux qui passe de 10 à 12 % ne « monte pas de 20 % »), des années,
+ *  des euros. `null` quand l'écart s'arrondit à rien : « +0,0 pt » est du bruit. */
+function deltaTexte(delta: number, unite: Ratio["unite"]): string | null {
+  const nombre = (v: number, d: number) =>
+    new Intl.NumberFormat("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })
+      .format(Math.abs(v));
+  const signe = delta >= 0 ? "+" : "−";
+  if (unite === "percent") {
+    if (Math.abs(delta) < 0.05) return null;
+    return `${signe}${nombre(delta, 1)} pt`;
+  }
+  if (unite === "annees") {
+    if (Math.abs(delta) < 0.05) return null;
+    return `${signe}${nombre(delta, 1)} ${Math.abs(delta) >= 2 ? "ans" : "an"}`;
+  }
+  if (Math.abs(delta) < 0.5) return null;
+  return `${signe}${nombre(delta, 0)} €`;
+}
+
 function formaterRatio(ratio: Ratio): string {
   if (ratio.valeur === undefined) return "—";
   const nombre = (valeur: number, decimales: number) =>
@@ -230,8 +250,26 @@ export function rendu(territoire: Territoire, niveau: string): string {
   const liste = ratios(territoire, niveau, exercice);
   if (liste.length < 2) return "";
 
+  // L'exercice d'avant, pour dire le mouvement de chaque rapport : un taux
+  // d'épargne à 11,5 % ne se lit pas pareil s'il en perd deux points par an.
+  const annees = Object.keys(territoire.series?.[RECETTES] ?? {})
+    .filter((a) => a < exercice)
+    .sort();
+  const precedent = annees.length ? annees[annees.length - 1] : null;
+  const anciens = new Map(
+    (precedent ? ratios(territoire, niveau, precedent) : []).map((r) => [r.cle, r]),
+  );
+
   const carreaux = liste
     .map((ratio) => {
+      const ancien = anciens.get(ratio.cle);
+      const evolution =
+        precedent && ratio.valeur !== undefined && ancien?.valeur !== undefined
+          ? deltaTexte(ratio.valeur - ancien.valeur, ratio.unite)
+          : null;
+      const mouvement = evolution
+        ? `<p class="ratios__evolution">${echapper(`${evolution} vs ${precedent}`)}</p>`
+        : "";
       // Le plafond se dit sous le chiffre, et il se dit même quand le ratio
       // n'a pas pu être calculé : c'est le repère qui manque le plus là où
       // l'épargne est négative.
@@ -245,6 +283,7 @@ export function rendu(territoire: Territoire, niveau: string): string {
       return `<div class="ratios__carreau" data-ratio="${echapper(ratio.cle)}">
         <h4>${echapper(ratio.libelle)}</h4>
         ${corps}
+        ${mouvement}
         ${repere}
         <p class="ratios__lecture">${echapper(ratio.lecture)}</p>
       </div>`;
