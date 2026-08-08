@@ -70,15 +70,24 @@ export function repartition(
 const GAMME = ["#0f1b2e", "#c56a4d", "#6e7d73", "#b69b53", "#41547a", "#8b6a52", "#8b93a0", "#5d6d66"];
 const GRIS_AUTRES = "#c7cbc8";
 
+/** Une part de la figure : le libellé, sa valeur sur 100 €, et le montant réel
+ *  que cette part représente quand la source le publie. */
+export type Quartier = {
+  libelle: string;
+  part: number;
+  montant?: string;
+  composition?: string;
+};
+
 /** Regroupe les parts sous 3 € en « Autres » : un donut à douze quartiers
- *  fins est un code-barres circulaire, pas une figure. */
-export function quartiers(
-  entrees: { libelle: string; part: number }[],
-): { libelle: string; part: number; composition?: string }[] {
+ *  fins est un code-barres circulaire, pas une figure. Une petite part **seule**
+ *  garde son nom : la cacher derrière « Autres » ne simplifie rien et perd le
+ *  libellé. */
+export function quartiers(entrees: Quartier[]): Quartier[] {
   const grosses = entrees.filter((e) => e.part >= 3);
   const petites = entrees.filter((e) => e.part < 3);
   const total = petites.reduce((somme, e) => somme + e.part, 0);
-  if (!petites.length) return grosses;
+  if (petites.length < 2) return [...grosses, ...petites];
   return [
     ...grosses,
     {
@@ -89,10 +98,10 @@ export function quartiers(
   ];
 }
 
-function camembert(
+export function camembert(
   titre: string,
   question: string,
-  entrees: { libelle: string; part: number }[],
+  entrees: Quartier[],
 ): string {
   const parts = quartiers(entrees);
   const rayon = 74;
@@ -127,6 +136,7 @@ function camembert(
       return `<li${e.composition ? ` title="${echapper(e.composition)}"` : ""}>
         <span class="camembert__puce" style="background:${couleur}"></span>
         <span class="camembert__libelle">${echapper(e.libelle)}</span>
+        ${e.montant ? `<span class="camembert__montant">${echapper(e.montant)}</span>` : ""}
         <strong>${euros(e.part)}</strong>
       </li>`;
     })
@@ -149,7 +159,7 @@ function camembert(
   </figure>`;
 }
 
-function colonne(
+export function colonne(
   titre: string,
   question: string,
   entrees: { libelle: string; part: number }[],

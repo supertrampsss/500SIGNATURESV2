@@ -3809,3 +3809,16 @@ summary.pont__rangee,
   color: var(--encre-douce);
   padding-bottom: var(--espace-1);
 }
+
+/* Un camembert seul dans un bloc large : sans cette borne, la légende étire
+   ses parts jusqu'au bord droit et la ligne de lecture se casse. */
+.cent__solo {
+  max-width: 44rem;
+}
+
+/* Le montant réel à côté de la part : présent, jamais dominant. */
+.camembert__montant {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
