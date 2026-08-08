@@ -36,8 +36,9 @@ CHAMPS_PUBLIES = (
 )
 
 # `geo`, `geometries` et `maires` écrivent dans le référentiel, pas dans le
-# catalogue : ils n'ont pas de `declarer`. `ofgl` déclare par niveau de
-# collectivité, sous un autre nom.
+# catalogue : ils n'ont pas de `declarer`. `ofgl` déclare sous un autre nom, et
+# par niveau de collectivité — le niveau ne sert qu'à `geo_levels`, que la
+# publication recalcule ; les fiches, elles, sont les mêmes partout.
 NIVEAUX_OFGL = ["commune", "departement", "region", "epci"]
 
 
@@ -46,22 +47,20 @@ def _modules() -> list[str]:
     return sorted(p.stem for p in dossier.glob("*.py") if p.stem != "__init__")
 
 
-def _declarer(nom: str, conn) -> bool:
-    """-> a déclaré. `macro` construit son plan avant, sans réseau."""
+def _declarer(nom: str, conn) -> None:
+    """Déclare ce que le module sait déclarer. `macro` construit son plan avant,
+    sans réseau ; une signature qu'on ne sait pas servir est laissée de côté."""
     module = importlib.import_module(f"plateforme.normalize.{nom}")
     if nom == "ofgl":
         module.declarer_indicateurs(conn, NIVEAUX_OFGL)
-        return True
+        return
     if not hasattr(module, "declarer"):
-        return False
+        return
     parametres = list(inspect.signature(module.declarer).parameters)[1:]
     if not parametres:
         module.declarer(conn)
     elif parametres == ["plan"] and hasattr(module, "_plan"):
         module.declarer(conn, module._plan())
-    else:
-        return False
-    return True
 
 
 @pytest.fixture(scope="module")
