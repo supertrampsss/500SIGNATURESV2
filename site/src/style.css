@@ -99,6 +99,10 @@
      #b69b53 il tombait à 2,69:1 sur blanc — invisible là où il compte. */
   --dore: #96793a;
   --alerte: #ad5438;
+  /* Taille minimale d'une cible tactile : 44px (WCAG 2.5.5). Nommée, parce
+     qu'elle sert de hauteur de rangée, de hauteur de barre et de zone de
+     frappe étendue — trois endroits qui doivent bouger ensemble. */
+  --cible: 2.75rem;
   --rayon-pilule: 999px;
   --rayon: 12px;
   --rayon-s: 8px;
@@ -253,7 +257,7 @@ body {
   z-index: 20;
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: var(--cible);
   background: var(--papier);
   padding: var(--espace-4) var(--espace-6);
   border: 2px solid var(--accent);
@@ -349,7 +353,7 @@ select,
 input[type="search"] {
   font: inherit;
   /* 2,75rem : un champ est une cible tactile comme une autre. */
-  min-height: 2.75rem;
+  min-height: var(--cible);
   font-size: var(--texte-l);
   padding: var(--espace-4) var(--espace-5);
   border: 1px solid var(--trait-fort);
@@ -2661,13 +2665,17 @@ body[data-vue="carte"] .pied {
     flex-wrap: nowrap;
     scrollbar-width: none;
   }
-  /* Les groupes de pilules se laissent rétrécir jusqu'à 8rem : chacun défile
-     alors dans sa propre pilule, avec son propre dégradé de bord, au lieu
-     d'être coupé net par le bord de la barre — mesuré à l'audit : 960 px de
-     pilules pour 351 visibles, sans rien qui l'annonce. */
+  /* Les groupes gardent leur largeur : rétrécis, ils tombaient à 126 px, trois
+     minuscules ascenseurs côte à côte. C'est la barre entière qui défile, avec
+     calage : le groupe suivant se pose sous le doigt au lieu de rester coupé
+     au milieu d'un mot. */
   .pilules {
-    flex: 0 1 auto;
-    min-width: 8rem;
+    flex: 0 0 auto;
+    scroll-snap-align: start;
+  }
+  .carte-barre {
+    scroll-snap-type: x proximity;
+    scroll-padding-left: 0.6rem;
   }
 }
 
@@ -2849,7 +2857,7 @@ body[data-vue="carte"] .pied {
 /* Les rubriques : quatre entrées qui tiennent sans défiler, là où la barre des
    thèmes en cachait vingt-deux hors de l'écran. Elles collent au-dessus de la
    barre des thèmes, qui descend d'autant.
-   `min-height: 2.75rem` : la barre fait exactement la hauteur d'une cible
+   `min-height: var(--cible)` : la barre fait exactement la hauteur d'une cible
    tactile, pour que la zone de frappe étendue des onglets ne déborde ni sur le
    nom du territoire au-dessus ni sur la barre des thèmes en dessous. */
 .onglets-rubriques {
@@ -2858,7 +2866,7 @@ body[data-vue="carte"] .pied {
   z-index: 2;
   display: flex;
   align-items: stretch;
-  min-height: 2.75rem;
+  min-height: var(--cible);
   gap: 0.3rem;
   padding: 0;
   background: rgb(255 255 255 / 0.96);
@@ -2906,11 +2914,11 @@ body[data-vue="carte"] .pied {
    de la hauteur exacte de la barre des rubriques (2,75rem). */
 .onglets-themes {
   position: sticky;
-  top: calc(var(--haut-fiche) + 2.75rem);
+  top: calc(var(--haut-fiche) + var(--cible));
   z-index: 1;
   display: flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: var(--cible);
   gap: 0.25rem;
   overflow-x: auto;
   scrollbar-width: none;
@@ -3765,8 +3773,8 @@ body[data-vue="carte"] .pied {
   left: 50%;
   width: 100%;
   height: 100%;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+  min-width: var(--cible);
+  min-height: var(--cible);
   transform: translate(-50%, -50%);
 }
 
@@ -3783,7 +3791,7 @@ body[data-vue="carte"] .pied {
 .mesure--compacte[data-indicateur],
 #suggestions button,
 .questions summary {
-  min-height: 2.75rem;
+  min-height: var(--cible);
 }
 /* Les lignes dépliables du pont sont des rangées en grille : `align-content`
    recentre leur contenu dans la hauteur imposée, sinon le montant se colle en
@@ -3791,7 +3799,7 @@ body[data-vue="carte"] .pied {
 summary.pont__rangee,
 .pont__ouvrir > summary,
 .pont__sous > summary {
-  min-height: 2.75rem;
+  min-height: var(--cible);
   align-content: center;
 }
 .mesure > summary,
@@ -3811,7 +3819,7 @@ summary.pont__rangee,
 .assos__suite > summary,
 .assos__programmes > summary,
 .theme-groupe__suite > summary {
-  min-height: 2.75rem;
+  min-height: var(--cible);
   display: flex;
   align-items: center;
 }
@@ -3821,10 +3829,10 @@ summary.pont__rangee,
    d'autant plus bas — c'est la poignée qui recule, pas le contenu qui rétrécit. */
 @media (max-width: 60rem) {
   .panneau {
-    padding-top: 2.75rem;
+    padding-top: var(--cible);
   }
   .panneau__poignee {
-    height: 2.75rem;
+    height: var(--cible);
   }
   .panneau__poignee::before {
     top: 0.7rem;
@@ -3862,18 +3870,20 @@ summary.pont__rangee,
 /* Les boutons de zoom de MapLibre arrivent à 29 px : la bibliothèque ne
    connaît pas notre règle. Même traitement que les nôtres — le dessin du
    « + » ne bouge pas, seule la zone de frappe s'étend. */
-.maplibregl-ctrl button {
+.maplibregl-ctrl button,
+.maplibregl-ctrl summary {
   position: relative;
 }
-.maplibregl-ctrl button::after {
+.maplibregl-ctrl button::after,
+.maplibregl-ctrl summary::after {
   content: "";
   position: absolute;
   top: 50%;
   left: 50%;
   width: 100%;
   height: 100%;
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+  min-width: var(--cible);
+  min-height: var(--cible);
   transform: translate(-50%, -50%);
 }
 
@@ -3895,6 +3905,42 @@ summary.pont__rangee,
 .pilules::after,
 .onglets-themes::after {
   opacity: 0;
-  animation: bord-il-en-reste linear;
-  animation-timeline: scroll(self inline);
+  /* Chronologie *nommée*, portée par la barre elle-même : `scroll(self)` ne
+     marche pas depuis un pseudo-élément — « self », c'est le pseudo, qui ne
+     défile pas (vérifié au navigateur, opacité figée à 0).
+     Et longhands, pas la forme courte : `animation:` impose une durée de 0s,
+     qui désactive toute chronologie de défilement. `auto` = toute la course. */
+  animation-name: bord-il-en-reste;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --defile-barre;
+}
+.pilules,
+.onglets-themes,
+.carte-barre {
+  scroll-timeline-name: --defile-barre;
+  scroll-timeline-axis: inline;
+}
+/* Sur téléphone, c'est la barre entière qui défile — les groupes de pilules y
+   gardent leur largeur, et le groupe suivant (Métropole…Mayotte) sort de
+   l'écran sans rien annoncer : 960 px de pilules pour 351 visibles. Son
+   dégradé est plus pâle que celui des barres blanches, parce qu'il se pose sur
+   la carte : c'est la barre qui continue, pas la carte qui s'efface. Il ne
+   naît que si la barre déborde vraiment, et meurt en fin de course. */
+.carte-barre::after {
+  content: "";
+  position: sticky;
+  right: 0;
+  flex: 0 0 2rem;
+  margin-left: -2rem;
+  align-self: stretch;
+  pointer-events: none;
+  opacity: 0;
+  animation-name: bord-il-en-reste;
+  animation-duration: auto;
+  animation-timing-function: linear;
+  animation-fill-mode: both;
+  animation-timeline: --defile-barre;
+  background: linear-gradient(to left, rgb(255 255 255 / 0.94), rgb(255 255 255 / 0));
 }
