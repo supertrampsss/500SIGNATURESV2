@@ -103,6 +103,11 @@
      qu'elle sert de hauteur de rangée, de hauteur de barre et de zone de
      frappe étendue — trois endroits qui doivent bouger ensemble. */
   --cible: 2.75rem;
+  /* Hauteur de la barre d'en-tête, qui est collante. Nommée parce qu'un second
+     bandeau collant (le cockpit du simulateur) doit s'arrêter dessous : à
+     `top: 0` il passait derrière elle et les quatre compteurs disparaissaient
+     au premier défilement. */
+  --haut-entete: 3.6rem;
   --rayon-pilule: 999px;
   --rayon: 12px;
   --rayon-s: 8px;
@@ -270,7 +275,7 @@ body {
   align-items: center;
   gap: 1.25rem;
   padding: 0 var(--espace-7);
-  min-height: 3.6rem;
+  min-height: var(--haut-entete);
   background: var(--papier);
   border-bottom: 1px solid var(--trait);
   position: sticky;
@@ -1110,11 +1115,35 @@ tbody tr:hover {
   .entete h1 {
     font-size: var(--texte-l);
   }
+  /* Quatre entrées demandent 265 px là où il en reste 191 : la barre défile
+     dans son propre cadre plutôt que d'élargir la page — même règle que les
+     tableaux larges ci-dessus, même dégradé collant que les onglets de thème
+     pour dire qu'il en reste à droite. L'entrée courante est ramenée sous les
+     yeux par `basculerVue`. */
   .entete__nav {
     gap: 0.1rem;
     font-size: var(--texte-xs);
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+  }
+  .entete__nav::-webkit-scrollbar {
+    display: none;
+  }
+  .entete__nav::after {
+    content: "";
+    position: sticky;
+    right: 0;
+    flex: 0 0 1rem;
+    margin-left: -1rem;
+    align-self: stretch;
+    pointer-events: none;
+    background: linear-gradient(to left, var(--papier), rgb(255 255 255 / 0));
   }
   .entete__nav a {
+    flex: 0 0 auto;
     padding: var(--espace-2) var(--espace-3);
   }
 }
@@ -4060,5 +4089,515 @@ summary.pont__rangee,
   }
   .recit__titre {
     font-size: var(--texte-l);
+  }
+}
+
+/* ==========================================================================
+   SIMULATEUR — le budget de l'État, ligne à ligne
+   ==========================================================================
+   Une seule règle de couleur ici : un geste qui améliore le solde s'écrit en
+   encre, un geste qui le dégrade en argile. Pas de vert — la charte n'en a
+   pas, et un vert « bien » face à un rouge « mal » ferait d'une addition une
+   morale.
+
+   La densité est assumée : c'est un tableau de bord, pas un article. Ce qui
+   ne l'est pas, c'est la cible tactile — les quatre commandes d'une ligne
+   font 44 px pleins, sans zone de frappe étendue, parce que deux zones
+   étendues côte à côte se recouvrent et le doigt déclenche la voisine. */
+
+.simu {
+  padding: var(--espace-7);
+  margin: 0 1.5rem 1.25rem;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-1);
+}
+
+/* ---- Cockpit collant ---------------------------------------------------- */
+.simu__cockpit {
+  position: sticky;
+  top: var(--haut-entete);
+  z-index: 5;
+  background: var(--papier);
+  border-bottom: 1px solid var(--trait-fort);
+  padding: var(--espace-4) 0;
+  margin-bottom: var(--espace-2);
+}
+.simu__titres {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.simu__titres h2 {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  margin: 0;
+}
+.simu__perimetre {
+  margin: 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.simu__compteurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+}
+.simu__compteur {
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-3) var(--espace-5);
+  min-width: 0;
+}
+.simu__compteur dt {
+  margin: 0;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.simu__compteur dd {
+  margin: 0;
+  font-size: var(--texte-xl);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.simu__val--argile {
+  color: var(--argile);
+}
+.simu__val--sobre {
+  color: var(--encre);
+}
+.simu__equivalence {
+  margin: 0.4rem 0 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+
+/* ---- Défis -------------------------------------------------------------- */
+.simu__defis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+}
+.simu__defi {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-2) var(--espace-5);
+  font-size: var(--texte-xs);
+}
+.simu__defi-etat {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+/* Un défi tenu se marque par la forme, pas par une couleur de récompense. */
+.simu__defi--tenu {
+  border-color: var(--encre);
+  border-width: 2px;
+}
+.simu__defi--tenu .simu__defi-etat {
+  color: var(--encre);
+  font-weight: 650;
+}
+
+/* ---- Recherche et onglets ----------------------------------------------- */
+.simu__barre {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.9rem 0;
+}
+.simu__recherche {
+  position: relative;
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+.simu__recherche input {
+  width: 100%;
+  font: inherit;
+  font-size: var(--texte-m);
+  min-height: var(--cible);
+  padding: var(--espace-3) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-s);
+  background: var(--papier);
+  color: var(--encre);
+}
+.simu__suggestions {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + var(--espace-2));
+  z-index: 6;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 20rem;
+  overflow: auto;
+  background: var(--papier);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-s);
+  box-shadow: var(--ombre-2);
+}
+.simu__onglets {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.simu__onglets button {
+  font: inherit;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-3) var(--espace-6);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre-douce);
+  cursor: pointer;
+}
+.simu__onglets button[aria-selected="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: #fff;
+}
+
+/* ---- L'arbre ------------------------------------------------------------ */
+.simu__arbre {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+.simu__ligne {
+  display: grid;
+  grid-template-columns: var(--cible) minmax(7rem, 1fr) 6rem auto 7rem 6rem;
+  grid-template-areas: "pli lib base reglage montant delta";
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 var(--espace-3);
+  border-top: 1px solid var(--trait);
+}
+.simu__arbre > .simu__ligne:first-child,
+.simu__groupe-lignes > .simu__ligne:first-child {
+  border-top: 0;
+}
+.simu__ligne--reglee {
+  background: var(--papier-creuse);
+}
+.simu__ligne--visee {
+  animation: simu-vise 1.4s ease-out;
+}
+@keyframes simu-vise {
+  from {
+    background: var(--accent-teinte);
+  }
+  to {
+    background: transparent;
+  }
+}
+.simu__pli {
+  grid-area: pli;
+  width: var(--cible);
+  height: var(--cible);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Le chevron est dessiné, pas écrit : « ▸ » se lit à voix haute. */
+.simu__pli::before {
+  content: "";
+  width: var(--espace-4);
+  height: var(--espace-4);
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(-45deg);
+  transition: transform var(--transition);
+}
+.simu__pli--feuille::before {
+  display: none;
+}
+.simu__pli[aria-expanded="true"]::before {
+  transform: rotate(45deg);
+}
+.simu__intitule {
+  grid-area: lib;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.simu__lib {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--texte-m);
+}
+.simu__ligne--n0 .simu__lib {
+  font-size: var(--texte-l);
+  font-weight: 650;
+}
+.simu__ligne--n1 .simu__lib {
+  font-weight: 600;
+}
+.simu__ligne--n3 .simu__lib {
+  font-size: var(--texte-s);
+}
+.simu__code {
+  flex: 0 0 auto;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-xs);
+  padding: 0 var(--espace-2);
+}
+.simu__base {
+  grid-area: base;
+  text-align: right;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.simu__montant {
+  grid-area: montant;
+  text-align: right;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.simu__delta {
+  grid-area: delta;
+  text-align: right;
+  font-size: var(--texte-xs);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- Les quatre commandes d'une ligne ----------------------------------- */
+.simu__reglage {
+  grid-area: reglage;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+}
+.simu__pas,
+.simu__raz {
+  font: inherit;
+  font-size: var(--texte-l);
+  line-height: 1;
+  min-width: var(--cible);
+  min-height: var(--cible);
+  padding: 0;
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-xs);
+  background: var(--papier);
+  color: var(--encre);
+  cursor: pointer;
+}
+.simu__pas:hover,
+.simu__raz:hover {
+  background: var(--papier-creuse);
+}
+.simu__raz {
+  border-color: transparent;
+  color: var(--argile);
+  font-size: var(--texte-m);
+}
+/* Le bouton garde sa place quand il disparaît : sans cela, chaque réglage
+   décalait les cinq colonnes de la ligne sous le curseur. */
+.simu__raz[hidden] {
+  display: inline-block;
+  visibility: hidden;
+}
+.simu__champ {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+.simu__pct {
+  width: 3rem;
+  font: inherit;
+  font-size: var(--texte-s);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  min-height: var(--cible);
+  padding: 0 var(--espace-2);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-xs);
+  background: var(--papier);
+  color: var(--encre);
+}
+.simu__unite {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Indentation : un filet par cran, pas une classe par profondeur. */
+.simu__enfants {
+  border-inline-start: 2px solid var(--papier-creuse);
+  margin-inline-start: 1.35rem;
+}
+.simu__enfants[hidden] {
+  display: none;
+}
+
+/* ---- Recettes ----------------------------------------------------------- */
+.simu__note {
+  margin: 0 0 0.6rem;
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+.simu__groupe-titre {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: var(--espace-5) var(--espace-5) var(--espace-3);
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.simu__groupe + .simu__groupe {
+  border-top: 1px solid var(--trait-fort);
+}
+
+/* ---- Votre plan --------------------------------------------------------- */
+.simu__plan-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+.simu__creux {
+  font: inherit;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-4) var(--espace-6);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  cursor: pointer;
+}
+.simu__creux:hover {
+  background: var(--papier-creuse);
+}
+.simu__plan {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+.simu__plan-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--trait);
+  padding-right: var(--espace-5);
+}
+.simu__plan-ligne:first-child {
+  border-top: 0;
+}
+.simu__plan-delta {
+  font-size: var(--texte-m);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Une suggestion et une ligne de plan mènent au même endroit : la ligne dans
+   l'arbre. Elles portent donc le même bouton. */
+.simu__vise {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: var(--cible);
+  text-align: left;
+  font: inherit;
+  font-size: var(--texte-m);
+  border: 0;
+  background: none;
+  color: var(--encre);
+  cursor: pointer;
+  padding: var(--espace-3) var(--espace-5);
+}
+.simu__vise:hover {
+  background: var(--papier-creuse);
+}
+.simu__suggestions li + li .simu__vise {
+  border-top: 1px solid var(--trait);
+}
+.simu__plan-lib {
+  display: block;
+  font-weight: 600;
+}
+.simu__plan-chemin,
+.simu__plan-equiv {
+  display: block;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+
+/* À 375 px la ligne se plie en deux rangées : l'intitulé sur toute la largeur,
+   les commandes et le montant dessous. Les colonnes « base » et « écart »
+   sortent — le montant recalculé et le pourcentage suffisent à piloter, et le
+   plan porte l'écart de chaque ligne réglée. */
+@media (max-width: 40rem) {
+  .simu {
+    padding: var(--espace-5);
+    margin: 0 var(--espace-4) 1.25rem;
+  }
+  .simu__ligne {
+    grid-template-columns: var(--cible) minmax(0, 1fr) auto;
+    grid-template-areas:
+      "pli lib lib"
+      "pli reglage montant";
+    row-gap: 0.2rem;
+    padding-bottom: var(--espace-3);
+  }
+  .simu__base,
+  .simu__delta {
+    display: none;
+  }
+  .simu__lib {
+    white-space: normal;
+  }
+  .simu__reglage {
+    justify-content: flex-start;
+  }
+  .simu__enfants {
+    margin-inline-start: var(--espace-5);
+  }
+  .simu__onglets {
+    width: 100%;
+  }
+  .simu__onglets button {
+    flex: 1 1 auto;
   }
 }

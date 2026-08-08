@@ -244,6 +244,20 @@ export type Changement = {
   technique: string | null;
 };
 
+/**
+ * Le simulateur du budget de l'État : un arbre réglable par exercice, et
+ * l'index qui dit lesquels sont publiés.
+ *
+ * Ces deux fichiers sont les seuls que le site ne demande **pas** au démarrage.
+ * L'arbre du PLF pèse plus de cent kilo-octets pour une page que la plupart des
+ * lecteurs n'ouvriront pas : il n'est chargé qu'à l'ouverture du simulateur.
+ * L'index, lui, est minuscule, et sans lui rien ne dirait s'il y a un
+ * simulateur à proposer.
+ */
+export const simulateurIndex = () => lire<unknown>("simulateur/index.json");
+export const simulateurBudget = (exercice: string) =>
+  lire<import("./simulateur.ts").Budget>(`simulateur/etat-${exercice}.json`);
+
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const depensesFiscales = () => lire<DepensesFiscales>("depenses-fiscales.json");

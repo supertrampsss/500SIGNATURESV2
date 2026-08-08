@@ -20,6 +20,8 @@ import {
   valeurComparable,
 } from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
+import { decoder, indexer } from "./simulateur.ts";
+import { afficherSimulateur, exercicesPublies } from "./simulateur-rendu.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { rendu as apercuRendu, resumer } from "./apercu.ts";
@@ -146,6 +148,10 @@ type Etat = {
    *  questions) ou « tout » (la fiche entière, thème par thème). Dans l'URL
    *  comme le reste : une fiche ouverte en grand se partage telle quelle. */
   voir: "essentiel" | "tout";
+  /** Le budget réglé par le lecteur dans le simulateur, encodé
+   *  `CODE:pct,CODE:pct`. Vide tant qu'aucune ligne n'est touchée : l'URL ne
+   *  porte alors pas le paramètre du tout, comme pour `comparer`. */
+  budget: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -262,6 +268,7 @@ function lireUrl(): Etat {
     // trouver. Une valeur inconnue y retombe plutôt que d'ouvrir un mode qui
     // n'existe pas — même règle que pour la maille.
     voir: p.get("voir") === "tout" ? "tout" : "essentiel",
+    budget: p.get("budget") ?? "",
   };
 }
 
@@ -278,7 +285,10 @@ function ecrireUrl(): void {
   if (etat.maille) p.set("maille", etat.maille);
   if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
   if (etat.voir === "tout") p.set("voir", "tout");
-  history.replaceState(null, "", `?${p}`);
+  if (etat.budget) p.set("budget", etat.budget);
+  // Le hash porte la vue de page : le réécrire sans lui renverrait le lecteur
+  // du simulateur à la carte au premier réglage.
+  history.replaceState(null, "", `?${p}${location.hash}`);
 }
 
 /** Les séries calculées rejoignent celles du territoire dès son chargement.
@@ -1968,18 +1978,78 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  *  écran à une pile de blocs sans transition. L'état vit dans le hash. */
 const VUES_PAGE = ["carte", "decryptages", "donnees"] as const;
 
+/** Le simulateur n'est une vue du site que si son fichier est publié. Tant
+ *  qu'il ne l'est pas, `#simulateur` n'est pas une adresse : pas d'entrée de
+ *  menu, pas de section, et aucun message pour dire ce qui manque. */
+let exerciceSimulateur: string | null = null;
+let simulateurMonte = false;
+
+function vuesConnues(): readonly string[] {
+  return exerciceSimulateur ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
+}
+
 function basculerVue(): void {
   const demandee = location.hash.replace("#", "");
-  const vue = (VUES_PAGE as readonly string[]).includes(demandee) ? demandee : "carte";
+  const vue = vuesConnues().includes(demandee) ? demandee : "carte";
   document.body.dataset.vue = vue;
   document.querySelector<HTMLElement>(".atelier")!.hidden = vue !== "carte";
   $("vue-decryptages").hidden = vue !== "decryptages";
   $("vue-donnees").hidden = vue !== "donnees";
+  $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
-    if (a.dataset.vue === vue) a.setAttribute("aria-current", "page");
-    else a.removeAttribute("aria-current");
+    if (a.dataset.vue !== vue) return a.removeAttribute("aria-current");
+    a.setAttribute("aria-current", "page");
+    // Sur téléphone la barre de navigation défile dans son cadre : sans cela,
+    // un lecteur arrivé par un lien sur la dernière entrée ne la voit pas.
+    a.scrollIntoView({ block: "nearest", inline: "nearest" });
   });
+  if (vue === "simulateur") void ouvrirSimulateur();
   window.scrollTo({ top: 0 });
+}
+
+/**
+ * L'index des exercices, et lui seul. Quelques octets, sans lesquels rien ne
+ * dirait s'il y a un simulateur à proposer ; l'arbre du budget, lui, attend
+ * qu'on ouvre la vue.
+ */
+async function preparerSimulateur(): Promise<void> {
+  let exercices: string[] = [];
+  try {
+    exercices = exercicesPublies(await donnees.simulateurIndex());
+  } catch {
+    // Simulateur non publié : ni entrée de menu, ni section, ni message.
+  }
+  if (!exercices.length) return;
+  // Le plus récent : c'est le budget dont on débat.
+  exerciceSimulateur = exercices.sort().reverse()[0];
+  document
+    .querySelector(".entete__nav")!
+    .insertAdjacentHTML("beforeend", `<a href="#simulateur" data-vue="simulateur">Simulateur</a>`);
+  if (location.hash === "#simulateur") basculerVue();
+}
+
+/** L'arbre du budget, chargé au premier affichage de la vue et pas avant. */
+async function ouvrirSimulateur(): Promise<void> {
+  if (simulateurMonte || !exerciceSimulateur) return;
+  simulateurMonte = true;
+  try {
+    const budget = await donnees.simulateurBudget(exerciceSimulateur);
+    const index = indexer(budget);
+    afficherSimulateur($("simu"), budget, index, {
+      reglages: decoder(etat.budget, index),
+      surReglages: (encode) => {
+        etat.budget = encode;
+        ecrireUrl();
+      },
+    });
+  } catch {
+    // L'index annonçait un exercice que la publication ne sert pas : plutôt
+    // qu'une section vide au bout d'un lien, le simulateur disparaît.
+    exerciceSimulateur = null;
+    simulateurMonte = false;
+    document.querySelector('.entete__nav a[data-vue="simulateur"]')?.remove();
+    basculerVue();
+  }
 }
 
 async function demarrer(): Promise<void> {
@@ -1995,6 +2065,9 @@ async function demarrer(): Promise<void> {
   etat = lireUrl();
   construireSelecteurs();
   afficherQuestions($("questions"));
+  // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
+  // la carte n'a pas à patienter pour ça.
+  void preparerSimulateur();
 
   // Le jeu de données public est le même que celui de la carte : le lien pointe
   // vers le pointeur de version, porte d'entrée de tous les autres fichiers.
