@@ -16,6 +16,7 @@ import {
   afficherFiche,
   groupeDeLaCommune,
   positionDansGroupe,
+  rubriqueDuTheme,
   valeurComparable,
 } from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
@@ -141,6 +142,10 @@ type Etat = {
   selection: string | null;
   comparaison: string[];
   vue: string;
+  /** Les deux vitesses de la fiche : « essentiel » (le récit, le verdict, les
+   *  questions) ou « tout » (la fiche entière, thème par thème). Dans l'URL
+   *  comme le reste : une fiche ouverte en grand se partage telle quelle. */
+  voir: "essentiel" | "tout";
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -253,6 +258,10 @@ function lireUrl(): Etat {
     selection: p.get("territoire"),
     comparaison: (p.get("comparer") ?? "").split(",").filter(Boolean).slice(0, MAXIMUM),
     vue: p.get("vue") ?? "metropole",
+    // L'essentiel par défaut : c'est la fiche que le lecteur qui arrive doit
+    // trouver. Une valeur inconnue y retombe plutôt que d'ouvrir un mode qui
+    // n'existe pas — même règle que pour la maille.
+    voir: p.get("voir") === "tout" ? "tout" : "essentiel",
   };
 }
 
@@ -268,6 +277,7 @@ function ecrireUrl(): void {
   if (etat.selection) p.set("territoire", etat.selection);
   if (etat.maille) p.set("maille", etat.maille);
   if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
+  if (etat.voir === "tout") p.set("voir", "tout");
   history.replaceState(null, "", `?${p}`);
 }
 
@@ -681,7 +691,10 @@ function afficherApercu(): void {
       peintSurCarte,
       agregats,
       inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
+      serieInflation: parents["FR"]?.series?.insee_inflation_ipc,
+      tout: etat.voir === "tout",
     });
+    appliquerVitesse();
     return;
   }
   // L'aperçu de repli résume des niveaux (minimum, médiane, total) : en mode
@@ -981,10 +994,93 @@ async function montrerFiche(code: string): Promise<void> {
     associations: associations[code],
     agregats,
     inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
+    // L'IPC national mensuel : c'est de là que se tire l'inflation cumulée sur
+    // la fenêtre du mandat. `fiche.ts` est pur — il ne va rien chercher.
+    serieInflation: parents["FR"]?.series?.insee_inflation_ipc,
+    tout: etat.voir === "tout",
   });
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
   injecterActionsFiche();
+  appliquerVitesse();
+}
+
+/**
+ * Les deux vitesses, appliquées au conteneur de la fiche.
+ *
+ * `fiche.ts` rend les deux corps et marque chacun d'un `data-vitesse` ; c'est
+ * cette classe-ci qui décide lequel se voit. La bascule ne redessine donc rien
+ * — cent quarante lignes de mesures, courbes et mini-tableaux compris, ne se
+ * recalculent pas pour un changement d'affichage.
+ */
+function appliquerVitesse(): void {
+  const fiche = $("fiche");
+  // Une fiche sans bascule n'a pas de mode : lui poser « fiche--essentiel »
+  // masquerait ses barres d'onglets, qui sont tout ce qu'elle a pour naviguer.
+  // C'est le cas de la fiche nationale et des départements.
+  const bascule = fiche.querySelector(".fiche__vitesses");
+  const tout = etat.voir === "tout";
+  fiche.classList.toggle("fiche--tout", Boolean(bascule) && tout);
+  fiche.classList.toggle("fiche--essentiel", Boolean(bascule) && !tout);
+  if (!bascule) return;
+  for (const bouton of fiche.querySelectorAll<HTMLElement>(".fiche__vitesses [data-vitesse]")) {
+    bouton.setAttribute("aria-pressed", String((bouton.dataset.vitesse === "tout") === tout));
+  }
+}
+
+/** Change de vitesse et l'écrit dans l'URL. Rien d'autre : la fiche est déjà
+ *  rendue en entier. */
+function choisirVitesse(voulue: "essentiel" | "tout"): void {
+  if (etat.voir === voulue) return;
+  etat.voir = voulue;
+  ecrireUrl();
+  appliquerVitesse();
+}
+
+/** Ouvre un thème dans le corps « Tout voir » : la barre de sa rubrique, son
+ *  onglet, sa section. Le même geste que le clic sur l'onglet, appelable
+ *  depuis une phrase du verdict. */
+function montrerTheme(voulu: string): void {
+  const rubrique = rubriqueDuTheme(voulu);
+  for (const bouton of document.querySelectorAll<HTMLElement>(
+    ".onglets-rubriques [data-rubrique]",
+  )) {
+    bouton.setAttribute("aria-pressed", String(bouton.dataset.rubrique === rubrique));
+  }
+  for (const barre of document.querySelectorAll<HTMLElement>(".onglets-themes[data-rubrique]")) {
+    barre.hidden = barre.dataset.rubrique !== rubrique;
+  }
+  for (const bouton of document.querySelectorAll<HTMLElement>(".onglets-themes [data-theme]")) {
+    bouton.setAttribute("aria-pressed", String(bouton.dataset.theme === voulu));
+  }
+  for (const section of document.querySelectorAll<HTMLElement>(".mesures [data-theme]")) {
+    section.hidden = section.dataset.theme !== voulu;
+  }
+}
+
+/**
+ * Une phrase du verdict mène à sa ligne, dépliée.
+ *
+ * Le verdict affirme un chiffre ; le lecteur doit pouvoir aller voir d'où il
+ * vient. Le chemin passe par « Tout voir » — c'est là que vit le détail — puis
+ * par le thème, le pli, et le défilement. Une phrase dont la ligne n'existe pas
+ * n'est pas cliquable : `fiche.ts` ne lui met pas de bouton.
+ */
+function ouvrirLaMesure(id: string): void {
+  choisirVitesse("tout");
+  const cible = $("fiche").querySelector<HTMLElement>(`.mesures [data-mesure="${CSS.escape(id)}"]`);
+  if (!cible) return;
+  const section = cible.closest<HTMLElement>(".mesures [data-theme]");
+  if (section?.dataset.theme) montrerTheme(section.dataset.theme);
+  for (let noeud: HTMLElement | null = cible; noeud; noeud = noeud.parentElement) {
+    if (noeud instanceof HTMLDetailsElement) noeud.open = true;
+  }
+  cible.scrollIntoView({
+    block: "center",
+    // Un défilement animé est une animation : elle se coupe pour qui l'a
+    // demandé au système.
+    behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+  });
 }
 
 /**
@@ -1214,6 +1310,9 @@ function injecterActionsFiche(): void {
   if (!code) return;
   fiche.querySelector(".fiche__actions")?.remove();
   const ancre =
+    // La ligne sur le mandat sans comptes publiés se lit avec le maire : le
+    // bouton « Comparer » ne s'insère donc pas entre les deux.
+    fiche.querySelector<HTMLElement>(".fiche__mandat") ??
     fiche.querySelector<HTMLElement>(".fiche__maire") ??
     fiche.querySelector<HTMLElement>(".fiche__meta") ??
     fiche.querySelector<HTMLElement>(".fiche__titre");
@@ -1557,6 +1656,21 @@ function brancherCommandes(): void {
       );
       return;
     }
+    // Les deux vitesses : « L'essentiel » et « Tout voir ». Avant tout le
+    // reste, parce que ces boutons ne portent rien sur la carte.
+    const vitesse = (evenement.target as HTMLElement).closest<HTMLElement>(
+      ".fiche__vitesses [data-vitesse]",
+    );
+    if (vitesse?.dataset.vitesse) {
+      choisirVitesse(vitesse.dataset.vitesse === "tout" ? "tout" : "essentiel");
+      return;
+    }
+    // Une phrase du verdict mène à la ligne qu'elle cite, dépliée.
+    const renvoi = (evenement.target as HTMLElement).closest<HTMLElement>("[data-verdict-vers]");
+    if (renvoi?.dataset.verdictVers) {
+      ouvrirLaMesure(renvoi.dataset.verdictVers);
+      return;
+    }
     // Ajouter le territoire ouvert à la comparaison, ou l'en retirer.
     const comparer = (evenement.target as HTMLElement).closest<HTMLElement>("[data-comparer]");
     if (comparer?.dataset.comparer) {
@@ -1664,6 +1778,19 @@ function brancherCommandes(): void {
   $("fiche").addEventListener("keydown", (evenement) => {
     if ((evenement as KeyboardEvent).key === "Enter") surLigne(evenement);
   });
+  // Un dépliant de question dit son état. `<details>` le porte nativement pour
+  // le navigateur, mais `aria-expanded` est ce que le lecteur d'écran annonce ;
+  // laissé figé dans le HTML, il mentirait dès le premier clic. L'événement
+  // `toggle` ne remonte pas : on l'écoute en capture.
+  $("fiche").addEventListener(
+    "toggle",
+    (evenement) => {
+      const bloc = evenement.target as HTMLElement;
+      if (!(bloc instanceof HTMLDetailsElement) || !bloc.dataset.question) return;
+      bloc.querySelector("summary")?.setAttribute("aria-expanded", String(bloc.open));
+    },
+    true,
+  );
   tiroirRedimensionnable();
 
   $("exporter").addEventListener("click", () => {

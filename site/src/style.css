@@ -3822,3 +3822,243 @@ summary.pont__rangee,
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+
+/* ==========================================================================
+   LA FICHE À DEUX VITESSES — le récit, le verdict, le corps par questions
+   ==========================================================================
+
+   Le panneau publiait cent quatre-vingt-dix-huit indicateurs au même niveau
+   visuel, rangés sous les intitulés du plan comptable : « y'a trop d'infos, on
+   sait pas quoi en faire ». Rien n'est retiré — la fiche d'avant est intacte
+   derrière « Tout voir ». Ce qui change, c'est ce qu'on voit en premier.
+
+   Aucune couleur de jugement ici non plus (décision de système n° 2) : le sens
+   d'une phrase du verdict se dit par la forme de sa puce — pleine en argile
+   pour ce qui tend les comptes, creuse pour ce qui les détend, discrète pour ce
+   qui ne tranche pas — jamais par un rouge contre un vert. La feuille n'a
+   d'ailleurs pas de token vert, et ce n'est pas un oubli.
+   ========================================================================== */
+
+/* Les deux corps sont rendus ensemble et l'un des deux se cache : basculer ne
+   redessine pas cent quarante lignes de mesures, courbes comprises. */
+/* `data-corps` et non `data-vitesse` : les deux boutons de la bascule portent
+   déjà `data-vitesse`, et la règle de masquage les aurait effacés — « Tout
+   voir » cachait le bouton qui ramène à l'essentiel, sans retour possible. */
+.fiche--essentiel [data-corps="tout"],
+.fiche--essentiel > .onglets-rubriques,
+.fiche--essentiel > .onglets-themes,
+.fiche--tout [data-corps="essentiel"] {
+  display: none;
+}
+
+/* Les deux corps reprennent la colonne flex de `.fiche` : leurs enfants
+   gardaient `min-width: 0` en tant qu'éléments flex, et c'est lui qui fait
+   défiler un tableau large dans son cadre au lieu d'élargir le panneau. */
+.fiche__essentiel,
+.fiche__tout {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fiche__essentiel > *,
+.fiche__tout > * {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+/* La bascule, sous l'identité du territoire et au-dessus de tout le reste. */
+.fiche .fiche__vitesses {
+  order: -2;
+}
+.fiche__vitesses {
+  display: flex;
+  align-items: stretch;
+  gap: var(--espace-2);
+  margin: var(--espace-5) 0 var(--espace-6);
+}
+.fiche__vitesses button {
+  font: inherit;
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-4);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition),
+    background-color var(--transition);
+}
+.fiche__vitesses button[aria-pressed="true"] {
+  color: var(--papier);
+  background: var(--encre);
+  border-color: var(--encre);
+}
+/* « Tout voir » annonce ce qu'il rouvre : un bouton qui cache cent quarante
+   lignes doit dire leur nombre. Sur une seule ligne, il pousserait le libellé
+   hors de la pilule à 375 px. */
+.fiche__vitesses-compte {
+  display: block;
+  font-weight: 400;
+  font-size: var(--texte-xs);
+  opacity: 0.85;
+}
+
+/* Le mandat en cours n'a pas de comptes publiés : une ligne, à l'endroit exact
+   où le lecteur voit la date de prise de fonction du maire. Pas un paragraphe. */
+.fiche .fiche__mandat {
+  order: -2;
+}
+.fiche__mandat {
+  margin: var(--espace-2) 0 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* ---- Le récit : la pièce la plus importante de la fiche ---- */
+.recit {
+  margin: 0 0 var(--espace-6);
+}
+.recit__titre {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 var(--espace-4);
+  text-wrap: balance;
+}
+.recit__paragraphe {
+  margin: 0;
+  font-size: var(--texte-m);
+  line-height: 1.6;
+  max-width: 70ch;
+}
+.recit__fenetre {
+  margin: var(--espace-3) 0 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* ---- Le verdict : trois à cinq phrases chiffrées, chacune vers son détail ---- */
+.verdict {
+  list-style: none;
+  margin: 0 0 var(--espace-6);
+  padding: 0;
+}
+.verdict__phrase {
+  position: relative;
+  border-top: 1px solid var(--trait);
+}
+/* La puce dit le sens sans le juger : pleine pour ce qui tend les comptes,
+   creuse pour ce qui les détend, effacée pour ce qui ne tranche pas. */
+.verdict__phrase::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(var(--espace-5) + var(--espace-2));
+  width: var(--espace-3);
+  height: var(--espace-3);
+  border-radius: 50%;
+  border: 1px solid var(--trait-fort);
+  background: var(--trait-fort);
+}
+.verdict__phrase--tend::before {
+  border-color: var(--argile);
+  background: var(--argile);
+}
+.verdict__phrase--detend::before {
+  border-color: var(--encre);
+  background: var(--papier);
+}
+/* La phrase entière est la cible : viser une puce de six pixels au doigt, non. */
+.verdict__vers,
+.verdict__texte {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: var(--texte-m);
+  line-height: 1.5;
+  min-height: var(--cible);
+  padding: var(--espace-4) 0 var(--espace-4) var(--espace-6);
+  border: 0;
+  background: none;
+  color: var(--encre);
+}
+.verdict__vers {
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.verdict__vers:hover {
+  color: var(--argile);
+}
+
+/* ---- Ma feuille d'impôts : le bloc vient de `feuille-impots.ts`, qui réemploie
+        la mise en forme des « 100 € » (`.cent`). Seule la boîte est à faire. ---- */
+.feuille-impots {
+  margin: 0 0 var(--espace-6);
+  padding: var(--espace-5);
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+}
+.feuille-impots h3 {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  margin: 0 0 var(--espace-3);
+}
+
+/* ---- Le corps par questions ---- */
+.question-fiche {
+  border-top: 1px solid var(--trait);
+}
+.question-fiche > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-3) 0;
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  cursor: pointer;
+  list-style: none;
+}
+.question-fiche > summary::-webkit-details-marker {
+  display: none;
+}
+/* Le chevron est dessiné, pas écrit : un caractère « ▸ » se lit à voix haute. */
+.question-fiche > summary::before {
+  content: "";
+  width: var(--espace-4);
+  height: var(--espace-4);
+  margin-right: var(--espace-4);
+  flex: 0 0 auto;
+  border-right: 2px solid var(--encre-douce);
+  border-bottom: 2px solid var(--encre-douce);
+  transform: rotate(-45deg);
+  transition: transform var(--transition);
+}
+.question-fiche[open] > summary::before {
+  transform: rotate(45deg);
+}
+.question-fiche > summary:hover {
+  color: var(--argile);
+}
+.question-fiche__corps {
+  padding: 0 0 var(--espace-5);
+}
+
+/* À 375 px, la bascule prend toute la largeur en deux lignes plutôt que de
+   serrer deux pilules à trois caractères chacune. */
+@media (max-width: 40rem) {
+  .fiche__vitesses {
+    flex-wrap: wrap;
+  }
+  .fiche__vitesses button {
+    flex: 1 1 40%;
+  }
+  .recit__titre {
+    font-size: var(--texte-l);
+  }
+}
