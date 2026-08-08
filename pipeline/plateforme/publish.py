@@ -279,9 +279,10 @@ def valeurs_par_niveau(conn, niveau: str) -> dict[str, dict[str, dict[str, float
     seule survivrait au hasard de l'écriture.
     """
     valeurs: dict = defaultdict(lambda: defaultdict(dict))
-    for indicateur, periode in couples_publies(
-        conn, niveau, borne=niveau in NIVEAUX_CARTOGRAPHIES
-    ):
+    # Profondeur entière à tous les niveaux : les fiches portent les courbes,
+    # et c'est l'appelant qui borne ce qu'il cartographie. Borner ici amputait
+    # les séries de fiche en silence.
+    for indicateur, periode in couples_publies(conn, niveau, borne=False):
         for code, valeur in conn.execute(
             """
             select o.geo_code, o.value from core.observations o
@@ -1281,9 +1282,16 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
 
         if niveau in NIVEAUX_CARTOGRAPHIES:
             for indicateur, periodes in valeurs.items():
-                cartographiees[indicateur][niveau] = sorted(periodes)
-                for periode, codes in periodes.items():
-                    deposer(f"carte/{indicateur}/{niveau}/{periode}.json", codes)
+                # Seule la carte est bornée aux périodes récentes : un fichier
+                # par période et par indicateur. Les fiches, elles, reçoivent
+                # la profondeur entière — la borne les amputait en silence dès
+                # la première série mensuelle communale (19 mois de prisons
+                # publiés, 12 servis), et rognait déjà le parc automobile
+                # (16 millésimes) et la consommation d'espaces (14).
+                recentes = sorted(periodes)[-PERIODES_CARTOGRAPHIEES:]
+                cartographiees[indicateur][niveau] = recentes
+                for periode in recentes:
+                    deposer(f"carte/{indicateur}/{niveau}/{periode}.json", periodes[periode])
 
         # Fiches : les communes sont réparties par département — un fichier par
         # commune ferait 34 875 objets à déposer à chaque publication.
