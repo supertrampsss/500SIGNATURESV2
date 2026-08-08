@@ -471,9 +471,16 @@ function ligneIndicateur(
   if (mesure.densite) {
     const { valeur: densite, comparaisons: voisines } = mesure.densite;
     const repere = voisines.find((c) => Number.isFinite(c.valeur) && c.valeur > 0);
+    // Au-delà d'un ordre de grandeur — ou d'un côté à l'autre de zéro — le
+    // pourcentage ne compare plus : on pose les deux densités.
+    const ecart = repere ? ecartRelatif(densite, repere.valeur) : null;
     comparaisons.unshift(
       `Par habitant : ${densiteLisible(densite)}${
-        repere ? ` (${signeEcart(densite, repere.valeur)} vs ${repere.libelle})` : ""
+        !repere
+          ? ""
+          : ecart
+            ? ` (${ecart} vs ${repere.libelle})`
+            : ` (${repere.libelle} : ${densiteLisible(repere.valeur)})`
       }.`,
     );
   }
@@ -647,6 +654,18 @@ export function ecartEnEuros(
 ): string | null {
   if (indicateur.unite !== "EUR" || !Number.isFinite(mediane.valeur)) return null;
   if (ratio && !habitants) return null;
+  // « X de plus que si le montant était celui de la médiane » suppose que la
+  // médiane soit une grandeur du même ordre. Face à une médiane à 0,13 € par
+  // habitant — plus de la moitié des communes n'empruntent rien cette année-là
+  // — le contrefactuel ne décrit plus rien, et de part et d'autre de zéro il
+  // n'existe pas. La médiane se dit alors telle quelle : c'est la phrase que
+  // l'appelant écrit quand celle-ci renvoie `null`.
+  if (
+    !memeSens(valeur, mediane.valeur) ||
+    Math.abs(valeur) > Math.abs(mediane.valeur) * FACTEUR_ECART
+  ) {
+    return null;
+  }
   const ecart = (valeur - mediane.valeur) * (ratio ? (habitants as number) : 1);
   // Sous 1 %, l'écart n'est pas une différence, c'est un arrondi : l'annoncer
   // en millions donnerait du poids à du bruit.
@@ -685,7 +704,12 @@ function densiteLisible(densite: number): string {
       maximumFractionDigits: densite < 10 ? 1 : 0,
     }).format(densite)} pour 1 000 hab.`;
   }
-  if (densite <= 0) return "";
+  // Zéro se dit. Renvoyer une chaîne vide laissait « Par habitant : . » sur
+  // les communes qui n'ont ni école ni chômeur, alors que le zéro est
+  // précisément ce qu'on vient lire — et c'est lui qui donne son sens à la
+  // densité du département posée juste après.
+  if (densite === 0) return "0 pour 1 000 hab.";
+  if (densite < 0) return "";
   return `1 pour ${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(
     1000 / densite,
   )} hab.`;
@@ -705,6 +729,25 @@ const PREMIERE_ANNEE_TABLEAU = 2022;
 const UNITES_EN_TETE: Record<string, string> = {
   consultations_par_an: "consult./an",
 };
+
+/**
+ * Ce que le tableau montre, en toutes lettres.
+ *
+ * Les périodes coexistent sous deux formes : l'exercice annuel (`2024`) et le
+ * mois ou le trimestre (`2024-03`, `2024-Q1`). Le mot suit la forme — on ne
+ * dit pas « 6 exercices » d'une série mensuelle — et le total publié suit,
+ * quand il y a plus de points que de colonnes.
+ */
+export function fenetreLisible(periodes: string[], publiees: number): string {
+  const mot = periodes.some((p) => /-Q/i.test(p))
+    ? "trimestres"
+    : periodes.some((p) => p.length > 4)
+      ? "mois"
+      : "exercices";
+  return publiees > periodes.length
+    ? `${periodes.length} derniers ${mot} sur ${publiees} publiés`
+    : `${periodes.length} ${mot} publiés`;
+}
 
 function miniTableau(
   serie: Record<string, number>,
@@ -751,7 +794,14 @@ function miniTableau(
   // Le tableau défile dans son propre cadre : à 393 px, quatre colonnes de
   // milliards débordaient du panneau et la dernière — la plus récente — était
   // coupée. La page, elle, ne défile jamais latéralement.
+  //
+  // Et il dit ce qu'il montre. Six colonnes sur dix-neuf points publiés, sans
+  // un mot, se lisaient comme la série entière : le lecteur croyait voir tout
+  // l'historique là où il n'en voyait que la fin. La légende nomme la fenêtre
+  // et le nombre de points qui restent derrière ; la courbe, elle, les montre
+  // tous.
   return `<div class="mini-serie__cadre"><table class="mini-serie">
+    <caption class="mini-serie__fenetre">${echapper(fenetreLisible(periodes, toutes.length))}</caption>
     <thead><tr><td></td>${periodes
       .map((p) => `<th scope="col">${echapper(p)}</th>`)
       .join("")}</tr></thead>
@@ -1137,11 +1187,21 @@ export function ongletsThemes(
  *
  * La phrase n'apparaît que sur les thèmes concernés, et seulement si au moins
  * un indicateur du thème en relève : ailleurs, elle serait du bruit.
+ *
+ * **Et seulement sur la fiche France.** La somme des régions n'existe qu'au
+ * niveau national : c'est là, et là seulement, qu'un total du site remplace un
+ * total de la source. La mention s'affichait pourtant sur le thème Logement
+ * d'une fiche communale — le chiffre de la commune, lui, vient bien du
+ * producteur — où elle jetait un doute sur une donnée qu'elle ne concerne pas.
  */
 export function mentionAgregat(
   liste: Indicateur[],
-  agregats?: AgregatsNationaux | null,
+  agregats: AgregatsNationaux | null | undefined,
+  /** Obligatoire : c'est l'oubli de ce paramètre qui a mis la mention sur des
+   *  fiches communales. */
+  niveau: string,
 ): string {
+  if (niveau !== "pays") return "";
   if (!agregats?.indicateurs?.length) return "";
   const concernes = liste.filter((i) => agregats.indicateurs.includes(i.id));
   if (!concernes.length) return "";
@@ -1387,6 +1447,88 @@ function syntheseTerritoire(
   </div>`;
 }
 
+/** Ce qu'un comparateur désigne : une maille, et le code du territoire qui la
+ *  porte pour cette fiche. `parent` publié est le département d'une commune,
+ *  `region` sa région (voir la requête de `publish.territoires`).
+ *
+ *  Les libellés sont écrits par l'appelant. Un libellé qu'on ne sait pas
+ *  résoudre, ou un code absent, ne produit pas de bouton : le nom reste écrit
+ *  en clair, comme avant. Mieux vaut un texte que le mauvais lien. */
+function mailleDuComparateur(
+  libelle: string,
+  territoire: Territoire,
+  niveau: string,
+): { code: string; niveau: string } | null {
+  if (libelle === "la France") return { code: "FR", niveau: "pays" };
+  if (libelle === "sa région") {
+    return territoire.region ? { code: territoire.region, niveau: "region" } : null;
+  }
+  if (libelle === "son département") {
+    return niveau === "commune" && territoire.parent
+      ? { code: territoire.parent, niveau: "departement" }
+      : null;
+  }
+  return null;
+}
+
+/** Le nom d'un territoire parent, en bouton quand on sait où il mène.
+ *
+ *  Le contrat avec `main.ts` tient dans les deux attributs : `data-code` et
+ *  `data-niveau` sur `.fiche__parent`, quel que soit l'endroit de la fiche où
+ *  le bouton se trouve. C'est un seul gestionnaire, par délégation. */
+function boutonParent(
+  parent: { libelle: string; territoire: Territoire },
+  maille: { code: string; niveau: string } | null,
+): string {
+  const nom = echapper(parent.territoire.nom);
+  return maille
+    ? `<button type="button" class="fiche__parent" data-code="${echapper(
+        maille.code,
+      )}" data-niveau="${echapper(maille.niveau)}">${nom}</button>`
+    : nom;
+}
+
+/** Les mailles dont on sait dire « c'est mesuré là », dans l'ordre où on les
+ *  propose : la plus proche d'abord. */
+const OU_C_EST_MESURE: Record<string, string> = {
+  departement: "au département",
+  region: "à la région",
+  pays: "au niveau national",
+};
+
+/**
+ * Le thème n'a rien ici : où est-ce mesuré, et comment y aller.
+ *
+ * Le renvoi n'est pas déduit du catalogue mais **vérifié sur les chiffres** :
+ * un indicateur peut déclarer le département dans ses niveaux sans qu'aucune
+ * valeur n'y soit publiée. On cherche donc, de la maille la plus proche à la
+ * plus lointaine, celle dont la série porte réellement quelque chose pour l'un
+ * des indicateurs du thème. Aucune ne le porte : rien n'est écrit, et le thème
+ * perd son onglet plutôt que d'en donner un vers du blanc.
+ */
+function renvoiVersLaMaillePorteuse(
+  liste: Indicateur[],
+  territoire: Territoire,
+  niveau: string,
+  comparateurs: { libelle: string; territoire: Territoire }[],
+): string | null {
+  for (const comparateur of comparateurs) {
+    const maille = mailleDuComparateur(comparateur.libelle, territoire, niveau);
+    const ou = maille ? OU_C_EST_MESURE[maille.niveau] : undefined;
+    if (!maille || !ou) continue;
+    const mesure = liste.some((i) => {
+      const serie = comparateur.territoire.series?.[i.id];
+      return serie !== undefined && Object.keys(serie).length > 0;
+    });
+    if (!mesure) continue;
+    return `<p class="theme-groupe__ailleurs">Ce thème n'est pas mesuré ici, mais ${ou} : ${boutonParent(
+      comparateur,
+      maille,
+    )}</p>`;
+  }
+  return null;
+}
+
 export function afficherFiche(
   cible: HTMLElement,
   options: {
@@ -1473,9 +1615,10 @@ export function afficherFiche(
       paires.get(indicateur.id),
       { inflation: options.inflation },
     );
-  const mesures =
+  const comparateurs = options.comparateurs ?? [];
+  const sections =
     ordonnerThemes([...parTheme.keys()])
-      .map((theme) => {
+      .flatMap((theme) => {
         const liste = ordonnerTheme(theme, parTheme.get(theme) as Indicateur[]).filter(
           (i) => !doubles.has(i),
         );
@@ -1500,44 +1643,83 @@ export function afficherFiche(
               )
           : visibles;
         const derriere = liste.filter((i) => !devant.includes(i));
-        const suite = derriere.length
+        // Les lignes réellement écrites, pas celles qu'on a essayé d'écrire :
+        // une mesure sans valeur ici rend une chaîne vide, et « 12 autres
+        // lignes » en annonçait alors trois.
+        const lignesDevant = devant.map(dessine).filter(Boolean);
+        const lignesDerriere = derriere.map(dessine).filter(Boolean);
+        const associations =
+          theme === "vie_associative" ? rendreAssociations(options.associations) : "";
+        // Une donnée absente n'écrit rien, et cela vaut pour la navigation.
+        // L'onglet « Justice » s'affichait sur chaque fiche communale et
+        // ouvrait une section blanche : la densité carcérale n'est mesurée
+        // qu'au département. Ni onglet muet, ni cul-de-sac — le thème renvoie
+        // vers la maille qui porte la donnée quand elle existe au-dessus, et
+        // disparaît quand elle n'existe nulle part.
+        if (!lignesDevant.length && !lignesDerriere.length && !associations) {
+          const renvoi = renvoiVersLaMaillePorteuse(liste, territoire, niveau, comparateurs);
+          return renvoi ? [{ theme, contenu: renvoi }] : [];
+        }
+        const suite = lignesDerriere.length
           ? `<details class="theme-groupe__suite">
               <summary>Tout le détail <span class="theme-groupe__compte">${
-                derriere.length
-              } autres lignes</span></summary>
-              ${derriere.map(dessine).join("")}
+                lignesDerriere.length
+              } autre${lignesDerriere.length > 1 ? "s lignes" : " ligne"}</span></summary>
+              ${lignesDerriere.join("")}
             </details>`
           : "";
-        return `<section class="theme-groupe" data-theme="${echapper(theme)}"${
-          theme === themeActif ? "" : " hidden"
-        }>
+        return [
+          {
+            theme,
+            contenu: `
           ${resumeTheme(
-            liste, territoire, periode, parHabitant, niveau, references,
-            options.comparateurs ?? [],
+            liste, territoire, periode, parHabitant, niveau, references, comparateurs,
           )}
-          ${mentionAgregat(liste, options.agregats)}
-          ${theme === "vie_associative" ? rendreAssociations(options.associations) : ""}
-          ${devant.map(dessine).join("")}
+          ${mentionAgregat(liste, options.agregats, niveau)}
+          ${associations}
+          ${lignesDevant.join("")}
           ${suite}
-        </section>`;
-      })
-      .join("");
+        `,
+          },
+        ];
+      });
+  // L'onglet ouvert doit exister : si le thème de la carte n'a plus de section
+  // — aucune de ses mesures n'est publiée ici — c'est le premier thème restant
+  // qui s'ouvre, plutôt qu'un panneau vide.
+  const themesRetenus = sections.map((s) => s.theme);
+  const ouvert = themesRetenus.includes(themeActif) ? themeActif : themesRetenus[0] ?? themeActif;
+  const mesures = sections
+    .map(
+      (s) =>
+        `<section class="theme-groupe" data-theme="${echapper(s.theme)}"${
+          s.theme === ouvert ? "" : " hidden"
+        }>${s.contenu}</section>`,
+    )
+    .join("");
   // Situer le territoire plutôt que l'identifier. Le code INSEE figurait ici
   // pour départager les homonymes — il y a trois Sainte-Marie et douze
   // Saint-Martin — mais « 69123 » ne dit cela à personne : il fallait déjà
   // connaître la réponse pour la lire. La maille du dessus la donne en clair.
   // C'est le premier comparateur : département pour une commune, région pour
   // un département. Au-dessus, c'est la France, qui ne situe rien.
-  const dessus = options.comparateurs?.[0];
+  //
+  // Et cliquable : « Gironde » écrit en gris obligeait à retaper le nom du
+  // département dans la recherche pour y monter. C'est un bouton, avec le code
+  // et la maille de la cible ; le gestionnaire vit dans main.ts, par délégation.
+  const dessus = comparateurs[0];
   const situe =
     dessus && dessus.libelle !== "la France"
-      ? ` · ${echapper(dessus.territoire.nom)}`
+      ? ` · ${boutonParent(dessus, mailleDuComparateur(dessus.libelle, territoire, niveau))}`
       : "";
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
+      // La population porte sa définition en infobulle et rien d'autre : elle
+      // était soulignée en pointillé, c'est-à-dire habillée en lien, alors
+      // qu'aucun clic ne mène nulle part. La classe dit au style de ne pas
+      // souligner celle-ci (voir `.fiche__habitants`).
       territoire.population
-        ? ` · <abbr title="Population municipale (INSEE). Les montants par habitant utilisent la population de référence de l'Observatoire des finances locales : détail dans Sources et méthode.">${new Intl.NumberFormat(
+        ? ` · <abbr class="fiche__habitants" title="Population municipale (INSEE). Les montants par habitant utilisent la population de référence de l'Observatoire des finances locales : détail dans Sources et méthode.">${new Intl.NumberFormat(
             "fr-FR",
           ).format(territoire.population)} hab.</abbr>`
         : ""
@@ -1577,7 +1759,11 @@ export function afficherFiche(
       // le pont dit où l'argent passe.
       rendrePont(territoire, indicateurs)
     }
-    ${ongletsThemes(ordonnerThemes([...parTheme.keys()]), themeActif, options.libelleTheme)}
+    ${
+      // Les thèmes qui ont une section, et eux seuls : un onglet cliquable
+      // n'ouvre jamais du blanc.
+      ongletsThemes(themesRetenus, ouvert, options.libelleTheme)
+    }
     <div class="mesures">${mesures}</div>
   `;
 }
@@ -1603,13 +1789,50 @@ export function lectureDeDensite(
   // Le pourcentage, pas les deux densités côte à côte : « 653 pour 1 000 hab.,
   // contre 568 pour 1 000 hab. pour son département » demandait une
   // soustraction de tête pour arriver à ce que « +15 % » dit tout seul.
-  return `${signeEcart(densite.valeur, repere.valeur)} vs ${repere.libelle}, par habitant.`;
+  const ecart = ecartRelatif(densite.valeur, repere.valeur);
+  if (ecart) return `${ecart} vs ${repere.libelle}, par habitant.`;
+  // Sauf quand le pourcentage ne compare plus rien : les deux densités, alors,
+  // et le lecteur voit l'écart de ses yeux.
+  const ici = densiteLisible(densite.valeur);
+  return ici ? `${ici} ici, ${densiteLisible(repere.valeur)} pour ${repere.libelle}.` : "";
 }
 
 /** « +15 % » — l'écart relatif signé, arrondi à l'entier. */
 function signeEcart(valeur: number, repere: number): string {
   const ecart = ((valeur - repere) / repere) * 100;
   return `${ecart >= 0 ? "+" : "−"}${Math.round(Math.abs(ecart))}\u202f%`;
+}
+
+/**
+ * L'écart relatif, quand il compare encore quelque chose.
+ *
+ * `repereComparable` (synthese.ts) refuse déjà les rapports où le repère est
+ * cent fois plus petit que la valeur : passé ce facteur, le pourcentage mesure
+ * la petitesse du dénominateur et non la position du territoire. Sur une
+ * micro-commune, cent est encore trop lâche. Rochefourchat, deux habitants,
+ * affichait « +2 280 % vs la médiane » (facteur 24) et « +1 178 % » dans son
+ * groupe (facteur 13) : exacts, et illisibles.
+ *
+ * Un ordre de grandeur suffit ici. Le seuil est plus serré que celui des
+ * repères de lecture parce que ces écarts-ci s'affichent **seuls** : `lecture`
+ * écrit « +24 % vs la médiane (866 €) » et pose donc le repère à côté du
+ * pourcentage, là où `signeEcart` écrivait « +2 280 % » et rien d'autre.
+ *
+ * De part et d'autre de zéro, il n'y a pas d'écart relatif du tout. Un effectif
+ * nul face à un repère positif donnait « −100 % » sous chaque ligne d'une
+ * commune de deux habitants : « chômeurs 0, −100 % vs son département »
+ * n'apprend rien que le zéro ne dise déjà, et le signe suggère une baisse là où
+ * il n'y a qu'une absence.
+ *
+ * `null` : l'appelant pose alors les deux chiffres côte à côte, ou se tait.
+ */
+const FACTEUR_ECART = 10;
+
+function ecartRelatif(valeur: number, repere: number): string | null {
+  if (!Number.isFinite(valeur) || !Number.isFinite(repere) || repere === 0) return null;
+  if (!memeSens(valeur, repere)) return null;
+  if (Math.abs(valeur) > Math.abs(repere) * FACTEUR_ECART) return null;
+  return signeEcart(valeur, repere);
 }
 
 /**
@@ -1715,13 +1938,14 @@ export function positionDansGroupe(
   // plus haut » se comprend sans. Les critères du groupe et la réserve sur
   // l'intercommunalité sont sur la page « Données » — écrits ici, ils
   // faisaient six lignes de texte avant le premier chiffre du panneau.
-  const relatif =
-    quartiles.mediane && memeSens(valeurComparee, quartiles.mediane) &&
-    repereComparable(valeurComparee, quartiles.mediane)
-      ? `${signeEcart(valeurComparee, quartiles.mediane)} vs la médiane (${ecrire(
-          quartiles.mediane,
-        )}), `
-      : `ici ${ecrire(valeurComparee)}, médiane ${ecrire(quartiles.mediane)} : `;
+  // Passé un ordre de grandeur, le pourcentage ne situe plus la commune, il
+  // dit que la médiane de son groupe est quasi nulle : « Parmi 959 communes
+  // semblables : +1 178 % » sur une commune de deux habitants. Les deux
+  // chiffres, alors, et rien d'autre.
+  const ecart = quartiles.mediane ? ecartRelatif(valeurComparee, quartiles.mediane) : null;
+  const relatif = ecart
+    ? `${ecart} vs la médiane (${ecrire(quartiles.mediane)}), `
+    : `ici ${ecrire(valeurComparee)}, médiane ${ecrire(quartiles.mediane)} : `;
   return `<section class="position">
     <p class="position__phrase">Parmi <strong>${quartiles.n}</strong> communes semblables :
       ${relatif}<strong>${situation}</strong>.</p>

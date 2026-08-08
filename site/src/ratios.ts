@@ -111,7 +111,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: (epargne / recettes) * 100,
       unite: "percent",
       lecture:
-        "Ce qui reste des recettes une fois les charges courantes payées. C'est de là que viennent l'investissement et le remboursement de la dette.",
+        "Ce qui reste des recettes une fois les charges payées, pour investir et rembourser.",
     });
   }
 
@@ -127,7 +127,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
             valeur: encours / epargne,
             unite: "annees",
             lecture:
-              "Le nombre d'années d'épargne qu'il faudrait pour rembourser toute la dette, à épargne inchangée et sans nouvel emprunt.",
+              "Années d'épargne qu'il faudrait pour rembourser toute la dette, sans nouvel emprunt.",
             plafond: PLAFOND[niveau],
           }
         : {
@@ -135,7 +135,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
             libelle: "Capacité de désendettement",
             unite: "annees",
             lecture:
-              "Le nombre d'années d'épargne qu'il faudrait pour rembourser toute la dette, à épargne inchangée et sans nouvel emprunt.",
+              "Années d'épargne qu'il faudrait pour rembourser toute la dette, sans nouvel emprunt.",
             impossible:
               epargne === undefined
                 ? "L'épargne brute n'est pas publiée pour cet exercice."
@@ -153,7 +153,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: encours / habitants,
       unite: "euro_par_habitant",
       lecture:
-        "L'encours rapporté à la population de référence des ratios officiels, pas à la population municipale du recensement.",
+        "La dette rapportée à la population de référence des comptes locaux.",
     });
   }
 
@@ -169,7 +169,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: ((personnel + annuite) / recettes) * 100,
       unite: "percent",
       lecture:
-        "Sur 100 € de recettes, ce qui part déjà en salaires et en remboursement de la dette. Plus c'est haut, moins la commune a les mains libres.",
+        "Sur 100 € de recettes, ce que les salaires et la dette prennent déjà.",
     });
   }
 
@@ -181,7 +181,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: (equipement / recettes) * 100,
       unite: "percent",
       lecture:
-        "Les dépenses d'équipement rapportées aux recettes. L'investissement se fait par à-coups : une année ne décrit pas une politique.",
+        "Ce qui va à l'investissement. Il se fait par à-coups : une année ne dit pas tout.",
     });
   }
 
@@ -193,7 +193,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: (dgf / recettes) * 100,
       unite: "percent",
       lecture:
-        "La part des recettes versée par l'État au titre de la dotation globale de fonctionnement. Les autres dotations sont comptées ailleurs.",
+        "La part des recettes qui vient de la principale dotation de l'État.",
     });
   }
 

@@ -445,7 +445,64 @@ test("sans exercice précédent publié, aucune variation n'est écrite", () => 
   assert.ok(etapes.every((e) => e.variation === null || e.variation === undefined));
   const html = rendu(BORDEAUX);
   assert.doesNotMatch(html, /évolutions vs/);
-  assert.doesNotMatch(html, /pont__var/);
+  // La cellule d'évolution est écrite quand même — sans elle, le montant de
+  // cette ligne se recalerait seul sur le bord droit — mais elle reste vide.
+  assert.doesNotMatch(html, /pont__evolution">[^<]/);
+});
+
+/**
+ * Le scan vertical ne doit pas zigzaguer.
+ *
+ * La variation était rendue sous le montant, en bloc : le regard qui descend la
+ * colonne des montants sautait d'une demi-hauteur à chaque ligne. Elle tient
+ * désormais dans une cellule de la même grille, à droite du montant.
+ */
+test("la variation se lit à côté du montant, pas en dessous", () => {
+  const html = rendu(bordeauxSurDeuxAns(), CATALOGUE);
+  assert.doesNotMatch(html, /pont__var\b/);
+  // Montant et évolution sont deux cellules sœurs de la même rangée.
+  assert.match(
+    html,
+    /<span class="pont__reste">[^<]+<\/span>\s*<span class="pont__evolution">\+10[^<]*<\/span>/,
+  );
+});
+
+test("chaque rangée porte sa cellule d'évolution, même vide", () => {
+  const html = rendu(bordeauxSurDeuxAns(), CATALOGUE);
+  const rangees = [...html.matchAll(/<span class="pont__reste">/g)].length;
+  const cellules = [...html.matchAll(/<span class="pont__evolution">/g)].length;
+  assert.equal(rangees, cellules);
+  // Le report ne porte aucune variation : sa cellule existe et reste vide.
+  assert.match(html, /<span class="pont__evolution"><\/span>/);
+});
+
+/** Les charges courantes, dont les interventions s'ouvrent à leur tour : deux
+ *  niveaux de pli sous une marche. */
+const CATALOGUE_PROFOND = [
+  ...(CATALOGUE as unknown as { id: string }[]),
+  { id: "ofgl_subventions_aux_personnes_de_droit_prive", libelle: "Subventions versées",
+    parent: "ofgl_depenses_d_intervention" },
+  { id: "ofgl_autres_depenses_d_intervention", libelle: "Autres interventions",
+    parent: "ofgl_depenses_d_intervention" },
+] as never as Indicateur[];
+
+function bordeauxAvecSousComposantes(): Territoire {
+  return territoire({
+    ...COMPTES,
+    ...CHARGES,
+    ofgl_subventions_aux_personnes_de_droit_prive: 40_000_000,
+    ofgl_autres_depenses_d_intervention: CHARGES.ofgl_depenses_d_intervention - 40_000_000,
+  });
+}
+
+test("la profondeur d'un pli se lit dans le balisage, pas dans onze pixels", () => {
+  // Le décalage seul ne distinguait pas les niveaux 2 et 3. Chaque composante
+  // porte son rang, et la liste qui porte des enfants porte le sien : c'est ce
+  // qui permet de tirer un trait de rattachement d'un niveau à l'autre.
+  const html = rendu(bordeauxAvecSousComposantes(), CATALOGUE_PROFOND);
+  assert.match(html, /<li class="pont__composante" data-rang="1">/);
+  assert.match(html, /<ul class="pont__composantes" data-rang="2">/);
+  assert.match(html, /<li class="pont__composante" data-rang="2">/);
 });
 
 test("une épargne qui remonte de −2 à −1 M€ s'améliore, elle ne « baisse » pas", () => {
