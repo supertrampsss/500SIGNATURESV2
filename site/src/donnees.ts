@@ -106,6 +106,13 @@ export const valeursCarte = (indicateur: string, niveau: string, periode: string
 export const territoires = (niveau: string, lot: string) =>
   lire<Record<string, Territoire>>(`territoires/${niveau}/${lot}.json`);
 
+/** L'index léger d'une maille : noms et dénominateurs, sans les séries. C'est
+ *  ce que lit la carte ; les lots ci-dessus ne servent plus qu'aux fiches.
+ *  Absent des publications antérieures à ce fichier — l'appelant retombe alors
+ *  sur les lots. */
+export const indexTerritoires = (niveau: string) =>
+  lire<import("./repertoire.ts").IndexTerritoires>(`territoires/${niveau}/index.json`);
+
 /** L'index de recherche pèse deux mégaoctets : il n'est chargé qu'à la première frappe. */
 export const indexRecherche = () => lire<EntreeRecherche[]>("recherche.json");
 
@@ -236,6 +243,20 @@ export type Changement = {
   public: string;
   technique: string | null;
 };
+
+/**
+ * Le simulateur du budget de l'État : un arbre réglable par exercice, et
+ * l'index qui dit lesquels sont publiés.
+ *
+ * Ces deux fichiers sont les seuls que le site ne demande **pas** au démarrage.
+ * L'arbre du PLF pèse plus de cent kilo-octets pour une page que la plupart des
+ * lecteurs n'ouvriront pas : il n'est chargé qu'à l'ouverture du simulateur.
+ * L'index, lui, est minuscule, et sans lui rien ne dirait s'il y a un
+ * simulateur à proposer.
+ */
+export const simulateurIndex = () => lire<unknown>("simulateur/index.json");
+export const simulateurBudget = (exercice: string) =>
+  lire<import("./simulateur.ts").Budget>(`simulateur/etat-${exercice}.json`);
 
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");

@@ -16,9 +16,12 @@ import {
   afficherFiche,
   groupeDeLaCommune,
   positionDansGroupe,
+  rubriqueDuTheme,
   valeurComparable,
 } from "./fiche.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
+import { decoder, indexer } from "./simulateur.ts";
+import { afficherSimulateur, exercicesPublies } from "./simulateur-rendu.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { rendu as apercuRendu, resumer } from "./apercu.ts";
@@ -53,6 +56,7 @@ import {
 import {
   MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
 } from "./mailles.ts";
+import { ouvrirRepertoire, populationsDuRepertoire, type Repertoire } from "./repertoire.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
@@ -140,6 +144,14 @@ type Etat = {
   selection: string | null;
   comparaison: string[];
   vue: string;
+  /** Les deux vitesses de la fiche : « essentiel » (le récit, le verdict, les
+   *  questions) ou « tout » (la fiche entière, thème par thème). Dans l'URL
+   *  comme le reste : une fiche ouverte en grand se partage telle quelle. */
+  voir: "essentiel" | "tout";
+  /** Le budget réglé par le lecteur dans le simulateur, encodé
+   *  `CODE:pct,CODE:pct`. Vide tant qu'aucune ligne n'est touchée : l'URL ne
+   *  porte alors pas le paramètre du tout, comme pour `comparer`. */
+  budget: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -252,6 +264,11 @@ function lireUrl(): Etat {
     selection: p.get("territoire"),
     comparaison: (p.get("comparer") ?? "").split(",").filter(Boolean).slice(0, MAXIMUM),
     vue: p.get("vue") ?? "metropole",
+    // L'essentiel par défaut : c'est la fiche que le lecteur qui arrive doit
+    // trouver. Une valeur inconnue y retombe plutôt que d'ouvrir un mode qui
+    // n'existe pas — même règle que pour la maille.
+    voir: p.get("voir") === "tout" ? "tout" : "essentiel",
+    budget: p.get("budget") ?? "",
   };
 }
 
@@ -267,7 +284,11 @@ function ecrireUrl(): void {
   if (etat.selection) p.set("territoire", etat.selection);
   if (etat.maille) p.set("maille", etat.maille);
   if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
-  history.replaceState(null, "", `?${p}`);
+  if (etat.voir === "tout") p.set("voir", "tout");
+  if (etat.budget) p.set("budget", etat.budget);
+  // Le hash porte la vue de page : le réécrire sans lui renverrait le lecteur
+  // du simulateur à la carte au premier réglage.
+  history.replaceState(null, "", `?${p}${location.hash}`);
 }
 
 /** Les séries calculées rejoignent celles du territoire dès son chargement.
@@ -295,11 +316,47 @@ async function chargerTerritoires(niveau: string, lot: string): Promise<void> {
   recalculerPopulations();
 }
 
+/**
+ * L'index de la maille peinte : noms et dénominateurs, sans les séries.
+ *
+ * Peindre une couche « par habitant » ne demandait que deux champs par
+ * territoire — le nom et la population de référence de l'exercice — et les
+ * faisait chercher dans les cent un lots départementaux, soit des centaines de
+ * mégaoctets de séries complètes analysées pour les jeter. `index.json` porte
+ * ces deux champs, et rien d'autre.
+ *
+ * `null` tant qu'il n'est pas chargé, ou quand la publication servie est
+ * antérieure à ce fichier : le site retombe alors sur les lots (voir
+ * `chargerIndex`).
+ */
+let repertoire: Repertoire | null = null;
+
+/** Charge l'index de la maille, une fois. Rend `false` quand la publication
+ *  servie n'en a pas : l'appelant retombe alors sur les lots (voir
+ *  `ouvrirRepertoire`). */
+async function chargerIndex(niveau: string): Promise<boolean> {
+  if (repertoire?.niveau === niveau) return true;
+  repertoire = await ouvrirRepertoire(niveau, donnees.indexTerritoires);
+  return repertoire !== null;
+}
+
+/** Le nom d'un territoire de la maille peinte : l'index s'il est là, le lot
+ *  déjà chargé sinon, le code en dernier ressort — une colonne ne reste
+ *  jamais vide. */
+function nomDe(code: string): string {
+  return repertoire?.noms[code] ?? entites[code]?.nom ?? code;
+}
+
 /** Les dénominateurs suivent l'exercice affiché : une dépense de 2022 se
  *  rapporte aux habitants de 2022, pas à ceux d'aujourd'hui. Recalculé à chaque
  *  chargement et à chaque changement de période, pour que la carte, le tableau
  *  et la fiche divisent tous par le même nombre. */
 function recalculerPopulations(): void {
+  // L'index couvre toute la maille peinte : les lots n'ont rien à y ajouter.
+  if (repertoire?.niveau === etat.niveau) {
+    populations = populationsDuRepertoire(repertoire.index, etat.periode);
+    return;
+  }
   populations = {};
   for (const [code, entite] of Object.entries(entites)) {
     const valeur = populationDeReference(entite, etat.periode).valeur;
@@ -403,7 +460,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
     .map(([code, brut]) => {
       const population = populations[code];
       const valeur = parHabitant && population ? brut / population : brut;
-      return { code, nom: entites[code]?.nom ?? code, valeur, calculable: !parHabitant || !!population };
+      return { code, nom: nomDe(code), valeur, calculable: !parHabitant || !!population };
     })
     .filter((l) => l.calculable)
     .sort((a, b) => b.valeur - a.valeur);
@@ -447,7 +504,7 @@ function majTableauEvolution(
 ): void {
   const indicateur = indicateurCourant();
   const toutes = Object.entries(couche)
-    .map(([code, e]) => ({ code, nom: entites[code]?.nom ?? code, ...e }))
+    .map(([code, e]) => ({ code, nom: nomDe(code), ...e }))
     .sort((a, b) => b.variation - a.variation);
 
   exportEvolution = {
@@ -505,10 +562,20 @@ async function peindreEvolution(
   const precedentes = await donnees.valeursCarte(etat.indicateur, etat.niveau, periodePrecedente);
   const decliner = (bruts: Record<string, number>, periode: string): Record<string, number> => {
     if (!parHabitant) return bruts;
+    // L'index porte le dénominateur de chaque exercice : c'est lui qui sert
+    // quand il est là, les séries des lots sinon.
+    const denominateurs =
+      repertoire?.niveau === etat.niveau
+        ? populationsDuRepertoire(repertoire.index, periode)
+        : null;
     const sortie: Record<string, number> = {};
     for (const [code, brut] of Object.entries(bruts)) {
       const entite = entites[code];
-      const population = entite ? populationDeReference(entite, periode).valeur : null;
+      const population = denominateurs
+        ? denominateurs[code]
+        : entite
+          ? populationDeReference(entite, periode).valeur
+          : null;
       if (population) sortie[code] = brut / population; // pas de dénominateur, pas de ratio
     }
     return sortie;
@@ -538,7 +605,12 @@ async function peindreEvolution(
 async function peindre(): Promise<void> {
   const parHabitant = etat.declinaison === "habitant" && parHabitantAUnSens(indicateurCourant());
   const valeurs = await donnees.valeursCarte(etat.indicateur, etat.niveau, etat.periode);
-  await chargerLotsNecessaires(etat.niveau, Object.keys(valeurs));
+  // Noms et dénominateurs suffisent à peindre : l'index de la maille les porte
+  // tous les deux. Les lots ne sont rappelés que si la publication servie est
+  // antérieure à ce fichier.
+  if (!(await chargerIndex(etat.niveau))) {
+    await chargerLotsNecessaires(etat.niveau, Object.keys(valeurs));
+  }
   recalculerPopulations(); // la période a pu changer depuis le dernier chargement
 
   const periodes = periodesDuNiveau();
@@ -629,7 +701,10 @@ function afficherApercu(): void {
       peintSurCarte,
       agregats,
       inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
+      serieInflation: parents["FR"]?.series?.insee_inflation_ipc,
+      tout: etat.voir === "tout",
     });
+    appliquerVitesse();
     return;
   }
   // L'aperçu de repli résume des niveaux (minimum, médiane, total) : en mode
@@ -637,9 +712,10 @@ function afficherApercu(): void {
   // comme des niveaux. On garde le panneau tel quel — la fiche France le
   // remplace dès que la maille pays est chargée.
   if (evolutionAffichee) return;
-  const noms = Object.fromEntries(
-    Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
-  );
+  const noms =
+    repertoire?.niveau === etat.niveau
+      ? repertoire.noms
+      : Object.fromEntries(Object.entries(entites).map(([code, entite]) => [code, entite.nom]));
   const indicateur = indicateurCourant();
   // Le total France : seulement pour un indicateur qui s'additionne, et
   // calculé sur les montants bruts — additionner des « par habitant » de
@@ -715,7 +791,10 @@ function majEtiquettes(): void {
     if (!code) continue;
     // Les tuiles portent le code là où l'on attendait le libellé (« 28 » pour
     // la Normandie) : le nom vient du référentiel déjà chargé.
-    const nom = entites[code]?.nom ?? (figure.properties?.nom as string | undefined);
+    const nom =
+      repertoire?.noms[code] ??
+      entites[code]?.nom ??
+      (figure.properties?.nom as string | undefined);
     if (!nom || nom === code) continue;
     const anneaux =
       figure.geometry.type === "Polygon"
@@ -925,10 +1004,93 @@ async function montrerFiche(code: string): Promise<void> {
     associations: associations[code],
     agregats,
     inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
+    // L'IPC national mensuel : c'est de là que se tire l'inflation cumulée sur
+    // la fenêtre du mandat. `fiche.ts` est pur — il ne va rien chercher.
+    serieInflation: parents["FR"]?.series?.insee_inflation_ipc,
+    tout: etat.voir === "tout",
   });
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
   injecterActionsFiche();
+  appliquerVitesse();
+}
+
+/**
+ * Les deux vitesses, appliquées au conteneur de la fiche.
+ *
+ * `fiche.ts` rend les deux corps et marque chacun d'un `data-vitesse` ; c'est
+ * cette classe-ci qui décide lequel se voit. La bascule ne redessine donc rien
+ * — cent quarante lignes de mesures, courbes et mini-tableaux compris, ne se
+ * recalculent pas pour un changement d'affichage.
+ */
+function appliquerVitesse(): void {
+  const fiche = $("fiche");
+  // Une fiche sans bascule n'a pas de mode : lui poser « fiche--essentiel »
+  // masquerait ses barres d'onglets, qui sont tout ce qu'elle a pour naviguer.
+  // C'est le cas de la fiche nationale et des départements.
+  const bascule = fiche.querySelector(".fiche__vitesses");
+  const tout = etat.voir === "tout";
+  fiche.classList.toggle("fiche--tout", Boolean(bascule) && tout);
+  fiche.classList.toggle("fiche--essentiel", Boolean(bascule) && !tout);
+  if (!bascule) return;
+  for (const bouton of fiche.querySelectorAll<HTMLElement>(".fiche__vitesses [data-vitesse]")) {
+    bouton.setAttribute("aria-pressed", String((bouton.dataset.vitesse === "tout") === tout));
+  }
+}
+
+/** Change de vitesse et l'écrit dans l'URL. Rien d'autre : la fiche est déjà
+ *  rendue en entier. */
+function choisirVitesse(voulue: "essentiel" | "tout"): void {
+  if (etat.voir === voulue) return;
+  etat.voir = voulue;
+  ecrireUrl();
+  appliquerVitesse();
+}
+
+/** Ouvre un thème dans le corps « Tout voir » : la barre de sa rubrique, son
+ *  onglet, sa section. Le même geste que le clic sur l'onglet, appelable
+ *  depuis une phrase du verdict. */
+function montrerTheme(voulu: string): void {
+  const rubrique = rubriqueDuTheme(voulu);
+  for (const bouton of document.querySelectorAll<HTMLElement>(
+    ".onglets-rubriques [data-rubrique]",
+  )) {
+    bouton.setAttribute("aria-pressed", String(bouton.dataset.rubrique === rubrique));
+  }
+  for (const barre of document.querySelectorAll<HTMLElement>(".onglets-themes[data-rubrique]")) {
+    barre.hidden = barre.dataset.rubrique !== rubrique;
+  }
+  for (const bouton of document.querySelectorAll<HTMLElement>(".onglets-themes [data-theme]")) {
+    bouton.setAttribute("aria-pressed", String(bouton.dataset.theme === voulu));
+  }
+  for (const section of document.querySelectorAll<HTMLElement>(".mesures [data-theme]")) {
+    section.hidden = section.dataset.theme !== voulu;
+  }
+}
+
+/**
+ * Une phrase du verdict mène à sa ligne, dépliée.
+ *
+ * Le verdict affirme un chiffre ; le lecteur doit pouvoir aller voir d'où il
+ * vient. Le chemin passe par « Tout voir » — c'est là que vit le détail — puis
+ * par le thème, le pli, et le défilement. Une phrase dont la ligne n'existe pas
+ * n'est pas cliquable : `fiche.ts` ne lui met pas de bouton.
+ */
+function ouvrirLaMesure(id: string): void {
+  choisirVitesse("tout");
+  const cible = $("fiche").querySelector<HTMLElement>(`.mesures [data-mesure="${CSS.escape(id)}"]`);
+  if (!cible) return;
+  const section = cible.closest<HTMLElement>(".mesures [data-theme]");
+  if (section?.dataset.theme) montrerTheme(section.dataset.theme);
+  for (let noeud: HTMLElement | null = cible; noeud; noeud = noeud.parentElement) {
+    if (noeud instanceof HTMLDetailsElement) noeud.open = true;
+  }
+  cible.scrollIntoView({
+    block: "center",
+    // Un défilement animé est une animation : elle se coupe pour qui l'a
+    // demandé au système.
+    behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+  });
 }
 
 /**
@@ -957,7 +1119,12 @@ async function ouvrirTerritoire(
   if (ticket === null) return;
   const panneau = $("fiche");
   panneau.setAttribute("aria-busy", "true");
-  panneau.innerHTML = squeletteFiche(nom ?? entites[code]?.nom ?? parents[code]?.nom ?? "");
+  // Le nom avant les données : un clic sur la carte n'en donne pas, et le lot
+  // du département n'est pas encore là. C'est l'index de la maille qui nomme
+  // le squelette — sans lui, il restait anonyme le temps du chargement.
+  panneau.innerHTML = squeletteFiche(
+    nom ?? repertoire?.noms[code] ?? entites[code]?.nom ?? parents[code]?.nom ?? "",
+  );
   $("volet-territoire").scrollTop = 0;
   try {
     // La maille demandée, ou celle que la carte peint quand la commande n'en
@@ -1153,6 +1320,9 @@ function injecterActionsFiche(): void {
   if (!code) return;
   fiche.querySelector(".fiche__actions")?.remove();
   const ancre =
+    // La ligne sur le mandat sans comptes publiés se lit avec le maire : le
+    // bouton « Comparer » ne s'insère donc pas entre les deux.
+    fiche.querySelector<HTMLElement>(".fiche__mandat") ??
     fiche.querySelector<HTMLElement>(".fiche__maire") ??
     fiche.querySelector<HTMLElement>(".fiche__meta") ??
     fiche.querySelector<HTMLElement>(".fiche__titre");
@@ -1496,6 +1666,21 @@ function brancherCommandes(): void {
       );
       return;
     }
+    // Les deux vitesses : « L'essentiel » et « Tout voir ». Avant tout le
+    // reste, parce que ces boutons ne portent rien sur la carte.
+    const vitesse = (evenement.target as HTMLElement).closest<HTMLElement>(
+      ".fiche__vitesses [data-vitesse]",
+    );
+    if (vitesse?.dataset.vitesse) {
+      choisirVitesse(vitesse.dataset.vitesse === "tout" ? "tout" : "essentiel");
+      return;
+    }
+    // Une phrase du verdict mène à la ligne qu'elle cite, dépliée.
+    const renvoi = (evenement.target as HTMLElement).closest<HTMLElement>("[data-verdict-vers]");
+    if (renvoi?.dataset.verdictVers) {
+      ouvrirLaMesure(renvoi.dataset.verdictVers);
+      return;
+    }
     // Ajouter le territoire ouvert à la comparaison, ou l'en retirer.
     const comparer = (evenement.target as HTMLElement).closest<HTMLElement>("[data-comparer]");
     if (comparer?.dataset.comparer) {
@@ -1603,6 +1788,19 @@ function brancherCommandes(): void {
   $("fiche").addEventListener("keydown", (evenement) => {
     if ((evenement as KeyboardEvent).key === "Enter") surLigne(evenement);
   });
+  // Un dépliant de question dit son état. `<details>` le porte nativement pour
+  // le navigateur, mais `aria-expanded` est ce que le lecteur d'écran annonce ;
+  // laissé figé dans le HTML, il mentirait dès le premier clic. L'événement
+  // `toggle` ne remonte pas : on l'écoute en capture.
+  $("fiche").addEventListener(
+    "toggle",
+    (evenement) => {
+      const bloc = evenement.target as HTMLElement;
+      if (!(bloc instanceof HTMLDetailsElement) || !bloc.dataset.question) return;
+      bloc.querySelector("summary")?.setAttribute("aria-expanded", String(bloc.open));
+    },
+    true,
+  );
   tiroirRedimensionnable();
 
   $("exporter").addEventListener("click", () => {
@@ -1780,18 +1978,78 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  *  écran à une pile de blocs sans transition. L'état vit dans le hash. */
 const VUES_PAGE = ["carte", "decryptages", "donnees"] as const;
 
+/** Le simulateur n'est une vue du site que si son fichier est publié. Tant
+ *  qu'il ne l'est pas, `#simulateur` n'est pas une adresse : pas d'entrée de
+ *  menu, pas de section, et aucun message pour dire ce qui manque. */
+let exerciceSimulateur: string | null = null;
+let simulateurMonte = false;
+
+function vuesConnues(): readonly string[] {
+  return exerciceSimulateur ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
+}
+
 function basculerVue(): void {
   const demandee = location.hash.replace("#", "");
-  const vue = (VUES_PAGE as readonly string[]).includes(demandee) ? demandee : "carte";
+  const vue = vuesConnues().includes(demandee) ? demandee : "carte";
   document.body.dataset.vue = vue;
   document.querySelector<HTMLElement>(".atelier")!.hidden = vue !== "carte";
   $("vue-decryptages").hidden = vue !== "decryptages";
   $("vue-donnees").hidden = vue !== "donnees";
+  $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
-    if (a.dataset.vue === vue) a.setAttribute("aria-current", "page");
-    else a.removeAttribute("aria-current");
+    if (a.dataset.vue !== vue) return a.removeAttribute("aria-current");
+    a.setAttribute("aria-current", "page");
+    // Sur téléphone la barre de navigation défile dans son cadre : sans cela,
+    // un lecteur arrivé par un lien sur la dernière entrée ne la voit pas.
+    a.scrollIntoView({ block: "nearest", inline: "nearest" });
   });
+  if (vue === "simulateur") void ouvrirSimulateur();
   window.scrollTo({ top: 0 });
+}
+
+/**
+ * L'index des exercices, et lui seul. Quelques octets, sans lesquels rien ne
+ * dirait s'il y a un simulateur à proposer ; l'arbre du budget, lui, attend
+ * qu'on ouvre la vue.
+ */
+async function preparerSimulateur(): Promise<void> {
+  let exercices: string[] = [];
+  try {
+    exercices = exercicesPublies(await donnees.simulateurIndex());
+  } catch {
+    // Simulateur non publié : ni entrée de menu, ni section, ni message.
+  }
+  if (!exercices.length) return;
+  // Le plus récent : c'est le budget dont on débat.
+  exerciceSimulateur = exercices.sort().reverse()[0];
+  document
+    .querySelector(".entete__nav")!
+    .insertAdjacentHTML("beforeend", `<a href="#simulateur" data-vue="simulateur">Simulateur</a>`);
+  if (location.hash === "#simulateur") basculerVue();
+}
+
+/** L'arbre du budget, chargé au premier affichage de la vue et pas avant. */
+async function ouvrirSimulateur(): Promise<void> {
+  if (simulateurMonte || !exerciceSimulateur) return;
+  simulateurMonte = true;
+  try {
+    const budget = await donnees.simulateurBudget(exerciceSimulateur);
+    const index = indexer(budget);
+    afficherSimulateur($("simu"), budget, index, {
+      reglages: decoder(etat.budget, index),
+      surReglages: (encode) => {
+        etat.budget = encode;
+        ecrireUrl();
+      },
+    });
+  } catch {
+    // L'index annonçait un exercice que la publication ne sert pas : plutôt
+    // qu'une section vide au bout d'un lien, le simulateur disparaît.
+    exerciceSimulateur = null;
+    simulateurMonte = false;
+    document.querySelector('.entete__nav a[data-vue="simulateur"]')?.remove();
+    basculerVue();
+  }
 }
 
 async function demarrer(): Promise<void> {
@@ -1807,6 +2065,9 @@ async function demarrer(): Promise<void> {
   etat = lireUrl();
   construireSelecteurs();
   afficherQuestions($("questions"));
+  // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
+  // la carte n'a pas à patienter pour ça.
+  void preparerSimulateur();
 
   // Le jeu de données public est le même que celui de la carte : le lien pointe
   // vers le pointeur de version, porte d'entrée de tous les autres fichiers.
@@ -1964,7 +2225,15 @@ async function demarrer(): Promise<void> {
   // l'état réel des couches au lieu de le déduire des pixels.
   Object.assign(window as object, {
     __carte: carte,
-    __diag: () => ({ entites: Object.keys(entites).length, un: entites["28"], niveau: etat.niveau }),
+    __diag: () => ({
+      entites: Object.keys(entites).length,
+      un: entites["28"],
+      niveau: etat.niveau,
+      // La carte peint depuis l'index de la maille : sans lui, elle est
+      // retombée sur les lots, et c'est ce qu'il faut pouvoir constater.
+      index: repertoire ? Object.keys(repertoire.noms).length : 0,
+      populations: Object.keys(populations).length,
+    }),
     // Le groupe de comparaison ne s'affichait pas et rien ne disait pourquoi :
     // trois valeurs à lire — la clé construite, la période, ce qui est trouvé.
     __groupe: (code: string) => {
@@ -2067,7 +2336,7 @@ async function demarrer(): Promise<void> {
           );
         }
         carte.getCanvas().style.cursor = "pointer";
-        const nom = (figure?.properties?.nom as string | undefined) ?? entites[code]?.nom ?? code;
+        const nom = (figure?.properties?.nom as string | undefined) ?? nomDe(code);
         const valeur = affichees[code];
         const indicateur = indicateurCourant();
         // En mode évolution : la variation signée, ET les deux valeurs dont

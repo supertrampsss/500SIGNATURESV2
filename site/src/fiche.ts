@@ -21,8 +21,13 @@ import {
 } from "./serie.ts";
 import { rendu as rendreAssociations } from "./associations.ts";
 import { enEurosConstants } from "./euros-constants.ts";
+import { rendu as rendreFeuilleDImpots } from "./feuille-impots.ts";
+import { repartir, type Question } from "./fiche-questions.ts";
+import { mandatEnCours, mandatRaconte, type Mandat } from "./mandat.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
+import { recit, type Recit } from "./recit.ts";
+import { verdict, type Contexte, type Phrase } from "./verdict.ts";
 import { reperes, type References } from "./reference.ts";
 import { traduire } from "./traductions.ts";
 import {
@@ -1545,6 +1550,246 @@ function renvoiVersLaMaillePorteuse(
   return null;
 }
 
+/* ------------------------------------------------------------------------ *
+ * L'ouverture de la fiche : le récit, le verdict, et le corps par questions.
+ *
+ * Le panneau publiait cent quatre-vingt-dix-huit indicateurs au même niveau
+ * visuel, rangés sous les intitulés du plan comptable. Ce qui suit ne retire
+ * rien : la fiche d'avant est intacte derrière « Tout voir ». Ce qui change,
+ * c'est ce qu'on voit en premier — une phrase qui dit le bilan, trois à cinq
+ * chiffres qui la soutiennent, puis des questions en français.
+ * ------------------------------------------------------------------------ */
+
+/** Les mailles où un mandat municipal a un sens. Un département n'est pas élu
+ *  aux municipales : lui raconter un « bilan de mandat » sur ce calendrier-là
+ *  serait faux. */
+const MAILLES_DE_MANDAT = new Set(["commune", "arrondissement_municipal"]);
+
+/** Les quatre questions dont les indicateurs sont des comptes. Ce sont leurs
+ *  millésimes, et eux seuls, qui bornent un mandat : un recensement publié tous
+ *  les cinq ans ne dit rien de ce qu'une équipe a dépensé. */
+const QUESTIONS_D_ARGENT = new Set(["depenses", "recettes", "impots", "dette"]);
+
+/** Combien de lignes une question montre en mode « L'essentiel ». Au-delà, on
+ *  retombe dans le déversement que cette refonte corrige : c'est « Tout voir »
+ *  qui porte l'exhaustivité, pas l'ouverture. */
+const LIGNES_PAR_QUESTION = 6;
+
+/**
+ * Combien de phrases le verdict affiche : cinq au plus.
+ *
+ * `verdict.ts` en propose six par défaut, deux par sujet, et sa raison est
+ * écrite — trois questions valent mieux qu'une posée trois fois. La maquette
+ * retenue en demande trois à cinq : au sixième rang, la phrase est déjà le
+ * second fait d'un sujet déjà traité, et l'ouverture de la fiche redevient une
+ * liste. Cinq laisse les trois sujets s'exprimer et en double deux.
+ *
+ * On en demande donc huit au module, dont les trois que le récit a déjà dites
+ * seront retirées : voir `phrasesQuiCompletent`.
+ */
+const PHRASES_DE_VERDICT = 5;
+
+/**
+ * Le verdict dit ce que le récit n'a pas dit.
+ *
+ * Les deux lisent les mêmes faits, classés pareil : sans filtre, la première
+ * puce répète mot pour mot la première phrase du paragraphe, et la fiche
+ * s'ouvre sur un doublon là où on lui reproche déjà d'en avoir trop. Les faits
+ * cités par le récit sortent donc du verdict, qui reprend la liste où le
+ * paragraphe l'a laissée.
+ *
+ * Le filtre porte sur `vers`, l'indicateur : deux phrases du même indicateur
+ * disent le même fait, quelle que soit la formulation.
+ */
+export function phrasesQuiCompletent(phrases: Phrase[], deja: string[]): Phrase[] {
+  const dites = new Set(deja);
+  return phrases.filter((p) => !dites.has(p.vers)).slice(0, PHRASES_DE_VERDICT);
+}
+
+/** La série de population qui sert de dénominateur au site : celle de l'OFGL,
+ *  publiée chaque exercice. Le recensement, lui, ne l'est que tous les cinq
+ *  ans — il ne peut pas mesurer une variation sur une fenêtre de mandat. */
+const POPULATION_DU_MANDAT = "ofgl_population_reference";
+
+/**
+ * L'inflation cumulée entre deux exercices, en pourcentage.
+ *
+ * `insee_inflation_ipc` publie, mois par mois, le glissement sur douze mois de
+ * l'indice des prix. La moyenne des douze mois d'une année est la hausse
+ * moyenne des prix de cette année-là sur la précédente : c'est la définition de
+ * l'inflation annuelle publiée par l'INSEE, et c'est elle qui se compose. On
+ * multiplie donc les années **postérieures** à l'exercice de référence —
+ * l'inflation de 2019 s'est produite avant lui et n'appartient pas à la
+ * fenêtre. De 2019 à 2025, cela vaut +16,1 %.
+ *
+ * Une seule année manquante rend `null` : un cumul amputé d'un exercice se
+ * lirait comme un cumul complet et sous-estimerait la hausse. Une donnée
+ * absente n'écrit rien.
+ */
+export function inflationCumulee(
+  ipc: Record<string, number> | undefined,
+  reference: string,
+  fin: string,
+): number | null {
+  if (!ipc) return null;
+  const debut = Number(reference);
+  const terme = Number(fin);
+  if (!Number.isFinite(debut) || !Number.isFinite(terme) || terme <= debut) return null;
+  let facteur = 1;
+  for (let annee = debut + 1; annee <= terme; annee += 1) {
+    const mois = Object.entries(ipc)
+      .filter(([cle]) => cle.startsWith(`${annee}-`))
+      .map(([, valeur]) => valeur)
+      .filter((v) => Number.isFinite(v));
+    if (mois.length < 12) return null;
+    facteur *= 1 + mois.reduce((somme, v) => somme + v, 0) / mois.length / 100;
+  }
+  return (facteur - 1) * 100;
+}
+
+/** La variation de population sur la fenêtre, en pourcentage. Sans les deux
+ *  bornes, rien : une hausse de dépenses ne se corrige pas d'une démographie
+ *  qu'on ne connaît qu'à moitié. */
+function variationPopulation(
+  territoire: Territoire,
+  reference: string,
+  fin: string,
+): number | null {
+  const serie = territoire.series?.[POPULATION_DU_MANDAT];
+  const depart = serie?.[reference];
+  const arrivee = serie?.[fin];
+  if (!depart || !arrivee || depart <= 0) return null;
+  return ((arrivee - depart) / depart) * 100;
+}
+
+/** Le mois et l'année d'une date ISO, en français : « mars 2026 ». */
+function moisEtAnnee(date: string): string {
+  return new Date(date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+}
+
+/**
+ * Le récit : ce que ce mandat a fait, en un titre et un paragraphe.
+ *
+ * C'est la pièce la plus importante de la fiche, et la seule qui parle avant
+ * qu'on ait cliqué. Rien n'y est écrit à la main : le titre et le paragraphe
+ * viennent de `recit.ts`, qui les compose à partir des séries publiées.
+ */
+function rendreRecit(histoire: Recit | null): string {
+  if (!histoire) return "";
+  return `<section class="recit">
+    <h3 class="recit__titre">${echapper(histoire.titre)}</h3>
+    <p class="recit__paragraphe">${echapper(histoire.paragraphe)}</p>
+    <p class="recit__fenetre">${echapper(histoire.fenetre)}</p>
+  </section>`;
+}
+
+/**
+ * Le verdict : trois à cinq phrases chiffrées, chacune vers son détail.
+ *
+ * Une phrase dont l'indicateur cité n'a pas de ligne dans cette fiche n'est pas
+ * cliquable : rien de cliquable ne mène à une section vide. Elle reste écrite —
+ * le fait est vrai — mais elle ne promet pas un détail qui n'existe pas.
+ */
+function rendreVerdict(phrases: Phrase[], aUneLigne: (id: string) => boolean): string {
+  if (!phrases.length) return "";
+  const lignes = phrases
+    .map((phrase) => {
+      const texte = echapper(phrase.texte);
+      const corps = aUneLigne(phrase.vers)
+        ? `<button type="button" class="verdict__vers" data-verdict-vers="${echapper(
+            phrase.vers,
+          )}">${texte}</button>`
+        : `<span class="verdict__texte">${texte}</span>`;
+      return `<li class="verdict__phrase verdict__phrase--${echapper(phrase.sens)}">${corps}</li>`;
+    })
+    .join("");
+  return `<ul class="verdict">${lignes}</ul>`;
+}
+
+/**
+ * Le corps rangé par questions.
+ *
+ * Chaque question est un dépliant : elle montre son intitulé, et ses lignes
+ * quand on l'ouvre. La première s'ouvre d'emblée — une fiche qui s'ouvre tout
+ * plié demande un clic pour prouver qu'elle contient quelque chose.
+ *
+ * Une question dont aucune ligne ne s'écrit ne s'affiche pas. C'est la même
+ * règle que partout : une donnée absente n'écrit rien, et un intitulé cliquable
+ * qui ouvre du blanc est pire qu'un intitulé manquant.
+ */
+function rendreQuestions(
+  indicateurs: Indicateur[],
+  dessine: (indicateur: Indicateur) => string,
+  rangDuTheme: (indicateur: Indicateur) => number,
+): string {
+  const sections = repartir(indicateurs)
+    .map(({ question, indicateurs: liste }) => ({
+      question,
+      lignes: teteDeLaQuestion(question, liste, rangDuTheme)
+        .map(dessine)
+        .filter(Boolean)
+        .slice(0, LIGNES_PAR_QUESTION),
+    }))
+    .filter((s) => s.lignes.length > 0);
+  if (!sections.length) return "";
+  return `<div class="questions-fiche">${sections
+    .map(
+      ({ question, lignes }, index) => `<details class="question-fiche" data-question="${echapper(
+        question.cle,
+      )}"${index === 0 ? " open" : ""}>
+        <summary aria-expanded="${index === 0}">${echapper(question.intitule)}</summary>
+        <div class="question-fiche__corps">${lignes.join("")}</div>
+      </details>`,
+    )
+    .join("")}</div>`;
+}
+
+/** Les indicateurs d'une question, dans l'ordre où elle se lit : la tête
+ *  déclarée d'abord, puis le reste par thème et par mesure phare. On en tire
+ *  plus que nécessaire — une ligne sans valeur ici ne s'écrit pas, et couper
+ *  avant de dessiner ferait une question vide là où il y avait de quoi la
+ *  remplir. */
+function teteDeLaQuestion(
+  question: Question,
+  liste: Indicateur[],
+  rangDuTheme: (indicateur: Indicateur) => number,
+): Indicateur[] {
+  const tete = new Map(question.tete.map((id, index) => [id, index]));
+  return [...liste].sort((a, b) => {
+    const ta = tete.get(a.id) ?? Infinity;
+    const tb = tete.get(b.id) ?? Infinity;
+    if (ta !== tb) return ta - tb;
+    return rangDuTheme(a) - rangDuTheme(b);
+  });
+}
+
+/**
+ * Une ligne, et une seule, sur le mandat qui vient de commencer.
+ *
+ * Les élections générales de mars 2026 ont installé des équipes dont aucun
+ * exercice n'est publié : les comptes s'arrêtent à 2025. Le lecteur qui voit
+ * « Maire depuis mars 2026 » au-dessus d'un bilan 2019-2025 doit savoir en un
+ * coup d'œil que le second ne juge pas le premier. Une ligne suffit à le dire,
+ * et un paragraphe pédagogique la ferait sauter.
+ */
+function ligneMandatEnCours(raconte: Mandat | null, aujourdhui: string): string {
+  const encours = mandatEnCours(aujourdhui);
+  if (!raconte || raconte.debut === encours.debut) return "";
+  return `<p class="fiche__mandat">Le mandat ouvert en ${echapper(
+    moisEtAnnee(encours.debut),
+  )} n'a pas encore de comptes publiés.</p>`;
+}
+
+/** La bascule des deux vitesses. « Tout voir » dit ce qu'il rouvre : un bouton
+ *  qui cache cent quarante lignes doit annoncer leur nombre. */
+function rendreVitesses(tout: boolean, lignes: number): string {
+  return `<nav class="fiche__vitesses" aria-label="Niveau de détail">
+    <button type="button" data-vitesse="essentiel" aria-pressed="${!tout}">L'essentiel</button>
+    <button type="button" data-vitesse="tout" aria-pressed="${tout}">Tout voir<span
+      class="fiche__vitesses-compte">${lignes} indicateurs</span></button>
+  </nav>`;
+}
+
 export function afficherFiche(
   cible: HTMLElement,
   options: {
@@ -1585,6 +1830,17 @@ export function afficherFiche(
     /** L'indice des prix national, pour dire ce qu'une évolution doit à
      *  l'inflation. Absent, la phrase n'est pas écrite. */
     inflation?: Record<string, number>;
+    /** L'IPC national mensuel (`insee_inflation_ipc`), d'où se tire l'inflation
+     *  cumulée sur la fenêtre du mandat. Ce module est pur : il ne va pas la
+     *  chercher, on la lui donne. Absent, le récit se passe du repère des prix
+     *  plutôt que d'en inventer un. */
+    serieInflation?: Record<string, number>;
+    /** La date du jour, en ISO court. Elle décide quel mandat se raconte :
+     *  écrite ici, les tests sont déterministes. */
+    aujourdhui?: string;
+    /** Vrai quand le lecteur a demandé « Tout voir ». Par défaut, la fiche
+     *  s'ouvre sur l'essentiel. */
+    tout?: boolean;
   },
 ): void {
   const { territoire, indicateurs, periode, parHabitant, niveau } = options;
@@ -1621,8 +1877,15 @@ export function afficherFiche(
     [...jumeaux(indicateurs)].filter(([taux]) => territoire.series?.[taux] !== undefined),
   );
   const doubles = new Set(paires.values());
-  const dessine = (indicateur: Indicateur) =>
-    ligneIndicateur(
+  // Une ligne n'est dessinée qu'une fois : la même chaîne sert au corps par
+  // questions et au corps par thèmes. Sans cette mémoire, les deux vitesses
+  // recalculaient deux fois cent quarante séries, courbes et mini-tableaux
+  // compris — le prix d'une seconde fiche pour un mode qu'on ne regarde pas.
+  const dessinees = new Map<string, string>();
+  const dessine = (indicateur: Indicateur): string => {
+    const deja = dessinees.get(indicateur.id);
+    if (deja !== undefined) return deja;
+    const html = ligneIndicateur(
       indicateur, territoire, periode, parHabitant, niveau, references,
       indicateur.id === principal && options.marquerCarte !== false,
       indicateur.id === principal ? options.rang : undefined,
@@ -1631,6 +1894,9 @@ export function afficherFiche(
       paires.get(indicateur.id),
       { inflation: options.inflation },
     );
+    dessinees.set(indicateur.id, html);
+    return html;
+  };
   const comparateurs = options.comparateurs ?? [];
   const sections =
     ordonnerThemes([...parTheme.keys()])
@@ -1727,6 +1993,79 @@ export function afficherFiche(
     dessus && dessus.libelle !== "la France"
       ? ` · ${boutonParent(dessus, mailleDuComparateur(dessus.libelle, territoire, niveau))}`
       : "";
+
+  /* ---- L'ouverture : le mandat raconté, le récit, le verdict, les questions.
+     Tout ce qui suit est calculé après les sections de thèmes, parce que le
+     verdict a besoin de savoir quelles lignes existent : une phrase ne renvoie
+     jamais vers une section vide. ---- */
+  const aujourdhui = options.aujourdhui ?? new Date().toISOString().slice(0, 10);
+  // Les exercices qui bornent un mandat sont ceux des comptes, pas ceux du
+  // recensement : la fenêtre d'un bilan financier se lit sur des exercices
+  // budgétaires. Ce sont exactement les indicateurs que les quatre questions
+  // d'argent rassemblent.
+  const exercicesDesComptes = MAILLES_DE_MANDAT.has(niveau)
+    ? [
+        ...new Set(
+          repartir(indicateurs)
+            .filter(({ question }) => QUESTIONS_D_ARGENT.has(question.cle))
+            .flatMap(({ indicateurs: liste }) => liste)
+            .flatMap((i) => Object.keys(territoire.series?.[i.id] ?? {})),
+        ),
+      ]
+    : [];
+  const raconte = exercicesDesComptes.length
+    ? mandatRaconte(exercicesDesComptes, aujourdhui)
+    : null;
+  const contexte: Contexte | null = raconte
+    ? {
+        mandat: raconte,
+        series: territoire.series ?? {},
+        inflation: inflationCumulee(
+          options.serieInflation,
+          raconte.exerciceReference,
+          raconte.exerciceFin,
+        ),
+        population: variationPopulation(
+          territoire,
+          raconte.exerciceReference,
+          raconte.exerciceFin,
+        ),
+        nom: territoire.nom,
+      }
+    : null;
+  const histoire = contexte ? recit(contexte) : null;
+  const phrases = contexte
+    ? phrasesQuiCompletent(verdict(contexte, PHRASES_DE_VERDICT + 3), histoire?.cites ?? [])
+    : [];
+  // `dessinees` s'est remplie en construisant les sections de thèmes : elle dit
+  // exactement quelles lignes la fiche écrit, et donc où un renvoi peut mener.
+  const aUneLigne = (id: string) => Boolean(dessinees.get(id));
+  const rangDuTheme = (indicateur: Indicateur) => {
+    const place = ORDRE_THEMES.indexOf(indicateur.theme);
+    const phares = PHARES[indicateur.theme] ?? [];
+    const rang = phares.indexOf(indicateur.id);
+    return (place === -1 ? ORDRE_THEMES.length : place) * 1000 +
+      (rang === -1 ? phares.length : rang);
+  };
+  const corpsQuestions = rendreQuestions(
+    indicateurs.filter((i) => !doubles.has(i) && !REPLIES.has(i.id)),
+    dessine,
+    rangDuTheme,
+  );
+  const feuille = rendreFeuilleDImpots(territoire);
+  const essentiel = `${rendreRecit(histoire)}${rendreVerdict(phrases, aUneLigne)}${
+    feuille ? `<section class="feuille-impots">${feuille}</section>` : ""
+  }${corpsQuestions}`;
+  // Deux vitesses seulement là où il y a un bilan à raconter.
+  //
+  // Sans récit ni verdict, « L'essentiel » se réduirait à des questions sans
+  // réponse : le lecteur y perdrait la synthèse, les rapports et l'enchaînement
+  // sans rien gagner. La fiche nationale, les départements et les régions —
+  // qui ne sont pas élus aux municipales — gardent donc exactement la forme
+  // qu'ils avaient. La refonte se prouve d'abord là où elle a été demandée.
+  const deuxVitesses = Boolean(histoire) || phrases.length > 0;
+  const lignesEcrites = [...dessinees.values()].filter(Boolean).length;
+
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
@@ -1754,33 +2093,49 @@ export function afficherFiche(
           }</p>`
         : ""
     }
-    ${syntheseTerritoire(
-      indicateurs, territoire, periode, parHabitant,
-      options.comparateurs ?? [], references, niveau, options.libelleTheme,
-    )}
+    ${ligneMandatEnCours(raconte, aujourdhui)}
+    ${deuxVitesses ? rendreVitesses(options.tout === true, lignesEcrites) : ""}
     ${
-      // « Où se situe cette commune parmi ses semblables » est l'une des
-      // questions les plus posées : elle était en dernier, repliée, après cinq
-      // écrans de défilement. Elle se lit maintenant avec la synthèse.
-      options.comparaison ?? ""
+      // Ce que le lecteur voit d'abord : une phrase qui dit le bilan, les
+      // chiffres qui la soutiennent, ce qu'il paie, puis les questions.
+      deuxVitesses ? `<div class="fiche__essentiel" data-corps="essentiel">${essentiel}</div>` : ""
     }
     ${
-      // Les comptes en rapports, avant le détail des masses : « 62 millions de
-      // dette » ne dit que la taille de la collectivité, « onze ans d'épargne »
-      // dit sa situation.
-      rendreRatios(territoire, niveau)
-    }
-    ${
-      // Puis l'enchaînement lui-même, replié : les rapports disent si ça tient,
-      // le pont dit où l'argent passe.
-      rendrePont(territoire, indicateurs)
+      // Et la fiche d'avant, intacte, derrière « Tout voir » : synthèse,
+      // position dans le groupe, rapports, enchaînement. Rien n'en est retiré —
+      // c'est la condition pour que la refonte ne coûte aucune donnée.
+      `<div class="fiche__tout"${deuxVitesses ? ' data-corps="tout"' : ""}>
+        ${syntheseTerritoire(
+          indicateurs, territoire, periode, parHabitant,
+          options.comparateurs ?? [], references, niveau, options.libelleTheme,
+        )}
+        ${
+          // « Où se situe cette commune parmi ses semblables » est l'une des
+          // questions les plus posées : elle était en dernier, repliée, après
+          // cinq écrans de défilement. Elle se lit maintenant avec la synthèse.
+          options.comparaison ?? ""
+        }
+        ${
+          // Les comptes en rapports, avant le détail des masses : « 62 millions
+          // de dette » ne dit que la taille de la collectivité, « onze ans
+          // d'épargne » dit sa situation.
+          rendreRatios(territoire, niveau)
+        }
+        ${
+          // Puis l'enchaînement lui-même, replié : les rapports disent si ça
+          // tient, le pont dit où l'argent passe.
+          rendrePont(territoire, indicateurs)
+        }
+      </div>`
     }
     ${
       // Les thèmes qui ont une section, et eux seuls : un onglet cliquable
-      // n'ouvre jamais du blanc.
+      // n'ouvre jamais du blanc. Les barres restent enfants directs de `.fiche`
+      // — c'est leur `order` qui les remonte sous le nom du territoire, et un
+      // enfant d'enfant n'est plus un élément flex.
       ongletsThemes(themesRetenus, ouvert, options.libelleTheme)
     }
-    <div class="mesures">${mesures}</div>
+    <div class="mesures"${deuxVitesses ? ' data-corps="tout"' : ""}>${mesures}</div>
   `;
 }
 

@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { BudgetEtat } from "./donnees.ts";
-import { rendu, repartition } from "./cent-euros.ts";
+import { quartiers, rendu, repartition } from "./cent-euros.ts";
 
 const MONTANTS: Record<string, number> = {
   "Total recettes nettes du budget général": 380_389_657_383.09,
@@ -106,6 +106,32 @@ test("la page refuse explicitement de « suivre son impôt »", () => {
   assert.match(html, /universalité/);
   assert.match(html, /une proportion, pas un trajet/);
   assert.match(html, /La Sécurité sociale, les hôpitaux, les retraites/);
+});
+
+test("une petite part seule garde son nom, deux petites se regroupent", () => {
+  // Les fonds de concours pèsent 1,90 € des recettes : sous le seuil, mais
+  // seuls sous le seuil. « Autres » avec un seul membre cache un libellé sans
+  // simplifier la figure. Côté dépenses, deux postes minuscules se regroupent.
+  const seule = quartiers([
+    { libelle: "Gros", part: 97 },
+    { libelle: "Fonds de concours", part: 3 - 0.1 },
+  ]);
+  assert.deepEqual(
+    seule.map((e) => e.libelle),
+    ["Gros", "Fonds de concours"],
+  );
+  const deux = quartiers([
+    { libelle: "Gros", part: 96 },
+    { libelle: "Petit A", part: 2 },
+    { libelle: "Petit B", part: 2 },
+  ]);
+  assert.deepEqual(
+    deux.map((e) => e.libelle),
+    ["Gros", "Autres"],
+  );
+  assert.equal(deux[1].part, 4);
+  const html = rendu(BUDGET, "2025");
+  assert.match(html, /camembert__libelle">Fonds de concours/);
 });
 
 test("un exercice sans exécution ne produit rien plutôt qu'un cadre vide", () => {

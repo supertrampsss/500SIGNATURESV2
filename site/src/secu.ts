@@ -1,13 +1,21 @@
 /**
- * La Sécu, c'est combien ? — dépenses, recettes et solde du sous-secteur
- * administrations de sécurité sociale (S1314), en % du PIB.
+ * Le bloc Sécurité sociale, en deux temps.
  *
- * La Sécurité sociale dépense plus que l'État et le site n'en disait rien en
- * propre. Ce bloc répond en comptabilité nationale, seule définition qui
- * permette la comparaison France / Allemagne / zone euro — et il dit deux
- * pièges de vocabulaire : ce solde n'est pas le « trou de la Sécu » débattu au
- * Parlement (autre périmètre : régime général + FSV), et les recettes ne sont
- * pas que des cotisations (CSG, fractions de TVA).
+ * 1. « 100 € de prestations sociales, où vont-ils ? » : la répartition par
+ *    risque, la question que le lecteur se pose vraiment. Elle vient en
+ *    premier, comme « 100 € du budget de l'État » précède le pont détaillé.
+ *    Le rendu vit dans `cent-euros-secu.ts`.
+ * 2. « La Sécu est-elle en déficit ? » : dépenses, recettes et solde du
+ *    sous-secteur administrations de sécurité sociale (S1314), en % du PIB.
+ *
+ * Les deux ne se recouvrent pas — une répartition d'une dépense d'un côté, un
+ * solde comparé de l'autre, sur deux périmètres différents — et le second le
+ * dit. Ils tiennent dans le même bloc parce qu'ils répondent à la même
+ * question posée deux fois.
+ *
+ * Le bloc dit deux pièges de vocabulaire : ce solde n'est pas le « trou de la
+ * Sécu » débattu au Parlement (autre périmètre : régime général + FSV), et les
+ * recettes ne sont pas que des cotisations (CSG, fractions de TVA).
  *
  * Le solde s'exprime en **points de PIB**, pas en pourcentage d'un total : la
  * différence entre deux grandeurs en % du PIB se compte en points.
@@ -15,6 +23,7 @@
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { pourcentage } from "./echelle.ts";
+import { rendu as renduCentEuros } from "./cent-euros-secu.ts";
 
 export const DEPENSES = "eurostat_secu_depenses_pib";
 export const RECETTES = "eurostat_secu_recettes_pib";
@@ -52,8 +61,15 @@ function derniere(serie: Record<string, number> | undefined): [string, number] |
   return p ? [p, serie[p]] : null;
 }
 
-/** Rendu pur, sans DOM : c'est lui qui est testé. */
+/** Rendu pur, sans DOM : c'est lui qui est testé. Les deux moitiés sont
+ *  indépendantes — l'une peut être publiée sans l'autre, et ce qui manque ne
+ *  s'écrit pas. */
 export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[]): string {
+  const html = renduCentEuros(pays["FR"], catalogue) + renduSolde(pays, catalogue);
+  return html.trim() ? html : "";
+}
+
+function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): string {
   const france = pays["FR"];
   const dernieres = derniere(france?.series?.[SOLDE]);
   if (!france || !dernieres) return "";
@@ -105,7 +121,7 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
     .join("");
 
   return `
-    <h3>La Sécu, c'est combien ?</h3>
+    <h3>La Sécu est-elle en déficit ?</h3>
     <p class="bloc__complement">En ${echapper(annee)}, les administrations de sécurité
       sociale françaises ont dépensé <strong>${echapper(pourcentage(depensesFr))} du produit
       intérieur brut</strong> et reçu ${echapper(pourcentage(recettesFr))}, soit
