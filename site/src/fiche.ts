@@ -1452,8 +1452,13 @@ function syntheseTerritoire(
   // sécurité quand il était fixé à quatre.
   const lignes = synthese(faits, faits.length);
   if (!lignes.length) return "";
+  // Un titre, pas un `<span>` en petites capitales. C'est le premier bloc de la
+  // fiche : au clavier et au lecteur d'écran, il n'existait pas. Le niveau suit
+  // celui des autres sections de la fiche — le nom du territoire est en `h2`,
+  // les rapports et le pont en `h3` — et la classe reste, c'est elle qui porte
+  // le style.
   return `<div class="synthese">
-    <p class="synthese__titre">L'essentiel</p>
+    <h3 class="synthese__titre">L'essentiel</h3>
     <ul>${lignes.map((l) => `<li>${l}</li>`).join("")}</ul>
   </div>`;
 }

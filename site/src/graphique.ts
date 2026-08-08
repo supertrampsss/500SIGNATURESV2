@@ -44,6 +44,37 @@ export type Geometrie = {
 
 const MARGES = { gauche: 46, droite: 14, haut: 14, bas: 26 };
 
+/**
+ * Le dessin d'un téléphone n'est pas celui d'un écran large réduit.
+ *
+ * Les tailles de texte du graphique sont en **unités du viewBox**, pas en
+ * pixels CSS : le SVG est mis à l'échelle par sa largeur, et la feuille de
+ * style ne peut rien y faire. Deux conséquences, deux corrections.
+ *
+ * D'abord, quarante-six unités de marge à gauche prennent six pour cent d'un
+ * dessin de 720 et onze pour cent d'un dessin de 340 : sur un téléphone, la
+ * gouttière des étiquettes mange la courbe. Elles se resserrent.
+ *
+ * Ensuite, douze unités de texte se rendent à douze pixels **quand le dessin
+ * est affiché à la largeur qu'on lui a donnée** — c'est le contrat de
+ * `largeur`. Sur un dessin étroit, la marge d'erreur est mince : une unité de
+ * plus met les étiquettes au-dessus du plancher de lisibilité sans changer le
+ * rendu des écrans larges.
+ */
+const MARGES_ETROITES = { gauche: 34, droite: 10, haut: 12, bas: 24 };
+
+/** En deçà, le dessin est celui d'un téléphone (40rem moins les gouttières). */
+export const LARGEUR_ETROITE = 480;
+
+export function typographieDuDessin(largeur: number): {
+  marges: typeof MARGES;
+  corps: number;
+} {
+  return largeur < LARGEUR_ETROITE
+    ? { marges: MARGES_ETROITES, corps: 13 }
+    : { marges: MARGES, corps: 12 };
+}
+
 function echapper(texte: string): string {
   return texte.replace(
     /[&<>"']/g,
@@ -158,13 +189,14 @@ export function dessiner(
   const hauteur = options.hauteur ?? 300;
   const periodes = [...new Set(series.flatMap((s) => s.points.map(([p]) => p)))].sort();
   const valeurs = series.flatMap((s) => s.points.map(([, v]) => v));
+  const { marges, corps } = typographieDuDessin(largeur);
   const geometrie: Geometrie = {
     largeur,
     hauteur,
-    gauche: MARGES.gauche,
-    droite: largeur - MARGES.droite,
-    haut: MARGES.haut,
-    bas: hauteur - MARGES.bas,
+    gauche: marges.gauche,
+    droite: largeur - marges.droite,
+    haut: marges.haut,
+    bas: hauteur - marges.bas,
     periodes,
   };
   if (!periodes.length || !valeurs.length) return { svg: "", geometrie };
@@ -184,7 +216,8 @@ export function dessiner(
       const classe = t === 0 ? "graphique__zero" : "graphique__grille";
       return `<line class="${classe}" x1="${geometrie.gauche}" y1="${y(t).toFixed(1)}"
         x2="${geometrie.droite}" y2="${y(t).toFixed(1)}" />
-      <text class="graphique__etiquette" x="${geometrie.gauche - 6}" y="${(y(t) + 3.5).toFixed(1)}"
+      <text class="graphique__etiquette" font-size="${corps}"
+        x="${geometrie.gauche - 6}" y="${(y(t) + 3.5).toFixed(1)}"
         text-anchor="end">${echapper(options.formater(t))}</text>`;
     })
     .join("");
@@ -192,7 +225,7 @@ export function dessiner(
   const axeTemps = graduationsTemps(periodes)
     .map((i) => {
       const annee = periodes[i].slice(0, 4);
-      return `<text class="graphique__etiquette" x="${x(i).toFixed(1)}"
+      return `<text class="graphique__etiquette" font-size="${corps}" x="${x(i).toFixed(1)}"
         y="${hauteur - 8}" text-anchor="middle">${echapper(annee)}</text>`;
     })
     .join("");
@@ -244,7 +277,7 @@ export function dessiner(
         const posY = role === "bas" ? cy + 16 : role === "haut" ? cy - 7 : cy - 8;
         return `<circle class="graphique__point" cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}"
           r="3" fill="${echapper(accent.couleur)}" />
-        <text class="graphique__valeur" x="${(role === "dernier" && !versLaFin
+        <text class="graphique__valeur" font-size="${corps}" x="${(role === "dernier" && !versLaFin
           ? posX
           : versLaFin
             ? cx - 4

@@ -713,6 +713,15 @@ test("un thème que personne ne mesure ne garde pas d'onglet", () => {
   assert.match(html, /data-theme="population"/);
 });
 
+test("« L'essentiel » est un titre, pas un span en petites capitales", () => {
+  // Premier bloc de la fiche, et pourtant absent du plan du document : au
+  // lecteur d'écran il n'existait pas. Le niveau suit celui des autres sections
+  // de la fiche (le territoire est en h2), la classe porte toujours le style.
+  const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
+  assert.match(html, /<h3 class="synthese__titre">L'essentiel<\/h3>/);
+  assert.doesNotMatch(html, /<p class="synthese__titre">/);
+});
+
 test("le territoire parent de l'en-tête est un bouton, pas un mot gris", () => {
   const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
   assert.match(
