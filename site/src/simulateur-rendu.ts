@@ -98,16 +98,20 @@ export function perimetre(budget: Budget): string {
 }
 
 /**
- * Les exercices que la publication déclare. Un fichier absent, vide ou d'une
- * forme inattendue ne vaut pas erreur : il vaut « rien à montrer », et le
- * simulateur n'apparaît pas du tout.
+ * Les exercices que la publication déclare.
+ *
+ * `simulateur/index.json` est un tableau de chaînes, du plus récent au plus
+ * ancien : c'est ce que dépose `publish.py`, et c'est la seule forme lue. Une
+ * lecture plus tolérante laisserait passer sans bruit une publication qui aurait
+ * changé de forme, et le simulateur disparaîtrait de la barre de menu sans que
+ * personne sache pourquoi.
+ *
+ * Un fichier absent, vide ou d'une autre forme ne vaut pas erreur : il vaut
+ * « rien à montrer », et le simulateur n'apparaît pas du tout.
  */
 export function exercicesPublies(index: unknown): string[] {
-  const liste = Array.isArray(index)
-    ? index
-    : (index as { exercices?: unknown })?.exercices;
-  if (!Array.isArray(liste)) return [];
-  return liste.filter((e): e is string => typeof e === "string" && e !== "");
+  if (!Array.isArray(index)) return [];
+  return index.filter((e): e is string => typeof e === "string" && e !== "");
 }
 
 /* --------------------------------------------------------------------------

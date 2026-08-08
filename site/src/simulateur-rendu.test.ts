@@ -112,14 +112,14 @@ test("un index absent, vide ou malformé ne publie aucun exercice", () => {
   assert.deepEqual(exercicesPublies(undefined), []);
   assert.deepEqual(exercicesPublies(null), []);
   assert.deepEqual(exercicesPublies({}), []);
-  assert.deepEqual(exercicesPublies({ exercices: [] }), []);
   assert.deepEqual(exercicesPublies("2025"), []);
-  assert.deepEqual(exercicesPublies({ exercices: [2025] }), []);
-  // Les deux formes plausibles du contrat sont acceptées : l'index est produit
-  // par un autre programme que celui-ci, et un lecteur ne doit pas perdre le
-  // simulateur sur une paire d'accolades.
-  assert.deepEqual(exercicesPublies({ exercices: ["2025", "2026"] }), ["2025", "2026"]);
-  assert.deepEqual(exercicesPublies(["2025"]), ["2025"]);
+  assert.deepEqual(exercicesPublies([2025]), []);
+  // La seule forme du contrat : un tableau de chaînes, du plus récent au plus
+  // ancien, tel que `publish.py` le dépose.
+  assert.deepEqual(exercicesPublies(["2025", "2024"]), ["2025", "2024"]);
+  // Une publication qui changerait de forme doit se voir, pas se rattraper : le
+  // simulateur disparaît, et c'est un symptôme lisible.
+  assert.deepEqual(exercicesPublies({ exercices: ["2025"] }), []);
 });
 
 /* --------------------------------------------------------------------------

@@ -165,6 +165,7 @@ jobs:
             python -m plateforme.normalize.impots_locaux --store r2:plateforme-raw
             python -m plateforme.normalize.rei --store r2:plateforme-raw
             python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
+            python -m plateforme.normalize.budget_lignes --store r2:plateforme-raw
             python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
             python -m plateforme.normalize.mutations --store r2:plateforme-raw
             python -m plateforme.normalize.impot_revenu --store r2:plateforme-raw
@@ -231,6 +232,7 @@ jobs:
             python -m plateforme.normalize.impots_locaux --store r2:plateforme-raw
             python -m plateforme.normalize.rei --store r2:plateforme-raw
             python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
+            python -m plateforme.normalize.budget_lignes --store r2:plateforme-raw
             python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
             python -m plateforme.normalize.mutations --store r2:plateforme-raw
             python -m plateforme.normalize.impot_revenu --store r2:plateforme-raw
@@ -469,6 +471,14 @@ jobs:
           fi
           if [ "$JOB" = "delais-paiement" ]; then
             python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "budget-lignes" ]; then
+            # Le budget de l'État ligne à ligne, pour le simulateur : la
+            # nomenclature par destination et les recettes du budget général.
+            set -e
+            python -m plateforme.normalize.budget_lignes --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
