@@ -1008,7 +1008,7 @@ export function rubriqueDuTheme(theme: string): string {
  * deux listes séparées se seraient contredites au premier thème ajouté. Un
  * thème absent se range à la fin, par ordre alphabétique.
  */
-const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
+export const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
 
 /**
  * Ce qu'un thème montre d'emblée. Le reste se déplie.
@@ -1466,9 +1466,15 @@ function syntheseTerritoire(
   // celui des autres sections de la fiche — le nom du territoire est en `h2`,
   // les rapports et le pont en `h3` — et la classe reste, c'est elle qui porte
   // le style.
+  // Le lien vers la page ANALYSES ferme le bloc. Il remplace le « Tout voir /
+  // 187 indicateurs » qui posait un compte brut à côté d'un titre sans rien
+  // relier : un nombre n'est pas une invitation, et le lecteur ne savait pas où
+  // il allait. La page, elle, existe et porte le détail complet, thème par
+  // thème.
   return `<div class="synthese">
     <h3 class="synthese__titre">L'essentiel</h3>
     <ul>${lignes.map((l) => `<li>${l}</li>`).join("")}</ul>
+    <a class="synthese__tout" href="#analyses">Voir le détail complet</a>
   </div>`;
 }
 

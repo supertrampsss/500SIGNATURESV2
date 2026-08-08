@@ -15,9 +15,11 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import {
   afficherFiche,
   groupeDeLaCommune,
+  ORDRE_THEMES,
   positionDansGroupe,
   valeurComparable,
 } from "./fiche.ts";
+import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
@@ -1226,6 +1228,7 @@ async function majComparateur(): Promise<void> {
 // il est affiché sous une forme lisible. Filtrer sur une liste écrite en dur
 // avait déjà fait disparaître des données parfaitement publiées.
 const THEMES: Record<string, string> = {
+  vie_associative: "Vie associative",
   finances_locales: "Finances locales",
   revenus: "Revenus et pauvreté",
   population: "Population",
@@ -1778,13 +1781,39 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
 /** Trois vues — Carte, Décryptages, Données — au lieu d'un long défilement.
  *  Le lecteur choisit ce qu'il regarde ; on ne passe plus d'une carte plein
  *  écran à une pile de blocs sans transition. L'état vit dans le hash. */
-const VUES_PAGE = ["carte", "decryptages", "donnees"] as const;
+const VUES_PAGE = ["carte", "analyses", "decryptages", "donnees"] as const;
+
+/** La page ANALYSES pour le territoire sélectionné.
+ *
+ *  Elle a besoin du même lot de territoires que la fiche ; sans sélection, elle
+ *  invite à en choisir un plutôt que d'afficher une page vide sans dire pourquoi.
+ */
+async function peindreAnalyses(): Promise<void> {
+  const cible = $("analyses");
+  const code = etat.selection;
+  if (!code) {
+    cible.innerHTML =
+      `<p class="analyses__vide">Choisissez un territoire sur la carte ou par la` +
+      ` recherche : cette page en détaille tous les indicateurs.</p>`;
+    return;
+  }
+  await chargerLotsNecessaires(etat.niveau, [code]);
+  const territoire = entites[code];
+  if (!territoire) return;
+  afficherAnalyses(
+    cible,
+    territoire.nom,
+    rubriques(territoire, indicateursDeLaFiche(etat.niveau), THEMES, ORDRE_THEMES),
+  );
+}
 
 function basculerVue(): void {
   const demandee = location.hash.replace("#", "");
   const vue = (VUES_PAGE as readonly string[]).includes(demandee) ? demandee : "carte";
   document.body.dataset.vue = vue;
   document.querySelector<HTMLElement>(".atelier")!.hidden = vue !== "carte";
+  $("vue-analyses").hidden = vue !== "analyses";
+  if (vue === "analyses") void peindreAnalyses();
   $("vue-decryptages").hidden = vue !== "decryptages";
   $("vue-donnees").hidden = vue !== "donnees";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
