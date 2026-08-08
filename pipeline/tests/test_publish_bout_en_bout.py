@@ -179,6 +179,19 @@ def test_publier_produit_un_jeu_complet(tmp_path):
     # à part : une série ne se lit pas sans lui.
     assert communes["33063"]["evenements"][0]["type"] == "fusion"
 
+    # L'index de la maille : les deux champs que la carte lisait dans les lots
+    # — le nom et le dénominateur — sans les séries qu'elle ne peint pas.
+    index = lire("territoires/commune/index.json")
+    assert index["denominateur"] == "ofgl_population_reference"
+    assert index["unite"] == "habitants"
+    assert index["millesime_geographique"] == MILLESIME
+    assert index["periodes"] == ["2021", "2022", "2023"]
+    assert index["codes"] == ["33063", "33281"]
+    assert index["noms"] == ["Bordeaux", "Mérignac"]
+    assert index["parents"] == ["33", "33"]
+    assert index["population_municipale"] == [260958, 72099]
+    assert index["population_reference"][0] == [260958, 260958, 260958]
+
     references = lire("references.json")
     repere = references["dgfip_taux_tfb_global"]["2023"]["commune"]
     assert repere["nature"] == "mediane"
@@ -698,4 +711,50 @@ def test_les_fiches_gardent_la_serie_entiere_quand_la_carte_se_borne(tmp_path):
     catalogue = json.loads((racine / "indicateurs.json").read_text())
     fiche = next(i for i in catalogue if i["id"] == "justice_personnes_detenues")
     assert fiche["periodes_par_niveau"]["commune"][0] == "2025-08"
+
+
+def test_l_index_porte_le_denominateur_de_chaque_exercice(tmp_path):
+    """La population de référence de l'index est celle de l'exercice, pas celle
+    du référentiel géographique.
+
+    C'est tout l'enjeu du fichier : une dépense de 2021 se divise par les
+    habitants de 2021. Republier la population municipale sous ce nom donnerait
+    un index de la bonne taille et des cartes fausses, sans que rien ne le dise.
+    Le contrôle porte donc sur un exercice dont la référence a été écartée du
+    référentiel, et sur un exercice qui n'en a pas du tout.
+    """
+    conn = entrepot.connect(str(tmp_path / "entrepot.duckdb"))
+    _remplir(conn)
+    conn.execute(
+        "update core.observations set value = 250000 where indicator_id ="
+        " 'ofgl_population_reference' and geo_code = '33063' and period = '2021'"
+    )
+    conn.execute(
+        "delete from core.observations where indicator_id = 'ofgl_population_reference'"
+        " and geo_code = '33281' and period = '2021'"
+    )
+    conn.commit()
+
+    store = LocalStore(str(tmp_path / "publication"))
+    publish.publier(conn, store, "2026-01-01T0000")
+    racine = tmp_path / "publication" / "data" / "2026-01-01T0000"
+    index = json.loads((racine / "territoires" / "commune" / "index.json").read_text())
+
+    bordeaux = index["codes"].index("33063")
+    assert index["periodes"] == ["2021", "2022", "2023"]
+    assert index["population_reference"][bordeaux] == [250000, 260958, 260958]
+    assert index["population_municipale"][bordeaux] == 260958
+    # Un exercice sans référence laisse un trou, jamais un zéro : sans
+    # dénominateur, la commune sort du classement plutôt que d'y entrer avec
+    # une valeur infinie.
+    assert index["population_reference"][index["codes"].index("33281")][0] is None
+
+    # Ce que l'index ne porte pas : les séries, qui restent dans les lots.
+    assert "ofgl_depenses_fonctionnement" not in json.dumps(index)
+
+    # Toutes les mailles ont le leur, y compris celles qui n'ont qu'un lot :
+    # le site n'a pas à savoir laquelle fait exception.
+    for niveau in publish.NIVEAUX:
+        autre = json.loads((racine / "territoires" / niveau / "index.json").read_text())
+        assert autre["denominateur"] == publish.DENOMINATEUR
 

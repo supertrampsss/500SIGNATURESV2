@@ -106,6 +106,13 @@ export const valeursCarte = (indicateur: string, niveau: string, periode: string
 export const territoires = (niveau: string, lot: string) =>
   lire<Record<string, Territoire>>(`territoires/${niveau}/${lot}.json`);
 
+/** L'index léger d'une maille : noms et dénominateurs, sans les séries. C'est
+ *  ce que lit la carte ; les lots ci-dessus ne servent plus qu'aux fiches.
+ *  Absent des publications antérieures à ce fichier — l'appelant retombe alors
+ *  sur les lots. */
+export const indexTerritoires = (niveau: string) =>
+  lire<import("./repertoire.ts").IndexTerritoires>(`territoires/${niveau}/index.json`);
+
 /** L'index de recherche pèse deux mégaoctets : il n'est chargé qu'à la première frappe. */
 export const indexRecherche = () => lire<EntreeRecherche[]>("recherche.json");
 

@@ -53,6 +53,7 @@ import {
 import {
   MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
 } from "./mailles.ts";
+import { ouvrirRepertoire, populationsDuRepertoire, type Repertoire } from "./repertoire.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
@@ -295,11 +296,47 @@ async function chargerTerritoires(niveau: string, lot: string): Promise<void> {
   recalculerPopulations();
 }
 
+/**
+ * L'index de la maille peinte : noms et dénominateurs, sans les séries.
+ *
+ * Peindre une couche « par habitant » ne demandait que deux champs par
+ * territoire — le nom et la population de référence de l'exercice — et les
+ * faisait chercher dans les cent un lots départementaux, soit des centaines de
+ * mégaoctets de séries complètes analysées pour les jeter. `index.json` porte
+ * ces deux champs, et rien d'autre.
+ *
+ * `null` tant qu'il n'est pas chargé, ou quand la publication servie est
+ * antérieure à ce fichier : le site retombe alors sur les lots (voir
+ * `chargerIndex`).
+ */
+let repertoire: Repertoire | null = null;
+
+/** Charge l'index de la maille, une fois. Rend `false` quand la publication
+ *  servie n'en a pas : l'appelant retombe alors sur les lots (voir
+ *  `ouvrirRepertoire`). */
+async function chargerIndex(niveau: string): Promise<boolean> {
+  if (repertoire?.niveau === niveau) return true;
+  repertoire = await ouvrirRepertoire(niveau, donnees.indexTerritoires);
+  return repertoire !== null;
+}
+
+/** Le nom d'un territoire de la maille peinte : l'index s'il est là, le lot
+ *  déjà chargé sinon, le code en dernier ressort — une colonne ne reste
+ *  jamais vide. */
+function nomDe(code: string): string {
+  return repertoire?.noms[code] ?? entites[code]?.nom ?? code;
+}
+
 /** Les dénominateurs suivent l'exercice affiché : une dépense de 2022 se
  *  rapporte aux habitants de 2022, pas à ceux d'aujourd'hui. Recalculé à chaque
  *  chargement et à chaque changement de période, pour que la carte, le tableau
  *  et la fiche divisent tous par le même nombre. */
 function recalculerPopulations(): void {
+  // L'index couvre toute la maille peinte : les lots n'ont rien à y ajouter.
+  if (repertoire?.niveau === etat.niveau) {
+    populations = populationsDuRepertoire(repertoire.index, etat.periode);
+    return;
+  }
   populations = {};
   for (const [code, entite] of Object.entries(entites)) {
     const valeur = populationDeReference(entite, etat.periode).valeur;
@@ -403,7 +440,7 @@ function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void
     .map(([code, brut]) => {
       const population = populations[code];
       const valeur = parHabitant && population ? brut / population : brut;
-      return { code, nom: entites[code]?.nom ?? code, valeur, calculable: !parHabitant || !!population };
+      return { code, nom: nomDe(code), valeur, calculable: !parHabitant || !!population };
     })
     .filter((l) => l.calculable)
     .sort((a, b) => b.valeur - a.valeur);
@@ -447,7 +484,7 @@ function majTableauEvolution(
 ): void {
   const indicateur = indicateurCourant();
   const toutes = Object.entries(couche)
-    .map(([code, e]) => ({ code, nom: entites[code]?.nom ?? code, ...e }))
+    .map(([code, e]) => ({ code, nom: nomDe(code), ...e }))
     .sort((a, b) => b.variation - a.variation);
 
   exportEvolution = {
@@ -505,10 +542,20 @@ async function peindreEvolution(
   const precedentes = await donnees.valeursCarte(etat.indicateur, etat.niveau, periodePrecedente);
   const decliner = (bruts: Record<string, number>, periode: string): Record<string, number> => {
     if (!parHabitant) return bruts;
+    // L'index porte le dénominateur de chaque exercice : c'est lui qui sert
+    // quand il est là, les séries des lots sinon.
+    const denominateurs =
+      repertoire?.niveau === etat.niveau
+        ? populationsDuRepertoire(repertoire.index, periode)
+        : null;
     const sortie: Record<string, number> = {};
     for (const [code, brut] of Object.entries(bruts)) {
       const entite = entites[code];
-      const population = entite ? populationDeReference(entite, periode).valeur : null;
+      const population = denominateurs
+        ? denominateurs[code]
+        : entite
+          ? populationDeReference(entite, periode).valeur
+          : null;
       if (population) sortie[code] = brut / population; // pas de dénominateur, pas de ratio
     }
     return sortie;
@@ -538,7 +585,12 @@ async function peindreEvolution(
 async function peindre(): Promise<void> {
   const parHabitant = etat.declinaison === "habitant" && parHabitantAUnSens(indicateurCourant());
   const valeurs = await donnees.valeursCarte(etat.indicateur, etat.niveau, etat.periode);
-  await chargerLotsNecessaires(etat.niveau, Object.keys(valeurs));
+  // Noms et dénominateurs suffisent à peindre : l'index de la maille les porte
+  // tous les deux. Les lots ne sont rappelés que si la publication servie est
+  // antérieure à ce fichier.
+  if (!(await chargerIndex(etat.niveau))) {
+    await chargerLotsNecessaires(etat.niveau, Object.keys(valeurs));
+  }
   recalculerPopulations(); // la période a pu changer depuis le dernier chargement
 
   const periodes = periodesDuNiveau();
@@ -637,9 +689,10 @@ function afficherApercu(): void {
   // comme des niveaux. On garde le panneau tel quel — la fiche France le
   // remplace dès que la maille pays est chargée.
   if (evolutionAffichee) return;
-  const noms = Object.fromEntries(
-    Object.entries(entites).map(([code, entite]) => [code, entite.nom]),
-  );
+  const noms =
+    repertoire?.niveau === etat.niveau
+      ? repertoire.noms
+      : Object.fromEntries(Object.entries(entites).map(([code, entite]) => [code, entite.nom]));
   const indicateur = indicateurCourant();
   // Le total France : seulement pour un indicateur qui s'additionne, et
   // calculé sur les montants bruts — additionner des « par habitant » de
@@ -715,7 +768,10 @@ function majEtiquettes(): void {
     if (!code) continue;
     // Les tuiles portent le code là où l'on attendait le libellé (« 28 » pour
     // la Normandie) : le nom vient du référentiel déjà chargé.
-    const nom = entites[code]?.nom ?? (figure.properties?.nom as string | undefined);
+    const nom =
+      repertoire?.noms[code] ??
+      entites[code]?.nom ??
+      (figure.properties?.nom as string | undefined);
     if (!nom || nom === code) continue;
     const anneaux =
       figure.geometry.type === "Polygon"
@@ -957,7 +1013,12 @@ async function ouvrirTerritoire(
   if (ticket === null) return;
   const panneau = $("fiche");
   panneau.setAttribute("aria-busy", "true");
-  panneau.innerHTML = squeletteFiche(nom ?? entites[code]?.nom ?? parents[code]?.nom ?? "");
+  // Le nom avant les données : un clic sur la carte n'en donne pas, et le lot
+  // du département n'est pas encore là. C'est l'index de la maille qui nomme
+  // le squelette — sans lui, il restait anonyme le temps du chargement.
+  panneau.innerHTML = squeletteFiche(
+    nom ?? repertoire?.noms[code] ?? entites[code]?.nom ?? parents[code]?.nom ?? "",
+  );
   $("volet-territoire").scrollTop = 0;
   try {
     // La maille demandée, ou celle que la carte peint quand la commande n'en
@@ -1964,7 +2025,15 @@ async function demarrer(): Promise<void> {
   // l'état réel des couches au lieu de le déduire des pixels.
   Object.assign(window as object, {
     __carte: carte,
-    __diag: () => ({ entites: Object.keys(entites).length, un: entites["28"], niveau: etat.niveau }),
+    __diag: () => ({
+      entites: Object.keys(entites).length,
+      un: entites["28"],
+      niveau: etat.niveau,
+      // La carte peint depuis l'index de la maille : sans lui, elle est
+      // retombée sur les lots, et c'est ce qu'il faut pouvoir constater.
+      index: repertoire ? Object.keys(repertoire.noms).length : 0,
+      populations: Object.keys(populations).length,
+    }),
     // Le groupe de comparaison ne s'affichait pas et rien ne disait pourquoi :
     // trois valeurs à lire — la clé construite, la période, ce qui est trouvé.
     __groupe: (code: string) => {
@@ -2067,7 +2136,7 @@ async function demarrer(): Promise<void> {
           );
         }
         carte.getCanvas().style.cursor = "pointer";
-        const nom = (figure?.properties?.nom as string | undefined) ?? entites[code]?.nom ?? code;
+        const nom = (figure?.properties?.nom as string | undefined) ?? nomDe(code);
         const valeur = affichees[code];
         const indicateur = indicateurCourant();
         // En mode évolution : la variation signée, ET les deux valeurs dont

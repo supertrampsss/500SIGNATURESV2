@@ -1172,6 +1172,68 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
     }
 
 
+# Le dénominateur des cartes « par habitant » : la population de référence de
+# l'exercice, publiée par l'OFGL avec les comptes qu'elle divise. Elle change
+# d'un exercice à l'autre — une dépense de 2022 se rapporte aux habitants de
+# 2022 — et c'est ce qui oblige l'index à porter une valeur par période.
+DENOMINATEUR = "ofgl_population_reference"
+
+
+def index_territoires(conn, niveau: str, entites: dict[str, dict], valeurs: dict) -> dict:
+    """L'index léger d'une maille : de quoi peindre et classer, sans les séries.
+
+    Peindre une couche « par habitant » ne demande que deux choses par
+    territoire : son **nom** — colonne du tableau, infobulle, étiquette — et sa
+    **population de référence** pour l'exercice affiché, qui est le
+    dénominateur. Le site allait les chercher dans les fiches : cent un fichiers
+    départementaux, plusieurs centaines de mégaoctets de séries complètes,
+    téléchargés et analysés pour en extraire deux champs. Les fiches restent ce
+    qu'elles sont — un lot par département, chargé quand on ouvre un
+    territoire — mais la carte n'en dépend plus.
+
+    Format colonnaire : un tableau par champ, tous rangés dans l'ordre de
+    `codes`. Répéter les noms de clés 34 875 fois coûtait un mégaoctet pour ne
+    rien dire de plus, et le lecteur d'un fichier tabulaire lit des colonnes.
+
+    Ce que porte l'en-tête, parce qu'aucun chiffre ne se publie sans :
+    - `denominateur` : l'indicateur dont viennent les populations de référence,
+      décrit dans `indicateurs.json` (source, définition, licence) ;
+    - `periodes` : les millésimes de ce dénominateur, dans l'ordre des valeurs
+      de `population_reference` ;
+    - `unite` : des habitants, pour les deux populations ;
+    - `millesime_geographique` : le millésime du référentiel INSEE d'où sortent
+      les noms, les rattachements et la population municipale.
+    """
+    (millesime,) = conn.execute(
+        "select max(vintage) from geo.geography_reference where geo_level = ?",
+        (niveau,),
+    ).fetchone()
+    reference = valeurs.get(DENOMINATEUR, {})
+    periodes = sorted(reference)
+    codes = sorted(entites)
+
+    def compter(valeur):
+        # Un effectif s'écrit en entier : « 785.0 » coûte deux octets de plus
+        # que « 785 », trente-quatre mille fois par période.
+        if valeur is None:
+            return None
+        return int(valeur) if float(valeur).is_integer() else valeur
+
+    return {
+        "denominateur": DENOMINATEUR,
+        "periodes": periodes,
+        "unite": "habitants",
+        "millesime_geographique": millesime,
+        "codes": codes,
+        "noms": [entites[code]["nom"] for code in codes],
+        "parents": [entites[code]["parent"] for code in codes],
+        "population_municipale": [compter(entites[code]["population"]) for code in codes],
+        "population_reference": [
+            [compter(reference[periode].get(code)) for periode in periodes] for code in codes
+        ],
+    }
+
+
 # Perte au-delà de laquelle une publication est refusée. Un chargement partiel
 # retire toujours quelques indicateurs — un producteur qui décale un millésime,
 # une classe sous secret statistique — mais pas le cinquième du catalogue.
@@ -1317,6 +1379,12 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
 
         for lot, contenu in groupes.items():
             deposer(f"territoires/{niveau}/{lot}.json", contenu)
+
+        # L'index de la maille, après les lots dont il est l'extrait : noms et
+        # dénominateurs seuls, pour que peindre une carte ne demande plus de
+        # télécharger les séries de tous les territoires de France.
+        index = index_territoires(conn, niveau, entites, valeurs)
+        deposer(f"territoires/{niveau}/index.json", index)
 
     # Le catalogue est déposé après la boucle : il annonce les périodes dont la
     # couche a réellement été écrite.
