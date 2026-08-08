@@ -97,7 +97,7 @@ PUBLIQUE = {
     "insee_familles_monoparentales": "Les familles où un seul parent vit avec son ou"
     " ses enfants. Est enfant celui qui vit chez un parent sans conjoint ni enfant à"
     " lui, quel que soit son âge : un adulte resté au domicile compte.",
-    "insee_couples_sans_enfant": "Les couples vivant sans enfant au domicile — jeunes"
+    "insee_couples_sans_enfant": "Les couples vivant sans enfant au domicile : jeunes"
     " ménages comme couples dont les enfants sont partis. Le chiffre ne dit pas s'ils"
     " ont eu des enfants, seulement qu'aucun ne vit là.",
     "insee_couples_avec_enfant": "Les couples vivant avec au moins un enfant au"
@@ -110,14 +110,14 @@ PUBLIQUE = {
 
 TECHNIQUE = (
     "Recensement de la population, dossier complet « Famille », mesure « Nombre de"
-    " familles » croisée au total de la ventilation par nombre d'enfants — que le jeu"
+    " familles » croisée au total de la ventilation par nombre d'enfants, que le jeu"
     " publie sur les mêmes lignes et qui compterait deux fois les mêmes familles."
     " Champ : France hors Mayotte. Trois millésimes : 2012, 2017, 2023 ; la"
     " distinction recomposée / traditionnelle n'existe qu'en 2023. Une famille au"
     " sens du recensement n'est pas un ménage : une personne seule n'en forme pas"
     " une, et le total des familles est plus bas que celui des résidences"
     " principales. Est enfant d'une famille la personne vivant avec au moins un de"
-    " ses parents, sans conjoint ni enfant, quel que soit son âge — la ventilation"
+    " ses parents, sans conjoint ni enfant, quel que soit son âge ; la ventilation"
     " par nombre d'enfants, elle, s'arrête à vingt-quatre ans. Le millésime résulte"
     " de cinq années d'enquêtes centrées sur lui et non d'une photographie au 1ᵉʳ"
     " janvier : les valeurs sont des estimations pondérées, d'où leurs décimales ;"

@@ -159,7 +159,7 @@ INDICATEURS = {
     "etat_subventions_associations": (
         "Subventions de l'État aux associations",
         "Ce que l'État a versé aux associations en 2021, dans la commune de"
-        " l'établissement bénéficiaire — pas celle où l'action est menée. Une"
+        " l'établissement bénéficiaire, pas celle où l'action est menée. Une"
         " fédération nationale compte là où elle est domiciliée : Paris pèse un"
         " tiers du total. Ce sont des versements de l'État, pas des"
         " collectivités.",
@@ -187,7 +187,7 @@ TECHNIQUE = (
     " c'est la dernière parution du jaune qui descende au bénéficiaire nommé, et"
     " ce montant ne dit rien de l'année en cours. **Ce sont des versements de"
     " l'État**, sur son budget : les subventions des communes, départements et"
-    " régions aux associations n'y sont pas — elles se lisent dans les comptes"
+    " régions aux associations n'y sont pas. Elles se lisent dans les comptes"
     " des collectivités (OFGL, poste « subventions aux personnes de droit"
     " privé »). **La commune est celle de l'établissement bénéficiaire, pas"
     " celle où l'action est menée** : une fédération nationale est comptée à"

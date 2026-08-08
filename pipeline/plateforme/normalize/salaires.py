@@ -139,7 +139,7 @@ TECHNIQUE = (
     " professionnalisation compris, **hors apprentis, stagiaires, salariés"
     " agricoles et salariés des particuliers employeurs** : ce n'est ni le"
     " salaire de tous les actifs, ni celui de la fonction publique. Les salaires"
-    " sont comptés **au lieu de travail** et non au lieu de résidence — le"
+    " sont comptés **au lieu de travail** et non au lieu de résidence : le"
     " chiffre d'une commune décrit les emplois qui s'y trouvent, pas les revenus"
     " de ses habitants, et ne se compare donc pas au niveau de vie médian de"
     " Filosofi. La source ne diffuse que la moyenne : il n'existe pas de médiane"

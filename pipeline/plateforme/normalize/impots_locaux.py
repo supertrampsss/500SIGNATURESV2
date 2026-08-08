@@ -99,7 +99,7 @@ THEME = "impots_locaux"
 
 PUBLIQUE = {
     "dgfip_produit_foncier_bati": "Ce que la commune encaisse en un an au titre de la"
-    " taxe foncière sur les propriétés bâties — l'impôt que paient les propriétaires"
+    " taxe foncière sur les propriétés bâties : l'impôt que paient les propriétaires"
     " de logements, de bureaux et de locaux.",
     "dgfip_produit_foncier_non_bati": "Ce que la commune encaisse au titre de la taxe"
     " foncière sur les propriétés non bâties : terres agricoles, bois, terrains. Un"

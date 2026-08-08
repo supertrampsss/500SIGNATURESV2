@@ -129,8 +129,8 @@ FICHE = {
     " la mère n'est pas renseigné sont regroupées par la source dans un code"
     " dédié (693XX, 132XX) qui n'appartient à aucun référentiel géographique :"
     " elles sont comptées dans la commune entière, qui les porte déjà, et"
-    " manquent donc à la ventilation par arrondissement — 444 naissances sur"
-    " l'ensemble des exercices. Un décompte brut, qui dépend d'abord de la"
+    " manquent donc à la ventilation par arrondissement (444 naissances sur"
+    " l'ensemble des exercices). Un décompte brut, qui dépend d'abord de la"
     " structure par âge du territoire : ce n'est ni un taux de natalité ni un"
     " indicateur de fécondité.",
     "formule": "Naissances vivantes de l'année, au lieu de domicile de la mère",

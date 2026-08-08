@@ -141,7 +141,7 @@ PUBLIQUE = {
     "insee_population_25_54_ans": "Les habitants de 25 à 54 ans, c'est-à-dire le"
     " cœur des âges d'activité.",
     "insee_population_55_ans_et_plus": "Les habitants de 55 ans et plus. Rapporté"
-    " aux quinze ans et plus, c'est une mesure du vieillissement du territoire —"
+    " aux quinze ans et plus, c'est une mesure du vieillissement du territoire,"
     " pas un taux de retraités.",
 }
 
@@ -149,11 +149,11 @@ TECHNIQUE = (
     "Recensement de la population, dossier complet « Évolution et structure de la"
     " population », mesure « Population » croisée sexe × âge × catégorie"
     " socioprofessionnelle. Champ : personnes de quinze ans et plus, France hors"
-    " Mayotte — la catégorie sociale n'est pas définie sous quinze ans, et ce jeu ne"
+    " Mayotte. La catégorie sociale n'est pas définie sous quinze ans, et ce jeu ne"
     " publie aucun total tous âges. À ne pas confondre avec la population municipale,"
     " publiée ici sous « Population municipale » et seule utilisée comme dénominateur"
     " des ratios du site : 56,5 millions contre 68 en 2023. La nomenclature agrégée"
-    " compte huit catégories dans ce jeu — la huitième de la nomenclature complète,"
+    " compte huit catégories dans ce jeu : la huitième de la nomenclature complète,"
     " « autres sans activité professionnelle », y est fondue dans les autres inactifs."
     " Retraités et autres inactifs sont des catégories sociales et non des tranches"
     " d'âge : le total moins les retraités ne donne pas les actifs. Trois millésimes :"

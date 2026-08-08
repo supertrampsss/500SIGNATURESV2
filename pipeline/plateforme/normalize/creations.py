@@ -90,7 +90,7 @@ FICHE = {
     " d'entreprises présentes.",
     "technique": "Nombre de nouvelles unités légales enregistrées dans l'année,"
     " mesure BURE du Système d'information sur la démographie d'entreprises, toutes"
-    " formes légales et tous secteurs de la nomenclature A10 hors agriculture — le"
+    " formes légales et tous secteurs de la nomenclature A10 hors agriculture : le"
     " champ de la source exclut l'agriculture. L'unité légale est rattachée à la"
     " commune de son siège : une commune qui héberge des sociétés de domiciliation"
     " concentre des immatriculations dont l'activité se fait ailleurs, et Paris seule"
@@ -100,8 +100,8 @@ FICHE = {
     " individuel » ne sépare pas les micro-entrepreneurs des autres : la série double"
     " entre 2012 et 2025 sans que ce jeu permette de dire ce qui revient au régime et"
     " ce qui revient à l'activité. Au communal, l'évolution d'une année sur l'autre"
-    " est très dispersée — de −34 % à +42 % en 2024 pour les communes d'au moins cinq"
-    " cents créations, autour d'une médiane de +4 % : un siège qui déménage suffit à"
+    " est très dispersée (de −34 % à +42 % en 2024 pour les communes d'au moins cinq"
+    " cents créations, autour d'une médiane de +4 %) : un siège qui déménage suffit à"
     " faire bouger le chiffre. Une commune absente d'un exercice n'y a enregistré"
     " aucune immatriculation.",
     "formule": "Unités légales nouvellement enregistrées dans l'année,"

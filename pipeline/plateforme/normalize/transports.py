@@ -130,7 +130,7 @@ INDICATEURS = {
     INDICATEUR_PARC: (
         "Voitures particulières en circulation",
         "Le nombre de voitures particulières en circulation dans la commune au"
-        " 1er janvier — le parc roulant estimé par le SDES d'après les"
+        " 1er janvier : le parc roulant estimé par le SDES d'après les"
         " immatriculations, particuliers et professionnels confondus. La"
         " voiture est comptée à l'adresse du certificat d'immatriculation,"
         " celle du locataire en cas de location longue durée.",
@@ -155,12 +155,12 @@ INDICATEURS = {
 
 TECHNIQUE = (
     "Fichier « Données sur le parc de véhicules au niveau communal » du SDES"
-    " (API DiDo, jeu « Parc de véhicules routiers »), restreint au groupe VP —"
-    " les voitures particulières ; utilitaires légers, poids lourds et"
+    " (API DiDo, jeu « Parc de véhicules routiers »), restreint au groupe VP"
+    " (les voitures particulières) ; utilitaires légers, poids lourds et"
     " transports en commun du même fichier ne sont pas chargés. Parc roulant"
     " **estimé** au 1er janvier de chaque année depuis 2011, révisé plusieurs"
     " années au fil des contrôles techniques reçus : provisoire au 01/01/2026,"
-    " définitif au 01/01/2023 et avant pour les véhicules légers — les"
+    " définitif au 01/01/2023 et avant pour les véhicules légers. Les"
     " millésimes récents bougeront aux parutions suivantes. Le véhicule est"
     " localisé à l'adresse du certificat d'immatriculation : celle du"
     " locataire pour une location longue durée ou un crédit-bail, ce qui"
@@ -169,8 +169,8 @@ TECHNIQUE = (
     " rangés par la source sous un code fictif « département + 000 »"
     " (12 138 voitures au 01/01/2026) : écartés nommément, jamais répartis."
     " Paris, Lyon et Marseille sont publiés par arrondissement plus un résidu"
-    " sous le code de la commune entière — qui n'est pas la somme des"
-    " arrondissements — et tout est additionné sur la commune. La part"
+    " sous le code de la commune entière (qui n'est pas la somme des"
+    " arrondissements), et tout est additionné sur la commune. La part"
     " électrique rapporte les motorisations Electrique, Essence HR, Diesel HR"
     " et Gaz HR (hybrides rechargeables) au parc total, motorisation inconnue"
     " comprise au dénominateur ; l'hydrogène et autres zéro émission, quelques"

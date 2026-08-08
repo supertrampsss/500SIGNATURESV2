@@ -98,7 +98,7 @@ INDICATEURS = {
     ),
     "rpls_logements_sociaux_passoires": (
         "Logements sociaux très mal isolés (F ou G)",
-        "Le nombre de logements sociaux classés F ou G au diagnostic énergétique —"
+        "Le nombre de logements sociaux classés F ou G au diagnostic énergétique :"
         " les plus chers à chauffer, que la loi retire progressivement de la"
         " location. À rapporter aux logements étiquetés, pas au parc entier.",
     ),

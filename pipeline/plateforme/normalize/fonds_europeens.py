@@ -163,8 +163,8 @@ FICHE = {
     " cumulés depuis 2021 et arrêtés à la date de publication de la liste."
     " **Ce sont des montants conventionnés, c'est-à-dire programmés, et non des"
     " montants payés** : l'aide est versée ensuite au fil des justificatifs, sur"
-    " plusieurs années, et une part ne l'est jamais — projets abandonnés,"
-    " dépenses rejetées au contrôle, sous-réalisation. Les paiements ne figurent"
+    " plusieurs années, et une part ne l'est jamais (projets abandonnés,"
+    " dépenses rejetées au contrôle, sous-réalisation). Les paiements ne figurent"
     " pas dans cette source. La région est celle du programme opérationnel"
     " (colonne « Libellé Programme »), seule variable régionale complète du"
     " fichier : la colonne « Région de l'opération » est vide sur 36,9 % des"
@@ -179,7 +179,7 @@ FICHE = {
     " budget d'un exercice ; il ne dit pas non plus ce que la région perçoit en"
     " tant que collectivité, l'autorité de gestion reversant l'aide aux"
     " bénéficiaires des projets. Le numéro d'opération n'identifie pas une ligne"
-    " à lui seul — le même numéro sert dans deux programmes — et 34 opérations"
+    " à lui seul (le même numéro sert dans deux programmes), et 34 opérations"
     " portent un montant UE nul ou absent.",
     "formule": "Somme des montants UE conventionnés des opérations du programme régional",
 }

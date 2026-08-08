@@ -104,7 +104,7 @@ TECHNIQUE = (
     " catégories de consommateurs confondues. **Secret statistique** : dans les"
     " petites mailles, la valeur est retenue au titre des informations"
     " commercialement sensibles (colonne source"
-    " `nombre_de_mailles_secretisees`) — les totaux communaux sont donc des"
+    " `nombre_de_mailles_secretisees`). Les totaux communaux sont donc des"
     " minorants là où des mailles sont secrétisées, et une commune dont toute"
     " la consommation est retenue n'est pas publiée plutôt que publiée à zéro."
     " **Périmètre** : énergie livrée par les réseaux publics ;"

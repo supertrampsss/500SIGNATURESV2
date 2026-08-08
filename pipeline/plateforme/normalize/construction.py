@@ -106,7 +106,7 @@ TECHNIQUE = (
     " la source ne sont pas chargées. La géographie est celle de la source, qui"
     " code chaque commune telle qu'elle existait au moment du mouvement : les"
     " communes fusionnées depuis gardent leur code d'époque et sortent du"
-    " référentiel courant — 1,5 % des logements autorisés de 2013 — et une"
+    " référentiel courant (1,5 % des logements autorisés de 2013) et une"
     " commune nouvelle ne porte, avant sa création, que le territoire de la"
     " commune qui lui a laissé son code."
 )

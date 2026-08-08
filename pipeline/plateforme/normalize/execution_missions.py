@@ -253,7 +253,7 @@ MISSIONS = {
 
 TECHNIQUE = (
     "Exécution du budget général de l'État par mission, en **crédits de"
-    " paiement**, cadre de la comptabilité **budgétaire** — ni la comptabilité"
+    " paiement**, cadre de la comptabilité **budgétaire** : ni la comptabilité"
     " générale de l'État, ni la comptabilité nationale, dont les périmètres et"
     " les dates de rattachement diffèrent. Source : annexes 1 du projet de loi"
     " relatif aux résultats de la gestion (PLRG), DGFiP, exercices 2024 et 2025,"
@@ -262,7 +262,7 @@ TECHNIQUE = (
     " soustraient pas en un dépassement** : entre le vote et le paiement"
     " s'ajoutent les lois de finances rectificatives, les reports de l'exercice"
     " précédent, les mouvements réglementaires et les fonds de concours, qui"
-    " forment les crédits ouverts — 591,45 Md€ en 2025 pour 582,40 Md€ votés."
+    " forment les crédits ouverts (591,45 Md€ en 2025 pour 582,40 Md€ votés)."
     " Les montants sont **bruts** : la mission « Remboursements et dégrèvements »"
     " (141,36 Md€ consommés en 2025) rend aux contribuables ce qu'ils ont trop"
     " payé, si bien que la somme des 33 missions, 578,04 Md€, vaut 436,67 Md€"
@@ -272,7 +272,7 @@ TECHNIQUE = (
     " autorisations d'engagement ne sont pas publiées, un engagement n'étant pas"
     " un paiement. Les comptes spéciaux, portés par l'annexe 2, sont hors"
     " périmètre. Chaque exercice est vérifié par un contrôle bloquant : ses trois"
-    " annexes — 33 missions, 177 lignes de programme, 855 lignes de catégorie —"
+    " annexes (33 missions, 177 lignes de programme, 855 lignes de catégorie)"
     " doivent se refermer au centime, mission par mission."
 )
 
