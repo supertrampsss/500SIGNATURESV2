@@ -163,6 +163,7 @@ jobs:
             python -m plateforme.normalize.consommation --store r2:plateforme-raw
             python -m plateforme.normalize.prenoms --store r2:plateforme-raw
             python -m plateforme.normalize.impots_locaux --store r2:plateforme-raw
+            python -m plateforme.normalize.rei --store r2:plateforme-raw
             python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
             python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
             python -m plateforme.normalize.mutations --store r2:plateforme-raw
@@ -228,6 +229,7 @@ jobs:
             python -m plateforme.normalize.consommation --store r2:plateforme-raw
             python -m plateforme.normalize.prenoms --store r2:plateforme-raw
             python -m plateforme.normalize.impots_locaux --store r2:plateforme-raw
+            python -m plateforme.normalize.rei --store r2:plateforme-raw
             python -m plateforme.normalize.depenses_fiscales --store r2:plateforme-raw
             python -m plateforme.normalize.delais_paiement --store r2:plateforme-raw
             python -m plateforme.normalize.mutations --store r2:plateforme-raw
@@ -307,6 +309,24 @@ jobs:
           fi
           if [ "$JOB" = "fonctions-communes" ]; then
             python -m plateforme.normalize.fonctions_communes --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "vague-4" ]; then
+            # La quatrième vague : l'OFGL communal en profondeur d'abord (sans
+            # lui, fonctions_communes n'a pas d'agrégat parent avant 2022 et la
+            # série s'arrêterait à 4 exercices au lieu de 7), puis le grand
+            # livre fonctionnel 2019-2025 et la ventilation du foncier bâti.
+            set -e
+            python -m plateforme.normalize.ofgl --store r2:plateforme-raw \
+              --niveaux commune --depuis 2019
+            python -m plateforme.normalize.fonctions_communes --store r2:plateforme-raw
+            python -m plateforme.normalize.rei --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "rei" ]; then
+            python -m plateforme.normalize.rei --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
