@@ -96,7 +96,7 @@ export function enCsv(
     ].join(";"),
   );
   const commentaires = [
-    `# ${meta.indicateur} — ${meta.periode}`,
+    `# ${meta.indicateur}, ${meta.periode}`,
     `# Source : ${meta.source} · exporté le ${quand.toISOString().slice(0, 10)}`,
     "# Licence Ouverte 2.0. Données complètes et documentées : voir « Accéder aux données » en bas de page.",
   ];
@@ -154,7 +154,7 @@ export function enCsvEvolution(
     ].join(";"),
   );
   const commentaires = [
-    `# ${meta.indicateur} — évolution ${meta.periodeApres} vs ${meta.periodeAvant}`,
+    `# ${meta.indicateur}, évolution ${meta.periodeApres} vs ${meta.periodeAvant}`,
     `# Source : ${meta.source} · exporté le ${quand.toISOString().slice(0, 10)}`,
     "# Licence Ouverte 2.0. Données complètes et documentées : voir « Accéder aux données » en bas de page.",
   ];

@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
+import { emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import {
   afficherFiche,
@@ -1853,9 +1854,9 @@ async function demarrer(): Promise<void> {
           <summary>${libelleTheme(theme)} (${liste.length})</summary>
           <ul class="methodes">${liste
             .map(
-              (i) => `<li><strong>${i.libelle}</strong> : ${i.definition}
-                <br /><span class="technique">${i.definition_technique}</span>
-                <br /><span class="formule">Calcul : ${i.formule}</span></li>`,
+              (i) => `<li><strong>${emphase(traduire(i.libelle))}</strong> : ${emphase(i.definition)}
+                <br /><span class="technique">${emphase(i.definition_technique)}</span>
+                <br /><span class="formule">Calcul : ${emphase(i.formule)}</span></li>`,
             )
             .join("")}</ul>
         </details>`,
@@ -1871,7 +1872,7 @@ async function demarrer(): Promise<void> {
         rapport dont un terme manque pour cette année-là n'est pas calculé sur
         l'année d'à côté, il n'est pas affiché.</li>
       <li>Le seul seuil chiffré du site est le <strong>plafond national de
-        référence</strong> de la capacité de désendettement — loi n° 2018-32 du
+        référence</strong> de la capacité de désendettement, fixé par la loi n° 2018-32 du
         22 janvier 2018 de programmation des finances publiques pour 2018-2022,
         art. 29 : douze années pour les communes et les intercommunalités à
         fiscalité propre, dix pour les départements, neuf pour les régions. Les
@@ -1906,7 +1907,7 @@ async function demarrer(): Promise<void> {
         publiés par l'Observatoire des finances locales : strate de population,
         caractère rural, outre-mer, montagne, tourisme. Une position basse ne
         signifie pas une meilleure gestion : le premier facteur d'écart est
-        l'intercommunalité — dans une métropole intégrée, la voirie, les déchets
+        l'intercommunalité : dans une métropole intégrée, la voirie, les déchets
         ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent pas
         dans le budget communal.</li>
       <li>Les communes nouvelles portent l'historique de leurs communes

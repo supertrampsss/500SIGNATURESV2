@@ -37,15 +37,15 @@ export const QUESTIONS: Question[] = [
     question: "La Sécu est-elle en déficit ?",
     reponse:
       "Dépenses, recettes et solde des administrations de sécurité sociale en" +
-      " part du PIB, année par année et face à l'Allemagne — en disant pourquoi" +
+      " part du PIB, année par année et face à l'Allemagne, en disant pourquoi" +
       " ce chiffre n'est pas le « trou de la Sécu » des débats parlementaires.",
     cible: "#bloc-secu",
   },
   {
     question: "Ce qui a été voté a-t-il été dépensé ?",
     reponse:
-      "Le budget de l'État à trois moments du même exercice — voté, rectifié," +
-      " exécuté — sur la même nomenclature.",
+      "Le budget de l'État à trois moments du même exercice (voté, rectifié," +
+      " exécuté), sur la même nomenclature.",
     cible: "#bloc-etat",
   },
   {
@@ -53,7 +53,7 @@ export const QUESTIONS: Question[] = [
     reponse:
       "Les cambriolages pour 1 000 logements et cinq autres séries de délinquance" +
       " enregistrée par la police et la gendarmerie (SSMSI), par commune. Des faits" +
-      " enregistrés — pas l'intégralité des faits commis, ni des condamnations.",
+      " enregistrés, pas l'intégralité des faits commis, ni des condamnations.",
     // L'état du site vit dans l'URL : ce lien ouvre la carte directement sur
     // la bonne couche, sans mécanique supplémentaire.
     cible: "?theme=securite&indicateur=ssmsi_cambriolages_taux&niveau=commune",
@@ -63,8 +63,8 @@ export const QUESTIONS: Question[] = [
     reponse:
       "Les consultations de généraliste réellement accessibles par an et par" +
       " habitant (APL, DREES), commune par commune, sur trois millésimes. Un" +
-      " indicateur modélisé — distance, activité des cabinets, âge de la" +
-      " population — pas un simple comptage de médecins.",
+      " indicateur modélisé (distance, activité des cabinets, âge de la" +
+      " population), pas un simple comptage de médecins.",
     cible: "?theme=sante&indicateur=drees_apl_generalistes&niveau=commune",
   },
   {
@@ -72,13 +72,13 @@ export const QUESTIONS: Question[] = [
     reponse:
       "Le nombre d'écoles, de collèges et de lycées ouverts, commune par" +
       " commune, d'après l'annuaire de l'éducation nationale. Zéro est une" +
-      " information — et pour un collège, la carte scolaire dépasse la commune.",
+      " information ; et pour un collège, la carte scolaire dépasse la commune.",
     cible: "?theme=education&indicateur=menj_ecoles&niveau=commune",
   },
   {
     question: "Combien de logements vides dans ma commune ?",
     reponse:
-      "Les logements inoccupés au recensement — proposés à la vente ou à la" +
+      "Les logements inoccupés au recensement, proposés à la vente ou à la" +
       " location, en attente d'occupation, ou gardés vides par leur propriétaire." +
       " Ce n'est pas le comptage fiscal de la DGFiP, qui part des locaux non" +
       " soumis à taxe d'habitation et donne un autre chiffre.",
@@ -87,8 +87,8 @@ export const QUESTIONS: Question[] = [
   {
     question: "Qui habite ma commune ?",
     reponse:
-      "La répartition des habitants par catégorie sociale — cadres, employés," +
-      " ouvriers, retraités — et par tranche d'âge. La statistique commence à" +
+      "La répartition des habitants par catégorie sociale (cadres, employés," +
+      " ouvriers, retraités) et par tranche d'âge. La statistique commence à" +
       " quinze ans : ce n'est pas la population entière, et il y manque tous les" +
       " enfants.",
     cible: "?theme=professions&indicateur=insee_pcs_cadres&niveau=commune",
@@ -120,7 +120,7 @@ export const QUESTIONS: Question[] = [
     question: "Comment la France se compare-t-elle à ses voisins ?",
     reponse:
       "Dette, déficit, chômage et PIB par habitant, sur les définitions" +
-      " harmonisées d'Eurostat — les seules qui rendent la comparaison honnête.",
+      " harmonisées d'Eurostat, les seules qui rendent la comparaison honnête.",
     cible: "#bloc-europe",
   },
   {

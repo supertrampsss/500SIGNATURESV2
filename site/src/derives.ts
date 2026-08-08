@@ -136,7 +136,7 @@ export const DERIVES: Derive[] = [
       "Encours de dette au 31 décembre divisé par l'épargne brute du même" +
       " exercice. Non calculée lorsque l'épargne brute est nulle ou négative : la" +
       " collectivité ne dégage alors rien pour rembourser, et le rapport n'a pas" +
-      " de valeur — ce n'est pas un remboursement infiniment long, c'est un" +
+      " de valeur : ce n'est pas un remboursement infiniment long, c'est un" +
       " remboursement impossible à ce rythme. La loi de programmation 2018-2022" +
       " retenait un plafond indicatif de 12 ans pour les communes ; ce site ne" +
       " reprend pas ce seuil, qui n'a jamais eu de portée contraignante pour" +
@@ -177,7 +177,7 @@ export const DERIVES: Derive[] = [
       " encaisse pour fonctionner. Un chiffre très variable d'une année à l'autre :" +
       " un seul équipement livré suffit à le faire bondir.",
     definition_technique:
-      "Dépenses réelles d'investissement — remboursements d'emprunts compris —" +
+      "Dépenses réelles d'investissement, remboursements d'emprunts compris," +
       " divisées par les recettes réelles de fonctionnement du même exercice.",
     formule: "Dépenses d'investissement ÷ Recettes de fonctionnement",
     entrees: ["ofgl_depenses_investissement", "ofgl_recettes_fonctionnement"],
@@ -196,8 +196,8 @@ export const DERIVES: Derive[] = [
       " terme.",
     definition_technique:
       "Frais de personnel divisés par les dépenses réelles de fonctionnement du" +
-      " même exercice. Ne comprend pas le personnel des satellites — associations" +
-      " subventionnées, délégataires de service public — dont la rémunération" +
+      " même exercice. Ne comprend pas le personnel des satellites (associations" +
+      " subventionnées, délégataires de service public), dont la rémunération" +
       " apparaît en subventions ou en achats : deux communes qui font le même" +
       " métier, l'une en régie et l'autre en délégation, n'auront pas le même" +
       " ratio sans que l'une soit plus économe que l'autre.",
@@ -270,7 +270,7 @@ export const DERIVES: Derive[] = [
     definition:
       "Cambriolages de logement et dégradations volontaires enregistrés," +
       " rapportés aux habitants. Deux phénomènes que la statistique publique" +
-      " compte de la même façon — en infractions — et qui peuvent donc" +
+      " compte de la même façon, en infractions, et qui peuvent donc" +
       " s'additionner.",
     definition_technique:
       "Somme des infractions enregistrées par la police et la gendarmerie pour" +
@@ -278,8 +278,8 @@ export const DERIVES: Derive[] = [
       " volontaires, divisée par la population de référence du même exercice." +
       " Les deux classes sont comptées en infractions par le SSMSI, qui publie" +
       " cette unité dans ses bases : c'est la condition de la somme. Les vols de" +
-      " véhicules en sont exclus — le SSMSI les dénombre en véhicules, et un vol" +
-      " peut en emporter plusieurs — comme les vols sans violence, comptés en" +
+      " véhicules en sont exclus (le SSMSI les dénombre en véhicules, et un vol" +
+      " peut en emporter plusieurs), comme les vols sans violence, comptés en" +
       " victimes entendues. Publié à partir du département : les dégradations ne" +
       " figurent pas dans la base communale. Les cambriolages sont ici rapportés" +
       " aux habitants et non aux logements, contrairement au taux publié par le" +
@@ -328,7 +328,7 @@ export const DERIVES: Derive[] = [
       "Nombre de personnes mises en cause pour usage ou pour trafic de" +
       " stupéfiants, rapporté aux habitants. Ce ne sont ni des faits ni des" +
       " condamnations. Attention : ces infractions sont révélées par l'activité des" +
-      " services, pas par des plaintes — un chiffre élevé peut signaler des" +
+      " services, pas par des plaintes : un chiffre élevé peut signaler des" +
       " contrôles plus nombreux autant qu'un trafic plus intense.",
     definition_technique:
       "Somme des personnes mises en cause pour usage et pour trafic de" +
@@ -362,7 +362,7 @@ export const DERIVES: Derive[] = [
       " diffèrent (OFGL et Filosofi) et leurs millésimes ne coïncident pas" +
       " toujours : seuls les exercices où les deux sont publiées produisent une" +
       " valeur. Le niveau de vie est une médiane de ménages, la dette une somme de" +
-      " collectivité — le rapport est une mise en perspective, pas une charge" +
+      " collectivité : le rapport est une mise en perspective, pas une charge" +
       " individuelle.",
     formule: "(Encours de dette ÷ Population) ÷ Niveau de vie médian × 12",
     entrees: ["ofgl_encours_dette", POPULATION, "insee_niveau_vie_median"],

@@ -89,7 +89,7 @@ export function rendu(
   return `
     <h3>Que finance la dépense publique ?</h3>
     <p class="bloc__complement">En ${echapper(annee)}, les administrations publiques
-      françaises — État, collectivités et Sécurité sociale réunis — ont dépensé
+      françaises (État, collectivités et Sécurité sociale réunis) ont dépensé
       <strong>${echapper(pourcentage(totalFr))} du produit intérieur brut</strong>${totauxCompares}.</p>
     <table class="fonctions">
       <caption>Par fonction, en % du PIB · définitions harmonisées Eurostat (COFOG)</caption>
@@ -102,7 +102,7 @@ export function rendu(
       publiques</strong>, pas le seul budget de l'État : la santé est surtout payée par
       la Sécurité sociale, l'enseignement en partie par les collectivités. C'est ce qui
       distingue ce tableau du module « 100 € » ci-dessus, qui ne porte que sur l'État.
-      Un pourcentage du PIB ne dit pas l'efficacité de la dépense — seulement son poids.</p>`;
+      Un pourcentage du PIB ne dit pas l'efficacité de la dépense, seulement son poids.</p>`;
 }
 
 export function afficherFonctions(

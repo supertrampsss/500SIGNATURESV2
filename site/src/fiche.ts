@@ -1148,7 +1148,7 @@ export function mentionAgregat(
   return `<p class="theme-groupe__agregat">${
     concernes.length === liste.length ? "Ces totaux sont" : `${concernes.length} de ces totaux sont`
   } la somme des ${agregats.regions_attendues} régions, calculée par ce site et non publiée
-  telle quelle : ${echapper(agregats.perimetre)}. Un taux n'y figure pas — il ne s'additionne
+  telle quelle : ${echapper(agregats.perimetre)}. Un taux n'y figure pas : il ne s'additionne
   pas d'une région à l'autre.</p>`;
 }
 

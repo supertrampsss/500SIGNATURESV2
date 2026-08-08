@@ -128,7 +128,7 @@ const VOLETS: Volet[] = [
       } de <strong>${sansSigne(fr)}</strong> par rapport au même trimestre de l'année précédente` +
       (ea === undefined ? "." : ` (zone euro : ${taux(ea)}).`),
     note:
-      "PIB en volume — hors effet des prix — comparé au <strong>même trimestre de l'année" +
+      "PIB en volume, hors effet des prix, comparé au <strong>même trimestre de l'année" +
       " précédente</strong>, corrigé des saisons. Les « +0,3 % » des titres de presse comparent" +
       " un trimestre au précédent : c'est un autre chiffre, les deux sont justes.",
   },
@@ -186,7 +186,7 @@ export function renduVolet(
       <div class="graphique__cadre">${svg}<div class="graphique__infobulle" hidden></div></div>
       <p class="graphique__legende">${legende}</p>
     </div>
-    <p class="avertissement">${volet.note} Source : Eurostat, dernière valeur publiée —
+    <p class="avertissement">${volet.note} Source : Eurostat, dernière valeur publiée,
       jamais de prévision ici.</p>`;
 }
 

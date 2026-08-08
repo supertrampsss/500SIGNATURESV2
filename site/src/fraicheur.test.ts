@@ -57,7 +57,7 @@ test("un chargement en échec ne se lit pas comme un succès", () => {
 
 test("les contrôles sont nommés en français et portent leur portée", () => {
   const html = rendu(JEUX);
-  assert.match(html, /décomposition des totaux — 2022\/vote/);
+  assert.match(html, /décomposition des totaux : 2022\/vote/);
   assert.match(html, /épargne brute = recettes − dépenses/);
   assert.doesNotMatch(html, /decomposition_des_totaux/);
 });
