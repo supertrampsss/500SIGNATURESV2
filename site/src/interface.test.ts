@@ -65,3 +65,11 @@ test("un maire absent n'écrit rien, comme toute donnée absente", () => {
   // rien à dire, en contradiction avec la règle de la fiche.
   assert.doesNotMatch(FICHE, /non renseigné par le Répertoire/);
 });
+
+test("la taxe fonciere dit sa part dans les recettes de la collectivite", () => {
+  // « Ma taxe foncière, ça pèse combien dans ce que la commune encaisse ? »
+  // Le rapprochement DGFiP/OFGL n'entre dans PART_DU_TOTAL qu'après contrôle
+  // du périmètre ; ce test verrouille sa présence, le contrôle vit en
+  // commentaire à côté de la table.
+  assert.match(FICHE, /dgfip_produit_foncier_bati: \{\s*total: "ofgl_recettes_fonctionnement"/);
+});
