@@ -1466,20 +1466,25 @@ function syntheseTerritoire(
       const redite = indicateur.libelle
         .toLocaleLowerCase("fr")
         .startsWith(nomTheme.toLocaleLowerCase("fr"));
+      // Le gras porte le **chiffre**, pas le nom du thème.
+      //
+      // C'était l'inverse, et un résumé où seuls les intitulés ressortent se
+      // balaie sans rien apprendre : on relit « Sécurité sociale »,
+      // « Conjoncture », « Dette » — des mots qu'on connaissait déjà — et les
+      // nombres, qui sont l'information, se noient dans la ligne. Un seul gras
+      // par ligne : deux n'en font ressortir aucun.
       const entete = redite
-        ? `<strong>${echapper(indicateur.libelle)}</strong>`
-        : `<strong>${echapper(nomTheme)}</strong> : ${echapper(
-            enMinusculeInitiale(indicateur.libelle),
-          )}`;
+        ? echapper(indicateur.libelle)
+        : `${echapper(nomTheme)} : ${echapper(enMinusculeInitiale(indicateur.libelle))}`;
       return [
         {
           id: theme,
           // Le millésime reste au survol, pas dans la phrase : quatre dates
           // dans quatre lignes d'ouverture cassaient la lecture pour redire ce
           // que le lecteur sait — c'est le dernier chiffre publié.
-          texte: `${entete} <span title="Millésime ${echapper(
+          texte: `${entete} <strong title="Millésime ${echapper(
             mesure.periode,
-          )}">${echapper(formater(valeur, indicateur.unite, false))}</span>. ${
+          )}">${echapper(formater(valeur, indicateur.unite, false))}</strong>. ${
             situation ? `${ratio ? "Par habitant, " : ""}${echapper(situation)}` : ""
           }`.trim(),
         },
