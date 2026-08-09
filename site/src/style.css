@@ -4504,6 +4504,23 @@ summary.pont__rangee,
   display: none;
 }
 
+/* ---- Le récapitulatif en comptabilité nationale -------------------------- */
+/* Deux colonnes : un intitulé, un solde. Rien à régler ici — c'est un écran de
+   lecture, et le total s'y détache parce qu'il est justement la seule somme que
+   le site s'autorise. */
+.recap__ligne {
+  grid-template-columns: minmax(12rem, 1fr) 10rem;
+  grid-template-areas: "lib montant";
+}
+.recap__ligne .simu__intitule {
+  grid-area: lib;
+}
+.recap__total {
+  font-weight: 650;
+  background: var(--papier-creuse);
+  border-top: 1px solid var(--trait-fort);
+}
+
 /* ---- Le barème ---------------------------------------------------------- */
 /* Cinq colonnes au lieu de six : un barème n'a ni pli ni écart signé. Ce qu'il
    a en plus, et qui n'existe nulle part ailleurs, c'est le nombre de foyers
