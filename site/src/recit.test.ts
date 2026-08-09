@@ -81,7 +81,11 @@ test("le titre de Bordeaux porte le fait le plus lourd, et le paragraphe le chif
     "ofgl_impots_locaux",
     "ofgl_depenses_fonctionnement",
   ]);
-  assert.equal(r?.fenetre, "mandat 2020-2026");
+  // La fenêtre nomme son point de départ. Elle s'intitulait « mandat 2020-2026 »
+  // pendant que toutes ses phrases partaient de 2019 : le lecteur y voyait une
+  // contradiction, faute qu'on lui dise que 2019 est le dernier exercice de
+  // l'équipe sortante, celui que le nouveau conseil a trouvé.
+  assert.equal(r?.fenetre, "mandat 2020-2026, mesuré depuis l'exercice 2019");
 });
 
 test("le titre n'a pas de point final", () => {
@@ -164,7 +168,10 @@ test("un territoire sans aucune série n'ouvre pas la fiche", () => {
  */
 test("la fenêtre d'un mandat en cours ne s'invente pas de fin", () => {
   const enCours: Mandat = { ...MANDAT, fin: null, enCours: true };
-  assert.equal(recit(contexte({ mandat: enCours }))?.fenetre, "mandat ouvert en 2020");
+  assert.equal(
+    recit(contexte({ mandat: enCours }))?.fenetre,
+    "mandat ouvert en 2020, mesuré depuis l'exercice 2019",
+  );
 });
 
 /**
