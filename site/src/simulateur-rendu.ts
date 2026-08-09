@@ -41,13 +41,17 @@ import {
   chercher,
   defis,
   ecartAuReel,
+  ecartObjectif,
   encoder,
   equivalence,
   impact,
+  montantEffectif,
   plan,
   programmes,
   regler,
+  totalObjectif,
   totaux,
+  PREFIXE_RECETTE,
   type Budget,
   type Defi,
   type Entree,
@@ -65,7 +69,7 @@ const MESURES: Record<string, string> = {
   autorisation_engagement: "autorisations d'engagement",
 };
 
-const VUES = ["depenses", "recettes", "plan"] as const;
+const VUES = ["depenses", "recettes", "objectif", "plan"] as const;
 export type VueSimulateur = (typeof VUES)[number];
 
 /* --------------------------------------------------------------------------
@@ -98,14 +102,31 @@ export function classeEcart(surSolde: number): string {
 }
 
 /** « PLF 2025, budget général, crédits de paiement ». La seule phrase de
- *  cadrage de la page, et elle tient sur une ligne. */
+ *  cadrage de la page, et elle tient sur une ligne.
+ *
+ *  Le fichier publié la porte depuis que le site sert deux budgets : celui de
+ *  la Sécurité sociale n'a ni budget général ni crédits de paiement, et une
+ *  phrase construite ici lui aurait attribué les deux. La construction reste
+ *  pour les publications antérieures, qui ne portent pas `cadre`. */
 export function perimetre(budget: Budget): string {
-  const mesure = MESURES[budget.mesure] ?? budget.mesure;
+  if (budget.cadre) return budget.cadre;
+  const mesure = budget.mesure ? (MESURES[budget.mesure] ?? budget.mesure) : "";
   // L'unité est dite ici, une fois. Sans elle, « Santé 1 643 M€ » se lit comme
   // 1 643 milliards par qui n'a pas le nez sur le sigle — le chiffre est juste,
   // c'est la lecture qui glisse d'un facteur mille.
   return `${budget.loi} ${budget.exercice}, budget général, ${mesure},`
     + " montants en millions d'euros (M€)";
+}
+
+/** Le titre du cockpit. Publié aussi, et pour la même raison. */
+export function titre(budget: Budget): string {
+  return budget.titre ?? "Le budget de l'État, ligne à ligne";
+}
+
+/** Le mot qui nomme le niveau des équivalences : « le programme X » sur le
+ *  budget de l'État, « le poste X » sur celui de la Sécurité sociale. */
+export function repere(budget: Budget): string {
+  return budget.repere ?? "programme";
 }
 
 /**
@@ -129,10 +150,11 @@ export function exercicesPublies(index: unknown): string[] {
  * Une ligne réglable
  * ----------------------------------------------------------------------- */
 
-/** Profondeur d'affichage : les recettes vivent sous un titre de groupe, elles
- *  partent donc du même cran que les programmes. */
+/** Profondeur d'affichage : les recettes et l'ONDAM vivent sous un titre de
+ *  groupe, elles partent donc du même cran que les programmes. */
 function niveau(entree: Entree): number {
-  return entree.cote === "recette" ? 1 : Math.min(entree.ancetres.length, 3);
+  const depart = entree.cote === "depense" ? 0 : 1;
+  return Math.min(depart + entree.ancetres.length, 3);
 }
 
 function commandes(entree: Entree, pourcentage: number): string {
@@ -251,24 +273,53 @@ export function renduDepenses(budget: Budget, index: Index, reglages: Reglages):
  * Les recettes, par famille. Les deux prélèvements sur recettes se *déduisent*
  * des recettes de l'État : leur titre le dit, et leur montant s'affiche négatif
  * plutôt que de laisser croire à un encaissement.
+ *
+ * Le total d'un groupe est celui de ses lignes **réglées**, feuilles sommées :
+ * un groupe qui afficherait sa base pendant que ses lignes bougent dirait le
+ * contraire de ce qu'on vient de faire.
  */
 export function renduRecettes(budget: Budget, index: Index, reglages: Reglages): string {
   return budget.recettes
     .map((groupe) => {
-      const lignes = groupe.lignes.flatMap((l) => {
-        const entree = index.get(`r${l.c}`);
-        return entree ? [renduLigne(entree, reglages)] : [];
-      });
-      const somme = groupe.lignes.reduce((s, l) => s + l.v, 0);
+      const entrees = groupe.lignes.flatMap((l) => index.get(PREFIXE_RECETTE + l.c) ?? []);
+      const somme = entrees.reduce((s, e) => s + montantEffectif(e, reglages), 0);
       return `<div class="simu__groupe">
         <h3 class="simu__groupe-titre">
           <span>${echapper(groupe.t)}${groupe.signe < 0 ? " (se déduit)" : ""}</span>
           <span class="nombre">${euros(groupe.signe * somme)}</span>
         </h3>
-        <div class="simu__groupe-lignes">${lignes.join("")}</div>
+        <div class="simu__groupe-lignes">${entrees
+          .map((e) => renduLigne(e, reglages))
+          .join("")}</div>
       </div>`;
     })
     .join("");
+}
+
+/**
+ * L'ONDAM et ses sous-objectifs, réglables et comptés à part.
+ *
+ * Ce panneau a son propre total et son propre écart, et c'est tout le sujet :
+ * l'objectif national de dépenses d'assurance maladie traverse trois branches
+ * de la Sécurité sociale sans être la somme d'aucune. L'ajouter aux charges
+ * compterait deux fois 270 Md€ ; le retrancher n'aurait pas plus de sens. La
+ * note le dit une fois, au-dessus, et le solde du cockpit ne bouge pas d'un
+ * euro quand on règle ici.
+ */
+export function renduObjectif(budget: Budget, index: Index, reglages: Reglages): string {
+  const objectif = budget.objectif;
+  if (!objectif) return "";
+  const total = totalObjectif(budget, reglages);
+  const ecart = ecartObjectif(budget, reglages);
+  return `<p class="simu__note">${echapper(objectif.note)}</p>
+    <dl class="simu__compteurs simu__compteurs--objectif" id="simu-compteurs-objectif">
+      ${compteur(echapper(objectif.t), euros(total))}
+      ${compteur("Votre écart à l'objectif", eurosSigne(ecart))}
+    </dl>
+    <div class="simu__arbre">${objectif.lignes
+      .flatMap((l) => index.get(l.c) ?? [])
+      .map((e) => renduLigne(e, reglages))
+      .join("")}</div>`;
 }
 
 /* --------------------------------------------------------------------------
@@ -335,7 +386,7 @@ export function renduCockpit(
   const ecart = ecartAuReel(budget, reglages);
   const proche = equivalence(programmes(index), ecart);
   return `<div class="simu__titres">
-      <h2>Le budget de l'État, ligne à ligne</h2>
+      <h2>${echapper(titre(budget))}</h2>
       <p class="simu__perimetre">${echapper(perimetre(budget))}</p>
     </div>
     <dl class="simu__compteurs">
@@ -353,7 +404,7 @@ export function renduCockpit(
     </dl>
     ${
       proche
-        ? `<p class="simu__equivalence">Soit le programme « ${echapper(
+        ? `<p class="simu__equivalence">Soit le ${echapper(repere(budget))} « ${echapper(
             proche.libelle,
           )} » (${euros(proche.montant)}).</p>`
         : ""
@@ -381,7 +432,11 @@ export function renduDefis(liste: Defi[]): string {
 
 /** Les lignes réglées, la plus lourde d'abord. Chaque ligne renvoie à sa place
  *  dans l'arbre : le plan est une table des matières de ce qu'on a fait. */
-export function renduPlan(lignes: LignePlan[], candidats: Entree[]): string {
+export function renduPlan(
+  lignes: LignePlan[],
+  candidats: Entree[],
+  nomDuRepere = "programme",
+): string {
   return lignes
     .map(({ entree, pourcentage, delta, surSolde }) => {
       const proche = equivalence(candidats, delta);
@@ -395,7 +450,7 @@ export function renduPlan(lignes: LignePlan[], candidats: Entree[]): string {
           )}</span>
           ${
             proche
-              ? `<span class="simu__plan-equiv">Soit le programme « ${echapper(
+              ? `<span class="simu__plan-equiv">Soit le ${echapper(nomDuRepere)} « ${echapper(
                   proche.libelle,
                 )} ».</span>`
               : ""
@@ -410,13 +465,20 @@ export function renduPlan(lignes: LignePlan[], candidats: Entree[]): string {
 }
 
 /** Les onglets. « Votre plan » n'apparaît qu'une fois quelque chose à y voir. */
-export function renduOnglets(vue: VueSimulateur, regles: number): string {
+export function renduOnglets(
+  vue: VueSimulateur,
+  regles: number,
+  objectif: string | null = null,
+): string {
   const libelles: Record<VueSimulateur, string> = {
     depenses: "Dépenses",
     recettes: "Recettes",
+    objectif: objectif ?? "",
     plan: `Votre plan (${regles})`,
   };
-  return VUES.filter((nom) => nom !== "plan" || regles > 0)
+  return VUES.filter(
+    (nom) => (nom !== "plan" || regles > 0) && (nom !== "objectif" || objectif !== null),
+  )
     .map(
       (nom) => `<button type="button" role="tab" id="simu-onglet-${nom}"
         aria-selected="${nom === vue}" aria-controls="simu-vue-${nom}"
@@ -472,6 +534,7 @@ export function rendu(
     <div class="simu__onglets" id="simu-onglets" role="tablist">${renduOnglets(
       "depenses",
       reglages.size,
+      budget.objectif ? budget.objectif.t : null,
     )}</div>
   </div>
   <section class="simu__panneau" id="simu-vue-depenses" role="tabpanel"
@@ -491,6 +554,12 @@ export function rendu(
       reglages,
     )}</div>
   </section>
+  <section class="simu__panneau" id="simu-vue-objectif" role="tabpanel"
+           aria-labelledby="simu-onglet-objectif" hidden>${renduObjectif(
+             budget,
+             index,
+             reglages,
+           )}</section>
   <section class="simu__panneau" id="simu-vue-plan" role="tabpanel"
            aria-labelledby="simu-onglet-plan" hidden>
     <div class="simu__plan-actions">
@@ -500,6 +569,7 @@ export function rendu(
     <ul class="simu__plan" id="simu-plan">${renduPlan(
       plan(index, reglages),
       programmes(index),
+      repere(budget),
     )}</ul>
   </section>`;
 }
@@ -522,9 +592,25 @@ type Options = {
   subventions?: SubventionsProgramme | null;
 };
 
+/**
+ * Les écouteurs du montage précédent, s'il y en a eu un.
+ *
+ * Le simulateur se remonte sur le **même** élément quand le lecteur passe d'un
+ * budget à l'autre. Les écouteurs posés sur cet élément-là, eux, ne partent pas
+ * avec le HTML qu'on remplace : deux jeux se retrouvaient à répondre au même
+ * clic. Celui du budget précédent ne connaissait plus aucun des codes affichés,
+ * dépliait donc une branche vide — et celui du budget courant, voyant la
+ * branche ouverte, la refermait aussitôt. Un pli sur deux ne s'ouvrait plus.
+ */
+let montage: AbortController | null = null;
+
 export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Index, options: Options): void {
   const { reglages, surReglages } = options;
   const $ = <T extends HTMLElement>(id: string) => bloc.querySelector<T>(`#${id}`)!;
+
+  montage?.abort();
+  montage = new AbortController();
+  const { signal } = montage;
 
   subventionsPubliees = options.subventions ?? null;
   bloc.innerHTML = rendu(budget, index, reglages, options.tauxApparent);
@@ -538,6 +624,7 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
   const panneaux: Record<VueSimulateur, HTMLElement> = {
     depenses: $("simu-vue-depenses"),
     recettes: $("simu-vue-recettes"),
+    objectif: $("simu-vue-objectif"),
     plan: $("simu-vue-plan"),
   };
   let vue: VueSimulateur = "depenses";
@@ -570,11 +657,19 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     elDefis.innerHTML = renduDefis(
       defis(index, reglages, ecart, totaux(budget, reglages).solde),
     );
-    elPlan.innerHTML = renduPlan(plan(index, reglages), programmes(index));
+    elPlan.innerHTML = renduPlan(plan(index, reglages), programmes(index), repere(budget));
+    // Le compteur de l'ONDAM vit dans son panneau : le cockpit ne le porte pas,
+    // et c'est ce qui garantit qu'un réglage d'objectif ne déplace pas le solde.
+    const compteursObjectif = bloc.querySelector("#simu-compteurs-objectif");
+    if (compteursObjectif && budget.objectif) {
+      compteursObjectif.innerHTML =
+        compteur(echapper(budget.objectif.t), euros(totalObjectif(budget, reglages))) +
+        compteur("Votre écart à l'objectif", eurosSigne(ecartObjectif(budget, reglages)));
+    }
     // L'onglet « Votre plan » peut apparaître ou disparaître à ce geste : s'il
     // disparaît sous le lecteur qui le regarde, on le ramène aux dépenses.
     if (vue === "plan" && reglages.size === 0) montrer("depenses");
-    else elOnglets.innerHTML = renduOnglets(vue, reglages.size);
+    else elOnglets.innerHTML = renduOnglets(vue, reglages.size, budget.objectif?.t ?? null);
     surReglages(encoder(reglages));
   }
 
@@ -587,7 +682,7 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
   function montrer(nom: VueSimulateur): void {
     vue = nom;
     for (const [cle, el] of Object.entries(panneaux)) el.hidden = cle !== nom;
-    elOnglets.innerHTML = renduOnglets(nom, reglages.size);
+    elOnglets.innerHTML = renduOnglets(nom, reglages.size, budget.objectif?.t ?? null);
   }
 
   /** Rend les enfants au premier dépli, et seulement à ce moment-là. */
@@ -609,10 +704,16 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     ligneDe(code)?.querySelector(".simu__pli")?.setAttribute("aria-expanded", "true");
   }
 
+  const PANNEAU_DE: Record<string, VueSimulateur> = {
+    recette: "recettes",
+    objectif: "objectif",
+    depense: "depenses",
+  };
+
   function viser(code: string): void {
     const entree = index.get(code);
     if (!entree) return;
-    montrer(entree.cote === "recette" ? "recettes" : "depenses");
+    montrer(PANNEAU_DE[entree.cote]);
     for (const ancetre of entree.ancetres) deplier(ancetre);
     const el = ligneDe(code);
     if (!el) return;
@@ -658,19 +759,19 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     const pas = cible.closest<HTMLElement>("[data-pas]");
     if (pas) return appliquer(code, (reglages.get(code) ?? 0) + Number(pas.dataset.pas));
     if (cible.closest(".simu__raz")) return appliquer(code, 0);
-  });
+  }, { signal });
 
   bloc.addEventListener("change", (evenement) => {
     const champ = (evenement.target as HTMLElement).closest<HTMLInputElement>(".simu__pct");
     const code = champ?.closest<HTMLElement>(".simu__ligne")?.dataset.code;
     if (champ && code) appliquer(code, Number(champ.value.replace(",", ".")) || 0);
-  });
+  }, { signal });
 
   elQ.addEventListener("input", () => {
     const trouves = chercher(index, elQ.value);
     elSugg.innerHTML = renduSuggestions(trouves);
     elSugg.hidden = trouves.length === 0;
-  });
+  }, { signal });
 
   $<HTMLButtonElement>("simu-raz").addEventListener("click", () => {
     reglages.clear();

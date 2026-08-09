@@ -79,6 +79,11 @@ ANCETRES_ADDITIFS = {
     # ajoutés, l'un après la séquence des subventions, l'autre avant
     # `fin.public_employment`.
     "ceec7e7e746cf4050cfb8b8d78bd9d2a4db57ef741c37b06851696775cb63a97",
+    # 2026-08-09 — ajout de `fin.social_budget_detail` et de sa séquence, pour
+    # publier le budget de la Sécurité sociale poste par poste et l'ONDAM. Le
+    # diff ne retire ni ne modifie une ligne : une séquence ajoutée après celle
+    # du budget de l'État, un bloc de table ajouté avant `fin.public_employment`.
+    "562b826314245f624564bed0f7b61cc25f79e3cf57726160eb8f64f40b7d6085",
 }
 
 
@@ -461,6 +466,8 @@ RATTACHEMENTS = [
     ("fin.public_employment", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.state_budget_detail", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.state_budget_detail", "dataset_id", "meta.dataset_registry", "dataset_id"),
+    ("fin.social_budget_detail", "run_id", "meta.ingestion_runs", "run_id"),
+    ("fin.social_budget_detail", "dataset_id", "meta.dataset_registry", "dataset_id"),
 ]
 
 

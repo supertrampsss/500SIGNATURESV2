@@ -8,6 +8,7 @@ sait reprendre là où la connexion a lâché.
 """
 
 import random
+import ssl
 import time
 
 import httpx
@@ -124,7 +125,29 @@ def fetch(url: str, headers: dict | None = None, timeout: float = 60.0) -> httpx
     raise last_error
 
 
-def _taille_declaree(url: str, headers: dict | None, timeout: float) -> int | None:
+def contexte_sans_confidentialite_persistante() -> "ssl.SSLContext":
+    """Un contexte TLS qui accepte une suite sans confidentialité persistante.
+
+    À n'utiliser que pour une source qui n'en offre pas d'autre, et la seule à ce
+    jour est securite-sociale.fr : son serveur ne négocie que
+    `AES256-GCM-SHA384`, c'est-à-dire un échange de clés RSA statique, que le
+    niveau de sécurité 2 d'OpenSSL — celui d'Ubuntu et donc de la CI — refuse.
+
+    **Ce qui reste vérifié l'est entièrement** : la chaîne de certification, sa
+    validité, et la correspondance du nom d'hôte. Ce contexte n'abaisse pas la
+    vérification du serveur ; il abaisse le plancher des suites acceptées, ce qui
+    expose l'échange à un déchiffrement *a posteriori* par qui détiendrait la clé
+    privée du serveur. Sur un fichier public que n'importe qui télécharge sans
+    s'authentifier, cette confidentialité-là ne protège rien. Sur une source
+    authentifiée, elle protégerait le secret : d'où le nom explicite, et d'où le
+    fait qu'aucun connecteur ne l'utilise par défaut.
+    """
+    contexte = ssl.create_default_context()
+    contexte.set_ciphers("DEFAULT@SECLEVEL=1")
+    return contexte
+
+
+def _taille_declaree(url: str, headers: dict | None, timeout: float, verify=True) -> int | None:
     """Taille du fichier d'après le serveur, demandée avant de le lire.
 
     Le corps, lui, peut arriver compressé et découpé — c'est le cas derrière un
@@ -138,7 +161,8 @@ def _taille_declaree(url: str, headers: dict | None, timeout: float) -> int | No
     """
     try:
         reponse = httpx.head(
-            url, headers=headers, timeout=_delais(timeout), follow_redirects=True
+            url, headers=headers, timeout=_delais(timeout), follow_redirects=True,
+            verify=verify,
         )
     except httpx.TransportError:
         return None
@@ -146,7 +170,8 @@ def _taille_declaree(url: str, headers: dict | None, timeout: float) -> int | No
 
 
 def telecharger(
-    url: str, headers: dict | None = None, timeout: float = 300.0, essais: int = REPRISES
+    url: str, headers: dict | None = None, timeout: float = 300.0, essais: int = REPRISES,
+    verify=True,
 ) -> bytes:
     """Télécharge un fichier entier, en reprenant là où la connexion a lâché.
 
@@ -176,7 +201,7 @@ def telecharger(
     """
     entetes_base = {"Accept-Encoding": "identity", **(headers or {})}
     tampon = bytearray()
-    attendu = _taille_declaree(url, entetes_base, timeout)
+    attendu = _taille_declaree(url, entetes_base, timeout, verify)
     # Le délai porte sur *une* opération, pas sur le fichier : une source qui
     # s'arrête de parler doit être constatée en une minute, pas au bout du
     # budget entier. Sans ce plafond, un flux coupé à mi-parcours immobilise le
@@ -190,7 +215,8 @@ def telecharger(
             entetes["Range"] = f"bytes={len(tampon)}-"
         try:
             with httpx.stream(
-                "GET", url, headers=entetes, timeout=delais, follow_redirects=True
+                "GET", url, headers=entetes, timeout=delais, follow_redirects=True,
+                verify=verify,
             ) as reponse:
                 if reponse.status_code in RETRYABLE_STATUS:
                     raise httpx.HTTPStatusError(

@@ -373,22 +373,28 @@ const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
 test("l'arbre du budget ne se charge qu'à l'ouverture du simulateur", () => {
   // Cent kilo-octets pour une page que la plupart des lecteurs n'ouvriront
-  // pas : le démarrage ne demande que l'index des exercices.
+  // pas : le démarrage ne demande que les index d'exercices. Chaque budget
+  // publié déclare son chargeur une fois, et il n'est appelé qu'ici.
   const ouverture = MAIN.slice(
     MAIN.indexOf("async function ouvrirSimulateur"),
     MAIN.indexOf("async function ouvrirSimulateur") + 900,
   );
   assert.ok(ouverture.length > 200, "ouvrirSimulateur introuvable");
-  assert.match(ouverture, /donnees\.simulateurBudget\(/);
-  assert.equal(MAIN.match(/donnees\.simulateurBudget\(/g)?.length, 1);
+  assert.match(ouverture, /choisi\.budget\.charger\(choisi\.exercice\)/);
+  assert.equal(MAIN.match(/charger: donnees\.simulateurBudget(Secu)?,/g)?.length, 2);
+  assert.doesNotMatch(MAIN, /await donnees\.simulateurBudget(Secu)?\(/);
   assert.match(MAIN, /void preparerSimulateur\(\);/);
 });
 
 test("sans fichier publié, ni entrée de menu ni adresse", () => {
-  // L'entrée de menu est écrite par le code, après l'index — jamais dans la
-  // page. Et `#simulateur` n'est une vue du site qu'à la même condition.
+  // L'entrée de menu est écrite par le code, après les index — jamais dans la
+  // page. Et `#simulateur` n'est une vue du site qu'à la même condition : un
+  // budget publié au moins, quel qu'il soit.
   assert.doesNotMatch(PAGE.replace(/<!--[\s\S]*?-->/g, ""), /data-vue="simulateur"/);
-  assert.match(MAIN, /return exerciceSimulateur \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/);
+  assert.match(
+    MAIN,
+    /return budgetsDisponibles\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/,
+  );
   assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(demandee\) \? demandee : "carte";/);
 });
 

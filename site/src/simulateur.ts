@@ -34,21 +34,41 @@
 /** Un nœud de dépense : mission, programme, action ou sous-action. Une feuille
  *  n'a pas de clé `enfants` — c'est ce qui la distingue, pas sa profondeur. */
 export type Noeud = { c: string; l: string; v: number; enfants?: Noeud[] };
-export type LigneRecette = { c: string; l: string; v: number };
 /** `signe` vaut −1 pour les deux familles de prélèvements sur recettes
- *  (collectivités, Union européenne), qui se *déduisent* des recettes. */
-export type GroupeRecettes = { t: string; signe: number; lignes: LigneRecette[] };
+ *  (collectivités, Union européenne), qui se *déduisent* des recettes.
+ *
+ *  Les lignes d'un groupe sont des nœuds, pas des feuilles : le budget de
+ *  l'État n'en publie que de plates, celui de la Sécurité sociale détaille le
+ *  non-recouvrement sous les cotisations. Aplatir aurait perdu ce détail. */
+export type GroupeRecettes = { t: string; signe: number; lignes: Noeud[] };
+
+/** L'objectif national de dépenses d'assurance maladie et ses sous-objectifs.
+ *
+ *  Publié à côté du budget, jamais dedans : l'ONDAM traverse trois branches et
+ *  n'est la somme d'aucune. Il a donc son propre total et son propre écart, et
+ *  `totaux` ne le voit pas. `note` dit cela à l'écran, une fois. */
+export type Objectif = { t: string; note: string; lignes: Noeud[] };
 
 export type Budget = {
   exercice: string;
   loi: string;
-  mesure: string;
+  mesure?: string;
   unite: string;
   depenses: Noeud[];
   recettes: GroupeRecettes[];
+  /** Publiés depuis que le site sert deux budgets : « Le budget de l'État,
+   *  ligne à ligne » ne décrit pas celui de la Sécurité sociale, et le cadrage
+   *  d'un vote de crédits ne décrit pas un tableau de charges et de produits.
+   *  Absents des publications antérieures, d'où les valeurs de repli. */
+  titre?: string;
+  cadre?: string;
+  /** Le mot qui nomme le niveau servant d'équivalence : « programme » pour
+   *  l'État, « poste » pour la Sécurité sociale. */
+  repere?: string;
+  objectif?: Objectif;
 };
 
-export type Cote = "depense" | "recette";
+export type Cote = "depense" | "recette" | "objectif";
 
 /** Une ligne du budget telle que l'interface la manipule : son code global,
  *  son chemin lisible, ses ancêtres (pour composer les coefficients) et son
@@ -114,9 +134,14 @@ export function coefficient(reglages: Reglages, code: string): number {
  * coefficient appliqué à la somme de ses enfants réglés. Les coefficients des
  * ancêtres ne sont pas connus ici — c'est `montantEffectif` qui les compose.
  */
-export function effectif(noeud: Noeud, reglages: Reglages): number {
-  const c = coefficient(reglages, noeud.c);
-  return c * (noeud.enfants ? noeud.enfants.reduce((s, e) => s + effectif(e, reglages), 0) : noeud.v);
+export function effectif(noeud: Noeud, reglages: Reglages, prefixe = ""): number {
+  const c = coefficient(reglages, prefixe + noeud.c);
+  return (
+    c *
+    (noeud.enfants
+      ? noeud.enfants.reduce((s, e) => s + effectif(e, reglages, prefixe), 0)
+      : noeud.v)
+  );
 }
 
 /** Le montant affiché sur une ligne : son sous-arbre réglé, multiplié par les
@@ -138,25 +163,56 @@ export function impact(
 ): { montant: number; delta: number; surSolde: number } {
   const montant = montantEffectif(entree, reglages);
   const delta = entree.signe * (montant - entree.base);
+  // L'ONDAM ne touche pas le solde : c'est un objectif sur un autre périmètre,
+  // et lui donner une couleur d'amélioration ou de dégradation ferait croire
+  // qu'il s'y ajoute. Son écart à lui s'affiche à sa place, dans son panneau.
+  if (entree.cote === "objectif") return { montant, delta, surSolde: 0 };
   return { montant, delta, surSolde: entree.cote === "recette" ? delta : -delta };
 }
 
 export function totaux(budget: Budget, reglages: Reglages): Totaux {
   const depenses = budget.depenses.reduce((s, m) => s + effectif(m, reglages), 0);
+  // Les lignes de recettes sont indexées sous un code préfixé : le sous-arbre
+  // l'est donc aussi, sans quoi le réglage d'une ligne détaillée ne composerait
+  // pas avec celui de sa mère. Ici le préfixe est passé plutôt que le nœud
+  // recopié — ce total est recalculé à chaque geste du lecteur.
   const recettes = budget.recettes.reduce(
     (s, g) =>
-      s +
-      g.signe *
-        g.lignes.reduce((t, l) => t + coefficient(reglages, PREFIXE_RECETTE + l.c) * l.v, 0),
+      s + g.signe * g.lignes.reduce((t, l) => t + effectif(l, reglages, PREFIXE_RECETTE), 0),
     0,
   );
   return { depenses, recettes, solde: recettes - depenses };
+}
+
+/** Le total de l'ONDAM une fois réglé, et son écart à l'objectif publié.
+ *
+ *  Deux fonctions à part, et c'est tout l'enjeu : additionner cet objectif aux
+ *  charges compterait deux fois 270 Md€, et le retrancher n'aurait pas plus de
+ *  sens. Il vit à côté du solde, jamais dedans. */
+export function totalObjectif(budget: Budget, reglages: Reglages): number {
+  return (budget.objectif?.lignes ?? []).reduce((s, n) => s + effectif(n, reglages), 0);
+}
+
+export function ecartObjectif(budget: Budget, reglages: Reglages): number {
+  return totalObjectif(budget, reglages) - totalObjectif(budget, new Map());
 }
 
 /** L'écart du solde au budget réel, signé : positif = vous avez amélioré le
  *  solde. C'est le seul chiffre de résultat du simulateur. */
 export function ecartAuReel(budget: Budget, reglages: Reglages): number {
   return totaux(budget, reglages).solde - totaux(budget, new Map()).solde;
+}
+
+/** Le même sous-arbre, tous codes préfixés. Voir `PREFIXE_RECETTE`.
+ *
+ *  Une copie, pas une mutation : le nœud publié garde son code, et deux appels
+ *  successifs ne préfixent pas deux fois. */
+export function prefixer(noeud: Noeud): Noeud {
+  return {
+    ...noeud,
+    c: PREFIXE_RECETTE + noeud.c,
+    ...(noeud.enfants ? { enfants: noeud.enfants.map(prefixer) } : {}),
+  };
 }
 
 /** Toutes les lignes du budget, à toute profondeur, par code global. */
@@ -181,22 +237,40 @@ export function indexer(budget: Budget): Index {
   };
   for (const mission of budget.depenses) poser(mission, [], []);
 
+  // Le nœud porte le code préfixé : c'est lui que `coefficient` cherchera, ici
+  // comme dans l'arbre des dépenses. Le sous-arbre l'est aussi, quand il y en a.
+  const poserLigne = (
+    noeud: Noeud,
+    cote: Cote,
+    signe: number,
+    chemin: string[],
+    ancetres: string[],
+  ): void => {
+    const libelle = net(noeud.l);
+    index.set(noeud.c, {
+      code: noeud.c,
+      libelle,
+      chemin: chemin.join(SEPARATEUR_CHEMIN),
+      ancetres,
+      cote,
+      signe,
+      base: base(noeud),
+      noeud,
+    });
+    for (const enfant of noeud.enfants ?? []) {
+      poserLigne(enfant, cote, signe, [...chemin, libelle], [...ancetres, noeud.c]);
+    }
+  };
+
   for (const groupe of budget.recettes) {
     for (const ligne of groupe.lignes) {
-      // Le nœud porte le code préfixé : c'est lui que `coefficient` cherchera,
-      // ici comme dans l'arbre des dépenses.
-      const noeud: Noeud = { c: PREFIXE_RECETTE + ligne.c, l: ligne.l, v: ligne.v };
-      index.set(noeud.c, {
-        code: noeud.c,
-        libelle: net(ligne.l),
-        chemin: net(groupe.t),
-        ancetres: [],
-        cote: "recette",
-        signe: groupe.signe,
-        base: ligne.v,
-        noeud,
-      });
+      poserLigne(prefixer(ligne), "recette", groupe.signe, [net(groupe.t)], []);
     }
+  }
+  // L'ONDAM porte déjà des codes qui ne peuvent croiser aucun autre : ils
+  // viennent d'une nomenclature écrite pour lui. Aucun préfixe n'est nécessaire.
+  for (const ligne of budget.objectif?.lignes ?? []) {
+    poserLigne(ligne, "objectif", 1, [net(budget.objectif!.t)], []);
   }
   return index;
 }
@@ -299,22 +373,38 @@ export type Defi = {
 
 const MISSION_ECOLE = /Enseignement scolaire/i;
 
+/** Vrai si le budget porte une mission dont l'intitulé répond au motif.
+ *
+ *  Un défi qui protège une masse absente du budget serait toujours tenu, et
+ *  demanderait de ne pas toucher à quelque chose qui n'y est pas. */
+function masseExiste(index: Index, motif: RegExp): boolean {
+  return [...index.values()].some(
+    (e) => e.cote === "depense" && e.ancetres.length === 0 && motif.test(e.libelle),
+  );
+}
+
 /**
  * Trois façons de rendre l'exercice fini plutôt qu'infini. Le deuxième défi
  * est le seul qui apprenne quelque chose : il rend visible que les grandes
- * masses ne sont pas où on les cherche, en interdisant la plus grosse.
+ * masses ne sont pas où on les cherche, en interdisant la plus grosse — et il
+ * ne s'affiche que sur un budget qui la porte.
  */
 export function defis(index: Index, reglages: Reglages, ecart: number, solde: number): Defi[] {
   const ecole = missionTouchee(index, reglages, MISSION_ECOLE);
+  const protegeable = masseExiste(index, MISSION_ECOLE);
   return [
     { nom: "Dégagez 10 Md€", reussi: ecart >= 1e10, valeur: ecart, cible: 1e10, obstacle: null },
-    {
-      nom: "30 Md€ sans toucher à l'école",
-      reussi: ecart >= 3e10 && !ecole,
-      valeur: ecart,
-      cible: 3e10,
-      obstacle: ecole ? "l'école est touchée" : null,
-    },
+    ...(protegeable
+      ? [
+          {
+            nom: "30 Md€ sans toucher à l'école",
+            reussi: ecart >= 3e10 && !ecole,
+            valeur: ecart,
+            cible: 3e10,
+            obstacle: ecole ? "l'école est touchée" : null,
+          },
+        ]
+      : []),
     { nom: "L'équilibre", reussi: solde >= 0, valeur: solde, cible: 0, obstacle: null },
   ];
 }

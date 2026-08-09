@@ -179,6 +179,7 @@ jobs:
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
             python -m plateforme.normalize.execution_missions --store r2:plateforme-raw
             python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
+            python -m plateforme.normalize.plfss --store r2:plateforme-raw
             python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
             python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
             python -m plateforme.normalize.naissances --store r2:plateforme-raw
@@ -246,6 +247,7 @@ jobs:
             python -m plateforme.normalize.subventions --store r2:plateforme-raw
             python -m plateforme.normalize.execution_missions --store r2:plateforme-raw
             python -m plateforme.normalize.protection_sociale --store r2:plateforme-raw
+            python -m plateforme.normalize.plfss --store r2:plateforme-raw
             python -m plateforme.normalize.departements_fonctionnel --store r2:plateforme-raw
             python -m plateforme.normalize.prelevements_ue --store r2:plateforme-raw
             python -m plateforme.normalize.naissances --store r2:plateforme-raw
@@ -366,6 +368,15 @@ jobs:
           fi
           if [ "$JOB" = "secu" ]; then
             python -m plateforme.normalize.secu --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
+          if [ "$JOB" = "plfss" ]; then
+            # Le budget de la Sécurité sociale poste par poste, et l'ONDAM.
+            # Le contrôle d'ordre de grandeur se confronte aux prestations de
+            # protection sociale de la DREES : elles doivent être dans
+            # l'entrepôt, sinon le contrôle sera tracé comme non tenu.
+            python -m plateforme.normalize.plfss --store r2:plateforme-raw
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

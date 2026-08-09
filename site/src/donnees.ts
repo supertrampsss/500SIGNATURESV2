@@ -258,6 +258,17 @@ export const simulateurIndex = () => lire<unknown>("simulateur/index.json");
 export const simulateurBudget = (exercice: string) =>
   lire<import("./simulateur.ts").Budget>(`simulateur/etat-${exercice}.json`);
 
+/**
+ * Le budget de la Sécurité sociale : le même simulateur, une autre matière.
+ *
+ * Son index est distinct de celui de l'État, et ce n'est pas une commodité de
+ * nommage : le PLFSS et le PLF ne portent pas les mêmes exercices, et le site
+ * doit pouvoir proposer l'un quand l'autre manque.
+ */
+export const simulateurIndexSecu = () => lire<unknown>("simulateur/index-secu.json");
+export const simulateurBudgetSecu = (exercice: string) =>
+  lire<import("./simulateur.ts").Budget>(`simulateur/secu-${exercice}.json`);
+
 /** Les bénéficiaires nommés d'un programme budgétaire. Absent des publications
  *  antérieures : le tiroir ne s'ouvre alors pas, plutôt que d'échouer. */
 export type SubventionsProgramme = {
