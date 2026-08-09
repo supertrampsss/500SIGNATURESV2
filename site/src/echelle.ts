@@ -211,7 +211,32 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
     );
   }
   if (unite === "count") return `${classes} Effectifs, en nombre d'unités.`;
-  return `${classes} Montants en euros courants.`;
+  return `${classes} Montants en millions d'euros courants (M€).`;
+}
+
+/**
+ * Montant en millions d'euros, deux décimales sous le million.
+ *
+ * **Une seule échelle pour tous les montants du site.** Les montants passaient
+ * de « 196 k€ » à « 30,8 M€ » à « 441,2 Md€ » selon leur taille : trois unités
+ * dans une même colonne, qu'il fallait convertir de tête pour comparer deux
+ * communes. Le million est l'unité de la dépense publique locale, et c'est
+ * celle que le site tient partout — la page ANALYSES la tenait déjà.
+ *
+ * « 0 M€ » pour 340 000 € effacerait le montant ; « 0,34 M€ » le garde lisible.
+ * Au-delà du million, la décimale suffit — personne ne lit le second chiffre
+ * après la virgule sur 183,1 M€ — et au-delà du milliard, aucune.
+ */
+export function millions(valeur: number): string {
+  const m = valeur / 1e6;
+  const absolu = Math.abs(m);
+  const decimales = absolu < 1 ? 2 : absolu < 1000 ? 1 : 0;
+  return moins(
+    `${new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
+    }).format(sansZeroNegatif(m, decimales))} M€`,
+  );
 }
 
 export function formater(valeur: number, unite: string, parHabitant: boolean): string {
@@ -284,29 +309,16 @@ function formaterNombre(valeur: number, unite: string, parHabitant: boolean): st
       valeur,
     )} ${unite}`;
   }
-  const options: Intl.NumberFormatOptions = {
-    style: "currency",
-    currency: "EUR",
-    maximumFractionDigits: parHabitant ? 0 : 0,
-  };
-  // Un budget d'État se lit en milliards, un budget communal en millions :
-  // « 441 194,3 M€ » est exact et illisible.
-  if (!parHabitant && Math.abs(valeur) >= 1e9) {
-    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
-      valeur / 1e9,
-    )} Md€`;
+  // Le par-habitant est l'exception, et une seule ligne le porte : le
+  // récapitulatif de la fiche. Un ratio en millions d'euros — « 0,00 M€ par
+  // habitant » — n'aurait aucun sens ; il se lit en euros, comme une somme
+  // qu'on tient dans la main.
+  if (parHabitant) {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(sansZeroNegatif(valeur, 0));
   }
-  if (!parHabitant && Math.abs(valeur) >= 1e6) {
-    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
-      valeur / 1e6,
-    )} M€`;
-  }
-  // Le budget d'une petite commune se lit en k€ : « 195 924 € » est exact
-  // et illisible, « 196 k€ » se compare d'un coup d'œil.
-  if (!parHabitant && Math.abs(valeur) >= 1e4) {
-    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
-      valeur / 1e3,
-    )} k€`;
-  }
-  return new Intl.NumberFormat("fr-FR", options).format(sansZeroNegatif(valeur, 0));
+  return millions(valeur);
 }

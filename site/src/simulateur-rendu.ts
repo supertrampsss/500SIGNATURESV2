@@ -65,13 +65,13 @@ export type VueSimulateur = (typeof VUES)[number];
  * Formats
  * ----------------------------------------------------------------------- */
 
-/** Un montant d'euros, à l'échelle du site : « 60 Md€ », « 196 k€ ». */
+/** Un montant d'euros, à l'échelle du site : le million, partout. */
 export function euros(montant: number): string {
   return formater(montant, "EUR", false);
 }
 
 /** Le même, avec le « + » que `formater` ne met jamais : sur un écart, le sens
- *  du geste est l'information, et un « 4,2 Md€ » nu ne dit pas s'il s'ajoute
+ *  du geste est l'information, et un « 4 200 M€ » nu ne dit pas s'il s'ajoute
  *  ou se retranche. */
 export function eurosSigne(montant: number): string {
   return montant > 0 ? `+${euros(montant)}` : euros(montant);
@@ -263,8 +263,8 @@ export function renduCockpit(budget: Budget, index: Index, reglages: Reglages): 
 export function renduDefis(liste: Defi[]): string {
   return liste
     .map((defi) => {
-      // « L'équilibre » a zéro pour cible : « −138 Md€ sur 0 € » n'apprend rien
-      // que « −138 Md€ » ne dise déjà.
+      // « L'équilibre » a zéro pour cible : « −138 000 M€ sur 0 M€ » n'apprend
+      // rien que « −138 000 M€ » ne dise déjà.
       const progres = defi.cible
         ? `${eurosSigne(defi.valeur)} sur ${euros(defi.cible)}`
         : eurosSigne(defi.valeur);

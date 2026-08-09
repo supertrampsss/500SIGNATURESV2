@@ -126,12 +126,14 @@ test("un exercice sans comptes ne produit pas de bloc", () => {
   assert.equal(rendu(territoire({})), "");
 });
 
-test("les montants se lisent à l'échelle de la collectivité", () => {
+test("les montants se lisent tous à la même échelle : le million", () => {
+  // Une colonne qui passait du milliard au millier demandait de convertir de
+  // tête pour additionner deux lignes voisines.
   assert.equal(montant(417_137_958.52), `417,1${FINE}M€`);
   assert.equal(montant(-369_011_621.25), `−369,0${FINE}M€`);
-  assert.equal(montant(1_234_567_890), `1,23${FINE}Md€`);
-  assert.equal(montant(45_600), `46${FINE}k€`);
-  assert.equal(montant(-820), `−820${FINE}€`);
+  assert.equal(montant(1_234_567_890), `1${FINE}235${FINE}M€`);
+  assert.equal(montant(45_600), `0,05${FINE}M€`);
+  assert.equal(montant(-820), `0,00${FINE}M€`);
 });
 
 test("le bloc s'affiche ouvert : c'est la question qu'on vient poser", () => {

@@ -93,7 +93,7 @@ const JEUX_COLLECTIVITE = new Set([
  * Les subventions de l'État aux associations sont imputées à l'adresse de
  * l'établissement bénéficiaire : une fédération nationale est comptée là où
  * elle a son siège, quelle que soit la commune où son action se mène. Paris
- * porte à ce titre 3,23 Md€, soit 32,5 % du total, et les dix premières
+ * porte à ce titre 3 230 M€, soit 32,5 % du total, et les dix premières
  * communes 43,5 % — la fiche du jeu l'écrit déjà.
  *
  * Une carte qui dit où sont les sièges se lit. Un **écart à la médiane des
@@ -182,7 +182,7 @@ type Mesure = {
  * serait exactement l'erreur que ce site existe pour ne pas commettre.
  *
  * Il reste un repère exact, tiré de la même source et du même exercice : la
- * part dans son total. « 51,6 Md€ » ne dit pas grand-chose ; « 11,7 % des
+ * part dans son total. « 51 600 M€ » ne dit pas grand-chose ; « 11,7 % des
  * dépenses nettes du budget général », si. Le libellé porte sa préposition :
  * « de la dette publique », « des recettes fiscales nettes ».
  *

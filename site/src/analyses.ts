@@ -23,6 +23,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { millions } from "./echelle.ts";
 
 export type Rubrique = {
   theme: string;
@@ -35,23 +36,6 @@ function echapper(texte: string): string {
     /[&<>"']/g,
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string,
   );
-}
-
-/**
- * Montant en millions d'euros, deux décimales sous le million.
- *
- * « 0 M€ » pour 340 000 € effacerait le montant ; « 0,34 M€ » le garde lisible.
- * Au-delà du million, la décimale suffit — personne ne lit le second chiffre
- * après la virgule sur 183,1 M€.
- */
-export function millions(valeur: number): string {
-  const m = valeur / 1e6;
-  const abs = Math.abs(m);
-  const decimales = abs < 1 ? 2 : abs < 1000 ? 1 : 0;
-  return `${new Intl.NumberFormat("fr-FR", {
-    minimumFractionDigits: decimales,
-    maximumFractionDigits: decimales,
-  }).format(m)} M€`;
 }
 
 /** Le nombre tel qu'il se lit dans son unité. Les euros passent en millions. */

@@ -118,18 +118,18 @@ test("le pont va des recettes au solde, dans cet ordre", () => {
 test("dans le pont, le signe est une colonne, pas une décoration du nombre", () => {
   const html = rendu(BUDGET, "2025");
   const table = html.slice(html.indexOf('<table class="pont"'), html.indexOf("</table>"));
-  assert.match(table, /380,4\s?Md€/); // recettes nettes, en milliards
-  assert.match(table, /124,2\s?Md€/); // solde, valeur absolue
+  assert.match(table, /380\u202f390\u202fM€/); // recettes nettes
+  assert.match(table, /124\u202f206\u202fM€/); // solde, valeur absolue
   assert.doesNotMatch(table, /[-−]\d/); // aucun nombre négatif dans la colonne montant
   // le tableau de comparaison, lui, montre des soldes signés : c'est leur nature
-  assert.match(html.slice(html.indexOf('<table class="comparaison"')), /−124,2\s?Md€/);
+  assert.match(html.slice(html.indexOf('<table class="comparaison"')), /−124\u202f206\u202fM€/);
 });
 
 test("l'écart entre voté et exécuté est nommé dans le bon sens", () => {
   // Exécuté −124,2 Md€ contre −139,0 Md€ votés : le déficit est plus faible que
   // prévu. Dire « au-dessus du solde voté » serait exact et compris à l'envers.
   const html = rendu(BUDGET, "2025");
-  assert.match(html, /14,8\s?Md€/);
+  assert.match(html, /14\u202f7\d\d\u202fM€/);
   assert.match(html, /déficit constaté est[\s\S]{0,80}plus faible/);
 
   const creuse = structuredClone(BUDGET);

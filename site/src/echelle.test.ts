@@ -60,10 +60,24 @@ test("les montants gardent leur unité et leur ordre de grandeur", () => {
   assert.match(formater(30_761_441, "EUR", false), /30,8\s?M€/);
   assert.match(formater(999_000_000, "EUR", false), /M€/);
   // Un budget d'État se lit en milliards : « 441 194,3 M€ » est exact et illisible.
-  assert.match(formater(441_194_313_369.76, "EUR", false), /441,2\s?Md€/);
-  assert.match(formater(-124_205_673_501.55, "EUR", false), /124,2\s?Md€/);
+  assert.match(formater(441_194_313_369.76, "EUR", false), /441\u202f194\u202fM€/);
+  assert.match(formater(-124_205_673_501.55, "EUR", false), /−124\u202f206\u202fM€/);
   assert.match(formater(456, "EUR", true), /456/);
   assert.equal(formater(67_339, "count", false), "67 339".replace(" ", " "));
+});
+
+test("un montant se lit en millions d'euros, du plus petit au plus grand", () => {
+  // La règle du site : une seule unité pour tous les montants, pour qu'une
+  // colonne se compare sans conversion de tête. Deux décimales sous le million,
+  // pour qu'un petit budget ne s'efface pas.
+  assert.equal(formater(340_000, "EUR", false), "0,34 M€");
+  assert.equal(formater(1_400_000, "EUR", false), "1,4 M€");
+  assert.equal(formater(30_761_441, "EUR", false), "30,8 M€");
+  assert.equal(formater(441_194_313_369.76, "EUR", false), "441 194 M€");
+  // Un montant qui s'arrondit à zéro ne prend pas de signe négatif.
+  assert.equal(formater(-820, "EUR", false), "0,00 M€");
+  // L'exception, et la seule : le par-habitant de la ligne de récapitulatif.
+  assert.match(formater(1_373, "EUR", true), /^1.373.€$/u);
 });
 
 test("la surface consommée se lit en hectares dès que le m² ne se lit plus", () => {

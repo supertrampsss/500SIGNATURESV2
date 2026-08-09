@@ -41,7 +41,7 @@ const niches: DepensesFiscales = {
 test("le bloc dit le total et refuse de l'appeler une dépense", () => {
   const html = rendu(niches, pays, catalogue);
   assert.match(html, /Les niches fiscales, c'est combien/);
-  assert.match(html, /89,4 Md€/);
+  assert.match(html, /89.4\d\d\s?M€/);
   assert.match(html, /n'est pas une dépense/);
   assert.match(html, /n'apparaît sur aucune ligne du\s+budget/);
 });
@@ -64,7 +64,7 @@ test("la prévision se dit à part, jamais au présent", () => {
   const html = rendu(niches, pays, catalogue);
   // Le chiffre annoncé est le constat 2024 ; 2026 n'a pas eu lieu.
   assert.match(html, /En 2024, l'État renonce à percevoir/);
-  assert.match(html, /Pour 2026, le projet de loi de finances en prévoit\s+88,3 Md€/);
+  assert.match(html, /Pour 2026, le projet de loi de finances en prévoit\s+88.2\d\d\s?M€/);
 });
 
 test("sans exercice constaté, il retombe sur le dernier publié", () => {

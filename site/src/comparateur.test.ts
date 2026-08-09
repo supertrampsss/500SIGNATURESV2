@@ -74,7 +74,7 @@ test("sans population, le montant par habitant n'est pas inventé", () => {
   };
   assert.match(rendu([PESSAC, inconnue], INDICATEURS, "2024", true), /population inconnue/);
   // en montants totaux, la valeur reste affichable
-  assert.match(rendu([PESSAC, inconnue], INDICATEURS, "2024", false), /4\s?M€/);
+  assert.match(rendu([PESSAC, inconnue], INDICATEURS, "2024", false), /4,0\s?M€/);
 });
 
 test("les compétences hors norme sont signalées", () => {

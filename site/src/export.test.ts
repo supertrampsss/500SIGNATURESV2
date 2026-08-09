@@ -30,6 +30,24 @@ test("le fichier s'ouvre en français : BOM, point-virgule, virgule décimale, C
   assert.ok(!csv.slice(1).includes("\n\r"), "fins de ligne CRLF uniquement");
 });
 
+test("les montants s'exportent en millions d'euros, à l'euro près", () => {
+  // Le fichier suit l'écran : « 369,0 M€ » à la fiche, « 369,011621 » au
+  // tableur, colonne « millions d'euros ». Le centième aurait valu dix mille
+  // euros, et aurait écrit « 0,05 » pour une commune de mille habitants.
+  const lignes = enCsv(
+    [
+      { code: "33318", nom: "Pessac", valeur: 369_011_621 },
+      { code: "33001", nom: "Petite commune", valeur: 45_600 },
+    ],
+    { ...META, parHabitant: false },
+    QUAND,
+  )
+    .slice(1)
+    .split("\r\n");
+  assert.equal(lignes[4], "33318;Pessac;369,011621;millions d'euros;2024;commune");
+  assert.equal(lignes[5], "33001;Petite commune;0,0456;millions d'euros;2024;commune");
+});
+
 test("l'en-tête nomme l'indicateur, la source, la date et la licence", () => {
   const csv = enCsv([], META, QUAND);
   const lignes = csv.slice(1).split("\r\n");
@@ -55,7 +73,7 @@ test("l'arrondi au centième est une vue tableur, pas une précision inventée",
 });
 
 test("l'unité se lit dans un tableur, et une unité inconnue reste elle-même", () => {
-  assert.equal(uniteLisible("EUR", false), "euros");
+  assert.equal(uniteLisible("EUR", false), "millions d'euros");
   assert.equal(uniteLisible("EUR", true), "euros par habitant");
   assert.equal(uniteLisible("percent", false), "%");
   assert.equal(uniteLisible("count", false), "nombre");

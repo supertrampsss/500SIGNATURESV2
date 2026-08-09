@@ -131,10 +131,10 @@ test("une ligne porte les cinq choses qui la rendent pilotable", () => {
   const html = renduLigne(INDEX.get("140")!, reglages(["140", -10]));
   assert.match(html, /data-code="140"/);
   assert.match(html, /Enseignement public du premier degré/);
-  assert.match(html, /simu__base[^>]*>20 Md€/);
+  assert.match(html, /simu__base[^>]*>20\u202f000\u202fM€/);
   assert.match(html, /class="simu__pct nombre" value="-10"/);
-  assert.match(html, /simu__montant[^>]*>18 Md€/);
-  assert.match(html, /simu__delta[^"]*"?[^>]*>−2 Md€/);
+  assert.match(html, /simu__montant[^>]*>18\u202f000\u202fM€/);
+  assert.match(html, /simu__delta[^"]*"?[^>]*>−2\u202f000\u202fM€/);
   // Trois commandes plus la remise à zéro, chacune nommée pour un lecteur qui
   // n'a que la voix pour se repérer.
   assert.match(html, /aria-label="Baisser Enseignement public du premier degré de 5 points"/);
@@ -179,8 +179,8 @@ test("le montant affiché est celui du modèle, coefficients composés compris",
   // porte-avions ». 100 M€ × 0,90 × 1,50 = 135 M€, et l'écart vaut +35 M€.
   const table = reglages(["DA", -10], ["146-09-63", 50]);
   const html = renduLigne(INDEX.get("146-09-63")!, table);
-  assert.match(html, /simu__montant[^>]*>135 M€/);
-  assert.match(html, /simu__delta[^>]*>\+35 M€/);
+  assert.match(html, /simu__montant[^>]*>135,0\u202fM€/);
+  assert.match(html, /simu__delta[^>]*>\+35,0\u202fM€/);
 });
 
 test("un prélèvement sur recettes s'affiche pour ce qu'il est : une soustraction", () => {
@@ -188,8 +188,8 @@ test("un prélèvement sur recettes s'affiche pour ce qu'il est : une soustracti
   // l'afficher « 5 Md€ » laisserait croire à un encaissement.
   const html = renduRecettes(BUDGET, INDEX, RIEN);
   assert.match(html, /Prélèvement au profit de l&#39;Union européenne \(se déduit\)/);
-  assert.match(html, /data-code="r9001"[\s\S]*?simu__base[^>]*>−5 Md€/);
-  assert.match(html, /Recettes fiscales<\/span>\s*<span class="nombre">40 Md€/);
+  assert.match(html, /data-code="r9001"[\s\S]*?simu__base[^>]*>−5\u202f000\u202fM€/);
+  assert.match(html, /Recettes fiscales<\/span>\s*<span class="nombre">40\u202f000\u202fM€/);
 });
 
 /* --------------------------------------------------------------------------
@@ -229,11 +229,11 @@ test("le cockpit donne les quatre nombres et le périmètre en une ligne", () =>
   }
   // 25 Md€ de dépenses, 30 + 10 − 5 de recettes, un solde de +10 Md€, et aucun
   // écart tant que rien n'est réglé.
-  assert.match(html, /<dt>Dépenses<\/dt>\s*<dd class="nombre">25 Md€/);
-  assert.match(html, /<dt>Recettes nettes<\/dt>\s*<dd class="nombre">35 Md€/);
+  assert.match(html, /<dt>Dépenses<\/dt>\s*<dd class="nombre">25\u202f000\u202fM€/);
+  assert.match(html, /<dt>Recettes nettes<\/dt>\s*<dd class="nombre">35\u202f000\u202fM€/);
   // Le solde reste en encre, même en déficit : c'est un fait du budget voté,
   // pas un geste du lecteur. Seul « Votre écart » porte la couleur du sens.
-  assert.match(html, /<dt>Solde<\/dt>\s*<dd class="nombre">10 Md€/);
+  assert.match(html, /<dt>Solde<\/dt>\s*<dd class="nombre">10\u202f000\u202fM€/);
   assert.doesNotMatch(
     renduCockpit(BUDGET, INDEX, reglages(["r1301", -100])),
     /<dt>Solde<\/dt>\s*<dd class="nombre simu__val/,
@@ -247,7 +247,7 @@ test("l'équivalence ne s'écrit que quand un programme ressemble vraiment à l'
   // 4,2 Md€ dégagés : « Préparation & emploi des forces » (4 Md€) éclaire.
   const proche = renduCockpit(BUDGET, INDEX, reglages(["140", -21]));
   assert.equal(ecartAuReel(BUDGET, reglages(["140", -21])), 4_200_000_000);
-  assert.match(proche, /Soit le programme « Préparation &amp; emploi des forces » \(4 Md€\)/);
+  assert.match(proche, /Soit le programme « Préparation &amp; emploi des forces » \(4\u202f000\u202fM€\)/);
   // 12 Md€ : aucun programme n'en est proche, on se tait plutôt que de comparer
   // ce qui ne se ressemble pas.
   assert.doesNotMatch(renduCockpit(BUDGET, INDEX, reglages(["140", -60])), /Soit le programme/);
@@ -272,7 +272,7 @@ test("le plan classe par ce que ça pèse et renvoie chaque ligne à sa place", 
   const ordre = [...html.matchAll(/data-vise="([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(ordre, ["140", "146-09-63"]);
   assert.match(html, /Enseignement public du premier degré à −10 %/);
-  assert.match(html, /simu__plan-delta nombre simu__val--sobre">−2 Md€/);
+  assert.match(html, /simu__plan-delta nombre simu__val--sobre">−2\u202f000\u202fM€/);
   // Le chemin situe la ligne : sans lui, « Frapper à distance » ne dit pas où.
   assert.match(html, /Défense · Équipement des forces · Engagement et combat/);
 });
@@ -296,7 +296,7 @@ test("une suggestion porte le code à viser, son chemin et son poids", () => {
   const html = renduSuggestions(chercher(INDEX, "porte-avions"));
   assert.match(html, /data-vise="146-09-63"/);
   assert.match(html, /Frapper à distance - porte-avions/);
-  assert.match(html, /Défense · Équipement des forces · Engagement et combat · 100 M€/);
+  assert.match(html, /Défense · Équipement des forces · Engagement et combat · 100,0\u202fM€/);
 });
 
 /* --------------------------------------------------------------------------
@@ -349,12 +349,12 @@ test("un budget réglé se relit tel quel dans la page entière", () => {
   // plan doivent raconter le même geste.
   const table = reglages(["DA", -10]);
   const html = page(table);
-  assert.match(html, /<dt>Dépenses<\/dt>\s*<dd class="nombre">24,5 Md€/);
-  assert.match(html, /data-code="DA"[\s\S]*?simu__montant[^>]*>4,5 Md€/);
+  assert.match(html, /<dt>Dépenses<\/dt>\s*<dd class="nombre">24\u202f500\u202fM€/);
+  assert.match(html, /data-code="DA"[\s\S]*?simu__montant[^>]*>4\u202f500\u202fM€/);
   assert.match(html, /data-vise="DA"/);
-  assert.equal(euros(24_500_000_000), "24,5 Md€");
-  assert.equal(eurosSigne(-500_000_000), "−500 M€");
-  assert.equal(eurosSigne(500_000_000), "+500 M€");
+  assert.equal(euros(24_500_000_000), "24\u202f500\u202fM€");
+  assert.equal(eurosSigne(-500_000_000), "−500,0\u202fM€");
+  assert.equal(eurosSigne(500_000_000), "+500,0\u202fM€");
 });
 
 /* --------------------------------------------------------------------------

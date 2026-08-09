@@ -43,6 +43,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { millions } from "./echelle.ts";
 import { traduire } from "./traductions.ts";
 
 const RF = "ofgl_recettes_fonctionnement";
@@ -349,20 +350,10 @@ export function marches(territoire: Territoire, exercice: string): Marche[] | nu
 }
 
 /** Les montants du pont se lisent les uns sous les autres, tous à la même
- *  échelle : celle de la collectivité. */
-export function montant(valeur: number): string {
-  const signe = valeur < 0 ? "−" : "";
-  const absolu = Math.abs(valeur);
-  const format = (v: number, decimales: number) =>
-    new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: decimales,
-      maximumFractionDigits: decimales,
-    }).format(v);
-  if (absolu >= 1e9) return `${signe}${format(absolu / 1e9, 2)}${FINE}Md€`;
-  if (absolu >= 1e6) return `${signe}${format(absolu / 1e6, 1)}${FINE}M€`;
-  if (absolu >= 1e3) return `${signe}${format(absolu / 1e3, 0)}${FINE}k€`;
-  return `${signe}${format(absolu, 0)}${FINE}€`;
-}
+ *  échelle : le million, comme partout ailleurs sur le site. La colonne
+ *  passait de « 1,23 Md€ » à « 417,1 M€ » à « 46 k€ » — trois unités qu'il
+ *  fallait convertir de tête pour additionner deux lignes voisines. */
+export const montant = millions;
 
 /** « +4 % » : l'évolution d'une ligne, arrondie à ce que sa taille justifie. */
 export function variationTexte(v: number): string {

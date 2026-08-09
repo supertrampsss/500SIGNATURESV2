@@ -10,7 +10,9 @@
  * sans assistant ni colonne massacrée. Le BOM UTF-8 est là pour qu'Excel lise
  * les accents. Les valeurs sont arrondies au centième : ce fichier est une vue
  * pour tableur, pas un contrat — la réutilisation programmatique passe par le
- * JSON versionné, qui garde la précision d'origine.
+ * JSON versionné, qui garde la précision d'origine. Les montants font
+ * exception : écrits en millions d'euros comme à l'écran, ils gardent six
+ * décimales, soit l'euro près, pour qu'une petite commune ne tombe pas à zéro.
  *
  * **Un chiffre ne voyage pas seul** (docs/06) : chaque ligne porte l'unité, la
  * période et le niveau, et l'en-tête nomme l'indicateur, la source et la date
@@ -32,21 +34,31 @@ function champ(texte: string): string {
   return /[";\n\r]/.test(brut) ? `"${brut.replace(/"/g, '""')}"` : brut;
 }
 
-function nombreFrancais(valeur: number): string {
+function nombreFrancais(valeur: number, decimales = 2): string {
   // Virgule décimale, pas de séparateur de milliers : les milliers espacés
   // deviennent du texte dans un tableur. Arrondi au centième : la division
   // par habitant produit des décimales sans fin qui n'informent personne.
-  return String(Math.round(valeur * 100) / 100).replace(".", ",");
+  const facteur = 10 ** decimales;
+  return String(Math.round(valeur * facteur) / facteur).replace(".", ",");
 }
 
 /** La valeur exportée suit l'affichage : les taux pour mille de la source
- *  sont écrits en pourcentage, comme à l'écran et comme le dit l'en-tête.
- *  Un fichier qui contredirait la carte serait pire qu'un fichier absent. */
-export function valeurExportee(valeur: number, unite: string): number {
-  return unite === "pour_1000_habitants" || unite === "pour_1000_logements"
-    ? valeur / 10
-    : valeur;
+ *  sont écrits en pourcentage et les montants en millions d'euros, comme à
+ *  l'écran et comme le dit l'en-tête. Un fichier qui contredirait la carte
+ *  serait pire qu'un fichier absent. */
+export function valeurExportee(valeur: number, unite: string, parHabitant = false): number {
+  if (unite === "pour_1000_habitants" || unite === "pour_1000_logements") return valeur / 10;
+  // Le par-habitant reste en euros : c'est la seule lecture où le million n'a
+  // pas de sens, à l'écran comme au tableur.
+  if (unite === "EUR" && !parHabitant) return valeur / 1e6;
+  return valeur;
 }
+
+/** Six décimales sur un montant en millions d'euros : l'euro près. L'arrondi
+ *  au centième vaudrait dix mille euros, et ferait tomber à « 0 » la ligne
+ *  d'une petite commune — un export ne perd pas ce que l'écran résume. */
+const DECIMALES_EXPORT = (unite: string, parHabitant: boolean) =>
+  unite === "EUR" && !parHabitant ? 6 : 2;
 
 /** L'unité telle qu'elle se lit dans un tableur, jamais un code interne nu
  *  pour les unités connues — et le code tel quel pour les autres, comme à
@@ -54,7 +66,9 @@ export function valeurExportee(valeur: number, unite: string): number {
 export function uniteLisible(unite: string, parHabitant: boolean): string {
   const libelle =
     unite === "EUR"
-      ? "euros"
+      ? parHabitant
+        ? "euros"
+        : "millions d'euros"
       : unite === "percent"
         ? "%"
         : unite === "count"
@@ -89,7 +103,10 @@ export function enCsv(
     [
       champ(ligne.code),
       champ(ligne.nom),
-      nombreFrancais(valeurExportee(ligne.valeur, meta.unite)),
+      nombreFrancais(
+        valeurExportee(ligne.valeur, meta.unite, meta.parHabitant),
+        DECIMALES_EXPORT(meta.unite, meta.parHabitant),
+      ),
       champ(unite),
       champ(meta.periode),
       champ(meta.niveau),
@@ -145,8 +162,14 @@ export function enCsvEvolution(
     [
       champ(ligne.code),
       champ(ligne.nom),
-      nombreFrancais(valeurExportee(ligne.avant, meta.unite)),
-      nombreFrancais(valeurExportee(ligne.apres, meta.unite)),
+      nombreFrancais(
+        valeurExportee(ligne.avant, meta.unite, meta.parHabitant),
+        DECIMALES_EXPORT(meta.unite, meta.parHabitant),
+      ),
+      nombreFrancais(
+        valeurExportee(ligne.apres, meta.unite, meta.parHabitant),
+        DECIMALES_EXPORT(meta.unite, meta.parHabitant),
+      ),
       nombreFrancais(variationExportee(ligne.variation, meta.unite, mode)),
       champ(uniteVariation),
       champ(unite),

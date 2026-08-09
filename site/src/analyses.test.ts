@@ -12,7 +12,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { millions, rubriques, rendu, total, valeurLisible } from "./analyses.ts";
+import { rubriques, rendu, total, valeurLisible } from "./analyses.ts";
+import { millions } from "./echelle.ts";
 
 const CATALOGUE = [
   { id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement",
@@ -40,7 +41,7 @@ test("chaque indicateur montre son dernier exercice, et l'année est écrite", (
   const finances = liste.find((r) => r.theme === "finances_locales")!;
   const depenses = finances.lignes.find((l) => l.id === "ofgl_depenses_fonctionnement")!;
   assert.equal(depenses.periode, "2025");
-  assert.equal(depenses.valeur, "369,0 M€");
+  assert.equal(depenses.valeur, "369,0 M€");
   // La population est d'un autre millésime, et la page le dit plutôt que de
   // laisser croire à une photographie commune.
   const pop = liste.find((r) => r.theme === "population")!.lignes[0];
@@ -55,14 +56,14 @@ test("un indicateur sans valeur ne produit pas de ligne", () => {
 });
 
 test("les montants sont en millions, et un petit budget ne s'efface pas", () => {
-  assert.equal(millions(369_011_621), "369,0 M€");
-  assert.equal(millions(1_400_000), "1,4 M€");
+  assert.equal(millions(369_011_621), "369,0 M€");
+  assert.equal(millions(1_400_000), "1,4 M€");
   // 340 000 € afficherait « 0 M€ » sans les deux décimales : le montant
   // disparaîtrait de la page en paraissant nul.
-  assert.equal(millions(340_000), "0,34 M€");
+  assert.equal(millions(340_000), "0,34 M€");
   // L'espace des milliers est une fine insécable, pas une espace ordinaire :
   // on compare les chiffres, pas la typographie.
-  assert.match(millions(8_641_730_000), /^8.642 M€$/);
+  assert.match(millions(8_641_730_000), /^8.642\u202fM€$/);
 });
 
 test("les taux et les comptages gardent leur unité", () => {
@@ -85,7 +86,7 @@ test("la page annonce ce qu'elle contient et d'où viennent les années", () => 
   const html = rendu("Bordeaux", rubriques(BORDEAUX, CATALOGUE, LIBELLES));
   assert.match(html, /3 indicateurs renseignés, 2 thèmes/);
   assert.match(html, /pas\s+tous le même calendrier/);
-  assert.match(html, /369,0 M€/);
+  assert.match(html, /369,0\u202fM€/);
 });
 
 test("chaque thème publié a un libellé lisible", () => {

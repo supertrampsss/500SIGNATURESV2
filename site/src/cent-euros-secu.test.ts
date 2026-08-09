@@ -49,14 +49,14 @@ test("les parts affichées sont celles de la source, pas un arrondi commode", ()
   // 426,665 3 Md€ sur 932,548 27 Md€ de prestations versées en 2024.
   assert.equal(lignes[0].part.toFixed(2), "45.75");
   assert.equal(lignes[1].part.toFixed(2), "36.34");
-  assert.equal(lignes[0].montant, "426,7 Md€");
+  assert.equal(lignes[0].montant, "426\u202f665\u202fM€");
 });
 
 test("le montant réel accompagne chaque part dans la légende du camembert", () => {
   const html = plat(rendu(territoire(SERIES), CATALOGUE));
-  assert.match(html, /La retraite<\/span> <span class="camembert__montant">426,7 Md€/);
+  assert.match(html, /La retraite<\/span> <span class="camembert__montant">426.665.M€/);
   assert.match(html, /45,75 €/);
-  assert.match(html, /932,5 Md€<\/strong> de prestations sociales/);
+  assert.match(html, /932.548.M€<\/strong> de prestations sociales/);
 });
 
 test("les aides au logement gardent leur nom au lieu de tomber dans « Autres »", () => {
@@ -97,8 +97,8 @@ test("le titre parle de prestations, jamais de cotisations réparties", () => {
 test("le détail ligne à ligne relie le nom courant à l'intitulé de la source", () => {
   const html = plat(rendu(territoire(SERIES), CATALOGUE));
   assert.match(html, /Le détail ligne à ligne/);
-  assert.match(html, /La retraite, 426,7 Md€ \(Vieillesse-survie : pensions de base/);
-  assert.match(html, /Les minima sociaux, 34 Md€ \(Pauvreté-exclusion sociale : RSA/);
+  assert.match(html, /La retraite, 426.665.M€ \(Vieillesse-survie : pensions de base/);
+  assert.match(html, /Les minima sociaux, 34.013.M€ \(Pauvreté-exclusion sociale : RSA/);
   assert.match(html, /Comptes de la protection sociale \(DREES\), base 2020/);
 });
 
