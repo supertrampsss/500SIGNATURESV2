@@ -116,34 +116,20 @@ pour ne plus l'être.
 
 1. **Parité des mailles** : vérifier ce que la vue commune porte et que région,
    département et pays ne portent pas.
-2. **Simulateur — la dette rétroagit.** Ce qui est économisé réduit l'emprunt,
-   donc l'encours, donc la charge d'intérêts, donc le solde s'améliore au-delà
-   de l'économie elle-même. Conception arrêtée, à exécuter telle quelle :
-   - le taux est le **taux apparent** de la dette de l'État, calculé de deux
-     chiffres publiés — `etat_charge_dette` (ou `117-01 Dette` de l'arbre,
-     53 536 M€ au PLF 2025) divisé par `insee_dette_etat_montant`. Il est nommé
-     « taux apparent » dans l'affichage : ce n'est pas le taux marginal auquel
-     l'État emprunterait demain, et le confondre serait un chiffre faux ;
-   - l'effet vaut `amélioration du solde × taux apparent`, et porte sur
-     l'exercice **suivant** — un budget 2025 dont on coupe un milliard paie la
-     même charge de dette en 2025 ;
-   - il s'affiche donc sur **sa propre ligne**, « effet en année pleine,
-     exercice suivant », jamais fondu dans le solde de l'exercice réglé, qui
-     deviendrait faux ;
-   - le simulateur ne lit aujourd'hui que `simulateur/etat-<année>.json` :
-     l'encours vient de la fiche `pays`, il faut la lui passer.
-3. **Simulateur — descendre jusqu'aux associations.** Les bénéficiaires nommés
-   existent (`subventions/commune/*.json` : SIREN, objet, montant, programme).
-   Ils ne redonnent pas le total de leur programme : ils entrent comme tiroir
-   séparé, jamais comme décomposition.
-4. **Simulateur — la Sécurité sociale.** Le budget général de l'État ne pèse que
+2. **Simulateur — descendre jusqu'aux associations.** Les bénéficiaires nommés
+   existent, mais **par commune seulement** (`subventions/commune/*.json` :
+   SIREN, objet, montant, programme). Le simulateur est national : il faut
+   d'abord publier une agrégation par programme et par bénéficiaire — c'est un
+   chantier de pipeline, pas seulement d'interface. Ils ne redonnent pas le
+   total de leur programme : tiroir séparé, jamais décomposition.
+3. **Simulateur — la Sécurité sociale.** Le budget général de l'État ne pèse que
    594 Md€ sur ~1 670 Md€ de dépense publique. Chargé aujourd'hui : les
    prestations DREES (932 548 M€, six risques) et les soldes Eurostat en % du
    PIB. Manque le PLFSS ligne à ligne (ONDAM et sous-objectifs, recettes par
    nature) — connecteur à écrire.
-5. **Simulateur — collectivités locales** (données OFGL déjà chargées), puis
+4. **Simulateur — collectivités locales** (données OFGL déjà chargées), puis
    comptes spéciaux, budgets annexes et ODAC.
-6. **Simulateur — récapitulatif en comptabilité nationale.** État, Sécu et
+5. **Simulateur — récapitulatif en comptabilité nationale.** État, Sécu et
    collectivités **ne s'additionnent pas** : cadres comptables différents et
    transferts croisés massifs (TVA affectée, compensations d'exonérations). Le
    seul endroit qui a le droit de sommer les trois est un récapitulatif en
