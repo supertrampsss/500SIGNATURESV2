@@ -40,6 +40,10 @@ const FINE = " ";
 /** Les recettes qui font tourner les services : le dénominateur commun. */
 const RECETTES = "ofgl_recettes_fonctionnement";
 
+/** Le taux voté par le conseil municipal, publié par la DGFiP : ce qui, dans
+ *  le produit des impôts locaux, relève d'une décision locale. */
+const TAUX_FONCIER = "dgfip_taux_tfb_commune";
+
 export type Phrase = {
   /** Le texte, déjà écrit, sans balise. */
   texte: string;
@@ -52,6 +56,27 @@ export type Phrase = {
   saillance: number;
 };
 
+/**
+ * Où se tient le territoire parmi ses semblables, pour un indicateur et un
+ * exercice — tel que `comparaisons.json` le publie.
+ *
+ * `valeur` est celle du territoire ramenée à la base sur laquelle les quartiles
+ * ont été calculés (le plus souvent par habitant, avec la population de
+ * référence de l'OFGL de l'exercice). Comparer autre chose à ces quartiles
+ * mettrait deux grandeurs sur un seul axe.
+ */
+export type Repere = {
+  valeur: number;
+  q1: number;
+  mediane: number;
+  q3: number;
+  /** Nombre de communes du groupe : « 25 communes semblables » n'a pas le même
+   *  poids que « 8 982 ». */
+  n: number;
+  /** Les critères qui définissent le groupe, à afficher avec le résultat. */
+  criteres: string[];
+};
+
 export type Contexte = {
   mandat: Mandat;
   series: Record<string, Record<string, number>>;
@@ -61,6 +86,10 @@ export type Contexte = {
   population: number | null;
   /** Nom du territoire, pour les phrases qui le nomment. */
   nom: string;
+  /** Le groupe de communes semblables, quand la maille en a un. Absent au
+   *  département et à la région : ces mailles n'ont pas de strate publiée, et
+   *  les règles y retombent sur les seuils absolus. */
+  semblables?: (indicateur: string, exercice: string) => Repere | null;
 };
 
 type Sens = Phrase["sens"];
@@ -131,6 +160,26 @@ type Faits = {
   population: number | null;
   /** La valeur d'une série à un exercice, pour les clauses facultatives. */
   valeur: (id: string, exercice: string) => number | null;
+  /** Ce que le groupe de communes semblables a fait sur la même fenêtre, ou
+   *  null quand la maille n'a pas de groupe publié. */
+  groupe: Groupe | null;
+};
+
+/** La bande du groupe où se tient le territoire : les quartiles publiés la
+ *  découpent, rien d'autre. */
+type Bande = "bas" | "centre" | "haut";
+
+/** Ce que les communes semblables ont fait sur la fenêtre du mandat. */
+type Groupe = {
+  n: number;
+  criteres: string[];
+  /** Évolution de la médiane du groupe entre la référence et l'arrivée, en %. */
+  evolution: number;
+  /** La médiane du groupe à l'arrivée, sur la base des quartiles. */
+  mediane: number;
+  /** Où se tenait le territoire à la référence, où il se tient à l'arrivée. */
+  depart: Bande;
+  arrivee: Bande;
 };
 
 type Gabarit = {
@@ -212,6 +261,63 @@ function trajet(f: Faits, autonome: boolean): string {
 }
 
 /**
+ * Le cadre, ou le groupe quand il existe.
+ *
+ * Les prix et la population situent un chiffre faute de mieux. Les communes
+ * semblables le situent mieux : leur médiane a subi la même inflation, la même
+ * réforme de fiscalité et la même conjoncture, et ce qu'il en reste est propre
+ * au territoire. Quand le groupe est publié, il remplace donc le cadre — il ne
+ * s'y ajoute pas, une phrase ne porte pas deux repères.
+ */
+function repereDit(f: Faits): string {
+  if (!f.groupe) return cadre(f);
+  const { n, evolution } = f.groupe;
+  const semblables = `${new Intl.NumberFormat("fr-FR").format(n)} commune${n > 1 ? "s" : ""}`;
+  const mouvement =
+    Math.abs(evolution) < 0.05
+      ? "n'ont pas bougé en médiane"
+      : `ont ${sensDuVerbe(evolution, "gagné", "perdu")} ${part(Math.abs(evolution))} en médiane`;
+  return `, quand ses ${semblables} semblables ${mouvement}${positionDite(f)}`;
+}
+
+/** « dans le quart le plus haut de ses semblables », quand le territoire y est.
+ *  Une position, pas un classement : le groupe et son effectif sont dits. */
+function positionDite(f: Faits): string {
+  if (!f.groupe || f.groupe.arrivee === "centre") return "";
+  const ou = f.groupe.arrivee === "haut" ? "le plus haut" : "le plus bas";
+  return ` ; en ${f.arrivee} la commune est dans le quart ${ou} de son groupe, dont la`
+    + ` médiane est à ${montantOuNombre(f.groupe.mediane)}`;
+}
+
+/** La médiane d'un groupe est publiée par habitant : elle se lit en euros, pas
+ *  en millions. */
+function montantOuNombre(valeur: number): string {
+  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(valeur)}${FINE}€`
+    + " par habitant";
+}
+
+/**
+ * « quand les concours de l'État, qui la contiennent, passent de 136,5 M€ à
+ * 120,7 M€, soit −11,6 % ».
+ *
+ * Une composante qui s'effondre ne dit pas ce qu'a fait l'ensemble dont elle
+ * fait partie. Sur Paris, la dotation globale de fonctionnement tombe de
+ * 73,3 M€ à 0,12 M€ — l'écrêtement a fini par dépasser la dotation — tandis que
+ * les concours de l'État tiennent à 120,7 M€, les péréquations ayant doublé.
+ * Les deux chiffres sont publiés ; n'en écrire qu'un laissait conclure que
+ * l'État avait cessé de financer la capitale.
+ */
+function agregatContenant(f: Faits, id: string, libelle: string): string {
+  const debut = f.valeur(id, f.reference);
+  const fin = f.valeur(id, f.arrivee);
+  if (debut === null || fin === null || debut <= 0) return "";
+  return (
+    ` ; ${libelle}, qui la contiennent, passent de ${montant(debut)} à ${montant(fin)},`
+    + ` soit ${variation(((fin - debut) / debut) * 100)}`
+  );
+}
+
+/**
  * La table des gabarits.
  *
  * Chaque ligne est une phrase possible et rien de plus : elle ne décide ni de
@@ -259,7 +365,7 @@ const GABARITS: Gabarit[] = [
     texte: (f, autonome) =>
       `Les dépenses de fonctionnement, ce que la collectivité paie chaque année pour`
       + ` faire tourner ses services, passent ${trajet(f, autonome)}, soit`
-      + ` ${variation(f.ecart)}${autonome ? cadre(f) : ""}.`,
+      + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
     titre: (f) =>
       `${f.lieu}, les dépenses de fonctionnement ont ${sensDuVerbe(f.ecart, "augmenté", "reculé")}`
       + ` de ${part(Math.abs(f.ecart))} sur le mandat`,
@@ -279,7 +385,7 @@ const GABARITS: Gabarit[] = [
             + `, contre ${part((f.debut / depensesDebut) * 100)} en ${f.reference}`;
       return (
         `Les frais de personnel passent ${trajet(f, autonome)}, soit`
-        + ` ${variation(f.ecart)}${autonome ? cadre(f) : ""}${poids}.`
+        + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}${poids}.`
       );
     },
     titre: (f) =>
@@ -291,13 +397,24 @@ const GABARITS: Gabarit[] = [
     sujet: "financement",
     sensHausse: "neutre",
     cadre: true,
-    // Le total encaissé ne se décompose pas ici : la publication ne sépare pas
-    // ce qui vient des taux votés de ce qui vient des bases et du nombre de
-    // contribuables. La phrase le dit plutôt que de laisser conclure.
-    texte: (f, autonome) =>
-      `Ce que les impôts locaux rapportent passe ${trajet(f, autonome)}, soit`
-      + ` ${variation(f.ecart)}${autonome ? cadre(f) : ""} ; ce total ne dit pas ce qui vient`
-      + ` des taux votés et ce qui vient du nombre de contribuables.`,
+    // Le total encaissé monte pour deux raisons qui ne se confondent pas : le
+    // taux voté par le conseil, et la matière imposable. Le site publie le
+    // premier — c'est le taux communal de taxe foncière — et l'écrire répond à
+    // la question que le total pose, là où l'ancienne rédaction se contentait
+    // d'annoncer que le total ne la tranchait pas.
+    texte: (f, autonome) => {
+      const tauxDebut = f.valeur(TAUX_FONCIER, f.reference);
+      const tauxFin = f.valeur(TAUX_FONCIER, f.arrivee);
+      const vote =
+        tauxDebut === null || tauxFin === null
+          ? ""
+          : ` ; le taux communal de taxe foncière voté est passé de ${part(tauxDebut)} à`
+            + ` ${part(tauxFin)}`;
+      return (
+        `Ce que les impôts locaux rapportent passe ${trajet(f, autonome)}, soit`
+        + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}${vote}.`
+      );
+    },
     titre: (f) =>
       `${f.lieu}, ce que les impôts locaux rapportent a`
       + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} sur le mandat`,
@@ -321,7 +438,7 @@ const GABARITS: Gabarit[] = [
             + ` ${nombre(f.debut / epargneDebut)}${FINE}ans en ${f.reference}`;
       return (
         `L'encours de dette passe ${trajet(f, autonome)}, soit`
-        + ` ${variation(f.ecart)}${autonome ? cadre(f) : ""}${delai}.`
+        + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}${delai}.`
       );
     },
     titre: (f) =>
@@ -337,7 +454,7 @@ const GABARITS: Gabarit[] = [
     cadre: true,
     texte: (f, autonome) =>
       `Les dépenses d'équipement, les travaux et les achats durables de l'année, passent`
-      + ` ${trajet(f, autonome)}, soit ${variation(f.ecart)}${autonome ? cadre(f) : ""} ;`
+      + ` ${trajet(f, autonome)}, soit ${variation(f.ecart)}${autonome ? repereDit(f) : ""} ;`
       + ` une année d'investissement ne résume pas le mandat.`,
     titre: (f) =>
       `${f.lieu}, les dépenses d'équipement de l'année ont`
@@ -352,7 +469,7 @@ const GABARITS: Gabarit[] = [
     texte: (f, autonome) =>
       `Ce qui reste une fois les charges et le remboursement de la dette payés, et qui`
       + ` finance les investissements sans emprunter, passe ${trajet(f, autonome)}, soit`
-      + ` ${variation(f.ecart)}${autonome ? cadre(f) : ""}.`,
+      + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
     titre: (f) =>
       `${f.lieu}, ce qui reste pour investir sans emprunter a`
       + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} sur le mandat`,
@@ -382,7 +499,8 @@ const GABARITS: Gabarit[] = [
       // de financer la capitale. Le chiffre était juste, la phrase mentait.
       return (
         `La dotation globale de fonctionnement passe ${trajet(f, autonome)}, soit`
-        + ` ${variation(f.ecart)}${reel}.`
+        + ` ${variation(f.ecart)}${reel}`
+        + `${agregatContenant(f, "ofgl_concours_de_l_etat", "les concours de l'État")}.`
       );
     },
     titre: (f) =>
@@ -394,6 +512,36 @@ const GABARITS: Gabarit[] = [
           + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat sur le mandat`,
   },
 ];
+
+/** Dans quelle bande du groupe se tient le territoire : les quartiles publiés
+ *  la découpent, aucun seuil de notre main. */
+function bandeDe(repere: Repere): Bande {
+  if (repere.valeur < repere.q1) return "bas";
+  if (repere.valeur > repere.q3) return "haut";
+  return "centre";
+}
+
+/**
+ * Ce fait sort-il du lot ?
+ *
+ * Deux façons de sortir, l'une et l'autre lues dans les quartiles publiés du
+ * groupe et dans rien d'autre : se tenir hors de l'interquartile à l'arrivée —
+ * dans le quart le plus haut ou le plus bas de ses semblables — ou avoir changé
+ * de quart pendant le mandat. Aucun seuil n'est choisi ici : c'est la
+ * dispersion du groupe qui fixe la barre, et elle n'est pas la même d'un
+ * indicateur à l'autre.
+ *
+ * Le seuil absolu qu'elle remplace ne pouvait pas faire ce travail. Mesuré sur
+ * les 534 communes de la Gironde entre 2019 et 2025, l'écart d'une commune à
+ * l'évolution médiane de son groupe vaut 10 points en médiane sur les dépenses
+ * de fonctionnement et 75 sur les dépenses d'équipement : une barre unique
+ * laissait passer toutes les secondes et retenait presque aucune des premières.
+ * La règle des quarts retient 60 % des couples commune×règle et ne laisse que
+ * deux communes sur 534 sans aucun fait à raconter.
+ */
+function sortDuLot(groupe: Groupe): boolean {
+  return groupe.arrivee !== "centre" || groupe.arrivee !== groupe.depart;
+}
 
 /** La variation une fois les prix retirés, en %. */
 function pouvoirDAchat(f: Faits): number {
@@ -460,6 +608,19 @@ export function faits(contexte: Contexte): Fait[] {
     return typeof v === "number" && Number.isFinite(v) ? v : null;
   };
   const recettes = valeur(RECETTES, mandat.exerciceFin);
+  const groupeDe = (indicateur: string): Groupe | null => {
+    const depart = contexte.semblables?.(indicateur, mandat.exerciceReference!);
+    const arrivee = contexte.semblables?.(indicateur, mandat.exerciceFin!);
+    if (!depart || !arrivee || depart.mediane <= 0 || depart.valeur <= 0) return null;
+    return {
+      n: arrivee.n,
+      criteres: arrivee.criteres,
+      evolution: (arrivee.mediane / depart.mediane - 1) * 100,
+      mediane: arrivee.mediane,
+      depart: bandeDe(depart),
+      arrivee: bandeDe(arrivee),
+    };
+  };
 
   const retenus: Fait[] = [];
   for (const gabarit of GABARITS) {
@@ -471,6 +632,9 @@ export function faits(contexte: Contexte): Fait[] {
     let fin = brutFin;
     let ecart: number;
     let attendu = neutre;
+    // Le groupe ne sert pas les règles de structure : une part de recettes n'a
+    // pas de quartiles publiés, et il n'y a rien à comparer.
+    const groupe = gabarit.ratio ? null : groupeDe(gabarit.vers);
     if (gabarit.ratio) {
       const denDebut = valeur(gabarit.ratio, mandat.exerciceReference);
       const denFin = valeur(gabarit.ratio, mandat.exerciceFin);
@@ -487,10 +651,18 @@ export function faits(contexte: Contexte): Fait[] {
       // « +50 % » dirait le contraire. Ces cas ne produisent pas de phrase.
       if (debut <= 0) continue;
       ecart = ((fin - debut) / debut) * 100;
-      // Deux façons d'être remarquable : bouger beaucoup, ou s'écarter beaucoup
-      // de ce que les prix et la population imposaient. Une dotation stable en
-      // euros courants relève du second cas et vaut d'être dite.
-      if (Math.max(Math.abs(ecart), Math.abs(ecart - attendu)) < SEUIL_VARIATION) continue;
+      if (groupe) {
+        // Le groupe a subi la même inflation, la même réforme et la même
+        // conjoncture : ce qu'il a fait est l'attendu, et la démographie propre
+        // au territoire s'y ajoute puisque la médiane est publiée par habitant.
+        attendu =
+          ((1 + groupe.evolution / 100) * (1 + (contexte.population ?? 0) / 100) - 1) * 100;
+        if (!sortDuLot(groupe)) continue;
+      } else if (Math.max(Math.abs(ecart), Math.abs(ecart - attendu)) < SEUIL_VARIATION) {
+        // Sans groupe — département, région — la barre reste absolue : bouger
+        // beaucoup, ou s'écarter de ce que les prix et la population imposaient.
+        continue;
+      }
     }
 
     const f: Faits = {
@@ -503,6 +675,7 @@ export function faits(contexte: Contexte): Fait[] {
       inflation: contexte.inflation,
       population: contexte.population,
       valeur,
+      groupe,
     };
 
     // Les euros que la ligne a déplacés par rapport à l'évolution mécanique.

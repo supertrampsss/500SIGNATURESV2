@@ -27,7 +27,7 @@ import { mandatEnCours, mandatRaconte, type Mandat } from "./mandat.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { recit, type Recit } from "./recit.ts";
-import { verdict, type Contexte, type Phrase } from "./verdict.ts";
+import { verdict, type Contexte, type Phrase, type Repere } from "./verdict.ts";
 import { reperes, type References } from "./reference.ts";
 import { traduire } from "./traductions.ts";
 import {
@@ -1833,6 +1833,11 @@ export function afficherFiche(
     /** Absent des publications antérieures aux repères : la fiche s'affiche
      *  alors sans eux, plutôt que de refuser de s'afficher. */
     references?: References | null;
+    /** Où se tient la commune parmi ses semblables, indicateur par indicateur
+     *  et exercice par exercice — la cascade de `comparaisons.json`. C'est ce
+     *  qui décide quels faits du mandat sortent du lot. Absent au département
+     *  et à la région, qui n'ont pas de strate publiée. */
+    semblables?: (indicateur: string, exercice: string) => Repere | null;
     /** Cet indicateur a-t-il une couche à peindre ? Sans ce prédicat, aucune
      *  mesure ne propose la carte — c'est le repli sûr. */
     peintSurCarte?: (indicateur: Indicateur) => boolean;
@@ -2046,6 +2051,7 @@ export function afficherFiche(
           raconte.exerciceFin,
         ),
         nom: territoire.nom,
+        semblables: options.semblables,
       }
     : null;
   const histoire = contexte ? recit(contexte) : null;

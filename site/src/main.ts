@@ -952,9 +952,34 @@ async function montrerFiche(code: string): Promise<void> {
       ? { position: position + 1, total: classement.length }
       : undefined;
 
+  // Le récit de mandat ne retient un fait que s'il sort du lot : c'est la
+  // cascade de groupes qui le dit, indicateur par indicateur et exercice par
+  // exercice, et non un seuil absolu identique pour toutes les communes.
+  const strates = groupes;
+  const semblables =
+    niveau === "commune" && strates
+      ? (indicateur: string, exercice: string) => {
+          const dans = groupeDeLaCommune(
+            territoire,
+            strates.groupes[indicateur]?.[exercice],
+            strates.cascade ?? [strates.criteres],
+          );
+          const valeur = valeurComparable(
+            territoire,
+            indicateur,
+            exercice,
+            strates.bases?.[indicateur],
+          );
+          return dans && valeur !== undefined
+            ? { valeur, ...dans.quartiles, criteres: dans.criteres }
+            : null;
+        }
+      : undefined;
+
   afficherFiche($("fiche"), {
     niveau,
     territoire,
+    semblables,
     principal: etat.indicateur,
     rang,
     comparaison: groupes

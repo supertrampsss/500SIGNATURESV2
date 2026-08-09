@@ -39,6 +39,10 @@ const BORDEAUX: Record<string, Record<string, number>> = {
   ofgl_epargne_nette: { "2019": 32_521_814, "2025": 14_392_071 },
   ofgl_depenses_d_equipement: { "2019": 56_355_924, "2025": 109_850_176 },
   ofgl_dotation_globale_de_fonctionnement: { "2019": 37_287_230, "2025": 36_477_848 },
+  ofgl_concours_de_l_etat: { "2019": 71_549_412, "2025": 74_884_030 },
+  // Le taux voté par le conseil : ce qui, dans le produit des impôts locaux,
+  // relève d'une décision locale.
+  dgfip_taux_tfb_commune: { "2019": 27.66, "2025": 29.14 },
 };
 
 function contexte(sur: Partial<Contexte> = {}): Contexte {
@@ -70,8 +74,8 @@ test("le titre de Bordeaux porte le fait le plus lourd, et le paragraphe le chif
       + ` 5,0${FINE}% ; au rythme de ce que la collectivité met de côté chaque année, il`
       + ` faudrait 8,6${FINE}ans pour la rembourser, contre 4,4${FINE}ans en 2019.`
       + ` Ce que les impôts locaux rapportent passe de 195,2${FINE}M€ à 254,0${FINE}M€, soit`
-      + ` +30,1${FINE}% ; ce total ne dit pas ce qui vient des taux votés et ce qui vient du`
-      + ` nombre de contribuables.`
+      + ` +30,1${FINE}% ; le taux communal de taxe foncière voté est passé de`
+      + ` 27,7${FINE}% à 29,1${FINE}%.`
       + ` Les dépenses de fonctionnement, ce que la collectivité paie chaque année pour faire`
       + ` tourner ses services, passent de 294,1${FINE}M€ à 369,0${FINE}M€, soit`
       + ` +25,5${FINE}%.`,

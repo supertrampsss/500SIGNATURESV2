@@ -407,3 +407,111 @@ test("la DGF est nommée pour ce qu'elle est, jamais « ce que l'État verse »"
     );
   }
 });
+
+/* --------------------------------------------------------------------------
+ * Le groupe de communes semblables : ce qui décroche, pas ce qui franchit
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Les quartiles réellement publiés pour Bordeaux dans `comparaisons.json`,
+ * groupe « 0: » de la cascade, 25 communes semblables, par habitant.
+ *
+ * Ils disent trois choses différentes, et c'est tout l'intérêt : la dette sort
+ * du groupe pendant le mandat, les dépenses de fonctionnement y restent d'un
+ * bout à l'autre, la dotation globale de fonctionnement est sous le premier
+ * quartile aux deux dates.
+ */
+const QUARTILES: Record<string, Record<string, { q1: number; mediane: number; q3: number }>> = {
+  ofgl_encours_dette: {
+    "2019": { q1: 693.8, mediane: 950.3, q3: 1458.4 },
+    "2025": { q1: 911.7, mediane: 1148.7, q3: 1491.0 },
+  },
+  ofgl_depenses_fonctionnement: {
+    "2019": { q1: 1036.6, mediane: 1154.0, q3: 1221.1 },
+    "2025": { q1: 1178.9, mediane: 1357.7, q3: 1434.6 },
+  },
+  ofgl_dotation_globale_de_fonctionnement: {
+    "2019": { q1: 207.4, mediane: 235.5, q3: 269.1 },
+    "2025": { q1: 199.8, mediane: 237.9, q3: 285.1 },
+  },
+  ofgl_impots_locaux: {
+    "2019": { q1: 648.5, mediane: 762.3, q3: 820.8 },
+    "2025": { q1: 792.8, mediane: 892.7, q3: 1003.6 },
+  },
+};
+
+function semblables(indicateur: string, exercice: string) {
+  const quartiles = QUARTILES[indicateur]?.[exercice];
+  const brut = BORDEAUX[indicateur]?.[exercice];
+  const habitants = BORDEAUX["ofgl_population_reference"]?.[exercice];
+  if (!quartiles || brut === undefined || !habitants) return null;
+  return { valeur: brut / habitants, ...quartiles, n: 25, criteres: ["tranche_population"] };
+}
+
+const AVEC_GROUPE: Contexte = { ...bordeaux(), semblables };
+
+test("un fait n'entre que s'il sort du lot de ses semblables", () => {
+  const retenus = faitsRetenus(AVEC_GROUPE, 6).map((f) => f.vers);
+  // La dette passe du centre du groupe au quart le plus haut : elle décroche.
+  assert.ok(retenus.includes("ofgl_encours_dette"));
+  // La dotation globale de fonctionnement est sous le premier quartile aux deux
+  // dates : Bordeaux en reçoit nettement moins que ses semblables, et ça se dit.
+  assert.ok(retenus.includes("ofgl_dotation_globale_de_fonctionnement"));
+  // Les dépenses de fonctionnement font +25,5 %, au-dessus du seuil absolu de
+  // dix points — mais elles restent dans la moitié centrale du groupe d'un bout
+  // à l'autre. Elles ne disent donc rien de propre à Bordeaux.
+  assert.ok(!retenus.includes("ofgl_depenses_fonctionnement"));
+});
+
+test("sans groupe publié, la barre absolue reprend la main", () => {
+  // Un département n'a pas de strate : la sélection ne peut pas être relative,
+  // et se taire serait pire que de retomber sur le seuil mesuré.
+  const retenus = faitsRetenus(bordeaux(), 6).map((f) => f.vers);
+  assert.ok(retenus.includes("ofgl_depenses_fonctionnement"));
+});
+
+test("la phrase cite le groupe, son effectif et sa médiane", () => {
+  const phrase = verdict(AVEC_GROUPE, 6)[0].texte;
+  assert.match(phrase, /25 communes semblables/);
+  // Le repère du groupe remplace les prix et la population : un seul repère
+  // par phrase, et celui-là contient déjà l'inflation.
+  assert.doesNotMatch(phrase, /les prix ont monté/);
+  // Aucun jugement : une position et des nombres publiés.
+  assert.match(phrase, /quart le plus haut/);
+  assert.match(phrase, /par habitant/);
+});
+
+test("une composante qui s'effondre se dit avec l'agrégat qui la contient", () => {
+  // Le cas de Paris, réduit à ses termes : la dotation globale de
+  // fonctionnement s'effondre quand les concours de l'État tiennent. Écrire la
+  // première sans le second laissait conclure que l'État s'était retiré.
+  const paris: Contexte = {
+    ...bordeaux({
+      ...BORDEAUX,
+      ofgl_dotation_globale_de_fonctionnement: { "2019": 73_300_000, "2025": 120_000 },
+      ofgl_concours_de_l_etat: { "2019": 136_500_000, "2025": 120_700_000 },
+    }),
+    nom: "Paris",
+  };
+  const dgf = verdict(paris, 8).find((p) => p.vers === "ofgl_dotation_globale_de_fonctionnement");
+  assert.ok(dgf, "la dotation doit produire une phrase");
+  assert.match(dgf.texte, /concours de l'État, qui la contiennent/);
+  assert.match(dgf.texte, new RegExp(`136,5${FINE}M€`));
+  assert.match(dgf.texte, new RegExp(`120,7${FINE}M€`));
+  assert.match(dgf.texte, new RegExp(`−11,6${FINE}%`));
+});
+
+test("le produit des impôts locaux dit le taux voté, pas ce qu'il ignore", () => {
+  // « Ce total ne dit pas ce qui vient des taux votés » s'excusait d'un chiffre
+  // que le site publie : le taux communal de taxe foncière de la DGFiP.
+  const avecTaux = bordeaux({
+    ...BORDEAUX,
+    dgfip_taux_tfb_commune: { "2019": 27.66, "2025": 29.14 },
+  });
+  const phrase = verdict(avecTaux, 8).find(
+    (p) => p.vers === "ofgl_impots_locaux" && p.texte.startsWith("Ce que"),
+  );
+  assert.ok(phrase);
+  assert.match(phrase.texte, /le taux communal de taxe foncière voté est passé/);
+  assert.doesNotMatch(phrase.texte, /ne dit pas/);
+});
