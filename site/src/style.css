@@ -4760,3 +4760,42 @@ summary.pont__rangee,
   white-space: nowrap;
   padding: var(--espace-4) 0;
 }
+
+/* Le tiroir des bénéficiaires : sous la ligne du programme, en retrait, et
+   visiblement à part — ce n'est pas une branche de l'arbre budgétaire, c'est
+   une liste qui ne le décompose pas. */
+.simu__beneficiaires {
+  margin: 0 0 var(--espace-3) var(--espace-7);
+  padding: 0 0 0 var(--espace-4);
+  border-left: 2px solid var(--trait);
+  font-size: var(--texte-s);
+}
+.simu__beneficiaires summary {
+  cursor: pointer;
+  color: var(--encre-douce);
+  padding: var(--espace-2) 0;
+}
+.simu__beneficiaires-compte {
+  display: block;
+  font-size: var(--texte-xs);
+}
+.simu__beneficiaires-note {
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  margin: 0 0 var(--espace-3);
+}
+.simu__beneficiaires-liste {
+  margin: 0 0 var(--espace-3);
+  padding: 0 0 0 var(--espace-5);
+}
+.simu__beneficiaires-liste li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 var(--espace-4);
+  padding: var(--espace-1) 0;
+}
+.simu__beneficiaire-objet {
+  grid-column: 1;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}

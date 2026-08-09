@@ -20,6 +20,7 @@ import {
   exercicesPublies,
   perimetre,
   rendu,
+  renduBeneficiaires,
   renduCockpit,
   renduDefis,
   renduDepenses,
@@ -431,4 +432,35 @@ test("une économie allège les intérêts, mais l'exercice d'après", () => {
 test("sans taux publié, aucune ligne d'effet plutôt qu'un taux supposé", () => {
   const html = renduCockpit(BUDGET, INDEX, reglages(["140", -20]));
   assert.doesNotMatch(html, /Effet en année pleine/);
+});
+
+test("le tiroir des bénéficiaires ne prétend jamais décomposer le programme", () => {
+  const subventions = {
+    exercice: "2023",
+    plafond: 2,
+    programmes: {
+      "163": {
+        libelle: "Jeunesse et vie associative",
+        mission: "Sport, jeunesse et vie associative",
+        declare: 701_000,
+        beneficiaires_total: 3,
+        beneficiaires: [
+          { siren: "111", nom: "GRANDE ASSO", objet: "Fonctionnement", montant: 500_000 },
+          { siren: "222", nom: "AUTRE ASSO", objet: null, montant: 200_000 },
+        ],
+      },
+    },
+  };
+  const html = renduBeneficiaires("163", subventions);
+  assert.match(html, /Qui touche ces subventions/);
+  assert.match(html, /3 bénéficiaires nommés/);
+  assert.match(html, /GRANDE ASSO/);
+  // Le compte dit ce que la liste bornée ne montre pas.
+  assert.match(html, /1 autres bénéficiaires ne le sont pas/);
+  // Et surtout : aucune part du programme, aucune prétention à le décomposer.
+  assert.match(html, /ne sont pas la décomposition/);
+  assert.doesNotMatch(html, /% du programme/);
+  // Un programme sans subvention déclarée n'ouvre pas de tiroir vide.
+  assert.equal(renduBeneficiaires("999", subventions), "");
+  assert.equal(renduBeneficiaires("163", null), "");
 });

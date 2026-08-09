@@ -2134,6 +2134,8 @@ async function ouvrirSimulateur(): Promise<void> {
     const index = indexer(budget);
     afficherSimulateur($("simu"), budget, index, {
       tauxApparent: await tauxApparentDeLaDette(),
+      // Publication antérieure au fichier : aucun tiroir, pas d'échec.
+      subventions: await donnees.subventionsParProgramme().catch(() => null),
       reglages: decoder(etat.budget, index),
       surReglages: (encode) => {
         etat.budget = encode;

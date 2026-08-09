@@ -258,6 +258,25 @@ export const simulateurIndex = () => lire<unknown>("simulateur/index.json");
 export const simulateurBudget = (exercice: string) =>
   lire<import("./simulateur.ts").Budget>(`simulateur/etat-${exercice}.json`);
 
+/** Les bénéficiaires nommés d'un programme budgétaire. Absent des publications
+ *  antérieures : le tiroir ne s'ouvre alors pas, plutôt que d'échouer. */
+export type SubventionsProgramme = {
+  exercice: string;
+  plafond: number;
+  programmes: Record<
+    string,
+    {
+      libelle: string;
+      mission: string;
+      declare: number;
+      beneficiaires_total: number;
+      beneficiaires: { siren: string; nom: string; objet: string | null; montant: number }[];
+    }
+  >;
+};
+export const subventionsParProgramme = () =>
+  lire<SubventionsProgramme>("subventions/programme.json");
+
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const depensesFiscales = () => lire<DepensesFiscales>("depenses-fiscales.json");

@@ -29,6 +29,13 @@
  */
 
 import { formater } from "./echelle.ts";
+import type { SubventionsProgramme } from "./donnees.ts";
+
+/** Les bénéficiaires nommés, posés une fois par `afficherSimulateur`. Le dépli
+ *  d'une branche rend des lignes bien après le premier rendu : leur passer le
+ *  fichier de main en main traverserait six signatures pour un fichier qui ne
+ *  change jamais pendant la vie de la page. */
+let subventionsPubliees: SubventionsProgramme | null = null;
 import { echapper } from "./texte.ts";
 import {
   chercher,
@@ -152,7 +159,51 @@ function commandes(entree: Entree, pourcentage: number): string {
  * Le conteneur d'enfants est posé vide et masqué : c'est lui qui rend le
  * dépliage à la demande possible sans que l'appelant ait à connaître l'arbre.
  */
-export function renduLigne(entree: Entree, reglages: Reglages): string {
+/**
+ * Qui touche les subventions d'un programme.
+ *
+ * Un tiroir, jamais une décomposition : les versements nominatifs déclarés ne
+ * redonnent pas les crédits du programme — le jaune budgétaire ne les couvre pas
+ * tous, et un programme finance bien autre chose que des associations. Le
+ * résumé dit donc ce qui est déclaré et combien de bénéficiaires, sans jamais
+ * en tirer une part du programme.
+ */
+export function renduBeneficiaires(
+  code: string,
+  subventions: SubventionsProgramme | null,
+): string {
+  const p = subventions?.programmes?.[code];
+  if (!p || !p.beneficiaires.length) return "";
+  const montres = p.beneficiaires.length;
+  const reste = p.beneficiaires_total - montres;
+  return `<details class="simu__beneficiaires" data-beneficiaires="${echapper(code)}">
+    <summary>Qui touche ces subventions ?<span class="simu__beneficiaires-compte">${
+      p.beneficiaires_total
+    } bénéficiaires nommés, ${euros(p.declare)} déclarés en ${echapper(subventions.exercice)}
+    </span></summary>
+    <p class="simu__beneficiaires-note">Subventions aux associations déclarées au jaune
+      budgétaire, à l'adresse du siège du bénéficiaire. Elles ne sont pas la décomposition
+      du programme : elles n'en couvrent qu'une partie, et ce programme finance aussi
+      autre chose.</p>
+    <ol class="simu__beneficiaires-liste">${p.beneficiaires
+      .map(
+        (b) => `<li><span class="simu__beneficiaire-nom">${echapper(b.nom)}</span>${
+          b.objet ? `<span class="simu__beneficiaire-objet">${echapper(b.objet)}</span>` : ""
+        }<span class="nombre">${euros(b.montant)}</span></li>`,
+      )
+      .join("")}</ol>${
+    reste > 0
+      ? `<p class="simu__beneficiaires-note">Les ${montres} plus gros sont montrés ;
+         ${reste} autres bénéficiaires ne le sont pas.</p>`
+      : ""
+  }</details>`;
+}
+
+export function renduLigne(
+  entree: Entree,
+  reglages: Reglages,
+  subventions: SubventionsProgramme | null = subventionsPubliees,
+): string {
   const code = echapper(entree.code);
   const pourcentage = reglages.get(entree.code) ?? 0;
   const { montant, delta, surSolde } = impact(entree, reglages);
@@ -181,7 +232,7 @@ export function renduLigne(entree: Entree, reglages: Reglages): string {
     <span class="simu__delta nombre${classeEcart(surSolde)}">${
       delta === 0 ? "" : eurosSigne(delta)
     }</span>
-  </div>${
+  </div>${renduBeneficiaires(entree.code, subventions)}${
     enfants ? `<div class="simu__enfants" data-enfants="${code}" hidden></div>` : ""
   }`;
 }
@@ -466,12 +517,16 @@ type Options = {
   /** Charge de la dette de l'État rapportée à son encours, tous deux publiés.
    *  Absent : la ligne d'effet sur l'exercice suivant ne s'affiche pas. */
   tauxApparent?: number;
+  /** Les bénéficiaires nommés par programme. Absent des publications
+   *  antérieures : aucun tiroir ne s'ouvre. */
+  subventions?: SubventionsProgramme | null;
 };
 
 export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Index, options: Options): void {
   const { reglages, surReglages } = options;
   const $ = <T extends HTMLElement>(id: string) => bloc.querySelector<T>(`#${id}`)!;
 
+  subventionsPubliees = options.subventions ?? null;
   bloc.innerHTML = rendu(budget, index, reglages, options.tauxApparent);
 
   const cockpit = $("simu-cockpit");
