@@ -57,8 +57,8 @@ def test_le_schema_s_applique_deux_fois_sans_erreur(tmp_path):
         """select count(*) from information_schema.tables
            where table_schema in ('meta','geo','core','fin')"""
     ).fetchone()[0]
-    # 17 tables du modèle, plus la table d'empreinte du schéma.
-    assert tables == 18
+    # 18 tables du modèle, plus la table d'empreinte du schéma.
+    assert tables == 19
     connexion.close()
 
 

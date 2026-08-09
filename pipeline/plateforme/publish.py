@@ -587,6 +587,96 @@ def depenses_fiscales(conn) -> dict:
     }
 
 
+def _montant_publie(valeur) -> float | int:
+    """Un euro entier s'écrit sans décimale : deux octets de moins par nœud, et
+    mille lignes de moins à lire quand on ouvre le fichier à la main."""
+    montant = round(float(valeur), 2)
+    return int(montant) if montant == int(montant) else montant
+
+
+def simulateur(conn) -> dict[str, dict]:
+    """Le budget de l'État réglable ligne à ligne : un fichier par exercice.
+
+    L'arbre est reconstruit depuis `fin.state_budget_detail`, où il est porté par
+    `parent_code` : une feuille est un nœud que personne ne réclame comme parent,
+    à n'importe quelle profondeur — une action sans sous-action en est une, comme
+    une sous-action. C'est ce qui distingue une feuille dans le fichier publié,
+    pas son niveau.
+
+    Le tri est par montant décroissant à chaque étage. Ce n'est pas un détail
+    d'affichage : une nomenclature triée par code met « Action extérieure de
+    l'État » devant « Enseignement scolaire », et le lecteur qui cherche où sont
+    les masses ouvre trente missions avant d'en trouver une qui pèse.
+
+    Les groupes de recettes sortent dans l'ordre du barème : ce qui s'ajoute
+    d'abord, ce qui se retranche ensuite, chaque bloc du plus lourd au plus léger.
+    """
+    exercices: dict[str, dict] = {}
+    # La clé porte le côté du budget : les codes de mission (« RD ») et les codes
+    # de famille de recettes (« RF ») viennent de deux nomenclatures qui ne se
+    # sont jamais parlé, et rien n'interdit qu'elles se croisent un jour. Sans le
+    # côté dans la clé, les lignes d'une famille tomberaient sous une mission.
+    enfants: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    racines: dict[str, list[dict]] = defaultdict(list)
+    tous: list[tuple[str, str, dict]] = []
+    groupes: dict[tuple[str, str], dict] = {}
+    for annee, loi, cote, niveau, code, parent, libelle, montant, signe, mesure, devise in (
+        conn.execute(
+            """
+            select fiscal_year, law, side, node_level, code, parent_code, label,
+                   amount, sign, measure, currency
+            from fin.state_budget_detail order by fiscal_year, side, code
+            """
+        ).fetchall()
+    ):
+        exercice = str(annee)
+        if niveau == "famille":
+            groupes[(exercice, code)] = {
+                "t": libelle, "signe": int(signe), "lignes": [],
+                "poids": _montant_publie(montant),
+            }
+            continue
+        noeud = {"c": code, "l": libelle, "v": _montant_publie(montant)}
+        if cote == "recette":
+            enfants[(exercice, cote, parent)].append(noeud)
+            continue
+        exercices.setdefault(
+            exercice, {"exercice": exercice, "loi": loi, "mesure": mesure, "unite": devise}
+        )
+        tous.append((exercice, code, noeud))
+        if parent:
+            enfants[(exercice, cote, parent)].append(noeud)
+        else:
+            racines[exercice].append(noeud)
+
+    def par_valeur(noeud: dict) -> float:
+        return -noeud["v"]
+
+    for exercice, code, noeud in tous:
+        lignes = enfants.get((exercice, "depense", code))
+        if lignes:
+            noeud["enfants"] = sorted(lignes, key=par_valeur)
+    recettes: dict[str, list[dict]] = defaultdict(list)
+    for (exercice, code), groupe in sorted(
+        groupes.items(), key=lambda item: (-item[1]["signe"], -item[1]["poids"])
+    ):
+        recettes[exercice].append(
+            {
+                "t": groupe["t"],
+                "signe": groupe["signe"],
+                "lignes": sorted(enfants.get((exercice, "recette", code), []), key=par_valeur),
+            }
+        )
+    return {
+        exercice: {
+            **budget,
+            "depenses": sorted(racines[exercice], key=par_valeur),
+            "recettes": recettes[exercice],
+        }
+        for exercice, budget in sorted(exercices.items())
+    }
+
+
 def fraicheur(conn) -> list[dict]:
     """État public de chaque jeu : dernière mise à jour, retard, contrôles.
 
@@ -1172,6 +1262,68 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
     }
 
 
+# Le dénominateur des cartes « par habitant » : la population de référence de
+# l'exercice, publiée par l'OFGL avec les comptes qu'elle divise. Elle change
+# d'un exercice à l'autre — une dépense de 2022 se rapporte aux habitants de
+# 2022 — et c'est ce qui oblige l'index à porter une valeur par période.
+DENOMINATEUR = "ofgl_population_reference"
+
+
+def index_territoires(conn, niveau: str, entites: dict[str, dict], valeurs: dict) -> dict:
+    """L'index léger d'une maille : de quoi peindre et classer, sans les séries.
+
+    Peindre une couche « par habitant » ne demande que deux choses par
+    territoire : son **nom** — colonne du tableau, infobulle, étiquette — et sa
+    **population de référence** pour l'exercice affiché, qui est le
+    dénominateur. Le site allait les chercher dans les fiches : cent un fichiers
+    départementaux, plusieurs centaines de mégaoctets de séries complètes,
+    téléchargés et analysés pour en extraire deux champs. Les fiches restent ce
+    qu'elles sont — un lot par département, chargé quand on ouvre un
+    territoire — mais la carte n'en dépend plus.
+
+    Format colonnaire : un tableau par champ, tous rangés dans l'ordre de
+    `codes`. Répéter les noms de clés 34 875 fois coûtait un mégaoctet pour ne
+    rien dire de plus, et le lecteur d'un fichier tabulaire lit des colonnes.
+
+    Ce que porte l'en-tête, parce qu'aucun chiffre ne se publie sans :
+    - `denominateur` : l'indicateur dont viennent les populations de référence,
+      décrit dans `indicateurs.json` (source, définition, licence) ;
+    - `periodes` : les millésimes de ce dénominateur, dans l'ordre des valeurs
+      de `population_reference` ;
+    - `unite` : des habitants, pour les deux populations ;
+    - `millesime_geographique` : le millésime du référentiel INSEE d'où sortent
+      les noms, les rattachements et la population municipale.
+    """
+    (millesime,) = conn.execute(
+        "select max(vintage) from geo.geography_reference where geo_level = ?",
+        (niveau,),
+    ).fetchone()
+    reference = valeurs.get(DENOMINATEUR, {})
+    periodes = sorted(reference)
+    codes = sorted(entites)
+
+    def compter(valeur):
+        # Un effectif s'écrit en entier : « 785.0 » coûte deux octets de plus
+        # que « 785 », trente-quatre mille fois par période.
+        if valeur is None:
+            return None
+        return int(valeur) if float(valeur).is_integer() else valeur
+
+    return {
+        "denominateur": DENOMINATEUR,
+        "periodes": periodes,
+        "unite": "habitants",
+        "millesime_geographique": millesime,
+        "codes": codes,
+        "noms": [entites[code]["nom"] for code in codes],
+        "parents": [entites[code]["parent"] for code in codes],
+        "population_municipale": [compter(entites[code]["population"]) for code in codes],
+        "population_reference": [
+            [compter(reference[periode].get(code)) for periode in periodes] for code in codes
+        ],
+    }
+
+
 # Perte au-delà de laquelle une publication est refusée. Un chargement partiel
 # retire toujours quelques indicateurs — un producteur qui décale un millésime,
 # une classe sous secret statistique — mais pas le cinquième du catalogue.
@@ -1318,6 +1470,12 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
         for lot, contenu in groupes.items():
             deposer(f"territoires/{niveau}/{lot}.json", contenu)
 
+        # L'index de la maille, après les lots dont il est l'extrait : noms et
+        # dénominateurs seuls, pour que peindre une carte ne demande plus de
+        # télécharger les séries de tous les territoires de France.
+        index = index_territoires(conn, niveau, entites, valeurs)
+        deposer(f"territoires/{niveau}/index.json", index)
+
     # Le catalogue est déposé après la boucle : il annonce les périodes dont la
     # couche a réellement été écrite.
     deposer("indicateurs.json", indicateurs(conn, cartographiees))
@@ -1325,6 +1483,14 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
     deposer("depenses-fiscales.json", depenses_fiscales(conn))
+    # Un fichier par exercice : le simulateur en ouvre un seul à la fois, et le
+    # plus récent (105 Ko compacts pour 2025) est déjà à la limite de ce qu'on
+    # peut demander à un téléphone. L'index dit lesquels existent, du plus récent
+    # au plus ancien : c'est lui que le site lit d'abord.
+    budgets = simulateur(conn)
+    for exercice, budget in budgets.items():
+        deposer(f"simulateur/etat-{exercice}.json", budget)
+    deposer("simulateur/index.json", sorted(budgets, reverse=True))
     deposer("agregats-nationaux.json", methode_nationale)
     for lot, contenu in subventions_nominatives(conn).items():
         deposer(f"subventions/commune/{lot}.json", contenu)

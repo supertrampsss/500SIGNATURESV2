@@ -4,8 +4,7 @@
  * d'accessibilité priment sur l'esthétique (docs/04).
  */
 
-/* ==========================================================================
-   DÉCISIONS DE SYSTÈME — assumées, pas oubliées (audit front, points 22 et 23)
+/* ===================================================================   DÉCISIONS DE SYSTÈME — assumées, pas oubliées (audit front, points 22 et 23)
    ==========================================================================
 
    1. PAS DE MODE SOMBRE. Ce site est un papier institutionnel unique : encre
@@ -103,6 +102,11 @@
      qu'elle sert de hauteur de rangée, de hauteur de barre et de zone de
      frappe étendue — trois endroits qui doivent bouger ensemble. */
   --cible: 2.75rem;
+  /* Hauteur de la barre d'en-tête, qui est collante. Nommée parce qu'un second
+     bandeau collant (le cockpit du simulateur) doit s'arrêter dessous : à
+     `top: 0` il passait derrière elle et les quatre compteurs disparaissaient
+     au premier défilement. */
+  --haut-entete: 3.6rem;
   --rayon-pilule: 999px;
   --rayon: 12px;
   --rayon-s: 8px;
@@ -270,7 +274,7 @@ body {
   align-items: center;
   gap: 1.25rem;
   padding: 0 var(--espace-7);
-  min-height: 3.6rem;
+  min-height: var(--haut-entete);
   background: var(--papier);
   border-bottom: 1px solid var(--trait);
   position: sticky;
@@ -461,27 +465,6 @@ summary:focus-visible,
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
   box-shadow: var(--ombre-2);
-}
-.surcouche--commandes {
-  top: 0.9rem;
-  left: 0.9rem;
-  width: 17.5rem;
-  max-height: calc(100% - 2rem);
-  overflow-y: auto;
-  padding: var(--espace-5) var(--espace-6);
-  scrollbar-width: thin;
-}
-.surcouche--commandes .champ {
-  flex: 1 1 100%;
-}
-.surcouche--commandes .champ--demi {
-  flex: 1 1 42%;
-}
-.surcouche--commandes select {
-  min-width: 0;
-  width: 100%;
-  font-size: var(--texte-m);
-  padding: var(--espace-3) var(--espace-8) var(--espace-3) var(--espace-4);
 }
 /* La légende, repliée : une pastille de couleurs collée au bord gauche de la
    carte. Ouverte en permanence, elle occupait le quart de l'écran pour une
@@ -695,35 +678,6 @@ summary:focus-visible,
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--encre-douce);
-}
-.palmares__liste {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.palmares__liste button {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.8rem;
-  background: none;
-  border: 0;
-  font: inherit;
-  font-size: var(--texte-m);
-  padding: var(--espace-2) var(--espace-3);
-  cursor: pointer;
-  border-radius: var(--rayon-s);
-  text-align: left;
-  transition: background var(--transition);
-}
-.palmares__liste button:hover {
-  background: var(--accent-teinte);
-}
-.palmares__liste strong {
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  white-space: nowrap;
 }
 
 .surcouche--legende .legende__titre {
@@ -1049,20 +1003,6 @@ tbody tr:hover {
 }
 
 @media (max-width: 60rem) {
-  /* Écran étroit : les commandes deviennent une grille compacte en haut de la
-     carte, la fiche un tiroir qui monte du bas quand un territoire est choisi
-     — la carte reste visible derrière, on ne quitte jamais la page. */
-  .surcouche--commandes {
-    left: 0.6rem;
-    right: 0.6rem;
-    top: 0.6rem;
-    width: auto;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.45rem;
-    max-height: 40%;
-    padding: var(--espace-4);
-  }
   /* Le tiroir monte du bas. Sans sélection il montre la France, mais plus
      bas : la carte doit rester manœuvrable, c'est par elle qu'on choisit.
      Sa hauteur est une variable, parce qu'on la fait glisser. */
@@ -1160,9 +1100,6 @@ tbody tr:hover {
     min-width: 0;
     width: 100%;
   }
-  .surcouche--commandes .champ label {
-    font-size: var(--texte-xs);
-  }
   .tableau,
   .national {
     padding: var(--espace-6);
@@ -1177,11 +1114,35 @@ tbody tr:hover {
   .entete h1 {
     font-size: var(--texte-l);
   }
+  /* Quatre entrées demandent 265 px là où il en reste 191 : la barre défile
+     dans son propre cadre plutôt que d'élargir la page — même règle que les
+     tableaux larges ci-dessus, même dégradé collant que les onglets de thème
+     pour dire qu'il en reste à droite. L'entrée courante est ramenée sous les
+     yeux par `basculerVue`. */
   .entete__nav {
     gap: 0.1rem;
     font-size: var(--texte-xs);
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    scroll-snap-type: x proximity;
+    overscroll-behavior-x: contain;
+  }
+  .entete__nav::-webkit-scrollbar {
+    display: none;
+  }
+  .entete__nav::after {
+    content: "";
+    position: sticky;
+    right: 0;
+    flex: 0 0 1rem;
+    margin-left: -1rem;
+    align-self: stretch;
+    pointer-events: none;
+    background: linear-gradient(to left, var(--papier), rgb(255 255 255 / 0));
   }
   .entete__nav a {
+    flex: 0 0 auto;
     padding: var(--espace-2) var(--espace-3);
   }
 }
@@ -2183,37 +2144,9 @@ body[data-vue="carte"] .pied {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.comparer-lien {
-  margin-left: 0.6rem;
-  font-size: var(--texte-s);
-  color: var(--encre);
-}
 
 
 /* Onglets du panneau : Territoire / Analyse. Tout vit dans la carte. */
-.panneau__onglets {
-  display: flex;
-  gap: 0.2rem;
-  padding: var(--espace-4) calc(var(--espace-8) + var(--espace-4)) 0 var(--espace-6);
-  border-bottom: 1px solid var(--trait);
-  flex: 0 0 auto;
-}
-.panneau__onglets button {
-  font: inherit;
-  font-size: var(--texte-s);
-  border: 0;
-  background: none;
-  color: var(--encre-douce);
-  padding: var(--espace-3) var(--espace-5);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-}
-.panneau__onglets button[aria-selected="true"] {
-  color: var(--encre);
-  border-bottom-color: var(--encre);
-  font-weight: 500;
-}
 
 /* Le volet d'analyse, dans le panneau : compact par construction. */
 #volet-analyse {
@@ -2408,59 +2341,6 @@ body[data-vue="carte"] .pied {
    suite, groupé par thème. Un menu déroulant cachait ce qui existe. */
 .champ--liste {
   margin-bottom: 0.35rem;
-}
-.indicateurs {
-  max-height: 42vh;
-  overflow-y: auto;
-  margin: 0 -0.25rem 0.6rem;
-  padding: 0 var(--espace-2);
-  scrollbar-width: thin;
-  flex: 1 1 100%;
-}
-.indicateurs__theme {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  margin: 0.5rem 0 0.15rem;
-  padding: var(--espace-1) 0;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--encre-douce);
-  background: rgb(255 255 255 / 0.94);
-}
-.indicateurs__groupe:first-child .indicateurs__theme {
-  margin-top: 0;
-}
-.indicateurs__item {
-  display: block;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  font-size: var(--texte-s);
-  line-height: 1.35;
-  border: 0;
-  background: none;
-  color: var(--encre);
-  padding: var(--espace-2) var(--espace-4);
-  border-radius: var(--rayon-s);
-  cursor: pointer;
-  transition: background var(--transition);
-}
-.indicateurs__item:hover {
-  background: var(--papier-creuse);
-}
-.indicateurs__item--actif {
-  background: var(--encre);
-  color: #fff;
-}
-.indicateurs__item--actif:hover {
-  background: var(--encre);
-}
-.indicateurs__vide {
-  margin: 0.5rem 0;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
 }
 
 /* Les sources des deux séries croisées, sous le coefficient. */
@@ -2982,21 +2862,6 @@ body[data-vue="carte"] .pied {
   background: var(--encre);
   color: var(--papier);
 }
-.mesure__titre {
-  font: inherit;
-  font-size: var(--texte-m);
-  color: var(--encre-douce);
-  background: none;
-  border: 0;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  border-bottom: 1px dotted transparent;
-}
-.mesure__titre:hover {
-  color: var(--encre);
-  border-bottom-color: var(--trait-fort);
-}
 .mesure--carte {
   background: rgb(197 106 77 / 0.035);
   border-radius: var(--rayon-s);
@@ -3183,36 +3048,6 @@ body[data-vue="carte"] .pied {
 /* Le sommaire des thèmes. Une fiche fait cinq écrans : sans lui, atteindre
    « Sécurité » demandait de traverser sept thèmes. Collé sous le nom du
    territoire, il reste là pendant tout le défilement. */
-.ancres {
-  position: sticky;
-  top: var(--haut-fiche);
-  z-index: 1;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  margin: 0.55rem 0 0.2rem;
-  padding: var(--espace-3) 0 var(--espace-3);
-  background: rgb(255 255 255 / 0.96);
-  backdrop-filter: blur(6px);
-  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
-}
-.ancres button {
-  font: inherit;
-  font-size: var(--texte-xs);
-  line-height: 1.1;
-  color: var(--encre-douce);
-  background: var(--papier-creuse);
-  border: 1px solid transparent;
-  border-radius: var(--rayon-pilule);
-  padding: var(--espace-2) var(--espace-4);
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-}
-.ancres button:hover,
-.ancres button:focus-visible {
-  color: var(--encre);
-  border-color: var(--trait-fort);
-}
 
 /* Densité de la fiche : les mesures se suivent de près. L'air venait de
    marges empilées — celle de la mesure, celle du thème, celle du tableau —
@@ -4001,6 +3836,769 @@ summary.pont__rangee,
   font-size: var(--texte-xs);
   color: var(--encre-douce);
   padding-bottom: var(--espace-1);
+}
+
+/* Un camembert seul dans un bloc large : sans cette borne, la légende étire
+   ses parts jusqu'au bord droit et la ligne de lecture se casse. */
+.cent__solo {
+  max-width: 44rem;
+}
+
+/* Le montant réel à côté de la part : présent, jamais dominant. */
+.camembert__montant {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   LA FICHE À DEUX VITESSES — le récit, le verdict, le corps par questions
+   ==========================================================================
+
+   Le panneau publiait cent quatre-vingt-dix-huit indicateurs au même niveau
+   visuel, rangés sous les intitulés du plan comptable : « y'a trop d'infos, on
+   sait pas quoi en faire ». Rien n'est retiré — la fiche d'avant est intacte
+   derrière « Tout voir ». Ce qui change, c'est ce qu'on voit en premier.
+
+   Aucune couleur de jugement ici non plus (décision de système n° 2) : le sens
+   d'une phrase du verdict se dit par la forme de sa puce — pleine en argile
+   pour ce qui tend les comptes, creuse pour ce qui les détend, discrète pour ce
+   qui ne tranche pas — jamais par un rouge contre un vert. La feuille n'a
+   d'ailleurs pas de token vert, et ce n'est pas un oubli.
+   ========================================================================== */
+
+/* Les deux corps sont rendus ensemble et l'un des deux se cache : basculer ne
+   redessine pas cent quarante lignes de mesures, courbes comprises. */
+/* `data-corps` et non `data-vitesse` : les deux boutons de la bascule portent
+   déjà `data-vitesse`, et la règle de masquage les aurait effacés — « Tout
+   voir » cachait le bouton qui ramène à l'essentiel, sans retour possible. */
+.fiche--essentiel [data-corps="tout"],
+.fiche--essentiel > .onglets-rubriques,
+.fiche--essentiel > .onglets-themes,
+.fiche--tout [data-corps="essentiel"] {
+  display: none;
+}
+
+/* Les deux corps reprennent la colonne flex de `.fiche` : leurs enfants
+   gardaient `min-width: 0` en tant qu'éléments flex, et c'est lui qui fait
+   défiler un tableau large dans son cadre au lieu d'élargir le panneau. */
+.fiche__essentiel,
+.fiche__tout {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.fiche__essentiel > *,
+.fiche__tout > * {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+/* La bascule, sous l'identité du territoire et au-dessus de tout le reste. */
+.fiche .fiche__vitesses {
+  order: -2;
+}
+.fiche__vitesses {
+  display: flex;
+  align-items: stretch;
+  gap: var(--espace-2);
+  margin: var(--espace-5) 0 var(--espace-6);
+}
+.fiche__vitesses button {
+  font: inherit;
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-4);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: color var(--transition), border-color var(--transition),
+    background-color var(--transition);
+}
+.fiche__vitesses button[aria-pressed="true"] {
+  color: var(--papier);
+  background: var(--encre);
+  border-color: var(--encre);
+}
+/* « Tout voir » annonce ce qu'il rouvre : un bouton qui cache cent quarante
+   lignes doit dire leur nombre. Sur une seule ligne, il pousserait le libellé
+   hors de la pilule à 375 px. */
+.fiche__vitesses-compte {
+  display: block;
+  font-weight: 400;
+  font-size: var(--texte-xs);
+  opacity: 0.85;
+}
+
+/* Le mandat en cours n'a pas de comptes publiés : une ligne, à l'endroit exact
+   où le lecteur voit la date de prise de fonction du maire. Pas un paragraphe. */
+.fiche .fiche__mandat {
+  order: -2;
+}
+.fiche__mandat {
+  margin: var(--espace-2) 0 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* ---- Le récit : la pièce la plus importante de la fiche ---- */
+.recit {
+  margin: 0 0 var(--espace-6);
+}
+.recit__titre {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  line-height: 1.25;
+  margin: 0 0 var(--espace-4);
+  text-wrap: balance;
+}
+.recit__paragraphe {
+  margin: 0;
+  font-size: var(--texte-m);
+  line-height: 1.6;
+  max-width: 70ch;
+}
+.recit__fenetre {
+  margin: var(--espace-3) 0 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* ---- Le verdict : trois à cinq phrases chiffrées, chacune vers son détail ---- */
+.verdict {
+  list-style: none;
+  margin: 0 0 var(--espace-6);
+  padding: 0;
+}
+.verdict__phrase {
+  position: relative;
+  border-top: 1px solid var(--trait);
+}
+/* La puce dit le sens sans le juger : pleine pour ce qui tend les comptes,
+   creuse pour ce qui les détend, effacée pour ce qui ne tranche pas. */
+.verdict__phrase::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: calc(var(--espace-5) + var(--espace-2));
+  width: var(--espace-3);
+  height: var(--espace-3);
+  border-radius: 50%;
+  border: 1px solid var(--trait-fort);
+  background: var(--trait-fort);
+}
+.verdict__phrase--tend::before {
+  border-color: var(--argile);
+  background: var(--argile);
+}
+.verdict__phrase--detend::before {
+  border-color: var(--encre);
+  background: var(--papier);
+}
+/* La phrase entière est la cible : viser une puce de six pixels au doigt, non. */
+.verdict__vers,
+.verdict__texte {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: var(--texte-m);
+  line-height: 1.5;
+  min-height: var(--cible);
+  padding: var(--espace-4) 0 var(--espace-4) var(--espace-6);
+  border: 0;
+  background: none;
+  color: var(--encre);
+}
+.verdict__vers {
+  cursor: pointer;
+  transition: color var(--transition);
+}
+.verdict__vers:hover {
+  color: var(--argile);
+}
+
+/* ---- Ma feuille d'impôts : le bloc vient de `feuille-impots.ts`, qui réemploie
+        la mise en forme des « 100 € » (`.cent`). Seule la boîte est à faire. ---- */
+.feuille-impots {
+  margin: 0 0 var(--espace-6);
+  padding: var(--espace-5);
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+}
+.feuille-impots h3 {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  margin: 0 0 var(--espace-3);
+}
+
+/* ---- Le corps par questions ---- */
+.question-fiche {
+  border-top: 1px solid var(--trait);
+}
+.question-fiche > summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-3) 0;
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  cursor: pointer;
+  list-style: none;
+}
+.question-fiche > summary::-webkit-details-marker {
+  display: none;
+}
+/* Le chevron est dessiné, pas écrit : un caractère « ▸ » se lit à voix haute. */
+.question-fiche > summary::before {
+  content: "";
+  width: var(--espace-4);
+  height: var(--espace-4);
+  margin-right: var(--espace-4);
+  flex: 0 0 auto;
+  border-right: 2px solid var(--encre-douce);
+  border-bottom: 2px solid var(--encre-douce);
+  transform: rotate(-45deg);
+  transition: transform var(--transition);
+}
+.question-fiche[open] > summary::before {
+  transform: rotate(45deg);
+}
+.question-fiche > summary:hover {
+  color: var(--argile);
+}
+.question-fiche__corps {
+  padding: 0 0 var(--espace-5);
+}
+
+/* À 375 px, la bascule prend toute la largeur en deux lignes plutôt que de
+   serrer deux pilules à trois caractères chacune. */
+@media (max-width: 40rem) {
+  .fiche__vitesses {
+    flex-wrap: wrap;
+  }
+  .fiche__vitesses button {
+    flex: 1 1 40%;
+  }
+  .recit__titre {
+    font-size: var(--texte-l);
+  }
+}
+
+/* ==========================================================================
+   SIMULATEUR — le budget de l'État, ligne à ligne
+   ==========================================================================
+   Une seule règle de couleur ici : un geste qui améliore le solde s'écrit en
+   encre, un geste qui le dégrade en argile. Pas de vert — la charte n'en a
+   pas, et un vert « bien » face à un rouge « mal » ferait d'une addition une
+   morale.
+
+   La densité est assumée : c'est un tableau de bord, pas un article. Ce qui
+   ne l'est pas, c'est la cible tactile — les quatre commandes d'une ligne
+   font 44 px pleins, sans zone de frappe étendue, parce que deux zones
+   étendues côte à côte se recouvrent et le doigt déclenche la voisine. */
+
+.simu {
+  padding: var(--espace-7);
+  margin: 0 1.5rem 1.25rem;
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-1);
+}
+
+/* ---- Cockpit collant ---------------------------------------------------- */
+.simu__cockpit {
+  position: sticky;
+  top: var(--haut-entete);
+  z-index: 5;
+  background: var(--papier);
+  border-bottom: 1px solid var(--trait-fort);
+  padding: var(--espace-4) 0;
+  margin-bottom: var(--espace-2);
+}
+.simu__titres {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.simu__titres h2 {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  margin: 0;
+}
+.simu__perimetre {
+  margin: 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.simu__compteurs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin: 0.5rem 0 0;
+}
+.simu__compteur {
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-3) var(--espace-5);
+  min-width: 0;
+}
+.simu__compteur dt {
+  margin: 0;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.simu__compteur dd {
+  margin: 0;
+  font-size: var(--texte-xl);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.simu__val--argile {
+  color: var(--argile);
+}
+.simu__val--sobre {
+  color: var(--encre);
+}
+.simu__equivalence {
+  margin: 0.4rem 0 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+
+/* ---- Défis -------------------------------------------------------------- */
+.simu__defis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+}
+.simu__defi {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-2) var(--espace-5);
+  font-size: var(--texte-xs);
+}
+.simu__defi-etat {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+/* Un défi tenu se marque par la forme, pas par une couleur de récompense. */
+.simu__defi--tenu {
+  border-color: var(--encre);
+  border-width: 2px;
+}
+.simu__defi--tenu .simu__defi-etat {
+  color: var(--encre);
+  font-weight: 650;
+}
+
+/* ---- Recherche et onglets ----------------------------------------------- */
+.simu__barre {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0.9rem 0;
+}
+.simu__recherche {
+  position: relative;
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+.simu__recherche input {
+  width: 100%;
+  font: inherit;
+  font-size: var(--texte-m);
+  min-height: var(--cible);
+  padding: var(--espace-3) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-s);
+  background: var(--papier);
+  color: var(--encre);
+}
+.simu__suggestions {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + var(--espace-2));
+  z-index: 6;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 20rem;
+  overflow: auto;
+  background: var(--papier);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-s);
+  box-shadow: var(--ombre-2);
+}
+.simu__onglets {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+.simu__onglets button {
+  font: inherit;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-3) var(--espace-6);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre-douce);
+  cursor: pointer;
+}
+.simu__onglets button[aria-selected="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: #fff;
+}
+
+/* ---- L'arbre ------------------------------------------------------------ */
+.simu__arbre {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+.simu__ligne {
+  display: grid;
+  grid-template-columns: var(--cible) minmax(7rem, 1fr) 6rem auto 7rem 6rem;
+  grid-template-areas: "pli lib base reglage montant delta";
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 var(--espace-3);
+  border-top: 1px solid var(--trait);
+}
+.simu__arbre > .simu__ligne:first-child,
+.simu__groupe-lignes > .simu__ligne:first-child {
+  border-top: 0;
+}
+.simu__ligne--reglee {
+  background: var(--papier-creuse);
+}
+.simu__ligne--visee {
+  animation: simu-vise 1.4s ease-out;
+}
+@keyframes simu-vise {
+  from {
+    background: var(--accent-teinte);
+  }
+  to {
+    background: transparent;
+  }
+}
+.simu__pli {
+  grid-area: pli;
+  width: var(--cible);
+  height: var(--cible);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Le chevron est dessiné, pas écrit : « ▸ » se lit à voix haute. */
+.simu__pli::before {
+  content: "";
+  width: var(--espace-4);
+  height: var(--espace-4);
+  border-right: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(-45deg);
+  transition: transform var(--transition);
+}
+.simu__pli--feuille::before {
+  display: none;
+}
+.simu__pli[aria-expanded="true"]::before {
+  transform: rotate(45deg);
+}
+.simu__intitule {
+  grid-area: lib;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+.simu__lib {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--texte-m);
+}
+.simu__ligne--n0 .simu__lib {
+  font-size: var(--texte-l);
+  font-weight: 650;
+}
+.simu__ligne--n1 .simu__lib {
+  font-weight: 600;
+}
+.simu__ligne--n3 .simu__lib {
+  font-size: var(--texte-s);
+}
+.simu__code {
+  flex: 0 0 auto;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-xs);
+  padding: 0 var(--espace-2);
+}
+.simu__base {
+  grid-area: base;
+  text-align: right;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.simu__montant {
+  grid-area: montant;
+  text-align: right;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.simu__delta {
+  grid-area: delta;
+  text-align: right;
+  font-size: var(--texte-xs);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ---- Les quatre commandes d'une ligne ----------------------------------- */
+.simu__reglage {
+  grid-area: reglage;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.15rem;
+}
+.simu__pas,
+.simu__raz {
+  font: inherit;
+  font-size: var(--texte-l);
+  line-height: 1;
+  min-width: var(--cible);
+  min-height: var(--cible);
+  padding: 0;
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-xs);
+  background: var(--papier);
+  color: var(--encre);
+  cursor: pointer;
+}
+.simu__pas:hover,
+.simu__raz:hover {
+  background: var(--papier-creuse);
+}
+.simu__raz {
+  border-color: transparent;
+  color: var(--argile);
+  font-size: var(--texte-m);
+}
+/* Le bouton garde sa place quand il disparaît : sans cela, chaque réglage
+   décalait les cinq colonnes de la ligne sous le curseur. */
+.simu__raz[hidden] {
+  display: inline-block;
+  visibility: hidden;
+}
+.simu__champ {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1rem;
+}
+.simu__pct {
+  width: 3rem;
+  font: inherit;
+  font-size: var(--texte-s);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  min-height: var(--cible);
+  padding: 0 var(--espace-2);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-xs);
+  background: var(--papier);
+  color: var(--encre);
+}
+.simu__unite {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Indentation : un filet par cran, pas une classe par profondeur. */
+.simu__enfants {
+  border-inline-start: 2px solid var(--papier-creuse);
+  margin-inline-start: 1.35rem;
+}
+.simu__enfants[hidden] {
+  display: none;
+}
+
+/* ---- Recettes ----------------------------------------------------------- */
+.simu__note {
+  margin: 0 0 0.6rem;
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+.simu__groupe-titre {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 0;
+  padding: var(--espace-5) var(--espace-5) var(--espace-3);
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.simu__groupe + .simu__groupe {
+  border-top: 1px solid var(--trait-fort);
+}
+
+/* ---- Votre plan --------------------------------------------------------- */
+.simu__plan-actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.9rem;
+}
+.simu__creux {
+  font: inherit;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-4) var(--espace-6);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  cursor: pointer;
+}
+.simu__creux:hover {
+  background: var(--papier-creuse);
+}
+.simu__plan {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+.simu__plan-ligne {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--trait);
+  padding-right: var(--espace-5);
+}
+.simu__plan-ligne:first-child {
+  border-top: 0;
+}
+.simu__plan-delta {
+  font-size: var(--texte-m);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* Une suggestion et une ligne de plan mènent au même endroit : la ligne dans
+   l'arbre. Elles portent donc le même bouton. */
+.simu__vise {
+  display: block;
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  min-height: var(--cible);
+  text-align: left;
+  font: inherit;
+  font-size: var(--texte-m);
+  border: 0;
+  background: none;
+  color: var(--encre);
+  cursor: pointer;
+  padding: var(--espace-3) var(--espace-5);
+}
+.simu__vise:hover {
+  background: var(--papier-creuse);
+}
+.simu__suggestions li + li .simu__vise {
+  border-top: 1px solid var(--trait);
+}
+.simu__plan-lib {
+  display: block;
+  font-weight: 600;
+}
+.simu__plan-chemin,
+.simu__plan-equiv {
+  display: block;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+
+/* À 375 px la ligne se plie en deux rangées : l'intitulé sur toute la largeur,
+   les commandes et le montant dessous. Les colonnes « base » et « écart »
+   sortent — le montant recalculé et le pourcentage suffisent à piloter, et le
+   plan porte l'écart de chaque ligne réglée. */
+@media (max-width: 40rem) {
+  .simu {
+    padding: var(--espace-5);
+    margin: 0 var(--espace-4) 1.25rem;
+  }
+  .simu__ligne {
+    grid-template-columns: var(--cible) minmax(0, 1fr) auto;
+    grid-template-areas:
+      "pli lib lib"
+      "pli reglage montant";
+    row-gap: 0.2rem;
+    padding-bottom: var(--espace-3);
+  }
+  .simu__base,
+  .simu__delta {
+    display: none;
+  }
+  .simu__lib {
+    white-space: normal;
+  }
+  .simu__reglage {
+    justify-content: flex-start;
+  }
+  .simu__enfants {
+    margin-inline-start: var(--espace-5);
+  }
+  .simu__onglets {
+    width: 100%;
+  }
+  .simu__onglets button {
+    flex: 1 1 auto;
+  }
 }
 
 /* Le lien vers la page ANALYSES ferme « L'essentiel ». Il remplace un « Tout

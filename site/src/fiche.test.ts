@@ -21,6 +21,7 @@ import {
   ecartEnEuros,
   fenetreLisible,
   groupeDeLaCommune,
+  inflationCumulee,
   jumeaux,
   lectureDeDensite,
   mesurer,
@@ -785,6 +786,225 @@ test("la population porte son infobulle sans se faire passer pour un lien", () =
   const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
   assert.match(html, /<abbr class="fiche__habitants" title="Population municipale/);
   assert.match(html, /267\s?991 hab\./);
+});
+
+/* ------------------------------------------------------------------------
+ * La refonte : le récit, le verdict, le corps par questions, deux vitesses.
+ *
+ * Le client a jugé la barre latérale illisible — « y'a trop d'infos, on sait
+ * pas quoi en faire ». Ces tests vérifient les deux moitiés de la réponse : ce
+ * que la fiche montre d'abord, et que la fiche d'avant est intacte derrière
+ * « Tout voir ». Les chiffres sont ceux de Bordeaux tels qu'ils sont publiés :
+ * un récit calculé se teste sur les données qui l'ont motivé.
+ * ---------------------------------------------------------------------- */
+
+const CATALOGUE_FINANCIER = [
+  ["ofgl_recettes_fonctionnement", "Recettes de fonctionnement"],
+  ["ofgl_depenses_fonctionnement", "Dépenses de fonctionnement"],
+  ["ofgl_impots_locaux", "Impôts locaux"],
+  ["ofgl_encours_dette", "Encours de dette"],
+  ["ofgl_frais_personnel", "Frais de personnel"],
+  ["ofgl_depenses_d_equipement", "Dépenses d'équipement"],
+  ["ofgl_epargne_brute", "Épargne brute"],
+].map(
+  ([id, libelle]) =>
+    ({
+      id, libelle, unite: "EUR", theme: "finances_locales", sommable: true,
+      niveaux: ["commune"], definition: "", jeu: "ofgl-communes",
+    }) as never as Indicateur,
+);
+
+const SERIES_BORDEAUX = {
+  ofgl_recettes_fonctionnement: {
+    "2019": 351954165.22, "2020": 337273031.28, "2021": 361776127.87,
+    "2022": 379460633.12, "2023": 418347446.87, "2024": 416676492.15, "2025": 417137958.52,
+  },
+  ofgl_depenses_fonctionnement: {
+    "2019": 294082496.89, "2020": 299341271.21, "2021": 306122190.67,
+    "2022": 319295502.01, "2023": 353744576.68, "2024": 361939919.93, "2025": 369011621.25,
+  },
+  ofgl_impots_locaux: {
+    "2019": 195193601.12, "2020": 197515772.42, "2021": 210226832.76,
+    "2022": 217550030.5, "2023": 258014932.51, "2024": 256388353.57, "2025": 253975934.62,
+  },
+  ofgl_encours_dette: {
+    "2019": 252257675.39, "2020": 271035983.14, "2021": 283318583.37,
+    "2022": 295862603.26, "2023": 290016673.54, "2024": 355713786.01, "2025": 412980519.9,
+  },
+  ofgl_frais_personnel: {
+    "2019": 143587932.54, "2020": 146606375.79, "2021": 148136364.37,
+    "2022": 157518484.11, "2023": 166807907.89, "2024": 175965029.91, "2025": 183054742.68,
+  },
+  ofgl_depenses_d_equipement: {
+    "2019": 56355923.66, "2020": 56687017.39, "2021": 77581975.68,
+    "2022": 72428601.89, "2023": 63235423.24, "2024": 109202950.59, "2025": 109850175.79,
+  },
+  ofgl_epargne_brute: {
+    "2019": 57871668.33, "2020": 37931760.07, "2021": 55653937.2,
+    "2022": 60165131.11, "2023": 64602870.19, "2024": 54736572.22, "2025": 48126337.27,
+  },
+  ofgl_population_reference: {
+    "2019": 256045, "2020": 257804, "2021": 260352,
+    "2022": 264257, "2023": 263247, "2024": 265255, "2025": 268822,
+  },
+};
+
+/** L'IPC national tel qu'il est publié : douze glissements par an. Reconstruit
+ *  ici à partir des moyennes annuelles réellement observées, pour que
+ *  l'inflation cumulée 2019-2025 tombe sur les +16,1 % publiés. */
+const IPC_NATIONAL: Record<string, number> = {};
+for (const [annee, moyenne] of Object.entries({
+  "2019": 1.1, "2020": 0.4833333, "2021": 1.65, "2022": 5.2,
+  "2023": 4.9, "2024": 2.0083333, "2025": 0.95,
+})) {
+  for (let mois = 1; mois <= 12; mois += 1) {
+    IPC_NATIONAL[`${annee}-${String(mois).padStart(2, "0")}`] = moyenne;
+  }
+}
+
+function ficheDeBordeaux(options: { tout?: boolean } = {}): string {
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Bordeaux", parent: "33", region: "75", population: 267_991,
+      drapeaux: {}, series: SERIES_BORDEAUX,
+      maire: { nom: "Une maire", depuis: "2026-03-22" },
+    } as never,
+    indicateurs: CATALOGUE_FINANCIER,
+    principal: "ofgl_depenses_fonctionnement",
+    jeux: [],
+    periode: "2025",
+    parHabitant: false,
+    comparateurs: [],
+    libelleTheme: () => "Finances locales",
+    serieInflation: IPC_NATIONAL,
+    // Après les municipales du 22 mars 2026, dont aucun exercice n'est publié.
+    aujourdhui: "2026-08-08",
+    ...options,
+  });
+  return cible.innerHTML;
+}
+
+test("l'inflation cumulée d'une fenêtre se compose depuis les glissements publiés", () => {
+  // 2019 → 2025 : +16,1 %, le chiffre que portent les phrases du verdict.
+  const cumul = inflationCumulee(IPC_NATIONAL, "2019", "2025");
+  assert.ok(cumul !== null);
+  assert.equal(Number(cumul!.toFixed(1)), 16.1);
+  // L'inflation de l'exercice de référence s'est produite avant la fenêtre.
+  assert.equal(inflationCumulee(IPC_NATIONAL, "2025", "2025"), null);
+  // Une année incomplète ne se cumule pas : un cumul amputé se lirait comme un
+  // cumul entier et sous-estimerait la hausse.
+  assert.equal(inflationCumulee({ "2020-01": 1 }, "2019", "2020"), null);
+  assert.equal(inflationCumulee(undefined, "2019", "2025"), null);
+});
+
+test("la fiche s'ouvre sur le récit, avant tout chiffre", () => {
+  const html = ficheDeBordeaux();
+  assert.match(html, /<section class="recit">/);
+  assert.match(html, /<h3 class="recit__titre">[^<]+<\/h3>/);
+  assert.match(html, /<p class="recit__paragraphe">[^<]+<\/p>/);
+  // Le récit précède le verdict, qui précède les questions.
+  assert.ok(html.indexOf('class="recit"') < html.indexOf('class="verdict"'));
+  assert.ok(html.indexOf('class="verdict"') < html.indexOf('class="questions-fiche"'));
+});
+
+test("le verdict tient en cinq phrases au plus, chacune vers son détail", () => {
+  const html = ficheDeBordeaux();
+  const phrases = [...html.matchAll(/<li class="verdict__phrase/g)];
+  assert.ok(phrases.length >= 1 && phrases.length <= 5, `${phrases.length} phrases`);
+  // Chaque phrase renvoie vers un indicateur qui a bien une ligne dans la fiche.
+  for (const [, id] of html.matchAll(/data-verdict-vers="([a-z_]+)"/g)) {
+    assert.match(html, new RegExp(`data-mesure="${id}"`), `renvoi sans ligne : ${id}`);
+  }
+});
+
+/**
+ * Le verdict reprend la liste où le récit l'a laissée.
+ *
+ * Les deux modules lisent les mêmes faits, classés pareil : sans filtre, la
+ * première puce répétait mot pour mot la première phrase du paragraphe. La
+ * fiche s'ouvrait donc sur un doublon, dans une refonte dont le motif est
+ * précisément qu'on ne sait plus où regarder.
+ */
+test("aucune phrase du verdict ne répète le récit", () => {
+  const html = ficheDeBordeaux();
+  const paragraphe = html.match(/<p class="recit__paragraphe">([^<]*)<\/p>/)?.[1] ?? "";
+  assert.ok(paragraphe.length > 0, "le récit doit être rendu pour que le test ait un sens");
+  for (const [, phrase] of html.matchAll(/<li class="verdict__phrase[^>]*>([\s\S]*?)<\/li>/g)) {
+    const nu = phrase.replace(/<[^>]*>/g, "").trim();
+    assert.ok(!paragraphe.includes(nu), `phrase déjà dite par le récit : ${nu.slice(0, 60)}`);
+  }
+});
+
+test("une phrase dont la ligne n'existe pas n'est pas cliquable", () => {
+  // Rien de cliquable ne mène à une section vide : le renvoi n'est un bouton
+  // que là où `data-mesure` existe. Le contrôle vaut sur la fiche entière.
+  const html = ficheDeBordeaux();
+  const renvois = [...html.matchAll(/data-verdict-vers="([a-z_]+)"/g)].map((m) => m[1]);
+  const mesures = new Set([...html.matchAll(/data-mesure="([a-z_]+)"/g)].map((m) => m[1]));
+  for (const id of renvois) assert.ok(mesures.has(id), id);
+});
+
+test("le corps est rangé sous des questions, la première ouverte", () => {
+  const html = ficheDeBordeaux();
+  assert.match(html, /<summary aria-expanded="true">Où va l&#39;argent \?<\/summary>/);
+  assert.match(html, /data-question="dette"/);
+  assert.match(html, /<summary aria-expanded="false">La dette est-elle tenable \?<\/summary>/);
+  // Une question sans indicateur renseigné ne s'affiche pas : ce catalogue-ci
+  // n'a que des comptes, donc ni « ça s'améliore » ni « villes semblables ».
+  assert.doesNotMatch(html, /data-question="evolution"/);
+  assert.doesNotMatch(html, /data-question="semblables"/);
+  assert.doesNotMatch(html, /data-question="reste"/);
+});
+
+test("« Tout voir » rouvre la fiche d'avant, intacte", () => {
+  const html = ficheDeBordeaux({ tout: true });
+  // Les deux corps sont rendus ensemble : la bascule ne redessine rien, elle
+  // change de classe sur le conteneur.
+  assert.match(html, /<div class="fiche__essentiel" data-corps="essentiel">/);
+  assert.match(html, /<div class="fiche__tout" data-corps="tout">/);
+  assert.match(html, /<div class="mesures" data-corps="tout">/);
+  // Et tout ce que la fiche faisait déjà est encore là.
+  assert.match(html, /class="theme-groupe" data-theme="finances_locales"/);
+  assert.match(html, /data-mesure="ofgl_encours_dette"/);
+  assert.match(html, /<button type="button" data-vitesse="tout" aria-pressed="true">/);
+});
+
+test("la bascule annonce ce qu'elle cache, et l'essentiel est le mode par défaut", () => {
+  const html = ficheDeBordeaux();
+  assert.match(html, /<button type="button" data-vitesse="essentiel" aria-pressed="true">/);
+  assert.match(html, /<button type="button" data-vitesse="tout" aria-pressed="false">/);
+  assert.match(html, /Tout voir<span\s+class="fiche__vitesses-compte">\d+ indicateurs<\/span>/);
+});
+
+test("le mandat ouvert en mars 2026 se dit en une ligne, et une seule", () => {
+  const html = ficheDeBordeaux();
+  const lignes = [...html.matchAll(/<p class="fiche__mandat">([^<]*)<\/p>/g)];
+  assert.equal(lignes.length, 1);
+  assert.equal(lignes[0][1], "Le mandat ouvert en mars 2026 n'a pas encore de comptes publiés.");
+  // Une ligne, pas un paragraphe : aucune prose explicative n'accompagne la
+  // refonte. Le client s'est fâché deux fois là-dessus.
+  assert.doesNotMatch(html, /Ce que cette fiche calcule|Ce qu'elle ne dit pas/);
+});
+
+test("aucun tiret cadratin ni demi-cadratin dans la fiche produite", () => {
+  for (const html of [ficheDeBordeaux(), ficheDeBordeaux({ tout: true })]) {
+    // Le « — » d'une cellule vide reste toléré ; il n'y en a aucun ici.
+    assert.doesNotMatch(html, /[—–]/);
+  }
+});
+
+test("sans mandat racontable, la fiche garde exactement sa forme d'avant", () => {
+  // La fiche nationale n'a ni mandat municipal, ni feuille d'impôts : lui poser
+  // une bascule vers un mode vide serait un cul-de-sac de plus.
+  const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
+  assert.doesNotMatch(html, /fiche__vitesses/);
+  assert.doesNotMatch(html, /fiche__essentiel/);
+  assert.doesNotMatch(html, /data-corps/);
+  assert.doesNotMatch(html, /data-vitesse/);
+  assert.doesNotMatch(html, /fiche__mandat/);
+  assert.match(html, /<div class="mesures">/);
 });
 
 test("la valeur affichée est le dernier exercice publié, jamais celui d'une autre couche", () => {

@@ -24,12 +24,24 @@ son propre périmètre ; ces quatre produits n'en sont pas la décomposition
 exacte, et les additionner pour le retrouver serait une reconstruction, pas une
 mesure. Chacun se lit pour lui-même.
 
-**Le contrôle qui bloque.** La source publie, pour le même impôt et la même
-commune, la base nette, le taux voté et le produit. Leur produit doit se
-retrouver : à Bordeaux en 2025, 512 239 528 € de base au taux de 48,48 % font
-248,3 M€ contre 248,4 M€ publiés — l'écart vient du lissage, que la source
-publie aussi. Le contrôle admet donc un pour cent, et il attraperait un taux ou
-une base lus sur la mauvaise ligne, ce qu'aucun total ne montrerait.
+**Le code commune de la source change de forme d'un millésime à l'autre.** En
+2024, Bourg-en-Bresse est « 01053 » ; en 2025, la même commune est « 1053 »,
+zéro de tête tombé. Passé tel quel au référentiel, le code court écartait en
+silence les 3 135 communes des départements 01 à 09 du millésime 2025, soit
+5,5 % du produit communal de l'exercice. La lecture reconstruit donc le code
+Insee depuis le département et l'identifiant (règle partagée avec le connecteur
+`rei`, même source), et la couverture se mesure **par exercice** : sur les deux
+exercices ensemble elle faisait 97,2 % et passait le seuil de 95 %, quand le
+millésime 2025 seul était tombé à 94,5 %.
+
+**Le contrôle qui bloque tient deux prises.** La source publie, pour le même
+impôt et la même commune, la base nette, le taux voté et le produit. Leur
+produit doit se retrouver : à Bordeaux en 2025, 512 239 528 € de base au taux
+de 48,48 % font 248,3 M€ contre 248,4 M€ publiés — l'écart vient du lissage,
+que la source publie aussi. Le contrôle admet donc un pour cent, et il
+attraperait un taux ou une base lus sur la mauvaise ligne, ce qu'aucun total ne
+montrerait. Cette identité ne voit pas un code commune qui change de forme :
+un témoin figé, Bourg-en-Bresse au millésime 2025, tient cette prise-là.
 
 Usage : python -m plateforme.normalize.impots_locaux [--store r2:plateforme-raw]
 """
@@ -46,6 +58,11 @@ from plateforme.limites import garde_fou_volume
 from plateforme.normalize.geo import MILLESIME, make_store
 from plateforme.normalize.ofgl import filtrer_territoires_connus
 
+# La règle de reconstruction du code commune vient du connecteur `rei`, qui lit
+# la même source : « 01053 » en 2024, « 1053 » en 2025 pour la même commune, et
+# Saint-Martin codé hors du Code officiel géographique.
+from plateforme.normalize.rei import HORS_COG, code_insee
+
 DATASET = "ofgl-rei"
 SOURCE = "ofgl"
 BASE = "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/rei"
@@ -56,31 +73,41 @@ BASE = "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/rei"
 # et tout lire ferait compter le même euro plusieurs fois.
 DESTINATAIRE = "Commune"
 
-# Libellé de variable de la source -> (identifiant, libellé publié).
+# Code de variable de la source (colonne `var`) -> (identifiant, libellé
+# publié). Les codes courts et non les libellés (`varlib`) : ce sont eux que la
+# trace de variables de la DGFiP nomme, et ils traversent les millésimes quand
+# les libellés se reponctuent. Correspondance relevée le 8 août 2026 sur l'API
+# de l'OFGL, destinataire « Commune » : chaque code n'y porte qu'un libellé.
 PRODUITS = {
-    "FB - COMMUNE / MONTANT RÉEL": (
+    # « FB - COMMUNE / MONTANT RÉEL ».
+    "E13": (
         # « (bâti) » est un mot de fiscaliste : la taxe foncière que paie un
         # propriétaire, c'est celle-ci. L'autre, minoritaire, se nomme par ce
         # qu'elle taxe — les terrains.
         "dgfip_produit_foncier_bati", "Produit de la taxe foncière",
     ),
-    "FNB - COMMUNE / MONTANT RÉEL": (
+    # « FNB - COMMUNE / MONTANT RÉEL ».
+    "B13": (
         "dgfip_produit_foncier_non_bati", "Produit de la taxe foncière sur les terrains",
     ),
-    "TH - COMMUNE / MONTANT RÉEL THS": (
+    # « TH - COMMUNE / MONTANT RÉEL THS ».
+    "H13THS": (
         "dgfip_produit_th_residences_secondaires",
         "Produit de la taxe d'habitation sur les résidences secondaires",
     ),
-    "CFE - COMMUNE / PRODUIT RÉEL": (
+    # « CFE - COMMUNE / PRODUIT RÉEL ».
+    "P13": (
         "dgfip_produit_cfe", "Produit de la cotisation foncière des entreprises",
     ),
 }
 
 # Les trois lignes du foncier bâti que le contrôle confronte.
-BASE_FB = "FB - COMMUNE / BASE NETTE"
-TAUX_FB = "FB - COMMUNE / TAUX VOTÉ"
-LISSAGE_FB = "FB - COMMUNE / LISSAGE - MONTANT"
-PRODUIT_FB = "FB - COMMUNE / MONTANT RÉEL"
+BASE_FB = "E11"  # « FB - COMMUNE / BASE NETTE »
+TAUX_FB = "E12VOTE"  # « FB - COMMUNE / TAUX VOTÉ »
+LISSAGE_FB = "E16"  # « FB - COMMUNE / LISSAGE - MONTANT »
+PRODUIT_FB = "E13"  # « FB - COMMUNE / MONTANT RÉEL »
+
+COLONNES_ATTENDUES = ("annee", "dep", "idcom", "var", "valeur", "secret_statistique")
 
 # Le contrôle porte sur la **distribution** des écarts, pas sur chaque commune.
 # Mesuré sur les 69 673 couples commune-exercice de la source : écart médian
@@ -94,6 +121,21 @@ PRODUIT_FB = "FB - COMMUNE / MONTANT RÉEL"
 ECART_MEDIAN_MAXIMUM = 0.001  # 0,1 %, seize fois la médiane observée
 PART_MINIMALE_SOUS_UN_POURCENT = 0.99
 ECART_AGREGE_MAXIMUM = 0.005  # 0,5 % sur la somme France
+
+# Le témoin figé, relevé à la main le 8 août 2026 sur l'API de l'OFGL (dataset
+# `rei`, destinataire « Commune », dep « 01 », idcom « 1053 ») : Bourg-en-Bresse
+# au millésime 2025, la commune dont la source écrit le code sans zéro de tête.
+# L'identité base × taux est la première prise du contrôle ; ce témoin est la
+# seconde, indépendante : si la reconstruction du code casse et que les
+# départements 01 à 09 disparaissent de la lecture, il manque et bloque, quand
+# l'identité, cohérente commune par commune, ne verrait rien.
+TEMOIN_EXERCICE = "2025"
+TEMOIN_COMMUNE = "01053"
+TEMOINS = {
+    PRODUIT_FB: 28_163_471.0,
+    "H13THS": 433_910.0,  # « TH - COMMUNE / MONTANT RÉEL THS »
+}
+TEMOIN_TOLERANCE = 0.005
 
 THEME = "impots_locaux"
 
@@ -133,7 +175,7 @@ TECHNIQUE = (
 
 
 class IdentiteRompue(RuntimeError):
-    """Base et taux ne retrouvent plus le produit publié."""
+    """Base et taux ne retrouvent plus le produit publié, ou le témoin manque."""
 
 
 def url(variables: tuple[str, ...]) -> str:
@@ -142,13 +184,15 @@ def url(variables: tuple[str, ...]) -> str:
     Le jeu compte 22,7 millions d'enregistrements ; la clause `where`
     appartient donc à la requête. La demander en entier pour ne garder ensuite
     que 0,7 % des lignes ferait télécharger des centaines de mégaoctets pour
-    rien — et l'API tronquerait bien avant.
+    rien — et l'API tronquerait bien avant. Le département est demandé avec
+    l'identifiant de commune parce qu'il faut les deux pour reconstruire un
+    code Insee (voir `code_insee` dans le connecteur `rei`).
     """
     listes = ", ".join(f"'{variable}'" for variable in variables)
-    clause = f"destinataire='{DESTINATAIRE}' and varlib in ({listes})"
+    clause = f"destinataire='{DESTINATAIRE}' and var in ({listes})"
     return (
         f"{BASE}/exports/csv?where={urllib.parse.quote(clause)}"
-        "&select=annee,idcom,varlib,valeur,secret_statistique&delimiter=;"
+        f"&select={','.join(COLONNES_ATTENDUES)}&delimiter=;"
     )
 
 
@@ -157,6 +201,11 @@ def lire(contenu: bytes) -> dict[tuple, float]:
 
     Une valeur sous secret statistique est absente, pas nulle : la source la
     masque, et écrire zéro à sa place inventerait une commune sans impôt.
+
+    Le code commune est **reconstruit** depuis le département et l'identifiant :
+    la source écrit « 01053 » en 2024 et « 1053 » en 2025 pour la même commune,
+    et le code court passé tel quel au référentiel écartait en silence les
+    3 135 communes des départements 01 à 09 du millésime 2025.
     """
     # `utf-8-sig` et non `utf-8` : l'export de l'OFGL commence par un BOM, qui
     # se colle au nom de la première colonne. Lu sans lui, `annee` revient vide
@@ -164,15 +213,33 @@ def lire(contenu: bytes) -> dict[tuple, float]:
     # retrouve alors comparée au produit de l'autre. C'est le contrôle
     # base × taux qui l'a signalé, aucun total ne l'aurait montré.
     lecteur = csv.DictReader(io.StringIO(contenu.decode("utf-8-sig")), delimiter=";")
+    absentes = [nom for nom in COLONNES_ATTENDUES if nom not in (lecteur.fieldnames or [])]
+    if absentes:
+        raise ValueError(
+            f"colonnes {absentes} absentes de l'export : sans le département il"
+            " est impossible de reconstruire un code Insee, et la source a déjà"
+            " changé la forme de ses identifiants une fois"
+        )
     lignes: dict[tuple, float] = {}
     for rang in lecteur:
         valeur = (rang.get("valeur") or "").strip()
         if not valeur or (rang.get("secret_statistique") or "").strip():
             continue
-        code = (rang.get("idcom") or "").strip()
-        if not code:
+        dep = (rang.get("dep") or "").strip()
+        if dep in HORS_COG:
+            # Saint-Martin et Saint-Barthélemy sont codés par la DGFiP hors du
+            # Code officiel géographique : leur reconstruire un code Insee en
+            # fabriquerait un faux (« 97808 », qui n'existe pas). Règle héritée
+            # du connecteur `rei`, même source.
             continue
-        lignes[(code, (rang.get("annee") or "").strip(), rang["varlib"])] = float(valeur)
+        code = code_insee(dep, (rang.get("idcom") or "").strip())
+        if code is None:
+            raise ValueError(
+                f"département « {dep} », identifiant « {rang.get('idcom')} » : le"
+                " code Insee ne se reconstruit pas. La source a changé le codage"
+                " de ses territoires, il faut le regarder avant de recharger"
+            )
+        lignes[(code, (rang.get("annee") or "").strip(), rang["var"])] = float(valeur)
     return lignes
 
 
@@ -236,11 +303,34 @@ def controler(lignes: dict[tuple, float]) -> dict[str, float]:
             f"la somme France s'écarte de {100 * agrege:.2f} % :"
             f" {attendu:.0f} € contre {somme:.0f} € publiés."
         )
+    # La seconde prise, indépendante de l'identité : le témoin figé. L'identité
+    # base × taux reste parfaitement cohérente quand un code commune change de
+    # forme et sort de la lecture ; Bourg-en-Bresse, dont le code perd son zéro
+    # de tête au millésime 2025, manquerait alors nommément.
+    if TEMOIN_EXERCICE not in {annee for _, annee, _ in lignes}:
+        raise IdentiteRompue(
+            f"l'exercice {TEMOIN_EXERCICE} du témoin n'est plus dans la source :"
+            " la fenêtre des millésimes a bougé, il faut relever un nouveau"
+            " témoin avant de recharger"
+        )
+    temoin: dict[str, float | None] = {}
+    for variable, releve in sorted(TEMOINS.items()):
+        lu = lignes.get((TEMOIN_COMMUNE, TEMOIN_EXERCICE, variable))
+        temoin[variable] = lu
+        if lu is None or abs(lu - releve) > TEMOIN_TOLERANCE * releve:
+            raise IdentiteRompue(
+                f"témoin {TEMOIN_COMMUNE} en {TEMOIN_EXERCICE}, variable"
+                f" {variable} : {lu} lu contre {releve:.0f} € relevés à la main"
+                f" (±{100 * TEMOIN_TOLERANCE:.1f} %). L'identité base × taux ne"
+                " voit pas un code commune qui change de forme et tombe hors"
+                " référentiel ; ce témoin, si."
+            )
     return {
         "communes_verifiees": len(ecarts),
         "ecart_median": round(mediane, 6),
         "part_sous_un_pourcent": round(part, 5),
         "ecart_agrege": round(agrege, 6),
+        "temoin": temoin,
     }
 
 
@@ -253,11 +343,18 @@ def valeurs_publiees(lignes: dict[tuple, float]) -> list[tuple]:
 
 
 def foncier_par_maille(candidates) -> dict[str, float]:
-    """Le produit du foncier bâti écrit, pour les deux côtés de la couverture."""
+    """Le produit du foncier bâti écrit, par maille **et par exercice**.
+
+    Par exercice et non en bloc : mesurée sur les deux exercices ensemble, la
+    perte des départements 01 à 09 du millésime 2025 faisait encore 97,2 % de
+    couverture et passait le seuil de 95 %, quand le millésime seul était tombé
+    à 94,5 %. La falaise d'un exercice ne doit plus être masquée par l'autre.
+    """
     par_maille: dict[str, float] = {}
-    for cle, niveau, _, _, valeur in candidates:
+    for cle, niveau, _, periode, valeur in candidates:
         if cle == PRODUITS[PRODUIT_FB][0]:
-            par_maille[niveau] = par_maille.get(niveau, 0.0) + valeur
+            maille = f"{niveau} {periode}"
+            par_maille[maille] = par_maille.get(maille, 0.0) + valeur
     return par_maille
 
 
