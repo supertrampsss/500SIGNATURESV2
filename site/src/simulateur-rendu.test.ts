@@ -222,7 +222,12 @@ test("l'écart se colore par son effet sur le solde, jamais en vert", () => {
  * ----------------------------------------------------------------------- */
 
 test("le cockpit donne les quatre nombres et le périmètre en une ligne", () => {
-  assert.equal(perimetre(BUDGET), "PLF 2025, budget général, crédits de paiement");
+  // L'unité fait partie du cadrage : « Santé 1 643 M€ » se lisait « 1 643
+  // milliards » sans elle.
+  assert.equal(
+    perimetre(BUDGET),
+    "PLF 2025, budget général, crédits de paiement, montants en millions d'euros (M€)",
+  );
   const html = renduCockpit(BUDGET, INDEX, RIEN);
   for (const nom of ["Dépenses", "Recettes nettes", "Solde", "Votre écart"]) {
     assert.match(html, new RegExp(`<dt>${nom}</dt>`), `compteur ${nom} manquant`);

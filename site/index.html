@@ -118,6 +118,12 @@
     </div>
 
     <div class="vue" id="vue-analyses" hidden>
+      <div class="recherche recherche--analyses">
+        <label for="recherche-analyses" class="visuellement-cache">Rechercher un territoire</label>
+        <input id="recherche-analyses" type="search" autocomplete="off"
+               placeholder="Chercher une commune, un département…" />
+        <ul id="suggestions-analyses" role="listbox" hidden></ul>
+      </div>
       <div id="analyses"></div>
     </div>
 

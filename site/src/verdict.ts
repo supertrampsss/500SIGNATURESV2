@@ -454,8 +454,7 @@ const GABARITS: Gabarit[] = [
     cadre: true,
     texte: (f, autonome) =>
       `Les dépenses d'équipement, les travaux et les achats durables de l'année, passent`
-      + ` ${trajet(f, autonome)}, soit ${variation(f.ecart)}${autonome ? repereDit(f) : ""} ;`
-      + ` une année d'investissement ne résume pas le mandat.`,
+      + ` ${trajet(f, autonome)}, soit ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
     titre: (f) =>
       `${f.lieu}, les dépenses d'équipement de l'année ont`
       + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} depuis`

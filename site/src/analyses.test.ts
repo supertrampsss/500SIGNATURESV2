@@ -36,16 +36,24 @@ const BORDEAUX = {
   },
 } as never;
 
-test("chaque indicateur montre son dernier exercice, et l'année est écrite", () => {
+test("chaque exercice publié a sa colonne, et une absence reste vide", () => {
   const liste = rubriques(BORDEAUX, CATALOGUE, LIBELLES, ["finances_locales", "population"]);
   const finances = liste.find((r) => r.theme === "finances_locales")!;
+  // Les colonnes du thème sont l'union de ses exercices, du plus ancien au plus
+  // récent : sans quoi une série plus courte effacerait la colonne des autres.
+  assert.deepEqual(finances.exercices, ["2024", "2025"]);
   const depenses = finances.lignes.find((l) => l.id === "ofgl_depenses_fonctionnement")!;
-  assert.equal(depenses.periode, "2025");
-  assert.equal(depenses.valeur, "369,0 M€");
-  // La population est d'un autre millésime, et la page le dit plutôt que de
-  // laisser croire à une photographie commune.
-  const pop = liste.find((r) => r.theme === "population")!.lignes[0];
-  assert.equal(pop.periode, "2023");
+  assert.deepEqual(depenses.valeurs, {
+    "2024": "361,9 M€",
+    "2025": "369,0 M€",
+  });
+  // L'encours n'a que 2025 : sa cellule 2024 reste vide, et l'absence se voit.
+  const dette = finances.lignes.find((l) => l.id === "ofgl_encours_dette")!;
+  assert.equal(dette.valeurs["2024"], undefined);
+  assert.equal(dette.valeurs["2025"], "413,0 M€");
+  // La population est d'un autre millésime : le thème a ses propres colonnes.
+  const population = liste.find((r) => r.theme === "population")!;
+  assert.deepEqual(population.exercices, ["2023"]);
 });
 
 test("un indicateur sans valeur ne produit pas de ligne", () => {

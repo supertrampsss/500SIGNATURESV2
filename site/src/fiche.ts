@@ -545,7 +545,9 @@ function ligneIndicateur(
   if (part && totalPart) {
     comparaisons.push(`Soit ${pourcentage((brut / totalPart) * 100)} ${part.nom}.`);
   }
-  const evolutionDite = evolution(suivie, periode, evenements, false, croissanceAnnuelle(suivie));
+  const evolutionDite = evolution(
+    suivie, periode, evenements, false, croissanceAnnuelle(suivie), indicateur.unite,
+  );
   // « +20,3 % depuis 2018 » est d'abord une évolution des prix : entre 2018 et
   // 2025, un euro a perdu près d'un cinquième de son pouvoir d'achat. Afficher
   // la hausse nue laisse le lecteur conclure de travers, et toujours dans le
@@ -1694,7 +1696,6 @@ function rendreRecit(histoire: Recit | null): string {
   return `<section class="recit">
     <h3 class="recit__titre">${echapper(histoire.titre)}</h3>
     <p class="recit__paragraphe">${echapper(histoire.paragraphe)}</p>
-    <p class="recit__fenetre">${echapper(histoire.fenetre)}</p>
   </section>`;
 }
 

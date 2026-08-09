@@ -94,7 +94,11 @@ export function classeEcart(surSolde: number): string {
  *  cadrage de la page, et elle tient sur une ligne. */
 export function perimetre(budget: Budget): string {
   const mesure = MESURES[budget.mesure] ?? budget.mesure;
-  return `${budget.loi} ${budget.exercice}, budget général, ${mesure}`;
+  // L'unité est dite ici, une fois. Sans elle, « Santé 1 643 M€ » se lit comme
+  // 1 643 milliards par qui n'a pas le nez sur le sigle — le chiffre est juste,
+  // c'est la lecture qui glisse d'un facteur mille.
+  return `${budget.loi} ${budget.exercice}, budget général, ${mesure},`
+    + " montants en millions d'euros (M€)";
 }
 
 /**

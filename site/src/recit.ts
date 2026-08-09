@@ -30,8 +30,6 @@ export type Recit = {
   paragraphe: string;
   /** Les identifiants d'indicateurs cités, dans l'ordre d'apparition. */
   cites: string[];
-  /** La fenêtre racontée, écrite pour l'écran : « mandat 2020-2026 ». */
-  fenetre: string;
 };
 
 /**
@@ -45,21 +43,6 @@ export type Recit = {
 const PHRASES_MAXIMUM = 3;
 const PHRASES_MINIMUM = 2;
 
-/**
- * « mandat 2020-2026, mesuré depuis l'exercice 2019 ».
- *
- * La fenêtre s'intitulait « mandat 2020-2026 » et toutes ses phrases partaient
- * de 2019 : le lecteur y voyait une contradiction, et il avait raison de la
- * relever — rien ne lui disait d'où venait ce 2019. C'est pourtant le bon point
- * de départ, et pour une raison qui se dit en quelques mots : les conseils élus
- * en mars 2020 ont trouvé les comptes de 2019, derniers de l'équipe sortante.
- * Mesurer le mandat depuis 2020 lui imputerait un budget qu'il n'a pas voté.
- */
-function fenetreLisible(debut: string, fin: string | null, reference: string): string {
-  const ouverture = debut.slice(0, 4);
-  const nom = fin ? `mandat ${ouverture}-${fin.slice(0, 4)}` : `mandat ouvert en ${ouverture}`;
-  return `${nom}, mesuré depuis l'exercice ${reference}`;
-}
 
 /**
  * Les faits du paragraphe : le premier, puis un autre sujet, puis un troisième.
@@ -103,10 +86,5 @@ export function recit(contexte: Contexte): Recit | null {
     // Un même indicateur peut porter deux règles — le niveau des impôts locaux
     // et leur part dans les recettes. Il ne se cite qu'une fois.
     cites: [...new Set(suite.map((f) => f.vers))],
-    fenetre: fenetreLisible(
-      contexte.mandat.debut,
-      contexte.mandat.fin,
-      contexte.mandat.exerciceReference,
-    ),
   };
 }

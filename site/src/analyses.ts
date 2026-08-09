@@ -9,17 +9,18 @@
  *
  * Trois règles tenues d'un bout à l'autre.
  *
- * **Le dernier exercice de chaque indicateur, et son année écrite à côté.** Les
- * jeux n'ont pas le même calendrier : le recensement est triennal, les finances
- * locales annuelles. Afficher 2023 et 2025 côte à côte sans le dire laisserait
- * croire à une même photographie.
+ * **Tous les exercices publiés, un par colonne.** Une seule valeur par
+ * indicateur ne s'analyse pas : on ne peut ni voir une inflexion, ni situer la
+ * dernière année. Les jeux n'ont pas le même calendrier — le recensement est
+ * triennal, les finances locales annuelles —, chaque thème porte donc ses
+ * propres colonnes, et une cellule vide est un exercice que la source ne
+ * publie pas.
  *
  * **Aucun indicateur inventé.** Un thème sans donnée pour ce territoire ne
  * s'affiche pas ; un indicateur sans valeur ne produit pas une ligne à zéro.
  * L'absence se lit dans le nombre d'indicateurs annoncé, pas dans des tirets.
  *
- * **Les montants en millions d'euros.** Le par-habitant reste à la fiche, où il
- * sert à comparer ; ici on montre ce que le territoire pèse.
+ * **Les montants en millions d'euros**, comme partout sur le site.
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -28,7 +29,18 @@ import { millions } from "./echelle.ts";
 export type Rubrique = {
   theme: string;
   libelle: string;
-  lignes: { id: string; libelle: string; valeur: string; periode: string }[];
+  /** Les exercices publiés dans ce thème, du plus ancien au plus récent : ce
+   *  sont les colonnes du tableau. Un indicateur qui n'en a qu'un laisse les
+   *  autres cellules vides plutôt que de faire disparaître la colonne pour
+   *  tous les autres. */
+  exercices: string[];
+  lignes: {
+    id: string;
+    libelle: string;
+    /** La valeur lisible par exercice. Absente d'un exercice : la cellule est
+     *  vide, et l'absence se voit. */
+    valeurs: Record<string, string>;
+  }[];
 };
 
 function echapper(texte: string): string {
@@ -68,26 +80,33 @@ export function rubriques(
   for (const indicateur of catalogue) {
     const serie = territoire.series[indicateur.id];
     if (!serie) continue;
-    const periodes = Object.keys(serie).sort();
-    const periode = periodes[periodes.length - 1];
-    if (periode === undefined) continue;
-    const valeur = serie[periode];
-    if (valeur === undefined || !Number.isFinite(valeur)) continue;
+    const valeurs: Record<string, string> = {};
+    for (const [periode, valeur] of Object.entries(serie)) {
+      if (typeof valeur !== "number" || !Number.isFinite(valeur)) continue;
+      valeurs[periode] = valeurLisible(valeur, indicateur.unite);
+    }
+    const periodes = Object.keys(valeurs);
+    if (!periodes.length) continue;
     const theme = indicateur.theme ?? "autres";
     if (!parTheme.has(theme)) {
-      parTheme.set(theme, { theme, libelle: libelles[theme] ?? theme, lignes: [] });
+      parTheme.set(theme, {
+        theme,
+        libelle: libelles[theme] ?? theme,
+        exercices: [],
+        lignes: [],
+      });
     }
-    parTheme.get(theme)!.lignes.push({
-      id: indicateur.id,
-      libelle: indicateur.libelle,
-      valeur: valeurLisible(valeur, indicateur.unite),
-      periode,
-    });
+    const rubrique = parTheme.get(theme)!;
+    rubrique.lignes.push({ id: indicateur.id, libelle: indicateur.libelle, valeurs });
+    for (const periode of periodes) {
+      if (!rubrique.exercices.includes(periode)) rubrique.exercices.push(periode);
+    }
   }
   const rang = (theme: string) => {
     const place = ordre.indexOf(theme);
     return place === -1 ? ordre.length : place;
   };
+  for (const rubrique of parTheme.values()) rubrique.exercices.sort();
   return [...parTheme.values()]
     .filter((r) => r.lignes.length)
     .sort((a, b) => rang(a.theme) - rang(b.theme) || a.libelle.localeCompare(b.libelle, "fr"));
@@ -115,25 +134,34 @@ export function rendu(nom: string, liste: Rubrique[]): string {
     .map(
       (r) => `<section class="analyses__theme" id="analyses-${echapper(r.theme)}">
         <h3>${echapper(r.libelle)}</h3>
+        <div class="analyses__defilement">
         <table class="analyses__table">
-          <thead><tr><th scope="col">Indicateur</th><th scope="col">Dernière valeur</th>
-            <th scope="col">Exercice</th></tr></thead>
+          <thead><tr><th scope="col">Indicateur</th>${r.exercices
+            .map((e) => `<th scope="col">${echapper(e)}</th>`)
+            .join("")}</tr></thead>
           <tbody>${r.lignes
             .map(
-              (l) => `<tr><th scope="row">${echapper(l.libelle)}</th>
-                <td class="analyses__valeur">${echapper(l.valeur)}</td>
-                <td class="analyses__periode">${echapper(l.periode)}</td></tr>`,
+              (l) => `<tr><th scope="row">${echapper(l.libelle)}</th>${r.exercices
+                .map(
+                  (e) =>
+                    `<td class="analyses__valeur">${
+                      l.valeurs[e] === undefined ? "" : echapper(l.valeurs[e])
+                    }</td>`,
+                )
+                .join("")}</tr>`,
             )
             .join("")}</tbody>
         </table>
+        </div>
       </section>`,
     )
     .join("");
   return `<div class="analyses">
     <h2 class="analyses__titre">${echapper(nom)}</h2>
     <p class="analyses__compte">${compte} indicateurs renseignés, ${liste.length} thèmes.
-      Chaque valeur est le dernier exercice publié de son indicateur : les jeux n'ont pas
-      tous le même calendrier, et l'année est écrite à côté de chaque chiffre.</p>
+      Un exercice par colonne : les jeux n'ont pas tous le même calendrier, et une cellule
+      vide est un exercice que la source ne publie pas. Montants en millions d'euros (M€) :
+      1 000 M€ font un milliard.</p>
     <nav class="analyses__sommaire" aria-label="Thèmes">${sommaire}</nav>
     ${sections}
   </div>`;

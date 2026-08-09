@@ -4682,12 +4682,28 @@ summary.pont__rangee,
 }
 /* Le tableau déborde sur téléphone plutôt que d'écraser les libellés : c'est
    lui qui défile, jamais la page entière. */
+/* Un exercice par colonne : sur dix millésimes le tableau dépasse la page, et
+   c'est lui qui défile, pas le corps du document. La colonne des intitulés
+   reste visible pendant le défilement — sans elle, on lit des nombres sans
+   savoir ce qu'ils comptent. */
+.analyses__defilement {
+  overflow-x: auto;
+}
 .analyses__table {
   width: 100%;
   border-collapse: collapse;
-  display: block;
-  overflow-x: auto;
   font-size: var(--texte-s);
+}
+.analyses__table th[scope="row"] {
+  position: sticky;
+  left: 0;
+  background: var(--fond);
+  z-index: 1;
+}
+.recherche--analyses {
+  position: relative;
+  max-width: 34rem;
+  margin: 0 auto var(--espace-6);
 }
 .analyses__table thead th {
   text-align: left;

@@ -181,7 +181,7 @@ export function ratios(territoire: Territoire, niveau: string, exercice: string)
       valeur: (equipement / recettes) * 100,
       unite: "percent",
       lecture:
-        "Ce qui va à l'investissement. Il se fait par à-coups : une année ne dit pas tout.",
+        "La part des recettes qui va à l'investissement de l'année.",
     });
   }
 

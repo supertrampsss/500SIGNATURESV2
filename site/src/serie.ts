@@ -18,6 +18,7 @@
  */
 
 import { pourcentage } from "./echelle.ts";
+import { modeVariation, variationExportee } from "./evolution-carte.ts";
 
 export type Evenement = { type: string; date: string; avec: string };
 
@@ -55,6 +56,9 @@ export function evolution(
    *  sous une ligne qui disait déjà « +275,8 % depuis 2022 » : deux fois la
    *  même chose, dans deux dessins. Il tient ici entre parenthèses. */
   parAn?: number | null,
+  /** L'unité de la série : un taux varie en points, tout le reste en
+   *  pourcentage. Sans elle, la fonction retombe sur le pourcentage. */
+  unite = "",
 ): string {
   const periodes = Object.keys(serie).sort();
   const valeurCourante = serie[periode];
@@ -63,9 +67,13 @@ export function evolution(
   const depuis = periodes.find((p) => (rupture ? p >= rupture : true));
   if (depuis === undefined || depuis === periode) return "";
   const depart = serie[depuis];
-  if (!depart) return "";
-  const variation = ((valeurCourante - depart) / Math.abs(depart)) * 100;
+  const enPoints = modeVariation(unite) === "points";
+  if (!depart && !enPoints) return "";
+  const variation = enPoints
+    ? variationExportee(valeurCourante - depart, unite, "points")
+    : ((valeurCourante - depart) / Math.abs(depart)) * 100;
   const signe = variation >= 0 ? "+" : "";
+  const point = (rendu: string) => (enPoints ? rendu.replace(/%$/, "pt") : rendu);
   // Forme courte : le pourcentage seul, la fenêtre au survol. Répéter
   // « depuis 2022 » sous chaque ligne d'une fiche était du bruit — la fenêtre
   // reste dite, ligne par ligne, dans l'infobulle (elle peut différer d'une
@@ -74,20 +82,27 @@ export function evolution(
     const titre = rupture
       ? `depuis ${echapper(depuis)}, après le changement de périmètre`
       : `depuis ${echapper(depuis)}`;
-    return `<span class="evolution" title="${titre}">${signe}${pourcentage(variation)}</span>`;
+    return `<span class="evolution" title="${titre}">${signe}${point(
+      pourcentage(variation),
+    )}</span>`;
   }
   const reserve = rupture
     ? ` <span class="evolution__reserve">depuis le changement de périmètre</span>`
     : "";
   // Sous 0,05 point, le rythme annuel n'ajoute rien à « stable » : un encadré
   // « +0 % par an » sous une ligne « +0 % depuis 2022 » était deux fois rien.
+  // En points, le rythme n'est pas une croissance composée : c'est l'écart
+  // réparti sur les années de la fenêtre. Passer le taux composé de `parAn`
+  // écrirait un nombre qui ne mesure pas ce que son unité annonce.
+  const annees = Number(periode.slice(0, 4)) - Number(depuis.slice(0, 4));
+  const parAnDit = enPoints ? (annees > 0 ? variation / annees : null) : parAn;
   const rythme =
-    parAn !== undefined && parAn !== null && Math.abs(parAn) >= 0.05
-      ? ` <span class="evolution__rythme">${parAn > 0 ? "+" : ""}${pourcentage(
-          parAn,
+    parAnDit !== undefined && parAnDit !== null && Math.abs(parAnDit) >= 0.05
+      ? ` <span class="evolution__rythme">${parAnDit > 0 ? "+" : ""}${point(
+          pourcentage(parAnDit),
         )}/an</span>`
       : "";
-  return `<span class="evolution">${signe}${pourcentage(variation)} depuis ${echapper(
+  return `<span class="evolution">${signe}${point(pourcentage(variation))} depuis ${echapper(
     depuis,
   )}${rythme}${reserve}</span>`;
 }
@@ -132,8 +147,14 @@ export function dernierPas(
   // Une base nulle n'a pas de variation relative : passer de 0 à 3 n'est pas
   // « +∞ % », c'est « 3 là où il n'y avait rien ». La ligne le montre déjà par
   // sa valeur ; le résumé se tait.
-  if (unite !== "percent" && avant === 0) return null;
-  const ecart = unite === "percent" ? apres - avant : ((apres - avant) / Math.abs(avant)) * 100;
+  const enPoints = modeVariation(unite) === "points";
+  if (!enPoints && avant === 0) return null;
+  // Un taux varie en points, et il en varie sur l'échelle où il s'affiche : le
+  // SSMSI publie pour mille, l'écran montre des pourcentages, et « −2,0 pt »
+  // sous « 0,69 % » désignerait un mouvement dix fois trop grand.
+  const ecart = enPoints
+    ? variationExportee(apres - avant, unite, "points")
+    : ((apres - avant) / Math.abs(avant)) * 100;
   // Le seuil est celui de l'affichage, pas une convention : sous 0,05, le
   // nombre s'arrondit à « 0 » et une flèche de hausse au-dessus d'un zéro
   // affirmerait un mouvement que le chiffre ne montre pas.
@@ -141,7 +162,7 @@ export function dernierPas(
   const signe = sens === "hausse" ? "+" : "";
   const nombre = pourcentage(ecart);
   return {
-    texte: unite === "percent" ? `${signe}${nombre.replace(/%$/, "pt")}` : `${signe}${nombre}`,
+    texte: enPoints ? `${signe}${nombre.replace(/%$/, "pt")}` : `${signe}${nombre}`,
     sens,
     depuis,
     jusqua,

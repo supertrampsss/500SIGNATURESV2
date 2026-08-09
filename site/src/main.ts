@@ -1866,8 +1866,29 @@ function brancherCommandes(): void {
     );
   });
 
-  const champ = $<HTMLInputElement>("recherche");
-  const liste = $<HTMLUListElement>("suggestions");
+  brancherRecherche($<HTMLInputElement>("recherche"), $<HTMLUListElement>("suggestions"));
+  brancherRecherche(
+    $<HTMLInputElement>("recherche-analyses"),
+    $<HTMLUListElement>("suggestions-analyses"),
+  );
+
+  // Retirer un territoire de la comparaison : les « × » des en-têtes du
+  // tableau (rendus par `comparateur.ts`) et les pilules de rappel.
+  $("comparateur").addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-retirer]");
+    const code = bouton?.dataset.retirer;
+    if (code) void basculerComparaison(code);
+  });
+}
+
+/**
+ * Le champ de recherche et sa liste de suggestions, câblés ensemble.
+ *
+ * Deux pages le portent — le panneau de la carte et la page ANALYSES —, et il
+ * doit s'y comporter pareil : même index, mêmes flèches du clavier, même
+ * ouverture. Écrit deux fois, il aurait divergé au premier correctif.
+ */
+function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): void {
   // La recherche cherchait dans la seule maille affichée. Comme cette maille
   // suit désormais le zoom, taper « Lyon » sur une vue nationale ne trouvait
   // rien — sans un mot d'explication — alors que le champ promet « une
@@ -1935,15 +1956,12 @@ function brancherCommandes(): void {
       bouton.dataset.niveau ?? null,
       bouton.firstChild?.textContent?.trim(),
     );
+    // La page ANALYSES porte le même champ : sans ce repeint, choisir une ville
+    // depuis cette page ouvrait la fiche de la carte et laissait le tableau sur
+    // la ville précédente. On ne pouvait tout simplement pas en changer.
+    if (document.body.dataset.vue === "analyses") await peindreAnalyses();
   });
 
-  // Retirer un territoire de la comparaison : les « × » des en-têtes du
-  // tableau (rendus par `comparateur.ts`) et les pilules de rappel.
-  $("comparateur").addEventListener("click", (evenement) => {
-    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-retirer]");
-    const code = bouton?.dataset.retirer;
-    if (code) void basculerComparaison(code);
-  });
 }
 
 /**
