@@ -2100,6 +2100,31 @@ async function preparerSimulateur(): Promise<void> {
   if (location.hash === "#simulateur") basculerVue();
 }
 
+/**
+ * Le taux apparent de la dette de l'État : la charge publiée sur l'encours
+ * publié, deux séries de la fiche France.
+ *
+ * Ce n'est pas le taux marginal auquel l'État emprunterait demain — le
+ * simulateur le nomme « apparent » là où il l'affiche. Une des deux séries
+ * manque : on ne rend rien, et la ligne d'effet ne s'affiche pas. Supposer un
+ * taux serait inventer un chiffre.
+ */
+async function tauxApparentDeLaDette(): Promise<number | undefined> {
+  try {
+    const france = (await donnees.territoires("pays", "tous"))["FR"];
+    const dernier = (id: string) => {
+      const serie = france?.series?.[id] ?? {};
+      const periodes = Object.keys(serie).sort();
+      return periodes.length ? serie[periodes[periodes.length - 1]] : undefined;
+    };
+    const charge = dernier("etat_charge_dette");
+    const encours = dernier("insee_dette_etat_montant");
+    return charge && encours && encours > 0 ? charge / encours : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
 /** L'arbre du budget, chargé au premier affichage de la vue et pas avant. */
 async function ouvrirSimulateur(): Promise<void> {
   if (simulateurMonte || !exerciceSimulateur) return;
@@ -2108,6 +2133,7 @@ async function ouvrirSimulateur(): Promise<void> {
     const budget = await donnees.simulateurBudget(exerciceSimulateur);
     const index = indexer(budget);
     afficherSimulateur($("simu"), budget, index, {
+      tauxApparent: await tauxApparentDeLaDette(),
       reglages: decoder(etat.budget, index),
       surReglages: (encode) => {
         etat.budget = encode;

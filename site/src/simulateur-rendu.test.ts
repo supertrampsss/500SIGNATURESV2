@@ -412,3 +412,23 @@ test("les commandes d'une ligne font 44 px pleins, sans zone étendue", () => {
   assert.match(CSS, /--haut-entete: 3\.6rem;/);
   assert.match(CSS, /\.simu__cockpit \{\n\s*position: sticky;\n\s*top: var\(--haut-entete\);/);
 });
+
+test("une économie allège les intérêts, mais l'exercice d'après", () => {
+  // Taux apparent : 53 536 M€ de charge sur 2 700 000 M€ d'encours, soit 1,98 %.
+  const taux = 53_536_000_000 / 2_700_000_000_000;
+  // Couper 20 % de l'enseignement du premier degré : 4 Md€ d'économie.
+  const html = renduCockpit(BUDGET, INDEX, reglages(["140", -20]), taux);
+  assert.match(html, /Effet en année pleine, exercice suivant/);
+  // 4 Md€ × 1,98 % = 79,3 M€ d'intérêts en moins.
+  assert.match(html, /\+79,3\u202fM€/);
+  // Le solde de l'exercice réglé, lui, ne bouge que de l'économie elle-même.
+  assert.match(html, /<dt>Solde<\/dt>\s*<dd class="nombre">14\u202f000\u202fM€/);
+  // Le taux est nommé « apparent » : le confondre avec le taux marginal
+  // auquel l'État emprunte serait un chiffre faux.
+  assert.match(html, /taux apparent de la dette de l&#39;État \(2\u202f%\)/);
+});
+
+test("sans taux publié, aucune ligne d'effet plutôt qu'un taux supposé", () => {
+  const html = renduCockpit(BUDGET, INDEX, reglages(["140", -20]));
+  assert.doesNotMatch(html, /Effet en année pleine/);
+});

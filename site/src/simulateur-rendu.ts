@@ -224,16 +224,62 @@ export function renduRecettes(budget: Budget, index: Index, reglages: Reglages):
  * Cockpit, défis, plan
  * ----------------------------------------------------------------------- */
 
-function compteur(nom: string, valeur: string, classe = ""): string {
+function compteur(nom: string, valeur: string, classe = "", aide = ""): string {
   return `<div class="simu__compteur">
-    <dt>${nom}</dt>
+    <dt${aide ? ` title="${echapper(aide)}"` : ""}>${nom}</dt>
     <dd class="nombre${classe}">${valeur}</dd>
   </div>`;
 }
 
-/** Dépenses, recettes, solde, votre écart. Quatre nombres, toujours les mêmes,
- *  toujours au même endroit : c'est ce qui rend un réglage lisible. */
-export function renduCockpit(budget: Budget, index: Index, reglages: Reglages): string {
+/**
+ * Ce qu'une économie fait à la charge de la dette, l'année d'après.
+ *
+ * Couper un milliard, c'est emprunter un milliard de moins ; l'encours baisse
+ * d'autant, et les intérêts avec. Le simulateur s'arrêtait au solde et laissait
+ * cet effet-là dans l'ombre alors qu'il est l'argument même du débat.
+ *
+ * **Deux précautions, sans lesquelles le nombre serait faux.**
+ *
+ * Le taux est le **taux apparent** de la dette de l'État — la charge publiée
+ * divisée par l'encours publié —, jamais le taux marginal auquel l'État
+ * emprunterait demain. Les deux diffèrent, parfois beaucoup, et l'affichage le
+ * nomme pour qu'on ne lise pas l'un pour l'autre.
+ *
+ * Et l'effet **ne touche pas l'exercice réglé** : un budget 2025 dont on coupe
+ * un milliard paie la même charge de dette en 2025. Il a donc sa ligne à lui,
+ * datée de l'exercice suivant, au lieu d'être fondu dans un solde qui
+ * deviendrait faux.
+ */
+function effetDette(ecart: number, taux: number | undefined): string {
+  if (!taux || !Number.isFinite(taux) || Math.abs(ecart) < 1) return "";
+  const interets = ecart * taux;
+  return compteur(
+    "Effet en année pleine, exercice suivant",
+    eurosSigne(interets),
+    classeEcart(interets),
+    `Intérêts en moins sur l'exercice suivant : votre écart au budget voté,`
+      + ` au taux apparent de la dette de l'État (${pourcentageCourt(taux * 100)}),`
+      + ` soit la charge publiée rapportée à l'encours publié. L'exercice réglé,`
+      + ` lui, paie la même charge de dette.`,
+  );
+}
+
+/** « 1,8 % » : le taux apparent, à la décimale. */
+function pourcentageCourt(valeur: number): string {
+  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(valeur)}\u202f%`;
+}
+
+/** Dépenses, recettes, solde, votre écart — et ce que l'écart fera aux
+ *  intérêts l'année d'après. Toujours les mêmes, toujours au même endroit :
+ *  c'est ce qui rend un réglage lisible. */
+export function renduCockpit(
+  budget: Budget,
+  index: Index,
+  reglages: Reglages,
+  /** Charge de la dette de l'État rapportée à son encours, tous deux publiés.
+   *  Absent : la ligne d'effet ne s'affiche pas plutôt que de supposer un taux. */
+  tauxApparent?: number,
+): string {
   const t = totaux(budget, reglages);
   const ecart = ecartAuReel(budget, reglages);
   const proche = equivalence(programmes(index), ecart);
@@ -252,6 +298,7 @@ export function renduCockpit(budget: Budget, index: Index, reglages: Reglages): 
         compteur("Solde", euros(t.solde))
       }
       ${compteur("Votre écart", eurosSigne(ecart), classeEcart(ecart))}
+      ${effetDette(ecart, tauxApparent)}
     </dl>
     ${
       proche
@@ -348,12 +395,18 @@ export function renduSuggestions(resultats: Entree[]): string {
 
 /** Le squelette, monté une fois. Les zones qui bougent portent un identifiant :
  *  un réglage réécrit le cockpit et le plan, jamais l'arbre déjà déplié. */
-export function rendu(budget: Budget, index: Index, reglages: Reglages): string {
+export function rendu(
+  budget: Budget,
+  index: Index,
+  reglages: Reglages,
+  tauxApparent?: number,
+): string {
   const ecart = ecartAuReel(budget, reglages);
   return `<div class="simu__cockpit" id="simu-cockpit" aria-live="polite">${renduCockpit(
     budget,
     index,
     reglages,
+    tauxApparent,
   )}</div>
   <ul class="simu__defis" id="simu-defis">${renduDefis(
     defis(index, reglages, ecart, totaux(budget, reglages).solde),
@@ -410,13 +463,16 @@ type Options = {
   /** Appelé après chaque geste, avec l'état encodé : c'est l'appelant qui
    *  possède l'URL du site, ce module ne la touche pas. */
   surReglages: (encode: string) => void;
+  /** Charge de la dette de l'État rapportée à son encours, tous deux publiés.
+   *  Absent : la ligne d'effet sur l'exercice suivant ne s'affiche pas. */
+  tauxApparent?: number;
 };
 
 export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Index, options: Options): void {
   const { reglages, surReglages } = options;
   const $ = <T extends HTMLElement>(id: string) => bloc.querySelector<T>(`#${id}`)!;
 
-  bloc.innerHTML = rendu(budget, index, reglages);
+  bloc.innerHTML = rendu(budget, index, reglages, options.tauxApparent);
 
   const cockpit = $("simu-cockpit");
   const elDefis = $("simu-defis");
@@ -454,7 +510,7 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
   }
 
   function majTotaux(): void {
-    cockpit.innerHTML = renduCockpit(budget, index, reglages);
+    cockpit.innerHTML = renduCockpit(budget, index, reglages, options.tauxApparent);
     const ecart = ecartAuReel(budget, reglages);
     elDefis.innerHTML = renduDefis(
       defis(index, reglages, ecart, totaux(budget, reglages).solde),
