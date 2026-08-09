@@ -1496,14 +1496,9 @@ tbody tr:hover {
   padding: 0 var(--espace-2);
 }
 .comparer {
-  margin: 0.4rem 0 0.8rem;
-  padding: var(--espace-3) var(--espace-5);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon);
   background: none;
   cursor: pointer;
   font: inherit;
-  font-size: var(--texte-m);
 }
 .comparer[disabled] {
   cursor: not-allowed;
@@ -1964,18 +1959,20 @@ tbody tr:hover {
 .comparer {
   font: inherit;
   font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.02em;
   color: var(--encre-douce);
   background: none;
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-pilule);
-  padding: var(--espace-2) var(--espace-5);
+  border: 0;
+  border-bottom: 1px solid var(--trait);
+  border-radius: 0;
+  padding: 0 0 var(--espace-1);
+  margin: 0 0 var(--espace-4);
+  align-self: flex-start;
   cursor: pointer;
   transition: border-color var(--transition), color var(--transition);
 }
 .comparer:hover {
-  border-color: var(--encre);
+  border-bottom-color: var(--encre);
   color: var(--encre);
 }
 
@@ -3898,41 +3895,57 @@ summary.pont__rangee,
 .fiche .fiche__vitesses {
   order: -2;
 }
+/* Un réglage de densité, pas une décision.
+ *
+ * Les deux vitesses prenaient toute la largeur en pilules pleines, l'une noire,
+ * et l'ancre « Comparer » une troisième au-dessus : trois gros aplats avant le
+ * premier chiffre, qui donnaient à un réglage d'affichage le poids d'un appel à
+ * l'action. Ce sont des onglets, ils s'écrivent comme tels — un segment discret,
+ * calé à gauche sous le nom du territoire, qui ne prend que la place de son
+ * texte, et où seul l'état actif porte un fond, léger. */
 .fiche__vitesses {
-  display: flex;
+  display: inline-flex;
+  align-self: flex-start;
   align-items: stretch;
-  gap: var(--espace-2);
-  margin: var(--espace-5) 0 var(--espace-6);
+  gap: 0;
+  margin: var(--espace-4) 0 var(--espace-6);
+  padding: var(--espace-1);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-pilule);
+  background: var(--fond);
 }
 .fiche__vitesses button {
   font: inherit;
   font-size: var(--texte-xs);
-  font-weight: 600;
-  flex: 1 1 auto;
+  font-weight: 500;
   min-width: 0;
-  min-height: var(--cible);
   padding: var(--espace-2) var(--espace-4);
-  border: 1px solid var(--trait);
+  border: 0;
   border-radius: var(--rayon-pilule);
-  background: var(--papier);
+  background: none;
   color: var(--encre-douce);
   cursor: pointer;
-  transition: color var(--transition), border-color var(--transition),
-    background-color var(--transition);
+  white-space: nowrap;
+  transition: color var(--transition), background-color var(--transition);
+}
+.fiche__vitesses button:hover {
+  color: var(--encre);
 }
 .fiche__vitesses button[aria-pressed="true"] {
-  color: var(--papier);
-  background: var(--encre);
-  border-color: var(--encre);
+  color: var(--encre);
+  background: var(--papier);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 6%);
 }
-/* « Tout voir » annonce ce qu'il rouvre : un bouton qui cache cent quarante
-   lignes doit dire leur nombre. Sur une seule ligne, il pousserait le libellé
-   hors de la pilule à 375 px. */
+/* Le compte des indicateurs suit le libellé au lieu de le surmonter : deux
+   lignes dans une pilule doublaient sa hauteur pour un nombre. */
 .fiche__vitesses-compte {
-  display: block;
+  display: inline;
   font-weight: 400;
   font-size: var(--texte-xs);
-  opacity: 0.85;
+  color: var(--encre-douce);
+}
+.fiche__vitesses-compte::before {
+  content: " · ";
 }
 
 /* Le mandat en cours n'a pas de comptes publiés : une ligne, à l'endroit exact

@@ -1359,7 +1359,7 @@ function injecterActionsFiche(): void {
   ancre.insertAdjacentHTML(
     "afterend",
     `<p class="fiche__actions">
-      <button type="button" class="tableau__export" data-comparer="${code}"${
+      <button type="button" class="comparer" data-comparer="${code}"${
         complet
           ? ` disabled title="La comparaison est complète : ${MAXIMUM} territoires au maximum."`
           : ""

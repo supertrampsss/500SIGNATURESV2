@@ -1410,11 +1410,25 @@ function syntheseTerritoire(
     // un phare non publié pour ce territoire laisse la place au suivant plutôt
     // que de faire disparaître le thème.
     for (const indicateur of liste) {
+      // **L'ouverture montre la masse, jamais le par-habitant.** Un montant se
+      // lit en millions d'euros partout sur le site ; le par-habitant vit dans
+      // les tableaux qu'on déplie, où il a la place d'être nommé.
       const mesure = mesurer(
-        indicateur, territoire, periode, parHabitant, niveau, references, comparateurs,
+        indicateur, territoire, periode, false, niveau, references, comparateurs,
       );
       if (typeof mesure === "string") continue;
-      const { valeur, ratio, comparaisons } = mesure;
+      // Mais la comparaison, elle, n'a de sens qu'à l'habitant : « 369,0 M€
+      // contre 1,2 M€ pour la commune médiane » ne dirait que la différence de
+      // taille. On garde donc la masse pour le chiffre et le par-habitant pour
+      // l'écart, en l'écrivant dans la phrase pour qu'aucun des deux ne passe
+      // pour l'autre.
+      const compare = parHabitantAUnSens(indicateur)
+        ? mesurer(indicateur, territoire, periode, true, niveau, references, comparateurs)
+        : mesure;
+      const rapporte = typeof compare === "string" ? mesure : compare;
+      const { valeur } = mesure;
+      const ratio = rapporte.ratio;
+      const comparaisons = rapporte.comparaisons;
       // Un effectif ne se compare pas d'une maille à l'autre : « 171 777
       // logements » face à un département ne dirait que la différence de
       // taille, et `lecture` rend donc une phrase vide. Sa densité, elle, se
@@ -1429,8 +1443,8 @@ function syntheseTerritoire(
       // que `lecture` n'en tire un rapport ; s'il n'en reste aucun, le repère
       // se pose tel quel à côté du chiffre plutôt que de disparaître.
       const situation =
-        lecture(valeur, reperesALEchelle(valeur, comparaisons), formate) ||
-        lectureDeDensite(mesure.densite) ||
+        lecture(rapporte.valeur, reperesALEchelle(rapporte.valeur, comparaisons), formate) ||
+        lectureDeDensite(rapporte.densite) ||
         contreLeRepere(comparaisons, formate);
       // Un nombre nu ne situe pas : « salariés 100 521 » dit la taille de la
       // ville, que la population dit déjà. Sans comparaison, pas de ligne —
@@ -1454,10 +1468,8 @@ function syntheseTerritoire(
           // que le lecteur sait — c'est le dernier chiffre publié.
           texte: `${entete} <span title="Millésime ${echapper(
             mesure.periode,
-          )}">${echapper(formater(valeur, indicateur.unite, ratio))}</span>${
-            ratio ? " par habitant" : ""
-          }. ${
-            situation ? echapper(situation) : ""
+          )}">${echapper(formater(valeur, indicateur.unite, false))}</span>. ${
+            situation ? `${ratio ? "Par habitant, " : ""}${echapper(situation)}` : ""
           }`.trim(),
         },
       ];
