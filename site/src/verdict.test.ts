@@ -387,3 +387,23 @@ test("une baisse de dépenses détend ce qu'une hausse tendait", () => {
   assert.equal(depenses?.sens, "detend");
   assert.match(depenses?.texte ?? "", /soit −25,2/);
 });
+
+test("la DGF est nommée pour ce qu'elle est, jamais « ce que l'État verse »", () => {
+  // Le cas Paris. La dotation globale de fonctionnement y tombe de 73,3 M€ en
+  // 2019 à 0,12 M€ en 2025 — l'écrêtement au titre de la contribution au
+  // redressement des finances publiques a fini par dépasser la dotation. Le
+  // chiffre est juste. Mais les concours de l'État, eux, passent de 136,5 à
+  // 120,7 M€, les péréquations ayant doublé : écrire « la dotation versée par
+  // l'État recule de 99,8 % » laissait entendre que l'État avait cessé de
+  // financer la capitale, ce qui est faux.
+  const phrases = verdict(bordeaux());
+  const dgf = phrases.find((p) => p.vers === "ofgl_dotation_globale_de_fonctionnement");
+  assert.ok(dgf, "la règle de la DGF doit produire une phrase");
+  assert.match(dgf.texte, /dotation globale de fonctionnement/);
+  for (const phrase of phrases) {
+    assert.ok(
+      !/dotation versée par l'État/.test(phrase.texte),
+      "aucune phrase ne doit confondre la DGF avec l'ensemble des concours de l'État",
+    );
+  }
+});

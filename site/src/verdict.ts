@@ -371,16 +371,25 @@ const GABARITS: Gabarit[] = [
           : ` ; une fois les prix pris en compte, elle a`
             + ` ${sensDuVerbe(pouvoirDAchat(f), "gagné", "perdu")}`
             + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat`;
+      // **Nommer la DGF, pas « ce que l'État verse ».** Les deux se
+      // confondaient, et sur Paris la phrase devenait fausse : la dotation
+      // globale de fonctionnement y tombe de 73,3 M€ en 2019 à 0,12 M€ en 2025
+      // — l'écrêtement au titre de la contribution au redressement des finances
+      // publiques a fini par dépasser la dotation elle-même —, mais les
+      // concours de l'État, eux, passent de 136,5 à 120,7 M€ parce que les
+      // péréquations et compensations ont doublé. Écrire « la dotation versée
+      // par l'État recule de 99,8 % » laissait entendre que l'État avait cessé
+      // de financer la capitale. Le chiffre était juste, la phrase mentait.
       return (
-        `La dotation versée par l'État passe ${trajet(f, autonome)}, soit`
+        `La dotation globale de fonctionnement passe ${trajet(f, autonome)}, soit`
         + ` ${variation(f.ecart)}${reel}.`
       );
     },
     titre: (f) =>
       f.inflation === null
-        ? `${f.lieu}, la dotation versée par l'État a`
+        ? `${f.lieu}, la dotation globale de fonctionnement a`
           + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))}`
-        : `${f.lieu}, la dotation versée par l'État a`
+        : `${f.lieu}, la dotation globale de fonctionnement a`
           + ` ${sensDuVerbe(pouvoirDAchat(f), "gagné", "perdu")}`
           + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat sur le mandat`,
   },
