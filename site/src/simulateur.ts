@@ -31,6 +31,8 @@
  * Le simulateur fait de l'arithmétique budgétaire, pas de l'économie.
  */
 
+import { accentuer } from "./traductions.ts";
+
 /** Un nœud de dépense : mission, programme, action ou sous-action. Une feuille
  *  n'a pas de clé `enfants` — c'est ce qui la distingue, pas sa profondeur. */
 export type Noeud = { c: string; l: string; v: number; enfants?: Noeud[] };
@@ -117,7 +119,7 @@ const ECART_EQUIVALENCE = 0.35;
  * où l'on peut la tenir est l'entrée dans le modèle, pas chaque rendu.
  */
 export function net(texte: string): string {
-  return texte.replace(/[–—]/g, "-");
+  return accentuer(texte.replace(/[–—]/g, "-"));
 }
 
 /** Le montant de base d'un nœud : ses feuilles, sommées. Voir principe 2. */

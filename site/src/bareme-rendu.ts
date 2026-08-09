@@ -16,6 +16,7 @@ import { formater } from "./echelle.ts";
 import { echapper } from "./texte.ts";
 import {
   MODELES,
+  TAUX_UNIQUE_PAR_DEFAUT,
   appliquer,
   decoder,
   ecartAuReel,
@@ -105,13 +106,33 @@ export function renduCockpit(bareme: Bareme, taux: Taux): string {
     </dl>`;
 }
 
-/** Les barèmes tout faits, en pilules. Un clic remplace tous les taux. */
-export function renduModeles(): string {
-  return MODELES.map(
-    (modele, rang) =>
-      `<button type="button" class="simu__creux" data-modele="${rang}"
-         title="${echapper(modele.aide)}">${echapper(modele.nom)}</button>`,
-  ).join("");
+/**
+ * Les trois modes, et le curseur du taux unique.
+ *
+ * Trois boutons plutôt que vingt-cinq champs : le choix qu'on veut faire est
+ * « quelle forme de barème », pas « quel taux sur la tranche 700 000 –
+ * 800 000 € ». Le mode choisi se lit à son bouton, et son aide est écrite en
+ * toutes lettres sous les boutons — pas dans une infobulle qu'un doigt ne peut
+ * pas ouvrir.
+ */
+export function renduModes(choisi: string, tauxUnique: number): string {
+  const mode = MODELES.find((m) => m.cle === choisi) ?? MODELES[0];
+  return `<div class="bareme__modes" role="group" aria-label="Forme du barème">${MODELES.map(
+    (modele) =>
+      `<button type="button" data-mode="${modele.cle}"
+         aria-pressed="${modele.cle === choisi}">${echapper(modele.nom)}</button>`,
+  ).join("")}</div>
+  ${
+    choisi === "unique"
+      ? `<div class="bareme__curseur">
+          <label for="bareme-taux">Taux unique</label>
+          <input type="range" id="bareme-taux" min="0" max="60" step="0.5"
+                 value="${tauxUnique}" aria-describedby="bareme-taux-valeur" />
+          <output id="bareme-taux-valeur" class="nombre">${pourcentage(tauxUnique / 100)}</output>
+        </div>`
+      : ""
+  }
+  <p class="simu__note bareme__aide">${echapper(mode.aide)}</p>`;
 }
 
 /** Une tranche : son intitulé, qui elle touche, sa matière taxable, son taux et
@@ -159,19 +180,26 @@ export function renduTranches(bareme: Bareme, taux: Taux): string {
     </div>${bareme.tranches.map((_, rang) => renduTranche(bareme, taux, rang)).join("")}`;
 }
 
-export function rendu(bareme: Bareme, taux: Taux): string {
+export function rendu(
+  bareme: Bareme,
+  taux: Taux,
+  mode: string,
+  tauxUnique: number,
+): string {
   return `<div class="simu__cockpit" id="bareme-cockpit" aria-live="polite">${renduCockpit(
     bareme,
     taux,
   )}</div>
-  <p class="simu__note">${echapper(bareme.note)}</p>
-  <div class="simu__barre">
-    <div class="simu__onglets" id="bareme-modeles">${renduModeles()}
-      <button type="button" class="simu__creux" id="bareme-raz">Tout remettre à zéro</button>
-    </div>
-  </div>
-  <div class="simu__arbre" id="bareme-tranches">${renduTranches(bareme, taux)}</div>
-  <p class="simu__note" id="bareme-lecture">${lecture(bareme, taux)}</p>`;
+  <div id="bareme-modes">${renduModes(mode, tauxUnique)}</div>
+  <p class="simu__note" id="bareme-lecture">${lecture(bareme, taux)}</p>
+  <!-- Le détail tranche par tranche existe toujours, replié : il répond à une
+       question que peu de gens se posent, et il occupait tout l'écran de ceux
+       qui ne se la posaient pas. -->
+  <details class="bareme__detail">
+    <summary>Régler tranche par tranche</summary>
+    <div class="simu__arbre" id="bareme-tranches">${renduTranches(bareme, taux)}</div>
+    <p class="simu__note">${echapper(bareme.note)}</p>
+  </details>`;
 }
 
 /**
@@ -199,6 +227,18 @@ type Options = {
   surReglages: (encode: string) => void;
 };
 
+/** Le mode qui décrit le mieux des taux déjà posés — celui d'un lien partagé.
+ *  Aucun des trois ne colle : le lecteur a réglé à la main, et le détail
+ *  s'ouvre sur ses valeurs plutôt que d'être écrasé par un mode. */
+export function modeDe(bareme: Bareme, taux: Taux): string {
+  for (const modele of MODELES) {
+    if (modele.cle === "unique") continue;
+    if (encoder(appliquer(bareme, modele)) === encoder(taux)) return modele.cle;
+  }
+  const valeurs = new Set(bareme.tranches.map((t) => taux.get(t.b) ?? 0));
+  return valeurs.size === 1 && !valeurs.has(0) ? "unique" : "";
+}
+
 /** Les écouteurs du montage précédent, coupés au montage suivant : le même
  *  élément sert aux budgets et au barème, et deux jeux d'écouteurs sur un même
  *  clic se marchent dessus. */
@@ -210,36 +250,67 @@ export function afficherBareme(bloc: HTMLElement, bareme: Bareme, options: Optio
   const { signal } = montage;
   const { taux, surReglages } = options;
 
-  bloc.innerHTML = rendu(bareme, taux);
+  let mode = taux.size ? modeDe(bareme, taux) : "france";
+  let tauxUnique =
+    mode === "unique"
+      ? (taux.get(bareme.tranches[0].b) ?? TAUX_UNIQUE_PAR_DEFAUT)
+      : TAUX_UNIQUE_PAR_DEFAUT;
+  // Un lien sans réglage ouvre sur le barème d'aujourd'hui : un écran de
+  // départ à zéro ne rapporte rien et n'apprend rien.
+  if (!taux.size) {
+    for (const [borne, valeur] of appliquer(bareme, MODELES[0])) taux.set(borne, valeur);
+  }
 
-  const rafraichir = (): void => {
+  bloc.innerHTML = rendu(bareme, taux, mode, tauxUnique);
+
+  const rafraichir = (recomposer = false): void => {
     bloc.querySelector("#bareme-cockpit")!.innerHTML = renduCockpit(bareme, taux);
+    if (recomposer) {
+      bloc.querySelector("#bareme-modes")!.innerHTML = renduModes(mode, tauxUnique);
+    }
     bloc.querySelector("#bareme-tranches")!.innerHTML = renduTranches(bareme, taux);
     bloc.querySelector("#bareme-lecture")!.textContent = lecture(bareme, taux);
     surReglages(encoder(taux));
+  };
+
+  const poser = (nouveaux: Taux): void => {
+    taux.clear();
+    for (const [borne, valeur] of nouveaux) taux.set(borne, valeur);
   };
 
   bloc.addEventListener(
     "click",
     (evenement) => {
       const cible = evenement.target as HTMLElement;
-      const modele = cible.closest<HTMLElement>("[data-modele]");
-      if (modele?.dataset.modele) {
-        const choisi = appliquer(bareme, MODELES[Number(modele.dataset.modele)]);
-        taux.clear();
-        for (const [borne, valeur] of choisi) taux.set(borne, valeur);
-        return rafraichir();
-      }
-      if (cible.closest("#bareme-raz")) {
-        taux.clear();
-        return rafraichir();
+      const bouton = cible.closest<HTMLElement>("[data-mode]");
+      if (bouton?.dataset.mode) {
+        mode = bouton.dataset.mode;
+        const modele = MODELES.find((m) => m.cle === mode)!;
+        poser(appliquer(bareme, modele, tauxUnique));
+        return rafraichir(true);
       }
       const pas = cible.closest<HTMLElement>("[data-pas]");
       const borne = Number(cible.closest<HTMLElement>("[data-borne]")?.dataset.borne);
       if (pas && Number.isFinite(borne)) {
         regler(taux, borne, (taux.get(borne) ?? 0) + Number(pas.dataset.pas));
-        rafraichir();
+        mode = modeDe(bareme, taux);
+        rafraichir(true);
       }
+    },
+    { signal },
+  );
+
+  // Le curseur : `input` et non `change`, pour que le rendement suive le doigt
+  // au lieu d'attendre qu'on le lâche.
+  bloc.addEventListener(
+    "input",
+    (evenement) => {
+      const curseur = (evenement.target as HTMLElement).closest<HTMLInputElement>("#bareme-taux");
+      if (!curseur) return;
+      tauxUnique = Number(curseur.value);
+      poser(appliquer(bareme, MODELES.find((m) => m.cle === "unique")!, tauxUnique));
+      bloc.querySelector("#bareme-taux-valeur")!.textContent = pourcentage(tauxUnique / 100);
+      rafraichir();
     },
     { signal },
   );
@@ -251,7 +322,10 @@ export function afficherBareme(bloc: HTMLElement, bareme: Bareme, options: Optio
       const borne = Number(champ?.closest<HTMLElement>("[data-borne]")?.dataset.borne);
       if (champ && Number.isFinite(borne)) {
         regler(taux, borne, Number(champ.value.replace(",", ".")) || 0);
-        rafraichir();
+        // Un réglage à la main n'est plus aucun des trois modes : les boutons
+        // le disent plutôt que d'en laisser un allumé à tort.
+        mode = modeDe(bareme, taux);
+        rafraichir(true);
       }
     },
     { signal },

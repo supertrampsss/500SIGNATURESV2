@@ -70,7 +70,9 @@ export type Taux = Map<number, number>;
  *  crédit d'impôt, que ce simulateur ne modélise pas. */
 export function borner(valeur: number): number {
   if (!Number.isFinite(valeur)) return 0;
-  return Math.max(0, Math.min(100, Math.round(valeur)));
+  // Au dixième de point : le barème fédéral suisse plafonne à 11,5 %, et
+  // l'arrondir à 12 changerait le rendement de plusieurs milliards.
+  return Math.max(0, Math.min(100, Math.round(valeur * 10) / 10));
 }
 
 export function regler(taux: Taux, borne: number, valeur: number): void {
@@ -138,47 +140,90 @@ export function tauxMoyenDesConcernes(bareme: Bareme, taux: Taux): number {
  * Les barèmes tout faits
  * ----------------------------------------------------------------------- */
 
-export type Modele = { nom: string; aide: string; taux: (tranche: Tranche) => number };
+export type Modele = {
+  cle: string;
+  nom: string;
+  /** Ce que le mode fait, et surtout ce qu'il approxime. Affiché sous les
+   *  boutons, jamais en note de bas d'écran. */
+  aide: string;
+  /** Taux en points par borne de tranche. Un mode ne calcule rien : il pose
+   *  des taux, et le rendement se déduit des assiettes publiées. */
+  taux: Record<number, number>;
+};
 
 /**
- * Trois barèmes d'un clic, et chacun répond à une question posée d'avance :
- * un taux unique sur tout le monde, un taux unique au-dessus d'un seuil, un
- * barème très progressif. Ils ne sont pas des recommandations : ce sont les
- * trois formes qu'on compare, et le rendement de chacune est le chiffre.
+ * Trois façons de refaire l'impôt, et trois seulement.
  *
- * Le taux unique est calibré pour rapporter à peu près ce que rapporte l'impôt
- * réellement émis — 91,7 Md€ sur 1 375 Md€ de revenu déclaré, soit 6,7 % —,
- * ce qui rend la comparaison immédiate : même rendement, tout autre monde.
+ * Vingt-cinq champs de pourcentage répondaient à la question « quel barème ? »
+ * en la reposant vingt-cinq fois. Ce que les gens veulent régler tient en trois
+ * gestes : reprendre le barème d'aujourd'hui, tout mettre à un taux unique, ou
+ * essayer une progressivité étrangère. Le réglage fin reste, derrière un pli,
+ * pour qui le cherche.
+ *
+ * **Les taux sont rabattus sur les bornes publiées par la DGFiP**, qui ne sont
+ * pas celles des barèmes réels : 11 497 €, la première marche française, tombe
+ * entre deux bornes et devient 12 000 €. C'est le prix de l'exactitude du
+ * rendement — les assiettes ne sont exactes qu'à ces bornes-là — et c'est écrit
+ * dans l'aide de chaque mode plutôt que laissé à deviner.
  */
+const TAUX_FRANCE: Record<number, number> = {
+  12_000: 11, 15_000: 11, 20_000: 11, 30_000: 30, 50_000: 30,
+  100_000: 41, 200_000: 45, 300_000: 45, 400_000: 45, 500_000: 45, 600_000: 45,
+  700_000: 45, 800_000: 45, 900_000: 45, 1_000_000: 45, 2_000_000: 45,
+  3_000_000: 45, 4_000_000: 45, 5_000_000: 45, 6_000_000: 45, 7_000_000: 45,
+  8_000_000: 45, 9_000_000: 45,
+};
+
+const TAUX_SUISSE: Record<number, number> = {
+  15_000: 1, 20_000: 2, 30_000: 3, 50_000: 6,
+  100_000: 11, 200_000: 11.5, 300_000: 11.5, 400_000: 11.5, 500_000: 11.5,
+  600_000: 11.5, 700_000: 11.5, 800_000: 11.5, 900_000: 11.5, 1_000_000: 11.5,
+  2_000_000: 11.5, 3_000_000: 11.5, 4_000_000: 11.5, 5_000_000: 11.5,
+  6_000_000: 11.5, 7_000_000: 11.5, 8_000_000: 11.5, 9_000_000: 11.5,
+};
+
 export const MODELES: Modele[] = [
   {
-    nom: "Taux unique, tout le monde",
-    aide: "Le même taux sur chaque euro déclaré, du premier au dernier.",
-    taux: () => 7,
+    cle: "france",
+    nom: "Le barème d'aujourd'hui",
+    aide:
+      "Les cinq taux de l'impôt sur le revenu français — 0, 11, 30, 41 et 45 % —"
+      + " posés sur les bornes publiées, qui ne sont pas exactement les marches"
+      + " du barème réel. Et appliqués au revenu du foyer, quand le vrai barème"
+      + " s'applique au revenu par part : c'est pourquoi le rendement calculé ici"
+      + " dépasse largement l'impôt réellement émis.",
+    taux: TAUX_FRANCE,
   },
   {
-    nom: "Rien sous 20 000 €",
-    aide: "Aucun impôt sur les vingt premiers mille euros de chaque foyer,"
-      + " un taux unique au-dessus.",
-    taux: (t) => (t.b >= 20_000 ? 12 : 0),
+    cle: "unique",
+    nom: "Un taux unique",
+    aide:
+      "Le même taux sur chaque euro déclaré, du premier au dernier. Réglez-le"
+      + " au curseur : le rendement suit.",
+    taux: {},
   },
   {
-    nom: "Très progressif",
-    aide: "Six taux qui montent avec le revenu, jusqu'aux plus hauts.",
-    taux: (t) => {
-      if (t.b < 15_000) return 0;
-      if (t.b < 30_000) return 5;
-      if (t.b < 50_000) return 15;
-      if (t.b < 100_000) return 30;
-      if (t.b < 1_000_000) return 45;
-      return 60;
-    },
+    cle: "suisse",
+    nom: "Progressif, façon suisse",
+    aide:
+      "Les taux de l'impôt fédéral direct suisse, qui monte doucement jusqu'à"
+      + " 11,5 %. Attention : en Suisse, l'impôt cantonal et l'impôt communal"
+      + " s'ajoutent à celui-là et pèsent bien plus lourd — ce mode ne montre"
+      + " donc pas ce que paie un contribuable suisse.",
+    taux: TAUX_SUISSE,
   },
 ];
 
-export function appliquer(bareme: Bareme, modele: Modele): Taux {
+/** Le taux du curseur par défaut : celui qui rapporte à peu près ce que
+ *  rapporte l'impôt réellement émis, 91,7 Md€ sur 1 375 Md€ de revenu déclaré.
+ *  Le point de départ est donc « le même argent, tout autrement ». */
+export const TAUX_UNIQUE_PAR_DEFAUT = 7;
+
+export function appliquer(bareme: Bareme, modele: Modele, tauxUnique = 0): Taux {
   const taux: Taux = new Map();
-  for (const tranche of bareme.tranches) regler(taux, tranche.b, modele.taux(tranche));
+  for (const tranche of bareme.tranches) {
+    regler(taux, tranche.b, modele.cle === "unique" ? tauxUnique : (modele.taux[tranche.b] ?? 0));
+  }
   return taux;
 }
 

@@ -116,15 +116,40 @@ test("un taux vit entre 0 et 100 points, et zéro n'est pas un réglage", () => 
   assert.equal(t.size, 0, "un taux nul sort de la table plutôt que d'y rester à zéro");
 });
 
-test("les trois barèmes tout faits sont trois barèmes différents", () => {
-  const formes = MODELES.map((m) => encoder(appliquer(BAREME, m)));
+test("trois modes, et trois seulement", () => {
+  // Vingt-cinq champs de pourcentage reposaient la question vingt-cinq fois.
+  assert.deepEqual(MODELES.map((m) => m.cle), ["france", "unique", "suisse"]);
+  const formes = MODELES.map((m) => encoder(appliquer(BAREME, m, 7)));
   assert.equal(new Set(formes).size, 3);
-  assert.ok(MODELES.every((m) => rendement(BAREME, appliquer(BAREME, m)) > 0));
-  // Deux d'entre eux ne touchent pas les premiers euros de chaque foyer, et
-  // c'est là toute la différence avec le taux unique.
-  assert.equal(appliquer(BAREME, MODELES[0]).get(0), 7);
-  assert.equal(appliquer(BAREME, MODELES[1]).get(0), undefined);
+  assert.ok(MODELES.every((m) => rendement(BAREME, appliquer(BAREME, m, 7)) > 0));
+  // Le taux unique touche le premier euro de chaque foyer ; les deux barèmes
+  // progressifs ne le touchent pas. C'est toute leur différence.
+  assert.equal(appliquer(BAREME, MODELES[1], 7).get(0), 7);
+  assert.equal(appliquer(BAREME, MODELES[0]).get(0), undefined);
   assert.equal(appliquer(BAREME, MODELES[2]).get(0), undefined);
+});
+
+test("le curseur du taux unique pose le même taux partout", () => {
+  const taux = appliquer(BAREME, MODELES[1], 12.5);
+  assert.deepEqual([...new Set(taux.values())], [12.5]);
+  assert.equal(rendement(BAREME, taux), 0.125 * BAREME.revenu_total);
+});
+
+test("le mode se relit depuis des taux déjà posés", async () => {
+  const { modeDe } = await import("./bareme-rendu.ts");
+  assert.equal(modeDe(BAREME, appliquer(BAREME, MODELES[0])), "france");
+  assert.equal(modeDe(BAREME, appliquer(BAREME, MODELES[2])), "suisse");
+  assert.equal(modeDe(BAREME, appliquer(BAREME, MODELES[1], 9)), "unique");
+  // Un réglage à la main n'est aucun des trois : aucun bouton ne s'allume.
+  assert.equal(modeDe(BAREME, taux([100_000, 45])), "");
+});
+
+test("le barème suisse ne prétend pas dire ce que paie un Suisse", () => {
+  // L'impôt fédéral direct plafonne à 11,5 % ; le cantonal et le communal
+  // s'y ajoutent et pèsent plus lourd. Le taire ferait croire l'inverse.
+  const suisse = MODELES[2];
+  assert.match(suisse.aide, /cantonal/);
+  assert.equal(Math.max(...Object.values(suisse.taux)), 11.5);
 });
 
 test("un lien partagé ne règle que des bornes que le millésime porte", () => {

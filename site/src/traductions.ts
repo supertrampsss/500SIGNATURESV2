@@ -35,6 +35,43 @@ export const TRADUCTIONS: Record<string, string> = {
   "Fiscalité reversée": "Fiscalité partagée avec l'intercommunalité",
 };
 
+/**
+ * Les capitales accentuées que les nomenclatures publiques n'accentuent pas.
+ *
+ * « Concours de l'Etat », « Etudes amont », « Taxe d'enlévement des ordures
+ * ménagères » : les producteurs saisissent leurs libellés en majuscules non
+ * accentuées, ou avec l'accent de travers, et le site les affichait tels quels.
+ * En français, une capitale s'accentue — et une faute d'orthographe à l'écran
+ * décrédibilise le chiffre posé à côté, quelle que soit la qualité de sa source.
+ *
+ * La correction est une table de mots entiers, jamais une règle automatique :
+ * accentuer tout « Et » initial casserait « Etat-major » comme « et ». Elle ne
+ * touche que l'affichage ; l'identifiant, la fiche technique et le fichier
+ * publié gardent le libellé du producteur.
+ */
+const CAPITALES_ACCENTUEES: [RegExp, string][] = [
+  [/\bEtats\b/g, "États"],
+  [/\bEtat\b/g, "État"],
+  [/\bEtude/g, "Étude"],
+  [/\bEtabliss/g, "Établiss"],
+  [/\bEconomi/g, "Économi"],
+  [/\bEquipement/g, "Équipement"],
+  [/\bEducation\b/g, "Éducation"],
+  [/\bEnergie/g, "Énergie"],
+  [/\bEcole/g, "École"],
+  [/\bElection/g, "Élection"],
+  [/\bEvaluation/g, "Évaluation"],
+  [/\bEgalit(e|é)\b/g, "Égalité"],
+  [/\bEtranger/g, "Étranger"],
+  [/\bEmission/g, "Émission"],
+  // Une faute de frappe de la nomenclature OFGL, pas un défaut d'accentuation.
+  [/enlévement/g, "enlèvement"],
+];
+
+export function accentuer(libelle: string): string {
+  return CAPITALES_ACCENTUEES.reduce((texte, [motif, bon]) => texte.replace(motif, bon), libelle);
+}
+
 export function traduire(libelle: string): string {
-  return TRADUCTIONS[libelle] ?? libelle;
+  return accentuer(TRADUCTIONS[libelle] ?? libelle);
 }

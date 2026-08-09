@@ -4521,6 +4521,67 @@ summary.pont__rangee,
   border-top: 1px solid var(--trait-fort);
 }
 
+/* ---- Le barème : trois modes, un curseur -------------------------------- */
+.bareme__modes {
+  display: flex;
+  gap: var(--espace-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--espace-4);
+}
+.bareme__modes button {
+  font: inherit;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-3) var(--espace-6);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre-douce);
+  cursor: pointer;
+  flex: 1 1 auto;
+}
+.bareme__modes button[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: #fff;
+}
+/* Le curseur : assez haut pour se prendre au doigt, et sa valeur à côté —
+   un curseur muet demande de deviner ce qu'on vient de choisir. */
+.bareme__curseur {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-4);
+  margin-bottom: var(--espace-4);
+  flex-wrap: wrap;
+}
+.bareme__curseur label {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.bareme__curseur input[type="range"] {
+  flex: 1 1 12rem;
+  min-height: var(--cible);
+  accent-color: var(--encre);
+}
+.bareme__curseur output {
+  font-size: var(--texte-xl);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  min-width: 4.5rem;
+  text-align: end;
+}
+.bareme__aide {
+  margin-bottom: var(--espace-5);
+}
+.bareme__detail > summary {
+  cursor: pointer;
+  font-weight: 600;
+  min-height: var(--cible);
+  display: flex;
+  align-items: center;
+}
+
 /* ---- Le barème ---------------------------------------------------------- */
 /* Cinq colonnes au lieu de six : un barème n'a ni pli ni écart signé. Ce qu'il
    a en plus, et qui n'existe nulle part ailleurs, c'est le nombre de foyers

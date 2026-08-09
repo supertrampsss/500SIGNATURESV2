@@ -244,3 +244,31 @@ test("les deux budgets sont publiés séparément, et jamais additionnés", () =
   // L'ONDAM sort dans sa propre clé : rien ne l'agrège aux charges.
   assert.match(PUBLISH, /"objectif": \{/);
 });
+
+/* ------------------------------- l'orthographe des libellés de producteur */
+
+test("les capitales s'accentuent, comme en français", async () => {
+  const { accentuer, traduire } = await import("./traductions.ts");
+  // Les nomenclatures publiques saisissent sans accent. Une faute à l'écran
+  // décrédibilise le chiffre posé à côté.
+  assert.equal(accentuer("Concours de l'Etat"), "Concours de l'État");
+  assert.equal(accentuer("Etudes amont"), "Études amont");
+  assert.equal(
+    accentuer("Taxe d'enlévement des ordures ménagères"),
+    "Taxe d'enlèvement des ordures ménagères",
+  );
+  assert.equal(traduire("Concours de l'Etat"), "Concours de l'État");
+  // Et rien d'autre ne bouge : le « et » minuscule reste intact. « État-major »,
+  // lui, s'accentue aussi — c'est bien la même règle.
+  assert.equal(accentuer("santé et famille"), "santé et famille");
+  assert.equal(accentuer("Etat-major des armées"), "État-major des armées");
+});
+
+test("la fiche affiche un total, pas un montant par habitant", async () => {
+  const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
+  // « 445 € » pour Bordeaux ne dit ni ce que la ville dépense, ni à combien
+  // d'habitants c'est rapporté. Le par-habitant reste dans le tableau déplié,
+  // où il est nommé.
+  assert.match(FICHE, /<span class="mesure__valeur">\$\{formater\(brut, indicateur\.unite, false\)\}/);
+  assert.doesNotMatch(FICHE, /<span class="mesure__valeur">\$\{formate\(valeur\)\}/);
+});

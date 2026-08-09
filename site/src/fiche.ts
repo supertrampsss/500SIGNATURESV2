@@ -569,7 +569,12 @@ function ligneIndicateur(
   // Le sens du dernier mouvement, lisible sans rien ouvrir. L'évolution longue
   // reste dans le détail : elle demande de savoir depuis quand, ce qui ne tient
   // pas dans un résumé de ligne.
-  const pas = dernierPas(suivie, indicateur.unite, evenements, periode);
+  //
+  // Sur la série **brute**, comme le montant que la ligne affiche : un total qui
+  // monte de 2 % pendant que la population monte de 3 % baisse par habitant, et
+  // afficher l'un à côté de l'autre ferait deux lectures contradictoires sur la
+  // même ligne. Le par-habitant a sa ligne à lui dans le tableau déplié.
+  const pas = dernierPas(brute, indicateur.unite, evenements, periode);
   const pastille = pas
     ? `<span class="mesure__pas mesure__pas--${pas.sens}" title="${echapper(
         `de ${pas.depuis} à ${pas.jusqua}`,
@@ -585,7 +590,13 @@ function ligneIndicateur(
       <span class="mesure__nom">${echapper(traduire(indicateur.libelle))}</span>
       <button type="button" class="mesure__info" data-info="${indicateur.id}"
         aria-expanded="false" aria-label="Que mesure cet indicateur ?">i</button>
-      <span class="mesure__valeur">${formate(valeur)}</span>
+      <!-- Le **total**, jamais le par-habitant. Un montant divisé par la
+           population ne se lit pas seul : « 445 € » pour Bordeaux ne dit ni ce
+           que la ville dépense, ni à combien d'habitants c'est rapporté, et se
+           compare à un montant d'État sans que rien n'avertisse. Le
+           par-habitant reste là où il sert et où il est nommé : la ligne « par
+           hab. » du tableau déplié, et les comparaisons au groupe. -->
+      <span class="mesure__valeur">${formater(brut, indicateur.unite, false)}</span>
       ${pastille}
       <!-- La définition sort en bulle par-dessus la fiche, elle ne pousse
            rien : dépliée dans le flux, elle décalait toute la liste sous elle
