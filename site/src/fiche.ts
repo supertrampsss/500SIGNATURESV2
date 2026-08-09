@@ -299,7 +299,7 @@ function population(territoire: Territoire, periode: string): number | null {
   return populationDeReference(territoire, periode).valeur ?? territoire.population ?? null;
 }
 
-function mesurer(
+export function mesurer(
   indicateur: Indicateur,
   territoire: Territoire,
   periodeCarte: string,
@@ -309,16 +309,25 @@ function mesurer(
   comparateurs: { libelle: string; territoire: Territoire }[],
 ): Mesure | "absent" | "sans-population" {
   const serie = territoire.series[indicateur.id];
-  // La période demandée est celle de la carte. Quand cet indicateur n'y est pas
-  // publié, on n'écrit pas « non disponible pour 2024 » : on montre son dernier
-  // millésime publié, qui s'affiche de toute façon à côté de la valeur. Les
-  // jeux n'ont pas le même calendrier — le recensement est triennal, les
-  // finances locales annuelles, l'inflation mensuelle — et refuser d'afficher
-  // ce qui existe faisait passer un décalage de calendrier pour une absence de
-  // mesure.
+  // **Le dernier exercice publié de cet indicateur-là**, et rien d'autre.
+  //
+  // La règle était : la période de la carte si l'indicateur la possède, son
+  // dernier millésime sinon. Elle contredisait le tableau posé juste en
+  // dessous, qui montre toujours les derniers exercices. Sur Bordeaux, la
+  // capacité de désendettement s'affichait à 5,1 ans — le ratio de 2021 —
+  // au-dessus d'un tableau donnant 8,6 ans en 2025, avec une évolution de
+  // −28,8 % qui était celle de 2021 contre 2020. Le bloc entier était
+  // cohérent, avec la mauvaise année, et la dette de la ville paraissait
+  // nettement plus soutenable qu'elle ne l'est.
+  //
+  // Rien ne justifiait cette priorité : l'année n'est plus un choix de
+  // l'utilisateur depuis la refonte — la carte prend toujours le millésime le
+  // plus récent de l'indicateur qu'elle peint. Faire porter cette période
+  // d'un indicateur à l'autre ne synchronisait donc rien ; les jeux n'ont pas
+  // le même calendrier, le recensement est triennal et les finances locales
+  // annuelles.
   const millesimes = serie ? Object.keys(serie).sort() : [];
-  const periode =
-    serie?.[periodeCarte] !== undefined ? periodeCarte : millesimes[millesimes.length - 1];
+  const periode = millesimes[millesimes.length - 1];
   const brut = periode === undefined ? undefined : serie?.[periode];
   if (brut === undefined || serie === undefined) return "absent";
   const denom = populationDeReference(territoire, periode);
@@ -1004,7 +1013,7 @@ export function rubriqueDuTheme(theme: string): string {
  * deux listes séparées se seraient contredites au premier thème ajouté. Un
  * thème absent se range à la fin, par ordre alphabétique.
  */
-const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
+export const ORDRE_THEMES = RUBRIQUES.flatMap((r) => r.themes);
 
 /**
  * Ce qu'un thème montre d'emblée. Le reste se déplie.
@@ -1462,9 +1471,15 @@ function syntheseTerritoire(
   // celui des autres sections de la fiche — le nom du territoire est en `h2`,
   // les rapports et le pont en `h3` — et la classe reste, c'est elle qui porte
   // le style.
+  // Le lien vers la page ANALYSES ferme le bloc. Il remplace le « Tout voir /
+  // 187 indicateurs » qui posait un compte brut à côté d'un titre sans rien
+  // relier : un nombre n'est pas une invitation, et le lecteur ne savait pas où
+  // il allait. La page, elle, existe et porte le détail complet, thème par
+  // thème.
   return `<div class="synthese">
     <h3 class="synthese__titre">L'essentiel</h3>
     <ul>${lignes.map((l) => `<li>${l}</li>`).join("")}</ul>
+    <a class="synthese__tout" href="#analyses">Voir le détail complet</a>
   </div>`;
 }
 

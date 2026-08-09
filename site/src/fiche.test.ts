@@ -24,6 +24,7 @@ import {
   inflationCumulee,
   jumeaux,
   lectureDeDensite,
+  mesurer,
   mentionAgregat,
   ongletsThemes,
   positionDansGroupe,
@@ -1004,4 +1005,34 @@ test("sans mandat racontable, la fiche garde exactement sa forme d'avant", () =>
   assert.doesNotMatch(html, /data-vitesse/);
   assert.doesNotMatch(html, /fiche__mandat/);
   assert.match(html, /<div class="mesures">/);
+});
+
+test("la valeur affichée est le dernier exercice publié, jamais celui d'une autre couche", () => {
+  // Le défaut tel qu'il s'est produit sur Bordeaux. La capacité de
+  // désendettement sortait à 5,1 ans — le ratio de 2021 — au-dessus d'un
+  // tableau donnant 8,6 ans en 2025. Le bloc entier était cohérent avec la
+  // mauvaise année, et la dette de la ville paraissait nettement plus
+  // soutenable qu'elle ne l'est. Aucune erreur nulle part : la période venait
+  // de la carte, et la carte n'a pas le même calendrier que chaque indicateur.
+  const territoire = {
+    nom: "Bordeaux",
+    population: 267_991,
+    series: {
+      derive_desendettement: {
+        "2019": 4.36, "2020": 7.15, "2021": 5.09,
+        "2022": 4.92, "2023": 4.49, "2024": 6.5, "2025": 8.58,
+      },
+    },
+  } as never;
+  const indicateur = {
+    id: "derive_desendettement",
+    libelle: "Capacité de désendettement",
+    unite: "ans",
+    theme: "finances_locales",
+    sommable: false,
+  } as never;
+  const mesure = mesurer(indicateur, territoire, "2021", false, "commune", null, []);
+  assert.notEqual(mesure, "absent");
+  assert.equal((mesure as { periode: string }).periode, "2025");
+  assert.equal((mesure as { brut: number }).brut, 8.58);
 });

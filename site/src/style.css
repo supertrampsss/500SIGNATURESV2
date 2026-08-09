@@ -4,8 +4,7 @@
  * d'accessibilité priment sur l'esthétique (docs/04).
  */
 
-/* ==========================================================================
-   DÉCISIONS DE SYSTÈME — assumées, pas oubliées (audit front, points 22 et 23)
+/* ===================================================================   DÉCISIONS DE SYSTÈME — assumées, pas oubliées (audit front, points 22 et 23)
    ==========================================================================
 
    1. PAS DE MODE SOMBRE. Ce site est un papier institutionnel unique : encre
@@ -4600,4 +4599,135 @@ summary.pont__rangee,
   .simu__onglets button {
     flex: 1 1 auto;
   }
+}
+
+/* Le lien vers la page ANALYSES ferme « L'essentiel ». Il remplace un « Tout
+   voir / 187 indicateurs » qui posait un compte brut sans rien relier : un
+   nombre n'est pas une invitation, et le lecteur ne savait pas où il allait. */
+.synthese__tout {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: var(--espace-4);
+  font-size: var(--texte-s);
+  font-weight: 600;
+  color: var(--encre);
+  text-decoration: none;
+  border-bottom: 2px solid var(--dore);
+  padding-bottom: var(--espace-1);
+}
+.synthese__tout::after {
+  content: "→";
+  transition: transform 0.15s ease;
+}
+.synthese__tout:hover::after,
+.synthese__tout:focus-visible::after {
+  transform: translateX(3px);
+}
+
+/* La page ANALYSES : l'exhaustivité, là où la fiche s'arrête à l'essentiel. */
+.analyses {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: var(--espace-6) var(--espace-5) var(--espace-8);
+}
+.analyses__titre {
+  margin: 0 0 0.2rem;
+}
+.analyses__compte {
+  margin: 0 0 var(--espace-6);
+  max-width: 44rem;
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+.analyses__vide {
+  max-width: 44rem;
+  margin: var(--espace-8) auto;
+  padding: 0 var(--espace-5);
+  color: var(--encre-douce);
+}
+.analyses__sommaire {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-3);
+  margin-bottom: var(--espace-7);
+}
+.analyses__sommaire a {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: var(--espace-3) var(--espace-5);
+  border-radius: var(--rayon-s);
+  background: var(--papier-creuse);
+  color: var(--encre);
+  text-decoration: none;
+  font-size: var(--texte-s);
+}
+.analyses__sommaire a span {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texte-xs);
+}
+.analyses__sommaire a:hover,
+.analyses__sommaire a:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--dore);
+}
+.analyses__theme {
+  margin-bottom: var(--espace-7);
+  scroll-margin-top: var(--espace-6);
+}
+.analyses__theme h3 {
+  margin: 0 0 var(--espace-3);
+  font-size: var(--texte-m);
+}
+/* Le tableau déborde sur téléphone plutôt que d'écraser les libellés : c'est
+   lui qui défile, jamais la page entière. */
+.analyses__table {
+  width: 100%;
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+  font-size: var(--texte-s);
+}
+.analyses__table thead th {
+  text-align: left;
+  white-space: nowrap;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+  font-weight: 600;
+  padding: 0 var(--espace-6) var(--espace-3) 0;
+}
+/* Les deux colonnes de droite sont alignées à droite dans le corps : leur
+   en-tête doit l'être aussi, sinon « DERNIÈRE VALEUR » et « EXERCICE » se
+   touchent au-dessus de chiffres bien rangés. */
+.analyses__table thead th:not(:first-child) {
+  text-align: right;
+}
+.analyses__table thead th:last-child {
+  padding-right: 0;
+}
+.analyses__table tbody th {
+  text-align: left;
+  font-weight: 400;
+  padding: var(--espace-4) var(--espace-6) var(--espace-4) 0;
+}
+.analyses__table tbody tr + tr th,
+.analyses__table tbody tr + tr td {
+  border-top: 1px solid var(--trait);
+}
+.analyses__valeur {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: var(--espace-4) var(--espace-6) var(--espace-4) 0;
+}
+.analyses__periode {
+  text-align: right;
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  padding: var(--espace-4) 0;
 }
