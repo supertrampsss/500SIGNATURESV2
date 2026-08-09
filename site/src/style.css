@@ -4523,7 +4523,7 @@ summary.pont__rangee,
 /* Les colonnes de l'en-tête se touchaient : deux intitulés alignés l'un à
    droite, l'autre à gauche, se lisaient « matière taxabletaux ». */
 .bareme__entete > span {
-  padding-inline: 0.35rem;
+  padding-inline: var(--espace-3);
   line-height: 1.2;
 }
 .bareme__entete .simu__base,
