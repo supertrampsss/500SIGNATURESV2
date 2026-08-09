@@ -229,3 +229,14 @@ def test_les_departements_ont_aussi_un_groupe(tmp_path):
     # en inventer un ferait passer un ensemble pour une strate.
     assert all(":" in cle for cle in sortie["groupes"]["depense"]["2025"])
     conn.close()
+
+
+def test_dix_huit_regions_suffisent_a_faire_un_ensemble():
+    """Le seuil des strates ne s'applique pas à une maille entière.
+
+    Vingt communes tirées d'une strate sont un échantillon, et un quartile
+    calculé sur moins que ça n'apprend rien. Les dix-huit régions, elles, sont
+    **toutes** les régions : leur médiane est un fait. Le seuil commun les
+    écartait, et la fiche d'une région restait la seule sans groupe.
+    """
+    assert publish.MAILLE_MINIMALE < 18 <= publish.GROUPE_MINIMAL

@@ -484,6 +484,14 @@ def _quartiles_du_groupe(conn, criteres: list[str]) -> list[tuple]:
     ).fetchall()
 
 
+# Les dix-huit régions ne sont pas un échantillon de dix-huit régions : ce sont
+# **toutes** les régions. Le seuil de vingt existe pour refuser un quartile
+# calculé sur une poignée de communes tirées d'une strate — il ne s'applique pas
+# à un ensemble complet, où la médiane est un fait et non une estimation. Sans
+# cette distinction, la fiche d'une région restait la seule sans groupe.
+MAILLE_MINIMALE = 10
+
+
 def _quartiles_de_la_maille(conn, maille: str) -> list[tuple]:
     """Quartiles de tous les territoires d'une maille, sans strate.
 
@@ -517,7 +525,7 @@ def _quartiles_de_la_maille(conn, maille: str) -> list[tuple]:
                percentile_cont(0.5) within group (order by compare),
                percentile_cont(0.75) within group (order by compare)
         from base where compare is not null
-        group by 1, 2, 3, 4, 5, 6 having count(*) >= {GROUPE_MINIMAL}
+        group by 1, 2, 3, 4, 5, 6 having count(*) >= {MAILLE_MINIMALE}
         """,
         (maille,),
     ).fetchall()
