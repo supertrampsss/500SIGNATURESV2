@@ -262,6 +262,31 @@
 > l'ordre — rétablissement, sécurité 16 classes, démographie INSEE (décès,
 > familles, logement, équipements), APL des autres professions, finances
 > communales depuis 2018, puis les pages narratives des décryptages.
+>
+> **9 août 2026 — neuf millésimes de sécurité manquaient aux fiches
+> communales.** Le catalogue annonçait dix exercices pour les indicateurs
+> SSMSI ; la fiche de Bordeaux n'en portait qu'un, et donc aucune évolution.
+> Ampleur relevée sur les données en ligne : les 28 indicateurs communaux
+> (14 classes × taux et nombre) portaient la seule année 2025 ; département et
+> région portaient bien 2016-2025. Le champ `periodes` du catalogue publiait
+> l'union des mailles et masquait l'amputation — `periodes_par_niveau`, lui, la
+> disait. Cause : la maille communale était bornée à la dernière année diffusée
+> depuis le passage aux seize classes, une bride héritée du plan de base à
+> 500 Mo (D6bis/D6ter) que l'entrepôt DuckDB en stockage objet ne justifie plus.
+> Correction : les dix millésimes sont chargés, lus millésime par millésime et
+> écrits en flux — les tenir d'un bloc coûtait 1,8 Go de mémoire résidente,
+> mesuré sur la base réelle, contre 333 Mo en flux. 5 020 700 observations
+> communales au lieu de 495 784, sur 2 510 350 lignes retenues.
+> Deux contrôles ajoutés ou tenus sur tout l'historique : l'identité
+> taux = nombre/dénominateur écarte 878 lignes sur 2,52 millions, la borne
+> départementale 10 couples sur 14 140 — et surtout `couverture.py` compare
+> désormais ce qui est **écrit** à ce qui est **lu**, en faits et par maille,
+> avec refus sous 95 % : 100 % au communal comme au départemental en
+> répétition à blanc. Au passage, les 45 arrondissements de Paris, Lyon et
+> Marseille — 12,9 % des faits lus, écartés en silence parce que le référentiel
+> les connaît sous une autre maille — sont maintenant écartés explicitement et
+> comptés. **Reste à faire** : leur donner leurs propres séries de sécurité
+> sous la maille `arrondissement_municipal`, où leurs fiches existent déjà.
 
 Format des tickets : chaque issue GitHub reprend ce gabarit —
 **Epic / User story / Critères d'acceptation / Source(s) / Tables / Endpoint /

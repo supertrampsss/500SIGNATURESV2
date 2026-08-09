@@ -28,9 +28,7 @@ def test_la_base_departementale_reelle_se_referme_sans_ecart():
 
 
 def test_pessac_porte_les_chiffres_publies_par_le_ssmsi():
-    gardees, ecartees, couverture = securite.lire(
-        lignes("ssmsi_com_sample.csv"), "commune", seulement_derniere_annee=True
-    )
+    gardees, ecartees, couverture = securite.lire(lignes("ssmsi_com_sample.csv"), "commune")
     assert ecartees == {}
     pessac = [
         g for g in gardees if g["code"] == "33318" and g["classe"] == "Cambriolages de logement"
@@ -39,8 +37,6 @@ def test_pessac_porte_les_chiffres_publies_par_le_ssmsi():
         {"classe": "Cambriolages de logement", "code": "33318", "annee": "2025",
          "nombre": 355, "taux": 10.2266504}
     ]
-    # les seize classes passent au communal (D6ter), uniquement la dernière année
-    assert all(g["annee"] == "2025" for g in gardees)
     assert {securite.CLASSES[g["classe"]][4] for g in gardees} == {True}
 
 
@@ -49,9 +45,7 @@ def test_le_secret_de_diffusion_est_compte_jamais_publie():
     fréquentes sont sous `ndiff` et ne produisent rien, mais ses zéros
     *diffusés* sur les classes rares (vols avec armes) sont des données — le
     SSMSI ne censure que là où un compte non nul identifierait quelqu'un."""
-    gardees, _, couverture = securite.lire(
-        lignes("ssmsi_com_sample.csv"), "commune", seulement_derniere_annee=True
-    )
+    gardees, _, couverture = securite.lire(lignes("ssmsi_com_sample.csv"), "commune")
     ndiff = sum(c["ndiff"] for c in couverture.values())
     assert ndiff > 0, "la fixture doit contenir des lignes sous secret (petites communes)"
     par_classe = {(g["code"], g["classe"]): g for g in gardees}
@@ -81,16 +75,43 @@ def test_le_mauvais_denominateur_est_detecte_ligne_a_ligne():
     assert "logements" in str(ecartees["33318/Cambriolages de logement/2025"])
 
 
-def test_la_derniere_annee_est_retenue_meme_en_desordre():
-    entete = ('"CODGEO_2026";"annee";"indicateur";"unite_de_compte";"nombre";'
+ENTETE_COM = ('"CODGEO_2026";"annee";"indicateur";"unite_de_compte";"nombre";'
               '"taux_pour_mille";"est_diffuse";"insee_pop";"insee_pop_millesime";'
               '"insee_log";"insee_log_millesime";"complement_info_nombre";"complement_info_taux"')
-    ligne = ('"33318";"{a}";"Vols de véhicule";"Véhicule";"100";"{t}";"diff";'
+LIGNE_COM = ('"33318";"{a}";"Vols de véhicule";"Véhicule";"100";"2,0000000";"diff";'
              '"50000";"2023";"25000";"2022";"NA";"NA"')
-    melange = [entete, ligne.format(a="2025", t="2,0000000"),
-               ligne.format(a="2023", t="2,0000000"), ligne.format(a="2024", t="2,0000000")]
-    gardees, _, _ = securite.lire(melange, "commune", seulement_derniere_annee=True)
-    assert [g["annee"] for g in gardees] == ["2025"]
+
+
+def test_l_historique_communal_entier_est_charge():
+    """La régression du 4 août : la maille communale ne portait plus que la
+    dernière année diffusée, et une fiche qui ne porte qu'une année ne peut
+    afficher aucune évolution. Les dix millésimes reviennent."""
+    fichier = [ENTETE_COM] + [LIGNE_COM.format(a=a) for a in ("2023", "2024", "2025")]
+    gardees, _, _ = securite.lire(fichier, "commune")
+    assert [g["annee"] for g in gardees] == ["2023", "2024", "2025"]
+
+
+def test_la_lecture_rend_un_lot_par_millesime():
+    """C'est ce découpage qui borne la mémoire : 5,2 millions de lignes
+    communales tenues d'un bloc coûtaient 1,8 Go de résident."""
+    fichier = [ENTETE_COM] + [LIGNE_COM.format(a=a) for a in ("2023", "2023", "2024")]
+    lots = [(annee, len(gardees)) for annee, gardees, _, _ in
+            securite.lire_par_annee(fichier, "commune")]
+    assert lots == [("2023", 2), ("2024", 1)]
+
+
+def test_un_fichier_non_groupe_par_annee_rouvre_un_millesime():
+    """Le contrat sur lequel repose l'écriture en flux : les lots suivent
+    l'ordre du fichier, ils ne le trient pas. La base départementale, elle,
+    est groupée par département — d'où la lecture d'un bloc pour ces mailles,
+    et la garde du run qui refuse une année rouverte au niveau communal."""
+    fichier = [ENTETE_COM] + [LIGNE_COM.format(a=a) for a in ("2025", "2023", "2025")]
+    assert [annee for annee, _, _, _ in securite.lire_par_annee(fichier, "commune")] == [
+        "2025", "2023", "2025"
+    ]
+    # `lire` réunit tout : l'ordre du fichier ne lui enlève aucune ligne.
+    gardees, _, _ = securite.lire(fichier, "commune")
+    assert sorted(g["annee"] for g in gardees) == ["2023", "2025", "2025"]
 
 
 def test_les_arrondissements_ne_comptent_pas_deux_fois_leur_ville():
@@ -114,21 +135,16 @@ def test_les_arrondissements_ne_comptent_pas_deux_fois_leur_ville():
     assert {g["code"] for g in gardees} == {"13055", "13201", "13001"}
 
 
-def test_les_ecartees_des_annees_non_chargees_sont_purgees():
-    """Le bruit d'arrondi de 2016 polluait le contrôle publié alors que seule
-    la dernière année est chargée au niveau communal."""
-    entete = ('"CODGEO_2026";"annee";"indicateur";"unite_de_compte";"nombre";'
-              '"taux_pour_mille";"est_diffuse";"insee_pop";"insee_pop_millesime";'
-              '"insee_log";"insee_log_millesime";"complement_info_nombre";"complement_info_taux"')
+def test_une_ecartee_est_rendue_avec_le_millesime_qui_la_porte():
+    """Tous les millésimes étant chargés, une ligne qui ne se referme pas est
+    signalée sur son année à elle, et n'emporte pas les autres."""
     fausse_2016 = ('"02268";"2016";"Cambriolages de logement";"Infraction";"10";'
                    '"99,0000000";"diff";"1000";"2016";"500";"2016";"NA";"NA"')
     bonne_2025 = ('"02268";"2025";"Cambriolages de logement";"Infraction";"10";'
                   '"20,0000000";"diff";"1000";"2023";"500";"2022";"NA";"NA"')
-    gardees, ecartees, _ = securite.lire(
-        [entete, fausse_2016, bonne_2025], "commune", seulement_derniere_annee=True
-    )
+    gardees, ecartees, _ = securite.lire([ENTETE_COM, fausse_2016, bonne_2025], "commune")
     assert [g["annee"] for g in gardees] == ["2025"]
-    assert ecartees == {}, "l'écartée de 2016 ne concerne pas l'année chargée"
+    assert list(ecartees) == ["02268/Cambriolages de logement/2016"]
 
 
 def test_la_somme_des_communes_ne_depasse_pas_le_departement():
@@ -198,6 +214,45 @@ def test_declarer_passe_les_contraintes_de_la_base(tmp_path):
         )
         conn.commit()
         conn.close()
+
+
+def test_l_ecriture_en_flux_garde_tous_les_millesimes(entrepot_seme):
+    """Le chemin qui a régressé, contre un vrai entrepôt : `remplacer` purge
+    puis réécrit tout le jeu, et il est appelé une seule fois pour les trois
+    mailles et les dix millésimes. Un second appel effacerait le premier."""
+    from plateforme import entrepot
+
+    securite.declarer(entrepot_seme)
+    entrepot_seme.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code, flags) values"
+        " ('commune', '33318', ?, 'Pessac', 'departement', '33', '{}'),"
+        " ('departement', '33', ?, 'Gironde', null, null, '{}')",
+        (securite.MILLESIME, securite.MILLESIME),
+    )
+    run_id = entrepot.start_run(entrepot_seme, securite.DATASET, "manual")
+    annees = [str(a) for a in range(2016, 2026)]
+    lots = [
+        ("commune", [{"classe": "Vols de véhicule", "code": "33318", "annee": annee,
+                      "nombre": 100, "taux": 2.0}])
+        for annee in annees
+    ]
+    # Un territoire hors référentiel doit être compté, pas écrit ni fatal.
+    lots.append(("commune", [{"classe": "Vols de véhicule", "code": "99999", "annee": "2025",
+                              "nombre": 7, "taux": 1.0}]))
+    ecrites, faits, hors_referentiel, _ = securite.ecrire(entrepot_seme, run_id, iter(lots))
+    entrepot_seme.commit()
+
+    assert ecrites == 2 * len(annees), "un taux et un nombre par millésime"
+    assert hors_referentiel == 1
+    assert faits == {"commune": 100 * len(annees)}
+    publiees = [
+        periode for (periode,) in entrepot_seme.execute(
+            "select period from core.observations where indicator_id ="
+            " 'ssmsi_vols_vehicules_taux' and geo_code = '33318' order by period"
+        ).fetchall()
+    ]
+    assert publiees == annees
 
 
 def test_l_unite_de_compte_est_celle_que_publie_le_producteur():

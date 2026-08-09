@@ -428,19 +428,26 @@ def enregistrer_criteres(conn, lignes: list[dict]) -> int:
     return len(derniers)
 
 
-def filtrer_territoires_connus(conn, lignes: list[tuple]) -> tuple[list[tuple], set[str]]:
-    """Écarte les territoires absents du référentiel plutôt que de faire échouer le
-    run entier. Les codes écartés sont renvoyés : une couverture incomplète est une
-    information à publier, pas à taire (docs/03 §6)."""
-    niveaux = sorted({ligne[1] for ligne in lignes})
-    connus = {
+def territoires_connus(conn, niveaux: list[str]) -> set[tuple[str, str]]:
+    """Couples `(niveau, code)` du référentiel, pour les niveaux demandés.
+
+    Lu à part pour qu'un connecteur qui écrit en flux interroge le référentiel
+    une fois, avant de commencer, plutôt qu'à chaque lot."""
+    return {
         (niveau, code)
         for niveau, code in conn.execute(
             "select geo_level, geo_code from geo.geography_reference"
             " where geo_level = any(?) and vintage = ?",
-            (niveaux, MILLESIME),
+            (sorted(niveaux), MILLESIME),
         ).fetchall()
     }
+
+
+def filtrer_territoires_connus(conn, lignes: list[tuple]) -> tuple[list[tuple], set[str]]:
+    """Écarte les territoires absents du référentiel plutôt que de faire échouer le
+    run entier. Les codes écartés sont renvoyés : une couverture incomplète est une
+    information à publier, pas à taire (docs/03 §6)."""
+    connus = territoires_connus(conn, sorted({ligne[1] for ligne in lignes}))
     gardees = [ligne for ligne in lignes if (ligne[1], ligne[2]) in connus]
     ecartes = {f"{ligne[1]}:{ligne[2]}" for ligne in lignes if (ligne[1], ligne[2]) not in connus}
     return gardees, ecartes

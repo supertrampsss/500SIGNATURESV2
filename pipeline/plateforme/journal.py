@@ -48,6 +48,31 @@ class Changement:
 
 JOURNAL: list[Changement] = [
     Changement(
+        annonce="2026-08-09",
+        type="methodology",
+        jeu="ssmsi-delinquance",
+        effet_au="2016-01-01",
+        public=(
+            "La délinquance enregistrée retrouve son historique complet dans les"
+            " fiches de commune : dix millésimes, 2016 à 2025, là où seule la"
+            " dernière année diffusée était servie. Une fiche communale ne portait"
+            " qu'un point par classe d'infraction, et n'affichait donc aucune"
+            " évolution. Les valeurs déjà publiées pour 2025 n'ont pas changé ; les"
+            " niveaux départemental et régional portaient déjà les dix millésimes."
+        ),
+        technique=(
+            "La maille communale était bornée à la dernière année sous la contrainte"
+            " de l'ancien plan de base à 500 Mo, contrainte levée depuis le passage"
+            " à un entrepôt DuckDB en stockage objet. 5 020 700 observations"
+            " communales sont désormais écrites contre 495 784. Périmètre inchangé"
+            " par ailleurs : quatorze classes au communal — la base communale du"
+            " SSMSI ne diffuse ni les homicides ni les tentatives —, valeurs sous"
+            " secret de diffusion jamais publiées, identité taux/nombre recalculée"
+            " ligne à ligne et somme communale bornée par le total départemental,"
+            " millésime par millésime."
+        ),
+    ),
+    Changement(
         annonce="2026-07-31",
         type="correction",
         jeu="execution-budget-etat",

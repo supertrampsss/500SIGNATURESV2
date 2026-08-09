@@ -18,17 +18,27 @@ sur les données, pas supposé : chaque ligne recalcule nombre/dénominateur et
 s'écarte si le taux publié ne se referme pas. Publier « pour 1 000 habitants »
 un taux calculé pour 1 000 logements doublerait le chiffre sans prévenir.
 
-**Périmètre.** Au niveau communal : les seize classes, dernière année
-diffusée, valeurs diffusées seulement (le secret de diffusion du SSMSI,
-`ndiff`, couvre ~46 % des lignes — la couverture est mesurée et enregistrée
-par classe, jamais devinée). D6bis avait d'abord limité la maille communale à
-six classes phares ; le passage au plan payant (D6ter) a levé la bride, la
-dernière année reste le choix éditorial — l'historique communal complet
-(5,2 millions de lignes) attend un besoin réel, pas un plafond. Aux niveaux
-départemental et régional : seize classes, tout l'historique 2016-2025. Les
-sous-découpages « Usage de stupéfiants (AFD) / (hors AFD) » sont exclus : ils
-recouvrent l'agrégat déjà chargé. Un garde-fou mesure la taille de la base
-avant d'écrire et refuse de dépasser le plan.
+**Périmètre : tout l'historique 2016-2025, aux trois mailles.** Aux niveaux
+départemental et régional, les seize classes. Au niveau communal, les quatorze
+que le SSMSI y diffuse — sa base communale ne porte ni les homicides ni les
+tentatives, trop rares pour échapper au secret à cette échelle. Valeurs
+diffusées seulement : le secret de diffusion (`ndiff`) couvre 48 % des lignes
+communales, mesuré et enregistré par classe, jamais deviné. Les sous-découpages
+« Usage de stupéfiants (AFD) / (hors AFD) » sont exclus : ils recouvrent
+l'agrégat déjà chargé.
+
+**Pourquoi la profondeur communale a manqué, et ce qu'elle coûte.** D6bis
+limitait la maille communale à six classes phares ; le passage aux seize l'a
+réduite à la dernière année diffusée, sous la contrainte du plan à 500 Mo
+(D6ter). L'entrepôt DuckDB n'a plus ce plafond, mais la bride est restée : neuf
+millésimes ont disparu des fiches communales, et avec eux toute évolution
+affichable — une fiche qui ne porte qu'une année ne peut rien dire de ce qui a
+changé. Les dix millésimes sont donc rechargés. Ce que ça demande : 5,2 millions
+de lignes lues, 2,5 millions retenues, 5 millions d'observations écrites. Les
+matérialiser d'un bloc coûtait 1,8 Go de mémoire résidente, mesuré ; la base
+communale est donc lue millésime par millésime et écrite en flux.
+
+Un garde-fou mesure la taille de la base avant d'écrire et refuse l'invraisemblable.
 
 Usage : python -m plateforme.normalize.securite [--store r2:plateforme-raw]
 """
@@ -39,14 +49,14 @@ import gzip
 import io
 import json
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
 
 
-from plateforme import entrepot, revisions
+from plateforme import couverture, entrepot, revisions
 from plateforme.limites import garde_fou_volume
 from plateforme.http import fetch, telecharger
+from plateforme.normalize import ofgl
 from plateforme.normalize.geo import MILLESIME, commune_mere, make_store
-from plateforme.normalize.ofgl import filtrer_territoires_connus
 
 DATASET = "ssmsi-delinquance"
 SOURCE = "data-gouv"
@@ -317,22 +327,29 @@ def declarer(conn) -> None:
     conn.commit()
 
 
-def lire(
-    lignes_texte: Iterable[str], niveau: str, seulement_derniere_annee: bool = False
-) -> tuple[list[dict], dict, dict]:
-    """CSV SSMSI (`;`) -> lignes vérifiées, écartées, couverture de diffusion.
+def lire_par_annee(
+    lignes_texte: Iterable[str], niveau: str
+) -> Iterator[tuple[str, list[dict], dict, dict]]:
+    """CSV SSMSI (`;`) -> un lot `(année, gardées, écartées, couverture)` par
+    millésime, rendu dès que l'année change dans le fichier.
 
     L'identité `taux = nombre / dénominateur × 1000` est recalculée ligne à
     ligne avec le dénominateur déclaré pour la classe : une ligne qui ne se
     referme pas est écartée et comptée — c'est elle qui détecterait un
     changement de dénominateur chez le producteur.
+
+    Le découpage par année n'est pas un confort de lecture : la base communale
+    fait 5,2 millions de lignes sur dix millésimes, et les matérialiser toutes
+    avant d'écrire demanderait le gigaoctet. Le fichier du SSMSI est groupé par
+    année ; l'appelant qui écrit en flux vérifie qu'aucune année ne se rouvre,
+    car la borne départementale se calcule sur un millésime entier.
     """
     lecteur = csv.DictReader(lignes_texte, delimiter=";")
     colonne_code = COL_CODE[niveau]
     gardees: list[dict] = []
     ecartees: dict[str, object] = {}
-    couverture: dict[str, dict[str, int]] = defaultdict(lambda: {"diff": 0, "ndiff": 0})
-    annee_max = ""
+    diffusion: dict[str, dict[str, int]] = defaultdict(lambda: {"diff": 0, "ndiff": 0})
+    courante = ""
     for rang in lecteur:
         classe = (rang.get("indicateur") or "").strip()
         if classe not in CLASSES:
@@ -348,27 +365,16 @@ def lire(
                 " de recharger (docs/06)."
             )
         annee = (rang.get("annee") or "").strip()
-        if seulement_derniere_annee:
-            if annee > annee_max:
-                # Nouvelle année plus récente : tout ce qui précède est
-                # obsolète — lignes gardées, écartées et couverture comprises.
-                # Sans la purge des écartées, le contrôle publiait le bruit
-                # d'arrondi d'années qu'on ne charge même pas.
-                annee_max = annee
-                gardees = [g for g in gardees if g["annee"] == annee_max]
-                ecartees = {
-                    cle: motif for cle, motif in ecartees.items()
-                    if cle.endswith(f"/{annee_max}")
-                }
-                for compte in couverture.values():
-                    compte["diff"] = compte["ndiff"] = 0
-            if annee < annee_max:
-                continue
+        if annee != courante:
+            if courante:
+                yield courante, gardees, ecartees, dict(diffusion)
+            courante, gardees, ecartees = annee, [], {}
+            diffusion = defaultdict(lambda: {"diff": 0, "ndiff": 0})
         code = (rang.get(colonne_code) or "").strip()
         if rang.get("est_diffuse", "diff").strip() == "ndiff" or rang.get("nombre") == "NA":
-            couverture[classe]["ndiff"] += 1
+            diffusion[classe]["ndiff"] += 1
             continue
-        couverture[classe]["diff"] += 1
+        diffusion[classe]["diff"] += 1
         try:
             nombre = int(rang["nombre"])
             taux = float(rang["taux_pour_mille"].replace(",", "."))
@@ -390,7 +396,23 @@ def lire(
         gardees.append(
             {"classe": classe, "code": code, "annee": annee, "nombre": nombre, "taux": taux}
         )
-    return gardees, ecartees, dict(couverture)
+    if courante:
+        yield courante, gardees, ecartees, dict(diffusion)
+
+
+def lire(lignes_texte: Iterable[str], niveau: str) -> tuple[list[dict], dict, dict]:
+    """Tout le fichier d'un coup : les bases départementale et régionale font
+    quelques milliers de lignes, les tenir en mémoire ne coûte rien."""
+    gardees: list[dict] = []
+    ecartees: dict[str, object] = {}
+    diffusion: dict[str, dict[str, int]] = defaultdict(lambda: {"diff": 0, "ndiff": 0})
+    for _annee, lot, ecartees_annee, diffusion_annee in lire_par_annee(lignes_texte, niveau):
+        gardees.extend(lot)
+        ecartees.update(ecartees_annee)
+        for classe, comptes in diffusion_annee.items():
+            diffusion[classe]["diff"] += comptes["diff"]
+            diffusion[classe]["ndiff"] += comptes["ndiff"]
+    return gardees, ecartees, dict(diffusion)
 
 
 def est_arrondissement_municipal(code: str) -> bool:
@@ -434,27 +456,39 @@ def controler_somme_communale(
     return gardees, {f"{d}/{cl}/{an}": detail for (d, cl, an), detail in fautifs.items()}
 
 
-def ecrire(conn, run_id: str, par_niveau: dict[str, list[dict]]) -> tuple[int, int, int]:
-    candidates = []
-    for niveau, lignes in par_niveau.items():
-        for ligne in lignes:
-            candidates.append(
-                (indicateur_taux(ligne["classe"]), niveau, ligne["code"], ligne["annee"],
-                 ligne["taux"])
-            )
-            candidates.append(
-                (indicateur_nombre(ligne["classe"]), niveau, ligne["code"], ligne["annee"],
-                 ligne["nombre"])
-            )
-    gardees, hors_referentiel = filtrer_territoires_connus(conn, candidates)
+def ecrire(conn, run_id: str, lots: Iterable[tuple[str, list[dict]]]) -> tuple[int, dict, int, int]:
+    """Écrit les observations des lots `(niveau, lignes)`, en flux.
+
+    `remplacer` purge puis réécrit tous les indicateurs du jeu : il ne peut être
+    appelé qu'une fois, sinon le second appel effacerait ce que le premier a
+    écrit. C'est donc le générateur qui borne la mémoire, `copier` le consommant
+    par lots — matérialiser les dix millésimes communaux avant d'écrire coûtait
+    1,8 Go de résident, mesuré sur la base réelle.
+
+    Retourne les observations écrites, les **faits** écrits par maille (matière
+    du contrôle de couverture), le nombre de territoires hors référentiel et les
+    valeurs révisées.
+    """
+    connus = ofgl.territoires_connus(conn, list(COL_CODE))
+    faits_ecrits: dict[str, int] = defaultdict(int)
+    hors_referentiel: set[str] = set()
+
+    def observations():
+        for niveau, lignes in lots:
+            for ligne in lignes:
+                if (niveau, ligne["code"]) not in connus:
+                    hors_referentiel.add(f"{niveau}:{ligne['code']}")
+                    continue
+                faits_ecrits[niveau] += ligne["nombre"]
+                yield (indicateur_taux(ligne["classe"]), niveau, ligne["code"], MILLESIME,
+                       ligne["annee"], ligne["taux"])
+                yield (indicateur_nombre(ligne["classe"]), niveau, ligne["code"], MILLESIME,
+                       ligne["annee"], ligne["nombre"])
+
     ecrites, revisees = revisions.remplacer(
-        conn, run_id, tous_les_indicateurs(), ("value",),
-        (
-            (cle, niveau, code, MILLESIME, periode, valeur)
-            for cle, niveau, code, periode, valeur in gardees
-        ),
+        conn, run_id, tous_les_indicateurs(), ("value",), observations()
     )
-    return ecrites, len(hors_referentiel), revisees
+    return ecrites, dict(faits_ecrits), len(hors_referentiel), revisees
 
 
 def run(store_spec: str) -> int:
@@ -466,20 +500,12 @@ def run(store_spec: str) -> int:
         taille = garde_fou_volume(conn)
         par_niveau: dict[str, list[dict]] = {}
         ecartees_total: dict[str, object] = {}
-        couvertures: dict[str, dict] = {}
+        lus: dict[str, int] = defaultdict(int)
 
-        url_com = url_courante("COM - Base statistique communale", "csv.gz")
-        contenu_com = telecharger(url_com, timeout=900)
-        entrepot.record_asset(
-            conn, store, run_id, DATASET, SOURCE, "delinquance-communale.csv.gz",
-            contenu_com, url_com, "application/gzip",
-        )
-        texte = io.TextIOWrapper(io.BytesIO(gzip.decompress(contenu_com)), encoding="utf-8-sig")
-        par_niveau["commune"], ecartees, couvertures["commune"] = lire(
-            texte, "commune", seulement_derniere_annee=True
-        )
-        ecartees_total.update(ecartees)
-
+        # Les bases départementale et régionale d'abord : la borne qui contrôle
+        # les communes se calcule contre le total de leur département, et le
+        # communal est désormais lu en flux — il faut donc que le département
+        # soit déjà là quand la première année communale arrive.
         for niveau, prefixe in (
             ("departement", "DEP - Base statistique départementale"),
             ("region", "REG - Base statistique régionale"),
@@ -490,26 +516,81 @@ def run(store_spec: str) -> int:
                 conn, store, run_id, DATASET, SOURCE, f"delinquance-{niveau}.csv",
                 contenu, url, "text/csv",
             )
-            par_niveau[niveau], ecartees, couvertures[niveau] = lire(
+            par_niveau[niveau], ecartees, _ = lire(
                 io.TextIOWrapper(io.BytesIO(contenu), encoding="utf-8-sig"), niveau
             )
             ecartees_total.update(ecartees)
+            lus[niveau] = sum(ligne["nombre"] for ligne in par_niveau[niveau])
 
-        if not par_niveau["commune"] or not par_niveau["departement"]:
+        if not par_niveau["departement"]:
             raise ValueError("base SSMSI vide après lecture : le format a dû changer")
 
-        par_niveau["commune"], depassements = controler_somme_communale(
-            par_niveau["commune"], par_niveau["departement"]
+        url_com = url_courante("COM - Base statistique communale", "csv.gz")
+        contenu_com = telecharger(url_com, timeout=900)
+        entrepot.record_asset(
+            conn, store, run_id, DATASET, SOURCE, "delinquance-communale.csv.gz",
+            contenu_com, url_com, "application/gzip",
         )
 
-        ecrites, hors_referentiel, revisees = ecrire(conn, run_id, par_niveau)
+        annees_communales: list[str] = []
+        lignes_communales = 0
+        depassements: dict[str, object] = {}
+        diffusion_communale: dict[str, dict[str, int]] = defaultdict(
+            lambda: {"diff": 0, "ndiff": 0}
+        )
+        arrondissements = 0
 
-        annee_communale = max(ligne["annee"] for ligne in par_niveau["commune"])
+        def lots():
+            """Les trois mailles, dans l'ordre où elles peuvent être écrites."""
+            nonlocal arrondissements, lignes_communales
+            yield "departement", par_niveau["departement"]
+            yield "region", par_niveau["region"]
+            # Décompressé au fil de la lecture : `gzip.decompress` matérialisait
+            # les 700 Mo du CSV entier avant d'en lire la première ligne.
+            texte = gzip.open(io.BytesIO(contenu_com), "rt", encoding="utf-8-sig")
+            for annee, gardees, ecartees, diffusion in lire_par_annee(texte, "commune"):
+                if annee in annees_communales:
+                    # La borne départementale se calcule sur un millésime
+                    # entier : un fichier qui rouvrirait une année déjà close la
+                    # ferait porter sur une fraction des communes, et laisserait
+                    # passer un dépassement au lieu de l'écarter.
+                    raise ValueError(
+                        f"base communale SSMSI non groupée par année : {annee} rouverte"
+                    )
+                annees_communales.append(annee)
+                gardees, depassements_annee = controler_somme_communale(
+                    gardees, par_niveau["departement"]
+                )
+                depassements.update(depassements_annee)
+                ecartees_total.update(ecartees)
+                for classe, comptes in diffusion.items():
+                    diffusion_communale[classe]["diff"] += comptes["diff"]
+                    diffusion_communale[classe]["ndiff"] += comptes["ndiff"]
+                # Les arrondissements de Paris, Lyon et Marseille sont dans la
+                # base communale, en plus de leur commune mère. Le référentiel
+                # les connaît sous la maille « arrondissement_municipal » : les
+                # présenter comme des communes les faisait écarter en silence,
+                # 12,9 % des faits lus. Ils sortent ici, comptés et nommés.
+                retenues = [g for g in gardees if not est_arrondissement_municipal(g["code"])]
+                arrondissements += len(gardees) - len(retenues)
+                lus["commune"] += sum(ligne["nombre"] for ligne in retenues)
+                lignes_communales += len(retenues)
+                yield "commune", retenues
+            if not annees_communales:
+                raise ValueError("base SSMSI vide après lecture : le format a dû changer")
+
+        ecrites, faits_ecrits, hors_referentiel, revisees = ecrire(conn, run_id, lots())
+
+        # Le contrôle qu'aucun total ne remplace : ce qui est écrit contre ce
+        # qui est lu, par maille. Deux totaux tirés du même fichier ne peuvent
+        # que coïncider ; ces deux-là viennent de deux mondes.
+        couverture_referentiel = couverture.controler(dict(lus), faits_ecrits)
+
         diffusion = {
             classe: round(
                 compte["diff"] / (compte["diff"] + compte["ndiff"]) * 100, 1
             )
-            for classe, compte in couvertures["commune"].items()
+            for classe, compte in diffusion_communale.items()
             if compte["diff"] + compte["ndiff"]
         }
         with conn.cursor() as curseur:
@@ -540,20 +621,40 @@ def run(store_spec: str) -> int:
                 values (?, ?, 'couverture_diffusion_communale', 'info', true, ?)
                 """,
                 (run_id, DATASET,
-                 json.dumps({"annee": annee_communale, "pct_diffuse_par_classe": diffusion})),
+                 json.dumps({"annees": sorted(annees_communales),
+                             "pct_diffuse_par_classe": diffusion})),
+            )
+            curseur.execute(
+                """
+                insert into meta.data_quality_checks
+                    (run_id, dataset_id, check_name, severity, passed, observed)
+                values (?, ?, 'couverture_du_referentiel', 'info', true, ?)
+                """,
+                (run_id, DATASET,
+                 json.dumps({"part_reconnue_par_maille": {
+                     maille: round(part, 4) for maille, part in couverture_referentiel.items()
+                 },
+                     "faits_lus": dict(lus), "faits_ecrits": faits_ecrits,
+                     "lignes_arrondissement_municipal_ecartees": arrondissements})),
             )
         conn.commit()
         entrepot.finish_run(
             conn, run_id, "success",
-            rows_read=sum(len(v) for v in par_niveau.values()), rows_written=ecrites,
+            rows_read=sum(len(v) for v in par_niveau.values()) + lignes_communales,
+            rows_written=ecrites,
         )
         apres = entrepot.taille(conn)
+        etendue = f"{min(annees_communales)}-{max(annees_communales)}"
         print(
-            f"sécurité : {ecrites} observations ({annee_communale} au niveau communal),"
+            f"sécurité : {ecrites} observations ({etendue} au niveau communal),"
             f" {len(ecartees_total)} lignes écartées, {len(depassements)} couples"
             f" commune-département écartés, {hors_referentiel} hors référentiel,"
+            f" {arrondissements} lignes d'arrondissement municipal écartées,"
             f" {revisees} valeurs révisées"
         )
+        print("couverture du référentiel (%) :", json.dumps(
+            {maille: round(100 * part, 2) for maille, part in couverture_referentiel.items()}
+        ))
         print(f"volume base : {taille // 1024 // 1024} -> {apres // 1024 // 1024} Mo")
         print("diffusion communale (%) :", json.dumps(diffusion, ensure_ascii=False))
         return 0
