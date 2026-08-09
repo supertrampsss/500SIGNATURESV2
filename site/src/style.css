@@ -4268,6 +4268,37 @@ summary.pont__rangee,
   gap: 0.35rem;
   flex-wrap: wrap;
 }
+/* Le choix du budget : État ou Sécurité sociale. Au-dessus du cockpit, parce
+   qu'il change tout ce qui vient après — et jamais côte à côte avec un total
+   qui les additionnerait, ce qui n'a pas de sens. */
+.simu__budgets {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin: 1.25rem 1.5rem 0;
+}
+.simu__budgets button {
+  font: inherit;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-3) var(--espace-6);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre-douce);
+  cursor: pointer;
+}
+.simu__budgets button[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: #fff;
+}
+/* Les compteurs de l'ONDAM vivent dans leur panneau, jamais dans le cockpit :
+   c'est ce qui rend visible qu'un objectif réglé ne déplace pas le solde. */
+.simu__compteurs--objectif {
+  margin: 0 0 var(--espace-5);
+}
 .simu__onglets button {
   font: inherit;
   font-size: var(--texte-m);

@@ -68,6 +68,7 @@ create sequence if not exists fin.seq_public_budget_lines;
 create sequence if not exists fin.seq_public_employment;
 create sequence if not exists fin.seq_public_subsidies;
 create sequence if not exists fin.seq_state_budget_detail;
+create sequence if not exists fin.seq_social_budget_detail;
 
 -- ---------------------------------------------------------------- meta
 -- Registres et lineage (docs/02 §A).
@@ -431,6 +432,45 @@ create table if not exists fin.state_budget_detail (
     side        text not null check (side in ('depense','recette')),
     node_level  text not null check (node_level in
                 ('mission','programme','action','sous_action','famille','ligne')),
+    code        text not null,
+    parent_code text,
+    label       text not null,
+    amount      double not null,
+    sign        smallint not null default 1 check (sign in (-1, 1)),
+    measure     text not null,
+    currency    text not null default 'EUR',
+    dataset_id  text,  -- -> meta.dataset_registry (vérifié)
+    run_id      uuid not null,  -- -> meta.ingestion_runs (vérifié)
+    unique (fiscal_year, side, code)
+);
+
+-- Le budget de la Sécurité sociale, poste par poste : charges et produits nets
+-- des régimes obligatoires de base consolidés, et l'objectif national de
+-- dépenses d'assurance maladie avec ses sous-objectifs (PLFSS, annexes 3 et 5).
+--
+-- Table séparée de `fin.state_budget_detail`, et ce n'est pas une commodité :
+-- les deux ne se somment pas. Le budget de l'État est un vote de crédits en
+-- comptabilité budgétaire ; celui-ci est un tableau de charges et de produits en
+-- droits constatés, sur un périmètre où circulent des transferts massifs venus
+-- de l'État — TVA affectée, compensations d'exonérations, cotisations prises en
+-- charge. Une table commune inviterait le `group by` qui additionne les deux.
+--
+-- `side` vaut 'objectif' pour l'ONDAM, qui n'est ni une charge ni un produit :
+-- c'est un objectif de dépenses voté à part, qui traverse trois branches sans
+-- être la somme d'aucune. Le distinguer par une valeur de `side` est ce qui
+-- empêche qu'il entre dans le solde.
+--
+-- Aucune colonne géographique, aucune colonne de branche : le périmètre est
+-- national, et la colonne consolidée n'est pas la somme des branches — publier
+-- les branches à côté d'elle inviterait une addition qui donne 19 Md€ de trop.
+create table if not exists fin.social_budget_detail (
+    detail_id   bigint primary key default nextval('fin.seq_social_budget_detail'),
+    fiscal_year smallint not null,
+    -- 'PLFSS' : un projet de loi de financement, ni la loi votée ni les comptes.
+    law         text not null,
+    side        text not null check (side in ('depense','recette','objectif')),
+    node_level  text not null check (node_level in
+                ('agregat','poste','sous_poste','objectif','sous_objectif')),
     code        text not null,
     parent_code text,
     label       text not null,

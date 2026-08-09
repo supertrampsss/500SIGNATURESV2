@@ -2048,14 +2048,43 @@ async function peindreAnalyses(): Promise<void> {
   );
 }
 
-/** Le simulateur n'est une vue du site que si son fichier est publié. Tant
- *  qu'il ne l'est pas, `#simulateur` n'est pas une adresse : pas d'entrée de
- *  menu, pas de section, et aucun message pour dire ce qui manque. */
-let exerciceSimulateur: string | null = null;
-let simulateurMonte = false;
+/** Le simulateur n'est une vue du site que si au moins un budget est publié.
+ *  Tant qu'aucun ne l'est, `#simulateur` n'est pas une adresse : pas d'entrée
+ *  de menu, pas de section, et aucun message pour dire ce qui manque.
+ *
+ *  Deux budgets y vivent désormais, et ils ne se ressemblent pas : l'État vote
+ *  des crédits, la Sécurité sociale arrête des charges et des produits. Ils ont
+ *  donc chacun leur fichier, leur index d'exercices et leur cadrage — le seul
+ *  point commun est le moteur de réglage. Ce qui n'existe nulle part, ici comme
+ *  ailleurs sur le site, c'est leur somme. */
+type BudgetPublie = {
+  cle: string;
+  nom: string;
+  index: () => Promise<unknown>;
+  charger: (exercice: string) => Promise<import("./simulateur.ts").Budget>;
+};
+
+const BUDGETS_SIMULABLES: BudgetPublie[] = [
+  {
+    cle: "etat",
+    nom: "État",
+    index: donnees.simulateurIndex,
+    charger: donnees.simulateurBudget,
+  },
+  {
+    cle: "secu",
+    nom: "Sécurité sociale",
+    index: donnees.simulateurIndexSecu,
+    charger: donnees.simulateurBudgetSecu,
+  },
+];
+
+/** Ceux dont l'index annonce un exercice, dans l'ordre ci-dessus. */
+let budgetsDisponibles: { budget: BudgetPublie; exercice: string }[] = [];
+let budgetAffiche: string | null = null;
 
 function vuesConnues(): readonly string[] {
-  return exerciceSimulateur ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
+  return budgetsDisponibles.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
 }
 
 function basculerVue(): void {
@@ -2080,24 +2109,60 @@ function basculerVue(): void {
 }
 
 /**
- * L'index des exercices, et lui seul. Quelques octets, sans lesquels rien ne
- * dirait s'il y a un simulateur à proposer ; l'arbre du budget, lui, attend
- * qu'on ouvre la vue.
+ * Les index d'exercices, et eux seuls. Quelques octets par budget, sans
+ * lesquels rien ne dirait s'il y a un simulateur à proposer ; les arbres, eux,
+ * attendent qu'on ouvre la vue.
  */
 async function preparerSimulateur(): Promise<void> {
-  let exercices: string[] = [];
-  try {
-    exercices = exercicesPublies(await donnees.simulateurIndex());
-  } catch {
-    // Simulateur non publié : ni entrée de menu, ni section, ni message.
-  }
-  if (!exercices.length) return;
-  // Le plus récent : c'est le budget dont on débat.
-  exerciceSimulateur = exercices.sort().reverse()[0];
+  const trouves = await Promise.all(
+    BUDGETS_SIMULABLES.map(async (budget) => {
+      try {
+        // Le plus récent : c'est le budget dont on débat.
+        const exercice = exercicesPublies(await budget.index()).sort().reverse()[0];
+        return exercice ? { budget, exercice } : null;
+      } catch {
+        // Budget non publié : il ne figure simplement pas au choix.
+        return null;
+      }
+    }),
+  );
+  budgetsDisponibles = trouves.filter((x) => x !== null);
+  if (!budgetsDisponibles.length) return;
+  budgetAffiche = budgetsDisponibles[0].budget.cle;
   document
     .querySelector(".entete__nav")!
     .insertAdjacentHTML("beforeend", `<a href="#simulateur" data-vue="simulateur">Simulateur</a>`);
+  peindreChoixDuBudget();
   if (location.hash === "#simulateur") basculerVue();
+}
+
+/** Le choix du budget, et seulement s'il y en a plusieurs : un sélecteur à une
+ *  entrée demanderait de choisir ce qui est déjà choisi. */
+function peindreChoixDuBudget(): void {
+  const cadre = $("simu-budgets");
+  if (budgetsDisponibles.length < 2) return;
+  cadre.hidden = false;
+  cadre.innerHTML = budgetsDisponibles
+    .map(
+      ({ budget, exercice }) =>
+        `<button type="button" data-budget="${budget.cle}"
+           aria-pressed="${budget.cle === budgetAffiche}">${budget.nom} ${exercice}</button>`,
+    )
+    .join("");
+  cadre.onclick = (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-budget]");
+    const cle = bouton?.dataset.budget;
+    if (!cle || cle === budgetAffiche) return;
+    budgetAffiche = cle;
+    // Les réglages d'un budget ne désignent rien dans l'autre : les codes
+    // viennent de deux nomenclatures qui n'ont aucune ligne en commun. Les
+    // garder ferait rouvrir l'ancien budget avec un plan vide et une URL qui
+    // prétend le contraire.
+    etat.budget = "";
+    ecrireUrl();
+    peindreChoixDuBudget();
+    void ouvrirSimulateur(true);
+  };
 }
 
 /**
@@ -2126,16 +2191,29 @@ async function tauxApparentDeLaDette(): Promise<number | undefined> {
 }
 
 /** L'arbre du budget, chargé au premier affichage de la vue et pas avant. */
-async function ouvrirSimulateur(): Promise<void> {
-  if (simulateurMonte || !exerciceSimulateur) return;
-  simulateurMonte = true;
+let budgetMonte: string | null = null;
+
+async function ouvrirSimulateur(force = false): Promise<void> {
+  const choisi = budgetsDisponibles.find((b) => b.budget.cle === budgetAffiche);
+  if (!choisi || (!force && budgetMonte === choisi.budget.cle)) return;
+  budgetMonte = choisi.budget.cle;
   try {
-    const budget = await donnees.simulateurBudget(exerciceSimulateur);
+    const budget = await choisi.budget.charger(choisi.exercice);
     const index = indexer(budget);
     afficherSimulateur($("simu"), budget, index, {
-      tauxApparent: await tauxApparentDeLaDette(),
-      // Publication antérieure au fichier : aucun tiroir, pas d'échec.
-      subventions: await donnees.subventionsParProgramme().catch(() => null),
+      // Le taux apparent est celui de la dette de l'État : il ne dit rien de ce
+      // qu'un déficit de la Sécurité sociale coûte en intérêts, dont la charge
+      // est portée par la CADES sur un autre encours. Mieux vaut ne rien
+      // afficher que transposer.
+      tauxApparent:
+        choisi.budget.cle === "etat" ? await tauxApparentDeLaDette() : undefined,
+      // Les bénéficiaires nommés sont ceux des programmes de l'État : rien à
+      // ouvrir sur un poste de charges sociales.
+      subventions:
+        choisi.budget.cle === "etat"
+          ? // Publication antérieure au fichier : aucun tiroir, pas d'échec.
+            await donnees.subventionsParProgramme().catch(() => null)
+          : null,
       reglages: decoder(etat.budget, index),
       surReglages: (encode) => {
         etat.budget = encode;
@@ -2144,11 +2222,17 @@ async function ouvrirSimulateur(): Promise<void> {
     });
   } catch {
     // L'index annonçait un exercice que la publication ne sert pas : plutôt
-    // qu'une section vide au bout d'un lien, le simulateur disparaît.
-    exerciceSimulateur = null;
-    simulateurMonte = false;
-    document.querySelector('.entete__nav a[data-vue="simulateur"]')?.remove();
-    basculerVue();
+    // qu'une section vide au bout d'un lien, ce budget-là disparaît du choix.
+    budgetsDisponibles = budgetsDisponibles.filter((b) => b.budget.cle !== choisi.budget.cle);
+    budgetMonte = null;
+    budgetAffiche = budgetsDisponibles[0]?.budget.cle ?? null;
+    if (!budgetsDisponibles.length) {
+      document.querySelector('.entete__nav a[data-vue="simulateur"]')?.remove();
+      $("simu-budgets").hidden = true;
+      return basculerVue();
+    }
+    peindreChoixDuBudget();
+    void ouvrirSimulateur(true);
   }
 }
 

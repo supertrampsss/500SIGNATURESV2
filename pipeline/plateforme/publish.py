@@ -677,6 +677,83 @@ def simulateur(conn) -> dict[str, dict]:
     }
 
 
+ONDAM_NOTE = (
+    "L'ONDAM est un objectif de dépenses d'assurance maladie, voté à part. Il"
+    " traverse les branches maladie, AT-MP et autonomie : il ne s'ajoute pas aux"
+    " charges ci-dessus et n'entre pas dans le solde."
+)
+
+
+def simulateur_secu(conn) -> dict[str, dict]:
+    """Le budget de la Sécurité sociale réglable poste par poste, par exercice.
+
+    Même forme que le budget de l'État, et pour la même raison : le simulateur du
+    site sait déjà lire un arbre de dépenses, des groupes de recettes et des
+    montants en euros. Trois différences, qui viennent toutes de ce que la
+    matière n'est pas la même.
+
+    - **Les groupes de recettes portent un arbre**, pas une liste plate. Le
+      non-recouvrement se déduit des cotisations et se détaille en trois lignes :
+      l'aplatir ferait disparaître ce détail ou compterait deux fois 2,2 Md€.
+    - **L'ONDAM sort à part**, dans sa propre clé. Ce n'est ni une charge ni un
+      produit : c'est un objectif sur un périmètre qui traverse trois branches,
+      et l'additionner aux charges compterait deux fois 270 Md€.
+    - **Le cadrage est publié avec le fichier.** « PLF 2025, budget général,
+      crédits de paiement » ne décrit pas ce budget-ci, et le site n'a pas à
+      deviner quel périmètre il affiche.
+    """
+    par_exercice: dict[str, dict] = {}
+    enfants: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    racines: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    tous: list[tuple[str, str, str, dict]] = []
+    for annee, loi, cote, code, parent, libelle, montant, devise in conn.execute(
+        """
+        select fiscal_year, law, side, code, parent_code, label, amount, currency
+        from fin.social_budget_detail order by fiscal_year, side, amount desc
+        """
+    ).fetchall():
+        exercice = str(annee)
+        par_exercice.setdefault(exercice, {"exercice": exercice, "loi": loi, "unite": devise})
+        noeud = {"c": code, "l": libelle, "v": _montant_publie(montant)}
+        tous.append((exercice, cote, code, noeud))
+        if parent:
+            enfants[(exercice, cote, parent)].append(noeud)
+        else:
+            racines[(exercice, cote)].append(noeud)
+    for exercice, cote, code, noeud in tous:
+        lignes = enfants.get((exercice, cote, code))
+        if lignes:
+            noeud["enfants"] = lignes
+
+    fichiers = {}
+    for exercice, entete in sorted(par_exercice.items()):
+        objectif = racines[(exercice, "objectif")]
+        # Le total de l'ONDAM est un nœud comme les autres dans la table : il n'a
+        # pas de parent, mais il n'est pas un sous-objectif. Le sortir de la liste
+        # évite qu'il s'additionne à ceux qu'il résume.
+        sous_objectifs = [n for n in objectif if n["c"] != "O-TOTAL"]
+        fichiers[exercice] = {
+            **entete,
+            "titre": "Le budget de la Sécurité sociale, poste par poste",
+            "cadre": (
+                f"{entete['loi']} {exercice}, régimes obligatoires de base consolidés,"
+                " charges et produits nets, montants en millions d'euros (M€)"
+            ),
+            "repere": "poste",
+            "depenses": racines[(exercice, "depense")],
+            "recettes": [
+                {"t": groupe["l"], "signe": 1, "lignes": groupe.get("enfants", [groupe])}
+                for groupe in racines[(exercice, "recette")]
+            ],
+            "objectif": {
+                "t": f"ONDAM {exercice}",
+                "note": ONDAM_NOTE,
+                "lignes": sous_objectifs,
+            },
+        }
+    return fichiers
+
+
 def fraicheur(conn) -> list[dict]:
     """État public de chaque jeu : dernière mise à jour, retard, contrôles.
 
@@ -1563,6 +1640,13 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     for exercice, budget in budgets.items():
         deposer(f"simulateur/etat-{exercice}.json", budget)
     deposer("simulateur/index.json", sorted(budgets, reverse=True))
+    # La Sécurité sociale a son propre index : elle ne suit pas les exercices du
+    # budget de l'État, et le site doit pouvoir proposer l'un sans l'autre.
+    budgets_secu = simulateur_secu(conn)
+    for exercice, budget in budgets_secu.items():
+        deposer(f"simulateur/secu-{exercice}.json", budget)
+    if budgets_secu:
+        deposer("simulateur/index-secu.json", sorted(budgets_secu, reverse=True))
     deposer("agregats-nationaux.json", methode_nationale)
     for lot, contenu in subventions_nominatives(conn).items():
         deposer(f"subventions/commune/{lot}.json", contenu)

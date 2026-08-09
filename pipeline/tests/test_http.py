@@ -30,22 +30,30 @@ def _brancher(monkeypatch, transport: httpx.MockTransport) -> None:
 
     Les fonctions de module d'httpx n'acceptent pas de transport : il faut un
     client. `stream` reste un gestionnaire de contexte, comme celui du vrai.
+
+    `verify` est retiré comme `follow_redirects` : le vrai le passe au client,
+    celui-ci a déjà son transport de test et n'a pas de poignée de main à faire.
+    Un connecteur peut passer un contexte TLS particulier — securite-sociale.fr
+    en demande un — et cela ne doit rien changer à ce qui est vérifié ici.
     """
 
     @contextmanager
     def stream(methode, url, **options):
         options.pop("follow_redirects", None)
+        options.pop("verify", None)
         with httpx.Client(transport=transport, follow_redirects=True) as client:
             with client.stream(methode, url, **options) as reponse:
                 yield reponse
 
     def get(url, **options):
         options.pop("follow_redirects", None)
+        options.pop("verify", None)
         with httpx.Client(transport=transport, follow_redirects=True) as client:
             return client.get(url, **options)
 
     def head(url, **options):
         options.pop("follow_redirects", None)
+        options.pop("verify", None)
         with httpx.Client(transport=transport, follow_redirects=True) as client:
             return client.head(url, **options)
 
