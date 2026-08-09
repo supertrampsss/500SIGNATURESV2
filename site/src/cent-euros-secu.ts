@@ -168,9 +168,8 @@ export function rendu(france: Territoire | undefined, catalogue: Indicateur[]): 
           versé ; aucun euro prélevé ne part vers un risque en particulier, et la part
           affichée pour la retraite n'est pas ce qu'un cotisant paie pour sa retraite.</li>
         <li>Les prestations ne sont pas financées que par des cotisations : la CSG, des
-          impôts et taxes affectés et des transferts en paient une partie. Ce site ne publie
-          pas encore la ventilation de ces recettes, ce bloc ne montre donc que le côté
-          dépenses.</li>
+          impôts et taxes affectés et des transferts en paient une partie. Ce bloc porte sur
+          les prestations versées, pas sur ce qui les finance.</li>
         <li>Les prestations ne sont pas la dépense totale de la protection sociale : les
           frais de gestion des régimes et les transferts entre régimes sont d'autres postes
           des mêmes comptes.</li>
