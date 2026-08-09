@@ -111,11 +111,12 @@ test("la dette est chiffrée avec le temps qu'il faudrait pour la rembourser", (
 
 test("les frais de personnel disent aussi le poids qu'ils prennent", () => {
   const paie = verdict(bordeaux()).find((p) => p.vers === "ofgl_frais_personnel");
+  // Le cadre est posé par une phrase précédente : celle-ci garde son chiffre,
+  // son évolution et le poids du poste, sans réécrire les prix ni la population.
   assert.equal(
     paie?.texte,
-    `Les frais de personnel passent de 143,6${FINE}M€ en 2019 à 183,1${FINE}M€ en 2025, soit`
-      + ` +27,5${FINE}%, quand les prix ont monté de 16,1${FINE}% et la population de`
-      + ` 5,0${FINE}% ; ils pèsent 49,6${FINE}% des dépenses de fonctionnement, contre`
+    `Les frais de personnel passent de 143,6${FINE}M€ à 183,1${FINE}M€, soit`
+      + ` +27,5${FINE}% ; ils pèsent 49,6${FINE}% des dépenses de fonctionnement, contre`
       + ` 48,8${FINE}% en 2019.`,
   );
 });
@@ -127,14 +128,29 @@ test("les frais de personnel disent aussi le poids qu'ils prennent", () => {
  * dans le même sens. Toute phrase portant une masse en euros courants nomme les
  * prix et la population dans la même respiration.
  */
-test("chaque phrase de niveau porte les prix et la population", () => {
-  const niveaux = verdict(bordeaux()).filter(
-    (p) => /passe(nt)? de /.test(p.texte) && p.vers !== "ofgl_dotation_globale_de_fonctionnement",
-  );
-  assert.equal(niveaux.length, 5);
-  for (const phrase of niveaux) {
-    assert.match(phrase.texte, /les prix ont monté de 16,1/);
-    assert.match(phrase.texte, /la population de 5,0/);
+test("le cadre est posé une fois, pas à chaque puce", () => {
+  // La règle a changé le 9 août, sur retour produit. Chaque phrase portait sa
+  // queue « quand les prix ont monté de 16,1 % et la population de 5,0 % » :
+  // écrite une fois elle situe le chiffre, écrite cinq fois de suite elle fait
+  // de la liste un gabarit. Les indicateurs et les chiffres étaient pourtant
+  // tous différents — c'est la charpente qu'on voyait, pas le contenu.
+  const phrases = verdict(bordeaux());
+  const avecCadre = phrases.filter((p) => /les prix ont monté de 16,1/.test(p.texte));
+  assert.equal(avecCadre.length, 1, "le cadre ne doit être écrit qu'une fois");
+  assert.match(avecCadre[0].texte, /la population de 5,0/);
+  // Et il est posé tôt : une queue qui arriverait en dernière ligne ne
+  // situerait plus rien de ce qui précède.
+  assert.ok(phrases.indexOf(avecCadre[0]) <= 1);
+});
+
+test("toutes les phrases restent chiffrées et situées dans le temps", () => {
+  // Alléger la queue ne doit pas produire des phrases en l'air : chacune garde
+  // son chiffre, et les millésimes posés par la première valent pour la suite.
+  const phrases = verdict(bordeaux());
+  assert.ok(phrases.length >= 3);
+  assert.match(phrases[0].texte, /2019/);
+  for (const phrase of phrases) {
+    assert.match(phrase.texte, /\d/, phrase.texte);
   }
 });
 

@@ -560,10 +560,26 @@ export function faitsRetenus(contexte: Contexte, maximum = PHRASES_PAR_DEFAUT): 
 
 /** Au plus `maximum` phrases, les plus saillantes d'abord. */
 export function verdict(contexte: Contexte, maximum = PHRASES_PAR_DEFAUT): Phrase[] {
-  return faitsRetenus(contexte, maximum).map((f) => ({
-    texte: f.texte,
-    sens: f.sens,
-    vers: f.vers,
-    saillance: f.saillance,
-  }));
+  // **Le cadre une fois, pas à chaque puce.** Chaque phrase autonome se termine
+  // par « quand les prix ont monté de 16,1 % et la population de 5,0 % ». Écrite
+  // une fois, cette queue situe le chiffre ; écrite quatre fois de suite, elle
+  // fait de la liste entière un gabarit — quatre lignes bâties à l'identique,
+  // dont l'œil ne retient plus que la répétition. Les indicateurs et les chiffres
+  // étaient pourtant tous différents : c'est la charpente qui se voyait.
+  //
+  // `recit.ts` applique déjà cette règle à son paragraphe. La liste la reprend :
+  // la première phrase pose les millésimes, et le cadre revient à la première
+  // qui sache le porter — une part de recettes n'a pas d'inflation à nommer, une
+  // masse en euros courants, si.
+  let cadreDit = false;
+  return faitsRetenus(contexte, maximum).map((f, rang) => {
+    const autonome = rang === 0 || (!cadreDit && f.cadre);
+    if (autonome && f.cadre) cadreDit = true;
+    return {
+      texte: autonome ? f.texte : f.bref,
+      sens: f.sens,
+      vers: f.vers,
+      saillance: f.saillance,
+    };
+  });
 }
