@@ -568,3 +568,41 @@ def test_l_ecriture_nominative_contre_un_vrai_entrepot(entrepot_seme, lignes):
         "select count(*) from fin.public_subsidies where geo_code = '57672'"
     ).fetchone()
     assert apres == compte
+
+
+def test_les_beneficiaires_se_rassemblent_par_programme(entrepot_seme):
+    """Le simulateur règle un budget national : il lui faut les bénéficiaires
+    par programme, pas cent un fichiers départementaux.
+
+    Et surtout : ce fichier ne décompose rien. Il publie le total **déclaré**
+    et le nombre de bénéficiaires, jamais une part du programme — les
+    subventions nominatives ne redonnent pas les crédits dont elles relèvent."""
+    from plateforme import entrepot, publish
+
+    _semer_le_jeu(entrepot_seme)
+    run_id = entrepot.start_run(entrepot_seme, s.DATASET, "manual")
+    for code, siren, nom, programme, objet, montant in (
+        ("33063", "111", "GRANDE ASSO", "163", "Fonctionnement", 500_000.0),
+        ("75056", "222", "AUTRE ASSO", "163", "Innovation", 200_000.0),
+        ("75056", "333", "PETITE ASSO", "163", "Fonctionnement", 1_000.0),
+        ("33063", "444", "ASSO SPORT", "219", "Sport", 90_000.0),
+    ):
+        entrepot_seme.execute(
+            "insert into fin.public_subsidies (fiscal_year, geo_level, geo_code,"
+            " geo_vintage, beneficiary_siren, beneficiary_name, programme, purpose,"
+            " amount, dataset_id, run_id) values (2023, 'commune', ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            (code, s.MILLESIME, siren, nom, programme, objet, montant, s.DATASET, run_id),
+        )
+    entrepot_seme.commit()
+
+    publie = publish.subventions_par_programme(entrepot_seme, plafond=2)
+    assert publie["exercice"] == "2023"
+    p163 = publie["programmes"]["163"]
+    # Le total déclaré somme les trois versements, les deux communes confondues.
+    assert p163["declare"] == 701_000.0
+    # Le compte dit ce que la liste bornée ne montre pas.
+    assert p163["beneficiaires_total"] == 3
+    assert [b["nom"] for b in p163["beneficiaires"]] == ["GRANDE ASSO", "AUTRE ASSO"]
+    # Aucune part du programme : c'est le chiffre qui ferait mentir la page.
+    assert "part_du_programme" not in p163
+    assert set(publie["programmes"]) == {"163", "219"}

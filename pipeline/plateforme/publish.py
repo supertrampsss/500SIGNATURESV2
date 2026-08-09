@@ -1095,6 +1095,78 @@ def subventions_nominatives(conn) -> dict[str, dict[str, dict]]:
     return lots
 
 
+def subventions_par_programme(conn, plafond: int = 50) -> dict:
+    """Les bénéficiaires nommés, rassemblés par programme budgétaire.
+
+    Le simulateur règle le budget de l'État programme par programme, et la
+    question qui vient ensuite est « qui touche cet argent ». La réponse existe
+    — le jaune budgétaire descend au bénéficiaire nommé — mais elle n'était
+    publiée que **par commune** : le simulateur, qui est national, ne pouvait pas
+    la lire.
+
+    **Ce fichier ne décompose rien, et c'est la règle qui le gouverne.** Les
+    subventions nominatives déclarées ne redonnent pas le total du programme
+    dont elles relèvent : le jaune ne couvre pas tous les versements, et les
+    crédits d'un programme financent bien autre chose que des associations. Le
+    fichier publie donc, pour chaque programme, le total **des subventions
+    déclarées** et le nombre de bénéficiaires — jamais une part du programme —,
+    et l'affichage doit les présenter comme un tiroir à part, pas comme une
+    décomposition. Publier `part_du_programme` ici serait offrir le chiffre qui
+    fait mentir la page.
+
+    Les bénéficiaires sont bornés aux `plafond` plus gros : la queue est longue
+    (des milliers de versements de quelques milliers d'euros) et le fichier est
+    lu par un simulateur qui s'ouvre sur téléphone. Le compte total dit ce que
+    la liste ne montre pas.
+    """
+    lignes = conn.execute(
+        """
+        select programme, beneficiary_siren,
+               any_value(beneficiary_name) as nom,
+               arg_max(purpose, amount) as objet,
+               sum(amount) as montant
+        from fin.public_subsidies
+        where geo_level = 'commune'
+        group by programme, beneficiary_siren
+        order by programme, sum(amount) desc, beneficiary_siren
+        """
+    ).fetchall()
+    if not lignes:
+        return {}
+    nomenclature = programmes_budgetaires()
+    exercice = conn.execute(
+        "select max(fiscal_year) from fin.public_subsidies where geo_level = 'commune'"
+    ).fetchone()[0]
+    par_programme: dict[str, dict] = {}
+    for programme, siren, nom, objet, montant in lignes:
+        entree = par_programme.setdefault(
+            programme,
+            {
+                # Un numéro absent de la nomenclature garde son numéro : c'est un
+                # programme supprimé depuis, pas un versement qui n'a pas eu lieu.
+                "libelle": nomenclature.get(programme, {}).get("programme")
+                or f"Programme {programme}",
+                "mission": nomenclature.get(programme, {}).get("mission") or "",
+                "declare": 0.0,
+                "beneficiaires_total": 0,
+                "beneficiaires": [],
+            },
+        )
+        entree["declare"] += montant
+        entree["beneficiaires_total"] += 1
+        if len(entree["beneficiaires"]) < plafond:
+            entree["beneficiaires"].append(
+                {"siren": siren, "nom": nom, "objet": objet, "montant": round(montant, 2)}
+            )
+    for entree in par_programme.values():
+        entree["declare"] = round(entree["declare"], 2)
+    return {
+        "exercice": str(exercice),
+        "plafond": plafond,
+        "programmes": par_programme,
+    }
+
+
 # Les jeux dont les codes régionaux **pavent la France** : chaque territoire y
 # est compté une fois et une seule, si bien que la somme des régions est le
 # total national.
@@ -1494,6 +1566,12 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
     deposer("agregats-nationaux.json", methode_nationale)
     for lot, contenu in subventions_nominatives(conn).items():
         deposer(f"subventions/commune/{lot}.json", contenu)
+    # Les mêmes versements, rassemblés par programme : c'est ce que lit le
+    # simulateur, qui règle un budget national et ne peut pas ouvrir cent un
+    # fichiers départementaux pour dire qui touche quoi.
+    par_programme = subventions_par_programme(conn)
+    if par_programme:
+        deposer("subventions/programme.json", par_programme)
     deposer("fraicheur.json", fraicheur(conn))
     deposer("journal.json", journal(conn))
     deposer("references.json", references(conn, cartographiees))
