@@ -80,3 +80,62 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
   téléchargement officiel existe.
 - Design du site : installer le skill `npx skills add https://github.com/Leonxlnx/taste-skill`
   avant tout travail d'interface.
+
+## Règles d'affichage, tenues sans qu'on ait à les redemander
+
+Ces règles ont dû être répétées d'une session à l'autre. Elles sont écrites ici
+pour ne plus l'être.
+
+- **Tous les montants en millions d'euros (M€)**, deux décimales sous le
+  million. Jamais de k€ ni de Md€ : une colonne qui change d'unité d'une ligne
+  à l'autre ne se compare pas. Le **par-habitant ne s'affiche que dans les
+  tableaux dépliés**, jamais dans un résumé, une ouverture ou une carte.
+- **Dire l'unité là où le nombre est gros.** « Santé 1 643 M€ » se lit
+  « 1 643 milliards » par qui n'a pas le nez sur le sigle ; toute page qui
+  aligne des montants d'État écrit « montants en millions d'euros » dans son
+  cadrage.
+- **Un taux varie en points**, jamais en pourcentage — y compris les taux que
+  la source publie pour mille et que l'écran montre en pourcentage.
+- **Aucune ligne de fenêtre de mandat.** « mandat 2020-2026, mesuré depuis
+  l'exercice 2019 » posait deux dates qu'aucune phrase ne porte : la fenêtre est
+  dans les millésimes des phrases, 2019 et 2025.
+- **Aucune réserve qui s'excuse.** Ce qui change la lecture d'un chiffre reste ;
+  ce qui dit ce que le site ne sait pas faire part. Et une prudence qui
+  n'apprend rien — « une année d'investissement ne résume pas le mandat » —
+  n'est pas une réserve, c'est du remplissage.
+- **La même fiche à toutes les mailles.** Ce que porte la vue commune, la vue
+  département, région et pays le portent aussi.
+- **Toute page qui montre un territoire doit permettre d'en changer**, avec le
+  champ de recherche du site, pas un autre.
+- **Un tableau d'analyse montre tous les exercices publiés, un par colonne.**
+  Une valeur unique ne s'analyse pas.
+- **Les recherches sont permissives** : mot à mot, sans exiger la contiguïté, et
+  la liste ne tronque pas au point de cacher la moitié des réponses.
+
+## Reste à faire, par ordre de gravité
+
+1. **L'ESSENTIEL affiche encore « 1 373 € par habitant »** : doit passer en M€.
+2. **Les boutons de la fiche** (« Comparer », « L'essentiel / Tout voir ») sont
+   à refaire.
+3. **Parité des mailles** : vérifier ce que la vue commune porte et que région,
+   département et pays ne portent pas.
+4. **Simulateur — la dette rétroagit.** Ce qui est économisé réduit l'emprunt,
+   donc l'encours, donc la charge d'intérêts (`117-01 Dette`, 53 536 M€ au
+   PLF 2025), donc le solde s'améliore au-delà de l'économie elle-même. L'effet
+   porte sur l'exercice **suivant**, jamais sur l'exercice réglé.
+5. **Simulateur — descendre jusqu'aux associations.** Les bénéficiaires nommés
+   existent (`subventions/commune/*.json` : SIREN, objet, montant, programme).
+   Ils ne redonnent pas le total de leur programme : ils entrent comme tiroir
+   séparé, jamais comme décomposition.
+6. **Simulateur — la Sécurité sociale.** Le budget général de l'État ne pèse que
+   594 Md€ sur ~1 670 Md€ de dépense publique. Chargé aujourd'hui : les
+   prestations DREES (932 548 M€, six risques) et les soldes Eurostat en % du
+   PIB. Manque le PLFSS ligne à ligne (ONDAM et sous-objectifs, recettes par
+   nature) — connecteur à écrire.
+7. **Simulateur — collectivités locales** (données OFGL déjà chargées), puis
+   comptes spéciaux, budgets annexes et ODAC.
+8. **Simulateur — récapitulatif en comptabilité nationale.** État, Sécu et
+   collectivités **ne s'additionnent pas** : cadres comptables différents et
+   transferts croisés massifs (TVA affectée, compensations d'exonérations). Le
+   seul endroit qui a le droit de sommer les trois est un récapitulatif en
+   comptabilité nationale, où `insee_apu_solde` (−169,1 Md€) fait foi.

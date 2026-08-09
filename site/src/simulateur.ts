@@ -354,14 +354,29 @@ export function aplatir(texte: string): string {
 
 /**
  * Toutes les lignes, à toute profondeur, par intitulé, par chemin ou par code.
+ *
+ * **Chaque mot compte, l'ordre non.** La requête entière devait tenir d'un seul
+ * tenant : « aide sociale » ne trouvait rien tant que la ligne ne portait pas
+ * ces deux mots collés dans cet ordre, alors que « Aide à l'insertion sociale »
+ * est exactement ce qu'on cherchait. Les mots sont désormais cherchés un par
+ * un, chacun devant se trouver quelque part dans l'intitulé, le chemin ou le
+ * code — c'est le « et » qui fait la précision, pas la contiguïté.
+ *
+ * **Et le filet est large.** Douze réponses suffisent pour « catalyseurs », pas
+ * pour « social », qui traverse quatre missions et des dizaines d'actions : la
+ * moitié de ce qu'on cherchait tombait hors de la liste sans qu'on le sache.
+ *
  * Les plus grosses d'abord : à requête égale, la ligne qui pèse 80 Md€ intéresse
  * avant celle qui pèse 400 k€.
  */
-export function chercher(index: Index, requete: string, limite = 12): Entree[] {
-  const q = aplatir(requete.trim());
-  if (q.length < 3) return [];
+export function chercher(index: Index, requete: string, limite = 60): Entree[] {
+  const mots = aplatir(requete.trim()).split(/\s+/).filter((m) => m.length >= 2);
+  if (!mots.length) return [];
   return [...index.values()]
-    .filter((e) => aplatir(`${e.libelle} ${e.chemin} ${e.code}`).includes(q))
+    .filter((e) => {
+      const foin = aplatir(`${e.libelle} ${e.chemin} ${e.code}`);
+      return mots.every((mot) => foin.includes(mot));
+    })
     .sort((a, b) => b.base - a.base)
     .slice(0, limite);
 }

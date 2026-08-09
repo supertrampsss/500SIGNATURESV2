@@ -265,6 +265,15 @@ test("la recherche trouve sans accent, à toute profondeur, les plus grosses d'a
   // gros montant sort en tête.
   const forces = chercher(INDEX, "forces");
   assert.equal(forces[0].code, "178");
-  // Deux caractères ne suffisent pas à chercher.
-  assert.deepEqual(chercher(INDEX, "fo"), []);
+  // Les mots comptent, leur ordre et leur contiguïté non : « emploi forces »
+  // trouve « Préparation & emploi des forces », que la requête entière d'un
+  // seul tenant ne trouvait pas.
+  assert.ok(chercher(INDEX, "emploi forces").some((e) => e.code === "178"));
+  assert.ok(chercher(INDEX, "forces emploi").some((e) => e.code === "178"));
+  // Un mot qui n'est nulle part suffit à ne rien rendre : c'est le « et » qui
+  // fait la précision.
+  assert.deepEqual(chercher(INDEX, "forces sous-marines"), []);
+  // Une requête vide ou d'une seule lettre ne cherche pas.
+  assert.deepEqual(chercher(INDEX, " "), []);
+  assert.deepEqual(chercher(INDEX, "f"), []);
 });
