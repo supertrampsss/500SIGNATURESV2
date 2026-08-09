@@ -371,6 +371,14 @@ jobs:
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
+          if [ "$JOB" = "impot-revenu" ]; then
+            # IRCOM : l'impôt sur le revenu par commune, et la distribution
+            # nationale des foyers fiscaux par tranche — la matière du barème
+            # que le simulateur laisse refaire.
+            python -m plateforme.normalize.impot_revenu --store r2:plateforme-raw
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "plfss" ]; then
             # Le budget de la Sécurité sociale poste par poste, et l'ONDAM.
             # Le contrôle d'ordre de grandeur se confronte aux prestations de

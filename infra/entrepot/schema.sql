@@ -69,6 +69,7 @@ create sequence if not exists fin.seq_public_employment;
 create sequence if not exists fin.seq_public_subsidies;
 create sequence if not exists fin.seq_state_budget_detail;
 create sequence if not exists fin.seq_social_budget_detail;
+create sequence if not exists fin.seq_income_distribution;
 
 -- ---------------------------------------------------------------- meta
 -- Registres et lineage (docs/02 §A).
@@ -481,6 +482,40 @@ create table if not exists fin.social_budget_detail (
     dataset_id  text,  -- -> meta.dataset_registry (vérifié)
     run_id      uuid not null,  -- -> meta.ingestion_runs (vérifié)
     unique (fiscal_year, side, code)
+);
+
+-- La distribution nationale des foyers fiscaux par tranche de revenu fiscal de
+-- référence (IRCOM, feuille `national/national.xls`). Vingt-cinq tranches dont
+-- les bornes viennent de la source, et non d'un découpage de notre cru.
+--
+-- Cette table existe pour une raison unique : un barème se refait par tranche,
+-- et le rendement d'un taux marginal ne se calcule pas sur une moyenne. Avec le
+-- nombre de foyers et le revenu total d'une tranche, l'assiette au-dessus d'une
+-- borne est **exacte** — chaque foyer de la tranche a un revenu supérieur ou
+-- égal à sa borne basse, donc la somme des dépassements vaut le revenu total
+-- moins le nombre de foyers multiplié par la borne. C'est vrai parce que les
+-- seuils du simulateur sont exactement les bornes publiées, et faux dès qu'on
+-- en choisit d'autres : d'où des bornes déclarées, jamais interpolées.
+--
+-- Pas de colonne géographique : la distribution est nationale. Le détail
+-- communal vit dans `core.observations`, sur le seul total de chaque commune.
+create table if not exists fin.income_distribution (
+    id            bigint primary key default nextval('fin.seq_income_distribution'),
+    fiscal_year   smallint not null,
+    -- Rang de la tranche, de la plus basse à la plus haute. L'ordre fait partie
+    -- de la donnée : un barème progressif se lit du bas vers le haut.
+    bracket_rank  smallint not null,
+    floor_euros   double not null,
+    -- NULL pour la dernière tranche, qui n'a pas de plafond.
+    ceiling_euros double,
+    households    double not null,
+    income_total  double not null,
+    -- Impôt net réellement émis sur la tranche. Sert de repère, jamais
+    -- d'assiette : le barème réel s'applique par part et non par foyer.
+    tax_net       double not null,
+    dataset_id    text,  -- -> meta.dataset_registry (vérifié)
+    run_id        uuid not null,  -- -> meta.ingestion_runs (vérifié)
+    unique (fiscal_year, bracket_rank)
 );
 
 -- `sector_naf` ne peut plus être NULL, pour la même raison que `entity_siren` :

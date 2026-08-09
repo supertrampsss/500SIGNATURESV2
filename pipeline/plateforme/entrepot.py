@@ -84,6 +84,10 @@ ANCETRES_ADDITIFS = {
     # diff ne retire ni ne modifie une ligne : une séquence ajoutée après celle
     # du budget de l'État, un bloc de table ajouté avant `fin.public_employment`.
     "562b826314245f624564bed0f7b61cc25f79e3cf57726160eb8f64f40b7d6085",
+    # 2026-08-09 — ajout de `fin.income_distribution` et de sa séquence, pour
+    # publier la distribution nationale des foyers fiscaux par tranche de revenu
+    # et rendre un barème refaisable. Le diff ne retire ni ne modifie une ligne.
+    "c0fafd802356270146a1c97c8e0b0717932d56c811fcb4daec55866954d06a86",
 }
 
 
@@ -468,6 +472,8 @@ RATTACHEMENTS = [
     ("fin.state_budget_detail", "dataset_id", "meta.dataset_registry", "dataset_id"),
     ("fin.social_budget_detail", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.social_budget_detail", "dataset_id", "meta.dataset_registry", "dataset_id"),
+    ("fin.income_distribution", "run_id", "meta.ingestion_runs", "run_id"),
+    ("fin.income_distribution", "dataset_id", "meta.dataset_registry", "dataset_id"),
 ]
 
 

@@ -361,6 +361,136 @@ def lire_national(contenu: bytes) -> dict[str, float]:
     )
 
 
+# Les vingt-cinq tranches de la feuille nationale, et leurs bornes en euros.
+# Les intitulés de la source disent « 10 001 à 12 000 » là où la borne est
+# 10 000 : elles sont donc **écrites**, pas déduites de l'intitulé. C'est ce qui
+# rend exact le calcul d'assiette d'un barème refait — voir le commentaire de
+# `fin.income_distribution` — et une tranche que la DGFiP renommerait ou
+# ajouterait arrête le chargement plutôt que de décaler tout le barème.
+#
+# La ligne « Plus de 100 000 dont: » est le **parent** des dix-huit suivantes :
+# elle n'est pas une tranche, elle les résume. La compter ferait 294 Md€ de
+# revenu de trop.
+PARENT_HAUTS_REVENUS = "Plus de 100 000 dont:"
+
+TRANCHES = (
+    ("0 à 10 000", 0.0, 10_000.0),
+    ("10 001 à 12 000", 10_000.0, 12_000.0),
+    ("12 001 à 15 000", 12_000.0, 15_000.0),
+    ("15 001 à 20 000", 15_000.0, 20_000.0),
+    ("20 001 à 30 000", 20_000.0, 30_000.0),
+    ("30 001 à 50 000", 30_000.0, 50_000.0),
+    ("50 001 à 100 000", 50_000.0, 100_000.0),
+    ("100 001 à 200 000", 100_000.0, 200_000.0),
+    ("200 001 à 300 000", 200_000.0, 300_000.0),
+    ("300 001 à 400 000", 300_000.0, 400_000.0),
+    ("400 001 à 500 000", 400_000.0, 500_000.0),
+    ("500 001 à 600 000", 500_000.0, 600_000.0),
+    ("600 001 à 700 000", 600_000.0, 700_000.0),
+    ("700 001 à 800 000", 700_000.0, 800_000.0),
+    ("800 001 à 900 000", 800_000.0, 900_000.0),
+    ("900 001 à 1 000 000", 900_000.0, 1_000_000.0),
+    ("1 000 001 à 2 000 000", 1_000_000.0, 2_000_000.0),
+    ("2 000 001 à 3 000 000", 2_000_000.0, 3_000_000.0),
+    ("3 000 001 à 4 000 000", 3_000_000.0, 4_000_000.0),
+    ("4 000 001 à 5 000 000", 4_000_000.0, 5_000_000.0),
+    ("5 000 001 à 6 000 000", 5_000_000.0, 6_000_000.0),
+    ("6 000 001 à 7 000 000", 6_000_000.0, 7_000_000.0),
+    ("7 000 001 à 8 000 000", 7_000_000.0, 8_000_000.0),
+    ("8 000 001 à 9 000 000", 8_000_000.0, 9_000_000.0),
+    ("Plus de 9 000 000", 9_000_000.0, None),
+)
+
+# Un millième de la masse : la distribution nationale est publiée telle quelle,
+# ses vingt-cinq tranches doivent faire le total à l'unité près. L'écart mesuré
+# sur le millésime 2025 est nul sur les trois colonnes.
+ECART_DISTRIBUTION = 0.001
+
+
+class DistributionIncoherente(RuntimeError):
+    """Les tranches nationales ne font plus le total national publié."""
+
+
+def lire_distribution(contenu: bytes) -> list[tuple[str, float, float | None, float, float, float]]:
+    """La distribution nationale par tranche -> [(intitulé, borne basse, borne
+    haute, foyers, revenu, impôt)], montants en euros.
+
+    Le fichier national porte trois sortes de lignes : les vingt-cinq tranches,
+    leur parent « Plus de 100 000 dont: », et deux totaux. Seules les tranches
+    sortent d'ici ; le contrôle vérifie ensuite qu'elles font bien le total.
+    """
+    import xlrd  # noqa: PLC0415 — dépendance du seul fichier national
+
+    feuille = xlrd.open_workbook(file_contents=contenu).sheet_by_index(0)
+    lus: dict[str, tuple[float, float, float]] = {}
+    for rang in range(feuille.nrows):
+        cellules = feuille.row_values(rang)
+        if len(cellules) < 5 or not isinstance(cellules[2], float):
+            continue
+        intitule = " ".join(str(cellules[1]).split())
+        lus[intitule] = (float(cellules[2]), float(cellules[3]), float(cellules[4]))
+    manquantes = [nom for nom, _, _ in TRANCHES if nom not in lus]
+    if manquantes:
+        raise DistributionIncoherente(
+            f"{len(manquantes)} tranche(s) absente(s) du fichier national, par"
+            f" exemple « {manquantes[0]} ». Les bornes du barème sont écrites ici"
+            " et ne peuvent pas être devinées : la source a changé de découpage."
+        )
+    return [
+        (nom, bas, haut, lus[nom][0], lus[nom][1] * MILLIERS, lus[nom][2] * MILLIERS)
+        for nom, bas, haut in TRANCHES
+    ]
+
+
+def controler_distribution(
+    distribution: list[tuple], national: dict[str, float]
+) -> dict:
+    """Les vingt-cinq tranches font le total national, sur les trois colonnes.
+
+    C'est le contrôle interne. Le contrôle croisé, lui, est déjà là : la somme
+    des communes du fichier communal est rapprochée de ce même total par
+    `controler_national`, sur un fichier différent et une lecture différente.
+    Une tranche perdue ici la ferait diverger de la distribution sans toucher au
+    rapprochement communal, et réciproquement.
+    """
+    sommes = {
+        "foyers": sum(t[3] for t in distribution),
+        "rfr": sum(t[4] for t in distribution) / MILLIERS,
+        "impot": sum(t[5] for t in distribution) / MILLIERS,
+    }
+    ecarts = {}
+    for mesure, somme in sommes.items():
+        attendu = national[mesure]
+        ecarts[mesure] = 0.0 if not attendu else (somme - attendu) / attendu
+        if abs(ecarts[mesure]) > ECART_DISTRIBUTION:
+            raise DistributionIncoherente(
+                f"les {len(distribution)} tranches font {somme:,.3f} sur « {mesure} »"
+                f" pour un total national publié de {attendu:,.3f}"
+                f" ({100 * ecarts[mesure]:+.4f} %). Une tranche manque, ou la ligne"
+                f" « {PARENT_HAUTS_REVENUS} » a été comptée avec ses composantes."
+            )
+    return {
+        "tranches": len(distribution),
+        "ecarts_relatifs_distribution": {m: round(e, 8) for m, e in ecarts.items()},
+        "foyers": sommes["foyers"],
+    }
+
+
+def ecrire_distribution(conn, run_id: str, distribution: list[tuple]) -> int:
+    conn.execute("delete from fin.income_distribution where dataset_id = ?", (DATASET,))
+    for rang, (_, bas, haut, foyers, revenu, impot) in enumerate(distribution):
+        conn.execute(
+            """
+            insert into fin.income_distribution
+                (fiscal_year, bracket_rank, floor_euros, ceiling_euros, households,
+                 income_total, tax_net, dataset_id, run_id)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (int(PERIODE), rang, bas, haut, foyers, revenu, impot, DATASET, run_id),
+        )
+    return len(distribution)
+
+
 def extraire(archive: bytes) -> tuple[bytes, bytes]:
     """-> (classeur communal, classeur national) de l'archive téléchargée."""
     with zipfile.ZipFile(io.BytesIO(archive)) as zip_:
@@ -688,8 +818,17 @@ def run(store_spec: str) -> int:
         entrepot.etape(
             f"tranches = total sur {tranches['communes_verifiees']['foyers']} communes"
         )
-        rapproche = controler_national(sommes_nationales(lignes), lire_national(national))
+        totaux_nationaux = lire_national(national)
+        rapproche = controler_national(sommes_nationales(lignes), totaux_nationaux)
         entrepot.etape("somme des communes rapprochée du total national")
+
+        distribution = lire_distribution(national)
+        repartie = controler_distribution(distribution, totaux_nationaux)
+        tranches_ecrites = ecrire_distribution(conn, run_id, distribution)
+        entrepot.etape(
+            f"{tranches_ecrites} tranches de revenu écrites,"
+            f" {repartie['foyers']:,.0f} foyers fiscaux"
+        )
 
         ecrites, ecartes, revisees, communes, lus, reconnus = ecrire(conn, run_id, lignes)
         parts = couverture.controler(lus, reconnus)
@@ -703,6 +842,7 @@ def run(store_spec: str) -> int:
             "hors_referentiel": ecartes,
             "couverture": {n: round(p, 4) for n, p in sorted(parts.items())},
         })
+        observe_distribution = json.dumps(repartie)
         for nom in (
             "tranches_font_le_total_par_commune",
             "somme_des_communes_egale_le_total_national",
@@ -715,6 +855,14 @@ def run(store_spec: str) -> int:
                 """,
                 (run_id, DATASET, nom, observe),
             )
+        conn.execute(
+            """
+            insert into meta.data_quality_checks
+                (run_id, dataset_id, check_name, severity, passed, observed)
+            values (?, ?, 'les_tranches_nationales_font_le_total', 'blocker', true, ?)
+            """,
+            (run_id, DATASET, observe_distribution),
+        )
         conn.commit()
         entrepot.finish_run(
             conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites

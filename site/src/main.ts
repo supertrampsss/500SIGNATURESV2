@@ -24,6 +24,7 @@ import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { decoder, indexer } from "./simulateur.ts";
 import { afficherSimulateur, exercicesPublies } from "./simulateur-rendu.ts";
+import { afficherBareme, decoder as decoderBareme } from "./bareme-rendu.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { rendu as apercuRendu, resumer } from "./apercu.ts";
@@ -2061,7 +2062,12 @@ type BudgetPublie = {
   cle: string;
   nom: string;
   index: () => Promise<unknown>;
-  charger: (exercice: string) => Promise<import("./simulateur.ts").Budget>;
+  /** Monte l'écran de ce budget dans le bloc du simulateur. Deux formes
+   *  coexistent : un arbre de dépenses et de recettes pour les budgets, un
+   *  barème par tranche pour l'impôt sur le revenu. Elles ne se ressemblent
+   *  pas, et vouloir les faire tenir dans un seul rendu aurait donné un budget
+   *  sans solde ou un impôt avec un. */
+  monter: (exercice: string, bloc: HTMLElement) => Promise<void>;
 };
 
 const BUDGETS_SIMULABLES: BudgetPublie[] = [
@@ -2069,15 +2075,61 @@ const BUDGETS_SIMULABLES: BudgetPublie[] = [
     cle: "etat",
     nom: "État",
     index: donnees.simulateurIndex,
-    charger: donnees.simulateurBudget,
+    monter: (exercice, bloc) => monterBudget(donnees.simulateurBudget(exercice), bloc, true),
   },
   {
     cle: "secu",
     nom: "Sécurité sociale",
     index: donnees.simulateurIndexSecu,
-    charger: donnees.simulateurBudgetSecu,
+    monter: (exercice, bloc) =>
+      monterBudget(donnees.simulateurBudgetSecu(exercice), bloc, false),
+  },
+  {
+    cle: "bareme",
+    nom: "Impôt sur le revenu",
+    index: donnees.simulateurIndexBareme,
+    monter: async (exercice, bloc) => {
+      const bareme = await donnees.simulateurBareme(exercice);
+      afficherBareme(bloc, bareme, {
+        taux: decoderBareme(etat.budget, bareme),
+        surReglages: (encode) => {
+          etat.budget = encode;
+          ecrireUrl();
+        },
+      });
+    },
   },
 ];
+
+/**
+ * Un budget réglable, monté dans le bloc du simulateur.
+ *
+ * Le taux apparent de la dette et les bénéficiaires nommés ne valent que pour
+ * l'État : le premier porte sur l'encours de l'État, que la Sécurité sociale ne
+ * partage pas — sa dette est portée par la CADES sur un autre encours —, les
+ * seconds sont les subventions déclarées par programme budgétaire. Les
+ * transposer aurait donné deux chiffres justes appliqués au mauvais périmètre.
+ */
+async function monterBudget(
+  promesse: Promise<import("./simulateur.ts").Budget>,
+  bloc: HTMLElement,
+  etatFrancais: boolean,
+): Promise<void> {
+  const budget = await promesse;
+  const index = indexer(budget);
+  afficherSimulateur(bloc, budget, index, {
+    tauxApparent: etatFrancais ? await tauxApparentDeLaDette() : undefined,
+    // Publication antérieure au fichier : aucun tiroir, pas d'échec.
+    subventions: etatFrancais
+      ? await donnees.subventionsParProgramme().catch(() => null)
+      : null,
+    reglages: decoder(etat.budget, index),
+    surReglages: (encode) => {
+      etat.budget = encode;
+      ecrireUrl();
+    },
+  });
+}
 
 /** Ceux dont l'index annonce un exercice, dans l'ordre ci-dessus. */
 let budgetsDisponibles: { budget: BudgetPublie; exercice: string }[] = [];
@@ -2198,28 +2250,7 @@ async function ouvrirSimulateur(force = false): Promise<void> {
   if (!choisi || (!force && budgetMonte === choisi.budget.cle)) return;
   budgetMonte = choisi.budget.cle;
   try {
-    const budget = await choisi.budget.charger(choisi.exercice);
-    const index = indexer(budget);
-    afficherSimulateur($("simu"), budget, index, {
-      // Le taux apparent est celui de la dette de l'État : il ne dit rien de ce
-      // qu'un déficit de la Sécurité sociale coûte en intérêts, dont la charge
-      // est portée par la CADES sur un autre encours. Mieux vaut ne rien
-      // afficher que transposer.
-      tauxApparent:
-        choisi.budget.cle === "etat" ? await tauxApparentDeLaDette() : undefined,
-      // Les bénéficiaires nommés sont ceux des programmes de l'État : rien à
-      // ouvrir sur un poste de charges sociales.
-      subventions:
-        choisi.budget.cle === "etat"
-          ? // Publication antérieure au fichier : aucun tiroir, pas d'échec.
-            await donnees.subventionsParProgramme().catch(() => null)
-          : null,
-      reglages: decoder(etat.budget, index),
-      surReglages: (encode) => {
-        etat.budget = encode;
-        ecrireUrl();
-      },
-    });
+    await choisi.budget.monter(choisi.exercice, $("simu"));
   } catch {
     // L'index annonçait un exercice que la publication ne sert pas : plutôt
     // qu'une section vide au bout d'un lien, ce budget-là disparaît du choix.
