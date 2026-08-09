@@ -164,3 +164,68 @@ def test_chaque_indicateur_du_groupe_declare_sa_base(entrepot_peuple):
     for identifiant, base in sortie["bases"].items():
         assert base["base"] in ("par_habitant", "pour_mille", "valeur"), identifiant
         assert base["unite"], identifiant
+
+
+def test_les_departements_ont_aussi_un_groupe(tmp_path):
+    """« Où se situe ce territoire » n'existait qu'à la maille commune.
+
+    Un département ne ressemble pas à un autre par sa tranche de population :
+    il n'y a pas de strate à définir. Mais il y a un ensemble — les cent un
+    départements —, et la moitié d'entre eux sont en dessous d'une médiane.
+    Sans cette ligne, la fiche d'un département était une fiche amputée d'une
+    de ses questions, quand la règle du projet dit l'inverse : ce que porte la
+    vue commune, les autres mailles le portent aussi.
+    """
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    registry.sync(conn)
+    conn.execute(
+        "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+        " parent_level, parent_code, flags) values ('pays', 'FR', ?, 'France',"
+        " null, null, '{}')",
+        (MILLESIME,),
+    )
+    conn.execute(
+        "insert into core.indicator_definitions (definition_id, public_definition,"
+        " confidence_level) values (1, 'x', 'observed')"
+    )
+    for identifiant, unite, additif in (
+        ("ofgl_population_reference", "count", True),
+        ("depense", "EUR", True),
+    ):
+        conn.execute(
+            "insert into core.indicators (indicator_id, dataset_id, definition_id,"
+            " theme, label_fr, unit, additive, published) values (?, 'ofgl-departements',"
+            " 1, 'finances_locales', ?, ?, ?, true)",
+            (identifiant, identifiant, unite, additif),
+        )
+    run = entrepot.start_run(conn, "ofgl-departements", "manual")
+    for n in range(25):
+        code = f"{n + 10:02d}"
+        conn.execute(
+            "insert into geo.geography_reference (geo_level, geo_code, vintage, name,"
+            " parent_level, parent_code, flags) values ('departement', ?, ?, ?,"
+            " 'pays', 'FR', '{}')",
+            (code, MILLESIME, f"Département {code}"),
+        )
+        for identifiant, valeur in (
+            ("ofgl_population_reference", 100_000.0),
+            ("depense", 100_000.0 * (100 + n)),
+        ):
+            conn.execute(
+                "insert into core.observations (indicator_id, geo_level, geo_code,"
+                " geo_vintage, period, value, run_id) values (?, 'departement', ?, ?,"
+                " '2025', ?, ?)",
+                (identifiant, code, MILLESIME, valeur, run),
+            )
+    entrepot.finish_run(conn, run, "success")
+    conn.commit()
+
+    sortie = publish.comparaisons(conn)
+    groupe = sortie["groupes"]["depense"]["2025"]["departement:tous"]
+    assert groupe["n"] == 25
+    # Les dépenses vont de 100 à 124 € par habitant : la médiane est à 112.
+    assert groupe["mediane"] == 112.0
+    # Et le groupe s'appelle « tous » : il n'y a pas de critère à afficher, et
+    # en inventer un ferait passer un ensemble pour une strate.
+    assert all(":" in cle for cle in sortie["groupes"]["depense"]["2025"])
+    conn.close()

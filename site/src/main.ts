@@ -934,7 +934,15 @@ async function montrerFiche(code: string): Promise<void> {
           groupes.cascade ?? [groupes.criteres],
         )
       : undefined;
-  const quartiles = trouve?.quartiles;
+  // Aux mailles supérieures, l'ensemble **est** le groupe : les cent un
+  // départements, les dix-huit régions. Sans cette clé, « où se situe ce
+  // territoire parmi ses semblables » n'existait qu'à la maille commune, et la
+  // fiche d'un département était une fiche amputée d'une de ses questions.
+  const groupeDeLaMaille = (indicateur: string, exercice: string) =>
+    niveau === "commune"
+      ? undefined
+      : groupes?.groupes[indicateur]?.[exercice]?.[`${niveau}:tous`];
+  const quartiles = trouve?.quartiles ?? groupeDeLaMaille(etat.indicateur, etat.periode);
   // Ce qui se compare au groupe dépend de la grandeur : une dépense et un
   // nombre de logements se rapportent aux habitants, une médiane de revenus et
   // un taux se comparent tels qu'ils sont publiés. C'est la publication qui le
@@ -958,9 +966,20 @@ async function montrerFiche(code: string): Promise<void> {
   // cascade de groupes qui le dit, indicateur par indicateur et exercice par
   // exercice, et non un seuil absolu identique pour toutes les communes.
   const strates = groupes;
-  const semblables =
-    niveau === "commune" && strates
+  const semblables = !strates
+    ? undefined
+    : niveau !== "commune"
       ? (indicateur: string, exercice: string) => {
+          const q = groupeDeLaMaille(indicateur, exercice);
+          const valeur = valeurComparable(
+            territoire,
+            indicateur,
+            exercice,
+            strates.bases?.[indicateur],
+          );
+          return q && valeur !== undefined ? { valeur, ...q, criteres: [] } : null;
+        }
+      : ((indicateur: string, exercice: string) => {
           const dans = groupeDeLaCommune(
             territoire,
             strates.groupes[indicateur]?.[exercice],
@@ -975,8 +994,7 @@ async function montrerFiche(code: string): Promise<void> {
           return dans && valeur !== undefined
             ? { valeur, ...dans.quartiles, criteres: dans.criteres }
             : null;
-        }
-      : undefined;
+        });
 
   afficherFiche($("fiche"), {
     niveau,

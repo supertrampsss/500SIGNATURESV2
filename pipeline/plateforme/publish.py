@@ -406,6 +406,15 @@ def comparaisons(conn) -> dict:
         lignes.extend(
             (rang, *ligne) for ligne in _quartiles_du_groupe(conn, criteres)
         )
+    # Et les mailles supérieures, où le groupe est l'ensemble lui-même : les
+    # cent un départements, les dix-huit régions. Il n'y a pas de strate à
+    # définir — un département ne ressemble pas à un autre par sa tranche de
+    # population — mais il y a un ensemble, et « la moitié des départements sont
+    # en dessous » est exactement ce que la fiche communale sait déjà dire.
+    # Sans ces lignes, la question « où se situe ce territoire » n'existait qu'à
+    # la maille commune, et la fiche d'un département était une fiche amputée.
+    for maille in ("departement", "region"):
+        lignes.extend((maille, *ligne) for ligne in _quartiles_de_la_maille(conn, maille))
     resultat: dict = defaultdict(lambda: defaultdict(dict))
     bases: dict = {}
     for rang, indicateur, periode, groupe, additif, unite, jeu, effectif, q1, mediane, q3 in lignes:
@@ -472,6 +481,45 @@ def _quartiles_du_groupe(conn, criteres: list[str]) -> list[tuple]:
         from base where compare is not null
         group by 1, 2, 3, 4, 5, 6 having count(*) >= {GROUPE_MINIMAL}
         """
+    ).fetchall()
+
+
+def _quartiles_de_la_maille(conn, maille: str) -> list[tuple]:
+    """Quartiles de tous les territoires d'une maille, sans strate.
+
+    Même calcul que `_quartiles_du_groupe` — même base de comparaison, mêmes
+    exceptions — mais l'ensemble est la maille entière. Le groupe s'appelle
+    « tous » : il n'y a pas de critère à afficher, et prétendre le contraire
+    inventerait une strate que rien ne définit.
+    """
+    return conn.execute(
+        f"""
+        with base as (
+            select o.indicator_id, o.period, i.additive, i.unit, i.dataset_id,
+                   'tous' as groupe,
+                   case when not i.additive
+                          or i.dataset_id in ({", ".join(
+                              f"'{jeu}'" for jeu in JEUX_AU_LIEU_DE_TRAVAIL)})
+                        then o.value
+                        when i.unit = 'EUR' then o.value / nullif(pop.value, 0)
+                        else o.value / nullif(pop.value, 0) * 1000
+                   end as compare
+            from core.observations o
+            join core.indicators i using (indicator_id)
+            left join core.observations pop
+              on pop.indicator_id = 'ofgl_population_reference'
+             and pop.geo_level = o.geo_level and pop.geo_code = o.geo_code
+             and pop.period = o.period
+            where o.geo_level = ? and i.published and o.value_status = 'normal'
+        )
+        select indicator_id, period, groupe, additive, unit, dataset_id, count(*),
+               percentile_cont(0.25) within group (order by compare),
+               percentile_cont(0.5) within group (order by compare),
+               percentile_cont(0.75) within group (order by compare)
+        from base where compare is not null
+        group by 1, 2, 3, 4, 5, 6 having count(*) >= {GROUPE_MINIMAL}
+        """,
+        (maille,),
     ).fetchall()
 
 
