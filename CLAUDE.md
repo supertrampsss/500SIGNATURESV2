@@ -114,15 +114,31 @@ pour ne plus l'être.
 
 ## Reste à faire, par ordre de gravité
 
-1. **Simulateur — la Sécurité sociale.** Le budget général de l'État ne pèse que
-   594 Md€ sur ~1 670 Md€ de dépense publique. Chargé aujourd'hui : les
-   prestations DREES (932 548 M€, six risques) et les soldes Eurostat en % du
-   PIB. Manque le PLFSS ligne à ligne (ONDAM et sous-objectifs, recettes par
-   nature) — connecteur à écrire.
-2. **Simulateur — collectivités locales** (données OFGL déjà chargées), puis
-   comptes spéciaux, budgets annexes et ODAC.
-3. **Simulateur — récapitulatif en comptabilité nationale.** État, Sécu et
+1. **Simulateur — collectivités locales.** L'API d'agrégation de l'OFGL rend les
+   totaux nationaux par échelon et par agrégat, et `infra/seed/ofgl_agregats.csv`
+   porte déjà la hiérarchie dans sa colonne `chemin`. Trois pièges relevés et non
+   encore traités : les enfants d'un agrégat ne sont **pas toujours une
+   partition** (« Dépenses totales » a pour enfants le fonctionnement,
+   l'investissement *et* « hors remb » qui les recoupe ; « Impôts locaux » n'a
+   que des composantes partielles) ; les trois échelons **ne se somment pas**
+   entre eux (transferts croisés) ; et les EPCI ont quitté le produit, donc un
+   total « collectivités locales » serait amputé. Publier un budget par échelon,
+   jamais leur somme. Puis comptes spéciaux, budgets annexes et ODAC.
+2. **Simulateur — récapitulatif en comptabilité nationale.** État, Sécu et
    collectivités **ne s'additionnent pas** : cadres comptables différents et
    transferts croisés massifs (TVA affectée, compensations d'exonérations). Le
    seul endroit qui a le droit de sommer les trois est un récapitulatif en
    comptabilité nationale, où `insee_apu_solde` (−169,1 Md€) fait foi.
+
+### Fait
+
+- **Simulateur — la Sécurité sociale** (9 août 2026). Connecteur `plfss.py` :
+  annexes 3 et 5 du PLFSS 2026, charges et produits nets des régimes de base
+  consolidés poste par poste (676 925 / 659 465 M€, résultat −17 461 M€) et
+  l'ONDAM avec ses six sous-objectifs (270,4 Md€). L'ONDAM a son propre panneau
+  et son propre écart : le régler ne déplace pas le solde. Vérifié sur le
+  fichier R2.
+- **Simulateur — le barème de l'impôt sur le revenu** (9 août 2026). La
+  distribution IRCOM des 41,6 millions de foyers fiscaux en vingt-cinq tranches,
+  et un barème refaisable dont le rendement est **exact** — les seuils sont les
+  bornes publiées, jamais un seuil interpolé.
