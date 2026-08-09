@@ -94,6 +94,11 @@ export type Contexte = {
    *  département et à la région : ces mailles n'ont pas de strate publiée, et
    *  les règles y retombent sur les seuils absolus. */
   semblables?: (indicateur: string, exercice: string) => Repere | null;
+  /** Comment nommer la fenêtre dans les phrases : « sur le mandat » quand une
+   *  assemblée l'a ouverte, « depuis 2019 » quand la maille n'en élit aucune.
+   *  Écrire « sur le mandat » pour la France ferait passer une législature pour
+   *  un exercice budgétaire — la faute que `fenetreRacontee` existe pour éviter. */
+  fenetre?: string;
 };
 
 type Sens = Phrase["sens"];
@@ -167,6 +172,9 @@ type Faits = {
   /** Ce que le groupe de communes semblables a fait sur la même fenêtre, ou
    *  null quand la maille n'a pas de groupe publié. */
   groupe: Groupe | null;
+  /** Comment nommer la fenêtre : « sur le mandat », ou « depuis 2019 » là où
+   *  aucune assemblée ne l'a ouverte. Voir `Contexte.fenetre`. */
+  fenetre: string;
 };
 
 /** La bande du groupe où se tient le territoire : les quartiles publiés la
@@ -359,7 +367,7 @@ const GABARITS: Gabarit[] = [
       const masse = f.valeur(RECETTES, f.arrivee);
       const deplaces =
         masse === null ? "" : `, soit ${montant((Math.abs(f.ecart) / 100) * masse)} `
-          + `${f.ecart >= 0 ? "de plus" : "de moins"} qu'au poids qu'ils avaient avant le mandat`;
+          + `${f.ecart >= 0 ? "de plus" : "de moins"} qu'au poids qu'ils avaient avant`;
       return (
         `Les impôts locaux couvrent ${part(f.fin)} des recettes de fonctionnement`
         + `${autonome ? ` en ${f.arrivee}` : ""}, contre ${part(f.debut)} en ${f.reference} : `
@@ -372,7 +380,7 @@ const GABARITS: Gabarit[] = [
     // titre dit ce que montrent les comptes, pas qui l'a décidé.
     titre: (f) =>
       `${f.lieu}, les impôts locaux financent ${part(f.fin)} du budget,`
-      + ` contre ${part(f.debut)} avant le mandat`,
+      + ` contre ${part(f.debut)} avant`,
   },
   {
     vers: "ofgl_depenses_fonctionnement",
@@ -385,7 +393,7 @@ const GABARITS: Gabarit[] = [
       + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
     titre: (f) =>
       `${f.lieu}, les dépenses de fonctionnement ont ${sensDuVerbe(f.ecart, "augmenté", "reculé")}`
-      + ` de ${part(Math.abs(f.ecart))} sur le mandat`,
+      + ` de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
   },
   {
     vers: "ofgl_frais_personnel",
@@ -407,7 +415,7 @@ const GABARITS: Gabarit[] = [
     },
     titre: (f) =>
       `${f.lieu}, les frais de personnel ont ${sensDuVerbe(f.ecart, "augmenté", "reculé")}`
-      + ` de ${part(Math.abs(f.ecart))} sur le mandat`,
+      + ` de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
   },
   {
     vers: "ofgl_impots_locaux",
@@ -434,7 +442,7 @@ const GABARITS: Gabarit[] = [
     },
     titre: (f) =>
       `${f.lieu}, ce que les impôts locaux rapportent a`
-      + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} sur le mandat`,
+      + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
   },
   {
     vers: "ofgl_encours_dette",
@@ -460,7 +468,7 @@ const GABARITS: Gabarit[] = [
     },
     titre: (f) =>
       `${f.lieu}, l'encours de dette a ${sensDuVerbe(f.ecart, "augmenté", "reculé")}`
-      + ` de ${part(Math.abs(f.ecart))} sur le mandat`,
+      + ` de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
   },
   {
     vers: "ofgl_depenses_d_equipement",
@@ -488,7 +496,7 @@ const GABARITS: Gabarit[] = [
       + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
     titre: (f) =>
       `${f.lieu}, ce qui reste pour investir sans emprunter a`
-      + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} sur le mandat`,
+      + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
   },
   {
     vers: "ofgl_dotation_globale_de_fonctionnement",
@@ -525,7 +533,7 @@ const GABARITS: Gabarit[] = [
           + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))}`
         : `${f.lieu}, la dotation globale de fonctionnement a`
           + ` ${sensDuVerbe(pouvoirDAchat(f), "gagné", "perdu")}`
-          + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat sur le mandat`,
+          + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat ${f.fenetre}`,
   },
 ];
 
@@ -692,6 +700,7 @@ export function faits(contexte: Contexte): Fait[] {
       population: contexte.population,
       valeur,
       groupe,
+      fenetre: contexte.fenetre ?? "sur le mandat",
     };
 
     // Les euros que la ligne a déplacés par rapport à l'évolution mécanique.

@@ -156,6 +156,43 @@ export function mandatRaconte(
   return null;
 }
 
+/**
+ * La fenêtre sur laquelle raconte une maille qui n'élit pas d'assemblée.
+ *
+ * Le pays n'a pas de mandat qui vote son budget : y plaquer une législature
+ * ferait passer une élection pour un exercice budgétaire, et c'est pourquoi
+ * `calendrierDe` lui rend `null`. La conclusion tirée jusqu'ici était qu'il
+ * n'avait rien à raconter — elle était fausse. Il a des exercices publiés et
+ * des variations ; ce qui lui manque, c'est une fenêtre politique, pas une
+ * matière.
+ *
+ * La fenêtre est donc comptable : les derniers exercices publiés, et l'exercice
+ * qui les précède pour référence. Le récit qui en sort dit « depuis 2019 », et
+ * jamais « sur le mandat » — c'est `LIBELLE_FENETRE` qui en répond.
+ *
+ * `debut` et `fin` restent nuls : aucune date d'élection ne borne cette
+ * fenêtre, et en inventer une serait exactement la faute qu'on évite.
+ */
+export const EXERCICES_DE_LA_FENETRE = 6;
+
+export function fenetreRacontee(exercicesDisponibles: string[]): Mandat | null {
+  const publies = exercicesDisponibles.filter((e) => /^\d{4}$/.test(e)).sort();
+  // Une référence, plus le minimum d'exercices que demande un récit.
+  if (publies.length < EXERCICES_MINIMUM + 1) return null;
+  const retenus = publies.slice(-EXERCICES_DE_LA_FENETRE);
+  const reference = publies[publies.length - retenus.length - 1] ?? retenus[0];
+  const dans = retenus.filter((e) => e > reference);
+  if (dans.length < EXERCICES_MINIMUM) return null;
+  return {
+    debut: "",
+    fin: null,
+    exerciceReference: reference,
+    exerciceFin: dans[dans.length - 1],
+    exercices: dans.length,
+    enCours: true,
+  };
+}
+
 /** Le mandat en cours, même sans données : sert à dire en une ligne que ses
  *  comptes ne sont pas encore publiés. */
 export function mandatEnCours(

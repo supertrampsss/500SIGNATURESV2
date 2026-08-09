@@ -23,7 +23,13 @@ import { rendu as rendreAssociations } from "./associations.ts";
 import { enEurosConstants } from "./euros-constants.ts";
 import { rendu as rendreFeuilleDImpots } from "./feuille-impots.ts";
 import { repartir, type Question } from "./fiche-questions.ts";
-import { calendrierDe, mandatEnCours, mandatRaconte, type Mandat } from "./mandat.ts";
+import {
+  calendrierDe,
+  fenetreRacontee,
+  mandatEnCours,
+  mandatRaconte,
+  type Mandat,
+} from "./mandat.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { recit, type Recit } from "./recit.ts";
@@ -2056,20 +2062,24 @@ export function afficherFiche(
   // budgétaires. Ce sont exactement les indicateurs que les quatre questions
   // d'argent rassemblent.
   const calendrier = calendrierDe(niveau);
-  const exercicesDesComptes = calendrier
-    ? [
-        ...new Set(
-          repartir(indicateurs)
-            .filter(({ question }) => QUESTIONS_D_ARGENT.has(question.cle))
-            .flatMap(({ indicateurs: liste }) => liste)
-            .flatMap((i) => Object.keys(territoire.series?.[i.id] ?? {})),
-        ),
-      ]
-    : [];
-  const raconte =
-    exercicesDesComptes.length && calendrier
+  const exercicesDesComptes = [
+    ...new Set(
+      repartir(indicateurs)
+        .filter(({ question }) => QUESTIONS_D_ARGENT.has(question.cle))
+        .flatMap(({ indicateurs: liste }) => liste)
+        .flatMap((i) => Object.keys(territoire.series?.[i.id] ?? {})),
+    ),
+  ];
+  // Une maille qui n'élit pas d'assemblée n'a pas de mandat — mais elle a des
+  // exercices. Le pays était la seule fiche du site sans récit et sans ses deux
+  // vitesses, pour une raison qui n'en justifiait qu'une : plaquer une
+  // législature sur un budget serait faux, ne rien raconter ne l'est pas moins.
+  // La fenêtre est alors comptable, et les phrases disent « depuis 2019 ».
+  const raconte = !exercicesDesComptes.length
+    ? null
+    : calendrier
       ? mandatRaconte(exercicesDesComptes, aujourdhui, calendrier)
-      : null;
+      : fenetreRacontee(exercicesDesComptes);
   const contexte: Contexte | null = raconte
     ? {
         mandat: raconte,
@@ -2087,6 +2097,8 @@ export function afficherFiche(
         nom: territoire.nom,
         avecPreposition: niveau === "commune" || niveau === "arrondissement_municipal",
         semblables: options.semblables,
+        // « Sur le mandat » n'a de sens que là où une élection l'a ouvert.
+        fenetre: calendrier ? "sur le mandat" : `depuis ${raconte.exerciceReference}`,
       }
     : null;
   const histoire = contexte ? recit(contexte) : null;
