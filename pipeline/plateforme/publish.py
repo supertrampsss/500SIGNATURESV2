@@ -836,6 +836,81 @@ def bareme(conn) -> dict[str, dict]:
     return fichiers
 
 
+# Le seul endroit du site où l'État, la Sécurité sociale et les collectivités
+# ont le droit d'être additionnés — et la phrase qui dit pourquoi c'est le seul.
+RECAPITULATIF_NOTE = (
+    "Les budgets réglables du simulateur ne s'additionnent pas entre eux : un vote"
+    " de crédits de l'État, un tableau de charges et de produits de la Sécurité"
+    " sociale et des comptes locaux ne sont ni le même périmètre, ni le même cadre"
+    " comptable, ni le même exercice — et des transferts massifs circulent entre"
+    " eux, TVA affectée et compensations d'exonérations en tête, que chacun compte"
+    " de son côté. La comptabilité nationale est le seul cadre qui les met sur la"
+    " même base et neutralise ces transferts : ses sous-secteurs, eux, se somment."
+    " Les soldes ci-dessous ne sont donc comparables à aucun des soldes affichés"
+    " dans les autres budgets."
+)
+
+RECAPITULATIF_SOUS_SECTEURS = [
+    ("insee_apu_solde_centrales", "État et organismes d'administration centrale"),
+    ("insee_apu_solde_asso", "Administrations de sécurité sociale"),
+    ("insee_apu_solde_apul", "Administrations publiques locales"),
+]
+RECAPITULATIF_TOTAL = ("insee_apu_solde", "Toutes administrations publiques")
+
+
+def recapitulatif_national(conn) -> dict | None:
+    """État, Sécurité sociale et collectivités, sur la seule base qui les somme.
+
+    Les quatre séries viennent des comptes nationaux de l'INSEE, déjà chargées.
+    Ce qui est fait ici n'est donc pas un calcul mais un **rapprochement** : les
+    trois sous-secteurs et leur total, sur le dernier exercice où les quatre
+    existent, avec l'écart entre la somme des trois et le total publié. Cet
+    écart est publié plutôt que masqué — il vaut zéro, et le montrer est ce qui
+    distingue « ils se somment » d'une affirmation.
+
+    Le dernier exercice **commun** aux quatre séries, jamais le dernier de
+    chacune : un total 2025 face à des composantes 2024 ferait un écart de
+    plusieurs dizaines de milliards qui ne serait qu'un décalage de millésime.
+    """
+    identifiants = [RECAPITULATIF_TOTAL[0], *(i for i, _ in RECAPITULATIF_SOUS_SECTEURS)]
+    series: dict[str, dict[str, float]] = defaultdict(dict)
+    for indicateur, periode, valeur in conn.execute(
+        f"""
+        select indicator_id, period, value from core.observations
+        where geo_level = 'pays' and geo_code = 'FR' and value is not null
+          and indicator_id in ({", ".join("?" * len(identifiants))})
+        """,
+        identifiants,
+    ).fetchall():
+        series[indicateur][str(periode)] = float(valeur)
+    communs = set.intersection(*(set(series[i]) for i in identifiants)) if all(
+        i in series for i in identifiants
+    ) else set()
+    if not communs:
+        return None
+    exercice = max(communs)
+    lignes = [
+        {"c": identifiant, "l": libelle, "v": _montant_publie(series[identifiant][exercice])}
+        for identifiant, libelle in RECAPITULATIF_SOUS_SECTEURS
+    ]
+    total = series[RECAPITULATIF_TOTAL[0]][exercice]
+    return {
+        "exercice": exercice,
+        "titre": "Tout l'argent public, en comptabilité nationale",
+        "cadre": (
+            f"INSEE, comptes nationaux annuels, exercice {exercice}, capacité (+) ou"
+            " besoin (−) de financement, montants en millions d'euros (M€)"
+        ),
+        "note": RECAPITULATIF_NOTE,
+        "lignes": lignes,
+        "total": {"c": RECAPITULATIF_TOTAL[0], "l": RECAPITULATIF_TOTAL[1],
+                  "v": _montant_publie(total)},
+        # Zéro attendu, et publié quand même : un contrôle qui ne peut qu'être
+        # vrai n'apprend rien tant qu'on ne le montre pas.
+        "ecart": _montant_publie(sum(ligne["v"] for ligne in lignes) - total),
+    }
+
+
 def fraicheur(conn) -> list[dict]:
     """État public de chaque jeu : dernière mise à jour, retard, contrôles.
 
@@ -1736,6 +1811,9 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
         deposer(f"simulateur/bareme-{exercice}.json", contenu)
     if baremes:
         deposer("simulateur/index-bareme.json", sorted(baremes, reverse=True))
+    recapitulatif = recapitulatif_national(conn)
+    if recapitulatif:
+        deposer("simulateur/comptabilite-nationale.json", recapitulatif)
     deposer("agregats-nationaux.json", methode_nationale)
     for lot, contenu in subventions_nominatives(conn).items():
         deposer(f"subventions/commune/{lot}.json", contenu)

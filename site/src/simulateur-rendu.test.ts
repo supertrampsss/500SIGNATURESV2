@@ -384,7 +384,13 @@ test("l'arbre du budget ne se charge qu'à l'ouverture du simulateur", () => {
   // Chaque budget publié déclare son index et son montage, et rien ne le charge
   // ailleurs : ni au démarrage, ni au passage d'un budget à l'autre. Trois
   // entrées — l'État, la Sécurité sociale, le barème de l'impôt sur le revenu.
-  assert.equal(MAIN.match(/^\s*index: donnees\.simulateurIndex/gm)?.length, 3);
+  const catalogue = MAIN.slice(
+    MAIN.indexOf("const BUDGETS_SIMULABLES"),
+    MAIN.indexOf("Un budget réglable, monté dans le bloc"),
+  );
+  assert.equal(catalogue.match(/^\s*cle: /gm)?.length, 4);
+  assert.equal(catalogue.match(/^\s*index: /gm)?.length, 4);
+  assert.equal(catalogue.match(/^\s*monter: /gm)?.length, 4);
   assert.match(MAIN, /void preparerSimulateur\(\);/);
 });
 

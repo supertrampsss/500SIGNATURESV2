@@ -274,6 +274,11 @@ export const simulateurIndexSecu = () => lire<unknown>("simulateur/index-secu.js
 export const simulateurIndexBareme = () => lire<unknown>("simulateur/index-bareme.json");
 export const simulateurBareme = (exercice: string) =>
   lire<import("./bareme.ts").Bareme>(`simulateur/bareme-${exercice}.json`);
+
+/** Le récapitulatif en comptabilité nationale. Un seul fichier, sans index :
+ *  il porte lui-même son exercice, et il pèse quelques centaines d'octets. */
+export const recapitulatifNational = () =>
+  lire<import("./recapitulatif.ts").Recapitulatif>("simulateur/comptabilite-nationale.json");
 export const simulateurBudgetSecu = (exercice: string) =>
   lire<import("./simulateur.ts").Budget>(`simulateur/secu-${exercice}.json`);
 

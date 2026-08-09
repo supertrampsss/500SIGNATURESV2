@@ -25,6 +25,7 @@ import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { decoder, indexer } from "./simulateur.ts";
 import { afficherSimulateur, exercicesPublies } from "./simulateur-rendu.ts";
 import { afficherBareme, decoder as decoderBareme } from "./bareme-rendu.ts";
+import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { rendu as apercuRendu, resumer } from "./apercu.ts";
@@ -2083,6 +2084,16 @@ const BUDGETS_SIMULABLES: BudgetPublie[] = [
     index: donnees.simulateurIndexSecu,
     monter: (exercice, bloc) =>
       monterBudget(donnees.simulateurBudgetSecu(exercice), bloc, false),
+  },
+  {
+    cle: "national",
+    nom: "Tout, en comptabilité nationale",
+    // Pas d'index à part : le fichier porte son exercice et pèse quelques
+    // centaines d'octets. Le charger pour savoir s'il existe coûte moins qu'un
+    // second fichier à publier et à tenir.
+    index: async () => [(await donnees.recapitulatifNational()).exercice],
+    monter: async (_exercice, bloc) =>
+      afficherRecapitulatif(bloc, await donnees.recapitulatifNational()),
   },
   {
     cle: "bareme",

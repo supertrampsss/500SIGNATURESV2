@@ -175,3 +175,39 @@ test("le barème est publié à part, et son assiette est calculée au dépôt",
   // publiée, donc testable, donc opposable.
   assert.match(PUBLISH, /def masse_au_dessus/);
 });
+
+/* ------------------------------ le récapitulatif en comptabilité nationale */
+
+test("le récapitulatif dit d'abord ce qui ne s'additionne pas", async () => {
+  const { mention, rendu } = await import("./recapitulatif.ts");
+  const recapitulatif = {
+    exercice: "2025",
+    titre: "Tout l'argent public, en comptabilité nationale",
+    cadre: "INSEE, comptes nationaux annuels, exercice 2025…",
+    note: "Les budgets réglables du simulateur ne s'additionnent pas entre eux…",
+    lignes: [
+      { c: "insee_apu_solde_centrales", l: "État", v: -130_254_600_000 },
+      { c: "insee_apu_solde_asso", l: "Sécurité sociale", v: -6_722_500_000 },
+      { c: "insee_apu_solde_apul", l: "Collectivités", v: -15_554_900_000 },
+    ],
+    total: { c: "insee_apu_solde", l: "Toutes administrations", v: -152_532_000_000 },
+    ecart: 0,
+  };
+  // L'écart s'affiche même — surtout — quand il vaut zéro : c'est lui qui fait
+  // la différence entre « ils se somment » et une affirmation.
+  assert.match(mention(recapitulatif), /exactement le total publié/);
+  assert.match(mention({ ...recapitulatif, ecart: 1e9 }), /s'écartent de/);
+  const html = rendu(recapitulatif);
+  assert.match(html, /additionnent pas/);
+  assert.equal(html.match(/recap__ligne/g)?.length, 4);
+  // Rien à régler : c'est un écran de lecture.
+  assert.doesNotMatch(html, /simu__pas|simu__pct/);
+});
+
+test("le récapitulatif est publié à part, sur le dernier exercice commun", () => {
+  assert.match(PUBLISH, /simulateur\/comptabilite-nationale\.json/);
+  // Le dernier exercice **commun** aux quatre séries : un total d'une année
+  // face à des composantes d'une autre ferait un écart de plusieurs dizaines de
+  // milliards qui ne serait qu'un décalage de millésime.
+  assert.match(PUBLISH, /communs = set\.intersection/);
+});
