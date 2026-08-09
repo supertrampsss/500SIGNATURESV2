@@ -23,7 +23,7 @@ import { rendu as rendreAssociations } from "./associations.ts";
 import { enEurosConstants } from "./euros-constants.ts";
 import { rendu as rendreFeuilleDImpots } from "./feuille-impots.ts";
 import { repartir, type Question } from "./fiche-questions.ts";
-import { mandatEnCours, mandatRaconte, type Mandat } from "./mandat.ts";
+import { calendrierDe, mandatEnCours, mandatRaconte, type Mandat } from "./mandat.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { recit, type Recit } from "./recit.ts";
@@ -1589,10 +1589,9 @@ function renvoiVersLaMaillePorteuse(
  * chiffres qui la soutiennent, puis des questions en français.
  * ------------------------------------------------------------------------ */
 
-/** Les mailles où un mandat municipal a un sens. Un département n'est pas élu
- *  aux municipales : lui raconter un « bilan de mandat » sur ce calendrier-là
- *  serait faux. */
-const MAILLES_DE_MANDAT = new Set(["commune", "arrondissement_municipal"]);
+/** Chaque maille sur son propre calendrier : `calendrierDe` rend celui de
+ *  l'assemblée qui vote ce budget-là, et `null` pour le pays, dont le budget
+ *  est voté chaque année par un Parlement au calendrier propre. */
 
 /** Les quatre questions dont les indicateurs sont des comptes. Ce sont leurs
  *  millésimes, et eux seuls, qui bornent un mandat : un recensement publié tous
@@ -1800,8 +1799,12 @@ function teteDeLaQuestion(
  * coup d'œil que le second ne juge pas le premier. Une ligne suffit à le dire,
  * et un paragraphe pédagogique la ferait sauter.
  */
-function ligneMandatEnCours(raconte: Mandat | null, aujourdhui: string): string {
-  const encours = mandatEnCours(aujourdhui);
+function ligneMandatEnCours(
+  raconte: Mandat | null,
+  aujourdhui: string,
+  calendrier: string[],
+): string {
+  const encours = mandatEnCours(aujourdhui, calendrier);
   if (!raconte || raconte.debut === encours.debut) return "";
   return `<p class="fiche__mandat">Le mandat ouvert en ${echapper(
     moisEtAnnee(encours.debut),
@@ -2036,7 +2039,8 @@ export function afficherFiche(
   // recensement : la fenêtre d'un bilan financier se lit sur des exercices
   // budgétaires. Ce sont exactement les indicateurs que les quatre questions
   // d'argent rassemblent.
-  const exercicesDesComptes = MAILLES_DE_MANDAT.has(niveau)
+  const calendrier = calendrierDe(niveau);
+  const exercicesDesComptes = calendrier
     ? [
         ...new Set(
           repartir(indicateurs)
@@ -2046,9 +2050,10 @@ export function afficherFiche(
         ),
       ]
     : [];
-  const raconte = exercicesDesComptes.length
-    ? mandatRaconte(exercicesDesComptes, aujourdhui)
-    : null;
+  const raconte =
+    exercicesDesComptes.length && calendrier
+      ? mandatRaconte(exercicesDesComptes, aujourdhui, calendrier)
+      : null;
   const contexte: Contexte | null = raconte
     ? {
         mandat: raconte,
@@ -2064,6 +2069,7 @@ export function afficherFiche(
           raconte.exerciceFin,
         ),
         nom: territoire.nom,
+        avecPreposition: niveau === "commune" || niveau === "arrondissement_municipal",
         semblables: options.semblables,
       }
     : null;
@@ -2127,7 +2133,7 @@ export function afficherFiche(
           }</p>`
         : ""
     }
-    ${ligneMandatEnCours(raconte, aujourdhui)}
+    ${calendrier ? ligneMandatEnCours(raconte, aujourdhui, calendrier) : ""}
     ${deuxVitesses ? rendreVitesses(options.tout === true, lignesEcrites) : ""}
     ${
       // Ce que le lecteur voit d'abord : une phrase qui dit le bilan, les

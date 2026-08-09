@@ -86,6 +86,10 @@ export type Contexte = {
   population: number | null;
   /** Nom du territoire, pour les phrases qui le nomment. */
   nom: string;
+  /** Le nom prend-il une préposition ? Vrai pour une commune (« À Bordeaux »),
+   *  faux ailleurs : « À Gironde » n'existe pas, et « dans le Rhône » ne se
+   *  déduit d'aucun nom. */
+  avecPreposition?: boolean;
   /** Le groupe de communes semblables, quand la maille en a un. Absent au
    *  département et à la région : ces mailles n'ont pas de strate publiée, et
    *  les règles y retombent sur les seuils absolus. */
@@ -200,12 +204,20 @@ type Gabarit = {
 };
 
 /** « 5 » -> « 5,0 » : une décimale partout, pour que deux phrases voisines
- *  s'alignent au lieu d'alterner « 25,5 % » et « 26 % ». */
+ *  s'alignent au lieu d'alterner « 25,5 % » et « 26 % ».
+ *
+ *  Une valeur qui s'arrondit à zéro perd son signe : les impôts locaux d'une
+ *  région valent zéro depuis la réforme, et « -0,0 % » se lisait comme un
+ *  chiffre négatif minuscule au lieu de rien du tout. */
 function nombre(valeur: number, decimales = 1): string {
+  const facteur = 10 ** decimales;
+  const propre = Math.round(valeur * facteur) === 0 ? 0 : valeur;
   return new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: decimales,
     maximumFractionDigits: decimales,
-  }).format(valeur);
+  })
+    .format(propre)
+    .replace("-", "−");
 }
 
 /** « +25,5 % ». Le signe moins typographique, pas le trait d'union du clavier. */
@@ -237,7 +249,12 @@ function sensDuVerbe(ecart: number, hausse: string, baisse: string): string {
  * contracte : au, aux. Les autres articles ne se contractent pas — « À La
  * Rochelle », « À L'Haÿ-les-Roses » sont corrects tels quels.
  */
-function aLieu(nom: string): string {
+function aLieu(nom: string, avecPreposition = true): string {
+  // Hors commune, aucune préposition ne se déduit du nom : on dit « en
+  // Gironde » mais « dans le Rhône », « dans les Hauts-de-Seine » mais « à
+  // Paris ». Le nom se pose donc seul, en tête de titre — toujours
+  // grammatical, et c'est la forme d'un titre de toute façon.
+  if (!avecPreposition) return nom;
   if (nom.startsWith("Le ")) return `Au ${nom.slice(3)}`;
   if (nom.startsWith("Les ")) return `Aux ${nom.slice(4)}`;
   return `À ${nom}`;
@@ -665,7 +682,7 @@ export function faits(contexte: Contexte): Fait[] {
     }
 
     const f: Faits = {
-      lieu: aLieu(contexte.nom),
+      lieu: aLieu(contexte.nom, contexte.avecPreposition !== false),
       reference: mandat.exerciceReference,
       arrivee: mandat.exerciceFin,
       debut,

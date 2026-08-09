@@ -37,6 +37,33 @@
 export const ELECTIONS_MUNICIPALES = ["2014-03-23", "2020-03-15", "2026-03-22"];
 
 /**
+ * Les mêmes, pour les assemblées qui votent les autres budgets locaux.
+ *
+ * Un département n'est pas élu aux municipales, et lui raconter un bilan sur ce
+ * calendrier-là serait faux — c'est ce qui privait de récit toutes les mailles
+ * sauf la commune. Ils ont chacun le leur : départementales et régionales se
+ * tiennent le même jour depuis 2015, reportées de mars à juin en 2021 pour
+ * cause d'épidémie. Date du premier tour, comme pour les municipales.
+ */
+export const ELECTIONS_DEPARTEMENTALES = ["2015-03-22", "2021-06-20", "2028-03-19"];
+export const ELECTIONS_REGIONALES = ELECTIONS_DEPARTEMENTALES;
+
+/**
+ * Le calendrier qui vaut pour une maille, ou `null` quand elle n'élit pas
+ * d'assemblée qui vote un budget — le pays, dont le budget est voté chaque
+ * année par un Parlement au calendrier propre : y plaquer une fenêtre de
+ * mandat ferait passer une législature pour un exercice budgétaire.
+ */
+export function calendrierDe(niveau: string): string[] | null {
+  if (niveau === "commune" || niveau === "arrondissement_municipal") {
+    return ELECTIONS_MUNICIPALES;
+  }
+  if (niveau === "departement") return ELECTIONS_DEPARTEMENTALES;
+  if (niveau === "region") return ELECTIONS_REGIONALES;
+  return null;
+}
+
+/**
  * Combien d'exercices publiés il faut pour qu'un mandat se raconte.
  *
  * Deux points font une droite et n'importe quelle histoire. Trois exercices
@@ -103,15 +130,21 @@ function decrire(debut: string, suivante: string | undefined, publies: string[])
  *  Rend `null` si aucun mandat n'a assez d'exercices publiés pour raconter
  *  quoi que ce soit. `exercicesDisponibles` sont les périodes réellement
  *  publiées pour ce territoire (triées ou non). */
-export function mandatRaconte(exercicesDisponibles: string[], aujourdhui: string): Mandat | null {
+export function mandatRaconte(
+  exercicesDisponibles: string[],
+  aujourdhui: string,
+  /** Le calendrier de la maille. Par défaut les municipales, pour les appelants
+   *  antérieurs à l'ouverture du récit aux autres assemblées. */
+  calendrier: string[] = ELECTIONS_MUNICIPALES,
+): Mandat | null {
   // Seuls les exercices annuels bornent un mandat : un trimestre n'est pas un
   // compte administratif, et « 2024-Q3 » ne se compare pas à « 2019 ».
   const publies = exercicesDisponibles.filter((e) => /^\d{4}$/.test(e));
-  const tenues = ELECTIONS_MUNICIPALES.filter((d) => d <= aujourdhui);
+  const tenues = calendrier.filter((d) => d <= aujourdhui);
   for (let i = tenues.length - 1; i >= 0; i -= 1) {
     // Le calendrier est trié : les élections tenues en forment le début, et
     // l'élection suivante porte le même indice, plus un.
-    const suivante = ELECTIONS_MUNICIPALES[i + 1];
+    const suivante = calendrier[i + 1];
     const mandat = decrire(tenues[i], suivante && suivante <= aujourdhui ? suivante : undefined, publies);
     // Sans l'exercice de référence, il n'y a pas de point de départ : toute
     // variation se mesurerait depuis une année choisie par le hasard de la
@@ -125,11 +158,14 @@ export function mandatRaconte(exercicesDisponibles: string[], aujourdhui: string
 
 /** Le mandat en cours, même sans données : sert à dire en une ligne que ses
  *  comptes ne sont pas encore publiés. */
-export function mandatEnCours(aujourdhui: string): Mandat {
-  const tenues = ELECTIONS_MUNICIPALES.filter((d) => d <= aujourdhui);
+export function mandatEnCours(
+  aujourdhui: string,
+  calendrier: string[] = ELECTIONS_MUNICIPALES,
+): Mandat {
+  const tenues = calendrier.filter((d) => d <= aujourdhui);
   // Avant la première élection du calendrier, il n'y a pas de mandat à décrire ;
   // la plus ancienne date connue tient lieu de repli plutôt qu'une exception.
-  const debut = tenues[tenues.length - 1] ?? ELECTIONS_MUNICIPALES[0];
+  const debut = tenues[tenues.length - 1] ?? calendrier[0];
   // Cette fonction ne lit aucune série : elle ne peut donc nommer aucun
   // exercice publié, et n'en invente pas.
   return {
