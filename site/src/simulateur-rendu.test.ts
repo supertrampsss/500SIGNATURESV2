@@ -380,9 +380,11 @@ test("l'arbre du budget ne se charge qu'à l'ouverture du simulateur", () => {
     MAIN.indexOf("async function ouvrirSimulateur") + 900,
   );
   assert.ok(ouverture.length > 200, "ouvrirSimulateur introuvable");
-  assert.match(ouverture, /choisi\.budget\.charger\(choisi\.exercice\)/);
-  assert.equal(MAIN.match(/charger: donnees\.simulateurBudget(Secu)?,/g)?.length, 2);
-  assert.doesNotMatch(MAIN, /await donnees\.simulateurBudget(Secu)?\(/);
+  assert.match(ouverture, /choisi\.budget\.monter\(choisi\.exercice, \$\("simu"\)\)/);
+  // Chaque budget publié déclare son index et son montage, et rien ne le charge
+  // ailleurs : ni au démarrage, ni au passage d'un budget à l'autre. Trois
+  // entrées — l'État, la Sécurité sociale, le barème de l'impôt sur le revenu.
+  assert.equal(MAIN.match(/^\s*index: donnees\.simulateurIndex/gm)?.length, 3);
   assert.match(MAIN, /void preparerSimulateur\(\);/);
 });
 

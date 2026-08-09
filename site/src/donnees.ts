@@ -266,6 +266,14 @@ export const simulateurBudget = (exercice: string) =>
  * doit pouvoir proposer l'un quand l'autre manque.
  */
 export const simulateurIndexSecu = () => lire<unknown>("simulateur/index-secu.json");
+
+/** Le barème de l'impôt sur le revenu : la distribution des foyers fiscaux par
+ *  tranche de revenu, et ce que chaque tranche d'un barème refait rapporterait.
+ *  Ce n'est pas un budget — ni dépenses, ni recettes, ni solde — d'où un
+ *  fichier et un index à lui. */
+export const simulateurIndexBareme = () => lire<unknown>("simulateur/index-bareme.json");
+export const simulateurBareme = (exercice: string) =>
+  lire<import("./bareme.ts").Bareme>(`simulateur/bareme-${exercice}.json`);
 export const simulateurBudgetSecu = (exercice: string) =>
   lire<import("./simulateur.ts").Budget>(`simulateur/secu-${exercice}.json`);
 

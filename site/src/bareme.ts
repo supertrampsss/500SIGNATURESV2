@@ -1,0 +1,211 @@
+/**
+ * Refaire le barème de l'impôt sur le revenu.
+ *
+ * Ce module ne connaît pas le DOM. Il tient la distribution publiée des foyers
+ * fiscaux par tranche de revenu, l'état des taux réglés, et répond aux quatre
+ * questions qu'on pose à un barème : combien il rapporte, qui il touche, à
+ * quel taux moyen, et de combien il s'écarte de l'impôt réellement émis.
+ *
+ * UN PRINCIPE DE CALCUL, et il est ce qui rend l'exercice honnête :
+ *
+ * **LE RENDEMENT EST EXACT, PAS ESTIMÉ.** Le fichier publie, pour chaque
+ * tranche, le nombre de foyers et leur revenu total. Comme tout foyer d'une
+ * tranche a un revenu au moins égal à sa borne basse, la somme de ce qui
+ * dépasse cette borne vaut « revenu total − foyers × borne », sans aucune
+ * hypothèse sur la répartition à l'intérieur de la tranche. La matière taxable
+ * d'une tranche marginale s'en déduit, et elle est publiée : `a`. Le rendement
+ * d'un barème n'est alors qu'une somme de taux fois assiettes.
+ *
+ * Cela n'est vrai que parce que les seuils du barème **sont** les bornes
+ * publiées par la DGFiP. Un seuil intermédiaire — 45 000 € par exemple —
+ * demanderait d'inventer une répartition à l'intérieur d'une tranche : le
+ * simulateur n'en propose donc aucun, plutôt que d'en inventer un.
+ *
+ * Ce qui n'est PAS modélisé, et qui ne doit pas être suggéré ailleurs :
+ * l'assiette est le **revenu fiscal de référence du foyer**, pas le revenu net
+ * imposable par part. Ni quotient familial, ni décote, ni réductions, ni crédits
+ * d'impôt. Et aucun comportement : un taux à 90 % ne rapporte pas ce que dit
+ * l'arithmétique.
+ */
+
+/** Une tranche publiée : ses bornes, ses foyers, son revenu, son assiette
+ *  marginale et l'impôt qui y est réellement émis. */
+export type Tranche = {
+  /** Borne basse, en euros. */
+  b: number;
+  /** Borne haute, ou `null` pour la dernière — celle qui n'en a pas. */
+  h: number | null;
+  /** Foyers fiscaux de la tranche. */
+  f: number;
+  /** Foyers dont le revenu dépasse la borne basse : ceux que cette tranche du
+   *  barème atteint. */
+  fa: number;
+  /** Revenu fiscal de référence total de la tranche. */
+  r: number;
+  /** Matière taxable de la tranche marginale. Voir le principe ci-dessus. */
+  a: number;
+  /** Impôt net réellement émis sur la tranche. Repère, jamais assiette. */
+  i: number;
+};
+
+export type Bareme = {
+  exercice: string;
+  titre: string;
+  cadre: string;
+  note: string;
+  foyers: number;
+  revenu_total: number;
+  /** Impôt sur le revenu réellement émis par voie de rôle. */
+  impot_emis: number;
+  tranches: Tranche[];
+};
+
+/** Borne basse de tranche -> taux en pourcentage. Une tranche absente n'est pas
+ *  réglée : « réglée à 0 % » et « pas réglée » sont la même chose ici, et la
+ *  table ne garde donc que ce qui n'est pas nul. */
+export type Taux = Map<number, number>;
+
+/** Un taux vit entre 0 et 100 %. Au-delà de 100, le barème prendrait plus que
+ *  le revenu de la tranche ; en dessous de 0, il en verserait — ce que fait un
+ *  crédit d'impôt, que ce simulateur ne modélise pas. */
+export function borner(valeur: number): number {
+  if (!Number.isFinite(valeur)) return 0;
+  return Math.max(0, Math.min(100, Math.round(valeur)));
+}
+
+export function regler(taux: Taux, borne: number, valeur: number): void {
+  const v = borner(valeur);
+  if (v === 0) taux.delete(borne);
+  else taux.set(borne, v);
+}
+
+export function tauxDe(taux: Taux, tranche: Tranche): number {
+  return taux.get(tranche.b) ?? 0;
+}
+
+/** Ce que rapporte une tranche : son taux appliqué à sa matière taxable. */
+export function rendementTranche(tranche: Tranche, taux: Taux): number {
+  return (tauxDe(taux, tranche) / 100) * tranche.a;
+}
+
+export function rendement(bareme: Bareme, taux: Taux): number {
+  return bareme.tranches.reduce((s, t) => s + rendementTranche(t, taux), 0);
+}
+
+/** L'écart à l'impôt sur le revenu réellement émis. Positif : le barème réglé
+ *  rapporte davantage. */
+export function ecartAuReel(bareme: Bareme, taux: Taux): number {
+  return rendement(bareme, taux) - bareme.impot_emis;
+}
+
+/**
+ * Combien de foyers paieraient au moins un euro.
+ *
+ * C'est la réponse à « qui ? », et elle ne se devine pas : ce sont les foyers
+ * situés au-dessus de la plus basse tranche dont le taux n'est pas nul. Zéro
+ * si le barème est vide.
+ */
+export function foyersConcernes(bareme: Bareme, taux: Taux): number {
+  const premiere = bareme.tranches.find((t) => tauxDe(taux, t) > 0);
+  return premiere ? premiere.fa : 0;
+}
+
+/** La part des foyers fiscaux que le barème atteint. */
+export function partDesFoyers(bareme: Bareme, taux: Taux): number {
+  return bareme.foyers ? foyersConcernes(bareme, taux) / bareme.foyers : 0;
+}
+
+/**
+ * Le taux moyen : ce que le barème prend, rapporté à tout le revenu déclaré.
+ *
+ * Ce n'est **pas** la moyenne des taux affichés. Un barème à 45 % sur la seule
+ * tranche des plus de neuf millions d'euros a un taux moyen de 0,3 % : c'est
+ * cet écart-là qui apprend quelque chose, et une moyenne de taux le cacherait.
+ */
+export function tauxMoyen(bareme: Bareme, taux: Taux): number {
+  return bareme.revenu_total ? rendement(bareme, taux) / bareme.revenu_total : 0;
+}
+
+/** Le taux moyen des seuls foyers atteints, rapporté à leur revenu. */
+export function tauxMoyenDesConcernes(bareme: Bareme, taux: Taux): number {
+  const premiere = bareme.tranches.findIndex((t) => tauxDe(taux, t) > 0);
+  if (premiere < 0) return 0;
+  const revenu = bareme.tranches.slice(premiere).reduce((s, t) => s + t.r, 0);
+  return revenu ? rendement(bareme, taux) / revenu : 0;
+}
+
+/* --------------------------------------------------------------------------
+ * Les barèmes tout faits
+ * ----------------------------------------------------------------------- */
+
+export type Modele = { nom: string; aide: string; taux: (tranche: Tranche) => number };
+
+/**
+ * Trois barèmes d'un clic, et chacun répond à une question posée d'avance :
+ * un taux unique sur tout le monde, un taux unique au-dessus d'un seuil, un
+ * barème très progressif. Ils ne sont pas des recommandations : ce sont les
+ * trois formes qu'on compare, et le rendement de chacune est le chiffre.
+ *
+ * Le taux unique est calibré pour rapporter à peu près ce que rapporte l'impôt
+ * réellement émis — 91,7 Md€ sur 1 375 Md€ de revenu déclaré, soit 6,7 % —,
+ * ce qui rend la comparaison immédiate : même rendement, tout autre monde.
+ */
+export const MODELES: Modele[] = [
+  {
+    nom: "Taux unique, tout le monde",
+    aide: "Le même taux sur chaque euro déclaré, du premier au dernier.",
+    taux: () => 7,
+  },
+  {
+    nom: "Rien sous 20 000 €",
+    aide: "Aucun impôt sur les vingt premiers mille euros de chaque foyer,"
+      + " un taux unique au-dessus.",
+    taux: (t) => (t.b >= 20_000 ? 12 : 0),
+  },
+  {
+    nom: "Très progressif",
+    aide: "Six taux qui montent avec le revenu, jusqu'aux plus hauts.",
+    taux: (t) => {
+      if (t.b < 15_000) return 0;
+      if (t.b < 30_000) return 5;
+      if (t.b < 50_000) return 15;
+      if (t.b < 100_000) return 30;
+      if (t.b < 1_000_000) return 45;
+      return 60;
+    },
+  },
+];
+
+export function appliquer(bareme: Bareme, modele: Modele): Taux {
+  const taux: Taux = new Map();
+  for (const tranche of bareme.tranches) regler(taux, tranche.b, modele.taux(tranche));
+  return taux;
+}
+
+/* --------------------------------------------------------------------------
+ * Partage
+ * ----------------------------------------------------------------------- */
+
+/** L'état du barème en une chaîne : `BORNE:taux,BORNE:taux`. Vide si rien n'est
+ *  réglé — l'URL ne porte alors pas le paramètre du tout. */
+export function encoder(taux: Taux): string {
+  return [...taux]
+    .sort((a, b) => a[0] - b[0])
+    .map(([borne, valeur]) => `${borne}:${valeur}`)
+    .join(",");
+}
+
+/** Le chemin inverse. Une borne que le millésime ne porte pas est ignorée sans
+ *  bruit : les tranches de la DGFiP peuvent changer, et un lien partagé doit
+ *  rester ouvrable avec celles qui existent encore. */
+export function decoder(chaine: string, bareme: Bareme): Taux {
+  const bornes = new Set(bareme.tranches.map((t) => t.b));
+  const taux: Taux = new Map();
+  for (const morceau of chaine.split(",")) {
+    const [gauche, droite] = morceau.split(":");
+    const borne = Number(gauche);
+    const valeur = borner(Number(droite));
+    if (bornes.has(borne) && valeur !== 0) taux.set(borne, valeur);
+  }
+  return taux;
+}

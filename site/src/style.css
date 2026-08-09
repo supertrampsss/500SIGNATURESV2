@@ -4504,6 +4504,47 @@ summary.pont__rangee,
   display: none;
 }
 
+/* ---- Le barème ---------------------------------------------------------- */
+/* Cinq colonnes au lieu de six : un barème n'a ni pli ni écart signé. Ce qu'il
+   a en plus, et qui n'existe nulle part ailleurs, c'est le nombre de foyers
+   qu'une tranche atteint — sans lui, un rendement ne dit que la moitié. */
+.bareme__ligne,
+.bareme__entete {
+  grid-template-columns: minmax(9rem, 1fr) 8rem 7rem auto 7rem;
+  grid-template-areas: "lib foyers base reglage montant";
+}
+.bareme__entete {
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+  background: var(--papier-creuse);
+}
+/* Les colonnes de l'en-tête se touchaient : deux intitulés alignés l'un à
+   droite, l'autre à gauche, se lisaient « matière taxabletaux ». */
+.bareme__entete > span {
+  padding-inline: 0.35rem;
+  line-height: 1.2;
+}
+.bareme__entete .simu__base,
+.bareme__entete .bareme__foyers,
+.bareme__entete .simu__montant {
+  text-align: end;
+}
+.bareme__entete .simu__reglage {
+  display: block;
+  text-align: center;
+}
+.bareme__foyers {
+  grid-area: foyers;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+  color: var(--encre-douce);
+}
+.bareme__ligne .simu__intitule {
+  grid-area: lib;
+}
+
 /* ---- Recettes ----------------------------------------------------------- */
 .simu__note {
   margin: 0 0 0.6rem;

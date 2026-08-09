@@ -341,3 +341,81 @@ def test_la_couverture_se_mesure_en_foyers_fiscaux(lignes):
     sans_paris = ir.foyers_par_maille([o for o in candidates if o[2] != "75056"])
     with pytest.raises(couverture.CouvertureInsuffisante, match="commune"):
         couverture.controler(lus, sans_paris)
+
+
+# --------------------------------------------------------------------------
+# La distribution nationale par tranche : la matière d'un barème refait
+# --------------------------------------------------------------------------
+#
+# La fixture est la feuille `national/national.xls` du millésime 2025, entière :
+# vingt-cinq tranches, leur parent « Plus de 100 000 dont: », deux totaux. Un
+# échantillon fabriqué satisferait par construction le contrôle central — les
+# tranches font le total —, alors que sur la vraie feuille il ne se satisfait
+# pas tout seul : la ligne parent y est présente et suffit à le faire tomber.
+
+NATIONAL = FIXTURES / "dgfip_ircom_national.xls"
+
+
+def test_les_vingt_cinq_tranches_font_le_total_national():
+    contenu = NATIONAL.read_bytes()
+    distribution = ir.lire_distribution(contenu)
+    resultat = ir.controler_distribution(distribution, ir.lire_national(contenu))
+    assert resultat["tranches"] == 25
+    assert resultat["foyers"] == 41_635_259
+    assert all(e == 0.0 for e in resultat["ecarts_relatifs_distribution"].values())
+
+
+def test_la_ligne_qui_resume_les_hauts_revenus_n_est_pas_une_tranche():
+    """« Plus de 100 000 dont: » résume les dix-huit tranches suivantes.
+
+    La compter ajouterait 294 Md€ de revenu et 1,4 million de foyers qui
+    existent déjà ailleurs dans le tableau. Le contrôle le voit.
+    """
+    contenu = NATIONAL.read_bytes()
+    distribution = ir.lire_distribution(contenu)
+    assert ir.PARENT_HAUTS_REVENUS not in [nom for nom, *_ in ir.TRANCHES]
+    parent = (1_414_342.0, 294_159_432.298 * ir.MILLIERS, 49_012_711.391 * ir.MILLIERS)
+    fausse = [*distribution, (ir.PARENT_HAUTS_REVENUS, 100_000.0, None, *parent)]
+    with pytest.raises(ir.DistributionIncoherente, match=ir.PARENT_HAUTS_REVENUS):
+        ir.controler_distribution(fausse, ir.lire_national(contenu))
+
+
+def test_une_tranche_absente_du_fichier_arrete_le_chargement(monkeypatch):
+    """Les bornes du barème sont écrites, pas devinées depuis les intitulés.
+
+    « 10 001 à 12 000 » a pour borne 10 000 : lire l'intitulé donnerait 10 001
+    et décalerait l'assiette de chaque foyer d'un euro. Le prix de bornes
+    écrites est qu'une source qui renomme ou fusionne ses tranches ne se lit
+    plus — et c'est le comportement voulu : mieux vaut s'arrêter que publier un
+    barème dont les seuils ne sont plus ceux de la matière.
+    """
+    monkeypatch.setattr(
+        ir, "TRANCHES", (*ir.TRANCHES, ("15 000 001 à 20 000 000", 15e6, 20e6))
+    )
+    with pytest.raises(ir.DistributionIncoherente, match="découpage"):
+        ir.lire_distribution(NATIONAL.read_bytes())
+
+
+def test_les_bornes_declarees_montent_sans_trou():
+    """Chaque tranche commence là où la précédente finit.
+
+    Un trou entre deux bornes serait du revenu que le barème ne taxerait
+    jamais ; un recouvrement le taxerait deux fois. Ni l'un ni l'autre ne se
+    verrait sur un total.
+    """
+    for (_, _, haut), (_, bas_suivant, _) in zip(ir.TRANCHES, ir.TRANCHES[1:], strict=False):
+        assert haut == bas_suivant
+    assert ir.TRANCHES[0][1] == 0.0
+    assert ir.TRANCHES[-1][2] is None
+
+
+def test_les_montants_sortent_en_euros():
+    """La source est en milliers d'euros ; le site publie en euros."""
+    distribution = ir.lire_distribution(NATIONAL.read_bytes())
+    premiere = distribution[0]
+    assert premiere[0] == "0 à 10 000"
+    assert premiere[3] == 8_065_610.0
+    assert premiere[4] == 27_887_151.855 * ir.MILLIERS
+    # L'impôt d'une tranche peut être négatif : les crédits d'impôt y dépassent
+    # l'impôt dû. Un contrôle « ≥ 0 » rejetterait une donnée juste.
+    assert premiere[5] < 0

@@ -754,6 +754,88 @@ def simulateur_secu(conn) -> dict[str, dict]:
     return fichiers
 
 
+BAREME_NOTE = (
+    "L'assiette simulée ici est le revenu fiscal de référence du foyer, pas le"
+    " revenu net imposable par part : ni quotient familial, ni décote, ni"
+    " réductions, ni crédits d'impôt. Le rendement calculé est donc celui d'un"
+    " barème appliqué au foyer, et il ne se compare pas ligne à ligne à l'impôt"
+    " réellement émis, rappelé à côté. Les comportements ne sont pas modélisés."
+)
+
+
+def bareme(conn) -> dict[str, dict]:
+    """La distribution des foyers fiscaux par tranche, et l'assiette de chaque
+    tranche d'un barème refait.
+
+    **L'assiette d'une tranche est exacte, et c'est tout l'intérêt.** Pour une
+    tranche [a, b), chaque foyer y a un revenu supérieur ou égal à `a` : la somme
+    de ce qui dépasse `a` vaut donc le revenu total de la tranche moins le nombre
+    de foyers multiplié par `a`, sans aucune hypothèse sur la façon dont les
+    revenus se répartissent à l'intérieur. En composant, la matière taxable
+    d'une tranche marginale [t_k, t_k+1) vaut `B(t_k) − B(t_k+1)` où `B(t)` est
+    la masse au-dessus de `t`. C'est exact **parce que les seuils du barème sont
+    exactement les bornes publiées** ; un seuil intermédiaire demanderait
+    d'inventer une répartition, et le fichier n'en propose aucun.
+
+    Le rendement d'un barème est alors une simple somme de taux fois assiettes,
+    que le site calcule sans rien supposer de plus.
+    """
+    rangs = conn.execute(
+        """
+        select fiscal_year, bracket_rank, floor_euros, ceiling_euros, households,
+               income_total, tax_net
+        from fin.income_distribution order by fiscal_year, bracket_rank
+        """
+    ).fetchall()
+    if not rangs:
+        return {}
+    par_exercice: dict[str, list] = defaultdict(list)
+    for annee, _, bas, haut, foyers, revenu, impot in rangs:
+        par_exercice[str(annee)].append((float(bas), haut, float(foyers), float(revenu),
+                                         float(impot)))
+    fichiers = {}
+    for exercice, tranches in par_exercice.items():
+        def masse_au_dessus(seuil: float, tranches=tranches) -> float:
+            return sum(r - n * seuil for bas, _, n, r, _ in tranches if bas >= seuil)
+
+        seuils = [bas for bas, *_ in tranches]
+        lignes = []
+        for rang, (bas, haut, foyers, revenu, impot) in enumerate(tranches):
+            suivant = seuils[rang + 1] if rang + 1 < len(seuils) else None
+            assiette = masse_au_dessus(bas) - (
+                masse_au_dessus(suivant) if suivant is not None else 0.0
+            )
+            lignes.append({
+                "b": _montant_publie(bas),
+                "h": _montant_publie(haut) if haut is not None else None,
+                # Foyers de la tranche, et foyers que cette tranche du barème
+                # atteindrait : ceux-là ont tous un revenu au-dessus de sa borne.
+                "f": int(foyers),
+                "fa": int(sum(n for b2, _, n, _, _ in tranches if b2 >= bas)),
+                "r": _montant_publie(revenu),
+                "a": _montant_publie(assiette),
+                "i": _montant_publie(impot),
+            })
+        foyers = int(sum(t[2] for t in tranches))
+        # L'espace fine insécable des milliers, posée ici : la virgule anglaise
+        # de `format` n'a rien à faire dans une phrase française.
+        compte = f"{foyers:,}".replace(",", "\u202f")
+        fichiers[exercice] = {
+            "exercice": exercice,
+            "titre": "L'impôt sur le revenu, barème à refaire",
+            "cadre": (
+                f"IRCOM, revenus {exercice}, {compte} foyers fiscaux,"
+                " montants en millions d'euros (M€)"
+            ),
+            "note": BAREME_NOTE,
+            "foyers": foyers,
+            "revenu_total": _montant_publie(sum(t[3] for t in tranches)),
+            "impot_emis": _montant_publie(sum(t[4] for t in tranches)),
+            "tranches": lignes,
+        }
+    return fichiers
+
+
 def fraicheur(conn) -> list[dict]:
     """État public de chaque jeu : dernière mise à jour, retard, contrôles.
 
@@ -1647,6 +1729,13 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
         deposer(f"simulateur/secu-{exercice}.json", budget)
     if budgets_secu:
         deposer("simulateur/index-secu.json", sorted(budgets_secu, reverse=True))
+    # Le barème n'est pas un budget : ni dépenses, ni recettes, ni solde. Il a
+    # donc son propre fichier, et le simulateur son propre écran pour lui.
+    baremes = bareme(conn)
+    for exercice, contenu in baremes.items():
+        deposer(f"simulateur/bareme-{exercice}.json", contenu)
+    if baremes:
+        deposer("simulateur/index-bareme.json", sorted(baremes, reverse=True))
     deposer("agregats-nationaux.json", methode_nationale)
     for lot, contenu in subventions_nominatives(conn).items():
         deposer(f"subventions/commune/{lot}.json", contenu)
