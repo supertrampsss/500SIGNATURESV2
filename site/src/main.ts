@@ -893,6 +893,13 @@ function majEtiquettes(): void {
  *  recouvrent la carte — un cadrage qui les ignore cacherait la Bretagne
  *  derrière un formulaire. */
 function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
+  // Carte déployée, elle n'est plus un fond d'écran sur lequel la fiche
+  // flotte : c'est un bloc de la colonne de lecture, et rien ne la recouvre.
+  // Lui réserver les 760 px du panneau poussait la France dans le tiers gauche
+  // du cadre, avec un grand vide à droite pour un panneau qui n'y est plus.
+  if (document.body.dataset.carte === "oui") {
+    return { top: 24, bottom: 56, left: 24, right: 24 };
+  }
   const large = window.innerWidth > 960;
   if (large) {
     // Le creux de droite suit la largeur réelle du panneau : min(50rem, 60vw).

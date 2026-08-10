@@ -5628,3 +5628,102 @@ summary.pont__rangee,
   color: var(--encre-douce);
   font-size: var(--texte-xs);
 }
+
+
+/* ===========================================================================
+   CARTE DÉPLOYÉE — un bloc DANS la colonne, pas un fond d'écran
+   ===========================================================================
+   Premier essai : la carte reprenait tout l'écran et la fiche repassait en
+   surcouche flottante par-dessus, avec son ascenseur propre et sa croix de
+   fermeture. C'était rendre à la fiche la carte blanche posée sur fond nu
+   qu'on venait de lui retirer, et la rendre en pire : cette fois le fond
+   bougeait, et le texte se lisait à travers un panneau posé sur un dessin de
+   France.
+
+   La carte est donc un bloc de la page. Elle prend la largeur de la colonne
+   de lecture et une hauteur bornée ; la fiche continue dessous, comme une
+   page. On situe d'abord, on lit ensuite, et rien ne flotte.
+
+   Ces règles sont en fin de feuille pour gagner sur celles du mode plein
+   cadre sans en retirer aucune : le jour où l'on veut revenir au fond
+   d'écran, il suffit de supprimer ce bloc. */
+body[data-carte="oui"] .vue--territoire {
+  display: block;
+  height: auto;
+}
+/* La barre de vue s'aligne sur la colonne, comme la carte et la fiche : le
+   bouton se retrouvait collé au bord gauche de l'écran, à 224 px du contenu
+   qu'il commande. */
+body[data-carte="oui"] .vue--territoire .vue-barre {
+  max-width: min(62rem, 100%);
+  width: auto;
+}
+body[data-carte="oui"] .vue--territoire .atelier {
+  display: block;
+  position: relative;
+  height: auto;
+  min-height: 0;
+  max-width: min(62rem, 100%);
+  margin-inline: auto;
+  padding-inline: var(--gouttiere);
+  background: transparent;
+}
+/* Le cadre de la carte : la seule chose qui garde une hauteur fixe. 26rem
+   suffisent à reconnaître la France et à viser une commune ; au-delà, on
+   pousse la fiche hors de l'écran pour un fond de carte. */
+body[data-carte="oui"] #carte {
+  position: relative;
+  inset: auto;
+  height: 26rem;
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+/* Le panneau redevient la page : ni surcouche, ni ascenseur propre, ni croix. */
+body[data-carte="oui"] .panneau {
+  position: static;
+  inset: auto;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  margin-inline: 0;
+  padding-inline: 0;
+  padding-top: var(--espace-6);
+  transform: none;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+body[data-carte="oui"] .panneau__contenu {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+}
+body[data-carte="oui"] .panneau__fermer,
+body[data-carte="oui"] .panneau__poignee {
+  display: none;
+}
+body[data-carte="oui"] .fiche {
+  padding-inline: 0;
+}
+/* La barre des mailles et la légende se posent sur le cadre de la carte, pas
+   sur la page : elles ne commandent que lui. */
+body[data-carte="oui"] .carte-barre {
+  position: absolute;
+  left: calc(var(--gouttiere) + var(--espace-4));
+  right: calc(var(--gouttiere) + var(--espace-4));
+  bottom: var(--espace-5);
+}
+body[data-carte="oui"] .legende {
+  top: var(--espace-5);
+  left: calc(var(--gouttiere) + var(--espace-4));
+  bottom: auto;
+}
+@media (max-width: 40rem) {
+  body[data-carte="oui"] #carte {
+    height: 18rem;
+  }
+}
