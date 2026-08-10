@@ -316,7 +316,9 @@ function enrichir(paquet: Record<string, Territoire>, niveau: string): Record<st
 
 async function chargerTerritoires(niveau: string, lot: string): Promise<void> {
   const paquet = await donnees.territoires(niveau, lot);
-  entites = { ...entites, ...enrichir(paquet, niveau) };
+  // Même clé composite que `parents`, et pour la même raison : « 75 » est un
+  // département et une région, et la table en accumule plusieurs mailles.
+  entites = { ...entites, ...cleParMaille(paquet, niveau) };
   recalculerPopulations();
 }
 
@@ -348,7 +350,7 @@ async function chargerIndex(niveau: string): Promise<boolean> {
  *  déjà chargé sinon, le code en dernier ressort — une colonne ne reste
  *  jamais vide. */
 function nomDe(code: string): string {
-  return repertoire?.noms[code] ?? entites[code]?.nom ?? code;
+  return repertoire?.noms[code] ?? entiteDe(code, etat.niveau)?.nom ?? code;
 }
 
 /** Les dénominateurs suivent l'exercice affiché : une dépense de 2022 se
@@ -574,7 +576,7 @@ async function peindreEvolution(
         : null;
     const sortie: Record<string, number> = {};
     for (const [code, brut] of Object.entries(bruts)) {
-      const entite = entites[code];
+      const entite = entiteDe(code, etat.niveau);
       const population = denominateurs
         ? denominateurs[code]
         : entite
@@ -668,6 +670,11 @@ function cleParMaille(
 ): Record<string, Territoire> {
   const enrichis = enrichir(entites, niveau);
   return Object.fromEntries(Object.entries(enrichis).map(([code, t]) => [`${niveau}:${code}`, t]));
+}
+
+/** Le territoire d'un code dans une maille déjà chargée. */
+function entiteDe(code: string, niveau: string): Territoire | undefined {
+  return entites[`${niveau}:${code}`];
 }
 
 /** Le territoire d'un code, dans la maille où on le cherche. */
@@ -814,7 +821,7 @@ function majEtiquettes(): void {
     // la Normandie) : le nom vient du référentiel déjà chargé.
     const nom =
       repertoire?.noms[code] ??
-      entites[code]?.nom ??
+      entiteDe(code, etat.niveau)?.nom ??
       (figure.properties?.nom as string | undefined);
     if (!nom || nom === code) continue;
     const anneaux =
@@ -937,7 +944,7 @@ async function montrerFiche(code: string): Promise<void> {
     chargerLotsNecessaires(niveau, [code]),
     niveau === "commune" ? chargerAssociations(code) : Promise.resolve(),
   ]);
-  const territoire = entites[code];
+  const territoire = entiteDe(code, niveau);
   if (!territoire) return;
   etat.selection = code;
   ecrireUrl();
@@ -1187,7 +1194,7 @@ async function ouvrirTerritoire(
   // du département n'est pas encore là. C'est l'index de la maille qui nomme
   // le squelette — sans lui, il restait anonyme le temps du chargement.
   panneau.innerHTML = squeletteFiche(
-    nom ?? repertoire?.noms[code] ?? entites[code]?.nom ?? parents[code]?.nom ?? "",
+    nom ?? repertoire?.noms[code] ?? entiteDe(code, etat.niveau)?.nom ?? "",
   );
   $("volet-territoire").scrollTop = 0;
   try {
@@ -1405,8 +1412,8 @@ async function majComparateur(): Promise<void> {
   }
   await chargerLotsNecessaires(etat.niveau, etat.comparaison);
   const entrees: Entree[] = etat.comparaison
-    .filter((code) => entites[code])
-    .map((code) => ({ code, niveau: etat.niveau, territoire: entites[code] }));
+    .filter((code) => entiteDe(code, etat.niveau))
+    .map((code) => ({ code, niveau: etat.niveau, territoire: entiteDe(code, etat.niveau)! }));
   afficherComparateur(
     section,
     entrees,
@@ -1425,7 +1432,7 @@ async function majComparateur(): Promise<void> {
       `<div class="pilules" style="display:inline-flex;flex-wrap:wrap">${etat.comparaison
         .map(
           (code) => `<button type="button" class="pilule" data-retirer="${code}">${
-            entites[code]?.nom ?? parents[code]?.nom ?? code
+            entiteDe(code, etat.niveau)?.nom ?? code
           } ×</button>`,
         )
         .join("")}</div>`,
@@ -2053,7 +2060,7 @@ async function peindreAnalyses(): Promise<void> {
     return;
   }
   await chargerLotsNecessaires(etat.niveau, [code]);
-  const territoire = entites[code];
+  const territoire = entiteDe(code, etat.niveau);
   if (!territoire) return;
   afficherAnalyses(
     cible,
@@ -2479,7 +2486,7 @@ async function demarrer(): Promise<void> {
     __carte: carte,
     __diag: () => ({
       entites: Object.keys(entites).length,
-      un: entites["28"],
+      un: entiteDe("28", etat.niveau),
       niveau: etat.niveau,
       // La carte peint depuis l'index de la maille : sans lui, elle est
       // retombée sur les lots, et c'est ce qu'il faut pouvoir constater.
@@ -2489,7 +2496,7 @@ async function demarrer(): Promise<void> {
     // Le groupe de comparaison ne s'affichait pas et rien ne disait pourquoi :
     // trois valeurs à lire — la clé construite, la période, ce qui est trouvé.
     __groupe: (code: string) => {
-      const t = entites[code];
+      const t = entiteDe(code, etat.niveau);
       const cascade = groupes?.cascade ?? (groupes ? [groupes.criteres] : []);
       const cle = cascade
         .map((cs, r) => `${r}:${cs.map((c) => (t?.drapeaux as Record<string, string>)?.[c] ?? "").join("|")}`)

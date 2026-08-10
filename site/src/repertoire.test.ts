@@ -6,6 +6,7 @@
  */
 
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -104,4 +105,25 @@ test("un index vide ne rend ni nom ni dénominateur", () => {
   };
   assert.deepEqual(nomsDuRepertoire(vide), {});
   assert.deepEqual(populationsDuRepertoire(vide, "2022"), {});
+});
+
+test("un code ne désigne un territoire qu'avec sa maille", () => {
+  // « 75 » est le département de Paris *et* la région Nouvelle-Aquitaine. Les
+  // deux tables du site — les mailles chargées et les mailles parentes —
+  // vivaient indexées par le code nu, et la dernière maille chargée écrasait la
+  // précédente : la fiche de Paris annonçait « Commune · Nouvelle-Aquitaine ».
+  // Quatorze départements portent un code qui est aussi un code de région.
+  const MAIN = fs.readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+  // Les deux tables se remplissent par la clé composite, jamais par le code.
+  assert.match(MAIN, /entites = \{ \.\.\.entites, \.\.\.cleParMaille\(paquet, niveau\) \}/);
+  assert.match(MAIN, /\.\.\.cleParMaille\(dep as Record<string, Territoire>, "departement"\)/);
+  assert.match(MAIN, /\.\.\.cleParMaille\(reg as Record<string, Territoire>, "region"\)/);
+  // Et plus aucune lecture par code nu : elles passent toutes par un lecteur
+  // qui exige la maille.
+  assert.doesNotMatch(MAIN, /entites\[code\]/);
+  assert.doesNotMatch(MAIN, /parents\[code\]/);
+  assert.doesNotMatch(MAIN, /parents\["FR"\]/);
+  assert.doesNotMatch(MAIN, /entites\[territoire\./);
+  assert.match(MAIN, /function entiteDe\(code: string, niveau: string\)/);
+  assert.match(MAIN, /function parentDe\(code: string \| null \| undefined, niveau: string\)/);
 });
