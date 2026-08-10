@@ -2113,6 +2113,20 @@ const BUDGETS_SIMULABLES: BudgetPublie[] = [
     monter: async (_exercice, bloc) =>
       afficherRecapitulatif(bloc, await donnees.recapitulatifNational()),
   },
+  // Trois entrées, jamais une quatrième qui les résumerait. Les échelons ne
+  // s'additionnent pas : une part de ce que départements et régions dépensent
+  // est reversée aux communes, et les intercommunalités ont quitté le jeu de
+  // données. Un « budget des collectivités locales » compterait des euros deux
+  // fois tout en étant amputé — le sélecteur ne l'offre donc pas.
+  ...(["commune", "departement", "region"] as const).map((echelon) => ({
+    cle: `collectivites-${echelon}`,
+    nom: { commune: "Communes", departement: "Départements", region: "Régions" }[echelon],
+    // Le fichier porte son exercice : un index de plus pour un seul millésime
+    // coûterait un aller-retour sans rien apprendre.
+    index: async () => [(await donnees.simulateurCollectivites(echelon)).exercice],
+    monter: async (_exercice: string, bloc: HTMLElement) =>
+      monterBudget(donnees.simulateurCollectivites(echelon), bloc, false),
+  })),
   {
     cle: "bareme",
     nom: "Impôt sur le revenu",

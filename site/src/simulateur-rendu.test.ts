@@ -382,15 +382,16 @@ test("l'arbre du budget ne se charge qu'à l'ouverture du simulateur", () => {
   assert.ok(ouverture.length > 200, "ouvrirSimulateur introuvable");
   assert.match(ouverture, /choisi\.budget\.monter\(choisi\.exercice, \$\("simu"\)\)/);
   // Chaque budget publié déclare son index et son montage, et rien ne le charge
-  // ailleurs : ni au démarrage, ni au passage d'un budget à l'autre. Trois
-  // entrées — l'État, la Sécurité sociale, le barème de l'impôt sur le revenu.
+  // ailleurs : ni au démarrage, ni au passage d'un budget à l'autre. Cinq
+  // déclarations — l'État, la Sécurité sociale, le récapitulatif national, les
+  // trois échelons de collectivités écrits d'un seul gabarit, et le barème.
   const catalogue = MAIN.slice(
     MAIN.indexOf("const BUDGETS_SIMULABLES"),
     MAIN.indexOf("Un budget réglable, monté dans le bloc"),
   );
-  assert.equal(catalogue.match(/^\s*cle: /gm)?.length, 4);
-  assert.equal(catalogue.match(/^\s*index: /gm)?.length, 4);
-  assert.equal(catalogue.match(/^\s*monter: /gm)?.length, 4);
+  assert.equal(catalogue.match(/^\s*cle: /gm)?.length, 5);
+  assert.equal(catalogue.match(/^\s*index: /gm)?.length, 5);
+  assert.equal(catalogue.match(/^\s*monter: /gm)?.length, 5);
   assert.match(MAIN, /void preparerSimulateur\(\);/);
 });
 

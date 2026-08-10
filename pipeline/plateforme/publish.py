@@ -819,6 +819,178 @@ BAREME_NOTE = (
 )
 
 
+ECHELONS = {
+    "commune": ("les communes", "communes"),
+    "departement": ("les départements", "départements"),
+    "region": ("les régions", "régions"),
+}
+
+# Ce qu'un total « collectivités locales » cacherait, et pourquoi il n'existe pas.
+COLLECTIVITES_NOTE = (
+    "Ce budget est celui d'un seul échelon. Les échelons ne s'additionnent pas :"
+    " une part de ce que les départements et les régions dépensent est versée aux"
+    " communes, et la somme des trois compterait ces euros deux fois. Les"
+    " intercommunalités ne sont plus publiées dans ce jeu de données : un total"
+    " « collectivités locales » serait de toute façon amputé de ce qu'elles"
+    " portent. Le site n'en publie donc aucun."
+)
+
+# L'écart toléré entre la somme des composantes et leur total, en part du total.
+TOLERANCE_ECHELON = 0.005
+
+
+# Les variantes de périmètre, et l'identité qui prouve chacune.
+#
+# « Dépenses totales hors remb » est rangé par l'OFGL sous « Dépenses totales »,
+# à côté du fonctionnement et de l'investissement. Ce n'est pas une composante :
+# c'est le même agrégat sur un périmètre plus étroit, et le sommer à ses frères
+# compte près de deux fois le budget. Il est écarté non parce que son nom le dit,
+# mais parce que l'identité qui le prouve est vérifiée sur les montants : le
+# total moins les remboursements vaut exactement la variante. Sans cette
+# identité, rien n'est écarté et l'arbre est refusé comme un autre.
+VARIANTES_OFGL = {
+    "ofgl_depenses_totales_hors_remb": (
+        "ofgl_depenses_totales",
+        "ofgl_remboursements_d_emprunts_hors_gad",
+    ),
+    "ofgl_recettes_totales_hors_emprunts": (
+        "ofgl_recettes_totales",
+        "ofgl_emprunts_hors_gad",
+    ),
+}
+
+
+def _est_variante(code: str, totaux: dict[str, float]) -> bool:
+    regle = VARIANTES_OFGL.get(code)
+    if not regle:
+        return False
+    total, moins = regle
+    if total not in totaux or moins not in totaux or code not in totaux:
+        return False
+    return abs(totaux[total] - totaux[moins] - totaux[code]) <= abs(totaux[total]) * TOLERANCE_ECHELON
+
+
+def _arbre_verifie(
+    totaux: dict[str, float],
+    enfants: dict[str, list[str]],
+    racine: str,
+    vus: set[str],
+) -> list[dict]:
+    """Les composantes d'un agrégat, à condition qu'elles le redonnent.
+
+    La hiérarchie déclarée par l'OFGL n'est pas une partition : « Dépenses
+    totales » a pour enfants le fonctionnement, l'investissement *et* « hors
+    remb » qui recoupe les deux, et « Dépenses d'intervention » n'a que des
+    composantes choisies, sans poste « autres ». Sommer la première paire
+    compterait près de deux fois le budget ; ouvrir la seconde en montrerait le
+    quart en laissant croire qu'on en voit le tout.
+
+    La règle est donc mesurée sur les montants eux-mêmes : un nœud n'ouvre ses
+    enfants que s'ils lui redonnent son total. Sinon il reste une feuille, avec
+    son montant juste.
+    """
+    lignes: list[dict] = []
+    for code in sorted(enfants.get(racine, []), key=lambda c: -abs(totaux.get(c, 0.0))):
+        if code in vus or code not in totaux or _est_variante(code, totaux):
+            continue
+        vus.add(code)
+        noeud = {"c": code, "l": LIBELLES_OFGL.get(code, code), "v": _montant_publie(totaux[code])}
+        petits = _arbre_verifie(totaux, enfants, code, vus)
+        if petits:
+            noeud["enfants"] = petits
+        lignes.append(noeud)
+    if not lignes:
+        return []
+    somme = sum(totaux[n["c"]] for n in lignes)
+    cible = totaux[racine]
+    if not cible or abs(somme - cible) > abs(cible) * TOLERANCE_ECHELON:
+        # Refus : les enfants sont rendus à qui pourrait les reprendre ailleurs,
+        # et le nœud reste une feuille plutôt qu'un total faux.
+        for noeud in lignes:
+            vus.discard(noeud["c"])
+        return []
+    return lignes
+
+
+LIBELLES_OFGL: dict[str, str] = {}
+
+
+def simulateur_collectivites(conn) -> dict[str, dict]:
+    """Le budget des collectivités, un échelon à la fois.
+
+    **Jamais leur somme.** C'est la seule règle qui compte ici, et elle a trois
+    raisons dont chacune suffirait : les transferts croisés feraient compter deux
+    fois les euros qu'un département verse à une commune ; les intercommunalités
+    ont quitté ce jeu de données, donc un total serait amputé ; et les trois
+    échelons n'exercent pas les mêmes compétences, si bien que leur somme ne
+    répondrait à aucune question qu'on se pose.
+
+    Les montants sont la somme, sur tous les territoires publiés de l'échelon, de
+    ce que l'OFGL publie territoire par territoire. La couverture est écrite dans
+    le fichier : au dernier exercice, six départements et une région manquent à
+    l'appel, et un lecteur qui compare deux échelons doit le savoir.
+    """
+    global LIBELLES_OFGL
+    arbre_parent = hierarchie_ofgl()
+    enfants: dict[str, list[str]] = defaultdict(list)
+    for fils, parent in arbre_parent.items():
+        enfants[parent].append(fils)
+    LIBELLES_OFGL = {
+        ligne[0]: ligne[1]
+        for ligne in conn.execute(
+            "select indicator_id, label_fr from core.indicators where indicator_id like 'ofgl%'"
+        ).fetchall()
+    }
+
+    fichiers: dict[str, dict] = {}
+    for echelon, (article, pluriel) in ECHELONS.items():
+        lignes = conn.execute(
+            """
+            select period, indicator_id, sum(value), count(distinct geo_code)
+            from core.observations
+            where geo_level = ? and indicator_id like 'ofgl%' and value is not null
+            group by period, indicator_id
+            """,
+            [echelon],
+        ).fetchall()
+        if not lignes:
+            continue
+        par_exercice: dict[str, dict[str, float]] = defaultdict(dict)
+        couverture: dict[str, int] = {}
+        for periode, indicateur, somme, nombre in lignes:
+            par_exercice[str(periode)][indicateur] = float(somme)
+            if indicateur == "ofgl_depenses_totales":
+                couverture[str(periode)] = int(nombre)
+        exercice = max(par_exercice)
+        totaux = par_exercice[exercice]
+        if "ofgl_depenses_totales" not in totaux or "ofgl_recettes_totales" not in totaux:
+            continue
+        depenses = _arbre_verifie(totaux, enfants, "ofgl_depenses_totales", set())
+        recettes = _arbre_verifie(totaux, enfants, "ofgl_recettes_totales", set())
+        if not depenses or not recettes:
+            continue
+        nombre = couverture.get(exercice, 0)
+        fichiers[echelon] = {
+            "exercice": exercice,
+            "loi": "Comptes de gestion",
+            "unite": "EUR",
+            "titre": f"Le budget de tou{'s les' if echelon != 'region' else 'tes les'} {pluriel}",
+            "cadre": (
+                f"Comptes {exercice} de {nombre} {pluriel}, agrégés par l'Observatoire des"
+                " finances et de la gestion publique locales, montants en millions"
+                " d'euros (M€)"
+            ),
+            "repere": "poste",
+            "note": COLLECTIVITES_NOTE,
+            "depenses": depenses,
+            "recettes": [
+                {"t": groupe["l"], "signe": 1, "lignes": groupe.get("enfants", [groupe])}
+                for groupe in recettes
+            ],
+        }
+    return fichiers
+
+
 def bareme(conn) -> dict[str, dict]:
     """La distribution des foyers fiscaux par tranche, et l'assiette de chaque
     tranche d'un barème refait.
@@ -1867,6 +2039,14 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
         deposer(f"simulateur/bareme-{exercice}.json", contenu)
     if baremes:
         deposer("simulateur/index-bareme.json", sorted(baremes, reverse=True))
+    # Un fichier par échelon, et aucun fichier « collectivités locales » : les
+    # trois ne s'additionnent pas, et le simulateur ne doit pas pouvoir le
+    # laisser croire.
+    collectivites = simulateur_collectivites(conn)
+    for echelon, budget in collectivites.items():
+        deposer(f"simulateur/collectivites-{echelon}.json", budget)
+    if collectivites:
+        deposer("simulateur/index-collectivites.json", sorted(collectivites))
     recapitulatif = recapitulatif_national(conn)
     if recapitulatif:
         deposer("simulateur/comptabilite-nationale.json", recapitulatif)

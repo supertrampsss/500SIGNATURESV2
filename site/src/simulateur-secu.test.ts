@@ -272,3 +272,33 @@ test("la fiche affiche un total, pas un montant par habitant", async () => {
   assert.match(FICHE, /<span class="mesure__valeur">\$\{formater\(brut, indicateur\.unite, false\)\}/);
   assert.doesNotMatch(FICHE, /<span class="mesure__valeur">\$\{formate\(valeur\)\}/);
 });
+
+/* ------------------------------- les collectivités, échelon par échelon */
+
+test("les échelons sont publiés séparément, et jamais additionnés", () => {
+  // Le piège central du site : État, Sécu et collectivités ne s'additionnent
+  // pas, et les trois échelons de collectivités non plus. Une part de ce que
+  // départements et régions dépensent est reversée aux communes, et les
+  // intercommunalités ont quitté ce jeu de données.
+  assert.match(PUBLISH, /simulateur\/collectivites-\{echelon\}\.json/);
+  // Aucun fichier qui les résumerait.
+  assert.doesNotMatch(PUBLISH, /collectivites-locales\.json|collectivites-total/);
+  // Et la note le dit dans le fichier, pas seulement dans le code.
+  assert.match(PUBLISH, /Les échelons ne s'additionnent pas/);
+});
+
+test("un agrégat n'ouvre ses composantes que si elles lui redonnent son total", () => {
+  // « Dépenses totales » a pour enfants déclarés le fonctionnement,
+  // l'investissement et « hors remb » qui recoupe les deux : les sommer compte
+  // près de deux fois le budget. La variante est écartée sur preuve — le total
+  // moins les remboursements vaut la variante — et le reste est vérifié.
+  assert.match(PUBLISH, /VARIANTES_OFGL/);
+  assert.match(PUBLISH, /def _est_variante/);
+  assert.match(PUBLISH, /abs\(somme - cible\) > abs\(cible\) \* TOLERANCE_ECHELON/);
+});
+
+test("le sélecteur propose les trois échelons, sans total", () => {
+  const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+  assert.match(MAIN, /\["commune", "departement", "region"\] as const/);
+  assert.match(MAIN, /Communes.*Départements.*Régions/s);
+});

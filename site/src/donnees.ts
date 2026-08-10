@@ -282,6 +282,15 @@ export const recapitulatifNational = () =>
 export const simulateurBudgetSecu = (exercice: string) =>
   lire<import("./simulateur.ts").Budget>(`simulateur/secu-${exercice}.json`);
 
+/** Le budget d'un échelon de collectivités, agrégé sur tous ses territoires.
+ *
+ *  Un fichier par échelon, et **aucun fichier « collectivités locales »** : les
+ *  trois ne s'additionnent pas — transferts croisés entre échelons, et les
+ *  intercommunalités ne sont plus publiées dans ce jeu de données. Le site n'a
+ *  donc pas de total à charger, parce qu'il n'y en a pas. */
+export const simulateurCollectivites = (echelon: string) =>
+  lire<import("./simulateur.ts").Budget>(`simulateur/collectivites-${echelon}.json`);
+
 /** Les bénéficiaires nommés d'un programme budgétaire. Absent des publications
  *  antérieures : le tiroir ne s'ouvre alors pas, plutôt que d'échouer. */
 export type SubventionsProgramme = {
