@@ -12,7 +12,7 @@ import type {
   SubventionsCommune,
   Territoire,
 } from "./donnees.ts";
-import { formater, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
+import { formater, millions, parHabitantAUnSens, populationDeReference, pourcentage } from "./echelle.ts";
 import {
   dernierPas,
   evolution,
@@ -1841,27 +1841,107 @@ function rendreQuestions(
   indicateurs: Indicateur[],
   dessine: (indicateur: Indicateur) => string,
   rangDuTheme: (indicateur: Indicateur) => number,
+  /** La phrase qui répond à la question et le pont qui l'explique, écrite sur
+   *  la grosse masse de la question — pas sur sa première ligne. */
+  ouvrir: (candidats: Indicateur[]) => string = () => "",
 ): string {
   const sections = repartir(indicateurs)
-    .map(({ question, indicateurs: liste }) => ({
-      question,
-      lignes: teteDeLaQuestion(question, liste, rangDuTheme)
-        .map(dessine)
-        .filter(Boolean)
-        .slice(0, LIGNES_PAR_QUESTION),
-    }))
+    .map(({ question, indicateurs: liste }) => {
+      const ordonnes = teteDeLaQuestion(question, liste, rangDuTheme);
+      const lignes = ordonnes.map(dessine).filter(Boolean).slice(0, LIGNES_PAR_QUESTION);
+      return { question, lignes, phrase: ouvrir(ordonnes) };
+    })
     .filter((s) => s.lignes.length > 0);
   if (!sections.length) return "";
   return `<div class="questions-fiche">${sections
     .map(
-      ({ question, lignes }, index) => `<details class="question-fiche" data-question="${echapper(
+      ({ question, lignes, phrase }, index) => `<details class="question-fiche" data-question="${echapper(
         question.cle,
       )}"${index === 0 ? " open" : ""}>
         <summary aria-expanded="${index === 0}">${echapper(question.intitule)}</summary>
-        <div class="question-fiche__corps">${lignes.join("")}</div>
+        <div class="question-fiche__corps">${phrase}${
+          lignes.slice(0, CHIFFRES_EN_TETE).join("")
+        }${
+          // Le reste derrière un pli. Une question qui déverse six lignes
+          // chiffrées répond six fois, et le lecteur repart sans réponse : la
+          // phrase répond, trois chiffres la soutiennent, le reste attend
+          // qu'on le demande.
+          lignes.length > CHIFFRES_EN_TETE
+            ? `<details class="question-fiche__reste">
+                <summary>${lignes.length - CHIFFRES_EN_TETE} autre${
+                  lignes.length - CHIFFRES_EN_TETE > 1 ? "s" : ""
+                } mesure${lignes.length - CHIFFRES_EN_TETE > 1 ? "s" : ""}</summary>
+                ${lignes.slice(CHIFFRES_EN_TETE).join("")}
+              </details>`
+            : ""
+        }</div>
       </details>`,
     )
     .join("")}</div>`;
+}
+
+/** Trois chiffres sous la phrase, pas six. C'est le nombre que l'œil prend
+ *  d'un coup, et au-delà la liste redevient le déversement qu'elle était. */
+const CHIFFRES_EN_TETE = 3;
+
+/**
+ * La phrase qui répond à une question, et le pont qui explique son évolution.
+ *
+ * « Où va l'argent ? » recevait pour toute réponse six lignes chiffrées : le
+ * lecteur voyait des masses et leur variation, sans jamais lire ce qui les
+ * relie. La phrase pose l'agrégat de tête d'un bout à l'autre de la fenêtre —
+ * 2019 et 2025, les deux millésimes que les autres phrases nomment déjà — et
+ * `provenance.ts` y accroche la décomposition de cette variation, quand la
+ * source publie de quoi l'établir et que les composantes redonnent le total.
+ *
+ * Rien n'est écrit sans les deux bouts : une masse dont un exercice manque n'a
+ * pas d'évolution à raconter.
+ */
+function phraseDeLaQuestion(
+  candidats: Indicateur[],
+  territoire: Territoire,
+  fenetre: { reference: string; arrivee: string } | null,
+  catalogue: Indicateur[],
+): string {
+  if (!fenetre) return "";
+  const lire = (id: string, exercice: string) => territoire.series?.[id]?.[exercice] ?? null;
+  // **La grosse masse, pas la première ligne.** L'ordre d'affichage met en tête
+  // ce qui se lit bien — « Services généraux et administration » à Bordeaux —
+  // et cette ligne-là n'a pas de composantes publiées : la phrase posait un
+  // montant sans jamais pouvoir l'expliquer. On prend donc le plus gros montant
+  // de la question qui sache se décomposer, et à défaut le plus gros tout court.
+  const mesurables = candidats
+    .filter((i) => i.unite === "EUR")
+    .map((i) => ({ i, fin: lire(i.id, fenetre.arrivee), debut: lire(i.id, fenetre.reference) }))
+    .filter((c) => c.debut !== null && c.fin !== null && c.debut !== 0)
+    .sort((a, b) => Math.abs(b.fin!) - Math.abs(a.fin!));
+  if (!mesurables.length) return "";
+  const avecPont = mesurables.find(
+    (c) => provenanceSeule(c.i.id, lire, fenetre.reference, fenetre.arrivee, catalogue) !== "",
+  );
+  const choisi = avecPont ?? mesurables[0];
+  const tete = choisi.i;
+  const debut = choisi.debut as number;
+  const fin = choisi.fin as number;
+  // **Pas de pourcentage sur une base négative.** Un solde public qui passe de
+  // −58 à −153 Md€ ne varie pas de « −162 % » : le déficit a presque triplé,
+  // mais le rapport de deux nombres négatifs ne dit ni ce sens ni cette
+  // ampleur. `verdict.ts` écarte déjà ces séries pour la même raison ; ici la
+  // phrase reste, et c'est l'écart en euros qui la termine.
+  const ecart = ((fin - debut) / Math.abs(debut)) * 100;
+  const variation = debut > 0
+    ? `soit ${ecart >= 0 ? "+" : "−"}${Math.abs(ecart).toLocaleString("fr-FR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    })} %`
+    : `soit ${fin - debut >= 0 ? "+" : "−"}${millions(Math.abs(fin - debut))}`;
+  const trajet = `${echapper(traduire(tete.libelle))} : ${millions(debut)} en ${
+    fenetre.reference
+  }, ${millions(fin)} en ${fenetre.arrivee}, ${variation}`;
+  const pont = provenanceSeule(tete.id, lire, fenetre.reference, fenetre.arrivee, catalogue);
+  return `<p class="question-fiche__phrase"><strong>${trajet}.</strong>${
+    pont ? ` ${echapper(pont)}` : ""
+  }</p>`;
 }
 
 /** Les indicateurs d'une question, dans l'ordre où elle se lit : la tête
@@ -2189,15 +2269,23 @@ export function afficherFiche(
     return (place === -1 ? ORDRE_THEMES.length : place) * 1000 +
       (rang === -1 ? phares.length : rang);
   };
+  const fenetreDuPont = raconte
+    ? { reference: raconte.exerciceReference, arrivee: raconte.exerciceFin }
+    : null;
   const corpsQuestions = rendreQuestions(
     indicateurs.filter((i) => !doubles.has(i) && !REPLIES.has(i.id)),
     dessine,
     rangDuTheme,
+    (candidats) => phraseDeLaQuestion(candidats, territoire, fenetreDuPont, options.indicateurs),
   );
+  // La feuille d'impôts descend en bas de fiche.
+  //
+  // Elle occupait la troisième place de l'ouverture, entre le bilan et les
+  // questions, alors qu'elle ne répond à aucune des quatre : c'est une
+  // estimation de ce qu'un foyer paie, pas un compte de la collectivité. Elle
+  // repoussait vers le bas ce que le lecteur vient chercher.
   const feuille = rendreFeuilleDImpots(territoire);
-  const essentiel = `${rendreRecit(histoire)}${rendreVerdict(phrases, aUneLigne)}${
-    feuille ? `<section class="feuille-impots">${feuille}</section>` : ""
-  }${corpsQuestions}`;
+  const essentiel = `${rendreRecit(histoire)}${rendreVerdict(phrases, aUneLigne)}${corpsQuestions}`;
   // Deux vitesses partout où il y a deux vitesses à offrir.
   //
   // La condition était « un bilan à raconter » : sans récit ni verdict, pas de
@@ -2288,6 +2376,7 @@ export function afficherFiche(
       ongletsThemes(themesRetenus, ouvert, options.libelleTheme)
     }
     <div class="mesures"${deuxVitesses ? ' data-corps="tout"' : ""}>${mesures}</div>
+    ${feuille ? `<section class="feuille-impots">${feuille}</section>` : ""}
   `;
 }
 

@@ -11,6 +11,7 @@
  */
 
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import { test } from "node:test";
 
 import type { Indicateur } from "./donnees.ts";
@@ -1089,4 +1090,58 @@ test("la ligne d'un agrégat dit d'où vient son dernier mouvement", () => {
   for (const phrase of cible.innerHTML.match(/D&#39;où vient[^<]*/g) ?? []) {
     assert.doesNotMatch(phrase, /Dépenses de fonctionnement/);
   }
+});
+
+test("la question s'ouvre sur sa grosse masse, pas sur sa première ligne", () => {
+  // « Où va l'argent ? » répondait par six lignes chiffrées et aucune phrase.
+  // Elle ouvre maintenant sur l'agrégat qui sait se décomposer — les dépenses
+  // totales, pas « Services généraux et administration », qui n'a pas de
+  // composantes publiées et ne pouvait donc rien expliquer.
+  const M = 1_000_000;
+  const territoire = {
+    nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {},
+    series: {
+      ofgl_depenses_totales: {
+        "2019": 400 * M, "2020": 420 * M, "2021": 440 * M, "2022": 460 * M,
+        "2023": 490 * M, "2024": 520 * M, "2025": 538 * M,
+      },
+      ofgl_depenses_fonctionnement: {
+        "2019": 294 * M, "2020": 305 * M, "2021": 316 * M, "2022": 327 * M,
+        "2023": 340 * M, "2024": 356 * M, "2025": 369 * M,
+      },
+      ofgl_depenses_investissement: {
+        "2019": 106 * M, "2020": 115 * M, "2021": 124 * M, "2022": 133 * M,
+        "2023": 150 * M, "2024": 164 * M, "2025": 169 * M,
+      },
+    },
+  } as never;
+  const commun = {
+    unite: "EUR", theme: "finances_locales", sommable: true, niveaux: ["commune"],
+    definition: "", jeu: "ofgl",
+  };
+  const indicateurs = [
+    { ...commun, id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement", parent: "ofgl_depenses_totales" },
+    { ...commun, id: "ofgl_depenses_investissement", libelle: "Dépenses d'investissement", parent: "ofgl_depenses_totales" },
+    { ...commun, id: "ofgl_depenses_totales", libelle: "Dépenses totales", parent: null },
+  ] as never as Indicateur[];
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune", territoire, indicateurs, principal: "ofgl_depenses_totales",
+    jeux: [], periode: "2025", parHabitant: false, comparateurs: [],
+    libelleTheme: () => "Finances locales",
+  });
+  assert.match(cible.innerHTML, /question-fiche__phrase/);
+  assert.match(cible.innerHTML, /Dépenses totales : 400,0[   ]M€ en 2019/);
+  assert.match(cible.innerHTML, /D&#39;où vient la hausse/);
+});
+
+test("la feuille d'impôts n'est plus dans l'ouverture", () => {
+  // Elle occupait la troisième place de « L'essentiel » alors qu'elle ne répond
+  // à aucune des quatre questions : c'est une estimation de ce qu'un foyer
+  // paie, pas un compte de la collectivité.
+  const FICHE = fs.readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
+  const essentiel = FICHE.slice(FICHE.indexOf("const essentiel ="), FICHE.indexOf("const essentiel =") + 200);
+  assert.doesNotMatch(essentiel, /feuille/);
+  // Et elle est bien écrite ailleurs, après les mesures.
+  assert.match(FICHE, /<div class="mesures".*\n\s*\$\{feuille \? `<section class="feuille-impots">/);
 });

@@ -3580,6 +3580,23 @@ body[data-vue="carte"] .pied {
   font-size: var(--texte-s);
 }
 
+/* La phrase qui répond à la question, et le pont qui explique son évolution.
+   Elle porte la réponse : elle se lit avant les chiffres qui la soutiennent, et
+   se détache d'eux. */
+.question-fiche__phrase {
+  margin-block-end: var(--espace-4);
+  line-height: 1.5;
+}
+
+/* Ce que la question garde replié. Un pli sobre : il ne doit pas concurrencer
+   l'intitulé de la question, qui est le vrai titre. */
+.question-fiche__reste > summary {
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+  cursor: pointer;
+  padding-block: var(--espace-3);
+}
+
 /* D'où vient le mouvement. Même filet que les euros constants : ces deux
    phrases-là ne commentent pas la ligne à côté, elles répondent à ce que son
    chiffre vient de poser. */
