@@ -111,8 +111,9 @@ pour ne plus l'être.
   impôt », « leur fiabilité est inégale » : six blocs de ce genre s'étaient
   installés sous les tableaux du site. Ils disent au lecteur de se méfier d'un
   chiffre sans lui donner de quoi le lire autrement. Ce qui manque à un fichier
-  se dit — « décomposition non publiée pour X » —, et ce qui compte se dit dans
-  la légende du tableau, avec les chiffres, jamais après eux.
+  se dit dans la légende du tableau, avec les chiffres, jamais après eux.
+  Aucune exception : « décomposition non publiée pour X » est partie comme les
+  autres.
 - **Aucune réserve qui s'excuse.** Ce qui change la lecture d'un chiffre reste ;
   ce qui dit ce que le site ne sait pas faire part. Et une prudence qui
   n'apprend rien — « une année d'investissement ne résume pas le mandat » —

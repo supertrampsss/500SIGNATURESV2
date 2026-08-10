@@ -137,23 +137,16 @@ test("l'écart entre voté et exécuté est nommé dans le bon sens", () => {
   assert.match(rendu(creuse, "2025"), /déficit constaté est[\s\S]{0,80}plus élevé/);
 });
 
-test("aucune réserve qui s'excuse, seulement ce qui manque au fichier", () => {
+test("aucune réserve sous les tableaux du budget de l'État", () => {
   // Le bloc « Ce que ces chiffres ne disent pas » posait trois mises en garde
-  // sous chaque tableau : comptabilité budgétaire contre Maastricht,
-  // prélèvements sur recettes, montants nets des remboursements. Elles disaient
-  // au lecteur de se méfier du chiffre sans lui donner de quoi le lire
-  // autrement, et elles revenaient partout. Ce qui reste se rapporte à un
-  // exercice précis : quand la source publie un total qu'elle ne décompose pas,
-  // le dire évite de chercher des lignes qui n'existent pas.
+  // éditoriales sous chaque tableau — Maastricht, prélèvements sur recettes,
+  // montants nets des remboursements — et une quatrième sur les décompositions
+  // que la source ne publie pas. Aucune ne donnait de quoi lire le chiffre
+  // autrement : elles disaient seulement de s'en méfier.
   const html = rendu(BUDGET, "2025");
   assert.doesNotMatch(html, /ne disent pas/);
   assert.doesNotMatch(html, /Maastricht/);
-  // « Total prélèvements sur recettes » reste : c'est un libellé de ligne
-  // budgétaire publié par la source, pas une mise en garde.
   assert.doesNotMatch(html, /prélèvements sur recettes ne sont pas des dépenses/i);
-});
-
-test("une décomposition mise en quarantaine s'explique sur son exercice", () => {
-  assert.match(rendu(BUDGET, "2022"), /Décomposition non publiée/);
-  assert.doesNotMatch(rendu(BUDGET, "2025"), /Décomposition non publiée/);
+  assert.doesNotMatch(html, /Décomposition non publiée/);
+  assert.doesNotMatch(html, /class="repli"/);
 });

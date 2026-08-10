@@ -153,29 +153,6 @@ function comparaisonEtapes(budget: BudgetEtat, exercice: string): string {
     </table>${ecart}`;
 }
 
-/**
- * Ce qui manque au fichier, et rien d'autre.
- *
- * Le bloc s'appelait « Ce que ces chiffres ne disent pas » et énumérait trois
- * mises en garde éditoriales — comptabilité budgétaire contre Maastricht,
- * prélèvements sur recettes, montants nets des remboursements. Elles n'ajoutent
- * rien au chiffre affiché : elles disent au lecteur de s'en méfier sans lui
- * donner de quoi le lire autrement, et elles reviennent sous chaque tableau du
- * site. C'est le remplissage que la règle du dépôt interdit.
- *
- * Ce qui reste tient en une phrase et se rapporte à un exercice précis : quand
- * la source publie un total qu'elle ne décompose pas, le dire évite au lecteur
- * de chercher des lignes qui n'existent pas.
- */
-function avertissements(budget: BudgetEtat, exercice: string): string {
-  const manquants = Object.entries(budget.quarantaine ?? {})
-    .filter(([cle]) => cle.startsWith(`${exercice}/`))
-    .flatMap(([, totaux]) => totaux);
-  if (!manquants.length) return "";
-  return `<p class="bloc__note">Décomposition non publiée par la source pour ${
-    echapper(manquants.join(", "))
-  } : le total est vérifié, ses lignes ne le sont pas.</p>`;
-}
 
 /** Exercices publiables : ceux dont l'exécution est connue, du plus récent au
  *  plus ancien. Un exercice en cours n'en fait pas partie (docs/06). */
@@ -203,8 +180,7 @@ export function rendu(budget: BudgetEtat, exercice: string): string {
       </select>
     </p>
     ${pont(budget, exercice, "execute")}
-    ${comparaisonEtapes(budget, exercice)}
-    ${avertissements(budget, exercice)}`;
+    ${comparaisonEtapes(budget, exercice)}`;
 }
 
 export function afficherBudgetEtat(
