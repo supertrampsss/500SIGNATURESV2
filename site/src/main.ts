@@ -461,6 +461,9 @@ function majLegende(
 }
 
 function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
+  // Le tableau vivait dans la vue DONNÉES, retirée : sans conteneur, il n'y a
+  // rien à peindre, et `$` rend `null` plutôt que de lever.
+  if (!document.getElementById("tableau-donnees")) return;
   const indicateur = indicateurCourant();
   const toutes = Object.entries(valeurs)
     .map(([code, brut]) => {
@@ -508,6 +511,7 @@ function majTableauEvolution(
   periodePrecedente: string,
   parHabitant: boolean,
 ): void {
+  if (!document.getElementById("tableau-donnees")) return;
   const indicateur = indicateurCourant();
   const toutes = Object.entries(couche)
     .map(([code, e]) => ({ code, nom: nomDe(code), ...e }))
@@ -1399,13 +1403,14 @@ async function basculerComparaison(code: string): Promise<void> {
   ecrireUrl();
   await majComparateur();
   if (etat.selection) injecterActionsFiche();
-  // On n'emmène le lecteur au tableau que quand il vient d'y ajouter quelque
-  // chose : retirer un territoire depuis sa fiche ne doit pas le déplacer.
-  if (!dedans) location.hash = "#donnees";
+  // Le comparateur vivait dans la vue DONNÉES, retirée : il n'y a plus de
+  // tableau où emmener le lecteur, et l'y envoyer le déposait sur une adresse
+  // morte. La comparaison reste dans l'URL et se relit telle quelle.
 }
 
 async function majComparateur(): Promise<void> {
   const section = $("comparateur");
+  if (!section) return;
   if (!etat.comparaison.length) {
     section.hidden = true;
     return;
@@ -1987,6 +1992,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
  * « chômage » trouve « Emploi et chômage » sans qu'on ait à deviner le thème.
  */
 function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
+  if (!document.getElementById("sources-contenu")) return;
   const entrees: EntreeSommaire[] = parTheme.map(([theme, liste]) => ({
     ancre: `methode-${theme}`,
     libelle: libelleTheme(theme),
@@ -2043,7 +2049,11 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  * onglet — elle montre bien ce qu'aucune fiche ne montre, la répartition dans
  * l'espace — mais elle ne tient plus la porte d'entrée.
  */
-const VUES_PAGE = ["territoire", "analyses", "decryptages", "donnees"] as const;
+/** La vue DONNÉES est retirée : 6 691 px de listes que personne ne parcourait.
+ *  Ce qu'elle portait vit ailleurs — le fichier public est lié depuis le pied
+ *  de page, et chaque mesure garde sa définition et sa source dans son rond
+ *  « i ». Ce qui a réellement disparu de l'écran est écrit dans la PR. */
+const VUES_PAGE = ["territoire", "analyses", "decryptages"] as const;
 
 /** `#carte` était une vue ; c'est devenu un mode de la vue territoire. Les
  *  liens déjà partagés continuent d'ouvrir ce qu'ils promettaient : la fiche,
@@ -2215,7 +2225,6 @@ function basculerVue(): void {
   $("vue-analyses").hidden = vue !== "analyses";
   if (vue === "analyses") void peindreAnalyses();
   $("vue-decryptages").hidden = vue !== "decryptages";
-  $("vue-donnees").hidden = vue !== "donnees";
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
@@ -2267,8 +2276,12 @@ function peindreSommaireDecryptages(): void {
   );
 }
 
-/** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue. */
-let carteOuverte = false;
+/** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue.
+ *
+ *  Elle l'est **par défaut**. Repliée, il fallait la demander pour voir ce
+ *  qu'aucune fiche ne montre : la répartition dans l'espace. Le bouton reste,
+ *  pour la refermer quand on vient lire plutôt que situer. */
+let carteOuverte = true;
 
 /**
  * Ouvre ou referme le fond de carte.
@@ -2841,6 +2854,7 @@ async function demarrer(): Promise<void> {
   for (const indicateur of catalogue) {
     parTheme.set(indicateur.theme, [...(parTheme.get(indicateur.theme) ?? []), indicateur]);
   }
+  if (!document.getElementById("sources-contenu")) return;
   $("sources-contenu").innerHTML = `
     <h3 class="sources__titre">D'où viennent les chiffres</h3>
     ${jeux

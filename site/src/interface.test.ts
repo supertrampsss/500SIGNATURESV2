@@ -461,3 +461,35 @@ test("sous le pouce, la navigation ne se coupe plus", () => {
   // Et la barre basse ne recouvre pas la fin de la vue.
   assert.match(petit, /\.pied,\n\s*\.vue \{\n\s*padding-bottom:/);
 });
+
+test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => {
+  // 6 691 px de listes que personne ne parcourait. Ce qui disparaît de l'écran
+  // est réel et assumé : « Sources et méthode », le tableau équivalent de la
+  // carte, l'export CSV et le comparateur. Ce qui reste : le fichier public,
+  // lié depuis le pied de page, et la définition de chaque mesure dans son
+  // rond « i ».
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.doesNotMatch(balises, /id="vue-donnees"/);
+  assert.doesNotMatch(balises, /data-vue="donnees"/);
+  assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"donnees"/);
+  // Un lien `#donnees` déjà partagé ne doit pas laisser le lecteur sur une
+  // page blanche : la vue de repli le ramène sur TERRITOIRE.
+  assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(cible\) \? cible : "territoire";/);
+  // Et plus personne ne l'y envoie de son propre chef.
+  assert.doesNotMatch(MAIN, /location\.hash = "#donnees"/);
+  // Les fonctions qui peignaient dans ses conteneurs se taisent au lieu de
+  // lever : `$` rend `null`, et `null.innerHTML` casse toute la fiche.
+  for (const garde of [
+    'if (!document.getElementById("tableau-donnees")) return;',
+    'if (!document.getElementById("sources-contenu")) return;',
+  ]) {
+    assert.ok(MAIN.includes(garde), `garde manquante : ${garde}`);
+  }
+});
+
+test("la carte est déployée d'emblée sur la vue territoire", () => {
+  // Repliée, il fallait la demander pour voir ce qu'aucune fiche ne montre :
+  // la répartition dans l'espace. Le bouton reste, pour la refermer.
+  assert.match(MAIN, /let carteOuverte = true;/);
+  assert.match(PAGE, /id="carte-bascule"/);
+});
