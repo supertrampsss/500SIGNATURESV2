@@ -17,10 +17,8 @@ import {
   dernierPas,
   evolution,
   rendu as rendreSerie,
-  ruptureDePerimetre,
 } from "./serie.ts";
 import { rendu as rendreAssociations } from "./associations.ts";
-import { enEurosConstants } from "./euros-constants.ts";
 import { rendu as rendreFeuilleDImpots } from "./feuille-impots.ts";
 import { repartir, type Question } from "./fiche-questions.ts";
 import {
@@ -564,20 +562,9 @@ function ligneIndicateur(
   // 2025, un euro a perdu près d'un cinquième de son pouvoir d'achat. Afficher
   // la hausse nue laisse le lecteur conclure de travers, et toujours dans le
   // même sens.
-  const periodes = Object.keys(suivie).sort();
-  const rupture = ruptureDePerimetre(evenements, periodes);
-  const depart = periodes.find((p) => (rupture ? p >= rupture : true));
-  const constants =
-    depart && depart !== periode
-      ? enEurosConstants(suivie, depart, periode, indicateur.unite, options?.inflation)
-      : null;
-  const phraseConstants = constants
-    ? `<p class="mesure__phrase mesure__constants">Dont ${pourcentage(
-        constants.inflation,
-      )} de hausse des prix : ${
-        constants.reel >= 0 ? "+" : "−"
-      }${pourcentage(Math.abs(constants.reel))} en euros constants.</p>`
-    : "";
+  // Plus de ligne « en euros constants » : les comparaisons du site se font en
+  // euros courants, entre montants publiés.
+  const phraseConstants = "";
   // Le sens du dernier mouvement, lisible sans rien ouvrir. L'évolution longue
   // reste dans le détail : elle demande de savoir depuis quand, ce qui ne tient
   // pas dans un résumé de ligne.
@@ -613,9 +600,12 @@ function ligneIndicateur(
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
   // son détail n'a pas à être demandé.
+  // Dépliée, comme tout le reste de la fiche. Le pli demandait un clic par
+  // ligne pour lire ce que la ligne mesure, et le lecteur ne savait pas qu'il y
+  // avait quelque chose dessous.
   return `<details class="mesure${surCarte ? " mesure--carte" : ""}" data-mesure="${
     indicateur.id
-  }"${surCarte ? " open" : ""}>
+  }" open>
     <summary>
       <span class="mesure__nom">${echapper(traduire(indicateur.libelle))}</span>
       <button type="button" class="mesure__info" data-info="${indicateur.id}"
@@ -1854,23 +1844,14 @@ function rendreQuestions(
     .map(
       ({ question, lignes, phrase }, index) => `<details class="question-fiche" data-question="${echapper(
         question.cle,
-      )}"${index === 0 ? " open" : ""}>
-        <summary aria-expanded="${index === 0}">${echapper(question.intitule)}</summary>
+      )}" open>
+        <summary aria-expanded="true">${echapper(question.intitule)}</summary>
         <div class="question-fiche__corps">${phrase}${
           lignes.slice(0, CHIFFRES_EN_TETE).join("")
         }${
-          // Le reste derrière un pli. Une question qui déverse six lignes
-          // chiffrées répond six fois, et le lecteur repart sans réponse : la
-          // phrase répond, trois chiffres la soutiennent, le reste attend
+          // Le reste, déplié comme tout le reste de la fiche : rien n'attend
           // qu'on le demande.
-          lignes.length > CHIFFRES_EN_TETE
-            ? `<details class="question-fiche__reste">
-                <summary>${lignes.length - CHIFFRES_EN_TETE} autre${
-                  lignes.length - CHIFFRES_EN_TETE > 1 ? "s" : ""
-                } mesure${lignes.length - CHIFFRES_EN_TETE > 1 ? "s" : ""}</summary>
-                ${lignes.slice(CHIFFRES_EN_TETE).join("")}
-              </details>`
-            : ""
+          lignes.slice(CHIFFRES_EN_TETE).join("")
         }</div>
       </details>`,
     )
@@ -1971,33 +1952,9 @@ function phraseDeLaQuestion(
     );
   }
 
-  // 2. Le réel et le rythme. Les prix d'abord : sur six ans ils font une part
-  //    du mouvement, et ce qui reste est ce que la collectivité a décidé.
-  const annees = Number(fenetre.arrivee) - Number(fenetre.reference);
-  if (debut > 0) {
-    const nominal = (delta / debut) * 100;
-    const reel = inflation !== null && inflation > -100
-      ? ((1 + nominal / 100) / (1 + inflation / 100) - 1) * 100
-      : null;
-    // Le rythme annuel se dit **sur la même base que la phrase qui précède**.
-    // Donner le rythme nominal juste après la progression réelle laissait lire
-    // « +15,8 % réels, soit +5,1 % par an » : deux bases dans une phrase, et le
-    // second nombre passait pour l'annualisation du premier. Il ne l'était pas.
-    const base = reel ?? nominal;
-    const annuel = Number.isFinite(annees) && annees > 0 && base > -100
-      ? ((1 + base / 100) ** (1 / annees) - 1) * 100
-      : null;
-    if (reel !== null) {
-      phrases.push(
-        `Les prix ayant monté de ${echapper(pourcent(inflation as number, false))}`
-        + ` sur la période, la progression réelle est de ${gras(pourcent(reel))}${
-          annuel === null ? "" : `, soit ${echapper(pourcent(annuel))} par an`
-        }.`,
-      );
-    } else if (annuel !== null) {
-      phrases.push(`Soit ${echapper(pourcent(annuel))} par an en euros courants.`);
-    }
-  }
+  // Pas de commentaire d'inflation. La phrase compare des euros courants entre
+  // eux, ce que la source publie, et le dit une fois dans le cadrage de la
+  // fiche plutôt qu'au bout d'une phrase sur deux.
 
   // 3. D'où vient le mouvement, et pour quelle part de celui-ci.
   const pont = provenance(choisi.i.id, lire, fenetre.reference, fenetre.arrivee, catalogue);
@@ -2088,15 +2045,6 @@ function ligneMandatEnCours(
   )} n'a pas encore de comptes publiés.</p>`;
 }
 
-/** La bascule des deux vitesses. « Tout voir » dit ce qu'il rouvre : un bouton
- *  qui cache cent quarante lignes doit annoncer leur nombre. */
-function rendreVitesses(tout: boolean, lignes: number): string {
-  return `<nav class="fiche__vitesses" aria-label="Niveau de détail">
-    <button type="button" data-vitesse="essentiel" aria-pressed="${!tout}">L'essentiel</button>
-    <button type="button" data-vitesse="tout" aria-pressed="${tout}">Tout voir<span
-      class="fiche__vitesses-compte">${lignes} indicateurs</span></button>
-  </nav>`;
-}
 
 export function afficherFiche(
   cible: HTMLElement,
@@ -2429,8 +2377,12 @@ export function afficherFiche(
   // onglet vide, ce qui reste la règle du site.
   const ouverture = Boolean(histoire) || phrases.length > 0
     || Boolean(feuille) || corpsQuestions.trim().length > 0;
-  const deuxVitesses = ouverture && mesures.trim().length > 0;
-  const lignesEcrites = [...dessinees.values()].filter(Boolean).length;
+  // **Plus de « Tout voir ».** L'exhaustivité est le métier de la page
+  // ANALYSES, où chaque exercice publié a sa colonne ; la fiche répond aux
+  // questions, dépliée, d'un seul tenant. Un lecteur ne devrait pas avoir à
+  // découvrir qu'un second mode existe pour voir ce qu'il est venu chercher.
+  const deuxVitesses = false;
+  void ouverture;
 
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
@@ -2460,11 +2412,10 @@ export function afficherFiche(
         : ""
     }
     ${calendrier ? ligneMandatEnCours(raconte, aujourdhui, calendrier) : ""}
-    ${deuxVitesses ? rendreVitesses(options.tout === true, lignesEcrites) : ""}
     ${
       // Ce que le lecteur voit d'abord : une phrase qui dit le bilan, les
       // chiffres qui la soutiennent, ce qu'il paie, puis les questions.
-      deuxVitesses ? `<div class="fiche__essentiel" data-corps="essentiel">${essentiel}</div>` : ""
+      `<div class="fiche__essentiel">${essentiel}</div>`
     }
     ${
       // Et la fiche d'avant, intacte, derrière « Tout voir » : synthèse,

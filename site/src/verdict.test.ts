@@ -102,8 +102,7 @@ test("la dette est chiffrée avec le temps qu'il faudrait pour la rembourser", (
   assert.equal(
     dette?.texte,
     `L'encours de dette passe de 252,3${FINE}M€ en 2019 à 413,0${FINE}M€ en 2025, soit`
-      + ` +63,7${FINE}%, quand les prix ont monté de 16,1${FINE}% et la population de`
-      + ` 5,0${FINE}% ; au rythme de ce que la collectivité met de côté chaque année, il`
+      + ` +63,7${FINE}% ; au rythme de ce que la collectivité met de côté chaque année, il`
       + ` faudrait 8,6${FINE}ans pour la rembourser, contre 4,4${FINE}ans en 2019.`,
   );
   assert.equal(dette?.sens, "tend");
@@ -120,29 +119,6 @@ test("les frais de personnel disent aussi le poids qu'ils prennent", () => {
       + ` 48,8${FINE}% en 2019.`,
   );
 });
-
-/**
- * Le cadre voyage avec le chiffre.
- *
- * « +25,5 % » seul laisse conclure de travers, et le lecteur conclura toujours
- * dans le même sens. Toute phrase portant une masse en euros courants nomme les
- * prix et la population dans la même respiration.
- */
-test("le cadre est posé une fois, pas à chaque puce", () => {
-  // La règle a changé le 9 août, sur retour produit. Chaque phrase portait sa
-  // queue « quand les prix ont monté de 16,1 % et la population de 5,0 % » :
-  // écrite une fois elle situe le chiffre, écrite cinq fois de suite elle fait
-  // de la liste un gabarit. Les indicateurs et les chiffres étaient pourtant
-  // tous différents — c'est la charpente qu'on voyait, pas le contenu.
-  const phrases = verdict(bordeaux());
-  const avecCadre = phrases.filter((p) => /les prix ont monté de 16,1/.test(p.texte));
-  assert.equal(avecCadre.length, 1, "le cadre ne doit être écrit qu'une fois");
-  assert.match(avecCadre[0].texte, /la population de 5,0/);
-  // Et il est posé tôt : une queue qui arriverait en dernière ligne ne
-  // situerait plus rien de ce qui précède.
-  assert.ok(phrases.indexOf(avecCadre[0]) <= 1);
-});
-
 test("toutes les phrases restent chiffrées et situées dans le temps", () => {
   // Alléger la queue ne doit pas produire des phrases en l'air : chacune garde
   // son chiffre, et les millésimes posés par la première valent pour la suite.
@@ -160,9 +136,9 @@ test("les six phrases répondent à trois questions, pas trois fois à la même"
   assert.deepEqual(vers, [
     "ofgl_encours_dette",
     "ofgl_depenses_d_equipement",
+    "ofgl_epargne_nette",
     "ofgl_impots_locaux",
     "ofgl_depenses_fonctionnement",
-    "ofgl_dotation_globale_de_fonctionnement",
     "ofgl_frais_personnel",
   ]);
 });
@@ -335,22 +311,6 @@ test("un territoire à variations minuscules ne produit aucune phrase", () => {
   };
   assert.deepEqual(verdict(contexte, 20), []);
 });
-
-/**
- * Une dotation stable en euros courants a perdu six ans de prix.
- *
- * −2,2 % ne franchit aucun seuil de variation, et c'est pourtant le fait : une
- * ressource qui ne bouge pas quand les prix montent de 16,1 % a reculé de
- * 15,7 % en pouvoir d'achat. Le second critère de sortie existe pour ce cas.
- */
-test("une dotation quasi stable sort par son pouvoir d'achat", () => {
-  const dgf = faitsRetenus(bordeaux(), 20)
-    .find((f) => f.vers === "ofgl_dotation_globale_de_fonctionnement");
-  assert.match(dgf?.texte ?? "", /soit −2,2/);
-  assert.ok((dgf?.texte ?? "").includes(`elle a perdu 15,7${FINE}% de pouvoir d'achat`));
-  assert.equal(dgf?.sens, "tend");
-});
-
 test("sans inflation connue, aucune phrase ne suppose les prix", () => {
   const phrases = verdict({ ...bordeaux(), inflation: null, population: null }, 20);
   for (const phrase of phrases) {
@@ -387,27 +347,6 @@ test("une baisse de dépenses détend ce qu'une hausse tendait", () => {
   assert.equal(depenses?.sens, "detend");
   assert.match(depenses?.texte ?? "", /soit −25,2/);
 });
-
-test("la DGF est nommée pour ce qu'elle est, jamais « ce que l'État verse »", () => {
-  // Le cas Paris. La dotation globale de fonctionnement y tombe de 73,3 M€ en
-  // 2019 à 0,12 M€ en 2025 — l'écrêtement au titre de la contribution au
-  // redressement des finances publiques a fini par dépasser la dotation. Le
-  // chiffre est juste. Mais les concours de l'État, eux, passent de 136,5 à
-  // 120,7 M€, les péréquations ayant doublé : écrire « la dotation versée par
-  // l'État recule de 99,8 % » laissait entendre que l'État avait cessé de
-  // financer la capitale, ce qui est faux.
-  const phrases = verdict(bordeaux());
-  const dgf = phrases.find((p) => p.vers === "ofgl_dotation_globale_de_fonctionnement");
-  assert.ok(dgf, "la règle de la DGF doit produire une phrase");
-  assert.match(dgf.texte, /dotation globale de fonctionnement/);
-  for (const phrase of phrases) {
-    assert.ok(
-      !/dotation versée par l'État/.test(phrase.texte),
-      "aucune phrase ne doit confondre la DGF avec l'ensemble des concours de l'État",
-    );
-  }
-});
-
 /* --------------------------------------------------------------------------
  * Le groupe de communes semblables : ce qui décroche, pas ce qui franchit
  * ----------------------------------------------------------------------- */
@@ -454,9 +393,8 @@ test("un fait n'entre que s'il sort du lot de ses semblables", () => {
   const retenus = faitsRetenus(AVEC_GROUPE, 6).map((f) => f.vers);
   // La dette passe du centre du groupe au quart le plus haut : elle décroche.
   assert.ok(retenus.includes("ofgl_encours_dette"));
-  // La dotation globale de fonctionnement est sous le premier quartile aux deux
-  // dates : Bordeaux en reçoit nettement moins que ses semblables, et ça se dit.
-  assert.ok(retenus.includes("ofgl_dotation_globale_de_fonctionnement"));
+  // La dotation globale de fonctionnement n'a plus de règle : « −99,8 % » sur
+  // Paris décrivait un écrêtement qui a dépassé la dotation, pas une politique.
   // Les dépenses de fonctionnement font +25,5 %, au-dessus du seuil absolu de
   // dix points — mais elles restent dans la moitié centrale du groupe d'un bout
   // à l'autre. Elles ne disent donc rien de propre à Bordeaux.
@@ -480,27 +418,6 @@ test("la phrase cite le groupe, son effectif et sa médiane", () => {
   assert.match(phrase, /quart le plus haut/);
   assert.match(phrase, /par habitant/);
 });
-
-test("une composante qui s'effondre se dit avec l'agrégat qui la contient", () => {
-  // Le cas de Paris, réduit à ses termes : la dotation globale de
-  // fonctionnement s'effondre quand les concours de l'État tiennent. Écrire la
-  // première sans le second laissait conclure que l'État s'était retiré.
-  const paris: Contexte = {
-    ...bordeaux({
-      ...BORDEAUX,
-      ofgl_dotation_globale_de_fonctionnement: { "2019": 73_300_000, "2025": 120_000 },
-      ofgl_concours_de_l_etat: { "2019": 136_500_000, "2025": 120_700_000 },
-    }),
-    nom: "Paris",
-  };
-  const dgf = verdict(paris, 8).find((p) => p.vers === "ofgl_dotation_globale_de_fonctionnement");
-  assert.ok(dgf, "la dotation doit produire une phrase");
-  assert.match(dgf.texte, /concours de l'État, qui la contiennent/);
-  assert.match(dgf.texte, new RegExp(`136,5${FINE}M€`));
-  assert.match(dgf.texte, new RegExp(`120,7${FINE}M€`));
-  assert.match(dgf.texte, new RegExp(`−11,6${FINE}%`));
-});
-
 test("le produit des impôts locaux dit le taux voté, pas ce qu'il ignore", () => {
   // « Ce total ne dit pas ce qui vient des taux votés » s'excusait d'un chiffre
   // que le site publie : le taux communal de taxe foncière de la DGFiP.

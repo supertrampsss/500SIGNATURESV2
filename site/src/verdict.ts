@@ -157,6 +157,17 @@ const SEUIL_VARIATION = 10;
  */
 const SEUIL_POINTS = 8;
 
+/**
+ * Au-delà de quoi une variation cesse de décrire une évolution, en %.
+ *
+ * Neuf cents pour cent, c'est un facteur dix. Aucune masse budgétaire ne bouge
+ * d'un facteur dix en six ans sans qu'un périmètre ait changé : une compétence
+ * transférée, une recette supprimée et remplacée, un écrêtement qui dépasse la
+ * dotation qu'il rabote. Le chiffre reste juste, la phrase qu'il produirait
+ * serait fausse — et le site n'a aucun moyen de distinguer les deux.
+ */
+const ECART_ABERRANT = 900;
+
 /** Les faits calculés d'une ligne, tels que ses deux formulations les lisent. */
 type Faits = {
   /** Le territoire, préposition comprise : « À Bordeaux », « Au Havre ». */
@@ -287,12 +298,17 @@ function aLieu(nom: string, avecPreposition = true): string {
 }
 
 /** « quand les prix ont monté de 16,1 % et la population de 5,0 % ». */
-function cadre(f: Faits): string {
-  if (f.inflation === null) return "";
-  const prix = `quand les prix ont monté de ${part(f.inflation)}`;
-  if (f.population === null) return `, ${prix}`;
-  const mouvement = f.population >= 0 ? "et la population de" : "et la population reculé de";
-  return `, ${prix} ${mouvement} ${part(Math.abs(f.population))}`;
+/**
+ * Plus de cadre de prix dans les phrases.
+ *
+ * « quand les prix ont monté de 16,1 % et la population de 5,0 % » revenait au
+ * bout d'une phrase sur deux, et déplaçait la lecture : le lecteur cherchait ce
+ * que valait la hausse *une fois l'inflation retirée* au lieu de lire ce que la
+ * collectivité a dépensé. Les montants publiés sont en euros courants, les
+ * comparaisons se font entre eux, et la fiche le dit une fois pour toutes.
+ */
+function cadre(_f: Faits): string {
+  return "";
 }
 
 /** « de 294,1 M€ en 2019 à 369,0 M€ en 2025 », ou sans les millésimes quand
@@ -339,26 +355,6 @@ function montantOuNombre(valeur: number): string {
     + " par habitant";
 }
 
-/**
- * « quand les concours de l'État, qui la contiennent, passent de 136,5 M€ à
- * 120,7 M€, soit −11,6 % ».
- *
- * Une composante qui s'effondre ne dit pas ce qu'a fait l'ensemble dont elle
- * fait partie. Sur Paris, la dotation globale de fonctionnement tombe de
- * 73,3 M€ à 0,12 M€ — l'écrêtement a fini par dépasser la dotation — tandis que
- * les concours de l'État tiennent à 120,7 M€, les péréquations ayant doublé.
- * Les deux chiffres sont publiés ; n'en écrire qu'un laissait conclure que
- * l'État avait cessé de financer la capitale.
- */
-function agregatContenant(f: Faits, id: string, libelle: string): string {
-  const debut = f.valeur(id, f.reference);
-  const fin = f.valeur(id, f.arrivee);
-  if (debut === null || fin === null || debut <= 0) return "";
-  return (
-    ` ; ${libelle}, qui la contiennent, passent de ${montant(debut)} à ${montant(fin)},`
-    + ` soit ${variation(((fin - debut) / debut) * 100)}`
-  );
-}
 
 /**
  * La table des gabarits.
@@ -521,56 +517,6 @@ const GABARITS: Gabarit[] = [
       + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
   },
   {
-    vers: "ofgl_dotation_globale_de_fonctionnement",
-    sujet: "financement",
-    sensHausse: "detend",
-    cadre: true,
-    texte: (f, autonome) => {
-      // Une dotation quasi stable en euros courants a perdu le prix de six ans
-      // d'inflation : c'est le fait, et il ne se voit pas dans « −2,2 % ».
-      const reel =
-        f.inflation === null
-          ? ""
-          : ` ; une fois les prix pris en compte, elle a`
-            + ` ${sensDuVerbe(pouvoirDAchat(f), "gagné", "perdu")}`
-            + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat`;
-      // **Nommer la DGF, pas « ce que l'État verse ».** Les deux se
-      // confondaient, et sur Paris la phrase devenait fausse : la dotation
-      // globale de fonctionnement y tombe de 73,3 M€ en 2019 à 0,12 M€ en 2025
-      // — l'écrêtement au titre de la contribution au redressement des finances
-      // publiques a fini par dépasser la dotation elle-même —, mais les
-      // concours de l'État, eux, passent de 136,5 à 120,7 M€ parce que les
-      // péréquations et compensations ont doublé. Écrire « la dotation versée
-      // par l'État recule de 99,8 % » laissait entendre que l'État avait cessé
-      // de financer la capitale. Le chiffre était juste, la phrase mentait.
-      return (
-        `La dotation globale de fonctionnement passe ${trajet(f, autonome)}, soit`
-        + ` ${variation(f.ecart)}${reel}`
-        + `${agregatContenant(f, "ofgl_concours_de_l_etat", "les concours de l'État")}.`
-      );
-    },
-    titre: (f) =>
-      f.inflation === null
-        ? `${f.lieu}, la dotation globale de fonctionnement a`
-          + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))}`
-        : `${f.lieu}, la dotation globale de fonctionnement a`
-          + ` ${sensDuVerbe(pouvoirDAchat(f), "gagné", "perdu")}`
-          + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat ${f.fenetre}`,
-  },
-
-  /* ------------------------------------------------------------------------
-   * La France.
-   *
-   * Les huit règles ci-dessus lisent toutes des séries `ofgl_*`, que seules les
-   * collectivités portent : la fiche nationale n'écrivait donc pas une phrase,
-   * sur cent quatre-vingt-dix séries publiées. Celles qui suivent lisent ce que
-   * la France a vraiment — le budget de l'État, la dette et le déficit au sens
-   * de la comptabilité nationale.
-   *
-   * Elles ne se déclenchent nulle part ailleurs : aucune commune ne porte ces
-   * séries, et une série absente n'écrit rien.
-   * --------------------------------------------------------------------- */
-  {
     vers: "etat_depenses_nettes_bg",
     sujet: "exploitation",
     sensHausse: "tend",
@@ -701,10 +647,6 @@ function sortDuLot(groupe: Groupe): boolean {
   return groupe.arrivee !== "centre" || groupe.arrivee !== groupe.depart;
 }
 
-/** La variation une fois les prix retirés, en %. */
-function pouvoirDAchat(f: Faits): number {
-  return ((1 + f.ecart / 100) / (1 + (f.inflation ?? 0) / 100) - 1) * 100;
-}
 
 /** L'inverse d'un sens : ce qu'une baisse dit quand la hausse disait ceci. */
 function inverse(sens: Sens): Sens {
@@ -803,6 +745,13 @@ export function faits(contexte: Contexte): Fait[] {
       const denDebut = valeur(gabarit.ratio, mandat.exerciceReference);
       const denFin = valeur(gabarit.ratio, mandat.exerciceFin);
       if (denDebut === null || denFin === null || denDebut <= 0 || denFin <= 0) continue;
+      // **Une part ne se calcule pas sur un numérateur négatif.** Les impôts
+      // locaux d'une région valent −1 308 M€ en 2025 : la réforme a retiré la
+      // CVAE et il ne reste que la fiscalité reversée, qui est un prélèvement.
+      // Le quotient donnait « les impôts locaux financent −31,8 % du budget »,
+      // arithmétiquement exact et sans aucun sens : on ne finance pas une part
+      // négative d'un budget. La ligne se tait plutôt que d'écrire cela.
+      if (brutDebut < 0 || brutFin < 0) continue;
       debut = (brutDebut / denDebut) * 100;
       fin = (brutFin / denFin) * 100;
       ecart = fin - debut;
@@ -815,6 +764,17 @@ export function faits(contexte: Contexte): Fait[] {
       // « +50 % » dirait le contraire. Ces cas ne produisent pas de phrase.
       if (debut <= 0) continue;
       ecart = ((fin - debut) / debut) * 100;
+      // **Passé un certain écart, ce n'est plus une évolution.**
+      //
+      // La dotation globale de fonctionnement de Paris tombe de 73,3 M€ à
+      // 0,12 M€ : « −99,8 % » est juste et ne décrit rien de ce qui s'est
+      // passé — l'écrêtement au titre de la contribution au redressement des
+      // finances publiques a fini par dépasser la dotation, si bien que la
+      // ligne ne mesure plus la même chose aux deux bouts. Une série qui perd
+      // ou multiplie par plus de dix sa valeur a changé de périmètre, de
+      // nomenclature ou de règle de calcul bien plus souvent qu'elle n'a changé
+      // de réalité, et le site ne sait pas dire lequel. Il se tait.
+      if (Math.abs(ecart) > ECART_ABERRANT) continue;
       if (groupe) {
         // Le groupe a subi la même inflation, la même réforme et la même
         // conjoncture : ce qu'il a fait est l'attendu, et la démographie propre

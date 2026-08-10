@@ -70,8 +70,7 @@ test("le titre de Bordeaux porte le fait le plus lourd, et le paragraphe le chif
   assert.equal(
     r?.paragraphe,
     `L'encours de dette passe de 252,3${FINE}M€ en 2019 à 413,0${FINE}M€ en 2025, soit`
-      + ` +63,7${FINE}%, quand les prix ont monté de 16,1${FINE}% et la population de`
-      + ` 5,0${FINE}% ; au rythme de ce que la collectivité met de côté chaque année, il`
+      + ` +63,7${FINE}% ; au rythme de ce que la collectivité met de côté chaque année, il`
       + ` faudrait 8,6${FINE}ans pour la rembourser, contre 4,4${FINE}ans en 2019.`
       + ` Ce que les impôts locaux rapportent passe de 195,2${FINE}M€ à 254,0${FINE}M€, soit`
       + ` +30,1${FINE}% ; le taux communal de taxe foncière voté est passé de`
@@ -104,20 +103,6 @@ test("le paragraphe enchaîne trois faits, jamais trois fois le même", () => {
   assert.equal(r?.paragraphe.split(". ").length, 3);
   assert.equal(new Set(r?.cites).size, 3);
 });
-
-/**
- * Le cadre n'est écrit qu'une fois.
- *
- * Chaque phrase de niveau sait nommer les prix et la population — il le faut
- * pour la barre latérale, où elle est seule. Dans un paragraphe, trois rappels
- * de « +16,1 % » à deux lignes d'intervalle font relire pour rien.
- */
-test("les prix et la population sont nommés une fois et une seule", () => {
-  const paragraphe = recit(contexte())?.paragraphe ?? "";
-  assert.equal(paragraphe.split("les prix ont monté").length - 1, 1);
-  assert.equal(paragraphe.split("la population de").length - 1, 1);
-});
-
 test("aucun tiret cadratin ni demi-cadratin dans le récit", () => {
   for (const nom of ["Bordeaux", "Le Havre", "Les Sables-d'Olonne", "La Rochelle"]) {
     const r = recit(contexte({ nom }));

@@ -658,6 +658,23 @@ async function peindre(): Promise<void> {
  *  département qui ne disait que la différence de taille. */
 const DENOMINATEURS = new Set(["ofgl_population_reference"]);
 
+/** Les territoires d'une maille, indexés par « maille:code ».
+ *
+ *  Le code seul ne désigne pas un territoire : quatorze départements portent un
+ *  code qui est aussi un code de région. C'est la paire qui est unique. */
+function cleParMaille(
+  entites: Record<string, Territoire>,
+  niveau: string,
+): Record<string, Territoire> {
+  const enrichis = enrichir(entites, niveau);
+  return Object.fromEntries(Object.entries(enrichis).map(([code, t]) => [`${niveau}:${code}`, t]));
+}
+
+/** Le territoire d'un code, dans la maille où on le cherche. */
+function parentDe(code: string | null | undefined, niveau: string): Territoire | undefined {
+  return code ? parents[`${niveau}:${code}`] : undefined;
+}
+
 function indicateursDeLaFiche(niveau: string): Indicateur[] {
   return catalogue.filter((i) => i.niveaux?.includes(niveau) && !DENOMINATEURS.has(i.id));
 }
@@ -685,7 +702,7 @@ const PHARE_NATIONAL = [
  * pas là, l'aperçu de couche tient la place plutôt qu'un panneau vide.
  */
 function afficherApercu(): void {
-  const france = parents["FR"];
+  const france = parentDe("FR", "pays");
   const nationaux = indicateursDeLaFiche("pays");
   if (france && nationaux.length) {
     afficherFiche($("fiche"), {
@@ -704,8 +721,8 @@ function afficherApercu(): void {
       references: reperes,
       peintSurCarte,
       agregats,
-      inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
-      serieInflation: parents["FR"]?.series?.insee_inflation_ipc,
+      inflation: parentDe("FR", "pays")?.series?.eurostat_inflation_ipch,
+      serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
       tout: etat.voir === "tout",
     });
     appliquerVitesse();
@@ -1019,29 +1036,29 @@ async function montrerFiche(code: string): Promise<void> {
     comparateurs:
       niveau === "commune"
         ? [
-            territoire.parent && parents[territoire.parent]
-              ? { libelle: "son département", territoire: parents[territoire.parent] }
+            parentDe(territoire.parent, "departement")
+              ? { libelle: "son département", territoire: parentDe(territoire.parent, "departement")! }
               : null,
-            territoire.region && parents[territoire.region]
-              ? { libelle: "sa région", territoire: parents[territoire.region] }
+            parentDe(territoire.region, "region")
+              ? { libelle: "sa région", territoire: parentDe(territoire.region, "region")! }
               : null,
-            parents["FR"] ? { libelle: "la France", territoire: parents["FR"] } : null,
+            parentDe("FR", "pays") ? { libelle: "la France", territoire: parentDe("FR", "pays")! } : null,
           ].filter(Boolean as unknown as (x: unknown) => boolean) as {
             libelle: string;
             territoire: Territoire;
           }[]
         : niveau === "departement"
           ? [
-              territoire.region && parents[territoire.region]
-                ? { libelle: "sa région", territoire: parents[territoire.region] }
+              parentDe(territoire.region, "region")
+                ? { libelle: "sa région", territoire: parentDe(territoire.region, "region")! }
                 : null,
-              parents["FR"] ? { libelle: "la France", territoire: parents["FR"] } : null,
+              parentDe("FR", "pays") ? { libelle: "la France", territoire: parentDe("FR", "pays")! } : null,
             ].filter(Boolean as unknown as (x: unknown) => boolean) as {
               libelle: string;
               territoire: Territoire;
             }[]
-          : parents["FR"]
-            ? [{ libelle: "la France", territoire: parents["FR"] }]
+          : parentDe("FR", "pays")
+            ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
     jeux,
     periode: etat.periode,
@@ -1050,10 +1067,10 @@ async function montrerFiche(code: string): Promise<void> {
     peintSurCarte,
     associations: associations[code],
     agregats,
-    inflation: parents["FR"]?.series?.eurostat_inflation_ipch,
+    inflation: parentDe("FR", "pays")?.series?.eurostat_inflation_ipch,
     // L'IPC national mensuel : c'est de là que se tire l'inflation cumulée sur
     // la fenêtre du mandat. `fiche.ts` est pur — il ne va rien chercher.
-    serieInflation: parents["FR"]?.series?.insee_inflation_ipc,
+    serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
     tout: etat.voir === "tout",
   });
   $("panneau").classList.add("panneau--selection");
@@ -1354,38 +1371,16 @@ function fermerPanneau(): void {
 }
 
 /**
- * Les actions de l'en-tête de fiche, posées après chaque rendu.
+ * Le bouton « Comparer » a quitté la fiche.
  *
- * Le comparateur n'était atteignable que par le paramètre d'URL `?comparer=` :
- * aucun bouton n'y menait. Celui-ci ajoute le territoire ouvert à la
- * comparaison et bascule vers la vue Données, où le tableau se lit. Sur un
- * territoire déjà comparé, il l'en retire.
+ * Comparer deux territoires est un travail d'analyse, pas une action qu'on
+ * pose sous le nom d'une commune : la page ANALYSES existe pour ça, avec le
+ * contrôle de définition, de périmètre, de période et d'unité que la
+ * comparaison exige. Le bouton, lui, invitait à mettre côte à côte deux
+ * chiffres sans rien de tout cela.
  */
 function injecterActionsFiche(): void {
-  const fiche = $("fiche");
-  const code = etat.selection;
-  if (!code) return;
-  fiche.querySelector(".fiche__actions")?.remove();
-  const ancre =
-    // La ligne sur le mandat sans comptes publiés se lit avec le maire : le
-    // bouton « Comparer » ne s'insère donc pas entre les deux.
-    fiche.querySelector<HTMLElement>(".fiche__mandat") ??
-    fiche.querySelector<HTMLElement>(".fiche__maire") ??
-    fiche.querySelector<HTMLElement>(".fiche__meta") ??
-    fiche.querySelector<HTMLElement>(".fiche__titre");
-  if (!ancre) return;
-  const dedans = etat.comparaison.includes(code);
-  const complet = !dedans && etat.comparaison.length >= MAXIMUM;
-  ancre.insertAdjacentHTML(
-    "afterend",
-    `<p class="fiche__actions">
-      <button type="button" class="comparer" data-comparer="${code}"${
-        complet
-          ? ` disabled title="La comparaison est complète : ${MAXIMUM} territoires au maximum."`
-          : ""
-      }>${dedans ? "Retirer de la comparaison" : "Comparer"}</button>
-    </p>`,
-  );
+  $("fiche").querySelector(".fiche__actions")?.remove();
 }
 
 /** Ajoute ou retire un territoire de la comparaison, et va la montrer. */
@@ -2836,10 +2831,18 @@ async function demarrer(): Promise<void> {
     donnees.territoires("pays", "tous").catch(() => ({})),
   ])
     .then(([dep, reg, pays]) => {
+      // **Une clé par maille, jamais le code nu.**
+      //
+      // « 75 » est le département de Paris *et* la région Nouvelle-Aquitaine.
+      // Les trois mailles vivaient dans la même table, et la dernière étalée
+      // écrasait les précédentes : la fiche de Paris annonçait donc « Commune ·
+      // Nouvelle-Aquitaine ». La collision touchait tous les départements dont
+      // le code est aussi un code de région — 01, 11, 24, 27, 28, 32, 44, 52,
+      // 53, 75, 76, 84, 93, 94 —, soit quatorze départements.
       parents = {
-        ...enrichir(dep as Record<string, Territoire>, "departement"),
-        ...enrichir(reg as Record<string, Territoire>, "region"),
-        ...enrichir(pays as Record<string, Territoire>, "pays"),
+        ...cleParMaille(dep as Record<string, Territoire>, "departement"),
+        ...cleParMaille(reg as Record<string, Territoire>, "region"),
+        ...cleParMaille(pays as Record<string, Territoire>, "pays"),
       };
       // Le panneau d'accueil EST la fiche de la France : il ne peut donc
       // s'afficher qu'une fois la maille « pays » arrivée. Sans ce second

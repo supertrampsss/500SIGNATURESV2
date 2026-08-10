@@ -946,39 +946,6 @@ test("une phrase dont la ligne n'existe pas n'est pas cliquable", () => {
   const mesures = new Set([...html.matchAll(/data-mesure="([a-z_]+)"/g)].map((m) => m[1]));
   for (const id of renvois) assert.ok(mesures.has(id), id);
 });
-
-test("le corps est rangé sous des questions, la première ouverte", () => {
-  const html = ficheDeBordeaux();
-  assert.match(html, /<summary aria-expanded="true">Où va l&#39;argent \?<\/summary>/);
-  assert.match(html, /data-question="dette"/);
-  assert.match(html, /<summary aria-expanded="false">La dette est-elle tenable \?<\/summary>/);
-  // Une question sans indicateur renseigné ne s'affiche pas : ce catalogue-ci
-  // n'a que des comptes, donc ni « ça s'améliore » ni « villes semblables ».
-  assert.doesNotMatch(html, /data-question="evolution"/);
-  assert.doesNotMatch(html, /data-question="semblables"/);
-  assert.doesNotMatch(html, /data-question="reste"/);
-});
-
-test("« Tout voir » rouvre la fiche d'avant, intacte", () => {
-  const html = ficheDeBordeaux({ tout: true });
-  // Les deux corps sont rendus ensemble : la bascule ne redessine rien, elle
-  // change de classe sur le conteneur.
-  assert.match(html, /<div class="fiche__essentiel" data-corps="essentiel">/);
-  assert.match(html, /<div class="fiche__tout" data-corps="tout">/);
-  assert.match(html, /<div class="mesures" data-corps="tout">/);
-  // Et tout ce que la fiche faisait déjà est encore là.
-  assert.match(html, /class="theme-groupe" data-theme="finances_locales"/);
-  assert.match(html, /data-mesure="ofgl_encours_dette"/);
-  assert.match(html, /<button type="button" data-vitesse="tout" aria-pressed="true">/);
-});
-
-test("la bascule annonce ce qu'elle cache, et l'essentiel est le mode par défaut", () => {
-  const html = ficheDeBordeaux();
-  assert.match(html, /<button type="button" data-vitesse="essentiel" aria-pressed="true">/);
-  assert.match(html, /<button type="button" data-vitesse="tout" aria-pressed="false">/);
-  assert.match(html, /Tout voir<span\s+class="fiche__vitesses-compte">\d+ indicateurs<\/span>/);
-});
-
 test("le mandat ouvert en mars 2026 se dit en une ligne, et une seule", () => {
   const html = ficheDeBordeaux();
   const lignes = [...html.matchAll(/<p class="fiche__mandat">([^<]*)<\/p>/g)];
@@ -996,22 +963,21 @@ test("aucun tiret cadratin ni demi-cadratin dans la fiche produite", () => {
   }
 });
 
-test("sans mandat racontable, la fiche garde ses deux vitesses", () => {
-  // La règle a changé, et le test avec elle. Elle était « un bilan à raconter,
-  // sinon rien » : une maille sans récit gardait une interface à elle. C'était
-  // confondre la mise en page et le texte — le récit demande des règles écrites
-  // sur des séries que toutes les mailles n'ont pas, la séparation
-  // « L'essentiel / Tout voir » ne demande que d'avoir quelque chose à mettre
-  // des deux côtés. Un territoire sans mandat a des questions, une synthèse et
-  // des mesures : il a donc les deux vitesses, sans récit.
+test("la fiche est d'un seul tenant, dépliée, sans bascule ni bouton comparer", () => {
+  // Trois choses partent ensemble, et pour la même raison : ce que le lecteur
+  // vient chercher ne doit pas se trouver derrière un geste qu'il ignore.
+  // L'exhaustivité est le métier de la page ANALYSES, où chaque exercice a sa
+  // colonne ; comparer deux territoires demande un contrôle de définition, de
+  // périmètre, de période et d'unité que la page ANALYSES fait et qu'un bouton
+  // posé sous un nom de commune ne fait pas.
   const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
-  assert.match(html, /fiche__vitesses/);
-  assert.match(html, /data-vitesse/);
-  assert.match(html, /fiche__essentiel/);
-  // Sans mandat, ni récit ni ligne de mandat : c'est le texte qui manque, pas
-  // l'interface.
-  assert.doesNotMatch(html, /fiche__mandat/);
-  assert.match(html, /<div class="mesures"/);
+  assert.doesNotMatch(html, /fiche__vitesses/);
+  assert.doesNotMatch(html, /data-vitesse/);
+  assert.doesNotMatch(html, /Tout voir/);
+  assert.doesNotMatch(html, /data-corps/);
+  // Les questions et les mesures s'ouvrent seules.
+  assert.match(html, /<details class="question-fiche" data-question="[^"]*" open>/);
+  assert.match(html, /<div class="mesures">/);
 });
 
 test("la valeur affichée est le dernier exercice publié, jamais celui d'une autre couche", () => {
