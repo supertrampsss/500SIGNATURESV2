@@ -27,7 +27,6 @@ import {
   calendrierDe,
   fenetreRacontee,
   mandatEnCours,
-  mandatRaconte,
   type Mandat,
 } from "./mandat.ts";
 import { rendu as rendrePont } from "./pont.ts";
@@ -2336,11 +2335,23 @@ export function afficherFiche(
   // vitesses, pour une raison qui n'en justifiait qu'une : plaquer une
   // législature sur un budget serait faux, ne rien raconter ne l'est pas moins.
   // La fenêtre est alors comptable, et les phrases disent « depuis 2019 ».
+  // **La même fenêtre à toutes les mailles : 2019 et 2025.**
+  //
+  // La fenêtre suivait le calendrier électoral de la maille : mandat municipal
+  // ouvert en 2020 pour une commune, donc référence 2019 ; mandat départemental
+  // ouvert en 2021 pour un département, donc référence 2020. Deux fiches
+  // voisines racontaient alors deux périodes différentes, et la Gironde
+  // s'ouvrait sur « contre 1 763 M€ en 2020 » quand Bordeaux disait 2019 : deux
+  // territoires qu'on vient précisément comparer.
+  //
+  // C'est la règle du dépôt, et elle est écrite : la fenêtre est dans les
+  // millésimes des phrases, 2019 et 2025. Elle se lit donc sur les exercices
+  // publiés, jamais sur une date d'élection. Le calendrier ne sert plus qu'à
+  // dire, en une ligne, qu'un mandat fraîchement ouvert n'a pas encore de
+  // comptes.
   const raconte = !exercicesDesComptes.length
     ? null
-    : calendrier
-      ? mandatRaconte(exercicesDesComptes, aujourdhui, calendrier)
-      : fenetreRacontee(exercicesDesComptes);
+    : fenetreRacontee(exercicesDesComptes);
   const contexte: Contexte | null = raconte
     ? {
         mandat: raconte,
@@ -2358,8 +2369,10 @@ export function afficherFiche(
         nom: territoire.nom,
         avecPreposition: niveau === "commune" || niveau === "arrondissement_municipal",
         semblables: options.semblables,
-        // « Sur le mandat » n'a de sens que là où une élection l'a ouvert.
-        fenetre: calendrier ? "sur le mandat" : `depuis ${raconte.exerciceReference}`,
+        // La fenêtre se nomme par son millésime, jamais par un mandat : elle ne
+        // suit plus aucune élection, et « sur le mandat » désignerait une
+        // période que les chiffres ne couvrent pas.
+        fenetre: `depuis ${raconte.exerciceReference}`,
         // De quoi attribuer la variation d'un agrégat à ses composantes. La
         // liste est celle des indicateurs de la maille : une composante qui n'y
         // est pas fait échouer le contrôle de somme, donc rien ne s'affiche

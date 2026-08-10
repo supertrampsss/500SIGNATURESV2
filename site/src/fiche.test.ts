@@ -1152,3 +1152,55 @@ test("la feuille d'impôts n'est plus dans l'ouverture", () => {
   // Et elle est bien écrite ailleurs, après les mesures.
   assert.match(FICHE, /<div class="mesures".*\n\s*\$\{feuille \? `<section class="feuille-impots">/);
 });
+
+test("la fenêtre est la même à toutes les mailles, quelle que soit l'élection", () => {
+  // La règle du dépôt : la fenêtre est dans les millésimes des phrases, 2019 et
+  // 2025. Elle suivait le calendrier électoral de la maille — municipales 2020
+  // pour une commune, départementales 2021 pour un département — si bien que la
+  // Gironde s'ouvrait sur « contre 1 763 M€ en 2020 » quand Bordeaux disait
+  // 2019. Deux territoires qu'on vient précisément comparer.
+  const M = 1_000_000;
+  const annees = ["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
+  const serie = (base: number) =>
+    Object.fromEntries(annees.map((a, i) => [a, (base + i * 10) * M]));
+  const commun = {
+    unite: "EUR", theme: "finances_locales", sommable: true, definition: "", jeu: "ofgl",
+  };
+  const rendue = (niveau: string) => {
+    const territoire = {
+      nom: "Ici", parent: null, region: "75", population: 100_000, drapeaux: {},
+      series: {
+        ofgl_depenses_totales: serie(400),
+        ofgl_depenses_fonctionnement: serie(300),
+        ofgl_depenses_investissement: serie(100),
+      },
+    } as never;
+    const indicateurs = [
+      { ...commun, id: "ofgl_depenses_totales", libelle: "Dépenses totales", niveaux: [niveau], parent: null },
+      { ...commun, id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement", niveaux: [niveau], parent: "ofgl_depenses_totales" },
+      { ...commun, id: "ofgl_depenses_investissement", libelle: "Dépenses d'investissement", niveaux: [niveau], parent: "ofgl_depenses_totales" },
+    ] as never as Indicateur[];
+    const cible = { innerHTML: "" } as unknown as HTMLElement;
+    afficherFiche(cible, {
+      niveau, territoire, indicateurs, principal: "ofgl_depenses_totales",
+      jeux: [], periode: "2025", parHabitant: false, comparateurs: [],
+      libelleTheme: () => "Finances locales", aujourdhui: "2026-08-10",
+    });
+    return cible.innerHTML;
+  };
+  // La commune élit en 2020, le département en 2021, la région en 2021 : les
+  // trois doivent pourtant partir du même exercice.
+  for (const niveau of ["commune", "departement", "region"]) {
+    const html = rendue(niveau);
+    assert.match(html, /contre [^<]*en 2019/, niveau);
+    assert.doesNotMatch(html, /contre [^<]*en 2020/, niveau);
+  }
+});
+
+test("les phrases nomment la fenêtre par son millésime, pas par un mandat", () => {
+  // « sur le mandat » désignerait une période que les chiffres ne couvrent pas
+  // dès lors que la fenêtre ne suit plus l'élection.
+  const FICHE = fs.readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(FICHE, /fenetre: calendrier \? "sur le mandat"/);
+  assert.match(FICHE, /fenetre: `depuis \$\{raconte\.exerciceReference\}`/);
+});
