@@ -2024,7 +2024,16 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
 /** Trois vues — Carte, Décryptages, Données — au lieu d'un long défilement.
  *  Le lecteur choisit ce qu'il regarde ; on ne passe plus d'une carte plein
  *  écran à une pile de blocs sans transition. L'état vit dans le hash. */
-const VUES_PAGE = ["carte", "analyses", "decryptages", "donnees"] as const;
+/**
+ * L'accueil n'est plus la carte.
+ *
+ * Un aplat de couleurs ne dit pas un montant, ne dit pas d'où vient une hausse
+ * et ne se compare pas à un exercice antérieur : c'est la fiche qui répond à
+ * ces trois questions, et c'est elle qu'on vient chercher. La carte garde son
+ * onglet — elle montre bien ce qu'aucune fiche ne montre, la répartition dans
+ * l'espace — mais elle ne tient plus la porte d'entrée.
+ */
+const VUES_PAGE = ["territoire", "carte", "analyses", "decryptages", "donnees"] as const;
 
 /** La page ANALYSES pour le territoire sélectionné.
  *
@@ -2166,9 +2175,15 @@ function vuesConnues(): readonly string[] {
 
 function basculerVue(): void {
   const demandee = location.hash.replace("#", "");
-  const vue = vuesConnues().includes(demandee) ? demandee : "carte";
+  const vue = vuesConnues().includes(demandee) ? demandee : "territoire";
   document.body.dataset.vue = vue;
-  document.querySelector<HTMLElement>(".atelier")!.hidden = vue !== "carte";
+  // L'atelier porte la carte *et* le panneau de recherche et de fiche : il sert
+  // donc aux deux vues, et c'est la feuille de style qui décide, sur
+  // `body[data-vue]`, si la carte s'affiche et si le panneau se met en pleine
+  // page. Déplacer le panneau d'un conteneur à l'autre aurait cassé tout ce qui
+  // s'y accroche — poignée, tiroir mobile, écouteurs.
+  document.querySelector<HTMLElement>(".atelier")!.hidden =
+    vue !== "carte" && vue !== "territoire";
   $("vue-analyses").hidden = vue !== "analyses";
   if (vue === "analyses") void peindreAnalyses();
   $("vue-decryptages").hidden = vue !== "decryptages";

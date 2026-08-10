@@ -3580,6 +3580,53 @@ body[data-vue="carte"] .pied {
   font-size: var(--texte-s);
 }
 
+/* ==========================================================================
+   L'ACCUEIL SANS CARTE
+   ==========================================================================
+   L'atelier sert deux vues. En « carte », il est ce qu'il a toujours été : un
+   fond de carte plein cadre, avec le panneau posé dessus en surcouche. En
+   « territoire », la carte et ses commandes s'effacent, et le panneau devient
+   la page — une colonne de lecture centrée, avec la recherche en tête.
+
+   Rien ne bouge dans le DOM : la poignée du tiroir, les écouteurs et la fiche
+   restent où ils sont, et c'est la vue portée par `body` qui décide. */
+body[data-vue="territoire"] #carte,
+body[data-vue="territoire"] .legende,
+body[data-vue="territoire"] .carte-barre,
+body[data-vue="territoire"] .etiquettes,
+body[data-vue="territoire"] .infobulle,
+body[data-vue="territoire"] .panneau__poignee,
+body[data-vue="territoire"] .panneau__fermer {
+  display: none;
+}
+
+body[data-vue="territoire"] .atelier {
+  display: block;
+  height: auto;
+  min-height: 0;
+}
+
+body[data-vue="territoire"] .panneau {
+  position: static;
+  inset: auto;
+  width: auto;
+  max-width: 52rem;
+  height: auto;
+  max-height: none;
+  margin-inline: auto;
+  transform: none;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+body[data-vue="territoire"] .panneau__contenu {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+}
+
 /* Le cadrage territorial, replié en menu. Il garde la forme d'une pilule pour
    ne pas introduire un troisième objet dans la barre de la carte. */
 .pilule--menu {
