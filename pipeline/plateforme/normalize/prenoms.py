@@ -70,6 +70,20 @@ SEXES = {
     ),
 }
 
+# **Chargé, pas publié.**
+#
+# « Naissances portant le prénom de fille le plus donné : 3 070, −1,9 % » ne
+# répond à aucune des questions que le site pose. Ce n'est ni une dépense, ni
+# une recette, ni un impôt, ni une dette, et l'effectif du prénom de rang 1 ne
+# dit même pas quel prénom c'est — la source ne le publie pas dans ce jeu. La
+# ligne occupait une place dans la fiche d'un département sans rien y apporter.
+#
+# Le chargement reste : les observations continuent d'entrer dans l'entrepôt,
+# avec leurs contrôles, et republier ces séries ne demandera qu'un booléen si
+# elles trouvent un jour un usage. C'est l'affichage qui s'arrête, pas la
+# collecte.
+PUBLIE = False
+
 THEME = "prenoms"
 COLONNES = ("value",)
 
@@ -174,12 +188,12 @@ def declarer(conn) -> None:
                     (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
                      additive, geo_levels, time_granularity, published)
                 values (?, ?, ?, ?, ?, 'count', false,
-                        array['departement','region','pays'], 'annuelle', true)
+                        array['departement','region','pays'], 'annuelle', ?)
                 on conflict (indicator_id) do update set unit = excluded.unit,
                     definition_id = excluded.definition_id, label_fr = excluded.label_fr,
-                    theme = excluded.theme, published = true
+                    theme = excluded.theme, published = ?
                 """,
-                (identifiant, DATASET, definition, THEME, libelle),
+                (identifiant, DATASET, definition, THEME, libelle, PUBLIE, PUBLIE),
             )
         curseur.execute(
             "delete from core.indicator_definitions d where not exists"
