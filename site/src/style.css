@@ -1464,13 +1464,8 @@ tbody tr:hover {
 .pont__ligne--n0 th {
   font-weight: 600;
 }
-.pont__ligne--n1 th {
-  padding-left: var(--espace-6);
-}
-.pont__ligne--n2 th {
-  padding-left: var(--espace-8);
-  color: var(--encre-douce);
-}
+.
+.
 .pont__signe {
   width: 1.2rem;
   text-align: center;
@@ -3306,23 +3301,9 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* La synthèse d'ouverture : l'essentiel avant le détail. */
-.synthese {
-  background: var(--papier-creuse);
-  border-radius: var(--rayon-s);
-  padding: var(--espace-5) var(--espace-5);
-  margin: 0.8rem 0 0.2rem;
-}
 .
-.synthese ul {
-  margin: 0;
-  padding-left: var(--espace-6);
-  font-size: var(--texte-m);
-  display: grid;
-  gap: 0.28rem;
-}
-.synthese strong {
-  font-weight: 500;
-}
+.
+.
 /* L'agrégat du thème, sous son chiffre d'entrée : une seconde voix, plus
    basse. Au même corps que le reste, les deux phrases pesaient pareil et on ne
    voyait plus laquelle portait le chiffre. */
@@ -3451,84 +3432,28 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-weight: 600;
   color: var(--encre);
 }
-.pont__exercice {
-  font-weight: 400;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  white-space: nowrap;
-}
-.pont__rangee,
-.pont__entete {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  column-gap: 0.5rem;
-  align-items: baseline;
-}
+.
+.
 /* Une composante porte sa part, son montant et son évolution : quatre colonnes.
    La cellule d'évolution est rendue même vide, et de largeur fixe — sinon le
    bord droit des montants oscille d'une ligne à l'autre selon la longueur de
    la variation, et la colonne cesse de se lire d'un trait. */
-.pont__rangee--composante {
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
-}
-.pont__evolution,
-.pont__c-evolution {
-  min-width: 4.2rem;
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.pont__entete {
-  margin: 0 0 0.2rem;
-  padding-bottom: var(--espace-2);
-  border-bottom: 1px solid var(--trait);
-  font-size: var(--texte-xs);
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--encre-douce);
-}
-.pont__entete span:not(:first-child) { text-align: right; }
-.pont__etapes,
-.pont__composantes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
+.
+.
+.
+.
+.
 .pont__ligne { padding: var(--espace-2) 0; }
-.pont__nom {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.pont__reste {
-  font-size: var(--texte-xs);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-  color: var(--encre);
-  font-weight: 500;
-}
+.
+.
 /* Un palier est un total : le trait au-dessus dit que ce qui précède
    s'additionne pour donner cette ligne-là. */
-.pont__ligne--palier,
-.pont__ligne--arrivee {
-  border-top: 1px solid var(--trait-fort);
-  margin-top: 0.15rem;
-  padding-top: var(--espace-2);
-}
-.pont__ligne--palier .pont__nom,
-.pont__ligne--arrivee .pont__nom,
-.pont__ligne--palier .pont__reste,
-.pont__ligne--arrivee .pont__reste {
-  font-weight: 600;
-  color: var(--encre);
-}
+.
+.
 /* Le report n'apporte aucun euro neuf : il redit le total du bloc précédent
    pour que l'addition se vérifie de l'œil. */
-.pont__ligne--report .pont__nom { font-style: italic; }
-.pont__ligne--report .pont__reste { font-weight: 400; color: var(--encre-douce); }
+.
+.
 /* Ce qui s'ouvre se voit : le libellé souligné en pointillé est la seule
    promesse faite au lecteur qu'il y a quelque chose dessous. */
 .pont__ouvrir > summary,
@@ -3558,30 +3483,17 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .pont__sous[open] > summary .pont__c-nom::before { transform: rotate(90deg); }
 .pont__ouvrir > summary:hover .pont__nom,
 .pont__sous > summary:hover .pont__c-nom { color: var(--encre); }
-.pont__composantes { margin: 0.15rem 0 0.3rem; }
-.pont__composante { padding: var(--espace-1) 0; }
+.
+.
 /* Chaque niveau se décale, et un trait le rattache à ce qui le contient : à
    11 px d'écart, les rangs 2 et 3 ne se distinguaient plus. L'indentation est
    cumulative — chaque liste imbriquée décale la suivante. */
-.pont__composantes[data-rang] {
-  margin-left: var(--espace-3);
-  padding-left: var(--espace-4);
-  border-left: 1px solid var(--trait);
-}
-.pont__c-nom {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.pont__c-part,
-.pont__c-montant {
-  font-size: var(--texte-xs);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
+.
+.
+.
 /* Sans opacité : 0,75 ramenait ce gris à 3,17:1. */
-.pont__c-part { color: var(--encre-douce); }
-.pont__c-montant { color: var(--encre); }
+.
+.
 
 /* Le bouton qui porte une mesure sur la carte. Peindre relit une couche de
    34 772 territoires : ce n'est plus le prix d'un simple dépliage, c'est un
@@ -3614,27 +3526,9 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* Les deux lectures d'un même total : ce que la commune achète, et à quoi ça
    sert. Elles ne s'additionnent jamais entre elles — c'est le même euro, vu
    deux fois — donc on montre l'une ou l'autre. */
-.pont__axes {
-  display: flex;
-  gap: 0.25rem;
-  margin: 0.3rem 0 0.1rem 0.7rem;
-}
-.pont__axes button {
-  font: inherit;
-  font-size: var(--texte-xs);
-  padding: var(--espace-1) var(--espace-4);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-pilule);
-  background: none;
-  color: var(--encre-douce);
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-}
-.pont__axes button[aria-pressed="true"] {
-  background: var(--encre);
-  border-color: var(--encre);
-  color: var(--papier);
-}
+.
+.
+.
 
 /* « Au titre de quel programme » : la typologie que le jaune permet vraiment.
    Repliée, parce qu'elle répond à une seconde question — la première étant
@@ -4106,67 +4000,21 @@ summary.pont__rangee,
   margin: 0 0 var(--espace-6);
   padding: 0;
 }
-.verdict__phrase {
-  position: relative;
-  border-top: 1px solid var(--trait);
-}
+.
 /* La puce dit le sens sans le juger : pleine pour ce qui tend les comptes,
    creuse pour ce qui les détend, effacée pour ce qui ne tranche pas. */
-.verdict__phrase::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: calc(var(--espace-5) + var(--espace-2));
-  width: var(--espace-3);
-  height: var(--espace-3);
-  border-radius: 50%;
-  border: 1px solid var(--trait-fort);
-  background: var(--trait-fort);
-}
-.verdict__phrase--tend::before {
-  border-color: var(--argile);
-  background: var(--argile);
-}
-.verdict__phrase--detend::before {
-  border-color: var(--encre);
-  background: var(--papier);
-}
+.
+.
+.
 /* La phrase entière est la cible : viser une puce de six pixels au doigt, non. */
-.verdict__vers,
-.verdict__texte {
-  display: block;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  font-size: var(--texte-m);
-  line-height: 1.5;
-  min-height: var(--cible);
-  padding: var(--espace-4) 0 var(--espace-4) var(--espace-6);
-  border: 0;
-  background: none;
-  color: var(--encre);
-}
-.verdict__vers {
-  cursor: pointer;
-  transition: color var(--transition);
-}
-.verdict__vers:hover {
-  color: var(--argile);
-}
+.
+.
+.
 
 /* ---- Ma feuille d'impôts : le bloc vient de `feuille-impots.ts`, qui réemploie
         la mise en forme des « 100 € » (`.cent`). Seule la boîte est à faire. ---- */
-.feuille-impots {
-  margin: 0 0 var(--espace-6);
-  padding: var(--espace-5);
-  background: var(--papier-creuse);
-  border-radius: var(--rayon-s);
-}
-.feuille-impots h3 {
-  font-family: var(--serif);
-  font-size: var(--texte-l);
-  margin: 0 0 var(--espace-3);
-}
+.
+.
 
 /* ---- Le corps par questions ---- */
 .

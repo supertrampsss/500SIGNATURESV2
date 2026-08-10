@@ -12,13 +12,7 @@ import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
 import { emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import {
-  afficherFiche,
-  groupeDeLaCommune,
-  ORDRE_THEMES,
-  rubriqueDuTheme,
-  valeurComparable,
-} from "./fiche.ts";
+import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { decoder, indexer } from "./simulateur.ts";
@@ -708,7 +702,6 @@ function afficherApercu(): void {
       territoire: france,
       indicateurs: nationaux,
       comparateurs: [],
-      serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
     });
     appliquerVitesse();
     return;
@@ -933,52 +926,9 @@ async function montrerFiche(code: string): Promise<void> {
   if (!territoire) return;
   etat.selection = code;
   ecrireUrl();
-  // Aux mailles supérieures, l'ensemble **est** le groupe : les cent un
-  // départements, les dix-huit régions. Sans cette clé, « où se situe ce
-  // territoire parmi ses semblables » n'existait qu'à la maille commune, et la
-  // fiche d'un département était une fiche amputée d'une de ses questions.
-  const groupeDeLaMaille = (indicateur: string, exercice: string) =>
-    niveau === "commune"
-      ? undefined
-      : groupes?.groupes[indicateur]?.[exercice]?.[`${niveau}:tous`];
-  // Le récit de mandat ne retient un fait que s'il sort du lot : c'est la
-  // cascade de groupes qui le dit, indicateur par indicateur et exercice par
-  // exercice, et non un seuil absolu identique pour toutes les communes.
-  const strates = groupes;
-  const semblables = !strates
-    ? undefined
-    : niveau !== "commune"
-      ? (indicateur: string, exercice: string) => {
-          const q = groupeDeLaMaille(indicateur, exercice);
-          const valeur = valeurComparable(
-            territoire,
-            indicateur,
-            exercice,
-            strates.bases?.[indicateur],
-          );
-          return q && valeur !== undefined ? { valeur, ...q, criteres: [] } : null;
-        }
-      : ((indicateur: string, exercice: string) => {
-          const dans = groupeDeLaCommune(
-            territoire,
-            strates.groupes[indicateur]?.[exercice],
-            strates.cascade ?? [strates.criteres],
-          );
-          const valeur = valeurComparable(
-            territoire,
-            indicateur,
-            exercice,
-            strates.bases?.[indicateur],
-          );
-          return dans && valeur !== undefined
-            ? { valeur, ...dans.quartiles, criteres: dans.criteres }
-            : null;
-        });
-
   afficherFiche($("fiche"), {
     niveau,
     territoire,
-    semblables,
     // Tous les thèmes, plus seulement celui de la carte : le panneau est
     // désormais le seul endroit où l'on choisit — il doit tout montrer.
     // Filtré sur le niveau : afficher « donnée non disponible » pour un
@@ -1016,9 +966,6 @@ async function montrerFiche(code: string): Promise<void> {
           : parentDe("FR", "pays")
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
-    // L'IPC national mensuel : c'est de là que se tire l'inflation cumulée sur
-    // la fenêtre. `fiche.ts` est pur — il ne va rien chercher.
-    serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
   });
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();

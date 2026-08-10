@@ -15,120 +15,11 @@ import fs from "node:fs";
 import { test } from "node:test";
 
 import type { Indicateur } from "./donnees.ts";
-import {
-  afficherFiche,
-  groupeDeLaCommune,
-  inflationCumulee,
-  ORDRE_THEMES,
-  phrasesQuiCompletent,
-  rubriqueDuTheme,
-  valeurComparable,
-} from "./fiche.ts";
-import { ROLES } from "./reperes.ts";
+import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
 
 /** Sources lues telles quelles : ces contrôles portent sur la forme rendue,
  *  pas sur une valeur calculée. */
 const FICHE = fs.readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
-
-/* ------------------------------------------------------------------------
- * Ce qui se compare, et à quel groupe.
- * ---------------------------------------------------------------------- */
-
-// La Brède : 4 386 habitants au recensement, 4 941 en population de référence
-// de l'OFGL. Les deux diffèrent de 12 %, et le quartile de la commune dans son
-// groupe en dépend.
-const LA_BREDE = {
-  nom: "La Brède",
-  population: 4_386,
-  series: {
-    ofgl_depenses_fonctionnement: { "2025": 4_385_666.73 },
-    ofgl_population_reference: { "2025": 4_941 },
-  },
-  drapeaux: { tranche_population: "3", rural: "Non", outre_mer: "Non" },
-} as never;
-
-test("la valeur comparée se rapporte à la population de l'OFGL, pas à celle du recensement", () => {
-  // 4 385 666,73 / 4 941 = 888 €. Avec la population municipale (4 386) :
-  // 1 000 €. Le groupe de La Brède compte 949 communes, premier quartile 775 €
-  // et médiane 916 € : 888 € la place dans la moitié centrale, 1 000 € au-dessus
-  // de la médiane. Une commune sur douze en Gironde changeait ainsi de quartile.
-  const valeur = valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2025", {
-    base: "par_habitant",
-  });
-  assert.equal(Math.round(valeur as number), 888);
-});
-
-test("un effectif se compare pour mille habitants, un taux tel qu'il est publié", () => {
-  const pourMille = valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2025", {
-    base: "pour_mille",
-  });
-  assert.equal(Math.round(pourMille as number), 887_607);
-  const telQuel = valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2025", {
-    base: "valeur",
-  });
-  assert.equal(telQuel, 4_385_666.73);
-});
-
-test("sans population de référence, la commune n'est pas placée", () => {
-  // La publication l'écarte du calcul des quartiles : la placer quand même
-  // reviendrait à la comparer à un groupe dont elle ne fait pas partie.
-  assert.equal(
-    valeurComparable(LA_BREDE, "ofgl_depenses_fonctionnement", "2024", { base: "par_habitant" }),
-    undefined,
-  );
-  assert.equal(
-    valeurComparable(LA_BREDE, "insee_logements_vacants", "2025", { base: "pour_mille" }),
-    undefined,
-  );
-});
-
-// La cascade : plusieurs découpages du même ensemble, du plus fin au plus large.
-const CASCADE = [
-  ["tranche_population", "rural", "outre_mer", "montagne", "touristique"],
-  ["tranche_population", "rural", "outre_mer"],
-];
-const QUARTILES = { n: 40, q1: 1, mediane: 2, q3: 3 };
-
-test("la commune reçoit le groupe le plus fin qui existe pour elle", () => {
-  const commune = {
-    nom: "Station",
-    series: {},
-    drapeaux: {
-      tranche_population: "3", rural: "Oui", outre_mer: "Non",
-      montagne: "Oui", touristique: "Oui",
-    },
-  } as never;
-  const trouve = groupeDeLaCommune(
-    commune,
-    { "0:3|Oui|Non|Oui|Oui": QUARTILES, "1:3|Oui|Non": { ...QUARTILES, n: 900 } },
-    CASCADE,
-  );
-  assert.equal(trouve?.quartiles.n, 40);
-  assert.deepEqual(trouve?.criteres, CASCADE[0]);
-});
-
-test("une commune trop singulière retombe sur un découpage plus large", () => {
-  // C'est tout l'intérêt de la cascade : sans elle, affiner les critères ferait
-  // disparaître le repère des communes atypiques — sans un mot, un groupe absent
-  // ne s'affiche pas.
-  const commune = {
-    nom: "Cas rare",
-    series: {},
-    drapeaux: {
-      tranche_population: "7", rural: "Non", outre_mer: "Oui",
-      montagne: "Oui", touristique: "Oui",
-    },
-  } as never;
-  const trouve = groupeDeLaCommune(commune, { "1:7|Non|Oui": QUARTILES }, CASCADE);
-  assert.equal(trouve?.quartiles.n, 40);
-  assert.deepEqual(trouve?.criteres, CASCADE[1]);
-});
-
-test("aucun groupe ne vaut mieux qu'un groupe inventé", () => {
-  const commune = { nom: "Inconnue", series: {}, drapeaux: {} } as never;
-  assert.equal(groupeDeLaCommune(commune, { "0:x": QUARTILES }, CASCADE), undefined);
-  assert.equal(groupeDeLaCommune(commune, undefined, CASCADE), undefined);
-});
 
 /* ------------------------------------------------------------------------
  * Les rubriques : elles ne rangent plus la fiche, elles rangent ANALYSES.
@@ -252,25 +143,10 @@ function ficheDeBordeaux(
   });
   return cible.innerHTML;
 }
-
-test("l'inflation cumulée d'une fenêtre se compose depuis les glissements publiés", () => {
-  // 2019 → 2025 : +16,1 %, le chiffre que portent les faits.
-  const cumul = inflationCumulee(IPC_NATIONAL, "2019", "2025");
-  assert.ok(cumul !== null);
-  assert.equal(Number(cumul!.toFixed(1)), 16.1);
-  // L'inflation de l'exercice de référence s'est produite avant la fenêtre.
-  assert.equal(inflationCumulee(IPC_NATIONAL, "2025", "2025"), null);
-  // Une année incomplète ne se cumule pas : un cumul amputé se lirait comme un
-  // cumul entier et sous-estimerait la hausse.
-  assert.equal(inflationCumulee({ "2020-01": 1 }, "2019", "2020"), null);
-  assert.equal(inflationCumulee(undefined, "2019", "2025"), null);
-});
-
-test("la fiche s'ouvre sur les repères, puis les blocs, puis les faits", () => {
+test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () => {
   const html = ficheDeBordeaux();
   const rang = (classe: string) => html.indexOf(`class="${classe}`);
   assert.ok(rang("reperes") > -1 && rang("reperes") < rang("bloc-lecture"));
-  assert.ok(rang("bloc-lecture") < rang("verdict"));
   // Le titre du bloc est un h3 en Spectral, jamais un micro-label gris.
   assert.match(html, /<section class="bloc-lecture">\s*<h3>Où va l&#39;argent<\/h3>/);
   // Trois blocs ici, pas quatre : le jeu d'essai ne publie pas les dépenses
@@ -280,50 +156,6 @@ test("la fiche s'ouvre sur les repères, puis les blocs, puis les faits", () => 
     ["Où va l&#39;argent", "Qui paie", "Ce qu&#39;il reste"],
   );
 });
-
-test("les faits tiennent en trois phrases au plus", () => {
-  const html = ficheDeBordeaux();
-  const phrases = [...html.matchAll(/<li class="verdict__phrase/g)];
-  assert.ok(phrases.length >= 1 && phrases.length <= 3, `${phrases.length} phrases`);
-});
-
-/**
- * Les faits disent ce que les repères et les blocs n'ont pas dit.
- *
- * Tous lisent les mêmes séries, classées pareil : sans filtre, la première
- * puce répétait le repère posé quatre lignes plus haut. Le filtre porte sur
- * l'indicateur, pas sur la formulation.
- */
-test("aucun fait ne redit un repère ni un bloc", () => {
-  const html = ficheDeBordeaux();
-  const blocs = [...html.matchAll(/<section class="bloc-lecture">([\s\S]*?)<\/section>/g)]
-    .map(([, corps]) => corps.replace(/<[^>]*>/g, " "))
-    .join(" ");
-  assert.ok(blocs.length > 0, "il faut au moins un bloc pour que le test ait un sens");
-  const faits = [...html.matchAll(/<li class="verdict__phrase[^>]*>([\s\S]*?)<\/li>/g)];
-  assert.ok(faits.length > 0, "il faut au moins un fait pour que le test ait un sens");
-  for (const [, phrase] of faits) {
-    const nu = phrase.replace(/<[^>]*>/g, "").trim();
-    assert.ok(!blocs.includes(nu), `phrase déjà dite par un bloc : ${nu.slice(0, 60)}`);
-  }
-  // Le contrôle porte sur l'indicateur : `phrasesQuiCompletent` retire tout ce
-  // qu'un repère ou un bloc a déjà cité, quelle que soit la formulation.
-  const dits = ROLES.commune.map((r) => r.id);
-  const restantes = phrasesQuiCompletent(
-    dits.map((vers) => ({ texte: "x", sens: "neutre" as const, vers, saillance: 1 })),
-    dits,
-  );
-  assert.deepEqual(restantes, []);
-});
-
-test("aucun fait ne promet un détail que la fiche n'a pas", () => {
-  // Les lignes de mesures ne sont plus dans la fiche : rien n'y est cliquable,
-  // et un renvoi ne mène jamais vers une section absente.
-  const html = ficheDeBordeaux();
-  assert.doesNotMatch(html, /data-verdict-vers=/);
-  assert.doesNotMatch(html, /data-mesure=/);
-});
-
 /**
  * Aucune ligne de mandat, à aucune maille.
  *
@@ -362,21 +194,22 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
     "onglets-rubriques", "class=\"mesures\"", "class=\"mesure", "synthese",
     "class=\"ratios", "Tout le détail", "autres lignes",
     "Où va l&#39;argent ?", "Qui paie ?", "Le reste",
+    // Et tout ce qui suivait le dernier bloc : les faits, le pont, la feuille.
+    "verdict", "pont", "feuille-impots", "fiche__tout",
   ]) {
     assert.ok(!html.includes(marque), marque);
   }
 });
 
-test("ce qui reste sous les faits : le pont, et rien d'autre", () => {
+test("la fiche s'arrête au dernier bloc", () => {
   const html = ficheDeBordeaux();
   const sections = [...html.matchAll(/class="([a-z-]+)"/g)]
     .map((m) => m[1])
-    .filter((c) => !c.startsWith("repere") && !c.startsWith("bloc") && !c.startsWith("verdict"));
+    .filter((c) => !c.startsWith("repere") && !c.startsWith("bloc"));
   for (const classe of sections) {
     assert.ok(
-      ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants", "fiche__essentiel",
-       "fiche__tout", "fiche__parent", "feuille-impots"].includes(classe)
-        || classe.startsWith("pont"),
+      ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants",
+       "fiche__essentiel", "fiche__parent"].includes(classe),
       `section inattendue : ${classe}`,
     );
   }
@@ -442,14 +275,6 @@ test("la fenêtre est la même à toutes les mailles, quelle que soit l'électio
     assert.doesNotMatch(blocs, /(qu'en|contre [^<]*en) 2020/, niveau);
   }
 });
-
-test("les phrases nomment la fenêtre par son millésime, pas par un mandat", () => {
-  // « sur le mandat » désignerait une période que les chiffres ne couvrent pas
-  // dès lors que la fenêtre ne suit plus l'élection.
-  assert.doesNotMatch(FICHE, /fenetre: calendrier \? "sur le mandat"/);
-  assert.match(FICHE, /fenetre: `depuis \$\{raconte\.exerciceReference\}`/);
-});
-
 test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => {
   // « Salaire net mensuel moyen : 0,00 M€ », deux exercices de suite, avec
   // « +4 % » à côté d'un chiffre nul : la règle des millions sert à comparer
