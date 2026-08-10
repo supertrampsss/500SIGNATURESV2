@@ -114,18 +114,36 @@ pour ne plus l'être.
 
 ## Reste à faire, par ordre de gravité
 
-1. **Simulateur — collectivités locales.** L'API d'agrégation de l'OFGL rend les
-   totaux nationaux par échelon et par agrégat, et `infra/seed/ofgl_agregats.csv`
-   porte déjà la hiérarchie dans sa colonne `chemin`. Trois pièges relevés et non
-   encore traités : les enfants d'un agrégat ne sont **pas toujours une
-   partition** (« Dépenses totales » a pour enfants le fonctionnement,
-   l'investissement *et* « hors remb » qui les recoupe ; « Impôts locaux » n'a
-   que des composantes partielles) ; les trois échelons **ne se somment pas**
-   entre eux (transferts croisés) ; et les EPCI ont quitté le produit, donc un
-   total « collectivités locales » serait amputé. Publier un budget par échelon,
-   jamais leur somme. Puis comptes spéciaux, budgets annexes et ODAC.
+1. **Simulateur — comptes spéciaux, budgets annexes et ODAC.** Ce qui reste
+   hors du budget général de l'État et hors des trois échelons publiés.
+2. **Provenance au niveau France.** `provenance.ts` attribue la variation d'un
+   agrégat à ses composantes partout où la source déclare une hiérarchie. Aucun
+   des 147 indicateurs nationaux n'en déclare : il n'y a rien à décomposer, et
+   le module se tait. Déclarer la hiérarchie des agrégats nationaux dans le
+   pipeline — les missions du budget général sous les dépenses nettes, à
+   condition de vérifier que la somme redonne le total — l'ouvrirait à la
+   France.
+3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
+   range, il ne les condense pas : 187 lignes restent 187 lignes derrière le
+   second onglet. Visé : une question, une phrase, trois chiffres, le tableau
+   complet derrière.
+
 ### Fait
 
+- **Simulateur — collectivités locales** (10 août 2026). Un budget par échelon,
+  jamais leur somme : communes, départements, régions, et aucune entrée qui les
+  résume. L'arbre n'est pas celui que l'OFGL déclare mais celui que les montants
+  vérifient — un nœud n'ouvre ses composantes que si elles lui redonnent son
+  total, ce qui referme « Dépenses d'intervention » (composantes partielles) et
+  écarte « hors remb » sur preuve d'identité, pas sur son nom. Couverture écrite
+  dans le fichier : 97 départements sur 103, 17 régions sur 18.
+- **La France dit quelque chose** (10 août 2026). La fenêtre des comptes finissait
+  sur 2026, que dix séries sur cent quatre-vingt-dix atteignent : chaque règle
+  lisait `null` à l'arrivée. Fenêtre corrigée, plus six règles nationales et un
+  mode « en points » — un taux publié en pourcentage varie en points.
+- **D'où vient la hausse** (10 août 2026). `provenance.ts` attribue la variation
+  d'un agrégat à ses composantes, à condition qu'elles somment au total **aux
+  deux exercices**. 13 lignes à Bordeaux, 14 en Gironde, 14 en Nouvelle-Aquitaine.
 - **Simulateur — la Sécurité sociale** (9 août 2026). Connecteur `plfss.py` :
   annexes 3 et 5 du PLFSS 2026, charges et produits nets des régimes de base
   consolidés poste par poste (676 925 / 659 465 M€, résultat −17 461 M€) et
