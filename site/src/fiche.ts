@@ -599,13 +599,24 @@ function ligneIndicateur(
     : "";
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
-  // son détail n'a pas à être demandé.
-  // Dépliée, comme tout le reste de la fiche. Le pli demandait un clic par
-  // ligne pour lire ce que la ligne mesure, et le lecteur ne savait pas qu'il y
-  // avait quelque chose dessous.
+  // son détail n'a pas à être demandé. Les autres se replient.
+  //
+  // Elles étaient toutes dépliées, et l'objection qui l'avait décidé était
+  // juste : un pli sans marque ne se voit pas, le lecteur ne savait pas qu'il y
+  // avait quelque chose dessous. Mais la réponse coûtait cher — mesuré sur la
+  // fiche France, 46 mesures visibles à 200 px pièce, et un bloc nommé
+  // « L'essentiel » qui atteignait 8 230 px. Un essentiel de huit mille pixels
+  // n'est plus un essentiel, et le détail de la quarantième mesure n'a été
+  // demandé par personne.
+  //
+  // L'objection est traitée là où elle devait l'être, dans la forme : le
+  // sommaire porte un chevron qui pivote (voir `.mesure > summary::after`).
+  // Ce qui reste à découvert est ce que la règle du produit demande — le nom,
+  // le chiffre, sa variation ; ce qui se replie est le détail : les phrases de
+  // comparaison, la courbe, l'historique et le rang.
   return `<details class="mesure${surCarte ? " mesure--carte" : ""}" data-mesure="${
     indicateur.id
-  }" open>
+  }"${surCarte ? " open" : ""}>
     <summary>
       <span class="mesure__nom">${echapper(traduire(indicateur.libelle))}</span>
       <button type="button" class="mesure__info" data-info="${indicateur.id}"

@@ -15,6 +15,11 @@ import fs from "node:fs";
 import { test } from "node:test";
 
 import type { Indicateur } from "./donnees.ts";
+
+/** Sources lues telles quelles : ces deux tests portent sur la forme rendue,
+ *  pas sur une valeur calculée. */
+const FICHE = fs.readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
+const CSS = fs.readFileSync(new URL("./style.css", import.meta.url), "utf8");
 import {
   afficherFiche,
   comparableAuxAutresTerritoires,
@@ -1169,4 +1174,40 @@ test("les phrases nomment la fenêtre par son millésime, pas par un mandat", ()
   const FICHE = fs.readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
   assert.doesNotMatch(FICHE, /fenetre: calendrier \? "sur le mandat"/);
   assert.match(FICHE, /fenetre: `depuis \$\{raconte\.exerciceReference\}`/);
+});
+
+test("une mesure tient sur sa ligne, son détail se replie", () => {
+  // Mesuré sur la fiche France, à 1440 px : 46 mesures visibles à 200 px
+  // chacune, et un bloc nommé « L'essentiel » qui atteignait 8 230 px. Un
+  // essentiel de huit mille pixels n'en est plus un.
+  //
+  // Ce qui reste à découvert est ce que la règle du produit demande — le nom,
+  // le chiffre, sa variation. Ce qui se replie est le détail : phrases de
+  // comparaison, courbe, historique, rang. Seule la mesure portée sur la
+  // carte s'ouvre d'office : c'est celle qu'on regarde.
+  const MESURE = FICHE.slice(FICHE.indexOf('return `<details class="mesure'));
+  assert.match(MESURE, /\$\{surCarte \? " open" : ""\}>/);
+  assert.doesNotMatch(MESURE.slice(0, 400), /data-mesure="\$\{[\s\S]*?\}" open>/);
+
+  // L'objection qui avait fait tout déplier — un pli sans marque ne se voit
+  // pas — est traitée dans la forme, pas en renonçant au pli.
+  assert.match(CSS, /\.mesure > summary::after \{/);
+  assert.match(CSS, /\.mesure\[open\] > summary::after \{/);
+
+  // L'historique année par année est derrière son propre pli, dont la légende
+  // est la poignée : elle dit ce qu'il y a dessous ET qu'il y a à ouvrir.
+  assert.match(FICHE, /<details class="mini-serie__pli">/);
+  assert.match(FICHE, /<summary class="mini-serie__fenetre">/);
+});
+
+test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => {
+  // « Salaire net mensuel moyen : 0,00 M€ », deux exercices de suite, avec
+  // « +4 % » à côté d'un chiffre nul : le seul affichage du site où la
+  // variation ne se rattachait à aucune valeur lisible. La règle des millions
+  // sert à comparer des masses budgétaires entre elles, pas à dire une paie.
+  const ECHELLE = fs.readFileSync(new URL("./echelle.ts", import.meta.url), "utf8");
+  assert.match(ECHELLE, /const VALEURS_UNITAIRES = new Set\(\["insee_salaire_net_eqtp_mensuel"\]\);/);
+  // Nommées, jamais devinées par un seuil de grandeur : le budget d'une petite
+  // commune est lui aussi un petit nombre, et il reste un agrégat.
+  assert.doesNotMatch(ECHELLE, /valeur < 1[_ ]?000[_ ]?000/);
 });

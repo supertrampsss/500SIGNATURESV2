@@ -3069,6 +3069,28 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .mesure > summary::-webkit-details-marker {
   display: none;
 }
+/* Le chevron : la marque qui manquait quand les mesures étaient toutes
+   dépliées. Sans elle, replier revenait à cacher ; avec elle, la ligne dit
+   qu'elle a un dessous. Dessiné au filet, il pivote à l'ouverture — c'est la
+   seule chose qui bouge dans une ligne de mesure. */
+.mesure > summary::after {
+  content: "";
+  flex: 0 0 auto;
+  width: 0.42rem;
+  height: 0.42rem;
+  margin-left: var(--espace-2);
+  align-self: center;
+  border-right: 1.5px solid var(--encre-douce);
+  border-bottom: 1.5px solid var(--encre-douce);
+  transform: rotate(45deg) translate(-0.1rem, -0.1rem);
+  transition: transform var(--transition), border-color var(--transition);
+}
+.mesure[open] > summary::after {
+  transform: rotate(225deg) translate(-0.1rem, -0.1rem);
+}
+.mesure > summary:hover::after {
+  border-color: var(--argile);
+}
 .mesure > summary:hover .mesure__nom {
   color: var(--argile);
 }
