@@ -313,12 +313,10 @@ export const subventionsParProgramme = () =>
 export const comparaisons = () => lire<Comparaisons>("comparaisons.json");
 export const budgetEtat = () => lire<BudgetEtat>("budget-etat.json");
 export const depensesFiscales = () => lire<DepensesFiscales>("depenses-fiscales.json");
-export const agregatsNationaux = () => lire<AgregatsNationaux>("agregats-nationaux.json");
 export const subventions = (lot: string) =>
   lire<Record<string, SubventionsCommune>>(`subventions/commune/${lot}.json`);
 export const fraicheur = () => lire<Fraicheur[]>("fraicheur.json");
 export const journal = () => lire<Changement[]>("journal.json");
-export const references = () => lire<import("./reference.ts").References>("references.json");
 
 export const urlTuiles = () => cleTuiles;
 

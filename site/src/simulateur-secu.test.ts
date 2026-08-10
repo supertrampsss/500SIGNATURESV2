@@ -264,13 +264,13 @@ test("les capitales s'accentuent, comme en français", async () => {
   assert.equal(accentuer("Etat-major des armées"), "État-major des armées");
 });
 
-test("la fiche affiche un total, pas un montant par habitant", async () => {
+test("la fiche affiche un total, jamais un montant par habitant", async () => {
   const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
   // « 445 € » pour Bordeaux ne dit ni ce que la ville dépense, ni à combien
-  // d'habitants c'est rapporté. Le par-habitant reste dans le tableau déplié,
-  // où il est nommé.
-  assert.match(FICHE, /<span class="mesure__valeur">\$\{formater\(brut, indicateur\.unite, false, indicateur\.id\)\}/);
-  assert.doesNotMatch(FICHE, /<span class="mesure__valeur">\$\{formate\(valeur\)\}/);
+  // d'habitants c'est rapporté. Le par-habitant ne s'affiche que dans les
+  // tableaux dépliés, et la fiche n'en porte plus aucun.
+  assert.doesNotMatch(FICHE, /parHabitant/);
+  assert.doesNotMatch(FICHE, /mesure__valeur/);
 });
 
 /* ------------------------------- les collectivités, échelon par échelon */

@@ -16,7 +16,6 @@ import {
   afficherFiche,
   groupeDeLaCommune,
   ORDRE_THEMES,
-  positionDansGroupe,
   rubriqueDuTheme,
   valeurComparable,
 } from "./fiche.ts";
@@ -167,8 +166,6 @@ let etat: Etat;
 let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
 let groupes: donnees.Comparaisons | null = null;
-let reperes: import("./reference.ts").References | null = null;
-let agregats: donnees.AgregatsNationaux | null = null;
 /** Départements, régions et pays chargés à part : ils servent de points de
  *  comparaison à n'importe quelle commune, y compris là où aucune médiane
  *  n'est publiable (délinquance sous secret de diffusion). Table séparée
@@ -690,16 +687,6 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
   return catalogue.filter((i) => i.niveaux?.includes(niveau) && !DENOMINATEURS.has(i.id));
 }
 
-/** L'indicateur qui ouvre la fiche nationale : la dette publique en % du PIB
- *  d'abord, parce que c'est la question qu'on pose en premier. Le premier de
- *  la liste effectivement publié l'emporte. */
-const PHARE_NATIONAL = [
-  "insee_dette_apu_part_pib",
-  "etat_solde_budgetaire",
-  "etat_depenses_nettes_bg",
-  "eurostat_chomage",
-];
-
 /**
  * Tant que rien n'est sélectionné, le panneau montre **la France**.
  *
@@ -719,22 +706,9 @@ function afficherApercu(): void {
     afficherFiche($("fiche"), {
       niveau: "pays",
       territoire: france,
-      principal: PHARE_NATIONAL.find((id) => france.series[id]) ?? nationaux[0]?.id,
-      // Aucune de ces séries n'est peinte sur la carte : la marquer « sur la
-      // carte » dirait au lecteur d'y chercher quelque chose qui n'y est pas.
-      marquerCarte: false,
       indicateurs: nationaux,
-      libelleTheme,
       comparateurs: [],
-      jeux,
-      periode: etat.periode,
-      parHabitant: etat.declinaison === "habitant",
-      references: reperes,
-      peintSurCarte,
-      agregats,
-      inflation: parentDe("FR", "pays")?.series?.eurostat_inflation_ipch,
       serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
-      tout: etat.voir === "tout",
     });
     appliquerVitesse();
     return;
@@ -959,16 +933,6 @@ async function montrerFiche(code: string): Promise<void> {
   if (!territoire) return;
   etat.selection = code;
   ecrireUrl();
-  // La cascade : le groupe le plus fin qui existe pour cette commune, et les
-  // critères qui l'ont défini — ils changent d'une commune à l'autre.
-  const trouve =
-    niveau === "commune" && groupes
-      ? groupeDeLaCommune(
-          territoire,
-          groupes.groupes[etat.indicateur]?.[etat.periode],
-          groupes.cascade ?? [groupes.criteres],
-        )
-      : undefined;
   // Aux mailles supérieures, l'ensemble **est** le groupe : les cent un
   // départements, les dix-huit régions. Sans cette clé, « où se situe ce
   // territoire parmi ses semblables » n'existait qu'à la maille commune, et la
@@ -977,26 +941,6 @@ async function montrerFiche(code: string): Promise<void> {
     niveau === "commune"
       ? undefined
       : groupes?.groupes[indicateur]?.[exercice]?.[`${niveau}:tous`];
-  const quartiles = trouve?.quartiles ?? groupeDeLaMaille(etat.indicateur, etat.periode);
-  // Ce qui se compare au groupe dépend de la grandeur : une dépense et un
-  // nombre de logements se rapportent aux habitants, une médiane de revenus et
-  // un taux se comparent tels qu'ils sont publiés. C'est la publication qui le
-  // dit, indicateur par indicateur — le site n'a pas à le deviner.
-  const base = groupes?.bases?.[etat.indicateur];
-  const valeurComparee = valeurComparable(territoire, etat.indicateur, etat.periode, base);
-
-  // Rang du territoire dans la couche affichée : « 8 512ᵉ sur 34 772 » situe
-  // un chiffre que sa seule valeur ne situe pas. Calculé sur les valeurs déjà
-  // peintes — même tri, même dénominateur que la carte.
-  const classement = Object.entries(affichees).sort(([, a], [, b]) => b - a);
-  const position = classement.findIndex(([c]) => c === code);
-  // En mode évolution, la couche affichée classe des variations quand la fiche
-  // montre des niveaux : annoncer ce rang-là sous ce chiffre-ci mentirait.
-  const rang =
-    position >= 0 && !evolutionAffichee
-      ? { position: position + 1, total: classement.length }
-      : undefined;
-
   // Le récit de mandat ne retient un fait que s'il sort du lot : c'est la
   // cascade de groupes qui le dit, indicateur par indicateur et exercice par
   // exercice, et non un seuil absolu identique pour toutes les communes.
@@ -1035,18 +979,12 @@ async function montrerFiche(code: string): Promise<void> {
     niveau,
     territoire,
     semblables,
-    principal: etat.indicateur,
-    rang,
-    comparaison: groupes
-      ? positionDansGroupe(territoire, quartiles, valeurComparee, trouve?.criteres ?? [], base)
-      : "",
     // Tous les thèmes, plus seulement celui de la carte : le panneau est
     // désormais le seul endroit où l'on choisit — il doit tout montrer.
     // Filtré sur le niveau : afficher « donnée non disponible » pour un
     // indicateur qui n'existe pas à ce niveau ferait passer une absence de
     // définition pour une absence de mesure.
     indicateurs: indicateursDeLaFiche(niveau),
-    libelleTheme,
     // De quoi comparer, même pour les jeux sous secret de diffusion où
     // aucune médiane communale n'est publiable : la valeur du département,
     // celle de la région, celle de la France. Ce sont des chiffres publiés,
@@ -1078,18 +1016,9 @@ async function montrerFiche(code: string): Promise<void> {
           : parentDe("FR", "pays")
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
-    jeux,
-    periode: etat.periode,
-    parHabitant: etat.declinaison === "habitant",
-    references: reperes,
-    peintSurCarte,
-    associations: associations[code],
-    agregats,
-    inflation: parentDe("FR", "pays")?.series?.eurostat_inflation_ipch,
     // L'IPC national mensuel : c'est de là que se tire l'inflation cumulée sur
-    // la fenêtre du mandat. `fiche.ts` est pur — il ne va rien chercher.
+    // la fenêtre. `fiche.ts` est pur — il ne va rien chercher.
     serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
-    tout: etat.voir === "tout",
   });
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
@@ -2958,26 +2887,9 @@ async function demarrer(): Promise<void> {
 
   brancherSommaireSources([...parTheme.entries()]);
 
-  // La méthode des agrégats nationaux se charge à part elle aussi : absente,
-  // aucune mention n'est faite — plutôt qu'une mention fausse.
-  donnees
-    .agregatsNationaux()
-    .then((a) => {
-      agregats = a;
-      if (etat.selection) void montrerFiche(etat.selection);
-    })
-    .catch(() => {});
-
-  // Les repères se chargent à part : une publication qui n'en a pas doit laisser
-  // la fiche s'afficher sans eux. Quand ils arrivent, la fiche ouverte est
-  // redessinée — sinon les comparaisons manquaient au premier affichage.
-  donnees
-    .references()
-    .then((r) => {
-      reperes = r;
-      if (etat.selection) void montrerFiche(etat.selection);
-    })
-    .catch(() => {});
+  // Les agrégats nationaux et les repères de lecture ne se chargent plus : ils
+  // n'alimentaient que les lignes de mesures de la fiche, qui n'y sont plus.
+  // Deux fichiers de moins à télécharger pour ouvrir un territoire.
 
   // Les mailles supérieures, pour comparer : quelques kilo-octets, chargés une
   // fois pour toutes.

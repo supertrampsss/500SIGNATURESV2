@@ -47,31 +47,24 @@ test("changer de thème repart sur l'année la plus récente", () => {
   assert.match(corps, /if \(IDS_DERIVES\.has\(id\)\) return;/);
 });
 
-test("déplier une mesure ne repeint pas la carte", () => {
-  // Peindre relit une couche de 34 772 territoires et réécrit la fiche
-  // entière. Tant que ce coût était celui d'un dépliage, *lire* un chiffre
-  // coûtait le prix de *cartographier* un chiffre — à chaque ligne, sur un
-  // thème qui en compte soixante-dix-neuf.
-  assert.match(MAIN, /closest<HTMLElement>\("\[data-carte\]"\)/);
-  assert.doesNotMatch(MAIN, /closest<HTMLElement>\("\[data-mesure\]"\)/);
-  // Le bouton n'existe que là où il y a quelque chose à peindre : les mêmes
-  // refus que `choisirIndicateur`, appliqués avant de le proposer.
+test("la fiche n'aligne plus une seule ligne de mesure", () => {
+  // Elle en alignait cent quinze, rangées par thème, plus les mêmes rangées
+  // par question : la même valeur écrite deux fois sur une même page. Ce que
+  // la fiche montre tient maintenant en quatre repères, quatre blocs et trois
+  // faits ; l'exhaustivité est le métier de la page ANALYSES, où chaque
+  // exercice publié a sa colonne.
+  assert.doesNotMatch(FICHE, /data-mesure=/);
+  assert.doesNotMatch(FICHE, /class="mesures"/);
+  assert.doesNotMatch(FICHE, /theme-groupe|onglets-themes|onglets-rubriques/);
+  // On peint toujours depuis le sélecteur de la carte : c'est lui qui choisit
+  // l'indicateur, et il n'a jamais été dans la fiche.
   assert.match(MAIN, /function peintSurCarte\(indicateur: Indicateur\): boolean/);
-  assert.match(FICHE, /data-carte="/);
 });
 
 test("un maire absent n'écrit rien, comme toute donnée absente", () => {
   // « Maire : non renseigné » occupait une ligne pour dire qu'il n'y avait
   // rien à dire, en contradiction avec la règle de la fiche.
   assert.doesNotMatch(FICHE, /non renseigné par le Répertoire/);
-});
-
-test("la taxe fonciere dit sa part dans les recettes de la collectivite", () => {
-  // « Ma taxe foncière, ça pèse combien dans ce que la commune encaisse ? »
-  // Le rapprochement DGFiP/OFGL n'entre dans PART_DU_TOTAL qu'après contrôle
-  // du périmètre ; ce test verrouille sa présence, le contrôle vit en
-  // commentaire à côté de la table.
-  assert.match(FICHE, /dgfip_produit_foncier_bati: \{\s*total: "ofgl_recettes_fonctionnement"/);
 });
 
 /* ------------------------------------------------------------------------
