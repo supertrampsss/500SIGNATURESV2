@@ -209,6 +209,15 @@ type Gabarit = {
   sujet: Sujet;
   /** Quand il est là, la ligne mesure une **part** de cette série, en points. */
   ratio?: string;
+  /** La série est **déjà** un taux : la dette publique est publiée en % du PIB.
+   *  Sa variation se dit alors en points, jamais en pourcentage — « +17,7 % »
+   *  pour un ratio qui passe de 98,2 à 115,6 % du PIB serait un troisième
+   *  nombre, qui n'est ni l'un ni l'autre. */
+  enPoints?: boolean;
+  /** Le seuil propre à la ligne, en points. `SEUIL_POINTS` a été mesuré sur des
+   *  parts de recettes locales ; deux points de PIB de déficit public sont une
+   *  tout autre grandeur, et se taire dessus serait absurde. */
+  seuil?: number;
   /** Ce qu'une hausse dit des comptes de la collectivité. */
   sensHausse: Sens;
   /** La forme autonome nomme-t-elle déjà les prix et la population ? */
@@ -548,6 +557,118 @@ const GABARITS: Gabarit[] = [
           + ` ${sensDuVerbe(pouvoirDAchat(f), "gagné", "perdu")}`
           + ` ${part(Math.abs(pouvoirDAchat(f)))} de pouvoir d'achat ${f.fenetre}`,
   },
+
+  /* ------------------------------------------------------------------------
+   * La France.
+   *
+   * Les huit règles ci-dessus lisent toutes des séries `ofgl_*`, que seules les
+   * collectivités portent : la fiche nationale n'écrivait donc pas une phrase,
+   * sur cent quatre-vingt-dix séries publiées. Celles qui suivent lisent ce que
+   * la France a vraiment — le budget de l'État, la dette et le déficit au sens
+   * de la comptabilité nationale.
+   *
+   * Elles ne se déclenchent nulle part ailleurs : aucune commune ne porte ces
+   * séries, et une série absente n'écrit rien.
+   * --------------------------------------------------------------------- */
+  {
+    vers: "etat_depenses_nettes_bg",
+    sujet: "exploitation",
+    sensHausse: "tend",
+    cadre: true,
+    texte: (f, autonome) =>
+      `Les dépenses nettes du budget général de l'État, ce que l'État paie une fois`
+      + ` les remboursements et dégrèvements retirés, passent ${trajet(f, autonome)},`
+      + ` soit ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
+    titre: (f) =>
+      `Les dépenses de l'État ont ${sensDuVerbe(f.ecart, "augmenté", "reculé")}`
+      + ` de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
+  },
+  {
+    vers: "etat_charge_dette",
+    sujet: "investissement",
+    sensHausse: "tend",
+    cadre: true,
+    texte: (f, autonome) => {
+      // Ce que les intérêts pèsent dans le budget : le poids se lit mieux que
+      // le montant, et il est calculé sur la même source, au même exercice.
+      const depenses = f.valeur("etat_depenses_nettes_bg", f.arrivee);
+      const poids =
+        depenses === null || depenses <= 0
+          ? ""
+          : ` ; elle pèse ${part((f.fin / depenses) * 100)} des dépenses nettes du budget`
+            + ` général`;
+      return (
+        `La charge de la dette de l'État, les seuls intérêts, passe ${trajet(f, autonome)},`
+        + ` soit ${variation(f.ecart)}${autonome ? repereDit(f) : ""}${poids}.`
+      );
+    },
+    titre: (f) =>
+      `Les intérêts de la dette de l'État ont`
+      + ` ${sensDuVerbe(f.ecart, "augmenté", "reculé")} de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
+  },
+  {
+    vers: "etat_impot_societes",
+    sujet: "financement",
+    sensHausse: "neutre",
+    cadre: true,
+    texte: (f, autonome) =>
+      `Ce que l'impôt sur les sociétés rapporte à l'État passe ${trajet(f, autonome)},`
+      + ` soit ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
+    titre: (f) =>
+      `L'impôt sur les sociétés a ${sensDuVerbe(f.ecart, "rapporté", "rapporté")}`
+      + ` ${part(Math.abs(f.ecart))} ${f.ecart >= 0 ? "de plus" : "de moins"} ${f.fenetre}`,
+  },
+  {
+    vers: "etat_impot_revenu",
+    sujet: "financement",
+    sensHausse: "neutre",
+    cadre: true,
+    texte: (f, autonome) =>
+      `Ce que l'impôt sur le revenu rapporte à l'État passe ${trajet(f, autonome)},`
+      + ` soit ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
+    titre: (f) =>
+      `L'impôt sur le revenu a rapporté ${part(Math.abs(f.ecart))}`
+      + ` ${f.ecart >= 0 ? "de plus" : "de moins"} ${f.fenetre}`,
+  },
+  {
+    vers: "eurostat_dette_pib",
+    sujet: "investissement",
+    sensHausse: "tend",
+    // Un point de PIB n'a ni prix ni population à nommer : le ratio les porte
+    // déjà des deux côtés.
+    cadre: false,
+    enPoints: true,
+    // Cinq points de PIB, c'est environ 150 Md€ : bien au-delà de ce qu'un
+    // changement de méthode de comptabilisation déplace.
+    seuil: 5,
+    texte: (f, autonome) =>
+      `La dette publique passe de ${part(f.debut)} du PIB en ${f.reference} à`
+      + ` ${part(f.fin)} en ${f.arrivee}, soit ${points(f.ecart)}`
+      + `${autonome ? " (définition européenne, toutes administrations publiques)" : ""}.`,
+    titre: (f) =>
+      `La dette publique vaut ${part(f.fin)} du PIB, contre ${part(f.debut)} en ${f.reference}`,
+  },
+  {
+    vers: "eurostat_deficit_pib",
+    sujet: "financement",
+    // La série porte le solde : une hausse est un déficit qui se réduit.
+    sensHausse: "detend",
+    cadre: false,
+    enPoints: true,
+    // Un point de PIB de solde public, c'est de l'ordre de 30 Md€ par an.
+    seuil: 1,
+    texte: (f, autonome) => {
+      const mot = f.fin < 0 ? "déficit" : "excédent";
+      return (
+        `Le solde public passe de ${part(f.debut)} du PIB en ${f.reference} à`
+        + ` ${part(f.fin)} en ${f.arrivee}, soit ${points(f.ecart)} : un ${mot} de`
+        + ` ${part(Math.abs(f.fin))} du PIB en ${f.arrivee}`
+        + `${autonome ? ", au sens de la comptabilité nationale" : ""}.`
+      );
+    },
+    titre: (f) =>
+      `Le solde public vaut ${part(f.fin)} du PIB, contre ${part(f.debut)} en ${f.reference}`,
+  },
 ];
 
 /** Dans quelle bande du groupe se tient le territoire : les quartiles publiés
@@ -671,8 +792,14 @@ export function faits(contexte: Contexte): Fait[] {
     let attendu = neutre;
     // Le groupe ne sert pas les règles de structure : une part de recettes n'a
     // pas de quartiles publiés, et il n'y a rien à comparer.
-    const groupe = gabarit.ratio ? null : groupeDe(gabarit.vers);
-    if (gabarit.ratio) {
+    const groupe = gabarit.ratio || gabarit.enPoints ? null : groupeDe(gabarit.vers);
+    if (gabarit.enPoints) {
+      // Un taux se lit tel qu'il est publié : l'écart est une différence de
+      // points, et un taux négatif — un déficit — en a un comme un autre.
+      ecart = fin - debut;
+      attendu = 0;
+      if (Math.abs(ecart) < (gabarit.seuil ?? SEUIL_POINTS)) continue;
+    } else if (gabarit.ratio) {
       const denDebut = valeur(gabarit.ratio, mandat.exerciceReference);
       const denFin = valeur(gabarit.ratio, mandat.exerciceFin);
       if (denDebut === null || denFin === null || denDebut <= 0 || denFin <= 0) continue;

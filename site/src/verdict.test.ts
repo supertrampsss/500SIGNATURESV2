@@ -515,3 +515,52 @@ test("le produit des impôts locaux dit le taux voté, pas ce qu'il ignore", () 
   assert.match(phrase.texte, /le taux communal de taxe foncière voté est passé/);
   assert.doesNotMatch(phrase.texte, /ne dit pas/);
 });
+
+/* ------------------------------------------------------ la fiche nationale */
+
+test("la France écrit des phrases, sur les séries qu'elle a vraiment", () => {
+  // Les huit règles locales lisent toutes des séries `ofgl_*`, qu'aucune maille
+  // nationale ne porte : la fiche France n'écrivait pas une phrase sur cent
+  // quatre-vingt-dix séries publiées.
+  const contexte = {
+    mandat: {
+      debut: "", fin: null, exerciceReference: "2019", exerciceFin: "2025",
+      exercices: 6, enCours: true,
+    },
+    series: {
+      etat_depenses_nettes_bg: { "2019": 336_069e6, "2025": 441_194e6 },
+      etat_charge_dette: { "2019": 40_256e6, "2025": 51_583e6 },
+      eurostat_dette_pib: { "2019": 98.2, "2025": 115.6 },
+      eurostat_deficit_pib: { "2019": -2.4, "2025": -5.1 },
+    },
+    inflation: 16.1, population: 1.8, nom: "France",
+    avecPreposition: false, fenetre: "depuis 2019",
+  } as never as Contexte;
+  const phrases = verdict(contexte);
+  assert.ok(phrases.length >= 3, `${phrases.length} phrases`);
+
+  // Un taux varie en points, jamais en pourcentage : la dette passe de 98,2 à
+  // 115,6 % du PIB, c'est +17,4 points. « +17,7 % » serait un troisième nombre.
+  const dette = phrases.find((p) => p.vers === "eurostat_dette_pib");
+  assert.match(dette!.texte, /\+17,4 points/);
+  assert.doesNotMatch(dette!.texte, /17,7/);
+
+  // Un solde négatif a une variation comme un autre : la règle en pourcentage
+  // l'écartait, parce qu'elle refuse une base négative.
+  const solde = phrases.find((p) => p.vers === "eurostat_deficit_pib");
+  assert.match(solde!.texte, /−2,7 points/);
+  assert.match(solde!.texte, /un déficit de 5,1[\u202f\u00a0 ]% du PIB/);
+
+  // Et la dette publique dégrade, le déficit qui se creuse aussi.
+  assert.equal(dette!.sens, "tend");
+  assert.equal(solde!.sens, "tend");
+});
+
+test("les règles nationales ne se déclenchent pas sur une commune", () => {
+  // Une commune ne porte aucune de ces séries : rien ne doit apparaître par
+  // défaut sur une fiche qui n'en a pas.
+  const vers = verdict(bordeaux()).map((p) => p.vers);
+  for (const national of ["etat_depenses_nettes_bg", "eurostat_dette_pib", "eurostat_deficit_pib"]) {
+    assert.ok(!vers.includes(national), national);
+  }
+});

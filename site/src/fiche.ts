@@ -1643,6 +1643,54 @@ function renvoiVersLaMaillePorteuse(
  *  les cinq ans ne dit rien de ce qu'une équipe a dépensé. */
 const QUESTIONS_D_ARGENT = new Set(["depenses", "recettes", "impots", "dette"]);
 
+/**
+ * Les exercices que les comptes atteignent vraiment.
+ *
+ * Deux façons de se tromper de fenêtre, et la fiche France les cumulait :
+ *
+ * 1. **Mélanger les granularités.** La dette publique est publiée par
+ *    trimestre. « 2026-Q1 » se range après « 2026 » dans un tri de chaînes, et
+ *    la fenêtre d'un bilan budgétaire finissait sur un trimestre. Un trimestre
+ *    n'est pas un exercice : il ne borne rien.
+ * 2. **Finir sur un exercice que presque rien ne porte.** Au niveau France, dix
+ *    séries sur cent quatre-vingt-dix vont jusqu'à 2026 — ce sont les dépenses
+ *    fiscales, prévues au PLF, pas des comptes exécutés. La fenêtre finissait
+ *    donc en 2026, où toutes les autres séries sont muettes : chaque règle du
+ *    verdict lisait `null` à l'arrivée et renonçait. La fiche nationale
+ *    n'affichait pas une phrase, faute d'une année où lire ses chiffres.
+ *
+ * Le seuil de couverture n'est pas délicat, et c'est ce qui le rend tenable :
+ * mesuré sur la France, 2026 est porté par 6 % des séries et 2025 par 85 % de
+ * ce que porte le mieux couvert. Aucun seuil entre les deux ne change la
+ * réponse. Là où toutes les séries couvrent les mêmes exercices — l'OFGL d'une
+ * commune — la règle ne retire rien.
+ */
+const COUVERTURE_MINIMALE = 0.5;
+
+function exercicesQueLesComptesAtteignent(
+  indicateurs: Indicateur[],
+  territoire: Territoire,
+): string[] {
+  const couverture = new Map<string, number>();
+  for (const indicateur of indicateurs) {
+    for (const exercice of Object.keys(territoire.series?.[indicateur.id] ?? {})) {
+      if (!/^\d{4}$/.test(exercice)) continue;
+      couverture.set(exercice, (couverture.get(exercice) ?? 0) + 1);
+    }
+  }
+  if (!couverture.size) return [];
+  const meilleure = Math.max(...couverture.values());
+  const exercices = [...couverture.keys()].sort();
+  // L'arrivée est le dernier exercice réellement couvert ; tout ce qui vient
+  // après est une prévision isolée, et tout ce qui vient avant reste dans la
+  // fenêtre — un exercice ancien moins bien couvert qu'un autre n'en fait pas
+  // moins partie de l'historique.
+  const arrivee = exercices.filter(
+    (ex) => (couverture.get(ex) ?? 0) >= meilleure * COUVERTURE_MINIMALE,
+  ).pop();
+  return arrivee === undefined ? [] : exercices.filter((ex) => ex <= arrivee);
+}
+
 /** Combien de lignes une question montre en mode « L'essentiel ». Au-delà, on
  *  retombe dans le déversement que cette refonte corrige : c'est « Tout voir »
  *  qui porte l'exhaustivité, pas l'ouverture. */
@@ -2085,14 +2133,12 @@ export function afficherFiche(
   // budgétaires. Ce sont exactement les indicateurs que les quatre questions
   // d'argent rassemblent.
   const calendrier = calendrierDe(niveau);
-  const exercicesDesComptes = [
-    ...new Set(
-      repartir(indicateurs)
-        .filter(({ question }) => QUESTIONS_D_ARGENT.has(question.cle))
-        .flatMap(({ indicateurs: liste }) => liste)
-        .flatMap((i) => Object.keys(territoire.series?.[i.id] ?? {})),
-    ),
-  ];
+  const exercicesDesComptes = exercicesQueLesComptesAtteignent(
+    repartir(indicateurs)
+      .filter(({ question }) => QUESTIONS_D_ARGENT.has(question.cle))
+      .flatMap(({ indicateurs: liste }) => liste),
+    territoire,
+  );
   // Une maille qui n'élit pas d'assemblée n'a pas de mandat — mais elle a des
   // exercices. Le pays était la seule fiche du site sans récit et sans ses deux
   // vitesses, pour une raison qui n'en justifiait qu'une : plaquer une
