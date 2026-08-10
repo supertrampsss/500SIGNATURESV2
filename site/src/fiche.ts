@@ -33,6 +33,11 @@ import {
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { recit, type Recit } from "./recit.ts";
+import {
+  complement as complementDeMasse,
+  estPluriel as estMassePlurielle,
+  sujet as sujetDeMasse,
+} from "./masses.ts";
 import { provenance, provenanceSeule } from "./provenance.ts";
 import { verdict, type Contexte, type Phrase, type Repere } from "./verdict.ts";
 import { reperes, type References } from "./reference.ts";
@@ -1885,73 +1890,46 @@ function rendreQuestions(
 const CHIFFRES_EN_TETE = 3;
 
 /**
- * Le sujet d'une phrase, pour les masses qui peuvent l'ouvrir.
+ * La phrase qui répond à une question, dans le registre d'une note d'analyse.
  *
- * « Dépenses totales : 400,8 M€ en 2019, 538,7 M€ en 2025 » n'est pas une
- * phrase, c'est une ligne de tableau posée dans un paragraphe. Pour écrire
- * « les dépenses totales passent de… », il faut l'article, et l'article ne se
- * déduit d'aucun libellé : « dépenses » est féminin pluriel, « encours »
- * masculin singulier, « solde » masculin singulier. La table les déclare pour
- * les quelques agrégats qui ouvrent une question ; tout autre libellé prend la
- * tournure invariable de `sujetDeLaMasse`, qui reste grammaticale sans rien
- * deviner.
- */
-const SUJETS_DE_MASSE: Record<string, string> = {
-  ofgl_depenses_totales: "Les dépenses totales",
-  ofgl_recettes_totales: "Les recettes totales",
-  ofgl_depenses_fonctionnement: "Les dépenses de fonctionnement",
-  ofgl_recettes_fonctionnement: "Les recettes de fonctionnement",
-  ofgl_depenses_investissement: "Les dépenses d'investissement",
-  ofgl_recettes_d_investissement: "Les recettes d'investissement",
-  ofgl_depenses_d_equipement: "Les dépenses d'équipement",
-  ofgl_frais_personnel: "Les frais de personnel",
-  ofgl_impots_et_taxes: "Les impôts et taxes",
-  ofgl_impots_locaux: "Les impôts locaux",
-  ofgl_encours_dette: "L'encours de dette",
-  ofgl_epargne_brute: "L'épargne brute",
-  ofgl_epargne_nette: "L'épargne nette",
-  ofgl_concours_de_l_etat: "Les concours de l'État",
-  etat_depenses_nettes_bg: "Les dépenses nettes du budget général",
-  etat_recettes_nettes_bg: "Les recettes nettes du budget général",
-  etat_charge_dette: "La charge de la dette",
-  insee_apu_solde: "Le solde public",
-  insee_dette_apu_montant: "La dette publique",
-};
-
-/** « Les dépenses totales », ou à défaut une tournure qui marche sur
- *  n'importe quel libellé sans en deviner le genre. */
-function sujetDeLaMasse(indicateur: Indicateur): { sujet: string; accord: boolean } {
-  const declare = SUJETS_DE_MASSE[indicateur.id];
-  if (declare) return { sujet: declare, accord: declare.startsWith("Les ") };
-  return { sujet: `Le poste « ${traduire(indicateur.libelle)} »`, accord: false };
-}
-
-/**
- * La phrase qui répond à une question, et le pont qui explique son évolution.
+ * Trois versions ont échoué avant celle-ci, et chaque échec a appris quelque
+ * chose. Une ligne de tableau en gras — « Dépenses totales : 400,8 M€ en 2019,
+ * 538,7 M€ en 2025 » — n'est pas une phrase. Une phrase nue — « les dépenses
+ * totales passent de X à Y, soit +34,4 % » — en est une, mais elle récite le
+ * tableau : elle ne dit pas si c'est beaucoup, ni à quel rythme, ni d'où ça
+ * vient dans quelle proportion.
  *
- * **Une phrase, pas une ligne de tableau.** Le premier jet écrivait
- * « Dépenses totales : 400,8 M€ en 2019, 538,7 M€ en 2025, soit +34,4 % », en
- * gras d'un bout à l'autre : deux-points, virgules, aucun verbe, et un pavé
- * noir que l'œil saute. Le récit et la synthèse écrivent des phrases ; celle-ci
- * les suit — sujet, verbe, millésimes nommés, et le gras réservé aux deux
- * nombres qui portent la réponse.
+ * Ce qu'une note d'analyse ajoute, et que les chiffres publiés portent déjà :
  *
- * Le pont s'enchaîne dans la même prose : `provenance.ts` fournit les
- * composantes, à condition qu'elles redonnent le total aux deux exercices.
+ * 1. **l'écart en euros**, pas seulement en pourcentage — 137,9 M€ se
+ *    conçoivent, +34,4 % se compare ;
+ * 2. **le réel, à côté du nominal.** Six ans de hausse des prix expliquent une
+ *    part du mouvement, et la part qui reste est le fait de la collectivité ;
+ * 3. **le rythme annuel**, parce qu'une hausse de 34 % sur six ans et la même
+ *    sur deux ans ne racontent pas la même histoire ;
+ * 4. **la contribution de chaque poste, en part de la variation** : « les
+ *    dépenses de fonctionnement en portent 54 % » situe le poste dans le
+ *    mouvement, là où « +74,9 M€ » demande une division de tête.
+ *
+ * Aucune de ces quatre n'est un jugement : ce sont des quotients de nombres
+ * publiés. La règle de la maison tient — on écrit le chiffre et son cadre, le
+ * lecteur conclut.
  */
 function phraseDeLaQuestion(
   candidats: Indicateur[],
   territoire: Territoire,
   fenetre: { reference: string; arrivee: string } | null,
   catalogue: Indicateur[],
+  /** Hausse des prix cumulée sur la fenêtre, en %. Absente, la phrase se tient
+   *  au nominal plutôt que d'inventer un déflateur. */
+  inflation: number | null,
 ): string {
   if (!fenetre) return "";
   const lire = (id: string, exercice: string) => territoire.series?.[id]?.[exercice] ?? null;
   // **La grosse masse, pas la première ligne.** L'ordre d'affichage met en tête
   // ce qui se lit bien — « Services généraux et administration » à Bordeaux —
   // et cette ligne-là n'a pas de composantes publiées : la phrase posait un
-  // montant sans jamais pouvoir l'expliquer. On prend donc le plus gros montant
-  // de la question qui sache se décomposer, et à défaut le plus gros tout court.
+  // montant sans jamais pouvoir l'expliquer.
   const mesurables = candidats
     .filter((i) => i.unite === "EUR")
     .map((i) => ({ i, fin: lire(i.id, fenetre.arrivee), debut: lire(i.id, fenetre.reference) }))
@@ -1964,52 +1942,118 @@ function phraseDeLaQuestion(
   const choisi = avecPont ?? mesurables[0];
   const debut = choisi.debut as number;
   const fin = choisi.fin as number;
-  const { sujet, accord } = sujetDeLaMasse(choisi.i);
+  const delta = fin - debut;
+  const nom = traduire(choisi.i.libelle);
   const gras = (texte: string) => `<strong>${echapper(texte)}</strong>`;
-
-  // Pas de pourcentage sur une base négative : un solde qui passe de −58 à
-  // −153 Md€ ne varie pas de « −162 % ». Le déficit a presque triplé, et le
-  // rapport de deux nombres négatifs ne dit ni ce sens ni cette ampleur.
-  const ecart = ((fin - debut) / Math.abs(debut)) * 100;
-  const suite = debut > 0
-    ? `, soit ${ecart >= 0 ? "+" : "−"}${Math.abs(ecart).toLocaleString("fr-FR", {
+  const pourcent = (valeur: number, signe = true) =>
+    `${signe ? (valeur >= 0 ? "+" : "−") : ""}${Math.abs(valeur).toLocaleString("fr-FR", {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1,
-    })} %`
-    // Une grandeur négative des deux côtés est un déficit : « 94 307 M€ de
-    // plus » se lisait comme de l'argent gagné, alors que c'est le manque qui
-    // grandit. Le verbe le dit, et il n'y a pas de pourcentage à écrire.
-    : fin < 0
-      ? ` : le déficit se ${fin < debut ? "creuse" : "réduit"} de ${
-        millions(Math.abs(fin - debut))
-      }`
-      : `, soit ${millions(Math.abs(fin - debut))} de ${fin >= debut ? "plus" : "moins"}`;
-  const verbe = accord ? "passent" : "passe";
-  const phrase = `${echapper(sujet)} ${verbe} de ${gras(millions(debut))} en ${
-    echapper(fenetre.reference)
-  } à ${gras(millions(fin))} en ${echapper(fenetre.arrivee)}${echapper(suite)}.`;
+    })} %`;
 
+  const phrases: string[] = [];
+
+  // 1. Le niveau, l'écart en euros, la variation. Une grandeur négative des
+  //    deux côtés est un déficit : aucun pourcentage ne s'y calcule, et « de
+  //    plus » s'y lirait comme de l'argent gagné.
+  if (debut > 0) {
+    phrases.push(
+      `${echapper(sujetDeMasse(choisi.i.id, nom))} atteignent ${gras(millions(fin))} en ${
+        echapper(fenetre.arrivee)
+      }, contre ${millions(debut)} en ${echapper(fenetre.reference)} : ${
+        gras(`${delta >= 0 ? "+" : "−"}${millions(Math.abs(delta))}`)
+      }, ${echapper(pourcent((delta / debut) * 100))}.`
+        .replace("atteignent", estMassePlurielle(choisi.i.id, nom) ? "atteignent" : "atteint"),
+    );
+  } else {
+    phrases.push(
+      `${echapper(sujetDeMasse(choisi.i.id, nom))} ${
+        estMassePlurielle(choisi.i.id, nom) ? "passent" : "passe"
+      } de ${millions(debut)} en ${echapper(fenetre.reference)} à ${gras(millions(fin))} en ${
+        echapper(fenetre.arrivee)
+      } : ${
+        fin < 0
+          ? `le déficit se ${fin < debut ? "creuse" : "réduit"} de ${gras(millions(Math.abs(delta)))}`
+          : `${gras(millions(Math.abs(delta)))} de ${delta >= 0 ? "mieux" : "moins"}`
+      }.`,
+    );
+  }
+
+  // 2. Le réel et le rythme. Les prix d'abord : sur six ans ils font une part
+  //    du mouvement, et ce qui reste est ce que la collectivité a décidé.
+  const annees = Number(fenetre.arrivee) - Number(fenetre.reference);
+  if (debut > 0) {
+    const nominal = (delta / debut) * 100;
+    const reel = inflation !== null && inflation > -100
+      ? ((1 + nominal / 100) / (1 + inflation / 100) - 1) * 100
+      : null;
+    // Le rythme annuel se dit **sur la même base que la phrase qui précède**.
+    // Donner le rythme nominal juste après la progression réelle laissait lire
+    // « +15,8 % réels, soit +5,1 % par an » : deux bases dans une phrase, et le
+    // second nombre passait pour l'annualisation du premier. Il ne l'était pas.
+    const base = reel ?? nominal;
+    const annuel = Number.isFinite(annees) && annees > 0 && base > -100
+      ? ((1 + base / 100) ** (1 / annees) - 1) * 100
+      : null;
+    if (reel !== null) {
+      phrases.push(
+        `Les prix ayant monté de ${echapper(pourcent(inflation as number, false))}`
+        + ` sur la période, la progression réelle est de ${gras(pourcent(reel))}${
+          annuel === null ? "" : `, soit ${echapper(pourcent(annuel))} par an`
+        }.`,
+      );
+    } else if (annuel !== null) {
+      phrases.push(`Soit ${echapper(pourcent(annuel))} par an en euros courants.`);
+    }
+  }
+
+  // 3. D'où vient le mouvement, et pour quelle part de celui-ci.
   const pont = provenance(choisi.i.id, lire, fenetre.reference, fenetre.arrivee, catalogue);
-  const moteurs = pont?.moteurs ?? [];
-  const explique = moteurs.length
-    ? ` ${echapper(pont!.delta >= 0 ? "Cette hausse" : "Cette baisse")} vient surtout ${
-      echapper(moteurs.length === 1 ? "d'un poste" : moteurs.length === 2 ? "de deux postes" : "de trois postes")
-    } : ${moteurs
-      .map((m) => `${echapper(m.libelle)} ${echapper(apportDit(m.delta))}`)
-      .join(", ")}.${
-      pont!.freins.length
-        ? ` Un poste ${pont!.delta >= 0 ? "la retient" : "la freine"} : ${
-          echapper(pont!.freins[0].libelle)
-        } ${echapper(apportDit(pont!.freins[0].delta))}.`
-        : ""
-    }`
-    : "";
-  return `<p class="question-fiche__phrase">${phrase}${explique}</p>`;
-}
-
-/** « +12,4 M€ » : le signe est l'information. */
-function apportDit(valeur: number): string {
-  return `${valeur >= 0 ? "+" : ""}${millions(valeur)}`;
+  if (pont && pont.moteurs.length && pont.delta !== 0) {
+    const mot = pont.delta >= 0 ? "hausse" : "baisse";
+    const parts = pont.moteurs.map((m) => ({
+      m,
+      part: Math.round((Math.abs(m.delta) / Math.abs(pont.delta)) * 100),
+    }));
+    const cumul = parts.reduce((s, p) => s + p.part, 0);
+    if (parts.length === 1 && parts[0].part >= 95) {
+      // « pour 100 % » se lit comme un arrondi suspect ; « presque entièrement »
+      // dit la même chose sans faire croire à une exactitude au point près.
+      phrases.push(
+        `Cette ${mot} vient ${parts[0].part >= 100 ? "entièrement" : "presque entièrement"}`
+        + ` ${echapper(complementDeMasse(parts[0].m.id, parts[0].m.libelle))}`
+        + ` (${echapper(`${parts[0].m.delta >= 0 ? "+" : "−"}${millions(Math.abs(parts[0].m.delta))}`)}).`,
+      );
+    } else {
+      const dits = parts.map(({ m, part }) =>
+        `${echapper(complementDeMasse(m.id, m.libelle))} pour ${gras(`${part} %`)}`
+        + ` (${echapper(`${m.delta >= 0 ? "+" : "−"}${millions(Math.abs(m.delta))}`)})`);
+      phrases.push(
+        `Cette ${mot} vient ${parts.length > 1 ? "pour l'essentiel " : ""}${dits.join(", ")}.`,
+      );
+    }
+    // **Le contrepoids est obligatoire dès que les parts dépassent 100 %.**
+    // « Cette hausse vient des dépenses de fonctionnement pour 112 % » est
+    // arithmétiquement juste et illisible seul : les 12 % de trop sont un autre
+    // poste qui recule, et la phrase doit le nommer. `provenance.ts` ne retient
+    // un frein qu'au-delà d'un cinquième du mouvement ; ici on prend le plus
+    // gros à contre-courant, quelle que soit sa taille.
+    const sens = Math.sign(pont.delta);
+    const contre = pont.freins[0]
+      ?? (cumul > 100
+        ? pont.parts.filter((x) => Math.sign(x.delta) === -sens)[0]
+        : undefined);
+    if (contre) {
+      phrases.push(
+        `${echapper(sujetDeMasse(contre.id, contre.libelle))} ${
+          estMassePlurielle(contre.id, contre.libelle) ? "jouent" : "joue"
+        } en sens inverse, pour ${echapper(
+          `${contre.delta >= 0 ? "+" : "−"}${millions(Math.abs(contre.delta))}`,
+        )}.`,
+      );
+    }
+  }
+  return `<p class="question-fiche__phrase">${phrases.join(" ")}</p>`;
 }
 
 /** Les indicateurs d'une question, dans l'ordre où elle se lit : la tête
@@ -2344,7 +2388,15 @@ export function afficherFiche(
     indicateurs.filter((i) => !doubles.has(i) && !REPLIES.has(i.id)),
     dessine,
     rangDuTheme,
-    (candidats) => phraseDeLaQuestion(candidats, territoire, fenetreDuPont, options.indicateurs),
+    (candidats) => phraseDeLaQuestion(
+      candidats,
+      territoire,
+      fenetreDuPont,
+      options.indicateurs,
+      fenetreDuPont
+        ? inflationCumulee(options.serieInflation, fenetreDuPont.reference, fenetreDuPont.arrivee)
+        : null,
+    ),
   );
   // La feuille d'impôts descend en bas de fiche.
   //

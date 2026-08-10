@@ -1133,9 +1133,13 @@ test("la question s'ouvre sur sa grosse masse, pas sur sa première ligne", () =
   assert.match(cible.innerHTML, /question-fiche__phrase/);
   // Une phrase, pas une ligne de tableau : sujet, verbe, millésimes nommés, et
   // le gras sur les deux nombres qui portent la réponse.
-  assert.match(cible.innerHTML, /Les dépenses totales passent de <strong>400,0[\u202f\u00a0 ]M€<\/strong> en 2019/);
+  // Le registre d'une note d'analyse : niveau, écart en euros, variation, puis
+  // le réel et la contribution de chaque poste à la variation.
+  assert.match(cible.innerHTML, /Les dépenses totales atteignent <strong>538,0[\u202f\u00a0 ]M€<\/strong> en 2025/);
+  assert.match(cible.innerHTML, /contre 400,0[\u202f\u00a0 ]M€ en 2019/);
+  assert.match(cible.innerHTML, /pour <strong>5[0-9] %<\/strong>/);
   assert.doesNotMatch(cible.innerHTML, /Dépenses totales : 400/);
-  assert.match(cible.innerHTML, /Cette hausse vient surtout de deux postes/);
+  assert.match(cible.innerHTML, /Cette hausse vient pour l'essentiel des dépenses de fonctionnement/);
 });
 
 test("la feuille d'impôts n'est plus dans l'ouverture", () => {
