@@ -474,7 +474,7 @@ function ligneIndicateur(
   if (typeof mesure === "string") return "";
   const { periode, valeur, brut, ratio, suivie, brute } = mesure;
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
-  const formate = (v: number) => formater(v, indicateur.unite, ratio);
+  const formate = (v: number) => formater(v, indicateur.unite, ratio, indicateur.id);
 
   // Les comparaisons en français courant, et surtout : en euros.
   //
@@ -532,7 +532,7 @@ function ligneIndicateur(
       // l'exécuté, le voté la rejoint avec son écart d'exécution chiffré.
       const ecart = compte ? ((brut - compte) / Math.abs(compte)) * 100 : null;
       comparaisons.push(
-        `Crédits votés : ${formater(compte, indicateur.unite, false)}${
+        `Crédits votés : ${formater(compte, indicateur.unite, false, indicateur.id)}${
           ecart !== null && Math.abs(ecart) >= 0.05
             ? ` ; exécution ${ecart >= 0 ? "+" : "−"}${pourcentage(Math.abs(ecart))} vs voté`
             : ""
@@ -616,7 +616,7 @@ function ligneIndicateur(
            compare à un montant d'État sans que rien n'avertisse. Le
            par-habitant reste là où il sert et où il est nommé : la ligne « par
            hab. » du tableau déplié, et les comparaisons au groupe. -->
-      <span class="mesure__valeur">${formater(brut, indicateur.unite, false)}</span>
+      <span class="mesure__valeur">${formater(brut, indicateur.unite, false, indicateur.id)}</span>
       ${pastille}
       <!-- La définition sort en bulle par-dessus la fiche, elle ne pousse
            rien : dépliée dans le flux, elle décalait toute la liste sous elle
@@ -831,7 +831,7 @@ function miniTableau(
   const cellule = (v: number) =>
     suffixe
       ? new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(v)
-      : formater(v, indicateur.unite, ratio);
+      : formater(v, indicateur.unite, ratio, indicateur.id);
   const ligne = (libelle: string, valeurs: Record<string, number>, parHabitant: boolean) =>
     `<tr><th scope="row">${libelle}</th>${periodes
       .map(
@@ -841,7 +841,7 @@ function miniTableau(
               ? "—"
               : parHabitant === ratio
                 ? cellule(valeurs[p])
-                : formater(valeurs[p], indicateur.unite, parHabitant)
+                : formater(valeurs[p], indicateur.unite, parHabitant, indicateur.id)
           }</td>`,
       )
       .join("")}</tr>`;
@@ -854,8 +854,26 @@ function miniTableau(
   // l'historique là où il n'en voyait que la fin. La légende nomme la fenêtre
   // et le nombre de points qui restent derrière ; la courbe, elle, les montre
   // tous.
-  return `<div class="mini-serie__cadre"><table class="mini-serie">
-    <caption class="mini-serie__fenetre">${echapper(fenetreLisible(periodes, toutes.length))}</caption>
+  // Le tableau passe DERRIÈRE un pli, et sa légende devient la poignée.
+  //
+  // Une fiche de France aligne 167 mesures. Chacune imprimait son tableau
+  // ouvert : 13 873 px de fiche, dont l'écrasante majorité en tableaux que
+  // personne n'a demandés, et — pour qui lit à la synthèse vocale ou au
+  // clavier — trente-six tableaux à traverser avant d'atteindre la barre des
+  // thèmes. Le chiffre, sa variation et sa lecture restent à découvert : ce
+  // qui se replie, c'est l'historique année par année, qu'on ouvre quand on
+  // veut vérifier. « Une question, une phrase, trois chiffres, le tableau
+  // complet derrière. »
+  //
+  // La légende ne disparaît pas en devenant poignée : « 4 derniers exercices
+  // sur 13 publiés » dit toujours ce qu'il y a dessous, et dit maintenant en
+  // plus qu'il y a quelque chose à ouvrir.
+  return `<details class="mini-serie__pli">
+    <summary class="mini-serie__fenetre">${echapper(fenetreLisible(periodes, toutes.length))}</summary>
+    <div class="mini-serie__cadre"><table class="mini-serie">
+    <caption class="visuellement-cache">${echapper(indicateur.libelle)}, ${echapper(
+      fenetreLisible(periodes, toutes.length),
+    )}</caption>
     <thead><tr><td></td>${periodes
       .map((p) => `<th scope="col">${echapper(p)}</th>`)
       .join("")}</tr></thead>
@@ -863,7 +881,7 @@ function miniTableau(
       ${ligne(suffixe ?? intitule, serie, ratio)}
       ${totaux ? ligne("total", totaux, false) : ""}
     </tbody>
-  </table></div>`;
+  </table></div></details>`;
 }
 
 /**
@@ -1463,7 +1481,7 @@ function syntheseTerritoire(
       // détaillée l'affiche déjà. Elle manquait ici : huit des quatorze lignes
       // de l'ouverture n'étaient qu'un nombre nu, sur une fiche dont tout
       // l'objet est de dire si un chiffre est beaucoup.
-      const formate = (v: number) => formater(v, indicateur.unite, ratio);
+      const formate = (v: number) => formater(v, indicateur.unite, ratio, indicateur.id);
       // « Dépenses de fonctionnement 19 512 € par habitant. +2 280 % vs la
       // médiane régionale (819 €) » : le pourcentage mesure la petitesse de la
       // médiane, pas la commune. Les repères hors d'échelle sont retirés avant
@@ -1500,7 +1518,7 @@ function syntheseTerritoire(
           // que le lecteur sait — c'est le dernier chiffre publié.
           texte: `${entete} <strong title="Millésime ${echapper(
             mesure.periode,
-          )}">${echapper(formater(valeur, indicateur.unite, false))}</strong>. ${
+          )}">${echapper(formater(valeur, indicateur.unite, false, indicateur.id))}</strong>. ${
             situation ? `${ratio ? "Par habitant, " : ""}${echapper(situation)}` : ""
           }`.trim(),
         },
