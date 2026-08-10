@@ -995,16 +995,22 @@ test("aucun tiret cadratin ni demi-cadratin dans la fiche produite", () => {
   }
 });
 
-test("sans mandat racontable, la fiche garde exactement sa forme d'avant", () => {
-  // La fiche nationale n'a ni mandat municipal, ni feuille d'impôts : lui poser
-  // une bascule vers un mode vide serait un cul-de-sac de plus.
+test("sans mandat racontable, la fiche garde ses deux vitesses", () => {
+  // La règle a changé, et le test avec elle. Elle était « un bilan à raconter,
+  // sinon rien » : une maille sans récit gardait une interface à elle. C'était
+  // confondre la mise en page et le texte — le récit demande des règles écrites
+  // sur des séries que toutes les mailles n'ont pas, la séparation
+  // « L'essentiel / Tout voir » ne demande que d'avoir quelque chose à mettre
+  // des deux côtés. Un territoire sans mandat a des questions, une synthèse et
+  // des mesures : il a donc les deux vitesses, sans récit.
   const html = ficheRendue([{ libelle: "son département", territoire: GIRONDE }]);
-  assert.doesNotMatch(html, /fiche__vitesses/);
-  assert.doesNotMatch(html, /fiche__essentiel/);
-  assert.doesNotMatch(html, /data-corps/);
-  assert.doesNotMatch(html, /data-vitesse/);
+  assert.match(html, /fiche__vitesses/);
+  assert.match(html, /data-vitesse/);
+  assert.match(html, /fiche__essentiel/);
+  // Sans mandat, ni récit ni ligne de mandat : c'est le texte qui manque, pas
+  // l'interface.
   assert.doesNotMatch(html, /fiche__mandat/);
-  assert.match(html, /<div class="mesures">/);
+  assert.match(html, /<div class="mesures"/);
 });
 
 test("la valeur affichée est le dernier exercice publié, jamais celui d'une autre couche", () => {

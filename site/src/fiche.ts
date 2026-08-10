@@ -2124,14 +2124,24 @@ export function afficherFiche(
   const essentiel = `${rendreRecit(histoire)}${rendreVerdict(phrases, aUneLigne)}${
     feuille ? `<section class="feuille-impots">${feuille}</section>` : ""
   }${corpsQuestions}`;
-  // Deux vitesses seulement là où il y a un bilan à raconter.
+  // Deux vitesses partout où il y a deux vitesses à offrir.
   //
-  // Sans récit ni verdict, « L'essentiel » se réduirait à des questions sans
-  // réponse : le lecteur y perdrait la synthèse, les rapports et l'enchaînement
-  // sans rien gagner. La fiche nationale, les départements et les régions —
-  // qui ne sont pas élus aux municipales — gardent donc exactement la forme
-  // qu'ils avaient. La refonte se prouve d'abord là où elle a été demandée.
-  const deuxVitesses = Boolean(histoire) || phrases.length > 0;
+  // La condition était « un bilan à raconter » : sans récit ni verdict, pas de
+  // bouton. La France, les départements et les régions gardaient donc une
+  // interface à eux, non parce qu'ils n'ont rien à montrer — la fiche France
+  // porte cent quatre-vingt-dix séries — mais parce que le paragraphe rédigé
+  // manquait. C'était confondre la mise en page et le texte : le récit demande
+  // des règles écrites sur des séries que toutes les mailles n'ont pas, la
+  // séparation « L'essentiel / Tout voir », elle, ne demande que d'avoir
+  // quelque chose à mettre des deux côtés.
+  //
+  // La condition porte donc sur ce qu'il y a à voir : une ouverture — récit,
+  // verdict, feuille d'impôts ou questions — et un détail derrière. Là où l'un
+  // des deux manque, la fiche reste d'un seul tenant plutôt que d'ouvrir un
+  // onglet vide, ce qui reste la règle du site.
+  const ouverture = Boolean(histoire) || phrases.length > 0
+    || Boolean(feuille) || corpsQuestions.trim().length > 0;
+  const deuxVitesses = ouverture && mesures.trim().length > 0;
   const lignesEcrites = [...dessinees.values()].filter(Boolean).length;
 
   cible.innerHTML = `
