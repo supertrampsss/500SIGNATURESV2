@@ -239,13 +239,36 @@ export function millions(valeur: number): string {
   );
 }
 
-export function formater(valeur: number, unite: string, parHabitant: boolean): string {
+/**
+ * Les montants en euros qui ne sont pas des agrégats.
+ *
+ * Une valeur unitaire — ce que gagne une personne en un mois — n'entre pas
+ * dans la règle des M€, qui est faite pour comparer des masses budgétaires
+ * entre elles. Nommer les séries concernées vaut mieux qu'un seuil de
+ * grandeur : le budget d'une petite commune est lui aussi un petit nombre, et
+ * il reste un agrégat.
+ */
+const VALEURS_UNITAIRES = new Set(["insee_salaire_net_eqtp_mensuel"]);
+
+export function formater(
+  valeur: number,
+  unite: string,
+  parHabitant: boolean,
+  /** L'indicateur d'où vient la valeur, quand l'appelant le connaît : lui seul
+   *  distingue un agrégat d'une valeur unitaire, que l'unité `EUR` confond. */
+  id?: string,
+): string {
   // Un seul point de sortie pour la typographie du signe : les six chemins de
   // formatage ci-dessous produisaient chacun le trait d'union d'`Intl`.
-  return moins(formaterNombre(valeur, unite, parHabitant));
+  return moins(formaterNombre(valeur, unite, parHabitant, id));
 }
 
-function formaterNombre(valeur: number, unite: string, parHabitant: boolean): string {
+function formaterNombre(
+  valeur: number,
+  unite: string,
+  parHabitant: boolean,
+  id?: string,
+): string {
   if (unite === "count") {
     return new Intl.NumberFormat("fr-FR").format(Math.round(valeur));
   }
@@ -308,6 +331,23 @@ function formaterNombre(valeur: number, unite: string, parHabitant: boolean): st
     return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
       valeur,
     )} ${unite}`;
+  }
+  // Un montant qui n'est pas un agrégat se lit en euros, pas en millions.
+  //
+  // La règle « tous les montants en M€ » existe pour qu'une colonne de
+  // montants publics se compare d'une ligne à l'autre. Appliquée à un salaire
+  // mensuel, elle affichait « Salaire net mensuel moyen : 0,00 M€ », deux
+  // exercices de suite, avec « +4 % » à côté d'un chiffre nul : le seul
+  // affichage du site où la variation ne se rattachait à aucune valeur
+  // lisible. Ce n'est pas un agrégat de finances publiques mais une valeur
+  // unitaire, du même genre que le par-habitant juste en dessous — et elle se
+  // lit comme lui, en euros, comme une somme qu'on tient dans la main.
+  if (VALEURS_UNITAIRES.has(id ?? "")) {
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(sansZeroNegatif(valeur, 0));
   }
   // Le par-habitant est l'exception, et une seule ligne le porte : le
   // récapitulatif de la fiche. Un ratio en millions d'euros — « 0,00 M€ par

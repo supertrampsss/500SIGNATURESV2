@@ -269,7 +269,7 @@ test("la fiche affiche un total, pas un montant par habitant", async () => {
   // « 445 € » pour Bordeaux ne dit ni ce que la ville dépense, ni à combien
   // d'habitants c'est rapporté. Le par-habitant reste dans le tableau déplié,
   // où il est nommé.
-  assert.match(FICHE, /<span class="mesure__valeur">\$\{formater\(brut, indicateur\.unite, false\)\}/);
+  assert.match(FICHE, /<span class="mesure__valeur">\$\{formater\(brut, indicateur\.unite, false, indicateur\.id\)\}/);
   assert.doesNotMatch(FICHE, /<span class="mesure__valeur">\$\{formate\(valeur\)\}/);
 });
 

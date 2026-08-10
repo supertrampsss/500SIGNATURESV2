@@ -89,7 +89,7 @@ function cellule(
     return `<td class="absente">population inconnue</td>`;
   }
   const valeur = ratio ? brut / (population as number) : brut;
-  return `<td>${formater(valeur, indicateur.unite, ratio)}</td>`;
+  return `<td>${formater(valeur, indicateur.unite, ratio, indicateur.id)}</td>`;
 }
 
 /** Rendu pur, sans DOM : c'est lui qui est testé. */

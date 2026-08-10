@@ -84,11 +84,11 @@ export function rendu(
   if (!apercu) {
     return `<p class="fiche__vide">Choisissez un territoire sur la carte ou par la recherche.</p>`;
   }
-  const montant = (valeur: number) => formater(valeur, indicateur.unite, parHabitant);
+  const montant = (valeur: number) => formater(valeur, indicateur.unite, parHabitant, indicateur.id);
   const national =
     totalNational !== undefined && Number.isFinite(totalNational)
       ? `<p class="apercu__national"><span>France entière</span>
-         <strong>${formater(totalNational, indicateur.unite, false)}</strong></p>`
+         <strong>${formater(totalNational, indicateur.unite, false, indicateur.id)}</strong></p>`
       : "";
   return `
     <h2 class="fiche__titre">${echapper(indicateur.libelle)}</h2>

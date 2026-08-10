@@ -474,7 +474,7 @@ function ligneIndicateur(
   if (typeof mesure === "string") return "";
   const { periode, valeur, brut, ratio, suivie, brute } = mesure;
   const evenements = indicateur.geographie_courante ? [] : (territoire.evenements ?? []);
-  const formate = (v: number) => formater(v, indicateur.unite, ratio);
+  const formate = (v: number) => formater(v, indicateur.unite, ratio, indicateur.id);
 
   // Les comparaisons en français courant, et surtout : en euros.
   //
@@ -532,7 +532,7 @@ function ligneIndicateur(
       // l'exécuté, le voté la rejoint avec son écart d'exécution chiffré.
       const ecart = compte ? ((brut - compte) / Math.abs(compte)) * 100 : null;
       comparaisons.push(
-        `Crédits votés : ${formater(compte, indicateur.unite, false)}${
+        `Crédits votés : ${formater(compte, indicateur.unite, false, indicateur.id)}${
           ecart !== null && Math.abs(ecart) >= 0.05
             ? ` ; exécution ${ecart >= 0 ? "+" : "−"}${pourcentage(Math.abs(ecart))} vs voté`
             : ""
@@ -599,13 +599,24 @@ function ligneIndicateur(
     : "";
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
-  // son détail n'a pas à être demandé.
-  // Dépliée, comme tout le reste de la fiche. Le pli demandait un clic par
-  // ligne pour lire ce que la ligne mesure, et le lecteur ne savait pas qu'il y
-  // avait quelque chose dessous.
+  // son détail n'a pas à être demandé. Les autres se replient.
+  //
+  // Elles étaient toutes dépliées, et l'objection qui l'avait décidé était
+  // juste : un pli sans marque ne se voit pas, le lecteur ne savait pas qu'il y
+  // avait quelque chose dessous. Mais la réponse coûtait cher — mesuré sur la
+  // fiche France, 46 mesures visibles à 200 px pièce, et un bloc nommé
+  // « L'essentiel » qui atteignait 8 230 px. Un essentiel de huit mille pixels
+  // n'est plus un essentiel, et le détail de la quarantième mesure n'a été
+  // demandé par personne.
+  //
+  // L'objection est traitée là où elle devait l'être, dans la forme : le
+  // sommaire porte un chevron qui pivote (voir `.mesure > summary::after`).
+  // Ce qui reste à découvert est ce que la règle du produit demande — le nom,
+  // le chiffre, sa variation ; ce qui se replie est le détail : les phrases de
+  // comparaison, la courbe, l'historique et le rang.
   return `<details class="mesure${surCarte ? " mesure--carte" : ""}" data-mesure="${
     indicateur.id
-  }" open>
+  }"${surCarte ? " open" : ""}>
     <summary>
       <span class="mesure__nom">${echapper(traduire(indicateur.libelle))}</span>
       <button type="button" class="mesure__info" data-info="${indicateur.id}"
@@ -616,7 +627,7 @@ function ligneIndicateur(
            compare à un montant d'État sans que rien n'avertisse. Le
            par-habitant reste là où il sert et où il est nommé : la ligne « par
            hab. » du tableau déplié, et les comparaisons au groupe. -->
-      <span class="mesure__valeur">${formater(brut, indicateur.unite, false)}</span>
+      <span class="mesure__valeur">${formater(brut, indicateur.unite, false, indicateur.id)}</span>
       ${pastille}
       <!-- La définition sort en bulle par-dessus la fiche, elle ne pousse
            rien : dépliée dans le flux, elle décalait toute la liste sous elle
@@ -831,7 +842,7 @@ function miniTableau(
   const cellule = (v: number) =>
     suffixe
       ? new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(v)
-      : formater(v, indicateur.unite, ratio);
+      : formater(v, indicateur.unite, ratio, indicateur.id);
   const ligne = (libelle: string, valeurs: Record<string, number>, parHabitant: boolean) =>
     `<tr><th scope="row">${libelle}</th>${periodes
       .map(
@@ -841,7 +852,7 @@ function miniTableau(
               ? "—"
               : parHabitant === ratio
                 ? cellule(valeurs[p])
-                : formater(valeurs[p], indicateur.unite, parHabitant)
+                : formater(valeurs[p], indicateur.unite, parHabitant, indicateur.id)
           }</td>`,
       )
       .join("")}</tr>`;
@@ -854,8 +865,26 @@ function miniTableau(
   // l'historique là où il n'en voyait que la fin. La légende nomme la fenêtre
   // et le nombre de points qui restent derrière ; la courbe, elle, les montre
   // tous.
-  return `<div class="mini-serie__cadre"><table class="mini-serie">
-    <caption class="mini-serie__fenetre">${echapper(fenetreLisible(periodes, toutes.length))}</caption>
+  // Le tableau passe DERRIÈRE un pli, et sa légende devient la poignée.
+  //
+  // Une fiche de France aligne 167 mesures. Chacune imprimait son tableau
+  // ouvert : 13 873 px de fiche, dont l'écrasante majorité en tableaux que
+  // personne n'a demandés, et — pour qui lit à la synthèse vocale ou au
+  // clavier — trente-six tableaux à traverser avant d'atteindre la barre des
+  // thèmes. Le chiffre, sa variation et sa lecture restent à découvert : ce
+  // qui se replie, c'est l'historique année par année, qu'on ouvre quand on
+  // veut vérifier. « Une question, une phrase, trois chiffres, le tableau
+  // complet derrière. »
+  //
+  // La légende ne disparaît pas en devenant poignée : « 4 derniers exercices
+  // sur 13 publiés » dit toujours ce qu'il y a dessous, et dit maintenant en
+  // plus qu'il y a quelque chose à ouvrir.
+  return `<details class="mini-serie__pli">
+    <summary class="mini-serie__fenetre">${echapper(fenetreLisible(periodes, toutes.length))}</summary>
+    <div class="mini-serie__cadre"><table class="mini-serie">
+    <caption class="visuellement-cache">${echapper(indicateur.libelle)}, ${echapper(
+      fenetreLisible(periodes, toutes.length),
+    )}</caption>
     <thead><tr><td></td>${periodes
       .map((p) => `<th scope="col">${echapper(p)}</th>`)
       .join("")}</tr></thead>
@@ -863,7 +892,7 @@ function miniTableau(
       ${ligne(suffixe ?? intitule, serie, ratio)}
       ${totaux ? ligne("total", totaux, false) : ""}
     </tbody>
-  </table></div>`;
+  </table></div></details>`;
 }
 
 /**
@@ -1463,7 +1492,7 @@ function syntheseTerritoire(
       // détaillée l'affiche déjà. Elle manquait ici : huit des quatorze lignes
       // de l'ouverture n'étaient qu'un nombre nu, sur une fiche dont tout
       // l'objet est de dire si un chiffre est beaucoup.
-      const formate = (v: number) => formater(v, indicateur.unite, ratio);
+      const formate = (v: number) => formater(v, indicateur.unite, ratio, indicateur.id);
       // « Dépenses de fonctionnement 19 512 € par habitant. +2 280 % vs la
       // médiane régionale (819 €) » : le pourcentage mesure la petitesse de la
       // médiane, pas la commune. Les repères hors d'échelle sont retirés avant
@@ -1500,7 +1529,7 @@ function syntheseTerritoire(
           // que le lecteur sait — c'est le dernier chiffre publié.
           texte: `${entete} <strong title="Millésime ${echapper(
             mesure.periode,
-          )}">${echapper(formater(valeur, indicateur.unite, false))}</strong>. ${
+          )}">${echapper(formater(valeur, indicateur.unite, false, indicateur.id))}</strong>. ${
             situation ? `${ratio ? "Par habitant, " : ""}${echapper(situation)}` : ""
           }`.trim(),
         },
@@ -2142,6 +2171,22 @@ export function afficherFiche(
   // questions et au corps par thèmes. Sans cette mémoire, les deux vitesses
   // recalculaient deux fois cent quarante séries, courbes et mini-tableaux
   // compris — le prix d'une seconde fiche pour un mode qu'on ne regarde pas.
+  //
+  // ATTENTION — cette mémoire **rend la même chaîne aux deux corps**, et les
+  // deux sont désormais affichés en même temps (`deuxVitesses = false`) : sur
+  // la fiche France, 151 lignes sont écrites pour 115 indicateurs, soit 36
+  // mesures imprimées deux fois — « Dette publique », « Impôt sur les
+  // sociétés », six missions de l'État.
+  //
+  // Le dédoublonnage naïf — première occurrence gagne — ne marche pas, et
+  // c'est vérifié : les sections de thèmes sont construites AVANT le verdict
+  // et les questions, exprès, pour que ceux-ci sachent quelles lignes existent
+  // (`aUneLigne`) et n'y renvoient jamais dans le vide. Faire gagner la
+  // première occurrence donne donc tout au thème et vide l'ouverture de la
+  // fiche : quatre tests tombent, dont « la fiche s'ouvre sur le récit ». Le
+  // corriger demande de séparer « quelles lignes existeront » de « quelles
+  // lignes ont déjà été écrites », c'est-à-dire de décider des lignes en amont
+  // des deux corps — pas d'ajouter un garde ici.
   const dessinees = new Map<string, string>();
   const dessine = (indicateur: Indicateur): string => {
     const deja = dessinees.get(indicateur.id);
