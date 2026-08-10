@@ -819,10 +819,13 @@ BAREME_NOTE = (
 )
 
 
+# Le titre est écrit en toutes lettres pour chaque échelon plutôt que fabriqué :
+# « commune » et « région » sont féminins, « département » masculin, et une règle
+# mécanique produisait « Le budget de tous les communes ».
 ECHELONS = {
-    "commune": ("les communes", "communes"),
-    "departement": ("les départements", "départements"),
-    "region": ("les régions", "régions"),
+    "commune": ("Le budget de toutes les communes", "communes"),
+    "departement": ("Le budget de tous les départements", "départements"),
+    "region": ("Le budget de toutes les régions", "régions"),
 }
 
 # Ce qu'un total « collectivités locales » cacherait, et pourquoi il n'existe pas.
@@ -915,6 +918,16 @@ def _arbre_verifie(
 LIBELLES_OFGL: dict[str, str] = {}
 
 
+def _groupe_de_milliers(nombre: int) -> str:
+    """« 34 778 », pas « 34778 ».
+
+    L'espace insécable, et non `format(..., "n")` : celui-ci dépend de la locale
+    du système, que rien ne garantit dans un conteneur d'intégration continue.
+    Un séparateur qui disparaît selon la machine qui publie n'en est pas un.
+    """
+    return f"{nombre:,}".replace(",", "\u00a0")
+
+
 def simulateur_collectivites(conn) -> dict[str, dict]:
     """Le budget des collectivités, un échelon à la fois.
 
@@ -943,7 +956,7 @@ def simulateur_collectivites(conn) -> dict[str, dict]:
     }
 
     fichiers: dict[str, dict] = {}
-    for echelon, (article, pluriel) in ECHELONS.items():
+    for echelon, (titre, pluriel) in ECHELONS.items():
         lignes = conn.execute(
             """
             select period, indicator_id, sum(value), count(distinct geo_code)
@@ -974,11 +987,14 @@ def simulateur_collectivites(conn) -> dict[str, dict]:
             "exercice": exercice,
             "loi": "Comptes de gestion",
             "unite": "EUR",
-            "titre": f"Le budget de tou{'s les' if echelon != 'region' else 'tes les'} {pluriel}",
+            "titre": titre,
             "cadre": (
-                f"Comptes {exercice} de {nombre} {pluriel}, agrégés par l'Observatoire des"
-                " finances et de la gestion publique locales, montants en millions"
-                " d'euros (M€)"
+                # Trente-quatre mille sept cent soixante-dix-huit communes, et
+                # l'espace insécable qui les rend lisibles : « 34778 » se compte
+                # sur l'écran, « 34 778 » se lit.
+                f"Comptes {exercice} de {_groupe_de_milliers(nombre)} {pluriel}, agrégés"
+                " par l'Observatoire des finances et de la gestion publique locales,"
+                " montants en millions d'euros (M€)"
             ),
             "repere": "poste",
             "note": COLLECTIVITES_NOTE,
