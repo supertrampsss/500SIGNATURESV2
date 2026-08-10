@@ -29,16 +29,14 @@ export const QUESTIONS: Question[] = [
     question: "Combien pour la santé, l'école, la défense ?",
     reponse:
       "La dépense de toutes les administrations publiques par fonction, en part" +
-      " du PIB, face à l'Allemagne et à la zone euro. La santé est surtout payée" +
-      " par la Sécurité sociale, pas par le budget de l'État.",
+      " du PIB, face à l'Allemagne et à la zone euro.",
     cible: "#bloc-fonctions",
   },
   {
     question: "La Sécu est-elle en déficit ?",
     reponse:
       "Dépenses, recettes et solde des administrations de sécurité sociale en" +
-      " part du PIB, année par année et face à l'Allemagne, en disant pourquoi" +
-      " ce chiffre n'est pas le « trou de la Sécu » des débats parlementaires.",
+      " part du PIB, année par année et face à l'Allemagne.",
     cible: "#bloc-secu",
   },
   {
