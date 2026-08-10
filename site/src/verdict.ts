@@ -105,6 +105,10 @@ export type Contexte = {
    *  Absent, les phrases se contentent du total : elles n'inventent jamais une
    *  décomposition qu'elles n'ont pas pu vérifier. */
   catalogue?: Indicateur[];
+  /** Le nom commun de la maille : « commune », « département », « région ».
+   *  La fiche d'une région écrivait « ses 17 communes semblables » et « la
+   *  commune est dans le quart le plus bas » — le mot était en dur. */
+  maille?: string;
 };
 
 type Sens = Phrase["sens"];
@@ -192,6 +196,8 @@ type Faits = {
   /** Comment nommer la fenêtre : « sur le mandat », ou « depuis 2019 » là où
    *  aucune assemblée ne l'a ouverte. Voir `Contexte.fenetre`. */
   fenetre: string;
+  /** Le nom commun de la maille. Voir `Contexte.maille`. */
+  maille: string;
   /** « ; la hausse vient surtout de deux postes : … », ou rien du tout quand la
    *  source ne publie pas de quoi l'établir. Voir `provenance.ts`. */
   provenance: (id: string) => string;
@@ -331,7 +337,7 @@ function trajet(f: Faits, autonome: boolean): string {
 function repereDit(f: Faits): string {
   if (!f.groupe) return cadre(f);
   const { n, evolution } = f.groupe;
-  const semblables = `${new Intl.NumberFormat("fr-FR").format(n)} commune${n > 1 ? "s" : ""}`;
+  const semblables = `${new Intl.NumberFormat("fr-FR").format(n)} ${f.maille}${n > 1 ? "s" : ""}`;
   const mouvement =
     Math.abs(evolution) < 0.05
       ? "n'ont pas bougé en médiane"
@@ -344,8 +350,14 @@ function repereDit(f: Faits): string {
 function positionDite(f: Faits): string {
   if (!f.groupe || f.groupe.arrivee === "centre") return "";
   const ou = f.groupe.arrivee === "haut" ? "le plus haut" : "le plus bas";
-  return ` ; en ${f.arrivee} la commune est dans le quart ${ou} de son groupe, dont la`
+  return ` ; en ${f.arrivee} ${article(f.maille)}${f.maille} est dans le quart ${ou} de son groupe, dont la`
     + ` médiane est à ${montantOuNombre(f.groupe.mediane)}`;
+}
+
+/** « la commune », « le département » : l'article suit le genre de la maille,
+ *  qui vient de la table des mailles et non d'un identifiant. */
+function article(maille: string): string {
+  return maille === "département" ? "le " : "la ";
 }
 
 /** La médiane d'un groupe est publiée par habitant : elle se lit en euros, pas
@@ -801,6 +813,7 @@ export function faits(contexte: Contexte): Fait[] {
       valeur,
       groupe,
       fenetre: contexte.fenetre ?? "sur le mandat",
+      maille: contexte.maille ?? "commune",
       provenance: (id) =>
         contexte.catalogue
           ? provenanceDite(
@@ -884,8 +897,8 @@ export function verdict(contexte: Contexte, maximum = PHRASES_PAR_DEFAUT): Phras
   // dont l'œil ne retient plus que la répétition. Les indicateurs et les chiffres
   // étaient pourtant tous différents : c'est la charpente qui se voyait.
   //
-  // `recit.ts` applique déjà cette règle à son paragraphe. La liste la reprend :
-  // la première phrase pose les millésimes, et le cadre revient à la première
+  // La liste applique donc la règle : la première phrase pose les millésimes,
+  // et le cadre revient à la première
   // qui sache le porter — une part de recettes n'a pas d'inflation à nommer, une
   // masse en euros courants, si.
   let cadreDit = false;

@@ -418,6 +418,25 @@ test("la phrase cite le groupe, son effectif et sa médiane", () => {
   assert.match(phrase, /quart le plus haut/);
   assert.match(phrase, /par habitant/);
 });
+
+/**
+ * Le groupe se nomme dans la maille qu'il regroupe.
+ *
+ * La fiche de Nouvelle-Aquitaine écrivait « quand ses 17 communes semblables »
+ * et « la commune est dans le quart le plus bas » : le mot était en dur ici,
+ * et une région se lisait comme une commune.
+ */
+test("le groupe et le territoire se disent dans la maille de la fiche", () => {
+  const phrase = verdict({ ...AVEC_GROUPE, maille: "région" }, 6)[0].texte;
+  assert.match(phrase, /25 régions semblables/);
+  assert.match(phrase, /la région est dans le quart/);
+  assert.doesNotMatch(phrase, /commune/);
+  // Le département prend son article.
+  assert.match(
+    verdict({ ...AVEC_GROUPE, maille: "département" }, 6)[0].texte,
+    /le département est dans le quart/,
+  );
+});
 test("le produit des impôts locaux dit le taux voté, pas ce qu'il ignore", () => {
   // « Ce total ne dit pas ce qui vient des taux votés » s'excusait d'un chiffre
   // que le site publie : le taux communal de taxe foncière de la DGFiP.

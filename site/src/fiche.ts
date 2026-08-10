@@ -4,7 +4,8 @@
  * ratio, et il est accompagné de sa source, de sa méthode et de ses limites.
  */
 
-import { rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
+import { ROLES, rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
+import { blocs, rendreBlocs } from "./blocs.ts";
 import type {
   AgregatsNationaux,
   Indicateur,
@@ -30,7 +31,6 @@ import {
 } from "./mandat.ts";
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
-import { recit, type Recit } from "./recit.ts";
 import {
   complement as complementDeMasse,
   estPluriel as estMassePlurielle,
@@ -54,6 +54,15 @@ const NIVEAUX: Record<string, string> = {
   departement: "Département",
   region: "Région",
   pays: "Niveau national",
+};
+
+/** Le nom commun de la maille, tel qu'une phrase le décline : « ses 17 régions
+ *  semblables ». Une maille absente d'ici laisse `verdict.ts` sur son défaut. */
+const MAILLE_DITE: Record<string, string> = {
+  commune: "commune",
+  arrondissement_municipal: "arrondissement",
+  departement: "département",
+  region: "région",
 };
 
 /**
@@ -1714,27 +1723,25 @@ function exercicesQueLesComptesAtteignent(
 const LIGNES_PAR_QUESTION = 6;
 
 /**
- * Combien de phrases le verdict affiche : cinq au plus.
+ * Combien de faits la fiche affiche sous les blocs : trois au plus.
  *
  * `verdict.ts` en propose six par défaut, deux par sujet, et sa raison est
- * écrite — trois questions valent mieux qu'une posée trois fois. La maquette
- * retenue en demande trois à cinq : au sixième rang, la phrase est déjà le
- * second fait d'un sujet déjà traité, et l'ouverture de la fiche redevient une
- * liste. Cinq laisse les trois sujets s'exprimer et en double deux.
+ * écrite — trois questions valent mieux qu'une posée trois fois. Les quatre
+ * repères et les quatre blocs ont déjà répondu aux trois ; ce qui reste ici est
+ * ce qu'aucun des deux n'a dit, et trois lignes suffisent à le porter.
  *
- * On en demande donc huit au module, dont les trois que le récit a déjà dites
- * seront retirées : voir `phrasesQuiCompletent`.
+ * On en demande donc onze au module, dont sortiront tous les indicateurs déjà
+ * dits plus haut : voir `phrasesQuiCompletent`.
  */
-const PHRASES_DE_VERDICT = 5;
+const PHRASES_DE_VERDICT = 3;
 
 /**
- * Le verdict dit ce que le récit n'a pas dit.
+ * Les faits disent ce que les repères et les blocs n'ont pas dit.
  *
- * Les deux lisent les mêmes faits, classés pareil : sans filtre, la première
- * puce répète mot pour mot la première phrase du paragraphe, et la fiche
- * s'ouvre sur un doublon là où on lui reproche déjà d'en avoir trop. Les faits
- * cités par le récit sortent donc du verdict, qui reprend la liste où le
- * paragraphe l'a laissée.
+ * Tous lisent les mêmes séries, classées pareil : sans filtre, la première
+ * puce répétait « l'encours passe de 2 112 M€ à 3 502 M€, soit +65,8 % » sous
+ * un repère qui venait d'écrire « Ce qu'elle doit 3 502 · +65,8 % ». La fiche
+ * s'ouvrait sur un doublon là où on lui reproche déjà d'en avoir trop.
  *
  * Le filtre porte sur `vers`, l'indicateur : deux phrases du même indicateur
  * disent le même fait, quelle que soit la formulation.
@@ -1806,22 +1813,7 @@ function moisEtAnnee(date: string): string {
 }
 
 /**
- * Le récit : ce que ce mandat a fait, en un titre et un paragraphe.
- *
- * C'est la pièce la plus importante de la fiche, et la seule qui parle avant
- * qu'on ait cliqué. Rien n'y est écrit à la main : le titre et le paragraphe
- * viennent de `recit.ts`, qui les compose à partir des séries publiées.
- */
-function rendreRecit(histoire: Recit | null): string {
-  if (!histoire) return "";
-  return `<section class="recit">
-    <h3 class="recit__titre">${echapper(histoire.titre)}</h3>
-    <p class="recit__paragraphe">${echapper(histoire.paragraphe)}</p>
-  </section>`;
-}
-
-/**
- * Le verdict : trois à cinq phrases chiffrées, chacune vers son détail.
+ * Le verdict : trois phrases chiffrées au plus, chacune vers son détail.
  *
  * Une phrase dont l'indicateur cité n'a pas de ligne dans cette fiche n'est pas
  * cliquable : rien de cliquable ne mène à une section vide. Elle reste écrite —
@@ -2360,6 +2352,10 @@ export function afficherFiche(
         // suit plus aucune élection, et « sur le mandat » désignerait une
         // période que les chiffres ne couvrent pas.
         fenetre: `depuis ${raconte.exerciceReference}`,
+        // Le nom commun de la maille : la fiche de Nouvelle-Aquitaine écrivait
+        // « ses 17 communes semblables » et « la commune est dans le quart le
+        // plus bas », le mot étant en dur dans `verdict.ts`.
+        maille: MAILLE_DITE[niveau],
         // De quoi attribuer la variation d'un agrégat à ses composantes. La
         // liste est celle des indicateurs de la maille : une composante qui n'y
         // est pas fait échouer le contrôle de somme, donc rien ne s'affiche
@@ -2367,9 +2363,22 @@ export function afficherFiche(
         catalogue: options.indicateurs,
       }
     : null;
-  const histoire = contexte ? recit(contexte) : null;
+  // Les quatre blocs qui suivent les repères : où va l'argent, qui paie, ce
+  // qu'il reste, ce que ça a payé. Ils remplacent le récit et le paragraphe qui
+  // l'accompagnait — les deux disaient les chiffres des repères une seconde
+  // fois, en prose.
+  const blocsDeLecture = blocs({
+    niveau,
+    nom: territoire.nom,
+    series: territoire.series ?? {},
+    catalogue: options.indicateurs,
+  });
+  const dejaDit = [
+    ...(ROLES[niveau] ?? []).map((role) => role.id),
+    ...blocsDeLecture.flatMap((bloc) => bloc.cites),
+  ];
   const phrases = contexte
-    ? phrasesQuiCompletent(verdict(contexte, PHRASES_DE_VERDICT + 3), histoire?.cites ?? [])
+    ? phrasesQuiCompletent(verdict(contexte, PHRASES_DE_VERDICT + 8), dejaDit)
     : [];
   // `dessinees` s'est remplie en construisant les sections de thèmes : elle dit
   // exactement quelles lignes la fiche écrit, et donc où un renvoi peut mener.
@@ -2405,29 +2414,28 @@ export function afficherFiche(
   // estimation de ce qu'un foyer paie, pas un compte de la collectivité. Elle
   // repoussait vers le bas ce que le lecteur vient chercher.
   const feuille = rendreFeuilleDImpots(territoire);
-  // Les quatre repères ouvrent la fiche, avant le récit.
+  // Les quatre repères ouvrent la fiche, puis les quatre blocs la lisent.
   //
-  // Ce sont eux qu'on vient chercher, et ils étaient noyés au milieu de cent
-  // quinze lignes qui se ressemblaient toutes. Ils sont choisis par rôle, pas
-  // par thème : ce qui entre, ce qui sort, ce qui reste, ce qui est dû.
+  // Ce sont les repères qu'on vient chercher, et ils étaient noyés au milieu de
+  // cent quinze lignes qui se ressemblaient toutes. Ils sont choisis par rôle,
+  // pas par thème : ce qui entre, ce qui sort, ce qui reste, ce qui est dû. Les
+  // blocs partent de là et disent ce qu'un nombre posé ne dit pas : d'où vient
+  // le mouvement.
   const ouvertureChiffree = rendreReperes(reperesDOuverture(territoire.series ?? {}, niveau));
-  const essentiel = `${ouvertureChiffree}${rendreRecit(histoire)}${rendreVerdict(phrases, aUneLigne)}${corpsQuestions}`;
+  const essentiel = `${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}${rendreVerdict(phrases, aUneLigne)}${corpsQuestions}`;
   // Deux vitesses partout où il y a deux vitesses à offrir.
   //
-  // La condition était « un bilan à raconter » : sans récit ni verdict, pas de
-  // bouton. La France, les départements et les régions gardaient donc une
-  // interface à eux, non parce qu'ils n'ont rien à montrer — la fiche France
-  // porte cent quatre-vingt-dix séries — mais parce que le paragraphe rédigé
-  // manquait. C'était confondre la mise en page et le texte : le récit demande
-  // des règles écrites sur des séries que toutes les mailles n'ont pas, la
-  // séparation « L'essentiel / Tout voir », elle, ne demande que d'avoir
-  // quelque chose à mettre des deux côtés.
+  // La condition était « un bilan à raconter » : sans paragraphe rédigé ni
+  // verdict, pas de bouton. La France, les départements et les régions
+  // gardaient donc une interface à eux, non parce qu'ils n'ont rien à montrer —
+  // la fiche France porte cent quatre-vingt-dix séries — mais parce que la
+  // prose manquait. C'était confondre la mise en page et le texte.
   //
-  // La condition porte donc sur ce qu'il y a à voir : une ouverture — récit,
+  // La condition porte donc sur ce qu'il y a à voir : une ouverture — blocs,
   // verdict, feuille d'impôts ou questions — et un détail derrière. Là où l'un
   // des deux manque, la fiche reste d'un seul tenant plutôt que d'ouvrir un
   // onglet vide, ce qui reste la règle du site.
-  const ouverture = Boolean(histoire) || phrases.length > 0
+  const ouverture = blocsDeLecture.length > 0 || phrases.length > 0
     || Boolean(feuille) || corpsQuestions.trim().length > 0;
   // **Plus de « Tout voir ».** L'exhaustivité est le métier de la page
   // ANALYSES, où chaque exercice publié a sa colonne ; la fiche répond aux

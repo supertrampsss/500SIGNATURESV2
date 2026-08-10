@@ -2447,16 +2447,28 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   line-height: 1.2;
   margin: 0 0 var(--espace-3);
 }
+/* Le corps est à l'encre seconde, le titre à l'encre pleine : sans cet écart,
+   les deux pesaient pareil et le paragraphe se lisait avant sa question. */
 .bloc-lecture p {
   margin: 0;
   font-size: var(--texte-l);
   max-width: 64ch;
+  color: var(--encre-douce);
 }
 /* Le gras porte ce qui fait exister la phrase : le montant, la part, le poste
    qui explique la hausse. Sans lui, un paragraphe de chiffres se lit comme une
-   liste et rien n'en ressort. */
+   liste et rien n'en ressort. Il reprend l'encre pleine avec le poids : c'est
+   ce que l'œil doit trouver en balayant. */
 .bloc-lecture strong {
   font-weight: 600;
+  color: var(--encre);
+}
+/* Le terme comptable est sous le curseur, pas dans la phrase : le pointillé le
+   signale sans couper la lecture. */
+.bloc-lecture abbr[title] {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--trait-fort);
+  cursor: help;
 }
 
 @media (max-width: 40rem) {
@@ -4643,31 +4655,7 @@ summary.pont__rangee,
   color: var(--encre-douce);
 }
 
-/* ---- Le récit : la pièce la plus importante de la fiche ---- */
-.recit {
-  margin: 0 0 var(--espace-6);
-}
-.recit__titre {
-  font-family: var(--serif);
-  font-size: var(--texte-xl);
-  font-weight: 600;
-  line-height: 1.25;
-  margin: 0 0 var(--espace-4);
-  text-wrap: balance;
-}
-.recit__paragraphe {
-  margin: 0;
-  font-size: var(--texte-m);
-  line-height: 1.6;
-  max-width: 70ch;
-}
-.recit__fenetre {
-  margin: var(--espace-3) 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-
-/* ---- Le verdict : trois à cinq phrases chiffrées, chacune vers son détail ---- */
+/* ---- Les faits : trois phrases chiffrées au plus, chacune vers son détail ---- */
 .verdict {
   list-style: none;
   margin: 0 0 var(--espace-6);
@@ -4782,9 +4770,6 @@ summary.pont__rangee,
   }
   .fiche__vitesses button {
     flex: 1 1 40%;
-  }
-  .recit__titre {
-    font-size: var(--texte-l);
   }
 }
 

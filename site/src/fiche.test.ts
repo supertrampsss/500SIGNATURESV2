@@ -37,6 +37,7 @@ import {
   rubriqueDuTheme,
   valeurComparable,
 } from "./fiche.ts";
+import { ROLES } from "./reperes.ts";
 
 const TERRITOIRE = {
   nom: "Bordeaux",
@@ -905,20 +906,29 @@ test("l'inflation cumulée d'une fenêtre se compose depuis les glissements publ
   assert.equal(inflationCumulee(undefined, "2019", "2025"), null);
 });
 
-test("la fiche s'ouvre sur le récit, avant tout chiffre", () => {
+/**
+ * L'ouverture, dans l'ordre : les quatre repères, les quatre blocs, les faits.
+ *
+ * Les repères étaient posés au-dessus d'une ouverture qui redisait les mêmes
+ * chiffres : « Ce qu'elle doit 413,0 · +63,7 % » puis « l'encours passe de
+ * 252,3 M€ à 413,0 M€, soit +63,7 % ». Les blocs remplacent cette prose, ils ne
+ * s'y ajoutent pas — le récit n'existe plus.
+ */
+test("la fiche s'ouvre sur les repères, puis les blocs, puis les faits", () => {
   const html = ficheDeBordeaux();
-  assert.match(html, /<section class="recit">/);
-  assert.match(html, /<h3 class="recit__titre">[^<]+<\/h3>/);
-  assert.match(html, /<p class="recit__paragraphe">[^<]+<\/p>/);
-  // Le récit précède le verdict, qui précède les questions.
-  assert.ok(html.indexOf('class="recit"') < html.indexOf('class="verdict"'));
-  assert.ok(html.indexOf('class="verdict"') < html.indexOf('class="questions-fiche"'));
+  assert.doesNotMatch(html, /class="recit/);
+  const rang = (classe: string) => html.indexOf(`class="${classe}`);
+  assert.ok(rang("reperes") > -1 && rang("reperes") < rang("bloc-lecture"));
+  assert.ok(rang("bloc-lecture") < rang("verdict"));
+  assert.ok(rang("verdict") < rang("questions-fiche"));
+  // Le titre du bloc est un h3 en Spectral, jamais un micro-label gris.
+  assert.match(html, /<section class="bloc-lecture">\s*<h3>Où va l&#39;argent<\/h3>/);
 });
 
-test("le verdict tient en cinq phrases au plus, chacune vers son détail", () => {
+test("les faits tiennent en trois phrases au plus, chacune vers son détail", () => {
   const html = ficheDeBordeaux();
   const phrases = [...html.matchAll(/<li class="verdict__phrase/g)];
-  assert.ok(phrases.length >= 1 && phrases.length <= 5, `${phrases.length} phrases`);
+  assert.ok(phrases.length >= 1 && phrases.length <= 3, `${phrases.length} phrases`);
   // Chaque phrase renvoie vers un indicateur qui a bien une ligne dans la fiche.
   for (const [, id] of html.matchAll(/data-verdict-vers="([a-z_]+)"/g)) {
     assert.match(html, new RegExp(`data-mesure="${id}"`), `renvoi sans ligne : ${id}`);
@@ -926,20 +936,35 @@ test("le verdict tient en cinq phrases au plus, chacune vers son détail", () =>
 });
 
 /**
- * Le verdict reprend la liste où le récit l'a laissée.
+ * Les trois faits disent ce que les repères et les blocs n'ont pas dit.
  *
- * Les deux modules lisent les mêmes faits, classés pareil : sans filtre, la
- * première puce répétait mot pour mot la première phrase du paragraphe. La
- * fiche s'ouvrait donc sur un doublon, dans une refonte dont le motif est
- * précisément qu'on ne sait plus où regarder.
+ * Tous lisent les mêmes séries, classées pareil : sans filtre, la première
+ * puce répétait le repère posé quatre lignes plus haut. Le filtre porte sur
+ * l'indicateur, pas sur la formulation.
  */
-test("aucune phrase du verdict ne répète le récit", () => {
+test("aucun fait ne redit un repère ni un bloc", () => {
   const html = ficheDeBordeaux();
-  const paragraphe = html.match(/<p class="recit__paragraphe">([^<]*)<\/p>/)?.[1] ?? "";
-  assert.ok(paragraphe.length > 0, "le récit doit être rendu pour que le test ait un sens");
+  const renvois = [...html.matchAll(/data-verdict-vers="([a-z_]+)"/g)].map((m) => m[1]);
+  assert.ok(renvois.length > 0, "il faut au moins un fait pour que le test ait un sens");
+  for (const id of ROLES.commune.map((r) => r.id)) {
+    assert.ok(!renvois.includes(id), `fait déjà porté par un repère : ${id}`);
+  }
+  const blocs = [...html.matchAll(/<section class="bloc-lecture">([\s\S]*?)<\/section>/g)]
+    .map(([, corps]) => corps.replace(/<[^>]*>/g, " "))
+    .join(" ");
+  assert.ok(blocs.length > 0, "il faut au moins un bloc pour que le test ait un sens");
   for (const [, phrase] of html.matchAll(/<li class="verdict__phrase[^>]*>([\s\S]*?)<\/li>/g)) {
     const nu = phrase.replace(/<[^>]*>/g, "").trim();
-    assert.ok(!paragraphe.includes(nu), `phrase déjà dite par le récit : ${nu.slice(0, 60)}`);
+    assert.ok(!blocs.includes(nu), `phrase déjà dite par un bloc : ${nu.slice(0, 60)}`);
+  }
+});
+
+test("aucun tiret cadratin dans le texte que la fiche rend", () => {
+  // Le signe moins est le signe typographique et reste permis ; le cadratin et
+  // le demi-cadratin ne le sont pas.
+  const html = ficheDeBordeaux();
+  for (const [, corps] of html.matchAll(/<section class="bloc-lecture">([\s\S]*?)<\/section>/g)) {
+    assert.doesNotMatch(corps, /[—–]/u, corps);
   }
 });
 
