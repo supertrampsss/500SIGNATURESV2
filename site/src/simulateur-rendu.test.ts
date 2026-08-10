@@ -404,8 +404,10 @@ test("sans fichier publié, ni entrée de menu ni adresse", () => {
     MAIN,
     /return budgetsDisponibles\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/,
   );
-  // La vue de repli est « territoire » : la carte n'est plus la porte d'entrée.
-  assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(demandee\) \? demandee : "territoire";/);
+  // La vue de repli est « territoire » : la carte n'est plus la porte d'entrée
+  // — et elle n'est même plus une vue, seulement un mode de celle-ci.
+  assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(cible\) \? cible : "territoire";/);
+  assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"carte"/);
 });
 
 test("le budget réglé voyage dans l'URL comme le reste de l'écran", () => {

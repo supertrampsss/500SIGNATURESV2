@@ -144,6 +144,43 @@ test("l'anneau de focus se voit : 3:1 au moins, c'est un indicateur non textuel"
   }
 });
 
+/** Un token, lu dans le bloc de thème sombre plutôt que dans `:root`. */
+function tokenSombre(nom: string): string {
+  const bloc = CSS.slice(CSS.indexOf(':root[data-theme="sombre"] {'));
+  const m = bloc.match(new RegExp(`\\n\\s*${nom}:\\s*(#[0-9a-f]{6})\\s*;`, "i"));
+  assert.ok(m, `token sombre ${nom} introuvable`);
+  return m![1];
+}
+
+test("le rendu sombre tient les mêmes seuils que le clair", () => {
+  // Les ratios annoncés en tête du bloc sombre sont refaits ici. Une palette
+  // sombre se juge encore moins à l'œil qu'une claire : le contraste y paraît
+  // toujours plus fort qu'il n'est, et c'est précisément ce qui fait passer un
+  // gris second sous AA sans que personne ne le remarque.
+  for (const fond of ["--papier", "--papier-creuse", "--fond"]) {
+    const r = contraste(tokenSombre("--encre-douce"), tokenSombre(fond));
+    assert.ok(r >= 4.5, `sombre : --encre-douce sur ${fond} : ${r.toFixed(2)}:1 < 4,5`);
+    const encre = contraste(tokenSombre("--encre"), tokenSombre(fond));
+    assert.ok(encre >= 7, `sombre : --encre sur ${fond} : ${encre.toFixed(2)}:1 < 7`);
+  }
+  for (const t of ["--argile", "--alerte"]) {
+    for (const fond of ["--papier", "--papier-creuse"]) {
+      const r = contraste(tokenSombre(t), tokenSombre(fond));
+      assert.ok(r >= 4.5, `sombre : ${t} sur ${fond} : ${r.toFixed(2)}:1 < 4,5`);
+    }
+  }
+  for (const fond of ["--papier", "--papier-creuse", "--fond"]) {
+    const r = contraste(tokenSombre("--dore"), tokenSombre(fond));
+    assert.ok(r >= 3, `sombre : --dore sur ${fond} : ${r.toFixed(2)}:1 < 3`);
+  }
+  // Le texte posé SUR un aplat d'encre : c'est l'aplat qui change de camp
+  // d'un thème à l'autre, et avec lui ce qui doit s'y lire.
+  const surAplat = contraste(tokenSombre("--sur-encre"), tokenSombre("--encre"));
+  assert.ok(surAplat >= 4.5, `sombre : --sur-encre sur --encre : ${surAplat.toFixed(2)}:1 < 4,5`);
+  const surAplatClair = contraste(token("--sur-encre"), token("--encre"));
+  assert.ok(surAplatClair >= 4.5, `clair : --sur-encre sur --encre : ${surAplatClair.toFixed(2)}:1 < 4,5`);
+});
+
 test("toutes les tailles de texte passent par l'échelle", () => {
   // 29 tailles distinctes avant, dont une nappe sous 12px. Une taille en dur
   // dans le corps de la feuille, c'est un cran de plus qui ne dit pas son nom.
@@ -176,11 +213,24 @@ test("tous les espacements passent par l'échelle", () => {
     .map((m) => m[1].replace(/calc\((?:[^()]|\([^()]*\))*\)/g, ""))
     .flatMap((v) => v.split(/\s+/))
     .filter(
-      (v) => v !== "" && v !== "0" && !v.startsWith("var(--espace-") && v !== "var(--cible)",
+      (v) =>
+        v !== "" &&
+        v !== "0" &&
+        !v.startsWith("var(--espace-") &&
+        v !== "var(--cible)" &&
+        // La gouttière de page : la marge qui sépare une vue du bord de
+        // l'écran. Ce n'est pas un neuvième cran d'espacement — elle suit le
+        // viewport là où les crans sont fixes — et elle est elle-même
+        // calculée depuis deux d'entre eux, ce que le test vérifie plus bas.
+        v !== "var(--gouttiere)",
     );
   assert.deepEqual(enDur, [], "padding en dur");
   assert.match(CSS, /--espace-1:/);
   assert.match(CSS, /--espace-8:/);
+  // La gouttière n'échappe à l'échelle qu'en apparence : ses deux bornes en
+  // sont des crans. Écrite `clamp(1rem, 4vw, 2.5rem)`, elle aurait rouvert la
+  // porte aux valeurs libres par la fenêtre.
+  assert.match(CSS, /--gouttiere: clamp\(var\(--espace-\d\), [\d.]+vw, var\(--espace-\d\)\);/);
 });
 
 test("plus aucune valeur de rayon en dur : trois rôles, quatre tokens", () => {
@@ -241,15 +291,61 @@ test("les cibles tactiles font 44px, et leur barre aussi", () => {
   }
 });
 
-test("papier unique assumé : pas de mode sombre, un fond peint", () => {
-  // Décision documentée en tête de feuille (audit, point 22). Le fond doit
-  // être peint explicitement, sinon la page emprunte celui du système.
-  assert.doesNotMatch(CSS_REGLES, /prefers-color-scheme/);
-  assert.match(CSS, /color-scheme: light;/);
+test("le clair reste le rendu de référence, le sombre n'est qu'une commodité", () => {
+  // La décision « pas de mode sombre » est rouverte (décision de système 1).
+  // Ce que ce test verrouille n'est donc plus son absence, mais les trois
+  // garanties qui l'ont rendue acceptable.
+
+  // 1. Le clair est le défaut : `:root` nu le déclare, et rien ne bascule sans
+  //    que le lecteur ou son système l'ait demandé.
+  assert.match(CSS, /:root \{\n\s*color-scheme: light;/);
   const corps = CSS.slice(CSS.indexOf("\nbody {"), CSS.indexOf("\nbody {") + 260);
   assert.match(corps, /background: var\(--fond\);/);
   // L'accent n'a pas de couleur propre : c'est un choix, pas un oubli.
   assert.match(CSS, /--accent: #0f1b2e;/);
+
+  // 2. La bascule du lecteur l'emporte sur le système dans les deux sens : le
+  //    bloc système s'exclut lui-même quand le clair a été choisi à la main.
+  assert.match(CSS_REGLES, /@media \(prefers-color-scheme: dark\) \{\n\s*:root:not\(\[data-theme="clair"\]\) \{/);
+  assert.match(CSS_REGLES, /:root\[data-theme="sombre"\] \{/);
+
+  // 3. Parité : chaque token de couleur du clair a sa contrepartie sombre.
+  //    Un token oublié, c'est une couleur du clair qui reste posée sur un fond
+  //    sombre — invisible, et invisible seulement pour ceux qui lisent ainsi.
+  const bloc = (debut: string) => {
+    const i = CSS.indexOf(debut);
+    return CSS.slice(i, CSS.indexOf("\n}", i));
+  };
+  const tokens = (texte: string) =>
+    new Set([...texte.matchAll(/(--[\w-]+):/g)].map((m) => m[1]));
+  const clair = tokens(bloc(":root {\n  color-scheme: light;"));
+  const sombre = tokens(bloc(':root[data-theme="sombre"] {'));
+  const couleurs = [...clair].filter((t) =>
+    ["--encre", "--papier", "--fond", "--trait", "--accent", "--argile", "--dore", "--alerte", "--sur-encre", "--voile"].some(
+      (racine) => t === racine || t.startsWith(`${racine}-`),
+    ),
+  );
+  assert.ok(couleurs.length >= 12, `échantillon de tokens de couleur trop court : ${couleurs.length}`);
+  assert.deepEqual(
+    couleurs.filter((t) => !sombre.has(t)),
+    [],
+    "tokens de couleur sans contrepartie sombre",
+  );
+
+  // 4. Aucun composant ne redéfinit une couleur sous `[data-theme]` : les deux
+  //    palettes vivent au même endroit, sinon la parité se perd au premier
+  //    ajout et plus aucun test ne peut la vérifier.
+  const ailleurs = [...CSS_REGLES.matchAll(/[^\n{}]*\[data-theme="(?:sombre|clair)"\][^{]*\{/g)]
+    .map((m) => m[0].trim())
+    .filter(
+      (s) =>
+        s !== ':root[data-theme="sombre"] {' &&
+        s !== ':root:not([data-theme="clair"]) {',
+    );
+  assert.deepEqual(ailleurs, [], "palette redéfinie hors du bloc de thème");
+
+  // 5. Ce qu'on imprime et ce qu'on cite reste le clair, quel que soit l'écran.
+  assert.match(CSS_REGLES, /@media print \{\n\s*:root \{\n\s*color-scheme: light;/);
 });
 
 test("les barres de rubriques se lisent sans défiler jusqu'à elles", () => {
@@ -264,4 +360,104 @@ test("une prose ne court pas sur 140 caractères", () => {
   const bloc = CSS.slice(CSS.indexOf("LARGEUR DE LECTURE"));
   assert.match(bloc, /max-width: 70ch;/);
   assert.match(bloc, /\.questions span/);
+});
+
+test("l'état de l'URL est lu avant la première vue peinte", () => {
+  // Un lien `#analyses` partagé s'ouvrait sur une page blanche : `basculerVue`
+  // peint la vue demandée, ANALYSES lit `etat.selection` pour savoir si elle a
+  // un territoire à détailler, et `etat` n'était affecté qu'après le premier
+  // aller-retour réseau. La levée partait dans un `void` — donc aucune trace à
+  // l'écran — et le défaut ne se voyait qu'au chargement à froid : en arrivant
+  // depuis une autre vue, `etat` existait déjà.
+  const corps = MAIN.slice(
+    MAIN.indexOf("async function demarrer"),
+    MAIN.indexOf("await donnees.initialiser()"),
+  );
+  assert.ok(corps.length > 100, "corps de demarrer introuvable");
+  assert.ok(
+    corps.indexOf("etat = lireUrl();") !== -1 &&
+      corps.indexOf("etat = lireUrl();") < corps.indexOf("basculerVue();"),
+    "etat doit être lu avant la première bascule de vue",
+  );
+  // Et une seule fois : réaffecté plus bas, il écraserait tout ce que la
+  // première peinture aurait pu régler.
+  assert.equal(MAIN.match(/^\s*etat = lireUrl\(\);$/gm)?.length, 1);
+});
+
+test("la carte est un mode de la vue territoire, plus une entrée de menu", () => {
+  // Deux entrées pour un seul écran : le même panneau, la même fiche, avec ou
+  // sans fond de carte derrière.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.doesNotMatch(balises, /data-vue="carte"/);
+  assert.match(balises, /id="carte-bascule"/);
+  // Les liens `#carte` déjà partagés continuent d'ouvrir ce qu'ils
+  // promettaient : la fiche, carte déployée.
+  assert.match(MAIN, /const VUES_ALIAS: Record<string, string> = \{ carte: "territoire" \};/);
+  assert.match(MAIN, /if \(demandee === "carte"\) carteOuverte = true;/);
+  // La carte se mesure au montage : rendue dans un conteneur replié, elle
+  // garderait cette taille au déploiement.
+  assert.match(MAIN, /requestAnimationFrame\(\(\) => carte\?\.resize\(\)\);/);
+});
+
+test("un seul champ de recherche pour tout le site", () => {
+  // Il y en avait deux, `#recherche` et `#recherche-analyses`, câblés par la
+  // même fonction sur le même index mais sans état commun : ce que l'un
+  // trouvait, l'autre l'ignorait. Et la règle éditoriale demande le champ du
+  // site, pas un autre.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.equal(balises.match(/type="search"/g)?.length, 1);
+  assert.match(balises, /<header class="entete">[\s\S]*id="recherche"[\s\S]*<\/header>/);
+  assert.equal(MAIN.match(/brancherRecherche\(/g)?.length, 2); // la définition et son seul appel
+  // Le champ s'annonce `combobox` : un combobox qui dit toujours « replié » ne
+  // dit rien à qui l'écoute.
+  assert.match(balises, /role="combobox"/);
+  assert.match(MAIN, /champ\.setAttribute\("aria-expanded", String\(ouverte\)\)/);
+});
+
+test("les trois états d'une zone de données se distinguent", () => {
+  // Vide, en cours, en échec s'écrivaient en trois paragraphes gris
+  // interchangeables : une page vide et une page en panne se lisaient pareil.
+  for (const classe of [".etat", ".etat--echec", ".etat__titre", ".etat__quoi"]) {
+    assert.ok(CSS.includes(`\n${classe}`), `${classe} sans style`);
+  }
+  // L'échec dit ce qui a échoué et propose de recommencer ; le détail
+  // technique se replie, il ne s'affiche pas en tête.
+  const echec = MAIN.slice(MAIN.indexOf("demarrer().catch("));
+  assert.match(echec, /etat--echec/);
+  assert.match(echec, /role="alert"/);
+  assert.match(echec, /Réessayer/);
+  assert.match(echec, /etat__detail/);
+  // Le message technique passe par `textContent` : il peut porter une URL, et
+  // une URL peut porter des chevrons.
+  assert.match(echec, /bloc\.textContent = detail;/);
+});
+
+test("une vue longue dit ce qu'elle contient", () => {
+  // Huit blocs de plusieurs écrans sur 6 600 px de défilement, sans moyen de
+  // savoir ce qui restait dessous ni d'y aller.
+  assert.match(PAGE, /id="sommaire-decryptages"/);
+  assert.match(MAIN, /function peindreSommaireDecryptages\(\)/);
+  // Le sommaire se construit sur ce qui s'est réellement affiché : rien de
+  // cliquable ne doit mener à une section vide.
+  const corps = MAIN.slice(
+    MAIN.indexOf("function peindreSommaireDecryptages"),
+    MAIN.indexOf("/** La carte est-elle déployée ?"),
+  );
+  assert.match(corps, /querySelector\("h2, h3"\)/);
+  assert.match(corps, /if \(entrees\.length < 2\)/);
+  // Une ancre interne ne doit pas être prise pour une vue inconnue et renvoyer
+  // le lecteur sur TERRITOIRE au moment où il descend dans ce qu'il lit.
+  assert.match(MAIN, /if \(!vuesConnues\(\)\.includes\(cible\) && document\.body\.dataset\.vue\) return;/);
+  assert.match(CSS, /scroll-margin-top: calc\(var\(--haut-entete\)/);
+});
+
+test("sous le pouce, la navigation ne se coupe plus", () => {
+  // Elle défilait horizontalement dans l'en-tête, coupée à droite : la
+  // dernière entrée n'existait que pour qui pensait à pousser la barre.
+  const petit = CSS.slice(CSS.indexOf("@media (max-width: 60rem)"), CSS.indexOf("@media (max-width: 40rem)"));
+  assert.match(petit, /\.entete__nav \{[\s\S]*?position: fixed;/);
+  assert.match(petit, /grid-auto-columns: 1fr;/);
+  assert.match(petit, /env\(safe-area-inset-bottom, 0px\)/);
+  // Et la barre basse ne recouvre pas la fin de la vue.
+  assert.match(petit, /\.pied,\n\s*\.vue \{\n\s*padding-bottom:/);
 });

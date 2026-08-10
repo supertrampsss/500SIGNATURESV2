@@ -7,16 +7,25 @@
 /* ===================================================================   DÉCISIONS DE SYSTÈME — assumées, pas oubliées (audit front, points 22 et 23)
    ==========================================================================
 
-   1. PAS DE MODE SOMBRE. Ce site est un papier institutionnel unique : encre
-      nuit sur papier chaud, un seul état. Ce n'est pas un oubli, c'est un
-      choix. Un site civique dont la monnaie est la confiance gagne à n'avoir
-      qu'un seul rendu de référence — celui qu'on peut citer, imprimer et
-      comparer à une capture. Aucune règle `prefers-color-scheme` n'existe
-      donc dans cette feuille, et il ne faut pas en ajouter sans rouvrir la
-      décision. En contrepartie, deux obligations tenues ici :
-        - `color-scheme: light` est déclaré, pour que les contrôles natifs
-          (champs, ascenseurs, sélecteurs) ne soient pas repeints en sombre
-          par le système par-dessus un fond clair ;
+   1. DEUX RENDUS, UN SEUL DE RÉFÉRENCE. La décision « pas de mode sombre »
+      est rouverte ici, comme elle demandait à l'être. Ce qu'elle protégeait
+      reste vrai : un site civique dont la monnaie est la confiance a besoin
+      d'un rendu citable, imprimable, comparable à une capture. Ce rendu est
+      **le clair**, et il le reste : c'est lui qui s'affiche par défaut, lui
+      qu'on imprime (`@media print` le force), lui que décrit la
+      documentation.
+      Ce qu'elle coûtait était réel aussi : lire des tableaux de finances
+      publiques le soir sur un écran qui ne peut que rester blanc. Le sombre
+      est donc une commodité de lecture, jamais une seconde identité — c'est
+      la même encre et le même papier échangés de rôle, pas une autre palette.
+      Trois obligations tenues en contrepartie :
+        - le sombre ne se déclenche jamais tout seul : il suit
+          `prefers-color-scheme`, que le lecteur a réglé lui-même, et la
+          bascule de l'en-tête l'emporte sur le système dans les deux sens ;
+        - chaque token du clair a son exacte contrepartie sombre, calculée au
+          même seuil de contraste (point 3) — aucun composant ne redéfinit une
+          couleur sous `[data-theme]`, sans quoi la parité se perdrait au
+          premier ajout ;
         - `body` peint un fond explicite (`--fond`), jamais transparent.
 
    2. `--accent` EST IDENTIQUE À `--encre`. Le site n'a pas de couleur
@@ -64,6 +73,14 @@
    pas l'habillage. */
 :root {
   color-scheme: light;
+  /* Largeur de la colonne de lecture. Nommée parce que trois objets doivent
+     s'aligner dessus sans se la redire : l'en-tête, les vues, le pied. Le
+     panneau territoire flottait à 52rem au milieu d'un écran de 90rem, et les
+     19rem de fond nu de chaque côté se lisaient comme une page qui n'a pas
+     fini de charger. */
+  --colonne: 74rem;
+  --colonne-texte: 58rem;
+  --gouttiere: clamp(var(--espace-6), 4vw, var(--espace-8));
   /* Hauteur du nom de territoire collé en haut du panneau : les titres de
      thème s'y appuient pour ne pas glisser dessous. */
   /* 3,1rem : la hauteur réelle du titre collant (20px de corps × 1,55, plus
@@ -89,6 +106,14 @@
   --accent: #0f1b2e;
   --accent-fonce: #1a2740;
   --accent-teinte: rgb(15 27 46 / 0.06);
+  /* Le texte posé SUR un aplat d'encre : pilule active, bouton plein, onglet
+     sélectionné. Il était écrit `#fff` à onze endroits, ce qui rendait ces
+     onze aplats illisibles dès que l'encre s'éclaircit. */
+  --sur-encre: #ffffff;
+  /* Le blanc translucide des surcouches posées sur la carte. Même rôle que
+     --papier, mais laissant passer le fond derrière. */
+  --voile: rgb(255 255 255 / 0.93);
+  --voile-plein: rgb(255 255 255 / 0.96);
   /* Argile : la terre cuite servait de couleur de texte (survol d'un nom de
      mesure, mesure portée sur la carte) à 3,79:1. Assombrie à teinte
      constante jusqu'à 5,12:1 sur blanc et 4,53:1 sur les carreaux. */
@@ -145,6 +170,104 @@
      porte le texte avec la même tenue administrative. */
   --serif: "Spectral", ui-serif, Georgia, "Times New Roman", serif;
   --sans: "Public Sans", "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* ===========================================================================
+   LE RENDU SOMBRE — les mêmes rôles, échangés (décision de système 1)
+   ===========================================================================
+   Ce n'est pas une seconde palette : c'est « encre nuit sur papier chaud »
+   retourné en « papier chaud sur encre nuit ». Le bleu-nuit qui portait le
+   texte devient le fond, le blanc cassé chaud qui portait le fond devient le
+   texte, et l'argile comme le doré sont remontés en luminosité jusqu'à
+   retrouver leurs seuils — les mêmes que dans le clair, calculés de la même
+   façon (luminance relative WCAG), pas réglés à l'œil :
+
+     encre / fond          #eceae2 sur #0d1524 → 14,6:1  (AAA, corps)
+     encre-douce / fond    #a2ada4 sur #0d1524 →  7,7:1  (AAA, texte second)
+     encre-douce / creuse  #a2ada4 sur #1a2438 →  6,7:1  (AA large marge)
+     argile / papier       #e08a68 sur #131d2f →  6,4:1  (AA, survol et alerte)
+     doré / fond           #d4b268 sur #0d1524 →  9,3:1  (>3:1, anneau de focus)
+
+   `--accent` reste identique à `--encre` des deux côtés : la règle « une
+   action se marque par la forme, pas par la couleur » (décision 2) ne change
+   pas de thème. Les bleus de la carte, eux, ne sont pas ici — ce sont des
+   échelles de donnée, et une échelle qui changerait avec le thème ne serait
+   plus comparable à une capture.
+
+   Deux sélecteurs, une seule liste de valeurs, dans cet ordre : le système
+   d'abord, la bascule du lecteur ensuite, pour qu'elle l'emporte dans les
+   deux sens. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) {
+    color-scheme: dark;
+    --encre: #eceae2;
+    --encre-douce: #a2ada4;
+    --papier: #131d2f;
+    --papier-creuse: #1a2438;
+    --fond: #0d1524;
+    --trait: #263047;
+    --trait-fort: #3a465f;
+    --accent: #eceae2;
+    --accent-fonce: #ffffff;
+    --accent-teinte: rgb(236 234 226 / 0.1);
+    --sur-encre: #0d1524;
+    --voile: rgb(19 29 47 / 0.93);
+    --voile-plein: rgb(19 29 47 / 0.96);
+    --argile: #e08a68;
+    --dore: #d4b268;
+    --alerte: #e08a68;
+    --ombre-1: 0 1px 0 rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.3);
+    --ombre-2: 0 8px 24px rgb(0 0 0 / 0.45);
+  }
+}
+
+:root[data-theme="sombre"] {
+  color-scheme: dark;
+  --encre: #eceae2;
+  --encre-douce: #a2ada4;
+  --papier: #131d2f;
+  --papier-creuse: #1a2438;
+  --fond: #0d1524;
+  --trait: #263047;
+  --trait-fort: #3a465f;
+  --accent: #eceae2;
+  --accent-fonce: #ffffff;
+  --accent-teinte: rgb(236 234 226 / 0.1);
+  --sur-encre: #0d1524;
+  --voile: rgb(19 29 47 / 0.93);
+  --voile-plein: rgb(19 29 47 / 0.96);
+  --argile: #e08a68;
+  --dore: #d4b268;
+  --alerte: #e08a68;
+  --ombre-1: 0 1px 0 rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.3);
+  --ombre-2: 0 8px 24px rgb(0 0 0 / 0.45);
+}
+
+/* Le rendu de référence est le clair : c'est lui qu'on imprime et qu'on cite,
+   quel que soit le réglage d'écran du lecteur. */
+@media print {
+  :root {
+    color-scheme: light;
+    --encre: #0f1b2e;
+    --encre-douce: #626f66;
+    --papier: #ffffff;
+    --papier-creuse: #f2f1ec;
+    --fond: #ffffff;
+    --trait: #e3e1d8;
+    --trait-fort: #c7cbc8;
+    --accent: #0f1b2e;
+    --accent-teinte: rgb(15 27 46 / 0.06);
+    --sur-encre: #ffffff;
+    --voile: #ffffff;
+    --voile-plein: #ffffff;
+    --argile: #ad5438;
+    --alerte: #ad5438;
+  }
+  .entete,
+  .vue-barre,
+  .pied a {
+    display: none;
+  }
 }
 
 /* Polices auto-hébergées. Le `<link>` vers fonts.googleapis.com bloquait le
@@ -267,13 +390,29 @@ body {
   border: 2px solid var(--accent);
 }
 
-/* L'en-tête devient une barre fine : la carte est la page, le titre ne lui
-   dispute plus l'écran. La recherche vit ici — c'est le premier geste. */
+/* ===========================================================================
+   L'EN-TÊTE — trois commandes permanentes, une seule ligne
+   ===========================================================================
+   Le nom du site, la recherche d'un territoire, le choix de la vue. Rien
+   d'autre n'y a sa place : tout ce qui dépend de ce qu'on regarde vit dans la
+   vue, pas au-dessus d'elle.
+
+   La recherche a quitté le panneau de la carte pour venir ici. Elle y gagne
+   deux choses qu'elle n'avait pas : elle est atteignable depuis n'importe
+   quelle vue — ce que la règle « toute page qui montre un territoire doit
+   permettre d'en changer » demande —, et elle est **unique**. Il y en avait
+   deux, `#recherche` et `#recherche-analyses`, câblées par la même fonction
+   sur le même index mais sans état commun : ce que l'une trouvait, l'autre
+   l'ignorait.
+
+   Une seule ligne au-dessus de 60rem, hauteur bornée à 4rem. En dessous, la
+   navigation descend en barre de pouce (voir plus bas) : l'en-tête garde le
+   nom et la recherche, et cesse d'empiler trois rangées défilantes. */
 .entete {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
-  padding: 0 var(--espace-7);
+  gap: var(--espace-6);
+  padding: var(--espace-4) var(--gouttiere);
   min-height: var(--haut-entete);
   background: var(--papier);
   border-bottom: 1px solid var(--trait);
@@ -286,29 +425,40 @@ body {
   font-size: var(--texte-xl);
   font-weight: 650;
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.015em;
+  line-height: 1.15;
   white-space: nowrap;
 }
 .sous-titre {
   margin: 0;
   color: var(--encre-douce);
-  font-size: var(--texte-s);
+  font-size: var(--texte-xs);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
 }
-.entete__titres {
+.entete__marque {
   display: flex;
   flex-direction: column;
-  gap: 0.05rem;
+  gap: 0.1rem;
+  flex: 0 0 auto;
 }
+
+/* La recherche prend la place qui reste, jusqu'à 30rem. C'est le geste
+   d'entrée du site : posée en 11rem au bout d'une barre, elle se lisait comme
+   un filtre accessoire. */
 .entete__recherche {
-  flex: 1 1 auto;
-  max-width: 26rem;
+  flex: 1 1 22rem;
+  max-width: 30rem;
+  min-width: 0;
+  padding: 0;
 }
+
 .entete__nav {
-  margin-left: auto;
   display: flex;
-  gap: 1.1rem;
+  gap: var(--espace-2);
   font-size: var(--texte-m);
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 .entete__nav a {
   color: var(--encre-douce);
@@ -322,8 +472,46 @@ body {
   background: var(--papier-creuse);
 }
 .entete__nav a[aria-current="page"] {
-  color: #fff;
+  color: var(--sur-encre);
   background: var(--encre);
+}
+
+/* La bascule clair / sombre. Un rond de la taille d'une cible tactile, dont
+   l'icône est dessinée en CSS : un disque plein pour « passer au sombre », un
+   croissant pour « revenir au clair ». */
+.bascule-theme {
+  flex: 0 0 auto;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--trait);
+  border-radius: 50%;
+  background: var(--papier);
+  color: var(--encre-douce);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition),
+    transform var(--transition);
+}
+.bascule-theme:hover {
+  border-color: var(--trait-fort);
+  color: var(--encre);
+}
+.bascule-theme:active {
+  transform: scale(0.94);
+}
+.bascule-theme__icone {
+  width: 0.95rem;
+  height: 0.95rem;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  background: currentColor;
+}
+/* Le croissant : le même disque, mordu par une ombre portée intérieure du
+   côté du fond. Aucun SVG à dessiner, aucune bibliothèque à charger. */
+.bascule-theme[aria-pressed="true"] .bascule-theme__icone {
+  background: transparent;
+  box-shadow: inset -0.28rem -0.16rem 0 0 currentColor;
 }
 .visuellement-cache {
   position: absolute;
@@ -451,7 +639,7 @@ summary:focus-visible,
   position: relative;
   height: calc(100dvh - 3.6rem);
   min-height: 32rem;
-  background: #f2f1ec;
+  background: var(--papier-creuse);
 }
 #carte {
   position: absolute;
@@ -460,7 +648,7 @@ summary:focus-visible,
 .surcouche {
   position: absolute;
   z-index: 5;
-  background: rgb(255 255 255 / 0.93);
+  background: var(--voile);
   backdrop-filter: blur(10px);
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
@@ -563,8 +751,8 @@ summary:focus-visible,
 .niches,
 .mini-serie__cadre {
   background-image:
-    linear-gradient(to right, var(--papier) 40%, rgb(255 255 255 / 0)),
-    linear-gradient(to left, var(--papier) 40%, rgb(255 255 255 / 0)),
+    linear-gradient(to right, var(--papier) 40%, transparent),
+    linear-gradient(to left, var(--papier) 40%, transparent),
     radial-gradient(farthest-side at 0 50%, rgb(15 27 46 / 0.14), rgb(15 27 46 / 0)),
     radial-gradient(farthest-side at 100% 50%, rgb(15 27 46 / 0.14), rgb(15 27 46 / 0));
   background-position: 0 0, 100% 0, 0 0, 100% 0;
@@ -759,10 +947,10 @@ summary:focus-visible,
   position: sticky;
   top: 0;
   z-index: 2;
-  background: rgb(255 255 255 / 0.96);
+  background: var(--voile-plein);
   /* les gouttières sont couvertes par ombres pleines, pas par des marges
      négatives : élargir la boîte créait 20 px de défilement horizontal */
-  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
+  box-shadow: 1.15rem 0 0 var(--voile-plein), -1.15rem 0 0 var(--voile-plein);
   backdrop-filter: blur(6px);
   margin: -1rem 0 0.2rem;
   padding: var(--espace-5) var(--espace-6) var(--espace-3) 0;
@@ -936,7 +1124,7 @@ summary:focus-visible,
   font: inherit;
   font-size: var(--texte-m);
   font-weight: 600;
-  color: #fff;
+  color: var(--sur-encre);
   background: var(--accent);
   border: 1px solid var(--accent);
   border-radius: var(--rayon-pilule);
@@ -1069,15 +1257,63 @@ tbody tr:hover {
   .sous-titre {
     display: none;
   }
-  .entete__nav {
-    gap: 0.2rem;
-    font-size: var(--texte-s);
-  }
-  .entete__nav a {
-    padding: var(--espace-2) var(--espace-4);
+
+  /* ==========================================================================
+     LA NAVIGATION DESCEND SOUS LE POUCE
+     ==========================================================================
+     Elle défilait horizontalement dans l'en-tête, coupée à droite : la
+     dernière entrée n'existait que pour qui pensait à pousser la barre du
+     doigt. Cinq destinations tiennent en barre basse, toutes visibles, toutes
+     à portée de pouce — et l'en-tête retrouve une seule rangée pour ce qui
+     compte, le nom du site et la recherche. */
+  .entete {
+    gap: var(--espace-5);
+    flex-wrap: wrap;
   }
   .entete__recherche {
-    max-width: 11rem;
+    order: 3;
+    flex: 1 0 100%;
+    max-width: none;
+  }
+  .entete__nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    gap: 0;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: 1fr;
+    background: var(--papier);
+    border-top: 1px solid var(--trait);
+    padding: var(--espace-2) var(--espace-2)
+      calc(var(--espace-2) + env(safe-area-inset-bottom, 0px));
+    font-size: var(--texte-xs);
+  }
+  .entete__nav a {
+    text-align: center;
+    padding: var(--espace-4) var(--espace-2);
+    border-radius: var(--rayon-s);
+    min-height: var(--cible);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  /* Sous le pouce, l'entrée courante se marque au filet et non à l'aplat :
+     cinq pastilles noires en bas d'écran pèsent plus que la page. */
+  .entete__nav a[aria-current="page"] {
+    background: var(--accent-teinte);
+    color: var(--encre);
+    font-weight: 600;
+  }
+  /* La barre basse recouvre la fin de chaque vue : on lui rend sa place. */
+  .pied,
+  .vue {
+    padding-bottom: calc(var(--cible) + var(--espace-6) + env(safe-area-inset-bottom, 0px));
+  }
+  .panneau {
+    padding-bottom: calc(var(--cible) + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -1114,36 +1350,15 @@ tbody tr:hover {
   .entete h1 {
     font-size: var(--texte-l);
   }
-  /* Quatre entrées demandent 265 px là où il en reste 191 : la barre défile
-     dans son propre cadre plutôt que d'élargir la page — même règle que les
-     tableaux larges ci-dessus, même dégradé collant que les onglets de thème
-     pour dire qu'il en reste à droite. L'entrée courante est ramenée sous les
-     yeux par `basculerVue`. */
+  /* La barre de navigation ne défile plus dans son cadre : depuis 60rem elle
+     est en bas d'écran, en grille de colonnes égales, et cinq entrées y
+     tiennent sans être coupées. Il ne reste qu'à serrer le texte. */
   .entete__nav {
-    gap: 0.1rem;
     font-size: var(--texte-xs);
-    min-width: 0;
-    overflow-x: auto;
-    scrollbar-width: none;
-    scroll-snap-type: x proximity;
-    overscroll-behavior-x: contain;
-  }
-  .entete__nav::-webkit-scrollbar {
-    display: none;
-  }
-  .entete__nav::after {
-    content: "";
-    position: sticky;
-    right: 0;
-    flex: 0 0 1rem;
-    margin-left: -1rem;
-    align-self: stretch;
-    pointer-events: none;
-    background: linear-gradient(to left, var(--papier), rgb(255 255 255 / 0));
+    letter-spacing: -0.01em;
   }
   .entete__nav a {
-    flex: 0 0 auto;
-    padding: var(--espace-2) var(--espace-3);
+    padding: var(--espace-4) 0;
   }
 }
 
@@ -1757,7 +1972,7 @@ tbody tr:hover {
 .graphique__fenetre--active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--sur-encre);
 }
 .graphique__fenetre:focus-visible {
   outline: 2px solid var(--accent);
@@ -1979,12 +2194,214 @@ tbody tr:hover {
 
 /* Vues : une chose à l'écran à la fois. Le pied de page accompagne les vues
    qui se lisent, pas la carte plein écran. */
-body[data-vue="carte"] .pied {
+body[data-carte="oui"] .pied {
   display: none;
 }
 .vue {
-  max-width: 72rem;
+  max-width: var(--colonne);
   margin: 0 auto;
+  padding-inline: var(--gouttiere);
+}
+/* La vue territoire porte la carte, qui déborde la colonne quand elle
+   s'ouvre : elle gère ses marges elle-même. */
+.vue--territoire {
+  max-width: none;
+  padding-inline: 0;
+}
+/* Sa barre s'aligne sur la fiche, pas sur la colonne large : un bouton posé
+   64 px à gauche du texte qu'il commande ne se rattache visuellement à rien. */
+.vue--territoire .vue-barre {
+  max-width: min(62rem, 100%);
+}
+
+/* Carte déployée, la vue tient exactement dans l'écran, en colonne : la barre
+   prend sa hauteur, l'atelier prend le reste.
+
+   `.atelier` se réservait `100dvh - 3.6rem`, la hauteur d'écran moins celle de
+   l'en-tête. La barre de vue, ajoutée au-dessus, portait ces 48 px de plus au
+   compte de la page : elle devenait défilante de 48 px, et l'en-tête collant
+   se posait sur la barre au premier défilement — le bouton qui referme la
+   carte passait sous le titre du site. Une hauteur qui se partage vaut mieux
+   qu'une hauteur qu'on soustrait de tête à chaque élément ajouté. */
+body[data-carte="oui"] .vue--territoire {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--haut-entete));
+}
+body[data-carte="oui"] .vue--territoire .atelier {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+/* En colonne flex, `margin-inline: auto` l'emporte sur l'étirement : la barre
+   se repliait sur la largeur de son bouton et allait se centrer au milieu de
+   l'écran, à cheval sur la carte. Carte déployée, elle n'a plus de colonne de
+   lecture à suivre — elle suit le bord, comme les autres commandes de carte. */
+body[data-carte="oui"] .vue--territoire .vue-barre {
+  max-width: none;
+  width: 100%;
+}
+
+/* La barre de vue : les commandes qui ne valent que pour la vue affichée.
+   Elle tient sur la colonne de lecture, alignée sur le contenu qu'elle
+   commande. */
+.vue-barre {
+  max-width: var(--colonne);
+  margin: 0 auto;
+  padding: var(--espace-5) var(--gouttiere) 0;
+  display: flex;
+  gap: var(--espace-4);
+  align-items: center;
+}
+
+/* Un bouton filet : le geste secondaire du site. Contour, pas remplissage —
+   l'aplat d'encre est réservé à ce qui est actif. */
+.bouton-filet {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espace-4);
+  font: inherit;
+  font-size: var(--texte-m);
+  min-height: 2.25rem;
+  padding: var(--espace-3) var(--espace-5);
+  color: var(--encre-douce);
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-pilule);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition),
+    background var(--transition), transform var(--transition);
+}
+.bouton-filet:hover {
+  border-color: var(--trait-fort);
+  color: var(--encre);
+}
+.bouton-filet:active {
+  transform: translateY(1px);
+}
+.bouton-filet[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--sur-encre);
+}
+/* L'icône du bouton carte : un carré quadrillé, dessiné au filet. */
+.bouton-filet__icone {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 1.5px solid currentColor;
+  border-radius: var(--rayon-xs);
+  position: relative;
+}
+.bouton-filet__icone::before,
+.bouton-filet__icone::after {
+  content: "";
+  position: absolute;
+  background: currentColor;
+}
+.bouton-filet__icone::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  margin-left: -0.75px;
+}
+.bouton-filet__icone::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1.5px;
+  margin-top: -0.75px;
+}
+
+/* ===========================================================================
+   LES TROIS ÉTATS D'UNE ZONE DE DONNÉES — vide, en cours, en échec
+   ===========================================================================
+   Ils étaient trois paragraphes gris interchangeables. Une page vide et une
+   page en panne se lisaient pareil : rien, en petit, au milieu. Ils partagent
+   désormais une forme — un titre qui nomme l'état, une phrase qui dit quoi
+   faire — et se distinguent par le filet de gauche, seul signal de gravité.
+   Aucun n'emprunte le langage de l'alerte pour dire « il n'y a rien ici ». */
+.etat {
+  display: block;
+  max-width: var(--colonne-texte);
+  margin: var(--espace-8) auto;
+  padding: var(--espace-6) var(--espace-7);
+  border-left: 2px solid var(--trait-fort);
+  background: var(--papier-creuse);
+  border-radius: 0 var(--rayon-s) var(--rayon-s) 0;
+}
+.etat__titre {
+  display: block;
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-weight: 600;
+  margin-bottom: var(--espace-3);
+}
+.etat__quoi {
+  display: block;
+  color: var(--encre-douce);
+  font-size: var(--texte-m);
+}
+.etat__quoi + .etat__quoi {
+  margin-top: var(--espace-4);
+}
+/* L'échec porte l'argile, et le mot « échec » n'y est pas : ce qui a échoué
+   est le chargement, pas le lecteur. */
+.etat--echec {
+  border-left-color: var(--alerte);
+}
+.etat--echec .etat__titre {
+  color: var(--alerte);
+}
+.etat__reessayer {
+  margin-top: var(--espace-5);
+}
+/* Le détail technique d'une panne se replie : il sert à qui vient le
+   signaler, il n'apprend rien à qui vient lire un budget. */
+.etat__detail {
+  margin-top: var(--espace-5);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.etat__detail summary {
+  cursor: pointer;
+}
+.etat__detail code {
+  display: block;
+  margin-top: var(--espace-3);
+  font-size: var(--texte-xs);
+  word-break: break-word;
+}
+
+/* Le sommaire d'une vue longue : les sections qu'elle contient, en pilules
+   d'ancre. Décryptages alignait huit blocs sur 6 600 px sans dire ce qui
+   restait dessous ni permettre d'y aller. */
+.sommaire-vue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-3);
+  margin: 0 0 var(--espace-7);
+  padding-bottom: var(--espace-6);
+  border-bottom: 1px solid var(--trait);
+}
+.sommaire-vue a {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  text-decoration: none;
+  padding: var(--espace-3) var(--espace-5);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-pilule);
+  transition: border-color var(--transition), color var(--transition);
+}
+.sommaire-vue a:hover {
+  border-color: var(--trait-fort);
+  color: var(--encre);
+}
+/* Une ancre atteinte se signale sous le titre visé, pas au ras de l'en-tête
+   collant qui le recouvrait. */
+.national [id],
+.tableau[id] {
+  scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
 }
 
 /* Camembert des 100 € : la figure demandée, faite proprement — anneaux
@@ -2242,7 +2659,7 @@ body[data-vue="carte"] .pied {
   border-color: var(--encre);
   /* le :hover générique remettait l'encre sur l'encre : bouton actif
      survolé = texte invisible, vu à l'écran */
-  color: #fff;
+  color: var(--sur-encre);
 }
 .matrice__cadre {
   overflow-x: auto;
@@ -2496,7 +2913,7 @@ body[data-vue="carte"] .pied {
   display: flex;
   gap: 0.15rem;
   padding: var(--espace-4) var(--espace-2);
-  background: rgb(255 255 255 / 0.94);
+  background: var(--voile-plein);
   backdrop-filter: blur(10px);
   border: 1px solid var(--trait);
   border-radius: var(--rayon-pilule);
@@ -2518,7 +2935,7 @@ body[data-vue="carte"] .pied {
   margin-left: -1.5rem;
   align-self: stretch;
   pointer-events: none;
-  background: linear-gradient(to left, var(--papier), rgb(255 255 255 / 0));
+  background: linear-gradient(to left, var(--papier), transparent);
 }
 .pilule {
   font: inherit;
@@ -2545,7 +2962,7 @@ body[data-vue="carte"] .pied {
 .pilule--active,
 .pilule--active:hover {
   background: var(--encre);
-  color: #fff;
+  color: var(--sur-encre);
 }
 /* Les vues d'outre-mer sont un cadrage secondaire : plus discrètes. */
 .pilules--vues .pilule {
@@ -2616,7 +3033,7 @@ body[data-vue="carte"] .pied {
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--encre-douce);
-  background: rgb(255 255 255 / 0.96);
+  background: var(--voile-plein);
 }
 /* Une ligne de mesure est cliquable : elle porte son indicateur sur la carte. */
 .mesure--compacte[data-indicateur] {
@@ -2769,9 +3186,9 @@ body[data-vue="carte"] .pied {
   min-height: var(--cible);
   gap: 0.3rem;
   padding: 0;
-  background: rgb(255 255 255 / 0.96);
+  background: var(--voile-plein);
   backdrop-filter: blur(6px);
-  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
+  box-shadow: 1.15rem 0 0 var(--voile-plein), -1.15rem 0 0 var(--voile-plein);
 }
 .onglets-rubriques button {
   font: inherit;
@@ -2826,9 +3243,9 @@ body[data-vue="carte"] .pied {
   overscroll-behavior-x: contain;
   padding: 0;
   margin-bottom: 0.1rem;
-  background: rgb(255 255 255 / 0.96);
+  background: var(--voile-plein);
   backdrop-filter: blur(6px);
-  box-shadow: 1.15rem 0 0 rgb(255 255 255 / 0.96), -1.15rem 0 0 rgb(255 255 255 / 0.96);
+  box-shadow: 1.15rem 0 0 var(--voile-plein), -1.15rem 0 0 var(--voile-plein);
 }
 .onglets-themes::-webkit-scrollbar {
   display: none;
@@ -2841,7 +3258,7 @@ body[data-vue="carte"] .pied {
   margin-left: -1.75rem;
   align-self: stretch;
   pointer-events: none;
-  background: linear-gradient(to left, var(--papier), rgb(255 255 255 / 0));
+  background: linear-gradient(to left, var(--papier), transparent);
 }
 .onglets-themes button {
   font: inherit;
@@ -2938,32 +3355,68 @@ body[data-vue="carte"] .pied {
 
 /* La recherche entre dans le panneau, dans la même langue que les pilules du
    bas : arrondie, sans bordure lourde, avec sa loupe. */
+/* Le champ de recherche du site. Un seul, en-tête (voir plus haut).
+   La loupe est dessinée en `currentColor` et non en gris codé en dur : à
+   `stroke='%236e7d73'` elle disparaissait dans le rendu sombre, seule icône
+   du site à ne pas suivre son texte.
+
+   Aucun `flex` ici : cette règle est écrite après celle de l'en-tête et, à
+   specificité égale, c'est la dernière qui gagne. Le `flex: 0 0 auto` qu'elle
+   portait écrasait donc le `flex: 1 1 22rem` de `.entete__recherche`, et le
+   champ se repliait sur son contenu — placeholder coupé au milieu d'un mot. */
 .recherche {
   position: relative;
-  padding: var(--espace-5) calc(var(--espace-8) + var(--espace-4)) var(--espace-4) var(--espace-6);
-  flex: 0 0 auto;
 }
 .recherche input[type="search"] {
   width: 100%;
   min-width: 0;
-  border: 0;
-  background: var(--papier-creuse)
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='15' height='15' viewBox='0 0 15 15'%3E%3Ccircle cx='6.4' cy='6.4' r='4.6' fill='none' stroke='%236e7d73' stroke-width='1.5'/%3E%3Cpath d='M10 10l3.2 3.2' stroke='%236e7d73' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E")
-    no-repeat 0.75rem center;
+  border: 1px solid var(--trait);
+  background: var(--papier-creuse);
   border-radius: var(--rayon-pilule);
-  padding: var(--espace-4) var(--espace-6) var(--espace-4) var(--espace-8);
+  padding: var(--espace-4) var(--espace-6) var(--espace-4) calc(var(--espace-8) + var(--espace-2));
   font-size: var(--texte-m);
+  min-height: 2.5rem;
+  transition: border-color var(--transition), background-color var(--transition);
+}
+.recherche::before {
+  content: "";
+  position: absolute;
+  left: var(--espace-5);
+  top: 50%;
+  width: 0.72rem;
+  height: 0.72rem;
+  margin-top: -0.42rem;
+  border: 1.5px solid var(--encre-douce);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.recherche::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--espace-5) + 0.62rem);
+  top: 50%;
+  margin-top: 0.2rem;
+  width: 0.34rem;
+  height: 1.5px;
+  background: var(--encre-douce);
+  transform: rotate(45deg);
+  transform-origin: left center;
+  pointer-events: none;
 }
 .recherche input[type="search"]:hover {
-  background-color: #eceae3;
+  border-color: var(--trait-fort);
+  background-color: var(--papier);
 }
 .recherche input[type="search"]:focus-visible {
   background-color: var(--papier);
-  box-shadow: 0 0 0 2px var(--dore);
+  border-color: var(--accent);
+  outline-offset: 1px;
 }
+/* La liste couvre le champ sur toute sa largeur : elle en est le prolongement,
+   pas un objet posé à côté. */
 .recherche #suggestions {
-  left: 0.9rem;
-  right: calc(var(--espace-8) + var(--espace-4));
+  left: 0;
+  right: 0;
 }
 
 /* La synthèse d'ouverture : l'essentiel avant le détail. */
@@ -3583,48 +4036,81 @@ body[data-vue="carte"] .pied {
 /* ==========================================================================
    L'ACCUEIL SANS CARTE
    ==========================================================================
-   L'atelier sert deux vues. En « carte », il est ce qu'il a toujours été : un
-   fond de carte plein cadre, avec le panneau posé dessus en surcouche. En
-   « territoire », la carte et ses commandes s'effacent, et le panneau devient
-   la page — une colonne de lecture centrée, avec la recherche en tête.
+   TERRITOIRE et CARTE étaient deux entrées de menu pour un seul écran : le
+   même panneau, la même fiche, les mêmes chiffres, avec ou sans fond de carte
+   derrière. Le lecteur payait ce doublon deux fois — une entrée de plus à
+   lire dans la barre, et l'impression d'avoir manqué quelque chose en passant
+   de l'une à l'autre sans rien voir changer.
+
+   Il n'en reste qu'une, TERRITOIRE, et la carte y est un mode : `data-carte`
+   sur `body`, que le bouton de la barre de vue ouvre et referme. Par défaut
+   la fiche est la page, en colonne de lecture ; carte ouverte, elle reprend
+   sa place de surcouche sur un fond plein cadre.
 
    Rien ne bouge dans le DOM : la poignée du tiroir, les écouteurs et la fiche
-   restent où ils sont, et c'est la vue portée par `body` qui décide. */
-body[data-vue="territoire"] #carte,
-body[data-vue="territoire"] .legende,
-body[data-vue="territoire"] .carte-barre,
-body[data-vue="territoire"] .etiquettes,
-body[data-vue="territoire"] .infobulle,
-body[data-vue="territoire"] .panneau__poignee,
-body[data-vue="territoire"] .panneau__fermer {
+   restent où ils sont, et c'est l'attribut porté par `body` qui décide. */
+body:not([data-carte="oui"]) #carte,
+body:not([data-carte="oui"]) .legende,
+body:not([data-carte="oui"]) .carte-barre,
+body:not([data-carte="oui"]) .etiquettes,
+body:not([data-carte="oui"]) .infobulle,
+body:not([data-carte="oui"]) .panneau__poignee,
+body:not([data-carte="oui"]) .panneau__fermer {
   display: none;
 }
 
-body[data-vue="territoire"] .atelier {
+body:not([data-carte="oui"]) .atelier {
   display: block;
   height: auto;
   min-height: 0;
+  background: transparent;
 }
 
-body[data-vue="territoire"] .panneau {
+/* Le panneau cesse d'être une carte posée sur un fond : il EST la page. Le
+   fond nu de 19rem qui l'encadrait de chaque côté à 1440 px se lisait comme
+   un chargement inachevé, et le liseré tranchait au milieu de nulle part. */
+body:not([data-carte="oui"]) .panneau {
   position: static;
   inset: auto;
   width: auto;
-  max-width: 52rem;
+  max-width: min(62rem, 100%);
   height: auto;
   max-height: none;
   margin-inline: auto;
+  padding-inline: var(--gouttiere);
   transform: none;
   box-shadow: none;
   border: 0;
   border-radius: 0;
   background: transparent;
+  backdrop-filter: none;
 }
 
-body[data-vue="territoire"] .panneau__contenu {
+body:not([data-carte="oui"]) .panneau__contenu {
   overflow: visible;
   height: auto;
   max-height: none;
+}
+
+/* En mode page, la fiche n'a plus besoin de sa gouttière propre : celle de la
+   colonne la porte déjà. */
+body:not([data-carte="oui"]) .fiche {
+  padding-inline: 0;
+}
+
+/* Les barres collantes de la fiche — le nom du territoire, les rubriques, les
+   thèmes — peignent le voile blanc du panneau pour que le contenu passe
+   dessous sans se voir. Sur la carte, c'est juste : elles couvrent un panneau
+   blanc. En mode page, elles couvraient le fond chaud de la page avec du
+   blanc, et le raccord se lisait comme deux bords de carte verticaux courant
+   sur toute la hauteur de l'écran — le liseré du panneau qu'on venait
+   justement de retirer, redessiné par ses barres. Elles peignent le fond de
+   la page : le collant fonctionne toujours, la couture disparaît. */
+body:not([data-carte="oui"]) .fiche .fiche__titre,
+body:not([data-carte="oui"]) .fiche .onglets-rubriques,
+body:not([data-carte="oui"]) .fiche .onglets-themes {
+  background: var(--fond);
+  box-shadow: 1.15rem 0 0 var(--fond), -1.15rem 0 0 var(--fond);
 }
 
 /* Le cadrage territorial, replié en menu. Il garde la forme d'une pilule pour
@@ -3888,7 +4374,7 @@ summary.pont__rangee,
   animation-timing-function: linear;
   animation-fill-mode: both;
   animation-timeline: --defile-barre;
-  background: linear-gradient(to left, rgb(255 255 255 / 0.94), rgb(255 255 255 / 0));
+  background: linear-gradient(to left, var(--voile-plein), transparent);
 }
 
 /* Le nombre d'habitants porte une infobulle, pas un lien : le pointillé que le
@@ -4373,7 +4859,7 @@ summary.pont__rangee,
 .simu__budgets button[aria-pressed="true"] {
   background: var(--encre);
   border-color: var(--encre);
-  color: #fff;
+  color: var(--sur-encre);
 }
 /* Les compteurs de l'ONDAM vivent dans leur panneau, jamais dans le cockpit :
    c'est ce qui rend visible qu'un objectif réglé ne déplace pas le solde. */
@@ -4395,7 +4881,7 @@ summary.pont__rangee,
 .simu__onglets button[aria-selected="true"] {
   background: var(--encre);
   border-color: var(--encre);
-  color: #fff;
+  color: var(--sur-encre);
 }
 
 /* ---- L'arbre ------------------------------------------------------------ */
@@ -4625,7 +5111,7 @@ summary.pont__rangee,
 .bareme__modes button[aria-pressed="true"] {
   background: var(--encre);
   border-color: var(--encre);
-  color: #fff;
+  color: var(--sur-encre);
 }
 /* Le curseur : assez haut pour se prendre au doigt, et sa valeur à côté —
    un curseur muet demande de deviner ce qu'on vient de choisir. */
@@ -4943,11 +5429,6 @@ summary.pont__rangee,
   left: 0;
   background: var(--fond);
   z-index: 1;
-}
-.recherche--analyses {
-  position: relative;
-  max-width: 34rem;
-  margin: 0 auto var(--espace-6);
 }
 .analyses__table thead th {
   text-align: left;

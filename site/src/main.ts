@@ -1868,11 +1868,14 @@ function brancherCommandes(): void {
     );
   });
 
+  // Un seul champ pour tout le site, dans l'en-tête. Il y en avait deux, sur
+  // le même index, sans état commun.
   brancherRecherche($<HTMLInputElement>("recherche"), $<HTMLUListElement>("suggestions"));
-  brancherRecherche(
-    $<HTMLInputElement>("recherche-analyses"),
-    $<HTMLUListElement>("suggestions-analyses"),
-  );
+
+  $("carte-bascule").addEventListener("click", () => {
+    carteOuverte = !carteOuverte;
+    appliquerModeCarte(carteOuverte);
+  });
 
   // Retirer un territoire de la comparaison : les « × » des en-têtes du
   // tableau (rendus par `comparateur.ts`) et les pilules de rappel.
@@ -1897,14 +1900,21 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
   // commune, un département ». Elle cherche maintenant partout, dit à quelle
   // maille appartient chaque réponse, et y emmène. Le tri et le filtre vivent
   // dans `mailles.ts`, où ils sont testables.
+  // `aria-expanded` suit l'ouverture réelle de la liste : le champ s'annonce
+  // comme un `combobox`, et un combobox qui dit toujours « replié » ne dit rien
+  // à qui l'écoute.
+  const montrer = (ouverte: boolean) => {
+    liste.hidden = !ouverte;
+    champ.setAttribute("aria-expanded", String(ouverte));
+  };
   champ.addEventListener("input", async () => {
     const requete = champ.value.trim().toLowerCase();
     if (requete.length < 2) {
-      liste.hidden = true;
+      montrer(false);
       return;
     }
     const trouves = suggestions(await donnees.indexRecherche(), requete, etat.niveau);
-    liste.hidden = false;
+    montrer(true);
     liste.innerHTML = trouves.length
       ? trouves
           .map(
@@ -1919,7 +1929,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
   champ.addEventListener("keydown", (evenement) => {
     const touche = (evenement as KeyboardEvent).key;
     if (touche === "Escape") {
-      liste.hidden = true;
+      montrer(false);
       return;
     }
     if (touche !== "ArrowDown" && touche !== "ArrowUp") return;
@@ -1933,7 +1943,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
     const boutons = [...liste.querySelectorAll<HTMLButtonElement>("button")];
     const place = boutons.indexOf(document.activeElement as HTMLButtonElement);
     if (touche === "Escape") {
-      liste.hidden = true;
+      montrer(false);
       champ.focus();
       return;
     }
@@ -1947,7 +1957,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
   liste.addEventListener("click", async (evenement) => {
     const bouton = (evenement.target as HTMLElement).closest("button");
     if (!bouton) return;
-    liste.hidden = true;
+    montrer(false);
     champ.value = "";
     // Choisir une commune depuis une vue régionale change la maille : sans
     // cela, la fiche s'ouvrait sur un territoire que la carte ne connaissait
@@ -2033,7 +2043,12 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  * onglet — elle montre bien ce qu'aucune fiche ne montre, la répartition dans
  * l'espace — mais elle ne tient plus la porte d'entrée.
  */
-const VUES_PAGE = ["territoire", "carte", "analyses", "decryptages", "donnees"] as const;
+const VUES_PAGE = ["territoire", "analyses", "decryptages", "donnees"] as const;
+
+/** `#carte` était une vue ; c'est devenu un mode de la vue territoire. Les
+ *  liens déjà partagés continuent d'ouvrir ce qu'ils promettaient : la fiche,
+ *  carte déployée. */
+const VUES_ALIAS: Record<string, string> = { carte: "territoire" };
 
 /** La page ANALYSES pour le territoire sélectionné.
  *
@@ -2044,9 +2059,14 @@ async function peindreAnalyses(): Promise<void> {
   const cible = $("analyses");
   const code = etat.selection;
   if (!code) {
+    // L'ancien texte renvoyait « à la carte », qui n'est pas sur cette page :
+    // il désignait une commande que le lecteur ne pouvait pas voir. Il nomme
+    // désormais le champ de l'en-tête, qui, lui, y est.
     cible.innerHTML =
-      `<p class="analyses__vide">Choisissez un territoire sur la carte ou par la` +
-      ` recherche : cette page en détaille tous les indicateurs.</p>`;
+      `<p class="etat etat--vide"><span class="etat__titre">Aucun territoire choisi</span>` +
+      `<span class="etat__quoi">Cherchez une commune, un département ou une région dans le` +
+      ` champ en haut de page. Cette vue en détaille alors tous les indicateurs publiés,` +
+      ` exercice par exercice.</span></p>`;
     return;
   }
   await chargerLotsNecessaires(etat.niveau, [code]);
@@ -2175,29 +2195,127 @@ function vuesConnues(): readonly string[] {
 
 function basculerVue(): void {
   const demandee = location.hash.replace("#", "");
-  const vue = vuesConnues().includes(demandee) ? demandee : "territoire";
+  // `#carte` ouvre la vue territoire ET déploie la carte : le lien tenait sa
+  // promesse quand la carte était une vue, il la tient encore.
+  if (demandee === "carte") carteOuverte = true;
+  const cible = VUES_ALIAS[demandee] ?? demandee;
+  // Une ancre interne — le sommaire de Décryptages vise `#bloc-etat` — passe
+  // aussi par `hashchange`. Elle ne nomme pas une vue : la traiter comme une
+  // vue inconnue renvoyait le lecteur sur TERRITOIRE au moment précis où il
+  // demandait à descendre dans celle qu'il lisait. Tant qu'une vue est déjà
+  // affichée, un hash qui n'en désigne aucune la laisse en place, et le
+  // navigateur fait ce qu'il sait faire : défiler jusqu'à l'ancre.
+  if (!vuesConnues().includes(cible) && document.body.dataset.vue) return;
+  const vue = vuesConnues().includes(cible) ? cible : "territoire";
   document.body.dataset.vue = vue;
-  // L'atelier porte la carte *et* le panneau de recherche et de fiche : il sert
-  // donc aux deux vues, et c'est la feuille de style qui décide, sur
-  // `body[data-vue]`, si la carte s'affiche et si le panneau se met en pleine
-  // page. Déplacer le panneau d'un conteneur à l'autre aurait cassé tout ce qui
-  // s'y accroche — poignée, tiroir mobile, écouteurs.
-  document.querySelector<HTMLElement>(".atelier")!.hidden =
-    vue !== "carte" && vue !== "territoire";
+  // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
+  // cadre n'aurait rien à cadrer.
+  appliquerModeCarte(vue === "territoire" && carteOuverte);
+  $("vue-territoire").hidden = vue !== "territoire";
   $("vue-analyses").hidden = vue !== "analyses";
   if (vue === "analyses") void peindreAnalyses();
   $("vue-decryptages").hidden = vue !== "decryptages";
   $("vue-donnees").hidden = vue !== "donnees";
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
-    if (a.dataset.vue !== vue) return a.removeAttribute("aria-current");
-    a.setAttribute("aria-current", "page");
-    // Sur téléphone la barre de navigation défile dans son cadre : sans cela,
-    // un lecteur arrivé par un lien sur la dernière entrée ne la voit pas.
-    a.scrollIntoView({ block: "nearest", inline: "nearest" });
+    // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
+    // entrées sont visibles, il n'y a plus à ramener la courante sous les yeux.
+    if (a.dataset.vue === vue) a.setAttribute("aria-current", "page");
+    else a.removeAttribute("aria-current");
   });
   if (vue === "simulateur") void ouvrirSimulateur();
   window.scrollTo({ top: 0 });
+}
+
+/**
+ * Le sommaire de DÉCRYPTAGES.
+ *
+ * La vue aligne huit blocs de plusieurs écrans chacun — conjoncture, dette,
+ * Europe, les 100 €, fonctions, Sécurité sociale, budget de l'État, niches —
+ * soit un défilement de 6 600 px mesuré à 1440 px de large. Rien ne disait ce
+ * qui restait dessous, et il n'y avait pas d'autre moyen d'y aller que de
+ * pousser la molette.
+ *
+ * Le sommaire se construit sur ce qui s'est **réellement affiché** : un bloc
+ * dont la source n'est pas publiée reste vide et n'entre pas au sommaire.
+ * Rien de cliquable ne doit mener à une section vide — c'est déjà la règle du
+ * simulateur dans le menu, c'est la même ici. Le titre de l'entrée est celui
+ * du bloc, lu dans le DOM : deux libellés à tenir à jour en auraient fait
+ * diverger un.
+ */
+function peindreSommaireDecryptages(): void {
+  const cadre = document.getElementById("sommaire-decryptages");
+  if (!cadre) return;
+  const entrees = [...document.querySelectorAll<HTMLElement>("#national .bloc")]
+    .map((bloc) => ({ bloc, titre: bloc.querySelector("h2, h3")?.textContent?.trim() }))
+    .filter((e): e is { bloc: HTMLElement; titre: string } => Boolean(e.titre));
+  // Un sommaire d'une entrée nomme ce qui est déjà seul à l'écran.
+  if (entrees.length < 2) {
+    cadre.hidden = true;
+    return;
+  }
+  cadre.hidden = false;
+  cadre.replaceChildren(
+    ...entrees.map(({ bloc, titre }) => {
+      // Les blocs vides gardent leur `id` du gabarit ; ceux qui portent un
+      // titre l'ont rempli. L'ancre vise donc toujours quelque chose.
+      const lien = document.createElement("a");
+      lien.href = `#${bloc.id}`;
+      lien.textContent = titre;
+      return lien;
+    }),
+  );
+}
+
+/** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue. */
+let carteOuverte = false;
+
+/**
+ * Ouvre ou referme le fond de carte.
+ *
+ * MapLibre mesure son conteneur au montage. Rendu à un conteneur de hauteur
+ * nulle — ce qu'est l'atelier tant que la carte est repliée — il garde cette
+ * taille et n'affiche qu'une bande grise au déploiement : d'où le `resize()`,
+ * après que le navigateur a appliqué la nouvelle mise en page.
+ */
+function appliquerModeCarte(ouverte: boolean): void {
+  const avant = document.body.dataset.carte === "oui";
+  if (ouverte) document.body.dataset.carte = "oui";
+  else delete document.body.dataset.carte;
+  const bouton = document.getElementById("carte-bascule");
+  bouton?.setAttribute("aria-pressed", String(ouverte));
+  const texte = document.getElementById("carte-bascule-texte");
+  if (texte) texte.textContent = ouverte ? "Masquer la carte" : "Voir sur la carte";
+  if (ouverte && !avant) requestAnimationFrame(() => carte?.resize());
+}
+
+/**
+ * Le thème. Le clair reste le rendu de référence : il s'affiche tant que le
+ * lecteur n'a rien demandé et que son système ne demande rien non plus.
+ * `localStorage` peut être interdit (navigation privée stricte) — le thème
+ * suit alors le système, sans mémoire, plutôt que d'empêcher la page.
+ */
+function brancherTheme(): void {
+  const bouton = $<HTMLButtonElement>("theme-bascule");
+  const sombreSysteme = window.matchMedia("(prefers-color-scheme: dark)");
+  const estSombre = () =>
+    document.documentElement.dataset.theme === "sombre" ||
+    (!document.documentElement.dataset.theme && sombreSysteme.matches);
+  const peindre = () => bouton.setAttribute("aria-pressed", String(estSombre()));
+  peindre();
+  // Le système change d'avis (coucher du soleil, réglage) : tant que le
+  // lecteur n'a pas tranché lui-même, la bascule le suit.
+  sombreSysteme.addEventListener("change", peindre);
+  bouton.addEventListener("click", () => {
+    const voulu = estSombre() ? "clair" : "sombre";
+    document.documentElement.dataset.theme = voulu;
+    try {
+      localStorage.setItem("theme", voulu);
+    } catch {
+      // Rien à mémoriser : le choix vaut pour cette page, et c'est déjà ça.
+    }
+    peindre();
+  });
 }
 
 /**
@@ -2308,6 +2426,19 @@ async function ouvrirSimulateur(force = false): Promise<void> {
 }
 
 async function demarrer(): Promise<void> {
+  // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
+  // page en panne doit rester lisible dans le thème du lecteur.
+  brancherTheme();
+  // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
+  // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
+  // territoire à détailler : lu avant d'être écrit, il levait
+  // `Cannot read properties of undefined`. La levée partait dans un `void`,
+  // donc sans rien à l'écran — un lien `#analyses` partagé s'ouvrait sur une
+  // page blanche, et seulement au chargement à froid : en naviguant depuis une
+  // autre vue du site, `etat` existait déjà et la page s'affichait.
+  // `lireUrl` ne lit que `location.search` : rien ne l'obligeait à attendre le
+  // réseau.
+  etat = lireUrl();
   window.addEventListener("hashchange", basculerVue);
   basculerVue();
   const manifeste = await donnees.initialiser();
@@ -2317,7 +2448,6 @@ async function demarrer(): Promise<void> {
   // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
   // leur origine. Leur badge et leur fiche disent d'où ils viennent.
   catalogue = [...catalogue, ...indicateursDerives(catalogue)];
-  etat = lireUrl();
   construireSelecteurs();
   afficherQuestions($("questions"));
   // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
@@ -2699,6 +2829,8 @@ async function demarrer(): Promise<void> {
     // Budget de l'État non publié : le reste du bloc national tient debout.
   }
 
+  peindreSommaireDecryptages();
+
   await majComparateur();
 
   // « Sources et méthode » quitte la fiche pour la vue Données : c'est une
@@ -2857,6 +2989,29 @@ async function demarrer(): Promise<void> {
 
 }
 
-demarrer().catch((erreur) => {
-  $("fiche").innerHTML = `<p class="erreur">Les données n'ont pas pu être chargées : ${erreur.message}</p>`;
+/**
+ * La panne de chargement.
+ *
+ * Elle s'écrivait sur une ligne rouge dans la fiche, sans dire ce qui était en
+ * panne, ni ce que le lecteur pouvait en faire, ni où en trouver l'état. Le
+ * message technique reste — c'est lui qu'on cite pour signaler —, mais replié :
+ * `Failed to fetch` n'apprend rien à qui vient lire un budget.
+ */
+demarrer().catch((erreur: Error) => {
+  const detail = erreur?.message ? String(erreur.message) : "cause inconnue";
+  $("fiche").innerHTML = `<p class="etat etat--echec" role="alert">
+      <span class="etat__titre">Les chiffres n'ont pas pu être chargés</span>
+      <span class="etat__quoi">Le site lit des fichiers publiés sur un serveur public :
+        c'est cette lecture qui a échoué, pas votre navigateur. Les chiffres déjà affichés,
+        s'il y en a, restent ceux du dernier chargement réussi.</span>
+      <span class="etat__reessayer">
+        <button type="button" class="bouton-filet" onclick="location.reload()">Réessayer</button>
+      </span>
+      <details class="etat__detail"><summary>Détail technique</summary>
+        <code></code></details>
+    </p>`;
+  // Par `textContent` et non dans le gabarit : un message d'erreur peut porter
+  // une URL, et une URL peut porter des chevrons.
+  const bloc = $("fiche").querySelector("code");
+  if (bloc) bloc.textContent = detail;
 });
