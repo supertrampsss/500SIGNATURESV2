@@ -976,14 +976,62 @@ test("une phrase dont la ligne n'existe pas n'est pas cliquable", () => {
   const mesures = new Set([...html.matchAll(/data-mesure="([a-z_]+)"/g)].map((m) => m[1]));
   for (const id of renvois) assert.ok(mesures.has(id), id);
 });
-test("le mandat ouvert en mars 2026 se dit en une ligne, et une seule", () => {
+/**
+ * Aucune ligne de mandat, à aucune maille.
+ *
+ * « Le mandat ouvert en juin 2021 n'a pas encore de comptes publiés » posait
+ * une date d'élection au-dessus d'une fiche dont la fenêtre est comptable. La
+ * fenêtre se lit sur les exercices publiés, jamais sur un calendrier électoral,
+ * et elle est déjà dans les millésimes des phrases.
+ */
+test("aucune ligne de mandat ne s'écrit sur la fiche", () => {
   const html = ficheDeBordeaux();
-  const lignes = [...html.matchAll(/<p class="fiche__mandat">([^<]*)<\/p>/g)];
-  assert.equal(lignes.length, 1);
-  assert.equal(lignes[0][1], "Le mandat ouvert en mars 2026 n'a pas encore de comptes publiés.");
-  // Une ligne, pas un paragraphe : aucune prose explicative n'accompagne la
-  // refonte. Le client s'est fâché deux fois là-dessus.
+  assert.doesNotMatch(html, /fiche__mandat/);
+  assert.doesNotMatch(html, /Le mandat ouvert en/);
+  // Une fiche, pas un cours : aucune prose explicative n'accompagne la refonte.
   assert.doesNotMatch(html, /Ce que cette fiche calcule|Ce qu'elle ne dit pas/);
+});
+
+/**
+ * Ce qui redisait les blocs ne s'écrit plus.
+ *
+ * Quatre choses partaient ensemble, et pour la même raison : elles répétaient
+ * ce que les repères et les blocs venaient de dire, ou elles rangeaient une
+ * liste au lieu de la condenser.
+ *
+ * - « Où va l'argent ? » et « Qui paie ? » : les titres des deux premiers
+ *   blocs, à un point d'interrogation près, sur d'autres agrégats.
+ * - « Le reste » : un fourre-tout nommé.
+ * - « Tout le détail — 51 autres lignes » : cinquante et une lignes rangées
+ *   derrière un chevron restent cinquante et une lignes.
+ * - « Les comptes en six rapports » : la capacité de désendettement une
+ *   troisième fois, un par-habitant hors tableau déplié, et un plafond dont le
+ *   dépôt écrit qu'il ne le reprend pas.
+ */
+test("rien sur la fiche ne redit un bloc sous un autre intitulé", () => {
+  const html = ficheDeBordeaux();
+  for (const titre of ["Où va l&#39;argent ?", "Qui paie ?", "Le reste"]) {
+    assert.ok(!html.includes(`>${titre}<`), titre);
+  }
+  assert.doesNotMatch(html, /Tout le détail|autres lignes|theme-groupe__suite/);
+  assert.doesNotMatch(html, /class="ratios|Plafond national|Dette par habitant/);
+  // Les questions qui restent répondent à ce qu'aucun bloc ne dit.
+  const titres = [...html.matchAll(/<summary aria-expanded="true">([^<]*)</g)].map((m) => m[1]);
+  for (const titre of titres) {
+    assert.ok(!["Où va l&#39;argent ?", "Qui paie ?", "Le reste"].includes(titre), titre);
+  }
+});
+
+/**
+ * Les indicateurs des questions retirées ne disparaissent pas : ils gardent
+ * leur ligne dans leur thème, et tous leurs exercices ont une colonne sur
+ * ANALYSES. C'est l'affichage qui change, pas la publication.
+ */
+test("un indicateur d'une question retirée garde sa ligne dans son thème", () => {
+  const html = ficheDeBordeaux();
+  for (const id of ["ofgl_frais_personnel", "ofgl_impots_locaux"]) {
+    assert.match(html, new RegExp(`data-mesure="${id}"`), id);
+  }
 });
 
 test("aucun tiret cadratin ni demi-cadratin dans la fiche produite", () => {
@@ -1089,26 +1137,25 @@ test("la ligne d'un agrégat dit d'où vient son dernier mouvement", () => {
 });
 
 test("la question s'ouvre sur sa grosse masse, pas sur sa première ligne", () => {
-  // « Où va l'argent ? » répondait par six lignes chiffrées et aucune phrase.
-  // Elle ouvre maintenant sur l'agrégat qui sait se décomposer — les dépenses
-  // totales, pas « Services généraux et administration », qui n'a pas de
-  // composantes publiées et ne pouvait donc rien expliquer.
+  // « La dette est-elle tenable ? » répondait par six lignes chiffrées et
+  // aucune phrase. Elle ouvre maintenant sur l'agrégat qui sait se décomposer.
+  //
+  // Le fixture porte sur la dette, et non plus sur les dépenses : « Où va
+  // l'argent ? » et « Qui paie ? » ne s'écrivent plus, parce qu'elles redisaient
+  // les blocs sous le même intitulé et sur d'autres agrégats.
   const M = 1_000_000;
+  const serie = (base: number) =>
+    Object.fromEntries(
+      ["2019", "2020", "2021", "2022", "2023", "2024", "2025"].map((a, i) => [a, (base + i * 10) * M]),
+    );
   const territoire = {
     nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {},
     series: {
-      ofgl_depenses_totales: {
-        "2019": 400 * M, "2020": 420 * M, "2021": 440 * M, "2022": 460 * M,
-        "2023": 490 * M, "2024": 520 * M, "2025": 538 * M,
-      },
-      ofgl_depenses_fonctionnement: {
-        "2019": 294 * M, "2020": 305 * M, "2021": 316 * M, "2022": 327 * M,
-        "2023": 340 * M, "2024": 356 * M, "2025": 369 * M,
-      },
-      ofgl_depenses_investissement: {
-        "2019": 106 * M, "2020": 115 * M, "2021": 124 * M, "2022": 133 * M,
-        "2023": 150 * M, "2024": 164 * M, "2025": 169 * M,
-      },
+      ofgl_encours_dette: serie(250),
+      ofgl_encours_de_dette_dettes_bancaires_et_assimilees: serie(240),
+      ofgl_encours_de_dette_depots_et_cautionnements_recus: Object.fromEntries(
+        ["2019", "2020", "2021", "2022", "2023", "2024", "2025"].map((a) => [a, 10 * M]),
+      ),
     },
   } as never;
   const commun = {
@@ -1116,26 +1163,30 @@ test("la question s'ouvre sur sa grosse masse, pas sur sa première ligne", () =
     definition: "", jeu: "ofgl",
   };
   const indicateurs = [
-    { ...commun, id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement", parent: "ofgl_depenses_totales" },
-    { ...commun, id: "ofgl_depenses_investissement", libelle: "Dépenses d'investissement", parent: "ofgl_depenses_totales" },
-    { ...commun, id: "ofgl_depenses_totales", libelle: "Dépenses totales", parent: null },
+    { ...commun, id: "ofgl_encours_dette", libelle: "Encours de dette", parent: null },
+    { ...commun, id: "ofgl_encours_de_dette_dettes_bancaires_et_assimilees", libelle: "Encours de dette - Dettes bancaires et assimilées", parent: "ofgl_encours_dette" },
+    { ...commun, id: "ofgl_encours_de_dette_depots_et_cautionnements_recus", libelle: "Encours de dette - Dépôts et cautionnements reçus", parent: "ofgl_encours_dette" },
   ] as never as Indicateur[];
   const cible = { innerHTML: "" } as unknown as HTMLElement;
   afficherFiche(cible, {
-    niveau: "commune", territoire, indicateurs, principal: "ofgl_depenses_totales",
+    niveau: "commune", territoire, indicateurs, principal: "ofgl_encours_dette",
     jeux: [], periode: "2025", parHabitant: false, comparateurs: [],
     libelleTheme: () => "Finances locales",
   });
   assert.match(cible.innerHTML, /question-fiche__phrase/);
   // Une phrase, pas une ligne de tableau : sujet, verbe, millésimes nommés, et
-  // le gras sur les deux nombres qui portent la réponse.
-  // Le registre d'une note d'analyse : niveau, écart en euros, variation, puis
-  // le réel et la contribution de chaque poste à la variation.
-  assert.match(cible.innerHTML, /Les dépenses totales atteignent <strong>538,0[\u202f\u00a0 ]M€<\/strong> en 2025/);
-  assert.match(cible.innerHTML, /contre 400,0[\u202f\u00a0 ]M€ en 2019/);
-  assert.match(cible.innerHTML, /pour <strong>5[0-9] %<\/strong>/);
-  assert.doesNotMatch(cible.innerHTML, /Dépenses totales : 400/);
-  assert.match(cible.innerHTML, /Cette hausse vient pour l'essentiel des dépenses de fonctionnement/);
+  // le gras sur les deux nombres qui portent la réponse. Le registre d'une note
+  // d'analyse : niveau, écart en euros, variation, puis la contribution de
+  // chaque poste à la variation.
+  assert.match(cible.innerHTML, /atteint <strong>310,0[\u202f\u00a0 ]M€<\/strong> en 2025/);
+  assert.match(cible.innerHTML, /contre 250,0[\u202f\u00a0 ]M€ en 2019/);
+  assert.match(cible.innerHTML, /<strong>\+60,0[\u202f\u00a0 ]M€<\/strong>/);
+  assert.doesNotMatch(cible.innerHTML, /Encours de dette : 250/);
+  assert.match(cible.innerHTML, /Cette hausse vient entièrement de la dette bancaire/);
+  // Et les deux questions qui redisaient les blocs ne s'écrivent plus.
+  const titres = [...cible.innerHTML.matchAll(/<summary aria-expanded="true">([^<]*)</g)]
+    .map((m) => m[1]);
+  assert.deepEqual(titres, ["La dette est-elle tenable ?"]);
 });
 
 test("la feuille d'impôts n'est plus dans l'ouverture", () => {
@@ -1187,9 +1238,11 @@ test("la fenêtre est la même à toutes les mailles, quelle que soit l'électio
   // La commune élit en 2020, le département en 2021, la région en 2021 : les
   // trois doivent pourtant partir du même exercice.
   for (const niveau of ["commune", "departement", "region"]) {
-    const html = rendue(niveau);
-    assert.match(html, /contre [^<]*en 2019/, niveau);
-    assert.doesNotMatch(html, /contre [^<]*en 2020/, niveau);
+    const blocs = [...rendue(niveau).matchAll(/<section class="bloc-lecture">([\s\S]*?)<\/section>/g)]
+      .map(([, corps]) => corps)
+      .join(" ");
+    assert.match(blocs, /(qu'en|en) 2019/, niveau);
+    assert.doesNotMatch(blocs, /(qu'en|contre [^<]*en) 2020/, niveau);
   }
 });
 

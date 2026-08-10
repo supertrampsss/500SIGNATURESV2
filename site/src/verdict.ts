@@ -211,10 +211,10 @@ type Bande = "bas" | "centre" | "haut";
 type Groupe = {
   n: number;
   criteres: string[];
-  /** Évolution de la médiane du groupe entre la référence et l'arrivée, en %. */
+  /** Évolution de la médiane du groupe entre la référence et l'arrivée, en %.
+   *  Un pourcentage, pas un niveau : les quartiles sont publiés par habitant,
+   *  et leur niveau n'a rien à faire dans une ouverture. */
   evolution: number;
-  /** La médiane du groupe à l'arrivée, sur la base des quartiles. */
-  mediane: number;
   /** Où se tenait le territoire à la référence, où il se tient à l'arrivée. */
   depart: Bande;
   arrivee: Bande;
@@ -345,26 +345,29 @@ function repereDit(f: Faits): string {
   return `, quand ses ${semblables} semblables ${mouvement}${positionDite(f)}`;
 }
 
-/** « dans le quart le plus haut de ses semblables », quand le territoire y est.
- *  Une position, pas un classement : le groupe et son effectif sont dits. */
+/**
+ * « dans le quart le plus haut de son groupe », quand le territoire y est.
+ *
+ * Une position, pas un classement : le groupe et son effectif sont dits.
+ *
+ * **La médiane du groupe n'y est plus.** Les quartiles sont publiés par
+ * habitant, et la clause écrivait donc « dont la médiane est à 49 € par
+ * habitant » au milieu d'une ouverture. Le par-habitant ne s'affiche que dans
+ * les tableaux dépliés, jamais dans un résumé ni dans une ouverture : c'est là
+ * qu'il porte son dénominateur, et une commune touristique dépense pour une
+ * population bien plus nombreuse que celle qui divise son montant. La position
+ * dans le groupe, elle, ne dépend d'aucune unité et reste.
+ */
 function positionDite(f: Faits): string {
   if (!f.groupe || f.groupe.arrivee === "centre") return "";
   const ou = f.groupe.arrivee === "haut" ? "le plus haut" : "le plus bas";
-  return ` ; en ${f.arrivee} ${article(f.maille)}${f.maille} est dans le quart ${ou} de son groupe, dont la`
-    + ` médiane est à ${montantOuNombre(f.groupe.mediane)}`;
+  return ` ; en ${f.arrivee} ${article(f.maille)}${f.maille} est dans le quart ${ou} de son groupe`;
 }
 
 /** « la commune », « le département » : l'article suit le genre de la maille,
  *  qui vient de la table des mailles et non d'un identifiant. */
 function article(maille: string): string {
   return maille === "département" ? "le " : "la ";
-}
-
-/** La médiane d'un groupe est publiée par habitant : elle se lit en euros, pas
- *  en millions. */
-function montantOuNombre(valeur: number): string {
-  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(valeur)}${FINE}€`
-    + " par habitant";
 }
 
 
@@ -728,7 +731,6 @@ export function faits(contexte: Contexte): Fait[] {
       n: arrivee.n,
       criteres: arrivee.criteres,
       evolution: (arrivee.mediane / depart.mediane - 1) * 100,
-      mediane: arrivee.mediane,
       depart: bandeDe(depart),
       arrivee: bandeDe(arrivee),
     };

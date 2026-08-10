@@ -3605,25 +3605,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 
-/* Un thème montre sa mesure phare, le reste se déplie : vingt blocs ouverts
-   d'un coup faisaient un mur. */
-.theme-groupe__compte {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-}
-.theme-groupe__suite > summary {
-  cursor: pointer;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  padding: var(--espace-3) 0;
-  border-top: 1px solid var(--trait);
-  margin-top: 0.5rem;
-}
-.theme-groupe__suite > summary:hover {
-  color: var(--encre);
-}
-
 /* Le sommaire des thèmes. Une fiche fait cinq écrans : sans lui, atteindre
    « Sécurité » demandait de traverser sept thèmes. Collé sous le nom du
    territoire, il reste là pendant tout le défilement. */
@@ -3747,82 +3728,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-variant-numeric: tabular-nums;
   text-align: right;
   white-space: nowrap;
-}
-
-/* Les comptes en rapports. Le bloc se lit avant les masses : « 62 millions de
-   dette » ne dit que la taille de la collectivité, « onze ans d'épargne » dit
-   sa situation. Deux colonnes, parce que la barre latérale n'en tient pas
-   trois sans réduire les chiffres à des vignettes. */
-.ratios {
-  margin: 0.9rem 0 0.4rem;
-}
-.ratios h3 {
-  margin: 0 0 0.5rem;
-  font-size: var(--texte-s);
-  font-weight: 600;
-  color: var(--encre);
-}
-.ratios__exercice {
-  font-weight: 400;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  white-space: nowrap;
-}
-.ratios__grille {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem;
-}
-.ratios__carreau {
-  padding: var(--espace-4) var(--espace-4) var(--espace-4);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-s);
-  background: var(--papier-creuse);
-}
-.ratios__carreau h4 {
-  margin: 0;
-  font-size: var(--texte-xs);
-  font-weight: 500;
-  color: var(--encre-douce);
-}
-.ratios__valeur {
-  margin: 0.15rem 0 0;
-  font-size: var(--texte-l);
-  font-variant-numeric: tabular-nums;
-  color: var(--encre);
-}
-.ratios__evolution {
-  margin: 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  font-variant-numeric: tabular-nums;
-}
-/* Un ratio sans valeur n'est pas une case vide : c'est une phrase qui dit
-   pourquoi il n'en a pas. Elle occupe la place du chiffre. */
-.ratios__impossible {
-  margin: 0.15rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--alerte);
-}
-.ratios__plafond {
-  margin: 0.1rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-/* La lecture s'affiche toujours. La cacher derrière un survol la retirait aux
-   écrans tactiles sans survol et à quiconque ne pense pas à survoler — c'est-à-
-   dire à la plupart. Les phrases ont été raccourcies à la place. */
-.ratios__lecture {
-  margin: 0.25rem 0 0;
-  font-size: var(--texte-xs);
-  line-height: 1.35;
-  color: var(--encre-douce);
-}
-.ratios__source {
-  margin: 0.4rem 0 0;
-  font-size: var(--texte-xs);
-  line-height: 1.35;
-  color: var(--encre-douce);
 }
 
 /* Le pont : trois colonnes en grille, dont la troisième — « il reste » — est ce
@@ -3989,42 +3894,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   background: var(--encre);
   border-color: var(--encre);
   color: var(--papier);
-}
-
-/* « Tout le détail » : ce que le thème garde derrière un pli. Rien n'est
-   retiré — soixante-dix-neuf lignes de nomenclature comptable qu'on fait
-   défiler sans rien en retenir ne sont pas de la richesse, mais elles restent
-   à un clic. */
-.theme-groupe__suite {
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--trait);
-  padding-top: var(--espace-3);
-}
-.theme-groupe__suite > summary {
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  cursor: pointer;
-  padding: var(--espace-2) 0;
-  list-style: none;
-}
-.theme-groupe__suite > summary::-webkit-details-marker {
-  display: none;
-}
-.theme-groupe__suite > summary::before {
-  content: "▸";
-  display: inline-block;
-  margin-right: 0.35rem;
-  font-size: var(--texte-xs);
-  transition: transform var(--transition);
-}
-.theme-groupe__suite[open] > summary::before {
-  transform: rotate(90deg);
-}
-.theme-groupe__suite > summary:hover {
-  color: var(--encre);
-}
-.theme-groupe__compte {
-  color: var(--encre-douce);
 }
 
 /* À quelles associations. Une liste de noms, pas un tableau : le montant se lit
@@ -4378,8 +4247,7 @@ summary.pont__rangee,
 .legende__methode summary,
 .journal__technique summary,
 .assos__suite > summary,
-.assos__programmes > summary,
-.theme-groupe__suite > summary {
+.assos__programmes > summary {
   min-height: var(--cible);
   display: flex;
   align-items: center;
@@ -4422,8 +4290,7 @@ summary.pont__rangee,
 .pied p,
 .assos__reserve,
 .theme-groupe__agregat,
-.mesure__lecture,
-.ratios__lecture {
+.mesure__lecture {
   max-width: 70ch;
 }
 
@@ -4642,17 +4509,6 @@ summary.pont__rangee,
 }
 .fiche__vitesses-compte::before {
   content: " · ";
-}
-
-/* Le mandat en cours n'a pas de comptes publiés : une ligne, à l'endroit exact
-   où le lecteur voit la date de prise de fonction du maire. Pas un paragraphe. */
-.fiche .fiche__mandat {
-  order: -2;
-}
-.fiche__mandat {
-  margin: var(--espace-2) 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
 }
 
 /* ---- Les faits : trois phrases chiffrées au plus, chacune vers son détail ---- */

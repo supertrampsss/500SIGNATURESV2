@@ -22,15 +22,9 @@ import {
 } from "./serie.ts";
 import { rendu as rendreAssociations } from "./associations.ts";
 import { rendu as rendreFeuilleDImpots } from "./feuille-impots.ts";
-import { repartir, type Question } from "./fiche-questions.ts";
-import {
-  calendrierDe,
-  fenetreRacontee,
-  mandatEnCours,
-  type Mandat,
-} from "./mandat.ts";
+import { REPLI, repartir, type Question } from "./fiche-questions.ts";
+import { fenetreRacontee } from "./mandat.ts";
 import { rendu as rendrePont } from "./pont.ts";
-import { rendu as rendreRatios } from "./ratios.ts";
 import {
   complement as complementDeMasse,
   estPluriel as estMassePlurielle,
@@ -1807,11 +1801,6 @@ function variationPopulation(
   return ((arrivee - depart) / depart) * 100;
 }
 
-/** Le mois et l'année d'une date ISO, en français : « mars 2026 ». */
-function moisEtAnnee(date: string): string {
-  return new Date(date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
-}
-
 /**
  * Le verdict : trois phrases chiffrées au plus, chacune vers son détail.
  *
@@ -1855,6 +1844,7 @@ function rendreQuestions(
   ouvrir: (candidats: Indicateur[]) => string = () => "",
 ): string {
   const sections = repartir(indicateurs)
+    .filter(({ question }) => !QUESTIONS_SANS_SECTION.has(question.cle))
     .map(({ question, indicateurs: liste }) => {
       const ordonnes = teteDeLaQuestion(question, liste, rangDuTheme);
       const lignes = ordonnes.map(dessine).filter(Boolean).slice(0, LIGNES_PAR_QUESTION);
@@ -1879,6 +1869,27 @@ function rendreQuestions(
     )
     .join("")}</div>`;
 }
+
+/**
+ * Les questions qui ne s'écrivent plus sur la fiche.
+ *
+ * **« Où va l'argent ? » et « Qui paie ? » redisaient les blocs**, sous le même
+ * intitulé à un point d'interrogation près, quatre lignes plus bas et sur
+ * d'autres agrégats : le bloc écrit « la région dépense 2 158 M€ de
+ * fonctionnement, soit +196,9 M€ », le pli enchaînait « les dépenses totales
+ * atteignent 3 280 M€, soit +8,5 % », et tous deux terminaient par « d'où vient
+ * la hausse : frais de personnel… ». Deux totaux différents sous deux titres
+ * identiques : le lecteur ne sait plus lequel est le sien.
+ *
+ * **« Le reste » était un fourre-tout nommé.** Il rangeait ce qui ne répondait
+ * à aucune question sous un intitulé qui ne répond à aucune question non plus.
+ *
+ * Les indicateurs des trois questions restent publiés : ils gardent leur ligne
+ * dans leur thème, et tous les exercices publiés ont leur colonne sur ANALYSES.
+ * `QUESTIONS` reste entière — elle classe les indicateurs, et c'est elle qui
+ * dit quels comptes bornent la fenêtre. Ce qui change est ce qui s'affiche.
+ */
+const QUESTIONS_SANS_SECTION = new Set(["depenses", "recettes", REPLI]);
 
 /** Trois chiffres sous la phrase, pas six. C'est le nombre que l'œil prend
  *  d'un coup, et au-delà la liste redevient le déversement qu'elle était. */
@@ -2046,26 +2057,14 @@ function teteDeLaQuestion(
   });
 }
 
-/**
- * Une ligne, et une seule, sur le mandat qui vient de commencer.
- *
- * Les élections générales de mars 2026 ont installé des équipes dont aucun
- * exercice n'est publié : les comptes s'arrêtent à 2025. Le lecteur qui voit
- * « Maire depuis mars 2026 » au-dessus d'un bilan 2019-2025 doit savoir en un
- * coup d'œil que le second ne juge pas le premier. Une ligne suffit à le dire,
- * et un paragraphe pédagogique la ferait sauter.
- */
-function ligneMandatEnCours(
-  raconte: Mandat | null,
-  aujourdhui: string,
-  calendrier: string[],
-): string {
-  const encours = mandatEnCours(aujourdhui, calendrier);
-  if (!raconte || raconte.debut === encours.debut) return "";
-  return `<p class="fiche__mandat">Le mandat ouvert en ${echapper(
-    moisEtAnnee(encours.debut),
-  )} n'a pas encore de comptes publiés.</p>`;
-}
+/* La ligne de mandat est partie.
+
+   « Le mandat ouvert en juin 2021 n'a pas encore de comptes publiés » posait
+   une date d'élection au-dessus d'une fiche dont la fenêtre est comptable :
+   2019 et le dernier exercice publié. C'est exactement ce que la règle du
+   dépôt interdit — la fenêtre se lit sur les exercices publiés, jamais sur un
+   calendrier électoral, et aucune ligne ne dit de fenêtre de mandat. Les
+   millésimes des phrases suffisent. */
 
 
 export function afficherFiche(
@@ -2223,12 +2222,12 @@ export function afficherFiche(
                   (retenus.indexOf(b.id) + 1 || retenus.length + 1),
               )
           : visibles;
-        const derriere = liste.filter((i) => !devant.includes(i));
-        // Les lignes réellement écrites, pas celles qu'on a essayé d'écrire :
-        // une mesure sans valeur ici rend une chaîne vide, et « 12 autres
-        // lignes » en annonçait alors trois.
+        // **« Tout le détail — 51 autres lignes » est parti.** Le pli rangeait
+        // la liste, il ne la condensait pas : cinquante et une lignes restent
+        // cinquante et une lignes derrière un chevron, et personne ne les
+        // parcourait. Ce que le thème montre est ce qu'il a retenu ; tous les
+        // exercices publiés de toutes les lignes ont leur colonne sur ANALYSES.
         const lignesDevant = devant.map(dessine).filter(Boolean);
-        const lignesDerriere = derriere.map(dessine).filter(Boolean);
         const associations =
           theme === "vie_associative" ? rendreAssociations(options.associations) : "";
         // Une donnée absente n'écrit rien, et cela vaut pour la navigation.
@@ -2237,18 +2236,10 @@ export function afficherFiche(
         // qu'au département. Ni onglet muet, ni cul-de-sac — le thème renvoie
         // vers la maille qui porte la donnée quand elle existe au-dessus, et
         // disparaît quand elle n'existe nulle part.
-        if (!lignesDevant.length && !lignesDerriere.length && !associations) {
+        if (!lignesDevant.length && !associations) {
           const renvoi = renvoiVersLaMaillePorteuse(liste, territoire, niveau, comparateurs);
           return renvoi ? [{ theme, contenu: renvoi }] : [];
         }
-        const suite = lignesDerriere.length
-          ? `<details class="theme-groupe__suite">
-              <summary>Tout le détail <span class="theme-groupe__compte">${
-                lignesDerriere.length
-              } autre${lignesDerriere.length > 1 ? "s lignes" : " ligne"}</span></summary>
-              ${lignesDerriere.join("")}
-            </details>`
-          : "";
         return [
           {
             theme,
@@ -2259,7 +2250,6 @@ export function afficherFiche(
           ${mentionAgregat(liste, options.agregats, niveau)}
           ${associations}
           ${lignesDevant.join("")}
-          ${suite}
         `,
           },
         ];
@@ -2293,16 +2283,14 @@ export function afficherFiche(
       ? ` · ${boutonParent(dessus, mailleDuComparateur(dessus.libelle, territoire, niveau))}`
       : "";
 
-  /* ---- L'ouverture : le mandat raconté, le récit, le verdict, les questions.
-     Tout ce qui suit est calculé après les sections de thèmes, parce que le
-     verdict a besoin de savoir quelles lignes existent : une phrase ne renvoie
+  /* ---- L'ouverture : les repères, les blocs, les faits, les questions.
+     Tout ce qui suit est calculé après les sections de thèmes, parce que les
+     faits ont besoin de savoir quelles lignes existent : une phrase ne renvoie
      jamais vers une section vide. ---- */
-  const aujourdhui = options.aujourdhui ?? new Date().toISOString().slice(0, 10);
-  // Les exercices qui bornent un mandat sont ceux des comptes, pas ceux du
+  // Les exercices qui bornent la fenêtre sont ceux des comptes, pas ceux du
   // recensement : la fenêtre d'un bilan financier se lit sur des exercices
   // budgétaires. Ce sont exactement les indicateurs que les quatre questions
   // d'argent rassemblent.
-  const calendrier = calendrierDe(niveau);
   const exercicesDesComptes = exercicesQueLesComptesAtteignent(
     repartir(indicateurs)
       .filter(({ question }) => QUESTIONS_D_ARGENT.has(question.cle))
@@ -2471,7 +2459,6 @@ export function afficherFiche(
           }</p>`
         : ""
     }
-    ${calendrier ? ligneMandatEnCours(raconte, aujourdhui, calendrier) : ""}
     ${
       // Ce que le lecteur voit d'abord : une phrase qui dit le bilan, les
       // chiffres qui la soutiennent, ce qu'il paie, puis les questions.
@@ -2493,10 +2480,14 @@ export function afficherFiche(
           options.comparaison ?? ""
         }
         ${
-          // Les comptes en rapports, avant le détail des masses : « 62 millions
-          // de dette » ne dit que la taille de la collectivité, « onze ans
-          // d'épargne » dit sa situation.
-          rendreRatios(territoire, niveau)
+          // **Les comptes en six rapports sont partis.** Ils redisaient les
+          // blocs et les plis une troisième fois — « capacité de désendettement
+          // 6,9 ans » sous « il faudrait 6,9 années d'épargne pour rembourser »
+          // — et deux de leurs six lignes tombaient sous des règles écrites :
+          // « dette par habitant » affiche un par-habitant hors tableau déplié,
+          // et « plafond national de référence : 9 ans » reprend un seuil dont
+          // le dépôt écrit qu'il ne le reprend pas.
+          ""
         }
         ${
           // Puis l'enchaînement lui-même, replié : les rapports disent si ça

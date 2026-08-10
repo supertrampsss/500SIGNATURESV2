@@ -408,7 +408,7 @@ test("sans groupe publié, la barre absolue reprend la main", () => {
   assert.ok(retenus.includes("ofgl_depenses_fonctionnement"));
 });
 
-test("la phrase cite le groupe, son effectif et sa médiane", () => {
+test("la phrase cite le groupe et son effectif, jamais un par-habitant", () => {
   const phrase = verdict(AVEC_GROUPE, 6)[0].texte;
   assert.match(phrase, /25 communes semblables/);
   // Le repère du groupe remplace les prix et la population : un seul repère
@@ -416,7 +416,11 @@ test("la phrase cite le groupe, son effectif et sa médiane", () => {
   assert.doesNotMatch(phrase, /les prix ont monté/);
   // Aucun jugement : une position et des nombres publiés.
   assert.match(phrase, /quart le plus haut/);
-  assert.match(phrase, /par habitant/);
+  // Les quartiles sont publiés par habitant : le niveau de la médiane ne se dit
+  // donc pas ici. Le par-habitant ne s'affiche que dans les tableaux dépliés,
+  // là où il porte son dénominateur.
+  assert.doesNotMatch(phrase, /par habitant/);
+  assert.doesNotMatch(phrase, /médiane est à/);
 });
 
 /**
