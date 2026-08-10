@@ -96,6 +96,13 @@ pour ne plus l'être.
   cadrage.
 - **Un taux varie en points**, jamais en pourcentage — y compris les taux que
   la source publie pour mille et que l'écran montre en pourcentage.
+- **La fenêtre est 2019 et 2025, à toutes les mailles.** Elle se lit sur les
+  exercices publiés, **jamais sur un calendrier électoral**. Le brancher sur
+  l'élection de la maille — municipales 2020, départementales et régionales
+  2021 — faisait partir la Gironde de 2020 quand Bordeaux partait de 2019 :
+  deux territoires qu'on vient précisément comparer, sur deux périodes
+  différentes. Une élection ne borne pas un exercice comptable. Deux tests de
+  `fiche.test.ts` verrouillent la règle.
 - **Aucune ligne de fenêtre de mandat.** « mandat 2020-2026, mesuré depuis
   l'exercice 2019 » posait deux dates qu'aucune phrase ne porte : la fenêtre est
   dans les millésimes des phrases, 2019 et 2025.
