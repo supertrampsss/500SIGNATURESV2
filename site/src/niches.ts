@@ -92,17 +92,13 @@ export function rendu(
       budget. Les ${MONTRES} dispositifs les plus coûteux en portent
       ${echapper(String(part))}&nbsp;%.${prevision}</p>
     <table class="niches">
-      <caption>Dépenses fiscales chiffrées, ${echapper(exercice)} · Voies et moyens
-        tome 2 annexé au projet de loi de finances pour 2026 · euros courants</caption>
+      <caption>${echapper(String(niches.dispositifs.length))} dépenses fiscales chiffrées
+        sur les 465 recensées, ${echapper(exercice)} · Voies et moyens tome 2 annexé au
+        projet de loi de finances pour 2026 · euros courants</caption>
       <thead><tr><th scope="col">Dispositif</th><th scope="col">Mission de rattachement</th>
         <th scope="col">Coût</th></tr></thead>
       <tbody>${lignes}</tbody>
-    </table>
-    <p class="bloc__note">Ce sont des chiffrages, pas des encaissements&nbsp;: le
-      document signale lui-même que leur fiabilité est inégale. Les dispositifs dont
-      le coût est inférieur à 0,5&nbsp;M€ ou non calculé sont absents&nbsp;;
-      ${echapper(String(niches.dispositifs.length))} dispositifs sont chiffrés sur
-      les 465 que le document recense.</p>`;
+    </table>`;
 }
 
 export function afficherNiches(

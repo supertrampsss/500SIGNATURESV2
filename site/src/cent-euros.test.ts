@@ -100,12 +100,18 @@ test("les plus gros postes sont ceux de la source, pas une invention", () => {
   );
 });
 
-test("la page refuse explicitement de « suivre son impôt »", () => {
-  const html = plat(rendu(BUDGET, "2025"));
-  assert.match(html, /Aucun euro n'est tracé/);
-  assert.match(html, /universalité/);
-  assert.match(html, /une proportion, pas un trajet/);
-  assert.match(html, /La Sécurité sociale, les hôpitaux, les retraites/);
+test("aucune réserve qui s'excuse sous le bloc", () => {
+  // « Pourquoi ce n'est pas suivre son impôt » énumérait quatre mises en garde
+  // sous chaque camembert. Elles disaient au lecteur de se méfier du chiffre
+  // sans lui donner de quoi le lire autrement : c'est le remplissage que la
+  // règle du dépôt interdit. Ce qui compte — les 100 € sont une proportion —
+  // est déjà dans le titre et dans la phrase de complément.
+  const html = rendu(BUDGET, "2025");
+  assert.doesNotMatch(html, /Pourquoi ce n'est pas/);
+  assert.doesNotMatch(html, /Aucun euro n'est tracé/);
+  assert.doesNotMatch(html, /ne disent pas/);
+  // Le détail chiffré, lui, reste.
+  assert.match(html, /Le détail ligne à ligne/);
 });
 
 test("une petite part seule garde son nom, deux petites se regroupent", () => {

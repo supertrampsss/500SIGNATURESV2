@@ -93,9 +93,7 @@ export function afficherNational(
       ${courbe(france.series["insee_dette_apu_part_pib"], "percent")}
       <h4>Qui la porte</h4>
       <ul class="repartition">${detail}</ul>
-      <p class="avertissement">Ces montants sont ceux de la comptabilité nationale et
-        couvrent toutes les administrations publiques. Le total n'est pas la somme
-        exacte des lignes ci-dessus : la dette entre administrations est consolidée.</p>`;
+`;
   }
 
   const lignes = VOISINS.filter((code) => pays[code])

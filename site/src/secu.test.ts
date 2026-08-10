@@ -66,11 +66,14 @@ test("la série du solde est là, chronologique, avec l'année du choc Covid", (
   assert.ok(html.indexOf("2020") < html.lastIndexOf("2025"));
 });
 
-test("le bloc désamorce la confusion avec le « trou de la Sécu »", () => {
+test("aucune réserve qui s'excuse sous le tableau", () => {
+  // Le paragraphe expliquait que ce solde n'est pas le « trou de la Sécu », que
+  // le périmètre inclut l'assurance chômage, que cotisation et impôt diffèrent.
+  // Trois mises en garde sous un tableau que le lecteur n'a pas encore lu.
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, /pas le « trou de la Sécu »/);
-  assert.match(html, /régime général/);
-  assert.match(html, /cotisation et impôt ne sont pas la même chose/i);
+  assert.doesNotMatch(html, /trou de la Sécu/);
+  assert.doesNotMatch(html, /ne se comparent pas/);
+  assert.doesNotMatch(html, /class="avertissement"/);
 });
 
 test("sans données françaises ou sans indicateur publié, le bloc ne s'affiche pas", () => {

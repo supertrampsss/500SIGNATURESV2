@@ -160,21 +160,5 @@ export function rendu(france: Territoire | undefined, catalogue: Indicateur[]): 
           part: l.part,
         })),
       )}
-    </details>
-    <details class="repli">
-      <summary>Ce que ces 100 € ne disent pas</summary>
-      <ul>
-        <li>Ce n'est pas le trajet d'une cotisation. Ces parts répartissent ce qui a été
-          versé ; aucun euro prélevé ne part vers un risque en particulier, et la part
-          affichée pour la retraite n'est pas ce qu'un cotisant paie pour sa retraite.</li>
-        <li>Les prestations ne sont pas financées que par des cotisations : la CSG, des
-          impôts et taxes affectés et des transferts en paient une partie. Ce bloc porte sur
-          les prestations versées, pas sur ce qui les finance.</li>
-        <li>Les prestations ne sont pas la dépense totale de la protection sociale : les
-          frais de gestion des régimes et les transferts entre régimes sont d'autres postes
-          des mêmes comptes.</li>
-        <li>Les montants sont en euros courants, sans correction de l'inflation : deux
-          millésimes ne se comparent pas directement.</li>
-      </ul>
     </details>`;
 }

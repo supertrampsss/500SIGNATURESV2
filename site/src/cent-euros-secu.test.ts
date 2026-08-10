@@ -79,14 +79,11 @@ test("le millésime retenu est le dernier où les six risques sont renseignés",
   assert.equal(plat(rendu(territoire(partiel), CATALOGUE)).includes("versées en 2023"), true);
 });
 
-test("le bloc refuse le fléchage et dit son périmètre", () => {
-  const html = plat(rendu(territoire(SERIES), CATALOGUE));
-  assert.match(html, /Ce n'est pas le trajet d'une cotisation/);
-  assert.match(html, /aucun euro prélevé ne part vers un risque en particulier/);
-  assert.match(html, /porte sur\s+les prestations versées, pas sur ce qui les finance/);
-  assert.match(html, /prestations ne sont pas la dépense totale/);
-  // Le périmètre se dit ; ce que le site n'a pas encore chargé ne se dit pas.
-  assert.doesNotMatch(html, /ne publie pas encore/);
+test("aucune réserve qui s'excuse sous le bloc", () => {
+  const html = rendu(territoire(SERIES), CATALOGUE);
+  assert.doesNotMatch(html, /ne disent pas/);
+  assert.doesNotMatch(html, /Ce n'est pas le trajet/);
+  assert.match(html, /Le détail ligne à ligne/);
 });
 
 test("le titre parle de prestations, jamais de cotisations réparties", () => {

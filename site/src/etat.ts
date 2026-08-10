@@ -153,27 +153,28 @@ function comparaisonEtapes(budget: BudgetEtat, exercice: string): string {
     </table>${ecart}`;
 }
 
+/**
+ * Ce qui manque au fichier, et rien d'autre.
+ *
+ * Le bloc s'appelait « Ce que ces chiffres ne disent pas » et énumérait trois
+ * mises en garde éditoriales — comptabilité budgétaire contre Maastricht,
+ * prélèvements sur recettes, montants nets des remboursements. Elles n'ajoutent
+ * rien au chiffre affiché : elles disent au lecteur de s'en méfier sans lui
+ * donner de quoi le lire autrement, et elles reviennent sous chaque tableau du
+ * site. C'est le remplissage que la règle du dépôt interdit.
+ *
+ * Ce qui reste tient en une phrase et se rapporte à un exercice précis : quand
+ * la source publie un total qu'elle ne décompose pas, le dire évite au lecteur
+ * de chercher des lignes qui n'existent pas.
+ */
 function avertissements(budget: BudgetEtat, exercice: string): string {
-  const notes = [
-    "Comptabilité budgétaire, État seul : ce solde n'est pas le déficit public au sens" +
-      " de Maastricht, qui couvre aussi la Sécurité sociale et les collectivités et se" +
-      " calcule en comptabilité nationale.",
-    "Les prélèvements sur recettes ne sont pas des dépenses de l'État : ils sont retirés" +
-      " de ses recettes avant qu'il ne les encaisse.",
-    "Les montants sont nets des remboursements et dégrèvements d'impôts, comptés à part.",
-  ];
-  for (const [cle, totaux] of Object.entries(budget.quarantaine ?? {})) {
-    if (cle.startsWith(`${exercice}/`)) {
-      notes.push(
-        `Décomposition non publiée pour ${totaux.join(", ")} : dans le fichier source, ` +
-          "ce total ne se recompose pas à partir de ses lignes. Le total, lui, est vérifié.",
-      );
-    }
-  }
-  return `<details class="repli">
-    <summary>Ce que ces chiffres ne disent pas</summary>
-    <ul>${notes.map((n) => `<li>${echapper(n)}</li>`).join("")}</ul>
-  </details>`;
+  const manquants = Object.entries(budget.quarantaine ?? {})
+    .filter(([cle]) => cle.startsWith(`${exercice}/`))
+    .flatMap(([, totaux]) => totaux);
+  if (!manquants.length) return "";
+  return `<p class="bloc__note">Décomposition non publiée par la source pour ${
+    echapper(manquants.join(", "))
+  } : le total est vérifié, ses lignes ne le sont pas.</p>`;
 }
 
 /** Exercices publiables : ceux dont l'exécution est connue, du plus récent au

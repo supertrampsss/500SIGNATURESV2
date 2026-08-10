@@ -106,6 +106,13 @@ pour ne plus l'être.
 - **Aucune ligne de fenêtre de mandat.** « mandat 2020-2026, mesuré depuis
   l'exercice 2019 » posait deux dates qu'aucune phrase ne porte : la fenêtre est
   dans les millésimes des phrases, 2019 et 2025.
+- **Aucune réserve qui s'excuse — et la règle vaut pour les blocs entiers.**
+  « Ce que ces chiffres ne disent pas », « Pourquoi ce n'est pas suivre son
+  impôt », « leur fiabilité est inégale » : six blocs de ce genre s'étaient
+  installés sous les tableaux du site. Ils disent au lecteur de se méfier d'un
+  chiffre sans lui donner de quoi le lire autrement. Ce qui manque à un fichier
+  se dit — « décomposition non publiée pour X » —, et ce qui compte se dit dans
+  la légende du tableau, avec les chiffres, jamais après eux.
 - **Aucune réserve qui s'excuse.** Ce qui change la lecture d'un chiffre reste ;
   ce qui dit ce que le site ne sait pas faire part. Et une prudence qui
   n'apprend rien — « une année d'investissement ne résume pas le mandat » —

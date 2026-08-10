@@ -137,10 +137,20 @@ test("l'écart entre voté et exécuté est nommé dans le bon sens", () => {
   assert.match(rendu(creuse, "2025"), /déficit constaté est[\s\S]{0,80}plus élevé/);
 });
 
-test("les confusions interdites sont écrites, pas sous-entendues", () => {
+test("aucune réserve qui s'excuse, seulement ce qui manque au fichier", () => {
+  // Le bloc « Ce que ces chiffres ne disent pas » posait trois mises en garde
+  // sous chaque tableau : comptabilité budgétaire contre Maastricht,
+  // prélèvements sur recettes, montants nets des remboursements. Elles disaient
+  // au lecteur de se méfier du chiffre sans lui donner de quoi le lire
+  // autrement, et elles revenaient partout. Ce qui reste se rapporte à un
+  // exercice précis : quand la source publie un total qu'elle ne décompose pas,
+  // le dire évite de chercher des lignes qui n'existent pas.
   const html = rendu(BUDGET, "2025");
-  assert.match(html, /pas le déficit public au sens de Maastricht/);
-  assert.match(html, /prélèvements sur recettes ne sont pas des dépenses de l&#39;État/);
+  assert.doesNotMatch(html, /ne disent pas/);
+  assert.doesNotMatch(html, /Maastricht/);
+  // « Total prélèvements sur recettes » reste : c'est un libellé de ligne
+  // budgétaire publié par la source, pas une mise en garde.
+  assert.doesNotMatch(html, /prélèvements sur recettes ne sont pas des dépenses/i);
 });
 
 test("une décomposition mise en quarantaine s'explique sur son exercice", () => {

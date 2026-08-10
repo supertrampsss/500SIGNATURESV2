@@ -52,7 +52,9 @@ test("il nomme les dispositifs les plus coûteux, pas les quatre cent cinquante-
   assert.equal((html.match(/<tr>\s*<th scope="row">/g) ?? []).length, MONTRES);
   // Le décompte total reste dit : un classement de dix sur vingt-deux ne doit
   // pas se lire comme la liste entière.
-  assert.match(html, /22 dispositifs sont chiffrés sur\s+les 465/);
+  // Le décompte se lit dans la légende du tableau, avec les chiffres — pas
+  // dans une mise en garde posée après eux.
+  assert.match(html, /22 dépenses fiscales chiffrées\s+sur les 465 recensées/);
 });
 
 test("il dit la part que pèsent les premiers", () => {
@@ -72,8 +74,14 @@ test("sans exercice constaté, il retombe sur le dernier publié", () => {
   assert.match(rendu(sansRealise, pays, catalogue), /En 2026, l'État renonce/);
 });
 
-test("il prévient que ce sont des chiffrages, pas des encaissements", () => {
-  assert.match(rendu(niches, pays, catalogue), /chiffrages, pas des encaissements/);
+test("aucune réserve qui s'excuse sous le tableau", () => {
+  // « Leur fiabilité est inégale » invitait à douter du tableau sans dire de
+  // quel dispositif douter. Le nombre de dispositifs chiffrés, lui, était une
+  // information : il est passé dans la légende du tableau, où il se lit avec
+  // les chiffres plutôt qu'après eux.
+  const html = rendu(niches, pays, catalogue);
+  assert.doesNotMatch(html, /fiabilité est inégale/);
+  assert.doesNotMatch(html, /bloc__note/);
 });
 
 test("il ne s'affiche pas sans total publié", () => {

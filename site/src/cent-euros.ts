@@ -240,25 +240,7 @@ export function rendu(budget: BudgetEtat, exercice: string): string {
         ? ` Le solde budgétaire complet ajoute à ce calcul le résultat des comptes
             spéciaux et des budgets annexes.`
         : ""
-    }</p>
-    <details class="repli">
-      <summary>Pourquoi ce n'est pas « suivre son impôt »</summary>
-      <ul>
-        <li>Aucun euro n'est tracé. Le budget de l'État obéit au principe
-          d'universalité : les recettes ne financent pas une dépense en particulier,
-          elles alimentent une masse commune. Ces 100 € sont une proportion, pas un
-          trajet.</li>
-        <li>Le périmètre est l'État seul. La Sécurité sociale, les hôpitaux, les
-          retraites et les budgets des collectivités n'y figurent pas : ils sont
-          financés par d'autres recettes, cotisations comprises.</li>
-        <li>Les montants sont ceux d'un exercice exécuté, en comptabilité
-          budgétaire, nets des remboursements et dégrèvements d'impôts.</li>
-        <li>Les prélèvements sur recettes reversés aux collectivités et à l'Union
-          européenne sont comptés comme des emplois, parce que c'est ce qu'ils sont
-          du point de vue du contribuable, même si la comptabilité budgétaire les
-          retire des recettes plutôt que de les inscrire en dépenses.</li>
-      </ul>
-    </details>`;
+    }</p>`;
 }
 
 export function afficherCentEuros(

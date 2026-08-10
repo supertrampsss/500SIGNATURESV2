@@ -61,11 +61,10 @@ test("une valeur absente chez un voisin s'écrit — plutôt que zéro", () => {
   assert.match(html, /Défense<\/th>[\s\S]{0,400}<td>—<\/td>[\s\S]{0,60}<td>—<\/td>/);
 });
 
-test("le bloc dit son périmètre : toutes les administrations, pas l'État", () => {
+test("aucune réserve qui s'excuse sous le tableau", () => {
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, /toutes les administrations\s+publiques/);
-  assert.match(html, /Sécurité sociale/);
-  assert.match(html, /ne porte que sur l'État/);
+  assert.doesNotMatch(html, /class="avertissement"/);
+  assert.doesNotMatch(html, /efficacité de la dépense/);
 });
 
 test("sans donnée France, le bloc ne s'affiche pas du tout", () => {

@@ -98,11 +98,7 @@ export function rendu(
       </tr></thead>
       <tbody>${lignes}</tbody>
     </table>
-    <p class="avertissement">Ces montants couvrent <strong>toutes les administrations
-      publiques</strong>, pas le seul budget de l'État : la santé est surtout payée par
-      la Sécurité sociale, l'enseignement en partie par les collectivités. C'est ce qui
-      distingue ce tableau du module « 100 € » ci-dessus, qui ne porte que sur l'État.
-      Un pourcentage du PIB ne dit pas l'efficacité de la dépense, seulement son poids.</p>`;
+`;
 }
 
 export function afficherFonctions(
