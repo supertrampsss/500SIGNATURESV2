@@ -2326,9 +2326,13 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   max-width: var(--colonne-texte);
   margin: var(--espace-8) auto;
   padding: var(--espace-6) var(--espace-7);
-  border-left: 2px solid var(--trait-fort);
+  /* Un liseré de couleur à gauche d'un encadré teinté est la signature d'une
+     maquette faite à la chaîne : c'est le premier détail qu'on reconnaît et le
+     dernier qui informe. L'état se tient par son fond et son filet supérieur,
+     et sa gravité se lit dans son titre, qui la dit en toutes lettres. */
+  border-top: 1px solid var(--trait-fort);
   background: var(--papier-creuse);
-  border-radius: 0 var(--rayon-s) var(--rayon-s) 0;
+  border-radius: var(--rayon-s);
 }
 .etat__titre {
   display: block;
@@ -2348,7 +2352,7 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* L'échec porte l'argile, et le mot « échec » n'y est pas : ce qui a échoué
    est le chargement, pas le lecteur. */
 .etat--echec {
-  border-left-color: var(--alerte);
+  border-top-color: var(--alerte);
 }
 .etat--echec .etat__titre {
   color: var(--alerte);
@@ -2371,6 +2375,97 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   margin-top: var(--espace-3);
   font-size: var(--texte-xs);
   word-break: break-word;
+}
+
+/* ===========================================================================
+   LES QUATRE REPÈRES D'OUVERTURE
+   ===========================================================================
+   Des cartes, et non une bande tenue par deux filets : quatre nombres posés
+   côte à côte sans cadre se lisent comme une seule ligne de chiffres, et le
+   rôle de chacun se perd.
+
+   L'intitulé tient sur UNE ligne. C'est la raison pour laquelle les rôles font
+   trois mots : « Ce que la ville encaisse » passait sur deux lignes et faisait
+   monter les quatre cartes d'autant, en haut de la fiche, là où l'espace coûte
+   le plus cher. `white-space: nowrap` le garantit plutôt que de l'espérer. */
+.reperes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--espace-4);
+  margin: var(--espace-6) 0 0;
+}
+.repere {
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-5);
+  min-width: 0;
+}
+.repere__role {
+  display: block;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.repere__valeur {
+  display: block;
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  margin: var(--espace-2) 0 var(--espace-1);
+}
+.repere__terme {
+  display: block;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ===========================================================================
+   LES BLOCS DE LECTURE — un titre est plus gros que son texte
+   ===========================================================================
+   « Où va l'argent » était écrit en 12 px capitales grises au-dessus d'un
+   paragraphe en 16 px encre pleine : le titre était plus petit ET plus pâle
+   que ce qu'il annonçait, si bien qu'on voyait le texte avant sa question.
+   Il est maintenant en serif, à l'encre, au-dessus de son corps. */
+.bloc-lecture {
+  margin-top: var(--espace-7);
+  padding-top: var(--espace-6);
+  border-top: 1px solid var(--trait);
+}
+.bloc-lecture:first-of-type {
+  border-top-color: var(--trait-fort);
+}
+.bloc-lecture h3 {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 var(--espace-3);
+}
+.bloc-lecture p {
+  margin: 0;
+  font-size: var(--texte-l);
+  max-width: 64ch;
+}
+/* Le gras porte ce qui fait exister la phrase : le montant, la part, le poste
+   qui explique la hausse. Sans lui, un paragraphe de chiffres se lit comme une
+   liste et rien n'en ressort. */
+.bloc-lecture strong {
+  font-weight: 600;
+}
+
+@media (max-width: 40rem) {
+  .reperes {
+    grid-template-columns: 1fr 1fr;
+  }
+  .repere__valeur {
+    font-size: var(--texte-xxl);
+  }
 }
 
 /* Le sommaire d'une vue longue : les sections qu'elle contient, en pilules
