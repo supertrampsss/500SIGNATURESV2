@@ -2171,6 +2171,22 @@ export function afficherFiche(
   // questions et au corps par thèmes. Sans cette mémoire, les deux vitesses
   // recalculaient deux fois cent quarante séries, courbes et mini-tableaux
   // compris — le prix d'une seconde fiche pour un mode qu'on ne regarde pas.
+  //
+  // ATTENTION — cette mémoire **rend la même chaîne aux deux corps**, et les
+  // deux sont désormais affichés en même temps (`deuxVitesses = false`) : sur
+  // la fiche France, 151 lignes sont écrites pour 115 indicateurs, soit 36
+  // mesures imprimées deux fois — « Dette publique », « Impôt sur les
+  // sociétés », six missions de l'État.
+  //
+  // Le dédoublonnage naïf — première occurrence gagne — ne marche pas, et
+  // c'est vérifié : les sections de thèmes sont construites AVANT le verdict
+  // et les questions, exprès, pour que ceux-ci sachent quelles lignes existent
+  // (`aUneLigne`) et n'y renvoient jamais dans le vide. Faire gagner la
+  // première occurrence donne donc tout au thème et vide l'ouverture de la
+  // fiche : quatre tests tombent, dont « la fiche s'ouvre sur le récit ». Le
+  // corriger demande de séparer « quelles lignes existeront » de « quelles
+  // lignes ont déjà été écrites », c'est-à-dire de décider des lignes en amont
+  // des deux corps — pas d'ajouter un garde ici.
   const dessinees = new Map<string, string>();
   const dessine = (indicateur: Indicateur): string => {
     const deja = dessinees.get(indicateur.id);

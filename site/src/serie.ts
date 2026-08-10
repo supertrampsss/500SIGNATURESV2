@@ -69,6 +69,24 @@ export function evolution(
   const depart = serie[depuis];
   const enPoints = modeVariation(unite) === "points";
   if (!depart && !enPoints) return "";
+  // Une variation en pourcentage à travers un changement de signe ne veut rien
+  // dire, et elle ne le dit pas discrètement : la fiche France affichait
+  // « Solde public −24 686,1 % depuis 1959 », « Solde des collectivités
+  // locales −6 785,7 % » et « Solde de la Sécurité sociale −1 906,2 % ».
+  //
+  // Le calcul divisait par `Math.abs(depart)` sans regarder le signe des deux
+  // bornes. Passer d'un excédent de 618 M€ à un déficit de 152 532 M€ n'est pas
+  // « −24 686 % » : ce n'est pas une baisse de vingt-quatre mille sept cents
+  // pour cent, c'est un solde qui a changé de camp, et aucun pourcentage ne
+  // porte cette information. Les soldes sont précisément les séries que ce
+  // site existe pour montrer.
+  //
+  // On se tait donc plutôt que d'affirmer. L'écart, lui, reste dit ailleurs et
+  // en euros — « le déficit se creuse de 94 307 M€ » — qui est la seule forme
+  // qui garde un sens quand on franchit zéro. Les taux exprimés en points ne
+  // sont pas concernés : une différence de points est une soustraction, elle
+  // traverse zéro sans encombre.
+  if (!enPoints && Math.sign(depart) !== Math.sign(valeurCourante)) return "";
   const variation = enPoints
     ? variationExportee(valeurCourante - depart, unite, "points")
     : ((valeurCourante - depart) / Math.abs(depart)) * 100;

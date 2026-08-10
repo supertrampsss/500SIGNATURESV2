@@ -196,3 +196,21 @@ test("le pas s'arrête à la période affichée, pas à la fin de la série", ()
   assert.equal(dernierPas(serie, "count", [], "2022"), null);
   assert.equal(dernierPas(serie, "count", [], "2019"), null);
 });
+
+test("un pourcentage ne traverse pas zéro : un solde qui change de camp se tait", () => {
+  // La fiche France affichait « Solde public −24 686,1 % depuis 1959 »,
+  // « Solde des collectivités locales −6 785,7 % » et « Solde de la Sécurité
+  // sociale −1 906,2 % ». Passer d'un excédent à un déficit n'est pas une
+  // baisse de vingt-quatre mille sept cents pour cent : c'est un changement de
+  // signe, et aucun pourcentage ne porte cette information.
+  assert.equal(evolution({ "1959": 618, "2025": -152532 }, "2025"), "");
+  assert.equal(evolution({ "2013": -5000, "2025": 4000 }, "2025"), "");
+  // Deux valeurs du même signe gardent leur variation, négative comprise.
+  assert.match(evolution({ "2013": -100000, "2025": -124206 }, "2025"), /%/);
+  assert.match(evolution({ "2019": 336069, "2025": 441194 }, "2025"), /\+/);
+  // Un taux varie en points : une soustraction traverse zéro sans encombre.
+  assert.match(
+    evolution({ "2019": -2.4, "2025": 5.1 }, "2025", [], false, null, "percent"),
+    /pt/,
+  );
+});
