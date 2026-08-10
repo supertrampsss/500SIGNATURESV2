@@ -4,6 +4,7 @@
  * ratio, et il est accompagné de sa source, de sa méthode et de ses limites.
  */
 
+import { rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
 import type {
   AgregatsNationaux,
   Indicateur,
@@ -2404,7 +2405,13 @@ export function afficherFiche(
   // estimation de ce qu'un foyer paie, pas un compte de la collectivité. Elle
   // repoussait vers le bas ce que le lecteur vient chercher.
   const feuille = rendreFeuilleDImpots(territoire);
-  const essentiel = `${rendreRecit(histoire)}${rendreVerdict(phrases, aUneLigne)}${corpsQuestions}`;
+  // Les quatre repères ouvrent la fiche, avant le récit.
+  //
+  // Ce sont eux qu'on vient chercher, et ils étaient noyés au milieu de cent
+  // quinze lignes qui se ressemblaient toutes. Ils sont choisis par rôle, pas
+  // par thème : ce qui entre, ce qui sort, ce qui reste, ce qui est dû.
+  const ouvertureChiffree = rendreReperes(reperesDOuverture(territoire.series ?? {}, niveau));
+  const essentiel = `${ouvertureChiffree}${rendreRecit(histoire)}${rendreVerdict(phrases, aUneLigne)}${corpsQuestions}`;
   // Deux vitesses partout où il y a deux vitesses à offrir.
   //
   // La condition était « un bilan à raconter » : sans récit ni verdict, pas de
