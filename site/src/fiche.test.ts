@@ -1131,8 +1131,11 @@ test("la question s'ouvre sur sa grosse masse, pas sur sa première ligne", () =
     libelleTheme: () => "Finances locales",
   });
   assert.match(cible.innerHTML, /question-fiche__phrase/);
-  assert.match(cible.innerHTML, /Dépenses totales : 400,0[   ]M€ en 2019/);
-  assert.match(cible.innerHTML, /D&#39;où vient la hausse/);
+  // Une phrase, pas une ligne de tableau : sujet, verbe, millésimes nommés, et
+  // le gras sur les deux nombres qui portent la réponse.
+  assert.match(cible.innerHTML, /Les dépenses totales passent de <strong>400,0[\u202f\u00a0 ]M€<\/strong> en 2019/);
+  assert.doesNotMatch(cible.innerHTML, /Dépenses totales : 400/);
+  assert.match(cible.innerHTML, /Cette hausse vient surtout de deux postes/);
 });
 
 test("la feuille d'impôts n'est plus dans l'ouverture", () => {

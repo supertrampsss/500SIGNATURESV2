@@ -33,7 +33,7 @@ import {
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { recit, type Recit } from "./recit.ts";
-import { provenanceSeule } from "./provenance.ts";
+import { provenance, provenanceSeule } from "./provenance.ts";
 import { verdict, type Contexte, type Phrase, type Repere } from "./verdict.ts";
 import { reperes, type References } from "./reference.ts";
 import { traduire } from "./traductions.ts";
@@ -1885,17 +1885,59 @@ function rendreQuestions(
 const CHIFFRES_EN_TETE = 3;
 
 /**
+ * Le sujet d'une phrase, pour les masses qui peuvent l'ouvrir.
+ *
+ * « Dépenses totales : 400,8 M€ en 2019, 538,7 M€ en 2025 » n'est pas une
+ * phrase, c'est une ligne de tableau posée dans un paragraphe. Pour écrire
+ * « les dépenses totales passent de… », il faut l'article, et l'article ne se
+ * déduit d'aucun libellé : « dépenses » est féminin pluriel, « encours »
+ * masculin singulier, « solde » masculin singulier. La table les déclare pour
+ * les quelques agrégats qui ouvrent une question ; tout autre libellé prend la
+ * tournure invariable de `sujetDeLaMasse`, qui reste grammaticale sans rien
+ * deviner.
+ */
+const SUJETS_DE_MASSE: Record<string, string> = {
+  ofgl_depenses_totales: "Les dépenses totales",
+  ofgl_recettes_totales: "Les recettes totales",
+  ofgl_depenses_fonctionnement: "Les dépenses de fonctionnement",
+  ofgl_recettes_fonctionnement: "Les recettes de fonctionnement",
+  ofgl_depenses_investissement: "Les dépenses d'investissement",
+  ofgl_recettes_d_investissement: "Les recettes d'investissement",
+  ofgl_depenses_d_equipement: "Les dépenses d'équipement",
+  ofgl_frais_personnel: "Les frais de personnel",
+  ofgl_impots_et_taxes: "Les impôts et taxes",
+  ofgl_impots_locaux: "Les impôts locaux",
+  ofgl_encours_dette: "L'encours de dette",
+  ofgl_epargne_brute: "L'épargne brute",
+  ofgl_epargne_nette: "L'épargne nette",
+  ofgl_concours_de_l_etat: "Les concours de l'État",
+  etat_depenses_nettes_bg: "Les dépenses nettes du budget général",
+  etat_recettes_nettes_bg: "Les recettes nettes du budget général",
+  etat_charge_dette: "La charge de la dette",
+  insee_apu_solde: "Le solde public",
+  insee_dette_apu_montant: "La dette publique",
+};
+
+/** « Les dépenses totales », ou à défaut une tournure qui marche sur
+ *  n'importe quel libellé sans en deviner le genre. */
+function sujetDeLaMasse(indicateur: Indicateur): { sujet: string; accord: boolean } {
+  const declare = SUJETS_DE_MASSE[indicateur.id];
+  if (declare) return { sujet: declare, accord: declare.startsWith("Les ") };
+  return { sujet: `Le poste « ${traduire(indicateur.libelle)} »`, accord: false };
+}
+
+/**
  * La phrase qui répond à une question, et le pont qui explique son évolution.
  *
- * « Où va l'argent ? » recevait pour toute réponse six lignes chiffrées : le
- * lecteur voyait des masses et leur variation, sans jamais lire ce qui les
- * relie. La phrase pose l'agrégat de tête d'un bout à l'autre de la fenêtre —
- * 2019 et 2025, les deux millésimes que les autres phrases nomment déjà — et
- * `provenance.ts` y accroche la décomposition de cette variation, quand la
- * source publie de quoi l'établir et que les composantes redonnent le total.
+ * **Une phrase, pas une ligne de tableau.** Le premier jet écrivait
+ * « Dépenses totales : 400,8 M€ en 2019, 538,7 M€ en 2025, soit +34,4 % », en
+ * gras d'un bout à l'autre : deux-points, virgules, aucun verbe, et un pavé
+ * noir que l'œil saute. Le récit et la synthèse écrivent des phrases ; celle-ci
+ * les suit — sujet, verbe, millésimes nommés, et le gras réservé aux deux
+ * nombres qui portent la réponse.
  *
- * Rien n'est écrit sans les deux bouts : une masse dont un exercice manque n'a
- * pas d'évolution à raconter.
+ * Le pont s'enchaîne dans la même prose : `provenance.ts` fournit les
+ * composantes, à condition qu'elles redonnent le total aux deux exercices.
  */
 function phraseDeLaQuestion(
   candidats: Indicateur[],
@@ -1917,31 +1959,57 @@ function phraseDeLaQuestion(
     .sort((a, b) => Math.abs(b.fin!) - Math.abs(a.fin!));
   if (!mesurables.length) return "";
   const avecPont = mesurables.find(
-    (c) => provenanceSeule(c.i.id, lire, fenetre.reference, fenetre.arrivee, catalogue) !== "",
+    (c) => provenance(c.i.id, lire, fenetre.reference, fenetre.arrivee, catalogue) !== null,
   );
   const choisi = avecPont ?? mesurables[0];
-  const tete = choisi.i;
   const debut = choisi.debut as number;
   const fin = choisi.fin as number;
-  // **Pas de pourcentage sur une base négative.** Un solde public qui passe de
-  // −58 à −153 Md€ ne varie pas de « −162 % » : le déficit a presque triplé,
-  // mais le rapport de deux nombres négatifs ne dit ni ce sens ni cette
-  // ampleur. `verdict.ts` écarte déjà ces séries pour la même raison ; ici la
-  // phrase reste, et c'est l'écart en euros qui la termine.
+  const { sujet, accord } = sujetDeLaMasse(choisi.i);
+  const gras = (texte: string) => `<strong>${echapper(texte)}</strong>`;
+
+  // Pas de pourcentage sur une base négative : un solde qui passe de −58 à
+  // −153 Md€ ne varie pas de « −162 % ». Le déficit a presque triplé, et le
+  // rapport de deux nombres négatifs ne dit ni ce sens ni cette ampleur.
   const ecart = ((fin - debut) / Math.abs(debut)) * 100;
-  const variation = debut > 0
-    ? `soit ${ecart >= 0 ? "+" : "−"}${Math.abs(ecart).toLocaleString("fr-FR", {
+  const suite = debut > 0
+    ? `, soit ${ecart >= 0 ? "+" : "−"}${Math.abs(ecart).toLocaleString("fr-FR", {
       minimumFractionDigits: 1,
       maximumFractionDigits: 1,
     })} %`
-    : `soit ${fin - debut >= 0 ? "+" : "−"}${millions(Math.abs(fin - debut))}`;
-  const trajet = `${echapper(traduire(tete.libelle))} : ${millions(debut)} en ${
-    fenetre.reference
-  }, ${millions(fin)} en ${fenetre.arrivee}, ${variation}`;
-  const pont = provenanceSeule(tete.id, lire, fenetre.reference, fenetre.arrivee, catalogue);
-  return `<p class="question-fiche__phrase"><strong>${trajet}.</strong>${
-    pont ? ` ${echapper(pont)}` : ""
-  }</p>`;
+    // Une grandeur négative des deux côtés est un déficit : « 94 307 M€ de
+    // plus » se lisait comme de l'argent gagné, alors que c'est le manque qui
+    // grandit. Le verbe le dit, et il n'y a pas de pourcentage à écrire.
+    : fin < 0
+      ? ` : le déficit se ${fin < debut ? "creuse" : "réduit"} de ${
+        millions(Math.abs(fin - debut))
+      }`
+      : `, soit ${millions(Math.abs(fin - debut))} de ${fin >= debut ? "plus" : "moins"}`;
+  const verbe = accord ? "passent" : "passe";
+  const phrase = `${echapper(sujet)} ${verbe} de ${gras(millions(debut))} en ${
+    echapper(fenetre.reference)
+  } à ${gras(millions(fin))} en ${echapper(fenetre.arrivee)}${echapper(suite)}.`;
+
+  const pont = provenance(choisi.i.id, lire, fenetre.reference, fenetre.arrivee, catalogue);
+  const moteurs = pont?.moteurs ?? [];
+  const explique = moteurs.length
+    ? ` ${echapper(pont!.delta >= 0 ? "Cette hausse" : "Cette baisse")} vient surtout ${
+      echapper(moteurs.length === 1 ? "d'un poste" : moteurs.length === 2 ? "de deux postes" : "de trois postes")
+    } : ${moteurs
+      .map((m) => `${echapper(m.libelle)} ${echapper(apportDit(m.delta))}`)
+      .join(", ")}.${
+      pont!.freins.length
+        ? ` Un poste ${pont!.delta >= 0 ? "la retient" : "la freine"} : ${
+          echapper(pont!.freins[0].libelle)
+        } ${echapper(apportDit(pont!.freins[0].delta))}.`
+        : ""
+    }`
+    : "";
+  return `<p class="question-fiche__phrase">${phrase}${explique}</p>`;
+}
+
+/** « +12,4 M€ » : le signe est l'information. */
+function apportDit(valeur: number): string {
+  return `${valeur >= 0 ? "+" : ""}${millions(valeur)}`;
 }
 
 /** Les indicateurs d'une question, dans l'ordre où elle se lit : la tête
