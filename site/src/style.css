@@ -3580,6 +3580,14 @@ body[data-vue="carte"] .pied {
   font-size: var(--texte-s);
 }
 
+/* Le cadrage territorial, replié en menu. Il garde la forme d'une pilule pour
+   ne pas introduire un troisième objet dans la barre de la carte. */
+.pilule--menu {
+  appearance: auto;
+  padding-inline: var(--espace-3);
+  max-width: 14rem;
+}
+
 /* La phrase qui répond à la question, et le pont qui explique son évolution.
    Elle porte la réponse : elle se lit avant les chiffres qui la soutiennent, et
    se détache d'eux. */

@@ -1490,13 +1490,16 @@ function themesCartographiables(): string[] {
 /** Maille et territoire vivent sous la carte, en pilules : ce sont des
  *  réglages de cadrage, pas des questions posées au lecteur. */
 function construireBarreCarte(): void {
-  $("pilules-vue").innerHTML = Object.entries(VUES)
-    .map(
-      ([cle, v]) => `<button type="button" data-vue-carte="${cle}"
-      class="pilule${cle === etat.vue ? " pilule--active" : ""}"
-      aria-pressed="${cle === etat.vue}">${cle === "metropole" ? "Métropole" : v.nom}</button>`,
-    )
-    .join("");
+  // **Replié, pas étalé.** Six pastilles — Métropole, Guadeloupe, Martinique,
+  // Guyane, La Réunion, Mayotte — occupaient une ligne entière pour un réglage
+  // qu'on touche une fois par visite, quand on le touche. Un menu déroulant dit
+  // la même chose en un mot, et rend la ligne à la carte.
+  $("pilules-vue").innerHTML = `<label class="visuellement-cache" for="cadrage">Territoire cadré</label>`
+    + `<select id="cadrage" class="pilule pilule--menu">${Object.entries(VUES)
+      .map(([cle, v]) => `<option value="${cle}"${cle === etat.vue ? " selected" : ""}>${
+        v.nom
+      }</option>`)
+      .join("")}</select>`;
 }
 
 /**
@@ -1560,29 +1563,18 @@ function periodesDuNiveau(): string[] {
   return [...(fiche.periodes_par_niveau?.[etat.niveau] ?? fiche.periodes ?? [])].sort().reverse();
 }
 
-/** Le bouton Niveau / Évolution, avec les pilules de cadrage sous la carte.
- *  Il n'apparaît que si l'indicateur a au moins deux millésimes à la maille
- *  affichée : un bouton qui ne fait rien est pire que pas de bouton. */
+/**
+ * Le bouton « Niveau / Évolution » a quitté la carte.
+ *
+ * Deux mots sans phrase pour désigner deux façons de peindre la même série —
+ * le montant de l'année, ou sa variation depuis l'année d'avant. Personne ne
+ * devine cela d'un bouton, et la carte peignait la moitié du temps une
+ * grandeur que le lecteur croyait être l'autre. Elle s'en tient au niveau,
+ * qui est ce qu'on vient y chercher ; les évolutions se lisent en toutes
+ * lettres dans la fiche, avec leurs deux millésimes nommés.
+ */
 function construireBarreMode(): void {
-  const conteneur = $("pilules-mode");
-  if (periodesDuNiveau().length < 2) {
-    conteneur.hidden = true;
-    conteneur.innerHTML = "";
-    return;
-  }
-  conteneur.hidden = false;
-  conteneur.innerHTML = (
-    [
-      ["niveau", "Niveau"],
-      ["evolution", "Évolution"],
-    ] as const
-  )
-    .map(
-      ([cle, libelle]) => `<button type="button" data-mode-carte="${cle}"
-      class="pilule${cle === etat.mode ? " pilule--active" : ""}"
-      aria-pressed="${cle === etat.mode}">${libelle}</button>`,
-    )
-    .join("");
+  etat.mode = "niveau";
 }
 
 function construireSelecteurs(): void {
@@ -1663,26 +1655,15 @@ async function choisirIndicateur(id: string): Promise<void> {
 }
 
 function brancherCommandes(): void {
-  $("pilules-vue").addEventListener("click", async (evenement) => {
-    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-vue-carte]");
-    const vue = bouton?.dataset.vueCarte;
-    if (!vue) return;
-    etat.vue = vue;
-    cadrer(vue);
-    construireBarreCarte();
+  // Le cadrage est devenu un menu : c'est un `change`, plus un clic sur une
+  // pastille. Le menu se reconstruit seul à chaque rendu, sans réécrire son
+  // propre HTML sous le doigt du lecteur.
+  $("pilules-vue").addEventListener("change", (evenement) => {
+    const menu = evenement.target as HTMLSelectElement;
+    if (menu.id !== "cadrage") return;
+    etat.vue = menu.value;
+    cadrer(menu.value);
     ecrireUrl();
-  });
-
-  // Niveau ou évolution : le choix repeint la carte, la légende, le tableau
-  // et l'export — tous suivent la couche affichée.
-  $("pilules-mode").addEventListener("click", async (evenement) => {
-    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-mode-carte]");
-    const mode = bouton?.dataset.modeCarte;
-    if (!mode || mode === etat.mode) return;
-    etat.mode = mode;
-    construireBarreMode();
-    ecrireUrl();
-    await peindre();
   });
 
   // Une seule bulle de définition ouverte à la fois, et rien qui traîne après
