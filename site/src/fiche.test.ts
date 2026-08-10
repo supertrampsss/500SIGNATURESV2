@@ -1042,3 +1042,51 @@ test("la valeur affichée est le dernier exercice publié, jamais celui d'une au
   assert.equal((mesure as { periode: string }).periode, "2025");
   assert.equal((mesure as { brut: number }).brut, 8.58);
 });
+
+test("la ligne d'un agrégat dit d'où vient son dernier mouvement", () => {
+  // « +12,4 % » sans rien d'autre laissait le lecteur devant un mouvement dont
+  // rien sur la fiche ne nommait la cause, alors que les composantes sont
+  // publiées deux lignes plus bas. La phrase est calculée sur la fenêtre de la
+  // pastille, celle que la ligne affiche.
+  const M = 1_000_000;
+  const territoire = {
+    nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {},
+    series: {
+      ofgl_depenses_fonctionnement: { "2024": 100 * M, "2025": 130 * M },
+      ofgl_frais_personnel: { "2024": 60 * M, "2025": 85 * M },
+      ofgl_achats_et_charges_externes: { "2024": 40 * M, "2025": 45 * M },
+    },
+  } as never;
+  const indicateurs = [
+    {
+      id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement",
+      unite: "EUR", theme: "finances_locales", sommable: true, niveaux: ["commune"],
+      definition: "", jeu: "ofgl", parent: null,
+    },
+    {
+      id: "ofgl_frais_personnel", libelle: "Frais de personnel", unite: "EUR",
+      theme: "finances_locales", sommable: true, niveaux: ["commune"],
+      definition: "", jeu: "ofgl", parent: "ofgl_depenses_fonctionnement",
+    },
+    {
+      id: "ofgl_achats_et_charges_externes", libelle: "Achats et charges externes",
+      unite: "EUR", theme: "finances_locales", sommable: true, niveaux: ["commune"],
+      definition: "", jeu: "ofgl", parent: "ofgl_depenses_fonctionnement",
+    },
+  ] as never as Indicateur[];
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune", territoire, indicateurs, principal: "ofgl_depenses_fonctionnement",
+    jeux: [], periode: "2025", parHabitant: false, comparateurs: [],
+    libelleTheme: () => "Finances locales",
+  });
+  assert.match(cible.innerHTML, /mesure__provenance/);
+  // L'apostrophe est échappée dans le HTML produit : on cherche ce qui y est.
+  assert.match(cible.innerHTML, /D&#39;où vient la hausse/);
+  assert.match(cible.innerHTML, /Frais de personnel \+25,0[\u202f\u00a0 ]M€/);
+  // Et une composante n'est jamais décomposée en son propre parent : seule la
+  // ligne de l'agrégat porte la phrase, les feuilles n'ont rien en dessous.
+  for (const phrase of cible.innerHTML.match(/D&#39;où vient[^<]*/g) ?? []) {
+    assert.doesNotMatch(phrase, /Dépenses de fonctionnement/);
+  }
+});

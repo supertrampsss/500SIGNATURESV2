@@ -3580,6 +3580,15 @@ body[data-vue="carte"] .pied {
   font-size: var(--texte-s);
 }
 
+/* D'où vient le mouvement. Même filet que les euros constants : ces deux
+   phrases-là ne commentent pas la ligne à côté, elles répondent à ce que son
+   chiffre vient de poser. */
+.mesure__provenance {
+  border-left: 2px solid var(--trait);
+  padding-left: var(--espace-4);
+  font-size: var(--texte-s);
+}
+
 
 /* ==========================================================================
    CIBLES TACTILES — 44 × 44 px de zone de frappe (WCAG 2.5.5)

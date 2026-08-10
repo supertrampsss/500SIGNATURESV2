@@ -33,6 +33,7 @@ import {
 import { rendu as rendrePont } from "./pont.ts";
 import { rendu as rendreRatios } from "./ratios.ts";
 import { recit, type Recit } from "./recit.ts";
+import { provenanceSeule } from "./provenance.ts";
 import { verdict, type Contexte, type Phrase, type Repere } from "./verdict.ts";
 import { reperes, type References } from "./reference.ts";
 import { traduire } from "./traductions.ts";
@@ -458,8 +459,9 @@ function ligneIndicateur(
   peintSurCarte?: (indicateur: Indicateur) => boolean,
   /** Le nombre qui accompagne ce taux, quand la source publie les deux. */
   jumeau?: Indicateur,
-  /** Ce dont la ligne a besoin en plus d'elle-même : le déflateur national. */
-  options?: { inflation?: Record<string, number> },
+  /** Ce dont la ligne a besoin en plus d'elle-même : le déflateur national, et
+   *  le catalogue pour attribuer sa variation à ses composantes publiées. */
+  options?: { inflation?: Record<string, number>; catalogue?: Indicateur[] },
 ): string {
   const mesure = mesurer(
     indicateur, territoire, periodeCarte, parHabitant, niveau, toutesReferences, comparateurs,
@@ -586,6 +588,24 @@ function ligneIndicateur(
         `de ${pas.depuis} à ${pas.jusqua}`,
       )}">${echapper(pas.texte)}</span>`
     : "";
+  // D'où vient ce dernier mouvement, quand la source publie de quoi le dire.
+  //
+  // La pastille annonce « +12,4 % » et s'arrête là : le lecteur voyait le
+  // mouvement sans jamais savoir ce qui l'avait produit, alors que les
+  // composantes de l'agrégat sont publiées sur la même fiche. La phrase est
+  // calculée sur **la fenêtre de la pastille**, pas sur la série entière —
+  // répondre sur une autre période que celle affichée serait pire que se taire.
+  // `provenance.ts` refuse dès que la somme des composantes ne redonne pas le
+  // total aux deux exercices : la ligne n'écrit alors rien.
+  const provenanceDite = pas && options?.catalogue
+    ? provenanceSeule(
+      indicateur.id,
+      (id, exercice) => territoire.series?.[id]?.[exercice] ?? null,
+      pas.depuis,
+      pas.jusqua,
+      options.catalogue,
+    )
+    : "";
 
   // La mesure peinte sur la carte s'ouvre d'emblée : c'est celle qu'on regarde,
   // son détail n'a pas à être demandé.
@@ -626,6 +646,9 @@ function ligneIndicateur(
         .map((phrase) => `<p class="mesure__phrase">${echapper(phrase)}</p>`)
         .join("")}
       ${evolutionDite ? `<p class="mesure__phrase">${evolutionDite}</p>` : ""}
+      ${provenanceDite
+        ? `<p class="mesure__phrase mesure__provenance">${echapper(provenanceDite)}</p>`
+        : ""}
       ${phraseConstants}
       ${rendreSerie(suivie, evenements, formate, mesure.comparaisons, false,
         territoire.maire?.depuis)}
@@ -1950,7 +1973,7 @@ export function afficherFiche(
       options.comparateurs,
       options.peintSurCarte,
       paires.get(indicateur.id),
-      { inflation: options.inflation },
+      { inflation: options.inflation, catalogue: options.indicateurs },
     );
     dessinees.set(indicateur.id, html);
     return html;
@@ -2099,6 +2122,11 @@ export function afficherFiche(
         semblables: options.semblables,
         // « Sur le mandat » n'a de sens que là où une élection l'a ouvert.
         fenetre: calendrier ? "sur le mandat" : `depuis ${raconte.exerciceReference}`,
+        // De quoi attribuer la variation d'un agrégat à ses composantes. La
+        // liste est celle des indicateurs de la maille : une composante qui n'y
+        // est pas fait échouer le contrôle de somme, donc rien ne s'affiche
+        // plutôt qu'une attribution amputée.
+        catalogue: options.indicateurs,
       }
     : null;
   const histoire = contexte ? recit(contexte) : null;

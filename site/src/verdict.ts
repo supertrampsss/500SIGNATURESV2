@@ -31,8 +31,10 @@
  * seuils. Ajouter un indicateur, c'est ajouter une ligne.
  */
 
+import type { Indicateur } from "./donnees.ts";
 import type { Mandat } from "./mandat.ts";
 import { montant } from "./pont.ts";
+import { provenanceDite } from "./provenance.ts";
 
 /** Espace fine insécable : la typographie française avant une unité. */
 const FINE = " ";
@@ -99,6 +101,10 @@ export type Contexte = {
    *  Écrire « sur le mandat » pour la France ferait passer une législature pour
    *  un exercice budgétaire — la faute que `fenetreRacontee` existe pour éviter. */
   fenetre?: string;
+  /** Le catalogue, pour attribuer la variation d'un agrégat à ses composantes.
+   *  Absent, les phrases se contentent du total : elles n'inventent jamais une
+   *  décomposition qu'elles n'ont pas pu vérifier. */
+  catalogue?: Indicateur[];
 };
 
 type Sens = Phrase["sens"];
@@ -175,6 +181,9 @@ type Faits = {
   /** Comment nommer la fenêtre : « sur le mandat », ou « depuis 2019 » là où
    *  aucune assemblée ne l'a ouverte. Voir `Contexte.fenetre`. */
   fenetre: string;
+  /** « ; la hausse vient surtout de deux postes : … », ou rien du tout quand la
+   *  source ne publie pas de quoi l'établir. Voir `provenance.ts`. */
+  provenance: (id: string) => string;
 };
 
 /** La bande du groupe où se tient le territoire : les quartiles publiés la
@@ -387,10 +396,14 @@ const GABARITS: Gabarit[] = [
     sujet: "exploitation",
     sensHausse: "tend",
     cadre: true,
+    // « +22,5 % » dit qu'il s'est passé quelque chose, et rien de plus. La
+    // source publie les composantes de cet agrégat : les nommer répond à la
+    // question que le total pose au lieu de la laisser au tableau déplié.
     texte: (f, autonome) =>
       `Les dépenses de fonctionnement, ce que la collectivité paie chaque année pour`
       + ` faire tourner ses services, passent ${trajet(f, autonome)}, soit`
-      + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}.`,
+      + ` ${variation(f.ecart)}${autonome ? repereDit(f) : ""}`
+      + `${f.provenance("ofgl_depenses_fonctionnement")}.`,
     titre: (f) =>
       `${f.lieu}, les dépenses de fonctionnement ont ${sensDuVerbe(f.ecart, "augmenté", "reculé")}`
       + ` de ${part(Math.abs(f.ecart))} ${f.fenetre}`,
@@ -701,6 +714,16 @@ export function faits(contexte: Contexte): Fait[] {
       valeur,
       groupe,
       fenetre: contexte.fenetre ?? "sur le mandat",
+      provenance: (id) =>
+        contexte.catalogue
+          ? provenanceDite(
+            id,
+            valeur,
+            mandat.exerciceReference,
+            mandat.exerciceFin,
+            contexte.catalogue,
+          )
+          : "",
     };
 
     // Les euros que la ligne a déplacés par rapport à l'évolution mécanique.
