@@ -79,8 +79,9 @@ def test_la_colonne_consolidee_n_est_pas_la_somme_des_branches(equilibre):
 
     Additionner les cinq branches donne 19 Md€ de plus que la colonne consolidée
     — les transferts entre branches, comptés en charge chez l'une et en produit
-    chez l'autre. Un connecteur qui publierait les branches inviterait cette
-    addition ; celui-ci ne lit que le consolidé, et ce test dit pourquoi.
+    chez l'autre. Les branches sont désormais publiées, chacune dans son fichier
+    et dans sa table : c'est la séparation qui tient la règle, plus l'absence.
+    Ce test mesure l'écart que cette séparation existe pour empêcher.
     """
     _, reperes, _ = equilibre
     charges = reperes[m.SECTION_CHARGES]
@@ -302,3 +303,137 @@ def test_chaque_poste_publie_porte_un_intitule_en_francais(postes, ondam):
     assert set(ondam) <= set(m.LIBELLES_OBJECTIF)
     assert all(m.LIBELLES[c].strip() for c in postes)
     assert all("nettes" not in m.LIBELLES[c] for c in postes)
+
+
+# ------------------------------------------------------------ les branches
+
+
+@pytest.fixture(scope="module")
+def par_branche(equilibre):
+    return m.montants_par_branche(equilibre[0])
+
+
+def test_chaque_branche_est_un_budget_complet(par_branche, equilibre):
+    """Ses postes font ses totaux, et son résultat est leur différence.
+
+    Sans cela, une branche affichée serait un extrait et non un budget : la
+    régler ne voudrait rien dire, et le solde montré ne serait celui de rien.
+    """
+    _, reperes, _ = equilibre
+    controle = m.controler_les_branches(par_branche, reperes)
+    assert controle["branches_verifiees"] == [
+        "atmp", "autonomie", "famille", "maladie", "vieillesse",
+    ]
+    assert all(n == 10 for n in controle["postes_verifies_par_branche"].values())
+
+
+def test_les_cinq_soldes_font_le_solde_consolide(par_branche, equilibre):
+    """La prise décisive, et elle est contre-intuitive.
+
+    Les charges des cinq branches dépassent les charges consolidées de 19,0 Md€,
+    leurs produits les dépassent **du même montant**, et leurs soldes ne bougent
+    donc pas d'un euro. C'est ce qui autorise à régler une branche : le geste
+    déplace le solde de la Sécurité sociale d'exactement autant.
+    """
+    _, reperes, _ = equilibre
+    controle = m.controler_les_branches(par_branche, reperes)
+    assert controle["les_cinq_soldes_font_le_solde_consolide"] == 0.0
+    assert controle["dissymetrie_euros"] == 0.0
+    assert millions(controle["transferts_entre_branches_euros"]) == pytest.approx(
+        19_018.53, abs=0.01
+    )
+
+
+def test_les_retraites_valent_ce_que_la_source_publie(par_branche):
+    """La branche vieillesse du PLFSS 2026, relevée à l'écran de l'annexe.
+
+    301 629,4 M€ de prestations légales : c'est la masse des pensions, et c'est
+    la ligne qu'on vient régler. Elle n'existait nulle part sur le site — le
+    consolidé publie « Prestations légales » en un seul bloc de 631 960,9 M€,
+    toutes branches confondues.
+    """
+    vieillesse = par_branche["vieillesse"]
+    assert millions(vieillesse["D-PRE-LEG"]) == 301_629.37
+    charges = sum(vieillesse[c] for c in ("D-PRE", "D-TRF", "D-GES", "D-AUT"))
+    produits = sum(vieillesse[c] for c in ("R-COT", "R-TRF", "R-AUT"))
+    assert millions(charges) == 307_488.49
+    assert millions(produits) == 304_475.12
+    assert millions(produits - charges) == pytest.approx(-3_013.37, abs=0.01)
+    # Et les cotisations vieillesse, qui sont l'autre moitié du débat.
+    assert millions(vieillesse["R-COT-SOC"]) == 171_381.75
+
+
+def test_une_branche_dont_les_postes_ne_font_pas_le_total_est_refusee(par_branche, equilibre):
+    _, reperes, _ = equilibre
+    abime = {cle: dict(postes) for cle, postes in par_branche.items()}
+    abime["vieillesse"]["D-PRE-LEG"] += 500 * m.MILLIONS
+    # Le message nomme la colonne du tableau, pas la clé publiée : c'est là que
+    # l'opérateur ira regarder.
+    with pytest.raises(m.BudgetSocialIncoherent, match="périmètre Vieillesse"):
+        m.controler_les_branches(abime, reperes)
+
+
+def test_une_branche_absente_arrete_la_lecture(par_branche, equilibre):
+    """Une colonne perdue ne doit pas publier quatre branches sur cinq."""
+    _, reperes, _ = equilibre
+    ampute = {cle: v for cle, v in par_branche.items() if cle != "atmp"}
+    with pytest.raises(m.BudgetSocialIncoherent, match="branches sans aucun poste"):
+        m.controler_les_branches(ampute, reperes)
+
+
+def test_des_branches_qui_font_le_consolide_sont_refusees(par_branche, equilibre):
+    """Le contrôle négatif : l'égalité serait la preuve d'une erreur.
+
+    Si les cinq branches faisaient soudain les charges consolidées, ce ne serait
+    pas une bonne nouvelle — ce serait qu'on a lu cinq fois la même colonne, et
+    le site publierait cinq fois la Sécurité sociale entière sous cinq noms.
+    """
+    _, reperes, _ = equilibre
+    faux = {section: dict(valeurs) for section, valeurs in reperes.items()}
+    for section in (m.SECTION_CHARGES, m.SECTION_PRODUITS):
+        cinquieme = faux[section]["consolide"] / 5
+        for branche in m.BRANCHES_EQUILIBRE:
+            faux[section][branche] = cinquieme
+    for branche in m.BRANCHES_EQUILIBRE:
+        faux[m.LIGNE_RESULTAT][branche] = faux[m.LIGNE_RESULTAT]["consolide"] / 5
+    plat = {
+        cle: {code: reperes[m.SECTION_CHARGES]["consolide"] / 5 for code in postes}
+        for cle, postes in par_branche.items()
+    }
+    with pytest.raises(m.BudgetSocialIncoherent):
+        m.controler_les_branches(plat, faux)
+
+
+def test_une_consolidation_dissymetrique_est_refusee(par_branche, equilibre):
+    """Un transfert entre branches se retire des deux côtés à la fois.
+
+    S'il ne se retirait que des charges, la colonne consolidée ne décrirait plus
+    les mêmes lignes que les colonnes de branche, et les soldes cesseraient de
+    se correspondre.
+    """
+    _, reperes, _ = equilibre
+    faux = {section: dict(valeurs) for section, valeurs in reperes.items()}
+    # On déplace le **consolidé** des produits : chaque branche reste cohérente
+    # avec elle-même, et seule la symétrie de la consolidation casse.
+    faux[m.SECTION_PRODUITS]["consolide"] -= 3_000 * m.MILLIONS
+    with pytest.raises(m.BudgetSocialIncoherent, match="des deux côtés"):
+        m.controler_les_branches(par_branche, faux)
+
+
+def test_les_lignes_de_branche_portent_la_branche_et_le_meme_arbre(par_branche):
+    """Cinq fois la nomenclature, distinguées par la colonne, pas par le code.
+
+    Un code préfixé aurait mis le périmètre dans l'identifiant d'une ligne, et
+    fait diverger l'arbre d'une branche de celui du consolidé alors que c'est le
+    même tableau.
+    """
+    lignes = m.lignes_branches_a_ecrire("2026", par_branche)
+    assert len(lignes) == 5 * len(par_branche["vieillesse"])
+    branches = {ligne[2] for ligne in lignes}
+    assert branches == {"maladie", "vieillesse", "famille", "atmp", "autonomie"}
+    # Le code d'une ligne de branche est celui du consolidé, sans préfixe.
+    codes = {ligne[5] for ligne in lignes if ligne[2] == "vieillesse"}
+    assert "D-PRE-LEG" in codes
+    assert not any(code.startswith("VIE") for code in codes)
+    # Et les deux côtés sont là, jamais l'objectif : l'ONDAM n'a pas de branche.
+    assert {ligne[3] for ligne in lignes} == {"depense", "recette"}

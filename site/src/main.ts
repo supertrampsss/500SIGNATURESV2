@@ -12,23 +12,19 @@ import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
 import { emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import {
-  afficherFiche,
-  groupeDeLaCommune,
-  ORDRE_THEMES,
-  positionDansGroupe,
-  rubriqueDuTheme,
-  valeurComparable,
-} from "./fiche.ts";
+import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { decoder, indexer } from "./simulateur.ts";
-import { afficherSimulateur, exercicesPublies } from "./simulateur-rendu.ts";
+import {
+  afficherSimulateur,
+  exercicesPublies,
+  exercicesDeLaBranche,
+} from "./simulateur-rendu.ts";
 import { afficherBareme, decoder as decoderBareme } from "./bareme-rendu.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
-import { rendu as apercuRendu, resumer } from "./apercu.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
   enCsv, enCsvEvolution, nomDeFichier, telecharger,
@@ -61,6 +57,7 @@ import {
   MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
 } from "./mailles.ts";
 import { ouvrirRepertoire, populationsDuRepertoire, type Repertoire } from "./repertoire.ts";
+import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
@@ -167,8 +164,6 @@ let etat: Etat;
 let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
 let groupes: donnees.Comparaisons | null = null;
-let reperes: import("./reference.ts").References | null = null;
-let agregats: donnees.AgregatsNationaux | null = null;
 /** Départements, régions et pays chargés à part : ils servent de points de
  *  comparaison à n'importe quelle commune, y compris là où aucune médiane
  *  n'est publiable (délinquance sous secret de diffusion). Table séparée
@@ -461,6 +456,9 @@ function majLegende(
 }
 
 function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
+  // Le tableau vivait dans la vue DONNÉES, retirée : sans conteneur, il n'y a
+  // rien à peindre, et `$` rend `null` plutôt que de lever.
+  if (!document.getElementById("tableau-donnees")) return;
   const indicateur = indicateurCourant();
   const toutes = Object.entries(valeurs)
     .map(([code, brut]) => {
@@ -508,6 +506,7 @@ function majTableauEvolution(
   periodePrecedente: string,
   parHabitant: boolean,
 ): void {
+  if (!document.getElementById("tableau-donnees")) return;
   const indicateur = indicateurCourant();
   const toutes = Object.entries(couche)
     .map(([code, e]) => ({ code, nom: nomDe(code), ...e }))
@@ -686,16 +685,6 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
   return catalogue.filter((i) => i.niveaux?.includes(niveau) && !DENOMINATEURS.has(i.id));
 }
 
-/** L'indicateur qui ouvre la fiche nationale : la dette publique en % du PIB
- *  d'abord, parce que c'est la question qu'on pose en premier. Le premier de
- *  la liste effectivement publié l'emporte. */
-const PHARE_NATIONAL = [
-  "insee_dette_apu_part_pib",
-  "etat_solde_budgetaire",
-  "etat_depenses_nettes_bg",
-  "eurostat_chomage",
-];
-
 /**
  * Tant que rien n'est sélectionné, le panneau montre **la France**.
  *
@@ -705,60 +694,43 @@ const PHARE_NATIONAL = [
  * niveau national : dette, solde budgétaire, dépenses de l'État, comparaisons
  * européennes. On descend ensuite dans le détail en cliquant.
  *
- * Les mailles supérieures se chargent après la carte : tant qu'elles ne sont
- * pas là, l'aperçu de couche tient la place plutôt qu'un panneau vide.
+ * Le résumé de couche qui tenait la place — minimum, médiane, quartiles,
+ * total — est retiré : c'était une statistique sur des territoires, et c'est
+ * ce qu'on lisait en arrivant sur le site. La maille pays est demandée dès
+ * l'ouverture (`chargerFrance`) ; le temps qu'elle arrive, le panneau reste
+ * vide plutôt que de montrer autre chose que la France.
  */
 function afficherApercu(): void {
   const france = parentDe("FR", "pays");
   const nationaux = indicateursDeLaFiche("pays");
-  if (france && nationaux.length) {
-    afficherFiche($("fiche"), {
-      niveau: "pays",
-      territoire: france,
-      principal: PHARE_NATIONAL.find((id) => france.series[id]) ?? nationaux[0]?.id,
-      // Aucune de ces séries n'est peinte sur la carte : la marquer « sur la
-      // carte » dirait au lecteur d'y chercher quelque chose qui n'y est pas.
-      marquerCarte: false,
-      indicateurs: nationaux,
-      libelleTheme,
-      comparateurs: [],
-      jeux,
-      periode: etat.periode,
-      parHabitant: etat.declinaison === "habitant",
-      references: reperes,
-      peintSurCarte,
-      agregats,
-      inflation: parentDe("FR", "pays")?.series?.eurostat_inflation_ipch,
-      serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
-      tout: etat.voir === "tout",
-    });
-    appliquerVitesse();
+  if (!france || !nationaux.length) {
+    void chargerFrance();
     return;
   }
-  // L'aperçu de repli résume des niveaux (minimum, médiane, total) : en mode
-  // évolution, `affichees` porte des variations et ce résumé serait formaté
-  // comme des niveaux. On garde le panneau tel quel — la fiche France le
-  // remplace dès que la maille pays est chargée.
-  if (evolutionAffichee) return;
-  const noms =
-    repertoire?.niveau === etat.niveau
-      ? repertoire.noms
-      : Object.fromEntries(Object.entries(entites).map(([code, entite]) => [code, entite.nom]));
-  const indicateur = indicateurCourant();
-  // Le total France : seulement pour un indicateur qui s'additionne, et
-  // calculé sur les montants bruts — additionner des « par habitant » de
-  // 34 875 communes ne voudrait rien dire.
-  const total = indicateur.sommable
-    ? Object.values(brutes).reduce((somme, v) => (Number.isFinite(v) ? somme + v : somme), 0)
-    : undefined;
-  $("fiche").innerHTML = apercuRendu(
-    resumer(affichees, noms),
-    indicateur,
-    etat.niveau,
-    etat.periode,
-    parHabitantAffiche,
-    total,
-  );
+  afficherFiche($("fiche"), {
+    niveau: "pays",
+    territoire: france,
+    indicateurs: nationaux,
+    comparateurs: [],
+  });
+  appliquerVitesse();
+}
+
+/** La France du panneau d'accueil, demandée une seule fois et le plus tôt
+ *  possible : elle ne dépend ni de la carte ni de la maille peinte, et c'est
+ *  la première chose que le site doit montrer. */
+let franceDemandee: Promise<void> | null = null;
+function chargerFrance(): Promise<void> {
+  franceDemandee ??= donnees
+    .territoires("pays", "tous")
+    .then((pays) => {
+      parents = { ...parents, ...cleParMaille(pays as Record<string, Territoire>, "pays") };
+      if (!etat.selection) afficherApercu();
+    })
+    .catch(() => {
+      // Pas de maille pays publiée : le panneau reste vide jusqu'au premier clic.
+    });
+  return franceDemandee;
 }
 
 /* ------------------------------------------------------------------ *
@@ -889,6 +861,15 @@ function majEtiquettes(): void {
  *  recouvrent la carte — un cadrage qui les ignore cacherait la Bretagne
  *  derrière un formulaire. */
 function paddingCarte(): { top: number; bottom: number; left: number; right: number } {
+  // Carte déployée, elle n'est plus un fond d'écran sur lequel la fiche
+  // flotte : c'est un bloc de la colonne de lecture, et rien ne la recouvre.
+  // Lui réserver les 760 px du panneau poussait la France dans le tiers gauche
+  // du cadre, avec un grand vide à droite pour un panneau qui n'y est plus.
+  // Les commandes sont en haut du cadre, la légende en bas à gauche : c'est
+  // le haut qui se réserve.
+  if (document.body.dataset.carte === "oui") {
+    return { top: 56, bottom: 32, left: 24, right: 24 };
+  }
   const large = window.innerWidth > 960;
   if (large) {
     // Le creux de droite suit la largeur réelle du panneau : min(50rem, 60vw).
@@ -948,94 +929,15 @@ async function montrerFiche(code: string): Promise<void> {
   if (!territoire) return;
   etat.selection = code;
   ecrireUrl();
-  // La cascade : le groupe le plus fin qui existe pour cette commune, et les
-  // critères qui l'ont défini — ils changent d'une commune à l'autre.
-  const trouve =
-    niveau === "commune" && groupes
-      ? groupeDeLaCommune(
-          territoire,
-          groupes.groupes[etat.indicateur]?.[etat.periode],
-          groupes.cascade ?? [groupes.criteres],
-        )
-      : undefined;
-  // Aux mailles supérieures, l'ensemble **est** le groupe : les cent un
-  // départements, les dix-huit régions. Sans cette clé, « où se situe ce
-  // territoire parmi ses semblables » n'existait qu'à la maille commune, et la
-  // fiche d'un département était une fiche amputée d'une de ses questions.
-  const groupeDeLaMaille = (indicateur: string, exercice: string) =>
-    niveau === "commune"
-      ? undefined
-      : groupes?.groupes[indicateur]?.[exercice]?.[`${niveau}:tous`];
-  const quartiles = trouve?.quartiles ?? groupeDeLaMaille(etat.indicateur, etat.periode);
-  // Ce qui se compare au groupe dépend de la grandeur : une dépense et un
-  // nombre de logements se rapportent aux habitants, une médiane de revenus et
-  // un taux se comparent tels qu'ils sont publiés. C'est la publication qui le
-  // dit, indicateur par indicateur — le site n'a pas à le deviner.
-  const base = groupes?.bases?.[etat.indicateur];
-  const valeurComparee = valeurComparable(territoire, etat.indicateur, etat.periode, base);
-
-  // Rang du territoire dans la couche affichée : « 8 512ᵉ sur 34 772 » situe
-  // un chiffre que sa seule valeur ne situe pas. Calculé sur les valeurs déjà
-  // peintes — même tri, même dénominateur que la carte.
-  const classement = Object.entries(affichees).sort(([, a], [, b]) => b - a);
-  const position = classement.findIndex(([c]) => c === code);
-  // En mode évolution, la couche affichée classe des variations quand la fiche
-  // montre des niveaux : annoncer ce rang-là sous ce chiffre-ci mentirait.
-  const rang =
-    position >= 0 && !evolutionAffichee
-      ? { position: position + 1, total: classement.length }
-      : undefined;
-
-  // Le récit de mandat ne retient un fait que s'il sort du lot : c'est la
-  // cascade de groupes qui le dit, indicateur par indicateur et exercice par
-  // exercice, et non un seuil absolu identique pour toutes les communes.
-  const strates = groupes;
-  const semblables = !strates
-    ? undefined
-    : niveau !== "commune"
-      ? (indicateur: string, exercice: string) => {
-          const q = groupeDeLaMaille(indicateur, exercice);
-          const valeur = valeurComparable(
-            territoire,
-            indicateur,
-            exercice,
-            strates.bases?.[indicateur],
-          );
-          return q && valeur !== undefined ? { valeur, ...q, criteres: [] } : null;
-        }
-      : ((indicateur: string, exercice: string) => {
-          const dans = groupeDeLaCommune(
-            territoire,
-            strates.groupes[indicateur]?.[exercice],
-            strates.cascade ?? [strates.criteres],
-          );
-          const valeur = valeurComparable(
-            territoire,
-            indicateur,
-            exercice,
-            strates.bases?.[indicateur],
-          );
-          return dans && valeur !== undefined
-            ? { valeur, ...dans.quartiles, criteres: dans.criteres }
-            : null;
-        });
-
   afficherFiche($("fiche"), {
     niveau,
     territoire,
-    semblables,
-    principal: etat.indicateur,
-    rang,
-    comparaison: groupes
-      ? positionDansGroupe(territoire, quartiles, valeurComparee, trouve?.criteres ?? [], base)
-      : "",
     // Tous les thèmes, plus seulement celui de la carte : le panneau est
     // désormais le seul endroit où l'on choisit — il doit tout montrer.
     // Filtré sur le niveau : afficher « donnée non disponible » pour un
     // indicateur qui n'existe pas à ce niveau ferait passer une absence de
     // définition pour une absence de mesure.
     indicateurs: indicateursDeLaFiche(niveau),
-    libelleTheme,
     // De quoi comparer, même pour les jeux sous secret de diffusion où
     // aucune médiane communale n'est publiable : la valeur du département,
     // celle de la région, celle de la France. Ce sont des chiffres publiés,
@@ -1067,23 +969,104 @@ async function montrerFiche(code: string): Promise<void> {
           : parentDe("FR", "pays")
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
-    jeux,
-    periode: etat.periode,
-    parHabitant: etat.declinaison === "habitant",
-    references: reperes,
-    peintSurCarte,
-    associations: associations[code],
-    agregats,
-    inflation: parentDe("FR", "pays")?.series?.eurostat_inflation_ipch,
-    // L'IPC national mensuel : c'est de là que se tire l'inflation cumulée sur
-    // la fenêtre du mandat. `fiche.ts` est pur — il ne va rien chercher.
-    serieInflation: parentDe("FR", "pays")?.series?.insee_inflation_ipc,
-    tout: etat.voir === "tout",
   });
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
   injecterActionsFiche();
   appliquerVitesse();
+  void poserSituation(code, niveau);
+}
+
+/**
+ * « Où ça se situe » : le rang du territoire dans sa maille.
+ *
+ * Posé après la fiche, et pas dedans : un rang demande les valeurs de **tous**
+ * les territoires de la maille, soit quatre couches de carte et l'index des
+ * dénominateurs. Faire attendre la fiche pour cela reviendrait à retarder les
+ * quatre blocs pour trois lignes.
+ *
+ * Le code de la fiche est passé en argument et revérifié à l'arrivée : entre la
+ * demande et la réponse, le lecteur a pu ouvrir un autre territoire, et poser
+ * le rang de l'ancien sous la fiche du nouveau serait pire que ne rien poser.
+ */
+/** Les mailles où un rang a un sens : la France n'a personne à qui se comparer,
+ *  et un arrondissement municipal n'a pas de couche à lui. */
+const MAILLES_CLASSEES = new Set(["commune", "departement", "region"]);
+
+/** Le dernier exercice que la maille publie sur les comptes OFGL. Lu au
+ *  catalogue, comme partout : l'historique communal est plus court que celui
+ *  des régions, et viser une année sans couche mènerait à un fichier absent. */
+function dernierExerciceOfgl(niveau: string): string | undefined {
+  const comptes = catalogue.find((i) => i.id === "ofgl_depenses_fonctionnement");
+  const annees = comptes?.periodes_par_niveau?.[niveau] ?? comptes?.periodes ?? [];
+  return [...annees].sort().pop();
+}
+
+const CLASSEMENTS: { id: string; libelle: string; sens: string; parHabitant: boolean }[] = [
+  {
+    id: "ofgl_depenses_fonctionnement",
+    libelle: "Dépenses de fonctionnement par habitant",
+    sens: "de la plus élevée à la plus faible",
+    parHabitant: true,
+  },
+  {
+    id: "ofgl_recettes_fonctionnement",
+    libelle: "Recettes de fonctionnement par habitant",
+    sens: "de la plus élevée à la plus faible",
+    parHabitant: true,
+  },
+  {
+    id: "ofgl_encours_dette",
+    libelle: "Encours de dette par habitant",
+    sens: "du plus élevé au plus faible",
+    parHabitant: true,
+  },
+];
+
+async function poserSituation(code: string, niveau: string): Promise<void> {
+  const cible = document.getElementById("fiche-situation");
+  if (!cible || !MAILLES_CLASSEES.has(niveau)) return;
+  const exercice = dernierExerciceOfgl(niveau);
+  if (!exercice) return;
+  try {
+    const [index, ...couches] = await Promise.all([
+      donnees.indexTerritoires(niveau),
+      ...CLASSEMENTS.map((c) => donnees.valeursCarte(c.id, niveau, exercice)),
+      donnees.valeursCarte("ofgl_epargne_brute", niveau, exercice),
+    ]);
+    if (etat.selection !== code || document.getElementById("fiche-situation") !== cible) return;
+    const habitants = populationsDuRepertoire(index, exercice);
+    const dette = couches[CLASSEMENTS.length - 1];
+    const epargne = couches[CLASSEMENTS.length];
+    const criteres = CLASSEMENTS.map((c, rang) => ({
+      libelle: c.libelle,
+      sens: c.sens,
+      valeur: (t: string) => {
+        const brut = couches[rang][t];
+        if (brut === undefined) return null;
+        if (!c.parHabitant) return brut;
+        return habitants[t] ? brut / habitants[t] : null;
+      },
+    }));
+    // La capacité de désendettement se calcule, elle n'est pas publiée en
+    // couche : la dette sur l'épargne, et rien quand l'épargne est nulle ou
+    // négative — ce n'est pas un remboursement infiniment long, c'est un
+    // remboursement impossible à ce rythme (`derives.ts`).
+    criteres.push({
+      libelle: "Capacité de désendettement",
+      sens: "de la plus longue à la plus courte",
+      valeur: (t: string) =>
+        dette[t] !== undefined && epargne[t] > 0 ? dette[t] / epargne[t] : null,
+    });
+    cible.innerHTML = rendreSituation(
+      situation({ code, codes: index.codes, criteres }),
+      niveau,
+      exercice,
+    );
+  } catch {
+    // Une couche manque à cette maille ou à cet exercice : la fiche s'arrête au
+    // tableau des exercices, sans dire ce qu'elle n'a pas pu calculer.
+  }
 }
 
 /**
@@ -1399,13 +1382,14 @@ async function basculerComparaison(code: string): Promise<void> {
   ecrireUrl();
   await majComparateur();
   if (etat.selection) injecterActionsFiche();
-  // On n'emmène le lecteur au tableau que quand il vient d'y ajouter quelque
-  // chose : retirer un territoire depuis sa fiche ne doit pas le déplacer.
-  if (!dedans) location.hash = "#donnees";
+  // Le comparateur vivait dans la vue DONNÉES, retirée : il n'y a plus de
+  // tableau où emmener le lecteur, et l'y envoyer le déposait sur une adresse
+  // morte. La comparaison reste dans l'URL et se relit telle quelle.
 }
 
 async function majComparateur(): Promise<void> {
   const section = $("comparateur");
+  if (!section) return;
   if (!etat.comparaison.length) {
     section.hidden = true;
     return;
@@ -1987,6 +1971,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
  * « chômage » trouve « Emploi et chômage » sans qu'on ait à deviner le thème.
  */
 function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
+  if (!document.getElementById("sources-contenu")) return;
   const entrees: EntreeSommaire[] = parTheme.map(([theme, liste]) => ({
     ancre: `methode-${theme}`,
     libelle: libelleTheme(theme),
@@ -2043,7 +2028,11 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  * onglet — elle montre bien ce qu'aucune fiche ne montre, la répartition dans
  * l'espace — mais elle ne tient plus la porte d'entrée.
  */
-const VUES_PAGE = ["territoire", "analyses", "decryptages", "donnees"] as const;
+/** La vue DONNÉES est retirée : 6 691 px de listes que personne ne parcourait.
+ *  Ce qu'elle portait vit ailleurs — le fichier public est lié depuis le pied
+ *  de page, et chaque mesure garde sa définition et sa source dans son rond
+ *  « i ». Ce qui a réellement disparu de l'écran est écrit dans la PR. */
+const VUES_PAGE = ["territoire", "analyses", "decryptages"] as const;
 
 /** `#carte` était une vue ; c'est devenu un mode de la vue territoire. Les
  *  liens déjà partagés continuent d'ouvrir ce qu'ils promettaient : la fiche,
@@ -2114,6 +2103,31 @@ const BUDGETS_SIMULABLES: BudgetPublie[] = [
     monter: (exercice, bloc) =>
       monterBudget(donnees.simulateurBudgetSecu(exercice), bloc, false),
   },
+  // **Les cinq branches, jamais leur somme.** Additionner les cinq donnerait
+  // 19 019 M€ de charges de trop : un transfert entre branches est compté en
+  // charge chez l'une et en produit chez l'autre. Ce qu'on a le droit de faire
+  // est vérifié à l'ingestion — les cinq *soldes* font exactement le solde
+  // consolidé —, et c'est ce qui rend les retraites simulables : régler la
+  // branche vieillesse déplace le solde de la Sécurité sociale d'autant.
+  //
+  // « Retraites » plutôt que « Vieillesse » : c'est le mot de la question, et le
+  // cadrage publié avec le fichier dit lequel des deux est celui du tableau.
+  ...(
+    [
+      ["vieillesse", "Retraites"],
+      ["maladie", "Maladie"],
+      ["famille", "Famille"],
+      ["autonomie", "Autonomie"],
+      ["atmp", "Accidents du travail"],
+    ] as const
+  ).map(([branche, nom]) => ({
+    cle: `branche-${branche}`,
+    nom,
+    index: async () =>
+      exercicesDeLaBranche(await donnees.simulateurIndexBranches(), branche),
+    monter: (exercice: string, bloc: HTMLElement) =>
+      monterBudget(donnees.simulateurBranche(`${branche}-${exercice}`), bloc, false),
+  })),
   {
     cle: "national",
     nom: "Tout, en comptabilité nationale",
@@ -2172,7 +2186,7 @@ async function monterBudget(
   const budget = await promesse;
   const index = indexer(budget);
   afficherSimulateur(bloc, budget, index, {
-    tauxApparent: etatFrancais ? await tauxApparentDeLaDette() : undefined,
+    depart: etatFrancais ? await departDeLaDette() : undefined,
     // Publication antérieure au fichier : aucun tiroir, pas d'échec.
     subventions: etatFrancais
       ? await donnees.subventionsParProgramme().catch(() => null)
@@ -2188,6 +2202,19 @@ async function monterBudget(
 /** Ceux dont l'index annonce un exercice, dans l'ordre ci-dessus. */
 let budgetsDisponibles: { budget: BudgetPublie; exercice: string }[] = [];
 let budgetAffiche: string | null = null;
+
+/** **Les réglages d'un budget lui restent quand on va voir un autre budget.**
+ *
+ *  Les codes de deux budgets ne se recouvrent pas : ceux du PLF et ceux du
+ *  PLFSS viennent de deux nomenclatures sans une ligne en commun. On les
+ *  effaçait donc au changement — et le lecteur qui allait vérifier une ligne
+ *  de la Sécurité sociale retrouvait le budget de l'État remis à zéro, ses
+ *  quinze réglages perdus sans un mot.
+ *
+ *  Ils sont désormais rangés par budget, ici, le temps de la visite. L'URL,
+ *  elle, ne porte que le budget affiché et ses réglages à lui : un lien
+ *  partagé ouvre un écran, pas une session. */
+const reglagesParBudget = new Map<string, string>();
 
 function vuesConnues(): readonly string[] {
   return budgetsDisponibles.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
@@ -2215,7 +2242,6 @@ function basculerVue(): void {
   $("vue-analyses").hidden = vue !== "analyses";
   if (vue === "analyses") void peindreAnalyses();
   $("vue-decryptages").hidden = vue !== "decryptages";
-  $("vue-donnees").hidden = vue !== "donnees";
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
@@ -2267,8 +2293,12 @@ function peindreSommaireDecryptages(): void {
   );
 }
 
-/** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue. */
-let carteOuverte = false;
+/** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue.
+ *
+ *  Elle l'est **par défaut**. Repliée, il fallait la demander pour voir ce
+ *  qu'aucune fiche ne montre : la répartition dans l'espace. Le bouton reste,
+ *  pour la refermer quand on vient lire plutôt que situer. */
+let carteOuverte = true;
 
 /**
  * Ouvre ou referme le fond de carte.
@@ -2363,12 +2393,11 @@ function peindreChoixDuBudget(): void {
     const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-budget]");
     const cle = bouton?.dataset.budget;
     if (!cle || cle === budgetAffiche) return;
+    // Ce qui était réglé reste au budget qu'on quitte, et ce qu'on avait
+    // réglé dans celui qu'on ouvre revient.
+    if (budgetAffiche) reglagesParBudget.set(budgetAffiche, etat.budget);
     budgetAffiche = cle;
-    // Les réglages d'un budget ne désignent rien dans l'autre : les codes
-    // viennent de deux nomenclatures qui n'ont aucune ligne en commun. Les
-    // garder ferait rouvrir l'ancien budget avec un plan vide et une URL qui
-    // prétend le contraire.
-    etat.budget = "";
+    etat.budget = reglagesParBudget.get(cle) ?? "";
     ecrireUrl();
     peindreChoixDuBudget();
     void ouvrirSimulateur(true);
@@ -2376,25 +2405,32 @@ function peindreChoixDuBudget(): void {
 }
 
 /**
- * Le taux apparent de la dette de l'État : la charge publiée sur l'encours
- * publié, deux séries de la fiche France.
+ * Le point de départ de la projection : l'encours de la dette de l'État et la
+ * charge de cette dette, deux séries publiées de la fiche France.
  *
- * Ce n'est pas le taux marginal auquel l'État emprunterait demain — le
- * simulateur le nomme « apparent » là où il l'affiche. Une des deux séries
- * manque : on ne rend rien, et la ligne d'effet ne s'affiche pas. Supposer un
- * taux serait inventer un chiffre.
+ * Leur rapport est le **taux apparent** — pas le taux marginal auquel l'État
+ * emprunterait demain, et le simulateur le nomme là où il l'affiche. Une des
+ * deux séries manque : on ne rend rien, et la section « Et après ? » n'existe
+ * pas. Supposer un encours serait inventer un chiffre.
  */
-async function tauxApparentDeLaDette(): Promise<number | undefined> {
+async function departDeLaDette(): Promise<import("./trajectoire.ts").Depart | undefined> {
   try {
     const france = (await donnees.territoires("pays", "tous"))["FR"];
-    const dernier = (id: string) => {
+    const dernier = (id: string): { valeur: number; exercice: string } | undefined => {
       const serie = france?.series?.[id] ?? {};
       const periodes = Object.keys(serie).sort();
-      return periodes.length ? serie[periodes[periodes.length - 1]] : undefined;
+      const derniere = periodes[periodes.length - 1];
+      return derniere ? { valeur: serie[derniere], exercice: derniere } : undefined;
     };
     const charge = dernier("etat_charge_dette");
     const encours = dernier("insee_dette_etat_montant");
-    return charge && encours && encours > 0 ? charge / encours : undefined;
+    if (!charge?.valeur || !encours?.valeur || encours.valeur <= 0) return undefined;
+    return {
+      encours: encours.valeur,
+      encoursExercice: encours.exercice,
+      charge: charge.valeur,
+      chargeExercice: charge.exercice,
+    };
   } catch {
     return undefined;
   }
@@ -2450,16 +2486,12 @@ async function demarrer(): Promise<void> {
   catalogue = [...catalogue, ...indicateursDerives(catalogue)];
   construireSelecteurs();
   afficherQuestions($("questions"));
+  // La France du panneau d'accueil, demandée avant la carte : c'est la
+  // première chose à l'écran, elle ne doit pas attendre les tuiles.
+  void chargerFrance();
   // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
   // la carte n'a pas à patienter pour ça.
   void preparerSimulateur();
-
-  // Le jeu de données public est le même que celui de la carte : le lien pointe
-  // vers le pointeur de version, porte d'entrée de tous les autres fichiers.
-  $("telechargement").insertAdjacentHTML(
-    "beforeend",
-    ` <a href="${donnees.racinePubliee()}/derniere.json" rel="noreferrer">Accéder aux données</a>.`,
-  );
 
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   // Le fond de carte donne le contexte que la choroplèthe seule n'a pas :
@@ -2721,7 +2753,10 @@ async function demarrer(): Promise<void> {
           );
         }
         carte.getCanvas().style.cursor = "pointer";
-        const nom = (figure?.properties?.nom as string | undefined) ?? nomDe(code);
+        // Les tuiles portent le code là où l'on attendait le libellé (« 75 »
+        // pour la Nouvelle-Aquitaine) : le nom vient du référentiel, comme
+        // pour les étiquettes.
+        const nom = nomDe(code);
         const valeur = affichees[code];
         const indicateur = indicateurCourant();
         // En mode évolution : la variation signée, ET les deux valeurs dont
@@ -2841,6 +2876,7 @@ async function demarrer(): Promise<void> {
   for (const indicateur of catalogue) {
     parTheme.set(indicateur.theme, [...(parTheme.get(indicateur.theme) ?? []), indicateur]);
   }
+  if (!document.getElementById("sources-contenu")) return;
   $("sources-contenu").innerHTML = `
     <h3 class="sources__titre">D'où viennent les chiffres</h3>
     ${jeux
@@ -2937,26 +2973,9 @@ async function demarrer(): Promise<void> {
 
   brancherSommaireSources([...parTheme.entries()]);
 
-  // La méthode des agrégats nationaux se charge à part elle aussi : absente,
-  // aucune mention n'est faite — plutôt qu'une mention fausse.
-  donnees
-    .agregatsNationaux()
-    .then((a) => {
-      agregats = a;
-      if (etat.selection) void montrerFiche(etat.selection);
-    })
-    .catch(() => {});
-
-  // Les repères se chargent à part : une publication qui n'en a pas doit laisser
-  // la fiche s'afficher sans eux. Quand ils arrivent, la fiche ouverte est
-  // redessinée — sinon les comparaisons manquaient au premier affichage.
-  donnees
-    .references()
-    .then((r) => {
-      reperes = r;
-      if (etat.selection) void montrerFiche(etat.selection);
-    })
-    .catch(() => {});
+  // Les agrégats nationaux et les repères de lecture ne se chargent plus : ils
+  // n'alimentaient que les lignes de mesures de la fiche, qui n'y sont plus.
+  // Deux fichiers de moins à télécharger pour ouvrir un territoire.
 
   // Les mailles supérieures, pour comparer : quelques kilo-octets, chargés une
   // fois pour toutes.

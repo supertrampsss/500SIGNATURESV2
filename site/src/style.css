@@ -73,8 +73,8 @@
    pas l'habillage. */
 :root {
   color-scheme: light;
-  /* Largeur de la colonne de lecture. Nommée parce que trois objets doivent
-     s'aligner dessus sans se la redire : l'en-tête, les vues, le pied. Le
+  /* Largeur de la colonne de lecture. Nommée parce que deux objets doivent
+     s'aligner dessus sans se la redire : l'en-tête et les vues. Le
      panneau territoire flottait à 52rem au milieu d'un écran de 90rem, et les
      19rem de fond nu de chaque côté se lisaient comme une page qui n'a pas
      fini de charger. */
@@ -264,8 +264,7 @@
     --alerte: #ad5438;
   }
   .entete,
-  .vue-barre,
-  .pied a {
+  .vue-barre {
     display: none;
   }
 }
@@ -791,7 +790,10 @@ summary:focus-visible,
   display: block;
   font-weight: 600;
 }
+/* Une ligne par lecture. Sans le `block`, la valeur et sa seconde lecture se
+   suivaient sans séparateur : « 345 €2 158 M€ au total ». */
 .infobulle span {
+  display: block;
   font-variant-numeric: tabular-nums;
   opacity: 0.92;
 }
@@ -1021,52 +1023,19 @@ summary:focus-visible,
   flex-basis: 100%;
   margin-top: 0.35rem;
 }
-.serie__trace {
-  width: 100%;
-  height: 46px;
-  display: block;
-  overflow: visible;
-}
-.serie__trace polyline {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  vector-effect: non-scaling-stroke;
-}
+.
+.
 /* La rupture de périmètre est un trait, pas une alerte : elle informe. */
-.serie__rupture {
-  stroke: var(--encre-douce);
-  stroke-width: 1;
-  stroke-dasharray: 3 3;
-  vector-effect: non-scaling-stroke;
-}
+.
 /* Le mandat n'est pas une rupture : le trait est plus pâle que celui du
    périmètre, et continu, pour qu'on ne lise pas une coupure là où la mesure
    est restée identique. */
-.serie__mandat {
-  stroke: var(--trait);
-  stroke-width: 1;
-  vector-effect: non-scaling-stroke;
-}
-.serie__bornes {
-  display: flex;
-  justify-content: space-between;
-  margin: 0.1rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.serie__avertissement {
-  margin: 0.25rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--alerte);
-}
+.
+.
+.
 /* Ce repère situe, il n'explique pas : ni la couleur d'alerte, ni celle de
    l'accent — la note doit se lire comme une légende, pas comme une thèse. */
-.serie__mandat-note {
-  margin: 0.25rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
+.
 
 .repli {
   border-top: 1px solid var(--trait);
@@ -1178,16 +1147,6 @@ tbody tr {
 }
 tbody tr:hover {
   background: var(--accent-teinte);
-}
-
-.pied {
-  padding: var(--espace-7) var(--espace-7) calc(var(--espace-8) * 1.5);
-  border-top: 1px solid var(--trait);
-  background: var(--papier);
-  color: var(--encre-douce);
-  font-size: var(--texte-s);
-  display: grid;
-  gap: 0.4rem;
 }
 
 @media (max-width: 60rem) {
@@ -1308,7 +1267,6 @@ tbody tr:hover {
     font-weight: 600;
   }
   /* La barre basse recouvre la fin de chaque vue : on lui rend sa place. */
-  .pied,
   .vue {
     padding-bottom: calc(var(--cible) + var(--espace-6) + env(safe-area-inset-bottom, 0px));
   }
@@ -1497,13 +1455,8 @@ tbody tr:hover {
 .pont__ligne--n0 th {
   font-weight: 600;
 }
-.pont__ligne--n1 th {
-  padding-left: var(--espace-6);
-}
-.pont__ligne--n2 th {
-  padding-left: var(--espace-8);
-  color: var(--encre-douce);
-}
+.
+.
 .pont__signe {
   width: 1.2rem;
   text-align: center;
@@ -1820,14 +1773,8 @@ tbody tr:hover {
   font-variant-numeric: tabular-nums;
   font-size: var(--texte-m);
 }
-.quartiles__ici {
-  margin-left: auto;
-  text-align: right;
-  color: var(--accent);
-}
-.quartiles__ici span {
-  color: inherit;
-}
+.
+.
 
 /* La position parmi les semblables, en tête de fiche. */
 .position {
@@ -1836,11 +1783,7 @@ tbody tr:hover {
   background: var(--papier-creuse);
   border-radius: var(--rayon-s);
 }
-.position__phrase {
-  margin: 0;
-  font-size: var(--texte-s);
-  line-height: 1.4;
-}
+.
 
 /* Repères : « est-ce beaucoup ? ». Le même poids visuel que le dénominateur —
    ils accompagnent le chiffre, ils ne le concurrencent pas. */
@@ -1859,17 +1802,8 @@ tbody tr:hover {
   padding: var(--espace-1) 0;
   border-top: 1px solid var(--trait);
 }
-.repere__ecart {
-  font-variant-numeric: tabular-nums;
-  color: var(--encre);
-}
-.reperes__note {
-  flex-basis: 100%;
-  margin: 0.25rem 0 0;
-  font-size: var(--texte-xs);
-  font-style: italic;
-  color: var(--encre-douce);
-}
+.
+.
 
 /* Le maire : une information d'identité de la commune, pas une mesure. */
 .fiche__maire {
@@ -1880,12 +1814,7 @@ tbody tr:hover {
   color: var(--encre-douce);
   font-size: var(--texte-s);
 }
-.repere__n {
-  font-variant-numeric: tabular-nums;
-  /* Pas d'`opacity` : à 0,7 ce gris tombait à 2,90:1 sur le papier. Une
-     opacité n'est pas une nuance typographique, c'est une perte de contraste
-     qui ne se voit pas dans le token. La discrétion vient de la taille. */
-}
+.
 
 /* Fonctions COFOG : la barre dit la part dans le total, le chiffre dit le reste. */
 .fonctions {
@@ -2064,53 +1993,12 @@ tbody tr:hover {
 
 
 /* Une seule mesure en héros, les autres en lignes : le chiffre d'abord. */
-.mesure--compacte {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 0.8rem;
-  padding: var(--espace-2) 0;
-  border-bottom: 1px solid var(--trait);
-}
-.mesure--compacte dt {
-  font-size: var(--texte-s);
-  font-weight: 400;
-  color: var(--encre-douce);
-  text-transform: none;
-  letter-spacing: 0;
-  margin: 0;
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.mesure--compacte dd {
-  margin: 0;
-  text-align: right;
-  white-space: nowrap;
-  display: flex;
-  /* la valeur ne cède jamais sa ligne : c'est le libellé qui s'abrège */
-  flex-direction: row;
-  flex-wrap: nowrap;
-  flex: 0 0 auto;
-  justify-content: flex-end;
-  align-items: baseline;
-  gap: 0.45rem;
-}
-.mesure--compacte .evolution {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  min-width: 3.4rem;
-  text-align: right;
-}
-.mesure--compacte strong {
-  font-size: var(--texte-m);
-  font-variant-numeric: tabular-nums;
-}
-.mesure--compacte .evolution {
-  font-size: var(--texte-xs);
-}
+.
+.
+.
+.
+.
+.
 .panneau__section {
   margin: 0.9rem 0 0.3rem;
   font-size: var(--texte-s);
@@ -2135,12 +2023,7 @@ tbody tr:hover {
 
 /* La seconde lecture d'un montant (total <-> par habitant) : présente,
    jamais concurrente du chiffre principal. */
-.mesure__autre {
-  display: block;
-  color: var(--encre-douce);
-  font-size: var(--texte-s);
-  margin-top: 0.05rem;
-}
+.
 .infobulle__autre {
   display: block;
   font-size: var(--texte-xs);
@@ -2192,11 +2075,7 @@ tbody tr:hover {
 }
 
 
-/* Vues : une chose à l'écran à la fois. Le pied de page accompagne les vues
-   qui se lisent, pas la carte plein écran. */
-body[data-carte="oui"] .pied {
-  display: none;
-}
+/* Vues : une chose à l'écran à la fois. */
 .vue {
   max-width: var(--colonne);
   margin: 0 auto;
@@ -2388,9 +2267,14 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    trois mots : « Ce que la ville encaisse » passait sur deux lignes et faisait
    monter les quatre cartes d'autant, en haut de la fiche, là où l'espace coûte
    le plus cher. `white-space: nowrap` le garantit plutôt que de l'espérer. */
+/* Quatre de front là où la place le permet, deux par deux dans la barre
+   latérale. Le nombre de colonnes était fixé à quatre et ne cédait qu'à
+   40rem de **fenêtre** : dans la barre latérale sur un écran de 1440, les
+   quatre repères tenaient toujours, et « Ce qu'elle encaisse » s'affichait
+   « Ce qu'elle e… ». C'est la place réelle qui décide, pas la fenêtre. */
 .reperes {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   gap: var(--espace-4);
   margin: var(--espace-6) 0 0;
 }
@@ -2447,16 +2331,125 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   line-height: 1.2;
   margin: 0 0 var(--espace-3);
 }
+/* Le corps est à l'encre seconde, le titre à l'encre pleine : sans cet écart,
+   les deux pesaient pareil et le paragraphe se lisait avant sa question. */
 .bloc-lecture p {
   margin: 0;
   font-size: var(--texte-l);
   max-width: 64ch;
+  color: var(--encre-douce);
 }
 /* Le gras porte ce qui fait exister la phrase : le montant, la part, le poste
    qui explique la hausse. Sans lui, un paragraphe de chiffres se lit comme une
-   liste et rien n'en ressort. */
+   liste et rien n'en ressort. Il reprend l'encre pleine avec le poids : c'est
+   ce que l'œil doit trouver en balayant. */
 .bloc-lecture strong {
   font-weight: 600;
+  color: var(--encre);
+}
+/* ---------------------------------------------------------------------------
+   Sous le dernier bloc : le tableau des exercices, puis les rangs.
+
+   Ce sont des blocs de lecture comme les quatre autres — même filet, même
+   titre en Spectral. Ce ne sont pas des annexes, et rien ne les range derrière
+   un pli : ils répondent à deux questions que les blocs laissent ouvertes,
+   « qu'est-ce qui s'est passé entre 2019 et aujourd'hui » et « est-ce que
+   c'est beaucoup ».
+   ------------------------------------------------------------------------ */
+.tableau-exercices {
+  overflow-x: auto;
+}
+.tableau-exercices table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--texte-s);
+  font-variant-numeric: tabular-nums;
+}
+.tableau-exercices caption {
+  caption-side: bottom;
+  margin-top: var(--espace-4);
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  text-align: left;
+}
+.tableau-exercices th,
+.tableau-exercices td {
+  padding: var(--espace-2) var(--espace-4);
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--trait);
+}
+.tableau-exercices thead th {
+  color: var(--encre-douce);
+  font-weight: 600;
+  font-size: var(--texte-xs);
+}
+/* L'intitulé de la ligne porte : c'est par lui qu'on retrouve le poste dont
+   parle le bloc, quatre lignes plus haut. */
+.tableau-exercices tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--encre);
+  white-space: normal;
+  padding-left: 0;
+}
+.tableau-exercices td:last-child,
+.tableau-exercices thead th:last-child {
+  padding-right: 0;
+  color: var(--encre);
+  font-weight: 600;
+}
+
+/* Les rangs : un par ligne, le nombre en Spectral, le dénombrement dessous. */
+.situation {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.situation li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 var(--espace-4);
+  align-items: baseline;
+  padding: var(--espace-3) 0;
+  border-bottom: 1px solid var(--trait);
+}
+.situation__quoi {
+  font-size: var(--texte-m);
+  color: var(--encre);
+}
+.situation__rang {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* L'exposant de l'ordinal : « 412e », pas « 412e ». Il prend le cran le plus
+   bas de l'échelle plutôt qu'un `em` en dur — la feuille n'a pas de taille
+   hors échelle. */
+.situation__rang sup {
+  font-size: var(--texte-xs);
+  vertical-align: super;
+  line-height: 0;
+}
+.situation__sur {
+  grid-column: 1 / -1;
+  font-style: normal;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.situation__legende {
+  margin: var(--espace-4) 0 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Le terme comptable est sous le curseur, pas dans la phrase : le pointillé le
+   signale sans couper la lecture. */
+.bloc-lecture abbr[title] {
+  text-decoration: none;
+  border-bottom: 1px dotted var(--trait-fort);
+  cursor: help;
 }
 
 @media (max-width: 40rem) {
@@ -2629,30 +2622,10 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* Le petit tableau des exercices : les nombres sous la courbe. */
-.mini-serie__cadre {
-  overflow-x: auto;
-  scrollbar-width: thin;
-  max-width: 100%;
-}
-.mini-serie {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 0.35rem 0 0.2rem;
-  font-size: var(--texte-s);
-}
-.mini-serie th {
-  font-weight: 500;
-  color: var(--encre-douce);
-  text-align: right;
-  padding: var(--espace-1) var(--espace-2);
-  border-bottom: 1px solid var(--trait);
-}
-.mini-serie td {
-  text-align: right;
-  padding: var(--espace-2) var(--espace-2);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
+.
+.
+.
+.
 
 
 /* Onglets du panneau : Territoire / Analyse. Tout vit dans la carte. */
@@ -2936,27 +2909,9 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* La courbe ne montre que la valeur affichée — doubler le dessin doublait
    la hauteur de chaque mesure sans rien apprendre : les montants totaux se
    lisent dans la ligne « total » du tableau. */
-.serie__quoi {
-  width: 100%;
-  margin: 0.5rem 0 -0.1rem;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--encre-douce);
-}
-.mini-serie tbody th {
-  text-align: left;
-  font-weight: 400;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  white-space: nowrap;
-  padding-right: var(--espace-3);
-  border-bottom: 0;
-}
-.mini-serie tbody tr + tr td,
-.mini-serie tbody tr + tr th {
-  border-top: 1px solid var(--trait);
-}
+.
+.
+.
 
 
 /* La barre de la carte : maille et territoire, en bas, en pilules. Ce sont
@@ -3111,38 +3066,15 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-size: var(--texte-s);
   padding: var(--espace-3) var(--espace-7) var(--espace-3) var(--espace-4);
 }
-.theme-groupe {
-  margin-top: 1rem;
-  /* Amené par un clic, un thème se pose sous le nom du territoire au lieu de
-     passer dessous. */
-  scroll-margin-top: var(--haut-fiche);
-}
+.
 /* Le nom du territoire est déjà collé en haut du panneau : un titre de thème
    collé à `top: 0` glissait dessous et disparaissait, en rognant au passage la
    première ligne du résumé — les accents des capitales s'y perdaient. Il se
    pose donc sous lui. */
-.theme-groupe__titre {
-  margin: 0 0 0.15rem;
-  padding: var(--espace-2) 0;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--encre-douce);
-  background: var(--voile-plein);
-}
+.
 /* Une ligne de mesure est cliquable : elle porte son indicateur sur la carte. */
-.mesure--compacte[data-indicateur] {
-  cursor: pointer;
-  border-radius: var(--rayon-xs);
-  padding-left: var(--espace-2);
-  padding-right: var(--espace-2);
-  margin: 0 -0.3rem;
-  transition: background var(--transition);
-}
-.mesure--compacte[data-indicateur]:hover,
-.mesure--compacte[data-indicateur]:focus-visible {
-  background: var(--papier-creuse);
-}
+.
+.
 
 
 /* Une mesure : un nom, un chiffre. Le reste se déplie sur la ligne qu'on
@@ -3189,36 +3121,11 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .mesure > summary:hover .mesure__nom {
   color: var(--argile);
 }
-.mesure__nom {
-  font-size: var(--texte-m);
-}
+.
 /* Le rond « i » : à quoi correspond l'indicateur qu'on regarde. Discret dans
    la ligne, il ne prend la parole que si on le lui demande. */
-.mesure__info {
-  flex: 0 0 auto;
-  margin-left: auto;
-  width: 1.05rem;
-  height: 1.05rem;
-  padding: 0;
-  border: 1px solid var(--trait-fort);
-  border-radius: 50%;
-  background: none;
-  color: var(--encre-douce);
-  /* Un « i » droit, pas l'italique du serif : dans un rond de 17 px, la
-     lettre penchée sortait de son cercle et se lisait comme un accent. */
-  font-family: inherit;
-  font-size: var(--texte-xs);
-  font-style: normal;
-  font-weight: 600;
-  line-height: 1;
-  cursor: help;
-  transition: color var(--transition), border-color var(--transition);
-}
-.mesure__info:hover,
-.mesure__info[aria-expanded="true"] {
-  color: var(--argile);
-  border-color: var(--argile);
-}
+.
+.
 /* La définition sort en bulle par-dessus la fiche. Dépliée dans le flux, elle
    poussait vers le bas les vingt mesures suivantes : demander ce qu'un mot veut
    dire déplaçait tout ce qu'on était en train de lire. */
@@ -3247,46 +3154,17 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* Ce que compte la source — infractions, victimes, personnes mises en cause.
    Détaché de la définition, parce que c'est une précision de lecture et non
    une phrase de plus. */
-.mesure__compte {
-  display: block;
-  margin-top: 0.35rem;
-  font-style: normal;
-  color: var(--encre-douce);
-}
+.
 /* La valeur ne se laisse plus pousser par le rond : c'est elle qui tient la
    colonne de droite. */
 .mesure > summary .mesure__nom {
   flex: 0 1 auto;
 }
-.mesure__valeur {
-  margin-left: 0.55rem;
-  font-size: var(--texte-l);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.mesure__detail {
-  padding: 0 0 var(--espace-5);
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-}
-.mesure__phrase {
-  margin: 0;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-}
-.mesure__pied {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin: 0.15rem 0 0;
-}
-.mesure__source {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
+.
+.
+.
+.
+.
 
 /* Les rubriques : quatre entrées qui tiennent sans défiler, là où la barre des
    thèmes en cachait vingt-deux hors de l'écran. Elles collent au-dessus de la
@@ -3393,13 +3271,8 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   background: var(--encre);
   color: var(--papier);
 }
-.mesure--carte {
-  background: rgb(197 106 77 / 0.035);
-  border-radius: var(--rayon-s);
-}
-.mesure--carte > summary .mesure__nom {
-  color: var(--argile);
-}
+.
+.
 
 
 /* Les noms des territoires, posés sur la carte — nos noms, en français,
@@ -3428,29 +3301,9 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* Gris neutre, jamais la terre cuite de l'accent : une ligne orange en travers
    d'une courbe se lit comme un seuil d'alerte, alors qu'une médiane ne juge
    rien — c'est la même règle que pour les couleurs de la carte. */
-.serie__repere {
-  stroke: var(--encre-douce);
-  stroke-width: 1;
-  opacity: 0.55;
-  vector-effect: non-scaling-stroke;
-}
-.serie__reperes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem 0.8rem;
-  margin: 0.1rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.serie__repere-nom::before {
-  content: "";
-  display: inline-block;
-  width: 0.8rem;
-  height: 0;
-  border-top: 1px dashed var(--encre-douce);
-  margin-right: 0.3rem;
-  vertical-align: 0.2rem;
-}
+.
+.
+.
 
 /* La comparaison de territoires, dans le volet Analyse. */
 .comparaison-zone {
@@ -3537,80 +3390,26 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* La synthèse d'ouverture : l'essentiel avant le détail. */
-.synthese {
-  background: var(--papier-creuse);
-  border-radius: var(--rayon-s);
-  padding: var(--espace-5) var(--espace-5);
-  margin: 0.8rem 0 0.2rem;
-}
-.synthese__titre {
-  margin: 0 0 0.35rem;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--encre-douce);
-}
-.synthese ul {
-  margin: 0;
-  padding-left: var(--espace-6);
-  font-size: var(--texte-m);
-  display: grid;
-  gap: 0.28rem;
-}
-.synthese strong {
-  font-weight: 500;
-}
+.
+.
+.
 /* L'agrégat du thème, sous son chiffre d'entrée : une seconde voix, plus
    basse. Au même corps que le reste, les deux phrases pesaient pareil et on ne
    voyait plus laquelle portait le chiffre. */
 /* Quand aucun repère n'est publié pour ce thème à cette maille, la ligne le
    dit au lieu de se taire — se taire ferait croire à une absence de mesure. */
-.synthese__sansrepere {
-  color: var(--encre-douce);
-  font-style: italic;
-}
+.
 
 /* La phrase qui dit ce que le chiffre veut dire. */
-.mesure__lecture {
-  margin: 0.35rem 0 0;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  width: 100%;
-}
-.mesure__lecture:empty {
-  display: none;
-}
+.
+.
 
 /* Un repère hors échelle est dit, pas tracé : son puce est vide. */
-.serie__repere-nom--loin::before {
-  border-top-style: dotted;
-  opacity: 0.5;
-}
+.
 /* Un repère hors échelle se dit par sa puce pointillée et par l'italique, pas
    par une opacité qui le ferait passer sous AA. */
-.serie__repere-nom--loin {
-  font-style: italic;
-}
+.
 
-
-/* Un thème montre sa mesure phare, le reste se déplie : vingt blocs ouverts
-   d'un coup faisaient un mur. */
-.theme-groupe__compte {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-}
-.theme-groupe__suite > summary {
-  cursor: pointer;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  padding: var(--espace-3) 0;
-  border-top: 1px solid var(--trait);
-  margin-top: 0.5rem;
-}
-.theme-groupe__suite > summary:hover {
-  color: var(--encre);
-}
 
 /* Le sommaire des thèmes. Une fiche fait cinq écrans : sans lui, atteindre
    « Sécurité » demandait de traverser sept thèmes. Collé sous le nom du
@@ -3623,57 +3422,30 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   padding-top: var(--espace-4);
   margin-top: 0.5rem;
 }
-.mesure--breve {
-  padding-top: var(--espace-3);
-  margin-top: 0.4rem;
-}
-.theme-groupe {
-  margin-top: 0.75rem;
-}
-.mesure__lecture {
-  margin-top: 0.25rem;
-}
+.
+.
+.
 .mesures {
   margin-bottom: 0.75rem;
 }
 
 /* La position parmi les communes semblables se lit avec la synthèse, en haut
    de fiche : c'est une des questions les plus posées, elle était en dernier. */
-.repli--position {
-  margin: 0.45rem 0 0;
-}
-.repli--position > summary {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  cursor: pointer;
-}
+.
+.
 /* Le thème dit d'abord ce qu'il vaut dans son ensemble : combien de ses
    indicateurs situent le territoire au-dessus, combien en dessous. C'est le
    seul agrégat honnête d'un thème — additionner ses indicateurs mêlerait des
    unités qui ne s'additionnent pas. */
-.theme-groupe__resume {
-  margin: 0.1rem 0 0.5rem;
-  font-size: var(--texte-s);
-  line-height: 1.45;
-  color: var(--encre-douce);
-  border-left: 2px solid var(--trait-fort);
-  padding-left: var(--espace-4);
-}
-.theme-groupe__resume:empty {
-  display: none;
-}
+.
+.
 
 /* Sous l'indicateur principal, les autres se lisent en bref : titre, chiffre,
    évolution récente. Pas de courbe — vingt courbes dans une colonne de 380 px
    ne se lisaient plus. Un clic sur le titre porte la mesure sur la carte, où
    elle retrouve sa courbe en tête de fiche. */
-.mesure--breve {
-  padding-top: var(--espace-4);
-  margin-top: 0.55rem;
-}
-.mesure--breve .mini-serie {
-  margin-top: 0.45rem;
-}
+.
+.
 
 
 /* Écran étroit : les commandes de la carte remontent au-dessus du tiroir.
@@ -3737,82 +3509,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   white-space: nowrap;
 }
 
-/* Les comptes en rapports. Le bloc se lit avant les masses : « 62 millions de
-   dette » ne dit que la taille de la collectivité, « onze ans d'épargne » dit
-   sa situation. Deux colonnes, parce que la barre latérale n'en tient pas
-   trois sans réduire les chiffres à des vignettes. */
-.ratios {
-  margin: 0.9rem 0 0.4rem;
-}
-.ratios h3 {
-  margin: 0 0 0.5rem;
-  font-size: var(--texte-s);
-  font-weight: 600;
-  color: var(--encre);
-}
-.ratios__exercice {
-  font-weight: 400;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  white-space: nowrap;
-}
-.ratios__grille {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.4rem;
-}
-.ratios__carreau {
-  padding: var(--espace-4) var(--espace-4) var(--espace-4);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-s);
-  background: var(--papier-creuse);
-}
-.ratios__carreau h4 {
-  margin: 0;
-  font-size: var(--texte-xs);
-  font-weight: 500;
-  color: var(--encre-douce);
-}
-.ratios__valeur {
-  margin: 0.15rem 0 0;
-  font-size: var(--texte-l);
-  font-variant-numeric: tabular-nums;
-  color: var(--encre);
-}
-.ratios__evolution {
-  margin: 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  font-variant-numeric: tabular-nums;
-}
-/* Un ratio sans valeur n'est pas une case vide : c'est une phrase qui dit
-   pourquoi il n'en a pas. Elle occupe la place du chiffre. */
-.ratios__impossible {
-  margin: 0.15rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--alerte);
-}
-.ratios__plafond {
-  margin: 0.1rem 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-/* La lecture s'affiche toujours. La cacher derrière un survol la retirait aux
-   écrans tactiles sans survol et à quiconque ne pense pas à survoler — c'est-à-
-   dire à la plupart. Les phrases ont été raccourcies à la place. */
-.ratios__lecture {
-  margin: 0.25rem 0 0;
-  font-size: var(--texte-xs);
-  line-height: 1.35;
-  color: var(--encre-douce);
-}
-.ratios__source {
-  margin: 0.4rem 0 0;
-  font-size: var(--texte-xs);
-  line-height: 1.35;
-  color: var(--encre-douce);
-}
-
 /* Le pont : trois colonnes en grille, dont la troisième — « il reste » — est ce
    qui en fait un pont et non une liste. Une grille et non un tableau : une
    composante qui s'ouvre sur les siennes doit occuper toute la largeur, et
@@ -3825,84 +3521,28 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-weight: 600;
   color: var(--encre);
 }
-.pont__exercice {
-  font-weight: 400;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  white-space: nowrap;
-}
-.pont__rangee,
-.pont__entete {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  column-gap: 0.5rem;
-  align-items: baseline;
-}
+.
+.
 /* Une composante porte sa part, son montant et son évolution : quatre colonnes.
    La cellule d'évolution est rendue même vide, et de largeur fixe — sinon le
    bord droit des montants oscille d'une ligne à l'autre selon la longueur de
    la variation, et la colonne cesse de se lire d'un trait. */
-.pont__rangee--composante {
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
-}
-.pont__evolution,
-.pont__c-evolution {
-  min-width: 4.2rem;
-  text-align: right;
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.pont__entete {
-  margin: 0 0 0.2rem;
-  padding-bottom: var(--espace-2);
-  border-bottom: 1px solid var(--trait);
-  font-size: var(--texte-xs);
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--encre-douce);
-}
-.pont__entete span:not(:first-child) { text-align: right; }
-.pont__etapes,
-.pont__composantes {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
+.
+.
+.
+.
+.
 .pont__ligne { padding: var(--espace-2) 0; }
-.pont__nom {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.pont__reste {
-  font-size: var(--texte-xs);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-  color: var(--encre);
-  font-weight: 500;
-}
+.
+.
 /* Un palier est un total : le trait au-dessus dit que ce qui précède
    s'additionne pour donner cette ligne-là. */
-.pont__ligne--palier,
-.pont__ligne--arrivee {
-  border-top: 1px solid var(--trait-fort);
-  margin-top: 0.15rem;
-  padding-top: var(--espace-2);
-}
-.pont__ligne--palier .pont__nom,
-.pont__ligne--arrivee .pont__nom,
-.pont__ligne--palier .pont__reste,
-.pont__ligne--arrivee .pont__reste {
-  font-weight: 600;
-  color: var(--encre);
-}
+.
+.
 /* Le report n'apporte aucun euro neuf : il redit le total du bloc précédent
    pour que l'addition se vérifie de l'œil. */
-.pont__ligne--report .pont__nom { font-style: italic; }
-.pont__ligne--report .pont__reste { font-weight: 400; color: var(--encre-douce); }
+.
+.
 /* Ce qui s'ouvre se voit : le libellé souligné en pointillé est la seule
    promesse faite au lecteur qu'il y a quelque chose dessous. */
 .pont__ouvrir > summary,
@@ -3932,223 +3572,65 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .pont__sous[open] > summary .pont__c-nom::before { transform: rotate(90deg); }
 .pont__ouvrir > summary:hover .pont__nom,
 .pont__sous > summary:hover .pont__c-nom { color: var(--encre); }
-.pont__composantes { margin: 0.15rem 0 0.3rem; }
-.pont__composante { padding: var(--espace-1) 0; }
+.
+.
 /* Chaque niveau se décale, et un trait le rattache à ce qui le contient : à
    11 px d'écart, les rangs 2 et 3 ne se distinguaient plus. L'indentation est
    cumulative — chaque liste imbriquée décale la suivante. */
-.pont__composantes[data-rang] {
-  margin-left: var(--espace-3);
-  padding-left: var(--espace-4);
-  border-left: 1px solid var(--trait);
-}
-.pont__c-nom {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.pont__c-part,
-.pont__c-montant {
-  font-size: var(--texte-xs);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  white-space: nowrap;
-}
+.
+.
+.
 /* Sans opacité : 0,75 ramenait ce gris à 3,17:1. */
-.pont__c-part { color: var(--encre-douce); }
-.pont__c-montant { color: var(--encre); }
+.
+.
 
 /* Le bouton qui porte une mesure sur la carte. Peindre relit une couche de
    34 772 territoires : ce n'est plus le prix d'un simple dépliage, c'est un
    geste qu'on demande. */
-.mesure__carte {
-  align-self: flex-start;
-  font: inherit;
-  font-size: var(--texte-xs);
-  padding: var(--espace-2) var(--espace-4);
-  margin-top: 0.15rem;
-  border: 1px solid var(--trait-fort);
-  border-radius: var(--rayon-pilule);
-  background: none;
-  color: var(--encre-douce);
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-}
-.mesure__carte:hover {
-  background: var(--encre);
-  border-color: var(--encre);
-  color: var(--papier);
-}
-
-/* « Tout le détail » : ce que le thème garde derrière un pli. Rien n'est
-   retiré — soixante-dix-neuf lignes de nomenclature comptable qu'on fait
-   défiler sans rien en retenir ne sont pas de la richesse, mais elles restent
-   à un clic. */
-.theme-groupe__suite {
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--trait);
-  padding-top: var(--espace-3);
-}
-.theme-groupe__suite > summary {
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  cursor: pointer;
-  padding: var(--espace-2) 0;
-  list-style: none;
-}
-.theme-groupe__suite > summary::-webkit-details-marker {
-  display: none;
-}
-.theme-groupe__suite > summary::before {
-  content: "▸";
-  display: inline-block;
-  margin-right: 0.35rem;
-  font-size: var(--texte-xs);
-  transition: transform var(--transition);
-}
-.theme-groupe__suite[open] > summary::before {
-  transform: rotate(90deg);
-}
-.theme-groupe__suite > summary:hover {
-  color: var(--encre);
-}
-.theme-groupe__compte {
-  color: var(--encre-douce);
-}
+.
+.
 
 /* À quelles associations. Une liste de noms, pas un tableau : le montant se lit
    à droite du nom, l'objet du versement dessous, en plus petit. */
-.assos {
-  margin: 0.4rem 0 0.6rem;
-}
-.assos > h3 {
-  margin: 0 0 0.25rem;
-  font-size: var(--texte-s);
-  font-weight: 600;
-  color: var(--encre);
-}
-.assos__exercice {
-  font-weight: 400;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  white-space: nowrap;
-}
+.
+.
+.
 /* La réserve n'est pas une note de bas de page : sans elle, une fédération
    nationale domiciliée à Paris se lit comme de l'argent dépensé pour les
    Parisiens. Elle se lit donc avant la liste. */
-.assos__reserve {
-  margin: 0 0 0.45rem;
-  font-size: var(--texte-xs);
-  line-height: 1.4;
-  color: var(--encre-douce);
-}
-.assos__liste {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-.assos__ligne {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  column-gap: 0.5rem;
-  padding: var(--espace-2) 0;
-  border-top: 1px solid var(--trait);
-}
-.assos__nom {
-  font-size: var(--texte-s);
-  color: var(--encre);
-}
-.assos__montant {
-  font-size: var(--texte-s);
-  font-variant-numeric: tabular-nums;
-  font-weight: 600;
-  color: var(--encre);
-  white-space: nowrap;
-}
-.assos__objet {
-  grid-column: 1 / -1;
-  margin-top: 0.1rem;
-  font-size: var(--texte-xs);
-  line-height: 1.35;
-  color: var(--encre-douce);
-}
-.assos__suite > summary {
-  margin-top: 0.35rem;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  cursor: pointer;
-  padding: var(--espace-2) 0;
-}
-.assos__suite > summary:hover {
-  color: var(--encre);
-}
+.
+.
+.
+.
+.
+.
+.
+.
 
 /* « Ce total est notre somme, pas un chiffre publié. » La mention se lit avant
    les chiffres du thème : après, elle serait une note de bas de page sur une
    information qu'on a déjà prise pour argent comptant. */
-.theme-groupe__agregat {
-  margin: 0 0 0.5rem;
-  padding: var(--espace-3) var(--espace-4);
-  border-left: 2px solid var(--trait-fort);
-  font-size: var(--texte-xs);
-  line-height: 1.4;
-  color: var(--encre-douce);
-  background: var(--papier-creuse);
-}
+.
 
 /* Les deux lectures d'un même total : ce que la commune achète, et à quoi ça
    sert. Elles ne s'additionnent jamais entre elles — c'est le même euro, vu
    deux fois — donc on montre l'une ou l'autre. */
-.pont__axes {
-  display: flex;
-  gap: 0.25rem;
-  margin: 0.3rem 0 0.1rem 0.7rem;
-}
-.pont__axes button {
-  font: inherit;
-  font-size: var(--texte-xs);
-  padding: var(--espace-1) var(--espace-4);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-pilule);
-  background: none;
-  color: var(--encre-douce);
-  cursor: pointer;
-  transition: background var(--transition), color var(--transition);
-}
-.pont__axes button[aria-pressed="true"] {
-  background: var(--encre);
-  border-color: var(--encre);
-  color: var(--papier);
-}
+.
+.
+.
 
 /* « Au titre de quel programme » : la typologie que le jaune permet vraiment.
    Repliée, parce qu'elle répond à une seconde question — la première étant
    « à quelles associations », qui reste ouverte au-dessus. */
-.assos__programmes {
-  margin-top: 0.5rem;
-  border-top: 1px solid var(--trait);
-  padding-top: var(--espace-3);
-}
-.assos__programmes > summary {
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  cursor: pointer;
-  padding: var(--espace-2) 0;
-}
-.assos__programmes > summary:hover {
-  color: var(--encre);
-}
+.
+.
+.
 /* Le compte se lit : à 0,8 d'opacité il tombait à 3,49:1. */
-.assos__compte {
-  color: var(--encre-douce);
-}
+.
 
 /* Les euros constants. La phrase corrige la précédente : elle se lit avec elle,
    pas comme une remarque à côté. */
-.mesure__constants {
-  border-left: 2px solid var(--trait);
-  padding-left: var(--espace-4);
-  font-size: var(--texte-s);
-}
+.
 
 /* ==========================================================================
    L'ACCUEIL SANS CARTE
@@ -4241,28 +3723,16 @@ body:not([data-carte="oui"]) .fiche .onglets-themes {
 /* La phrase qui répond à la question, et le pont qui explique son évolution.
    Elle porte la réponse : elle se lit avant les chiffres qui la soutiennent, et
    se détache d'eux. */
-.question-fiche__phrase {
-  margin-block-end: var(--espace-4);
-  line-height: 1.5;
-}
+.
 
 /* Ce que la question garde replié. Un pli sobre : il ne doit pas concurrencer
    l'intitulé de la question, qui est le vrai titre. */
-.question-fiche__reste > summary {
-  color: var(--encre-douce);
-  font-size: var(--texte-s);
-  cursor: pointer;
-  padding-block: var(--espace-3);
-}
+.
 
 /* D'où vient le mouvement. Même filet que les euros constants : ces deux
    phrases-là ne commentent pas la ligne à côté, elles répondent à ce que son
    chiffre vient de poser. */
-.mesure__provenance {
-  border-left: 2px solid var(--trait);
-  padding-left: var(--espace-4);
-  font-size: var(--texte-s);
-}
+.
 
 
 /* ==========================================================================
@@ -4366,8 +3836,7 @@ summary.pont__rangee,
 .legende__methode summary,
 .journal__technique summary,
 .assos__suite > summary,
-.assos__programmes > summary,
-.theme-groupe__suite > summary {
+.assos__programmes > summary {
   min-height: var(--cible);
   display: flex;
   align-items: center;
@@ -4407,11 +3876,9 @@ summary.pont__rangee,
 .formule,
 .source p,
 .tableau__aide,
-.pied p,
 .assos__reserve,
 .theme-groupe__agregat,
-.mesure__lecture,
-.ratios__lecture {
+.mesure__lecture {
   max-width: 70ch;
 }
 
@@ -4503,21 +3970,11 @@ summary.pont__rangee,
 }
 
 /* Un thème qui n'est pas mesuré à cette maille dit où il l'est, et y emmène. */
-.theme-groupe__ailleurs {
-  margin: var(--espace-5) 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
+.
 
 /* Ce que le mini-tableau montre, et sur combien : six colonnes muettes tirées
    d'une série de dix-neuf laissaient croire à la série entière. */
-.mini-serie__fenetre {
-  caption-side: top;
-  text-align: left;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-  padding-bottom: var(--espace-1);
-}
+.
 
 /* Un camembert seul dans un bloc large : sans cette borne, la légende étire
    ses parts jusqu'au bord droit et la ligne de lecture se casse. */
@@ -4622,157 +4079,40 @@ summary.pont__rangee,
 }
 /* Le compte des indicateurs suit le libellé au lieu de le surmonter : deux
    lignes dans une pilule doublaient sa hauteur pour un nombre. */
-.fiche__vitesses-compte {
-  display: inline;
-  font-weight: 400;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-.fiche__vitesses-compte::before {
-  content: " · ";
-}
+.
+.
 
-/* Le mandat en cours n'a pas de comptes publiés : une ligne, à l'endroit exact
-   où le lecteur voit la date de prise de fonction du maire. Pas un paragraphe. */
-.fiche .fiche__mandat {
-  order: -2;
-}
-.fiche__mandat {
-  margin: var(--espace-2) 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-
-/* ---- Le récit : la pièce la plus importante de la fiche ---- */
-.recit {
-  margin: 0 0 var(--espace-6);
-}
-.recit__titre {
-  font-family: var(--serif);
-  font-size: var(--texte-xl);
-  font-weight: 600;
-  line-height: 1.25;
-  margin: 0 0 var(--espace-4);
-  text-wrap: balance;
-}
-.recit__paragraphe {
-  margin: 0;
-  font-size: var(--texte-m);
-  line-height: 1.6;
-  max-width: 70ch;
-}
-.recit__fenetre {
-  margin: var(--espace-3) 0 0;
-  font-size: var(--texte-xs);
-  color: var(--encre-douce);
-}
-
-/* ---- Le verdict : trois à cinq phrases chiffrées, chacune vers son détail ---- */
+/* ---- Les faits : trois phrases chiffrées au plus, chacune vers son détail ---- */
 .verdict {
   list-style: none;
   margin: 0 0 var(--espace-6);
   padding: 0;
 }
-.verdict__phrase {
-  position: relative;
-  border-top: 1px solid var(--trait);
-}
+.
 /* La puce dit le sens sans le juger : pleine pour ce qui tend les comptes,
    creuse pour ce qui les détend, effacée pour ce qui ne tranche pas. */
-.verdict__phrase::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: calc(var(--espace-5) + var(--espace-2));
-  width: var(--espace-3);
-  height: var(--espace-3);
-  border-radius: 50%;
-  border: 1px solid var(--trait-fort);
-  background: var(--trait-fort);
-}
-.verdict__phrase--tend::before {
-  border-color: var(--argile);
-  background: var(--argile);
-}
-.verdict__phrase--detend::before {
-  border-color: var(--encre);
-  background: var(--papier);
-}
+.
+.
+.
 /* La phrase entière est la cible : viser une puce de six pixels au doigt, non. */
-.verdict__vers,
-.verdict__texte {
-  display: block;
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  font-size: var(--texte-m);
-  line-height: 1.5;
-  min-height: var(--cible);
-  padding: var(--espace-4) 0 var(--espace-4) var(--espace-6);
-  border: 0;
-  background: none;
-  color: var(--encre);
-}
-.verdict__vers {
-  cursor: pointer;
-  transition: color var(--transition);
-}
-.verdict__vers:hover {
-  color: var(--argile);
-}
+.
+.
+.
 
 /* ---- Ma feuille d'impôts : le bloc vient de `feuille-impots.ts`, qui réemploie
         la mise en forme des « 100 € » (`.cent`). Seule la boîte est à faire. ---- */
-.feuille-impots {
-  margin: 0 0 var(--espace-6);
-  padding: var(--espace-5);
-  background: var(--papier-creuse);
-  border-radius: var(--rayon-s);
-}
-.feuille-impots h3 {
-  font-family: var(--serif);
-  font-size: var(--texte-l);
-  margin: 0 0 var(--espace-3);
-}
+.
+.
 
 /* ---- Le corps par questions ---- */
-.question-fiche {
-  border-top: 1px solid var(--trait);
-}
-.question-fiche > summary {
-  display: flex;
-  align-items: center;
-  min-height: var(--cible);
-  padding: var(--espace-3) 0;
-  font-family: var(--serif);
-  font-size: var(--texte-l);
-  cursor: pointer;
-  list-style: none;
-}
-.question-fiche > summary::-webkit-details-marker {
-  display: none;
-}
+.
+.
+.
 /* Le chevron est dessiné, pas écrit : un caractère « ▸ » se lit à voix haute. */
-.question-fiche > summary::before {
-  content: "";
-  width: var(--espace-4);
-  height: var(--espace-4);
-  margin-right: var(--espace-4);
-  flex: 0 0 auto;
-  border-right: 2px solid var(--encre-douce);
-  border-bottom: 2px solid var(--encre-douce);
-  transform: rotate(-45deg);
-  transition: transform var(--transition);
-}
-.question-fiche[open] > summary::before {
-  transform: rotate(45deg);
-}
-.question-fiche > summary:hover {
-  color: var(--argile);
-}
-.question-fiche__corps {
-  padding: 0 0 var(--espace-5);
-}
+.
+.
+.
+.
 
 /* À 375 px, la bascule prend toute la largeur en deux lignes plutôt que de
    serrer deux pilules à trois caractères chacune. */
@@ -4782,9 +4122,6 @@ summary.pont__rangee,
   }
   .fiche__vitesses button {
     flex: 1 1 40%;
-  }
-  .recit__titre {
-    font-size: var(--texte-l);
   }
 }
 
@@ -4810,26 +4147,241 @@ summary.pont__rangee,
   box-shadow: var(--ombre-1);
 }
 
-/* ---- Cockpit collant ---------------------------------------------------- */
-.simu__cockpit {
+/* ---- La barre de solde --------------------------------------------------
+   Quatre cartes en haut de page sortaient de l'écran dès qu'on descendait
+   d'un cran dans l'arbre : on réglait sans voir ce que ça faisait, donc au
+   hasard. Une ligne, collante, qui ne quitte jamais l'écran.
+
+   Elle est **en haut sur grand écran et en bas sur téléphone** : sur un
+   téléphone le pouce et le regard sont en bas, et une barre haute se serait
+   retrouvée sous l'en-tête, hors du champ où l'on règle. */
+.simu__barre-solde {
   position: sticky;
   top: var(--haut-entete);
   z-index: 5;
-  background: var(--papier);
-  border-bottom: 1px solid var(--trait-fort);
-  padding: var(--espace-4) 0;
-  margin-bottom: var(--espace-2);
-}
-.simu__titres {
   display: flex;
   align-items: baseline;
-  gap: 0.75rem;
+  gap: var(--espace-4) var(--espace-7);
   flex-wrap: wrap;
+  padding: var(--espace-4) var(--espace-6);
+  margin: 0;
+  background: var(--encre);
+  color: var(--sur-encre);
+  border-radius: var(--rayon-s);
+  box-shadow: var(--ombre-2);
 }
-.simu__titres h2 {
+.simu__solde {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-3);
+  min-width: 0;
+}
+.simu__solde-quoi {
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+}
+/* Le solde voté reste lisible à côté du vôtre : barré, il serait illisible,
+   et absent, on ne saurait pas de combien on a bougé. */
+.simu__solde-avant {
+  font-size: var(--texte-m);
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+.simu__solde-fleche {
+  opacity: 0.6;
+}
+.simu__solde-val {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.simu__solde-detail {
+  display: flex;
+  gap: var(--espace-6);
+  flex-wrap: wrap;
+  margin: 0;
+  margin-left: auto;
+}
+.simu__solde-detail div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-2);
+}
+.simu__solde-detail dt {
+  font-size: var(--texte-xs);
+  opacity: 0.72;
+}
+.simu__solde-detail dd {
+  margin: 0;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* Sur fond d'encre, les deux couleurs de sens seraient illisibles : le sens
+   se lit au signe, qui est déjà là. */
+.simu__solde-detail .simu__val--sobre,
+.simu__solde-detail .simu__val--argile {
+  color: inherit;
+}
+
+/* ---- L'en-tête et les blocs --------------------------------------------- */
+.simu__tete h2 {
   font-family: var(--serif);
   font-size: var(--texte-xxl);
   margin: 0;
+}
+.simu__tete {
+  margin-bottom: var(--espace-5);
+}
+/* Un bloc par question : votre plan, ce qu'il dépense, ce qu'il encaisse, et
+   après. Le filet en tête les sépare sans les encadrer. */
+.simu__bloc {
+  margin-top: var(--espace-8);
+  padding-top: var(--espace-5);
+  border-top: 2px solid var(--encre);
+}
+.simu__bloc-titre {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espace-5);
+  flex-wrap: wrap;
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  margin: 0 0 var(--espace-5);
+}
+.simu__bloc-titre .nombre {
+  font-family: var(--sans);
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+  color: var(--encre-douce);
+}
+.simu__bloc-titre span:first-child {
+  min-width: 0;
+}
+/* Votre plan : le résultat, donc en tête, et pas un cadre de plus autour. */
+.simu__bloc--plan {
+  border-top-color: var(--accent);
+}
+
+/* ---- Les raccourcis ----------------------------------------------------- */
+/* Les postes dont on débat, atteignables en un geste. Sur téléphone la rangée
+   défile plutôt que de s'empiler sur quatre lignes. */
+.simu__raccourcis {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espace-3);
+  margin: var(--espace-5) 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: var(--espace-2);
+}
+.simu__raccourcis-quoi {
+  flex: none;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.simu__raccourci {
+  flex: none;
+  font: inherit;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.simu__raccourci:hover {
+  background: var(--accent-teinte);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---- La trajectoire ----------------------------------------------------- */
+.simu__hypotheses {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--espace-6);
+  flex-wrap: wrap;
+  padding: var(--espace-5) var(--espace-6);
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+}
+.simu__hypotheses label {
+  display: grid;
+  gap: var(--espace-2);
+  font-size: var(--texte-s);
+  font-weight: 600;
+}
+.simu__hypotheses-note {
+  flex: 1 1 22rem;
+  margin: 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+/* La phrase que la projection produit : elle passe avant les nombres, parce
+   que c'est elle qu'on est venu chercher. */
+.simu__verdict {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  line-height: 1.3;
+  margin: var(--espace-6) 0 var(--espace-5);
+}
+.simu__annees {
+  list-style: none;
+  margin: var(--espace-5) 0 0;
+  padding: 0;
+}
+/* Une ligne par année, pas deux : vingt années sur deux lignes chacune font
+   un mur qu'on ne lit plus. Les intérêts se posent à droite du montant, en
+   petit — c'est une précision, pas un second chiffre. */
+.simu__annees li {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(4rem, 1fr) auto auto;
+  align-items: center;
+  gap: var(--espace-2) var(--espace-4);
+  padding: var(--espace-2) 0;
+  border-bottom: 1px solid var(--trait);
+}
+.simu__annee-rang {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.simu__annee-barre {
+  height: 0.5rem;
+  border-radius: var(--rayon-pilule);
+  background: var(--papier-creuse);
+  overflow: hidden;
+}
+.simu__annee-barre i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.simu__annee-dette {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+.simu__annee-interets {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  text-align: right;
+  white-space: nowrap;
 }
 .simu__perimetre {
   margin: 0;
@@ -4908,17 +4460,12 @@ summary.pont__rangee,
   font-weight: 650;
 }
 
-/* ---- Recherche et onglets ----------------------------------------------- */
-.simu__barre {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin: 0.9rem 0;
-}
+/* ---- La recherche, en grand --------------------------------------------- */
+/* Pour régler l'aide au logement, il fallait deviner qu'elle est rangée sous
+   « Cohésion des territoires ». Le champ passe devant l'arbre. */
 .simu__recherche {
   position: relative;
-  flex: 1 1 18rem;
+  margin: var(--espace-7) 0 0;
   min-width: 0;
 }
 .simu__recherche input {
@@ -4947,11 +4494,6 @@ summary.pont__rangee,
   border-radius: var(--rayon-s);
   box-shadow: var(--ombre-2);
 }
-.simu__onglets {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
 /* Le choix du budget : État ou Sécurité sociale. Au-dessus du cockpit, parce
    qu'il change tout ce qui vient après — et jamais côte à côte avec un total
    qui les additionnerait, ce qui n'a pas de sens. */
@@ -4960,6 +4502,9 @@ summary.pont__rangee,
   gap: 0.35rem;
   flex-wrap: wrap;
   margin: 1.25rem 1.5rem 0;
+}
+.simu__budgets button {
+  flex: none;
 }
 .simu__budgets button {
   font: inherit;
@@ -4982,23 +4527,6 @@ summary.pont__rangee,
    c'est ce qui rend visible qu'un objectif réglé ne déplace pas le solde. */
 .simu__compteurs--objectif {
   margin: 0 0 var(--espace-5);
-}
-.simu__onglets button {
-  font: inherit;
-  font-size: var(--texte-m);
-  font-weight: 600;
-  min-height: var(--cible);
-  padding: var(--espace-3) var(--espace-6);
-  border: 1px solid var(--trait-fort);
-  border-radius: var(--rayon-pilule);
-  background: var(--papier);
-  color: var(--encre-douce);
-  cursor: pointer;
-}
-.simu__onglets button[aria-selected="true"] {
-  background: var(--encre);
-  border-color: var(--encre);
-  color: var(--sur-encre);
 }
 
 /* ---- L'arbre ------------------------------------------------------------ */
@@ -5440,37 +4968,95 @@ summary.pont__rangee,
   .simu__enfants {
     margin-inline-start: var(--espace-5);
   }
-  .simu__onglets {
-    width: 100%;
+  /* **La barre de solde passe en bas.** Sur un téléphone, le pouce et le
+     regard sont en bas de l'écran ; collée en haut, elle se retrouvait sous
+     l'en-tête, hors du champ où l'on règle. Elle borde l'écran plutôt que de
+     flotter dedans, et la page se réserve sa hauteur pour que le dernier
+     réglage ne finisse pas dessous. */
+  /* Au-dessus de la barre de navigation, jamais dessous : les deux sont
+     collées en bas, et la seconde mangeait la moitié de la première. */
+  .simu__barre-solde {
+    position: fixed;
+    inset: auto 0 auto 0;
+    bottom: calc(var(--cible) + env(safe-area-inset-bottom, 0px));
+    top: auto;
+    z-index: 7;
+    margin: 0;
+    border-radius: 0;
+    flex-wrap: nowrap;
+    gap: var(--espace-5);
+    padding: var(--espace-3) var(--espace-6);
   }
-  .simu__onglets button {
-    flex: 1 1 auto;
+  .simu__solde {
+    min-width: 0;
+  }
+  .simu__solde-avant,
+  .simu__solde-fleche {
+    display: none;
+  }
+  .simu__solde-val {
+    font-size: var(--texte-l);
+  }
+  .simu__solde-detail {
+    gap: var(--espace-4);
+    margin-left: auto;
+    flex-wrap: nowrap;
+  }
+  /* Une ligne, pas trois : dépenses et recettes sont écrites en toutes lettres
+     dans le titre de leur bloc, à deux doigts de là. Ne reste que l'écart, qui
+     n'est écrit nulle part ailleurs. */
+  .simu__solde-detail div:not(:last-child) {
+    display: none;
+  }
+  .simu__solde-quoi {
+    display: none;
+  }
+  /* La barre basse de navigation ET la barre de solde : la vue leur rend leur
+     place, sans quoi les deux derniers réglages sont incliquables. */
+  body[data-vue="simulateur"] .vue {
+    padding-bottom: calc(var(--cible) * 2 + var(--espace-8)
+      + env(safe-area-inset-bottom, 0px));
+  }
+  /* La rangée défile plutôt que de s'empiler sur cinq lignes. */
+  .simu__raccourcis {
+    flex-wrap: nowrap;
+  }
+  /* Sept budgets empilaient cinq rangées de pastilles avant le premier
+     chiffre : la rangée défile, comme les raccourcis. */
+  .simu__budgets {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: var(--espace-4);
+  }
+  .simu__solde-detail dd {
+    font-size: var(--texte-s);
+  }
+  .simu__bloc-titre {
+    font-size: var(--texte-l);
+  }
+  .simu__verdict {
+    font-size: var(--texte-l);
+  }
+  /* Le nombre passe sous la barre : à cette largeur, « 2 889 000 M€ » et sa
+     barre ne tiennent pas sur la même ligne. */
+  .simu__annees li {
+    grid-template-columns: 2.8rem 1fr auto;
+  }
+  .simu__annee-interets {
+    grid-column: 2 / -1;
+  }
+  .simu__hypotheses {
+    gap: var(--espace-4);
   }
 }
 
 /* Le lien vers la page ANALYSES ferme « L'essentiel ». Il remplace un « Tout
    voir / 187 indicateurs » qui posait un compte brut sans rien relier : un
    nombre n'est pas une invitation, et le lecteur ne savait pas où il allait. */
-.synthese__tout {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  margin-top: var(--espace-4);
-  font-size: var(--texte-s);
-  font-weight: 600;
-  color: var(--encre);
-  text-decoration: none;
-  border-bottom: 2px solid var(--dore);
-  padding-bottom: var(--espace-1);
-}
-.synthese__tout::after {
-  content: "→";
-  transition: transform 0.15s ease;
-}
-.synthese__tout:hover::after,
-.synthese__tout:focus-visible::after {
-  transform: translateX(3px);
-}
+.
+.
+.
 
 /* La page ANALYSES : l'exhaustivité, là où la fiche s'arrête à l'essentiel. */
 .analyses {
@@ -5627,4 +5213,142 @@ summary.pont__rangee,
   grid-column: 1;
   color: var(--encre-douce);
   font-size: var(--texte-xs);
+}
+
+
+/* ===========================================================================
+   CARTE DÉPLOYÉE — un bloc DANS la colonne, pas un fond d'écran
+   ===========================================================================
+   Premier essai : la carte reprenait tout l'écran et la fiche repassait en
+   surcouche flottante par-dessus, avec son ascenseur propre et sa croix de
+   fermeture. C'était rendre à la fiche la carte blanche posée sur fond nu
+   qu'on venait de lui retirer, et la rendre en pire : cette fois le fond
+   bougeait, et le texte se lisait à travers un panneau posé sur un dessin de
+   France.
+
+   La carte est donc un bloc de la page. **Deux colonnes : la carte à gauche,
+   la fiche en barre latérale à droite.** Empilées, la carte poussait la fiche
+   sous la ligne de flottaison — on ouvrait un territoire pour lire un texte
+   qui commençait hors écran. Côte à côte, on situe et on lit du même regard,
+   la carte reste en vue pendant qu'on descend le texte, et rien ne flotte
+   au-dessus de la fiche.
+
+   Sous 60rem la grille retombe sur une colonne : à cette largeur, deux
+   colonnes donneraient une carte trop étroite pour viser une commune et une
+   colonne de texte de trente caractères.
+
+   Ces règles sont en fin de feuille pour gagner sur celles du mode plein
+   cadre sans en retirer aucune : le jour où l'on veut revenir au fond
+   d'écran, il suffit de supprimer ce bloc. */
+body[data-carte="oui"] .vue--territoire {
+  display: block;
+  height: auto;
+}
+/* La barre de vue s'aligne sur la grille, comme la carte et la fiche : le
+   bouton se retrouvait collé au bord gauche de l'écran, à 224 px du contenu
+   qu'il commande. */
+body[data-carte="oui"] .vue--territoire .vue-barre {
+  max-width: min(88rem, 100%);
+  width: auto;
+}
+body[data-carte="oui"] .vue--territoire .atelier {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 34rem);
+  gap: var(--espace-7);
+  align-items: start;
+  position: static;
+  height: auto;
+  min-height: 0;
+  max-width: min(88rem, 100%);
+  margin-inline: auto;
+  padding-inline: var(--gouttiere);
+  background: transparent;
+}
+/* Le cadre de la carte, et le repère de toutes ses surcouches. Collant : la
+   fiche est plus haute que lui, et une carte qui défile hors de l'écran au
+   troisième bloc ne sert plus à rien. */
+body[data-carte="oui"] .atelier__carte {
+  position: sticky;
+  top: var(--espace-5);
+}
+/* La carte tient dans l'écran sous l'en-tête, sans jamais descendre sous les
+   26rem qu'il faut pour reconnaître la France et viser une commune. */
+body[data-carte="oui"] #carte {
+  position: relative;
+  inset: auto;
+  height: clamp(26rem, calc(100dvh - 9rem), 46rem);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  overflow: hidden;
+}
+/* Le panneau redevient la page : ni surcouche, ni ascenseur propre, ni croix. */
+body[data-carte="oui"] .panneau {
+  position: static;
+  inset: auto;
+  width: auto;
+  max-width: none;
+  height: auto;
+  max-height: none;
+  margin-inline: 0;
+  padding-inline: 0;
+  padding-top: var(--espace-6);
+  transform: none;
+  box-shadow: none;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  backdrop-filter: none;
+}
+body[data-carte="oui"] .panneau__contenu {
+  overflow: visible;
+  height: auto;
+  max-height: none;
+}
+body[data-carte="oui"] .panneau__fermer,
+body[data-carte="oui"] .panneau__poignee {
+  display: none;
+}
+body[data-carte="oui"] .fiche {
+  padding-inline: 0;
+}
+/* Les commandes et la légende se posent sur le cadre de la carte, pas sur la
+   page : elles ne commandent que lui. Elles étaient ancrées sur l'atelier,
+   qui porte maintenant la fiche — les deux menus déroulants venaient donc se
+   poser en bas du texte, sans rien qui dise à quoi ils servaient.
+
+   En haut, pas en bas : ce qu'on règle avant de lire la carte se met là où le
+   regard entre, et le bas du cadre reste au dessin. */
+body[data-carte="oui"] .carte-barre {
+  position: absolute;
+  top: var(--espace-4);
+  bottom: auto;
+  left: var(--espace-4);
+  /* La place des boutons de zoom, réservée : centrées, les commandes passaient
+     dessous et le « + » devenait incliquable. */
+  right: 3.4rem;
+  justify-content: flex-start;
+}
+body[data-carte="oui"] .legende {
+  top: auto;
+  left: var(--espace-4);
+  bottom: var(--espace-4);
+}
+/* Une colonne : la carte au-dessus, la fiche dessous. */
+@media (max-width: 60rem) {
+  body[data-carte="oui"] .vue--territoire .atelier {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  body[data-carte="oui"] .atelier__carte {
+    position: relative;
+    top: auto;
+  }
+  body[data-carte="oui"] #carte {
+    height: 26rem;
+  }
+}
+@media (max-width: 40rem) {
+  body[data-carte="oui"] #carte {
+    height: 18rem;
+  }
 }

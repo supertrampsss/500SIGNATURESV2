@@ -47,31 +47,24 @@ test("changer de thème repart sur l'année la plus récente", () => {
   assert.match(corps, /if \(IDS_DERIVES\.has\(id\)\) return;/);
 });
 
-test("déplier une mesure ne repeint pas la carte", () => {
-  // Peindre relit une couche de 34 772 territoires et réécrit la fiche
-  // entière. Tant que ce coût était celui d'un dépliage, *lire* un chiffre
-  // coûtait le prix de *cartographier* un chiffre — à chaque ligne, sur un
-  // thème qui en compte soixante-dix-neuf.
-  assert.match(MAIN, /closest<HTMLElement>\("\[data-carte\]"\)/);
-  assert.doesNotMatch(MAIN, /closest<HTMLElement>\("\[data-mesure\]"\)/);
-  // Le bouton n'existe que là où il y a quelque chose à peindre : les mêmes
-  // refus que `choisirIndicateur`, appliqués avant de le proposer.
+test("la fiche n'aligne plus une seule ligne de mesure", () => {
+  // Elle en alignait cent quinze, rangées par thème, plus les mêmes rangées
+  // par question : la même valeur écrite deux fois sur une même page. Ce que
+  // la fiche montre tient maintenant en quatre repères, quatre blocs et trois
+  // faits ; l'exhaustivité est le métier de la page ANALYSES, où chaque
+  // exercice publié a sa colonne.
+  assert.doesNotMatch(FICHE, /data-mesure=/);
+  assert.doesNotMatch(FICHE, /class="mesures"/);
+  assert.doesNotMatch(FICHE, /theme-groupe|onglets-themes|onglets-rubriques/);
+  // On peint toujours depuis le sélecteur de la carte : c'est lui qui choisit
+  // l'indicateur, et il n'a jamais été dans la fiche.
   assert.match(MAIN, /function peintSurCarte\(indicateur: Indicateur\): boolean/);
-  assert.match(FICHE, /data-carte="/);
 });
 
 test("un maire absent n'écrit rien, comme toute donnée absente", () => {
   // « Maire : non renseigné » occupait une ligne pour dire qu'il n'y avait
   // rien à dire, en contradiction avec la règle de la fiche.
   assert.doesNotMatch(FICHE, /non renseigné par le Répertoire/);
-});
-
-test("la taxe fonciere dit sa part dans les recettes de la collectivite", () => {
-  // « Ma taxe foncière, ça pèse combien dans ce que la commune encaisse ? »
-  // Le rapprochement DGFiP/OFGL n'entre dans PART_DU_TOTAL qu'après contrôle
-  // du périmètre ; ce test verrouille sa présence, le contrôle vit en
-  // commentaire à côté de la table.
-  assert.match(FICHE, /dgfip_produit_foncier_bati: \{\s*total: "ofgl_recettes_fonctionnement"/);
 });
 
 /* ------------------------------------------------------------------------
@@ -459,5 +452,112 @@ test("sous le pouce, la navigation ne se coupe plus", () => {
   assert.match(petit, /grid-auto-columns: 1fr;/);
   assert.match(petit, /env\(safe-area-inset-bottom, 0px\)/);
   // Et la barre basse ne recouvre pas la fin de la vue.
-  assert.match(petit, /\.pied,\n\s*\.vue \{\n\s*padding-bottom:/);
+  assert.match(petit, /\.vue \{\n\s*padding-bottom:/);
+});
+
+test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => {
+  // 6 691 px de listes que personne ne parcourait. Ce qui disparaît de l'écran
+  // est réel et assumé : « Sources et méthode », le tableau équivalent de la
+  // carte, l'export CSV et le comparateur. Ce qui reste : le fichier public,
+  // lié depuis le pied de page, et la définition de chaque mesure dans son
+  // rond « i ».
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.doesNotMatch(balises, /id="vue-donnees"/);
+  assert.doesNotMatch(balises, /data-vue="donnees"/);
+  assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"donnees"/);
+  // Un lien `#donnees` déjà partagé ne doit pas laisser le lecteur sur une
+  // page blanche : la vue de repli le ramène sur TERRITOIRE.
+  assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(cible\) \? cible : "territoire";/);
+  // Et plus personne ne l'y envoie de son propre chef.
+  assert.doesNotMatch(MAIN, /location\.hash = "#donnees"/);
+  // Les fonctions qui peignaient dans ses conteneurs se taisent au lieu de
+  // lever : `$` rend `null`, et `null.innerHTML` casse toute la fiche.
+  for (const garde of [
+    'if (!document.getElementById("tableau-donnees")) return;',
+    'if (!document.getElementById("sources-contenu")) return;',
+  ]) {
+    assert.ok(MAIN.includes(garde), `garde manquante : ${garde}`);
+  }
+});
+
+test("la carte est déployée d'emblée sur la vue territoire", () => {
+  // Repliée, il fallait la demander pour voir ce qu'aucune fiche ne montre :
+  // la répartition dans l'espace. Le bouton reste, pour la refermer.
+  assert.match(MAIN, /let carteOuverte = true;/);
+  assert.match(PAGE, /id="carte-bascule"/);
+});
+
+test("la carte est à gauche, la fiche en barre latérale à droite", () => {
+  // Empilées, la carte poussait la fiche sous la ligne de flottaison : on
+  // ouvrait un territoire pour lire un texte qui commençait hors écran.
+  const bloc = CSS.slice(CSS.indexOf('body[data-carte="oui"] .vue--territoire .atelier'));
+  assert.match(bloc, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 34rem\);/);
+  // La carte est collante : la fiche est plus haute qu'elle, et une carte qui
+  // sort de l'écran au troisième bloc ne sert plus à rien.
+  assert.match(bloc, /body\[data-carte="oui"\] \.atelier__carte \{\n\s*position: sticky;/);
+  // Sous 60rem, une colonne : deux donneraient une carte trop étroite pour
+  // viser une commune et une colonne de texte de trente caractères.
+  assert.match(bloc, /@media \(max-width: 60rem\) \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/);
+});
+
+test("les surcouches de la carte s'ancrent sur la carte, pas sur la page", () => {
+  // Elles s'ancraient sur l'atelier, qui porte maintenant la fiche : les deux
+  // menus déroulants venaient se poser en bas du texte, sans rien qui dise à
+  // quoi ils servaient.
+  assert.match(PAGE_BALISES, /<div class="atelier__carte">/);
+  const carte = PAGE_BALISES.slice(
+    PAGE_BALISES.indexOf('<div class="atelier__carte">'),
+    PAGE_BALISES.indexOf('<aside class="panneau'),
+  );
+  for (const dedans of ['id="carte"', 'id="legende"', 'class="carte-barre"', 'id="etiquettes"', 'id="infobulle"']) {
+    assert.ok(carte.includes(dedans), `${dedans} devrait être dans le cadre de la carte`);
+  }
+  // En haut du cadre : ce qu'on règle avant de lire la carte se met là où le
+  // regard entre, et le bas reste au dessin.
+  assert.match(CSS, /body\[data-carte="oui"\] \.carte-barre \{\n\s*position: absolute;\n\s*top: var\(--espace-4\);/);
+});
+
+test("l'infobulle dit le nom du territoire, jamais son code", () => {
+  // Les tuiles portent le code là où l'on attendait le libellé : « 75 »
+  // s'affichait pour la Nouvelle-Aquitaine. Le nom vient du référentiel,
+  // comme pour les étiquettes.
+  assert.doesNotMatch(MAIN, /const nom = \(figure\?\.properties\?\.nom as string \| undefined\) \?\? nomDe\(code\);/);
+  assert.match(MAIN, /const nom = nomDe\(code\);/);
+});
+
+test("on arrive sur la France, jamais sur un résumé de couche", () => {
+  // Le panneau montrait la dispersion de la couche affichée — minimum,
+  // médiane, quartiles : une statistique sur des territoires, pas un
+  // territoire. Le module qui l'écrivait est retiré.
+  assert.doesNotMatch(MAIN, /apercuRendu|from "\.\/apercu\.ts"/);
+  // La maille pays est demandée dès l'ouverture, avant la carte.
+  assert.match(MAIN, /function chargerFrance\(\): Promise<void>/);
+  assert.match(MAIN, /void chargerFrance\(\);\n\s*\/\/ Sans attendre/);
+});
+
+test("le pied de page est retiré", () => {
+  // Deux paragraphes de mentions sous chaque vue.
+  assert.doesNotMatch(PAGE_BALISES, /<footer/);
+  assert.doesNotMatch(MAIN, /telechargement/);
+  assert.doesNotMatch(CSS_REGLES, /\.pied\b/);
+});
+
+test("les repères se rangent sur la place réelle, pas sur la fenêtre", () => {
+  // Quatre colonnes fixes dans une barre latérale : « Ce qu'elle encaisse »
+  // s'affichait « Ce qu'elle e… » sur un écran de 1 440 px.
+  assert.match(CSS, /\.reperes \{\n\s*display: grid;\n\s*grid-template-columns: repeat\(auto-fit, minmax\(9\.5rem, 1fr\)\);/);
+});
+
+test("les réglages d'un budget lui restent quand on va voir un autre budget", () => {
+  // Quinze lignes réglées sur l'État, on va voir la Sécu, on revient : tout
+  // était perdu, sans un mot.
+  assert.match(MAIN, /const reglagesParBudget = new Map<string, string>\(\);/);
+  assert.match(MAIN, /if \(budgetAffiche\) reglagesParBudget\.set\(budgetAffiche, etat\.budget\);/);
+  assert.match(MAIN, /etat\.budget = reglagesParBudget\.get\(cle\) \?\? "";/);
+});
+
+test("l'infobulle met une ligne par lecture", () => {
+  // La valeur et sa seconde lecture se suivaient sans séparateur :
+  // « 345 €2 158 M€ au total ».
+  assert.match(CSS, /\.infobulle span \{\n\s*display: block;/);
 });

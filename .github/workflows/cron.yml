@@ -88,6 +88,12 @@ jobs:
             python -m plateforme.normalize.securite --store r2:plateforme-raw
             python -m plateforme.normalize.sante --store r2:plateforme-raw
             python -m plateforme.normalize.education --store r2:plateforme-raw
+            # Le PLFSS et ses annexes : un projet de loi par an, déposé en
+            # octobre. Il était chargé à la main, ce qui veut dire qu'il ne
+            # l'était plus — le connecteur existait depuis le 9 août et rien ne
+            # l'appelait. Mensuel : la publication ne bouge pas plus souvent, et
+            # le module refuse de lui-même les exercices qu'il ne sait pas lire.
+            python -m plateforme.normalize.plfss --store r2:plateforme-raw
           else
             python -m plateforme.normalize.etat --store r2:plateforme-raw
             python -m plateforme.normalize.macro --store r2:plateforme-raw

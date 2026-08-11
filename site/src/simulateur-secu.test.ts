@@ -37,7 +37,6 @@ import {
   perimetre,
   rendu,
   renduObjectif,
-  renduOnglets,
   renduRecettes,
   repere,
   titre,
@@ -175,9 +174,11 @@ test("la note de l'ONDAM dit qu'il ne s'ajoute pas, une fois", () => {
   assert.equal(html.match(/entre pas dans le solde/g)?.length, 1);
 });
 
-test("l'onglet de l'objectif n'existe que si le budget en porte un", () => {
-  assert.match(renduOnglets("depenses", 0, "ONDAM 2026"), /ONDAM 2026/);
-  assert.doesNotMatch(renduOnglets("depenses", 0), /simu-onglet-objectif/);
+test("le bloc de l'objectif n'existe que si le budget en porte un", () => {
+  // L'ONDAM a son bloc, son total et son écart à lui : le régler ne déplace
+  // pas le solde, et c'est ce que la séparation rend visible.
+  assert.match(rendu(SECU, INDEX, new Map()), /id="simu-vue-objectif"/);
+  assert.doesNotMatch(rendu(SECU, INDEX, new Map()), /data-onglet=/);
 });
 
 /* ------------------------------------------------------- cadrage et défis */
@@ -214,11 +215,21 @@ test("le total d'un groupe de recettes suit les réglages de ses lignes", () => 
   assert.match(html, /165\s898/);
 });
 
-test("la page monte les quatre panneaux quand l'objectif existe", () => {
+test("les trois blocs se suivent sur une seule page quand l'objectif existe", () => {
   const html = rendu(SECU, INDEX, new Map());
   for (const id of ["simu-vue-depenses", "simu-vue-recettes", "simu-vue-objectif"]) {
     assert.ok(html.includes(id), id);
   }
+  // Dans cet ordre, et sans qu'aucun soit masqué : on ne peut pas équilibrer
+  // un budget en voyant une moitié à la fois.
+  assert.ok(html.indexOf("simu-vue-depenses") < html.indexOf("simu-vue-recettes"));
+  assert.ok(html.indexOf("simu-vue-recettes") < html.indexOf("simu-vue-objectif"));
+});
+
+test("la dette ne se projette pas sur le budget de la Sécurité sociale", () => {
+  // Sa dette est portée par la CADES, sur un autre encours : lui appliquer le
+  // taux apparent de l'État donnerait un chiffre juste au mauvais périmètre.
+  assert.doesNotMatch(rendu(SECU, INDEX, new Map()), /id="simu-vue-trajectoire"/);
 });
 
 test("remonter le simulateur ne laisse pas les écouteurs du budget précédent", () => {
@@ -228,10 +239,13 @@ test("remonter le simulateur ne laisse pas les écouteurs du budget précédent"
   const source = readFileSync(new URL("./simulateur-rendu.ts", import.meta.url), "utf8");
   assert.match(source, /montage\?\.abort\(\);/);
   assert.match(source, /montage = new AbortController\(\);/);
-  // Tout écouteur posé sur le bloc lui-même — les autres meurent avec le HTML
-  // qu'on remplace — porte le signal.
-  const surLeBloc = source.match(/bloc\.addEventListener\(/g)?.length ?? 0;
-  assert.equal(source.match(/\}, \{ signal \}\);/g)?.length, surLeBloc + 1);
+  // **Tous** les écouteurs portent le signal, pas seulement ceux posés sur le
+  // bloc : compter les exceptions revenait à tenir une liste à jour, et la
+  // règle « aucun écouteur ne survit au montage suivant » se vérifie d'un
+  // nombre.
+  const poses = source.match(/\.addEventListener\(/g)?.length ?? 0;
+  assert.ok(poses > 0, "aucun écouteur trouvé");
+  assert.equal(source.match(/\}, \{ signal \}\);/g)?.length, poses);
 });
 
 /* ---------------------------------------------- ce que le dépôt doit tenir */
@@ -264,13 +278,13 @@ test("les capitales s'accentuent, comme en français", async () => {
   assert.equal(accentuer("Etat-major des armées"), "État-major des armées");
 });
 
-test("la fiche affiche un total, pas un montant par habitant", async () => {
+test("la fiche affiche un total, jamais un montant par habitant", async () => {
   const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
   // « 445 € » pour Bordeaux ne dit ni ce que la ville dépense, ni à combien
-  // d'habitants c'est rapporté. Le par-habitant reste dans le tableau déplié,
-  // où il est nommé.
-  assert.match(FICHE, /<span class="mesure__valeur">\$\{formater\(brut, indicateur\.unite, false, indicateur\.id\)\}/);
-  assert.doesNotMatch(FICHE, /<span class="mesure__valeur">\$\{formate\(valeur\)\}/);
+  // d'habitants c'est rapporté. Le par-habitant ne s'affiche que dans les
+  // tableaux dépliés, et la fiche n'en porte plus aucun.
+  assert.doesNotMatch(FICHE, /parHabitant/);
+  assert.doesNotMatch(FICHE, /mesure__valeur/);
 });
 
 /* ------------------------------- les collectivités, échelon par échelon */

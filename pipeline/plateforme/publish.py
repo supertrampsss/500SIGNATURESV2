@@ -810,6 +810,131 @@ def simulateur_secu(conn) -> dict[str, dict]:
     return fichiers
 
 
+# Les cinq branches des régimes de base, telles que le sélecteur les nomme. Le
+# libellé dit la branche **et** ce dont on parle quand on n'est pas de la DSS :
+# « vieillesse » est le mot du tableau, « retraites » celui de la question.
+BRANCHES_SOCIALES = {
+    "vieillesse": ("Retraites", "vieillesse (retraites)"),
+    "maladie": ("Maladie", "maladie"),
+    "famille": ("Famille", "famille"),
+    "autonomie": ("Autonomie", "autonomie"),
+    "atmp": ("Accidents du travail", "accidents du travail et maladies professionnelles"),
+}
+
+# La phrase qui interdit l'addition, et qui dit ce qu'on a le droit de faire.
+# Elle est publiée avec chaque fichier de branche parce qu'elle est la condition
+# de lecture du chiffre affiché, pas une note de bas de page.
+BRANCHE_CADRE = (
+    "{loi} {exercice}, branche {branche} des régimes obligatoires de base,"
+    " charges et produits nets, montants en millions d'euros (M€)."
+    " Les cinq branches ne s'additionnent pas : leurs charges dépassent les charges"
+    " consolidées de {transferts} M€ de transferts comptés en charge chez l'une et en"
+    " produit chez l'autre. Leurs soldes, eux, font exactement le solde consolidé —"
+    " ce qui est réglé ici déplace donc le solde de la Sécurité sociale d'autant."
+)
+
+
+def simulateur_branches(conn) -> dict[str, dict]:
+    """Chaque branche des régimes de base, réglable, dans son propre fichier.
+
+    Un fichier par branche, jamais un fichier qui les rassemble : la table
+    `fin.social_budget_branch` existe à part de la consolidée pour rendre
+    l'addition impossible sans l'écrire, et ce serait perdre ce garde-fou que de
+    la rendre ici sous la forme d'un objet unique où il suffirait de sommer cinq
+    clés.
+
+    **Ce qui autorise la manœuvre** est vérifié à l'ingestion : les cinq
+    résultats nets font exactement le résultat consolidé. Régler une branche
+    déplace donc le solde de la Sécurité sociale du même montant, alors même que
+    les totaux de charges, eux, ne s'additionnent pas. Le cadrage publié le dit,
+    avec le montant des transferts entre branches.
+    """
+    lignes = conn.execute(
+        """
+        select fiscal_year, law, branch, side, code, parent_code, label, amount, currency
+        from fin.social_budget_branch order by fiscal_year, branch, side, amount desc
+        """
+    ).fetchall()
+    if not lignes:
+        return {}
+
+    # Le montant des transferts éliminés par la consolidation, tel que le
+    # connecteur l'a mesuré et écrit : l'écran ne le recalcule pas, et ne
+    # l'invente pas non plus.
+    transferts = conn.execute(
+        """
+        select observed from meta.data_quality_checks
+        where check_name = 'chaque_branche_est_un_budget_complet'
+        order by ran_at desc limit 1
+        """
+    ).fetchone()
+
+    par_cle: dict[tuple[str, str], dict] = {}
+    enfants: dict[tuple[str, str, str, str], list[dict]] = defaultdict(list)
+    racines: dict[tuple[str, str, str], list[dict]] = defaultdict(list)
+    tous: list[tuple[str, str, str, str, dict]] = []
+    for annee, loi, branche, cote, code, parent, libelle, montant, devise in lignes:
+        exercice = str(annee)
+        par_cle.setdefault(
+            (branche, exercice),
+            {"exercice": exercice, "loi": loi, "unite": devise},
+        )
+        noeud = {"c": code, "l": libelle, "v": _montant_publie(montant)}
+        tous.append((exercice, branche, cote, code, noeud))
+        if parent:
+            enfants[(exercice, branche, cote, parent)].append(noeud)
+        else:
+            racines[(exercice, branche, cote)].append(noeud)
+    for exercice, branche, cote, code, noeud in tous:
+        fils = enfants.get((exercice, branche, cote, code))
+        if fils:
+            noeud["enfants"] = fils
+
+    fichiers = {}
+    for (branche, exercice), entete in sorted(par_cle.items()):
+        nom, dite = BRANCHES_SOCIALES.get(branche, (branche.capitalize(), branche))
+        fichiers[f"{branche}-{exercice}"] = {
+            **entete,
+            "branche": branche,
+            "titre": f"Le budget de la branche {dite}, poste par poste",
+            "cadre": BRANCHE_CADRE.format(
+                loi=entete["loi"],
+                exercice=exercice,
+                branche=dite,
+                transferts=_transferts_publies(transferts),
+            ),
+            "repere": "poste",
+            "nom_court": nom,
+            "depenses": racines[(exercice, branche, "depense")],
+            "recettes": [
+                {"t": groupe["l"], "signe": 1, "lignes": groupe.get("enfants", [groupe])}
+                for groupe in racines[(exercice, branche, "recette")]
+            ],
+        }
+    return fichiers
+
+
+def _transferts_publies(observed) -> str:
+    """Le montant des transferts entre branches, formaté, ou « des » à défaut.
+
+    Le connecteur l'écrit dans son contrôle de qualité. Absent — un entrepôt
+    antérieur à ce contrôle —, la phrase reste vraie sans le chiffre plutôt que
+    d'en porter un inventé.
+    """
+    if not observed:
+        return "ces"
+    try:
+        mesures = json.loads(observed[0])
+        euros = max(
+            abs(v["transferts_entre_branches_euros"])
+            for v in mesures.values()
+            if "transferts_entre_branches_euros" in v
+        )
+    except (ValueError, KeyError, TypeError, AttributeError):
+        return "ces"
+    return f"{round(euros / 1_000_000):,}".replace(",", "\u202f")
+
+
 BAREME_NOTE = (
     "L'assiette simulée ici est le revenu fiscal de référence du foyer, pas le"
     " revenu net imposable par part : ni quotient familial, ni décote, ni"
@@ -2048,6 +2173,14 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
         deposer(f"simulateur/secu-{exercice}.json", budget)
     if budgets_secu:
         deposer("simulateur/index-secu.json", sorted(budgets_secu, reverse=True))
+    # Un fichier par branche, et un index qui les nomme : jamais un fichier qui
+    # les rassemble, où il suffirait de sommer cinq clés pour compter 19 Md€ de
+    # transferts deux fois.
+    branches = simulateur_branches(conn)
+    for cle, budget in branches.items():
+        deposer(f"simulateur/branche-{cle}.json", budget)
+    if branches:
+        deposer("simulateur/index-branches.json", sorted(branches, reverse=True))
     # Le barème n'est pas un budget : ni dépenses, ni recettes, ni solde. Il a
     # donc son propre fichier, et le simulateur son propre écran pour lui.
     baremes = bareme(conn)

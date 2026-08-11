@@ -88,6 +88,14 @@ ANCETRES_ADDITIFS = {
     # publier la distribution nationale des foyers fiscaux par tranche de revenu
     # et rendre un barème refaisable. Le diff ne retire ni ne modifie une ligne.
     "c0fafd802356270146a1c97c8e0b0717932d56c811fcb4daec55866954d06a86",
+    # 2026-08-11 — ajout de `fin.social_budget_branch` et de sa séquence, pour
+    # publier le tableau 5 du PLFSS **par branche** et rendre les retraites
+    # réglables. Une table à part, pas une colonne de plus : la somme des cinq
+    # branches n'est pas le consolidé, et deux tables séparées rendent
+    # l'addition impossible sans l'écrire. Le diff ne retire ni ne modifie une
+    # ligne : une séquence ajoutée après celle du budget social, un bloc de
+    # table ajouté avant `fin.income_distribution`.
+    "71fcfab358aceb1acc6b8234e5c9d0ae12e84ae28a75232b080ff1f832e68019",
 }
 
 
@@ -472,6 +480,8 @@ RATTACHEMENTS = [
     ("fin.state_budget_detail", "dataset_id", "meta.dataset_registry", "dataset_id"),
     ("fin.social_budget_detail", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.social_budget_detail", "dataset_id", "meta.dataset_registry", "dataset_id"),
+    ("fin.social_budget_branch", "run_id", "meta.ingestion_runs", "run_id"),
+    ("fin.social_budget_branch", "dataset_id", "meta.dataset_registry", "dataset_id"),
     ("fin.income_distribution", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.income_distribution", "dataset_id", "meta.dataset_registry", "dataset_id"),
 ]
