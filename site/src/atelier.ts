@@ -24,12 +24,38 @@
  * parce qu'un écart ne porte aucun périmètre. C'est le seul total que l'atelier
  * calcule, et il s'appelle « votre effort », jamais « le solde ».
  *
- * **Un transfert reste le piège.** Couper de 10 000 M€ ce que l'État verse à la
- * Sécurité sociale améliore le solde de l'État de 10 000 et dégrade celui de la
- * Sécurité sociale d'autant — mais seulement si l'on règle aussi la ligne d'en
- * face, ce que l'atelier ne fait pas à la place du lecteur. `transferts()`
- * nomme les gestes concernés pour que l'écran le dise, plutôt que d'ajuster en
- * douce une ligne que personne n'a touchée.
+ * ─────────────────────────────────────────────────────────────────────────
+ * DEUX BUDGETS QUI SE TOUCHENT BOUGENT ENSEMBLE
+ * ─────────────────────────────────────────────────────────────────────────
+ *
+ * Les mettre l'un sous l'autre ne suffit pas. Posés côte à côte sans lien, le
+ * barème de l'impôt sur le revenu et la ligne « Impôt sur le revenu » des
+ * recettes de l'État étaient deux commandes du même impôt : régler l'une ne
+ * déplaçait pas l'autre, et l'écran donnait deux réponses à la même question.
+ *
+ * **Le barème pilote la ligne qu'il calcule.** Un point de barème déplace les
+ * 120 191 M€ inscrits au budget de l'État dans la proportion exacte où il
+ * déplace le rendement simulé, et la ligne perd sa commande à elle. Le
+ * *niveau* ne se transporte pas — 224 507 M€ simulés contre 120 191 M€
+ * inscrits, parce que le simulateur ignore quotient familial, décote et
+ * réductions — mais la *proportion*, si. C'est elle qu'on transporte.
+ *
+ * **Un transfert conserve l'euro, pas le pourcentage.** Ce que l'État cesse de
+ * verser aux collectivités, les collectivités cessent de le recevoir : l'écart
+ * se répartit entre les trois échelons au prorata de ce que chacun reçoit,
+ * seule clé que les fichiers publient. Le pourcentage, lui, ne se transporte
+ * pas : 44 189 M€ de prélèvements sur recettes côté État ne recouvrent pas les
+ * 28 907 M€ de « concours de l'État » que l'OFGL compte côté collectivités.
+ *
+ * Conséquence, et c'est tout l'intérêt : couper la dotation globale
+ * n'améliore rien d'ensemble. L'État gagne, les collectivités perdent autant,
+ * et l'effort total ne bouge pas d'un euro.
+ *
+ * **Ce qui n'a pas de ligne en face reste nommé, faute de mieux.** Les 8 049 M€
+ * que la Sécurité sociale reçoit de l'État et les 6 900 M€ de cotisations
+ * qu'il prend en charge sont, côté État, dilués dans les crédits de plusieurs
+ * missions ; aucun fichier publié ne dit lesquelles. `transferts()` le dit à
+ * l'écran plutôt que d'ajuster en douce une ligne choisie au hasard.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * UN JEU DE RÉGLAGES PAR VOLET
@@ -44,8 +70,10 @@
 
 import {
   ecartAuReel,
+  effectif,
   plan as planDuBudget,
   chercher as chercherDansIndex,
+  PREFIXE_RECETTE,
   type Budget,
   type Entree,
   type Index,
@@ -88,6 +116,13 @@ export type VoletBareme = {
    * zéro tant qu'on n'a touché à rien.
    */
   depart: Taux;
+  /**
+   * La ligne de recette que ce barème commande, dans un autre volet.
+   *
+   * Sans elle, l'écran porte deux commandes du même impôt : les tranches ici,
+   * un pourcentage là, et rien qui dise laquelle fait foi.
+   */
+  pilote: { volet: string; code: string };
 };
 
 export type Volet = VoletBudget | VoletBareme;
@@ -123,11 +158,20 @@ export function tauxDe(etat: EtatAtelier, volet: VoletBareme): Taux {
   return table;
 }
 
-/** Ce qu'un volet apporte au total, en euros. Positif : le solde s'améliore. */
-export function contribution(volet: Volet, etat: EtatAtelier): number {
-  if (volet.genre === "budget") return ecartAuReel(volet.budget, reglagesDe(etat, volet));
-  const taux = etat.baremes.get(volet.cle) ?? volet.depart;
-  return rendement(volet.bareme, taux) - rendement(volet.bareme, volet.depart);
+/**
+ * Ce qu'un volet apporte au total, en euros. Positif : le solde s'améliore.
+ *
+ * **Un barème n'apporte rien de son côté** : son effet est déjà dans le budget
+ * dont il pilote une recette. Le compter ici le compterait deux fois — une
+ * fois sur ses 224 507 M€ simulés, une fois sur les 120 191 M€ inscrits.
+ */
+export function contribution(
+  volet: Volet,
+  etat: EtatAtelier,
+  volets: readonly Volet[],
+): number {
+  if (volet.genre !== "budget") return 0;
+  return ecartAuReel(volet.budget, reglagesEffectifs(volet, etat, volets));
 }
 
 /**
@@ -137,7 +181,7 @@ export function contribution(volet: Volet, etat: EtatAtelier): number {
  * si. Chaque volet garde son propre solde, affiché dans sa section.
  */
 export function effort(volets: readonly Volet[], etat: EtatAtelier): number {
-  return volets.reduce((somme, volet) => somme + contribution(volet, etat), 0);
+  return volets.reduce((somme, volet) => somme + contribution(volet, etat, volets), 0);
 }
 
 /** Le nombre de gestes, tous volets confondus. */
@@ -163,16 +207,26 @@ function compterTranchesChangees(volet: VoletBareme, etat: EtatAtelier): number 
   return n;
 }
 
-export type LigneAtelier = LignePlan & { volet: VoletBudget };
+export type LigneAtelier = LignePlan & { volet: VoletBudget; externe: Externe | null };
 
-/** Le plan, tous volets confondus, le geste le plus lourd d'abord. */
+/**
+ * Le plan, tous volets confondus, le geste le plus lourd d'abord.
+ *
+ * Il liste ce qui bouge, pas ce qu'on a cliqué : la ligne d'impôt sur le revenu
+ * que le barème pilote et le concours de l'État qu'une coupe de dotation
+ * entraîne y figurent, avec le nom de ce qui les commande.
+ */
 export function plan(volets: readonly Volet[], etat: EtatAtelier): LigneAtelier[] {
   return volets
-    .flatMap((volet) =>
-      volet.genre === "budget"
-        ? planDuBudget(volet.index, reglagesDe(etat, volet)).map((ligne) => ({ ...ligne, volet }))
-        : [],
-    )
+    .flatMap((volet) => {
+      if (volet.genre !== "budget") return [];
+      const venus = externes(volet, etat, volets);
+      return planDuBudget(volet.index, reglagesEffectifs(volet, etat, volets)).map((ligne) => ({
+        ...ligne,
+        volet,
+        externe: venus.get(ligne.entree.code) ?? null,
+      }));
+    })
     .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
 }
 
@@ -200,44 +254,188 @@ export function chercher(
 }
 
 /* --------------------------------------------------------------------------
- * Les transferts entre budgets
+ * Ce qui commande une ligne depuis un autre volet
+ * ----------------------------------------------------------------------- */
+
+/** Ce qu'un autre volet impose à une ligne, et de la part de qui. */
+export type Externe = {
+  /** Points de pourcentage, à ajouter à ce que le lecteur a réglé lui-même. */
+  pourcentage: number;
+  /** Le volet où aller le régler : la ligne y renvoie. */
+  volet: string;
+  /** Le groupe nominal que la ligne affiche : « le barème, plus bas », « le
+   *  budget de l'État ». Les phrases se construisent autour, à l'écran. */
+  dit: string;
+  /** Vrai si la ligne n'a plus de commande à elle. Un impôt calculé par un
+   *  barème n'a pas aussi un curseur : ce serait deux réponses possibles. */
+  exclusif: boolean;
+};
+
+/**
+ * Un prélèvement qui finance un autre budget.
+ *
+ * `prefixe` désigne le groupe de recettes du payeur par la nomenclature, pas
+ * par son intitulé : le chapitre 31 des recettes de l'État est celui des
+ * prélèvements au profit des collectivités territoriales, le 32 celui de
+ * l'Union européenne. Un intitulé se réécrit d'un exercice à l'autre, un
+ * chapitre non.
+ */
+type Passage = {
+  depuis: string;
+  prefixe: string;
+  vers: { volet: string; code: string }[];
+  dit: string;
+};
+
+const PASSAGES: Passage[] = [
+  {
+    depuis: "etat",
+    prefixe: "31",
+    vers: [
+      { volet: "collectivites-commune", code: `${PREFIXE_RECETTE}ofgl_concours_de_l_etat` },
+      { volet: "collectivites-departement", code: `${PREFIXE_RECETTE}ofgl_concours_de_l_etat` },
+      { volet: "collectivites-region", code: `${PREFIXE_RECETTE}ofgl_concours_de_l_etat` },
+    ],
+    dit: "le budget de l'État",
+  },
+];
+
+/** Ce que le barème fait à la ligne qu'il pilote, en points de pourcentage.
+ *  C'est une proportion, jamais un niveau : voir l'en-tête du module. */
+export function pourcentagePilote(volet: VoletBareme, etat: EtatAtelier): number {
+  const depart = rendement(volet.bareme, volet.depart);
+  if (depart === 0) return 0;
+  const taux = etat.baremes.get(volet.cle) ?? volet.depart;
+  return (rendement(volet.bareme, taux) / depart - 1) * 100;
+}
+
+/** Ce que le payeur gagne sur tout un groupe de recettes, en euros. Positif :
+ *  il verse moins, donc son solde s'améliore d'autant. */
+function gainDuGroupe(volet: VoletBudget, reglages: Reglages, prefixe: string): number {
+  const groupe = volet.budget.recettes.find((g) =>
+    g.lignes.length > 0 && g.lignes.every((l) => l.c.startsWith(prefixe)),
+  );
+  if (!groupe) return 0;
+  const somme = (table: Reglages) =>
+    groupe.lignes.reduce((s, l) => s + effectif(l, table, PREFIXE_RECETTE), 0);
+  return groupe.signe * (somme(reglages) - somme(new Map()));
+}
+
+/**
+ * Les lignes d'un volet que commande un autre volet.
+ *
+ * Deux sources, et deux arithmétiques différentes : le barème transporte une
+ * proportion, un transfert transporte un euro. La clé de répartition d'un
+ * transfert est le montant que chaque receveur touche déjà — la seule que les
+ * fichiers publient — ce qui donne le même pourcentage à tous les receveurs et
+ * conserve l'euro à la somme.
+ *
+ * Les clés ne dépendent pas des valeurs : une ligne commandée de l'extérieur
+ * l'est au repos comme après un geste, à zéro point près. C'est ce qui permet à
+ * l'écran de poser son afficheur une fois pour toutes plutôt que d'en faire
+ * apparaître un en cours de route.
+ */
+export function externes(
+  volet: VoletBudget,
+  etat: EtatAtelier,
+  volets: readonly Volet[],
+): Map<string, Externe> {
+  const table = new Map<string, Externe>();
+
+  for (const autre of volets) {
+    if (autre.genre !== "bareme" || autre.pilote.volet !== volet.cle) continue;
+    table.set(autre.pilote.code, {
+      pourcentage: pourcentagePilote(autre, etat),
+      volet: autre.cle,
+      dit: "le barème, plus bas",
+      exclusif: true,
+    });
+  }
+
+  for (const transfert of PASSAGES) {
+    const recu = transfert.vers.find((l) => l.volet === volet.cle);
+    if (!recu) continue;
+    const payeur = volets.find((v) => v.cle === transfert.depuis);
+    if (!payeur || payeur.genre !== "budget") continue;
+    const gain = gainDuGroupe(payeur, reglagesDe(etat, payeur), transfert.prefixe);
+    const assiette = transfert.vers.reduce((s, l) => s + baseDeLaLigne(volets, l), 0);
+    if (assiette === 0) continue;
+    table.set(recu.code, {
+      pourcentage: (-100 * gain) / assiette,
+      volet: payeur.cle,
+      dit: transfert.dit,
+      exclusif: false,
+    });
+  }
+
+  return table;
+}
+
+function baseDeLaLigne(
+  volets: readonly Volet[],
+  ligne: { volet: string; code: string },
+): number {
+  const volet = volets.find((v) => v.cle === ligne.volet);
+  if (!volet || volet.genre !== "budget") return 0;
+  return volet.index.get(ligne.code)?.base ?? 0;
+}
+
+/**
+ * Les réglages d'un volet, ceux du lecteur et ceux qui lui viennent d'ailleurs.
+ *
+ * C'est cette table-là qui calcule et qui s'affiche. Une ligne pilotée perd le
+ * réglage propre du lecteur — elle n'a pas de commande — les autres l'ajoutent
+ * au pourcentage venu d'en face.
+ */
+export function reglagesEffectifs(
+  volet: VoletBudget,
+  etat: EtatAtelier,
+  volets: readonly Volet[],
+): Reglages {
+  const propres = reglagesDe(etat, volet);
+  const venus = externes(volet, etat, volets);
+  if (venus.size === 0) return propres;
+  const table = new Map(propres);
+  for (const [code, externe] of venus) {
+    const propre = externe.exclusif ? 0 : (propres.get(code) ?? 0);
+    const valeur = propre + externe.pourcentage;
+    if (valeur === 0) table.delete(code);
+    else table.set(code, valeur);
+  }
+  return table;
+}
+
+/* --------------------------------------------------------------------------
+ * Les transferts que personne ne peut propager
  * ----------------------------------------------------------------------- */
 
 /**
- * Les lignes qui ont une contrepartie dans un autre volet.
+ * Les gestes dont la contrepartie ne peut pas être propagée.
  *
- * Régler « Prélèvements sur les recettes de l'État au profit des collectivités
- * territoriales » améliore le solde de l'État sans dégrader celui des communes,
- * parce que personne n'a touché la ligne d'en face. Le total reste juste — il
- * additionne des écarts — mais il décrit alors un geste que le lecteur n'a fait
- * qu'à moitié.
- *
- * L'atelier **n'ajuste pas la contrepartie** : ce serait décider à la place du
- * lecteur quelle ligne du budget d'en face encaisse la coupe, et le fichier
- * publié ne le dit pas. Il la nomme, et c'est l'écran qui le dit.
+ * Les prélèvements sur recettes au profit des collectivités, eux, se propagent
+ * — voir `PASSAGES`. Ce qui reste ici n'a pas de ligne en face : les 8 049 M€
+ * que la Sécurité sociale reçoit de l'État et les 6 900 M€ de cotisations
+ * qu'il prend en charge sont, côté État, dilués dans les crédits de plusieurs
+ * missions, et aucun fichier publié ne dit lesquelles. Choisir laquelle
+ * encaisse la coupe serait décider à la place du lecteur ; l'écran le dit.
  */
-const CONTREPARTIES: Record<string, { volets: string[]; dit: string }> = {
-  // État -> collectivités territoriales.
-  r3101: { volets: ["collectivites-commune", "collectivites-departement", "collectivites-region"], dit: "les collectivités" },
-  r3106: { volets: ["collectivites-commune", "collectivites-departement", "collectivites-region"], dit: "les collectivités" },
-  r3145: { volets: ["collectivites-commune", "collectivites-departement", "collectivites-region"], dit: "les collectivités" },
-  // Sécurité sociale -> ce qu'elle reçoit de l'État.
-  "rR-TRF-ETA": { volets: ["etat"], dit: "le budget de l'État" },
-  "rR-COT-ETA": { volets: ["etat"], dit: "le budget de l'État" },
+const SANS_CONTREPARTIE: Record<string, { dit: string }> = {
+  "rR-TRF-ETA": { dit: "le budget de l'État" },
+  "rR-COT-ETA": { dit: "le budget de l'État" },
 };
 
 export type Transfert = { libelle: string; dit: string; volet: string };
 
-/** Les gestes posés sur une ligne qui a une contrepartie ailleurs. */
+/** Les gestes posés sur une ligne dont la contrepartie reste à faire. */
 export function transferts(volets: readonly Volet[], etat: EtatAtelier): Transfert[] {
   const trouves: Transfert[] = [];
   for (const volet of volets) {
     if (volet.genre !== "budget") continue;
     for (const code of reglagesDe(etat, volet).keys()) {
-      const contrepartie = CONTREPARTIES[code];
-      if (!contrepartie) continue;
+      const sans = SANS_CONTREPARTIE[code];
+      if (!sans) continue;
       const entree = volet.index.get(code);
-      if (entree) trouves.push({ libelle: entree.libelle, dit: contrepartie.dit, volet: volet.cle });
+      if (entree) trouves.push({ libelle: entree.libelle, dit: sans.dit, volet: volet.cle });
     }
   }
   return trouves;

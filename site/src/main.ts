@@ -2149,6 +2149,10 @@ const VOLETS_PUBLIES: VoletPublie[] = [
         // Le barème en vigueur : c'est de là qu'on part, et c'est contre lui
         // que se mesure ce qu'on change.
         depart: appliquerBareme(bareme, MODELES_BAREME[0]),
+        // La ligne 1101 des recettes fiscales de l'État, que ce barème calcule.
+        // Sans ce lien, les tranches et les 120 191 M€ inscrits au budget
+        // seraient deux commandes du même impôt qui s'ignorent.
+        pilote: { volet: "etat", code: "r1101" },
       };
     },
   },

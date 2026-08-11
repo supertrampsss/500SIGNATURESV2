@@ -217,7 +217,7 @@ test("le total d'un groupe de recettes suit les réglages de ses lignes", () => 
 
 test("les trois côtés se suivent dans la section, l'objectif en dernier", () => {
   const volet = { genre: "budget" as const, cle: "secu", nom: "Sécurité sociale", budget: SECU, index: INDEX };
-  const html = renduCorpsVolet(volet, { budgets: new Map(), baremes: new Map() });
+  const html = renduCorpsVolet(volet, { budgets: new Map(), baremes: new Map() }, [volet]);
   // Dans cet ordre, et sans qu'aucun soit masqué : on ne peut pas équilibrer
   // un budget en voyant une moitié à la fois.
   assert.ok(html.indexOf("Ce qu'il dépense") < html.indexOf("Ce qu'il encaisse"));

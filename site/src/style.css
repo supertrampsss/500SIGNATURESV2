@@ -4619,6 +4619,37 @@ summary.pont__rangee,
   white-space: nowrap;
 }
 
+/* ---- Ce qui commande une ligne depuis ailleurs ---------------------------
+   Deux repères, deux situations. Le renvoi remplace la commande d'une ligne
+   qu'un barème calcule : elle n'a pas de curseur, elle a une adresse. Le venu
+   se pose à côté de la commande d'une ligne qu'un transfert déplace : le
+   lecteur peut encore la régler, mais il doit voir qu'elle a bougé sans lui. */
+.simu__renvoi,
+.simu__venu {
+  font: inherit;
+  font-size: var(--texte-xs);
+  padding: var(--espace-2) var(--espace-4);
+  border: 1px dashed var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: none;
+  color: var(--encre-douce);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.simu__renvoi:hover,
+.simu__venu:hover {
+  border-style: solid;
+  color: var(--encre);
+}
+.simu__renvoi b {
+  color: var(--encre);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.simu__venu {
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- Les quatre commandes d'une ligne ----------------------------------- */
 .simu__reglage {
   grid-area: reglage;
@@ -4948,8 +4979,12 @@ summary.pont__rangee,
   .simu__lib {
     white-space: normal;
   }
+  /* Le repère de ce qui vient d'ailleurs s'ajoute aux quatre commandes : à
+     390 px la rangée dépassait de quatre pixels. Elle passe à la ligne. */
   .simu__reglage {
     justify-content: flex-start;
+    flex-wrap: wrap;
+    row-gap: var(--espace-2);
   }
   .simu__enfants {
     margin-inline-start: var(--espace-5);

@@ -14,6 +14,14 @@ import { test } from "node:test";
 
 import { indexer, regler, totaux, ecartAuReel, defis, plan, programmes, chercher, type Budget, type Reglages } from "./simulateur.ts";
 import {
+  contribution,
+  effort,
+  pourcentagePilote,
+  reglagesDe,
+  reglagesEffectifs,
+} from "./atelier.ts";
+import type { Bareme } from "./bareme.ts";
+import {
   classeEcart,
   euros,
   eurosSigne,
@@ -245,12 +253,12 @@ test("la barre de solde porte les trois nombres et le périmètre reste une lign
   assert.match(renduEffort([VOLET], atelier()), /aucun geste/);
   // Et le solde du budget vit dans l'en-tête de sa section, pas dans la barre :
   // les budgets ne s'additionnent pas, seul l'effort le fait.
-  assert.match(renduEnteteVolet(VOLET, atelier()), /10\u202f000\u202fM€/);
+  assert.match(renduEnteteVolet(VOLET, atelier(), [VOLET]), /10\u202f000\u202fM€/);
 });
 
 test("le solde d'un budget s'écrit deux fois dès qu'il a bougé : le voté, puis le vôtre", () => {
   // Un seul nombre ne dit pas ce qu'on vient de changer.
-  const html = renduEnteteVolet(VOLET, atelier(reglages(["140", -20])));
+  const html = renduEnteteVolet(VOLET, atelier(reglages(["140", -20])), [VOLET]);
   assert.match(html, /simu__volet-avant nombre">10\u202f000\u202fM€/);
   assert.match(html, /<b class="nombre">14\u202f000\u202fM€/);
 });
@@ -265,6 +273,113 @@ test("la barre additionne des écarts, jamais des budgets", () => {
   assert.match(html, /1 geste/);
   // Et le mot « solde » n'apparaît nulle part dans la barre.
   assert.doesNotMatch(html, /[Ss]olde/);
+});
+
+/* --------------------------------------------------------------------------
+ * Ce qu'un volet fait à un autre
+ * ----------------------------------------------------------------------- */
+
+/** Le barème minuscule qui pilote la ligne « r140 » du budget d'essai. */
+const BAREME: Bareme = {
+  exercice: "2024",
+  titre: "Un impôt",
+  cadre: "Essai",
+  note: "Assiette d'essai.",
+  foyers: 100,
+  revenu_total: 1000,
+  impot_emis: 40,
+  tranches: [
+    { b: 0, fa: 100, r: 600, a: 600, i: 0 },
+    { b: 10, fa: 40, r: 400, a: 400, i: 40 },
+  ],
+};
+const VOLET_BAREME = {
+  genre: "bareme" as const,
+  cle: "ir",
+  nom: "Un impôt",
+  bareme: BAREME,
+  depart: new Map([[10, 10]]),
+  pilote: { volet: "etat", code: "r1301" },
+};
+
+test("un barème pilote la ligne qu'il calcule, et n'apporte rien de son côté", () => {
+  // Deux commandes pour un même impôt, ce sont deux réponses à la même
+  // question : le barème déplace la recette de l'État, il ne s'ajoute pas à
+  // côté. Sa contribution propre vaut donc zéro, toujours.
+  const monde = [VOLET, VOLET_BAREME];
+  const etat = atelier();
+  etat.baremes.set("ir", new Map([[10, 20]]));
+
+  // Le rendement double (10 % -> 20 % sur 400) : +100 % sur la ligne pilotée.
+  assert.equal(pourcentagePilote(VOLET_BAREME, etat), 100);
+  assert.equal(contribution(VOLET_BAREME, etat, monde), 0);
+
+  // Et la ligne d'impôt sur les sociétés de l'État a doublé, elle.
+  const ligne = INDEX.get("r1301")!;
+  assert.equal(reglagesEffectifs(VOLET, etat, monde).get("r1301"), 100);
+  assert.equal(contribution(VOLET, etat, monde), ligne.base);
+});
+
+test("une ligne pilotée n'a plus de commande à elle, elle renvoie au barème", () => {
+  const monde = [VOLET, VOLET_BAREME];
+  const html = renduAtelier(monde, atelier());
+  const ligne = html.slice(html.indexOf('data-code="r1301"'));
+  const fin = ligne.indexOf("</div>");
+  assert.match(ligne.slice(0, fin), /simu__renvoi/);
+  assert.doesNotMatch(ligne.slice(0, fin), /data-pas/);
+});
+
+test("couper une dotation ne gagne rien : les collectivités perdent ce que l'État gagne", () => {
+  // C'est tout l'intérêt de les avoir sur la même page. Le chapitre 31 des
+  // recettes de l'État est celui des prélèvements au profit des collectivités ;
+  // ce qu'il cesse de verser, elles cessent de le recevoir, à l'euro près.
+  const psr = (v: number): Budget => ({
+    exercice: "2025",
+    loi: "PLF",
+    mesure: "credit_de_paiement",
+    unite: "EUR",
+    depenses: [{ c: "DA", l: "Défense", v: 0, enfants: [{ c: "146", l: "Équipement", v: 100 }] }],
+    recettes: [
+      {
+        t: "Prélèvements sur les recettes de l'État au profit des collectivités territoriales",
+        signe: -1,
+        lignes: [{ c: "3101", l: "Dotation globale de fonctionnement", v }],
+      },
+    ],
+  });
+  const concours = (v: number): Budget => ({
+    exercice: "2024",
+    loi: "OFGL",
+    mesure: "credit_de_paiement",
+    unite: "EUR",
+    depenses: [{ c: "d", l: "Dépenses", v: 0 }],
+    recettes: [
+      { t: "Recettes", signe: 1, lignes: [{ c: "ofgl_concours_de_l_etat", l: "Concours de l'Etat", v }] },
+    ],
+  });
+  const budget = (cle: string, nom: string, b: Budget) => ({
+    genre: "budget" as const,
+    cle,
+    nom,
+    budget: b,
+    index: indexer(b),
+  });
+  const monde = [
+    budget("etat", "État", psr(40_000)),
+    budget("collectivites-commune", "Communes", concours(20_000)),
+    budget("collectivites-departement", "Départements", concours(10_000)),
+  ];
+  const etat = { budgets: new Map(), baremes: new Map() };
+  regler(reglagesDe(etat, monde[0]), "r3101", -10);
+
+  // L'État verse 4 000 de moins, donc gagne 4 000.
+  assert.equal(contribution(monde[0], etat, monde), 4_000);
+  // Les deux échelons perdent 4 000 à eux deux, au prorata de ce qu'ils
+  // touchent : 30 000 d'assiette, donc 13,33 % chacun.
+  const perdu = contribution(monde[1], etat, monde) + contribution(monde[2], etat, monde);
+  assert.ok(Math.abs(perdu + 4_000) < 1e-9, `perdu ${perdu}`);
+  // Et l'effort d'ensemble ne bouge pas d'un euro.
+  assert.ok(Math.abs(effort(monde, etat)) < 1e-9);
 });
 
 test("les défis d'un budget n'apparaissent qu'une fois ce budget touché", () => {
