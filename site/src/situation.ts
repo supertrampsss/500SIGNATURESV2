@@ -1,5 +1,5 @@
 /**
- * « Où ça se situe » : le rang du territoire dans sa maille.
+ * « Sa place parmi les autres » : le rang du territoire dans sa maille.
  *
  * Un montant seul ne dit pas s'il est grand. Les blocs le comparent à
  * lui-même — 2019 contre 2025 —, jamais aux autres territoires du même
@@ -17,13 +17,25 @@
  *
  * **Le sens du classement se dit en comptant, pas en le nommant.** « De la plus
  * élevée à la plus faible » demande de tenir le fil jusqu'au rang pour savoir
- * si l'on dépense beaucoup ou peu. « 264 communes dépensent plus, 34 507
- * dépensent moins » se lit d'un coup et ne s'interprète pas.
+ * si l'on dépense beaucoup ou peu. « 264 communes dépensent plus » se lit d'un
+ * coup et ne s'interprète pas. Le compte de celles qui dépensent moins est
+ * parti avec : il se déduit du rang, et il doublait la hauteur du bloc.
+ *
+ * **Une ligne par critère, rang en tête.** Le bloc tenait sur trois lignes par
+ * critère — intitulé et montant, phrase de comptage, « voir le classement » —
+ * soit douze lignes pour quatre chiffres. Le rang ouvre maintenant la ligne
+ * comme un index, la phrase se glisse sous l'intitulé, et la ligne entière
+ * ouvre le classement.
  *
  * **Le classement s'ouvre.** Un rang appelle la question « et les autres ? ».
  * Le pli montre les dix premiers, le voisinage immédiat et les trois derniers ;
  * chaque ligne ouvre la fiche du territoire. Trente-quatre mille lignes ne se
  * peignent pas, et personne ne veut la 12 000e.
+ *
+ * **Le millésime est dans le titre, et rien d'autre sous le bloc.** Une phrase
+ * de méthode en pied disait « par habitant » une cinquième fois, après quatre
+ * intitulés qui le portent déjà. Ne reste que l'exercice, sans lequel un
+ * classement ne se vérifie pas.
  *
  * **Un territoire qui ne publie pas la valeur n'a pas de rang**, et la ligne
  * n'est pas écrite. On ne le compte pas non plus dans le dénombrement : « 412e
@@ -179,21 +191,20 @@ export function rendreSituation(liste: Rang[], niveau: string, exercice: string)
   if (!liste.length || !maille) return "";
   const lignes = liste
     .map(
-      ({ libelle, rang, effectif, dessus, dessous, valeur, extrait }, index) => `<li>
-        <div class="situation__tete">
-          <span class="situation__quoi">${echapper(libelle)}</span>
-          <b class="situation__valeur nombre">${echapper(valeur)}</b>
-        </div>
-        <p class="situation__dit">
-          <b>${nombre(rang - 1)}</b> ${maille} ${echapper(dessus)},
-          <b>${nombre(effectif - rang)}</b> ${echapper(dessous)}.
-          <span class="situation__rang">${nombre(rang)}<sup>${
-            rang === 1 ? "er" : "e"
-          }</sup> sur ${nombre(effectif)}</span>
-        </p>
+      ({ libelle, rang, effectif, dessus, valeur, extrait }) => `<li>
         <details class="situation__pli">
-          <summary>Voir le classement</summary>
-          <ol class="situation__classement" data-critere="${index}">${extrait
+          <summary>
+            <span class="situation__rang nombre">${nombre(rang)}<sup>${
+              rang === 1 ? "er" : "e"
+            }</sup></span>
+            <span class="situation__quoi">${echapper(libelle)}<em>${
+              rang === 1
+                ? `aucune ${maille.replace(/s$/, "")} ne fait plus`
+                : `${nombre(rang - 1)} ${maille} ${echapper(dessus)}`
+            }, sur ${nombre(effectif)}</em></span>
+            <span class="situation__valeur nombre">${echapper(valeur)}</span>
+          </summary>
+          <ol class="situation__classement">${extrait
             .map(
               (place) => `${
                 place.apresUnTrou
@@ -213,10 +224,7 @@ export function rendreSituation(liste: Rang[], niveau: string, exercice: string)
     )
     .join("");
   return `<section class="bloc-lecture bloc-lecture--situation">
-    <h3>Où ça se situe</h3>
+    <h3>Sa place parmi les autres<span class="situation__exercice">${echapper(exercice)}</span></h3>
     <ol class="situation">${lignes}</ol>
-    <p class="situation__legende">Exercice ${echapper(
-      exercice,
-    )}. Les trois premiers rangs se calculent par habitant : classer les montants bruts reviendrait à classer les territoires par population.</p>
   </section>`;
 }

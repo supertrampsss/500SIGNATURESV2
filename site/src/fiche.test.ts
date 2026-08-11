@@ -148,12 +148,12 @@ test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () =
   const rang = (classe: string) => html.indexOf(`class="${classe}`);
   assert.ok(rang("reperes") > -1 && rang("reperes") < rang("bloc-lecture"));
   // Le titre du bloc est un h3 en Spectral, jamais un micro-label gris.
-  assert.match(html, /<section class="bloc-lecture">\s*<h3>Où va l&#39;argent<\/h3>/);
+  assert.match(html, /<section class="bloc-lecture">\s*<h3>Le train de vie<\/h3>/);
   // Trois blocs ici, pas quatre : le jeu d'essai ne publie pas les dépenses
-  // d'investissement, et « Ce que ça a payé » ne s'écrit pas sans elles.
+  // d'investissement, et « Ce qui sort de terre » ne s'écrit pas sans elles.
   assert.deepEqual(
     [...html.matchAll(/<section class="bloc-lecture">\s*<h3>([^<]*)<\/h3>/g)].map((m) => m[1]),
-    ["Où va l&#39;argent", "Qui paie", "Ce qu&#39;il reste"],
+    ["Le train de vie", "Qui règle l&#39;addition", "L&#39;ardoise"],
   );
 });
 /**
@@ -202,7 +202,7 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
 });
 
 test("la fiche s'arrête au tableau des exercices", () => {
-  // Sous « Ce que ça a payé » : le tableau des exercices publiés, puis le
+  // Sous « Ce qui sort de terre » : le tableau des exercices, puis le
   // conteneur des rangs, que main.ts remplit quand la maille entière est là.
   // Rien d'autre — ni faits, ni pont, ni feuille d'impôts, ni liste.
   const html = ficheDeBordeaux();

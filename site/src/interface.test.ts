@@ -520,7 +520,7 @@ test("la carte est à gauche, la fiche en barre latérale à droite", () => {
   // Empilées, la carte poussait la fiche sous la ligne de flottaison : on
   // ouvrait un territoire pour lire un texte qui commençait hors écran.
   const bloc = CSS.slice(CSS.indexOf('body[data-carte="oui"] .vue--territoire .atelier'));
-  assert.match(bloc, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 34rem\);/);
+  assert.match(bloc, /grid-template-columns: minmax\(30rem, 1fr\) minmax\(0, 1\.25fr\);/);
   // La carte est collante : la fiche est plus haute qu'elle, et une carte qui
   // sort de l'écran au troisième bloc ne sert plus à rien.
   assert.match(bloc, /body\[data-carte="oui"\] \.atelier__carte \{\n\s*position: sticky;/);
