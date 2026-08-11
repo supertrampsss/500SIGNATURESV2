@@ -39,7 +39,9 @@ import {
   renduPlan,
   renduRecettes,
   renduSuggestionsAtelier,
+  resume,
 } from "./simulateur-rendu.ts";
+import { contratsDe } from "./mission.ts";
 
 /**
  * Le même budget minuscule que le modèle, à trois détails près qui sont
@@ -384,6 +386,25 @@ test("couper une dotation ne gagne rien : les collectivités perdent ce que l'É
   assert.ok(Math.abs(effort(monde, etat)) < 1e-9);
 });
 
+test("le presse-papier reçoit un résultat, pas une adresse nue", () => {
+  // « Regarde » suivi de trois cents caractères d'adresse n'a jamais donné
+  // envie à personne. Et le budget se lit avec la contrainte sous laquelle il
+  // a été fait : sans elle, il se lit comme un exploit.
+  const texte = resume(
+    [VOLET],
+    atelier(reglages(["140", -20])),
+    contratsDe(["sans-impot"]),
+    "https://exemple/#simulateur",
+  );
+  // Le budget d'essai est en excédent : la mission y est accomplie d'office.
+  assert.match(texte, /Mission accomplie/);
+  assert.match(texte, /1 geste · L'équilibre franchi/);
+  assert.match(texte, /Sous contrainte : sans lever un seul impôt\./);
+  assert.match(texte, /https:\/\/exemple/);
+  // Sans contrainte, il le dit aussi : le silence se lirait comme un oubli.
+  assert.match(resume([VOLET], atelier(), [], "u"), /Sans contrainte\./);
+});
+
 test("les défis d'un budget n'apparaissent qu'une fois ce budget touché", () => {
   // Dix budgets qui affichent chacun trois pastilles grises au repos, ce sont
   // trente pastilles qui ne disent rien. Une fois réglé, le budget dit où il en
@@ -491,6 +512,7 @@ test("la page ne contient que deux phrases, et aucun bloc de prose", () => {
   const html = page(reglages(["140", -21]));
   const paragraphes = [...html.matchAll(/<p class="([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual([...new Set(paragraphes)].sort(), [
+    "mission__interdit",
     "mission__quoi",
     "mission__regle",
     "simu__effort-detail",
@@ -659,17 +681,29 @@ test("l'index des branches rend les exercices d'une branche, pas d'une autre", (
   assert.deepEqual(exercicesDeLaBranche(["vieillesse-"], "vieillesse"), []);
 });
 
-test("les cinq branches sont proposées, et aucune entrée ne les résume", () => {
-  // Additionner les cinq donnerait 19 019 M€ de charges de trop : un transfert
-  // entre branches est compté en charge chez l'une et en produit chez l'autre.
+test("les cinq branches vivent dans un seul budget, jamais en cinq sections", () => {
+  // Cinq sections pour un même ensemble, c'est la nomenclature du code de la
+  // Sécurité sociale posée à l'écran telle quelle. Il n'y en a plus qu'une.
   for (const branche of ["vieillesse", "maladie", "famille", "autonomie", "atmp"]) {
     assert.match(MAIN, new RegExp(`\\["${branche}", "`), `branche ${branche} absente`);
   }
-  assert.match(MAIN, /\["vieillesse", "Retraites"\]/);
-  // Et le chargeur vise un fichier par branche, jamais un fichier commun.
-  assert.match(MAIN, /donnees\.simulateurBranche\(`\$\{branche\}-\$\{exercice\}`\)/);
-  // Aucune entrée « Sécurité sociale » à côté de ses cinq branches : leurs
-  // totaux ne s'additionnent pas, et la faire figurer deux fois compterait
-  // 676 925 M€ de charges en double.
-  assert.doesNotMatch(MAIN, /cle: "secu"/);
+  assert.match(MAIN, /\["vieillesse", "Retraites", "/);
+  assert.match(MAIN, /cle: "secu"/);
+  assert.doesNotMatch(MAIN, /cle: `branche-\$\{branche\}`/);
+  // Le mot « branche » ne sort pas en intitulé de section : le titre vient du
+  // fichier consolidé, qui dit « Le budget de la Sécurité sociale ».
+  assert.match(MAIN, /donnees\.simulateurBudgetSecu\(exercice\)/);
+  // Et chaque branche dit ce qu'elle paie : « Autonomie » ne se comprend pas
+  // seul.
+  assert.match(MAIN, /"Grand âge et handicap/);
+});
+
+test("la somme des branches n'est pas le budget de la Sécurité sociale", () => {
+  // Elles s'échangent 19 019 M€ que l'une compte en charge et l'autre en
+  // produit : additionnées telles quelles, elles annoncent 695 944 M€ quand le
+  // consolidé publié en dit 676 925. L'écart entre dans l'arbre, en ligne
+  // visible, des deux côtés.
+  assert.match(MAIN, /CODE_ELIMINATION/);
+  assert.match(MAIN, /Transferts entre branches, comptés deux fois/);
+  assert.match(MAIN, /elimineDepense = totalBranches\.depenses - totalConsolide\.depenses/);
 });

@@ -21,6 +21,7 @@ import {
   encoder,
   foyersConcernes,
   partDesFoyers,
+  quiPaie,
   regler,
   rendement,
   tauxMoyen,
@@ -235,4 +236,54 @@ test("le récapitulatif est publié à part, sur le dernier exercice commun", ()
   // face à des composantes d'une autre ferait un écart de plusieurs dizaines de
   // milliards qui ne serait qu'un décalage de millésime.
   assert.match(PUBLISH, /communs = set\.intersection/);
+});
+
+test("un barème redessiné dit qui paie plus et qui paie moins", () => {
+  // « Vous levez un impôt » est faux dès qu'on redessine : baisser la tranche
+  // basse et lever la haute fait des gagnants et des perdants, et c'est cette
+  // répartition qui informe, pas le rendement agrégé.
+  const bareme: Bareme = {
+    exercice: "2024",
+    titre: "Essai",
+    cadre: "Essai",
+    note: "Essai",
+    foyers: 100,
+    revenu_total: 1000,
+    impot_emis: 0,
+    tranches: [
+      { b: 0, fa: 100, r: 0, a: 1000, i: 0 },
+      { b: 10, fa: 40, r: 0, a: 900, i: 0 },
+      { b: 100, fa: 10, r: 0, a: 500, i: 0 },
+    ],
+  };
+  const depart: Taux = new Map([
+    [0, 10],
+    [10, 10],
+    [100, 10],
+  ]);
+  // La première tranche tombe à 0, la dernière monte à 50.
+  const refait: Taux = new Map([
+    [10, 10],
+    [100, 50],
+  ]);
+  const dit = quiPaie(bareme, refait, depart)!;
+  // Les 60 foyers de la première tranche gagnent 1 € (10 % de 10) et ne
+  // remontent jamais ; les 30 de la deuxième aussi. Les 10 de la dernière
+  // partent de −1 € mais leur taux marginal bondit de 40 points.
+  assert.equal(dit.paientMoins, 90);
+  assert.equal(dit.paientPlus, 10);
+});
+
+test("un barème inchangé ne dit rien", () => {
+  const bareme: Bareme = {
+    exercice: "2024",
+    titre: "Essai",
+    cadre: "Essai",
+    note: "Essai",
+    foyers: 10,
+    revenu_total: 100,
+    impot_emis: 0,
+    tranches: [{ b: 0, fa: 10, r: 0, a: 100, i: 0 }],
+  };
+  assert.equal(quiPaie(bareme, new Map([[0, 10]]), new Map([[0, 10]])), null);
 });

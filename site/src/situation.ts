@@ -111,10 +111,12 @@ export function situation(entree: Entree): Rang[] {
     .filter((r): r is Rang => r !== null);
 }
 
-/** Combien de places le pli montre en tête, et de part et d'autre de la vôtre. */
-const TETE = 10;
-const VOISINS = 3;
-const QUEUE = 3;
+/** Combien de places le pli montre en tête, et de part et d'autre de la vôtre.
+ *  Court exprès : douze lignes tiennent sous l'œil, vingt-cinq repoussent la
+ *  suite de la fiche hors de l'écran. */
+const TETE = 5;
+const VOISINS = 2;
+const QUEUE = 2;
 
 /**
  * Le haut du classement, votre voisinage, la fin — et les trous nommés.

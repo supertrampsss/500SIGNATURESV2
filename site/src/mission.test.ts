@@ -16,9 +16,12 @@ import {
   CONTRATS,
   aTrouverAuDepart,
   budgetsTenus,
-  contratDe,
+  contratsDe,
+  fusionner,
+  permis,
   resteATrouver,
-  ruptures,
+  verrouDuBareme,
+  verrous,
 } from "./mission.ts";
 
 /** Un budget d'une ligne de chaque côté, dont on choisit le solde. */
@@ -62,24 +65,20 @@ test("le compteur descend à mesure qu'on comble, et s'arrête à zéro", () => 
   assert.deepEqual(budgetsTenus(monde, etat), { tenus: 1, total: 1 });
 });
 
-test("« sans toucher à l'école ni à la santé » ne voit que les baisses", () => {
+test("un contrat verrouille la ligne, il ne se contente pas de la signaler", () => {
+  // Une règle qu'on peut enfreindre sans conséquence n'est pas une règle.
   const monde = [volet("etat", "État", budget(1_000, 0, "Enseignement scolaire"))];
-  const etat = vide();
-  const contrat = contratDe("ecole-sante")!;
-
-  regler(reglagesDe(etat, monde[0]!), "D", 10);
-  assert.deepEqual(ruptures(contrat, monde, etat), [], "monter l'école ne rompt rien");
-
-  regler(reglagesDe(etat, monde[0]!), "D", -10);
-  const rompu = ruptures(contrat, monde, etat);
-  assert.equal(rompu.length, 1);
-  assert.equal(rompu[0]!.libelle, "Enseignement scolaire");
-  assert.equal(rompu[0]!.nomVolet, "État");
+  const table = verrous(monde[0]!, contratsDe(["ecole-sante"]), "SS-ELIM");
+  assert.equal(table.get("D")?.sens, "tout");
+  assert.equal(table.get("D")?.par, "Sans toucher à l'école ni à la santé");
+  // Verrouillée dans les deux sens : « sans toucher » ne se négocie pas.
+  assert.equal(permis("tout", 0, -5), false);
+  assert.equal(permis("tout", 0, 5), false);
+  assert.equal(permis("tout", 0, 0), true);
 });
 
-test("« sans lever un impôt » ne confond pas un prélèvement qu'on baisse", () => {
-  // Un prélèvement sur recettes se déduit : le baisser améliore le solde sans
-  // lever le moindre impôt. Le signe de la ligne le dit, son intitulé non.
+test("« sans lever un impôt » ferme la hausse et laisse la baisse", () => {
+  // Un contrat qui interdirait aussi d'alléger un impôt serait absurde.
   const psr: Budget = {
     exercice: "2025",
     loi: "PLF",
@@ -91,73 +90,51 @@ test("« sans lever un impôt » ne confond pas un prélèvement qu'on baisse", 
       { t: "Prélèvements", signe: -1, lignes: [{ c: "3101", l: "Dotation", v: 200 }] },
     ],
   };
-  const monde = [volet("etat", "État", psr)];
-  const etat = vide();
-  const contrat = contratDe("sans-impot")!;
-
-  regler(reglagesDe(etat, monde[0]!), "r3101", -50);
-  assert.deepEqual(ruptures(contrat, monde, etat), [], "baisser un prélèvement ne lève rien");
-
-  regler(reglagesDe(etat, monde[0]!), "r1101", 10);
-  assert.equal(ruptures(contrat, monde, etat).length, 1);
+  const table = verrous(volet("etat", "État", psr), contratsDe(["sans-impot"]), "SS-ELIM");
+  assert.equal(table.get("r1101")?.sens, "hausse");
+  // Un prélèvement se déduit : le baisser ne lève aucun impôt.
+  assert.equal(table.get("r3101"), undefined);
+  assert.equal(permis("hausse", 0, 10), false);
+  assert.equal(permis("hausse", 0, -10), true);
 });
 
-test("un contrat se juge sur ce qui bouge, pas sur ce qu'on a cliqué", () => {
-  // Couper la dotation globale de l'État fait baisser les concours que les
-  // collectivités reçoivent : le lecteur n'a pas touché leur budget, et le
-  // contrat est rompu quand même. C'est tout l'intérêt de le juger sur les
-  // réglages effectifs.
-  const etatBudget: Budget = {
-    exercice: "2025",
-    loi: "PLF",
-    mesure: "credit_de_paiement",
-    unite: "EUR",
-    depenses: [{ c: "D", l: "Défense", v: 1_000 }],
-    recettes: [
-      {
-        t: "Prélèvements sur les recettes de l'État au profit des collectivités territoriales",
-        signe: -1,
-        lignes: [{ c: "3101", l: "Dotation globale", v: 400 }],
-      },
-    ],
-  };
-  const commune: Budget = {
-    exercice: "2024",
-    loi: "OFGL",
-    mesure: "credit_de_paiement",
-    unite: "EUR",
-    depenses: [{ c: "d", l: "Dépenses", v: 100 }],
-    recettes: [
-      {
-        t: "Recettes",
-        signe: 1,
-        lignes: [{ c: "ofgl_concours_de_l_etat", l: "Concours de l'Etat", v: 300 }],
-      },
-    ],
-  };
-  const monde = [
-    volet("etat", "État", etatBudget),
-    volet("collectivites-commune", "Communes", commune),
-  ];
-  const etat = vide();
-  regler(reglagesDe(etat, monde[0]!), "r3101", -25);
-
-  const rompu = ruptures(contratDe("sans-collectivites")!, monde, etat);
-  const lignes = rompu.map((r) => `${r.volet}/${r.libelle}`);
-  assert.ok(lignes.includes("etat/Dotation globale"), lignes.join(" · "));
-  assert.ok(lignes.includes("collectivites-commune/Concours de l'État"), lignes.join(" · "));
+test("le barème se verrouille tranche par tranche, pas sur son rendement", () => {
+  // Une flat tax à 30 % baisse les tranches hautes et lève les basses. Juger
+  // sur le rendement agrégé dirait « vous levez un impôt » à qui en baisse la
+  // moitié ; le verrou porte sur chaque tranche et laisse passer les baisses.
+  const ferme = verrouDuBareme(contratsDe(["sans-impot"]))!;
+  assert.equal(ferme.sens, "hausse");
+  assert.equal(permis(ferme.sens, 45, 30), true, "baisser une tranche haute reste permis");
+  assert.equal(permis(ferme.sens, 11, 30), false, "lever une tranche basse est refusé");
+  assert.equal(verrouDuBareme(contratsDe(["ecole-sante"])), null);
 });
 
-test("les quatre contrats ont une clé, un nom et une ligne d'interdit", () => {
-  // La liste est courte exprès : cinq contrats, et personne ne les lit.
+test("les contraintes se cumulent, et le verrou le plus fort gagne", () => {
+  assert.equal(contratsDe(["sans-impot", "sans-prestation"]).length, 2);
+  assert.equal(fusionner(["hausse", "baisse"]), "tout");
+  assert.equal(fusionner(["aucun", "hausse"]), "hausse");
+  assert.equal(fusionner([]), "aucun");
+  // Une clé inconnue ne signe rien plutôt que de signer le premier venu.
+  assert.deepEqual(contratsDe(["inconnu"]), []);
+});
+
+test("la ligne qui élimine les transferts entre branches est toujours verrouillée", () => {
+  // Ce n'est pas un poste : c'est la soustraction qui rend le total exact. La
+  // régler ferait apparaître 19 019 M€ venus de nulle part.
+  const b = budget(1_000, 0);
+  b.depenses.push({ c: "SS-ELIM", l: "Transferts entre branches", v: -19 });
+  const table = verrous(volet("secu", "Sécurité sociale", b), [], "SS-ELIM");
+  assert.equal(table.get("SS-ELIM")?.sens, "tout");
+  assert.equal(table.get("SS-ELIM")?.par, "la comptabilité");
+});
+
+
+test("les quatre contraintes ont une clé, un nom et une ligne d'interdit", () => {
+  // La liste est courte exprès : cinq contraintes, et personne ne les lit.
   assert.equal(CONTRATS.length, 4);
   for (const contrat of CONTRATS) {
     assert.ok(contrat.cle && contrat.nom && contrat.interdit, contrat.cle);
     assert.ok(contrat.interdit.length <= 120, `${contrat.cle} : interdit trop long`);
-    assert.equal(contratDe(contrat.cle), contrat);
+    assert.deepEqual(contratsDe([contrat.cle]), [contrat]);
   }
-  // Une clé inconnue ne signe rien plutôt que de signer le premier venu.
-  assert.equal(contratDe("inconnu"), null);
-  assert.equal(contratDe(null), null);
-  assert.deepEqual(ruptures(null, [], vide()), []);
 });

@@ -179,8 +179,7 @@ function rendreEvolution(evolution: Evolution | null, premier: string, dernier: 
   return `<td class="tableau-exercices__evo"${
     partielle ? ` title="Sur les exercices publiés de cette ligne : ${evolution.de} à ${evolution.a}"` : ""
   }>
-    <b>${signe(evolution.pourcentage, POURCENT.format(evolution.pourcentage))} %</b>
-    <span>${signe(evolution.ecart, sansSigle(evolution.ecart))}</span>${
+    <b>${signe(evolution.pourcentage, POURCENT.format(evolution.pourcentage))} %</b>${
       partielle ? `<em>${evolution.de}\u2009\u2192\u2009${evolution.a}</em>` : ""
     }
   </td>`;

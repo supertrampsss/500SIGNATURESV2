@@ -118,32 +118,72 @@ export function partDesFoyers(bareme: Bareme, taux: Taux): number {
 }
 
 /**
- * **Qui paie ce que vous venez de changer**, et combien.
+ * **Qui paie ce que vous venez de changer**, et qui y gagne.
  *
- * Un rendement en millions d'euros ne dit rien à personne : « +2 128 M€ » est
- * une abstraction, « 1,4 million de foyers, 1 505 € de plus par an » est une
- * note d'impôt. Les deux nombres sortent du même fichier — la matière taxable
- * de chaque tranche et le nombre de foyers qu'elle atteint — et aucun n'est
- * estimé.
+ * « +2 128 M€ » ne dit rien à personne, et « vous levez un impôt » est faux dès
+ * qu'on redessine le barème : une flat tax à 30 % lève les tranches basses et
+ * baisse les hautes. Le rendement agrégé écrase cette nuance ; la répartition
+ * la porte.
  *
- * Les foyers comptés sont ceux que la tranche modifiée la plus basse atteint :
- * une tranche relevée ne touche personne en dessous de sa borne. La moyenne
- * qui suit est bien une moyenne — dans une tranche, un foyer au bas de la
- * borne paie moins que celui qui est au-dessus.
+ * Ce qu'un foyer paie de plus ou de moins se calcule exactement : son impôt est
+ * la somme, sur les tranches qu'il remplit, du taux appliqué à la largeur de la
+ * tranche. Un foyer situé dans la tranche `k` a donc déjà accumulé l'écart des
+ * tranches du dessous, puis subit celui de la sienne sur la part de son revenu
+ * qui y tombe.
  *
- * `null` tant que rien n'a bougé.
+ * **Cette part-là est publiée.** La matière taxable d'une tranche compte la
+ * largeur entière pour tous ceux qui la dépassent, plus le reliquat de ceux qui
+ * s'y arrêtent : le reliquat moyen des foyers de la tranche s'en déduit
+ * exactement, `(a - largeur x fa_suivante) / foyers_dedans`. Aucune loi de
+ * distribution n'est supposée — c'est le foyer moyen de la tranche, calculé sur
+ * ses propres nombres.
+ *
+ * Le compte de foyers par tranche est la différence de deux cumuls publiés.
  */
 export function quiPaie(
   bareme: Bareme,
   taux: Taux,
   depart: Taux,
-): { total: number; foyers: number; parFoyer: number } | null {
+): {
+  total: number;
+  paientPlus: number;
+  paientMoins: number;
+  parFoyer: number;
+} | null {
   const total = rendement(bareme, taux) - rendement(bareme, depart);
-  if (total === 0) return null;
-  const changee = bareme.tranches.find((t) => tauxDe(taux, t) !== tauxDe(depart, t));
-  const foyers = changee?.fa ?? 0;
-  if (!foyers) return null;
-  return { total, foyers, parFoyer: total / foyers };
+  const tranches = bareme.tranches;
+  if (!tranches.length) return null;
+  let cumul = 0;
+  let paientPlus = 0;
+  let paientMoins = 0;
+  let touches = 0;
+  tranches.forEach((tranche, rang) => {
+    const suivante = tranches[rang + 1];
+    // Les foyers de cette tranche : ceux au-dessus de sa borne, moins ceux
+    // au-dessus de la suivante.
+    const dedans = tranche.fa - (suivante?.fa ?? 0);
+    const marginal = tauxDe(taux, tranche) - tauxDe(depart, tranche);
+    const largeur = suivante ? suivante.b - tranche.b : Infinity;
+    // Le reliquat moyen d'un foyer de cette tranche, déduit de la matière
+    // taxable publiée : elle compte la largeur entière pour tous ceux qui
+    // dépassent, plus ce que gardent ceux qui s'arrêtent là.
+    const reliquat =
+      dedans > 0
+        ? Math.max(
+            0,
+            (tranche.a - (Number.isFinite(largeur) ? largeur * (suivante?.fa ?? 0) : 0)) / dedans,
+          )
+        : 0;
+    const pourLeFoyerMoyen = cumul + (marginal / 100) * reliquat;
+    if (dedans > 0 && pourLeFoyerMoyen !== 0) {
+      if (pourLeFoyerMoyen > 0) paientPlus += dedans;
+      else paientMoins += dedans;
+      touches += dedans;
+    }
+    if (Number.isFinite(largeur)) cumul += (marginal / 100) * largeur;
+  });
+  if (!touches) return null;
+  return { total, paientPlus, paientMoins, parFoyer: total / touches };
 }
 
 /**

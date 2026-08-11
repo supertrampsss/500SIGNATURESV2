@@ -2475,11 +2475,16 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .situation__pli > summary:hover {
   color: var(--encre);
 }
+/* Le classement ne pousse jamais la suite de la fiche hors de l'écran : douze
+   places tiennent, le reste défile dans le cadre. */
 .situation__classement {
   list-style: none;
   margin: 0 0 var(--espace-3);
   padding: 0;
   border-top: 1px solid var(--trait);
+  max-height: 19rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .situation__classement button {
   display: grid;
@@ -2488,11 +2493,12 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   align-items: baseline;
   width: 100%;
   min-height: var(--cible);
-  padding: var(--espace-2) 0;
+  padding: var(--espace-1) 0;
   border: 0;
   background: none;
   font: inherit;
   font-size: var(--texte-s);
+  line-height: 1.3;
   color: var(--encre);
   text-align: left;
   cursor: pointer;
@@ -4140,6 +4146,22 @@ summary.pont__rangee,
   line-height: 1.15;
   margin: var(--espace-2) 0 0;
 }
+/* Les marches, dans le bloc de mission : là elles ont de la place, et sur
+   téléphone c'est le seul endroit où elles en ont. */
+.mission .simu__paliers {
+  justify-self: start;
+  margin-top: var(--espace-4);
+  flex-wrap: wrap;
+}
+.mission .simu__palier {
+  border-color: var(--trait-fort);
+  color: var(--encre-douce);
+}
+.mission .simu__palier--franchi {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--sur-encre);
+}
 .mission__regle {
   margin: var(--espace-4) 0 0;
   max-width: 62ch;
@@ -4191,6 +4213,31 @@ summary.pont__rangee,
   font-size: var(--texte-s);
   color: var(--encre-douce);
 }
+/* Ce que chaque contrainte signée ferme, une ligne par contrainte : quatre
+   phrases collées feraient un paragraphe, et le site n'en veut pas. */
+.mission__interdits {
+  margin: var(--espace-4) 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--espace-2);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.mission__interdits li {
+  padding-left: var(--espace-5);
+  border-left: 2px solid var(--trait-fort);
+}
+/* Une ligne verrouillée se lit encore, elle ne se règle plus. Le grisé porte
+   sur les commandes, jamais sur l'intitulé ni sur le montant : on doit pouvoir
+   lire ce qu'on s'est interdit de toucher. */
+.simu__ligne--verrouillee .simu__reglage {
+  opacity: 0.4;
+}
+.simu__ligne--verrouillee .simu__pas[disabled],
+.simu__ligne--verrouillee .simu__pct[disabled] {
+  cursor: not-allowed;
+}
 /* La rupture est la seule chose de la page qui doive arrêter l'œil. Filet
    d'argile à gauche, comme les transferts : le site n'a pas d'autre couleur
    pour dire « ça va dans le mauvais sens », et surtout pas de vert en face. */
@@ -4216,7 +4263,7 @@ summary.pont__rangee,
   top: var(--haut-entete);
   z-index: 5;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   column-gap: var(--espace-6);
   padding: var(--espace-5) var(--espace-6);
@@ -4300,6 +4347,33 @@ summary.pont__rangee,
   border-bottom: 2px solid var(--argile);
   padding-bottom: var(--espace-1);
   font-weight: 600;
+}
+/* Les quatre marches. Franchie, la marche se remplit ; visée, elle reste
+   creuse. Aucun vert : le site n'en a pas, et une marche franchie se marque à
+   l'aplat, pas à la récompense. */
+.simu__paliers {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  justify-self: end;
+}
+.simu__palier {
+  font-size: var(--texte-xs);
+  padding: var(--espace-1) var(--espace-3);
+  border: 1px solid color-mix(in srgb, var(--sur-encre) 30%, transparent);
+  border-radius: var(--rayon-pilule);
+  opacity: 0.55;
+  white-space: nowrap;
+}
+.simu__palier--franchi {
+  background: var(--sur-encre);
+  border-color: var(--sur-encre);
+  color: var(--encre);
+  font-weight: 650;
+  opacity: 1;
 }
 .simu__effort-actions {
   display: flex;
@@ -4705,6 +4779,17 @@ summary.pont__rangee,
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* Ce que la ligne paie, sous son intitulé. « Autonomie » ne dit ni EHPAD, ni
+   APA, ni handicap ; une clause suffit, et elle ne s'écrit que là où
+   l'intitulé officiel ne se comprend pas seul. */
+.simu__dit {
+  display: block;
+  font-style: normal;
+  font-weight: 400;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
 .simu__montant {
   grid-area: montant;
   text-align: right;
@@ -5195,6 +5280,14 @@ summary.pont__rangee,
     grid-column: 2;
     grid-row: 1;
     gap: var(--espace-3);
+  }
+  /* Les quatre marches ne tiennent pas à côté des deux boutons : elles passent
+     sous la phrase, où il reste toute la largeur. */
+  /* Les marches sortent du bandeau : une ligne de plus, c'est trente pixels
+     pris sur l'écran de réglage, et la jauge dit déjà l'avancement. Elles se
+     lisent en haut de page, dans le bloc de mission. */
+  .simu__barre-solde .simu__paliers {
+    display: none;
   }
   .simu__effort-actions button {
     min-height: calc(var(--cible) - var(--espace-2));
