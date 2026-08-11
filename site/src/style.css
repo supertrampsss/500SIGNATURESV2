@@ -4147,26 +4147,241 @@ summary.pont__rangee,
   box-shadow: var(--ombre-1);
 }
 
-/* ---- Cockpit collant ---------------------------------------------------- */
-.simu__cockpit {
+/* ---- La barre de solde --------------------------------------------------
+   Quatre cartes en haut de page sortaient de l'écran dès qu'on descendait
+   d'un cran dans l'arbre : on réglait sans voir ce que ça faisait, donc au
+   hasard. Une ligne, collante, qui ne quitte jamais l'écran.
+
+   Elle est **en haut sur grand écran et en bas sur téléphone** : sur un
+   téléphone le pouce et le regard sont en bas, et une barre haute se serait
+   retrouvée sous l'en-tête, hors du champ où l'on règle. */
+.simu__barre-solde {
   position: sticky;
   top: var(--haut-entete);
   z-index: 5;
-  background: var(--papier);
-  border-bottom: 1px solid var(--trait-fort);
-  padding: var(--espace-4) 0;
-  margin-bottom: var(--espace-2);
-}
-.simu__titres {
   display: flex;
   align-items: baseline;
-  gap: 0.75rem;
+  gap: var(--espace-4) var(--espace-7);
   flex-wrap: wrap;
+  padding: var(--espace-4) var(--espace-6);
+  margin: 0;
+  background: var(--encre);
+  color: var(--sur-encre);
+  border-radius: var(--rayon-s);
+  box-shadow: var(--ombre-2);
 }
-.simu__titres h2 {
+.simu__solde {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-3);
+  min-width: 0;
+}
+.simu__solde-quoi {
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.72;
+}
+/* Le solde voté reste lisible à côté du vôtre : barré, il serait illisible,
+   et absent, on ne saurait pas de combien on a bougé. */
+.simu__solde-avant {
+  font-size: var(--texte-m);
+  opacity: 0.6;
+  font-variant-numeric: tabular-nums;
+}
+.simu__solde-fleche {
+  opacity: 0.6;
+}
+.simu__solde-val {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.simu__solde-detail {
+  display: flex;
+  gap: var(--espace-6);
+  flex-wrap: wrap;
+  margin: 0;
+  margin-left: auto;
+}
+.simu__solde-detail div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-2);
+}
+.simu__solde-detail dt {
+  font-size: var(--texte-xs);
+  opacity: 0.72;
+}
+.simu__solde-detail dd {
+  margin: 0;
+  font-size: var(--texte-m);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* Sur fond d'encre, les deux couleurs de sens seraient illisibles : le sens
+   se lit au signe, qui est déjà là. */
+.simu__solde-detail .simu__val--sobre,
+.simu__solde-detail .simu__val--argile {
+  color: inherit;
+}
+
+/* ---- L'en-tête et les blocs --------------------------------------------- */
+.simu__tete h2 {
   font-family: var(--serif);
   font-size: var(--texte-xxl);
   margin: 0;
+}
+.simu__tete {
+  margin-bottom: var(--espace-5);
+}
+/* Un bloc par question : votre plan, ce qu'il dépense, ce qu'il encaisse, et
+   après. Le filet en tête les sépare sans les encadrer. */
+.simu__bloc {
+  margin-top: var(--espace-8);
+  padding-top: var(--espace-5);
+  border-top: 2px solid var(--encre);
+}
+.simu__bloc-titre {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espace-5);
+  flex-wrap: wrap;
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  margin: 0 0 var(--espace-5);
+}
+.simu__bloc-titre .nombre {
+  font-family: var(--sans);
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+  color: var(--encre-douce);
+}
+.simu__bloc-titre span:first-child {
+  min-width: 0;
+}
+/* Votre plan : le résultat, donc en tête, et pas un cadre de plus autour. */
+.simu__bloc--plan {
+  border-top-color: var(--accent);
+}
+
+/* ---- Les raccourcis ----------------------------------------------------- */
+/* Les postes dont on débat, atteignables en un geste. Sur téléphone la rangée
+   défile plutôt que de s'empiler sur quatre lignes. */
+.simu__raccourcis {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--espace-3);
+  margin: var(--espace-5) 0 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: var(--espace-2);
+}
+.simu__raccourcis-quoi {
+  flex: none;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.simu__raccourci {
+  flex: none;
+  font: inherit;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.simu__raccourci:hover {
+  background: var(--accent-teinte);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ---- La trajectoire ----------------------------------------------------- */
+.simu__hypotheses {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--espace-6);
+  flex-wrap: wrap;
+  padding: var(--espace-5) var(--espace-6);
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+}
+.simu__hypotheses label {
+  display: grid;
+  gap: var(--espace-2);
+  font-size: var(--texte-s);
+  font-weight: 600;
+}
+.simu__hypotheses-note {
+  flex: 1 1 22rem;
+  margin: 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+/* La phrase que la projection produit : elle passe avant les nombres, parce
+   que c'est elle qu'on est venu chercher. */
+.simu__verdict {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  line-height: 1.3;
+  margin: var(--espace-6) 0 var(--espace-5);
+}
+.simu__annees {
+  list-style: none;
+  margin: var(--espace-5) 0 0;
+  padding: 0;
+}
+/* Une ligne par année, pas deux : vingt années sur deux lignes chacune font
+   un mur qu'on ne lit plus. Les intérêts se posent à droite du montant, en
+   petit — c'est une précision, pas un second chiffre. */
+.simu__annees li {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(4rem, 1fr) auto auto;
+  align-items: center;
+  gap: var(--espace-2) var(--espace-4);
+  padding: var(--espace-2) 0;
+  border-bottom: 1px solid var(--trait);
+}
+.simu__annee-rang {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.simu__annee-barre {
+  height: 0.5rem;
+  border-radius: var(--rayon-pilule);
+  background: var(--papier-creuse);
+  overflow: hidden;
+}
+.simu__annee-barre i {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+.simu__annee-dette {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+.simu__annee-interets {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  text-align: right;
+  white-space: nowrap;
 }
 .simu__perimetre {
   margin: 0;
@@ -4245,17 +4460,12 @@ summary.pont__rangee,
   font-weight: 650;
 }
 
-/* ---- Recherche et onglets ----------------------------------------------- */
-.simu__barre {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-  margin: 0.9rem 0;
-}
+/* ---- La recherche, en grand --------------------------------------------- */
+/* Pour régler l'aide au logement, il fallait deviner qu'elle est rangée sous
+   « Cohésion des territoires ». Le champ passe devant l'arbre. */
 .simu__recherche {
   position: relative;
-  flex: 1 1 18rem;
+  margin: var(--espace-7) 0 0;
   min-width: 0;
 }
 .simu__recherche input {
@@ -4284,11 +4494,6 @@ summary.pont__rangee,
   border-radius: var(--rayon-s);
   box-shadow: var(--ombre-2);
 }
-.simu__onglets {
-  display: flex;
-  gap: 0.35rem;
-  flex-wrap: wrap;
-}
 /* Le choix du budget : État ou Sécurité sociale. Au-dessus du cockpit, parce
    qu'il change tout ce qui vient après — et jamais côte à côte avec un total
    qui les additionnerait, ce qui n'a pas de sens. */
@@ -4297,6 +4502,9 @@ summary.pont__rangee,
   gap: 0.35rem;
   flex-wrap: wrap;
   margin: 1.25rem 1.5rem 0;
+}
+.simu__budgets button {
+  flex: none;
 }
 .simu__budgets button {
   font: inherit;
@@ -4319,23 +4527,6 @@ summary.pont__rangee,
    c'est ce qui rend visible qu'un objectif réglé ne déplace pas le solde. */
 .simu__compteurs--objectif {
   margin: 0 0 var(--espace-5);
-}
-.simu__onglets button {
-  font: inherit;
-  font-size: var(--texte-m);
-  font-weight: 600;
-  min-height: var(--cible);
-  padding: var(--espace-3) var(--espace-6);
-  border: 1px solid var(--trait-fort);
-  border-radius: var(--rayon-pilule);
-  background: var(--papier);
-  color: var(--encre-douce);
-  cursor: pointer;
-}
-.simu__onglets button[aria-selected="true"] {
-  background: var(--encre);
-  border-color: var(--encre);
-  color: var(--sur-encre);
 }
 
 /* ---- L'arbre ------------------------------------------------------------ */
@@ -4777,11 +4968,86 @@ summary.pont__rangee,
   .simu__enfants {
     margin-inline-start: var(--espace-5);
   }
-  .simu__onglets {
-    width: 100%;
+  /* **La barre de solde passe en bas.** Sur un téléphone, le pouce et le
+     regard sont en bas de l'écran ; collée en haut, elle se retrouvait sous
+     l'en-tête, hors du champ où l'on règle. Elle borde l'écran plutôt que de
+     flotter dedans, et la page se réserve sa hauteur pour que le dernier
+     réglage ne finisse pas dessous. */
+  /* Au-dessus de la barre de navigation, jamais dessous : les deux sont
+     collées en bas, et la seconde mangeait la moitié de la première. */
+  .simu__barre-solde {
+    position: fixed;
+    inset: auto 0 auto 0;
+    bottom: calc(var(--cible) + env(safe-area-inset-bottom, 0px));
+    top: auto;
+    z-index: 7;
+    margin: 0;
+    border-radius: 0;
+    flex-wrap: nowrap;
+    gap: var(--espace-5);
+    padding: var(--espace-3) var(--espace-6);
   }
-  .simu__onglets button {
-    flex: 1 1 auto;
+  .simu__solde {
+    min-width: 0;
+  }
+  .simu__solde-avant,
+  .simu__solde-fleche {
+    display: none;
+  }
+  .simu__solde-val {
+    font-size: var(--texte-l);
+  }
+  .simu__solde-detail {
+    gap: var(--espace-4);
+    margin-left: auto;
+    flex-wrap: nowrap;
+  }
+  /* Une ligne, pas trois : dépenses et recettes sont écrites en toutes lettres
+     dans le titre de leur bloc, à deux doigts de là. Ne reste que l'écart, qui
+     n'est écrit nulle part ailleurs. */
+  .simu__solde-detail div:not(:last-child) {
+    display: none;
+  }
+  .simu__solde-quoi {
+    display: none;
+  }
+  /* La barre basse de navigation ET la barre de solde : la vue leur rend leur
+     place, sans quoi les deux derniers réglages sont incliquables. */
+  body[data-vue="simulateur"] .vue {
+    padding-bottom: calc(var(--cible) * 2 + var(--espace-8)
+      + env(safe-area-inset-bottom, 0px));
+  }
+  /* La rangée défile plutôt que de s'empiler sur cinq lignes. */
+  .simu__raccourcis {
+    flex-wrap: nowrap;
+  }
+  /* Sept budgets empilaient cinq rangées de pastilles avant le premier
+     chiffre : la rangée défile, comme les raccourcis. */
+  .simu__budgets {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: var(--espace-4);
+  }
+  .simu__solde-detail dd {
+    font-size: var(--texte-s);
+  }
+  .simu__bloc-titre {
+    font-size: var(--texte-l);
+  }
+  .simu__verdict {
+    font-size: var(--texte-l);
+  }
+  /* Le nombre passe sous la barre : à cette largeur, « 2 889 000 M€ » et sa
+     barre ne tiennent pas sur la même ligne. */
+  .simu__annees li {
+    grid-template-columns: 2.8rem 1fr auto;
+  }
+  .simu__annee-interets {
+    grid-column: 2 / -1;
+  }
+  .simu__hypotheses {
+    gap: var(--espace-4);
   }
 }
 

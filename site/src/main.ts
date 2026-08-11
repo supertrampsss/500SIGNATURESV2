@@ -2157,7 +2157,7 @@ async function monterBudget(
   const budget = await promesse;
   const index = indexer(budget);
   afficherSimulateur(bloc, budget, index, {
-    tauxApparent: etatFrancais ? await tauxApparentDeLaDette() : undefined,
+    depart: etatFrancais ? await departDeLaDette() : undefined,
     // Publication antérieure au fichier : aucun tiroir, pas d'échec.
     subventions: etatFrancais
       ? await donnees.subventionsParProgramme().catch(() => null)
@@ -2376,25 +2376,32 @@ function peindreChoixDuBudget(): void {
 }
 
 /**
- * Le taux apparent de la dette de l'État : la charge publiée sur l'encours
- * publié, deux séries de la fiche France.
+ * Le point de départ de la projection : l'encours de la dette de l'État et la
+ * charge de cette dette, deux séries publiées de la fiche France.
  *
- * Ce n'est pas le taux marginal auquel l'État emprunterait demain — le
- * simulateur le nomme « apparent » là où il l'affiche. Une des deux séries
- * manque : on ne rend rien, et la ligne d'effet ne s'affiche pas. Supposer un
- * taux serait inventer un chiffre.
+ * Leur rapport est le **taux apparent** — pas le taux marginal auquel l'État
+ * emprunterait demain, et le simulateur le nomme là où il l'affiche. Une des
+ * deux séries manque : on ne rend rien, et la section « Et après ? » n'existe
+ * pas. Supposer un encours serait inventer un chiffre.
  */
-async function tauxApparentDeLaDette(): Promise<number | undefined> {
+async function departDeLaDette(): Promise<import("./trajectoire.ts").Depart | undefined> {
   try {
     const france = (await donnees.territoires("pays", "tous"))["FR"];
-    const dernier = (id: string) => {
+    const dernier = (id: string): { valeur: number; exercice: string } | undefined => {
       const serie = france?.series?.[id] ?? {};
       const periodes = Object.keys(serie).sort();
-      return periodes.length ? serie[periodes[periodes.length - 1]] : undefined;
+      const derniere = periodes[periodes.length - 1];
+      return derniere ? { valeur: serie[derniere], exercice: derniere } : undefined;
     };
     const charge = dernier("etat_charge_dette");
     const encours = dernier("insee_dette_etat_montant");
-    return charge && encours && encours > 0 ? charge / encours : undefined;
+    if (!charge?.valeur || !encours?.valeur || encours.valeur <= 0) return undefined;
+    return {
+      encours: encours.valeur,
+      encoursExercice: encours.exercice,
+      charge: charge.valeur,
+      chargeExercice: charge.exercice,
+    };
   } catch {
     return undefined;
   }

@@ -30,6 +30,13 @@
 
 import { formater } from "./echelle.ts";
 import type { SubventionsProgramme } from "./donnees.ts";
+import {
+  trajectoire,
+  lecture as lectureTrajectoire,
+  HORIZON_MAXIMUM,
+  HORIZON_PAR_DEFAUT,
+  type Depart,
+} from "./trajectoire.ts";
 
 /** Les bénéficiaires nommés, posés une fois par `afficherSimulateur`. Le dépli
  *  d'une branche rend des lignes bien après le premier rendu : leur passer le
@@ -69,8 +76,16 @@ const MESURES: Record<string, string> = {
   autorisation_engagement: "autorisations d'engagement",
 };
 
-const VUES = ["depenses", "recettes", "objectif", "plan"] as const;
-export type VueSimulateur = (typeof VUES)[number];
+/**
+ * **Il n'y a plus d'onglets.**
+ *
+ * Dépenses et recettes vivaient dans deux panneaux dont un seul s'affichait.
+ * On ne peut pas équilibrer un budget en voyant une moitié à la fois : couper
+ * une dépense et lever un impôt sont le même geste vu des deux côtés, et le
+ * lecteur passait son temps à faire l'aller-retour pour retrouver ce qu'il
+ * venait de faire. Les deux se suivent maintenant dans une seule colonne, et
+ * la barre de solde reste à l'écran pendant qu'on descend.
+ */
 
 /* --------------------------------------------------------------------------
  * Formats
@@ -333,82 +348,15 @@ function compteur(nom: string, valeur: string, classe = "", aide = ""): string {
   </div>`;
 }
 
-/**
- * Ce qu'une économie fait à la charge de la dette, l'année d'après.
- *
- * Couper un milliard, c'est emprunter un milliard de moins ; l'encours baisse
- * d'autant, et les intérêts avec. Le simulateur s'arrêtait au solde et laissait
- * cet effet-là dans l'ombre alors qu'il est l'argument même du débat.
- *
- * **Deux précautions, sans lesquelles le nombre serait faux.**
- *
- * Le taux est le **taux apparent** de la dette de l'État — la charge publiée
- * divisée par l'encours publié —, jamais le taux marginal auquel l'État
- * emprunterait demain. Les deux diffèrent, parfois beaucoup, et l'affichage le
- * nomme pour qu'on ne lise pas l'un pour l'autre.
- *
- * Et l'effet **ne touche pas l'exercice réglé** : un budget 2025 dont on coupe
- * un milliard paie la même charge de dette en 2025. Il a donc sa ligne à lui,
- * datée de l'exercice suivant, au lieu d'être fondu dans un solde qui
- * deviendrait faux.
- */
-function effetDette(ecart: number, taux: number | undefined): string {
-  if (!taux || !Number.isFinite(taux) || Math.abs(ecart) < 1) return "";
-  const interets = ecart * taux;
-  return compteur(
-    "Effet en année pleine, exercice suivant",
-    eurosSigne(interets),
-    classeEcart(interets),
-    `Intérêts en moins sur l'exercice suivant : votre écart au budget voté,`
-      + ` au taux apparent de la dette de l'État (${pourcentageCourt(taux * 100)}),`
-      + ` soit la charge publiée rapportée à l'encours publié. L'exercice réglé,`
-      + ` lui, paie la même charge de dette.`,
-  );
-}
-
-/** « 1,8 % » : le taux apparent, à la décimale. */
-function pourcentageCourt(valeur: number): string {
-  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(valeur)}\u202f%`;
-}
-
-/** Dépenses, recettes, solde, votre écart — et ce que l'écart fera aux
- *  intérêts l'année d'après. Toujours les mêmes, toujours au même endroit :
- *  c'est ce qui rend un réglage lisible. */
-export function renduCockpit(
-  budget: Budget,
-  index: Index,
-  reglages: Reglages,
-  /** Charge de la dette de l'État rapportée à son encours, tous deux publiés.
-   *  Absent : la ligne d'effet ne s'affiche pas plutôt que de supposer un taux. */
-  tauxApparent?: number,
-): string {
-  const t = totaux(budget, reglages);
-  const ecart = ecartAuReel(budget, reglages);
+/** Ce que pèse l'écart total, dit avec une ligne du budget : « soit le
+ *  programme Police nationale ». Rien quand aucune ligne n'en est proche —
+ *  « l'équivalent de X » tromperait au lieu d'éclairer. */
+export function renduEquivalence(index: Index, ecart: number, nomDuRepere: string): string {
   const proche = equivalence(programmes(index), ecart);
-  return `<div class="simu__titres">
-      <h2>${echapper(titre(budget))}</h2>
-      <p class="simu__perimetre">${echapper(perimetre(budget))}</p>
-    </div>
-    <dl class="simu__compteurs">
-      ${compteur("Dépenses", euros(t.depenses))}
-      ${compteur("Recettes nettes", euros(t.recettes))}
-      ${
-        // Le solde reste en encre, même profondément négatif : le déficit du
-        // budget voté est un fait, pas un geste du lecteur. Le colorer en
-        // argile en permanence serait un jugement sur le budget, et la couleur
-        // ne sert ici qu'à dire le sens de ce que le lecteur vient de faire.
-        compteur("Solde", euros(t.solde))
-      }
-      ${compteur("Votre écart", eurosSigne(ecart), classeEcart(ecart))}
-      ${effetDette(ecart, tauxApparent)}
-    </dl>
-    ${
-      proche
-        ? `<p class="simu__equivalence">Soit le ${echapper(repere(budget))} « ${echapper(
-            proche.libelle,
-          )} » (${euros(proche.montant)}).</p>`
-        : ""
-    }`;
+  if (!proche) return "";
+  return `Votre écart, c'est le ${echapper(nomDuRepere)} « ${echapper(
+    proche.libelle,
+  )} » (${euros(proche.montant)}).`;
 }
 
 /** Les défis, en pilules. Un défi tenu se marque par la forme et par le mot
@@ -464,27 +412,199 @@ export function renduPlan(
     .join("");
 }
 
-/** Les onglets. « Votre plan » n'apparaît qu'une fois quelque chose à y voir. */
-export function renduOnglets(
-  vue: VueSimulateur,
-  regles: number,
-  objectif: string | null = null,
+/* --------------------------------------------------------------------------
+ * La barre de solde, les raccourcis, la trajectoire
+ * ----------------------------------------------------------------------- */
+
+/**
+ * La barre de solde : quatre nombres sur une ligne, toujours à l'écran.
+ *
+ * Le cockpit posait quatre cartes en haut de page. Dès qu'on descendait d'un
+ * cran dans l'arbre, elles sortaient de l'écran : on réglait à l'aveugle,
+ * donc au hasard. La barre est collante — en haut sur grand écran, **en bas
+ * sur téléphone**, dans la zone du pouce, là où l'on regarde déjà.
+ *
+ * Le solde y est écrit deux fois quand il a bougé : le voté, puis le vôtre.
+ * Un seul nombre ne dit pas ce qu'on vient de changer.
+ */
+export function renduBarreSolde(budget: Budget, index: Index, reglages: Reglages): string {
+  const t = totaux(budget, reglages);
+  const ecart = ecartAuReel(budget, reglages);
+  const vote = t.solde - ecart;
+  return `<div class="simu__solde">
+      <span class="simu__solde-quoi">Solde</span>
+      ${
+        ecart === 0
+          ? `<b class="simu__solde-val nombre">${euros(t.solde)}</b>`
+          : `<span class="simu__solde-avant nombre">${euros(vote)}</span>
+             <span class="simu__solde-fleche" aria-hidden="true">→</span>
+             <b class="simu__solde-val nombre">${euros(t.solde)}</b>`
+      }
+    </div>
+    <dl class="simu__solde-detail">
+      <div><dt>Dépenses</dt><dd class="nombre">${euros(t.depenses)}</dd></div>
+      <div><dt>Recettes</dt><dd class="nombre">${euros(t.recettes)}</dd></div>
+      <div><dt>Écart</dt><dd class="nombre${classeEcart(ecart)}">${
+        ecart === 0 ? "aucun geste" : eurosSigne(ecart)
+      }</dd></div>
+    </dl>`;
+}
+
+/**
+ * Les raccourcis vers ce qu'on vient chercher.
+ *
+ * **Cette liste est choisie, pas calculée.** Trier les missions par montant
+ * mettrait « Remboursements et dégrèvements » en tête, qui n'est le sujet de
+ * personne. Ce sont les postes dont on débat, nommés comme on en parle, et un
+ * code absent de la publication ne fait simplement pas de raccourci.
+ */
+const RACCOURCIS: { code: string; nom: string }[] = [
+  { code: "SB", nom: "Sécurité" },
+  { code: "IA", nom: "Immigration" },
+  { code: "DA", nom: "Défense" },
+  { code: "JA", nom: "Justice" },
+  { code: "EC", nom: "École" },
+  { code: "SA", nom: "Santé" },
+  { code: "RB", nom: "Retraites" },
+  { code: "TA", nom: "Écologie" },
+  { code: "EB", nom: "Dette" },
+  { code: "VA", nom: "Logement" },
+  { code: PREFIXE_RECETTE + "1601", nom: "TVA" },
+  { code: PREFIXE_RECETTE + "1101", nom: "Impôt sur le revenu" },
+  { code: PREFIXE_RECETTE + "1301", nom: "Impôt sur les sociétés" },
+  // Sécurité sociale.
+  { code: "D-PRE", nom: "Prestations sociales" },
+  { code: "R-COT-SOC", nom: "Cotisations" },
+  { code: "R-COT-CSG", nom: "CSG" },
+  { code: "O-SDV", nom: "Soins de ville" },
+  { code: "O-ETS", nom: "Hôpital" },
+];
+
+/**
+ * Ce que les raccourcis ne peuvent pas atteindre, dit une fois.
+ *
+ * « Retraites » mène à la mission de l'État, qui ne paie que les régimes
+ * spéciaux — six milliards. Les pensions du régime général sont dans le budget
+ * de la Sécurité sociale, où l'annexe publie « Prestations légales » en un seul
+ * bloc, sans les répartir par branche. Il n'y a donc **aucune ligne de
+ * retraites réglable**, et c'est une limite de la publication, pas un choix
+ * d'écran : le taire ferait passer 6 Md€ pour le sujet.
+ */
+const RESERVE_RACCOURCIS: Record<string, string> = {
+  RB: "Cette mission ne porte que les régimes spéciaux (transports, mines, marins)."
+    + " Les pensions du régime général sont au budget de la Sécurité sociale, où"
+    + " l'annexe publie les prestations légales en un seul bloc, sans les répartir"
+    + " par branche.",
+  EB: "La charge de la dette est un crédit évaluatif : elle se constate, elle ne se"
+    + " vote pas. La régler ici ne change pas ce que l'État doit payer.",
+};
+
+export function renduRaccourcis(index: Index): string {
+  const presents = RACCOURCIS.filter((r) => index.has(r.code));
+  if (presents.length < 2) return "";
+  return `<nav class="simu__raccourcis" aria-label="Aller à un poste">
+    <span class="simu__raccourcis-quoi">Aller à</span>
+    ${presents
+      .map((r) => {
+        const reserve = RESERVE_RACCOURCIS[r.code];
+        return `<button type="button" class="simu__raccourci" data-vise="${echapper(r.code)}"${
+          reserve ? ` title="${echapper(reserve)}"` : ""
+        }>${echapper(r.nom)}</button>`;
+      })
+      .join("")}
+  </nav>`;
+}
+
+/* --------------------------------------------------------------------------
+ * La dette, année après année
+ * ----------------------------------------------------------------------- */
+
+/** « 1,8 % ». */
+function pourcentage(valeur: number): string {
+  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(valeur)}\u202f%`;
+}
+
+/**
+ * Le solde **hors charge de la dette** : la seule part que le lecteur décide.
+ *
+ * Les intérêts ne se règlent pas, ils suivent l'encours — c'est tout l'objet de
+ * la projection, qui les recalcule chaque année. Les laisser dans le solde
+ * primaire les compterait deux fois.
+ */
+export function soldePrimaire(budget: Budget, index: Index, reglages: Reglages, codeCharge: string): number {
+  const charge = index.get(codeCharge);
+  const interets = charge ? montantEffectif(charge, reglages) : 0;
+  return totaux(budget, reglages).solde + interets;
+}
+
+/** Le programme qui porte la charge de la dette de l'État. */
+export const CODE_CHARGE_DETTE = "117";
+
+export type Projection = { depart: Depart; taux: number; horizon: number };
+
+/**
+ * « Et après ? » — la seule partie de la page qui ne soit pas de l'arithmétique
+ * sur des chiffres publiés, et elle le dit.
+ *
+ * Trois nombres publiés entrent : l'encours de la dette de l'État, la charge de
+ * cette dette, et le solde primaire tel que les réglages le laissent. Deux
+ * hypothèses sortent du lecteur : le taux, et l'horizon. Elles sont **au-dessus
+ * du résultat**, réglables, jamais enterrées dans le calcul.
+ */
+export function renduTrajectoire(
+  budget: Budget,
+  index: Index,
+  reglages: Reglages,
+  projection: Projection,
 ): string {
-  const libelles: Record<VueSimulateur, string> = {
-    depenses: "Dépenses",
-    recettes: "Recettes",
-    objectif: objectif ?? "",
-    plan: `Votre plan (${regles})`,
-  };
-  return VUES.filter(
-    (nom) => (nom !== "plan" || regles > 0) && (nom !== "objectif" || objectif !== null),
-  )
-    .map(
-      (nom) => `<button type="button" role="tab" id="simu-onglet-${nom}"
-        aria-selected="${nom === vue}" aria-controls="simu-vue-${nom}"
-        data-onglet="${nom}">${libelles[nom]}</button>`,
-    )
-    .join("");
+  const { depart, taux, horizon } = projection;
+  const primaire = soldePrimaire(budget, index, reglages, CODE_CHARGE_DETTE);
+  const t = trajectoire(depart, primaire, { taux, horizon });
+  const derniere = t.annees[t.annees.length - 1];
+  const maximum = Math.max(...t.annees.map((a) => a.dette), depart.encours);
+  return `<div class="simu__hypotheses">
+      <label>Taux d'intérêt
+        <span class="simu__champ"><input type="text" inputmode="decimal" id="simu-taux"
+          class="nombre" value="${new Intl.NumberFormat("fr-FR", {
+            maximumFractionDigits: 2,
+          }).format(taux)}" /><span class="simu__unite" aria-hidden="true">%</span></span>
+      </label>
+      <label>Horizon
+        <span class="simu__champ"><input type="text" inputmode="numeric" id="simu-horizon"
+          class="nombre" value="${horizon}" /><span class="simu__unite" aria-hidden="true">ans</span></span>
+      </label>
+      <p class="simu__hypotheses-note">Taux apparent publié : ${pourcentage(
+        t.tauxApparent,
+      )}, soit la charge de ${euros(depart.charge)} de ${echapper(
+        depart.chargeExercice,
+      )} rapportée à l'encours de ${euros(depart.encours)} de ${echapper(
+        depart.encoursExercice,
+      )}. Ce n'est pas le taux auquel l'État emprunterait demain.</p>
+    </div>
+    <p class="simu__verdict">${echapper(lectureTrajectoire(t, horizon))}</p>
+    <dl class="simu__compteurs">
+      ${compteur("Solde hors intérêts", eurosSigne(primaire), classeEcart(primaire))}
+      ${compteur(
+        `Intérêts, année ${derniere.rang}`,
+        euros(derniere.interets),
+      )}
+      ${compteur(`Dette, année ${derniere.rang}`, euros(derniere.dette))}
+    </dl>
+    <ol class="simu__annees">${t.annees
+      .map(
+        (a) => `<li>
+          <span class="simu__annee-rang">an ${a.rang}</span>
+          <span class="simu__annee-barre"><i style="width:${
+            maximum ? Math.round((a.dette / maximum) * 100) : 0
+          }%"></i></span>
+          <span class="simu__annee-dette nombre">${euros(a.dette)}</span>
+          <span class="simu__annee-interets nombre">dont ${euros(a.interets)} d'intérêts</span>
+        </li>`,
+      )
+      .join("")}</ol>
+    <p class="simu__note">Aucune croissance, aucune inflation, aucun comportement : le solde
+      hors intérêts est reconduit à l'identique chaque année. L'encours est celui de l'État,
+      pas la dette publique toutes administrations.</p>`;
 }
 
 export function renduSuggestions(resultats: Entree[]): string {
@@ -506,47 +626,90 @@ export function renduSuggestions(resultats: Entree[]): string {
  * La page
  * ----------------------------------------------------------------------- */
 
-/** Le squelette, monté une fois. Les zones qui bougent portent un identifiant :
- *  un réglage réécrit le cockpit et le plan, jamais l'arbre déjà déplié. */
+/**
+ * Le squelette, monté une fois. Les zones qui bougent portent un identifiant :
+ * un réglage réécrit la barre, le plan et la trajectoire, jamais l'arbre déjà
+ * déplié.
+ *
+ * L'ORDRE EST LE PRODUIT, et il a changé.
+ *
+ * 1. **La barre de solde**, collante, toujours visible.
+ * 2. **Votre plan**, avant l'arbre : c'est le résultat, l'arbre est l'outil de
+ *    saisie. On ouvrait sur mille lignes de nomenclature ; on ouvre maintenant
+ *    sur ce qu'on a décidé, et le plan n'existe pas tant qu'on n'a rien décidé.
+ * 3. **La recherche**, en grand : pour régler l'aide au logement, il fallait
+ *    deviner qu'elle est rangée sous « Cohésion des territoires ».
+ * 4. **Les raccourcis** vers les postes dont on débat.
+ * 5. **Les dépenses, puis les recettes**, à la suite. Plus d'onglets.
+ * 6. **La dette, année après année**, quand le budget en porte la charge.
+ */
 export function rendu(
   budget: Budget,
   index: Index,
   reglages: Reglages,
-  tauxApparent?: number,
+  projection?: Projection,
 ): string {
   const ecart = ecartAuReel(budget, reglages);
-  return `<div class="simu__cockpit" id="simu-cockpit" aria-live="polite">${renduCockpit(
+  return `<header class="simu__tete">
+    <h2>${echapper(titre(budget))}</h2>
+    <p class="simu__perimetre">${echapper(perimetre(budget))}</p>
+  </header>
+
+  <div class="simu__barre-solde" id="simu-solde" aria-live="polite">${renduBarreSolde(
     budget,
     index,
     reglages,
-    tauxApparent,
   )}</div>
-  <ul class="simu__defis" id="simu-defis">${renduDefis(
-    defis(index, reglages, ecart, totaux(budget, reglages).solde),
-  )}</ul>
-  <div class="simu__barre">
-    <div class="simu__recherche">
-      <label for="simu-q" class="visuellement-cache">Chercher une ligne du budget</label>
-      <input id="simu-q" type="search" autocomplete="off"
-             placeholder="Chercher une ligne du budget" />
-      <ul class="simu__suggestions" id="simu-suggestions" role="listbox" hidden></ul>
+
+  <section class="simu__bloc simu__bloc--plan" id="simu-plan-bloc"${
+    reglages.size ? "" : " hidden"
+  }>
+    <h3 class="simu__bloc-titre">Votre plan<span id="simu-plan-compte">${
+      reglages.size ? ` · ${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}` : ""
+    }</span></h3>
+    <ul class="simu__plan" id="simu-plan">${renduPlan(
+      plan(index, reglages),
+      programmes(index),
+      repere(budget),
+    )}</ul>
+    <p class="simu__equivalence" id="simu-equivalence">${renduEquivalence(
+      index,
+      ecart,
+      repere(budget),
+    )}</p>
+    <ul class="simu__defis" id="simu-defis">${renduDefis(
+      defis(index, reglages, ecart, totaux(budget, reglages).solde),
+    )}</ul>
+    <div class="simu__plan-actions">
+      <button type="button" class="simu__copier" id="simu-copier">Copier le lien de mon budget</button>
+      <button type="button" class="simu__creux" id="simu-raz">Tout remettre à zéro</button>
     </div>
-    <div class="simu__onglets" id="simu-onglets" role="tablist">${renduOnglets(
-      "depenses",
-      reglages.size,
-      budget.objectif ? budget.objectif.t : null,
-    )}</div>
+  </section>
+
+  <div class="simu__recherche">
+    <label for="simu-q" class="visuellement-cache">Chercher une ligne du budget</label>
+    <input id="simu-q" type="search" autocomplete="off"
+           placeholder="Chercher : police, logement, TVA…" />
+    <ul class="simu__suggestions" id="simu-suggestions" role="listbox" hidden></ul>
   </div>
-  <section class="simu__panneau" id="simu-vue-depenses" role="tabpanel"
-           aria-labelledby="simu-onglet-depenses">
+
+  ${renduRaccourcis(index)}
+
+  <section class="simu__bloc" id="simu-vue-depenses">
+    <h3 class="simu__bloc-titre">Ce qu'il dépense<span class="nombre">${euros(
+      totaux(budget, reglages).depenses,
+    )}</span></h3>
     <div class="simu__arbre" id="simu-arbre-depenses">${renduDepenses(
       budget,
       index,
       reglages,
     )}</div>
   </section>
-  <section class="simu__panneau" id="simu-vue-recettes" role="tabpanel"
-           aria-labelledby="simu-onglet-recettes" hidden>
+
+  <section class="simu__bloc" id="simu-vue-recettes">
+    <h3 class="simu__bloc-titre">Ce qu'il encaisse<span class="nombre">${euros(
+      totaux(budget, reglages).recettes,
+    )}</span></h3>
     <p class="simu__note">Le rendement réel d'un impôt dépend des comportements : non modélisé.</p>
     <div class="simu__arbre" id="simu-arbre-recettes">${renduRecettes(
       budget,
@@ -554,24 +717,24 @@ export function rendu(
       reglages,
     )}</div>
   </section>
-  <section class="simu__panneau" id="simu-vue-objectif" role="tabpanel"
-           aria-labelledby="simu-onglet-objectif" hidden>${renduObjectif(
-             budget,
-             index,
-             reglages,
-           )}</section>
-  <section class="simu__panneau" id="simu-vue-plan" role="tabpanel"
-           aria-labelledby="simu-onglet-plan" hidden>
-    <div class="simu__plan-actions">
-      <button type="button" class="tableau__export" id="simu-copier">Copier le lien de mon budget</button>
-      <button type="button" class="simu__creux" id="simu-raz">Tout remettre à zéro</button>
-    </div>
-    <ul class="simu__plan" id="simu-plan">${renduPlan(
-      plan(index, reglages),
-      programmes(index),
-      repere(budget),
-    )}</ul>
-  </section>`;
+
+  ${
+    budget.objectif
+      ? `<section class="simu__bloc" id="simu-vue-objectif">
+           <h3 class="simu__bloc-titre">${echapper(budget.objectif.t)}</h3>
+           ${renduObjectif(budget, index, reglages)}
+         </section>`
+      : ""
+  }
+
+  ${
+    projection
+      ? `<section class="simu__bloc simu__bloc--dette" id="simu-vue-trajectoire">
+           <h3 class="simu__bloc-titre">Et après ? La dette, année après année</h3>
+           <div id="simu-trajectoire">${renduTrajectoire(budget, index, reglages, projection)}</div>
+         </section>`
+      : ""
+  }`;
 }
 
 /* --------------------------------------------------------------------------
@@ -584,9 +747,15 @@ type Options = {
   /** Appelé après chaque geste, avec l'état encodé : c'est l'appelant qui
    *  possède l'URL du site, ce module ne la touche pas. */
   surReglages: (encode: string) => void;
-  /** Charge de la dette de l'État rapportée à son encours, tous deux publiés.
-   *  Absent : la ligne d'effet sur l'exercice suivant ne s'affiche pas. */
-  tauxApparent?: number;
+  /**
+   * De quoi projeter la dette : l'encours publié et la charge publiée.
+   *
+   * Le budget de la Sécurité sociale n'en a pas : sa dette est portée par la
+   * CADES, sur un autre encours, et lui appliquer le taux apparent de l'État
+   * donnerait un chiffre juste appliqué au mauvais périmètre. Absent, la
+   * section « Et après ? » n'existe pas.
+   */
+  depart?: Depart;
   /** Les bénéficiaires nommés par programme. Absent des publications
    *  antérieures : aucun tiroir ne s'ouvre. */
   subventions?: SubventionsProgramme | null;
@@ -613,21 +782,24 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
   const { signal } = montage;
 
   subventionsPubliees = options.subventions ?? null;
-  bloc.innerHTML = rendu(budget, index, reglages, options.tauxApparent);
+  /** Les deux hypothèses de la projection, réglées par le lecteur, jamais
+   *  écrites dans l'URL : ce ne sont pas des gestes budgétaires, et un lien
+   *  partagé doit ouvrir le plan de son auteur, pas ses paramètres de calcul. */
+  const projection: Projection | undefined = options.depart
+    ? {
+        depart: options.depart,
+        taux: Math.round((options.depart.charge / options.depart.encours) * 10000) / 100,
+        horizon: HORIZON_PAR_DEFAUT,
+      }
+    : undefined;
+  bloc.innerHTML = rendu(budget, index, reglages, projection);
 
-  const cockpit = $("simu-cockpit");
+  const elSolde = $("simu-solde");
   const elDefis = $("simu-defis");
-  const elOnglets = $("simu-onglets");
+  const elPlanBloc = $("simu-plan-bloc");
   const elPlan = $("simu-plan");
   const elQ = $<HTMLInputElement>("simu-q");
   const elSugg = $("simu-suggestions");
-  const panneaux: Record<VueSimulateur, HTMLElement> = {
-    depenses: $("simu-vue-depenses"),
-    recettes: $("simu-vue-recettes"),
-    objectif: $("simu-vue-objectif"),
-    plan: $("simu-vue-plan"),
-  };
-  let vue: VueSimulateur = "depenses";
 
   const ligneDe = (code: string) =>
     bloc.querySelector<HTMLElement>(`.simu__ligne[data-code="${CSS.escape(code)}"]`);
@@ -651,25 +823,43 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     }
   }
 
+  function majTrajectoire(): void {
+    if (!projection) return;
+    $("simu-trajectoire").innerHTML = renduTrajectoire(budget, index, reglages, projection);
+  }
+
   function majTotaux(): void {
-    cockpit.innerHTML = renduCockpit(budget, index, reglages, options.tauxApparent);
+    elSolde.innerHTML = renduBarreSolde(budget, index, reglages);
     const ecart = ecartAuReel(budget, reglages);
     elDefis.innerHTML = renduDefis(
       defis(index, reglages, ecart, totaux(budget, reglages).solde),
     );
     elPlan.innerHTML = renduPlan(plan(index, reglages), programmes(index), repere(budget));
-    // Le compteur de l'ONDAM vit dans son panneau : le cockpit ne le porte pas,
-    // et c'est ce qui garantit qu'un réglage d'objectif ne déplace pas le solde.
+    $("simu-equivalence").innerHTML = renduEquivalence(index, ecart, repere(budget));
+    // Le plan n'existe pas tant qu'aucune ligne n'est réglée : un bloc « Votre
+    // plan » vide au-dessus de l'arbre dirait qu'on a oublié de faire quelque
+    // chose.
+    elPlanBloc.hidden = reglages.size === 0;
+    $("simu-plan-compte").textContent = reglages.size
+      ? ` · ${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}`
+      : "";
+    for (const [id, valeur] of [
+      ["simu-vue-depenses", totaux(budget, reglages).depenses],
+      ["simu-vue-recettes", totaux(budget, reglages).recettes],
+    ] as const) {
+      const total = bloc.querySelector(`#${id} .simu__bloc-titre .nombre`);
+      if (total) total.textContent = euros(valeur);
+    }
+    // Le compteur de l'ONDAM vit dans son bloc : la barre de solde ne le porte
+    // pas, et c'est ce qui garantit qu'un réglage d'objectif ne déplace pas le
+    // solde.
     const compteursObjectif = bloc.querySelector("#simu-compteurs-objectif");
     if (compteursObjectif && budget.objectif) {
       compteursObjectif.innerHTML =
         compteur(echapper(budget.objectif.t), euros(totalObjectif(budget, reglages))) +
         compteur("Votre écart à l'objectif", eurosSigne(ecartObjectif(budget, reglages)));
     }
-    // L'onglet « Votre plan » peut apparaître ou disparaître à ce geste : s'il
-    // disparaît sous le lecteur qui le regarde, on le ramène aux dépenses.
-    if (vue === "plan" && reglages.size === 0) montrer("depenses");
-    else elOnglets.innerHTML = renduOnglets(vue, reglages.size, budget.objectif?.t ?? null);
+    majTrajectoire();
     surReglages(encoder(reglages));
   }
 
@@ -677,12 +867,6 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     regler(reglages, code, valeur);
     majLignes();
     majTotaux();
-  }
-
-  function montrer(nom: VueSimulateur): void {
-    vue = nom;
-    for (const [cle, el] of Object.entries(panneaux)) el.hidden = cle !== nom;
-    elOnglets.innerHTML = renduOnglets(nom, reglages.size, budget.objectif?.t ?? null);
   }
 
   /** Rend les enfants au premier dépli, et seulement à ce moment-là. */
@@ -704,35 +888,26 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     ligneDe(code)?.querySelector(".simu__pli")?.setAttribute("aria-expanded", "true");
   }
 
-  const PANNEAU_DE: Record<string, VueSimulateur> = {
-    recette: "recettes",
-    objectif: "objectif",
-    depense: "depenses",
-  };
-
+  /**
+   * Aller à une ligne, d'où qu'on vienne : plan, recherche ou raccourci.
+   *
+   * Il n'y a plus de panneau à montrer d'abord — dépenses et recettes sont sur
+   * la même page. Restent le dépli des ancêtres et le défilement.
+   */
   function viser(code: string): void {
     const entree = index.get(code);
     if (!entree) return;
-    montrer(PANNEAU_DE[entree.cote]);
     for (const ancetre of entree.ancetres) deplier(ancetre);
     const el = ligneDe(code);
     if (!el) return;
-    el.scrollIntoView({ block: "center" });
+    el.scrollIntoView({ block: "center", behavior: "smooth" });
     el.classList.remove("simu__ligne--visee");
     void el.offsetWidth;
     el.classList.add("simu__ligne--visee");
-    el.querySelector<HTMLInputElement>(".simu__pct")?.focus();
   }
 
   bloc.addEventListener("click", (evenement) => {
     const cible = evenement.target as HTMLElement;
-
-    // `data-onglet` et non `data-vue` : `<body>` porte déjà `data-vue`, et un
-    // `closest("[data-vue]")` remontait jusqu'à lui — le moindre clic dans le
-    // simulateur demandait alors d'afficher une vue nommée « simulateur », qui
-    // n'existe pas ici, et masquait les trois panneaux d'un coup.
-    const onglet = cible.closest<HTMLElement>("[data-onglet]");
-    if (onglet?.dataset.onglet) return montrer(onglet.dataset.onglet as VueSimulateur);
 
     const vise = cible.closest<HTMLElement>("[data-vise]");
     if (vise?.dataset.vise) {
@@ -762,7 +937,16 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
   }, { signal });
 
   bloc.addEventListener("change", (evenement) => {
-    const champ = (evenement.target as HTMLElement).closest<HTMLInputElement>(".simu__pct");
+    const el = evenement.target as HTMLElement;
+    // Les deux hypothèses de la projection : elles ne touchent aucun réglage
+    // budgétaire, elles ne repeignent que leur propre section.
+    if (projection && (el.id === "simu-taux" || el.id === "simu-horizon")) {
+      const valeur = Number((el as HTMLInputElement).value.replace(",", ".")) || 0;
+      if (el.id === "simu-taux") projection.taux = Math.max(0, Math.min(20, valeur));
+      else projection.horizon = Math.max(1, Math.min(HORIZON_MAXIMUM, Math.round(valeur)));
+      return majTrajectoire();
+    }
+    const champ = el.closest<HTMLInputElement>(".simu__pct");
     const code = champ?.closest<HTMLElement>(".simu__ligne")?.dataset.code;
     if (champ && code) appliquer(code, Number(champ.value.replace(",", ".")) || 0);
   }, { signal });
@@ -777,7 +961,7 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     reglages.clear();
     majLignes();
     majTotaux();
-  });
+  }, { signal });
 
   const copier = $<HTMLButtonElement>("simu-copier");
   copier.addEventListener("click", () => {
@@ -793,5 +977,5 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
         // déjà le lien, il n'y a rien à annoncer de plus.
       },
     );
-  });
+  }, { signal });
 }
