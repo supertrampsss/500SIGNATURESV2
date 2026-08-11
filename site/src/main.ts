@@ -21,7 +21,6 @@ import { afficherBareme, decoder as decoderBareme } from "./bareme-rendu.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
-import { rendu as apercuRendu, resumer } from "./apercu.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
   enCsv, enCsvEvolution, nomDeFichier, telecharger,
@@ -690,46 +689,43 @@ function indicateursDeLaFiche(niveau: string): Indicateur[] {
  * niveau national : dette, solde budgétaire, dépenses de l'État, comparaisons
  * européennes. On descend ensuite dans le détail en cliquant.
  *
- * Les mailles supérieures se chargent après la carte : tant qu'elles ne sont
- * pas là, l'aperçu de couche tient la place plutôt qu'un panneau vide.
+ * Le résumé de couche qui tenait la place — minimum, médiane, quartiles,
+ * total — est retiré : c'était une statistique sur des territoires, et c'est
+ * ce qu'on lisait en arrivant sur le site. La maille pays est demandée dès
+ * l'ouverture (`chargerFrance`) ; le temps qu'elle arrive, le panneau reste
+ * vide plutôt que de montrer autre chose que la France.
  */
 function afficherApercu(): void {
   const france = parentDe("FR", "pays");
   const nationaux = indicateursDeLaFiche("pays");
-  if (france && nationaux.length) {
-    afficherFiche($("fiche"), {
-      niveau: "pays",
-      territoire: france,
-      indicateurs: nationaux,
-      comparateurs: [],
-    });
-    appliquerVitesse();
+  if (!france || !nationaux.length) {
+    void chargerFrance();
     return;
   }
-  // L'aperçu de repli résume des niveaux (minimum, médiane, total) : en mode
-  // évolution, `affichees` porte des variations et ce résumé serait formaté
-  // comme des niveaux. On garde le panneau tel quel — la fiche France le
-  // remplace dès que la maille pays est chargée.
-  if (evolutionAffichee) return;
-  const noms =
-    repertoire?.niveau === etat.niveau
-      ? repertoire.noms
-      : Object.fromEntries(Object.entries(entites).map(([code, entite]) => [code, entite.nom]));
-  const indicateur = indicateurCourant();
-  // Le total France : seulement pour un indicateur qui s'additionne, et
-  // calculé sur les montants bruts — additionner des « par habitant » de
-  // 34 875 communes ne voudrait rien dire.
-  const total = indicateur.sommable
-    ? Object.values(brutes).reduce((somme, v) => (Number.isFinite(v) ? somme + v : somme), 0)
-    : undefined;
-  $("fiche").innerHTML = apercuRendu(
-    resumer(affichees, noms),
-    indicateur,
-    etat.niveau,
-    etat.periode,
-    parHabitantAffiche,
-    total,
-  );
+  afficherFiche($("fiche"), {
+    niveau: "pays",
+    territoire: france,
+    indicateurs: nationaux,
+    comparateurs: [],
+  });
+  appliquerVitesse();
+}
+
+/** La France du panneau d'accueil, demandée une seule fois et le plus tôt
+ *  possible : elle ne dépend ni de la carte ni de la maille peinte, et c'est
+ *  la première chose que le site doit montrer. */
+let franceDemandee: Promise<void> | null = null;
+function chargerFrance(): Promise<void> {
+  franceDemandee ??= donnees
+    .territoires("pays", "tous")
+    .then((pays) => {
+      parents = { ...parents, ...cleParMaille(pays as Record<string, Territoire>, "pays") };
+      if (!etat.selection) afficherApercu();
+    })
+    .catch(() => {
+      // Pas de maille pays publiée : le panneau reste vide jusqu'au premier clic.
+    });
+  return franceDemandee;
 }
 
 /* ------------------------------------------------------------------ *
@@ -864,8 +860,10 @@ function paddingCarte(): { top: number; bottom: number; left: number; right: num
   // flotte : c'est un bloc de la colonne de lecture, et rien ne la recouvre.
   // Lui réserver les 760 px du panneau poussait la France dans le tiers gauche
   // du cadre, avec un grand vide à droite pour un panneau qui n'y est plus.
+  // Les commandes sont en haut du cadre, la légende en bas à gauche : c'est
+  // le haut qui se réserve.
   if (document.body.dataset.carte === "oui") {
-    return { top: 24, bottom: 56, left: 24, right: 24 };
+    return { top: 56, bottom: 32, left: 24, right: 24 };
   }
   const large = window.innerWidth > 960;
   if (large) {
@@ -2082,6 +2080,19 @@ async function monterBudget(
 let budgetsDisponibles: { budget: BudgetPublie; exercice: string }[] = [];
 let budgetAffiche: string | null = null;
 
+/** **Les réglages d'un budget lui restent quand on va voir un autre budget.**
+ *
+ *  Les codes de deux budgets ne se recouvrent pas : ceux du PLF et ceux du
+ *  PLFSS viennent de deux nomenclatures sans une ligne en commun. On les
+ *  effaçait donc au changement — et le lecteur qui allait vérifier une ligne
+ *  de la Sécurité sociale retrouvait le budget de l'État remis à zéro, ses
+ *  quinze réglages perdus sans un mot.
+ *
+ *  Ils sont désormais rangés par budget, ici, le temps de la visite. L'URL,
+ *  elle, ne porte que le budget affiché et ses réglages à lui : un lien
+ *  partagé ouvre un écran, pas une session. */
+const reglagesParBudget = new Map<string, string>();
+
 function vuesConnues(): readonly string[] {
   return budgetsDisponibles.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
 }
@@ -2259,12 +2270,11 @@ function peindreChoixDuBudget(): void {
     const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-budget]");
     const cle = bouton?.dataset.budget;
     if (!cle || cle === budgetAffiche) return;
+    // Ce qui était réglé reste au budget qu'on quitte, et ce qu'on avait
+    // réglé dans celui qu'on ouvre revient.
+    if (budgetAffiche) reglagesParBudget.set(budgetAffiche, etat.budget);
     budgetAffiche = cle;
-    // Les réglages d'un budget ne désignent rien dans l'autre : les codes
-    // viennent de deux nomenclatures qui n'ont aucune ligne en commun. Les
-    // garder ferait rouvrir l'ancien budget avec un plan vide et une URL qui
-    // prétend le contraire.
-    etat.budget = "";
+    etat.budget = reglagesParBudget.get(cle) ?? "";
     ecrireUrl();
     peindreChoixDuBudget();
     void ouvrirSimulateur(true);
@@ -2346,16 +2356,12 @@ async function demarrer(): Promise<void> {
   catalogue = [...catalogue, ...indicateursDerives(catalogue)];
   construireSelecteurs();
   afficherQuestions($("questions"));
+  // La France du panneau d'accueil, demandée avant la carte : c'est la
+  // première chose à l'écran, elle ne doit pas attendre les tuiles.
+  void chargerFrance();
   // Sans attendre : l'index dit seulement s'il faut proposer le simulateur, et
   // la carte n'a pas à patienter pour ça.
   void preparerSimulateur();
-
-  // Le jeu de données public est le même que celui de la carte : le lien pointe
-  // vers le pointeur de version, porte d'entrée de tous les autres fichiers.
-  $("telechargement").insertAdjacentHTML(
-    "beforeend",
-    ` <a href="${donnees.racinePubliee()}/derniere.json" rel="noreferrer">Accéder aux données</a>.`,
-  );
 
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
   // Le fond de carte donne le contexte que la choroplèthe seule n'a pas :
@@ -2617,7 +2623,10 @@ async function demarrer(): Promise<void> {
           );
         }
         carte.getCanvas().style.cursor = "pointer";
-        const nom = (figure?.properties?.nom as string | undefined) ?? nomDe(code);
+        // Les tuiles portent le code là où l'on attendait le libellé (« 75 »
+        // pour la Nouvelle-Aquitaine) : le nom vient du référentiel, comme
+        // pour les étiquettes.
+        const nom = nomDe(code);
         const valeur = affichees[code];
         const indicateur = indicateurCourant();
         // En mode évolution : la variation signée, ET les deux valeurs dont

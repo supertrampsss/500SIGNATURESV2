@@ -73,8 +73,8 @@
    pas l'habillage. */
 :root {
   color-scheme: light;
-  /* Largeur de la colonne de lecture. Nommée parce que trois objets doivent
-     s'aligner dessus sans se la redire : l'en-tête, les vues, le pied. Le
+  /* Largeur de la colonne de lecture. Nommée parce que deux objets doivent
+     s'aligner dessus sans se la redire : l'en-tête et les vues. Le
      panneau territoire flottait à 52rem au milieu d'un écran de 90rem, et les
      19rem de fond nu de chaque côté se lisaient comme une page qui n'a pas
      fini de charger. */
@@ -264,8 +264,7 @@
     --alerte: #ad5438;
   }
   .entete,
-  .vue-barre,
-  .pied a {
+  .vue-barre {
     display: none;
   }
 }
@@ -791,7 +790,10 @@ summary:focus-visible,
   display: block;
   font-weight: 600;
 }
+/* Une ligne par lecture. Sans le `block`, la valeur et sa seconde lecture se
+   suivaient sans séparateur : « 345 €2 158 M€ au total ». */
 .infobulle span {
+  display: block;
   font-variant-numeric: tabular-nums;
   opacity: 0.92;
 }
@@ -1147,16 +1149,6 @@ tbody tr:hover {
   background: var(--accent-teinte);
 }
 
-.pied {
-  padding: var(--espace-7) var(--espace-7) calc(var(--espace-8) * 1.5);
-  border-top: 1px solid var(--trait);
-  background: var(--papier);
-  color: var(--encre-douce);
-  font-size: var(--texte-s);
-  display: grid;
-  gap: 0.4rem;
-}
-
 @media (max-width: 60rem) {
   /* Le tiroir monte du bas. Sans sélection il montre la France, mais plus
      bas : la carte doit rester manœuvrable, c'est par elle qu'on choisit.
@@ -1275,7 +1267,6 @@ tbody tr:hover {
     font-weight: 600;
   }
   /* La barre basse recouvre la fin de chaque vue : on lui rend sa place. */
-  .pied,
   .vue {
     padding-bottom: calc(var(--cible) + var(--espace-6) + env(safe-area-inset-bottom, 0px));
   }
@@ -2084,11 +2075,7 @@ tbody tr:hover {
 }
 
 
-/* Vues : une chose à l'écran à la fois. Le pied de page accompagne les vues
-   qui se lisent, pas la carte plein écran. */
-body[data-carte="oui"] .pied {
-  display: none;
-}
+/* Vues : une chose à l'écran à la fois. */
 .vue {
   max-width: var(--colonne);
   margin: 0 auto;
@@ -2280,9 +2267,14 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    trois mots : « Ce que la ville encaisse » passait sur deux lignes et faisait
    monter les quatre cartes d'autant, en haut de la fiche, là où l'espace coûte
    le plus cher. `white-space: nowrap` le garantit plutôt que de l'espérer. */
+/* Quatre de front là où la place le permet, deux par deux dans la barre
+   latérale. Le nombre de colonnes était fixé à quatre et ne cédait qu'à
+   40rem de **fenêtre** : dans une colonne de 28rem sur un écran de 1440, les
+   quatre repères tenaient toujours, et « Ce qu'elle encaisse » s'affichait
+   « Ce qu'elle e… ». C'est la place réelle qui décide, pas la fenêtre. */
 .reperes {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
   gap: var(--espace-4);
   margin: var(--espace-6) 0 0;
 }
@@ -3787,7 +3779,6 @@ summary.pont__rangee,
 .formule,
 .source p,
 .tableau__aide,
-.pied p,
 .assos__reserve,
 .theme-groupe__agregat,
 .mesure__lecture {
@@ -4872,9 +4863,16 @@ summary.pont__rangee,
    bougeait, et le texte se lisait à travers un panneau posé sur un dessin de
    France.
 
-   La carte est donc un bloc de la page. Elle prend la largeur de la colonne
-   de lecture et une hauteur bornée ; la fiche continue dessous, comme une
-   page. On situe d'abord, on lit ensuite, et rien ne flotte.
+   La carte est donc un bloc de la page. **Deux colonnes : la carte à gauche,
+   la fiche en barre latérale à droite.** Empilées, la carte poussait la fiche
+   sous la ligne de flottaison — on ouvrait un territoire pour lire un texte
+   qui commençait hors écran. Côte à côte, on situe et on lit du même regard,
+   la carte reste en vue pendant qu'on descend le texte, et rien ne flotte
+   au-dessus de la fiche.
+
+   Sous 60rem la grille retombe sur une colonne : à cette largeur, deux
+   colonnes donneraient une carte trop étroite pour viser une commune et une
+   colonne de texte de trente caractères.
 
    Ces règles sont en fin de feuille pour gagner sur celles du mode plein
    cadre sans en retirer aucune : le jour où l'on veut revenir au fond
@@ -4883,30 +4881,39 @@ body[data-carte="oui"] .vue--territoire {
   display: block;
   height: auto;
 }
-/* La barre de vue s'aligne sur la colonne, comme la carte et la fiche : le
+/* La barre de vue s'aligne sur la grille, comme la carte et la fiche : le
    bouton se retrouvait collé au bord gauche de l'écran, à 224 px du contenu
    qu'il commande. */
 body[data-carte="oui"] .vue--territoire .vue-barre {
-  max-width: min(62rem, 100%);
+  max-width: min(88rem, 100%);
   width: auto;
 }
 body[data-carte="oui"] .vue--territoire .atelier {
-  display: block;
-  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
+  gap: var(--espace-7);
+  align-items: start;
+  position: static;
   height: auto;
   min-height: 0;
-  max-width: min(62rem, 100%);
+  max-width: min(88rem, 100%);
   margin-inline: auto;
   padding-inline: var(--gouttiere);
   background: transparent;
 }
-/* Le cadre de la carte : la seule chose qui garde une hauteur fixe. 26rem
-   suffisent à reconnaître la France et à viser une commune ; au-delà, on
-   pousse la fiche hors de l'écran pour un fond de carte. */
+/* Le cadre de la carte, et le repère de toutes ses surcouches. Collant : la
+   fiche est plus haute que lui, et une carte qui défile hors de l'écran au
+   troisième bloc ne sert plus à rien. */
+body[data-carte="oui"] .atelier__carte {
+  position: sticky;
+  top: var(--espace-5);
+}
+/* La carte tient dans l'écran sous l'en-tête, sans jamais descendre sous les
+   26rem qu'il faut pour reconnaître la France et viser une commune. */
 body[data-carte="oui"] #carte {
   position: relative;
   inset: auto;
-  height: 26rem;
+  height: clamp(26rem, calc(100dvh - 9rem), 46rem);
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
   overflow: hidden;
@@ -4941,18 +4948,41 @@ body[data-carte="oui"] .panneau__poignee {
 body[data-carte="oui"] .fiche {
   padding-inline: 0;
 }
-/* La barre des mailles et la légende se posent sur le cadre de la carte, pas
-   sur la page : elles ne commandent que lui. */
+/* Les commandes et la légende se posent sur le cadre de la carte, pas sur la
+   page : elles ne commandent que lui. Elles étaient ancrées sur l'atelier,
+   qui porte maintenant la fiche — les deux menus déroulants venaient donc se
+   poser en bas du texte, sans rien qui dise à quoi ils servaient.
+
+   En haut, pas en bas : ce qu'on règle avant de lire la carte se met là où le
+   regard entre, et le bas du cadre reste au dessin. */
 body[data-carte="oui"] .carte-barre {
   position: absolute;
-  left: calc(var(--gouttiere) + var(--espace-4));
-  right: calc(var(--gouttiere) + var(--espace-4));
-  bottom: var(--espace-5);
+  top: var(--espace-4);
+  bottom: auto;
+  left: var(--espace-4);
+  /* La place des boutons de zoom, réservée : centrées, les commandes passaient
+     dessous et le « + » devenait incliquable. */
+  right: 3.4rem;
+  justify-content: flex-start;
 }
 body[data-carte="oui"] .legende {
-  top: var(--espace-5);
-  left: calc(var(--gouttiere) + var(--espace-4));
-  bottom: auto;
+  top: auto;
+  left: var(--espace-4);
+  bottom: var(--espace-4);
+}
+/* Une colonne : la carte au-dessus, la fiche dessous. */
+@media (max-width: 60rem) {
+  body[data-carte="oui"] .vue--territoire .atelier {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+  body[data-carte="oui"] .atelier__carte {
+    position: relative;
+    top: auto;
+  }
+  body[data-carte="oui"] #carte {
+    height: 26rem;
+  }
 }
 @media (max-width: 40rem) {
   body[data-carte="oui"] #carte {

@@ -452,7 +452,7 @@ test("sous le pouce, la navigation ne se coupe plus", () => {
   assert.match(petit, /grid-auto-columns: 1fr;/);
   assert.match(petit, /env\(safe-area-inset-bottom, 0px\)/);
   // Et la barre basse ne recouvre pas la fin de la vue.
-  assert.match(petit, /\.pied,\n\s*\.vue \{\n\s*padding-bottom:/);
+  assert.match(petit, /\.vue \{\n\s*padding-bottom:/);
 });
 
 test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => {
@@ -485,4 +485,79 @@ test("la carte est déployée d'emblée sur la vue territoire", () => {
   // la répartition dans l'espace. Le bouton reste, pour la refermer.
   assert.match(MAIN, /let carteOuverte = true;/);
   assert.match(PAGE, /id="carte-bascule"/);
+});
+
+test("la carte est à gauche, la fiche en barre latérale à droite", () => {
+  // Empilées, la carte poussait la fiche sous la ligne de flottaison : on
+  // ouvrait un territoire pour lire un texte qui commençait hors écran.
+  const bloc = CSS.slice(CSS.indexOf('body[data-carte="oui"] .vue--territoire .atelier'));
+  assert.match(bloc, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 28rem\);/);
+  // La carte est collante : la fiche est plus haute qu'elle, et une carte qui
+  // sort de l'écran au troisième bloc ne sert plus à rien.
+  assert.match(bloc, /body\[data-carte="oui"\] \.atelier__carte \{\n\s*position: sticky;/);
+  // Sous 60rem, une colonne : deux donneraient une carte trop étroite pour
+  // viser une commune et une colonne de texte de trente caractères.
+  assert.match(bloc, /@media \(max-width: 60rem\) \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/);
+});
+
+test("les surcouches de la carte s'ancrent sur la carte, pas sur la page", () => {
+  // Elles s'ancraient sur l'atelier, qui porte maintenant la fiche : les deux
+  // menus déroulants venaient se poser en bas du texte, sans rien qui dise à
+  // quoi ils servaient.
+  assert.match(PAGE_BALISES, /<div class="atelier__carte">/);
+  const carte = PAGE_BALISES.slice(
+    PAGE_BALISES.indexOf('<div class="atelier__carte">'),
+    PAGE_BALISES.indexOf('<aside class="panneau'),
+  );
+  for (const dedans of ['id="carte"', 'id="legende"', 'class="carte-barre"', 'id="etiquettes"', 'id="infobulle"']) {
+    assert.ok(carte.includes(dedans), `${dedans} devrait être dans le cadre de la carte`);
+  }
+  // En haut du cadre : ce qu'on règle avant de lire la carte se met là où le
+  // regard entre, et le bas reste au dessin.
+  assert.match(CSS, /body\[data-carte="oui"\] \.carte-barre \{\n\s*position: absolute;\n\s*top: var\(--espace-4\);/);
+});
+
+test("l'infobulle dit le nom du territoire, jamais son code", () => {
+  // Les tuiles portent le code là où l'on attendait le libellé : « 75 »
+  // s'affichait pour la Nouvelle-Aquitaine. Le nom vient du référentiel,
+  // comme pour les étiquettes.
+  assert.doesNotMatch(MAIN, /const nom = \(figure\?\.properties\?\.nom as string \| undefined\) \?\? nomDe\(code\);/);
+  assert.match(MAIN, /const nom = nomDe\(code\);/);
+});
+
+test("on arrive sur la France, jamais sur un résumé de couche", () => {
+  // Le panneau montrait la dispersion de la couche affichée — minimum,
+  // médiane, quartiles : une statistique sur des territoires, pas un
+  // territoire. Le module qui l'écrivait est retiré.
+  assert.doesNotMatch(MAIN, /apercuRendu|from "\.\/apercu\.ts"/);
+  // La maille pays est demandée dès l'ouverture, avant la carte.
+  assert.match(MAIN, /function chargerFrance\(\): Promise<void>/);
+  assert.match(MAIN, /void chargerFrance\(\);\n\s*\/\/ Sans attendre/);
+});
+
+test("le pied de page est retiré", () => {
+  // Deux paragraphes de mentions sous chaque vue.
+  assert.doesNotMatch(PAGE_BALISES, /<footer/);
+  assert.doesNotMatch(MAIN, /telechargement/);
+  assert.doesNotMatch(CSS_REGLES, /\.pied\b/);
+});
+
+test("les repères se rangent sur la place réelle, pas sur la fenêtre", () => {
+  // Quatre colonnes fixes dans une barre de 28rem : « Ce qu'elle encaisse »
+  // s'affichait « Ce qu'elle e… » sur un écran de 1 440 px.
+  assert.match(CSS, /\.reperes \{\n\s*display: grid;\n\s*grid-template-columns: repeat\(auto-fit, minmax\(9\.5rem, 1fr\)\);/);
+});
+
+test("les réglages d'un budget lui restent quand on va voir un autre budget", () => {
+  // Quinze lignes réglées sur l'État, on va voir la Sécu, on revient : tout
+  // était perdu, sans un mot.
+  assert.match(MAIN, /const reglagesParBudget = new Map<string, string>\(\);/);
+  assert.match(MAIN, /if \(budgetAffiche\) reglagesParBudget\.set\(budgetAffiche, etat\.budget\);/);
+  assert.match(MAIN, /etat\.budget = reglagesParBudget\.get\(cle\) \?\? "";/);
+});
+
+test("l'infobulle met une ligne par lecture", () => {
+  // La valeur et sa seconde lecture se suivaient sans séparateur :
+  // « 345 €2 158 M€ au total ».
+  assert.match(CSS, /\.infobulle span \{\n\s*display: block;/);
 });

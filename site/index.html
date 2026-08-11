@@ -77,26 +77,40 @@
       </div>
 
       <div class="atelier" aria-label="Carte interactive">
-        <div id="carte" role="application" aria-label="Carte des territoires français"></div>
+        <!-- La carte et ses surcouches dans un même cadre : légende, barre de
+             commandes, étiquettes et infobulle se posent sur LA CARTE. Sans ce
+             cadre, elles s'ancraient sur l'atelier entier et la barre des
+             commandes venait se poser sur le texte de la fiche. -->
+        <div class="atelier__carte">
+          <div id="carte" role="application" aria-label="Carte des territoires français"></div>
 
-        <!-- Repliée par défaut : une pastille de couleurs collée au bord gauche.
-             Dépliée, elle donne le titre, l'échelle, les bornes et la méthode.
-             Ouverte en permanence, elle occupait le quart de la carte pour une
-             information qu'on ne consulte qu'une fois. -->
-        <details class="legende surcouche surcouche--legende" id="legende" hidden>
-          <summary class="legende__poignee" aria-label="Afficher la légende">
-            <span class="legende__vignette" id="legende-vignette" aria-hidden="true"></span>
-          </summary>
-          <div class="legende__contenu">
-            <p class="legende__titre" id="legende-titre"></p>
-            <ol class="legende__echelle" id="legende-echelle"></ol>
-            <p class="legende__bornes" id="legende-bornes"></p>
-            <details class="legende__methode">
-              <summary>méthode</summary>
-              <p class="legende__note" id="legende-note"></p>
-            </details>
+          <!-- Repliée par défaut : une pastille de couleurs collée au bord gauche.
+               Dépliée, elle donne le titre, l'échelle, les bornes et la méthode.
+               Ouverte en permanence, elle occupait le quart de la carte pour une
+               information qu'on ne consulte qu'une fois. -->
+          <details class="legende surcouche surcouche--legende" id="legende" hidden>
+            <summary class="legende__poignee" aria-label="Afficher la légende">
+              <span class="legende__vignette" id="legende-vignette" aria-hidden="true"></span>
+            </summary>
+            <div class="legende__contenu">
+              <p class="legende__titre" id="legende-titre"></p>
+              <ol class="legende__echelle" id="legende-echelle"></ol>
+              <p class="legende__bornes" id="legende-bornes"></p>
+              <details class="legende__methode">
+                <summary>méthode</summary>
+                <p class="legende__note" id="legende-note"></p>
+              </details>
+            </div>
+          </details>
+
+          <div class="etiquettes" id="etiquettes" aria-hidden="true"></div>
+
+          <div class="carte-barre">
+            <div class="pilules pilules--vues" id="pilules-vue" role="group" aria-label="Territoire cadré"></div>
           </div>
-        </details>
+
+          <div class="infobulle" id="infobulle" hidden></div>
+        </div>
 
         <aside class="panneau surcouche" id="panneau" aria-label="Fiche du territoire">
           <!-- Poignée du tiroir mobile : on la fait glisser pour agrandir la
@@ -116,14 +130,6 @@
             <div class="palmares" id="palmares" hidden></div>
           </div>
         </aside>
-
-        <div class="etiquettes" id="etiquettes" aria-hidden="true"></div>
-
-        <div class="carte-barre">
-          <div class="pilules pilules--vues" id="pilules-vue" role="group" aria-label="Territoire cadré"></div>
-        </div>
-
-        <div class="infobulle" id="infobulle" hidden></div>
       </div>
     </div>
 
@@ -165,19 +171,6 @@
     </div>
 
     </main>
-
-    <footer class="pied">
-      <p>
-        Données publiques réutilisées sous Licence Ouverte 2.0. Ce site n'est pas
-        un service officiel ; il republie des chiffres produits par
-        l'administration, sans les modifier.
-      </p>
-      <p id="telechargement">
-        Les chiffres affichés sont publiés en fichiers JSON versionnés et
-        immuables, lisibles sans clé ni compte : le site les lit comme n'importe
-        qui d'autre.
-      </p>
-    </footer>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
