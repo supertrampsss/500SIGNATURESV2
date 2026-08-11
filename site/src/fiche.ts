@@ -6,6 +6,7 @@
 
 import { rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
 import { blocs, rendreBlocs } from "./blocs.ts";
+import { exercices, rendreExercices } from "./exercices.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 
 const NIVEAUX: Record<string, string> = {
@@ -282,9 +283,17 @@ export function afficherFiche(
         : ""
     }
     ${
-      // Et c'est tout. La fiche s'arrête au dernier bloc : sous « Ce que ça a
-      // payé », il n'y a plus ni faits, ni pont, ni feuille d'impôts.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}</div>`
+      // Sous le dernier bloc : le tableau des exercices, et rien d'autre. Les
+      // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
+      // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
+      // posent après, depuis main.ts : ils demandent la maille entière.
+      `<div class="fiche__essentiel">${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}${rendreExercices(
+        exercices({
+          cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
+          series: territoire.series ?? {},
+          catalogue: options.indicateurs,
+        }),
+      )}<div class="fiche__situation" id="fiche-situation"></div></div>`
     }
   `;
 }

@@ -2269,7 +2269,7 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    le plus cher. `white-space: nowrap` le garantit plutôt que de l'espérer. */
 /* Quatre de front là où la place le permet, deux par deux dans la barre
    latérale. Le nombre de colonnes était fixé à quatre et ne cédait qu'à
-   40rem de **fenêtre** : dans une colonne de 28rem sur un écran de 1440, les
+   40rem de **fenêtre** : dans la barre latérale sur un écran de 1440, les
    quatre repères tenaient toujours, et « Ce qu'elle encaisse » s'affichait
    « Ce qu'elle e… ». C'est la place réelle qui décide, pas la fenêtre. */
 .reperes {
@@ -2347,6 +2347,103 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-weight: 600;
   color: var(--encre);
 }
+/* ---------------------------------------------------------------------------
+   Sous le dernier bloc : le tableau des exercices, puis les rangs.
+
+   Ce sont des blocs de lecture comme les quatre autres — même filet, même
+   titre en Spectral. Ce ne sont pas des annexes, et rien ne les range derrière
+   un pli : ils répondent à deux questions que les blocs laissent ouvertes,
+   « qu'est-ce qui s'est passé entre 2019 et aujourd'hui » et « est-ce que
+   c'est beaucoup ».
+   ------------------------------------------------------------------------ */
+.tableau-exercices {
+  overflow-x: auto;
+}
+.tableau-exercices table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: var(--texte-s);
+  font-variant-numeric: tabular-nums;
+}
+.tableau-exercices caption {
+  caption-side: bottom;
+  margin-top: var(--espace-4);
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  text-align: left;
+}
+.tableau-exercices th,
+.tableau-exercices td {
+  padding: var(--espace-2) var(--espace-4);
+  text-align: right;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--trait);
+}
+.tableau-exercices thead th {
+  color: var(--encre-douce);
+  font-weight: 600;
+  font-size: var(--texte-xs);
+}
+/* L'intitulé de la ligne porte : c'est par lui qu'on retrouve le poste dont
+   parle le bloc, quatre lignes plus haut. */
+.tableau-exercices tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--encre);
+  white-space: normal;
+  padding-left: 0;
+}
+.tableau-exercices td:last-child,
+.tableau-exercices thead th:last-child {
+  padding-right: 0;
+  color: var(--encre);
+  font-weight: 600;
+}
+
+/* Les rangs : un par ligne, le nombre en Spectral, le dénombrement dessous. */
+.situation {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.situation li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0 var(--espace-4);
+  align-items: baseline;
+  padding: var(--espace-3) 0;
+  border-bottom: 1px solid var(--trait);
+}
+.situation__quoi {
+  font-size: var(--texte-m);
+  color: var(--encre);
+}
+.situation__rang {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* L'exposant de l'ordinal : « 412e », pas « 412e ». Il prend le cran le plus
+   bas de l'échelle plutôt qu'un `em` en dur — la feuille n'a pas de taille
+   hors échelle. */
+.situation__rang sup {
+  font-size: var(--texte-xs);
+  vertical-align: super;
+  line-height: 0;
+}
+.situation__sur {
+  grid-column: 1 / -1;
+  font-style: normal;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.situation__legende {
+  margin: var(--espace-4) 0 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
 /* Le terme comptable est sous le curseur, pas dans la phrase : le pointillé le
    signale sans couper la lecture. */
 .bloc-lecture abbr[title] {
@@ -4890,7 +4987,7 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 body[data-carte="oui"] .vue--territoire .atelier {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 28rem);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 34rem);
   gap: var(--espace-7);
   align-items: start;
   position: static;

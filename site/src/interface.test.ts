@@ -491,7 +491,7 @@ test("la carte est à gauche, la fiche en barre latérale à droite", () => {
   // Empilées, la carte poussait la fiche sous la ligne de flottaison : on
   // ouvrait un territoire pour lire un texte qui commençait hors écran.
   const bloc = CSS.slice(CSS.indexOf('body[data-carte="oui"] .vue--territoire .atelier'));
-  assert.match(bloc, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 28rem\);/);
+  assert.match(bloc, /grid-template-columns: minmax\(0, 1fr\) minmax\(0, 34rem\);/);
   // La carte est collante : la fiche est plus haute qu'elle, et une carte qui
   // sort de l'écran au troisième bloc ne sert plus à rien.
   assert.match(bloc, /body\[data-carte="oui"\] \.atelier__carte \{\n\s*position: sticky;/);
@@ -543,7 +543,7 @@ test("le pied de page est retiré", () => {
 });
 
 test("les repères se rangent sur la place réelle, pas sur la fenêtre", () => {
-  // Quatre colonnes fixes dans une barre de 28rem : « Ce qu'elle encaisse »
+  // Quatre colonnes fixes dans une barre latérale : « Ce qu'elle encaisse »
   // s'affichait « Ce qu'elle e… » sur un écran de 1 440 px.
   assert.match(CSS, /\.reperes \{\n\s*display: grid;\n\s*grid-template-columns: repeat\(auto-fit, minmax\(9\.5rem, 1fr\)\);/);
 });

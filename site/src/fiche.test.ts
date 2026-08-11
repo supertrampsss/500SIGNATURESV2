@@ -201,7 +201,10 @@ test("la fiche ne montre plus une seule liste d'indicateurs", () => {
   }
 });
 
-test("la fiche s'arrête au dernier bloc", () => {
+test("la fiche s'arrête au tableau des exercices", () => {
+  // Sous « Ce que ça a payé » : le tableau des exercices publiés, puis le
+  // conteneur des rangs, que main.ts remplit quand la maille entière est là.
+  // Rien d'autre — ni faits, ni pont, ni feuille d'impôts, ni liste.
   const html = ficheDeBordeaux();
   const sections = [...html.matchAll(/class="([a-z-]+)"/g)]
     .map((m) => m[1])
@@ -209,10 +212,14 @@ test("la fiche s'arrête au dernier bloc", () => {
   for (const classe of sections) {
     assert.ok(
       ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants",
-       "fiche__essentiel", "fiche__parent"].includes(classe),
+       "fiche__essentiel", "fiche__parent", "fiche__situation",
+       "tableau-exercices"].includes(classe),
       `section inattendue : ${classe}`,
     );
   }
+  // Le conteneur des rangs est vide tant que main.ts ne l'a pas rempli : la
+  // fiche ne dit jamais ce qu'elle est en train de calculer.
+  assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);
 });
 
 test("aucun tiret cadratin ni demi-cadratin dans la fiche produite", () => {

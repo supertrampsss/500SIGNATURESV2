@@ -53,6 +53,7 @@ import {
   MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
 } from "./mailles.ts";
 import { ouvrirRepertoire, populationsDuRepertoire, type Repertoire } from "./repertoire.ts";
+import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
@@ -969,6 +970,99 @@ async function montrerFiche(code: string): Promise<void> {
   majEtatTiroir();
   injecterActionsFiche();
   appliquerVitesse();
+  void poserSituation(code, niveau);
+}
+
+/**
+ * « Où ça se situe » : le rang du territoire dans sa maille.
+ *
+ * Posé après la fiche, et pas dedans : un rang demande les valeurs de **tous**
+ * les territoires de la maille, soit quatre couches de carte et l'index des
+ * dénominateurs. Faire attendre la fiche pour cela reviendrait à retarder les
+ * quatre blocs pour trois lignes.
+ *
+ * Le code de la fiche est passé en argument et revérifié à l'arrivée : entre la
+ * demande et la réponse, le lecteur a pu ouvrir un autre territoire, et poser
+ * le rang de l'ancien sous la fiche du nouveau serait pire que ne rien poser.
+ */
+/** Les mailles où un rang a un sens : la France n'a personne à qui se comparer,
+ *  et un arrondissement municipal n'a pas de couche à lui. */
+const MAILLES_CLASSEES = new Set(["commune", "departement", "region"]);
+
+/** Le dernier exercice que la maille publie sur les comptes OFGL. Lu au
+ *  catalogue, comme partout : l'historique communal est plus court que celui
+ *  des régions, et viser une année sans couche mènerait à un fichier absent. */
+function dernierExerciceOfgl(niveau: string): string | undefined {
+  const comptes = catalogue.find((i) => i.id === "ofgl_depenses_fonctionnement");
+  const annees = comptes?.periodes_par_niveau?.[niveau] ?? comptes?.periodes ?? [];
+  return [...annees].sort().pop();
+}
+
+const CLASSEMENTS: { id: string; libelle: string; sens: string; parHabitant: boolean }[] = [
+  {
+    id: "ofgl_depenses_fonctionnement",
+    libelle: "Dépenses de fonctionnement par habitant",
+    sens: "de la plus élevée à la plus faible",
+    parHabitant: true,
+  },
+  {
+    id: "ofgl_recettes_fonctionnement",
+    libelle: "Recettes de fonctionnement par habitant",
+    sens: "de la plus élevée à la plus faible",
+    parHabitant: true,
+  },
+  {
+    id: "ofgl_encours_dette",
+    libelle: "Encours de dette par habitant",
+    sens: "du plus élevé au plus faible",
+    parHabitant: true,
+  },
+];
+
+async function poserSituation(code: string, niveau: string): Promise<void> {
+  const cible = document.getElementById("fiche-situation");
+  if (!cible || !MAILLES_CLASSEES.has(niveau)) return;
+  const exercice = dernierExerciceOfgl(niveau);
+  if (!exercice) return;
+  try {
+    const [index, ...couches] = await Promise.all([
+      donnees.indexTerritoires(niveau),
+      ...CLASSEMENTS.map((c) => donnees.valeursCarte(c.id, niveau, exercice)),
+      donnees.valeursCarte("ofgl_epargne_brute", niveau, exercice),
+    ]);
+    if (etat.selection !== code || document.getElementById("fiche-situation") !== cible) return;
+    const habitants = populationsDuRepertoire(index, exercice);
+    const dette = couches[CLASSEMENTS.length - 1];
+    const epargne = couches[CLASSEMENTS.length];
+    const criteres = CLASSEMENTS.map((c, rang) => ({
+      libelle: c.libelle,
+      sens: c.sens,
+      valeur: (t: string) => {
+        const brut = couches[rang][t];
+        if (brut === undefined) return null;
+        if (!c.parHabitant) return brut;
+        return habitants[t] ? brut / habitants[t] : null;
+      },
+    }));
+    // La capacité de désendettement se calcule, elle n'est pas publiée en
+    // couche : la dette sur l'épargne, et rien quand l'épargne est nulle ou
+    // négative — ce n'est pas un remboursement infiniment long, c'est un
+    // remboursement impossible à ce rythme (`derives.ts`).
+    criteres.push({
+      libelle: "Capacité de désendettement",
+      sens: "de la plus longue à la plus courte",
+      valeur: (t: string) =>
+        dette[t] !== undefined && epargne[t] > 0 ? dette[t] / epargne[t] : null,
+    });
+    cible.innerHTML = rendreSituation(
+      situation({ code, codes: index.codes, criteres }),
+      niveau,
+      exercice,
+    );
+  } catch {
+    // Une couche manque à cette maille ou à cet exercice : la fiche s'arrête au
+    // tableau des exercices, sans dire ce qu'elle n'a pas pu calculer.
+  }
 }
 
 /**
