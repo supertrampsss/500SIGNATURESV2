@@ -548,12 +548,15 @@ test("les repères se rangent sur la place réelle, pas sur la fenêtre", () => 
   assert.match(CSS, /\.reperes \{\n\s*display: grid;\n\s*grid-template-columns: repeat\(auto-fit, minmax\(9\.5rem, 1fr\)\);/);
 });
 
-test("les réglages d'un budget lui restent quand on va voir un autre budget", () => {
-  // Quinze lignes réglées sur l'État, on va voir la Sécu, on revient : tout
-  // était perdu, sans un mot.
-  assert.match(MAIN, /const reglagesParBudget = new Map<string, string>\(\);/);
-  assert.match(MAIN, /if \(budgetAffiche\) reglagesParBudget\.set\(budgetAffiche, etat\.budget\);/);
-  assert.match(MAIN, /etat\.budget = reglagesParBudget\.get\(cle\) \?\? "";/);
+test("les réglages ne se perdent plus : tous les budgets sont sur la même page", () => {
+  // On changeait de budget par une barre de pastilles, et le changement
+  // effaçait tout. Il n'y a plus de barre : les budgets se suivent en sections
+  // sur une seule page, et un geste posé sur l'un n'efface rien chez l'autre —
+  // chaque volet garde sa propre table de réglages.
+  assert.doesNotMatch(MAIN, /reglagesParBudget|budgetAffiche/);
+  const atelier = readFileSync(new URL("./atelier.ts", import.meta.url), "utf8");
+  assert.match(atelier, /budgets: Map<string, Reglages>;/);
+  assert.match(atelier, /baremes: Map<string, Taux>;/);
 });
 
 test("l'infobulle met une ligne par lecture", () => {

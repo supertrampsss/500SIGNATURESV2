@@ -35,9 +35,9 @@ import {
 } from "./simulateur.ts";
 import {
   perimetre,
-  rendu,
   renduObjectif,
   renduRecettes,
+  renduCorpsVolet,
   repere,
   titre,
 } from "./simulateur-rendu.ts";
@@ -177,8 +177,8 @@ test("la note de l'ONDAM dit qu'il ne s'ajoute pas, une fois", () => {
 test("le bloc de l'objectif n'existe que si le budget en porte un", () => {
   // L'ONDAM a son bloc, son total et son écart à lui : le régler ne déplace
   // pas le solde, et c'est ce que la séparation rend visible.
-  assert.match(rendu(SECU, INDEX, new Map()), /id="simu-vue-objectif"/);
-  assert.doesNotMatch(rendu(SECU, INDEX, new Map()), /data-onglet=/);
+  assert.match(renduObjectif(SECU, INDEX, new Map()), /ONDAM 2026/);
+  assert.doesNotMatch(renduObjectif(SECU, INDEX, new Map()), /data-onglet=/);
 });
 
 /* ------------------------------------------------------- cadrage et défis */
@@ -215,21 +215,13 @@ test("le total d'un groupe de recettes suit les réglages de ses lignes", () => 
   assert.match(html, /165\s898/);
 });
 
-test("les trois blocs se suivent sur une seule page quand l'objectif existe", () => {
-  const html = rendu(SECU, INDEX, new Map());
-  for (const id of ["simu-vue-depenses", "simu-vue-recettes", "simu-vue-objectif"]) {
-    assert.ok(html.includes(id), id);
-  }
+test("les trois côtés se suivent dans la section, l'objectif en dernier", () => {
+  const volet = { genre: "budget" as const, cle: "secu", nom: "Sécurité sociale", budget: SECU, index: INDEX };
+  const html = renduCorpsVolet(volet, { budgets: new Map(), baremes: new Map() });
   // Dans cet ordre, et sans qu'aucun soit masqué : on ne peut pas équilibrer
   // un budget en voyant une moitié à la fois.
-  assert.ok(html.indexOf("simu-vue-depenses") < html.indexOf("simu-vue-recettes"));
-  assert.ok(html.indexOf("simu-vue-recettes") < html.indexOf("simu-vue-objectif"));
-});
-
-test("la dette ne se projette pas sur le budget de la Sécurité sociale", () => {
-  // Sa dette est portée par la CADES, sur un autre encours : lui appliquer le
-  // taux apparent de l'État donnerait un chiffre juste au mauvais périmètre.
-  assert.doesNotMatch(rendu(SECU, INDEX, new Map()), /id="simu-vue-trajectoire"/);
+  assert.ok(html.indexOf("Ce qu'il dépense") < html.indexOf("Ce qu'il encaisse"));
+  assert.ok(html.indexOf("Ce qu'il encaisse") < html.indexOf("ONDAM 2026"));
 });
 
 test("remonter le simulateur ne laisse pas les écouteurs du budget précédent", () => {

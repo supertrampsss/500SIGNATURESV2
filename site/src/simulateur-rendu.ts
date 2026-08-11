@@ -29,33 +29,33 @@
  */
 
 import { formater } from "./echelle.ts";
-import type { SubventionsProgramme } from "./donnees.ts";
 import {
-  trajectoire,
-  lecture as lectureTrajectoire,
-  HORIZON_MAXIMUM,
-  HORIZON_PAR_DEFAUT,
-  type Depart,
-} from "./trajectoire.ts";
+  chercher as chercherAtelier,
+  encoder,
+  contribution,
+  effort,
+  gestes,
+  plan,
+  reglagesDe,
+  tauxDe,
+  transferts,
+  type EtatAtelier,
+  type LigneAtelier,
+  type TrouveAtelier,
+  type Volet,
+} from "./atelier.ts";
+import { renduTranches } from "./bareme-rendu.ts";
+import { rendement as rendementBareme, regler as reglerTaux } from "./bareme.ts";
 
-/** Les bénéficiaires nommés, posés une fois par `afficherSimulateur`. Le dépli
- *  d'une branche rend des lignes bien après le premier rendu : leur passer le
- *  fichier de main en main traverserait six signatures pour un fichier qui ne
- *  change jamais pendant la vie de la page. */
-let subventionsPubliees: SubventionsProgramme | null = null;
 import { echapper } from "./texte.ts";
 import {
-  chercher,
   defis,
-  ecartAuReel,
   ecartObjectif,
-  encoder,
+  regler,
   equivalence,
   impact,
   montantEffectif,
-  plan,
   programmes,
-  regler,
   totalObjectif,
   totaux,
   PREFIXE_RECETTE,
@@ -215,51 +215,7 @@ function commandes(entree: Entree, pourcentage: number): string {
  * Le conteneur d'enfants est posé vide et masqué : c'est lui qui rend le
  * dépliage à la demande possible sans que l'appelant ait à connaître l'arbre.
  */
-/**
- * Qui touche les subventions d'un programme.
- *
- * Un tiroir, jamais une décomposition : les versements nominatifs déclarés ne
- * redonnent pas les crédits du programme — le jaune budgétaire ne les couvre pas
- * tous, et un programme finance bien autre chose que des associations. Le
- * résumé dit donc ce qui est déclaré et combien de bénéficiaires, sans jamais
- * en tirer une part du programme.
- */
-export function renduBeneficiaires(
-  code: string,
-  subventions: SubventionsProgramme | null,
-): string {
-  const p = subventions?.programmes?.[code];
-  if (!p || !p.beneficiaires.length) return "";
-  const montres = p.beneficiaires.length;
-  const reste = p.beneficiaires_total - montres;
-  return `<details class="simu__beneficiaires" data-beneficiaires="${echapper(code)}">
-    <summary>Qui touche ces subventions ?<span class="simu__beneficiaires-compte">${
-      p.beneficiaires_total
-    } bénéficiaires nommés, ${euros(p.declare)} déclarés en ${echapper(subventions.exercice)}
-    </span></summary>
-    <p class="simu__beneficiaires-note">Subventions aux associations déclarées au jaune
-      budgétaire, à l'adresse du siège du bénéficiaire. Elles ne sont pas la décomposition
-      du programme : elles n'en couvrent qu'une partie, et ce programme finance aussi
-      autre chose.</p>
-    <ol class="simu__beneficiaires-liste">${p.beneficiaires
-      .map(
-        (b) => `<li><span class="simu__beneficiaire-nom">${echapper(b.nom)}</span>${
-          b.objet ? `<span class="simu__beneficiaire-objet">${echapper(b.objet)}</span>` : ""
-        }<span class="nombre">${euros(b.montant)}</span></li>`,
-      )
-      .join("")}</ol>${
-    reste > 0
-      ? `<p class="simu__beneficiaires-note">Les ${montres} plus gros sont montrés ;
-         ${reste} autres bénéficiaires ne le sont pas.</p>`
-      : ""
-  }</details>`;
-}
-
-export function renduLigne(
-  entree: Entree,
-  reglages: Reglages,
-  subventions: SubventionsProgramme | null = subventionsPubliees,
-): string {
+export function renduLigne(entree: Entree, reglages: Reglages): string {
   const code = echapper(entree.code);
   const pourcentage = reglages.get(entree.code) ?? 0;
   const { montant, delta, surSolde } = impact(entree, reglages);
@@ -288,9 +244,7 @@ export function renduLigne(
     <span class="simu__delta nombre${classeEcart(surSolde)}">${
       delta === 0 ? "" : eurosSigne(delta)
     }</span>
-  </div>${renduBeneficiaires(entree.code, subventions)}${
-    enfants ? `<div class="simu__enfants" data-enfants="${code}" hidden></div>` : ""
-  }`;
+  </div>${enfants ? `<div class="simu__enfants" data-enfants="${code}" hidden></div>` : ""}`;
 }
 
 /** Les missions, et rien d'autre : le reste arrive au premier dépli. */
@@ -431,43 +385,21 @@ export function renduPlan(
     .join("");
 }
 
-/* --------------------------------------------------------------------------
- * La barre de solde, les raccourcis, la trajectoire
- * ----------------------------------------------------------------------- */
-
-/**
- * La barre de solde : quatre nombres sur une ligne, toujours à l'écran.
- *
- * Le cockpit posait quatre cartes en haut de page. Dès qu'on descendait d'un
- * cran dans l'arbre, elles sortaient de l'écran : on réglait à l'aveugle,
- * donc au hasard. La barre est collante — en haut sur grand écran, **en bas
- * sur téléphone**, dans la zone du pouce, là où l'on regarde déjà.
- *
- * Le solde y est écrit deux fois quand il a bougé : le voté, puis le vôtre.
- * Un seul nombre ne dit pas ce qu'on vient de changer.
- */
-export function renduBarreSolde(budget: Budget, index: Index, reglages: Reglages): string {
-  const t = totaux(budget, reglages);
-  const ecart = ecartAuReel(budget, reglages);
-  const vote = t.solde - ecart;
-  return `<div class="simu__solde">
-      <span class="simu__solde-quoi">Solde</span>
-      ${
-        ecart === 0
-          ? `<b class="simu__solde-val nombre">${euros(t.solde)}</b>`
-          : `<span class="simu__solde-avant nombre">${euros(vote)}</span>
-             <span class="simu__solde-fleche" aria-hidden="true">→</span>
-             <b class="simu__solde-val nombre">${euros(t.solde)}</b>`
-      }
-    </div>
-    <dl class="simu__solde-detail">
-      <div><dt>Dépenses</dt><dd class="nombre">${euros(t.depenses)}</dd></div>
-      <div><dt>Recettes</dt><dd class="nombre">${euros(t.recettes)}</dd></div>
-      <div><dt>Écart</dt><dd class="nombre${classeEcart(ecart)}">${
-        ecart === 0 ? "aucun geste" : eurosSigne(ecart)
-      }</dd></div>
-    </dl>`;
+export function renduSuggestions(resultats: Entree[]): string {
+  return resultats
+    .map(
+      (entree) => `<li><button type="button" class="simu__vise" data-vise="${echapper(
+        entree.code,
+      )}">
+        <span class="simu__plan-lib">${echapper(entree.libelle)}</span>
+        <span class="simu__plan-chemin">${echapper(
+          entree.chemin || (entree.cote === "recette" ? "Recettes" : "Mission"),
+        )} · ${euros(entree.signe * entree.base)}</span>
+      </button></li>`,
+    )
+    .join("");
 }
+
 
 /**
  * Les raccourcis vers ce qu'on vient chercher.
@@ -533,106 +465,128 @@ export function renduRaccourcis(index: Index): string {
   </nav>`;
 }
 
+
 /* --------------------------------------------------------------------------
- * La dette, année après année
+ * L'atelier : tous les budgets sur une page
  * ----------------------------------------------------------------------- */
 
-/** « 1,8 % ». */
-function pourcentage(valeur: number): string {
-  return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(valeur)}\u202f%`;
+/** Les raccourcis, tous volets confondus : chaque code est cherché là où il
+ *  existe, et un code qu'aucun volet ne porte ne fait pas de bouton mort. */
+export function renduRaccourcisAtelier(volets: readonly Volet[]): string {
+  const trouves = RACCOURCIS.flatMap((r) => {
+    const volet = volets.find((v) => v.genre === "budget" && v.index.has(r.code));
+    return volet ? [{ ...r, volet: volet.cle }] : [];
+  });
+  if (trouves.length < 2) return "";
+  return `<nav class="simu__raccourcis" aria-label="Aller à un poste">
+    <span class="simu__raccourcis-quoi">Aller à</span>
+    ${trouves
+      .map((r) => {
+        const reserve = RESERVE_RACCOURCIS[r.code];
+        return `<button type="button" class="simu__raccourci" data-volet="${echapper(
+          r.volet,
+        )}" data-vise="${echapper(r.code)}"${
+          reserve ? ` title="${echapper(reserve)}"` : ""
+        }>${echapper(r.nom)}</button>`;
+      })
+      .join("")}
+  </nav>`;
 }
 
 /**
- * Le solde **hors charge de la dette** : la seule part que le lecteur décide.
+ * **Votre effort**, et rien qui ressemble à un solde public.
  *
- * Les intérêts ne se règlent pas, ils suivent l'encours — c'est tout l'objet de
- * la projection, qui les recalcule chaque année. Les laisser dans le solde
- * primaire les compterait deux fois.
+ * La barre additionne des écarts, jamais des budgets : le budget général de
+ * l'État et les régimes de base ne font pas leur somme, parce que des dizaines
+ * de milliards circulent entre eux et que chacun les compte de son côté. Chaque
+ * budget garde donc son propre solde, dans l'en-tête de sa section ; ici on ne
+ * lit que ce que le lecteur a changé.
  */
-export function soldePrimaire(budget: Budget, index: Index, reglages: Reglages, codeCharge: string): number {
-  const charge = index.get(codeCharge);
-  const interets = charge ? montantEffectif(charge, reglages) : 0;
-  return totaux(budget, reglages).solde + interets;
-}
-
-/** Le programme qui porte la charge de la dette de l'État. */
-export const CODE_CHARGE_DETTE = "117";
-
-export type Projection = { depart: Depart; taux: number; horizon: number };
-
-/**
- * « Et après ? » — la seule partie de la page qui ne soit pas de l'arithmétique
- * sur des chiffres publiés, et elle le dit.
- *
- * Trois nombres publiés entrent : l'encours de la dette de l'État, la charge de
- * cette dette, et le solde primaire tel que les réglages le laissent. Deux
- * hypothèses sortent du lecteur : le taux, et l'horizon. Elles sont **au-dessus
- * du résultat**, réglables, jamais enterrées dans le calcul.
- */
-export function renduTrajectoire(
-  budget: Budget,
-  index: Index,
-  reglages: Reglages,
-  projection: Projection,
-): string {
-  const { depart, taux, horizon } = projection;
-  const primaire = soldePrimaire(budget, index, reglages, CODE_CHARGE_DETTE);
-  const t = trajectoire(depart, primaire, { taux, horizon });
-  const derniere = t.annees[t.annees.length - 1];
-  const maximum = Math.max(...t.annees.map((a) => a.dette), depart.encours);
-  return `<div class="simu__hypotheses">
-      <label>Taux d'intérêt
-        <span class="simu__champ"><input type="text" inputmode="decimal" id="simu-taux"
-          class="nombre" value="${new Intl.NumberFormat("fr-FR", {
-            maximumFractionDigits: 2,
-          }).format(taux)}" /><span class="simu__unite" aria-hidden="true">%</span></span>
-      </label>
-      <label>Horizon
-        <span class="simu__champ"><input type="text" inputmode="numeric" id="simu-horizon"
-          class="nombre" value="${horizon}" /><span class="simu__unite" aria-hidden="true">ans</span></span>
-      </label>
-      <p class="simu__hypotheses-note">Taux apparent publié : ${pourcentage(
-        t.tauxApparent,
-      )}, soit la charge de ${euros(depart.charge)} de ${echapper(
-        depart.chargeExercice,
-      )} rapportée à l'encours de ${euros(depart.encours)} de ${echapper(
-        depart.encoursExercice,
-      )}. Ce n'est pas le taux auquel l'État emprunterait demain.</p>
+export function renduEffort(volets: readonly Volet[], etat: EtatAtelier): string {
+  const total = effort(volets, etat);
+  const nombre = gestes(volets, etat);
+  const touches = volets.filter((v) => contribution(v, etat) !== 0);
+  // Le signe seul ne dit pas de quel côté on va : « +3 105 M€ » se lit aussi
+  // bien « j'ai dépensé 3 105 M€ de plus ». La phrase le dit, le signe le compte.
+  const sens =
+    nombre === 0
+      ? "Réglez une ligne, dans n'importe quel budget."
+      : total === 0
+        ? "Vos gestes s'annulent."
+        : `Autant de ${total > 0 ? "gagné" : "perdu"}<span class="simu__effort-ou"> ${
+            touches.length > 1 ? "dans les budgets réglés" : "dans le budget réglé"
+          }</span>.`;
+  return `<div class="simu__effort">
+      <span class="simu__effort-quoi">Votre effort, tous budgets</span>
+      <b class="simu__effort-val nombre${classeEcart(total)}">${
+        nombre === 0 ? "aucun geste" : eurosSigne(total)
+      }</b>
     </div>
-    <p class="simu__verdict">${echapper(lectureTrajectoire(t, horizon))}</p>
-    <dl class="simu__compteurs">
-      ${compteur("Solde hors intérêts", eurosSigne(primaire), classeEcart(primaire))}
-      ${compteur(
-        `Intérêts, année ${derniere.rang}`,
-        euros(derniere.interets),
-      )}
-      ${compteur(`Dette, année ${derniere.rang}`, euros(derniere.dette))}
-    </dl>
-    <ol class="simu__annees">${t.annees
-      .map(
-        (a) => `<li>
-          <span class="simu__annee-rang">an ${a.rang}</span>
-          <span class="simu__annee-barre"><i style="width:${
-            maximum ? Math.round((a.dette / maximum) * 100) : 0
-          }%"></i></span>
-          <span class="simu__annee-dette nombre">${euros(a.dette)}</span>
-          <span class="simu__annee-interets nombre">dont ${euros(a.interets)} d'intérêts</span>
-        </li>`,
-      )
-      .join("")}</ol>
-    <p class="simu__note">Aucune croissance, aucune inflation, aucun comportement : le solde
-      hors intérêts est reconduit à l'identique chaque année. L'encours est celui de l'État,
-      pas la dette publique toutes administrations.</p>`;
+    <p class="simu__effort-detail">
+      <span class="simu__effort-sens">${sens}</span>${
+        nombre === 0
+          ? ""
+          : `<span class="simu__effort-nb">${nombre} ${
+              nombre > 1 ? "gestes" : "geste"
+            }</span><span class="simu__effort-par">${touches
+              .map((v) => `${echapper(v.nom)} ${eurosSigne(contribution(v, etat))}`)
+              .join(" · ")}</span>`
+      }
+    </p>
+    <div class="simu__effort-actions">
+      <button type="button" class="simu__copier" id="simu-copier">Copier le lien</button>
+      <button type="button" class="simu__creux" id="simu-raz"${
+        nombre === 0 ? " hidden" : ""
+      }>Tout remettre à zéro</button>
+    </div>`;
 }
 
-export function renduSuggestions(resultats: Entree[]): string {
+/** L'avertissement de double compte, et seulement quand il mord. */
+export function renduTransferts(volets: readonly Volet[], etat: EtatAtelier): string {
+  const lignes = transferts(volets, etat);
+  if (!lignes.length) return "";
+  return `<p class="simu__transfert">${lignes
+    .map(
+      (t) =>
+        `« ${echapper(t.libelle)} » est une recette de ${echapper(
+          t.dit,
+        )} : le geste améliore un solde sans dégrader l'autre tant que la ligne d'en face n'est pas réglée.`,
+    )
+    .join(" ")}</p>`;
+}
+
+/** Le plan, tous volets confondus. Chaque ligne dit dans quel budget elle est. */
+export function renduPlanAtelier(lignes: readonly LigneAtelier[]): string {
+  return lignes
+    .map(
+      ({ entree, pourcentage, delta, surSolde, volet }) => `<li class="simu__plan-ligne">
+        <button type="button" class="simu__vise" data-volet="${echapper(
+          volet.cle,
+        )}" data-vise="${echapper(entree.code)}">
+          <span class="simu__plan-lib">${echapper(entree.libelle)} à ${
+            pourcentage > 0 ? "+" : "−"
+          }${Math.abs(pourcentage)} %</span>
+          <span class="simu__plan-chemin"><b>${echapper(volet.nom)}</b> · ${echapper(
+            entree.chemin || (entree.cote === "recette" ? "Recettes" : "Mission"),
+          )}</span>
+        </button>
+        <span class="simu__plan-delta nombre${classeEcart(surSolde)}">${eurosSigne(
+          delta,
+        )}</span>
+      </li>`,
+    )
+    .join("");
+}
+
+/** Les suggestions de recherche, qui traversent les budgets. */
+export function renduSuggestionsAtelier(resultats: readonly TrouveAtelier[]): string {
   return resultats
     .map(
-      (entree) => `<li><button type="button" class="simu__vise" data-vise="${echapper(
-        entree.code,
-      )}">
+      ({ entree, volet }) => `<li><button type="button" class="simu__vise" data-volet="${echapper(
+        volet.cle,
+      )}" data-vise="${echapper(entree.code)}">
         <span class="simu__plan-lib">${echapper(entree.libelle)}</span>
-        <span class="simu__plan-chemin">${echapper(
+        <span class="simu__plan-chemin"><b>${echapper(volet.nom)}</b> · ${echapper(
           entree.chemin || (entree.cote === "recette" ? "Recettes" : "Mission"),
         )} · ${euros(entree.signe * entree.base)}</span>
       </button></li>`,
@@ -640,193 +594,184 @@ export function renduSuggestions(resultats: Entree[]): string {
     .join("");
 }
 
-/* --------------------------------------------------------------------------
- * La page
- * ----------------------------------------------------------------------- */
+/** L'en-tête d'une section : ce que ce budget vote, et ce que vous en faites. */
+export function renduEnteteVolet(volet: Volet, etat: EtatAtelier): string {
+  const ecart = contribution(volet, etat);
+  if (volet.genre === "bareme") {
+    const rendu = rendementBareme(volet.bareme, tauxDe(etat, volet));
+    return `<span class="simu__volet-solde">
+        <span class="simu__volet-quoi">Rendement</span>
+        <b class="nombre">${euros(rendu)}</b>
+        ${
+          ecart === 0
+            ? ""
+            : `<span class="simu__volet-ecart nombre${classeEcart(
+                ecart,
+              )}">${eurosSigne(ecart)}</span>`
+        }
+      </span>`;
+  }
+  const t = totaux(volet.budget, reglagesDe(etat, volet));
+  return `<span class="simu__volet-solde">
+      <span class="simu__volet-quoi">Solde</span>
+      ${
+        ecart === 0
+          ? `<b class="nombre">${euros(t.solde)}</b>`
+          : `<span class="simu__volet-avant nombre">${euros(
+              t.solde - ecart,
+            )}</span><span aria-hidden="true"> → </span><b class="nombre">${euros(
+              t.solde,
+            )}</b>`
+      }
+    </span>`;
+}
 
 /**
- * Le squelette, monté une fois. Les zones qui bougent portent un identifiant :
- * un réglage réécrit la barre, le plan et la trajectoire, jamais l'arbre déjà
- * déplié.
+ * Les défis d'un budget, et ce à quoi son écart ressemble.
  *
- * L'ORDRE EST LE PRODUIT, et il a changé.
- *
- * 1. **La barre de solde**, collante, toujours visible.
- * 2. **Votre plan**, avant l'arbre : c'est le résultat, l'arbre est l'outil de
- *    saisie. On ouvrait sur mille lignes de nomenclature ; on ouvre maintenant
- *    sur ce qu'on a décidé, et le plan n'existe pas tant qu'on n'a rien décidé.
- * 3. **La recherche**, en grand : pour régler l'aide au logement, il fallait
- *    deviner qu'elle est rangée sous « Cohésion des territoires ».
- * 4. **Les raccourcis** vers les postes dont on débat.
- * 5. **Les dépenses, puis les recettes**, à la suite. Plus d'onglets.
- * 6. **La dette, année après année**, quand le budget en porte la charge.
+ * Ils ne s'écrivent qu'une fois le budget touché : dix sections qui affichent
+ * chacune trois pastilles grises au repos, ce sont trente pastilles qui ne
+ * disent rien. Une fois qu'on a réglé, elles disent où on en est.
  */
-export function rendu(
-  budget: Budget,
-  index: Index,
-  reglages: Reglages,
-  projection?: Projection,
-): string {
-  const ecart = ecartAuReel(budget, reglages);
-  return `<header class="simu__tete">
-    <h2>${echapper(titre(budget))}</h2>
-    <p class="simu__perimetre">${echapper(perimetre(budget))}</p>
-  </header>
+export function renduJalons(volet: Volet, etat: EtatAtelier): string {
+  const ecart = contribution(volet, etat);
+  if (volet.genre !== "budget" || ecart === 0) return "";
+  const reglages = reglagesDe(etat, volet);
+  const mot = repere(volet.budget);
+  return `<ul class="simu__defis">${renduDefis(
+    defis(volet.index, reglages, ecart, totaux(volet.budget, reglages).solde),
+  )}</ul>
+    <p class="simu__equivalence">${renduEquivalence(volet.index, ecart, mot)}</p>`;
+}
 
-  <div class="simu__barre-solde" id="simu-solde" aria-live="polite">${renduBarreSolde(
-    budget,
-    index,
-    reglages,
+/** Le corps d'une section : l'arbre du budget, ou les tranches du barème. */
+export function renduCorpsVolet(volet: Volet, etat: EtatAtelier): string {
+  if (volet.genre === "bareme") {
+    return `<p class="simu__note">${echapper(volet.bareme.note)}</p>
+      <div class="simu__arbre">${renduTranches(volet.bareme, tauxDe(etat, volet))}</div>`;
+  }
+  const reglages = reglagesDe(etat, volet);
+  const t = totaux(volet.budget, reglages);
+  return `<div class="simu__cote">
+      <h4 class="simu__cote-titre">Ce qu'il dépense<span class="nombre">${euros(
+        t.depenses,
+      )}</span></h4>
+      <div class="simu__arbre">${renduDepenses(volet.budget, volet.index, reglages)}</div>
+    </div>
+    <div class="simu__cote">
+      <h4 class="simu__cote-titre">Ce qu'il encaisse<span class="nombre">${euros(
+        t.recettes,
+      )}</span></h4>
+      <p class="simu__note">Le rendement réel d'un impôt dépend des comportements : non modélisé.</p>
+      <div class="simu__arbre">${renduRecettes(volet.budget, volet.index, reglages)}</div>
+    </div>${
+      volet.budget.objectif
+        ? `<div class="simu__cote">
+             <h4 class="simu__cote-titre">${echapper(volet.budget.objectif.t)}</h4>
+             ${renduObjectif(volet.budget, volet.index, reglages)}
+           </div>`
+        : ""
+    }`;
+}
+
+/**
+ * La page entière.
+ *
+ * Un seul écran, une seule barre, un seul plan. Les budgets se suivent, chacun
+ * dans sa section, chacun avec son solde — et aucun total ne les additionne.
+ */
+export function renduAtelier(volets: readonly Volet[], etat: EtatAtelier): string {
+  return `<div class="simu__barre-solde" id="simu-effort" aria-live="polite">${renduEffort(
+    volets,
+    etat,
   )}</div>
 
   <section class="simu__bloc simu__bloc--plan" id="simu-plan-bloc"${
-    reglages.size ? "" : " hidden"
+    gestes(volets, etat) ? "" : " hidden"
   }>
-    <h3 class="simu__bloc-titre">Votre plan<span id="simu-plan-compte">${
-      reglages.size ? `${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}` : ""
-    }</span></h3>
-    <ul class="simu__plan" id="simu-plan">${renduPlan(
-      plan(index, reglages),
-      programmes(index),
-      repere(budget),
-    )}</ul>
-    <p class="simu__equivalence" id="simu-equivalence">${renduEquivalence(
-      index,
-      ecart,
-      repere(budget),
-    )}</p>
-    <ul class="simu__defis" id="simu-defis">${renduDefis(
-      defis(index, reglages, ecart, totaux(budget, reglages).solde),
-    )}</ul>
-    <div class="simu__plan-actions">
-      <button type="button" class="simu__copier" id="simu-copier">Copier le lien de mon budget</button>
-      <button type="button" class="simu__creux" id="simu-raz">Tout remettre à zéro</button>
-    </div>
+    <h3 class="simu__bloc-titre">Votre plan</h3>
+    <ul class="simu__plan" id="simu-plan">${renduPlanAtelier(plan(volets, etat))}</ul>
+    <div id="simu-transferts">${renduTransferts(volets, etat)}</div>
   </section>
 
   <div class="simu__recherche">
-    <label for="simu-q" class="visuellement-cache">Chercher une ligne du budget</label>
+    <label for="simu-q" class="visuellement-cache">Chercher une ligne, dans tous les budgets</label>
     <input id="simu-q" type="search" autocomplete="off"
-           placeholder="Chercher : police, logement, TVA…" />
+           placeholder="Chercher dans tous les budgets : police, retraites, TVA…" />
     <ul class="simu__suggestions" id="simu-suggestions" role="listbox" hidden></ul>
   </div>
 
-  ${renduRaccourcis(index)}
+  ${renduRaccourcisAtelier(volets)}
 
-  <section class="simu__bloc" id="simu-vue-depenses">
-    <h3 class="simu__bloc-titre">Ce qu'il dépense<span class="nombre">${euros(
-      totaux(budget, reglages).depenses,
-    )}</span></h3>
-    <div class="simu__arbre" id="simu-arbre-depenses">${renduDepenses(
-      budget,
-      index,
-      reglages,
-    )}</div>
-  </section>
-
-  <section class="simu__bloc" id="simu-vue-recettes">
-    <h3 class="simu__bloc-titre">Ce qu'il encaisse<span class="nombre">${euros(
-      totaux(budget, reglages).recettes,
-    )}</span></h3>
-    <p class="simu__note">Le rendement réel d'un impôt dépend des comportements : non modélisé.</p>
-    <div class="simu__arbre" id="simu-arbre-recettes">${renduRecettes(
-      budget,
-      index,
-      reglages,
-    )}</div>
-  </section>
-
-  ${
-    budget.objectif
-      ? `<section class="simu__bloc" id="simu-vue-objectif">
-           <h3 class="simu__bloc-titre">${echapper(budget.objectif.t)}</h3>
-           ${renduObjectif(budget, index, reglages)}
-         </section>`
-      : ""
-  }
-
-  ${
-    projection
-      ? `<section class="simu__bloc simu__bloc--dette" id="simu-vue-trajectoire">
-           <h3 class="simu__bloc-titre">Et après ? La dette, année après année</h3>
-           <div id="simu-trajectoire">${renduTrajectoire(budget, index, reglages, projection)}</div>
-         </section>`
-      : ""
-  }`;
+  ${volets
+    .map(
+      (volet) => `<section class="simu__volet" data-volet="${echapper(volet.cle)}">
+        <header class="simu__volet-tete">
+          <h3>${echapper(volet.genre === "budget" ? titre(volet.budget) : volet.nom)}</h3>
+          ${renduEnteteVolet(volet, etat)}
+        </header>
+        <p class="simu__perimetre">${echapper(
+          volet.genre === "budget" ? perimetre(volet.budget) : volet.bareme.cadre,
+        )}</p>
+        <div class="simu__jalons">${renduJalons(volet, etat)}</div>
+        <div class="simu__volet-corps">${renduCorpsVolet(volet, etat)}</div>
+      </section>`,
+    )
+    .join("")}`;
 }
 
 /* --------------------------------------------------------------------------
  * Branchement
  * ----------------------------------------------------------------------- */
 
-type Options = {
-  /** L'état des réglages, déjà décodé depuis l'URL par l'appelant. */
-  reglages: Reglages;
-  /** Appelé après chaque geste, avec l'état encodé : c'est l'appelant qui
-   *  possède l'URL du site, ce module ne la touche pas. */
-  surReglages: (encode: string) => void;
-  /**
-   * De quoi projeter la dette : l'encours publié et la charge publiée.
-   *
-   * Le budget de la Sécurité sociale n'en a pas : sa dette est portée par la
-   * CADES, sur un autre encours, et lui appliquer le taux apparent de l'État
-   * donnerait un chiffre juste appliqué au mauvais périmètre. Absent, la
-   * section « Et après ? » n'existe pas.
-   */
-  depart?: Depart;
-  /** Les bénéficiaires nommés par programme. Absent des publications
-   *  antérieures : aucun tiroir ne s'ouvre. */
-  subventions?: SubventionsProgramme | null;
-};
-
 /**
  * Les écouteurs du montage précédent, s'il y en a eu un.
  *
- * Le simulateur se remonte sur le **même** élément quand le lecteur passe d'un
- * budget à l'autre. Les écouteurs posés sur cet élément-là, eux, ne partent pas
- * avec le HTML qu'on remplace : deux jeux se retrouvaient à répondre au même
- * clic. Celui du budget précédent ne connaissait plus aucun des codes affichés,
- * dépliait donc une branche vide — et celui du budget courant, voyant la
- * branche ouverte, la refermait aussitôt. Un pli sur deux ne s'ouvrait plus.
+ * L'atelier se remonte sur le **même** élément. Les écouteurs posés dessus ne
+ * partent pas avec le HTML qu'on remplace : deux jeux se retrouveraient à
+ * répondre au même clic, et un pli sur deux ne s'ouvrirait plus.
  */
 let montage: AbortController | null = null;
 
-export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Index, options: Options): void {
-  const { reglages, surReglages } = options;
-  const $ = <T extends HTMLElement>(id: string) => bloc.querySelector<T>(`#${id}`)!;
+type Options = {
+  etat: EtatAtelier;
+  /** Appelé après chaque geste, avec l'état encodé : c'est l'appelant qui
+   *  possède l'URL du site, ce module ne la touche pas. */
+  surReglages: (encode: string) => void;
+};
 
+export function afficherAtelier(
+  bloc: HTMLElement,
+  volets: readonly Volet[],
+  options: Options,
+): void {
+  const { etat, surReglages } = options;
   montage?.abort();
   montage = new AbortController();
   const { signal } = montage;
 
-  subventionsPubliees = options.subventions ?? null;
-  /** Les deux hypothèses de la projection, réglées par le lecteur, jamais
-   *  écrites dans l'URL : ce ne sont pas des gestes budgétaires, et un lien
-   *  partagé doit ouvrir le plan de son auteur, pas ses paramètres de calcul. */
-  const projection: Projection | undefined = options.depart
-    ? {
-        depart: options.depart,
-        taux: Math.round((options.depart.charge / options.depart.encours) * 10000) / 100,
-        horizon: HORIZON_PAR_DEFAUT,
-      }
-    : undefined;
-  bloc.innerHTML = rendu(budget, index, reglages, projection);
+  bloc.innerHTML = renduAtelier(volets, etat);
 
-  const elSolde = $("simu-solde");
-  const elDefis = $("simu-defis");
-  const elPlanBloc = $("simu-plan-bloc");
-  const elPlan = $("simu-plan");
+  const $ = <T extends HTMLElement>(id: string) => bloc.querySelector<T>(`#${id}`)!;
   const elQ = $<HTMLInputElement>("simu-q");
   const elSugg = $("simu-suggestions");
+  const parCle = new Map(volets.map((v) => [v.cle, v]));
 
-  const ligneDe = (code: string) =>
-    bloc.querySelector<HTMLElement>(`.simu__ligne[data-code="${CSS.escape(code)}"]`);
+  const voletDe = (el: HTMLElement | null): Volet | undefined => {
+    const cle = el?.closest<HTMLElement>("[data-volet]")?.dataset.volet;
+    return cle ? parCle.get(cle) : undefined;
+  };
+  const section = (cle: string) =>
+    bloc.querySelector<HTMLElement>(`.simu__volet[data-volet="${CSS.escape(cle)}"]`)!;
 
-  /** Les lignes déjà à l'écran, remises à jour après chaque geste. Les autres
-   *  n'existent pas encore : c'est tout l'intérêt du dépli à la demande. */
-  function majLignes(): void {
-    for (const el of bloc.querySelectorAll<HTMLElement>(".simu__ligne")) {
-      const entree = index.get(el.dataset.code ?? "");
+  /** Les lignes déjà à l'écran d'un volet, remises à jour après son geste. Les
+   *  autres volets n'ont pas bougé : les repeindre serait recalculer mille
+   *  lignes pour rien. */
+  function majLignes(volet: Volet): void {
+    if (volet.genre !== "budget") return;
+    const reglages = reglagesDe(etat, volet);
+    for (const el of section(volet.cle).querySelectorAll<HTMLElement>(".simu__ligne")) {
+      const entree = volet.index.get(el.dataset.code ?? "");
       if (!entree) continue;
       const pourcentage = reglages.get(entree.code) ?? 0;
       const { montant, delta, surSolde } = impact(entree, reglages);
@@ -835,88 +780,72 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
       cible.textContent = delta === 0 ? "" : eurosSigne(delta);
       cible.className = `simu__delta nombre${classeEcart(surSolde)}`;
       el.classList.toggle("simu__ligne--reglee", pourcentage !== 0);
-      el.querySelector<HTMLElement>(".simu__raz")!.hidden = pourcentage === 0;
+      const raz = el.querySelector<HTMLElement>(".simu__raz");
+      if (raz) raz.hidden = pourcentage === 0;
       const champ = el.querySelector<HTMLInputElement>(".simu__pct")!;
       if (document.activeElement !== champ) champ.value = String(pourcentage);
     }
   }
 
-  function majTrajectoire(): void {
-    if (!projection) return;
-    $("simu-trajectoire").innerHTML = renduTrajectoire(budget, index, reglages, projection);
+  function majVolet(volet: Volet): void {
+    const tete = section(volet.cle).querySelector(".simu__volet-solde")!;
+    tete.outerHTML = renduEnteteVolet(volet, etat);
+    section(volet.cle).querySelector(".simu__jalons")!.innerHTML = renduJalons(volet, etat);
+    if (volet.genre === "budget") {
+      const reglages = reglagesDe(etat, volet);
+      const t = totaux(volet.budget, reglages);
+      const titres = section(volet.cle).querySelectorAll(".simu__cote-titre .nombre");
+      if (titres[0]) titres[0].textContent = euros(t.depenses);
+      if (titres[1]) titres[1].textContent = euros(t.recettes);
+    }
   }
 
   function majTotaux(): void {
-    elSolde.innerHTML = renduBarreSolde(budget, index, reglages);
-    const ecart = ecartAuReel(budget, reglages);
-    elDefis.innerHTML = renduDefis(
-      defis(index, reglages, ecart, totaux(budget, reglages).solde),
-    );
-    elPlan.innerHTML = renduPlan(plan(index, reglages), programmes(index), repere(budget));
-    $("simu-equivalence").innerHTML = renduEquivalence(index, ecart, repere(budget));
-    // Le plan n'existe pas tant qu'aucune ligne n'est réglée : un bloc « Votre
-    // plan » vide au-dessus de l'arbre dirait qu'on a oublié de faire quelque
-    // chose.
-    elPlanBloc.hidden = reglages.size === 0;
-    $("simu-plan-compte").textContent = reglages.size
-      ? `${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}`
-      : "";
-    for (const [id, valeur] of [
-      ["simu-vue-depenses", totaux(budget, reglages).depenses],
-      ["simu-vue-recettes", totaux(budget, reglages).recettes],
-    ] as const) {
-      const total = bloc.querySelector(`#${id} .simu__bloc-titre .nombre`);
-      if (total) total.textContent = euros(valeur);
-    }
-    // Le compteur de l'ONDAM vit dans son bloc : la barre de solde ne le porte
-    // pas, et c'est ce qui garantit qu'un réglage d'objectif ne déplace pas le
-    // solde.
-    const compteursObjectif = bloc.querySelector("#simu-compteurs-objectif");
-    if (compteursObjectif && budget.objectif) {
-      compteursObjectif.innerHTML =
-        compteur(echapper(budget.objectif.t), euros(totalObjectif(budget, reglages))) +
-        compteur("Votre écart à l'objectif", eurosSigne(ecartObjectif(budget, reglages)));
-    }
-    majTrajectoire();
-    surReglages(encoder(reglages));
+    $("simu-effort").innerHTML = renduEffort(volets, etat);
+    $("simu-plan").innerHTML = renduPlanAtelier(plan(volets, etat));
+    $("simu-transferts").innerHTML = renduTransferts(volets, etat);
+    $("simu-plan-bloc").hidden = gestes(volets, etat) === 0;
+    surReglages(encoder(volets, etat));
   }
 
-  function appliquer(code: string, valeur: number): void {
-    regler(reglages, code, valeur);
-    majLignes();
+  function appliquer(volet: Volet, code: string, valeur: number): void {
+    if (volet.genre === "budget") regler(reglagesDe(etat, volet), code, valeur);
+    else reglerTaux(tauxDe(etat, volet), Number(code), valeur);
+    majLignes(volet);
+    majVolet(volet);
     majTotaux();
   }
 
   /** Rend les enfants au premier dépli, et seulement à ce moment-là. */
-  function deplier(code: string): void {
-    const zone = bloc.querySelector<HTMLElement>(
+  function deplier(volet: Volet, code: string): void {
+    if (volet.genre !== "budget") return;
+    const zone = section(volet.cle).querySelector<HTMLElement>(
       `.simu__enfants[data-enfants="${CSS.escape(code)}"]`,
     );
     if (!zone) return;
     if (!zone.childElementCount) {
-      const enfants = index.get(code)?.noeud.enfants ?? [];
-      zone.innerHTML = enfants
+      const reglages = reglagesDe(etat, volet);
+      zone.innerHTML = (volet.index.get(code)?.noeud.enfants ?? [])
         .flatMap((n) => {
-          const entree = index.get(n.c);
+          const entree = volet.index.get(n.c);
           return entree ? [renduLigne(entree, reglages)] : [];
         })
         .join("");
     }
     zone.hidden = false;
-    ligneDe(code)?.querySelector(".simu__pli")?.setAttribute("aria-expanded", "true");
+    section(volet.cle)
+      .querySelector(`.simu__ligne[data-code="${CSS.escape(code)}"] .simu__pli`)
+      ?.setAttribute("aria-expanded", "true");
   }
 
-  /**
-   * Aller à une ligne, d'où qu'on vienne : plan, recherche ou raccourci.
-   *
-   * Il n'y a plus de panneau à montrer d'abord — dépenses et recettes sont sur
-   * la même page. Restent le dépli des ancêtres et le défilement.
-   */
-  function viser(code: string): void {
-    const entree = index.get(code);
+  function viser(volet: Volet, code: string): void {
+    if (volet.genre !== "budget") return;
+    const entree = volet.index.get(code);
     if (!entree) return;
-    for (const ancetre of entree.ancetres) deplier(ancetre);
-    const el = ligneDe(code);
+    for (const ancetre of entree.ancetres) deplier(volet, ancetre);
+    const el = section(volet.cle).querySelector<HTMLElement>(
+      `.simu__ligne[data-code="${CSS.escape(code)}"]`,
+    );
     if (!el) return;
     el.scrollIntoView({ block: "center", behavior: "smooth" });
     el.classList.remove("simu__ligne--visee");
@@ -931,7 +860,46 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     if (vise?.dataset.vise) {
       elSugg.hidden = true;
       elQ.value = "";
-      return viser(vise.dataset.vise);
+      const volet = parCle.get(vise.dataset.volet ?? "");
+      if (volet) viser(volet, vise.dataset.vise);
+      return;
+    }
+    if (cible.closest("#simu-raz")) {
+      etat.budgets.clear();
+      etat.baremes.clear();
+      for (const volet of volets) {
+        majLignes(volet);
+        majVolet(volet);
+      }
+      // Les tranches du barème se repeignent en entier : elles n'ont pas de
+      // conteneur d'enfants où glisser une mise à jour ligne par ligne.
+      for (const volet of volets) {
+        if (volet.genre === "bareme") {
+          section(volet.cle).querySelector(".simu__arbre")!.innerHTML = renduTranches(
+            volet.bareme,
+            tauxDe(etat, volet),
+          );
+        }
+      }
+      return majTotaux();
+    }
+
+    const volet = voletDe(cible);
+    if (!volet) return;
+
+    // Le barème : ses lignes portent une borne, pas un code de nomenclature.
+    const borne = cible.closest<HTMLElement>("[data-borne]")?.dataset.borne;
+    const pas = cible.closest<HTMLElement>("[data-pas]");
+    if (borne !== undefined && pas && volet.genre === "bareme") {
+      const table = tauxDe(etat, volet);
+      const valeur = (table.get(Number(borne)) ?? 0) + Number(pas.dataset.pas);
+      reglerTaux(table, Number(borne), valeur);
+      section(volet.cle).querySelector(".simu__arbre")!.innerHTML = renduTranches(
+        volet.bareme,
+        table,
+      );
+      majVolet(volet);
+      return majTotaux();
     }
 
     const ligne = cible.closest<HTMLElement>(".simu__ligne");
@@ -940,45 +908,52 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
 
     const pli = cible.closest<HTMLElement>(".simu__pli");
     if (pli) {
-      const zone = bloc.querySelector<HTMLElement>(
+      const zone = section(volet.cle).querySelector<HTMLElement>(
         `.simu__enfants[data-enfants="${CSS.escape(code)}"]`,
       );
       if (zone && !zone.hidden) {
         zone.hidden = true;
         pli.setAttribute("aria-expanded", "false");
-      } else deplier(code);
+      } else deplier(volet, code);
       return;
     }
-    const pas = cible.closest<HTMLElement>("[data-pas]");
-    if (pas) return appliquer(code, (reglages.get(code) ?? 0) + Number(pas.dataset.pas));
-    if (cible.closest(".simu__raz")) return appliquer(code, 0);
+    if (pas) {
+      return appliquer(
+        volet,
+        code,
+        (volet.genre === "budget" ? (reglagesDe(etat, volet).get(code) ?? 0) : 0) +
+          Number(pas.dataset.pas),
+      );
+    }
+    if (cible.closest(".simu__raz")) return appliquer(volet, code, 0);
   }, { signal });
 
   bloc.addEventListener("change", (evenement) => {
     const el = evenement.target as HTMLElement;
-    // Les deux hypothèses de la projection : elles ne touchent aucun réglage
-    // budgétaire, elles ne repeignent que leur propre section.
-    if (projection && (el.id === "simu-taux" || el.id === "simu-horizon")) {
-      const valeur = Number((el as HTMLInputElement).value.replace(",", ".")) || 0;
-      if (el.id === "simu-taux") projection.taux = Math.max(0, Math.min(20, valeur));
-      else projection.horizon = Math.max(1, Math.min(HORIZON_MAXIMUM, Math.round(valeur)));
-      return majTrajectoire();
-    }
     const champ = el.closest<HTMLInputElement>(".simu__pct");
-    const code = champ?.closest<HTMLElement>(".simu__ligne")?.dataset.code;
-    if (champ && code) appliquer(code, Number(champ.value.replace(",", ".")) || 0);
+    if (!champ) return;
+    const volet = voletDe(el);
+    if (!volet) return;
+    const valeur = Number(champ.value.replace(",", ".")) || 0;
+    const borne = champ.closest<HTMLElement>("[data-borne]")?.dataset.borne;
+    if (borne !== undefined && volet.genre === "bareme") {
+      const table = tauxDe(etat, volet);
+      reglerTaux(table, Number(borne), valeur);
+      section(volet.cle).querySelector(".simu__arbre")!.innerHTML = renduTranches(
+        volet.bareme,
+        table,
+      );
+      majVolet(volet);
+      return majTotaux();
+    }
+    const code = champ.closest<HTMLElement>(".simu__ligne")?.dataset.code;
+    if (code) appliquer(volet, code, valeur);
   }, { signal });
 
   elQ.addEventListener("input", () => {
-    const trouves = chercher(index, elQ.value);
-    elSugg.innerHTML = renduSuggestions(trouves);
+    const trouves = chercherAtelier(volets, elQ.value);
+    elSugg.innerHTML = renduSuggestionsAtelier(trouves);
     elSugg.hidden = trouves.length === 0;
-  }, { signal });
-
-  $<HTMLButtonElement>("simu-raz").addEventListener("click", () => {
-    reglages.clear();
-    majLignes();
-    majTotaux();
   }, { signal });
 
   const copier = $<HTMLButtonElement>("simu-copier");
@@ -987,12 +962,11 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
       () => {
         copier.textContent = "Lien copié";
         setTimeout(() => {
-          copier.textContent = "Copier le lien de mon budget";
+          copier.textContent = "Copier le lien";
         }, 2000);
       },
       () => {
-        // Presse-papiers refusé par le navigateur : l'adresse de la page est
-        // déjà le lien, il n'y a rien à annoncer de plus.
+        // Presse-papiers refusé : l'adresse de la page est déjà le lien.
       },
     );
   }, { signal });

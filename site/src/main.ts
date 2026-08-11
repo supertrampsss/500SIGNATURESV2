@@ -15,14 +15,14 @@ import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
-import { decoder, indexer } from "./simulateur.ts";
+import { indexer, type Budget } from "./simulateur.ts";
 import {
-  afficherSimulateur,
+  afficherAtelier,
   exercicesPublies,
   exercicesDeLaBranche,
 } from "./simulateur-rendu.ts";
-import { afficherBareme, decoder as decoderBareme } from "./bareme-rendu.ts";
-import { afficherRecapitulatif } from "./recapitulatif.ts";
+import { decoder as decoderAtelier, type Volet } from "./atelier.ts";
+import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
@@ -2077,147 +2077,102 @@ async function peindreAnalyses(): Promise<void> {
  *  donc chacun leur fichier, leur index d'exercices et leur cadrage — le seul
  *  point commun est le moteur de réglage. Ce qui n'existe nulle part, ici comme
  *  ailleurs sur le site, c'est leur somme. */
-type BudgetPublie = {
+/**
+ * L'atelier : tous les budgets publics, sur une seule page.
+ *
+ * Le simulateur montrait un budget à la fois, choisi dans une barre de
+ * pastilles — et la barre restait à l'écran à côté du budget affiché, si bien
+ * que deux vues du même objet coexistaient. Il n'y a plus qu'une page : les
+ * budgets s'y suivent en sections, chacun avec son propre solde, et les gestes
+ * s'additionnent en un total.
+ *
+ * **Aucune entrée ne résume les autres.** Ni « toutes les administrations », ni
+ * la Sécurité sociale consolidée à côté de ses cinq branches : les totaux ne
+ * s'additionnent pas — entre le budget général et les régimes de base circulent
+ * des dizaines de milliards que chacun compte de son côté. Ce qui s'additionne,
+ * ce sont les écarts, et c'est le seul total que l'atelier écrit.
+ */
+type VoletPublie = {
   cle: string;
   nom: string;
-  index: () => Promise<unknown>;
-  /** Monte l'écran de ce budget dans le bloc du simulateur. Deux formes
-   *  coexistent : un arbre de dépenses et de recettes pour les budgets, un
-   *  barème par tranche pour l'impôt sur le revenu. Elles ne se ressemblent
-   *  pas, et vouloir les faire tenir dans un seul rendu aurait donné un budget
-   *  sans solde ou un impôt avec un. */
-  monter: (exercice: string, bloc: HTMLElement) => Promise<void>;
+  /** Les exercices publiés. Un fichier absent vaut « rien à montrer » : le
+   *  volet n'apparaît pas du tout. */
+  index: () => Promise<string[]>;
+  charger: (exercice: string) => Promise<Volet>;
 };
 
-const BUDGETS_SIMULABLES: BudgetPublie[] = [
+/** Les cinq branches des régimes de base, dans l'ordre où on en débat. */
+const BRANCHES = [
+  ["vieillesse", "Retraites"],
+  ["maladie", "Maladie"],
+  ["famille", "Famille"],
+  ["autonomie", "Autonomie"],
+  ["atmp", "Accidents du travail"],
+] as const;
+
+const ECHELONS = { commune: "Communes", departement: "Départements", region: "Régions" } as const;
+
+function voletBudget(cle: string, nom: string, budget: Budget): Volet {
+  return { genre: "budget", cle, nom, budget, index: indexer(budget) };
+}
+
+const VOLETS_PUBLIES: VoletPublie[] = [
   {
     cle: "etat",
     nom: "État",
-    index: donnees.simulateurIndex,
-    monter: (exercice, bloc) => monterBudget(donnees.simulateurBudget(exercice), bloc, true),
+    index: async () => exercicesPublies(await donnees.simulateurIndex()),
+    charger: async (exercice) =>
+      voletBudget("etat", "État", await donnees.simulateurBudget(exercice)),
   },
-  {
-    cle: "secu",
-    nom: "Sécurité sociale",
-    index: donnees.simulateurIndexSecu,
-    monter: (exercice, bloc) =>
-      monterBudget(donnees.simulateurBudgetSecu(exercice), bloc, false),
-  },
-  // **Les cinq branches, jamais leur somme.** Additionner les cinq donnerait
-  // 19 019 M€ de charges de trop : un transfert entre branches est compté en
-  // charge chez l'une et en produit chez l'autre. Ce qu'on a le droit de faire
-  // est vérifié à l'ingestion — les cinq *soldes* font exactement le solde
-  // consolidé —, et c'est ce qui rend les retraites simulables : régler la
-  // branche vieillesse déplace le solde de la Sécurité sociale d'autant.
-  //
-  // « Retraites » plutôt que « Vieillesse » : c'est le mot de la question, et le
-  // cadrage publié avec le fichier dit lequel des deux est celui du tableau.
-  ...(
-    [
-      ["vieillesse", "Retraites"],
-      ["maladie", "Maladie"],
-      ["famille", "Famille"],
-      ["autonomie", "Autonomie"],
-      ["atmp", "Accidents du travail"],
-    ] as const
-  ).map(([branche, nom]) => ({
+  ...BRANCHES.map(([branche, nom]) => ({
     cle: `branche-${branche}`,
     nom,
-    index: async () =>
-      exercicesDeLaBranche(await donnees.simulateurIndexBranches(), branche),
-    monter: (exercice: string, bloc: HTMLElement) =>
-      monterBudget(donnees.simulateurBranche(`${branche}-${exercice}`), bloc, false),
-  })),
-  {
-    cle: "national",
-    nom: "Tout, en comptabilité nationale",
-    // Pas d'index à part : le fichier porte son exercice et pèse quelques
-    // centaines d'octets. Le charger pour savoir s'il existe coûte moins qu'un
-    // second fichier à publier et à tenir.
-    index: async () => [(await donnees.recapitulatifNational()).exercice],
-    monter: async (_exercice, bloc) =>
-      afficherRecapitulatif(bloc, await donnees.recapitulatifNational()),
-  },
-  // Trois entrées, jamais une quatrième qui les résumerait. Les échelons ne
-  // s'additionnent pas : une part de ce que départements et régions dépensent
-  // est reversée aux communes, et les intercommunalités ont quitté le jeu de
-  // données. Un « budget des collectivités locales » compterait des euros deux
-  // fois tout en étant amputé — le sélecteur ne l'offre donc pas.
-  ...(["commune", "departement", "region"] as const).map((echelon) => ({
-    cle: `collectivites-${echelon}`,
-    nom: { commune: "Communes", departement: "Départements", region: "Régions" }[echelon],
-    // Le fichier porte son exercice : un index de plus pour un seul millésime
-    // coûterait un aller-retour sans rien apprendre.
-    index: async () => [(await donnees.simulateurCollectivites(echelon)).exercice],
-    monter: async (_exercice: string, bloc: HTMLElement) =>
-      monterBudget(donnees.simulateurCollectivites(echelon), bloc, false),
+    index: async () => exercicesDeLaBranche(await donnees.simulateurIndexBranches(), branche),
+    charger: async (exercice: string) =>
+      voletBudget(
+        `branche-${branche}`,
+        nom,
+        await donnees.simulateurBranche(`${branche}-${exercice}`),
+      ),
   })),
   {
     cle: "bareme",
     nom: "Impôt sur le revenu",
-    index: donnees.simulateurIndexBareme,
-    monter: async (exercice, bloc) => {
+    index: async () => exercicesPublies(await donnees.simulateurIndexBareme()),
+    charger: async (exercice) => {
       const bareme = await donnees.simulateurBareme(exercice);
-      afficherBareme(bloc, bareme, {
-        taux: decoderBareme(etat.budget, bareme),
-        surReglages: (encode) => {
-          etat.budget = encode;
-          ecrireUrl();
-        },
-      });
+      return {
+        genre: "bareme" as const,
+        cle: "bareme",
+        nom: "Impôt sur le revenu",
+        bareme,
+        // Le barème en vigueur : c'est de là qu'on part, et c'est contre lui
+        // que se mesure ce qu'on change.
+        depart: appliquerBareme(bareme, MODELES_BAREME[0]),
+      };
     },
   },
+  // Trois entrées, jamais une quatrième qui les résumerait : une part de ce que
+  // départements et régions dépensent est reversée aux communes.
+  ...(["commune", "departement", "region"] as const).map((echelon) => ({
+    cle: `collectivites-${echelon}`,
+    nom: ECHELONS[echelon],
+    index: async () => [(await donnees.simulateurCollectivites(echelon)).exercice],
+    charger: async (_exercice: string) =>
+      voletBudget(
+        `collectivites-${echelon}`,
+        ECHELONS[echelon],
+        await donnees.simulateurCollectivites(echelon),
+      ),
+  })),
 ];
 
-/**
- * Un budget réglable, monté dans le bloc du simulateur.
- *
- * Le taux apparent de la dette et les bénéficiaires nommés ne valent que pour
- * l'État : le premier porte sur l'encours de l'État, que la Sécurité sociale ne
- * partage pas — sa dette est portée par la CADES sur un autre encours —, les
- * seconds sont les subventions déclarées par programme budgétaire. Les
- * transposer aurait donné deux chiffres justes appliqués au mauvais périmètre.
- */
-async function monterBudget(
-  promesse: Promise<import("./simulateur.ts").Budget>,
-  bloc: HTMLElement,
-  etatFrancais: boolean,
-): Promise<void> {
-  const budget = await promesse;
-  const index = indexer(budget);
-  afficherSimulateur(bloc, budget, index, {
-    depart: etatFrancais ? await departDeLaDette() : undefined,
-    // Publication antérieure au fichier : aucun tiroir, pas d'échec.
-    subventions: etatFrancais
-      ? await donnees.subventionsParProgramme().catch(() => null)
-      : null,
-    reglages: decoder(etat.budget, index),
-    surReglages: (encode) => {
-      etat.budget = encode;
-      ecrireUrl();
-    },
-  });
-}
-
-/** Ceux dont l'index annonce un exercice, dans l'ordre ci-dessus. */
-let budgetsDisponibles: { budget: BudgetPublie; exercice: string }[] = [];
-let budgetAffiche: string | null = null;
-
-/** **Les réglages d'un budget lui restent quand on va voir un autre budget.**
- *
- *  Les codes de deux budgets ne se recouvrent pas : ceux du PLF et ceux du
- *  PLFSS viennent de deux nomenclatures sans une ligne en commun. On les
- *  effaçait donc au changement — et le lecteur qui allait vérifier une ligne
- *  de la Sécurité sociale retrouvait le budget de l'État remis à zéro, ses
- *  quinze réglages perdus sans un mot.
- *
- *  Ils sont désormais rangés par budget, ici, le temps de la visite. L'URL,
- *  elle, ne porte que le budget affiché et ses réglages à lui : un lien
- *  partagé ouvre un écran, pas une session. */
-const reglagesParBudget = new Map<string, string>();
+/** Les volets dont l'index annonce un exercice, et leur millésime. */
+let exercicesParVolet: { volet: VoletPublie; exercice: string }[] = [];
+let atelierMonte = false;
 
 function vuesConnues(): readonly string[] {
-  return budgetsDisponibles.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
+  return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
 }
 
 function basculerVue(): void {
@@ -2355,110 +2310,57 @@ function brancherTheme(): void {
  */
 async function preparerSimulateur(): Promise<void> {
   const trouves = await Promise.all(
-    BUDGETS_SIMULABLES.map(async (budget) => {
+    VOLETS_PUBLIES.map(async (volet) => {
       try {
-        // Le plus récent : c'est le budget dont on débat.
-        const exercice = exercicesPublies(await budget.index()).sort().reverse()[0];
-        return exercice ? { budget, exercice } : null;
+        const exercice = (await volet.index()).sort().reverse()[0];
+        return exercice ? { volet, exercice } : null;
       } catch {
-        // Budget non publié : il ne figure simplement pas au choix.
+        // Volet non publié : il ne figure simplement pas dans l'atelier.
         return null;
       }
     }),
   );
-  budgetsDisponibles = trouves.filter((x) => x !== null);
-  if (!budgetsDisponibles.length) return;
-  budgetAffiche = budgetsDisponibles[0].budget.cle;
+  exercicesParVolet = trouves.filter((x) => x !== null);
+  if (!exercicesParVolet.length) return;
   document
     .querySelector(".entete__nav")!
     .insertAdjacentHTML("beforeend", `<a href="#simulateur" data-vue="simulateur">Simulateur</a>`);
-  peindreChoixDuBudget();
   if (location.hash === "#simulateur") basculerVue();
 }
 
-/** Le choix du budget, et seulement s'il y en a plusieurs : un sélecteur à une
- *  entrée demanderait de choisir ce qui est déjà choisi. */
-function peindreChoixDuBudget(): void {
-  const cadre = $("simu-budgets");
-  if (budgetsDisponibles.length < 2) return;
-  cadre.hidden = false;
-  cadre.innerHTML = budgetsDisponibles
-    .map(
-      ({ budget, exercice }) =>
-        `<button type="button" data-budget="${budget.cle}"
-           aria-pressed="${budget.cle === budgetAffiche}">${budget.nom} ${exercice}</button>`,
-    )
-    .join("");
-  cadre.onclick = (evenement) => {
-    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-budget]");
-    const cle = bouton?.dataset.budget;
-    if (!cle || cle === budgetAffiche) return;
-    // Ce qui était réglé reste au budget qu'on quitte, et ce qu'on avait
-    // réglé dans celui qu'on ouvre revient.
-    if (budgetAffiche) reglagesParBudget.set(budgetAffiche, etat.budget);
-    budgetAffiche = cle;
-    etat.budget = reglagesParBudget.get(cle) ?? "";
-    ecrireUrl();
-    peindreChoixDuBudget();
-    void ouvrirSimulateur(true);
-  };
-}
-
 /**
- * Le point de départ de la projection : l'encours de la dette de l'État et la
- * charge de cette dette, deux séries publiées de la fiche France.
+ * L'atelier, monté une seule fois.
  *
- * Leur rapport est le **taux apparent** — pas le taux marginal auquel l'État
- * emprunterait demain, et le simulateur le nomme là où il l'affiche. Une des
- * deux séries manque : on ne rend rien, et la section « Et après ? » n'existe
- * pas. Supposer un encours serait inventer un chiffre.
+ * Tous les budgets sont chargés en parallèle à la première ouverture : la page
+ * les montre tous et la recherche les traverse tous, il n'y a donc rien à
+ * différer. Un volet qui échoue à se charger sort de la liste plutôt que de
+ * laisser une section vide au milieu de la page.
  */
-async function departDeLaDette(): Promise<import("./trajectoire.ts").Depart | undefined> {
-  try {
-    const france = (await donnees.territoires("pays", "tous"))["FR"];
-    const dernier = (id: string): { valeur: number; exercice: string } | undefined => {
-      const serie = france?.series?.[id] ?? {};
-      const periodes = Object.keys(serie).sort();
-      const derniere = periodes[periodes.length - 1];
-      return derniere ? { valeur: serie[derniere], exercice: derniere } : undefined;
-    };
-    const charge = dernier("etat_charge_dette");
-    const encours = dernier("insee_dette_etat_montant");
-    if (!charge?.valeur || !encours?.valeur || encours.valeur <= 0) return undefined;
-    return {
-      encours: encours.valeur,
-      encoursExercice: encours.exercice,
-      charge: charge.valeur,
-      chargeExercice: charge.exercice,
-    };
-  } catch {
-    return undefined;
+async function ouvrirSimulateur(): Promise<void> {
+  if (atelierMonte || !exercicesParVolet.length) return;
+  atelierMonte = true;
+  const charges = await Promise.all(
+    exercicesParVolet.map(async ({ volet, exercice }) => {
+      try {
+        return await volet.charger(exercice);
+      } catch {
+        return null;
+      }
+    }),
+  );
+  const volets: Volet[] = charges.filter((v): v is Volet => v !== null);
+  if (!volets.length) {
+    document.querySelector('.entete__nav a[data-vue="simulateur"]')?.remove();
+    atelierMonte = false;
+    return basculerVue();
   }
-}
-
-/** L'arbre du budget, chargé au premier affichage de la vue et pas avant. */
-let budgetMonte: string | null = null;
-
-async function ouvrirSimulateur(force = false): Promise<void> {
-  const choisi = budgetsDisponibles.find((b) => b.budget.cle === budgetAffiche);
-  if (!choisi || (!force && budgetMonte === choisi.budget.cle)) return;
-  budgetMonte = choisi.budget.cle;
-  try {
-    await choisi.budget.monter(choisi.exercice, $("simu"));
-  } catch {
-    // L'index annonçait un exercice que la publication ne sert pas : plutôt
-    // qu'une section vide au bout d'un lien, ce budget-là disparaît du choix.
-    budgetsDisponibles = budgetsDisponibles.filter((b) => b.budget.cle !== choisi.budget.cle);
-    budgetMonte = null;
-    budgetAffiche = budgetsDisponibles[0]?.budget.cle ?? null;
-    if (!budgetsDisponibles.length) {
-      document.querySelector('.entete__nav a[data-vue="simulateur"]')?.remove();
-      $("simu-budgets").hidden = true;
-      return basculerVue();
-    }
-    peindreChoixDuBudget();
-    void ouvrirSimulateur(true);
-  }
+  afficherAtelier($("simu"), volets, {
+    etat: decoderAtelier(etat.budget, volets),
+    surReglages: (encode: string) => {
+      etat.budget = encode;
+      ecrireUrl();
+    },
+  });
 }
 
 async function demarrer(): Promise<void> {

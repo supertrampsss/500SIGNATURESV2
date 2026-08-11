@@ -20,17 +20,17 @@ import {
   exercicesPublies,
   exercicesDeLaBranche,
   perimetre,
-  rendu,
-  renduBeneficiaires,
-  renduBarreSolde,
+  renduEffort,
+  renduEnteteVolet,
+  renduAtelier,
   renduEquivalence,
-  renduRaccourcis,
+  renduRaccourcisAtelier,
   renduDefis,
   renduDepenses,
   renduLigne,
   renduPlan,
   renduRecettes,
-  renduSuggestions,
+  renduSuggestionsAtelier,
 } from "./simulateur-rendu.ts";
 
 /**
@@ -95,6 +95,15 @@ const BUDGET: Budget = {
 const INDEX = indexer(BUDGET);
 const RIEN: Reglages = new Map();
 
+/** L'atelier de test : un seul volet, celui de l'État. Les fonctions de rendu
+ *  n'ont pas besoin de plus, et un second volet n'apprendrait rien de plus sur
+ *  la mise en page. */
+const VOLET = { genre: "budget" as const, cle: "etat", nom: "État", budget: BUDGET, index: INDEX };
+const atelier = (table: Reglages = new Map()) => ({
+  budgets: new Map([["etat", table]]),
+  baremes: new Map(),
+});
+
 function reglages(...paires: [string, number][]): Reglages {
   const table: Reglages = new Map();
   for (const [code, valeur] of paires) regler(table, code, valeur);
@@ -102,7 +111,7 @@ function reglages(...paires: [string, number][]): Reglages {
 }
 
 function page(table: Reglages): string {
-  return rendu(BUDGET, INDEX, table);
+  return renduAtelier([VOLET], atelier(table));
 }
 
 /* --------------------------------------------------------------------------
@@ -231,22 +240,42 @@ test("la barre de solde porte les trois nombres et le périmètre reste une lign
     perimetre(BUDGET),
     "PLF 2025, budget général, crédits de paiement, montants en millions d'euros (M€)",
   );
-  const html = renduBarreSolde(BUDGET, INDEX, RIEN);
-  // 25 Md€ de dépenses, 30 + 10 − 5 de recettes, un solde de +10 Md€.
-  assert.match(html, /<dt>Dépenses<\/dt><dd class="nombre">25\u202f000\u202fM€/);
-  assert.match(html, /<dt>Recettes<\/dt><dd class="nombre">35\u202f000\u202fM€/);
-  assert.match(html, /class="simu__solde-val nombre">10\u202f000\u202fM€/);
   // Aucun geste : la barre le dit en toutes lettres plutôt qu'un « 0 M€ » qui
   // se lirait comme un montant.
-  assert.match(html, /aucun geste/);
+  assert.match(renduEffort([VOLET], atelier()), /aucun geste/);
+  // Et le solde du budget vit dans l'en-tête de sa section, pas dans la barre :
+  // les budgets ne s'additionnent pas, seul l'effort le fait.
+  assert.match(renduEnteteVolet(VOLET, atelier()), /10\u202f000\u202fM€/);
 });
 
-test("le solde s'écrit deux fois dès qu'il a bougé : le voté, puis le vôtre", () => {
+test("le solde d'un budget s'écrit deux fois dès qu'il a bougé : le voté, puis le vôtre", () => {
   // Un seul nombre ne dit pas ce qu'on vient de changer.
-  const html = renduBarreSolde(BUDGET, INDEX, reglages(["140", -20]));
-  assert.match(html, /simu__solde-avant nombre">10\u202f000\u202fM€/);
-  assert.match(html, /simu__solde-val nombre">14\u202f000\u202fM€/);
-  assert.match(html, /simu__solde-fleche/);
+  const html = renduEnteteVolet(VOLET, atelier(reglages(["140", -20])));
+  assert.match(html, /simu__volet-avant nombre">10\u202f000\u202fM€/);
+  assert.match(html, /<b class="nombre">14\u202f000\u202fM€/);
+});
+
+test("la barre additionne des écarts, jamais des budgets", () => {
+  // Le budget général de l'État et les régimes de base ne font pas leur somme :
+  // des dizaines de milliards circulent entre eux et chacun les compte de son
+  // côté. Ce qui s'additionne, ce sont les gestes.
+  const html = renduEffort([VOLET], atelier(reglages(["140", -20])));
+  assert.match(html, /Votre effort/);
+  assert.match(html, /\+4\u202f000\u202fM€/);
+  assert.match(html, /1 geste/);
+  // Et le mot « solde » n'apparaît nulle part dans la barre.
+  assert.doesNotMatch(html, /[Ss]olde/);
+});
+
+test("les défis d'un budget n'apparaissent qu'une fois ce budget touché", () => {
+  // Dix budgets qui affichent chacun trois pastilles grises au repos, ce sont
+  // trente pastilles qui ne disent rien. Une fois réglé, le budget dit où il en
+  // est — et l'écart dit à quel programme il ressemble.
+  assert.doesNotMatch(page(new Map()), /simu__defi\b/);
+  const html = page(reglages(["140", -21]));
+  assert.match(html, /Dégagez 10 Md€/);
+  assert.match(html, /L&#39;équilibre/);
+  assert.match(html, /Votre écart, c'est le programme/);
 });
 
 test("l'équivalence ne s'écrit que quand un programme ressemble vraiment à l'écart", () => {
@@ -287,40 +316,40 @@ test("le plan classe par ce que ça pèse et renvoie chaque ligne à sa place", 
 
 test("dépenses et recettes se suivent : il n'y a plus d'onglets", () => {
   // On ne peut pas équilibrer un budget en voyant une moitié à la fois.
-  const html = rendu(BUDGET, INDEX, RIEN);
+  const html = renduAtelier([VOLET], atelier());
   assert.doesNotMatch(html, /data-onglet=|role="tab"/);
   assert.ok(
-    html.indexOf('id="simu-vue-depenses"') < html.indexOf('id="simu-vue-recettes"'),
+    html.indexOf("Ce qu'il dépense") < html.indexOf("Ce qu'il encaisse"),
     "les dépenses viennent avant les recettes",
   );
-  assert.match(html, /Ce qu&#39;il dépense|Ce qu'il dépense/);
-  assert.match(html, /Ce qu&#39;il encaisse|Ce qu'il encaisse/);
 });
 
 test("le plan est avant l'arbre, et n'existe pas tant qu'il n'y a pas de plan", () => {
   // Règle maison : rien de cliquable ne mène à une section vide. C'est aussi ce
   // qui évite d'écrire un état vide bavard pour meubler.
-  const vide = rendu(BUDGET, INDEX, RIEN);
+  const vide = renduAtelier([VOLET], atelier());
   assert.match(vide, /id="simu-plan-bloc" hidden/);
   assert.ok(
-    vide.indexOf('id="simu-plan-bloc"') < vide.indexOf('id="simu-vue-depenses"'),
+    vide.indexOf('id="simu-plan-bloc"') < vide.indexOf("Ce qu'il dépense"),
     "le plan passe devant l'arbre",
   );
-  const plein = rendu(BUDGET, INDEX, reglages(["140", -20], ["r1301", -10]));
+  const plein = renduAtelier([VOLET], atelier(reglages(["140", -20], ["r1301", -10])));
   assert.doesNotMatch(plein, /id="simu-plan-bloc" hidden/);
-  assert.match(plein, /Votre plan<span id="simu-plan-compte">2 gestes/);
+  assert.match(plein, /2 gestes/);
 });
 
 test("la recherche et les raccourcis passent devant l'arbre", () => {
-  const html = rendu(BUDGET, INDEX, RIEN);
+  const html = renduAtelier([VOLET], atelier());
   assert.ok(
-    html.indexOf('id="simu-q"') < html.indexOf('id="simu-vue-depenses"'),
+    html.indexOf('id="simu-q"') < html.indexOf("Ce qu'il dépense"),
     "la recherche passe devant l'arbre",
   );
 });
 
 test("une suggestion porte le code à viser, son chemin et son poids", () => {
-  const html = renduSuggestions(chercher(INDEX, "porte-avions"));
+  const html = renduSuggestionsAtelier(
+    chercher(INDEX, "porte-avions").map((entree) => ({ entree, volet: VOLET })),
+  );
   assert.match(html, /data-vise="146-09-63"/);
   assert.match(html, /Frapper à distance - porte-avions/);
   assert.match(html, /Défense · Équipement des forces · Engagement et combat · 100,0\u202fM€/);
@@ -346,7 +375,7 @@ test("la page ne contient que deux phrases, et aucun bloc de prose", () => {
   const paragraphes = [...html.matchAll(/<p class="([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual(
     [...new Set(paragraphes)].sort(),
-    ["simu__equivalence", "simu__note", "simu__perimetre"],
+    ["simu__effort-detail", "simu__equivalence", "simu__note", "simu__perimetre"],
   );
   // Le périmètre, à l'endroit exact où il compte.
   assert.match(html, /PLF 2025, budget général, crédits de paiement/);
@@ -354,7 +383,6 @@ test("la page ne contient que deux phrases, et aucun bloc de prose", () => {
   // ailleurs.
   const note = "Le rendement réel d'un impôt dépend des comportements : non modélisé.";
   assert.equal(html.split(note).length - 1, 1);
-  assert.ok(html.indexOf("id=\"simu-arbre-recettes\"") > html.indexOf("simu__note"));
   // Aucun repli « ce que ces chiffres ne disent pas », aucune liste explicative.
   assert.doesNotMatch(html, /<details|<summary/);
 });
@@ -376,7 +404,8 @@ test("un budget réglé se relit tel quel dans la page entière", () => {
   // plan doivent raconter le même geste.
   const table = reglages(["DA", -10]);
   const html = page(table);
-  assert.match(html, /<dt>Dépenses<\/dt>\s*<dd class="nombre">24\u202f500\u202fM€/);
+  // Le total du côté dépenses, dans le titre de son bloc.
+  assert.match(html, /Ce qu'il dépense<span class="nombre">24\u202f500\u202fM€/);
   assert.match(html, /data-code="DA"[\s\S]*?simu__montant[^>]*>4\u202f500\u202fM€/);
   assert.match(html, /data-vise="DA"/);
   assert.equal(euros(24_500_000_000), "24\u202f500\u202fM€");
@@ -392,29 +421,37 @@ const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 
-test("l'arbre du budget ne se charge qu'à l'ouverture du simulateur", () => {
-  // Cent kilo-octets pour une page que la plupart des lecteurs n'ouvriront
-  // pas : le démarrage ne demande que les index d'exercices. Chaque budget
-  // publié déclare son chargeur une fois, et il n'est appelé qu'ici.
+test("les budgets ne se chargent qu'à l'ouverture de l'atelier", () => {
+  // Cent kilo-octets pour le seul budget de l'État, sur une page que la plupart
+  // des lecteurs n'ouvriront pas : le démarrage ne demande que les index
+  // d'exercices, quelques octets chacun.
   const ouverture = MAIN.slice(
     MAIN.indexOf("async function ouvrirSimulateur"),
     MAIN.indexOf("async function ouvrirSimulateur") + 900,
   );
   assert.ok(ouverture.length > 200, "ouvrirSimulateur introuvable");
-  assert.match(ouverture, /choisi\.budget\.monter\(choisi\.exercice, \$\("simu"\)\)/);
-  // Chaque budget publié déclare son index et son montage, et rien ne le charge
-  // ailleurs : ni au démarrage, ni au passage d'un budget à l'autre. Six
-  // déclarations — l'État, la Sécurité sociale, les cinq branches écrites d'un
-  // seul gabarit, le récapitulatif national, les trois échelons de
-  // collectivités écrits d'un autre gabarit, et le barème.
+  assert.match(ouverture, /volet\.charger\(exercice\)/);
+  assert.match(ouverture, /afficherAtelier\(\$\("simu"\), volets/);
+  // Chaque volet déclare son index **et** son chargeur : autant de l'un que de
+  // l'autre, sans quoi un volet apparaîtrait au menu sans pouvoir s'ouvrir. On
+  // compte les déclarations du fichier, gabarits compris — les cinq branches
+  // s'écrivent d'un seul `map`, les trois échelons d'un autre.
   const catalogue = MAIN.slice(
-    MAIN.indexOf("const BUDGETS_SIMULABLES"),
-    MAIN.indexOf("Un budget réglable, monté dans le bloc"),
+    MAIN.indexOf("const VOLETS_PUBLIES"),
+    MAIN.indexOf("/** Les volets dont l'index annonce un exercice"),
   );
-  assert.equal(catalogue.match(/^\s*cle: /gm)?.length, 6);
-  assert.equal(catalogue.match(/^\s*index: /gm)?.length, 6);
-  assert.equal(catalogue.match(/^\s*monter: /gm)?.length, 6);
+  const index = catalogue.match(/^\s*index: /gm)?.length ?? 0;
+  assert.ok(index >= 4, `trop peu de volets déclarés : ${index}`);
+  assert.equal(catalogue.match(/^\s*charger: /gm)?.length, index);
   assert.match(MAIN, /void preparerSimulateur\(\);/);
+});
+
+test("il n'y a plus de barre de pastilles : une seule page, pas deux vues", () => {
+  // La barre restait à l'écran à côté du budget affiché : deux vues du même
+  // objet coexistaient, et changer de budget effaçait ce qu'on venait de faire.
+  assert.doesNotMatch(PAGE, /simu-budgets|simu__budgets/);
+  assert.doesNotMatch(MAIN, /peindreChoixDuBudget|budgetAffiche|BUDGETS_SIMULABLES/);
+  assert.doesNotMatch(CSS, /\.simu__budgets/);
 });
 
 test("sans fichier publié, ni entrée de menu ni adresse", () => {
@@ -424,7 +461,7 @@ test("sans fichier publié, ni entrée de menu ni adresse", () => {
   assert.doesNotMatch(PAGE.replace(/<!--[\s\S]*?-->/g, ""), /data-vue="simulateur"/);
   assert.match(
     MAIN,
-    /return budgetsDisponibles\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/,
+    /return exercicesParVolet\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/,
   );
   // La vue de repli est « territoire » : la carte n'est plus la porte d'entrée
   // — et elle n'est même plus une vue, seulement un mode de celle-ci.
@@ -454,56 +491,10 @@ test("les commandes d'une ligne font 44 px pleins, sans zone étendue", () => {
   assert.match(CSS, /\.simu__barre-solde \{\n\s*position: sticky;\n\s*top: var\(--haut-entete\);/);
 });
 
-test("sans encours publié, aucune projection plutôt qu'un encours supposé", () => {
-  assert.doesNotMatch(rendu(BUDGET, INDEX, RIEN), /id="simu-vue-trajectoire"/);
-});
-
-test("le tiroir des bénéficiaires ne prétend jamais décomposer le programme", () => {
-  const subventions = {
-    exercice: "2023",
-    plafond: 2,
-    programmes: {
-      "163": {
-        libelle: "Jeunesse et vie associative",
-        mission: "Sport, jeunesse et vie associative",
-        declare: 701_000,
-        beneficiaires_total: 3,
-        beneficiaires: [
-          { siren: "111", nom: "GRANDE ASSO", objet: "Fonctionnement", montant: 500_000 },
-          { siren: "222", nom: "AUTRE ASSO", objet: null, montant: 200_000 },
-        ],
-      },
-    },
-  };
-  const html = renduBeneficiaires("163", subventions);
-  assert.match(html, /Qui touche ces subventions/);
-  assert.match(html, /3 bénéficiaires nommés/);
-  assert.match(html, /GRANDE ASSO/);
-  // Le compte dit ce que la liste bornée ne montre pas.
-  assert.match(html, /1 autres bénéficiaires ne le sont pas/);
-  // Et surtout : aucune part du programme, aucune prétention à le décomposer.
-  assert.match(html, /ne sont pas la décomposition/);
-  assert.doesNotMatch(html, /% du programme/);
-  // Un programme sans subvention déclarée n'ouvre pas de tiroir vide.
-  assert.equal(renduBeneficiaires("999", subventions), "");
-  assert.equal(renduBeneficiaires("163", null), "");
-});
-
-/* ------------------------------------------- la page réagencée : C03, C09, C04 */
-
-test("la barre de solde est collante, et passe en bas sur téléphone", () => {
-  // Sur un téléphone le pouce et le regard sont en bas ; collée en haut, elle
-  // se retrouvait sous l'en-tête, hors du champ où l'on règle. Et au-dessus de
-  // la barre de navigation, qui est collée au même bord.
-  const petit = CSS.slice(CSS.indexOf("@media (max-width: 40rem)"));
-  assert.match(petit, /\.simu__barre-solde \{\n\s*position: fixed;/);
-  assert.match(petit, /bottom: calc\(var\(--cible\) \+ env\(safe-area-inset-bottom, 0px\)\);/);
-});
-
 test("les raccourcis mènent aux postes dont on débat, jamais aux plus gros", () => {
   // Trier les missions par montant mettrait « Remboursements et dégrèvements »
   // en tête, qui n'est le sujet de personne.
-  const html = renduRaccourcis(INDEX);
+  const html = renduRaccourcisAtelier([VOLET]);
   assert.match(html, /data-vise="140"|data-vise="SB"|data-vise="DA"/);
   // Un code absent de la publication ne fait pas de raccourci mort.
   for (const [, code] of [...html.matchAll(/data-vise="([^"]+)"/g)]) {
@@ -523,8 +514,7 @@ test("« Retraites » sur le budget de l'État renvoie au bon budget", () => {
 });
 
 test("aucun tiret cadratin dans la page réagencée", () => {
-  const budget = { ...BUDGET };
-  assert.doesNotMatch(rendu(budget, INDEX, reglages(["140", -20])), /[–—]/);
+  assert.doesNotMatch(renduAtelier([VOLET], atelier(reglages(["140", -20]))), /[–—]/);
 });
 
 
@@ -544,15 +534,14 @@ test("l'index des branches rend les exercices d'une branche, pas d'une autre", (
 test("les cinq branches sont proposées, et aucune entrée ne les résume", () => {
   // Additionner les cinq donnerait 19 019 M€ de charges de trop : un transfert
   // entre branches est compté en charge chez l'une et en produit chez l'autre.
-  const catalogue = MAIN.slice(
-    MAIN.indexOf("const BUDGETS_SIMULABLES"),
-    MAIN.indexOf("Un budget réglable, monté dans le bloc"),
-  );
   for (const branche of ["vieillesse", "maladie", "famille", "autonomie", "atmp"]) {
-    assert.match(catalogue, new RegExp(`\\["${branche}", "`), `branche ${branche} absente`);
+    assert.match(MAIN, new RegExp(`\\["${branche}", "`), `branche ${branche} absente`);
   }
-  assert.match(catalogue, /\["vieillesse", "Retraites"\]/);
-  assert.doesNotMatch(catalogue, /branches?["'`]?\s*:\s*.*(somme|total)/i);
+  assert.match(MAIN, /\["vieillesse", "Retraites"\]/);
   // Et le chargeur vise un fichier par branche, jamais un fichier commun.
   assert.match(MAIN, /donnees\.simulateurBranche\(`\$\{branche\}-\$\{exercice\}`\)/);
+  // Aucune entrée « Sécurité sociale » à côté de ses cinq branches : leurs
+  // totaux ne s'additionnent pas, et la faire figurer deux fois compterait
+  // 676 925 M€ de charges en double.
+  assert.doesNotMatch(MAIN, /cle: "secu"/);
 });
