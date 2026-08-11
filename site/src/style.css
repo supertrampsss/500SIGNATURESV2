@@ -2362,6 +2362,37 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-weight: 600;
   font-size: var(--texte-xs);
 }
+/* La colonne d'évolution ferme le tableau et s'en détache : sept colonnes de
+   montants ne disent pas ce qui a bougé, et c'est la seule question qu'on pose
+   à une série. Elle colle au bord droit pendant que les millésimes défilent —
+   sans quoi, sur téléphone, la réponse serait la seule chose hors de l'écran. */
+.tableau-exercices__evo {
+  position: sticky;
+  right: 0;
+  background: var(--papier);
+  border-left: 1px solid var(--trait-fort);
+  padding-right: 0;
+}
+.tableau-exercices thead .tableau-exercices__evo {
+  z-index: 1;
+}
+.tableau-exercices__evo b {
+  font-weight: 650;
+  color: var(--encre);
+}
+.tableau-exercices__evo span {
+  display: block;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.tableau-exercices__evo em {
+  display: block;
+  font-style: normal;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  opacity: 0.8;
+}
+
 /* L'intitulé de la ligne porte : c'est par lui qu'on retrouve le poste dont
    parle le bloc, quatre lignes plus haut. */
 .tableau-exercices tbody th {
@@ -2378,29 +2409,48 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-weight: 600;
 }
 
-/* Les rangs : un par ligne, le nombre en Spectral, le dénombrement dessous. */
+/* Les rangs. Le montant qui a produit le rang se lit avec lui, et le sens du
+   classement se dit en comptant de part et d'autre plutôt qu'en le nommant :
+   « 264 communes dépensent plus » ne s'interprète pas, « de la plus élevée à la
+   plus faible » demandait de tenir le fil jusqu'au rang. */
 .situation {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.situation li {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 0 var(--espace-4);
-  align-items: baseline;
-  padding: var(--espace-3) 0;
+.situation > li {
+  padding: var(--espace-4) 0;
   border-bottom: 1px solid var(--trait);
+}
+.situation__tete {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espace-4);
 }
 .situation__quoi {
   font-size: var(--texte-m);
   color: var(--encre);
 }
-.situation__rang {
+.situation__valeur {
   font-family: var(--serif);
   font-size: var(--texte-xl);
   font-weight: 600;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.situation__dit {
+  margin: var(--espace-2) 0 0;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.situation__dit b {
+  color: var(--encre);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.situation__rang {
+  white-space: nowrap;
 }
 /* L'exposant de l'ordinal : « 412e », pas « 412e ». Il prend le cran le plus
    bas de l'échelle plutôt qu'un `em` en dur — la feuille n'a pas de taille
@@ -2410,11 +2460,73 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   vertical-align: super;
   line-height: 0;
 }
-.situation__sur {
-  grid-column: 1 / -1;
-  font-style: normal;
-  font-size: var(--texte-xs);
+/* Le classement, replié. Trente-quatre mille lignes ne se peignent pas : le
+   pli montre les dix premiers, votre voisinage et les trois derniers, et les
+   trous se marquent. */
+.situation__pli > summary {
+  margin-top: var(--espace-3);
+  font-size: var(--texte-s);
   color: var(--encre-douce);
+  cursor: pointer;
+  min-height: var(--cible);
+  display: flex;
+  align-items: center;
+}
+.situation__pli > summary:hover {
+  color: var(--encre);
+}
+.situation__classement {
+  list-style: none;
+  margin: 0 0 var(--espace-3);
+  padding: 0;
+  border-top: 1px solid var(--trait);
+}
+.situation__classement button {
+  display: grid;
+  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  gap: var(--espace-4);
+  align-items: baseline;
+  width: 100%;
+  min-height: var(--cible);
+  padding: var(--espace-2) 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--texte-s);
+  color: var(--encre);
+  text-align: left;
+  cursor: pointer;
+}
+.situation__classement button:hover {
+  background: var(--papier-creuse);
+}
+.situation__place {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.situation__nom {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.situation__montant {
+  font-variant-numeric: tabular-nums;
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+/* Votre place, marquée à l'aplat : c'est celle qu'on cherche des yeux. */
+.situation__vous button {
+  background: var(--accent-teinte);
+  font-weight: 650;
+}
+.situation__vous .situation__montant {
+  color: var(--encre);
+}
+.situation__saut {
+  padding: var(--espace-2) 0 var(--espace-2) var(--espace-6);
+  color: var(--trait-fort);
+  letter-spacing: 0.2em;
 }
 .situation__legende {
   margin: var(--espace-4) 0 0;

@@ -1008,26 +1008,45 @@ function dernierExerciceOfgl(niveau: string): string | undefined {
   return [...annees].sort().pop();
 }
 
-const CLASSEMENTS: { id: string; libelle: string; sens: string; parHabitant: boolean }[] = [
+/** Le verbe dit ce que fait un territoire mieux classé. « De la plus élevée à
+ *  la plus faible » demandait de tenir le fil jusqu'au rang pour savoir si l'on
+ *  dépense beaucoup ou peu. */
+const CLASSEMENTS: {
+  id: string;
+  libelle: string;
+  dessus: string;
+  dessous: string;
+  parHabitant: boolean;
+}[] = [
   {
     id: "ofgl_depenses_fonctionnement",
     libelle: "Dépenses de fonctionnement par habitant",
-    sens: "de la plus élevée à la plus faible",
+    dessus: "dépensent plus par habitant",
+    dessous: "dépensent moins",
     parHabitant: true,
   },
   {
     id: "ofgl_recettes_fonctionnement",
     libelle: "Recettes de fonctionnement par habitant",
-    sens: "de la plus élevée à la plus faible",
+    dessus: "encaissent plus par habitant",
+    dessous: "encaissent moins",
     parHabitant: true,
   },
   {
     id: "ofgl_encours_dette",
     libelle: "Encours de dette par habitant",
-    sens: "du plus élevé au plus faible",
+    dessus: "doivent plus par habitant",
+    dessous: "doivent moins",
     parHabitant: true,
   },
 ];
+
+const EUROS_HABITANT = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+});
+const ANNEES = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 async function poserSituation(code: string, niveau: string): Promise<void> {
   const cible = document.getElementById("fiche-situation");
@@ -1046,7 +1065,9 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
     const epargne = couches[CLASSEMENTS.length];
     const criteres = CLASSEMENTS.map((c, rang) => ({
       libelle: c.libelle,
-      sens: c.sens,
+      dessus: c.dessus,
+      dessous: c.dessous,
+      ecrire: (v: number) => `${EUROS_HABITANT.format(v)} par habitant`,
       valeur: (t: string) => {
         const brut = couches[rang][t];
         if (brut === undefined) return null;
@@ -1060,15 +1081,27 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
     // remboursement impossible à ce rythme (`derives.ts`).
     criteres.push({
       libelle: "Capacité de désendettement",
-      sens: "de la plus longue à la plus courte",
+      dessus: "mettraient plus longtemps à rembourser",
+      dessous: "mettraient moins longtemps",
+      ecrire: (v: number) => `${ANNEES.format(v)} ans d'épargne`,
       valeur: (t: string) =>
         dette[t] !== undefined && epargne[t] > 0 ? dette[t] / epargne[t] : null,
     });
+    const noms: Record<string, string> = {};
+    index.codes.forEach((t, rang) => {
+      noms[t] = index.noms[rang] ?? t;
+    });
     cible.innerHTML = rendreSituation(
-      situation({ code, codes: index.codes, criteres }),
+      situation({ code, codes: index.codes, noms, criteres }),
       niveau,
       exercice,
     );
+    // Un rang appelle « et les autres ? ». Chaque place du pli ouvre la fiche
+    // du territoire, à la maille où le classement a été calculé.
+    cible.addEventListener("click", (evenement) => {
+      const place = (evenement.target as HTMLElement).closest<HTMLElement>("[data-territoire]");
+      if (place?.dataset.territoire) void ouvrirTerritoire(place.dataset.territoire, niveau);
+    });
   } catch {
     // Une couche manque à cette maille ou à cet exercice : la fiche s'arrête au
     // tableau des exercices, sans dire ce qu'elle n'a pas pu calculer.
