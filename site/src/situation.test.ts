@@ -53,7 +53,7 @@ test("le rendu dit le rang, l'effectif, la maille et le sens du classement", () 
     "commune",
     "2025",
   );
-  assert.match(html, /Où ça se situe/);
+  assert.match(html, /Sa place parmi les autres/);
   assert.match(html, /class="situation__rang nombre">3<sup>e<\/sup>/);
   // Le sens se dit en comptant celles qui font plus : le compte de celles qui
   // font moins se déduit du rang, et il doublait la hauteur du bloc.

@@ -160,7 +160,11 @@ type Cadre = Entree & { comptes: Comptes; terme: (id: string) => string };
  * Les quatre blocs.
  * ------------------------------------------------------------------------- */
 
-/** « Où va l'argent » : ce que coûte le fonctionnement, et d'où vient sa hausse. */
+/** « Le train de vie » : ce que coûte le fonctionnement, et d'où vient sa hausse.
+ *
+ *  Le titre ne nomme plus l'objet comptable mais la chose : les quatre repères
+ *  en tête de fiche disent déjà « Ce qu'elle dépense », et « Où va l'argent »
+ *  n'en était que le second nom. */
 function ouVaLArgent(cadre: Cadre): Bloc | null {
   const { depenses, sujet, emploi } = cadre.comptes;
   const total = mesure(cadre.series, depenses);
@@ -210,10 +214,10 @@ function ouVaLArgent(cadre: Cadre): Bloc | null {
         .join(", ")}.`,
     );
   }
-  return { titre: "Où va l'argent", texte: phrases.join(" "), cites };
+  return { titre: "Le train de vie", texte: phrases.join(" "), cites };
 }
 
-/** « Qui paie » : d'où viennent les recettes qui ont augmenté, et ce que
+/** « Qui règle l'addition » : d'où viennent les recettes qui ont augmenté, et ce que
  *  l'État verse pendant ce temps. */
 function quiPaie(cadre: Cadre): Bloc | null {
   const { recettes, concours } = cadre.comptes;
@@ -259,10 +263,10 @@ function quiPaie(cadre: Cadre): Bloc | null {
     cites.push(...etat.cites);
     phrases.push(etat.phrase);
   }
-  return { titre: "Qui paie", texte: phrases.join(" "), cites };
+  return { titre: "Qui règle l'addition", texte: phrases.join(" "), cites };
 }
 
-/** « Ce qu'il reste » : combien d'années d'épargne il faudrait pour rembourser
+/** « L'ardoise » : combien d'années d'épargne il faudrait pour rembourser
  *  la dette, aujourd'hui et à l'ouverture de la fenêtre. */
 function ceQuIlReste(cadre: Cadre): Bloc | null {
   const { epargne, dette, beneficiaire } = cadre.comptes;
@@ -276,7 +280,7 @@ function ceQuIlReste(cadre: Cadre): Bloc | null {
   const annees = d.fin / e.fin;
   const avant = e.debut !== null && e.debut > 0 && d.debut !== null ? d.debut / e.debut : null;
   return {
-    titre: "Ce qu'il reste",
+    titre: "L'ardoise",
     texte:
       `Il faudrait ${gras(`${annuites(annees)} d'épargne`)} pour rembourser les ${
         gras(millions(d.fin))
@@ -287,7 +291,10 @@ function ceQuIlReste(cadre: Cadre): Bloc | null {
   };
 }
 
-/** « Ce que ça a payé » : ce que l'investissement de l'année a financé. */
+/** « Ce qui sort de terre » : ce que l'investissement de l'année a financé.
+ *
+ *  C'est la seule distinction qui compte entre les deux colonnes de dépense :
+ *  le fonctionnement se consomme, l'investissement reste debout. */
 function ceQueCaAPaye(cadre: Cadre): Bloc | null {
   const { investissement, beneficiaire } = cadre.comptes;
   if (!investissement || !beneficiaire) return null;
@@ -314,7 +321,7 @@ function ceQueCaAPaye(cadre: Cadre): Bloc | null {
       }, soit ${part(gros.fin / total.fin)}.`,
     );
   }
-  return { titre: "Ce que ça a payé", texte: phrases.join(" "), cites };
+  return { titre: "Ce qui sort de terre", texte: phrases.join(" "), cites };
 }
 
 /**

@@ -3068,7 +3068,11 @@ async function demarrer(): Promise<void> {
  */
 demarrer().catch((erreur: Error) => {
   const detail = erreur?.message ? String(erreur.message) : "cause inconnue";
-  $("fiche").innerHTML = `<p class="etat etat--echec" role="alert">
+  // Un `div`, pas un `p` : `<details>` est du contenu de flux, et un paragraphe
+  // n'accepte que du contenu de phrasé. L'analyseur HTML fermait donc le
+  // paragraphe avant le pli et le jetait — le détail technique, seul élément
+  // citable pour signaler une panne, n'était jamais affiché.
+  $("fiche").innerHTML = `<div class="etat etat--echec" role="alert">
       <span class="etat__titre">Les chiffres n'ont pas pu être chargés</span>
       <span class="etat__quoi">Le site lit des fichiers publiés sur un serveur public :
         c'est cette lecture qui a échoué, pas votre navigateur. Les chiffres déjà affichés,
@@ -3078,7 +3082,7 @@ demarrer().catch((erreur: Error) => {
       </span>
       <details class="etat__detail"><summary>Détail technique</summary>
         <code></code></details>
-    </p>`;
+    </div>`;
   // Par `textContent` et non dans le gabarit : un message d'erreur peut porter
   // une URL, et une URL peut porter des chevrons.
   const bloc = $("fiche").querySelector("code");

@@ -1,5 +1,5 @@
 /**
- * « Où ça se situe » : le rang du territoire dans sa maille.
+ * « Sa place parmi les autres » : le rang du territoire dans sa maille.
  *
  * Un montant seul ne dit pas s'il est grand. Les blocs le comparent à
  * lui-même — 2019 contre 2025 —, jamais aux autres territoires du même
@@ -224,7 +224,7 @@ export function rendreSituation(liste: Rang[], niveau: string, exercice: string)
     )
     .join("");
   return `<section class="bloc-lecture bloc-lecture--situation">
-    <h3>Où ça se situe<span class="situation__exercice">${echapper(exercice)}</span></h3>
+    <h3>Sa place parmi les autres<span class="situation__exercice">${echapper(exercice)}</span></h3>
     <ol class="situation">${lignes}</ol>
   </section>`;
 }

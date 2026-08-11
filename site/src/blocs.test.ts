@@ -95,7 +95,7 @@ const FIN = " "; // l'espace fine insécable que `millions` pose avant le sigl
 test("les quatre blocs suivent l'argent, et dans cet ordre", () => {
   assert.deepEqual(
     deBordeaux().map((b) => b.titre),
-    ["Où va l'argent", "Qui paie", "Ce qu'il reste", "Ce que ça a payé"],
+    ["Le train de vie", "Qui règle l'addition", "L'ardoise", "Ce qui sort de terre"],
   );
 });
 
@@ -193,7 +193,7 @@ test("la France pose ses agrégats sans rien décomposer ni s'en excuser", () =>
     },
     catalogue: [],
   });
-  assert.deepEqual(liste.map((b) => b.titre), ["Où va l'argent", "Qui paie"]);
+  assert.deepEqual(liste.map((b) => b.titre), ["Le train de vie", "Qui règle l'addition"]);
   assert.equal(
     lu(liste[0].texte),
     `L'État dépense 441${FIN}194${FIN}M€ par an sur son budget général,` +
@@ -309,7 +309,7 @@ test("le pluriel des années commence à deux", () => {
 test("le titre du bloc est un h3 dans une section, sans micro-label gris", () => {
   const rendu = rendreBlocs(deBordeaux());
   assert.equal([...rendu.matchAll(/<section class="bloc-lecture">/gu)].length, 4);
-  assert.match(rendu, /<h3>Où va l&#39;argent<\/h3>/u);
+  assert.match(rendu, /<h3>Le train de vie<\/h3>/u);
   // Le gras porte le montant, la part, le poste.
   assert.match(rendu, /<strong>369,0/u);
   // Le terme comptable reste dans l'infobulle.
