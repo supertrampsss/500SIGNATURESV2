@@ -1028,19 +1028,12 @@ summary:focus-visible,
   flex-basis: 100%;
   margin-top: 0.35rem;
 }
-.
-.
 /* La rupture de périmètre est un trait, pas une alerte : elle informe. */
-.
 /* Le mandat n'est pas une rupture : le trait est plus pâle que celui du
    périmètre, et continu, pour qu'on ne lise pas une coupure là où la mesure
    est restée identique. */
-.
-.
-.
 /* Ce repère situe, il n'explique pas : ni la couleur d'alerte, ni celle de
    l'accent — la note doit se lire comme une légende, pas comme une thèse. */
-.
 
 .repli {
   border-top: 1px solid var(--trait);
@@ -1460,8 +1453,6 @@ tbody tr:hover {
 .pont__ligne--n0 th {
   font-weight: 600;
 }
-.
-.
 .pont__signe {
   width: 1.2rem;
   text-align: center;
@@ -1778,8 +1769,6 @@ tbody tr:hover {
   font-variant-numeric: tabular-nums;
   font-size: var(--texte-m);
 }
-.
-.
 
 /* La position parmi les semblables, en tête de fiche. */
 .position {
@@ -1788,7 +1777,6 @@ tbody tr:hover {
   background: var(--papier-creuse);
   border-radius: var(--rayon-s);
 }
-.
 
 /* Repères : « est-ce beaucoup ? ». Le même poids visuel que le dénominateur —
    ils accompagnent le chiffre, ils ne le concurrencent pas. */
@@ -1807,8 +1795,6 @@ tbody tr:hover {
   padding: var(--espace-1) 0;
   border-top: 1px solid var(--trait);
 }
-.
-.
 
 /* Le maire : une information d'identité de la commune, pas une mesure. */
 .fiche__maire {
@@ -1819,7 +1805,6 @@ tbody tr:hover {
   color: var(--encre-douce);
   font-size: var(--texte-s);
 }
-.
 
 /* Fonctions COFOG : la barre dit la part dans le total, le chiffre dit le reste. */
 .fonctions {
@@ -1997,12 +1982,6 @@ tbody tr:hover {
 }
 
 /* Une seule mesure en héros, les autres en lignes : le chiffre d'abord. */
-.
-.
-.
-.
-.
-.
 .panneau__section {
   margin: 0.9rem 0 0.3rem;
   font-size: var(--texte-s);
@@ -2026,7 +2005,6 @@ tbody tr:hover {
 
 /* La seconde lecture d'un montant (total <-> par habitant) : présente,
    jamais concurrente du chiffre principal. */
-.
 .infobulle__autre {
   display: block;
   font-size: var(--texte-xs);
@@ -2621,10 +2599,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* Le petit tableau des exercices : les nombres sous la courbe. */
-.
-.
-.
-.
 
 /* Onglets du panneau : Territoire / Analyse. Tout vit dans la carte. */
 
@@ -2903,9 +2877,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* La courbe ne montre que la valeur affichée — doubler le dessin doublait
    la hauteur de chaque mesure sans rien apprendre : les montants totaux se
    lisent dans la ligne « total » du tableau. */
-.
-.
-.
 
 /* La barre de la carte : maille et territoire, en bas, en pilules. Ce sont
    des réglages de cadrage — ils ne méritent pas deux menus dans le panneau.
@@ -3058,15 +3029,11 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-size: var(--texte-s);
   padding: var(--espace-3) var(--espace-7) var(--espace-3) var(--espace-4);
 }
-.
 /* Le nom du territoire est déjà collé en haut du panneau : un titre de thème
    collé à `top: 0` glissait dessous et disparaissait, en rognant au passage la
    première ligne du résumé — les accents des capitales s'y perdaient. Il se
    pose donc sous lui. */
-.
 /* Une ligne de mesure est cliquable : elle porte son indicateur sur la carte. */
-.
-.
 
 /* Une mesure : un nom, un chiffre. Le reste se déplie sur la ligne qu'on
    touche — comparaison, courbe, tableau, source. Tout montrer, tout le temps,
@@ -3112,11 +3079,8 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .mesure > summary:hover .mesure__nom {
   color: var(--argile);
 }
-.
 /* Le rond « i » : à quoi correspond l'indicateur qu'on regarde. Discret dans
    la ligne, il ne prend la parole que si on le lui demande. */
-.
-.
 /* La définition sort en bulle par-dessus la fiche. Dépliée dans le flux, elle
    poussait vers le bas les vingt mesures suivantes : demander ce qu'un mot veut
    dire déplaçait tout ce qu'on était en train de lire. */
@@ -3145,17 +3109,11 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* Ce que compte la source — infractions, victimes, personnes mises en cause.
    Détaché de la définition, parce que c'est une précision de lecture et non
    une phrase de plus. */
-.
 /* La valeur ne se laisse plus pousser par le rond : c'est elle qui tient la
    colonne de droite. */
 .mesure > summary .mesure__nom {
   flex: 0 1 auto;
 }
-.
-.
-.
-.
-.
 
 /* Les rubriques : quatre entrées qui tiennent sans défiler, là où la barre des
    thèmes en cachait vingt-deux hors de l'écran. Elles collent au-dessus de la
@@ -3262,8 +3220,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   background: var(--encre);
   color: var(--papier);
 }
-.
-.
 
 /* Les noms des territoires, posés sur la carte — nos noms, en français,
    lisibles sans survol. Halo blanc pour tenir sur n'importe quelle teinte. */
@@ -3290,9 +3246,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* Gris neutre, jamais la terre cuite de l'accent : une ligne orange en travers
    d'une courbe se lit comme un seuil d'alerte, alors qu'une médiane ne juge
    rien — c'est la même règle que pour les couleurs de la carte. */
-.
-.
-.
 
 /* La comparaison de territoires, dans le volet Analyse. */
 .comparaison-zone {
@@ -3378,25 +3331,17 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* La synthèse d'ouverture : l'essentiel avant le détail. */
-.
-.
-.
 /* L'agrégat du thème, sous son chiffre d'entrée : une seconde voix, plus
    basse. Au même corps que le reste, les deux phrases pesaient pareil et on ne
    voyait plus laquelle portait le chiffre. */
 /* Quand aucun repère n'est publié pour ce thème à cette maille, la ligne le
    dit au lieu de se taire — se taire ferait croire à une absence de mesure. */
-.
 
 /* La phrase qui dit ce que le chiffre veut dire. */
-.
-.
 
 /* Un repère hors échelle est dit, pas tracé : son puce est vide. */
-.
 /* Un repère hors échelle se dit par sa puce pointillée et par l'italique, pas
    par une opacité qui le ferait passer sous AA. */
-.
 
 /* Le sommaire des thèmes. Une fiche fait cinq écrans : sans lui, atteindre
    « Sécurité » demandait de traverser sept thèmes. Collé sous le nom du
@@ -3409,30 +3354,21 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   padding-top: var(--espace-4);
   margin-top: 0.5rem;
 }
-.
-.
-.
 .mesures {
   margin-bottom: 0.75rem;
 }
 
 /* La position parmi les communes semblables se lit avec la synthèse, en haut
    de fiche : c'est une des questions les plus posées, elle était en dernier. */
-.
-.
 /* Le thème dit d'abord ce qu'il vaut dans son ensemble : combien de ses
    indicateurs situent le territoire au-dessus, combien en dessous. C'est le
    seul agrégat honnête d'un thème — additionner ses indicateurs mêlerait des
    unités qui ne s'additionnent pas. */
-.
-.
 
 /* Sous l'indicateur principal, les autres se lisent en bref : titre, chiffre,
    évolution récente. Pas de courbe — vingt courbes dans une colonne de 380 px
    ne se lisaient plus. Un clic sur le titre porte la mesure sur la carte, où
    elle retrouve sa courbe en tête de fiche. */
-.
-.
 
 /* Écran étroit : les commandes de la carte remontent au-dessus du tiroir.
    Posées en bas, elles se retrouvaient derrière lui — on lisait « Guadeloupe »
@@ -3507,28 +3443,15 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-weight: 600;
   color: var(--encre);
 }
-.
-.
 /* Une composante porte sa part, son montant et son évolution : quatre colonnes.
    La cellule d'évolution est rendue même vide, et de largeur fixe — sinon le
    bord droit des montants oscille d'une ligne à l'autre selon la longueur de
    la variation, et la colonne cesse de se lire d'un trait. */
-.
-.
-.
-.
-.
 .pont__ligne { padding: var(--espace-2) 0; }
-.
-.
 /* Un palier est un total : le trait au-dessus dit que ce qui précède
    s'additionne pour donner cette ligne-là. */
-.
-.
 /* Le report n'apporte aucun euro neuf : il redit le total du bloc précédent
    pour que l'addition se vérifie de l'œil. */
-.
-.
 /* Ce qui s'ouvre se voit : le libellé souligné en pointillé est la seule
    promesse faite au lecteur qu'il y a quelque chose dessous. */
 .pont__ouvrir > summary,
@@ -3558,65 +3481,36 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .pont__sous[open] > summary .pont__c-nom::before { transform: rotate(90deg); }
 .pont__ouvrir > summary:hover .pont__nom,
 .pont__sous > summary:hover .pont__c-nom { color: var(--encre); }
-.
-.
 /* Chaque niveau se décale, et un trait le rattache à ce qui le contient : à
    11 px d'écart, les rangs 2 et 3 ne se distinguaient plus. L'indentation est
    cumulative — chaque liste imbriquée décale la suivante. */
-.
-.
-.
 /* Sans opacité : 0,75 ramenait ce gris à 3,17:1. */
-.
-.
 
 /* Le bouton qui porte une mesure sur la carte. Peindre relit une couche de
    34 772 territoires : ce n'est plus le prix d'un simple dépliage, c'est un
    geste qu'on demande. */
-.
-.
 
 /* À quelles associations. Une liste de noms, pas un tableau : le montant se lit
    à droite du nom, l'objet du versement dessous, en plus petit. */
-.
-.
-.
 /* La réserve n'est pas une note de bas de page : sans elle, une fédération
    nationale domiciliée à Paris se lit comme de l'argent dépensé pour les
    Parisiens. Elle se lit donc avant la liste. */
-.
-.
-.
-.
-.
-.
-.
-.
 
 /* « Ce total est notre somme, pas un chiffre publié. » La mention se lit avant
    les chiffres du thème : après, elle serait une note de bas de page sur une
    information qu'on a déjà prise pour argent comptant. */
-.
 
 /* Les deux lectures d'un même total : ce que la commune achète, et à quoi ça
    sert. Elles ne s'additionnent jamais entre elles — c'est le même euro, vu
    deux fois — donc on montre l'une ou l'autre. */
-.
-.
-.
 
 /* « Au titre de quel programme » : la typologie que le jaune permet vraiment.
    Repliée, parce qu'elle répond à une seconde question — la première étant
    « à quelles associations », qui reste ouverte au-dessus. */
-.
-.
-.
 /* Le compte se lit : à 0,8 d'opacité il tombait à 3,49:1. */
-.
 
 /* Les euros constants. La phrase corrige la précédente : elle se lit avec elle,
    pas comme une remarque à côté. */
-.
 
 /* ==========================================================================
    L'ACCUEIL SANS CARTE
@@ -3709,16 +3603,13 @@ body:not([data-carte="oui"]) .fiche .onglets-themes {
 /* La phrase qui répond à la question, et le pont qui explique son évolution.
    Elle porte la réponse : elle se lit avant les chiffres qui la soutiennent, et
    se détache d'eux. */
-.
 
 /* Ce que la question garde replié. Un pli sobre : il ne doit pas concurrencer
    l'intitulé de la question, qui est le vrai titre. */
-.
 
 /* D'où vient le mouvement. Même filet que les euros constants : ces deux
    phrases-là ne commentent pas la ligne à côté, elles répondent à ce que son
    chiffre vient de poser. */
-.
 
 /* ==========================================================================
    CIBLES TACTILES — 44 × 44 px de zone de frappe (WCAG 2.5.5)
@@ -3954,11 +3845,9 @@ summary.pont__rangee,
 }
 
 /* Un thème qui n'est pas mesuré à cette maille dit où il l'est, et y emmène. */
-.
 
 /* Ce que le mini-tableau montre, et sur combien : six colonnes muettes tirées
    d'une série de dix-neuf laissaient croire à la série entière. */
-.
 
 /* Un camembert seul dans un bloc large : sans cette borne, la légende étire
    ses parts jusqu'au bord droit et la ligne de lecture se casse. */
@@ -4063,8 +3952,6 @@ summary.pont__rangee,
 }
 /* Le compte des indicateurs suit le libellé au lieu de le surmonter : deux
    lignes dans une pilule doublaient sa hauteur pour un nombre. */
-.
-.
 
 /* ---- Les faits : trois phrases chiffrées au plus, chacune vers son détail ---- */
 .verdict {
@@ -4072,31 +3959,15 @@ summary.pont__rangee,
   margin: 0 0 var(--espace-6);
   padding: 0;
 }
-.
 /* La puce dit le sens sans le juger : pleine pour ce qui tend les comptes,
    creuse pour ce qui les détend, effacée pour ce qui ne tranche pas. */
-.
-.
-.
 /* La phrase entière est la cible : viser une puce de six pixels au doigt, non. */
-.
-.
-.
 
 /* ---- Ma feuille d'impôts : le bloc vient de `feuille-impots.ts`, qui réemploie
         la mise en forme des « 100 € » (`.cent`). Seule la boîte est à faire. ---- */
-.
-.
 
 /* ---- Le corps par questions ---- */
-.
-.
-.
 /* Le chevron est dessiné, pas écrit : un caractère « ▸ » se lit à voix haute. */
-.
-.
-.
-.
 
 /* À 375 px, la bascule prend toute la largeur en deux lignes plutôt que de
    serrer deux pilules à trois caractères chacune. */
@@ -5238,9 +5109,6 @@ summary.pont__rangee,
 /* Le lien vers la page ANALYSES ferme « L'essentiel ». Il remplace un « Tout
    voir / 187 indicateurs » qui posait un compte brut sans rien relier : un
    nombre n'est pas une invitation, et le lecteur ne savait pas où il allait. */
-.
-.
-.
 
 /* La page ANALYSES : l'exhaustivité, là où la fiche s'arrête à l'essentiel. */
 .analyses {
