@@ -2532,10 +2532,16 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   color: var(--trait-fort);
   letter-spacing: 0.2em;
 }
-.situation__legende {
-  margin: var(--espace-4) 0 0;
+/* Le millésime, à côté du titre du bloc : sans lui un classement ne se vérifie
+   pas, et la phrase de méthode qui le portait en pied redisait « par habitant »
+   une cinquième fois. */
+.situation__exercice {
+  margin-inline-start: var(--espace-4);
+  font-family: var(--sans);
   font-size: var(--texte-xs);
+  font-weight: 400;
   color: var(--encre-douce);
+  letter-spacing: 0.04em;
 }
 
 /* Le terme comptable est sous le curseur, pas dans la phrase : le pointillé le
@@ -5466,9 +5472,14 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   max-width: min(88rem, 100%);
   width: auto;
 }
+/* **La fiche est plus large que la carte.** La carte sert à viser et à situer,
+   la fiche à lire : c'est elle qui porte les chiffres, le tableau des exercices
+   et les classements, et c'est devant elle qu'on passe son temps. Elle prend
+   donc la plus grande part, sans descendre la carte sous les 30rem qu'il faut
+   pour reconnaître la France. */
 body[data-carte="oui"] .vue--territoire .atelier {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 34rem);
+  grid-template-columns: minmax(30rem, 1fr) minmax(0, 1.25fr);
   gap: var(--espace-7);
   align-items: start;
   position: static;

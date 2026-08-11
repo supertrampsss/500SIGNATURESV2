@@ -58,7 +58,11 @@ test("le rendu dit le rang, l'effectif, la maille et le sens du classement", () 
   // Le sens se dit en comptant celles qui font plus : le compte de celles qui
   // font moins se déduit du rang, et il doublait la hauteur du bloc.
   assert.match(html, /2 communes dépensent plus, sur 4/);
-  assert.match(html, /Exercice 2025\./);
+  // Le millésime est dans le titre : sans lui un classement ne se vérifie pas.
+  assert.match(html, /class="situation__exercice">2025/);
+  // Et rien sous le bloc : la phrase de méthode redisait « par habitant » une
+  // cinquième fois, après quatre intitulés qui le portent.
+  assert.doesNotMatch(html, /situation__legende/);
 });
 
 test("le premier prend « er », pas « e »", () => {

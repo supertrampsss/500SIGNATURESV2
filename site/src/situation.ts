@@ -32,6 +32,11 @@
  * chaque ligne ouvre la fiche du territoire. Trente-quatre mille lignes ne se
  * peignent pas, et personne ne veut la 12 000e.
  *
+ * **Le millésime est dans le titre, et rien d'autre sous le bloc.** Une phrase
+ * de méthode en pied disait « par habitant » une cinquième fois, après quatre
+ * intitulés qui le portent déjà. Ne reste que l'exercice, sans lequel un
+ * classement ne se vérifie pas.
+ *
  * **Un territoire qui ne publie pas la valeur n'a pas de rang**, et la ligne
  * n'est pas écrite. On ne le compte pas non plus dans le dénombrement : « 412e
  * sur 34 875 » se dit sur les territoires qui publient, pas sur ceux qui
@@ -219,10 +224,7 @@ export function rendreSituation(liste: Rang[], niveau: string, exercice: string)
     )
     .join("");
   return `<section class="bloc-lecture bloc-lecture--situation">
-    <h3>Où ça se situe</h3>
+    <h3>Où ça se situe<span class="situation__exercice">${echapper(exercice)}</span></h3>
     <ol class="situation">${lignes}</ol>
-    <p class="situation__legende">Exercice ${echapper(
-      exercice,
-    )}. Par habitant : classer les montants bruts reviendrait à classer par population.</p>
   </section>`;
 }
