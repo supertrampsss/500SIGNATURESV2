@@ -49,7 +49,22 @@ import {
   type Volet,
 } from "./atelier.ts";
 import { renduTranches } from "./bareme-rendu.ts";
-import { rendement as rendementBareme, regler as reglerTaux, type Taux } from "./bareme.ts";
+import {
+  quiPaie,
+  rendement as rendementBareme,
+  regler as reglerTaux,
+  type Taux,
+} from "./bareme.ts";
+import {
+  aTrouverAuDepart,
+  budgetsTenus,
+  contratDe,
+  resteATrouver,
+  ruptures,
+  CONTRATS,
+  type Contrat,
+  type Rupture,
+} from "./mission.ts";
 
 import { echapper } from "./texte.ts";
 import {
@@ -559,7 +574,11 @@ export function renduRaccourcisAtelier(volets: readonly Volet[]): string {
  * budget garde donc son propre solde, dans l'en-tête de sa section ; ici on ne
  * lit que ce que le lecteur a changé.
  */
-export function renduEffort(volets: readonly Volet[], etat: EtatAtelier): string {
+export function renduEffort(
+  volets: readonly Volet[],
+  etat: EtatAtelier,
+  contrat: Contrat | null = null,
+): string {
   // Un transfert intégralement propagé rend l'euro exact, la virgule flottante
   // non : couper la dotation globale laisse un résidu de quelques millionièmes
   // d'euro sur des montants de mille milliards. En dessous de l'euro, il n'y a
@@ -568,36 +587,42 @@ export function renduEffort(volets: readonly Volet[], etat: EtatAtelier): string
   const brut = effort(volets, etat);
   const total = Math.abs(brut) < 1 ? 0 : brut;
   const nombre = gestes(volets, etat);
-  const touches = volets.filter((v) => Math.abs(contribution(v, etat, volets)) >= 1);
-  // Le signe seul ne dit pas de quel côté on va : « +3 105 M€ » se lit aussi
-  // bien « j'ai dépensé 3 105 M€ de plus ». La phrase le dit, le signe le compte.
-  //
-  // Le total nul avec des gestes n'est pas un cas d'erreur : couper une
-  // dotation déplace la charge, elle ne l'efface pas. C'est le seul endroit où
-  // l'écran peut le dire d'un mot.
-  const sens =
-    nombre === 0
-      ? "Réglez une ligne, dans n'importe quel budget."
-      : total === 0
-        ? "Vos gestes s'annulent<span class=\"simu__effort-ou\"> : ce qu'un budget gagne, un autre le perd</span>."
-        : `Autant de ${total > 0 ? "gagné" : "perdu"}<span class="simu__effort-ou"> ${
-            touches.length > 1 ? "dans les budgets réglés" : "dans le budget réglé"
-          }</span>.`;
+  const reste = resteATrouver(volets, etat);
+  const depart = aTrouverAuDepart(volets);
+  const { tenus, total: combien } = budgetsTenus(volets, etat);
+  const brisures = ruptures(contrat, volets, etat);
+  // La jauge dit ce qui est comblé, jamais ce qui reste : à 160 028 M€ de
+  // déficit, une barre pleine au départ dirait qu'on part de la victoire.
+  const part = depart > 0 ? Math.min(1, Math.max(0, (depart - reste) / depart)) : 0;
   return `<div class="simu__effort">
-      <span class="simu__effort-quoi">Votre effort, tous budgets</span>
-      <b class="simu__effort-val nombre${classeEcart(total)}">${
-        nombre === 0 ? "aucun geste" : eurosSigne(total)
-      }</b>
+      <span class="simu__effort-quoi">${
+        reste === 0 ? "Mission accomplie" : "Reste à trouver"
+      }</span>
+      <b class="simu__effort-val nombre">${euros(reste)}</b>
     </div>
     <p class="simu__effort-detail">
-      <span class="simu__effort-sens">${sens}</span>${
+      <span class="simu__effort-sens">${
+        nombre === 0
+          ? `${combien} budget${combien > 1 ? "s" : ""}, ${euros(
+              depart,
+            )} de déficit.<span class="simu__effort-ou"> Réglez une ligne, n'importe laquelle.</span>`
+          : `${eurosSigne(total)} depuis le début<span class="simu__effort-ou">, ${tenus} budget${
+              tenus > 1 ? "s" : ""
+            } sur ${combien} à l'équilibre</span>.`
+      }</span>${
         nombre === 0
           ? ""
-          : `<span class="simu__effort-nb">${nombre} ${
-              nombre > 1 ? "gestes" : "geste"
-            }</span><span class="simu__effort-par">${touches
-              .map((v) => `${echapper(v.nom)} ${eurosSigne(contribution(v, etat, volets))}`)
-              .join(" · ")}</span>`
+          : `<span class="simu__effort-nb">${nombre} ${nombre > 1 ? "gestes" : "geste"}</span>`
+      }${
+        contrat
+          ? `<span class="simu__effort-contrat${
+              brisures.length ? " simu__val--argile" : ""
+            }">${
+              brisures.length
+                ? `contrat rompu · ${echapper(brisures[0]!.libelle)}`
+                : "contrat tenu"
+            }</span>`
+          : ""
       }
     </p>
     <div class="simu__effort-actions">
@@ -605,7 +630,63 @@ export function renduEffort(volets: readonly Volet[], etat: EtatAtelier): string
       <button type="button" class="simu__creux" id="simu-raz"${
         nombre === 0 ? " hidden" : ""
       }>Tout remettre à zéro</button>
-    </div>`;
+    </div>
+    <div class="simu__jauge" role="presentation"><i style="width:${(part * 100).toFixed(
+      2,
+    )}%"></i></div>`;
+}
+
+/**
+ * Le bloc de mission : le but, la règle qui le rend lisible, et le contrat.
+ *
+ * Il est en haut et il ne colle pas : on le lit une fois, on choisit, puis
+ * c'est la barre collante qui suit le lecteur.
+ */
+export function renduMission(
+  volets: readonly Volet[],
+  etat: EtatAtelier,
+  contrat: Contrat | null,
+): string {
+  // Le compteur n'est pas ici : il est dans la barre, juste dessous, et elle
+  // suit le lecteur. Deux fois le même nombre à trois cents pixels d'écart se
+  // lit comme une erreur.
+  const { total: combien } = budgetsTenus(volets, etat);
+  const brisures = ruptures(contrat, volets, etat);
+  return `<p class="mission__quoi">Votre mission</p>
+    <h2 class="mission__titre">Ramener les ${combien} budgets à l'équilibre</h2>
+    <p class="mission__regle">Un budget en excédent ne comble pas le déficit d'un autre :
+      le compteur ne compte que les déficits.</p>
+    <div class="mission__contrat">
+      <span class="mission__contrat-quoi">Votre contrat</span>
+      <div class="mission__contrats" role="group" aria-label="Contrat">
+        <button type="button" class="mission__pastille" data-contrat=""
+                aria-pressed="${contrat === null}">Aucun</button>
+        ${CONTRATS.map(
+          (c) => `<button type="button" class="mission__pastille" data-contrat="${echapper(
+            c.cle,
+          )}" aria-pressed="${contrat?.cle === c.cle}">${echapper(c.nom)}</button>`,
+        ).join("")}
+      </div>
+    </div>
+    ${
+      contrat
+        ? `<p class="mission__interdit">${echapper(contrat.interdit)}</p>
+           ${renduRuptures(brisures)}`
+        : ""
+    }`;
+}
+
+/** Ce qui rompt le contrat, nommé, et de combien il y en a. */
+export function renduRuptures(brisures: readonly Rupture[]): string {
+  if (!brisures.length) return "";
+  const premiere = brisures[0]!;
+  return `<p class="mission__rupture">Contrat rompu : « ${echapper(
+    premiere.libelle,
+  )} » à ${pointsAffiches(premiere.pourcentage)}, dans ${echapper(
+    premiere.nomVolet === "État" ? "le budget de l'État" : premiere.nomVolet,
+  )}${
+    brisures.length > 1 ? `, et ${brisures.length - 1} autre${brisures.length > 2 ? "s" : ""}` : ""
+  }.</p>`;
 }
 
 /** L'avertissement de double compte, et seulement quand il mord. */
@@ -734,6 +815,36 @@ export function renduJalons(
     <p class="simu__equivalence">${renduEquivalence(volet.index, ecart, mot)}</p>`;
 }
 
+/**
+ * **Qui paie**, sous le barème.
+ *
+ * « +2 128 M€ » ne dit rien à personne ; « 1,4 million de foyers, 1 505 € de
+ * plus par an » est une note d'impôt. Les deux nombres sortent du fichier
+ * IRCOM, aucun n'est estimé, et la phrase ne s'écrit que si une tranche a
+ * bougé.
+ */
+export function renduQuiPaie(volet: Volet, etat: EtatAtelier): string {
+  if (volet.genre !== "bareme") return "";
+  const dit = quiPaie(volet.bareme, tauxDe(etat, volet), volet.depart);
+  if (!dit) return "";
+  const paient = dit.parFoyer > 0;
+  return `<p class="simu__qui-paie-dit">
+    <b class="nombre">${FOYERS.format(dit.foyers)}</b> foyers
+    ${paient ? "paient" : "gagnent"}
+    <b class="nombre">${EUROS_FOYER.format(Math.abs(dit.parFoyer))}</b>
+    par an en moyenne<span class="simu__qui-paie-note">, soit ${eurosSigne(
+      dit.total,
+    )} au total</span>.
+  </p>`;
+}
+
+const FOYERS = new Intl.NumberFormat("fr-FR");
+const EUROS_FOYER = new Intl.NumberFormat("fr-FR", {
+  style: "currency",
+  currency: "EUR",
+  maximumFractionDigits: 0,
+});
+
 /** Le corps d'une section : l'arbre du budget, ou les tranches du barème. */
 export function renduCorpsVolet(
   volet: Volet,
@@ -742,6 +853,7 @@ export function renduCorpsVolet(
 ): string {
   if (volet.genre === "bareme") {
     return `<p class="simu__note">${echapper(volet.bareme.note)}</p>
+      <div class="simu__qui-paie" data-qui-paie>${renduQuiPaie(volet, etat)}</div>
       <div class="simu__arbre">${renduTranches(volet.bareme, tauxDe(etat, volet))}</div>`;
   }
   const reglages = reglagesEffectifs(volet, etat, volets);
@@ -792,10 +904,21 @@ function ligneDuBareme(
  * Un seul écran, une seule barre, un seul plan. Les budgets se suivent, chacun
  * dans sa section, chacun avec son solde — et aucun total ne les additionne.
  */
-export function renduAtelier(volets: readonly Volet[], etat: EtatAtelier): string {
-  return `<div class="simu__barre-solde" id="simu-effort" aria-live="polite">${renduEffort(
+export function renduAtelier(
+  volets: readonly Volet[],
+  etat: EtatAtelier,
+  contrat: Contrat | null = null,
+): string {
+  return `<section class="mission" id="simu-mission">${renduMission(
     volets,
     etat,
+    contrat,
+  )}</section>
+
+  <div class="simu__barre-solde" id="simu-effort" aria-live="polite">${renduEffort(
+    volets,
+    etat,
+    contrat,
   )}</div>
 
   <section class="simu__bloc simu__bloc--plan" id="simu-plan-bloc"${
@@ -847,9 +970,11 @@ let montage: AbortController | null = null;
 
 type Options = {
   etat: EtatAtelier;
-  /** Appelé après chaque geste, avec l'état encodé : c'est l'appelant qui
-   *  possède l'URL du site, ce module ne la touche pas. */
-  surReglages: (encode: string) => void;
+  /** Le contrat au chargement, tel que l'adresse le porte. */
+  contrat?: string | null;
+  /** Appelé après chaque geste, avec l'état encodé et le contrat choisi :
+   *  c'est l'appelant qui possède l'URL du site, ce module ne la touche pas. */
+  surReglages: (encode: string, contrat: string | null) => void;
 };
 
 export function afficherAtelier(
@@ -858,11 +983,12 @@ export function afficherAtelier(
   options: Options,
 ): void {
   const { etat, surReglages } = options;
+  let contrat = contratDe(options.contrat ?? null);
   montage?.abort();
   montage = new AbortController();
   const { signal } = montage;
 
-  bloc.innerHTML = renduAtelier(volets, etat);
+  bloc.innerHTML = renduAtelier(volets, etat, contrat);
 
   const $ = <T extends HTMLElement>(id: string) => bloc.querySelector<T>(`#${id}`)!;
   const elQ = $<HTMLInputElement>("simu-q");
@@ -953,11 +1079,16 @@ export function afficherAtelier(
   }
 
   function majTotaux(): void {
-    $("simu-effort").innerHTML = renduEffort(volets, etat);
+    $("simu-effort").innerHTML = renduEffort(volets, etat, contrat);
     $("simu-plan").innerHTML = renduPlanAtelier(plan(volets, etat));
     $("simu-transferts").innerHTML = renduTransferts(volets, etat);
     $("simu-plan-bloc").hidden = gestes(volets, etat) === 0;
-    surReglages(encoder(volets, etat));
+    $("simu-mission").innerHTML = renduMission(volets, etat, contrat);
+    for (const zone of bloc.querySelectorAll<HTMLElement>("[data-qui-paie]")) {
+      const volet = voletDe(zone);
+      if (volet) zone.innerHTML = renduQuiPaie(volet, etat);
+    }
+    surReglages(encoder(volets, etat), contrat?.cle ?? null);
   }
 
   /**
@@ -1018,6 +1149,18 @@ export function afficherAtelier(
 
   bloc.addEventListener("click", (evenement) => {
     const cible = evenement.target as HTMLElement;
+
+    const pastille = cible.closest<HTMLElement>("[data-contrat]");
+    if (pastille) {
+      contrat = contratDe(pastille.dataset.contrat || null);
+      majTotaux();
+      // La rangée défile au doigt sur téléphone : sans ce recentrage, on signe
+      // un contrat qui sort de l'écran au repeinturage, et rien ne dit lequel.
+      $("simu-mission")
+        .querySelector<HTMLElement>('.mission__pastille[aria-pressed="true"]')
+        ?.scrollIntoView({ inline: "center", block: "nearest" });
+      return;
+    }
 
     // Une ligne commandée d'ailleurs mène à ce qui la commande : c'est ce
     // renvoi, et lui seul, qui rend le lien visible depuis la ligne.

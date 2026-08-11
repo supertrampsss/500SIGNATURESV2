@@ -248,9 +248,11 @@ test("la barre de solde porte les trois nombres et le périmètre reste une lign
     perimetre(BUDGET),
     "PLF 2025, budget général, crédits de paiement, montants en millions d'euros (M€)",
   );
-  // Aucun geste : la barre le dit en toutes lettres plutôt qu'un « 0 M€ » qui
-  // se lirait comme un montant.
-  assert.match(renduEffort([VOLET], atelier()), /aucun geste/);
+  // Aucun geste : la barre dit la mission — ce qu'il reste à trouver, et
+  // l'invitation à commencer.
+  const vide = renduEffort([VOLET], atelier());
+  assert.match(vide, /Reste à trouver|Mission accomplie/);
+  assert.match(vide, /Réglez une ligne/);
   // Et le solde du budget vit dans l'en-tête de sa section, pas dans la barre :
   // les budgets ne s'additionnent pas, seul l'effort le fait.
   assert.match(renduEnteteVolet(VOLET, atelier(), [VOLET]), /10\u202f000\u202fM€/);
@@ -268,10 +270,10 @@ test("la barre additionne des écarts, jamais des budgets", () => {
   // des dizaines de milliards circulent entre eux et chacun les compte de son
   // côté. Ce qui s'additionne, ce sont les gestes.
   const html = renduEffort([VOLET], atelier(reglages(["140", -20])));
-  assert.match(html, /Votre effort/);
-  assert.match(html, /\+4\u202f000\u202fM€/);
+  assert.match(html, /\+4\u202f000\u202fM€ depuis le début/);
   assert.match(html, /1 geste/);
-  // Et le mot « solde » n'apparaît nulle part dans la barre.
+  // Et le mot « solde » n'apparaît nulle part dans la barre : ce qu'elle
+  // compte, ce sont des écarts et des déficits, jamais une somme de soldes.
   assert.doesNotMatch(html, /[Ss]olde/);
 });
 
@@ -488,10 +490,21 @@ test("la page ne contient que deux phrases, et aucun bloc de prose", () => {
   // promet pas », pas de paragraphe pédagogique.
   const html = page(reglages(["140", -21]));
   const paragraphes = [...html.matchAll(/<p class="([^"]+)"/g)].map((m) => m[1]);
-  assert.deepEqual(
-    [...new Set(paragraphes)].sort(),
-    ["simu__effort-detail", "simu__equivalence", "simu__note", "simu__perimetre"],
-  );
+  assert.deepEqual([...new Set(paragraphes)].sort(), [
+    "mission__quoi",
+    "mission__regle",
+    "simu__effort-detail",
+    "simu__equivalence",
+    "simu__note",
+    "simu__perimetre",
+  ]);
+  // La liste seule ne suffirait pas : ce que la règle interdit, c'est le
+  // paragraphe, pas la classe. Aucune phrase de la page ne dépasse une ligne
+  // de lecture.
+  for (const [, texte] of html.matchAll(/<p class="[^"]+"[^>]*>([\s\S]*?)<\/p>/g)) {
+    const nu = texte.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+    assert.ok(nu.length <= 180, `paragraphe de ${nu.length} signes : « ${nu.slice(0, 90)}… »`);
+  }
   // Le périmètre, à l'endroit exact où il compte.
   assert.match(html, /PLF 2025, budget général, crédits de paiement/);
   // Et l'avertissement de comportement, au-dessus des recettes et nulle part

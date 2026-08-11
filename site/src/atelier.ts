@@ -459,11 +459,23 @@ const SEPARATEUR_VOLET = "/";
 export function encoder(volets: readonly Volet[], etat: EtatAtelier): string {
   return volets
     .flatMap((volet) => {
-      const table =
-        volet.genre === "budget" ? reglagesDe(etat, volet) : tauxDe(etat, volet);
-      return [...table].map(
-        ([code, valeur]) => `${volet.cle}${SEPARATEUR_VOLET}${code}:${valeur}`,
-      );
+      if (volet.genre === "budget") {
+        return [...reglagesDe(etat, volet)].map(
+          ([code, valeur]) => `${volet.cle}${SEPARATEUR_VOLET}${code}:${valeur}`,
+        );
+      }
+      // **Seulement les tranches déplacées.** La table d'un barème part pleine,
+      // au barème en vigueur : l'encoder telle quelle mettait ses vingt-cinq
+      // tranches dans l'adresse, et « Copier le lien » rendait 1 400 signes
+      // pour un geste. Une tranche remise à sa valeur d'origine sort du lien,
+      // et une tranche ramenée à zéro y entre — c'est le départ qui fait foi,
+      // pas la présence dans la table.
+      const taux = tauxDe(etat, volet);
+      return volet.bareme.tranches.flatMap((tranche) => {
+        const valeur = taux.get(tranche.b) ?? 0;
+        if (valeur === (volet.depart.get(tranche.b) ?? 0)) return [];
+        return [`${volet.cle}${SEPARATEUR_VOLET}${tranche.b}:${valeur}`];
+      });
     })
     .join(",");
 }
@@ -479,13 +491,22 @@ export function decoder(chaine: string, volets: readonly Volet[]): EtatAtelier {
     if (!volet) continue;
     const code = morceau.slice(barre + 1, separateur);
     const valeur = Number(morceau.slice(separateur + 1));
-    if (!Number.isFinite(valeur) || valeur === 0) continue;
+    if (!Number.isFinite(valeur)) continue;
+    // Zéro n'est pas un réglage dans un budget — « réglé à 0 % » et « pas
+    // réglé » y sont la même chose. Dans un barème, si : une tranche mise à
+    // zéro s'écarte du barème en vigueur, et c'est un geste.
     if (volet.genre === "budget") {
-      if (volet.index.has(code)) reglagesDe(etat, volet).set(code, borner(valeur));
+      if (valeur !== 0 && volet.index.has(code)) reglagesDe(etat, volet).set(code, borner(valeur));
     } else {
       const borne = Number(code);
       if (volet.bareme.tranches.some((t) => t.b === borne)) {
-        tauxDe(etat, volet).set(borne, Math.max(0, Math.min(100, valeur)));
+        const table = tauxDe(etat, volet);
+        const taux = Math.max(0, Math.min(100, valeur));
+        // La table d'un barème ne garde pas les zéros : « pas de taux » et
+        // « taux nul » y sont la même chose, et c'est le départ qui dit si
+        // c'était un geste.
+        if (taux === 0) table.delete(borne);
+        else table.set(borne, taux);
       }
     }
   }

@@ -153,6 +153,10 @@ type Etat = {
    *  `CODE:pct,CODE:pct`. Vide tant qu'aucune ligne n'est touchée : l'URL ne
    *  porte alors pas le paramètre du tout, comme pour `comparer`. */
   budget: string;
+  /** Le contrat signé dans le simulateur. Il part dans l'adresse avec les
+   *  réglages : un budget partagé sans sa contrainte se lit comme un exploit
+   *  alors que c'en était un sous serment. */
+  contrat: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -268,6 +272,7 @@ function lireUrl(): Etat {
     // n'existe pas — même règle que pour la maille.
     voir: p.get("voir") === "tout" ? "tout" : "essentiel",
     budget: p.get("budget") ?? "",
+    contrat: p.get("contrat") ?? "",
   };
 }
 
@@ -285,6 +290,7 @@ function ecrireUrl(): void {
   if (etat.comparaison.length) p.set("comparer", etat.comparaison.join(","));
   if (etat.voir === "tout") p.set("voir", "tout");
   if (etat.budget) p.set("budget", etat.budget);
+  if (etat.contrat) p.set("contrat", etat.contrat);
   // Le hash porte la vue de page : le réécrire sans lui renverrait le lecteur
   // du simulateur à la carte au premier réglage.
   history.replaceState(null, "", `?${p}${location.hash}`);
@@ -2360,8 +2366,10 @@ async function ouvrirSimulateur(): Promise<void> {
   }
   afficherAtelier($("simu"), volets, {
     etat: decoderAtelier(etat.budget, volets),
-    surReglages: (encode: string) => {
+    contrat: etat.contrat || null,
+    surReglages: (encode: string, contrat: string | null) => {
       etat.budget = encode;
+      etat.contrat = contrat ?? "";
       ecrireUrl();
     },
   });

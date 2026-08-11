@@ -4131,6 +4131,95 @@ summary.pont__rangee,
   box-shadow: var(--ombre-1);
 }
 
+/* ---- La mission ---------------------------------------------------------
+   Le simulateur savait calculer, il ne savait pas jouer. Ce bloc pose le but
+   avant le premier curseur : un chiffre, une règle qui le rend lisible, et un
+   contrat qu'on signe. Il ne colle pas — on le lit une fois, la barre prend le
+   relais ensuite. */
+.mission {
+  padding: var(--espace-7) var(--espace-7) var(--espace-6);
+  margin-bottom: var(--espace-4);
+  background: var(--papier-creuse);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+.mission__quoi {
+  margin: 0;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+.mission__titre {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 600;
+  line-height: 1.15;
+  margin: var(--espace-2) 0 0;
+}
+.mission__regle {
+  margin: var(--espace-4) 0 0;
+  max-width: 62ch;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.mission__contrat {
+  margin-top: var(--espace-6);
+  padding-top: var(--espace-5);
+  border-top: 1px solid var(--trait-fort);
+}
+.mission__contrat-quoi {
+  display: block;
+  margin-bottom: var(--espace-3);
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+.mission__contrats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-3);
+}
+.mission__pastille {
+  font: inherit;
+  font-size: var(--texte-s);
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  cursor: pointer;
+  text-align: start;
+}
+.mission__pastille:hover {
+  border-color: var(--encre);
+}
+/* Le contrat signé se marque à l'aplat : c'est un engagement, pas un filtre. */
+.mission__pastille[aria-pressed="true"] {
+  background: var(--encre);
+  border-color: var(--encre);
+  color: var(--sur-encre);
+  font-weight: 600;
+}
+.mission__interdit {
+  margin: var(--espace-4) 0 0;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+/* La rupture est la seule chose de la page qui doive arrêter l'œil. Filet
+   d'argile à gauche, comme les transferts : le site n'a pas d'autre couleur
+   pour dire « ça va dans le mauvais sens », et surtout pas de vert en face. */
+.mission__rupture {
+  margin: var(--espace-4) 0 0;
+  padding: var(--espace-3) var(--espace-5);
+  border-left: 3px solid var(--argile);
+  background: var(--papier);
+  font-size: var(--texte-s);
+  color: var(--encre);
+}
+
 /* ---- La barre de solde --------------------------------------------------
    Quatre cartes en haut de page sortaient de l'écran dès qu'on descendait
    d'un cran dans l'arbre : on réglait sans voir ce que ça faisait, donc au
@@ -4164,7 +4253,7 @@ summary.pont__rangee,
   gap: var(--espace-1);
   min-width: 0;
   padding-right: var(--espace-6);
-  border-right: 1px solid rgb(255 255 255 / 0.18);
+  border-right: 1px solid color-mix(in srgb, var(--sur-encre) 22%, transparent);
 }
 .simu__effort-quoi {
   font-size: var(--texte-xs);
@@ -4201,6 +4290,34 @@ summary.pont__rangee,
 .simu__effort-nb {
   white-space: nowrap;
 }
+/* La jauge borde la barre par le bas, sur toute sa largeur : trois pixels qui
+   disent l'avancement sans prendre une ligne. Elle montre ce qui est comblé,
+   jamais ce qui reste — pleine au départ, elle annoncerait la victoire. */
+.simu__jauge {
+  grid-column: 1 / -1;
+  height: 3px;
+  margin: var(--espace-4) calc(var(--espace-6) * -1) calc(var(--espace-5) * -1);
+  background: color-mix(in srgb, var(--sur-encre) 20%, transparent);
+  border-radius: 0 0 var(--rayon-s) var(--rayon-s);
+  overflow: hidden;
+}
+.simu__jauge i {
+  display: block;
+  height: 100%;
+  background: var(--sur-encre);
+  transition: width 0.3s ease-out;
+}
+.simu__effort-contrat {
+  white-space: nowrap;
+}
+/* Sur fond d'encre, l'argile ne passe pas : le contrat rompu se marque au
+   trait sous le mot, qui tient dans les deux thèmes. */
+.simu__barre-solde .simu__effort-contrat.simu__val--argile {
+  color: inherit;
+  border-bottom: 2px solid var(--argile);
+  padding-bottom: var(--espace-1);
+  font-weight: 600;
+}
 .simu__effort-actions {
   display: flex;
   align-items: center;
@@ -4221,6 +4338,9 @@ summary.pont__rangee,
 }
 .simu__effort-actions button:hover {
   opacity: 0.88;
+}
+.simu__effort-actions .simu__creux:hover {
+  opacity: 1;
 }
 /* Remettre à zéro n'est pas l'action qu'on vient chercher : elle se lit, elle
    ne se propose pas. */
@@ -4838,6 +4958,31 @@ summary.pont__rangee,
   grid-area: lib;
 }
 
+/* ---- Qui paie -----------------------------------------------------------
+   « +2 128 M€ » est une abstraction ; « 1,4 million de foyers, 1 505 € de plus
+   par an » est une note d'impôt. C'est la seule phrase de la page qui dise au
+   lecteur ce que son geste lui coûte à lui. */
+.simu__qui-paie:empty {
+  display: none;
+}
+.simu__qui-paie-dit {
+  margin: 0 0 var(--espace-5);
+  padding: var(--espace-4) var(--espace-5);
+  border-left: 3px solid var(--encre);
+  background: var(--papier-creuse);
+  font-size: var(--texte-l);
+}
+.simu__qui-paie-dit b {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.simu__qui-paie-note {
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
 /* ---- Recettes ----------------------------------------------------------- */
 .simu__note {
   margin: 0 0 0.6rem;
@@ -5017,6 +5162,31 @@ summary.pont__rangee,
     gap: var(--espace-3);
     padding-right: 0;
     border-right: 0;
+  }
+  /* La jauge suit le fourreau de la barre, qui n'est plus le même : à
+     390 px elle débordait de quatre pixels. */
+  .simu__jauge {
+    margin: var(--espace-3) calc(var(--espace-5) * -1) calc(var(--espace-3) * -1);
+    border-radius: 0;
+  }
+  /* Le bloc de mission respire moins et ses pastilles s'empilent : quatre
+     contrats en pilules sur une ligne de 390 px, ce sont quatre lignes de
+     trois mots. */
+  .mission {
+    padding: var(--espace-6) var(--espace-5) var(--espace-5);
+    margin: 0 var(--espace-4) var(--espace-5);
+  }
+  /* Les contrats défilent au doigt plutôt que de s'empiler : cinq pilules de
+     quatre mots, ce sont cinq lignes et tout l'écran avant le premier budget.
+     Même geste que la rangée de raccourcis, deux blocs plus bas. */
+  .mission__contrats {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: var(--espace-2);
+  }
+  .mission__pastille {
+    flex: none;
   }
   /* Le bandeau tient en deux lignes : le nombre, puis la phrase qui dit ce
      qu'il est. L'étiquette dirait une troisième fois ce que la phrase dit. */

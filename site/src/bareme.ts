@@ -118,6 +118,35 @@ export function partDesFoyers(bareme: Bareme, taux: Taux): number {
 }
 
 /**
+ * **Qui paie ce que vous venez de changer**, et combien.
+ *
+ * Un rendement en millions d'euros ne dit rien à personne : « +2 128 M€ » est
+ * une abstraction, « 1,4 million de foyers, 1 505 € de plus par an » est une
+ * note d'impôt. Les deux nombres sortent du même fichier — la matière taxable
+ * de chaque tranche et le nombre de foyers qu'elle atteint — et aucun n'est
+ * estimé.
+ *
+ * Les foyers comptés sont ceux que la tranche modifiée la plus basse atteint :
+ * une tranche relevée ne touche personne en dessous de sa borne. La moyenne
+ * qui suit est bien une moyenne — dans une tranche, un foyer au bas de la
+ * borne paie moins que celui qui est au-dessus.
+ *
+ * `null` tant que rien n'a bougé.
+ */
+export function quiPaie(
+  bareme: Bareme,
+  taux: Taux,
+  depart: Taux,
+): { total: number; foyers: number; parFoyer: number } | null {
+  const total = rendement(bareme, taux) - rendement(bareme, depart);
+  if (total === 0) return null;
+  const changee = bareme.tranches.find((t) => tauxDe(taux, t) !== tauxDe(depart, t));
+  const foyers = changee?.fa ?? 0;
+  if (!foyers) return null;
+  return { total, foyers, parFoyer: total / foyers };
+}
+
+/**
  * Le taux moyen : ce que le barème prend, rapporté à tout le revenu déclaré.
  *
  * Ce n'est **pas** la moyenne des taux affichés. Un barème à 45 % sur la seule
