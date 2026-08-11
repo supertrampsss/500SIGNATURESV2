@@ -267,6 +267,27 @@ export const simulateurBudget = (exercice: string) =>
  */
 export const simulateurIndexSecu = () => lire<unknown>("simulateur/index-secu.json");
 
+/**
+ * Les cinq branches des régimes de base, chacune dans son fichier.
+ *
+ * **Un fichier par branche, et aucun fichier qui les rassemble.** Additionner
+ * les cinq donnerait 19 019 M€ de charges de trop : un transfert entre branches
+ * est compté en charge chez l'une et en produit chez l'autre, et la
+ * consolidation le retire des deux côtés. Le site n'a donc pas de total à
+ * charger, parce qu'il n'y en a pas.
+ *
+ * Ce que l'on a le droit de faire, en revanche, est vérifié à l'ingestion : les
+ * cinq **soldes** font exactement le solde consolidé. Régler la branche
+ * vieillesse déplace donc le solde de la Sécurité sociale d'autant, et c'est ce
+ * qui rend les retraites simulables.
+ *
+ * L'index liste des clés `branche-exercice` — « vieillesse-2026 » — parce que
+ * les branches n'ont aucune raison de porter toutes les mêmes exercices.
+ */
+export const simulateurIndexBranches = () => lire<unknown>("simulateur/index-branches.json");
+export const simulateurBranche = (cle: string) =>
+  lire<import("./simulateur.ts").Budget>(`simulateur/branche-${cle}.json`);
+
 /** Le barème de l'impôt sur le revenu : la distribution des foyers fiscaux par
  *  tranche de revenu, et ce que chaque tranche d'un barème refait rapporterait.
  *  Ce n'est pas un budget — ni dépenses, ni recettes, ni solde — d'où un

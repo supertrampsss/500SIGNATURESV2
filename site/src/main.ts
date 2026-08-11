@@ -16,7 +16,11 @@ import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { decoder, indexer } from "./simulateur.ts";
-import { afficherSimulateur, exercicesPublies } from "./simulateur-rendu.ts";
+import {
+  afficherSimulateur,
+  exercicesPublies,
+  exercicesDeLaBranche,
+} from "./simulateur-rendu.ts";
 import { afficherBareme, decoder as decoderBareme } from "./bareme-rendu.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
@@ -2099,6 +2103,31 @@ const BUDGETS_SIMULABLES: BudgetPublie[] = [
     monter: (exercice, bloc) =>
       monterBudget(donnees.simulateurBudgetSecu(exercice), bloc, false),
   },
+  // **Les cinq branches, jamais leur somme.** Additionner les cinq donnerait
+  // 19 019 M€ de charges de trop : un transfert entre branches est compté en
+  // charge chez l'une et en produit chez l'autre. Ce qu'on a le droit de faire
+  // est vérifié à l'ingestion — les cinq *soldes* font exactement le solde
+  // consolidé —, et c'est ce qui rend les retraites simulables : régler la
+  // branche vieillesse déplace le solde de la Sécurité sociale d'autant.
+  //
+  // « Retraites » plutôt que « Vieillesse » : c'est le mot de la question, et le
+  // cadrage publié avec le fichier dit lequel des deux est celui du tableau.
+  ...(
+    [
+      ["vieillesse", "Retraites"],
+      ["maladie", "Maladie"],
+      ["famille", "Famille"],
+      ["autonomie", "Autonomie"],
+      ["atmp", "Accidents du travail"],
+    ] as const
+  ).map(([branche, nom]) => ({
+    cle: `branche-${branche}`,
+    nom,
+    index: async () =>
+      exercicesDeLaBranche(await donnees.simulateurIndexBranches(), branche),
+    monter: (exercice: string, bloc: HTMLElement) =>
+      monterBudget(donnees.simulateurBranche(`${branche}-${exercice}`), bloc, false),
+  })),
   {
     cle: "national",
     nom: "Tout, en comptabilité nationale",

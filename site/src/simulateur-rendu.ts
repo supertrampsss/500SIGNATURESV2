@@ -161,6 +161,25 @@ export function exercicesPublies(index: unknown): string[] {
   return index.filter((e): e is string => typeof e === "string" && e !== "");
 }
 
+/**
+ * Les exercices d'une branche, dans un index qui les porte toutes.
+ *
+ * `simulateur/index-branches.json` liste des clés « branche-exercice » —
+ * « vieillesse-2026 » — parce que les cinq branches n'ont aucune raison de
+ * porter toutes les mêmes millésimes : la DSS peut publier l'une et pas l'autre.
+ *
+ * Le découpage se fait sur le **premier** tiret, jamais le dernier : une clé de
+ * branche peut en contenir, et « atmp-2026 » comme « accidents-du-travail-2026 »
+ * doivent rendre le même exercice.
+ */
+export function exercicesDeLaBranche(index: unknown, branche: string): string[] {
+  const prefixe = `${branche}-`;
+  return exercicesPublies(index)
+    .filter((cle) => cle.startsWith(prefixe))
+    .map((cle) => cle.slice(prefixe.length))
+    .filter((exercice) => exercice !== "");
+}
+
 /* --------------------------------------------------------------------------
  * Une ligne réglable
  * ----------------------------------------------------------------------- */
@@ -492,9 +511,8 @@ const RACCOURCIS: { code: string; nom: string }[] = [
  */
 const RESERVE_RACCOURCIS: Record<string, string> = {
   RB: "Cette mission ne porte que les régimes spéciaux (transports, mines, marins)."
-    + " Les pensions du régime général sont au budget de la Sécurité sociale, où"
-    + " l'annexe publie les prestations légales en un seul bloc, sans les répartir"
-    + " par branche.",
+    + " Les pensions du régime général sont dans le budget « Retraites », qui est la"
+    + " branche vieillesse des régimes de base.",
   EB: "La charge de la dette est un crédit évaluatif : elle se constate, elle ne se"
     + " vote pas. La régler ici ne change pas ce que l'État doit payer.",
 };
@@ -665,7 +683,7 @@ export function rendu(
     reglages.size ? "" : " hidden"
   }>
     <h3 class="simu__bloc-titre">Votre plan<span id="simu-plan-compte">${
-      reglages.size ? ` · ${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}` : ""
+      reglages.size ? `${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}` : ""
     }</span></h3>
     <ul class="simu__plan" id="simu-plan">${renduPlan(
       plan(index, reglages),
@@ -841,7 +859,7 @@ export function afficherSimulateur(bloc: HTMLElement, budget: Budget, index: Ind
     // chose.
     elPlanBloc.hidden = reglages.size === 0;
     $("simu-plan-compte").textContent = reglages.size
-      ? ` · ${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}`
+      ? `${reglages.size} ${reglages.size > 1 ? "gestes" : "geste"}`
       : "";
     for (const [id, valeur] of [
       ["simu-vue-depenses", totaux(budget, reglages).depenses],

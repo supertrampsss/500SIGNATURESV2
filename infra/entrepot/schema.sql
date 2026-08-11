@@ -69,6 +69,7 @@ create sequence if not exists fin.seq_public_employment;
 create sequence if not exists fin.seq_public_subsidies;
 create sequence if not exists fin.seq_state_budget_detail;
 create sequence if not exists fin.seq_social_budget_detail;
+create sequence if not exists fin.seq_social_budget_branch;
 create sequence if not exists fin.seq_income_distribution;
 
 -- ---------------------------------------------------------------- meta
@@ -482,6 +483,44 @@ create table if not exists fin.social_budget_detail (
     dataset_id  text,  -- -> meta.dataset_registry (vérifié)
     run_id      uuid not null,  -- -> meta.ingestion_runs (vérifié)
     unique (fiscal_year, side, code)
+);
+
+-- Le même tableau 5, mais **par branche** : maladie, vieillesse, famille,
+-- AT-MP, autonomie. Une table à part, et c'est tout le sujet.
+--
+-- La table consolidée ci-dessus porte une règle en commentaire : pas de colonne
+-- de branche, parce que la somme des cinq branches n'est pas le consolidé —
+-- 695 943,8 M€ de charges contre 676 925,3, soit 19,0 Md€ de transferts entre
+-- branches comptés en charge chez l'une et en produit chez l'autre. La règle
+-- n'a pas changé. Ce qui change, c'est le moyen de la tenir : deux tables
+-- séparées rendent l'addition **impossible sans l'écrire**, là où une colonne
+-- de plus dans la même table l'aurait rendue facile par accident.
+--
+-- Chaque branche, elle, est un budget complet et cohérent avec lui-même : ses
+-- postes font ses totaux, et son résultat net est la différence de ses deux
+-- totaux. C'est ce qui la rend réglable — on peut simuler les retraites sans
+-- jamais prétendre que la vieillesse plus la maladie font la Sécurité sociale.
+--
+-- `branch` n'a pas de valeur par défaut : une ligne de cette table appartient à
+-- une branche, sinon elle appartient à l'autre table.
+create table if not exists fin.social_budget_branch (
+    branch_id   bigint primary key default nextval('fin.seq_social_budget_branch'),
+    fiscal_year smallint not null,
+    law         text not null,
+    branch      text not null check (branch in
+                ('maladie','vieillesse','famille','atmp','autonomie')),
+    side        text not null check (side in ('depense','recette')),
+    node_level  text not null check (node_level in ('agregat','poste','sous_poste')),
+    code        text not null,
+    parent_code text,
+    label       text not null,
+    amount      double not null,
+    sign        smallint not null default 1 check (sign in (-1, 1)),
+    measure     text not null,
+    currency    text not null default 'EUR',
+    dataset_id  text,  -- -> meta.dataset_registry (vérifié)
+    run_id      uuid not null,  -- -> meta.ingestion_runs (vérifié)
+    unique (fiscal_year, branch, side, code)
 );
 
 -- La distribution nationale des foyers fiscaux par tranche de revenu fiscal de

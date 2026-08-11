@@ -118,6 +118,15 @@ ENTETE_CONSOLIDE = "Régimes de base"
 # somme des branches n'est pas le consolidé — mais elles servent au contrôle
 # croisé avec le tableau 4, qui les donne dans un autre ordre.
 BRANCHES_EQUILIBRE = {"Maladie": 4, "Vieillesse": 5, "Famille": 6, "AT-MP": 7, "Autonomie": 8}
+# La clé publiée de chaque branche : sans accent, sans tiret, stable dans une
+# URL et dans une contrainte SQL.
+CLE_BRANCHE = {
+    "Maladie": "maladie",
+    "Vieillesse": "vieillesse",
+    "Famille": "famille",
+    "AT-MP": "atmp",
+    "Autonomie": "autonomie",
+}
 
 COLONNE_LIBELLE_SOLDES = 1
 BRANCHES_SOLDES = {"Maladie": 2, "AT-MP": 3, "Vieillesse": 4, "Famille": 5, "Autonomie": 6}
@@ -460,16 +469,27 @@ def lire_taux(feuille) -> list[float]:
     ]
 
 
-def montants(lignes: dict[tuple[str, str], dict[str, float]]) -> dict[str, float]:
-    """{code de poste: montant consolidé en euros}, selon la nomenclature."""
+def montants(
+    lignes: dict[tuple[str, str], dict[str, float]], perimetre: str = "consolide"
+) -> dict[str, float]:
+    """{code de poste: montant en euros} pour une colonne, selon la nomenclature."""
     return {
-        POSTES[cle][0]: valeurs["consolide"]
+        POSTES[cle][0]: valeurs[perimetre]
         for cle, valeurs in lignes.items()
-        if cle in POSTES
+        if cle in POSTES and perimetre in valeurs
     }
 
 
-def controler_sommes(postes: dict[str, float], reperes: dict) -> dict:
+def montants_par_branche(
+    lignes: dict[tuple[str, str], dict[str, float]],
+) -> dict[str, dict[str, float]]:
+    """{clé de branche: {code de poste: montant en euros}}, les cinq branches."""
+    return {
+        CLE_BRANCHE[branche]: montants(lignes, branche) for branche in BRANCHES_EQUILIBRE
+    }
+
+
+def controler_sommes(postes: dict[str, float], reperes: dict, perimetre: str = "consolide") -> dict:
     """Les postes font leur total, à chaque étage, des deux côtés.
 
     Trois familles de sommes : chaque poste à enfants contre ses enfants, chaque
@@ -477,6 +497,10 @@ def controler_sommes(postes: dict[str, float], reperes: dict) -> dict:
     des deux sections. Aucune ne se déduit d'une autre — un poste rattaché au
     mauvais parent casse la première sans toucher la deuxième, une ligne perdue
     au filtrage casse la deuxième sans toucher la première.
+
+    `perimetre` nomme la colonne du tableau : le consolidé par défaut, ou une
+    branche. Les trois familles de sommes valent pour chacune — c'est ce qui
+    rend une branche réglable, et c'est vérifié branche par branche.
     """
     enfants: dict[str, list[str]] = defaultdict(list)
     tetes: dict[str, list[str]] = defaultdict(list)
@@ -494,25 +518,103 @@ def controler_sommes(postes: dict[str, float], reperes: dict) -> dict:
     for section in COTE:
         presents = [code for code in tetes[section] if code in postes]
         ecarts[section] = round(
-            sum(postes[c] for c in presents) - reperes[section]["consolide"], 2
+            sum(postes[c] for c in presents) - reperes[section][perimetre], 2
         )
     ecarts[LIGNE_RESULTAT] = round(
-        reperes[SECTION_PRODUITS]["consolide"]
-        - reperes[SECTION_CHARGES]["consolide"]
-        - reperes[LIGNE_RESULTAT]["consolide"],
+        reperes[SECTION_PRODUITS][perimetre]
+        - reperes[SECTION_CHARGES][perimetre]
+        - reperes[LIGNE_RESULTAT][perimetre],
         2,
     )
     fautifs = {nom: ecart for nom, ecart in ecarts.items() if abs(ecart) > TOLERANCE_EUROS}
     if fautifs:
         nom, ecart = next(iter(sorted(fautifs.items())))
         raise BudgetSocialIncoherent(
-            f"« {nom} » s'écarte de {ecart / MILLIONS:+,.2f} M€ de la somme de ses"
-            " composantes. Un poste manque, double, ou n'est pas rattaché au bon"
-            " parent : l'arbre publié ne serait pas le tableau lu."
+            f"périmètre {perimetre} : « {nom} » s'écarte de {ecart / MILLIONS:+,.2f} M€"
+            " de la somme de ses composantes. Un poste manque, double, ou n'est pas"
+            " rattaché au bon parent : l'arbre publié ne serait pas le tableau lu."
         )
     return {
         "postes_verifies": len(ecarts),
         "ecart_maximal_euros": round(max(abs(e) for e in ecarts.values()), 2),
+    }
+
+
+def controler_les_branches(
+    par_branche: dict[str, dict[str, float]], reperes: dict
+) -> dict:
+    """Ce qui autorise à régler une branche, et ce qui interdit de les additionner.
+
+    **Chaque branche est un budget complet.** Ses postes font ses totaux, et son
+    résultat net est la différence de ses deux totaux : c'est `controler_sommes`
+    appliqué à sa colonne. Sans cela, une branche affichée serait un extrait, pas
+    un budget, et la régler ne voudrait rien dire.
+
+    **Les cinq résultats nets font le résultat consolidé, exactement.** C'est la
+    prise décisive, et elle est contre-intuitive : les charges des cinq branches
+    dépassent les charges consolidées de 19,0 Md€, et leurs produits les
+    dépassent **du même montant**, parce que la consolidation retire un transfert
+    entre branches des deux côtés à la fois. Les soldes, eux, ne bougent pas.
+    C'est ce qui rend l'exercice honnête : **régler une branche déplace le solde
+    de la Sécurité sociale d'exactement autant**, alors même que les totaux, eux,
+    ne s'additionnent pas.
+
+    **Et l'écart est non nul.** Si les cinq branches faisaient soudain le
+    consolidé sur les charges, ce ne serait pas une bonne nouvelle : ce serait la
+    preuve qu'on a lu cinq fois la même colonne. Le contrôle exige donc que
+    l'écart existe, en plus d'être symétrique.
+    """
+    par_branche_verifie = {
+        cle: controler_sommes(postes, reperes, branche)
+        for branche, cle in CLE_BRANCHE.items()
+        if (postes := par_branche.get(cle))
+    }
+    if len(par_branche_verifie) != len(CLE_BRANCHE):
+        absentes = sorted(set(CLE_BRANCHE.values()) - set(par_branche_verifie))
+        raise BudgetSocialIncoherent(
+            f"branches sans aucun poste lu : {', '.join(absentes)}. Le tableau 5"
+            " a changé de colonnes."
+        )
+
+    somme_soldes = sum(reperes[LIGNE_RESULTAT][b] for b in BRANCHES_EQUILIBRE)
+    ecart_soldes = round(somme_soldes - reperes[LIGNE_RESULTAT]["consolide"], 2)
+    if abs(ecart_soldes) > TOLERANCE_EUROS:
+        raise BudgetSocialIncoherent(
+            f"les cinq résultats nets font {ecart_soldes / MILLIONS:+,.2f} M€ de plus"
+            " que le résultat consolidé. Régler une branche ne déplacerait alors pas"
+            " le solde de la Sécurité sociale d'autant, et le simulateur mentirait."
+        )
+
+    ecarts_sections = {
+        section: round(
+            sum(reperes[section][b] for b in BRANCHES_EQUILIBRE) - reperes[section]["consolide"],
+            2,
+        )
+        for section in (SECTION_CHARGES, SECTION_PRODUITS)
+    }
+    dissymetrie = round(ecarts_sections[SECTION_CHARGES] - ecarts_sections[SECTION_PRODUITS], 2)
+    if abs(dissymetrie) > TOLERANCE_EUROS:
+        raise BudgetSocialIncoherent(
+            f"la consolidation retire {dissymetrie / MILLIONS:+,.2f} M€ de plus aux"
+            " charges qu'aux produits. Un transfert entre branches se retire des deux"
+            " côtés à la fois : la colonne consolidée ne décrit plus les mêmes lignes"
+            " que les colonnes de branche."
+        )
+    if abs(ecarts_sections[SECTION_CHARGES]) <= TOLERANCE_EUROS:
+        raise BudgetSocialIncoherent(
+            "les cinq branches font exactement les charges consolidées. Il n'y aurait"
+            " alors aucun transfert entre branches, ce que le tableau contredit :"
+            " c'est la colonne consolidée qui a été lue cinq fois."
+        )
+
+    return {
+        "branches_verifiees": sorted(par_branche_verifie),
+        "postes_verifies_par_branche": {
+            cle: v["postes_verifies"] for cle, v in sorted(par_branche_verifie.items())
+        },
+        "les_cinq_soldes_font_le_solde_consolide": ecart_soldes,
+        "transferts_entre_branches_euros": round(ecarts_sections[SECTION_CHARGES], 2),
+        "dissymetrie_euros": dissymetrie,
     }
 
 
@@ -678,6 +780,43 @@ def lignes_a_ecrire(
     return lignes
 
 
+def lignes_branches_a_ecrire(
+    exercice: str, par_branche: dict[str, dict[str, float]]
+) -> list[tuple]:
+    """-> les lignes de `fin.social_budget_branch`, cinq fois la nomenclature.
+
+    Les codes sont ceux du consolidé, sans préfixe : c'est la colonne `branch`
+    qui distingue, et la clé d'unicité de la table la porte. Un code préfixé
+    aurait mis le périmètre dans l'identifiant d'une ligne, où il n'a rien à
+    faire — et aurait fait diverger l'arbre d'une branche de celui du consolidé
+    alors que c'est le même tableau.
+    """
+    annee = int(exercice)
+    return [
+        (annee, LOI, branche, COTE[section], niveau, code, parent, LIBELLES[code],
+         round(postes[code], 2), 1, MESURE_EQUILIBRE)
+        for branche, postes in sorted(par_branche.items())
+        for (section, _), (code, parent, niveau) in POSTES.items()
+        if code in postes
+    ]
+
+
+def ecrire_branches(conn, run_id: str, lignes: list[tuple]) -> int:
+    """Remplace les cinq branches entières : un seul connecteur écrit ces lignes."""
+    conn.execute("delete from fin.social_budget_branch where dataset_id = ?", (DATASET,))
+    for ligne in lignes:
+        conn.execute(
+            """
+            insert into fin.social_budget_branch
+                (fiscal_year, law, branch, side, node_level, code, parent_code, label,
+                 amount, sign, measure, dataset_id, run_id)
+            values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (*ligne, DATASET, run_id),
+        )
+    return len(lignes)
+
+
 def ecrire(conn, run_id: str, lignes: list[tuple]) -> int:
     """Remplace la nomenclature entière : un seul connecteur écrit ces lignes."""
     conn.execute("delete from fin.social_budget_detail where dataset_id = ?", (DATASET,))
@@ -721,8 +860,10 @@ def preparer(conn, classeurs: dict) -> tuple[dict, dict, dict, dict]:
     mesures, lues_ondam = lire_ondam(classeurs["ondam"][ONGLET_ONDAM])
     taux = lire_taux(classeurs["ondam"][ONGLET_TAUX])
     postes = montants(lignes)
+    par_branche = montants_par_branche(lignes)
     verifies = {
         "les_postes_font_leur_total": controler_sommes(postes, reperes),
+        "chaque_branche_est_un_budget_complet": controler_les_branches(par_branche, reperes),
         "deux_tableaux_donnent_le_meme_solde": controler_deux_calculs_du_solde(reperes, soldes),
         "les_sous_objectifs_font_l_ondam": controler_ondam(mesures, taux),
         "ordre_de_grandeur_contre_la_drees": controler_ordre_de_grandeur(
@@ -739,7 +880,7 @@ def preparer(conn, classeurs: dict) -> tuple[dict, dict, dict, dict]:
         "equilibre": (lues_equilibre - 3, len(postes)),
         "ondam": (lues_ondam, len(mesures)),
     }
-    return postes, mesures, verifies, comptes
+    return postes, par_branche, mesures, verifies, comptes
 
 
 def run(store_spec: str) -> int:
@@ -752,7 +893,7 @@ def run(store_spec: str) -> int:
         verifies_par_exercice = {}
         for exercice in sorted(ANNEXES):
             classeurs = collecter(conn, store, run_id, exercice)
-            postes, mesures, verifies, comptes = preparer(conn, classeurs)
+            postes, par_branche, mesures, verifies, comptes = preparer(conn, classeurs)
             # Ce qui est écrit contre ce qui est lu : une ligne que la DSS
             # ajouterait au tableau ne serait pas dans la nomenclature, donc pas
             # écrite, et la part reconnue tomberait sous le seuil. Les contrôles
@@ -764,14 +905,18 @@ def run(store_spec: str) -> int:
             )
             verifies["couverture_lu_ecrit"] = {nom: round(part, 3) for nom, part in parts.items()}
             ecrites = ecrire(conn, run_id, lignes_a_ecrire(exercice, postes, mesures))
-            ecrites_total += ecrites
+            branches = ecrire_branches(
+                conn, run_id, lignes_branches_a_ecrire(exercice, par_branche)
+            )
+            ecrites_total += ecrites + branches
             verifies_par_exercice[exercice] = verifies
             entrepot.etape(
-                f"{exercice} : {ecrites} postes écrits,"
+                f"{exercice} : {ecrites} postes écrits + {branches} par branche,"
                 f" {verifies['charges_nettes_euros'] / 1e9:.1f} Md€ de charges nettes"
             )
         for nom in (
             "les_postes_font_leur_total",
+            "chaque_branche_est_un_budget_complet",
             "deux_tableaux_donnent_le_meme_solde",
             "les_sous_objectifs_font_l_ondam",
             "ordre_de_grandeur_contre_la_drees",

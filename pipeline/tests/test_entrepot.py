@@ -57,8 +57,9 @@ def test_le_schema_s_applique_deux_fois_sans_erreur(tmp_path):
         """select count(*) from information_schema.tables
            where table_schema in ('meta','geo','core','fin')"""
     ).fetchone()[0]
-    # 20 tables du modèle, plus la table d'empreinte du schéma.
-    assert tables == 21
+    # 21 tables du modèle — `fin.social_budget_branch` est la dernière venue —,
+    # plus la table d'empreinte du schéma.
+    assert tables == 22
     connexion.close()
 
 

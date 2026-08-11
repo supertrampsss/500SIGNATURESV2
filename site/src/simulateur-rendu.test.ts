@@ -18,6 +18,7 @@ import {
   euros,
   eurosSigne,
   exercicesPublies,
+  exercicesDeLaBranche,
   perimetre,
   rendu,
   renduBeneficiaires,
@@ -307,7 +308,7 @@ test("le plan est avant l'arbre, et n'existe pas tant qu'il n'y a pas de plan", 
   );
   const plein = rendu(BUDGET, INDEX, reglages(["140", -20], ["r1301", -10]));
   assert.doesNotMatch(plein, /id="simu-plan-bloc" hidden/);
-  assert.match(plein, /Votre plan<span id="simu-plan-compte"> · 2 gestes/);
+  assert.match(plein, /Votre plan<span id="simu-plan-compte">2 gestes/);
 });
 
 test("la recherche et les raccourcis passent devant l'arbre", () => {
@@ -402,16 +403,17 @@ test("l'arbre du budget ne se charge qu'à l'ouverture du simulateur", () => {
   assert.ok(ouverture.length > 200, "ouvrirSimulateur introuvable");
   assert.match(ouverture, /choisi\.budget\.monter\(choisi\.exercice, \$\("simu"\)\)/);
   // Chaque budget publié déclare son index et son montage, et rien ne le charge
-  // ailleurs : ni au démarrage, ni au passage d'un budget à l'autre. Cinq
-  // déclarations — l'État, la Sécurité sociale, le récapitulatif national, les
-  // trois échelons de collectivités écrits d'un seul gabarit, et le barème.
+  // ailleurs : ni au démarrage, ni au passage d'un budget à l'autre. Six
+  // déclarations — l'État, la Sécurité sociale, les cinq branches écrites d'un
+  // seul gabarit, le récapitulatif national, les trois échelons de
+  // collectivités écrits d'un autre gabarit, et le barème.
   const catalogue = MAIN.slice(
     MAIN.indexOf("const BUDGETS_SIMULABLES"),
     MAIN.indexOf("Un budget réglable, monté dans le bloc"),
   );
-  assert.equal(catalogue.match(/^\s*cle: /gm)?.length, 5);
-  assert.equal(catalogue.match(/^\s*index: /gm)?.length, 5);
-  assert.equal(catalogue.match(/^\s*monter: /gm)?.length, 5);
+  assert.equal(catalogue.match(/^\s*cle: /gm)?.length, 6);
+  assert.equal(catalogue.match(/^\s*index: /gm)?.length, 6);
+  assert.equal(catalogue.match(/^\s*monter: /gm)?.length, 6);
   assert.match(MAIN, /void preparerSimulateur\(\);/);
 });
 
@@ -509,17 +511,48 @@ test("les raccourcis mènent aux postes dont on débat, jamais aux plus gros", (
   }
 });
 
-test("« Retraites » dit ce qu'il ne couvre pas, plutôt que de laisser croire", () => {
-  // La mission de l'État ne paie que les régimes spéciaux. Les pensions du
-  // régime général sont au budget de la Sécurité sociale, où l'annexe publie
-  // les prestations légales en un seul bloc : il n'y a aucune ligne de
-  // retraites réglable, et c'est une limite de la publication.
+test("« Retraites » sur le budget de l'État renvoie au bon budget", () => {
+  // La mission de l'État ne paie que les régimes spéciaux — six milliards. Les
+  // pensions du régime général sont la branche vieillesse des régimes de base,
+  // qui a désormais son propre budget réglable : le raccourci le dit plutôt que
+  // de laisser prendre 6 000 M€ pour le sujet.
   const source = readFileSync(new URL("./simulateur-rendu.ts", import.meta.url), "utf8");
   assert.match(source, /RESERVE_RACCOURCIS/);
   assert.match(source, /régimes spéciaux/);
+  assert.match(source, /branche vieillesse des régimes de base/);
 });
 
 test("aucun tiret cadratin dans la page réagencée", () => {
   const budget = { ...BUDGET };
   assert.doesNotMatch(rendu(budget, INDEX, reglages(["140", -20])), /[–—]/);
+});
+
+
+/* --------------------------------------------- les branches de la Sécu */
+
+test("l'index des branches rend les exercices d'une branche, pas d'une autre", () => {
+  const index = ["vieillesse-2026", "maladie-2026", "vieillesse-2025", "atmp-2026"];
+  assert.deepEqual(exercicesDeLaBranche(index, "vieillesse"), ["2026", "2025"]);
+  assert.deepEqual(exercicesDeLaBranche(index, "atmp"), ["2026"]);
+  // Une branche non publiée ne fait pas d'entrée de menu morte.
+  assert.deepEqual(exercicesDeLaBranche(index, "autonomie"), []);
+  // Un index absent ou d'une autre forme vaut « rien à montrer ».
+  assert.deepEqual(exercicesDeLaBranche(null, "vieillesse"), []);
+  assert.deepEqual(exercicesDeLaBranche(["vieillesse-"], "vieillesse"), []);
+});
+
+test("les cinq branches sont proposées, et aucune entrée ne les résume", () => {
+  // Additionner les cinq donnerait 19 019 M€ de charges de trop : un transfert
+  // entre branches est compté en charge chez l'une et en produit chez l'autre.
+  const catalogue = MAIN.slice(
+    MAIN.indexOf("const BUDGETS_SIMULABLES"),
+    MAIN.indexOf("Un budget réglable, monté dans le bloc"),
+  );
+  for (const branche of ["vieillesse", "maladie", "famille", "autonomie", "atmp"]) {
+    assert.match(catalogue, new RegExp(`\\["${branche}", "`), `branche ${branche} absente`);
+  }
+  assert.match(catalogue, /\["vieillesse", "Retraites"\]/);
+  assert.doesNotMatch(catalogue, /branches?["'`]?\s*:\s*.*(somme|total)/i);
+  // Et le chargeur vise un fichier par branche, jamais un fichier commun.
+  assert.match(MAIN, /donnees\.simulateurBranche\(`\$\{branche\}-\$\{exercice\}`\)/);
 });
