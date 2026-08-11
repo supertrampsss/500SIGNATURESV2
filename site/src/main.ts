@@ -1020,21 +1020,21 @@ const CLASSEMENTS: {
   {
     id: "ofgl_depenses_fonctionnement",
     libelle: "Dépenses de fonctionnement par habitant",
-    dessus: "dépensent plus par habitant",
+    dessus: "dépensent plus",
     dessous: "dépensent moins",
     parHabitant: true,
   },
   {
     id: "ofgl_recettes_fonctionnement",
     libelle: "Recettes de fonctionnement par habitant",
-    dessus: "encaissent plus par habitant",
+    dessus: "encaissent plus",
     dessous: "encaissent moins",
     parHabitant: true,
   },
   {
     id: "ofgl_encours_dette",
     libelle: "Encours de dette par habitant",
-    dessus: "doivent plus par habitant",
+    dessus: "doivent plus",
     dessous: "doivent moins",
     parHabitant: true,
   },
@@ -1066,10 +1066,13 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
       libelle: c.libelle,
       dessus: c.dessus,
       dessous: c.dessous,
-      ecrire: (v: number) => `${EUROS_HABITANT.format(v)} par habitant`,
+      ecrire: (v: number) => EUROS_HABITANT.format(v),
+      // Un encours négatif n'est pas une dette : la commune est créditrice, et
+      // « −45 € par habitant » se glissait en bas d'un classement de dettes où
+      // il ne veut rien dire.
       valeur: (t: string) => {
         const brut = couches[rang][t];
-        if (brut === undefined) return null;
+        if (brut === undefined || brut < 0) return null;
         if (!c.parHabitant) return brut;
         return habitants[t] ? brut / habitants[t] : null;
       },
@@ -1080,9 +1083,9 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
     // remboursement impossible à ce rythme (`derives.ts`).
     criteres.push({
       libelle: "Capacité de désendettement",
-      dessus: "mettraient plus longtemps à rembourser",
+      dessus: "mettraient plus longtemps",
       dessous: "mettraient moins longtemps",
-      ecrire: (v: number) => `${ANNEES.format(v)} ans d'épargne`,
+      ecrire: (v: number) => `${ANNEES.format(v)} ans`,
       // Une dette nulle ou négative n'a pas de durée de remboursement : le
       // rapport y devient négatif — « −0,2 an » — et se glisse en bas d'un
       // classement où il ne veut rien dire.

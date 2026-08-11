@@ -2409,48 +2409,41 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-weight: 600;
 }
 
-/* Les rangs. Le montant qui a produit le rang se lit avec lui, et le sens du
-   classement se dit en comptant de part et d'autre plutôt qu'en le nommant :
-   « 264 communes dépensent plus » ne s'interprète pas, « de la plus élevée à la
-   plus faible » demandait de tenir le fil jusqu'au rang. */
+/* Les rangs, une ligne chacun. Le bloc tenait sur trois lignes par critère —
+   intitulé et montant, phrase de comptage, « voir le classement » — soit douze
+   lignes pour quatre chiffres. Le rang ouvre la ligne comme un index, la phrase
+   se glisse sous l'intitulé, et la ligne entière ouvre le classement. */
 .situation {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 .situation > li {
-  padding: var(--espace-4) 0;
   border-bottom: 1px solid var(--trait);
 }
-.situation__tete {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--espace-4);
+.situation__pli > summary {
+  display: grid;
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  gap: var(--espace-5);
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-3) 0;
+  cursor: pointer;
+  list-style: none;
 }
-.situation__quoi {
-  font-size: var(--texte-m);
-  color: var(--encre);
+.situation__pli > summary::-webkit-details-marker {
+  display: none;
 }
-.situation__valeur {
-  font-family: var(--serif);
-  font-size: var(--texte-xl);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-.situation__dit {
-  margin: var(--espace-2) 0 0;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-}
-.situation__dit b {
-  color: var(--encre);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
+.situation__pli > summary:hover {
+  background: var(--accent-teinte);
 }
 .situation__rang {
-  white-space: nowrap;
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 600;
+  line-height: 1;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
 }
 /* L'exposant de l'ordinal : « 412e », pas « 412e ». Il prend le cran le plus
    bas de l'échelle plutôt qu'un `em` en dur — la feuille n'a pas de taille
@@ -2460,26 +2453,31 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   vertical-align: super;
   line-height: 0;
 }
-/* Le classement, replié. Trente-quatre mille lignes ne se peignent pas : le
-   pli montre les dix premiers, votre voisinage et les trois derniers, et les
-   trous se marquent. */
-.situation__pli > summary {
-  margin-top: var(--espace-3);
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  cursor: pointer;
-  min-height: var(--cible);
-  display: flex;
-  align-items: center;
+.situation__quoi {
+  font-size: var(--texte-m);
+  line-height: 1.25;
+  min-width: 0;
 }
-.situation__pli > summary:hover {
-  color: var(--encre);
+/* Le sens du classement, sous l'intitulé : c'est lui qui répond à « beaucoup ou
+   peu », et il ne tient pas dans une infobulle — un téléphone n'en a pas. */
+.situation__quoi em {
+  display: block;
+  font-style: normal;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.situation__valeur {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 /* Le classement ne pousse jamais la suite de la fiche hors de l'écran : douze
    places tiennent, le reste défile dans le cadre. */
 .situation__classement {
   list-style: none;
-  margin: 0 0 var(--espace-3);
+  margin: 0 0 var(--espace-4);
   padding: 0;
   border-top: 1px solid var(--trait);
   max-height: 19rem;
@@ -2488,8 +2486,8 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 .situation__classement button {
   display: grid;
-  grid-template-columns: 3.5rem minmax(0, 1fr) auto;
-  gap: var(--espace-4);
+  grid-template-columns: 4rem minmax(0, 1fr) auto;
+  gap: var(--espace-5);
   align-items: baseline;
   width: 100%;
   min-height: var(--cible);

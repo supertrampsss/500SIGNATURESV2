@@ -9,7 +9,7 @@ import { situation, rendreSituation } from "./situation.ts";
 const VALEURS: Record<string, number | null> = { a: 100, b: 300, c: 200, d: null, e: 300 };
 const CRITERE = {
   libelle: "Dépenses de fonctionnement par habitant",
-  dessus: "dépensent plus par habitant",
+  dessus: "dépensent plus",
   dessous: "dépensent moins",
   ecrire: (v: number) => `${v} € par habitant`,
   valeur: (code: string) => VALEURS[code] ?? null,
@@ -54,10 +54,10 @@ test("le rendu dit le rang, l'effectif, la maille et le sens du classement", () 
     "2025",
   );
   assert.match(html, /Où ça se situe/);
-  assert.match(html, /3<sup>e<\/sup> sur 4/);
-  // Le sens se dit en comptant : deux au-dessus, une en dessous.
-  assert.match(html, /<b>2<\/b> communes dépensent plus par habitant/);
-  assert.match(html, /<b>1<\/b> dépensent moins/);
+  assert.match(html, /class="situation__rang nombre">3<sup>e<\/sup>/);
+  // Le sens se dit en comptant celles qui font plus : le compte de celles qui
+  // font moins se déduit du rang, et il doublait la hauteur du bloc.
+  assert.match(html, /2 communes dépensent plus, sur 4/);
   assert.match(html, /Exercice 2025\./);
 });
 
@@ -89,10 +89,19 @@ test("le classement s'ouvre, votre place est marquée, et les trous se disent", 
   // Un rang appelle « et les autres ? ». Cinq territoires tiennent en entier ;
   // le saut ne s'écrit que quand le pli en laisse de côté.
   const html = rendreSituation(situation(entree("c")), "commune", "2025");
-  assert.match(html, /<summary>Voir le classement<\/summary>/);
+  // La ligne entière ouvre le classement : plus de « voir le classement » en
+  // troisième ligne sous chaque critère.
+  assert.doesNotMatch(html, /Voir le classement/);
+  assert.match(html, /<details class="situation__pli">/);
   assert.match(html, /data-territoire="b"[\s\S]*?Bry/);
   assert.match(html, /class="situation__vous"[\s\S]*?Cluny/);
   assert.doesNotMatch(html, /situation__saut/);
   // Celui qui ne publie rien n'a pas de place dans le classement.
   assert.doesNotMatch(html, /data-territoire="d"/);
+});
+
+test("le premier de la maille n'a personne au-dessus, et la phrase le dit", () => {
+  // « 0 communes dépensent plus » est une phrase de machine.
+  const html = rendreSituation(situation(entree("b")), "commune", "2025");
+  assert.match(html, /aucune commune ne fait plus, sur 4/);
 });
