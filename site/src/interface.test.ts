@@ -196,6 +196,35 @@ test("toutes les tailles de texte passent par l'échelle", () => {
   }
 });
 
+test("aucun sélecteur réduit à un point isolé", () => {
+  // Un nom de classe effacé laisse son point. Seul sur sa ligne, il fusionne
+  // avec la règle suivante et rend le sélecteur invalide : le navigateur jette
+  // la règle entière, sans un mot. Cent trente-deux points traînaient dans le
+  // fichier, et l'un d'eux emportait le `position: relative` des onze cibles
+  // tactiles — les liens de l'en-tête compris, dont les zones de frappe se
+  // superposaient toutes au même endroit. On ne pouvait plus quitter la vue
+  // courante.
+  const orphelins = CSS.split("\n")
+    .map((ligne, index) => [index + 1, ligne.trim()] as const)
+    .filter(([, ligne]) => ligne === ".");
+  assert.deepEqual(orphelins, [], `points isolés : ${orphelins.map(([n]) => n).join(", ")}`);
+});
+
+test("les onze cibles tactiles élargies portent bien un `position: relative`", () => {
+  // Le pseudo-élément de 44 px se centre sur son bouton — à condition que le
+  // bouton soit positionné. Sans quoi il se centre sur le premier ancêtre qui
+  // l'est, et onze zones de frappe se retrouvent empilées au même endroit.
+  const avecPseudo = [...CSS.matchAll(/^([^{}]*::after),?$/gm)]
+    .map((m) => m[1]!.trim())
+    .filter((s) => s.endsWith("::after"));
+  const bloc = CSS.slice(CSS.indexOf("CIBLES TACTILES"));
+  const positionnes = bloc.slice(0, bloc.indexOf("{"));
+  for (const selecteur of ["\n.entete__nav a", "\n.pilule", "\n.legende__poignee"]) {
+    assert.ok(positionnes.includes(selecteur), `${selecteur.trim()} n'est pas positionné`);
+  }
+  assert.ok(avecPseudo.length > 0);
+});
+
 test("tous les espacements passent par l'échelle", () => {
   // `(?<![-\w])` : `scroll-padding-left` est un décalage d'ancrage, pas un
   // espacement — il suit la position de la barre, pas le rythme de la page.
@@ -548,12 +577,15 @@ test("les repères se rangent sur la place réelle, pas sur la fenêtre", () => 
   assert.match(CSS, /\.reperes \{\n\s*display: grid;\n\s*grid-template-columns: repeat\(auto-fit, minmax\(9\.5rem, 1fr\)\);/);
 });
 
-test("les réglages d'un budget lui restent quand on va voir un autre budget", () => {
-  // Quinze lignes réglées sur l'État, on va voir la Sécu, on revient : tout
-  // était perdu, sans un mot.
-  assert.match(MAIN, /const reglagesParBudget = new Map<string, string>\(\);/);
-  assert.match(MAIN, /if \(budgetAffiche\) reglagesParBudget\.set\(budgetAffiche, etat\.budget\);/);
-  assert.match(MAIN, /etat\.budget = reglagesParBudget\.get\(cle\) \?\? "";/);
+test("les réglages ne se perdent plus : tous les budgets sont sur la même page", () => {
+  // On changeait de budget par une barre de pastilles, et le changement
+  // effaçait tout. Il n'y a plus de barre : les budgets se suivent en sections
+  // sur une seule page, et un geste posé sur l'un n'efface rien chez l'autre —
+  // chaque volet garde sa propre table de réglages.
+  assert.doesNotMatch(MAIN, /reglagesParBudget|budgetAffiche/);
+  const atelier = readFileSync(new URL("./atelier.ts", import.meta.url), "utf8");
+  assert.match(atelier, /budgets: Map<string, Reglages>;/);
+  assert.match(atelier, /baremes: Map<string, Taux>;/);
 });
 
 test("l'infobulle met une ligne par lecture", () => {

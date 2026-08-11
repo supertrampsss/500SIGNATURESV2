@@ -137,13 +137,28 @@ export function renduModes(choisi: string, tauxUnique: number): string {
 
 /** Une tranche : son intitulé, qui elle touche, sa matière taxable, son taux et
  *  ce qu'elle rapporte. */
-export function renduTranche(bareme: Bareme, taux: Taux, rang: number): string {
+export type VerrouTranche = { sens: "hausse" | "baisse" | "tout"; par: string };
+
+export function renduTranche(
+  bareme: Bareme,
+  taux: Taux,
+  rang: number,
+  verrou: VerrouTranche | null = null,
+): string {
   const tranche = bareme.tranches[rang];
   const pourcent = tauxDe(taux, tranche);
   const nom = echapper(intitule(tranche));
+  // Le verrou est directionnel, et c'est ce qui rend « sans lever un seul
+  // impôt » compatible avec une flat tax : les tranches qu'elle baisse restent
+  // réglables, celles qu'elle lève sont refusées. Juger sur le rendement
+  // agrégé aurait dit « vous levez un impôt » à qui en baisse la moitié.
+  const ferme = (sens: "hausse" | "baisse") =>
+    verrou && (verrou.sens === "tout" || verrou.sens === sens)
+      ? ` disabled title="Verrouillé par « ${echapper(verrou.par)} »"`
+      : "";
   return `<div class="simu__ligne bareme__ligne${
     pourcent === 0 ? "" : " simu__ligne--reglee"
-  }" data-borne="${tranche.b}">
+  }${verrou ? " simu__ligne--verrouillee" : ""}" data-borne="${tranche.b}">
     <span class="simu__intitule"><span class="simu__lib">${nom}</span></span>
     <span class="bareme__foyers nombre" title="Foyers dont le revenu dépasse cette borne">${NOMBRE.format(
       tranche.fa,
@@ -153,14 +168,14 @@ export function renduTranche(bareme: Bareme, taux: Taux, rang: number): string {
     )}</span>
     <span class="simu__reglage">
       <button type="button" class="simu__pas" data-pas="${-PAS}"
-              aria-label="Baisser le taux de ${nom} d'un point">−</button>
+              aria-label="Baisser le taux de ${nom} d'un point"${ferme("baisse")}>−</button>
       <span class="simu__champ">
         <input type="text" inputmode="numeric" class="simu__pct nombre" value="${pourcent}"
                aria-label="Taux appliqué à la tranche ${nom}" />
         <span class="simu__unite" aria-hidden="true">%</span>
       </span>
       <button type="button" class="simu__pas" data-pas="${PAS}"
-              aria-label="Monter le taux de ${nom} d'un point">+</button>
+              aria-label="Monter le taux de ${nom} d'un point"${ferme("hausse")}>+</button>
     </span>
     <span class="simu__montant nombre">${
       pourcent === 0 ? "" : euros(rendementTranche(tranche, taux))
@@ -168,7 +183,11 @@ export function renduTranche(bareme: Bareme, taux: Taux, rang: number): string {
   </div>`;
 }
 
-export function renduTranches(bareme: Bareme, taux: Taux): string {
+export function renduTranches(
+  bareme: Bareme,
+  taux: Taux,
+  verrou: VerrouTranche | null = null,
+): string {
   // Des intitulés courts, et l'explication dans l'infobulle : « Matière
   // taxable » débordait de sa colonne et se collait au « Taux » voisin.
   return `<div class="simu__ligne bareme__entete">
@@ -177,7 +196,9 @@ export function renduTranches(bareme: Bareme, taux: Taux): string {
       <span class="simu__base" title="Ce que cette tranche du barème peut taxer">Assiette</span>
       <span class="simu__reglage">Taux</span>
       <span class="simu__montant">Rendement</span>
-    </div>${bareme.tranches.map((_, rang) => renduTranche(bareme, taux, rang)).join("")}`;
+    </div>${bareme.tranches
+      .map((_, rang) => renduTranche(bareme, taux, rang, verrou))
+      .join("")}`;
 }
 
 export function rendu(

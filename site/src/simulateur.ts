@@ -35,7 +35,16 @@ import { accentuer } from "./traductions.ts";
 
 /** Un nœud de dépense : mission, programme, action ou sous-action. Une feuille
  *  n'a pas de clé `enfants` — c'est ce qui la distingue, pas sa profondeur. */
-export type Noeud = { c: string; l: string; v: number; enfants?: Noeud[] };
+export type Noeud = {
+  c: string;
+  l: string;
+  v: number;
+  enfants?: Noeud[];
+  /** Ce que la ligne paie, en une clause. Aucun fichier publié n'en porte : le
+   *  site l'ajoute là où l'intitulé officiel ne se comprend pas seul —
+   *  « Autonomie » ne dit pas EHPAD, APA et handicap. */
+  d?: string;
+};
 /** `signe` vaut −1 pour les deux familles de prélèvements sur recettes
  *  (collectivités, Union européenne), qui se *déduisent* des recettes.
  *
@@ -105,6 +114,15 @@ export type Totaux = { depenses: number; recettes: number; solde: number };
  * l'URL non ambiguë.
  */
 export const PREFIXE_RECETTE = "r";
+
+/**
+ * La ligne qui retire les transferts entre branches de la Sécurité sociale.
+ *
+ * Elle n'est pas un poste : c'est la soustraction qui rend le total exact quand
+ * les cinq branches sont réunies en un budget. La régler ferait apparaître
+ * 19 019 M€ venus de nulle part, et elle est donc verrouillée partout.
+ */
+export const CODE_ELIMINATION = "SS-ELIM";
 
 const SEPARATEUR_CHEMIN = " · ";
 /** En deçà, une équivalence en « programme » serait du bruit. */

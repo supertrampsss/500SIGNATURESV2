@@ -98,7 +98,12 @@ test("les trois états ne portent pas de filet d'accent vertical", () => {
   // a ajoutés ; six autres blocs du site en portent un, plus anciens, et ils
   // ne sont pas touchés ici.
   const css = readFileSync(new URL("./style.css", import.meta.url), "utf8");
-  const bloc = css.slice(css.indexOf("\n.etat {"), css.indexOf("\n.sommaire-vue"));
+  // Les règles des états, et elles seules : une tranche de texte entre deux
+  // repères ramassait la première règle sans rapport qu'on posait entre les
+  // deux, et faisait échouer le test sur une colonne de tableau.
+  const bloc = [...css.matchAll(/^(\.etat[^{}]*)\{([^}]*)\}/gm)]
+    .map((m) => `${m[1]}{${m[2]}}`)
+    .join("\n");
   assert.ok(bloc.length > 100, "bloc des états introuvable");
   assert.doesNotMatch(bloc, /border-left/);
   assert.match(bloc, /border-top: 1px solid var\(--trait-fort\);/);
