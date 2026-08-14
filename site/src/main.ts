@@ -2359,15 +2359,27 @@ async function peindreMethode(): Promise<void> {
   if (methodePeinte) return;
   await prete;
   let rendu = false;
+  // `.bloc` est un cadre bordé, ombré : un booléen à `false` veut dire « rien
+  // à montrer », et laisser le cadre affiché peignait un cadre vide plutôt
+  // que rien — comme partout ailleurs sur le site (`afficherBudgetEtat` et
+  // consorts), le retour du peintre commande la visibilité du conteneur.
+  const blocFraicheur = $("methode-fraicheur");
   try {
-    if (afficherFraicheur($("methode-fraicheur"), await donnees.fraicheur())) rendu = true;
+    const affiche = afficherFraicheur(blocFraicheur, await donnees.fraicheur());
+    blocFraicheur.hidden = !affiche;
+    if (affiche) rendu = true;
   } catch {
     // Fichier non publié : le bloc reste vide, la page tient.
+    blocFraicheur.hidden = true;
   }
+  const blocJournal = $("methode-journal");
   try {
-    if (afficherJournal($("methode-journal"), await donnees.journal())) rendu = true;
+    const affiche = afficherJournal(blocJournal, await donnees.journal());
+    blocJournal.hidden = !affiche;
+    if (affiche) rendu = true;
   } catch {
     // Idem : rien à dire vaut mieux qu'une erreur à lire.
+    blocJournal.hidden = true;
   }
   // Latché seulement si quelque chose s'est vraiment affiché : le défaut
   // corrigé ici latchait avant même d'essayer, si bien qu'un premier échec

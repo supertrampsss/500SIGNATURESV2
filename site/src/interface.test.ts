@@ -767,6 +767,25 @@ test("aucun fetch de MÉTHODE ne part avant que l'initialisation n'ait résolu",
   );
 });
 
+test("les cases de MÉTHODE disparaissent quand elles n'ont rien à montrer", () => {
+  // `.bloc` est un cadre bordé, ombré : `peindreMethode` ignorait les
+  // booléens que renvoient `afficherFraicheur`/`afficherJournal` (« j'ai
+  // rendu quelque chose »), si bien qu'un fichier vide peignait un cadre vide
+  // plutôt que rien. C'est le seul endroit du site qui ne suivait pas le
+  // motif employé partout ailleurs (`afficherBudgetEtat` et consorts) : le
+  // retour du peintre commande la visibilité de son conteneur.
+  const corps = MAIN.slice(
+    MAIN.indexOf("async function peindreMethode"),
+    MAIN.indexOf("function basculerVue"),
+  );
+  assert.match(corps, /blocFraicheur\.hidden = !affiche;/);
+  assert.match(corps, /blocJournal\.hidden = !affiche;/);
+  // Un échec (fichier non publié, réseau en panne) doit aussi cacher le
+  // cadre, pas seulement le laisser vide sans rien avoir écrit dedans.
+  assert.match(corps, /blocFraicheur\.hidden = true;/);
+  assert.match(corps, /blocJournal\.hidden = true;/);
+});
+
 test("le détail d'un territoire porte son classement, son export et sa comparaison", () => {
   // Trois conteneurs disparus avec la vue DONNÉES, alors que tout le code qui
   // les remplit est resté : `majTableau`, `majTableauEvolution` et
