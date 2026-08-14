@@ -100,10 +100,13 @@ Sept manques mesurés dans le dépôt :
    `site/src/main.ts:1910` accrochent un écouteur sur `#exporter` et `#comparateur`,
    deux identifiants supprimés de `index.html`. Les gardes équivalentes existent
    partout ailleurs et sont testées ; ces deux-là ont été oubliées.
-5. Sept modules sans appelant en production : `croiser.ts`, `journal.ts`,
-   `fraicheur.ts`, `euros-constants.ts`, `recapitulatif.ts`, `comparateur.ts`,
-   `export.ts` ; plus un conteneur `#palmares` jamais rempli, un mode « évolution »
-   de la carte rendu inatteignable, et `traductions.test.ts` vide.
+5. Sept modules hors service. Cinq n'ont aucun appelant en production —
+   `croiser.ts`, `journal.ts`, `fraicheur.ts`, `euros-constants.ts`,
+   `recapitulatif.ts` ; deux sont importés par `main.ts` mais leurs conteneurs ont
+   disparu du document — `comparateur.ts`, `export.ts`. S'y ajoutent un conteneur
+   `#palmares` jamais rempli, un mode « évolution » de la carte rendu
+   inatteignable par l'interface bien que son calcul et ses tests subsistent, et
+   `traductions.test.ts` vide.
 6. Le simulateur ne couvre ni les comptes spéciaux, ni les budgets annexes, ni les
    ODAC ; `provenance.ts` se tait à la maille France.
 7. Dette documentaire : `README.md` et `docs/00` à `docs/03` décrivent encore
@@ -769,9 +772,10 @@ Chaque critère est vérifiable, par un test automatisé ou par une manipulation
 **Réparations**
 1. Le démarrage ne lève aucune exception lorsque des éléments optionnels sont absents
    du document ; un test d'architecture vérifie que chaque accès est gardé.
-2. Chaque module sans appelant est soit rebranché, soit retiré avec son test ; aucun
-   module inutilisé ne subsiste à la fin du lot, et `traductions.test.ts` n'est plus
-   vide.
+2. Chaque module hors service reçoit le sort déclaré au tableau du lot 0 : les six
+   rebranchés sont atteignables depuis l'interface, les deux retirés ont disparu avec
+   leurs tests, le conteneur `#palmares` n'existe plus, et `traductions.test.ts`
+   n'est plus vide.
 
 **Routage**
 3. `/analyses/<slug>`, `/simulateur`, `/reperes`, `/detail`, `/methode` et `/`
@@ -821,14 +825,33 @@ Chaque critère est vérifiable, par un test automatisé ou par une manipulation
 23. L'ensemble des tests existants passe, augmenté des tests nouveaux.
 24. Aucune surface nouvelle ne provoque de défilement horizontal du corps de page à
     320 pixels de large.
-25. Aucun montant n'est affiché dans une autre unité que le million d'euros, hors
-    tableaux dépliés où le par-habitant est autorisé.
+25. Tout montant calculé ou publié par le site est affiché en millions d'euros ;
+    le par-habitant n'apparaît que dans les tableaux dépliés. Seule exception, et
+    elle est nécessaire : le montant tel qu'il a été annoncé est cité dans son
+    unité d'origine, entre guillemets et attribué — c'est l'objet même de la
+    vérification. Le chiffre des comptes qui lui est opposé est, lui, toujours en
+    millions d'euros.
 
 ## 24. Roadmap
 
-**Lot 0 — Réparations et routage.** Gardes manquantes, sort des modules morts, module
-de routes, chemins réels, compatibilité des anciennes ancres, renommages,
+**Lot 0 — Réparations et routage.** Gardes manquantes, sort des modules hors service,
+module de routes, chemins réels, compatibilité des anciennes ancres, renommages,
 mise à jour des tests d'architecture.
+
+Le sort de chaque module hors service est tranché ici, module par module :
+
+| Module ou élément | Décision | Motif |
+|---|---|---|
+| `journal.ts` | Rebrancher sur `/methode` | Le journal public des corrections est un élément de confiance exigé par la section 8 ; le pipeline publie déjà le fichier |
+| `fraicheur.ts` | Rebrancher sur `/methode` | Même raison : l'état de fraîcheur des sources est publié et n'était plus affiché |
+| `recapitulatif.ts` | Rebrancher à l'atelier | Décrit comme livré dans les règles du projet mais jamais branché ; c'est le seul endroit qui a le droit de sommer les trois budgets |
+| `comparateur.ts` | Rebrancher sur `/detail` | La comparaison de territoires est utile et n'a été perdue que par la disparition de son conteneur |
+| `export.ts` | Rebrancher sur `/detail` et les tableaux d'analyse | L'export tabulaire sert directement le public « relais » |
+| Mode « évolution » de la carte | Rebrancher un contrôle dans le sélecteur de carte | Le calcul, le rendu et dix-sept tests subsistent ; le paramètre d'URL est toujours lu et écrit ; seule la commande manque |
+| `croiser.ts` | Retirer, avec son test | Un nuage de points et un coefficient de corrélation exposent le site à présenter une corrélation comme une causalité, ce que la charte interdit |
+| `euros-constants.ts` | Retirer, avec son test | Introduit une seconde unité à côté du million d'euros courants, que les règles d'affichage n'admettent pas. À rétablir si une décision explicite d'unité est prise |
+| Conteneur `#palmares` | Retirer | Présent et stylé, jamais rempli |
+| `traductions.test.ts` | Écrire les tests manquants | Le module est utilisé en production ; son fichier de test est vide |
 
 **Lot 1 — Page Analyse.** Schéma d'analyse, module de rendu, script de pré-rendu,
 contrôle déterministe, branchement au déploiement et au cron, première analyse réelle.
