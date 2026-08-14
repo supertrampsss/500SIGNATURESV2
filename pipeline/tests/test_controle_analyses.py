@@ -261,6 +261,81 @@ def test_affirmation_texte_est_exempte_de_la_garde():
     assert erreurs == []
 
 
+# 7bis. `M€` est reconnu comme marqueur d'échelle, au même titre que les mots
+#       (le bug corrigé par la tâche 2 : le contrôle refusait la propre
+#       notation d'affichage du site). Chaque cas reprend la table du brief,
+#       référencée sur `second_indicateur` = 59 946 338 573 — le montant de
+#       l'exemple Défense.
+
+
+def _analyse_avec_verdict_defense(phrase: str) -> dict:
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "second_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = 59946338573.0
+    analyse["chiffres"][0]["dit"] = "environ 59 946 M€"
+    analyse["verdict"]["phrase"] = phrase
+    return analyse
+
+
+def test_montant_en_millions_mot_est_accepte():
+    # Table du brief, ligne 1 : le mot « millions » était déjà reconnu.
+    analyse = _analyse_avec_verdict_defense(
+        "Le montant correspond à 59 946 millions d'euros publiés."
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_montant_en_M_euros_espace_fine_insecable_est_accepte():
+    # Table du brief, ligne 3 (le bug) : « 59 946 M€ » avec l'espace fine
+    # insécable U+202F que `millions()` (echelle.ts) émet réellement comme
+    # séparateur de milliers — un test à espace normale aurait passé alors
+    # que le rendu réel échouait toujours, ce qui a laissé vivre le bug.
+    phrase = "Le montant correspond à 59 946 M€ publiés."
+    analyse = _analyse_avec_verdict_defense(phrase)
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_montant_en_M_euros_espace_normale_est_accepte():
+    analyse = _analyse_avec_verdict_defense("Le montant correspond à 59 946 M€ publiés.")
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_montant_en_M_euros_sans_espace_est_accepte():
+    analyse = _analyse_avec_verdict_defense("Le montant correspond à 59946M€ publiés.")
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_montant_en_M_euros_avec_decimales_est_accepte():
+    # Table du brief, ligne 4 : même valeur, précision plus fine.
+    analyse = _analyse_avec_verdict_defense("Le montant correspond à 59 946,34 M€ publiés.")
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_montant_invente_en_M_euros_echoue():
+    # Table du brief, ligne 5 : reconnaître `M€` comme échelle ne dispense
+    # pas de la correspondance — un montant en M€ qui ne correspond à aucune
+    # référence reste refusé.
+    analyse = _analyse_avec_verdict_defense(
+        "Les opposants évoquent un total de 87 000 M€, jamais publié."
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_millesime_dans_l_exercice_est_accepte():
+    # Table du brief, ligne 6 : un millésime reste un millésime, avec ou
+    # sans montant en M€ dans la même phrase.
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant correspond aux 1 234 euros publiés pour l'exercice 2025."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
 # 8. Un registre valant donnee_officielle ou estimation_externe sans URL ni
 #    date de consultation échoue.
 

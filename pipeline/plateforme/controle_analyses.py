@@ -37,12 +37,18 @@ PUBLIÉE À LA MÊME PRÉCISION QUE CELLE ÉCRITE DANS LA PROSE, et on compare.
   exact reste toujours permis.
 
 Cette règle n'autorise donc un montant scaladé (« X milliards », « X
-millions », « X milliers ») que si un mot d'échelle l'accompagne dans le
-texte : sans lui, un nombre est lu en euros bruts, jamais deviné en millions
-au prétexte que c'est l'unité d'affichage du site. Deviner l'échelle d'un
-nombre nu ferait accepter n'importe quel montant à condition de tomber, par
-hasard d'ordre de grandeur, dans une bonne fourchette — c'est l'inverse de ce
-que cette garde doit empêcher.
+millions », « X milliers », « X M€ ») que si un marqueur d'échelle
+l'accompagne dans le texte — un mot ou le symbole `M€`, la seule unité
+d'affichage du site (`echelle.ts`, fonction `millions()`) : sans lui, un
+nombre est lu en euros bruts, jamais deviné en millions au prétexte que
+c'est l'unité d'affichage du site. `Md€` reste délibérément hors liste : les
+règles d'affichage bannissent le milliard à l'écran, donc aucune prose
+générée par le site ne peut légitimement le porter — le laisser
+non reconnu, c'est garder cette interdiction effective plutôt que la
+contourner en silence. Deviner l'échelle d'un nombre nu ferait accepter
+n'importe quel montant à condition de tomber, par hasard d'ordre de
+grandeur, dans une bonne fourchette — c'est l'inverse de ce que cette garde
+doit empêcher.
 
 Un nombre dont la valeur effective (après échelle) est inférieure à 1000
 n'est jamais soumis à la garde — un pourcentage, un rang, un compte de
@@ -330,11 +336,24 @@ ECHELLES = {
     "milliers": 1e3,
 }
 
+# `M€` vaut « millions », au même titre que le mot : c'est le symbole que
+# `millions()` (site/src/echelle.ts) appose à tout montant affiché à
+# l'écran, et la seule échelle que le site rend jamais visible. `Md€` n'est
+# délibérément pas un marqueur reconnu (voir la docstring de tête) : les
+# règles d'affichage interdisent le milliard à l'écran, donc aucune prose
+# légitime ne peut le porter.
+SYMBOLE_MILLIONS = "M€"
+
 # Groupes de trois chiffres séparés par une espace (normale, insécable ou fine
 # insécable — les trois se voient dans des textes copiés depuis des sources
 # différentes), avec une décimale à la française introduite par une virgule.
 _NOMBRE_RE = re.compile(r"(?<!\d)(?:\d{1,3}(?:[   ]\d{3})+|\d+)(?:,\d+)?(?!\d)")
-_ECHELLE_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
+_ECHELLE_MOT_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
+# Pas de \b final ici : « € » n'est pas un caractère de mot, donc un \b
+# juste après ne matcherait jamais quand « M€ » est suivi d'une espace ou
+# de la fin du texte — précisément le cas courant (« 59 946 M€ » en fin de
+# phrase).
+_ECHELLE_SYMBOLE_RE = re.compile(r"^\s*" + re.escape(SYMBOLE_MILLIONS))
 
 
 def _candidats(texte: str) -> list[tuple[float, int, float]]:
@@ -344,8 +363,14 @@ def _candidats(texte: str) -> list[tuple[float, int, float]]:
         entier, _, decimale = match.group().partition(",")
         entier = entier.replace(" ", "").replace(" ", "").replace(" ", "")
         valeur = float(f"{entier}.{decimale}") if decimale else float(entier)
-        suite = _ECHELLE_RE.match(texte[match.end() :])
-        echelle = ECHELLES[suite.group(1)] if suite else 1.0
+        suite_texte = texte[match.end() :]
+        suite_mot = _ECHELLE_MOT_RE.match(suite_texte)
+        if suite_mot:
+            echelle = ECHELLES[suite_mot.group(1)]
+        elif _ECHELLE_SYMBOLE_RE.match(suite_texte):
+            echelle = 1e6
+        else:
+            echelle = 1.0
         candidats.append((valeur, len(decimale), echelle))
     return candidats
 
