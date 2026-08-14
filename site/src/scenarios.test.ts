@@ -129,9 +129,93 @@ test("supprimer retire, et un nom absent ne lève pas", () => {
   const depot = depotMemoire();
   const horloge = horlogeFixe();
   enregistrer(depot, { nom: "A", budget: "ba", contrat: "ca", exercice: "2025" }, horloge);
+  const avant = lister(depot);
+  const apresAbsent = supprimer(depot, "Inexistant");
+  // Comme ses sœurs : la liste rendue est inchangée, pas seulement « ne lève pas ».
+  assert.deepEqual(apresAbsent, avant);
   const apres = supprimer(depot, "A");
   assert.deepEqual(apres, []);
-  assert.doesNotThrow(() => supprimer(depot, "Inexistant"));
+});
+
+test("dupliquer deux fois un nom qui atteint NOM_MAX ne collisionne pas après troncature", () => {
+  // Répro : « Copie de X » tombe pile sur NOM_MAX (60) pour un nom source de
+  // 51 caractères — « Copie de » fait 9. La première copie n'est pas
+  // tronquée. La deuxième copie retombe sur le même candidat non numéroté ;
+  // le numéro « (2) » ajouté pousse le nom à 64 caractères, que la
+  // troncature à NOM_MAX doit couper *avant* le suffixe, pas après, sous
+  // peine de faire disparaître le « (2) » et de retomber sur le nom de la
+  // première copie.
+  const depot = depotMemoire();
+  const horloge = horlogeFixe();
+  const source = "x".repeat(51);
+  assert.equal(`Copie de ${source}`.length, NOM_MAX);
+  enregistrer(depot, { nom: source, budget: "b", contrat: "c", exercice: "2025" }, horloge);
+  dupliquer(depot, source, horloge);
+  const apres = dupliquer(depot, source, horloge);
+  assert.equal(apres.length, 3);
+  const noms = apres.map((sc) => sc.nom);
+  assert.equal(new Set(noms).size, 3, `des noms en double : ${JSON.stringify(noms)}`);
+  // Chaque nom tient dans la limite d'affichage.
+  for (const n of noms) assert.ok(n.length <= NOM_MAX);
+});
+
+test("supprimer une copie ne détruit pas les scénarios qui partageaient un nom tronqué", () => {
+  // Sans le correctif, deux des trois scénarios ci-dessus portent le même
+  // nom ; supprimer filtre sur `sc.nom !== nom`, donc retirer l'un des deux
+  // en retirerait un troisième que le lecteur n'a jamais touché.
+  const depot = depotMemoire();
+  const horloge = horlogeFixe();
+  const source = "x".repeat(51);
+  enregistrer(depot, { nom: source, budget: "b", contrat: "c", exercice: "2025" }, horloge);
+  dupliquer(depot, source, horloge);
+  const troisScenarios = dupliquer(depot, source, horloge);
+  assert.equal(troisScenarios.length, 3);
+  const nomsAvant = troisScenarios.map((sc) => sc.nom).sort();
+  const copie = troisScenarios.find((sc) => sc.nom !== source)!;
+  const apres = supprimer(depot, copie.nom);
+  assert.equal(apres.length, 2);
+  const nomsApres = apres.map((sc) => sc.nom).sort();
+  const nomsAttendus = nomsAvant.filter((n) => n !== copie.nom).sort();
+  assert.deepEqual(nomsApres, nomsAttendus);
+});
+
+test("propriété : après toute séquence d'enregistrer / dupliquer / renommer, les noms stockés sont deux à deux distincts", () => {
+  // Pas de bibliothèque de test par propriétés ici : une séquence
+  // déterministe fixe (générateur congruentiel linéaire à graine fixe) qui
+  // mélange les trois opérations, avec des noms assez courts pour
+  // collisionner et parfois assez longs pour être tronqués. L'invariant est
+  // vérifié après *chaque* opération, pas seulement à la fin.
+  const depot = depotMemoire();
+  const horloge = horlogeFixe();
+  let graine = 42;
+  const suivant = (): number => {
+    graine = (graine * 1103515245 + 12345) & 0x7fffffff;
+    return graine;
+  };
+  const noms = ["A", "B", "AB", "x".repeat(NOM_MAX - 9), "x".repeat(NOM_MAX + 5), "  A  "];
+  const verifierInvariant = (): void => {
+    const stockes = lister(depot).map((sc) => sc.nom);
+    assert.equal(
+      new Set(stockes).size,
+      stockes.length,
+      `des noms en double après une opération : ${JSON.stringify(stockes)}`,
+    );
+  };
+  for (let i = 0; i < 200; i++) {
+    const action = suivant() % 3;
+    const cible = lister(depot);
+    const nom = noms[suivant() % noms.length];
+    if (action === 0 || cible.length === 0) {
+      enregistrer(depot, { nom, budget: "b", contrat: "c", exercice: "2025" }, horloge);
+    } else if (action === 1) {
+      const source = cible[suivant() % cible.length].nom;
+      dupliquer(depot, source, horloge);
+    } else {
+      const source = cible[suivant() % cible.length].nom;
+      renommer(depot, source, nom, horloge);
+    }
+    verifierInvariant();
+  }
 });
 
 test("un dépôt corrompu rend une liste vide plutôt que de lever", () => {

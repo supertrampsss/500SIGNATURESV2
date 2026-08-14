@@ -158,6 +158,16 @@ export function renommer(
  * Duplique un scénario sous le nom « Copie de X ». Si ce nom est déjà pris —
  * une deuxième duplication du même scénario — un numéro est ajouté pour ne
  * pas collisionner : « Copie de X (2) », puis (3), etc.
+ *
+ * Invariant : deux scénarios stockés ne partagent jamais leur `nom`. Les noms
+ * déjà présents dans `noms` sont ceux réellement stockés, donc déjà tronqués
+ * à `NOM_MAX` — comparer un candidat non tronqué contre eux peut manquer une
+ * collision que la troncature ferait apparaître après coup. Le candidat est
+ * donc tronqué *avant* le test de collision, jamais après : ce qu'on compare
+ * est ce qui sera écrit. La troncature réserve aussi la place du suffixe
+ * « (n) » en coupant la base, pas la chaîne finale — sinon un nom déjà à la
+ * limite verrait son « (2) » tronqué à son tour, et retomberait sur le nom
+ * de la copie précédente.
  */
 export function dupliquer(
   depot: Depot,
@@ -168,14 +178,19 @@ export function dupliquer(
   const source = scenarios.find((sc) => sc.nom === nom);
   if (!source) return scenarios;
   const noms = new Set(scenarios.map((sc) => sc.nom));
-  let candidat = `Copie de ${nom}`;
+  const base = `Copie de ${nom}`;
+  const nomTronque = (suffixe: string): string => {
+    const limite = Math.max(0, NOM_MAX - suffixe.length);
+    return `${base.slice(0, limite).trimEnd()}${suffixe}`;
+  };
+  let candidat = nomTronque("");
   for (let n = 2; noms.has(candidat); n++) {
-    candidat = `Copie de ${nom} (${n})`;
+    candidat = nomTronque(` (${n})`);
   }
   const maintenant = horloge();
   const copie: Scenario = {
     ...source,
-    nom: nomNettoye(candidat) ?? candidat,
+    nom: candidat,
     cree_le: maintenant,
     modifie_le: maintenant,
   };
