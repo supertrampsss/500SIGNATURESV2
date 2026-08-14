@@ -712,7 +712,10 @@ test("le seul cadre qui somme les trois budgets est montré, à côté de l'atel
   // jamais affichée.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.match(balises, /id="simu-recapitulatif"/);
-  assert.match(MAIN, /afficherRecapitulatif\(/);
+  // Nommer le conteneur, pas seulement l'appel : peindre le récapitulatif dans
+  // `#simu` passait la version précédente de ce test, et l'atelier l'aurait
+  // effacé au premier réglage.
+  assert.match(MAIN, /afficherRecapitulatif\(\$\("simu-recapitulatif"\)/);
   // Il est posé à côté de l'atelier, pas dedans : `afficherAtelier` possède
   // `#simu` et le repeint entièrement à chaque réglage.
   assert.doesNotMatch(MAIN, /afficherAtelier\(\$\("simu-recapitulatif"\)/);
