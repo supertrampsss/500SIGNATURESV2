@@ -252,16 +252,23 @@ type Page = { titre: string; description: string; canonique: string; corps: stri
  * concaténation brute.
  */
 function injecter(shell: string, page: Page): string {
+  // Remplaçants sous forme de fonction partout, jamais de chaîne : passée en
+  // second argument de `replace`, une chaîne de remplacement interprète `$&`,
+  // `$1`, `$$`… comme des motifs spéciaux — un titre ou une phrase de verdict
+  // qui contiendrait un `$` littéral corromprait alors la page injectée.
   let html = shell;
 
-  html = html.replace(/<title>[\s\S]*?<\/title>/, `<title>${echapper(page.titre)}</title>`);
+  html = html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${echapper(page.titre)}</title>`);
 
   html = html.replace(
     /<meta\s+name="description"[\s\S]*?\/>/,
-    `<meta name="description" content="${echapper(page.description)}" />`,
+    () => `<meta name="description" content="${echapper(page.description)}" />`,
   );
 
-  html = html.replace("</head>", `  <link rel="canonical" href="${echapper(page.canonique)}" />\n  </head>`);
+  html = html.replace(
+    "</head>",
+    () => `  <link rel="canonical" href="${echapper(page.canonique)}" />\n  </head>`,
+  );
 
   html = html.replace(
     /<body([^>]*)>/,
