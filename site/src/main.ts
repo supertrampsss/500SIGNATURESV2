@@ -191,6 +191,18 @@ type Etat = {
    *  chez un lecteur qui n'a pas ce scénario en local n'a aucun moyen de
    *  savoir sur quel millésime il a été bâti — voir `colonnesComparaison`. */
   faceExercice: string;
+  /** D'où vient la colonne `face` : `"scenario"` pour le dépôt local,
+   *  `"reference:<slug>"` pour une entrée du fichier de référence (le slug
+   *  vide désignant le budget voté, qui n'en a pas). Le menu connaît cette
+   *  origine au moment du clic ; sans elle dans l'adresse, il fallait la
+   *  redeviner à partir du seul nom, et un homonyme local emportait alors
+   *  l'exercice, le serment et le lien d'une entrée de référence — l'en-tête
+   *  annonçait un millésime et un serment que la colonne n'avait pas.
+   *
+   *  Vide pour un lien antérieur à ce paramètre : le dépôt local passe alors
+   *  en premier, faute de mieux, et c'est le seul cas où deviner reste la
+   *  moins mauvaise réponse. */
+  faceSource: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -311,6 +323,7 @@ function lireUrl(): Etat {
     face: p.get("face") ?? "",
     faceNom: p.get("face-nom") ?? "",
     faceExercice: p.get("face-exercice") ?? "",
+    faceSource: p.get("face-source") ?? "",
   };
 }
 
@@ -333,6 +346,7 @@ function ecrireUrl(): void {
   if (etat.face) p.set("face", etat.face);
   if (etat.faceNom) p.set("face-nom", etat.faceNom);
   if (etat.faceExercice) p.set("face-exercice", etat.faceExercice);
+  if (etat.faceSource) p.set("face-source", etat.faceSource);
   // Le chemin porte la vue, le fragment l'ancre interne : réécrire l'adresse
   // sans le chemin renverrait le lecteur du simulateur à la carte au premier
   // réglage.
@@ -2717,16 +2731,30 @@ function colonneDepuis(
  *
  *  Une face qui n'est pas un scénario du lecteur peut être une entrée de
  *  référence : elle apporte alors son serment et le lien de l'analyse dont
- *  elle vient. Le dépôt local passe en premier — une entrée de référence ne
- *  doit pas prêter sa contrainte à un scénario du lecteur qui porterait le
- *  même titre. */
+ *  elle vient. C'est `etat.faceSource` qui dit laquelle des deux — l'origine
+ *  choisie dans le menu, portée par l'adresse — et non le nom, qui ne
+ *  distingue pas un scénario d'une référence homonymes. Deviner à partir du
+ *  nom faisait annoncer à une colonne de référence l'exercice et le serment
+ *  d'un scénario local sans rapport, et lui faisait perdre le lien vers son
+ *  analyse.
+ *
+ *  Un lien antérieur à `face-source` ne porte pas cette origine : le dépôt
+ *  local passe alors en premier. C'est le seul cas où deviner reste la moins
+ *  mauvaise réponse, et il se referme dès que le lecteur rechoisit sa face. */
 function colonnesComparaison(): Comparable[] {
-  const faceEnregistree = etat.faceNom
-    ? listerScenarios(depotScenarios).find((s) => s.nom === etat.faceNom)
-    : undefined;
-  const faceReference = faceEnregistree
-    ? undefined
-    : referencesScenarios.find((r) => r.titre === etat.faceNom);
+  const cleReference = etat.faceSource.startsWith("reference:")
+    ? etat.faceSource.slice("reference:".length)
+    : null;
+  const faceEnregistree =
+    cleReference === null && etat.faceNom
+      ? listerScenarios(depotScenarios).find((s) => s.nom === etat.faceNom)
+      : undefined;
+  const faceReference =
+    cleReference !== null
+      ? referencesScenarios.find((r) => (r.slug ?? "") === cleReference)
+      : faceEnregistree || etat.faceSource === "scenario"
+        ? undefined
+        : referencesScenarios.find((r) => r.titre === etat.faceNom);
   const face = colonneDepuis(
     (faceEnregistree?.nom ?? etat.faceNom) || "Comparaison",
     etat.face,
@@ -2879,19 +2907,26 @@ function montrerScenarios(): void {
   // Les scénarios du lecteur, et ceux du fichier de référence (budget voté,
   // chiffrages des analyses) — deux groupes distincts dans le même menu :
   // les seconds ne viennent pas du dépôt local, `Comparer à` doit le dire.
+  // La marque « selected » se décide sur l'origine, jamais sur le libellé :
+  // un scénario du lecteur et une entrée de référence peuvent porter le même
+  // nom, et les deux options s'allumaient alors ensemble.
   const optionsScenarios = scenarios
     .map(
       (s) =>
         `<option value="scenario:${echapper(s.nom)}"${
-          s.nom === etat.faceNom ? " selected" : ""
+          etat.faceSource === "scenario" && s.nom === etat.faceNom ? " selected" : ""
         }>${echapper(s.nom)}</option>`,
     )
     .join("");
+  // Le budget voté n'a pas de slug : sa clé est la chaîne vide, qu'aucune
+  // analyse ne peut porter. Une clé littérale (« neutre ») était collisionnable
+  // par une analyse au slug homonyme, qui se serait affichée sous son titre
+  // avec le budget voté dessous.
   const optionsReferences = referencesScenarios
     .map(
       (r) =>
-        `<option value="reference:${echapper(r.slug ?? "neutre")}"${
-          r.titre === etat.faceNom ? " selected" : ""
+        `<option value="reference:${echapper(r.slug ?? "")}"${
+          etat.faceSource === `reference:${r.slug ?? ""}` ? " selected" : ""
         }>${echapper(r.titre)}</option>`,
     )
     .join("");
@@ -2952,6 +2987,7 @@ function brancherScenarios(): void {
       etat.face = "";
       etat.faceNom = "";
       etat.faceExercice = "";
+      etat.faceSource = "";
       ecrireUrl();
       return montrerScenarios();
     }
@@ -2964,9 +3000,10 @@ function brancherScenarios(): void {
     // `montrerScenarios`).
     if (champ.value.startsWith("reference:")) {
       const cle = champ.value.slice("reference:".length);
-      const reference = referencesScenarios.find((r) => (r.slug ?? "neutre") === cle);
+      const reference = referencesScenarios.find((r) => (r.slug ?? "") === cle);
       etat.face = reference?.budget ?? "";
       etat.faceNom = reference?.titre ?? "";
+      etat.faceSource = reference ? `reference:${reference.slug ?? ""}` : "";
       // Le budget voté (`slug: null`) N'EST PAS un scénario dont on ignore
       // l'origine : c'est l'atelier tel que monté à l'instant, donc le même
       // exercice que la colonne « vive » — `exerciceCourant()` le dit vrai,
@@ -2980,6 +3017,7 @@ function brancherScenarios(): void {
       etat.face = choisi?.budget ?? "";
       etat.faceNom = choisi?.nom ?? "";
       etat.faceExercice = choisi?.exercice ?? "";
+      etat.faceSource = choisi ? "scenario" : "";
     }
     ecrireUrl();
     montrerScenarios();

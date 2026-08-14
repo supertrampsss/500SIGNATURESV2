@@ -1252,7 +1252,7 @@ test("l'adresse relit une face choisie au rechargement, même quand son budget e
 function executerColonnesComparaison(
   etatSimule: Record<string, string>,
   scenariosLocaux: { nom: string; budget: string; exercice: string; contrat?: string }[],
-  references: { titre: string; contrat: string; lien: string | null }[] = [],
+  references: { titre: string; slug: string | null; contrat: string; lien: string | null }[] = [],
 ): { nom: string; exercice: string | null; contrat: string; lien: string | null }[] {
   const debutAides = MAIN.indexOf("function scenarioCourant");
   const finAides = MAIN.indexOf("/** Une colonne comparée, transposée");
@@ -1288,6 +1288,10 @@ function executerColonnesComparaison(
     lien: string | null,
   ) => ({ nom, exercice, contrat, lien });
   const listerScenarios = () => scenariosLocaux;
+  // `faceSource` absent du gabarit = le cas d'un lien antérieur à ce
+  // paramètre, celui qui doit continuer de deviner. Les tests qui portent sur
+  // une origine choisie la nomment explicitement.
+  const etatComplet = { faceSource: "", ...etatSimule };
   // L'exercice publié aujourd'hui sur le site, sans aucun rapport avec les
   // scénarios testés : un test qui verrait cette valeur là où il attend
   // `null` prouve que le fallback fautif est revenu.
@@ -1300,7 +1304,7 @@ function executerColonnesComparaison(
     "exerciceCourant",
     "referencesScenarios",
     `${corps}\nreturn colonnesComparaison();`,
-  )(etatSimule, listerScenarios, {}, colonneDepuis, exerciceCourant, references);
+  )(etatComplet, listerScenarios, {}, colonneDepuis, exerciceCourant, references);
 }
 
 test("une colonne `face` absente du dépôt local, sans exercice dans l'adresse, dit l'exercice inconnu", () => {
@@ -1492,9 +1496,12 @@ test("le budget voté (slug null) prend l'exercice réellement monté ; une anal
   // l'atelier tel que monté à l'instant : son exercice se lit vrai avec
   // `exerciceCourant()`. Une entrée issue d'une analyse, elle, ne porte aucun
   // exercice vérifiable (voir prerendre.ts) : jamais ce même repli.
+  // Borné sur ce qui suit, jamais sur un nombre de caractères : une ligne
+  // ajoutée au gestionnaire poussait la règle hors d'une fenêtre fixe et
+  // faisait rougir ce test sans que la règle ait bougé.
   const corps = MAIN.slice(
     MAIN.indexOf('cible.addEventListener("change"'),
-    MAIN.indexOf('cible.addEventListener("change"') + 1200,
+    MAIN.indexOf("async function ouvrirSimulateur"),
   );
   assert.match(corps, /reference\.slug === null \? exerciceCourant\(\) : reference\.exercice/);
 });
@@ -1530,6 +1537,7 @@ test("une entrée de référence apporte sa contrainte et le lien de son analyse
     [
       {
         titre: "Le budget de la Défense",
+        slug: "defense-2025",
         contrat: "sans-impot",
         lien: "/analyses/defense-2025/",
       },
@@ -1539,16 +1547,63 @@ test("une entrée de référence apporte sa contrainte et le lien de son analyse
   assert.equal(face!.lien, "/analyses/defense-2025/");
 });
 
-test("un scénario du lecteur porte son propre serment, et n'emprunte pas celui d'une référence homonyme", () => {
+/* Deux homonymes, un dans le dépôt du lecteur et un dans le fichier de
+ * référence : c'est l'origine choisie dans le menu qui tranche, et elle
+ * voyage dans l'adresse. Le nom ne peut pas trancher — c'est le même. Un test
+ * qui n'en éprouverait qu'un des deux sens figerait un tirage au sort en le
+ * faisant passer pour un invariant. */
+
+const HOMONYMES: {
+  etat: Record<string, string>;
+  locaux: { nom: string; budget: string; exercice: string; contrat?: string }[];
+  references: { titre: string; slug: string | null; contrat: string; lien: string | null }[];
+} = {
+  etat: { nom: "", budget: "", faceNom: "Budget voté", face: "", faceExercice: "2025" },
+  locaux: [{ nom: "Budget voté", budget: "", exercice: "2022", contrat: "sans-prestation" }],
+  references: [{ titre: "Budget voté", slug: null, contrat: "sans-impot", lien: "/analyses/x/" }],
+};
+
+test("origine « scenario » : la face porte le serment du scénario du lecteur", () => {
   const [, face] = executerColonnesComparaison(
-    { nom: "", budget: "", faceNom: "Budget voté", face: "", faceExercice: "2025" },
-    [{ nom: "Budget voté", exercice: "2022", contrat: "sans-prestation" }],
-    [{ titre: "Budget voté", contrat: "sans-impot", lien: "/analyses/x/" }],
+    { ...HOMONYMES.etat, faceSource: "scenario" },
+    HOMONYMES.locaux,
+    HOMONYMES.references,
   );
   assert.equal(face!.contrat, "sans-prestation");
+  assert.equal(face!.exercice, "2022");
   // Un scénario du lecteur n'a pas de page : il ne prend pas le lien de la
   // référence homonyme.
   assert.equal(face!.lien, null);
+});
+
+test("origine « reference » : la face porte le serment de la référence, pas celui de l'homonyme local", () => {
+  const [, face] = executerColonnesComparaison(
+    { ...HOMONYMES.etat, faceSource: "reference:" },
+    HOMONYMES.locaux,
+    HOMONYMES.references,
+  );
+  assert.equal(face!.contrat, "sans-impot");
+  assert.notEqual(face!.contrat, "sans-prestation");
+  assert.equal(face!.lien, "/analyses/x/");
+  // L'exercice vient de l'adresse, jamais du scénario local homonyme.
+  assert.equal(face!.exercice, "2025");
+  assert.notEqual(face!.exercice, "2022");
+});
+
+test("une analyse au slug « neutre » ne se confond pas avec le budget voté", () => {
+  // La clé de l'entrée neutre est la chaîne vide, qu'aucun slug ne porte : une
+  // clé littérale était collisionnable, et l'analyse se serait affichée sous
+  // son titre avec le budget voté dessous.
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Une analyse", face: "b64", faceExercice: "", faceSource: "reference:neutre" },
+    [],
+    [
+      { titre: "Budget voté", slug: null, contrat: "", lien: null },
+      { titre: "Une analyse", slug: "neutre", contrat: "sans-impot", lien: "/analyses/neutre/" },
+    ],
+  );
+  assert.equal(face!.contrat, "sans-impot");
+  assert.equal(face!.lien, "/analyses/neutre/");
 });
 
 test("la colonne courante porte le serment que l'atelier applique, et ne prétend venir de nulle part", () => {
