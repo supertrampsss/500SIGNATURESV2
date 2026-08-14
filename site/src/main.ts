@@ -1431,9 +1431,14 @@ async function basculerComparaison(code: string): Promise<void> {
   ecrireUrl();
   await majComparateur();
   if (etat.selection) injecterActionsFiche();
-  // Le comparateur vivait dans la vue DONNÉES, retirée : il n'y a plus de
-  // tableau où emmener le lecteur, et l'y envoyer le déposait sur une adresse
-  // morte. La comparaison reste dans l'URL et se relit telle quelle.
+  // Le comparateur vit désormais sous /detail : `#comparateur` y est peuplé
+  // par `majComparateur`, que `peindreDetail` appelle. La comparaison choisie
+  // ici s'y lit donc au prochain passage par cette vue, via l'URL. Aucun
+  // `data-comparer` n'est plus émis nulle part sur le site —
+  // `injecterActionsFiche` ne fait plus que retirer le bloc d'actions — si
+  // bien que taper `?comparer=` dans l'adresse reste le seul moyen d'y
+  // ajouter un territoire. Poser cette entrée dans l'interface est un lot
+  // délibérément reporté, pas un oubli.
 }
 
 async function majComparateur(): Promise<void> {
