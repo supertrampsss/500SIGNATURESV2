@@ -122,25 +122,46 @@ REGISTRES_A_SOURCER = {"donnee_officielle", "estimation_externe"}
 REGISTRES_OBSERVE_INTERDIT = {"resultat_simulation", "hypothese", "interpretation"}
 
 # Champs obligatoires de niveau racine (docs/analyses-schema.md, colonne
-# « Obligatoire » = oui). `chiffres` en est exclu : son propre contrôle (plus
-# bas) vérifie déjà l'absence aussi bien que la liste vide, sans doublon.
-CHAMPS_OBLIGATOIRES = [
-    "slug",
-    "titre",
-    "type",
-    "publie_le",
-    "themes",
-    "budgets_concernes",
-    "mise_en_avant",
-    "affirmation",
-    "verdict",
-    "hypotheses",
-    "effets_indirects",
-    "sources",
-    "simulateur",
-    "mises_a_jour",
-    "verifie_contre",
-]
+# « Obligatoire » = oui), avec le type attendu et si une valeur vide est
+# licite. `chiffres` en est exclu : son propre contrôle (plus bas) vérifie
+# déjà l'absence aussi bien que la liste vide, sans doublon.
+#
+# La présence seule ne suffisait pas (Important 5) : `titre: null`,
+# `titre: ""`, `publie_le: null` ou `affirmation: []` (mauvais type) étaient
+# tous certifiés sans erreur, la boucle ne vérifiant que la clé. Un booléen
+# n'a pas d'« état vide » — `mise_en_avant: false` est une valeur aussi
+# licite que `true` — d'où `vide_autorise=True` pour ce seul champ non-liste.
+CHAMPS_OBLIGATOIRES: dict[str, tuple[type, bool]] = {
+    "slug": (str, False),
+    "titre": (str, False),
+    "type": (str, False),
+    "publie_le": (str, False),
+    "themes": (list, False),
+    "budgets_concernes": (list, False),
+    "mise_en_avant": (bool, True),
+    "affirmation": (dict, False),
+    "verdict": (dict, False),
+    "hypotheses": (list, True),
+    "effets_indirects": (list, True),
+    "sources": (list, False),
+    "simulateur": (dict, False),
+    "mises_a_jour": (list, True),
+    "verifie_contre": (str, True),
+}
+
+# Type attendu de chaque élément des champs listes ci-dessus (Critical 3) :
+# `hypotheses` donnée comme une chaîne plutôt qu'une liste faisait
+# `enumerate()` sur les caractères un par un, si bien qu'aucun regroupement
+# de chiffres n'atteignait jamais le seuil de la garde anti-invention — le
+# contrôle censé le détecter ne le voyait donc jamais passer.
+_ELEMENT_ATTENDU: dict[str, type] = {
+    "themes": str,
+    "budgets_concernes": str,
+    "hypotheses": str,
+    "sources": dict,
+    "effets_indirects": dict,
+    "mises_a_jour": dict,
+}
 
 _DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -158,26 +179,34 @@ def _date_valide(valeur: object) -> bool:
     return True
 
 
-def _dates_a_verifier(analyse: dict) -> list[tuple[str, object]]:
-    """-> [(champ, valeur), ...] pour chaque date du schéma (§15.3.1),
-    nullables comprises : c'est à l'appelant de ne pas signaler un `None`
-    là où le schéma l'autorise (`affirmation.date`)."""
+def _dates_a_verifier(analyse: dict) -> list[tuple[str, object, bool]]:
+    """-> [(champ, valeur, nullable), ...] pour chaque date du schéma
+    (§15.3.1). `nullable` distingue le seul cas où le schéma autorise
+    explicitement `None` — `affirmation.date`, nul si `auteur` est nul — de
+    toutes les autres dates. `sources[].consulte_le` et `mises_a_jour[].date`
+    sont marquées non nullables : une révision sans date (`mises_a_jour:
+    [{"quoi": "x"}]`) ou une source sans date de consultation lisaient un
+    `None` comme un skip silencieux plutôt qu'une erreur (Important 5)."""
     affirmation = analyse.get("affirmation") or {}
-    dates: list[tuple[str, object]] = [
-        ("publie_le", analyse.get("publie_le")),
-        ("affirmation.date", affirmation.get("date")),
-        ("affirmation.source.consulte_le", (affirmation.get("source") or {}).get("consulte_le")),
+    dates: list[tuple[str, object, bool]] = [
+        ("publie_le", analyse.get("publie_le"), True),
+        ("affirmation.date", affirmation.get("date"), True),
+        (
+            "affirmation.source.consulte_le",
+            (affirmation.get("source") or {}).get("consulte_le"),
+            True,
+        ),
     ]
     for i, source in enumerate(analyse.get("sources") or []):
         if isinstance(source, dict):
-            dates.append((f"sources[{i}].consulte_le", source.get("consulte_le")))
+            dates.append((f"sources[{i}].consulte_le", source.get("consulte_le"), False))
     for i, effet in enumerate(analyse.get("effets_indirects") or []):
         if isinstance(effet, dict):
             src = effet.get("source") or {}
-            dates.append((f"effets_indirects[{i}].source.consulte_le", src.get("consulte_le")))
+            dates.append((f"effets_indirects[{i}].source.consulte_le", src.get("consulte_le"), True))
     for i, maj in enumerate(analyse.get("mises_a_jour") or []):
         if isinstance(maj, dict):
-            dates.append((f"mises_a_jour[{i}].date", maj.get("date")))
+            dates.append((f"mises_a_jour[{i}].date", maj.get("date"), False))
     return dates
 
 
@@ -284,20 +313,66 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
     slug = analyse.get("slug", "?")
     erreurs: list[Erreur] = []
 
-    for champ in CHAMPS_OBLIGATOIRES:
+    for champ, (type_attendu, vide_autorise) in CHAMPS_OBLIGATOIRES.items():
         if champ not in analyse:
             erreurs.append(Erreur(slug, champ, "champ obligatoire absent"))
+            continue
+        valeur = analyse[champ]
+        if not isinstance(valeur, type_attendu):
+            erreurs.append(
+                Erreur(
+                    slug,
+                    champ,
+                    f"type invalide, attendu {type_attendu.__name__} : reçu"
+                    f" {type(valeur).__name__}",
+                )
+            )
+            continue
+        if not vide_autorise and not valeur:
+            erreurs.append(Erreur(slug, champ, "champ obligatoire vide"))
+            continue
+        element_attendu = _ELEMENT_ATTENDU.get(champ)
+        if element_attendu is not None and any(
+            not isinstance(e, element_attendu) for e in valeur
+        ):
+            nom = "une chaîne" if element_attendu is str else "un objet"
+            erreurs.append(Erreur(slug, champ, f"chaque élément doit être {nom}"))
 
-    if not analyse.get("chiffres"):
+    # `chiffres` reste hors de la table ci-dessus : son propre message
+    # (« liste absente ou vide ») distingue l'absence de la liste vide sans
+    # doublon, et son mauvais type (Critical 3 : une chaîne au lieu d'une
+    # liste, comme pour `hypotheses`) est vérifié ici plutôt que d'être
+    # laissée fragmenter en caractères par les familles suivantes.
+    chiffres = analyse.get("chiffres")
+    if not isinstance(chiffres, list) or not chiffres:
         erreurs.append(
             Erreur(slug, "chiffres", "liste absente ou vide : au moins un chiffre requis")
         )
+    elif any(not isinstance(c, dict) for c in chiffres):
+        erreurs.append(Erreur(slug, "chiffres", "chaque élément doit être un objet"))
 
-    for champ, valeur in _dates_a_verifier(analyse):
-        if valeur is not None and not _date_valide(valeur):
+    for champ, valeur, nullable in _dates_a_verifier(analyse):
+        if valeur is None:
+            if not nullable:
+                erreurs.append(Erreur(slug, champ, "date manquante"))
+            continue
+        if not _date_valide(valeur):
             erreurs.append(
                 Erreur(slug, champ, f"date invalide, attendu AAAA-MM-JJ : « {valeur} »")
             )
+
+    # Minor : `affirmation.date` n'est nulle licitement que si `auteur` l'est
+    # aussi (docs/analyses-schema.md) — une déclaration attribuée sans date
+    # passait jusqu'ici sans erreur.
+    affirmation = analyse.get("affirmation") or {}
+    if affirmation.get("auteur") is not None and affirmation.get("date") is None:
+        erreurs.append(
+            Erreur(
+                slug,
+                "affirmation.date",
+                "date absente alors que affirmation.auteur est renseigné",
+            )
+        )
 
     fichier = analyse.get("_fichier")
     if fichier is not None and Path(fichier).stem != slug:
@@ -351,7 +426,8 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
 
 
 def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], list[float]]:
-    """Exact match, sans tolérance — sous condition du registre (finding 6) :
+    """Exact match, sans tolérance — sous condition du registre (révision de
+    Important 6, voir la docstring de tête) :
 
     - `fait_comptable` exige `observe` et le vérifie exactement : c'est le
       registre dont le sens même est « une observation que le pipeline a
@@ -443,7 +519,13 @@ def _erreurs_catalogue(analyse: dict, donnees: Donnees) -> list[Erreur]:
     erreurs: list[Erreur] = []
     catalogue = donnees.catalogue()
     for i, chiffre in enumerate(analyse.get("chiffres") or []):
-        observe = (chiffre or {}).get("observe") or {}
+        # Minor : `(chiffre or {}).get("observe") or {}` laissait passer un
+        # `observe: "texte"` tel quel (une chaîne non vide est truthy, donc
+        # jamais remplacée par `{}`) — `.get()` levait alors AttributeError
+        # avant que le typage erroné soit signalé par la famille 2.
+        observe = chiffre.get("observe") if isinstance(chiffre, dict) else None
+        if not isinstance(observe, dict):
+            continue
         indicateur, niveau = observe.get("indicateur"), observe.get("niveau")
         if indicateur is None:
             continue

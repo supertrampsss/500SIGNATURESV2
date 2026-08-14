@@ -730,3 +730,124 @@ def test_message_illisible_cite_le_token_brut_pas_une_valeur_inventee():
     assert "1531" not in messages[0]
 
 
+# 19. Critical B : un champ liste donné comme une chaîne (ou tout autre
+#     type) doit être une erreur — pas un skip silencieux qui prive la garde
+#     anti-invention de ses éléments (`hypotheses` comme chaîne fait
+#     `enumerate()` caractère par caractère, aucun regroupement de chiffres
+#     n'atteint alors jamais le seuil).
+
+
+def test_hypotheses_chaine_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["hypotheses"] = "45 000 000 000 euros"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "hypotheses" for e in erreurs)
+    assert analyse["verifie_contre"] == ""
+
+
+def test_hypotheses_element_non_chaine_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["hypotheses"] = [123]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "hypotheses" for e in erreurs)
+
+
+def test_champs_listes_donnes_comme_chaine_sont_des_erreurs():
+    for champ, mauvaise_valeur in [
+        ("themes", "budget_etat"),
+        ("budgets_concernes", "etat"),
+        ("sources", "https://example.invalid"),
+        ("effets_indirects", "texte"),
+        ("mises_a_jour", "texte"),
+        ("chiffres", "texte"),
+    ]:
+        analyse = analyse_conforme()
+        analyse[champ] = mauvaise_valeur
+        erreurs = controler([analyse], fake_donnees())
+        assert any(e.champ == champ for e in erreurs), f"{champ} aurait dû être une erreur"
+
+
+def test_sources_element_non_objet_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["sources"] = ["https://example.invalid"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "sources" for e in erreurs)
+
+
+def test_chiffres_element_non_objet_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["chiffres"] = ["texte"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres" for e in erreurs)
+
+
+# 20. Important E : la présence seule d'un champ obligatoire ne suffit pas —
+#     il doit être non vide et du bon type. Une date manquante dans
+#     `mises_a_jour` ou `sources` est une erreur, pas un skip.
+
+
+def test_titre_nul_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["titre"] = None
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "titre" for e in erreurs)
+    assert analyse["verifie_contre"] == ""
+
+
+def test_titre_vide_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["titre"] = ""
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "titre" for e in erreurs)
+
+
+def test_publie_le_nul_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["publie_le"] = None
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "publie_le" for e in erreurs)
+
+
+def test_affirmation_liste_au_lieu_d_objet_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["affirmation"] = []
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "affirmation" for e in erreurs)
+
+
+def test_mises_a_jour_sans_date_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["mises_a_jour"] = [{"quoi": "Correction"}]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "mises_a_jour[0].date" for e in erreurs)
+
+
+def test_sources_sans_consulte_le_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["sources"][0]["consulte_le"] = None
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "sources[0].consulte_le" for e in erreurs)
+
+
+def test_mise_en_avant_false_reste_valide():
+    # Garde-fou explicite : un booléen n'a pas d'« état vide », `false` est
+    # une valeur aussi licite que `true` — ne doit jamais être confondu avec
+    # un champ manquant.
+    analyse = analyse_conforme()
+    analyse["mise_en_avant"] = False
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 21. Minor : `affirmation.date` n'est nulle licitement que si `auteur`
+#     l'est aussi.
+
+
+def test_affirmation_auteur_sans_date_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["affirmation"]["auteur"] = "Quelqu'un"
+    analyse["affirmation"]["date"] = None
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "affirmation.date" for e in erreurs)
+
+
