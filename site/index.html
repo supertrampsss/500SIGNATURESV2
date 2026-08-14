@@ -55,6 +55,7 @@
         <a href="/territoire" data-vue="territoire">Territoire</a>
         <a href="/reperes" data-vue="reperes">Repères</a>
         <a href="/detail" data-vue="detail">Détail</a>
+        <a href="/methode" data-vue="methode">Méthode</a>
       </nav>
 
       <button type="button" class="bascule-theme" id="theme-bascule"
@@ -164,6 +165,16 @@
 
     <div class="vue" id="vue-detail" hidden>
       <div id="detail"></div>
+    </div>
+
+    <!-- La méthode : ce que le site a corrigé, et quand il a lu ses sources.
+         Le lot 1 y ajoutera la grille des verdicts, le lot 4 les sources. -->
+    <div class="vue" id="vue-methode" hidden>
+      <section class="methode">
+        <h2>Méthode</h2>
+        <div class="bloc bloc--large" id="methode-fraicheur"></div>
+        <div class="bloc bloc--large" id="methode-journal"></div>
+      </section>
     </div>
 
     </main>

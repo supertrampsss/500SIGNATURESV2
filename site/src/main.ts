@@ -62,6 +62,8 @@ import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import { cheminDeVue, vueDepuisAdresse } from "./routes.ts";
+import { afficherFraicheur } from "./fraicheur.ts";
+import { afficherJournal } from "./journal.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -2096,7 +2098,7 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  *  Ce qu'elle portait vit ailleurs — le fichier public est lié depuis le pied
  *  de page, et chaque mesure garde sa définition et sa source dans son rond
  *  « i ». Ce qui a réellement disparu de l'écran est écrit dans la PR. */
-const VUES_PAGE = ["territoire", "detail", "reperes"] as const;
+const VUES_PAGE = ["territoire", "detail", "reperes", "methode"] as const;
 
 /** La page DÉTAIL pour le territoire sélectionné.
  *
@@ -2336,6 +2338,32 @@ function vuesConnues(): readonly string[] {
   return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
 }
 
+/**
+ * La page MÉTHODE.
+ *
+ * Deux fichiers publiés à chaque exécution du pipeline : ce que le site a
+ * corrigé depuis la dernière fois, et à quelle date il a lu chaque source. Les
+ * deux modules qui les rendent existaient, testés, sans être appelés.
+ *
+ * Peinte une seule fois : elle ne dépend d'aucune sélection.
+ */
+let methodePeinte = false;
+
+async function peindreMethode(): Promise<void> {
+  if (methodePeinte) return;
+  methodePeinte = true;
+  try {
+    afficherFraicheur($("methode-fraicheur"), await donnees.fraicheur());
+  } catch {
+    // Fichier non publié : le bloc reste vide, la page tient.
+  }
+  try {
+    afficherJournal($("methode-journal"), await donnees.journal());
+  } catch {
+    // Idem : rien à dire vaut mieux qu'une erreur à lire.
+  }
+}
+
 function basculerVue(): void {
   const precedente = document.body.dataset.vue;
   const demandee = vueDepuisAdresse(location.pathname, location.hash);
@@ -2359,6 +2387,8 @@ function basculerVue(): void {
   $("vue-detail").hidden = vue !== "detail";
   if (vue === "detail") void peindreDetail();
   $("vue-reperes").hidden = vue !== "reperes";
+  $("vue-methode").hidden = vue !== "methode";
+  if (vue === "methode") void peindreMethode();
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les

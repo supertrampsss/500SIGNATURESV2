@@ -667,3 +667,20 @@ test("l'infobulle met une ligne par lecture", () => {
   // « 345 €2 158 M€ au total ».
   assert.match(CSS, /\.infobulle span \{\n\s*display: block;/);
 });
+
+test("le site dit ce qu'il a corrigé et quand il a lu ses sources", () => {
+  // Le pipeline publie `journal.json` et `fraicheur.json` à chaque exécution, et
+  // les deux modules qui les rendent étaient écrits et testés sans être
+  // appelés : le site savait dire ses corrections et ne les disait nulle part.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.match(balises, /id="vue-methode"/);
+  assert.match(balises, /id="methode-journal"/);
+  assert.match(balises, /id="methode-fraicheur"/);
+  assert.match(MAIN, /async function peindreMethode\(\)/);
+  assert.match(MAIN, /afficherJournal\(/);
+  assert.match(MAIN, /afficherFraicheur\(/);
+  // Un fichier absent laisse la page debout : c'est la règle du site partout
+  // ailleurs, elle vaut ici.
+  const corps = MAIN.slice(MAIN.indexOf("async function peindreMethode"));
+  assert.match(corps.slice(0, 900), /catch/);
+});
