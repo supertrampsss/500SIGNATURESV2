@@ -32,6 +32,14 @@
  * dans son retour ne dit ce qu'il a écarté. `transposer` referme cet écart
  * en reparcourant les mêmes morceaux que `decoder`, seulement pour nommer
  * ceux qui n'ont pas survécu.
+ *
+ * `decoder` écarte aussi un morceau dont la valeur ne se lit pas (`NaN`,
+ * `Infinity`) — une chaîne corrompue, à la main ou par un lien mal recopié —
+ * même quand le code, lui, existe toujours. Ce n'est pas la même disparition
+ * qu'une ligne que la nomenclature a laissée tomber : le code est là, c'est
+ * la valeur qui ne l'est pas. `transposer` le nomme quand même, avec un mot
+ * qui dit lequel des deux faits s'est produit, plutôt que de laisser croire
+ * que la ligne a simplement cessé d'exister.
  */
 
 import { decoder, type EtatAtelier, type Volet } from "./atelier.ts";
@@ -249,11 +257,13 @@ function ligneExiste(volet: Volet, code: string): boolean {
  *
  * `etat` vient tel quel de `decoder` : c'est lui qui sait composer un état
  * de l'atelier, `transposer` ne refait pas ce travail. `disparues` liste,
- * volet et code, chaque ligne que le scénario réglait et que la nomenclature
- * courante ne porte plus — y compris quand c'est le volet entier qui a
- * disparu. Une ligne mal formée dans la chaîne (ancien format sans volet,
- * chaîne corrompue) n'est pas une ligne disparue : `decoder` l'ignore de la
- * même façon, ce n'est pas une ligne du tout.
+ * volet et code, chaque ligne que le scénario réglait et que l'état rendu
+ * ne porte plus — soit que la nomenclature courante ne la porte plus (y
+ * compris quand c'est le volet entier qui a disparu), soit que sa valeur ne
+ * se lise plus, auquel cas la mention le dit. Une ligne mal formée dans la
+ * chaîne (ancien format sans volet, chaîne corrompue) n'est pas une ligne
+ * disparue : `decoder` l'ignore de la même façon, ce n'est pas une ligne du
+ * tout.
  */
 export function transposer(
   scenario: Scenario,
@@ -270,6 +280,15 @@ export function transposer(
     const volet = volets.find((v) => v.cle === cleVolet);
     if (!volet || !ligneExiste(volet, code)) {
       disparues.push(`${volet?.nom ?? cleVolet} : ${code}`);
+      continue;
+    }
+    // La ligne existe toujours dans la nomenclature, mais `decoder` l'écarte
+    // quand même si sa valeur ne se lit pas (`NaN`, `Infinity`) : un fait
+    // différent d'une ligne disparue, que la mention distingue plutôt que de
+    // laisser croire à une disparition de nomenclature qui n'a pas eu lieu.
+    const valeur = Number(morceau.slice(separateur + 1));
+    if (!Number.isFinite(valeur)) {
+      disparues.push(`${volet.nom} : ${code} (valeur illisible)`);
     }
   }
   return { etat, disparues };
