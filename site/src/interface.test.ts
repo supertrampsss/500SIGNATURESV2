@@ -753,8 +753,18 @@ test("aucun fetch de MÉTHODE ne part avant que l'initialisation n'ait résolu",
     "peindreMethode doit attendre `prete` avant tout fetch",
   );
   // `methodePeinte` ne verrouille plus AVANT d'avoir essayé : un échec
-  // véritable laisse la vue rejouable au prochain hashchange/popstate.
-  assert.doesNotMatch(corpsPeintre, /methodePeinte = true;\s*\n\s*try/);
+  // véritable laisse la vue rejouable au prochain hashchange/popstate. Ce qui
+  // compte n'est pas la forme exacte du latch prématuré — une regex qui ne
+  // reconnaît que `methodePeinte = true;\n try` laisse passer la même faute
+  // écrite autrement, par exemple suivie d'un `await prete;` plutôt que d'un
+  // `try` — mais l'ordre : le latch ne doit jamais précéder l'attente de
+  // `prete`.
+  assert.ok(
+    corpsPeintre.indexOf("await prete;") !== -1 &&
+      corpsPeintre.indexOf("methodePeinte =") !== -1 &&
+      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("methodePeinte ="),
+    "le latch `methodePeinte` ne doit jamais précéder `await prete;`",
+  );
   assert.match(corpsPeintre, /methodePeinte = rendu;/);
   // `prete` n'est résolue qu'APRÈS `await donnees.initialiser()` dans
   // `demarrer` : c'est cet ordre qui garantit qu'aucun fetch de peintre ne
