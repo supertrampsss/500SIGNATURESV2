@@ -1169,13 +1169,14 @@ test("l'adresse relit une face choisie au rechargement, même quand son budget e
  * ---------------------------------------------------------------------- */
 
 /** Exécute `colonnesComparaison` telle qu'écrite dans main.ts, avec `etat`,
- *  `listerScenarios` et `exerciceCourant` simulés, et capture les arguments
- *  reçus par `colonneDepuis` — en particulier l'exercice retenu pour chaque
- *  colonne. */
+ *  `listerScenarios`, `exerciceCourant` et `referencesScenarios` simulés, et
+ *  capture les arguments reçus par `colonneDepuis` — en particulier
+ *  l'exercice, le serment et le lien retenus pour chaque colonne. */
 function executerColonnesComparaison(
   etatSimule: Record<string, string>,
-  scenariosLocaux: { nom: string; exercice: string }[],
-): { nom: string; exercice: string | null }[] {
+  scenariosLocaux: { nom: string; exercice: string; contrat?: string }[],
+  references: { titre: string; contrat: string; lien: string | null }[] = [],
+): { nom: string; exercice: string | null; contrat: string; lien: string | null }[] {
   const debut = MAIN.indexOf("function colonnesComparaison");
   const fin = MAIN.indexOf("function chargerScenario(nom: string): void {");
   assert.ok(debut > -1 && fin > debut, "colonnesComparaison introuvable dans main.ts");
@@ -1188,10 +1189,17 @@ function executerColonnesComparaison(
     "function colonnesComparaison(): Comparable[] {",
     "function colonnesComparaison() {",
   );
-  const captures: { nom: string; exercice: string | null }[] = [];
-  const colonneDepuis = (nom: string, _budget: string, exercice: string | null) => {
-    captures.push({ nom, exercice });
-    return { nom, exercice };
+  const captures: { nom: string; exercice: string | null; contrat: string; lien: string | null }[] =
+    [];
+  const colonneDepuis = (
+    nom: string,
+    _budget: string,
+    exercice: string | null,
+    contrat: string,
+    lien: string | null,
+  ) => {
+    captures.push({ nom, exercice, contrat, lien });
+    return { nom, exercice, contrat, lien };
   };
   const listerScenarios = () => scenariosLocaux;
   // L'exercice publié aujourd'hui sur le site, sans aucun rapport avec les
@@ -1204,8 +1212,9 @@ function executerColonnesComparaison(
     "depotScenarios",
     "colonneDepuis",
     "exerciceCourant",
+    "referencesScenarios",
     `${corps}\nreturn colonnesComparaison();`,
-  )(etatSimule, listerScenarios, {}, colonneDepuis, exerciceCourant);
+  )(etatSimule, listerScenarios, {}, colonneDepuis, exerciceCourant, references);
   return captures;
 }
 
@@ -1370,4 +1379,79 @@ test("le budget voté (slug null) prend l'exercice réellement monté ; une anal
     MAIN.indexOf('cible.addEventListener("change"') + 1200,
   );
   assert.match(corps, /reference\.slug === null \? exerciceCourant\(\) : reference\.exercice/);
+});
+
+/* ------------------------------------------------------------------------
+ * Aucun champ écrit qui ne soit lu. `prerendre.ts` écrivait `contrat` et
+ * `lien` dans `scenarios-reference.json`, `main.ts` n'en lisait aucun : une
+ * entrée de référence se comparait sans sa contrainte — un budget bâti sous
+ * serment se lisant alors comme un exploit — et aucun lien ne ramenait à
+ * l'analyse dont le chiffrage venait.
+ * ---------------------------------------------------------------------- */
+
+test("chaque champ du fichier de référence est lu par main.ts", () => {
+  const forme = PRERENDRE.slice(
+    PRERENDRE.indexOf("type EntreeReference = {"),
+    PRERENDRE.indexOf("/** Le budget voté"),
+  );
+  const champs = [...forme.matchAll(/^\s{2}(\w+):/gm)].map((m) => m[1]!);
+  assert.deepEqual(champs, ["titre", "slug", "lien", "budget", "contrat", "exercice"]);
+  const bloc = MAIN.slice(
+    MAIN.indexOf("type EntreeReference = {"),
+    MAIN.indexOf("async function ouvrirSimulateur"),
+  );
+  for (const champ of champs) {
+    assert.match(bloc, new RegExp(`\\.${champ}\\b`), `main.ts ne lit jamais \`${champ}\``);
+  }
+});
+
+test("une entrée de référence apporte sa contrainte et le lien de son analyse", () => {
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Le budget de la Défense", face: "b64", faceExercice: "" },
+    [],
+    [
+      {
+        titre: "Le budget de la Défense",
+        contrat: "sans-impot",
+        lien: "/analyses/defense-2025/",
+      },
+    ],
+  );
+  assert.equal(face!.contrat, "sans-impot");
+  assert.equal(face!.lien, "/analyses/defense-2025/");
+});
+
+test("un scénario du lecteur porte son propre serment, et n'emprunte pas celui d'une référence homonyme", () => {
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Budget voté", face: "", faceExercice: "2025" },
+    [{ nom: "Budget voté", exercice: "2022", contrat: "sans-prestation" }],
+    [{ titre: "Budget voté", contrat: "sans-impot", lien: "/analyses/x/" }],
+  );
+  assert.equal(face!.contrat, "sans-prestation");
+  // Un scénario du lecteur n'a pas de page : il ne prend pas le lien de la
+  // référence homonyme.
+  assert.equal(face!.lien, null);
+});
+
+test("la colonne courante porte le serment que l'atelier applique, et ne prétend venir de nulle part", () => {
+  const [courante] = executerColonnesComparaison(
+    { nom: "", budget: "b64", contrat: "sans-impot", faceNom: "", face: "", faceExercice: "" },
+    [],
+  );
+  assert.equal(courante!.contrat, "sans-impot");
+  assert.equal(courante!.lien, null);
+});
+
+test("le bloc des lignes non reprises est habillé comme le reste de la barre", () => {
+  // Premier diff à le mettre à l'écran : sans règle, il sortait sans cadre ni
+  // distinction, entre les boutons d'action et le menu.
+  assert.match(CSS, /\.scenarios-rendu__disparues \{/);
+  const regle = CSS.slice(
+    CSS.indexOf(".scenarios-rendu__disparues {"),
+    CSS.indexOf(".scenarios-rendu__disparues p {"),
+  );
+  // Jetons de design uniquement : ni couleur ni espacement en dur.
+  assert.doesNotMatch(regle, /#[0-9a-f]{3,8}\b/i);
+  assert.match(regle, /var\(--trait\)/);
+  assert.match(regle, /var\(--espace-5\)/);
 });

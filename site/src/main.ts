@@ -2648,8 +2648,20 @@ function exerciceCourant(): string {
  *  `transposerBudget` plutôt que `decoder` (atelier.ts) : décoder seul laisse tomber
  *  en silence les lignes que la nomenclature ne porte plus, puis l'en-tête
  *  annonce un effort et un nombre de gestes calculés sur cet état tronqué. La
- *  colonne emporte donc ce qu'elle a perdu, et le tableau le nomme sous elle. */
-function colonneDepuis(nom: string, budget: string, exercice: string | null): Comparable {
+ *  colonne emporte donc ce qu'elle a perdu, et le tableau le nomme sous elle.
+ *
+ *  `contrat` est le serment sous lequel ce budget a été bâti : la colonne le
+ *  porte pour que le tableau le NOMME, jamais pour l'appliquer — `etat.contrat`
+ *  est global à l'atelier, une colonne comparée ne peut pas imposer le sien.
+ *  `lien` mène à l'analyse dont la colonne vient, quand elle vient d'une
+ *  analyse ; `null` pour un budget du lecteur, qui n'a pas de page. */
+function colonneDepuis(
+  nom: string,
+  budget: string,
+  exercice: string | null,
+  contrat: string,
+  lien: string | null,
+): Comparable {
   const { etat: etatColonne, disparues } = transposerBudget(budget, voletsMontes);
   return {
     nom,
@@ -2658,6 +2670,8 @@ function colonneDepuis(nom: string, budget: string, exercice: string | null): Co
     gestes: gestesAtelier(voletsMontes, etatColonne),
     exercice,
     disparues,
+    contrat,
+    lien,
   };
 }
 
@@ -2672,7 +2686,13 @@ function colonneDepuis(nom: string, budget: string, exercice: string | null): Co
  *  réellement réglé : `null` dit l'inconnu plutôt que de le déguiser. Pour la
  *  colonne `face`, l'adresse porte l'exercice explicitement (`face-exercice`)
  *  : un lien récent le connaît, un lien antérieur à ce paramètre ne l'a pas
- *  et retombe donc, lui aussi, sur `null`. */
+ *  et retombe donc, lui aussi, sur `null`.
+ *
+ *  Une face qui n'est pas un scénario du lecteur peut être une entrée de
+ *  référence : elle apporte alors son serment et le lien de l'analyse dont
+ *  elle vient. Le dépôt local passe en premier — une entrée de référence ne
+ *  doit pas prêter sa contrainte à un scénario du lecteur qui porterait le
+ *  même titre. */
 function colonnesComparaison(): Comparable[] {
   const enregistre = etat.nom
     ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom)
@@ -2681,14 +2701,23 @@ function colonnesComparaison(): Comparable[] {
     (enregistre?.nom ?? etat.nom) || "Votre budget actuel",
     etat.budget,
     enregistre?.exercice ?? (etat.nom ? null : exerciceCourant()),
+    // Le serment que l'atelier applique en ce moment : celui de l'adresse,
+    // pas celui de l'enregistrement, qui peut avoir été relâché depuis.
+    etat.contrat,
+    null,
   );
   const faceEnregistree = etat.faceNom
     ? listerScenarios(depotScenarios).find((s) => s.nom === etat.faceNom)
     : undefined;
+  const faceReference = faceEnregistree
+    ? undefined
+    : referencesScenarios.find((r) => r.titre === etat.faceNom);
   const face = colonneDepuis(
     (faceEnregistree?.nom ?? etat.faceNom) || "Comparaison",
     etat.face,
     faceEnregistree?.exercice ?? (etat.faceExercice || null),
+    faceEnregistree?.contrat ?? faceReference?.contrat ?? "",
+    faceReference?.lien ?? null,
   );
   return [courante, face];
 }

@@ -6051,3 +6051,45 @@ body[data-carte="oui"] .legende {
   font-style: italic;
   color: var(--encre-douce);
 }
+
+/* Le titre d'une colonne qui vient d'une analyse y ramène : même soulignement
+   que les liens de la page d'analyse (`.analyse-rendu__chemin a`). */
+.scenarios-rendu__lien-colonne {
+  color: var(--encre);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* La contrainte sous laquelle un budget a été bâti est une phrase, pas une
+   étiquette : elle ne prend ni la capitale ni l'interlettrage des deux autres
+   mentions de l'en-tête, et elle revient à la ligne — l'en-tête est en
+   `nowrap`, une phrase y étirerait la colonne. */
+.scenarios-rendu__contrainte-colonne {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  white-space: normal;
+  max-width: 14rem;
+}
+
+/* Les lignes qu'une transposition n'a pas pu reprendre. Le même cadre creusé
+   que le reste de la barre (`.scenarios-rendu__vide`), jamais une couleur
+   d'alerte : ce bloc énonce un fait — ces décisions-là n'ont pas de ligne où
+   se poser cette année — il n'avertit pas le lecteur de se méfier. */
+.scenarios-rendu__disparues {
+  margin: var(--espace-5) 0;
+  padding: var(--espace-5);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier-creuse);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.scenarios-rendu__disparues p {
+  margin: 0 0 var(--espace-3);
+}
+.scenarios-rendu__disparues ul {
+  margin: 0;
+  padding-left: var(--espace-5);
+}
+.scenarios-rendu__disparues li {
+  padding: var(--espace-1) 0;
+}

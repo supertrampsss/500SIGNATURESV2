@@ -28,6 +28,8 @@ function comparable(
   gestes: number,
   exercice: string | null = "2025",
   disparues: readonly string[] = [],
+  contrat = "",
+  lien: string | null = null,
 ): Comparable {
   return {
     nom,
@@ -36,6 +38,8 @@ function comparable(
     gestes,
     exercice,
     disparues,
+    contrat,
+    lien,
   };
 }
 
@@ -216,4 +220,50 @@ test("16. les lignes qu'une colonne n'a pas pu reprendre sont nommées SOUS le t
 test("17. une colonne qui n'a rien perdu n'écrit aucun bloc", () => {
   const html = renduComparaison([comparable("Chez moi", 0, 0)], []);
   assert.doesNotMatch(html, /scenarios-rendu__disparues/);
+});
+
+/* --------------------------------------------------------------------------
+ * Ce qu'une colonne de référence apporte avec elle : le serment sous lequel
+ * son budget a été bâti, et l'analyse dont il vient. `prerendre.ts` écrivait
+ * les deux dans `scenarios-reference.json`, `main.ts` n'en lisait aucun.
+ * ----------------------------------------------------------------------- */
+
+test("18. le titre d'une colonne qui vient d'une analyse mène à cette analyse", () => {
+  const colonnes = [
+    comparable("Votre budget actuel", 0, 0),
+    comparable("Le budget de la Défense", 0, 0, "2025", [], "", "/analyses/defense-2025/"),
+  ];
+  const html = renduComparaison(colonnes, []);
+  assert.match(html, /<a[^>]*href="\/analyses\/defense-2025\/"[^>]*>Le budget de la Défense<\/a>/);
+  // La colonne du lecteur n'a pas de page : elle ne devient pas un lien mort.
+  const entetes = html.split('<th scope="col" class="scenarios-rendu__entete">');
+  assert.equal(entetes.length, 3);
+  assert.doesNotMatch(entetes[1]!, /<a /);
+  assert.match(entetes[2]!, /<a /);
+});
+
+test("19. les contraintes d'une colonne sont nommées en tête de cette colonne", () => {
+  const colonnes = [comparable("Chiffrage", 0, 0, "2025", [], "sans-impot")];
+  const html = renduComparaison(colonnes, []);
+  // Le nom publié du contrat (mission.ts), pas sa clé : « sans-impot » ne dit
+  // rien à un lecteur.
+  assert.match(html, /Sous contrainte : sans lever un seul impôt/);
+  assert.doesNotMatch(html, /sans-impot/);
+});
+
+test("20. deux contraintes se nomment toutes les deux", () => {
+  const html = renduComparaison(
+    [comparable("Chiffrage", 0, 0, "2025", [], "sans-impot,sans-prestation")],
+    [],
+  );
+  assert.match(html, /sans lever un seul impôt/);
+  assert.match(html, /sans baisser une seule prestation/);
+});
+
+test("21. un budget sans serment n'écrit pas de ligne de contrainte, et une clé inconnue n'en invente pas", () => {
+  assert.doesNotMatch(renduComparaison([comparable("Chiffrage", 0, 0)], []), /Sous contrainte/);
+  assert.doesNotMatch(
+    renduComparaison([comparable("Chiffrage", 0, 0, "2025", [], "cle-inventee")], []),
+    /Sous contrainte/,
+  );
 });

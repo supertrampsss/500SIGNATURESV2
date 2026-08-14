@@ -26,6 +26,7 @@
 
 import type { Scenario } from "./scenarios.ts";
 import type { Colonne, LigneComparee } from "./comparaison.ts";
+import { contratsDe } from "./mission.ts";
 import { formater } from "./echelle.ts";
 import { echapper } from "./texte.ts";
 
@@ -48,10 +49,22 @@ import { echapper } from "./texte.ts";
  * Sans elles à l'écran, l'en-tête annoncerait un effort et un nombre de
  * gestes calculés sur un état tronqué, et le lecteur croirait la colonne d'en
  * face porteuse de ce que son auteur y avait mis.
+ *
+ * `contrat` porte les contraintes sous lesquelles ce budget a été construit,
+ * encodées comme l'adresse les porte. Elles sont NOMMÉES, pas appliquées :
+ * l'atelier n'a qu'un jeu de contraintes, celui du lecteur, et une colonne
+ * comparée ne peut pas imposer le sien. Les taire ferait pourtant lire comme
+ * un exploit ce qui était un exploit sous serment.
+ *
+ * `lien` mène là d'où la colonne vient, quand elle vient de quelque part :
+ * l'analyse qui porte ce chiffrage. `null` pour un scénario du lecteur, qui
+ * n'a pas de page.
  */
 export type Comparable = Colonne & {
   exercice: string | null;
   disparues: readonly string[];
+  contrat: string;
+  lien: string | null;
 };
 
 /**
@@ -132,6 +145,25 @@ function renduAbandons(colonnes: Comparable[]): string {
 }
 
 /**
+ * Les contraintes sous lesquelles une colonne a été construite, nommées en
+ * tête de cette colonne.
+ *
+ * Nommées, jamais appliquées : l'atelier n'a qu'un jeu de contraintes, celui
+ * du lecteur. Un budget bâti sans lever un seul impôt et un budget bâti sans
+ * serment ne se lisent pas de la même façon, et rien d'autre à l'écran ne
+ * porte la différence. Une clé inconnue ne nomme rien (`contratsDe`,
+ * mission.ts), et un budget sans serment n'écrit pas de ligne du tout.
+ */
+function renduContrainte(contrat: string): string {
+  const contrats = contratsDe(contrat.split(",").filter(Boolean));
+  if (contrats.length === 0) return "";
+  return `
+        <span class="scenarios-rendu__contrainte-colonne">Sous contrainte : ${echapper(
+          contrats.map((c) => c.nom.toLowerCase()).join(" · "),
+        )}</span>`;
+}
+
+/**
  * Le tableau de comparaison : une colonne par comparable, une ligne par
  * entrée touchée dans au moins une colonne (`comparer()`, comparaison.ts).
  *
@@ -141,10 +173,16 @@ export function renduComparaison(colonnes: Comparable[], lignes: LigneComparee[]
   const entetes = colonnes
     .map(
       (c) => `<th scope="col" class="scenarios-rendu__entete">
-        <span class="scenarios-rendu__nom-colonne">${echapper(c.nom)}</span>
+        <span class="scenarios-rendu__nom-colonne">${
+          c.lien === null
+            ? echapper(c.nom)
+            : `<a class="scenarios-rendu__lien-colonne" href="${echapper(c.lien)}">${echapper(
+                c.nom,
+              )}</a>`
+        }</span>
         <span class="scenarios-rendu__exercice-colonne">${
           c.exercice === null ? "Exercice inconnu" : `Exercice ${echapper(c.exercice)}`
-        }</span>
+        }</span>${renduContrainte(c.contrat)}
         <span class="scenarios-rendu__effort-colonne">${formater(c.effort, "EUR", false)}</span>
         <span class="scenarios-rendu__gestes-colonne">${c.gestes} ${
           c.gestes > 1 ? "gestes" : "geste"
