@@ -851,3 +851,82 @@ def test_affirmation_auteur_sans_date_est_une_erreur():
     assert any(e.champ == "affirmation.date" for e in erreurs)
 
 
+# 22. Important G (revision de Important 6) : `observe` reste interdit pour
+#     resultat_simulation / hypothese / interpretation, mais une `valeur`
+#     déclarée au niveau du chiffre y est licite et entre dans la liste de
+#     référence — la prose peut alors citer ce chiffre. resultat_simulation
+#     exige en plus `simulateur.budget` non vide.
+
+
+def test_resultat_simulation_avec_valeur_et_budget_entre_dans_les_references():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "resultat_simulation"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = 12300.0
+    analyse["simulateur"]["budget"] = "etat"
+    analyse["verdict"]["phrase"] = "Le simulateur produit 12 300 euros sous ces réglages."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_resultat_simulation_avec_valeur_sans_budget_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "resultat_simulation"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = 12300.0
+    analyse["simulateur"]["budget"] = ""
+    analyse["verdict"]["phrase"] = "Le simulateur produit 12 300 euros sous ces réglages."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].valeur" for e in erreurs)
+
+
+def test_hypothese_avec_valeur_entre_dans_les_references():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "hypothese"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = 12300.0
+    analyse["verdict"]["phrase"] = "Sous cette hypothèse, le montant atteindrait 12 300 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_interpretation_avec_valeur_entre_dans_les_references():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "interpretation"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = 12300.0
+    analyse["verdict"]["phrase"] = "Cette lecture chiffre l'effet à 12 300 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_chiffre_valeur_type_invalide_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "hypothese"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = "12300"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].valeur" for e in erreurs)
+
+
+def test_resultat_simulation_observe_et_valeur_tous_deux_signales():
+    # `observe` reste interdit même quand `valeur` est déclaré : les deux
+    # contrôles sont indépendants, pas mutuellement exclusifs.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "resultat_simulation"
+    analyse["chiffres"][0]["valeur"] = 12300.0
+    analyse["simulateur"]["budget"] = "etat"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe" for e in erreurs)
+
+
+# 23. Minor : `observe` mal typé ne doit jamais lever avant que le type
+#     erroné soit signalé — ni dans `_erreurs_catalogue`, ni dans
+#     `_erreurs_invention`.
+
+
+def test_observe_texte_ne_leve_pas_et_reste_une_erreur():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"] = "texte"
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ == "chiffres[0].observe" for e in erreurs)

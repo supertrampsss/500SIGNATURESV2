@@ -20,6 +20,23 @@ plausible mais fictive passe le contrôle — seule une relecture humaine du lie
 lui-même le détecterait), ou que la prose est bien écrite. Il vérifie
 l'arithmétique et les références, pas le jugement.
 
+## `observe` interdit n'est pas `valeur` interdite (revision Important 6)
+
+La garde qui interdit `observe` sur `resultat_simulation`, `hypothese` et
+`interpretation` existe pour empêcher un montant d'apparaître de nulle part —
+pas pour empêcher le site d'énoncer une grandeur qu'il calcule lui-même. Ces
+trois registres ne référencent aucune donnée *publiée*, donc `observe`
+(qui pointe vers une série publiée) leur reste interdit ; mais un chiffre
+peut porter une `valeur` déclarée en clair, au niveau du chiffre et non dans
+`observe` — c'est cette déclaration, visible du lecteur comme relevant d'une
+simulation, d'une hypothèse ou d'une interprétation plutôt que d'une
+observation, qui constitue la divulgation. Une `valeur` déclarée entre alors
+dans la liste de référence de la garde anti-invention (famille 4), pour que
+la prose puisse citer ce chiffre. Ce qui reste interdit, c'est un montant en
+prose qu'aucun chiffre ne déclare du tout. Pour `resultat_simulation`, une
+`valeur` déclarée exige en plus `simulateur.budget` non vide : un résultat de
+simulateur que le lecteur ne peut pas rejouer n'est pas un résultat.
+
 ## La frontière de l'arrondi (garde anti-invention)
 
 Un montant écrit en prose peut légitimement arrondir ce qu'il désigne — « 59,9
@@ -437,21 +454,27 @@ def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], 
       mais un `observe` renseigné reste vérifié exactement : citer une
       observation ne dispense jamais de la citer juste.
     - `resultat_simulation`, `hypothese` et `interpretation` ne référencent
-      aucune donnée publiée : `observe` y est interdit (Important 6).
+      aucune donnée publiée : `observe` y reste interdit. Mais un `valeur`
+      déclaré au niveau du chiffre (pas dans `observe`) y est licite — c'est
+      la divulgation elle-même — et entre dans la liste de référence.
+      `resultat_simulation` exige en plus `simulateur.budget` non vide
+      quand `valeur` est déclaré : un résultat non rejouable n'en est pas un.
 
     Un `chiffre` dont `observe` est présent mais sans `indicateur`, `niveau`
     ou `code` est une erreur ici, jamais un skip silencieux (Critical 1) —
     ces champs manquaient auparavant sans être signalés nulle part, ce qui
     laissait passer n'importe quelle `valeur`.
 
-    -> (erreurs, valeurs effectivement vérifiées contre une série publiée) —
-    ce second élément est la seule matière première légitime de la garde
-    anti-invention (famille 4) : une valeur jamais vérifiée ne doit jamais
-    servir d'alibi à la prose (Critical 1).
+    -> (erreurs, valeurs effectivement vérifiées ou déclarées sous un typage
+    licite) — ce second élément est la seule matière première légitime de la
+    garde anti-invention (famille 4) : une valeur jamais vérifiée ni déclarée
+    sous une forme prévue par le schéma ne doit jamais servir d'alibi à la
+    prose (Critical 1).
     """
     slug = analyse.get("slug", "?")
     erreurs: list[Erreur] = []
     verifiees: list[float] = []
+    simulateur_budget = (analyse.get("simulateur") or {}).get("budget")
     for i, chiffre in enumerate(analyse.get("chiffres") or []):
         if not isinstance(chiffre, dict):
             continue
@@ -469,6 +492,24 @@ def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], 
                         " observe doit être absent",
                     )
                 )
+            valeur_declaree = chiffre.get("valeur")
+            if valeur_declaree is not None:
+                champ_valeur = f"chiffres[{i}].valeur"
+                if isinstance(valeur_declaree, bool) or not isinstance(
+                    valeur_declaree, (int, float)
+                ):
+                    erreurs.append(Erreur(slug, champ_valeur, "doit être un nombre"))
+                elif registre == "resultat_simulation" and not simulateur_budget:
+                    erreurs.append(
+                        Erreur(
+                            slug,
+                            champ_valeur,
+                            "une valeur déclarée pour resultat_simulation exige"
+                            " simulateur.budget non vide",
+                        )
+                    )
+                else:
+                    verifiees.append(valeur_declaree)
             continue
 
         if observe is None:

@@ -42,6 +42,7 @@ Tous les champs sont obligatoires sauf mention contraire.
 | `chiffres[].observe.code` | chaîne | oui si `observe` est présent | Code du territoire à cette maille (ex. `FR`). |
 | `chiffres[].observe.periode` | chaîne | oui si `observe` est présent | Exercice ou période de l'observation (ex. `2025`). |
 | `chiffres[].observe.valeur` | nombre | oui si `observe` est présent | La valeur brute publiée, en euros. Quand `observe` est renseigné, doit correspondre exactement à la valeur publiée pour cet indicateur, ce niveau, ce code et cette période — sans arrondi ni tolérance. |
+| `chiffres[].valeur` | nombre ou absent | licite seulement pour `resultat_simulation`, `hypothese`, `interpretation` — voir « Registres » | Une grandeur déclarée en clair par l'analyse elle-même (résultat de simulateur, hypothèse chiffrée, interprétation), distincte de `observe.valeur` : elle ne référence aucune série publiée, mais entre dans la liste de référence de la garde anti-invention une fois déclarée, ce qui autorise la prose à la citer. |
 | `chiffres[].registre` | énumération | oui | La nature de l'affirmation portée par ce chiffre. Voir « Registres ». |
 | `chiffres[].lecture` | chaîne | oui | Ce que désigne précisément l'observation, en une phrase — ce qui distingue ce chiffre des autres chiffres cités. |
 | `hypotheses` | liste de chaînes | oui (peut être vide) | Les hypothèses ou choix de périmètre qui conditionnent la lecture de l'analyse (ex. ce qu'une série inclut ou exclut). |
@@ -132,9 +133,27 @@ lettre :
   exactement comme pour `fait_comptable` — citer une observation ne dispense
   jamais de la citer juste.
 - **`resultat_simulation`**, **`hypothese`**, **`interpretation`** :
-  `observe` est **interdit**. Ces registres ne référencent aucune donnée
-  publiée par construction (voir ci-dessus) ; laisser passer une valeur ici
-  l'introduirait comme référence invérifiable dans la garde anti-invention.
+  `observe` est **interdit** — absent, ou explicitement `null` (les deux
+  formes sont équivalentes pour le contrôle). Ces registres ne référencent
+  aucune donnée publiée par construction (voir ci-dessus) ; laisser passer
+  une observation ici l'introduirait comme référence invérifiable dans la
+  garde anti-invention.
+
+  Ce que ces trois registres **peuvent** porter, en revanche, c'est
+  `chiffres[].valeur` : un nombre déclaré en clair, au niveau du chiffre et
+  non dans `observe`. La garde anti-invention existe pour empêcher un
+  montant d'apparaître de nulle part, pas pour empêcher le site d'énoncer
+  une grandeur qu'il calcule lui-même — un résultat de simulateur, une
+  hypothèse chiffrée, une interprétation. Une `valeur` ainsi déclarée entre
+  dans la liste de référence de la garde (famille 4), et la prose peut alors
+  citer ce chiffre (dans `verdict.phrase`, `titre`, `chiffres[].lecture`,
+  `hypotheses[]`, `simulateur.lecture`). Ce qui reste interdit, c'est un
+  montant en prose qu'aucun chiffre — `observe` ou `valeur` — ne déclare du
+  tout.
+
+  Pour **`resultat_simulation`** spécifiquement, une `valeur` déclarée exige
+  en plus que `simulateur.budget` soit non vide : un résultat de simulateur
+  que le lecteur ne peut pas rejouer n'est pas un résultat.
 
 ## Ce qu'une analyse ne fait jamais
 
