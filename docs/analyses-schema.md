@@ -35,18 +35,18 @@ Tous les champs sont obligatoires sauf mention contraire.
 | `verdict.confusion` | énumération | obligatoire si et seulement si `cran = hors_perimetre` | La confusion précise en cause. Voir « Confusions ». Absente (ou non pertinente) pour les autres crans. |
 | `verdict.phrase` | chaîne | oui | Une phrase factuelle qui résume le verdict, sans jugement moral. |
 | `chiffres` | liste non vide d'objets | oui | Les chiffres cités par l'analyse, chacun adossé à une observation publiée. Voir détail ci-dessous. |
-| `chiffres[].dit` | chaîne | oui | Le chiffre tel qu'on l'entend couramment (arrondi, formulation courante). |
+| `chiffres[].dit` | chaîne | oui | Le chiffre tel qu'on l'entend couramment (arrondi, formulation courante). Doit s'accorder avec le nombre propre à ce chiffre (`observe.valeur` ou `valeur` — voir « Un nombre par chiffre, jamais aucun »), et avec lui seul. |
 | `chiffres[].observe` | objet ou absent | dépend du registre — voir « Registres » | L'observation publiée à laquelle `dit` renvoie, quand `registre` en admet une. |
 | `chiffres[].observe.indicateur` | chaîne | oui si `observe` est présent | Identifiant de l'indicateur dans le catalogue publié. |
 | `chiffres[].observe.niveau` | chaîne | oui si `observe` est présent | Maille territoriale de l'observation (`pays`, `region`, `departement`, `commune`…). |
 | `chiffres[].observe.code` | chaîne | oui si `observe` est présent | Code du territoire à cette maille (ex. `FR`). |
 | `chiffres[].observe.periode` | chaîne | oui si `observe` est présent | Exercice ou période de l'observation (ex. `2025`). |
 | `chiffres[].observe.valeur` | nombre | oui si `observe` est présent | La valeur brute publiée, en euros. Quand `observe` est renseigné, doit correspondre exactement à la valeur publiée pour cet indicateur, ce niveau, ce code et cette période — sans arrondi ni tolérance. |
-| `chiffres[].valeur` | nombre | obligatoire pour `resultat_simulation`, `hypothese`, `interpretation` ; absente pour les autres registres — voir « Registres » | Une grandeur déclarée en clair par l'analyse elle-même (résultat de simulateur, hypothèse chiffrée, interprétation), distincte de `observe.valeur` : elle ne référence aucune série publiée, mais entre dans la liste de référence de la garde anti-invention une fois déclarée, ce qui autorise la prose à la citer. Sans elle, `dit` ne serait vérifié par rien. |
+| `chiffres[].valeur` | nombre | obligatoire dès que `chiffres[].observe` est absent (tous les registres qui l'admettent absent — voir « Registres ») ; sans objet quand `observe` est présent | Une grandeur déclarée en clair par l'analyse elle-même, distincte de `observe.valeur` : elle ne référence aucune série publiée, mais entre dans la liste de référence de la garde anti-invention une fois déclarée, ce qui autorise la prose à la citer. Sans elle, `dit` ne serait vérifié par rien. |
 | `chiffres[].registre` | énumération | oui | La nature de l'affirmation portée par ce chiffre. Voir « Registres ». |
 | `chiffres[].lecture` | chaîne | oui | Ce que désigne précisément l'observation, en une phrase — ce qui distingue ce chiffre des autres chiffres cités. |
 | `hypotheses` | liste de chaînes | oui (peut être vide) | Les hypothèses ou choix de périmètre qui conditionnent la lecture de l'analyse (ex. ce qu'une série inclut ou exclut). |
-| `effets_indirects` | liste d'objets `{texte, auteur, source:{titre,url,consulte_le}}` | oui (peut être vide) | Des conséquences ou lectures indirectes rapportées, chacune attribuée à un auteur et une source réels. |
+| `effets_indirects` | liste d'objets `{texte, auteur, source:{titre,url,consulte_le}}` | oui (peut être vide) | Des conséquences ou lectures indirectes rapportées, chacune attribuée à un auteur et une source réels. La liste peut être vide, mais chaque élément qu'elle contient doit porter `texte`, `auteur` et `source.titre`/`source.url` — un élément sans l'un d'eux est une erreur du contrôle : c'est le rendu (étage 2) qui écrirait sinon `undefined` dans le slot même qu'une citation fabriquée occuperait. |
 | `sources` | liste d'objets `{titre, url, consulte_le}` | oui | Les sources documentaires de l'analyse dans leur ensemble. |
 | `simulateur` | objet `{budget, contrat, lecture}` | oui | Le rattachement de l'analyse au simulateur. `budget` peut être une chaîne vide quand aucun réglage du simulateur ne reproduit l'analyse. `contrat` identifie le réglage précis quand il existe. `lecture` explique comment lire l'analyse dans le simulateur. |
 | `mises_a_jour` | liste d'objets `{date, quoi}` | oui (peut être vide) | Historique des révisions de l'analyse après sa première publication. Vide à la parution. |
@@ -124,45 +124,66 @@ l'affirmation qu'il porte :
 - `interpretation` — une lecture ou un rapprochement des chiffres précédents,
   qui n'est pas elle-même une observation.
 
-### `observe` selon le registre
+### Un nombre par chiffre, jamais aucun
 
-Le registre détermine si `chiffres[].observe` est obligatoire, optionnel ou
-interdit — le contrôle déterministe (tâche 2) applique cette règle à la
-lettre :
+**Chaque `chiffre` porte exactement un nombre que le contrôle connaît : une
+`observe` vérifiée, ou une `valeur` déclarée. Jamais aucun des deux.** Cette
+règle unique remplace ce que des vagues précédentes du contrôle avaient
+écrit registre par registre — elle en est la conséquence, pas une règle
+supplémentaire :
 
-- **`fait_comptable`** : `observe` est **obligatoire** et vérifié exactement.
+- **`fait_comptable`** : `observe` **obligatoire**, vérifiée exactement.
   C'est le seul registre dont le sens même est « une observation que le
   pipeline a publiée » — l'exactitude est ce qui le rend vérifiable.
-- **`donnee_officielle`** et **`estimation_externe`** : `observe` est
-  **optionnel**. Absent, c'est la source (`sources[]`, avec `url` et
-  `consulte_le`) qui tient lieu de vérification. Présent, il est vérifié
-  exactement comme pour `fait_comptable` — citer une observation ne dispense
-  jamais de la citer juste.
+- **`donnee_officielle`**, **`estimation_externe`** : `observe`
+  **optionnelle**. Présente, elle est vérifiée exactement comme pour
+  `fait_comptable` — citer une observation ne dispense jamais de la citer
+  juste. **Absente, `chiffres[].valeur` devient obligatoire** : la source
+  (`sources[]`, avec `url` et `consulte_le`) reste par ailleurs exigée pour
+  ces deux registres, mais elle ne remplace pas cette obligation, elle s'y
+  ajoute — sans l'une ni l'autre, ce chiffre n'a aucun nombre que le
+  contrôle connaît.
 - **`resultat_simulation`**, **`hypothese`**, **`interpretation`** :
-  `observe` est **interdit** — absent, ou explicitement `null` (les deux
+  `observe` **interdite** — absente, ou explicitement `null` (les deux
   formes sont équivalentes pour le contrôle). Ces registres ne référencent
-  aucune donnée publiée par construction (voir ci-dessus) ; laisser passer
-  une observation ici l'introduirait comme référence invérifiable dans la
-  garde anti-invention.
+  aucune donnée publiée par construction ; laisser passer une observation
+  ici l'introduirait comme référence invérifiable dans la garde
+  anti-invention. `chiffres[].valeur` y est en revanche **obligatoire** : un
+  nombre déclaré en clair, au niveau du chiffre et non dans `observe`. La
+  garde anti-invention existe pour empêcher un montant d'apparaître de nulle
+  part, pas pour empêcher le site d'énoncer une grandeur qu'il calcule
+  lui-même — un résultat de simulateur, une hypothèse chiffrée, une
+  interprétation. Pour **`resultat_simulation`** spécifiquement, `valeur`
+  déclarée exige en plus que `simulateur.budget` soit non vide : un résultat
+  de simulateur que le lecteur ne peut pas rejouer n'est pas un résultat.
 
-  Ce que ces trois registres **doivent** porter, en revanche, c'est
-  `chiffres[].valeur` : un nombre déclaré en clair, au niveau du chiffre et
-  non dans `observe`. La garde anti-invention existe pour empêcher un
-  montant d'apparaître de nulle part, pas pour empêcher le site d'énoncer
-  une grandeur qu'il calcule lui-même — un résultat de simulateur, une
-  hypothèse chiffrée, une interprétation. Une `valeur` ainsi déclarée entre
-  dans la liste de référence de la garde (famille 4), et la prose peut alors
-  citer ce chiffre (dans `verdict.phrase`, `titre`, `chiffres[].lecture`,
-  `hypotheses[]`, `simulateur.lecture`, `effets_indirects[].texte`). Sans
-  `valeur` déclarée, un chiffre de ces registres n'a ni observation ni
-  valeur vérifiable — `dit` seul serait publié comme si le site l'avait
-  calculé — donc le contrôle le refuse : `valeur` y est obligatoire, pas
-  seulement licite. Ce qui reste interdit, c'est un montant en prose
-  qu'aucun chiffre — `observe` ou `valeur` — ne déclare du tout.
+Dans les trois cas, une `valeur` déclarée entre dans la liste de référence de
+la garde anti-invention (famille 4), et la prose peut alors citer ce chiffre
+(dans `verdict.phrase`, `titre`, `chiffres[].lecture`, `hypotheses[]`,
+`simulateur.lecture`, `effets_indirects[].texte`).
 
-  Pour **`resultat_simulation`** spécifiquement, une `valeur` déclarée exige
-  en plus que `simulateur.budget` soit non vide : un résultat de simulateur
-  que le lecteur ne peut pas rejouer n'est pas un résultat.
+### `dit` reste exempté, mais jamais sans rapport avec son propre chiffre
+
+`chiffres[].dit` — le chiffre tel qu'on l'entend — reste exempté de la garde
+anti-invention (voir « Ce qu'une analyse ne fait jamais » ci-dessous) :
+l'exiger référencé contre la liste entière des chiffres de l'analyse rendrait
+impossible d'examiner un chiffre faux, l'objet même du produit. Mais cette
+exemption n'est sûre que si `dit` reste *cadré* — montré à côté d'un nombre
+que le contrôle a vérifié. Le contrôle exige donc que chaque nombre écrit
+dans `dit` s'accorde avec le nombre propre à *ce* chiffre — `observe.valeur`
+s'il existe, sinon `valeur` déclarée — et avec lui seul, jamais avec la
+liste entière des références de l'analyse : citer dans le `dit` d'un chiffre
+le nombre d'un *autre* chiffre de la même analyse est refusé, même si ce
+nombre est par ailleurs une référence légitime. `dit` peut arrondir ce
+nombre (« environ 59,9 milliards » pour 59 946 338 573 reste une lecture
+honnête, selon la même règle d'arrondi que la garde anti-invention), il ne
+peut pas le contredire.
+
+Le rendu du site (tâche 3, `site/src/analyse-rendu.ts`) applique la même
+exigence : l'étage 1 n'affiche jamais `dit` seul. Là où `observe` n'existe
+pas, il montre la `valeur` déclarée à côté de `dit`, sous le nom du
+registre — comme l'étage 2 le fait déjà — pour qu'un lecteur voie toujours
+ce que le site cautionne, juxtaposé à ce qui est dit.
 
 ## Ce qu'une analyse ne fait jamais
 
@@ -182,4 +203,6 @@ lettre :
   `chiffres`. Le texte libre de `affirmation.texte` (ce que dit l'énoncé
   courant) fait exception, puisqu'il rapporte justement le chiffre tel qu'on
   l'entend — mais le verdict et le titre, eux, ne parlent que des chiffres
-  observés.
+  observés. `chiffres[].dit` fait la même exception, pour la même raison —
+  mais seulement envers un chiffre qui n'est pas le sien : voir « `dit` reste
+  exempté, mais jamais sans rapport avec son propre chiffre » ci-dessus.

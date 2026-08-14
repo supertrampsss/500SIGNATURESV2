@@ -20,31 +20,66 @@ plausible mais fictive passe le contrôle — seule une relecture humaine du lie
 lui-même le détecterait), ou que la prose est bien écrite. Il vérifie
 l'arithmétique et les références, pas le jugement.
 
-## `observe` interdit n'est pas `valeur` interdite (revision Important 6)
+## Un nombre par chiffre, jamais aucun (Critical, revision finale)
 
-La garde qui interdit `observe` sur `resultat_simulation`, `hypothese` et
-`interpretation` existe pour empêcher un montant d'apparaître de nulle part —
-pas pour empêcher le site d'énoncer une grandeur qu'il calcule lui-même. Ces
-trois registres ne référencent aucune donnée *publiée*, donc `observe`
-(qui pointe vers une série publiée) leur reste interdit ; mais un chiffre
-peut porter une `valeur` déclarée en clair, au niveau du chiffre et non dans
-`observe` — c'est cette déclaration, visible du lecteur comme relevant d'une
-simulation, d'une hypothèse ou d'une interprétation plutôt que d'une
-observation, qui constitue la divulgation. Une `valeur` déclarée entre alors
-dans la liste de référence de la garde anti-invention (famille 4), pour que
-la prose puisse citer ce chiffre. Ce qui reste interdit, c'est un montant en
-prose qu'aucun chiffre ne déclare du tout. Pour `resultat_simulation`, une
-`valeur` déclarée exige en plus `simulateur.budget` non vide : un résultat de
-simulateur que le lecteur ne peut pas rejouer n'est pas un résultat.
+**Chaque `chiffre` porte exactement un nombre que le contrôle connaît : une
+`observe` vérifiée, ou une `valeur` déclarée. Jamais aucun des deux.**
 
-**`valeur` est obligatoire sur ces trois registres, pas seulement licite
-(Critical B).** Sans elle, un chiffre n'a ni observation ni valeur déclarée :
-`dit` seul n'est vérifié par rien, et pourtant `site/src/analyse-rendu.ts`
-l'affiche quand même — nu à l'étage 1, et sous le libellé « Résultat du
-simulateur » (ou « Hypothèse », ou « Interprétation ») à l'étage 2 — comme si
-le site l'avait lui-même calculé. Un chiffre de ces registres sans `valeur`
-déclarée est donc une erreur, exactement comme `observe` manquant l'est pour
-`fait_comptable`.
+- `fait_comptable` — `observe` **obligatoire**, vérifiée exactement. C'est le
+  seul registre dont le sens même est « une observation que le pipeline a
+  publiée ».
+- `donnee_officielle`, `estimation_externe` — `observe` **optionnelle**.
+  Présente, elle est vérifiée exactement comme pour `fait_comptable` : citer
+  une observation ne dispense jamais de la citer juste. **Absente, `valeur`
+  devient obligatoire** (revision de cette vague) : sans l'une ni l'autre, ce
+  chiffre n'a aucun nombre vérifiable, et pourtant `site/src/analyse-rendu.ts`
+  affichait quand même `dit` seul à l'étage 1 — nu, sans registre, sans
+  observation, sans valeur. La source (`sources[]`) reste par ailleurs exigée
+  pour ces deux registres (famille 5) ; elle ne remplace pas cette obligation,
+  elle s'y ajoute.
+- `resultat_simulation`, `hypothese`, `interpretation` — `observe`
+  **interdite** (ces registres ne référencent aucune donnée *publiée* par
+  construction ; l'autoriser introduirait une valeur invérifiable dans la
+  garde anti-invention), `valeur` **obligatoire**, inchangé depuis la
+  revision Important 6. Pour `resultat_simulation` spécifiquement, `valeur`
+  exige en plus `simulateur.budget` non vide : un résultat de simulateur que
+  le lecteur ne peut pas rejouer n'est pas un résultat.
+
+Dans les trois cas, une `valeur` déclarée entre dans la liste de référence de
+la garde anti-invention (famille 4), pour que la prose puisse citer ce
+chiffre.
+
+## `dit` reste exempté, mais jamais sans rapport avec son propre chiffre
+
+`chiffres[].dit` — « le chiffre tel qu'on l'entend » — reste délibérément
+exempté de la garde anti-invention (famille 4, voir plus bas) : l'exiger
+référencé contre la liste entière des chiffres de l'analyse rendrait
+impossible d'examiner un chiffre faux, l'objet même du produit. Cette
+exemption n'était vraie que si `dit` restait *cadré* — montré à côté de
+quelque chose que le contrôle a vérifié. Sans `observe` ni `valeur`, rien ne
+l'encadre : un `dit` pouvait donc rapporter n'importe quel montant, y compris
+sans le moindre rapport avec le chiffre auquel il appartient, tant que ce
+chiffre restait par ailleurs invisible à la garde. La revision précédente
+(Important 6/B) a fermé la moitié du problème en rendant `valeur` obligatoire
+sans `observe` — mais rien ne reliait cette `valeur` à `dit`, et l'étage 1 du
+rendu n'affichait jamais `valeur` : `dit` restait donc affiché seul, sans
+qu'aucune vérification ne le contredise jamais.
+
+La famille 6 ferme l'autre moitié : chaque nombre écrit dans `dit` doit
+s'accorder — au sens de la même règle d'arrondi que la famille 4 — avec le
+nombre propre à *ce* chiffre, `observe.valeur` s'il existe sinon `valeur`
+déclarée, et avec lui seul. Jamais avec la liste entière des références de
+l'analyse (ce qui distingue cette famille de la 4) : citer dans le `dit` du
+chiffre B le nombre du chiffre A doit échouer, même si ce nombre est par
+ailleurs une référence légitime ailleurs dans la même analyse. `dit` peut
+arrondir ce nombre (« environ 59,9 milliards » pour 59 946 338 573 reste une
+lecture honnête), il ne peut pas le contredire.
+
+Et le rendu applique la même règle : l'étage 1 (`site/src/analyse-rendu.ts`)
+n'affiche plus jamais `dit` seul. Là où `observe` n'existe pas, il montre la
+`valeur` déclarée à côté de `dit`, sous le nom du registre — exactement ce
+que l'étage 2 fait déjà — pour qu'un lecteur voie toujours ce que le site
+cautionne, juxtaposé à ce qui est dit.
 
 ## La frontière de l'arrondi (garde anti-invention)
 
@@ -95,17 +130,32 @@ cette excuse : il est rendu sur la page (`site/src/analyse-rendu.ts`,
 d'une citation fabriquée — donc un montant qui s'y trouve doit être adossé à
 un chiffre référencé comme partout ailleurs (Critical A).
 
-## Le signe fait partie du montant (Important C)
+## Le signe fait partie du montant (Important C, revision Important 1)
 
 Un montant en prose peut être négatif — un déficit, un écart. Le tokeniseur
-capture un signe (`-` ASCII ou le vrai signe moins U+2212) directement collé
-à un nombre, à condition que ce signe ne soit pas lui-même précédé d'un
+capture un signe directement collé à un nombre (à un espace reconnu près,
+voir plus bas), à condition que ce signe ne soit pas lui-même précédé d'un
 chiffre : "-59 946 M€" est un montant négatif, mais le tiret de "2019-2025"
 ou d'"Article L. 132-1" reste un séparateur de plage ou de référence
 légale, jamais un signe, parce qu'il est précédé d'un chiffre. La
 comparaison contre la référence porte alors sur la valeur signée, pas sur sa
 valeur absolue : un écart de -59 946 M€ ne correspond jamais à une référence
 de +59 946 338 573.
+
+La première version de cette garde (vague 3) ne reconnaissait que deux
+caractères — `-` ASCII et U+2212, le vrai signe moins — alors que la
+substitution la plus courante d'un traitement de texte est justement celle
+qui manquait : `-` devient `–` (tiret demi-cadratin, U+2013) ou `—` (tiret
+cadratin, U+2014). Un déficit affiché « –59 946 M€ » ou « —59 946 M€ »
+passait donc comme une valeur *positive*, exactement l'inverse de ce que la
+garde doit détecter — et un espace entre le signe et le nombre (« - 59 946
+M€ ») n'était pas davantage reconnu, le signe restant alors un caractère
+isolé sans effet sur le nombre qui le suit. La règle retenue est désormais
+la négation de l'ancienne plutôt qu'une liste allongée au coup par coup :
+toute ponctuation Unicode de type tiret ou signe moins, adjacente à un
+chiffre (à un espace reconnu près) et non précédée d'un chiffre, est un
+signe. `2019-2025` et `L. 132-1` continuent de se tokeniser en deux nombres
+positifs distincts, puisque leur tiret reste précédé d'un chiffre.
 """
 
 import argparse
@@ -502,6 +552,47 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
         if not isinstance(source.get("url"), str) or not source.get("url"):
             erreurs.append(Erreur(slug, f"sources[{i}].url", "champ obligatoire absent ou vide"))
 
+    # Important 3 : un `effets_indirects` sans `texte`, sans `auteur` ou sans
+    # `source` (titre/url) passait alors que le schéma les déclare tous les
+    # trois — et le rendu (étage 2, `site/src/analyse-rendu.ts`) écrit alors
+    # `undefined` dans le slot même qu'une citation fabriquée occuperait :
+    # exactement le risque que le contrôle de `sources[].titre`/`.url`
+    # ci-dessus venait de fermer pour les sources de l'analyse, resté ouvert
+    # ici. `source.consulte_le` reste vérifiée par `_dates_a_verifier`.
+    for i, effet in enumerate(analyse.get("effets_indirects") or []):
+        if not isinstance(effet, dict):
+            continue
+        if not isinstance(effet.get("texte"), str) or not effet.get("texte"):
+            erreurs.append(
+                Erreur(slug, f"effets_indirects[{i}].texte", "champ obligatoire absent ou vide")
+            )
+        if not isinstance(effet.get("auteur"), str) or not effet.get("auteur"):
+            erreurs.append(
+                Erreur(slug, f"effets_indirects[{i}].auteur", "champ obligatoire absent ou vide")
+            )
+        source = effet.get("source")
+        if not isinstance(source, dict):
+            erreurs.append(
+                Erreur(slug, f"effets_indirects[{i}].source", "champ obligatoire absent")
+            )
+        else:
+            if not isinstance(source.get("titre"), str) or not source.get("titre"):
+                erreurs.append(
+                    Erreur(
+                        slug,
+                        f"effets_indirects[{i}].source.titre",
+                        "champ obligatoire absent ou vide",
+                    )
+                )
+            if not isinstance(source.get("url"), str) or not source.get("url"):
+                erreurs.append(
+                    Erreur(
+                        slug,
+                        f"effets_indirects[{i}].source.url",
+                        "champ obligatoire absent ou vide",
+                    )
+                )
+
     # Important D : `simulateur` est un objet {budget, contrat, lecture} —
     # `{"x": 1}` passait la vérification de type (dict, non vide) sans que
     # ses trois sous-champs soient jamais regardés. `budget` et `contrat`
@@ -539,16 +630,20 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
 
 
 def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], list[float]]:
-    """Exact match, sans tolérance — sous condition du registre (révision de
-    Important 6, voir la docstring de tête) :
+    """Exact match, sans tolérance — sous condition du registre (révision
+    Critical de cette vague, voir la docstring de tête : « Un nombre par
+    chiffre, jamais aucun ») :
 
     - `fait_comptable` exige `observe` et le vérifie exactement : c'est le
       registre dont le sens même est « une observation que le pipeline a
       publiée ».
-    - `donnee_officielle` et `estimation_externe` l'acceptent en option — la
-      source (famille 5) tient lieu de vérification quand il est absent —
-      mais un `observe` renseigné reste vérifié exactement : citer une
-      observation ne dispense jamais de la citer juste.
+    - `donnee_officielle` et `estimation_externe` acceptent `observe` en
+      option — un `observe` renseigné reste vérifié exactement, citer une
+      observation ne dispense jamais de la citer juste — mais **quand il est
+      absent, `valeur` devient obligatoire** (revision de cette vague) : la
+      source (famille 5) reste exigée en plus, elle ne remplace plus cette
+      obligation. Sans l'une ni l'autre, ce chiffre n'a aucun nombre que le
+      contrôle connaît, et `dit` s'affichait pourtant nu à l'étage 1 du site.
     - `resultat_simulation`, `hypothese` et `interpretation` ne référencent
       aucune donnée publiée : `observe` y reste interdit. Un `valeur` déclaré
       au niveau du chiffre (pas dans `observe`) y est en revanche
@@ -572,7 +667,12 @@ def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], 
     slug = analyse.get("slug", "?")
     erreurs: list[Erreur] = []
     verifiees: list[float] = []
-    simulateur_budget = (analyse.get("simulateur") or {}).get("budget")
+    # Important 2 : un `simulateur` mal typé (une chaîne, une liste…) faisait
+    # lever AttributeError sur `.get("budget")` — même classe de fail-hard
+    # que dans `_erreurs_invention`, même remède : retomber sur un dict vide.
+    simulateur = analyse.get("simulateur")
+    simulateur = simulateur if isinstance(simulateur, dict) else {}
+    simulateur_budget = simulateur.get("budget")
     for i, chiffre in enumerate(analyse.get("chiffres") or []):
         if not isinstance(chiffre, dict):
             continue
@@ -624,7 +724,29 @@ def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], 
 
         if observe is None:
             if registre in REGISTRES_A_SOURCER:
-                continue  # optionnel pour ce registre : la source en tient lieu
+                # Critical (revision finale) : la source (famille 5) reste
+                # exigée pour ces deux registres, mais elle ne dispense plus
+                # d'un nombre que ce contrôle connaît lui-même — sans lui,
+                # `dit` n'est vérifié par rien (même raisonnement que pour
+                # REGISTRES_OBSERVE_INTERDIT ci-dessous).
+                valeur_declaree = chiffre.get("valeur")
+                champ_valeur = f"chiffres[{i}].valeur"
+                if valeur_declaree is None:
+                    erreurs.append(
+                        Erreur(
+                            slug,
+                            champ_valeur,
+                            f"registre « {registre} » sans observe : une valeur déclarée"
+                            " est obligatoire, sinon rien ne vérifie le chiffre affiché",
+                        )
+                    )
+                elif isinstance(valeur_declaree, bool) or not isinstance(
+                    valeur_declaree, (int, float)
+                ):
+                    erreurs.append(Erreur(slug, champ_valeur, "doit être un nombre"))
+                else:
+                    verifiees.append(valeur_declaree)
+                continue
             erreurs.append(Erreur(slug, champ_observe, "champ obligatoire absent"))
             continue
         if not isinstance(observe, dict):
@@ -763,17 +885,28 @@ _SEPARATEURS = _ESPACES + _SEPARATEURS_MECONNUS + ","
 # `hypotheses[]`), ni `-` ni `/` (qui casseraient « Article L. 132-1 » et
 # « 2019-2025 » en un seul nombre) ne sont dans cette classe.
 #
-# Important C : un signe moins directement collé au nombre en fait partie —
-# `-` ASCII ou le vrai signe moins U+2212 (substitué automatiquement par
-# certains éditeurs). Groupe nommé `signe`, optionnel, capturé seulement
-# quand il n'est PAS lui-même précédé d'un chiffre (`(?<![\d…])`) : c'est ce
-# qui distingue « -59 946 M€ » (un montant négatif) du tiret de plage
+# Important C, revision Important 1 : un signe directement collé au nombre
+# (à un espace reconnu près) en fait partie. La première version ne
+# reconnaissait que `-` ASCII et U+2212 — la substitution la plus courante
+# d'un traitement de texte, `-` en `–` (U+2013) ou `—` (U+2014), n'était pas
+# couverte, et un déficit affiché avec l'un de ces deux caractères passait
+# comme une valeur *positive*. La liste couvre maintenant toute ponctuation
+# Unicode de type tiret ou signe moins susceptible de jouer ce rôle. Groupe
+# nommé `signe`, optionnel, capturé seulement quand il n'est PAS lui-même
+# précédé d'un chiffre ou d'un autre signe (`(?<![\d…])`) : c'est ce qui
+# distingue « -59 946 M€ » (un montant négatif) du tiret de plage
 # « 2019-2025 » ou de référence légale « Article L. 132-1 », où le tiret
 # suit un chiffre et reste un simple séparateur entre deux nombres positifs
-# distincts.
-_SIGNES = "-−"
+# distincts. Le signe peut être suivi d'une espace reconnue (`_ESPACES`)
+# avant le premier chiffre — « - 59 946 M€ » — cette espace est capturée à
+# l'intérieur du groupe `signe` lui-même, jamais dans le corps du nombre :
+# `_candidats` retranche `len(signe)` caractères de `brut` pour isoler le
+# corps, donc toute espace qui doit disparaître avec le signe doit être
+# comptée dans sa longueur.
+_SIGNES = "-‐‑‒–—―−"
 _NOMBRE_RE = re.compile(
-    r"(?:(?<![\d" + re.escape(_SIGNES) + r"])(?P<signe>[" + re.escape(_SIGNES) + r"])(?=\d))?"
+    r"(?:(?<![\d" + re.escape(_SIGNES) + r"])(?P<signe>["
+    + re.escape(_SIGNES) + r"][" + re.escape(_ESPACES) + r"]*)(?=\d))?"
     r"(?<!\d)\d+(?:[" + re.escape(_SEPARATEURS) + r"]\d+)*(?!\d)"
 )
 _ECHELLE_MOT_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
@@ -890,23 +1023,41 @@ def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
     slug = analyse.get("slug", "?")
     erreurs: list[Erreur] = []
 
-    def verifier(champ: str, texte: str) -> None:
+    def verifier(champ: str, valeur: object) -> None:
         # `affirmation.texte` et `chiffres[].dit` ne sont jamais passés ici :
         # c'est ce qui verrouille leur exemption, documentée dans la
         # docstring de tête — tous deux citent le chiffre tel qu'il circule,
         # pas une observation que l'analyse affirme.
-        resultat = _nombre_non_reference(texte or "", references)
+        #
+        # Important 2 (classe de fail-hard) : `valeur` n'est pas garantie
+        # être une chaîne — un titre, une phrase de verdict, une lecture de
+        # chiffre ou de simulateur, ou un texte d'effet indirect mal typés
+        # (un nombre, une liste…) faisaient lever `TypeError` ici même
+        # (`re.finditer` refuse autre chose qu'une chaîne), tuant tout le run
+        # et laissant les analyses suivantes du répertoire non contrôlées. La
+        # vague 3 avait fermé cette classe pour le tokeniseur seul ; ce
+        # garde-fou la ferme au point d'entrée commun à tous les champs de
+        # prose scannés par cette famille, plutôt que d'ajouter une
+        # septième instance au coup par coup.
+        if valeur is None:
+            return
+        if not isinstance(valeur, str):
+            erreurs.append(
+                Erreur(slug, champ, f"doit être une chaîne : reçu {type(valeur).__name__}")
+            )
+            return
+        resultat = _nombre_non_reference(valeur, references)
         if resultat is None:
             return
-        raison, valeur = resultat
+        raison, trouve = resultat
         if raison == "illisible":
             # Important 6 : router ce cas par le message d'invention citait
             # une valeur que l'auteur n'a jamais écrite (« 1531.0 » pour
             # « 15.3.1 ») — sans indice que la cause est un séparateur de
             # groupement, pas un montant inventé.
-            message = f"séparateur de groupement non reconnu dans « {valeur} »"
+            message = f"séparateur de groupement non reconnu dans « {trouve} »"
         else:
-            message = f"« {valeur} » ne correspond à aucun chiffre référencé"
+            message = f"« {trouve} » ne correspond à aucun chiffre référencé"
         erreurs.append(Erreur(slug, champ, message))
 
     verifier("titre", analyse.get("titre"))
@@ -916,7 +1067,13 @@ def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
         verifier(f"chiffres[{i}].lecture", lecture)
     for i, hypothese in enumerate(analyse.get("hypotheses") or []):
         verifier(f"hypotheses[{i}]", hypothese if isinstance(hypothese, str) else None)
-    verifier("simulateur.lecture", (analyse.get("simulateur") or {}).get("lecture"))
+    # Important 2 : un `simulateur` mal typé (une chaîne, une liste…) faisait
+    # lever `AttributeError` sur `.get("lecture")` — même classe que
+    # ci-dessus, même remède, déjà appliqué au même champ dans
+    # `_erreurs_schema` : retomber sur un dict vide plutôt que planter.
+    simulateur = analyse.get("simulateur")
+    simulateur = simulateur if isinstance(simulateur, dict) else {}
+    verifier("simulateur.lecture", simulateur.get("lecture"))
     for i, effet in enumerate(analyse.get("effets_indirects") or []):
         # Critical A : rendu à l'étage 2 (`site/src/analyse-rendu.ts`) avec un
         # `auteur` et une `source` — la forme d'une citation fabriquée si un
@@ -954,6 +1111,65 @@ def _erreurs_sources(analyse: dict) -> list[Erreur]:
     return []
 
 
+# --- Famille 6 : cohérence de dit ---------------------------------------------
+
+
+def _nombre_propre(chiffre: dict) -> float | None:
+    """-> le nombre que ce chiffre porte lui-même, ou `None` s'il n'en a
+    aucun sous une forme licite. `observe.valeur` prime sur `valeur` déclarée
+    quand les deux sont présents (le registre l'autorise pour
+    `donnee_officielle` et `estimation_externe`) : c'est l'observation qui
+    est alors l'objet vérifié par la famille 2. Un chiffre sans nombre licite
+    est déjà signalé par la famille 2 (`observe` ou `valeur` manquant ou mal
+    typé) — cette fonction n'a pas à répéter cette erreur, seulement à ne
+    jamais en inventer un pour la comparaison avec `dit`."""
+    observe = chiffre.get("observe")
+    if isinstance(observe, dict):
+        valeur = observe.get("valeur")
+        if isinstance(valeur, (int, float)) and not isinstance(valeur, bool):
+            return valeur
+    valeur = chiffre.get("valeur")
+    if isinstance(valeur, (int, float)) and not isinstance(valeur, bool):
+        return valeur
+    return None
+
+
+def _erreurs_dit(analyse: dict) -> list[Erreur]:
+    """Critical (revision finale, voir la docstring de tête : « `dit` reste
+    exempté, mais jamais sans rapport avec son propre chiffre ») :
+    `chiffres[].dit` reste hors de la garde anti-invention (famille 4), mais
+    doit s'accorder avec le nombre propre à *son* chiffre — `observe.valeur`
+    ou `valeur` déclarée, jamais avec la liste entière des références de
+    l'analyse (ce qui distingue cette famille de la 4) : citer dans le `dit`
+    d'un chiffre le nombre d'un *autre* chiffre de la même analyse doit
+    échouer, même si ce nombre est par ailleurs une référence légitime.
+    Réutilise la même règle d'arrondi que la famille 4 (`_nombre_non_reference`
+    contre une liste réduite à ce seul nombre) : `dit` peut arrondir, jamais
+    contredire."""
+    slug = analyse.get("slug", "?")
+    erreurs: list[Erreur] = []
+    for i, chiffre in enumerate(analyse.get("chiffres") or []):
+        if not isinstance(chiffre, dict):
+            continue
+        propre = _nombre_propre(chiffre)
+        if propre is None:
+            continue  # pas de nombre propre : déjà signalé par la famille 2
+        dit = chiffre.get("dit")
+        if not isinstance(dit, str):
+            continue  # champ mal typé : déjà signalé par la famille 1
+        resultat = _nombre_non_reference(dit, [propre])
+        if resultat is None:
+            continue
+        raison, trouve = resultat
+        champ = f"chiffres[{i}].dit"
+        if raison == "illisible":
+            message = f"séparateur de groupement non reconnu dans « {trouve} »"
+        else:
+            message = f"« {trouve} » ne correspond pas au nombre de ce chiffre ({propre})"
+        erreurs.append(Erreur(slug, champ, message))
+    return erreurs
+
+
 def controler(analyses: list[dict], donnees: Donnees) -> list[Erreur]:
     """Applique les cinq familles de contrôle (spec §15.3) à chaque analyse.
 
@@ -970,6 +1186,7 @@ def controler(analyses: list[dict], donnees: Donnees) -> list[Erreur]:
             *_erreurs_catalogue(analyse, donnees),
             *_erreurs_invention(analyse, valeurs_verifiees),
             *_erreurs_sources(analyse),
+            *_erreurs_dit(analyse),
         ]
         toutes += erreurs
         if not erreurs:

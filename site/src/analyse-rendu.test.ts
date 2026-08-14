@@ -408,6 +408,49 @@ test("le millésime de l'étage 4 vient du paramètre `version`, jamais de `veri
   assert.doesNotMatch(sansVersion, /Millésime\s*:/);
 });
 
+test("étage 1 n'affiche jamais `dit` seul, même sans observe (Critical, revision finale)", () => {
+  // Le contrôle exige désormais une `valeur` déclarée dès que `observe` est
+  // absent : l'étage 1 doit la montrer à côté de `dit`, sous le nom du
+  // registre — exactement comme l'étage 2 le fait déjà.
+  const sansObserve = analyseMinimale({
+    chiffres: [
+      {
+        dit: "environ 3 milliards selon le simulateur",
+        valeur: 3120000000,
+        registre: "hypothese",
+        lecture: "Une hypothèse chiffrée par le site, pas une observation du pipeline.",
+      },
+    ],
+  });
+  const html = rendu(sansObserve, CATALOGUE);
+  const express = html.slice(html.indexOf("analyse-rendu__express"), html.indexOf("analyse-rendu__detail"));
+  assert.doesNotMatch(express, /<li>environ 3 milliards selon le simulateur<\/li>/);
+  assert.match(express, /Hypothèse/);
+  const attendu = formater(3120000000, "EUR", false);
+  assert.match(express, new RegExp(attendu.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(express, /environ 3 milliards selon le simulateur/);
+});
+
+test("étage 1 nomme le registre même sans valeur déclarée, en défense en profondeur", () => {
+  // Un fichier qui n'aurait pas encore passé le contrôle (ou une fixture de
+  // test délibérément incomplète) ne doit jamais faire réapparaître un `dit`
+  // bare : le registre seul suffit à ne jamais l'afficher isolé.
+  const sansRien = analyseMinimale({
+    chiffres: [
+      {
+        dit: "un chiffre non cadré",
+        registre: "interpretation",
+        lecture: "Une lecture, sans nombre déclaré.",
+      },
+    ],
+  });
+  const html = rendu(sansRien, CATALOGUE);
+  const express = html.slice(html.indexOf("analyse-rendu__express"), html.indexOf("analyse-rendu__detail"));
+  assert.doesNotMatch(express, /<li>un chiffre non cadré<\/li>/);
+  assert.match(express, /Interprétation/);
+  assert.match(express, /un chiffre non cadré/);
+});
+
 test("aucune réserve qui s'excuse dans le module lui-même", () => {
   const source = readFileSync(new URL("./analyse-rendu.ts", import.meta.url), "utf8");
   // Les gabarits qui ont dû être retirés d'etat.ts et analyses.ts ne doivent

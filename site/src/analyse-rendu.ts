@@ -80,11 +80,13 @@ export type Analyse = {
       periode: string;
       valeur: number;
     };
-    /** Une grandeur déclarée en clair par l'analyse elle-même — licite
-     *  seulement là où `observe` est interdit (`resultat_simulation`,
-     *  `hypothese`, `interpretation`) : docs/analyses-schema.md, révision
-     *  « `observe` interdit n'est pas `valeur` interdite ». `null` et absent
-     *  sont équivalents. */
+    /** Une grandeur déclarée en clair par l'analyse elle-même, quand
+     *  `observe` est absent — docs/analyses-schema.md : obligatoire pour
+     *  `resultat_simulation`, `hypothese`, `interpretation` (`observe` y est
+     *  interdit) et pour `donnee_officielle`/`estimation_externe` quand
+     *  l'auteur choisit de ne pas renseigner `observe`. Chaque chiffre porte
+     *  ainsi toujours un nombre que le contrôle connaît, `observe.valeur` ou
+     *  `valeur` — jamais aucun des deux. `null` et absent sont équivalents. */
     valeur?: number | null;
     registre: Registre;
     lecture: string;
@@ -149,7 +151,21 @@ function express(analyse: Analyse, catalogue: Indicateur[]): string {
       : "";
   const chiffresCites = analyse.chiffres
     .map((chiffre) => {
-      if (!chiffre.observe) return `<li>${echapper(chiffre.dit)}</li>`;
+      if (!chiffre.observe) {
+        // Critical (revision finale) : l'étage 1 n'affiche plus jamais `dit`
+        // seul. Sans `observe`, le contrôle exige désormais une `valeur`
+        // déclarée (docs/analyses-schema.md) — elle s'affiche ici à côté de
+        // `dit`, sous le nom du registre, exactement comme l'étage 2 le fait
+        // déjà (`detail()` ci-dessous) : un `dit` nu, sans rien que le site
+        // ait lui-même vérifié à côté, laissait un chiffre non cadré porter
+        // seul la page.
+        const registre = echapper(LIBELLE_REGISTRE[chiffre.registre]);
+        const valeurDeclaree =
+          chiffre.valeur != null
+            ? `<strong>${formater(chiffre.valeur, "EUR", false)}</strong> `
+            : "";
+        return `<li>${registre} — ${valeurDeclaree}cité comme « ${echapper(chiffre.dit)} »</li>`;
+      }
       const unite = uniteDe(catalogue, chiffre.observe.indicateur);
       const montant = formater(chiffre.observe.valeur, unite, false, chiffre.observe.indicateur);
       // `dit` s'affiche toujours ici, jamais seulement en repli : c'est la

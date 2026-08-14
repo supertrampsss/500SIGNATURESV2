@@ -469,6 +469,9 @@ def test_decimale_francaise_simple_reste_lisible():
     analyse = analyse_conforme()
     analyse["chiffres"][0]["observe"]["indicateur"] = "second_indicateur"
     analyse["chiffres"][0]["observe"]["valeur"] = 59946338573.0
+    # `dit` doit s'accorder avec `observe.valeur` (famille 6, revision
+    # Critical finale).
+    analyse["chiffres"][0]["dit"] = "environ 59,9 milliards d'euros"
     analyse["verdict"]["phrase"] = "Le montant correspond à 59,9 milliards d'euros publiés."
     erreurs = controler([analyse], fake_donnees())
     assert erreurs == []
@@ -645,10 +648,19 @@ def test_interpretation_sans_observe_ni_valeur_echoue():
     assert any(e.champ == "chiffres[0].valeur" for e in erreurs)
 
 
-def test_donnee_officielle_sans_observe_passe_si_source():
+def test_donnee_officielle_sans_observe_passe_si_source_et_valeur():
+    """Révision Critical (finale) : cette fonction s'appelait
+    `test_donnee_officielle_sans_observe_passe_si_source` et ne déclarait
+    aucune `valeur` — c'était le défaut (un `dit` non vérifié par rien),
+    exactement symétrique au défaut fermé par Critical B pour
+    `resultat_simulation`/`hypothese`/`interpretation`. Sans `observe` ET sans
+    `valeur`, ce chiffre n'a aucun nombre que le contrôle connaît ; `valeur`
+    est donc désormais obligatoire ici aussi, en plus de la source déjà
+    exigée."""
     analyse = analyse_conforme()
     analyse["chiffres"][0]["registre"] = "donnee_officielle"
     analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = 1234.0
     analyse["verdict"]["phrase"] = (
         "Le montant correspond à la donnée publiée par la source citée."
     )
@@ -703,6 +715,10 @@ def _analyse_avec_second_indicateur_et_phrase(phrase: str) -> dict:
     analyse = analyse_conforme()
     analyse["chiffres"][0]["observe"]["indicateur"] = "second_indicateur"
     analyse["chiffres"][0]["observe"]["valeur"] = 59946338573.0
+    # `dit` doit s'accorder avec `observe.valeur` (famille 6, revision
+    # Critical finale) : le `dit` par défaut de `analyse_conforme`
+    # (« environ 1 234 euros ») ne le fait plus une fois l'indicateur changé.
+    analyse["chiffres"][0]["dit"] = "environ 59,9 milliards d'euros"
     analyse["verdict"]["phrase"] = phrase
     return analyse
 
@@ -888,6 +904,10 @@ def test_resultat_simulation_avec_valeur_et_budget_entre_dans_les_references():
     analyse["chiffres"][0]["registre"] = "resultat_simulation"
     analyse["chiffres"][0]["observe"] = None
     analyse["chiffres"][0]["valeur"] = 12300.0
+    # `dit` doit s'accorder avec la `valeur` propre à ce chiffre (famille 6,
+    # revision Critical finale) : le `dit` par défaut de `analyse_conforme`
+    # (« environ 1 234 euros ») ne le fait plus.
+    analyse["chiffres"][0]["dit"] = "environ 12 300 euros selon le simulateur"
     analyse["simulateur"]["budget"] = "etat"
     analyse["verdict"]["phrase"] = "Le simulateur produit 12 300 euros sous ces réglages."
     erreurs = controler([analyse], fake_donnees())
@@ -910,6 +930,7 @@ def test_hypothese_avec_valeur_entre_dans_les_references():
     analyse["chiffres"][0]["registre"] = "hypothese"
     analyse["chiffres"][0]["observe"] = None
     analyse["chiffres"][0]["valeur"] = 12300.0
+    analyse["chiffres"][0]["dit"] = "environ 12 300 euros sous cette hypothèse"
     analyse["verdict"]["phrase"] = "Sous cette hypothèse, le montant atteindrait 12 300 euros."
     erreurs = controler([analyse], fake_donnees())
     assert erreurs == []
@@ -920,6 +941,7 @@ def test_interpretation_avec_valeur_entre_dans_les_references():
     analyse["chiffres"][0]["registre"] = "interpretation"
     analyse["chiffres"][0]["observe"] = None
     analyse["chiffres"][0]["valeur"] = 12300.0
+    analyse["chiffres"][0]["dit"] = "environ 12 300 euros selon cette lecture"
     analyse["verdict"]["phrase"] = "Cette lecture chiffre l'effet à 12 300 euros."
     erreurs = controler([analyse], fake_donnees())
     assert erreurs == []
@@ -1099,3 +1121,297 @@ def test_budgets_concernes_hors_liste_echoue():
     analyse["budgets_concernes"] = ["martiens"]
     erreurs = controler([analyse], fake_donnees())
     assert any(e.champ == "budgets_concernes[0]" for e in erreurs)
+
+
+# 27. Minor 4 : la vague précédente ne testait que `{"etat"}` — narrower la
+#     liste `BUDGETS` à ce seul budget passait toute la suite. Les trois
+#     autres budgets doivent être acceptés.
+
+
+def test_budgets_concernes_accepte_les_autres_budgets():
+    for budget in ("secu", "collectivites", "bareme"):
+        analyse = analyse_conforme()
+        analyse["budgets_concernes"] = [budget]
+        erreurs = controler([analyse], fake_donnees())
+        assert not any(e.champ.startswith("budgets_concernes") for e in erreurs), (
+            f"{budget} aurait dû être accepté, erreurs : {erreurs}"
+        )
+
+
+# 28. Important 3 : les sous-champs de `effets_indirects` — `texte`, `auteur`
+#     et `source` (avec `titre`/`url`) — étaient déclarés obligatoires par le
+#     schéma mais jamais vérifiés. Le rendu (étage 2) écrit alors `undefined`
+#     dans le slot même qu'une citation fabriquée occuperait (Critical A).
+
+
+def test_effets_indirects_sans_texte_echoue():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [
+        {
+            "texte": "",
+            "auteur": "Un organisme",
+            "source": {
+                "titre": "Exemple",
+                "url": "https://example.invalid/effet",
+                "consulte_le": "2026-01-01",
+            },
+        }
+    ]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "effets_indirects[0].texte" for e in erreurs)
+
+
+def test_effets_indirects_sans_auteur_echoue():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [
+        {
+            "texte": "Une conséquence rapportée.",
+            "source": {
+                "titre": "Exemple",
+                "url": "https://example.invalid/effet",
+                "consulte_le": "2026-01-01",
+            },
+        }
+    ]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "effets_indirects[0].auteur" for e in erreurs)
+
+
+def test_effets_indirects_sans_source_echoue():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [
+        {"texte": "Une conséquence rapportée.", "auteur": "Un organisme"}
+    ]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "effets_indirects[0].source" for e in erreurs)
+
+
+def test_effets_indirects_source_sans_titre_ni_url_echoue():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [
+        {
+            "texte": "Une conséquence rapportée.",
+            "auteur": "Un organisme",
+            "source": {"titre": "", "url": "", "consulte_le": "2026-01-01"},
+        }
+    ]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "effets_indirects[0].source.titre" for e in erreurs)
+    assert any(e.champ == "effets_indirects[0].source.url" for e in erreurs)
+
+
+def test_effets_indirects_complet_passe():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [_effet_indirect("Cela représente environ 1 234 euros publiés.")]
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 29. Important 2 (revision) : une classe entière de fail-hard fermait déjà
+#     le tokeniseur (vague 3) ; cette vague ajoutait une sixième instance
+#     (`effets_indirects[].texte`) plutôt que de fermer la classe elle-même.
+#     Chaque champ scanné par la famille 4 doit tolérer un type invalide —
+#     jamais lever — et le signaler comme une erreur du contrôle.
+
+
+def test_titre_type_invalide_ne_leve_pas_et_reste_une_erreur():
+    analyse = analyse_conforme()
+    analyse["titre"] = ["pas une chaîne"]
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ == "titre" for e in erreurs)
+
+
+def test_verdict_phrase_type_invalide_ne_leve_pas_et_reste_une_erreur():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = 12345
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_chiffres_lecture_type_invalide_ne_leve_pas_et_reste_une_erreur():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["lecture"] = {"pas": "une chaîne"}
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ == "chiffres[0].lecture" for e in erreurs)
+
+
+def test_simulateur_lecture_type_invalide_ne_leve_pas_et_reste_une_erreur():
+    analyse = analyse_conforme()
+    analyse["simulateur"]["lecture"] = 42
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ == "simulateur.lecture" for e in erreurs)
+
+
+def test_effets_indirects_texte_type_invalide_ne_leve_pas_et_reste_une_erreur():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [
+        {
+            "texte": 45000000000,
+            "auteur": "Un organisme",
+            "source": {
+                "titre": "Exemple",
+                "url": "https://example.invalid/effet",
+                "consulte_le": "2026-01-01",
+            },
+        }
+    ]
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ == "effets_indirects[0].texte" for e in erreurs)
+
+
+def test_simulateur_non_dict_ne_leve_pas_et_reste_une_erreur():
+    # `simulateur` mal typé faisait lever AttributeError sur `.get("lecture")`
+    # dans la famille 4 (`_erreurs_schema` était déjà protégée).
+    analyse = analyse_conforme()
+    analyse["simulateur"] = "pas un objet"
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ.startswith("simulateur.") for e in erreurs)
+
+
+# 30. Important 1 (revision du signe, Important C) : la vague précédente ne
+#     couvrait que `-` ASCII et U+2212. « – » (U+2013) et « — » (U+2014), la
+#     substitution la plus courante d'un traitement de texte, passaient un
+#     écart négatif comme une valeur positive ; un espace entre le signe et
+#     le nombre n'était pas davantage reconnu.
+
+
+def test_tiret_demi_cadratin_u2013_est_reconnu_comme_signe():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "troisieme_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = -59946338573.0
+    analyse["chiffres"][0]["dit"] = "environ –59,9 milliards d'euros"
+    analyse["verdict"]["phrase"] = "L'écart est de –59 946 M€ publié."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_tiret_demi_cadratin_u2013_contre_reference_positive_echoue():
+    # Probe verbatim du brief : « –59 946 M€ » (U+2013) contre une référence
+    # positive ne doit jamais correspondre.
+    analyse = _analyse_avec_verdict_defense("L'écart est de –59 946 M€.")
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_tiret_cadratin_u2014_contre_reference_positive_echoue():
+    # Probe verbatim du brief : « —59 946 M€ » (U+2014).
+    analyse = _analyse_avec_verdict_defense("L'écart est de —59 946 M€.")
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_signe_suivi_d_une_espace_avant_le_nombre_est_reconnu():
+    # Probe verbatim du brief : « - 59 946 M€ » (espace entre le signe et le
+    # nombre) contre une référence positive ne doit jamais correspondre.
+    analyse = _analyse_avec_verdict_defense("L'écart est de - 59 946 M€.")
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_signe_suivi_d_une_espace_correspond_a_une_reference_negative():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "troisieme_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = -59946338573.0
+    analyse["chiffres"][0]["dit"] = "environ - 59,9 milliards d'euros"
+    analyse["verdict"]["phrase"] = "L'écart est de - 59 946 M€ publié."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_plage_millesimes_avec_tiret_demi_cadratin_reste_deux_nombres_positifs():
+    # Le tiret de plage reste `-` ASCII dans la pratique, mais la garde ne
+    # doit pas non plus casser un vrai tiret demi-cadratin précédé d'un
+    # chiffre (même raisonnement que pour `-`) : « 2019–2025 ».
+    analyse = _analyse_avec_verdict_defense(
+        "Sur la période 2019–2025, le montant correspond à 59 946 M€ publiés."
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 31. Critical (revision finale) : chaque `chiffre` porte exactement un
+#     nombre que le contrôle connaît — `observe` vérifiée ou `valeur`
+#     déclarée — jamais aucun des deux ; et tout nombre écrit dans `dit` doit
+#     s'accorder avec le nombre propre à ce chiffre, jamais avec la liste
+#     entière des références. Les deux probes verbatim du brief.
+
+
+def test_probe_resultat_simulation_valeur_sans_rapport_avec_dit_echoue():
+    # Probe 1 du brief : registre resultat_simulation, valeur: 1234.0,
+    # simulateur.budget: "etat", dit: "environ 45 milliards d'euros" — la
+    # vague précédente acceptait ce chiffre et le rendu affichait `dit` nu.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "resultat_simulation"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = 1234.0
+    analyse["chiffres"][0]["dit"] = "environ 45 milliards d'euros"
+    analyse["simulateur"]["budget"] = "etat"
+    analyse["verdict"]["phrase"] = "Le simulateur produit ce résultat sous ces réglages."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].dit" for e in erreurs)
+
+
+def test_probe_donnee_officielle_sans_observe_ni_valeur_echoue():
+    # Probe 2 du brief : registre donnee_officielle, observe absent, aucune
+    # valeur, dit: "45 000 000 000 euros" — la vague précédente acceptait ce
+    # chiffre faute de vérifier `valeur` quand `observe` est absent pour ce
+    # registre.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "donnee_officielle"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["dit"] = "45 000 000 000 euros"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].valeur" for e in erreurs)
+
+
+def test_dit_qui_contredit_observe_echoue_meme_si_observe_est_juste():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["dit"] = "environ 45 milliards d'euros"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].dit" for e in erreurs)
+
+
+def test_dit_arrondit_legitimement_le_nombre_propre_est_accepte():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "resultat_simulation"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["chiffres"][0]["valeur"] = 59946338573.0
+    analyse["chiffres"][0]["dit"] = "environ 59,9 milliards d'euros"
+    analyse["simulateur"]["budget"] = "etat"
+    analyse["verdict"]["phrase"] = "Le simulateur produit ce résultat sous ces réglages."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_dit_ne_compare_qu_a_son_propre_chiffre_meme_valide_ailleurs():
+    """Verrouille : `dit` est comparé au nombre de SON chiffre, jamais à la
+    liste entière des références (contrairement à la famille 4). 1234 est
+    une référence légitime ailleurs dans cette analyse (le nombre propre du
+    chiffre 0), mais le nombre propre du chiffre 1 est 59 946 338 573 —
+    citer le nombre du chiffre 0 dans le `dit` du chiffre 1 doit échouer,
+    même si la famille 4 seule l'aurait accepté."""
+    analyse = analyse_conforme()
+    analyse["chiffres"].append(
+        {
+            "dit": "environ 1234 euros",  # le nombre du chiffre 0, pas le sien
+            "observe": {
+                "indicateur": "second_indicateur",
+                "niveau": "pays",
+                "code": "FR",
+                "periode": "2025",
+                "valeur": 59946338573.0,
+            },
+            "registre": "fait_comptable",
+            "lecture": "Un second chiffre, sans rapport avec le premier.",
+        }
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[1].dit" for e in erreurs)
+
+
+def test_dit_type_invalide_ne_leve_pas():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["dit"] = 1234
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever ; déjà
+    # signalé par la famille 1 (Important D), pas re-signalé ici.
+    assert any(e.champ == "chiffres[0].dit" for e in erreurs)
