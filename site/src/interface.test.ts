@@ -892,6 +892,45 @@ test("le paramètre d'évolution ouvre ce qu'il promet, sans bouton pour le prop
   assert.match(MAIN, /if \(periodes\.length < 2\) etat\.mode = "niveau";/);
 });
 
+test("une page éditoriale pré-rendue n'est pas repeinte par la vue territoire", () => {
+  // Une page d'analyse sert le shell de l'application : sans garde,
+  // `basculerVue` ne reconnaît pas son chemin, retombe sur la vue territoire
+  // et masque le contenu déjà écrit dans le HTML. La page arriverait lisible
+  // puis se viderait sous les yeux du lecteur.
+  assert.match(MAIN, /document\.body\.dataset\.page === "editorial"/);
+  const corps = MAIN.slice(MAIN.indexOf("function basculerVue"));
+  assert.ok(
+    corps.indexOf('dataset.page === "editorial"') < corps.indexOf("dataset.vue = vue"),
+    "la garde doit précéder toute peinture de vue",
+  );
+});
+
+test("une page éditoriale garde sa recherche, pas le reste de l'amorçage", () => {
+  // La garde de `basculerVue` ne suffit pas seule : `demarrer()` continue
+  // ensuite vers `construireSelecteurs()`, qui écrit dans `#pilules-vue` — un
+  // conteneur de la vue territoire, absent d'une page éditoriale — et lèverait
+  // sur un `$` renvoyant `null`. Le thème est déjà branché avant tout fetch, et
+  // la navigation n'est que des liens sans `data-vue` qui se rechargent : seule
+  // la recherche, dans l'en-tête commun aux deux types de page, a besoin d'être
+  // câblée en JavaScript. Elle doit donc l'être AVANT la garde, pas dans la
+  // branche qui s'arrête là — sans quoi elle ne fonctionnerait que sur la carte.
+  const corps = MAIN.slice(MAIN.indexOf("async function demarrer"));
+  const idxResoudrePrete = corps.indexOf("resoudrePrete();");
+  assert.ok(idxResoudrePrete !== -1, "resoudrePrete() introuvable dans demarrer()");
+  const idxRecherche = corps.indexOf("brancherRecherche(", idxResoudrePrete);
+  const idxGarde = corps.indexOf('dataset.page === "editorial"', idxResoudrePrete);
+  const idxSelecteurs = corps.indexOf("construireSelecteurs();", idxResoudrePrete);
+  assert.ok(idxGarde !== -1, "garde éditoriale de demarrer() introuvable après resoudrePrete()");
+  assert.ok(
+    idxRecherche !== -1 && idxRecherche > idxResoudrePrete && idxRecherche < idxGarde,
+    "la recherche doit être branchée avant la garde éditoriale, pour fonctionner sur les deux types de page",
+  );
+  assert.ok(
+    idxGarde < idxSelecteurs,
+    "la garde éditoriale doit précéder tout code qui suppose le shell de l'application",
+  );
+});
+
 test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () => {
   // Un nuage de points assorti d'un coefficient de Pearson est l'écran où le
   // lecteur lit une causalité tout seul : la charte l'interdit, le module n'a

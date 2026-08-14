@@ -1909,10 +1909,6 @@ function brancherCommandes(): void {
     basculerVue();
   });
 
-  // Un seul champ pour tout le site, dans l'en-tête. Il y en avait deux, sur
-  // le même index, sans état commun.
-  brancherRecherche($<HTMLInputElement>("recherche"), $<HTMLUListElement>("suggestions"));
-
   $("carte-bascule").addEventListener("click", () => {
     carteOuverte = !carteOuverte;
     appliquerModeCarte(carteOuverte);
@@ -2401,6 +2397,10 @@ async function peindreMethode(): Promise<void> {
 }
 
 function basculerVue(): void {
+  // Une page éditoriale est pré-rendue : son contenu est déjà dans le HTML, et
+  // aucune vue de l'application ne doit le masquer. L'en-tête, la recherche et
+  // le thème restent branchés — c'est le reste de la page qui ne bouge pas.
+  if (document.body.dataset.page === "editorial") return;
   const precedente = document.body.dataset.vue;
   const demandee = vueDepuisAdresse(location.pathname, location.hash);
   // `#carte` ouvre la vue territoire ET déploie la carte : le lien tenait sa
@@ -2656,6 +2656,19 @@ async function demarrer(): Promise<void> {
   // `donnees.racine` est résolue : les peintres qui attendaient `prete`
   // peuvent partir sans risquer la retombée SPA décrite à sa déclaration.
   resoudrePrete();
+  // Un seul champ pour tout le site, dans l'en-tête : il y en avait deux, sur
+  // le même index, sans état commun. Câblé ici, avant la garde éditoriale
+  // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page
+  // pré-rendue — les deux partagent le même en-tête.
+  brancherRecherche($<HTMLInputElement>("recherche"), $<HTMLUListElement>("suggestions"));
+  // Une page éditoriale n'a ni carte ni panneau : tout ce qui suit — sélecteurs,
+  // blocs nationaux, MapLibre — suppose les conteneurs de la vue territoire et
+  // lèverait sur un `$` renvoyant `null` avant d'avoir rien peint (défaut
+  // signalé par le rapport de la tâche 4 : `data-page="editorial"` était écrit
+  // sans qu'aucun code ne le lise). Le thème est déjà branché avant tout fetch
+  // (`brancherTheme()`), et la navigation n'est que des liens sans `data-vue`
+  // qui se rechargent — exactement le comportement voulu ici.
+  if (document.body.dataset.page === "editorial") return;
   jeux = manifeste.jeux;
   catalogue = await donnees.indicateurs();
   // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
