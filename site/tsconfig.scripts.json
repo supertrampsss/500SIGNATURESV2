@@ -1,0 +1,13 @@
+{
+  // Le pré-rendu tourne sous Node, pas dans le navigateur : il a besoin des
+  // types de Node (process, fetch, node:fs…) que le tsconfig de l'application
+  // n'a pas — et n'a pas à avoir, sous peine de laisser passer un `process.env`
+  // écrit par erreur dans du code de navigateur. `vite/client` reste
+  // nécessaire : `scripts/prerendre.ts` importe les types de `src/donnees.ts`,
+  // qui lit `import.meta.env` à son sommet.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vite/client"]
+  },
+  "include": ["scripts"]
+}
