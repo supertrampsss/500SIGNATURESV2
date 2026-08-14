@@ -2850,6 +2850,11 @@ function enregistrerScenarioCourant(): void {
 function supprimerScenarioCourant(): void {
   const cible = scenarioNomme();
   if (!cible) return;
+  // Le bouton est dans la même rangée qu'« Enregistrer ce budget » et porte
+  // la même pilule : un clic à côté effaçait définitivement un scénario, sans
+  // retour possible. La question dit ce qui va se passer, elle n'avertit de
+  // rien d'autre.
+  if (!window.confirm(`Supprimer le scénario « ${cible.nom} » ?`)) return;
   supprimerScenario(depotScenarios, cible.nom);
   etat.nom = "";
   // Le scénario supprimé n'est plus affiché : les lignes disparues qu'il

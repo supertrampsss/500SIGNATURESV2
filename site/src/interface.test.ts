@@ -1073,7 +1073,8 @@ test("supprimer le scénario courant efface aussi les lignes disparues qu'il por
 function executerSupprimerScenarioCourant(
   etatSimule: Record<string, string>,
   scenariosLocaux: { nom: string; budget: string; exercice: string }[],
-): { supprime: string | null; disparuesVidees: boolean } {
+  reponse = true,
+): { supprime: string | null; disparuesVidees: boolean; question: string | null } {
   const aides = MAIN.slice(
     MAIN.indexOf("function scenarioNomme"),
     MAIN.indexOf("/** Une colonne comparée, transposée"),
@@ -1084,7 +1085,14 @@ function executerSupprimerScenarioCourant(
   ).replace("function supprimerScenarioCourant(): void {", "function supprimerScenarioCourant() {");
   let supprime: string | null = null;
   let disparuesVidees = false;
+  let question: string | null = null;
   const etat = { ...etatSimule };
+  const window = {
+    confirm: (texte: string) => {
+      question = texte;
+      return reponse;
+    },
+  };
   new Function(
     "etat",
     "listerScenarios",
@@ -1092,6 +1100,7 @@ function executerSupprimerScenarioCourant(
     "supprimerScenario",
     "ecrireUrl",
     "montrerScenarios",
+    "window",
     "poser",
     `${aides}${corps}
      let disparuesCourantes = null;
@@ -1106,11 +1115,12 @@ function executerSupprimerScenarioCourant(
     },
     () => {},
     () => {},
+    window,
     (d: { lignes: string[] } | null) => {
       disparuesVidees = d !== null && d.lignes.length === 0;
     },
   );
-  return { supprime, disparuesVidees };
+  return { supprime, disparuesVidees, question };
 }
 
 test("un lien nommant un scénario absent du dépôt ne supprime rien, et n'efface rien", () => {
@@ -1127,12 +1137,27 @@ test("un lien nommant un scénario absent du dépôt ne supprime rien, et n'effa
 });
 
 test("un scénario réellement présent est bien supprimé", () => {
-  const { supprime, disparuesVidees } = executerSupprimerScenarioCourant(
+  const { supprime, disparuesVidees, question } = executerSupprimerScenarioCourant(
     { nom: "Chez moi", budget: "b64" },
     [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
   );
   assert.equal(supprime, "Chez moi");
   assert.equal(disparuesVidees, true);
+  // La question nomme le scénario : sinon elle ne dit pas ce qui va se passer.
+  assert.match(question!, /Chez moi/);
+});
+
+test("la suppression est refusable, et refuser ne supprime rien", () => {
+  // Le bouton partage sa rangée et sa pilule avec « Enregistrer ce budget » :
+  // un clic à côté effaçait définitivement un scénario, sans retour possible.
+  const { supprime, disparuesVidees, question } = executerSupprimerScenarioCourant(
+    { nom: "Chez moi", budget: "b64" },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+    false,
+  );
+  assert.notEqual(question, null);
+  assert.equal(supprime, null);
+  assert.equal(disparuesVidees, false);
 });
 
 test("un stockage indisponible dégrade en scénarios de session, et l'interface le dit", () => {
