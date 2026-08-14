@@ -1129,3 +1129,113 @@ test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", ()
   assert.doesNotMatch(nav, /href="\/analyses\/"\s+data-vue/);
   assert.match(MAIN, /const lien = \(clic\.target as HTMLElement\)\.closest<HTMLAnchorElement>\("a\[data-vue\]"\);/);
 });
+
+/* ------------------------------------------------------------------------
+ * Les scénarios de référence — tâche 6 du lot « Le simulateur enregistre » :
+ * le budget voté et les chiffrages des analyses, produits au build par
+ * `prerendre.ts` et offerts comme comparables par `main.ts`. Ferme la boucle
+ * entre l'éditorial (les analyses) et l'outil (le simulateur).
+ * ---------------------------------------------------------------------- */
+
+const PRERENDRE = readFileSync(new URL("../scripts/prerendre.ts", import.meta.url), "utf8");
+
+/** Exécute `entreesReference` telle qu'écrite dans prerendre.ts, sur de
+ *  fausses analyses minimales — même technique que
+ *  `executerColonnesComparaison` plus haut : on teste le vrai corps du
+ *  fichier source, pas une réécriture. */
+function executerEntreesReference(
+  analyses: { titre: string; slug: string; simulateur: { budget: string; contrat: string } }[],
+): { titre: string; slug: string | null; lien: string | null; budget: string; contrat: string; exercice: string | null }[] {
+  const debut = PRERENDRE.indexOf("const ENTREE_NEUTRE");
+  const fin = PRERENDRE.indexOf("async function ecrireScenariosReference");
+  assert.ok(debut > -1 && fin > debut, "entreesReference introuvable dans prerendre.ts");
+  const corpsBrut = PRERENDRE.slice(debut, fin);
+  // Verrouille les deux déclarations avant de leur ôter leurs annotations
+  // TypeScript, que `new Function` — qui évalue du JS pur — ne sait pas
+  // parser : le type de la constante, et la signature de la fonction.
+  assert.match(corpsBrut, /const ENTREE_NEUTRE: EntreeReference = \{/);
+  assert.match(corpsBrut, /function entreesReference\(analyses: readonly Analyse\[\]\): EntreeReference\[\] \{/);
+  const corps = corpsBrut
+    .replace("const ENTREE_NEUTRE: EntreeReference = {", "const ENTREE_NEUTRE = {")
+    .replace(
+      "function entreesReference(analyses: readonly Analyse[]): EntreeReference[] {",
+      "function entreesReference(analyses) {",
+    );
+  return new Function(`${corps}\nreturn entreesReference;`)()(analyses);
+}
+
+test("le fichier de référence porte une entrée neutre au budget vide, sans slug ni lien", () => {
+  const entrees = executerEntreesReference([]);
+  assert.equal(entrees.length, 1);
+  assert.equal(entrees[0]!.budget, "");
+  assert.equal(entrees[0]!.slug, null);
+  assert.equal(entrees[0]!.lien, null);
+});
+
+test("une analyse sans réglage de simulateur n'engendre aucune entrée — rien n'est inventé", () => {
+  const entrees = executerEntreesReference([
+    { titre: "Sans réglage", slug: "sans-reglage", simulateur: { budget: "", contrat: "" } },
+  ]);
+  assert.equal(entrees.length, 1); // seulement l'entrée neutre
+  assert.equal(entrees.some((e) => e.slug === "sans-reglage"), false);
+});
+
+test("une analyse réglée engendre une entrée avec son titre, son slug et son lien", () => {
+  const entrees = executerEntreesReference([
+    { titre: "Le budget de la Défense", slug: "defense-2025", simulateur: { budget: "etat/146:-10", contrat: "c1" } },
+  ]);
+  const reglee = entrees.find((e) => e.slug === "defense-2025");
+  assert.ok(reglee);
+  assert.equal(reglee!.titre, "Le budget de la Défense");
+  assert.equal(reglee!.lien, "/analyses/defense-2025/");
+  assert.equal(reglee!.budget, "etat/146:-10");
+  assert.equal(reglee!.contrat, "c1");
+});
+
+test("aucune entrée ne porte un exercice : rien ne le déclare de façon fiable dans une analyse", () => {
+  const entrees = executerEntreesReference([
+    { titre: "X", slug: "x", simulateur: { budget: "etat/146:-10", contrat: "" } },
+  ]);
+  for (const e of entrees) assert.equal(e.exercice, null);
+});
+
+test("prerendre.ts écrit le fichier dans dist/simulateur/scenarios-reference.json, après le contrôle des liens", () => {
+  assert.match(PRERENDRE, /path\.join\(DIST, "simulateur"\)/);
+  assert.match(PRERENDRE, /"scenarios-reference\.json"/);
+  const corps = PRERENDRE.slice(PRERENDRE.indexOf("async function main"));
+  const posValidation = corps.indexOf("await validerLiensSimulateur(");
+  const posEcriture = corps.indexOf("await ecrireScenariosReference(");
+  assert.ok(posValidation > -1 && posEcriture > posValidation, "ecrireScenariosReference doit suivre validerLiensSimulateur");
+});
+
+test("le simulateur charge le fichier de référence à l'ouverture, sans casser s'il est absent", () => {
+  assert.match(MAIN, /fetch\("\/simulateur\/scenarios-reference\.json"\)/);
+  const debut = MAIN.indexOf("async function chargerReferences");
+  assert.ok(debut > -1, "chargerReferences introuvable dans main.ts");
+  const corps = MAIN.slice(debut, debut + 600);
+  assert.match(corps, /catch \{/);
+  assert.match(MAIN, /await chargerReferences\(\);/);
+});
+
+test("les entrées de référence apparaissent parmi les comparables, distinguées des scénarios du lecteur", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.match(corps, /referencesScenarios/);
+  // Deux groupes distincts dans le menu, jamais mélangés en une seule liste.
+  assert.match(corps, /<optgroup label="Vos scénarios">/);
+  assert.match(corps, /<optgroup label="Références">/);
+});
+
+test("le budget voté (slug null) prend l'exercice réellement monté ; une analyse garde le sien, jamais deviné", () => {
+  // Le budget voté n'est pas un scénario dont on ignorerait l'origine — c'est
+  // l'atelier tel que monté à l'instant : son exercice se lit vrai avec
+  // `exerciceCourant()`. Une entrée issue d'une analyse, elle, ne porte aucun
+  // exercice vérifiable (voir prerendre.ts) : jamais ce même repli.
+  const corps = MAIN.slice(
+    MAIN.indexOf('cible.addEventListener("change"'),
+    MAIN.indexOf('cible.addEventListener("change"') + 1200,
+  );
+  assert.match(corps, /reference\.slug === null \? exerciceCourant\(\) : reference\.exercice/);
+});

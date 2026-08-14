@@ -2527,6 +2527,42 @@ async function preparerSimulateur(): Promise<void> {
  * à l'adresse, comme le reste de ce fichier le fait pour chaque module.
  * ----------------------------------------------------------------------- */
 
+/**
+ * Une entrée du fichier de référence produit au build (`prerendre.ts`) : le
+ * budget voté, et les chiffrages que portent les analyses publiées. Même
+ * forme que ce que `prerendre.ts` écrit — dupliquée, pas partagée, pour la
+ * même raison que sa valeur de repli de `BASE` : ce script tourne hors
+ * navigateur et ne peut pas importer `main.ts` (voir son en-tête).
+ */
+type EntreeReference = {
+  titre: string;
+  slug: string | null;
+  lien: string | null;
+  budget: string;
+  contrat: string;
+  exercice: string | null;
+};
+
+/** Les scénarios de référence, chargés une fois à l'ouverture du simulateur.
+ *  Vide tant qu'ils n'ont pas été chargés, ou si le fichier est absent — un
+ *  fichier absent ne casse rien, même règle que partout ailleurs sur le site
+ *  (`chargerAssociations`, `peindreMethode`…). */
+let referencesScenarios: EntreeReference[] = [];
+
+/** Charge `dist/simulateur/scenarios-reference.json` — un fichier du site lui-même,
+ *  pas une donnée publiée par le pipeline, donc un `fetch` direct plutôt
+ *  qu'un passage par `donnees.ts` (qui ne sait lire que la racine R2). */
+async function chargerReferences(): Promise<void> {
+  try {
+    const reponse = await fetch("/simulateur/scenarios-reference.json");
+    if (!reponse.ok) return;
+    referencesScenarios = (await reponse.json()) as EntreeReference[];
+  } catch {
+    // Fichier absent (build sans pré-rendu, ou hors production) : le
+    // simulateur reste utilisable, simplement sans comparables de référence.
+  }
+}
+
 const CLE_SCENARIOS = "scenarios";
 
 /** Le dépôt de session : en mémoire, jamais `localStorage`. C'est sur lui
@@ -2732,19 +2768,33 @@ function montrerScenarios(): void {
     }
   </div>`;
 
-  const choix = scenarios.length
+  // Les scénarios du lecteur, et ceux du fichier de référence (budget voté,
+  // chiffrages des analyses) — deux groupes distincts dans le même menu :
+  // les seconds ne viennent pas du dépôt local, `Comparer à` doit le dire.
+  const optionsScenarios = scenarios
+    .map(
+      (s) =>
+        `<option value="scenario:${echapper(s.nom)}"${
+          s.nom === etat.faceNom ? " selected" : ""
+        }>${echapper(s.nom)}</option>`,
+    )
+    .join("");
+  const optionsReferences = referencesScenarios
+    .map(
+      (r) =>
+        `<option value="reference:${echapper(r.slug ?? "neutre")}"${
+          r.titre === etat.faceNom ? " selected" : ""
+        }>${echapper(r.titre)}</option>`,
+    )
+    .join("");
+
+  const choix = scenarios.length || referencesScenarios.length
     ? `<p class="scenarios-rendu__vide">
         <label for="scenario-face">Comparer à</label>
         <select id="scenario-face" class="pilule pilule--menu">
           <option value="">— choisir —</option>
-          ${scenarios
-            .map(
-              (s) =>
-                `<option value="${echapper(s.nom)}"${
-                  s.nom === etat.faceNom ? " selected" : ""
-                }>${echapper(s.nom)}</option>`,
-            )
-            .join("")}
+          ${optionsScenarios ? `<optgroup label="Vos scénarios">${optionsScenarios}</optgroup>` : ""}
+          ${optionsReferences ? `<optgroup label="Références">${optionsReferences}</optgroup>` : ""}
         </select>${
           etat.face
             ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-fermer-comparaison">Fermer la comparaison</button>`
@@ -2787,10 +2837,28 @@ function brancherScenarios(): void {
   cible.addEventListener("change", (evenement) => {
     const champ = (evenement.target as HTMLElement).closest<HTMLSelectElement>("#scenario-face");
     if (!champ) return;
-    const choisi = listerScenarios(depotScenarios).find((s) => s.nom === champ.value);
-    etat.face = choisi?.budget ?? "";
-    etat.faceNom = choisi?.nom ?? "";
-    etat.faceExercice = choisi?.exercice ?? "";
+    // Le préfixe dit d'où vient la sélection : un scénario du dépôt local,
+    // ou une entrée du fichier de référence (voir le rendu du menu,
+    // `montrerScenarios`).
+    if (champ.value.startsWith("reference:")) {
+      const cle = champ.value.slice("reference:".length);
+      const reference = referencesScenarios.find((r) => (r.slug ?? "neutre") === cle);
+      etat.face = reference?.budget ?? "";
+      etat.faceNom = reference?.titre ?? "";
+      // Le budget voté (`slug: null`) N'EST PAS un scénario dont on ignore
+      // l'origine : c'est l'atelier tel que monté à l'instant, donc le même
+      // exercice que la colonne « vive » — `exerciceCourant()` le dit vrai,
+      // ce n'est pas un repli plausible. Une entrée issue d'une analyse, elle,
+      // ne porte aucun exercice vérifiable (voir prerendre.ts,
+      // `entreesReference`) : `null` reste honnête, jamais deviné.
+      etat.faceExercice = !reference ? "" : reference.slug === null ? exerciceCourant() : reference.exercice ?? "";
+    } else {
+      const nom = champ.value.startsWith("scenario:") ? champ.value.slice("scenario:".length) : "";
+      const choisi = listerScenarios(depotScenarios).find((s) => s.nom === nom);
+      etat.face = choisi?.budget ?? "";
+      etat.faceNom = choisi?.nom ?? "";
+      etat.faceExercice = choisi?.exercice ?? "";
+    }
     ecrireUrl();
     montrerScenarios();
   });
@@ -2859,6 +2927,11 @@ async function ouvrirSimulateur(): Promise<void> {
   // pas de lui : elle lit le dépôt, jamais `#simu`. Les écouteurs ne sont
   // posés qu'une fois — `ouvrirSimulateur` elle-même ne s'exécute qu'une
   // fois, gardée par `atelierMonte` en tête de fonction.
+  //
+  // Le fichier de référence (budget voté, chiffrages des analyses) est chargé
+  // avant de peindre la barre : ses entrées doivent apparaître dès le premier
+  // rendu, pas surgir après coup dans le menu.
+  await chargerReferences();
   brancherScenarios();
   montrerScenarios();
 }
