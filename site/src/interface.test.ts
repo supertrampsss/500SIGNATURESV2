@@ -684,3 +684,23 @@ test("le site dit ce qu'il a corrigé et quand il a lu ses sources", () => {
   const corps = MAIN.slice(MAIN.indexOf("async function peindreMethode"));
   assert.match(corps.slice(0, 900), /catch/);
 });
+
+test("le détail d'un territoire porte son classement, son export et sa comparaison", () => {
+  // Trois conteneurs disparus avec la vue DONNÉES, alors que tout le code qui
+  // les remplit est resté : `majTableau`, `majTableauEvolution` et
+  // `majComparateur` se taisaient faute d'endroit où écrire.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  const vue = balises.slice(balises.indexOf('id="vue-detail"'), balises.indexOf('id="vue-methode"'));
+  assert.match(vue, /id="tableau-donnees"/);
+  assert.match(vue, /id="exporter"/);
+  assert.match(vue, /id="comparateur"/);
+  // `majTableau` écrit dans `#exporter` sans le tester : les deux vont ensemble
+  // ou pas du tout.
+  assert.ok(
+    vue.indexOf('id="tableau-donnees"') !== -1 && vue.indexOf('id="exporter"') !== -1,
+    "le tableau et son bouton d'export doivent être posés ensemble",
+  );
+  // Le tableau est un tableau : `majTableau` y écrit un `<caption>`, un
+  // `<thead>` et un `<tbody>`.
+  assert.match(vue, /<table[^>]*id="tableau-donnees"/);
+});

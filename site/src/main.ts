@@ -2127,6 +2127,9 @@ async function peindreDetail(): Promise<void> {
     territoire.nom,
     rubriques(territoire, indicateursDeLaFiche(etat.niveau), THEMES, ORDRE_THEMES),
   );
+  // Le comparateur suit la sélection : il n'a pas d'état propre, il relit
+  // `etat.comparaison`, que l'adresse porte déjà.
+  await majComparateur();
 }
 
 /** Le simulateur n'est une vue du site que si au moins un budget est publié.

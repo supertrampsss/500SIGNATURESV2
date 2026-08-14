@@ -165,6 +165,16 @@
 
     <div class="vue" id="vue-detail" hidden>
       <div id="detail"></div>
+
+      <!-- Le classement de la couche affichée, son export et la comparaison de
+           territoires vivaient dans la vue DONNÉES, retirée. Le code qui les
+           remplit n'a jamais bougé : il lui manquait ces trois conteneurs. -->
+      <section class="comparateur" id="comparateur" hidden></section>
+
+      <section class="classement">
+        <table id="tableau-donnees"></table>
+        <button type="button" class="bouton-filet" id="exporter" hidden></button>
+      </section>
     </div>
 
     <!-- La méthode : ce que le site a corrigé, et quand il a lu ses sources.
