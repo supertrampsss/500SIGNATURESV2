@@ -16,7 +16,7 @@
  * fonction est pure, rend une chaîne, et c'est cette chaîne qui est testée.
  */
 
-import type { Indicateur } from "./donnees.ts";
+import type { Indicateur, Jeu } from "./donnees.ts";
 import { formater } from "./echelle.ts";
 import { echapper } from "./texte.ts";
 
@@ -79,6 +79,12 @@ export type Analyse = {
       periode: string;
       valeur: number;
     };
+    /** Une grandeur déclarée en clair par l'analyse elle-même — licite
+     *  seulement là où `observe` est interdit (`resultat_simulation`,
+     *  `hypothese`, `interpretation`) : docs/analyses-schema.md, révision
+     *  « `observe` interdit n'est pas `valeur` interdite ». `null` et absent
+     *  sont équivalents. */
+    valeur?: number | null;
     registre: Registre;
     lecture: string;
   }[];
@@ -145,9 +151,13 @@ function express(analyse: Analyse, catalogue: Indicateur[]): string {
       if (!chiffre.observe) return `<li>${echapper(chiffre.dit)}</li>`;
       const unite = uniteDe(catalogue, chiffre.observe.indicateur);
       const montant = formater(chiffre.observe.valeur, unite, false, chiffre.observe.indicateur);
-      return `<li>${echapper(chiffre.lecture)} : <strong>${montant}</strong> (exercice ${echapper(
-        chiffre.observe.periode,
-      )})</li>`;
+      // `dit` s'affiche toujours ici, jamais seulement en repli : c'est la
+      // juxtaposition du chiffre couramment cité et du chiffre publié qui
+      // fait l'étage 1. Sans elle, `dit` ne survit que par coïncidence,
+      // quand `affirmation.texte` recopie les mêmes mots arrondis.
+      return `<li>${echapper(chiffre.lecture)} — cité comme « ${echapper(
+        chiffre.dit,
+      )} », publié : <strong>${montant}</strong> (exercice ${echapper(chiffre.observe.periode)})</li>`;
     })
     .join("");
   const confusion =
@@ -176,24 +186,43 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
 
   const lignes = analyse.chiffres
     .map((chiffre) => {
-      const cellules = exercices
-        .map((exercice) => {
-          if (!chiffre.observe || chiffre.observe.periode !== exercice) return "<td></td>";
-          const unite = uniteDe(catalogue, chiffre.observe.indicateur);
-          const montant = formater(
-            chiffre.observe.valeur,
-            unite,
-            false,
-            chiffre.observe.indicateur,
-          );
-          return `<td class="analyse-rendu__chiffre analyse-rendu__chiffre--${echapper(chiffre.registre)}">${montant}</td>`;
-        })
-        .join("");
+      const observe = chiffre.observe;
+      const classe = `analyse-rendu__chiffre analyse-rendu__chiffre--${echapper(chiffre.registre)}`;
+      // Une ligne sans `observe` (interprétation, hypothèse, résultat du
+      // simulateur) n'a rien à ranger sous un exercice précis : elle tient
+      // une seule cellule, étalée sur les colonnes d'exercice quand il y en a
+      // plusieurs. Sans cette branche, la ligne produisait une cellule vide
+      // par exercice publié par les *autres* lignes, et `dit` disparaissait
+      // dès qu'une seule ligne du tableau portait une observation.
+      //
+      // Une `valeur` déclarée (docs/analyses-schema.md, révision « observe
+      // interdit n'est pas valeur interdite ») s'affiche à côté de `dit`,
+      // comme `observe` le fait à l'étage 1 — le site l'énonce lui-même, ce
+      // n'est pas une observation du pipeline, donc jamais dans une colonne
+      // d'exercice.
+      const cellules = !observe
+        ? `<td class="${classe}"${
+            exercices.length > 1 ? ` colspan="${exercices.length}"` : ""
+          }>${
+            chiffre.valeur != null
+              ? `${formater(chiffre.valeur, "EUR", false)} <span class="analyse-rendu__dit">(dit « ${echapper(
+                  chiffre.dit,
+                )} »)</span>`
+              : echapper(chiffre.dit)
+          }</td>`
+        : exercices
+            .map((exercice) => {
+              if (observe.periode !== exercice) return "<td></td>";
+              const unite = uniteDe(catalogue, observe.indicateur);
+              const montant = formater(observe.valeur, unite, false, observe.indicateur);
+              return `<td class="${classe}">${montant}</td>`;
+            })
+            .join("");
       return `<tr>
         <th scope="row">${echapper(chiffre.lecture)}
           <span class="analyse-rendu__registre">${echapper(LIBELLE_REGISTRE[chiffre.registre])}</span>
         </th>
-        ${cellules || `<td class="analyse-rendu__chiffre analyse-rendu__chiffre--${echapper(chiffre.registre)}">${echapper(chiffre.dit)}</td>`}
+        ${cellules}
       </tr>`;
     })
     .join("");
@@ -204,13 +233,16 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
     ? `<caption>${analyse.hypotheses.map((h) => echapper(h)).join(" ")}</caption>`
     : "";
 
-  const tableau = `<table class="analyse-rendu__tableau">
+  // Un exercice par colonne : sur une analyse à plusieurs millésimes, le
+  // tableau déborde de la carte, et c'est lui qui défile — jamais la page
+  // entière (même règle que `.analyses__defilement`).
+  const tableau = `<div class="analyse-rendu__defilement"><table class="analyse-rendu__tableau">
     ${legende}
     <thead><tr><th scope="col">Chiffre</th>${exercices
       .map((e) => `<th scope="col">${echapper(e)}</th>`)
       .join("")}${exercices.length ? "" : "<th scope=\"col\">Valeur</th>"}</tr></thead>
     <tbody>${lignes}</tbody>
-  </table>`;
+  </table></div>`;
 
   const effets = analyse.effets_indirects.length
     ? `<ul class="analyse-rendu__effets-indirects">${analyse.effets_indirects
@@ -252,17 +284,31 @@ function interactif(analyse: Analyse): string {
 }
 
 /** Étage 4 : le chemin du chiffre, du jeu de données au fichier publié —
- *  une suite cliquable, pas une affirmation qu'il faudrait croire sur parole. */
-function preuve(analyse: Analyse, catalogue: Indicateur[]): string {
+ *  une suite cliquable, pas une affirmation qu'il faudrait croire sur parole.
+ *  `jeux` est le manifeste : producteur et lien du jeu de données en
+ *  viennent, jamais du catalogue qui ne porte que l'identifiant du jeu. */
+function preuve(analyse: Analyse, catalogue: Indicateur[], jeux: Jeu[]): string {
   const chemins = analyse.chiffres
     .filter((c) => c.observe)
     .map((chiffre) => {
       const observe = chiffre.observe!;
       const indicateur = catalogue.find((i) => i.id === observe.indicateur);
+      const jeu = jeux.find((j) => j.id === indicateur?.jeu);
       const unite = indicateur?.unite ?? "EUR";
       const montant = formater(observe.valeur, unite, false, observe.indicateur);
       const etapes = [
-        indicateur?.jeu ? `Jeu de données : ${echapper(indicateur.jeu)}` : null,
+        // Sans manifeste (`jeux` vide), le producteur ne s'affiche pas et le
+        // jeu de données retombe sur son identifiant brut : la suite reste
+        // cohérente, seulement moins cliquable — l'appelant sans manifeste
+        // n'est pas empêché de rendre une preuve.
+        jeu ? `Producteur : ${echapper(jeu.producteur)}` : null,
+        indicateur?.jeu
+          ? jeu
+            ? `Jeu de données : <a href="${echapper(jeu.url)}" target="_blank" rel="noopener">${echapper(
+                jeu.titre,
+              )}</a>`
+            : `Jeu de données : ${echapper(indicateur.jeu)}`
+          : null,
         analyse.verifie_contre ? `Millésime : ${echapper(analyse.verifie_contre)}` : null,
         `Indicateur : ${echapper(indicateur?.libelle ?? observe.indicateur)}`,
         `Territoire : ${echapper(observe.niveau)} ${echapper(observe.code)}`,
@@ -294,14 +340,19 @@ function preuve(analyse: Analyse, catalogue: Indicateur[]): string {
   </section>`;
 }
 
-/** Rendu pur d'une analyse, sans DOM : c'est lui qui est testé. */
-export function rendu(analyse: Analyse, catalogue: Indicateur[]): string {
+/** Rendu pur d'une analyse, sans DOM : c'est lui qui est testé.
+ *
+ *  `jeux` est le manifeste (`Manifeste.jeux`) : optionnel, parce que le
+ *  producteur et le lien du jeu de données à l'étage 4 ne sont qu'un
+ *  enrichissement du chemin de preuve — sans lui, le chemin reste complet et
+ *  cohérent, seulement moins cliquable. La tâche 4 passe le vrai manifeste. */
+export function rendu(analyse: Analyse, catalogue: Indicateur[], jeux: Jeu[] = []): string {
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
     <h2 class="analyse-rendu__titre">${echapper(analyse.titre)}</h2>
     ${express(analyse, catalogue)}
     ${detail(analyse, catalogue)}
     ${interactif(analyse)}
-    ${preuve(analyse, catalogue)}
+    ${preuve(analyse, catalogue, jeux)}
   </article>`;
 }
 
@@ -313,8 +364,13 @@ export function renduIndex(analyses: Analyse[]): string {
       const badge = a.mises_a_jour.length
         ? `<span class="analyse-rendu__badge-maj">Mise à jour</span>`
         : "";
+      // Un lien de fragment (`#slug`) ne résout que si l'index et l'analyse
+      // sont composés sur la même page — ce que ce module ne fait jamais :
+      // `rendu()` produit un `<article>` par page, à son propre chemin
+      // (tâche 4, `dist/analyses/<slug>/index.html`). C'est ce chemin réel
+      // que l'index doit viser.
       return `<li class="analyse-rendu__index-ligne">
-        <a href="#${echapper(a.slug)}">${echapper(a.titre)}</a>
+        <a href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a>
         <time datetime="${echapper(a.publie_le)}">${echapper(a.publie_le)}</time>
         ${badge}
       </li>`;

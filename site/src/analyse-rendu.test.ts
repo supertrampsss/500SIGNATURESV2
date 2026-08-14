@@ -19,6 +19,25 @@ const CATALOGUE = [
   { id: "etat_mission_defense_credits_consommes", unite: "EUR" },
 ] as never[];
 
+// Catalogue et manifeste pour les fixtures qui mélangent les registres —
+// distincts de CATALOGUE ci-dessus pour porter un `jeu` que le fichier
+// défense réel ne référence pas dans le catalogue minimal des tests.
+const CATALOGUE_MIXTE = [
+  { id: "test_indicateur_vote", unite: "EUR", jeu: "jeu-test" },
+  { id: "test_indicateur_consomme", unite: "EUR", jeu: "jeu-test" },
+] as never[];
+
+const JEUX_TEST = [
+  {
+    id: "jeu-test",
+    titre: "Jeu de données de test",
+    producteur: "Producteur de test",
+    licence: "Licence Ouverte 2.0",
+    url: "https://exemple.test/jeu",
+    extraction: "2026-01-01",
+  },
+] as never[];
+
 // L'analyse réelle du dépôt, chargée telle que publiée : le rendu doit la
 // tenir sans transformation.
 const DEFENSE: Analyse = JSON.parse(
@@ -69,6 +88,52 @@ function analyseMinimale(overrides: Partial<Analyse> = {}): Analyse {
     verifie_contre: "",
     ...overrides,
   } as Analyse;
+}
+
+/**
+ * Une analyse qui mélange les registres — deux `fait_comptable` observés sur
+ * deux exercices différents, et une `interpretation` sans `observe` — avec un
+ * `dit` distinct sur chaque chiffre. Les treize tests d'origine ne
+ * couvraient qu'un seul registre à la fois et qu'un seul exercice par
+ * chiffre : c'est cette variété absente qui laissait passer les trois
+ * défauts fermés par cette vague (findings 1 à 3).
+ */
+function analyseMixte(overrides: Partial<Analyse> = {}): Analyse {
+  return analyseMinimale({
+    slug: "mixte-test",
+    chiffres: [
+      {
+        dit: "à peu près 45 milliards d'euros",
+        observe: {
+          indicateur: "test_indicateur_vote",
+          niveau: "pays",
+          code: "FR",
+          periode: "2019",
+          valeur: 44987654321.5,
+        },
+        registre: "fait_comptable",
+        lecture: "Les crédits votés en 2019.",
+      },
+      {
+        dit: "un peu plus de 50 milliards d'euros",
+        observe: {
+          indicateur: "test_indicateur_consomme",
+          niveau: "pays",
+          code: "FR",
+          periode: "2025",
+          valeur: 50123456789.12,
+        },
+        registre: "fait_comptable",
+        lecture: "Les crédits consommés en 2025.",
+      },
+      {
+        dit: "de l'ordre de 5 milliards selon plusieurs instituts",
+        registre: "interpretation",
+        lecture: "Un rapprochement qui n'est publié par aucun fichier.",
+      },
+    ],
+    ...overrides,
+  });
 }
 
 test("les quatre étages sont présents dans la sortie", () => {
@@ -213,6 +278,93 @@ test("l'index trie par publie_le décroissant et marque les mises_a_jour", () =>
   };
   assert.match(ligneDe("Révisée"), /mise[s]? à jour/i);
   assert.doesNotMatch(ligneDe("Ancienne"), /mise[s]? à jour/i);
+});
+
+test("chiffres[].dit s'affiche toujours à côté du chiffre observé (finding 1)", () => {
+  // `dit` est le chiffre couramment entendu, `observe` celui que le pipeline a
+  // publié : c'est leur juxtaposition qui fait l'étage 1. Les deux
+  // formulations ci-dessous sont distinctes de `lecture` et de
+  // `affirmation.texte` — leur présence dans le rendu ne peut donc venir que
+  // du champ `dit` lui-même, pas d'une coïncidence de vocabulaire comme dans
+  // le fichier défense réel.
+  const html = rendu(analyseMixte(), CATALOGUE_MIXTE);
+  // L'apostrophe passe par `echapper()` et devient `&#39;` dans le rendu.
+  assert.match(html, /à peu près 45 milliards d&#39;euros/);
+  assert.match(html, /un peu plus de 50 milliards d&#39;euros/);
+  const premier = formater(44987654321.5, "EUR", false);
+  const second = formater(50123456789.12, "EUR", false);
+  assert.match(html, new RegExp(premier.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(html, new RegExp(second.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+});
+
+test("le détail garde `dit` sur une ligne sans observe, entourée de lignes avec exercice (finding 2)", () => {
+  const html = rendu(analyseMixte(), CATALOGUE_MIXTE);
+  const detail = html.slice(html.indexOf("analyse-rendu__detail"));
+  // Le <tr> qui entoure « Un rapprochement qui » — repéré depuis le dernier
+  // `<tr>` avant ce texte, pas depuis le premier de tout le tableau, sinon la
+  // capture non gourmande s'étend sur les trois lignes précédentes.
+  const idxTexte = detail.indexOf("Un rapprochement qui");
+  assert.ok(idxTexte !== -1, "ligne « interpretation » introuvable dans le tableau");
+  const debut = detail.lastIndexOf("<tr>", idxTexte);
+  const fin = detail.indexOf("</tr>", idxTexte) + "</tr>".length;
+  const ligne = detail.slice(debut, fin);
+  // « n'est » : l'apostrophe passe par `echapper()` et devient `&#39;` dans le
+  // rendu, d'où le repère précédent qui ne la porte pas.
+  assert.match(ligne, /n&#39;est publié par aucun fichier/);
+  // Une seule cellule : le `dit` de la ligne sans observation, jamais des
+  // cellules `<td></td>` vides une par exercice publié par les autres lignes.
+  assert.equal((ligne.match(/<td/g) ?? []).length, 1, "la ligne sans observe doit tenir une seule cellule");
+  assert.match(ligne, /de l&#39;ordre de 5 milliards selon plusieurs instituts/);
+  assert.doesNotMatch(ligne, /<td><\/td>/);
+});
+
+test("une ligne sans observe affiche aussi sa `valeur` déclarée, quand le fichier en porte une (finding 2, révision « observe interdit n'est pas valeur interdite »)", () => {
+  const avecValeurDeclaree = analyseMinimale({
+    chiffres: [
+      {
+        dit: "environ 3 milliards selon le simulateur",
+        valeur: 3120000000,
+        registre: "hypothese",
+        lecture: "Une hypothèse chiffrée par le site, pas une observation du pipeline.",
+      },
+    ],
+    simulateur: { budget: "", contrat: "", lecture: "Rien à rejouer." },
+  });
+  const html = rendu(avecValeurDeclaree, CATALOGUE);
+  const attendu = formater(3120000000, "EUR", false);
+  assert.match(html, new RegExp(attendu.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(html, /environ 3 milliards selon le simulateur/);
+});
+
+test("sans `valeur` déclarée, une ligne sans observe n'affiche que `dit`, comme avant", () => {
+  const html = rendu(analyseMixte(), CATALOGUE_MIXTE);
+  const detail = html.slice(html.indexOf("analyse-rendu__detail"));
+  const idxTexte = detail.indexOf("Un rapprochement qui");
+  const debut = detail.lastIndexOf("<tr>", idxTexte);
+  const fin = detail.indexOf("</tr>", idxTexte) + "</tr>".length;
+  const ligne = detail.slice(debut, fin);
+  assert.doesNotMatch(ligne, /analyse-rendu__dit/);
+});
+
+test("l'index pointe vers la page réelle de l'analyse, pas une ancre morte (finding 3)", () => {
+  const html = renduIndex([DEFENSE]);
+  assert.ok(
+    html.includes(`href="/analyses/${DEFENSE.slug}/"`),
+    "le lien de l'index doit pointer vers /analyses/<slug>/",
+  );
+  assert.doesNotMatch(html, /href="#/);
+});
+
+test("l'étage 4 nomme le producteur et lie le jeu de données quand le manifeste est fourni (finding 4)", () => {
+  const html = rendu(analyseMixte(), CATALOGUE_MIXTE, JEUX_TEST);
+  assert.match(html, /Producteur\s*:\s*Producteur de test/);
+  assert.match(html, /<a href="https:\/\/exemple\.test\/jeu"[^>]*>Jeu de données de test<\/a>/);
+});
+
+test("sans manifeste, l'étage 4 reste cohérent — juste moins cliquable (finding 4)", () => {
+  const html = rendu(analyseMixte(), CATALOGUE_MIXTE);
+  assert.doesNotMatch(html, /Producteur\s*:/);
+  assert.match(html, /Indicateur\s*:/);
 });
 
 test("aucune réserve qui s'excuse dans le module lui-même", () => {
