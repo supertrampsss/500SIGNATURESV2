@@ -27,17 +27,19 @@ class DonneesTest:
         return self._version
 
 
-# Deux indicateurs : un petit montant (pour les cas ordinaires) et un montant
+# Trois indicateurs : un petit montant (pour les cas ordinaires), un montant
 # proche de celui de la vraie analyse Défense (pour tester l'arrondi en
-# milliards, cas 7).
+# milliards, cas 7) et sa version négative (pour le signe, cas Important C).
 CATALOGUE = {
     "test_indicateur": {"niveaux": ["pays"]},
     "second_indicateur": {"niveaux": ["pays"]},
+    "troisieme_indicateur": {"niveaux": ["pays"]},
 }
 
 SERIES = {
     ("test_indicateur", "pays", "FR"): {"2025": 1234.0},
     ("second_indicateur", "pays", "FR"): {"2025": 59946338573.0},
+    ("troisieme_indicateur", "pays", "FR"): {"2025": -59946338573.0},
 }
 
 
@@ -611,13 +613,36 @@ def test_interpretation_avec_observe_echoue():
     assert any(e.champ == "chiffres[0].observe" for e in erreurs)
 
 
-def test_resultat_simulation_sans_observe_passe():
+def test_resultat_simulation_sans_observe_ni_valeur_echoue():
+    """Révision Critical B : cette fonction s'appelait
+    `test_resultat_simulation_sans_observe_passe` et verrouillait
+    `erreurs == []` ici — c'était le défaut (un `dit` non vérifié, affiché
+    quand même comme un résultat du simulateur), pas la règle. Sans `observe`
+    ET sans `valeur` déclarée, ce chiffre n'est vérifié par rien : c'est
+    maintenant une erreur, symétrique à `test_resultat_simulation_avec_valeur_et_budget_entre_dans_les_references`
+    (section 22) qui verrouille le cas qui passe."""
     analyse = analyse_conforme()
     analyse["chiffres"][0]["registre"] = "resultat_simulation"
     analyse["chiffres"][0]["observe"] = None
     analyse["verdict"]["phrase"] = "Le simulateur produit ce résultat sous ces réglages."
     erreurs = controler([analyse], fake_donnees())
-    assert erreurs == []
+    assert any(e.champ == "chiffres[0].valeur" for e in erreurs)
+
+
+def test_hypothese_sans_observe_ni_valeur_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "hypothese"
+    analyse["chiffres"][0]["observe"] = None
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].valeur" for e in erreurs)
+
+
+def test_interpretation_sans_observe_ni_valeur_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "interpretation"
+    analyse["chiffres"][0]["observe"] = None
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].valeur" for e in erreurs)
 
 
 def test_donnee_officielle_sans_observe_passe_si_source():
@@ -930,3 +955,147 @@ def test_observe_texte_ne_leve_pas_et_reste_une_erreur():
     analyse["chiffres"][0]["observe"] = "texte"
     erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
     assert any(e.champ == "chiffres[0].observe" for e in erreurs)
+
+
+# 24. Critical A : `effets_indirects[].texte` est rendu sur la page
+#     (site/src/analyse-rendu.ts, étage 2) avec un auteur et une source — la
+#     forme d'une citation fabriquée. Un montant inventé y est refusé comme
+#     dans les autres champs de prose ; une valeur adossée à un chiffre
+#     référencé y est acceptée.
+
+
+def _effet_indirect(texte: str) -> dict:
+    return {
+        "texte": texte,
+        "auteur": "Un organisme cité",
+        "source": {
+            "titre": "Exemple",
+            "url": "https://example.invalid/effet",
+            "consulte_le": "2026-01-01",
+        },
+    }
+
+
+def test_montant_invente_dans_effets_indirects_texte_echoue():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [
+        _effet_indirect("Cela entraînerait une économie de 45 000 000 000 euros, jamais publiée.")
+    ]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "effets_indirects[0].texte" for e in erreurs)
+
+
+def test_montant_reference_dans_effets_indirects_texte_est_accepte():
+    analyse = analyse_conforme()
+    analyse["effets_indirects"] = [_effet_indirect("Cela représente environ 1 234 euros publiés.")]
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 25. Important C : le signe fait partie du montant. Probe verbatim du
+#     brief : un écart affiché négatif ne doit jamais correspondre à une
+#     référence positive. Le tiret d'une plage de dates ou d'une référence
+#     légale, précédé d'un chiffre, n'est jamais lu comme un signe.
+
+
+def test_signe_negatif_non_capture_etait_le_bug_ecart_positif_rejete():
+    analyse = _analyse_avec_verdict_defense("L'écart est de -59 946 M€.")
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_signe_negatif_correspond_a_une_reference_negative():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "troisieme_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = -59946338573.0
+    analyse["chiffres"][0]["dit"] = "environ -59,9 milliards d'euros"
+    analyse["verdict"]["phrase"] = "L'écart est de -59 946 M€ publié."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_signe_vrai_moins_u2212_est_reconnu():
+    # Le vrai signe moins U+2212, que certains traitements de texte
+    # substituent au tiret ASCII.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "troisieme_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = -59946338573.0
+    analyse["chiffres"][0]["dit"] = "environ −59,9 milliards d'euros"
+    analyse["verdict"]["phrase"] = "L'écart est de −59 946 M€ publié."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_plage_millesimes_avec_tiret_reste_deux_nombres_positifs():
+    # « 2019-2025 » : le tiret est précédé d'un chiffre (le « 9 » de 2019),
+    # donc ce n'est jamais un signe — les deux millésimes restent positifs
+    # et exemptés par la règle du millésime, indépendamment du signe.
+    analyse = _analyse_avec_verdict_defense(
+        "Sur la période 2019-2025, le montant correspond à 59 946 M€ publiés."
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_reference_legale_avec_tiret_ne_declenche_pas_la_garde():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Voir l'article L. 132-1 du code applicable."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 26. Important D : les sous-champs obligatoires du schéma, jusqu'ici
+#     vérifiés nulle part — leur absence ne faisait échouer que le
+#     pré-rendu du site (TypeError), pas ce contrôle. Table verbatim du
+#     brief.
+
+
+def test_verdict_phrase_absente_echoue():
+    analyse = analyse_conforme()
+    del analyse["verdict"]["phrase"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_affirmation_texte_absent_echoue():
+    analyse = analyse_conforme()
+    del analyse["affirmation"]["texte"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "affirmation.texte" for e in erreurs)
+
+
+def test_chiffres_lecture_absente_echoue():
+    analyse = analyse_conforme()
+    del analyse["chiffres"][0]["lecture"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].lecture" for e in erreurs)
+
+
+def test_chiffres_dit_absent_echoue():
+    analyse = analyse_conforme()
+    del analyse["chiffres"][0]["dit"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].dit" for e in erreurs)
+
+
+def test_sources_url_absente_echoue():
+    analyse = analyse_conforme()
+    del analyse["sources"][0]["url"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "sources[0].url" for e in erreurs)
+
+
+def test_simulateur_remplace_par_un_objet_hors_schema_echoue():
+    analyse = analyse_conforme()
+    analyse["simulateur"] = {"x": 1}
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "simulateur.budget" for e in erreurs)
+    assert any(e.champ == "simulateur.contrat" for e in erreurs)
+    assert any(e.champ == "simulateur.lecture" for e in erreurs)
+
+
+def test_budgets_concernes_hors_liste_echoue():
+    analyse = analyse_conforme()
+    analyse["budgets_concernes"] = ["martiens"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "budgets_concernes[0]" for e in erreurs)

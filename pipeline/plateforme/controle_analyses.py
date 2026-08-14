@@ -37,6 +37,15 @@ prose qu'aucun chiffre ne déclare du tout. Pour `resultat_simulation`, une
 `valeur` déclarée exige en plus `simulateur.budget` non vide : un résultat de
 simulateur que le lecteur ne peut pas rejouer n'est pas un résultat.
 
+**`valeur` est obligatoire sur ces trois registres, pas seulement licite
+(Critical B).** Sans elle, un chiffre n'a ni observation ni valeur déclarée :
+`dit` seul n'est vérifié par rien, et pourtant `site/src/analyse-rendu.ts`
+l'affiche quand même — nu à l'étage 1, et sous le libellé « Résultat du
+simulateur » (ou « Hypothèse », ou « Interprétation ») à l'étage 2 — comme si
+le site l'avait lui-même calculé. Un chiffre de ces registres sans `valeur`
+déclarée est donc une erreur, exactement comme `observe` manquant l'est pour
+`fait_comptable`.
+
 ## La frontière de l'arrondi (garde anti-invention)
 
 Un montant écrit en prose peut légitimement arrondir ce qu'il désigne — « 59,9
@@ -73,14 +82,30 @@ lignes. Un nombre entier, sans échelle ni décimale, compris entre 1900 et
 2100 est traité comme un millésime et jamais comme un montant.
 
 La garde scanne toute la prose que le site écrit et affiche : `titre`,
-`verdict.phrase`, `chiffres[].lecture`, `hypotheses[]` et
-`simulateur.lecture`. Deux champs restent **délibérément exclus**, parce que
-tous deux citent un chiffre tel qu'il circule plutôt que d'affirmer une
-observation : `affirmation.texte` rapporte l'énoncé contesté lui-même —
-l'exiger référencé rendrait impossible d'examiner un chiffre faux, qui est
-précisément l'objet du produit — et `chiffres[].dit`, de la même façon,
-rapporte le montant tel qu'on l'entend couramment, avant que `lecture` n'en
-donne la lecture vérifiée.
+`verdict.phrase`, `chiffres[].lecture`, `hypotheses[]`, `simulateur.lecture`
+et `effets_indirects[].texte`. Deux champs restent **délibérément exclus**,
+parce que tous deux citent un chiffre tel qu'il circule plutôt que
+d'affirmer une observation : `affirmation.texte` rapporte l'énoncé contesté
+lui-même — l'exiger référencé rendrait impossible d'examiner un chiffre
+faux, qui est précisément l'objet du produit — et `chiffres[].dit`, de la
+même façon, rapporte le montant tel qu'on l'entend couramment, avant que
+`lecture` n'en donne la lecture vérifiée. `effets_indirects[].texte` n'a pas
+cette excuse : il est rendu sur la page (`site/src/analyse-rendu.ts`,
+étage 2) accompagné d'un `auteur` et d'une `source` — exactement la forme
+d'une citation fabriquée — donc un montant qui s'y trouve doit être adossé à
+un chiffre référencé comme partout ailleurs (Critical A).
+
+## Le signe fait partie du montant (Important C)
+
+Un montant en prose peut être négatif — un déficit, un écart. Le tokeniseur
+capture un signe (`-` ASCII ou le vrai signe moins U+2212) directement collé
+à un nombre, à condition que ce signe ne soit pas lui-même précédé d'un
+chiffre : "-59 946 M€" est un montant négatif, mais le tiret de "2019-2025"
+ou d'"Article L. 132-1" reste un séparateur de plage ou de référence
+légale, jamais un signe, parce qu'il est précédé d'un chiffre. La
+comparaison contre la référence porte alors sur la valeur signée, pas sur sa
+valeur absolue : un écart de -59 946 M€ ne correspond jamais à une référence
+de +59 946 338 573.
 """
 
 import argparse
@@ -116,6 +141,10 @@ REGISTRES = {
     "hypothese",
     "interpretation",
 }
+# Important D : liste fermée de docs/analyses-schema.md, colonne
+# `budgets_concernes` — vérifiée nulle part avant ce correctif (« martiens »
+# passait sans erreur).
+BUDGETS = {"etat", "secu", "collectivites", "bareme"}
 TYPES = {
     "verification_chiffre",
     "analyse_mesure",
@@ -391,6 +420,13 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
             )
         )
 
+    # Important D : `affirmation.texte` est obligatoire (docs/analyses-schema.md)
+    # mais sa présence seule n'était vérifiée nulle part — un champ absent y
+    # produisait un TypeError en aval plutôt qu'une erreur du contrôle.
+    affirmation_texte = affirmation.get("texte")
+    if not isinstance(affirmation_texte, str) or not affirmation_texte:
+        erreurs.append(Erreur(slug, "affirmation.texte", "champ obligatoire absent ou vide"))
+
     fichier = analyse.get("_fichier")
     if fichier is not None and Path(fichier).stem != slug:
         erreurs.append(
@@ -405,6 +441,12 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
     cran = verdict.get("cran")
     if cran not in CRANS:
         erreurs.append(Erreur(slug, "verdict.cran", f"cran hors liste : « {cran} »"))
+
+    # Important D : `verdict.phrase` est obligatoire, même défaut que
+    # `affirmation.texte` ci-dessus.
+    phrase = verdict.get("phrase")
+    if not isinstance(phrase, str) or not phrase:
+        erreurs.append(Erreur(slug, "verdict.phrase", "champ obligatoire absent ou vide"))
 
     confusion = verdict.get("confusion")
     if cran == "hors_perimetre":
@@ -435,6 +477,60 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
                     f"registre hors liste : « {registre} »",
                 )
             )
+        if not isinstance(chiffre, dict):
+            continue
+        # Important D : `chiffres[].dit` et `chiffres[].lecture` sont tous
+        # deux obligatoires (docs/analyses-schema.md) — absents jusqu'ici,
+        # ils ne faisaient échouer que le pré-rendu du site (TypeError), pas
+        # le contrôle censé les vérifier.
+        dit = chiffre.get("dit")
+        if not isinstance(dit, str) or not dit:
+            erreurs.append(Erreur(slug, f"chiffres[{i}].dit", "champ obligatoire absent ou vide"))
+        lecture = chiffre.get("lecture")
+        if not isinstance(lecture, str) or not lecture:
+            erreurs.append(
+                Erreur(slug, f"chiffres[{i}].lecture", "champ obligatoire absent ou vide")
+            )
+
+    # Important D : chaque source doit porter `titre` et `url` — `consulte_le`
+    # est déjà vérifiée par `_dates_a_verifier` ci-dessus.
+    for i, source in enumerate(analyse.get("sources") or []):
+        if not isinstance(source, dict):
+            continue
+        if not isinstance(source.get("titre"), str) or not source.get("titre"):
+            erreurs.append(Erreur(slug, f"sources[{i}].titre", "champ obligatoire absent ou vide"))
+        if not isinstance(source.get("url"), str) or not source.get("url"):
+            erreurs.append(Erreur(slug, f"sources[{i}].url", "champ obligatoire absent ou vide"))
+
+    # Important D : `simulateur` est un objet {budget, contrat, lecture} —
+    # `{"x": 1}` passait la vérification de type (dict, non vide) sans que
+    # ses trois sous-champs soient jamais regardés. `budget` et `contrat`
+    # peuvent être des chaînes vides (docs/analyses-schema.md : aucun
+    # réglage ne reproduit alors l'analyse) ; le schéma ne précise pas la
+    # même exemption pour `lecture`, donc seule sa présence comme chaîne est
+    # exigée ici — pas sa non-vacuité, faute d'indication explicite dans le
+    # schéma sur ce point précis (voir le rapport de session).
+    simulateur = analyse.get("simulateur")
+    simulateur = simulateur if isinstance(simulateur, dict) else {}
+    for champ_sim in ("budget", "contrat", "lecture"):
+        if not isinstance(simulateur.get(champ_sim), str):
+            erreurs.append(
+                Erreur(
+                    slug,
+                    f"simulateur.{champ_sim}",
+                    "champ obligatoire absent : doit être une chaîne (peut être vide)",
+                )
+            )
+
+    # Important D : `budgets_concernes` est une liste fermée
+    # (docs/analyses-schema.md), vérifiée nulle part avant ce correctif.
+    budgets = analyse.get("budgets_concernes")
+    if isinstance(budgets, list):
+        for i, budget in enumerate(budgets):
+            if budget not in BUDGETS:
+                erreurs.append(
+                    Erreur(slug, f"budgets_concernes[{i}]", f"budget hors liste : « {budget} »")
+                )
 
     return erreurs
 
@@ -454,11 +550,13 @@ def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], 
       mais un `observe` renseigné reste vérifié exactement : citer une
       observation ne dispense jamais de la citer juste.
     - `resultat_simulation`, `hypothese` et `interpretation` ne référencent
-      aucune donnée publiée : `observe` y reste interdit. Mais un `valeur`
-      déclaré au niveau du chiffre (pas dans `observe`) y est licite — c'est
-      la divulgation elle-même — et entre dans la liste de référence.
-      `resultat_simulation` exige en plus `simulateur.budget` non vide
-      quand `valeur` est déclaré : un résultat non rejouable n'en est pas un.
+      aucune donnée publiée : `observe` y reste interdit. Un `valeur` déclaré
+      au niveau du chiffre (pas dans `observe`) y est en revanche
+      **obligatoire** (Critical B) — c'est la divulgation elle-même, sans
+      laquelle `dit` seul serait publié comme si le site l'avait
+      calculé — et entre dans la liste de référence. `resultat_simulation`
+      exige en plus `simulateur.budget` non vide quand `valeur` est déclaré :
+      un résultat non rejouable n'en est pas un.
 
     Un `chiffre` dont `observe` est présent mais sans `indicateur`, `niveau`
     ou `code` est une erreur ici, jamais un skip silencieux (Critical 1) —
@@ -493,23 +591,35 @@ def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], 
                     )
                 )
             valeur_declaree = chiffre.get("valeur")
-            if valeur_declaree is not None:
-                champ_valeur = f"chiffres[{i}].valeur"
-                if isinstance(valeur_declaree, bool) or not isinstance(
-                    valeur_declaree, (int, float)
-                ):
-                    erreurs.append(Erreur(slug, champ_valeur, "doit être un nombre"))
-                elif registre == "resultat_simulation" and not simulateur_budget:
-                    erreurs.append(
-                        Erreur(
-                            slug,
-                            champ_valeur,
-                            "une valeur déclarée pour resultat_simulation exige"
-                            " simulateur.budget non vide",
-                        )
+            champ_valeur = f"chiffres[{i}].valeur"
+            if valeur_declaree is None:
+                # Critical B : sans valeur déclarée, ce chiffre n'a ni
+                # observation ni valeur — `dit` seul n'est vérifié par rien,
+                # et le rendu l'affiche pourtant comme si le site l'avait
+                # calculé (voir la docstring de tête).
+                erreurs.append(
+                    Erreur(
+                        slug,
+                        champ_valeur,
+                        f"registre « {registre} » interdit observe : une valeur déclarée"
+                        " est obligatoire, sinon rien ne vérifie le chiffre affiché",
                     )
-                else:
-                    verifiees.append(valeur_declaree)
+                )
+            elif isinstance(valeur_declaree, bool) or not isinstance(
+                valeur_declaree, (int, float)
+            ):
+                erreurs.append(Erreur(slug, champ_valeur, "doit être un nombre"))
+            elif registre == "resultat_simulation" and not simulateur_budget:
+                erreurs.append(
+                    Erreur(
+                        slug,
+                        champ_valeur,
+                        "une valeur déclarée pour resultat_simulation exige"
+                        " simulateur.budget non vide",
+                    )
+                )
+            else:
+                verifiees.append(valeur_declaree)
             continue
 
         if observe is None:
@@ -652,7 +762,20 @@ _SEPARATEURS = _ESPACES + _SEPARATEURS_MECONNUS + ","
 # `\t`, fusionnant deux nombres distincts au travers d'un saut de ligne dans
 # `hypotheses[]`), ni `-` ni `/` (qui casseraient « Article L. 132-1 » et
 # « 2019-2025 » en un seul nombre) ne sont dans cette classe.
-_NOMBRE_RE = re.compile(r"(?<!\d)\d+(?:[" + re.escape(_SEPARATEURS) + r"]\d+)*(?!\d)")
+#
+# Important C : un signe moins directement collé au nombre en fait partie —
+# `-` ASCII ou le vrai signe moins U+2212 (substitué automatiquement par
+# certains éditeurs). Groupe nommé `signe`, optionnel, capturé seulement
+# quand il n'est PAS lui-même précédé d'un chiffre (`(?<![\d…])`) : c'est ce
+# qui distingue « -59 946 M€ » (un montant négatif) du tiret de plage
+# « 2019-2025 » ou de référence légale « Article L. 132-1 », où le tiret
+# suit un chiffre et reste un simple séparateur entre deux nombres positifs
+# distincts.
+_SIGNES = "-−"
+_NOMBRE_RE = re.compile(
+    r"(?:(?<![\d" + re.escape(_SIGNES) + r"])(?P<signe>[" + re.escape(_SIGNES) + r"])(?=\d))?"
+    r"(?<!\d)\d+(?:[" + re.escape(_SEPARATEURS) + r"]\d+)*(?!\d)"
+)
 _ECHELLE_MOT_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
 # Pas de \b final ici : « € » n'est pas un caractère de mot, donc un \b
 # juste après ne matcherait jamais quand « M€ » est suivi d'une espace ou
@@ -688,18 +811,30 @@ def _candidats(texte: str) -> list[tuple[float, int, float, bool, str]]:
 
     Un nombre illisible n'est jamais parsé « au mieux » : sa valeur
     reconstituée n'a alors aucun sens fiable, et n'est conservée que pour
-    compatibilité de forme du tuple — jamais affichée (Critical 2)."""
+    compatibilité de forme du tuple — jamais affichée (Critical 2).
+
+    `brut` inclut le signe quand `_NOMBRE_RE` en a capturé un (Important C) ;
+    `corps` en est la partie numérique seule, la seule que `_lisible` et le
+    parsing doivent voir — un « - » ou un « − » en tête ferait échouer
+    `_lisible` (ni chiffre, ni espace reconnue) pour un token pourtant
+    parfaitement lisible."""
     candidats = []
     for match in _NOMBRE_RE.finditer(texte):
         brut = match.group()
-        if not _lisible(brut):
-            valeur = float(re.sub(r"[^0-9]", "", brut) or 0)
+        signe = match.group("signe")
+        corps = brut[len(signe) :] if signe else brut
+        if not _lisible(corps):
+            valeur = float(re.sub(r"[^0-9]", "", corps) or 0)
+            if signe:
+                valeur = -valeur
             candidats.append((valeur, 0, 1.0, False, brut))
             continue
-        entier, _, decimale = brut.partition(",")
+        entier, _, decimale = corps.partition(",")
         for espace in _ESPACES:
             entier = entier.replace(espace, "")
         valeur = float(f"{entier}.{decimale}") if decimale else float(entier)
+        if signe:
+            valeur = -valeur
         suite_texte = texte[match.end() :]
         suite_mot = _ECHELLE_MOT_RE.match(suite_texte)
         if suite_mot:
@@ -733,7 +868,10 @@ def _nombre_non_reference(texte: str, references: list[float]) -> tuple[str, str
     for valeur, decimales, echelle, lisible, brut in _candidats(texte):
         if not lisible:
             return "illisible", brut
-        effective = valeur * echelle
+        # Important C : le seuil porte sur l'ampleur du montant, jamais sur
+        # son signe — un écart de -1 234 M€ franchit le seuil tout autant
+        # qu'un écart de +1 234 M€.
+        effective = abs(valeur) * echelle
         if effective < SEUIL_GARDE:
             continue
         if decimales == 0 and echelle == 1.0 and MILLESIME_MIN <= valeur <= MILLESIME_MAX:
@@ -779,6 +917,14 @@ def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
     for i, hypothese in enumerate(analyse.get("hypotheses") or []):
         verifier(f"hypotheses[{i}]", hypothese if isinstance(hypothese, str) else None)
     verifier("simulateur.lecture", (analyse.get("simulateur") or {}).get("lecture"))
+    for i, effet in enumerate(analyse.get("effets_indirects") or []):
+        # Critical A : rendu à l'étage 2 (`site/src/analyse-rendu.ts`) avec un
+        # `auteur` et une `source` — la forme d'une citation fabriquée si un
+        # montant y est inventé. Contrairement à `affirmation.texte`, ce
+        # champ n'a pas vocation à rapporter un chiffre tel qu'il circule :
+        # il affirme une conséquence, donc il est scanné comme le reste.
+        texte = effet.get("texte") if isinstance(effet, dict) else None
+        verifier(f"effets_indirects[{i}].texte", texte)
 
     return erreurs
 
