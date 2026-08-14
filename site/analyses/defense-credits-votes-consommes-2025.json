@@ -11,8 +11,8 @@
     "auteur": null,
     "date": null,
     "source": {
-      "titre": "Situation mensuelle budgétaire de l'État, exercice 2025",
-      "url": "https://www.data.economie.gouv.fr/explore/dataset/situation-mensuelle-budget-etat/",
+      "titre": "Projet de loi relatif aux résultats de la gestion et portant approbation des comptes de l'année (PLRG) 2025, annexe 1",
+      "url": "https://www.data.economie.gouv.fr/explore/dataset/projet-de-loi-relatif-aux-resultats-de-la-gestion-et-portant-approbation-des-comptes-de-lannee-plrg-2025/",
       "consulte_le": "2026-08-14"
     }
   },
@@ -53,8 +53,8 @@
   "effets_indirects": [],
   "sources": [
     {
-      "titre": "Situation mensuelle budgétaire de l'État, exercice 2025",
-      "url": "https://www.data.economie.gouv.fr/explore/dataset/situation-mensuelle-budget-etat/",
+      "titre": "Projet de loi relatif aux résultats de la gestion et portant approbation des comptes de l'année (PLRG) 2025, annexe 1",
+      "url": "https://www.data.economie.gouv.fr/explore/dataset/projet-de-loi-relatif-aux-resultats-de-la-gestion-et-portant-approbation-des-comptes-de-lannee-plrg-2025/",
       "consulte_le": "2026-08-14"
     }
   ],
