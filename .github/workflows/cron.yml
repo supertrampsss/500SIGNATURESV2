@@ -107,6 +107,16 @@ jobs:
           # état cohérent de la base, jamais un chargement à moitié fait.
           python -m plateforme.publish --publication r2:plateforme-published
 
+      - name: Re-contrôler les analyses publiées
+        # D11 rejoué après publication : une révision de données peut faire
+        # sortir un montant cité d'une analyse de ce que les fichiers publiés
+        # disent maintenant. `continue-on-error` : ce n'est pas une raison de
+        # casser le rafraîchissement, seulement d'en avertir l'exploitant —
+        # voir l'étape suivante, qui relaie ce résultat dans l'issue unique
+        # que tient déjà `alerter`.
+        id: analyses
+        continue-on-error: true
+        run: python -m plateforme.controle_analyses site/analyses
       - name: Signaler les sources en retard ou en échec
         # `always()` : c'est précisément quand le rafraîchissement échoue que
         # l'alerte doit partir. Elle ne masque pas l'échec — l'étape précédente
@@ -115,6 +125,27 @@ jobs:
         uses: ./.github/actions/alerter
         with:
           token: ${{ github.token }}
+      - name: Signaler l'échec du re-contrôle des analyses
+        # `alerter` (au-dessus) ne sait interroger que l'entrepôt : un
+        # contrôle qui échoue sans y écrire une ligne ne remonterait nulle
+        # part. On tient donc la même issue unique, par le même titre exact
+        # (alerter/action.yml : en changer le titre en ouvrirait une seconde),
+        # avec le même jeton — pas un second canal d'alerte, le même, complété.
+        if: steps.analyses.outcome == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -e
+          TITRE="Sources en retard ou en échec"
+          NUMERO=$(gh issue list --state all --limit 100 --json number,title \
+                     --jq '[.[] | select(.title == env.TITRE)] | first | .number // empty')
+          CORPS="Le re-contrôle des analyses éditoriales après publication (\`python -m plateforme.controle_analyses\`) a échoué : au moins un montant cité dans une analyse ne correspond plus aux données publiées. Détail dans le journal de l'étape « Re-contrôler les analyses publiées » de ce run."
+          if [ -n "$NUMERO" ]; then
+            gh issue reopen "$NUMERO" 2>/dev/null || true
+            gh issue comment "$NUMERO" --body "$CORPS"
+          else
+            gh issue create --title "$TITRE" --body "$CORPS"
+          fi
       - name: Renvoyer l'entrepôt au bucket
         # `always()` : un rafraîchissement qui échoue à mi-course a déjà écrit.
         if: always()

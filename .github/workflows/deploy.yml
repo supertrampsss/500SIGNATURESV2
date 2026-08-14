@@ -28,6 +28,11 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -q -e ./pipeline
+      - name: Contrôler les analyses
+        # D11 : ce contrôle déterministe remplace la relecture humaine des
+        # montants cités dans les analyses éditoriales. Avant le build, pour
+        # qu'un chiffre faux n'atteigne jamais le site.
+        run: python -m plateforme.controle_analyses site/analyses
       - run: npm ci || npm install
         working-directory: site
       - run: npm run build
