@@ -704,3 +704,16 @@ test("le détail d'un territoire porte son classement, son export et sa comparai
   // `<thead>` et un `<tbody>`.
   assert.match(vue, /<table[^>]*id="tableau-donnees"/);
 });
+
+test("le seul cadre qui somme les trois budgets est montré, à côté de l'atelier", () => {
+  // L'atelier n'écrit jamais de total : entre le budget général et les régimes
+  // de base circulent des dizaines de milliards que chacun compte de son côté.
+  // La comptabilité nationale est le seul cadre qui les somme — publiée, et
+  // jamais affichée.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.match(balises, /id="simu-recapitulatif"/);
+  assert.match(MAIN, /afficherRecapitulatif\(/);
+  // Il est posé à côté de l'atelier, pas dedans : `afficherAtelier` possède
+  // `#simu` et le repeint entièrement à chaque réglage.
+  assert.doesNotMatch(MAIN, /afficherAtelier\(\$\("simu-recapitulatif"\)/);
+});

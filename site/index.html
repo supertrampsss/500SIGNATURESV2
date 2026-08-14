@@ -161,6 +161,10 @@
          doit mener à une section vide. -->
     <div class="vue" id="vue-simulateur" hidden>
       <section class="simu" id="simu"></section>
+      <!-- À côté de l'atelier, jamais dedans : `afficherAtelier` possède `#simu`
+           et le repeint à chaque réglage. Le récapitulatif, lui, ne se règle
+           pas — c'est le seul cadre du site qui somme les trois budgets. -->
+      <section class="simu-recapitulatif" id="simu-recapitulatif"></section>
     </div>
 
     <div class="vue" id="vue-detail" hidden>

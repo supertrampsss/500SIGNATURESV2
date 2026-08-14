@@ -24,6 +24,7 @@ import { decoder as decoderAtelier, type Volet } from "./atelier.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
+import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
   enCsv, enCsvEvolution, nomDeFichier, telecharger,
@@ -2565,6 +2566,13 @@ async function ouvrirSimulateur(): Promise<void> {
       ecrireUrl();
     },
   });
+  // Le récapitulatif ne se règle pas : il dit ce que les budgets réglables ne
+  // peuvent pas dire — leur somme, dans le seul cadre qui l'autorise.
+  try {
+    afficherRecapitulatif($("simu-recapitulatif"), await donnees.recapitulatifNational());
+  } catch {
+    // Fichier non publié : l'atelier reste entier.
+  }
 }
 
 async function demarrer(): Promise<void> {
