@@ -9,7 +9,8 @@ import { test } from "node:test";
 import { dupliquer, enregistrer, lister, NOM_MAX, renommer, supprimer, transposer } from "./scenarios.ts";
 import type { Depot, Scenario } from "./scenarios.ts";
 import { indexer, type Budget } from "./simulateur.ts";
-import type { VoletBudget } from "./atelier.ts";
+import type { VoletBudget, VoletBareme } from "./atelier.ts";
+import type { Bareme } from "./bareme.ts";
 
 /** Dépôt en mémoire : `valeur` tient lieu de `localStorage.getItem/setItem`. */
 function depotMemoire(initial: string | null = null): Depot & { valeur: string | null } {
@@ -276,6 +277,37 @@ function scenarioAvec(budget: string): Scenario {
   return { nom: "S", budget, contrat: "", cree_le: "2026-01-01", modifie_le: "2026-01-01", exercice: "2019" };
 }
 
+/** Le même barème minuscule que simulateur-rendu.test.ts (`BAREME`,
+ *  `VOLET_BAREME`), repris ici plutôt que réinventé, pour exercer la branche
+ *  « bareme » de `ligneExiste` — aucun test existant ne passait par elle,
+ *  tous portant sur des volets budget. */
+function baremeDeuxTranches(): Bareme {
+  return {
+    exercice: "2024",
+    titre: "Un impôt",
+    cadre: "Essai",
+    note: "Assiette d'essai.",
+    foyers: 100,
+    revenu_total: 1000,
+    impot_emis: 40,
+    tranches: [
+      { b: 0, fa: 100, r: 600, a: 600, i: 0 },
+      { b: 10, fa: 40, r: 400, a: 400, i: 40 },
+    ],
+  } as Bareme;
+}
+
+function voletIr(): VoletBareme {
+  return {
+    genre: "bareme",
+    cle: "ir",
+    nom: "Un impôt",
+    bareme: baremeDeuxTranches(),
+    depart: new Map([[10, 10]]),
+    pilote: { volet: "etat", code: "r1301" },
+  };
+}
+
 test("transposer : un scénario dont toutes les lignes existent encore se transpose sans perte", () => {
   const volets = [voletEtat()];
   const { etat, disparues } = transposer(scenarioAvec("etat/146:-10,etat/150:20"), volets);
@@ -315,4 +347,43 @@ test("transposer : un volet entièrement disparu de l'atelier est aussi signalé
   assert.equal(disparues.length, 1);
   assert.match(disparues[0]!, /D-PRE/);
   assert.equal(etat.budgets.size, 0);
+});
+
+test("transposer : une valeur qui ne se lit pas est nommée, jamais perdue en silence", () => {
+  // « 146 » existe toujours dans la nomenclature — ce n'est donc pas une
+  // ligne disparue au sens de `ligneExiste`. Mais `decoder` (atelier.ts)
+  // écarte quand même le morceau parce que « abc » n'est pas un nombre : sans
+  // le correctif, cette ligne n'apparaîtrait ni dans l'état ni dans
+  // `disparues`, perdue sans être nommée — exactement l'invariant que
+  // `transposer` existe pour tenir.
+  const volets = [voletEtat()];
+  const { etat, disparues } = transposer(scenarioAvec("etat/146:abc"), volets);
+  assert.equal(disparues.length, 1);
+  assert.match(disparues[0]!, /146/);
+  // Et le mot dit un fait différent d'une ligne disparue de la nomenclature.
+  assert.match(disparues[0]!, /illisible/);
+  // Elle n'entre pas dans l'état, comme chez `decoder` : la table du volet
+  // n'a même pas été créée.
+  assert.equal(etat.budgets.has("etat"), false);
+});
+
+/* --------------------------------------------------------------------------
+ * transposer() — la branche « bareme » de ligneExiste
+ * ----------------------------------------------------------------------- */
+
+test("transposer : une borne de barème encore présente se transpose sans perte", () => {
+  const volets = [voletIr()];
+  const { etat, disparues } = transposer(scenarioAvec("ir/10:20"), volets);
+  assert.deepEqual(disparues, []);
+  assert.equal(etat.baremes.get("ir")?.get(10), 20);
+});
+
+test("transposer : une borne disparue du barème figure dans disparues", () => {
+  // La table de tranches ne porte que 0 et 10 : 25 n'y est pas.
+  const volets = [voletIr()];
+  const { etat, disparues } = transposer(scenarioAvec("ir/25:20"), volets);
+  assert.equal(disparues.length, 1);
+  assert.match(disparues[0]!, /25/);
+  // Borne absente : `decoder` n'a même pas créé de table pour ce volet.
+  assert.equal(etat.baremes.has("ir"), false);
 });
