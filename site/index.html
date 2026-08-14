@@ -162,8 +162,13 @@
       <section class="simu" id="simu"></section>
       <!-- À côté de l'atelier, jamais dedans : `afficherAtelier` possède `#simu`
            et le repeint à chaque réglage. Le récapitulatif, lui, ne se règle
-           pas — c'est le seul cadre du site qui somme les trois budgets. -->
-      <section class="simu-recapitulatif" id="simu-recapitulatif"></section>
+           pas — c'est le seul cadre du site qui somme les trois budgets.
+           `hidden` par défaut : `.simu-recapitulatif` porte depuis peu le même
+           cadre bordé, ombré que `.simu`, et un cadre visible avant tout
+           rendu (ou si `recapitulatif.json` n'est pas publié) se voyait comme
+           une case vide. `ouvrirSimulateur` ne le révèle qu'après un rendu
+           réussi. -->
+      <section class="simu-recapitulatif" id="simu-recapitulatif" hidden></section>
     </div>
 
     <div class="vue" id="vue-detail" hidden>

@@ -2600,8 +2600,16 @@ async function ouvrirSimulateur(): Promise<void> {
   // peuvent pas dire — leur somme, dans le seul cadre qui l'autorise.
   try {
     afficherRecapitulatif($("simu-recapitulatif"), await donnees.recapitulatifNational());
+    // Même motif qu'à `peindreMethode` : le retour du peintre commande la
+    // visibilité de son conteneur. `.simu-recapitulatif` porte désormais le
+    // même cadre bordé, ombré que `.simu` (padding, fond, bordure, ombre) —
+    // avant cette bascule, la section restait visible sans `hidden` et
+    // peignait ce cadre vide le temps du fetch, ou en permanence si le
+    // fichier n'est pas publié.
+    $("simu-recapitulatif").hidden = false;
   } catch {
-    // Fichier non publié : l'atelier reste entier.
+    // Fichier non publié : l'atelier reste entier, le cadre reste caché.
+    $("simu-recapitulatif").hidden = true;
   }
 }
 

@@ -825,6 +825,25 @@ test("le seul cadre qui somme les trois budgets est montré, à côté de l'atel
   // règle s'étend à `.simu-recapitulatif` plutôt que de dupliquer ses
   // déclarations, l'idiome déjà en place dans la feuille.
   assert.match(CSS, /\.simu,\n\.simu-recapitulatif \{\n\s*padding: var\(--espace-7\);/);
+  // Ce même cadre — padding, fond, bordure, ombre — rend visible tout ce
+  // qu'il entoure, y compris rien du tout : `#simu-recapitulatif` doit donc
+  // partir caché, et ne se révéler qu'après un rendu réussi. Sans ce garde,
+  // chaque lecteur qui ouvre /simulateur voit une case bordée, ombrée, vide
+  // le temps du fetch — et pour de bon si `recapitulatif.json` n'est pas
+  // publié, puisque le `catch` d'`ouvrirSimulateur` ne fait rien.
+  const balisesRecap = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.match(balisesRecap, /<section class="simu-recapitulatif" id="simu-recapitulatif" hidden>/);
+  const corpsOuvrir = MAIN.slice(
+    MAIN.indexOf("async function ouvrirSimulateur"),
+    MAIN.indexOf("async function demarrer"),
+  );
+  const corpsRecap = corpsOuvrir.slice(corpsOuvrir.indexOf("afficherRecapitulatif("));
+  assert.ok(
+    corpsRecap.indexOf(".hidden = false;") !== -1 &&
+      corpsRecap.indexOf(".hidden = false;") < corpsRecap.indexOf("catch"),
+    "ouvrirSimulateur doit révéler #simu-recapitulatif seulement après un rendu réussi",
+  );
+  assert.match(corpsRecap, /catch \{[^}]*\.hidden = true;/);
 });
 
 test("le paramètre d'évolution ouvre ce qu'il promet, sans bouton pour le proposer", () => {
