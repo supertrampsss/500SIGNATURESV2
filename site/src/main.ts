@@ -2552,8 +2552,14 @@ async function demarrer(): Promise<void> {
   // fragment : on les réécrit vers leur chemin, sans rechargement et sans
   // toucher aux paramètres. Une ancre interne (`#bloc-etat`) n'est pas une vue
   // et reste intacte.
-  const vueDuFragment = location.pathname === "/" ? vueDepuisAdresse("/", location.hash) : null;
+  const fragmentInitial = location.hash;
+  const vueDuFragment = location.pathname === "/" ? vueDepuisAdresse("/", fragmentInitial) : null;
   if (vueDuFragment) {
+    // La règle `#carte` vit dans `basculerVue`, mais la réécriture ci-dessous
+    // efface le fragment avant qu'elle ne puisse s'y appliquer : un lien
+    // `/#carte` n'ouvrait la carte déployée que parce que `carteOuverte` vaut
+    // `true` au départ, ce qu'aucun test ne reliait.
+    if (fragmentInitial === "#carte") carteOuverte = true;
     history.replaceState(null, "", `${cheminDeVue(vueDuFragment)}${location.search}`);
   }
   window.addEventListener("hashchange", basculerVue);

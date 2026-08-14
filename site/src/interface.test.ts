@@ -421,6 +421,19 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   // La carte se mesure au montage : rendue dans un conteneur replié, elle
   // garderait cette taille au déploiement.
   assert.match(MAIN, /requestAnimationFrame\(\(\) => carte\?\.resize\(\)\);/);
+
+  // La réécriture des liens à fragment efface le fragment : la règle `#carte`
+  // doit être consommée depuis le fragment tel qu'il est arrivé, sinon elle
+  // ne s'applique jamais au démarrage et le déploiement de la carte ne tient
+  // plus qu'à la valeur initiale de `carteOuverte`.
+  assert.match(MAIN, /const fragmentInitial = location\.hash;/);
+  assert.match(MAIN, /if \(fragmentInitial === "#carte"\) carteOuverte = true;/);
+  const ouverture = MAIN.slice(MAIN.indexOf("const fragmentInitial = location.hash;"));
+  assert.ok(
+    ouverture.indexOf('if (fragmentInitial === "#carte") carteOuverte = true;') <
+      ouverture.indexOf("history.replaceState"),
+    "la règle #carte doit être lue avant que la réécriture n'efface le fragment",
+  );
 });
 
 test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
