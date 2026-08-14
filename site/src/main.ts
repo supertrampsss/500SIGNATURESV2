@@ -66,6 +66,7 @@ import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import { cheminDeVue, vueDepuisAdresse } from "./routes.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
+import { renduGrille } from "./methode-rendu.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -2270,6 +2271,9 @@ const prete = new Promise<void>((resolve) => {
 
 async function peindreMethode(): Promise<void> {
   if (methodePeinte) return;
+  // La grille ne fetch rien : peinte avant `prete`, elle s'affiche même si
+  // les données publiées tardent ou manquent.
+  $("methode-grille").innerHTML = renduGrille();
   await prete;
   let rendu = false;
   // `.bloc` est un cadre bordé, ombré : un booléen à `false` veut dire « rien

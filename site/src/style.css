@@ -5736,6 +5736,51 @@ summary.pont__rangee,
   }
 }
 
+/* ---- La grille de verdicts (/méthode) ---- */
+.methode-grille__intro,
+.methode-grille__aide {
+  color: var(--encre-douce);
+  font-size: var(--texte-m);
+}
+.methode-grille__crans,
+.methode-grille__confusions {
+  display: grid;
+  gap: var(--espace-2) var(--espace-5);
+  grid-template-columns: max-content 1fr;
+  align-items: baseline;
+  margin: var(--espace-4) 0 var(--espace-6);
+}
+.methode-grille__crans dt,
+.methode-grille__confusions dt {
+  font-weight: 600;
+}
+.methode-grille__crans dt code,
+.methode-grille__confusions dt code {
+  font-weight: 400;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.methode-grille__crans dd,
+.methode-grille__confusions dd {
+  margin: 0;
+}
+.methode-grille__registres {
+  list-style: none;
+  margin: var(--espace-4) 0 var(--espace-6);
+  padding: 0;
+  display: grid;
+  gap: var(--espace-3);
+}
+.methode-grille__registres li {
+  padding-left: var(--espace-5);
+  border-left: 2px solid var(--trait);
+  font-size: var(--texte-s);
+}
+.methode-grille__registres li code {
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+
 /* ===========================================================================
    CARTE DÉPLOYÉE — un bloc DANS la colonne, pas un fond d'écran
    ===========================================================================
