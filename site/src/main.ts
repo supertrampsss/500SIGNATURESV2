@@ -28,9 +28,9 @@ import {
   type EtatAtelier,
 } from "./atelier.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
-import { lister as listerScenarios, enregistrer as enregistrerScenario, supprimer as supprimerScenario, NOM_MAX, type Depot } from "./scenarios.ts";
+import { lister as listerScenarios, enregistrer as enregistrerScenario, supprimer as supprimerScenario, transposer, NOM_MAX, type Depot } from "./scenarios.ts";
 import { comparer as comparerScenarios } from "./comparaison.ts";
-import { renduBarre, renduComparaison, type Comparable } from "./scenarios-rendu.ts";
+import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
@@ -2563,6 +2563,11 @@ async function chargerReferences(): Promise<void> {
   }
 }
 
+/** Les lignes qu'un scénario chargé portait et que la nomenclature courante
+ *  ne porte plus (`transposer`, scenarios.ts) — nommées par `montrerScenarios`
+ *  jusqu'au prochain scénario chargé ou à sa suppression. */
+let disparuesCourantes: string[] = [];
+
 const CLE_SCENARIOS = "scenarios";
 
 /** Le dépôt de session : en mémoire, jamais `localStorage`. C'est sur lui
@@ -2693,8 +2698,13 @@ function chargerScenario(nom: string): void {
   etat.faceNom = "";
   etat.faceExercice = "";
   ecrireUrl();
+  // La nomenclature courante a pu laisser tomber des lignes depuis
+  // l'enregistrement de ce scénario : `transposer` les nomme, là où `decoder`
+  // seul les ignorerait en silence (voir sa docstring, atelier.ts).
+  const { etat: etatTranspose, disparues } = transposer(scenario, voletsMontes);
+  disparuesCourantes = disparues;
   afficherAtelier($("simu"), voletsMontes, {
-    etat: decoderAtelier(scenario.budget, voletsMontes),
+    etat: etatTranspose,
     contrat: scenario.contrat || null,
     surReglages: (encode: string, contrat: string | null) => {
       etat.budget = encode;
@@ -2739,6 +2749,9 @@ function supprimerScenarioCourant(): void {
   if (!etat.nom) return;
   supprimerScenario(depotScenarios, etat.nom);
   etat.nom = "";
+  // Le scénario supprimé n'est plus affiché : les lignes disparues qu'il
+  // portait n'ont plus de scénario à décrire.
+  disparuesCourantes = [];
   ecrireUrl();
   montrerScenarios();
 }
@@ -2803,6 +2816,13 @@ function montrerScenarios(): void {
       </p>`
     : "";
 
+  // Les lignes qu'un scénario chargé portait et que la nomenclature courante
+  // ne porte plus — nommées, jamais seulement comptées (voir `transposer`,
+  // scenarios.ts).
+  const disparues = disparuesCourantes.length
+    ? renduDisparues(voletsMontes, decoderAtelier(etat.budget, voletsMontes), disparuesCourantes)
+    : "";
+
   const tableau = etat.face
     ? (() => {
         const colonnes = colonnesComparaison();
@@ -2810,7 +2830,8 @@ function montrerScenarios(): void {
       })()
     : "";
 
-  cible.innerHTML = avertissement + renduBarre(scenarios, etat.nom || null) + actions + choix + tableau;
+  cible.innerHTML =
+    avertissement + renduBarre(scenarios, etat.nom || null) + actions + disparues + choix + tableau;
 }
 
 /** Les écouteurs de la barre, posés une seule fois : `#scenarios` n'est

@@ -982,16 +982,54 @@ test("recharger un scénario rappelle afficherAtelier, sans toucher à atelier.t
   assert.match(MAIN, /function chargerScenario\(nom: string\): void \{/);
   const corps = MAIN.slice(
     MAIN.indexOf("function chargerScenario"),
-    MAIN.indexOf("function chargerScenario") + 700,
+    MAIN.indexOf("function chargerScenario") + 900,
   );
   assert.match(corps, /afficherAtelier\(\$\("simu"\), voletsMontes/);
-  assert.match(corps, /decoderAtelier\(scenario\.budget, voletsMontes\)/);
   // Le moteur lui-même n'a pas bougé : ni `atelier.ts` ni `simulateur.ts` ni
   // `simulateur-rendu.ts` ne mentionnent les scénarios.
   for (const fichier of ["atelier.ts", "simulateur.ts", "simulateur-rendu.ts"]) {
     const source = readFileSync(new URL(`./${fichier}`, import.meta.url), "utf8");
     assert.doesNotMatch(source, /[Ss]cenario/, `${fichier} ne doit pas connaître les scénarios`);
   }
+});
+
+/* ------------------------------------------------------------------------
+ * `transposer` (scenarios.ts) avait un appelant nulle part : Task 5 l'a
+ * ajouté, confiné à ses propres fichiers, sans que rien ne l'invoque. Charger
+ * un scénario enregistré doit désormais passer par lui — pas par `decoder`
+ * seul, qui ignore en silence les lignes que la nomenclature a laissées
+ * tomber — et les lignes disparues doivent se nommer à l'écran.
+ * ---------------------------------------------------------------------- */
+
+test("charger un scénario passe par transposer, jamais par decoder seul", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function chargerScenario"),
+    MAIN.indexOf("function chargerScenario") + 900,
+  );
+  assert.match(corps, /transposer\(scenario, voletsMontes\)/);
+  // L'état donné à l'atelier vient de la transposition, pas d'un decodage
+  // direct qui laisserait les lignes disparues sans nom.
+  assert.doesNotMatch(corps, /etat: decoderAtelier\(scenario\.budget, voletsMontes\)/);
+  assert.match(corps, /disparuesCourantes = disparues/);
+});
+
+test("les lignes disparues d'un scénario chargé sont nommées à l'écran, pas seulement comptées", () => {
+  assert.match(MAIN, /import \{[\s\S]*?renduDisparues[\s\S]*?\} from "\.\/scenarios-rendu\.ts";/);
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.match(corps, /renduDisparues\(voletsMontes, decoderAtelier\(etat\.budget, voletsMontes\), disparuesCourantes\)/);
+  // Le tableau ne ment pas quand rien n'a disparu : le bloc reste vide.
+  assert.match(corps, /disparuesCourantes\.length\s*\?/);
+});
+
+test("supprimer le scénario courant efface aussi les lignes disparues qu'il portait", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function supprimerScenarioCourant"),
+    MAIN.indexOf("function supprimerScenarioCourant") + 400,
+  );
+  assert.match(corps, /disparuesCourantes = \[\];/);
 });
 
 test("un stockage indisponible dégrade en scénarios de session, et l'interface le dit", () => {
