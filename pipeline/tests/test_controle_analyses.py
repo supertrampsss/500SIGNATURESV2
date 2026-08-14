@@ -1,0 +1,306 @@
+"""Tests du contrôle déterministe des analyses (docs/analyses-schema.md, D11).
+
+Chaque cas vient du brief de la tâche 2. Les fixtures utilisent des URL en
+`example.invalid`, jamais une adresse plausible.
+"""
+
+from plateforme.controle_analyses import controler
+
+
+class DonneesTest:
+    """Double de test du protocole `Donnees` : dictionnaires en mémoire, pas de réseau."""
+
+    def __init__(self, catalogue=None, series=None, version="v-test"):
+        self._catalogue = CATALOGUE if catalogue is None else catalogue
+        self._series = SERIES if series is None else series
+        self._version = version
+
+    def catalogue(self):
+        return self._catalogue
+
+    def serie(self, indicateur, niveau, code):
+        return self._series.get((indicateur, niveau, code))
+
+    def version(self):
+        return self._version
+
+
+# Deux indicateurs : un petit montant (pour les cas ordinaires) et un montant
+# proche de celui de la vraie analyse Défense (pour tester l'arrondi en
+# milliards, cas 7).
+CATALOGUE = {
+    "test_indicateur": {"niveaux": ["pays"]},
+    "second_indicateur": {"niveaux": ["pays"]},
+}
+
+SERIES = {
+    ("test_indicateur", "pays", "FR"): {"2025": 1234.0},
+    ("second_indicateur", "pays", "FR"): {"2025": 59946338573.0},
+}
+
+
+def analyse_conforme() -> dict:
+    """Une analyse qui satisfait tous les contrôles — copie de travail à muter par test."""
+    return {
+        "slug": "test-analyse",
+        "_fichier": "test-analyse.json",
+        "titre": "Un chiffre, une lecture",
+        "type": "decryptage",
+        "publie_le": "2026-01-01",
+        "themes": ["budget_etat"],
+        "budgets_concernes": ["etat"],
+        "mise_en_avant": False,
+        "affirmation": {
+            # Grand nombre délibérément sans rapport avec les chiffres publiés :
+            # ce champ est exempté de la garde anti-invention (cas 7).
+            "texte": "On entend parler de 987 654 321 euros, sans rapport avec les chiffres publiés.",
+            "auteur": None,
+            "date": None,
+            "source": {
+                "titre": "Exemple",
+                "url": "https://example.invalid/source",
+                "consulte_le": "2026-01-01",
+            },
+        },
+        "verdict": {
+            "cran": "exact",
+            "phrase": "Le montant correspond aux 1 234 euros publiés.",
+        },
+        "chiffres": [
+            {
+                "dit": "environ 1 234 euros",
+                "observe": {
+                    "indicateur": "test_indicateur",
+                    "niveau": "pays",
+                    "code": "FR",
+                    "periode": "2025",
+                    "valeur": 1234.0,
+                },
+                "registre": "fait_comptable",
+                "lecture": "Le montant publié pour l'exercice 2025.",
+            }
+        ],
+        "hypotheses": [],
+        "effets_indirects": [],
+        "sources": [
+            {
+                "titre": "Exemple",
+                "url": "https://example.invalid/source",
+                "consulte_le": "2026-01-01",
+            }
+        ],
+        "simulateur": {"budget": "", "contrat": "", "lecture": ""},
+        "mises_a_jour": [],
+        "verifie_contre": "",
+    }
+
+
+def fake_donnees(**kwargs) -> DonneesTest:
+    return DonneesTest(**kwargs)
+
+
+# 1. Une analyse conforme passe sans erreur.
+
+
+def test_analyse_conforme_passe():
+    analyse = analyse_conforme()
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 2. Un slug différent du nom de fichier échoue.
+
+
+def test_slug_different_du_fichier_echoue():
+    analyse = analyse_conforme()
+    analyse["_fichier"] = "autre-nom.json"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "slug" for e in erreurs)
+
+
+# 3. Un cran hors liste échoue.
+
+
+def test_cran_hors_liste_echoue():
+    analyse = analyse_conforme()
+    analyse["verdict"]["cran"] = "scandaleux"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.cran" for e in erreurs)
+
+
+# 4. cran = hors_perimetre sans confusion échoue ; confusion hors liste
+#    échoue ; confusion présente sur un autre cran échoue.
+
+
+def test_hors_perimetre_sans_confusion_echoue():
+    analyse = analyse_conforme()
+    analyse["verdict"]["cran"] = "hors_perimetre"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.confusion" for e in erreurs)
+
+
+def test_confusion_hors_liste_echoue():
+    analyse = analyse_conforme()
+    analyse["verdict"]["cran"] = "hors_perimetre"
+    analyse["verdict"]["confusion"] = "confusion_inventee"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.confusion" for e in erreurs)
+
+
+def test_confusion_presente_sur_un_autre_cran_echoue():
+    analyse = analyse_conforme()
+    assert analyse["verdict"]["cran"] == "exact"
+    analyse["verdict"]["confusion"] = "ae_cp"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.confusion" for e in erreurs)
+
+
+# 5. Une observe.valeur qui diffère d'un centime de la valeur publiée échoue.
+
+
+def test_valeur_differente_d_un_centime_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["valeur"] = 1234.01
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe.valeur" for e in erreurs)
+
+
+# 6. Un indicateur absent du catalogue échoue ; un indicateur non publié à la
+#    maille invoquée échoue.
+
+
+def test_indicateur_absent_du_catalogue_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "indicateur_inconnu"
+    erreurs = controler([analyse], fake_donnees())
+    assert any("catalogue" in e.message for e in erreurs)
+
+
+def test_indicateur_non_publie_a_la_maille_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["niveau"] = "departement"
+    analyse["chiffres"][0]["observe"]["code"] = "33"
+    # Le catalogue ne déclare "test_indicateur" qu'au niveau pays : la valeur
+    # existe bien à ce niveau départemental (pour isoler ce contrôle de celui
+    # de l'exactitude), mais le catalogue ne l'y autorise pas.
+    donnees = fake_donnees(
+        series={("test_indicateur", "departement", "33"): {"2025": 1234.0}},
+    )
+    erreurs = controler([analyse], donnees)
+    assert any(e.champ.endswith("niveau") for e in erreurs)
+
+
+# 7. Garde anti-invention : un nombre ≥ 1 000 dans titre / verdict.phrase /
+#    lecture sans correspondance échoue ; un millésime ne déclenche pas
+#    l'erreur ; un arrondi légitime en milliards est accepté ; un montant
+#    formaté à la française sans correspondance échoue ; affirmation.texte
+#    est exempté de la garde.
+
+
+def test_montant_invente_dans_verdict_phrase_echoue():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant réel est de 4 500 000 euros, jamais publié."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_montant_invente_dans_titre_echoue():
+    analyse = analyse_conforme()
+    analyse["titre"] = "Un budget de 8 000 000 euros que personne n'a publié"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "titre" for e in erreurs)
+
+
+def test_montant_invente_dans_lecture_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["lecture"] = "Un montant sans rapport : 12 345 678 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].lecture" for e in erreurs)
+
+
+def test_millesime_ne_declenche_pas_la_garde():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant correspond aux 1 234 euros publiés en 2025."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_montant_arrondi_en_milliards_est_accepte():
+    # « 59,9 milliards » est une lecture arrondie légitime de 59 946 338 573 —
+    # exactement le cas donné en exemple par le brief.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "second_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = 59946338573.0
+    analyse["chiffres"][0]["dit"] = "environ 59,9 milliards d'euros"
+    analyse["verdict"]["phrase"] = "Le montant correspond à 59,9 milliards d'euros publiés."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_montant_formate_a_la_francaise_sans_correspondance_echoue():
+    # « 59 946,34 » — formaté à la française, mais sans mot d'échelle : lu
+    # comme un montant brut en euros, il ne correspond à aucune observation
+    # (la seule observation référencée vaut 1 234 €). C'est le cas que le
+    # brief demande de refuser.
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant s'élèverait à 59 946,34 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_affirmation_texte_est_exempte_de_la_garde():
+    """Verrouille l'exemption : un très grand nombre dans affirmation.texte
+    seul ne doit déclencher aucune erreur — c'est la citation de ce qui
+    circule, pas une observation à référencer."""
+    analyse = analyse_conforme()
+    analyse["affirmation"]["texte"] = (
+        "On parle parfois de 987 654 321 999 euros, un chiffre qui ne"
+        " correspond à rien de publié."
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 8. Un registre valant donnee_officielle ou estimation_externe sans URL ni
+#    date de consultation échoue.
+
+
+def test_registre_officiel_sans_source_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "donnee_officielle"
+    analyse["sources"] = []
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "sources" for e in erreurs)
+
+
+def test_registre_estimation_externe_sans_url_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "estimation_externe"
+    analyse["sources"] = [{"titre": "Exemple", "url": "", "consulte_le": ""}]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "sources" for e in erreurs)
+
+
+def test_registre_officiel_avec_source_valide_passe():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "donnee_officielle"
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 9. Une analyse conforme rend verifie_contre égal à la version contrôlée.
+
+
+def test_analyse_conforme_rend_verifie_contre():
+    analyse = analyse_conforme()
+    donnees = fake_donnees(version="2026-08-11T0807")
+    controler([analyse], donnees)
+    assert analyse["verifie_contre"] == "2026-08-11T0807"
+
+
+def test_analyse_non_conforme_ne_rend_pas_verifie_contre():
+    analyse = analyse_conforme()
+    analyse["verdict"]["cran"] = "scandaleux"
+    donnees = fake_donnees(version="2026-08-11T0807")
+    controler([analyse], donnees)
+    assert analyse["verifie_contre"] == ""
