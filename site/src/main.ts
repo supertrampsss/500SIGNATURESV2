@@ -1596,20 +1596,6 @@ function periodesDuNiveau(): string[] {
   return [...(fiche.periodes_par_niveau?.[etat.niveau] ?? fiche.periodes ?? [])].sort().reverse();
 }
 
-/**
- * Le bouton « Niveau / Évolution » a quitté la carte.
- *
- * Deux mots sans phrase pour désigner deux façons de peindre la même série —
- * le montant de l'année, ou sa variation depuis l'année d'avant. Personne ne
- * devine cela d'un bouton, et la carte peignait la moitié du temps une
- * grandeur que le lecteur croyait être l'autre. Elle s'en tient au niveau,
- * qui est ce qu'on vient y chercher ; les évolutions se lisent en toutes
- * lettres dans la fiche, avec leurs deux millésimes nommés.
- */
-function construireBarreMode(): void {
-  etat.mode = "niveau";
-}
-
 function construireSelecteurs(): void {
   const disponibles = themesCartographiables();
   if (!disponibles.includes(etat.theme)) etat.theme = disponibles[0] ?? "finances_locales";
@@ -1628,7 +1614,6 @@ function construireSelecteurs(): void {
   // retour au niveau — proprement, bouton masqué compris.
   if (periodes.length < 2) etat.mode = "niveau";
   construireBarreCarte();
-  construireBarreMode();
   construireSelecteurCarte();
 }
 

@@ -720,3 +720,18 @@ test("le seul cadre qui somme les trois budgets est montré, à côté de l'atel
   // `#simu` et le repeint entièrement à chaque réglage.
   assert.doesNotMatch(MAIN, /afficherAtelier\(\$\("simu-recapitulatif"\)/);
 });
+
+test("le paramètre d'évolution ouvre ce qu'il promet, sans bouton pour le proposer", () => {
+  // Le bouton a été retiré exprès : deux mots sans phrase pour deux façons de
+  // peindre la même série, et la carte peignait la moitié du temps une
+  // grandeur que le lecteur croyait être l'autre. Il ne revient pas.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.doesNotMatch(balises, /id="barre-mode"/);
+  // Mais l'adresse porte toujours `mode=evolution`, lu et écrit : plus rien ne
+  // doit l'annuler juste après sa lecture.
+  assert.match(MAIN, /p\.get\("mode"\) === "evolution" \? "evolution" : "niveau"/);
+  assert.doesNotMatch(MAIN, /function construireBarreMode\(\)/);
+  // Le seul repli qui subsiste est celui qui a une raison comptable : une
+  // évolution demande deux millésimes publiés à cette maille.
+  assert.match(MAIN, /if \(periodes\.length < 2\) etat\.mode = "niveau";/);
+});
