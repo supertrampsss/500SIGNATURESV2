@@ -164,6 +164,10 @@
          entrée de menu n'est écrite qu'à ce moment-là. Rien de cliquable ne
          doit mener à une section vide. -->
     <div class="vue" id="vue-simulateur" hidden>
+      <!-- La barre des scénarios, et le tableau de comparaison quand
+           l'adresse porte `face` : montée par `montrerScenarios()`, avant
+           l'atelier qu'elle sert à retrouver ou à mettre en regard. -->
+      <div id="scenarios"></div>
       <section class="simu" id="simu"></section>
       <!-- À côté de l'atelier, jamais dedans : `afficherAtelier` possède `#simu`
            et le repeint à chaque réglage. Le récapitulatif, lui, ne se règle

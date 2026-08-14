@@ -944,6 +944,85 @@ test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () 
   assert.doesNotMatch(balises, /id="palmares"/);
 });
 
+/* ------------------------------------------------------------------------
+ * La barre de scénarios et la comparaison — tâche 4 du lot « Le simulateur
+ * enregistre » (scenarios.ts, comparaison.ts, scenarios-rendu.ts).
+ * ---------------------------------------------------------------------- */
+
+test("le conteneur #scenarios existe et précède #simu", () => {
+  // La barre se lit avant l'atelier : un lecteur qui arrive doit d'abord voir
+  // ce qu'il a déjà enregistré, pas le découvrir sous le formulaire.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  const vue = balises.slice(balises.indexOf('id="vue-simulateur"'), balises.indexOf('id="vue-detail"'));
+  assert.match(vue, /id="scenarios"/);
+  assert.ok(
+    vue.indexOf('id="scenarios"') < vue.indexOf('id="simu"'),
+    "#scenarios doit précéder #simu",
+  );
+});
+
+test("lireUrl lit nom, face et face-nom, comme budget et contrat", () => {
+  const corps = MAIN.slice(MAIN.indexOf("function lireUrl()"), MAIN.indexOf("function ecrireUrl()"));
+  assert.match(corps, /nom: p\.get\("nom"\) \?\? ""/);
+  assert.match(corps, /face: p\.get\("face"\) \?\? ""/);
+  assert.match(corps, /faceNom: p\.get\("face-nom"\) \?\? ""/);
+});
+
+test("ecrireUrl écrit nom, face et face-nom seulement quand ils ne sont pas vides", () => {
+  const corps = MAIN.slice(MAIN.indexOf("function ecrireUrl()"), MAIN.indexOf("history.replaceState"));
+  assert.match(corps, /if \(etat\.nom\) p\.set\("nom", etat\.nom\);/);
+  assert.match(corps, /if \(etat\.face\) p\.set\("face", etat\.face\);/);
+  assert.match(corps, /if \(etat\.faceNom\) p\.set\("face-nom", etat\.faceNom\);/);
+});
+
+test("recharger un scénario rappelle afficherAtelier, sans toucher à atelier.ts", () => {
+  // `afficherAtelier` est déjà ré-entrante (`montage?.abort()` à son début,
+  // simulateur-rendu.ts) : recharger un scénario est un second appel avec un
+  // état décodé, jamais une modification du moteur.
+  assert.match(MAIN, /function chargerScenario\(nom: string\): void \{/);
+  const corps = MAIN.slice(
+    MAIN.indexOf("function chargerScenario"),
+    MAIN.indexOf("function chargerScenario") + 700,
+  );
+  assert.match(corps, /afficherAtelier\(\$\("simu"\), voletsMontes/);
+  assert.match(corps, /decoderAtelier\(scenario\.budget, voletsMontes\)/);
+  // Le moteur lui-même n'a pas bougé : ni `atelier.ts` ni `simulateur.ts` ni
+  // `simulateur-rendu.ts` ne mentionnent les scénarios.
+  for (const fichier of ["atelier.ts", "simulateur.ts", "simulateur-rendu.ts"]) {
+    const source = readFileSync(new URL(`./${fichier}`, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /[Ss]cenario/, `${fichier} ne doit pas connaître les scénarios`);
+  }
+});
+
+test("un stockage indisponible dégrade en scénarios de session, et l'interface le dit", () => {
+  // Même défaut que celui déjà corrigé pour le thème (`brancherTheme`) : la
+  // navigation privée stricte fait lever `localStorage`. `scenarios.ts` avale
+  // déjà l'échec d'ÉCRITURE (sa docstring, `ecrireScenarios`), mais il ne dit
+  // rien au lecteur — c'est à ce module de sonder le stockage et de le dire.
+  assert.match(MAIN, /function stockagePersistant\(\): boolean \{/);
+  const corps = MAIN.slice(
+    MAIN.indexOf("function stockagePersistant"),
+    MAIN.indexOf("function stockagePersistant") + 400,
+  );
+  assert.match(corps, /catch \{\s*return false;/);
+  // Le dépôt de session — en mémoire, jamais `localStorage` — est celui sur
+  // lequel on retombe.
+  assert.match(MAIN, /const depotSession: Depot = \{/);
+  assert.match(MAIN, /const depotScenarios: Depot = persistant \? depotLocal : depotSession;/);
+  // Et l'interface le dit, plutôt que de laisser croire à une sauvegarde qui
+  // n'aura pas lieu.
+  assert.match(MAIN, /Stockage indisponible/);
+});
+
+test("comparer deux scénarios est un mode du simulateur, jamais une vue distincte", () => {
+  // `/simulateur/comparer` résoudrait déjà sur `simulateur` (routes.ts ne lit
+  // que le premier segment) : ouvrir une entrée de menu pour un écran qui n'a
+  // de sens qu'à deux scénarios en main afficherait un lien mort à qui n'en a
+  // aucun. Le mode se déclenche par la présence de `face` dans l'adresse.
+  assert.doesNotMatch(ROUTES, /comparer/);
+  assert.match(MAIN, /const tableau = etat\.face/);
+});
+
 test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", () => {
   // Sans elle, /analyses/ n'existait que pour un lecteur qui en connaissait
   // déjà l'adresse : c'est pourtant le point d'entrée éditorial du site.
