@@ -55,7 +55,8 @@ def analyse_conforme() -> dict:
         "affirmation": {
             # Grand nombre délibérément sans rapport avec les chiffres publiés :
             # ce champ est exempté de la garde anti-invention (cas 7).
-            "texte": "On entend parler de 987 654 321 euros, sans rapport avec les chiffres publiés.",
+            "texte": "On entend parler de 987 654 321 euros, sans rapport avec les chiffres"
+            " publiés.",
             "auteur": None,
             "date": None,
             "source": {
@@ -333,7 +334,9 @@ def test_millesime_dans_l_exercice_est_accepte():
     # Table du brief, ligne 6 : un millésime reste un millésime, avec ou
     # sans montant en M€ dans la même phrase.
     analyse = analyse_conforme()
-    analyse["verdict"]["phrase"] = "Le montant correspond aux 1 234 euros publiés pour l'exercice 2025."
+    analyse["verdict"]["phrase"] = (
+        "Le montant correspond aux 1 234 euros publiés pour l'exercice 2025."
+    )
     erreurs = controler([analyse], fake_donnees())
     assert erreurs == []
 
@@ -481,6 +484,104 @@ def test_main_repertoire_inexistant_echoue(tmp_path, monkeypatch):
 def test_main_repertoire_vide_echoue(tmp_path, monkeypatch):
     monkeypatch.setattr(sys, "argv", ["controle_analyses", str(tmp_path)])
     assert main() == 1
+
+
+# 13. Important 4 : champs obligatoires, `chiffres` non vide, dates valides
+#     (§15.3.1).
+
+
+def test_champs_obligatoires_manquants_echouent():
+    analyse = analyse_conforme()
+    for champ in [
+        "titre",
+        "publie_le",
+        "themes",
+        "budgets_concernes",
+        "mise_en_avant",
+        "hypotheses",
+        "effets_indirects",
+        "sources",
+        "simulateur",
+        "mises_a_jour",
+        "verifie_contre",
+    ]:
+        del analyse[champ]
+    donnees = fake_donnees(version="2026-08-11T0807")
+    erreurs = controler([analyse], donnees)
+    assert erreurs != []
+    assert analyse.get("verifie_contre") != "2026-08-11T0807"
+
+
+def test_chiffres_absent_echoue():
+    analyse = analyse_conforme()
+    del analyse["chiffres"]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres" for e in erreurs)
+
+
+def test_chiffres_vide_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"] = []
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres" for e in erreurs)
+
+
+def test_publie_le_invalide_echoue():
+    analyse = analyse_conforme()
+    analyse["publie_le"] = "pas-une-date"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "publie_le" for e in erreurs)
+
+
+def test_affirmation_date_invalide_echoue():
+    analyse = analyse_conforme()
+    analyse["affirmation"]["auteur"] = "Quelqu'un"
+    analyse["affirmation"]["date"] = "2026-13-40"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "affirmation.date" for e in erreurs)
+
+
+def test_affirmation_date_nulle_reste_valide():
+    analyse = analyse_conforme()
+    assert analyse["affirmation"]["date"] is None
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_consulte_le_invalide_echoue():
+    analyse = analyse_conforme()
+    analyse["sources"][0]["consulte_le"] = "14/08/2026"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "sources[0].consulte_le" for e in erreurs)
+
+
+def test_mises_a_jour_date_invalide_echoue():
+    analyse = analyse_conforme()
+    analyse["mises_a_jour"] = [{"date": "2026-02-30", "quoi": "Correction"}]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "mises_a_jour[0].date" for e in erreurs)
+
+
+# 14. Important 5 : la garde anti-invention scanne aussi `hypotheses[]` et
+#     `simulateur.lecture`.
+
+
+def test_montant_invente_dans_hypotheses_echoue():
+    analyse = analyse_conforme()
+    analyse["hypotheses"] = [
+        "Hors du périmètre habituel, soit 45 000 000 000 euros non publiés."
+    ]
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "hypotheses[0]" for e in erreurs)
+
+
+def test_montant_invente_dans_simulateur_lecture_echoue():
+    analyse = analyse_conforme()
+    analyse["simulateur"]["lecture"] = (
+        "Réglez le curseur sur 45 000 000 000 euros pour reproduire ce calcul."
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "simulateur.lecture" for e in erreurs)
 
 
 # 15. Important 6 : `observe` est interdit pour resultat_simulation,

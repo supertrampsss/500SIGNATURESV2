@@ -55,16 +55,22 @@ n'est jamais soumis à la garde — un pourcentage, un rang, un compte de
 lignes. Un nombre entier, sans échelle ni décimale, compris entre 1900 et
 2100 est traité comme un millésime et jamais comme un montant.
 
-`affirmation.texte` est **délibérément exclu** de cette garde : ce champ cite
-l'énoncé tel qu'il circule, et il contient par nature le chiffre contesté —
+La garde scanne toute la prose que le site écrit et affiche : `titre`,
+`verdict.phrase`, `chiffres[].lecture`, `hypotheses[]` et
+`simulateur.lecture`. Deux champs restent **délibérément exclus**, parce que
+tous deux citent un chiffre tel qu'il circule plutôt que d'affirmer une
+observation : `affirmation.texte` rapporte l'énoncé contesté lui-même —
 l'exiger référencé rendrait impossible d'examiner un chiffre faux, qui est
-précisément l'objet du produit.
+précisément l'objet du produit — et `chiffres[].dit`, de la même façon,
+rapporte le montant tel qu'on l'entend couramment, avant que `lecture` n'en
+donne la lecture vérifiée.
 """
 
 import argparse
 import json
 import re
 import sys
+from datetime import date
 from pathlib import Path
 from typing import NamedTuple, Protocol
 
@@ -114,6 +120,65 @@ REGISTRES_A_SOURCER = {"donnee_officielle", "estimation_externe"}
 # y est interdit — l'autoriser laisserait une valeur invérifiable entrer dans
 # la liste de référence de la garde anti-invention (famille 4).
 REGISTRES_OBSERVE_INTERDIT = {"resultat_simulation", "hypothese", "interpretation"}
+
+# Champs obligatoires de niveau racine (docs/analyses-schema.md, colonne
+# « Obligatoire » = oui). `chiffres` en est exclu : son propre contrôle (plus
+# bas) vérifie déjà l'absence aussi bien que la liste vide, sans doublon.
+CHAMPS_OBLIGATOIRES = [
+    "slug",
+    "titre",
+    "type",
+    "publie_le",
+    "themes",
+    "budgets_concernes",
+    "mise_en_avant",
+    "affirmation",
+    "verdict",
+    "hypotheses",
+    "effets_indirects",
+    "sources",
+    "simulateur",
+    "mises_a_jour",
+    "verifie_contre",
+]
+
+_DATE_RE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def _date_valide(valeur: object) -> bool:
+    """AAAA-MM-JJ strict : le format d'abord (`date.fromisoformat` accepte
+    aussi, depuis Python 3.11, des variantes ISO sans tiret), puis le
+    calendrier réel (rejette « 2026-13-40 »)."""
+    if not isinstance(valeur, str) or not _DATE_RE.match(valeur):
+        return False
+    try:
+        date.fromisoformat(valeur)
+    except ValueError:
+        return False
+    return True
+
+
+def _dates_a_verifier(analyse: dict) -> list[tuple[str, object]]:
+    """-> [(champ, valeur), ...] pour chaque date du schéma (§15.3.1),
+    nullables comprises : c'est à l'appelant de ne pas signaler un `None`
+    là où le schéma l'autorise (`affirmation.date`)."""
+    affirmation = analyse.get("affirmation") or {}
+    dates: list[tuple[str, object]] = [
+        ("publie_le", analyse.get("publie_le")),
+        ("affirmation.date", affirmation.get("date")),
+        ("affirmation.source.consulte_le", (affirmation.get("source") or {}).get("consulte_le")),
+    ]
+    for i, source in enumerate(analyse.get("sources") or []):
+        if isinstance(source, dict):
+            dates.append((f"sources[{i}].consulte_le", source.get("consulte_le")))
+    for i, effet in enumerate(analyse.get("effets_indirects") or []):
+        if isinstance(effet, dict):
+            src = effet.get("source") or {}
+            dates.append((f"effets_indirects[{i}].source.consulte_le", src.get("consulte_le")))
+    for i, maj in enumerate(analyse.get("mises_a_jour") or []):
+        if isinstance(maj, dict):
+            dates.append((f"mises_a_jour[{i}].date", maj.get("date")))
+    return dates
 
 
 class Erreur(NamedTuple):
@@ -218,6 +283,21 @@ def charger_repertoire(repertoire: Path) -> list[dict]:
 def _erreurs_schema(analyse: dict) -> list[Erreur]:
     slug = analyse.get("slug", "?")
     erreurs: list[Erreur] = []
+
+    for champ in CHAMPS_OBLIGATOIRES:
+        if champ not in analyse:
+            erreurs.append(Erreur(slug, champ, "champ obligatoire absent"))
+
+    if not analyse.get("chiffres"):
+        erreurs.append(
+            Erreur(slug, "chiffres", "liste absente ou vide : au moins un chiffre requis")
+        )
+
+    for champ, valeur in _dates_a_verifier(analyse):
+        if valeur is not None and not _date_valide(valeur):
+            erreurs.append(
+                Erreur(slug, champ, f"date invalide, attendu AAAA-MM-JJ : « {valeur} »")
+            )
 
     fichier = analyse.get("_fichier")
     if fichier is not None and Path(fichier).stem != slug:
@@ -505,8 +585,10 @@ def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
     erreurs: list[Erreur] = []
 
     def verifier(champ: str, texte: str) -> None:
-        # `affirmation.texte` n'est jamais passé ici : c'est ce qui verrouille
-        # son exemption, documentée dans la docstring de tête.
+        # `affirmation.texte` et `chiffres[].dit` ne sont jamais passés ici :
+        # c'est ce qui verrouille leur exemption, documentée dans la
+        # docstring de tête — tous deux citent le chiffre tel qu'il circule,
+        # pas une observation que l'analyse affirme.
         invente = _nombre_non_reference(texte or "", references)
         if invente is not None:
             erreurs.append(
@@ -517,6 +599,9 @@ def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
     verifier("verdict.phrase", (analyse.get("verdict") or {}).get("phrase"))
     for i, chiffre in enumerate(analyse.get("chiffres") or []):
         verifier(f"chiffres[{i}].lecture", (chiffre or {}).get("lecture"))
+    for i, hypothese in enumerate(analyse.get("hypotheses") or []):
+        verifier(f"hypotheses[{i}]", hypothese)
+    verifier("simulateur.lecture", (analyse.get("simulateur") or {}).get("lecture"))
 
     return erreurs
 
@@ -575,7 +660,9 @@ def main() -> int:
     )
     parser.add_argument("repertoire", type=Path, help="répertoire des fichiers d'analyse (*.json)")
     parser.add_argument(
-        "--version", default=None, help="millésime de données à contrôler (défaut : le dernier publié)"
+        "--version",
+        default=None,
+        help="millésime de données à contrôler (défaut : le dernier publié)",
     )
     args = parser.parse_args()
 
@@ -598,7 +685,9 @@ def main() -> int:
     for erreur in erreurs:
         print(f"ERREUR [{erreur.slug}] {erreur.champ} : {erreur.message}")
     if erreurs:
-        print(f"{len(erreurs)} erreur(s) sur {len(analyses)} analyse(s) (version {donnees.version()})")
+        print(
+            f"{len(erreurs)} erreur(s) sur {len(analyses)} analyse(s) (version {donnees.version()})"
+        )
         return 1
     print(f"{len(analyses)} analyse(s) contrôlée(s), aucune erreur (version {donnees.version()})")
     return 0
