@@ -204,26 +204,51 @@ function injecter(shell: string, page: Page): string {
   // qui contiendrait un `$` littéral corromprait alors la page injectée.
   let html = shell;
 
-  html = html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${echapper(page.titre)}</title>`);
+  // `String.replace` renvoie la chaîne INCHANGÉE quand le motif ne correspond
+  // à rien — un `<title>` renommé dans le gabarit ferait ainsi disparaître
+  // l'injection en silence, sans qu'aucun test ne le voie puisque la page
+  // resterait un HTML valide. `remplacer` fait échouer le build à la place.
+  const remplacer = (nom: string, suivant: string): void => {
+    if (suivant === html) {
+      throw new Error(
+        `injecter() : le remplacement "${nom}" n'a rien changé — son motif ne correspond plus au gabarit.`,
+      );
+    }
+    html = suivant;
+  };
 
-  html = html.replace(
-    /<meta\s+name="description"[\s\S]*?\/>/,
-    () => `<meta name="description" content="${echapper(page.description)}" />`,
+  remplacer("titre", html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${echapper(page.titre)}</title>`));
+
+  remplacer(
+    "description",
+    html.replace(
+      /<meta\s+name="description"[\s\S]*?\/>/,
+      () => `<meta name="description" content="${echapper(page.description)}" />`,
+    ),
   );
 
-  html = html.replace(
-    "</head>",
-    () => `  <link rel="canonical" href="${echapper(page.canonique)}" />\n  </head>`,
+  remplacer(
+    "canonique",
+    html.replace(
+      "</head>",
+      () => `  <link rel="canonical" href="${echapper(page.canonique)}" />\n  </head>`,
+    ),
   );
 
-  html = html.replace(
-    /<body([^>]*)>/,
-    (_correspondance, attributs: string) => `<body${attributs} data-page="editorial">`,
+  remplacer(
+    "data-page",
+    html.replace(
+      /<body([^>]*)>/,
+      (_correspondance, attributs: string) => `<body${attributs} data-page="editorial">`,
+    ),
   );
 
-  html = html.replace(
-    /(<main id="contenu">)[\s\S]*?(<\/main>)/,
-    (_correspondance, ouverture: string, fermeture: string) => `${ouverture}\n${page.corps}\n${fermeture}`,
+  remplacer(
+    "corps",
+    html.replace(
+      /(<main id="contenu">)[\s\S]*?(<\/main>)/,
+      (_correspondance, ouverture: string, fermeture: string) => `${ouverture}\n${page.corps}\n${fermeture}`,
+    ),
   );
 
   return html;
