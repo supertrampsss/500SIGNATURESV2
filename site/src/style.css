@@ -5922,3 +5922,132 @@ body[data-carte="oui"] .legende {
     height: 18rem;
   }
 }
+
+/* ===========================================================================
+   LA BARRE DE SCÉNARIOS ET LE TABLEAU DE COMPARAISON — `scenarios-rendu.ts`
+   ===========================================================================
+   Même filet de pilules que le reste du site (`.pilule`), même tableau
+   défilant que `.analyse-rendu__tableau` : cette barre et ce tableau
+   reprennent le système existant plutôt que d'en ouvrir un nouveau. */
+.scenarios-rendu__barre {
+  margin-bottom: var(--espace-5);
+}
+.scenarios-rendu__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-3);
+}
+.scenarios-rendu__scenario {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font-size: var(--texte-s);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.scenarios-rendu__scenario:hover,
+.scenarios-rendu__scenario:focus-visible {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+/* Le scénario courant se marque par le fond, pas par une couleur de
+   jugement : aucun scénario n'est meilleur qu'un autre, celui-ci est
+   seulement celui qui est ouvert. */
+.scenarios-rendu__scenario--courant {
+  border-color: var(--encre);
+  background: var(--papier-creuse);
+  font-weight: 600;
+}
+.scenarios-rendu__vide {
+  margin: 0;
+  padding: var(--espace-5);
+  border: 1px dashed var(--trait-fort);
+  border-radius: var(--rayon);
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+/* Le tableau déborde sur téléphone plutôt que d'écraser les colonnes : c'est
+   lui qui défile, jamais la page entière (même règle que
+   `.analyse-rendu__defilement`). */
+.scenarios-rendu__defilement {
+  overflow-x: auto;
+}
+.scenarios-rendu__tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texte-s);
+}
+.scenarios-rendu__tableau caption {
+  margin-bottom: var(--espace-4);
+  text-align: left;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.scenarios-rendu__tableau th[scope="col"] {
+  text-align: right;
+  white-space: nowrap;
+  padding: 0 0 var(--espace-4) var(--espace-6);
+  border-bottom: 1px solid var(--trait);
+}
+.scenarios-rendu__tableau th[scope="col"]:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.scenarios-rendu__entete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-1);
+}
+.scenarios-rendu__nom-colonne {
+  font-size: var(--texte-m);
+  font-weight: 600;
+  color: var(--encre);
+}
+.scenarios-rendu__exercice-colonne,
+.scenarios-rendu__gestes-colonne {
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.scenarios-rendu__effort-colonne {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--encre);
+}
+.scenarios-rendu__tableau th[scope="row"] {
+  text-align: left;
+  font-weight: 400;
+  padding: var(--espace-4) var(--espace-6) var(--espace-4) 0;
+  border-top: 1px solid var(--trait);
+}
+.scenarios-rendu__tableau tbody tr:first-child th {
+  border-top: 0;
+}
+.scenarios-rendu__cellule {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: var(--espace-4) 0 var(--espace-4) var(--espace-6);
+  border-top: 1px solid var(--trait);
+}
+/* Une cellule que la colonne n'a pas touchée ne porte aucun montant : elle se
+   lit en italique, à gauche, pour ne jamais se confondre au premier coup
+   d'œil avec un écart réglé à zéro — voir la docstring de comparaison.ts. */
+.scenarios-rendu__cellule--non-reglee {
+  text-align: left;
+  font-variant-numeric: normal;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--encre-douce);
+}
