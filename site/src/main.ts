@@ -1861,7 +1861,10 @@ function brancherCommandes(): void {
   );
   tiroirRedimensionnable();
 
-  $("exporter").addEventListener("click", () => {
+  // Le bouton d'export vivait dans la vue DONNÉES, retirée : sans lui, `$` rend
+  // `null` et l'écouteur levait au démarrage, emportant tout ce que
+  // `demarrer()` fait après cet appel. Même garde que `majTableau`.
+  document.getElementById("exporter")?.addEventListener("click", () => {
     const indicateur = indicateurCourant();
     const jeu = jeux.find((j) => j.id === indicateur.jeu);
     if (exportEvolution) {
@@ -1907,7 +1910,7 @@ function brancherCommandes(): void {
 
   // Retirer un territoire de la comparaison : les « × » des en-têtes du
   // tableau (rendus par `comparateur.ts`) et les pilules de rappel.
-  $("comparateur").addEventListener("click", (evenement) => {
+  document.getElementById("comparateur")?.addEventListener("click", (evenement) => {
     const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("[data-retirer]");
     const code = bouton?.dataset.retirer;
     if (code) void basculerComparaison(code);

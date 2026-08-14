@@ -507,6 +507,19 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   ]) {
     assert.ok(MAIN.includes(garde), `garde manquante : ${garde}`);
   }
+  // Les écouteurs aussi. `brancherCommandes()` accrochait `#exporter` et
+  // `#comparateur` sans garde : `$` rend `null`, `null.addEventListener` lève,
+  // et l'exception remontait au `.catch` de `demarrer()` — tout ce qui suit
+  // l'appel ne s'exécutait plus, blocs de Décryptages compris.
+  for (const ecouteur of ["exporter", "comparateur"]) {
+    assert.match(
+      MAIN,
+      new RegExp(`document\\.getElementById\\("${ecouteur}"\\)\\?\\.addEventListener`),
+      `écouteur non gardé : #${ecouteur}`,
+    );
+  }
+  assert.doesNotMatch(MAIN, /\$\("exporter"\)\.addEventListener/);
+  assert.doesNotMatch(MAIN, /\$\("comparateur"\)\.addEventListener/);
 });
 
 test("la carte est déployée d'emblée sur la vue territoire", () => {
