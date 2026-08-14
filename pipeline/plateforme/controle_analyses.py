@@ -490,24 +490,45 @@ ECHELLES = {
 # légitime ne peut le porter.
 SYMBOLE_MILLIONS = "M€"
 
-# Toute ponctuation qui peut apparaître comme séparateur de groupement dans un
-# nombre recopié : les trois espaces (normale, insécable, fine insécable —
-# les trois se voient dans des textes copiés depuis des sources différentes),
-# la virgule (décimale à la française), et le point et l'apostrophe — les
-# regroupements anglo-saxon et suisse, jamais légitimes en français, que
-# `_candidats` refuse au lieu de les fragmenter en silence (Critical 2).
-_ESPACES = "   "
-_SEPARATEURS = _ESPACES + ",.'"
+# Espaces horizontales reconnues comme séparateur de milliers légitime en
+# français : normale (U+0020), insécable (U+00A0), insécable fine (U+202F —
+# celle que «millions()» de site/src/echelle.ts émet réellement), cadratin
+# (U+2002), demi-cadratin (U+2003), tabulaire (U+2007), fine (U+2009) et
+# mathématique moyenne (U+205F) — toutes se voient dans des textes copiés
+# depuis des sources différentes (traitement de texte, export, PDF). C'est
+# aussi l'ensemble que `_lisible` autorise à dépouiller avant `float()` :
+# tout caractère ajouté ici doit pouvoir être strippé sans lever (garde-fou
+# du réviseur, Critical 2 vague 3).
+_ESPACES = "\u0020\u00a0\u2002\u2003\u2007\u2009\u202f\u205f"
+
+# Ponctuation qui peut apparaître comme séparateur de groupement dans un
+# nombre recopié mais n'est jamais un séparateur français légitime : les
+# regroupements anglo-saxon (`.`) et suisse (`'`, et son autocorrection en
+# apostrophe typographique U+2019 — la plus probable des deux en pratique,
+# un traitement de texte la substitue systématiquement à l'ASCII), la
+# variante U+02BC (lettre modificative), le point médian U+00B7, et deux
+# joints invisibles qui se glissent dans du texte copié sans y laisser de
+# trace visible (le soudeur de mots U+2060, l'espace de largeur nulle
+# U+200B). Capturés par le tokeniseur pour ne jamais fragmenter un nombre en
+# morceaux sous le seuil de la garde (Critical 2), mais jamais dans
+# `_ESPACES` : `_lisible` les refuse tous, la virgule y comprise au-delà
+# d'une seule occurrence.
+_SEPARATEURS_MECONNUS = ".'\u2019\u02bc\u00b7\u2060\u200b"
+_SEPARATEURS = _ESPACES + _SEPARATEURS_MECONNUS + ","
 
 # Un nombre est un groupe de chiffres, suivi de zéro ou plusieurs groupes
 # introduits par n'importe lequel de ces séparateurs — reconnu ou non : c'est
-# ce qui permet de voir « 87.000.000.000 » comme UN seul nombre illisible
-# plutôt que quatre fragments sous le seuil de la garde, qui passaient
-# inaperçus avant ce correctif. Seuls les chiffres bornent le nombre
-# (`(?<!\d)` / `(?!\d)`) — un séparateur peut légitimement continuer en un
-# mot ordinaire de la phrase (l'espace qui suit « 87 000 000 000 » avant
-# « euros », par exemple), donc l'exclure de la frontière casserait la
-# lecture des nombres suivis de texte, pas seulement celle des illisibles.
+# ce qui permet de voir « 87.000.000.000 » (ou « 87\u2019000\u2019000\u2019000 », ou tout
+# regroupement à espace non standard) comme UN seul nombre illisible plutôt
+# que des fragments sous le seuil de la garde, qui passaient inaperçus avant
+# ce correctif. Seuls les chiffres bornent le nombre (`(?<!\d)` / `(?!\d)`) —
+# un séparateur peut légitimement continuer en un mot ordinaire de la phrase
+# (l'espace qui suit « 87 000 000 000 » avant « euros », par exemple), donc
+# l'exclure de la frontière casserait la lecture des nombres suivis de
+# texte, pas seulement celle des illisibles. Ni `\s` (qui avalerait `\n` et
+# `\t`, fusionnant deux nombres distincts au travers d'un saut de ligne dans
+# `hypotheses[]`), ni `-` ni `/` (qui casseraient « Article L. 132-1 » et
+# « 2019-2025 » en un seul nombre) ne sont dans cette classe.
 _NOMBRE_RE = re.compile(r"(?<!\d)\d+(?:[" + re.escape(_SEPARATEURS) + r"]\d+)*(?!\d)")
 _ECHELLE_MOT_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
 # Pas de \b final ici : « € » n'est pas un caractère de mot, donc un \b
@@ -517,23 +538,40 @@ _ECHELLE_MOT_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
 _ECHELLE_SYMBOLE_RE = re.compile(r"^\s*" + re.escape(SYMBOLE_MILLIONS))
 
 
-def _candidats(texte: str) -> list[tuple[float, int, float, bool]]:
-    """-> [(valeur, décimales écrites, échelle, lisible), ...] pour chaque
-    nombre du texte.
+def _lisible(brut: str) -> bool:
+    """Un token est lisible seulement si tous ses séparateurs de
+    regroupement sont des espaces reconnues (`_ESPACES`), avec au plus une
+    virgule décimale à la française — et, quand cette virgule existe, sa
+    partie décimale ne contient elle-même aucun séparateur.
 
-    `lisible` est faux quand le fragment mêle un séparateur non reconnu (un
-    point, une apostrophe) ou plus d'une virgule — la virgule française est
-    un séparateur décimal, jamais de milliers, donc une seule est légitime.
-    Un nombre illisible n'est jamais parsé « au mieux » : sa valeur n'a
-    alors aucun sens fiable (Critical 2)."""
+    Ce dernier point ferme Important 3 : « 1 234,5 678 » n'a qu'une seule
+    virgule (donc passait la seule garde d'avant) mais une espace dans la
+    partie décimale, et `float("1234.5 678")` lève — un token qui ressemble
+    à un nombre valide faisait alors mourir tout le run sans diagnostic pour
+    les analyses restantes."""
+    if brut.count(",") > 1:
+        return False
+    entier, _, decimale = brut.partition(",")
+    if set(decimale) - set("0123456789"):
+        return False
+    return set(entier) - set("0123456789") <= set(_ESPACES)
+
+
+def _candidats(texte: str) -> list[tuple[float, int, float, bool, str]]:
+    """-> [(valeur, décimales écrites, échelle, lisible, brut), ...] pour
+    chaque nombre du texte. `brut` est le texte exact du token — la seule
+    chose qu'un message d'erreur sur un token illisible peut citer sans
+    inventer une valeur que l'auteur n'a pas écrite (Important 6).
+
+    Un nombre illisible n'est jamais parsé « au mieux » : sa valeur
+    reconstituée n'a alors aucun sens fiable, et n'est conservée que pour
+    compatibilité de forme du tuple — jamais affichée (Critical 2)."""
     candidats = []
     for match in _NOMBRE_RE.finditer(texte):
         brut = match.group()
-        if "." in brut or "'" in brut or brut.count(",") > 1:
-            # Séparateur non reconnu, ou virgules multiples (thousands
-            # anglo-saxon shredded par la virgule) : illisible, jamais deviné.
+        if not _lisible(brut):
             valeur = float(re.sub(r"[^0-9]", "", brut) or 0)
-            candidats.append((valeur, 0, 1.0, False))
+            candidats.append((valeur, 0, 1.0, False, brut))
             continue
         entier, _, decimale = brut.partition(",")
         for espace in _ESPACES:
@@ -547,7 +585,7 @@ def _candidats(texte: str) -> list[tuple[float, int, float, bool]]:
             echelle = 1e6
         else:
             echelle = 1.0
-        candidats.append((valeur, len(decimale), echelle, True))
+        candidats.append((valeur, len(decimale), echelle, True, brut))
     return candidats
 
 
@@ -555,32 +593,39 @@ def _correspond(valeur: float, decimales: int, echelle: float, reference: float)
     return abs(round(reference / echelle, decimales) - valeur) < 1e-6
 
 
-def _nombre_non_reference(texte: str, references: list[float]) -> float | None:
-    """-> le premier nombre ≥ 1000 (hors millésime) du texte qui ne correspond
-    à aucune référence, ou None si tout correspond.
+def _nombre_non_reference(texte: str, references: list[float]) -> tuple[str, str] | None:
+    """-> (raison, texte) pour le premier nombre du texte qui échoue la
+    garde, ou None si tout correspond. `raison` vaut :
+
+    - `"illisible"` : un séparateur de groupement non reconnu fragmente ou
+      pollue le token — `texte` est alors le token brut recopié tel quel
+      (Important 6), jamais une valeur reconstruite à partir de lui.
+    - `"invente"` : le nombre se lit sans ambiguïté (≥ 1000, hors millésime)
+      mais ne correspond à aucune référence — `texte` est alors sa valeur.
 
     Un nombre illisible échoue toujours, quelle que soit sa valeur apparente
     — le tokeniseur ne peut pas savoir ce qu'il désigne, et un tokeniseur qui
     ne peut pas lire un chiffre avec confiance doit refuser, pas laisser
     passer (Critical 2)."""
-    for valeur, decimales, echelle, lisible in _candidats(texte):
+    for valeur, decimales, echelle, lisible, brut in _candidats(texte):
         if not lisible:
-            return valeur
+            return "illisible", brut
         effective = valeur * echelle
         if effective < SEUIL_GARDE:
             continue
         if decimales == 0 and echelle == 1.0 and MILLESIME_MIN <= valeur <= MILLESIME_MAX:
             continue
         if not any(_correspond(valeur, decimales, echelle, ref) for ref in references):
-            return valeur
+            return "invente", str(valeur)
     return None
 
 
 def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
     """`references` ne contient que des valeurs vérifiées contre une série
-    publiée par `_erreurs_exactitude` (Critical 1) : une `observe.valeur`
-    jamais vérifiée — champ manquant, indicateur inconnu, valeur fausse — ne
-    peut plus servir d'alibi à un montant inventé dans la prose."""
+    publiée, ou déclarées sous un registre qui l'autorise explicitement, par
+    `_erreurs_exactitude` (Critical 1) : une `observe.valeur` jamais
+    vérifiée — champ manquant, indicateur inconnu, valeur fausse — ne peut
+    plus servir d'alibi à un montant inventé dans la prose."""
     slug = analyse.get("slug", "?")
     erreurs: list[Erreur] = []
 
@@ -589,18 +634,27 @@ def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
         # c'est ce qui verrouille leur exemption, documentée dans la
         # docstring de tête — tous deux citent le chiffre tel qu'il circule,
         # pas une observation que l'analyse affirme.
-        invente = _nombre_non_reference(texte or "", references)
-        if invente is not None:
-            erreurs.append(
-                Erreur(slug, champ, f"« {invente} » ne correspond à aucun chiffre référencé")
-            )
+        resultat = _nombre_non_reference(texte or "", references)
+        if resultat is None:
+            return
+        raison, valeur = resultat
+        if raison == "illisible":
+            # Important 6 : router ce cas par le message d'invention citait
+            # une valeur que l'auteur n'a jamais écrite (« 1531.0 » pour
+            # « 15.3.1 ») — sans indice que la cause est un séparateur de
+            # groupement, pas un montant inventé.
+            message = f"séparateur de groupement non reconnu dans « {valeur} »"
+        else:
+            message = f"« {valeur} » ne correspond à aucun chiffre référencé"
+        erreurs.append(Erreur(slug, champ, message))
 
     verifier("titre", analyse.get("titre"))
     verifier("verdict.phrase", (analyse.get("verdict") or {}).get("phrase"))
     for i, chiffre in enumerate(analyse.get("chiffres") or []):
-        verifier(f"chiffres[{i}].lecture", (chiffre or {}).get("lecture"))
+        lecture = chiffre.get("lecture") if isinstance(chiffre, dict) else None
+        verifier(f"chiffres[{i}].lecture", lecture)
     for i, hypothese in enumerate(analyse.get("hypotheses") or []):
-        verifier(f"hypotheses[{i}]", hypothese)
+        verifier(f"hypotheses[{i}]", hypothese if isinstance(hypothese, str) else None)
     verifier("simulateur.lecture", (analyse.get("simulateur") or {}).get("lecture"))
 
     return erreurs

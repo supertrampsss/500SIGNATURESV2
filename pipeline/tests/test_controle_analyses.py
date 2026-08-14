@@ -639,3 +639,94 @@ def test_donnee_officielle_avec_observe_faux_echoue():
     analyse["chiffres"][0]["observe"]["valeur"] = 1234.01
     erreurs = controler([analyse], fake_donnees())
     assert any(e.champ == "chiffres[0].observe.valeur" for e in erreurs)
+
+
+# 16. Critical A / Important D : le tokeniseur reconnaît TOUTE espace
+#     horizontale comme séparateur de milliers légitime, et TOUTE autre
+#     ponctuation de groupement (points, apostrophes sous toutes leurs
+#     formes, point médian, joints invisibles) comme un séparateur non
+#     reconnu qui rend le token illisible plutôt que de le fragmenter en
+#     silence. Table plutôt que trois instances (Important D) : la
+#     référence vaut exactement 59946338573.0, donc les chiffres concaténés
+#     de « 59{sep}946{sep}338{sep}573 » redonneraient exactement la
+#     référence si le drapeau `lisible` était supprimé — seul ce drapeau
+#     fait échouer ce test, pas l'absence de correspondance numérique.
+
+_SEPARATEURS_ILLISIBLES = {
+    "apostrophe ASCII '": "'",
+    "apostrophe typographique U+2019 ’": "’",
+    "lettre modificative U+02BC ʼ": "ʼ",
+    "point .": ".",
+    "point médian U+00B7 ·": "·",
+    "soudeur de mots U+2060 (invisible)": "⁠",
+    "espace de largeur nulle U+200B (invisible)": "​",
+}
+
+_SEPARATEURS_LISIBLES = {
+    "espace normale U+0020": " ",
+    "espace insécable U+00A0": " ",
+    "espace cadratin U+2002": " ",
+    "espace demi-cadratin U+2003": " ",
+    "espace tabulaire U+2007": " ",
+    "espace fine U+2009": " ",
+    "espace fine insécable U+202F": " ",
+    "espace mathématique moyenne U+205F": " ",
+}
+
+
+def _analyse_avec_second_indicateur_et_phrase(phrase: str) -> dict:
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "second_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = 59946338573.0
+    analyse["verdict"]["phrase"] = phrase
+    return analyse
+
+
+def test_separateurs_illisibles_sont_tous_refuses():
+    for nom, sep in _SEPARATEURS_ILLISIBLES.items():
+        phrase = f"Le montant atteint 59{sep}946{sep}338{sep}573 euros."
+        analyse = _analyse_avec_second_indicateur_et_phrase(phrase)
+        erreurs = controler([analyse], fake_donnees())
+        assert any(e.champ == "verdict.phrase" for e in erreurs), (
+            f"{nom} aurait dû être refusé (phrase : « {phrase} »)"
+        )
+
+
+def test_separateurs_lisibles_sont_tous_acceptes():
+    for nom, sep in _SEPARATEURS_LISIBLES.items():
+        phrase = f"Le montant atteint 59{sep}946{sep}338{sep}573 euros."
+        analyse = _analyse_avec_second_indicateur_et_phrase(phrase)
+        erreurs = controler([analyse], fake_donnees())
+        assert erreurs == [], f"{nom} aurait dû être accepté : {erreurs}"
+
+
+# 17. Important 3 (numérotation du brief : bloc « Important C ») : une
+#     partie décimale qui contient elle-même un séparateur ne doit ni lever
+#     ni être acceptée telle quelle.
+
+
+def test_decimale_avec_separateur_ne_leve_pas_et_reste_refusee():
+    # « 1 234,5 678 » : une seule virgule (donc « lisible » avant ce
+    # correctif) mais une espace dans la partie décimale — float("1234.5
+    # 678") levait ValueError et tuait tout le run, laissant les analyses
+    # suivantes non contrôlées.
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant s'élèverait à 1 234,5 678 euros."
+    erreurs = controler([analyse], fake_donnees())  # ne doit pas lever
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+# 18. Important F : le message d'un token illisible cite le token brut, pas
+#     une valeur reconstruite que l'auteur n'a jamais écrite.
+
+
+def test_message_illisible_cite_le_token_brut_pas_une_valeur_inventee():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Voir la section 15.3.1 du document."
+    erreurs = controler([analyse], fake_donnees())
+    messages = [e.message for e in erreurs if e.champ == "verdict.phrase"]
+    assert messages, "le token illisible aurait dû être signalé"
+    assert "15.3.1" in messages[0]
+    assert "1531" not in messages[0]
+
+
