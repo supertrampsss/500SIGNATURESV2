@@ -12,6 +12,7 @@ const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
+const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8");
 
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
   // Première version : la légende recouvrait le sud-ouest de la France. La
@@ -414,11 +415,53 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   assert.match(balises, /id="carte-bascule"/);
   // Les liens `#carte` déjà partagés continuent d'ouvrir ce qu'ils
   // promettaient : la fiche, carte déployée.
-  assert.match(MAIN, /const VUES_ALIAS: Record<string, string> = \{ carte: "territoire" \};/);
-  assert.match(MAIN, /if \(demandee === "carte"\) carteOuverte = true;/);
+  // La table des alias a rejoint `routes.ts`, où elle se teste sans navigateur.
+  assert.match(ROUTES, /carte: "territoire"/);
+  assert.match(MAIN, /if \(location\.hash === "#carte"\) carteOuverte = true;/);
   // La carte se mesure au montage : rendue dans un conteneur replié, elle
   // garderait cette taille au déploiement.
   assert.match(MAIN, /requestAnimationFrame\(\(\) => carte\?\.resize\(\)\);/);
+});
+
+test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
+  // Le fragment ne part pas au serveur : tant que la vue y vivait, aucune page
+  // ne pouvait être indexée ni servie pré-rendue.
+  assert.match(MAIN, /vueDepuisAdresse\(location\.pathname, location\.hash\)/);
+  // Le chemin est lu AVANT toute autre source : c'est lui qui fait foi.
+  // La borne générique "/**\n * Le sommaire" matchait d'abord le sommaire de
+  // « Sources et méthode », plus haut dans le fichier : on vise ici celui de
+  // REPÈRES, qui suit basculerVue.
+  const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf("/**\n * Le sommaire de REPÈRES."));
+  assert.ok(corps.length > 200, "corps de basculerVue introuvable");
+  assert.ok(
+    corps.indexOf("vueDepuisAdresse(") < corps.indexOf("vuesConnues()"),
+    "la vue doit être résolue avant d'être confrontée aux vues ouvrables",
+  );
+  // L'adresse écrite conserve le chemin : sans lui, le premier réglage dans le
+  // simulateur renvoyait le lecteur à la racine.
+  assert.match(MAIN, /history\.replaceState\(null, "", `\$\{location\.pathname\}\?\$\{p\}\$\{location\.hash\}`\)/);
+  // Les boutons précédent/suivant du navigateur restituent la vue.
+  assert.match(MAIN, /window\.addEventListener\("popstate", basculerVue\)/);
+  // Un lien à fragment déjà partagé est réécrit vers son chemin, sans
+  // rechargement et sans perdre les paramètres.
+  assert.match(MAIN, /history\.replaceState\(null, "", `\$\{cheminDeVue\(vueDuFragment\)\}\$\{location\.search\}`\)/);
+  // La navigation vise des chemins : un `href="#territoire"` cliqué depuis
+  // `/simulateur` donnerait `/simulateur#territoire`, et le chemin l'emporte.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.doesNotMatch(balises, /href="#(territoire|reperes|detail|simulateur|methode)"/);
+  assert.match(balises, /href="\/territoire" data-vue="territoire"/);
+});
+
+test("les vues renommées portent leur nouveau nom partout", () => {
+  // « Analyses » désigne désormais les analyses éditoriales ; les tableaux d'un
+  // territoire s'appellent « detail ». « Décryptages » est devenu « Repères ».
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.match(balises, /id="vue-detail"/);
+  assert.match(balises, /id="vue-reperes"/);
+  assert.doesNotMatch(balises, /id="vue-analyses"/);
+  assert.doesNotMatch(balises, /id="vue-decryptages"/);
+  // Et le nom retiré ne revient pas par la bande.
+  assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"donnees"/);
 });
 
 test("un seul champ de recherche pour tout le site", () => {
@@ -457,12 +500,12 @@ test("les trois états d'une zone de données se distinguent", () => {
 test("une vue longue dit ce qu'elle contient", () => {
   // Huit blocs de plusieurs écrans sur 6 600 px de défilement, sans moyen de
   // savoir ce qui restait dessous ni d'y aller.
-  assert.match(PAGE, /id="sommaire-decryptages"/);
-  assert.match(MAIN, /function peindreSommaireDecryptages\(\)/);
+  assert.match(PAGE, /id="sommaire-reperes"/);
+  assert.match(MAIN, /function peindreSommaireReperes\(\)/);
   // Le sommaire se construit sur ce qui s'est réellement affiché : rien de
   // cliquable ne doit mener à une section vide.
   const corps = MAIN.slice(
-    MAIN.indexOf("function peindreSommaireDecryptages"),
+    MAIN.indexOf("function peindreSommaireReperes"),
     MAIN.indexOf("/** La carte est-elle déployée ?"),
   );
   assert.match(corps, /querySelector\("h2, h3"\)/);

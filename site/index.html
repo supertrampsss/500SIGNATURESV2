@@ -52,9 +52,9 @@
       </div>
 
       <nav class="entete__nav" aria-label="Vues">
-        <a href="#territoire" data-vue="territoire">Territoire</a>
-        <a href="#decryptages" data-vue="decryptages">Décryptages</a>
-        <a href="#analyses" data-vue="analyses">Analyses</a>
+        <a href="/territoire" data-vue="territoire">Territoire</a>
+        <a href="/reperes" data-vue="reperes">Repères</a>
+        <a href="/detail" data-vue="detail">Détail</a>
       </nav>
 
       <button type="button" class="bascule-theme" id="theme-bascule"
@@ -133,7 +133,7 @@
       </div>
     </div>
 
-    <div class="vue" id="vue-decryptages" hidden>
+    <div class="vue" id="vue-reperes" hidden>
       <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
 
       <section class="national" id="national" hidden>
@@ -141,7 +141,7 @@
         <!-- Sommaire de la vue : huit blocs de plusieurs écrans chacun se
              lisaient en un seul défilement de 6 600 px, sans moyen de savoir
              ce qui restait dessous ni d'y aller. -->
-        <nav class="sommaire-vue" id="sommaire-decryptages" aria-label="Sections de la page"></nav>
+        <nav class="sommaire-vue" id="sommaire-reperes" aria-label="Sections de la page"></nav>
         <article class="bloc bloc--large" id="bloc-conjoncture"></article>
         <div class="national__grille">
           <article class="bloc" id="bloc-dette"></article>
@@ -162,8 +162,8 @@
       <section class="simu" id="simu"></section>
     </div>
 
-    <div class="vue" id="vue-analyses" hidden>
-      <div id="analyses"></div>
+    <div class="vue" id="vue-detail" hidden>
+      <div id="detail"></div>
     </div>
 
     </main>

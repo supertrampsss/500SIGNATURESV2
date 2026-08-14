@@ -622,9 +622,9 @@ test("sans fichier publié, ni entrée de menu ni adresse", () => {
 test("le budget réglé voyage dans l'URL comme le reste de l'écran", () => {
   assert.match(MAIN, /budget: p\.get\("budget"\) \?\? "",/);
   assert.match(MAIN, /if \(etat\.budget\) p\.set\("budget", etat\.budget\);/);
-  // Le hash porte la vue de page : le perdre à chaque réglage renverrait le
-  // lecteur du simulateur à la carte.
-  assert.match(MAIN, /history\.replaceState\(null, "", `\?\$\{p\}\$\{location\.hash\}`\)/);
+  // Le chemin porte la vue de page : le perdre à chaque réglage renverrait le
+  // lecteur du simulateur à la racine.
+  assert.match(MAIN, /history\.replaceState\(null, "", `\$\{location\.pathname\}\?\$\{p\}\$\{location\.hash\}`\)/);
 });
 
 test("les commandes d'une ligne font 44 px pleins, sans zone étendue", () => {

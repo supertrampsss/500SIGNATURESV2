@@ -61,6 +61,7 @@ import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
+import { cheminDeVue, vueDepuisAdresse } from "./routes.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -290,9 +291,10 @@ function ecrireUrl(): void {
   if (etat.voir === "tout") p.set("voir", "tout");
   if (etat.budget) p.set("budget", etat.budget);
   if (etat.contrat) p.set("contrat", etat.contrat);
-  // Le hash porte la vue de page : le réécrire sans lui renverrait le lecteur
-  // du simulateur à la carte au premier réglage.
-  history.replaceState(null, "", `?${p}${location.hash}`);
+  // Le chemin porte la vue, le fragment l'ancre interne : réécrire l'adresse
+  // sans le chemin renverrait le lecteur du simulateur à la carte au premier
+  // réglage.
+  history.replaceState(null, "", `${location.pathname}?${p}${location.hash}`);
 }
 
 /** Les séries calculées rejoignent celles du territoire dès son chargement.
@@ -1899,6 +1901,21 @@ function brancherCommandes(): void {
     );
   });
 
+  // La navigation change de vue sans recharger la page. Les modificateurs et le
+  // clic du milieu sont laissés au navigateur : « ouvrir dans un nouvel onglet »
+  // doit continuer de fonctionner sur un vrai lien.
+  document.querySelector(".entete__nav")?.addEventListener("click", (evenement) => {
+    const clic = evenement as MouseEvent;
+    if (clic.button !== 0 || clic.metaKey || clic.ctrlKey || clic.shiftKey || clic.altKey) return;
+    const lien = (clic.target as HTMLElement).closest<HTMLAnchorElement>("a[data-vue]");
+    if (!lien) return;
+    clic.preventDefault();
+    // Les paramètres suivent : changer de vue ne doit pas perdre le territoire
+    // choisi ni les réglages du simulateur.
+    history.pushState(null, "", `${lien.pathname}${location.search}`);
+    basculerVue();
+  });
+
   // Un seul champ pour tout le site, dans l'en-tête. Il y en avait deux, sur
   // le même index, sans état commun.
   brancherRecherche($<HTMLInputElement>("recherche"), $<HTMLUListElement>("suggestions"));
@@ -1999,10 +2016,10 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
       bouton.dataset.niveau ?? null,
       bouton.firstChild?.textContent?.trim(),
     );
-    // La page ANALYSES porte le même champ : sans ce repeint, choisir une ville
+    // La page DÉTAIL porte le même champ : sans ce repeint, choisir une ville
     // depuis cette page ouvrait la fiche de la carte et laissait le tableau sur
     // la ville précédente. On ne pouvait tout simplement pas en changer.
-    if (document.body.dataset.vue === "analyses") await peindreAnalyses();
+    if (document.body.dataset.vue === "detail") await peindreDetail();
   });
 
 }
@@ -2079,20 +2096,15 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  *  Ce qu'elle portait vit ailleurs — le fichier public est lié depuis le pied
  *  de page, et chaque mesure garde sa définition et sa source dans son rond
  *  « i ». Ce qui a réellement disparu de l'écran est écrit dans la PR. */
-const VUES_PAGE = ["territoire", "analyses", "decryptages"] as const;
+const VUES_PAGE = ["territoire", "detail", "reperes"] as const;
 
-/** `#carte` était une vue ; c'est devenu un mode de la vue territoire. Les
- *  liens déjà partagés continuent d'ouvrir ce qu'ils promettaient : la fiche,
- *  carte déployée. */
-const VUES_ALIAS: Record<string, string> = { carte: "territoire" };
-
-/** La page ANALYSES pour le territoire sélectionné.
+/** La page DÉTAIL pour le territoire sélectionné.
  *
  *  Elle a besoin du même lot de territoires que la fiche ; sans sélection, elle
  *  invite à en choisir un plutôt que d'afficher une page vide sans dire pourquoi.
  */
-async function peindreAnalyses(): Promise<void> {
-  const cible = $("analyses");
+async function peindreDetail(): Promise<void> {
+  const cible = $("detail");
   const code = etat.selection;
   if (!code) {
     // L'ancien texte renvoyait « à la carte », qui n'est pas sur cette page :
@@ -2325,11 +2337,11 @@ function vuesConnues(): readonly string[] {
 }
 
 function basculerVue(): void {
-  const demandee = location.hash.replace("#", "");
+  const demandee = vueDepuisAdresse(location.pathname, location.hash);
   // `#carte` ouvre la vue territoire ET déploie la carte : le lien tenait sa
   // promesse quand la carte était une vue, il la tient encore.
-  if (demandee === "carte") carteOuverte = true;
-  const cible = VUES_ALIAS[demandee] ?? demandee;
+  if (location.hash === "#carte") carteOuverte = true;
+  const cible = demandee ?? "";
   // Une ancre interne — le sommaire de Décryptages vise `#bloc-etat` — passe
   // aussi par `hashchange`. Elle ne nomme pas une vue : la traiter comme une
   // vue inconnue renvoyait le lecteur sur TERRITOIRE au moment précis où il
@@ -2343,9 +2355,9 @@ function basculerVue(): void {
   // cadre n'aurait rien à cadrer.
   appliquerModeCarte(vue === "territoire" && carteOuverte);
   $("vue-territoire").hidden = vue !== "territoire";
-  $("vue-analyses").hidden = vue !== "analyses";
-  if (vue === "analyses") void peindreAnalyses();
-  $("vue-decryptages").hidden = vue !== "decryptages";
+  $("vue-detail").hidden = vue !== "detail";
+  if (vue === "detail") void peindreDetail();
+  $("vue-reperes").hidden = vue !== "reperes";
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
@@ -2358,7 +2370,7 @@ function basculerVue(): void {
 }
 
 /**
- * Le sommaire de DÉCRYPTAGES.
+ * Le sommaire de REPÈRES.
  *
  * La vue aligne huit blocs de plusieurs écrans chacun — conjoncture, dette,
  * Europe, les 100 €, fonctions, Sécurité sociale, budget de l'État, niches —
@@ -2373,8 +2385,8 @@ function basculerVue(): void {
  * du bloc, lu dans le DOM : deux libellés à tenir à jour en auraient fait
  * diverger un.
  */
-function peindreSommaireDecryptages(): void {
-  const cadre = document.getElementById("sommaire-decryptages");
+function peindreSommaireReperes(): void {
+  const cadre = document.getElementById("sommaire-reperes");
   if (!cadre) return;
   const entrees = [...document.querySelectorAll<HTMLElement>("#national .bloc")]
     .map((bloc) => ({ bloc, titre: bloc.querySelector("h2, h3")?.textContent?.trim() }))
@@ -2473,8 +2485,11 @@ async function preparerSimulateur(): Promise<void> {
   if (!exercicesParVolet.length) return;
   document
     .querySelector(".entete__nav")!
-    .insertAdjacentHTML("beforeend", `<a href="#simulateur" data-vue="simulateur">Simulateur</a>`);
-  if (location.hash === "#simulateur") basculerVue();
+    .insertAdjacentHTML(
+      "beforeend",
+      `<a href="/simulateur" data-vue="simulateur">Simulateur</a>`,
+    );
+  if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur") basculerVue();
 }
 
 /**
@@ -2528,7 +2543,16 @@ async function demarrer(): Promise<void> {
   // `lireUrl` ne lit que `location.search` : rien ne l'obligeait à attendre le
   // réseau.
   etat = lireUrl();
+  // Les liens partagés avant l'existence des chemins portent la vue dans le
+  // fragment : on les réécrit vers leur chemin, sans rechargement et sans
+  // toucher aux paramètres. Une ancre interne (`#bloc-etat`) n'est pas une vue
+  // et reste intacte.
+  const vueDuFragment = location.pathname === "/" ? vueDepuisAdresse("/", location.hash) : null;
+  if (vueDuFragment) {
+    history.replaceState(null, "", `${cheminDeVue(vueDuFragment)}${location.search}`);
+  }
   window.addEventListener("hashchange", basculerVue);
+  window.addEventListener("popstate", basculerVue);
   basculerVue();
   const manifeste = await donnees.initialiser();
   jeux = manifeste.jeux;
@@ -2917,7 +2941,7 @@ async function demarrer(): Promise<void> {
     // Budget de l'État non publié : le reste du bloc national tient debout.
   }
 
-  peindreSommaireDecryptages();
+  peindreSommaireReperes();
 
   await majComparateur();
 
