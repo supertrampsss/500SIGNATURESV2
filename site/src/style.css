@@ -4091,7 +4091,12 @@ summary.pont__rangee,
    font 44 px pleins, sans zone de frappe étendue, parce que deux zones
    étendues côte à côte se recouvrent et le doigt déclenche la voisine. */
 
-.simu {
+/* `.simu-recapitulatif` est un cadre à côté de l'atelier, pas dedans (voir
+   index.html) : sans cette règle il n'avait aucun des attributs de carte —
+   fond, bordure, ombre, marges — et se lisait comme une ardoise nue à côté
+   du reste. */
+.simu,
+.simu-recapitulatif {
   padding: var(--espace-7);
   margin: 0 1.5rem 1.25rem;
   background: var(--papier);

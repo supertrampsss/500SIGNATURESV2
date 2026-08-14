@@ -820,6 +820,11 @@ test("le seul cadre qui somme les trois budgets est montré, à côté de l'atel
   // Il est posé à côté de l'atelier, pas dedans : `afficherAtelier` possède
   // `#simu` et le repeint entièrement à chaque réglage.
   assert.doesNotMatch(MAIN, /afficherAtelier\(\$\("simu-recapitulatif"\)/);
+  // Un cadre à côté de l'atelier qui n'a pas le fond, la bordure, l'ombre et
+  // les marges de `.simu` se lit comme une ardoise nue à côté du reste. La
+  // règle s'étend à `.simu-recapitulatif` plutôt que de dupliquer ses
+  // déclarations, l'idiome déjà en place dans la feuille.
+  assert.match(CSS, /\.simu,\n\.simu-recapitulatif \{\n\s*padding: var\(--espace-7\);/);
 });
 
 test("le paramètre d'évolution ouvre ce qu'il promet, sans bouton pour le proposer", () => {
