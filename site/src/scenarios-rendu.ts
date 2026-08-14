@@ -26,6 +26,7 @@
 
 import type { Scenario } from "./scenarios.ts";
 import type { Colonne, LigneComparee } from "./comparaison.ts";
+import { gestes, type EtatAtelier, type Volet } from "./atelier.ts";
 import { formater } from "./echelle.ts";
 import { echapper } from "./texte.ts";
 
@@ -71,6 +72,33 @@ export function renduBarre(scenarios: Scenario[], courant: string | null): strin
   return `<nav class="scenarios-rendu__barre" aria-label="Mes scénarios">
     <ul class="scenarios-rendu__liste">${items}</ul>
   </nav>`;
+}
+
+/**
+ * Ce qu'une transposition (`transposer()`, scenarios.ts) n'a pas pu
+ * reprendre : les lignes que la nomenclature courante ne porte plus.
+ *
+ * Rien à écrire quand `disparues` est vide — le cas courant, un scénario
+ * transposé sans perte. Sinon la liste est nommée, jamais seulement comptée
+ * (le lecteur doit savoir *quelles* décisions ont sauté), et quand plus rien
+ * n'a survécu (`gestes(volets, etat) === 0`), la phrase le dit en toutes
+ * lettres plutôt que de laisser un atelier vide passer pour un scénario sain.
+ */
+export function renduDisparues(
+  volets: readonly Volet[],
+  etat: EtatAtelier,
+  disparues: readonly string[],
+): string {
+  if (disparues.length === 0) return "";
+  const intro =
+    gestes(volets, etat) === 0
+      ? "Ce scénario a changé d'exercice : aucun réglage n'a pu être repris, ces lignes ont disparu de la nomenclature."
+      : "Ce scénario a changé d'exercice : ces lignes ont disparu de la nomenclature et n'ont pas pu être reprises.";
+  const items = disparues.map((d) => `<li>${echapper(d)}</li>`).join("");
+  return `<div class="scenarios-rendu__disparues">
+    <p>${intro}</p>
+    <ul>${items}</ul>
+  </div>`;
 }
 
 /**

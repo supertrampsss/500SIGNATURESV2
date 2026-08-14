@@ -17,7 +17,24 @@
  * sans elle, un changement de forme ultérieur du type `Scenario` casserait
  * silencieusement les scénarios déjà enregistrés chez le lecteur, au lieu
  * d'être détecté et de retomber proprement sur une liste vide.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * REJOUER UN SCÉNARIO SUR L'EXERCICE COURANT (`transposer`)
+ * ─────────────────────────────────────────────────────────────────────────
+ * Un scénario enregistré sur un exercice révolu doit se rejouer sur
+ * l'exercice courant. Ça marche parce que les réglages sont des
+ * *coefficients* (atelier.ts), pas des montants : couper une ligne de 10 %
+ * signifie la même chose quelle que soit sa base cette année-là.
+ *
+ * Ce qui ne se transpose pas, c'est une ligne que la nomenclature a laissée
+ * tomber depuis. `decoder` (atelier.ts) l'ignore déjà, sans lever — c'est
+ * documenté dans sa propre docstring — mais il le fait en silence : rien
+ * dans son retour ne dit ce qu'il a écarté. `transposer` referme cet écart
+ * en reparcourant les mêmes morceaux que `decoder`, seulement pour nommer
+ * ceux qui n'ont pas survécu.
  */
+
+import { decoder, type EtatAtelier, type Volet } from "./atelier.ts";
 
 /** Un scénario du simulateur, tel que gardé dans le dépôt. */
 export type Scenario = {
@@ -203,4 +220,57 @@ export function supprimer(depot: Depot, nom: string): Scenario[] {
   const scenarios = lireScenarios(depot);
   const suivants = scenarios.filter((sc) => sc.nom !== nom);
   return ecrireScenarios(depot, suivants);
+}
+
+/* --------------------------------------------------------------------------
+ * transposer() — rejouer un scénario sur l'exercice courant
+ * ----------------------------------------------------------------------- */
+
+/** Le même séparateur que `SEPARATEUR_VOLET` (atelier.ts), non exporté de
+ *  là-bas. `decoder` connaît déjà ce format ; on ne le réutilise ici que
+ *  pour retrouver quels morceaux il a écartés, jamais pour refaire son
+ *  calcul (bornage des pourcentages, table des tranches, etc.), qui reste
+ *  entièrement le sien. */
+const SEPARATEUR_VOLET = "/";
+
+/** La ligne visée par `code` existe-t-elle encore dans ce volet ? Le même
+ *  test que `decoder` applique avant d'écrire un réglage — pas dupliqué à
+ *  la légère : c'est la seule façon de distinguer une ligne disparue d'une
+ *  ligne simplement réglée à zéro, que la table de réglages ne garde jamais
+ *  (voir la docstring de `decoder`). */
+function ligneExiste(volet: Volet, code: string): boolean {
+  if (volet.genre === "budget") return volet.index.has(code);
+  const borne = Number(code);
+  return volet.bareme.tranches.some((tranche) => tranche.b === borne);
+}
+
+/**
+ * Rejoue un scénario contre les volets de l'exercice courant.
+ *
+ * `etat` vient tel quel de `decoder` : c'est lui qui sait composer un état
+ * de l'atelier, `transposer` ne refait pas ce travail. `disparues` liste,
+ * volet et code, chaque ligne que le scénario réglait et que la nomenclature
+ * courante ne porte plus — y compris quand c'est le volet entier qui a
+ * disparu. Une ligne mal formée dans la chaîne (ancien format sans volet,
+ * chaîne corrompue) n'est pas une ligne disparue : `decoder` l'ignore de la
+ * même façon, ce n'est pas une ligne du tout.
+ */
+export function transposer(
+  scenario: Scenario,
+  volets: readonly Volet[],
+): { etat: EtatAtelier; disparues: string[] } {
+  const etat = decoder(scenario.budget, volets);
+  const disparues: string[] = [];
+  for (const morceau of scenario.budget.split(",")) {
+    const barre = morceau.indexOf(SEPARATEUR_VOLET);
+    const separateur = morceau.lastIndexOf(":");
+    if (barre < 0 || separateur < barre) continue;
+    const cleVolet = morceau.slice(0, barre);
+    const code = morceau.slice(barre + 1, separateur);
+    const volet = volets.find((v) => v.cle === cleVolet);
+    if (!volet || !ligneExiste(volet, code)) {
+      disparues.push(`${volet?.nom ?? cleVolet} : ${code}`);
+    }
+  }
+  return { etat, disparues };
 }

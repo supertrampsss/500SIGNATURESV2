@@ -11,8 +11,10 @@ import { test } from "node:test";
 
 import type { Scenario } from "./scenarios.ts";
 import type { LigneComparee } from "./comparaison.ts";
-import { type Comparable, renduBarre, renduComparaison } from "./scenarios-rendu.ts";
+import { type Comparable, renduBarre, renduComparaison, renduDisparues } from "./scenarios-rendu.ts";
 import { formater } from "./echelle.ts";
+import { indexer, type Budget } from "./simulateur.ts";
+import type { EtatAtelier, VoletBudget } from "./atelier.ts";
 
 const SOURCE = readFileSync(new URL("./scenarios-rendu.ts", import.meta.url), "utf8");
 
@@ -135,4 +137,47 @@ test("11. un exercice inconnu (null) se dit explicitement, sans fabriquer de mil
   const frontiere = html.indexOf(">B<");
   const premiereColonne = html.slice(0, frontiere);
   assert.doesNotMatch(premiereColonne, /\b(19|20)\d{2}\b/);
+});
+
+/* --------------------------------------------------------------------------
+ * renduDisparues() — les lignes qu'une transposition n'a pas pu reprendre
+ * ----------------------------------------------------------------------- */
+
+function budgetUneLigne(): Budget {
+  return {
+    exercice: "2025",
+    loi: "PLF",
+    mesure: "credit_de_paiement",
+    unite: "EUR",
+    depenses: [{ c: "146", l: "Défense", v: 1_000_000_000 }],
+    recettes: [],
+  };
+}
+
+function voletEtat(): VoletBudget {
+  const budget = budgetUneLigne();
+  return { genre: "budget", cle: "etat", nom: "Le budget de l'État", budget, index: indexer(budget) };
+}
+
+test("12. le rendu affiche la liste des lignes disparues quand elle n'est pas vide", () => {
+  const volets = [voletEtat()];
+  const etat: EtatAtelier = { budgets: new Map([["etat", new Map([["146", -10]])]]), baremes: new Map() };
+  const html = renduDisparues(volets, etat, ["Le budget de l'État : 999"]);
+  assert.match(html, /999/);
+});
+
+test("13. sans ligne disparue, le rendu ne produit rien", () => {
+  const volets = [voletEtat()];
+  const etat: EtatAtelier = { budgets: new Map([["etat", new Map([["146", -10]])]]), baremes: new Map() };
+  assert.equal(renduDisparues(volets, etat, []), "");
+});
+
+test("14. un scénario dont toutes les lignes ont disparu se dit explicitement : rien n'a pu être repris", () => {
+  const volets = [voletEtat()];
+  const etatVide: EtatAtelier = { budgets: new Map(), baremes: new Map() };
+  const html = renduDisparues(volets, etatVide, ["Le budget de l'État : 999", "Le budget de l'État : 998"]);
+  // La page ne doit pas rester muette : elle dit qu'aucun réglage n'a survécu.
+  assert.match(html, /aucun réglage.*repris|rien.*repris/i);
+  assert.match(html, /999/);
+  assert.match(html, /998/);
 });

@@ -6,8 +6,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { dupliquer, enregistrer, lister, NOM_MAX, renommer, supprimer } from "./scenarios.ts";
-import type { Depot } from "./scenarios.ts";
+import { dupliquer, enregistrer, lister, NOM_MAX, renommer, supprimer, transposer } from "./scenarios.ts";
+import type { Depot, Scenario } from "./scenarios.ts";
+import { indexer, type Budget } from "./simulateur.ts";
+import type { VoletBudget } from "./atelier.ts";
 
 /** Dépôt en mémoire : `valeur` tient lieu de `localStorage.getItem/setItem`. */
 function depotMemoire(initial: string | null = null): Depot & { valeur: string | null } {
@@ -244,4 +246,73 @@ test("un dépôt dont ecrire lève ne fait pas échouer l'appel", () => {
   // même le scénario enregistré.
   assert.equal(resultat.length, 1);
   assert.equal(resultat[0].nom, "A");
+});
+
+/* --------------------------------------------------------------------------
+ * transposer() — rejouer un scénario sur l'exercice courant
+ * ----------------------------------------------------------------------- */
+
+/** Un budget à deux lignes de dépense, indexé comme le fait main.ts. */
+function budgetDeuxLignes(): Budget {
+  return {
+    exercice: "2025",
+    loi: "PLF",
+    mesure: "credit_de_paiement",
+    unite: "EUR",
+    depenses: [
+      { c: "146", l: "Défense", v: 1_000_000_000 },
+      { c: "150", l: "Recherche", v: 500_000_000 },
+    ],
+    recettes: [],
+  };
+}
+
+function voletEtat(budget: Budget = budgetDeuxLignes()): VoletBudget {
+  return { genre: "budget", cle: "etat", nom: "Le budget de l'État", budget, index: indexer(budget) };
+}
+
+/** Un scénario minimal, pour ne pas répéter les six champs à chaque test. */
+function scenarioAvec(budget: string): Scenario {
+  return { nom: "S", budget, contrat: "", cree_le: "2026-01-01", modifie_le: "2026-01-01", exercice: "2019" };
+}
+
+test("transposer : un scénario dont toutes les lignes existent encore se transpose sans perte", () => {
+  const volets = [voletEtat()];
+  const { etat, disparues } = transposer(scenarioAvec("etat/146:-10,etat/150:20"), volets);
+  assert.deepEqual(disparues, []);
+  assert.equal(etat.budgets.get("etat")?.get("146"), -10);
+  assert.equal(etat.budgets.get("etat")?.get("150"), 20);
+});
+
+test("transposer : une ligne absente de la nomenclature courante figure dans disparues avec son code, et n'entre pas dans l'état", () => {
+  const volets = [voletEtat()];
+  const { etat, disparues } = transposer(scenarioAvec("etat/146:-10,etat/999:30"), volets);
+  assert.equal(disparues.length, 1);
+  assert.match(disparues[0]!, /999/);
+  // La ligne encore présente, elle, a bien été reprise.
+  assert.equal(etat.budgets.get("etat")?.get("146"), -10);
+  // La ligne disparue n'entre pas dans l'état.
+  assert.equal(etat.budgets.get("etat")?.has("999"), false);
+});
+
+test("transposer : un scénario dont toutes les lignes ont disparu se charge quand même, sans lever", () => {
+  const volets = [voletEtat()];
+  assert.doesNotThrow(() => transposer(scenarioAvec("etat/999:30,etat/998:-5"), volets));
+  const { etat, disparues } = transposer(scenarioAvec("etat/999:30,etat/998:-5"), volets);
+  assert.equal(disparues.length, 2);
+  assert.match(disparues[0]!, /999/);
+  assert.match(disparues[1]!, /998/);
+  // Rien n'entre dans l'état : le volet n'a aucun réglage repris.
+  assert.equal(etat.budgets.get("etat")?.size ?? 0, 0);
+});
+
+test("transposer : un volet entièrement disparu de l'atelier est aussi signalé", () => {
+  // Cas plus rare qu'une seule ligne disparue, mais decoder() le traite
+  // pareil (voir sa docstring) : un morceau dont le volet est inconnu ne
+  // règle rien, silencieusement. transposer() doit quand même le nommer.
+  const volets = [voletEtat()];
+  const { etat, disparues } = transposer(scenarioAvec("vieillesse/D-PRE:-5"), volets);
+  assert.equal(disparues.length, 1);
+  assert.match(disparues[0]!, /D-PRE/);
+  assert.equal(etat.budgets.size, 0);
 });
