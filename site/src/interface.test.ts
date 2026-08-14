@@ -685,6 +685,42 @@ test("le site dit ce qu'il a corrigé et quand il a lu ses sources", () => {
   assert.match(corps.slice(0, 900), /catch/);
 });
 
+test("aucun fetch de MÉTHODE ne part avant que l'initialisation n'ait résolu", () => {
+  // `basculerVue` peint la première vue AVANT `await donnees.initialiser()`
+  // dans `demarrer` : un chargement à froid sur /methode appelait donc
+  // `donnees.fraicheur()`/`donnees.journal()` alors que `donnees.racine`
+  // valait "". Les deux fetches résolvaient contre l'origine du site elle-même
+  // (retombée SPA de Cloudflare Pages, 200 avec index.html), `r.json()`
+  // levait, et `donnees.ts` cache par chemin relatif — pas par URL résolue —
+  // donc l'échec restait figé pour le reste de la session. `methodePeinte`
+  // verrouillait la vue en plus, avant même d'avoir essayé : blanche pour de
+  // bon.
+  const corpsPeintre = MAIN.slice(
+    MAIN.indexOf("async function peindreMethode"),
+    MAIN.indexOf("function basculerVue"),
+  );
+  assert.ok(corpsPeintre.length > 100, "corps de peindreMethode introuvable");
+  assert.ok(
+    corpsPeintre.indexOf("await prete;") !== -1 &&
+      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("donnees.fraicheur()") &&
+      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("donnees.journal()"),
+    "peindreMethode doit attendre `prete` avant tout fetch",
+  );
+  // `methodePeinte` ne verrouille plus AVANT d'avoir essayé : un échec
+  // véritable laisse la vue rejouable au prochain hashchange/popstate.
+  assert.doesNotMatch(corpsPeintre, /methodePeinte = true;\s*\n\s*try/);
+  assert.match(corpsPeintre, /methodePeinte = rendu;/);
+  // `prete` n'est résolue qu'APRÈS `await donnees.initialiser()` dans
+  // `demarrer` : c'est cet ordre qui garantit qu'aucun fetch de peintre ne
+  // part contre l'origine du site.
+  const corpsDemarrer = MAIN.slice(MAIN.indexOf("async function demarrer"));
+  assert.ok(
+    corpsDemarrer.indexOf("await donnees.initialiser()") <
+      corpsDemarrer.indexOf("resoudrePrete();"),
+    "resoudrePrete() doit être appelée après donnees.initialiser()",
+  );
+});
+
 test("le détail d'un territoire porte son classement, son export et sa comparaison", () => {
   // Trois conteneurs disparus avec la vue DONNÉES, alors que tout le code qui
   // les remplit est resté : `majTableau`, `majTableauEvolution` et

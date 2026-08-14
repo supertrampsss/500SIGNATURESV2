@@ -2338,19 +2338,41 @@ function vuesConnues(): readonly string[] {
  */
 let methodePeinte = false;
 
+/**
+ * Résolue une fois `donnees.initialiser()` revenu, dans `demarrer`.
+ *
+ * `basculerVue` peint la première vue AVANT cet appel (docs plus bas). Tant
+ * qu'il n'a pas résolu, `donnees.racine` vaut "" : un fetch parti depuis un
+ * peintre résoudrait contre l'origine du site elle-même, où la retombée SPA
+ * de Cloudflare Pages répond 200 avec `index.html` — `r.json()` lève, silence
+ * en apparence. Pire : `donnees.ts:78-88` cache par CHEMIN RELATIF, pas par
+ * URL résolue, donc ce fetch parti trop tôt fige l'échec dans le cache pour
+ * le reste de la session, même une fois `racine` correctement affectée. Tout
+ * peintre qui appelle `donnees.*` doit donc attendre `prete` en premier.
+ */
+let resoudrePrete: () => void;
+const prete = new Promise<void>((resolve) => {
+  resoudrePrete = resolve;
+});
+
 async function peindreMethode(): Promise<void> {
   if (methodePeinte) return;
-  methodePeinte = true;
+  await prete;
+  let rendu = false;
   try {
-    afficherFraicheur($("methode-fraicheur"), await donnees.fraicheur());
+    if (afficherFraicheur($("methode-fraicheur"), await donnees.fraicheur())) rendu = true;
   } catch {
     // Fichier non publié : le bloc reste vide, la page tient.
   }
   try {
-    afficherJournal($("methode-journal"), await donnees.journal());
+    if (afficherJournal($("methode-journal"), await donnees.journal())) rendu = true;
   } catch {
     // Idem : rien à dire vaut mieux qu'une erreur à lire.
   }
+  // Latché seulement si quelque chose s'est vraiment affiché : le défaut
+  // corrigé ici latchait avant même d'essayer, si bien qu'un premier échec
+  // (chargement à froid vers cette vue) gelait la vue vide pour la session.
+  methodePeinte = rendu;
 }
 
 function basculerVue(): void {
@@ -2592,6 +2614,9 @@ async function demarrer(): Promise<void> {
   window.addEventListener("popstate", basculerVue);
   basculerVue();
   const manifeste = await donnees.initialiser();
+  // `donnees.racine` est résolue : les peintres qui attendaient `prete`
+  // peuvent partir sans risquer la retombée SPA décrite à sa déclaration.
+  resoudrePrete();
   jeux = manifeste.jeux;
   catalogue = await donnees.indicateurs();
   // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
