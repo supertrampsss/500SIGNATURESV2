@@ -847,7 +847,7 @@ Le sort de chaque module hors service est tranché ici, module par module :
 | `recapitulatif.ts` | Rebrancher à l'atelier | Décrit comme livré dans les règles du projet mais jamais branché ; c'est le seul endroit qui a le droit de sommer les trois budgets |
 | `comparateur.ts` | Rebrancher sur `/detail` | La comparaison de territoires est utile et n'a été perdue que par la disparition de son conteneur |
 | `export.ts` | Rebrancher sur `/detail` et les tableaux d'analyse | L'export tabulaire sert directement le public « relais » |
-| Mode « évolution » de la carte | Rebrancher un contrôle dans le sélecteur de carte | Le calcul, le rendu et dix-sept tests subsistent ; le paramètre d'URL est toujours lu et écrit ; seule la commande manque |
+| Mode « évolution » de la carte | Rendre au paramètre `?mode=evolution` son effet, sans réintroduire de bouton | Le bouton a été retiré délibérément, avec sa raison écrite dans le code : deux mots sans phrase pour deux façons de peindre la même série, et la carte peignait la moitié du temps une grandeur que le lecteur croyait être l'autre. Cette décision tient. Mais le paramètre est toujours lu et écrit dans l'adresse alors qu'une ligne le neutralise ensuite : un lien partagé promet une couche qu'il n'ouvre pas. Retirer cette ligne rend le calcul, le rendu et leurs dix-sept tests atteignables par qui les demande explicitement, sans rien proposer à qui ne les demande pas |
 | `croiser.ts` | Retirer, avec son test | Un nuage de points et un coefficient de corrélation exposent le site à présenter une corrélation comme une causalité, ce que la charte interdit |
 | `euros-constants.ts` | Retirer, avec son test | Introduit une seconde unité à côté du million d'euros courants, que les règles d'affichage n'admettent pas. À rétablir si une décision explicite d'unité est prise |
 | Conteneur `#palmares` | Retirer | Présent et stylé, jamais rempli |
@@ -864,8 +864,11 @@ pipeline. Parallélisable avec le lot 1.
 fonction edge de métadonnées, image de scénario à la demande, commandes de partage et
 de citation.
 
-**Lot 4 — Accueil et lancement.** Accueil refondu, page méthode, levée de
-l'indexation, `robots.txt`, sitemap, rattachement du domaine.
+**Lot 4 — Accueil et lancement.** Accueil refondu, levée de l'indexation,
+`robots.txt`, sitemap, rattachement du domaine. La page `/methode` existe depuis le
+lot 0, où elle recueille le journal des corrections et l'état de fraîcheur des
+sources ; ce lot y ajoute les sources, la méthode et la grille de verdicts, cette
+dernière étant écrite au lot 1 avec les analyses qu'elle sert.
 
 **Après cette version, dans l'ordre de valeur estimée :**
 
