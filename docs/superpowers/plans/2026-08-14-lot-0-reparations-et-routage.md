@@ -524,8 +524,13 @@ Remplacer `VUES_PAGE` (ligne 2079) et supprimer `VUES_ALIAS` (ligne 2084, commen
 compris — la table vit désormais dans `routes.ts`) :
 
 ```ts
-const VUES_PAGE = ["territoire", "detail", "reperes", "methode"] as const;
+const VUES_PAGE = ["territoire", "detail", "reperes"] as const;
 ```
+
+`methode` n'entre pas ici : son conteneur naît à la tâche 4, et une vue ouvrable
+sans conteneur masquerait tout sans rien afficher. `routes.ts` connaît déjà son
+chemin — `CHEMINS` décrit les adresses, `vuesConnues()` tranche ce qui est ouvrable —
+si bien que `/methode` retombe proprement sur la vue territoire jusqu'à la tâche 4.
 
 Remplacer les six premières lignes du corps de `basculerVue` (2325-2329) :
 
@@ -720,7 +725,14 @@ et avant `</main>` :
     </div>
 ```
 
-- [ ] **Step 4: Ajouter l'entrée de navigation**
+- [ ] **Step 4: Ouvrir la vue et l'ajouter à la navigation**
+
+Dans `site/src/main.ts`, ajouter `methode` aux vues ouvrables — la tâche 3 l'avait
+laissée dehors, faute de conteneur :
+
+```ts
+const VUES_PAGE = ["territoire", "detail", "reperes", "methode"] as const;
+```
 
 Dans `index.html`, à la fin du `<nav class="entete__nav">` :
 
