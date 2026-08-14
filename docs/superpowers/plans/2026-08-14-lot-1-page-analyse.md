@@ -91,7 +91,7 @@ séries : les crédits **votés** et les crédits **consommés**. Pour la Défen
 | `etat_mission_defense_credits_consommes` | `62123736749.91` |
 
 Deux montants, tous deux exacts, tous deux couramment appelés « le budget de la
-Défense » — séparés de 2 177,40 M€. C'est la confusion `vote_execute` de la grille,
+Défense » — séparés de 2 177 M€. C'est la confusion `vote_execute` de la grille,
 sur des chiffres que le site publie déjà.
 
 **Le type est `decryptage`, et c'est délibéré.** Une `verification_chiffre` oppose un
