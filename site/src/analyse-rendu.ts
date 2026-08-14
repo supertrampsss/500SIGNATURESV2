@@ -10,13 +10,14 @@
  *    exercices, les effets indirects (attribués, jamais calculés ici).
  * 3. L'interactif — le renvoi vers le simulateur, seulement quand un réglage
  *    existe pour le rejouer.
- * 4. La preuve — le chemin du chiffre, du jeu de données au fichier publié.
+ * 4. La preuve — le chemin du chiffre jusqu'au fichier publié, la seule
+ *    provenance déclarée par l'analyse elle-même (`sources`).
  *
  * Comme `etat.ts` et `analyses.ts`, ce module ne touche pas au DOM : chaque
  * fonction est pure, rend une chaîne, et c'est cette chaîne qui est testée.
  */
 
-import type { Indicateur, Jeu } from "./donnees.ts";
+import type { Indicateur } from "./donnees.ts";
 import { formater } from "./echelle.ts";
 import { echapper } from "./texte.ts";
 
@@ -228,10 +229,12 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
     .join("");
 
   // Les incertitudes se disent dans la légende du tableau, avec les chiffres
-  // — jamais dans un bloc de réserve après eux (voir CLAUDE.md).
-  const legende = analyse.hypotheses.length
-    ? `<caption>${analyse.hypotheses.map((h) => echapper(h)).join(" ")}</caption>`
-    : "";
+  // — jamais dans un bloc de réserve après eux (voir CLAUDE.md). L'unité s'y
+  // dit aussi, toujours : c'est la page la plus exposée du site à la confusion
+  // milliards/millions, avec « environ X milliards » et « Y M€ » côte à côte
+  // (même convention qu'`exercices.ts` et `analyses.ts`).
+  const hypotheses = analyse.hypotheses.map((h) => echapper(h)).join(" ");
+  const legende = `<caption>Montants en millions d'euros.${hypotheses ? ` ${hypotheses}` : ""}</caption>`;
 
   // Un exercice par colonne : sur une analyse à plusieurs millésimes, le
   // tableau déborde de la carte, et c'est lui qui défile — jamais la page
@@ -283,33 +286,36 @@ function interactif(analyse: Analyse): string {
   </section>`;
 }
 
-/** Étage 4 : le chemin du chiffre, du jeu de données au fichier publié —
- *  une suite cliquable, pas une affirmation qu'il faudrait croire sur parole.
- *  `jeux` est le manifeste : producteur et lien du jeu de données en
- *  viennent, jamais du catalogue qui ne porte que l'identifiant du jeu. */
-function preuve(analyse: Analyse, catalogue: Indicateur[], jeux: Jeu[]): string {
+/** Étage 4 : le chemin du chiffre jusqu'au fichier publié — une suite
+ *  cliquable, pas une affirmation qu'il faudrait croire sur parole.
+ *
+ *  Le jeu de données n'est plus lu dans le catalogue (`indicateur.jeu` +
+ *  manifeste) : le pipeline classe encore certains indicateurs sous une
+ *  entrée de registre approximative, faute d'entrée dédiée (voir le
+ *  commentaire dans `execution_missions.py`) — pour les crédits de la
+ *  Défense, le PLRG par mission se retrouvait ainsi attribué à la situation
+ *  mensuelle budgétaire par nature, publiée sous « Fichier publié » avec la
+ *  bonne source : la même page portait deux provenances contradictoires pour
+ *  les deux mêmes montants. Tant que le registre ne garantit pas une entrée
+ *  correcte par indicateur, la preuve ne cite que ce que l'analyse déclare
+ *  elle-même (`analyse.sources`, listées une fois sous « Fichier publié ») —
+ *  jamais un champ que le rendu ne peut pas vérifier.
+ *
+ *  `version` est le millésime des fichiers publiés que le pré-rendu a
+ *  effectivement lus pour construire cette page (`chargerPublication()`,
+ *  scripts/prerendre.ts) — jamais `analyse.verifie_contre`, que le contrôle
+ *  ne persiste pas et qui reste vide dans tout fichier committé : un pas
+ *  toujours vide n'aurait jamais pu s'afficher. */
+function preuve(analyse: Analyse, catalogue: Indicateur[], version = ""): string {
   const chemins = analyse.chiffres
     .filter((c) => c.observe)
     .map((chiffre) => {
       const observe = chiffre.observe!;
       const indicateur = catalogue.find((i) => i.id === observe.indicateur);
-      const jeu = jeux.find((j) => j.id === indicateur?.jeu);
       const unite = indicateur?.unite ?? "EUR";
       const montant = formater(observe.valeur, unite, false, observe.indicateur);
       const etapes = [
-        // Sans manifeste (`jeux` vide), le producteur ne s'affiche pas et le
-        // jeu de données retombe sur son identifiant brut : la suite reste
-        // cohérente, seulement moins cliquable — l'appelant sans manifeste
-        // n'est pas empêché de rendre une preuve.
-        jeu ? `Producteur : ${echapper(jeu.producteur)}` : null,
-        indicateur?.jeu
-          ? jeu
-            ? `Jeu de données : <a href="${echapper(jeu.url)}" target="_blank" rel="noopener">${echapper(
-                jeu.titre,
-              )}</a>`
-            : `Jeu de données : ${echapper(indicateur.jeu)}`
-          : null,
-        analyse.verifie_contre ? `Millésime : ${echapper(analyse.verifie_contre)}` : null,
+        version ? `Millésime : ${echapper(version)}` : null,
         `Indicateur : ${echapper(indicateur?.libelle ?? observe.indicateur)}`,
         `Territoire : ${echapper(observe.niveau)} ${echapper(observe.code)}`,
         `Période : ${echapper(observe.periode)}`,
@@ -342,17 +348,17 @@ function preuve(analyse: Analyse, catalogue: Indicateur[], jeux: Jeu[]): string 
 
 /** Rendu pur d'une analyse, sans DOM : c'est lui qui est testé.
  *
- *  `jeux` est le manifeste (`Manifeste.jeux`) : optionnel, parce que le
- *  producteur et le lien du jeu de données à l'étage 4 ne sont qu'un
- *  enrichissement du chemin de preuve — sans lui, le chemin reste complet et
- *  cohérent, seulement moins cliquable. La tâche 4 passe le vrai manifeste. */
-export function rendu(analyse: Analyse, catalogue: Indicateur[], jeux: Jeu[] = []): string {
+ *  `version` est le millésime des fichiers publiés que le pré-rendu a lus
+ *  (`chargerPublication()`, scripts/prerendre.ts) — optionnel, parce que sans
+ *  lui l'étage 4 reste complet et cohérent, seulement sans son pas
+ *  « Millésime ». La tâche de pré-rendu passe le vrai millésime. */
+export function rendu(analyse: Analyse, catalogue: Indicateur[], version = ""): string {
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
     <h2 class="analyse-rendu__titre">${echapper(analyse.titre)}</h2>
     ${express(analyse, catalogue)}
     ${detail(analyse, catalogue)}
     ${interactif(analyse)}
-    ${preuve(analyse, catalogue, jeux)}
+    ${preuve(analyse, catalogue, version)}
   </article>`;
 }
 

@@ -31,7 +31,7 @@ import { exercicesPublies } from "../src/simulateur-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME, type Bareme } from "../src/bareme.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
-import type { Indicateur, Jeu, Manifeste } from "../src/donnees.ts";
+import type { Indicateur } from "../src/donnees.ts";
 
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE_SITE = path.resolve(ICI, "..");
@@ -282,14 +282,15 @@ async function chargerAnalyses(): Promise<Analyse[]> {
   return analyses;
 }
 
-async function chargerPublication(): Promise<{ catalogue: Indicateur[]; jeux: Jeu[]; racineDonnees: string }> {
+async function chargerPublication(): Promise<{
+  catalogue: Indicateur[];
+  version: string;
+  racineDonnees: string;
+}> {
   const { version } = await lireJson<{ version: string }>(`${BASE}/data/derniere.json`);
   const racineDonnees = `${BASE}/data/${version}`;
-  const [catalogue, manifeste] = await Promise.all([
-    lireJson<Indicateur[]>(`${racineDonnees}/indicateurs.json`),
-    lireJson<Manifeste>(`${racineDonnees}/manifeste.json`),
-  ]);
-  return { catalogue, jeux: manifeste.jeux, racineDonnees };
+  const catalogue = await lireJson<Indicateur[]>(`${racineDonnees}/indicateurs.json`);
+  return { catalogue, version, racineDonnees };
 }
 
 async function ecrirePage(dossier: string, html: string): Promise<void> {
@@ -300,7 +301,7 @@ async function ecrirePage(dossier: string, html: string): Promise<void> {
 async function main(): Promise<void> {
   const shell = await readFile(path.join(DIST, "index.html"), "utf8");
   const analyses = await chargerAnalyses();
-  const { catalogue, jeux, racineDonnees } = await chargerPublication();
+  const { catalogue, version, racineDonnees } = await chargerPublication();
 
   await validerLiensSimulateur(analyses, racineDonnees);
 
@@ -309,7 +310,7 @@ async function main(): Promise<void> {
       titre: analyse.titre,
       description: analyse.verdict.phrase,
       canonique: `/analyses/${analyse.slug}/`,
-      corps: rendu(analyse, catalogue, jeux),
+      corps: rendu(analyse, catalogue, version),
     };
     await ecrirePage(path.join(DIST, "analyses", analyse.slug), injecter(shell, page));
   }

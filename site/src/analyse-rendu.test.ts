@@ -19,23 +19,14 @@ const CATALOGUE = [
   { id: "etat_mission_defense_credits_consommes", unite: "EUR" },
 ] as never[];
 
-// Catalogue et manifeste pour les fixtures qui mélangent les registres —
-// distincts de CATALOGUE ci-dessus pour porter un `jeu` que le fichier
-// défense réel ne référence pas dans le catalogue minimal des tests.
+// Catalogue pour les fixtures qui mélangent les registres — distinct de
+// CATALOGUE ci-dessus pour porter un `jeu`, comme le ferait un vrai catalogue.
+// Ce champ n'est plus lu par l'étage 4 (Critical A, voir analyse-rendu.ts) :
+// il reste dans la fixture pour prouver que sa présence ne fait rien
+// réapparaître.
 const CATALOGUE_MIXTE = [
   { id: "test_indicateur_vote", unite: "EUR", jeu: "jeu-test" },
   { id: "test_indicateur_consomme", unite: "EUR", jeu: "jeu-test" },
-] as never[];
-
-const JEUX_TEST = [
-  {
-    id: "jeu-test",
-    titre: "Jeu de données de test",
-    producteur: "Producteur de test",
-    licence: "Licence Ouverte 2.0",
-    url: "https://exemple.test/jeu",
-    extraction: "2026-01-01",
-  },
 ] as never[];
 
 // L'analyse réelle du dépôt, chargée telle que publiée : le rendu doit la
@@ -178,6 +169,14 @@ test("les montants s'affichent en millions d'euros, jamais en Md", () => {
   const second = formater(62123736749.91, "EUR", false);
   assert.match(html, new RegExp(second.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.doesNotMatch(html, /\bMd€/);
+});
+
+test("le tableau du détail dit son unité (finding C, même convention qu'exercices.ts)", () => {
+  // La page la plus exposée à la confusion milliards/millions du site :
+  // « environ 59,9 milliards » (l'express) et « 59 946 M€ » (le détail) y
+  // voisinent. Sans la légende, rien ne dit que le second est en millions.
+  const html = rendu(DEFENSE, CATALOGUE);
+  assert.match(html, /<caption>Montants en millions d'euros\./);
 });
 
 test("le mot milliards peut figurer dans la citation de l'affirmation", () => {
@@ -355,16 +354,58 @@ test("l'index pointe vers la page réelle de l'analyse, pas une ancre morte (fin
   assert.doesNotMatch(html, /href="#/);
 });
 
-test("l'étage 4 nomme le producteur et lie le jeu de données quand le manifeste est fourni (finding 4)", () => {
-  const html = rendu(analyseMixte(), CATALOGUE_MIXTE, JEUX_TEST);
-  assert.match(html, /Producteur\s*:\s*Producteur de test/);
-  assert.match(html, /<a href="https:\/\/exemple\.test\/jeu"[^>]*>Jeu de données de test<\/a>/);
-});
-
-test("sans manifeste, l'étage 4 reste cohérent — juste moins cliquable (finding 4)", () => {
+test("l'étage 4 ne cite plus jamais le jeu du catalogue (Critical A)", () => {
+  // Même avec un catalogue qui porte un `jeu`, l'étage 4 ne doit plus produire
+  // ni « Producteur », ni « Jeu de données » : cette attribution venait du
+  // catalogue, qui peut classer un indicateur sous une entrée de registre
+  // approximative (execution_missions.py) — c'est exactement ce qui faisait
+  // porter à la page défense deux provenances contradictoires pour les mêmes
+  // montants (dist/analyses/defense-credits-votes-consommes-2025/index.html).
   const html = rendu(analyseMixte(), CATALOGUE_MIXTE);
   assert.doesNotMatch(html, /Producteur\s*:/);
+  assert.doesNotMatch(html, /Jeu de données\s*:/);
   assert.match(html, /Indicateur\s*:/);
+});
+
+test("l'étage 4 de l'analyse défense ne cite qu'une provenance : celle que le fichier déclare (Critical A)", () => {
+  // Reproduction directe du défaut critique : le catalogue réel classe les
+  // indicateurs de la mission Défense sous le jeu de la situation mensuelle
+  // budgétaire (par nature), alors que l'analyse déclare le PLRG (par
+  // mission) dans `sources`. Un catalogue qui porte ce `jeu` ne doit plus
+  // jamais apparaître dans la page ; seule la source déclarée doit s'y lire.
+  const catalogueAvecJeuErrone = [
+    {
+      id: "etat_mission_defense_credits_votes",
+      unite: "EUR",
+      jeu: "execution-budget-etat",
+    },
+    {
+      id: "etat_mission_defense_credits_consommes",
+      unite: "EUR",
+      jeu: "execution-budget-etat",
+    },
+  ] as never[];
+  const html = rendu(DEFENSE, catalogueAvecJeuErrone);
+  assert.doesNotMatch(html, /situations-mensuelles-budgetaires/);
+  assert.doesNotMatch(html, /Jeu de données\s*:/);
+  // La comparaison porte sur l'étage 4 seul : l'express (étage 1) cite aussi
+  // la source de l'affirmation, à un autre endroit de la page — ce n'est pas
+  // une seconde provenance concurrente, seulement le même chiffre cité deux
+  // fois à deux étages différents.
+  const preuve = html.slice(html.indexOf('class="analyse-rendu__preuve'));
+  const occurrencesPLRG = (preuve.match(/PLRG\) 2025, annexe 1/g) ?? []).length;
+  assert.equal(occurrencesPLRG, 1, "la source PLRG doit apparaître une seule fois dans la preuve, jamais zéro ni deux");
+});
+
+test("le millésime de l'étage 4 vient du paramètre `version`, jamais de `verifie_contre` (finding D)", () => {
+  // `verifie_contre` du fichier défense réel est vide par construction (le
+  // contrôle ne l'écrit jamais sur disque) : s'il redevenait la source du pas
+  // « Millésime », ce test échouerait en le trouvant absent malgré `version`.
+  assert.equal(DEFENSE.verifie_contre, "");
+  const avecVersion = rendu(DEFENSE, CATALOGUE, "2026-08-11T0807");
+  assert.match(avecVersion, /Millésime\s*:\s*2026-08-11T0807/);
+  const sansVersion = rendu(DEFENSE, CATALOGUE);
+  assert.doesNotMatch(sansVersion, /Millésime\s*:/);
 });
 
 test("aucune réserve qui s'excuse dans le module lui-même", () => {
