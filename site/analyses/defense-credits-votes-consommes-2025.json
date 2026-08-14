@@ -1,0 +1,68 @@
+{
+  "slug": "defense-credits-votes-consommes-2025",
+  "titre": "Le budget de la Défense : deux chiffres publiés, deux sens",
+  "type": "decryptage",
+  "publie_le": "2026-08-14",
+  "themes": ["budget_etat"],
+  "budgets_concernes": ["etat"],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "Le budget de la Défense pour 2025 est cité tantôt autour de 59,9 milliards d'euros, tantôt autour de 62,1 milliards. Les deux montants sont publiés, et ils ne désignent pas la même chose.",
+    "auteur": null,
+    "date": null,
+    "source": {
+      "titre": "Situation mensuelle budgétaire de l'État, exercice 2025",
+      "url": "https://www.data.economie.gouv.fr/explore/dataset/situation-mensuelle-budget-etat/",
+      "consulte_le": "2026-08-14"
+    }
+  },
+  "verdict": {
+    "cran": "hors_perimetre",
+    "confusion": "vote_execute",
+    "phrase": "Les deux montants existent. L'un est ce que le Parlement a voté, l'autre ce qui a été effectivement consommé."
+  },
+  "chiffres": [
+    {
+      "dit": "environ 59,9 milliards d'euros",
+      "observe": {
+        "indicateur": "etat_mission_defense_credits_votes",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2025",
+        "valeur": 59946338573.0
+      },
+      "registre": "fait_comptable",
+      "lecture": "Les crédits votés : l'autorisation donnée par le Parlement en loi de finances."
+    },
+    {
+      "dit": "environ 62,1 milliards d'euros",
+      "observe": {
+        "indicateur": "etat_mission_defense_credits_consommes",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2025",
+        "valeur": 62123736749.91
+      },
+      "registre": "fait_comptable",
+      "lecture": "Les crédits consommés : ce que la mission a effectivement dépensé sur l'exercice."
+    }
+  ],
+  "hypotheses": [
+    "Les deux séries portent sur la mission Défense au sens de la nomenclature budgétaire, hors comptes spéciaux et hors budgets annexes."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "titre": "Situation mensuelle budgétaire de l'État, exercice 2025",
+      "url": "https://www.data.economie.gouv.fr/explore/dataset/situation-mensuelle-budget-etat/",
+      "consulte_le": "2026-08-14"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Le simulateur règle les crédits votés du budget général : c'est la première des deux séries qu'il fait varier."
+  },
+  "mises_a_jour": [],
+  "verifie_contre": ""
+}
