@@ -4,7 +4,9 @@ Chaque cas vient du brief de la tâche 2. Les fixtures utilisent des URL en
 `example.invalid`, jamais une adresse plausible.
 """
 
-from plateforme.controle_analyses import controler
+import sys
+
+from plateforme.controle_analyses import controler, main
 
 
 class DonneesTest:
@@ -379,3 +381,160 @@ def test_analyse_non_conforme_ne_rend_pas_verifie_contre():
     donnees = fake_donnees(version="2026-08-11T0807")
     controler([analyse], donnees)
     assert analyse["verifie_contre"] == ""
+
+
+# 10. Critical 1 : un chiffre dont `observe` n'a ni indicateur ni niveau ni
+#     code n'était vérifié nulle part — et sa `valeur`, jamais vérifiée,
+#     alimentait quand même la garde anti-invention comme référence légitime.
+#     Probe donnée verbatim par le brief.
+
+
+def test_chiffre_sans_champs_identifiants_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0] = {
+        "dit": "environ 87 milliards",
+        "observe": {"valeur": 87_000_000_000.0, "periode": "2025"},
+        "registre": "fait_comptable",
+        "lecture": "Le budget total.",
+    }
+    analyse["verdict"]["phrase"] = "Le budget atteint 87 000 M€ selon les comptes."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs != []
+    assert analyse["verifie_contre"] == ""
+
+
+def test_valeur_non_verifiee_ne_licencie_pas_la_prose():
+    # Même probe, formulée comme régression ciblée : le champ manquant doit
+    # lui-même être signalé (pas seulement « ailleurs »), et 87 000 M€ dans
+    # verdict.phrase doit être refusé faute de référence vérifiée.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"] = {"valeur": 87_000_000_000.0, "periode": "2025"}
+    analyse["verdict"]["phrase"] = "Le budget atteint 87 000 M€ selon les comptes."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe" for e in erreurs)
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_fait_comptable_sans_observe_est_une_erreur():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"] = None
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe" for e in erreurs)
+
+
+# 11. Critical 2 : un séparateur de milliers non reconnu par le tokeniseur
+#     fragmente un grand nombre en morceaux sous le seuil, qui passent
+#     inaperçus. Table du brief, reproduite verbatim.
+
+
+def test_montant_groupe_par_points_est_refuse():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant atteint 87.000.000.000 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_montant_groupe_par_virgules_est_refuse():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant atteint 87,000,000,000 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_montant_groupe_par_apostrophes_est_refuse():
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant atteint 87'000'000'000 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_montant_groupe_par_espaces_reste_refuse_pour_la_bonne_raison():
+    # Ligne REFUSÉ de la table du brief : déjà correcte avant ce correctif,
+    # verrouillée en régression pour ne pas dépendre d'un accident de
+    # tokenisation plutôt que de l'absence de correspondance.
+    analyse = analyse_conforme()
+    analyse["verdict"]["phrase"] = "Le montant atteint 87 000 000 000 euros."
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "verdict.phrase" for e in erreurs)
+
+
+def test_decimale_francaise_simple_reste_lisible():
+    # Garde-fou explicite du brief : une seule virgule reste un séparateur
+    # décimal légitime, jamais un séparateur de milliers illisible.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["observe"]["indicateur"] = "second_indicateur"
+    analyse["chiffres"][0]["observe"]["valeur"] = 59946338573.0
+    analyse["verdict"]["phrase"] = "Le montant correspond à 59,9 milliards d'euros publiés."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+# 12. Critical 3 : un répertoire inexistant, ou sans aucune analyse, doit
+#     faire échouer main() plutôt que sortir 0 sans avoir rien contrôlé.
+
+
+def test_main_repertoire_inexistant_echoue(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["controle_analyses", str(tmp_path / "n-existe-pas")])
+    assert main() == 1
+
+
+def test_main_repertoire_vide_echoue(tmp_path, monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["controle_analyses", str(tmp_path)])
+    assert main() == 1
+
+
+# 15. Important 6 : `observe` est interdit pour resultat_simulation,
+#     hypothese et interpretation ; optionnel (mais vérifié si présent) pour
+#     donnee_officielle et estimation_externe ; obligatoire pour
+#     fait_comptable.
+
+
+def test_resultat_simulation_avec_observe_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "resultat_simulation"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe" for e in erreurs)
+
+
+def test_hypothese_avec_observe_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "hypothese"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe" for e in erreurs)
+
+
+def test_interpretation_avec_observe_echoue():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "interpretation"
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe" for e in erreurs)
+
+
+def test_resultat_simulation_sans_observe_passe():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "resultat_simulation"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["verdict"]["phrase"] = "Le simulateur produit ce résultat sous ces réglages."
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_donnee_officielle_sans_observe_passe_si_source():
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "donnee_officielle"
+    analyse["chiffres"][0]["observe"] = None
+    analyse["verdict"]["phrase"] = (
+        "Le montant correspond à la donnée publiée par la source citée."
+    )
+    erreurs = controler([analyse], fake_donnees())
+    assert erreurs == []
+
+
+def test_donnee_officielle_avec_observe_faux_echoue():
+    # « portent une source vérifiable » ne dispense pas d'être juste quand
+    # l'auteur choisit quand même de citer une observation.
+    analyse = analyse_conforme()
+    analyse["chiffres"][0]["registre"] = "donnee_officielle"
+    analyse["chiffres"][0]["observe"]["valeur"] = 1234.01
+    erreurs = controler([analyse], fake_donnees())
+    assert any(e.champ == "chiffres[0].observe.valeur" for e in erreurs)

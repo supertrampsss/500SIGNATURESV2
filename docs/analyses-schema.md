@@ -36,12 +36,12 @@ Tous les champs sont obligatoires sauf mention contraire.
 | `verdict.phrase` | chaîne | oui | Une phrase factuelle qui résume le verdict, sans jugement moral. |
 | `chiffres` | liste non vide d'objets | oui | Les chiffres cités par l'analyse, chacun adossé à une observation publiée. Voir détail ci-dessous. |
 | `chiffres[].dit` | chaîne | oui | Le chiffre tel qu'on l'entend couramment (arrondi, formulation courante). |
-| `chiffres[].observe` | objet | oui | L'observation publiée à laquelle `dit` renvoie. |
-| `chiffres[].observe.indicateur` | chaîne | oui | Identifiant de l'indicateur dans le catalogue publié. |
-| `chiffres[].observe.niveau` | chaîne | oui | Maille territoriale de l'observation (`pays`, `region`, `departement`, `commune`…). |
-| `chiffres[].observe.code` | chaîne | oui | Code du territoire à cette maille (ex. `FR`). |
-| `chiffres[].observe.periode` | chaîne | oui | Exercice ou période de l'observation (ex. `2025`). |
-| `chiffres[].observe.valeur` | nombre | oui | La valeur brute publiée, en euros. Doit correspondre exactement à la valeur publiée pour cet indicateur, ce niveau, ce code et cette période — sans arrondi ni tolérance. |
+| `chiffres[].observe` | objet ou absent | dépend du registre — voir « Registres » | L'observation publiée à laquelle `dit` renvoie, quand `registre` en admet une. |
+| `chiffres[].observe.indicateur` | chaîne | oui si `observe` est présent | Identifiant de l'indicateur dans le catalogue publié. |
+| `chiffres[].observe.niveau` | chaîne | oui si `observe` est présent | Maille territoriale de l'observation (`pays`, `region`, `departement`, `commune`…). |
+| `chiffres[].observe.code` | chaîne | oui si `observe` est présent | Code du territoire à cette maille (ex. `FR`). |
+| `chiffres[].observe.periode` | chaîne | oui si `observe` est présent | Exercice ou période de l'observation (ex. `2025`). |
+| `chiffres[].observe.valeur` | nombre | oui si `observe` est présent | La valeur brute publiée, en euros. Quand `observe` est renseigné, doit correspondre exactement à la valeur publiée pour cet indicateur, ce niveau, ce code et cette période — sans arrondi ni tolérance. |
 | `chiffres[].registre` | énumération | oui | La nature de l'affirmation portée par ce chiffre. Voir « Registres ». |
 | `chiffres[].lecture` | chaîne | oui | Ce que désigne précisément l'observation, en une phrase — ce qui distingue ce chiffre des autres chiffres cités. |
 | `hypotheses` | liste de chaînes | oui (peut être vide) | Les hypothèses ou choix de périmètre qui conditionnent la lecture de l'analyse (ex. ce qu'une série inclut ou exclut). |
@@ -116,6 +116,25 @@ l'affirmation qu'il porte :
   explicite, non observé directement.
 - `interpretation` — une lecture ou un rapprochement des chiffres précédents,
   qui n'est pas elle-même une observation.
+
+### `observe` selon le registre
+
+Le registre détermine si `chiffres[].observe` est obligatoire, optionnel ou
+interdit — le contrôle déterministe (tâche 2) applique cette règle à la
+lettre :
+
+- **`fait_comptable`** : `observe` est **obligatoire** et vérifié exactement.
+  C'est le seul registre dont le sens même est « une observation que le
+  pipeline a publiée » — l'exactitude est ce qui le rend vérifiable.
+- **`donnee_officielle`** et **`estimation_externe`** : `observe` est
+  **optionnel**. Absent, c'est la source (`sources[]`, avec `url` et
+  `consulte_le`) qui tient lieu de vérification. Présent, il est vérifié
+  exactement comme pour `fait_comptable` — citer une observation ne dispense
+  jamais de la citer juste.
+- **`resultat_simulation`**, **`hypothese`**, **`interpretation`** :
+  `observe` est **interdit**. Ces registres ne référencent aucune donnée
+  publiée par construction (voir ci-dessus) ; laisser passer une valeur ici
+  l'introduirait comme référence invérifiable dans la garde anti-invention.
 
 ## Ce qu'une analyse ne fait jamais
 

@@ -103,8 +103,17 @@ TYPES = {
 }
 
 # Registres dont l'affirmation ne vient pas d'une écriture comptable propre à
-# la plateforme : ils doivent pouvoir être vérifiés chez un tiers.
+# la plateforme : ils doivent pouvoir être vérifiés chez un tiers. `observe`
+# y est optionnel — la source (famille 5) tient lieu de vérification quand il
+# est absent — mais exact-checké quand un auteur choisit de le renseigner.
 REGISTRES_A_SOURCER = {"donnee_officielle", "estimation_externe"}
+
+# Registres qui ne référencent aucune donnée publiée par construction
+# (docs/analyses-schema.md, section Registres) : un résultat de simulateur,
+# une hypothèse ou une interprétation ne sont pas des observations. `observe`
+# y est interdit — l'autoriser laisserait une valeur invérifiable entrer dans
+# la liste de référence de la garde anti-invention (famille 4).
+REGISTRES_OBSERVE_INTERDIT = {"resultat_simulation", "hypothese", "interpretation"}
 
 
 class Erreur(NamedTuple):
@@ -261,19 +270,74 @@ def _erreurs_schema(analyse: dict) -> list[Erreur]:
 # --- Famille 2 : exactitude ---------------------------------------------------
 
 
-def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> list[Erreur]:
-    """Exact match, sans tolérance : une analyse recopie ce qui est publié."""
+def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> tuple[list[Erreur], list[float]]:
+    """Exact match, sans tolérance — sous condition du registre (finding 6) :
+
+    - `fait_comptable` exige `observe` et le vérifie exactement : c'est le
+      registre dont le sens même est « une observation que le pipeline a
+      publiée ».
+    - `donnee_officielle` et `estimation_externe` l'acceptent en option — la
+      source (famille 5) tient lieu de vérification quand il est absent —
+      mais un `observe` renseigné reste vérifié exactement : citer une
+      observation ne dispense jamais de la citer juste.
+    - `resultat_simulation`, `hypothese` et `interpretation` ne référencent
+      aucune donnée publiée : `observe` y est interdit (Important 6).
+
+    Un `chiffre` dont `observe` est présent mais sans `indicateur`, `niveau`
+    ou `code` est une erreur ici, jamais un skip silencieux (Critical 1) —
+    ces champs manquaient auparavant sans être signalés nulle part, ce qui
+    laissait passer n'importe quelle `valeur`.
+
+    -> (erreurs, valeurs effectivement vérifiées contre une série publiée) —
+    ce second élément est la seule matière première légitime de la garde
+    anti-invention (famille 4) : une valeur jamais vérifiée ne doit jamais
+    servir d'alibi à la prose (Critical 1).
+    """
     slug = analyse.get("slug", "?")
     erreurs: list[Erreur] = []
+    verifiees: list[float] = []
     for i, chiffre in enumerate(analyse.get("chiffres") or []):
-        observe = (chiffre or {}).get("observe") or {}
+        if not isinstance(chiffre, dict):
+            continue
+        registre = chiffre.get("registre")
+        observe = chiffre.get("observe")
+        champ_observe = f"chiffres[{i}].observe"
+
+        if registre in REGISTRES_OBSERVE_INTERDIT:
+            if observe is not None:
+                erreurs.append(
+                    Erreur(
+                        slug,
+                        champ_observe,
+                        f"registre « {registre} » ne référence aucune donnée publiée :"
+                        " observe doit être absent",
+                    )
+                )
+            continue
+
+        if observe is None:
+            if registre in REGISTRES_A_SOURCER:
+                continue  # optionnel pour ce registre : la source en tient lieu
+            erreurs.append(Erreur(slug, champ_observe, "champ obligatoire absent"))
+            continue
+        if not isinstance(observe, dict):
+            erreurs.append(Erreur(slug, champ_observe, "doit être un objet"))
+            continue
+
         indicateur, niveau = observe.get("indicateur"), observe.get("niveau")
         code, periode, valeur = observe.get("code"), observe.get("periode"), observe.get("valeur")
         if indicateur is None or niveau is None or code is None:
-            continue  # champ manquant : signalé ailleurs, pas de valeur à comparer
+            erreurs.append(
+                Erreur(
+                    slug,
+                    champ_observe,
+                    "indicateur, niveau et code sont tous requis pour vérifier une observation",
+                )
+            )
+            continue
         serie = donnees.serie(indicateur, niveau, code)
         publiee = serie.get(periode) if serie else None
-        champ = f"chiffres[{i}].observe.valeur"
+        champ = f"{champ_observe}.valeur"
         if publiee is None:
             erreurs.append(
                 Erreur(
@@ -286,7 +350,9 @@ def _erreurs_exactitude(analyse: dict, donnees: Donnees) -> list[Erreur]:
             erreurs.append(
                 Erreur(slug, champ, f"{valeur} ne correspond pas à la valeur publiée {publiee}")
             )
-    return erreurs
+        else:
+            verifiees.append(valeur)
+    return erreurs, verifiees
 
 
 # --- Famille 3 : cohérence de catalogue --------------------------------------
@@ -344,10 +410,25 @@ ECHELLES = {
 # légitime ne peut le porter.
 SYMBOLE_MILLIONS = "M€"
 
-# Groupes de trois chiffres séparés par une espace (normale, insécable ou fine
-# insécable — les trois se voient dans des textes copiés depuis des sources
-# différentes), avec une décimale à la française introduite par une virgule.
-_NOMBRE_RE = re.compile(r"(?<!\d)(?:\d{1,3}(?:[   ]\d{3})+|\d+)(?:,\d+)?(?!\d)")
+# Toute ponctuation qui peut apparaître comme séparateur de groupement dans un
+# nombre recopié : les trois espaces (normale, insécable, fine insécable —
+# les trois se voient dans des textes copiés depuis des sources différentes),
+# la virgule (décimale à la française), et le point et l'apostrophe — les
+# regroupements anglo-saxon et suisse, jamais légitimes en français, que
+# `_candidats` refuse au lieu de les fragmenter en silence (Critical 2).
+_ESPACES = "   "
+_SEPARATEURS = _ESPACES + ",.'"
+
+# Un nombre est un groupe de chiffres, suivi de zéro ou plusieurs groupes
+# introduits par n'importe lequel de ces séparateurs — reconnu ou non : c'est
+# ce qui permet de voir « 87.000.000.000 » comme UN seul nombre illisible
+# plutôt que quatre fragments sous le seuil de la garde, qui passaient
+# inaperçus avant ce correctif. Seuls les chiffres bornent le nombre
+# (`(?<!\d)` / `(?!\d)`) — un séparateur peut légitimement continuer en un
+# mot ordinaire de la phrase (l'espace qui suit « 87 000 000 000 » avant
+# « euros », par exemple), donc l'exclure de la frontière casserait la
+# lecture des nombres suivis de texte, pas seulement celle des illisibles.
+_NOMBRE_RE = re.compile(r"(?<!\d)\d+(?:[" + re.escape(_SEPARATEURS) + r"]\d+)*(?!\d)")
 _ECHELLE_MOT_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
 # Pas de \b final ici : « € » n'est pas un caractère de mot, donc un \b
 # juste après ne matcherait jamais quand « M€ » est suivi d'une espace ou
@@ -356,12 +437,27 @@ _ECHELLE_MOT_RE = re.compile(r"^\s*(" + "|".join(ECHELLES) + r")\b")
 _ECHELLE_SYMBOLE_RE = re.compile(r"^\s*" + re.escape(SYMBOLE_MILLIONS))
 
 
-def _candidats(texte: str) -> list[tuple[float, int, float]]:
-    """-> [(valeur, décimales écrites, échelle), ...] pour chaque nombre du texte."""
+def _candidats(texte: str) -> list[tuple[float, int, float, bool]]:
+    """-> [(valeur, décimales écrites, échelle, lisible), ...] pour chaque
+    nombre du texte.
+
+    `lisible` est faux quand le fragment mêle un séparateur non reconnu (un
+    point, une apostrophe) ou plus d'une virgule — la virgule française est
+    un séparateur décimal, jamais de milliers, donc une seule est légitime.
+    Un nombre illisible n'est jamais parsé « au mieux » : sa valeur n'a
+    alors aucun sens fiable (Critical 2)."""
     candidats = []
     for match in _NOMBRE_RE.finditer(texte):
-        entier, _, decimale = match.group().partition(",")
-        entier = entier.replace(" ", "").replace(" ", "").replace(" ", "")
+        brut = match.group()
+        if "." in brut or "'" in brut or brut.count(",") > 1:
+            # Séparateur non reconnu, ou virgules multiples (thousands
+            # anglo-saxon shredded par la virgule) : illisible, jamais deviné.
+            valeur = float(re.sub(r"[^0-9]", "", brut) or 0)
+            candidats.append((valeur, 0, 1.0, False))
+            continue
+        entier, _, decimale = brut.partition(",")
+        for espace in _ESPACES:
+            entier = entier.replace(espace, "")
         valeur = float(f"{entier}.{decimale}") if decimale else float(entier)
         suite_texte = texte[match.end() :]
         suite_mot = _ECHELLE_MOT_RE.match(suite_texte)
@@ -371,7 +467,7 @@ def _candidats(texte: str) -> list[tuple[float, int, float]]:
             echelle = 1e6
         else:
             echelle = 1.0
-        candidats.append((valeur, len(decimale), echelle))
+        candidats.append((valeur, len(decimale), echelle, True))
     return candidats
 
 
@@ -381,8 +477,15 @@ def _correspond(valeur: float, decimales: int, echelle: float, reference: float)
 
 def _nombre_non_reference(texte: str, references: list[float]) -> float | None:
     """-> le premier nombre ≥ 1000 (hors millésime) du texte qui ne correspond
-    à aucune référence, ou None si tout correspond."""
-    for valeur, decimales, echelle in _candidats(texte):
+    à aucune référence, ou None si tout correspond.
+
+    Un nombre illisible échoue toujours, quelle que soit sa valeur apparente
+    — le tokeniseur ne peut pas savoir ce qu'il désigne, et un tokeniseur qui
+    ne peut pas lire un chiffre avec confiance doit refuser, pas laisser
+    passer (Critical 2)."""
+    for valeur, decimales, echelle, lisible in _candidats(texte):
+        if not lisible:
+            return valeur
         effective = valeur * echelle
         if effective < SEUIL_GARDE:
             continue
@@ -393,15 +496,12 @@ def _nombre_non_reference(texte: str, references: list[float]) -> float | None:
     return None
 
 
-def _erreurs_invention(analyse: dict) -> list[Erreur]:
+def _erreurs_invention(analyse: dict, references: list[float]) -> list[Erreur]:
+    """`references` ne contient que des valeurs vérifiées contre une série
+    publiée par `_erreurs_exactitude` (Critical 1) : une `observe.valeur`
+    jamais vérifiée — champ manquant, indicateur inconnu, valeur fausse — ne
+    peut plus servir d'alibi à un montant inventé dans la prose."""
     slug = analyse.get("slug", "?")
-    references = [
-        (chiffre.get("observe") or {}).get("valeur")
-        for chiffre in (analyse.get("chiffres") or [])
-        if isinstance(chiffre, dict)
-    ]
-    references = [v for v in references if isinstance(v, int | float)]
-
     erreurs: list[Erreur] = []
 
     def verifier(champ: str, texte: str) -> None:
@@ -455,11 +555,12 @@ def controler(analyses: list[dict], donnees: Donnees) -> list[Erreur]:
     """
     toutes: list[Erreur] = []
     for analyse in analyses:
+        erreurs_exactitude, valeurs_verifiees = _erreurs_exactitude(analyse, donnees)
         erreurs = [
             *_erreurs_schema(analyse),
-            *_erreurs_exactitude(analyse, donnees),
+            *erreurs_exactitude,
             *_erreurs_catalogue(analyse, donnees),
-            *_erreurs_invention(analyse),
+            *_erreurs_invention(analyse, valeurs_verifiees),
             *_erreurs_sources(analyse),
         ]
         toutes += erreurs
@@ -478,7 +579,19 @@ def main() -> int:
     )
     args = parser.parse_args()
 
+    # Un répertoire inexistant ou une liste vide sortaient à 0 sans avoir rien
+    # contrôlé — un typo dans l'invocation CI transformait la porte en
+    # passoire silencieuse (Critical 3). Vérifiés avant tout appel réseau :
+    # un mauvais chemin ne doit pas dépendre du réseau pour être détecté.
+    if not args.repertoire.is_dir():
+        print(f"ERREUR : « {args.repertoire} » n'est pas un répertoire")
+        return 1
+
     analyses = charger_repertoire(args.repertoire)
+    if not analyses:
+        print(f"ERREUR : aucune analyse trouvée dans « {args.repertoire} »")
+        return 1
+
     donnees = DonneesReseau(version=args.version)
     erreurs = controler(analyses, donnees)
 
