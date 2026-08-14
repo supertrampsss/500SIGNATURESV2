@@ -1052,15 +1052,87 @@ test("les lignes disparues d'un scénario chargé sont nommées à l'écran, pas
   // `#scenarios` laissait passer sa disparition sans qu'aucun test ne bronche,
   // alors que c'est le nom même de ce test.
   const ecriture = corps.slice(corps.indexOf("cible.innerHTML ="));
-  assert.match(ecriture, /^cible\.innerHTML =[^;]*\+ disparues \+/);
+  // L'espacement est indifférent — la concaténation peut tenir sur une ligne
+  // ou sur dix — mais `disparues` doit être un terme de la somme, pas une
+  // sous-chaîne d'un autre identifiant : `\b` le garantit.
+  assert.match(ecriture, /^cible\.innerHTML =[^;]*\+\s*\bdisparues\b\s*\+/);
 });
 
 test("supprimer le scénario courant efface aussi les lignes disparues qu'il portait", () => {
   const corps = MAIN.slice(
     MAIN.indexOf("function supprimerScenarioCourant"),
-    MAIN.indexOf("function supprimerScenarioCourant") + 400,
+    MAIN.indexOf("function faceChoisie"),
   );
   assert.match(corps, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
+});
+
+/** Exécute `supprimerScenarioCourant` telle qu'écrite dans main.ts, avec le
+ *  vrai `scenarioNomme` plutôt qu'un doublon, et rend ce qui s'est réellement
+ *  passé : le nom supprimé s'il y en a eu un, et l'état des lignes disparues.
+ *  Même technique que `executerColonnesComparaison`. */
+function executerSupprimerScenarioCourant(
+  etatSimule: Record<string, string>,
+  scenariosLocaux: { nom: string; budget: string; exercice: string }[],
+): { supprime: string | null; disparuesVidees: boolean } {
+  const aides = MAIN.slice(
+    MAIN.indexOf("function scenarioNomme"),
+    MAIN.indexOf("/** Une colonne comparée, transposée"),
+  ).replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
+  const corps = MAIN.slice(
+    MAIN.indexOf("function supprimerScenarioCourant"),
+    MAIN.indexOf("function faceChoisie"),
+  ).replace("function supprimerScenarioCourant(): void {", "function supprimerScenarioCourant() {");
+  let supprime: string | null = null;
+  let disparuesVidees = false;
+  const etat = { ...etatSimule };
+  new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "supprimerScenario",
+    "ecrireUrl",
+    "montrerScenarios",
+    "poser",
+    `${aides}${corps}
+     let disparuesCourantes = null;
+     supprimerScenarioCourant();
+     poser(disparuesCourantes);`,
+  )(
+    etat,
+    () => scenariosLocaux,
+    {},
+    (_depot: unknown, nom: string) => {
+      supprime = nom;
+    },
+    () => {},
+    () => {},
+    (d: { lignes: string[] } | null) => {
+      disparuesVidees = d !== null && d.lignes.length === 0;
+    },
+  );
+  return { supprime, disparuesVidees };
+}
+
+test("un lien nommant un scénario absent du dépôt ne supprime rien, et n'efface rien", () => {
+  // Le bouton « Supprimer « X » » ne devrait même pas s'offrir pour un X que
+  // ce lecteur n'a pas — mais s'il est atteint, il ne doit ni supprimer un
+  // homonyme, ni faire disparaître de l'écran la liste des lignes que ce lien
+  // vient précisément de perdre.
+  const { supprime, disparuesVidees } = executerSupprimerScenarioCourant(
+    { nom: "Chez l'envoyeur", budget: "b64" },
+    [],
+  );
+  assert.equal(supprime, null);
+  assert.equal(disparuesVidees, false);
+});
+
+test("un scénario réellement présent est bien supprimé", () => {
+  const { supprime, disparuesVidees } = executerSupprimerScenarioCourant(
+    { nom: "Chez moi", budget: "b64" },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+  );
+  assert.equal(supprime, "Chez moi");
+  assert.equal(disparuesVidees, true);
 });
 
 test("un stockage indisponible dégrade en scénarios de session, et l'interface le dit", () => {
@@ -1171,12 +1243,25 @@ test("l'adresse relit une face choisie au rechargement, même quand son budget e
 /** Exécute `colonnesComparaison` telle qu'écrite dans main.ts, avec `etat`,
  *  `listerScenarios`, `exerciceCourant` et `referencesScenarios` simulés, et
  *  capture les arguments reçus par `colonneDepuis` — en particulier
- *  l'exercice, le serment et le lien retenus pour chaque colonne. */
+ *  l'exercice, le serment et le lien retenus pour chaque colonne.
+ *
+ *  `scenarioCourant` est pris dans main.ts lui aussi, jamais simulé : c'est
+ *  lui qui porte la règle « l'état affiché EST ce scénario » (même nom ET même
+ *  budget), et un banc d'essai qui la remplacerait par un stub testerait sa
+ *  propre copie de la règle plutôt que celle qui s'exécute. */
 function executerColonnesComparaison(
   etatSimule: Record<string, string>,
-  scenariosLocaux: { nom: string; exercice: string; contrat?: string }[],
+  scenariosLocaux: { nom: string; budget: string; exercice: string; contrat?: string }[],
   references: { titre: string; contrat: string; lien: string | null }[] = [],
 ): { nom: string; exercice: string | null; contrat: string; lien: string | null }[] {
+  const debutAides = MAIN.indexOf("function scenarioCourant");
+  const finAides = MAIN.indexOf("/** Une colonne comparée, transposée");
+  assert.ok(debutAides > -1 && finAides > debutAides, "scenarioCourant introuvable dans main.ts");
+  const aides = MAIN.slice(debutAides, finAides)
+    .replace("function scenarioCourant(): Scenario | undefined {", "function scenarioCourant() {")
+    .replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
+  assert.doesNotMatch(aides, /: Scenario/, "une annotation de type reste dans les aides évaluées");
+
   const debut = MAIN.indexOf("function colonnesComparaison");
   const fin = MAIN.indexOf("function chargerScenario(nom: string): void {");
   assert.ok(debut > -1 && fin > debut, "colonnesComparaison introuvable dans main.ts");
@@ -1185,28 +1270,29 @@ function executerColonnesComparaison(
   // si elle change, ce test doit rougir plutôt que d'évaluer autre chose que
   // le vrai corps de la fonction.
   assert.match(corpsBrut, /function colonnesComparaison\(\): Comparable\[\] \{/);
-  const corps = corpsBrut.replace(
-    "function colonnesComparaison(): Comparable[] {",
-    "function colonnesComparaison() {",
-  );
-  const captures: { nom: string; exercice: string | null; contrat: string; lien: string | null }[] =
-    [];
+  const corps =
+    aides +
+    corpsBrut.replace(
+      "function colonnesComparaison(): Comparable[] {",
+      "function colonnesComparaison() {",
+    );
+  // Ce que la fonction REND, jamais l'ordre dans lequel elle a appelé
+  // `colonneDepuis` : les deux ont divergé le jour où la colonne `face` a été
+  // construite avant la courante, et des tests qui lisaient l'ordre d'appel
+  // se sont mis à vérifier la colonne d'en face en croyant lire la leur.
   const colonneDepuis = (
     nom: string,
     _budget: string,
     exercice: string | null,
     contrat: string,
     lien: string | null,
-  ) => {
-    captures.push({ nom, exercice, contrat, lien });
-    return { nom, exercice, contrat, lien };
-  };
+  ) => ({ nom, exercice, contrat, lien });
   const listerScenarios = () => scenariosLocaux;
   // L'exercice publié aujourd'hui sur le site, sans aucun rapport avec les
   // scénarios testés : un test qui verrait cette valeur là où il attend
   // `null` prouve que le fallback fautif est revenu.
   const exerciceCourant = () => "2025-SITE";
-  new Function(
+  return new Function(
     "etat",
     "listerScenarios",
     "depotScenarios",
@@ -1215,7 +1301,6 @@ function executerColonnesComparaison(
     "referencesScenarios",
     `${corps}\nreturn colonnesComparaison();`,
   )(etatSimule, listerScenarios, {}, colonneDepuis, exerciceCourant, references);
-  return captures;
 }
 
 test("une colonne `face` absente du dépôt local, sans exercice dans l'adresse, dit l'exercice inconnu", () => {
@@ -1249,12 +1334,45 @@ test("un scénario réellement présent localement garde toujours SON exercice, 
   const [courante, face] = executerColonnesComparaison(
     { nom: "Chez moi", budget: "b64", faceNom: "Chez mon collègue", face: "c64", faceExercice: "" },
     [
-      { nom: "Chez moi", exercice: "2022" },
-      { nom: "Chez mon collègue", exercice: "2024" },
+      { nom: "Chez moi", budget: "b64", exercice: "2022" },
+      { nom: "Chez mon collègue", budget: "c64", exercice: "2024" },
     ],
   );
   assert.equal(courante!.exercice, "2022");
   assert.equal(face!.exercice, "2024");
+});
+
+test("un curseur bougé : la colonne courante cesse d'annoncer le nom et l'exercice du scénario ouvert", () => {
+  // Le lecteur a ouvert « Chez moi » (budget `b64`, exercice 2022) puis a
+  // bougé un curseur : l'adresse porte toujours `nom=Chez moi`, mais le
+  // budget affiché n'est plus celui du scénario. La colonne ne peut donc plus
+  // se dire ce scénario-là — ni par son nom, ni par son millésime.
+  const [courante] = executerColonnesComparaison(
+    { nom: "Chez moi", budget: "b64-retouche", faceNom: "", face: "", faceExercice: "" },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+  );
+  assert.equal(courante!.exercice, null);
+  assert.notEqual(courante!.exercice, "2022");
+  assert.notEqual(courante!.exercice, "2025-SITE");
+});
+
+test("deux colonnes ne portent jamais le même nom au-dessus de deux budgets différents", () => {
+  // « Chez moi » ouvert, un curseur bougé, puis « Chez moi » choisi comme
+  // face : sans arbitrage les deux en-têtes seraient identiques au-dessus de
+  // deux budgets différents, et rien à l'écran ne dirait lequel est
+  // l'enregistré. C'est la colonne vive qui cède le nom.
+  const [courante, face] = executerColonnesComparaison(
+    {
+      nom: "Chez moi",
+      budget: "b64-retouche",
+      faceNom: "Chez moi",
+      face: "b64",
+      faceExercice: "",
+    },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+  );
+  assert.notEqual(courante!.nom, face!.nom);
+  assert.equal(face!.nom, "Chez moi");
 });
 
 test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", () => {

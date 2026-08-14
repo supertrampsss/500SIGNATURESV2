@@ -26,7 +26,7 @@ import {
   type Volet,
 } from "./atelier.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
-import { lister as listerScenarios, enregistrer as enregistrerScenario, supprimer as supprimerScenario, transposer, transposerBudget, NOM_MAX, type Depot } from "./scenarios.ts";
+import { lister as listerScenarios, enregistrer as enregistrerScenario, supprimer as supprimerScenario, transposer, transposerBudget, NOM_MAX, type Depot, type Scenario } from "./scenarios.ts";
 import { comparer as comparerScenarios } from "./comparaison.ts";
 import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
@@ -2641,6 +2641,33 @@ function exerciceCourant(): string {
   );
 }
 
+/** Le scénario enregistré que l'état affiché **est** : même nom, et le même
+ *  budget que celui qui est à l'écran. Le nom seul ne suffit pas — deux
+ *  lecteurs appellent « Mon budget » deux budgets différents, et un lien
+ *  partagé `?nom=Mon budget&budget=…` ouvert chez celui qui a l'homonyme en
+ *  local ferait annoncer par la colonne l'exercice de SON scénario au-dessus
+ *  du budget de l'envoyeur. `undefined` alors : ce que l'écran montre ne vient
+ *  pas de ce scénario, donc rien n'en est emprunté — ni la marque « courant »
+ *  dans la barre, ni le nom et l'exercice en tête de colonne.
+ *
+ *  Le bouton de suppression, lui, ne s'y accroche pas : il agit sur un
+ *  scénario du dépôt, que l'écran en montre l'état exact ou une version
+ *  retouchée. Il a sa propre condition — que ce scénario existe (voir
+ *  `scenarioNomme`). */
+function scenarioCourant(): Scenario | undefined {
+  return etat.nom
+    ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom && s.budget === etat.budget)
+    : undefined;
+}
+
+/** Le scénario du dépôt que l'adresse nomme, s'il existe. Un lien partagé
+ *  porte `?nom=` sans rien garantir sur le dépôt de qui l'ouvre : offrir
+ *  « Supprimer « X » » pour un X que ce lecteur n'a pas, c'est offrir un
+ *  geste qui n'a rien à faire. */
+function scenarioNomme(): Scenario | undefined {
+  return etat.nom ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom) : undefined;
+}
+
 /** Une colonne comparée, transposée contre les volets montés. `exercice` est
  *  `null` quand il n'y a authentiquement rien à afficher — jamais un exercice
  *  plausible mais sans rapport avec ce que la colonne a réellement réglé.
@@ -2694,18 +2721,6 @@ function colonneDepuis(
  *  doit pas prêter sa contrainte à un scénario du lecteur qui porterait le
  *  même titre. */
 function colonnesComparaison(): Comparable[] {
-  const enregistre = etat.nom
-    ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom)
-    : undefined;
-  const courante = colonneDepuis(
-    (enregistre?.nom ?? etat.nom) || "Votre budget actuel",
-    etat.budget,
-    enregistre?.exercice ?? (etat.nom ? null : exerciceCourant()),
-    // Le serment que l'atelier applique en ce moment : celui de l'adresse,
-    // pas celui de l'enregistrement, qui peut avoir été relâché depuis.
-    etat.contrat,
-    null,
-  );
   const faceEnregistree = etat.faceNom
     ? listerScenarios(depotScenarios).find((s) => s.nom === etat.faceNom)
     : undefined;
@@ -2718,6 +2733,22 @@ function colonnesComparaison(): Comparable[] {
     faceEnregistree?.exercice ?? (etat.faceExercice || null),
     faceEnregistree?.contrat ?? faceReference?.contrat ?? "",
     faceReference?.lien ?? null,
+  );
+  const enregistre = scenarioCourant();
+  const nomCourant = (enregistre?.nom ?? etat.nom) || "Votre budget actuel";
+  const courante = colonneDepuis(
+    // Un nom désigne une colonne, jamais deux : deux colonnes homonymes
+    // au-dessus de deux budgets différents ne se distinguent par rien à
+    // l'écran. C'est la colonne vive qui cède le nom — « Votre budget
+    // actuel » est vrai d'elle quoi qu'il arrive, alors que celui de la face
+    // lui vient du dépôt ou du fichier de référence.
+    nomCourant === face.nom && etat.budget !== etat.face ? "Votre budget actuel" : nomCourant,
+    etat.budget,
+    enregistre?.exercice ?? (etat.nom ? null : exerciceCourant()),
+    // Le serment que l'atelier applique en ce moment : celui de l'adresse,
+    // pas celui de l'enregistrement, qui peut avoir été relâché depuis.
+    etat.contrat,
+    null,
   );
   return [courante, face];
 }
@@ -2789,8 +2820,9 @@ function enregistrerScenarioCourant(): void {
  *  perdrait sa marque « courant » sans rien dire, et un lien partagé
  *  rouvrirait un nom fantôme. */
 function supprimerScenarioCourant(): void {
-  if (!etat.nom) return;
-  supprimerScenario(depotScenarios, etat.nom);
+  const cible = scenarioNomme();
+  if (!cible) return;
+  supprimerScenario(depotScenarios, cible.nom);
   etat.nom = "";
   // Le scénario supprimé n'est plus affiché : les lignes disparues qu'il
   // portait n'ont plus de scénario à décrire.
@@ -2833,11 +2865,12 @@ function montrerScenarios(): void {
     ? ""
     : `<p class="scenarios-rendu__vide">Stockage indisponible (navigation privée) : vos scénarios ne survivent pas au rechargement de la page.</p>`;
 
+  const supprimable = scenarioNomme();
   const actions = `<div class="scenarios-rendu__liste">
     <button type="button" class="scenarios-rendu__scenario" id="scenario-enregistrer">Enregistrer ce budget</button>${
-      etat.nom
+      supprimable
         ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-supprimer">Supprimer « ${echapper(
-            etat.nom,
+            supprimable.nom,
           )} »</button>`
         : ""
     }
@@ -2891,7 +2924,15 @@ function montrerScenarios(): void {
     : "";
 
   cible.innerHTML =
-    avertissement + renduBarre(scenarios, etat.nom || null) + actions + disparues + choix + tableau;
+    avertissement +
+    // La marque « courant » dit « c'est cela que vous regardez » : elle suit
+    // donc `scenarioCourant()`, pas le nom nu. Un curseur bougé, et l'écran
+    // ne montre plus ce scénario — le marquer encore serait le prétendre.
+    renduBarre(scenarios, scenarioCourant()?.nom ?? null) +
+    actions +
+    disparues +
+    choix +
+    tableau;
 }
 
 /** Les écouteurs de la barre, posés une seule fois : `#scenarios` n'est
