@@ -306,5 +306,7 @@ test("un agrégat n'ouvre ses composantes que si elles lui redonnent son total",
 test("le sélecteur propose les trois échelons, sans total", () => {
   const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
   assert.match(MAIN, /\["commune", "departement", "region"\] as const/);
-  assert.match(MAIN, /Communes.*Départements.*Régions/s);
+  // ECHELONS vit dans simulateur-volets.ts, partagé avec scripts/prerendre.ts.
+  const VOLETS = readFileSync(new URL("./simulateur-volets.ts", import.meta.url), "utf8");
+  assert.match(VOLETS, /Communes.*Départements.*Régions/s);
 });

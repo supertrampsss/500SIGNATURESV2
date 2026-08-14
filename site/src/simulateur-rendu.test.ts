@@ -570,6 +570,9 @@ test("un budget réglé se relit tel quel dans la page entière", () => {
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+// BRANCHES, DIT_LA_BRANCHE et fusionnerBranches vivent dans simulateur-volets.ts,
+// partagés avec scripts/prerendre.ts : voir ce module pour le pourquoi.
+const VOLETS = readFileSync(new URL("./simulateur-volets.ts", import.meta.url), "utf8");
 
 test("les budgets ne se chargent qu'à l'ouverture de l'atelier", () => {
   // Cent kilo-octets pour le seul budget de l'État, sur une page que la plupart
@@ -684,10 +687,12 @@ test("l'index des branches rend les exercices d'une branche, pas d'une autre", (
 test("les cinq branches vivent dans un seul budget, jamais en cinq sections", () => {
   // Cinq sections pour un même ensemble, c'est la nomenclature du code de la
   // Sécurité sociale posée à l'écran telle quelle. Il n'y en a plus qu'une.
+  // BRANCHES et fusionnerBranches vivent dans simulateur-volets.ts, partagés
+  // avec scripts/prerendre.ts (voir ce module).
   for (const branche of ["vieillesse", "maladie", "famille", "autonomie", "atmp"]) {
-    assert.match(MAIN, new RegExp(`\\["${branche}", "`), `branche ${branche} absente`);
+    assert.match(VOLETS, new RegExp(`\\["${branche}", "`), `branche ${branche} absente`);
   }
-  assert.match(MAIN, /\["vieillesse", "Retraites", "/);
+  assert.match(VOLETS, /\["vieillesse", "Retraites", "/);
   assert.match(MAIN, /cle: "secu"/);
   assert.doesNotMatch(MAIN, /cle: `branche-\$\{branche\}`/);
   // Le mot « branche » ne sort pas en intitulé de section : le titre vient du
@@ -695,7 +700,7 @@ test("les cinq branches vivent dans un seul budget, jamais en cinq sections", ()
   assert.match(MAIN, /donnees\.simulateurBudgetSecu\(exercice\)/);
   // Et chaque branche dit ce qu'elle paie : « Autonomie » ne se comprend pas
   // seul.
-  assert.match(MAIN, /"Grand âge et handicap/);
+  assert.match(VOLETS, /"Grand âge et handicap/);
 });
 
 test("la somme des branches n'est pas le budget de la Sécurité sociale", () => {
@@ -703,7 +708,7 @@ test("la somme des branches n'est pas le budget de la Sécurité sociale", () =>
   // produit : additionnées telles quelles, elles annoncent 695 944 M€ quand le
   // consolidé publié en dit 676 925. L'écart entre dans l'arbre, en ligne
   // visible, des deux côtés.
-  assert.match(MAIN, /CODE_ELIMINATION/);
-  assert.match(MAIN, /Transferts entre branches, comptés deux fois/);
-  assert.match(MAIN, /elimineDepense = totalBranches\.depenses - totalConsolide\.depenses/);
+  assert.match(VOLETS, /CODE_ELIMINATION/);
+  assert.match(VOLETS, /Transferts entre branches, comptés deux fois/);
+  assert.match(VOLETS, /elimineDepense = totalBranches\.depenses - totalConsolide\.depenses/);
 });

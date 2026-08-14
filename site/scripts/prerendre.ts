@@ -26,9 +26,10 @@ import { fileURLToPath } from "node:url";
 
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
-import { indexer, CODE_ELIMINATION, type Budget, type Noeud } from "../src/simulateur.ts";
+import { indexer, type Budget } from "../src/simulateur.ts";
 import { exercicesPublies } from "../src/simulateur-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME, type Bareme } from "../src/bareme.ts";
+import { BRANCHES, fusionnerBranches, ECHELONS } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
 import type { Indicateur, Jeu, Manifeste } from "../src/donnees.ts";
 
@@ -59,72 +60,16 @@ async function lireJson<T>(url: string): Promise<T> {
  * budgets qu'une analyse référence réellement dans son `simulateur.budget`.
  * ----------------------------------------------------------------------- */
 
-/**
- * Les cinq branches de la Sécurité sociale, fusionnées en un seul budget
- * préfixé par branche — copie fidèle de `fusionnerBranches` (`site/src/main.ts`,
- * non exportée), jusqu'aux nœuds synthétiques qui portent le code nu d'une
- * branche (« vieillesse ») ou d'un groupe de recettes (« vieillesse:groupe:… ») :
- * ce sont des lignes réglables à part entière, et un lien peut les référencer
- * directement plutôt qu'une de leurs feuilles.
- *
- * Ce script ne peut pas importer `main.ts` lui-même : il charge MapLibre et
- * appelle `demarrer()` au chargement du module, ce qui suppose un DOM.
- * À resynchroniser si `fusionnerBranches` change.
- */
-const BRANCHES = [
-  ["vieillesse", "Retraites"],
-  ["maladie", "Maladie"],
-  ["famille", "Famille"],
-  ["autonomie", "Autonomie"],
-  ["atmp", "Accidents du travail"],
-] as const;
+// BRANCHES, DIT_LA_BRANCHE et fusionnerBranches viennent de
+// simulateur-volets.ts, importés plus haut : ce script ne peut pas importer
+// `main.ts` lui-même (il charge MapLibre et appelle `demarrer()` au
+// chargement du module, ce qui suppose un DOM), mais il construit désormais
+// les mêmes volets que l'atelier interactif, avec le même code.
 
-function fusionnerBranchesPourIndex(consolide: Budget, branches: [string, string, Budget][]): Budget {
-  const prefixer = (cle: string, noeud: Noeud): Noeud => ({
-    ...noeud,
-    c: `${cle}:${noeud.c}`,
-    ...(noeud.enfants ? { enfants: noeud.enfants.map((e) => prefixer(cle, e)) } : {}),
-  });
-  const somme = (budget: Budget) => ({
-    depenses: budget.depenses.reduce((s, n) => s + n.v, 0),
-    recettes: budget.recettes.reduce((s, g) => s + g.signe * g.lignes.reduce((t, l) => t + l.v, 0), 0),
-  });
-  const totalConsolide = somme(consolide);
-  const totalBranches = branches.reduce(
-    (acc, [, , b]) => {
-      const t = somme(b);
-      return { depenses: acc.depenses + t.depenses, recettes: acc.recettes + t.recettes };
-    },
-    { depenses: 0, recettes: 0 },
-  );
-  const elimineDepense = totalBranches.depenses - totalConsolide.depenses;
-  const elimineRecette = totalBranches.recettes - totalConsolide.recettes;
-  const dit = "Transferts entre branches, comptés deux fois (se déduit)";
-  return {
-    ...consolide,
-    depenses: [
-      ...branches.map(([cle, nom, budget]) => ({
-        c: cle,
-        l: nom,
-        v: somme(budget).depenses,
-        enfants: budget.depenses.map((n) => prefixer(cle, n)),
-      })),
-      { c: CODE_ELIMINATION, l: dit, v: -elimineDepense },
-    ],
-    recettes: [
-      ...branches.map(([cle, nom, budget]) => ({
-        t: nom,
-        signe: 1,
-        lignes: budget.recettes.map((g) => ({
-          c: `${cle}:groupe:${g.t}`,
-          l: g.t,
-          v: g.signe * g.lignes.reduce((t, l) => t + l.v, 0),
-          enfants: g.lignes.map((l) => prefixer(cle, g.signe < 0 ? { ...l, v: -l.v } : l)),
-        })),
-      })),
-      { t: "Transferts entre branches", signe: -1, lignes: [{ c: CODE_ELIMINATION, l: dit, v: elimineRecette }] },
-    ],
-  };
+/** Vrai si la clé est un échelon de collectivités connu — ce qui la rend
+ *  indexable dans `ECHELONS` sans passer par un `as`. */
+function estEchelon(cle: string): cle is keyof typeof ECHELONS {
+  return cle in ECHELONS;
 }
 
 /** Le dernier exercice publié d'un volet, ou une erreur qui nomme le volet en cause. */
@@ -152,9 +97,9 @@ async function construireVolet(cle: string, racineDonnees: string): Promise<Vole
       lire<Budget>(`simulateur/secu-${exercice}.json`),
       ...BRANCHES.map(([branche]) => lire<Budget>(`simulateur/branche-${branche}-${exercice}.json`)),
     ]);
-    const fusionne = fusionnerBranchesPourIndex(
+    const fusionne = fusionnerBranches(
       consolide,
-      BRANCHES.map(([cleBranche, nom], rang) => [cleBranche, nom, branches[rang]] as [string, string, Budget]),
+      BRANCHES.map(([cleBranche, nom], rang) => [cleBranche, nom, branches[rang]!] as [string, string, Budget]),
     );
     return { genre: "budget", cle, nom: "Sécurité sociale", budget: fusionne, index: indexer(fusionne) };
   }
@@ -175,8 +120,9 @@ async function construireVolet(cle: string, racineDonnees: string): Promise<Vole
 
   if (cle.startsWith("collectivites-")) {
     const echelon = cle.slice("collectivites-".length);
+    if (!estEchelon(echelon)) throw new Error(`Échelon de collectivité inconnu : "${echelon}".`);
     const budget = await lire<Budget>(`simulateur/collectivites-${echelon}.json`);
-    return { genre: "budget", cle, nom: cle, budget, index: indexer(budget) };
+    return { genre: "budget", cle, nom: ECHELONS[echelon], budget, index: indexer(budget) };
   }
 
   throw new Error(`Volet de simulateur inconnu : "${cle}".`);
