@@ -767,6 +767,27 @@ test("aucun fetch de MÉTHODE ne part avant que l'initialisation n'ait résolu",
   );
 });
 
+test("aucun fetch de DÉTAIL ne part avant que l'initialisation n'ait résolu", () => {
+  // Même défaut que MÉTHODE, pré-existant celui-là : `basculerVue` peint la
+  // première vue AVANT `await donnees.initialiser()` dans `demarrer`, et
+  // `etat = lireUrl()` a déjà lu le territoire dans `location.search`. Un
+  // chargement à froid sur `/detail?territoire=…` — une adresse que cette
+  // branche rend enfin partageable — appelait donc `chargerLotsNecessaires`
+  // avec `donnees.racine` encore à "". `donnees.ts` cache par chemin
+  // relatif, pas par URL résolue : l'échec se figeait pour le reste de la
+  // session, et un lien partagé restait blanc, pour de bon.
+  const corpsPeintre = MAIN.slice(
+    MAIN.indexOf("async function peindreDetail"),
+    MAIN.indexOf("Le simulateur n'est une vue du site"),
+  );
+  assert.ok(corpsPeintre.length > 100, "corps de peindreDetail introuvable");
+  assert.ok(
+    corpsPeintre.indexOf("await prete;") !== -1 &&
+      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("chargerLotsNecessaires("),
+    "peindreDetail doit attendre `prete` avant tout fetch",
+  );
+});
+
 test("les cases de MÉTHODE disparaissent quand elles n'ont rien à montrer", () => {
   // `.bloc` est un cadre bordé, ombré : `peindreMethode` ignorait les
   // booléens que renvoient `afficherFraicheur`/`afficherJournal` (« j'ai

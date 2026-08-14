@@ -2110,6 +2110,14 @@ async function peindreDetail(): Promise<void> {
       ` exercice par exercice.</span></p>`;
     return;
   }
+  // Même défaut que celui corrigé à `peindreMethode`, même remède : `basculerVue`
+  // peint la première vue avant que `demarrer` n'ait fini d'initialiser les
+  // données, et un lien `/detail?territoire=…` partagé arrive ici avec
+  // `donnees.racine` encore à "". Le fetch part contre l'origine du site
+  // (retombée SPA, 200 sur index.html), `r.json()` lève, et `donnees.ts` cache
+  // par chemin relatif — pas par URL résolue — donc l'échec se fige pour le
+  // reste de la session : un lien partagé restait blanc, pour de bon.
+  await prete;
   await chargerLotsNecessaires(etat.niveau, [code]);
   const territoire = entiteDe(code, etat.niveau);
   if (!territoire) return;
