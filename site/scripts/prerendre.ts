@@ -233,14 +233,28 @@ function injecter(shell: string, page: Page): string {
  * Le programme.
  * ----------------------------------------------------------------------- */
 
+/** La forme d'un slug valide : ce qui reste identique une fois passé dans une
+ *  URL et dans un chemin de fichier. `analyse.slug` sert aux deux sans
+ *  contrôle — les analyses sont un contenu du dépôt, pas une saisie externe,
+ *  mais rien ne coûte à vérifier la forme plutôt qu'à la supposer. */
+const FORME_SLUG = /^[a-z0-9-]+$/;
+
+function validerSlug(analyse: Analyse): void {
+  if (!FORME_SLUG.test(analyse.slug)) {
+    throw new Error(`L'analyse "${analyse.titre}" porte un slug invalide : "${analyse.slug}".`);
+  }
+}
+
 async function chargerAnalyses(): Promise<Analyse[]> {
   const fichiers = (await readdir(DOSSIER_ANALYSES)).filter((f) => f.endsWith(".json"));
-  return Promise.all(
+  const analyses = await Promise.all(
     fichiers.map(async (fichier) => {
       const brut = await readFile(path.join(DOSSIER_ANALYSES, fichier), "utf8");
       return JSON.parse(brut) as Analyse;
     }),
   );
+  for (const analyse of analyses) validerSlug(analyse);
+  return analyses;
 }
 
 async function chargerPublication(): Promise<{ catalogue: Indicateur[]; jeux: Jeu[]; racineDonnees: string }> {
