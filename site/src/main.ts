@@ -2388,7 +2388,13 @@ function basculerVue(): void {
   // demandait à descendre dans celle qu'il lisait. Tant qu'une vue est déjà
   // affichée, un hash qui n'en désigne aucune la laisse en place, et le
   // navigateur fait ce qu'il sait faire : défiler jusqu'à l'ancre.
-  if (!vuesConnues().includes(cible) && document.body.dataset.vue) return;
+  // `location.hash` distingue ce cas d'un Back vers `/` : `vueDepuisAdresse`
+  // renvoie `null` sur la racine sans fragment, PAR DESIGN (routes.test.ts),
+  // exactement comme pour une ancre. Sans ce filtre, ce garde-fou avalait
+  // aussi le retour à la racine — la première navigation Précédent de toute
+  // session partie de `/` restait inerte, l'adresse changeait sans que la
+  // page suive. Une ancre en porte toujours un ; un Back vers `/`, jamais.
+  if (!vuesConnues().includes(cible) && document.body.dataset.vue && location.hash) return;
   const vue = vuesConnues().includes(cible) ? cible : "territoire";
   document.body.dataset.vue = vue;
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein

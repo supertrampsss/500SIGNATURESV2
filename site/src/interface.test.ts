@@ -525,13 +525,59 @@ test("une vue longue dit ce qu'elle contient", () => {
   assert.match(corps, /if \(entrees\.length < 2\)/);
   // Une ancre interne ne doit pas être prise pour une vue inconnue et renvoyer
   // le lecteur sur TERRITOIRE au moment où il descend dans ce qu'il lit.
-  assert.match(MAIN, /if \(!vuesConnues\(\)\.includes\(cible\) && document\.body\.dataset\.vue\) return;/);
+  // Le fragment fait partie de la garde depuis qu'un Back vers `/` — cible
+  // inconnue elle aussi, mais sans fragment — s'y faisait avaler : voir
+  // "le Back vers `/` n'est plus avalé par la garde des ancres internes".
+  assert.match(
+    MAIN,
+    /if \(!vuesConnues\(\)\.includes\(cible\) && document\.body\.dataset\.vue && location\.hash\) return;/,
+  );
   assert.match(CSS, /scroll-margin-top: calc\(var\(--haut-entete\)/);
   // Le chemin nomme désormais la vue, si bien que la garde ci-dessus ne couvre
   // plus les ancres internes d'une page routée : c'est le retour en haut qui
   // doit être conditionnel, sinon il annule le défilement vers l'ancre.
   assert.match(MAIN, /const precedente = document\.body\.dataset\.vue;/);
   assert.match(MAIN, /if \(vue !== precedente\) window\.scrollTo\(\{ top: 0 \}\);/);
+});
+
+test("le Back vers `/` n'est plus avalé par la garde des ancres internes", () => {
+  // Un lecteur arrivé sur `/` clique `/reperes`, puis appuie sur Précédent.
+  // `vueDepuisAdresse("/", "")` renvoie `null` PAR DESIGN (routes.test.ts) :
+  // l'appelant doit distinguer « rien n'est demandé » de « TERRITOIRE est
+  // demandée ». `cible` valait donc "" — une cible inconnue de `vuesConnues()`
+  // — exactement comme pour une ancre interne, et la garde avalait les deux
+  // sans distinction : l'adresse revenait à `/?…`, la page restait figée sur
+  // `/reperes`.
+  //
+  // On extrait l'expression EXACTE de la garde du fichier source et on
+  // l'évalue avec les deux scénarios que le fragment doit désormais
+  // distinguer, plutôt que de se fier à sa seule présence dans le texte.
+  const garde = MAIN.match(
+    /if \((!vuesConnues\(\)\.includes\(cible\) && document\.body\.dataset\.vue && location\.hash)\) return;/,
+  );
+  assert.ok(garde, "garde introuvable sous sa forme attendue");
+  const avale = (cible: string, vueAffichee: string | undefined, hash: string): boolean =>
+    Boolean(
+      new Function(
+        "vuesConnues",
+        "document",
+        "location",
+        "cible",
+        `return (${garde![1]});`,
+      )(
+        () => ["territoire", "reperes", "detail", "methode"],
+        { body: { dataset: { vue: vueAffichee } } },
+        { hash },
+        cible,
+      ),
+    );
+  // Back vers `/` : cible inconnue, une vue est déjà affichée, aucun fragment
+  // — la garde ne doit plus avaler ce cas, `basculerVue` doit retomber sur
+  // TERRITOIRE.
+  assert.equal(avale("", "reperes", ""), false, "un Back vers / doit changer la vue affichée");
+  // Ancre interne : cible inconnue aussi, mais un fragment est présent — le
+  // comportement que la garde protège depuis l'origine ne doit pas régresser.
+  assert.equal(avale("", "reperes", "#bloc-etat"), true, "une ancre interne doit laisser la vue en place");
 });
 
 test("sous le pouce, la navigation ne se coupe plus", () => {
