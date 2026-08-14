@@ -37,8 +37,13 @@ import { echapper } from "./texte.ts";
  * sur des exercices différents doivent pourtant se dire en tête du tableau
  * (spec §12) : c'est ce module qui affiche l'écran, donc c'est lui qui porte
  * le champ.
+ *
+ * `null` quand l'exercice est authentiquement inconnu — un scénario partagé
+ * par lien que le lecteur n'a pas en local, sur lequel rien ne dit à quel
+ * millésime il a été construit. Jamais une valeur par défaut plausible mais
+ * sans rapport : voir `colonnesComparaison` (main.ts).
  */
-export type Comparable = Colonne & { exercice: string };
+export type Comparable = Colonne & { exercice: string | null };
 
 /**
  * La barre des scénarios enregistrés, le courant marqué.
@@ -79,7 +84,9 @@ export function renduComparaison(colonnes: Comparable[], lignes: LigneComparee[]
     .map(
       (c) => `<th scope="col" class="scenarios-rendu__entete">
         <span class="scenarios-rendu__nom-colonne">${echapper(c.nom)}</span>
-        <span class="scenarios-rendu__exercice-colonne">Exercice ${echapper(c.exercice)}</span>
+        <span class="scenarios-rendu__exercice-colonne">${
+          c.exercice === null ? "Exercice inconnu" : `Exercice ${echapper(c.exercice)}`
+        }</span>
         <span class="scenarios-rendu__effort-colonne">${formater(c.effort, "EUR", false)}</span>
         <span class="scenarios-rendu__gestes-colonne">${c.gestes} ${
           c.gestes > 1 ? "gestes" : "geste"

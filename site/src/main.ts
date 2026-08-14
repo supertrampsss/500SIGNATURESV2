@@ -185,6 +185,11 @@ type Etat = {
   /** Le nom affiché en tête de la colonne `face` : celui du scénario dont
    *  elle vient, faute de mieux un intitulé générique. */
   faceNom: string;
+  /** L'exercice sur lequel la colonne `face` a été construite, porté par
+   *  l'adresse comme `face` et `face-nom` : sans lui, un lien partagé ouvert
+   *  chez un lecteur qui n'a pas ce scénario en local n'a aucun moyen de
+   *  savoir sur quel millésime il a été bâti — voir `colonnesComparaison`. */
+  faceExercice: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -304,6 +309,7 @@ function lireUrl(): Etat {
     nom: p.get("nom") ?? "",
     face: p.get("face") ?? "",
     faceNom: p.get("face-nom") ?? "",
+    faceExercice: p.get("face-exercice") ?? "",
   };
 }
 
@@ -325,6 +331,7 @@ function ecrireUrl(): void {
   if (etat.nom) p.set("nom", etat.nom);
   if (etat.face) p.set("face", etat.face);
   if (etat.faceNom) p.set("face-nom", etat.faceNom);
+  if (etat.faceExercice) p.set("face-exercice", etat.faceExercice);
   // Le chemin porte la vue, le fragment l'ancre interne : réécrire l'adresse
   // sans le chemin renverrait le lecteur du simulateur à la carte au premier
   // réglage.
@@ -2585,8 +2592,10 @@ function exerciceCourant(): string {
   );
 }
 
-/** Une colonne comparée, décodée contre les volets montés. */
-function colonneDepuis(nom: string, budget: string, exercice: string): Comparable {
+/** Une colonne comparée, décodée contre les volets montés. `exercice` est
+ *  `null` quand il n'y a authentiquement rien à afficher — jamais un exercice
+ *  plausible mais sans rapport avec ce que la colonne a réellement réglé. */
+function colonneDepuis(nom: string, budget: string, exercice: string | null): Comparable {
   const etatColonne: EtatAtelier = decoderAtelier(budget, voletsMontes);
   return {
     nom,
@@ -2598,7 +2607,17 @@ function colonneDepuis(nom: string, budget: string, exercice: string): Comparabl
 }
 
 /** Les deux colonnes du mode comparaison : l'état courant (enregistré ou
- *  vif), et la colonne `face` que l'adresse porte. */
+ *  vif), et la colonne `face` que l'adresse porte.
+ *
+ *  `exerciceCourant()` n'est légitime que pour un état VIF (`nom` vide) : il
+ *  décrit alors bien ce que l'atelier a sous les yeux. Dès qu'un nom est
+ *  porté sans scénario local correspondant — un lien partagé ouvert ailleurs
+ *  — rien ne dit sur quel exercice il a été bâti, et le proposer quand même
+ *  affiche un millésime plausible mais sans rapport avec ce que l'envoyeur a
+ *  réellement réglé : `null` dit l'inconnu plutôt que de le déguiser. Pour la
+ *  colonne `face`, l'adresse porte l'exercice explicitement (`face-exercice`)
+ *  : un lien récent le connaît, un lien antérieur à ce paramètre ne l'a pas
+ *  et retombe donc, lui aussi, sur `null`. */
 function colonnesComparaison(): Comparable[] {
   const enregistre = etat.nom
     ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom)
@@ -2606,7 +2625,7 @@ function colonnesComparaison(): Comparable[] {
   const courante = colonneDepuis(
     (enregistre?.nom ?? etat.nom) || "Votre budget actuel",
     etat.budget,
-    enregistre?.exercice ?? exerciceCourant(),
+    enregistre?.exercice ?? (etat.nom ? null : exerciceCourant()),
   );
   const faceEnregistree = etat.faceNom
     ? listerScenarios(depotScenarios).find((s) => s.nom === etat.faceNom)
@@ -2614,7 +2633,7 @@ function colonnesComparaison(): Comparable[] {
   const face = colonneDepuis(
     (faceEnregistree?.nom ?? etat.faceNom) || "Comparaison",
     etat.face,
-    faceEnregistree?.exercice ?? exerciceCourant(),
+    faceEnregistree?.exercice ?? (etat.faceExercice || null),
   );
   return [courante, face];
 }
@@ -2636,6 +2655,7 @@ function chargerScenario(nom: string): void {
   // la garder pointerait sur un état qui n'est plus celui qu'on regarde.
   etat.face = "";
   etat.faceNom = "";
+  etat.faceExercice = "";
   ecrireUrl();
   afficherAtelier($("simu"), voletsMontes, {
     etat: decoderAtelier(scenario.budget, voletsMontes),
@@ -2754,6 +2774,7 @@ function brancherScenarios(): void {
     if (cibleClic.closest("#scenario-fermer-comparaison")) {
       etat.face = "";
       etat.faceNom = "";
+      etat.faceExercice = "";
       ecrireUrl();
       return montrerScenarios();
     }
@@ -2764,6 +2785,7 @@ function brancherScenarios(): void {
     const choisi = listerScenarios(depotScenarios).find((s) => s.nom === champ.value);
     etat.face = choisi?.budget ?? "";
     etat.faceNom = choisi?.nom ?? "";
+    etat.faceExercice = choisi?.exercice ?? "";
     ecrireUrl();
     montrerScenarios();
   });

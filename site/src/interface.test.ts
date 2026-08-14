@@ -1023,6 +1023,99 @@ test("comparer deux scénarios est un mode du simulateur, jamais une vue distinc
   assert.match(MAIN, /const tableau = etat\.face/);
 });
 
+/* ------------------------------------------------------------------------
+ * L'exercice d'une colonne comparée ne se devine pas — trouvaille critique
+ * de la revue : `colonnesComparaison` retombait sur `exerciceCourant()` (le
+ * millésime PUBLIÉ AUJOURD'HUI sur le site) pour un scénario `face` ou `nom`
+ * que le lecteur n'a pas en local, un an sans aucun rapport avec ce que
+ * l'envoyeur du lien a réellement réglé. Les six tests ci-dessus sur la barre
+ * de scénarios sont tous textuels/structurels ; ceux-ci exécutent réellement
+ * le corps de `colonnesComparaison` (extrait du fichier source, débarrassé
+ * de sa seule annotation TypeScript — l'annotation de retour — et évalué via
+ * `new Function` avec des dépendances simulées), sur le modèle du test
+ * "le Back vers `/`..." plus haut.
+ * ---------------------------------------------------------------------- */
+
+/** Exécute `colonnesComparaison` telle qu'écrite dans main.ts, avec `etat`,
+ *  `listerScenarios` et `exerciceCourant` simulés, et capture les arguments
+ *  reçus par `colonneDepuis` — en particulier l'exercice retenu pour chaque
+ *  colonne. */
+function executerColonnesComparaison(
+  etatSimule: Record<string, string>,
+  scenariosLocaux: { nom: string; exercice: string }[],
+): { nom: string; exercice: string | null }[] {
+  const debut = MAIN.indexOf("function colonnesComparaison");
+  const fin = MAIN.indexOf("function chargerScenario(nom: string): void {");
+  assert.ok(debut > -1 && fin > debut, "colonnesComparaison introuvable dans main.ts");
+  const corpsBrut = MAIN.slice(debut, fin);
+  // Verrouille la forme de la signature avant de lui ôter son annotation :
+  // si elle change, ce test doit rougir plutôt que d'évaluer autre chose que
+  // le vrai corps de la fonction.
+  assert.match(corpsBrut, /function colonnesComparaison\(\): Comparable\[\] \{/);
+  const corps = corpsBrut.replace(
+    "function colonnesComparaison(): Comparable[] {",
+    "function colonnesComparaison() {",
+  );
+  const captures: { nom: string; exercice: string | null }[] = [];
+  const colonneDepuis = (nom: string, _budget: string, exercice: string | null) => {
+    captures.push({ nom, exercice });
+    return { nom, exercice };
+  };
+  const listerScenarios = () => scenariosLocaux;
+  // L'exercice publié aujourd'hui sur le site, sans aucun rapport avec les
+  // scénarios testés : un test qui verrait cette valeur là où il attend
+  // `null` prouve que le fallback fautif est revenu.
+  const exerciceCourant = () => "2025-SITE";
+  new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "colonneDepuis",
+    "exerciceCourant",
+    `${corps}\nreturn colonnesComparaison();`,
+  )(etatSimule, listerScenarios, {}, colonneDepuis, exerciceCourant);
+  return captures;
+}
+
+test("une colonne `face` absente du dépôt local, sans exercice dans l'adresse, dit l'exercice inconnu", () => {
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Scénario partagé", face: "b64", faceExercice: "" },
+    [],
+  );
+  assert.equal(face!.exercice, null);
+  assert.notEqual(face!.exercice, "2025-SITE");
+});
+
+test("une colonne `face` absente du dépôt local, avec exercice dans l'adresse, montre CET exercice", () => {
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Scénario partagé", face: "b64", faceExercice: "2019" },
+    [],
+  );
+  assert.equal(face!.exercice, "2019");
+  assert.notEqual(face!.exercice, "2025-SITE");
+});
+
+test("symétrique : une colonne « courante » nommée mais absente du dépôt local dit aussi l'exercice inconnu", () => {
+  const [courante] = executerColonnesComparaison(
+    { nom: "Scénario partagé", budget: "b64", faceNom: "", face: "", faceExercice: "" },
+    [],
+  );
+  assert.equal(courante!.exercice, null);
+  assert.notEqual(courante!.exercice, "2025-SITE");
+});
+
+test("un scénario réellement présent localement garde toujours SON exercice, pas le courant du site", () => {
+  const [courante, face] = executerColonnesComparaison(
+    { nom: "Chez moi", budget: "b64", faceNom: "Chez mon collègue", face: "c64", faceExercice: "" },
+    [
+      { nom: "Chez moi", exercice: "2022" },
+      { nom: "Chez mon collègue", exercice: "2024" },
+    ],
+  );
+  assert.equal(courante!.exercice, "2022");
+  assert.equal(face!.exercice, "2024");
+});
+
 test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", () => {
   // Sans elle, /analyses/ n'existait que pour un lecteur qui en connaissait
   // déjà l'adresse : c'est pourtant le point d'entrée éditorial du site.

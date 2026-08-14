@@ -22,7 +22,12 @@ function scenario(nom: string, exercice = "2025"): Scenario {
 }
 
 /** Une colonne comparée minimale. */
-function comparable(nom: string, effort: number, gestes: number, exercice = "2025"): Comparable {
+function comparable(
+  nom: string,
+  effort: number,
+  gestes: number,
+  exercice: string | null = "2025",
+): Comparable {
   return { nom, etat: { budgets: new Map(), baremes: new Map() }, effort, gestes, exercice };
 }
 
@@ -113,4 +118,21 @@ test("10. deux scénarios construits sur des exercices différents le disent en 
   const html = renduComparaison(colonnes, []);
   assert.match(html, /2019/);
   assert.match(html, /2025/);
+});
+
+test("11. un exercice inconnu (null) se dit explicitement, sans fabriquer de millésime", () => {
+  // Un lien partagé ouvert chez un lecteur qui n'a pas le scénario en local,
+  // et qui ne portait pas encore l'exercice dans l'adresse : `main.ts` rend
+  // alors `null` plutôt que de deviner. Ce module doit le dire en toutes
+  // lettres, jamais laisser une case vide ni écrire un an au hasard.
+  const colonnes = [comparable("A", 0, 0, null), comparable("B", 0, 0, "2025")];
+  const html = renduComparaison(colonnes, []);
+  assert.match(html, /exercice inconnu/i);
+  assert.match(html, /Exercice 2025/);
+  // Aucun millésime à quatre chiffres ne doit apparaître pour la colonne A :
+  // on découpe le HTML en deux moitiés à la frontière des deux `<th>` et on
+  // vérifie que la première ne porte aucune année.
+  const frontiere = html.indexOf(">B<");
+  const premiereColonne = html.slice(0, frontiere);
+  assert.doesNotMatch(premiereColonne, /\b(19|20)\d{2}\b/);
 });
