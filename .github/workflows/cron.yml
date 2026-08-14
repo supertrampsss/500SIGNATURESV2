@@ -136,7 +136,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -e
-          TITRE="Sources en retard ou en échec"
+          export TITRE="Sources en retard ou en échec"
           NUMERO=$(gh issue list --state all --limit 100 --json number,title \
                      --jq '[.[] | select(.title == env.TITRE)] | first | .number // empty')
           CORPS="Le re-contrôle des analyses éditoriales après publication (\`python -m plateforme.controle_analyses\`) a échoué : au moins un montant cité dans une analyse ne correspond plus aux données publiées. Détail dans le journal de l'étape « Re-contrôler les analyses publiées » de ce run."
