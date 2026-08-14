@@ -854,27 +854,6 @@ summary:focus-visible,
   display: none;
 }
 
-.palmares {
-  border-top: 1px solid var(--trait);
-  padding: var(--espace-5) var(--espace-6) var(--espace-6);
-}
-.palmares__titre {
-  margin: 0;
-  font-size: var(--texte-l);
-}
-.palmares__quoi {
-  margin: 0.1rem 0 0.2rem;
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-}
-.palmares__borne {
-  margin: 0.55rem 0 0.1rem;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--encre-douce);
-}
-
 .surcouche--legende .legende__titre {
   margin-bottom: 0.25rem;
 }
@@ -1207,9 +1186,6 @@ tbody tr:hover {
   }
   .panneau__fermer {
     top: 1.15rem;
-  }
-  .panneau.panneau--selection .palmares {
-    display: none; /* le tiroir mobile va à l'essentiel : la fiche */
   }
   .sous-titre {
     display: none;

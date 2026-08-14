@@ -735,3 +735,16 @@ test("le paramètre d'évolution ouvre ce qu'il promet, sans bouton pour le prop
   // évolution demande deux millésimes publiés à cette maille.
   assert.match(MAIN, /if \(periodes\.length < 2\) etat\.mode = "niveau";/);
 });
+
+test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () => {
+  // Un nuage de points assorti d'un coefficient de Pearson est l'écran où le
+  // lecteur lit une causalité tout seul : la charte l'interdit, le module n'a
+  // jamais été branché, il est retiré.
+  assert.doesNotMatch(MAIN, /from "\.\/croiser\.ts"/);
+  // Les euros constants introduisaient une seconde unité à côté du million
+  // d'euros courants, que les règles d'affichage n'admettent pas.
+  assert.doesNotMatch(MAIN, /from "\.\/euros-constants\.ts"/);
+  // Et le conteneur que rien n'a jamais rempli.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  assert.doesNotMatch(balises, /id="palmares"/);
+});
