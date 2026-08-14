@@ -2664,6 +2664,11 @@ function chargerScenario(nom: string): void {
       etat.budget = encode;
       etat.contrat = contrat ?? "";
       ecrireUrl();
+      // Le tableau de comparaison, s'il est affiché, garde sinon l'effort et
+      // les gestes du dernier geste avant celui-ci — un lecteur peut alors
+      // comparer son réglage qui vient de changer contre une photo de ce
+      // qu'il valait avant.
+      montrerScenarios();
     },
   });
   montrerScenarios();
@@ -2825,6 +2830,14 @@ async function ouvrirSimulateur(): Promise<void> {
       etat.budget = encode;
       etat.contrat = contrat ?? "";
       ecrireUrl();
+      // Sans cet appel, la colonne « courante » du tableau de comparaison
+      // gardait l'effort et les gestes du geste précédent : un lecteur
+      // comparait alors son réglage tout juste changé à une photo de ce
+      // qu'il valait avant. `montrerScenarios()` est déjà la fonction qui
+      // reconstruit ce tableau ailleurs (chargement, enregistrement,
+      // suppression) ; elle ne touche que `#scenarios`, jamais `#simu` où vit
+      // l'atelier, donc rien n'y perd le focus.
+      montrerScenarios();
     },
   });
   // Le récapitulatif ne se règle pas : il dit ce que les budgets réglables ne
