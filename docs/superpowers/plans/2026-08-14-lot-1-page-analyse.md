@@ -50,6 +50,14 @@ sections 7.2-7.4 (routes, modules, flux), 9 (page Analyse), 14 (système éditor
   document — exactement ce que ce produit existe pour combattre. Les fixtures de test
   emploient des sources manifestement fictives (`example.invalid`) ou des documents
   officiels réellement consultés.
+- **Toute URL citée doit répondre, et désigner le jeu qui porte réellement le chiffre.**
+  Vérifiée par `curl -s -o /dev/null -w "%{http_code}" -L <url>` avant commit. Ce plan a
+  d'abord cité la « situation mensuelle budgétaire » : l'URL renvoyait 404, et le jeu
+  publie le budget **par nature**, si bien qu'il ne peut structurellement pas porter une
+  ligne « Défense ». Les crédits par mission viennent du **PLRG**, comme le déclare
+  `pipeline/plateforme/normalize/execution_missions.py`. Une source qui ne résout pas,
+  ou qui ne produit pas le chiffre qu'on lui attribue, est une source inventée — la
+  bonne foi ne change rien au résultat pour le lecteur.
 - **Style** : ne toucher qu'à ce que la tâche demande ; suivre les motifs existants.
 - **Tests** : `cd site && npm test` (458 au départ, 0 échec) et
   `cd pipeline && python -m pytest` doivent passer à la fin de chaque tâche.
@@ -153,8 +161,8 @@ de la tâche 2 n'admet aucune tolérance.
     "auteur": null,
     "date": null,
     "source": {
-      "titre": "Situation mensuelle budgétaire de l'État, exercice 2025",
-      "url": "https://www.data.economie.gouv.fr/explore/dataset/situation-mensuelle-budget-etat/",
+      "titre": "Projet de loi relatif aux résultats de la gestion et portant approbation des comptes de l'année (PLRG) 2025, annexe 1",
+      "url": "https://www.data.economie.gouv.fr/explore/dataset/projet-de-loi-relatif-aux-resultats-de-la-gestion-et-portant-approbation-des-comptes-de-lannee-plrg-2025/",
       "consulte_le": "2026-08-14"
     }
   },
@@ -195,8 +203,8 @@ de la tâche 2 n'admet aucune tolérance.
   "effets_indirects": [],
   "sources": [
     {
-      "titre": "Situation mensuelle budgétaire de l'État, exercice 2025",
-      "url": "https://www.data.economie.gouv.fr/explore/dataset/situation-mensuelle-budget-etat/",
+      "titre": "Projet de loi relatif aux résultats de la gestion et portant approbation des comptes de l'année (PLRG) 2025, annexe 1",
+      "url": "https://www.data.economie.gouv.fr/explore/dataset/projet-de-loi-relatif-aux-resultats-de-la-gestion-et-portant-approbation-des-comptes-de-lannee-plrg-2025/",
       "consulte_le": "2026-08-14"
     }
   ],
