@@ -19,76 +19,84 @@ import {
   type Registre,
 } from "./analyse-rendu.ts";
 
-/** Ordre d'affichage des crans — celui de `docs/analyses-schema.md` § Crans. */
-const ORDRE_CRANS: Cran[] = ["exact", "hors_perimetre", "introuvable"];
+/** Ordre d'affichage des crans — celui de `docs/analyses-schema.md` § Crans.
+ *
+ *  Un littéral objet, pas un tableau : `satisfies Record<Cran, true>` exige
+ *  une clé pour chaque valeur du type `Cran`, ni plus ni moins. Un cran
+ *  ajouté au type sans être ajouté ici — ou une clé qui n'existe plus dans le
+ *  type — est ainsi une erreur de compilation, comme le docstring du module
+ *  le promet ; un tableau `Cran[]` aurait laissé passer l'oubli en silence. */
+const ORDRE_CRANS = {
+  exact: true,
+  hors_perimetre: true,
+  introuvable: true,
+} satisfies Record<Cran, true>;
 
 /** Ordre d'affichage des confusions — celui de `docs/analyses-schema.md` §
- *  Confusions, repris tel quel dans le brief de la tâche. */
-const ORDRE_CONFUSIONS: Confusion[] = [
-  "ae_cp",
-  "brut_net",
-  "vote_execute",
-  "stock_flux",
-  "etat_apu",
-  "annuel_cumule",
-  "perimetre_geographique",
-];
+ *  Confusions, repris tel quel dans le brief de la tâche. Même garde
+ *  d'exhaustivité qu'`ORDRE_CRANS`. */
+const ORDRE_CONFUSIONS = {
+  ae_cp: true,
+  brut_net: true,
+  vote_execute: true,
+  stock_flux: true,
+  etat_apu: true,
+  annuel_cumule: true,
+  perimetre_geographique: true,
+} satisfies Record<Confusion, true>;
 
 /** Les six registres que porte le type `Registre` — leur ordre est celui de
  *  la spec §14.2, points 1 à 6. Le septième point de la spec, l'opinion,
  *  n'a pas de valeur dans `Registre` : il n'existe pas sur le site, et la
  *  grille le dit en prose plutôt que d'ajouter une entrée qui n'a rien à
- *  vérifier derrière elle. */
-const REGISTRES: { registre: Registre; libelle: string; texte: string }[] = [
-  {
-    registre: "fait_comptable",
+ *  vérifier derrière elle. Même garde d'exhaustivité qu'`ORDRE_CRANS`. */
+const REGISTRES_INFO = {
+  fait_comptable: {
     libelle: "Fait comptable",
     texte: "Une observation publiée par le pipeline. Vérifiée par la machine, de façon bloquante.",
   },
-  {
-    registre: "donnee_officielle",
+  donnee_officielle: {
     libelle: "Donnée officielle citée",
     texte:
       "Publiée par un producteur officiel mais absente de l'entrepôt : lien vers la source primaire obligatoire, jamais reformulée en fait comptable.",
   },
-  {
-    registre: "resultat_simulation",
+  resultat_simulation: {
     libelle: "Résultat de simulation",
     texte: "Produite par le moteur du site, accompagnée des réglages qui la reproduisent.",
   },
-  {
-    registre: "estimation_externe",
+  estimation_externe: {
     libelle: "Estimation externe",
     texte:
       "Un chiffrage de tiers, attribué et daté, avec ses hypothèses. Le site le confronte à d'autres ; il ne le départage que lorsque les comptes le permettent.",
   },
-  {
-    registre: "hypothese",
+  hypothese: {
     libelle: "Hypothèse",
     texte: "Ce qu'il faut supposer pour que le calcul tienne.",
   },
-  {
-    registre: "interpretation",
+  interpretation: {
     libelle: "Interprétation",
     texte:
       "Une lecture ou un rapprochement des registres précédents, toujours dérivable d'eux, jamais elle-même une observation.",
   },
-];
+} satisfies Record<Registre, { libelle: string; texte: string }>;
 
 /** Rendu pur, sans DOM et sans donnée d'entrée : la grille est du texte de
  *  référence, elle ne dépend d'aucune publication du pipeline. */
 export function renduGrille(): string {
-  const crans = ORDRE_CRANS.map(
-    (cran) => `<dt><code>${cran}</code></dt><dd>« ${LIBELLE_CRAN[cran]} »</dd>`,
-  ).join("");
+  const crans = (Object.keys(ORDRE_CRANS) as Cran[])
+    .map((cran) => `<dt><code>${cran}</code></dt><dd>« ${LIBELLE_CRAN[cran]} »</dd>`)
+    .join("");
 
-  const confusions = ORDRE_CONFUSIONS.map(
-    (confusion) => `<dt><code>${confusion}</code></dt><dd>${LIBELLE_CONFUSION[confusion]}</dd>`,
-  ).join("");
+  const confusions = (Object.keys(ORDRE_CONFUSIONS) as Confusion[])
+    .map((confusion) => `<dt><code>${confusion}</code></dt><dd>${LIBELLE_CONFUSION[confusion]}</dd>`)
+    .join("");
 
-  const registres = REGISTRES.map(
-    (r) => `<li><strong>${r.libelle}</strong> <code>${r.registre}</code> — ${r.texte}</li>`,
-  ).join("");
+  const registres = (Object.keys(REGISTRES_INFO) as Registre[])
+    .map((registre) => {
+      const { libelle, texte } = REGISTRES_INFO[registre];
+      return `<li><strong>${libelle}</strong> <code>${registre}</code> — ${texte}</li>`;
+    })
+    .join("");
 
   return `
     <h3>La grille de verdicts</h3>

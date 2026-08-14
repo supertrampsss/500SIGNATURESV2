@@ -1,15 +1,71 @@
 /**
  * La grille de verdicts est du texte de référence, pas un calcul : elle rend
- * public ce que `docs/analyses-schema.md` et le contrôle déterministe
- * (tâche 2) appliquent déjà. Ces tests la comparent à ces deux sources,
- * champ par champ — un désaccord entre la page et le contrôle serait pire
- * qu'une page absente.
+ * public ce que `docs/analyses-schema.md` documente en prose et que le
+ * contrôle déterministe (`pipeline/plateforme/controle_analyses.py`) applique
+ * en code. Un désaccord entre la page et le contrôle serait pire qu'une page
+ * absente — donc le test qui suit ne recopie pas les trois listes fermées
+ * (`CRANS`, `CONFUSIONS`, `REGISTRES`) à la main : il les lit dans le fichier
+ * Python lui-même et les compare, champ par champ, à ce que la grille rend.
+ * Une copie tapée dans ce fichier de test aurait pu diverger du contrôle sans
+ * qu'aucun test ne le remarque ; lire le fichier ne le peut pas.
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { renduGrille } from "./methode-rendu.ts";
+
+/** Une des trois listes fermées de `controle_analyses.py`, lue dans le
+ *  fichier Python lui-même — jamais recopiée. `nomVariable` doit être ancré
+ *  en début de ligne (`^NOM = {`) pour ne pas confondre `REGISTRES` avec
+ *  `REGISTRES_A_SOURCER` ou `REGISTRES_OBSERVE_INTERDIT`, qui partagent le
+ *  même préfixe. */
+function ensemblePython(nomVariable: string): Set<string> {
+  const source = readFileSync(
+    new URL("../../pipeline/plateforme/controle_analyses.py", import.meta.url),
+    "utf8",
+  );
+  const motif = new RegExp(`^${nomVariable} = \\{([\\s\\S]*?)\\}`, "m");
+  const bloc = source.match(motif)?.[1];
+  if (!bloc) {
+    throw new Error(
+      `Bloc Python "${nomVariable}" introuvable dans controle_analyses.py — le contrôle a changé de forme.`,
+    );
+  }
+  return new Set([...bloc.matchAll(/"([a-z_]+)"/g)].map((m) => m[1]!));
+}
+
+/** Les identifiants `<code>…</code>` rendus dans un conteneur de la grille —
+ *  la même grille que `renduGrille()` publie, jamais une recopie de sa
+ *  structure interne. */
+function ensembleGrille(html: string, motifConteneur: RegExp): Set<string> {
+  const conteneur = html.match(motifConteneur)?.[0];
+  if (!conteneur) throw new Error(`Conteneur "${motifConteneur}" introuvable dans la grille rendue.`);
+  return new Set([...conteneur.matchAll(/<code>([a-z_]+)<\/code>/g)].map((m) => m[1]!));
+}
+
+test("les crans de la grille sont exactement CRANS de controle_analyses.py (finding F)", () => {
+  const html = renduGrille();
+  const rendus = ensembleGrille(html, /<dl class="methode-grille__crans">[\s\S]*?<\/dl>/);
+  assert.deepEqual([...rendus].sort(), [...ensemblePython("CRANS")].sort());
+});
+
+test("les confusions de la grille sont exactement CONFUSIONS de controle_analyses.py (finding F)", () => {
+  const html = renduGrille();
+  const rendues = ensembleGrille(html, /<dl class="methode-grille__confusions">[\s\S]*?<\/dl>/);
+  assert.deepEqual([...rendues].sort(), [...ensemblePython("CONFUSIONS")].sort());
+});
+
+test("les registres de la grille sont exactement REGISTRES de controle_analyses.py (finding F)", () => {
+  // L'« Opinion » de la grille (septième point de la spec) n'a pas de valeur
+  // dans `Registre` ni dans `REGISTRES` : elle est rendue en prose, sans
+  // `<code>`, donc absente des deux ensembles comparés ici — voir le
+  // commentaire sur `REGISTRES_INFO` dans methode-rendu.ts.
+  const html = renduGrille();
+  const rendus = ensembleGrille(html, /<ol class="methode-grille__registres">[\s\S]*?<\/ol>/);
+  assert.deepEqual([...rendus].sort(), [...ensemblePython("REGISTRES")].sort());
+});
 
 test("les trois crans figurent avec leur formulation exacte", () => {
   const html = renduGrille();
