@@ -514,6 +514,11 @@ test("une vue longue dit ce qu'elle contient", () => {
   // le lecteur sur TERRITOIRE au moment où il descend dans ce qu'il lit.
   assert.match(MAIN, /if \(!vuesConnues\(\)\.includes\(cible\) && document\.body\.dataset\.vue\) return;/);
   assert.match(CSS, /scroll-margin-top: calc\(var\(--haut-entete\)/);
+  // Le chemin nomme désormais la vue, si bien que la garde ci-dessus ne couvre
+  // plus les ancres internes d'une page routée : c'est le retour en haut qui
+  // doit être conditionnel, sinon il annule le défilement vers l'ancre.
+  assert.match(MAIN, /const precedente = document\.body\.dataset\.vue;/);
+  assert.match(MAIN, /if \(vue !== precedente\) window\.scrollTo\(\{ top: 0 \}\);/);
 });
 
 test("sous le pouce, la navigation ne se coupe plus", () => {

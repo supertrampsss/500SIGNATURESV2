@@ -2337,6 +2337,7 @@ function vuesConnues(): readonly string[] {
 }
 
 function basculerVue(): void {
+  const precedente = document.body.dataset.vue;
   const demandee = vueDepuisAdresse(location.pathname, location.hash);
   // `#carte` ouvre la vue territoire ET déploie la carte : le lien tenait sa
   // promesse quand la carte était une vue, il la tient encore.
@@ -2366,7 +2367,11 @@ function basculerVue(): void {
     else a.removeAttribute("aria-current");
   });
   if (vue === "simulateur") void ouvrirSimulateur();
-  window.scrollTo({ top: 0 });
+  // Remonter en haut n'a de sens qu'en changeant de vue. Sur une page déjà
+  // affichée, un `hashchange` vise une ancre interne — le sommaire des Repères
+  // vise `#bloc-etat` — et remonter annulerait le défilement du navigateur
+  // vers elle, qui est précisément ce que le lecteur demandait.
+  if (vue !== precedente) window.scrollTo({ top: 0 });
 }
 
 /**
