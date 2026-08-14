@@ -40,9 +40,15 @@
  * la valeur qui ne l'est pas. `transposer` le nomme quand même, avec un mot
  * qui dit lequel des deux faits s'est produit, plutôt que de laisser croire
  * que la ligne a simplement cessé d'exister.
+ *
+ * Le cœur du travail ne dépend que de la chaîne encodée et des volets :
+ * `transposerBudget` le porte, et `transposer` le lui délègue. Tout budget
+ * qui devient un état de l'atelier passe donc par la même porte — celui d'un
+ * scénario cliqué, celui qu'une adresse partagée apporte, celui d'une colonne
+ * comparée — sans que deux implémentations puissent diverger.
  */
 
-import { decoder, type EtatAtelier, type Volet } from "./atelier.ts";
+import { decoder, gestes, type EtatAtelier, type Volet } from "./atelier.ts";
 
 /** Un scénario du simulateur, tel que gardé dans le dépôt. */
 export type Scenario = {
@@ -252,26 +258,36 @@ function ligneExiste(volet: Volet, code: string): boolean {
   return volet.bareme.tranches.some((tranche) => tranche.b === borne);
 }
 
+/** Ce qu'une transposition a repris, et ce qu'elle a laissé. */
+export type Transposition = {
+  etat: EtatAtelier;
+  /** Volet et code de chaque ligne que le budget réglait et que l'état rendu
+   *  ne porte pas. */
+  disparues: string[];
+  /** Aucun réglage n'a survécu à la transposition. Le fait est décidé ici,
+   *  où la transposition a lieu, jamais au rendu : entre les deux, le lecteur
+   *  peut avoir remis ses propres curseurs à zéro, et un atelier vide ne dit
+   *  alors plus rien de ce que la transposition a repris. */
+  rienRepris: boolean;
+};
+
 /**
- * Rejoue un scénario contre les volets de l'exercice courant.
+ * Rejoue un budget encodé contre les volets de l'exercice courant.
  *
  * `etat` vient tel quel de `decoder` : c'est lui qui sait composer un état
- * de l'atelier, `transposer` ne refait pas ce travail. `disparues` liste,
- * volet et code, chaque ligne que le scénario réglait et que l'état rendu
- * ne porte plus — soit que la nomenclature courante ne la porte plus (y
+ * de l'atelier, `transposerBudget` ne refait pas ce travail. `disparues`
+ * liste, volet et code, chaque ligne que le budget réglait et que l'état
+ * rendu ne porte plus — soit que la nomenclature courante ne la porte plus (y
  * compris quand c'est le volet entier qui a disparu), soit que sa valeur ne
  * se lise plus, auquel cas la mention le dit. Une ligne mal formée dans la
  * chaîne (ancien format sans volet, chaîne corrompue) n'est pas une ligne
  * disparue : `decoder` l'ignore de la même façon, ce n'est pas une ligne du
  * tout.
  */
-export function transposer(
-  scenario: Scenario,
-  volets: readonly Volet[],
-): { etat: EtatAtelier; disparues: string[] } {
-  const etat = decoder(scenario.budget, volets);
+export function transposerBudget(budget: string, volets: readonly Volet[]): Transposition {
+  const etat = decoder(budget, volets);
   const disparues: string[] = [];
-  for (const morceau of scenario.budget.split(",")) {
+  for (const morceau of budget.split(",")) {
     const barre = morceau.indexOf(SEPARATEUR_VOLET);
     const separateur = morceau.lastIndexOf(":");
     if (barre < 0 || separateur < barre) continue;
@@ -291,5 +307,16 @@ export function transposer(
       disparues.push(`${volet.nom} : ${code} (valeur illisible)`);
     }
   }
-  return { etat, disparues };
+  // `gestes` matérialise au passage les tables de volet absentes
+  // (`reglagesDe` et `tauxDe`, atelier.ts) : il est mesuré sur une copie de
+  // surface, pour que l'état rendu reste exactement celui que `decoder` a
+  // composé — un volet qui n'a rien repris n'y gagne pas une table vide.
+  const copie: EtatAtelier = { budgets: new Map(etat.budgets), baremes: new Map(etat.baremes) };
+  return { etat, disparues, rienRepris: gestes(volets, copie) === 0 };
+}
+
+/** Rejoue un scénario enregistré. Le budget est la seule chose qui se
+ *  transpose : le nom, les dates et l'exercice d'origine ne se rejouent pas. */
+export function transposer(scenario: Scenario, volets: readonly Volet[]): Transposition {
+  return transposerBudget(scenario.budget, volets);
 }

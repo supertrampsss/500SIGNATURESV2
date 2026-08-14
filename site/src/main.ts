@@ -21,14 +21,12 @@ import {
   exercicesPublies,
 } from "./simulateur-rendu.ts";
 import {
-  decoder as decoderAtelier,
   effort as effortAtelier,
   gestes as gestesAtelier,
   type Volet,
-  type EtatAtelier,
 } from "./atelier.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
-import { lister as listerScenarios, enregistrer as enregistrerScenario, supprimer as supprimerScenario, transposer, NOM_MAX, type Depot } from "./scenarios.ts";
+import { lister as listerScenarios, enregistrer as enregistrerScenario, supprimer as supprimerScenario, transposer, transposerBudget, NOM_MAX, type Depot } from "./scenarios.ts";
 import { comparer as comparerScenarios } from "./comparaison.ts";
 import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
@@ -176,11 +174,14 @@ type Etat = {
    *  dans la barre, et ce qui retrouve son exercice — voir `Comparable`
    *  (scenarios-rendu.ts) — plutôt que celui de l'atelier au moment présent. */
   nom: string;
-  /** Le budget d'une seconde colonne, encodé comme `budget` : sa présence
-   *  seule fait passer le simulateur en mode comparaison — pas un chemin `/simulateur/comparer`
-   *  (qui résoudrait de toute façon sur `simulateur`, `routes.ts` ne lisant
-   *  que le premier segment), pour ne pas ouvrir une entrée de menu vers un
-   *  écran qui n'a de sens qu'à deux scénarios en main. */
+  /** Le budget d'une seconde colonne, encodé comme `budget`. Il peut être
+   *  vide sans que la comparaison le soit : le budget voté est l'atelier tous
+   *  réglages à zéro, et un scénario que le lecteur enregistre sans avoir rien
+   *  réglé l'est aussi. C'est le CHOIX d'une face qui ouvre la comparaison —
+   *  `faceChoisie()` —, jamais un budget non vide. Un mode, pas un chemin
+   *  `/simulateur/comparer` (qui résoudrait de toute façon sur `simulateur`,
+   *  `routes.ts` ne lisant que le premier segment) : pas d'entrée de menu vers
+   *  un écran qui n'a de sens qu'à deux scénarios en main. */
   face: string;
   /** Le nom affiché en tête de la colonne `face` : celui du scénario dont
    *  elle vient, faute de mieux un intitulé générique. */
@@ -2563,10 +2564,17 @@ async function chargerReferences(): Promise<void> {
   }
 }
 
-/** Les lignes qu'un scénario chargé portait et que la nomenclature courante
- *  ne porte plus (`transposer`, scenarios.ts) — nommées par `montrerScenarios`
- *  jusqu'au prochain scénario chargé ou à sa suppression. */
-let disparuesCourantes: string[] = [];
+/** Les lignes que le budget chargé portait et que la nomenclature courante ne
+ *  porte plus (`transposerBudget`, scenarios.ts) — nommées par
+ *  `montrerScenarios` jusqu'au prochain budget chargé ou à sa suppression.
+ *
+ *  `rienRepris` voyage avec elles parce que c'est un fait de la transposition :
+ *  le lecteur peut, après coup, remettre ses propres curseurs à zéro sans que
+ *  ça change quoi que ce soit à ce que la transposition avait su reprendre. */
+let disparuesCourantes: { lignes: string[]; rienRepris: boolean } = {
+  lignes: [],
+  rienRepris: false,
+};
 
 const CLE_SCENARIOS = "scenarios";
 
@@ -2633,17 +2641,23 @@ function exerciceCourant(): string {
   );
 }
 
-/** Une colonne comparée, décodée contre les volets montés. `exercice` est
+/** Une colonne comparée, transposée contre les volets montés. `exercice` est
  *  `null` quand il n'y a authentiquement rien à afficher — jamais un exercice
- *  plausible mais sans rapport avec ce que la colonne a réellement réglé. */
+ *  plausible mais sans rapport avec ce que la colonne a réellement réglé.
+ *
+ *  `transposerBudget` plutôt que `decoder` (atelier.ts) : décoder seul laisse tomber
+ *  en silence les lignes que la nomenclature ne porte plus, puis l'en-tête
+ *  annonce un effort et un nombre de gestes calculés sur cet état tronqué. La
+ *  colonne emporte donc ce qu'elle a perdu, et le tableau le nomme sous elle. */
 function colonneDepuis(nom: string, budget: string, exercice: string | null): Comparable {
-  const etatColonne: EtatAtelier = decoderAtelier(budget, voletsMontes);
+  const { etat: etatColonne, disparues } = transposerBudget(budget, voletsMontes);
   return {
     nom,
     etat: etatColonne,
     effort: effortAtelier(voletsMontes, etatColonne),
     gestes: gestesAtelier(voletsMontes, etatColonne),
     exercice,
+    disparues,
   };
 }
 
@@ -2701,8 +2715,8 @@ function chargerScenario(nom: string): void {
   // La nomenclature courante a pu laisser tomber des lignes depuis
   // l'enregistrement de ce scénario : `transposer` les nomme, là où `decoder`
   // seul les ignorerait en silence (voir sa docstring, atelier.ts).
-  const { etat: etatTranspose, disparues } = transposer(scenario, voletsMontes);
-  disparuesCourantes = disparues;
+  const { etat: etatTranspose, disparues, rienRepris } = transposer(scenario, voletsMontes);
+  disparuesCourantes = { lignes: disparues, rienRepris };
   afficherAtelier($("simu"), voletsMontes, {
     etat: etatTranspose,
     contrat: scenario.contrat || null,
@@ -2751,14 +2765,33 @@ function supprimerScenarioCourant(): void {
   etat.nom = "";
   // Le scénario supprimé n'est plus affiché : les lignes disparues qu'il
   // portait n'ont plus de scénario à décrire.
-  disparuesCourantes = [];
+  disparuesCourantes = { lignes: [], rienRepris: false };
   ecrireUrl();
   montrerScenarios();
 }
 
 /**
- * La barre des scénarios, et le tableau de comparaison quand l'adresse porte
- * `face`. Reconstruite à chaque geste sur elle (enregistrer, charger,
+ * Une face a-t-elle été choisie ?
+ *
+ * C'est le choix qui ouvre la comparaison, jamais un budget non vide : le
+ * budget voté est l'atelier tous réglages à zéro (`budget: ""`), et un
+ * scénario que le lecteur enregistre sans avoir rien réglé l'est tout autant.
+ * Les tenir pour « pas de comparaison » n'affichait ni tableau ni bouton de
+ * fermeture, et refermait au passage la comparaison en cours.
+ *
+ * `faceNom` porte le fait dans tous les chemins de choix — un scénario a
+ * toujours un nom non vide (`scenarios.ts` refuse les autres), une entrée de
+ * référence toujours un titre. `face` compte aussi : un lien antérieur à
+ * `face-nom` porte un budget de face sans nom, et c'était bien une
+ * comparaison.
+ */
+function faceChoisie(): boolean {
+  return etat.faceNom !== "" || etat.face !== "";
+}
+
+/**
+ * La barre des scénarios, et le tableau de comparaison quand une face a été
+ * choisie. Reconstruite à chaque geste sur elle (enregistrer, charger,
  * comparer, supprimer, fermer la comparaison) — jamais sur un réglage de
  * l'atelier lui-même : voir la limite connue dans le rapport de la tâche.
  */
@@ -2809,7 +2842,7 @@ function montrerScenarios(): void {
           ${optionsScenarios ? `<optgroup label="Vos scénarios">${optionsScenarios}</optgroup>` : ""}
           ${optionsReferences ? `<optgroup label="Références">${optionsReferences}</optgroup>` : ""}
         </select>${
-          etat.face
+          faceChoisie()
             ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-fermer-comparaison">Fermer la comparaison</button>`
             : ""
         }
@@ -2819,11 +2852,9 @@ function montrerScenarios(): void {
   // Les lignes qu'un scénario chargé portait et que la nomenclature courante
   // ne porte plus — nommées, jamais seulement comptées (voir `transposer`,
   // scenarios.ts).
-  const disparues = disparuesCourantes.length
-    ? renduDisparues(voletsMontes, decoderAtelier(etat.budget, voletsMontes), disparuesCourantes)
-    : "";
+  const disparues = renduDisparues(disparuesCourantes.lignes, disparuesCourantes.rienRepris);
 
-  const tableau = etat.face
+  const tableau = faceChoisie()
     ? (() => {
         const colonnes = colonnesComparaison();
         return renduComparaison(colonnes, comparerScenarios(voletsMontes, colonnes));
@@ -2912,8 +2943,15 @@ async function ouvrirSimulateur(): Promise<void> {
     return basculerVue();
   }
   voletsMontes = volets;
+  // Le budget que l'adresse porte passe par la même porte qu'un scénario
+  // cliqué : c'est le chemin d'un lien partagé et du bouton « Rejouer » d'une
+  // analyse, donc précisément celui où le lecteur n'a aucune autre copie de ce
+  // que ce budget contenait. `decoder` seul aurait laissé tomber sans un mot
+  // les lignes que la nomenclature ne porte plus.
+  const ouverture = transposerBudget(etat.budget, volets);
+  disparuesCourantes = { lignes: ouverture.disparues, rienRepris: ouverture.rienRepris };
   afficherAtelier($("simu"), volets, {
-    etat: decoderAtelier(etat.budget, volets),
+    etat: ouverture.etat,
     contrat: etat.contrat || null,
     surReglages: (encode: string, contrat: string | null) => {
       etat.budget = encode;

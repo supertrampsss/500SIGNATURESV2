@@ -13,8 +13,6 @@ import type { Scenario } from "./scenarios.ts";
 import type { LigneComparee } from "./comparaison.ts";
 import { type Comparable, renduBarre, renduComparaison, renduDisparues } from "./scenarios-rendu.ts";
 import { formater } from "./echelle.ts";
-import { indexer, type Budget } from "./simulateur.ts";
-import type { EtatAtelier, VoletBudget } from "./atelier.ts";
 
 const SOURCE = readFileSync(new URL("./scenarios-rendu.ts", import.meta.url), "utf8");
 
@@ -29,8 +27,16 @@ function comparable(
   effort: number,
   gestes: number,
   exercice: string | null = "2025",
+  disparues: readonly string[] = [],
 ): Comparable {
-  return { nom, etat: { budgets: new Map(), baremes: new Map() }, effort, gestes, exercice };
+  return {
+    nom,
+    etat: { budgets: new Map(), baremes: new Map() },
+    effort,
+    gestes,
+    exercice,
+    disparues,
+  };
 }
 
 function ligne(libelle: string, cellules: (number | null)[]): LigneComparee {
@@ -139,45 +145,75 @@ test("11. un exercice inconnu (null) se dit explicitement, sans fabriquer de mil
   assert.doesNotMatch(premiereColonne, /\b(19|20)\d{2}\b/);
 });
 
+test("11 bis. une colonne au budget vide — le budget voté — se compare comme une autre", () => {
+  // Tous réglages à zéro n'est pas une absence de colonne : c'est le budget
+  // voté, et le lecteur doit lire son effort nul en tête et « Non réglé » dans
+  // ses cellules, jamais un zéro qui se confondrait avec un écart réglé.
+  const colonnes = [comparable("Votre budget actuel", 10_000_000, 1), comparable("Budget voté", 0, 0)];
+  const html = renduComparaison(colonnes, [ligne("Défense", [10_000_000, null])]);
+  const cellules = [...html.matchAll(/<td[^>]*>([^<]*)<\/td>/g)].map((m) => m[1]);
+  assert.equal(cellules[1], "Non réglé");
+  // L'effort en tête se produit en appelant `formater` : le séparateur
+  // décimal et le sigle ne se tapent pas à la main.
+  assert.match(html, new RegExp(`>${formater(0, "EUR", false)}<`));
+  assert.match(html, />0 geste</);
+});
+
 /* --------------------------------------------------------------------------
  * renduDisparues() — les lignes qu'une transposition n'a pas pu reprendre
  * ----------------------------------------------------------------------- */
 
-function budgetUneLigne(): Budget {
-  return {
-    exercice: "2025",
-    loi: "PLF",
-    mesure: "credit_de_paiement",
-    unite: "EUR",
-    depenses: [{ c: "146", l: "Défense", v: 1_000_000_000 }],
-    recettes: [],
-  };
-}
-
-function voletEtat(): VoletBudget {
-  const budget = budgetUneLigne();
-  return { genre: "budget", cle: "etat", nom: "Le budget de l'État", budget, index: indexer(budget) };
-}
-
 test("12. le rendu affiche la liste des lignes disparues quand elle n'est pas vide", () => {
-  const volets = [voletEtat()];
-  const etat: EtatAtelier = { budgets: new Map([["etat", new Map([["146", -10]])]]), baremes: new Map() };
-  const html = renduDisparues(volets, etat, ["Le budget de l'État : 999"]);
+  const html = renduDisparues(["Le budget de l'État : 999"], false);
   assert.match(html, /999/);
 });
 
 test("13. sans ligne disparue, le rendu ne produit rien", () => {
-  const volets = [voletEtat()];
-  const etat: EtatAtelier = { budgets: new Map([["etat", new Map([["146", -10]])]]), baremes: new Map() };
-  assert.equal(renduDisparues(volets, etat, []), "");
+  assert.equal(renduDisparues([], false), "");
 });
 
 test("14. un scénario dont toutes les lignes ont disparu se dit explicitement : rien n'a pu être repris", () => {
-  const volets = [voletEtat()];
-  const etatVide: EtatAtelier = { budgets: new Map(), baremes: new Map() };
-  const html = renduDisparues(volets, etatVide, ["Le budget de l'État : 999", "Le budget de l'État : 998"]);
+  const html = renduDisparues(["Le budget de l'État : 999", "Le budget de l'État : 998"], true);
   // La page ne doit pas rester muette : elle dit qu'aucun réglage n'a survécu.
   assert.match(html, /aucun réglage.*repris|rien.*repris/i);
   assert.match(html, /999/);
   assert.match(html, /998/);
+});
+
+test("15. « rien n'a pu être repris » est un fait reçu de la transposition, jamais lu sur l'état vif", () => {
+  // Un lecteur charge un scénario dont trois lignes ont survécu et une a
+  // disparu, puis remet ses trois curseurs à zéro : l'atelier est alors vide,
+  // mais la transposition, elle, avait bien repris quelque chose. La phrase ne
+  // doit pas changer sous lui.
+  const lignes = ["Le budget de l'État : 999"];
+  assert.doesNotMatch(renduDisparues(lignes, false), /aucun réglage/i);
+  assert.match(renduDisparues(lignes, true), /aucun réglage/i);
+  // Le module ne peut plus faire ce jugement lui-même : il ne reçoit ni volets
+  // ni état, donc il n'a rien sur quoi le refaire.
+  assert.doesNotMatch(SOURCE, /function renduDisparues\([^)]*EtatAtelier/);
+});
+
+test("16. les lignes qu'une colonne n'a pas pu reprendre sont nommées SOUS le tableau, et attribuées à leur colonne", () => {
+  // Sans ça, l'en-tête annonce un effort et un nombre de gestes calculés sur
+  // un état tronqué, et le lecteur croit la colonne d'en face porteuse de ce
+  // que son auteur y avait mis.
+  const colonnes = [
+    comparable("Chez moi", 10_000_000, 1),
+    comparable("Chez mon collègue", 0, 0, "2019", ["Le budget de l'État : 999"]),
+  ];
+  const html = renduComparaison(colonnes, [ligne("Défense", [10_000_000, null])]);
+  assert.match(html, /999/);
+  // Le nom de la colonne et la ligne abandonnée se lisent dans le même bloc :
+  // la mention dit de quelle colonne elle parle.
+  const bloc = html.slice(html.indexOf('class="scenarios-rendu__disparues"'));
+  assert.match(bloc, /Chez mon collègue/);
+  assert.match(bloc, /999/);
+  // Et le bloc arrive après le tableau : une colonne d'écarts n'a pas de case
+  // pour une ligne qui n'a pas d'écart.
+  assert.ok(html.indexOf("</table>") < html.indexOf('class="scenarios-rendu__disparues"'));
+});
+
+test("17. une colonne qui n'a rien perdu n'écrit aucun bloc", () => {
+  const html = renduComparaison([comparable("Chez moi", 0, 0)], []);
+  assert.doesNotMatch(html, /scenarios-rendu__disparues/);
 });

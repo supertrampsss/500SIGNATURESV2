@@ -26,7 +26,6 @@
 
 import type { Scenario } from "./scenarios.ts";
 import type { Colonne, LigneComparee } from "./comparaison.ts";
-import { gestes, type EtatAtelier, type Volet } from "./atelier.ts";
 import { formater } from "./echelle.ts";
 import { echapper } from "./texte.ts";
 
@@ -43,8 +42,17 @@ import { echapper } from "./texte.ts";
  * par lien que le lecteur n'a pas en local, sur lequel rien ne dit à quel
  * millésime il a été construit. Jamais une valeur par défaut plausible mais
  * sans rapport : voir `colonnesComparaison` (main.ts).
+ *
+ * `disparues` porte les lignes que le budget de CETTE colonne réglait et que
+ * la nomenclature courante ne reprend pas (`transposerBudget`, scenarios.ts).
+ * Sans elles à l'écran, l'en-tête annoncerait un effort et un nombre de
+ * gestes calculés sur un état tronqué, et le lecteur croirait la colonne d'en
+ * face porteuse de ce que son auteur y avait mis.
  */
-export type Comparable = Colonne & { exercice: string | null };
+export type Comparable = Colonne & {
+  exercice: string | null;
+  disparues: readonly string[];
+};
 
 /**
  * La barre des scénarios enregistrés, le courant marqué.
@@ -75,30 +83,52 @@ export function renduBarre(scenarios: Scenario[], courant: string | null): strin
 }
 
 /**
- * Ce qu'une transposition (`transposer()`, scenarios.ts) n'a pas pu
+ * Ce qu'une transposition (`transposerBudget()`, scenarios.ts) n'a pas pu
  * reprendre : les lignes que la nomenclature courante ne porte plus.
  *
- * Rien à écrire quand `disparues` est vide — le cas courant, un scénario
+ * Rien à écrire quand `disparues` est vide — le cas courant, un budget
  * transposé sans perte. Sinon la liste est nommée, jamais seulement comptée
  * (le lecteur doit savoir *quelles* décisions ont sauté), et quand plus rien
- * n'a survécu (`gestes(volets, etat) === 0`), la phrase le dit en toutes
- * lettres plutôt que de laisser un atelier vide passer pour un scénario sain.
+ * n'a survécu, la phrase le dit en toutes lettres plutôt que de laisser un
+ * atelier vide passer pour un budget sain.
+ *
+ * `rienRepris` est un fait de la transposition, pas de l'écran : il est donc
+ * reçu, jamais recalculé sur l'état vif. Le déduire ici de `gestes(volets,
+ * etat)` faisait dire « aucun réglage n'a pu être repris » à un lecteur qui
+ * avait simplement remis à zéro les trois curseurs que la transposition lui
+ * avait bel et bien rendus.
  */
-export function renduDisparues(
-  volets: readonly Volet[],
-  etat: EtatAtelier,
-  disparues: readonly string[],
-): string {
+export function renduDisparues(disparues: readonly string[], rienRepris: boolean): string {
   if (disparues.length === 0) return "";
-  const intro =
-    gestes(volets, etat) === 0
-      ? "Ce scénario a changé d'exercice : aucun réglage n'a pu être repris, ces lignes ont disparu de la nomenclature."
-      : "Ce scénario a changé d'exercice : ces lignes ont disparu de la nomenclature et n'ont pas pu être reprises.";
+  const intro = rienRepris
+    ? "Aucun réglage n'a pu être repris : ces lignes ont disparu de la nomenclature."
+    : "Ces lignes ont disparu de la nomenclature et n'ont pas pu être reprises.";
   const items = disparues.map((d) => `<li>${echapper(d)}</li>`).join("");
   return `<div class="scenarios-rendu__disparues">
     <p>${intro}</p>
     <ul>${items}</ul>
   </div>`;
+}
+
+/**
+ * Les lignes qu'une colonne réglait et que la nomenclature courante ne
+ * reprend pas, attribuées à leur colonne.
+ *
+ * Sous le tableau, jamais dedans : une colonne d'écarts n'a pas de case pour
+ * une ligne qui n'a pas d'écart. Et nommées colonne par colonne, parce qu'un
+ * lecteur ne doit pas pouvoir croire que la colonne d'en face porte ce que
+ * son auteur y avait mis.
+ */
+function renduAbandons(colonnes: Comparable[]): string {
+  return colonnes
+    .filter((c) => c.disparues.length > 0)
+    .map(
+      (c) => `<div class="scenarios-rendu__disparues">
+      <p>« ${echapper(c.nom)} » réglait ces lignes, que l'atelier ne reprend pas :</p>
+      <ul>${c.disparues.map((d) => `<li>${echapper(d)}</li>`).join("")}</ul>
+    </div>`,
+    )
+    .join("");
 }
 
 /**
@@ -140,5 +170,5 @@ export function renduComparaison(colonnes: Comparable[], lignes: LigneComparee[]
     <caption>Montants en millions d'euros.</caption>
     <thead><tr><th scope="col">Ligne</th>${entetes}</tr></thead>
     <tbody>${corps}</tbody>
-  </table></div>`;
+  </table></div>${renduAbandons(colonnes)}`;
 }

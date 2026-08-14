@@ -1010,7 +1010,32 @@ test("charger un scénario passe par transposer, jamais par decoder seul", () =>
   // L'état donné à l'atelier vient de la transposition, pas d'un decodage
   // direct qui laisserait les lignes disparues sans nom.
   assert.doesNotMatch(corps, /etat: decoderAtelier\(scenario\.budget, voletsMontes\)/);
-  assert.match(corps, /disparuesCourantes = disparues/);
+  assert.match(corps, /disparuesCourantes = \{ lignes: disparues, rienRepris \}/);
+});
+
+test("tout budget encodé qui devient un état de l'atelier passe par la même porte", () => {
+  // `transposer` n'était branché que sur le scénario cliqué dans la barre — le
+  // seul des trois chemins où le lecteur avait déjà sa copie. Le budget porté
+  // par l'adresse (lien partagé, bouton « Rejouer » d'une analyse) et la
+  // colonne comparée passaient par `decoder` nu, et perdaient leurs lignes
+  // sans un mot. Plus aucun `decoder` d'atelier ne subsiste dans main.ts : la
+  // porte est unique, donc les trois chemins nomment ce qu'ils abandonnent.
+  assert.doesNotMatch(MAIN, /decoder as decoderAtelier/);
+  assert.doesNotMatch(MAIN, /\bdecoderAtelier\(/);
+  const ouverture = MAIN.slice(
+    MAIN.indexOf("async function ouvrirSimulateur"),
+    MAIN.indexOf("async function demarrer"),
+  );
+  assert.match(ouverture, /transposerBudget\(etat\.budget, volets\)/);
+  assert.match(ouverture, /etat: ouverture\.etat/);
+  const colonne = MAIN.slice(
+    MAIN.indexOf("function colonneDepuis"),
+    MAIN.indexOf("function colonnesComparaison"),
+  );
+  assert.match(colonne, /transposerBudget\(budget, voletsMontes\)/);
+  // La colonne emporte ce qu'elle a perdu : sans ce champ, rien à l'écran ne
+  // pourrait l'attribuer à sa colonne.
+  assert.match(colonne, /\bdisparues,/);
 });
 
 test("les lignes disparues d'un scénario chargé sont nommées à l'écran, pas seulement comptées", () => {
@@ -1019,9 +1044,15 @@ test("les lignes disparues d'un scénario chargé sont nommées à l'écran, pas
     MAIN.indexOf("function montrerScenarios"),
     MAIN.indexOf("function brancherScenarios"),
   );
-  assert.match(corps, /renduDisparues\(voletsMontes, decoderAtelier\(etat\.budget, voletsMontes\), disparuesCourantes\)/);
-  // Le tableau ne ment pas quand rien n'a disparu : le bloc reste vide.
-  assert.match(corps, /disparuesCourantes\.length\s*\?/);
+  assert.match(
+    corps,
+    /const disparues = renduDisparues\(disparuesCourantes\.lignes, disparuesCourantes\.rienRepris\)/,
+  );
+  // Et le bloc atteint réellement l'écran : le rendre sans le concaténer dans
+  // `#scenarios` laissait passer sa disparition sans qu'aucun test ne bronche,
+  // alors que c'est le nom même de ce test.
+  const ecriture = corps.slice(corps.indexOf("cible.innerHTML ="));
+  assert.match(ecriture, /^cible\.innerHTML =[^;]*\+ disparues \+/);
 });
 
 test("supprimer le scénario courant efface aussi les lignes disparues qu'il portait", () => {
@@ -1029,7 +1060,7 @@ test("supprimer le scénario courant efface aussi les lignes disparues qu'il por
     MAIN.indexOf("function supprimerScenarioCourant"),
     MAIN.indexOf("function supprimerScenarioCourant") + 400,
   );
-  assert.match(corps, /disparuesCourantes = \[\];/);
+  assert.match(corps, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
 });
 
 test("un stockage indisponible dégrade en scénarios de session, et l'interface le dit", () => {
@@ -1058,7 +1089,70 @@ test("comparer deux scénarios est un mode du simulateur, jamais une vue distinc
   // de sens qu'à deux scénarios en main afficherait un lien mort à qui n'en a
   // aucun. Le mode se déclenche par la présence de `face` dans l'adresse.
   assert.doesNotMatch(ROUTES, /comparer/);
-  assert.match(MAIN, /const tableau = etat\.face/);
+  assert.match(MAIN, /const tableau = faceChoisie\(\)/);
+});
+
+/* ------------------------------------------------------------------------
+ * Une face CHOISIE ouvre la comparaison — un budget non vide ne la commande
+ * pas. Le budget voté est l'atelier tous réglages à zéro (`budget: ""`), et
+ * un scénario enregistré sans réglage l'est aussi : les tenir pour « pas de
+ * comparaison » n'affichait ni tableau ni bouton de fermeture, et refermait
+ * au passage la comparaison en cours.
+ * ---------------------------------------------------------------------- */
+
+/** Exécute `faceChoisie` telle qu'écrite dans main.ts, avec un `etat` simulé
+ *  — même technique que `executerColonnesComparaison` plus bas. */
+function executerFaceChoisie(etatSimule: Record<string, string>): boolean {
+  const debut = MAIN.indexOf("function faceChoisie()");
+  assert.ok(debut > -1, "faceChoisie introuvable dans main.ts");
+  const corpsBrut = MAIN.slice(debut, MAIN.indexOf("\n}", debut) + 2);
+  assert.match(corpsBrut, /function faceChoisie\(\): boolean \{/);
+  const corps = corpsBrut.replace("function faceChoisie(): boolean {", "function faceChoisie() {");
+  return new Function("etat", `${corps}\nreturn faceChoisie();`)(etatSimule) as boolean;
+}
+
+test("une face au budget vide — le budget voté — est bien une face choisie", () => {
+  assert.equal(executerFaceChoisie({ face: "", faceNom: "Budget voté" }), true);
+});
+
+test("un scénario du lecteur enregistré sans aucun réglage est une face choisie lui aussi", () => {
+  // Même trou que le budget voté : `enregistrerScenarioCourant` enregistre
+  // `budget: etat.budget`, qui vaut "" quand rien n'est réglé.
+  assert.equal(executerFaceChoisie({ face: "", faceNom: "Mon budget à zéro" }), true);
+});
+
+test("un lien antérieur à face-nom, qui ne porte que face, est une face choisie", () => {
+  assert.equal(executerFaceChoisie({ face: "etat/146:-10", faceNom: "" }), true);
+});
+
+test("aucune face nommée ni portée : pas de comparaison", () => {
+  assert.equal(executerFaceChoisie({ face: "", faceNom: "" }), false);
+});
+
+test("le tableau et le bouton de fermeture pendent au même fait, jamais à un budget non vide", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.match(corps, /faceChoisie\(\)\s*\n?\s*\? `<button type="button"[^`]*scenario-fermer-comparaison/);
+  assert.doesNotMatch(corps, /etat\.face\s*$/m);
+  // Fermer la comparaison remet l'état à « aucune face choisie » : les trois
+  // paramètres partent ensemble, sinon `faceChoisie()` resterait vraie.
+  const fermeture = MAIN.slice(MAIN.indexOf('closest("#scenario-fermer-comparaison")'));
+  const bloc = fermeture.slice(0, fermeture.indexOf("montrerScenarios()"));
+  assert.match(bloc, /etat\.face = "";/);
+  assert.match(bloc, /etat\.faceNom = "";/);
+  assert.match(bloc, /etat\.faceExercice = "";/);
+});
+
+test("l'adresse relit une face choisie au rechargement, même quand son budget est vide", () => {
+  // `face-nom` est écrit dès qu'il est non vide, et `lireUrl` le relit : c'est
+  // lui qui rouvre la comparaison quand `face` est vide. Sans cette paire, le
+  // menu rouvrait sur « Budget voté » sélectionné devant un écran vide.
+  const ecriture = MAIN.slice(MAIN.indexOf("function ecrireUrl()"), MAIN.indexOf("history.replaceState"));
+  assert.match(ecriture, /if \(etat\.faceNom\) p\.set\("face-nom", etat\.faceNom\);/);
+  const lecture = MAIN.slice(MAIN.indexOf("function lireUrl()"), MAIN.indexOf("function ecrireUrl()"));
+  assert.match(lecture, /faceNom: p\.get\("face-nom"\) \?\? ""/);
 });
 
 /* ------------------------------------------------------------------------
