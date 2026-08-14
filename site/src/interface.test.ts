@@ -943,3 +943,17 @@ test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () 
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.doesNotMatch(balises, /id="palmares"/);
 });
+
+test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", () => {
+  // Sans elle, /analyses/ n'existait que pour un lecteur qui en connaissait
+  // déjà l'adresse : c'est pourtant le point d'entrée éditorial du site.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  const nav = balises.slice(balises.indexOf('<nav class="entete__nav"'), balises.indexOf("</nav>"));
+  assert.match(nav, /^<nav class="entete__nav"[^>]*>\s*<a href="\/analyses\/">Analyses<\/a>/);
+  // Sans `data-vue`, volontairement : l'intercepteur de clic de main.ts ne
+  // capture que les liens qui en portent un (`a[data-vue]`) — ce lien doit
+  // provoquer un chargement de page complet, celui d'une page statique servie
+  // par le serveur, pas une bascule de vue de l'app monoécran.
+  assert.doesNotMatch(nav, /href="\/analyses\/"\s+data-vue/);
+  assert.match(MAIN, /const lien = \(clic\.target as HTMLElement\)\.closest<HTMLAnchorElement>\("a\[data-vue\]"\);/);
+});

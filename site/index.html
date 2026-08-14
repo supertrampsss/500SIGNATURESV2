@@ -52,6 +52,11 @@
       </div>
 
       <nav class="entete__nav" aria-label="Vues">
+        <!-- Sans data-vue, volontairement : l'intercepteur de clic ne capture
+             que les liens qui en portent un (main.ts). Celui-ci doit provoquer
+             un chargement de page complet, vers /analyses/, qui est une page
+             statique servie par le serveur — pas une vue de l'app monoécran. -->
+        <a href="/analyses/">Analyses</a>
         <a href="/territoire" data-vue="territoire">Territoire</a>
         <a href="/reperes" data-vue="reperes">Repères</a>
         <a href="/detail" data-vue="detail">Détail</a>
