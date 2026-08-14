@@ -5419,6 +5419,324 @@ summary.pont__rangee,
 }
 
 /* ===========================================================================
+   LA PAGE ANALYSE — quatre étages, un rendu chacun
+   ===========================================================================
+   `analyse-rendu.ts` rend un article en quatre sections empilées : l'express
+   (le verdict en un coup d'œil), le détail (le tableau par exercice),
+   l'interactif (le renvoi au simulateur) et la preuve (le chemin du chiffre).
+   Même colonne de lecture que `.etat`, mêmes cartes que `.mission` et
+   `.simu`, même tableau défilant que `.analyses__table` : cette page reprend
+   le système existant plutôt que d'en ouvrir un cinquième. */
+.analyse-rendu {
+  max-width: var(--colonne-texte);
+  margin: 0 auto;
+  padding: var(--espace-6) var(--espace-5) var(--espace-8);
+}
+.analyse-rendu__titre {
+  margin: 0 0 var(--espace-6);
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 600;
+}
+.analyse-rendu__express,
+.analyse-rendu__detail,
+.analyse-rendu__interactif,
+.analyse-rendu__preuve {
+  margin-bottom: var(--espace-7);
+  padding: var(--espace-7);
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+.analyse-rendu__express h3,
+.analyse-rendu__detail h3,
+.analyse-rendu__interactif h3,
+.analyse-rendu__preuve h3 {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+
+/* ---- L'express ---- */
+.analyse-rendu__affirmation {
+  margin: 0 0 var(--espace-3);
+  padding: 0 0 0 var(--espace-5);
+  border-left: 2px solid var(--trait-fort);
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-style: italic;
+  color: var(--encre);
+}
+.analyse-rendu__attribution {
+  margin: 0 0 var(--espace-4);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.analyse-rendu__source {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.analyse-rendu__consulte {
+  color: var(--encre-douce);
+}
+.analyse-rendu__chiffres-cites {
+  list-style: none;
+  margin: 0 0 var(--espace-5);
+  padding: 0;
+  display: grid;
+  gap: var(--espace-3);
+  font-size: var(--texte-m);
+}
+.analyse-rendu__chiffres-cites strong {
+  font-variant-numeric: tabular-nums;
+}
+/* Le verdict est la seule chose qu'un lecteur pressé emporte : il porte donc
+   le seul filet de poids de toute la page, sur le modèle de
+   `.mission__rupture`. Aucune couleur ne varie avec le cran — `exact`,
+   `hors_perimetre` et `introuvable` sont trois faits, pas un bon et deux
+   mauvais points (décision de système n° 2) — l'argile marque l'attention
+   que mérite un verdict, jamais lequel des trois on lit. */
+.analyse-rendu__verdict {
+  margin: 0;
+  padding: var(--espace-4) var(--espace-5);
+  border-left: 3px solid var(--argile);
+  border-radius: var(--rayon-xs);
+  background: var(--papier-creuse);
+  font-size: var(--texte-l);
+  font-weight: 600;
+  color: var(--encre);
+}
+.analyse-rendu__confusion {
+  margin: var(--espace-3) 0 0;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+
+/* ---- Le détail ---- */
+.analyse-rendu__phrase {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-l);
+  color: var(--encre);
+}
+/* Le tableau déborde sur téléphone plutôt que d'écraser les libellés : c'est
+   lui qui défile, jamais la page entière — même règle qu'`.analyses__defilement`. */
+.analyse-rendu__defilement {
+  overflow-x: auto;
+  margin-bottom: var(--espace-5);
+}
+.analyse-rendu__tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texte-s);
+}
+.analyse-rendu__tableau caption {
+  margin-bottom: var(--espace-4);
+  text-align: left;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.analyse-rendu__tableau th[scope="col"] {
+  text-align: right;
+  white-space: nowrap;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+  font-weight: 600;
+  padding: 0 0 var(--espace-3) var(--espace-6);
+}
+.analyse-rendu__tableau th[scope="col"]:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.analyse-rendu__tableau th[scope="row"] {
+  text-align: left;
+  font-weight: 400;
+  padding: var(--espace-4) var(--espace-6) var(--espace-4) 0;
+  border-top: 1px solid var(--trait);
+}
+.analyse-rendu__tableau tbody tr:first-child th {
+  border-top: 0;
+}
+.analyse-rendu__registre {
+  display: block;
+  margin-top: var(--espace-1);
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+/* Un chiffre calculé se lit en chiffres alignés à droite, comme partout sur
+   le site (`.analyses__valeur`) : c'est une valeur qu'on additionne. */
+.analyse-rendu__chiffre {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: var(--espace-4) 0 var(--espace-4) var(--espace-6);
+  border-top: 1px solid var(--trait);
+}
+/* Un registre sans `observe` (interprétation, hypothèse, résultat du
+   simulateur — voir `docs/analyses-schema.md`) n'additionne rien : sa cellule
+   s'écrit en italique, à gauche, pour ne jamais se confondre au premier coup
+   d'œil avec une valeur que le pipeline a vérifiée au centime. */
+.analyse-rendu__chiffre--interpretation,
+.analyse-rendu__chiffre--hypothese,
+.analyse-rendu__chiffre--resultat_simulation {
+  text-align: left;
+  font-variant-numeric: normal;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--encre-douce);
+  white-space: normal;
+}
+/* Le rappel de `dit` à côté d'une valeur déclarée (résultat de simulateur,
+   hypothèse chiffrée) est une note, pas le chiffre : elle se lit plus
+   petite, comme les autres annotations discrètes de la page. */
+.analyse-rendu__dit {
+  font-size: var(--texte-xs);
+}
+/* Les effets indirects sont cités, jamais calculés par le site : une liste à
+   part, sous un filet pointillé, en italique — jamais dans le tableau des
+   chiffres vérifiés qu'elle suit. */
+.analyse-rendu__effets-indirects {
+  list-style: none;
+  margin: var(--espace-6) 0 0;
+  padding: var(--espace-5) 0 0;
+  border-top: 1px dashed var(--trait-fort);
+  display: grid;
+  gap: var(--espace-4);
+}
+.analyse-rendu__effet-indirect {
+  padding-left: var(--espace-5);
+  border-left: 2px solid var(--trait);
+  font-size: var(--texte-s);
+  font-style: italic;
+  color: var(--encre-douce);
+}
+
+/* ---- L'interactif ---- */
+.analyse-rendu__lecture-simulateur {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-m);
+  color: var(--encre-douce);
+}
+.analyse-rendu__bouton {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
+  margin: 0 var(--espace-3) var(--espace-3) 0;
+  padding: var(--espace-3) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font-size: var(--texte-s);
+  text-decoration: none;
+  transition: border-color var(--transition), color var(--transition);
+}
+.analyse-rendu__bouton:hover,
+.analyse-rendu__bouton:focus-visible {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+
+/* ---- La preuve ---- */
+.analyse-rendu__chemin {
+  list-style: none;
+  margin: 0 0 var(--espace-5);
+  padding: 0;
+  display: grid;
+  gap: var(--espace-2);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.analyse-rendu__chemin:last-child {
+  margin-bottom: var(--espace-6);
+}
+.analyse-rendu__chemin li {
+  padding-left: var(--espace-5);
+  border-left: 2px solid var(--trait);
+}
+.analyse-rendu__chemin a {
+  color: var(--encre);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.analyse-rendu__hypotheses,
+.analyse-rendu__fichiers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.analyse-rendu__hypotheses li,
+.analyse-rendu__fichiers li {
+  padding: var(--espace-2) 0;
+}
+.analyse-rendu__fichier-publie {
+  margin: var(--espace-5) 0 var(--espace-3);
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+
+/* ---- L'index des analyses ---- */
+.analyse-rendu__index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--espace-4);
+}
+.analyse-rendu__index-ligne {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-3);
+  padding-bottom: var(--espace-4);
+  border-bottom: 1px solid var(--trait);
+  font-size: var(--texte-m);
+}
+.analyse-rendu__index-ligne a {
+  color: var(--encre);
+  font-weight: 600;
+}
+.analyse-rendu__index-ligne time {
+  margin-left: auto;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  white-space: nowrap;
+}
+.analyse-rendu__badge-maj {
+  padding: var(--espace-1) var(--espace-3);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .analyse-rendu__express,
+  .analyse-rendu__detail,
+  .analyse-rendu__interactif,
+  .analyse-rendu__preuve {
+    padding: var(--espace-5);
+  }
+  .analyse-rendu__index-ligne {
+    flex-wrap: wrap;
+  }
+  .analyse-rendu__index-ligne time {
+    margin-left: 0;
+  }
+}
+
+/* ===========================================================================
    CARTE DÉPLOYÉE — un bloc DANS la colonne, pas un fond d'écran
    ===========================================================================
    Premier essai : la carte reprenait tout l'écran et la fiche repassait en
