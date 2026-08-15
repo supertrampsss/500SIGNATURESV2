@@ -2564,6 +2564,24 @@ type EntreeReference = {
  *  (`chargerAssociations`, `peindreMethode`…). */
 let referencesScenarios: EntreeReference[] = [];
 
+/** Le fichier lu est-il bien la liste attendue ? Un JSON valide mais qui n'est
+ *  pas un tableau — une page d'erreur JSON servie à la place du fichier, un
+ *  build partiel — passait l'affirmation de type sans broncher, puis faisait
+ *  lever `.map` à CHAQUE rendu de la barre, donc à chaque geste sur l'atelier.
+ *  Même contrôle que `estEnveloppe` (scenarios.ts) sur le dépôt local. */
+function estReferences(valeur: unknown): valeur is EntreeReference[] {
+  return (
+    Array.isArray(valeur) &&
+    valeur.every(
+      (e) =>
+        typeof e === "object" &&
+        e !== null &&
+        typeof (e as EntreeReference).titre === "string" &&
+        typeof (e as EntreeReference).budget === "string",
+    )
+  );
+}
+
 /** Charge `dist/simulateur/scenarios-reference.json` — un fichier du site lui-même,
  *  pas une donnée publiée par le pipeline, donc un `fetch` direct plutôt
  *  qu'un passage par `donnees.ts` (qui ne sait lire que la racine R2). */
@@ -2571,7 +2589,8 @@ async function chargerReferences(): Promise<void> {
   try {
     const reponse = await fetch("/simulateur/scenarios-reference.json");
     if (!reponse.ok) return;
-    referencesScenarios = (await reponse.json()) as EntreeReference[];
+    const lu: unknown = await reponse.json();
+    if (estReferences(lu)) referencesScenarios = lu;
   } catch {
     // Fichier absent (build sans pré-rendu, ou hors production) : le
     // simulateur reste utilisable, simplement sans comparables de référence.
@@ -2647,13 +2666,14 @@ const depotScenarios: Depot = persistant ? depotLocal : depotSession;
  *  État, qui donne le ton au reste de l'atelier, ou le premier exercice
  *  publié s'il manque. Un scénario enregistré, lui, garde le sien —
  *  `Comparable` (scenarios-rendu.ts) le porte depuis `Scenario.exercice`. */
-function exerciceCourant(): string {
+function exerciceCourant(): string | null {
   return (
     exercicesParVolet.find((e) => e.volet.cle === "etat")?.exercice ??
     exercicesParVolet[0]?.exercice ??
-    ""
+    null
   );
 }
+
 
 /** Le scénario enregistré que l'état affiché **est** : même nom, et le même
  *  budget que celui qui est à l'écran. Le nom seul ne suffit pas — deux
@@ -2680,6 +2700,17 @@ function scenarioCourant(): Scenario | undefined {
  *  geste qui n'a rien à faire. */
 function scenarioNomme(): Scenario | undefined {
   return etat.nom ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom) : undefined;
+}
+
+/** L'exercice que l'adresse porte, dit dans la sentinelle du modèle.
+ *
+ *  L'adresse ne sait dire « absent » qu'avec la chaîne vide : un paramètre non
+ *  écrit revient `""` de `lireUrl`. Le modèle ne le dit qu'avec `null`
+ *  (`Scenario.exercice`, `Comparable.exercice`). La conversion se fait ici et
+ *  nulle part ailleurs — mêler `??` et `||` dans une même expression, comme le
+ *  faisait `colonnesComparaison`, c'est tenir deux sentinelles à la fois. */
+function exercicePorte(): string | null {
+  return etat.faceExercice || null;
 }
 
 /** Une colonne comparée, transposée contre les volets montés. `exercice` est
@@ -2758,7 +2789,7 @@ function colonnesComparaison(): Comparable[] {
   const face = colonneDepuis(
     (faceEnregistree?.nom ?? etat.faceNom) || "Comparaison",
     etat.face,
-    faceEnregistree?.exercice ?? (etat.faceExercice || null),
+    faceEnregistree?.exercice ?? exercicePorte(),
     faceEnregistree?.contrat ?? faceReference?.contrat ?? "",
     faceReference?.lien ?? null,
   );
@@ -2994,8 +3025,11 @@ function montrerScenarios(): void {
     )
     .join("");
 
+  // `scenarios-rendu__vide` dit « il n'y a rien ici », cadre pointillé compris :
+  // le choix d'une face n'est pas un état vide, il ne s'affiche que quand il y
+  // a quelque chose à comparer. Sa propre classe, donc.
   const choix = scenarios.length || referencesScenarios.length
-    ? `<p class="scenarios-rendu__vide">
+    ? `<p class="scenarios-rendu__choix">
         <label for="scenario-face">Comparer à</label>
         <select id="scenario-face" class="pilule pilule--menu">
           <option value="">— choisir —</option>
@@ -3075,7 +3109,11 @@ function brancherScenarios(): void {
       // ce n'est pas un repli plausible. Une entrée issue d'une analyse, elle,
       // ne porte aucun exercice vérifiable (voir prerendre.ts,
       // `entreesReference`) : `null` reste honnête, jamais deviné.
-      etat.faceExercice = !reference ? "" : reference.slug === null ? exerciceCourant() : reference.exercice ?? "";
+      etat.faceExercice = !reference
+        ? ""
+        : reference.slug === null
+          ? exerciceCourant() ?? ""
+          : reference.exercice ?? "";
     } else {
       const nom = champ.value.startsWith("scenario:") ? champ.value.slice("scenario:".length) : "";
       const choisi = listerScenarios(depotScenarios).find((s) => s.nom === nom);

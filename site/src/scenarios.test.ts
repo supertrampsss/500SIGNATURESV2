@@ -232,6 +232,53 @@ test("un dépôt corrompu rend une liste vide plutôt que de lever", () => {
   assert.deepEqual(lister(depotVersionInconnue), []);
 });
 
+test("une entrée mal formée est écartée seule, les autres survivent", () => {
+  // L'enveloppe était contrôlée, ses entrées non : n'importe quelle forme
+  // pouvait ensuite circuler sous le type `Scenario`, et le premier `.trim()`
+  // ou `.startsWith()` levait au premier rendu de la barre.
+  const depot = depotMemoire(
+    JSON.stringify({
+      v: 1,
+      scenarios: [
+        { nom: "Bon", budget: "b", contrat: "c", cree_le: "0", modifie_le: "0", exercice: "2025" },
+        { nom: "Sans budget", contrat: "c", cree_le: "0", modifie_le: "0", exercice: "2025" },
+        { nom: 42, budget: "b", contrat: "c", cree_le: "0", modifie_le: "0", exercice: "2025" },
+        { nom: "Exercice numérique", budget: "b", contrat: "c", cree_le: "0", modifie_le: "0", exercice: 2025 },
+        null,
+        "pas un objet",
+      ],
+    }),
+  );
+  assert.deepEqual(
+    lister(depot).map((s) => s.nom),
+    ["Bon"],
+  );
+});
+
+test("une seule sentinelle dit l'exercice inconnu : `null`, jamais la chaîne vide", () => {
+  // Deux sentinelles pour un même fait faisaient rendre au tableau de
+  // comparaison « Exercice » suivi de rien — `??` ne rattrape pas `""`. Une
+  // entrée écrite par une version antérieure porte `""` : elle se relit `null`.
+  const depot = depotMemoire(
+    JSON.stringify({
+      v: 1,
+      scenarios: [
+        { nom: "Ancien", budget: "b", contrat: "c", cree_le: "0", modifie_le: "0", exercice: "" },
+        { nom: "Inconnu", budget: "b", contrat: "c", cree_le: "0", modifie_le: "0", exercice: null },
+        { nom: "Daté", budget: "b", contrat: "c", cree_le: "0", modifie_le: "0", exercice: "2025" },
+      ],
+    }),
+  );
+  assert.deepEqual(
+    lister(depot).map((s) => s.exercice),
+    [null, null, "2025"],
+  );
+  // Et rien de ce que ce module écrit ne peut réintroduire l'autre sentinelle.
+  const neuf = depotMemoire();
+  enregistrer(neuf, { nom: "A", budget: "b", contrat: "c", exercice: null }, horlogeFixe());
+  assert.equal(lister(neuf)[0]!.exercice, null);
+});
+
 test("un dépôt dont ecrire lève ne fait pas échouer l'appel", () => {
   const depot: Depot = {
     lire: () => null,

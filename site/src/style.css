@@ -5974,6 +5974,18 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
   font-size: var(--texte-s);
 }
+/* Le choix d'une face n'est pas un état vide : il ne s'affiche que quand il y
+   a quelque chose à comparer, et il porte une commande. Il empruntait le cadre
+   pointillé de `__vide`, qui dit « il n'y a rien ici ». */
+.scenarios-rendu__choix {
+  margin: var(--espace-5) 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-3);
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
 
 /* Le tableau déborde sur téléphone plutôt que d'écraser les colonnes : c'est
    lui qui défile, jamais la page entière (même règle que

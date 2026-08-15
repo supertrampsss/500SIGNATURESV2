@@ -50,14 +50,21 @@
 
 import { decoder, gestes, type EtatAtelier, type Volet } from "./atelier.ts";
 
-/** Un scénario du simulateur, tel que gardé dans le dépôt. */
+/** Un scénario du simulateur, tel que gardé dans le dépôt.
+ *
+ *  `exercice` vaut `null` quand il est inconnu — l'atelier n'avait aucun volet
+ *  monté au moment de l'enregistrement. **Une seule sentinelle pour ce fait**,
+ *  celle-là : la chaîne vide ne dit pas « inconnu », et deux façons de le dire
+ *  faisaient rendre au tableau de comparaison « Exercice » suivi de rien,
+ *  parce que `??` ne rattrape pas `""`. C'est la même sentinelle que
+ *  `Comparable.exercice` (scenarios-rendu.ts), qui l'affiche. */
 export type Scenario = {
   nom: string;
   budget: string;
   contrat: string;
   cree_le: string;
   modifie_le: string;
-  exercice: string;
+  exercice: string | null;
 };
 
 /** Le dépôt où vivent les scénarios. En production, une enveloppe autour de
@@ -90,6 +97,34 @@ function estEnveloppe(valeur: unknown): valeur is Enveloppe {
   );
 }
 
+/**
+ * Une entrée du dépôt, relue et contrôlée.
+ *
+ * L'enveloppe était vérifiée, ses entrées non : n'importe quelle forme pouvait
+ * ensuite circuler sous le type `Scenario`. Une entrée dont un champ manque ou
+ * n'est pas du bon type est écartée, et elle seule — un scénario abîmé
+ * n'emporte pas les autres.
+ *
+ * C'est aussi ici que la sentinelle de l'exercice inconnu est tenue : une
+ * entrée écrite avant elle porte `""`, et se relit `null`.
+ */
+function scenarioLu(valeur: unknown): Scenario | null {
+  if (typeof valeur !== "object" || valeur === null) return null;
+  const e = valeur as Record<string, unknown>;
+  for (const champ of ["nom", "budget", "contrat", "cree_le", "modifie_le"]) {
+    if (typeof e[champ] !== "string") return null;
+  }
+  if (e.exercice !== null && typeof e.exercice !== "string") return null;
+  return {
+    nom: e.nom as string,
+    budget: e.budget as string,
+    contrat: e.contrat as string,
+    cree_le: e.cree_le as string,
+    modifie_le: e.modifie_le as string,
+    exercice: (e.exercice as string | null) || null,
+  };
+}
+
 /** Lit la liste des scénarios du dépôt. Un contenu illisible — JSON invalide
  *  ou enveloppe d'une version inconnue — rend une liste vide plutôt que de
  *  lever : un stockage corrompu ne doit pas empêcher d'ouvrir le simulateur. */
@@ -98,7 +133,10 @@ function lireScenarios(depot: Depot): Scenario[] {
   if (brut === null) return [];
   try {
     const contenu: unknown = JSON.parse(brut);
-    return estEnveloppe(contenu) ? contenu.scenarios : [];
+    if (!estEnveloppe(contenu)) return [];
+    return (contenu.scenarios as unknown[])
+      .map(scenarioLu)
+      .filter((s): s is Scenario => s !== null);
   } catch {
     return [];
   }

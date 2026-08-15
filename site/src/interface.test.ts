@@ -1075,6 +1075,28 @@ test("supprimer le scénario courant efface aussi les lignes disparues qu'il por
   assert.match(corps, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
 });
 
+/** Les aides de main.ts dont dépendent les gestes sur un scénario —
+ *  `scenarioCourant`, `scenarioNomme`, `exercicePorte` — prises dans le fichier
+ *  source et débarrassées de leurs seules annotations TypeScript, pour être
+ *  évaluées par `new Function`. Une seule copie de l'extraction : quatre bancs
+ *  d'essai la partagent, et une aide ajoutée entre elles ne doit pas être
+ *  oubliée par trois d'entre eux. */
+function aidesScenario(): string {
+  const debut = MAIN.indexOf("function scenarioCourant");
+  const fin = MAIN.indexOf("/** Une colonne comparée, transposée");
+  assert.ok(debut > -1 && fin > debut, "les aides de scénario sont introuvables dans main.ts");
+  const aides = MAIN.slice(debut, fin)
+    .replace("function scenarioCourant(): Scenario | undefined {", "function scenarioCourant() {")
+    .replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {")
+    .replace("function exercicePorte(): string | null {", "function exercicePorte() {");
+  assert.doesNotMatch(
+    aides,
+    /function \w+\([^)]*\):/,
+    "une annotation de type reste dans les aides évaluées",
+  );
+  return aides;
+}
+
 /** Exécute `supprimerScenarioCourant` telle qu'écrite dans main.ts, avec le
  *  vrai `scenarioNomme` plutôt qu'un doublon, et rend ce qui s'est réellement
  *  passé : le nom supprimé s'il y en a eu un, et l'état des lignes disparues.
@@ -1084,10 +1106,7 @@ function executerSupprimerScenarioCourant(
   scenariosLocaux: { nom: string; budget: string; exercice: string }[],
   reponse = true,
 ): { supprime: string | null; disparuesVidees: boolean; question: string | null } {
-  const aides = MAIN.slice(
-    MAIN.indexOf("function scenarioNomme"),
-    MAIN.indexOf("/** Une colonne comparée, transposée"),
-  ).replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
+  const aides = aidesScenario();
   const corps = MAIN.slice(
     MAIN.indexOf("function supprimerScenarioCourant"),
     MAIN.indexOf("function faceChoisie"),
@@ -1204,10 +1223,7 @@ function executerRenommerScenarioCourant(
   noms: string[],
   saisi: string | null,
 ): { depot: string[]; adresse: string } {
-  const aides = MAIN.slice(
-    MAIN.indexOf("function scenarioNomme"),
-    MAIN.indexOf("/** Une colonne comparée, transposée"),
-  ).replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
+  const aides = aidesScenario();
   const corps = MAIN.slice(
     MAIN.indexOf("function renommerScenarioCourant"),
     MAIN.indexOf("function dupliquerScenarioCourant"),
@@ -1243,10 +1259,7 @@ function executerDupliquerScenarioCourant(
   nomAdresse: string,
   noms: string[],
 ): { depot: string[]; adresse: string } {
-  const aides = MAIN.slice(
-    MAIN.indexOf("function scenarioNomme"),
-    MAIN.indexOf("/** Une colonne comparée, transposée"),
-  ).replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
+  const aides = aidesScenario();
   const corps = MAIN.slice(
     MAIN.indexOf("function dupliquerScenarioCourant"),
     MAIN.indexOf("function supprimerScenarioCourant"),
@@ -1475,13 +1488,7 @@ function executerColonnesComparaison(
   scenariosLocaux: { nom: string; budget: string; exercice: string; contrat?: string }[],
   references: { titre: string; slug: string | null; contrat: string; lien: string | null }[] = [],
 ): { nom: string; exercice: string | null; contrat: string; lien: string | null }[] {
-  const debutAides = MAIN.indexOf("function scenarioCourant");
-  const finAides = MAIN.indexOf("/** Une colonne comparée, transposée");
-  assert.ok(debutAides > -1 && finAides > debutAides, "scenarioCourant introuvable dans main.ts");
-  const aides = MAIN.slice(debutAides, finAides)
-    .replace("function scenarioCourant(): Scenario | undefined {", "function scenarioCourant() {")
-    .replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
-  assert.doesNotMatch(aides, /: Scenario/, "une annotation de type reste dans les aides évaluées");
+  const aides = aidesScenario();
 
   const debut = MAIN.indexOf("function colonnesComparaison");
   const fin = MAIN.indexOf("function chargerScenario(nom: string): void {");
@@ -1712,6 +1719,98 @@ test("les entrées de référence apparaissent parmi les comparables, distingué
   assert.match(corps, /<optgroup label="Références">/);
 });
 
+test("le sélecteur « Comparer à » n'emprunte pas la classe des états vides", () => {
+  // `scenarios-rendu__vide` dit « il n'y a rien ici », cadre pointillé compris.
+  // Le choix d'une face ne s'affiche justement que quand il y a quelque chose
+  // à comparer, et il porte une commande : il lui faut sa classe, et une règle
+  // CSS à lui.
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  const bloc = corps.slice(corps.indexOf("const choix ="), corps.indexOf('id="scenario-face"'));
+  assert.doesNotMatch(bloc, /scenarios-rendu__vide/);
+  assert.match(bloc, /class="scenarios-rendu__choix"/);
+  assert.match(CSS, /\.scenarios-rendu__choix \{/);
+  const regle = CSS.slice(
+    CSS.indexOf(".scenarios-rendu__choix {"),
+    CSS.indexOf("}", CSS.indexOf(".scenarios-rendu__choix {")),
+  );
+  assert.doesNotMatch(regle, /dashed/);
+});
+
+test("l'exercice inconnu a une seule sentinelle, et l'adresse s'y convertit en un seul endroit", () => {
+  // `Scenario.exercice`, `Comparable.exercice` et `exerciceCourant()` disent
+  // tous « inconnu » avec `null`. L'adresse, elle, ne sait le dire qu'avec la
+  // chaîne vide : la conversion se fait dans `exercicePorte`, et nulle part
+  // ailleurs — `colonnesComparaison` mêlait `??` et `||` dans une seule
+  // expression, ce qui est tenir deux sentinelles à la fois.
+  assert.match(MAIN, /function exercicePorte\(\): string \| null \{\n  return etat\.faceExercice \|\| null;\n\}/);
+  assert.match(MAIN, /function exerciceCourant\(\): string \| null \{/);
+  const colonnes = MAIN.slice(
+    MAIN.indexOf("function colonnesComparaison"),
+    MAIN.indexOf("function chargerScenario(nom: string): void {"),
+  );
+  assert.match(colonnes, /faceEnregistree\?\.exercice \?\? exercicePorte\(\),/);
+  assert.doesNotMatch(colonnes, /\|\| null/);
+  // Une colonne dont l'exercice est inconnu le dit en toutes lettres, jamais
+  // par un millésime pendouillant : c'est la sentinelle qui le permet.
+  const [, face] = executerColonnesComparaison({ nom: "", face: "b", faceNom: "Reçu", faceExercice: "" }, []);
+  assert.equal(face!.exercice, null);
+});
+
+test("un fichier de référence qui n'est pas la liste attendue ne devient pas la liste", () => {
+  // Un JSON valide mais non-tableau — page d'erreur JSON servie à la place du
+  // fichier, build partiel — passait l'affirmation de type sans broncher, puis
+  // faisait lever `.map` à chaque rendu de la barre, donc à chaque geste sur
+  // l'atelier.
+  const debut = MAIN.indexOf("function estReferences");
+  assert.ok(debut > -1, "estReferences introuvable dans main.ts");
+  // La garde s'exécute telle qu'écrite, débarrassée de ses seules annotations
+  // TypeScript : un doublon écrit ici testerait sa propre copie de la règle.
+  const garde = MAIN.slice(debut, MAIN.indexOf("async function chargerReferences"))
+    .replace(
+      "function estReferences(valeur: unknown): valeur is EntreeReference[] {",
+      "function estReferences(valeur) {",
+    )
+    .replaceAll("(e as EntreeReference)", "e");
+  assert.doesNotMatch(garde, /: unknown|as EntreeReference/, "une annotation de type reste");
+  const estReferences = new Function(`${garde}return estReferences;`)() as (v: unknown) => boolean;
+  assert.equal(estReferences([]), true);
+  assert.equal(
+    estReferences([{ titre: "Budget voté", slug: null, lien: null, budget: "", contrat: "", exercice: "2025" }]),
+    true,
+  );
+  assert.equal(estReferences({ erreur: "not found" }), false);
+  assert.equal(estReferences(null), false);
+  assert.equal(estReferences("[]"), false);
+  assert.equal(estReferences([{ titre: 3 }]), false);
+  assert.equal(estReferences([null]), false);
+  // Et le chargeur ne retient que ce que la garde accepte.
+  const chargeur = MAIN.slice(
+    MAIN.indexOf("async function chargerReferences"),
+    MAIN.indexOf("let disparuesCourantes"),
+  );
+  assert.match(chargeur, /if \(estReferences\(lu\)\) referencesScenarios = lu;/);
+  assert.doesNotMatch(chargeur, /as EntreeReference\[\]/);
+});
+
+test("enregistrer sous un autre nom oublie les lignes perdues par le scénario précédent", () => {
+  // Après avoir chargé un scénario amputé puis enregistré l'état sous un autre
+  // nom, la notice continuait à décrire le scénario précédent — et « Aucun
+  // réglage n'a pu être repris » restait affiché alors que le lecteur avait
+  // posé ses propres curseurs. `supprimerScenarioCourant` l'oublie déjà.
+  const corps = MAIN.slice(
+    MAIN.indexOf("function enregistrerScenarioCourant"),
+    MAIN.indexOf("function renommerScenarioCourant"),
+  );
+  assert.match(corps, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
+  // Dans la branche du nom accepté : un enregistrement refusé (nom vide) ne
+  // change rien à l'écran, donc n'a rien à oublier.
+  const accepte = corps.slice(corps.indexOf("if (nomPropre) {"));
+  assert.match(accepte, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
+});
+
 test("le budget voté (slug null) prend l'exercice réellement monté ; une analyse garde le sien, jamais deviné", () => {
   // Le budget voté n'est pas un scénario dont on ignorerait l'origine — c'est
   // l'atelier tel que monté à l'instant : son exercice se lit vrai avec
@@ -1724,7 +1823,7 @@ test("le budget voté (slug null) prend l'exercice réellement monté ; une anal
     MAIN.indexOf('cible.addEventListener("change"'),
     MAIN.indexOf("async function ouvrirSimulateur"),
   );
-  assert.match(corps, /reference\.slug === null \? exerciceCourant\(\) : reference\.exercice/);
+  assert.match(corps, /reference\.slug === null\s*\n?\s*\? exerciceCourant\(\) \?\? ""\s*\n?\s*: reference\.exercice/);
 });
 
 /* ------------------------------------------------------------------------
