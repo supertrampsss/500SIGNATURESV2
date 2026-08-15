@@ -1320,8 +1320,11 @@ test("renommer un scénario le renomme dans le dépôt, et l'adresse suit", () =
 
 test("le nom retenu par l'adresse est celui réellement stocké, espaces et longueur compris", () => {
   // `renommer` nettoie le nom avant de l'écrire. L'adresse doit porter CE
-  // nom-là, pas celui qu'on a tapé : deux règles de nettoyage qui divergent
-  // feraient nommer par l'adresse un scénario absent du dépôt.
+  // nom-là, pas celui qu'on a tapé : `main.ts` refaisait ce `trim().slice()`
+  // de son côté, et deux copies d'une règle qui doit rester identique finissent
+  // par diverger — l'adresse nommerait alors un scénario absent du dépôt. Le
+  // nom saisi ici dépasse `NOM_MAX` et porte des espaces, les deux façons dont
+  // les copies peuvent s'écarter.
   const long = `  ${"n".repeat(80)}  `;
   const { depot, adresse } = executerRenommerScenarioCourant("A", ["A"], long);
   assert.equal(adresse, depot[0]);
