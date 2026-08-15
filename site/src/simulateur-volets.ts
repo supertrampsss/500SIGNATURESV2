@@ -1,15 +1,25 @@
 /**
- * Ce que les deux appelants du simulateur — l'atelier interactif (`main.ts`)
- * et le pré-rendu (`scripts/prerendre.ts`) — doivent construire à l'identique
+ * Ce que les trois appelants du simulateur — l'atelier interactif (`main.ts`),
+ * le pré-rendu (`scripts/prerendre.ts`) et la fonction d'aperçu
+ * (`functions/simulateur/_middleware.ts`) — doivent construire à l'identique
  * pour ouvrir les mêmes volets. Module sans DOM : `scripts/prerendre.ts` ne
  * peut pas importer `main.ts` (il charge MapLibre et appelle `demarrer()` au
  * chargement du module, ce qui suppose un navigateur), et dupliquer cette
  * logique à la main avait déjà divergé au moment où le second exemplaire a été
  * écrit — deux champs manquaient au pré-rendu sans qu'aucun test ne le voie.
  * Il n'y a donc plus qu'un exemplaire.
+ *
+ * Sans DOM **et sans système de fichiers** : la fonction d'aperçu tourne dans
+ * un travailleur d'edge, qui n'a ni l'un ni l'autre. Les fichiers publiés y
+ * entrent par un lecteur passé en paramètre (`LirePublie`), jamais par un
+ * `fetch` écrit ici — c'est ce qui rend `construireVolet` appelable des trois
+ * côtés sans que chacun réécrive la nomenclature.
  */
 
-import { CODE_ELIMINATION, type Budget, type Noeud } from "./simulateur.ts";
+import { appliquer as appliquerBareme, MODELES as MODELES_BAREME, type Bareme } from "./bareme.ts";
+import { exercicesPublies } from "./simulateur-rendu.ts";
+import { indexer, CODE_ELIMINATION, type Budget, type Noeud } from "./simulateur.ts";
+import type { Volet, VoletBareme } from "./atelier.ts";
 
 /**
  * Les cinq branches des régimes de base, dans l'ordre où on en débat, et ce que
@@ -112,3 +122,121 @@ export function fusionnerBranches(consolide: Budget, branches: [string, string, 
 
 /** Le nom de section de chaque échelon de collectivités. */
 export const ECHELONS = { commune: "Communes", departement: "Départements", region: "Régions" } as const;
+
+/* --------------------------------------------------------------------------
+ * Les volets, construits contre les fichiers publiés.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * L'entrepôt des fichiers publiés, quand rien ne le remplace.
+ *
+ * `src/donnees.ts` porte la même adresse pour le navigateur, où elle se lit
+ * dans `import.meta.env` — que Vite injecte au build et qui n'existe ni sous
+ * Node ni dans un travailleur d'edge. Les deux ne peuvent donc pas partager la
+ * ligne ; un test (`apercu-scenario.test.ts`) constate qu'elles portent la même
+ * valeur, faute de quoi l'aperçu d'un scénario décrirait un autre entrepôt que
+ * celui que le lecteur ouvrira.
+ */
+export const BASE_DONNEES = "https://pub-fc39d357004540a182a907aed4875ef5.r2.dev";
+
+/**
+ * Lit un fichier publié, par son chemin sous la racine de la publication
+ * (« simulateur/etat-2025.json »).
+ *
+ * Un paramètre, pas un `fetch` en dur : le pré-rendu lit sous Node, l'aperçu
+ * sous un travailleur d'edge qui met en cache, et un test lit des fixtures. Ce
+ * qu'ils partagent, c'est la nomenclature — pas le transport.
+ */
+export type LirePublie = <T>(chemin: string) => Promise<T>;
+
+/**
+ * Les volets du simulateur, dans l'ordre où l'atelier les monte.
+ *
+ * Trois échelons de collectivités, jamais une quatrième entrée qui les
+ * résumerait : une part de ce que départements et régions dépensent est
+ * reversée aux communes (`main.ts`, `VOLETS_PUBLIES`).
+ */
+export const CLES_VOLETS = [
+  "etat",
+  "secu",
+  "bareme",
+  "collectivites-commune",
+  "collectivites-departement",
+  "collectivites-region",
+] as const;
+
+/** Vrai si la clé est un échelon de collectivités connu — ce qui la rend
+ *  indexable dans `ECHELONS` sans passer par un `as`. */
+function estEchelon(cle: string): cle is keyof typeof ECHELONS {
+  return cle in ECHELONS;
+}
+
+/** Le dernier exercice publié d'un volet, ou une erreur qui nomme le volet en cause. */
+function dernierExercice(indexBrut: unknown, cle: string): string {
+  const trouve = exercicesPublies(indexBrut).sort().reverse()[0];
+  if (!trouve) throw new Error(`Aucun exercice publié pour le volet de simulateur "${cle}".`);
+  return trouve;
+}
+
+/** Construit le volet réel d'une clé, contre les fichiers publiés. Lève pour
+ *  toute clé que le simulateur ne connaît pas — un lien qui la référence ne
+ *  peut de toute façon ouvrir aucun réglage. */
+export async function construireVolet(cle: string, lire: LirePublie): Promise<Volet> {
+  if (cle === "etat") {
+    const exercice = dernierExercice(await lire("simulateur/index.json"), cle);
+    const budget = await lire<Budget>(`simulateur/etat-${exercice}.json`);
+    return { genre: "budget", cle, nom: "État", budget, index: indexer(budget) };
+  }
+
+  if (cle === "secu") {
+    const exercice = dernierExercice(await lire("simulateur/index-secu.json"), cle);
+    const [consolide, ...branches] = await Promise.all([
+      lire<Budget>(`simulateur/secu-${exercice}.json`),
+      ...BRANCHES.map(([branche]) => lire<Budget>(`simulateur/branche-${branche}-${exercice}.json`)),
+    ]);
+    const fusionne = fusionnerBranches(
+      consolide,
+      BRANCHES.map(
+        ([cleBranche, nom], rang) => [cleBranche, nom, branches[rang]!] as [string, string, Budget],
+      ),
+    );
+    return { genre: "budget", cle, nom: "Sécurité sociale", budget: fusionne, index: indexer(fusionne) };
+  }
+
+  if (cle === "bareme") {
+    const exercice = dernierExercice(await lire("simulateur/index-bareme.json"), cle);
+    const bareme = await lire<Bareme>(`simulateur/bareme-${exercice}.json`);
+    const volet: VoletBareme = {
+      genre: "bareme",
+      cle,
+      nom: "Impôt sur le revenu",
+      bareme,
+      depart: appliquerBareme(bareme, MODELES_BAREME[0]),
+      // La ligne 1101 des recettes fiscales de l'État, que ce barème calcule.
+      pilote: { volet: "etat", code: "r1101" },
+    };
+    return volet;
+  }
+
+  if (cle.startsWith("collectivites-")) {
+    const echelon = cle.slice("collectivites-".length);
+    if (!estEchelon(echelon)) throw new Error(`Échelon de collectivité inconnu : "${echelon}".`);
+    const budget = await lire<Budget>(`simulateur/collectivites-${echelon}.json`);
+    return { genre: "budget", cle, nom: ECHELONS[echelon], budget, index: indexer(budget) };
+  }
+
+  throw new Error(`Volet de simulateur inconnu : "${cle}".`);
+}
+
+/**
+ * **Tous** les volets, jamais seulement ceux que l'adresse nomme.
+ *
+ * Un geste posé sur un prélèvement sur recettes de l'État retire autant aux
+ * trois échelons de collectivités (`PASSAGES`, atelier.ts), et cette
+ * contrepartie entre dans la somme des écarts comme dans le plan. Ne charger
+ * que les volets référencés annoncerait donc un effort que le lecteur ne verra
+ * pas à l'écran — précisément la divergence qu'un aperçu ne doit pas produire.
+ */
+export function construireVolets(lire: LirePublie): Promise<Volet[]> {
+  return Promise.all(CLES_VOLETS.map((cle) => construireVolet(cle, lire)));
+}

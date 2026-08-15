@@ -28,10 +28,7 @@ import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { carteAnalyse, carteReperes, type DonneesAnalyse, type DonneesReperes } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
-import { indexer, type Budget } from "../src/simulateur.ts";
-import { exercicesPublies } from "../src/simulateur-rendu.ts";
-import { appliquer as appliquerBareme, MODELES as MODELES_BAREME, type Bareme } from "../src/bareme.ts";
-import { BRANCHES, fusionnerBranches, ECHELONS } from "../src/simulateur-volets.ts";
+import { BASE_DONNEES, construireVolet } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
 import type { Indicateur } from "../src/donnees.ts";
 
@@ -40,9 +37,9 @@ const RACINE_SITE = path.resolve(ICI, "..");
 const DIST = path.join(RACINE_SITE, "dist");
 const DOSSIER_ANALYSES = path.join(RACINE_SITE, "analyses");
 
-/** Même valeur de repli que `src/donnees.ts` — dupliquée, pas importée : voir
- *  l'en-tête du fichier. */
-const BASE = process.env.VITE_DONNEES_URL ?? "https://pub-fc39d357004540a182a907aed4875ef5.r2.dev";
+/** Même valeur de repli que `src/donnees.ts` — voir `BASE_DONNEES`
+ *  (simulateur-volets.ts), qui la porte pour tout ce qui lit hors navigateur. */
+const BASE = process.env.VITE_DONNEES_URL ?? BASE_DONNEES;
 
 /* --------------------------------------------------------------------------
  * L'adresse de publication du site.
@@ -127,73 +124,11 @@ async function lireJson<T>(url: string): Promise<T> {
  * budgets qu'une analyse référence réellement dans son `simulateur.budget`.
  * ----------------------------------------------------------------------- */
 
-// BRANCHES, DIT_LA_BRANCHE et fusionnerBranches viennent de
-// simulateur-volets.ts, importés plus haut : ce script ne peut pas importer
-// `main.ts` lui-même (il charge MapLibre et appelle `demarrer()` au
-// chargement du module, ce qui suppose un DOM), mais il construit désormais
-// les mêmes volets que l'atelier interactif, avec le même code.
-
-/** Vrai si la clé est un échelon de collectivités connu — ce qui la rend
- *  indexable dans `ECHELONS` sans passer par un `as`. */
-function estEchelon(cle: string): cle is keyof typeof ECHELONS {
-  return cle in ECHELONS;
-}
-
-/** Le dernier exercice publié d'un volet, ou une erreur qui nomme le volet en cause. */
-function dernierExercice(indexBrut: unknown, cle: string): string {
-  const trouve = exercicesPublies(indexBrut).sort().reverse()[0];
-  if (!trouve) throw new Error(`Aucun exercice publié pour le volet de simulateur "${cle}".`);
-  return trouve;
-}
-
-/** Construit le volet réel d'une clé, contre les fichiers publiés. Lève pour
- *  toute clé que le simulateur ne connaît pas — un lien qui la référence ne
- *  peut de toute façon ouvrir aucun réglage. */
-async function construireVolet(cle: string, racineDonnees: string): Promise<Volet> {
-  const lire = <T>(chemin: string) => lireJson<T>(`${racineDonnees}/${chemin}`);
-
-  if (cle === "etat") {
-    const exercice = dernierExercice(await lire("simulateur/index.json"), cle);
-    const budget = await lire<Budget>(`simulateur/etat-${exercice}.json`);
-    return { genre: "budget", cle, nom: "État", budget, index: indexer(budget) };
-  }
-
-  if (cle === "secu") {
-    const exercice = dernierExercice(await lire("simulateur/index-secu.json"), cle);
-    const [consolide, ...branches] = await Promise.all([
-      lire<Budget>(`simulateur/secu-${exercice}.json`),
-      ...BRANCHES.map(([branche]) => lire<Budget>(`simulateur/branche-${branche}-${exercice}.json`)),
-    ]);
-    const fusionne = fusionnerBranches(
-      consolide,
-      BRANCHES.map(([cleBranche, nom], rang) => [cleBranche, nom, branches[rang]!] as [string, string, Budget]),
-    );
-    return { genre: "budget", cle, nom: "Sécurité sociale", budget: fusionne, index: indexer(fusionne) };
-  }
-
-  if (cle === "bareme") {
-    const exercice = dernierExercice(await lire("simulateur/index-bareme.json"), cle);
-    const bareme = await lire<Bareme>(`simulateur/bareme-${exercice}.json`);
-    const volet: VoletBareme = {
-      genre: "bareme",
-      cle,
-      nom: "Impôt sur le revenu",
-      bareme,
-      depart: appliquerBareme(bareme, MODELES_BAREME[0]),
-      pilote: { volet: "etat", code: "r1101" },
-    };
-    return volet;
-  }
-
-  if (cle.startsWith("collectivites-")) {
-    const echelon = cle.slice("collectivites-".length);
-    if (!estEchelon(echelon)) throw new Error(`Échelon de collectivité inconnu : "${echelon}".`);
-    const budget = await lire<Budget>(`simulateur/collectivites-${echelon}.json`);
-    return { genre: "budget", cle, nom: ECHELONS[echelon], budget, index: indexer(budget) };
-  }
-
-  throw new Error(`Volet de simulateur inconnu : "${cle}".`);
-}
+// `construireVolet` vient de simulateur-volets.ts, importé plus haut : ce
+// script ne peut pas importer `main.ts` lui-même (il charge MapLibre et appelle
+// `demarrer()` au chargement du module, ce qui suppose un DOM), mais il
+// construit les mêmes volets que l'atelier interactif et que la fonction
+// d'aperçu, avec le même code.
 
 /** Les clés de volet qu'une chaîne encodée référence — même syntaxe que
  *  `decoder()` (atelier.ts) : `<volet>/<code>:<valeur>`, jointes par `,`. */
@@ -238,7 +173,11 @@ async function validerLiensSimulateur(analyses: readonly Analyse[], racineDonnee
   const cles = new Set<string>();
   for (const { budget } of aValider) for (const cle of clesReferencees(budget)) cles.add(cle);
 
-  const volets = await Promise.all([...cles].map((cle) => construireVolet(cle, racineDonnees)));
+  const volets = await Promise.all(
+    [...cles].map((cle) =>
+      construireVolet(cle, <T,>(chemin: string) => lireJson<T>(`${racineDonnees}/${chemin}`)),
+    ),
+  );
 
   for (const { analyse, budget } of aValider) {
     const etat = decoder(budget, volets);
