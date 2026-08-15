@@ -155,9 +155,12 @@ function uniteDe(catalogue: Indicateur[], id: string): string {
  * - **la source**, prise dans `analyse.sources` — la provenance que l'analyse
  *   déclare elle-même, celle que l'étage « preuve » liste sous « Fichier
  *   publié ». Jamais `affirmation.source`, qui est la source de la
- *   *déclaration* citée, pas celle du chiffre des comptes : la carte de
- *   partage s'autorise ce repli parce que son pied couvre l'image entière,
- *   une citation nomme la source de *ce* chiffre-là.
+ *   *déclaration* citée, pas celle du chiffre des comptes. La carte de partage
+ *   s'autorisait ce repli, au motif que son pied couvre l'image entière : il ne
+ *   la couvre pas, il suit à quatre lignes une rangée intitulée « Chiffre des
+ *   comptes ». Le repli est parti (`donneesCarteAnalyse`, scripts/prerendre.ts)
+ *   et la règle est la même partout — une citation comme une image nomment la
+ *   source de *ce* chiffre-là.
  * - **l'unité**, lue dans le catalogue. Un indicateur que le catalogue ne
  *   déclare pas n'a pas d'unité de repli ici : `formater` peindrait un taux ou
  *   un effectif en millions d'euros, et la citation partirait fausse.

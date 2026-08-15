@@ -176,6 +176,32 @@ test("2. la carte d'une analyse porte sa source et le millésime de son chiffre"
   assert.equal(donnees.dit, analyse.chiffres[0].dit);
 });
 
+test("2 bis. sans source déclarée, la carte ne se rabat pas sur celle de la déclaration", async () => {
+  const [analyse] = await analysesPubliees();
+  const catalogue = catalogueEnEuros([analyse]);
+  // `controle_analyses` rejette déjà `sources: []` avant le build : ce cas
+  // n'arrive pas, et c'est précisément pourquoi le repli qui vivait ici ne
+  // rougissait jamais. Il peignait la source de la DÉCLARATION mise en cause
+  // sous une rangée « Chiffre des comptes », sur une image qui circule seule.
+  const sansSource = { ...analyse, sources: [] };
+  assert.throws(
+    () => donneesCarteAnalyse(sansSource, catalogue, "exemple.test"),
+    /ne déclare aucune source/,
+  );
+  // Et le titre de la déclaration ne se retrouve nulle part sur la carte quand
+  // l'analyse en déclare une autre : ce serait la même faute, en silence.
+  const contestee = {
+    ...analyse,
+    affirmation: {
+      ...analyse.affirmation,
+      source: { titre: "Déclaration d'essai", url: "", consulte_le: "" },
+    },
+  };
+  const donnees = donneesCarteAnalyse(contestee, catalogue, "exemple.test");
+  assert.equal(donnees.source.titre, analyse.sources[0].titre);
+  assert.ok(!carteAnalyse(donnees).includes("Déclaration d'essai"));
+});
+
 test("3. un chiffre qui n'est pas en euros n'est pas peint comme un montant", async () => {
   const [analyse] = await analysesPubliees();
   // Le même chiffre, déclaré en pourcentage par le catalogue : la carte le

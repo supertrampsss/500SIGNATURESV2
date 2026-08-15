@@ -228,6 +228,23 @@ function uniteCataloguee(catalogue: readonly Indicateur[], id: string): string |
  * n'en déclare aucun fait rougir le build plutôt que partir avec un millésime
  * plausible — une image circule seule, et une date inventée dessus ne se
  * rattrape pas.
+ *
+ * La source est `sources[0]`, et **rien d'autre**. `affirmation.source` a tenu
+ * ce rôle en repli : c'est la source de la DÉCLARATION mise en cause, pas celle
+ * du chiffre des comptes qu'on lui oppose. Peinte sous une rangée intitulée
+ * « Chiffre des comptes », à quatre lignes de là, elle attribuerait le chiffre
+ * publié à qui l'a contesté — et sur une image qui circule seule, rien ne
+ * viendrait le corriger. `analyse-rendu.ts` refuse déjà ce repli pour l'étage
+ * « preuve », `citer.ts` pour un nombre copié : la carte n'avait aucune raison
+ * de s'en autoriser une exception, et le pied qui la justifiait ne couvre pas
+ * la rangée, il la suit.
+ *
+ * Une analyse sans source fait donc rougir le build. Le cas est **déjà**
+ * impossible en amont — `controle_analyses` rejette `sources: []` (« sources :
+ * champ obligatoire vide », sortie 1) et `deploy.yml` lance le contrôle avant
+ * le build : ce qui suit est une seconde serrure sur la même porte, pas une
+ * branche qu'on attend. Une porte à deux serrures vaut mieux qu'une porte dont
+ * la seconde ouvre sur autre chose.
  */
 export function donneesCarteAnalyse(
   analyse: Analyse,
@@ -256,8 +273,15 @@ export function donneesCarteAnalyse(
     uniteCataloguee(catalogue, chiffre.observe.indicateur) === "EUR";
   // La provenance déclarée par l'analyse elle-même — la même que l'étage
   // « preuve » de la page cite (analyse-rendu.ts), jamais un champ du
-  // catalogue que le rendu ne peut pas vérifier.
-  const source = analyse.sources[0] ?? analyse.affirmation.source;
+  // catalogue que le rendu ne peut pas vérifier, et jamais la source de la
+  // déclaration mise en cause (voir la docstring).
+  const source = analyse.sources[0];
+  if (!source) {
+    throw new Error(
+      `L'analyse "${analyse.slug}" ne déclare aucune source : sa carte de partage circulerait ` +
+        "en attribuant le chiffre des comptes à qui l'a contesté.",
+    );
+  }
   return {
     titre: analyse.titre,
     dit: chiffre.dit,
