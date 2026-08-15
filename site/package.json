@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && vite build && node --experimental-strip-types scripts/prerendre.ts",
-    "test": "node --experimental-strip-types --test src/*.test.ts",
+    "test": "node --experimental-strip-types --test src/*.test.ts scripts/*.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "pmtiles": "^4.4.0"
   },
   "devDependencies": {
+    "@resvg/resvg-wasm": "^2.6.2",
     "@types/node": "^22.20.1",
     "typescript": "^5.9.0",
     "vite": "^7.1.0"
