@@ -462,10 +462,15 @@ test("13. le dessin garde une marge sur le modèle, et le test la borne", () => 
   // arrondis du rasteriseur. Ce test remesure les cinq cartes ordinaires à un
   // modèle élargi et exige que ça tienne encore : il DIT ce que le dessin
   // tolère au lieu de le supposer nul.
-  const pire = 1.05;
+  //
+  // Les cartes ordinaires cassent à +14,5 % (le repère, dont l'affirmation
+  // occupe la ligne entière), +30 % (la comparaison, dont les deux colonnes de
+  // valeurs se partagent la largeur sans gouttière entre elles), et au-delà de
+  // +70 % pour les trois autres. La borne est posée sous la plus serrée.
+  const pire = 1.1;
   for (const [nom, svg] of CINQ) {
-    assert.deepEqual(debordements(svg, pire), [], `${nom} : hors cadre à +5 %`);
-    assert.deepEqual(recouvrements(svg, pire), [], `${nom} : recouvrement à +5 %`);
+    assert.deepEqual(debordements(svg, pire), [], `${nom} : hors cadre à +10 %`);
+    assert.deepEqual(recouvrements(svg, pire), [], `${nom} : recouvrement à +10 %`);
   }
   // Les chaînes longues, elles, ne tolèrent rien par construction : `replier`
   // remplit la ligne au modèle, donc tout modèle plus large la fait déborder.
