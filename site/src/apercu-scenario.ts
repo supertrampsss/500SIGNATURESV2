@@ -42,6 +42,7 @@
  */
 
 import { decoder, effort, plan, type LigneAtelier, type Volet } from "./atelier.ts";
+import { MENTION_MILLIONS } from "./echelle.ts";
 import { eurosSigne } from "./simulateur-rendu.ts";
 import { echapper } from "./texte.ts";
 
@@ -71,13 +72,18 @@ const NOM_MAX = 70;
 
 /** Ce que sont les nombres de la description.
  *
- *  « Santé 1 643 M€ » se lit « 1 643 milliards » par qui n'a pas le nez sur le
- *  sigle. La mention est en dernier, une fois : ce sont les gestes qu'on vient
- *  lire, et une carte de lien coupe par la queue.
+ *  La mention est en dernier, une fois : ce sont les gestes qu'on vient lire,
+ *  et une carte de lien coupe par la queue.
+ *
+ *  La phrase vient d'`echelle.ts`, comme celle des cartes de partage : les
+ *  deux disaient la même chose dans deux constantes, à un point final près, et
+ *  deux formulations d'une même règle se corrigent séparément. Le point est
+ *  ajouté ici parce qu'ici elle est une phrase entière, au bout d'une
+ *  description qui en aligne trois.
  *
  *  Exportée pour que le résumé collable (`partage.ts`) l'écrive dans les mêmes
- *  mots : deux formulations de la même mention se corrigeraient séparément. */
-export const MENTION_UNITE = "Montants en millions d'euros.";
+ *  mots. */
+export const MENTION_UNITE = `${MENTION_MILLIONS}.`;
 
 /**
  * Les cadres publiés des budgets que le scénario touche : « PLF 2025 »,

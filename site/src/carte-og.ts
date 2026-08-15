@@ -41,7 +41,7 @@
  */
 
 import { LIBELLE_CRAN, type Cran } from "./analyse-rendu.ts";
-import { PALETTE, formater } from "./echelle.ts";
+import { MENTION_MILLIONS, PALETTE, formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
 import { echapper } from "./texte.ts";
 
@@ -428,10 +428,11 @@ function dessiner(cadre: Cadre): string {
   }" y2="524" stroke="${TRAIT}" stroke-width="2"></line>${pied}</svg>`;
 }
 
-/** La mention d'unité que porte toute carte alignant des montants publics.
- *  « Santé 1 643 M€ » se lit « 1 643 milliards » par qui n'a pas le nez sur le
- *  sigle : l'image le dit en toutes lettres, une fois, en bas. */
-const UNITE_EUROS = "Montants en millions d'euros";
+/** La mention d'unité que porte toute carte alignant des montants publics :
+ *  l'image le dit en toutes lettres, une fois, en bas. La phrase vient
+ *  d'`echelle.ts`, à côté de `millions()` qui produit le sigle — recopiée ici,
+ *  elle avait déjà divergé d'un point final de celle des aperçus. */
+const UNITE_EUROS = MENTION_MILLIONS;
 
 export type DonneesAnalyse = {
   /** Le titre qui affirme — celui de l'analyse. */

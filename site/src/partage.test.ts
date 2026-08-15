@@ -26,7 +26,7 @@ import { test } from "node:test";
 
 import { apercuScenario, MENTION_UNITE } from "./apercu-scenario.ts";
 import { decoder, encoder, etatVide, plan, reglagesDe, type Volet, type VoletBudget } from "./atelier.ts";
-import { formater } from "./echelle.ts";
+import { MENTION_MILLIONS, formater } from "./echelle.ts";
 import {
   formeEffort,
   offrir,
@@ -393,6 +393,27 @@ test("la variante compacte est celle qui part, quand c'est elle qu'on demande", 
   await offrir(objet, { copier: canal }, "compact");
   assert.equal(copies[0], resume(objet, "compact"));
   assert.ok(!copies[0].includes("Somme des écarts"), copies[0]);
+});
+
+test("l'image, l'aperçu et le collage disent l'unité dans les mêmes mots", () => {
+  // La mention vivait dans deux constantes — `MENTION_UNITE`
+  // (apercu-scenario.ts) et `UNITE_EUROS` (carte-og.ts) — qui disaient déjà la
+  // même phrase à un point final près. Deux copies d'une règle se corrigent
+  // séparément : elle vit maintenant dans `echelle.ts`, à côté du `millions()`
+  // qui produit le sigle qu'elle explique.
+  assert.equal(MENTION_UNITE, `${MENTION_MILLIONS}.`);
+  // Et aucun des modules qui composent un objet partageable ne la retape : une
+  // troisième copie rouvrirait la faute sans qu'aucune assertion de valeur ne
+  // bouge, puisqu'elle serait identique le jour où on l'écrit.
+  //
+  // Les quatre modules du partage, pas tout `src/` : les légendes de tableaux
+  // (`analyse-rendu.ts`, `scenarios-rendu.ts`, `exercices.ts`) écrivent la même
+  // phrase pour une autre raison — elles la disent SOUS un tableau, dans une
+  // page qui reste là pour l'expliquer, et elles sont antérieures à ce lot.
+  const recopiee = ["carte-og.ts", "apercu-scenario.ts", "partage.ts", "citer.ts"].filter((f) =>
+    readFileSync(new URL(`./${f}`, import.meta.url), "utf8").includes(MENTION_MILLIONS),
+  );
+  assert.deepEqual(recopiee, [], "la mention d'unité est recopiée dans un module de partage");
 });
 
 /* --------------------------------------------------------------------------
