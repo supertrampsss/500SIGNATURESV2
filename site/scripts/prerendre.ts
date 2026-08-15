@@ -27,6 +27,7 @@ import { fileURLToPath } from "node:url";
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { carteAnalyse, carteReperes, type DonneesAnalyse, type DonneesReperes } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
+import { permalien } from "../src/partage.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
@@ -637,12 +638,16 @@ async function main(): Promise<void> {
 
   const ecrites: PageEcrite[] = [];
   for (const analyse of analyses) {
+    const canonique = `/analyses/${analyse.slug}/`;
     const page: Page = {
       titre: analyse.titre,
       description: analyse.verdict.phrase,
-      canonique: `/analyses/${analyse.slug}/`,
+      canonique,
       image: `/analyses/${analyse.slug}/carte.png`,
-      corps: rendu(analyse, catalogue, version),
+      // Le permalien que porteront les citations de cette page : le même que
+      // `og:url`, composé par `permalien()` plutôt que recollé à la main — la
+      // règle du dépôt pour toute adresse qui sort du site.
+      corps: rendu(analyse, catalogue, version, permalien(SITE, canonique, {})),
     };
     const html = injecter(shell, page, SITE);
     await ecrirePage(path.join(DIST, "analyses", analyse.slug), html);

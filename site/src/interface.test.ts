@@ -1951,3 +1951,47 @@ test("le bloc des lignes non reprises est habillé comme le reste de la barre", 
   assert.match(regle, /var\(--trait\)/);
   assert.match(regle, /var\(--espace-5\)/);
 });
+
+/* --------------------------------------------------------------------------
+ * « Citer » : un écouteur délégué, et rien à gratter sur la page
+ * ----------------------------------------------------------------------- */
+
+test("la commande « citer » est un écouteur délégué, posé une seule fois", () => {
+  // Même motif que `brancherPartage` et `brancherScenarios` : l'article d'une
+  // analyse n'est jamais remplacé, un écouteur par rendu les aurait empilés.
+  const corps = MAIN.slice(
+    MAIN.indexOf("function brancherCitations"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.ok(corps.length > 200, "corps de brancherCitations introuvable");
+  assert.match(corps, /article\.addEventListener\("click"/);
+  assert.match(corps, /closest<HTMLElement>\("button\[data-citer\]"\)/);
+  // Branchée avant tout appel réseau : la charge utile est déjà dans la page,
+  // écrite par le pré-rendu.
+  assert.match(MAIN, /brancherCitations\(\);\n {2}\/\/ L'état AVANT la première bascule de vue/);
+});
+
+test("la citation se lit dans la charge utile, jamais sur la page rendue", () => {
+  // Le montant affiché a déjà perdu son unité brute et son millésime sa forme :
+  // gratter la page recomposerait un chiffre au lieu de le citer.
+  assert.match(MAIN, /const brute = bouton\.dataset\.citer;/);
+  assert.match(MAIN, /JSON\.parse\(brute\) as Citation/);
+  // La même limite qu'au rendu, tenue au clic : une charge incomplète ne
+  // produit rien, surtout pas un message d'échec.
+  assert.match(MAIN, /return citable\(citation\) \? citation : null;/);
+  // Le presse-papiers est injecté, jamais lu dans `offrirCitation` : c'est ce
+  // qui rend le chemin éprouvable sous Node.
+  assert.match(MAIN, /offrirCitation\(citation, presseDuNavigateur\(\)\)/);
+});
+
+test("la commande « citer » est habillée sans couleur ni espacement en dur", () => {
+  assert.match(CSS, /^\.citer \{/m);
+  const regle = CSS.slice(CSS.indexOf("\n.citer {"), CSS.indexOf("\n.citer:hover"));
+  assert.doesNotMatch(regle, /#[0-9a-f]{3,8}\b/i);
+  assert.match(regle, /var\(--encre-douce\)/);
+  assert.match(regle, /var\(--texte-xs\)/);
+  // Le repli reçoit la citation quand le presse-papiers refuse : sans lui,
+  // « indisponible » ne laisserait rien à emporter.
+  assert.match(CSS, /^\.citer__repli \{/m);
+  assert.match(CSS, /^\.citer__retour \{/m);
+});

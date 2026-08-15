@@ -19,14 +19,16 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { mkdtemp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 
-import type { Analyse } from "../src/analyse-rendu.ts";
+import { rendu, type Analyse } from "../src/analyse-rendu.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteReperes } from "../src/carte-og.ts";
 import type { Indicateur } from "../src/donnees.ts";
+import { permalien } from "../src/partage.ts";
 import { echapper } from "../src/texte.ts";
 import { lirePolices, peindre, rasteriser, type Peinture } from "./rasteriser.ts";
 import {
@@ -292,4 +294,41 @@ test("7. une page qui annonce une image absente fait échouer le build", async (
     () => validerImagesAnnoncees(racine, [sans], "https://exemple.test"),
     /ne porte pas de balise og:image/,
   );
+});
+
+/* --------------------------------------------------------------------------
+ * 8. Une citation ramène à la page qui la porte
+ * ----------------------------------------------------------------------- */
+
+test("8. le permalien d'une citation est celui que la page annonce en og:url", async () => {
+  const site = "https://exemple.test";
+  const [analyse] = await analysesPubliees();
+  assert.ok(analyse);
+  const canonique = `/analyses/${analyse.slug}/`;
+  // Le pré-rendu compose cette adresse une fois, avec `permalien()` (partage.ts)
+  // plutôt qu'en recollant deux chaînes, et la donne au rendu.
+  const adresse = permalien(site, canonique, {});
+  const corps = rendu(analyse, catalogueEnEuros([analyse]), "v-essai", adresse);
+  const html = injecter(GABARIT, { ...PAGE, canonique, corps }, site);
+
+  const ogUrl = html.match(/<meta property="og:url" content="([^"]*)"/)?.[1];
+  assert.equal(adresse, ogUrl);
+  // Et c'est bien cette adresse-là que les boutons portent : une citation qui
+  // ramènerait ailleurs que sur la page d'où elle vient n'est pas vérifiable.
+  const charges = [...html.matchAll(/data-citer="([^"]*)"/g)];
+  assert.ok(charges.length > 0, "aucune commande « citer » sur une analyse sourcée");
+  for (const [, brute] of charges) {
+    const citation = JSON.parse(brute!.replace(/&quot;/g, '"').replace(/&#39;/g, "'")) as {
+      permalien: string;
+    };
+    assert.equal(citation.permalien, ogUrl);
+  }
+});
+
+test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", () => {
+  // Le défaut serait invisible sur cette analyse-ci et fatal sur la première
+  // qui porterait un paramètre : `permalien()` existe pour que les caractères
+  // d'une adresse ne coupent jamais celle-ci en deux.
+  const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
+  assert.match(source, /corps: rendu\(analyse, catalogue, version, permalien\(SITE, canonique, \{\}\)\)/);
 });

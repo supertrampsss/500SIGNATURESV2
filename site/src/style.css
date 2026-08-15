@@ -6179,3 +6179,60 @@ body[data-carte="oui"] .legende {
 .partage__repli[hidden] {
   display: none;
 }
+
+/* --------------------------------------------------------------------------
+   Citer
+   --------------------------------------------------------------------------
+   La commande vit DANS la ligne du chiffre, pas dans une barre d'actions : ce
+   qu'on cite, c'est ce nombre-là et pas un autre, et une commande posée
+   ailleurs obligerait à choisir lequel avant de savoir qu'on peut choisir.
+
+   Elle est donc discrète — un filet, le corps le plus petit — et ne prend pas
+   le pas sur le montant qu'elle accompagne. Les chiffres sans source ni
+   millésime n'en portent aucune (analyse-rendu.ts) : c'est une absence, pas un
+   bouton grisé, qui n'apprendrait rien. */
+.citer {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--espace-2);
+  padding: 0 var(--espace-2);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-xs);
+  background: transparent;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  line-height: 1.8;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.citer:hover,
+.citer:focus-visible {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+/* Le retour occupe sa propre ligne : il apparaît sous le chiffre au premier
+   clic, et le laisser dans le flux du texte ferait sauter le montant de place
+   à chaque copie. */
+.citer__retour {
+  display: block;
+  margin-top: var(--espace-2);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+/* Le repli : la citation entière, à copier à la main, quand le navigateur
+   refuse le presse-papiers. En lecture seule — ce qui est copié doit être ce
+   que le site a composé — et sur trois lignes, la hauteur exacte d'une
+   citation (citer.ts). */
+.citer__repli {
+  display: block;
+  width: 100%;
+  margin-top: var(--espace-2);
+  padding: var(--espace-3);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier-creuse);
+  color: var(--encre);
+  font: inherit;
+  font-size: var(--texte-s);
+  resize: vertical;
+}

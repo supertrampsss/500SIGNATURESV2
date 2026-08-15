@@ -65,12 +65,27 @@ test("la citation porte le nombre, son unité, sa source, son millésime et le p
   assert.ok(texte.includes(`exercice ${citation.millesime}`), texte);
   assert.ok(texte.endsWith(citation.permalien), texte);
   // L'intitulé aussi : un nombre sans nom se cite aussi mal qu'un nombre sans
-  // date.
+  // date. Le nombre passe DEVANT lui — les intitulés du site sont des phrases
+  // entières, et un chiffre rejeté en fin de ligne est celui qu'une capture
+  // d'écran coupe.
   assert.ok(texte.includes(citation.libelle), texte);
+  assert.ok(texte.startsWith(nombre), texte);
 
   // Trois lignes : le chiffre daté, sa source, son adresse. Collée dans un fil
   // de discussion, une citation doit se lire d'un coup d'œil.
   assert.equal(texte.split("\n").length, 3);
+});
+
+test("un intitulé qui est une phrase entière ne double pas le point final", () => {
+  // `chiffres[].lecture` d'une analyse est une phrase par contrat
+  // (docs/analyses-schema.md) : recopiée telle quelle, elle écrivait
+  // « … en loi de finances. (exercice 2025). »
+  const texte = citer({
+    ...chiffreDAnalyse(),
+    libelle: "Les crédits votés : l'autorisation donnée par le Parlement.",
+  });
+  assert.ok(texte.includes("par le Parlement (exercice 2025)."), texte);
+  assert.ok(!texte.includes(". (exercice"), texte);
 });
 
 test("un montant se cite en millions d'euros, jamais en k€ ni en Md€", () => {

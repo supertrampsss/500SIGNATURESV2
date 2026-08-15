@@ -131,8 +131,25 @@ function evolution(citation: Citation): string {
   return ` (${dite} depuis ${variation.depuis})`;
 }
 
+/** Le point final d'un intitulé, retiré.
+ *
+ *  Les intitulés que les rendus tiennent sont souvent des phrases entières —
+ *  `chiffres[].lecture` d'une analyse en est une par contrat
+ *  (docs/analyses-schema.md). Recopiée telle quelle avant une parenthèse, la
+ *  phrase écrivait « … en loi de finances. (exercice 2025). » : deux points,
+ *  et le millésime rejeté après la fin de la phrase, là où l'œil ne le cherche
+ *  plus. */
+function sansPointFinal(texte: string): string {
+  return texte.trim().replace(/\s*\.$/u, "");
+}
+
 /**
  * La citation, en trois lignes : le chiffre daté, sa source, son adresse.
+ *
+ * **Le nombre ouvre la citation**, avant son intitulé : c'est lui qu'on cite,
+ * c'est lui que cherche l'œil de celui qui reçoit le collage, et les intitulés
+ * du site sont des phrases entières — mis devant, ils repoussaient le chiffre
+ * en fin de ligne, à l'endroit exact où une capture d'écran l'aurait coupé.
  *
  * Trois lignes et pas une phrase : collée dans un fil de discussion, une
  * citation doit se lire d'un coup d'œil, et la source ne doit pas se perdre au
@@ -148,8 +165,10 @@ export function citer(citation: Citation): string {
   }
   const nombre = formater(citation.valeur, citation.unite, Boolean(citation.parHabitant), citation.id);
   return [
-    `${citation.libelle} : ${nombre}${ratio(citation)}${evolution(citation)} — exercice ${citation.millesime}.`,
-    `Source : ${citation.source}.`,
+    `${nombre}${ratio(citation)}${evolution(citation)} — ${sansPointFinal(
+      citation.libelle,
+    )} (exercice ${citation.millesime}).`,
+    `Source : ${sansPointFinal(citation.source)}.`,
     citation.permalien,
   ].join("\n");
 }

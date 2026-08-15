@@ -40,6 +40,14 @@ import {
   type Issue,
   type Partage,
 } from "./partage.ts";
+import {
+  citable,
+  citer,
+  offrirCitation,
+  type Citation,
+  type IssueCitation,
+  type Presse,
+} from "./citer.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
 import { lister as listerScenarios, enregistrer as enregistrerScenario, renommer as renommerScenario, dupliquer as dupliquerScenario, supprimer as supprimerScenario, nomNettoye, transposer, transposerBudget, type Depot, type Scenario } from "./scenarios.ts";
 import { comparer as comparerScenarios } from "./comparaison.ts";
@@ -3305,6 +3313,106 @@ function brancherPartageEditorial(): void {
   brancherPartage(article, partageDeLaPage);
 }
 
+/* --------------------------------------------------------------------------
+ * Citer : le nombre, son unité, sa source, son millésime et le permalien
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Ce que l'écran dit de chaque issue.
+ *
+ * Le presse-papiers manque (contexte non sécurisé) ou refuse (permission, geste
+ * non reconnu comme volontaire) plus souvent qu'on ne le croit : `indisponible`
+ * n'est pas un cas rare, c'est celui où le lecteur reçoit le texte à copier
+ * lui-même, sélectionné.
+ */
+const MESSAGE_CITATION: Record<IssueCitation, string> = {
+  copié: "Citation copiée.",
+  indisponible: "Copie automatique indisponible : la citation ci-dessous est sélectionnée.",
+};
+
+/** Le presse-papiers, tel que ce navigateur-ci le porte — lu ici, passé en
+ *  fonction ordinaire à `offrirCitation`, qui le traite comme tel : c'est ce
+ *  qui rend le chemin éprouvable sous Node (citer.test.ts), même motif que
+ *  `canauxDuNavigateur`. */
+function presseDuNavigateur(): Presse | undefined {
+  return navigator.clipboard ? (texte) => navigator.clipboard.writeText(texte) : undefined;
+}
+
+/**
+ * La charge utile d'un bouton, relue et vérifiée.
+ *
+ * `citable` est appelée ici aussi, et ce n'est pas une redondance avec le
+ * rendu : l'attribut a traversé le document, et une citation incomplète ne
+ * doit pas produire un message d'échec au clic — elle ne doit rien produire
+ * du tout. C'est la même limite qu'au rendu, tenue au même endroit qu'elle
+ * se lit.
+ */
+function chargeCitation(bouton: HTMLElement): Citation | null {
+  const brute = bouton.dataset.citer;
+  if (!brute) return null;
+  try {
+    const citation = JSON.parse(brute) as Citation;
+    return citable(citation) ? citation : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Le retour du geste, posé à côté du bouton et réutilisé : un second clic ne
+ *  doit pas empiler deux messages sous le même chiffre. */
+function retourDeCitation(bouton: HTMLElement): HTMLElement {
+  const voisin = bouton.nextElementSibling;
+  if (voisin instanceof HTMLElement && voisin.classList.contains("citer__retour")) return voisin;
+  const cadre = document.createElement("span");
+  cadre.className = "citer__retour";
+  cadre.setAttribute("role", "status");
+  cadre.setAttribute("aria-live", "polite");
+  bouton.after(cadre);
+  return cadre;
+}
+
+async function executerCitation(bouton: HTMLElement): Promise<void> {
+  const citation = chargeCitation(bouton);
+  if (!citation) return;
+  const issue = await offrirCitation(citation, presseDuNavigateur());
+  const cadre = retourDeCitation(bouton);
+  cadre.textContent = MESSAGE_CITATION[issue];
+  if (issue !== "indisponible") return;
+  // Sans ce repli, « indisponible » ne laisserait rien à emporter — et c'est
+  // précisément la citation qu'on venait chercher. En lecture seule : ce qui
+  // est copié doit être ce que le site a composé.
+  const repli = document.createElement("textarea");
+  repli.className = "citer__repli";
+  repli.readOnly = true;
+  repli.setAttribute("aria-label", "Citation à copier");
+  repli.value = citer(citation);
+  cadre.append(repli);
+  repli.select();
+}
+
+/**
+ * La commande « citer », posée une seule fois sur l'article.
+ *
+ * Un écouteur délégué sur un conteneur qui n'est jamais remplacé — même motif
+ * que `brancherPartage` et `brancherScenarios`. L'article d'une analyse est
+ * servi entier par le pré-rendu et ne se repeint jamais : les boutons y sont
+ * déjà, avec leur charge utile, avant que la première donnée n'arrive.
+ *
+ * **Les boutons ne sont pas posés ici, et c'est la limite du lot.** C'est
+ * `analyse-rendu.ts` qui décide, chiffre par chiffre, s'il peut composer une
+ * citation honnête — il est le seul à connaître la source et l'exercice de
+ * chacun. Un rendu qui ne les connaît pas n'émet aucun attribut, et cette
+ * fonction n'a alors rien à écouter.
+ */
+function brancherCitations(): void {
+  const article = document.querySelector<HTMLElement>(".analyse-rendu");
+  if (!article) return;
+  article.addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("button[data-citer]");
+    if (bouton) void executerCitation(bouton);
+  });
+}
+
 /** Les écouteurs de la barre, posés une seule fois : `#scenarios` n'est
  *  jamais remplacé, seul son contenu l'est à chaque `montrerScenarios()` —
  *  les poser à chaque rendu les aurait empilés, comme pour l'atelier sans son
@@ -3455,6 +3563,10 @@ async function demarrer(): Promise<void> {
   // ses balises et son image déjà écrites. Son partage n'attend donc pas le
   // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.
   brancherPartageEditorial();
+  // Et pour la même raison encore : les chiffres citables portent déjà leur
+  // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
+  // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
+  brancherCitations();
   // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
   // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
   // territoire à détailler : lu avant d'être écrit, il levait

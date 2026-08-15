@@ -17,6 +17,7 @@
  * fonction est pure, rend une chaîne, et c'est cette chaîne qui est testée.
  */
 
+import { citable, type Citation } from "./citer.ts";
 import type { Indicateur } from "./donnees.ts";
 import { formater } from "./echelle.ts";
 import { echapper } from "./texte.ts";
@@ -140,8 +141,60 @@ function uniteDe(catalogue: Indicateur[], id: string): string {
   return catalogue.find((i) => i.id === id)?.unite ?? "EUR";
 }
 
+/**
+ * La commande « citer » d'un chiffre observé (spec §13).
+ *
+ * Elle n'est posée que là où les cinq éléments d'une citation existent au
+ * moment du rendu, et trois d'entre eux manquent régulièrement :
+ *
+ * - **`observe`**, donc l'exercice. Un chiffre de registre `hypothese`,
+ *   `interpretation` ou `resultat_simulation` n'en porte jamais
+ *   (docs/analyses-schema.md) : il a une valeur, aucune date. Le citer
+ *   reviendrait à copier un nombre nu — la capture d'écran floue sous une
+ *   autre forme, en plus commode.
+ * - **la source**, prise dans `analyse.sources` — la provenance que l'analyse
+ *   déclare elle-même, celle que l'étage « preuve » liste sous « Fichier
+ *   publié ». Jamais `affirmation.source`, qui est la source de la
+ *   *déclaration* citée, pas celle du chiffre des comptes : la carte de
+ *   partage s'autorise ce repli parce que son pied couvre l'image entière,
+ *   une citation nomme la source de *ce* chiffre-là.
+ * - **l'unité**, lue dans le catalogue. Un indicateur que le catalogue ne
+ *   déclare pas n'a pas d'unité de repli ici : `formater` peindrait un taux ou
+ *   un effectif en millions d'euros, et la citation partirait fausse.
+ *
+ * La charge utile part en attribut `data-`, composée par ce module : `main.ts`
+ * la relit telle quelle plutôt que de gratter la page rendue, où le montant a
+ * déjà perdu son unité et son millésime sa forme.
+ *
+ * `adresse` est le permalien absolu de la page — une citation circule hors du
+ * site, un chemin relatif n'y mène plus. Sans elle, pas de commande.
+ */
+function commandeCiter(
+  chiffre: Analyse["chiffres"][number],
+  analyse: Analyse,
+  catalogue: Indicateur[],
+  adresse: string,
+): string {
+  const observe = chiffre.observe;
+  const source = analyse.sources[0];
+  if (!observe || !source) return "";
+  const citation: Citation = {
+    libelle: chiffre.lecture,
+    valeur: observe.valeur,
+    unite: catalogue.find((i) => i.id === observe.indicateur)?.unite ?? "",
+    id: observe.indicateur,
+    source: source.titre,
+    millesime: observe.periode,
+    permalien: adresse,
+  };
+  if (!citable(citation)) return "";
+  return ` <button type="button" class="citer" data-citer="${echapper(
+    JSON.stringify(citation),
+  )}">Citer ce chiffre</button>`;
+}
+
 /** Étage 1 : le chiffre cité face au chiffre publié, et le verdict. */
-function express(analyse: Analyse, catalogue: Indicateur[]): string {
+function express(analyse: Analyse, catalogue: Indicateur[], adresse: string): string {
   const { affirmation, verdict } = analyse;
   const attribution =
     affirmation.auteur !== null
@@ -174,7 +227,9 @@ function express(analyse: Analyse, catalogue: Indicateur[]): string {
       // quand `affirmation.texte` recopie les mêmes mots arrondis.
       return `<li>${echapper(chiffre.lecture)} — cité comme « ${echapper(
         chiffre.dit,
-      )} », publié : <strong>${montant}</strong> (exercice ${echapper(chiffre.observe.periode)})</li>`;
+      )} », publié : <strong>${montant}</strong> (exercice ${echapper(
+        chiffre.observe.periode,
+      )})${commandeCiter(chiffre, analyse, catalogue, adresse)}</li>`;
     })
     .join("");
   const confusion =
@@ -367,11 +422,21 @@ function preuve(analyse: Analyse, catalogue: Indicateur[], version = ""): string
  *  `version` est le millésime des fichiers publiés que le pré-rendu a lus
  *  (`chargerPublication()`, scripts/prerendre.ts) — optionnel, parce que sans
  *  lui l'étage 4 reste complet et cohérent, seulement sans son pas
- *  « Millésime ». La tâche de pré-rendu passe le vrai millésime. */
-export function rendu(analyse: Analyse, catalogue: Indicateur[], version = ""): string {
+ *  « Millésime ». La tâche de pré-rendu passe le vrai millésime.
+ *
+ *  `adresse` est le permalien absolu de la page, composé par le pré-rendu avec
+ *  `permalien()` (partage.ts) — le même que `og:url`. Sans elle, aucun chiffre
+ *  n'offre la commande « citer » : ce qui est copié doit ramener au chiffre
+ *  depuis n'importe où, et un chemin relatif ne ramène nulle part. */
+export function rendu(
+  analyse: Analyse,
+  catalogue: Indicateur[],
+  version = "",
+  adresse = "",
+): string {
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
     <h2 class="analyse-rendu__titre">${echapper(analyse.titre)}</h2>
-    ${express(analyse, catalogue)}
+    ${express(analyse, catalogue, adresse)}
     ${detail(analyse, catalogue)}
     ${interactif(analyse)}
     ${preuve(analyse, catalogue, version)}
