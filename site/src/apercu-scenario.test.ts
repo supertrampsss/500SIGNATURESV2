@@ -1,0 +1,268 @@
+/**
+ * L'aperçu d'un scénario partagé.
+ *
+ * Trois garanties, et chacune protège un défaut qui ne se voit qu'une fois le
+ * lien posté, c'est-à-dire trop tard :
+ *
+ * 1. **l'aperçu dit ce que la page montrera** — mêmes `decoder`, `plan` et
+ *    `effort` que l'atelier, même entrepôt de données que le navigateur ;
+ * 2. **une adresse sans budget garde les métadonnées du site** — un robot qui
+ *    reçoit une erreur, ou un aperçu vide, n'affiche rien du tout ;
+ * 3. **le document servi ne porte qu'un jeu de balises** — une plateforme qui
+ *    en lit deux en choisit un, et lequel ne se sait jamais d'avance.
+ *
+ * Les montants attendus sont **produits en appelant `formater`**, jamais tapés :
+ * les séparateurs du site sont des espaces fines insécables (U+202F), qu'aucun
+ * clavier ne distingue d'une espace ordinaire.
+ */
+
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { test } from "node:test";
+
+import { apercuScenario, poserApercu } from "./apercu-scenario.ts";
+import { encoder, etatVide, reglagesDe, type Volet, type VoletBudget } from "./atelier.ts";
+import { formater } from "./echelle.ts";
+import { indexer, type Budget } from "./simulateur.ts";
+import { BASE_DONNEES } from "./simulateur-volets.ts";
+
+const ICI = path.dirname(new URL(import.meta.url).pathname);
+
+/** Un montant d'écart tel que l'écran l'écrit : le million partout, et le
+ *  « + » que `formater` ne met jamais. Produit, jamais tapé. */
+function ecart(montant: number): string {
+  const rendu = formater(montant, "EUR", false);
+  return montant > 0 ? `+${rendu}` : rendu;
+}
+
+/** Un budget de quatre lignes, de poids volontairement mêlés : la plus grosse
+ *  est déclarée en dernier, si bien qu'un aperçu qui garderait l'ordre de
+ *  déclaration au lieu du poids se verrait tout de suite. */
+function budgetEtat(): Budget {
+  return {
+    exercice: "2025",
+    loi: "PLF",
+    mesure: "credit_de_paiement",
+    unite: "EUR",
+    depenses: [
+      { c: "A", l: "Petite ligne", v: 1_000_000_000 },
+      { c: "B", l: "Ligne moyenne", v: 10_000_000_000 },
+      { c: "C", l: "Ligne légère", v: 2_000_000_000 },
+      { c: "D", l: "Grosse ligne", v: 100_000_000_000 },
+    ],
+    recettes: [],
+  };
+}
+
+function voletEtat(budget: Budget = budgetEtat()): VoletBudget {
+  return { genre: "budget", cle: "etat", nom: "État", budget, index: indexer(budget) };
+}
+
+/** Un budget réglé, encodé par `encoder()` — la chaîne que l'adresse porte
+ *  réellement, jamais une chaîne écrite à la main pour le test. */
+function budgetEncode(volets: readonly Volet[], reglages: [string, number][]): string {
+  const etat = etatVide();
+  const volet = volets[0] as VoletBudget;
+  for (const [code, pourcentage] of reglages) reglagesDe(etat, volet).set(code, pourcentage);
+  return encoder(volets, etat);
+}
+
+test("l'aperçu nomme la somme des écarts et montre les trois gestes les plus lourds", () => {
+  const volets = [voletEtat()];
+  // −10 % de 100 Md€ pèse 10 Md€ ; −50 % de 10 Md€ en pèse 5 ; −100 % de 2 Md€
+  // en pèse 2 ; −10 % de 1 Md€ en pèse 0,1. Les trois premiers sont montrés.
+  const budget = budgetEncode(volets, [
+    ["A", -10],
+    ["B", -50],
+    ["C", -100],
+    ["D", -10],
+  ]);
+
+  const apercu = apercuScenario(volets, budget, "");
+  assert.ok(apercu);
+
+  assert.match(apercu.description, /^Somme des écarts : /);
+  assert.ok(
+    apercu.description.includes(ecart(17_100_000_000)),
+    `la somme des écarts manque : ${apercu.description}`,
+  );
+  for (const [libelle, montant] of [
+    ["Grosse ligne", -10_000_000_000],
+    ["Ligne moyenne", -5_000_000_000],
+    ["Ligne légère", -2_000_000_000],
+  ] as [string, number][]) {
+    assert.ok(
+      apercu.description.includes(`${libelle} ${ecart(montant)}`),
+      `« ${libelle} ${ecart(montant)} » manque : ${apercu.description}`,
+    );
+  }
+  // Le quatrième geste, le plus léger, ne monte pas : trois et pas quatre.
+  assert.ok(!apercu.description.includes("Petite ligne"), apercu.description);
+});
+
+test("les gestes sont classés par poids, pas par ordre de déclaration", () => {
+  const volets = [voletEtat()];
+  const budget = budgetEncode(volets, [
+    ["A", -10],
+    ["B", -50],
+    ["D", -10],
+  ]);
+  const apercu = apercuScenario(volets, budget, "");
+  assert.ok(apercu);
+  const rangs = ["Grosse ligne", "Ligne moyenne", "Petite ligne"].map((l) =>
+    apercu.description.indexOf(l),
+  );
+  assert.ok(
+    rangs.every((rang) => rang > 0) && rangs[0] < rangs[1] && rangs[1] < rangs[2],
+    `ordre inattendu : ${apercu.description}`,
+  );
+});
+
+test("l'aperçu dit son unité et ne pose aucun total de dépense publique", () => {
+  const volets = [voletEtat()];
+  const apercu = apercuScenario(volets, budgetEncode(volets, [["D", -10]]), "");
+  assert.ok(apercu);
+  assert.ok(apercu.description.endsWith("Montants en millions d'euros."), apercu.description);
+  // Le seul nombre nommé autrement qu'un geste est la somme des ÉCARTS. Les
+  // budgets, eux, ne s'additionnent pas : aucun total, aucun solde public.
+  for (const interdit of ["total", "solde", "dépense publique", "classement", "note"]) {
+    assert.ok(
+      !apercu.description.toLowerCase().includes(interdit),
+      `« ${interdit} » n'a rien à faire dans un aperçu : ${apercu.description}`,
+    );
+  }
+});
+
+test("le nom du scénario entre dans le titre, et le titre s'en passe", () => {
+  const volets = [voletEtat()];
+  const budget = budgetEncode(volets, [["D", -10]]);
+
+  const nomme = apercuScenario(volets, budget, "Mon budget 2025");
+  assert.ok(nomme);
+  assert.ok(nomme.titre.includes("Mon budget 2025"), nomme.titre);
+
+  const anonyme = apercuScenario(volets, budget, "");
+  assert.ok(anonyme);
+  assert.ok(!anonyme.titre.includes("«"), anonyme.titre);
+  assert.ok(anonyme.titre.length > 0);
+});
+
+test("un nom démesuré est borné plutôt que recopié", () => {
+  const volets = [voletEtat()];
+  const apercu = apercuScenario(
+    volets,
+    budgetEncode(volets, [["D", -10]]),
+    "scénario ".repeat(200),
+  );
+  assert.ok(apercu);
+  assert.ok(apercu.titre.length < 120, `titre de ${apercu.titre.length} signes`);
+});
+
+test("une adresse sans budget lisible ne rend aucun aperçu — jamais une erreur", () => {
+  const volets = [voletEtat()];
+  for (const budget of [
+    "",
+    "n'importe quoi",
+    // Un volet que le site ne monte pas : rien à régler.
+    "inconnu/A:-10",
+    // Une ligne que la nomenclature ne porte pas.
+    "etat/ZZZ:-10",
+    // Zéro n'est pas un réglage dans un budget.
+    "etat/D:0",
+    // Une valeur qui n'est pas un nombre.
+    "etat/D:abc",
+  ]) {
+    assert.equal(apercuScenario(volets, budget, "Un nom"), null, `budget « ${budget} »`);
+  }
+});
+
+/* --------------------------------------------------------------------------
+ * Poser l'aperçu dans le document servi
+ * ----------------------------------------------------------------------- */
+
+const APERCU = { titre: "Un titre", description: "Une description." };
+const URL_SCENARIO = "https://exemple.test/simulateur?budget=etat%2FD%3A-10";
+
+/** Le gabarit tel que le pré-rendu le publie : `index.html` du dépôt, plus les
+ *  balises de partage du site que `scripts/prerendre.ts` y injecte. */
+async function gabaritPublie(): Promise<string> {
+  const shell = await readFile(path.join(ICI, "..", "index.html"), "utf8");
+  return shell.replace(
+    "</head>",
+    '  <meta property="og:title" content="Où va l\'argent public" />\n' +
+      '  <meta property="og:description" content="Les finances de chaque commune." />\n' +
+      '  <meta property="og:url" content="https://exemple.test/" />\n' +
+      '  <meta property="og:image" content="https://exemple.test/carte.png" />\n' +
+      '  <meta name="twitter:card" content="summary_large_image" />\n  </head>',
+  );
+}
+
+function compter(html: string, motif: RegExp): number {
+  return html.match(motif)?.length ?? 0;
+}
+
+test("le document servi ne porte qu'un jeu de balises d'aperçu", async () => {
+  const pose = poserApercu(await gabaritPublie(), APERCU, URL_SCENARIO);
+  assert.equal(compter(pose, /<title>/gi), 1);
+  assert.equal(compter(pose, /<meta\s+name="description"/gi), 1);
+  assert.equal(compter(pose, /<meta\s+property="og:title"/gi), 1);
+  assert.equal(compter(pose, /<meta\s+property="og:description"/gi), 1);
+  assert.equal(compter(pose, /<meta\s+property="og:url"/gi), 1);
+  assert.ok(pose.includes(`content="${URL_SCENARIO}"`), "og:url n'est pas celle du scénario");
+  assert.ok(pose.includes("<title>Un titre</title>"));
+  assert.ok(pose.includes('content="Une description."'));
+});
+
+test("l'aperçu ne touche ni à og:image ni au corps du document", async () => {
+  const gabarit = await gabaritPublie();
+  const pose = poserApercu(gabarit, APERCU, URL_SCENARIO);
+  // D-L3-b : l'image reste la carte du site, produite au build. L'espace des
+  // budgets encodés est infini ; il n'y a pas d'image par scénario.
+  assert.equal(compter(pose, /<meta\s+property="og:image"/gi), 1);
+  assert.ok(pose.includes('content="https://exemple.test/carte.png"'));
+  assert.equal(compter(pose, /<meta\s+name="twitter:card"/gi), 1);
+  const corps = (html: string) => html.slice(html.search(/<\/head\s*>/i));
+  assert.equal(corps(pose), corps(gabarit), "le corps du document a bougé");
+});
+
+test("un gabarit sans balises de partage en reçoit quand même", () => {
+  const pose = poserApercu("<html><head></head><body></body></html>", APERCU, URL_SCENARIO);
+  assert.equal(compter(pose, /<meta\s+property="og:title"/gi), 1);
+  assert.equal(compter(pose, /<title>/gi), 1);
+});
+
+test("un document sans tête est rendu inchangé", () => {
+  const brut = "pas du HTML";
+  assert.equal(poserApercu(brut, APERCU, URL_SCENARIO), brut);
+});
+
+test("ce que l'adresse tend est échappé, jamais recopié dans le document", () => {
+  const pose = poserApercu(
+    "<html><head></head><body></body></html>",
+    {
+      titre: '"><script>alert(1)</script>',
+      description: "<img onerror=alert(1)>",
+    },
+    'https://exemple.test/?nom="><script>alert(1)</script>',
+  );
+  assert.ok(!pose.includes("<script>"), pose);
+  assert.ok(!pose.includes("<img "), pose);
+});
+
+/* --------------------------------------------------------------------------
+ * Le même entrepôt que le navigateur
+ * ----------------------------------------------------------------------- */
+
+test("l'edge lit l'entrepôt que le navigateur lit", async () => {
+  // `src/donnees.ts` porte l'adresse pour le navigateur, où elle se lit dans
+  // `import.meta.env` — que ni Node ni un travailleur d'edge ne connaissent.
+  // Les deux lignes ne peuvent pas être partagées ; qu'elles disent la même
+  // chose, si. Sinon l'aperçu décrirait un scénario contre une publication que
+  // le lecteur n'ouvrira jamais.
+  const source = await readFile(path.join(ICI, "donnees.ts"), "utf8");
+  assert.ok(
+    source.includes(`"${BASE_DONNEES}"`),
+    `src/donnees.ts ne lit pas ${BASE_DONNEES} : l'aperçu et le site liraient deux entrepôts.`,
+  );
+});
