@@ -25,8 +25,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
-import { carteAnalyse, carteReperes, type DonneesAnalyse, type DonneesReperes } from "../src/carte-og.ts";
+import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
+import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { permalien } from "../src/partage.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet } from "../src/simulateur-volets.ts";
@@ -201,7 +202,11 @@ async function validerLiensSimulateur(analyses: readonly Analyse[], racineDonnee
  * pré-rendu HTML — aucune image ne porte un chiffre que le contrôle n'a pas vu.
  * ----------------------------------------------------------------------- */
 
-/** Le chemin, dans le site, de la carte de repli. */
+/** Le chemin, dans le site, de la carte du site — celle du gabarit, qui sert
+ *  l'accueil et toutes les vues de l'application. Ce n'est plus un repli à tout
+ *  faire : `/analyses/` et `/simulateur` ont chacun la leur, parce qu'une image
+ *  qui annonce autre chose que le titre posé à côté d'elle dessert le lien
+ *  qu'elle accompagne. */
 const IMAGE_SITE = "/carte.png";
 
 /** L'unité que le catalogue déclare pour un indicateur, ou `null` quand il ne
@@ -297,35 +302,38 @@ export function donneesCarteAnalyse(
 }
 
 /**
- * La carte du site : ce que voit un lecteur à qui l'on partage une page qui n'a
- * pas d'image propre.
+ * La carte d'une page du site — l'accueil, le simulateur, l'index des analyses.
  *
- * Rien n'y est inventé. Le titre est celui que le gabarit porte déjà — les mots
- * du site, pas une accroche écrite pour l'occasion. La source est le fichier
- * d'indicateurs que ce build vient de lire, et sa date la **version** de
- * publication qu'il a lue.
+ * Rien n'y est inventé. Le titre et la phrase sont ceux que la page porte
+ * déjà : les mots du site, jamais une accroche écrite pour l'occasion. La
+ * source est le fichier d'indicateurs que ce build vient de lire, et sa date la
+ * **version** de publication qu'il a lue.
  *
- * « Version », et pas « millésime » : cette carte ne peint aucun chiffre, donc
- * aucun exercice. Ce qui la date est la publication dont elle parle, et
- * « millésime 2026-08-11T0807 » aurait dit sur cette image le mot que la carte
- * d'à côté emploie pour l'exercice 2025 d'une ligne de comptes.
+ * « Version », et pas « millésime » : ces cartes ne peignent aucun chiffre,
+ * donc aucun exercice. Ce qui les date est la publication dont elles parlent,
+ * et « millésime 2026-08-11T0807 » aurait dit sur ces images le mot que la
+ * carte d'à côté emploie pour l'exercice 2025 d'une ligne de comptes.
  *
- * La ligne d'unité ne dit **pas** « Montants en millions d'euros » : cette
- * carte ne peint aucun montant, et annoncer une unité qu'aucun nombre ne porte
- * serait faux — c'est la règle que `carteFiche` applique déjà quand aucun de
- * ses chiffres n'est en euros. Elle dit ce que sont les données du site, dans
- * les mots que le sous-titre de `index.html` emploie déjà — recopiés, faute
- * d'une balise qui les porte comme le `<title>` porte le titre.
- *
- * La nature empruntée est celle du repère, la seule des cinq qui porte un titre
- * seul, sans corps. Le chapeau lira donc « Repère » — écart consigné dans le
- * rapport de la tâche : `carte-og.ts` publie cinq natures d'objet partageable,
- * et le site lui-même n'en est pas une.
+ * La nature est la **sixième** de `carte-og.ts`, et elle a été ajoutée pour
+ * elles : les cinq premières sont des natures d'objet partageable — analyse,
+ * scénario, comparaison, fiche, repère — et une page du site n'en est pas un.
+ * La carte du site empruntait faute de mieux celle du repère, et partait donc
+ * avec le chapeau « Repère », y compris sous le titre d'un scénario partagé.
  */
-export function donneesCarteSite(titreSite: string, version: string, site: string): DonneesReperes {
+export function donneesCarteSection(
+  nature: string,
+  titre: string,
+  phrase: string,
+  version: string,
+  site: string,
+): DonneesSection {
   return {
-    titre: titreSite,
-    unite: "Données officielles, territoire par territoire",
+    nature,
+    titre,
+    phrase,
+    // La publication que ce build a lue : c'est d'elle que vient tout ce que
+    // ces pages montrent, et c'est la seule provenance qu'une carte de section
+    // puisse nommer sans rien inventer.
     source: { titre: "Indicateurs publiés", millesime: version, datation: "version" },
     site,
   };
@@ -349,7 +357,64 @@ export function descriptionDuGabarit(shell: string): string {
 }
 
 /**
- * Écrit les images : une par analyse, plus la carte du site.
+ * La marque du site : le `<h1>` de l'en-tête, « Où va l'argent public ».
+ *
+ * C'est le titre des cartes de section qui ne décrivent pas une page
+ * pré-rendue. Le `<title>` du gabarit ne convient pas pour elles : il nomme la
+ * vue d'accueil — « carte des finances locales » — et l'écrire sur l'image d'un
+ * scénario partagé serait le démenti qu'on vient de refermer.
+ */
+export function marqueDuGabarit(shell: string): string {
+  const marque = shell
+    .match(/<div class="entete__marque">[\s\S]*?<h1>([\s\S]*?)<\/h1>/)?.[1]
+    ?.trim();
+  if (!marque) throw new Error("Le gabarit ne porte pas de marque : une carte de section n'a rien à peindre.");
+  return marque;
+}
+
+/**
+ * Les mots de l'index des analyses, écrits une fois.
+ *
+ * La page les porte en `<title>` et en description, son image les peint : deux
+ * rédactions du même écran finiraient par en dire deux choses, et c'est
+ * exactement le défaut que ce lot vient de corriger sur la carte du site.
+ */
+const PAGE_ANALYSES = {
+  titre: "Analyses — Où va l'argent public",
+  description: "Un chiffre couramment cité, opposé au chiffre publié : le verdict, le détail, la preuve.",
+};
+
+/**
+ * Les trois cartes de section, et l'endroit où chacune est servie.
+ *
+ * Une page qui n'a pas d'objet à montrer porte l'image de sa section — et
+ * jamais celle d'une autre. `/simulateur` est le cas qui a rendu la faute
+ * visible : un scénario partagé arrivait sous une image intitulée « carte des
+ * finances locales », chapeautée « Repère ». La carte du simulateur ne montre
+ * aucun chiffre de ce scénario — elle ne peut pas les connaître (D-L3-b) —
+ * mais elle ne dément pas son titre.
+ *
+ * L'adresse de l'image du simulateur vient d'`apercu-scenario.ts`, où la
+ * fonction d'edge la lit pour l'annoncer : deux constantes se seraient
+ * désaccordées, et un `og:image` mort ne se voit qu'une fois le lien partagé.
+ */
+export function sections(shell: string): { chemin: string; nature: string; titre: string; phrase: string }[] {
+  const marque = marqueDuGabarit(shell);
+  return [
+    // L'accueil, et toutes les vues de l'application qui partagent le gabarit :
+    // le titre et la description que le document porte réellement.
+    { chemin: "", nature: "Le site", titre: titreDuGabarit(shell), phrase: descriptionDuGabarit(shell) },
+    { chemin: "analyses", nature: "Analyses", titre: marque, phrase: PAGE_ANALYSES.description },
+    // Sans phrase : le simulateur n'en déclare aucune qui ne dépende des
+    // fichiers publiés — le seul titre qu'il écrit à l'écran compte les budgets
+    // qu'il a montés. En inventer une pour remplir l'image serait une accroche,
+    // et une accroche n'est pas les mots du site.
+    { chemin: path.dirname(IMAGE_SCENARIO).replace(/^\//, ""), nature: "Simulateur", titre: marque, phrase: "" },
+  ];
+}
+
+/**
+ * Écrit les images : une par analyse, plus une par section du site.
  *
  * La racine est un paramètre pour que le test écrive ailleurs que dans `dist` —
  * et qu'il éprouve ce chemin-ci, celui que le build emprunte, plutôt qu'une
@@ -378,7 +443,12 @@ export async function ecrireCartes(
       carteAnalyse(donneesCarteAnalyse(analyse, catalogue, HOTE)),
     );
   }
-  await ecrire(racine, carteReperes(donneesCarteSite(titreDuGabarit(shell), version, HOTE)));
+  for (const section of sections(shell)) {
+    await ecrire(
+      path.join(racine, section.chemin),
+      carteSection(donneesCarteSection(section.nature, section.titre, section.phrase, version, HOTE)),
+    );
+  }
 }
 
 /* --------------------------------------------------------------------------
@@ -674,6 +744,28 @@ export async function validerImagesAnnoncees(
   }
 }
 
+/**
+ * L'image que la fonction d'edge annonce pour un scénario partagé, contrôlée
+ * elle aussi.
+ *
+ * Aucune page pré-rendue ne la déclare — c'est `poserApercu` qui la pose, dans
+ * le document servi, au moment de la requête : `validerImagesAnnoncees` ne la
+ * verrait donc jamais, et un `og:image` mort ne se voit qu'une fois le lien
+ * partagé. Même garantie, même échec, sur le seul objet de ce lot qui n'a pas
+ * de page.
+ */
+export async function validerImageDuScenario(racine: string): Promise<void> {
+  const fichier = path.join(racine, IMAGE_SCENARIO.replace(/^\//, ""));
+  try {
+    await access(fichier);
+  } catch {
+    throw new Error(
+      `La fonction d'edge annonce l'image « ${IMAGE_SCENARIO} », que le build n'a pas écrite ` +
+        `(${fichier}) : tout scénario partagé partirait avec un aperçu cassé.`,
+    );
+  }
+}
+
 async function main(): Promise<void> {
   const shell = await readFile(path.join(DIST, "index.html"), "utf8");
   const analyses = await chargerAnalyses();
@@ -702,11 +794,12 @@ async function main(): Promise<void> {
   }
 
   const pageIndex: Page = {
-    titre: "Analyses — Où va l'argent public",
-    description: "Un chiffre couramment cité, opposé au chiffre publié : le verdict, le détail, la preuve.",
+    titre: PAGE_ANALYSES.titre,
+    description: PAGE_ANALYSES.description,
     canonique: "/analyses/",
-    // L'index n'a pas de chiffre à lui : il porte la carte du site.
-    image: IMAGE_SITE,
+    // L'index n'a pas de chiffre à lui, mais il a une section : il porte la
+    // carte des analyses, pas celle du site — qui annonce l'accueil.
+    image: "/analyses/carte.png",
     corps: renduIndex(analyses),
   };
   const htmlIndex = injecter(shell, pageIndex, SITE);
@@ -715,8 +808,12 @@ async function main(): Promise<void> {
 
   // Le gabarit lui-même reçoit les balises du site : c'est lui que Cloudflare
   // sert pour l'accueil et pour toutes les vues de l'application. Sans elles,
-  // la carte du site serait une image que rien ne désigne — un repli qui ne
-  // replie rien. Le corps n'est pas touché : l'application se monte dessus.
+  // la carte du site serait une image que rien ne désigne. Le corps n'est pas
+  // touché : l'application se monte dessus.
+  //
+  // `/simulateur` part de ce document-là aussi, et c'est la fonction d'edge qui
+  // y remplace le titre, la description et l'image par ceux du scénario
+  // demandé (`poserApercu`, src/apercu-scenario.ts).
   const htmlSite = injecterPartage(
     shell,
     {
@@ -731,10 +828,11 @@ async function main(): Promise<void> {
   ecrites.push({ chemin: "index.html", html: htmlSite });
 
   await validerImagesAnnoncees(DIST, ecrites, SITE);
+  await validerImageDuScenario(DIST);
 
   console.log(
     `Pré-rendu : ${analyses.length} analyse(s), dist/analyses/index.html, ` +
-      `${analyses.length + 1} carte(s) de partage sous ${SITE}.`,
+      `${analyses.length + sections(shell).length} carte(s) de partage sous ${SITE}.`,
   );
 }
 

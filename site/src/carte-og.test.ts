@@ -48,10 +48,11 @@ import {
   carteFiche,
   carteReperes,
   carteScenario,
+  carteSection,
   largeurApprochee,
   replier,
 } from "./carte-og.ts";
-import { formater } from "./echelle.ts";
+import { MENTION_MILLIONS, formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
 import { eurosSigne } from "./simulateur-rendu.ts";
 
@@ -405,13 +406,22 @@ const REPERES = {
   site: SITE,
 };
 
-/** Les cinq natures, pour les garanties qu'elles partagent toutes. */
+const SECTION = {
+  nature: "Simulateur",
+  titre: "Où va l'argent public",
+  phrase: "Une phrase d'essai qui dit ce que cette page-là donne à faire.",
+  source: SOURCE,
+  site: SITE,
+};
+
+/** Les six natures, pour les garanties qu'elles partagent toutes. */
 const CINQ: [string, string][] = [
   ["analyse", carteAnalyse(ANALYSE)],
   ["scénario", carteScenario(SCENARIO)],
   ["comparaison", carteComparaison(COMPARAISON)],
   ["fiche", carteFiche(FICHE)],
   ["repères", carteReperes(REPERES)],
+  ["section", carteSection(SECTION)],
 ];
 
 /** Les cinq natures poussées aux chaînes longues : c'est là que le repli, la
@@ -455,6 +465,12 @@ const LONGUES: [string, string][] = [
     }),
   ],
   ["repère, affirmation longue", carteReperes({ ...REPERES, titre: AFFIRMATION_LONGUE })],
+  [
+    "section, titre et phrase longs",
+    // La description du gabarit fait deux fois et demie la largeur utile : la
+    // phrase d'une carte de section est le plus long texte que ce module reçoit.
+    carteSection({ ...SECTION, titre: AFFIRMATION_LONGUE, phrase: `${AFFIRMATION_LONGUE} ${AFFIRMATION_LONGUE}` }),
+  ],
 ];
 
 const TOUTES: [string, string][] = [...CINQ, ...LONGUES];
@@ -541,13 +557,39 @@ test("14. un titre en capitales tient — le cas mesuré qui débordait de 39 px
 });
 
 test("15. les quatre cartes qui alignent des montants portent leur unité", () => {
-  for (const [nom, svg] of CINQ.filter(([n]) => n !== "repères")) {
+  for (const [nom, svg] of CINQ.filter(([n]) => n !== "repères" && n !== "section")) {
     const lu = peints(svg).map((t) => t.contenu);
-    assert.ok(lu.some((t) => t.includes("Montants en millions d'euros")), nom);
+    assert.ok(lu.some((t) => t.includes(MENTION_MILLIONS)), nom);
   }
   // Le repère n'aligne pas de montants : il porte l'unité de son graphique.
   const reperes = peints(carteReperes(REPERES)).map((t) => t.contenu);
   assert.ok(reperes.some((t) => t.includes("Taux en pourcentage")));
+  // La carte de section n'en aligne pas davantage, et n'a même pas de
+  // graphique à nommer : elle décrit une page. Annoncer des millions d'euros
+  // sous une image qui n'en porte aucun serait faux.
+  const section = peints(carteSection(SECTION)).map((t) => t.contenu);
+  assert.ok(!section.some((t) => t.includes(MENTION_MILLIONS)), section.join(" | "));
+});
+
+test("15 bis. la carte d'une page du site dit ce qu'elle est, sans emprunter une autre nature", () => {
+  // La carte du site empruntait la nature du repère, la seule des cinq à
+  // porter un titre seul : elle partait donc chapeautée « Repère », y compris
+  // sous le titre d'un scénario partagé. Les cinq premières natures sont des
+  // natures d'OBJET partageable ; une page du site n'en est pas un.
+  const lu = peints(carteSection(SECTION)).map((t) => t.contenu);
+  assert.ok(lu.includes("Simulateur"), lu.join(" | "));
+  assert.ok(!lu.includes("Repère"), lu.join(" | "));
+  assert.ok(lu.includes(SECTION.titre), lu.join(" | "));
+  // La phrase est peinte entière, sur plusieurs lignes s'il le faut : repliée
+  // sur une seule, une description du site ne rendait qu'un « … ».
+  const longue = peints(
+    carteSection({ ...SECTION, phrase: `${AFFIRMATION_LONGUE}` }),
+  ).filter((t) => t.taille === 30);
+  assert.ok(longue.length > 1, "la phrase ne se replie pas");
+  assert.ok(longue.every((t) => t.y <= GEOMETRIE.CORPS_BAS), "une ligne descend sous le corps");
+  // Aucun chiffre : la carte d'une section ne connaît pas le scénario qu'on
+  // vient de régler, et n'en invente donc aucun.
+  assert.deepEqual(nombresLus(carteSection(SECTION)), ["2025"]);
 });
 
 test("16. la carte de scénario nomme la somme des écarts et ses trois gestes les plus lourds", () => {
@@ -768,6 +810,7 @@ test("28. une carte sans source, sans millésime ou sans adresse ne se dessine p
   assert.throws(() => carteComparaison({ ...COMPARAISON, site: "" }), /Carte de partage sans/);
   assert.throws(() => carteFiche({ ...FICHE, site: "" }), /Carte de partage sans/);
   assert.throws(() => carteReperes({ ...REPERES, site: "" }), /Carte de partage sans/);
+  assert.throws(() => carteSection({ ...SECTION, site: "" }), /Carte de partage sans/);
 });
 
 /** Un intitulé de source de la longueur de ceux que le site cite vraiment : la
@@ -790,6 +833,7 @@ test("28 bis. une source longue est coupée, son millésime jamais", () => {
     ["comparaison", carteComparaison({ ...COMPARAISON, source: SOURCE_LONGUE })],
     ["fiche", carteFiche({ ...FICHE, source: SOURCE_LONGUE })],
     ["repère", carteReperes({ ...REPERES, source: SOURCE_LONGUE })],
+    ["section", carteSection({ ...SECTION, source: SOURCE_LONGUE })],
   ] as [string, string][]) {
     const lu = peints(svg).map((t) => t.contenu);
     assert.ok(lu.some((t) => t.includes("millésime 2025")), `${nom} : millésime perdu à la coupe`);

@@ -212,16 +212,33 @@ export function apercuScenario(
 const REPRISES = [
   /<title>[\s\S]*?<\/title>\s*/gi,
   /<meta\s+name="description"[^>]*>\s*/gi,
-  /<meta\s+property="og:(?:title|description|url)"[^>]*>\s*/gi,
+  /<meta\s+property="og:(?:title|description|url|image)"[^>]*>\s*/gi,
 ];
+
+/**
+ * L'image d'un scénario partagé : la carte du simulateur, produite au build.
+ *
+ * Toujours pas d'image par scénario (décision D-L3-b) : l'espace des budgets
+ * encodés est infini, et rasteriser à l'edge supposerait un rasteriseur et une
+ * fonte sur un chemin que les robots appellent. Mais le document servi porte
+ * l'image du **site**, et une plateforme montre l'image en grand avec le titre
+ * dessous : « « Mon budget » — un scénario du simulateur » s'affichait sous une
+ * carte annonçant « Où va l'argent public : carte des finances locales ».
+ * Celle-ci dit « Simulateur », ce que le titre dit aussi.
+ *
+ * Le chemin est exporté pour que le pré-rendu écrive l'image **à cet
+ * endroit-là** : deux constantes se seraient désaccordées le jour où l'une
+ * bouge, et un `og:image` mort donne un aperçu vide — ce qui ne se voit qu'une
+ * fois le lien partagé.
+ */
+export const IMAGE_SCENARIO = "/simulateur/carte.png";
 
 /**
  * Le document servi, ses métadonnées remplacées par celles du scénario.
  *
- * `og:image` n'est pas touchée : elle désigne la carte du site produite au
- * build (décision D-L3-b). L'espace des budgets encodés est infini, et une
- * image par scénario supposerait un rasteriseur et une fonte à l'edge, sur un
- * chemin que les robots appellent.
+ * `image` est une adresse **absolue**, composée par l'appelant depuis l'adresse
+ * demandée : tous les robots ne résolvent pas un chemin, et la fonction ne
+ * connaît pas le domaine sous lequel elle tourne autrement que par la requête.
  *
  * La fonction **insère** ce qu'elle a retiré plutôt que de compter sur la
  * présence des balises : un gabarit qui perdrait ses `og:` servirait sinon un
@@ -229,7 +246,7 @@ const REPRISES = [
  * inchangé — il ne se répare pas, et le mutiler servirait moins bien qu'un
  * aperçu générique.
  */
-export function poserApercu(html: string, apercu: Apercu, url: string): string {
+export function poserApercu(html: string, apercu: Apercu, url: string, image: string): string {
   const fermeture = html.search(/<\/head\s*>/i);
   if (fermeture < 0) return html;
   const tete = REPRISES.reduce((texte, motif) => texte.replace(motif, ""), html.slice(0, fermeture));
@@ -238,6 +255,7 @@ export function poserApercu(html: string, apercu: Apercu, url: string): string {
     `    <meta name="description" content="${echapper(apercu.description)}" />\n` +
     `    <meta property="og:title" content="${echapper(apercu.titre)}" />\n` +
     `    <meta property="og:description" content="${echapper(apercu.description)}" />\n` +
-    `    <meta property="og:url" content="${echapper(url)}" />\n    `;
+    `    <meta property="og:url" content="${echapper(url)}" />\n` +
+    `    <meta property="og:image" content="${echapper(image)}" />\n    `;
   return tete + balises + html.slice(fermeture);
 }

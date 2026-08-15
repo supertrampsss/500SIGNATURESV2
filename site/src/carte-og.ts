@@ -314,6 +314,29 @@ function corpsRangees(rangees: Rangee[]): string {
     .join("");
 }
 
+/** L'interligne d'un paragraphe du corps. Plus serré que le pas des rangées :
+ *  ce sont des lignes d'une même phrase, pas des rangées distinctes. */
+const INTERLIGNE_PHRASE = 42;
+
+/** Au plus quatre lignes : la quatrième se pose à y=456, sous la bande du corps
+ *  et au-dessus du filet du pied. Ce qui ne tient pas est coupé par `replier`,
+ *  qui marque la suite. */
+const PHRASE_LIGNES = 4;
+
+/**
+ * Le corps d'une carte qui n'aligne aucun chiffre : un paragraphe, replié.
+ *
+ * `corpsRangees` ne sait poser qu'une ligne par rangée — c'est ce qu'il faut
+ * quand chaque ligne est un libellé et sa valeur. Une phrase entière n'y tient
+ * pas : les descriptions du site vont au-delà de deux fois la largeur utile, et
+ * repliées sur une ligne elles ne rendaient qu'un « … ».
+ */
+function corpsPhrase(phrase: string): string {
+  return replier(phrase, TAILLE_PHRASE, LARGEUR_UTILE, PHRASE_LIGNES)
+    .map((ligne, i) => texte(ligne, MARGE, CORPS_HAUT + i * INTERLIGNE_PHRASE, TAILLE_PHRASE, ENCRE))
+    .join("");
+}
+
 /**
  * La source d'un chiffre peint sur une carte : les champs sans lesquels l'image
  * ne se relit pas une fois sortie du site.
@@ -766,5 +789,63 @@ export function carteReperes(donnees: DonneesReperes): string {
     source: donnees.source,
     site: donnees.site,
     titreLignes: 5,
+  });
+}
+
+export type DonneesSection = {
+  /** Ce que la page EST, dans les mots que le site emploie déjà pour elle :
+   *  « Le site », « Simulateur », « Analyses ». C'est le chapeau, et c'est lui
+   *  qui empêche l'image de démentir le titre posé à côté d'elle. */
+  nature: string;
+  /** Le titre que la page porte déjà. Jamais une accroche écrite pour
+   *  l'occasion : une image qui circule sous les mots du site doit être faite
+   *  des mots du site. */
+  titre: string;
+  /** Ce que la page fait, dans ses propres mots — sa description. Vide quand
+   *  le site n'en déclare aucune : mieux vaut une image sobre qu'une phrase
+   *  inventée pour remplir. */
+  phrase: string;
+  source: SourceCarte;
+  site: string;
+};
+
+/**
+ * La carte d'une page du site : ce qu'elle est, son titre, ce qu'elle fait.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI UNE SIXIÈME NATURE
+ * ─────────────────────────────────────────────────────────────────────────
+ * Les cinq premières sont des natures d'**objet partageable** : une analyse, un
+ * scénario, une comparaison, une fiche, un repère. Une page du site n'en est
+ * pas un — elle n'a ni chiffre à opposer, ni écart à montrer — et faute de
+ * cette nature-là, la carte du site empruntait celle du repère : elle partait
+ * avec le chapeau « Repère », sur `/`, sur `/analyses/` et sur tout scénario
+ * partagé. Le lecteur voyait annoncé « un scénario du simulateur » une image
+ * qui se présentait comme un repère intitulé « carte des finances locales ».
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * AUCUN CHIFFRE, ET C'EST LA RÈGLE, PAS UNE LACUNE
+ * ─────────────────────────────────────────────────────────────────────────
+ * Une carte de section décrit une page, pas un objet : elle ne sait rien du
+ * scénario que le lecteur vient de régler (l'espace des budgets encodés est
+ * infini, décision D-L3-b — il n'y a pas d'image par scénario). Elle n'écrit
+ * donc aucun montant, et pas davantage de mention d'unité : annoncer des
+ * millions d'euros sous une image qui n'en porte aucun serait faux, même règle
+ * que `carteAnalyse` sans chiffre des comptes et que `carteFiche` sous trois
+ * taux.
+ */
+export function carteSection(donnees: DonneesSection): string {
+  const phrase = donnees.phrase.trim();
+  return dessiner({
+    chapeau: donnees.nature,
+    titre: donnees.titre,
+    corps: corpsPhrase(phrase),
+    unite: "",
+    source: donnees.source,
+    site: donnees.site,
+    // Sans phrase, le titre reçoit la place du corps — même geste que la carte
+    // de repère, et pour la même raison : la hauteur du titre est réservée, et
+    // un titre d'une ligne laisserait sinon les deux tiers de l'image blancs.
+    titreLignes: phrase ? undefined : 5,
   });
 }

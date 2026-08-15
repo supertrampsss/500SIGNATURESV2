@@ -26,7 +26,8 @@ import path from "node:path";
 import { test } from "node:test";
 
 import { rendu, type Analyse } from "../src/analyse-rendu.ts";
-import { GEOMETRIE, LARGEUR, carteAnalyse, carteReperes } from "../src/carte-og.ts";
+import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
+import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
 import type { Indicateur } from "../src/donnees.ts";
 import { permalien } from "../src/partage.ts";
 import { echapper } from "../src/texte.ts";
@@ -37,7 +38,10 @@ import {
   adresseSite,
   donneesCarteAnalyse,
   ecrireCartes,
-  donneesCarteSite,
+  donneesCarteSection,
+  marqueDuGabarit,
+  sections,
+  validerImageDuScenario,
   injecter,
   descriptionDuGabarit,
   titreDuGabarit,
@@ -74,7 +78,12 @@ function catalogueEnEuros(analyses: readonly Analyse[]): Indicateur[] {
 /** Le plus petit gabarit qui porte les cinq points d'injection. */
 const GABARIT =
   '<!doctype html><html lang="fr"><head><title>Où va l\'argent public : titre d\'essai</title>' +
-  '<meta\n      name="description"\n      content="Une description d\'essai."\n    />\n  </head><body class="x"><main id="contenu"></main></body></html>';
+  '<meta\n      name="description"\n      content="Une description d\'essai."\n    />\n  </head><body class="x">' +
+  // La marque, telle que l'en-tête du vrai gabarit la porte : c'est le titre
+  // des cartes de section qui ne décrivent pas une page pré-rendue.
+  '<header class="entete"><div class="entete__marque"><h1>Où va l\'argent public</h1>' +
+  '<p class="sous-titre">Sous-titre d\'essai</p></div></header>' +
+  '<main id="contenu"></main></body></html>';
 
 /* --------------------------------------------------------------------------
  * 1. L'image porte du texte, et il tient dans le cadre
@@ -148,7 +157,15 @@ test("1 bis. le build écrit ces cartes-là, peintes avec la fonte du dépôt", 
           carteAnalyse(donneesCarteAnalyse(analyse, catalogue, HOTE)),
         ] as [string, string],
     ),
-    ["carte.png", carteReperes(donneesCarteSite(titreDuGabarit(GABARIT), "2026-08-11T0807", HOTE))],
+    ...sections(GABARIT).map(
+      (section) =>
+        [
+          path.join(section.chemin, "carte.png"),
+          carteSection(
+            donneesCarteSection(section.nature, section.titre, section.phrase, "2026-08-11T0807", HOTE),
+          ),
+        ] as [string, string],
+    ),
   ];
 
   for (const [chemin, svg] of attendues) {
@@ -277,25 +294,82 @@ test("5. l'adresse du site est un paramètre, et elle doit être absolue", () =>
   }
 });
 
-test("6. le titre de la carte du site est celui du gabarit, et son millésime celui du build", () => {
+test("6. les mots d'une carte de section sont ceux du gabarit, sa date celle du build", () => {
   const titre = titreDuGabarit(GABARIT);
   assert.equal(titre, "Où va l'argent public : titre d'essai");
-  const donnees = donneesCarteSite(titre, "2026-08-11T0807", "exemple.test");
+  assert.equal(marqueDuGabarit(GABARIT), "Où va l'argent public");
+  const donnees = donneesCarteSection("Le site", titre, descriptionDuGabarit(GABARIT), "2026-08-11T0807", "exemple.test");
   assert.equal(donnees.titre, titre);
   assert.equal(donnees.source.millesime, "2026-08-11T0807");
   // Et cette date-là se dit « version » : cette carte ne peint aucun chiffre,
   // donc aucun exercice. Le mot « millésime » y désignerait une publication
   // là où la carte d'à côté le donne à l'exercice 2025 d'une ligne de comptes.
   assert.equal(donnees.source.datation, "version");
-  // Aucun montant n'est peint sur cette carte : elle n'annonce donc pas des
-  // millions d'euros.
-  assert.ok(!donnees.unite.includes("millions d'euros"));
   assert.throws(() => titreDuGabarit("<html><head></head></html>"), /pas de <title>/);
+  assert.throws(() => marqueDuGabarit("<html><body></body></html>"), /pas de marque/);
   // La description du gabarit sert la carte de lien du site : elle est écrite
   // sur plusieurs lignes dans `index.html`, et un motif qui ne traverse pas les
   // retours la lirait vide.
   assert.equal(descriptionDuGabarit(GABARIT), "Une description d'essai.");
   assert.throws(() => descriptionDuGabarit("<html><head></head></html>"), /pas de description/);
+});
+
+test("6 bis. chaque section a son image, et aucune ne dément le titre posé à côté", async () => {
+  // Le défaut, vérifié en production : un scénario partagé arrivait avec
+  // `og:title` = « « Mon budget » — un scénario du simulateur » et une image
+  // dont le chapeau peint était « Repère » et le titre « Où va l'argent
+  // public : carte des finances locales ». Les plateformes montrent l'image en
+  // grand, le titre dessous — le lecteur voyait une carte des finances locales
+  // annoncée comme un scénario. Même effet sur `/analyses/`.
+  const trois = sections(GABARIT);
+  assert.deepEqual(
+    trois.map((s) => [s.chemin, s.nature]),
+    [
+      ["", "Le site"],
+      ["analyses", "Analyses"],
+      ["simulateur", "Simulateur"],
+    ],
+  );
+  // La section du simulateur est peinte À L'ENDROIT où la fonction d'edge
+  // annonce l'image : deux chemins se seraient désaccordés en silence.
+  assert.equal(path.join("/", trois[2].chemin, "carte.png"), IMAGE_SCENARIO);
+
+  // Le chapeau peint est celui de la section, jamais « Repère ». Il est lu sur
+  // le SVG rendu, pas sur les données : c'est ce que le lecteur voit.
+  for (const section of trois) {
+    const svg = carteSection(
+      donneesCarteSection(section.nature, section.titre, section.phrase, "2026-08-11T0807", HOTE),
+    );
+    const lu = [...svg.matchAll(/>([^<]*)<\/text>/g)].map((m) => m[1]);
+    assert.ok(lu.includes(echapper(section.nature)), `${section.nature} : chapeau absent`);
+    assert.ok(!lu.includes("Repère"), `${section.nature} : la nature du repère est encore empruntée`);
+    // Et aucune ne prétend montrer des montants qu'elle n'a pas.
+    assert.ok(!lu.some((t) => t.includes("millions d'euros")), section.nature);
+  }
+  // Le titre du simulateur est la marque, pas le titre du gabarit : celui-ci
+  // nomme la vue d'accueil, et l'écrire sur l'image d'un scénario partagé
+  // rouvrirait le démenti.
+  assert.equal(trois[2].titre, marqueDuGabarit(GABARIT));
+  assert.notEqual(trois[2].titre, titreDuGabarit(GABARIT));
+
+  // Écrites, toutes les trois : le contrôle des pages ne verrait pas celle du
+  // simulateur, qu'aucune page pré-rendue ne déclare.
+  const racine = await mkdtemp(path.join(tmpdir(), "sections-"));
+  await assert.rejects(() => validerImageDuScenario(racine), /n'a pas écrite/);
+  await ecrireCartes(racine, await analysesPubliees(), [], "2026-08-11T0807", GABARIT);
+  await validerImageDuScenario(racine);
+});
+
+test("6 ter. l'index des analyses annonce sa propre image, pas celle du site", () => {
+  // La page d'index portait `/carte.png` : le lecteur voyait l'accueil sous un
+  // titre qui annonce les analyses. Les mots de la page et ceux de son image
+  // viennent maintenant de la même source (`PAGE_ANALYSES`).
+  const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
+  const index = source.slice(source.indexOf("const pageIndex"), source.indexOf("const htmlIndex"));
+  assert.ok(index.length > 100, "pageIndex introuvable dans scripts/prerendre.ts");
+  assert.match(index, /image: "\/analyses\/carte\.png"/);
+  assert.match(index, /titre: PAGE_ANALYSES\.titre/);
+  assert.match(index, /description: PAGE_ANALYSES\.description/);
 });
 
 /* --------------------------------------------------------------------------

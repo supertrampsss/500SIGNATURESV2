@@ -21,7 +21,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
 
-import { apercuScenario, poserApercu } from "./apercu-scenario.ts";
+import { apercuScenario, poserApercu, IMAGE_SCENARIO } from "./apercu-scenario.ts";
 import { encoder, etatVide, reglagesDe, type Volet, type VoletBudget } from "./atelier.ts";
 import { formater } from "./echelle.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -329,6 +329,9 @@ test("une adresse sans budget lisible ne rend aucun aperçu — jamais une erreu
 
 const APERCU = { titre: "Un titre", description: "Une description." };
 const URL_SCENARIO = "https://exemple.test/simulateur?budget=etat%2FD%3A-10";
+/** L'image telle que la fonction d'edge la compose : absolue, depuis l'adresse
+ *  demandée — elle ne connaît pas autrement le domaine sous lequel elle tourne. */
+const IMAGE = new URL(IMAGE_SCENARIO, URL_SCENARIO).toString();
 
 /** Le gabarit tel que le pré-rendu le publie : `index.html` du dépôt, plus les
  *  balises de partage du site que `scripts/prerendre.ts` y injecte. */
@@ -349,7 +352,7 @@ function compter(html: string, motif: RegExp): number {
 }
 
 test("le document servi ne porte qu'un jeu de balises d'aperçu", async () => {
-  const pose = poserApercu(await gabaritPublie(), APERCU, URL_SCENARIO);
+  const pose = poserApercu(await gabaritPublie(), APERCU, URL_SCENARIO, IMAGE);
   assert.equal(compter(pose, /<title>/gi), 1);
   assert.equal(compter(pose, /<meta\s+name="description"/gi), 1);
   assert.equal(compter(pose, /<meta\s+property="og:title"/gi), 1);
@@ -360,27 +363,34 @@ test("le document servi ne porte qu'un jeu de balises d'aperçu", async () => {
   assert.ok(pose.includes('content="Une description."'));
 });
 
-test("l'aperçu ne touche ni à og:image ni au corps du document", async () => {
+test("l'aperçu sert l'image du simulateur, et ne touche pas au corps du document", async () => {
   const gabarit = await gabaritPublie();
-  const pose = poserApercu(gabarit, APERCU, URL_SCENARIO);
-  // D-L3-b : l'image reste la carte du site, produite au build. L'espace des
-  // budgets encodés est infini ; il n'y a pas d'image par scénario.
+  const pose = poserApercu(gabarit, APERCU, URL_SCENARIO, IMAGE);
+  // D-L3-b tient : il n'y a toujours pas d'image PAR SCÉNARIO — l'espace des
+  // budgets encodés est infini. Mais le document servi portait celle du SITE,
+  // et une plateforme montre l'image en grand avec le titre dessous : « un
+  // scénario du simulateur » s'affichait sous une carte annonçant « Où va
+  // l'argent public : carte des finances locales », chapeautée « Repère ».
   assert.equal(compter(pose, /<meta\s+property="og:image"/gi), 1);
-  assert.ok(pose.includes('content="https://exemple.test/carte.png"'));
+  assert.ok(pose.includes(`content="${IMAGE}"`), pose.slice(0, 2000));
+  assert.ok(!pose.includes('content="https://exemple.test/carte.png"'), "l'image du site est restée");
+  // Absolue, et sous le domaine demandé : un robot ne résout pas toujours un
+  // chemin, et la fonction ne connaît le domaine que par la requête.
+  assert.equal(new URL(IMAGE).origin, new URL(URL_SCENARIO).origin);
   assert.equal(compter(pose, /<meta\s+name="twitter:card"/gi), 1);
   const corps = (html: string) => html.slice(html.search(/<\/head\s*>/i));
   assert.equal(corps(pose), corps(gabarit), "le corps du document a bougé");
 });
 
 test("un gabarit sans balises de partage en reçoit quand même", () => {
-  const pose = poserApercu("<html><head></head><body></body></html>", APERCU, URL_SCENARIO);
+  const pose = poserApercu("<html><head></head><body></body></html>", APERCU, URL_SCENARIO, IMAGE);
   assert.equal(compter(pose, /<meta\s+property="og:title"/gi), 1);
   assert.equal(compter(pose, /<title>/gi), 1);
 });
 
 test("un document sans tête est rendu inchangé", () => {
   const brut = "pas du HTML";
-  assert.equal(poserApercu(brut, APERCU, URL_SCENARIO), brut);
+  assert.equal(poserApercu(brut, APERCU, URL_SCENARIO, IMAGE), brut);
 });
 
 test("ce que l'adresse tend est échappé, jamais recopié dans le document", () => {
@@ -391,6 +401,7 @@ test("ce que l'adresse tend est échappé, jamais recopié dans le document", ()
       description: "<img onerror=alert(1)>",
     },
     'https://exemple.test/?nom="><script>alert(1)</script>',
+    IMAGE,
   );
   assert.ok(!pose.includes("<script>"), pose);
   assert.ok(!pose.includes("<img "), pose);

@@ -5,9 +5,13 @@
  * l'espace de ces adresses est infini : aucun build ne peut les pré-rendre.
  * Cette fonction lit le budget que porte l'adresse, le décode avec le décodeur
  * du site, et pose dans le document servi le titre et la description qui vont
- * avec. C'est tout ce qu'elle fait : `og:image` reste la carte du site produite
- * au build (décision D-L3-b), parce qu'une image par scénario supposerait un
- * rasteriseur et une fonte sur un chemin que les robots appellent.
+ * avec. C'est tout ce qu'elle fait : elle ne peint aucune image. `og:image`
+ * désigne la carte du simulateur produite au build (`IMAGE_SCENARIO`), parce
+ * qu'une image par scénario supposerait un rasteriseur et une fonte sur un
+ * chemin que les robots appellent (décision D-L3-b). Cette carte-là ne montre
+ * aucun chiffre du scénario — elle ne les connaît pas — mais elle dit
+ * « Simulateur », là où celle du site annonçait « Repère » et « carte des
+ * finances locales » sous un titre qui parle d'un scénario.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * OÙ CE FICHIER DOIT VIVRE, ET POURQUOI ÇA SE VÉRIFIE
@@ -39,7 +43,7 @@
  * cliente servie par le repli SPA, et rien ici ne doit l'empêcher d'arriver.
  */
 
-import { apercuScenario, poserApercu } from "../../src/apercu-scenario.ts";
+import { apercuScenario, poserApercu, IMAGE_SCENARIO } from "../../src/apercu-scenario.ts";
 import type { Volet } from "../../src/atelier.ts";
 import { BASE_DONNEES, construireVolets } from "../../src/simulateur-volets.ts";
 
@@ -140,7 +144,11 @@ export async function onRequest(contexte: Contexte): Promise<Response> {
     const apercu = apercuScenario(volets, budget, adresse.searchParams.get("nom") ?? "");
     if (!apercu) return reponse;
 
-    const html = poserApercu(await reponse.text(), apercu, adresse.toString());
+    // L'image est absolue et composée depuis l'adresse demandée : la fonction
+    // ne connaît pas autrement le domaine sous lequel elle tourne, et un robot
+    // ne résout pas toujours un chemin.
+    const image = new URL(IMAGE_SCENARIO, adresse).toString();
+    const html = poserApercu(await reponse.text(), apercu, adresse.toString(), image);
     const entetes = new Headers(reponse.headers);
     // La longueur et l'encodage décrivaient le document d'avant : réécrit, il
     // n'a plus ni l'une ni l'autre, et un client qui les croirait tronquerait
