@@ -63,8 +63,11 @@ const NOM_MAX = 70;
  *
  *  « Santé 1 643 M€ » se lit « 1 643 milliards » par qui n'a pas le nez sur le
  *  sigle. La mention est en dernier, une fois : ce sont les gestes qu'on vient
- *  lire, et une carte de lien coupe par la queue. */
-const MENTION_UNITE = "Montants en millions d'euros.";
+ *  lire, et une carte de lien coupe par la queue.
+ *
+ *  Exportée pour que le résumé collable (`partage.ts`) l'écrive dans les mêmes
+ *  mots : deux formulations de la même mention se corrigeraient séparément. */
+export const MENTION_UNITE = "Montants en millions d'euros.";
 
 /** Coupe au dernier mot entier et marque la suite. Un intitulé tronqué reste
  *  lisible ; un intitulé qui pousse les montants hors du cadre, non. */
