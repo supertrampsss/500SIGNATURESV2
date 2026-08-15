@@ -37,6 +37,7 @@ import {
   ecrireCartes,
   donneesCarteSite,
   injecter,
+  descriptionDuGabarit,
   titreDuGabarit,
   validerImagesAnnoncees,
 } from "./prerendre.ts";
@@ -71,7 +72,7 @@ function catalogueEnEuros(analyses: readonly Analyse[]): Indicateur[] {
 /** Le plus petit gabarit qui porte les cinq points d'injection. */
 const GABARIT =
   '<!doctype html><html lang="fr"><head><title>Où va l\'argent public : titre d\'essai</title>' +
-  '<meta name="description" content="" />\n  </head><body class="x"><main id="contenu"></main></body></html>';
+  '<meta\n      name="description"\n      content="Une description d\'essai."\n    />\n  </head><body class="x"><main id="contenu"></main></body></html>';
 
 /* --------------------------------------------------------------------------
  * 1. L'image porte du texte, et il tient dans le cadre
@@ -244,6 +245,11 @@ test("6. le titre de la carte du site est celui du gabarit, et son millésime ce
   // millions d'euros.
   assert.ok(!donnees.unite.includes("millions d'euros"));
   assert.throws(() => titreDuGabarit("<html><head></head></html>"), /pas de <title>/);
+  // La description du gabarit sert la carte de lien du site : elle est écrite
+  // sur plusieurs lignes dans `index.html`, et un motif qui ne traverse pas les
+  // retours la lirait vide.
+  assert.equal(descriptionDuGabarit(GABARIT), "Une description d'essai.");
+  assert.throws(() => descriptionDuGabarit("<html><head></head></html>"), /pas de description/);
 });
 
 /* --------------------------------------------------------------------------

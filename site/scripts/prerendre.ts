@@ -366,6 +366,15 @@ export function titreDuGabarit(shell: string): string {
   return titre;
 }
 
+/** La description du gabarit : les mots par lesquels le site se présente déjà.
+ *  L'attribut est écrit sur plusieurs lignes dans `index.html`, d'où le motif
+ *  qui traverse les retours. */
+export function descriptionDuGabarit(shell: string): string {
+  const trouvee = shell.match(/<meta\s+name="description"[\s\S]*?content="([^"]*)"/)?.[1]?.trim();
+  if (!trouvee) throw new Error("Le gabarit ne porte pas de description : sa carte de lien n'aurait rien à dire.");
+  return trouvee;
+}
+
 /**
  * Écrit les images : une par analyse, plus la carte du site.
  *
@@ -478,14 +487,16 @@ async function ecrireScenariosReference(analyses: readonly Analyse[]): Promise<v
  * Le gabarit : le shell construit par Vite, réutilisé pour chaque page.
  * ----------------------------------------------------------------------- */
 
-type Page = {
+/** Ce qu'il faut d'une page pour composer sa carte de lien. */
+type Partageable = {
   titre: string;
   description: string;
   canonique: string;
   /** Le chemin, dans le site, de l'image de partage de cette page. */
   image: string;
-  corps: string;
 };
+
+type Page = Partageable & { corps: string };
 
 /**
  * Les balises que lisent les robots des plateformes pour composer la carte de
@@ -499,7 +510,7 @@ type Page = {
  * `name` : recopier `property` partout est le raccourci habituel, et la carte
  * de X n'est plus lue par les validateurs stricts.
  */
-function balisesPartage(page: Page, site: string): string {
+function balisesPartage(page: Partageable, site: string): string {
   const og: [string, string][] = [
     ["og:title", page.titre],
     ["og:description", page.description],
@@ -512,6 +523,15 @@ function balisesPartage(page: Page, site: string): string {
     // (carte-og.ts). En `summary`, X rognerait la carte au carré, sur le titre.
     `  <meta name="twitter:card" content="summary_large_image" />\n`
   );
+}
+
+/** Pose les balises de partage juste avant `</head>`. Un gabarit qui n'en
+ *  porterait pas fait rougir ici : une page qui perd ses balises en silence se
+ *  partage sans aperçu, et rien d'autre ne le dirait. */
+function injecterPartage(html: string, page: Partageable, site: string): string {
+  const suivant = html.replace("</head>", () => `${balisesPartage(page, site)}  </head>`);
+  if (suivant === html) throw new Error("injecterPartage() : le gabarit ne porte pas de </head>.");
+  return suivant;
 }
 
 /**
@@ -559,10 +579,7 @@ export function injecter(shell: string, page: Page, site: string): string {
     ),
   );
 
-  remplacer(
-    "partage",
-    html.replace("</head>", () => `${balisesPartage(page, site)}  </head>`),
-  );
+  remplacer("partage", injecterPartage(html, page, site));
 
   remplacer(
     "data-page",
@@ -703,6 +720,23 @@ async function main(): Promise<void> {
   const htmlIndex = injecter(shell, pageIndex, SITE);
   await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
   ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
+
+  // Le gabarit lui-même reçoit les balises du site : c'est lui que Cloudflare
+  // sert pour l'accueil et pour toutes les vues de l'application. Sans elles,
+  // la carte du site serait une image que rien ne désigne — un repli qui ne
+  // replie rien. Le corps n'est pas touché : l'application se monte dessus.
+  const htmlSite = injecterPartage(
+    shell,
+    {
+      titre: titreDuGabarit(shell),
+      description: descriptionDuGabarit(shell),
+      canonique: "/",
+      image: IMAGE_SITE,
+    },
+    SITE,
+  );
+  await writeFile(path.join(DIST, "index.html"), htmlSite, "utf8");
+  ecrites.push({ chemin: "index.html", html: htmlSite });
 
   await validerImagesAnnoncees(DIST, ecrites, SITE);
 

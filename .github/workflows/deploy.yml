@@ -19,6 +19,21 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # L'adresse du site, écrite une fois pour tout le déploiement.
+    #
+    # Le pré-rendu en a besoin : les balises `og:image` et `og:url` des pages
+    # d'analyse doivent être **absolues**, sans quoi les robots des plateformes
+    # ne les résolvent pas et le lien part sans aperçu. Elle ne se déduit pas de
+    # `--project-name=plateforme` : Cloudflare a donné au projet le sous-domaine
+    # `plateforme-9sz`, et une adresse devinée sur une image qui circule serait
+    # un faux publié.
+    #
+    # La même valeur sert à la dernière étape, qui rejoue depuis cette origine
+    # la requête du navigateur contre le bucket de données : si elle cesse
+    # d'être l'adresse du site, ce contrôle-là échoue. C'est ce qui la tient
+    # vraie, plutôt qu'un commentaire.
+    env:
+      SITE_URL: https://plateforme-9sz.pages.dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -59,4 +74,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
-        run: python -m plateforme.cors --bucket plateforme-published
+        run: python -m plateforme.cors --bucket plateforme-published --origine "$SITE_URL"
