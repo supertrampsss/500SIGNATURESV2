@@ -314,6 +314,24 @@ test("8. sans chiffre des comptes, la rangée disparaît au lieu de peindre un v
   assert.deepEqual(debordements(svg), []);
 });
 
+test("8 bis. sans chiffre des comptes, l'analyse n'annonce pas des millions d'euros", () => {
+  // Le cas réel : le catalogue déclare l'indicateur observé autrement qu'en
+  // euros, `donneesCarteAnalyse` (scripts/prerendre.ts) pose alors
+  // `observe: null`, et la carte ne peint plus aucun montant. Le chiffre
+  // annoncé, lui, est une citation — du texte. Annoncer des millions d'euros
+  // sous une carte qui n'en porte aucun serait faux : `carteFiche` tient déjà
+  // cette règle sous trois taux (test 24).
+  const svg = carteAnalyse({ ...ANALYSE, observe: null, cran: "introuvable" });
+  const lu = peints(svg).map((t) => t.contenu);
+  assert.ok(!lu.some((t) => t.includes("Montants en millions d'euros")), lu.join(" | "));
+  // Ce que la carte perd, c'est la mention — jamais sa provenance, qui est ce
+  // sans quoi elle ne se relit pas une fois sortie du site.
+  assert.ok(lu.some((t) => t.includes("Fichier d'essai")));
+  assert.ok(lu.some((t) => t.includes("millésime 2025")));
+  assert.deepEqual(debordements(svg), []);
+  assert.deepEqual(horsBandes(svg), []);
+});
+
 const SCENARIO = {
   nom: "Mon budget d'essai",
   effort: 2_500_000_000,

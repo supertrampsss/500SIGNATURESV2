@@ -461,7 +461,14 @@ export function carteAnalyse(donnees: DonneesAnalyse): string {
     chapeau: "Analyse",
     titre: donnees.titre,
     corps: corpsRangees(rangees),
-    unite: UNITE_EUROS,
+    // La mention des millions ne s'écrit que si un montant en euros est peint.
+    // Le chiffre annoncé est une **citation** — du texte, « cent milliards » —
+    // et le chiffre des comptes manque dès que le catalogue déclare
+    // l'indicateur observé autrement qu'en euros (`donneesCarteAnalyse`,
+    // scripts/prerendre.ts). La carte n'aligne alors aucun montant, et
+    // annoncer une unité qu'aucun nombre ne porte serait faux : même règle que
+    // `carteFiche` sous trois taux.
+    unite: donnees.observe !== null ? UNITE_EUROS : "",
     source: donnees.source,
     site: donnees.site,
   });
