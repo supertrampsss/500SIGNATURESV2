@@ -25,14 +25,16 @@ import path from "node:path";
 import { test } from "node:test";
 
 import type { Analyse } from "../src/analyse-rendu.ts";
-import { GEOMETRIE, LARGEUR, carteAnalyse } from "../src/carte-og.ts";
+import { GEOMETRIE, LARGEUR, carteAnalyse, carteReperes } from "../src/carte-og.ts";
 import type { Indicateur } from "../src/donnees.ts";
 import { echapper } from "../src/texte.ts";
-import { lirePolices, peindre, type Peinture } from "./rasteriser.ts";
+import { lirePolices, peindre, rasteriser, type Peinture } from "./rasteriser.ts";
 import {
   ADRESSE_PUBLIEE,
+  HOTE,
   adresseSite,
   donneesCarteAnalyse,
+  ecrireCartes,
   donneesCarteSite,
   injecter,
   titreDuGabarit,
@@ -65,6 +67,11 @@ function catalogueEnEuros(analyses: readonly Analyse[]): Indicateur[] {
       .map((chiffre) => ({ id: chiffre.observe!.indicateur, unite: "EUR" }) as Indicateur),
   );
 }
+
+/** Le plus petit gabarit qui porte les cinq points d'injection. */
+const GABARIT =
+  '<!doctype html><html lang="fr"><head><title>Où va l\'argent public : titre d\'essai</title>' +
+  '<meta name="description" content="" />\n  </head><body class="x"><main id="contenu"></main></body></html>';
 
 /* --------------------------------------------------------------------------
  * 1. L'image porte du texte, et il tient dans le cadre
@@ -120,6 +127,34 @@ test("1. la carte de chaque analyse publiée porte du texte peint, dans ses marg
   }
 });
 
+test("1 bis. le build écrit ces cartes-là, peintes avec la fonte du dépôt", async () => {
+  // Le test précédent peint son propre SVG : il ne dit rien de ce que le build
+  // ÉCRIT. Sans ce contrôle-ci, un `rasteriser(svg, [])` dans le pré-rendu
+  // publiait des cartes muettes sans faire rougir un seul test — sabotage
+  // essayé, sept tests verts.
+  const racine = await mkdtemp(path.join(tmpdir(), "cartes-"));
+  const analyses = await analysesPubliees();
+  const catalogue = catalogueEnEuros(analyses);
+  await ecrireCartes(racine, analyses, catalogue, "2026-08-11T0807", GABARIT);
+
+  const attendues: [string, string][] = [
+    ...analyses.map(
+      (analyse) =>
+        [
+          path.join("analyses", analyse.slug, "carte.png"),
+          carteAnalyse(donneesCarteAnalyse(analyse, catalogue, HOTE)),
+        ] as [string, string],
+    ),
+    ["carte.png", carteReperes(donneesCarteSite(titreDuGabarit(GABARIT), "2026-08-11T0807", HOTE))],
+  ];
+
+  for (const [chemin, svg] of attendues) {
+    const ecrite = await readFile(path.join(racine, chemin));
+    const attendue = await rasteriser(svg, FONTES);
+    assert.deepEqual([...ecrite], [...attendue], `${chemin} n'est pas la carte peinte avec la fonte`);
+  }
+});
+
 test("2. la carte d'une analyse porte sa source et le millésime de son chiffre", async () => {
   const [analyse] = await analysesPubliees();
   const donnees = donneesCarteAnalyse(analyse, catalogueEnEuros([analyse]), "exemple.test");
@@ -147,11 +182,6 @@ test("3. un chiffre qui n'est pas en euros n'est pas peint comme un montant", as
 /* --------------------------------------------------------------------------
  * 2. Les adresses annoncées
  * ----------------------------------------------------------------------- */
-
-/** Le plus petit gabarit qui porte les cinq points d'injection. */
-const GABARIT =
-  '<!doctype html><html lang="fr"><head><title>Où va l\'argent public : titre d\'essai</title>' +
-  '<meta name="description" content="" />\n  </head><body class="x"><main id="contenu"></main></body></html>';
 
 const PAGE = {
   titre: "Un titre d'essai",

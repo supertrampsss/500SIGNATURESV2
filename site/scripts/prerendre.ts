@@ -107,7 +107,7 @@ const SITE = adresseSite(process.env);
  * que personne ne lit. C'est aussi la forme que `carte-og.ts` attend : son
  * champ `site` est un hôte, pas un lien.
  */
-const HOTE = new URL(SITE).host;
+export const HOTE = new URL(SITE).host;
 
 async function lireJson<T>(url: string): Promise<T> {
   let reponse: Response;
@@ -366,8 +366,17 @@ export function titreDuGabarit(shell: string): string {
   return titre;
 }
 
-/** Écrit les images : une par analyse, plus la carte du site. */
-async function ecrireCartes(
+/**
+ * Écrit les images : une par analyse, plus la carte du site.
+ *
+ * La racine est un paramètre pour que le test écrive ailleurs que dans `dist` —
+ * et qu'il éprouve ce chemin-ci, celui que le build emprunte, plutôt qu'une
+ * rasterisation refaite pour l'occasion. Une carte peinte sans la fonte du
+ * dépôt sort muette et de la bonne taille : seul un contrôle sur ce que le
+ * build a réellement écrit l'attrape.
+ */
+export async function ecrireCartes(
+  racine: string,
   analyses: readonly Analyse[],
   catalogue: readonly Indicateur[],
   version: string,
@@ -383,11 +392,11 @@ async function ecrireCartes(
   };
   for (const analyse of analyses) {
     await ecrire(
-      path.join(DIST, "analyses", analyse.slug),
+      path.join(racine, "analyses", analyse.slug),
       carteAnalyse(donneesCarteAnalyse(analyse, catalogue, HOTE)),
     );
   }
-  await ecrire(DIST, carteReperes(donneesCarteSite(titreDuGabarit(shell), version, HOTE)));
+  await ecrire(racine, carteReperes(donneesCarteSite(titreDuGabarit(shell), version, HOTE)));
 }
 
 /* --------------------------------------------------------------------------
@@ -667,7 +676,7 @@ async function main(): Promise<void> {
 
   await validerLiensSimulateur(analyses, racineDonnees);
   await ecrireScenariosReference(analyses);
-  await ecrireCartes(analyses, catalogue, version, shell);
+  await ecrireCartes(DIST, analyses, catalogue, version, shell);
 
   const ecrites: PageEcrite[] = [];
   for (const analyse of analyses) {
