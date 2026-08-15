@@ -1,0 +1,9 @@
+{
+  // Les fonctions d'edge : ni DOM à piloter, ni système de fichiers, mais les
+  // mêmes modules de `src` que le site. Elles ont leur propre passe de
+  // compilation parce que le tsconfig de l'application n'inclut que `src` —
+  // un `functions/` non compilé passerait sinon tous les contrôles et ne se
+  // verrait qu'une fois déployé, sur un aperçu resté générique.
+  "extends": "./tsconfig.json",
+  "include": ["functions"]
+}
