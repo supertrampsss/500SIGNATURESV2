@@ -324,6 +324,28 @@ test("le panneau du système, quand il existe, reçoit le lien à part du texte"
   assert.ok(!recues[0].text.includes(OBJET.permalien), recues[0].text);
 });
 
+test("l'image d'une analyse ne part pas avec le résumé : ni collée, ni attachée", async () => {
+  // Ce que le résumé d'une analyse ne dit pas — ses chiffres — ne se rattrape
+  // pas par l'image : aucun des deux canaux ne l'emporte. La justification de
+  // `partageAnalyse` s'appuyait sur le contraire ; ce test tient ce qu'elle dit
+  // maintenant.
+  assert.ok(OBJET.image);
+  const recues: ChargeSysteme[] = [];
+  await offrir(OBJET, {
+    partager: (charge) => {
+      recues.push(charge);
+      return Promise.resolve();
+    },
+  });
+  // Trois champs, et pas un `files` : `navigator.share` sait attacher un
+  // fichier, ce module ne lui en donne aucun.
+  assert.deepEqual(Object.keys(recues[0]).sort(), ["text", "title", "url"]);
+  assert.ok(!JSON.stringify(recues[0]).includes(OBJET.image), JSON.stringify(recues[0]));
+  // Et sur le chemin presse-papiers — celui d'une bonne part des lecteurs — le
+  // collage ne porte pas davantage l'adresse de l'image.
+  assert.ok(!resume(OBJET).includes(OBJET.image), resume(OBJET));
+});
+
 test("fermer le panneau de partage n'est pas un échec", async () => {
   const { copies, canal } = pressePapiers();
   const issue = await offrir(OBJET, {
