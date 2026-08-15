@@ -8,6 +8,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
+import {
+  dupliquer,
+  enregistrer,
+  lister,
+  nomNettoye,
+  renommer,
+  type Depot,
+} from "./scenarios.ts";
+
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
@@ -944,6 +953,663 @@ test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () 
   assert.doesNotMatch(balises, /id="palmares"/);
 });
 
+/* ------------------------------------------------------------------------
+ * La barre de scénarios et la comparaison — tâche 4 du lot « Le simulateur
+ * enregistre » (scenarios.ts, comparaison.ts, scenarios-rendu.ts).
+ * ---------------------------------------------------------------------- */
+
+test("le conteneur #scenarios existe et précède #simu", () => {
+  // La barre se lit avant l'atelier : un lecteur qui arrive doit d'abord voir
+  // ce qu'il a déjà enregistré, pas le découvrir sous le formulaire.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  const vue = balises.slice(balises.indexOf('id="vue-simulateur"'), balises.indexOf('id="vue-detail"'));
+  assert.match(vue, /id="scenarios"/);
+  assert.ok(
+    vue.indexOf('id="scenarios"') < vue.indexOf('id="simu"'),
+    "#scenarios doit précéder #simu",
+  );
+});
+
+test("lireUrl lit nom, face et face-nom, comme budget et contrat", () => {
+  const corps = MAIN.slice(MAIN.indexOf("function lireUrl()"), MAIN.indexOf("function ecrireUrl()"));
+  assert.match(corps, /nom: p\.get\("nom"\) \?\? ""/);
+  assert.match(corps, /face: p\.get\("face"\) \?\? ""/);
+  assert.match(corps, /faceNom: p\.get\("face-nom"\) \?\? ""/);
+});
+
+test("ecrireUrl écrit nom, face et face-nom seulement quand ils ne sont pas vides", () => {
+  const corps = MAIN.slice(MAIN.indexOf("function ecrireUrl()"), MAIN.indexOf("history.replaceState"));
+  assert.match(corps, /if \(etat\.nom\) p\.set\("nom", etat\.nom\);/);
+  assert.match(corps, /if \(etat\.face\) p\.set\("face", etat\.face\);/);
+  assert.match(corps, /if \(etat\.faceNom\) p\.set\("face-nom", etat\.faceNom\);/);
+});
+
+test("recharger un scénario rappelle afficherAtelier, sans toucher à atelier.ts", () => {
+  // `afficherAtelier` est déjà ré-entrante (`montage?.abort()` à son début,
+  // simulateur-rendu.ts) : recharger un scénario est un second appel avec un
+  // état décodé, jamais une modification du moteur.
+  assert.match(MAIN, /function chargerScenario\(nom: string\): void \{/);
+  const corps = MAIN.slice(
+    MAIN.indexOf("function chargerScenario"),
+    MAIN.indexOf("function chargerScenario") + 900,
+  );
+  assert.match(corps, /afficherAtelier\(\$\("simu"\), voletsMontes/);
+  // Le moteur lui-même n'a pas bougé : ni `atelier.ts` ni `simulateur.ts` ni
+  // `simulateur-rendu.ts` ne mentionnent les scénarios.
+  for (const fichier of ["atelier.ts", "simulateur.ts", "simulateur-rendu.ts"]) {
+    const source = readFileSync(new URL(`./${fichier}`, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /[Ss]cenario/, `${fichier} ne doit pas connaître les scénarios`);
+  }
+});
+
+/* ------------------------------------------------------------------------
+ * `transposer` (scenarios.ts) avait un appelant nulle part : Task 5 l'a
+ * ajouté, confiné à ses propres fichiers, sans que rien ne l'invoque. Charger
+ * un scénario enregistré doit désormais passer par lui — pas par `decoder`
+ * seul, qui ignore en silence les lignes que la nomenclature a laissées
+ * tomber — et les lignes disparues doivent se nommer à l'écran.
+ * ---------------------------------------------------------------------- */
+
+test("charger un scénario passe par transposer, jamais par decoder seul", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function chargerScenario"),
+    MAIN.indexOf("function chargerScenario") + 900,
+  );
+  assert.match(corps, /transposer\(scenario, voletsMontes\)/);
+  // L'état donné à l'atelier vient de la transposition, pas d'un decodage
+  // direct qui laisserait les lignes disparues sans nom.
+  assert.doesNotMatch(corps, /etat: decoderAtelier\(scenario\.budget, voletsMontes\)/);
+  assert.match(corps, /disparuesCourantes = \{ lignes: disparues, rienRepris \}/);
+});
+
+test("tout budget encodé qui devient un état de l'atelier passe par la même porte", () => {
+  // `transposer` n'était branché que sur le scénario cliqué dans la barre — le
+  // seul des trois chemins où le lecteur avait déjà sa copie. Le budget porté
+  // par l'adresse (lien partagé, bouton « Rejouer » d'une analyse) et la
+  // colonne comparée passaient par `decoder` nu, et perdaient leurs lignes
+  // sans un mot. Plus aucun `decoder` d'atelier ne subsiste dans main.ts : la
+  // porte est unique, donc les trois chemins nomment ce qu'ils abandonnent.
+  assert.doesNotMatch(MAIN, /decoder as decoderAtelier/);
+  assert.doesNotMatch(MAIN, /\bdecoderAtelier\(/);
+  const ouverture = MAIN.slice(
+    MAIN.indexOf("async function ouvrirSimulateur"),
+    MAIN.indexOf("async function demarrer"),
+  );
+  assert.match(ouverture, /transposerBudget\(etat\.budget, volets\)/);
+  assert.match(ouverture, /etat: ouverture\.etat/);
+  const colonne = MAIN.slice(
+    MAIN.indexOf("function colonneDepuis"),
+    MAIN.indexOf("function colonnesComparaison"),
+  );
+  assert.match(colonne, /transposerBudget\(budget, voletsMontes\)/);
+  // La colonne emporte ce qu'elle a perdu : sans ce champ, rien à l'écran ne
+  // pourrait l'attribuer à sa colonne.
+  assert.match(colonne, /\bdisparues,/);
+});
+
+test("les lignes disparues d'un scénario chargé sont nommées à l'écran, pas seulement comptées", () => {
+  assert.match(MAIN, /import \{[\s\S]*?renduDisparues[\s\S]*?\} from "\.\/scenarios-rendu\.ts";/);
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.match(
+    corps,
+    /const disparues = renduDisparues\(disparuesCourantes\.lignes, disparuesCourantes\.rienRepris\)/,
+  );
+  // Et le bloc atteint réellement l'écran : le rendre sans le concaténer dans
+  // `#scenarios` laissait passer sa disparition sans qu'aucun test ne bronche,
+  // alors que c'est le nom même de ce test.
+  const ecriture = corps.slice(corps.indexOf("cible.innerHTML ="));
+  // L'espacement est indifférent — la concaténation peut tenir sur une ligne
+  // ou sur dix — mais `disparues` doit être un terme de la somme, pas une
+  // sous-chaîne d'un autre identifiant : `\b` le garantit.
+  assert.match(ecriture, /^cible\.innerHTML =[^;]*\+\s*\bdisparues\b\s*\+/);
+});
+
+test("supprimer le scénario courant efface aussi les lignes disparues qu'il portait", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function supprimerScenarioCourant"),
+    MAIN.indexOf("function faceChoisie"),
+  );
+  assert.match(corps, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
+});
+
+/** Les aides de main.ts dont dépendent les gestes sur un scénario —
+ *  `scenarioCourant`, `scenarioNomme`, `exercicePorte` — prises dans le fichier
+ *  source et débarrassées de leurs seules annotations TypeScript, pour être
+ *  évaluées par `new Function`. Une seule copie de l'extraction : quatre bancs
+ *  d'essai la partagent, et une aide ajoutée entre elles ne doit pas être
+ *  oubliée par trois d'entre eux. */
+function aidesScenario(): string {
+  const debut = MAIN.indexOf("function scenarioCourant");
+  const fin = MAIN.indexOf("/** Une colonne comparée, transposée");
+  assert.ok(debut > -1 && fin > debut, "les aides de scénario sont introuvables dans main.ts");
+  const aides = MAIN.slice(debut, fin)
+    .replace("function scenarioCourant(): Scenario | undefined {", "function scenarioCourant() {")
+    .replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {")
+    .replace("function exercicePorte(): string | null {", "function exercicePorte() {");
+  assert.doesNotMatch(
+    aides,
+    /function \w+\([^)]*\):/,
+    "une annotation de type reste dans les aides évaluées",
+  );
+  return aides;
+}
+
+/** Exécute `supprimerScenarioCourant` telle qu'écrite dans main.ts, avec le
+ *  vrai `scenarioNomme` plutôt qu'un doublon, et rend ce qui s'est réellement
+ *  passé : le nom supprimé s'il y en a eu un, et l'état des lignes disparues.
+ *  Même technique que `executerColonnesComparaison`. */
+function executerSupprimerScenarioCourant(
+  etatSimule: Record<string, string>,
+  scenariosLocaux: { nom: string; budget: string; exercice: string }[],
+  reponse = true,
+): { supprime: string | null; disparuesVidees: boolean; question: string | null } {
+  const aides = aidesScenario();
+  const corps = MAIN.slice(
+    MAIN.indexOf("function supprimerScenarioCourant"),
+    MAIN.indexOf("function faceChoisie"),
+  ).replace("function supprimerScenarioCourant(): void {", "function supprimerScenarioCourant() {");
+  let supprime: string | null = null;
+  let disparuesVidees = false;
+  let question: string | null = null;
+  const etat = { ...etatSimule };
+  const window = {
+    confirm: (texte: string) => {
+      question = texte;
+      return reponse;
+    },
+  };
+  new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "supprimerScenario",
+    "ecrireUrl",
+    "montrerScenarios",
+    "window",
+    "poser",
+    `${aides}${corps}
+     let disparuesCourantes = null;
+     supprimerScenarioCourant();
+     poser(disparuesCourantes);`,
+  )(
+    etat,
+    () => scenariosLocaux,
+    {},
+    (_depot: unknown, nom: string) => {
+      supprime = nom;
+    },
+    () => {},
+    () => {},
+    window,
+    (d: { lignes: string[] } | null) => {
+      disparuesVidees = d !== null && d.lignes.length === 0;
+    },
+  );
+  return { supprime, disparuesVidees, question };
+}
+
+test("un lien nommant un scénario absent du dépôt ne supprime rien, et n'efface rien", () => {
+  // Le bouton « Supprimer « X » » ne devrait même pas s'offrir pour un X que
+  // ce lecteur n'a pas — mais s'il est atteint, il ne doit ni supprimer un
+  // homonyme, ni faire disparaître de l'écran la liste des lignes que ce lien
+  // vient précisément de perdre.
+  const { supprime, disparuesVidees } = executerSupprimerScenarioCourant(
+    { nom: "Chez l'envoyeur", budget: "b64" },
+    [],
+  );
+  assert.equal(supprime, null);
+  assert.equal(disparuesVidees, false);
+});
+
+test("un scénario réellement présent est bien supprimé", () => {
+  const { supprime, disparuesVidees, question } = executerSupprimerScenarioCourant(
+    { nom: "Chez moi", budget: "b64" },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+  );
+  assert.equal(supprime, "Chez moi");
+  assert.equal(disparuesVidees, true);
+  // La question nomme le scénario : sinon elle ne dit pas ce qui va se passer.
+  assert.match(question!, /Chez moi/);
+});
+
+test("la suppression est refusable, et refuser ne supprime rien", () => {
+  // Le bouton partage sa rangée et sa pilule avec « Enregistrer ce budget » :
+  // un clic à côté effaçait définitivement un scénario, sans retour possible.
+  const { supprime, disparuesVidees, question } = executerSupprimerScenarioCourant(
+    { nom: "Chez moi", budget: "b64" },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+    false,
+  );
+  assert.notEqual(question, null);
+  assert.equal(supprime, null);
+  assert.equal(disparuesVidees, false);
+});
+
+/* ------------------------------------------------------------------------
+ * `renommer` et `dupliquer` (scenarios.ts) étaient livrés sans appelant : la
+ * spec §11 les liste tous deux comme des gestes du lecteur, et « Dupliquer »
+ * y porte une raison explicite — c'est le geste « créer mon alternative ».
+ * `dupliquer` porte au passage l'invariant d'unicité le plus travaillé du
+ * module, pour un chemin qu'aucun lecteur ne pouvait emprunter.
+ * ---------------------------------------------------------------------- */
+
+/** Un dépôt en mémoire, garni des noms donnés. Les vraies fonctions de
+ *  `scenarios.ts` s'exécutent dessus : ce qui est éprouvé est le branchement
+ *  réel, jamais une copie de ses règles. */
+function depotGarni(noms: string[]): Depot {
+  let contenu: string | null = null;
+  const depot: Depot = {
+    lire: () => contenu,
+    ecrire: (c) => {
+      contenu = c;
+    },
+  };
+  for (const nom of noms) {
+    enregistrer(depot, { nom, budget: "b64", contrat: "", exercice: "2025" });
+  }
+  return depot;
+}
+
+/** Exécute `renommerScenarioCourant` telle qu'écrite dans main.ts, avec le
+ *  vrai `scenarioNomme`, le vrai `renommer` et le vrai `nomNettoye`, sur un
+ *  dépôt en mémoire. Rend les noms du dépôt après le geste, et le nom que
+ *  l'adresse porte alors. Même technique que
+ *  `executerSupprimerScenarioCourant`. */
+function executerRenommerScenarioCourant(
+  nomAdresse: string,
+  noms: string[],
+  saisi: string | null,
+): { depot: string[]; adresse: string } {
+  const aides = aidesScenario();
+  const corps = MAIN.slice(
+    MAIN.indexOf("function renommerScenarioCourant"),
+    MAIN.indexOf("function dupliquerScenarioCourant"),
+  ).replace("function renommerScenarioCourant(): void {", "function renommerScenarioCourant() {");
+  assert.doesNotMatch(`${aides}${corps}`, /: Scenario|: void/, "une annotation de type reste");
+  const depot = depotGarni(noms);
+  const etat = { nom: nomAdresse, budget: "b64" };
+  new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "renommerScenario",
+    "nomNettoye",
+    "ecrireUrl",
+    "montrerScenarios",
+    "window",
+    `${aides}${corps}renommerScenarioCourant();`,
+  )(
+    etat,
+    () => lister(depot),
+    depot,
+    renommer,
+    nomNettoye,
+    () => {},
+    () => {},
+    { prompt: () => saisi },
+  );
+  return { depot: lister(depot).map((s) => s.nom), adresse: etat.nom };
+}
+
+/** Même banc, pour `dupliquerScenarioCourant`. */
+function executerDupliquerScenarioCourant(
+  nomAdresse: string,
+  noms: string[],
+): { depot: string[]; adresse: string } {
+  const aides = aidesScenario();
+  const corps = MAIN.slice(
+    MAIN.indexOf("function dupliquerScenarioCourant"),
+    MAIN.indexOf("function supprimerScenarioCourant"),
+  ).replace("function dupliquerScenarioCourant(): void {", "function dupliquerScenarioCourant() {");
+  const depot = depotGarni(noms);
+  const etat = { nom: nomAdresse, budget: "b64" };
+  new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "dupliquerScenario",
+    "montrerScenarios",
+    `${aides}${corps}dupliquerScenarioCourant();`,
+  )(etat, () => lister(depot), depot, dupliquer, () => {});
+  return { depot: lister(depot).map((s) => s.nom), adresse: etat.nom };
+}
+
+test("la barre offre les trois gestes qui portent sur un scénario du dépôt, chacun nommant sa cible", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  for (const [id, verbe] of [
+    ["scenario-renommer", "Renommer"],
+    ["scenario-dupliquer", "Dupliquer"],
+    ["scenario-supprimer", "Supprimer"],
+  ]) {
+    assert.match(corps, new RegExp(`id="${id}">${verbe} « \\$\\{echapper\\(`));
+  }
+  // Les trois pendent au même fait — l'adresse nomme un scénario qui existe —
+  // et portent la classe des boutons de la barre, jamais un habillage à part.
+  assert.match(corps, /const nomme = scenarioNomme\(\);/);
+  for (const id of ["renommer", "dupliquer", "supprimer"]) {
+    assert.match(corps, new RegExp(`class="scenarios-rendu__scenario" id="scenario-${id}"`));
+  }
+  // Et les écouteurs sont posés une seule fois, sur `#scenarios`, comme les
+  // deux autres : `brancherScenarios` n'est appelée qu'au montage.
+  const branchement = MAIN.slice(
+    MAIN.indexOf("function brancherScenarios"),
+    MAIN.indexOf("async function ouvrirSimulateur"),
+  );
+  assert.match(branchement, /closest\("#scenario-renommer"\)\) return renommerScenarioCourant\(\)/);
+  assert.match(branchement, /closest\("#scenario-dupliquer"\)\) return dupliquerScenarioCourant\(\)/);
+});
+
+test("renommer un scénario le renomme dans le dépôt, et l'adresse suit", () => {
+  const { depot, adresse } = executerRenommerScenarioCourant(
+    "Mon budget",
+    ["Mon budget", "Un autre"],
+    "Mon budget 2027",
+  );
+  assert.deepEqual(depot, ["Mon budget 2027", "Un autre"]);
+  // Sans ça, l'adresse nommerait un scénario qui n'existe plus : la barre
+  // perdrait sa marque « courant » sans un mot, et un lien partagé rouvrirait
+  // un nom fantôme — exactement ce que `supprimerScenarioCourant` évite déjà.
+  assert.equal(adresse, "Mon budget 2027");
+});
+
+test("le nom retenu par l'adresse est celui réellement stocké, espaces et longueur compris", () => {
+  // `renommer` nettoie le nom avant de l'écrire. L'adresse doit porter CE
+  // nom-là, pas celui qu'on a tapé : `main.ts` refaisait ce `trim().slice()`
+  // de son côté, et deux copies d'une règle qui doit rester identique finissent
+  // par diverger — l'adresse nommerait alors un scénario absent du dépôt. Le
+  // nom saisi ici dépasse `NOM_MAX` et porte des espaces, les deux façons dont
+  // les copies peuvent s'écarter.
+  const long = `  ${"n".repeat(80)}  `;
+  const { depot, adresse } = executerRenommerScenarioCourant("A", ["A"], long);
+  assert.equal(adresse, depot[0]);
+  assert.equal(adresse, nomNettoye(long));
+});
+
+test("un renommage refusé ne touche ni le dépôt ni l'adresse", () => {
+  // `renommer` refuse un nom déjà pris par un AUTRE scénario — le renommer
+  // détruirait celui-là. Le nom d'origine survit dans la liste rendue, et
+  // c'est ce fait, pas le nom saisi, qui commande l'adresse.
+  const pris = executerRenommerScenarioCourant("A", ["A", "B"], "B");
+  assert.deepEqual(pris.depot, ["A", "B"]);
+  assert.equal(pris.adresse, "A");
+  const vide = executerRenommerScenarioCourant("A", ["A", "B"], "   ");
+  assert.deepEqual(vide.depot, ["A", "B"]);
+  assert.equal(vide.adresse, "A");
+});
+
+test("annuler la boîte de renommage ne renomme rien", () => {
+  const { depot, adresse } = executerRenommerScenarioCourant("A", ["A"], null);
+  assert.deepEqual(depot, ["A"]);
+  assert.equal(adresse, "A");
+});
+
+test("un lien nommant un scénario absent du dépôt n'offre ni ne fait aucun renommage", () => {
+  const { depot, adresse } = executerRenommerScenarioCourant("Chez l'envoyeur", ["A"], "Volé");
+  assert.deepEqual(depot, ["A"]);
+  assert.equal(adresse, "Chez l'envoyeur");
+});
+
+test("dupliquer ajoute une copie sans toucher à l'original ni au scénario courant", () => {
+  const { depot, adresse } = executerDupliquerScenarioCourant("Mon budget", ["Mon budget"]);
+  assert.deepEqual(depot, ["Mon budget", "Copie de Mon budget"]);
+  // L'écran montre toujours le budget d'origine : déplacer le nom de l'adresse
+  // sur la copie ferait marquer « courant » un scénario que le lecteur n'a pas
+  // ouvert.
+  assert.equal(adresse, "Mon budget");
+});
+
+test("dupliquer deux fois ne collisionne pas, et un scénario absent ne duplique rien", () => {
+  const depot = depotGarni(["A"]);
+  dupliquer(depot, "A");
+  const { depot: noms } = executerDupliquerScenarioCourant("A", ["A", "Copie de A"]);
+  assert.deepEqual(noms, ["A", "Copie de A", "Copie de A (2)"]);
+  assert.deepEqual(executerDupliquerScenarioCourant("Absent", ["A"]).depot, ["A"]);
+});
+
+test("un stockage indisponible dégrade en scénarios de session, et l'interface le dit", () => {
+  // Même défaut que celui déjà corrigé pour le thème (`brancherTheme`) : la
+  // navigation privée stricte fait lever `localStorage`. `scenarios.ts` avale
+  // déjà l'échec d'ÉCRITURE (sa docstring, `ecrireScenarios`), mais il ne dit
+  // rien au lecteur — c'est à ce module de sonder le stockage et de le dire.
+  assert.match(MAIN, /function stockagePersistant\(\): boolean \{/);
+  const corps = MAIN.slice(
+    MAIN.indexOf("function stockagePersistant"),
+    MAIN.indexOf("function stockagePersistant") + 400,
+  );
+  assert.match(corps, /catch \{\s*return false;/);
+  // Le dépôt de session — en mémoire, jamais `localStorage` — est celui sur
+  // lequel on retombe.
+  assert.match(MAIN, /const depotSession: Depot = \{/);
+  assert.match(MAIN, /const depotScenarios: Depot = persistant \? depotLocal : depotSession;/);
+  // Et l'interface le dit, plutôt que de laisser croire à une sauvegarde qui
+  // n'aura pas lieu.
+  assert.match(MAIN, /Stockage indisponible/);
+});
+
+test("comparer deux scénarios est un mode du simulateur, jamais une vue distincte", () => {
+  // `/simulateur/comparer` résoudrait déjà sur `simulateur` (routes.ts ne lit
+  // que le premier segment) : ouvrir une entrée de menu pour un écran qui n'a
+  // de sens qu'à deux scénarios en main afficherait un lien mort à qui n'en a
+  // aucun. Le mode se déclenche par la présence de `face` dans l'adresse.
+  assert.doesNotMatch(ROUTES, /comparer/);
+  assert.match(MAIN, /const tableau = faceChoisie\(\)/);
+});
+
+/* ------------------------------------------------------------------------
+ * Une face CHOISIE ouvre la comparaison — un budget non vide ne la commande
+ * pas. Le budget voté est l'atelier tous réglages à zéro (`budget: ""`), et
+ * un scénario enregistré sans réglage l'est aussi : les tenir pour « pas de
+ * comparaison » n'affichait ni tableau ni bouton de fermeture, et refermait
+ * au passage la comparaison en cours.
+ * ---------------------------------------------------------------------- */
+
+/** Exécute `faceChoisie` telle qu'écrite dans main.ts, avec un `etat` simulé
+ *  — même technique que `executerColonnesComparaison` plus bas. */
+function executerFaceChoisie(etatSimule: Record<string, string>): boolean {
+  const debut = MAIN.indexOf("function faceChoisie()");
+  assert.ok(debut > -1, "faceChoisie introuvable dans main.ts");
+  const corpsBrut = MAIN.slice(debut, MAIN.indexOf("\n}", debut) + 2);
+  assert.match(corpsBrut, /function faceChoisie\(\): boolean \{/);
+  const corps = corpsBrut.replace("function faceChoisie(): boolean {", "function faceChoisie() {");
+  return new Function("etat", `${corps}\nreturn faceChoisie();`)(etatSimule) as boolean;
+}
+
+test("une face au budget vide — le budget voté — est bien une face choisie", () => {
+  assert.equal(executerFaceChoisie({ face: "", faceNom: "Budget voté" }), true);
+});
+
+test("un scénario du lecteur enregistré sans aucun réglage est une face choisie lui aussi", () => {
+  // Même trou que le budget voté : `enregistrerScenarioCourant` enregistre
+  // `budget: etat.budget`, qui vaut "" quand rien n'est réglé.
+  assert.equal(executerFaceChoisie({ face: "", faceNom: "Mon budget à zéro" }), true);
+});
+
+test("un lien antérieur à face-nom, qui ne porte que face, est une face choisie", () => {
+  assert.equal(executerFaceChoisie({ face: "etat/146:-10", faceNom: "" }), true);
+});
+
+test("aucune face nommée ni portée : pas de comparaison", () => {
+  assert.equal(executerFaceChoisie({ face: "", faceNom: "" }), false);
+});
+
+test("le tableau et le bouton de fermeture pendent au même fait, jamais à un budget non vide", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.match(corps, /faceChoisie\(\)\s*\n?\s*\? `<button type="button"[^`]*scenario-fermer-comparaison/);
+  assert.doesNotMatch(corps, /etat\.face\s*$/m);
+  // Fermer la comparaison remet l'état à « aucune face choisie » : les trois
+  // paramètres partent ensemble, sinon `faceChoisie()` resterait vraie.
+  const fermeture = MAIN.slice(MAIN.indexOf('closest("#scenario-fermer-comparaison")'));
+  const bloc = fermeture.slice(0, fermeture.indexOf("montrerScenarios()"));
+  assert.match(bloc, /etat\.face = "";/);
+  assert.match(bloc, /etat\.faceNom = "";/);
+  assert.match(bloc, /etat\.faceExercice = "";/);
+});
+
+test("l'adresse relit une face choisie au rechargement, même quand son budget est vide", () => {
+  // `face-nom` est écrit dès qu'il est non vide, et `lireUrl` le relit : c'est
+  // lui qui rouvre la comparaison quand `face` est vide. Sans cette paire, le
+  // menu rouvrait sur « Budget voté » sélectionné devant un écran vide.
+  const ecriture = MAIN.slice(MAIN.indexOf("function ecrireUrl()"), MAIN.indexOf("history.replaceState"));
+  assert.match(ecriture, /if \(etat\.faceNom\) p\.set\("face-nom", etat\.faceNom\);/);
+  const lecture = MAIN.slice(MAIN.indexOf("function lireUrl()"), MAIN.indexOf("function ecrireUrl()"));
+  assert.match(lecture, /faceNom: p\.get\("face-nom"\) \?\? ""/);
+});
+
+/* ------------------------------------------------------------------------
+ * L'exercice d'une colonne comparée ne se devine pas — trouvaille critique
+ * de la revue : `colonnesComparaison` retombait sur `exerciceCourant()` (le
+ * millésime PUBLIÉ AUJOURD'HUI sur le site) pour un scénario `face` ou `nom`
+ * que le lecteur n'a pas en local, un an sans aucun rapport avec ce que
+ * l'envoyeur du lien a réellement réglé. Les six tests ci-dessus sur la barre
+ * de scénarios sont tous textuels/structurels ; ceux-ci exécutent réellement
+ * le corps de `colonnesComparaison` (extrait du fichier source, débarrassé
+ * de sa seule annotation TypeScript — l'annotation de retour — et évalué via
+ * `new Function` avec des dépendances simulées), sur le modèle du test
+ * "le Back vers `/`..." plus haut.
+ * ---------------------------------------------------------------------- */
+
+/** Exécute `colonnesComparaison` telle qu'écrite dans main.ts, avec `etat`,
+ *  `listerScenarios`, `exerciceCourant` et `referencesScenarios` simulés, et
+ *  capture les arguments reçus par `colonneDepuis` — en particulier
+ *  l'exercice, le serment et le lien retenus pour chaque colonne.
+ *
+ *  `scenarioCourant` est pris dans main.ts lui aussi, jamais simulé : c'est
+ *  lui qui porte la règle « l'état affiché EST ce scénario » (même nom ET même
+ *  budget), et un banc d'essai qui la remplacerait par un stub testerait sa
+ *  propre copie de la règle plutôt que celle qui s'exécute. */
+function executerColonnesComparaison(
+  etatSimule: Record<string, string>,
+  scenariosLocaux: { nom: string; budget: string; exercice: string; contrat?: string }[],
+  references: { titre: string; slug: string | null; contrat: string; lien: string | null }[] = [],
+): { nom: string; exercice: string | null; contrat: string; lien: string | null }[] {
+  const aides = aidesScenario();
+
+  const debut = MAIN.indexOf("function colonnesComparaison");
+  const fin = MAIN.indexOf("function chargerScenario(nom: string): void {");
+  assert.ok(debut > -1 && fin > debut, "colonnesComparaison introuvable dans main.ts");
+  const corpsBrut = MAIN.slice(debut, fin);
+  // Verrouille la forme de la signature avant de lui ôter son annotation :
+  // si elle change, ce test doit rougir plutôt que d'évaluer autre chose que
+  // le vrai corps de la fonction.
+  assert.match(corpsBrut, /function colonnesComparaison\(\): Comparable\[\] \{/);
+  const corps =
+    aides +
+    corpsBrut.replace(
+      "function colonnesComparaison(): Comparable[] {",
+      "function colonnesComparaison() {",
+    );
+  // Ce que la fonction REND, jamais l'ordre dans lequel elle a appelé
+  // `colonneDepuis` : les deux ont divergé le jour où la colonne `face` a été
+  // construite avant la courante, et des tests qui lisaient l'ordre d'appel
+  // se sont mis à vérifier la colonne d'en face en croyant lire la leur.
+  const colonneDepuis = (
+    nom: string,
+    _budget: string,
+    exercice: string | null,
+    contrat: string,
+    lien: string | null,
+  ) => ({ nom, exercice, contrat, lien });
+  const listerScenarios = () => scenariosLocaux;
+  // `faceSource` absent du gabarit = le cas d'un lien antérieur à ce
+  // paramètre, celui qui doit continuer de deviner. Les tests qui portent sur
+  // une origine choisie la nomment explicitement.
+  const etatComplet = { faceSource: "", ...etatSimule };
+  // L'exercice publié aujourd'hui sur le site, sans aucun rapport avec les
+  // scénarios testés : un test qui verrait cette valeur là où il attend
+  // `null` prouve que le fallback fautif est revenu.
+  const exerciceCourant = () => "2025-SITE";
+  return new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "colonneDepuis",
+    "exerciceCourant",
+    "referencesScenarios",
+    `${corps}\nreturn colonnesComparaison();`,
+  )(etatComplet, listerScenarios, {}, colonneDepuis, exerciceCourant, references);
+}
+
+test("une colonne `face` absente du dépôt local, sans exercice dans l'adresse, dit l'exercice inconnu", () => {
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Scénario partagé", face: "b64", faceExercice: "" },
+    [],
+  );
+  assert.equal(face!.exercice, null);
+  assert.notEqual(face!.exercice, "2025-SITE");
+});
+
+test("une colonne `face` absente du dépôt local, avec exercice dans l'adresse, montre CET exercice", () => {
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Scénario partagé", face: "b64", faceExercice: "2019" },
+    [],
+  );
+  assert.equal(face!.exercice, "2019");
+  assert.notEqual(face!.exercice, "2025-SITE");
+});
+
+test("symétrique : une colonne « courante » nommée mais absente du dépôt local dit aussi l'exercice inconnu", () => {
+  const [courante] = executerColonnesComparaison(
+    { nom: "Scénario partagé", budget: "b64", faceNom: "", face: "", faceExercice: "" },
+    [],
+  );
+  assert.equal(courante!.exercice, null);
+  assert.notEqual(courante!.exercice, "2025-SITE");
+});
+
+test("un scénario réellement présent localement garde toujours SON exercice, pas le courant du site", () => {
+  const [courante, face] = executerColonnesComparaison(
+    { nom: "Chez moi", budget: "b64", faceNom: "Chez mon collègue", face: "c64", faceExercice: "" },
+    [
+      { nom: "Chez moi", budget: "b64", exercice: "2022" },
+      { nom: "Chez mon collègue", budget: "c64", exercice: "2024" },
+    ],
+  );
+  assert.equal(courante!.exercice, "2022");
+  assert.equal(face!.exercice, "2024");
+});
+
+test("un curseur bougé : la colonne courante cesse d'annoncer le nom et l'exercice du scénario ouvert", () => {
+  // Le lecteur a ouvert « Chez moi » (budget `b64`, exercice 2022) puis a
+  // bougé un curseur : l'adresse porte toujours `nom=Chez moi`, mais le
+  // budget affiché n'est plus celui du scénario. La colonne ne peut donc plus
+  // se dire ce scénario-là — ni par son nom, ni par son millésime.
+  const [courante] = executerColonnesComparaison(
+    { nom: "Chez moi", budget: "b64-retouche", faceNom: "", face: "", faceExercice: "" },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+  );
+  assert.equal(courante!.exercice, null);
+  assert.notEqual(courante!.exercice, "2022");
+  assert.notEqual(courante!.exercice, "2025-SITE");
+});
+
+test("deux colonnes ne portent jamais le même nom au-dessus de deux budgets différents", () => {
+  // « Chez moi » ouvert, un curseur bougé, puis « Chez moi » choisi comme
+  // face : sans arbitrage les deux en-têtes seraient identiques au-dessus de
+  // deux budgets différents, et rien à l'écran ne dirait lequel est
+  // l'enregistré. C'est la colonne vive qui cède le nom.
+  const [courante, face] = executerColonnesComparaison(
+    {
+      nom: "Chez moi",
+      budget: "b64-retouche",
+      faceNom: "Chez moi",
+      face: "b64",
+      faceExercice: "",
+    },
+    [{ nom: "Chez moi", budget: "b64", exercice: "2022" }],
+  );
+  assert.notEqual(courante!.nom, face!.nom);
+  assert.equal(face!.nom, "Chez moi");
+});
+
 test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", () => {
   // Sans elle, /analyses/ n'existait que pour un lecteur qui en connaissait
   // déjà l'adresse : c'est pourtant le point d'entrée éditorial du site.
@@ -956,4 +1622,332 @@ test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", ()
   // par le serveur, pas une bascule de vue de l'app monoécran.
   assert.doesNotMatch(nav, /href="\/analyses\/"\s+data-vue/);
   assert.match(MAIN, /const lien = \(clic\.target as HTMLElement\)\.closest<HTMLAnchorElement>\("a\[data-vue\]"\);/);
+});
+
+/* ------------------------------------------------------------------------
+ * Les scénarios de référence — tâche 6 du lot « Le simulateur enregistre » :
+ * le budget voté et les chiffrages des analyses, produits au build par
+ * `prerendre.ts` et offerts comme comparables par `main.ts`. Ferme la boucle
+ * entre l'éditorial (les analyses) et l'outil (le simulateur).
+ * ---------------------------------------------------------------------- */
+
+const PRERENDRE = readFileSync(new URL("../scripts/prerendre.ts", import.meta.url), "utf8");
+
+/** Exécute `entreesReference` telle qu'écrite dans prerendre.ts, sur de
+ *  fausses analyses minimales — même technique que
+ *  `executerColonnesComparaison` plus haut : on teste le vrai corps du
+ *  fichier source, pas une réécriture. */
+function executerEntreesReference(
+  analyses: { titre: string; slug: string; simulateur: { budget: string; contrat: string } }[],
+): { titre: string; slug: string | null; lien: string | null; budget: string; contrat: string; exercice: string | null }[] {
+  const debut = PRERENDRE.indexOf("const ENTREE_NEUTRE");
+  const fin = PRERENDRE.indexOf("async function ecrireScenariosReference");
+  assert.ok(debut > -1 && fin > debut, "entreesReference introuvable dans prerendre.ts");
+  const corpsBrut = PRERENDRE.slice(debut, fin);
+  // Verrouille les deux déclarations avant de leur ôter leurs annotations
+  // TypeScript, que `new Function` — qui évalue du JS pur — ne sait pas
+  // parser : le type de la constante, et la signature de la fonction.
+  assert.match(corpsBrut, /const ENTREE_NEUTRE: EntreeReference = \{/);
+  assert.match(corpsBrut, /function entreesReference\(analyses: readonly Analyse\[\]\): EntreeReference\[\] \{/);
+  const corps = corpsBrut
+    .replace("const ENTREE_NEUTRE: EntreeReference = {", "const ENTREE_NEUTRE = {")
+    .replace(
+      "function entreesReference(analyses: readonly Analyse[]): EntreeReference[] {",
+      "function entreesReference(analyses) {",
+    );
+  return new Function(`${corps}\nreturn entreesReference;`)()(analyses);
+}
+
+test("le fichier de référence porte une entrée neutre au budget vide, sans slug ni lien", () => {
+  const entrees = executerEntreesReference([]);
+  assert.equal(entrees.length, 1);
+  assert.equal(entrees[0]!.budget, "");
+  assert.equal(entrees[0]!.slug, null);
+  assert.equal(entrees[0]!.lien, null);
+});
+
+test("une analyse sans réglage de simulateur n'engendre aucune entrée — rien n'est inventé", () => {
+  const entrees = executerEntreesReference([
+    { titre: "Sans réglage", slug: "sans-reglage", simulateur: { budget: "", contrat: "" } },
+  ]);
+  assert.equal(entrees.length, 1); // seulement l'entrée neutre
+  assert.equal(entrees.some((e) => e.slug === "sans-reglage"), false);
+});
+
+test("une analyse réglée engendre une entrée avec son titre, son slug et son lien", () => {
+  const entrees = executerEntreesReference([
+    { titre: "Le budget de la Défense", slug: "defense-2025", simulateur: { budget: "etat/146:-10", contrat: "c1" } },
+  ]);
+  const reglee = entrees.find((e) => e.slug === "defense-2025");
+  assert.ok(reglee);
+  assert.equal(reglee!.titre, "Le budget de la Défense");
+  assert.equal(reglee!.lien, "/analyses/defense-2025/");
+  assert.equal(reglee!.budget, "etat/146:-10");
+  assert.equal(reglee!.contrat, "c1");
+});
+
+test("aucune entrée ne porte un exercice : rien ne le déclare de façon fiable dans une analyse", () => {
+  const entrees = executerEntreesReference([
+    { titre: "X", slug: "x", simulateur: { budget: "etat/146:-10", contrat: "" } },
+  ]);
+  for (const e of entrees) assert.equal(e.exercice, null);
+});
+
+test("prerendre.ts écrit le fichier dans dist/simulateur/scenarios-reference.json, après le contrôle des liens", () => {
+  assert.match(PRERENDRE, /path\.join\(DIST, "simulateur"\)/);
+  assert.match(PRERENDRE, /"scenarios-reference\.json"/);
+  const corps = PRERENDRE.slice(PRERENDRE.indexOf("async function main"));
+  const posValidation = corps.indexOf("await validerLiensSimulateur(");
+  const posEcriture = corps.indexOf("await ecrireScenariosReference(");
+  assert.ok(posValidation > -1 && posEcriture > posValidation, "ecrireScenariosReference doit suivre validerLiensSimulateur");
+});
+
+test("le simulateur charge le fichier de référence à l'ouverture, sans casser s'il est absent", () => {
+  assert.match(MAIN, /fetch\("\/simulateur\/scenarios-reference\.json"\)/);
+  const debut = MAIN.indexOf("async function chargerReferences");
+  assert.ok(debut > -1, "chargerReferences introuvable dans main.ts");
+  const corps = MAIN.slice(debut, debut + 600);
+  assert.match(corps, /catch \{/);
+  assert.match(MAIN, /await chargerReferences\(\);/);
+});
+
+test("les entrées de référence apparaissent parmi les comparables, distinguées des scénarios du lecteur", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.match(corps, /referencesScenarios/);
+  // Deux groupes distincts dans le menu, jamais mélangés en une seule liste.
+  assert.match(corps, /<optgroup label="Vos scénarios">/);
+  assert.match(corps, /<optgroup label="Références">/);
+});
+
+test("le sélecteur « Comparer à » n'emprunte pas la classe des états vides", () => {
+  // `scenarios-rendu__vide` dit « il n'y a rien ici », cadre pointillé compris.
+  // Le choix d'une face ne s'affiche justement que quand il y a quelque chose
+  // à comparer, et il porte une commande : il lui faut sa classe, et une règle
+  // CSS à lui.
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  const bloc = corps.slice(corps.indexOf("const choix ="), corps.indexOf('id="scenario-face"'));
+  assert.doesNotMatch(bloc, /scenarios-rendu__vide/);
+  assert.match(bloc, /class="scenarios-rendu__choix"/);
+  assert.match(CSS, /\.scenarios-rendu__choix \{/);
+  const regle = CSS.slice(
+    CSS.indexOf(".scenarios-rendu__choix {"),
+    CSS.indexOf("}", CSS.indexOf(".scenarios-rendu__choix {")),
+  );
+  assert.doesNotMatch(regle, /dashed/);
+});
+
+test("l'exercice inconnu a une seule sentinelle, et l'adresse s'y convertit en un seul endroit", () => {
+  // `Scenario.exercice`, `Comparable.exercice` et `exerciceCourant()` disent
+  // tous « inconnu » avec `null`. L'adresse, elle, ne sait le dire qu'avec la
+  // chaîne vide : la conversion se fait dans `exercicePorte`, et nulle part
+  // ailleurs — `colonnesComparaison` mêlait `??` et `||` dans une seule
+  // expression, ce qui est tenir deux sentinelles à la fois.
+  assert.match(MAIN, /function exercicePorte\(\): string \| null \{\n  return etat\.faceExercice \|\| null;\n\}/);
+  assert.match(MAIN, /function exerciceCourant\(\): string \| null \{/);
+  const colonnes = MAIN.slice(
+    MAIN.indexOf("function colonnesComparaison"),
+    MAIN.indexOf("function chargerScenario(nom: string): void {"),
+  );
+  assert.match(colonnes, /faceEnregistree\?\.exercice \?\? exercicePorte\(\),/);
+  assert.doesNotMatch(colonnes, /\|\| null/);
+  // Une colonne dont l'exercice est inconnu le dit en toutes lettres, jamais
+  // par un millésime pendouillant : c'est la sentinelle qui le permet.
+  const [, face] = executerColonnesComparaison({ nom: "", face: "b", faceNom: "Reçu", faceExercice: "" }, []);
+  assert.equal(face!.exercice, null);
+});
+
+test("un fichier de référence qui n'est pas la liste attendue ne devient pas la liste", () => {
+  // Un JSON valide mais non-tableau — page d'erreur JSON servie à la place du
+  // fichier, build partiel — passait l'affirmation de type sans broncher, puis
+  // faisait lever `.map` à chaque rendu de la barre, donc à chaque geste sur
+  // l'atelier.
+  const debut = MAIN.indexOf("function estReferences");
+  assert.ok(debut > -1, "estReferences introuvable dans main.ts");
+  // La garde s'exécute telle qu'écrite, débarrassée de ses seules annotations
+  // TypeScript : un doublon écrit ici testerait sa propre copie de la règle.
+  const garde = MAIN.slice(debut, MAIN.indexOf("async function chargerReferences"))
+    .replace(
+      "function estReferences(valeur: unknown): valeur is EntreeReference[] {",
+      "function estReferences(valeur) {",
+    )
+    .replaceAll("(e as EntreeReference)", "e");
+  assert.doesNotMatch(garde, /: unknown|as EntreeReference/, "une annotation de type reste");
+  const estReferences = new Function(`${garde}return estReferences;`)() as (v: unknown) => boolean;
+  assert.equal(estReferences([]), true);
+  assert.equal(
+    estReferences([{ titre: "Budget voté", slug: null, lien: null, budget: "", contrat: "", exercice: "2025" }]),
+    true,
+  );
+  assert.equal(estReferences({ erreur: "not found" }), false);
+  assert.equal(estReferences(null), false);
+  assert.equal(estReferences("[]"), false);
+  assert.equal(estReferences([{ titre: 3 }]), false);
+  assert.equal(estReferences([null]), false);
+  // Et le chargeur ne retient que ce que la garde accepte.
+  const chargeur = MAIN.slice(
+    MAIN.indexOf("async function chargerReferences"),
+    MAIN.indexOf("let disparuesCourantes"),
+  );
+  assert.match(chargeur, /if \(estReferences\(lu\)\) referencesScenarios = lu;/);
+  assert.doesNotMatch(chargeur, /as EntreeReference\[\]/);
+});
+
+test("enregistrer sous un autre nom oublie les lignes perdues par le scénario précédent", () => {
+  // Après avoir chargé un scénario amputé puis enregistré l'état sous un autre
+  // nom, la notice continuait à décrire le scénario précédent — et « Aucun
+  // réglage n'a pu être repris » restait affiché alors que le lecteur avait
+  // posé ses propres curseurs. `supprimerScenarioCourant` l'oublie déjà.
+  const corps = MAIN.slice(
+    MAIN.indexOf("function enregistrerScenarioCourant"),
+    MAIN.indexOf("function renommerScenarioCourant"),
+  );
+  assert.match(corps, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
+  // Dans la branche du nom accepté : un enregistrement refusé (nom vide) ne
+  // change rien à l'écran, donc n'a rien à oublier.
+  const accepte = corps.slice(corps.indexOf("if (nomPropre) {"));
+  assert.match(accepte, /disparuesCourantes = \{ lignes: \[\], rienRepris: false \};/);
+});
+
+test("le budget voté (slug null) prend l'exercice réellement monté ; une analyse garde le sien, jamais deviné", () => {
+  // Le budget voté n'est pas un scénario dont on ignorerait l'origine — c'est
+  // l'atelier tel que monté à l'instant : son exercice se lit vrai avec
+  // `exerciceCourant()`. Une entrée issue d'une analyse, elle, ne porte aucun
+  // exercice vérifiable (voir prerendre.ts) : jamais ce même repli.
+  // Borné sur ce qui suit, jamais sur un nombre de caractères : une ligne
+  // ajoutée au gestionnaire poussait la règle hors d'une fenêtre fixe et
+  // faisait rougir ce test sans que la règle ait bougé.
+  const corps = MAIN.slice(
+    MAIN.indexOf('cible.addEventListener("change"'),
+    MAIN.indexOf("async function ouvrirSimulateur"),
+  );
+  assert.match(corps, /reference\.slug === null\s*\n?\s*\? exerciceCourant\(\) \?\? ""\s*\n?\s*: reference\.exercice/);
+});
+
+/* ------------------------------------------------------------------------
+ * Aucun champ écrit qui ne soit lu. `prerendre.ts` écrivait `contrat` et
+ * `lien` dans `scenarios-reference.json`, `main.ts` n'en lisait aucun : une
+ * entrée de référence se comparait sans sa contrainte — un budget bâti sous
+ * serment se lisant alors comme un exploit — et aucun lien ne ramenait à
+ * l'analyse dont le chiffrage venait.
+ * ---------------------------------------------------------------------- */
+
+test("chaque champ du fichier de référence est lu par main.ts", () => {
+  const forme = PRERENDRE.slice(
+    PRERENDRE.indexOf("type EntreeReference = {"),
+    PRERENDRE.indexOf("/** Le budget voté"),
+  );
+  const champs = [...forme.matchAll(/^\s{2}(\w+):/gm)].map((m) => m[1]!);
+  assert.deepEqual(champs, ["titre", "slug", "lien", "budget", "contrat", "exercice"]);
+  const bloc = MAIN.slice(
+    MAIN.indexOf("type EntreeReference = {"),
+    MAIN.indexOf("async function ouvrirSimulateur"),
+  );
+  for (const champ of champs) {
+    assert.match(bloc, new RegExp(`\\.${champ}\\b`), `main.ts ne lit jamais \`${champ}\``);
+  }
+});
+
+test("une entrée de référence apporte sa contrainte et le lien de son analyse", () => {
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Le budget de la Défense", face: "b64", faceExercice: "" },
+    [],
+    [
+      {
+        titre: "Le budget de la Défense",
+        slug: "defense-2025",
+        contrat: "sans-impot",
+        lien: "/analyses/defense-2025/",
+      },
+    ],
+  );
+  assert.equal(face!.contrat, "sans-impot");
+  assert.equal(face!.lien, "/analyses/defense-2025/");
+});
+
+/* Deux homonymes, un dans le dépôt du lecteur et un dans le fichier de
+ * référence : c'est l'origine choisie dans le menu qui tranche, et elle
+ * voyage dans l'adresse. Le nom ne peut pas trancher — c'est le même. Un test
+ * qui n'en éprouverait qu'un des deux sens figerait un tirage au sort en le
+ * faisant passer pour un invariant. */
+
+const HOMONYMES: {
+  etat: Record<string, string>;
+  locaux: { nom: string; budget: string; exercice: string; contrat?: string }[];
+  references: { titre: string; slug: string | null; contrat: string; lien: string | null }[];
+} = {
+  etat: { nom: "", budget: "", faceNom: "Budget voté", face: "", faceExercice: "2025" },
+  locaux: [{ nom: "Budget voté", budget: "", exercice: "2022", contrat: "sans-prestation" }],
+  references: [{ titre: "Budget voté", slug: null, contrat: "sans-impot", lien: "/analyses/x/" }],
+};
+
+test("origine « scenario » : la face porte le serment du scénario du lecteur", () => {
+  const [, face] = executerColonnesComparaison(
+    { ...HOMONYMES.etat, faceSource: "scenario" },
+    HOMONYMES.locaux,
+    HOMONYMES.references,
+  );
+  assert.equal(face!.contrat, "sans-prestation");
+  assert.equal(face!.exercice, "2022");
+  // Un scénario du lecteur n'a pas de page : il ne prend pas le lien de la
+  // référence homonyme.
+  assert.equal(face!.lien, null);
+});
+
+test("origine « reference » : la face porte le serment de la référence, pas celui de l'homonyme local", () => {
+  const [, face] = executerColonnesComparaison(
+    { ...HOMONYMES.etat, faceSource: "reference:" },
+    HOMONYMES.locaux,
+    HOMONYMES.references,
+  );
+  assert.equal(face!.contrat, "sans-impot");
+  assert.notEqual(face!.contrat, "sans-prestation");
+  assert.equal(face!.lien, "/analyses/x/");
+  // L'exercice vient de l'adresse, jamais du scénario local homonyme.
+  assert.equal(face!.exercice, "2025");
+  assert.notEqual(face!.exercice, "2022");
+});
+
+test("une analyse au slug « neutre » ne se confond pas avec le budget voté", () => {
+  // La clé de l'entrée neutre est la chaîne vide, qu'aucun slug ne porte : une
+  // clé littérale était collisionnable, et l'analyse se serait affichée sous
+  // son titre avec le budget voté dessous.
+  const [, face] = executerColonnesComparaison(
+    { nom: "", budget: "", faceNom: "Une analyse", face: "b64", faceExercice: "", faceSource: "reference:neutre" },
+    [],
+    [
+      { titre: "Budget voté", slug: null, contrat: "", lien: null },
+      { titre: "Une analyse", slug: "neutre", contrat: "sans-impot", lien: "/analyses/neutre/" },
+    ],
+  );
+  assert.equal(face!.contrat, "sans-impot");
+  assert.equal(face!.lien, "/analyses/neutre/");
+});
+
+test("la colonne courante porte le serment que l'atelier applique, et ne prétend venir de nulle part", () => {
+  const [courante] = executerColonnesComparaison(
+    { nom: "", budget: "b64", contrat: "sans-impot", faceNom: "", face: "", faceExercice: "" },
+    [],
+  );
+  assert.equal(courante!.contrat, "sans-impot");
+  assert.equal(courante!.lien, null);
+});
+
+test("le bloc des lignes non reprises est habillé comme le reste de la barre", () => {
+  // Premier diff à le mettre à l'écran : sans règle, il sortait sans cadre ni
+  // distinction, entre les boutons d'action et le menu.
+  assert.match(CSS, /\.scenarios-rendu__disparues \{/);
+  const regle = CSS.slice(
+    CSS.indexOf(".scenarios-rendu__disparues {"),
+    CSS.indexOf(".scenarios-rendu__disparues p {"),
+  );
+  // Jetons de design uniquement : ni couleur ni espacement en dur.
+  assert.doesNotMatch(regle, /#[0-9a-f]{3,8}\b/i);
+  assert.match(regle, /var\(--trait\)/);
+  assert.match(regle, /var\(--espace-5\)/);
 });

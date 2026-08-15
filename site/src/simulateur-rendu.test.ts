@@ -578,9 +578,12 @@ test("les budgets ne se chargent qu'à l'ouverture de l'atelier", () => {
   // Cent kilo-octets pour le seul budget de l'État, sur une page que la plupart
   // des lecteurs n'ouvriront pas : le démarrage ne demande que les index
   // d'exercices, quelques octets chacun.
+  // Le corps de la fonction, pas une fenêtre de N caractères après son nom :
+  // un commentaire ajouté au-dessus de la règle poussait `afficherAtelier`
+  // hors de la fenêtre et faisait rougir ce test sans que la règle ait bougé.
   const ouverture = MAIN.slice(
     MAIN.indexOf("async function ouvrirSimulateur"),
-    MAIN.indexOf("async function ouvrirSimulateur") + 900,
+    MAIN.indexOf("async function demarrer"),
   );
   assert.ok(ouverture.length > 200, "ouvrirSimulateur introuvable");
   assert.match(ouverture, /volet\.charger\(exercice\)/);

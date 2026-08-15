@@ -10,7 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
-import { emphase } from "./texte.ts";
+import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
@@ -20,8 +20,15 @@ import {
   afficherAtelier,
   exercicesPublies,
 } from "./simulateur-rendu.ts";
-import { decoder as decoderAtelier, type Volet } from "./atelier.ts";
+import {
+  effort as effortAtelier,
+  gestes as gestesAtelier,
+  type Volet,
+} from "./atelier.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
+import { lister as listerScenarios, enregistrer as enregistrerScenario, renommer as renommerScenario, dupliquer as dupliquerScenario, supprimer as supprimerScenario, nomNettoye, transposer, transposerBudget, type Depot, type Scenario } from "./scenarios.ts";
+import { comparer as comparerScenarios } from "./comparaison.ts";
+import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherQuestions } from "./questions.ts";
@@ -162,6 +169,40 @@ type Etat = {
    *  réglages : un budget partagé sans sa contrainte se lit comme un exploit
    *  alors que c'en était un sous serment. */
   contrat: string;
+  /** Le nom du scénario ouvert, quand l'état affiché en est un. Vide pour un
+   *  état vif, jamais enregistré : c'est ce qui marque le scénario courant
+   *  dans la barre, et ce qui retrouve son exercice — voir `Comparable`
+   *  (scenarios-rendu.ts) — plutôt que celui de l'atelier au moment présent. */
+  nom: string;
+  /** Le budget d'une seconde colonne, encodé comme `budget`. Il peut être
+   *  vide sans que la comparaison le soit : le budget voté est l'atelier tous
+   *  réglages à zéro, et un scénario que le lecteur enregistre sans avoir rien
+   *  réglé l'est aussi. C'est le CHOIX d'une face qui ouvre la comparaison —
+   *  `faceChoisie()` —, jamais un budget non vide. Un mode, pas un chemin
+   *  `/simulateur/comparer` (qui résoudrait de toute façon sur `simulateur`,
+   *  `routes.ts` ne lisant que le premier segment) : pas d'entrée de menu vers
+   *  un écran qui n'a de sens qu'à deux scénarios en main. */
+  face: string;
+  /** Le nom affiché en tête de la colonne `face` : celui du scénario dont
+   *  elle vient, faute de mieux un intitulé générique. */
+  faceNom: string;
+  /** L'exercice sur lequel la colonne `face` a été construite, porté par
+   *  l'adresse comme `face` et `face-nom` : sans lui, un lien partagé ouvert
+   *  chez un lecteur qui n'a pas ce scénario en local n'a aucun moyen de
+   *  savoir sur quel millésime il a été bâti — voir `colonnesComparaison`. */
+  faceExercice: string;
+  /** D'où vient la colonne `face` : `"scenario"` pour le dépôt local,
+   *  `"reference:<slug>"` pour une entrée du fichier de référence (le slug
+   *  vide désignant le budget voté, qui n'en a pas). Le menu connaît cette
+   *  origine au moment du clic ; sans elle dans l'adresse, il fallait la
+   *  redeviner à partir du seul nom, et un homonyme local emportait alors
+   *  l'exercice, le serment et le lien d'une entrée de référence — l'en-tête
+   *  annonçait un millésime et un serment que la colonne n'avait pas.
+   *
+   *  Vide pour un lien antérieur à ce paramètre : le dépôt local passe alors
+   *  en premier, faute de mieux, et c'est le seul cas où deviner reste la
+   *  moins mauvaise réponse. */
+  faceSource: string;
 };
 
 const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as T;
@@ -278,6 +319,11 @@ function lireUrl(): Etat {
     voir: p.get("voir") === "tout" ? "tout" : "essentiel",
     budget: p.get("budget") ?? "",
     contrat: p.get("contrat") ?? "",
+    nom: p.get("nom") ?? "",
+    face: p.get("face") ?? "",
+    faceNom: p.get("face-nom") ?? "",
+    faceExercice: p.get("face-exercice") ?? "",
+    faceSource: p.get("face-source") ?? "",
   };
 }
 
@@ -296,6 +342,11 @@ function ecrireUrl(): void {
   if (etat.voir === "tout") p.set("voir", "tout");
   if (etat.budget) p.set("budget", etat.budget);
   if (etat.contrat) p.set("contrat", etat.contrat);
+  if (etat.nom) p.set("nom", etat.nom);
+  if (etat.face) p.set("face", etat.face);
+  if (etat.faceNom) p.set("face-nom", etat.faceNom);
+  if (etat.faceExercice) p.set("face-exercice", etat.faceExercice);
+  if (etat.faceSource) p.set("face-source", etat.faceSource);
   // Le chemin porte la vue, le fragment l'ancre interne : réécrire l'adresse
   // sans le chemin renverrait le lecteur du simulateur à la carte au premier
   // réglage.
@@ -2236,6 +2287,12 @@ const VOLETS_PUBLIES: VoletPublie[] = [
 /** Les volets dont l'index annonce un exercice, et leur millésime. */
 let exercicesParVolet: { volet: VoletPublie; exercice: string }[] = [];
 let atelierMonte = false;
+/** Les volets réellement montés dans l'atelier : posés une seule fois, à la
+ *  première ouverture (`ouvrirSimulateur`), et relus par tout ce qui doit
+ *  décoder un scénario ou construire une colonne comparée. Recharger un
+ *  scénario n'est jamais un rechargement de volets — seulement un nouvel état
+ *  décodé contre les mêmes volets déjà en place, voir `chargerScenario`. */
+let voletsMontes: Volet[] = [];
 
 function vuesConnues(): readonly string[] {
   return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
@@ -2477,6 +2534,598 @@ async function preparerSimulateur(): Promise<void> {
   if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur") basculerVue();
 }
 
+/* --------------------------------------------------------------------------
+ * Les scénarios : enregistrer, recharger, comparer.
+ *
+ * `scenarios.ts` connaît le cycle de vie, `comparaison.ts` l'alignement,
+ * `scenarios-rendu.ts` le rendu — ce bloc ne fait que les brancher au DOM et
+ * à l'adresse, comme le reste de ce fichier le fait pour chaque module.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Une entrée du fichier de référence produit au build (`prerendre.ts`) : le
+ * budget voté, et les chiffrages que portent les analyses publiées. Même
+ * forme que ce que `prerendre.ts` écrit — dupliquée, pas partagée, pour la
+ * même raison que sa valeur de repli de `BASE` : ce script tourne hors
+ * navigateur et ne peut pas importer `main.ts` (voir son en-tête).
+ */
+type EntreeReference = {
+  titre: string;
+  slug: string | null;
+  lien: string | null;
+  budget: string;
+  contrat: string;
+  exercice: string | null;
+};
+
+/** Les scénarios de référence, chargés une fois à l'ouverture du simulateur.
+ *  Vide tant qu'ils n'ont pas été chargés, ou si le fichier est absent — un
+ *  fichier absent ne casse rien, même règle que partout ailleurs sur le site
+ *  (`chargerAssociations`, `peindreMethode`…). */
+let referencesScenarios: EntreeReference[] = [];
+
+/** Le fichier lu est-il bien la liste attendue ? Un JSON valide mais qui n'est
+ *  pas un tableau — une page d'erreur JSON servie à la place du fichier, un
+ *  build partiel — passait l'affirmation de type sans broncher, puis faisait
+ *  lever `.map` à CHAQUE rendu de la barre, donc à chaque geste sur l'atelier.
+ *  Même contrôle que `estEnveloppe` (scenarios.ts) sur le dépôt local. */
+function estReferences(valeur: unknown): valeur is EntreeReference[] {
+  return (
+    Array.isArray(valeur) &&
+    valeur.every(
+      (e) =>
+        typeof e === "object" &&
+        e !== null &&
+        typeof (e as EntreeReference).titre === "string" &&
+        typeof (e as EntreeReference).budget === "string",
+    )
+  );
+}
+
+/** Charge `dist/simulateur/scenarios-reference.json` — un fichier du site lui-même,
+ *  pas une donnée publiée par le pipeline, donc un `fetch` direct plutôt
+ *  qu'un passage par `donnees.ts` (qui ne sait lire que la racine R2). */
+async function chargerReferences(): Promise<void> {
+  try {
+    const reponse = await fetch("/simulateur/scenarios-reference.json");
+    if (!reponse.ok) return;
+    const lu: unknown = await reponse.json();
+    if (estReferences(lu)) referencesScenarios = lu;
+  } catch {
+    // Fichier absent (build sans pré-rendu, ou hors production) : le
+    // simulateur reste utilisable, simplement sans comparables de référence.
+  }
+}
+
+/** Les lignes que le budget chargé portait et que la nomenclature courante ne
+ *  porte plus (`transposerBudget`, scenarios.ts) — nommées par
+ *  `montrerScenarios` jusqu'au prochain budget chargé ou à sa suppression.
+ *
+ *  `rienRepris` voyage avec elles parce que c'est un fait de la transposition :
+ *  le lecteur peut, après coup, remettre ses propres curseurs à zéro sans que
+ *  ça change quoi que ce soit à ce que la transposition avait su reprendre. */
+let disparuesCourantes: { lignes: string[]; rienRepris: boolean } = {
+  lignes: [],
+  rienRepris: false,
+};
+
+const CLE_SCENARIOS = "scenarios";
+
+/** Le dépôt de session : en mémoire, jamais `localStorage`. C'est sur lui
+ *  qu'on retombe quand le stockage est indisponible — navigation privée
+ *  stricte, où `localStorage.setItem` lève plutôt que d'être absent. */
+let contenuSession: string | null = null;
+const depotSession: Depot = {
+  lire: () => contenuSession,
+  ecrire: (c) => {
+    contenuSession = c;
+  },
+};
+
+const depotLocal: Depot = {
+  lire: () => {
+    try {
+      return localStorage.getItem(CLE_SCENARIOS);
+    } catch {
+      return null;
+    }
+  },
+  ecrire: (c) => {
+    try {
+      localStorage.setItem(CLE_SCENARIOS, c);
+    } catch {
+      // Persistance perdue, pas l'appel : `scenarios.ts` l'avale déjà (voir
+      // sa docstring), et `stockagePersistant()` a prévenu le lecteur avant
+      // même la première tentative d'écriture.
+    }
+  },
+};
+
+/**
+ * `localStorage` répond-il ? Sondé une fois, comme le thème (`brancherTheme`)
+ * le fait à l'écriture — sauf qu'ici l'appelant doit pouvoir LE DIRE au
+ * lecteur avant d'enregistrer quoi que ce soit, ce que `scenarios.ts` seul ne
+ * permet pas : il avale l'échec d'écriture sans le faire remonter. Une clé
+ * dédiée, jamais celle des scénarios, pour ne rien écraser en sondant.
+ */
+function stockagePersistant(): boolean {
+  try {
+    const sonde = "__sonde_stockage__";
+    localStorage.setItem(sonde, "1");
+    localStorage.removeItem(sonde);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+const persistant = stockagePersistant();
+const depotScenarios: Depot = persistant ? depotLocal : depotSession;
+
+/** L'exercice d'une colonne « vive », jamais enregistrée : celui du volet
+ *  État, qui donne le ton au reste de l'atelier, ou le premier exercice
+ *  publié s'il manque. Un scénario enregistré, lui, garde le sien —
+ *  `Comparable` (scenarios-rendu.ts) le porte depuis `Scenario.exercice`. */
+function exerciceCourant(): string | null {
+  return (
+    exercicesParVolet.find((e) => e.volet.cle === "etat")?.exercice ??
+    exercicesParVolet[0]?.exercice ??
+    null
+  );
+}
+
+/** Le scénario enregistré que l'état affiché **est** : même nom, et le même
+ *  budget que celui qui est à l'écran. Le nom seul ne suffit pas — deux
+ *  lecteurs appellent « Mon budget » deux budgets différents, et un lien
+ *  partagé `?nom=Mon budget&budget=…` ouvert chez celui qui a l'homonyme en
+ *  local ferait annoncer par la colonne l'exercice de SON scénario au-dessus
+ *  du budget de l'envoyeur. `undefined` alors : ce que l'écran montre ne vient
+ *  pas de ce scénario, donc rien n'en est emprunté — ni la marque « courant »
+ *  dans la barre, ni le nom et l'exercice en tête de colonne.
+ *
+ *  Le bouton de suppression, lui, ne s'y accroche pas : il agit sur un
+ *  scénario du dépôt, que l'écran en montre l'état exact ou une version
+ *  retouchée. Il a sa propre condition — que ce scénario existe (voir
+ *  `scenarioNomme`). */
+function scenarioCourant(): Scenario | undefined {
+  return etat.nom
+    ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom && s.budget === etat.budget)
+    : undefined;
+}
+
+/** Le scénario du dépôt que l'adresse nomme, s'il existe. Un lien partagé
+ *  porte `?nom=` sans rien garantir sur le dépôt de qui l'ouvre : offrir
+ *  « Supprimer « X » » pour un X que ce lecteur n'a pas, c'est offrir un
+ *  geste qui n'a rien à faire. */
+function scenarioNomme(): Scenario | undefined {
+  return etat.nom ? listerScenarios(depotScenarios).find((s) => s.nom === etat.nom) : undefined;
+}
+
+/** L'exercice que l'adresse porte, dit dans la sentinelle du modèle.
+ *
+ *  L'adresse ne sait dire « absent » qu'avec la chaîne vide : un paramètre non
+ *  écrit revient `""` de `lireUrl`. Le modèle ne le dit qu'avec `null`
+ *  (`Scenario.exercice`, `Comparable.exercice`). La conversion se fait ici et
+ *  nulle part ailleurs — mêler `??` et `||` dans une même expression, comme le
+ *  faisait `colonnesComparaison`, c'est tenir deux sentinelles à la fois. */
+function exercicePorte(): string | null {
+  return etat.faceExercice || null;
+}
+
+/** Une colonne comparée, transposée contre les volets montés. `exercice` est
+ *  `null` quand il n'y a authentiquement rien à afficher — jamais un exercice
+ *  plausible mais sans rapport avec ce que la colonne a réellement réglé.
+ *
+ *  `transposerBudget` plutôt que `decoder` (atelier.ts) : décoder seul laisse tomber
+ *  en silence les lignes que la nomenclature ne porte plus, puis l'en-tête
+ *  annonce un effort et un nombre de gestes calculés sur cet état tronqué. La
+ *  colonne emporte donc ce qu'elle a perdu, et le tableau le nomme sous elle.
+ *
+ *  `contrat` est le serment sous lequel ce budget a été bâti : la colonne le
+ *  porte pour que le tableau le NOMME, jamais pour l'appliquer — `etat.contrat`
+ *  est global à l'atelier, une colonne comparée ne peut pas imposer le sien.
+ *  `lien` mène à l'analyse dont la colonne vient, quand elle vient d'une
+ *  analyse ; `null` pour un budget du lecteur, qui n'a pas de page. */
+function colonneDepuis(
+  nom: string,
+  budget: string,
+  exercice: string | null,
+  contrat: string,
+  lien: string | null,
+): Comparable {
+  const { etat: etatColonne, disparues } = transposerBudget(budget, voletsMontes);
+  return {
+    nom,
+    etat: etatColonne,
+    effort: effortAtelier(voletsMontes, etatColonne),
+    gestes: gestesAtelier(voletsMontes, etatColonne),
+    exercice,
+    disparues,
+    contrat,
+    lien,
+  };
+}
+
+/** Les deux colonnes du mode comparaison : l'état courant (enregistré ou
+ *  vif), et la colonne `face` que l'adresse porte.
+ *
+ *  `exerciceCourant()` n'est légitime que pour un état VIF (`nom` vide) : il
+ *  décrit alors bien ce que l'atelier a sous les yeux. Dès qu'un nom est
+ *  porté sans scénario local correspondant — un lien partagé ouvert ailleurs
+ *  — rien ne dit sur quel exercice il a été bâti, et le proposer quand même
+ *  affiche un millésime plausible mais sans rapport avec ce que l'envoyeur a
+ *  réellement réglé : `null` dit l'inconnu plutôt que de le déguiser. Pour la
+ *  colonne `face`, l'adresse porte l'exercice explicitement (`face-exercice`)
+ *  : un lien récent le connaît, un lien antérieur à ce paramètre ne l'a pas
+ *  et retombe donc, lui aussi, sur `null`.
+ *
+ *  Une face qui n'est pas un scénario du lecteur peut être une entrée de
+ *  référence : elle apporte alors son serment et le lien de l'analyse dont
+ *  elle vient. C'est `etat.faceSource` qui dit laquelle des deux — l'origine
+ *  choisie dans le menu, portée par l'adresse — et non le nom, qui ne
+ *  distingue pas un scénario d'une référence homonymes. Deviner à partir du
+ *  nom faisait annoncer à une colonne de référence l'exercice et le serment
+ *  d'un scénario local sans rapport, et lui faisait perdre le lien vers son
+ *  analyse.
+ *
+ *  Un lien antérieur à `face-source` ne porte pas cette origine : le dépôt
+ *  local passe alors en premier. C'est le seul cas où deviner reste la moins
+ *  mauvaise réponse, et il se referme dès que le lecteur rechoisit sa face. */
+function colonnesComparaison(): Comparable[] {
+  const cleReference = etat.faceSource.startsWith("reference:")
+    ? etat.faceSource.slice("reference:".length)
+    : null;
+  const faceEnregistree =
+    cleReference === null && etat.faceNom
+      ? listerScenarios(depotScenarios).find((s) => s.nom === etat.faceNom)
+      : undefined;
+  const faceReference =
+    cleReference !== null
+      ? referencesScenarios.find((r) => (r.slug ?? "") === cleReference)
+      : faceEnregistree || etat.faceSource === "scenario"
+        ? undefined
+        : referencesScenarios.find((r) => r.titre === etat.faceNom);
+  const face = colonneDepuis(
+    (faceEnregistree?.nom ?? etat.faceNom) || "Comparaison",
+    etat.face,
+    faceEnregistree?.exercice ?? exercicePorte(),
+    faceEnregistree?.contrat ?? faceReference?.contrat ?? "",
+    faceReference?.lien ?? null,
+  );
+  const enregistre = scenarioCourant();
+  const nomCourant = (enregistre?.nom ?? etat.nom) || "Votre budget actuel";
+  const courante = colonneDepuis(
+    // Un nom désigne une colonne, jamais deux : deux colonnes homonymes
+    // au-dessus de deux budgets différents ne se distinguent par rien à
+    // l'écran. C'est la colonne vive qui cède le nom — « Votre budget
+    // actuel » est vrai d'elle quoi qu'il arrive, alors que celui de la face
+    // lui vient du dépôt ou du fichier de référence.
+    nomCourant === face.nom && etat.budget !== etat.face ? "Votre budget actuel" : nomCourant,
+    etat.budget,
+    enregistre?.exercice ?? (etat.nom ? null : exerciceCourant()),
+    // Le serment que l'atelier applique en ce moment : celui de l'adresse,
+    // pas celui de l'enregistrement, qui peut avoir été relâché depuis.
+    etat.contrat,
+    null,
+  );
+  return [courante, face];
+}
+
+/**
+ * Recharge un scénario : un ré-appel d'`afficherAtelier`, jamais une
+ * modification d'`atelier.ts`. `afficherAtelier` est déjà ré-entrante
+ * (`montage?.abort()` à son début, `simulateur-rendu.ts`) — recharger un
+ * scénario est exactement ce cas, un nouvel état décodé contre les mêmes
+ * `voletsMontes` déjà en place.
+ */
+function chargerScenario(nom: string): void {
+  const scenario = listerScenarios(depotScenarios).find((s) => s.nom === nom);
+  if (!scenario) return;
+  etat.nom = scenario.nom;
+  etat.budget = scenario.budget;
+  etat.contrat = scenario.contrat;
+  // Un scénario qui vient de se charger n'a plus de comparaison en cours :
+  // la garder pointerait sur un état qui n'est plus celui qu'on regarde.
+  etat.face = "";
+  etat.faceNom = "";
+  etat.faceExercice = "";
+  ecrireUrl();
+  // La nomenclature courante a pu laisser tomber des lignes depuis
+  // l'enregistrement de ce scénario : `transposer` les nomme, là où `decoder`
+  // seul les ignorerait en silence (voir sa docstring, atelier.ts).
+  const { etat: etatTranspose, disparues, rienRepris } = transposer(scenario, voletsMontes);
+  disparuesCourantes = { lignes: disparues, rienRepris };
+  afficherAtelier($("simu"), voletsMontes, {
+    etat: etatTranspose,
+    contrat: scenario.contrat || null,
+    surReglages: (encode: string, contrat: string | null) => {
+      etat.budget = encode;
+      etat.contrat = contrat ?? "";
+      ecrireUrl();
+      // Le tableau de comparaison, s'il est affiché, garde sinon l'effort et
+      // les gestes du dernier geste avant celui-ci — un lecteur peut alors
+      // comparer son réglage qui vient de changer contre une photo de ce
+      // qu'il valait avant.
+      montrerScenarios();
+    },
+  });
+  montrerScenarios();
+}
+
+/** Enregistre l'état affiché sous un nom demandé au lecteur. */
+function enregistrerScenarioCourant(): void {
+  const nom = window.prompt("Nom du scénario", etat.nom || "");
+  if (nom === null) return;
+  enregistrerScenario(depotScenarios, {
+    nom,
+    budget: etat.budget,
+    contrat: etat.contrat,
+    exercice: exerciceCourant(),
+  });
+  // `enregistrer` nettoie le nom (espaces, longueur) avant de l'écrire ; un
+  // nom vide ou fait d'espaces est refusé et ne doit pas marquer un scénario
+  // courant qui n'a pas été créé. La règle de nettoyage vient de `scenarios.ts`,
+  // jamais refaite ici : deux copies pouvaient s'écarter, et l'adresse aurait
+  // alors nommé autre chose que ce qui a été écrit.
+  const nomPropre = nomNettoye(nom);
+  if (nomPropre) {
+    etat.nom = nomPropre;
+    // Ce qui est enregistré, c'est l'état affiché : les lignes qu'un scénario
+    // chargé plus tôt avait perdues ne le décrivent plus. Sans cet oubli, la
+    // notice continuait à nommer les réglages perdus par un AUTRE scénario, et
+    // « Aucun réglage n'a pu être repris » restait affiché au-dessus des
+    // propres curseurs du lecteur. Un enregistrement refusé (nom vide) ne
+    // change rien à l'écran, donc n'efface rien.
+    disparuesCourantes = { lignes: [], rienRepris: false };
+    ecrireUrl();
+  }
+  montrerScenarios();
+}
+
+/**
+ * Renomme le scénario que l'adresse nomme.
+ *
+ * `renommer` (scenarios.ts) refuse un nom vide et un nom déjà pris par un
+ * AUTRE scénario — renommer vers un nom pris détruirait celui-là. La liste
+ * rendue dit lequel des deux s'est produit : le nom d'origine y survit quand
+ * le renommage a été refusé. L'adresse ne suit que sur un renommage
+ * réellement fait, sans quoi elle nommerait un scénario qui n'existe plus —
+ * le même soin que prend `supprimerScenarioCourant`.
+ */
+function renommerScenarioCourant(): void {
+  const cible = scenarioNomme();
+  if (!cible) return;
+  const saisi = window.prompt("Nouveau nom du scénario", cible.nom);
+  if (saisi === null) return;
+  const apres = renommerScenario(depotScenarios, cible.nom, saisi);
+  const nouveau = nomNettoye(saisi);
+  if (nouveau !== null && !apres.some((s) => s.nom === cible.nom)) {
+    etat.nom = nouveau;
+    ecrireUrl();
+  }
+  montrerScenarios();
+}
+
+/**
+ * Duplique le scénario que l'adresse nomme — le geste « créer mon
+ * alternative » (spec §11) : partir d'un budget déjà bâti sans le perdre.
+ *
+ * La copie ne devient pas le scénario courant : l'écran montre toujours le
+ * budget d'origine, et déplacer le nom de l'adresse sur la copie ferait
+ * marquer « courant » dans la barre un scénario que le lecteur n'a pas ouvert.
+ * `dupliquer` choisit lui-même le nom de la copie et garantit qu'il est libre.
+ */
+function dupliquerScenarioCourant(): void {
+  const cible = scenarioNomme();
+  if (!cible) return;
+  dupliquerScenario(depotScenarios, cible.nom);
+  montrerScenarios();
+}
+
+/** Supprime le scénario que l'adresse nomme actuellement. L'adresse ne doit
+ *  plus, ensuite, nommer un scénario qui n'existe plus : sans quoi la barre
+ *  perdrait sa marque « courant » sans rien dire, et un lien partagé
+ *  rouvrirait un nom fantôme. */
+function supprimerScenarioCourant(): void {
+  const cible = scenarioNomme();
+  if (!cible) return;
+  // Le bouton est dans la même rangée qu'« Enregistrer ce budget » et porte
+  // la même pilule : un clic à côté effaçait définitivement un scénario, sans
+  // retour possible. La question dit ce qui va se passer, elle n'avertit de
+  // rien d'autre.
+  if (!window.confirm(`Supprimer le scénario « ${cible.nom} » ?`)) return;
+  supprimerScenario(depotScenarios, cible.nom);
+  etat.nom = "";
+  // Le scénario supprimé n'est plus affiché : les lignes disparues qu'il
+  // portait n'ont plus de scénario à décrire.
+  disparuesCourantes = { lignes: [], rienRepris: false };
+  ecrireUrl();
+  montrerScenarios();
+}
+
+/**
+ * Une face a-t-elle été choisie ?
+ *
+ * C'est le choix qui ouvre la comparaison, jamais un budget non vide : le
+ * budget voté est l'atelier tous réglages à zéro (`budget: ""`), et un
+ * scénario que le lecteur enregistre sans avoir rien réglé l'est tout autant.
+ * Les tenir pour « pas de comparaison » n'affichait ni tableau ni bouton de
+ * fermeture, et refermait au passage la comparaison en cours.
+ *
+ * `faceNom` porte le fait dans tous les chemins de choix — un scénario a
+ * toujours un nom non vide (`scenarios.ts` refuse les autres), une entrée de
+ * référence toujours un titre. `face` compte aussi : un lien antérieur à
+ * `face-nom` porte un budget de face sans nom, et c'était bien une
+ * comparaison.
+ */
+function faceChoisie(): boolean {
+  return etat.faceNom !== "" || etat.face !== "";
+}
+
+/**
+ * La barre des scénarios, et le tableau de comparaison quand une face a été
+ * choisie. Reconstruite à chaque geste sur elle (enregistrer, charger,
+ * comparer, supprimer, fermer la comparaison) — jamais sur un réglage de
+ * l'atelier lui-même : voir la limite connue dans le rapport de la tâche.
+ */
+function montrerScenarios(): void {
+  const cible = document.getElementById("scenarios");
+  if (!cible || !voletsMontes.length) return;
+  const scenarios = listerScenarios(depotScenarios);
+
+  const avertissement = persistant
+    ? ""
+    : `<p class="scenarios-rendu__vide">Stockage indisponible (navigation privée) : vos scénarios ne survivent pas au rechargement de la page.</p>`;
+
+  // Les trois gestes qui portent sur un scénario du dépôt — renommer,
+  // dupliquer, supprimer — ne s'offrent que quand l'adresse en nomme un qui
+  // existe : proposer « Renommer « X » » pour un X que ce lecteur n'a pas,
+  // c'est offrir un geste qui n'a rien à faire (voir `scenarioNomme`). Chacun
+  // nomme sa cible, parce que l'écran peut montrer un budget retouché depuis.
+  const nomme = scenarioNomme();
+  const actions = `<div class="scenarios-rendu__liste">
+    <button type="button" class="scenarios-rendu__scenario" id="scenario-enregistrer">Enregistrer ce budget</button>${
+      nomme
+        ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-renommer">Renommer « ${echapper(
+            nomme.nom,
+          )} »</button><button type="button" class="scenarios-rendu__scenario" id="scenario-dupliquer">Dupliquer « ${echapper(
+            nomme.nom,
+          )} »</button><button type="button" class="scenarios-rendu__scenario" id="scenario-supprimer">Supprimer « ${echapper(
+            nomme.nom,
+          )} »</button>`
+        : ""
+    }
+  </div>`;
+
+  // Les scénarios du lecteur, et ceux du fichier de référence (budget voté,
+  // chiffrages des analyses) — deux groupes distincts dans le même menu :
+  // les seconds ne viennent pas du dépôt local, `Comparer à` doit le dire.
+  // La marque « selected » se décide sur l'origine, jamais sur le libellé :
+  // un scénario du lecteur et une entrée de référence peuvent porter le même
+  // nom, et les deux options s'allumaient alors ensemble.
+  const optionsScenarios = scenarios
+    .map(
+      (s) =>
+        `<option value="scenario:${echapper(s.nom)}"${
+          etat.faceSource === "scenario" && s.nom === etat.faceNom ? " selected" : ""
+        }>${echapper(s.nom)}</option>`,
+    )
+    .join("");
+  // Le budget voté n'a pas de slug : sa clé est la chaîne vide, qu'aucune
+  // analyse ne peut porter. Une clé littérale (« neutre ») était collisionnable
+  // par une analyse au slug homonyme, qui se serait affichée sous son titre
+  // avec le budget voté dessous.
+  const optionsReferences = referencesScenarios
+    .map(
+      (r) =>
+        `<option value="reference:${echapper(r.slug ?? "")}"${
+          etat.faceSource === `reference:${r.slug ?? ""}` ? " selected" : ""
+        }>${echapper(r.titre)}</option>`,
+    )
+    .join("");
+
+  // `scenarios-rendu__vide` dit « il n'y a rien ici », cadre pointillé compris :
+  // le choix d'une face n'est pas un état vide, il ne s'affiche que quand il y
+  // a quelque chose à comparer. Sa propre classe, donc.
+  const choix = scenarios.length || referencesScenarios.length
+    ? `<p class="scenarios-rendu__choix">
+        <label for="scenario-face">Comparer à</label>
+        <select id="scenario-face" class="pilule pilule--menu">
+          <option value="">— choisir —</option>
+          ${optionsScenarios ? `<optgroup label="Vos scénarios">${optionsScenarios}</optgroup>` : ""}
+          ${optionsReferences ? `<optgroup label="Références">${optionsReferences}</optgroup>` : ""}
+        </select>${
+          faceChoisie()
+            ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-fermer-comparaison">Fermer la comparaison</button>`
+            : ""
+        }
+      </p>`
+    : "";
+
+  // Les lignes qu'un scénario chargé portait et que la nomenclature courante
+  // ne porte plus — nommées, jamais seulement comptées (voir `transposer`,
+  // scenarios.ts).
+  const disparues = renduDisparues(disparuesCourantes.lignes, disparuesCourantes.rienRepris);
+
+  const tableau = faceChoisie()
+    ? (() => {
+        const colonnes = colonnesComparaison();
+        return renduComparaison(colonnes, comparerScenarios(voletsMontes, colonnes));
+      })()
+    : "";
+
+  cible.innerHTML =
+    avertissement +
+    // La marque « courant » dit « c'est cela que vous regardez » : elle suit
+    // donc `scenarioCourant()`, pas le nom nu. Un curseur bougé, et l'écran
+    // ne montre plus ce scénario — le marquer encore serait le prétendre.
+    renduBarre(scenarios, scenarioCourant()?.nom ?? null) +
+    actions +
+    disparues +
+    choix +
+    tableau;
+}
+
+/** Les écouteurs de la barre, posés une seule fois : `#scenarios` n'est
+ *  jamais remplacé, seul son contenu l'est à chaque `montrerScenarios()` —
+ *  les poser à chaque rendu les aurait empilés, comme pour l'atelier sans son
+ *  `AbortController`. */
+function brancherScenarios(): void {
+  const cible = document.getElementById("scenarios");
+  if (!cible) return;
+  cible.addEventListener("click", (evenement) => {
+    const cibleClic = evenement.target as HTMLElement;
+    const boutonScenario = cibleClic.closest<HTMLButtonElement>("[data-nom]");
+    if (boutonScenario?.dataset.nom) return chargerScenario(boutonScenario.dataset.nom);
+    if (cibleClic.closest("#scenario-enregistrer")) return enregistrerScenarioCourant();
+    if (cibleClic.closest("#scenario-renommer")) return renommerScenarioCourant();
+    if (cibleClic.closest("#scenario-dupliquer")) return dupliquerScenarioCourant();
+    if (cibleClic.closest("#scenario-supprimer")) return supprimerScenarioCourant();
+    if (cibleClic.closest("#scenario-fermer-comparaison")) {
+      etat.face = "";
+      etat.faceNom = "";
+      etat.faceExercice = "";
+      etat.faceSource = "";
+      ecrireUrl();
+      return montrerScenarios();
+    }
+  });
+  cible.addEventListener("change", (evenement) => {
+    const champ = (evenement.target as HTMLElement).closest<HTMLSelectElement>("#scenario-face");
+    if (!champ) return;
+    // Le préfixe dit d'où vient la sélection : un scénario du dépôt local,
+    // ou une entrée du fichier de référence (voir le rendu du menu,
+    // `montrerScenarios`).
+    if (champ.value.startsWith("reference:")) {
+      const cle = champ.value.slice("reference:".length);
+      const reference = referencesScenarios.find((r) => (r.slug ?? "") === cle);
+      etat.face = reference?.budget ?? "";
+      etat.faceNom = reference?.titre ?? "";
+      etat.faceSource = reference ? `reference:${reference.slug ?? ""}` : "";
+      // Le budget voté (`slug: null`) N'EST PAS un scénario dont on ignore
+      // l'origine : c'est l'atelier tel que monté à l'instant, donc le même
+      // exercice que la colonne « vive » — `exerciceCourant()` le dit vrai,
+      // ce n'est pas un repli plausible. Une entrée issue d'une analyse, elle,
+      // ne porte aucun exercice vérifiable (voir prerendre.ts,
+      // `entreesReference`) : `null` reste honnête, jamais deviné.
+      etat.faceExercice = !reference
+        ? ""
+        : reference.slug === null
+          ? exerciceCourant() ?? ""
+          : reference.exercice ?? "";
+    } else {
+      const nom = champ.value.startsWith("scenario:") ? champ.value.slice("scenario:".length) : "";
+      const choisi = listerScenarios(depotScenarios).find((s) => s.nom === nom);
+      etat.face = choisi?.budget ?? "";
+      etat.faceNom = choisi?.nom ?? "";
+      etat.faceExercice = choisi?.exercice ?? "";
+      etat.faceSource = choisi ? "scenario" : "";
+    }
+    ecrireUrl();
+    montrerScenarios();
+  });
+}
+
 /**
  * L'atelier, monté une seule fois.
  *
@@ -2503,13 +3152,29 @@ async function ouvrirSimulateur(): Promise<void> {
     atelierMonte = false;
     return basculerVue();
   }
+  voletsMontes = volets;
+  // Le budget que l'adresse porte passe par la même porte qu'un scénario
+  // cliqué : c'est le chemin d'un lien partagé et du bouton « Rejouer » d'une
+  // analyse, donc précisément celui où le lecteur n'a aucune autre copie de ce
+  // que ce budget contenait. `decoder` seul aurait laissé tomber sans un mot
+  // les lignes que la nomenclature ne porte plus.
+  const ouverture = transposerBudget(etat.budget, volets);
+  disparuesCourantes = { lignes: ouverture.disparues, rienRepris: ouverture.rienRepris };
   afficherAtelier($("simu"), volets, {
-    etat: decoderAtelier(etat.budget, volets),
+    etat: ouverture.etat,
     contrat: etat.contrat || null,
     surReglages: (encode: string, contrat: string | null) => {
       etat.budget = encode;
       etat.contrat = contrat ?? "";
       ecrireUrl();
+      // Sans cet appel, la colonne « courante » du tableau de comparaison
+      // gardait l'effort et les gestes du geste précédent : un lecteur
+      // comparait alors son réglage tout juste changé à une photo de ce
+      // qu'il valait avant. `montrerScenarios()` est déjà la fonction qui
+      // reconstruit ce tableau ailleurs (chargement, enregistrement,
+      // suppression) ; elle ne touche que `#scenarios`, jamais `#simu` où vit
+      // l'atelier, donc rien n'y perd le focus.
+      montrerScenarios();
     },
   });
   // Le récapitulatif ne se règle pas : il dit ce que les budgets réglables ne
@@ -2527,6 +3192,17 @@ async function ouvrirSimulateur(): Promise<void> {
     // Fichier non publié : l'atelier reste entier, le cadre reste caché.
     $("simu-recapitulatif").hidden = true;
   }
+  // La barre des scénarios est montée après l'atelier, mais elle ne dépend
+  // pas de lui : elle lit le dépôt, jamais `#simu`. Les écouteurs ne sont
+  // posés qu'une fois — `ouvrirSimulateur` elle-même ne s'exécute qu'une
+  // fois, gardée par `atelierMonte` en tête de fonction.
+  //
+  // Le fichier de référence (budget voté, chiffrages des analyses) est chargé
+  // avant de peindre la barre : ses entrées doivent apparaître dès le premier
+  // rendu, pas surgir après coup dans le menu.
+  await chargerReferences();
+  brancherScenarios();
+  montrerScenarios();
 }
 
 async function demarrer(): Promise<void> {

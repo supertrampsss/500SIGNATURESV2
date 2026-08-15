@@ -5922,3 +5922,191 @@ body[data-carte="oui"] .legende {
     height: 18rem;
   }
 }
+
+/* ===========================================================================
+   LA BARRE DE SCÉNARIOS ET LE TABLEAU DE COMPARAISON — `scenarios-rendu.ts`
+   ===========================================================================
+   Même filet de pilules que le reste du site (`.pilule`), même tableau
+   défilant que `.analyse-rendu__tableau` : cette barre et ce tableau
+   reprennent le système existant plutôt que d'en ouvrir un nouveau. */
+.scenarios-rendu__barre {
+  margin-bottom: var(--espace-5);
+}
+.scenarios-rendu__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-3);
+}
+.scenarios-rendu__scenario {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font-size: var(--texte-s);
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.scenarios-rendu__scenario:hover,
+.scenarios-rendu__scenario:focus-visible {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+/* Le scénario courant se marque par le fond, pas par une couleur de
+   jugement : aucun scénario n'est meilleur qu'un autre, celui-ci est
+   seulement celui qui est ouvert. */
+.scenarios-rendu__scenario--courant {
+  border-color: var(--encre);
+  background: var(--papier-creuse);
+  font-weight: 600;
+}
+.scenarios-rendu__vide {
+  margin: 0;
+  padding: var(--espace-5);
+  border: 1px dashed var(--trait-fort);
+  border-radius: var(--rayon);
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+/* Le choix d'une face n'est pas un état vide : il ne s'affiche que quand il y
+   a quelque chose à comparer, et il porte une commande. Il empruntait le cadre
+   pointillé de `__vide`, qui dit « il n'y a rien ici ». */
+.scenarios-rendu__choix {
+  margin: var(--espace-5) 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-3);
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+/* Le tableau déborde sur téléphone plutôt que d'écraser les colonnes : c'est
+   lui qui défile, jamais la page entière (même règle que
+   `.analyse-rendu__defilement`). */
+.scenarios-rendu__defilement {
+  overflow-x: auto;
+}
+.scenarios-rendu__tableau {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texte-s);
+}
+.scenarios-rendu__tableau caption {
+  margin-bottom: var(--espace-4);
+  text-align: left;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.scenarios-rendu__tableau th[scope="col"] {
+  text-align: right;
+  white-space: nowrap;
+  padding: 0 0 var(--espace-4) var(--espace-6);
+  border-bottom: 1px solid var(--trait);
+}
+.scenarios-rendu__tableau th[scope="col"]:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.scenarios-rendu__entete {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-1);
+}
+.scenarios-rendu__nom-colonne {
+  font-size: var(--texte-m);
+  font-weight: 600;
+  color: var(--encre);
+}
+/* Le montant en tête de colonne porte son nom au-dessus de lui, comme
+   `.simu__effort-quoi` au-dessus de `.simu__effort-val` dans l'atelier : sans
+   ce mot, un montant isolé et gras au-dessus d'une colonne d'écarts se lit
+   comme le total de la colonne. */
+.scenarios-rendu__effort-quoi,
+.scenarios-rendu__exercice-colonne,
+.scenarios-rendu__gestes-colonne {
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--encre-douce);
+}
+.scenarios-rendu__effort-colonne {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  color: var(--encre);
+}
+.scenarios-rendu__tableau th[scope="row"] {
+  text-align: left;
+  font-weight: 400;
+  padding: var(--espace-4) var(--espace-6) var(--espace-4) 0;
+  border-top: 1px solid var(--trait);
+}
+.scenarios-rendu__tableau tbody tr:first-child th {
+  border-top: 0;
+}
+.scenarios-rendu__cellule {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+  padding: var(--espace-4) 0 var(--espace-4) var(--espace-6);
+  border-top: 1px solid var(--trait);
+}
+/* Une cellule que la colonne n'a pas touchée ne porte aucun montant : elle se
+   lit en italique, à gauche, pour ne jamais se confondre au premier coup
+   d'œil avec un écart réglé à zéro — voir la docstring de comparaison.ts. */
+.scenarios-rendu__cellule--non-reglee {
+  text-align: left;
+  font-variant-numeric: normal;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--encre-douce);
+}
+
+/* Le titre d'une colonne qui vient d'une analyse y ramène : même soulignement
+   que les liens de la page d'analyse (`.analyse-rendu__chemin a`). */
+.scenarios-rendu__lien-colonne {
+  color: var(--encre);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+/* La contrainte sous laquelle un budget a été bâti est une phrase, pas une
+   étiquette : elle ne prend ni la capitale ni l'interlettrage des deux autres
+   mentions de l'en-tête, et elle revient à la ligne — l'en-tête est en
+   `nowrap`, une phrase y étirerait la colonne. */
+.scenarios-rendu__contrainte-colonne {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  white-space: normal;
+  max-width: 14rem;
+}
+
+/* Les lignes qu'une transposition n'a pas pu reprendre. Le même cadre creusé
+   que le reste de la barre (`.scenarios-rendu__vide`), jamais une couleur
+   d'alerte : ce bloc énonce un fait — ces décisions-là n'ont pas de ligne où
+   se poser cette année — il n'avertit pas le lecteur de se méfier. */
+.scenarios-rendu__disparues {
+  margin: var(--espace-5) 0;
+  padding: var(--espace-5);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier-creuse);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.scenarios-rendu__disparues p {
+  margin: 0 0 var(--espace-3);
+}
+.scenarios-rendu__disparues ul {
+  margin: 0;
+  padding-left: var(--espace-5);
+}
+.scenarios-rendu__disparues li {
+  padding: var(--espace-1) 0;
+}
