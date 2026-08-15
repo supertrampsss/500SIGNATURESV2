@@ -381,7 +381,21 @@ function dessiner(cadre: Cadre): string {
       texte(ligne, MARGE, TITRE_HAUT + creux + i * INTERLIGNE_TITRE, TAILLE_TITRE, ACCENT),
     )
     .join("");
-  const source = `Source : ${cadre.source.titre} · millésime ${cadre.source.millesime}`;
+  // La source se replie, le millésime jamais. Repliée d'un bloc, la ligne
+  // « Source : … · millésime 2025 » se coupait par la QUEUE : sur la première
+  // source réelle du site — l'intitulé d'un projet de loi de règlement, 110
+  // caractères — l'image partait en affirmant un chiffre sans date, ce que
+  // toute la carte existe pour empêcher. Le millésime prend donc sa place
+  // d'abord, et l'intitulé reçoit ce qui reste.
+  const millesime = ` · millésime ${cadre.source.millesime}`;
+  const largeurSource = (LARGEUR_UTILE * 2) / 3 - GOUTTIERE;
+  const source =
+    (replier(
+      `Source : ${cadre.source.titre}`,
+      TAILLE_PIED,
+      largeurSource - largeurApprochee(millesime, TAILLE_PIED),
+      1,
+    )[0] ?? "") + millesime;
   const pied =
     texte(
       replier(cadre.unite, TAILLE_PIED, LARGEUR_UTILE, 1)[0] ?? "",
@@ -398,13 +412,7 @@ function dessiner(cadre: Cadre): string {
       ENCRE_SOURDE,
       "end",
     ) +
-    texte(
-      replier(source, TAILLE_PIED, (LARGEUR_UTILE * 2) / 3 - GOUTTIERE, 1)[0] ?? "",
-      MARGE,
-      PIED_SOURCE,
-      TAILLE_PIED,
-      ENCRE_SOURDE,
-    );
+    texte(source, MARGE, PIED_SOURCE, TAILLE_PIED, ENCRE_SOURDE);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${LARGEUR}" height="${HAUTEUR}" viewBox="0 0 ${LARGEUR} ${HAUTEUR}" role="img"><title>${echapper(
     `${cadre.chapeau} — ${cadre.titre}`,
   )}</title><rect x="0" y="0" width="${LARGEUR}" height="${HAUTEUR}" fill="${FOND}"></rect><rect x="0" y="0" width="${LARGEUR}" height="10" fill="${ACCENT}"></rect>${texte(

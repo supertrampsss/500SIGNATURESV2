@@ -702,6 +702,37 @@ test("28. une carte sans source, sans millésime ou sans adresse ne se dessine p
   assert.throws(() => carteReperes({ ...REPERES, site: "" }), /Carte de partage sans/);
 });
 
+/** Un intitulé de source de la longueur de ceux que le site cite vraiment : la
+ *  première analyse publiée nomme un projet de loi de règlement en 110
+ *  caractères. Ce n'est pas un cas extrême, c'est le cas ordinaire. */
+const SOURCE_LONGUE: SourceCarte = {
+  titre:
+    "Projet de loi relatif aux résultats de la gestion et portant approbation " +
+    "des comptes de l'année (PLRG) 2025, annexe 1",
+  millesime: "2025",
+};
+
+test("28 bis. une source longue est coupée, son millésime jamais", () => {
+  // Repliée d'un bloc, la ligne du pied se coupait par la queue : le millésime
+  // partait avec, et l'image affirmait un chiffre sans date — vu sur le PNG de
+  // la première analyse publiée, pas sur une chaîne d'essai.
+  for (const [nom, svg] of [
+    ["analyse", carteAnalyse({ ...ANALYSE, source: SOURCE_LONGUE })],
+    ["scénario", carteScenario({ ...SCENARIO, source: SOURCE_LONGUE })],
+    ["comparaison", carteComparaison({ ...COMPARAISON, source: SOURCE_LONGUE })],
+    ["fiche", carteFiche({ ...FICHE, source: SOURCE_LONGUE })],
+    ["repère", carteReperes({ ...REPERES, source: SOURCE_LONGUE })],
+  ] as [string, string][]) {
+    const lu = peints(svg).map((t) => t.contenu);
+    assert.ok(lu.some((t) => t.includes("millésime 2025")), `${nom} : millésime perdu à la coupe`);
+    assert.ok(lu.some((t) => t.includes("Projet de loi")), `${nom} : source absente`);
+    // Et ce qui est gagné ne l'est pas sur le cadre ni sur le voisin.
+    assert.deepEqual(debordements(svg), [], nom);
+    assert.deepEqual(recouvrements(svg), [], nom);
+    assert.deepEqual(horsBandes(svg), [], nom);
+  }
+});
+
 test("29. replier coupe au mot, et coupe en dur un mot plus long qu'une ligne", () => {
   assert.deepEqual(replier("un deux trois", 20, 400, 3), ["un deux trois"]);
   const lignes = replier("un deux trois quatre cinq six sept huit neuf dix onze", 20, 120, 2);

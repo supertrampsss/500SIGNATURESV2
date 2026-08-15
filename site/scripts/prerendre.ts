@@ -20,11 +20,13 @@
  * `validerLiensSimulateur`).
  */
 
-import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
+import { access, readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
+import { carteAnalyse, carteReperes, type DonneesAnalyse, type DonneesReperes } from "../src/carte-og.ts";
+import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { indexer, type Budget } from "../src/simulateur.ts";
 import { exercicesPublies } from "../src/simulateur-rendu.ts";
@@ -41,6 +43,71 @@ const DOSSIER_ANALYSES = path.join(RACINE_SITE, "analyses");
 /** Même valeur de repli que `src/donnees.ts` — dupliquée, pas importée : voir
  *  l'en-tête du fichier. */
 const BASE = process.env.VITE_DONNEES_URL ?? "https://pub-fc39d357004540a182a907aed4875ef5.r2.dev";
+
+/* --------------------------------------------------------------------------
+ * L'adresse de publication du site.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * L'adresse que le déploiement vérifie déjà à chaque publication.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI CETTE ADRESSE-LÀ, ET SUR QUELLE PREUVE
+ * ─────────────────────────────────────────────────────────────────────────
+ * `og:image` et `og:url` doivent être **absolues** : une adresse relative
+ * n'est pas résolue par tous les robots, et la carte de lien part alors sans
+ * image. Il faut donc un domaine — et un domaine inventé sur une image qui
+ * circule serait un faux publié.
+ *
+ * `deploy.yml` ne donne que `--project-name=plateforme`. **Le déduire du nom
+ * du projet donnerait `plateforme.pages.dev`, qui est faux** : Cloudflare a
+ * attribué au projet le sous-domaine `plateforme-9sz`. Ce n'est pas une
+ * supposition — la dernière étape du même workflow (`python -m plateforme.cors`)
+ * rejoue à chaque déploiement la requête du navigateur avec l'en-tête
+ * `Origin: https://plateforme-9sz.pages.dev` (défaut de `plateforme/cors.py`)
+ * et échoue si le bucket ne l'autorise pas ; le README publie la même adresse.
+ * C'est donc l'adresse dont ce dépôt dispose vraiment.
+ *
+ * Elle reste pour autant un **paramètre**, comme `VITE_DONNEES_URL` ci-dessus :
+ * `SITE_URL` la remplace, et `deploy.yml` la pose une seule fois pour le
+ * pré-rendu comme pour le contrôle CORS. Le jour où le site prend un domaine
+ * propre, une ligne du workflow change — pas une constante enfouie dans un
+ * script.
+ */
+export const ADRESSE_PUBLIEE = "https://plateforme-9sz.pages.dev";
+
+/**
+ * L'adresse du site, lue dans l'environnement, sans barre finale.
+ *
+ * Ce qui n'est pas une origine absolue est **refusé** plutôt que recollé :
+ * `SITE_URL=/` ou `SITE_URL=plateforme-9sz.pages.dev` produiraient des
+ * `og:image` que les robots ne résolvent pas, c'est-à-dire exactement le défaut
+ * que les balises absolues existent pour éviter — et il ne se verrait qu'une
+ * fois le lien partagé.
+ */
+export function adresseSite(env: Record<string, string | undefined>): string {
+  const brute = (env.SITE_URL ?? ADRESSE_PUBLIEE).trim().replace(/\/+$/, "");
+  if (!/^https?:\/\/[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d+)?$/.test(brute)) {
+    throw new Error(
+      `SITE_URL doit être une origine absolue (« https://exemple.fr »), reçu « ${brute} » : ` +
+        "une adresse relative dans og:image n'est pas résolue par les robots.",
+    );
+  }
+  return brute;
+}
+
+const SITE = adresseSite(process.env);
+
+/**
+ * L'adresse telle qu'une carte la peint : l'hôte seul.
+ *
+ * Le pied d'une carte réserve un tiers de sa largeur à l'adresse. L'URL entière
+ * n'y tenait pas et sortait coupée — « https://plateforme-9sz.pages.… » — soit
+ * une adresse fausse sur une image qui circule, pour huit caractères de schéma
+ * que personne ne lit. C'est aussi la forme que `carte-og.ts` attend : son
+ * champ `site` est un hôte, pas un lien.
+ */
+const HOTE = new URL(SITE).host;
 
 async function lireJson<T>(url: string): Promise<T> {
   let reponse: Response;
@@ -185,6 +252,145 @@ async function validerLiensSimulateur(analyses: readonly Analyse[], racineDonnee
 }
 
 /* --------------------------------------------------------------------------
+ * Les images de partage, rasterisées au build.
+ *
+ * Une par analyse, plus une carte du site qui sert de repli à toute page sans
+ * image propre. Les analyses sont celles que `chargerAnalyses` a lues et que
+ * le contrôle déterministe (`python -m plateforme.controle_analyses`, avant le
+ * build dans deploy.yml) a validées : même flux et même garantie que le
+ * pré-rendu HTML — aucune image ne porte un chiffre que le contrôle n'a pas vu.
+ * ----------------------------------------------------------------------- */
+
+/** Le chemin, dans le site, de la carte de repli. */
+const IMAGE_SITE = "/carte.png";
+
+/** L'unité que le catalogue déclare pour un indicateur, ou `null` quand il ne
+ *  le connaît pas — jamais un repli sur « EUR », qui peindrait un taux ou un
+ *  effectif en montant. */
+function uniteCataloguee(catalogue: readonly Indicateur[], id: string): string | null {
+  return catalogue.find((indicateur) => indicateur.id === id)?.unite ?? null;
+}
+
+/**
+ * Ce qu'une analyse donne à peindre : son titre, son premier chiffre, son cran,
+ * sa source et le millésime de ce chiffre.
+ *
+ * Le premier chiffre, et lui seul : une carte porte au plus trois rangées, et
+ * c'est celui que l'étage « express » de la page met en tête (analyse-rendu.ts).
+ *
+ * Le chiffre des comptes n'est peint **que** si le catalogue déclare son
+ * indicateur en euros : `carteAnalyse` le formate en millions d'euros, et un
+ * taux passé là deviendrait un montant. Sinon la rangée disparaît — le cran dit
+ * le reste, et `carteAnalyse` prévoit ce cas.
+ *
+ * Le millésime est l'**exercice** du chiffre, pas la date de publication de
+ * l'analyse : c'est la date que le lecteur d'une image cherche. Une analyse qui
+ * n'en déclare aucun fait rougir le build plutôt que partir avec un millésime
+ * plausible — une image circule seule, et une date inventée dessus ne se
+ * rattrape pas.
+ */
+export function donneesCarteAnalyse(
+  analyse: Analyse,
+  catalogue: readonly Indicateur[],
+  site: string,
+): DonneesAnalyse {
+  const chiffre = analyse.chiffres[0];
+  if (!chiffre) {
+    throw new Error(`L'analyse "${analyse.slug}" ne porte aucun chiffre : rien à peindre sur une carte.`);
+  }
+  const exercice =
+    chiffre.observe?.periode ??
+    analyse.chiffres
+      .map((autre) => autre.observe?.periode)
+      .filter((periode): periode is string => !!periode)
+      .sort()
+      .pop();
+  if (!exercice) {
+    throw new Error(
+      `L'analyse "${analyse.slug}" ne déclare aucun exercice : sa carte de partage circulerait ` +
+        "en affirmant un chiffre sans millésime.",
+    );
+  }
+  const enEuros =
+    chiffre.observe !== undefined &&
+    uniteCataloguee(catalogue, chiffre.observe.indicateur) === "EUR";
+  // La provenance déclarée par l'analyse elle-même — la même que l'étage
+  // « preuve » de la page cite (analyse-rendu.ts), jamais un champ du
+  // catalogue que le rendu ne peut pas vérifier.
+  const source = analyse.sources[0] ?? analyse.affirmation.source;
+  return {
+    titre: analyse.titre,
+    dit: chiffre.dit,
+    observe: enEuros ? chiffre.observe!.valeur : null,
+    cran: analyse.verdict.cran,
+    source: { titre: source.titre, millesime: exercice },
+    site,
+  };
+}
+
+/**
+ * La carte du site : ce que voit un lecteur à qui l'on partage une page qui n'a
+ * pas d'image propre.
+ *
+ * Rien n'y est inventé. Le titre est celui que le gabarit porte déjà — les mots
+ * du site, pas une accroche écrite pour l'occasion. La source est le fichier
+ * d'indicateurs que ce build vient de lire, et son millésime la version de
+ * publication qu'il a lue : la valeur que l'étage « preuve » d'une page
+ * d'analyse affiche déjà sous « Millésime ».
+ *
+ * La ligne d'unité ne dit **pas** « Montants en millions d'euros » : cette
+ * carte ne peint aucun montant, et annoncer une unité qu'aucun nombre ne porte
+ * serait faux — c'est la règle que `carteFiche` applique déjà quand aucun de
+ * ses chiffres n'est en euros. Elle dit ce que sont les données du site, dans
+ * les mots du sous-titre du gabarit.
+ *
+ * La nature empruntée est celle du repère, la seule des cinq qui porte un titre
+ * seul, sans corps. Le chapeau lira donc « Repère » — écart consigné dans le
+ * rapport de la tâche : `carte-og.ts` publie cinq natures d'objet partageable,
+ * et le site lui-même n'en est pas une.
+ */
+export function donneesCarteSite(titreSite: string, version: string, site: string): DonneesReperes {
+  return {
+    titre: titreSite,
+    unite: "Données officielles, territoire par territoire",
+    source: { titre: "Indicateurs publiés", millesime: version },
+    site,
+  };
+}
+
+/** Le titre du gabarit — celui que Vite a construit. Une balise `<title>`
+ *  renommée fait rougir ici plutôt que de peindre une carte sans titre. */
+export function titreDuGabarit(shell: string): string {
+  const titre = shell.match(/<title>([\s\S]*?)<\/title>/)?.[1]?.trim();
+  if (!titre) throw new Error("Le gabarit ne porte pas de <title> : la carte du site n'a rien à peindre.");
+  return titre;
+}
+
+/** Écrit les images : une par analyse, plus la carte du site. */
+async function ecrireCartes(
+  analyses: readonly Analyse[],
+  catalogue: readonly Indicateur[],
+  version: string,
+  shell: string,
+): Promise<void> {
+  // Les octets de la fonte, lus une fois : sans eux, resvg peint le fond et
+  // pas une lettre, et le PNG sort à la bonne taille, non vide, et faux
+  // (scripts/rasteriser.ts).
+  const polices = await lirePolices();
+  const ecrire = async (dossier: string, svg: string): Promise<void> => {
+    await mkdir(dossier, { recursive: true });
+    await writeFile(path.join(dossier, "carte.png"), await rasteriser(svg, polices));
+  };
+  for (const analyse of analyses) {
+    await ecrire(
+      path.join(DIST, "analyses", analyse.slug),
+      carteAnalyse(donneesCarteAnalyse(analyse, catalogue, HOTE)),
+    );
+  }
+  await ecrire(DIST, carteReperes(donneesCarteSite(titreDuGabarit(shell), version, HOTE)));
+}
+
+/* --------------------------------------------------------------------------
  * Les scénarios de référence : le budget voté, et les chiffrages que portent
  * les analyses déjà contrôlées.
  *
@@ -263,7 +469,41 @@ async function ecrireScenariosReference(analyses: readonly Analyse[]): Promise<v
  * Le gabarit : le shell construit par Vite, réutilisé pour chaque page.
  * ----------------------------------------------------------------------- */
 
-type Page = { titre: string; description: string; canonique: string; corps: string };
+type Page = {
+  titre: string;
+  description: string;
+  canonique: string;
+  /** Le chemin, dans le site, de l'image de partage de cette page. */
+  image: string;
+  corps: string;
+};
+
+/**
+ * Les balises que lisent les robots des plateformes pour composer la carte de
+ * lien.
+ *
+ * `og:url` et `og:image` sont **absolues**, et c'est tout l'objet du paramètre
+ * `site` : une adresse relative n'est pas résolue par tous les robots, et le
+ * lien part alors sans image — un aperçu vide, qui est pire que pas d'aperçu.
+ *
+ * `og:` s'écrit en `property` (RDFa, ce qu'Open Graph demande) et `twitter:` en
+ * `name` : recopier `property` partout est le raccourci habituel, et la carte
+ * de X n'est plus lue par les validateurs stricts.
+ */
+function balisesPartage(page: Page, site: string): string {
+  const og: [string, string][] = [
+    ["og:title", page.titre],
+    ["og:description", page.description],
+    ["og:url", `${site}${page.canonique}`],
+    ["og:image", `${site}${page.image}`],
+  ];
+  return (
+    og.map(([nom, valeur]) => `  <meta property="${nom}" content="${echapper(valeur)}" />\n`).join("") +
+    // La carte large : c'est le format des images de partage du site, 1200 × 630
+    // (carte-og.ts). En `summary`, X rognerait la carte au carré, sur le titre.
+    `  <meta name="twitter:card" content="summary_large_image" />\n`
+  );
+}
 
 /**
  * Injecte une page dans le shell. `echapper` (texte.ts) échappe `&<>"'` — donc
@@ -272,7 +512,7 @@ type Page = { titre: string; description: string; canonique: string; corps: stri
  * contextes sont couverts par le même échappement, jamais par une
  * concaténation brute.
  */
-function injecter(shell: string, page: Page): string {
+export function injecter(shell: string, page: Page, site: string): string {
   // Remplaçants sous forme de fonction partout, jamais de chaîne : passée en
   // second argument de `replace`, une chaîne de remplacement interprète `$&`,
   // `$1`, `$$`… comme des motifs spéciaux — un titre ou une phrase de verdict
@@ -308,6 +548,11 @@ function injecter(shell: string, page: Page): string {
       "</head>",
       () => `  <link rel="canonical" href="${echapper(page.canonique)}" />\n  </head>`,
     ),
+  );
+
+  remplacer(
+    "partage",
+    html.replace("</head>", () => `${balisesPartage(page, site)}  </head>`),
   );
 
   remplacer(
@@ -373,6 +618,48 @@ async function ecrirePage(dossier: string, html: string): Promise<void> {
   await writeFile(path.join(dossier, "index.html"), html, "utf8");
 }
 
+/** Une page écrite, relue pour ce qu'elle ANNONCE. */
+export type PageEcrite = { chemin: string; html: string };
+
+/**
+ * Fait échouer le build si une page annonce une image que `dist` ne porte pas
+ * — même intention que `validerLiensSimulateur` : une page qui annonce ce
+ * qu'elle n'a pas est pire que pas d'annonce du tout. Un `og:image` mort donne
+ * une carte de lien vide, et cela ne se voit qu'une fois le lien partagé.
+ *
+ * Le contrôle lit **le HTML écrit**, pas les données qui ont servi à le
+ * produire : c'est la seule façon d'attraper une balise mal composée autant
+ * qu'un fichier manquant.
+ */
+export async function validerImagesAnnoncees(
+  racine: string,
+  pages: readonly PageEcrite[],
+  site: string,
+): Promise<void> {
+  const prefixe = `${site}/`;
+  for (const { chemin, html } of pages) {
+    const annonce = html.match(/<meta property="og:image" content="([^"]*)"/)?.[1];
+    if (!annonce) {
+      throw new Error(`${chemin} ne porte pas de balise og:image : la page se partagerait sans aperçu.`);
+    }
+    if (!annonce.startsWith(prefixe)) {
+      throw new Error(
+        `${chemin} annonce l'image « ${annonce} », qui n'est pas absolue sous ${site} : ` +
+          "tous les robots ne résolvent pas une adresse relative.",
+      );
+    }
+    const fichier = path.join(racine, annonce.slice(prefixe.length));
+    try {
+      await access(fichier);
+    } catch {
+      throw new Error(
+        `${chemin} annonce l'image « ${annonce} », que le build n'a pas écrite (${fichier}) : ` +
+          "l'aperçu serait cassé.",
+      );
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const shell = await readFile(path.join(DIST, "index.html"), "utf8");
   const analyses = await chargerAnalyses();
@@ -380,29 +667,48 @@ async function main(): Promise<void> {
 
   await validerLiensSimulateur(analyses, racineDonnees);
   await ecrireScenariosReference(analyses);
+  await ecrireCartes(analyses, catalogue, version, shell);
 
+  const ecrites: PageEcrite[] = [];
   for (const analyse of analyses) {
     const page: Page = {
       titre: analyse.titre,
       description: analyse.verdict.phrase,
       canonique: `/analyses/${analyse.slug}/`,
+      image: `/analyses/${analyse.slug}/carte.png`,
       corps: rendu(analyse, catalogue, version),
     };
-    await ecrirePage(path.join(DIST, "analyses", analyse.slug), injecter(shell, page));
+    const html = injecter(shell, page, SITE);
+    await ecrirePage(path.join(DIST, "analyses", analyse.slug), html);
+    ecrites.push({ chemin: `analyses/${analyse.slug}/index.html`, html });
   }
 
   const pageIndex: Page = {
     titre: "Analyses — Où va l'argent public",
     description: "Un chiffre couramment cité, opposé au chiffre publié : le verdict, le détail, la preuve.",
     canonique: "/analyses/",
+    // L'index n'a pas de chiffre à lui : il porte la carte du site.
+    image: IMAGE_SITE,
     corps: renduIndex(analyses),
   };
-  await ecrirePage(path.join(DIST, "analyses"), injecter(shell, pageIndex));
+  const htmlIndex = injecter(shell, pageIndex, SITE);
+  await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
+  ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
 
-  console.log(`Pré-rendu : ${analyses.length} analyse(s), dist/analyses/index.html.`);
+  await validerImagesAnnoncees(DIST, ecrites, SITE);
+
+  console.log(
+    `Pré-rendu : ${analyses.length} analyse(s), dist/analyses/index.html, ` +
+      `${analyses.length + 1} carte(s) de partage sous ${SITE}.`,
+  );
 }
 
-main().catch((erreur: unknown) => {
-  console.error(erreur instanceof Error ? erreur.message : String(erreur));
-  process.exit(1);
-});
+// Le pré-rendu ne s'exécute que lancé en programme : `scripts/prerendre.test.ts`
+// importe ce module pour éprouver ses fonctions, et un import qui déclencherait
+// le build entier — réseau compris — ne serait pas testable.
+if (path.resolve(process.argv[1] ?? "") === fileURLToPath(import.meta.url)) {
+  main().catch((erreur: unknown) => {
+    console.error(erreur instanceof Error ? erreur.message : String(erreur));
+    process.exit(1);
+  });
+}
