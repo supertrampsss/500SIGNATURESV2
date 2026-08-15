@@ -466,12 +466,26 @@ export type DonneesAnalyse = {
   /** Le chiffre des comptes, en euros. `null` quand aucune ligne publiée ne
    *  lui répond : la rangée disparaît alors, le cran dit le reste. */
   observe: number | null;
+  /**
+   * Ce que ce chiffre-là désigne, dans les mots de l'analyse
+   * (`chiffres[].lecture`).
+   *
+   * Sans elle, la carte alignait « Chiffre des comptes — 59 946 M€ » sous un
+   * titre qui annonce « deux chiffres publiés, deux sens » : l'un des deux,
+   * sous une étiquette générique, sans jamais dire lequel. Le lecteur voyait
+   * « environ 59,9 milliards » à côté de « 59 946 M€ », donc un accord, sous un
+   * verdict qui dit le contraire — et rien pour lire la différence. La citation
+   * de la même donnée, elle, portait déjà la phrase : c'est la forme qui
+   * circule seule qui en était amputée.
+   */
+  lecture: string;
   cran: Cran;
   source: SourceCarte;
   site: string;
 };
 
-/** La carte d'une analyse : chiffre annoncé, chiffre des comptes, cran, source. */
+/** La carte d'une analyse : chiffre annoncé, chiffre des comptes, ce que ce
+ *  chiffre désigne, cran, source. */
 export function carteAnalyse(donnees: DonneesAnalyse): string {
   const rangees: Rangee[] = [{ libelle: "Chiffre annoncé", valeur: `« ${donnees.dit} »` }];
   if (donnees.observe !== null) {
@@ -480,6 +494,16 @@ export function carteAnalyse(donnees: DonneesAnalyse): string {
       valeur: formater(donnees.observe, "EUR", false),
     });
   }
+  // Juste sous le chiffre qu'elle qualifie, et avant le cran : c'est l'ordre
+  // dans lequel on lit la carte — le nombre, ce qu'il désigne, ce que le site
+  // en conclut.
+  //
+  // Sur une ligne, comme toute phrase de rangée : à quatre rangées, la bande du
+  // corps donne 58 px de pas, et une seconde ligne à corps 30 se poserait sur
+  // la rangée suivante. `replier` la coupe donc au dernier mot entier et
+  // marque la suite. Les `lecture` du dépôt nomment ce qu'elles distinguent en
+  // tête de phrase — « Les crédits votés : … » — et c'est la queue qui part.
+  if (donnees.lecture.trim()) rangees.push({ phrase: donnees.lecture });
   rangees.push({ phrase: LIBELLE_CRAN[donnees.cran] });
   return dessiner({
     chapeau: "Analyse",

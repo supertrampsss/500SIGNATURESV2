@@ -174,6 +174,12 @@ test("2. la carte d'une analyse porte sa source et le millésime de son chiffre"
   assert.equal(donnees.source.millesime, analyse.chiffres[0].observe?.periode);
   assert.equal(donnees.titre, analyse.titre);
   assert.equal(donnees.dit, analyse.chiffres[0].dit);
+  // Et ce que ce chiffre-là désigne, dans les mots de l'analyse : c'est la
+  // seule phrase dont l'image dispose pour dire LEQUEL des chiffres publiés
+  // elle montre. La citation de la même donnée la portait déjà ; l'image, non.
+  assert.equal(donnees.lecture, analyse.chiffres[0].lecture);
+  assert.ok(donnees.lecture.trim(), "l'analyse publiée ne déclare pas de lecture");
+  assert.ok(carteAnalyse(donnees).includes(echapper(donnees.lecture)));
 });
 
 test("2 bis. sans source déclarée, la carte ne se rabat pas sur celle de la déclaration", async () => {

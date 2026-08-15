@@ -45,6 +45,7 @@ const CARTE = {
   titre: "Le coût annoncé de la mesure",
   dit: "cent milliards",
   observe: 1_234_000_000,
+  lecture: "La ligne d'essai : ce que ce chiffre-là désigne.",
   cran: "hors_perimetre" as const,
   source: SOURCE,
   site: "exemple.test",

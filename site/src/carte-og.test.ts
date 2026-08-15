@@ -37,6 +37,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { LIBELLE_CRAN } from "./analyse-rendu.ts";
 import {
   GEOMETRIE,
   HAUTEUR,
@@ -207,6 +208,7 @@ const ANALYSE = {
   titre: "Le coût annoncé de la mesure",
   dit: "cent milliards",
   observe: 1_234_000_000,
+  lecture: "La ligne d'essai : ce que ce chiffre-là désigne.",
   cran: "hors_perimetre" as const,
   source: SOURCE,
   site: SITE,
@@ -242,6 +244,28 @@ test("1. la carte d'analyse porte le chiffre annoncé, le chiffre des comptes et
   // espace fine insécable, qu'on ne peut pas taper de mémoire sans se tromper.
   assert.ok(lu.includes(formater(1_234_000_000, "EUR", false)));
   assert.match(lu, /Le chiffre existe, mais pas pour ce qu'il désigne/);
+});
+
+test("1 bis. la carte d'analyse dit ce que son chiffre des comptes désigne", () => {
+  // Sans cette phrase, la rangée lisait « Chiffre des comptes — 59 946 M€ »
+  // sous un titre annonçant « deux chiffres publiés, deux sens » : l'un des
+  // deux, sous une étiquette générique, sans dire lequel. Le lecteur voyait un
+  // accord — 59,9 milliards ≈ 59 946 M€ — sous un verdict qui dit le
+  // contraire, et rien pour lire la différence.
+  const svg = carteAnalyse(ANALYSE);
+  const lu = peints(svg)
+    .sort((a, z) => a.y - z.y)
+    .map((t) => t.contenu);
+  assert.ok(lu.includes(ANALYSE.lecture), lu.join(" | "));
+  // Sous le chiffre qu'elle qualifie, et avant le cran : c'est l'ordre dans
+  // lequel la carte se lit — le nombre, ce qu'il désigne, ce qu'on en conclut.
+  const rang = (texte: string) => lu.findIndex((t) => t.includes(texte));
+  assert.ok(rang("Chiffre des comptes") < rang(ANALYSE.lecture), lu.join(" | "));
+  assert.ok(rang(ANALYSE.lecture) < rang(LIBELLE_CRAN.hors_perimetre), lu.join(" | "));
+  // Quatre rangées, et le pied reste où il est : rien ne descend sous la bande
+  // du corps ni sur les deux lignes du pied.
+  assert.deepEqual(horsBandes(svg), []);
+  assert.deepEqual(recouvrements(svg), []);
 });
 
 test("2. la carte porte son unité — sans elle, des millions se lisent milliards", () => {
@@ -397,7 +421,13 @@ const LONGUES: [string, string][] = [
   ["analyse, valeur longue", carteAnalyse({ ...ANALYSE, dit: DIT_LONG })],
   [
     "analyse, tout long",
-    carteAnalyse({ ...ANALYSE, titre: LIBELLE_LONG, dit: LIBELLE_LONG }),
+    carteAnalyse({ ...ANALYSE, titre: LIBELLE_LONG, dit: LIBELLE_LONG, lecture: LIBELLE_LONG }),
+  ],
+  [
+    "analyse, lecture longue",
+    // Une `lecture` est une phrase entière, et rien dans le schéma ne la
+    // borne : celle-ci est deux fois plus longue que la plus longue du dépôt.
+    carteAnalyse({ ...ANALYSE, lecture: `${ANALYSE.lecture} ${AFFIRMATION_LONGUE}` }),
   ],
   [
     "scénario, libellés longs",

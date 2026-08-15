@@ -286,6 +286,10 @@ export function donneesCarteAnalyse(
     titre: analyse.titre,
     dit: chiffre.dit,
     observe: enEuros ? chiffre.observe!.valeur : null,
+    // Ce que ce chiffre-là désigne, dans les mots de l'analyse. La page en
+    // dispose de plusieurs façons ; l'image n'a que cette phrase pour dire
+    // lequel des chiffres publiés elle montre.
+    lecture: chiffre.lecture,
     cran: analyse.verdict.cran,
     source: { titre: source.titre, millesime: exercice },
     site,
