@@ -251,6 +251,10 @@ test("6. le titre de la carte du site est celui du gabarit, et son millésime ce
   const donnees = donneesCarteSite(titre, "2026-08-11T0807", "exemple.test");
   assert.equal(donnees.titre, titre);
   assert.equal(donnees.source.millesime, "2026-08-11T0807");
+  // Et cette date-là se dit « version » : cette carte ne peint aucun chiffre,
+  // donc aucun exercice. Le mot « millésime » y désignerait une publication
+  // là où la carte d'à côté le donne à l'exercice 2025 d'une ligne de comptes.
+  assert.equal(donnees.source.datation, "version");
   // Aucun montant n'est peint sur cette carte : elle n'annonce donc pas des
   // millions d'euros.
   assert.ok(!donnees.unite.includes("millions d'euros"));

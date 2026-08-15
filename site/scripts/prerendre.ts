@@ -274,9 +274,13 @@ export function donneesCarteAnalyse(
  *
  * Rien n'y est inventé. Le titre est celui que le gabarit porte déjà — les mots
  * du site, pas une accroche écrite pour l'occasion. La source est le fichier
- * d'indicateurs que ce build vient de lire, et son millésime la version de
- * publication qu'il a lue : la valeur que l'étage « preuve » d'une page
- * d'analyse affiche déjà sous « Millésime ».
+ * d'indicateurs que ce build vient de lire, et sa date la **version** de
+ * publication qu'il a lue.
+ *
+ * « Version », et pas « millésime » : cette carte ne peint aucun chiffre, donc
+ * aucun exercice. Ce qui la date est la publication dont elle parle, et
+ * « millésime 2026-08-11T0807 » aurait dit sur cette image le mot que la carte
+ * d'à côté emploie pour l'exercice 2025 d'une ligne de comptes.
  *
  * La ligne d'unité ne dit **pas** « Montants en millions d'euros » : cette
  * carte ne peint aucun montant, et annoncer une unité qu'aucun nombre ne porte
@@ -294,7 +298,7 @@ export function donneesCarteSite(titreSite: string, version: string, site: strin
   return {
     titre: titreSite,
     unite: "Données officielles, territoire par territoire",
-    source: { titre: "Indicateurs publiés", millesime: version },
+    source: { titre: "Indicateurs publiés", millesime: version, datation: "version" },
     site,
   };
 }

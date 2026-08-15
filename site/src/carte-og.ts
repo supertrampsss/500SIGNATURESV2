@@ -314,9 +314,31 @@ function corpsRangees(rangees: Rangee[]): string {
     .join("");
 }
 
-/** La source d'un chiffre peint sur une carte : les deux champs sans lesquels
- *  l'image ne se relit pas une fois sortie du site. */
-export type SourceCarte = { titre: string; millesime: string };
+/**
+ * La source d'un chiffre peint sur une carte : les champs sans lesquels l'image
+ * ne se relit pas une fois sortie du site.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * DEUX SORTES DE DATE, DONC DEUX MOTS
+ * ─────────────────────────────────────────────────────────────────────────
+ * Un chiffre des comptes se date par son **exercice** : « 2025 », l'année que
+ * la ligne mesure, et c'est cette date-là qu'on cherche pour la retrouver dans
+ * le fichier du producteur. Une carte qui décrit une page du site, elle, ne
+ * peint aucun chiffre : ce qui la date est la **publication** dont elle parle,
+ * « 2026-08-11T0807 ». Les deux passaient sous le même mot, « millésime », sur
+ * deux images voisines — et « millésime 2026-08-11T0807 » se lit mal, un
+ * millésime étant une année.
+ *
+ * `datation` est donc le mot peint devant la date, et il dit laquelle des deux
+ * on lit. Il vaut « millésime » par défaut : c'est le cas des quatre natures
+ * qui alignent des chiffres, et l'oublier ne peut pas rendre l'autre par
+ * accident.
+ */
+export type SourceCarte = {
+  titre: string;
+  millesime: string;
+  datation?: "millésime" | "version";
+};
 
 /** Le châssis commun aux cinq natures de carte. */
 type Cadre = {
@@ -388,7 +410,7 @@ function dessiner(cadre: Cadre): string {
   // caractères — l'image partait en affirmant un chiffre sans date, ce que
   // toute la carte existe pour empêcher. Le millésime prend donc sa place
   // d'abord, et l'intitulé reçoit ce qui reste.
-  const millesime = ` · millésime ${cadre.source.millesime}`;
+  const millesime = ` · ${cadre.source.datation ?? "millésime"} ${cadre.source.millesime}`;
   const largeurSource = (LARGEUR_UTILE * 2) / 3 - GOUTTIERE;
   const source =
     (replier(

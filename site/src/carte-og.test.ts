@@ -771,6 +771,24 @@ test("28 bis. une source longue est coupée, son millésime jamais", () => {
   }
 });
 
+test("28 ter. une date de publication se dit « version », un exercice « millésime »", () => {
+  // Deux sortes de date passaient sous le même mot sur deux images voisines :
+  // l'exercice d'une ligne de comptes (2025) et la version d'une publication
+  // (2026-08-11T0807). « millésime 2026-08-11T0807 » se lit mal — un millésime
+  // est une année — et rien ne disait au lecteur laquelle des deux il tenait.
+  const parDefaut = peints(carteAnalyse(ANALYSE)).map((t) => t.contenu);
+  assert.ok(parDefaut.some((t) => t.includes("millésime 2025")), parDefaut.join(" | "));
+
+  const publication = peints(
+    carteReperes({
+      ...REPERES,
+      source: { titre: "Indicateurs publiés", millesime: "2026-08-11T0807", datation: "version" },
+    }),
+  ).map((t) => t.contenu);
+  assert.ok(publication.some((t) => t.includes("version 2026-08-11T0807")), publication.join(" | "));
+  assert.ok(!publication.some((t) => t.includes("millésime")), publication.join(" | "));
+});
+
 test("29. replier coupe au mot, et coupe en dur un mot plus long qu'une ligne", () => {
   assert.deepEqual(replier("un deux trois", 20, 400, 3), ["un deux trois"]);
   const lignes = replier("un deux trois quatre cinq six sept huit neuf dix onze", 20, 120, 2);
