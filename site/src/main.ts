@@ -2988,8 +2988,16 @@ function faceChoisie(): boolean {
 /**
  * La barre des scénarios, et le tableau de comparaison quand une face a été
  * choisie. Reconstruite à chaque geste sur elle (enregistrer, charger,
- * comparer, supprimer, fermer la comparaison) — jamais sur un réglage de
- * l'atelier lui-même : voir la limite connue dans le rapport de la tâche.
+ * comparer, supprimer, fermer la comparaison) **et à chaque réglage de
+ * l'atelier**, par `surReglages` (`ouvrirSimulateur`, plus bas).
+ *
+ * Ce second appel n'est pas un supplément : les boutons de partage vivent dans
+ * cette barre et ne s'offrent qu'avec un atelier réglé
+ * (`partageDuSimulateur`). Sans lui, ils n'apparaîtraient qu'à qui a d'abord
+ * touché à un scénario — c'est-à-dire jamais sur le parcours ordinaire, où on
+ * règle puis on partage. Le commentaire d'avant affirmait le contraire
+ * (« jamais sur un réglage de l'atelier lui-même ») : c'était faux, et si ça
+ * ne l'avait pas été, le lot entier serait resté hors d'atteinte.
  */
 function montrerScenarios(): void {
   const cible = document.getElementById("scenarios");

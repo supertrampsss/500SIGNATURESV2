@@ -1022,6 +1022,24 @@ test("charger un scénario passe par transposer, jamais par decoder seul", () =>
   assert.match(corps, /disparuesCourantes = \{ lignes: disparues, rienRepris \}/);
 });
 
+test("régler l'atelier reconstruit la barre des scénarios, donc les boutons de partage", () => {
+  // Les boutons de partage sont peints par `montrerScenarios()` et ne
+  // s'offrent qu'avec un atelier réglé (`partageDuSimulateur`). Le seul
+  // chemin qui les fait apparaître sur le parcours ordinaire — régler, puis
+  // partager — est donc ce rappel depuis `surReglages`. Sans lui, le lecteur
+  // ne verrait de bouton qu'après avoir touché à un scénario, et le lot
+  // entier resterait hors d'atteinte.
+  // Les deux poses de l'atelier — celle de `chargerScenario` et celle
+  // d'`ouvrirSimulateur` — sont éprouvées, pas seulement la première : une
+  // seule des deux privée de ce rappel laisserait le défaut entier sur un
+  // parcours, et le fichier ne dit pas laquelle le lecteur emprunte.
+  const poses = [...MAIN.matchAll(/surReglages: \(/g)].map((m) =>
+    MAIN.slice(m.index, MAIN.indexOf("\n  });", m.index)),
+  );
+  assert.equal(poses.length, 2, "les poses de l'atelier ont changé de nombre dans main.ts");
+  for (const pose of poses) assert.match(pose, /\bmontrerScenarios\(\);/);
+});
+
 test("tout budget encodé qui devient un état de l'atelier passe par la même porte", () => {
   // `transposer` n'était branché que sur le scénario cliqué dans la barre — le
   // seul des trois chemins où le lecteur avait déjà sa copie. Le budget porté
