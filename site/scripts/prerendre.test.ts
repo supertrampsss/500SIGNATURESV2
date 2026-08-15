@@ -150,8 +150,15 @@ test("1 bis. le build écrit ces cartes-là, peintes avec la fonte du dépôt", 
 
   for (const [chemin, svg] of attendues) {
     const ecrite = await readFile(path.join(racine, chemin));
-    const attendue = await rasteriser(svg, FONTES);
-    assert.deepEqual([...ecrite], [...attendue], `${chemin} n'est pas la carte peinte avec la fonte`);
+    const attendue = Buffer.from(await rasteriser(svg, FONTES));
+    // Comparé en bloc, jamais octet à octet : `deepEqual` sur soixante mille
+    // octets compose un diff que personne ne lit et que le rapporteur met une
+    // minute à imprimer.
+    assert.ok(
+      ecrite.equals(attendue),
+      `${chemin} n'est pas la carte de cet objet, peinte avec la fonte du dépôt ` +
+        `(${ecrite.length} octets écrits, ${attendue.length} attendus)`,
+    );
   }
 });
 
