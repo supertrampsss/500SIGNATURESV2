@@ -342,7 +342,8 @@ export function donneesCarteAnalyse(
  * carte ne peint aucun montant, et annoncer une unité qu'aucun nombre ne porte
  * serait faux — c'est la règle que `carteFiche` applique déjà quand aucun de
  * ses chiffres n'est en euros. Elle dit ce que sont les données du site, dans
- * les mots du sous-titre du gabarit.
+ * les mots que le sous-titre de `index.html` emploie déjà — recopiés, faute
+ * d'une balise qui les porte comme le `<title>` porte le titre.
  *
  * La nature empruntée est celle du repère, la seule des cinq qui porte un titre
  * seul, sans corps. Le chapeau lira donc « Repère » — écart consigné dans le
