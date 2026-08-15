@@ -21,6 +21,7 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { apercuScenario, MENTION_UNITE } from "./apercu-scenario.ts";
@@ -370,4 +371,70 @@ test("la variante compacte est celle qui part, quand c'est elle qu'on demande", 
   await offrir(objet, { copier: canal }, "compact");
   assert.equal(copies[0], resume(objet, "compact"));
   assert.ok(!copies[0].includes("Somme des écarts"), copies[0]);
+});
+
+/* --------------------------------------------------------------------------
+ * Le geste, tel que `main.ts` le pose
+ * --------------------------------------------------------------------------
+ * Ces trois-là se lisent dans la source : rien n'exécute de DOM dans ce dépôt,
+ * et ce sont pourtant les défauts qui ne se voient qu'une fois le site publié.
+ * ----------------------------------------------------------------------- */
+
+const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
+
+test("le partage n'appelle aucun tiers", () => {
+  // Aucun widget de réseau social, aucun script externe : le règlement européen
+  // sur les données interdit déjà les polices distantes ici, et un bouton de
+  // partage transmet la même chose — l'adresse IP du lecteur et la page qu'il
+  // lit — à un tiers qui ne lui a rien demandé.
+  const partage = MAIN.slice(
+    MAIN.indexOf("function rendrePartage"),
+    MAIN.indexOf("function brancherPartageEditorial"),
+  );
+  assert.ok(partage.length > 500, "le geste de partage est introuvable dans main.ts");
+  for (const tiers of [
+    "facebook",
+    "twitter",
+    "x.com",
+    "linkedin",
+    "whatsapp",
+    "telegram",
+    "mastodon",
+    "sharer",
+    "intent/tweet",
+  ]) {
+    assert.ok(!partage.toLowerCase().includes(tiers), `${tiers} n'a rien à faire ici`);
+    assert.ok(!CSS.toLowerCase().includes(tiers), `${tiers} n'a rien à faire dans la feuille`);
+  }
+  // Le geste passe par `navigator`, jamais par une requête.
+  assert.ok(!partage.includes("fetch("), partage);
+});
+
+test("le simulateur n'annonce aucune image, parce qu'il n'en a aucune", () => {
+  // D-L3-b : aucun PNG n'est écrit par scénario. Un lien de téléchargement vers
+  // une adresse que le build n'écrit jamais est un aperçu cassé — exactement ce
+  // que `validerImagesAnnoncees` (scripts/prerendre.ts) fait rougir au build.
+  assert.match(MAIN, /rendrePartage\(gestes, null\)/);
+  // L'analyse, elle, annonce l'image que le pré-rendu a rasterisée pour elle.
+  assert.match(MAIN, /rendrePartage\(\[\{ cle: "analyse", libelle: "Partager cette analyse" \}\], compose\.objet\.image\)/);
+});
+
+test("l'écouteur du partage est délégué, posé une seule fois", () => {
+  // Même motif que `brancherScenarios` : `#scenarios` n'est jamais remplacé,
+  // seul son contenu l'est à chaque réglage. Un écouteur par rendu les
+  // empilerait, et le geste partirait autant de fois qu'il y a eu de réglages.
+  const brancher = MAIN.slice(
+    MAIN.indexOf("function brancherPartage("),
+    MAIN.indexOf("function partageDuSimulateur"),
+  );
+  assert.ok(brancher.includes('conteneur.addEventListener("click"'), brancher);
+  assert.match(MAIN, /brancherPartage\(cible, partageDuSimulateur\);/);
+  // Le cadre est repeint par `montrerScenarios`, qui ne pose donc aucun
+  // écouteur.
+  const montrer = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("type GestePartage"),
+  );
+  assert.ok(montrer.length > 500 && !montrer.includes("addEventListener"), montrer.length);
 });

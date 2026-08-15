@@ -21,10 +21,25 @@ import {
   exercicesPublies,
 } from "./simulateur-rendu.ts";
 import {
+  decoder,
   effort as effortAtelier,
   gestes as gestesAtelier,
+  plan,
   type Volet,
 } from "./atelier.ts";
+import { apercuScenario } from "./apercu-scenario.ts";
+import {
+  offrir,
+  partageAnalyse,
+  partageComparaison,
+  partageScenario,
+  permalien,
+  resume,
+  type Canaux,
+  type Forme,
+  type Issue,
+  type Partage,
+} from "./partage.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
 import { lister as listerScenarios, enregistrer as enregistrerScenario, renommer as renommerScenario, dupliquer as dupliquerScenario, supprimer as supprimerScenario, nomNettoye, transposer, transposerBudget, type Depot, type Scenario } from "./scenarios.ts";
 import { comparer as comparerScenarios } from "./comparaison.ts";
@@ -3054,6 +3069,20 @@ function montrerScenarios(): void {
       })()
     : "";
 
+  // Les gestes de partage n'apparaissent qu'avec ce qu'ils ont à partager : un
+  // atelier qu'on n'a pas encore réglé n'a ni écart ni silhouette, et un bouton
+  // qui ne ferait rien est pire qu'un bouton absent. Sans image ici — le build
+  // n'en écrit aucune par scénario (D-L3-b) — donc pas de lien de
+  // téléchargement qui pointerait un fichier que rien ne produit.
+  const gestes: GestePartage[] = [];
+  if (partageDuSimulateur("scenario")) {
+    gestes.push(
+      { cle: "scenario", libelle: "Partager ce budget" },
+      { cle: "forme", libelle: "Partager la forme" },
+    );
+  }
+  if (faceChoisie()) gestes.push({ cle: "comparaison", libelle: "Partager la comparaison" });
+
   cible.innerHTML =
     avertissement +
     // La marque « courant » dit « c'est cela que vous regardez » : elle suit
@@ -3061,9 +3090,219 @@ function montrerScenarios(): void {
     // ne montre plus ce scénario — le marquer encore serait le prétendre.
     renduBarre(scenarios, scenarioCourant()?.nom ?? null) +
     actions +
+    (gestes.length ? rendrePartage(gestes, null) : "") +
     disparues +
     choix +
     tableau;
+}
+
+/* --------------------------------------------------------------------------
+ * Partager : le panneau du système, sinon le presse-papiers
+ * ----------------------------------------------------------------------- */
+
+/** Un geste offert par un cadre de partage : la clé que l'écouteur relit, et
+ *  ce que le bouton dit. */
+type GestePartage = { cle: string; libelle: string };
+
+/**
+ * Le cadre de partage : les gestes, le message, et le repli qui reçoit le
+ * texte quand le presse-papiers n'est pas disponible.
+ *
+ * **Aucun bouton de réseau social, aucun script tiers.** Le règlement européen
+ * sur les données interdit déjà les polices distantes sur ce site ; un widget
+ * de partage transmet exactement la même chose — l'adresse IP du lecteur et la
+ * page qu'il lit — à un tiers qui ne lui a rien demandé. Rien ne quitte le
+ * navigateur : `navigator.share` et le presse-papiers sont des gestes locaux.
+ *
+ * Le lien de téléchargement ne s'écrit que là où le build a écrit un fichier —
+ * les analyses et le site. Ailleurs, `image` vaut `null` et le lien ne paraît
+ * pas : un href vers une image que rien ne produit est un aperçu cassé de
+ * plus, pas un partage.
+ */
+function rendrePartage(gestes: readonly GestePartage[], image: string | null): string {
+  const boutons = gestes
+    .map(
+      (geste) =>
+        `<button type="button" class="partage__geste" data-partage="${echapper(
+          geste.cle,
+        )}">${echapper(geste.libelle)}</button>`,
+    )
+    .join("");
+  const telecharger = image
+    ? `<a class="partage__geste" href="${echapper(image)}" download>Télécharger l'image</a>`
+    : "";
+  return `<div class="partage">
+    ${boutons}${telecharger}
+    <p class="partage__message" role="status" aria-live="polite"></p>
+    <textarea class="partage__repli" readonly hidden aria-label="Résumé à copier"></textarea>
+  </div>`;
+}
+
+/**
+ * Ce que l'écran dit de chaque issue.
+ *
+ * `partagé` et `annulé` ne disent rien, et c'est délibéré : dans le premier
+ * cas le panneau du système a déjà parlé ; dans le second le lecteur l'a fermé
+ * lui-même, et « le partage a échoué » après une fermeture volontaire est un
+ * mensonge à l'écran.
+ */
+const MESSAGE_PARTAGE: Record<Issue, string> = {
+  partagé: "",
+  annulé: "",
+  copié: "Résumé et lien copiés.",
+  indisponible: "Copie automatique indisponible : le texte ci-dessous est sélectionné.",
+};
+
+/**
+ * Les deux canaux, tels que ce navigateur-ci les porte.
+ *
+ * `navigator.share` **n'existe pas** sur la plupart des navigateurs de bureau :
+ * le repli presse-papiers n'est pas un cas limite, c'est le chemin d'une bonne
+ * part des lecteurs. Les deux sont lus ici et passés à `offrir`, qui les traite
+ * en fonctions ordinaires — c'est ce qui rend les deux chemins éprouvables sous
+ * Node (partage.test.ts).
+ */
+function canauxDuNavigateur(): Canaux {
+  return {
+    partager:
+      typeof navigator.share === "function"
+        ? (charge) => navigator.share(charge)
+        : undefined,
+    copier: navigator.clipboard ? (texte) => navigator.clipboard.writeText(texte) : undefined,
+  };
+}
+
+async function executerPartage(
+  cadre: HTMLElement | null,
+  objet: Partage,
+  forme: Forme,
+): Promise<void> {
+  const issue = await offrir(objet, canauxDuNavigateur(), forme);
+  if (!cadre) return;
+  const message = cadre.querySelector<HTMLElement>(".partage__message");
+  if (message) message.textContent = MESSAGE_PARTAGE[issue];
+  const repli = cadre.querySelector<HTMLTextAreaElement>(".partage__repli");
+  if (!repli) return;
+  // Presse-papiers absent ou refusé : le texte s'affiche, sélectionné, et le
+  // lecteur le copie lui-même. Sans lui, « indisponible » ne laisserait rien à
+  // emporter.
+  repli.hidden = issue !== "indisponible";
+  if (issue !== "indisponible") return;
+  repli.value = resume(objet, forme);
+  repli.select();
+}
+
+/** Le geste de partage : un écouteur délégué, posé une seule fois sur un
+ *  conteneur qui n'est jamais remplacé — même motif que `brancherScenarios`,
+ *  dont le cadre est repeint à chaque réglage. */
+function brancherPartage(
+  conteneur: HTMLElement,
+  composer: (cle: string) => { objet: Partage; forme: Forme } | null,
+): void {
+  conteneur.addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>(
+      "button[data-partage]",
+    );
+    if (!bouton) return;
+    const compose = composer(bouton.dataset.partage ?? "");
+    if (!compose) return;
+    void executerPartage(bouton.closest<HTMLElement>(".partage"), compose.objet, compose.forme);
+  });
+}
+
+/**
+ * Ce que le simulateur donne à partager.
+ *
+ * Le permalien se compose des paramètres que `ecrireUrl` écrit pour cet
+ * objet-là, jamais de `location.href` : l'adresse courante porte aussi le
+ * thème, l'indicateur et la maille de la carte, qui ne disent rien d'un budget.
+ *
+ * Le résumé, lui, vient d'`apercuScenario` — la seule rédaction d'un scénario
+ * dans ce dépôt, celle que la fonction d'edge sert déjà aux robots. `null`
+ * quand rien n'est réglé : il n'y a alors pas de scénario, donc pas de bouton.
+ */
+function partageDuSimulateur(cle: string): { objet: Partage; forme: Forme } | null {
+  const lien = (parametres: Record<string, string>) =>
+    permalien(location.origin, cheminDeVue("simulateur"), parametres);
+  if (cle === "comparaison") {
+    const [gauche, droite] = colonnesComparaison();
+    return {
+      objet: partageComparaison({
+        colonnes: [gauche, droite],
+        permalien: lien({
+          budget: etat.budget,
+          contrat: etat.contrat,
+          nom: etat.nom,
+          face: etat.face,
+          "face-nom": etat.faceNom,
+          "face-exercice": etat.faceExercice,
+          "face-source": etat.faceSource,
+        }),
+      }),
+      forme: "complet",
+    };
+  }
+  const apercu = apercuScenario(voletsMontes, etat.budget, etat.nom);
+  if (!apercu) return null;
+  return {
+    objet: partageScenario({
+      apercu,
+      permalien: lien({ budget: etat.budget, contrat: etat.contrat, nom: etat.nom }),
+      // Les écarts du plan, déjà rendus le plus lourd d'abord : la silhouette
+      // n'a rien à retrier, et ce sont les mêmes `decoder`/`plan` que l'atelier.
+      ecarts: plan(voletsMontes, decoder(etat.budget, voletsMontes)).map((ligne) => ligne.delta),
+    }),
+    forme: cle === "forme" ? "compact" : "complet",
+  };
+}
+
+/**
+ * Ce qu'une analyse pré-rendue donne à partager : les mots que ses propres
+ * balises portent.
+ *
+ * Le pré-rendu les a écrites et le build les vérifie (`validerImagesAnnoncees`,
+ * scripts/prerendre.ts). Les relire ici plutôt que recomposer un texte garantit
+ * que le collage et la carte de lien disent la même chose — et l'image est
+ * celle que le build a rasterisée pour cette analyse, donc un fichier qui
+ * existe.
+ */
+function partageDeLaPage(): { objet: Partage; forme: Forme } | null {
+  const balise = (propriete: string) =>
+    document.querySelector<HTMLMetaElement>(`meta[property="${propriete}"]`)?.content ?? "";
+  const titre = balise("og:title");
+  const adresse = balise("og:url");
+  if (!titre || !adresse) return null;
+  return {
+    objet: partageAnalyse({
+      titre,
+      phrase: balise("og:description"),
+      permalien: adresse,
+      image: balise("og:image") || null,
+    }),
+    forme: "complet",
+  };
+}
+
+/**
+ * Le cadre de partage d'une analyse, posé au pied de l'article.
+ *
+ * Branché avant tout appel réseau : une page d'analyse est servie entière par
+ * le serveur, et son partage n'a aucune raison d'attendre le manifeste des
+ * données — ni de disparaître si celui-ci ne répond pas.
+ *
+ * L'index des analyses n'a pas d'article (`.analyse-rendu`) et n'en reçoit
+ * donc pas : il n'est le partage de rien, sa carte de lien est celle du site.
+ */
+function brancherPartageEditorial(): void {
+  if (document.body.dataset.page !== "editorial") return;
+  const article = document.querySelector<HTMLElement>(".analyse-rendu");
+  const compose = partageDeLaPage();
+  if (!article || !compose) return;
+  article.insertAdjacentHTML(
+    "beforeend",
+    rendrePartage([{ cle: "analyse", libelle: "Partager cette analyse" }], compose.objet.image),
+  );
+  brancherPartage(article, partageDeLaPage);
 }
 
 /** Les écouteurs de la barre, posés une seule fois : `#scenarios` n'est
@@ -3073,6 +3312,9 @@ function montrerScenarios(): void {
 function brancherScenarios(): void {
   const cible = document.getElementById("scenarios");
   if (!cible) return;
+  // Le partage a son propre écouteur sur le même conteneur : une préoccupation,
+  // un écouteur, et aucun des deux ne se repose à chaque rendu.
+  brancherPartage(cible, partageDuSimulateur);
   cible.addEventListener("click", (evenement) => {
     const cibleClic = evenement.target as HTMLElement;
     const boutonScenario = cibleClic.closest<HTMLButtonElement>("[data-nom]");
@@ -3209,6 +3451,10 @@ async function demarrer(): Promise<void> {
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
   brancherTheme();
+  // Pour la même raison : une analyse est servie entière par le serveur, avec
+  // ses balises et son image déjà écrites. Son partage n'attend donc pas le
+  // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.
+  brancherPartageEditorial();
   // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
   // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
   // territoire à détailler : lu avant d'être écrit, il levait

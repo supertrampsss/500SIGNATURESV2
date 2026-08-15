@@ -6110,3 +6110,72 @@ body[data-carte="oui"] .legende {
 .scenarios-rendu__disparues li {
   padding: var(--espace-1) 0;
 }
+
+/* --------------------------------------------------------------------------
+   Partager
+   --------------------------------------------------------------------------
+   Les trois formats d'un objet partageable (partage.ts) tiennent dans une
+   rangée de gestes : le panneau du système quand le navigateur en a un, le
+   presse-papiers sinon, et le téléchargement de l'image là où le build en a
+   écrit une.
+
+   Aucun bouton de réseau social, donc aucune couleur de marque, aucune icône
+   distante : les gestes empruntent le même filet que le reste du site. Le
+   règlement européen sur les données interdit déjà les polices distantes ici,
+   et un widget de partage transmettrait la même chose — l'adresse IP du
+   lecteur et la page qu'il lit — à un tiers qui ne lui a rien demandé. */
+.partage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-3);
+  margin: var(--espace-5) 0;
+}
+.partage__geste {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font-size: var(--texte-s);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.partage__geste:hover,
+.partage__geste:focus-visible {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+/* Le message occupe sa propre ligne : il apparaît et disparaît au fil des
+   gestes, et le laisser dans la rangée faisait sauter les boutons de place à
+   chaque copie. */
+.partage__message {
+  flex-basis: 100%;
+  margin: 0;
+  min-height: 1.5em;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+/* Le repli : le résumé, à copier à la main, quand le navigateur refuse le
+   presse-papiers. Il ne paraît que dans ce cas — `hidden` le tient fermé — et
+   il est en lecture seule : ce qui est copié doit être ce que le site a
+   composé. */
+.partage__repli {
+  flex-basis: 100%;
+  min-height: 6em;
+  padding: var(--espace-3);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier-creuse);
+  color: var(--encre);
+  font: inherit;
+  font-size: var(--texte-s);
+  resize: vertical;
+}
+.partage__repli[hidden] {
+  display: none;
+}
