@@ -119,8 +119,14 @@ function ecrireScenarios(depot: Depot, scenarios: Scenario[]): Scenario[] {
 
 /** Nettoie un nom saisi : coupe les espaces autour, tronque à `NOM_MAX`.
  *  `null` si rien ne reste après nettoyage — un nom vide ou fait d'espaces
- *  est refusé, il n'y a rien à tronquer. */
-function nomNettoye(nom: string): string | null {
+ *  est refusé, il n'y a rien à tronquer.
+ *
+ *  Exporté parce que l'appelant doit savoir sous quel nom un scénario a été
+ *  écrit — pour marquer le courant, pour que l'adresse ne nomme pas un
+ *  scénario qui n'existe pas. `main.ts` refaisait ce `trim().slice()` de son
+ *  côté : deux copies d'une règle qui doit rester identique, dont l'une
+ *  pouvait s'écarter de ce qui est réellement stocké. */
+export function nomNettoye(nom: string): string | null {
   const propre = nom.trim().slice(0, NOM_MAX);
   return propre.length > 0 ? propre : null;
 }

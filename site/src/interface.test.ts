@@ -8,6 +8,15 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
+import {
+  dupliquer,
+  enregistrer,
+  lister,
+  nomNettoye,
+  renommer,
+  type Depot,
+} from "./scenarios.ts";
+
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
@@ -1158,6 +1167,193 @@ test("la suppression est refusable, et refuser ne supprime rien", () => {
   assert.notEqual(question, null);
   assert.equal(supprime, null);
   assert.equal(disparuesVidees, false);
+});
+
+/* ------------------------------------------------------------------------
+ * `renommer` et `dupliquer` (scenarios.ts) étaient livrés sans appelant : la
+ * spec §11 les liste tous deux comme des gestes du lecteur, et « Dupliquer »
+ * y porte une raison explicite — c'est le geste « créer mon alternative ».
+ * `dupliquer` porte au passage l'invariant d'unicité le plus travaillé du
+ * module, pour un chemin qu'aucun lecteur ne pouvait emprunter.
+ * ---------------------------------------------------------------------- */
+
+/** Un dépôt en mémoire, garni des noms donnés. Les vraies fonctions de
+ *  `scenarios.ts` s'exécutent dessus : ce qui est éprouvé est le branchement
+ *  réel, jamais une copie de ses règles. */
+function depotGarni(noms: string[]): Depot {
+  let contenu: string | null = null;
+  const depot: Depot = {
+    lire: () => contenu,
+    ecrire: (c) => {
+      contenu = c;
+    },
+  };
+  for (const nom of noms) {
+    enregistrer(depot, { nom, budget: "b64", contrat: "", exercice: "2025" });
+  }
+  return depot;
+}
+
+/** Exécute `renommerScenarioCourant` telle qu'écrite dans main.ts, avec le
+ *  vrai `scenarioNomme`, le vrai `renommer` et le vrai `nomNettoye`, sur un
+ *  dépôt en mémoire. Rend les noms du dépôt après le geste, et le nom que
+ *  l'adresse porte alors. Même technique que
+ *  `executerSupprimerScenarioCourant`. */
+function executerRenommerScenarioCourant(
+  nomAdresse: string,
+  noms: string[],
+  saisi: string | null,
+): { depot: string[]; adresse: string } {
+  const aides = MAIN.slice(
+    MAIN.indexOf("function scenarioNomme"),
+    MAIN.indexOf("/** Une colonne comparée, transposée"),
+  ).replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
+  const corps = MAIN.slice(
+    MAIN.indexOf("function renommerScenarioCourant"),
+    MAIN.indexOf("function dupliquerScenarioCourant"),
+  ).replace("function renommerScenarioCourant(): void {", "function renommerScenarioCourant() {");
+  assert.doesNotMatch(`${aides}${corps}`, /: Scenario|: void/, "une annotation de type reste");
+  const depot = depotGarni(noms);
+  const etat = { nom: nomAdresse, budget: "b64" };
+  new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "renommerScenario",
+    "nomNettoye",
+    "ecrireUrl",
+    "montrerScenarios",
+    "window",
+    `${aides}${corps}renommerScenarioCourant();`,
+  )(
+    etat,
+    () => lister(depot),
+    depot,
+    renommer,
+    nomNettoye,
+    () => {},
+    () => {},
+    { prompt: () => saisi },
+  );
+  return { depot: lister(depot).map((s) => s.nom), adresse: etat.nom };
+}
+
+/** Même banc, pour `dupliquerScenarioCourant`. */
+function executerDupliquerScenarioCourant(
+  nomAdresse: string,
+  noms: string[],
+): { depot: string[]; adresse: string } {
+  const aides = MAIN.slice(
+    MAIN.indexOf("function scenarioNomme"),
+    MAIN.indexOf("/** Une colonne comparée, transposée"),
+  ).replace("function scenarioNomme(): Scenario | undefined {", "function scenarioNomme() {");
+  const corps = MAIN.slice(
+    MAIN.indexOf("function dupliquerScenarioCourant"),
+    MAIN.indexOf("function supprimerScenarioCourant"),
+  ).replace("function dupliquerScenarioCourant(): void {", "function dupliquerScenarioCourant() {");
+  const depot = depotGarni(noms);
+  const etat = { nom: nomAdresse, budget: "b64" };
+  new Function(
+    "etat",
+    "listerScenarios",
+    "depotScenarios",
+    "dupliquerScenario",
+    "montrerScenarios",
+    `${aides}${corps}dupliquerScenarioCourant();`,
+  )(etat, () => lister(depot), depot, dupliquer, () => {});
+  return { depot: lister(depot).map((s) => s.nom), adresse: etat.nom };
+}
+
+test("la barre offre les trois gestes qui portent sur un scénario du dépôt, chacun nommant sa cible", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("function montrerScenarios"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  for (const [id, verbe] of [
+    ["scenario-renommer", "Renommer"],
+    ["scenario-dupliquer", "Dupliquer"],
+    ["scenario-supprimer", "Supprimer"],
+  ]) {
+    assert.match(corps, new RegExp(`id="${id}">${verbe} « \\$\\{echapper\\(`));
+  }
+  // Les trois pendent au même fait — l'adresse nomme un scénario qui existe —
+  // et portent la classe des boutons de la barre, jamais un habillage à part.
+  assert.match(corps, /const nomme = scenarioNomme\(\);/);
+  for (const id of ["renommer", "dupliquer", "supprimer"]) {
+    assert.match(corps, new RegExp(`class="scenarios-rendu__scenario" id="scenario-${id}"`));
+  }
+  // Et les écouteurs sont posés une seule fois, sur `#scenarios`, comme les
+  // deux autres : `brancherScenarios` n'est appelée qu'au montage.
+  const branchement = MAIN.slice(
+    MAIN.indexOf("function brancherScenarios"),
+    MAIN.indexOf("async function ouvrirSimulateur"),
+  );
+  assert.match(branchement, /closest\("#scenario-renommer"\)\) return renommerScenarioCourant\(\)/);
+  assert.match(branchement, /closest\("#scenario-dupliquer"\)\) return dupliquerScenarioCourant\(\)/);
+});
+
+test("renommer un scénario le renomme dans le dépôt, et l'adresse suit", () => {
+  const { depot, adresse } = executerRenommerScenarioCourant(
+    "Mon budget",
+    ["Mon budget", "Un autre"],
+    "Mon budget 2027",
+  );
+  assert.deepEqual(depot, ["Mon budget 2027", "Un autre"]);
+  // Sans ça, l'adresse nommerait un scénario qui n'existe plus : la barre
+  // perdrait sa marque « courant » sans un mot, et un lien partagé rouvrirait
+  // un nom fantôme — exactement ce que `supprimerScenarioCourant` évite déjà.
+  assert.equal(adresse, "Mon budget 2027");
+});
+
+test("le nom retenu par l'adresse est celui réellement stocké, espaces et longueur compris", () => {
+  // `renommer` nettoie le nom avant de l'écrire. L'adresse doit porter CE
+  // nom-là, pas celui qu'on a tapé : deux règles de nettoyage qui divergent
+  // feraient nommer par l'adresse un scénario absent du dépôt.
+  const long = `  ${"n".repeat(80)}  `;
+  const { depot, adresse } = executerRenommerScenarioCourant("A", ["A"], long);
+  assert.equal(adresse, depot[0]);
+  assert.equal(adresse, nomNettoye(long));
+});
+
+test("un renommage refusé ne touche ni le dépôt ni l'adresse", () => {
+  // `renommer` refuse un nom déjà pris par un AUTRE scénario — le renommer
+  // détruirait celui-là. Le nom d'origine survit dans la liste rendue, et
+  // c'est ce fait, pas le nom saisi, qui commande l'adresse.
+  const pris = executerRenommerScenarioCourant("A", ["A", "B"], "B");
+  assert.deepEqual(pris.depot, ["A", "B"]);
+  assert.equal(pris.adresse, "A");
+  const vide = executerRenommerScenarioCourant("A", ["A", "B"], "   ");
+  assert.deepEqual(vide.depot, ["A", "B"]);
+  assert.equal(vide.adresse, "A");
+});
+
+test("annuler la boîte de renommage ne renomme rien", () => {
+  const { depot, adresse } = executerRenommerScenarioCourant("A", ["A"], null);
+  assert.deepEqual(depot, ["A"]);
+  assert.equal(adresse, "A");
+});
+
+test("un lien nommant un scénario absent du dépôt n'offre ni ne fait aucun renommage", () => {
+  const { depot, adresse } = executerRenommerScenarioCourant("Chez l'envoyeur", ["A"], "Volé");
+  assert.deepEqual(depot, ["A"]);
+  assert.equal(adresse, "Chez l'envoyeur");
+});
+
+test("dupliquer ajoute une copie sans toucher à l'original ni au scénario courant", () => {
+  const { depot, adresse } = executerDupliquerScenarioCourant("Mon budget", ["Mon budget"]);
+  assert.deepEqual(depot, ["Mon budget", "Copie de Mon budget"]);
+  // L'écran montre toujours le budget d'origine : déplacer le nom de l'adresse
+  // sur la copie ferait marquer « courant » un scénario que le lecteur n'a pas
+  // ouvert.
+  assert.equal(adresse, "Mon budget");
+});
+
+test("dupliquer deux fois ne collisionne pas, et un scénario absent ne duplique rien", () => {
+  const depot = depotGarni(["A"]);
+  dupliquer(depot, "A");
+  const { depot: noms } = executerDupliquerScenarioCourant("A", ["A", "Copie de A"]);
+  assert.deepEqual(noms, ["A", "Copie de A", "Copie de A (2)"]);
+  assert.deepEqual(executerDupliquerScenarioCourant("Absent", ["A"]).depot, ["A"]);
 });
 
 test("un stockage indisponible dégrade en scénarios de session, et l'interface le dit", () => {

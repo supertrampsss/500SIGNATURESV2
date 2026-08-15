@@ -26,7 +26,7 @@ import {
   type Volet,
 } from "./atelier.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
-import { lister as listerScenarios, enregistrer as enregistrerScenario, supprimer as supprimerScenario, transposer, transposerBudget, NOM_MAX, type Depot, type Scenario } from "./scenarios.ts";
+import { lister as listerScenarios, enregistrer as enregistrerScenario, renommer as renommerScenario, dupliquer as dupliquerScenario, supprimer as supprimerScenario, nomNettoye, transposer, transposerBudget, type Depot, type Scenario } from "./scenarios.ts";
 import { comparer as comparerScenarios } from "./comparaison.ts";
 import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
@@ -2834,12 +2834,61 @@ function enregistrerScenarioCourant(): void {
   });
   // `enregistrer` nettoie le nom (espaces, longueur) avant de l'écrire ; un
   // nom vide ou fait d'espaces est refusé et ne doit pas marquer un scénario
-  // courant qui n'a pas été créé.
-  const nomPropre = nom.trim().slice(0, NOM_MAX);
+  // courant qui n'a pas été créé. La règle de nettoyage vient de `scenarios.ts`,
+  // jamais refaite ici : deux copies pouvaient s'écarter, et l'adresse aurait
+  // alors nommé autre chose que ce qui a été écrit.
+  const nomPropre = nomNettoye(nom);
   if (nomPropre) {
     etat.nom = nomPropre;
+    // Ce qui est enregistré, c'est l'état affiché : les lignes qu'un scénario
+    // chargé plus tôt avait perdues ne le décrivent plus. Sans cet oubli, la
+    // notice continuait à nommer les réglages perdus par un AUTRE scénario, et
+    // « Aucun réglage n'a pu être repris » restait affiché au-dessus des
+    // propres curseurs du lecteur. Un enregistrement refusé (nom vide) ne
+    // change rien à l'écran, donc n'efface rien.
+    disparuesCourantes = { lignes: [], rienRepris: false };
     ecrireUrl();
   }
+  montrerScenarios();
+}
+
+/**
+ * Renomme le scénario que l'adresse nomme.
+ *
+ * `renommer` (scenarios.ts) refuse un nom vide et un nom déjà pris par un
+ * AUTRE scénario — renommer vers un nom pris détruirait celui-là. La liste
+ * rendue dit lequel des deux s'est produit : le nom d'origine y survit quand
+ * le renommage a été refusé. L'adresse ne suit que sur un renommage
+ * réellement fait, sans quoi elle nommerait un scénario qui n'existe plus —
+ * le même soin que prend `supprimerScenarioCourant`.
+ */
+function renommerScenarioCourant(): void {
+  const cible = scenarioNomme();
+  if (!cible) return;
+  const saisi = window.prompt("Nouveau nom du scénario", cible.nom);
+  if (saisi === null) return;
+  const apres = renommerScenario(depotScenarios, cible.nom, saisi);
+  const nouveau = nomNettoye(saisi);
+  if (nouveau !== null && !apres.some((s) => s.nom === cible.nom)) {
+    etat.nom = nouveau;
+    ecrireUrl();
+  }
+  montrerScenarios();
+}
+
+/**
+ * Duplique le scénario que l'adresse nomme — le geste « créer mon
+ * alternative » (spec §11) : partir d'un budget déjà bâti sans le perdre.
+ *
+ * La copie ne devient pas le scénario courant : l'écran montre toujours le
+ * budget d'origine, et déplacer le nom de l'adresse sur la copie ferait
+ * marquer « courant » dans la barre un scénario que le lecteur n'a pas ouvert.
+ * `dupliquer` choisit lui-même le nom de la copie et garantit qu'il est libre.
+ */
+function dupliquerScenarioCourant(): void {
+  const cible = scenarioNomme();
+  if (!cible) return;
+  dupliquerScenario(depotScenarios, cible.nom);
   montrerScenarios();
 }
 
@@ -2898,12 +2947,21 @@ function montrerScenarios(): void {
     ? ""
     : `<p class="scenarios-rendu__vide">Stockage indisponible (navigation privée) : vos scénarios ne survivent pas au rechargement de la page.</p>`;
 
-  const supprimable = scenarioNomme();
+  // Les trois gestes qui portent sur un scénario du dépôt — renommer,
+  // dupliquer, supprimer — ne s'offrent que quand l'adresse en nomme un qui
+  // existe : proposer « Renommer « X » » pour un X que ce lecteur n'a pas,
+  // c'est offrir un geste qui n'a rien à faire (voir `scenarioNomme`). Chacun
+  // nomme sa cible, parce que l'écran peut montrer un budget retouché depuis.
+  const nomme = scenarioNomme();
   const actions = `<div class="scenarios-rendu__liste">
     <button type="button" class="scenarios-rendu__scenario" id="scenario-enregistrer">Enregistrer ce budget</button>${
-      supprimable
-        ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-supprimer">Supprimer « ${echapper(
-            supprimable.nom,
+      nomme
+        ? `<button type="button" class="scenarios-rendu__scenario" id="scenario-renommer">Renommer « ${echapper(
+            nomme.nom,
+          )} »</button><button type="button" class="scenarios-rendu__scenario" id="scenario-dupliquer">Dupliquer « ${echapper(
+            nomme.nom,
+          )} »</button><button type="button" class="scenarios-rendu__scenario" id="scenario-supprimer">Supprimer « ${echapper(
+            nomme.nom,
           )} »</button>`
         : ""
     }
@@ -2987,6 +3045,8 @@ function brancherScenarios(): void {
     const boutonScenario = cibleClic.closest<HTMLButtonElement>("[data-nom]");
     if (boutonScenario?.dataset.nom) return chargerScenario(boutonScenario.dataset.nom);
     if (cibleClic.closest("#scenario-enregistrer")) return enregistrerScenarioCourant();
+    if (cibleClic.closest("#scenario-renommer")) return renommerScenarioCourant();
+    if (cibleClic.closest("#scenario-dupliquer")) return dupliquerScenarioCourant();
     if (cibleClic.closest("#scenario-supprimer")) return supprimerScenarioCourant();
     if (cibleClic.closest("#scenario-fermer-comparaison")) {
       etat.face = "";
