@@ -168,6 +168,12 @@ function renduContrainte(contrat: string): string {
  * entrée touchée dans au moins une colonne (`comparer()`, comparaison.ts).
  *
  * La légende dit l'unité, comme partout ailleurs sur le site.
+ *
+ * Le montant en tête de colonne est NOMMÉ, comme les mentions qui l'entourent.
+ * Seul et gras au-dessus d'une colonne d'écarts, il se lisait comme le total
+ * de cette colonne — la lecture que ce module interdit partout ailleurs. C'est
+ * la somme des écarts de cette colonne, et rien d'autre : les écarts
+ * s'additionnent, les budgets non (`effort`, atelier.ts).
  */
 export function renduComparaison(colonnes: Comparable[], lignes: LigneComparee[]): string {
   const entetes = colonnes
@@ -183,6 +189,7 @@ export function renduComparaison(colonnes: Comparable[], lignes: LigneComparee[]
         <span class="scenarios-rendu__exercice-colonne">${
           c.exercice === null ? "Exercice inconnu" : `Exercice ${echapper(c.exercice)}`
         }</span>${renduContrainte(c.contrat)}
+        <span class="scenarios-rendu__effort-quoi">Somme des écarts</span>
         <span class="scenarios-rendu__effort-colonne">${formater(c.effort, "EUR", false)}</span>
         <span class="scenarios-rendu__gestes-colonne">${c.gestes} ${
           c.gestes > 1 ? "gestes" : "geste"

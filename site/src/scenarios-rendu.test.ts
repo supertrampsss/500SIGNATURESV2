@@ -198,6 +198,24 @@ test("9. aucun gagnant : ce qu'une colonne rend ne dépend que d'elle", () => {
   assert.ok(forte.indexOf("La mienne") < forte.indexOf("Écrasante"));
 });
 
+test("9 bis. le montant en tête de colonne est nommé, jamais posé seul au-dessus des écarts", () => {
+  // C'est le plus gros chiffre de la colonne, et il est gras : posé sans un
+  // mot en tête d'une colonne d'écarts, il se lit comme le TOTAL de cette
+  // colonne — la lecture que le lot interdit partout ailleurs. C'est une somme
+  // d'écarts, et le mot doit le dire, comme « Exercice 2025 » et « 3 gestes »
+  // le disent à côté de lui.
+  const effort = 1_234_000_000;
+  const entete = premierEntete(renduComparaison([comparable("A", effort, 3)], []));
+  const montant = formater(effort, "EUR", false);
+  const avant = entete.slice(0, entete.indexOf(montant));
+  assert.ok(entete.includes(montant), "le montant doit être en tête de colonne");
+  // Le mot est celui qui précède immédiatement le montant : rien d'autre —
+  // et surtout aucun autre nombre — ne s'intercale entre le nom et la valeur
+  // qu'il nomme. Peu importe qu'il tienne dans la même mention ou juste
+  // au-dessus.
+  assert.match(avant.replace(/<[^>]*>/g, " "), /écarts[^0-9]*$/i);
+});
+
 test("10. deux scénarios construits sur des exercices différents le disent en tête du tableau", () => {
   const colonnes = [comparable("A", 0, 0, "2019"), comparable("B", 0, 0, "2025")];
   const html = renduComparaison(colonnes, []);

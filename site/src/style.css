@@ -6012,6 +6012,11 @@ body[data-carte="oui"] .legende {
   font-weight: 600;
   color: var(--encre);
 }
+/* Le montant en tête de colonne porte son nom au-dessus de lui, comme
+   `.simu__effort-quoi` au-dessus de `.simu__effort-val` dans l'atelier : sans
+   ce mot, un montant isolé et gras au-dessus d'une colonne d'écarts se lit
+   comme le total de la colonne. */
+.scenarios-rendu__effort-quoi,
 .scenarios-rendu__exercice-colonne,
 .scenarios-rendu__gestes-colonne {
   font-size: var(--texte-xs);
