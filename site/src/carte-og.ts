@@ -35,11 +35,14 @@
  * Aucun domaine n'est écrit en dur ici : le dépôt n'en publie pas, et une URL
  * inventée sur une image qui circule serait un faux. L'appelant — le pré-rendu,
  * qui connaît l'adresse de publication — la passe. Même règle pour la source
- * et son millésime : le type les exige, une carte sans eux ne se construit pas.
+ * et son millésime : ils sont exigés par leur VALEUR, pas seulement par le
+ * type — une chaîne vide passe un type et laisse partir une image qui affirme
+ * « Source : · millésime ».
  */
 
 import { LIBELLE_CRAN, type Cran } from "./analyse-rendu.ts";
-import { PALETTE, formater, moins } from "./echelle.ts";
+import { PALETTE, formater } from "./echelle.ts";
+import { formaterVariation, modeVariation } from "./evolution-carte.ts";
 import { echapper } from "./texte.ts";
 
 /** Le format des cartes de lien des plateformes. Jamais un autre : une image
@@ -85,20 +88,85 @@ const PIED_UNITE = 552;
 const PIED_SOURCE = 590;
 
 /**
- * La chasse moyenne d'un caractère, en fraction du corps.
+ * Les bandes du dessin, exportées pour être éprouvées sur les coordonnées
+ * émises.
  *
- * Sans fonte chargée, aucune largeur exacte n'est calculable : ce module ne
- * peut qu'approcher. 0,58 em est la chasse moyenne d'une sans-serif sur du
- * texte français courant, majuscules et chiffres compris. Le modèle est
- * volontairement large — mieux vaut replier une ligne qui aurait tenu que
- * laisser une ligne déborder, parce que le débordement, lui, ne se voit qu'une
- * fois l'image publiée.
+ * Un test qui retape ces nombres n'éprouve plus la mise en page : il éprouve sa
+ * propre copie, et reste vert quand le dessin s'en écarte. Une rangée posée à
+ * y=578 — entre la mention d'unité et la source, par-dessus le pied — était
+ * « dans le cadre 1200 × 630 » et ne faisait rougir personne.
  */
-const CHASSE = 0.58;
+export const GEOMETRIE = { MARGE, CORPS_HAUT, CORPS_BAS, PIED_UNITE, PIED_SOURCE } as const;
 
-/** Largeur approchée d'un texte, en unités du dessin. */
+/**
+ * L'avance de chaque caractère, en fraction du corps.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI PAS UNE CHASSE MOYENNE
+ * ─────────────────────────────────────────────────────────────────────────
+ * Une constante unique a tenu ce rôle — 0,58 em, la chasse moyenne d'une
+ * sans-serif sur du texte français — et elle n'a pas suffi. Les chiffres de la
+ * fonte embarquée ne sont pas tabulaires : « 1 » avance de 0,407 em et « 8 »
+ * de 0,648. Une colonne de chiffres (0,648) comme un titre en capitales
+ * (0,613) passent tous deux au-dessus de la moyenne, et le titre
+ * « PROGRAMME 150 FORMATIONS SUPÉRIEURES ET » sortait du cadre de 39 px sans
+ * qu'aucun test ne rougisse — les tests mesuraient avec la constante qui avait
+ * servi à la mise en page, et la moyenne ne peut pas majorer ce qu'elle moyenne.
+ *
+ * Les valeurs sont donc **mesurées**, dans la table `hmtx` de la fonte que le
+ * rasteriseur embarque (Public Sans Regular, `scripts/polices/`), et arrondies
+ * vers le HAUT au millième : le modèle majore la fonte, jamais l'inverse. Le
+ * crénage, lui, ne fait que resserrer — l'encre réelle reste sous le modèle.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * L'ESPACE FINE INSÉCABLE
+ * ─────────────────────────────────────────────────────────────────────────
+ * U+202F, que `formater` pose entre les groupes de chiffres, n'a **pas de
+ * glyphe** dans cette fonte. Elle n'est pour autant ni de largeur nulle ni une
+ * espace ordinaire : rustybuzz, le façonneur de resvg, connaît les espaces
+ * d'Unicode et lui fabrique une avance de la moitié d'une espace — 0,122 em
+ * contre 0,243, mesuré sur le PNG rasterisé. La compter pour un caractère
+ * ordinaire surestimerait toutes les chaînes de montants ; la compter pour
+ * rien les sous-estimerait.
+ */
+const AVANCES = new Map<string, number>();
+for (const [avance, caracteres] of [
+  // Les deux espaces s'écrivent échappées : au clavier, elles sont
+  // indiscernables l'une de l'autre et d'une espace ordinaire.
+  [0.122, "\u202f"], [0.243, " \u00a0"],
+  [0.225, "."], [0.226, ":"], [0.230, "·"], [0.232, "’"], [0.240, ";"], [0.242, "î,"],
+  [0.248, "i'"], [0.251, "!"], [0.263, "j|"], [0.283, "IÎÏ"], [0.302, "ï"], [0.303, "l([]"],
+  [0.309, ")"], [0.328, "{"], [0.332, "}"], [0.351, "/\\"], [0.367, "²"], [0.378, "-"],
+  [0.389, "tJ"], [0.391, "r"], [0.394, "*"], [0.396, "f"], [0.402, "³"], [0.407, "1"],
+  [0.426, '"'], [0.455, "«"], [0.463, "°"], [0.473, "^"], [0.479, "»"], [0.481, "z"],
+  [0.505, "v"], [0.506, "s"], [0.518, "_"], [0.521, "?"], [0.535, "yÿ"], [0.544, "cç"],
+  [0.546, "<>"], [0.553, "aàâä"], [0.555, "–+=−"], [0.562, "k"], [0.565, "x"], [0.566, "oôö"],
+  [0.567, "eéèêë"], [0.568, "~"], [0.577, "hn"], [0.578, "L"], [0.581, "uùûü"], [0.594, "FT"],
+  [0.596, "pq2"], [0.597, "bd"], [0.600, "€"], [0.601, "7"], [0.603, "#"], [0.607, "YŸ"],
+  [0.612, "0"], [0.621, "EÉÈÊË"], [0.623, "g6"], [0.625, "9"], [0.629, "4"], [0.630, "3"],
+  [0.637, "PZ"], [0.641, "5"], [0.648, "8"], [0.659, "$"], [0.670, "S"], [0.671, "B"],
+  [0.673, "V"], [0.677, "R"], [0.682, "K"], [0.688, "X"], [0.689, "CÇ"], [0.694, "D"],
+  [0.701, "UÙÛÜ"], [0.709, "&"], [0.710, "AÀÂÄ"], [0.733, "G"], [0.734, "OÔÖ"], [0.748, "Q"],
+  [0.754, "N"], [0.766, "H"], [0.768, "…"], [0.780, "w"], [0.831, "@"], [0.865, "m"],
+  [0.886, "M"], [0.904, "%"], [0.914, "æ"], [0.948, "œ"], [0.954, "W"], [0.975, "Æ"],
+  [1.117, "—"], [1.118, "Œ"], [1.305, "‰"],
+] as [number, string][]) {
+  for (const caractere of caracteres) AVANCES.set(caractere, avance);
+}
+
+/** Ce qu'avance un caractère hors du répertoire mesuré : le plus large que la
+ *  fonte porte pour le site (« ‰ »), et davantage que le carré vide qu'elle
+ *  peint pour un caractère qu'elle ignore. Majorer est le seul repli sûr —
+ *  sous-estimer ne se voit qu'une fois l'image publiée. */
+const AVANCE_INCONNUE = 1.31;
+
+/** Largeur approchée d'un texte, en unités du dessin. La boucle parcourt les
+ *  points de code, pas les unités UTF-16 : une paire de substitution est un
+ *  caractère, pas deux. */
 export function largeurApprochee(texte: string, taille: number): number {
-  return texte.length * taille * CHASSE;
+  let em = 0;
+  for (const caractere of texte) em += AVANCES.get(caractere) ?? AVANCE_INCONNUE;
+  return em * taille;
 }
 
 /**
@@ -116,6 +184,11 @@ export function largeurApprochee(texte: string, taille: number): number {
  * du site, et aucune valeur attendue produite par `formater` ne s'y retrouvait.
  * Une espace insécable dit précisément « ne pas couper ici » : elle reste dans
  * le mot.
+ *
+ * Zéro ligne demandée rend zéro ligne. La signature accepte `0` — et les
+ * négatifs — alors que les cinq natures n'en passent jamais ; sans cette
+ * borne, la coupe lisait `gardees[-1]` et lançait un `TypeError` obscur, dans
+ * un module exporté que d'autres tâches consomment.
  */
 export function replier(
   texte: string,
@@ -123,21 +196,29 @@ export function replier(
   largeur: number,
   maxLignes: number,
 ): string[] {
-  const max = Math.max(1, Math.floor(largeur / (taille * CHASSE)));
+  if (maxLignes < 1) return [];
+  // Le repli compte des LARGEURS, pas des caractères : « 111 » et « 888 »
+  // n'occupent pas la même place, un nombre de caractères par ligne ne peut
+  // donc pas borner une ligne.
+  const tient = (essai: string) => largeurApprochee(essai, taille) <= largeur;
   const mots: string[] = [];
   for (const brut of texte.split(/[ \t\r\n]+/).filter(Boolean)) {
-    let reste = brut;
-    while (reste.length > max) {
-      mots.push(reste.slice(0, max));
-      reste = reste.slice(max);
+    let reste = [...brut];
+    while (reste.length > 1 && !tient(reste.join(""))) {
+      // Le plus grand préfixe qui tient, un caractère au moins : la coupe
+      // avance toujours, et un mot plus long que la ligne finit par passer.
+      let n = 1;
+      while (n < reste.length - 1 && tient(reste.slice(0, n + 1).join(""))) n += 1;
+      mots.push(reste.slice(0, n).join(""));
+      reste = reste.slice(n);
     }
-    if (reste) mots.push(reste);
+    if (reste.length > 0) mots.push(reste.join(""));
   }
   const lignes: string[] = [];
   let courante = "";
   for (const mot of mots) {
     const essai = courante ? `${courante} ${mot}` : mot;
-    if (essai.length <= max) {
+    if (tient(essai)) {
       courante = essai;
       continue;
     }
@@ -147,10 +228,19 @@ export function replier(
   if (courante) lignes.push(courante);
   if (lignes.length <= maxLignes) return lignes;
   const gardees = lignes.slice(0, maxLignes);
-  const derniere = gardees[maxLignes - 1];
-  gardees[maxLignes - 1] =
-    `${derniere.length < max ? derniere : derniere.slice(0, max - 1).trimEnd()}…`;
+  gardees[maxLignes - 1] = marquerLaSuite(gardees[maxLignes - 1], taille, largeur);
   return gardees;
+}
+
+/** Marque une ligne coupée d'un caractère de suite, en lui faisant la place :
+ *  « … » avance de 0,768 em, plus que la plupart des lettres. L'ajouter sans
+ *  retirer ce qu'il occupe ferait déborder la ligne qu'on vient de borner. */
+function marquerLaSuite(ligne: string, taille: number, largeur: number): string {
+  let gardee = ligne;
+  while (gardee && largeurApprochee(`${gardee}…`, taille) > largeur) {
+    gardee = [...gardee].slice(0, -1).join("").trimEnd();
+  }
+  return `${gardee}…`;
 }
 
 type Ancre = "start" | "end";
@@ -176,12 +266,16 @@ function texte(
  * Le pas se resserre quand il y a plus de rangées, au lieu de pousser la
  * dernière sous le pied de page : une carte qui reçoit une rangée de plus
  * qu'on n'avait prévu se serre, elle ne déborde pas.
+ *
+ * Les ordonnées sont arrondies : `y="388.6666666666667"` dans un attribut SVG
+ * ne pose pas le texte plus juste, il alourdit le document et rend le dessin
+ * pénible à relire d'une carte à l'autre.
  */
 function ordonnees(n: number): number[] {
   if (n <= 0) return [];
   if (n === 1) return [CORPS_HAUT];
   const pas = Math.min(PAS_MAX, (CORPS_BAS - CORPS_HAUT) / (n - 1));
-  return Array.from({ length: n }, (_, i) => CORPS_HAUT + i * pas);
+  return Array.from({ length: n }, (_, i) => Math.round(CORPS_HAUT + i * pas));
 }
 
 /** Une rangée du corps : soit un libellé et sa valeur, soit une phrase seule. */
@@ -204,7 +298,13 @@ function corpsRangees(rangees: Rangee[]): string {
       }
       const valeur = replier(rangee.valeur, TAILLE_VALEUR, LARGEUR_UTILE, 1)[0] ?? "";
       const dispo = LARGEUR_UTILE - largeurApprochee(valeur, TAILLE_VALEUR) - GOUTTIERE;
-      const libelle = replier(rangee.libelle, TAILLE_LIBELLE, Math.max(1, dispo), 1)[0] ?? "";
+      // Quand la valeur prend toute la ligne, il ne reste rien pour le libellé.
+      // Le replier dans la place restante rendait alors le seul caractère de
+      // suite : un « … » qui n'apprend rien et qui se pose PAR-DESSUS la
+      // valeur, à la même ordonnée. Pas de place, pas de libellé — c'est la
+      // valeur qu'on vient lire.
+      const replie = dispo > 0 ? (replier(rangee.libelle, TAILLE_LIBELLE, dispo, 1)[0] ?? "") : "";
+      const libelle = replie === "…" ? "" : replie;
       return (
         texte(libelle, MARGE, y, TAILLE_LIBELLE, ENCRE_SOURDE) +
         texte(valeur, LARGEUR - MARGE, y, TAILLE_VALEUR, ENCRE, "end")
@@ -235,17 +335,51 @@ type Cadre = {
 };
 
 /**
+ * Ce sans quoi une carte ne se relit pas, une fois sortie du site.
+ *
+ * Le type exige ces trois champs, mais un type n'exige pas une **valeur** :
+ * `{ titre: "", millesime: "" }` et `site: ""` se construisaient, et l'image
+ * partait en peignant « Source : · millésime ». Une image qui circule en
+ * affirmant une source qu'elle n'a pas est pire qu'une image absente.
+ */
+function exigerProvenance(cadre: Cadre): void {
+  const champs: [string, string][] = [
+    ["la source", cadre.source.titre],
+    ["le millésime", cadre.source.millesime],
+    ["l'adresse du site", cadre.site],
+  ];
+  const manquants = champs.filter(([, valeur]) => !valeur.trim()).map(([nom]) => nom);
+  if (manquants.length > 0) {
+    throw new Error(
+      `Carte de partage sans ${manquants.join(", ")} : une image circule seule, ce qui n'est pas peint dessus est perdu.`,
+    );
+  }
+}
+
+/**
  * Le dessin commun : fond, chapeau, titre replié, corps, pied.
  *
  * La hauteur du titre est **réservée**, pas mesurée : un titre d'une ligne et
  * un titre de trois posent le corps et le pied au même endroit. Une carte dont
  * la source remonte quand le titre raccourcit se relit mal d'une image à
  * l'autre, et rien ne garantirait plus que le pied tienne dans le cadre.
+ *
+ * Le titre se **centre** dans ce bloc réservé. La hauteur reste réservée — le
+ * corps et le pied ne bougent pas d'une carte à l'autre, ce que la règle
+ * ci-dessus protège — mais le blanc du bloc se répartit au lieu de tomber
+ * entièrement sous le texte : un titre d'une ligne laissait sinon 150 px de
+ * vide au-dessus du corps, et l'affirmation d'un repère flottait tout en haut
+ * d'une image aux deux tiers blanche.
  */
 function dessiner(cadre: Cadre): string {
+  exigerProvenance(cadre);
   const maxLignes = cadre.titreLignes ?? 3;
-  const lignesTitre = replier(cadre.titre, TAILLE_TITRE, LARGEUR_UTILE, maxLignes)
-    .map((ligne, i) => texte(ligne, MARGE, TITRE_HAUT + i * INTERLIGNE_TITRE, TAILLE_TITRE, ACCENT))
+  const lignes = replier(cadre.titre, TAILLE_TITRE, LARGEUR_UTILE, maxLignes);
+  const creux = Math.round(((maxLignes - lignes.length) * INTERLIGNE_TITRE) / 2);
+  const lignesTitre = lignes
+    .map((ligne, i) =>
+      texte(ligne, MARGE, TITRE_HAUT + creux + i * INTERLIGNE_TITRE, TAILLE_TITRE, ACCENT),
+    )
     .join("");
   const source = `Source : ${cadre.source.titre} · millésime ${cadre.source.millesime}`;
   const pied =
@@ -487,17 +621,6 @@ export type ChiffreCarte = {
   variation?: number | null;
 };
 
-/** Un taux varie en points, jamais en pourcentage : « le taux de pauvreté a
- *  augmenté de 3 % » et « de 3 points » sont deux affirmations différentes, et
- *  la seconde est celle que la source permet. */
-function variationLisible(variation: number, unite: string): string {
-  const nombre = new Intl.NumberFormat("fr-FR", {
-    maximumFractionDigits: 1,
-    signDisplay: "exceptZero",
-  }).format(variation);
-  return moins(unite === "percent" || unite === "rate" ? `${nombre} points` : `${nombre} %`);
-}
-
 export type DonneesFiche = {
   territoire: string;
   chiffres: ChiffreCarte[];
@@ -506,13 +629,27 @@ export type DonneesFiche = {
   site: string;
 };
 
-/** La carte d'une fiche territoire : nom du territoire, trois chiffres, exercice. */
+/**
+ * La carte d'une fiche territoire : nom du territoire, trois chiffres, exercice.
+ *
+ * La variation est **déléguée** à `evolution-carte.ts`, qui porte déjà la règle
+ * du site et ses tests : un taux varie en points, et les taux publiés pour
+ * mille suivent la conversion ÷ 10 que `formater` applique à l'écran. Réécrite
+ * ici, elle avait raté les deux : la carte peignait « 2,1 % (+21 %) » — le bon
+ * chiffre à gauche, à droite le mauvais mot et dix fois la grandeur.
+ */
 export function carteFiche(donnees: DonneesFiche): string {
+  // Trois chiffres, jamais quatre : au-delà, les rangées se resserrent jusqu'à
+  // l'illisible. Les trois PREMIERS, sans tri — au contraire du scénario, ces
+  // chiffres n'ont pas d'unité commune (un montant et un taux ne se rangent pas
+  // l'un contre l'autre) et l'ordre reçu est celui que la fiche a choisi.
   const chiffres = donnees.chiffres.slice(0, 3);
   const rangees: Rangee[] = chiffres.map((chiffre) => {
     const montant = formater(chiffre.valeur, chiffre.unite, false);
     const variation =
-      chiffre.variation == null ? "" : ` (${variationLisible(chiffre.variation, chiffre.unite)})`;
+      chiffre.variation == null
+        ? ""
+        : ` (${formaterVariation(chiffre.variation, chiffre.unite, modeVariation(chiffre.unite))})`;
     return { libelle: chiffre.libelle, valeur: `${montant}${variation}` };
   });
   // L'exercice se dit avec l'unité, là où le lecteur apprend ce que sont les

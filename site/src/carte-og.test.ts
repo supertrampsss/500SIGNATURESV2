@@ -10,16 +10,35 @@
  *    document, et le rasteriseur rend alors une image vide.
  *
  * Le cadrage se vérifie avec le modèle de largeur du module lui-même
- * (`largeurApprochee`) : aucune fonte n'étant chargée, il n'existe pas de
- * largeur exacte ici. Ce que le test établit est donc précis — la mise en page
- * respecte le modèle sur lequel elle est bâtie — et c'est ce qui attrape un
- * titre non replié, qui est le défaut visé.
+ * (`largeurApprochee`). Un test mesurant avec la constante qui a servi à la
+ * mise en page ne prouve rien de la fonte, et c'est ce qui est arrivé : le
+ * titre « PROGRAMME 150 FORMATIONS SUPÉRIEURES ET » sortait du cadre de 39 px,
+ * vert. Le modèle est donc maintenant mesuré caractère par caractère dans la
+ * fonte embarquée, et un test l'ADOSSE aux avances relevées sur le PNG
+ * rasterisé : le modèle doit les majorer.
+ *
+ * « Dans le cadre 1200 × 630 » ne suffit pas non plus, et trois défauts l'ont
+ * montré : une rangée posée à y=578 marchait dans le pied, un libellé occupant
+ * [72, 1074] passait sous une valeur occupant [951, 1128], et les deux étaient
+ * « dans le cadre ». Trois garanties de plus, donc, sur les coordonnées
+ * émises :
+ *
+ * 3. **les bandes** — chaque texte est dans les marges, et rien n'est peint
+ *    entre le bas du corps et les deux lignes du pied (`horsBandes`) ;
+ * 4. **le non-recouvrement deux à deux** — aucun texte n'en couvre un autre
+ *    (`recouvrements`). Cette mesure passe encore par le modèle, mais elle
+ *    éprouve une **logique** — la gouttière déduite de la largeur du libellé —
+ *    et l'attrape quelles que soient les avances ;
+ * 5. **le pire cas** — les cinq cartes ordinaires sont remesurées à un modèle
+ *    élargi, ce qui **borne** l'erreur que le dessin tolère au lieu de la
+ *    supposer nulle.
  */
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  GEOMETRIE,
   HAUTEUR,
   LARGEUR,
   type SourceCarte,
@@ -32,6 +51,7 @@ import {
   replier,
 } from "./carte-og.ts";
 import { formater } from "./echelle.ts";
+import { formaterVariation, modeVariation } from "./evolution-carte.ts";
 
 /** Une source d'essai. Les valeurs sont manifestement d'essai : `.test` est un
  *  domaine réservé qui ne résout nulle part, et rien ici ne pourrait passer
@@ -73,25 +93,73 @@ function peints(svg: string): Peint[] {
 }
 
 /**
- * Les textes qui sortent du cadre 1200 × 630.
+ * La boîte approchée d'un texte peint : la largeur par le modèle du module, la
+ * hauteur par la hampe (0,8 em au-dessus de la ligne de base) et la jambe
+ * (0,25 em en dessous).
  *
- * La boîte est approchée comme le module l'approche : la largeur par
- * `largeurApprochee`, la hauteur par la hampe (0,8 em au-dessus de la ligne de
- * base) et la jambe (0,25 em en dessous).
+ * `facteur` remesure la même chaîne à un modèle plus large : c'est le pire cas,
+ * et il borne l'erreur que le dessin tolère au lieu de la supposer nulle.
  */
-function debordements(svg: string): string[] {
+function boite(t: Peint, facteur: number) {
+  const largeur = largeurApprochee(t.contenu, t.taille) * facteur;
+  const gauche = t.ancre === "end" ? t.x - largeur : t.x;
+  return {
+    gauche,
+    droite: gauche + largeur,
+    haut: t.y - t.taille * 0.8,
+    bas: t.y + t.taille * 0.25,
+  };
+}
+
+/** Les textes qui sortent du cadre 1200 × 630. */
+function debordements(svg: string, facteur = 1): string[] {
   return peints(svg)
     .filter((t) => {
-      const largeur = largeurApprochee(t.contenu, t.taille);
-      const gauche = t.ancre === "end" ? t.x - largeur : t.x;
-      return (
-        gauche < 0 ||
-        gauche + largeur > LARGEUR ||
-        t.y - t.taille * 0.8 < 0 ||
-        t.y + t.taille * 0.25 > HAUTEUR
-      );
+      const b = boite(t, facteur);
+      return b.gauche < 0 || b.droite > LARGEUR || b.haut < 0 || b.bas > HAUTEUR;
     })
     .map((t) => t.contenu);
+}
+
+/**
+ * Les textes hors de leur bande.
+ *
+ * Deux règles, sur les coordonnées émises seules : rien n'entre dans une marge,
+ * et rien n'est peint entre le bas du corps et les deux lignes du pied. Une
+ * rangée qui débordait la bande du corps se posait à y=578 — au-dessus de la
+ * source, en travers du pied — et restait « dans le cadre ».
+ */
+function horsBandes(svg: string): string[] {
+  const { MARGE, CORPS_BAS, PIED_UNITE, PIED_SOURCE } = GEOMETRIE;
+  return peints(svg)
+    .filter((t) => {
+      const dansLaMarge = t.ancre === "start" ? t.x < MARGE : t.x > LARGEUR - MARGE;
+      const surUneLigne = t.y <= CORPS_BAS || t.y === PIED_UNITE || t.y === PIED_SOURCE;
+      return dansLaMarge || !surUneLigne;
+    })
+    .map((t) => `${t.contenu} (x=${t.x}, y=${t.y})`);
+}
+
+/**
+ * Les couples de textes qui se recouvrent.
+ *
+ * Deux boîtes qui se **touchent** ne se recouvrent pas : les deux colonnes de
+ * la comparaison partagent leur largeur bord à bord, et une inégalité large les
+ * déclarerait fautives à tort.
+ */
+function recouvrements(svg: string, facteur = 1): string[] {
+  const boites = peints(svg).map((t) => ({ t, b: boite(t, facteur) }));
+  const couples: string[] = [];
+  for (let i = 0; i < boites.length; i += 1) {
+    for (let j = i + 1; j < boites.length; j += 1) {
+      const a = boites[i];
+      const z = boites[j];
+      if (a.b.gauche < z.b.droite && z.b.gauche < a.b.droite && a.b.haut < z.b.bas && z.b.haut < a.b.bas) {
+        couples.push(`« ${a.t.contenu} » recouvre « ${z.t.contenu} » à y=${a.t.y}`);
+      }
+    }
+  }
+  return couples;
 }
 
 /** Le document est-il bien formé : une seule racine `svg`, toutes les balises
@@ -143,6 +211,25 @@ const ANALYSE = {
   site: SITE,
 };
 
+/** Les chaînes qu'aucun titre du site n'atteint : c'est là que la mise en page
+ *  casse, et c'est donc là qu'on la regarde. */
+const TITRE_LONG =
+  "Le coût annoncé de la mesure, tel qu'il a été cité en séance publique par " +
+  "plusieurs intervenants successifs au cours du débat budgétaire, puis repris " +
+  "sans changement par la presse pendant les semaines suivantes";
+const DIT_LONG =
+  "cent milliards d'euros par an, en autorisations d'engagement, sur la durée de la programmation";
+const LIBELLE_LONG =
+  "Un libellé d'essai délibérément très long qui ne tiendrait dans aucune colonne ".repeat(2);
+/** Le titre mesuré qui débordait : 39 capitales, 1 095 unités d'encre réelle
+ *  pour 1 056 disponibles. */
+const TITRE_CAPITALES = "PROGRAMME 150 FORMATIONS SUPÉRIEURES ET";
+const AFFIRMATION_LONGUE =
+  "Le repère d'essai a changé de niveau entre les deux exercices publiés, " +
+  "et la série que le site publie le montre exercice par exercice sans " +
+  "qu'aucun lissage ne vienne en adoucir la marche, ce qui rend la phrase " +
+  "beaucoup plus longue qu'aucun titre du site ne l'est jamais en pratique";
+
 test("1. la carte d'analyse porte le chiffre annoncé, le chiffre des comptes et le cran", () => {
   const svg = carteAnalyse(ANALYSE);
   assert.match(svg, /viewBox="0 0 1200 630"/);
@@ -181,11 +268,7 @@ test("4. la carte d'analyse n'écrit aucun montant qu'elle n'a pas reçu", () =>
 });
 
 test("5. un titre très long est replié et coupé, jamais peint hors du cadre", () => {
-  const long =
-    "Le coût annoncé de la mesure, tel qu'il a été cité en séance publique par " +
-    "plusieurs intervenants successifs au cours du débat budgétaire, puis repris " +
-    "sans changement par la presse pendant les semaines suivantes";
-  const svg = carteAnalyse({ ...ANALYSE, titre: long });
+  const svg = carteAnalyse({ ...ANALYSE, titre: TITRE_LONG });
   assert.deepEqual(debordements(svg), []);
   assert.ok(bienForme(svg));
   // Le montant reste peint : ce que la coupe retire, c'est du titre, jamais un
@@ -197,11 +280,13 @@ test("5. un titre très long est replié et coupé, jamais peint hors du cadre",
 });
 
 test("6. un libellé très long ne recouvre pas sa valeur", () => {
-  const svg = carteAnalyse({
-    ...ANALYSE,
-    dit: "cent milliards d'euros par an, en autorisations d'engagement, sur la durée de la programmation",
-  });
+  const svg = carteAnalyse({ ...ANALYSE, dit: DIT_LONG });
   assert.deepEqual(debordements(svg), []);
+  // Le nom de ce test est sa garantie : « dans le cadre » ne dit rien du
+  // recouvrement. Sans la gouttière déduite de la largeur restante, le libellé
+  // et sa valeur se peignent l'un sur l'autre, à la même ordonnée, et le cadre
+  // reste tenu.
+  assert.deepEqual(recouvrements(svg), []);
   const lu = peints(svg).map((t) => t.contenu);
   assert.ok(lu.some((t) => t.includes(formater(1_234_000_000, "EUR", false))));
 });
@@ -286,7 +371,46 @@ const CINQ: [string, string][] = [
   ["repères", carteReperes(REPERES)],
 ];
 
-test("10. les cinq natures tiennent le cadre, la source, le millésime et l'adresse", () => {
+/** Les cinq natures poussées aux chaînes longues : c'est là que le repli, la
+ *  coupe et la gouttière travaillent vraiment. */
+const LONGUES: [string, string][] = [
+  ["analyse, titre long", carteAnalyse({ ...ANALYSE, titre: TITRE_LONG })],
+  ["analyse, valeur longue", carteAnalyse({ ...ANALYSE, dit: DIT_LONG })],
+  [
+    "analyse, tout long",
+    carteAnalyse({ ...ANALYSE, titre: LIBELLE_LONG, dit: LIBELLE_LONG }),
+  ],
+  [
+    "scénario, libellés longs",
+    carteScenario({
+      ...SCENARIO,
+      nom: LIBELLE_LONG,
+      gestes: SCENARIO.gestes.map((g) => ({ ...g, libelle: LIBELLE_LONG })),
+    }),
+  ],
+  [
+    "comparaison, libellés longs",
+    carteComparaison({
+      ...COMPARAISON,
+      titre: LIBELLE_LONG,
+      colonnes: COMPARAISON.colonnes.map((c) => ({ ...c, nom: LIBELLE_LONG })) as typeof COMPARAISON.colonnes,
+      ecarts: COMPARAISON.ecarts.map((e) => ({ ...e, libelle: LIBELLE_LONG })),
+    }),
+  ],
+  [
+    "fiche, libellés longs",
+    carteFiche({
+      ...FICHE,
+      territoire: LIBELLE_LONG,
+      chiffres: FICHE.chiffres.map((c) => ({ ...c, libelle: LIBELLE_LONG })),
+    }),
+  ],
+  ["repère, affirmation longue", carteReperes({ ...REPERES, titre: AFFIRMATION_LONGUE })],
+];
+
+const TOUTES: [string, string][] = [...CINQ, ...LONGUES];
+
+test("9. les cinq natures tiennent le cadre, la source, le millésime et l'adresse", () => {
   for (const [nom, svg] of CINQ) {
     assert.ok(svg.includes('viewBox="0 0 1200 630"'), nom);
     assert.ok(bienForme(svg), nom);
@@ -298,7 +422,71 @@ test("10. les cinq natures tiennent le cadre, la source, le millésime et l'adre
   }
 });
 
-test("11. les quatre cartes qui alignent des montants portent leur unité", () => {
+test("10. aucun texte ne sort de sa bande : ni dans une marge, ni dans le pied", () => {
+  // Sur les coordonnées émises seules, sans modèle de largeur. Une rangée de
+  // trop poussait la dernière ligne du corps à y=578, entre la mention d'unité
+  // (y=552) et la source (y=590) : par-dessus le pied, et dans le cadre.
+  for (const [nom, svg] of TOUTES) assert.deepEqual(horsBandes(svg), [], nom);
+});
+
+test("11. aucun texte n'en recouvre un autre", () => {
+  for (const [nom, svg] of TOUTES) assert.deepEqual(recouvrements(svg), [], nom);
+});
+
+test("12. le modèle de largeur majore la fonte embarquée", () => {
+  // Les avances relevées sur le PNG rasterisé de Public Sans Regular, à corps
+  // 100. Le modèle doit passer AU-DESSUS : en dessous, il autorise des lignes
+  // que la fonte fait déborder, et c'est invisible jusqu'à la publication.
+  const parCaractere: [string, number][] = [
+    ["0123456789", 0.596],
+    ["8888888888", 0.642],
+  ];
+  for (const [chaine, mesure] of parCaractere) {
+    const modele = largeurApprochee(chaine, 100) / [...chaine].length;
+    assert.ok(modele >= mesure, `${chaine} : modèle ${modele} < encre mesurée ${mesure}`);
+  }
+  // Deux titres en capitales mesurés à corps 46, en unités d'encre depuis la
+  // marge gauche : l'un tenait de 10 px, l'autre débordait de 39.
+  assert.ok(largeurApprochee("COMMISSION DES FINANCES DE L'ASSEMBLÉE", 46) >= 1118 - 72);
+  assert.ok(largeurApprochee(TITRE_CAPITALES, 46) >= 1167 - 72);
+  // L'espace fine insécable de `formater` n'a pas de glyphe dans cette fonte,
+  // mais elle avance : ni zéro (les montants seraient sous-estimés), ni une
+  // espace entière (ils seraient surestimés).
+  const fine = largeurApprochee("\u202f", 100);
+  assert.ok(fine >= 12.17, `l'espace fine avance de ${fine}, moins que l'encre mesurée`);
+  assert.ok(fine < largeurApprochee(" ", 100), "elle n'avance pas comme une espace ordinaire");
+});
+
+test("13. le dessin garde une marge sur le modèle, et le test la borne", () => {
+  // Le modèle majore déjà la fonte, mais il ne connaît ni le crénage ni les
+  // arrondis du rasteriseur. Ce test remesure les cinq cartes ordinaires à un
+  // modèle élargi et exige que ça tienne encore : il DIT ce que le dessin
+  // tolère au lieu de le supposer nul.
+  const pire = 1.05;
+  for (const [nom, svg] of CINQ) {
+    assert.deepEqual(debordements(svg, pire), [], `${nom} : hors cadre à +5 %`);
+    assert.deepEqual(recouvrements(svg, pire), [], `${nom} : recouvrement à +5 %`);
+  }
+  // Les chaînes longues, elles, ne tolèrent rien par construction : `replier`
+  // remplit la ligne au modèle, donc tout modèle plus large la fait déborder.
+});
+
+test("14. un titre en capitales tient — le cas mesuré qui débordait de 39 px", () => {
+  const svg = carteAnalyse({ ...ANALYSE, titre: TITRE_CAPITALES });
+  assert.deepEqual(debordements(svg), []);
+  assert.deepEqual(recouvrements(svg), []);
+  assert.deepEqual(horsBandes(svg), []);
+  // Ce titre ne tient pas sur une ligne : 39 capitales avancent plus que la
+  // moyenne d'un texte français. Il se replie donc, et il ne se rogne pas —
+  // l'affirmation reste entière sur la carte.
+  const corps = Math.max(...peints(svg).map((t) => t.taille));
+  const lignes = peints(svg).filter((t) => t.taille === corps).map((t) => t.contenu);
+  assert.equal(lignes.length, 2);
+  assert.equal(lignes.join(" "), TITRE_CAPITALES);
+  assert.ok(!lignes.some((l) => l.endsWith("…")), "rien n'est coupé");
+});
+
+test("15. les quatre cartes qui alignent des montants portent leur unité", () => {
   for (const [nom, svg] of CINQ.filter(([n]) => n !== "repères")) {
     const lu = peints(svg).map((t) => t.contenu);
     assert.ok(lu.some((t) => t.includes("Montants en millions d'euros")), nom);
@@ -308,7 +496,7 @@ test("11. les quatre cartes qui alignent des montants portent leur unité", () =
   assert.ok(reperes.some((t) => t.includes("Taux en pourcentage")));
 });
 
-test("12. la carte de scénario nomme la somme des écarts et ses trois gestes les plus lourds", () => {
+test("16. la carte de scénario nomme la somme des écarts et ses trois gestes les plus lourds", () => {
   const svg = carteScenario(SCENARIO);
   const lu = peints(svg).map((t) => t.contenu);
   // « Somme des écarts », jamais « Budget » : seul et gros sur une image, ce
@@ -322,7 +510,7 @@ test("12. la carte de scénario nomme la somme des écarts et ses trois gestes l
   assert.ok(!lu.some((t) => t === "Ligne d'essai la plus légère"));
 });
 
-test("13. la carte de scénario n'écrit aucun montant qu'elle n'a pas reçu", () => {
+test("17. la carte de scénario n'écrit aucun montant qu'elle n'a pas reçu", () => {
   const svg = carteScenario(SCENARIO);
   const attendus = new Set(["2025"]);
   for (const montant of [2_500_000_000, -1_800_000_000, 600_000_000, 40_000_000]) {
@@ -335,7 +523,7 @@ test("13. la carte de scénario n'écrit aucun montant qu'elle n'a pas reçu", (
   }
 });
 
-test("14. la comparaison n'écrit jamais la somme des deux colonnes", () => {
+test("18. la comparaison n'écrit jamais la somme des deux colonnes", () => {
   const svg = carteComparaison(COMPARAISON);
   const lu = peints(svg).map((t) => t.contenu);
   assert.ok(lu.some((t) => t.includes(formater(1_200_000_000, "EUR", false))));
@@ -348,7 +536,44 @@ test("14. la comparaison n'écrit jamais la somme des deux colonnes", () => {
   assert.ok(!lu.some((t) => t.includes(cumul)), `le cumul de ligne ${cumul} est peint`);
 });
 
-test("15. la comparaison ne désigne aucune tête : deux colonnes au même corps", () => {
+/**
+ * Six écarts choisis pour que trois critères de tri donnent trois trios
+ * différents : le plus gros des deux montants (celui que la carte annonce), le
+ * plus petit, ou leur somme. Sans cette séparation, un tri inversé ou une somme
+ * peindrait trois lignes différentes sans qu'aucun test ne bouge — ce qui est
+ * arrivé.
+ */
+const POIDS = {
+  ...COMPARAISON,
+  ecarts: [
+    { libelle: "Ligne d'essai lourde", cellules: [800_000_000, 10_000_000] as [number, number] },
+    { libelle: "Ligne d'essai moyenne", cellules: [700_000_000, 20_000_000] as [number, number] },
+    { libelle: "Ligne d'essai légère", cellules: [600_000_000, 30_000_000] as [number, number] },
+    { libelle: "Ligne d'essai serrée", cellules: [40_000_000, 35_000_000] as [number, number] },
+    { libelle: "Ligne d'essai équilibrée", cellules: [450_000_000, 450_000_000] as [number, number] },
+    { libelle: "Ligne d'essai d'un seul côté", cellules: [null, 900_000_000] as [null, number] },
+  ],
+};
+
+test("19. la comparaison montre les trois écarts les plus lourds, au plus gros des deux montants", () => {
+  const svg = carteComparaison(POIDS);
+  const retenues = peints(svg)
+    .filter((t) => t.contenu.startsWith("Ligne d'essai "))
+    .sort((a, z) => a.y - z.y)
+    .map((t) => t.contenu);
+  // Au plus gros des deux : 900, 800, 700. Au plus petit, ce serait
+  // « équilibrée », « serrée », « légère » ; à la somme, « équilibrée »,
+  // « d'un seul côté », « lourde ». Le trio ci-dessous ne sort que du bon
+  // critère — et une cellule non réglée ne disqualifie pas sa ligne, elle pèse
+  // ce que pèse l'autre.
+  assert.deepEqual(retenues, [
+    "Ligne d'essai d'un seul côté",
+    "Ligne d'essai lourde",
+    "Ligne d'essai moyenne",
+  ]);
+});
+
+test("20. la comparaison ne désigne aucune tête : deux colonnes au même corps", () => {
   const svg = carteComparaison(COMPARAISON);
   const noms = peints(svg).filter((t) => t.contenu.startsWith("Colonne d'essai "));
   assert.equal(noms.length, 2);
@@ -368,14 +593,14 @@ test("15. la comparaison ne désigne aucune tête : deux colonnes au même corps
   );
 });
 
-test("16. une cellule non réglée se distingue d'un zéro", () => {
+test("21. une cellule non réglée se distingue d'un zéro", () => {
   const svg = carteComparaison(COMPARAISON);
   const lu = peints(svg).map((t) => t.contenu);
   assert.ok(lu.some((t) => t === "Non réglé"));
   assert.ok(!lu.some((t) => t === formater(0, "EUR", false)));
 });
 
-test("17. la fiche porte trois chiffres et son exercice, et un taux varie en points", () => {
+test("22. la fiche porte trois chiffres et son exercice, et un taux varie en points", () => {
   const svg = carteFiche(FICHE);
   const lu = peints(svg).map((t) => t.contenu);
   assert.ok(lu.some((t) => t === "Territoire d'essai"));
@@ -384,11 +609,32 @@ test("17. la fiche porte trois chiffres et son exercice, et un taux varie en poi
   assert.ok(lu.some((t) => t.includes(formater(14.3, "percent", false))));
   assert.ok(lu.some((t) => t.includes("exercice 2023")));
   // Un taux varie en POINTS. « +2,1 % » dirait autre chose, et ce serait faux.
-  assert.ok(lu.some((t) => t.includes("+2,1 points")), "la variation d'un taux est en points");
+  // La chaîne attendue se PRODUIT, elle ne se tape pas : elle porte l'espace
+  // fine insécable et l'abréviation du site, « pts », que la carte avait
+  // réécrites en « points » avec une espace ordinaire.
+  const attendue = formaterVariation(2.1, "percent", modeVariation("percent"));
+  assert.ok(lu.some((t) => t.includes(attendue)), `la variation d'un taux est en points : ${attendue}`);
   assert.ok(!lu.some((t) => t.includes("+2,1 %")));
 });
 
-test("18. sans montant en euros, la fiche n'annonce pas des millions d'euros", () => {
+test("23. un taux publié pour mille varie en points, et pas d'un facteur dix", () => {
+  // `formater` affiche les `pour_1000_*` en pourcentage après division par dix :
+  // 21 ‰ se lit « 2,1 % ». Sa variation suit la même conversion et se dit en
+  // points. Écrite à part, la règle avait raté les deux d'un coup — la carte
+  // peignait « 2,1 % (+21 %) » : le mauvais mot et dix fois la grandeur.
+  const unite = "pour_1000_habitants";
+  const svg = carteFiche({
+    ...FICHE,
+    chiffres: [{ libelle: "Taux d'essai pour mille", valeur: 21, unite, variation: 21 }],
+  });
+  const lu = peints(svg).map((t) => t.contenu);
+  const attendue = `${formater(21, unite, false)} (${formaterVariation(21, unite, modeVariation(unite))})`;
+  assert.ok(lu.some((t) => t === attendue), `attendu « ${attendue} », lu « ${lu.join(" | ")} »`);
+  assert.ok(!lu.some((t) => t.includes("+21")), "la variation n'est pas dix fois trop grande");
+  assert.ok(!lu.some((t) => t.includes("21 %")), "la variation d'un taux ne s'écrit pas en %");
+});
+
+test("24. sans montant en euros, la fiche n'annonce pas des millions d'euros", () => {
   const svg = carteFiche({
     ...FICHE,
     chiffres: [{ libelle: "Taux d'essai", valeur: 14.3, unite: "percent" }],
@@ -398,15 +644,25 @@ test("18. sans montant en euros, la fiche n'annonce pas des millions d'euros", (
   assert.ok(lu.some((t) => t === "Exercice 2023"));
 });
 
-test("19. une affirmation très longue tient dans la carte de repère", () => {
-  const svg = carteReperes({
-    ...REPERES,
-    titre:
-      "Le repère d'essai a changé de niveau entre les deux exercices publiés, " +
-      "et la série que le site publie le montre exercice par exercice sans " +
-      "qu'aucun lissage ne vienne en adoucir la marche, ce qui rend la phrase " +
-      "beaucoup plus longue qu'aucun titre du site ne l'est jamais en pratique",
+test("25. la fiche ne porte que trois chiffres, dans l'ordre reçu", () => {
+  const svg = carteFiche({
+    ...FICHE,
+    chiffres: [...FICHE.chiffres, { libelle: "Quatrième d'essai", valeur: 5_000_000, unite: "EUR" }],
   });
+  const lu = peints(svg).map((t) => t.contenu);
+  assert.ok(!lu.some((t) => t === "Quatrième d'essai"));
+  // Les trois premiers, sans tri : un montant et un taux ne se rangent pas
+  // l'un contre l'autre, et l'ordre reçu est celui que la fiche a choisi.
+  const attendus = ["Dépenses d'essai", "Recettes d'essai", "Taux d'essai"];
+  const libelles = peints(svg)
+    .filter((t) => attendus.includes(t.contenu))
+    .sort((a, z) => a.y - z.y)
+    .map((t) => t.contenu);
+  assert.deepEqual(libelles, attendus);
+});
+
+test("26. une affirmation très longue tient dans la carte de repère", () => {
+  const svg = carteReperes({ ...REPERES, titre: AFFIRMATION_LONGUE });
   assert.ok(bienForme(svg));
   assert.deepEqual(debordements(svg), []);
   const lu = peints(svg).map((t) => t.contenu);
@@ -414,34 +670,34 @@ test("19. une affirmation très longue tient dans la carte de repère", () => {
   assert.ok(lu.some((t) => t.includes("Fichier d'essai")));
 });
 
-test("20. les libellés très longs des quatre autres natures ne débordent pas", () => {
-  const tres = "Un libellé d'essai délibérément très long qui ne tiendrait dans aucune colonne ".repeat(2);
-  const cartes = [
-    carteScenario({
-      ...SCENARIO,
-      nom: tres,
-      gestes: SCENARIO.gestes.map((g) => ({ ...g, libelle: tres })),
-    }),
-    carteComparaison({
-      ...COMPARAISON,
-      titre: tres,
-      colonnes: COMPARAISON.colonnes.map((c) => ({ ...c, nom: tres })) as typeof COMPARAISON.colonnes,
-      ecarts: COMPARAISON.ecarts.map((e) => ({ ...e, libelle: tres })),
-    }),
-    carteFiche({
-      ...FICHE,
-      territoire: tres,
-      chiffres: FICHE.chiffres.map((c) => ({ ...c, libelle: tres })),
-    }),
-    carteAnalyse({ ...ANALYSE, titre: tres, dit: tres }),
-  ];
-  for (const svg of cartes) {
-    assert.ok(bienForme(svg));
-    assert.deepEqual(debordements(svg), []);
+test("27. les libellés très longs des quatre autres natures ne débordent pas", () => {
+  for (const [nom, svg] of LONGUES) {
+    assert.ok(bienForme(svg), nom);
+    assert.deepEqual(debordements(svg), [], nom);
   }
 });
 
-test("21. replier coupe au mot, et coupe en dur un mot plus long qu'une ligne", () => {
+test("28. une carte sans source, sans millésime ou sans adresse ne se dessine pas", () => {
+  // Le type exige ces trois champs ; une chaîne vide passe le type. L'image
+  // partait alors en peignant « Source : · millésime », c'est-à-dire en
+  // affirmant une source qu'elle n'a pas.
+  assert.throws(
+    () => carteAnalyse({ ...ANALYSE, source: { titre: "   ", millesime: "2025" } }),
+    /Carte de partage sans la source/,
+  );
+  assert.throws(
+    () => carteAnalyse({ ...ANALYSE, source: { titre: "Fichier d'essai", millesime: "" } }),
+    /Carte de partage sans le millésime/,
+  );
+  assert.throws(() => carteAnalyse({ ...ANALYSE, site: "" }), /Carte de partage sans l'adresse/);
+  // Les cinq natures passent par le même dessin : aucune n'y échappe.
+  assert.throws(() => carteScenario({ ...SCENARIO, site: "" }), /Carte de partage sans/);
+  assert.throws(() => carteComparaison({ ...COMPARAISON, site: "" }), /Carte de partage sans/);
+  assert.throws(() => carteFiche({ ...FICHE, site: "" }), /Carte de partage sans/);
+  assert.throws(() => carteReperes({ ...REPERES, site: "" }), /Carte de partage sans/);
+});
+
+test("29. replier coupe au mot, et coupe en dur un mot plus long qu'une ligne", () => {
   assert.deepEqual(replier("un deux trois", 20, 400, 3), ["un deux trois"]);
   const lignes = replier("un deux trois quatre cinq six sept huit neuf dix onze", 20, 120, 2);
   assert.equal(lignes.length, 2);
@@ -449,4 +705,12 @@ test("21. replier coupe au mot, et coupe en dur un mot plus long qu'une ligne", 
   for (const ligne of lignes) assert.ok(largeurApprochee(ligne, 20) <= 120);
   const colle = replier("abcdefghijklmnopqrstuvwxyz", 20, 120, 3);
   for (const ligne of colle) assert.ok(largeurApprochee(ligne, 20) <= 120);
+});
+
+test("30. replier rend zéro ligne quand on ne lui en demande aucune", () => {
+  // Inatteignable depuis les cinq natures, mais `replier` est exporté et sa
+  // signature accepte `0` : la coupe lisait `gardees[-1]` et lançait un
+  // `TypeError` obscur dans un module que d'autres tâches consomment.
+  assert.deepEqual(replier("un deux trois", 20, 120, 0), []);
+  assert.deepEqual(replier("un deux trois", 20, 120, -1), []);
 });
