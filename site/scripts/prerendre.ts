@@ -385,6 +385,19 @@ const PAGE_ANALYSES = {
 };
 
 /**
+ * Le message principal du site, arrêté à la conception (spec §8) et posé en
+ * tête d'accueil.
+ *
+ * Il est ici parce qu'une image de section circule sans la page qui la porte :
+ * un chapeau et une marque ne disent pas ce que le site fait. Ce n'est pas une
+ * accroche écrite pour remplir l'image — c'est la phrase que la page pose déjà,
+ * et l'accueil du lot 4 lira cette même constante plutôt que d'en retaper une
+ * seconde qui en dirait autre chose.
+ */
+export const MESSAGE_PRINCIPAL =
+  "Les chiffres du débat budgétaire, recalculés sur les comptes publiés — et rejouables.";
+
+/**
  * Les trois cartes de section, et l'endroit où chacune est servie.
  *
  * Une page qui n'a pas d'objet à montrer porte l'image de sa section — et
@@ -405,11 +418,18 @@ export function sections(shell: string): { chemin: string; nature: string; titre
     // le titre et la description que le document porte réellement.
     { chemin: "", nature: "Le site", titre: titreDuGabarit(shell), phrase: descriptionDuGabarit(shell) },
     { chemin: "analyses", nature: "Analyses", titre: marque, phrase: PAGE_ANALYSES.description },
-    // Sans phrase : le simulateur n'en déclare aucune qui ne dépende des
-    // fichiers publiés — le seul titre qu'il écrit à l'écran compte les budgets
-    // qu'il a montés. En inventer une pour remplir l'image serait une accroche,
-    // et une accroche n'est pas les mots du site.
-    { chemin: path.dirname(IMAGE_SCENARIO).replace(/^\//, ""), nature: "Simulateur", titre: marque, phrase: "" },
+    // Le simulateur ne déclare aucune phrase qui ne dépende des fichiers
+    // publiés : le seul titre qu'il écrit à l'écran compte les budgets qu'il a
+    // montés. Celle-ci n'est pas une accroche écrite pour remplir l'image,
+    // c'est le message principal du site, arrêté à la conception (spec §8) et
+    // que l'accueil pose en tête de page — le simulateur est ce que son dernier
+    // mot désigne.
+    {
+      chemin: path.dirname(IMAGE_SCENARIO).replace(/^\//, ""),
+      nature: "Simulateur",
+      titre: marque,
+      phrase: MESSAGE_PRINCIPAL,
+    },
   ];
 }
 
