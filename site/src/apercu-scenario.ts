@@ -29,9 +29,19 @@
  * seul — seul et gros dans un aperçu, il se lirait comme le budget que le
  * scénario propose. Aucune note, aucun classement, aucun gagnant non plus : un
  * aperçu décrit un geste, il ne le juge pas.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * CE QUE L'APERÇU ÉCRIT TOUJOURS : D'OÙ VIENNENT LES LIGNES QU'IL CHIFFRE
+ * ─────────────────────────────────────────────────────────────────────────
+ * Un écart est l'arithmétique du lecteur, mais il s'applique à une ligne
+ * publiée d'un exercice précis : sans cet exercice, personne ne peut le
+ * refaire. Et cette description est le **seul** canal d'un scénario partagé —
+ * il n'y a pas d'image par scénario (décision D-L3-b). Elle nomme donc les
+ * cadres publiés des budgets qu'elle chiffre, comme `exigerProvenance`
+ * (carte-og.ts) l'exige d'une image et `citer()` d'un nombre copié.
  */
 
-import { decoder, effort, plan, type Volet } from "./atelier.ts";
+import { decoder, effort, plan, type LigneAtelier, type Volet } from "./atelier.ts";
 import { eurosSigne } from "./simulateur-rendu.ts";
 import { echapper } from "./texte.ts";
 
@@ -69,6 +79,49 @@ const NOM_MAX = 70;
  *  mots : deux formulations de la même mention se corrigeraient séparément. */
 export const MENTION_UNITE = "Montants en millions d'euros.";
 
+/**
+ * Les cadres publiés des budgets que le scénario touche : « PLF 2025 »,
+ * « PLFSS 2026 », « Comptes de gestion 2025 ». `null` quand l'un d'eux n'en
+ * déclare pas.
+ *
+ * **Un scénario ne traverse pas un seul millésime.** Régler l'État et la
+ * Sécurité sociale, c'est régler un PLF 2025 et un PLFSS 2026 : en choisir un
+ * seul le ferait valoir faussement pour l'autre, et n'en nommer aucun laisse
+ * partir des écarts que personne ne peut retrouver dans un fichier. Ils sont
+ * donc **tous** nommés, et **seulement ceux dont une ligne bouge** — jamais les
+ * six volets que l'atelier monte, dont la plupart ne portent aucun geste.
+ *
+ * **Un barème n'entre pas dans la liste.** Il ne pose aucun nombre ici : sa
+ * contribution est nulle et son effet vit dans la ligne d'impôt qu'il pilote
+ * (`contribution`, atelier.ts), au millésime du budget qui la porte. Nommer
+ * l'exercice du barème daterait de son millésime un écart inscrit sur un autre.
+ *
+ * L'ordre est celui des volets — celui des sections de la page —, jamais celui
+ * du poids des gestes, qui changerait d'un réglage à l'autre.
+ *
+ * `null` plutôt qu'un cadre approché : un type exige un champ, pas une valeur,
+ * et `{ loi: "", exercice: "" }` se publie (même faille que celle que
+ * `exigerProvenance` ferme dans carte-og.ts). Sans cadre, l'aperçu se tait et
+ * le lien garde les métadonnées du site.
+ */
+function provenances(
+  volets: readonly Volet[],
+  lignes: readonly LigneAtelier[],
+): string[] | null {
+  const touches = new Set(lignes.map((ligne) => ligne.volet.cle));
+  const cadres: string[] = [];
+  for (const volet of volets) {
+    if (volet.genre !== "budget" || !touches.has(volet.cle)) continue;
+    const { loi, exercice } = volet.budget;
+    if (!loi.trim() || !exercice.trim()) return null;
+    const cadre = `${loi} ${exercice}`;
+    // Les trois échelons de collectivités partagent le même cadre : nommé une
+    // fois, pas trois.
+    if (!cadres.includes(cadre)) cadres.push(cadre);
+  }
+  return cadres.length > 0 ? cadres : null;
+}
+
 /** Coupe au dernier mot entier et marque la suite. Un intitulé tronqué reste
  *  lisible ; un intitulé qui pousse les montants hors du cadre, non. */
 function abreger(texte: string, maximum: number): string {
@@ -99,6 +152,9 @@ export function apercuScenario(
   const lignes = plan(volets, etat);
   if (lignes.length === 0) return null;
 
+  const cadres = provenances(volets, lignes);
+  if (!cadres) return null;
+
   const nomNet = abreger(nom, NOM_MAX);
   const titre = nomNet ? `« ${nomNet} » — un scénario du simulateur` : TITRE_SANS_NOM;
 
@@ -113,9 +169,17 @@ export function apercuScenario(
     .slice(0, GESTES_MONTRES)
     .map((ligne) => `${abreger(ligne.entree.libelle, LIBELLE_MAX)} ${eurosSigne(ligne.delta)}`);
 
+  // La provenance passe AVANT la mention d'unité, qui reste la dernière phrase
+  // : une carte de lien coupe par la queue, et des deux, l'unité est celle qui
+  // se rattrape — chaque montant porte déjà son « M€ », alors que l'exercice
+  // n'est écrit nulle part ailleurs.
+  const source = `Source${cadres.length > 1 ? "s" : ""} : ${cadres.join(", ")}.`;
+
   return {
     titre,
-    description: `Somme des écarts : ${eurosSigne(somme)}. ${gestes.join(" ; ")}. ${MENTION_UNITE}`,
+    description:
+      `Somme des écarts : ${eurosSigne(somme)}. ${gestes.join(" ; ")}. ` +
+      `${source} ${MENTION_UNITE}`,
   };
 }
 

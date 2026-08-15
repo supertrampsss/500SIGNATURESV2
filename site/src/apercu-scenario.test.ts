@@ -59,12 +59,59 @@ function voletEtat(budget: Budget = budgetEtat()): VoletBudget {
   return { genre: "budget", cle: "etat", nom: "État", budget, index: indexer(budget) };
 }
 
+/**
+ * Un second budget, d'un autre millésime que le premier.
+ *
+ * `loi` et `exercice` sont ceux que la publication porte réellement — le
+ * fichier `simulateur/secu-2026.json` déclare « PLFSS » et « 2026 », comme
+ * `etat-2025.json` déclare « PLF » et « 2025 ». Rien n'est inventé ici : c'est
+ * précisément le désaccord de millésimes que ces tests éprouvent.
+ */
+function voletSecu(): VoletBudget {
+  const budget: Budget = {
+    exercice: "2026",
+    loi: "PLFSS",
+    unite: "EUR",
+    depenses: [{ c: "D-PRE", l: "Prestations sociales", v: 600_000_000_000 }],
+    recettes: [],
+  };
+  return { genre: "budget", cle: "secu", nom: "Sécurité sociale", budget, index: indexer(budget) };
+}
+
+/** Un échelon de collectivités. Les trois échelons publiés partagent le même
+ *  cadre — « Comptes de gestion 2025 » — et c'est ce que la dernière assertion
+ *  du test des millésimes multiples vient constater. */
+function voletEchelon(cle: string, nom: string, code: string): VoletBudget {
+  const budget: Budget = {
+    exercice: "2025",
+    loi: "Comptes de gestion",
+    unite: "EUR",
+    depenses: [{ c: code, l: `Dépenses des ${nom}`, v: 50_000_000_000 }],
+    recettes: [],
+  };
+  return { genre: "budget", cle, nom, budget, index: indexer(budget) };
+}
+
 /** Un budget réglé, encodé par `encoder()` — la chaîne que l'adresse porte
  *  réellement, jamais une chaîne écrite à la main pour le test. */
 function budgetEncode(volets: readonly Volet[], reglages: [string, number][]): string {
   const etat = etatVide();
   const volet = volets[0] as VoletBudget;
   for (const [code, pourcentage] of reglages) reglagesDe(etat, volet).set(code, pourcentage);
+  return encoder(volets, etat);
+}
+
+/** Un budget réglé volet par volet : la chaîne d'un scénario qui traverse
+ *  plusieurs budgets, encodée par l'atelier comme l'adresse la porte. */
+function budgetEncodeParVolet(
+  volets: readonly VoletBudget[],
+  reglages: [string, string, number][],
+): string {
+  const etat = etatVide();
+  for (const [cle, code, pourcentage] of reglages) {
+    const volet = volets.find((v) => v.cle === cle)!;
+    reglagesDe(etat, volet).set(code, pourcentage);
+  }
   return encoder(volets, etat);
 }
 
@@ -131,6 +178,77 @@ test("l'aperçu dit son unité et ne pose aucun total de dépense publique", () 
       !apercu.description.toLowerCase().includes(interdit),
       `« ${interdit} » n'a rien à faire dans un aperçu : ${apercu.description}`,
     );
+  }
+});
+
+/* --------------------------------------------------------------------------
+ * D'où viennent les lignes que l'aperçu chiffre
+ * ----------------------------------------------------------------------- */
+
+test("l'aperçu date ses écarts sur le cadre publié du budget qu'il chiffre", () => {
+  const volets = [voletEtat()];
+  const apercu = apercuScenario(volets, budgetEncode(volets, [["D", -10]]), "");
+  assert.ok(apercu);
+  // « PLF » et « 2025 » viennent du fichier publié, pas d'une constante du
+  // module : un écart de scénario s'applique à une ligne d'un exercice précis,
+  // et sans cet exercice personne ne peut le refaire. Cette description est le
+  // seul canal d'un scénario partagé (D-L3-b) : ce qui n'y est pas est perdu.
+  assert.ok(apercu.description.includes("Source : PLF 2025."), apercu.description);
+  // La provenance passe avant la mention d'unité, qui reste la dernière phrase.
+  assert.ok(
+    apercu.description.indexOf("Source : PLF 2025.") <
+      apercu.description.indexOf("Montants en millions d'euros."),
+    apercu.description,
+  );
+});
+
+test("un scénario qui traverse plusieurs exercices les nomme tous", () => {
+  // Le cas que la tâche 4 avait jugé indatable : régler l'État et la Sécurité
+  // sociale, c'est régler un PLF 2025 et un PLFSS 2026. En choisir un ferait
+  // valoir sa date pour l'autre ; les deux sont donc écrits.
+  const volets = [
+    voletEtat(),
+    voletSecu(),
+    voletEchelon("collectivites-commune", "Communes", "COM"),
+    voletEchelon("collectivites-region", "Régions", "REG"),
+  ];
+  const budget = budgetEncodeParVolet(volets, [
+    ["etat", "D", -10],
+    ["secu", "D-PRE", -5],
+    ["collectivites-commune", "COM", -20],
+    ["collectivites-region", "REG", -20],
+  ]);
+
+  const apercu = apercuScenario(volets, budget, "");
+  assert.ok(apercu);
+  // Dans l'ordre des volets — celui des sections de la page —, jamais celui du
+  // poids des gestes, qui changerait d'un réglage à l'autre. Et les deux
+  // échelons partagent un cadre : il est nommé une fois, pas deux.
+  assert.ok(
+    apercu.description.includes("Sources : PLF 2025, PLFSS 2026, Comptes de gestion 2025."),
+    apercu.description,
+  );
+});
+
+test("un budget que le scénario ne touche pas n'est pas nommé", () => {
+  const volets = [voletEtat(), voletSecu()];
+  const apercu = apercuScenario(volets, budgetEncodeParVolet(volets, [["etat", "D", -10]]), "");
+  assert.ok(apercu);
+  // L'atelier monte les six volets pour toute adresse (`construireVolets`) :
+  // nommer un millésime qu'aucun geste ne touche daterait l'aperçu d'un budget
+  // que le lecteur n'a pas ouvert.
+  assert.ok(apercu.description.includes("Source : PLF 2025."), apercu.description);
+  assert.ok(!apercu.description.includes("PLFSS"), apercu.description);
+});
+
+test("un budget touché sans cadre publié ne rend aucun aperçu", () => {
+  // Un type exige un champ, pas une valeur : `{ loi: "", exercice: "" }` se
+  // publie. Plutôt qu'un « Source :  2025. » qui affirmerait une provenance
+  // qu'il n'a pas, l'aperçu se tait et le lien garde les métadonnées du site —
+  // même refus qu'`exigerProvenance` (carte-og.ts) et que `citer()`.
+  for (const manque of [{ loi: "" }, { exercice: "" }]) {
+    const volets = [voletEtat({ ...budgetEtat(), ...manque })];
+    assert.equal(apercuScenario(volets, budgetEncode(volets, [["D", -10]]), "Un nom"), null);
   }
 });
 
