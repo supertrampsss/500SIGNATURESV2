@@ -296,6 +296,45 @@ test("7. une page qui annonce une image absente fait échouer le build", async (
   );
 });
 
+/**
+ * Le source du pré-rendu, ses commentaires retirés.
+ *
+ * Les commentaires de ligne ne sont retirés que **pleine ligne** : les
+ * gabarits d'adresse du fichier portent des `//` qu'on ne veut pas confondre
+ * avec du code mis en sommeil. Un appel commenté, lui, l'est toujours en tête
+ * de ligne — c'est comme cela qu'on le met en sommeil.
+ */
+function sansCommentaires(source: string): string {
+  return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^[ \t]*\/\/.*$/gm, "");
+}
+
+test("7 bis. le build appelle ce contrôle, et l'appelle après la dernière page", () => {
+  // `validerImagesAnnoncees` est éprouvée par le test 7 ; son BRANCHEMENT ne
+  // l'était pas. L'appel commenté, la suite entière restait verte — et c'est
+  // la seule garde qui empêche de publier une page annonçant une image
+  // absente, un défaut qui ne se voit qu'une fois le lien partagé.
+  //
+  // Le contrôle se lit sur le source plutôt que sur une exécution : `main()`
+  // lit l'entrepôt publié, et une garde de build ne vaut pas qu'on branche le
+  // réseau dans la suite de tests. Même parti que `scripts/deploiement.test.ts`
+  // sur le workflow, et que le test 8 bis ci-dessous.
+  const source = sansCommentaires(readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8"));
+  const corps = source.slice(source.indexOf("async function main"));
+  assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
+  assert.match(
+    corps,
+    /await validerImagesAnnoncees\(DIST, ecrites, SITE\);/,
+    "main() n'appelle plus validerImagesAnnoncees : une page annonçant une image absente partirait sans bruit.",
+  );
+  // Après la dernière page rangée, jamais avant : appelé au milieu, le
+  // contrôle laisserait passer tout ce que le build écrit ensuite — à
+  // commencer par le gabarit du site lui-même, qui est poussé en dernier.
+  assert.ok(
+    corps.lastIndexOf("ecrites.push(") < corps.indexOf("await validerImagesAnnoncees("),
+    "le contrôle des images passe avant la dernière page écrite : ce qui suit n'est pas contrôlé.",
+  );
+});
+
 /* --------------------------------------------------------------------------
  * 8. Une citation ramène à la page qui la porte
  * ----------------------------------------------------------------------- */
