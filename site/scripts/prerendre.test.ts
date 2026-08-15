@@ -221,6 +221,14 @@ test("4. les balises de partage portent des adresses absolues", () => {
     const valeur = balise(nom, "property") ?? "";
     assert.ok(valeur.startsWith("https://"), `${nom} n'est pas absolue : « ${valeur} »`);
   }
+
+  // Le canonique dit la même adresse qu'`og:url`, et il la dit absolue : c'est
+  // ce qu'un canonique est — l'adresse unique d'un contenu, celle qui reste
+  // juste quand la page est recopiée ailleurs. Relatif à côté de balises
+  // absolues, il déclarait la même page sous deux adresses.
+  const canonique = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
+  assert.equal(canonique, balise("og:url", "property"));
+  assert.equal(canonique, "https://exemple.test/analyses/essai/");
 });
 
 test("5. l'adresse du site est un paramètre, et elle doit être absolue", () => {

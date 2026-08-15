@@ -440,6 +440,21 @@ type Partageable = {
 type Page = Partageable & { corps: string };
 
 /**
+ * L'adresse de référence d'une page, absolue.
+ *
+ * Une seule expression pour `og:url` et pour `<link rel="canonical">` : ce sont
+ * deux façons de dire la même chose, et deux compositions divergeraient. Elle
+ * est **absolue** aux deux endroits — `og:url` parce qu'un robot ne résout pas
+ * toujours un chemin, et le canonique parce que c'est ce qu'un canonique est :
+ * l'adresse unique d'un contenu, celle qui reste juste quand la page est
+ * recopiée ailleurs. Le lot 3 posait des balises absolues à côté d'un canonique
+ * relatif, hérité — la même page se déclarait alors sous deux adresses.
+ */
+function adresseCanonique(page: Partageable, site: string): string {
+  return `${site}${page.canonique}`;
+}
+
+/**
  * Les balises que lisent les robots des plateformes pour composer la carte de
  * lien.
  *
@@ -455,7 +470,7 @@ function balisesPartage(page: Partageable, site: string): string {
   const og: [string, string][] = [
     ["og:title", page.titre],
     ["og:description", page.description],
-    ["og:url", `${site}${page.canonique}`],
+    ["og:url", adresseCanonique(page, site)],
     ["og:image", `${site}${page.image}`],
   ];
   return (
@@ -516,7 +531,7 @@ export function injecter(shell: string, page: Page, site: string): string {
     "canonique",
     html.replace(
       "</head>",
-      () => `  <link rel="canonical" href="${echapper(page.canonique)}" />\n  </head>`,
+      () => `  <link rel="canonical" href="${echapper(adresseCanonique(page, site))}" />\n  </head>`,
     ),
   );
 
