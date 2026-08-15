@@ -122,14 +122,27 @@ function provenances(
   return cadres.length > 0 ? cadres : null;
 }
 
-/** Coupe au dernier mot entier et marque la suite. Un intitulé tronqué reste
- *  lisible ; un intitulé qui pousse les montants hors du cadre, non. */
+/**
+ * Coupe au dernier mot entier et marque la suite. Un intitulé tronqué reste
+ * lisible ; un intitulé qui pousse les montants hors du cadre, non.
+ *
+ * **La coupe compte les points de code, pas les unités UTF-16** — même règle
+ * que `replier` (carte-og.ts), et pour la même raison : une paire de
+ * substitution est un caractère, pas deux. Le nom d'un scénario vient de
+ * l'adresse, c'est la seule saisie non maîtrisée de ce chemin, et un émoji y
+ * est ordinaire. Coupée en unités, la chaîne partait avec un demi-caractère à
+ * la queue — un substitut haut isolé, que rien ne remplace par U+FFFD : le
+ * `og:title` servi ne se décodait plus en UTF-8, et cela ne se voit qu'une
+ * fois le lien posté.
+ */
 function abreger(texte: string, maximum: number): string {
   const propre = texte.trim();
-  if (propre.length <= maximum) return propre;
-  const coupe = propre.slice(0, maximum);
-  const espace = coupe.lastIndexOf(" ");
-  return `${(espace > maximum / 2 ? coupe.slice(0, espace) : coupe).trimEnd()}…`;
+  const points = [...propre];
+  if (points.length <= maximum) return propre;
+  const gardes = points.slice(0, maximum);
+  const espace = gardes.lastIndexOf(" ");
+  const coupe = (espace > maximum / 2 ? gardes.slice(0, espace) : gardes).join("");
+  return `${coupe.trimEnd()}…`;
 }
 
 /**

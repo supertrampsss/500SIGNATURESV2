@@ -277,6 +277,34 @@ test("un nom démesuré est borné plutôt que recopié", () => {
   assert.ok(apercu.titre.length < 120, `titre de ${apercu.titre.length} signes`);
 });
 
+test("un nom borné ne part jamais coupé au milieu d'un caractère", () => {
+  const volets = [voletEtat()];
+  // Le nom vient de l'adresse : c'est la seule saisie non maîtrisée de ce
+  // chemin, et un émoji y est ordinaire. Soixante-neuf signes puis un drapeau
+  // tombent juste sur la borne des soixante-dix : coupé en unités UTF-16, le
+  // titre partait avec un substitut haut isolé — un demi-caractère, que rien
+  // ne remplace par U+FFFD, et le `og:title` servi ne se décodait plus.
+  const apercu = apercuScenario(
+    volets,
+    budgetEncode(volets, [["D", -10]]),
+    `${"e".repeat(69)}🇫🇷`,
+  );
+  assert.ok(apercu);
+  // Ce que la fonction d'edge écrira dans le document, relu comme un client le
+  // relira. Un substitut isolé devient U+FFFD en chemin : la chaîne rendue
+  // n'est alors plus celle qui est partie.
+  assert.equal(
+    Buffer.from(apercu.titre, "utf8").toString("utf8"),
+    apercu.titre,
+    `le titre ne survit pas à un aller-retour UTF-8 : ${JSON.stringify(apercu.titre)}`,
+  );
+  assert.doesNotMatch(
+    apercu.titre,
+    /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/u,
+    "un substitut isolé est resté dans le titre",
+  );
+});
+
 test("une adresse sans budget lisible ne rend aucun aperçu — jamais une erreur", () => {
   const volets = [voletEtat()];
   for (const budget of [
