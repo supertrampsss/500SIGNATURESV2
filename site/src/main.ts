@@ -2674,7 +2674,6 @@ function exerciceCourant(): string | null {
   );
 }
 
-
 /** Le scénario enregistré que l'état affiché **est** : même nom, et le même
  *  budget que celui qui est à l'écran. Le nom seul ne suffit pas — deux
  *  lecteurs appellent « Mon budget » deux budgets différents, et un lien
