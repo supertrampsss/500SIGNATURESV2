@@ -52,6 +52,7 @@ import {
 } from "./carte-og.ts";
 import { formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
+import { eurosSigne } from "./simulateur-rendu.ts";
 
 /** Une source d'essai. Les valeurs sont manifestement d'essai : `.test` est un
  *  domaine réservé qui ne résout nulle part, et rien ici ne pourrait passer
@@ -531,6 +532,25 @@ test("16. la carte de scénario nomme la somme des écarts et ses trois gestes l
   assert.ok(lu.some((t) => t === "Ligne d'essai légère"));
   // Le quatrième, le plus léger, ne monte pas : la carte en porte trois.
   assert.ok(!lu.some((t) => t === "Ligne d'essai la plus légère"));
+});
+
+test("16 bis. les écarts d'un scénario portent leur signe, comme partout ailleurs", () => {
+  // Sur un écart, le sens du geste est l'information : « 2 500 M€ » ne dit pas
+  // s'il s'ajoute ou se retranche. L'écran, l'aperçu du lien et le résumé
+  // collé écrivent tous « +2 500 M€ » (`eurosSigne`) ; l'image écrivait la même
+  // grandeur sans son signe, à côté du texte qui, lui, le portait.
+  //
+  // Les valeurs attendues se PRODUISENT en appelant `eurosSigne` : le
+  // séparateur est une espace fine insécable, qu'aucun clavier ne distingue
+  // d'une espace ordinaire.
+  const lu = peints(carteScenario(SCENARIO)).map((t) => t.contenu);
+  assert.ok(lu.includes(eurosSigne(2_500_000_000)), lu.join(" | "));
+  assert.ok(lu.includes(eurosSigne(600_000_000)), lu.join(" | "));
+  // Le signe d'une baisse est celui de `formater` — le moins typographique du
+  // site, jamais le tiret du clavier.
+  assert.ok(lu.includes(eurosSigne(-1_800_000_000)), lu.join(" | "));
+  // Et aucune hausse n'est peinte nue : c'est exactement la forme perdue.
+  assert.ok(!lu.includes(formater(2_500_000_000, "EUR", false)), lu.join(" | "));
 });
 
 test("17. la carte de scénario n'écrit aucun montant qu'elle n'a pas reçu", () => {

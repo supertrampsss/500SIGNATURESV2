@@ -43,6 +43,7 @@
 import { LIBELLE_CRAN, type Cran } from "./analyse-rendu.ts";
 import { MENTION_MILLIONS, PALETTE, formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
+import { eurosSigne } from "./simulateur-rendu.ts";
 import { echapper } from "./texte.ts";
 
 /** Le format des cartes de lien des plateformes. Jamais un autre : une image
@@ -493,16 +494,27 @@ export type DonneesScenario = {
  *
  *  Les trois plus lourds sont choisis ici, sur la valeur absolue de l'écart :
  *  une carte qui garderait les trois premiers gestes déclarés montrerait
- *  l'ordre dans lequel l'atelier les a produits, qui n'apprend rien. */
+ *  l'ordre dans lequel l'atelier les a produits, qui n'apprend rien.
+ *
+ *  Les montants passent par `eurosSigne` (simulateur-rendu.ts), pas par
+ *  `formater` : ce sont des ÉCARTS, et sur un écart le sens du geste est
+ *  l'information — « 8 032 M€ » ne dit pas s'il s'ajoute ou se retranche.
+ *  C'est déjà la forme que l'écran, l'aperçu du lien et le résumé collé
+ *  emploient pour ce même scénario ; l'image en perdait le signe, et la même
+ *  grandeur changeait de forme entre le texte et l'image qui l'accompagne.
+ *
+ *  La carte de comparaison, elle, garde `formater` : c'est la forme que le
+ *  résumé d'une comparaison emploie (`partageComparaison`, partage.ts), et le
+ *  point de cette règle est qu'un objet se dise partout de la même façon. */
 export function carteScenario(donnees: DonneesScenario): string {
   const lourds = [...donnees.gestes]
     .sort((a, b) => Math.abs(b.montant) - Math.abs(a.montant))
     .slice(0, 3);
   const rangees: Rangee[] = [
-    { libelle: "Somme des écarts", valeur: formater(donnees.effort, "EUR", false) },
+    { libelle: "Somme des écarts", valeur: eurosSigne(donnees.effort) },
     ...lourds.map((geste) => ({
       libelle: geste.libelle,
-      valeur: formater(geste.montant, "EUR", false),
+      valeur: eurosSigne(geste.montant),
     })),
   ];
   return dessiner({
