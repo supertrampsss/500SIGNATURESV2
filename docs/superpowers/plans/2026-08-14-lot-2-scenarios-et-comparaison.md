@@ -215,9 +215,11 @@ Couvrir :
 7. la légende du tableau dit l'unité — « Montants en millions d'euros » — comme
    `exercices.ts` et la page d'analyse ;
 8. **aucun total de dépense n'est écrit** : le module n'émet jamais la somme de deux
-   colonnes ; verrouiller par une assertion sur le source du module ;
-9. **aucun gagnant** : le module n'émet ni « meilleur », ni « pire », ni note, ni rang ;
-   assertion sur le source également ;
+   colonnes ; verrouiller par une assertion sur **la sortie** de la fonction — jamais sur
+   le source du module, qui n'interdit que des mots et laisse passer un total baptisé
+   autrement ;
+9. **aucun gagnant** : aucune colonne n'est désignée meilleure — ni marque de tête, ni
+   note, ni rang ; assertion sur **la sortie** également, pour la même raison ;
 10. deux scénarios construits sur des exercices différents le disent en tête du tableau.
 
 - [ ] **Step 2: Écrire le module et son habillage**

@@ -43,8 +43,29 @@ function comparable(
   };
 }
 
-function ligne(libelle: string, cellules: (number | null)[]): LigneComparee {
-  return { volet: "etat", code: "146", libelle, base: 1_000_000_000, cellules };
+function ligne(libelle: string, cellules: (number | null)[], base = 1_000_000_000): LigneComparee {
+  return { volet: "etat", code: "146", libelle, base, cellules };
+}
+
+/**
+ * Tous les nombres qu'un rendu donne À LIRE, dans l'ordre.
+ *
+ * Les balises sont retirées d'abord : un chiffre dans un nom de classe ou une
+ * adresse n'est pas un nombre que le lecteur lit. Un token va d'un chiffre
+ * jusqu'au bout de son groupe — le séparateur de milliers est l'espace fine
+ * insécable (U+202F) que `formater` pose, et la virgule décimale en fait
+ * partie — pour que « 1 234,5 » compte pour un nombre et non pour trois.
+ */
+function nombresLus(html: string): string[] {
+  return [...html.replace(/<[^>]*>/g, " ").matchAll(/[0-9][0-9\u202f]*(?:,[0-9]+)?/g)].map(
+    (m) => m[0],
+  );
+}
+
+/** Le premier en-tête de colonne du tableau, balise `<th>` comprise. */
+function premierEntete(html: string): string {
+  const debut = html.indexOf('<th scope="col" class="scenarios-rendu__entete">');
+  return html.slice(debut, html.indexOf("</th>", debut));
 }
 
 test("1. la barre liste les scénarios, le courant marqué", () => {
@@ -116,13 +137,65 @@ test("7. la légende du tableau dit l'unité, comme exercices.ts et la page d'an
   assert.match(html, /<caption>Montants en millions d'euros\.?<\/caption>/);
 });
 
-test("8. aucun total de dépense n'est écrit : verrouillé sur le source du module", () => {
-  assert.doesNotMatch(SOURCE, /\btotal(e|aux|s)?\b/i);
-  assert.doesNotMatch(SOURCE, /\bsomme\b/i);
+test("8. aucun total de dépense n'est écrit : tout nombre rendu est celui d'une colonne ou d'une cellule", () => {
+  // Les budgets ne s'additionnent pas. La règle se tient sur CE QUE LA
+  // FONCTION REND, jamais sur la façon dont elle est écrite : interdire les
+  // mots « total » et « somme » dans le source laissait passer un total de
+  // dépense publique écrit sous le tableau et appelé « dépense cumulée ».
+  //
+  // Un montant légitime se rattache ici à une colonne (son effort) ou à une
+  // ligne comparée (sa cellule) ; un total ne se rattache à rien. On rend donc
+  // la sortie sur des valeurs choisies pour qu'aucune somme parasite ne puisse
+  // se confondre avec une valeur légitime — 7, 11, 13, 29, 37 et 41 M€, dont
+  // aucune sous-somme ne retombe sur l'une d'elles — puis on vérifie que les
+  // nombres lus sont EXACTEMENT les nombres attendus, un pour un. Un nombre de
+  // plus, où qu'il soit posé — sous le tableau, dans la légende, dans un pied
+  // de tableau — fait rougir ce test.
+  const colonnes = [comparable("A", 7_000_000, 2, "2025"), comparable("B", 11_000_000, 3, "2019")];
+  const lignes = [
+    ligne("Défense", [13_000_000, 29_000_000], 1_000_000_000),
+    ligne("Écoles", [37_000_000, 41_000_000], 3_000_000_000),
+  ];
+  const attendus = [
+    // Les montants attendus se PRODUISENT en appelant `formater` : le
+    // séparateur de milliers est une espace fine insécable, un attendu tapé à
+    // la main l'aurait manqué.
+    ...colonnes.flatMap((c) => [
+      ...nombresLus(formater(c.effort, "EUR", false)),
+      String(c.gestes),
+      c.exercice ?? "",
+    ]),
+    ...lignes.flatMap((l) =>
+      l.cellules
+        .filter((v): v is number => v !== null)
+        .flatMap((v) => nombresLus(formater(v, "EUR", false))),
+    ),
+  ];
+  assert.deepEqual(nombresLus(renduComparaison(colonnes, lignes)).sort(), attendus.sort());
 });
 
-test("9. aucun gagnant : ni meilleur, ni pire, ni note, ni rang", () => {
-  assert.doesNotMatch(SOURCE, /meilleur|pire|gagnant|perdant|classement|score\b/i);
+test("9. aucun gagnant : ce qu'une colonne rend ne dépend que d'elle", () => {
+  // La comparaison ne juge pas. Ce n'est pas le mot « gagnant » qui est
+  // interdit — une marque de tête, un rang, une note se posent sans lui — mais
+  // le fait qu'une colonne soit désignée meilleure. Or désigner suppose de
+  // regarder les autres : une colonne dont le rendu ne dépend que d'elle-même
+  // ne peut porter aucune marque de tête.
+  //
+  // On rend donc deux fois la MÊME colonne, une fois contre une colonne
+  // écrasée, une fois contre une colonne écrasante, et on vérifie que ce
+  // qu'elle rend n'a pas bougé d'un caractère — en-tête et cellule.
+  const mienne = comparable("La mienne", 10_000_000, 2);
+  const contre = (autre: Comparable, ecart: number) =>
+    renduComparaison([mienne, autre], [ligne("Défense", [13_000_000, ecart])]);
+  const faible = contre(comparable("Modeste", 1_000_000, 1), 1_000_000);
+  const forte = contre(comparable("Écrasante", 900_000_000, 40), 900_000_000);
+  assert.equal(premierEntete(faible), premierEntete(forte));
+  const cellule = (html: string) => html.match(/<td[^>]*>[^<]*<\/td>/)![0];
+  assert.equal(cellule(faible), cellule(forte));
+  // Et l'ordre des colonnes est celui qu'on a donné, jamais un classement :
+  // « La mienne » reste en tête alors qu'« Écrasante » pèse quatre-vingt-dix
+  // fois plus.
+  assert.ok(forte.indexOf("La mienne") < forte.indexOf("Écrasante"));
 });
 
 test("10. deux scénarios construits sur des exercices différents le disent en tête du tableau", () => {
