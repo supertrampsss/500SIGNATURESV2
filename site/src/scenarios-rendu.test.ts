@@ -72,11 +72,14 @@ test("1. la barre liste les scénarios, le courant marqué", () => {
   const html = renduBarre([scenario("Mon budget"), scenario("Un autre")], "Un autre");
   assert.match(html, />Mon budget</);
   assert.match(html, />Un autre</);
-  // Le courant se distingue dans le balisage, pas seulement à l'œil.
-  const balise = html.slice(html.indexOf('data-nom="Un autre"') - 200, html.indexOf('data-nom="Un autre"') + 50);
-  assert.match(balise, /aria-current="true"|scenarios-rendu__scenario--courant/);
-  const balisePremier = html.slice(0, html.indexOf('data-nom="Un autre"'));
-  assert.doesNotMatch(balisePremier, /aria-current="true"/);
+  // Le courant se distingue dans le balisage, pas seulement à l'œil. Le
+  // fragment se borne sur les balises qui l'entourent, jamais sur un nombre de
+  // caractères : un attribut ajouté au bouton pousserait la marque hors d'une
+  // fenêtre fixe sans que la règle ait bougé.
+  const items = [...html.matchAll(/<li>[\s\S]*?<\/li>/g)].map((m) => m[0]);
+  assert.equal(items.length, 2);
+  assert.match(items[1]!, /aria-current="true"|scenarios-rendu__scenario--courant/);
+  assert.doesNotMatch(items[0]!, /aria-current="true"/);
 });
 
 test("2. un nom est échappé : un scénario nommé <script> ne produit pas de balise", () => {
