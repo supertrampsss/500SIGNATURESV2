@@ -10,6 +10,7 @@ import { test } from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { DEPENSES, RECETTES, SOLDE, points, rendu } from "./secu.ts";
+import { QUESTIONS } from "./questions.ts";
 
 const FINE = " ";
 
@@ -69,6 +70,22 @@ test("la série du solde est là, chronologique, avec l'année du choc Covid", (
   const html = rendu(PAYS, CATALOGUE);
   assert.match(html, new RegExp(`2020.*\u22122,1${FINE}pt`, "s"));
   assert.ok(html.indexOf("2020") < html.lastIndexOf("2025"));
+});
+
+test("le premier titre du bloc répond à la question qui pointe dessus", () => {
+  // `#bloc-secu` porte deux moitiés sous deux titres. La seule question qui y
+  // renvoie est celle du déficit ; le lecteur qui la suivait tombait sur
+  // « 100 € de prestations sociales, où vont-ils ? », à laquelle rien ne
+  // renvoie ici. Et `peindreSommaireReperes` nomme l'entrée du sommaire
+  // d'après ce même premier titre : le bloc du déficit s'annonçait sous le nom
+  // de la répartition. Aucun test ne tenait cet accord — inverser les deux
+  // moitiés laissait la suite au vert.
+  const question = QUESTIONS.find((q) => q.cible === "#bloc-secu");
+  assert.ok(question, "aucune question ne pointe sur #bloc-secu");
+  assert.equal(question.question, "La Sécu est-elle en déficit ?");
+  const html = rendu(PAYS, CATALOGUE);
+  const premier = html.slice(html.indexOf("<h3>"), html.indexOf("</h3>"));
+  assert.match(premier, /déficit/i, `premier titre du bloc : ${premier}`);
 });
 
 test("aucune réserve qui s'excuse sous le tableau", () => {

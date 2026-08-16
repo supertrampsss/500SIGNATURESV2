@@ -66,9 +66,16 @@ function derniere(serie: Record<string, number> | undefined): [string, number] |
 
 /** Rendu pur, sans DOM : c'est lui qui est testé. Les deux moitiés sont
  *  indépendantes — l'une peut être publiée sans l'autre, et ce qui manque ne
- *  s'écrit pas. */
+ *  s'écrit pas.
+ *
+ *  **Le solde en premier, parce que c'est lui qu'on vient lire.** La seule
+ *  question qui pointe sur `#bloc-secu` est « La Sécu est-elle en déficit ? »,
+ *  et le lecteur qui la suivait atterrissait sur « 100 € de prestations
+ *  sociales, où vont-ils ? » — une autre question, à laquelle rien ne renvoie
+ *  ici. Le sommaire de REPÈRES nomme l'entrée d'après ce même premier titre :
+ *  il annonçait donc le bloc du déficit sous le nom de la répartition. */
 export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[]): string {
-  const html = renduCentEuros(pays["FR"], catalogue) + renduSolde(pays, catalogue);
+  const html = renduSolde(pays, catalogue) + renduCentEuros(pays["FR"], catalogue);
   return html.trim() ? html : "";
 }
 
