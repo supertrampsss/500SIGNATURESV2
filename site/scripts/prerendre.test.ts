@@ -1429,6 +1429,16 @@ test("15 sexies. le build écrit cette page, et l'écrit avant le plan du site",
   // lirait le catalogue brut ferait apparaître ou disparaître un bloc à
   // l'arrivée du paquet.
   assert.match(corps, /injecterReperes\(shell, pays, \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\]/);
+  // Sa propre carte de partage, jamais celle du site : celle-là a le chapeau
+  // « Le site » et le message principal en phrase, et sous un titre qui annonce
+  // la dette et les niches, c'est l'accueil qu'elle montrerait. Rien d'autre ne
+  // l'attrape — `validerImagesAnnoncees` ne vérifie que l'EXISTENCE du fichier
+  // annoncé, et `/carte.png` existe.
+  assert.match(corps, /image: `\$\{CHEMIN_REPERES\}\/carte\.png`,/);
+  // Et sa propre canonique. `validerIndexation` la refuserait à la
+  // publication — mais il faut avoir lancé le build entier, réseau compris,
+  // pour l'apprendre ; ici, une seconde suffit.
+  assert.match(corps, /canonique: CHEMIN_REPERES,/);
   // Par `injecterAnnonce`, jamais par `injecter` : celui-ci pose
   // `data-page="editorial"`, qui arrêterait le paquet avant les graphiques.
   assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_REPERES/);
