@@ -41,6 +41,19 @@ import { indicateursDerives } from "../src/derives.ts";
 // `rendu()` et `renduAccueil` — c'est ce qui les rend appelables ici autant que
 // dans le navigateur (`peindreMethode`, main.ts), avec le même code.
 import { renduGrille, renduMethode, renduSources } from "../src/methode-rendu.ts";
+// Les huit blocs de la page REPÈRES, purs eux aussi. Sept modules exportaient
+// déjà leur `rendu()` — c'est le motif du dépôt, « rendu pur, sans DOM : c'est
+// lui qui est testé » — et `national.ts` vient de recevoir les deux siens. Rien
+// n'est recomposé ici : ce sont les fonctions que `demarrer()` (main.ts)
+// appelle, avec les mêmes fichiers.
+import { rendu as renduConjoncture } from "../src/conjoncture.ts";
+import { renduDette, renduEurope } from "../src/national.ts";
+import { rendu as renduFonctions } from "../src/fonctions.ts";
+import { rendu as renduSecu } from "../src/secu.ts";
+import { rendu as renduNiches } from "../src/niches.ts";
+import { rendu as renduCentEuros } from "../src/cent-euros.ts";
+import { exercicesDisponibles, rendu as renduBudgetEtat } from "../src/etat.ts";
+import { rendu as renduQuestions } from "../src/questions.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
@@ -49,7 +62,14 @@ import { CHEMINS } from "../src/routes.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
-import type { Indicateur, Jeu, Manifeste, Territoire } from "../src/donnees.ts";
+import type {
+  BudgetEtat,
+  DepensesFiscales,
+  Indicateur,
+  Jeu,
+  Manifeste,
+  Territoire,
+} from "../src/donnees.ts";
 
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE_SITE = path.resolve(ICI, "..");
@@ -493,6 +513,31 @@ const PAGE_METHODE = {
 };
 
 /**
+ * Les mots de la page REPÈRES, écrits une fois — même raison que les deux
+ * blocs au-dessus.
+ *
+ * La description énumère les huit blocs que la page rend, dans l'ordre où elle
+ * les pose, et rien de plus : aucune accroche écrite pour l'occasion, aucune
+ * réserve.
+ *
+ * Elle ne dit PAS l'unité des montants, et ce n'est pas un oubli. Cette phrase
+ * est lue deux fois — en `<meta name="description">` et comme phrase de la
+ * carte de partage — et une carte de section ne peint aucun chiffre :
+ * `carteSection` (carte-og.ts) refuse la mention d'unité pour cette raison
+ * exacte, « annoncer des millions d'euros sous une image qui n'en porte aucun
+ * serait faux », et un test du dépôt tient ce refus sur les cinq cartes.
+ * L'unité se dit là où les nombres sont, dans les légendes des tableaux de la
+ * page, pas dans une phrase qui part sur une image vide de nombres.
+ */
+const PAGE_REPERES = {
+  titre: "Repères — Où va l'argent public",
+  description:
+    "La conjoncture, la dette publique et ses sous-secteurs, la France face à ses voisins " +
+    "européens, 100 € du budget de l'État, la dépense publique par fonction, le solde de la " +
+    "Sécurité sociale, les niches fiscales.",
+};
+
+/**
  * Le chemin de la page MÉTHODE, lu dans `routes.ts` plutôt que recopié.
  *
  * C'est la même table que le plan du site lit (`CHEMINS_DE_VUE`) : le document
@@ -503,8 +548,13 @@ const PAGE_METHODE = {
 const CHEMIN_METHODE = CHEMINS.methode;
 const DOSSIER_METHODE = CHEMIN_METHODE.replace(/^\//, "");
 
+/** Le chemin de la page REPÈRES, lu dans `routes.ts` pour la même raison que
+ *  celui de la méthode juste au-dessus. */
+const CHEMIN_REPERES = CHEMINS.reperes;
+const DOSSIER_REPERES = CHEMIN_REPERES.replace(/^\//, "");
+
 /**
- * Les quatre cartes de section, et l'endroit où chacune est servie.
+ * Les cinq cartes de section, et l'endroit où chacune est servie.
  *
  * Une page qui n'a pas d'objet à montrer porte l'image de sa section — et
  * jamais celle d'une autre. `/simulateur` est le cas qui a rendu la faute
@@ -552,6 +602,25 @@ export function sections(shell: string): { chemin: string; nature: string; titre
       nature: "Méthode",
       titre: marque,
       phrase: PAGE_METHODE.description,
+    },
+    // REPÈRES a la sienne pour exactement la raison qui a donné la sienne à la
+    // méthode : elle vient de quitter le lot des adresses que le gabarit sert,
+    // et la carte du site annonce l'ACCUEIL — chapeau « Le site », message
+    // principal en phrase. Sous un titre qui annonce la dette, les 100 € et les
+    // niches, c'est l'accueil qu'on aurait montré.
+    //
+    // Le chapeau est « Repères », le mot que la barre de navigation du site
+    // emploie pour cette page. Il se lit à un « s » près de celui de
+    // `carteReperes`, « Repère », et ce n'est pas la même chose : cette
+    // nature-là est celle d'un objet partageable, un repère et son
+    // titre-affirmation ; celle-ci est une PAGE, sixième nature de
+    // `carte-og.ts`, sans un chiffre dessus. Le mot est celui du site, pas un
+    // mot choisi ici pour éviter la ressemblance.
+    {
+      chemin: DOSSIER_REPERES,
+      nature: "Repères",
+      titre: marque,
+      phrase: PAGE_REPERES.description,
     },
   ];
 }
@@ -863,51 +932,59 @@ export function injecterAccueil(shell: string, corps: string, version: string): 
  * ----------------------------------------------------------------------- */
 
 /**
- * L'ouverture d'un cadre du gabarit, avec ses attributs.
+ * L'ouverture d'un cadre du gabarit, avec son nom de balise et ses attributs.
  *
  * Un identifiant introuvable fait rougir plutôt que de laisser `String.replace`
  * renvoyer le gabarit inchangé — le défaut muet que `remplacer` ferme partout
  * ailleurs dans ce fichier.
+ *
+ * Le nom de balise est **lu**, pas supposé : les cadres de la méthode sont des
+ * `<div>`, ceux de REPÈRES des `<article class="bloc">` et un `<nav>`. Refermer
+ * en `</div>` un `<article>` aurait produit un document que le navigateur
+ * répare en silence, en déplaçant ce qui suit.
  */
-function ouvertureDuCadre(html: string, id: string): { balise: string; attributs: string } {
-  const trouve = html.match(new RegExp(`<div([^>]*\\sid="${id}"[^>]*)>`));
+function ouvertureDuCadre(
+  html: string,
+  id: string,
+): { balise: string; nom: string; attributs: string } {
+  const trouve = html.match(new RegExp(`<([a-z]+)([^>]*\\sid="${id}"[^>]*)>`));
   if (!trouve) {
     throw new Error(
-      `injecterMethode() : le gabarit ne porte plus le cadre « ${id} » — la page partirait sans lui.`,
+      `Le gabarit ne porte plus le cadre « ${id} » — la page partirait sans lui.`,
     );
   }
-  return { balise: trouve[0], attributs: trouve[1]! };
+  return { balise: trouve[0], nom: trouve[1]!, attributs: trouve[2]! };
 }
 
 /** Écrit un corps dans un cadre du gabarit, qui doit être vide : un cadre déjà
  *  rempli signalerait deux rendus pour un même endroit, et l'un des deux
  *  serait perdu sans un mot. */
 function remplirCadre(html: string, id: string, corps: string): string {
-  const { balise, attributs } = ouvertureDuCadre(html, id);
-  const vide = `${balise}</div>`;
+  const { balise, nom, attributs } = ouvertureDuCadre(html, id);
+  const vide = `${balise}</${nom}>`;
   if (!html.includes(vide)) {
     throw new Error(
-      `injecterMethode() : le cadre « ${id} » du gabarit n'est plus vide — le pré-rendu écrirait par-dessus.`,
+      `Le cadre « ${id} » du gabarit n'est plus vide — le pré-rendu écrirait par-dessus.`,
     );
   }
-  return html.replace(vide, () => `<div${attributs}>\n${corps}\n</div>`);
+  return html.replace(vide, () => `<${nom}${attributs}>\n${corps}\n</${nom}>`);
 }
 
 /** Déplie un cadre. Un cadre replié serait écrit dans le document et servi à
  *  personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas
  *  — c'est le défaut d'avant ce pré-rendu, et `injecterAccueil` le nomme déjà. */
 function deplierCadre(html: string, id: string): string {
-  const { balise, attributs } = ouvertureDuCadre(html, id);
-  return html.replace(balise, () => `<div${attributs.replace(/\s+hidden\b/, "")}>`);
+  const { balise, nom, attributs } = ouvertureDuCadre(html, id);
+  return html.replace(balise, () => `<${nom}${attributs.replace(/\s+hidden\b/, "")}>`);
 }
 
 /** Replie un cadre. `.bloc` est un cadre bordé, ombré : laissé déplié et vide,
  *  il se voit comme une case vide — la même règle que `peindreMethode` tient
  *  côté navigateur, où le retour du peintre commande la visibilité. */
 function replierCadre(html: string, id: string): string {
-  const { balise, attributs } = ouvertureDuCadre(html, id);
+  const { balise, nom, attributs } = ouvertureDuCadre(html, id);
   if (/\bhidden\b/.test(attributs)) return html;
-  return html.replace(balise, () => `<div${attributs} hidden>`);
+  return html.replace(balise, () => `<${nom}${attributs} hidden>`);
 }
 
 /**
@@ -947,6 +1024,104 @@ export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
   html = replierCadre(html, "methode-fraicheur");
   html = replierCadre(html, "methode-journal");
   html = deplierCadre(html, "vue-methode");
+  return replierCadre(html, "vue-accueil");
+}
+
+/* --------------------------------------------------------------------------
+ * La page REPÈRES, écrite dans ses cadres.
+ *
+ * C'est le dernier écart de pré-rendu du site, et il tenait à une raison
+ * technique, pas éditoriale : ses huit blocs étaient peints par des fonctions
+ * qui recevaient un `HTMLElement` et le mutaient. Sept d'entre elles rendaient
+ * déjà une chaîne (`rendu()`, testée sans DOM) et n'y touchaient qu'ensuite ;
+ * la huitième — `afficherNational` — ne rendait rien du tout, et c'est elle
+ * seule qui manquait. Ses deux rendus purs extraits, ce chemin-ci n'ajoute
+ * qu'une chose : les avoir déjà appelés quand la page part.
+ *
+ * Le document reste celui de l'application, comme `/methode` et pour la même
+ * raison : le paquet doit finir le travail. La conjoncture attache une
+ * infobulle et un sélecteur de fenêtre à son graphique, le budget de l'État un
+ * sélecteur d'exercice, le sommaire de la vue se construit sur les blocs
+ * réellement peints. Tout cela demande un navigateur — et tout cela est un
+ * SUPPLÉMENT à ce que le pré-rendu écrit, jamais sa condition.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * La page REPÈRES, composée sur la publication que ce build a lue.
+ *
+ * Les mêmes appels que `demarrer()` fait (main.ts), dans le même ordre, avec
+ * les mêmes fichiers. Deux fidélités méritent d'être dites, parce qu'elles ne
+ * se devinent pas :
+ *
+ * 1. **Le catalogue est celui du navigateur**, indicateurs calculés compris :
+ *    `demarrer()` ajoute `indicateursDerives` AVANT de peindre ces blocs, et
+ *    trois d'entre eux filtrent sur « cet indicateur est-il publié ? ». Un
+ *    pré-rendu qui lirait le catalogue brut ferait apparaître ou disparaître un
+ *    bloc à l'arrivée du paquet.
+ *
+ * 2. **« 100 € » n'ouvre pas la section nationale.** Les six autres appels de
+ *    `demarrer()` posent `$("national").hidden = false` ; celui-là est le seul
+ *    dont le retour n'est pas lu. Ce n'est pas reproduit par goût de la
+ *    fidélité : c'est que ce document doit servir la MÊME page que le client
+ *    peindrait, et un pré-rendu qui ouvrirait la section là où le client la
+ *    laisse fermée montrerait un bloc que le paquet ferait disparaître.
+ *
+ * Un bloc dont la source n'est pas publiée est **replié**, jamais laissé vide :
+ * `.bloc` est un cadre bordé, ombré, et une case vide se lit comme une panne —
+ * la règle que `replierCadre` porte déjà pour la méthode.
+ *
+ * Le sommaire de la vue est replié lui aussi, et c'est le seul endroit où ce
+ * document est moins riche que la page peinte : `peindreSommaireReperes`
+ * (main.ts) le construit en LISANT les titres des blocs dans le DOM, et rien
+ * ici n'a de DOM. Il se déplie tout seul à l'arrivée du paquet, qui commande
+ * déjà sa visibilité dans les deux sens. Le replier plutôt que le laisser vide
+ * évite le filet horizontal sans lien que `.sommaire-vue` dessine à vide.
+ */
+export function injecterReperes(
+  shell: string,
+  pays: Record<string, Territoire>,
+  catalogue: Indicateur[],
+  niches: DepensesFiscales,
+  budget: BudgetEtat,
+): string {
+  const exercice = exercicesDisponibles(budget)[0];
+  // Les sept blocs dont `demarrer()` lit le retour pour ouvrir la section
+  // nationale. La dette n'y ajoute rien que l'Europe ne dise déjà — les deux
+  // sont vides exactement quand la France n'est pas publiée, et
+  // `afficherNational` rend ce vide-là — mais elle y figure parce que c'est un
+  // bloc à remplir comme un autre.
+  const ouvrants: [string, string][] = [
+    ["bloc-conjoncture", renduConjoncture(pays, catalogue)],
+    ["bloc-dette", renduDette(pays, catalogue)],
+    ["bloc-europe", renduEurope(pays)],
+    ["bloc-fonctions", renduFonctions(pays, catalogue)],
+    ["bloc-secu", renduSecu(pays, catalogue)],
+    ["bloc-etat", exercice ? renduBudgetEtat(budget, exercice) : ""],
+    ["bloc-niches", renduNiches(niches, pays, catalogue)],
+  ];
+  if (!ouvrants.some(([, corps]) => corps !== "")) {
+    throw new Error(
+      "injecterReperes() : aucun bloc national ne s'écrit — la section resterait repliée et la " +
+        "page partirait sur ses seules questions, c'est-à-dire exactement l'état d'avant ce pré-rendu.",
+    );
+  }
+  // Le huitième, qui n'ouvre pas la section : voir la docstring, point 2.
+  const centEuros: [string, string] = [
+    "bloc-cent-euros",
+    exercice ? renduCentEuros(budget, exercice) : "",
+  ];
+
+  let html = shell;
+  html = remplirCadre(html, "questions", renduQuestions());
+  for (const [id, corps] of [...ouvrants, centEuros]) {
+    html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
+  }
+  html = replierCadre(html, "sommaire-reperes");
+  html = deplierCadre(html, "national");
+  html = deplierCadre(html, "vue-reperes");
+  // L'accueil replié, pour la raison qu'`injecterMethode` nomme : le gabarit le
+  // sert déplié pour la racine, et ce document-ci le montrerait au-dessus des
+  // repères jusqu'à ce que `basculerVue` tranche.
   return replierCadre(html, "vue-accueil");
 }
 
@@ -1080,6 +1255,9 @@ async function chargerPublication(): Promise<{
   jeux: Jeu[];
   producteurs: string[];
   regions: Record<string, Territoire>;
+  pays: Record<string, Territoire>;
+  niches: DepensesFiscales;
+  budget: BudgetEtat;
 }> {
   const { version } = await lireJson<{ version: string }>(`${BASE}/data/derniere.json`);
   const racineDonnees = `${BASE}/data/${version}`;
@@ -1098,6 +1276,17 @@ async function chargerPublication(): Promise<{
   const regions = await lireJson<Record<string, Territoire>>(
     `${racineDonnees}/territoires/${MAILLE_EXEMPLE}/tous.json`,
   );
+  // Les trois fichiers de la page REPÈRES, aux adresses que `donnees.ts` lit
+  // (`territoires`, `depensesFiscales`, `budgetEtat`). `demarrer()` les charge
+  // dans deux `try` séparés, pour qu'une publication amputée n'emporte pas la
+  // carte avec elle ; ici, ils sont exigés. Ce script échoue plutôt que de
+  // publier des pages en silence — c'est la règle de son en-tête, et une page
+  // REPÈRES sans repères serait précisément le gabarit qu'elle remplace.
+  const pays = await lireJson<Record<string, Territoire>>(
+    `${racineDonnees}/territoires/pays/tous.json`,
+  );
+  const niches = await lireJson<DepensesFiscales>(`${racineDonnees}/depenses-fiscales.json`);
+  const budget = await lireJson<BudgetEtat>(`${racineDonnees}/budget-etat.json`);
   return {
     catalogue,
     version,
@@ -1105,6 +1294,9 @@ async function chargerPublication(): Promise<{
     jeux: manifeste.jeux,
     producteurs: manifeste.jeux.map((jeu) => jeu.producteur),
     regions,
+    pays,
+    niches,
+    budget,
   };
 }
 
@@ -1399,7 +1591,8 @@ export async function validerIndexation(racine: string, site: string): Promise<v
 async function main(): Promise<void> {
   const shell = await readFile(path.join(DIST, "index.html"), "utf8");
   const analyses = await chargerAnalyses();
-  const { catalogue, version, racineDonnees, jeux, producteurs, regions } = await chargerPublication();
+  const { catalogue, version, racineDonnees, jeux, producteurs, regions, pays, niches, budget } =
+    await chargerPublication();
 
   await validerCadresPublies(racineDonnees);
   await validerLiensSimulateur(analyses, racineDonnees);
@@ -1485,6 +1678,31 @@ async function main(): Promise<void> {
   await ecrirePage(path.join(DIST, DOSSIER_METHODE), htmlMethode);
   ecrites.push({ chemin: `${DOSSIER_METHODE}/index.html`, html: htmlMethode });
 
+  // La page REPÈRES, au même chemin qu'elle a toujours eu et par le même geste
+  // que la méthode : `injecterAnnonce`, jamais `injecter`. Elle quitte à son
+  // tour le lot des adresses que le gabarit sert — quatre restent — et doit
+  // donc déclarer sa canonique, ce que `validerIndexation` exige plus bas sans
+  // qu'une ligne y change. Le plan du site, lui, ne bouge pas d'un compte :
+  // `/reperes` y figurait déjà, servie par le repli. Ce qui change est le
+  // document qui répond, pas la liste.
+  //
+  // Le catalogue est celui du navigateur, indicateurs calculés compris — voir
+  // `injecterReperes`, point 1. `corpsAccueil` en compose un identique pour
+  // lui-même ; le composer deux fois vaut mieux que de le passer d'une page à
+  // l'autre, où l'on ne verrait plus lequel des deux catalogues chaque page lit.
+  const htmlReperes = injecterAnnonce(
+    injecterReperes(shell, pays, [...catalogue, ...indicateursDerives(catalogue)], niches, budget),
+    {
+      titre: PAGE_REPERES.titre,
+      description: PAGE_REPERES.description,
+      canonique: CHEMIN_REPERES,
+      image: `${CHEMIN_REPERES}/carte.png`,
+    },
+    SITE,
+  );
+  await ecrirePage(path.join(DIST, DOSSIER_REPERES), htmlReperes);
+  ecrites.push({ chemin: `${DOSSIER_REPERES}/index.html`, html: htmlReperes });
+
   await validerImagesAnnoncees(DIST, ecrites, SITE);
   await validerImageDuScenario(DIST);
 
@@ -1496,7 +1714,7 @@ async function main(): Promise<void> {
 
   console.log(
     `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), dist/analyses/index.html, ` +
-      `dist/${DOSSIER_METHODE}/index.html, ` +
+      `dist/${DOSSIER_METHODE}/index.html, dist/${DOSSIER_REPERES}/index.html, ` +
       `${analyses.length + sections(shell).length} carte(s) de partage, ` +
       `${adresses.length} adresse(s) au plan du site, sous ${SITE}.`,
   );

@@ -29,9 +29,16 @@ import { CHIFFRES_EXEMPLE, MESSAGE_PRINCIPAL } from "../src/accueil.ts";
 import { rendu, type Analyse } from "../src/analyse-rendu.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
-import type { Indicateur, Jeu, Territoire } from "../src/donnees.ts";
-import { formater } from "../src/echelle.ts";
+import type {
+  BudgetEtat,
+  DepensesFiscales,
+  Indicateur,
+  Jeu,
+  Territoire,
+} from "../src/donnees.ts";
+import { formater, millions } from "../src/echelle.ts";
 import { TITRES_METHODE } from "../src/methode-rendu.ts";
+import { QUESTIONS } from "../src/questions.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
@@ -50,6 +57,7 @@ import {
   injecterAccueil,
   injecterAnnonce,
   injecterMethode,
+  injecterReperes,
   marqueDuGabarit,
   planDuSite,
   robotsDuSite,
@@ -400,6 +408,11 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
       // par le gabarit, elle empruntait la carte du site — chapeau « Le site »,
       // phrase du message principal — sous un titre qui annonce les sources.
       ["methode", "Méthode"],
+      // REPÈRES l'a rejointe pour la même raison, et son chapeau est le mot que
+      // la barre de navigation emploie. Un « s » le sépare de « Repère », la
+      // nature d'un objet partageable ; l'assertion sur ce mot-là, quelques
+      // lignes plus bas, distingue donc les deux.
+      ["reperes", "Repères"],
     ],
   );
   // La section du simulateur est peinte À L'ENDROIT où la fonction d'edge
@@ -407,6 +420,8 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
   assert.equal(path.join("/", toutes[2].chemin, "carte.png"), IMAGE_SCENARIO);
   // Et celle de la méthode à l'endroit où son document annonce la sienne.
   assert.equal(path.join("/", toutes[3].chemin), CHEMINS.methode);
+  // Idem pour REPÈRES : le chemin vient de `routes.ts`, jamais recopié.
+  assert.equal(path.join("/", toutes[4].chemin), CHEMINS.reperes);
 
   // Le chapeau peint est celui de la section, jamais « Repère ». Il est lu sur
   // le SVG rendu, pas sur les données : c'est ce que le lecteur voit.
@@ -605,11 +620,13 @@ const CHEMINS_DE_VUE = new Set(Object.values(CHEMINS));
  * fichier, Cloudflare Pages y sert le gabarit.
  *
  * `/methode` n'en est plus — elle a son propre document depuis qu'elle est
- * pré-rendue. Le `dist` d'essai doit avoir la même forme que le vrai, sans quoi
- * le contrôle des canoniques n'y verrait jamais le cas d'une vue pré-rendue :
- * il jugerait un gabarit à six adresses là où la production en a cinq.
+ * pré-rendue — et `/reperes` non plus, pour la même raison. Le `dist` d'essai
+ * doit avoir la même forme que le vrai, sans quoi le contrôle des canoniques
+ * n'y verrait jamais le cas d'une vue pré-rendue : il jugerait un gabarit à six
+ * adresses là où la production en a quatre.
  */
-const SERVIS_PAR_LE_REPLI = new Set([...CHEMINS_DE_VUE].filter((c) => c !== CHEMINS.methode));
+const PAGES_PROPRES = new Set([CHEMINS.methode, CHEMINS.reperes]);
+const SERVIS_PAR_LE_REPLI = new Set([...CHEMINS_DE_VUE].filter((c) => !PAGES_PROPRES.has(c)));
 
 /**
  * Un `dist` minimal : le gabarit, et une page par adresse qui en a une.
@@ -1142,4 +1159,281 @@ test("14 quinquies. le build écrit cette page, et l'écrit avant le plan du sit
   const rangee = corps.indexOf("await ecrirePage(path.join(DIST, DOSSIER_METHODE)");
   const plan = corps.indexOf("await ecrireIndexation(");
   assert.ok(rangee > 0 && plan > rangee, "la page MÉTHODE est écrite après le plan qui l'annonce");
+});
+
+/* --------------------------------------------------------------------------
+ * 15. /reperes est SERVIE, pas seulement câblée
+ *
+ * C'était le dernier écart de pré-rendu du site, et son motif était technique :
+ * `afficherNational` prenait deux `HTMLElement` et les mutait, donc rien de ce
+ * bloc-là n'était appelable sous Node. Ses deux rendus purs extraits, le
+ * chemin est le même que celui de `/methode`.
+ * ----------------------------------------------------------------------- */
+
+/** Les huit cadres de blocs du gabarit, dans l'ordre où il les pose. Lus ici
+ *  une fois : chacun des tests ci-dessous en a besoin. */
+const CADRES_REPERES = [
+  "bloc-conjoncture",
+  "bloc-dette",
+  "bloc-europe",
+  "bloc-cent-euros",
+  "bloc-fonctions",
+  "bloc-secu",
+  "bloc-etat",
+  "bloc-niches",
+];
+
+function territoireEssai(series: Record<string, Record<string, number>>): Territoire {
+  return { nom: "", parent: null, population: null, drapeaux: {}, series };
+}
+
+/**
+ * Un lot pays qui alimente les cinq blocs qui lisent des séries.
+ *
+ * Des valeurs d'essai, pas les valeurs publiées : ce test vérifie qu'un chiffre
+ * DONNÉ ressort servi, et un montant réel recopié ici serait un chiffre de plus
+ * à tenir à jour pour rien.
+ */
+const PAYS_ESSAI: Record<string, Territoire> = {
+  FR: territoireEssai({
+    insee_dette_apu_montant: { "2025": 3_400_000_000_000 },
+    insee_dette_apu_part_pib: { "2024": 113.0, "2025": 115.6 },
+    insee_dette_etat_montant: { "2025": 2_800_000_000_000 },
+    eurostat_dette_pib: { "2024": 113.0 },
+    eurostat_deficit_pib: { "2024": -5.8 },
+    eurostat_chomage: { "2024": 7.4 },
+    eurostat_inflation_ipch: { "2025-05": 0.6, "2025-06": 0.9 },
+    eurostat_depenses_publiques_pib: { "2024": 57.3 },
+    eurostat_fonction_sante: { "2024": 8.9 },
+    eurostat_secu_depenses_pib: { "2024": 26.2 },
+    eurostat_secu_recettes_pib: { "2024": 25.9 },
+    eurostat_secu_solde_pib: { "2024": -0.3 },
+    depense_fiscale_totale: { "2024": 81_000_000_000 },
+  }),
+  DE: territoireEssai({ eurostat_dette_pib: { "2024": 62.5 } }),
+};
+
+const CATALOGUE_REPERES = [
+  { id: "insee_dette_etat_montant", libelle: "Dette de l'État" },
+  { id: "eurostat_inflation_ipch", libelle: "Inflation" },
+  { id: "eurostat_fonction_sante", libelle: "Santé" },
+  { id: "eurostat_secu_solde_pib", libelle: "Solde des administrations de sécurité sociale" },
+  { id: "depense_fiscale_totale", libelle: "Dépenses fiscales" },
+] as Indicateur[];
+
+const NICHES_ESSAI: DepensesFiscales = {
+  exercices: ["2024", "2025"],
+  realise: "2024",
+  dispositifs: [
+    {
+      numero: "110201",
+      libelle: "Crédit d'impôt d'essai",
+      mission: "Mission d'essai",
+      montants: { "2024": 7_000_000_000 },
+    },
+  ],
+};
+
+const BUDGET_ESSAI: BudgetEtat = {
+  etapes: [{ cle: "execute", libelle: "Exécuté" }],
+  lignes: [
+    { libelle: "Total recettes nettes du budget général", cote: "recette", parent: null },
+    { libelle: "Impôt sur le revenu", cote: "recette", parent: "Total recettes nettes du budget général" },
+    { libelle: "Total dépenses nettes du budget général", cote: "depense", parent: null },
+    { libelle: "Dépenses de personnel", cote: "depense", parent: "Total dépenses nettes du budget général" },
+    { libelle: "Total prélèvements sur recettes", cote: "depense", parent: null },
+  ].map((l) => ({ ...l, titre: null, agregat: false, indicateur: null })) as BudgetEtat["lignes"],
+  exercices: {
+    "2025": {
+      execute: {
+        solde: -124_205_673_501.55,
+        solde_comptes_speciaux: null,
+        solde_budgets_annexes: null,
+        montants: {
+          "Total recettes nettes du budget général": 380_000_000_000,
+          "Impôt sur le revenu": 95_000_000_000,
+          "Total dépenses nettes du budget général": 441_000_000_000,
+          "Dépenses de personnel": 156_000_000_000,
+          "Total prélèvements sur recettes": 69_000_000_000,
+        },
+      },
+    },
+  },
+  quarantaine: {},
+};
+
+const REPERES_ESSAI = () =>
+  injecterReperes(GABARIT_REEL, PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI);
+
+test("15. /reperes sert ses huit blocs sans exécuter une ligne", () => {
+  const html = REPERES_ESSAI();
+  const texte = texteDuMain(html);
+
+  // Le titre de chaque bloc, dans les mots que le module rend — jamais une
+  // chaîne tapée ici, qui ne dirait rien de ce que la page écrit vraiment.
+  for (const titre of [
+    "Où en est l'économie ?",
+    "Dette publique",
+    "La France et ses voisins",
+    "100 € du budget de l'État",
+    "Que finance la dépense publique ?",
+    "La Sécu est-elle en déficit ?",
+    "Budget de l'État",
+  ]) {
+    assert.ok(texte.includes(titre), `le bloc « ${titre} » n'est pas servi`);
+  }
+  // Le huitième titre porte une espace insécable, écrite en entité HTML : elle
+  // traverse l'injection telle quelle, et l'attendre en espace ordinaire
+  // ferait passer ce test pour la mauvaise raison le jour où elle sauterait.
+  assert.ok(texte.includes("Les niches fiscales, c'est combien&nbsp;?"), "le bloc des niches n'est pas servi");
+
+  // Un chiffre donné en entrée, ressorti formaté par le formateur commun : la
+  // preuve que les blocs ont lu les séries et pas un repli. Lu sur le HTML et
+  // non sur `texteDuMain`, qui ramène toute espace à l'espace ordinaire — les
+  // séparateurs de `millions` sont des espaces fines insécables (test 14 bis).
+  const dette = millions(3_400_000_000_000);
+  assert.ok(dette.endsWith("M€"), `« ${dette} » ne dit pas son unité : cette sonde ne prouverait rien`);
+  assert.ok(html.includes(dette), `la dette publiée « ${dette} » n'est pas servie`);
+
+  // Les questions, que `demarrer()` peint hors de la section nationale — donc
+  // servies même le jour où plus aucune série nationale ne l'est.
+  for (const question of QUESTIONS) {
+    assert.ok(texte.includes(echapper(question.question)), `« ${question.question} » n'est pas servie`);
+  }
+
+  // Et il en reste beaucoup plus que les 2 597 signes de l'accueil, qui est ce
+  // que ce chemin servait.
+  assert.ok(texte.length > 6000, `<main> ne porte que ${texte.length} signes de texte`);
+});
+
+test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil replié", () => {
+  const html = REPERES_ESSAI();
+
+  // Dépliée, sans quoi la page serait écrite dans le document et servie à
+  // personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas.
+  assert.match(html, /<div class="vue" id="vue-reperes">/);
+  // La section nationale est `hidden` dans le gabarit — c'est le retour des
+  // peintres qui l'ouvre côté navigateur, et le pré-rendu doit l'ouvrir aussi.
+  assert.match(html, /<section class="national" id="national">/);
+  // L'accueil replié, sans quoi il s'afficherait au-dessus des repères jusqu'à
+  // ce que `basculerVue` tranche.
+  assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" hidden>/);
+  // Le sommaire est replié : `peindreSommaireReperes` (main.ts) le construit en
+  // LISANT les titres des blocs dans le DOM, ce que ce script n'a pas. Il
+  // commande déjà sa visibilité dans les deux sens, donc il le rouvre.
+  assert.match(html, /id="sommaire-reperes"[^>]* hidden>/);
+  // Mais tous les cadres restent présents : `$` y renverrait `null`, et le
+  // navigateur ne pourrait plus repeindre.
+  for (const id of [...CADRES_REPERES, "sommaire-reperes", "questions", "national"]) {
+    assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
+  }
+  // Le document reste celui de l'application : `data-page="editorial"`
+  // arrêterait le paquet avant les graphiques et le sélecteur d'exercice.
+  assert.doesNotMatch(html, /data-page="editorial"/);
+});
+
+test("15 ter. un bloc sans source publiée est replié, jamais laissé vide", () => {
+  // `.bloc` est un cadre bordé, ombré : déplié et vide, il se lit comme une
+  // panne. Ici, ni budget de l'État ni niches ne sont publiés.
+  const html = injecterReperes(
+    GABARIT_REEL,
+    PAYS_ESSAI,
+    CATALOGUE_REPERES,
+    { exercices: [], realise: null, dispositifs: [] },
+    { etapes: [], lignes: [], exercices: {}, quarantaine: {} },
+  );
+  for (const id of ["bloc-cent-euros", "bloc-etat", "bloc-niches"]) {
+    assert.match(html, new RegExp(`id="${id}"[^>]* hidden>`), `« ${id} » est resté déplié et vide`);
+  }
+  // Les blocs qui ont leurs séries, eux, sont écrits — sans quoi ce test
+  // passerait sur une page entièrement repliée sans rien prouver.
+  assert.doesNotMatch(html, /id="bloc-dette"[^>]* hidden>/);
+  assert.ok(texteDuMain(html).includes("Dette publique"));
+});
+
+test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repères", () => {
+  // Trois cadres retirés, trois échecs — les mêmes défauts muets que
+  // `injecterMethode` ferme, sur les cadres de cette page-ci.
+  assert.throws(
+    () => injecterReperes(GABARIT_REEL.replace('id="vue-reperes"', 'id="vue-jalons"'), PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI),
+    /vue-reperes/,
+  );
+  assert.throws(
+    () => injecterReperes(GABARIT_REEL.replace('id="national"', 'id="hexagone"'), PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI),
+    /national/,
+  );
+  assert.throws(
+    () =>
+      injecterReperes(
+        GABARIT_REEL.replace('id="bloc-dette"></article>', 'id="bloc-dette">déjà</article>'),
+        PAYS_ESSAI,
+        CATALOGUE_REPERES,
+        NICHES_ESSAI,
+        BUDGET_ESSAI,
+      ),
+    /n'est plus vide/,
+  );
+  // Et une publication sans une seule série nationale : la page partirait sur
+  // ses seules questions, c'est-à-dire l'état d'avant ce pré-rendu.
+  assert.throws(
+    () =>
+      injecterReperes(
+        GABARIT_REEL,
+        {},
+        CATALOGUE_REPERES,
+        { exercices: [], realise: null, dispositifs: [] },
+        { etapes: [], lignes: [], exercices: {}, quarantaine: {} },
+      ),
+    /aucun bloc national ne s'écrit/,
+  );
+});
+
+test("15 quinquies. le document de /reperes déclare sa canonique, le gabarit toujours aucune", async () => {
+  const adresses = adressesPubliees(await analysesPubliees());
+  // Le chemin est au plan, et il n'est plus servi par le repli : sans cela, ce
+  // test ne dirait rien de ce qu'il prétend garder.
+  assert.ok(adresses.includes(CHEMINS.reperes), "/reperes n'est plus au plan du site");
+  assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.reperes), "/reperes est encore servie par le gabarit");
+  // Le gabarit en sert encore plusieurs : c'est ce qui lui vaut de n'en
+  // déclarer aucune, et une page pré-rendue de plus ne doit pas le faire
+  // tomber à une seule sans qu'on le voie.
+  assert.ok(SERVIS_PAR_LE_REPLI.size > 1, "le gabarit ne sert plus qu'une adresse : il lui faudrait une canonique");
+
+  await validerIndexation(await distEssai(adresses), SITE_ESSAI);
+
+  // Seule à son fichier, elle doit déclarer SON adresse. Le message du
+  // validateur nomme les deux adresses en cause.
+  const muette = await distEssai(adresses);
+  await writeFile(path.join(muette, CHEMINS.reperes.replace(/^\//, ""), "index.html"), GABARIT);
+  await assert.rejects(() => validerIndexation(muette, SITE_ESSAI), /deux adresses pour une seule page/);
+});
+
+test("15 sexies. le build écrit cette page, et l'écrit avant le plan du site", () => {
+  // Cinquième garde de branchement de ce fichier : une fonction éprouvée dont
+  // l'appel est commenté laisse toute la suite verte (tests 7 bis et 7 ter).
+  const source = sansCommentaires(readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8"));
+  const corps = source.slice(source.indexOf("async function main"));
+  assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
+  assert.match(
+    corps,
+    /injecterAnnonce\(\s*injecterReperes\(shell, pays,/,
+    "main() n'écrit plus la page REPÈRES : le chemin repartirait sur le gabarit vide.",
+  );
+  assert.match(
+    corps,
+    /await ecrirePage\(path\.join\(DIST, DOSSIER_REPERES\), htmlReperes\);/,
+    "main() ne range plus la page REPÈRES : le plan annoncerait une adresse que le gabarit sert.",
+  );
+  // Le catalogue est celui du navigateur, indicateurs calculés compris : trois
+  // blocs filtrent sur « cet indicateur est-il publié ? », et un pré-rendu qui
+  // lirait le catalogue brut ferait apparaître ou disparaître un bloc à
+  // l'arrivée du paquet.
+  assert.match(corps, /injecterReperes\(shell, pays, \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\]/);
+  // Par `injecterAnnonce`, jamais par `injecter` : celui-ci pose
+  // `data-page="editorial"`, qui arrêterait le paquet avant les graphiques.
+  assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_REPERES/);
+  // Rangée avant que le plan ne soit écrit et relu, comme toute autre page.
+  const rangee = corps.indexOf("await ecrirePage(path.join(DIST, DOSSIER_REPERES)");
+  const plan = corps.indexOf("await ecrireIndexation(");
+  assert.ok(rangee > 0 && plan > rangee, "la page REPÈRES est écrite après le plan qui l'annonce");
 });
