@@ -223,6 +223,30 @@ function nombresLus(svg: string): string[] {
   );
 }
 
+/**
+ * Le libellé posé sur la même ligne de base qu'une valeur — c'est-à-dire ce que
+ * cette valeur-là dit désigner.
+ *
+ * « La carte porte quelque part la phrase » ne prouverait rien : deux montants
+ * et deux phrases peuvent être peints sans qu'aucune ne réponde au bon nombre.
+ * C'est l'ordonnée partagée qui fait la rangée, et c'est elle qu'on mesure.
+ */
+function libelleDe(svg: string, valeur: string): string | undefined {
+  const lus = peints(svg);
+  const ligne = lus.find((t) => t.contenu === valeur);
+  if (!ligne) return undefined;
+  return lus.find((t) => t.y === ligne.y && t.contenu !== valeur)?.contenu;
+}
+
+/** Une phrase est-elle annoncée par ce libellé ? Le libellé d'une rangée est
+ *  coupé au dernier mot entier par `replier`, qui marque la suite : ce qui est
+ *  peint est un DÉBUT de la phrase, jamais toujours la phrase entière. */
+function annonce(libelle: string | undefined, phrase: string): boolean {
+  if (!libelle) return false;
+  const debut = libelle.replace(/…$/, "").trimEnd();
+  return debut.length > 0 && debut !== "…" && phrase.startsWith(debut);
+}
+
 const ANALYSE = {
   titre: "Le coût annoncé de la mesure",
   dit: "cent milliards",
@@ -231,6 +255,19 @@ const ANALYSE = {
   cran: "hors_perimetre" as const,
   source: SOURCE,
   site: SITE,
+};
+
+/** Une analyse qui oppose DEUX chiffres publiés — la forme réelle du dépôt.
+ *  Les deux montants d'essai sont proches l'un de l'autre : c'est le piège que
+ *  la carte doit rendre lisible, pas l'écart criant qui se verrait seul. */
+const ANALYSE_OPPOSEE = {
+  ...ANALYSE,
+  opposes: [
+    {
+      valeur: 1_301_000_000,
+      lecture: "La seconde ligne d'essai : ce que cet autre chiffre-là désigne.",
+    },
+  ],
 };
 
 /** Les chaînes qu'aucun titre du site n'atteint : c'est là que la mise en page
@@ -285,6 +322,68 @@ test("1 bis. la carte d'analyse dit ce que son chiffre des comptes désigne", ()
   // du corps ni sur les deux lignes du pied.
   assert.deepEqual(horsBandes(svg), []);
   assert.deepEqual(recouvrements(svg), []);
+});
+
+test("1 ter. la carte porte les deux chiffres publiés que son verdict oppose", () => {
+  // Dire LEQUEL des deux on regarde ne suffisait pas. La carte de l'analyse
+  // réelle alignait « environ 59,9 milliards d'euros » et « 59 946 M€ » — deux
+  // montants qui CONCORDENT — sous « Le chiffre existe, mais pas pour ce qu'il
+  // désigne ». Le second chiffre publié, 62 124 M€, qui est tout le sujet de
+  // l'analyse, n'était nulle part sur l'image : elle affirmait un verdict en
+  // retenant sa preuve, et elle circule seule.
+  const svg = carteAnalyse(ANALYSE_OPPOSEE);
+  // Les montants attendus sont produits en APPELANT `formater` : le séparateur
+  // est une espace fine insécable, qu'on ne peut pas taper de mémoire sans se
+  // tromper.
+  const premier = formater(ANALYSE_OPPOSEE.observe, "EUR", false);
+  const second = formater(ANALYSE_OPPOSEE.opposes[0].valeur, "EUR", false);
+  const lu = peints(svg)
+    .sort((a, z) => a.y - z.y)
+    .map((t) => t.contenu);
+  assert.ok(lu.includes(premier), lu.join(" | "));
+  assert.ok(lu.includes(second), lu.join(" | "));
+  // Et chacun sous ce qu'il désigne, sur SA ligne de base : deux montants et
+  // deux phrases peints n'importe où ne diraient pas lequel désigne quoi.
+  assert.ok(annonce(libelleDe(svg, premier), ANALYSE_OPPOSEE.lecture), lu.join(" | "));
+  assert.ok(annonce(libelleDe(svg, second), ANALYSE_OPPOSEE.opposes[0].lecture), lu.join(" | "));
+  // Les deux montants avant le cran : la preuve précède le verdict qu'elle
+  // fonde, c'est l'ordre dans lequel la carte se lit.
+  const rang = (texte: string) => lu.findIndex((t) => t.includes(texte));
+  assert.ok(rang(premier) < rang(LIBELLE_CRAN.hors_perimetre), lu.join(" | "));
+  assert.ok(rang(second) < rang(LIBELLE_CRAN.hors_perimetre), lu.join(" | "));
+  // Aucun écart peint : un écart entre deux chiffres est un CALCUL, et ce
+  // module n'en fait aucun. Les seuls nombres lisibles restent les deux
+  // montants reçus et le millésime.
+  const attendus = new Set(
+    [premier, second].flatMap((montant) => [...montant.matchAll(NOMBRE)].map((m) => m[0])),
+  );
+  attendus.add("2025");
+  for (const nombre of nombresLus(svg)) assert.ok(attendus.has(nombre), `nombre inattendu : ${nombre}`);
+  // Une rangée de plus, et le pied ne bouge pas : rien ne descend sous la
+  // bande du corps ni sur les trois lignes du pied.
+  assert.deepEqual(horsBandes(svg), []);
+  assert.deepEqual(recouvrements(svg), []);
+  assert.deepEqual(debordements(svg), []);
+});
+
+test("1 quater. deux chiffres opposés de plus resserrent le corps sans toucher au pied", () => {
+  // Le plafond que `donneesCarteAnalyse` pose (scripts/prerendre.ts) : deux
+  // chiffres opposés au plus, donc cinq rangées — le chiffre annoncé, trois
+  // montants publiés, le cran. C'est la bande du corps la plus chargée que le
+  // dessin ait à tenir, et elle se mesure sur les coordonnées émises.
+  const svg = carteAnalyse({
+    ...ANALYSE_OPPOSEE,
+    opposes: [
+      ...ANALYSE_OPPOSEE.opposes,
+      { valeur: 1_402_000_000, lecture: "La troisième ligne d'essai : ce qu'elle désigne." },
+    ],
+  });
+  assert.deepEqual(horsBandes(svg), []);
+  assert.deepEqual(recouvrements(svg), []);
+  assert.deepEqual(debordements(svg), []);
+  const y = peints(svg).map((t) => t.y);
+  assert.ok(Math.max(...y.filter((v) => v <= GEOMETRIE.CORPS_BAS)) <= GEOMETRIE.CORPS_BAS);
+  assert.ok(y.includes(GEOMETRIE.PIED_UNITE) && y.includes(GEOMETRIE.PIED_SOURCE));
 });
 
 test("2. la carte porte son unité — sans elle, des millions se lisent milliards", () => {
@@ -456,6 +555,16 @@ const LONGUES: [string, string][] = [
     // Une `lecture` est une phrase entière, et rien dans le schéma ne la
     // borne : celle-ci est deux fois plus longue que la plus longue du dépôt.
     carteAnalyse({ ...ANALYSE, lecture: `${ANALYSE.lecture} ${AFFIRMATION_LONGUE}` }),
+  ],
+  [
+    "analyse, chiffres opposés et lectures longues",
+    // Deux `lecture` entières en LIBELLÉ de rangée, à côté de leur montant :
+    // c'est la gouttière qui travaille, sur la carte la plus chargée du lot.
+    carteAnalyse({
+      ...ANALYSE_OPPOSEE,
+      lecture: LIBELLE_LONG,
+      opposes: ANALYSE_OPPOSEE.opposes.map((o) => ({ ...o, lecture: LIBELLE_LONG })),
+    }),
   ],
   [
     "scénario, libellés longs",

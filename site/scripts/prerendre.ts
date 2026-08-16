@@ -265,13 +265,17 @@ function uniteCataloguee(catalogue: readonly Indicateur[], id: string): string |
 }
 
 /**
- * Ce qu'une analyse donne à peindre : son titre, son premier chiffre, son cran,
- * sa source et le millésime de ce chiffre.
+ * Ce qu'une analyse donne à peindre : son titre, les chiffres publiés qu'elle
+ * oppose, son cran, sa source et leur millésime.
  *
- * Le premier chiffre, et lui seul : une carte porte au plus trois rangées, et
- * c'est celui que l'étage « express » de la page met en tête (analyse-rendu.ts).
+ * Le chiffre annoncé est celui du premier chiffre — celui que l'étage
+ * « express » de la page met en tête (analyse-rendu.ts). Les montants publiés,
+ * eux, ne se réduisent pas au premier : ne peindre que lui faisait partir
+ * l'image de « deux chiffres publiés, deux sens » avec un seul des deux, sous
+ * un verdict privé de ce contre quoi il juge. Ceux que la carte peut peindre
+ * l'accompagnent donc (`opposes`, carte-og.ts).
  *
- * Le chiffre des comptes n'est peint **que** si le catalogue déclare son
+ * Un chiffre des comptes n'est peint **que** si le catalogue déclare son
  * indicateur en euros : `carteAnalyse` le formate en millions d'euros, et un
  * taux passé là deviendrait un montant. Sinon la rangée disparaît — le cran dit
  * le reste, et `carteAnalyse` prévoit ce cas.
@@ -324,6 +328,33 @@ export function donneesCarteAnalyse(
   const enEuros =
     chiffre.observe !== undefined &&
     uniteCataloguee(catalogue, chiffre.observe.indicateur) === "EUR";
+  const observe = enEuros ? chiffre.observe!.valeur : null;
+  // Les autres chiffres publiés que l'analyse oppose au premier. Sans le
+  // premier peint, il n'y a rien à quoi les opposer : la carte reste celle
+  // d'un chiffre unique, comme avant.
+  //
+  // Deux conditions, et la seconde n'est pas la même que la première : le
+  // catalogue doit déclarer l'indicateur en euros — sinon un taux deviendrait
+  // un montant — ET le chiffre doit porter l'EXERCICE que le pied annonce.
+  // La carte ne peint qu'un millésime ; un montant d'un autre exercice y
+  // serait daté faux, sur une image qui circule seule.
+  //
+  // Deux au plus : la bande du corps porte alors cinq rangées — le chiffre
+  // annoncé, trois montants publiés, le cran — et `ordonnees()` y resserre le
+  // pas à 44. Une de plus le descendrait sous le corps de la valeur.
+  const opposes =
+    observe === null
+      ? []
+      : analyse.chiffres
+          .slice(1)
+          .filter(
+            (autre) =>
+              autre.observe !== undefined &&
+              autre.observe.periode === exercice &&
+              uniteCataloguee(catalogue, autre.observe.indicateur) === "EUR",
+          )
+          .slice(0, 2)
+          .map((autre) => ({ valeur: autre.observe!.valeur, lecture: autre.lecture }));
   // La provenance déclarée par l'analyse elle-même — la même que l'étage
   // « preuve » de la page cite (analyse-rendu.ts), jamais un champ du
   // catalogue que le rendu ne peut pas vérifier, et jamais la source de la
@@ -338,11 +369,12 @@ export function donneesCarteAnalyse(
   return {
     titre: analyse.titre,
     dit: chiffre.dit,
-    observe: enEuros ? chiffre.observe!.valeur : null,
+    observe,
     // Ce que ce chiffre-là désigne, dans les mots de l'analyse. La page en
     // dispose de plusieurs façons ; l'image n'a que cette phrase pour dire
     // lequel des chiffres publiés elle montre.
     lecture: chiffre.lecture,
+    opposes,
     cran: analyse.verdict.cran,
     source: { titre: source.titre, millesime: exercice },
     site,

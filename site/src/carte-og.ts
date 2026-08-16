@@ -524,6 +524,10 @@ function dessiner(cadre: Cadre): string {
  *  elle avait déjà divergé d'un point final de celle des aperçus. */
 const UNITE_EUROS = MENTION_MILLIONS;
 
+/** Un autre chiffre publié que l'analyse oppose au premier : son montant en
+ *  euros, et ce qu'il désigne dans les mots de l'analyse. */
+export type ChiffreOppose = { valeur: number; lecture: string };
+
 export type DonneesAnalyse = {
   /** Le titre qui affirme — celui de l'analyse. */
   titre: string;
@@ -546,31 +550,65 @@ export type DonneesAnalyse = {
    * circule seule qui en était amputée.
    */
   lecture: string;
+  /**
+   * Les AUTRES chiffres publiés que l'analyse oppose au premier.
+   *
+   * Dire lequel des deux on regarde ne suffisait pas. La carte alignait
+   * « environ 59,9 milliards d'euros » et « 59 946 M€ » — deux montants qui
+   * CONCORDENT — sous un verdict qui dit exactement le contraire, et le second
+   * chiffre publié, 62 124 M€, qui est tout le sujet de l'analyse, n'était nulle
+   * part sur l'image. Une image circule seule : elle affirmait un verdict en
+   * retenant sa preuve.
+   *
+   * Vide ou absent quand l'analyse n'oppose qu'un chiffre publié — la carte est
+   * alors exactement celle d'avant, elle ne perd rien.
+   */
+  opposes?: ChiffreOppose[];
   cran: Cran;
   source: SourceCarte;
   site: string;
 };
 
-/** La carte d'une analyse : chiffre annoncé, chiffre des comptes, ce que ce
- *  chiffre désigne, cran, source. */
+/** La carte d'une analyse : chiffre annoncé, chiffre(s) des comptes, ce que
+ *  chacun désigne, cran, source. */
 export function carteAnalyse(donnees: DonneesAnalyse): string {
+  const opposes = donnees.opposes ?? [];
   const rangees: Rangee[] = [{ libelle: "Chiffre annoncé", valeur: `« ${donnees.dit} »` }];
-  if (donnees.observe !== null) {
-    rangees.push({
-      libelle: "Chiffre des comptes",
-      valeur: formater(donnees.observe, "EUR", false),
-    });
+  if (donnees.observe !== null && opposes.length > 0) {
+    // Plusieurs chiffres publiés : chacun sa rangée, et pour libellé ce qu'il
+    // désigne. « Chiffre des comptes » nommerait les deux de la même façon —
+    // c'est précisément l'étiquette générique qui avait déjà manqué —, et un
+    // seul des deux peint laisserait le verdict sans ce contre quoi il juge.
+    //
+    // Aucun écart n'est peint entre eux : un écart est un calcul, et ce module
+    // n'en fait aucun. Ce que la carte oppose, ce sont les deux montants
+    // publiés, chacun sous ce qu'il désigne — la différence se lit.
+    const publies: ChiffreOppose[] = [
+      { valeur: donnees.observe, lecture: donnees.lecture },
+      ...opposes,
+    ];
+    for (const publie of publies) {
+      rangees.push({ libelle: publie.lecture, valeur: formater(publie.valeur, "EUR", false) });
+    }
+  } else {
+    if (donnees.observe !== null) {
+      rangees.push({
+        libelle: "Chiffre des comptes",
+        valeur: formater(donnees.observe, "EUR", false),
+      });
+    }
+    // Juste sous le chiffre qu'elle qualifie, et avant le cran : c'est l'ordre
+    // dans lequel on lit la carte — le nombre, ce qu'il désigne, ce que le site
+    // en conclut.
+    //
+    // Sur une ligne, comme toute phrase de rangée : à quatre rangées, la bande
+    // du corps donne 58 px de pas, et une seconde ligne à corps 30 se poserait
+    // sur la rangée suivante. `replier` la coupe donc au dernier mot entier et
+    // marque la suite. Les `lecture` du dépôt nomment ce qu'elles distinguent
+    // en tête de phrase — « Les crédits votés : … » — et c'est la queue qui
+    // part.
+    if (donnees.lecture.trim()) rangees.push({ phrase: donnees.lecture });
   }
-  // Juste sous le chiffre qu'elle qualifie, et avant le cran : c'est l'ordre
-  // dans lequel on lit la carte — le nombre, ce qu'il désigne, ce que le site
-  // en conclut.
-  //
-  // Sur une ligne, comme toute phrase de rangée : à quatre rangées, la bande du
-  // corps donne 58 px de pas, et une seconde ligne à corps 30 se poserait sur
-  // la rangée suivante. `replier` la coupe donc au dernier mot entier et
-  // marque la suite. Les `lecture` du dépôt nomment ce qu'elles distinguent en
-  // tête de phrase — « Les crédits votés : … » — et c'est la queue qui part.
-  if (donnees.lecture.trim()) rangees.push({ phrase: donnees.lecture });
   rangees.push({ phrase: LIBELLE_CRAN[donnees.cran] });
   return dessiner({
     chapeau: "Analyse",

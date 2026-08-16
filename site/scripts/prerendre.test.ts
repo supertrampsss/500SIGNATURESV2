@@ -30,6 +30,7 @@ import { rendu, type Analyse } from "../src/analyse-rendu.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
 import type { Indicateur, Territoire } from "../src/donnees.ts";
+import { formater } from "../src/echelle.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
@@ -206,7 +207,54 @@ test("2. la carte d'une analyse porte sa source et le millésime de son chiffre"
   // elle montre. La citation de la même donnée la portait déjà ; l'image, non.
   assert.equal(donnees.lecture, analyse.chiffres[0].lecture);
   assert.ok(donnees.lecture.trim(), "l'analyse publiée ne déclare pas de lecture");
-  assert.ok(carteAnalyse(donnees).includes(echapper(donnees.lecture)));
+});
+
+test("2 ter. la carte reçoit tous les chiffres publiés que le verdict oppose", async () => {
+  const [analyse] = await analysesPubliees();
+  const publies = analyse.chiffres.filter((chiffre) => chiffre.observe);
+  assert.ok(
+    publies.length > 1,
+    "l'analyse publiée n'oppose qu'un chiffre : le contrôle ne prouverait rien",
+  );
+  const donnees = donneesCarteAnalyse(analyse, catalogueEnEuros([analyse]), "exemple.test");
+  // Tous, dans l'ordre déclaré, et aucun de plus : ne peindre que le premier
+  // faisait partir l'image de « deux chiffres publiés, deux sens » avec le seul
+  // des deux qui CONCORDE avec le chiffre annoncé, sous un verdict qui dit
+  // l'inverse.
+  assert.deepEqual(
+    [donnees.observe, ...(donnees.opposes ?? []).map((oppose) => oppose.valeur)],
+    publies.map((chiffre) => chiffre.observe!.valeur),
+  );
+  assert.deepEqual(
+    (donnees.opposes ?? []).map((oppose) => oppose.lecture),
+    publies.slice(1).map((chiffre) => chiffre.lecture),
+  );
+  // Et ils sont peints. Les montants attendus sont produits en APPELANT
+  // `formater` : le séparateur est une espace fine insécable, qu'on ne peut pas
+  // taper de mémoire sans se tromper.
+  const svg = carteAnalyse(donnees);
+  for (const chiffre of publies) {
+    const montant = formater(chiffre.observe!.valeur, "EUR", false);
+    assert.ok(svg.includes(echapper(montant)), `${montant} n'est pas peint sur la carte`);
+  }
+});
+
+test("2 quater. un chiffre d'un autre exercice n'est pas peint sous ce millésime", async () => {
+  const [analyse] = await analysesPubliees();
+  // La carte ne porte qu'un millésime — celui du premier chiffre. Un montant
+  // d'un autre exercice peint dessous serait daté faux, sur une image qui
+  // circule seule et que rien ne vient corriger.
+  const autreExercice = {
+    ...analyse,
+    chiffres: analyse.chiffres.map((chiffre, i) =>
+      i === 0 || !chiffre.observe
+        ? chiffre
+        : { ...chiffre, observe: { ...chiffre.observe, periode: "2024" } },
+    ),
+  };
+  const donnees = donneesCarteAnalyse(autreExercice, catalogueEnEuros([analyse]), "exemple.test");
+  assert.equal(donnees.source.millesime, analyse.chiffres[0].observe?.periode);
+  assert.deepEqual(donnees.opposes, []);
 });
 
 test("2 bis. sans source déclarée, la carte ne se rabat pas sur celle de la déclaration", async () => {
