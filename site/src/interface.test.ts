@@ -2680,9 +2680,13 @@ test("les filtres sont branchés avant le premier appel réseau", () => {
   // laisser sa barre repliée sur une liste qu'on voulait réduire.
   const debut = MAIN.indexOf("async function demarrer");
   assert.ok(debut > 0, "demarrer introuvable");
+  // La présence AVANT l'ordre : un appel retiré rend `indexOf` négatif, donc
+  // « avant » tout le reste, et la comparaison seule passait au vert sur une
+  // fonction que plus personne n'appelle.
+  const appel = MAIN.indexOf("brancherFiltresAnalyses();", debut);
+  assert.ok(appel > 0, "brancherFiltresAnalyses n'est appelée nulle part dans demarrer");
   assert.ok(
-    MAIN.indexOf("brancherFiltresAnalyses();", debut) <
-      MAIN.indexOf("await donnees.initialiser()", debut),
+    appel < MAIN.indexOf("await donnees.initialiser()", debut),
     "les filtres doivent être branchés avant le premier appel réseau",
   );
 });
