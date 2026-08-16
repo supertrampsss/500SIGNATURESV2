@@ -36,7 +36,7 @@ import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { permalien } from "../src/partage.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
-import { BASE_DONNEES, construireVolet } from "../src/simulateur-volets.ts";
+import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
 import type { Indicateur } from "../src/donnees.ts";
 
@@ -167,6 +167,41 @@ function ouvreUnReglage(etat: EtatAtelier, volets: readonly Volet[]): boolean {
 }
 
 /**
+ * Chaque budget publié déclare-t-il le cadre qui le date ?
+ *
+ * `provenances()` (apercu-scenario.ts) refuse de composer un aperçu dès qu'un
+ * budget touché n'a ni loi ni exercice — à raison : un cadre approché sur un
+ * chiffre qui circule serait un faux. Mais ce refus est **muet**, et il tombe à
+ * l'edge, sur des fichiers lus à la requête : une publication qui perdrait
+ * `loi` ferait basculer tous les scénarios touchant ce budget vers un aperçu
+ * générique, sans qu'aucun test ni aucune étape du déploiement ne le dise.
+ *
+ * Le build, lui, lit la publication versionnée. Il peut donc constater ce que
+ * l'edge ne peut que subir, et rougir — plutôt que de laisser une dégradation
+ * silencieuse s'installer sur le seul canal d'un scénario partagé (D-L3-b).
+ *
+ * Les six volets sont montés, pas seulement ceux qu'une analyse cite : un
+ * scénario se partage sans qu'aucune analyse ne le mentionne, et c'est
+ * précisément le cas que ce contrôle protège.
+ */
+async function validerCadresPublies(racineDonnees: string): Promise<void> {
+  const volets = await construireVolets(<T,>(chemin: string) =>
+    lireJson<T>(`${racineDonnees}/${chemin}`),
+  );
+  const sansCadre = volets
+    .filter((volet) => volet.genre === "budget")
+    .filter((volet) => !volet.budget.loi.trim() || !volet.budget.exercice.trim())
+    .map((volet) => volet.cle);
+  if (sansCadre.length) {
+    throw new Error(
+      `Ces budgets publiés ne déclarent pas le cadre qui les date (loi, exercice) : ` +
+        `${sansCadre.join(", ")}. Tout scénario les touchant serait partagé sans provenance, ` +
+        `et son aperçu se tairait sans que rien ne le signale (voir provenances, apercu-scenario.ts).`,
+    );
+  }
+}
+
+/**
  * Valide chaque lien de simulateur déclaré par une analyse contre le vrai
  * `decoder()`, chargé avec les fichiers publiés. Un lien qui décode vers
  * aucun réglage fait échouer le build — un bouton « Rejouer » qui n'ouvre
@@ -186,32 +221,6 @@ async function validerLiensSimulateur(analyses: readonly Analyse[], racineDonnee
       construireVolet(cle, <T,>(chemin: string) => lireJson<T>(`${racineDonnees}/${chemin}`)),
     ),
   );
-
-  // Le cadre qui date chaque budget monté ici.
-  //
-  // `provenances()` (apercu-scenario.ts) refuse de composer un aperçu dès qu'un
-  // budget touché n'a ni loi ni exercice — à raison : un cadre approché sur un
-  // chiffre qui circule serait un faux. Mais ce refus est **muet**, et il tombe
-  // à l'edge, sur des fichiers lus à la requête : une publication qui perdrait
-  // `loi` ferait basculer tous les scénarios touchant ce budget vers un aperçu
-  // générique, sans qu'aucune étape ne le dise.
-  //
-  // Ce contrôle ne voit que les volets qu'une analyse référence — ceux que
-  // cette fonction monte déjà. Il ne couvre donc pas les budgets qu'aucune
-  // analyse ne cite ; les couvrir demanderait de monter les six volets à chaque
-  // build, dont l'entrepôt ne publie pas toujours les index, et un build qui
-  // échoue faute d'un fichier absent ne dirait plus rien de ce défaut-ci.
-  const sansCadre = volets
-    .filter((volet) => volet.genre === "budget")
-    .filter((volet) => !volet.budget.loi.trim() || !volet.budget.exercice.trim())
-    .map((volet) => volet.cle);
-  if (sansCadre.length) {
-    throw new Error(
-      `Ces budgets ne déclarent pas le cadre qui les date (loi, exercice) : ${sansCadre.join(", ")}. ` +
-        `Un scénario les touchant serait partagé sans provenance, et son aperçu se tairait ` +
-        `sans que rien ne le signale (voir provenances, apercu-scenario.ts).`,
-    );
-  }
 
   for (const { analyse, budget } of aValider) {
     const etat = decoder(budget, volets);
@@ -810,6 +819,7 @@ async function main(): Promise<void> {
   const analyses = await chargerAnalyses();
   const { catalogue, version, racineDonnees } = await chargerPublication();
 
+  await validerCadresPublies(racineDonnees);
   await validerLiensSimulateur(analyses, racineDonnees);
   await ecrireScenariosReference(analyses);
   await ecrireCartes(DIST, analyses, catalogue, version, shell);

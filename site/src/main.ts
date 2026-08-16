@@ -96,7 +96,7 @@ import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import { cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
-import { renduGrille } from "./methode-rendu.ts";
+import { renduGrille, renduMethode, renduSources } from "./methode-rendu.ts";
 import {
   rendu as renduAccueil,
   type ChiffreTerritoire,
@@ -2357,11 +2357,19 @@ const prete = new Promise<void>((resolve) => {
 
 async function peindreMethode(): Promise<void> {
   if (methodePeinte) return;
-  // La grille ne fetch rien : peinte avant `prete`, elle s'affiche même si
-  // les données publiées tardent ou manquent.
+  // Ni la méthode ni la grille ne lisent un fichier publié : peintes avant
+  // `prete`, elles s'affichent même si les données tardent ou manquent.
+  $("methode-methode").innerHTML = renduMethode();
   $("methode-grille").innerHTML = renduGrille();
   await prete;
   let rendu = false;
+  // Les sources viennent du manifeste, donc après `prete`. Un manifeste
+  // absent laisse le bloc vide et la page tient — même règle que la
+  // fraîcheur et le journal ci-dessous.
+  const blocSources = $("methode-sources");
+  blocSources.innerHTML = renduSources(jeux);
+  blocSources.hidden = blocSources.innerHTML === "";
+  if (!blocSources.hidden) rendu = true;
   // `.bloc` est un cadre bordé, ombré : un booléen à `false` veut dire « rien
   // à montrer », et laisser le cadre affiché peignait un cadre vide plutôt
   // que rien — comme partout ailleurs sur le site (`afficherBudgetEtat` et

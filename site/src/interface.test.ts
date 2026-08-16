@@ -743,8 +743,14 @@ test("le site dit ce qu'il a corrigé et quand il a lu ses sources", () => {
   assert.match(MAIN, /afficherFraicheur\(/);
   // Un fichier absent laisse la page debout : c'est la règle du site partout
   // ailleurs, elle vaut ici.
-  const corps = MAIN.slice(MAIN.indexOf("async function peindreMethode"));
-  assert.match(corps.slice(0, 900), /catch/);
+  // Borné sur la fonction suivante, jamais sur un nombre de caractères : une
+  // ligne ajoutée au peintre poussait le `catch` hors d'une fenêtre fixe et
+  // faisait rougir ce test sans que la règle ait bougé.
+  const corps = MAIN.slice(
+    MAIN.indexOf("async function peindreMethode"),
+    MAIN.indexOf("function exemplesTerritoires"),
+  );
+  assert.match(corps, /catch/);
 });
 
 test("aucun fetch de MÉTHODE ne part avant que l'initialisation n'ait résolu", () => {

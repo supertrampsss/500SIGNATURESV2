@@ -6548,3 +6548,71 @@ body[data-carte="oui"] .legende {
     padding: var(--espace-7) 0 0;
   }
 }
+
+/* ===========================================================================
+   MÉTHODE — les sources et la méthode
+   ===========================================================================
+   Les sources sont une liste de définitions : un producteur définit les jeux
+   qui le suivent. La grille à deux colonnes de la grille de verdicts ne
+   convient pas ici — un titre de jeu fait deux lignes, la colonne de gauche
+   resterait vide en regard. Producteur au-dessus, ses jeux en retrait. */
+.methode-sources__intro,
+.methode-methode__intro,
+.methode-methode__d11,
+.methode-methode__fusion,
+.methode-methode__reseau {
+  color: var(--encre-douce);
+  font-size: var(--texte-m);
+}
+.methode-sources__producteurs {
+  margin: var(--espace-4) 0 var(--espace-6);
+}
+.methode-sources__producteurs dt {
+  font-weight: 600;
+  margin-top: var(--espace-4);
+}
+.methode-sources__producteurs dd {
+  margin: 0;
+}
+.methode-sources__jeux {
+  list-style: none;
+  margin: var(--espace-2) 0 0;
+  padding: 0 0 0 var(--espace-5);
+  border-left: 2px solid var(--trait);
+  display: grid;
+  gap: var(--espace-2);
+}
+.methode-sources__jeux li {
+  font-size: var(--texte-s);
+}
+/* Licence et date sur leur propre ligne : accrochées au titre du jeu, elles
+   se lisaient comme la fin de son intitulé. */
+.methode-sources__licence,
+.methode-sources__extraction {
+  display: block;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.methode-methode__etapes,
+.methode-methode__controle,
+.methode-methode__ecran {
+  margin: var(--espace-4) 0 var(--espace-6);
+  padding-left: var(--espace-5);
+  display: grid;
+  gap: var(--espace-3);
+  font-size: var(--texte-s);
+}
+.methode-methode__controle,
+.methode-methode__ecran {
+  list-style: none;
+  padding-left: 0;
+}
+.methode-methode__controle li,
+.methode-methode__ecran li {
+  padding-left: var(--espace-5);
+  border-left: 2px solid var(--trait);
+}
+.methode-methode__d11 code {
+  font-size: var(--texte-xs);
+  word-break: break-all; /* la commande dépasse la colonne sous 30rem */
+}
