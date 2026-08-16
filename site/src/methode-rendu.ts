@@ -323,8 +323,9 @@ export function renduMethode(): string {
         propre solde.</li>
       <li>Deux territoires se comparent à la même année, à la même unité et au même
         périmètre. Le site ne publie ni score composite, ni classement.</li>
-      <li>Chaque chiffre porte son unité, sa source et son millésime là où il est
-        affiché.</li>
+      <li>Chaque chiffre porte son unité et son millésime là où il est affiché.
+        Sa source est nommée à côté de lui dans les analyses, sur les images
+        partagées et dans les citations ; ailleurs, elle est sur cette page.</li>
     </ul>
 
     <h4>${TITRES.navigateur}</h4>

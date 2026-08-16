@@ -143,6 +143,22 @@ export function renduVerdictDuMoment(
           affirmation.date ? `, ${echapper(affirmation.date)}` : ""
         }</p>`
       : "";
+  // « Ce qui a été dit » ne se dit que de quelqu'un.
+  //
+  // Un décryptage n'oppose aucune déclaration attribuée (docs/analyses-schema.md) :
+  // son `affirmation.source` est alors une publication officielle, souvent celle-là
+  // même qui porte le chiffre des comptes — dans l'analyse publiée, les deux sont
+  // le même document, au caractère près. Le préfixe attribuait donc au PLRG une
+  // affirmation que le PLRG n'a pas faite, et le montrait deux fois : une fois
+  // comme ce qui a été dit, une fois comme la source de ce qui le dément.
+  //
+  // C'est la faute que le lot 3 a corrigée sur la carte de partage — peindre la
+  // source d'une déclaration mise en cause comme celle des comptes. Sans auteur,
+  // la source se pose nue, comme le fait la page d'analyse.
+  const sourceDeclaration =
+    affirmation.auteur !== null
+      ? `<p class="accueil__source-declaration">Ce qui a été dit : ${lienSource(affirmation.source)}</p>`
+      : `<p class="accueil__source-declaration">${lienSource(affirmation.source)}</p>`;
   const comptes = chiffreDesComptes(analyse, catalogue);
   const sourceComptes = analyse.sources[0];
   const rangeeComptes = comptes
@@ -167,7 +183,7 @@ export function renduVerdictDuMoment(
       <h4 class="accueil__titre-analyse">${echapper(analyse.titre)}</h4>
       <blockquote class="accueil__affirmation">${echapper(affirmation.texte)}</blockquote>
       ${attribution}
-      <p class="accueil__source-declaration">Ce qui a été dit : ${lienSource(affirmation.source)}</p>
+      ${sourceDeclaration}
       <dl class="accueil__chiffres">${rangeeDit}${rangeeComptes}</dl>
       <p class="accueil__cran accueil__cran--${echapper(verdict.cran)}">${
         LIBELLE_CRAN[verdict.cran]

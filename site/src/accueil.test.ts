@@ -212,6 +212,30 @@ test("5. la source du chiffre des comptes n'est pas celle de la déclaration mis
   );
 });
 
+test("5 bis. sans auteur, la source de l'énoncé ne s'annonce pas comme une déclaration", () => {
+  // Le cas de production, que la fixture du test 5 masquait en portant deux
+  // sources distinctes : un décryptage n'oppose aucune déclaration attribuée, et
+  // son `affirmation.source` est alors la publication officielle — dans
+  // l'analyse publiée, exactement le même document que `sources[0]`, au
+  // caractère près. « Ce qui a été dit : » lui attribuait une affirmation qu'elle
+  // n'a pas faite, et la montrait deux fois sur la même carte.
+  const analyse = analyseMinimale();
+  analyse.affirmation.auteur = null;
+  analyse.affirmation.source = { ...analyse.sources[0]! };
+  const html = renduVerdictDuMoment(analyse, CATALOGUE);
+  assert.ok(!html.includes("Ce qui a été dit"), "aucun auteur : rien n'a été « dit » par personne");
+  // La source reste posée — nue, comme le fait la page d'analyse.
+  assert.ok(html.includes(analyse.sources[0]!.url));
+});
+
+test("5 ter. avec un auteur, la déclaration est bien annoncée comme telle", () => {
+  const analyse = analyseMinimale();
+  analyse.affirmation.auteur = "Une commission parlementaire";
+  const html = renduVerdictDuMoment(analyse, CATALOGUE);
+  assert.ok(html.includes("Ce qui a été dit"));
+  assert.ok(html.includes("Une commission parlementaire"));
+});
+
 test("6. un indicateur absent du catalogue ne peint pas un montant : pas d'unité de repli", () => {
   const html = renduVerdictDuMoment(analyseMinimale(), []);
   assert.ok(!html.includes("M€"), "aucun montant en millions sans unité déclarée");
