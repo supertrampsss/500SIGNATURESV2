@@ -97,6 +97,51 @@ test("la page annonce ce qu'elle contient et d'où viennent les années", () => 
   assert.match(html, /369,0\u202fM€/);
 });
 
+test("les crédits des missions sortent de la liste et gardent leurs colonnes", () => {
+  // Le thème « Budget de l'État » alignait 81 lignes pour la France, dont 66
+  // pour les missions : 33 missions × 2 montants, empilés au même niveau. Ce
+  // sont deux colonnes, pas soixante-six lignes — et le reste du thème, lui,
+  // ne bouge pas.
+  const catalogue = [
+    { id: "etat_depenses_nettes_bg", libelle: "Dépenses nettes du budget général",
+      theme: "budget_etat", unite: "EUR" },
+    { id: "etat_mission_defense_credits_votes", libelle: "Défense (crédits votés)",
+      theme: "budget_etat", unite: "EUR" },
+    { id: "etat_mission_defense_credits_consommes", libelle: "Défense (crédits consommés)",
+      theme: "budget_etat", unite: "EUR" },
+  ] as never[];
+  const france = {
+    nom: "France",
+    series: {
+      etat_depenses_nettes_bg: { "2019": 337_000_000_000, "2025": 441_194_000_000 },
+      etat_mission_defense_credits_votes: { "2025": 59_946_000_000 },
+      etat_mission_defense_credits_consommes: { "2025": 62_124_000_000 },
+    },
+  } as never;
+  const liste = rubriques(france, catalogue, { budget_etat: "Budget de l'État" });
+  // Le compte de la page reste celui des séries publiées : trois indicateurs
+  // sont renseignés, et les remettre en colonnes n'en supprime aucun.
+  assert.equal(total(liste), 3);
+  const html = rendu("France", liste);
+  // Une seule ligne de corps dans le tableau ordinaire — l'agrégat —, et une
+  // seule pour la mission dans le tableau des crédits.
+  assert.equal(html.match(/<tr><th scope="row">/g)?.length, 2);
+  assert.match(html, /<th scope="row">Dépenses nettes du budget général<\/th>/);
+  assert.match(html, /<th scope="row">Défense<\/th>/);
+  // Les colonnes du tableau ordinaire se recalculent sur ce qui y reste : la
+  // fenêtre 2019-2025 de l'agrégat est intacte, et aucune colonne fantôme n'est
+  // laissée par les missions parties.
+  assert.match(html, /<th scope="col">Indicateur<\/th><th scope="col">2019<\/th><th scope="col">2025<\/th><\/tr>/);
+});
+
+test("un thème sans mission garde exactement le tableau qu'il avait", () => {
+  // Plier une liste de trois lignes la rend moins lisible, pas plus : seize
+  // thèmes sur dix-sept n'ont rien à condenser, et rien ne doit leur arriver.
+  const html = rendu("Bordeaux", rubriques(BORDEAUX, CATALOGUE, LIBELLES));
+  assert.doesNotMatch(html, /credits__|<details/);
+  assert.equal(html.match(/<tr><th scope="row">/g)?.length, 3);
+});
+
 test("chaque thème publié a un libellé lisible", () => {
   // La page ANALYSES est la seule à montrer TOUS les thèmes : un thème sans
   // libellé y sort en identifiant brut — « vie_associative » s'est affiché tel
