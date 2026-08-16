@@ -1,7 +1,7 @@
 name: Deploy site
 
-# Déploiement sur Cloudflare Pages. Le site porte une balise noindex tant que
-# le projet n'est pas annoncé (décision D1).
+# Déploiement sur Cloudflare Pages. Le site est indexable depuis que les sept
+# vérifications du lot 4 ont été constatées sur le déploiement (décision D1).
 #
 # Aucun filtre de branche : le projet n'a qu'un site et qu'une branche de
 # développement, et le déploiement doit suivre le travail en cours. Le fichier
