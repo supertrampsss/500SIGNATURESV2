@@ -5487,6 +5487,12 @@ summary.pont__rangee,
 .credits__pli > summary:hover {
   color: var(--argile);
 }
+/* L'en-tête d'un exercice couvre ses trois colonnes : aligné à droite comme
+   les autres en-têtes du tableau, « 2025 » se posait au-dessus d'« ÉCART » et
+   semblait ne dater que lui. Il se centre sur le groupe qu'il date. */
+.credits__table thead th[scope="colgroup"] {
+  text-align: center;
+}
 .credits__table caption {
   margin-bottom: var(--espace-4);
   padding: 0;
