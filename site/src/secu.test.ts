@@ -38,9 +38,14 @@ const PAYS: Record<string, Territoire> = {
 };
 
 test("le solde se lit signé, en points de PIB, chiffres tabulaires", () => {
-  assert.equal(points(-2.1), `-2,1${FINE}pt`);
+  // Le signe est le moins typographique U+2212, jamais le trait d'union U+002D
+  // que rend `Intl` : le bloc voisin écrit « −5,1 % », et deux signes de deux
+  // largeurs pour la même soustraction se voient à l'écran. Écrit ici en
+  // échappement pour que la différence reste lisible dans le test lui-même.
+  assert.equal(points(-2.1), `\u22122,1${FINE}pt`);
   assert.equal(points(0.4), `+0,4${FINE}pt`);
   assert.equal(points(0), `0,0${FINE}pt`);
+  assert.ok(!points(-2.1).includes("\u002D"), "aucun trait d'union ne doit rester");
 });
 
 test("l'année affichée est la dernière du solde français, et 2025 est déficitaire", () => {
@@ -62,7 +67,7 @@ test("la comparaison porte les trois pays, et une valeur absente reste un tiret"
 
 test("la série du solde est là, chronologique, avec l'année du choc Covid", () => {
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, new RegExp(`2020.*-2,1${FINE}pt`, "s"));
+  assert.match(html, new RegExp(`2020.*\u22122,1${FINE}pt`, "s"));
   assert.ok(html.indexOf("2020") < html.lastIndexOf("2025"));
 });
 

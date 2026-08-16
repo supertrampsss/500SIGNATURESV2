@@ -22,7 +22,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { pourcentage } from "./echelle.ts";
+import { moins, pourcentage } from "./echelle.ts";
 import { rendu as renduCentEuros } from "./cent-euros-secu.ts";
 
 export const DEPENSES = "eurostat_secu_depenses_pib";
@@ -51,7 +51,10 @@ export function points(valeur: number): string {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   });
-  return `${texte}${FINE}pt`;
+  // Le moins typographique, comme partout ailleurs : `Intl` rend un trait
+  // d'union, et « -0,2 pt » se lisait sous « −5,1 % » dans le bloc voisin —
+  // deux signes de deux largeurs pour la même soustraction.
+  return `${moins(texte)}${FINE}pt`;
 }
 
 function derniere(serie: Record<string, number> | undefined): [string, number] | null {
