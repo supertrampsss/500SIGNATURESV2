@@ -85,8 +85,34 @@ const TITRE_HAUT = 160;
 const CORPS_HAUT = 330;
 const CORPS_BAS = 506;
 const PAS_MAX = 62;
+
+/**
+ * Les trois lignes du pied, et pourquoi elles sont trois.
+ *
+ * Le pied porte quatre choses : ce que sont les nombres, l'intitulé de la
+ * source, son millésime et l'adresse du site. Mesurées à corps 24 sur la
+ * première source réelle du dépôt, elles demandent 2 193 unités — un intitulé
+ * de projet de loi de règlement en pèse à lui seul 1 392. Deux lignes n'en
+ * offrent que 2 112 : la source y était coupée à « Projet de loi relatif aux
+ * résultats… », c'est-à-dire au tronçon qui ne dit ni le sigle, ni l'exercice
+ * du texte, ni l'annexe qui porte le chiffre — tout ce qui permettrait de la
+ * retrouver. Une image circule seule ; un tronçon non identifiable n'y vaut pas
+ * mieux qu'une source absente.
+ *
+ * La troisième ligne est prise sur le blanc du bas, pas sur le corps : la
+ * mention d'unité ne bouge pas, la dernière ligne de base tombe à 612 et sa
+ * jambe à 618, douze unités au-dessus du bord. L'adresse du site remonte sur la
+ * ligne de l'unité, où la mention laisse 735 unités de libre — c'est ce qui rend
+ * les deux lignes de la source PLEINES, et c'est ce dont la place manquait.
+ */
 const PIED_UNITE = 552;
-const PIED_SOURCE = 590;
+const PIED_SOURCE = 582;
+const INTERLIGNE_PIED = 30;
+/** Deux lignes pour l'intitulé de la source : 1 734 unités, où le plus long
+ *  intitulé du dépôt en demande 1 392. Ce qui dépasserait est coupé par
+ *  `replier`, qui marque la suite. */
+const SOURCE_LIGNES = 2;
+const PIED_SUITE = PIED_SOURCE + INTERLIGNE_PIED;
 
 /**
  * Les bandes du dessin, exportées pour être éprouvées sur les coordonnées
@@ -97,7 +123,14 @@ const PIED_SOURCE = 590;
  * y=578 — entre la mention d'unité et la source, par-dessus le pied — était
  * « dans le cadre 1200 × 630 » et ne faisait rougir personne.
  */
-export const GEOMETRIE = { MARGE, CORPS_HAUT, CORPS_BAS, PIED_UNITE, PIED_SOURCE } as const;
+export const GEOMETRIE = {
+  MARGE,
+  CORPS_HAUT,
+  CORPS_BAS,
+  PIED_UNITE,
+  PIED_SOURCE,
+  PIED_SUITE,
+} as const;
 
 /**
  * L'avance de chaque caractère, en fraction du corps.
@@ -432,33 +465,44 @@ function dessiner(cadre: Cadre): string {
   // source réelle du site — l'intitulé d'un projet de loi de règlement, 110
   // caractères — l'image partait en affirmant un chiffre sans date, ce que
   // toute la carte existe pour empêcher. Le millésime prend donc sa place
-  // d'abord, et l'intitulé reçoit ce qui reste.
+  // d'abord, sur TOUTES les lignes de l'intitulé — la coupe ne sait pas
+  // d'avance laquelle sera la dernière — et l'intitulé reçoit ce qui reste.
   const millesime = ` · ${cadre.source.datation ?? "millésime"} ${cadre.source.millesime}`;
-  const largeurSource = (LARGEUR_UTILE * 2) / 3 - GOUTTIERE;
-  const source =
-    (replier(
-      `Source : ${cadre.source.titre}`,
-      TAILLE_PIED,
-      largeurSource - largeurApprochee(millesime, TAILLE_PIED),
-      1,
-    )[0] ?? "") + millesime;
+  const largeurSource = LARGEUR_UTILE - largeurApprochee(millesime, TAILLE_PIED);
+  const lignesSource = replier(
+    `Source : ${cadre.source.titre}`,
+    TAILLE_PIED,
+    largeurSource,
+    SOURCE_LIGNES,
+  );
+  // L'adresse est mesurée AVANT la mention d'unité, qui partage sa ligne : elle
+  // est bornée au tiers de la largeur utile, mais c'est ce qu'elle occupe
+  // vraiment — jamais sa borne — qui dit ce qui reste à gauche.
+  const adresse = replier(cadre.site, TAILLE_PIED, LARGEUR_UTILE / 3, 1)[0] ?? "";
+  const restePourUnite =
+    LARGEUR_UTILE - largeurApprochee(adresse, TAILLE_PIED) - GOUTTIERE;
   const pied =
     texte(
-      replier(cadre.unite, TAILLE_PIED, LARGEUR_UTILE, 1)[0] ?? "",
+      replier(cadre.unite, TAILLE_PIED, restePourUnite, 1)[0] ?? "",
       MARGE,
       PIED_UNITE,
       TAILLE_PIED,
       ENCRE_SOURDE,
     ) +
-    texte(
-      replier(cadre.site, TAILLE_PIED, LARGEUR_UTILE / 3, 1)[0] ?? "",
-      LARGEUR - MARGE,
-      PIED_SOURCE,
-      TAILLE_PIED,
-      ENCRE_SOURDE,
-      "end",
-    ) +
-    texte(source, MARGE, PIED_SOURCE, TAILLE_PIED, ENCRE_SOURDE);
+    texte(adresse, LARGEUR - MARGE, PIED_UNITE, TAILLE_PIED, ENCRE_SOURDE, "end") +
+    lignesSource
+      .map((ligne, i) =>
+        texte(
+          // Le millésime se pose au bout de la DERNIÈRE ligne : coller à la
+          // première le séparerait de la fin de l'intitulé qu'il date.
+          i === lignesSource.length - 1 ? `${ligne}${millesime}` : ligne,
+          MARGE,
+          PIED_SOURCE + i * INTERLIGNE_PIED,
+          TAILLE_PIED,
+          ENCRE_SOURDE,
+        ),
+      )
+      .join("");
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${LARGEUR}" height="${HAUTEUR}" viewBox="0 0 ${LARGEUR} ${HAUTEUR}" role="img"><title>${echapper(
     `${cadre.chapeau} — ${cadre.titre}`,
   )}</title><rect x="0" y="0" width="${LARGEUR}" height="${HAUTEUR}" fill="${FOND}"></rect><rect x="0" y="0" width="${LARGEUR}" height="10" fill="${ACCENT}"></rect>${texte(

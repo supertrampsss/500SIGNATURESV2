@@ -133,14 +133,32 @@ function debordements(svg: string, facteur = 1): string[] {
  * source, en travers du pied — et restait « dans le cadre ».
  */
 function horsBandes(svg: string): string[] {
-  const { MARGE, CORPS_BAS, PIED_UNITE, PIED_SOURCE } = GEOMETRIE;
+  const { MARGE, CORPS_BAS, PIED_UNITE, PIED_SOURCE, PIED_SUITE } = GEOMETRIE;
   return peints(svg)
     .filter((t) => {
       const dansLaMarge = t.ancre === "start" ? t.x < MARGE : t.x > LARGEUR - MARGE;
-      const surUneLigne = t.y <= CORPS_BAS || t.y === PIED_UNITE || t.y === PIED_SOURCE;
+      const surUneLigne =
+        t.y <= CORPS_BAS || t.y === PIED_UNITE || t.y === PIED_SOURCE || t.y === PIED_SUITE;
       return dansLaMarge || !surUneLigne;
     })
     .map((t) => `${t.contenu} (x=${t.x}, y=${t.y})`);
+}
+
+/**
+ * Ce que le pied donne à lire de la source, ses lignes recollées dans l'ordre
+ * où elles se lisent.
+ *
+ * `replier` coupe sur les espaces sécables et recolle d'une espace : un
+ * intitulé qui arrive entier se relit donc mot pour mot, et un intitulé coupé
+ * porte le caractère de suite que la comparaison fait rougir.
+ */
+function sourceLue(svg: string): string {
+  const { PIED_SOURCE } = GEOMETRIE;
+  return peints(svg)
+    .filter((t) => t.y >= PIED_SOURCE && t.ancre === "start")
+    .sort((a, z) => a.y - z.y)
+    .map((t) => t.contenu)
+    .join(" ");
 }
 
 /**
@@ -490,7 +508,7 @@ test("9. les cinq natures tiennent le cadre, la source, le millésime et l'adres
 test("10. aucun texte ne sort de sa bande : ni dans une marge, ni dans le pied", () => {
   // Sur les coordonnées émises seules, sans modèle de largeur. Une rangée de
   // trop poussait la dernière ligne du corps à y=578, entre la mention d'unité
-  // (y=552) et la source (y=590) : par-dessus le pied, et dans le cadre.
+  // (y=552) et la source (y=582) : par-dessus le pied, et dans le cadre.
   for (const [nom, svg] of TOUTES) assert.deepEqual(horsBandes(svg), [], nom);
 });
 
@@ -823,26 +841,53 @@ const SOURCE_LONGUE: SourceCarte = {
   millesime: "2025",
 };
 
-test("28 bis. une source longue est coupée, son millésime jamais", () => {
-  // Repliée d'un bloc, la ligne du pied se coupait par la queue : le millésime
-  // partait avec, et l'image affirmait un chiffre sans date — vu sur le PNG de
-  // la première analyse publiée, pas sur une chaîne d'essai.
-  for (const [nom, svg] of [
-    ["analyse", carteAnalyse({ ...ANALYSE, source: SOURCE_LONGUE })],
-    ["scénario", carteScenario({ ...SCENARIO, source: SOURCE_LONGUE })],
-    ["comparaison", carteComparaison({ ...COMPARAISON, source: SOURCE_LONGUE })],
-    ["fiche", carteFiche({ ...FICHE, source: SOURCE_LONGUE })],
-    ["repère", carteReperes({ ...REPERES, source: SOURCE_LONGUE })],
-    ["section", carteSection({ ...SECTION, source: SOURCE_LONGUE })],
-  ] as [string, string][]) {
-    const lu = peints(svg).map((t) => t.contenu);
-    assert.ok(lu.some((t) => t.includes("millésime 2025")), `${nom} : millésime perdu à la coupe`);
-    assert.ok(lu.some((t) => t.includes("Projet de loi")), `${nom} : source absente`);
+/** Les six natures sous l'intitulé de source que le site cite vraiment. */
+const SOUS_SOURCE_LONGUE: [string, string][] = [
+  ["analyse", carteAnalyse({ ...ANALYSE, source: SOURCE_LONGUE })],
+  ["scénario", carteScenario({ ...SCENARIO, source: SOURCE_LONGUE })],
+  ["comparaison", carteComparaison({ ...COMPARAISON, source: SOURCE_LONGUE })],
+  ["fiche", carteFiche({ ...FICHE, source: SOURCE_LONGUE })],
+  ["repère", carteReperes({ ...REPERES, source: SOURCE_LONGUE })],
+  ["section", carteSection({ ...SECTION, source: SOURCE_LONGUE })],
+];
+
+test("28 bis. l'intitulé d'une source réelle arrive entier, son millésime avec", () => {
+  // Repliée d'un bloc sur une ligne, la ligne du pied se coupait par la queue :
+  // le millésime partait avec, et l'image affirmait un chiffre sans date. Le
+  // millésime a alors pris sa place d'abord — mais sur une seule ligne il ne
+  // restait que 491 unités pour un intitulé qui en demande 1 392, et le pied
+  // lisait « Projet de loi relatif aux résultats… » : ni le sigle, ni
+  // l'exercice du texte, ni l'annexe qui porte le chiffre, c'est-à-dire rien de
+  // ce qui permet de retrouver la source. Une image circule seule ; un tronçon
+  // non identifiable n'y vaut pas mieux qu'une source absente.
+  for (const [nom, svg] of SOUS_SOURCE_LONGUE) {
+    assert.equal(
+      sourceLue(svg),
+      `Source : ${SOURCE_LONGUE.titre} · millésime 2025`,
+      `${nom} : le pied ne rend pas l'intitulé entier`,
+    );
+    // Nommés un par un : ce sont les trois jetons par lesquels un lecteur
+    // retrouve le fichier, et la comparaison ci-dessus ne dit pas lequel manque.
+    for (const identifiant of ["(PLRG)", "annexe 1", "millésime 2025"]) {
+      assert.ok(sourceLue(svg).includes(identifiant), `${nom} : « ${identifiant} » perdu à la coupe`);
+    }
     // Et ce qui est gagné ne l'est pas sur le cadre ni sur le voisin.
     assert.deepEqual(debordements(svg), [], nom);
     assert.deepEqual(recouvrements(svg), [], nom);
     assert.deepEqual(horsBandes(svg), [], nom);
   }
+});
+
+test("28 bis (suite). au-delà de deux lignes la source est coupée, son millésime jamais", () => {
+  // Deux lignes portent 1 734 unités là où le plus long intitulé du dépôt en
+  // demande 1 392 : la place existe, elle n'est pas infinie. Ce qui la dépasse
+  // se coupe au dernier mot entier et se marque — jamais le millésime, sans
+  // lequel l'image affirmerait un chiffre sans date.
+  const svg = carteAnalyse({ ...ANALYSE, source: { titre: LIBELLE_LONG, millesime: "2025" } });
+  assert.ok(sourceLue(svg).endsWith("… · millésime 2025"), sourceLue(svg));
+  assert.deepEqual(debordements(svg), []);
+  assert.deepEqual(recouvrements(svg), []);
+  assert.deepEqual(horsBandes(svg), []);
 });
 
 test("28 ter. une date de publication se dit « version », un exercice « millésime »", () => {
