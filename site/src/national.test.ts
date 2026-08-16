@@ -12,7 +12,7 @@ import { test } from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { millions } from "./echelle.ts";
-import { renduDette, renduEurope } from "./national.ts";
+import { afficherNational, renduDette, renduEurope } from "./national.ts";
 
 const FINE = " ";
 
@@ -105,8 +105,12 @@ test("une valeur absente chez un voisin s'écrit — plutôt que zéro", () => {
 });
 
 test("l'année du tableau est celle de la série française, pas une constante", () => {
-  const html = renduEurope(PAYS);
-  assert.match(html, /<caption>Année 2024 ·/);
+  // Deux lots, deux années : une assertion sur un seul lot passerait aussi
+  // bien avec un millésime écrit en dur — ce sabotage-là ne faisait tomber
+  // aucun test tant que ce test ne lisait qu'un lot.
+  assert.match(renduEurope(PAYS), /<caption>Année 2024 ·/);
+  const plusTard = { FR: territoire({ eurostat_dette_pib: { "2024": 113.0, "2025": 116.2 } }) };
+  assert.match(renduEurope(plusTard), /<caption>Année 2025 ·/);
 });
 
 test("sans France publiée, le bloc européen ne s'écrit pas", () => {
@@ -114,4 +118,40 @@ test("sans France publiée, le bloc européen ne s'écrit pas", () => {
   // `afficherNational` rendait `false`.
   assert.equal(renduEurope({}), "");
   assert.equal(renduEurope({ DE: territoire({}) }), "");
+});
+
+/* -------------------------------------------------------------------------
+ * L'enveloppe DOM
+ * ---------------------------------------------------------------------- */
+
+test("l'enveloppe pose chaque chaîne dans son cadre, et rend ce qu'elle rendait", () => {
+  const dette = { innerHTML: "" } as HTMLElement;
+  const europe = { innerHTML: "" } as HTMLElement;
+  assert.equal(afficherNational(dette, europe, PAYS, CATALOGUE), true);
+  // Chacune dans SON cadre, et pas l'autre : deux articles distincts de la
+  // grille, qu'une seule chaîne aurait collés dans le même.
+  assert.equal(dette.innerHTML, renduDette(PAYS, CATALOGUE));
+  assert.equal(europe.innerHTML, renduEurope(PAYS));
+  assert.notEqual(dette.innerHTML, europe.innerHTML);
+});
+
+test("sans France publiée, l'enveloppe rend false et ne touche à aucun cadre", () => {
+  // La sémantique d'origine, mot pour mot : `afficherNational` rendait `false`
+  // pour ce cas-là et pour lui seul.
+  const dette = { innerHTML: "" } as HTMLElement;
+  const europe = { innerHTML: "" } as HTMLElement;
+  assert.equal(afficherNational(dette, europe, {}, CATALOGUE), false);
+  assert.equal(dette.innerHTML, "");
+  assert.equal(europe.innerHTML, "");
+});
+
+test("France publiée mais dette absente : le cadre dette reste intact, l'enveloppe rend true", () => {
+  // Le cas que l'ancien code écrivait sous un `if` : un bloc dette qui ne
+  // s'écrit pas n'empêchait pas la section nationale de s'ouvrir.
+  const sansDette = { FR: territoire({ eurostat_dette_pib: { "2024": 113.0 } }) };
+  const dette = { innerHTML: "" } as HTMLElement;
+  const europe = { innerHTML: "" } as HTMLElement;
+  assert.equal(afficherNational(dette, europe, sansDette, CATALOGUE), true);
+  assert.equal(dette.innerHTML, "");
+  assert.notEqual(europe.innerHTML, "");
 });
