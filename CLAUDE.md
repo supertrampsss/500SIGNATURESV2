@@ -131,17 +131,86 @@ pour ne plus l'être.
 
 1. **Simulateur — comptes spéciaux, budgets annexes et ODAC.** Ce qui reste
    hors du budget général de l'État et hors des trois échelons publiés.
-2. **Provenance au niveau France.** `provenance.ts` attribue la variation d'un
-   agrégat à ses composantes partout où la source déclare une hiérarchie. Aucun
-   des 147 indicateurs nationaux n'en déclare : il n'y a rien à décomposer, et
-   le module se tait. Déclarer la hiérarchie des agrégats nationaux dans le
-   pipeline — les missions du budget général sous les dépenses nettes, à
-   condition de vérifier que la somme redonne le total — l'ouvrirait à la
-   France.
+
+   **Avant d'étendre le simulateur, une identité doit se refermer, et elle ne
+   se referme pas.** Mesuré sur les séries publiées (2026-08-11T0807, pays/FR,
+   exercice 2025), toutes du même cadre `budgetaire` et du même jeu
+   `execution-budget-etat` :
+
+   | | Md€ |
+   |---|---|
+   | Recettes nettes du budget général | 380,4 |
+   | − Dépenses nettes du budget général | −441,2 |
+   | − Prélèvements sur recettes (collectivités 46,1 + UE 23,0) | −69,0 |
+   | + Solde des comptes spéciaux | −2,3 |
+   | **= solde reconstitué** | **−132,1** |
+   | Solde budgétaire publié | −124,2 |
+   | **Écart inexpliqué** | **−7,9** |
+
+   Les prélèvements sur recettes doivent bien être retranchés : la définition
+   de `etat_depenses_nettes_bg` le dit — « les prélèvements reversés aux
+   collectivités et à l'Union européenne n'y figurent pas : ils sont comptés à
+   part ». Sans eux l'écart serait de 61 Md€.
+
+   Restent 7,9 Md€, soit 6 % du déficit. Les budgets annexes sont un candidat
+   mais ne pèsent pas cet ordre. **Tant que cet écart n'est pas nommé, étendre
+   le simulateur aux comptes spéciaux lui ferait afficher un solde que les
+   comptes publiés ne confirment pas** — et l'exactitude arithmétique est toute
+   la promesse de l'outil. Comme pour la provenance nationale, la décision
+   relève de **D7** : la validation humaine préalable reste en vigueur pour les
+   connecteurs et la méthodologie.
+2. **Provenance au niveau France — la condition n'est pas remplie, mesuré.**
+   `provenance.ts` attribue la variation d'un agrégat à ses composantes partout
+   où la source déclare une hiérarchie. Le catalogue publié compte 386
+   indicateurs, dont **56 déclarent un parent — tous OFGL**, et **aucun des 87
+   nationaux**. Le module ne se tait donc pas par défaut de code : rien ne lui
+   est déclaré.
+
+   Cette entrée disait qu'il suffirait de ranger les missions du budget général
+   sous les dépenses nettes, « à condition de vérifier que la somme redonne le
+   total ». Vérifié sur les comptes publiés (version 2026-08-11T0807, pays/FR) :
+   **elle ne les redonne pas.**
+
+   | | 2024 | 2025 |
+   |---|---|---|
+   | Somme des 33 missions publiées | 579,1 Md€ | 578,0 Md€ |
+   | dont **Remboursements et dégrèvements** | 140,6 | 141,4 |
+   | Somme hors R&D | 438,5 | 436,7 |
+   | Dépenses nettes du budget général | 443,4 | 441,2 |
+   | **Écart** | **−1,12 %** | **−1,02 %** |
+
+   Deux faits en sortent. La mission « Remboursements et dégrèvements » doit
+   **sortir** de la décomposition : à 141 Md€ elle est exactement ce que
+   « nettes » retranche, et l'inclure donne +31 %. Et même sans elle, il reste
+   1 % d'écart — 4,5 Md€ — quand le pipeline exige `TOLERANCE_ECHELON = 0.005`,
+   soit 0,5 %. La hiérarchie échouerait au contrôle que le pipeline applique
+   déjà aux collectivités, d'un facteur deux. L'écart est stable sur deux
+   exercices : cela ressemble à des missions absentes du fichier, pas à du bruit.
+
+   **Rien ne doit être déclaré avant que cet écart soit expliqué**, et la
+   décision relève de D7 — la validation humaine préalable reste en vigueur pour
+   la méthodologie, et dire qu'un agrégat se décompose en telles composantes est
+   une affirmation comptable, pas un détail d'implémentation.
 3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
-   range, il ne les condense pas : 187 lignes restent 187 lignes derrière le
-   second onglet. Visé : une question, une phrase, trois chiffres, le tableau
-   complet derrière.
+   range, il ne les condense pas. Visé : une question, une phrase, trois
+   chiffres, le tableau complet derrière.
+
+   Mesuré sur la France (version 2026-08-11T0807) : **188 séries publiées**, et
+   la charge n'est pas répartie — un thème en porte 43 % à lui seul.
+
+   | Thème | Lignes |
+   |---|---|
+   | `budget_etat` | **81** |
+   | `securite` | 16 |
+   | `fonctions` | 11 |
+   | `depenses_fiscales`, `dette`, `europe`, `securite_sociale` | 10 chacun |
+   | `equipements` | 8 |
+   | les huit autres | 2 à 5 chacun |
+
+   Conséquence pour qui reprend : condenser uniformément ne sert à rien. Onze
+   thèmes sur dix-sept tiennent déjà en moins de dix lignes et n'ont pas besoin
+   d'être pliés. Le travail est **`budget_etat`**, et lui seul vaut une
+   structure — les autres se lisent tels quels.
 
 ### Fait
 

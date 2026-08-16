@@ -23,6 +23,7 @@
  * **Les montants en millions d'euros**, comme partout sur le site.
  */
 
+import { credits, rendreCredits } from "./credits-missions.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { millions } from "./echelle.ts";
 
@@ -40,6 +41,12 @@ export type Rubrique = {
     /** La valeur lisible par exercice. Absente d'un exercice : la cellule est
      *  vide, et l'absence se voit. */
     valeurs: Record<string, string>;
+    /** Le même nombre, avant mise en forme, dans l'unité de la source. Il sert
+     *  à ce qui compare deux séries entre elles — l'écart entre les crédits
+     *  votés et les crédits consommés d'une mission (`credits-missions.ts`) —
+     *  ce qu'une chaîne déjà formatée ne permet pas : relire un montant dans
+     *  son affichage, c'est le perdre. */
+    brut: Record<string, number>;
   }[];
 };
 
@@ -81,9 +88,11 @@ export function rubriques(
     const serie = territoire.series[indicateur.id];
     if (!serie) continue;
     const valeurs: Record<string, string> = {};
+    const brut: Record<string, number> = {};
     for (const [periode, valeur] of Object.entries(serie)) {
       if (typeof valeur !== "number" || !Number.isFinite(valeur)) continue;
       valeurs[periode] = valeurLisible(valeur, indicateur.unite);
+      brut[periode] = valeur;
     }
     const periodes = Object.keys(valeurs);
     if (!periodes.length) continue;
@@ -97,7 +106,7 @@ export function rubriques(
       });
     }
     const rubrique = parTheme.get(theme)!;
-    rubrique.lignes.push({ id: indicateur.id, libelle: indicateur.libelle, valeurs });
+    rubrique.lignes.push({ id: indicateur.id, libelle: indicateur.libelle, valeurs, brut });
     for (const periode of periodes) {
       if (!rubrique.exercices.includes(periode)) rubrique.exercices.push(periode);
     }
@@ -131,17 +140,29 @@ export function rendu(nom: string, liste: Rubrique[]): string {
     )
     .join("");
   const sections = liste
-    .map(
-      (r) => `<section class="analyses__theme" id="analyses-${echapper(r.theme)}">
-        <h3>${echapper(r.libelle)}</h3>
-        <div class="analyses__defilement">
+    .map((r) => {
+      // Les crédits des missions de l'État sortent de la liste pour retrouver
+      // les deux colonnes qu'ils avaient perdues — voir `credits-missions.ts`,
+      // qui reconnaît ses lignes lui-même et rend celles qu'il a prises. Ce
+      // qu'il n'a pas pris reste ici, colonnes recalculées sur les seules
+      // lignes restantes : un exercice qui n'existait que par les missions ne
+      // doit pas laisser une colonne vide derrière lui.
+      const missions = credits(r.lignes);
+      const restantes = missions.retenus.size
+        ? r.lignes.filter((l) => !missions.retenus.has(l.id))
+        : r.lignes;
+      const exercices = missions.retenus.size
+        ? [...new Set(restantes.flatMap((l) => Object.keys(l.valeurs)))].sort()
+        : r.exercices;
+      const tableau = restantes.length
+        ? `<div class="analyses__defilement">
         <table class="analyses__table">
-          <thead><tr><th scope="col">Indicateur</th>${r.exercices
+          <thead><tr><th scope="col">Indicateur</th>${exercices
             .map((e) => `<th scope="col">${echapper(e)}</th>`)
             .join("")}</tr></thead>
-          <tbody>${r.lignes
+          <tbody>${restantes
             .map(
-              (l) => `<tr><th scope="row">${echapper(l.libelle)}</th>${r.exercices
+              (l) => `<tr><th scope="row">${echapper(l.libelle)}</th>${exercices
                 .map(
                   (e) =>
                     `<td class="analyses__valeur">${
@@ -152,9 +173,14 @@ export function rendu(nom: string, liste: Rubrique[]): string {
             )
             .join("")}</tbody>
         </table>
-        </div>
-      </section>`,
-    )
+        </div>`
+        : "";
+      return `<section class="analyses__theme" id="analyses-${echapper(r.theme)}">
+        <h3>${echapper(r.libelle)}</h3>
+        ${tableau}
+        ${rendreCredits(missions)}
+      </section>`;
+    })
     .join("");
   return `<div class="analyses">
     <h2 class="analyses__titre">${echapper(nom)}</h2>

@@ -29,7 +29,9 @@ import { CHIFFRES_EXEMPLE, MESSAGE_PRINCIPAL } from "../src/accueil.ts";
 import { rendu, type Analyse } from "../src/analyse-rendu.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
-import type { Indicateur, Territoire } from "../src/donnees.ts";
+import type { Indicateur, Jeu, Territoire } from "../src/donnees.ts";
+import { formater } from "../src/echelle.ts";
+import { TITRES_METHODE } from "../src/methode-rendu.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
@@ -46,6 +48,8 @@ import {
   ecrireIndexation,
   donneesCarteSection,
   injecterAccueil,
+  injecterAnnonce,
+  injecterMethode,
   marqueDuGabarit,
   planDuSite,
   robotsDuSite,
@@ -206,7 +210,61 @@ test("2. la carte d'une analyse porte sa source et le millésime de son chiffre"
   // elle montre. La citation de la même donnée la portait déjà ; l'image, non.
   assert.equal(donnees.lecture, analyse.chiffres[0].lecture);
   assert.ok(donnees.lecture.trim(), "l'analyse publiée ne déclare pas de lecture");
-  assert.ok(carteAnalyse(donnees).includes(echapper(donnees.lecture)));
+});
+
+test("2 ter. la carte reçoit tous les chiffres publiés que le verdict oppose", async () => {
+  const [analyse] = await analysesPubliees();
+  const publies = analyse.chiffres.filter((chiffre) => chiffre.observe);
+  assert.ok(
+    publies.length > 1,
+    "l'analyse publiée n'oppose qu'un chiffre : le contrôle ne prouverait rien",
+  );
+  const donnees = donneesCarteAnalyse(analyse, catalogueEnEuros([analyse]), "exemple.test");
+  // Tous, dans l'ordre déclaré, et aucun de plus : ne peindre que le premier
+  // faisait partir l'image de « deux chiffres publiés, deux sens » avec le seul
+  // des deux qui CONCORDE avec le chiffre annoncé, sous un verdict qui dit
+  // l'inverse.
+  assert.deepEqual(
+    [donnees.observe, ...(donnees.opposes ?? []).map((oppose) => oppose.valeur)],
+    publies.map((chiffre) => chiffre.observe!.valeur),
+  );
+  assert.deepEqual(
+    (donnees.opposes ?? []).map((oppose) => oppose.lecture),
+    publies.slice(1).map((chiffre) => chiffre.lecture),
+  );
+  // Et ils sont peints. Les montants attendus sont produits en APPELANT
+  // `formater` : le séparateur est une espace fine insécable, qu'on ne peut pas
+  // taper de mémoire sans se tromper.
+  const svg = carteAnalyse(donnees);
+  for (const chiffre of publies) {
+    const montant = formater(chiffre.observe!.valeur, "EUR", false);
+    assert.ok(svg.includes(echapper(montant)), `${montant} n'est pas peint sur la carte`);
+    // Et la phrase qui le nomme, ENTIÈRE. « Les crédits votés : l'autorisation
+    // donnée par le Parlement en loi de… » perdait « de finances », c'est-à-dire
+    // ce qui la distingue de « les crédits consommés » peints juste dessous.
+    assert.ok(
+      svg.includes(echapper(chiffre.lecture)),
+      `la phrase qui nomme ce chiffre est coupée : ${chiffre.lecture}`,
+    );
+  }
+});
+
+test("2 quater. un chiffre d'un autre exercice n'est pas peint sous ce millésime", async () => {
+  const [analyse] = await analysesPubliees();
+  // La carte ne porte qu'un millésime — celui du premier chiffre. Un montant
+  // d'un autre exercice peint dessous serait daté faux, sur une image qui
+  // circule seule et que rien ne vient corriger.
+  const autreExercice = {
+    ...analyse,
+    chiffres: analyse.chiffres.map((chiffre, i) =>
+      i === 0 || !chiffre.observe
+        ? chiffre
+        : { ...chiffre, observe: { ...chiffre.observe, periode: "2024" } },
+    ),
+  };
+  const donnees = donneesCarteAnalyse(autreExercice, catalogueEnEuros([analyse]), "exemple.test");
+  assert.equal(donnees.source.millesime, analyse.chiffres[0].observe?.periode);
+  assert.deepEqual(donnees.opposes, []);
 });
 
 test("2 bis. sans source déclarée, la carte ne se rabat pas sur celle de la déclaration", async () => {
@@ -331,22 +389,28 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
   // public : carte des finances locales ». Les plateformes montrent l'image en
   // grand, le titre dessous — le lecteur voyait une carte des finances locales
   // annoncée comme un scénario. Même effet sur `/analyses/`.
-  const trois = sections(GABARIT);
+  const toutes = sections(GABARIT);
   assert.deepEqual(
-    trois.map((s) => [s.chemin, s.nature]),
+    toutes.map((s) => [s.chemin, s.nature]),
     [
       ["", "Le site"],
       ["analyses", "Analyses"],
       ["simulateur", "Simulateur"],
+      // La méthode a rejoint la liste en recevant son propre document : servie
+      // par le gabarit, elle empruntait la carte du site — chapeau « Le site »,
+      // phrase du message principal — sous un titre qui annonce les sources.
+      ["methode", "Méthode"],
     ],
   );
   // La section du simulateur est peinte À L'ENDROIT où la fonction d'edge
   // annonce l'image : deux chemins se seraient désaccordés en silence.
-  assert.equal(path.join("/", trois[2].chemin, "carte.png"), IMAGE_SCENARIO);
+  assert.equal(path.join("/", toutes[2].chemin, "carte.png"), IMAGE_SCENARIO);
+  // Et celle de la méthode à l'endroit où son document annonce la sienne.
+  assert.equal(path.join("/", toutes[3].chemin), CHEMINS.methode);
 
   // Le chapeau peint est celui de la section, jamais « Repère ». Il est lu sur
   // le SVG rendu, pas sur les données : c'est ce que le lecteur voit.
-  for (const section of trois) {
+  for (const section of toutes) {
     const svg = carteSection(
       donneesCarteSection(section.nature, section.titre, section.phrase, "2026-08-11T0807", HOTE),
     );
@@ -359,10 +423,10 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
   // Le titre du simulateur est la marque, pas le titre du gabarit : celui-ci
   // nomme la vue d'accueil, et l'écrire sur l'image d'un scénario partagé
   // rouvrirait le démenti.
-  assert.equal(trois[2].titre, marqueDuGabarit(GABARIT));
-  assert.notEqual(trois[2].titre, titreDuGabarit(GABARIT));
+  assert.equal(toutes[2].titre, marqueDuGabarit(GABARIT));
+  assert.notEqual(toutes[2].titre, titreDuGabarit(GABARIT));
 
-  // Écrites, toutes les trois : le contrôle des pages ne verrait pas celle du
+  // Écrites, toutes : le contrôle des pages ne verrait pas celle du
   // simulateur, qu'aucune page pré-rendue ne déclare.
   const racine = await mkdtemp(path.join(tmpdir(), "sections-"));
   await assert.rejects(() => validerImageDuScenario(racine), /n'a pas écrite/);
@@ -532,26 +596,40 @@ test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", (
 
 const SITE_ESSAI = "https://exemple.test";
 
-/** Les chemins servis par le repli SPA : le build ne leur écrit aucun fichier,
- *  Cloudflare Pages y sert le gabarit. C'est `routes.ts` qui les déclare — le
- *  test lit la même table que le pré-rendu, jamais une copie. */
+/** Les chemins de vues du site. C'est `routes.ts` qui les déclare — le test lit
+ *  la même table que le pré-rendu, jamais une copie. */
 const CHEMINS_DE_VUE = new Set(Object.values(CHEMINS));
+
+/**
+ * Ceux d'entre eux que le repli SPA sert : le build ne leur écrit aucun
+ * fichier, Cloudflare Pages y sert le gabarit.
+ *
+ * `/methode` n'en est plus — elle a son propre document depuis qu'elle est
+ * pré-rendue. Le `dist` d'essai doit avoir la même forme que le vrai, sans quoi
+ * le contrôle des canoniques n'y verrait jamais le cas d'une vue pré-rendue :
+ * il jugerait un gabarit à six adresses là où la production en a cinq.
+ */
+const SERVIS_PAR_LE_REPLI = new Set([...CHEMINS_DE_VUE].filter((c) => c !== CHEMINS.methode));
 
 /**
  * Un `dist` minimal : le gabarit, et une page par adresse qui en a une.
  *
- * Les pages sont composées par `injecter`, celle du build : leur canonique est
- * donc celle que le build pose, pas une balise écrite pour l'occasion.
+ * Les pages sont composées par le build — `injecter` pour une page éditoriale,
+ * `injecterAnnonce` pour une vue pré-rendue, exactement comme `main()` — et leur
+ * canonique est donc celle que le build pose, pas une balise écrite ici.
  */
 async function distEssai(adresses: readonly string[]): Promise<string> {
   const racine = await mkdtemp(path.join(tmpdir(), "indexation-"));
   await writeFile(path.join(racine, "index.html"), GABARIT);
   for (const adresse of adresses) {
-    if (adresse === "/" || CHEMINS_DE_VUE.has(adresse)) continue;
+    if (adresse === "/" || SERVIS_PAR_LE_REPLI.has(adresse)) continue;
     await mkdir(path.join(racine, adresse.replace(/^\//, "")), { recursive: true });
+    const page = { ...PAGE, canonique: adresse };
     await writeFile(
       path.join(racine, adresse.replace(/^\//, ""), "index.html"),
-      injecter(GABARIT, { ...PAGE, canonique: adresse }, SITE_ESSAI),
+      CHEMINS_DE_VUE.has(adresse)
+        ? injecterAnnonce(GABARIT, page, SITE_ESSAI)
+        : injecter(GABARIT, page, SITE_ESSAI),
     );
   }
   await ecrireIndexation(racine, SITE_ESSAI, adresses);
@@ -664,10 +742,11 @@ test("11 ter. chaque document annoncé déclare la bonne canonique, ou aucune", 
   );
   await assert.rejects(() => validerIndexation(detournee, SITE_ESSAI), /deux adresses pour une seule page/);
 
-  // Le gabarit, lui, répond à six adresses du plan : la racine et les cinq
-  // chemins de vues. Une canonique fixe y déclarerait les cinq autres doublons
-  // de la première — le plan les annoncerait, le document les retirerait. Son
-  // absence est donc une décision, gardée comme telle.
+  // Le gabarit, lui, répond à plusieurs adresses du plan : la racine et les
+  // chemins de vues que le repli sert. Une canonique fixe y déclarerait toutes
+  // les autres doublons de la première — le plan les annoncerait, le document
+  // les retirerait. Son absence est donc une décision, gardée comme telle.
+  assert.ok(SERVIS_PAR_LE_REPLI.size > 0, "le gabarit ne sert plus qu'une adresse : il lui faudrait une canonique");
   const figee = await distEssai(adresses);
   await writeFile(
     path.join(figee, "index.html"),
@@ -864,4 +943,203 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
   for (const mot of [siteCarte.titre, siteCarte.phrase, titreDuGabarit(GABARIT_REEL)]) {
     assert.ok(!/carte des finances locales/i.test(mot), `« ${mot} » nomme une vue que / n'ouvre plus`);
   }
+});
+
+/* --------------------------------------------------------------------------
+ * 14. `/methode` est SERVIE, pas seulement peinte
+ *
+ * C'est la page vers laquelle la bande de confiance de l'accueil renvoie. Servie
+ * par le gabarit, elle partait vide : un robot — ou un lecteur dont le paquet
+ * n'arrive pas — trouvait au bout de ce lien de confiance le `<main>` de
+ * l'accueil, et pas une source. Un lien de confiance qui ouvre une page vide
+ * coûte plus que pas de lien.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Un manifeste d'essai : deux producteurs, trois jeux.
+ *
+ * Des noms d'essai, sur le domaine d'essai. La page des sources est le dernier
+ * endroit du site où une source inventée passerait inaperçue ; un producteur
+ * réel posé ici à côté d'une adresse fabriquée aurait été exactement cela, et
+ * ce test n'a besoin que de vérifier que ce qu'on lui donne ressort servi.
+ */
+const JEUX_ESSAI: Jeu[] = [
+  {
+    id: "essai-a",
+    titre: "Premier jeu d'essai",
+    producteur: "Producteur d'essai",
+    licence: "Licence d'essai",
+    url: "https://exemple.test/a",
+    extraction: "2026-08-11T08:07:00Z",
+  },
+  {
+    id: "essai-b",
+    titre: "Deuxième jeu d'essai",
+    producteur: "Producteur d'essai",
+    licence: "Licence d'essai",
+    url: "https://exemple.test/b",
+    extraction: "2026-08-11T08:07:00Z",
+  },
+  {
+    id: "essai-c",
+    titre: "Troisième jeu d'essai",
+    producteur: "Autre producteur d'essai",
+    licence: "Licence d'essai",
+    url: "https://exemple.test/c",
+    extraction: "2026-08-11T08:07:00Z",
+  },
+];
+
+test("14. /methode sert ses sources, sa méthode et sa grille sans exécuter une ligne", () => {
+  const html = injecterMethode(GABARIT_REEL, JEUX_ESSAI);
+  const texte = texteDuMain(html);
+
+  // Les titres et producteurs du manifeste : c'est ce que la bande de confiance
+  // promet au bout de son lien. Attendus tels qu'`echapper` les écrit, jamais
+  // recopiés — l'apostrophe d'un titre part en `&#39;`, et une chaîne tapée à la
+  // main ne dirait rien de l'échappement.
+  for (const jeu of JEUX_ESSAI) {
+    assert.ok(texte.includes(echapper(jeu.titre)), `le jeu « ${jeu.titre} » n'est pas servi`);
+    assert.ok(
+      texte.includes(echapper(jeu.producteur)),
+      `le producteur « ${jeu.producteur} » n'est pas servi`,
+    );
+  }
+  // Et les liens vers les fichiers d'origine, qui ne sont pas du texte.
+  for (const jeu of JEUX_ESSAI) {
+    assert.ok(html.includes(`href="${echapper(jeu.url)}"`), `le lien de « ${jeu.titre} » n'est pas servi`);
+  }
+
+  // Chacun des intertitres que la page rend, lus dans le module plutôt que
+  // recopiés : c'est `TITRES_METHODE` qui ferme cette liste, et un bloc ajouté
+  // ou retiré se voit ici sans qu'on y revienne.
+  for (const titre of TITRES_METHODE) {
+    assert.ok(texte.includes(titre), `l'intertitre « ${titre} » n'est pas servi`);
+  }
+
+  // Le compte des jeux et celui des producteurs sont produits en APPELANT
+  // `formater`, jamais tapés : une valeur recopiée à la main ne dirait rien de
+  // son séparateur.
+  assert.ok(texte.includes(`${formater(JEUX_ESSAI.length, "count", false)} jeux`));
+  assert.ok(texte.includes(`${formater(2, "count", false)} producteurs`));
+
+  // Et il en reste beaucoup plus que les 2 597 signes de l'accueil, qui est ce
+  // que ce chemin servait. Trois jeux d'essai en donnent 7 604 ; les 66 du
+  // manifeste publié en donnent 14 927.
+  assert.ok(texte.length > 6000, `<main> ne porte que ${texte.length} signes de texte`);
+});
+
+test("14 bis. le séparateur de milliers du compte des jeux traverse l'injection", () => {
+  // U+202F est une espace au sens de `\s` : un `.replace(/\s+/g, " ")` ajouté
+  // demain dans le chemin d'injection le remplacerait par une espace ordinaire
+  // sans que rien ne le dise, et la page servirait « 1 500 » au lieu de
+  // « 1 500 ».
+  const beaucoup: Jeu[] = Array.from({ length: 1500 }, (_, rang) => ({
+    ...JEUX_ESSAI[0]!,
+    id: `essai-${rang}`,
+  }));
+  const compte = formater(beaucoup.length, "count", false);
+  // La sonde d'abord : sans séparateur dans la valeur attendue, l'assertion qui
+  // suit passerait quelle que soit l'espace servie.
+  assert.ok(
+    [...compte].some((caractere) => caractere.codePointAt(0) === 0x202f),
+    `« ${compte} » ne porte pas U+202F : cette sonde ne prouverait rien`,
+  );
+  assert.ok(injecterMethode(GABARIT_REEL, beaucoup).includes(`${compte} jeux`));
+});
+
+test("14 ter. le cadre de la méthode part déplié, et l'accueil replié", () => {
+  const html = injecterMethode(GABARIT_REEL, JEUX_ESSAI);
+
+  // Déplié, sans quoi la page serait écrite dans le document et servie à
+  // personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas.
+  // C'est l'état d'avant ce pré-rendu, et il reviendrait sans un mot.
+  assert.match(html, /<div class="vue" id="vue-methode">/);
+  // L'accueil replié : le gabarit le sert déplié pour la racine, et ce
+  // document-ci montrerait l'accueil au-dessus de la méthode jusqu'à ce que
+  // `basculerVue` tranche — le clignotement que ce document fait disparaître.
+  assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" hidden>/);
+  // Les deux cadres que le build ne sait pas remplir sont repliés : `.bloc` est
+  // un cadre bordé, ombré, et deux cases vides se lisent comme une panne.
+  assert.match(html, /id="methode-fraicheur" hidden>/);
+  assert.match(html, /id="methode-journal" hidden>/);
+  // Mais toujours présents : `peindreMethode` (main.ts) écrit dedans, et `$` y
+  // renverrait `null`.
+  for (const id of ["methode-fraicheur", "methode-journal", "methode-sources"]) {
+    assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
+  }
+
+  // Trois défauts muets, trois échecs.
+  assert.throws(
+    () => injecterMethode(GABARIT_REEL.replace('id="vue-methode"', 'id="vue-recette"'), JEUX_ESSAI),
+    /vue-methode/,
+  );
+  assert.throws(
+    () =>
+      injecterMethode(
+        GABARIT_REEL.replace('id="methode-sources"></div>', 'id="methode-sources">déjà</div>'),
+        JEUX_ESSAI,
+      ),
+    /n'est plus vide/,
+  );
+  // Un manifeste sans jeu : la page vers laquelle la bande de confiance renvoie
+  // partirait sans une seule source, et c'est tout ce qu'elle est.
+  assert.throws(() => injecterMethode(GABARIT_REEL, []), /sans une seule source/);
+});
+
+test("14 quater. le document de /methode déclare sa canonique, le gabarit toujours aucune", async () => {
+  const adresses = adressesPubliees(await analysesPubliees());
+  // Le chemin de la méthode est bien au plan, et il n'est plus servi par le
+  // repli : sans cela, ce test ne dirait rien de ce qu'il prétend garder.
+  assert.ok(adresses.includes(CHEMINS.methode), "/methode n'est plus au plan du site");
+  assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.methode), "/methode est encore servie par le gabarit");
+
+  // Tel que le build l'écrit, tout passe.
+  await validerIndexation(await distEssai(adresses), SITE_ESSAI);
+
+  // Seule à son fichier, elle doit déclarer SON adresse — c'est le compte que
+  // le gabarit a perdu et qu'elle a gagné, et il se lit sur le disque, pas sur
+  // une liste. Sans canonique, elle est annoncée au plan sous une adresse et
+  // n'en déclare aucune.
+  const muette = await distEssai(adresses);
+  await writeFile(path.join(muette, CHEMINS.methode.replace(/^\//, ""), "index.html"), GABARIT);
+  await assert.rejects(() => validerIndexation(muette, SITE_ESSAI), /deux adresses pour une seule page/);
+
+  // Et celle du gabarit y serait un doublon déclaré : le gabarit répond à la
+  // racine, elle non.
+  const empruntee = await distEssai(adresses);
+  await writeFile(
+    path.join(empruntee, CHEMINS.methode.replace(/^\//, ""), "index.html"),
+    injecterAnnonce(GABARIT, { ...PAGE, canonique: "/" }, SITE_ESSAI),
+  );
+  await assert.rejects(() => validerIndexation(empruntee, SITE_ESSAI), /deux adresses pour une seule page/);
+});
+
+test("14 quinquies. le build écrit cette page, et l'écrit avant le plan du site", () => {
+  // Quatrième garde de branchement de ce fichier : les tests 7 bis et 7 ter ont
+  // appris ici qu'une fonction éprouvée dont l'appel est commenté laisse toute
+  // la suite verte.
+  const source = sansCommentaires(readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8"));
+  const corps = source.slice(source.indexOf("async function main"));
+  assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
+  assert.match(
+    corps,
+    /injecterAnnonce\(\s*injecterMethode\(shell, jeux\),/,
+    "main() n'écrit plus la page MÉTHODE : le lien de confiance de l'accueil rouvrirait une page vide.",
+  );
+  assert.match(
+    corps,
+    /await ecrirePage\(path\.join\(DIST, DOSSIER_METHODE\), htmlMethode\);/,
+    "main() ne range plus la page MÉTHODE : le plan annoncerait une adresse que le gabarit sert.",
+  );
+  // Par `injecterAnnonce`, jamais par `injecter` : celui-ci remplace `<main>`
+  // entier et pose `data-page="editorial"`, ce qui arrêterait le paquet avant
+  // la fraîcheur et le journal — deux fichiers publiés que seul le navigateur
+  // va chercher.
+  assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_METHODE/);
+  // Rangée avant que le plan ne soit écrit et relu, comme toute autre page :
+  // annoncée plus tôt, elle serait déclarée morte par son propre contrôle.
+  const rangee = corps.indexOf("await ecrirePage(path.join(DIST, DOSSIER_METHODE)");
+  const plan = corps.indexOf("await ecrireIndexation(");
+  assert.ok(rangee > 0 && plan > rangee, "la page MÉTHODE est écrite après le plan qui l'annonce");
 });

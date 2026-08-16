@@ -5418,6 +5418,114 @@ summary.pont__rangee,
   padding: var(--espace-4) 0;
 }
 
+/* ---------------------------------------------------------------------------
+   LES CRÉDITS DES MISSIONS — un tableau à deux colonnes, pas 66 lignes
+   ---------------------------------------------------------------------------
+   `credits-missions.ts` remet en colonnes ce qui s'était déplié en lignes :
+   les 33 missions de l'État y portaient 66 entrées, `crédits votés` et
+   `crédits consommés` empilées au même niveau. La section reprend le système
+   existant — les cartes des repères pour les trois chiffres, le tableau
+   d'`.analyses__table` pour le détail — plutôt que d'en ouvrir un nouveau. */
+.credits {
+  margin-top: var(--espace-7);
+  padding-top: var(--espace-6);
+  border-top: 1px solid var(--trait);
+}
+/* La question est le titre de la section : en serif, à l'encre pleine, plus
+   grosse que la phrase qu'elle annonce — même règle que `.bloc-lecture`. */
+.credits__question {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0 0 var(--espace-3);
+}
+.credits__phrase {
+  margin: 0;
+  max-width: 64ch;
+  color: var(--encre-douce);
+}
+.credits__chiffres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--espace-4);
+  margin: var(--espace-5) 0 0;
+}
+.credits__chiffre {
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-5);
+  min-width: 0;
+}
+.credits__valeur {
+  display: block;
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  margin: 0 0 var(--espace-2);
+}
+.credits__terme {
+  display: block;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+/* Le pli est le détail, pas un aveu : sa ligne d'ouverture s'attrape au doigt,
+   comme celle de `.repli`. */
+.credits__pli {
+  margin-top: var(--espace-5);
+  border-top: 1px solid var(--trait);
+}
+.credits__pli > summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: var(--espace-4) 0;
+  min-height: 1.4rem;
+}
+.credits__pli > summary:hover {
+  color: var(--argile);
+}
+/* L'en-tête d'un exercice couvre ses trois colonnes : aligné à droite comme
+   les autres en-têtes du tableau, « 2025 » se posait au-dessus d'« ÉCART » et
+   semblait ne dater que lui. Il se centre sur le groupe qu'il date. */
+.credits__table thead th[scope="colgroup"] {
+  text-align: center;
+}
+.credits__table caption {
+  margin-bottom: var(--espace-4);
+  padding: 0;
+  text-align: left;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  max-width: 72ch;
+}
+/* L'écart est calculé ici, les deux montants qui l'encadrent sont publiés :
+   l'encre seconde dit lequel des trois vient de la source. */
+.credits__ecart {
+  color: var(--encre-douce);
+}
+/* Un exercice où la convention promettait deux chiffres et n'en publie qu'un.
+   La cellule le dit à la couleur d'alerte plutôt que de rester vide comme une
+   absence ordinaire — c'est l'appariement qui est en défaut, pas la source. */
+.credits__manque {
+  color: var(--alerte);
+  font-size: var(--texte-xs);
+  font-weight: 400;
+  white-space: normal;
+}
+/* Ce que la convention de nommage n'a pas su apparier : nommé, en rouge, au
+   dessus du pli. Le rendu signale, il ne fait pas disparaître. */
+.credits__anomalie {
+  margin: var(--espace-5) 0 0;
+  padding: var(--espace-4) var(--espace-5);
+  border-left: 3px solid var(--alerte);
+  background: var(--papier-creuse);
+  color: var(--alerte);
+  font-size: var(--texte-s);
+}
+
 /* ===========================================================================
    LA PAGE ANALYSE — quatre étages, un rendu chacun
    ===========================================================================

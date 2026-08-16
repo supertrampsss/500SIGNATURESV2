@@ -10,6 +10,8 @@
  * l'inverse. C'est ce qui le rend testable sans navigateur.
  */
 
+import { MAILLES_HORS_CARTE } from "./mailles.ts";
+
 /** Les vues qui ont un chemin.
  *
  *  Le simulateur n'en est une que si un budget est publié : cette table décrit
@@ -83,4 +85,29 @@ export function vueDepuisAdresse(chemin: string, fragment: string): string | nul
  */
 export function estAccueil(chemin: string, fragment: string): boolean {
   return chemin.replace(/^\/+|\/+$/g, "") === "" && vueDepuisAdresse(chemin, fragment) === null;
+}
+
+/**
+ * L'adresse de la fiche d'un territoire.
+ *
+ * Ouvrir un territoire, c'est peindre `#fiche` quand l'application est à
+ * l'écran — et aller à cette adresse quand elle n'y est pas. Une analyse
+ * pré-rendue est un document servi : le pré-rendu remplace `<main
+ * id="contenu">`, donc ni panneau ni carte n'y existent, et le seul geste qui
+ * ouvre un territoire depuis une telle page est celui que le serveur sait
+ * faire — suivre un lien.
+ *
+ * La maille se porte par `niveau` quand la carte en a une couche, par `maille`
+ * sinon. L'arrondissement municipal n'a pas de tuiles : écrit en `niveau`, il
+ * serait ramené à la maille par défaut à la relecture (`lireUrl` de main.ts,
+ * qui ne connaît que les couches) et la fiche de Paris 1er s'ouvrirait sur une
+ * région. Sans maille nommée, l'adresse n'en impose aucune et le cadrage
+ * tranche, comme pour un lien partagé sans `niveau`.
+ */
+export function adresseTerritoire(code: string, niveau: string | null): string {
+  const p = new URLSearchParams();
+  if (niveau && MAILLES_HORS_CARTE.has(niveau)) p.set("maille", niveau);
+  else if (niveau) p.set("niveau", niveau);
+  p.set("territoire", code);
+  return `${CHEMINS.territoire}?${p}`;
 }

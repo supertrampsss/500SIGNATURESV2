@@ -93,7 +93,7 @@ import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
-import { cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
+import { adresseTerritoire, cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
 import { renduGrille, renduMethode, renduSources } from "./methode-rendu.ts";
@@ -1294,12 +1294,27 @@ function ouvrirLaMesure(id: string): void {
  *    réécrit la fiche une seconde fois avec son rang dans la couche.
  * 3. **Une seule ouverture à la fois.** Le même territoire redemandé ne relance
  *    rien, un autre prend la main, et le ticket périmé cesse d'écrire.
+ *
+ * Et une quatrième, quand la page n'est pas l'application : une analyse
+ * pré-rendue n'a ni panneau ni carte à peindre, elle va à l'adresse du
+ * territoire.
  */
 async function ouvrirTerritoire(
   code: string,
   niveauDemande: string | null,
   nom?: string,
 ): Promise<void> {
+  // Le pré-rendu remplace `<main id="contenu">` : `#fiche` et
+  // `#volet-territoire` n'existent pas sur une page d'analyse. `$` étant un
+  // cast et non une garde, `panneau.setAttribute` levait sur `null` trois
+  // lignes plus bas — le champ de recherche de l'en-tête, câblé sur ces pages
+  // exprès, proposait des territoires et n'en ouvrait aucun. Ces pages sont
+  // des documents servis : on suit le lien, comme le ferait n'importe quel
+  // lien de la page. Avant le ticket, qui ne sert qu'à ce qui se peint.
+  if (document.body.dataset.page === "editorial") {
+    location.assign(adresseTerritoire(code, niveauDemande));
+    return;
+  }
   const ticket = fileOuverture.ouvrir(code);
   if (ticket === null) return;
   const panneau = $("fiche");
@@ -2195,14 +2210,28 @@ async function peindreDetail(): Promise<void> {
   // (retombée SPA, 200 sur index.html), `r.json()` lève, et `donnees.ts` cache
   // par chemin relatif — pas par URL résolue — donc l'échec se fige pour le
   // reste de la session : un lien partagé restait blanc, pour de bon.
-  await prete;
-  await chargerLotsNecessaires(etat.niveau, [code]);
-  const territoire = entiteDe(code, etat.niveau);
+  await publiee;
+  // `prete` ne suffisait pas : elle se résout dès que `donnees.racine` est
+  // connue, or le catalogue n'est assemblé que plus loin dans `demarrer`
+  // (avec les indicateurs dérivés). Ce peintre partait donc parfois avec un
+  // catalogue vide, `indicateursDeLaFiche` ne rendait rien, et `#detail`
+  // sortait blanc — mesuré une fois sur trois, à toutes les mailles.
+  // `publiee` est résolue APRÈS l'assemblage : c'est la promesse qui décrit
+  // ce que cette page attend vraiment.
+  // La maille du territoire ouvert, pas celle que la carte peint : c'est déjà
+  // ce que fait `montrerFiche`, et la même fiche se lit aux deux endroits.
+  // Cette page lisait `etat.niveau`, qui vaut « region » pour toute sélection
+  // sans couche de tuiles : la France y arrivait déclarée région, aucun de ses
+  // 145 indicateurs nationaux ne passait le filtre de maille, et `#detail`
+  // restait vide — le budget de l'État, ses 81 lignes, n'avait pas de page.
+  const niveau = niveauSelection();
+  await chargerLotsNecessaires(niveau, [code]);
+  const territoire = entiteDe(code, niveau);
   if (!territoire) return;
   afficherAnalyses(
     cible,
     territoire.nom,
-    rubriques(territoire, indicateursDeLaFiche(etat.niveau), THEMES, ORDRE_THEMES),
+    rubriques(territoire, indicateursDeLaFiche(niveau), THEMES, ORDRE_THEMES),
   );
   // Le comparateur suit la sélection : il n'a pas d'état propre, il relit
   // `etat.comparaison`, que l'adresse porte déjà.
@@ -4300,6 +4329,10 @@ async function demarrer(): Promise<void> {
  * `Failed to fetch` n'apprend rien à qui vient lire un budget.
  */
 demarrer().catch((erreur: Error) => {
+  // Une analyse pré-rendue porte son texte et ses chiffres dans le HTML servi :
+  // elle n'a ni `#fiche` ni `#vue-accueil` où écrire, et `$` y renverrait
+  // `null` — la panne se doublait d'une levée dans son propre rattrapage.
+  if (document.body.dataset.page === "editorial") return;
   const detail = erreur?.message ? String(erreur.message) : "cause inconnue";
   // Un `div`, pas un `p` : `<details>` est du contenu de flux, et un paragraphe
   // n'accepte que du contenu de phrasé. L'analyseur HTML fermait donc le

@@ -37,6 +37,10 @@ import {
 } from "../src/accueil.ts";
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { indicateursDerives } from "../src/derives.ts";
+// Les trois rendus de la page MÉTHODE : purs, sans DOM et sans `fetch`, comme
+// `rendu()` et `renduAccueil` — c'est ce qui les rend appelables ici autant que
+// dans le navigateur (`peindreMethode`, main.ts), avec le même code.
+import { renduGrille, renduMethode, renduSources } from "../src/methode-rendu.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
@@ -45,7 +49,7 @@ import { CHEMINS } from "../src/routes.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
-import type { Indicateur, Manifeste, Territoire } from "../src/donnees.ts";
+import type { Indicateur, Jeu, Manifeste, Territoire } from "../src/donnees.ts";
 
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE_SITE = path.resolve(ICI, "..");
@@ -265,13 +269,17 @@ function uniteCataloguee(catalogue: readonly Indicateur[], id: string): string |
 }
 
 /**
- * Ce qu'une analyse donne à peindre : son titre, son premier chiffre, son cran,
- * sa source et le millésime de ce chiffre.
+ * Ce qu'une analyse donne à peindre : son titre, les chiffres publiés qu'elle
+ * oppose, son cran, sa source et leur millésime.
  *
- * Le premier chiffre, et lui seul : une carte porte au plus trois rangées, et
- * c'est celui que l'étage « express » de la page met en tête (analyse-rendu.ts).
+ * Le chiffre annoncé est celui du premier chiffre — celui que l'étage
+ * « express » de la page met en tête (analyse-rendu.ts). Les montants publiés,
+ * eux, ne se réduisent pas au premier : ne peindre que lui faisait partir
+ * l'image de « deux chiffres publiés, deux sens » avec un seul des deux, sous
+ * un verdict privé de ce contre quoi il juge. Ceux que la carte peut peindre
+ * l'accompagnent donc (`opposes`, carte-og.ts).
  *
- * Le chiffre des comptes n'est peint **que** si le catalogue déclare son
+ * Un chiffre des comptes n'est peint **que** si le catalogue déclare son
  * indicateur en euros : `carteAnalyse` le formate en millions d'euros, et un
  * taux passé là deviendrait un montant. Sinon la rangée disparaît — le cran dit
  * le reste, et `carteAnalyse` prévoit ce cas.
@@ -324,6 +332,33 @@ export function donneesCarteAnalyse(
   const enEuros =
     chiffre.observe !== undefined &&
     uniteCataloguee(catalogue, chiffre.observe.indicateur) === "EUR";
+  const observe = enEuros ? chiffre.observe!.valeur : null;
+  // Les autres chiffres publiés que l'analyse oppose au premier. Sans le
+  // premier peint, il n'y a rien à quoi les opposer : la carte reste celle
+  // d'un chiffre unique, comme avant.
+  //
+  // Deux conditions, et la seconde n'est pas la même que la première : le
+  // catalogue doit déclarer l'indicateur en euros — sinon un taux deviendrait
+  // un montant — ET le chiffre doit porter l'EXERCICE que le pied annonce.
+  // La carte ne peint qu'un millésime ; un montant d'un autre exercice y
+  // serait daté faux, sur une image qui circule seule.
+  //
+  // Deux au plus : la bande du corps porte alors cinq rangées — le chiffre
+  // annoncé, trois montants publiés, le cran — et `ordonnees()` y resserre le
+  // pas à 44. Une de plus le descendrait sous le corps de la valeur.
+  const opposes =
+    observe === null
+      ? []
+      : analyse.chiffres
+          .slice(1)
+          .filter(
+            (autre) =>
+              autre.observe !== undefined &&
+              autre.observe.periode === exercice &&
+              uniteCataloguee(catalogue, autre.observe.indicateur) === "EUR",
+          )
+          .slice(0, 2)
+          .map((autre) => ({ valeur: autre.observe!.valeur, lecture: autre.lecture }));
   // La provenance déclarée par l'analyse elle-même — la même que l'étage
   // « preuve » de la page cite (analyse-rendu.ts), jamais un champ du
   // catalogue que le rendu ne peut pas vérifier, et jamais la source de la
@@ -338,11 +373,12 @@ export function donneesCarteAnalyse(
   return {
     titre: analyse.titre,
     dit: chiffre.dit,
-    observe: enEuros ? chiffre.observe!.valeur : null,
+    observe,
     // Ce que ce chiffre-là désigne, dans les mots de l'analyse. La page en
     // dispose de plusieurs façons ; l'image n'a que cette phrase pour dire
     // lequel des chiffres publiés elle montre.
     lecture: chiffre.lecture,
+    opposes,
     cran: analyse.verdict.cran,
     source: { titre: source.titre, millesime: exercice },
     site,
@@ -414,7 +450,7 @@ export function descriptionDuGabarit(shell: string): string {
  * accompagnait, et c'est ce titre-ci qui a fermé ce défaut.
  *
  * Le `<title>` du gabarit dit désormais la même chose, pour la même raison — il
- * vaut pour six adresses, dont cinq ne sont pas la carte — et un test les tient
+ * vaut pour cinq adresses, dont quatre ne sont pas la carte — et un test les tient
  * accordés (prerendre.test.ts). Les deux lectures restent séparées parce que
  * les deux endroits le sont : l'onglet et l'en-tête.
  */
@@ -439,7 +475,36 @@ const PAGE_ANALYSES = {
 };
 
 /**
- * Les trois cartes de section, et l'endroit où chacune est servie.
+ * Les mots de la page MÉTHODE, écrits une fois — même raison que
+ * `PAGE_ANALYSES` juste au-dessus : son `<title>`, sa description et la phrase
+ * de son image les lisent tous ici.
+ *
+ * La description énumère ce que la page rend, et rien de plus : les jeux du
+ * manifeste producteur par producteur (`renduSources`), la production et le
+ * contrôle des chiffres (`renduMethode`), la grille de verdicts
+ * (`renduGrille`). Aucune accroche écrite pour l'occasion, aucune réserve —
+ * c'est la page qui en attire le plus, et elle n'en porte aucune.
+ */
+const PAGE_METHODE = {
+  titre: "Méthode — Où va l'argent public",
+  description:
+    "Les jeux de données publiés, producteur par producteur ; comment chaque chiffre est produit " +
+    "et vérifié ; la grille de verdicts des analyses.",
+};
+
+/**
+ * Le chemin de la page MÉTHODE, lu dans `routes.ts` plutôt que recopié.
+ *
+ * C'est la même table que le plan du site lit (`CHEMINS_DE_VUE`) : le document
+ * est donc écrit exactement là où le plan l'annonce, et un chemin renommé
+ * demain déplace les deux ensemble. Recopié ici, il aurait fait diverger le
+ * plan et le disque — et `validerIndexation` aurait déclaré l'adresse morte.
+ */
+const CHEMIN_METHODE = CHEMINS.methode;
+const DOSSIER_METHODE = CHEMIN_METHODE.replace(/^\//, "");
+
+/**
+ * Les quatre cartes de section, et l'endroit où chacune est servie.
  *
  * Une page qui n'a pas d'objet à montrer porte l'image de sa section — et
  * jamais celle d'une autre. `/simulateur` est le cas qui a rendu la faute
@@ -475,6 +540,18 @@ export function sections(shell: string): { chemin: string; nature: string; titre
       nature: "Simulateur",
       titre: marque,
       phrase: MESSAGE_PRINCIPAL,
+    },
+    // La méthode a son document propre depuis qu'elle est pré-rendue : servie
+    // par le gabarit, elle empruntait la carte du site, dont le chapeau dit
+    // « Le site » et la phrase le message principal. Sous un titre qui annonce
+    // les sources, c'était l'accueil qu'on montrait. Sa phrase est celle que le
+    // document porte en description, pour que l'image et la page disent la même
+    // chose — c'est la règle qu'`PAGE_ANALYSES` tient déjà pour l'index.
+    {
+      chemin: DOSSIER_METHODE,
+      nature: "Méthode",
+      titre: marque,
+      phrase: PAGE_METHODE.description,
     },
   ];
 }
@@ -762,70 +839,210 @@ export function injecterAccueil(shell: string, corps: string, version: string): 
   );
 }
 
+/* --------------------------------------------------------------------------
+ * La page MÉTHODE, écrite dans son cadre.
+ *
+ * C'est la page vers laquelle la bande de confiance de l'accueil renvoie. Servie
+ * par le gabarit, elle partait vide : ni ses sources, ni sa méthode, ni sa
+ * grille n'existaient dans le document, et un robot — ou un lecteur dont le
+ * paquet n'arrive pas — trouvait au bout de ce lien de confiance un `<main>`
+ * qui ne portait que l'accueil. Un lien de confiance qui ouvre une page vide
+ * coûte plus que pas de lien.
+ *
+ * Elle se pré-rend parce que son contenu se calcule au build, entièrement :
+ * `renduMethode()` et `renduGrille()` sont du texte de référence sans donnée
+ * d'entrée, et `renduSources()` ne lit que le manifeste — le même fichier que
+ * `chargerPublication` lit déjà. Rien n'y dépend d'un territoire choisi ni d'un
+ * état d'atelier.
+ *
+ * Le document reste celui de l'application, PAS une page éditoriale : la
+ * fraîcheur et le journal viennent de deux fichiers publiés que `peindreMethode`
+ * (main.ts) va chercher à l'ouverture, et `data-page="editorial"` aurait arrêté
+ * le paquet avant. Le pré-rendu remplit donc les trois cadres qu'il sait
+ * remplir, replie les deux qu'il ne sait pas, et laisse le navigateur finir.
+ * ----------------------------------------------------------------------- */
+
 /**
- * Injecte une page dans le shell. `echapper` (texte.ts) échappe `&<>"'` — donc
- * valable aussi bien en contenu de texte (le `<title>`) qu'en valeur
- * d'attribut entre guillemets doubles (`content="…"`, `href="…"`) : les deux
- * contextes sont couverts par le même échappement, jamais par une
- * concaténation brute.
+ * L'ouverture d'un cadre du gabarit, avec ses attributs.
+ *
+ * Un identifiant introuvable fait rougir plutôt que de laisser `String.replace`
+ * renvoyer le gabarit inchangé — le défaut muet que `remplacer` ferme partout
+ * ailleurs dans ce fichier.
  */
-export function injecter(shell: string, page: Page, site: string): string {
+function ouvertureDuCadre(html: string, id: string): { balise: string; attributs: string } {
+  const trouve = html.match(new RegExp(`<div([^>]*\\sid="${id}"[^>]*)>`));
+  if (!trouve) {
+    throw new Error(
+      `injecterMethode() : le gabarit ne porte plus le cadre « ${id} » — la page partirait sans lui.`,
+    );
+  }
+  return { balise: trouve[0], attributs: trouve[1]! };
+}
+
+/** Écrit un corps dans un cadre du gabarit, qui doit être vide : un cadre déjà
+ *  rempli signalerait deux rendus pour un même endroit, et l'un des deux
+ *  serait perdu sans un mot. */
+function remplirCadre(html: string, id: string, corps: string): string {
+  const { balise, attributs } = ouvertureDuCadre(html, id);
+  const vide = `${balise}</div>`;
+  if (!html.includes(vide)) {
+    throw new Error(
+      `injecterMethode() : le cadre « ${id} » du gabarit n'est plus vide — le pré-rendu écrirait par-dessus.`,
+    );
+  }
+  return html.replace(vide, () => `<div${attributs}>\n${corps}\n</div>`);
+}
+
+/** Déplie un cadre. Un cadre replié serait écrit dans le document et servi à
+ *  personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas
+ *  — c'est le défaut d'avant ce pré-rendu, et `injecterAccueil` le nomme déjà. */
+function deplierCadre(html: string, id: string): string {
+  const { balise, attributs } = ouvertureDuCadre(html, id);
+  return html.replace(balise, () => `<div${attributs.replace(/\s+hidden\b/, "")}>`);
+}
+
+/** Replie un cadre. `.bloc` est un cadre bordé, ombré : laissé déplié et vide,
+ *  il se voit comme une case vide — la même règle que `peindreMethode` tient
+ *  côté navigateur, où le retour du peintre commande la visibilité. */
+function replierCadre(html: string, id: string): string {
+  const { balise, attributs } = ouvertureDuCadre(html, id);
+  if (/\bhidden\b/.test(attributs)) return html;
+  return html.replace(balise, () => `<div${attributs} hidden>`);
+}
+
+/**
+ * La page MÉTHODE, composée sur le manifeste que ce build a lu.
+ *
+ * Les mêmes appels que le navigateur fait (`peindreMethode`, main.ts), avec le
+ * même manifeste et les mêmes fonctions — c'est tout ce que le pré-rendu ajoute
+ * ici : les avoir déjà appelées quand la page part.
+ *
+ * Pas de `data-publication`, contrairement à l'accueil, et pour une raison
+ * précise : l'accueil TIRE un exemple, et un second tirage côté navigateur
+ * ferait changer le territoire sous les yeux du lecteur. Ici rien n'est tiré.
+ * `renduMethode()` et `renduGrille()` sont constantes, et `renduSources()` rend
+ * le manifeste — celui du build au départ, celui du serveur quand le paquet
+ * arrive. Repeindre ne déplace donc rien, et quand les deux manifestes diffèrent
+ * c'est le plus frais qui doit gagner.
+ *
+ * L'accueil, lui, est replié : le gabarit le sert déplié pour la racine, et un
+ * document de `/methode` qui le porterait déplié montrerait l'accueil au-dessus
+ * de la méthode jusqu'à ce que `basculerVue` tranche.
+ */
+export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
+  const sources = renduSources(jeux);
+  if (!sources) {
+    throw new Error(
+      "injecterMethode() : le manifeste ne déclare aucun jeu — la page vers laquelle la bande de " +
+        "confiance de l'accueil renvoie partirait sans une seule source.",
+    );
+  }
+  let html = shell;
+  html = remplirCadre(html, "methode-sources", sources);
+  html = remplirCadre(html, "methode-methode", renduMethode());
+  html = remplirCadre(html, "methode-grille", renduGrille());
+  // Les deux cadres que le build ne sait pas remplir : `fraicheur.json` et
+  // `journal.json` sont publiés, et c'est `peindreMethode` qui va les chercher.
+  // Repliés plutôt que laissés vides — voir `replierCadre`.
+  html = replierCadre(html, "methode-fraicheur");
+  html = replierCadre(html, "methode-journal");
+  html = deplierCadre(html, "vue-methode");
+  return replierCadre(html, "vue-accueil");
+}
+
+/**
+ * `String.replace` renvoie la chaîne INCHANGÉE quand le motif ne correspond à
+ * rien — un `<title>` renommé dans le gabarit ferait ainsi disparaître
+ * l'injection en silence, sans qu'aucun test ne le voie puisque la page
+ * resterait un HTML valide. Ceci fait échouer le build à la place.
+ */
+function remplacer(nom: string, avant: string, apres: string): string {
+  if (apres === avant) {
+    throw new Error(
+      `injecter() : le remplacement "${nom}" n'a rien changé — son motif ne correspond plus au gabarit.`,
+    );
+  }
+  return apres;
+}
+
+/**
+ * Ce qu'une page ANNONCE : son titre, sa description, sa canonique et ses
+ * balises de partage. `echapper` (texte.ts) échappe `&<>"'` — donc valable
+ * aussi bien en contenu de texte (le `<title>`) qu'en valeur d'attribut entre
+ * guillemets doubles (`content="…"`, `href="…"`) : les deux contextes sont
+ * couverts par le même échappement, jamais par une concaténation brute.
+ *
+ * Séparé du corps parce que deux sortes de pages en ont besoin. Une page
+ * éditoriale remplace `<main>` entier (`injecter`, juste dessous) ; une vue
+ * pré-rendue, elle, garde le document de l'application et n'écrit que dans son
+ * cadre (`injecterMethode`) — mais toutes deux s'annoncent de la même façon, et
+ * deux compositions de ces quatre balises auraient fini par en dire deux
+ * choses.
+ */
+export function injecterAnnonce(shell: string, page: Partageable, site: string): string {
   // Remplaçants sous forme de fonction partout, jamais de chaîne : passée en
   // second argument de `replace`, une chaîne de remplacement interprète `$&`,
   // `$1`, `$$`… comme des motifs spéciaux — un titre ou une phrase de verdict
   // qui contiendrait un `$` littéral corromprait alors la page injectée.
   let html = shell;
 
-  // `String.replace` renvoie la chaîne INCHANGÉE quand le motif ne correspond
-  // à rien — un `<title>` renommé dans le gabarit ferait ainsi disparaître
-  // l'injection en silence, sans qu'aucun test ne le voie puisque la page
-  // resterait un HTML valide. `remplacer` fait échouer le build à la place.
-  const remplacer = (nom: string, suivant: string): void => {
-    if (suivant === html) {
-      throw new Error(
-        `injecter() : le remplacement "${nom}" n'a rien changé — son motif ne correspond plus au gabarit.`,
-      );
-    }
-    html = suivant;
-  };
+  html = remplacer(
+    "titre",
+    html,
+    html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${echapper(page.titre)}</title>`),
+  );
 
-  remplacer("titre", html.replace(/<title>[\s\S]*?<\/title>/, () => `<title>${echapper(page.titre)}</title>`));
-
-  remplacer(
+  html = remplacer(
     "description",
+    html,
     html.replace(
       /<meta\s+name="description"[\s\S]*?\/>/,
       () => `<meta name="description" content="${echapper(page.description)}" />`,
     ),
   );
 
-  remplacer(
+  html = remplacer(
     "canonique",
+    html,
     html.replace(
       "</head>",
       () => `  <link rel="canonical" href="${echapper(adresseCanonique(page, site))}" />\n  </head>`,
     ),
   );
 
-  remplacer("partage", injecterPartage(html, page, site));
+  return remplacer("partage", html, injecterPartage(html, page, site));
+}
 
-  remplacer(
+/**
+ * Injecte une page éditoriale dans le shell : ce qu'elle annonce, plus son
+ * corps à la place de `<main>` entier.
+ *
+ * `data-page="editorial"` dit au paquet que ce document n'est pas l'application
+ * monoécran : `basculerVue` s'arrête là, la carte et le panneau ne sont pas
+ * montés, et la recherche de l'en-tête ouvre un territoire en suivant un lien
+ * plutôt qu'en peignant un panneau qui n'existe pas (main.ts). Une vue
+ * pré-rendue ne le porte PAS — son document reste celui de l'application.
+ */
+export function injecter(shell: string, page: Page, site: string): string {
+  let html = injecterAnnonce(shell, page, site);
+
+  html = remplacer(
     "data-page",
+    html,
     html.replace(
       /<body([^>]*)>/,
       (_correspondance, attributs: string) => `<body${attributs} data-page="editorial">`,
     ),
   );
 
-  remplacer(
+  return remplacer(
     "corps",
+    html,
     html.replace(
       /(<main id="contenu">)[\s\S]*?(<\/main>)/,
       (_correspondance, ouverture: string, fermeture: string) => `${ouverture}\n${page.corps}\n${fermeture}`,
     ),
   );
-
-  return html;
 }
 
 /* --------------------------------------------------------------------------
@@ -860,6 +1077,7 @@ async function chargerPublication(): Promise<{
   catalogue: Indicateur[];
   version: string;
   racineDonnees: string;
+  jeux: Jeu[];
   producteurs: string[];
   regions: Record<string, Territoire>;
 }> {
@@ -871,6 +1089,11 @@ async function chargerPublication(): Promise<{
   // exemple vivant. Ce sont les deux mêmes fichiers que le navigateur charge
   // (`donnees.initialiser` et `donnees.territoires`), aux mêmes adresses — et
   // non un tirage plus court composé pour le build.
+  //
+  // Le manifeste sert aussi la page MÉTHODE, qui liste les jeux entiers —
+  // producteur, titre, licence, date de lecture — et non leurs seuls
+  // producteurs. Un seul chargement pour les deux pages : deux lectures du même
+  // fichier auraient pu partir sur deux publications.
   const manifeste = await lireJson<Manifeste>(`${racineDonnees}/manifeste.json`);
   const regions = await lireJson<Record<string, Territoire>>(
     `${racineDonnees}/territoires/${MAILLE_EXEMPLE}/tous.json`,
@@ -879,6 +1102,7 @@ async function chargerPublication(): Promise<{
     catalogue,
     version,
     racineDonnees,
+    jeux: manifeste.jeux,
     producteurs: manifeste.jeux.map((jeu) => jeu.producteur),
     regions,
   };
@@ -1070,18 +1294,24 @@ async function lireOuEchouer(fichier: string, quoi: string): Promise<string> {
  *    `index.html`, soit c'est un chemin de vue et Cloudflare Pages y sert le
  *    gabarit — le repli qui ne tient que tant qu'aucun `404.html` n'existe
  *    (spec §7.2, décision 11). D'où le contrôle de cette absence **ici** :
- *    c'est ce plan-ci qui en dépend, et un `404.html` déposé demain ferait de
- *    ses cinq chemins de vue autant d'adresses mortes.
+ *    c'est ce plan-ci qui en dépend, et un `404.html` déposé demain ferait des
+ *    chemins de vue servis par le repli autant d'adresses mortes.
  *
  * 3. **Chaque document déclare la bonne canonique, ou n'en déclare aucune.**
  *    Une page servie à une seule adresse du plan doit déclarer celle-là — c'est
  *    ce qu'une canonique est, et l'annoncer au plan sous une adresse tout en la
  *    déclarant sous une autre envoie deux signaux contraires. Un document servi
- *    à **plusieurs** adresses du plan, lui, ne peut en déclarer aucune : le
- *    gabarit répond à la racine et aux cinq chemins de vues, et une canonique
- *    fixe y déclarerait les cinq autres doublons de la première — le plan les
- *    annoncerait et le document les retirerait, dans le même souffle. Cette
+ *    à **plusieurs** adresses du plan, lui, ne peut en déclarer aucune : une
+ *    canonique fixe y déclarerait les autres doublons de la première — le plan
+ *    les annoncerait et le document les retirerait, dans le même souffle. Cette
  *    absence-là est donc une décision, et elle est gardée comme telle.
+ *
+ *    Ce compte-ci se lit sur le disque, jamais sur une liste : c'est ce qui l'a
+ *    fait suivre tout seul quand `/methode` a reçu son propre document. Le
+ *    gabarit servait six adresses et n'en déclarait aucune ; il en sert cinq et
+ *    n'en déclare toujours aucune, et `/methode` — désormais seule à son
+ *    fichier — doit déclarer la sienne. Aucune ligne de ce contrôle n'a changé,
+ *    et c'est la preuve que le document et le plan disent la même chose.
  */
 export async function validerIndexation(racine: string, site: string): Promise<void> {
   const prefixe = `${site}/`;
@@ -1169,7 +1399,7 @@ export async function validerIndexation(racine: string, site: string): Promise<v
 async function main(): Promise<void> {
   const shell = await readFile(path.join(DIST, "index.html"), "utf8");
   const analyses = await chargerAnalyses();
-  const { catalogue, version, racineDonnees, producteurs, regions } = await chargerPublication();
+  const { catalogue, version, racineDonnees, jeux, producteurs, regions } = await chargerPublication();
 
   await validerCadresPublies(racineDonnees);
   await validerLiensSimulateur(analyses, racineDonnees);
@@ -1216,8 +1446,10 @@ async function main(): Promise<void> {
   // portait aucun mot du message principal pour qui n'exécute pas JavaScript.
   // Et **les balises du site**, sans lesquelles la carte du site serait une
   // image que rien ne désigne. Le reste du corps n'est pas touché :
-  // l'application se monte dessus, et les cinq autres vues restent vides tant
-  // que le paquet ne les peint pas.
+  // l'application se monte dessus, et les vues qu'il sert encore —
+  // `/territoire`, `/reperes`, `/detail`, `/simulateur` — restent vides tant que
+  // le paquet ne les peint pas. `/methode`, elle, a son propre document, écrit
+  // juste après.
   //
   // `/simulateur` part de ce document-là aussi, et c'est la fonction d'edge qui
   // y remplace le titre, la description et l'image par ceux du scénario
@@ -1235,6 +1467,24 @@ async function main(): Promise<void> {
   await writeFile(path.join(DIST, "index.html"), htmlSite, "utf8");
   ecrites.push({ chemin: "index.html", html: htmlSite });
 
+  // La page MÉTHODE, à son propre chemin. Elle quitte donc le lot des adresses
+  // que le gabarit sert — cinq restent — et devient une adresse à un document,
+  // qui doit dès lors déclarer sa canonique : `validerIndexation` l'exige plus
+  // bas, sans qu'une ligne y change. C'est ce que ce contrôle-là dit depuis le
+  // début, et le compte des deux côtés a bougé ensemble.
+  const htmlMethode = injecterAnnonce(
+    injecterMethode(shell, jeux),
+    {
+      titre: PAGE_METHODE.titre,
+      description: PAGE_METHODE.description,
+      canonique: CHEMIN_METHODE,
+      image: `${CHEMIN_METHODE}/carte.png`,
+    },
+    SITE,
+  );
+  await ecrirePage(path.join(DIST, DOSSIER_METHODE), htmlMethode);
+  ecrites.push({ chemin: `${DOSSIER_METHODE}/index.html`, html: htmlMethode });
+
   await validerImagesAnnoncees(DIST, ecrites, SITE);
   await validerImageDuScenario(DIST);
 
@@ -1246,6 +1496,7 @@ async function main(): Promise<void> {
 
   console.log(
     `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), dist/analyses/index.html, ` +
+      `dist/${DOSSIER_METHODE}/index.html, ` +
       `${analyses.length + sections(shell).length} carte(s) de partage, ` +
       `${adresses.length} adresse(s) au plan du site, sous ${SITE}.`,
   );
