@@ -159,38 +159,42 @@ pour ne plus l'être.
    la promesse de l'outil. Comme pour la provenance nationale, la décision
    relève de **D7** : la validation humaine préalable reste en vigueur pour les
    connecteurs et la méthodologie.
-2. **Provenance au niveau France — la condition n'est pas remplie, mesuré.**
-   `provenance.ts` attribue la variation d'un agrégat à ses composantes partout
-   où la source déclare une hiérarchie. Le catalogue publié compte 386
-   indicateurs, dont **56 déclarent un parent — tous OFGL**, et **aucun des 87
-   nationaux**. Le module ne se tait donc pas par défaut de code : rien ne lui
-   est déclaré.
+2. **Provenance au niveau France — la hiérarchie se referme, et elle est
+   déclarable.** `provenance.ts` attribue la variation d'un agrégat à ses
+   composantes partout où la source déclare une hiérarchie. Le catalogue publié
+   compte 386 indicateurs, dont **56 déclarent un parent — tous OFGL**, et
+   **aucun des 87 nationaux**. Le module ne se tait donc pas par défaut de code :
+   rien ne lui est déclaré.
 
-   Cette entrée disait qu'il suffirait de ranger les missions du budget général
-   sous les dépenses nettes, « à condition de vérifier que la somme redonne le
-   total ». Vérifié sur les comptes publiés (version 2026-08-11T0807, pays/FR) :
-   **elle ne les redonne pas.**
+   **Correction d'une mesure fausse écrite ici.** Cette entrée a affirmé que la
+   somme des missions ne redonnait pas les dépenses nettes, à 1 % près. C'était
+   une erreur de terme : je retranchais la **mission** « Remboursements et
+   dégrèvements » entière, qui porte aussi les dégrèvements d'impôts **locaux**,
+   alors que « nettes » ne déduit que les remboursements d'impôts **d'État**,
+   publiés à part sous `etat_remboursements_impots_etat`.
+
+   Refait avec le bon terme (version 2026-08-11T0807, pays/FR) :
 
    | | 2024 | 2025 |
    |---|---|---|
-   | Somme des 33 missions publiées | 579,1 Md€ | 578,0 Md€ |
-   | dont **Remboursements et dégrèvements** | 140,6 | 141,4 |
-   | Somme hors R&D | 438,5 | 436,7 |
-   | Dépenses nettes du budget général | 443,4 | 441,2 |
-   | **Écart** | **−1,12 %** | **−1,02 %** |
+   | Somme brute des 33 missions | 584,98 Md€ | 578,04 Md€ |
+   | − Remboursements d'impôts d'État | −141,57 | −136,84 |
+   | **= dépenses nettes reconstituées** | **443,41** | **441,19** |
+   | Dépenses nettes publiées | 443,41 | 441,19 |
+   | **Écart** | **0,000 %** | **0,000 %** |
 
-   Deux faits en sortent. La mission « Remboursements et dégrèvements » doit
-   **sortir** de la décomposition : à 141 Md€ elle est exactement ce que
-   « nettes » retranche, et l'inclure donne +31 %. Et même sans elle, il reste
-   1 % d'écart — 4,5 Md€ — quand le pipeline exige `TOLERANCE_ECHELON = 0.005`,
-   soit 0,5 %. La hiérarchie échouerait au contrôle que le pipeline applique
-   déjà aux collectivités, d'un facteur deux. L'écart est stable sur deux
-   exercices : cela ressemble à des missions absentes du fichier, pas à du bruit.
+   L'identité est exacte sur les deux exercices publiés, très en deçà du
+   `TOLERANCE_ECHELON = 0.005` que le pipeline applique aux collectivités. Les
+   33 missions du budget général sont bien la décomposition des dépenses nettes,
+   **à condition de retrancher les remboursements d'impôts d'État** — et donc de
+   ne pas ranger la mission « Remboursements et dégrèvements » comme une
+   composante ordinaire.
 
-   **Rien ne doit être déclaré avant que cet écart soit expliqué**, et la
-   décision relève de D7 — la validation humaine préalable reste en vigueur pour
-   la méthodologie, et dire qu'un agrégat se décompose en telles composantes est
-   une affirmation comptable, pas un détail d'implémentation.
+   Reste à déclarer la hiérarchie dans le pipeline. La décision relève de **D7** :
+   dire qu'un agrégat se décompose en telles composantes est une affirmation
+   comptable. Ce qui la rend sûre est écrit ci-dessus — elle est vérifiée à
+   l'exactitude, sur deux exercices.
+
 3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
    range, il ne les condense pas. Visé : une question, une phrase, trois
    chiffres, le tableau complet derrière.
