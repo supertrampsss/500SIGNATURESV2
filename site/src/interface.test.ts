@@ -22,6 +22,7 @@ import { MAXIMUM } from "./comparateur.ts";
 import { rubriques, type Rubrique } from "./analyses.ts";
 import { ORDRE_THEMES } from "./fiche.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
 
 /** Les libellés de thème que le banc de DÉTAIL passe à `rubriques`. La vraie
  *  table vit dans main.ts et n'en est pas exportée ; ce qui se vérifie ici est
@@ -2518,4 +2519,179 @@ test("la commande « citer » est habillée sans couleur ni espacement en dur", 
   // « indisponible » ne laisserait rien à emporter.
   assert.match(CSS, /^\.citer__repli \{/m);
   assert.match(CSS, /^\.citer__retour \{/m);
+});
+
+/* ------------------------------------------------------------------------
+ * Les filtres de l'index des analyses — spec §9.1.
+ * ---------------------------------------------------------------------- */
+
+/** Le corps de `brancherFiltresAnalyses`, prêt à évaluer.
+ *
+ *  Comme `corpsOuvrirTerritoire`, le banc verrouille la signature avant de lui
+ *  ôter son annotation : si elle change, il rougit plutôt que d'évaluer autre
+ *  chose que la vraie fonction. Le corps, lui, est écrit sans annotation ni
+ *  générique — c'est ce qui permet de l'exécuter tel quel, sans le réécrire. */
+function corpsFiltresAnalyses(): string {
+  const debut = MAIN.indexOf("function brancherFiltresAnalyses");
+  const fin = MAIN.indexOf("/* ---------", debut);
+  assert.ok(debut > -1 && fin > debut, "brancherFiltresAnalyses introuvable dans main.ts");
+  const brut = MAIN.slice(debut, fin);
+  assert.match(brut, /function brancherFiltresAnalyses\(\): void \{/);
+  const corps = brut.replace(
+    "function brancherFiltresAnalyses(): void {",
+    "function brancherFiltresAnalyses() {",
+  );
+  assert.doesNotMatch(corps, /:\s*(string|void|number|boolean)\b/, "une annotation reste");
+  assert.doesNotMatch(corps, /querySelector(All)?</, "un générique reste dans le corps évalué");
+  return corps;
+}
+
+type CarteSimulee = { dataset: Record<string, string>; hidden: boolean };
+
+/** Le vrai `brancherFiltresAnalyses` posé sur l'index vraiment rendu par
+ *  `renduIndex`, puis réglé. Le banc ne recopie ni la règle de correspondance
+ *  — c'est le vrai `carteRetenue` qui est injecté — ni les attributs des
+ *  cartes : il les relit dans le HTML produit. */
+function reglerFiltres(
+  analyses: Analyse[],
+  reglages: { recherche?: string; type?: string; theme?: string; budget?: string },
+): { visibles: string[]; compte: string; barreDepliee: boolean } {
+  const html = renduIndex(analyses, [] as never[]);
+  const cartes: CarteSimulee[] = [...html.matchAll(/<li class="analyse-rendu__index-ligne"([^>]*)>/g)].map(
+    (balise) => {
+      const dataset: Record<string, string> = {};
+      for (const [, nom, valeur] of balise[1]!.matchAll(/data-([a-z]+)="([^"]*)"/g)) {
+        dataset[nom!] = valeur!.replace(/&#39;/g, "'").replace(/&amp;/g, "&");
+      }
+      return { dataset, hidden: false };
+    },
+  );
+  const facettes = [...html.matchAll(/data-facette="([a-z]+)"/g)].map((m) => m[1]!);
+  const menus = facettes.map((nom) => ({
+    dataset: { facette: nom },
+    value: (reglages as Record<string, string | undefined>)[nom] ?? "",
+  }));
+  const champ = { value: reglages.recherche ?? "" };
+  const compte = { textContent: "" };
+  const barre = {
+    hidden: true,
+    querySelectorAll: () => menus,
+    querySelector: (selecteur: string) => (selecteur === "input" ? champ : compte),
+    addEventListener: (_type: string, ecouteur: () => void) => {
+      ecouteurs.push(ecouteur);
+    },
+  };
+  const ecouteurs: (() => void)[] = [];
+  const liste = { querySelectorAll: () => cartes };
+  const document = {
+    getElementById: (id: string) =>
+      id === "analyses-filtres" ? barre : id === "analyses-index" ? liste : null,
+  };
+  new Function(
+    "document",
+    "carteRetenue",
+    `${corpsFiltresAnalyses()}\nreturn brancherFiltresAnalyses();`,
+  )(document, carteRetenue);
+  assert.equal(ecouteurs.length, 1, "un seul écouteur, posé sur la barre");
+  ecouteurs[0]!();
+  const titres = [...html.matchAll(/<a href="\/analyses\/([a-z0-9-]+)\/">/g)].map((m) => m[1]!);
+  return {
+    visibles: titres.filter((_, i) => !cartes[i]!.hidden),
+    compte: compte.textContent,
+    barreDepliee: !barre.hidden,
+  };
+}
+
+const CORPUS_INDEX: Analyse[] = [
+  analyseIndex("defense", "decryptage", ["budget_etat"], ["etat"], "Les crédits de la Défense"),
+  analyseIndex("retraites", "comparaison", ["securite_sociale"], ["secu"], "Une aide à l'insertion sociale"),
+  analyseIndex("communes", "decryptage", ["finances_locales"], ["collectivites"], "L'investissement des communes"),
+];
+
+function analyseIndex(
+  slug: string,
+  type: string,
+  themes: string[],
+  budgets: string[],
+  titre: string,
+): Analyse {
+  return {
+    slug,
+    titre,
+    type,
+    publie_le: "2026-01-01",
+    themes,
+    budgets_concernes: budgets,
+    mise_en_avant: false,
+    affirmation: {
+      texte: "Un chiffre couramment répété.",
+      auteur: null,
+      date: null,
+      source: { titre: "Source", url: "https://exemple.test", consulte_le: "2026-01-01" },
+    },
+    verdict: { cran: "exact", phrase: "Le chiffre correspond aux comptes publiés." },
+    chiffres: [{ dit: "environ 60 milliards", valeur: 6e10, registre: "estimation_externe", lecture: "Le montant cité." }],
+    hypotheses: [],
+    effets_indirects: [],
+    sources: [{ titre: "Source", url: "https://exemple.test", consulte_le: "2026-01-01" }],
+    simulateur: { budget: "", contrat: "", lecture: "Rien à rejouer." },
+    mises_a_jour: [],
+    verifie_contre: "",
+  } as unknown as Analyse;
+}
+
+test("la barre se déplie quand le paquet l'a câblée, et pas avant", () => {
+  // Servie repliée par le pré-rendu : sans JavaScript, aucun réglage mort ne
+  // s'affiche et les cartes restent toutes lisibles.
+  assert.match(renduIndex(CORPUS_INDEX, [] as never[]), /class="analyses-filtres"[^>]* hidden>/);
+  assert.equal(reglerFiltres(CORPUS_INDEX, {}).barreDepliee, true);
+});
+
+test("un filtre cache les cartes écartées, il ne recompose pas la liste", () => {
+  // La page est pré-rendue : les cartes sont déjà dans le HTML servi, et le
+  // filtrage bascule leur `hidden`.
+  assert.deepEqual(reglerFiltres(CORPUS_INDEX, { type: "decryptage" }).visibles, [
+    "defense",
+    "communes",
+  ]);
+  assert.deepEqual(reglerFiltres(CORPUS_INDEX, { theme: "securite_sociale" }).visibles, [
+    "retraites",
+  ]);
+  assert.deepEqual(reglerFiltres(CORPUS_INDEX, { budget: "collectivites" }).visibles, ["communes"]);
+});
+
+test("la recherche de l'index est permissive, mot à mot et sans contiguïté", () => {
+  assert.deepEqual(reglerFiltres(CORPUS_INDEX, { recherche: "sociale aide" }).visibles, [
+    "retraites",
+  ]);
+  assert.deepEqual(reglerFiltres(CORPUS_INDEX, { recherche: "DEFENSE" }).visibles, ["defense"]);
+});
+
+test("ce qu'un réglage retranche se dit, et le silence signifie que rien n'est retranché", () => {
+  // Une page qui se vide sans un mot ne se distingue pas d'une page en panne.
+  assert.equal(reglerFiltres(CORPUS_INDEX, { type: "decryptage" }).compte, "2 analyses sur 3");
+  assert.equal(reglerFiltres(CORPUS_INDEX, { theme: "securite_sociale" }).compte, "1 analyse sur 3");
+  assert.equal(reglerFiltres(CORPUS_INDEX, { recherche: "introuvable" }).compte, "0 analyse sur 3");
+  assert.equal(reglerFiltres(CORPUS_INDEX, {}).compte, "");
+});
+
+test("les filtres sont branchés avant le premier appel réseau", () => {
+  // L'index est servi entier, cartes comprises : un manifeste muet ne doit pas
+  // laisser sa barre repliée sur une liste qu'on voulait réduire.
+  const debut = MAIN.indexOf("async function demarrer");
+  assert.ok(debut > 0, "demarrer introuvable");
+  assert.ok(
+    MAIN.indexOf("brancherFiltresAnalyses();", debut) <
+      MAIN.indexOf("await donnees.initialiser()", debut),
+    "les filtres doivent être branchés avant le premier appel réseau",
+  );
+});
+
+test("une carte cachée et une barre repliée le restent bien à l'écran", () => {
+  // `display: grid` sur la carte et `display: flex` sur la barre l'emportent
+  // sur le `display: none` que `[hidden]` donne : sans règle explicite, le
+  // filtre ne filtre rien et la barre s'affiche morte sans JavaScript. C'est
+  // le défaut déjà vu sur `.onglets-themes`.
+  assert.match(CSS_REGLES, /\.analyse-rendu__index-ligne\[hidden\] \{\n\s*display: none;/);
+  assert.match(CSS_REGLES, /\.analyses-filtres\[hidden\] \{\n\s*display: none;/);
 });

@@ -1431,7 +1431,7 @@ async function main(): Promise<void> {
     // L'index n'a pas de chiffre à lui, mais il a une section : il porte la
     // carte des analyses, pas celle du site — qui annonce l'accueil.
     image: "/analyses/carte.png",
-    corps: renduIndex(analyses),
+    corps: renduIndex(analyses, catalogue),
   };
   const htmlIndex = injecter(shell, pageIndex, SITE);
   await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
