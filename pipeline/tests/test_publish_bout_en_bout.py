@@ -693,6 +693,89 @@ def test_une_valeur_publiee_par_la_source_prime_sur_notre_somme(tmp_path):
     conn.close()
 
 
+def _publier(conn, tmp_path):
+    """Publie et rend de quoi relire le catalogue et la fiche de la France."""
+    conn.commit()
+    version = "2026-01-01T0000"
+    publish.publier(conn, LocalStore(str(tmp_path / "publication")), version)
+    racine = tmp_path / "publication" / "data" / version
+    return (
+        json.loads((racine / "indicateurs.json").read_text()),
+        json.loads((racine / "territoires" / "pays" / "tous.json").read_text()),
+    )
+
+
+def test_le_catalogue_declare_pays_la_ou_la_somme_est_publiee(tmp_path):
+    """Le pipeline publiait la valeur et le catalogue taisait qu'elle existe.
+
+    Le site filtre son catalogue par `niveaux` : quarante-trois séries sommées
+    sur les régions arrivaient bien dans la fiche de la France et n'y étaient
+    montrées nulle part, faute que le catalogue déclare la maille `pays`. La
+    déclaration suit la publication, comme `synchroniser_niveaux` suit les
+    observations — et **seulement** la publication : ce qu'aucun agrégat
+    n'atteint reste à ses mailles.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_deux_regions(conn)
+    catalogue, france = _publier(conn, tmp_path)
+
+    fiche = next(i for i in catalogue if i["id"] == "ssmsi_cambriolages_nombre")
+    assert "pays" in fiche["niveaux"]
+    assert fiche["periodes_par_niveau"]["pays"] == ["2025"]
+    # La déclaration ne parle pas dans le vide : la somme est bien servie.
+    assert france["FR"]["series"]["ssmsi_cambriolages_nombre"] == {"2025": 42_000.0}
+
+    # Seulement là. Les comptes de l'OFGL sont refusés à l'agrégation — la somme
+    # des budgets communaux n'est pas « la dépense de fonctionnement en France »
+    # — et ne gagnent donc pas la maille.
+    comptes = next(i for i in catalogue if i["id"] == "ofgl_depenses_fonctionnement")
+    assert "pays" not in comptes["niveaux"]
+
+    # Et rien en double : la déclaration fusionne, elle n'empile pas. `publier`
+    # ne peut pas produire le cas — `agregats_nationaux` écarte les indicateurs
+    # déjà présents au niveau pays — mais le fichier garde déjà, à la fusion des
+    # séries, une garde « pour que l'ordre des deux ne puisse pas s'inverser en
+    # silence » : le catalogue tient la même, et ceci la vérifie.
+    conn.execute("update core.indicators set geo_levels = array['pays', 'region']"
+                 " where indicator_id = 'ssmsi_cambriolages_nombre'")
+    deja = next(
+        i for i in publish.indicateurs(conn, {}, {"ssmsi_cambriolages_nombre": {"2025": 1.0}})
+        if i["id"] == "ssmsi_cambriolages_nombre"
+    )
+    assert deja["niveaux"] == ["pays", "region"]
+    conn.close()
+
+
+def test_le_catalogue_ne_declare_pays_que_les_periodes_reellement_sommees(tmp_path):
+    """Un exercice écarté ne doit pas laisser croire que la France a une valeur.
+
+    2024 n'est renseigné que par une région sur deux : `agregats_nationaux` le
+    refuse, parce qu'une somme à laquelle il manque une région est un total
+    national faux. Le catalogue doit refuser l'exercice avec lui, sans quoi le
+    sélecteur d'année proposerait 2024 pour un chiffre qui n'existe pas.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    run_id = _semer_deux_regions(conn)
+    conn.execute(
+        "insert into core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
+        " period, value, run_id) values ('ssmsi_cambriolages_nombre', 'region', '75', ?,"
+        " '2024', 11000.0, ?)",
+        (MILLESIME, run_id),
+    )
+    catalogue, france = _publier(conn, tmp_path)
+
+    fiche = next(i for i in catalogue if i["id"] == "ssmsi_cambriolages_nombre")
+    assert "pays" in fiche["niveaux"]
+    assert fiche["periodes_par_niveau"]["pays"] == ["2025"]
+    # La série régionale porte bien les deux exercices : c'est la maille pays,
+    # et elle seule, qui s'arrête à celui que la somme couvre.
+    assert fiche["periodes_par_niveau"]["region"] == ["2024", "2025"]
+    assert france["FR"]["series"]["ssmsi_cambriolages_nombre"] == {"2025": 42_000.0}
+    conn.close()
+
+
 def test_la_hierarchie_de_l_ofgl_est_publiee_avec_le_catalogue():
     """La colonne était là depuis le premier jour et n'était lue nulle part.
 

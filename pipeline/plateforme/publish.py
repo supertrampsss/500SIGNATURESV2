@@ -187,12 +187,30 @@ def hierarchie_fonctionnelle() -> dict[str, str]:
     return {identifiant: PARENT for identifiant in [*identifiants, RESIDU]}
 
 
-def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[dict]:
+def indicateurs(
+    conn,
+    cartographiees: dict[str, dict[str, list[str]]],
+    nationaux: dict[str, dict[str, float]],
+) -> list[dict]:
     """La fiche en 10 points (docs/06) accompagne chaque indicateur publié.
 
     `cartographiees` dit, pour chaque indicateur et chaque niveau, les périodes
     dont la couche existe vraiment : c'est ce que le sélecteur d'année du site
     doit proposer, sans quoi il enverrait le lecteur sur un fichier absent.
+
+    `nationaux` — ce que `agregats_nationaux` a sommé — est déclaré ici pour la
+    même raison que `synchroniser_niveaux` relit `core.observations` : le
+    catalogue dit la vérité de ce qui est publié, pas ce qu'un connecteur a
+    déclaré. La somme des régions **est** publiée dans la fiche de la France,
+    mais elle ne passe jamais par `core.observations` — c'est un produit de
+    publication, pas une observation de source, et l'y écrire ferait mentir la
+    garde « une valeur publiée par la source prime sur notre somme ». Sans cette
+    déclaration, le site filtrait son catalogue par `niveaux` et écartait de
+    toute fiche 43 séries dont il servait pourtant la valeur nationale.
+
+    La déclaration est **période par période** : un indicateur sommé sur 2024
+    mais pas sur 2025 — une région manque, l'agrégat est refusé — ne doit pas
+    laisser croire que la France a une valeur en 2025.
     """
     lignes = conn.execute(
         """
@@ -208,11 +226,24 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
     ).fetchall()
     arbre = hierarchie_ofgl()
     fonctionnel = hierarchie_fonctionnelle()
+
+    def niveaux_publies(indicateur: str, declares: list[str]) -> list[str]:
+        # Trié comme `synchroniser_niveaux` trie : deux publications de suite
+        # doivent donner le même fichier.
+        return sorted({*declares, "pays"}) if indicateur in nationaux else declares
+
+    def periodes_publiees(indicateur: str) -> dict[str, list[str]]:
+        par_niveau = cartographiees.get(indicateur, {})
+        if indicateur not in nationaux:
+            return par_niveau
+        return {**par_niveau, "pays": sorted(nationaux[indicateur])}
+
     return [
         {
             "id": ligne[0], "libelle": ligne[1], "unite": ligne[2], "theme": ligne[3],
             "sommable": ligne[4], "base_prix": ligne[5], "cadre_comptable": ligne[6],
-            "niveaux": ligne[7], "definition": ligne[8], "definition_technique": ligne[9],
+            "niveaux": niveaux_publies(ligne[0], ligne[7]),
+            "definition": ligne[8], "definition_technique": ligne[9],
             "formule": ligne[10], "confiance": ligne[11], "badges": ligne[12],
             "jeu": ligne[13], "periodes": ligne[15] or [],
             # Ce que compte l'indicateur, quand le producteur le nomme : une
@@ -220,7 +251,7 @@ def indicateurs(conn, cartographiees: dict[str, dict[str, list[str]]]) -> list[d
             # d'unités différentes ne s'additionnent pas, et le site s'en sert
             # pour refuser de le faire.
             "unite_de_compte": ligne[14],
-            "periodes_par_niveau": cartographiees.get(ligne[0], {}),
+            "periodes_par_niveau": periodes_publiees(ligne[0]),
             "geographie_courante": ligne[13] in GEOGRAPHIE_COURANTE,
             # L'agrégat qui contient celui-ci, quand la source en déclare un.
             # C'est ce qui permet d'ouvrir un total sur ses composantes plutôt
@@ -2152,8 +2183,9 @@ def _ecrire(conn, flux, racine: str, version: str) -> None:
         deposer(f"territoires/{niveau}/index.json", index)
 
     # Le catalogue est déposé après la boucle : il annonce les périodes dont la
-    # couche a réellement été écrite.
-    deposer("indicateurs.json", indicateurs(conn, cartographiees))
+    # couche a réellement été écrite — et les sommes régionales que la fiche de
+    # la France vient de recevoir, sans quoi il tairait ce qu'il sert.
+    deposer("indicateurs.json", indicateurs(conn, cartographiees, nationaux))
     deposer("recherche.json", recherche)
     deposer("comparaisons.json", comparaisons(conn))
     deposer("budget-etat.json", budget_etat(conn))
