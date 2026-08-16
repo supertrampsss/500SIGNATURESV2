@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from plateforme import entrepot as depot
 from plateforme.connectors import smb
 from plateforme.normalize import etat
 
@@ -18,6 +19,42 @@ FIXTURES = Path(__file__).parent / "fixtures"
 SERIES = (FIXTURES / "smb_series_longues_sample.csv").read_bytes()
 TEXTES = (FIXTURES / "smb_textes_legislatifs_sample.csv").read_bytes()
 RECORDS = (FIXTURES / "smb_records_sample.json").read_bytes()
+
+# L'identité du solde, telle qu'un lecteur peut la refaire sur les seules séries
+# nationales publiées. Les prélèvements sur recettes y sont leurs deux
+# composantes : leur total n'est pas publié comme indicateur.
+IDENTITE_PUBLIEE = {
+    "etat_recettes_nettes_bg": 1,
+    "etat_depenses_nettes_bg": -1,
+    "etat_psr_collectivites": -1,
+    "etat_psr_union_europeenne": -1,
+    "etat_solde_comptes_speciaux": 1,
+    "etat_solde_budgets_annexes": 1,
+    "etat_fonds_de_concours": 1,
+}
+
+
+@pytest.fixture
+def observations_publiees(entrepot_seme):
+    """Les séries nationales de l'exécution, écrites puis relues dans l'entrepôt.
+
+    Passer par la base plutôt que par les dictionnaires du connecteur est le
+    chemin réel : un indicateur qu'aucune ligne ne porte n'y produit aucune
+    observation, et c'est ce silence-là que ces tests cherchent.
+    """
+    etat.declarer(entrepot_seme)
+    run_id = depot.start_run(entrepot_seme, etat.DATASET, "manual")
+    clos, _ = etat.exercices({"series_longues": SERIES, "records": RECORDS})
+    etat._ecrire_observations(entrepot_seme, run_id, clos)
+    entrepot_seme.commit()
+    return {
+        (indicateur, periode): valeur
+        for indicateur, periode, valeur in entrepot_seme.execute(
+            "select indicator_id, period, value from core.observations"
+            " where indicator_id = any(?)",
+            (list(etat.INDICATEURS),),
+        ).fetchall()
+    }
 
 
 def test_lecture_des_pieces_jointes_utf16():
@@ -153,6 +190,48 @@ def test_les_feuilles_recomposent_exactement_leurs_totaux():
         + valeurs[smb.normaliser("Total prélèvements sur recettes")],
         abs=1,
     )
+
+
+def test_les_fonds_de_concours_et_les_budgets_annexes_sont_declares_et_observes(
+    entrepot_seme, observations_publiees
+):
+    """Deux termes de l'identité du solde qui n'étaient portés par aucune série :
+    la ligne existait dans la source, aucun indicateur ne la publiait."""
+    declares = dict(entrepot_seme.execute(
+        "select indicator_id, unit from core.indicators where dataset_id = ?",
+        (etat.DATASET,),
+    ).fetchall())
+    for indicateur in ("etat_fonds_de_concours", "etat_solde_budgets_annexes"):
+        assert declares[indicateur] == "EUR"
+    # Les montants publiés sont ceux de la source, à l'euro.
+    assert observations_publiees[("etat_fonds_de_concours", "2024")] == pytest.approx(
+        8_309_192_572.61, abs=1
+    )
+    assert observations_publiees[("etat_solde_budgets_annexes", "2024")] == pytest.approx(
+        366_390_520.79, abs=1
+    )
+
+
+def test_l_identite_du_solde_se_refait_sur_les_seules_series_publiees(observations_publiees):
+    """Un lecteur qui refait le solde budgétaire à partir des séries nationales
+    doit retrouver le solde publié. Sans les fonds de concours ni le solde des
+    budgets annexes, il lui manquait deux termes, et l'écart restant, plusieurs
+    milliards, ne se rattachait à rien de publié."""
+    for annee in ("2022", "2024"):
+        solde = observations_publiees[("etat_solde_budgetaire", annee)]
+        recalcule = sum(
+            signe * observations_publiees[(indicateur, annee)]
+            for indicateur, signe in IDENTITE_PUBLIEE.items()
+        )
+        assert solde == pytest.approx(recalcule, abs=1), annee
+        # La garde ne vaut que si les deux termes ajoutés pèsent : sans eux,
+        # l'identité s'écarte de milliards d'euros.
+        sans_les_deux = (
+            recalcule
+            - observations_publiees[("etat_fonds_de_concours", annee)]
+            - observations_publiees[("etat_solde_budgets_annexes", annee)]
+        )
+        assert abs(solde - sans_les_deux) > 5e9, annee
 
 
 def test_chaque_indicateur_publie_a_une_fiche():

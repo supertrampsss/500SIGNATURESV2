@@ -115,7 +115,7 @@ _LIGNES = [
     Ligne("Total recettes non fiscales", 17, "recette", "recette_non_fiscale", True, None,
           "etat_recettes_non_fiscales"),
     Ligne("Fonds de concours et attribution de produits", 18, "recette", "recette_affectee",
-          True, None, None),
+          True, None, "etat_fonds_de_concours"),
     Ligne("Total dépenses nettes du budget général", 20, "depense", "agregat", False, None,
           "etat_depenses_nettes_bg"),
     Ligne("Dotation des pouvoirs publics", 21, "depense", "credit", True, "1", None),
@@ -142,7 +142,8 @@ _LIGNES = [
     Ligne("Solde des comptes spéciaux", 50, None, None, False, None,
           "etat_solde_comptes_speciaux"),
     Ligne("CCF Avances aux collectivités territoriales", 51, None, None, False, None, None),
-    Ligne("Solde des Budgets annexes", 52, None, None, False, None, None),
+    Ligne("Solde des Budgets annexes", 52, None, None, False, None,
+          "etat_solde_budgets_annexes"),
 ]
 
 LIGNES = {normaliser(ligne.libelle): ligne for ligne in _LIGNES}
