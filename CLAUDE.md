@@ -137,23 +137,33 @@ pour ne plus l'être.
    exercice 2025), toutes du même cadre `budgetaire` et du même jeu
    `execution-budget-etat` :
 
-   | | Md€ |
-   |---|---|
-   | Recettes nettes du budget général | 380,4 |
-   | − Dépenses nettes du budget général | −441,2 |
-   | − Prélèvements sur recettes (collectivités 46,1 + UE 23,0) | −69,0 |
-   | + Solde des comptes spéciaux | −2,3 |
-   | **= solde reconstitué** | **−132,1** |
-   | Solde budgétaire publié | −124,2 |
-   | **Écart inexpliqué** | **−7,9** |
+   | Identité essayée | écart 2024 | écart 2025 |
+   |---|---|---|
+   | recettes − dépenses | +61,4 | +63,4 |
+   | recettes − dépenses + comptes spéciaux | +59,1 | +61,2 |
+   | **recettes − dépenses − PSR** | **−6,3** | **−5,6** |
+   | recettes − dépenses − PSR + comptes spéciaux | −8,7 | −7,9 |
+
+   Deux enseignements. Les prélèvements sur recettes doivent bien être
+   retranchés — la définition de `etat_depenses_nettes_bg` le dit, « ils sont
+   comptés à part » — et sans eux l'écart est de 61 Md€. Mais **ajouter le solde
+   des comptes spéciaux aggrave l'écart au lieu de le réduire**, sur les deux
+   exercices : le solde budgétaire publié porte donc vraisemblablement sur le
+   budget général seul, et le résidu n'est pas les comptes spéciaux.
 
    Les prélèvements sur recettes doivent bien être retranchés : la définition
    de `etat_depenses_nettes_bg` le dit — « les prélèvements reversés aux
    collectivités et à l'Union européenne n'y figurent pas : ils sont comptés à
    part ». Sans eux l'écart serait de 61 Md€.
 
-   Restent 7,9 Md€, soit 6 % du déficit. Les budgets annexes sont un candidat
-   mais ne pèsent pas cet ordre. **Tant que cet écart n'est pas nommé, étendre
+   Reste environ 6 Md€, soit 4 % du déficit, sur les deux exercices. Les budgets
+   annexes sont un candidat mais ne pèsent pas cet ordre.
+
+   **Refaire cette mesure avec le soin du périmètre avant d'y croire.** L'entrée
+   suivante a porté pendant un tour un écart de 1 % qui n'existait pas, parce
+   qu'un terme de retranchement était pris pour un autre — la mission entière au
+   lieu des seuls impôts d'État. Le résidu ci-dessus est plausible, il n'est pas
+   expliqué. **Tant que cet écart n'est pas nommé, étendre
    le simulateur aux comptes spéciaux lui ferait afficher un solde que les
    comptes publiés ne confirment pas** — et l'exactitude arithmétique est toute
    la promesse de l'outil. Comme pour la provenance nationale, la décision
