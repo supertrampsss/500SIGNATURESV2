@@ -77,6 +77,35 @@ test("un arrondissement municipal se cherche", () => {
   assert.ok(NIVEAUX_RECHERCHABLES["arrondissement_municipal"]);
 });
 
+test("la France se cherche, les unités de déclaration européennes non", () => {
+  // La maille pays publie 48 territoires : la France, et 47 unités qu'Eurostat
+  // n'a pas nommées — leur `n` EST leur code. Elles servent aux comparaisons
+  // de REPÈRES ; proposer « EA19 — Pays » afficherait un code technique en
+  // clair, exactement ce que le retrait de l'intercommunalité a corrigé.
+  const index = [
+    entree("FR", "France", "pays"),
+    entree("AT", "AT", "pays"),
+    entree("EA19", "EA19", "pays"),
+    entree("EU27_2020", "EU27_2020", "pays"),
+    entree("33063", "Bordeaux", "commune"),
+  ];
+  assert.deepEqual(
+    suggestions(index, "france", "region").map((e) => e.c),
+    ["FR"],
+  );
+  assert.ok(NIVEAUX_RECHERCHABLES["pays"], "la France doit porter un libellé de maille");
+  // Ni par leur nom, ni par leur code : les deux chemins de `suggestions`.
+  for (const requete of ["at", "ea19", "eu27_2020", "EA19"]) {
+    assert.deepEqual(suggestions(index, requete, "region"), [], requete);
+  }
+  // Et la règle ne coûte rien aux mailles nommées : aucun territoire publié
+  // n'y porte son code pour nom.
+  assert.deepEqual(
+    suggestions(index, "bordeaux", "commune").map((e) => e.c),
+    ["33063"],
+  );
+});
+
 test("une maille sans tuiles n'est jamais une maille de carte", () => {
   // Il n'existe pas de couche d'arrondissements — `geometries.py` n'en
   // construit que trois. Laisser le zoom y basculer ferait peindre un calque

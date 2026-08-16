@@ -19,6 +19,17 @@ import {
 import { adresseTerritoire, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES } from "./mailles.ts";
 import { MAXIMUM } from "./comparateur.ts";
+import { rubriques, type Rubrique } from "./analyses.ts";
+import { ORDRE_THEMES } from "./fiche.ts";
+import type { Indicateur, Territoire } from "./donnees.ts";
+
+/** Les libellés de thème que le banc de DÉTAIL passe à `rubriques`. La vraie
+ *  table vit dans main.ts et n'en est pas exportée ; ce qui se vérifie ici est
+ *  le nombre de lignes et de thèmes retenus, pas leur traduction. */
+const THEMES_BANC: Record<string, string> = {
+  budget_etat: "Budget de l'État",
+  finances_locales: "Finances locales",
+};
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
@@ -979,6 +990,10 @@ type OuvertureSimulee = {
   fiches: string[];
   /** Les attributs posés et retirés sur `#fiche`. */
   gestes: string[];
+  /** L'état de la carte après l'ouverture : la couche peinte, et la maille de
+   *  sélection quand ce n'est pas elle. C'est ici que se lit la garde des
+   *  mailles sans tuiles — `etat.niveau` ne doit jamais en prendre une. */
+  etat: { niveau: string; maille: string | null };
   erreur: Error | null;
 };
 
@@ -1076,7 +1091,7 @@ async function executerOuvrirTerritoire(
   } catch (leve) {
     erreur = leve as Error;
   }
-  return { adresses, fiches, gestes, erreur };
+  return { adresses, fiches, gestes, etat, erreur };
 }
 
 /** Ce que `lireUrl` — la vraie, prise dans main.ts avec `COUCHES`,
@@ -1116,6 +1131,96 @@ function executerLireUrl(adresse: string): Record<string, string | null> {
     "MAXIMUM",
     `${corps}\nreturn lireUrl();`,
   )(location, MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, MAXIMUM) as Record<string, string | null>;
+}
+
+/** Ce que la page DÉTAIL peint pour une sélection, par la vraie `peindreDetail`
+ *  prise dans main.ts avec la vraie `niveauSelection` et le vrai
+ *  `indicateursDeLaFiche` — les trois pièces dont l'accord fait la page. Ni
+ *  l'une ni l'autre n'est recopiée ici : le banc testerait sa propre copie.
+ *
+ *  `rubriques` vient d'`analyses.ts`, où elle est déjà exportée : c'est elle qui
+ *  décide qu'une ligne existe, et le banc lit le résultat qu'elle rend plutôt
+ *  que le HTML, pour compter des lignes et des thèmes plutôt que des balises. */
+async function executerPeindreDetail(
+  selection: { code: string | null; niveau: string; maille: string | null },
+  catalogue: Indicateur[],
+  entites: Record<string, Territoire>,
+): Promise<{
+  liste: Rubrique[];
+  vide: string;
+  charges: string[];
+  comparateur: number;
+}> {
+  const debutSelection = MAIN.indexOf("function niveauSelection");
+  const finSelection = MAIN.indexOf("function lireUrl");
+  const debutFiltre = MAIN.indexOf("function indicateursDeLaFiche");
+  const finFiltre = MAIN.indexOf("function afficherApercu");
+  const debutPeintre = MAIN.indexOf("async function peindreDetail");
+  const finPeintre = MAIN.indexOf("/** Le simulateur n'est une vue du site");
+  assert.ok(finSelection > debutSelection && debutSelection > -1, "niveauSelection introuvable");
+  assert.ok(finFiltre > debutFiltre && debutFiltre > -1, "indicateursDeLaFiche introuvable");
+  assert.ok(finPeintre > debutPeintre && debutPeintre > -1, "peindreDetail introuvable");
+  const corps = [
+    MAIN.slice(debutSelection, finSelection).replace(
+      "function niveauSelection(): string {",
+      "function niveauSelection() {",
+    ),
+    MAIN.slice(debutFiltre, finFiltre).replace(
+      "function indicateursDeLaFiche(niveau: string): Indicateur[] {",
+      "function indicateursDeLaFiche(niveau) {",
+    ),
+    MAIN.slice(debutPeintre, finPeintre).replace(
+      "async function peindreDetail(): Promise<void> {",
+      "async function peindreDetail() {",
+    ),
+  ].join("\n");
+  assert.doesNotMatch(
+    corps,
+    /function \w+\([^)]*\):/,
+    "une annotation de type reste dans le corps évalué",
+  );
+  const detail = { innerHTML: "" };
+  const etat = { selection: selection.code, niveau: selection.niveau, maille: selection.maille };
+  const charges: string[] = [];
+  let liste: Rubrique[] = [];
+  let comparateur = 0;
+  await (
+    new Function(
+      "$",
+      "prete",
+      "etat",
+      "catalogue",
+      "DENOMINATEURS",
+      "chargerLotsNecessaires",
+      "entiteDe",
+      "afficherAnalyses",
+      "rubriques",
+      "THEMES",
+      "ORDRE_THEMES",
+      "majComparateur",
+      `${corps}\nreturn peindreDetail();`,
+    )(
+      (id: string) => (id === "detail" ? detail : null),
+      Promise.resolve(),
+      etat,
+      catalogue,
+      new Set(["ofgl_population_reference"]),
+      async (niveau: string, codes: string[]) => {
+        charges.push(`${niveau}:${codes.join(",")}`);
+      },
+      (code: string, niveau: string) => entites[`${niveau}:${code}`],
+      (_cible: unknown, _nom: string, rendues: Rubrique[]) => {
+        liste = rendues;
+      },
+      rubriques,
+      THEMES_BANC,
+      ORDRE_THEMES,
+      async () => {
+        comparateur += 1;
+      },
+    ) as Promise<void>
+  );
+  return { liste, vide: detail.innerHTML, charges, comparateur };
 }
 
 test("choisir un territoire depuis une analyse pré-rendue ouvre ce territoire", async () => {
@@ -1167,6 +1272,148 @@ test("un arrondissement municipal choisi depuis une analyse s'ouvre par sa maill
   const lu = executerLireUrl(choix.adresses[0]!);
   assert.equal(lu.selection, "75101");
   assert.equal(lu.maille, "arrondissement_municipal");
+});
+
+/* --------------------------------------------------------------------------
+ * La maille pays : « la même fiche à toutes les mailles » (CLAUDE.md).
+ *
+ * Les 81 indicateurs du budget de l'État déclarent `niveaux: ["pays"]`, et le
+ * site filtre son catalogue sur ce champ. Aucune commande ne posait `pays` en
+ * maille de sélection : `/detail?territoire=FR` peignait une France déclarée
+ * région, dont aucune ligne nationale ne passait le filtre, et `#detail`
+ * restait vide.
+ * -------------------------------------------------------------------------- */
+
+/** Deux indicateurs nationaux, un local, et le dénominateur que la fiche
+ *  n'affiche jamais. Les millésimes sont ceux de la fenêtre du dépôt. */
+const CATALOGUE_BANC = [
+  { id: "etat_depenses_nettes", libelle: "Dépenses nettes", theme: "budget_etat", niveaux: ["pays"] },
+  { id: "etat_charge_dette", libelle: "Charge de la dette", theme: "budget_etat", niveaux: ["pays"] },
+  {
+    id: "ofgl_depenses_fonctionnement",
+    libelle: "Dépenses de fonctionnement",
+    theme: "finances_locales",
+    niveaux: ["commune", "departement", "region"],
+  },
+  {
+    id: "ofgl_population_reference",
+    libelle: "Population de référence",
+    theme: "population",
+    niveaux: ["commune", "departement", "region", "pays"],
+  },
+] as unknown as Indicateur[];
+
+/** La France telle que `territoires/pays/tous.json` la publie : ses séries
+ *  nationales, et celles que le filtre de maille doit écarter. */
+const FRANCE_BANC = {
+  "pays:FR": {
+    nom: "France",
+    parent: null,
+    series: {
+      etat_depenses_nettes: { "2019": 337_000, "2025": 501_000 },
+      etat_charge_dette: { "2019": 40_300, "2025": 66_500 },
+      ofgl_depenses_fonctionnement: { "2019": 1, "2025": 2 },
+      ofgl_population_reference: { "2019": 67_000_000, "2025": 68_600_000 },
+    },
+  },
+  "region:FR": undefined,
+} as unknown as Record<string, Territoire>;
+
+test("la page DÉTAIL rend les indicateurs de la maille du territoire ouvert", async () => {
+  // La France s'ouvre à la maille pays sans que la carte quitte sa couche :
+  // c'est `etat.maille` qui la porte, comme pour un arrondissement.
+  const peinte = await executerPeindreDetail(
+    { code: "FR", niveau: "region", maille: "pays" },
+    CATALOGUE_BANC,
+    FRANCE_BANC,
+  );
+  // Le lot demandé est celui de la maille de sélection : chercher « FR » dans
+  // les régions ne rendrait rien du tout.
+  assert.deepEqual(peinte.charges, ["pays:FR"]);
+  assert.deepEqual(
+    peinte.liste.map((r) => r.theme),
+    ["budget_etat"],
+    "seul le thème national a des lignes : le local n'est pas publié à cette maille",
+  );
+  assert.deepEqual(
+    peinte.liste[0]!.lignes.map((l) => l.id),
+    ["etat_depenses_nettes", "etat_charge_dette"],
+  );
+  // Un tableau d'analyse montre tous les exercices publiés, un par colonne.
+  assert.deepEqual(peinte.liste[0]!.exercices, ["2019", "2025"]);
+  // Le dénominateur ne fait jamais une ligne : le par-habitant se calcule, il
+  // ne s'affiche pas comme une mesure.
+  assert.ok(
+    !peinte.liste.some((r) => r.lignes.some((l) => l.id === "ofgl_population_reference")),
+    "la population de référence n'est pas une ligne de la fiche",
+  );
+  // Et la même page à la maille d'à côté ne montre pas les lignes nationales :
+  // c'est bien le filtre de maille qui travaille, pas l'ordre du catalogue.
+  const region = await executerPeindreDetail(
+    { code: "75", niveau: "region", maille: null },
+    CATALOGUE_BANC,
+    {
+      "region:75": {
+        nom: "Nouvelle-Aquitaine",
+        series: { ofgl_depenses_fonctionnement: { "2019": 1, "2025": 2 } },
+      },
+    } as unknown as Record<string, Territoire>,
+  );
+  assert.deepEqual(
+    region.liste.map((r) => r.theme),
+    ["finances_locales"],
+  );
+});
+
+test("le comparateur de DÉTAIL est appelé pour se taire, il n'est pas sauté", async () => {
+  // Comparer suppose plusieurs territoires d'une même maille ; la France est
+  // seule à la sienne. Le peintre appelle quand même `majComparateur`, qui
+  // referme `#comparateur` — le retour du peintre commande la visibilité du
+  // conteneur, c'est la règle du dépôt. Le sauter laisserait à l'écran le
+  // comparateur du territoire précédent.
+  const peinte = await executerPeindreDetail(
+    { code: "FR", niveau: "region", maille: "pays" },
+    CATALOGUE_BANC,
+    FRANCE_BANC,
+  );
+  assert.equal(peinte.comparateur, 1);
+  // Et sans sélection, la page dit ce qu'elle attend au lieu de peindre un
+  // cadre vide : aucune rubrique, aucun lot demandé, aucun comparateur.
+  const sans = await executerPeindreDetail(
+    { code: null, niveau: "region", maille: null },
+    CATALOGUE_BANC,
+    FRANCE_BANC,
+  );
+  assert.deepEqual(sans.liste, []);
+  assert.deepEqual(sans.charges, []);
+  assert.equal(sans.comparateur, 0);
+  assert.match(sans.vide, /Aucun territoire choisi/);
+});
+
+test("ouvrir la France ne fait pas changer la carte de couche", async () => {
+  // `pays` n'a pas de tuiles — `NIVEAUX_CARTOGRAPHIES` de publish.py n'en
+  // retient que trois — et `COUCHES` n'en porte donc aucune. Laisser
+  // `etat.niveau` la prendre ferait demander `remplissage-undefined` à
+  // MapLibre au premier repeint.
+  const choix = await executerOuvrirTerritoire(null, "FR", "pays", ["fiche", "volet-territoire"]);
+  assert.equal(choix.erreur, null);
+  assert.equal(choix.etat.niveau, "commune", "la couche peinte ne bouge pas");
+  assert.equal(choix.etat.maille, "pays");
+  assert.deepEqual(choix.fiches, ["FR"]);
+
+  // Depuis une analyse pré-rendue, la même commande écrit une adresse dont la
+  // maille survit à la relecture : en `niveau`, `niveauConnu` la ramènerait à
+  // la maille par défaut et la France s'ouvrirait sur une région.
+  const lien = await executerOuvrirTerritoire("editorial", "FR", "pays");
+  assert.deepEqual(lien.adresses, ["/territoire?maille=pays&territoire=FR"]);
+  const lu = executerLireUrl(lien.adresses[0]!);
+  assert.equal(lu.selection, "FR");
+  assert.equal(lu.maille, "pays");
+  assert.notEqual(lu.niveau, "pays", "la maille de la carte reste une couche de tuiles");
+
+  // Et l'adresse écrite à la main tombe sur la même garde.
+  const force = executerLireUrl("/detail?niveau=pays&territoire=FR");
+  assert.notEqual(force.niveau, "pays");
 });
 
 test("la panne de chargement ne s'écrit pas là où il n'y a pas où l'écrire", () => {
