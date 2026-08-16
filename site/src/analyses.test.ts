@@ -114,8 +114,11 @@ test("les crédits des missions sortent de la liste et gardent leurs colonnes", 
     nom: "France",
     series: {
       etat_depenses_nettes_bg: { "2019": 337_000_000_000, "2025": 441_194_000_000 },
-      etat_mission_defense_credits_votes: { "2025": 59_946_000_000 },
-      etat_mission_defense_credits_consommes: { "2025": 62_124_000_000 },
+      // Les missions publient un exercice — 2024 — que l'agrégat n'a pas :
+      // c'est lui qui doit disparaître des colonnes du tableau ordinaire une
+      // fois les missions parties.
+      etat_mission_defense_credits_votes: { "2024": 47_178_000_000, "2025": 59_946_000_000 },
+      etat_mission_defense_credits_consommes: { "2024": 48_000_000_000, "2025": 62_124_000_000 },
     },
   } as never;
   const liste = rubriques(france, catalogue, { budget_etat: "Budget de l'État" });
