@@ -331,6 +331,33 @@ pour ne plus l'être.
    palmarès entre territoires » et le tri assumé), ou `/detail` cesse de
    présenter ses lignes comme un rang. Ne pas réécrire l'une des deux seul.
 
+5. **« Tous les départements » en couvre 97 sur 103, et le chiffre sort sans
+   son dénominateur.** Trouvé en rendant le simulateur depuis les données
+   publiées. Les trois volets des collectivités s'intitulent « Le budget de
+   **tous** les départements », « de **toutes** les communes », « de **toutes**
+   les régions », et leur cadrage donne un effectif sans dire sur combien :
+
+   | Volet | Agrégé | Publié par le site | Manque |
+   |---|---|---|---|
+   | Communes | 34 778 | 34 875 | 97 |
+   | Départements | 97 | 103 | 6 |
+   | Régions | 17 | 18 | 1 |
+
+   La couverture elle-même est connue et acceptée — elle est écrite plus bas
+   dans ce fichier, à l'entrée du simulateur des collectivités. Ce qui manque
+   est que **l'écran ne la dit pas** : le cadrage porte la source (OFGL), le
+   millésime (2025) et l'unité (M€), mais pas le dénominateur, quand la règle du
+   dépôt exige les quatre. Et le titre affirme « tous » là où il en manque six.
+
+   Le correctif est petit et connu : `simulateur_collectivites` (`publish.py`,
+   vers la ligne 1362) compose ce cadrage à partir de `couverture`, un simple
+   compte ; il lui faut le total de la maille, que `geo.geography_reference`
+   porte déjà. **Il n'est pas fait ici parce qu'aucun test ne couvre cette
+   fonction** — changer un texte publié sans garde serait poser exactement le
+   genre de chiffre que ce site existe pour refuser. La fixture `entrepot_seme`
+   (`tests/conftest.py`) rend le test faisable : semer la géographie et les
+   agrégats `fin`, appeler la fonction, lire le cadrage.
+
 ### Fait
 
 - **Condenser les longues listes** (16 août 2026). Mesuré, puis traité là où la
