@@ -169,41 +169,46 @@ pour ne plus l'être.
    la promesse de l'outil. Comme pour la provenance nationale, la décision
    relève de **D7** : la validation humaine préalable reste en vigueur pour les
    connecteurs et la méthodologie.
-2. **Provenance au niveau France — la hiérarchie se referme, et elle est
-   déclarable.** `provenance.ts` attribue la variation d'un agrégat à ses
-   composantes partout où la source déclare une hiérarchie. Le catalogue publié
-   compte 386 indicateurs, dont **56 déclarent un parent — tous OFGL**, et
-   **aucun des 87 nationaux**. Le module ne se tait donc pas par défaut de code :
-   rien ne lui est déclaré.
+2. **Provenance au niveau France — déclarée, sauf les missions, et la raison
+   du refus vaut d'être lue.** `provenance.ts` attribue la variation d'un
+   agrégat à ses composantes partout où la source déclare une hiérarchie. Le
+   catalogue national n'en déclarait aucune ; il en porte désormais cinq, et
+   **24 indicateurs gagnent un parent** :
 
-   **Correction d'une mesure fausse écrite ici.** Cette entrée a affirmé que la
-   somme des missions ne redonnait pas les dépenses nettes, à 1 % près. C'était
-   une erreur de terme : je retranchais la **mission** « Remboursements et
-   dégrèvements » entière, qui porte aussi les dégrèvements d'impôts **locaux**,
-   alors que « nettes » ne déduit que les remboursements d'impôts **d'État**,
-   publiés à part sous `etat_remboursements_impots_etat`.
+   | Agrégat | Composantes | Exercices vérifiés | Écart maximal |
+   |---|---|---|---|
+   | `etat_recettes_nettes_bg` | 2 | 13 (2013-2025) | 0,0001 € |
+   | `insee_apu_solde` | 3 sous-secteurs | 67 (1959-2025) | 0,050 % en 1974, nul depuis 1977 |
+   | `insee_dette_apu_montant` | 4 sous-secteurs | 122 trimestres | 0,014 % (arrondi source) |
+   | `depense_fiscale_totale` | 9 impôts d'assiette | 3 | 0,0000 € |
+   | `drees_protection_sociale_total` | 6 risques | 66 (1959-2024) | 0,0008 € |
 
-   Refait avec le bon terme (version 2026-08-11T0807, pays/FR) :
+   **Les 33 missions du budget général restent refusées**, et pas pour la raison
+   que cette entrée a d'abord donnée. Deux erreurs successives ont été écrites
+   ici, elles méritent d'être gardées :
 
-   | | 2024 | 2025 |
-   |---|---|---|
-   | Somme brute des 33 missions | 584,98 Md€ | 578,04 Md€ |
-   | − Remboursements d'impôts d'État | −141,57 | −136,84 |
-   | **= dépenses nettes reconstituées** | **443,41** | **441,19** |
-   | Dépenses nettes publiées | 443,41 | 441,19 |
-   | **Écart** | **0,000 %** | **0,000 %** |
+   - D'abord « la somme ne redonne pas le total, 1 % d'écart ». **Faux** : on
+     retranchait la *mission* « Remboursements et dégrèvements » entière, qui
+     porte aussi les dégrèvements d'impôts **locaux**, au lieu des seuls
+     remboursements d'impôts **d'État**. Avec le bon terme,
+     `578,04 − 136,84 = 441,19` contre 441,19 publié — **0,000 %** aux deux
+     exercices.
+   - Puis « donc c'est déclarable ». **Faux aussi, et plus subtilement** :
+     l'identité qui se referme est une **soustraction**, or un `parent` dit
+     « ceci s'additionne dans cela ». **Aucune composition de missions publiées
+     ne redonne le total** — les 33 le dépassent de 31 %, et la mission des
+     remboursements écartée il manque encore 1 %, qui sont les dégrèvements
+     locaux que « net » ne retranche pas.
 
-   L'identité est exacte sur les deux exercices publiés, très en deçà du
-   `TOLERANCE_ECHELON = 0.005` que le pipeline applique aux collectivités. Les
-   33 missions du budget général sont bien la décomposition des dépenses nettes,
-   **à condition de retrancher les remboursements d'impôts d'État** — et donc de
-   ne pas ranger la mission « Remboursements et dégrèvements » comme une
-   composante ordinaire.
+   Le refus est reproductible : l'entrée reste dans la table candidate du
+   pipeline avec sa mesure, et le contrôle d'identité — `TOLERANCE_ECHELON`,
+   celui-là même que les collectivités subissent — la rejette à chaque
+   publication.
 
-   Reste à déclarer la hiérarchie dans le pipeline. La décision relève de **D7** :
-   dire qu'un agrégat se décompose en telles composantes est une affirmation
-   comptable. Ce qui la rend sûre est écrit ci-dessus — elle est vérifiée à
-   l'exactitude, sur deux exercices.
+   **Ce que le site n'en montre pas encore.** `blocs.ts` ne nomme un poste que
+   s'il figure dans sa table `POSTES`, purement OFGL, et `provenanceDite` n'a
+   d'autre appelant que ses tests. La déclaration est une vérité de pipeline qui
+   attend son emploi côté site.
 
 3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
    range, il ne les condense pas. Visé : une question, une phrase, trois
