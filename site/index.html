@@ -3,12 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Le titre et la description du GABARIT, c'est-à-dire de six adresses :
-         la racine, où l'accueil est servi écrit, et les cinq chemins de vues
-         que le repli SPA sert avec ce même document. Ils nomment donc le site,
-         jamais une de ses vues — « carte des finances locales » décrivait la
-         carte, qui a quitté la racine pour `/territoire` au lot 4, et se
-         peignait ainsi sur l'image de partage de l'accueil.
+    <!-- Le titre et la description du GABARIT, c'est-à-dire de cinq adresses :
+         la racine, où l'accueil est servi écrit, et les quatre chemins de vues
+         que le repli SPA sert avec ce même document — `/territoire`,
+         `/reperes`, `/detail`, `/simulateur`. `/methode` en est sortie : elle a
+         son propre document, écrit au build (`injecterMethode`,
+         scripts/prerendre.ts), avec son titre, sa description et sa canonique.
+         Ils nomment donc le site, jamais une de ses vues — « carte des finances
+         locales » décrivait la carte, qui a quitté la racine pour `/territoire`
+         au lot 4, et se peignait ainsi sur l'image de partage de l'accueil.
 
          La description est le message principal du site (spec §8), dont
          `MESSAGE_PRINCIPAL` (src/accueil.ts) est la rédaction : un `<meta>` ne
@@ -94,11 +97,13 @@
          fixe l'impression mise en cache — lisait la racine sur le squelette de
          la carte, où aucun mot du message principal n'apparaît.
 
-         Le prix est de l'autre côté : le gabarit sert six adresses, et sur les
-         cinq chemins de vues l'accueil s'affiche le temps que le paquet arrive.
-         C'est le défaut qu'on avait déjà, à l'envers — la racine montrait le
-         cadre de la carte en attendant — et il quitte ainsi l'adresse par
-         laquelle on entre. -->
+         Le prix est de l'autre côté : le gabarit sert cinq adresses, et sur les
+         quatre chemins de vues qui lui restent l'accueil s'affiche le temps que
+         le paquet arrive. C'est le défaut qu'on avait déjà, à l'envers — la
+         racine montrait le cadre de la carte en attendant — et il quitte ainsi
+         l'adresse par laquelle on entre. Un document par vue le fait
+         disparaître : `/methode` a le sien, et le pré-rendu y replie ce cadre-ci
+         (`injecterMethode`, scripts/prerendre.ts). -->
     <div class="vue vue--accueil" id="vue-accueil"></div>
 
     <!-- `hidden` au départ, pour la même raison : deux vues visibles avant que
@@ -227,8 +232,14 @@
       </section>
     </div>
 
-    <!-- La méthode : la grille de verdicts, ce que le site a corrigé, et
-         quand il a lu ses sources. Le lot 4 y ajoutera les sources. -->
+    <!-- La méthode : les sources, la méthode, la grille de verdicts, quand le
+         site a lu chaque source et ce qu'il a corrigé.
+
+         `hidden` ici, mais pas dans le document servi à `/methode` : ce
+         chemin-là a le sien, et le pré-rendu y déplie ce cadre après avoir
+         rempli `methode-sources`, `methode-methode` et `methode-grille` — les
+         trois que le build sait calculer. Les deux derniers restent au
+         navigateur, qui va chercher `fraicheur.json` et `journal.json`. -->
     <div class="vue" id="vue-methode" hidden>
       <section class="methode">
         <h2>Méthode</h2>

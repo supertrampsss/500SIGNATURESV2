@@ -386,22 +386,28 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
   // public : carte des finances locales ». Les plateformes montrent l'image en
   // grand, le titre dessous — le lecteur voyait une carte des finances locales
   // annoncée comme un scénario. Même effet sur `/analyses/`.
-  const trois = sections(GABARIT);
+  const toutes = sections(GABARIT);
   assert.deepEqual(
-    trois.map((s) => [s.chemin, s.nature]),
+    toutes.map((s) => [s.chemin, s.nature]),
     [
       ["", "Le site"],
       ["analyses", "Analyses"],
       ["simulateur", "Simulateur"],
+      // La méthode a rejoint la liste en recevant son propre document : servie
+      // par le gabarit, elle empruntait la carte du site — chapeau « Le site »,
+      // phrase du message principal — sous un titre qui annonce les sources.
+      ["methode", "Méthode"],
     ],
   );
   // La section du simulateur est peinte À L'ENDROIT où la fonction d'edge
   // annonce l'image : deux chemins se seraient désaccordés en silence.
-  assert.equal(path.join("/", trois[2].chemin, "carte.png"), IMAGE_SCENARIO);
+  assert.equal(path.join("/", toutes[2].chemin, "carte.png"), IMAGE_SCENARIO);
+  // Et celle de la méthode à l'endroit où son document annonce la sienne.
+  assert.equal(path.join("/", toutes[3].chemin), CHEMINS.methode);
 
   // Le chapeau peint est celui de la section, jamais « Repère ». Il est lu sur
   // le SVG rendu, pas sur les données : c'est ce que le lecteur voit.
-  for (const section of trois) {
+  for (const section of toutes) {
     const svg = carteSection(
       donneesCarteSection(section.nature, section.titre, section.phrase, "2026-08-11T0807", HOTE),
     );
@@ -414,10 +420,10 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
   // Le titre du simulateur est la marque, pas le titre du gabarit : celui-ci
   // nomme la vue d'accueil, et l'écrire sur l'image d'un scénario partagé
   // rouvrirait le démenti.
-  assert.equal(trois[2].titre, marqueDuGabarit(GABARIT));
-  assert.notEqual(trois[2].titre, titreDuGabarit(GABARIT));
+  assert.equal(toutes[2].titre, marqueDuGabarit(GABARIT));
+  assert.notEqual(toutes[2].titre, titreDuGabarit(GABARIT));
 
-  // Écrites, toutes les trois : le contrôle des pages ne verrait pas celle du
+  // Écrites, toutes : le contrôle des pages ne verrait pas celle du
   // simulateur, qu'aucune page pré-rendue ne déclare.
   const racine = await mkdtemp(path.join(tmpdir(), "sections-"));
   await assert.rejects(() => validerImageDuScenario(racine), /n'a pas écrite/);
