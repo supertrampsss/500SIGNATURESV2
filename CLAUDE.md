@@ -131,6 +131,34 @@ pour ne plus l'être.
 
 1. **Simulateur — comptes spéciaux, budgets annexes et ODAC.** Ce qui reste
    hors du budget général de l'État et hors des trois échelons publiés.
+
+   **Avant d'étendre le simulateur, une identité doit se refermer, et elle ne
+   se referme pas.** Mesuré sur les séries publiées (2026-08-11T0807, pays/FR,
+   exercice 2025), toutes du même cadre `budgetaire` et du même jeu
+   `execution-budget-etat` :
+
+   | | Md€ |
+   |---|---|
+   | Recettes nettes du budget général | 380,4 |
+   | − Dépenses nettes du budget général | −441,2 |
+   | − Prélèvements sur recettes (collectivités 46,1 + UE 23,0) | −69,0 |
+   | + Solde des comptes spéciaux | −2,3 |
+   | **= solde reconstitué** | **−132,1** |
+   | Solde budgétaire publié | −124,2 |
+   | **Écart inexpliqué** | **−7,9** |
+
+   Les prélèvements sur recettes doivent bien être retranchés : la définition
+   de `etat_depenses_nettes_bg` le dit — « les prélèvements reversés aux
+   collectivités et à l'Union européenne n'y figurent pas : ils sont comptés à
+   part ». Sans eux l'écart serait de 61 Md€.
+
+   Restent 7,9 Md€, soit 6 % du déficit. Les budgets annexes sont un candidat
+   mais ne pèsent pas cet ordre. **Tant que cet écart n'est pas nommé, étendre
+   le simulateur aux comptes spéciaux lui ferait afficher un solde que les
+   comptes publiés ne confirment pas** — et l'exactitude arithmétique est toute
+   la promesse de l'outil. Comme pour la provenance nationale, la décision
+   relève de **D7** : la validation humaine préalable reste en vigueur pour les
+   connecteurs et la méthodologie.
 2. **Provenance au niveau France — la condition n'est pas remplie, mesuré.**
    `provenance.ts` attribue la variation d'un agrégat à ses composantes partout
    où la source déclare une hiérarchie. Le catalogue publié compte 386
