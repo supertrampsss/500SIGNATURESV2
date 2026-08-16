@@ -61,7 +61,15 @@ function echapper(texte: string): string {
 export function valeurLisible(valeur: number, unite: string): string {
   if (unite === "EUR") return millions(valeur);
   if (unite === "percent") {
-    return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(valeur)} %`;
+    // Une décimale, toujours. Ce tableau met un exercice par colonne : une
+    // série s'y lit de gauche à droite, et `Intl` la laissait tomber sur les
+    // comptes ronds — le taux de foncier bâti d'Ayguemorte-les-Graves se
+    // lisait « 40,8 % | 42 % | 43 % | 43 % ». Sur les seules communes de la
+    // Gironde, 773 séries mêlent ainsi valeurs rondes et décimales.
+    return `${new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(valeur)} %`;
   }
   const decimales = Number.isInteger(valeur) ? 0 : 1;
   const nombre = new Intl.NumberFormat("fr-FR", {
