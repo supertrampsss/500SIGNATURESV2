@@ -36,6 +36,7 @@ import {
   MESSAGE_PRINCIPAL,
 } from "../src/accueil.ts";
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
+import { indicateursDerives } from "../src/derives.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
@@ -688,17 +689,30 @@ export const ALEA_PRERENDU = 0;
  * Le même appel que le navigateur fait (`peindreAccueil`, main.ts), avec les
  * mêmes données et la même fonction : `rendu()` est pure, et c'est tout ce que
  * le pré-rendu ajoute ici — l'avoir déjà appelée quand la page part.
+ *
+ * Y compris les indicateurs calculés, que le navigateur ajoute au catalogue
+ * avant de peindre (`indicateursDerives`, derives.ts) : la bande de confiance
+ * compte le catalogue qu'elle reçoit, et un pré-rendu qui en compterait un autre
+ * ferait sauter le nombre d'un chiffre à l'autre le jour où le navigateur
+ * repeint — la même phrase, deux comptes. Faut-il compter comme « publié » un
+ * indicateur que le site calcule ? C'est une question éditoriale, et elle ne se
+ * tranche pas en passant, dans un script de build : elle se tranche à un seul
+ * endroit, pour les deux côtés.
+ *
+ * Ce catalogue-là ne sert qu'ici : les pages d'analyse reçoivent le catalogue
+ * publié, tel qu'elles le recevaient.
  */
 export function corpsAccueil(
   analyses: readonly Analyse[],
-  catalogue: readonly Indicateur[],
+  catalogue: Indicateur[],
   regions: Record<string, Territoire>,
   producteurs: readonly string[],
 ): string {
+  const complet = [...catalogue, ...indicateursDerives(catalogue)];
   return renduAccueil({
     analyses,
-    catalogue,
-    territoires: exemplesTerritoires(regions, catalogue),
+    catalogue: complet,
+    territoires: exemplesTerritoires(regions, complet),
     alea: ALEA_PRERENDU,
     producteurs,
   });

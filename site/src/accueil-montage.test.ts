@@ -348,3 +348,12 @@ test("les deux côtés nomment le même attribut, et la même version", () => {
   assert.match(DONNEES, /versionLue = donnees\.version;/);
   assert.match(DONNEES, /export const version = \(\) => versionLue;/);
 });
+
+test("les deux côtés comptent le même catalogue", () => {
+  // La bande de confiance compte le catalogue qu'elle reçoit. Le navigateur y
+  // ajoute les indicateurs calculés avant de peindre ; un pré-rendu qui ne les
+  // ajouterait pas ferait sauter le nombre d'un chiffre à l'autre le jour où le
+  // navigateur repeint — la même phrase, deux comptes.
+  assert.match(MAIN, /catalogue = \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\];/);
+  assert.match(PRERENDU, /const complet = \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\];/);
+});
