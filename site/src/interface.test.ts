@@ -56,6 +56,26 @@ test("REPÈRES dit son unité sous son titre", () => {
   );
 });
 
+test("les deux tableaux de /detail bornent leur légende de la même façon", () => {
+  // `fenetreDuTableau` existe pour un défaut que son propre commentaire nomme :
+  // « 100 premiers territoires » s'affichait au-dessus de dix-sept lignes. Le
+  // correctif n'avait été posé que sur un des deux tableaux ; celui du mode
+  // évolution écrivait la mention EN DUR, donc sans condition sur le nombre de
+  // lignes et sans le dénominateur que l'autre donne (« sur 34 875 »).
+  //
+  // Une seule occurrence du littéral doit subsister : celle de l'aide, dans le
+  // commentaire de la fonction.
+  const enDur = [...MAIN.matchAll(/· 100 premiers territoires/g)];
+  assert.equal(enDur.length, 1, `mention en dur : ${enDur.length} occurrence(s)`);
+  assert.match(
+    MAIN.slice(MAIN.indexOf("function fenetreDuTableau")),
+    /total > 100 \? ` · 100 premiers territoires sur/,
+  );
+  // Et les deux légendes passent par elle.
+  const appels = [...MAIN.matchAll(/\$\{fenetreDuTableau\(/g)];
+  assert.equal(appels.length, 2, `appels à fenetreDuTableau : ${appels.length}`);
+});
+
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
   // Première version : la légende recouvrait le sud-ouest de la France. La
   // leçon n'a pas changé quand la carte est devenue la page : les surcouches

@@ -622,7 +622,7 @@ function majTableauEvolution(
   $("tableau-donnees").innerHTML = `
     <caption>${traduire(indicateur.libelle)}, évolution ${etat.periode} vs ${periodePrecedente}${
       parHabitant ? ", par habitant" : ""
-    } · 100 premiers territoires</caption>
+    }${fenetreDuTableau(toutes.length)}</caption>
     <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">${periodePrecedente}</th><th scope="col">${etat.periode}</th><th scope="col">Variation</th></tr></thead>
     <tbody>${lignes
       .map(
