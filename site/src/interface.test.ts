@@ -56,6 +56,19 @@ test("REPÈRES dit son unité sous son titre", () => {
   );
 });
 
+test("la colonne des variations de /detail demande la décimale, la carte non", () => {
+  // `formaterVariation` sert la carte ET la colonne de /detail. Sur la carte le
+  // rendu compact est voulu — deux tests d'evolution-carte le tiennent. Dans la
+  // colonne, triée par variation décroissante, « +224 % » tombait entre
+  // « +239,7 % » et « +221,1 % » : 7 des 100 lignes de la Gironde.
+  //
+  // Sans cette garde, débrancher le quatrième argument ne fait rien tomber :
+  // le test d'evolution-carte prouve que l'option marche, pas qu'on l'emploie.
+  const appel = MAIN.match(/formaterVariation\(l\.variation, indicateur\.unite, mode[^)]*\)/);
+  assert.ok(appel, "appel de formaterVariation introuvable dans le tableau");
+  assert.match(appel[0], /,\s*true\)$/, appel[0]);
+});
+
 test("les deux tableaux de /detail bornent leur légende de la même façon", () => {
   // `fenetreDuTableau` existe pour un défaut que son propre commentaire nomme :
   // « 100 premiers territoires » s'affichait au-dessus de dix-sept lignes. Le
