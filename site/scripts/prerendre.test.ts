@@ -25,23 +25,27 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
 
+import { CHIFFRES_EXEMPLE, MESSAGE_PRINCIPAL } from "../src/accueil.ts";
 import { rendu, type Analyse } from "../src/analyse-rendu.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
-import type { Indicateur } from "../src/donnees.ts";
+import type { Indicateur, Territoire } from "../src/donnees.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
 import { lirePolices, peindre, rasteriser, type Peinture } from "./rasteriser.ts";
 import {
   ADRESSE_PUBLIEE,
+  ALEA_PRERENDU,
   HOTE,
   adresseSite,
   adressesPubliees,
+  corpsAccueil,
   donneesCarteAnalyse,
   ecrireCartes,
   ecrireIndexation,
   donneesCarteSection,
+  injecterAccueil,
   marqueDuGabarit,
   planDuSite,
   robotsDuSite,
@@ -701,4 +705,163 @@ test("11 quater. le build appelle ce contrôle, et l'appelle après la dernière
     corps.lastIndexOf("ecrites.push(") < corps.indexOf("await ecrireIndexation("),
     "le plan est écrit avant la dernière page : il annoncerait ce qui n'est pas encore là.",
   );
+});
+
+/* --------------------------------------------------------------------------
+ * 12. L'accueil est SERVI, pas seulement écrit
+ *
+ * La racine est la première page qu'un moteur explore, et cette première
+ * exploration fixe l'impression qu'il met en cache — c'est elle qu'on ne
+ * rattrape pas. Peinte côté client seulement, elle ne portait aucun mot du
+ * message principal pour qui n'exécute pas JavaScript : `<main>` s'y lisait sur
+ * le squelette de la carte, « Voir sur la carte · Aucun territoire choisi ».
+ * ----------------------------------------------------------------------- */
+
+/** Le vrai gabarit du dépôt, celui que Vite copie dans `dist`. Les tests
+ *  ci-dessous l'éprouvent LUI, pas une fixture : c'est son cadre d'accueil, son
+ *  titre et sa description qui partent en production. */
+const GABARIT_REEL = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+/**
+ * Le texte de `<main>`, balises retirées — la mesure du relecteur.
+ *
+ * Les commentaires HTML partent d'abord : ce sont les seuls « mots » du gabarit
+ * que personne ne lit, et les compter ferait passer une page vide pour une page
+ * pleine.
+ */
+function texteDuMain(html: string): string {
+  const main = html.match(/<main id="contenu">([\s\S]*?)<\/main>/)?.[1] ?? "";
+  return main
+    .replace(/<!--[\s\S]*?-->/g, " ")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Le catalogue des trois séries de l'exemple vivant, en euros — ce que
+ *  l'entrepôt en déclare. */
+const CATALOGUE_EXEMPLE = CHIFFRES_EXEMPLE.map(
+  (id) => ({ id, libelle: `Série ${id}`, unite: "EUR" }) as Indicateur,
+);
+
+/** Une région du lot publié, complète ou trouée selon `series`. */
+function region(nom: string, series: Record<string, Record<string, number>>): Territoire {
+  return { nom, parent: null, population: 1_000_000, drapeaux: {}, series };
+}
+
+const TROIS_SERIES = Object.fromEntries(
+  CHIFFRES_EXEMPLE.map((id, rang) => [id, { "2024": 3_600_000_000 + rang, "2025": 3_800_000_000 + rang }]),
+);
+
+/**
+ * Un lot dont la région au plus petit code est trouée, et dont les clés
+ * arrivent dans le désordre.
+ *
+ * Les deux pièges dans un seul lot : « le premier » ne veut pas dire le premier
+ * complet si l'on ne trie pas les éligibles, et il ne veut pas dire le premier
+ * code si l'on s'en remet à l'ordre des clés — « 11 » passe devant « 01 » dans
+ * tout objet JavaScript.
+ */
+const LOT_ESSAI: Record<string, Territoire> = {
+  "11": region("Code plus grand, complet", TROIS_SERIES),
+  "01": region("Plus petit code, troué", { [CHIFFRES_EXEMPLE[0]]: { "2025": 1_000_000_000 } }),
+  "02": region("Plus petit code complet", TROIS_SERIES),
+};
+
+test("12. le gabarit sert l'accueil écrit, message principal compris, sans exécuter une ligne", async () => {
+  const analyses = await analysesPubliees();
+  const corps = corpsAccueil(analyses, CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
+  const html = injecterAccueil(GABARIT_REEL, corps, "v-essai");
+
+  // Ce que `<main>` porte, balises retirées : le message principal du site, et
+  // les trois appels à l'action. Sans JavaScript, sans réseau, sans rien.
+  const texte = texteDuMain(html);
+  assert.ok(texte.includes(echapper(MESSAGE_PRINCIPAL)), "le message principal n'est pas servi");
+  for (const appel of ["Lire le verdict", "Rejouer le calcul", "Chercher ma commune"]) {
+    assert.ok(texte.includes(appel), appel);
+  }
+  // Et il en reste beaucoup plus que les 203 signes du squelette de la carte.
+  assert.ok(texte.length > 1000, `<main> ne porte que ${texte.length} signes de texte`);
+
+  // Le cadre reste le cadre : `basculerVue` (main.ts) le montre et le masque
+  // par son identifiant, et `brancherAppelRecherche` y délègue son écouteur.
+  assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" data-publication="v-essai">/);
+});
+
+test("12 bis. le tirage du pré-rendu est le premier territoire COMPLET de la liste publiée", () => {
+  // Un choix, jamais un aléa refait à chaque build : deux constructions du même
+  // dépôt donneraient deux pages, et le diff du site deviendrait illisible.
+  assert.equal(ALEA_PRERENDU, 0);
+  const corps = corpsAccueil([], CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE"]);
+  // Zéro désigne le premier ÉLIGIBLE — la région trouée afficherait un trou à
+  // l'endroit le plus visible du site — dans l'ordre des CODES, et non dans
+  // celui où JavaScript rend les clés d'un objet, où « 11 » passe devant « 01 ».
+  assert.ok(corps.includes("Plus petit code complet"));
+  assert.ok(!corps.includes("Plus petit code, troué"));
+  assert.ok(!corps.includes("Code plus grand, complet"));
+  // Et deux compositions de suite donnent la même page, au caractère près.
+  assert.equal(corps, corpsAccueil([], CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE"]));
+});
+
+test("12 ter. le pré-rendu rougit si le cadre disparaît ou repart replié", () => {
+  // Deux défauts muets, et le second est celui d'avant ce pré-rendu : l'accueil
+  // écrit dans le document et servi à personne.
+  assert.throws(
+    () => injecterAccueil(GABARIT_REEL.replace('id="vue-accueil"', 'id="vue-maison"'), "<p>x</p>", "v"),
+    /la racine partirait vide/,
+  );
+  assert.throws(
+    () =>
+      injecterAccueil(
+        GABARIT_REEL.replace('id="vue-accueil"', 'id="vue-accueil" hidden'),
+        "<p>x</p>",
+        "v",
+      ),
+    /servie à personne/,
+  );
+});
+
+test("12 quater. le build écrit l'accueil dans le gabarit, et le gabarit seulement", () => {
+  // Troisième garde de branchement de ce fichier : les tests 7 bis et 7 ter ont
+  // appris ici qu'une fonction éprouvée dont l'appel est commenté laisse toute
+  // la suite verte.
+  const source = sansCommentaires(readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8"));
+  const corps = source.slice(source.indexOf("async function main"));
+  assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
+  assert.match(
+    corps,
+    /injecterAccueil\(shell, corpsAccueil\(analyses, catalogue, regions, producteurs\), version\)/,
+    "main() n'écrit plus l'accueil : la racine repartirait vide pour qui n'exécute pas JavaScript.",
+  );
+  // Le corps des cinq autres vues n'est pas touché : l'application se monte
+  // dessus, et `injecter` — qui remplace `<main>` entier — reste réservé aux
+  // pages éditoriales.
+  assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: "\/"/);
+});
+
+/* --------------------------------------------------------------------------
+ * 13. Le gabarit ne s'annonce plus comme une de ses vues
+ * ----------------------------------------------------------------------- */
+
+test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
+  // Il répond à six adresses par le repli SPA : la racine, où l'accueil est
+  // servi, et les cinq chemins de vues. Son titre et sa description valent donc
+  // pour toutes — « carte des finances locales » décrivait la carte, qui a
+  // quitté la racine pour `/territoire`.
+  assert.equal(titreDuGabarit(GABARIT_REEL), marqueDuGabarit(GABARIT_REEL));
+  // Et sa description est le message du site, arrêté à la conception (spec §8).
+  // Un `<meta>` ne peut pas lire une constante : c'est cette égalité-ci qui
+  // tient les deux rédactions accordées.
+  assert.equal(descriptionDuGabarit(GABARIT_REEL), MESSAGE_PRINCIPAL);
+
+  // La carte de partage de la racine peint ce que le document annonce : c'est
+  // le même défaut, une image plus loin — `og:image` de `/` est `/carte.png`,
+  // et son titre peint était « carte des finances locales ».
+  const siteCarte = sections(GABARIT_REEL).find((s) => s.chemin === "");
+  assert.ok(siteCarte, "le gabarit n'a plus de carte de section");
+  assert.equal(siteCarte.titre, marqueDuGabarit(GABARIT_REEL));
+  assert.equal(siteCarte.phrase, MESSAGE_PRINCIPAL);
+  for (const mot of [siteCarte.titre, siteCarte.phrase, titreDuGabarit(GABARIT_REEL)]) {
+    assert.ok(!/carte des finances locales/i.test(mot), `« ${mot} » nomme une vue que / n'ouvre plus`);
+  }
 });

@@ -29,7 +29,12 @@ import { fileURLToPath } from "node:url";
 // simulateur le peint : l'import inverse — l'accueil lisant un script de build
 // — aurait fait entrer `node:fs` dans le module graphe du navigateur. Une seule
 // rédaction, lue des deux côtés.
-import { MESSAGE_PRINCIPAL } from "../src/accueil.ts";
+import {
+  rendu as renduAccueil,
+  exemplesTerritoires,
+  MAILLE_EXEMPLE,
+  MESSAGE_PRINCIPAL,
+} from "../src/accueil.ts";
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
@@ -39,7 +44,7 @@ import { CHEMINS } from "../src/routes.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
-import type { Indicateur } from "../src/donnees.ts";
+import type { Indicateur, Manifeste, Territoire } from "../src/donnees.ts";
 
 const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE_SITE = path.resolve(ICI, "..");
@@ -402,9 +407,15 @@ export function descriptionDuGabarit(shell: string): string {
  * La marque du site : le `<h1>` de l'en-tête, « Où va l'argent public ».
  *
  * C'est le titre des cartes de section qui ne décrivent pas une page
- * pré-rendue. Le `<title>` du gabarit ne convient pas pour elles : il nomme la
- * vue d'accueil — « carte des finances locales » — et l'écrire sur l'image d'un
- * scénario partagé serait le démenti qu'on vient de refermer.
+ * pré-rendue — l'index des analyses, le simulateur. Ce que ces images-là nomment
+ * est le site, pas la vue qu'on y ouvre : une carte de scénario partagé
+ * intitulée « carte des finances locales » démentait le lien qu'elle
+ * accompagnait, et c'est ce titre-ci qui a fermé ce défaut.
+ *
+ * Le `<title>` du gabarit dit désormais la même chose, pour la même raison — il
+ * vaut pour six adresses, dont cinq ne sont pas la carte — et un test les tient
+ * accordés (prerendre.test.ts). Les deux lectures restent séparées parce que
+ * les deux endroits le sont : l'onglet et l'en-tête.
  */
 export function marqueDuGabarit(shell: string): string {
   const marque = shell
@@ -453,6 +464,11 @@ export function sections(shell: string): { chemin: string; nature: string; titre
     // c'est le message principal du site, arrêté à la conception (spec §8) et
     // que l'accueil pose en tête de page — le simulateur est ce que son dernier
     // mot désigne.
+    //
+    // Le gabarit porte désormais ce même message en description, et cette carte
+    // ne se distingue donc de celle du site que par son chapeau. C'est bien : ce
+    // sont deux entrées du même site, chacune à l'adresse que sa page annonce,
+    // et non une image empruntée à l'autre.
     {
       chemin: path.dirname(IMAGE_SCENARIO).replace(/^\//, ""),
       nature: "Simulateur",
@@ -641,6 +657,97 @@ function injecterPartage(html: string, page: Partageable, site: string): string 
   return suivant;
 }
 
+/* --------------------------------------------------------------------------
+ * L'accueil, écrit dans le gabarit.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Le tirage de l'exemple vivant, au build : le premier de la liste publiée.
+ *
+ * `tirerTerritoire` (accueil.ts) **reçoit** sa source d'aléa, elle ne l'appelle
+ * pas — c'est ce qui rend le bloc éprouvable sur chaque tirage possible. Un
+ * pré-rendu doit donc choisir, et ce choix vaut pour tout lecteur qui reçoit la
+ * page avant que le paquet n'arrive.
+ *
+ * Zéro, donc le premier territoire **complet** de la liste, et cette liste sort
+ * triée par code (`exemplesTerritoires`, accueil.ts) : le premier code de la
+ * maille publiée. Ce n'est pas un choix éditorial — aucun classement, le projet
+ * n'en fait aucun, aucune préférence pour une région plutôt qu'une autre, et
+ * rien qui dépende de la taille des montants. C'est une règle qu'on peut
+ * vérifier sur le fichier publié, ce qu'aucune préférence n'aurait été.
+ *
+ * Surtout, ce n'est pas un aléa refait à chaque build : deux constructions du
+ * même dépôt donneraient alors deux pages, et le diff du site deviendrait
+ * illisible — on ne saurait plus lire ce qu'un commit a changé.
+ */
+export const ALEA_PRERENDU = 0;
+
+/**
+ * L'accueil, composé sur la publication que ce build a lue.
+ *
+ * Le même appel que le navigateur fait (`peindreAccueil`, main.ts), avec les
+ * mêmes données et la même fonction : `rendu()` est pure, et c'est tout ce que
+ * le pré-rendu ajoute ici — l'avoir déjà appelée quand la page part.
+ */
+export function corpsAccueil(
+  analyses: readonly Analyse[],
+  catalogue: readonly Indicateur[],
+  regions: Record<string, Territoire>,
+  producteurs: readonly string[],
+): string {
+  return renduAccueil({
+    analyses,
+    catalogue,
+    territoires: exemplesTerritoires(regions, catalogue),
+    alea: ALEA_PRERENDU,
+    producteurs,
+  });
+}
+
+/** Le cadre de l'accueil dans le gabarit, tel qu'`index.html` le pose. */
+const CADRE_ACCUEIL = /<div class="vue vue--accueil" id="vue-accueil"([^>]*)><\/div>/;
+
+/**
+ * Pose l'accueil dans son cadre, avec la version de publication qui l'a écrit.
+ *
+ * Deux échecs plutôt qu'une page qui ment :
+ *
+ * 1. **le cadre a disparu** — renommé ou retiré, `String.replace` renverrait le
+ *    gabarit inchangé et le build publierait une racine vide sans un mot ;
+ * 2. **le cadre est replié** (`hidden`) — l'accueil serait alors écrit dans le
+ *    document et servi à personne : ni au lecteur sans JavaScript, ni au robot
+ *    qui n'en exécute pas. C'est exactement l'état d'avant ce pré-rendu, et il
+ *    reviendrait sans que rien ne le dise.
+ *
+ * `data-publication` est ce qui accorde le serveur et le navigateur :
+ * `peindreAccueil` (main.ts) compare cette valeur à la version qu'il lit dans
+ * `derniere.json` et **ne repeint pas** tant qu'elles sont les mêmes. Sans elle,
+ * le client réécrirait l'accueil une seconde après l'ouverture, avec un autre
+ * tirage — l'exemple changerait sous les yeux du lecteur.
+ */
+export function injecterAccueil(shell: string, corps: string, version: string): string {
+  const cadre = shell.match(CADRE_ACCUEIL);
+  if (!cadre) {
+    throw new Error(
+      "injecterAccueil() : le gabarit ne porte plus le cadre de l'accueil " +
+        "(<div id=\"vue-accueil\">) — la racine partirait vide.",
+    );
+  }
+  if (/\bhidden\b/.test(cadre[1]!)) {
+    throw new Error(
+      "injecterAccueil() : le cadre de l'accueil est replié (hidden) — la page serait écrite " +
+        "dans le document et servie à personne, ni au lecteur sans JavaScript ni au robot qui " +
+        "n'en exécute pas.",
+    );
+  }
+  return shell.replace(
+    CADRE_ACCUEIL,
+    () =>
+      `<div class="vue vue--accueil" id="vue-accueil" data-publication="${echapper(version)}">\n` +
+      `${corps}\n</div>`,
+  );
+}
+
 /**
  * Injecte une page dans le shell. `echapper` (texte.ts) échappe `&<>"'` — donc
  * valable aussi bien en contenu de texte (le `<title>`) qu'en valeur
@@ -739,11 +846,28 @@ async function chargerPublication(): Promise<{
   catalogue: Indicateur[];
   version: string;
   racineDonnees: string;
+  producteurs: string[];
+  regions: Record<string, Territoire>;
 }> {
   const { version } = await lireJson<{ version: string }>(`${BASE}/data/derniere.json`);
   const racineDonnees = `${BASE}/data/${version}`;
   const catalogue = await lireJson<Indicateur[]>(`${racineDonnees}/indicateurs.json`);
-  return { catalogue, version, racineDonnees };
+  // Ce que l'accueil demande en plus du catalogue : les producteurs, qu'il
+  // nomme dans sa bande de confiance, et le lot des régions, où il prend son
+  // exemple vivant. Ce sont les deux mêmes fichiers que le navigateur charge
+  // (`donnees.initialiser` et `donnees.territoires`), aux mêmes adresses — et
+  // non un tirage plus court composé pour le build.
+  const manifeste = await lireJson<Manifeste>(`${racineDonnees}/manifeste.json`);
+  const regions = await lireJson<Record<string, Territoire>>(
+    `${racineDonnees}/territoires/${MAILLE_EXEMPLE}/tous.json`,
+  );
+  return {
+    catalogue,
+    version,
+    racineDonnees,
+    producteurs: manifeste.jeux.map((jeu) => jeu.producteur),
+    regions,
+  };
 }
 
 async function ecrirePage(dossier: string, html: string): Promise<void> {
@@ -1031,7 +1155,7 @@ export async function validerIndexation(racine: string, site: string): Promise<v
 async function main(): Promise<void> {
   const shell = await readFile(path.join(DIST, "index.html"), "utf8");
   const analyses = await chargerAnalyses();
-  const { catalogue, version, racineDonnees } = await chargerPublication();
+  const { catalogue, version, racineDonnees, producteurs, regions } = await chargerPublication();
 
   await validerCadresPublies(racineDonnees);
   await validerLiensSimulateur(analyses, racineDonnees);
@@ -1069,16 +1193,23 @@ async function main(): Promise<void> {
   await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
   ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
 
-  // Le gabarit lui-même reçoit les balises du site : c'est lui que Cloudflare
-  // sert pour l'accueil et pour toutes les vues de l'application. Sans elles,
-  // la carte du site serait une image que rien ne désigne. Le corps n'est pas
-  // touché : l'application se monte dessus.
+  // Le gabarit lui-même : c'est lui que Cloudflare sert pour la racine et pour
+  // toutes les vues de l'application.
+  //
+  // Il reçoit deux choses. **L'accueil**, écrit dans son cadre : la racine est
+  // la première page qu'un moteur explore, et la première exploration fixe
+  // l'impression qu'il met en cache. Peinte côté client seulement, elle ne
+  // portait aucun mot du message principal pour qui n'exécute pas JavaScript.
+  // Et **les balises du site**, sans lesquelles la carte du site serait une
+  // image que rien ne désigne. Le reste du corps n'est pas touché :
+  // l'application se monte dessus, et les cinq autres vues restent vides tant
+  // que le paquet ne les peint pas.
   //
   // `/simulateur` part de ce document-là aussi, et c'est la fonction d'edge qui
   // y remplace le titre, la description et l'image par ceux du scénario
   // demandé (`poserApercu`, src/apercu-scenario.ts).
   const htmlSite = injecterPartage(
-    shell,
+    injecterAccueil(shell, corpsAccueil(analyses, catalogue, regions, producteurs), version),
     {
       titre: titreDuGabarit(shell),
       description: descriptionDuGabarit(shell),
@@ -1100,7 +1231,7 @@ async function main(): Promise<void> {
   await validerIndexation(DIST, SITE);
 
   console.log(
-    `Pré-rendu : ${analyses.length} analyse(s), dist/analyses/index.html, ` +
+    `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), dist/analyses/index.html, ` +
       `${analyses.length + sections(shell).length} carte(s) de partage, ` +
       `${adresses.length} adresse(s) au plan du site, sous ${SITE}.`,
   );

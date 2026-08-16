@@ -99,8 +99,8 @@ import { afficherJournal } from "./journal.ts";
 import { renduGrille, renduMethode, renduSources } from "./methode-rendu.ts";
 import {
   rendu as renduAccueil,
-  type ChiffreTerritoire,
-  type ExempleTerritoire,
+  exemplesTerritoires,
+  MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import type { Analyse } from "./analyse-rendu.ts";
 import "./style.css";
@@ -2420,75 +2420,6 @@ const ANALYSES: Analyse[] = Object.values(
   import.meta.glob<Analyse>("../analyses/*.json", { eager: true, import: "default" }),
 );
 
-/**
- * Les trois séries de l'exemple vivant : ce qui entre, ce qui sort, ce qui
- * reste dû.
- *
- * Trois agrégats en euros que `formater` rend en millions — jamais par
- * habitant, le par-habitant ne s'affichant que dans les tableaux dépliés. Ce
- * sont trois faits d'un même exercice, pas un jugement : aucun des trois ne se
- * lit comme une note, et le bloc n'en met aucun en regard d'un autre territoire.
- */
-const CHIFFRES_EXEMPLE = [
-  "ofgl_recettes_fonctionnement",
-  "ofgl_depenses_fonctionnement",
-  "ofgl_encours_dette",
-] as const;
-
-/**
- * La maille de l'exemple : la région.
- *
- * C'est une maille de la carte (`COUCHES`), donc `niveauConnu` la garde et le
- * lien de l'exemple — `/territoire?niveau=region&territoire=…` — ouvre bien la
- * fiche, sans paramètre `maille`. Et son lot tient dans un fichier que la carte
- * charge de toute façon pour ses comparaisons, là où celui des départements
- * pèse sept fois plus : au premier écran du site, la différence se voit.
- */
-const MAILLE_EXEMPLE = "region";
-
-/**
- * Les territoires candidats à l'exemple, avec leurs trous.
- *
- * Le dernier exercice publié de chaque série, et celui d'avant pour la
- * variation : l'un et l'autre lus sur la série elle-même, jamais sur un
- * calendrier. Les trous restent — `tirerTerritoire` (accueil.ts) écarte les
- * territoires incomplets, et c'est là que cette règle est éprouvée.
- *
- * Une série absente du catalogue n'a pas d'unité déclarée : aucun exemple n'est
- * alors montrable, et le bloc tombe sur le champ de recherche seul plutôt que
- * de peindre un montant sans unité au premier écran du site.
- */
-function exemplesTerritoires(
-  paquet: Record<string, Territoire>,
-  catalogue: readonly Indicateur[],
-): ExempleTerritoire[] {
-  const series: Indicateur[] = [];
-  for (const id of CHIFFRES_EXEMPLE) {
-    const indicateur = catalogue.find((i) => i.id === id);
-    if (!indicateur) return [];
-    series.push(indicateur);
-  }
-  return Object.entries(paquet).map(([code, territoire]) => ({
-    nom: territoire.nom,
-    code,
-    niveau: MAILLE_EXEMPLE,
-    chiffres: series.map((indicateur): ChiffreTerritoire => {
-      const serie = territoire.series[indicateur.id] ?? {};
-      const exercices = Object.keys(serie).sort();
-      const dernier = exercices[exercices.length - 1];
-      const avant = exercices[exercices.length - 2];
-      return {
-        libelle: traduire(indicateur.libelle),
-        unite: indicateur.unite,
-        id: indicateur.id,
-        exercice: dernier ?? "",
-        valeur: dernier === undefined ? null : serie[dernier],
-        precedent: avant === undefined ? null : { exercice: avant, valeur: serie[avant] },
-      };
-    }),
-  }));
-}
-
 /** Peint une seule fois : l'accueil ne dépend d'aucune sélection. Le tirage de
  *  l'exemple se refait donc au chargement, pas à chaque retour sur la page —
  *  un exemple qui change sous les yeux au premier Précédent se lit comme un
@@ -2513,10 +2444,26 @@ const publiee = new Promise<void>((resolve) => {
 async function peindreAccueil(): Promise<void> {
   if (accueilPeint) return;
   await publiee;
+  // L'accueil est servi écrit : le build l'a composé sur les fichiers publiés,
+  // et c'est ce que le lecteur a déjà sous les yeux. Le repeindre à l'identique
+  // ne changerait rien ; le repeindre avec un autre tirage ferait changer
+  // l'exemple sous ses yeux, une seconde après l'ouverture — un défaut
+  // d'affichage, pas une découverte. Il n'est donc repeint que si la
+  // publication a bougé depuis le build : alors le nombre d'indicateurs, les
+  // producteurs et les chiffres de l'exemple ont une raison d'avoir changé, et
+  // ne pas les rafraîchir servirait des comptes périmés.
+  //
+  // `data-publication` est posé par le pré-rendu, jamais par le gabarit source :
+  // en développement il est absent, et l'accueil se peint alors comme avant.
+  const cadre = $("vue-accueil");
+  if (cadre.dataset.publication === donnees.version()) {
+    accueilPeint = true;
+    return;
+  }
   const regions = await donnees
     .territoires(MAILLE_EXEMPLE, "tous")
     .catch((): Record<string, Territoire> => ({}));
-  $("vue-accueil").innerHTML = renduAccueil({
+  cadre.innerHTML = renduAccueil({
     analyses: ANALYSES,
     catalogue,
     territoires: exemplesTerritoires(regions, catalogue),

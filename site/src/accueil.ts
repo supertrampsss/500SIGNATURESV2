@@ -37,11 +37,12 @@
  */
 
 import { LIBELLE_CONFUSION, LIBELLE_CRAN, type Analyse, type Source } from "./analyse-rendu.ts";
-import type { Indicateur } from "./donnees.ts";
+import type { Indicateur, Territoire } from "./donnees.ts";
 import { formater, MENTION_MILLIONS } from "./echelle.ts";
 import { coucheEvolution, formaterVariation, modeVariation } from "./evolution-carte.ts";
 import { CONTRATS } from "./mission.ts";
 import { echapper } from "./texte.ts";
+import { traduire } from "./traductions.ts";
 
 /**
  * Le message principal du site, arrêté à la conception (spec §8).
@@ -262,6 +263,92 @@ export type ExempleTerritoire = {
   niveau: string;
   chiffres: readonly ChiffreTerritoire[];
 };
+
+/**
+ * Les trois séries de l'exemple vivant : ce qui entre, ce qui sort, ce qui
+ * reste dû.
+ *
+ * Trois agrégats en euros que `formater` rend en millions — jamais par
+ * habitant, le par-habitant ne s'affichant que dans les tableaux dépliés. Ce
+ * sont trois faits d'un même exercice, pas un jugement : aucun des trois ne se
+ * lit comme une note, et le bloc n'en met aucun en regard d'un autre territoire.
+ */
+export const CHIFFRES_EXEMPLE = [
+  "ofgl_recettes_fonctionnement",
+  "ofgl_depenses_fonctionnement",
+  "ofgl_encours_dette",
+] as const;
+
+/**
+ * La maille de l'exemple : la région.
+ *
+ * C'est une maille de la carte (`COUCHES`, main.ts), donc `niveauConnu` la garde
+ * et le lien de l'exemple — `/territoire?niveau=region&territoire=…` — ouvre
+ * bien la fiche, sans paramètre `maille`. Et son lot tient dans un fichier que
+ * la carte charge de toute façon pour ses comparaisons, là où celui des
+ * départements pèse sept fois plus : au premier écran du site, la différence se
+ * voit.
+ */
+export const MAILLE_EXEMPLE = "region";
+
+/**
+ * Les territoires candidats à l'exemple, avec leurs trous.
+ *
+ * Le dernier exercice publié de chaque série, et celui d'avant pour la
+ * variation : l'un et l'autre lus sur la série elle-même, jamais sur un
+ * calendrier. Les trous restent — `tirerTerritoire` écarte les territoires
+ * incomplets, et c'est là que cette règle est éprouvée.
+ *
+ * Une série absente du catalogue n'a pas d'unité déclarée : aucun exemple n'est
+ * alors montrable, et le bloc tombe sur le champ de recherche seul plutôt que
+ * de peindre un montant sans unité au premier écran du site.
+ *
+ * Cette fonction vit ici, avec le bloc qu'elle sert, et non dans le montage :
+ * le navigateur (`main.ts`) et le pré-rendu (`scripts/prerendre.ts`) peignent
+ * le même accueil, et deux constructions de la même liste finiraient par
+ * montrer deux exemples différents à la même adresse.
+ *
+ * La liste sort **triée par code**, et c'est une décision, pas une commodité :
+ * le pré-rendu prend le premier territoire complet (`ALEA_PRERENDU`,
+ * scripts/prerendre.ts), et « le premier » ne peut pas vouloir dire « celui que
+ * JavaScript rend en tête ». Les clés d'un objet JSON ne reviennent pas dans
+ * l'ordre du fichier : celles qui sont des entiers passent devant, en ordre
+ * croissant — « 11 » avant « 01 ». L'accueil du site aurait ainsi dépendu d'une
+ * règle du langage plutôt que d'une règle écrite, et aurait changé de région le
+ * jour où les codes d'une maille cessent d'être des entiers.
+ */
+export function exemplesTerritoires(
+  paquet: Record<string, Territoire>,
+  catalogue: readonly Indicateur[],
+): ExempleTerritoire[] {
+  const series: Indicateur[] = [];
+  for (const id of CHIFFRES_EXEMPLE) {
+    const indicateur = catalogue.find((i) => i.id === id);
+    if (!indicateur) return [];
+    series.push(indicateur);
+  }
+  return Object.entries(paquet)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([code, territoire]) => ({
+      nom: territoire.nom,
+      code,
+      niveau: MAILLE_EXEMPLE,
+      chiffres: series.map((indicateur): ChiffreTerritoire => {
+        const serie = territoire.series[indicateur.id] ?? {};
+        const exercices = Object.keys(serie).sort();
+        const dernier = exercices[exercices.length - 1];
+        const avant = exercices[exercices.length - 2];
+        return {
+          libelle: traduire(indicateur.libelle),
+          unite: indicateur.unite,
+          id: indicateur.id,
+          exercice: dernier ?? "",
+          valeur: dernier === undefined ? null : serie[dernier],
+          precedent: avant === undefined ? null : { exercice: avant, valeur: serie[avant] },
+        };
+      }),
+    }));
+}
 
 /** Un territoire n'est montrable que si ses trois chiffres sont publiés. Un
  *  seul manquant afficherait un trou à l'endroit le plus visible du site. */

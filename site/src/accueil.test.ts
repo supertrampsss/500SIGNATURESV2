@@ -613,11 +613,19 @@ test("30. le module est pur : ni DOM, ni réseau, ni horloge, ni tirage caché",
   assert.ok(!/Math\.random|Date\.now|new Date\(/.test(code), "l'aléa est reçu, jamais appelé");
 });
 
-test("31. le message principal n'est écrit qu'une fois dans le dépôt", () => {
-  // Le pré-rendu le peint sur la carte de partage du simulateur : il lit cette
-  // constante-ci. Deux rédactions du même message finiraient par en dire deux
-  // choses — c'est un défaut que ce projet a déjà corrigé deux fois.
+test("31. le message principal n'a qu'une rédaction en code, et une seule en HTML", () => {
+  // Le pré-rendu le peint sur la carte de partage du simulateur et le pose en
+  // description du gabarit : il lit cette constante-ci. Deux rédactions du même
+  // message finiraient par en dire deux choses — c'est un défaut que ce projet
+  // a déjà corrigé deux fois.
   const prerendu = readFileSync(new URL("../scripts/prerendre.ts", import.meta.url), "utf8");
   assert.ok(!prerendu.includes("Les chiffres du débat budgétaire"));
-  assert.ok(prerendu.includes('import { MESSAGE_PRINCIPAL } from "../src/accueil.ts"'));
+  assert.match(prerendu, /import \{[\s\S]*?MESSAGE_PRINCIPAL,?[\s\S]*?\} from "\.\.\/src\/accueil\.ts"/);
+
+  // Le gabarit, lui, le porte en toutes lettres : un `<meta>` ne peut pas lire
+  // une constante. Une fois, pas deux — et que ce soit bien la description que
+  // le site annonce est vérifié là où la fonction qui la lit vit
+  // (prerendre.test.ts, « le gabarit ne s'annonce plus comme une de ses vues »).
+  const gabarit = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  assert.equal(gabarit.split(MESSAGE_PRINCIPAL).length - 1, 1);
 });

@@ -23,12 +23,43 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { renduChezVous, type ExempleTerritoire } from "./accueil.ts";
+import {
+  CHIFFRES_EXEMPLE,
+  MAILLE_EXEMPLE,
+  exemplesTerritoires,
+  renduChezVous,
+  type ExempleTerritoire,
+} from "./accueil.ts";
+import type { Indicateur, Territoire } from "./donnees.ts";
 import { CHEMINS, estAccueil, vueDepuisAdresse } from "./routes.ts";
 
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+const ACCUEIL = readFileSync(new URL("./accueil.ts", import.meta.url), "utf8");
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const BALISES = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+
+/** Le catalogue des trois séries de l'exemple, tel que l'entrepôt les déclare :
+ *  des agrégats en euros. */
+const CATALOGUE_EXEMPLE = CHIFFRES_EXEMPLE.map(
+  (id) => ({ id, libelle: `Série ${id}`, unite: "EUR" }) as Indicateur,
+);
+
+/** Un lot de régions de la forme que l'entrepôt publie — deux exercices par
+ *  série, pour que la variation ait de quoi se dire. */
+const LOT_EXEMPLE: Record<string, Territoire> = {
+  "75": {
+    nom: "Nouvelle-Aquitaine",
+    parent: null,
+    population: 6_000_000,
+    drapeaux: {},
+    series: Object.fromEntries(
+      CHIFFRES_EXEMPLE.map((id, rang) => [
+        id,
+        { "2024": 3_600_000_000 + rang, "2025": 3_800_000_000 + rang },
+      ]),
+    ),
+  },
+};
 
 /* --------------------------------------------------------------------------
  * 1. `/` rend l'accueil
@@ -52,9 +83,23 @@ test("`basculerVue` montre l'accueil à la racine et le masque partout ailleurs"
   );
   assert.match(MAIN, /\$\("vue-accueil"\)\.hidden = vue !== "accueil";/);
   assert.match(MAIN, /if \(vue === "accueil"\) void peindreAccueil\(\);/);
-  // Le cadre existe dans la page, vide : c'est `peindreAccueil` qui l'écrit,
-  // une fois le catalogue et le manifeste arrivés.
-  assert.match(BALISES, /<div class="vue vue--accueil" id="vue-accueil" hidden><\/div>/);
+  // Le cadre existe dans la page, vide : c'est le pré-rendu qui l'écrit
+  // (`injecterAccueil`, scripts/prerendre.ts), et `peindreAccueil` qui le
+  // rafraîchit si la publication a bougé depuis le build.
+  assert.match(BALISES, /<div class="vue vue--accueil" id="vue-accueil"><\/div>/);
+});
+
+test("le cadre de l'accueil est servi déplié, celui de la carte replié", () => {
+  // C'est ce qui décide de ce qu'un lecteur SANS JavaScript reçoit à la racine.
+  // Replié, l'accueil que le pré-rendu écrit serait dans le document et servi à
+  // personne : la racine se lisait alors sur le squelette de la carte — « Voir
+  // sur la carte », « Aucun territoire choisi » — où aucun mot du message
+  // principal n'apparaît.
+  assert.match(BALISES, /<div class="vue vue--accueil" id="vue-accueil"(?![^>]*\bhidden\b)/);
+  // Et la carte part repliée, sans quoi les deux s'afficheraient l'une sous
+  // l'autre avant que `basculerVue` ne tranche. Le gabarit sert six adresses :
+  // la racine est celle qu'il doit servir juste sans rien exécuter.
+  assert.match(BALISES, /<div class="vue vue--territoire" id="vue-territoire" hidden>/);
 });
 
 test("l'accueil ne peint qu'une fois le catalogue et les producteurs connus", () => {
@@ -211,9 +256,11 @@ test("la maille de l'exemple est une couche de la carte : niveauConnu la garde",
     MAIN.indexOf("type Etat = {"),
   );
   assert.match(couches, new RegExp(`\\b${lien.searchParams.get("niveau")}: "`));
-  // Et c'est bien cette maille-là que le montage écrit dans l'exemple.
-  assert.match(MAIN, /const MAILLE_EXEMPLE = "region";/);
-  assert.match(MAIN, /niveau: MAILLE_EXEMPLE,/);
+  // Et c'est bien cette maille-là que l'exemple porte, et celle dont le
+  // montage demande le lot.
+  assert.equal(MAILLE_EXEMPLE, "region");
+  assert.equal(exemplesTerritoires(LOT_EXEMPLE, CATALOGUE_EXEMPLE)[0]?.niveau, MAILLE_EXEMPLE);
+  assert.match(MAIN, /donnees\s*\.territoires\(MAILLE_EXEMPLE, "tous"\)/);
   // Une maille hors carte demanderait `maille=` en plus, que l'exemple n'écrit
   // pas : la fiche resterait muette au rechargement.
   assert.equal(lien.searchParams.get("maille"), null);
@@ -234,24 +281,70 @@ test("arrivé sur ce lien, la sélection ouvre la fiche", () => {
  * ----------------------------------------------------------------------- */
 
 test("les trois séries de l'exemple sont des agrégats en euros, jamais un par-habitant", () => {
-  const bloc = MAIN.slice(
-    MAIN.indexOf("const CHIFFRES_EXEMPLE = ["),
-    MAIN.indexOf("const MAILLE_EXEMPLE"),
+  assert.deepEqual(
+    [...CHIFFRES_EXEMPLE],
+    ["ofgl_recettes_fonctionnement", "ofgl_depenses_fonctionnement", "ofgl_encours_dette"],
   );
-  assert.ok(bloc.length > 100, "CHIFFRES_EXEMPLE introuvable");
-  for (const id of ["ofgl_recettes_fonctionnement", "ofgl_depenses_fonctionnement", "ofgl_encours_dette"]) {
-    assert.ok(bloc.includes(id), id);
-  }
-  // Le montage ne fabrique aucun ratio : il passe la valeur publiée et son
-  // unité déclarée, et `formater` fait le reste — sans dénominateur.
-  const construction = MAIN.slice(
-    MAIN.indexOf("function exemplesTerritoires"),
-    MAIN.indexOf("let accueilPeint"),
+  // La construction ne fabrique aucun ratio : elle passe la valeur publiée et
+  // son unité déclarée, et `formater` fait le reste — sans dénominateur. Le lot
+  // publié porte pourtant `population` à portée de main, et c'est là que la
+  // tentation se présente.
+  const construction = ACCUEIL.slice(
+    ACCUEIL.indexOf("export function exemplesTerritoires"),
+    ACCUEIL.indexOf("function complet("),
   );
   assert.ok(construction.length > 200, "corps d'exemplesTerritoires introuvable");
+  assert.ok(construction.length < ACCUEIL.length, "la borne ne suit pas le point de départ");
   assert.doesNotMatch(construction, /population|parHabitant/);
   // L'unité vient du catalogue, jamais d'un repli : sans elle, aucun exemple
-  // n'est montrable.
-  assert.match(construction, /if \(!indicateur\) return \[\];/);
-  assert.match(construction, /unite: indicateur\.unite,/);
+  // n'est montrable, et le premier écran du site ne peint pas un montant sans
+  // unité.
+  const exemples = exemplesTerritoires(LOT_EXEMPLE, CATALOGUE_EXEMPLE);
+  assert.equal(exemples[0]?.chiffres[0]?.unite, "EUR");
+  assert.deepEqual(exemplesTerritoires(LOT_EXEMPLE, CATALOGUE_EXEMPLE.slice(1)), []);
+});
+
+/* --------------------------------------------------------------------------
+ * 5. Le client ne repeint pas autre chose que ce que le serveur a écrit
+ *
+ * L'accueil part désormais écrit dans `dist/index.html` (`injecterAccueil`,
+ * scripts/prerendre.ts). Si le navigateur le réécrivait au chargement, il
+ * retirerait au sort un autre territoire : l'exemple changerait sous les yeux
+ * du lecteur, une seconde après l'ouverture.
+ * ----------------------------------------------------------------------- */
+
+const PRERENDU = readFileSync(new URL("../scripts/prerendre.ts", import.meta.url), "utf8");
+const DONNEES = readFileSync(new URL("./donnees.ts", import.meta.url), "utf8");
+
+test("l'accueil déjà écrit n'est pas repeint tant que la publication n'a pas bougé", () => {
+  const corps = MAIN.slice(
+    MAIN.indexOf("async function peindreAccueil"),
+    MAIN.indexOf("function brancherAppelRecherche"),
+  );
+  assert.ok(corps.length > 200, "corps de peindreAccueil introuvable");
+  assert.ok(corps.length < MAIN.length, "la borne ne suit pas le point de départ");
+  // La comparaison, et l'abandon de la peinture qui la suit.
+  assert.match(corps, /cadre\.dataset\.publication === donnees\.version\(\)/);
+  assert.match(corps, /accueilPeint = true;\s*return;/);
+  // Le tirage reste reçu, jamais appelé dans `accueil.ts` : c'est ici qu'il se
+  // fait, et seulement quand la publication a bougé depuis le build — alors les
+  // chiffres de l'exemple ont une raison d'avoir changé.
+  assert.match(corps, /alea: Math\.random\(\)/);
+});
+
+test("les deux côtés nomment le même attribut, et la même version", () => {
+  // Le pré-rendu écrit `data-publication`, le navigateur lit `dataset.publication` :
+  // deux noms qui se désaccorderaient feraient repeindre à chaque chargement,
+  // sans qu'aucun test ne le voie — la page resterait juste, et changerait sous
+  // les yeux du lecteur.
+  assert.match(PRERENDU, /data-publication="\$\{echapper\(version\)\}"/);
+  assert.match(MAIN, /cadre\.dataset\.publication/);
+  // Et la version comparée est le même champ du même fichier des deux côtés :
+  // `version` de `derniere.json`. Comparer à `Manifeste.version` ferait dépendre
+  // cet accord d'une égalité entre deux fichiers que rien n'oblige à rester
+  // égaux.
+  assert.match(PRERENDU, /lireJson<\{ version: string \}>\(`\$\{BASE\}\/data\/derniere\.json`\)/);
+  assert.match(DONNEES, /fetch\(`\$\{BASE\}\/data\/derniere\.json`\)/);
+  assert.match(DONNEES, /versionLue = donnees\.version;/);
+  assert.match(DONNEES, /export const version = \(\) => versionLue;/);
 });
