@@ -307,6 +307,30 @@ pour ne plus l'être.
    qu'elles portent. Aujourd'hui la spec se lit comme tenue alors qu'elle ne
    l'est pas, ce qui est le pire des deux états.
 
+4. **« Le site ne publie ni classement » — et `/detail` en affiche un.**
+   Trouvé en lisant `/methode` déployée. La page de méthode écrit, sous les
+   règles d'affichage : « Deux territoires se comparent à la même année, à la
+   même unité et au même périmètre. **Le site ne publie ni score composite, ni
+   classement.** » Un test la verrouille (`methode-rendu.test.ts`).
+
+   Or `/detail` trie les territoires par valeur décroissante et n'en montre que
+   les cent premiers, sous une légende qui le dit : « **100 premiers
+   territoires sur 34 875** ». Et `main.ts` appelle cette table par son nom —
+   « un classement tronqué se lit, un fichier tronqué se réutilise de travers ».
+
+   **Les deux lectures se défendent, et c'est pour ça que l'entrée existe.**
+   Le vocabulaire du dépôt distingue ailleurs les deux : `credits-missions.ts`
+   range les missions par écart en précisant « aucun classement, aucune note ».
+   Trier des valeurs publiées, en les affichant, n'est pas noter. Mais « les
+   cent premiers » est la langue d'un palmarès, le lecteur qui vient de voir ce
+   tableau lit ensuite qu'il n'existe pas, et aucune des deux pages ne renvoie
+   à l'autre.
+
+   Trancher relève de **D7** — c'est une affirmation de méthodologie, pas une
+   tuyauterie : ou la phrase se précise (« aucun score composite, aucun
+   palmarès entre territoires » et le tri assumé), ou `/detail` cesse de
+   présenter ses lignes comme un rang. Ne pas réécrire l'une des deux seul.
+
 ### Fait
 
 - **Condenser les longues listes** (16 août 2026). Mesuré, puis traité là où la
