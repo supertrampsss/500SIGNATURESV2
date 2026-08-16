@@ -2489,9 +2489,14 @@ test("la commande « citer » est un écouteur délégué, posé une seule fois"
   // site.
   const debut = MAIN.indexOf("async function demarrer");
   assert.ok(debut > 0, "demarrer introuvable");
+  // La présence AVANT l'ordre. `indexOf` rend −1 pour un appel absent, et −1
+  // précède tout : la seule comparaison d'ordre certifiait une fonction que
+  // personne n'appelle. Vérifié par sabotage — retirer `brancherCitations()`
+  // de `demarrer` laissait les 865 tests au vert.
+  const appel = MAIN.indexOf("brancherCitations();", debut);
+  assert.ok(appel > -1, "`demarrer` doit appeler brancherCitations()");
   assert.ok(
-    MAIN.indexOf("brancherCitations();", debut) <
-      MAIN.indexOf("await donnees.initialiser()", debut),
+    appel < MAIN.indexOf("await donnees.initialiser()", debut),
     "« citer » doit être branchée avant le premier appel réseau",
   );
 });
