@@ -205,10 +205,19 @@ pour ne plus l'être.
    celui-là même que les collectivités subissent — la rejette à chaque
    publication.
 
-   **Ce que le site n'en montre pas encore.** `blocs.ts` ne nomme un poste que
-   s'il figure dans sa table `POSTES`, purement OFGL, et `provenanceDite` n'a
-   d'autre appelant que ses tests. La déclaration est une vérité de pipeline qui
-   attend son emploi côté site.
+   **Ce que le site en montre, et ce qu'il n'en montre pas.** `blocs.ts` nomme
+   désormais les deux familles de recettes du budget général — « les impôts que
+   l'État perçoit », « ce que l'État encaisse sans lever l'impôt » — et la
+   provenance se dit à la maille France comme elle se dit pour une commune.
+
+   **Vingt-deux des vingt-quatre composantes restent muettes**, et c'est voulu :
+   `COMPTES.pays` ne lit que les dépenses et les recettes nettes du budget
+   général. Le solde public, la dette par sous-secteur, les neuf impôts
+   d'assiette et les six risques appartiennent à des agrégats qu'aucun bloc ne
+   demande — les nommer aurait produit vingt-deux phrases qu'aucune page ne peut
+   montrer. Les faire parler demande de nouveaux blocs à la maille pays, et pose
+   la question de croiser comptabilité budgétaire et comptabilité nationale sur
+   une même fiche : c'est une décision de produit, pas une tuyauterie.
 
 3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
    range, il ne les condense pas. Visé : une question, une phrase, trois
