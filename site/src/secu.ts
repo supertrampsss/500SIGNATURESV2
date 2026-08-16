@@ -115,8 +115,8 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
       v === undefined ? "—" : echapper(rendu(v));
     return `<tr>
       <th scope="row">${echapper(nom)}</th>
-      <td>${cellule(d, pourcentage)}</td>
-      <td>${cellule(r, pourcentage)}</td>
+      <td>${cellule(d, (n) => pourcentage(n, true))}</td>
+      <td>${cellule(r, (n) => pourcentage(n, true))}</td>
       <td>${cellule(s, points)}</td>
     </tr>`;
   }).join("");

@@ -117,6 +117,18 @@ test("le premier titre du bloc répond à la question qui pointe dessus", () => 
   assert.match(premier, /déficit/i, `premier titre du bloc : ${premier}`);
 });
 
+test("les colonnes comparées gardent leur décimale, même sur un compte rond", () => {
+  // L'Allemagne dépense exactement 21,0 % du PIB. Sans décimale imposée, `Intl`
+  // la laissait tomber et la colonne lisait « 21 » juste au-dessus de
+  // « 20,9 » — et à côté d'un solde « 0,0 pt », `points()` posant déjà ce
+  // minimum de son côté. Trois formats sur une même ligne d'un tableau qu'on
+  // vient précisément comparer.
+  const html = rendu(PAYS, CATALOGUE);
+  const ligne = html.slice(html.indexOf("Allemagne"), html.indexOf("</tr>", html.indexOf("Allemagne")));
+  assert.match(ligne, new RegExp(`21,0${FINE}%`), ligne);
+  assert.doesNotMatch(ligne, new RegExp(`>21${FINE}%`), ligne);
+});
+
 test("aucune réserve qui s'excuse sous le tableau", () => {
   // Le paragraphe expliquait que ce solde n'est pas le « trou de la Sécu », que
   // le périmètre inclut l'assurance chômage, que cotisation et impôt diffèrent.

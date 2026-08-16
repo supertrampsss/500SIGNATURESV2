@@ -184,11 +184,50 @@ pour ne plus l'être.
    ce sont ses deux composantes qui le remplacent.
 
    Ce qui reste est donc le sujet d'origine, et lui seul : **étendre le
-   simulateur aux comptes spéciaux, aux budgets annexes et aux ODAC.** Le solde
-   se referme maintenant sur des séries publiées, donc l'obstacle arithmétique
-   est levé. Comme pour la provenance nationale, la décision relève de **D7** :
-   la validation humaine préalable reste en vigueur pour les connecteurs et la
+   simulateur aux comptes spéciaux, aux budgets annexes et aux ODAC.**
+   L'obstacle arithmétique que cette entrée invoquait n'existe pas. Le vrai est
+   ailleurs, et il est mesuré.
+
+   **Les dépenses sont là, les recettes ne le sont pas.** Le simulateur ne lit
+   pas la situation mensuelle mais le PLF (`normalize/budget_lignes.py`,
+   `fin.state_budget_detail`). Deux filtres y écartent tout ce qui n'est pas
+   `BG` — donc les comptes spéciaux sont **téléchargés puis jetés**, pas
+   absents. Mesuré sur le jeu des dépenses 2025 (`plf25-depenses-2025-selon-destination`,
+   crédits de paiement) :
+
+   | `typebudget` | Montant | Lignes |
+   |---|---|---|
+   | BG — budget général | 594,04 Md€ | 2 289 |
+   | CCF — comptes de concours financiers | 145,73 Md€ | 16 |
+   | CAS — comptes d'affectation spéciale | 80,76 Md€ | 65 |
+   | BA — budgets annexes | 2,51 Md€ | 34 |
+
+   Total 823,04 Md€ : exactement le « 594,0 à 823,0 » que le docstring du module
+   annonce. Élargir le filtre est donc une ligne, pas un connecteur.
+
+   **Mais le jeu des recettes n'a pas de colonne de type de budget du tout.** Il
+   s'appelle `plf25-recettes-du-budget-general`, porte 156 lignes et quatre
+   familles — fiscales 500,35, non fiscales 20,55, PSR collectivités −44,19,
+   PSR UE −23,32, soit 453,39 Md€ nets — toutes du budget général.
+   `grouper_recettes` **lève** sur une famille inconnue : si des recettes de
+   comptes spéciaux y étaient, le connecteur échouerait déjà.
+
+   Élargir le seul filtre des dépenses donnerait donc un volet de **229 Md€ de
+   dépenses sans rien en face**, dont le « solde » vaudrait leur opposé. C'est
+   mot pour mot ce que le module refuse déjà pour l'exercice 2023 — « un budget
+   amputé de sa moitié n'est pas un budget ».
+
+   **Ce qu'il faut vraiment** : une source pour les *recettes* des comptes
+   spéciaux, compte par compte — l'évaluation des voies et moyens et les états
+   annexés au PLF. C'est un **nouveau connecteur**, et les ODAC en demandent un
+   second, aucun ne les couvrant aujourd'hui. La décision relève de **D7** : la
+   validation humaine préalable reste en vigueur pour les connecteurs et la
    méthodologie.
+
+   Note pour qui reprend : `budget_lignes.py` calcule un `solde` (`nettes −
+   total_credits_paiement`) qu'**aucun contrôle ni aucun test ne confronte au
+   solde publié du PLF**. Le chiffre de tête du simulateur n'est donc vérifié
+   que par ses sommes internes, jamais contre la source.
 2. **Provenance au niveau France — déclarée, sauf les missions, et la raison
    du refus vaut d'être lue.** `provenance.ts` attribue la variation d'un
    agrégat à ses composantes partout où la source déclare une hiérarchie. Le
@@ -238,6 +277,35 @@ pour ne plus l'être.
    montrer. Les faire parler demande de nouveaux blocs à la maille pays, et pose
    la question de croiser comptabilité budgétaire et comptabilité nationale sur
    une même fiche : c'est une décision de produit, pas une tuyauterie.
+
+3. **Trois vues sans document à elles — la spec et le code ne disent pas la
+   même chose.** Audit des critères d'acceptation (§23) contre le site déployé,
+   le 16 août 2026. Ce qui est **tenu** : le plan du site porte exactement les
+   huit adresses publiques et `robots.txt` le désigne (§20) ; aucune balise
+   `noindex` (§21) ; un lien de scénario partagé produit bien son titre, son
+   effort et ses gestes les plus lourds — vérifié en production sur
+   `?budget=etat/TB:-10,etat/RD:-5&nom=Essai`, la fonction d'edge répond
+   « Somme des écarts : +9 520 M€… Source : PLF 2025 » (§18).
+
+   Ce qui ne l'est pas : `/territoire`, `/detail` et `/simulateur` sont servis
+   par le repli SPA avec le gabarit, **qui porte l'accueil écrit**. Ils n'ont
+   donc ni titre, ni description, ni canonique à eux — le §3 demande qu'on y
+   accède « sans passer par la page d'accueil », le §19 que « chaque page
+   publique » porte les siens.
+
+   | Adresse | Document | Canonique |
+   |---|---|---|
+   | `/reperes`, `/methode`, `/analyses/`, `/analyses/<slug>` | le leur | oui |
+   | `/`, `/territoire`, `/detail`, `/simulateur` | le gabarit, accueil compris | aucune |
+
+   **Ce n'est pas un oubli**, et c'est pour ça que l'entrée existe : les trois
+   refus sont argumentés au registre — contenu commandé par l'adresse pour
+   `/territoire` et `/detail`, état d'atelier pour `/simulateur`, dont la
+   fonction d'edge réécrit déjà titre, description et image (un document figé y
+   mentirait deux fois). Il reste donc à **trancher, pas à coder** : ou ces
+   trois adresses reçoivent leur document, ou les §3 et §19 disent l'exception
+   qu'elles portent. Aujourd'hui la spec se lit comme tenue alors qu'elle ne
+   l'est pas, ce qui est le pire des deux états.
 
 ### Fait
 

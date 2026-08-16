@@ -70,12 +70,12 @@ export function rendu(
       )}%"></span>`;
       const autres = COMPARES.map(([code]) => {
         const v = valeur(code, id);
-        return `<td>${v === undefined ? "—" : echapper(pourcentage(v))}</td>`;
+        return `<td>${v === undefined ? "—" : echapper(pourcentage(v, true))}</td>`;
       }).join("");
       return `<tr>
         <th scope="row">${echapper(libelle(id))}</th>
         <td class="fonction__fr"><span class="fonction__piste">${barres}</span>
-          <strong>${echapper(pourcentage(fr))}</strong></td>
+          <strong>${echapper(pourcentage(fr, true))}</strong></td>
         ${autres}
       </tr>`;
     })

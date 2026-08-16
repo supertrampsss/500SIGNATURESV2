@@ -130,11 +130,26 @@ export function moins(texte: string): string {
   return texte.replace("-", "−");
 }
 
-export function pourcentage(valeur: number): string {
+/**
+ * Un taux, une décimale au plus.
+ *
+ * `decimaleFixe` en impose une exactement — « 1,0 % » et non « 1 % ». Elle ne
+ * sert qu'aux COLONNES qu'on vient comparer : `Intl` laisse tomber la décimale
+ * d'un compte rond, et le tableau des fonctions publiques alignait « 1 » sous
+ * « 23,7 » et « 1,4 », tandis que celui de la Sécu mettait « 21 » à côté de
+ * « 20,9 » et de « 0,0 pt » — trois formats sur une même ligne, `points()`
+ * (secu.ts) posant déjà ce minimum de son côté.
+ *
+ * Hors tableau elle reste absente, et c'est voulu : une variation de carte
+ * s'écrit « +12 % », et une variation qui s'arrondit à zéro « 0 % » sans
+ * signe — deux décisions que des tests tiennent (evolution-carte.test.ts).
+ */
+export function pourcentage(valeur: number, decimaleFixe = false): string {
   return moins(
-    `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(
-      sansZeroNegatif(valeur, 1),
-    )} %`,
+    `${new Intl.NumberFormat("fr-FR", {
+      ...(decimaleFixe ? { minimumFractionDigits: 1 } : {}),
+      maximumFractionDigits: 1,
+    }).format(sansZeroNegatif(valeur, 1))} %`,
   );
 }
 
