@@ -71,6 +71,14 @@
     </header>
 
     <main id="contenu">
+    <!-- L'accueil, à la racine du site. Ce n'est pas une vue de l'application
+         monoécran — `CHEMINS` (routes.ts) n'en porte aucune entrée, et la carte
+         reste à `/territoire` — mais elle occupe le même cadre, et
+         `basculerVue` la montre et la masque comme les autres. Vide ici :
+         `peindreAccueil` l'écrit une fois les fichiers publiés arrivés, parce
+         qu'elle compte les indicateurs publiés et nomme leurs producteurs. -->
+    <div class="vue vue--accueil" id="vue-accueil" hidden></div>
+
     <div class="vue vue--territoire" id="vue-territoire">
       <!-- La carte n'est plus une entrée de menu séparée : c'était deux liens
            pour un seul écran, le panneau étant identique de part et d'autre.

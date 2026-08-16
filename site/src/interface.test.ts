@@ -16,6 +16,7 @@ import {
   renommer,
   type Depot,
 } from "./scenarios.ts";
+import { estAccueil, vueDepuisAdresse } from "./routes.ts";
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
@@ -611,8 +612,14 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   assert.doesNotMatch(balises, /data-vue="donnees"/);
   assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"donnees"/);
   // Un lien `#donnees` déjà partagé ne doit pas laisser le lecteur sur une
-  // page blanche : la vue de repli le ramène sur TERRITOIRE.
-  assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(cible\) \? cible : "territoire";/);
+  // page blanche : la vue de repli le ramène sur TERRITOIRE. Depuis que la
+  // racine rend l'accueil, le repli a deux branches — et c'est celle qui ne
+  // s'applique PAS ici qu'il faut vérifier : `#donnees` est un alias de
+  // `territoire`, donc `estAccueil` répond faux et le lecteur va bien à la
+  // carte, pas à l'accueil.
+  assert.match(MAIN, /: estAccueil\(location\.pathname, location\.hash\)\s*\? "accueil"\s*: "territoire";/);
+  assert.equal(estAccueil("/", "#donnees"), false);
+  assert.equal(vueDepuisAdresse("/", "#donnees"), "territoire");
   // Et plus personne ne l'y envoie de son propre chef.
   assert.doesNotMatch(MAIN, /location\.hash = "#donnees"/);
   // Les fonctions qui peignaient dans ses conteneurs se taisent au lieu de
@@ -1985,8 +1992,16 @@ test("la commande « citer » est un écouteur délégué, posé une seule fois"
   assert.match(corps, /article\.addEventListener\("click"/);
   assert.match(corps, /closest<HTMLElement>\("button\[data-citer\]"\)/);
   // Branchée avant tout appel réseau : la charge utile est déjà dans la page,
-  // écrite par le pré-rendu.
-  assert.match(MAIN, /brancherCitations\(\);\n {2}\/\/ L'état AVANT la première bascule de vue/);
+  // écrite par le pré-rendu. Sur l'ordre, pas sur la ligne qui suit — un
+  // branchement ajouté juste après cassait l'assertion sans rien casser du
+  // site.
+  const debut = MAIN.indexOf("async function demarrer");
+  assert.ok(debut > 0, "demarrer introuvable");
+  assert.ok(
+    MAIN.indexOf("brancherCitations();", debut) <
+      MAIN.indexOf("await donnees.initialiser()", debut),
+    "« citer » doit être branchée avant le premier appel réseau",
+  );
 });
 
 test("la citation se lit dans la charge utile, jamais sur la page rendue", () => {

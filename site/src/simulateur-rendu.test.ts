@@ -42,6 +42,7 @@ import {
   resume,
 } from "./simulateur-rendu.ts";
 import { contratsDe } from "./mission.ts";
+import { estAccueil } from "./routes.ts";
 
 /**
  * Le même budget minuscule que le modèle, à trois détails près qui sont
@@ -620,8 +621,11 @@ test("sans fichier publié, ni entrée de menu ni adresse", () => {
     /return exercicesParVolet\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/,
   );
   // La vue de repli est « territoire » : la carte n'est plus la porte d'entrée
-  // — et elle n'est même plus une vue, seulement un mode de celle-ci.
-  assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(cible\) \? cible : "territoire";/);
+  // — et elle n'est même plus une vue, seulement un mode de celle-ci. Depuis
+  // que la racine rend l'accueil, `/simulateur` sans budget publié tombe donc
+  // sur territoire, jamais sur l'accueil : ce n'est pas la racine.
+  assert.match(MAIN, /: estAccueil\(location\.pathname, location\.hash\)\s*\? "accueil"\s*: "territoire";/);
+  assert.equal(estAccueil("/simulateur", ""), false);
   assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"carte"/);
 });
 

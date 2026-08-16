@@ -93,10 +93,16 @@ import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
-import { cheminDeVue, vueDepuisAdresse } from "./routes.ts";
+import { cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
 import { renduGrille } from "./methode-rendu.ts";
+import {
+  rendu as renduAccueil,
+  type ChiffreTerritoire,
+  type ExempleTerritoire,
+} from "./accueil.ts";
+import type { Analyse } from "./analyse-rendu.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -2384,6 +2390,170 @@ async function peindreMethode(): Promise<void> {
   methodePeinte = rendu;
 }
 
+/* --------------------------------------------------------------------------
+ * L'accueil, à la racine du site.
+ *
+ * `accueil.ts` rend les cinq blocs en fonctions pures ; ce bloc-ci ne fait que
+ * lui porter des données déjà résolues et poser la chaîne obtenue dans la page,
+ * comme le reste de ce fichier le fait pour chaque module.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Les analyses publiées, agrafées au paquet à la compilation.
+ *
+ * Elles ne sont pas dans les fichiers de données : le dépôt les porte, et le
+ * pré-rendu les lit sur le disque au build (`scripts/prerendre.ts`, même
+ * dossier). Le navigateur ne peut ni lire ce disque ni deviner la liste des
+ * slugs, et publier un index à part serait une seconde liste à tenir accordée
+ * avec le dossier — celle qui dérive au premier fichier ajouté. Vite les inline
+ * depuis la source unique, celle du dépôt.
+ */
+const ANALYSES: Analyse[] = Object.values(
+  import.meta.glob<Analyse>("../analyses/*.json", { eager: true, import: "default" }),
+);
+
+/**
+ * Les trois séries de l'exemple vivant : ce qui entre, ce qui sort, ce qui
+ * reste dû.
+ *
+ * Trois agrégats en euros que `formater` rend en millions — jamais par
+ * habitant, le par-habitant ne s'affichant que dans les tableaux dépliés. Ce
+ * sont trois faits d'un même exercice, pas un jugement : aucun des trois ne se
+ * lit comme une note, et le bloc n'en met aucun en regard d'un autre territoire.
+ */
+const CHIFFRES_EXEMPLE = [
+  "ofgl_recettes_fonctionnement",
+  "ofgl_depenses_fonctionnement",
+  "ofgl_encours_dette",
+] as const;
+
+/**
+ * La maille de l'exemple : la région.
+ *
+ * C'est une maille de la carte (`COUCHES`), donc `niveauConnu` la garde et le
+ * lien de l'exemple — `/territoire?niveau=region&territoire=…` — ouvre bien la
+ * fiche, sans paramètre `maille`. Et son lot tient dans un fichier que la carte
+ * charge de toute façon pour ses comparaisons, là où celui des départements
+ * pèse sept fois plus : au premier écran du site, la différence se voit.
+ */
+const MAILLE_EXEMPLE = "region";
+
+/**
+ * Les territoires candidats à l'exemple, avec leurs trous.
+ *
+ * Le dernier exercice publié de chaque série, et celui d'avant pour la
+ * variation : l'un et l'autre lus sur la série elle-même, jamais sur un
+ * calendrier. Les trous restent — `tirerTerritoire` (accueil.ts) écarte les
+ * territoires incomplets, et c'est là que cette règle est éprouvée.
+ *
+ * Une série absente du catalogue n'a pas d'unité déclarée : aucun exemple n'est
+ * alors montrable, et le bloc tombe sur le champ de recherche seul plutôt que
+ * de peindre un montant sans unité au premier écran du site.
+ */
+function exemplesTerritoires(
+  paquet: Record<string, Territoire>,
+  catalogue: readonly Indicateur[],
+): ExempleTerritoire[] {
+  const series: Indicateur[] = [];
+  for (const id of CHIFFRES_EXEMPLE) {
+    const indicateur = catalogue.find((i) => i.id === id);
+    if (!indicateur) return [];
+    series.push(indicateur);
+  }
+  return Object.entries(paquet).map(([code, territoire]) => ({
+    nom: territoire.nom,
+    code,
+    niveau: MAILLE_EXEMPLE,
+    chiffres: series.map((indicateur): ChiffreTerritoire => {
+      const serie = territoire.series[indicateur.id] ?? {};
+      const exercices = Object.keys(serie).sort();
+      const dernier = exercices[exercices.length - 1];
+      const avant = exercices[exercices.length - 2];
+      return {
+        libelle: traduire(indicateur.libelle),
+        unite: indicateur.unite,
+        id: indicateur.id,
+        exercice: dernier ?? "",
+        valeur: dernier === undefined ? null : serie[dernier],
+        precedent: avant === undefined ? null : { exercice: avant, valeur: serie[avant] },
+      };
+    }),
+  }));
+}
+
+/** Peint une seule fois : l'accueil ne dépend d'aucune sélection. Le tirage de
+ *  l'exemple se refait donc au chargement, pas à chaque retour sur la page —
+ *  un exemple qui change sous les yeux au premier Précédent se lit comme un
+ *  défaut d'affichage, pas comme une découverte. */
+let accueilPeint = false;
+
+let resoudrePubliee: () => void;
+/**
+ * Résolue quand le manifeste ET le catalogue sont chargés, dans `demarrer`.
+ *
+ * `prete` ne suffit pas : elle ne promet que `donnees.racine`, et l'accueil a
+ * besoin de deux choses écrites après elle — le nombre d'indicateurs publiés,
+ * qu'il compte sur le catalogue, et les producteurs, qu'il lit sur les jeux du
+ * manifeste. Peint plus tôt, il annoncerait « 0 indicateurs publiés » et une
+ * liste de producteurs vide : deux affirmations fausses à l'endroit le plus lu
+ * du site.
+ */
+const publiee = new Promise<void>((resolve) => {
+  resoudrePubliee = resolve;
+});
+
+async function peindreAccueil(): Promise<void> {
+  if (accueilPeint) return;
+  await publiee;
+  const regions = await donnees
+    .territoires(MAILLE_EXEMPLE, "tous")
+    .catch((): Record<string, Territoire> => ({}));
+  $("vue-accueil").innerHTML = renduAccueil({
+    analyses: ANALYSES,
+    catalogue,
+    territoires: exemplesTerritoires(regions, catalogue),
+    // Le tirage se fait ici, jamais dans `accueil.ts` : une fonction qui tire
+    // elle-même ne s'éprouve pas sur chaque tirage possible, et c'est
+    // précisément la garantie « jamais un territoire incomplet » qu'il faut
+    // pouvoir éprouver.
+    alea: Math.random(),
+    producteurs: jeux.map((jeu) => jeu.producteur),
+  });
+  accueilPeint = true;
+}
+
+/**
+ * « Chercher ma commune » ouvre le champ de recherche du site.
+ *
+ * L'appel porte `#recherche`, l'identifiant du seul champ du site — celui de
+ * l'en-tête, câblé une fois par `brancherRecherche`. Laissé au navigateur, ce
+ * lien pousse l'ancre dans l'adresse et fait défiler vers un champ déjà à
+ * l'écran sans y poser le curseur : l'appel promet une recherche et ne la
+ * commence pas. Il n'est pas question d'en construire un second — deux champs
+ * qui cherchent dans le même index sans partager leur état est un défaut que ce
+ * projet a déjà nommé et retiré.
+ *
+ * Un écouteur délégué, posé une fois sur un conteneur que rien ne remplace —
+ * le motif de `brancherScenarios`, `brancherPartage` et `brancherCitations` —
+ * plutôt qu'un écouteur reposé à chaque peinture. Les modificateurs et le clic
+ * du milieu restent au navigateur, comme pour la navigation de l'en-tête.
+ */
+function brancherAppelRecherche(): void {
+  // Une page éditoriale remplace le contenu de `<main>` : le cadre de l'accueil
+  // n'y est pas, et `$` renverrait `null`.
+  const cadre = document.getElementById("vue-accueil");
+  if (!cadre) return;
+  cadre.addEventListener("click", (evenement) => {
+    const clic = evenement as MouseEvent;
+    if (clic.button !== 0 || clic.metaKey || clic.ctrlKey || clic.shiftKey || clic.altKey) return;
+    if (!(clic.target as HTMLElement).closest('a[href="#recherche"]')) return;
+    clic.preventDefault();
+    const champ = $<HTMLInputElement>("recherche");
+    champ.scrollIntoView({ block: "nearest" });
+    champ.focus();
+  });
+}
+
 function basculerVue(): void {
   // Une page éditoriale est pré-rendue : son contenu est déjà dans le HTML, et
   // aucune vue de l'application ne doit le masquer. L'en-tête, la recherche et
@@ -2408,11 +2578,21 @@ function basculerVue(): void {
   // session partie de `/` restait inerte, l'adresse changeait sans que la
   // page suive. Une ancre en porte toujours un ; un Back vers `/`, jamais.
   if (!vuesConnues().includes(cible) && document.body.dataset.vue && location.hash) return;
-  const vue = vuesConnues().includes(cible) ? cible : "territoire";
+  // La racine rend l'accueil, jamais la carte : `estAccueil` sépare la racine
+  // — où `vueDepuisAdresse` répond `null` par design — d'une adresse inconnue,
+  // qui continue de retomber sur la vue territoire. Aucune vue ne bouge :
+  // `/territoire` reste la carte, et les liens déjà partagés y mènent toujours.
+  const vue = vuesConnues().includes(cible)
+    ? cible
+    : estAccueil(location.pathname, location.hash)
+      ? "accueil"
+      : "territoire";
   document.body.dataset.vue = vue;
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.
   appliquerModeCarte(vue === "territoire" && carteOuverte);
+  $("vue-accueil").hidden = vue !== "accueil";
+  if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
   $("vue-detail").hidden = vue !== "detail";
   if (vue === "detail") void peindreDetail();
@@ -3575,6 +3755,10 @@ async function demarrer(): Promise<void> {
   // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
   // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
   brancherCitations();
+  // Et encore pour la même raison : l'appel « Chercher ma commune » de
+  // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
+  // dès le premier octet de HTML.
+  brancherAppelRecherche();
   // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
   // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
   // territoire à détailler : lu avant d'être écrit, il levait
@@ -3625,6 +3809,9 @@ async function demarrer(): Promise<void> {
   // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
   // leur origine. Leur badge et leur fiche disent d'où ils viennent.
   catalogue = [...catalogue, ...indicateursDerives(catalogue)];
+  // L'accueil peut peindre : il compte les indicateurs publiés et nomme les
+  // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
+  resoudrePubliee();
   construireSelecteurs();
   afficherQuestions($("questions"));
   // La France du panneau d'accueil, demandée avant la carte : c'est la
@@ -4163,7 +4350,12 @@ demarrer().catch((erreur: Error) => {
   // n'accepte que du contenu de phrasé. L'analyseur HTML fermait donc le
   // paragraphe avant le pli et le jetait — le détail technique, seul élément
   // citable pour signaler une panne, n'était jamais affiché.
-  $("fiche").innerHTML = `<div class="etat etat--echec" role="alert">
+  //
+  // Elle s'écrit dans la vue affichée : sur l'accueil, le panneau de la carte
+  // est masqué, et y écrire laisserait la racine du site entièrement blanche,
+  // sans un mot sur ce qui a échoué.
+  const hote = document.body.dataset.vue === "accueil" ? $("vue-accueil") : $("fiche");
+  hote.innerHTML = `<div class="etat etat--echec" role="alert">
       <span class="etat__titre">Les chiffres n'ont pas pu être chargés</span>
       <span class="etat__quoi">Le site lit des fichiers publiés sur un serveur public :
         c'est cette lecture qui a échoué, pas votre navigateur. Les chiffres déjà affichés,
@@ -4176,6 +4368,6 @@ demarrer().catch((erreur: Error) => {
     </div>`;
   // Par `textContent` et non dans le gabarit : un message d'erreur peut porter
   // une URL, et une URL peut porter des chevrons.
-  const bloc = $("fiche").querySelector("code");
+  const bloc = hote.querySelector("code");
   if (bloc) bloc.textContent = detail;
 });
