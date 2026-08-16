@@ -1304,6 +1304,13 @@ tbody tr:hover {
 }
 
 /* Bloc national : dette française et repères européens. */
+/* L'unité de la page, sous son titre : même corps et même encre que les autres
+   lignes d'unité du site (`.simu__unite`, `.analyse-rendu__index-unite`). */
+.national__unite {
+  margin: 0 0 var(--espace-4);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
 .national {
   padding: var(--espace-7);
   margin: 0 1.5rem 1.25rem;

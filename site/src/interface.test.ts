@@ -38,6 +38,24 @@ const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
 const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8");
 
+test("REPÈRES dit son unité sous son titre", () => {
+  // « Dire l'unité là où le nombre est gros » : la page aligne « 3 536 100 M€ »
+  // de dette et « 932 548 M€ » de prestations, qui se lisent « milliards » par
+  // qui ne regarde pas le sigle. La ligne est dans le cadrage, sous le titre de
+  // la section, jamais posée après les tableaux.
+  const section = PAGE_BALISES.slice(
+    PAGE_BALISES.indexOf('<section class="national"'),
+    PAGE_BALISES.indexOf('id="bloc-conjoncture"'),
+  );
+  assert.ok(section.length > 100, "section national introuvable");
+  assert.match(section, /Montants en millions d&#39;euros\.|Montants en millions d'euros\./);
+  // Sous le titre, et avant le premier bloc chiffré.
+  assert.ok(
+    section.indexOf("La France dans son ensemble") < section.indexOf("Montants en millions"),
+    "l'unité doit suivre le titre de la section",
+  );
+});
+
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
   // Première version : la légende recouvrait le sud-ouest de la France. La
   // leçon n'a pas changé quand la carte est devenue la page : les surcouches
