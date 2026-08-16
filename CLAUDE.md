@@ -216,33 +216,20 @@ pour ne plus l'être.
    d'être pliés. Le travail est **`budget_etat`**, et lui seul vaut une
    structure — les autres se lisent tels quels.
 
-4. **Quarante-trois séries publiées pour la France qu'aucune fiche ne montre.**
-   Le site filtre son catalogue par `niveaux` (`indicateursDeLaFiche`). Or 43
-   séries ont une valeur publiée pour la France sans déclarer `pays` :
-   sécurité 16, équipements 8, secteurs 10, logement 3, entreprises 3,
-   éducation 2, europe 1. Quarante d'entre elles déclarent
-   `commune, departement, region`.
-
-   **Ce n'est pas un trou de données, c'est un trou de déclaration.** Vérifié
-   sur les comptes publiés, exercice le plus récent :
-
-   | Indicateur | Valeur France | Somme des 18 régions | Écart |
-   |---|---|---|---|
-   | `insee_effectifs_salaries` | 26 604 745 | 26 604 745 | 0,000 % |
-   | `insee_creations_entreprises` | 1 165 795 | 1 165 795 | 0,000 % |
-
-   Les deux sont `sommable: true`, et la valeur nationale est la somme exacte
-   des régions, à l'unité. Le pipeline la calcule et la publie ; seul le
-   catalogue ne dit pas qu'elle existe à cette maille, et le filtre du site
-   l'écarte donc de toute fiche.
-
-   Le correctif est une déclaration, pas un calcul — mais dire à quelle maille
-   un indicateur existe reste une affirmation de méthode, donc **D7** : la
-   validation humaine préalable s'applique. Ce qui la rend sûre est écrit
-   ci-dessus : la valeur ne serait pas inventée, elle est déjà publiée et
-   arithmétiquement exacte.
-
 ### Fait
+
+- **Les quarante-trois séries invisibles** (16 août 2026). Le site filtre son
+  catalogue par `niveaux`, et 43 séries avaient une valeur publiée pour la
+  France sans déclarer `pays` : le filtre les écartait de toute fiche. Ce
+  n'était pas un trou de données mais **un trou de déclaration** —
+  `agregats_nationaux()` somme les régions à la publication, mais ces sommes ne
+  repassent jamais par `core.observations`, que `synchroniser_niveaux()` relit
+  pour recaler `geo_levels`. Le catalogue déclare désormais ce que la
+  publication contient, **période par période** : les périodes réellement
+  sommées, jamais celles des régions. Les trois conditions d'`agregats_nationaux`
+  sont intactes — l'indicateur doit être additif, **toutes** les régions doivent
+  paver la France, le jeu doit être déclaré. 145 → 188 indicateurs à la maille
+  pays ; sept thèmes gagnent leur première ligne nationale.
 
 - **Simulateur — collectivités locales** (10 août 2026). Un budget par échelon,
   jamais leur somme : communes, départements, régions, et aucune entrée qui les
