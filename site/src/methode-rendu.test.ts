@@ -14,7 +14,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { renduGrille } from "./methode-rendu.ts";
+import type { Jeu } from "./donnees.ts";
+import { formater } from "./echelle.ts";
+import { renduGrille, renduMethode, renduSources, TITRES_METHODE } from "./methode-rendu.ts";
 
 /** Une des trois listes fermées de `controle_analyses.py`, lue dans le
  *  fichier Python lui-même — jamais recopiée. `nomVariable` doit être ancré
@@ -143,15 +145,216 @@ test("le critère de choix des sujets est écrit, sans auteur ni orientation", (
   assert.match(html, /issues du dépôt/);
 });
 
-test("aucune réserve qui s'excuse", () => {
-  const html = renduGrille();
-  assert.doesNotMatch(html, /ne garantit pas|fiabilité (est )?inégale|à prendre avec précaution/i);
-});
-
 test("le rendu est pur : deux appels produisent la même chaîne", () => {
   assert.equal(renduGrille(), renduGrille());
 });
 
 test("le rendu ne prend aucune donnée en entrée", () => {
   assert.equal(renduGrille.length, 0);
+});
+
+/* ==========================================================================
+ * Les sources
+ *
+ * Trois jeux **réellement enregistrés** dans le registre versionné du dépôt
+ * (`infra/seed/dataset_registry.csv` et `source_registry.csv`), recopiés champ
+ * par champ — producteur, titre, licence, adresse. Un test plus bas rouvre ces
+ * deux fichiers et vérifie que chacun de ces champs s'y trouve : la règle
+ * « aucune source inventée, même en fixture » cesse d'être une intention et
+ * devient une assertion. Seule la date d'extraction est propre au test : c'est
+ * l'horodatage d'une lecture, pas un millésime publié.
+ * ======================================================================= */
+
+const JEUX: Jeu[] = [
+  {
+    id: "ofgl-communes",
+    titre: "Finances des communes (consolidee)",
+    producteur: "OFGL",
+    licence: "Licence Ouverte 2.0",
+    url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-communes-consolidee/records",
+    extraction: "2026-08-10T04:12:00+00:00",
+  },
+  {
+    id: "melodi-filosofi-cc",
+    titre: "Filosofi 2 : niveau de vie et pauvreté à la commune",
+    producteur: "INSEE",
+    licence: "Licence Ouverte 2.0",
+    url: "https://api.insee.fr/melodi/data/DS_FILOSOFI_CC",
+    extraction: "2026-08-10T04:15:00+00:00",
+  },
+  {
+    id: "ofgl-departements",
+    titre: "Finances des départements",
+    producteur: "OFGL",
+    licence: "Licence Ouverte 2.0",
+    url: "https://data.ofgl.fr/api/explore/v2.1/catalog/datasets/ofgl-base-departements-consolidee/records",
+    extraction: "2026-08-10T04:13:00+00:00",
+  },
+];
+
+/** Un fichier du dépôt, lu tel quel. */
+function fichier(chemin: string): string {
+  return readFileSync(new URL(chemin, import.meta.url), "utf8");
+}
+
+test("chaque jeu de la fixture existe dans le registre versionné du dépôt", () => {
+  // La règle « ne jamais inventer une source » vaut aussi pour les fixtures :
+  // un producteur, un titre ou une adresse inventés ici finiraient par être lus
+  // comme la preuve que le rendu fonctionne sur du vrai.
+  const jeux = fichier("../../infra/seed/dataset_registry.csv");
+  const sources = fichier("../../infra/seed/source_registry.csv");
+  for (const jeu of JEUX) {
+    assert.ok(jeux.includes(`\n${jeu.id},`), `${jeu.id} absent du registre des jeux`);
+    assert.ok(jeux.includes(`,${jeu.titre},`), `titre de ${jeu.id} absent du registre`);
+    assert.ok(jeux.includes(`,${jeu.url},`), `adresse de ${jeu.id} absente du registre`);
+    assert.ok(sources.includes(`,${jeu.producteur},`), `${jeu.producteur} absent du registre`);
+    assert.ok(sources.includes(`,${jeu.licence},`), `licence de ${jeu.id} absente du registre`);
+  }
+});
+
+test("les producteurs nommés sont exactement ceux des jeux reçus", () => {
+  const html = renduSources(JEUX);
+  const nommes = [...html.matchAll(/<dt>([^<]+)<\/dt>/g)].map((m) => m[1]);
+  // Groupés, et chacun une seule fois : deux jeux de l'OFGL font une entrée.
+  assert.deepEqual(nommes, ["OFGL", "INSEE"]);
+  // Un producteur du registre que ce manifeste ne porte pas n'apparaît pas :
+  // la page nomme ce qui est publié, jamais ce que le dépôt sait faire.
+  assert.doesNotMatch(html, /Eurostat|URSSAF|DINUM/);
+});
+
+test("l'ordre est celui du manifeste : aucun tri, donc aucun palmarès", () => {
+  // INSEE arrive après OFGL dans la fixture ; un tri alphabétique l'aurait mis
+  // devant, et un tri par nombre de jeux aurait fait un classement des sources.
+  const html = renduSources(JEUX);
+  assert.ok(html.indexOf("OFGL") < html.indexOf("INSEE"));
+});
+
+test("chaque jeu mène à son fichier, avec sa licence et la date de lecture", () => {
+  const html = renduSources(JEUX);
+  for (const jeu of JEUX) {
+    assert.ok(html.includes(`href="${jeu.url}"`), `lien manquant pour ${jeu.id}`);
+    assert.ok(html.includes(jeu.titre), `titre manquant pour ${jeu.id}`);
+  }
+  assert.match(html, /Licence Ouverte 2\.0/);
+  assert.match(html, /fichier lu le 10\/08\/2026/);
+});
+
+test("aucune adresse n'est écrite dans le module : elles viennent toutes du manifeste", () => {
+  // La garantie porteuse de cette page. Une adresse en dur dans le module
+  // serait une source que le manifeste ne porte pas — c'est-à-dire une source
+  // que personne ne peut vérifier contre les fichiers publiés.
+  const module = fichier("./methode-rendu.ts");
+  const adresses = module.match(/https?:\/\/[^\s"'`)]+/g) ?? [];
+  assert.deepEqual(adresses, []);
+  // Et à l'inverse : tout `href` rendu est l'une des adresses reçues.
+  const rendus = [...renduSources(JEUX).matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
+  const attendus = new Set(JEUX.map((jeu) => jeu.url));
+  for (const href of rendus) assert.ok(attendus.has(href!), `adresse inattendue : ${href}`);
+  assert.equal(rendus.length, JEUX.length);
+});
+
+test("les décomptes passent par formater, séparateurs compris", () => {
+  const html = renduSources(JEUX);
+  assert.ok(html.includes(`${formater(JEUX.length, "count", false)} jeux de données`));
+  assert.ok(html.includes(`${formater(2, "count", false)} producteurs`));
+});
+
+test("un manifeste vide ne rend rien du tout", () => {
+  // Un cadre vide en tête de la page des sources se lit comme une panne.
+  assert.equal(renduSources([]), "");
+});
+
+test("un seul jeu se dit au singulier", () => {
+  const html = renduSources([JEUX[0]!]);
+  assert.match(html, /1 jeu de données/);
+  assert.match(html, /1 producteur\./);
+});
+
+test("les champs du manifeste sont échappés", () => {
+  const html = renduSources([
+    { ...JEUX[0]!, titre: '<script>x</script>', producteur: "A & B" },
+  ]);
+  assert.doesNotMatch(html, /<script>/);
+  assert.match(html, /A &amp; B/);
+});
+
+test("une date d'extraction illisible se rend telle quelle, jamais en « Invalid Date »", () => {
+  const html = renduSources([{ ...JEUX[0]!, extraction: "date inconnue" }]);
+  assert.doesNotMatch(html, /Invalid Date/);
+  assert.match(html, /date inconnue/);
+});
+
+test("le rendu des sources est pur : deux appels produisent la même chaîne", () => {
+  assert.equal(renduSources(JEUX), renduSources(JEUX));
+});
+
+/* ==========================================================================
+ * La méthode
+ * ======================================================================= */
+
+/** Toute la page : c'est sur elle que portent les garanties de ton, pas sur un
+ *  bloc pris à part. */
+const PAGE = () => `${renduSources(JEUX)}${renduMethode()}${renduGrille()}`;
+
+test("la méthode dit les deux flux, et que les analyses ne créent aucun chiffre", () => {
+  const html = renduMethode();
+  assert.match(html, /Les chiffres viennent des\s+fichiers de leurs producteurs/);
+  assert.match(html, /Les analyses ne créent aucun chiffre/);
+});
+
+test("la méthode nomme le contrôle qui remplace la relecture, et sa commande", () => {
+  const html = renduMethode();
+  assert.match(html, /décision D11/);
+  assert.match(html, /<code>python -m plateforme\.controle_analyses site\/analyses<\/code>/);
+  assert.match(html, /avant chaque déploiement et après chaque publication/);
+  assert.match(html, /sans tolérance/);
+  assert.match(html, /garde contre l'invention/);
+});
+
+test("la méthode tient les règles d'affichage du site", () => {
+  const html = renduMethode();
+  assert.match(html, /millions d'euros/);
+  assert.match(html, /varie en points/);
+  assert.match(html, /budgets ne s'additionnent pas/);
+  assert.match(html, /ni score composite, ni classement/);
+});
+
+test("les intertitres de la page sont exactement la liste fermée du module", () => {
+  // La garde structurelle contre la réserve qui s'excuse : les six blocs
+  // retirés du site étaient tous annoncés par leur titre. Une section ajoutée
+  // à cette page — quelle que soit sa prose — fait échouer ce test.
+  const titres = [...PAGE().matchAll(/<h[34][^>]*>([^<]+)<\/h[34]>/g)].map((m) => m[1]!.trim());
+  assert.deepEqual([...titres].sort(), [...TITRES_METHODE].sort());
+});
+
+test("aucun intertitre n'annonce une lacune", () => {
+  // « Ce que ces chiffres ne disent pas », « Pourquoi ce n'est pas suivre son
+  // impôt », « Limites » : la forme du titre suffisait à reconnaître ces blocs.
+  for (const titre of TITRES_METHODE) {
+    assert.doesNotMatch(
+      titre,
+      /\bne\b|\bpas\b|\bsans\b|limite|précaution|réserve|attention|pourquoi/i,
+      `titre défensif : ${titre}`,
+    );
+  }
+});
+
+test("la page parle du site, jamais au lecteur", () => {
+  // Une réserve qui s'excuse s'adresse presque toujours à quelqu'un : « gardez
+  // à l'esprit », « ne vous fiez pas », « soyez prudent ». Le sujet de chaque
+  // phrase de cette page est le site ou son pipeline.
+  assert.doesNotMatch(PAGE(), /\bvous\b|\bvotre\b|\bvos\b|gardez|n'oubliez|soyez/i);
+});
+
+test("aucune réserve qui s'excuse", () => {
+  const html = PAGE();
+  assert.doesNotMatch(
+    html,
+    /ne garantit|ne prétend|ne saurait|fiabilité|inégale?s?\b|à prendre avec|avec (précaution|prudence)|sous réserve|méfi|approximat|imparfait|grossi[èe]r|ces chiffres ne|il convient de/i,
+  );
+});
+
+test("le rendu de la méthode est pur et ne prend aucune donnée", () => {
+  assert.equal(renduMethode(), renduMethode());
+  assert.equal(renduMethode.length, 0);
 });
