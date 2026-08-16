@@ -10,4 +10,9 @@ __pycache__/
 
 # Scripts de vérification écran : jetables, propres à une session.
 site/shot-*.mjs
+
+# Les worktrees que la session ouvre pour isoler un agent : un dépôt git imbriqué,
+# vivant le temps d'une tâche. Le commiter enregistrerait un arbre de travail
+# comme s'il était du code.
+.claude/worktrees/
 *.egg-info/
