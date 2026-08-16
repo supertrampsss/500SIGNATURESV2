@@ -93,6 +93,31 @@ test("les montants sont en millions, et le sigle est dans la légende", () => {
   assert.match(html, /<caption>Montants en millions d'euros\./);
 });
 
+/**
+ * Une ligne porte le nom que le bloc lui a donné, jamais un second.
+ *
+ * Le bloc de la France écrit « les impôts que l'État perçoit » ; la ligne qui
+ * chiffre ce poste ne peut pas s'intituler « Recettes fiscales nettes » sous
+ * lui — ce serait deux noms pour une ligne. Le libellé du fichier publié va
+ * sous le curseur, où le tableau déplié le retrouve.
+ */
+test("le poste national se dit comme le bloc le dit, le libellé publié en infobulle", () => {
+  const t = exercices({
+    cites: ["etat_recettes_nettes_bg", "etat_recettes_fiscales"],
+    series: {
+      etat_recettes_nettes_bg: { "2019": 295256348109.01, "2025": 380389657383.09 },
+      etat_recettes_fiscales: { "2019": 281289250970.51, "2025": 356397925509.5 },
+    },
+    catalogue: [
+      { id: "etat_recettes_nettes_bg", libelle: "Recettes nettes du budget général" },
+      { id: "etat_recettes_fiscales", libelle: "Recettes fiscales nettes" },
+    ] as unknown as Indicateur[],
+  })!;
+  const poste = t.lignes[1];
+  assert.equal(poste.libelle, "Impôts perçus par l'État");
+  assert.equal(poste.terme, "Recettes fiscales nettes");
+});
+
 test("aucun tiret cadratin ni demi-cadratin", () => {
   assert.doesNotMatch(
     rendreExercices(
