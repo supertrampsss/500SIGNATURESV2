@@ -14,9 +14,11 @@
  *
  * **Une décomposition n'est écrite que si `provenance.ts` l'accepte**, c'est-à-
  * dire si les composantes somment au total aux deux exercices. Le refus est la
- * réponse par défaut, et il est silencieux : à la maille France, aucun des
- * indicateurs nationaux ne déclare de parent, les blocs y tiennent donc en une
- * phrase et n'écrivent pas qu'il leur manque quelque chose.
+ * réponse par défaut, et il est silencieux : à la maille France, les recettes du
+ * budget général ouvrent les deux familles que la source en publie, la dépense
+ * n'ouvre rien — les missions sont des montants bruts quand le total est net, et
+ * aucune composition publiée ne le redonne. Le bloc des dépenses y tient donc en
+ * une phrase, et n'écrit pas qu'il lui manque quelque chose.
  *
  * **Le poste se dit en français, pas en nomenclature.** « Frais de personnel »
  * est exact et n'appelle aucune image ; « les salaires de ses agents » se lit.
@@ -110,6 +112,15 @@ const COMPTES: Record<string, Comptes> = {
  * source. Une phrase, elle, a besoin de l'article et de l'accord : la table les
  * porte pour les postes que les blocs peuvent nommer, et un poste absent de la
  * table n'est pas nommé du tout.
+ *
+ * **Une seule table pour toutes les sources.** `poste()` n'y fait qu'une
+ * lecture ; deux tables, une par producteur, demanderaient de les fusionner à
+ * chaque appel pour exactement le même résultat. Ce qu'une entrée nomme n'est
+ * pas un producteur, c'est un poste sous un total — et c'est le total qui décide
+ * du cadre comptable, jamais la table. Les sections disent donc de quel budget
+ * chaque poste vient, et aucune phrase ne descend d'un total vers un poste qui
+ * n'est pas le sien : `provenance.ts` ne pose que les composantes que le
+ * catalogue déclare sous cet agrégat-là.
  */
 const POSTES: Record<string, { nom: string; pluriel: boolean }> = {
   // Ce que le fonctionnement paie.
@@ -139,6 +150,13 @@ const POSTES: Record<string, { nom: string; pluriel: boolean }> = {
   ofgl_depenses_d_equipement: { nom: "les dépenses d'équipement", pluriel: true },
   ofgl_subventions_d_equipement_versees: { nom: "les subventions d'équipement versées", pluriel: true },
   ofgl_autres_depenses_d_investissement: { nom: "les autres dépenses d'investissement", pluriel: true },
+  // Ce qui remplit les caisses de l'État, sur son budget général et en
+  // comptabilité budgétaire. Les deux familles que la source publie sous les
+  // recettes nettes, et rien d'autre : les cotisations sociales financent la
+  // Sécurité sociale et n'entrent dans aucune des deux, les impôts locaux vont
+  // aux collectivités et sont nommés plus haut sous leur propre total.
+  etat_recettes_fiscales: { nom: "les impôts que l'État perçoit", pluriel: true },
+  etat_recettes_non_fiscales: { nom: "ce que l'État encaisse sans lever l'impôt", pluriel: false },
 };
 
 /** Un poste et sa formulation, ou rien : un poste que la table ne nomme pas ne

@@ -132,113 +132,148 @@ pour ne plus l'être.
 1. **Simulateur — comptes spéciaux, budgets annexes et ODAC.** Ce qui reste
    hors du budget général de l'État et hors des trois échelons publiés.
 
-   **Avant d'étendre le simulateur, une identité doit se refermer, et elle ne
-   se referme pas.** Mesuré sur les séries publiées (2026-08-11T0807, pays/FR,
-   exercice 2025), toutes du même cadre `budgetaire` et du même jeu
-   `execution-budget-etat` :
+   **L'identité du solde se referme, à zéro euro.** Deux tours de cette entrée
+   ont soutenu le contraire, et c'était une faute de mesure, pas une faute des
+   comptes. Vérifié sur la source elle-même (API Explore de la situation
+   mensuelle budgétaire, colonne du 31 décembre), avec les six termes que
+   `smb.IDENTITE` déclare :
 
-   | | Md€ |
-   |---|---|
-   | Recettes nettes du budget général | 380,4 |
-   | − Dépenses nettes du budget général | −441,2 |
-   | − Prélèvements sur recettes (collectivités 46,1 + UE 23,0) | −69,0 |
-   | + Solde des comptes spéciaux | −2,3 |
-   | **= solde reconstitué** | **−132,1** |
-   | Solde budgétaire publié | −124,2 |
-   | **Écart inexpliqué** | **−7,9** |
+   `recettes nettes BG − dépenses nettes BG − PSR + comptes spéciaux + budgets
+   annexes + fonds de concours = solde budgétaire`
 
-   Les prélèvements sur recettes doivent bien être retranchés : la définition
-   de `etat_depenses_nettes_bg` le dit — « les prélèvements reversés aux
-   collectivités et à l'Union européenne n'y figurent pas : ils sont comptés à
-   part ». Sans eux l'écart serait de 61 Md€.
-
-   Restent 7,9 Md€, soit 6 % du déficit. Les budgets annexes sont un candidat
-   mais ne pèsent pas cet ordre. **Tant que cet écart n'est pas nommé, étendre
-   le simulateur aux comptes spéciaux lui ferait afficher un solde que les
-   comptes publiés ne confirment pas** — et l'exactitude arithmétique est toute
-   la promesse de l'outil. Comme pour la provenance nationale, la décision
-   relève de **D7** : la validation humaine préalable reste en vigueur pour les
-   connecteurs et la méthodologie.
-2. **Provenance au niveau France — la condition n'est pas remplie, mesuré.**
-   `provenance.ts` attribue la variation d'un agrégat à ses composantes partout
-   où la source déclare une hiérarchie. Le catalogue publié compte 386
-   indicateurs, dont **56 déclarent un parent — tous OFGL**, et **aucun des 87
-   nationaux**. Le module ne se tait donc pas par défaut de code : rien ne lui
-   est déclaré.
-
-   Cette entrée disait qu'il suffirait de ranger les missions du budget général
-   sous les dépenses nettes, « à condition de vérifier que la somme redonne le
-   total ». Vérifié sur les comptes publiés (version 2026-08-11T0807, pays/FR) :
-   **elle ne les redonne pas.**
-
-   | | 2024 | 2025 |
-   |---|---|---|
-   | Somme des 33 missions publiées | 579,1 Md€ | 578,0 Md€ |
-   | dont **Remboursements et dégrèvements** | 140,6 | 141,4 |
-   | Somme hors R&D | 438,5 | 436,7 |
-   | Dépenses nettes du budget général | 443,4 | 441,2 |
-   | **Écart** | **−1,12 %** | **−1,02 %** |
-
-   Deux faits en sortent. La mission « Remboursements et dégrèvements » doit
-   **sortir** de la décomposition : à 141 Md€ elle est exactement ce que
-   « nettes » retranche, et l'inclure donne +31 %. Et même sans elle, il reste
-   1 % d'écart — 4,5 Md€ — quand le pipeline exige `TOLERANCE_ECHELON = 0.005`,
-   soit 0,5 %. La hiérarchie échouerait au contrôle que le pipeline applique
-   déjà aux collectivités, d'un facteur deux. L'écart est stable sur deux
-   exercices : cela ressemble à des missions absentes du fichier, pas à du bruit.
-
-   **Rien ne doit être déclaré avant que cet écart soit expliqué**, et la
-   décision relève de D7 — la validation humaine préalable reste en vigueur pour
-   la méthodologie, et dire qu'un agrégat se décompose en telles composantes est
-   une affirmation comptable, pas un détail d'implémentation.
-3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
-   range, il ne les condense pas. Visé : une question, une phrase, trois
-   chiffres, le tableau complet derrière.
-
-   Mesuré sur la France (version 2026-08-11T0807) : **188 séries publiées**, et
-   la charge n'est pas répartie — un thème en porte 43 % à lui seul.
-
-   | Thème | Lignes |
-   |---|---|
-   | `budget_etat` | **81** |
-   | `securite` | 16 |
-   | `fonctions` | 11 |
-   | `depenses_fiscales`, `dette`, `europe`, `securite_sociale` | 10 chacun |
-   | `equipements` | 8 |
-   | les huit autres | 2 à 5 chacun |
-
-   Conséquence pour qui reprend : condenser uniformément ne sert à rien. Onze
-   thèmes sur dix-sept tiennent déjà en moins de dix lignes et n'ont pas besoin
-   d'être pliés. Le travail est **`budget_etat`**, et lui seul vaut une
-   structure — les autres se lisent tels quels.
-
-4. **Quarante-trois séries publiées pour la France qu'aucune fiche ne montre.**
-   Le site filtre son catalogue par `niveaux` (`indicateursDeLaFiche`). Or 43
-   séries ont une valeur publiée pour la France sans déclarer `pays` :
-   sécurité 16, équipements 8, secteurs 10, logement 3, entreprises 3,
-   éducation 2, europe 1. Quarante d'entre elles déclarent
-   `commune, departement, region`.
-
-   **Ce n'est pas un trou de données, c'est un trou de déclaration.** Vérifié
-   sur les comptes publiés, exercice le plus récent :
-
-   | Indicateur | Valeur France | Somme des 18 régions | Écart |
+   | Exercice | recalculé | publié | écart |
    |---|---|---|---|
-   | `insee_effectifs_salaries` | 26 604 745 | 26 604 745 | 0,000 % |
-   | `insee_creations_entreprises` | 1 165 795 | 1 165 795 | 0,000 % |
+   | 2024 | −155 929 972 365,41 | −155 929 972 365,41 | **0,00 €** |
+   | 2025 | −124 205 673 501,55 | −124 205 673 501,55 | **0,00 €** |
 
-   Les deux sont `sommable: true`, et la valeur nationale est la somme exacte
-   des régions, à l'unité. Le pipeline la calcule et la publie ; seul le
-   catalogue ne dit pas qu'elle existe à cette maille, et le filtre du site
-   l'écarte donc de toute fiche.
+   **Ce que la mesure précédente avait raté.** Elle était faite sur les *séries
+   publiées*, qui ne portent que 15 des 26 lignes de la source : les deux termes
+   manquants ne sont déclarés par aucun indicateur (`indicateur=None` dans
+   `_LIGNES`).
 
-   Le correctif est une déclaration, pas un calcul — mais dire à quelle maille
-   un indicateur existe reste une affirmation de méthode, donc **D7** : la
-   validation humaine préalable s'applique. Ce qui la rend sûre est écrit
-   ci-dessus : la valeur ne serait pas inventée, elle est déjà publiée et
-   arithmétiquement exacte.
+   | Terme absent des séries | 2024 | 2025 |
+   |---|---|---|
+   | Fonds de concours et attribution de produits | +8,31 Md€ | +7,35 Md€ |
+   | Solde des budgets annexes | +0,37 Md€ | +0,54 Md€ |
+
+   Ils expliquent le résidu à eux deux : −2,35 + 0,37 + 8,31 = +6,33 en 2024,
+   et +5,64 en 2025 — exactement ce qui manquait. Le solde des comptes spéciaux
+   était juste, et correctement signé ; l'ajouter « aggravait l'écart » pour la
+   seule raison que les deux termes plus gros n'étaient pas là. Les fonds de
+   concours ne sont pas une trouvaille : le docstring de `smb.py` les nomme
+   depuis toujours — « l'identité du solde ajoute les fonds de concours dans
+   l'exécution, mais pas dans les textes votés […] près de 7 Md€ ».
+
+   **Et rien n'obligeait à mesurer quoi que ce soit** : `normalize/etat.py`
+   contrôle cette identité à l'ingestion et `raise ValueError` au-delà de
+   `TOLERANCE_EUR`. Un exercice dont le solde ne se déduit pas de ses
+   composantes n'est pas publié. La question « l'identité se referme-t-elle »
+   avait sa réponse dans le code qui refuse le contraire.
+
+   C'est la quatrième fois de suite dans ce fichier que **l'instrument est faux
+   et le code est juste** — après `unicode_escape` sur de l'UTF-8 déjà décodé,
+   un 200 lu comme une preuve alors que le repli SPA servait le gabarit, et la
+   mission entière prise pour les seuls impôts d'État. Avant d'écrire ici qu'un
+   chiffre du dépôt ne tient pas, chercher le contrôle qui l'aurait déjà refusé.
+
+   **Les deux termes manquants sont publiés** (16 août 2026) :
+   `etat_fonds_de_concours` et `etat_solde_budgets_annexes`. Les lignes étaient
+   déjà lues, seul l'identifiant manquait. Un test refait l'identité **sur les
+   seules séries publiées** et la referme à l'euro — sept indicateurs et non
+   six, le total des prélèvements sur recettes n'étant porté par aucune série :
+   ce sont ses deux composantes qui le remplacent.
+
+   Ce qui reste est donc le sujet d'origine, et lui seul : **étendre le
+   simulateur aux comptes spéciaux, aux budgets annexes et aux ODAC.** Le solde
+   se referme maintenant sur des séries publiées, donc l'obstacle arithmétique
+   est levé. Comme pour la provenance nationale, la décision relève de **D7** :
+   la validation humaine préalable reste en vigueur pour les connecteurs et la
+   méthodologie.
+2. **Provenance au niveau France — déclarée, sauf les missions, et la raison
+   du refus vaut d'être lue.** `provenance.ts` attribue la variation d'un
+   agrégat à ses composantes partout où la source déclare une hiérarchie. Le
+   catalogue national n'en déclarait aucune ; il en porte désormais cinq, et
+   **24 indicateurs gagnent un parent** :
+
+   | Agrégat | Composantes | Exercices vérifiés | Écart maximal |
+   |---|---|---|---|
+   | `etat_recettes_nettes_bg` | 2 | 13 (2013-2025) | 0,0001 € |
+   | `insee_apu_solde` | 3 sous-secteurs | 67 (1959-2025) | 0,050 % en 1974, nul depuis 1977 |
+   | `insee_dette_apu_montant` | 4 sous-secteurs | 122 trimestres | 0,014 % (arrondi source) |
+   | `depense_fiscale_totale` | 9 impôts d'assiette | 3 | 0,0000 € |
+   | `drees_protection_sociale_total` | 6 risques | 66 (1959-2024) | 0,0008 € |
+
+   **Les 33 missions du budget général restent refusées**, et pas pour la raison
+   que cette entrée a d'abord donnée. Deux erreurs successives ont été écrites
+   ici, elles méritent d'être gardées :
+
+   - D'abord « la somme ne redonne pas le total, 1 % d'écart ». **Faux** : on
+     retranchait la *mission* « Remboursements et dégrèvements » entière, qui
+     porte aussi les dégrèvements d'impôts **locaux**, au lieu des seuls
+     remboursements d'impôts **d'État**. Avec le bon terme,
+     `578,04 − 136,84 = 441,19` contre 441,19 publié — **0,000 %** aux deux
+     exercices.
+   - Puis « donc c'est déclarable ». **Faux aussi, et plus subtilement** :
+     l'identité qui se referme est une **soustraction**, or un `parent` dit
+     « ceci s'additionne dans cela ». **Aucune composition de missions publiées
+     ne redonne le total** — les 33 le dépassent de 31 %, et la mission des
+     remboursements écartée il manque encore 1 %, qui sont les dégrèvements
+     locaux que « net » ne retranche pas.
+
+   Le refus est reproductible : l'entrée reste dans la table candidate du
+   pipeline avec sa mesure, et le contrôle d'identité — `TOLERANCE_ECHELON`,
+   celui-là même que les collectivités subissent — la rejette à chaque
+   publication.
+
+   **Ce que le site en montre, et ce qu'il n'en montre pas.** `blocs.ts` nomme
+   désormais les deux familles de recettes du budget général — « les impôts que
+   l'État perçoit », « ce que l'État encaisse sans lever l'impôt » — et la
+   provenance se dit à la maille France comme elle se dit pour une commune.
+
+   **Vingt-deux des vingt-quatre composantes restent muettes**, et c'est voulu :
+   `COMPTES.pays` ne lit que les dépenses et les recettes nettes du budget
+   général. Le solde public, la dette par sous-secteur, les neuf impôts
+   d'assiette et les six risques appartiennent à des agrégats qu'aucun bloc ne
+   demande — les nommer aurait produit vingt-deux phrases qu'aucune page ne peut
+   montrer. Les faire parler demande de nouveaux blocs à la maille pays, et pose
+   la question de croiser comptabilité budgétaire et comptabilité nationale sur
+   une même fiche : c'est une décision de produit, pas une tuyauterie.
 
 ### Fait
+
+- **Condenser les longues listes** (16 août 2026). Mesuré, puis traité là où la
+  mesure désignait le travail. Sur les **188 séries** de la France, la charge
+  n'était pas répartie : `budget_etat` en portait **81**, soit 43 % à lui seul,
+  quand onze thèmes sur dix-sept tenaient déjà en moins de dix lignes. Condenser
+  uniformément n'aurait donc rien donné.
+
+  Les 81 se décomposent en **66 lignes de mission** — trente-trois missions
+  fois deux colonnes, votés et consommés — et **15 autres**. C'est cette paire
+  répétée qui faisait la liste : `credits-missions.ts` la rend en un tableau de
+  33 rangées (Votés / Consommés / Écart), et il ne reste que 15 lignes
+  ordinaires. Les autres thèmes se lisent tels quels, sans pli.
+
+- **`/reperes` pré-rendue** (16 août 2026). Elle répondait 200 en servant le
+  repli SPA : **identique au gabarit, octet pour octet**. Le refus tenait à un
+  motif technique noté au registre — « les huit `afficher*` mutent un
+  `HTMLElement` » — qui était **faux pour sept d'entre eux** : `rendu()` y
+  existait déjà. Seul `national.ts` restait à extraire, et il n'avait aucun
+  test. La page sert désormais son propre document, avec sa canonique et sa
+  carte de section ; les neuf cadres sont identiques, octet pour octet, à ce que
+  le client peignait.
+
+- **Les quarante-trois séries invisibles** (16 août 2026). Le site filtre son
+  catalogue par `niveaux`, et 43 séries avaient une valeur publiée pour la
+  France sans déclarer `pays` : le filtre les écartait de toute fiche. Ce
+  n'était pas un trou de données mais **un trou de déclaration** —
+  `agregats_nationaux()` somme les régions à la publication, mais ces sommes ne
+  repassent jamais par `core.observations`, que `synchroniser_niveaux()` relit
+  pour recaler `geo_levels`. Le catalogue déclare désormais ce que la
+  publication contient, **période par période** : les périodes réellement
+  sommées, jamais celles des régions. Les trois conditions d'`agregats_nationaux`
+  sont intactes — l'indicateur doit être additif, **toutes** les régions doivent
+  paver la France, le jeu doit être déclaré. 145 → 188 indicateurs à la maille
+  pays ; sept thèmes gagnent leur première ligne nationale.
 
 - **Simulateur — collectivités locales** (10 août 2026). Un budget par échelon,
   jamais leur somme : communes, départements, régions, et aucune entrée qui les

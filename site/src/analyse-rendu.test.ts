@@ -11,7 +11,13 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import type { Analyse } from "./analyse-rendu.ts";
-import { LIBELLE_CONFUSION, LIBELLE_CRAN, rendu, renduIndex } from "./analyse-rendu.ts";
+import {
+  filtrerAnalyses,
+  LIBELLE_CONFUSION,
+  LIBELLE_CRAN,
+  rendu,
+  renduIndex,
+} from "./analyse-rendu.ts";
 import { citable, citer, type Citation } from "./citer.ts";
 import { formater } from "./echelle.ts";
 
@@ -263,7 +269,7 @@ test("l'index trie par publie_le décroissant et marque les mises_a_jour", () =>
     titre: "Révisée",
     mises_a_jour: [{ date: "2026-01-01", quoi: "Correction d'un montant." }],
   });
-  const html = renduIndex([ancienne, recente, revisee]);
+  const html = renduIndex([ancienne, recente, revisee], CATALOGUE);
   const rang = (titre: string) => html.indexOf(titre);
   assert.ok(rang("Récente") < rang("Révisée"));
   assert.ok(rang("Révisée") < rang("Ancienne"));
@@ -347,7 +353,7 @@ test("sans `valeur` déclarée, une ligne sans observe n'affiche que `dit`, comm
 });
 
 test("l'index pointe vers la page réelle de l'analyse, pas une ancre morte (finding 3)", () => {
-  const html = renduIndex([DEFENSE]);
+  const html = renduIndex([DEFENSE], CATALOGUE);
   assert.ok(
     html.includes(`href="/analyses/${DEFENSE.slug}/"`),
     "le lien de l'index doit pointer vers /analyses/<slug>/",
@@ -564,4 +570,210 @@ test("la charge utile est échappée pour l'attribut qui la porte", () => {
   assert.ok(!/data-citer="[^"]*"[^>]*JSON/.test(html));
   const [charge] = citations(html);
   assert.equal(charge!.source, 'Rapport "2025" & <suites>');
+});
+
+/* --------------------------------------------------------------------------
+ * L'index — spec §9.1 : « Liste antichronologique de cartes-verdicts. Chaque
+ * carte porte le chiffre en cause, le cran, la date de publication, et un
+ * marqueur si l'analyse a été mise à jour depuis sa parution. Filtres : par
+ * type d'analyse, par thème, par budget concerné. La recherche textuelle est
+ * permissive. »
+ * ----------------------------------------------------------------------- */
+
+/** Le <li> qui porte ce titre, pour lire une carte sans découper sur une
+ *  fenêtre de caractères arbitraire. */
+function carteDe(html: string, titre: string): string {
+  const idx = html.indexOf(titre);
+  assert.ok(idx > -1, `« ${titre} » introuvable dans l'index`);
+  const debut = html.lastIndexOf("<li", idx);
+  return html.slice(debut, html.indexOf("</li>", idx) + "</li>".length);
+}
+
+test("la carte porte le chiffre en cause : le chiffre dit et le chiffre publié", () => {
+  const carte = carteDe(renduIndex([DEFENSE], CATALOGUE), DEFENSE.titre);
+  // Le chiffre couramment entendu, tel que le fichier l'écrit.
+  assert.match(carte, /environ 59,9 milliards d&#39;euros/);
+  // Et le montant publié, dans l'unité du catalogue, avec son exercice.
+  const publie = formater(59946338573, "EUR", false, "etat_mission_defense_credits_votes");
+  assert.ok(carte.includes(publie), `le montant publié ${publie} manque à la carte`);
+  assert.match(carte, /exercice 2025/);
+});
+
+test("la carte porte le cran, et nomme la confusion quand le cran l'exige", () => {
+  const carte = carteDe(renduIndex([DEFENSE], CATALOGUE), DEFENSE.titre);
+  assert.ok(carte.includes(LIBELLE_CRAN.hors_perimetre), "le cran manque à la carte");
+  // Un cran `hors_perimetre` qui ne dit pas CE QUI est confondu demande au
+  // lecteur de se méfier sans lui donner de quoi lire autrement : la règle de
+  // l'étage 1 vaut pour la carte.
+  assert.ok(carte.includes(LIBELLE_CONFUSION.vote_execute), "la confusion manque à la carte");
+});
+
+test("la carte porte la date de publication et, seulement si elle existe, la mise à jour", () => {
+  const revisee = analyseMinimale({
+    slug: "revisee",
+    titre: "Révisée",
+    publie_le: "2025-06-01",
+    mises_a_jour: [{ date: "2026-01-01", quoi: "Correction d'un montant." }],
+  });
+  const html = renduIndex([DEFENSE, revisee], CATALOGUE);
+  assert.match(carteDe(html, "Révisée"), /<time datetime="2025-06-01">/);
+  assert.match(carteDe(html, "Révisée"), /mise[s]? à jour/i);
+  assert.doesNotMatch(carteDe(html, DEFENSE.titre), /mise[s]? à jour/i);
+});
+
+test("un chiffre sans observation publiée affiche la valeur que l'analyse déclare", () => {
+  const simulee = analyseMinimale({
+    titre: "Chiffrage refait",
+    chiffres: [
+      {
+        dit: "environ 3 milliards selon le simulateur",
+        valeur: 3120000000,
+        registre: "resultat_simulation",
+        lecture: "Le rendement du barème refait.",
+      },
+    ],
+  });
+  const carte = carteDe(renduIndex([simulee, DEFENSE], CATALOGUE), "Chiffrage refait");
+  assert.ok(carte.includes(formater(3120000000, "EUR", false)));
+  assert.match(carte, /Résultat du simulateur/);
+});
+
+test("un corpus d'une seule analyse n'affiche aucune barre de filtres", () => {
+  // Une barre qui ne peut rien réduire est du mobilier : elle occupe la place
+  // de la seule chose que la page a à montrer.
+  const html = renduIndex([DEFENSE], CATALOGUE);
+  assert.doesNotMatch(html, /analyses-filtres/);
+  assert.doesNotMatch(html, /<select/);
+  assert.doesNotMatch(html, /type="search"/);
+});
+
+test("une facette ne s'affiche que si le corpus porte au moins deux valeurs distinctes", () => {
+  // Deux analyses de MÊME type, de MÊME budget, de thèmes DIFFÉRENTS : seule
+  // la facette « thème » peut changer la liste, seule elle s'affiche.
+  const a = analyseMinimale({ slug: "a", titre: "Première", themes: ["budget_etat"] });
+  const b = analyseMinimale({ slug: "b", titre: "Seconde", themes: ["dette"] });
+  const html = renduIndex([a, b], CATALOGUE);
+  assert.match(html, /data-facette="theme"/);
+  assert.doesNotMatch(html, /data-facette="type"/);
+  assert.doesNotMatch(html, /data-facette="budget"/);
+  // Et les deux valeurs y sont, nommées en français — jamais l'identifiant nu.
+  const menu = html.slice(html.indexOf('data-facette="theme"'), html.indexOf("</select>"));
+  assert.match(menu, /Budget de l&#39;État/);
+  assert.match(menu, /Dette publique/);
+});
+
+test("les trois facettes s'affichent dès que les trois séparent le corpus", () => {
+  const a = analyseMinimale({ slug: "a", titre: "Première", type: "decryptage", themes: ["dette"], budgets_concernes: ["etat"] });
+  const b = analyseMinimale({ slug: "b", titre: "Seconde", type: "comparaison", themes: ["securite_sociale"], budgets_concernes: ["secu"] });
+  const html = renduIndex([a, b], CATALOGUE);
+  for (const facette of ["type", "theme", "budget"]) {
+    assert.match(html, new RegExp(`data-facette="${facette}"`), `facette ${facette} absente`);
+  }
+});
+
+test("la barre est servie repliée : sans le paquet, aucun réglage mort, toutes les cartes lisibles", () => {
+  // La page est pré-rendue (scripts/prerendre.ts) : les filtres sont un
+  // progrès, jamais une condition d'accès. `main.ts` déplie la barre.
+  const a = analyseMinimale({ slug: "a", titre: "Première", themes: ["budget_etat"] });
+  const b = analyseMinimale({ slug: "b", titre: "Seconde", themes: ["dette"] });
+  const html = renduIndex([a, b], CATALOGUE);
+  assert.match(html, /<div class="analyses-filtres" id="analyses-filtres" hidden>/);
+  assert.doesNotMatch(html, /<li[^>]*\bhidden\b/);
+  assert.ok(html.includes("Première") && html.includes("Seconde"));
+});
+
+/* ---- Le filtrage, en données ---- */
+
+const CORPUS: Analyse[] = [
+  analyseMinimale({
+    slug: "defense",
+    titre: "Les crédits de la Défense",
+    type: "decryptage",
+    themes: ["budget_etat"],
+    budgets_concernes: ["etat"],
+    verdict: { cran: "exact", phrase: "Le chiffre correspond aux comptes publiés." },
+  }),
+  analyseMinimale({
+    slug: "retraites",
+    titre: "Le déficit des retraites",
+    type: "comparaison",
+    themes: ["securite_sociale"],
+    budgets_concernes: ["secu"],
+    affirmation: {
+      texte: "Une aide sociale versée à l'insertion des personnes sans emploi.",
+      auteur: null,
+      date: null,
+      source: { titre: "Source", url: "https://exemple.test", consulte_le: "2026-01-01" },
+    },
+    verdict: { cran: "introuvable", phrase: "Aucune ligne ne porte ce montant." },
+  }),
+  analyseMinimale({
+    slug: "commune",
+    titre: "L'investissement des communes",
+    type: "decryptage",
+    themes: ["finances_locales", "budget_etat"],
+    budgets_concernes: ["collectivites"],
+    verdict: { cran: "exact", phrase: "Le montant annoncé est celui du compte." },
+  }),
+];
+
+const slugs = (criteres: Parameters<typeof filtrerAnalyses>[1]) =>
+  filtrerAnalyses(CORPUS, criteres).map((a) => a.slug);
+
+test("sans critère, le filtre ne retranche rien", () => {
+  assert.deepEqual(slugs({}), ["defense", "retraites", "commune"]);
+});
+
+test("filtre par type d'analyse", () => {
+  assert.deepEqual(slugs({ type: "comparaison" }), ["retraites"]);
+  assert.deepEqual(slugs({ type: "decryptage" }), ["defense", "commune"]);
+});
+
+test("filtre par thème — une analyse est retenue par chacun de ses thèmes", () => {
+  assert.deepEqual(slugs({ theme: "budget_etat" }), ["defense", "commune"]);
+  assert.deepEqual(slugs({ theme: "finances_locales" }), ["commune"]);
+});
+
+test("filtre par budget concerné", () => {
+  assert.deepEqual(slugs({ budget: "secu" }), ["retraites"]);
+  assert.deepEqual(slugs({ budget: "collectivites" }), ["commune"]);
+});
+
+test("les critères se cumulent", () => {
+  assert.deepEqual(slugs({ type: "decryptage", budget: "collectivites" }), ["commune"]);
+  assert.deepEqual(slugs({ type: "comparaison", budget: "etat" }), []);
+});
+
+test("la recherche est permissive : chaque mot compte, l'ordre et la contiguïté non", () => {
+  // « aide sociale » ne doit pas exiger ces deux mots collés dans cet ordre —
+  // c'est la règle de `chercher()` (simulateur.ts), et le texte visé porte
+  // « aide » et « sociale » séparés par quatre mots, dans l'ordre inverse de
+  // la requête ci-dessous.
+  assert.deepEqual(slugs({ recherche: "sociale aide" }), ["retraites"]);
+  assert.deepEqual(slugs({ recherche: "aide sociale" }), ["retraites"]);
+  // Sans accents ni casse, comme partout ailleurs sur le site.
+  assert.deepEqual(slugs({ recherche: "DEFICIT" }), ["retraites"]);
+  // Et le « et » fait la précision : un mot absent écarte la ligne.
+  assert.deepEqual(slugs({ recherche: "sociale defense" }), []);
+});
+
+test("la recherche porte sur le verdict et les chiffres, pas seulement sur le titre", () => {
+  assert.deepEqual(slugs({ recherche: "comptes publiés" }), ["defense"]);
+});
+
+test("l'index dit dans quelle unité lire ses montants", () => {
+  // C'est la page du site où la confusion milliards/millions est la plus
+  // facile : la carte met « environ 59,9 milliards d'euros » à côté du montant
+  // publié, « 59 946 M€ ». Sans la ligne d'unité, le second se lit comme le
+  // premier (CLAUDE.md, même convention que le <caption> de l'étage 2).
+  const html = renduIndex([DEFENSE], CATALOGUE);
+  assert.match(html, /Montants en millions d'euros\./);
+  assert.doesNotMatch(html, /\bMd€/);
+});
+
+test("le cran et la confusion ne se collent pas l'un à l'autre", () => {
+  // « …pas pour ce qu'il désigne Ce qui a été voté confondu… » : deux phrases
+  // sans séparateur, vues en lisant le HTML produit.
+  const carte = carteDe(renduIndex([DEFENSE], CATALOGUE), DEFENSE.titre);
+  assert.match(carte, /désigne — <span class="analyse-rendu__index-confusion">/);
 });

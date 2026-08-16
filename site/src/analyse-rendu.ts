@@ -20,6 +20,8 @@
 import { citable, type Citation } from "./citer.ts";
 import type { Indicateur } from "./donnees.ts";
 import { formater } from "./echelle.ts";
+import { aplatir } from "./simulateur.ts";
+import { libelleTheme } from "./themes.ts";
 import { echapper } from "./texte.ts";
 
 export type Cran = "exact" | "hors_perimetre" | "introuvable";
@@ -117,6 +119,26 @@ export const LIBELLE_CONFUSION: Record<Confusion, string> = {
   etat_apu: "Le périmètre de l'État confondu avec celui des administrations publiques",
   annuel_cumule: "Un montant annuel confondu avec un montant cumulé sur plusieurs exercices",
   perimetre_geographique: "Deux périmètres géographiques différents confondus",
+};
+
+/** Le genre de page, jamais un jugement : le site nomme ce qu'il a fait du
+ *  chiffre, pas ce qu'il en pense. */
+export const LIBELLE_TYPE: Record<TypeAnalyse, string> = {
+  verification_chiffre: "Vérification d'un chiffre",
+  analyse_mesure: "Analyse d'une mesure",
+  decryptage: "Décryptage",
+  comparaison: "Comparaison",
+  analyse_programme: "Analyse d'un programme",
+  mise_a_jour: "Mise à jour",
+};
+
+/** Les quatre budgets qu'une analyse peut concerner — les mêmes que ceux que
+ *  le simulateur sait régler. */
+export const LIBELLE_BUDGET: Record<BudgetConcerne, string> = {
+  etat: "Budget de l'État",
+  secu: "Sécurité sociale",
+  collectivites: "Collectivités locales",
+  bareme: "Impôt sur le revenu",
 };
 
 const LIBELLE_REGISTRE: Record<Registre, string> = {
@@ -446,25 +468,245 @@ export function rendu(
   </article>`;
 }
 
-/** L'index des analyses : la plus récente d'abord, les révisées marquées. */
-export function renduIndex(analyses: Analyse[]): string {
+/* --------------------------------------------------------------------------
+ * L'index — spec §9.1.
+ * ----------------------------------------------------------------------- */
+
+/** Ce que le lecteur a réglé dans la barre. Une facette vide ne retranche
+ *  rien : c'est « toutes ». */
+export type CriteresIndex = {
+  type?: string;
+  theme?: string;
+  budget?: string;
+  recherche?: string;
+};
+
+/**
+ * Ce qu'une carte porte pour être filtrée.
+ *
+ * Le rendu l'écrit dans les attributs `data-` de la carte et `main.ts` les
+ * relit tels quels : la page est pré-rendue, le paquet n'a pas les analyses
+ * sous la main, et une seconde règle de correspondance écrite côté DOM aurait
+ * dérivé de celle que les tests vérifient. Une seule règle, deux appelants.
+ *
+ * `texte` est déjà aplati — sans accents ni casse — par `carteDeLAnalyse` :
+ * l'aplatissement se fait une fois, au build, pas à chaque frappe.
+ */
+export type CarteIndex = {
+  type: string;
+  /** Les thèmes séparés par une espace, comme un `class` en porte plusieurs. */
+  themes: string;
+  budgets: string;
+  texte: string;
+};
+
+export function carteDeLAnalyse(analyse: Analyse): CarteIndex {
+  return {
+    type: analyse.type,
+    themes: analyse.themes.join(" "),
+    budgets: analyse.budgets_concernes.join(" "),
+    // Ce qu'une recherche doit atteindre : le titre, l'affirmation mise en
+    // cause, la phrase du verdict, et de chaque chiffre le montant tel qu'il
+    // circule et ce qu'il désigne. La carte n'affiche pas tout cela — on
+    // cherche une analyse par ce qu'elle traite, pas par les quelques mots que
+    // l'index a la place de montrer.
+    texte: aplatir(
+      [
+        analyse.titre,
+        analyse.affirmation.texte,
+        analyse.verdict.phrase,
+        ...analyse.chiffres.flatMap((c) => [c.dit, c.lecture]),
+      ].join(" "),
+    ),
+  };
+}
+
+/**
+ * La carte passe-t-elle les critères ?
+ *
+ * **Chaque mot compte, l'ordre non.** C'est la règle de `chercher()`
+ * (simulateur.ts), et c'est celle du site : « aide sociale » doit trouver
+ * « Aide à l'insertion sociale », que la contiguïté écartait. Les mots d'une
+ * lettre ne filtrent rien et sont ignorés, comme là-bas.
+ *
+ * Et la liste ne tronque pas : une carte retenue reste visible, quel qu'en
+ * soit le nombre.
+ */
+export function carteRetenue(carte: CarteIndex, criteres: CriteresIndex): boolean {
+  if (criteres.type && carte.type !== criteres.type) return false;
+  if (criteres.theme && !carte.themes.split(" ").includes(criteres.theme)) return false;
+  if (criteres.budget && !carte.budgets.split(" ").includes(criteres.budget)) return false;
+  const mots = aplatir((criteres.recherche ?? "").trim())
+    .split(/\s+/)
+    .filter((m) => m.length >= 2);
+  return mots.every((mot) => carte.texte.includes(mot));
+}
+
+/** Les analyses que ces critères retiennent, dans l'ordre reçu. */
+export function filtrerAnalyses(analyses: Analyse[], criteres: CriteresIndex): Analyse[] {
+  return analyses.filter((analyse) => carteRetenue(carteDeLAnalyse(analyse), criteres));
+}
+
+/**
+ * Une facette du filtre.
+ *
+ * **Elle ne s'affiche que si le corpus porte au moins deux valeurs
+ * distinctes.** Une seule valeur, et le menu ne peut pas changer la liste :
+ * quel que soit le réglage, les mêmes cartes restent. C'est du mobilier, et le
+ * dépôt ne publie aujourd'hui qu'une analyse — trois menus à une entrée
+ * auraient occupé le haut de la page pour ne rien pouvoir faire.
+ */
+function facette(
+  nom: string,
+  libelle: string,
+  defaut: string,
+  valeurs: { valeur: string; libelle: string }[],
+): string {
+  if (valeurs.length < 2) return "";
+  const options = valeurs
+    .map((v) => `<option value="${echapper(v.valeur)}">${echapper(v.libelle)}</option>`)
+    .join("");
+  return `<label class="analyses-filtres__label" for="analyses-${nom}">${echapper(libelle)}</label>
+      <select class="pilule pilule--menu" id="analyses-${nom}" data-facette="${nom}">
+        <option value="">${echapper(defaut)}</option>${options}
+      </select>`;
+}
+
+/** Les valeurs distinctes d'une facette, triées par leur libellé. */
+function valeursDistinctes(
+  brutes: string[],
+  libelleDe: (valeur: string) => string,
+): { valeur: string; libelle: string }[] {
+  return [...new Set(brutes)]
+    .map((valeur) => ({ valeur, libelle: libelleDe(valeur) }))
+    .sort((a, b) => a.libelle.localeCompare(b.libelle, "fr"));
+}
+
+/**
+ * Le chiffre en cause, sur une carte.
+ *
+ * **Le premier chiffre, jamais tous.** Une analyse peut en aligner cinq ; les
+ * étaler sur une carte referait l'étage 1 dans l'index, et une liste de
+ * verdicts qu'il faut lire en entier ne se parcourt plus. Le premier est celui
+ * que l'analyse met en avant — l'ordre de `chiffres[]` est celui de sa
+ * lecture — et le cran juste dessous dit ce qui le sépare du montant publié.
+ * Le reste est à un clic.
+ */
+function chiffreEnCause(analyse: Analyse, catalogue: Indicateur[]): string {
+  const chiffre = analyse.chiffres[0];
+  if (!chiffre) return "";
+  const dit = `Cité comme « ${echapper(chiffre.dit)} »`;
+  if (chiffre.observe) {
+    const unite = uniteDe(catalogue, chiffre.observe.indicateur);
+    const montant = formater(chiffre.observe.valeur, unite, false, chiffre.observe.indicateur);
+    return `<p class="analyse-rendu__index-chiffre">${dit}, publié : <strong>${montant}</strong> (exercice ${echapper(
+      chiffre.observe.periode,
+    )})</p>`;
+  }
+  // Sans observation publiée, le fichier déclare lui-même une valeur
+  // (docs/analyses-schema.md) : elle s'affiche sous le nom de son registre,
+  // exactement comme l'étage 1 le fait — un `dit` nu ne porte pas une carte.
+  const registre = echapper(LIBELLE_REGISTRE[chiffre.registre]);
+  const valeur =
+    chiffre.valeur != null
+      ? ` — ${registre} : <strong>${formater(chiffre.valeur, "EUR", false)}</strong>`
+      : ` — ${registre}`;
+  return `<p class="analyse-rendu__index-chiffre">${dit}${valeur}</p>`;
+}
+
+/**
+ * L'index des analyses : la plus récente d'abord, les révisées marquées.
+ *
+ * La page est pré-rendue (scripts/prerendre.ts) et servie telle quelle : sans
+ * JavaScript, toutes les cartes sont visibles et lisibles. La barre part donc
+ * **repliée** — `main.ts` la déplie quand il l'a câblée. Un menu qui ne filtre
+ * rien serait pire qu'absent.
+ */
+export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string {
   const triees = [...analyses].sort((a, b) => b.publie_le.localeCompare(a.publie_le));
   const lignes = triees
     .map((a) => {
       const badge = a.mises_a_jour.length
         ? `<span class="analyse-rendu__badge-maj">Mise à jour</span>`
         : "";
+      // Un cran `hors_perimetre` nomme toujours la confusion (spec §9.2) : la
+      // règle vaut ici comme à l'étage 1. « Le chiffre existe, mais pas pour
+      // ce qu'il désigne » sans dire ce qui est confondu demande au lecteur de
+      // se méfier sans rien lui donner à lire autrement.
+      const confusion =
+        a.verdict.cran === "hors_perimetre" && a.verdict.confusion
+          ? ` — <span class="analyse-rendu__index-confusion">${echapper(
+              LIBELLE_CONFUSION[a.verdict.confusion],
+            )}</span>`
+          : "";
+      const carte = carteDeLAnalyse(a);
       // Un lien de fragment (`#slug`) ne résout que si l'index et l'analyse
       // sont composés sur la même page — ce que ce module ne fait jamais :
       // `rendu()` produit un `<article>` par page, à son propre chemin
       // (tâche 4, `dist/analyses/<slug>/index.html`). C'est ce chemin réel
       // que l'index doit viser.
-      return `<li class="analyse-rendu__index-ligne">
-        <a href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a>
-        <time datetime="${echapper(a.publie_le)}">${echapper(a.publie_le)}</time>
-        ${badge}
+      return `<li class="analyse-rendu__index-ligne" data-type="${echapper(
+        carte.type,
+      )}" data-themes="${echapper(carte.themes)}" data-budgets="${echapper(
+        carte.budgets,
+      )}" data-cherche="${echapper(carte.texte)}">
+        <p class="analyse-rendu__index-entete">
+          <a href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a>
+          <time datetime="${echapper(a.publie_le)}">${echapper(a.publie_le)}</time>
+          ${badge}
+        </p>
+        ${chiffreEnCause(a, catalogue)}
+        <p class="analyse-rendu__index-cran">${LIBELLE_CRAN[a.verdict.cran]}${confusion}</p>
       </li>`;
     })
     .join("");
-  return `<ul class="analyse-rendu__index">${lignes}</ul>`;
+
+  // Une barre ne peut rien réduire sous deux analyses — même raison que pour
+  // une facette à valeur unique, un cran plus haut.
+  const barre =
+    triees.length < 2
+      ? ""
+      : `<div class="analyses-filtres" id="analyses-filtres" hidden>
+      <label class="analyses-filtres__label" for="analyses-recherche">Chercher</label>
+      <input class="analyses-filtres__champ" id="analyses-recherche" type="search"
+             autocomplete="off" placeholder="Un mot du chiffre, du verdict ou du titre" />
+      ${facette(
+        "type",
+        "Type",
+        "Tous les types",
+        valeursDistinctes(
+          triees.map((a) => a.type),
+          (v) => LIBELLE_TYPE[v as TypeAnalyse] ?? v,
+        ),
+      )}
+      ${facette(
+        "theme",
+        "Thème",
+        "Tous les thèmes",
+        valeursDistinctes(
+          triees.flatMap((a) => a.themes),
+          libelleTheme,
+        ),
+      )}
+      ${facette(
+        "budget",
+        "Budget",
+        "Tous les budgets",
+        valeursDistinctes(
+          triees.flatMap((a) => a.budgets_concernes),
+          (v) => LIBELLE_BUDGET[v as BudgetConcerne] ?? v,
+        ),
+      )}
+      <p class="analyses-filtres__compte" role="status"></p>
+    </div>`;
+
+  // « Dire l'unité là où le nombre est gros » (CLAUDE.md). C'est la page où
+  // la confusion est la plus facile : chaque carte met « environ 59,9
+  // milliards d'euros » à côté de « 59 946 M€ », et lu vite, le second se lit
+  // comme le premier. La ligne est un cadrage, pas une réserve : elle dit dans
+  // quelle unité lire les chiffres, elle ne demande pas de s'en méfier.
+  const unite = triees.length
+    ? `<p class="analyse-rendu__index-unite">Montants en millions d'euros.</p>`
+    : "";
+  return `${barre}${unite}<ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>`;
 }

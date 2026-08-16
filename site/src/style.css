@@ -1304,6 +1304,13 @@ tbody tr:hover {
 }
 
 /* Bloc national : dette française et repères européens. */
+/* L'unité de la page, sous son titre : même corps et même encre que les autres
+   lignes d'unité du site (`.simu__unite`, `.analyse-rendu__index-unite`). */
+.national__unite {
+  margin: 0 0 var(--espace-4);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
 .national {
   padding: var(--espace-7);
   margin: 0 1.5rem 1.25rem;
@@ -5802,13 +5809,86 @@ summary.pont__rangee,
   display: grid;
   gap: var(--espace-4);
 }
-.analyse-rendu__index-ligne {
+/* La barre de filtres. Elle arrive repliée dans le HTML servi et c'est
+   `main.ts` qui la déplie : sans le paquet, aucun réglage mort ne s'affiche.
+   Le `[hidden]` doit donc l'emporter sur le `display: flex` ci-dessous — sans
+   lui, la barre resterait visible et morte (même défaut qu'`.onglets-themes`
+   plus haut). */
+.analyses-filtres {
   display: flex;
-  align-items: baseline;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--espace-3);
+  margin-bottom: var(--espace-6);
+  padding-bottom: var(--espace-5);
+  border-bottom: 1px solid var(--trait);
+}
+.analyses-filtres[hidden] {
+  display: none;
+}
+.analyses-filtres__label {
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+.analyses-filtres__champ {
+  font: inherit;
+  font-size: var(--texte-s);
+  flex: 1 1 14rem;
+  min-width: 0;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-4);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-xs);
+  background: var(--papier);
+  color: var(--encre);
+}
+.analyses-filtres__compte {
+  margin: 0;
+  flex-basis: 100%;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+.analyse-rendu__index-unite {
+  margin: 0 0 var(--espace-4);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.analyse-rendu__index-ligne {
+  display: grid;
+  gap: var(--espace-2);
   padding-bottom: var(--espace-4);
   border-bottom: 1px solid var(--trait);
   font-size: var(--texte-m);
+}
+/* Une carte écartée par un filtre se cache : `display: grid` l'emporterait
+   sinon sur le `[hidden]` que `main.ts` pose, et le filtre ne filtrerait
+   rien. */
+.analyse-rendu__index-ligne[hidden] {
+  display: none;
+}
+.analyse-rendu__index-entete {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-3);
+  margin: 0;
+}
+.analyse-rendu__index-chiffre {
+  margin: 0;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.analyse-rendu__index-cran {
+  margin: 0;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  color: var(--encre);
+}
+.analyse-rendu__index-confusion {
+  font-weight: 400;
+  color: var(--encre-douce);
 }
 .analyse-rendu__index-ligne a {
   color: var(--encre);
@@ -5836,7 +5916,7 @@ summary.pont__rangee,
   .analyse-rendu__preuve {
     padding: var(--espace-5);
   }
-  .analyse-rendu__index-ligne {
+  .analyse-rendu__index-entete {
     flex-wrap: wrap;
   }
   .analyse-rendu__index-ligne time {

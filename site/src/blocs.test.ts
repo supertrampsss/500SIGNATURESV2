@@ -52,6 +52,48 @@ const CATALOGUE = (
     }) as never as Indicateur,
 );
 
+/**
+ * Le catalogue national, tel que la publication le déclare.
+ *
+ * Les identifiants, les libellés et les parents sont ceux du fichier publié : les
+ * recettes nettes du budget général ouvrent les deux familles que la source en
+ * publie, et les dépenses nettes n'ouvrent rien. Les deux impôts qui suivent sont
+ * réels et sans parent déclaré, ici comme à la publication : ils servent aux
+ * fixtures qui vérifient qu'un poste absent de la table ne se dit pas.
+ */
+const CATALOGUE_FRANCE = (
+  [
+    ["etat_depenses_nettes_bg", "Dépenses nettes du budget général", null],
+    ["etat_recettes_nettes_bg", "Recettes nettes du budget général", null],
+    ["etat_recettes_fiscales", "Recettes fiscales nettes", "etat_recettes_nettes_bg"],
+    ["etat_recettes_non_fiscales", "Recettes non fiscales", "etat_recettes_nettes_bg"],
+    ["etat_impot_revenu", "Impôt sur le revenu", null],
+    ["etat_impot_societes", "Impôt sur les sociétés", null],
+  ] as [string, string, string | null][]
+).map(
+  ([id, libelle, parent]) =>
+    ({
+      id, libelle, parent, unite: "EUR", theme: "budget_etat", sommable: false,
+      cadre_comptable: "budgetaire", niveaux: ["pays"], definition: "",
+      jeu: "execution-budget-etat",
+    }) as never as Indicateur,
+);
+
+/** Les montants publiés pour la France, aux deux bornes de la fenêtre. Les deux
+ *  familles redonnent leur total au centime, aux deux exercices. */
+const FRANCE: Record<string, Record<string, number>> = {
+  etat_depenses_nettes_bg: { "2019": 336068575453.89, "2025": 441194313369.76 },
+  etat_recettes_nettes_bg: { "2019": 295256348109.01, "2025": 380389657383.09 },
+  etat_recettes_fiscales: { "2019": 281289250970.51, "2025": 356397925509.5 },
+  etat_recettes_non_fiscales: { "2019": 13967097138.5, "2025": 23991731873.59 },
+};
+
+function deFrance(modifications: Partial<Entree> = {}) {
+  return blocs({
+    niveau: "pays", nom: "France", series: FRANCE, catalogue: CATALOGUE_FRANCE, ...modifications,
+  });
+}
+
 const BORDEAUX: Record<string, Record<string, number>> = {
   ofgl_achats_et_charges_externes: { "2019": 64526171.08, "2025": 85695732.08 },
   ofgl_autres_depenses_d_investissement: { "2019": 433691.55, "2025": 127841.29 },
@@ -180,26 +222,88 @@ test("sans catalogue, aucun bloc n'invente de hiérarchie", () => {
 });
 
 /**
- * La maille France n'a aucun indicateur qui déclare un parent : il n'y a rien à
- * décomposer, et le module se tait plutôt que de le dire.
+ * La provenance se dit à la maille France comme elle se dit pour une commune.
+ *
+ * Le catalogue national ne déclarait aucun parent : les blocs y tenaient en une
+ * phrase faute de déclaration, pas par décision. Les recettes du budget général
+ * ouvrent désormais les deux familles que la source en publie, et
+ * la phrase les nomme comme elle nomme les postes d'une commune — en français,
+ * avec son article et son accord, le terme comptable dans l'infobulle.
  */
-test("la France pose ses agrégats sans rien décomposer ni s'en excuser", () => {
-  const liste = blocs({
-    niveau: "pays",
-    nom: "France",
-    series: {
-      etat_depenses_nettes_bg: { "2019": 336068580000, "2025": 441194310000 },
-      etat_recettes_nettes_bg: { "2019": 295256350000, "2025": 380389660000 },
-    },
-    catalogue: [],
-  });
-  assert.deepEqual(liste.map((b) => b.titre), ["Le train de vie", "Qui règle l'addition"]);
+test("la France nomme la famille de recettes qui porte la hausse", () => {
+  const [depenses, recettes] = deFrance();
+  assert.deepEqual([depenses.titre, recettes.titre], ["Le train de vie", "Qui règle l'addition"]);
   assert.equal(
-    lu(liste[0].texte),
+    lu(recettes.texte),
+    `Les recettes augmentent de 85${FIN}133${FIN}M€.` +
+      ` Les impôts que l'État perçoit en apportent 88${FIN}%, soit 75${FIN}109${FIN}M€.`,
+  );
+  assert.deepEqual(recettes.cites, ["etat_recettes_nettes_bg", "etat_recettes_fiscales"]);
+  // Le terme du fichier publié reste sous le curseur, comme pour une commune.
+  assert.match(recettes.texte, /<abbr title="Recettes fiscales nettes">/u);
+});
+
+/**
+ * La dépense du budget général ne s'ouvre pas, et ne le dit pas.
+ *
+ * Aucune composition publiée ne redonne le total : les missions sont des montants
+ * bruts quand le total est net. Le bloc s'arrête donc à son agrégat, sans écrire
+ * ce qui lui manque.
+ */
+test("la dépense de l'État pose son total sans rien décomposer ni s'en excuser", () => {
+  const [depenses] = deFrance();
+  assert.deepEqual(depenses.cites, ["etat_depenses_nettes_bg"]);
+  assert.equal(
+    lu(depenses.texte),
     `L'État dépense 441${FIN}194${FIN}M€ par an sur son budget général,` +
       ` soit 105${FIN}126${FIN}M€ de plus qu'en 2019.`,
   );
-  assert.doesNotMatch(liste.map((b) => lu(b.texte)).join(" "), /non publié|décomposition/i);
+  assert.doesNotMatch(lu(depenses.texte), /non publié|indisponible|décomposition|faute de/i);
+});
+
+/**
+ * La table décide de ce qui se dit, pas le catalogue.
+ *
+ * Mêmes montants, mêmes exercices, même contrôle de somme réussi : seuls les
+ * identifiants changent, pour deux impôts que la table ne porte pas. Rien n'est
+ * nommé, et surtout pas le libellé du catalogue au milieu d'une phrase.
+ */
+test("une composante que la table ne nomme pas ne se dit pas, même décomposée", () => {
+  const [, recettes] = deFrance({
+    series: {
+      etat_depenses_nettes_bg: FRANCE.etat_depenses_nettes_bg,
+      etat_recettes_nettes_bg: FRANCE.etat_recettes_nettes_bg,
+      etat_impot_revenu: FRANCE.etat_recettes_fiscales,
+      etat_impot_societes: FRANCE.etat_recettes_non_fiscales,
+    },
+    catalogue: CATALOGUE_FRANCE.map((i) =>
+      i.id === "etat_impot_revenu" || i.id === "etat_impot_societes"
+        ? { ...i, parent: "etat_recettes_nettes_bg" }
+        : i
+    ),
+  });
+  assert.equal(lu(recettes.texte), `Les recettes augmentent de 85${FIN}133${FIN}M€.`);
+  assert.deepEqual(recettes.cites, ["etat_recettes_nettes_bg"]);
+  assert.doesNotMatch(recettes.texte, /Impôt sur le revenu|Impôt sur les sociétés/u);
+});
+
+/**
+ * Un poste se dit dans le vocabulaire de son propre cadre.
+ *
+ * Les recettes du budget général sont de la comptabilité **budgétaire** : ce sont
+ * des impôts revenant à l'État, ni les cotisations qui financent la Sécurité
+ * sociale, ni les impôts locaux qui vont aux collectivités, ni un solde des
+ * administrations publiques au sens de la comptabilité nationale. Une phrase qui
+ * emprunterait un de ces mots serait fausse en sonnant juste.
+ */
+test("les postes du budget de l'État n'empruntent aucun mot d'un autre cadre", () => {
+  const texte = deFrance().map((b) => lu(b.texte)).join(" ");
+  assert.match(texte, /Les impôts que l'État perçoit/u);
+  assert.doesNotMatch(
+    texte,
+    /cotisation|sécurité sociale|collectivité|administrations publiques|prestation|niche|dépense fiscale|redevance/iu,
+    texte,
+  );
 });
 
 /**

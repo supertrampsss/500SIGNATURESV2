@@ -65,8 +65,16 @@ export function rendu(
       : ` Pour ${echapper(horizon)}, le projet de loi de finances en prévoit
       ${echapper(formater(prevu, "EUR", false))}.`;
 
+  // Classés sur l'exercice AFFICHÉ, pas sur l'ordre du fichier. La source range
+  // ses dispositifs sur la prévision la plus lointaine ; prendre les dix
+  // premiers tels quels annonçait « les plus coûteux » sans avoir jamais fait
+  // le classement. Sur la publication du 11 août 2026 les dix mêmes sortaient
+  // — mais dans le désordre, 4 803 M€ au-dessus de 5 000 M€ — et rien
+  // n'obligeait la coïncidence à durer : il suffit qu'un dispositif monte en
+  // prévision sans monter au constat pour qu'il chasse un vrai dixième.
   const classement = niches.dispositifs
     .filter((d) => d.montants[exercice] !== undefined)
+    .sort((a, b) => (b.montants[exercice] ?? 0) - (a.montants[exercice] ?? 0))
     .slice(0, MONTRES);
   // La part que pèsent les dix premières : c'est elle qui dit si le coût est
   // concentré sur quelques dispositifs ou dispersé sur quatre cent cinquante.

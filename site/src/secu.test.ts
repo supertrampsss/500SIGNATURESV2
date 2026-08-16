@@ -10,6 +10,7 @@ import { test } from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { DEPENSES, RECETTES, SOLDE, points, rendu } from "./secu.ts";
+import { QUESTIONS } from "./questions.ts";
 
 const FINE = " ";
 
@@ -38,9 +39,14 @@ const PAYS: Record<string, Territoire> = {
 };
 
 test("le solde se lit signé, en points de PIB, chiffres tabulaires", () => {
-  assert.equal(points(-2.1), `-2,1${FINE}pt`);
+  // Le signe est le moins typographique U+2212, jamais le trait d'union U+002D
+  // que rend `Intl` : le bloc voisin écrit « −5,1 % », et deux signes de deux
+  // largeurs pour la même soustraction se voient à l'écran. Écrit ici en
+  // échappement pour que la différence reste lisible dans le test lui-même.
+  assert.equal(points(-2.1), `\u22122,1${FINE}pt`);
   assert.equal(points(0.4), `+0,4${FINE}pt`);
   assert.equal(points(0), `0,0${FINE}pt`);
+  assert.ok(!points(-2.1).includes("\u002D"), "aucun trait d'union ne doit rester");
 });
 
 test("l'année affichée est la dernière du solde français, et 2025 est déficitaire", () => {
@@ -62,8 +68,53 @@ test("la comparaison porte les trois pays, et une valeur absente reste un tiret"
 
 test("la série du solde est là, chronologique, avec l'année du choc Covid", () => {
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, new RegExp(`2020.*-2,1${FINE}pt`, "s"));
+  assert.match(html, new RegExp(`2020.*\u22122,1${FINE}pt`, "s"));
   assert.ok(html.indexOf("2020") < html.lastIndexOf("2025"));
+});
+
+test("le premier titre du bloc répond à la question qui pointe dessus", () => {
+  // `#bloc-secu` porte DEUX moitiés sous deux titres, et la seule question qui
+  // y renvoie est celle du déficit. Le lecteur qui la suivait atterrissait sur
+  // « 100 € de prestations sociales, où vont-ils ? » — une autre question, à
+  // laquelle rien ne renvoie ici. `peindreSommaireReperes` nomme aussi l'entrée
+  // du sommaire d'après ce premier titre.
+  //
+  // Le catalogue et les séries portent ici les SIX risques en plus du solde :
+  // sans eux `cent-euros-secu` rend une chaîne vide, le bloc n'a qu'un titre, et
+  // la garde passerait quel que soit l'ordre. La première version de ce test
+  // avait précisément ce trou — remettre l'ancien ordre laissait les 884 au vert,
+  // et c'est un sabotage qui l'a montré, pas une relecture.
+  const RISQUES = [
+    "drees_protection_sociale_vieillesse",
+    "drees_protection_sociale_sante",
+    "drees_protection_sociale_famille",
+    "drees_protection_sociale_emploi",
+    "drees_protection_sociale_pauvrete",
+    "drees_protection_sociale_logement",
+  ];
+  const catalogue = [...CATALOGUE, ...RISQUES.map((id) => ({ id }))] as Indicateur[];
+  const france = PAYS["FR"] as Territoire;
+  const pays = {
+    ...PAYS,
+    FR: {
+      ...france,
+      series: {
+        ...france.series,
+        ...Object.fromEntries(RISQUES.map((id, i) => [id, { "2024": (i + 1) * 1_000_000_000 }])),
+      },
+    },
+  } as Record<string, Territoire>;
+
+  const html = rendu(pays, catalogue);
+  // Le témoin : les deux moitiés sont bien là, sinon la suite ne prouve rien.
+  assert.match(html, /100.{0,8}€ de prestations sociales/);
+  assert.match(html, /La Sécu est-elle en déficit/);
+
+  const question = QUESTIONS.find((q) => q.cible === "#bloc-secu");
+  assert.ok(question, "aucune question ne pointe sur #bloc-secu");
+  assert.equal(question.question, "La Sécu est-elle en déficit ?");
+  const premier = html.slice(html.indexOf("<h3"), html.indexOf("</h3>"));
+  assert.match(premier, /déficit/i, `premier titre du bloc : ${premier}`);
 });
 
 test("aucune réserve qui s'excuse sous le tableau", () => {

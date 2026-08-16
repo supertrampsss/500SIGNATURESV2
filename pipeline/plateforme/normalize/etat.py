@@ -100,6 +100,16 @@ INDICATEURS = {
         " qu'il détient, amendes, redevances, produits de son patrimoine.",
         "technique": "Recettes non fiscales du budget général, comptabilité budgétaire.",
     },
+    "etat_fonds_de_concours": {
+        "libelle": "Fonds de concours et attributions de produits",
+        "public": "Les sommes que des tiers versent à l'État pour financer une dépense"
+        " qu'ils désignent : collectivités, entreprises, fonds européens. L'État les"
+        " encaisse en plus de ses recettes et ne peut les employer qu'à l'objet convenu.",
+        "technique": "Fonds de concours et attributions de produits rattachés au budget"
+        " général, comptabilité budgétaire. L'identité du solde budgétaire les ajoute dans"
+        " l'exécution seulement : depuis 2024, la loi de finances en publie une évaluation"
+        " déjà comprise dans ses crédits.",
+    },
     "etat_depenses_nettes_bg": {
         "libelle": "Dépenses nettes du budget général",
         "public": "Ce que l'État décaisse en un an, une fois retirés les remboursements"
@@ -153,6 +163,16 @@ INDICATEURS = {
         " négatif dégrade le solde budgétaire d'autant.",
         "technique": "Solde des comptes d'affectation spéciale et des comptes de concours"
         " financiers, comptabilité budgétaire.",
+    },
+    "etat_solde_budgets_annexes": {
+        "libelle": "Solde des budgets annexes",
+        "public": "Le résultat des deux services que l'État tient hors de son budget"
+        " général parce qu'ils se financent par leurs propres redevances : le contrôle et"
+        " l'exploitation aériens, les publications officielles et l'information"
+        " administrative.",
+        "technique": "Solde d'exécution des budgets annexes « Contrôle et exploitation"
+        " aériens » et « Publications officielles et information administrative »,"
+        " comptabilité budgétaire.",
     },
 }
 

@@ -10,6 +10,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
+import { libelleTheme, THEMES } from "./themes.ts";
 import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
@@ -102,7 +103,7 @@ import {
   exemplesTerritoires,
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
-import type { Analyse } from "./analyse-rendu.ts";
+import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -1574,46 +1575,6 @@ async function majComparateur(): Promise<void> {
     );
   }
   section.hidden = false;
-}
-
-// Libellés des thèmes connus. Un thème absent de cette table n'est pas écarté :
-// il est affiché sous une forme lisible. Filtrer sur une liste écrite en dur
-// avait déjà fait disparaître des données parfaitement publiées.
-const THEMES: Record<string, string> = {
-  vie_associative: "Vie associative",
-  finances_locales: "Finances locales",
-  revenus: "Revenus et pauvreté",
-  population: "Population",
-  famille: "Familles et unions",
-  logement: "Logement",
-  professions: "Professions et catégories sociales",
-  emploi: "Emploi et chômage",
-  diplomes: "Diplômes de la population",
-  entreprises: "Entreprises",
-  secteurs_etablissements: "Établissements par secteur",
-  secteurs_salaries: "Salariés par secteur",
-  equipements: "Équipements et services",
-  tourisme: "Hébergement touristique",
-  elections: "Participation électorale",
-  fonctions: "Dépenses par fonction",
-  securite_sociale: "Sécurité sociale",
-  securite: "Sécurité",
-  sante: "Santé",
-  education: "Éducation",
-  impots_locaux: "Impôts locaux",
-  macro: "Conjoncture",
-  dette: "Dette publique",
-  budget_etat: "Budget de l'État",
-  depenses_fiscales: "Niches fiscales",
-  energie: "Énergie",
-  transports: "Transports",
-  environnement: "Environnement",
-  justice: "Justice",
-  europe: "Comparaisons européennes",
-};
-
-function libelleTheme(theme: string): string {
-  return THEMES[theme] ?? theme.replace(/_/g, " ").replace(/^./, (c) => c.toUpperCase());
 }
 
 /** Seuls les thèmes cartographiables alimentent la carte : la dette et les
@@ -3485,6 +3446,62 @@ function brancherPartageEditorial(): void {
   brancherPartage(article, partageDeLaPage);
 }
 
+/**
+ * Les filtres de l'index des analyses (spec §9.1).
+ *
+ * La page est pré-rendue et servie entière : le filtrage bascule le `hidden`
+ * des cartes déjà rendues, il ne recompose pas la liste. `main.ts` n'a pas les
+ * analyses sous la main — chaque carte porte ses critères en `data-`, écrits
+ * par `carteDeLAnalyse` (analyse-rendu.ts), et c'est la règle de ce module-là
+ * qui décide : une seule correspondance, testée en données.
+ *
+ * La barre arrive repliée dans le HTML servi. Sans le paquet, aucun réglage
+ * mort ne s'affiche et toutes les cartes restent lisibles ; c'est ici, une
+ * fois les écouteurs posés, qu'elle se déplie.
+ */
+function brancherFiltresAnalyses(): void {
+  const barre = document.getElementById("analyses-filtres");
+  const liste = document.getElementById("analyses-index");
+  if (!barre || !liste) return;
+  const cartes = Array.from(liste.querySelectorAll("li"));
+  const menus = Array.from(barre.querySelectorAll("select"));
+  const champ = barre.querySelector("input");
+  const compte = barre.querySelector("p");
+  barre.hidden = false;
+  // Un `<select>` émet `input` comme un champ de texte : un seul écouteur,
+  // posé sur la barre, suffit aux quatre réglages.
+  barre.addEventListener("input", function () {
+    const criteres = { type: "", theme: "", budget: "", recherche: champ ? champ.value : "" };
+    for (const menu of menus) {
+      if (menu.dataset.facette === "type") criteres.type = menu.value;
+      if (menu.dataset.facette === "theme") criteres.theme = menu.value;
+      if (menu.dataset.facette === "budget") criteres.budget = menu.value;
+    }
+    let retenues = 0;
+    for (const carte of cartes) {
+      const retenue = carteRetenue(
+        {
+          type: carte.dataset.type ?? "",
+          themes: carte.dataset.themes ?? "",
+          budgets: carte.dataset.budgets ?? "",
+          texte: carte.dataset.cherche ?? "",
+        },
+        criteres,
+      );
+      carte.hidden = !retenue;
+      if (retenue) retenues += 1;
+    }
+    // Ce que le réglage a retranché se dit, sinon une page qui se vide ne se
+    // distingue pas d'une page en panne. Rien à dire quand rien n'est retiré.
+    if (compte) {
+      compte.textContent =
+        retenues === cartes.length
+          ? ""
+          : `${retenues} analyse${retenues > 1 ? "s" : ""} sur ${cartes.length}`;
+    }
+  });
+}
+
 /* --------------------------------------------------------------------------
  * Citer : le nombre, son unité, sa source, son millésime et le permalien
  * ----------------------------------------------------------------------- */
@@ -3735,6 +3752,10 @@ async function demarrer(): Promise<void> {
   // ses balises et son image déjà écrites. Son partage n'attend donc pas le
   // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.
   brancherPartageEditorial();
+  // Et pour la même raison : l'index des analyses est servi entier, cartes
+  // comprises. Ses filtres n'attendent donc rien du réseau — un manifeste muet
+  // ne doit pas laisser sa barre repliée sur une liste qu'on voulait réduire.
+  brancherFiltresAnalyses();
   // Et pour la même raison encore : les chiffres citables portent déjà leur
   // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
   // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.

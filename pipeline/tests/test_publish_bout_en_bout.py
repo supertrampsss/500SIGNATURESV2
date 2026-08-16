@@ -693,6 +693,89 @@ def test_une_valeur_publiee_par_la_source_prime_sur_notre_somme(tmp_path):
     conn.close()
 
 
+def _publier(conn, tmp_path):
+    """Publie et rend de quoi relire le catalogue et la fiche de la France."""
+    conn.commit()
+    version = "2026-01-01T0000"
+    publish.publier(conn, LocalStore(str(tmp_path / "publication")), version)
+    racine = tmp_path / "publication" / "data" / version
+    return (
+        json.loads((racine / "indicateurs.json").read_text()),
+        json.loads((racine / "territoires" / "pays" / "tous.json").read_text()),
+    )
+
+
+def test_le_catalogue_declare_pays_la_ou_la_somme_est_publiee(tmp_path):
+    """Le pipeline publiait la valeur et le catalogue taisait qu'elle existe.
+
+    Le site filtre son catalogue par `niveaux` : quarante-trois séries sommées
+    sur les régions arrivaient bien dans la fiche de la France et n'y étaient
+    montrées nulle part, faute que le catalogue déclare la maille `pays`. La
+    déclaration suit la publication, comme `synchroniser_niveaux` suit les
+    observations — et **seulement** la publication : ce qu'aucun agrégat
+    n'atteint reste à ses mailles.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_deux_regions(conn)
+    catalogue, france = _publier(conn, tmp_path)
+
+    fiche = next(i for i in catalogue if i["id"] == "ssmsi_cambriolages_nombre")
+    assert "pays" in fiche["niveaux"]
+    assert fiche["periodes_par_niveau"]["pays"] == ["2025"]
+    # La déclaration ne parle pas dans le vide : la somme est bien servie.
+    assert france["FR"]["series"]["ssmsi_cambriolages_nombre"] == {"2025": 42_000.0}
+
+    # Seulement là. Les comptes de l'OFGL sont refusés à l'agrégation — la somme
+    # des budgets communaux n'est pas « la dépense de fonctionnement en France »
+    # — et ne gagnent donc pas la maille.
+    comptes = next(i for i in catalogue if i["id"] == "ofgl_depenses_fonctionnement")
+    assert "pays" not in comptes["niveaux"]
+
+    # Et rien en double : la déclaration fusionne, elle n'empile pas. `publier`
+    # ne peut pas produire le cas — `agregats_nationaux` écarte les indicateurs
+    # déjà présents au niveau pays — mais le fichier garde déjà, à la fusion des
+    # séries, une garde « pour que l'ordre des deux ne puisse pas s'inverser en
+    # silence » : le catalogue tient la même, et ceci la vérifie.
+    conn.execute("update core.indicators set geo_levels = array['pays', 'region']"
+                 " where indicator_id = 'ssmsi_cambriolages_nombre'")
+    deja = next(
+        i for i in publish.indicateurs(conn, {}, {"ssmsi_cambriolages_nombre": {"2025": 1.0}})
+        if i["id"] == "ssmsi_cambriolages_nombre"
+    )
+    assert deja["niveaux"] == ["pays", "region"]
+    conn.close()
+
+
+def test_le_catalogue_ne_declare_pays_que_les_periodes_reellement_sommees(tmp_path):
+    """Un exercice écarté ne doit pas laisser croire que la France a une valeur.
+
+    2024 n'est renseigné que par une région sur deux : `agregats_nationaux` le
+    refuse, parce qu'une somme à laquelle il manque une région est un total
+    national faux. Le catalogue doit refuser l'exercice avec lui, sans quoi le
+    sélecteur d'année proposerait 2024 pour un chiffre qui n'existe pas.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    run_id = _semer_deux_regions(conn)
+    conn.execute(
+        "insert into core.observations (indicator_id, geo_level, geo_code, geo_vintage,"
+        " period, value, run_id) values ('ssmsi_cambriolages_nombre', 'region', '75', ?,"
+        " '2024', 11000.0, ?)",
+        (MILLESIME, run_id),
+    )
+    catalogue, france = _publier(conn, tmp_path)
+
+    fiche = next(i for i in catalogue if i["id"] == "ssmsi_cambriolages_nombre")
+    assert "pays" in fiche["niveaux"]
+    assert fiche["periodes_par_niveau"]["pays"] == ["2025"]
+    # La série régionale porte bien les deux exercices : c'est la maille pays,
+    # et elle seule, qui s'arrête à celui que la somme couvre.
+    assert fiche["periodes_par_niveau"]["region"] == ["2024", "2025"]
+    assert france["FR"]["series"]["ssmsi_cambriolages_nombre"] == {"2025": 42_000.0}
+    conn.close()
+
+
 def test_la_hierarchie_de_l_ofgl_est_publiee_avec_le_catalogue():
     """La colonne était là depuis le premier jour et n'était lue nulle part.
 
@@ -724,6 +807,202 @@ def test_aucun_agregat_n_est_son_propre_ancetre(tmp_path):
             assert courant not in vus, f"cycle sur {depart}"
             vus.add(courant)
             courant = arbre.get(courant)
+
+
+def _semer_national(conn, series: dict[str, dict[str, float]]) -> None:
+    """Déclare et renseigne des agrégats nationaux, à la maille `pays`.
+
+    Les deux décompositions éprouvées ici sont en euros et en comptabilité
+    budgétaire, comme les entrées réelles qu'elles reprennent : ce qui est mis à
+    l'épreuve est le contrôle d'identité, pas la fiche.
+    """
+    definition = conn.execute(
+        "insert into core.indicator_definitions (public_definition,"
+        " technical_definition, confidence_level) values ('Agrégat national.',"
+        " 'Comptes publiés.', 'observed') returning definition_id"
+    ).fetchone()[0]
+    run_id = entrepot.start_run(conn, "execution-budget-etat")
+    for indicateur, valeurs in series.items():
+        conn.execute(
+            """
+            insert into core.indicators
+                (indicator_id, dataset_id, definition_id, theme, label_fr, unit,
+                 additive, accounting_frame, geo_levels, time_granularity, published)
+            values (?, 'execution-budget-etat', ?, 'budget_etat', ?, 'EUR', false,
+                    'budgetaire', array['pays'], 'annuelle', true)
+            """,
+            (indicateur, definition, indicateur),
+        )
+        for periode, valeur in valeurs.items():
+            conn.execute(
+                "insert into core.observations (indicator_id, geo_level, geo_code,"
+                " geo_vintage, period, value, run_id) values (?, 'pays', 'FR', ?, ?,"
+                " ?, ?)",
+                (indicateur, MILLESIME, periode, valeur, run_id),
+            )
+    entrepot.finish_run(conn, run_id, "success")
+    conn.commit()
+
+
+def test_un_agregat_national_n_ouvre_ses_composantes_que_si_elles_le_redonnent(tmp_path):
+    """`provenance.ts` n'avait aucune hiérarchie nationale à lire.
+
+    Cinquante-six indicateurs en déclaraient une, tous de l'OFGL, aucun des
+    nationaux : le module ne se taisait pas par défaut de code, rien ne lui était
+    déclaré. La règle est celle des échelons de l'OFGL, et c'est le même
+    contrôle qui l'applique — un agrégat n'ouvre ses composantes que si elles
+    lui redonnent son total.
+
+    Les deux décompositions éprouvées ici sont réelles, et leurs montants aussi :
+    les recettes du budget général de 2024 et 2025 (situation mensuelle
+    budgétaire, comptabilité budgétaire, euros courants) et les dépenses
+    fiscales de 2025 (budget vert, euros courants), publication 2026-08-11T0807.
+    Un seul montant est faux, et il l'est exprès : les niches sur les droits
+    d'enregistrement, 4,48 Md€ publiés, sont ici à zéro. La somme des neuf
+    impôts d'assiette manque alors son total de 4,88 %, dix fois la tolérance.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_national(conn, {
+        "etat_recettes_nettes_bg": {"2024": 348_890_901_383.75, "2025": 380_389_657_383.09},
+        "etat_recettes_fiscales": {"2024": 325_679_295_289.64, "2025": 356_397_925_509.50},
+        "etat_recettes_non_fiscales": {"2024": 23_211_606_094.11, "2025": 23_991_731_873.59},
+        "depense_fiscale_totale": {"2025": 91_834_000_000.0},
+        "depense_fiscale_impot_revenu": {"2025": 43_980_000_000.0},
+        "depense_fiscale_impot_societes": {"2025": 4_445_000_000.0},
+        "depense_fiscale_impot_revenu_societes": {"2025": 14_558_000_000.0},
+        "depense_fiscale_tva": {"2025": 11_005_000_000.0},
+        "depense_fiscale_accises_energie": {"2025": 8_917_000_000.0},
+        "depense_fiscale_enregistrement": {"2025": 0.0},
+        "depense_fiscale_autres_impots_directs": {"2025": 218_000_000.0},
+        "depense_fiscale_autres_droits": {"2025": 2_713_000_000.0},
+        "depense_fiscale_impots_locaux": {"2025": 1_520_000_000.0},
+    })
+    catalogue, _france = _publier(conn, tmp_path)
+    parents = {i["id"]: i["parent"] for i in catalogue}
+
+    # Les deux familles de recettes redonnent leur total à l'euro, aux deux
+    # exercices : elles sont rangées sous lui.
+    assert parents["etat_recettes_fiscales"] == "etat_recettes_nettes_bg"
+    assert parents["etat_recettes_non_fiscales"] == "etat_recettes_nettes_bg"
+    # L'agrégat, lui, ne se range sous rien : il est une racine.
+    assert parents["etat_recettes_nettes_bg"] is None
+
+    # Les dépenses fiscales, amputées d'un impôt, manquent leur total de 4,88 % —
+    # dix fois la tolérance. Aucune des neuf n'est déclarée : une décomposition
+    # partielle attribuerait à la TVA un mouvement qui vient des droits
+    # d'enregistrement.
+    assert not [
+        code for code, parent in parents.items()
+        if parent == "depense_fiscale_totale"
+    ]
+    conn.close()
+
+
+def test_une_decomposition_nationale_vraie_a_l_arrivee_et_fausse_au_depart_est_refusee(
+    tmp_path,
+):
+    """Le contrôle porte sur tous les exercices publiés, jamais sur le dernier seul.
+
+    `provenance.ts` exige déjà que les composantes somment au total **aux deux
+    exercices** avant d'attribuer quoi que ce soit : une décomposition qui tient
+    à l'arrivée mais pas au départ attribue au premier poste venu la part que la
+    source ne publiait pas encore. Le catalogue tient la même règle, sans quoi il
+    déclarerait une hiérarchie que le site refuserait ensuite d'employer.
+
+    Les montants de 2025 sont ceux des comptes publiés (2026-08-11T0807, euros
+    courants) ; ceux de 2024 sont creusés de 20 Md€ du côté des recettes
+    fiscales, ce qu'aucun arrondi ne produit.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    _semer_national(conn, {
+        "etat_recettes_nettes_bg": {"2024": 348_890_901_383.75, "2025": 380_389_657_383.09},
+        "etat_recettes_fiscales": {"2024": 305_679_295_289.64, "2025": 356_397_925_509.50},
+        "etat_recettes_non_fiscales": {"2024": 23_211_606_094.11, "2025": 23_991_731_873.59},
+    })
+    catalogue, _france = _publier(conn, tmp_path)
+    parents = {i["id"]: i["parent"] for i in catalogue}
+
+    assert parents["etat_recettes_fiscales"] is None
+    assert parents["etat_recettes_non_fiscales"] is None
+    conn.close()
+
+
+# Les comptes publiés (version 2026-08-11T0807, maille pays, territoire FR),
+# en euros courants, comptabilité budgétaire.
+DEPENSES_NETTES_BG = {"2024": 443_413_251_207.98, "2025": 441_194_313_369.76}
+SOMME_DES_MISSIONS = {"2024": 584_981_581_788.17, "2025": 578_038_661_317.33}
+MISSION_REMBOURSEMENTS = {"2024": 146_523_495_990.03, "2025": 141_364_222_531.05}
+
+
+def test_les_missions_ne_sont_pas_declarees_composantes_des_depenses_nettes(tmp_path):
+    """Les missions sont brutes, les dépenses du budget général sont nettes.
+
+    L'identité qui se referme n'est pas une somme mais une soustraction : somme
+    des 33 missions − remboursements d'impôts d'État. Un `parent` dit « ceci
+    s'additionne dans cela », et un montant retranché ne s'additionne pas.
+
+    Mesuré sur les comptes publiés : les 33 missions dépassent le total de
+    31,93 % en 2024 et de 31,02 % en 2025. La mission « Remboursements et
+    dégrèvements » écartée, il manque encore 1,12 % et 1,02 % — les dégrèvements
+    d'impôts **locaux**, que cette mission porte aussi et que « net » ne
+    retranche pas. Aucune composition de missions publiées ne redonne le total,
+    et le silence est le bon comportement.
+
+    Les deux totaux et la mission des remboursements sont les montants publiés ;
+    les trente-deux autres missions se partagent le reste à parts égales, la
+    somme seule important au contrôle.
+    """
+    conn = entrepot.connect(tmp_path / "e.duckdb")
+    _remplir(conn)
+    missions = publish._missions_du_budget_general()
+    remboursements = "etat_mission_remboursements_degrevements_credits_consommes"
+    assert remboursements in missions
+    autres = [code for code in missions if code != remboursements]
+    _semer_national(conn, {
+        "etat_depenses_nettes_bg": DEPENSES_NETTES_BG,
+        remboursements: MISSION_REMBOURSEMENTS,
+        **{
+            code: {
+                exercice: (SOMME_DES_MISSIONS[exercice] - MISSION_REMBOURSEMENTS[exercice])
+                / len(autres)
+                for exercice in SOMME_DES_MISSIONS
+            }
+            for code in autres
+        },
+    })
+    catalogue, _france = _publier(conn, tmp_path)
+    parents = {i["id"]: i["parent"] for i in catalogue}
+
+    assert not [code for code in missions if parents[code] is not None]
+    # Celle des remboursements moins que les autres encore : elle est ce que le
+    # total retranche, pas ce qu'il contient.
+    assert parents[remboursements] is None
+    conn.close()
+
+
+def test_une_decomposition_nationale_ne_mele_pas_le_vote_et_le_consomme():
+    """Deux montants, deux indicateurs, et une seule des deux séries ici.
+
+    Chaque mission publie ce que la loi de finances a prévu et ce que l'État a
+    payé. Entre les deux s'intercalent les lois rectificatives, les reports et
+    les fonds de concours : les mêler ne donne ni une décision ni une dépense.
+    L'écart n'est pas assez gros pour que le contrôle de somme le rattrape à tout
+    coup — 582,40 Md€ votés pour 578,04 consommés en 2025, soit 0,75 % — donc la
+    liste ne peut pas être recopiée à la main, elle est dérivée du connecteur.
+    """
+    missions = publish._missions_du_budget_general()
+    assert len(missions) == 33
+    assert all(code.endswith("_credits_consommes") for code in missions)
+    assert not [code for code in missions if code.endswith("_credits_votes")]
+
+    # Et la règle vaut pour la table entière, pas pour la seule entrée des
+    # missions : aucune décomposition ne mélange deux étapes budgétaires.
+    for composantes in publish.decompositions_nationales().values():
+        etapes = {code.rsplit("_credits_", 1)[-1] for code in composantes if "_credits_" in code}
+        assert len(etapes) <= 1
+
 
 def test_les_fiches_gardent_la_serie_entiere_quand_la_carte_se_borne(tmp_path):
     """Dix-neuf mois de série mensuelle : la fiche les porte tous, la carte

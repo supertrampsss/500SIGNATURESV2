@@ -59,6 +59,11 @@ const AFFICHES: Record<string, string> = {
   ofgl_ventes_de_biens_et_services: "Ce que paient les usagers des services",
   ofgl_depenses_d_investissement_hors_remb: "Dépenses d'investissement",
   ofgl_depenses_totales_hors_remb: "Dépenses totales",
+  // Les deux familles de recettes du budget général. Le bloc au-dessus vient
+  // d'écrire « les impôts que l'État perçoit » : la ligne qui le chiffre porte
+  // le même nom, et « Recettes fiscales nettes » va sous le curseur.
+  etat_recettes_fiscales: "Impôts perçus par l'État",
+  etat_recettes_non_fiscales: "Ce que l'État encaisse sans lever l'impôt",
 };
 
 export type Tableau = {
