@@ -236,6 +236,13 @@ test("2 ter. la carte reçoit tous les chiffres publiés que le verdict oppose",
   for (const chiffre of publies) {
     const montant = formater(chiffre.observe!.valeur, "EUR", false);
     assert.ok(svg.includes(echapper(montant)), `${montant} n'est pas peint sur la carte`);
+    // Et la phrase qui le nomme, ENTIÈRE. « Les crédits votés : l'autorisation
+    // donnée par le Parlement en loi de… » perdait « de finances », c'est-à-dire
+    // ce qui la distingue de « les crédits consommés » peints juste dessous.
+    assert.ok(
+      svg.includes(echapper(chiffre.lecture)),
+      `la phrase qui nomme ce chiffre est coupée : ${chiffre.lecture}`,
+    );
   }
 });
 

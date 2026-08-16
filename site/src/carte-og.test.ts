@@ -270,6 +270,23 @@ const ANALYSE_OPPOSEE = {
   ],
 };
 
+/**
+ * Une `lecture` de la longueur de celles du dépôt.
+ *
+ * Mesurée : 985 unités à corps 27, où la rangée n'en laisse que 896 à gauche du
+ * montant. C'est le cas réel — « … en loi de finances. » partait par la queue,
+ * et avec elle ce qui distingue la phrase de celle du chiffre d'à côté.
+ */
+const LECTURE_LONGUE =
+  "La ligne d'essai : l'autorisation d'essai donnée par qui de droit, en texte d'essai.";
+
+/** Plus longue que ce que le plancher lui-même peut porter : 1 257 unités à
+ *  corps 24 pour 896. Là, `replier` coupe et marque la suite — c'est la
+ *  dégradation prévue, pas une mise en page cassée. */
+const LECTURE_DEMESUREE =
+  "La ligne d'essai : ce que ce chiffre-là désigne, dit au long comme le dépôt " +
+  "le dit, sans que rien n'en soit retranché.";
+
 /** Les chaînes qu'aucun titre du site n'atteint : c'est là que la mise en page
  *  casse, et c'est donc là qu'on la regarde. */
 const TITRE_LONG =
@@ -384,6 +401,53 @@ test("1 quater. deux chiffres opposés de plus resserrent le corps sans toucher 
   const y = peints(svg).map((t) => t.y);
   assert.ok(Math.max(...y.filter((v) => v <= GEOMETRIE.CORPS_BAS)) <= GEOMETRIE.CORPS_BAS);
   assert.ok(y.includes(GEOMETRIE.PIED_UNITE) && y.includes(GEOMETRIE.PIED_SOURCE));
+});
+
+test("1 quinquies. la phrase qui nomme un chiffre n'est pas coupée : le corps cède", () => {
+  // « Les crédits votés : l'autorisation donnée par le Parlement en loi de… » :
+  // ce qui partait par la queue était « de finances », c'est-à-dire ce qui
+  // distingue la phrase de celle des crédits CONSOMMÉS peinte juste dessous.
+  // Une phrase qui existe pour dire lequel des deux chiffres on regarde ne peut
+  // pas perdre sa fin ; c'est le dessin qui se resserre.
+  const svg = carteAnalyse({
+    ...ANALYSE_OPPOSEE,
+    lecture: LECTURE_LONGUE,
+    opposes: ANALYSE_OPPOSEE.opposes.map((oppose) => ({ ...oppose, lecture: LECTURE_LONGUE })),
+  });
+  const premier = formater(ANALYSE_OPPOSEE.observe, "EUR", false);
+  const second = formater(ANALYSE_OPPOSEE.opposes[0].valeur, "EUR", false);
+  // Peinte ENTIÈRE, pas seulement « annoncée » : l'égalité est la garantie, une
+  // inclusion laisserait passer la coupe qu'on vient de corriger.
+  assert.equal(libelleDe(svg, premier), LECTURE_LONGUE);
+  assert.equal(libelleDe(svg, second), LECTURE_LONGUE);
+  // Et les deux phrases au même corps : deux phrases voisines lues à deux
+  // échelles diraient que l'une compte plus que l'autre.
+  const corps = peints(svg)
+    .filter((t) => t.contenu === LECTURE_LONGUE)
+    .map((t) => t.taille);
+  assert.equal(new Set(corps).size, 1, `deux corps différents : ${corps.join(" / ")}`);
+  assert.deepEqual(debordements(svg), []);
+  assert.deepEqual(recouvrements(svg), []);
+  assert.deepEqual(horsBandes(svg), []);
+});
+
+test("1 sexies. sous le plancher, la phrase est coupée — le dessin, lui, tient", () => {
+  // Le corps ne descend pas sous celui du pied : c'est le plus petit que la
+  // carte imprime déjà, et le seul dont ce dépôt ait la preuve rasterisée qu'il
+  // se lit. Plus bas, mieux vaut une phrase marquée d'une suite qu'un corps
+  // illisible — mais rien ne doit déborder ni se recouvrir pour autant.
+  const svg = carteAnalyse({
+    ...ANALYSE_OPPOSEE,
+    lecture: LECTURE_DEMESUREE,
+    opposes: ANALYSE_OPPOSEE.opposes.map((oppose) => ({ ...oppose, lecture: LECTURE_DEMESUREE })),
+  });
+  const premier = formater(ANALYSE_OPPOSEE.observe, "EUR", false);
+  const libelle = libelleDe(svg, premier);
+  assert.ok(libelle?.endsWith("…"), `la coupe ne se signale pas : ${libelle}`);
+  assert.ok(annonce(libelle, LECTURE_DEMESUREE), libelle);
+  assert.deepEqual(debordements(svg), []);
+  assert.deepEqual(recouvrements(svg), []);
+  assert.deepEqual(horsBandes(svg), []);
 });
 
 test("2. la carte porte son unité — sans elle, des millions se lisent milliards", () => {

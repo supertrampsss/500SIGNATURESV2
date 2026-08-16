@@ -312,8 +312,21 @@ function ordonnees(n: number): number[] {
   return Array.from({ length: n }, (_, i) => Math.round(CORPS_HAUT + i * pas));
 }
 
-/** Une rangée du corps : soit un libellé et sa valeur, soit une phrase seule. */
-type Rangee = { libelle: string; valeur: string } | { phrase: string };
+/**
+ * Une rangée du corps : soit un libellé et sa valeur, soit une phrase seule.
+ *
+ * `tailleLibelle` n'existe que pour les rangées dont le libellé est une PHRASE
+ * du dépôt et non une étiquette courte : voir `corpsDesLectures`. Absente, le
+ * libellé prend le corps ordinaire, et toutes les cartes écrites avant celle-ci
+ * sont dessinées à l'unité de dessin près comme auparavant.
+ */
+type Rangee = { libelle: string; valeur: string; tailleLibelle?: number } | { phrase: string };
+
+/** La place qui reste au libellé d'une rangée, une fois sa valeur posée : c'est
+ *  la valeur qu'on vient lire, elle ne se tronque pas. */
+function placeDuLibelle(valeur: string): number {
+  return LARGEUR_UTILE - largeurApprochee(valeur, TAILLE_VALEUR) - GOUTTIERE;
+}
 
 /**
  * Le corps d'une carte : les rangées, chacune bornée en largeur.
@@ -330,17 +343,18 @@ function corpsRangees(rangees: Rangee[]): string {
         const ligne = replier(rangee.phrase, TAILLE_PHRASE, LARGEUR_UTILE, 1)[0] ?? "";
         return texte(ligne, MARGE, y, TAILLE_PHRASE, ENCRE);
       }
+      const taille = rangee.tailleLibelle ?? TAILLE_LIBELLE;
       const valeur = replier(rangee.valeur, TAILLE_VALEUR, LARGEUR_UTILE, 1)[0] ?? "";
-      const dispo = LARGEUR_UTILE - largeurApprochee(valeur, TAILLE_VALEUR) - GOUTTIERE;
+      const dispo = placeDuLibelle(valeur);
       // Quand la valeur prend toute la ligne, il ne reste rien pour le libellé.
       // Le replier dans la place restante rendait alors le seul caractère de
       // suite : un « … » qui n'apprend rien et qui se pose PAR-DESSUS la
       // valeur, à la même ordonnée. Pas de place, pas de libellé — c'est la
       // valeur qu'on vient lire.
-      const replie = dispo > 0 ? (replier(rangee.libelle, TAILLE_LIBELLE, dispo, 1)[0] ?? "") : "";
+      const replie = dispo > 0 ? (replier(rangee.libelle, taille, dispo, 1)[0] ?? "") : "";
       const libelle = replie === "…" ? "" : replie;
       return (
-        texte(libelle, MARGE, y, TAILLE_LIBELLE, ENCRE_SOURDE) +
+        texte(libelle, MARGE, y, taille, ENCRE_SOURDE) +
         texte(valeur, LARGEUR - MARGE, y, TAILLE_VALEUR, ENCRE, "end")
       );
     })
@@ -569,6 +583,43 @@ export type DonneesAnalyse = {
   site: string;
 };
 
+/**
+ * Le corps auquel les phrases qui nomment les chiffres tiennent ENTIÈRES.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI LE DESSIN CÈDE ET PAS LA PHRASE
+ * ─────────────────────────────────────────────────────────────────────────
+ * « Les crédits votés : l'autorisation donnée par le Parlement en loi de
+ * finances. » demande 945 unités à corps 27, quand la rangée en laisse 866 à
+ * gauche du montant. `replier` la coupait donc à « … en loi de… » — et ce qui
+ * partait était précisément « de finances », c'est-à-dire ce qui distingue
+ * cette phrase de « les crédits consommés ». Une phrase qui existe pour dire
+ * lequel des deux chiffres on regarde ne peut pas perdre sa fin.
+ *
+ * Le corps se resserre donc jusqu'à ce que TOUTES tiennent — le même pour
+ * toutes les rangées, sinon deux phrases voisines se liraient à deux échelles.
+ * Le plancher est celui du pied, `TAILLE_PIED` : c'est le plus petit corps que
+ * la carte imprime déjà, et le seul dont ce dépôt ait la preuve rasterisée
+ * qu'il se lit. En dessous, `replier` coupe comme il l'a toujours fait — mieux
+ * vaut une phrase marquée d'une suite qu'un corps illisible.
+ *
+ * La géométrie, elle, ne bouge pas : même nombre de rangées, même bande, et le
+ * pied reste où il est. C'est le seul endroit où la place se prend sans en
+ * repousser un autre.
+ */
+function corpsDesLectures(publies: readonly ChiffreOppose[]): number {
+  const tient = (taille: number) =>
+    publies.every(
+      (publie) =>
+        largeurApprochee(publie.lecture, taille) <=
+        placeDuLibelle(formater(publie.valeur, "EUR", false)),
+    );
+  for (let taille = TAILLE_LIBELLE; taille > TAILLE_PIED; taille -= 1) {
+    if (tient(taille)) return taille;
+  }
+  return TAILLE_PIED;
+}
+
 /** La carte d'une analyse : chiffre annoncé, chiffre(s) des comptes, ce que
  *  chacun désigne, cran, source. */
 export function carteAnalyse(donnees: DonneesAnalyse): string {
@@ -587,8 +638,16 @@ export function carteAnalyse(donnees: DonneesAnalyse): string {
       { valeur: donnees.observe, lecture: donnees.lecture },
       ...opposes,
     ];
+    // Le même corps pour toutes ces rangées, et il est choisi pour que les
+    // phrases y tiennent ENTIÈRES : c'est la mise en page qui cède, pas la
+    // phrase qui nomme le chiffre. Voir `corpsDesLectures`.
+    const taille = corpsDesLectures(publies);
     for (const publie of publies) {
-      rangees.push({ libelle: publie.lecture, valeur: formater(publie.valeur, "EUR", false) });
+      rangees.push({
+        libelle: publie.lecture,
+        valeur: formater(publie.valeur, "EUR", false),
+        tailleLibelle: taille,
+      });
     }
   } else {
     if (donnees.observe !== null) {
