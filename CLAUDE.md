@@ -96,6 +96,22 @@ pour ne plus l'être.
   cadrage.
 - **Un taux varie en points**, jamais en pourcentage — y compris les taux que
   la source publie pour mille et que l'écran montre en pourcentage.
+- **Une colonne comparée garde sa décimale.** `Intl` la laisse tomber sur un
+  compte rond, et une colonne qu'on lit de haut en bas cesse alors de
+  s'aligner : « +224 % » entre « +239,7 % » et « +221,1 % », « 21 % » à côté de
+  « 20,9 % », « 1 % » sous « 23,7 % », un taux de foncier bâti qui se lit
+  « 40,8 % | 42 % | 43 % » d'un exercice à l'autre. **Cinq formateurs** en
+  souffraient — `echelle.ts/pourcentage`, `exercices.ts/POURCENT`,
+  `reperes.ts/signe`, `evolution-carte.ts/formaterVariation`,
+  `analyses.ts/valeurLisible` — et aucun test ne les voyait.
+
+  La règle ne vaut que pour ce qui **se compare ligne à ligne** : une colonne,
+  une série lue d'un exercice à l'autre, les repères d'ouverture qu'on lit
+  ensemble. Hors de là, le compact reste juste et voulu — une étiquette de
+  carte s'écrit « +12 % », une variation arrondie à zéro « 0 % » sans signe, un
+  entier n'a pas de décimale (34 875 écoles), et « Votre plan » ne pad pas le
+  réglage choisi par le lecteur. D'où l'option `decimaleFixe`, jamais un
+  minimum global.
 - **La fenêtre est 2019 et 2025, à toutes les mailles.** Elle se lit sur les
   exercices publiés, **jamais sur un calendrier électoral**. Le brancher sur
   l'élection de la maille — municipales 2020, départementales et régionales
