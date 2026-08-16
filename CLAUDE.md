@@ -278,6 +278,35 @@ pour ne plus l'être.
    la question de croiser comptabilité budgétaire et comptabilité nationale sur
    une même fiche : c'est une décision de produit, pas une tuyauterie.
 
+3. **Trois vues sans document à elles — la spec et le code ne disent pas la
+   même chose.** Audit des critères d'acceptation (§23) contre le site déployé,
+   le 16 août 2026. Ce qui est **tenu** : le plan du site porte exactement les
+   huit adresses publiques et `robots.txt` le désigne (§20) ; aucune balise
+   `noindex` (§21) ; un lien de scénario partagé produit bien son titre, son
+   effort et ses gestes les plus lourds — vérifié en production sur
+   `?budget=etat/TB:-10,etat/RD:-5&nom=Essai`, la fonction d'edge répond
+   « Somme des écarts : +9 520 M€… Source : PLF 2025 » (§18).
+
+   Ce qui ne l'est pas : `/territoire`, `/detail` et `/simulateur` sont servis
+   par le repli SPA avec le gabarit, **qui porte l'accueil écrit**. Ils n'ont
+   donc ni titre, ni description, ni canonique à eux — le §3 demande qu'on y
+   accède « sans passer par la page d'accueil », le §19 que « chaque page
+   publique » porte les siens.
+
+   | Adresse | Document | Canonique |
+   |---|---|---|
+   | `/reperes`, `/methode`, `/analyses/`, `/analyses/<slug>` | le leur | oui |
+   | `/`, `/territoire`, `/detail`, `/simulateur` | le gabarit, accueil compris | aucune |
+
+   **Ce n'est pas un oubli**, et c'est pour ça que l'entrée existe : les trois
+   refus sont argumentés au registre — contenu commandé par l'adresse pour
+   `/territoire` et `/detail`, état d'atelier pour `/simulateur`, dont la
+   fonction d'edge réécrit déjà titre, description et image (un document figé y
+   mentirait deux fois). Il reste donc à **trancher, pas à coder** : ou ces
+   trois adresses reçoivent leur document, ou les §3 et §19 disent l'exception
+   qu'elles portent. Aujourd'hui la spec se lit comme tenue alors qu'elle ne
+   l'est pas, ce qui est le pire des deux états.
+
 ### Fait
 
 - **Condenser les longues listes** (16 août 2026). Mesuré, puis traité là où la
