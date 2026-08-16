@@ -195,7 +195,13 @@ function de(terme: string): string {
 }
 
 /** Le signe est écrit même pour une hausse : « 18,5 % » ne dit pas dans quel
- *  sens, « +18,5 % » si. Le moins est le signe typographique, comme partout. */
+ *  sens, « +18,5 % » si. Le moins est le signe typographique, comme partout.
+ *
+ *  Et la décimale est imposée. Les quatre repères se lisent ensemble — « +9,1 »
+ *  de recettes contre « +10 » de dépenses — et la même variation reparaît plus
+ *  bas dans la colonne « 2019 → 2025 », qui écrit « +10,0 ». Un seul chiffre
+ *  affiché de deux façons sur une même page, sur la fiche de la
+ *  Nouvelle-Aquitaine ; `Intl` laisse tomber la décimale des comptes ronds. */
 function signe(variation: number): string {
-  return `${variation >= 0 ? "+" : ""}${moins(pourcentage(variation))}`;
+  return `${variation >= 0 ? "+" : ""}${moins(pourcentage(variation, true))}`;
 }
