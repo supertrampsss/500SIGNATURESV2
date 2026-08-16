@@ -329,6 +329,13 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
   // dit aussi, toujours : c'est la page la plus exposée du site à la confusion
   // milliards/millions, avec « environ X milliards » et « Y M€ » côte à côte
   // (même convention qu'`exercices.ts` et `analyses.ts`).
+  // Les hypothèses vivent ICI et nulle part ailleurs : dans la légende, avec
+  // les chiffres. L'étage 4 en portait une seconde copie, mot pour mot, dans
+  // un `<ul>` sans intitulé coincé entre le chemin de la preuve et « Fichier
+  // publié » — soit exactement le bloc de réserve APRÈS les chiffres que
+  // CLAUDE.md interdit, et que le commentaire d'origine de cette ligne
+  // nommait. Aucun test ne la voyait : la seule analyse publiée et toutes
+  // les fixtures portent `hypotheses: []`.
   const hypotheses = analyse.hypotheses.map((h) => echapper(h)).join(" ");
   const legende = `<caption>Montants en millions d'euros.${hypotheses ? ` ${hypotheses}` : ""}</caption>`;
 
@@ -421,12 +428,6 @@ function preuve(analyse: Analyse, catalogue: Indicateur[], version = ""): string
     })
     .join("");
 
-  const hypotheses = analyse.hypotheses.length
-    ? `<ul class="analyse-rendu__hypotheses">${analyse.hypotheses
-        .map((h) => `<li>${echapper(h)}</li>`)
-        .join("")}</ul>`
-    : "";
-
   const fichiers = analyse.sources.length
     ? `<ul class="analyse-rendu__fichiers">${analyse.sources
         .map((s) => `<li>${lienSource(s)}</li>`)
@@ -436,7 +437,6 @@ function preuve(analyse: Analyse, catalogue: Indicateur[], version = ""): string
   return `<section class="analyse-rendu__preuve">
     <h3>La preuve</h3>
     ${chemins}
-    ${hypotheses}
     <p class="analyse-rendu__fichier-publie">Fichier publié</p>
     ${fichiers}
   </section>`;
