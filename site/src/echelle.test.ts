@@ -13,6 +13,7 @@ import {
   noteEchelle,
   parHabitantAUnSens,
   populationDeReference,
+  pourcentage,
   quantiles,
 } from "./echelle.ts";
 
@@ -105,6 +106,20 @@ test("une médiane ne se divise pas par la population", () => {
  * Sainte-Foy-la-Grande, 51 %, s'affichait « 51 € », et la légende affirmait
  * « Montants en euros courants ». Ces tests la clouent.
  */
+test("la décimale fixe ne sert qu'aux colonnes comparées", () => {
+  // Par défaut, rien ne change : une variation de carte s'écrit « +12 % » et
+  // un arrondi à zéro « 0 % », deux décisions qu'evolution-carte.test.ts tient.
+  assert.equal(pourcentage(1), `1${FINE}%`);
+  assert.equal(pourcentage(12), `12${FINE}%`);
+  // Demandée, elle aligne la colonne : « 1,0 » sous « 1,4 », jamais « 1 ».
+  assert.equal(pourcentage(1, true), `1,0${FINE}%`);
+  assert.equal(pourcentage(1.4, true), `1,4${FINE}%`);
+  assert.equal(pourcentage(21, true), `21,0${FINE}%`);
+  // Et elle n'invente pas de précision : une valeur à deux décimales reste
+  // arrondie au dixième, comme sans l'option.
+  assert.equal(pourcentage(1.46, true), `1,5${FINE}%`);
+});
+
 test("un taux se formate en pourcentage, jamais en euros", () => {
   // FINE = espace fine insécable U+202F, exigée avant % en typographie française
   assert.equal(formater(51, "percent", false), `51${FINE}%`);
