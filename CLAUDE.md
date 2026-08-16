@@ -132,43 +132,57 @@ pour ne plus l'être.
 1. **Simulateur — comptes spéciaux, budgets annexes et ODAC.** Ce qui reste
    hors du budget général de l'État et hors des trois échelons publiés.
 
-   **Avant d'étendre le simulateur, une identité doit se refermer, et elle ne
-   se referme pas.** Mesuré sur les séries publiées (2026-08-11T0807, pays/FR,
-   exercice 2025), toutes du même cadre `budgetaire` et du même jeu
-   `execution-budget-etat` :
+   **L'identité du solde se referme, à zéro euro.** Deux tours de cette entrée
+   ont soutenu le contraire, et c'était une faute de mesure, pas une faute des
+   comptes. Vérifié sur la source elle-même (API Explore de la situation
+   mensuelle budgétaire, colonne du 31 décembre), avec les six termes que
+   `smb.IDENTITE` déclare :
 
-   | Identité essayée | écart 2024 | écart 2025 |
+   `recettes nettes BG − dépenses nettes BG − PSR + comptes spéciaux + budgets
+   annexes + fonds de concours = solde budgétaire`
+
+   | Exercice | recalculé | publié | écart |
+   |---|---|---|---|
+   | 2024 | −155 929 972 365,41 | −155 929 972 365,41 | **0,00 €** |
+   | 2025 | −124 205 673 501,55 | −124 205 673 501,55 | **0,00 €** |
+
+   **Ce que la mesure précédente avait raté.** Elle était faite sur les *séries
+   publiées*, qui ne portent que 15 des 26 lignes de la source : les deux termes
+   manquants ne sont déclarés par aucun indicateur (`indicateur=None` dans
+   `_LIGNES`).
+
+   | Terme absent des séries | 2024 | 2025 |
    |---|---|---|
-   | recettes − dépenses | +61,4 | +63,4 |
-   | recettes − dépenses + comptes spéciaux | +59,1 | +61,2 |
-   | **recettes − dépenses − PSR** | **−6,3** | **−5,6** |
-   | recettes − dépenses − PSR + comptes spéciaux | −8,7 | −7,9 |
+   | Fonds de concours et attribution de produits | +8,31 Md€ | +7,35 Md€ |
+   | Solde des budgets annexes | +0,37 Md€ | +0,54 Md€ |
 
-   Deux enseignements. Les prélèvements sur recettes doivent bien être
-   retranchés — la définition de `etat_depenses_nettes_bg` le dit, « ils sont
-   comptés à part » — et sans eux l'écart est de 61 Md€. Mais **ajouter le solde
-   des comptes spéciaux aggrave l'écart au lieu de le réduire**, sur les deux
-   exercices : le solde budgétaire publié porte donc vraisemblablement sur le
-   budget général seul, et le résidu n'est pas les comptes spéciaux.
+   Ils expliquent le résidu à eux deux : −2,35 + 0,37 + 8,31 = +6,33 en 2024,
+   et +5,64 en 2025 — exactement ce qui manquait. Le solde des comptes spéciaux
+   était juste, et correctement signé ; l'ajouter « aggravait l'écart » pour la
+   seule raison que les deux termes plus gros n'étaient pas là. Les fonds de
+   concours ne sont pas une trouvaille : le docstring de `smb.py` les nomme
+   depuis toujours — « l'identité du solde ajoute les fonds de concours dans
+   l'exécution, mais pas dans les textes votés […] près de 7 Md€ ».
 
-   Les prélèvements sur recettes doivent bien être retranchés : la définition
-   de `etat_depenses_nettes_bg` le dit — « les prélèvements reversés aux
-   collectivités et à l'Union européenne n'y figurent pas : ils sont comptés à
-   part ». Sans eux l'écart serait de 61 Md€.
+   **Et rien n'obligeait à mesurer quoi que ce soit** : `normalize/etat.py`
+   contrôle cette identité à l'ingestion et `raise ValueError` au-delà de
+   `TOLERANCE_EUR`. Un exercice dont le solde ne se déduit pas de ses
+   composantes n'est pas publié. La question « l'identité se referme-t-elle »
+   avait sa réponse dans le code qui refuse le contraire.
 
-   Reste environ 6 Md€, soit 4 % du déficit, sur les deux exercices. Les budgets
-   annexes sont un candidat mais ne pèsent pas cet ordre.
+   C'est la quatrième fois de suite dans ce fichier que **l'instrument est faux
+   et le code est juste** — après `unicode_escape` sur de l'UTF-8 déjà décodé,
+   un 200 lu comme une preuve alors que le repli SPA servait le gabarit, et la
+   mission entière prise pour les seuls impôts d'État. Avant d'écrire ici qu'un
+   chiffre du dépôt ne tient pas, chercher le contrôle qui l'aurait déjà refusé.
 
-   **Refaire cette mesure avec le soin du périmètre avant d'y croire.** L'entrée
-   suivante a porté pendant un tour un écart de 1 % qui n'existait pas, parce
-   qu'un terme de retranchement était pris pour un autre — la mission entière au
-   lieu des seuls impôts d'État. Le résidu ci-dessus est plausible, il n'est pas
-   expliqué. **Tant que cet écart n'est pas nommé, étendre
-   le simulateur aux comptes spéciaux lui ferait afficher un solde que les
-   comptes publiés ne confirment pas** — et l'exactitude arithmétique est toute
-   la promesse de l'outil. Comme pour la provenance nationale, la décision
-   relève de **D7** : la validation humaine préalable reste en vigueur pour les
-   connecteurs et la méthodologie.
+   **Ce qui reste vraiment à faire**, et c'est petit : publier
+   `etat_fonds_de_concours` et `etat_solde_budgets_annexes`, sans quoi le
+   simulateur ne peut pas montrer un solde qui se referme — il lui manquerait
+   8,7 Md€ en 2024 alors que la source les porte. La lecture des lignes existe
+   déjà, seul l'identifiant manque. Comme pour la provenance nationale, la
+   décision relève de **D7** : la validation humaine préalable reste en vigueur
+   pour les connecteurs et la méthodologie.
 2. **Provenance au niveau France — déclarée, sauf les missions, et la raison
    du refus vaut d'être lue.** `provenance.ts` attribue la variation d'un
    agrégat à ses composantes partout où la source déclare une hiérarchie. Le
