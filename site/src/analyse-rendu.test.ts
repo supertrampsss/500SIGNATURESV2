@@ -260,6 +260,27 @@ test("simulateur.budget non vide produit un lien vers /simulateur?budget=…", (
   assert.match(html, /href="\/simulateur\?budget=etat/);
 });
 
+test("une hypothèse se dit une fois, dans la légende, jamais en bloc après les chiffres", () => {
+  // Elle s'écrivait DEUX fois : dans le `<caption>` de l'étage 2, avec les
+  // chiffres, et de nouveau à l'étage 4 dans un `<ul>` sans intitulé, coincé
+  // entre le chemin de la preuve et « Fichier publié ». Mot pour mot la même
+  // phrase, et la seconde tombait après les chiffres — le bloc de réserve que
+  // CLAUDE.md interdit. Aucun test ne la voyait, toutes les fixtures portant
+  // `hypotheses: []`.
+  const phrase = "Les deux séries portent sur la mission Défense, hors comptes spéciaux.";
+  const html = rendu(analyseMinimale({ hypotheses: [phrase] }), CATALOGUE);
+  const occurrences = html.split(phrase).length - 1;
+  assert.equal(occurrences, 1, `l'hypothèse apparaît ${occurrences} fois`);
+  // Et c'est bien la légende qui la porte, à côté de la mention d'unité.
+  const legende = html.slice(html.indexOf("<caption>"), html.indexOf("</caption>"));
+  // L'apostrophe de la légende est littérale, pas interpolée : elle n'est
+  // donc pas échappée, contrairement à celle d'un libellé de la source.
+  assert.match(legende, /Montants en millions d'euros\./);
+  assert.ok(legende.includes(phrase), `légende : ${legende}`);
+  // La preuve ne porte plus de liste d'hypothèses du tout.
+  assert.doesNotMatch(html, /analyse-rendu__hypotheses/);
+});
+
 test("l'index trie par publie_le décroissant et marque les mises_a_jour", () => {
   const ancienne = analyseMinimale({ slug: "ancienne", publie_le: "2025-01-01", titre: "Ancienne" });
   const recente = analyseMinimale({ slug: "recente", publie_le: "2026-06-01", titre: "Récente" });
