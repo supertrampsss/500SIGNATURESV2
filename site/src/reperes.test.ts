@@ -71,6 +71,20 @@ test("une variation ne traverse pas zéro", () => {
   assert.equal(OUVERTURE, "2019");
 });
 
+test("un repère garde sa décimale sur un compte rond", () => {
+  // Sur la fiche de la Nouvelle-Aquitaine, le repère des dépenses affichait
+  // « +10 % » quand la colonne « 2019 → 2025 », plus bas sur la MÊME page,
+  // écrivait « +10,0 % » pour cette ligne-là. Un chiffre affiché de deux façons
+  // sur une page ne se vérifie pas d'un coup d'œil, et les quatre repères se
+  // lisent ensemble — « +9,1 » de recettes contre « +10 » de dépenses.
+  const rond = {
+    ofgl_recettes_fonctionnement: { "2019": 100e6, "2025": 110e6 },
+  } as unknown as Parameters<typeof reperes>[0];
+  const html = rendreReperes(reperes(rond, "region"));
+  assert.match(html, /\+10,0\s%/u, html);
+  assert.doesNotMatch(html, /\+10\s%/u, html);
+});
+
 test("le rendu dit le rôle avant le terme, et le montant en millions", () => {
   const html = rendreReperes(reperes(BORDEAUX, "commune"));
   assert.match(html, /class="reperes"/);

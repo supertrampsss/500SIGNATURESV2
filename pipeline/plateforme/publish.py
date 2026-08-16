@@ -1350,6 +1350,18 @@ def simulateur_collectivites(conn) -> dict[str, dict]:
         if not depenses or not recettes:
             continue
         nombre = couverture.get(exercice, 0)
+        # Le dénominateur, sans lequel « 97 départements » ne dit pas s'il en
+        # manque — et le titre du volet dit « tous ». Il en manque six, et un
+        # lecteur qui compare deux échelons doit le lire là où le chiffre est.
+        total_maille = conn.execute(
+            """
+            select count(*) from geo.geography_reference
+             where geo_level = ?
+               and vintage = (select max(vintage) from geo.geography_reference
+                               where geo_level = ?)
+            """,
+            [echelon, echelon],
+        ).fetchone()[0]
         fichiers[echelon] = {
             "exercice": exercice,
             "loi": "Comptes de gestion",
@@ -1359,7 +1371,8 @@ def simulateur_collectivites(conn) -> dict[str, dict]:
                 # Trente-quatre mille sept cent soixante-dix-huit communes, et
                 # l'espace insécable qui les rend lisibles : « 34778 » se compte
                 # sur l'écran, « 34 778 » se lit.
-                f"Comptes {exercice} de {_groupe_de_milliers(nombre)} {pluriel}, agrégés"
+                f"Comptes {exercice} de {_groupe_de_milliers(nombre)} {pluriel}"
+                f" sur {_groupe_de_milliers(int(total_maille))}, agrégés"
                 " par l'Observatoire des finances et de la gestion publique locales,"
                 " montants en millions d'euros (M€)"
             ),

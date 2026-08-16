@@ -331,34 +331,24 @@ pour ne plus l'être.
    palmarès entre territoires » et le tri assumé), ou `/detail` cesse de
    présenter ses lignes comme un rang. Ne pas réécrire l'une des deux seul.
 
-5. **« Tous les départements » en couvre 97 sur 103, et le chiffre sort sans
-   son dénominateur.** Trouvé en rendant le simulateur depuis les données
-   publiées. Les trois volets des collectivités s'intitulent « Le budget de
-   **tous** les départements », « de **toutes** les communes », « de **toutes**
-   les régions », et leur cadrage donne un effectif sans dire sur combien :
-
-   | Volet | Agrégé | Publié par le site | Manque |
-   |---|---|---|---|
-   | Communes | 34 778 | 34 875 | 97 |
-   | Départements | 97 | 103 | 6 |
-   | Régions | 17 | 18 | 1 |
-
-   La couverture elle-même est connue et acceptée — elle est écrite plus bas
-   dans ce fichier, à l'entrée du simulateur des collectivités. Ce qui manque
-   est que **l'écran ne la dit pas** : le cadrage porte la source (OFGL), le
-   millésime (2025) et l'unité (M€), mais pas le dénominateur, quand la règle du
-   dépôt exige les quatre. Et le titre affirme « tous » là où il en manque six.
-
-   Le correctif est petit et connu : `simulateur_collectivites` (`publish.py`,
-   vers la ligne 1362) compose ce cadrage à partir de `couverture`, un simple
-   compte ; il lui faut le total de la maille, que `geo.geography_reference`
-   porte déjà. **Il n'est pas fait ici parce qu'aucun test ne couvre cette
-   fonction** — changer un texte publié sans garde serait poser exactement le
-   genre de chiffre que ce site existe pour refuser. La fixture `entrepot_seme`
-   (`tests/conftest.py`) rend le test faisable : semer la géographie et les
-   agrégats `fin`, appeler la fonction, lire le cadrage.
-
 ### Fait
+
+- **Le dénominateur des budgets locaux** (16 août 2026). Les trois volets
+  s'intitulent « le budget de **tous** les départements », « de **toutes** les
+  communes », « de **toutes** les régions », et agrègent 97 départements sur
+  103, 34 778 communes sur 34 875, 17 régions sur 18. Le cadrage nommait la
+  source, le millésime et l'unité — jamais combien de territoires il laissait
+  dehors, si bien que « 97 départements » ne pouvait pas se lire comme
+  incomplet. Il porte désormais le total de la maille, lu dans
+  `geo.geography_reference` au même millésime que le reste de la publication.
+
+  Le titre garde « tous » : il nomme l'échelon par opposition à la fiche d'un
+  territoire, et le dénominateur est juste dessous.
+
+  **La fonction n'était couverte par aucun test.** La semer demande les
+  composantes en plus des totaux — un nœud n'ouvre ses enfants que s'ils lui
+  redonnent son montant, et sans eux `simulateur_collectivites` ne publie rien
+  du tout, ce qui se voit comme un `KeyError` et non comme un cadrage fautif.
 
 - **Condenser les longues listes** (16 août 2026). Mesuré, puis traité là où la
   mesure désignait le travail. Sur les **188 séries** de la France, la charge
