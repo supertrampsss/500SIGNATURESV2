@@ -96,11 +96,18 @@ export function budgetsTenus(
  *
  * Les seuils sont ronds et arbitraires, et c'est très bien : ce sont des
  * marches, pas des mesures. Le dernier ne l'est pas — c'est l'équilibre.
+ *
+ * **En M€, comme tout le reste du site.** Ils s'écrivaient « 10 Md€ », juste
+ * au-dessus d'un compteur qui dit « 159 297 M€ » : savoir si la marche des
+ * 100 Md€ était franchie demandait une conversion de tête, exactement ce que
+ * la règle des M€ existe pour éviter. Le dépôt la tient déjà ailleurs — deux
+ * assertions d'`analyse-rendu.test.ts` et une de `citer.test.ts` refusent
+ * `Md€` dans ce qu'elles rendent ; l'échelle de la mission y échappait seule.
  */
 export const PALIERS: { nom: string; seuil: number }[] = [
-  { nom: "10 Md€", seuil: 10e9 },
-  { nom: "50 Md€", seuil: 50e9 },
-  { nom: "100 Md€", seuil: 100e9 },
+  { nom: "10 000 M€", seuil: 10e9 },
+  { nom: "50 000 M€", seuil: 50e9 },
+  { nom: "100 000 M€", seuil: 100e9 },
   { nom: "L'équilibre", seuil: Infinity },
 ];
 
