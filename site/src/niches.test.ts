@@ -57,6 +57,43 @@ test("il nomme les dispositifs les plus coûteux, pas les quatre cent cinquante-
   assert.match(html, /22 dépenses fiscales chiffrées\s+sur les 465 recensées/);
 });
 
+test("« les plus coûteux » se classe sur l'exercice affiché, jamais sur l'ordre du fichier", () => {
+  // La source range ses dispositifs sur la prévision la plus lointaine. Ici
+  // « Petit en 2026 » coûte le plus cher au constat 2024 tout en étant rangé
+  // dernier, et « Gros en 2026 » l'inverse : lire le fichier dans son ordre
+  // ferait sortir le second et manquer le premier, sous une phrase qui annonce
+  // « les plus coûteux ». Le classement doit se faire sur 2024, l'exercice que
+  // le tableau chiffre.
+  const range = (numero: string, libelle: string, en2024: number, en2026: number) => ({
+    numero,
+    libelle,
+    mission: "Mission",
+    montants: { "2024": en2024, "2026": en2026 },
+  });
+  const desordre: DepensesFiscales = {
+    exercices: ["2024", "2025", "2026"],
+    realise: "2024",
+    dispositifs: [
+      ...Array.from({ length: MONTRES }, (_, i) =>
+        range(`8${i}`, `Gros en 2026 ${i}`, 1_000_000, 9_000_000_000),
+      ),
+      range("999", "Petit en 2026 mais premier en 2024", 40_000_000_000, 1),
+    ],
+  };
+  const html = rendu(desordre, pays, catalogue);
+  assert.match(html, /Petit en 2026 mais premier en 2024/);
+  // Et il est en TÊTE : un tableau qui annonce les plus coûteux et les range
+  // autrement se lit de travers ligne à ligne.
+  // Depuis `<tbody>`, jamais depuis le début : le premier `</tr>` du document
+  // ferme la ligne d'en-tête, et la tranche serait vide.
+  const corps = html.indexOf("<tbody>");
+  assert.ok(corps > -1, "<tbody> introuvable");
+  const premiereLigne = html.slice(corps, html.indexOf("</tr>", corps));
+  assert.match(premiereLigne, /Petit en 2026 mais premier en 2024/);
+  // Le dixième « gros en 2026 » est chassé par lui : dix lignes, pas onze.
+  assert.equal((html.match(/<tr>\s*<th scope="row">/g) ?? []).length, MONTRES);
+});
+
 test("il dit la part que pèsent les premiers", () => {
   // (8 041 + 7 208 + 8 × 1) / 89 406 ≈ 17 %
   assert.match(rendu(niches, pays, catalogue), /17&nbsp;%/);
