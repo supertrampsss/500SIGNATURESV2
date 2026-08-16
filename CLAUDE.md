@@ -176,13 +176,19 @@ pour ne plus l'être.
    mission entière prise pour les seuls impôts d'État. Avant d'écrire ici qu'un
    chiffre du dépôt ne tient pas, chercher le contrôle qui l'aurait déjà refusé.
 
-   **Ce qui reste vraiment à faire**, et c'est petit : publier
-   `etat_fonds_de_concours` et `etat_solde_budgets_annexes`, sans quoi le
-   simulateur ne peut pas montrer un solde qui se referme — il lui manquerait
-   8,7 Md€ en 2024 alors que la source les porte. La lecture des lignes existe
-   déjà, seul l'identifiant manque. Comme pour la provenance nationale, la
-   décision relève de **D7** : la validation humaine préalable reste en vigueur
-   pour les connecteurs et la méthodologie.
+   **Les deux termes manquants sont publiés** (16 août 2026) :
+   `etat_fonds_de_concours` et `etat_solde_budgets_annexes`. Les lignes étaient
+   déjà lues, seul l'identifiant manquait. Un test refait l'identité **sur les
+   seules séries publiées** et la referme à l'euro — sept indicateurs et non
+   six, le total des prélèvements sur recettes n'étant porté par aucune série :
+   ce sont ses deux composantes qui le remplacent.
+
+   Ce qui reste est donc le sujet d'origine, et lui seul : **étendre le
+   simulateur aux comptes spéciaux, aux budgets annexes et aux ODAC.** Le solde
+   se referme maintenant sur des séries publiées, donc l'obstacle arithmétique
+   est levé. Comme pour la provenance nationale, la décision relève de **D7** :
+   la validation humaine préalable reste en vigueur pour les connecteurs et la
+   méthodologie.
 2. **Provenance au niveau France — déclarée, sauf les missions, et la raison
    du refus vaut d'être lue.** `provenance.ts` attribue la variation d'un
    agrégat à ses composantes partout où la source déclare une hiérarchie. Le
