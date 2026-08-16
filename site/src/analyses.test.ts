@@ -36,6 +36,17 @@ const BORDEAUX = {
   },
 } as never;
 
+test("un taux garde sa décimale, même sur un compte rond", () => {
+  // Le tableau met un exercice par colonne : une série s'y lit de gauche à
+  // droite. Le taux de foncier bâti d'Ayguemorte-les-Graves — 40,8 puis 42,0
+  // puis 43,0 — se lisait « 40,8 % | 42 % | 43 % », trois formats pour une
+  // même ligne. Sur les seules communes de la Gironde, 773 séries mêlent des
+  // valeurs rondes et décimales.
+  assert.equal(valeurLisible(40.8, "percent"), "40,8 %");
+  assert.equal(valeurLisible(43, "percent"), "43,0 %");
+  assert.equal(valeurLisible(0, "percent"), "0,0 %");
+});
+
 test("chaque exercice publié a sa colonne, et une absence reste vide", () => {
   const liste = rubriques(BORDEAUX, CATALOGUE, LIBELLES, ["finances_locales", "population"]);
   const finances = liste.find((r) => r.theme === "finances_locales")!;

@@ -629,7 +629,7 @@ function majTableauEvolution(
         (l) =>
           `<tr><td>${l.nom}</td><td>${l.code}</td><td>${lisible(l.avant)}</td><td>${lisible(
             l.apres,
-          )}</td><td>${formaterVariation(l.variation, indicateur.unite, mode)}</td></tr>`,
+          )}</td><td>${formaterVariation(l.variation, indicateur.unite, mode, true)}</td></tr>`,
       )
       .join("")}</tbody>`;
 }

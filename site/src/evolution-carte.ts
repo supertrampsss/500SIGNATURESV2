@@ -115,15 +115,29 @@ export function echelleDivergente(variations: number[]): Echelle {
  * leurs points suivent la même conversion, sinon l'infobulle contredirait la
  * carte.
  */
-export function formaterVariation(variation: number, unite: string, mode: ModeVariation): string {
+export function formaterVariation(
+  variation: number,
+  unite: string,
+  mode: ModeVariation,
+  /** Une décimale imposée, pour les COLONNES qu'on lit de haut en bas. Sur la
+   *  carte et dans une infobulle, un « +224 % » nu se lit très bien et la
+   *  décimale encombre ; dans le tableau de `/detail`, trié par variation
+   *  décroissante, il tombait entre « +239,7 % » et « +221,1 % ». Mesuré sur
+   *  les 534 communes de la Gironde : 7 des 100 lignes affichées perdaient
+   *  ainsi leur décimale. */
+  decimaleFixe = false,
+): string {
   if (mode === "pourcent") {
     const arrondie = Math.round(variation * 10) / 10;
-    return `${arrondie > 0 ? "+" : ""}${pourcentage(variation)}`;
+    return `${arrondie > 0 ? "+" : ""}${pourcentage(variation, decimaleFixe)}`;
   }
   const affichee = unite.startsWith("pour_1000") ? variation / 10 : variation;
   const arrondie = Math.round(affichee * 10) / 10;
   const nombre = moins(
-    new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(arrondie === 0 ? 0 : affichee),
+    new Intl.NumberFormat("fr-FR", {
+      ...(decimaleFixe ? { minimumFractionDigits: 1 } : {}),
+      maximumFractionDigits: 1,
+    }).format(arrondie === 0 ? 0 : affichee),
   );
   // La même espace fine insécable que devant le % (echelle.ts).
   return `${arrondie > 0 ? "+" : ""}${nombre}\u202f${Math.abs(arrondie) >= 2 ? "pts" : "pt"}`;
