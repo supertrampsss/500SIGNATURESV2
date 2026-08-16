@@ -239,28 +239,28 @@ pour ne plus l'être.
    la question de croiser comptabilité budgétaire et comptabilité nationale sur
    une même fiche : c'est une décision de produit, pas une tuyauterie.
 
-3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
-   range, il ne les condense pas. Visé : une question, une phrase, trois
-   chiffres, le tableau complet derrière.
-
-   Mesuré sur la France (version 2026-08-11T0807) : **188 séries publiées**, et
-   la charge n'est pas répartie — un thème en porte 43 % à lui seul.
-
-   | Thème | Lignes |
-   |---|---|
-   | `budget_etat` | **81** |
-   | `securite` | 16 |
-   | `fonctions` | 11 |
-   | `depenses_fiscales`, `dette`, `europe`, `securite_sociale` | 10 chacun |
-   | `equipements` | 8 |
-   | les huit autres | 2 à 5 chacun |
-
-   Conséquence pour qui reprend : condenser uniformément ne sert à rien. Onze
-   thèmes sur dix-sept tiennent déjà en moins de dix lignes et n'ont pas besoin
-   d'être pliés. Le travail est **`budget_etat`**, et lui seul vaut une
-   structure — les autres se lisent tels quels.
-
 ### Fait
+
+- **Condenser les longues listes** (16 août 2026). Mesuré, puis traité là où la
+  mesure désignait le travail. Sur les **188 séries** de la France, la charge
+  n'était pas répartie : `budget_etat` en portait **81**, soit 43 % à lui seul,
+  quand onze thèmes sur dix-sept tenaient déjà en moins de dix lignes. Condenser
+  uniformément n'aurait donc rien donné.
+
+  Les 81 se décomposent en **66 lignes de mission** — trente-trois missions
+  fois deux colonnes, votés et consommés — et **15 autres**. C'est cette paire
+  répétée qui faisait la liste : `credits-missions.ts` la rend en un tableau de
+  33 rangées (Votés / Consommés / Écart), et il ne reste que 15 lignes
+  ordinaires. Les autres thèmes se lisent tels quels, sans pli.
+
+- **`/reperes` pré-rendue** (16 août 2026). Elle répondait 200 en servant le
+  repli SPA : **identique au gabarit, octet pour octet**. Le refus tenait à un
+  motif technique noté au registre — « les huit `afficher*` mutent un
+  `HTMLElement` » — qui était **faux pour sept d'entre eux** : `rendu()` y
+  existait déjà. Seul `national.ts` restait à extraire, et il n'avait aucun
+  test. La page sert désormais son propre document, avec sa canonique et sa
+  carte de section ; les neuf cadres sont identiques, octet pour octet, à ce que
+  le client peignait.
 
 - **Les quarante-trois séries invisibles** (16 août 2026). Le site filtre son
   catalogue par `niveaux`, et 43 séries avaient une valeur publiée pour la
