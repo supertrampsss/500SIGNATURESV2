@@ -187,6 +187,218 @@ def hierarchie_fonctionnelle() -> dict[str, str]:
     return {identifiant: PARENT for identifiant in [*identifiants, RESIDU]}
 
 
+# L'écart toléré entre la somme des composantes et leur total, en part du total.
+# Les montants sont publiés à l'euro ou au dixième de milliard : ce qui dépasse
+# un demi pour cent n'est pas un arrondi, c'est un périmètre différent.
+TOLERANCE_ECHELON = 0.005
+
+
+def _identite_refusee(somme: float, cible: float) -> bool:
+    """Les composantes ne redonnent pas leur total : on refuse de les ranger.
+
+    C'est le **seul** contrôle d'identité du fichier, celui des échelons de
+    l'OFGL comme celui des agrégats nationaux. Deux contrôles écrits séparément
+    finiraient par diverger, et une hiérarchie qui passerait l'un et non l'autre
+    serait publiée d'un côté et refusée de l'autre.
+
+    Écrit en refus plutôt qu'en accord : un total nul ne se décompose pas
+    davantage qu'un total manqué, et le refus est la réponse par défaut.
+    """
+    return not cible or abs(somme - cible) > abs(cible) * TOLERANCE_ECHELON
+
+
+def _missions_du_budget_general() -> tuple[str, ...]:
+    """Les trente-trois missions du budget de l'État, en **crédits consommés**.
+
+    Consommés, jamais votés : la même mission publie les deux, et ils ne
+    décrivent pas la même chose — entre le vote et le paiement s'intercalent les
+    lois rectificatives, les reports et les fonds de concours. Un total qui les
+    mêlerait ne serait ni une décision ni une dépense.
+
+    La liste est prise au connecteur plutôt que recopiée : une mission ajoutée
+    là serait sinon absente ici, et la somme s'en trouverait amputée sans que
+    rien ne le dise.
+    """
+    from plateforme.normalize.execution_missions import MISSIONS, identifiants
+
+    return tuple(identifiants(slug)[1] for slug, _objet in sorted(MISSIONS.values()))
+
+
+def decompositions_nationales() -> dict[str, tuple[str, ...]]:
+    """-> {agrégat national: les composantes que la même source en publie}.
+
+    **Rien n'est déclaré sur la foi de cette table.** Elle dit ce qu'il faut
+    mesurer ; `hierarchie_nationale` ne retient que ce qui se referme, à chaque
+    exercice publié. Les écarts cités sont mesurés sur la publication
+    2026-08-11T0807, maille `pays`, territoire FR.
+
+    Chaque entrée décompose **un seul budget dans un seul cadre comptable** : le
+    budget général de l'État en comptabilité budgétaire, les administrations
+    publiques en comptabilité nationale, la protection sociale, les dépenses
+    fiscales. Les budgets ne s'additionnent pas ; les composantes d'un même
+    budget, si, et c'est tout l'objet ici.
+    """
+    return {
+        # Les deux seules familles de recettes du budget général, telles que le
+        # connecteur de l'État les publie. Vérifié sur treize exercices
+        # (2013-2025), en euros courants : écart nul au centime — le millième
+        # d'euro qui reste est celui de l'addition binaire, pas de la source.
+        "etat_recettes_nettes_bg": (
+            "etat_recettes_fiscales",
+            "etat_recettes_non_fiscales",
+        ),
+        # Les missions sont **brutes**, les dépenses du budget général sont
+        # **nettes** : la table les propose, le contrôle les refuse, et c'est le
+        # bon comportement.
+        #
+        # L'identité qui se referme n'est pas une somme mais une soustraction —
+        # somme des 33 missions − remboursements d'impôts d'État (578,04 −
+        # 136,84 = 441,19 Md€ en 2025, écart nul, comme en 2024). Or un `parent`
+        # dit « ceci s'additionne dans cela », et un montant retranché ne
+        # s'additionne pas. Mesuré sur les comptes publiés : les 33 missions
+        # dépassent le total de 31,02 % en 2025 et de 31,93 % en 2024 ; la
+        # mission « Remboursements et dégrèvements » écartée, il manque encore
+        # 1,02 % en 2025 et 1,12 % en 2024 — les dégrèvements d'impôts
+        # **locaux**, que cette mission porte aussi et que « net » ne retranche
+        # pas. Aucune composition de missions publiées ne redonne le total.
+        "etat_depenses_nettes_bg": _missions_du_budget_general(),
+        # Comptabilité **nationale**, pas budgétaire : le déficit public au sens
+        # de Maastricht et ses trois sous-secteurs. La liste est celle que le
+        # récapitulatif du simulateur emploie déjà, pas une seconde du même
+        # contenu : c'est une affirmation comptable, et deux listes finiraient
+        # par différer. Vérifié sur soixante-sept exercices (1959-2025), écart
+        # maximal 0,050 % en 1974 — sur un solde de 0,2 Md€, où le dixième de
+        # milliard publié pèse lourd ; sous 0,003 % sur tous les exercices
+        # depuis 1975, et nul depuis 1977.
+        RECAPITULATIF_TOTAL[0]: tuple(code for code, _libelle in RECAPITULATIF_SOUS_SECTEURS),
+        # La dette au sens de Maastricht par sous-secteur détenteur, un stock et
+        # non un flux. Vérifié sur cent vingt-deux trimestres (1995-T4 à
+        # 2026-T1), écart maximal 0,014 % : la source arrondit au dixième de
+        # milliard d'euros, et quatre arrondis ne retombent pas toujours sur le
+        # cinquième.
+        "insee_dette_apu_montant": (
+            "insee_dette_etat_montant",
+            "insee_dette_odac_montant",
+            "insee_dette_apul_montant",
+            "insee_dette_asso_montant",
+        ),
+        # Les dépenses fiscales par impôt d'assiette, les six risques de la
+        # protection sociale : deux décompositions que leur connecteur déclare
+        # déjà, et qui sont lues là plutôt que recopiées ici.
+        **_composantes_du_connecteur(),
+    }
+
+
+def _composantes_du_connecteur() -> dict[str, tuple[str, ...]]:
+    """Les décompositions que le connecteur de la source déclare déjà.
+
+    Recopier ces listes ici en ferait une seconde version, qui cesserait de
+    suivre la première : un risque ou un impôt ajouté par le connecteur
+    manquerait à la somme, et la décomposition entière serait refusée sans que
+    rien ne dise pourquoi. Elles sont donc lues où elles sont écrites.
+
+    Les dépenses fiscales sont vérifiées sur trois exercices (2024-2026), les
+    risques de la protection sociale sur soixante-six (1959-2024) : écart nul au
+    centime de part et d'autre. Le budget vert compte dans son total une
+    catégorie « Taxe d'archéologie préventive » à laquelle le tome 2 ne donne pas
+    d'indicateur ; elle ne pèse rien sur ces trois exercices, et le jour où elle
+    pèserait, le contrôle refuserait la décomposition au lieu d'attribuer son
+    montant aux autres impôts.
+    """
+    from plateforme.normalize.depenses_fiscales import INDICATEURS as IMPOTS
+    from plateforme.normalize.depenses_fiscales import TOTAL as DEPENSE_FISCALE
+    from plateforme.normalize.protection_sociale import RISQUES, TOTAL as TOUS_RISQUES
+
+    return {
+        DEPENSE_FISCALE: tuple(identifiant for identifiant, _libelle in IMPOTS.values()),
+        RISQUES[TOUS_RISQUES][0]: tuple(
+            identifiant
+            for code, (identifiant, *_reste) in RISQUES.items()
+            if code != TOUS_RISQUES
+        ),
+    }
+
+
+def _series_nationales(conn, indicateurs_lus: set[str]) -> dict[str, dict[str, float]]:
+    """-> {indicateur: {période: valeur}} pour la France, telles que publiées.
+
+    Mêmes filtres que `valeurs_par_niveau` — publié, statut normal, variante
+    `total` : le contrôle doit porter sur les montants que le site servira, pas
+    sur d'autres.
+    """
+    codes = sorted(indicateurs_lus)
+    lignes = conn.execute(
+        f"""
+        select o.indicator_id, o.period, o.value
+        from core.observations o join core.indicators i using (indicator_id)
+        where o.geo_level = 'pays' and o.geo_code = 'FR' and i.published
+          and o.value is not null and o.value_status = 'normal' and o.variant = 'total'
+          and o.indicator_id in ({", ".join("?" * len(codes))})
+        """,
+        codes,
+    ).fetchall()
+    series: dict[str, dict[str, float]] = defaultdict(dict)
+    for indicateur, periode, valeur in lignes:
+        series[indicateur][str(periode)] = float(valeur)
+    return series
+
+
+def _decomposition_verifiee(
+    series: dict[str, dict[str, float]], parent: str, composantes: tuple[str, ...]
+) -> bool:
+    """Les composantes redonnent-elles leur agrégat, à chacun de ses exercices ?"""
+    exercices = series.get(parent, {})
+    if not exercices:
+        return False
+    lues = [series.get(code, {}) for code in composantes]
+    for exercice, cible in exercices.items():
+        if not all(exercice in serie for serie in lues):
+            return False
+        if _identite_refusee(sum(serie[exercice] for serie in lues), cible):
+            return False
+    return True
+
+
+def hierarchie_nationale(conn) -> dict[str, str]:
+    """-> {composante: son agrégat}, pour les seules décompositions qui se referment.
+
+    `provenance.ts` attribue la variation d'un agrégat à ses composantes partout
+    où le catalogue déclare une hiérarchie. Il n'en avait aucune au niveau
+    national : cinquante-six indicateurs en déclaraient une, tous de l'OFGL, et
+    aucun des nationaux. Le module ne se taisait pas par défaut de code, rien ne
+    lui était déclaré.
+
+    La règle est la même qu'aux échelons de l'OFGL, et c'est le même contrôle
+    qui l'applique : un agrégat n'ouvre ses composantes que si elles lui
+    redonnent son total. Deux différences tiennent à ce que le niveau national
+    publie des séries longues plutôt qu'un exercice :
+
+    - le contrôle porte sur **tous les exercices publiés de l'agrégat**, jamais
+      sur le dernier seul. `provenance.ts` exige déjà que les composantes
+      somment au total aux deux bornes de la fenêtre comparée : une
+      décomposition vraie à l'arrivée et fausse au départ attribue au premier
+      poste venu la part que la source ne publiait pas encore ;
+    - une composante muette à un exercice où l'agrégat parle fait tomber la
+      décomposition entière. Sa part n'a pas disparu, elle s'est rangée
+      ailleurs sans le dire.
+    """
+    table = decompositions_nationales()
+    series = _series_nationales(
+        conn, {*table, *(code for composantes in table.values() for code in composantes)}
+    )
+    arbre: dict[str, str] = {}
+    decomposes = 0
+    for parent, composantes in table.items():
+        if _decomposition_verifiee(series, parent, composantes):
+            arbre.update(dict.fromkeys(composantes, parent))
+            decomposes += 1
+    print(
+        f"hiérarchie nationale : {decomposes} agrégats décomposés,"
+        f" {len(table) - decomposes} refusés faute que la somme redonne le total"
+    )
+    return arbre
+
+
 def indicateurs(
     conn,
     cartographiees: dict[str, dict[str, list[str]]],
@@ -224,7 +436,10 @@ def indicateurs(
         where i.published order by i.theme, i.label_fr
         """
     ).fetchall()
-    arbre = hierarchie_ofgl()
+    # Les deux jeux de clés sont disjoints — les agrégats de l'OFGL sont ceux
+    # d'un territoire, les nationaux ceux d'un budget d'État ou d'un compte de
+    # la Nation — et aucun agrégat ne peut donc recevoir deux parents.
+    arbre = {**hierarchie_ofgl(), **hierarchie_nationale(conn)}
     fonctionnel = hierarchie_fonctionnelle()
 
     def niveaux_publies(indicateur: str, declares: list[str]) -> list[str]:
@@ -994,10 +1209,6 @@ COLLECTIVITES_NOTE = (
     " portent. Le site n'en publie donc aucun."
 )
 
-# L'écart toléré entre la somme des composantes et leur total, en part du total.
-TOLERANCE_ECHELON = 0.005
-
-
 # Les variantes de périmètre, et l'identité qui prouve chacune.
 #
 # « Dépenses totales hors remb » est rangé par l'OFGL sous « Dépenses totales »,
@@ -1062,7 +1273,7 @@ def _arbre_verifie(
         return []
     somme = sum(totaux[n["c"]] for n in lignes)
     cible = totaux[racine]
-    if not cible or abs(somme - cible) > abs(cible) * TOLERANCE_ECHELON:
+    if _identite_refusee(somme, cible):
         # Refus : les enfants sont rendus à qui pourrait les reprendre ailleurs,
         # et le nœud reste une feuille plutôt qu'un total faux.
         for noeud in lignes:
