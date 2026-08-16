@@ -61,28 +61,34 @@ function courbe(serie: Record<string, number>, unite: string): string {
     <p class="courbe__bornes"><span>${premier[0]}</span><span>${dernier[0]}</span></p>`;
 }
 
-export function afficherNational(
-  blocDette: HTMLElement,
-  blocEurope: HTMLElement,
+/**
+ * Rendu pur du bloc DETTE, sans DOM : c'est lui qui est testé.
+ *
+ * Chaîne vide dans les deux cas où le bloc ne s'écrivait pas : pas de France
+ * publiée, ou pas de total de dette — en montant ET en part de PIB, car le
+ * bloc pose les deux l'un sous l'autre et n'en montre pas un seul.
+ */
+export function renduDette(
   pays: Record<string, Territoire>,
   catalogue: Indicateur[],
-): boolean {
+): string {
   const france = pays["FR"];
-  if (!france) return false;
+  if (!france) return "";
   const fiche = (id: string) => catalogue.find((i) => i.id === id);
 
   const totalPib = derniere(france.series["insee_dette_apu_part_pib"]);
   const total = derniere(france.series["insee_dette_apu_montant"]);
-  if (total && totalPib) {
-    const detail = SOUS_SECTEURS.map((id) => {
-      const valeur = derniere(france.series[id]);
-      const libelle = fiche(id)?.libelle ?? id;
-      return valeur
-        ? `<li><span>${libelle.replace("Dette de ", "").replace("Dette des ", "")}</span>
+  if (!total || !totalPib) return "";
+
+  const detail = SOUS_SECTEURS.map((id) => {
+    const valeur = derniere(france.series[id]);
+    const libelle = fiche(id)?.libelle ?? id;
+    return valeur
+      ? `<li><span>${libelle.replace("Dette de ", "").replace("Dette des ", "")}</span>
              <strong>${formater(valeur[1], "EUR", false)}</strong></li>`
-        : "";
-    }).join("");
-    blocDette.innerHTML = `
+      : "";
+  }).join("");
+  return `
       <h3>Dette publique</h3>
       <p class="bloc__chiffre">
         <strong>${formater(total[1], "EUR", false)}</strong>
@@ -94,8 +100,17 @@ export function afficherNational(
       <h4>Qui la porte</h4>
       <ul class="repartition">${detail}</ul>
 `;
-  }
+}
 
+/**
+ * Rendu pur du bloc EUROPE, sans DOM : c'est lui qui est testé.
+ *
+ * Chaîne vide dans le seul cas où le bloc ne s'écrivait pas : pas de France
+ * publiée. Un voisin absent du lot perd sa ligne, un voisin sans valeur garde
+ * la sienne en tirets — c'est le tableau qui le dit, pas ce module.
+ */
+export function renduEurope(pays: Record<string, Territoire>): string {
+  if (!pays["FR"]) return "";
   const lignes = VOISINS.filter((code) => pays[code])
     .map((code) => {
       const series = pays[code].series;
@@ -112,7 +127,7 @@ export function afficherNational(
     })
     .join("");
   const annee = derniere(pays["FR"].series["eurostat_dette_pib"])?.[0] ?? "";
-  blocEurope.innerHTML = `
+  return `
     <h3>La France et ses voisins</h3>
     <table class="comparaison">
       <caption>Année ${annee} · sources harmonisées Eurostat</caption>
@@ -124,5 +139,29 @@ export function afficherNational(
       définition à tous les pays : c'est ce qui rend la comparaison possible. Ils
       peuvent différer légèrement des chiffres publiés par chaque institut national.
       Un déficit est un nombre négatif.</p>`;
-  return true;
+}
+
+/**
+ * L'enveloppe DOM : elle pose les deux chaînes et rend ce qu'elle rendait.
+ *
+ * Deux rendus purs plutôt qu'un seul, parce que ce bloc-ci n'en est pas un :
+ * la dette et l'Europe vivent dans deux cadres distincts du gabarit, à deux
+ * endroits de la grille, et chacun peut être vide sans l'autre. Une fonction
+ * unique rendant une chaîne aurait collé les deux dans le même cadre ; une
+ * fonction rendant un couple aurait obligé chaque appelant à le défaire.
+ *
+ * Le retour reste ce qu'il était — « la France est-elle publiée ? » — et c'est
+ * exactement ce que dit `renduEurope`, vide dans ce seul cas.
+ */
+export function afficherNational(
+  blocDette: HTMLElement,
+  blocEurope: HTMLElement,
+  pays: Record<string, Territoire>,
+  catalogue: Indicateur[],
+): boolean {
+  const dette = renduDette(pays, catalogue);
+  if (dette) blocDette.innerHTML = dette;
+  const europe = renduEurope(pays);
+  if (europe) blocEurope.innerHTML = europe;
+  return europe !== "";
 }
