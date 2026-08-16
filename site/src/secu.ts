@@ -1,12 +1,16 @@
 /**
  * Le bloc Sécurité sociale, en deux temps.
  *
- * 1. « 100 € de prestations sociales, où vont-ils ? » : la répartition par
- *    risque, la question que le lecteur se pose vraiment. Elle vient en
- *    premier, comme « 100 € du budget de l'État » précède le pont détaillé.
- *    Le rendu vit dans `cent-euros-secu.ts`.
- * 2. « La Sécu est-elle en déficit ? » : dépenses, recettes et solde du
+ * 1. « La Sécu est-elle en déficit ? » : dépenses, recettes et solde du
  *    sous-secteur administrations de sécurité sociale (S1314), en % du PIB.
+ * 2. « 100 € de prestations sociales, où vont-ils ? » : la répartition par
+ *    risque. Le rendu vit dans `cent-euros-secu.ts`.
+ *
+ * La répartition venait en premier, par symétrie avec « 100 € du budget de
+ * l'État » qui précède le pont détaillé. Mais ce bloc-ci, contrairement à celui
+ * de l'État, est la CIBLE d'une question : la seule qui y renvoie est celle du
+ * déficit, et elle déposait le lecteur sur l'autre moitié. La symétrie de mise
+ * en page cède devant l'endroit où le lecteur atterrit.
  *
  * Les deux ne se recouvrent pas — une répartition d'une dépense d'un côté, un
  * solde comparé de l'autre, sur deux périmètres différents — et le second le

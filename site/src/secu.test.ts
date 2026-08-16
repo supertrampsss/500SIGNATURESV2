@@ -73,18 +73,47 @@ test("la série du solde est là, chronologique, avec l'année du choc Covid", (
 });
 
 test("le premier titre du bloc répond à la question qui pointe dessus", () => {
-  // `#bloc-secu` porte deux moitiés sous deux titres. La seule question qui y
-  // renvoie est celle du déficit ; le lecteur qui la suivait tombait sur
-  // « 100 € de prestations sociales, où vont-ils ? », à laquelle rien ne
-  // renvoie ici. Et `peindreSommaireReperes` nomme l'entrée du sommaire
-  // d'après ce même premier titre : le bloc du déficit s'annonçait sous le nom
-  // de la répartition. Aucun test ne tenait cet accord — inverser les deux
-  // moitiés laissait la suite au vert.
+  // `#bloc-secu` porte DEUX moitiés sous deux titres, et la seule question qui
+  // y renvoie est celle du déficit. Le lecteur qui la suivait atterrissait sur
+  // « 100 € de prestations sociales, où vont-ils ? » — une autre question, à
+  // laquelle rien ne renvoie ici. `peindreSommaireReperes` nomme aussi l'entrée
+  // du sommaire d'après ce premier titre.
+  //
+  // Le catalogue et les séries portent ici les SIX risques en plus du solde :
+  // sans eux `cent-euros-secu` rend une chaîne vide, le bloc n'a qu'un titre, et
+  // la garde passerait quel que soit l'ordre. La première version de ce test
+  // avait précisément ce trou — remettre l'ancien ordre laissait les 884 au vert,
+  // et c'est un sabotage qui l'a montré, pas une relecture.
+  const RISQUES = [
+    "drees_protection_sociale_vieillesse",
+    "drees_protection_sociale_sante",
+    "drees_protection_sociale_famille",
+    "drees_protection_sociale_emploi",
+    "drees_protection_sociale_pauvrete",
+    "drees_protection_sociale_logement",
+  ];
+  const catalogue = [...CATALOGUE, ...RISQUES.map((id) => ({ id }))] as Indicateur[];
+  const france = PAYS["FR"] as Territoire;
+  const pays = {
+    ...PAYS,
+    FR: {
+      ...france,
+      series: {
+        ...france.series,
+        ...Object.fromEntries(RISQUES.map((id, i) => [id, { "2024": (i + 1) * 1_000_000_000 }])),
+      },
+    },
+  } as Record<string, Territoire>;
+
+  const html = rendu(pays, catalogue);
+  // Le témoin : les deux moitiés sont bien là, sinon la suite ne prouve rien.
+  assert.match(html, /100.{0,8}€ de prestations sociales/);
+  assert.match(html, /La Sécu est-elle en déficit/);
+
   const question = QUESTIONS.find((q) => q.cible === "#bloc-secu");
   assert.ok(question, "aucune question ne pointe sur #bloc-secu");
   assert.equal(question.question, "La Sécu est-elle en déficit ?");
-  const html = rendu(PAYS, CATALOGUE);
-  const premier = html.slice(html.indexOf("<h3>"), html.indexOf("</h3>"));
+  const premier = html.slice(html.indexOf("<h3"), html.indexOf("</h3>"));
   assert.match(premier, /déficit/i, `premier titre du bloc : ${premier}`);
 });
 
