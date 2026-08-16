@@ -40,12 +40,19 @@ export function niveauPourZoom(zoom: number): string {
  *  **Toutes ne sont pas des couches de carte.** L'arrondissement municipal se
  *  cherche et se lit, mais il n'a pas de tuiles : Paris, Lyon et Marseille
  *  n'existent que par arrondissement dans la carte des loyers, et sans cette
- *  entrée leurs fiches restaient introuvables. Voir `MAILLES_HORS_CARTE`. */
+ *  entrée leurs fiches restaient introuvables. Voir `MAILLES_HORS_CARTE`.
+ *
+ *  **Le pays est une maille du site, pas seulement son panneau d'accueil.** Les
+ *  81 indicateurs du budget de l'État déclarent `niveaux: ["pays"]`, et le site
+ *  filtre son catalogue sur ce champ : sans entrée ici, aucune commande ne
+ *  posait `pays` en maille de sélection, et la page DÉTAIL — celle qui donne
+ *  un exercice par colonne — n'affichait pour la France aucune de ces lignes. */
 export const NIVEAUX_RECHERCHABLES: Record<string, string> = {
   commune: "Commune",
   arrondissement_municipal: "Arrondissement",
   departement: "Département",
   region: "Région",
+  pays: "Pays",
 };
 
 /** Mailles cherchables dont la carte n'a pas de couche.
@@ -55,8 +62,13 @@ export const NIVEAUX_RECHERCHABLES: Record<string, string> = {
  *  produit donc aucun fichier `carte/…/arrondissement_municipal/…`. Ouvrir la
  *  fiche d'un arrondissement ne doit pas faire changer la couche affichée :
  *  `peindre()` demanderait un calque inexistant et la carte tomberait. La fiche
- *  s'ouvre, la carte reste où elle est. */
-export const MAILLES_HORS_CARTE = new Set(["arrondissement_municipal"]);
+ *  s'ouvre, la carte reste où elle est.
+ *
+ *  Le pays est ici pour la même raison, et `publish.py` le dit de son côté :
+ *  `NIVEAUX_CARTOGRAPHIES` ne retient que les trois mailles à tuiles. Une carte
+ *  d'un seul polygone ne se peint pas, et une France peinte en France
+ *  n'apprendrait rien — c'est la couche des régions qui reste sous la fiche. */
+export const MAILLES_HORS_CARTE = new Set(["arrondissement_municipal", "pays"]);
 
 export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };
 
@@ -70,6 +82,15 @@ export type EntreeRecherche = { c: string; n: string; l: string; p: string | nul
  * proposé « Bordeaux Métropole — epci », en clair, et l'ouvrir aurait affiché
  * une fiche dont le site ne sait plus dire ce qu'elle est. Le même filtre
  * protège l'inverse : une donnée en avance sur le code.
+ *
+ * Le second filtre écarte les territoires que la source n'a pas nommés. La
+ * maille pays en publie 48 : la France, et 47 unités de déclaration
+ * européennes — « AT », « EA19 », « EU27_2020 » — dont le nom EST le code,
+ * parce qu'Eurostat n'en donne pas d'autre. Elles servent aux comparaisons de
+ * REPÈRES, pas à être ouvertes : proposer « EA19 — Pays » afficherait le code
+ * technique en clair, exactement ce que le filtre précédent interdit. Un
+ * territoire dont le nom cesse d'être son code redevient proposable de
+ * lui-même, sans qu'aucune liste ne soit à tenir ici.
  */
 export function suggestions(
   index: EntreeRecherche[],
@@ -81,6 +102,7 @@ export function suggestions(
   const cherche = requete.trim().toLowerCase();
   return index
     .filter((e) => e.l in NIVEAUX_RECHERCHABLES)
+    .filter((e) => e.n !== e.c)
     .filter((e) => e.n.toLowerCase().startsWith(cherche) || e.c === cherche)
     .sort(
       (a, b) =>

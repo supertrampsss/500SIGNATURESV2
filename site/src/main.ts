@@ -2211,13 +2211,20 @@ async function peindreDetail(): Promise<void> {
   // par chemin relatif — pas par URL résolue — donc l'échec se fige pour le
   // reste de la session : un lien partagé restait blanc, pour de bon.
   await prete;
-  await chargerLotsNecessaires(etat.niveau, [code]);
-  const territoire = entiteDe(code, etat.niveau);
+  // La maille du territoire ouvert, pas celle que la carte peint : c'est déjà
+  // ce que fait `montrerFiche`, et la même fiche se lit aux deux endroits.
+  // Cette page lisait `etat.niveau`, qui vaut « region » pour toute sélection
+  // sans couche de tuiles : la France y arrivait déclarée région, aucun de ses
+  // 145 indicateurs nationaux ne passait le filtre de maille, et `#detail`
+  // restait vide — le budget de l'État, ses 81 lignes, n'avait pas de page.
+  const niveau = niveauSelection();
+  await chargerLotsNecessaires(niveau, [code]);
+  const territoire = entiteDe(code, niveau);
   if (!territoire) return;
   afficherAnalyses(
     cible,
     territoire.nom,
-    rubriques(territoire, indicateursDeLaFiche(etat.niveau), THEMES, ORDRE_THEMES),
+    rubriques(territoire, indicateursDeLaFiche(niveau), THEMES, ORDRE_THEMES),
   );
   // Le comparateur suit la sélection : il n'a pas d'état propre, il relit
   // `etat.comparaison`, que l'adresse porte déjà.
