@@ -2210,7 +2210,14 @@ async function peindreDetail(): Promise<void> {
   // (retombée SPA, 200 sur index.html), `r.json()` lève, et `donnees.ts` cache
   // par chemin relatif — pas par URL résolue — donc l'échec se fige pour le
   // reste de la session : un lien partagé restait blanc, pour de bon.
-  await prete;
+  await publiee;
+  // `prete` ne suffisait pas : elle se résout dès que `donnees.racine` est
+  // connue, or le catalogue n'est assemblé que plus loin dans `demarrer`
+  // (avec les indicateurs dérivés). Ce peintre partait donc parfois avec un
+  // catalogue vide, `indicateursDeLaFiche` ne rendait rien, et `#detail`
+  // sortait blanc — mesuré une fois sur trois, à toutes les mailles.
+  // `publiee` est résolue APRÈS l'assemblage : c'est la promesse qui décrit
+  // ce que cette page attend vraiment.
   // La maille du territoire ouvert, pas celle que la carte peint : c'est déjà
   // ce que fait `montrerFiche`, et la même fiche se lit aux deux endroits.
   // Cette page lisait `etat.niveau`, qui vaut « region » pour toute sélection

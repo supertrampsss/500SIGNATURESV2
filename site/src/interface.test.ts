@@ -826,10 +826,15 @@ test("aucun fetch de DÉTAIL ne part avant que l'initialisation n'ait résolu", 
     MAIN.indexOf("Le simulateur n'est une vue du site"),
   );
   assert.ok(corpsPeintre.length > 100, "corps de peindreDetail introuvable");
+  // `publiee`, pas `prete` : `prete` se résout dès que `donnees.racine` est
+  // connue, alors que le catalogue n'est assemblé que plus loin dans
+  // `demarrer`. Ce peintre partait donc parfois avec un catalogue vide et
+  // `#detail` sortait blanc — mesuré une fois sur trois, à toutes les mailles.
+  // `publiee` se résout après l'assemblage : elle vaut `prete` et davantage.
   assert.ok(
-    corpsPeintre.indexOf("await prete;") !== -1 &&
-      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("chargerLotsNecessaires("),
-    "peindreDetail doit attendre `prete` avant tout fetch",
+    corpsPeintre.indexOf("await publiee;") !== -1 &&
+      corpsPeintre.indexOf("await publiee;") < corpsPeintre.indexOf("chargerLotsNecessaires("),
+    "peindreDetail doit attendre `publiee` — le catalogue assemblé — avant tout fetch",
   );
 });
 
@@ -1188,6 +1193,9 @@ async function executerPeindreDetail(
     new Function(
       "$",
       "prete",
+      // `peindreDetail` attend `publiee` — le catalogue assemblé — et non plus
+      // `prete`, qui se résout dès que la racine des données est connue.
+      "publiee",
       "etat",
       "catalogue",
       "DENOMINATEURS",
@@ -1201,6 +1209,7 @@ async function executerPeindreDetail(
       `${corps}\nreturn peindreDetail();`,
     )(
       (id: string) => (id === "detail" ? detail : null),
+      Promise.resolve(),
       Promise.resolve(),
       etat,
       catalogue,
