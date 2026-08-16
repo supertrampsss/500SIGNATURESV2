@@ -12,6 +12,7 @@ import { test } from "node:test";
 
 import type { Analyse } from "./analyse-rendu.ts";
 import { LIBELLE_CONFUSION, LIBELLE_CRAN, rendu, renduIndex } from "./analyse-rendu.ts";
+import { citable, citer, type Citation } from "./citer.ts";
 import { formater } from "./echelle.ts";
 
 const CATALOGUE = [
@@ -464,4 +465,103 @@ test("aucune réserve qui s'excuse dans le module lui-même", () => {
   assert.doesNotMatch(html, /ne disent pas/i);
   assert.doesNotMatch(html, /fiabilité est inégale/i);
   assert.doesNotMatch(html, /à prendre avec précaution/i);
+});
+
+/* --------------------------------------------------------------------------
+ * « Citer » : la commande n'est posée que là où les cinq éléments existent
+ * ----------------------------------------------------------------------- */
+
+const ADRESSE = "https://plateforme-9sz.pages.dev/analyses/defense-credits-votes-consommes-2025/";
+
+/** Les charges utiles `data-citer` d'un rendu, relues comme le fait `main.ts` :
+ *  l'attribut est du JSON échappé pour l'attribut HTML, jamais du texte gratté
+ *  sur la page. */
+function citations(html: string): Citation[] {
+  return [...html.matchAll(/data-citer="([^"]*)"/g)].map(
+    (trouvee) =>
+      JSON.parse(
+        trouvee[1]!
+          .replace(/&quot;/g, '"')
+          .replace(/&#39;/g, "'")
+          .replace(/&lt;/g, "<")
+          .replace(/&gt;/g, ">")
+          .replace(/&amp;/g, "&"),
+      ) as Citation,
+  );
+}
+
+test("un chiffre observé porte la commande, avec ses cinq éléments", () => {
+  const html = rendu(DEFENSE, CATALOGUE, "", ADRESSE);
+  const charges = citations(html);
+  assert.equal(charges.length, DEFENSE.chiffres.length);
+
+  const premiere = charges[0]!;
+  assert.equal(premiere.valeur, DEFENSE.chiffres[0]!.observe!.valeur);
+  assert.equal(premiere.unite, "EUR");
+  assert.equal(premiere.millesime, DEFENSE.chiffres[0]!.observe!.periode);
+  // La source est celle que l'analyse déclare elle-même, sous « Fichier
+  // publié » — jamais `affirmation.source`, qui est la source de la
+  // déclaration citée, pas celle du chiffre des comptes.
+  assert.equal(premiere.source, DEFENSE.sources[0]!.titre);
+  assert.equal(premiere.permalien, ADRESSE);
+  // Et la charge se cite : c'est le contrat entre le rendu et `main.ts`.
+  assert.equal(citable(premiere), true);
+  assert.ok(citer(premiere).includes(formater(premiere.valeur, "EUR", false, premiere.id)));
+});
+
+test("un chiffre sans exercice n'offre pas la commande", () => {
+  // `interpretation`, `hypothese`, `resultat_simulation` : `observe` y est
+  // interdite (docs/analyses-schema.md), donc aucun millésime. Un nombre nu
+  // copié, c'est la capture d'écran floue sous une autre forme.
+  const html = rendu(analyseMixte(), CATALOGUE_MIXTE, "", ADRESSE);
+  const charges = citations(html);
+  assert.equal(charges.length, 2);
+  assert.deepEqual(
+    charges.map((c) => c.millesime),
+    ["2019", "2025"],
+  );
+  // Le chiffre reste affiché, sous le nom de son registre : c'est la commande
+  // qui manque, pas la ligne.
+  const express = html.slice(html.indexOf("chiffres-cites"), html.indexOf("analyse-rendu__verdict"));
+  assert.equal(express.match(/<li>/g)?.length, 3);
+  assert.equal(express.match(/data-citer=/g)?.length, 2);
+  assert.ok(express.includes("Interprétation"), express);
+});
+
+test("une analyse sans source déclarée n'offre la commande sur aucun chiffre", () => {
+  const anonyme = analyseMinimale({ sources: [] });
+  assert.equal(citations(rendu(anonyme, CATALOGUE, "", ADRESSE)).length, 0);
+  // Le chiffre reste affiché, lui : c'est la commande qui manque, pas la page.
+  assert.ok(rendu(anonyme, CATALOGUE, "", ADRESSE).includes("Les crédits votés."));
+});
+
+test("un indicateur absent du catalogue n'offre pas la commande", () => {
+  // Pas d'unité déclarée, pas de repli sur « EUR » : `formater` peindrait un
+  // taux ou un effectif en millions d'euros, et la citation partirait fausse.
+  assert.equal(citations(rendu(analyseMinimale(), [] as never[], "", ADRESSE)).length, 0);
+});
+
+test("sans permalien absolu, aucun chiffre n'offre la commande", () => {
+  // Une citation circule hors du site : un chemin relatif n'y ramène plus.
+  assert.equal(citations(rendu(DEFENSE, CATALOGUE)).length, 0);
+  assert.equal(citations(rendu(DEFENSE, CATALOGUE, "", "  ")).length, 0);
+});
+
+test("la charge utile est échappée pour l'attribut qui la porte", () => {
+  const piegee = analyseMinimale({
+    sources: [
+      {
+        titre: 'Rapport "2025" & <suites>',
+        url: "https://exemple.test",
+        consulte_le: "2026-01-01",
+      },
+    ],
+  });
+  const html = rendu(piegee, CATALOGUE, "", ADRESSE);
+  // Le guillemet droit ne referme pas l'attribut : sans échappement, l'attribut
+  // se coupe au premier guillemet du titre et le reste du JSON devient du
+  // balisage.
+  assert.ok(!/data-citer="[^"]*"[^>]*JSON/.test(html));
+  const [charge] = citations(html);
+  assert.equal(charge!.source, 'Rapport "2025" & <suites>');
 });

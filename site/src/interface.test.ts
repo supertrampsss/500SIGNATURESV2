@@ -16,6 +16,7 @@ import {
   renommer,
   type Depot,
 } from "./scenarios.ts";
+import { estAccueil, vueDepuisAdresse } from "./routes.ts";
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
@@ -611,8 +612,14 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   assert.doesNotMatch(balises, /data-vue="donnees"/);
   assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"donnees"/);
   // Un lien `#donnees` déjà partagé ne doit pas laisser le lecteur sur une
-  // page blanche : la vue de repli le ramène sur TERRITOIRE.
-  assert.match(MAIN, /const vue = vuesConnues\(\)\.includes\(cible\) \? cible : "territoire";/);
+  // page blanche : la vue de repli le ramène sur TERRITOIRE. Depuis que la
+  // racine rend l'accueil, le repli a deux branches — et c'est celle qui ne
+  // s'applique PAS ici qu'il faut vérifier : `#donnees` est un alias de
+  // `territoire`, donc `estAccueil` répond faux et le lecteur va bien à la
+  // carte, pas à l'accueil.
+  assert.match(MAIN, /: estAccueil\(location\.pathname, location\.hash\)\s*\? "accueil"\s*: "territoire";/);
+  assert.equal(estAccueil("/", "#donnees"), false);
+  assert.equal(vueDepuisAdresse("/", "#donnees"), "territoire");
   // Et plus personne ne l'y envoie de son propre chef.
   assert.doesNotMatch(MAIN, /location\.hash = "#donnees"/);
   // Les fonctions qui peignaient dans ses conteneurs se taisent au lieu de
@@ -736,8 +743,14 @@ test("le site dit ce qu'il a corrigé et quand il a lu ses sources", () => {
   assert.match(MAIN, /afficherFraicheur\(/);
   // Un fichier absent laisse la page debout : c'est la règle du site partout
   // ailleurs, elle vaut ici.
-  const corps = MAIN.slice(MAIN.indexOf("async function peindreMethode"));
-  assert.match(corps.slice(0, 900), /catch/);
+  // Borné sur la fonction suivante, jamais sur un nombre de caractères : une
+  // ligne ajoutée au peintre poussait le `catch` hors d'une fenêtre fixe et
+  // faisait rougir ce test sans que la règle ait bougé.
+  const corps = MAIN.slice(
+    MAIN.indexOf("async function peindreMethode"),
+    MAIN.indexOf("function exemplesTerritoires"),
+  );
+  assert.match(corps, /catch/);
 });
 
 test("aucun fetch de MÉTHODE ne part avant que l'initialisation n'ait résolu", () => {
@@ -1020,6 +1033,24 @@ test("charger un scénario passe par transposer, jamais par decoder seul", () =>
   // direct qui laisserait les lignes disparues sans nom.
   assert.doesNotMatch(corps, /etat: decoderAtelier\(scenario\.budget, voletsMontes\)/);
   assert.match(corps, /disparuesCourantes = \{ lignes: disparues, rienRepris \}/);
+});
+
+test("régler l'atelier reconstruit la barre des scénarios, donc les boutons de partage", () => {
+  // Les boutons de partage sont peints par `montrerScenarios()` et ne
+  // s'offrent qu'avec un atelier réglé (`partageDuSimulateur`). Le seul
+  // chemin qui les fait apparaître sur le parcours ordinaire — régler, puis
+  // partager — est donc ce rappel depuis `surReglages`. Sans lui, le lecteur
+  // ne verrait de bouton qu'après avoir touché à un scénario, et le lot
+  // entier resterait hors d'atteinte.
+  // Les deux poses de l'atelier — celle de `chargerScenario` et celle
+  // d'`ouvrirSimulateur` — sont éprouvées, pas seulement la première : une
+  // seule des deux privée de ce rappel laisserait le défaut entier sur un
+  // parcours, et le fichier ne dit pas laquelle le lecteur emprunte.
+  const poses = [...MAIN.matchAll(/surReglages: \(/g)].map((m) =>
+    MAIN.slice(m.index, MAIN.indexOf("\n  });", m.index)),
+  );
+  assert.equal(poses.length, 2, "les poses de l'atelier ont changé de nombre dans main.ts");
+  for (const pose of poses) assert.match(pose, /\bmontrerScenarios\(\);/);
 });
 
 test("tout budget encodé qui devient un état de l'atelier passe par la même porte", () => {
@@ -1950,4 +1981,56 @@ test("le bloc des lignes non reprises est habillé comme le reste de la barre", 
   assert.doesNotMatch(regle, /#[0-9a-f]{3,8}\b/i);
   assert.match(regle, /var\(--trait\)/);
   assert.match(regle, /var\(--espace-5\)/);
+});
+
+/* --------------------------------------------------------------------------
+ * « Citer » : un écouteur délégué, et rien à gratter sur la page
+ * ----------------------------------------------------------------------- */
+
+test("la commande « citer » est un écouteur délégué, posé une seule fois", () => {
+  // Même motif que `brancherPartage` et `brancherScenarios` : l'article d'une
+  // analyse n'est jamais remplacé, un écouteur par rendu les aurait empilés.
+  const corps = MAIN.slice(
+    MAIN.indexOf("function brancherCitations"),
+    MAIN.indexOf("function brancherScenarios"),
+  );
+  assert.ok(corps.length > 200, "corps de brancherCitations introuvable");
+  assert.match(corps, /article\.addEventListener\("click"/);
+  assert.match(corps, /closest<HTMLElement>\("button\[data-citer\]"\)/);
+  // Branchée avant tout appel réseau : la charge utile est déjà dans la page,
+  // écrite par le pré-rendu. Sur l'ordre, pas sur la ligne qui suit — un
+  // branchement ajouté juste après cassait l'assertion sans rien casser du
+  // site.
+  const debut = MAIN.indexOf("async function demarrer");
+  assert.ok(debut > 0, "demarrer introuvable");
+  assert.ok(
+    MAIN.indexOf("brancherCitations();", debut) <
+      MAIN.indexOf("await donnees.initialiser()", debut),
+    "« citer » doit être branchée avant le premier appel réseau",
+  );
+});
+
+test("la citation se lit dans la charge utile, jamais sur la page rendue", () => {
+  // Le montant affiché a déjà perdu son unité brute et son millésime sa forme :
+  // gratter la page recomposerait un chiffre au lieu de le citer.
+  assert.match(MAIN, /const brute = bouton\.dataset\.citer;/);
+  assert.match(MAIN, /JSON\.parse\(brute\) as Citation/);
+  // La même limite qu'au rendu, tenue au clic : une charge incomplète ne
+  // produit rien, surtout pas un message d'échec.
+  assert.match(MAIN, /return citable\(citation\) \? citation : null;/);
+  // Le presse-papiers est injecté, jamais lu dans `offrirCitation` : c'est ce
+  // qui rend le chemin éprouvable sous Node.
+  assert.match(MAIN, /offrirCitation\(citation, presseDuNavigateur\(\)\)/);
+});
+
+test("la commande « citer » est habillée sans couleur ni espacement en dur", () => {
+  assert.match(CSS, /^\.citer \{/m);
+  const regle = CSS.slice(CSS.indexOf("\n.citer {"), CSS.indexOf("\n.citer:hover"));
+  assert.doesNotMatch(regle, /#[0-9a-f]{3,8}\b/i);
+  assert.match(regle, /var\(--encre-douce\)/);
+  assert.match(regle, /var\(--texte-xs\)/);
+  // Le repli reçoit la citation quand le presse-papiers refuse : sans lui,
+  // « indisponible » ne laisserait rien à emporter.
+  assert.match(CSS, /^\.citer__repli \{/m);
+  assert.match(CSS, /^\.citer__retour \{/m);
 });

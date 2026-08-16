@@ -3,12 +3,22 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <!-- Projet non annoncé : pas d'indexation tant que la décision D1 tient. -->
-    <meta name="robots" content="noindex, nofollow" />
-    <title>Où va l'argent public : carte des finances locales</title>
+    <!-- Le titre et la description du GABARIT, c'est-à-dire de six adresses :
+         la racine, où l'accueil est servi écrit, et les cinq chemins de vues
+         que le repli SPA sert avec ce même document. Ils nomment donc le site,
+         jamais une de ses vues — « carte des finances locales » décrivait la
+         carte, qui a quitté la racine pour `/territoire` au lot 4, et se
+         peignait ainsi sur l'image de partage de l'accueil.
+
+         La description est le message principal du site (spec §8), dont
+         `MESSAGE_PRINCIPAL` (src/accueil.ts) est la rédaction : un `<meta>` ne
+         peut pas lire une constante, et c'est un test qui tient les deux
+         accordées (prerendre.test.ts, « le gabarit ne s'annonce plus comme une
+         de ses vues »). -->
+    <title>Où va l'argent public</title>
     <meta
       name="description"
-      content="Les finances, la population, le logement, l'emploi et la sécurité de chaque commune, département et région de France, à partir des données officielles des producteurs publics."
+      content="Les chiffres du débat budgétaire, recalculés sur les comptes publiés — et rejouables."
     />
     <!-- Le thème est écrit sur <html> avant le premier rendu : lu après, la
          page s'affichait en clair puis basculait en sombre sous les yeux. -->
@@ -71,7 +81,30 @@
     </header>
 
     <main id="contenu">
-    <div class="vue vue--territoire" id="vue-territoire">
+    <!-- L'accueil, à la racine du site. Ce n'est pas une vue de l'application
+         monoécran — `CHEMINS` (routes.ts) n'en porte aucune entrée, et la carte
+         reste à `/territoire` — mais elle occupe le même cadre, et
+         `basculerVue` la montre et la masque comme les autres.
+
+         Vide et VISIBLE : c'est le pré-rendu qui l'écrit, sur les fichiers
+         publiés qu'il lit au build (`injecterAccueil`, scripts/prerendre.ts), et
+         `dist/index.html` part donc avec l'accueil dedans. Repliée sous
+         `hidden`, cette page n'aurait été servie qu'à qui exécute JavaScript :
+         un robot qui n'en exécute pas — et la première exploration d'un moteur
+         fixe l'impression mise en cache — lisait la racine sur le squelette de
+         la carte, où aucun mot du message principal n'apparaît.
+
+         Le prix est de l'autre côté : le gabarit sert six adresses, et sur les
+         cinq chemins de vues l'accueil s'affiche le temps que le paquet arrive.
+         C'est le défaut qu'on avait déjà, à l'envers — la racine montrait le
+         cadre de la carte en attendant — et il quitte ainsi l'adresse par
+         laquelle on entre. -->
+    <div class="vue vue--accueil" id="vue-accueil"></div>
+
+    <!-- `hidden` au départ, pour la même raison : deux vues visibles avant que
+         `basculerVue` ne tranche montreraient l'accueil ET le cadre de la carte
+         l'un sous l'autre. -->
+    <div class="vue vue--territoire" id="vue-territoire" hidden>
       <!-- La carte n'est plus une entrée de menu séparée : c'était deux liens
            pour un seul écran, le panneau étant identique de part et d'autre.
            Elle est un mode de cette vue, que ce bouton ouvre et referme. -->
@@ -199,6 +232,8 @@
     <div class="vue" id="vue-methode" hidden>
       <section class="methode">
         <h2>Méthode</h2>
+        <div class="bloc bloc--large" id="methode-sources"></div>
+        <div class="bloc bloc--large" id="methode-methode"></div>
         <div class="bloc bloc--large" id="methode-grille"></div>
         <div class="bloc bloc--large" id="methode-fraicheur"></div>
         <div class="bloc bloc--large" id="methode-journal"></div>

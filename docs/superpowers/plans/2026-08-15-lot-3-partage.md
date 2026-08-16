@@ -59,7 +59,16 @@ rougisse.
 Deux issues : poser `functions/` à la racine du dépôt, ou déplacer l'étape de
 déploiement dans `site/` et publier `dist`. La seconde garde tout le site sous `site/`,
 ce qui est la convention du dépôt. C'est celle à suivre — et la tâche 4 doit **le
-constater sur la prévisualisation de branche**, pas le déduire du fichier de workflow.
+constater sur une exécution réelle**, pas le déduire du fichier de workflow.
+
+**Il n'y a pas de prévisualisation de branche sur ce projet**, et ce plan disait le
+contraire. `deploy.yml` passe toujours `--branch=main` : Cloudflare sert les autres
+branches sous `<branche>.<projet>.pages.dev`, un niveau de sous-domaine que son
+certificat générique ne couvre pas, et le navigateur refuse alors la connexion. La
+boucle de vérification est donc `wrangler pages dev`, qui compile et exécute les
+fonctions en local sans rien déployer — et qui dit à voix haute lequel des deux cas on
+est dans : « Compiled Worker successfully » depuis `site/`, « No Functions.
+Shimming… » depuis la racine du dépôt.
 
 ---
 
@@ -247,12 +256,15 @@ Une adresse sans budget, ou dont le budget ne se décode pas, rend les métadonn
 génériques du site. Elle ne rend jamais une page d'erreur : un robot qui reçoit une
 erreur n'affiche aucun aperçu.
 
-- [ ] **Step 3: Le prouver sur la prévisualisation, pas sur le fichier**
+- [ ] **Step 3: Le prouver sur une exécution, pas sur le fichier**
 
-Le déploiement de branche donne une URL. Y demander `/simulateur?budget=…` avec
-l'en-tête d'un robot et **lire les balises servies**. Une fonction edge qui n'est pas
-compilée se manifeste exactement comme une fonction qui rend les métadonnées génériques :
-seule la requête réelle distingue les deux.
+`wrangler pages dev dist`, depuis `site/` : il compile les fonctions et les exécute en
+local. Y demander `/simulateur?budget=…` avec l'en-tête d'un robot et **lire les balises
+servies**, puis la même adresse avec celui d'un navigateur et vérifier que la page
+arrive entière — `/simulateur` est une route cliente servie par le repli SPA. Une
+fonction edge qui n'est pas compilée se manifeste exactement comme une fonction qui rend
+les métadonnées génériques : seule la requête réelle distingue les deux. Pas de
+prévisualisation de branche pour le faire à distance, voir D-L3-c.
 
 - [ ] **Step 4: Commiter**
 

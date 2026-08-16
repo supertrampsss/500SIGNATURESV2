@@ -6110,3 +6110,509 @@ body[data-carte="oui"] .legende {
 .scenarios-rendu__disparues li {
   padding: var(--espace-1) 0;
 }
+
+/* --------------------------------------------------------------------------
+   Partager
+   --------------------------------------------------------------------------
+   Les trois formats d'un objet partageable (partage.ts) tiennent dans une
+   rangée de gestes : le panneau du système quand le navigateur en a un, le
+   presse-papiers sinon, et le téléchargement de l'image là où le build en a
+   écrit une.
+
+   Aucun bouton de réseau social, donc aucune couleur de marque, aucune icône
+   distante : les gestes empruntent le même filet que le reste du site. Le
+   règlement européen sur les données interdit déjà les polices distantes ici,
+   et un widget de partage transmettrait la même chose — l'adresse IP du
+   lecteur et la page qu'il lit — à un tiers qui ne lui a rien demandé. */
+.partage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-3);
+  margin: var(--espace-5) 0;
+}
+.partage__geste {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font-size: var(--texte-s);
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.partage__geste:hover,
+.partage__geste:focus-visible {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+/* Le message occupe sa propre ligne : il apparaît et disparaît au fil des
+   gestes, et le laisser dans la rangée faisait sauter les boutons de place à
+   chaque copie. */
+.partage__message {
+  flex-basis: 100%;
+  margin: 0;
+  min-height: 1.5em;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+/* Le repli : le résumé, à copier à la main, quand le navigateur refuse le
+   presse-papiers. Il ne paraît que dans ce cas — `hidden` le tient fermé — et
+   il est en lecture seule : ce qui est copié doit être ce que le site a
+   composé. */
+.partage__repli {
+  flex-basis: 100%;
+  min-height: 6em;
+  padding: var(--espace-3);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier-creuse);
+  color: var(--encre);
+  font: inherit;
+  font-size: var(--texte-s);
+  resize: vertical;
+}
+.partage__repli[hidden] {
+  display: none;
+}
+
+/* --------------------------------------------------------------------------
+   Citer
+   --------------------------------------------------------------------------
+   La commande vit DANS la ligne du chiffre, pas dans une barre d'actions : ce
+   qu'on cite, c'est ce nombre-là et pas un autre, et une commande posée
+   ailleurs obligerait à choisir lequel avant de savoir qu'on peut choisir.
+
+   Elle est donc discrète — un filet, le corps le plus petit — et ne prend pas
+   le pas sur le montant qu'elle accompagne. Les chiffres sans source ni
+   millésime n'en portent aucune (analyse-rendu.ts) : c'est une absence, pas un
+   bouton grisé, qui n'apprendrait rien. */
+.citer {
+  display: inline-flex;
+  align-items: center;
+  margin-left: var(--espace-2);
+  padding: 0 var(--espace-2);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-xs);
+  background: transparent;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  line-height: 1.8;
+  cursor: pointer;
+  transition: border-color var(--transition), color var(--transition);
+}
+.citer:hover,
+.citer:focus-visible {
+  border-color: var(--encre);
+  color: var(--encre);
+}
+/* Le retour occupe sa propre ligne : il apparaît sous le chiffre au premier
+   clic, et le laisser dans le flux du texte ferait sauter le montant de place
+   à chaque copie. */
+.citer__retour {
+  display: block;
+  margin-top: var(--espace-2);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+/* Le repli : la citation entière, à copier à la main, quand le navigateur
+   refuse le presse-papiers. En lecture seule — ce qui est copié doit être ce
+   que le site a composé — et sur trois lignes, la hauteur exacte d'une
+   citation (citer.ts). */
+.citer__repli {
+  display: block;
+  width: 100%;
+  margin-top: var(--espace-2);
+  padding: var(--espace-3);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier-creuse);
+  color: var(--encre);
+  font: inherit;
+  font-size: var(--texte-s);
+  resize: vertical;
+}
+
+/* ===========================================================================
+   L'ACCUEIL — la racine du site (accueil.ts, spec §8)
+
+   Le site ouvrait sur sa carte : un écran qui suppose qu'on sait déjà ce qu'il
+   fait. L'accueil pose le message principal, puis en donne la preuve tout de
+   suite. La mise en page suit cet ordre et rien d'autre — pas de colonnes qui
+   mettraient deux blocs en regard, ce qui les ferait lire comme un
+   comparatif ; une seule colonne, du plus engageant au plus vérifiable.
+
+   Aucune couleur ne varie avec le cran d'un verdict — `exact`,
+   `hors_perimetre` et `introuvable` sont trois faits, pas un bon et deux
+   mauvais points (décision de système n° 2). L'argile marque l'attention que
+   mérite un verdict, jamais lequel des trois on lit : même règle et même
+   dessin que `.analyse-rendu__verdict`.
+   ======================================================================== */
+
+.accueil {
+  max-width: var(--colonne-texte);
+  margin: 0 auto;
+  padding: var(--espace-7) 0 var(--espace-8);
+}
+
+/* ---- L'ouverture : le message, puis l'unité, puis la preuve ---- */
+
+.accueil__ouverture {
+  margin-bottom: var(--espace-7);
+}
+.accueil__message {
+  margin: 0 0 var(--espace-4);
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--encre);
+}
+/* La mention d'unité, posée une fois pour toute la page : elle appartient à
+   l'ouverture, entre le message et sa preuve, et aucun bloc ne la répète —
+   répétée, elle cesse d'être lue là où elle compte. */
+.accueil__cadrage {
+  margin: 0;
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+
+/* ---- Les cinq blocs ---- */
+
+.accueil__bloc {
+  margin-bottom: var(--espace-7);
+  padding: var(--espace-7);
+  background: var(--papier);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+}
+.accueil__bloc h3 {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+/* La bande de confiance ferme la page : elle se lit, elle ne se consulte pas.
+   Sans cadre, elle cesse de peser autant que le verdict qu'elle sert. */
+.accueil__bloc--confiance {
+  margin-bottom: 0;
+  padding: var(--espace-7) 0 0;
+  background: none;
+  border: 0;
+  border-top: 1px solid var(--trait);
+  border-radius: 0;
+}
+
+/* Les trois appels à l'action, dans l'ordre de l'entonnoir. Un seul dessin
+   pour les trois : ils promettent trois gestes de même poids, et un bouton
+   plein contre deux liens en aurait désigné un comme le bon. */
+.accueil__appel {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-4) var(--espace-6);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-s);
+  color: var(--encre);
+  font-size: var(--texte-m);
+  font-weight: 600;
+  text-decoration: none;
+}
+.accueil__appel:hover,
+.accueil__appel:focus-visible {
+  border-color: var(--encre);
+  background: var(--accent-teinte);
+}
+
+/* ---- Bloc 1 : le verdict du moment ---- */
+
+.accueil__titre-analyse {
+  margin: 0 0 var(--espace-5);
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  color: var(--encre);
+}
+.accueil__affirmation {
+  margin: 0 0 var(--espace-3);
+  padding: 0 0 0 var(--espace-5);
+  border-left: 2px solid var(--trait-fort);
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-style: italic;
+  color: var(--encre);
+}
+.accueil__attribution {
+  margin: 0 0 var(--espace-4);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.accueil__source-declaration {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+/* Le chiffre annoncé et celui des comptes, l'un sous l'autre : les mettre côte
+   à côte les ferait lire comme un score, alors que ce sont deux mesures dont
+   le verdict dit ce qui les sépare. */
+.accueil__chiffres {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-m);
+}
+.accueil__chiffres dt {
+  font-size: var(--texte-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--encre-douce);
+}
+.accueil__chiffres dd {
+  margin: var(--espace-2) 0 var(--espace-5);
+  color: var(--encre);
+}
+.accueil__chiffres dd:last-child {
+  margin-bottom: 0;
+}
+.accueil__chiffres strong {
+  font-variant-numeric: tabular-nums;
+}
+/* L'exercice et la source du chiffre, sur sa ligne : ce qui change la lecture
+   d'un chiffre se dit avec lui, jamais en note après le tableau. */
+.accueil__provenance {
+  display: block;
+  margin-top: var(--espace-1);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+.accueil__cran {
+  margin: 0 0 var(--espace-5);
+  padding: var(--espace-4) var(--espace-5);
+  border-left: 3px solid var(--argile);
+  border-radius: var(--rayon-xs);
+  background: var(--papier-creuse);
+  font-size: var(--texte-l);
+  font-weight: 600;
+  color: var(--encre);
+}
+.accueil__confusion {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+
+/* ---- Bloc 2 : la porte du simulateur ---- */
+
+.accueil__appel-simulateur,
+.accueil__appel-territoire {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-l);
+  color: var(--encre);
+}
+.accueil__defis {
+  list-style: none;
+  margin: 0 0 var(--espace-6);
+  padding: 0;
+  display: grid;
+  gap: var(--espace-4);
+}
+.accueil__defis li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-3);
+  padding-bottom: var(--espace-4);
+  border-bottom: 1px solid var(--trait);
+  font-size: var(--texte-m);
+}
+.accueil__defi {
+  color: var(--encre);
+  font-weight: 600;
+}
+/* Ce que la contrainte interdit se lit avec elle : c'est la moitié de ce
+   qu'elle est, pas une précision qu'on découvre en l'ouvrant. */
+.accueil__defi-interdit {
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+/* ---- Bloc 3 : et chez vous ? ---- */
+
+.accueil__exemple {
+  margin: 0 0 var(--espace-6);
+  padding: var(--espace-5);
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-s);
+}
+.accueil__exemple-nom {
+  margin-bottom: var(--espace-5);
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-weight: 600;
+}
+.accueil__exemple-nom a {
+  color: var(--encre);
+}
+.accueil__exemple-chiffres {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--espace-5);
+  font-size: var(--texte-m);
+}
+.accueil__exemple-chiffres strong {
+  display: block;
+  font-size: var(--texte-xl);
+  font-variant-numeric: tabular-nums;
+}
+/* La variation suit la provenance, pas le montant : elle se lit après avoir su
+   de quel exercice on parle. */
+.accueil__variation {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* ---- Bloc 4 : les analyses récentes ---- */
+
+.accueil__analyses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--espace-4);
+}
+.accueil__carte-analyse {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espace-3);
+  padding-bottom: var(--espace-4);
+  border-bottom: 1px solid var(--trait);
+  font-size: var(--texte-m);
+}
+.accueil__carte-analyse a {
+  color: var(--encre);
+  font-weight: 600;
+}
+/* Le cran d'une carte de liste n'est pas le verdict d'une page : il situe, il
+   ne conclut pas. D'où la pilule de filet, et non le filet d'argile. */
+.accueil__carte-analyse .accueil__cran {
+  margin: 0;
+  padding: var(--espace-1) var(--espace-3);
+  border: 1px solid var(--trait-fort);
+  border-left-width: 1px;
+  border-radius: var(--rayon-pilule);
+  background: none;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-weight: 400;
+  white-space: nowrap;
+}
+.accueil__carte-analyse time {
+  margin-left: auto;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  white-space: nowrap;
+}
+
+/* ---- Bloc 5 : la bande de confiance ---- */
+
+.accueil__indicateurs {
+  margin: 0 0 var(--espace-3);
+  font-size: var(--texte-m);
+  color: var(--encre);
+}
+/* Les producteurs en toutes lettres, sans logo (décision D9) et dans l'ordre
+   reçu : trier ferait un palmarès d'une liste de sources. */
+.accueil__producteurs {
+  margin: 0 0 var(--espace-5);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.accueil__verifier {
+  margin: 0;
+  font-size: var(--texte-m);
+}
+
+@media (max-width: 40rem) {
+  .accueil__bloc {
+    padding: var(--espace-5);
+  }
+  .accueil__bloc--confiance {
+    padding: var(--espace-7) 0 0;
+  }
+}
+
+/* ===========================================================================
+   MÉTHODE — les sources et la méthode
+   ===========================================================================
+   Les sources sont une liste de définitions : un producteur définit les jeux
+   qui le suivent. La grille à deux colonnes de la grille de verdicts ne
+   convient pas ici — un titre de jeu fait deux lignes, la colonne de gauche
+   resterait vide en regard. Producteur au-dessus, ses jeux en retrait. */
+.methode-sources__intro,
+.methode-methode__intro,
+.methode-methode__d11,
+.methode-methode__fusion,
+.methode-methode__reseau {
+  color: var(--encre-douce);
+  font-size: var(--texte-m);
+}
+.methode-sources__producteurs {
+  margin: var(--espace-4) 0 var(--espace-6);
+}
+.methode-sources__producteurs dt {
+  font-weight: 600;
+  margin-top: var(--espace-4);
+}
+.methode-sources__producteurs dd {
+  margin: 0;
+}
+.methode-sources__jeux {
+  list-style: none;
+  margin: var(--espace-2) 0 0;
+  padding: 0 0 0 var(--espace-5);
+  border-left: 2px solid var(--trait);
+  display: grid;
+  gap: var(--espace-2);
+}
+.methode-sources__jeux li {
+  font-size: var(--texte-s);
+}
+/* Licence et date sur leur propre ligne : accrochées au titre du jeu, elles
+   se lisaient comme la fin de son intitulé. */
+.methode-sources__licence,
+.methode-sources__extraction {
+  display: block;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.methode-methode__etapes,
+.methode-methode__controle,
+.methode-methode__ecran {
+  margin: var(--espace-4) 0 var(--espace-6);
+  padding-left: var(--espace-5);
+  display: grid;
+  gap: var(--espace-3);
+  font-size: var(--texte-s);
+}
+.methode-methode__controle,
+.methode-methode__ecran {
+  list-style: none;
+  padding-left: 0;
+}
+.methode-methode__controle li,
+.methode-methode__ecran li {
+  padding-left: var(--espace-5);
+  border-left: 2px solid var(--trait);
+}
+.methode-methode__d11 code {
+  font-size: var(--texte-xs);
+  word-break: break-all; /* la commande dépasse la colonne sous 30rem */
+}

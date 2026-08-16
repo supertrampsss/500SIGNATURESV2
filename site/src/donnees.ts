@@ -73,6 +73,7 @@ export type EntreeRecherche = { c: string; n: string; l: string; p: string | nul
 
 let racine = "";
 let cleTuiles = "";
+let versionLue = "";
 const cache = new Map<string, Promise<unknown>>();
 
 async function lire<T>(chemin: string): Promise<T> {
@@ -94,9 +95,24 @@ export async function initialiser(): Promise<Manifeste> {
     fetch(`${BASE}/geo/derniere.json`).then((r) => r.json()),
   ]);
   racine = `${BASE}/data/${donnees.version}`;
+  versionLue = donnees.version;
   cleTuiles = `${BASE}/${tuiles.cle}`;
   return lire<Manifeste>("manifeste.json");
 }
+
+/**
+ * La version de publication que ce chargement a lue, dans `derniere.json`.
+ *
+ * C'est le même champ du même fichier que lit le pré-rendu (`chargerPublication`,
+ * scripts/prerendre.ts) : l'accueil déjà écrit par le build porte cette valeur,
+ * et le navigateur ne le repeint que si elle a bougé depuis. Le comparer à
+ * `Manifeste.version` reviendrait à faire dépendre cet accord d'une égalité
+ * entre deux fichiers que rien n'oblige à rester égaux.
+ *
+ * Chaîne vide avant `initialiser()` : aucune publication n'est encore lue, et
+ * une version inventée ferait croire à un accord.
+ */
+export const version = () => versionLue;
 
 export const indicateurs = () => lire<Indicateur[]>("indicateurs.json");
 

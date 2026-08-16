@@ -66,3 +66,21 @@ export function vueDepuisAdresse(chemin: string, fragment: string): string | nul
   const resolu = ALIAS[ancre] ?? ancre;
   return resolu in CHEMINS ? resolu : null;
 }
+
+/**
+ * La racine du site rend l'accueil, et rien d'autre n'y mène.
+ *
+ * `vueDepuisAdresse` y répond déjà `null` : la racine est libre, la carte vit à
+ * `/territoire`, et l'accueil s'y installe sans qu'aucune vue bouge ni qu'aucun
+ * lien déjà partagé change de destination. L'accueil n'entre donc pas dans
+ * `CHEMINS` — ce n'est pas une vue de l'application monoécran, c'est une page.
+ *
+ * Mais `null` est aussi ce que répond une ancre interne, et l'appelant doit
+ * séparer les deux : une ancre laisse en place la vue affichée, la racine ouvre
+ * l'accueil. Le fragment est donc relu ici, pour la seule raison qui l'y
+ * autorise — un lien partagé avant l'existence des chemins (`/#carte`,
+ * `/#decryptages`) demande une vue, et ce n'est pas l'accueil.
+ */
+export function estAccueil(chemin: string, fragment: string): boolean {
+  return chemin.replace(/^\/+|\/+$/g, "") === "" && vueDepuisAdresse(chemin, fragment) === null;
+}

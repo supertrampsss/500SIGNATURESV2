@@ -2,6 +2,9 @@ node_modules/
 .env
 .env.*
 dist/
+# L'état local de `wrangler pages dev`, la boucle de vérification des fonctions
+# d'edge : propre à une machine, jamais publié.
+.wrangler/
 __pycache__/
 .snapshots/
 

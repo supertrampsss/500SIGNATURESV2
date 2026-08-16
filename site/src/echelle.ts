@@ -215,6 +215,23 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
 }
 
 /**
+ * La mention d'unité que porte tout ce qui aligne des montants du site hors de
+ * la page qui les explique — une carte de partage, la description d'un lien,
+ * un résumé collé ailleurs.
+ *
+ * « Santé 1 643 M€ » se lit « 1 643 milliards » par qui n'a pas le nez sur le
+ * sigle. La phrase vit ici, au même endroit que `millions()` qui produit ce
+ * sigle : elle en est la lecture en toutes lettres, et deux formulations de la
+ * même règle se corrigeraient séparément — c'était le cas, `carte-og.ts` et
+ * `apercu-scenario.ts` en portant chacun la sienne, à un point près.
+ *
+ * Sans ponctuation finale : les deux appelants ne la posent pas au même
+ * endroit d'une phrase. `apercu-scenario.ts` en fait une phrase à elle seule
+ * et lui ajoute son point ; `carte-og.ts` la prolonge d'un exercice.
+ */
+export const MENTION_MILLIONS = "Montants en millions d'euros";
+
+/**
  * Montant en millions d'euros, deux décimales sous le million.
  *
  * **Une seule échelle pour tous les montants du site.** Les montants passaient

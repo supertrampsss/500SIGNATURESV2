@@ -1,7 +1,7 @@
 name: Deploy site
 
-# Déploiement sur Cloudflare Pages. Le site porte une balise noindex tant que
-# le projet n'est pas annoncé (décision D1).
+# Déploiement sur Cloudflare Pages. Le site est indexable depuis que les sept
+# vérifications du lot 4 ont été constatées sur le déploiement (décision D1).
 #
 # Aucun filtre de branche : le projet n'a qu'un site et qu'une branche de
 # développement, et le déploiement doit suivre le travail en cours. Le fichier
@@ -19,6 +19,21 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # L'adresse du site, écrite une fois pour tout le déploiement.
+    #
+    # Le pré-rendu en a besoin : les balises `og:image` et `og:url` des pages
+    # d'analyse doivent être **absolues**, sans quoi les robots des plateformes
+    # ne les résolvent pas et le lien part sans aperçu. Elle ne se déduit pas de
+    # `--project-name=plateforme` : Cloudflare a donné au projet le sous-domaine
+    # `plateforme-9sz`, et une adresse devinée sur une image qui circule serait
+    # un faux publié.
+    #
+    # La même valeur sert à la dernière étape, qui rejoue depuis cette origine
+    # la requête du navigateur contre le bucket de données : si elle cesse
+    # d'être l'adresse du site, ce contrôle-là échoue. C'est ce qui la tient
+    # vraie, plutôt qu'un commentaire.
+    env:
+      SITE_URL: https://plateforme-9sz.pages.dev
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,6 +53,14 @@ jobs:
       - run: npm run build
         working-directory: site
       - name: Publish to Cloudflare Pages
+        # **Depuis `site/`, jamais depuis la racine du dépôt.** `wrangler pages
+        # deploy` cherche le répertoire `functions` relativement au répertoire
+        # courant : publié depuis la racine, il ne verrait jamais
+        # `site/functions/`, la fonction d'aperçu partirait sans bruit et les
+        # liens de scénario resteraient génériques — un échec qui ressemble
+        # trait pour trait à un succès. `scripts/deploiement.test.ts` fait
+        # rougir si cette étape quitte le répertoire qui porte `functions/`.
+        working-directory: site
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -46,7 +69,7 @@ jobs:
         # sous-domaine que son certificat générique ne couvre pas. Le navigateur
         # refuse alors la connexion (ERR_SSL_VERSION_OR_CIPHER_MISMATCH).
         run: |
-          npx --yes wrangler@4 pages deploy site/dist \
+          npx --yes wrangler@4 pages deploy dist \
             --project-name=plateforme --branch=main --commit-dirty=true
 
       - name: Autoriser le navigateur à lire les données
@@ -59,4 +82,4 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
-        run: python -m plateforme.cors --bucket plateforme-published
+        run: python -m plateforme.cors --bucket plateforme-published --origine "$SITE_URL"

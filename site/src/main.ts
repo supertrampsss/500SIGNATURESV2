@@ -21,10 +21,33 @@ import {
   exercicesPublies,
 } from "./simulateur-rendu.ts";
 import {
+  decoder,
   effort as effortAtelier,
   gestes as gestesAtelier,
+  plan,
   type Volet,
 } from "./atelier.ts";
+import { apercuScenario } from "./apercu-scenario.ts";
+import {
+  offrir,
+  partageAnalyse,
+  partageComparaison,
+  partageScenario,
+  permalien,
+  resume,
+  type Canaux,
+  type Forme,
+  type Issue,
+  type Partage,
+} from "./partage.ts";
+import {
+  citable,
+  citer,
+  offrirCitation,
+  type Citation,
+  type IssueCitation,
+  type Presse,
+} from "./citer.ts";
 import { BRANCHES, fusionnerBranches, ECHELONS } from "./simulateur-volets.ts";
 import { lister as listerScenarios, enregistrer as enregistrerScenario, renommer as renommerScenario, dupliquer as dupliquerScenario, supprimer as supprimerScenario, nomNettoye, transposer, transposerBudget, type Depot, type Scenario } from "./scenarios.ts";
 import { comparer as comparerScenarios } from "./comparaison.ts";
@@ -70,10 +93,16 @@ import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
-import { cheminDeVue, vueDepuisAdresse } from "./routes.ts";
+import { cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
 import { afficherJournal } from "./journal.ts";
-import { renduGrille } from "./methode-rendu.ts";
+import { renduGrille, renduMethode, renduSources } from "./methode-rendu.ts";
+import {
+  rendu as renduAccueil,
+  exemplesTerritoires,
+  MAILLE_EXEMPLE,
+} from "./accueil.ts";
+import type { Analyse } from "./analyse-rendu.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -2328,11 +2357,19 @@ const prete = new Promise<void>((resolve) => {
 
 async function peindreMethode(): Promise<void> {
   if (methodePeinte) return;
-  // La grille ne fetch rien : peinte avant `prete`, elle s'affiche même si
-  // les données publiées tardent ou manquent.
+  // Ni la méthode ni la grille ne lisent un fichier publié : peintes avant
+  // `prete`, elles s'affichent même si les données tardent ou manquent.
+  $("methode-methode").innerHTML = renduMethode();
   $("methode-grille").innerHTML = renduGrille();
   await prete;
   let rendu = false;
+  // Les sources viennent du manifeste, donc après `prete`. Un manifeste
+  // absent laisse le bloc vide et la page tient — même règle que la
+  // fraîcheur et le journal ci-dessous.
+  const blocSources = $("methode-sources");
+  blocSources.innerHTML = renduSources(jeux);
+  blocSources.hidden = blocSources.innerHTML === "";
+  if (!blocSources.hidden) rendu = true;
   // `.bloc` est un cadre bordé, ombré : un booléen à `false` veut dire « rien
   // à montrer », et laisser le cadre affiché peignait un cadre vide plutôt
   // que rien — comme partout ailleurs sur le site (`afficherBudgetEtat` et
@@ -2361,6 +2398,117 @@ async function peindreMethode(): Promise<void> {
   methodePeinte = rendu;
 }
 
+/* --------------------------------------------------------------------------
+ * L'accueil, à la racine du site.
+ *
+ * `accueil.ts` rend les cinq blocs en fonctions pures ; ce bloc-ci ne fait que
+ * lui porter des données déjà résolues et poser la chaîne obtenue dans la page,
+ * comme le reste de ce fichier le fait pour chaque module.
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Les analyses publiées, agrafées au paquet à la compilation.
+ *
+ * Elles ne sont pas dans les fichiers de données : le dépôt les porte, et le
+ * pré-rendu les lit sur le disque au build (`scripts/prerendre.ts`, même
+ * dossier). Le navigateur ne peut ni lire ce disque ni deviner la liste des
+ * slugs, et publier un index à part serait une seconde liste à tenir accordée
+ * avec le dossier — celle qui dérive au premier fichier ajouté. Vite les inline
+ * depuis la source unique, celle du dépôt.
+ */
+const ANALYSES: Analyse[] = Object.values(
+  import.meta.glob<Analyse>("../analyses/*.json", { eager: true, import: "default" }),
+);
+
+/** Peint une seule fois : l'accueil ne dépend d'aucune sélection. Le tirage de
+ *  l'exemple se refait donc au chargement, pas à chaque retour sur la page —
+ *  un exemple qui change sous les yeux au premier Précédent se lit comme un
+ *  défaut d'affichage, pas comme une découverte. */
+let accueilPeint = false;
+
+let resoudrePubliee: () => void;
+/**
+ * Résolue quand le manifeste ET le catalogue sont chargés, dans `demarrer`.
+ *
+ * `prete` ne suffit pas : elle ne promet que `donnees.racine`, et l'accueil a
+ * besoin de deux choses écrites après elle — le nombre d'indicateurs publiés,
+ * qu'il compte sur le catalogue, et les producteurs, qu'il lit sur les jeux du
+ * manifeste. Peint plus tôt, il annoncerait « 0 indicateurs publiés » et une
+ * liste de producteurs vide : deux affirmations fausses à l'endroit le plus lu
+ * du site.
+ */
+const publiee = new Promise<void>((resolve) => {
+  resoudrePubliee = resolve;
+});
+
+async function peindreAccueil(): Promise<void> {
+  if (accueilPeint) return;
+  await publiee;
+  // L'accueil est servi écrit : le build l'a composé sur les fichiers publiés,
+  // et c'est ce que le lecteur a déjà sous les yeux. Le repeindre à l'identique
+  // ne changerait rien ; le repeindre avec un autre tirage ferait changer
+  // l'exemple sous ses yeux, une seconde après l'ouverture — un défaut
+  // d'affichage, pas une découverte. Il n'est donc repeint que si la
+  // publication a bougé depuis le build : alors le nombre d'indicateurs, les
+  // producteurs et les chiffres de l'exemple ont une raison d'avoir changé, et
+  // ne pas les rafraîchir servirait des comptes périmés.
+  //
+  // `data-publication` est posé par le pré-rendu, jamais par le gabarit source :
+  // en développement il est absent, et l'accueil se peint alors comme avant.
+  const cadre = $("vue-accueil");
+  if (cadre.dataset.publication === donnees.version()) {
+    accueilPeint = true;
+    return;
+  }
+  const regions = await donnees
+    .territoires(MAILLE_EXEMPLE, "tous")
+    .catch((): Record<string, Territoire> => ({}));
+  cadre.innerHTML = renduAccueil({
+    analyses: ANALYSES,
+    catalogue,
+    territoires: exemplesTerritoires(regions, catalogue),
+    // Le tirage se fait ici, jamais dans `accueil.ts` : une fonction qui tire
+    // elle-même ne s'éprouve pas sur chaque tirage possible, et c'est
+    // précisément la garantie « jamais un territoire incomplet » qu'il faut
+    // pouvoir éprouver.
+    alea: Math.random(),
+    producteurs: jeux.map((jeu) => jeu.producteur),
+  });
+  accueilPeint = true;
+}
+
+/**
+ * « Chercher ma commune » ouvre le champ de recherche du site.
+ *
+ * L'appel porte `#recherche`, l'identifiant du seul champ du site — celui de
+ * l'en-tête, câblé une fois par `brancherRecherche`. Laissé au navigateur, ce
+ * lien pousse l'ancre dans l'adresse et fait défiler vers un champ déjà à
+ * l'écran sans y poser le curseur : l'appel promet une recherche et ne la
+ * commence pas. Il n'est pas question d'en construire un second — deux champs
+ * qui cherchent dans le même index sans partager leur état est un défaut que ce
+ * projet a déjà nommé et retiré.
+ *
+ * Un écouteur délégué, posé une fois sur un conteneur que rien ne remplace —
+ * le motif de `brancherScenarios`, `brancherPartage` et `brancherCitations` —
+ * plutôt qu'un écouteur reposé à chaque peinture. Les modificateurs et le clic
+ * du milieu restent au navigateur, comme pour la navigation de l'en-tête.
+ */
+function brancherAppelRecherche(): void {
+  // Une page éditoriale remplace le contenu de `<main>` : le cadre de l'accueil
+  // n'y est pas, et `$` renverrait `null`.
+  const cadre = document.getElementById("vue-accueil");
+  if (!cadre) return;
+  cadre.addEventListener("click", (evenement) => {
+    const clic = evenement as MouseEvent;
+    if (clic.button !== 0 || clic.metaKey || clic.ctrlKey || clic.shiftKey || clic.altKey) return;
+    if (!(clic.target as HTMLElement).closest('a[href="#recherche"]')) return;
+    clic.preventDefault();
+    const champ = $<HTMLInputElement>("recherche");
+    champ.scrollIntoView({ block: "nearest" });
+    champ.focus();
+  });
+}
+
 function basculerVue(): void {
   // Une page éditoriale est pré-rendue : son contenu est déjà dans le HTML, et
   // aucune vue de l'application ne doit le masquer. L'en-tête, la recherche et
@@ -2385,11 +2533,21 @@ function basculerVue(): void {
   // session partie de `/` restait inerte, l'adresse changeait sans que la
   // page suive. Une ancre en porte toujours un ; un Back vers `/`, jamais.
   if (!vuesConnues().includes(cible) && document.body.dataset.vue && location.hash) return;
-  const vue = vuesConnues().includes(cible) ? cible : "territoire";
+  // La racine rend l'accueil, jamais la carte : `estAccueil` sépare la racine
+  // — où `vueDepuisAdresse` répond `null` par design — d'une adresse inconnue,
+  // qui continue de retomber sur la vue territoire. Aucune vue ne bouge :
+  // `/territoire` reste la carte, et les liens déjà partagés y mènent toujours.
+  const vue = vuesConnues().includes(cible)
+    ? cible
+    : estAccueil(location.pathname, location.hash)
+      ? "accueil"
+      : "territoire";
   document.body.dataset.vue = vue;
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.
   appliquerModeCarte(vue === "territoire" && carteOuverte);
+  $("vue-accueil").hidden = vue !== "accueil";
+  if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
   $("vue-detail").hidden = vue !== "detail";
   if (vue === "detail") void peindreDetail();
@@ -2965,8 +3123,16 @@ function faceChoisie(): boolean {
 /**
  * La barre des scénarios, et le tableau de comparaison quand une face a été
  * choisie. Reconstruite à chaque geste sur elle (enregistrer, charger,
- * comparer, supprimer, fermer la comparaison) — jamais sur un réglage de
- * l'atelier lui-même : voir la limite connue dans le rapport de la tâche.
+ * comparer, supprimer, fermer la comparaison) **et à chaque réglage de
+ * l'atelier**, par `surReglages` (`ouvrirSimulateur`, plus bas).
+ *
+ * Ce second appel n'est pas un supplément : les boutons de partage vivent dans
+ * cette barre et ne s'offrent qu'avec un atelier réglé
+ * (`partageDuSimulateur`). Sans lui, ils n'apparaîtraient qu'à qui a d'abord
+ * touché à un scénario — c'est-à-dire jamais sur le parcours ordinaire, où on
+ * règle puis on partage. Le commentaire d'avant affirmait le contraire
+ * (« jamais sur un réglage de l'atelier lui-même ») : c'était faux, et si ça
+ * ne l'avait pas été, le lot entier serait resté hors d'atteinte.
  */
 function montrerScenarios(): void {
   const cible = document.getElementById("scenarios");
@@ -3054,6 +3220,20 @@ function montrerScenarios(): void {
       })()
     : "";
 
+  // Les gestes de partage n'apparaissent qu'avec ce qu'ils ont à partager : un
+  // atelier qu'on n'a pas encore réglé n'a ni écart ni silhouette, et un bouton
+  // qui ne ferait rien est pire qu'un bouton absent. Sans image ici — le build
+  // n'en écrit aucune par scénario (D-L3-b) — donc pas de lien de
+  // téléchargement qui pointerait un fichier que rien ne produit.
+  const gestes: GestePartage[] = [];
+  if (partageDuSimulateur("scenario")) {
+    gestes.push(
+      { cle: "scenario", libelle: "Partager ce budget" },
+      { cle: "forme", libelle: "Partager la forme" },
+    );
+  }
+  if (faceChoisie()) gestes.push({ cle: "comparaison", libelle: "Partager la comparaison" });
+
   cible.innerHTML =
     avertissement +
     // La marque « courant » dit « c'est cela que vous regardez » : elle suit
@@ -3061,9 +3241,319 @@ function montrerScenarios(): void {
     // ne montre plus ce scénario — le marquer encore serait le prétendre.
     renduBarre(scenarios, scenarioCourant()?.nom ?? null) +
     actions +
+    (gestes.length ? rendrePartage(gestes, null) : "") +
     disparues +
     choix +
     tableau;
+}
+
+/* --------------------------------------------------------------------------
+ * Partager : le panneau du système, sinon le presse-papiers
+ * ----------------------------------------------------------------------- */
+
+/** Un geste offert par un cadre de partage : la clé que l'écouteur relit, et
+ *  ce que le bouton dit. */
+type GestePartage = { cle: string; libelle: string };
+
+/**
+ * Le cadre de partage : les gestes, le message, et le repli qui reçoit le
+ * texte quand le presse-papiers n'est pas disponible.
+ *
+ * **Aucun bouton de réseau social, aucun script tiers.** Le règlement européen
+ * sur les données interdit déjà les polices distantes sur ce site ; un widget
+ * de partage transmet exactement la même chose — l'adresse IP du lecteur et la
+ * page qu'il lit — à un tiers qui ne lui a rien demandé. Rien ne quitte le
+ * navigateur : `navigator.share` et le presse-papiers sont des gestes locaux.
+ *
+ * Le lien de téléchargement ne s'écrit que là où le build a écrit un fichier —
+ * les analyses et le site. Ailleurs, `image` vaut `null` et le lien ne paraît
+ * pas : un href vers une image que rien ne produit est un aperçu cassé de
+ * plus, pas un partage.
+ */
+function rendrePartage(gestes: readonly GestePartage[], image: string | null): string {
+  const boutons = gestes
+    .map(
+      (geste) =>
+        `<button type="button" class="partage__geste" data-partage="${echapper(
+          geste.cle,
+        )}">${echapper(geste.libelle)}</button>`,
+    )
+    .join("");
+  const telecharger = image
+    ? `<a class="partage__geste" href="${echapper(image)}" download>Télécharger l'image</a>`
+    : "";
+  return `<div class="partage">
+    ${boutons}${telecharger}
+    <p class="partage__message" role="status" aria-live="polite"></p>
+    <textarea class="partage__repli" readonly hidden aria-label="Résumé à copier"></textarea>
+  </div>`;
+}
+
+/**
+ * Ce que l'écran dit de chaque issue.
+ *
+ * `partagé` et `annulé` ne disent rien, et c'est délibéré : dans le premier
+ * cas le panneau du système a déjà parlé ; dans le second le lecteur l'a fermé
+ * lui-même, et « le partage a échoué » après une fermeture volontaire est un
+ * mensonge à l'écran.
+ */
+const MESSAGE_PARTAGE: Record<Issue, string> = {
+  partagé: "",
+  annulé: "",
+  copié: "Résumé et lien copiés.",
+  indisponible: "Copie automatique indisponible : le texte ci-dessous est sélectionné.",
+};
+
+/**
+ * Les deux canaux, tels que ce navigateur-ci les porte.
+ *
+ * `navigator.share` **n'existe pas** sur la plupart des navigateurs de bureau :
+ * le repli presse-papiers n'est pas un cas limite, c'est le chemin d'une bonne
+ * part des lecteurs. Les deux sont lus ici et passés à `offrir`, qui les traite
+ * en fonctions ordinaires — c'est ce qui rend les deux chemins éprouvables sous
+ * Node (partage.test.ts).
+ */
+function canauxDuNavigateur(): Canaux {
+  return {
+    partager:
+      typeof navigator.share === "function"
+        ? (charge) => navigator.share(charge)
+        : undefined,
+    copier: navigator.clipboard ? (texte) => navigator.clipboard.writeText(texte) : undefined,
+  };
+}
+
+async function executerPartage(
+  cadre: HTMLElement | null,
+  objet: Partage,
+  forme: Forme,
+): Promise<void> {
+  const issue = await offrir(objet, canauxDuNavigateur(), forme);
+  if (!cadre) return;
+  const message = cadre.querySelector<HTMLElement>(".partage__message");
+  if (message) message.textContent = MESSAGE_PARTAGE[issue];
+  const repli = cadre.querySelector<HTMLTextAreaElement>(".partage__repli");
+  if (!repli) return;
+  // Presse-papiers absent ou refusé : le texte s'affiche, sélectionné, et le
+  // lecteur le copie lui-même. Sans lui, « indisponible » ne laisserait rien à
+  // emporter.
+  repli.hidden = issue !== "indisponible";
+  if (issue !== "indisponible") return;
+  repli.value = resume(objet, forme);
+  repli.select();
+}
+
+/** Le geste de partage : un écouteur délégué, posé une seule fois sur un
+ *  conteneur qui n'est jamais remplacé — même motif que `brancherScenarios`,
+ *  dont le cadre est repeint à chaque réglage. */
+function brancherPartage(
+  conteneur: HTMLElement,
+  composer: (cle: string) => { objet: Partage; forme: Forme } | null,
+): void {
+  conteneur.addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLButtonElement>(
+      "button[data-partage]",
+    );
+    if (!bouton) return;
+    const compose = composer(bouton.dataset.partage ?? "");
+    if (!compose) return;
+    void executerPartage(bouton.closest<HTMLElement>(".partage"), compose.objet, compose.forme);
+  });
+}
+
+/**
+ * Ce que le simulateur donne à partager.
+ *
+ * Le permalien se compose des paramètres que `ecrireUrl` écrit pour cet
+ * objet-là, jamais de `location.href` : l'adresse courante porte aussi le
+ * thème, l'indicateur et la maille de la carte, qui ne disent rien d'un budget.
+ *
+ * Le résumé, lui, vient d'`apercuScenario` — la seule rédaction d'un scénario
+ * dans ce dépôt, celle que la fonction d'edge sert déjà aux robots. `null`
+ * quand rien n'est réglé : il n'y a alors pas de scénario, donc pas de bouton.
+ */
+function partageDuSimulateur(cle: string): { objet: Partage; forme: Forme } | null {
+  const lien = (parametres: Record<string, string>) =>
+    permalien(location.origin, cheminDeVue("simulateur"), parametres);
+  if (cle === "comparaison") {
+    const [gauche, droite] = colonnesComparaison();
+    return {
+      objet: partageComparaison({
+        colonnes: [gauche, droite],
+        permalien: lien({
+          budget: etat.budget,
+          contrat: etat.contrat,
+          nom: etat.nom,
+          face: etat.face,
+          "face-nom": etat.faceNom,
+          "face-exercice": etat.faceExercice,
+          "face-source": etat.faceSource,
+        }),
+      }),
+      forme: "complet",
+    };
+  }
+  const apercu = apercuScenario(voletsMontes, etat.budget, etat.nom);
+  if (!apercu) return null;
+  return {
+    objet: partageScenario({
+      apercu,
+      permalien: lien({ budget: etat.budget, contrat: etat.contrat, nom: etat.nom }),
+      // Les écarts du plan, déjà rendus le plus lourd d'abord : la silhouette
+      // n'a rien à retrier, et ce sont les mêmes `decoder`/`plan` que l'atelier.
+      ecarts: plan(voletsMontes, decoder(etat.budget, voletsMontes)).map((ligne) => ligne.delta),
+    }),
+    forme: cle === "forme" ? "compact" : "complet",
+  };
+}
+
+/**
+ * Ce qu'une analyse pré-rendue donne à partager : les mots que ses propres
+ * balises portent.
+ *
+ * Le pré-rendu les a écrites et le build les vérifie (`validerImagesAnnoncees`,
+ * scripts/prerendre.ts). Les relire ici plutôt que recomposer un texte garantit
+ * que le collage et la carte de lien disent la même chose — et l'image est
+ * celle que le build a rasterisée pour cette analyse, donc un fichier qui
+ * existe.
+ */
+function partageDeLaPage(): { objet: Partage; forme: Forme } | null {
+  const balise = (propriete: string) =>
+    document.querySelector<HTMLMetaElement>(`meta[property="${propriete}"]`)?.content ?? "";
+  const titre = balise("og:title");
+  const adresse = balise("og:url");
+  if (!titre || !adresse) return null;
+  return {
+    objet: partageAnalyse({
+      titre,
+      phrase: balise("og:description"),
+      permalien: adresse,
+      image: balise("og:image") || null,
+    }),
+    forme: "complet",
+  };
+}
+
+/**
+ * Le cadre de partage d'une analyse, posé au pied de l'article.
+ *
+ * Branché avant tout appel réseau : une page d'analyse est servie entière par
+ * le serveur, et son partage n'a aucune raison d'attendre le manifeste des
+ * données — ni de disparaître si celui-ci ne répond pas.
+ *
+ * L'index des analyses n'a pas d'article (`.analyse-rendu`) et n'en reçoit
+ * donc pas : il n'est le partage de rien, sa carte de lien est celle du site.
+ */
+function brancherPartageEditorial(): void {
+  if (document.body.dataset.page !== "editorial") return;
+  const article = document.querySelector<HTMLElement>(".analyse-rendu");
+  const compose = partageDeLaPage();
+  if (!article || !compose) return;
+  article.insertAdjacentHTML(
+    "beforeend",
+    rendrePartage([{ cle: "analyse", libelle: "Partager cette analyse" }], compose.objet.image),
+  );
+  brancherPartage(article, partageDeLaPage);
+}
+
+/* --------------------------------------------------------------------------
+ * Citer : le nombre, son unité, sa source, son millésime et le permalien
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Ce que l'écran dit de chaque issue.
+ *
+ * Le presse-papiers manque (contexte non sécurisé) ou refuse (permission, geste
+ * non reconnu comme volontaire) plus souvent qu'on ne le croit : `indisponible`
+ * n'est pas un cas rare, c'est celui où le lecteur reçoit le texte à copier
+ * lui-même, sélectionné.
+ */
+const MESSAGE_CITATION: Record<IssueCitation, string> = {
+  copié: "Citation copiée.",
+  indisponible: "Copie automatique indisponible : la citation ci-dessous est sélectionnée.",
+};
+
+/** Le presse-papiers, tel que ce navigateur-ci le porte — lu ici, passé en
+ *  fonction ordinaire à `offrirCitation`, qui le traite comme tel : c'est ce
+ *  qui rend le chemin éprouvable sous Node (citer.test.ts), même motif que
+ *  `canauxDuNavigateur`. */
+function presseDuNavigateur(): Presse | undefined {
+  return navigator.clipboard ? (texte) => navigator.clipboard.writeText(texte) : undefined;
+}
+
+/**
+ * La charge utile d'un bouton, relue et vérifiée.
+ *
+ * `citable` est appelée ici aussi, et ce n'est pas une redondance avec le
+ * rendu : l'attribut a traversé le document, et une citation incomplète ne
+ * doit pas produire un message d'échec au clic — elle ne doit rien produire
+ * du tout. C'est la même limite qu'au rendu, tenue au même endroit qu'elle
+ * se lit.
+ */
+function chargeCitation(bouton: HTMLElement): Citation | null {
+  const brute = bouton.dataset.citer;
+  if (!brute) return null;
+  try {
+    const citation = JSON.parse(brute) as Citation;
+    return citable(citation) ? citation : null;
+  } catch {
+    return null;
+  }
+}
+
+/** Le retour du geste, posé à côté du bouton et réutilisé : un second clic ne
+ *  doit pas empiler deux messages sous le même chiffre. */
+function retourDeCitation(bouton: HTMLElement): HTMLElement {
+  const voisin = bouton.nextElementSibling;
+  if (voisin instanceof HTMLElement && voisin.classList.contains("citer__retour")) return voisin;
+  const cadre = document.createElement("span");
+  cadre.className = "citer__retour";
+  cadre.setAttribute("role", "status");
+  cadre.setAttribute("aria-live", "polite");
+  bouton.after(cadre);
+  return cadre;
+}
+
+async function executerCitation(bouton: HTMLElement): Promise<void> {
+  const citation = chargeCitation(bouton);
+  if (!citation) return;
+  const issue = await offrirCitation(citation, presseDuNavigateur());
+  const cadre = retourDeCitation(bouton);
+  cadre.textContent = MESSAGE_CITATION[issue];
+  if (issue !== "indisponible") return;
+  // Sans ce repli, « indisponible » ne laisserait rien à emporter — et c'est
+  // précisément la citation qu'on venait chercher. En lecture seule : ce qui
+  // est copié doit être ce que le site a composé.
+  const repli = document.createElement("textarea");
+  repli.className = "citer__repli";
+  repli.readOnly = true;
+  repli.setAttribute("aria-label", "Citation à copier");
+  repli.value = citer(citation);
+  cadre.append(repli);
+  repli.select();
+}
+
+/**
+ * La commande « citer », posée une seule fois sur l'article.
+ *
+ * Un écouteur délégué sur un conteneur qui n'est jamais remplacé — même motif
+ * que `brancherPartage` et `brancherScenarios`. L'article d'une analyse est
+ * servi entier par le pré-rendu et ne se repeint jamais : les boutons y sont
+ * déjà, avec leur charge utile, avant que la première donnée n'arrive.
+ *
+ * **Les boutons ne sont pas posés ici, et c'est la limite du lot.** C'est
+ * `analyse-rendu.ts` qui décide, chiffre par chiffre, s'il peut composer une
+ * citation honnête — il est le seul à connaître la source et l'exercice de
+ * chacun. Un rendu qui ne les connaît pas n'émet aucun attribut, et cette
+ * fonction n'a alors rien à écouter.
+ */
+function brancherCitations(): void {
+  const article = document.querySelector<HTMLElement>(".analyse-rendu");
+  if (!article) return;
+  article.addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("button[data-citer]");
+    if (bouton) void executerCitation(bouton);
+  });
 }
 
 /** Les écouteurs de la barre, posés une seule fois : `#scenarios` n'est
@@ -3073,6 +3563,9 @@ function montrerScenarios(): void {
 function brancherScenarios(): void {
   const cible = document.getElementById("scenarios");
   if (!cible) return;
+  // Le partage a son propre écouteur sur le même conteneur : une préoccupation,
+  // un écouteur, et aucun des deux ne se repose à chaque rendu.
+  brancherPartage(cible, partageDuSimulateur);
   cible.addEventListener("click", (evenement) => {
     const cibleClic = evenement.target as HTMLElement;
     const boutonScenario = cibleClic.closest<HTMLButtonElement>("[data-nom]");
@@ -3209,6 +3702,18 @@ async function demarrer(): Promise<void> {
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
   brancherTheme();
+  // Pour la même raison : une analyse est servie entière par le serveur, avec
+  // ses balises et son image déjà écrites. Son partage n'attend donc pas le
+  // manifeste des données, et ne disparaît pas si celui-ci ne répond pas.
+  brancherPartageEditorial();
+  // Et pour la même raison encore : les chiffres citables portent déjà leur
+  // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
+  // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
+  brancherCitations();
+  // Et encore pour la même raison : l'appel « Chercher ma commune » de
+  // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
+  // dès le premier octet de HTML.
+  brancherAppelRecherche();
   // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
   // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
   // territoire à détailler : lu avant d'être écrit, il levait
@@ -3259,6 +3764,9 @@ async function demarrer(): Promise<void> {
   // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
   // leur origine. Leur badge et leur fiche disent d'où ils viennent.
   catalogue = [...catalogue, ...indicateursDerives(catalogue)];
+  // L'accueil peut peindre : il compte les indicateurs publiés et nomme les
+  // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
+  resoudrePubliee();
   construireSelecteurs();
   afficherQuestions($("questions"));
   // La France du panneau d'accueil, demandée avant la carte : c'est la
@@ -3797,7 +4305,12 @@ demarrer().catch((erreur: Error) => {
   // n'accepte que du contenu de phrasé. L'analyseur HTML fermait donc le
   // paragraphe avant le pli et le jetait — le détail technique, seul élément
   // citable pour signaler une panne, n'était jamais affiché.
-  $("fiche").innerHTML = `<div class="etat etat--echec" role="alert">
+  //
+  // Elle s'écrit dans la vue affichée : sur l'accueil, le panneau de la carte
+  // est masqué, et y écrire laisserait la racine du site entièrement blanche,
+  // sans un mot sur ce qui a échoué.
+  const hote = document.body.dataset.vue === "accueil" ? $("vue-accueil") : $("fiche");
+  hote.innerHTML = `<div class="etat etat--echec" role="alert">
       <span class="etat__titre">Les chiffres n'ont pas pu être chargés</span>
       <span class="etat__quoi">Le site lit des fichiers publiés sur un serveur public :
         c'est cette lecture qui a échoué, pas votre navigateur. Les chiffres déjà affichés,
@@ -3810,6 +4323,6 @@ demarrer().catch((erreur: Error) => {
     </div>`;
   // Par `textContent` et non dans le gabarit : un message d'erreur peut porter
   // une URL, et une URL peut porter des chevrons.
-  const bloc = $("fiche").querySelector("code");
+  const bloc = hote.querySelector("code");
   if (bloc) bloc.textContent = detail;
 });
