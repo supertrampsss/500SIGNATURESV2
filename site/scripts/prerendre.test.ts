@@ -30,18 +30,24 @@ import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
 import type { Indicateur } from "../src/donnees.ts";
 import { permalien } from "../src/partage.ts";
+import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
 import { lirePolices, peindre, rasteriser, type Peinture } from "./rasteriser.ts";
 import {
   ADRESSE_PUBLIEE,
   HOTE,
   adresseSite,
+  adressesPubliees,
   donneesCarteAnalyse,
   ecrireCartes,
+  ecrireIndexation,
   donneesCarteSection,
   marqueDuGabarit,
+  planDuSite,
+  robotsDuSite,
   sections,
   validerImageDuScenario,
+  validerIndexation,
   injecter,
   descriptionDuGabarit,
   titreDuGabarit,
@@ -514,4 +520,185 @@ test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", (
   // d'une adresse ne coupent jamais celle-ci en deux.
   const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
   assert.match(source, /corps: rendu\(analyse, catalogue, version, permalien\(SITE, canonique, \{\}\)\)/);
+});
+
+/* --------------------------------------------------------------------------
+ * 9. robots.txt et le plan du site
+ * ----------------------------------------------------------------------- */
+
+const SITE_ESSAI = "https://exemple.test";
+
+/** Les chemins servis par le repli SPA : le build ne leur écrit aucun fichier,
+ *  Cloudflare Pages y sert le gabarit. C'est `routes.ts` qui les déclare — le
+ *  test lit la même table que le pré-rendu, jamais une copie. */
+const CHEMINS_DE_VUE = new Set(Object.values(CHEMINS));
+
+/**
+ * Un `dist` minimal : le gabarit, et une page par adresse qui en a une.
+ *
+ * Les pages sont composées par `injecter`, celle du build : leur canonique est
+ * donc celle que le build pose, pas une balise écrite pour l'occasion.
+ */
+async function distEssai(adresses: readonly string[]): Promise<string> {
+  const racine = await mkdtemp(path.join(tmpdir(), "indexation-"));
+  await writeFile(path.join(racine, "index.html"), GABARIT);
+  for (const adresse of adresses) {
+    if (adresse === "/" || CHEMINS_DE_VUE.has(adresse)) continue;
+    await mkdir(path.join(racine, adresse.replace(/^\//, "")), { recursive: true });
+    await writeFile(
+      path.join(racine, adresse.replace(/^\//, ""), "index.html"),
+      injecter(GABARIT, { ...PAGE, canonique: adresse }, SITE_ESSAI),
+    );
+  }
+  await ecrireIndexation(racine, SITE_ESSAI, adresses);
+  return racine;
+}
+
+test("9. le plan du site liste la racine, les chemins de vues et les analyses publiées", async () => {
+  const analyses = await analysesPubliees();
+  const adresses = adressesPubliees(analyses);
+
+  // La liste se déduit du dépôt : `CHEMINS` (routes.ts) et les analyses lues
+  // sur le disque. Une vue ou une analyse ajoutée demain entre au plan sans
+  // qu'on touche à ce test.
+  assert.deepEqual(adresses, [
+    "/",
+    ...Object.values(CHEMINS),
+    "/analyses/",
+    ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
+  ]);
+  // Et rien d'autre : une adresse morte dans un plan de site est un signal de
+  // mauvaise qualité envoyé aux moteurs.
+  assert.equal(new Set(adresses).size, adresses.length, "le plan annonce deux fois la même adresse");
+});
+
+test("10. robots.txt et le plan lisent l'adresse du site, ils ne la portent pas en dur", () => {
+  const adresses = ["/", "/methode", "/analyses/"];
+  const robots = robotsDuSite(SITE_ESSAI);
+  const plan = planDuSite(SITE_ESSAI, adresses);
+
+  assert.match(robots, /^Sitemap: https:\/\/exemple\.test\/sitemap\.xml$/m);
+  // Le défaut à empêcher : une constante restée dans le fichier, qui publierait
+  // l'adresse d'aujourd'hui sur le site de demain.
+  assert.ok(!robots.includes(ADRESSE_PUBLIEE), "robots.txt porte une adresse en dur");
+  assert.ok(!plan.includes(ADRESSE_PUBLIEE), "le plan du site porte une adresse en dur");
+
+  const locs = [...plan.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]);
+  assert.deepEqual(locs, adresses.map((adresse) => `${SITE_ESSAI}${adresse}`));
+  // Rien n'y est daté : la version de publication date les données, pas le
+  // document, et une date plausible mais fausse est un chiffre inventé.
+  assert.ok(!plan.includes("<lastmod>"), "le plan date des pages que rien ne date");
+
+  // `robots.txt` n'interdit rien : c'est ce qui permet aux robots de LIRE le
+  // `noindex` d'`index.html`, la balise qui tient le site hors de l'index tant
+  // que le projet n'est pas annoncé (D1).
+  assert.match(robots, /^Allow: \/$/m);
+  assert.ok(!/^Disallow: \/$/m.test(robots), "robots.txt interdit la lecture du noindex");
+});
+
+test("11. le build rougit dès qu'une adresse du plan ne répond pas", async () => {
+  const analyses = await analysesPubliees();
+  const adresses = adressesPubliees(analyses);
+  // Le contrôle doit vraiment emprunter la branche du repli : sans chemin de
+  // vue au plan, il ne dirait rien du 404.html ni de la canonique du gabarit.
+  assert.ok(adresses.some((a) => CHEMINS_DE_VUE.has(a)), "aucun chemin de vue au plan");
+
+  // Tel que le build l'écrit, le plan passe.
+  await validerIndexation(await distEssai(adresses), SITE_ESSAI);
+
+  // Une page annoncée que le build n'écrit pas — le défaut que ce contrôle
+  // existe pour attraper. Le plan l'annonce, `distEssai` ne l'écrit pas :
+  // c'est `ecrireIndexation` qui compose le plan, pas le test.
+  const manquante = await distEssai(adresses);
+  await writeFile(
+    path.join(manquante, "sitemap.xml"),
+    planDuSite(SITE_ESSAI, [...adresses, "/analyses/inexistante/"]),
+  );
+  await assert.rejects(() => validerIndexation(manquante, SITE_ESSAI), /n'écrit pas/);
+
+  // Une adresse d'un autre domaine : un plan de site se lit en adresses
+  // absolues, et celle-ci désignerait un site tiers.
+  const ailleurs = await distEssai(adresses);
+  await writeFile(
+    path.join(ailleurs, "sitemap.xml"),
+    planDuSite(SITE_ESSAI, adresses).replace(`<loc>${SITE_ESSAI}/`, "<loc>/"),
+  );
+  await assert.rejects(() => validerIndexation(ailleurs, SITE_ESSAI), /n'est pas absolue/);
+
+  // `robots.txt` qui mène ailleurs que là où le plan est posé : un plan que
+  // rien n'annonce n'est lu par personne.
+  const egare = await distEssai(adresses);
+  await writeFile(path.join(egare, "robots.txt"), robotsDuSite("https://autre.test"));
+  await assert.rejects(() => validerIndexation(egare, SITE_ESSAI), /un plan que rien n'annonce/);
+});
+
+test("11 bis. un 404.html tuerait les chemins de vues du plan, et le build le dit", async () => {
+  const adresses = adressesPubliees(await analysesPubliees());
+  const racine = await distEssai(adresses);
+  await validerIndexation(racine, SITE_ESSAI);
+
+  // Le repli SPA est ce qui fait répondre `/territoire`, `/methode` et les
+  // autres : Cloudflare Pages sert le gabarit pour tout chemin sans fichier
+  // TANT QU'aucun 404.html n'existe (spec §7.2, décision 11). La règle était
+  // écrite dans la spec et tenue par personne ; elle est tenue ici, parce que
+  // c'est ce plan-ci qui en dépend.
+  await writeFile(path.join(racine, "404.html"), "<html></html>");
+  await assert.rejects(() => validerIndexation(racine, SITE_ESSAI), /404\.html/);
+});
+
+test("11 ter. chaque document annoncé déclare la bonne canonique, ou aucune", async () => {
+  const analyses = await analysesPubliees();
+  const adresses = adressesPubliees(analyses);
+
+  // Une page servie à une seule adresse déclare celle-là. Annoncée au plan sous
+  // une adresse et canonique sous une autre, elle enverrait deux signaux
+  // contraires — c'est le défaut que le lot 3 a fermé sur les balises absolues.
+  const detournee = await distEssai(adresses);
+  await writeFile(
+    path.join(detournee, "analyses", "index.html"),
+    injecter(GABARIT, { ...PAGE, canonique: "/analyses/autre-chose/" }, SITE_ESSAI),
+  );
+  await assert.rejects(() => validerIndexation(detournee, SITE_ESSAI), /deux adresses pour une seule page/);
+
+  // Le gabarit, lui, répond à six adresses du plan : la racine et les cinq
+  // chemins de vues. Une canonique fixe y déclarerait les cinq autres doublons
+  // de la première — le plan les annoncerait, le document les retirerait. Son
+  // absence est donc une décision, gardée comme telle.
+  const figee = await distEssai(adresses);
+  await writeFile(
+    path.join(figee, "index.html"),
+    GABARIT.replace("</head>", `<link rel="canonical" href="${SITE_ESSAI}/" /></head>`),
+  );
+  await assert.rejects(() => validerIndexation(figee, SITE_ESSAI), /les déclarerait doublons/);
+});
+
+test("11 quater. le build appelle ce contrôle, et l'appelle après la dernière page", () => {
+  // Troisième garde de ce fichier, et troisième test de branchement : les
+  // tests 7 bis et 7 ter ont appris ici qu'une fonction éprouvée dont l'appel
+  // est commenté laisse toute la suite verte.
+  const source = sansCommentaires(readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8"));
+  const corps = source.slice(source.indexOf("async function main"));
+  assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
+  assert.match(
+    corps,
+    /await ecrireIndexation\(DIST, SITE, adresses\);/,
+    "main() n'écrit plus robots.txt ni le plan du site : les moteurs n'auraient rien à lire.",
+  );
+  assert.match(
+    corps,
+    /await validerIndexation\(DIST, SITE\);/,
+    "main() n'appelle plus validerIndexation : le plan pourrait annoncer des pages absentes.",
+  );
+  // Écrit d'abord, relu ensuite : le contrôle porte sur les fichiers, pas sur
+  // la liste qui a servi à les composer.
+  assert.ok(
+    corps.indexOf("await ecrireIndexation(") < corps.indexOf("await validerIndexation("),
+    "le plan est contrôlé avant d'être écrit : le contrôle lirait le plan du build précédent.",
+  );
+  // Après la dernière page rangée : appelé plus tôt, le contrôle déclarerait
+  // absentes des pages que le build s'apprête à écrire.
+  assert.ok(
+    corps.lastIndexOf("ecrites.push(") < corps.indexOf("await ecrireIndexation("),
+    "le plan est écrit avant la dernière page : il annoncerait ce qui n'est pas encore là.",
+  );
 });

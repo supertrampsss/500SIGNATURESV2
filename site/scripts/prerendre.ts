@@ -35,6 +35,7 @@ import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } 
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { permalien } from "../src/partage.ts";
+import { CHEMINS } from "../src/routes.ts";
 import { decoder, type Volet, type VoletBareme, type EtatAtelier } from "../src/atelier.ts";
 import { BASE_DONNEES, construireVolet, construireVolets } from "../src/simulateur-volets.ts";
 import { echapper } from "../src/texte.ts";
@@ -814,6 +815,219 @@ export async function validerImageDuScenario(racine: string): Promise<void> {
   }
 }
 
+/* --------------------------------------------------------------------------
+ * robots.txt et le plan du site.
+ * ----------------------------------------------------------------------- */
+
+/** Le plan du site, à l'adresse où les moteurs le cherchent. */
+const PLAN_DU_SITE = "sitemap.xml";
+
+/** Les chemins que `routes.ts` déclare, tels quels — sans barre finale ajoutée
+ *  ni retirée : c'est la forme que le site écrit dans ses propres liens
+ *  (`cheminDeVue`), et une seconde forme de la même adresse serait un doublon
+ *  annoncé aux moteurs. */
+const CHEMINS_DE_VUE = new Set(Object.values(CHEMINS));
+
+/**
+ * Les adresses que le site sert, et rien d'autre.
+ *
+ * Trois familles, et la liste se déduit entièrement du dépôt : la racine, que
+ * l'accueil occupe (D-L4-a) ; les chemins de vues, lus dans `CHEMINS`
+ * (routes.ts) plutôt que recopiés — une vue ajoutée demain entre dans le plan
+ * sans qu'on y revienne ; l'index éditorial et chaque analyse pré-rendue.
+ *
+ * Rien n'y est écrit à la main, parce qu'un plan écrit à la main dérive à la
+ * première page ajoutée — et une adresse morte dans un plan de site est un
+ * signal de mauvaise qualité envoyé aux moteurs.
+ */
+export function adressesPubliees(analyses: readonly Analyse[]): string[] {
+  return [
+    "/",
+    ...CHEMINS_DE_VUE,
+    "/analyses/",
+    ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
+  ];
+}
+
+/**
+ * `robots.txt`, composé sur `site`.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI IL N'INTERDIT RIEN, ALORS QUE LE SITE PORTE ENCORE `noindex`
+ * ─────────────────────────────────────────────────────────────────────────
+ * `index.html` porte `noindex, nofollow` tant que le projet n'est pas annoncé
+ * (décision D1), et ce fichier-ci ne le contredit pas : il en est la condition.
+ * Un `Disallow: /` empêcherait les robots de **lire** la page, donc de lire la
+ * balise qui leur demande de ne pas l'indexer — une adresse découverte par un
+ * lien externe pourrait alors figurer dans les résultats sans son contenu,
+ * c'est-à-dire exactement ce que la décision D1 veut éviter. C'est la balise
+ * qui tient le site hors de l'index ; `robots.txt` la laisse être lue.
+ *
+ * Ce fichier ne dit donc rien de l'état d'annonce du projet, et c'est
+ * volontaire : le jour où le `noindex` tombe (tâche 5), une ligne d'`index.html`
+ * change et rien ici ne bouge. Un fichier qui décrirait cet état-là serait un
+ * second endroit à corriger, et c'est ainsi que deux fichiers finissent par
+ * dire deux choses.
+ */
+export function robotsDuSite(site: string): string {
+  return `User-agent: *\nAllow: /\n\nSitemap: ${site}/${PLAN_DU_SITE}\n`;
+}
+
+/**
+ * Le plan du site : une adresse absolue par page.
+ *
+ * Ni `lastmod`, ni `changefreq`, ni `priority`. Rien dans ce build ne date une
+ * page — la version de publication date les *données*, pas le document — et
+ * une date plausible mais fausse dans un plan de site est un chiffre inventé
+ * comme un autre.
+ */
+export function planDuSite(site: string, adresses: readonly string[]): string {
+  const lignes = adresses.map((adresse) => `  <url><loc>${echapper(`${site}${adresse}`)}</loc></url>`);
+  return (
+    '<?xml version="1.0" encoding="UTF-8"?>\n' +
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' +
+    `${lignes.join("\n")}\n` +
+    "</urlset>\n"
+  );
+}
+
+export async function ecrireIndexation(
+  racine: string,
+  site: string,
+  adresses: readonly string[],
+): Promise<void> {
+  await writeFile(path.join(racine, "robots.txt"), robotsDuSite(site), "utf8");
+  await writeFile(path.join(racine, PLAN_DU_SITE), planDuSite(site, adresses), "utf8");
+}
+
+async function existe(fichier: string): Promise<boolean> {
+  try {
+    await access(fichier);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function lireOuEchouer(fichier: string, quoi: string): Promise<string> {
+  try {
+    return await readFile(fichier, "utf8");
+  } catch {
+    throw new Error(`Le build n'a pas écrit ${quoi} (${fichier}).`);
+  }
+}
+
+/**
+ * Le plan du site dit-il vrai ?
+ *
+ * Même motif que `validerImagesAnnoncees` : le contrôle lit **ce que le build a
+ * écrit**, jamais la liste qui a servi à l'écrire — c'est la seule façon
+ * d'attraper une adresse mal composée autant qu'une page manquante. Trois
+ * choses s'y vérifient, et chacune protège un défaut muet :
+ *
+ * 1. **`robots.txt` mène au plan**, à l'adresse exacte où le build l'a posé.
+ *    Un plan que rien n'annonce n'est lu par personne.
+ *
+ * 2. **Chaque adresse du plan répond.** Soit le build lui a écrit son
+ *    `index.html`, soit c'est un chemin de vue et Cloudflare Pages y sert le
+ *    gabarit — le repli qui ne tient que tant qu'aucun `404.html` n'existe
+ *    (spec §7.2, décision 11). D'où le contrôle de cette absence **ici** :
+ *    c'est ce plan-ci qui en dépend, et un `404.html` déposé demain ferait de
+ *    ses cinq chemins de vue autant d'adresses mortes.
+ *
+ * 3. **Chaque document déclare la bonne canonique, ou n'en déclare aucune.**
+ *    Une page servie à une seule adresse du plan doit déclarer celle-là — c'est
+ *    ce qu'une canonique est, et l'annoncer au plan sous une adresse tout en la
+ *    déclarant sous une autre envoie deux signaux contraires. Un document servi
+ *    à **plusieurs** adresses du plan, lui, ne peut en déclarer aucune : le
+ *    gabarit répond à la racine et aux cinq chemins de vues, et une canonique
+ *    fixe y déclarerait les cinq autres doublons de la première — le plan les
+ *    annoncerait et le document les retirerait, dans le même souffle. Cette
+ *    absence-là est donc une décision, et elle est gardée comme telle.
+ */
+export async function validerIndexation(racine: string, site: string): Promise<void> {
+  const prefixe = `${site}/`;
+
+  const robots = await lireOuEchouer(path.join(racine, "robots.txt"), "robots.txt");
+  const annonce = robots.match(/^Sitemap:[ \t]*(\S+)/m)?.[1];
+  if (annonce !== `${site}/${PLAN_DU_SITE}`) {
+    throw new Error(
+      `robots.txt annonce le plan du site à « ${annonce ?? "(nulle part)"} » au lieu de ` +
+        `« ${site}/${PLAN_DU_SITE} » : un plan que rien n'annonce n'est lu par personne.`,
+    );
+  }
+
+  const plan = await lireOuEchouer(path.join(racine, PLAN_DU_SITE), PLAN_DU_SITE);
+  const adresses = [...plan.matchAll(/<loc>([^<]*)<\/loc>/g)].map((m) => m[1]!);
+  if (!adresses.length) {
+    throw new Error(`${PLAN_DU_SITE} ne liste aucune adresse : le plan n'annonce rien.`);
+  }
+
+  // Quel document sert quoi. Une même clé pour plusieurs adresses, c'est le
+  // gabarit servi par le repli — et c'est ce que le contrôle des canoniques
+  // (3) a besoin de savoir.
+  const servies = new Map<string, string[]>();
+  const replis: string[] = [];
+  for (const adresse of adresses) {
+    if (!adresse.startsWith(prefixe)) {
+      throw new Error(
+        `Le plan du site annonce « ${adresse} », qui n'est pas absolue sous ${site} : ` +
+          "un plan de site se lit en adresses absolues, et celle-ci désignerait un autre domaine.",
+      );
+    }
+    const chemin = adresse.slice(site.length);
+    const propre = path.join(racine, chemin.replace(/^\//, ""), "index.html");
+    let fichier = propre;
+    if (!(await existe(propre))) {
+      if (!CHEMINS_DE_VUE.has(chemin)) {
+        throw new Error(
+          `Le plan du site annonce « ${adresse} », que le build n'écrit pas (${propre}) et qui ` +
+            "n'est pas un chemin de vue : une adresse morte dans un plan de site est un signal de " +
+            "mauvaise qualité envoyé aux moteurs.",
+        );
+      }
+      replis.push(adresse);
+      fichier = path.join(racine, "index.html");
+      if (!(await existe(fichier))) {
+        throw new Error(
+          `Le plan du site annonce « ${adresse} », servie par le gabarit, que le build n'a pas ` +
+            `écrit (${fichier}).`,
+        );
+      }
+    }
+    servies.set(fichier, [...(servies.get(fichier) ?? []), adresse]);
+  }
+
+  if (replis.length && (await existe(path.join(racine, "404.html")))) {
+    throw new Error(
+      `Le build a écrit un 404.html : Cloudflare Pages cesse alors de servir le gabarit pour les ` +
+        `chemins sans fichier, et ces adresses du plan meurent — ${replis.join(", ")}.`,
+    );
+  }
+
+  for (const [fichier, adressesServies] of servies) {
+    const html = await readFile(fichier, "utf8");
+    const canonique = html.match(/<link rel="canonical" href="([^"]*)"/)?.[1];
+    if (adressesServies.length > 1) {
+      if (canonique) {
+        throw new Error(
+          `${fichier} répond à ${adressesServies.length} adresses du plan (${adressesServies.join(", ")}) ` +
+            `et en déclare une seule canonique (« ${canonique} ») : le plan annoncerait les autres, ` +
+            "ce document les déclarerait doublons.",
+        );
+      }
+      continue;
+    }
+    const attendue = adressesServies[0]!;
+    if (canonique !== attendue) {
+      throw new Error(
+        `${fichier} est annoncée au plan sous « ${attendue} » et se déclare canonique sous ` +
+          `« ${canonique ?? "(aucune)"} » : deux adresses pour une seule page.`,
+      );
+    }
+  }
+}
+
 async function main(): Promise<void> {
   const shell = await readFile(path.join(DIST, "index.html"), "utf8");
   const analyses = await chargerAnalyses();
@@ -879,9 +1093,16 @@ async function main(): Promise<void> {
   await validerImagesAnnoncees(DIST, ecrites, SITE);
   await validerImageDuScenario(DIST);
 
+  // Après la dernière page rangée : le plan n'annonce que des adresses que le
+  // build vient d'écrire, et le contrôle relit les fichiers, pas la liste.
+  const adresses = adressesPubliees(analyses);
+  await ecrireIndexation(DIST, SITE, adresses);
+  await validerIndexation(DIST, SITE);
+
   console.log(
     `Pré-rendu : ${analyses.length} analyse(s), dist/analyses/index.html, ` +
-      `${analyses.length + sections(shell).length} carte(s) de partage sous ${SITE}.`,
+      `${analyses.length + sections(shell).length} carte(s) de partage, ` +
+      `${adresses.length} adresse(s) au plan du site, sous ${SITE}.`,
   );
 }
 
