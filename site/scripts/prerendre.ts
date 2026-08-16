@@ -187,6 +187,32 @@ async function validerLiensSimulateur(analyses: readonly Analyse[], racineDonnee
     ),
   );
 
+  // Le cadre qui date chaque budget monté ici.
+  //
+  // `provenances()` (apercu-scenario.ts) refuse de composer un aperçu dès qu'un
+  // budget touché n'a ni loi ni exercice — à raison : un cadre approché sur un
+  // chiffre qui circule serait un faux. Mais ce refus est **muet**, et il tombe
+  // à l'edge, sur des fichiers lus à la requête : une publication qui perdrait
+  // `loi` ferait basculer tous les scénarios touchant ce budget vers un aperçu
+  // générique, sans qu'aucune étape ne le dise.
+  //
+  // Ce contrôle ne voit que les volets qu'une analyse référence — ceux que
+  // cette fonction monte déjà. Il ne couvre donc pas les budgets qu'aucune
+  // analyse ne cite ; les couvrir demanderait de monter les six volets à chaque
+  // build, dont l'entrepôt ne publie pas toujours les index, et un build qui
+  // échoue faute d'un fichier absent ne dirait plus rien de ce défaut-ci.
+  const sansCadre = volets
+    .filter((volet) => volet.genre === "budget")
+    .filter((volet) => !volet.budget.loi.trim() || !volet.budget.exercice.trim())
+    .map((volet) => volet.cle);
+  if (sansCadre.length) {
+    throw new Error(
+      `Ces budgets ne déclarent pas le cadre qui les date (loi, exercice) : ${sansCadre.join(", ")}. ` +
+        `Un scénario les touchant serait partagé sans provenance, et son aperçu se tairait ` +
+        `sans que rien ne le signale (voir provenances, apercu-scenario.ts).`,
+    );
+  }
+
   for (const { analyse, budget } of aValider) {
     const etat = decoder(budget, volets);
     if (!ouvreUnReglage(etat, volets)) {

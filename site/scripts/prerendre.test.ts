@@ -453,6 +453,32 @@ test("7 bis. le build appelle ce contrôle, et l'appelle après la dernière pag
   );
 });
 
+test("7 ter. le build appelle aussi le contrôle de l'image du scénario", () => {
+  // Le même défaut que le test 7 bis vient de fermer, sur la garde sœur —
+  // éprouvée, elle aussi, mais dont l'appel ne tenait à rien : commenté, la
+  // suite entière restait verte.
+  //
+  // Elle protège l'`og:image` de TOUT scénario partagé, et c'est le seul objet
+  // du lot qui n'a pas de page : `validerImagesAnnoncees` parcourt les pages
+  // écrites, elle ne voit donc jamais l'image que la fonction d'edge annonce.
+  // Sans cet appel, un `og:image` mort partirait sur chaque lien de scénario,
+  // et ne se verrait qu'une fois le lien partagé.
+  const source = sansCommentaires(readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8"));
+  const corps = source.slice(source.indexOf("async function main"));
+  assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
+  assert.match(
+    corps,
+    /await validerImageDuScenario\(DIST\);/,
+    "main() n'appelle plus validerImageDuScenario : un og:image mort partirait sur chaque scénario partagé.",
+  );
+  // Après l'écriture des cartes de section, dont elle vérifie l'une : appelée
+  // avant, elle contrôlerait un fichier que le build n'a pas encore posé.
+  assert.ok(
+    corps.indexOf("ecrireCartes(") < corps.indexOf("await validerImageDuScenario("),
+    "le contrôle de l'image du scénario passe avant que les cartes soient écrites.",
+  );
+});
+
 /* --------------------------------------------------------------------------
  * 8. Une citation ramène à la page qui la porte
  * ----------------------------------------------------------------------- */
