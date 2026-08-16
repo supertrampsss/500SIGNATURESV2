@@ -164,9 +164,25 @@ pour ne plus l'être.
    la méthodologie, et dire qu'un agrégat se décompose en telles composantes est
    une affirmation comptable, pas un détail d'implémentation.
 3. **Condenser les longues listes.** Le pli « L'essentiel / Tout voir » les
-   range, il ne les condense pas : 187 lignes restent 187 lignes derrière le
-   second onglet. Visé : une question, une phrase, trois chiffres, le tableau
-   complet derrière.
+   range, il ne les condense pas. Visé : une question, une phrase, trois
+   chiffres, le tableau complet derrière.
+
+   Mesuré sur la France (version 2026-08-11T0807) : **188 séries publiées**, et
+   la charge n'est pas répartie — un thème en porte 43 % à lui seul.
+
+   | Thème | Lignes |
+   |---|---|
+   | `budget_etat` | **81** |
+   | `securite` | 16 |
+   | `fonctions` | 11 |
+   | `depenses_fiscales`, `dette`, `europe`, `securite_sociale` | 10 chacun |
+   | `equipements` | 8 |
+   | les huit autres | 2 à 5 chacun |
+
+   Conséquence pour qui reprend : condenser uniformément ne sert à rien. Onze
+   thèmes sur dix-sept tiennent déjà en moins de dix lignes et n'ont pas besoin
+   d'être pliés. Le travail est **`budget_etat`**, et lui seul vaut une
+   structure — les autres se lisent tels quels.
 
 ### Fait
 
