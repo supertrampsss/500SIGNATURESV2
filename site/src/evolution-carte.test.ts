@@ -124,6 +124,20 @@ test("une variation s'affiche signée, avec le moins typographique", () => {
   assert.equal(formaterVariation(-3.24, "EUR", "pourcent"), `−3,2 %`);
 });
 
+test("la décimale imposée ne sert qu'aux colonnes, jamais à la carte", () => {
+  // Sur la carte et dans une infobulle, « +224 % » se lit très bien : c'est le
+  // défaut, et deux tests voisins le tiennent. Mais la colonne « Variation » de
+  // /detail est triée par variation décroissante, et « +224 % » y tombait entre
+  // « +239,7 % » et « +221,1 % ». Mesuré sur les 534 communes de la Gironde :
+  // 7 des 100 lignes affichées perdaient leur décimale.
+  assert.equal(formaterVariation(224, "EUR", "pourcent"), "+224\u202f%");
+  assert.equal(formaterVariation(224, "EUR", "pourcent", true), "+224,0\u202f%");
+  assert.equal(formaterVariation(221.1, "EUR", "pourcent", true), "+221,1\u202f%");
+  // Les points suivent la même règle, et gardent leur pluriel.
+  assert.equal(formaterVariation(3, "pour_1000_habitants", "points", true), "+0,3\u202fpt");
+  assert.equal(formaterVariation(40, "pour_1000_habitants", "points", true), "+4,0\u202fpts");
+});
+
 test("une variation qui s'arrondit à zéro s'écrit « 0 », sans signe", () => {
   assert.equal(formaterVariation(0.04, "EUR", "pourcent"), `0 %`);
   assert.equal(formaterVariation(-0.04, "EUR", "pourcent"), `0 %`);
