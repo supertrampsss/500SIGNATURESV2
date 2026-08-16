@@ -230,6 +230,102 @@ test("un scénario qui traverse plusieurs exercices les nomme tous", () => {
   );
 });
 
+/** Un budget d'État dont les intitulés ont la longueur de ceux que la
+ *  nomenclature publie vraiment — c'est là, et pas sur « Grosse ligne », que le
+ *  budget de signes de la description travaille. */
+function budgetIntitulesLongs(): Budget {
+  return {
+    ...budgetEtat(),
+    depenses: [
+      { c: "A", l: "Ligne d'essai la plus lourde des trois", v: 100_000_000_000 },
+      { c: "B", l: "Ligne d'essai de poids intermédiaire", v: 60_000_000_000 },
+      { c: "C", l: "Ligne d'essai la plus légère des trois", v: 20_000_000_000 },
+    ],
+  };
+}
+
+test("la clause de provenance tient dans ce qu'une carte de lien montre", () => {
+  // Cette description est le SEUL canal d'un scénario partagé (D-L3-b) : ce qui
+  // tombe après la coupe d'une plateforme est perdu, exercices compris. X coupe
+  // l'`og:description` autour de 200 signes — le plus serré des trois cadres,
+  // LinkedIn en montrant environ 250 et Facebook environ 300. Mesurée sur un
+  // scénario réglant les trois cadres, la description faisait 276 signes et la
+  // clause commençait au signe 190 : elle partait coupée à « Sources : PL ».
+  const COUPE_X = 200;
+  const COUPE_LINKEDIN = 250;
+  const volets = [
+    voletEtat(budgetIntitulesLongs()),
+    voletSecu(),
+    voletEchelon("collectivites-commune", "Communes", "COM"),
+  ];
+  const apercu = apercuScenario(
+    volets,
+    budgetEncodeParVolet(volets, [
+      ["etat", "A", -20],
+      ["etat", "B", -20],
+      ["etat", "C", -20],
+      ["secu", "D-PRE", -5],
+      ["collectivites-commune", "COM", -20],
+    ]),
+    "",
+  );
+  assert.ok(apercu);
+
+  const clause = "Sources : PLF 2025, PLFSS 2026, Comptes de gestion 2025.";
+  assert.ok(apercu.description.includes(clause), apercu.description);
+  // Le compte est en points de code, comme celui du module : une paire de
+  // substitution est un signe, pas deux.
+  const visible = [...apercu.description].slice(0, COUPE_X).join("");
+  assert.ok(
+    visible.includes(clause),
+    `la clause tombe au-delà des ${COUPE_X} signes visibles : ${apercu.description}`,
+  );
+  // La mention d'unité, elle, est hors du budget — mais elle ne coûte que ce
+  // qu'un second cadre montre : la description entière tient sous LinkedIn.
+  assert.ok(
+    [...apercu.description].length <= COUPE_LINKEDIN,
+    `${[...apercu.description].length} signes : ${apercu.description}`,
+  );
+
+  // Ce que ce budget retire au lecteur, nommément : le plus léger des gestes
+  // montrés — jamais un intitulé rogné plus court, jamais la clause. Les deux
+  // plus lourds gardent leur nom entier.
+  //
+  // Poids des lignes réglées : 30 000 M€ pour les prestations, 20 000 pour la
+  // plus lourde des trois, 12 000 pour celle de poids intermédiaire, 10 000 pour
+  // les communes, 4 000 pour la plus légère. Le troisième geste est donc celui
+  // qui saute.
+  // Le montant est produit en appelant `formater` : son séparateur est une
+  // espace fine insécable, indiscernable au clavier d'une espace ordinaire.
+  assert.ok(
+    apercu.description.includes(`Prestations sociales ${ecart(-30_000_000_000)}`),
+    apercu.description,
+  );
+  assert.ok(
+    apercu.description.includes(`Ligne d'essai la plus lourde des trois ${ecart(-20_000_000_000)}`),
+    apercu.description,
+  );
+  assert.ok(
+    !apercu.description.includes("de poids intermédiaire"),
+    `le troisième geste a mangé la place de la clause : ${apercu.description}`,
+  );
+
+  // Et il saute PARCE QUE la clause est longue, pas parce qu'il serait hors des
+  // trois plus lourds : sous un seul cadre, la même ligne est écrite.
+  const seulEtat = [voletEtat(budgetIntitulesLongs())];
+  const sansSecu = apercuScenario(
+    seulEtat,
+    budgetEncode(seulEtat, [
+      ["A", -20],
+      ["B", -20],
+      ["C", -20],
+    ]),
+    "",
+  );
+  assert.ok(sansSecu);
+  assert.ok(sansSecu.description.includes("de poids intermédiaire"), sansSecu.description);
+});
+
 test("un budget que le scénario ne touche pas n'est pas nommé", () => {
   const volets = [voletEtat(), voletSecu()];
   const apercu = apercuScenario(volets, budgetEncodeParVolet(volets, [["etat", "D", -10]]), "");

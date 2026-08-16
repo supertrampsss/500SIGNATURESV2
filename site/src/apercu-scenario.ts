@@ -54,15 +54,40 @@ export type Apercu = { titre: string; description: string };
  *  sont le cas courant : un budget se partage bien avant d'être enregistré. */
 const TITRE_SANS_NOM = "Un scénario du simulateur";
 
-/** Les trois gestes les plus lourds, et pas quatre : au-delà, la description
- *  dépasse ce qu'une carte de lien affiche, et c'est la mention d'unité — la
- *  dernière phrase — qui se ferait couper. */
+/**
+ * Ce qu'une carte de lien montre avant de couper.
+ *
+ * X coupe l'`og:description` autour de 200 signes, LinkedIn autour de 250,
+ * Facebook autour de 300 : c'est la plus serrée des trois qui décide, sinon la
+ * clause de provenance tombe hors du cadre visible là où un lien circule le
+ * plus. Mesuré sur un scénario réglant les trois cadres, la description faisait
+ * 276 signes et la clause commençait au signe 190 : elle partait coupée à
+ * « Sources : PL », et les exercices avec.
+ *
+ * **La mention d'unité reste hors de ce budget**, et c'est délibéré : elle vient
+ * après la clause, et des deux c'est elle qui se rattrape — chaque montant porte
+ * déjà son « M€ », alors que l'exercice n'est écrit nulle part ailleurs. Elle
+ * pèse 29 signes, si bien qu'à 200 signes de budget la description entière tient
+ * sous les 250 de LinkedIn.
+ */
+const SIGNES_VISIBLES = 200;
+
+/** Au plus trois gestes, et pas quatre : au-delà, la description dépasse ce
+ *  qu'une carte de lien affiche. Combien s'en écrivent vraiment, c'est le budget
+ *  de signes qui le dit, geste par geste — un scénario aux intitulés courts en
+ *  garde trois, un scénario aux intitulés longs perd le plus léger plutôt que la
+ *  clause de provenance. */
 const GESTES_MONTRES = 3;
 
 /** De quoi nommer un geste sans manger la place des deux autres. Les intitulés
  *  officiels vont au-delà de cent caractères (« Enseignement scolaire public du
  *  premier degré ») et trois d'entre eux, non bornés, poussaient les montants
- *  hors de ce qu'une plateforme montre. */
+ *  hors de ce qu'une plateforme montre.
+ *
+ *  La borne n'a pas été resserrée pour loger la clause de provenance : un
+ *  intitulé coupé plus court cesse d'identifier la ligne qu'il nomme, et ce
+ *  serait le défaut qu'on vient de fermer sur les cartes — un tronçon qui ne
+ *  vaut pas mieux que rien. C'est le nombre de gestes qui cède, pas leur nom. */
 const LIBELLE_MAX = 46;
 
 /** Le nom que le lecteur donne à son scénario voyage dans l'adresse : il est
@@ -184,22 +209,33 @@ export function apercuScenario(
   const brut = effort(volets, etat);
   const somme = Math.abs(brut) < 1 ? 0 : brut;
 
-  const gestes = lignes
-    .slice(0, GESTES_MONTRES)
-    .map((ligne) => `${abreger(ligne.entree.libelle, LIBELLE_MAX)} ${eurosSigne(ligne.delta)}`);
-
   // La provenance passe AVANT la mention d'unité, qui reste la dernière phrase
   // : une carte de lien coupe par la queue, et des deux, l'unité est celle qui
   // se rattrape — chaque montant porte déjà son « M€ », alors que l'exercice
   // n'est écrit nulle part ailleurs.
+  const tete = `Somme des écarts : ${eurosSigne(somme)}.`;
   const source = `Source${cadres.length > 1 ? "s" : ""} : ${cadres.join(", ")}.`;
+  /** La description jusqu'à la clause de provenance : c'est elle qui doit tenir
+   *  dans le budget de signes, la mention d'unité venant après. */
+  const jusquAuxSources = (gestes: readonly string[]) =>
+    `${tete}${gestes.length > 0 ? ` ${gestes.join(" ; ")}.` : ""} ${source}`;
 
-  return {
-    titre,
-    description:
-      `Somme des écarts : ${eurosSigne(somme)}. ${gestes.join(" ; ")}. ` +
-      `${source} ${MENTION_UNITE}`,
-  };
+  // La clause prend sa place d'abord, les gestes reçoivent ce qui reste — même
+  // ordre que le millésime d'une carte de partage (carte-og.ts), et pour la même
+  // raison : ce qui permet de retrouver le chiffre ne se sacrifie pas au chiffre.
+  //
+  // Le compte est en POINTS DE CODE, comme `abreger`. Et l'arrêt est un `break`,
+  // jamais un `continue` : `plan` rend les lignes de la plus lourde à la plus
+  // légère, et loger une ligne légère à la place d'une lourde qui déborde
+  // montrerait un autre scénario que celui que la page ouvre.
+  const gestes: string[] = [];
+  for (const ligne of lignes.slice(0, GESTES_MONTRES)) {
+    const geste = `${abreger(ligne.entree.libelle, LIBELLE_MAX)} ${eurosSigne(ligne.delta)}`;
+    if ([...jusquAuxSources([...gestes, geste])].length > SIGNES_VISIBLES) break;
+    gestes.push(geste);
+  }
+
+  return { titre, description: `${jusquAuxSources(gestes)} ${MENTION_UNITE}` };
 }
 
 /* --------------------------------------------------------------------------
