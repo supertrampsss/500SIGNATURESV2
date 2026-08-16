@@ -14,6 +14,7 @@ import { reglagesDe, type EtatAtelier, type Volet } from "./atelier.ts";
 import { indexer, regler, type Budget } from "./simulateur.ts";
 import {
   CONTRATS,
+  PALIERS,
   aTrouverAuDepart,
   budgetsTenus,
   contratsDe,
@@ -41,6 +42,26 @@ function volet(cle: string, nom: string, b: Budget): Volet {
 }
 
 const vide = (): EtatAtelier => ({ budgets: new Map(), baremes: new Map() });
+
+test("les marches se disent en M€, comme le compteur qu'elles jalonnent", () => {
+  // Elles s'écrivaient « 10 Md€ » au-dessus d'un compteur qui dit
+  // « 159 297 M€ » : savoir si la marche des 100 Md€ était franchie demandait
+  // une conversion de tête. Le dépôt refuse déjà `Md€` dans les analyses et
+  // dans les citations ; l'échelle de la mission y échappait seule.
+  //
+  // Le séparateur est l'espace fine insécable U+202F, celle qu'`Intl` met dans
+  // « 159 297 M€ » — écrite ici en échappement parce qu'elle est indiscernable
+  // d'une espace ordinaire dans un extrait, et que c'est ce qui a fait échouer
+  // la première version de ce test.
+  const noms = PALIERS.map((p) => p.nom);
+  for (const nom of noms) assert.doesNotMatch(nom, /Md€|k€/, nom);
+  assert.deepEqual(noms, [
+    "10\u202f000 M€",
+    "50\u202f000 M€",
+    "100\u202f000 M€",
+    "L'équilibre",
+  ]);
+});
 
 test("le compteur somme les déficits, jamais les soldes", () => {
   // Un excédent de 400 ne comble pas un déficit de 1 000 : rien dans le droit

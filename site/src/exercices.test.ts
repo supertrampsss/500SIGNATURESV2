@@ -118,6 +118,24 @@ test("le poste national se dit comme le bloc le dit, le libellé publié en info
   assert.equal(poste.terme, "Recettes fiscales nettes");
 });
 
+test("la colonne des variations garde sa décimale sur un compte rond", () => {
+  // Bordeaux, en vrai : la colonne « 2019 → 2025 » alignait onze valeurs à une
+  // décimale — +25,5 %, +63,7 %, +94,9 % — et « +67 % » au milieu, parce
+  // qu'`Intl` laisse tomber la décimale d'un compte rond. Une colonne qu'on lit
+  // de haut en bas pour comparer des lignes ne change pas de précision en route.
+  // Ici 100 → 200 fait exactement +100 %.
+  const catalogue = [
+    { id: "ofgl_depenses_fonctionnement", libelle: "Dépenses de fonctionnement" },
+  ] as unknown as Indicateur[];
+  const tableau = exercices({
+    cites: ["ofgl_depenses_fonctionnement"],
+    series: { ofgl_depenses_fonctionnement: { "2019": 100e6, "2025": 200e6 } },
+    catalogue,
+  })!;
+  const html = rendreExercices(tableau);
+  assert.match(html, /\+100,0\s*%/, html.slice(html.indexOf("<b>") - 40, html.indexOf("</b>") + 4));
+});
+
 test("aucun tiret cadratin ni demi-cadratin", () => {
   assert.doesNotMatch(
     rendreExercices(

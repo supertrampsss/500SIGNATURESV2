@@ -169,7 +169,15 @@ function echapper(texte: string): string {
   );
 }
 
-const POURCENT = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+/** Une décimale, toujours. Sans minimum, `Intl` la laisse tomber sur un compte
+ *  rond, et la colonne « 2019 → 2025 » de Bordeaux alignait « +67 % » sous
+ *  « +63,7 % » et au-dessus de « +94,9 % » — onze valeurs à une décimale et
+ *  une sans. C'est une colonne qu'on lit de haut en bas pour comparer des
+ *  lignes entre elles ; même raison que `pourcentage(v, true)` (echelle.ts). */
+const POURCENT = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
 
 /** Le signe du site, jamais le trait d'union du formateur. */
 function signe(valeur: number, texte: string): string {
