@@ -16,7 +16,9 @@ import {
   renommer,
   type Depot,
 } from "./scenarios.ts";
-import { estAccueil, vueDepuisAdresse } from "./routes.ts";
+import { adresseTerritoire, estAccueil, vueDepuisAdresse } from "./routes.ts";
+import { MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES } from "./mailles.ts";
+import { MAXIMUM } from "./comparateur.ts";
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
@@ -951,6 +953,233 @@ test("une page éditoriale garde sa recherche, pas le reste de l'amorçage", () 
     idxGarde < idxSelecteurs,
     "la garde éditoriale doit précéder tout code qui suppose le shell de l'application",
   );
+});
+
+/* --------------------------------------------------------------------------
+ * Choisir un territoire depuis une analyse pré-rendue
+ *
+ * Le champ de l'en-tête est câblé sur ces pages exprès (test ci-dessus), et
+ * ce sont les pages d'arrivée des lecteurs venus d'un moteur : elles sont
+ * indexables et au plan du site. Mais le pré-rendu remplace tout
+ * `<main id="contenu">`, donc `#fiche` n'y est pas, et `$` est un cast, pas
+ * une garde : `panneau.setAttribute` s'appliquait à `null`. Le champ proposait
+ * des territoires et n'en ouvrait aucun.
+ *
+ * Les bancs qui suivent EXÉCUTENT le corps d'`ouvrirTerritoire` et celui de
+ * `lireUrl` pris dans main.ts, avec un `$` qui rend `null` sur un identifiant
+ * absent — ce que rend le vrai sur ces pages — et le vrai `adresseTerritoire`.
+ * Lire cette chaîne ne suffisait pas : c'est en la lisant qu'elle a passé une
+ * revue.
+ * -------------------------------------------------------------------------- */
+
+type OuvertureSimulee = {
+  /** Les adresses données au navigateur, dans l'ordre. */
+  adresses: string[];
+  /** Les territoires pour lesquels le panneau a été peint. */
+  fiches: string[];
+  /** Les attributs posés et retirés sur `#fiche`. */
+  gestes: string[];
+  erreur: Error | null;
+};
+
+/** Le corps d'`ouvrirTerritoire` pris dans main.ts, débarrassé de ses seules
+ *  annotations TypeScript. */
+function corpsOuvrirTerritoire(): string {
+  const debut = MAIN.indexOf("async function ouvrirTerritoire");
+  const fin = MAIN.indexOf("function tiroirRedimensionnable");
+  assert.ok(debut > -1 && fin > debut, "ouvrirTerritoire introuvable dans main.ts");
+  const brut = MAIN.slice(debut, fin);
+  // Verrouille la signature avant de lui ôter ses annotations : si elle change,
+  // ce banc doit rougir plutôt qu'évaluer autre chose que la vraie fonction.
+  assert.match(
+    brut,
+    /async function ouvrirTerritoire\(\s+code: string,\s+niveauDemande: string \| null,\s+nom\?: string,\s*\): Promise<void> \{/,
+  );
+  const corps = brut.replace(
+    /async function ouvrirTerritoire\([\s\S]*?\): Promise<void> \{/,
+    "async function ouvrirTerritoire(code, niveauDemande, nom) {",
+  );
+  assert.doesNotMatch(
+    corps,
+    /function \w+\([^)]*\):/,
+    "une annotation de type reste dans le corps évalué",
+  );
+  return corps;
+}
+
+/** Ouvre un territoire comme le fait une suggestion de recherche, sur un
+ *  document qui ne porte que les éléments listés.
+ *
+ *  `$` rend `null` pour un identifiant absent, exactement comme le vrai
+ *  (`document.getElementById(id) as T`) : c'est cette absence qui faisait
+ *  lever. `adresseTerritoire` n'est pas simulée — ce que le banc lit est
+ *  l'adresse que le lecteur recevrait. */
+async function executerOuvrirTerritoire(
+  page: string | null,
+  code: string,
+  niveau: string | null,
+  presents: string[] = [],
+): Promise<OuvertureSimulee> {
+  const adresses: string[] = [];
+  const fiches: string[] = [];
+  const gestes: string[] = [];
+  const elements: Record<string, unknown> = {};
+  for (const id of presents)
+    elements[id] = {
+      innerHTML: "",
+      scrollTop: 1,
+      setAttribute: (attribut: string, valeur: string) => gestes.push(`${attribut}=${valeur}`),
+      removeAttribute: (attribut: string) => gestes.push(`-${attribut}`),
+      querySelector: () => null,
+    };
+  const document = { body: { dataset: page ? { page } : {} } };
+  const location = { assign: (adresse: string) => adresses.push(adresse) };
+  const fileOuverture = { ouvrir: () => 1, courant: () => true, fermer: () => {} };
+  const etat = { niveau: "commune", maille: null as string | null, niveauAuto: false };
+  let erreur: Error | null = null;
+  try {
+    await (
+      new Function(
+        "document",
+        "location",
+        "adresseTerritoire",
+        "$",
+        "fileOuverture",
+        "squeletteFiche",
+        "repertoire",
+        "entiteDe",
+        "etat",
+        "MAILLES_HORS_CARTE",
+        "construireSelecteurs",
+        "montrerFiche",
+        "peindre",
+        "demande",
+        `${corpsOuvrirTerritoire()}
+         return ouvrirTerritoire(demande.code, demande.niveau, demande.nom);`,
+      )(
+        document,
+        location,
+        adresseTerritoire,
+        (id: string) => elements[id] ?? null,
+        fileOuverture,
+        () => "",
+        null,
+        () => null,
+        etat,
+        MAILLES_HORS_CARTE,
+        () => {},
+        (vise: string) => fiches.push(vise),
+        () => {},
+        { code, niveau, nom: "Territoire choisi" },
+      ) as Promise<void>
+    );
+  } catch (leve) {
+    erreur = leve as Error;
+  }
+  return { adresses, fiches, gestes, erreur };
+}
+
+/** Ce que `lireUrl` — la vraie, prise dans main.ts avec `COUCHES`,
+ *  `niveauConnu` et `mailleConnue` — lit d'une adresse. Le banc ne recopie ni
+ *  la table des couches ni celle des mailles : il testerait sa propre copie. */
+function executerLireUrl(adresse: string): Record<string, string | null> {
+  const debutCouches = MAIN.indexOf("const COUCHES");
+  const finCouches = MAIN.indexOf("type Etat = {");
+  const debut = MAIN.indexOf("function niveauConnu");
+  const fin = MAIN.indexOf("function ecrireUrl");
+  assert.ok(debutCouches > -1 && finCouches > debutCouches, "COUCHES introuvable dans main.ts");
+  assert.ok(debut > -1 && fin > debut, "lireUrl introuvable dans main.ts");
+  const corps =
+    MAIN.slice(debutCouches, finCouches).replace(
+      "const COUCHES: Record<string, string> = {",
+      "const COUCHES = {",
+    ) +
+    MAIN.slice(debut, fin)
+      .replace("function niveauConnu(demande: string | null): string {", "function niveauConnu(demande) {")
+      .replace(
+        "function mailleConnue(demande: string | null): string | null {",
+        "function mailleConnue(demande) {",
+      )
+      .replace("function niveauSelection(): string {", "function niveauSelection() {")
+      .replace("function lireUrl(): Etat {", "function lireUrl() {");
+  assert.doesNotMatch(
+    corps,
+    /function \w+\([^)]*\):/,
+    "une annotation de type reste dans le corps évalué",
+  );
+  assert.doesNotMatch(corps, /const \w+:/, "une annotation de type reste dans le corps évalué");
+  const location = { search: adresse.slice(adresse.indexOf("?")) };
+  return new Function(
+    "location",
+    "MAILLES_HORS_CARTE",
+    "NIVEAUX_RECHERCHABLES",
+    "MAXIMUM",
+    `${corps}\nreturn lireUrl();`,
+  )(location, MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, MAXIMUM) as Record<string, string | null>;
+}
+
+test("choisir un territoire depuis une analyse pré-rendue ouvre ce territoire", async () => {
+  // Le panneau que peint `ouvrirTerritoire` vit dans `<main id="contenu">`,
+  // la région entière que le pré-rendu remplace par l'analyse : voilà pourquoi
+  // ces pages n'ont pas de `#fiche`.
+  const ouverture = PAGE.indexOf('<main id="contenu">');
+  assert.ok(ouverture > -1, "#contenu introuvable dans index.html");
+  const fermeture = PAGE.indexOf("</main>", ouverture);
+  const fiche = PAGE.indexOf('id="fiche"');
+  assert.ok(
+    fiche > ouverture && fiche < fermeture,
+    "#fiche doit être dans #contenu : c'est ce que le pré-rendu remplace",
+  );
+
+  const choix = await executerOuvrirTerritoire("editorial", "33063", "commune");
+  assert.equal(choix.erreur, null, "ouvrir un territoire ne doit rien lever sur une page servie");
+  // Une adresse, pas une peinture : la page n'a pas de panneau à peindre.
+  assert.deepEqual(choix.adresses, ["/territoire?niveau=commune&territoire=33063"]);
+  assert.deepEqual(choix.fiches, []);
+  // Et cette adresse ouvre bien CE territoire, à SA maille — lu par la vraie
+  // `lireUrl`, celle qui s'exécutera au chargement suivant.
+  const lu = executerLireUrl(choix.adresses[0]!);
+  assert.equal(lu.selection, "33063");
+  assert.equal(lu.niveau, "commune");
+  assert.equal(lu.maille, null);
+});
+
+test("la même commande sur la carte peint toujours le panneau, sans quitter la page", async () => {
+  const choix = await executerOuvrirTerritoire(null, "33063", "commune", [
+    "fiche",
+    "volet-territoire",
+  ]);
+  assert.equal(choix.erreur, null);
+  assert.deepEqual(choix.adresses, [], "la carte ouvre la fiche sur place, elle ne navigue pas");
+  assert.deepEqual(choix.fiches, ["33063"]);
+  assert.deepEqual(choix.gestes, ["aria-busy=true", "-aria-busy"]);
+});
+
+test("un arrondissement municipal choisi depuis une analyse s'ouvre par sa maille", async () => {
+  // La carte n'a pas de couche d'arrondissements : écrite en `niveau`, la
+  // maille serait ramenée à la maille par défaut au chargement suivant et la
+  // fiche de Paris 1er s'ouvrirait sur une région.
+  const choix = await executerOuvrirTerritoire("editorial", "75101", "arrondissement_municipal");
+  assert.equal(choix.erreur, null);
+  assert.deepEqual(choix.adresses, [
+    "/territoire?maille=arrondissement_municipal&territoire=75101",
+  ]);
+  const lu = executerLireUrl(choix.adresses[0]!);
+  assert.equal(lu.selection, "75101");
+  assert.equal(lu.maille, "arrondissement_municipal");
+});
+
+test("la panne de chargement ne s'écrit pas là où il n'y a pas où l'écrire", () => {
+  // Le rattrapage de `demarrer()` écrit dans `#vue-accueil` ou `#fiche` :
+  // aucun des deux n'existe sur une page d'analyse, et `$` étant un cast, la
+  // panne se doublait d'une levée dans son propre rattrapage. Une analyse
+  // porte son texte et ses chiffres dans le HTML servi : il n'y a rien à
+  // annoncer.
+  const corps = MAIN.slice(MAIN.indexOf("demarrer().catch("));
+  const idxGarde = corps.indexOf('dataset.page === "editorial"');
+  const idxHote = corps.indexOf('$("vue-accueil")');
+  assert.ok(idxGarde > -1, "garde éditoriale introuvable dans le rattrapage de demarrer()");
+  assert.ok(idxHote > idxGarde, "la garde doit précéder tout `$` sur un conteneur de vue");
 });
 
 test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () => {
