@@ -24,6 +24,12 @@ import { access, readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+// Le message principal du site vit désormais dans `src/accueil.ts`, la page qui
+// le pose à l'écran (spec §8). Il était ici, où la carte de partage du
+// simulateur le peint : l'import inverse — l'accueil lisant un script de build
+// — aurait fait entrer `node:fs` dans le module graphe du navigateur. Une seule
+// rédaction, lue des deux côtés.
+import { MESSAGE_PRINCIPAL } from "../src/accueil.ts";
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
@@ -383,19 +389,6 @@ const PAGE_ANALYSES = {
   titre: "Analyses — Où va l'argent public",
   description: "Un chiffre couramment cité, opposé au chiffre publié : le verdict, le détail, la preuve.",
 };
-
-/**
- * Le message principal du site, arrêté à la conception (spec §8) et posé en
- * tête d'accueil.
- *
- * Il est ici parce qu'une image de section circule sans la page qui la porte :
- * un chapeau et une marque ne disent pas ce que le site fait. Ce n'est pas une
- * accroche écrite pour remplir l'image — c'est la phrase que la page pose déjà,
- * et l'accueil du lot 4 lira cette même constante plutôt que d'en retaper une
- * seconde qui en dirait autre chose.
- */
-export const MESSAGE_PRINCIPAL =
-  "Les chiffres du débat budgétaire, recalculés sur les comptes publiés — et rejouables.";
 
 /**
  * Les trois cartes de section, et l'endroit où chacune est servie.
