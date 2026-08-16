@@ -212,6 +212,32 @@ pour ne plus l'être.
    d'être pliés. Le travail est **`budget_etat`**, et lui seul vaut une
    structure — les autres se lisent tels quels.
 
+4. **Quarante-trois séries publiées pour la France qu'aucune fiche ne montre.**
+   Le site filtre son catalogue par `niveaux` (`indicateursDeLaFiche`). Or 43
+   séries ont une valeur publiée pour la France sans déclarer `pays` :
+   sécurité 16, équipements 8, secteurs 10, logement 3, entreprises 3,
+   éducation 2, europe 1. Quarante d'entre elles déclarent
+   `commune, departement, region`.
+
+   **Ce n'est pas un trou de données, c'est un trou de déclaration.** Vérifié
+   sur les comptes publiés, exercice le plus récent :
+
+   | Indicateur | Valeur France | Somme des 18 régions | Écart |
+   |---|---|---|---|
+   | `insee_effectifs_salaries` | 26 604 745 | 26 604 745 | 0,000 % |
+   | `insee_creations_entreprises` | 1 165 795 | 1 165 795 | 0,000 % |
+
+   Les deux sont `sommable: true`, et la valeur nationale est la somme exacte
+   des régions, à l'unité. Le pipeline la calcule et la publie ; seul le
+   catalogue ne dit pas qu'elle existe à cette maille, et le filtre du site
+   l'écarte donc de toute fiche.
+
+   Le correctif est une déclaration, pas un calcul — mais dire à quelle maille
+   un indicateur existe reste une affirmation de méthode, donc **D7** : la
+   validation humaine préalable s'applique. Ce qui la rend sûre est écrit
+   ci-dessus : la valeur ne serait pas inventée, elle est déjà publiée et
+   arithmétiquement exacte.
+
 ### Fait
 
 - **Simulateur — collectivités locales** (10 août 2026). Un budget par échelon,
