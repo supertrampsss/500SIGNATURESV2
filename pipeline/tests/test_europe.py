@@ -94,3 +94,35 @@ def test_l_url_porte_les_filtres_de_la_serie():
     url = eurostat.data_url("spr_exp_pens", europe.INDICATEURS["eurostat_retraites_pib"]["params"])
     for morceau in ("spdepb=TOTAL", "spdepm=TOTAL", "unit=PC_GDP", "freq=A"):
         assert morceau in url, url
+
+
+def test_les_comptes_des_apu_sont_publies_en_euros_et_non_en_millions():
+    """La source publie en millions ; le site publie en euros, comme la dette et
+    le budget de l'État. Sans facteur, 1 503 590 s'afficherait « 1 503 590 € »
+    au lieu de « 1 503,59 milliards d'euros » — une faute d'un facteur million
+    sur un chiffre qui reste plausible."""
+    apu = {i: f for i, f in europe.INDICATEURS.items() if i.startswith("eurostat_apu_")}
+    assert len(apu) == 14, sorted(apu)
+    for indicateur, fiche in apu.items():
+        assert fiche["unite"] == "EUR", indicateur
+        assert fiche.get("facteur") == europe.MILLION, indicateur
+        assert fiche["params"]["unit"] == "MIO_EUR", indicateur
+
+
+def test_la_decomposition_a_ses_deux_totaux():
+    """Une part se calcule sur un total. Sans les recettes ET les dépenses, le
+    site ne pourrait ni composer les 100 €, ni nommer le reste non détaillé."""
+    for total in ("eurostat_apu_recettes", "eurostat_apu_depenses"):
+        assert total in europe.INDICATEURS
+    postes = [i for i in europe.INDICATEURS if i.startswith("eurostat_apu_")]
+    # Deux totaux, trois recettes nommées, neuf dépenses nommées.
+    assert len(postes) - 2 == 12, postes
+
+
+def test_le_secteur_est_filtre_sur_les_administrations_publiques():
+    """`gov_10a_main` publie aussi les sous-secteurs — État seul, collectivités,
+    Sécurité sociale. Sans le filtre, chaque année reviendrait quatre fois et la
+    dernière lue écraserait les autres."""
+    for indicateur, fiche in europe.INDICATEURS.items():
+        if fiche["jeu"] == "gov_10a_main":
+            assert fiche["params"]["sector"] == "S13", indicateur

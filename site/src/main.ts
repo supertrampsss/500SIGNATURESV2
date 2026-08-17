@@ -26,6 +26,7 @@ import {
 import { groupeDe } from "./semblables.ts";
 import { afficherRedistribution } from "./redistribution.ts";
 import { afficherRetraites } from "./retraites.ts";
+import { afficherCentEurosApu } from "./cent-euros-apu.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -4360,6 +4361,9 @@ async function demarrer(): Promise<void> {
       $("national").hidden = false;
     }
     if (afficherRetraites($("bloc-retraites"), pays)) {
+      $("national").hidden = false;
+    }
+    if (afficherCentEurosApu($("bloc-cent-euros-apu"), pays)) {
       $("national").hidden = false;
     }
     // Les niches fiscales ont leur propre fichier — le détail des dispositifs

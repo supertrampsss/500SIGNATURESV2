@@ -1180,18 +1180,52 @@ test("14 quinquies. le build écrit cette page, et l'écrit avant le plan du sit
  * chemin est le même que celui de `/bilan`.
  * ----------------------------------------------------------------------- */
 
-/** Les huit cadres de blocs du gabarit, dans l'ordre où il les pose. Lus ici
- *  une fois : chacun des tests ci-dessous en a besoin. */
+/**
+ * Les cadres de blocs du gabarit, dans l'ordre où il les pose — **lus dans le
+ * gabarit**, jamais recopiés ici.
+ *
+ * La liste était écrite à la main, et une liste écrite à la main ne pousse
+ * pas : trois cadres sont arrivés après elle — « 100 € de toutes les
+ * administrations », la redistribution, les retraites — et sont restés
+ * **dépliés et vides** dans le document servi en production, ce que `.bloc`
+ * dessine comme un cadre bordé et ombré, c'est-à-dire comme une panne. Les
+ * deux tests qui auraient dû le voir passaient au vert : ils ne regardaient
+ * que les huit cadres qu'on avait pensé à leur nommer.
+ *
+ * C'est le geste que la garde des cadres défilants a déjà dû faire
+ * (`interface.test.ts`), pour exactement la même raison.
+ */
 const CADRES_REPERES = [
-  "bloc-conjoncture",
-  "bloc-dette",
-  "bloc-europe",
-  "bloc-cent-euros",
-  "bloc-fonctions",
-  "bloc-secu",
-  "bloc-etat",
-  "bloc-niches",
-];
+  ...GABARIT_REEL.slice(
+    GABARIT_REEL.indexOf('<section class="national"'),
+    GABARIT_REEL.indexOf("</section>", GABARIT_REEL.indexOf('<section class="national"')),
+  ).matchAll(/<article[^>]*id="(bloc-[a-z0-9-]+)"/g),
+].map((m) => m[1]);
+
+test("15 quinquies. la liste des cadres se lit dans le gabarit, et elle n'est pas vide", () => {
+  // Sans cette sonde, un gabarit remanié rendrait une liste vide et les deux
+  // tests qui la parcourent passeraient en ne vérifiant rien.
+  assert.ok(CADRES_REPERES.length >= 10, `${CADRES_REPERES.length} cadre(s) lus dans le gabarit`);
+  assert.ok(CADRES_REPERES.includes("bloc-cent-euros-apu"), CADRES_REPERES.join(", "));
+});
+
+test("15 sexies. aucun cadre du gabarit n'est servi déplié et vide", () => {
+  // La règle que la docstring d'`injecterReperes` porte, appliquée à TOUS les
+  // cadres du gabarit et non aux seuls qu'on a pensé à nommer : chacun est
+  // rempli, ou replié. C'est le contrôle qui manquait quand les trois cadres
+  // neufs sont partis en production vides.
+  const html = REPERES_ESSAI();
+  for (const id of CADRES_REPERES) {
+    const cadre = new RegExp(`<article[^>]*id="${id}"([^>]*)>([\\s\\S]*?)</article>`);
+    const trouve = html.match(cadre);
+    assert.ok(trouve, `« ${id} » a disparu du document`);
+    const [, attributs, corps] = trouve;
+    assert.ok(
+      / hidden/.test(attributs) || corps.trim() !== "",
+      `« ${id} » est servi déplié et vide : le lecteur voit un cadre bordé sans rien dedans`,
+    );
+  }
+});
 
 function territoireEssai(series: Record<string, Record<string, number>>): Territoire {
   return { nom: "", parent: null, population: null, drapeaux: {}, series };
