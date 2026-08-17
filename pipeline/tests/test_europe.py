@@ -102,7 +102,7 @@ def test_les_comptes_des_apu_sont_publies_en_euros_et_non_en_millions():
     au lieu de « 1 503,59 milliards d'euros » — une faute d'un facteur million
     sur un chiffre qui reste plausible."""
     apu = {i: f for i, f in europe.INDICATEURS.items() if i.startswith("eurostat_apu_")}
-    assert len(apu) == 14, sorted(apu)
+    assert len(apu) == 22, sorted(apu)
     for indicateur, fiche in apu.items():
         assert fiche["unite"] == "EUR", indicateur
         assert fiche.get("facteur") == europe.MILLION, indicateur
@@ -115,14 +115,47 @@ def test_la_decomposition_a_ses_deux_totaux():
     for total in ("eurostat_apu_recettes", "eurostat_apu_depenses"):
         assert total in europe.INDICATEURS
     postes = [i for i in europe.INDICATEURS if i.startswith("eurostat_apu_")]
-    # Deux totaux, trois recettes nommées, neuf dépenses nommées.
-    assert len(postes) - 2 == 12, postes
+    # Deux totaux, trois recettes nommées, neuf dépenses nommées, et les huit
+    # de la ventilation du premier poste.
+    assert len(postes) - 2 == 20, postes
 
 
 def test_le_secteur_est_filtre_sur_les_administrations_publiques():
-    """`gov_10a_main` publie aussi les sous-secteurs — État seul, collectivités,
-    Sécurité sociale. Sans le filtre, chaque année reviendrait quatre fois et la
-    dernière lue écraserait les autres."""
+    """Les deux jeux des APU publient aussi les sous-secteurs — État seul,
+    collectivités, Sécurité sociale. Sans le filtre, chaque année reviendrait
+    quatre fois et la dernière lue écraserait les autres."""
     for indicateur, fiche in europe.INDICATEURS.items():
-        if fiche["jeu"] == "gov_10a_main":
+        if fiche["jeu"] in ("gov_10a_main", "gov_10a_exp"):
             assert fiche["params"]["sector"] == "S13", indicateur
+
+
+def test_la_ventilation_du_premier_poste_nomme_sa_transaction_et_sa_fonction():
+    """Deux pièges du jeu par fonction, un test chacun.
+
+    1. **La transaction ne s'y nomme pas pareil.** `gov_10a_main` écrit
+       `D62PAY` ; `gov_10a_exp` écrit `D62`. Demander `D62PAY` à ce jeu-là rend
+       **zéro valeur sans lever** — pas une erreur, pas un 404 : une série vide,
+       donc un tableau qui se tait pour une raison qu'on ne voit pas.
+
+    2. **Sans `cofog99`, la fonction n'est pas filtrée** et les quatre-vingts
+       fonctions se rangent sous la même clé (pays, année) : la dernière lue
+       écrase les autres, en silence.
+    """
+    ventilation = {
+        i: f for i, f in europe.INDICATEURS.items() if f["jeu"] == "gov_10a_exp"
+    }
+    # Sept fonctions et leur total : sans cette borne, un test qui parcourt un
+    # dictionnaire vide passerait au vert.
+    assert len(ventilation) == 8, sorted(ventilation)
+    fonctions = set()
+    for indicateur, fiche in ventilation.items():
+        assert fiche["params"]["na_item"] == "D62", indicateur
+        cofog = fiche["params"].get("cofog99")
+        assert cofog, f"{indicateur} : aucune fonction filtrée"
+        assert cofog not in fonctions, f"{cofog} déclarée deux fois"
+        fonctions.add(cofog)
+    assert "TOTAL" in fonctions, "le dénominateur de la ventilation manque"
+    # Les sept fonctions sont des sous-fonctions de la protection sociale, sauf
+    # le total : une fonction de premier niveau (GF10) mêlée aux sous-fonctions
+    # compterait deux fois la même dépense.
+    assert all(len(f) == 6 for f in fonctions - {"TOTAL"}), sorted(fonctions)

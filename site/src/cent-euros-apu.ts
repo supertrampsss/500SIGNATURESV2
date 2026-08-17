@@ -21,12 +21,21 @@
  * ─────────────────────────────────────────────────────────────────────────
  * Les parts ne sont pas ramenées à cent : elles sont rapportées aux **recettes**,
  * si bien que leur somme vaut ce que les administrations dépensent pour 100 €
- * encaissés — 109,80 € en 2025. L'écart est le déficit, à sa place, dans
+ * encaissés — 109,77 € en 2025. L'écart est le déficit, à sa place, dans
  * l'unité du lecteur. Le ramener à cent aurait fait disparaître la seule chose
  * que ce tableau existe pour montrer.
  *
- * **Le reste non détaillé est écrit.** Les neuf postes nommés couvrent 98,7 %
+ * **Le reste non détaillé est écrit.** Les neuf postes nommés couvrent 98,85 %
  * des dépenses ; le solde de la soustraction est une ligne, jamais un silence.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * ET LE PREMIER POSTE S'OUVRE, SUR SON PROPRE EXERCICE
+ * ─────────────────────────────────────────────────────────────────────────
+ * « Retraites, chômage, allocations » mettait dans un seul nombre trois choses
+ * qui n'ont ni le même montant, ni le même public, ni le même débat — la
+ * retraite y pèse **neuf fois** le chômage, et l'ordre des mots suggérait le
+ * contraire. `renduVentilation` l'ouvre en sept fonctions, avec le refus que
+ * sa docstring porte : deux jeux, deux millésimes, deux dénominateurs.
  */
 
 import type { Territoire } from "./donnees.ts";
@@ -58,6 +67,32 @@ const RESSOURCES: [id: string, libelle: string][] = [
   ["eurostat_apu_impots_revenu", "Impôts sur le revenu et le patrimoine"],
 ];
 
+/**
+ * Ce que recouvre « Retraites, chômage, allocations ».
+ *
+ * Le poste le plus lourd de la dépense publique était aussi le plus muet : un
+ * seul nombre pour trois choses qui n'ont ni le même montant, ni le même
+ * public, ni le même débat. **La retraite y pèse neuf fois le chômage**, et
+ * l'ordre des mots du libellé suggérait le contraire.
+ *
+ * Deux fonctions manquaient au trio que le libellé nomme, et elles ne sont pas
+ * petites : les pensions de réversion et les indemnités d'arrêt maladie valent
+ * chacune plus que le chômage. Les nommer « allocations » les aurait perdues.
+ */
+const FONCTIONS: [id: string, libelle: string][] = [
+  ["eurostat_apu_prestations_vieillesse", "Retraites"],
+  ["eurostat_apu_prestations_maladie_invalidite", "Arrêts maladie et invalidité"],
+  ["eurostat_apu_prestations_chomage", "Chômage"],
+  ["eurostat_apu_prestations_survivants", "Pensions de réversion"],
+  ["eurostat_apu_prestations_famille", "Famille et enfants"],
+  ["eurostat_apu_prestations_exclusion", "RSA et autres minima sociaux"],
+  ["eurostat_apu_prestations_logement", "Aides au logement versées en espèces"],
+];
+
+/** Le total de la ventilation — le même compte que le poste du tableau
+ *  principal, mais lu dans le jeu qui le ventile, donc à un autre millésime. */
+const VENTILEES = "eurostat_apu_prestations_ventilees";
+
 function echapper(texte: string): string {
   return texte.replace(
     /[&<>"']/g,
@@ -72,6 +107,70 @@ function pour100(part: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(part)} €`;
+}
+
+/**
+ * La ventilation du premier poste, **sur son propre exercice**.
+ *
+ * Elle vient d'un autre jeu de la même source — celui qui croise la
+ * transaction avec la fonction — et ce jeu ne dit pas la même année : il
+ * s'arrête un exercice plus tôt, et son total diffère de 0,3 % de celui du
+ * tableau principal sur les exercices récents. Deux millésimes d'un même
+ * compte, publiés à deux dates.
+ *
+ * D'où le refus qui commande cette fonction : **les parts ne sont pas
+ * calculées sur les recettes du tableau du dessus**, mais sur celles de
+ * l'exercice ventilé, et le tableau porte son propre total. Redistribuer les
+ * 37,11 € de 2025 sur des clés de 2024 aurait donné un tableau qui tombe juste
+ * et qui ment — aucune de ses lignes n'aurait été un chiffre publié.
+ *
+ * La chaîne vide tant que les sept fonctions et leur total ne partagent pas un
+ * exercice avec les recettes : une part dont le dénominateur vient d'ailleurs
+ * ne mesure rien.
+ */
+function renduVentilation(france: Territoire): string {
+  const serie = (id: string) => france.series[id];
+  const total = serie(VENTILEES);
+  const recettes = serie(RECETTES);
+  if (!total || !recettes) return "";
+  const exercice = Object.keys(total)
+    .filter(
+      (an) =>
+        recettes[an] !== undefined && FONCTIONS.every(([id]) => serie(id)?.[an] !== undefined),
+    )
+    .sort()
+    .pop();
+  if (!exercice) return "";
+
+  const encaisse = recettes[exercice];
+  const part = (montant: number) => (montant / encaisse) * 100;
+  const lignes = FONCTIONS.map(
+    ([id, libelle]) => [libelle, part(serie(id)![exercice])] as const,
+  );
+  const ensemble = part(total[exercice]);
+  const reste = ensemble - lignes.reduce((somme, [, valeur]) => somme + valeur, 0);
+
+  return `
+    <h4>Retraites, chômage, allocations : ce que recouvre le poste</h4>
+    <table class="comparaison" tabindex="0">
+      <caption>Exercice ${echapper(exercice)} — la ventilation par fonction s'arrête un
+        exercice plus tôt que les totaux ci-dessus, et les parts sont donc rapportées aux
+        recettes de ${echapper(exercice)}, jamais à celles du tableau précédent. Source :
+        Eurostat, dépenses des administrations publiques par fonction (COFOG).</caption>
+      <thead><tr><th scope="col">Pour 100 € encaissés en ${echapper(exercice)}</th>
+        <th scope="col">Montant</th></tr></thead>
+      <tbody>${lignes
+        .map(
+          ([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th>
+            <td>${pour100(valeur)}</td></tr>`,
+        )
+        .join("")}
+        <tr><th scope="row">Prestations hors protection sociale (bourses, culture, santé)</th>
+          <td>${pour100(reste)}</td></tr>
+        <tr class="souligne"><th scope="row">Ensemble du poste</th>
+          <td>${pour100(ensemble)}</td></tr>
+      </tbody>
+    </table>`;
 }
 
 /**
@@ -148,7 +247,8 @@ export function rendu(pays: Record<string, Territoire>): string {
         <tr class="souligne"><th scope="row">Total dépensé</th>
           <td>${pour100(depense)}</td></tr>
       </tbody>
-    </table>`;
+    </table>
+    ${renduVentilation(france)}`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

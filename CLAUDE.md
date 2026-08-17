@@ -433,6 +433,70 @@ pour ne plus l'être.
 
 ### Fait
 
+- **« Retraites, chômage, allocations » : un seul nombre pour neuf fois un
+  autre** (17 août 2026). Le poste le plus lourd de la dépense publique était
+  aussi le plus muet. Séparé, il dit tout autre chose que son libellé :
+
+  | Pour 100 € encaissés en 2024 | |
+  |---|---|
+  | Retraites | **24,09 €** |
+  | Arrêts maladie et invalidité | 3,34 € |
+  | Chômage | **2,70 €** |
+  | Pensions de réversion | 2,68 € |
+  | Famille et enfants | 2,29 € |
+  | RSA et autres minima sociaux | 1,79 € |
+  | Aides au logement versées en espèces | 0,07 € |
+  | Hors protection sociale (bourses, culture, santé) | 0,41 € |
+  | **Ensemble du poste** | **37,37 €** |
+
+  La retraite pèse **neuf fois** le chômage, et l'ordre des mots du libellé
+  suggérait le contraire. Deux fonctions manquaient d'ailleurs au trio, et
+  chacune vaut plus que le chômage : la réversion et les arrêts maladie.
+
+  **`gov_10a_main` ne décompose pas ce poste**, il n'en porte que la transaction
+  entière. La ventilation vit dans `gov_10a_exp`, qui croise transaction et
+  fonction (COFOG) — même producteur, même secteur S13, même unité. Elle se
+  referme : sept fonctions plus trois postes hors protection sociale font
+  561 878,3 M€ contre 561 878,4 déclarés, soit 0,1 M€ d'arrondi.
+
+  **Mais elle ne dit pas la même année, et l'écart n'est pas nul.** `D62PAY`
+  (jeu principal) contre `D62` total (jeu par fonction) : identiques à l'euro
+  jusqu'en 2022, puis +1 248,8 M€ en 2023 et +1 806,9 M€ en 2024 — 0,24 % et
+  0,32 %. Et la ventilation s'arrête à 2024 quand le reste du bloc donne 2025.
+  Le tableau porte donc **son propre exercice, son propre dénominateur et son
+  propre total** : redistribuer les 37,11 € de 2025 sur des clés de 2024 aurait
+  donné un tableau qui tombe juste et qui ment, dont aucune ligne n'aurait été
+  un chiffre publié. Un test refuse la valeur qu'aurait produite ce raccourci.
+
+  **Deux pièges du jeu, un test chacun.** La transaction s'y nomme **`D62` et
+  non `D62PAY`** — la demander sous l'autre nom rend **zéro valeur sans lever**,
+  ni erreur ni 404, juste une série vide. Et sans filtre `cofog99`, les
+  quatre-vingts fonctions se rangent sous la même clé (pays, année), la dernière
+  lue écrasant les autres en silence. C'est la même famille de panne muette que
+  l'onglet transposé des retraites.
+
+  **Et mon fixture arrondissait.** Il affichait « 37,10 € » là où la production
+  affiche « 37,11 € » : un test vert sur un chiffre que personne ne verra. Les
+  valeurs sont désormais celles réellement publiées, au dixième de million —
+  c'est la faute exacte qu'un fixture de la redistribution avait déjà coûtée.
+
+  **Un sabotage est resté en place, et c'est la deuxième leçon du jour.** Le
+  script de sabotage employait `cd` dans une fonction, si bien que le shell
+  changeait de répertoire et que les `cp` de restauration visaient un chemin
+  disparu — le fichier est resté saboté, en silence. Les copies étaient bonnes,
+  c'est leur destination qui ne l'était plus. **Un script de sabotage n'emploie
+  que des chemins absolus, et ses commandes tournent en sous-shell.**
+
+  **Et le tiret cadratin a fait rougir la CI, pour la deuxième fois.** Les sept
+  libellés s'écrivaient « Prestations en espèces — vieillesse » ;
+  `test_aucun_cadratin_dans_les_definitions_publiees` refuse ce signe dans un
+  champ publié. Ce n'est pas le test qui manquait, c'est ma vérification :
+  après avoir écrit ces libellés je n'ai relancé que `tests/test_europe.py`,
+  et cette règle-là vit dans un autre fichier. **Un champ publié se vérifie sur
+  la suite entière, jamais sur le fichier de test du module qu'on écrit** — un
+  connecteur neuf est lu par au moins trois contrôles transverses (typographie,
+  vocabulaire, déclarations) qu'aucun nom de fichier ne désigne.
+
 - **Pour 100 € encaissés par toutes les administrations, ce qui ressort**
   (17 août 2026). Le site répondait deux fois à « où va l'argent public » — les
   100 € du budget de l'État, les 100 € de prestations sociales — et aucune des
