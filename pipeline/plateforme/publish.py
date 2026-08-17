@@ -399,6 +399,59 @@ def hierarchie_nationale(conn) -> dict[str, str]:
     return arbre
 
 
+def jeux_reels_par_niveau(conn) -> dict[str, dict[str, str]]:
+    """Le jeu qui a réellement écrit chaque (indicateur, maille).
+
+    `core.indicators.dataset_id` ne porte qu'UN jeu par indicateur, quand une
+    série peut venir d'un jeu par maille. Le cas est réel et il est massif : le
+    connecteur de l'OFGL télécharge `ofgl-communes`, `ofgl-departements` et
+    `ofgl-regions` (`normalize/ofgl.py`, `JEUX`), trace correctement chaque run
+    sous le sien, puis déclare **tous** ses indicateurs sous `'ofgl-communes'`,
+    en dur. Le catalogue publié dit donc que les recettes de fonctionnement d'un
+    département viennent des « Finances des communes », et que les cartes
+    grises — une recette que seules les régions perçoivent — en viennent aussi.
+    Ce n'est pas une nuance de lignage : l'export CSV du site écrit cette
+    phrase-là en tête du fichier, sous « Source : ».
+
+    Le jeu réel se lit sur le run qui a écrit l'observation. Deux prudences :
+
+    - on ne retient une maille que si **un seul** jeu y a écrit — deux jeux pour
+      une même maille ne se résument pas à un nom, et le site retombe alors sur
+      `jeu`, qui est ce qu'il faisait déjà ;
+    - on ne publie que ce qui **diffère** du jeu déclaré. Le site lit
+      `jeu_par_niveau[niveau] ?? jeu` : republier l'identité pour les trois
+      cent quinze indicateurs qui n'ont qu'une source gonflerait le catalogue
+      sans rien apprendre.
+
+    C'est la règle que le docstring d'`indicateurs` pose déjà pour les niveaux :
+    le catalogue dit la vérité de ce qui est publié, pas ce qu'un connecteur a
+    déclaré.
+    """
+    lignes = conn.execute(
+        """
+        select o.indicator_id, o.geo_level, any_value(r.dataset_id)
+        from core.observations o
+        join meta.ingestion_runs r on r.run_id = o.run_id
+        join core.indicators i on i.indicator_id = o.indicator_id
+        where i.published
+        group by o.indicator_id, o.geo_level
+        having count(distinct r.dataset_id) = 1
+           and any_value(r.dataset_id) <> any_value(i.dataset_id)
+        order by o.indicator_id, o.geo_level
+        """
+    ).fetchall()
+    reels: dict[str, dict[str, str]] = {}
+    for indicateur, niveau, jeu in lignes:
+        reels.setdefault(indicateur, {})[niveau] = jeu
+    if reels:
+        print(
+            f"jeu par maille : {sum(len(v) for v in reels.values())} couple(s)"
+            f" (indicateur, maille) sur {len(reels)} indicateur(s) viennent d'un"
+            " autre jeu que celui déclaré"
+        )
+    return reels
+
+
 def indicateurs(
     conn,
     cartographiees: dict[str, dict[str, list[str]]],
@@ -441,6 +494,7 @@ def indicateurs(
     # la Nation — et aucun agrégat ne peut donc recevoir deux parents.
     arbre = {**hierarchie_ofgl(), **hierarchie_nationale(conn)}
     fonctionnel = hierarchie_fonctionnelle()
+    jeux_reels = jeux_reels_par_niveau(conn)
 
     def niveaux_publies(indicateur: str, declares: list[str]) -> list[str]:
         # Trié comme `synchroniser_niveaux` trie : deux publications de suite
@@ -476,6 +530,10 @@ def indicateurs(
             # s'additionne jamais avec les composantes par nature du même total :
             # ce sont deux lectures du même euro.
             "parent_fonction": fonctionnel.get(ligne[0]),
+            # Les seules mailles dont le jeu diffère de `jeu` ci-dessus. Absent
+            # quand il n'y en a aucune, ce qui est le cas ordinaire — voir
+            # `jeux_reels_par_niveau` pour ce que celui-là répare.
+            **({"jeu_par_niveau": jeux_reels[ligne[0]]} if ligne[0] in jeux_reels else {}),
         }
         for ligne in lignes
     ]
@@ -1817,19 +1875,45 @@ def _mediane(valeurs: list[float]) -> float:
     return tri[milieu] if len(tri) % 2 else (tri[milieu - 1] + tri[milieu]) / 2
 
 
-def maires(conn) -> dict[str, dict]:
-    """Le maire en exercice de chaque commune.
+#: Le rôle que porte l'exécutif de chaque maille. Une maille absente n'a pas
+#: d'exécutif publié — la France n'en a pas dans cette table, et un
+#: arrondissement municipal n'en a pas du tout dans la source.
+ROLE_PAR_NIVEAU = {
+    "commune": "maire",
+    "departement": "president_departement",
+    "region": "president_region",
+}
+
+#: L'exécutif de la mandature précédente, quand il est publié. Seules les
+#: communes en ont un : le ministère arrête la liste des maires sortants avant
+#: chaque scrutin municipal, et rien d'équivalent n'existe pour les conseils
+#: départementaux et régionaux, dont la mandature 2021-2028 court toujours.
+ROLE_PRECEDENT_PAR_NIVEAU = {"commune": "maire_precedent"}
+
+
+def maires(conn, role: str = "maire") -> dict[str, dict]:
+    """L'exécutif en exercice de chaque territoire d'une maille.
 
     Ni date de naissance, ni sexe, ni catégorie socio-professionnelle : la
     source les porte, la table ne les charge pas, et l'export ne peut donc pas
     les laisser fuir.
+
+    **Le rôle est un paramètre, pas une constante**, parce que le département
+    de Paris et la région Île-de-France portent le même code « 75 » : les lire
+    ensemble mêlerait deux exécutifs sous une seule clé. Chaque maille demande
+    le sien.
     """
+    # Le maire en exercice vit dans `commune_officials` ; les autres exécutifs
+    # dans `local_executives`, une table ajoutée plutôt qu'un rôle de plus —
+    # élargir le `check` de la première aurait imposé de reconstruire l'entrepôt
+    # entier (voir `entrepot.ANCETRES_ADDITIFS`).
+    table = "geo.commune_officials" if role == "maire" else "geo.local_executives"
     try:
         lignes = conn.execute(
-            "select geo_code, surname, given_name, since from geo.commune_officials"
-            " where role = 'maire'"
+            f"select geo_code, surname, given_name, since from {table} where role = ?",
+            (role,),
         ).fetchall()
-    except Exception:  # noqa: BLE001 — table absente tant que 0010 n'est pas appliquée
+    except Exception:  # noqa: BLE001 — table absente tant que la migration n'est pas appliquée
         entrepot.annuler(conn)
         return {}
     return {
@@ -2139,7 +2223,15 @@ def agregats_nationaux(conn) -> tuple[dict[str, dict[str, float]], dict]:
 
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
-    elus = maires(conn) if niveau == "commune" else {}
+    # L'exécutif de la maille : maire pour une commune, président du conseil
+    # pour un département ou une région. La France n'en a pas dans cette table,
+    # et un arrondissement municipal n'en a pas dans la source.
+    elus = maires(conn, ROLE_PAR_NIVEAU[niveau]) if niveau in ROLE_PAR_NIVEAU else {}
+    precedents = (
+        maires(conn, ROLE_PRECEDENT_PAR_NIVEAU[niveau])
+        if niveau in ROLE_PRECEDENT_PAR_NIVEAU
+        else {}
+    )
     return {
         code: {
             "nom": nom,
@@ -2158,7 +2250,8 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
             # une erreur, c'est une absence.
             "drapeaux": _objet(drapeaux),
             "evenements": changements.get(code, []),
-            **({"maire": elus[code]} if code in elus else {}),
+            **({"maire": elus[code]} if code in elus else {}),  # voir ROLE_PAR_NIVEAU
+            **({"maire_precedent": precedents[code]} if code in precedents else {}),
         }
         for code, nom, parent, region, population, drapeaux in conn.execute(
             """

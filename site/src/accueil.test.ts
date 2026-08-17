@@ -535,8 +535,10 @@ test("24. la bande compte les indicateurs qu'elle reçoit et cite ses producteur
   assert.ok(!/<img|<svg/.test(html));
   assert.equal([...html.matchAll(/INSEE/g)].length, 1);
   assert.ok(html.includes("INSEE · DGFiP · OFGL"), "l'ordre reçu est gardé : pas de palmarès");
-  assert.ok(html.includes('href="/methode"'));
-  assert.ok(html.includes('href="/methode#methode-journal"'));
+  assert.ok(html.includes('href="/bilan#methode-sources"'));
+  // Le journal des corrections a disparu avec l'onglet MÉTHODE ; les sources,
+  // elles, restent au pied de BILAN — la Licence Ouverte l'impose.
+  assert.ok(!html.includes('/methode'), "un lien mène encore à l'onglet supprimé");
 });
 
 /* --------------------------------------------------------------------------

@@ -8,7 +8,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { enCsv, enCsvEvolution, nomDeFichier, uniteLisible } from "./export.ts";
+import {
+  enCsv,
+  enCsvEvolution,
+  nomDeFichier,
+  sourceDuNiveau,
+  uniteLisible,
+} from "./export.ts";
 
 const QUAND = new Date("2026-08-02T14:00:00Z");
 const META = {
@@ -133,4 +139,72 @@ test("les unités de la délinquance se lisent en toutes lettres dans le CSV", (
   assert.equal(uniteLisible("pour_1000_habitants", false), "% des habitants");
   assert.equal(uniteLisible("pour_1000_logements", false), "% des logements");
   assert.equal(uniteLisible("consultations_par_an", false), "consultations par an et par habitant");
+});
+
+/* --------------------------------------------------------------------------
+ * La source, à la maille exportée
+ *
+ * Le défaut réel, mesuré sur la publication 2026-08-11T0807 : les quatre-vingt-
+ * treize agrégats de l'OFGL sont déclarés sous « ofgl-communes », et l'export
+ * d'un département écrivait donc « Source : OFGL, Finances des communes ». Les
+ * cartes grises — une recette que seules les régions perçoivent — recevaient la
+ * même phrase.
+ * ----------------------------------------------------------------------- */
+
+const JEUX = [
+  { id: "ofgl-communes", titre: "Finances des communes (consolidee)", producteur: "OFGL",
+    licence: "Licence Ouverte 2.0", url: "https://data.ofgl.fr/", extraction: "2026-08-08" },
+  { id: "ofgl-departements", titre: "Finances des départements", producteur: "OFGL",
+    licence: "Licence Ouverte 2.0", url: "https://data.ofgl.fr/", extraction: "2026-08-08" },
+];
+
+test("la source suit la maille exportée quand la publication la déclare", () => {
+  const indicateur = {
+    jeu: "ofgl-communes",
+    jeu_par_niveau: { departement: "ofgl-departements" },
+  };
+  assert.equal(
+    sourceDuNiveau(indicateur, "departement", JEUX),
+    "OFGL, Finances des départements",
+  );
+  // La maille qui n'est pas dans la table garde le jeu déclaré : c'est vraiment
+  // sa source, et c'est pour ça qu'elle n'y est pas.
+  assert.equal(
+    sourceDuNiveau(indicateur, "commune", JEUX),
+    "OFGL, Finances des communes (consolidee)",
+  );
+});
+
+test("l'en-tête du CSV porte la source de la maille, pas celle de l'indicateur", () => {
+  const source = sourceDuNiveau(
+    { jeu: "ofgl-communes", jeu_par_niveau: { departement: "ofgl-departements" } },
+    "departement",
+    JEUX,
+  );
+  const csv = enCsv(
+    [{ code: "33", nom: "Gironde", valeur: 1_814_328_375.32 }],
+    { ...META, niveau: "departement", parHabitant: false, source },
+    QUAND,
+  );
+  assert.ok(
+    csv.includes("# Source : OFGL, Finances des départements ·"),
+    `l'en-tête n'annonce pas la source du département : ${csv.split("\r\n")[1]}`,
+  );
+  assert.ok(
+    !csv.includes("Finances des communes"),
+    "un export de départements ne peut pas se réclamer des finances des communes",
+  );
+});
+
+test("sans table de mailles, la source reste celle de l'indicateur", () => {
+  // Le repli, et il compte : les publications antérieures au 17 août 2026 ne
+  // portent pas `jeu_par_niveau`, et le site doit continuer de servir.
+  assert.equal(
+    sourceDuNiveau({ jeu: "ofgl-communes" }, "departement", JEUX),
+    "OFGL, Finances des communes (consolidee)",
+  );
+});
+
+test("un jeu absent du manifeste laisse son identifiant, jamais une source vide", () => {
+  assert.equal(sourceDuNiveau({ jeu: "jeu-inconnu" }, "commune", JEUX), "jeu-inconnu");
 });

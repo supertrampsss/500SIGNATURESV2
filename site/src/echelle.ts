@@ -259,6 +259,51 @@ export const MENTION_MILLIONS = "Montants en millions d'euros";
  * Au-delà du million, la décimale suffit — personne ne lit le second chiffre
  * après la virgule sur 183,1 M€ — et au-delà du milliard, aucune.
  */
+/**
+ * Un montant écrit pour quelqu'un qui n'est pas du métier.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI « 3 536 100 M€ » N'EST PAS UN CHIFFRE LISIBLE
+ * ─────────────────────────────────────────────────────────────────────────
+ * La règle « tout en millions » existe pour qu'une colonne se compare d'une
+ * ligne à l'autre, et elle est juste pour une commune : 417,14 M€ se lit. À la
+ * maille de l'État elle produit « 380 390 M€ », « 441 194 M€ », « 3 536 100 M€ »
+ * — sept chiffres, un sigle de deux lettres, et la question que tout lecteur
+ * se pose devant l'écran : millions ou milliards ? Il faut connaître le métier
+ * pour savoir que 3 536 100 M€ est une dette de trois mille cinq cents
+ * milliards. Un site qui existe pour rendre les comptes publics lisibles ne
+ * peut pas demander ça.
+ *
+ * Deux corrections, et une seule idée : **le lecteur ne doit convertir
+ * rien du tout**.
+ *
+ * 1. L'échelle suit le montant — millions en dessous du millier de millions,
+ *    milliards au-delà. Un chiffre garde au plus quatre rangs significatifs.
+ * 2. L'unité s'écrit **en toutes lettres**. « Md€ » n'est pas plus clair que
+ *    « M€ » pour qui ne l'a jamais lu ; « milliards d'euros » l'est pour tout
+ *    le monde.
+ *
+ * Deux décimales, toujours : c'est ce qui permet à une colonne de rester
+ * alignée quand un montant tombe rond (la règle de la décimale fixe), et deux
+ * suffisent — personne ne lit le troisième rang après la virgule.
+ *
+ * `millions()` reste, et reste employée là où la place manque et où l'unité
+ * est déjà dite par ailleurs : une cellule de tableau sous une légende qui
+ * nomme l'unité, une carte de partage, un export.
+ */
+export function montantLisible(valeur: number): string {
+  const absolu = Math.abs(valeur);
+  const [diviseur, mot] =
+    absolu >= 1e9 ? [1e9, "milliards d'euros"] : [1e6, "millions d'euros"];
+  const echelle = valeur / diviseur;
+  return moins(
+    `${new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(sansZeroNegatif(echelle, 2))}\u00a0${mot}`,
+  );
+}
+
 export function millions(valeur: number): string {
   const m = valeur / 1e6;
   const absolu = Math.abs(m);

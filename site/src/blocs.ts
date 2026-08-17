@@ -27,7 +27,7 @@
  */
 
 import type { Indicateur } from "./donnees.ts";
-import { millions } from "./echelle.ts";
+import { montantLisible } from "./echelle.ts";
 import { provenance, type Part } from "./provenance.ts";
 import { OUVERTURE } from "./reperes.ts";
 import { accentuer } from "./traductions.ts";
@@ -188,7 +188,7 @@ function ouVaLArgent(cadre: Cadre): Bloc | null {
   const total = mesure(cadre.series, depenses);
   if (!total) return null;
   const phrases = [
-    `${echapper(sujet(cadre.nom))} dépense ${gras(millions(total.fin))} par an ${emploi}${ecart(total)}.`,
+    `${echapper(sujet(cadre.nom))} dépense ${gras(montantLisible(total.fin))} par an ${emploi}${ecart(total)}.`,
   ];
   const cites = [depenses];
 
@@ -200,7 +200,7 @@ function ouVaLArgent(cadre: Cadre): Bloc | null {
   if (tete && total.delta !== null) {
     cites.push(tete.id);
     const passe = tete.pluriel ? "passent" : "passe";
-    const trajet = `de ${sansSigle(tete.debut)} à ${millions(tete.fin)}`;
+    const trajet = `de ${sansSigle(tete.debut)} à ${montantLisible(tete.fin)}`;
     const rapport = Math.abs(tete.delta) / Math.abs(total.delta);
     // Un poste peut bouger de plus que son total, quand d'autres vont en sens
     // inverse : à Ambérieu-en-Bugey, les achats reculent de 0,5 M€ pendant que
@@ -244,9 +244,9 @@ function quiPaie(cadre: Cadre): Bloc | null {
   const cites = [recettes];
   const phrases = [
     total.delta === null
-      ? `Les recettes sont de ${gras(millions(total.fin))}.`
+      ? `Les recettes sont de ${gras(montantLisible(total.fin))}.`
       : `Les recettes ${total.delta >= 0 ? "augmentent" : "diminuent"} de ${
-          gras(millions(Math.abs(total.delta)))
+          gras(montantLisible(Math.abs(total.delta)))
         }.`,
   ];
 
@@ -263,10 +263,10 @@ function quiPaie(cadre: Cadre): Bloc | null {
     phrases.push(
       rapport > 1
         ? `${capitale(gras(nommer(tete)))} ${apporte} ${
-            gras(`${millions(Math.abs(tete.delta))} de plus`)
+            gras(`${montantLisible(Math.abs(tete.delta))} de plus`)
           } qu'en ${OUVERTURE}, quand d'autres recettes reculent.`
         : `${capitale(gras(nommer(tete)))} en ${apporte} ${gras(part(rapport))}, soit ${
-            millions(Math.abs(tete.delta))
+            montantLisible(Math.abs(tete.delta))
           }.`,
     );
   }
@@ -301,7 +301,7 @@ function ceQuIlReste(cadre: Cadre): Bloc | null {
     titre: "L'ardoise",
     texte:
       `Il faudrait ${gras(`${annuites(annees)} d'épargne`)} pour rembourser les ${
-        gras(millions(d.fin))
+        gras(montantLisible(d.fin))
       } que ${beneficiaire} doit encore${
         avant === null ? "" : `, contre ${annuites(avant)} en ${OUVERTURE}`
       }.`,
@@ -320,8 +320,8 @@ function ceQueCaAPaye(cadre: Cadre): Bloc | null {
   if (!total || total.fin <= 0) return null;
   const cites = [investissement];
   const phrases = [
-    `${capitale(beneficiaire)} a investi ${gras(millions(total.fin))} en ${total.arrivee}${
-      total.debut === null ? "" : `, contre ${millions(total.debut)} en ${OUVERTURE}`
+    `${capitale(beneficiaire)} a investi ${gras(montantLisible(total.fin))} en ${total.arrivee}${
+      total.debut === null ? "" : `, contre ${montantLisible(total.debut)} en ${OUVERTURE}`
     }.`,
   ];
   // Ici la question est « ce que ça a payé », pas « d'où vient la hausse » : ce
@@ -335,7 +335,7 @@ function ceQueCaAPaye(cadre: Cadre): Bloc | null {
     cites.push(gros.id);
     phrases.push(
       `${capitale(gras(nommer(gros)))} en ${gros.pluriel ? "font" : "fait"} ${
-        gras(millions(gros.fin))
+        gras(montantLisible(gros.fin))
       }, soit ${part(gros.fin / total.fin)}.`,
     );
   }
@@ -370,7 +370,7 @@ function ceQueLEtatVerse(
     return {
       phrase: `${ouvre}, ce que l'État verse ${a(beneficiaire)} ${verbe}, de ${
         sansSigle(total.debut)
-      } à ${gras(millions(total.fin))}.`,
+      } à ${gras(montantLisible(total.fin))}.`,
       cites: [concours],
     };
   }
@@ -380,7 +380,7 @@ function ceQueLEtatVerse(
   return {
     phrase: `${ouvre}, ce que l'État verse ${a(beneficiaire)} ${verbe} : ${
       gras(nommer(ligne))
-    } ${bouge} de ${sansSigle(ligne.debut)} à ${gras(millions(ligne.fin))}.`,
+    } ${bouge} de ${sansSigle(ligne.debut)} à ${gras(montantLisible(ligne.fin))}.`,
     cites: [concours, ligne.id],
   };
 }
@@ -545,17 +545,23 @@ const TOUT_LE_MONTANT = 0.99;
  *  borne d'ouverture publiée. */
 function ecart(total: Mesure): string {
   if (total.delta === null || total.delta === 0) return "";
-  return `, soit ${gras(`${millions(Math.abs(total.delta))} de ${total.delta > 0 ? "plus" : "moins"}`)} qu'en ${OUVERTURE}`;
+  return `, soit ${gras(`${montantLisible(Math.abs(total.delta))} de ${total.delta > 0 ? "plus" : "moins"}`)} qu'en ${OUVERTURE}`;
 }
 
 /** « +21,2 M€ », « −0,8 M€ » : le signe est l'information. */
 function apport(valeur: number): string {
-  return `${valeur >= 0 ? "+" : ""}${millions(valeur)}`;
+  return `${valeur >= 0 ? "+" : ""}${montantLisible(valeur)}`;
 }
 
-/** Le nombre sans son sigle : « de 143,6 à 183,1 M€ » ne l'écrit qu'une fois. */
+/** Le nombre sans son unité : « de 143,60 à 183,10 millions d'euros » ne
+ *  l'écrit qu'une fois, à la fin.
+ *
+ *  La coupe se fait sur l'insécable que pose `montantLisible`, jamais sur la
+ *  dernière espace : l'unité s'écrit en toutes lettres et en contient une. */
 function sansSigle(valeur: number): string {
-  return millions(valeur).replace(/\s*M€$/u, "");
+  const formate = montantLisible(valeur);
+  const coupe = formate.indexOf("\u00a0");
+  return coupe === -1 ? formate : formate.slice(0, coupe);
 }
 
 /** Une part, en pourcentage entier : « 90 % », jamais « neuf dixièmes ». */

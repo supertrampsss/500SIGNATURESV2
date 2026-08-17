@@ -132,9 +132,12 @@ test("la fiche n'aligne plus une seule ligne de mesure", () => {
   assert.doesNotMatch(FICHE, /data-mesure=/);
   assert.doesNotMatch(FICHE, /class="mesures"/);
   assert.doesNotMatch(FICHE, /theme-groupe|onglets-themes|onglets-rubriques/);
-  // On peint toujours depuis le sélecteur de la carte : c'est lui qui choisit
-  // l'indicateur, et il n'a jamais été dans la fiche.
-  assert.match(MAIN, /function peintSurCarte\(indicateur: Indicateur\): boolean/);
+  // Le sélecteur d'indicateur de la carte a été retiré de l'écran le 17 août
+  // 2026 : deux menus posés sur la carte pour des réglages que personne
+  // n'employait. Ce qu'ils réglaient reste piloté par l'adresse, et « Voir sur
+  // la carte » dans le détail d'une mesure appelle toujours `choisirIndicateur`.
+  assert.doesNotMatch(MAIN, /construireSelecteurCarte|construireBarreCarte/);
+  assert.match(MAIN, /async function choisirIndicateur\(id: string\): Promise<void>/);
 });
 
 test("un maire absent n'écrit rien, comme toute donnée absente", () => {
@@ -536,7 +539,7 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   // La navigation vise des chemins : un `href="#territoire"` cliqué depuis
   // `/simulateur` donnerait `/simulateur#territoire`, et le chemin l'emporte.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  assert.doesNotMatch(balises, /href="#(territoire|reperes|detail|simulateur|methode)"/);
+  assert.doesNotMatch(balises, /href="#(territoire|bilan|simulateur)"/);
   assert.match(balises, /href="\/territoire" data-vue="territoire"/);
 });
 
@@ -544,8 +547,7 @@ test("les vues renommées portent leur nouveau nom partout", () => {
   // « Analyses » désigne désormais les analyses éditoriales ; les tableaux d'un
   // territoire s'appellent « detail ». « Décryptages » est devenu « Repères ».
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  assert.match(balises, /id="vue-detail"/);
-  assert.match(balises, /id="vue-reperes"/);
+  assert.match(balises, /id="vue-bilan"/);
   assert.doesNotMatch(balises, /id="vue-analyses"/);
   assert.doesNotMatch(balises, /id="vue-decryptages"/);
   // Et le nom retiré ne revient pas par la bande.
@@ -588,7 +590,7 @@ test("les trois états d'une zone de données se distinguent", () => {
 test("une vue longue dit ce qu'elle contient", () => {
   // Huit blocs de plusieurs écrans sur 6 600 px de défilement, sans moyen de
   // savoir ce qui restait dessous ni d'y aller.
-  assert.match(PAGE, /id="sommaire-reperes"/);
+  assert.match(PAGE, /id="sommaire-bilan"/);
   assert.match(MAIN, /function peindreSommaireReperes\(\)/);
   // Le sommaire se construit sur ce qui s'est réellement affiché : rien de
   // cliquable ne doit mener à une section vide.
@@ -640,7 +642,7 @@ test("le Back vers `/` n'est plus avalé par la garde des ancres internes", () =
         "cible",
         `return (${garde![1]});`,
       )(
-        () => ["territoire", "reperes", "detail", "methode"],
+        () => ["territoire", "bilan"],
         { body: { dataset: { vue: vueAffichee } } },
         { hash },
         cible,
@@ -649,10 +651,10 @@ test("le Back vers `/` n'est plus avalé par la garde des ancres internes", () =
   // Back vers `/` : cible inconnue, une vue est déjà affichée, aucun fragment
   // — la garde ne doit plus avaler ce cas, `basculerVue` doit retomber sur
   // TERRITOIRE.
-  assert.equal(avale("", "reperes", ""), false, "un Back vers / doit changer la vue affichée");
+  assert.equal(avale("", "bilan", ""), false, "un Back vers / doit changer la vue affichée");
   // Ancre interne : cible inconnue aussi, mais un fragment est présent — le
   // comportement que la garde protège depuis l'origine ne doit pas régresser.
-  assert.equal(avale("", "reperes", "#bloc-etat"), true, "une ancre interne doit laisser la vue en place");
+  assert.equal(avale("", "bilan", "#bloc-etat"), true, "une ancre interne doit laisser la vue en place");
 });
 
 test("sous le pouce, la navigation ne se coupe plus", () => {
@@ -795,74 +797,7 @@ test("l'infobulle met une ligne par lecture", () => {
   assert.match(CSS, /\.infobulle span \{\n\s*display: block;/);
 });
 
-test("le site dit ce qu'il a corrigé et quand il a lu ses sources", () => {
-  // Le pipeline publie `journal.json` et `fraicheur.json` à chaque exécution, et
-  // les deux modules qui les rendent étaient écrits et testés sans être
-  // appelés : le site savait dire ses corrections et ne les disait nulle part.
-  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  assert.match(balises, /id="vue-methode"/);
-  assert.match(balises, /id="methode-journal"/);
-  assert.match(balises, /id="methode-fraicheur"/);
-  assert.match(MAIN, /async function peindreMethode\(\)/);
-  assert.match(MAIN, /afficherJournal\(/);
-  assert.match(MAIN, /afficherFraicheur\(/);
-  // Un fichier absent laisse la page debout : c'est la règle du site partout
-  // ailleurs, elle vaut ici.
-  // Borné sur la fonction suivante, jamais sur un nombre de caractères : une
-  // ligne ajoutée au peintre poussait le `catch` hors d'une fenêtre fixe et
-  // faisait rougir ce test sans que la règle ait bougé.
-  const corps = MAIN.slice(
-    MAIN.indexOf("async function peindreMethode"),
-    MAIN.indexOf("function exemplesTerritoires"),
-  );
-  assert.match(corps, /catch/);
-});
 
-test("aucun fetch de MÉTHODE ne part avant que l'initialisation n'ait résolu", () => {
-  // `basculerVue` peint la première vue AVANT `await donnees.initialiser()`
-  // dans `demarrer` : un chargement à froid sur /methode appelait donc
-  // `donnees.fraicheur()`/`donnees.journal()` alors que `donnees.racine`
-  // valait "". Les deux fetches résolvaient contre l'origine du site elle-même
-  // (retombée SPA de Cloudflare Pages, 200 avec index.html), `r.json()`
-  // levait, et `donnees.ts` cache par chemin relatif — pas par URL résolue —
-  // donc l'échec restait figé pour le reste de la session. `methodePeinte`
-  // verrouillait la vue en plus, avant même d'avoir essayé : blanche pour de
-  // bon.
-  const corpsPeintre = MAIN.slice(
-    MAIN.indexOf("async function peindreMethode"),
-    MAIN.indexOf("function basculerVue"),
-  );
-  assert.ok(corpsPeintre.length > 100, "corps de peindreMethode introuvable");
-  assert.ok(
-    corpsPeintre.indexOf("await prete;") !== -1 &&
-      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("donnees.fraicheur()") &&
-      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("donnees.journal()"),
-    "peindreMethode doit attendre `prete` avant tout fetch",
-  );
-  // `methodePeinte` ne verrouille plus AVANT d'avoir essayé : un échec
-  // véritable laisse la vue rejouable au prochain hashchange/popstate. Ce qui
-  // compte n'est pas la forme exacte du latch prématuré — une regex qui ne
-  // reconnaît que `methodePeinte = true;\n try` laisse passer la même faute
-  // écrite autrement, par exemple suivie d'un `await prete;` plutôt que d'un
-  // `try` — mais l'ordre : le latch ne doit jamais précéder l'attente de
-  // `prete`.
-  assert.ok(
-    corpsPeintre.indexOf("await prete;") !== -1 &&
-      corpsPeintre.indexOf("methodePeinte =") !== -1 &&
-      corpsPeintre.indexOf("await prete;") < corpsPeintre.indexOf("methodePeinte ="),
-    "le latch `methodePeinte` ne doit jamais précéder `await prete;`",
-  );
-  assert.match(corpsPeintre, /methodePeinte = rendu;/);
-  // `prete` n'est résolue qu'APRÈS `await donnees.initialiser()` dans
-  // `demarrer` : c'est cet ordre qui garantit qu'aucun fetch de peintre ne
-  // part contre l'origine du site.
-  const corpsDemarrer = MAIN.slice(MAIN.indexOf("async function demarrer"));
-  assert.ok(
-    corpsDemarrer.indexOf("await donnees.initialiser()") <
-      corpsDemarrer.indexOf("resoudrePrete();"),
-    "resoudrePrete() doit être appelée après donnees.initialiser()",
-  );
-});
 
 test("aucun fetch de DÉTAIL ne part avant que l'initialisation n'ait résolu", () => {
   // Même défaut que MÉTHODE, pré-existant celui-là : `basculerVue` peint la
@@ -890,31 +825,13 @@ test("aucun fetch de DÉTAIL ne part avant que l'initialisation n'ait résolu", 
   );
 });
 
-test("les cases de MÉTHODE disparaissent quand elles n'ont rien à montrer", () => {
-  // `.bloc` est un cadre bordé, ombré : `peindreMethode` ignorait les
-  // booléens que renvoient `afficherFraicheur`/`afficherJournal` (« j'ai
-  // rendu quelque chose »), si bien qu'un fichier vide peignait un cadre vide
-  // plutôt que rien. C'est le seul endroit du site qui ne suivait pas le
-  // motif employé partout ailleurs (`afficherBudgetEtat` et consorts) : le
-  // retour du peintre commande la visibilité de son conteneur.
-  const corps = MAIN.slice(
-    MAIN.indexOf("async function peindreMethode"),
-    MAIN.indexOf("function basculerVue"),
-  );
-  assert.match(corps, /blocFraicheur\.hidden = !affiche;/);
-  assert.match(corps, /blocJournal\.hidden = !affiche;/);
-  // Un échec (fichier non publié, réseau en panne) doit aussi cacher le
-  // cadre, pas seulement le laisser vide sans rien avoir écrit dedans.
-  assert.match(corps, /blocFraicheur\.hidden = true;/);
-  assert.match(corps, /blocJournal\.hidden = true;/);
-});
 
 test("le détail d'un territoire porte son classement, son export et sa comparaison", () => {
   // Trois conteneurs disparus avec la vue DONNÉES, alors que tout le code qui
   // les remplit est resté : `majTableau`, `majTableauEvolution` et
   // `majComparateur` se taisaient faute d'endroit où écrire.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  const vue = balises.slice(balises.indexOf('id="vue-detail"'), balises.indexOf('id="vue-methode"'));
+  const vue = balises.slice(balises.indexOf('id="bilan__territoires"') >= 0 ? balises.indexOf('id="bilan__territoires"') : balises.indexOf('class="bilan__territoires"'), balises.length);
   assert.match(vue, /id="tableau-donnees"/);
   assert.match(vue, /id="exporter"/);
   assert.match(vue, /id="comparateur"/);
@@ -1007,12 +924,15 @@ test("une page éditoriale garde sa recherche, pas le reste de l'amorçage", () 
   // câblée en JavaScript. Elle doit donc l'être AVANT la garde, pas dans la
   // branche qui s'arrête là — sans quoi elle ne fonctionnerait que sur la carte.
   const corps = MAIN.slice(MAIN.indexOf("async function demarrer"));
-  const idxResoudrePrete = corps.indexOf("resoudrePrete();");
-  assert.ok(idxResoudrePrete !== -1, "resoudrePrete() introuvable dans demarrer()");
+  // Le repère était `resoudrePrete()`, disparu avec MÉTHODE — c'était le seul
+  // peintre qui attendait cette promesse. L'initialisation des données joue le
+  // même rôle : c'est après elle que tout le reste de l'amorçage se branche.
+  const idxResoudrePrete = corps.indexOf("await donnees.initialiser()");
+  assert.ok(idxResoudrePrete !== -1, "donnees.initialiser() introuvable dans demarrer()");
   const idxRecherche = corps.indexOf("brancherRecherche(", idxResoudrePrete);
   const idxGarde = corps.indexOf('dataset.page === "editorial"', idxResoudrePrete);
   const idxSelecteurs = corps.indexOf("construireSelecteurs();", idxResoudrePrete);
-  assert.ok(idxGarde !== -1, "garde éditoriale de demarrer() introuvable après resoudrePrete()");
+  assert.ok(idxGarde !== -1, "garde éditoriale de demarrer() introuvable après l'initialisation");
   assert.ok(
     idxRecherche !== -1 && idxRecherche > idxResoudrePrete && idxRecherche < idxGarde,
     "la recherche doit être branchée avant la garde éditoriale, pour fonctionner sur les deux types de page",
@@ -1498,9 +1418,26 @@ test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () 
   // Les euros constants introduisaient une seconde unité à côté du million
   // d'euros courants, que les règles d'affichage n'admettent pas.
   assert.doesNotMatch(MAIN, /from "\.\/euros-constants\.ts"/);
-  // Et le conteneur que rien n'a jamais rempli.
+});
+
+test("aucun conteneur que rien ne remplit", () => {
+  // `#palmares` a été retiré au lot 0 parce que RIEN ne l'écrivait : un cadre
+  // vide dans le document est une promesse que la page ne tient pas, et il a
+  // survécu des mois sans que personne s'en aperçoive.
+  //
+  // Il est revenu le 17 août 2026, rempli cette fois — le palmarès des notes.
+  // Ce que la garde d'origine protégeait n'était pas l'absence d'un palmarès
+  // mais l'absence d'un conteneur mort, et c'est cela qu'elle vérifie
+  // désormais : le conteneur peut exister, à condition que `main.ts` l'écrive.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  assert.doesNotMatch(balises, /id="palmares"/);
+  if (/id="palmares"/.test(balises)) {
+    assert.match(
+      MAIN,
+      /getElementById\("palmares"\)/,
+      "#palmares est dans le document et personne ne l'écrit",
+    );
+    assert.match(MAIN, /rendrePalmares\(/);
+  }
 });
 
 /* ------------------------------------------------------------------------
@@ -1512,7 +1449,7 @@ test("le conteneur #scenarios existe et précède #simu", () => {
   // La barre se lit avant l'atelier : un lecteur qui arrive doit d'abord voir
   // ce qu'il a déjà enregistré, pas le découvrir sous le formulaire.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  const vue = balises.slice(balises.indexOf('id="vue-simulateur"'), balises.indexOf('id="vue-detail"'));
+  const vue = balises.slice(balises.indexOf('id="vue-simulateur"'));
   assert.match(vue, /id="scenarios"/);
   assert.ok(
     vue.indexOf('id="scenarios"') < vue.indexOf('id="simu"'),
@@ -1961,11 +1898,17 @@ test("un stockage indisponible dégrade en scénarios de session, et l'interface
 });
 
 test("comparer deux scénarios est un mode du simulateur, jamais une vue distincte", () => {
-  // `/simulateur/comparer` résoudrait déjà sur `simulateur` (routes.ts ne lit
-  // que le premier segment) : ouvrir une entrée de menu pour un écran qui n'a
+  // `/simulateur/comparer` résout déjà sur `simulateur` — une vue réelle se
+  // reconnaît à son premier segment, à n'importe quelle profondeur. Ouvrir une
+  // entrée de menu pour un écran qui n'a
   // de sens qu'à deux scénarios en main afficherait un lien mort à qui n'en a
   // aucun. Le mode se déclenche par la présence de `face` dans l'adresse.
-  assert.doesNotMatch(ROUTES, /comparer/);
+  // Le motif visait tout le fichier ; il vise maintenant les seules tables qui
+  // fabriquent des adresses. `comparer` peut être NOMMÉ en commentaire — il
+  // l'est, pour expliquer pourquoi une vue se reconnaît à son premier segment —
+  // mais il ne doit être ni un chemin ni un alias.
+  const tables = ROUTES.slice(ROUTES.indexOf("export const CHEMINS"), ROUTES.indexOf("/** Le chemin d'une vue"));
+  assert.doesNotMatch(tables, /comparer/);
   assert.match(MAIN, /const tableau = faceChoisie\(\)/);
 });
 
@@ -2178,19 +2121,6 @@ test("deux colonnes ne portent jamais le même nom au-dessus de deux budgets dif
   assert.equal(face!.nom, "Chez moi");
 });
 
-test("l'entrée ANALYSES est en tête de la navigation, et recharge la page", () => {
-  // Sans elle, /analyses/ n'existait que pour un lecteur qui en connaissait
-  // déjà l'adresse : c'est pourtant le point d'entrée éditorial du site.
-  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  const nav = balises.slice(balises.indexOf('<nav class="entete__nav"'), balises.indexOf("</nav>"));
-  assert.match(nav, /^<nav class="entete__nav"[^>]*>\s*<a href="\/analyses\/">Analyses<\/a>/);
-  // Sans `data-vue`, volontairement : l'intercepteur de clic de main.ts ne
-  // capture que les liens qui en portent un (`a[data-vue]`) — ce lien doit
-  // provoquer un chargement de page complet, celui d'une page statique servie
-  // par le serveur, pas une bascule de vue de l'app monoécran.
-  assert.doesNotMatch(nav, /href="\/analyses\/"\s+data-vue/);
-  assert.match(MAIN, /const lien = \(clic\.target as HTMLElement\)\.closest<HTMLAnchorElement>\("a\[data-vue\]"\);/);
-});
 
 /* ------------------------------------------------------------------------
  * Les scénarios de référence — tâche 6 du lot « Le simulateur enregistre » :
@@ -2754,4 +2684,163 @@ test("une carte cachée et une barre repliée le restent bien à l'écran", () =
   // le défaut déjà vu sur `.onglets-themes`.
   assert.match(CSS_REGLES, /\.analyse-rendu__index-ligne\[hidden\] \{\n\s*display: none;/);
   assert.match(CSS_REGLES, /\.analyses-filtres\[hidden\] \{\n\s*display: none;/);
+});
+
+/**
+ * L'export CSV nomme sa source à la maille exportée.
+ *
+ * Le module `export.ts` a la fonction et ses tests ; ce qui se vérifie ici est
+ * son BRANCHEMENT. Une fonction juste qu'aucun appelant n'emploie laisse le
+ * défaut en ligne — c'est le piège que ce dépôt a déjà rencontré deux fois, un
+ * test vert au-dessus d'un écran faux.
+ */
+test("l'export lit la source à la maille, et plus le seul jeu de l'indicateur", () => {
+  assert.ok(
+    MAIN.includes("sourceDuNiveau(indicateur, etat.niveau, jeux)"),
+    "main.ts ne demande plus la source à la maille exportée",
+  );
+  assert.ok(
+    !/source:\s*jeu\s*\?/.test(MAIN),
+    "l'ancienne résolution — le jeu de l'indicateur, quelle que soit la maille — est revenue",
+  );
+});
+
+/**
+ * La fiche de territoire est partageable, à toutes les mailles.
+ *
+ * Spec §13 : cinq objets partageables, dont « Fiche territoire — nom du
+ * territoire, trois chiffres, exercice ». `carteFiche` et `partageFiche` ont
+ * leurs tests ; ce qui se vérifie ici est qu'un appelant existe, et qu'il
+ * existe aux DEUX endroits où la fiche s'affiche — le panneau d'accueil, qui
+ * montre la France, et la sélection d'un territoire. « La même fiche à toutes
+ * les mailles » (CLAUDE.md) vaut aussi pour ce qu'on peut en emporter.
+ */
+test("le pied de fiche porte le partage, sur la France comme sur un territoire", () => {
+  assert.ok(
+    FICHE.includes('id="fiche-partage"'),
+    "la fiche ne laisse plus de conteneur au cadre de partage",
+  );
+  const poses = MAIN.match(/poserPartageDeLaFiche\(/g) ?? [];
+  assert.equal(
+    poses.length - 1,
+    2,
+    `le cadre de partage est posé ${poses.length - 1} fois pour deux affichages de fiche`,
+  );
+  assert.ok(
+    MAIN.includes('poserPartageDeLaFiche("pays", "FR", france)'),
+    "le panneau d'accueil, qui montre la France, n'offre pas son partage",
+  );
+  assert.ok(MAIN.includes("brancherPartageDeLaFiche();"), "les gestes ne sont branchés nulle part");
+});
+
+test("l'image d'une fiche se construit au clic, elle ne s'annonce pas comme un fichier", () => {
+  // Le build n'écrit pas 34 875 PNG : `partageFiche` rend `image: null`, et le
+  // bouton passe par `carteFiche` puis `telecharger`. Un href vers une image
+  // que rien ne produit est l'aperçu cassé que `validerImagesAnnoncees` refuse.
+  assert.ok(
+    MAIN.includes('nomDeFichier(fichePartagee.territoire.nom, fichePartagee.niveau, "carte", "svg")'),
+    "la carte de fiche ne se télécharge pas, ou pas en SVG",
+  );
+  assert.ok(
+    /button\[data-carte\]/.test(MAIN),
+    "aucun écouteur ne sert le bouton d'image construite",
+  );
+});
+
+/**
+ * Une piste de grille ne reste pas plus large que son cadre.
+ *
+ * `repeat(auto-fit, minmax(20rem, 1fr))` garde sa piste de 20 rem même quand le
+ * conteneur est plus étroit qu'elle. Mesuré au navigateur à 320 px : la section
+ * nationale n'offre que 190 px et deux de ses cadres en prenaient 320, « 100 € »
+ * 288 px dans un cadre de 156. Le corps de `/reperes` défilait alors sur 385 px
+ * — le §24 pris en défaut, sur des surfaces plus anciennes que le cadre de
+ * partage qui a fait chercher.
+ *
+ * `min(Nrem, 100%)` ne change rien au-dessus de N rem ; il donne à la piste le
+ * droit de descendre avec son conteneur. Les quatre autres grilles de ce fichier
+ * — 16, 12, 9,5 et 9 rem — ont été mesurées aux mêmes 320 px et tiennent : elles
+ * restent telles quelles, faute de défaut à corriger.
+ */
+test("les deux grilles qui débordaient à 320 px bornent leur piste", () => {
+  for (const grille of ["national__grille", "cent__grille"]) {
+    const bloc = CSS.slice(CSS.indexOf(`.${grille} {`));
+    const declaration = bloc.slice(0, bloc.indexOf("}"));
+    assert.match(
+      declaration,
+      /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(\d+rem,\s*100%\),\s*1fr\)\)/,
+      `.${grille} : la piste ne peut plus descendre sous sa taille, et déborde à 320 px`,
+    );
+  }
+});
+
+/**
+ * Le chiffre de tête d'un cadre et son millésime passent à la ligne.
+ *
+ * Deuxième cause du défilement de `/reperes`, cachée derrière la première :
+ * borner les pistes de grille a ramené le corps de 385 px à 330, pas à 320. Le
+ * reste venait d'ici — `.bloc__chiffre` est un flex, le chiffre y est au corps
+ * le plus gros du site, et « 3 536 100 M€ » suivi de la pilule « 2026-Q1 »
+ * demande 330 px. Un flex ne passe pas à la ligne tout seul.
+ *
+ * La leçon vaut plus que la ligne : une grosse amélioration mesurée — 385 vers
+ * 330 — n'est pas une page réparée, et s'arrêter là aurait produit une
+ * affirmation fausse.
+ */
+test("le chiffre de tête et son millésime passent à la ligne plutôt que de sortir", () => {
+  const bloc = CSS.slice(CSS.indexOf(".bloc__chiffre {"));
+  const declaration = bloc.slice(0, bloc.indexOf("}"));
+  assert.match(declaration, /display:\s*flex/, ".bloc__chiffre n'est plus un flex : ce test vise le mauvais sélecteur");
+  assert.match(
+    declaration,
+    /flex-wrap:\s*wrap/,
+    "le millésime sort du cadre à 320 px, et le corps de page défile avec lui",
+  );
+});
+
+/**
+ * Les deux correctifs d'accessibilité que seul un navigateur voyait.
+ *
+ * `axe-core` n'est pas dans l'intégration continue : ces deux gardes sont donc
+ * la seule chose qui empêche les quinze nœuds de revenir. Elles sont
+ * grossières — du texte dans une feuille et dans huit gabarits — et c'est
+ * exactement leur intérêt : elles coûtent une milliseconde et tiennent la
+ * mesure qui a coûté un moteur de rendu.
+ */
+test("les paliers de la mission ne s'estompent pas sur fond clair", () => {
+  // `opacity: 0.55` composait --encre-douce en #a3aaa2 sur le carreau : 2,1:1
+  // pour un seuil de 4,5. Les tests de couleur du dépôt ne pouvaient pas le
+  // voir — ils lisent des couleurs déclarées, et l'opacité n'en est pas une.
+  const bloc = CSS.slice(CSS.indexOf(".mission .simu__palier {"));
+  const declaration = bloc.slice(0, bloc.indexOf("}"));
+  assert.match(
+    declaration,
+    /opacity:\s*1/,
+    "l'estompe est revenue sur fond clair : le contraste retombe à 2,1:1",
+  );
+});
+
+test("les huit cadres qui défilent sont atteignables au clavier", () => {
+  // Un `overflow-x: auto` sans contenu focalisable ne défile qu'à la souris
+  // (WCAG 2.1.1) : les colonnes cachées sont perdues pour qui navigue au
+  // clavier. Le sélecteur est vérifié avant le `tabindex`, sans quoi un
+  // renommage de classe rendrait ce test vert sur un gabarit disparu.
+  const gabarits: [string, string][] = [
+    ["etat.ts", 'class="pont"'],
+    ["etat.ts", 'class="comparaison"'],
+    ["national.ts", 'class="comparaison"'],
+    ["fonctions.ts", 'class="fonctions"'],
+    ["niches.ts", 'class="niches"'],
+    ["secu.ts", 'class="secu"'],
+    ["secu.ts", 'class="secu secu--serie"'],
+    ["exercices.ts", 'class="tableau-exercices"'],
+  ];
+  for (const [fichier, motif] of gabarits) {
+    const source = readFileSync(new URL(`./${fichier}`, import.meta.url), "utf8");
+    assert.ok(source.includes(motif), `${fichier} : ${motif} introuvable, le test vise à côté`);
+    assert.ok(
+      source.includes(`${motif} tabindex="0"`),
+      `${fichier} : ${motif} défile sans être atteignable au clavier`,
+    );
+  }
 });

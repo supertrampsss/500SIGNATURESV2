@@ -92,7 +92,7 @@ test("la comparaison européenne nomme ses pays et souligne la France", () => {
   const html = renduEurope(PAYS);
   assert.match(html, /<tr class="souligne">\s*<th scope="row">France<\/th>/);
   assert.ok(html.includes("Allemagne"), "l'Allemagne n'est pas rendue");
-  assert.ok(html.includes("Zone euro"), "la zone euro n'est pas rendue");
+  assert.ok(html.includes("Zone euro (20 pays)"), "la zone euro n'est pas rendue");
   // Un voisin absent du lot n'a pas de ligne du tout.
   assert.doesNotMatch(html, /Espagne|Italie|Pays-Bas/);
 });
@@ -101,7 +101,7 @@ test("une valeur absente chez un voisin s'écrit — plutôt que zéro", () => {
   const html = renduEurope(PAYS);
   // La zone euro n'a ni déficit ni chômage dans ce lot : deux tirets, pas deux
   // « 0,0 % » qui se liraient comme des mesures.
-  assert.match(html, new RegExp(`Zone euro</th>\\s*<td>87,4${FINE}%</td>\\s*<td>—</td>\\s*<td>—</td>`));
+  assert.match(html, new RegExp(`Zone euro \\(20 pays\\)</th>\\s*<td>87,4${FINE}%</td>\\s*<td>—</td>\\s*<td>—</td>`));
 });
 
 test("l'année du tableau est celle de la série française, pas une constante", () => {

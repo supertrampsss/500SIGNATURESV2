@@ -208,7 +208,7 @@ test("la fiche s'arrête au tableau des exercices", () => {
   const html = ficheDeBordeaux();
   const sections = [...html.matchAll(/class="([a-z-]+)"/g)]
     .map((m) => m[1])
-    .filter((c) => !c.startsWith("repere") && !c.startsWith("bloc"));
+    .filter((c) => !c.startsWith("repere") && !c.startsWith("bloc") && !c.startsWith("note"));
   for (const classe of sections) {
     assert.ok(
       ["fiche__titre", "fiche__meta", "fiche__maire", "fiche__habitants",
@@ -217,6 +217,16 @@ test("la fiche s'arrête au tableau des exercices", () => {
       `section inattendue : ${classe}`,
     );
   }
+  // La note ouvre la fiche — c'est la question qu'on vient poser. Elle n'entre
+  // pas dans l'énumération ci-dessus pour la même raison que les repères et
+  // les blocs : ce sont des modules de rendu à eux, dont les classes se
+  // vérifient dans leurs propres tests. Ce qui est vérifié ici, c'est qu'elle
+  // est bien présente et bien PREMIÈRE, avant les repères qui la soutiennent.
+  assert.match(html, /class="note"/, "la note a quitté la fiche");
+  assert.ok(
+    html.indexOf('class="note"') < html.indexOf('class="reperes"'),
+    "les repères passent avant la note : la réponse arrive après ses justifications",
+  );
   // Le conteneur des rangs est vide tant que main.ts ne l'a pas rempli : la
   // fiche ne dit jamais ce qu'elle est en train de calculer.
   assert.match(html, /<div class="fiche__situation" id="fiche-situation"><\/div>/);
@@ -245,7 +255,7 @@ test("la fenêtre est la même à toutes les mailles, quelle que soit l'électio
   // La règle du dépôt : la fenêtre est dans les millésimes des phrases, 2019 et
   // 2025. Elle suivait le calendrier électoral de la maille — municipales 2020
   // pour une commune, départementales 2021 pour un département — si bien que la
-  // Gironde s'ouvrait sur « contre 1 763 M€ en 2020 » quand Bordeaux disait
+  // Gironde s'ouvrait sur « contre1,76 milliards d'euros en 2020 » quand Bordeaux disait
   // 2019. Deux territoires qu'on vient précisément comparer.
   const M = 1_000_000;
   const annees = ["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
@@ -283,7 +293,7 @@ test("la fenêtre est la même à toutes les mailles, quelle que soit l'électio
   }
 });
 test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => {
-  // « Salaire net mensuel moyen : 0,00 M€ », deux exercices de suite, avec
+  // « Salaire net mensuel moyen :0,00 millions d'euros », deux exercices de suite, avec
   // « +4 % » à côté d'un chiffre nul : la règle des millions sert à comparer
   // des masses budgétaires entre elles, pas à dire une paie.
   const ECHELLE = fs.readFileSync(new URL("./echelle.ts", import.meta.url), "utf8");
@@ -291,4 +301,96 @@ test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => 
   // Nommées, jamais devinées par un seuil de grandeur : le budget d'une petite
   // commune est lui aussi un petit nombre, et il reste un agrégat.
   assert.doesNotMatch(ECHELLE, /valeur < 1[_ ]?000[_ ]?000/);
+});
+
+test("l'exécutif porte le titre de sa maille, jamais « Maire » partout", () => {
+  // Le champ publié s'appelle `maire` — gardé tel quel pour ne pas casser les
+  // lecteurs existants — mais il porte le président du conseil sur un
+  // département et sur une région. Une fiche de la Gironde écrivait donc
+  // « Maire : Jean-Luc Gleyze ».
+  const avec = (niveau: string) => {
+    const cible = { innerHTML: "" } as HTMLElement;
+    afficherFiche(cible, {
+      niveau,
+      territoire: {
+        nom: "Essai",
+        parent: null,
+        population: 1000,
+        drapeaux: {},
+        series: {},
+        maire: { nom: "Jean DUPONT", depuis: "2021-07-01" },
+      } as never,
+      indicateurs: [],
+    });
+    return cible.innerHTML;
+  };
+  assert.match(avec("commune"), /Maire\s*: <strong>Jean DUPONT/);
+  assert.match(avec("departement"), /Président du conseil départemental\s*: <strong>Jean DUPONT/);
+  assert.match(avec("region"), /Président du conseil régional\s*: <strong>Jean DUPONT/);
+  // Une maille sans exécutif publié n'affiche pas de ligne vide ni « undefined ».
+  assert.doesNotMatch(avec("pays"), /Jean DUPONT/);
+  assert.doesNotMatch(avec("pays"), /undefined/);
+});
+
+test("le prédécesseur est nommé, parce que c'est lui qui a présidé aux comptes", () => {
+  // **Le fond de l'affaire.** La note se lit sur 2019-2025 ; le maire en
+  // exercice a pris ses fonctions en mars 2026 et n'a aucun de ces exercices
+  // derrière lui. Sans cette ligne, la fiche pose un nom au-dessus d'un bilan
+  // qui n'est pas le sien.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Bordeaux", parent: "33", region: "75", population: 267_991,
+      drapeaux: {}, series: {},
+      maire: { nom: "Thomas CAZENAVE", depuis: "2026-03-22" },
+      maire_precedent: { nom: "Pierre HURMIC", depuis: "2020-07-03" },
+    } as never,
+    indicateurs: [],
+  });
+  const html = cible.innerHTML;
+  assert.match(html, /Maire\s*: <strong>Thomas CAZENAVE<\/strong> <span>depuis mars 2026<\/span>/);
+  // « Avant lui », jamais « maire de 2020 à 2026 » : un maire sortant sur
+  // trente a pris ses fonctions en cours de mandature, et la source ne donne
+  // que le dernier de la mandature.
+  // **Une période, pas un « depuis ».** Un ancien maire ne se dit pas au
+  // présent : « en fonction depuis juillet 2020 » sous le nom de son
+  // successeur laissait lire deux maires à la fois. La fin est la prise de
+  // fonction du successeur, qui est publiée.
+  assert.match(html, /Avant lui\s*: Pierre HURMIC, en fonction de juillet 2020 à mars 2026/);
+  assert.doesNotMatch(html, /Pierre HURMIC, en fonction depuis/);
+});
+
+test("sans successeur publié, aucune fin de mandat n'est inventée", () => {
+  // Une quinzaine de communes n'ont pas de maire dans le fichier courant.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Essai", parent: "33", region: "75", population: 1000,
+      drapeaux: {}, series: {},
+      maire_precedent: { nom: "Pierre HURMIC", depuis: "2020-07-03" },
+    } as never,
+    indicateurs: [],
+  });
+  assert.doesNotMatch(cible.innerHTML, /à mars|à undefined|Invalid Date/);
+});
+
+test("sans prédécesseur publié, aucune ligne vide ne s'écrit", () => {
+  // Les départements et régions n'ont pas de « sortants » : leur mandature
+  // 2021-2028 court toujours, et le ministère n'arrête la liste qu'avant un
+  // scrutin.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "departement",
+    territoire: {
+      nom: "Gironde", parent: null, region: "75", population: 1_643_000,
+      drapeaux: {}, series: {},
+      maire: { nom: "Jean-Luc GLEYZE", depuis: "2021-07-01" },
+    } as never,
+    indicateurs: [],
+  });
+  assert.match(cible.innerHTML, /Président du conseil départemental\s*: <strong>Jean-Luc GLEYZE/);
+  assert.doesNotMatch(cible.innerHTML, /Avant lui/);
+  assert.doesNotMatch(cible.innerHTML, /undefined/);
 });

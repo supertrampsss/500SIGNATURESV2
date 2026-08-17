@@ -63,8 +63,8 @@ export const MESSAGE_PRINCIPAL =
 const ANCRE_RECHERCHE = "#recherche";
 
 /** L'ancre du journal des corrections, dans la page `/methode` où il vit
- *  (`index.html`, `#methode-journal`). */
-const ANCRE_JOURNAL = "/methode#methode-journal";
+ *  (`index.html`, `#methode-sources`), au pied de BILAN. */
+const ANCRE_JOURNAL = "/bilan#methode-sources";
 
 /* --------------------------------------------------------------------------
  * Bloc 1 — Le verdict du moment
@@ -521,8 +521,8 @@ export function renduBandeConfiance(
     <p class="accueil__indicateurs">${nombre} indicateurs publiés, tirés des fichiers de leurs producteurs :</p>
     <p class="accueil__producteurs">${liste}</p>
     <p class="accueil__verifier">
-      <a href="/methode">La méthode</a> ·
-      <a href="${ANCRE_JOURNAL}">Le journal des corrections</a>
+      <a href="/bilan#methode-sources">La méthode</a> ·
+      <a href="${ANCRE_JOURNAL}">D'où viennent ces chiffres</a>
     </p>
   </section>`;
 }

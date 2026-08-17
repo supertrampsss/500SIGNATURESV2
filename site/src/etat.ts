@@ -93,7 +93,7 @@ function pont(budget: BudgetEtat, exercice: string, etape: string): string {
     .join("");
 
   const solde = donnees.solde;
-  return `<table class="pont">
+  return `<table class="pont" tabindex="0">
     <caption>Exercice ${echapper(exercice)} · ${echapper(
       budget.etapes.find((e) => e.cle === etape)?.libelle ?? etape,
     )}</caption>
@@ -147,7 +147,7 @@ function comparaisonEtapes(budget: BudgetEtat, exercice: string): string {
               )}</strong> du solde voté en loi de finances initiale.`
         }</p>`
       : "";
-  return `<table class="comparaison">
+  return `<table class="comparaison" tabindex="0">
       <caption>Solde budgétaire de l'exercice ${echapper(exercice)}</caption>
       <tbody>${lignes}</tbody>
     </table>${ecart}`;

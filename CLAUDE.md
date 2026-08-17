@@ -86,10 +86,21 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 Ces règles ont dû être répétées d'une session à l'autre. Elles sont écrites ici
 pour ne plus l'être.
 
-- **Tous les montants en millions d'euros (M€)**, deux décimales sous le
-  million. Jamais de k€ ni de Md€ : une colonne qui change d'unité d'une ligne
-  à l'autre ne se compare pas. Le **par-habitant ne s'affiche que dans les
-  tableaux dépliés**, jamais dans un résumé, une ouverture ou une carte.
+- **Un montant se lit sans conversion de tête, et son unité s'écrit en toutes
+  lettres.** « 3 536 100 M€ » n'est pas un chiffre lisible : sept rangs et un
+  sigle de deux lettres, et il faut être du métier pour savoir qu'on lit trois
+  mille cinq cents milliards de dette. La règle « tout en M€ » était juste pour
+  une commune et fausse pour l'État — elle demandait au lecteur de diviser.
+
+  `montantLisible` (echelle.ts) choisit donc l'échelle sur le montant —
+  millions en dessous du millier de millions, milliards au-delà —, garde
+  **deux décimales** et écrit **« millions d'euros » / « milliards d'euros »**,
+  jamais un sigle. Un tableau, où l'unité ne peut pas se répéter dans chaque
+  cellule, prend **une seule échelle pour tout le tableau**, choisie sur son
+  plus gros montant et nommée dans la légende.
+
+  Le **par-habitant ne s'affiche que dans les tableaux dépliés**, jamais dans
+  un résumé, une ouverture ou une carte.
 - **Dire l'unité là où le nombre est gros.** « Santé 1 643 M€ » se lit
   « 1 643 milliards » par qui n'a pas le nez sur le sigle ; toute page qui
   aligne des montants d'État écrit « montants en millions d'euros » dans son
@@ -201,10 +212,12 @@ pour ne plus l'être.
 
    Ce qui reste est donc le sujet d'origine, et lui seul : **étendre le
    simulateur aux comptes spéciaux, aux budgets annexes et aux ODAC.**
-   L'obstacle arithmétique que cette entrée invoquait n'existe pas. Le vrai est
-   ailleurs, et il est mesuré.
+   L'obstacle arithmétique que cette entrée invoquait n'existe pas — et
+   l'obstacle de source qu'elle a invoqué ensuite non plus. Ce qui reste tient
+   en trois jeux à charger et une question de méthode, tous deux mesurés
+   ci-dessous.
 
-   **Les dépenses sont là, les recettes ne le sont pas.** Le simulateur ne lit
+   **Les dépenses sont là, et les recettes aussi.** Le simulateur ne lit
    pas la situation mensuelle mais le PLF (`normalize/budget_lignes.py`,
    `fin.state_budget_detail`). Deux filtres y écartent tout ce qui n'est pas
    `BG` — donc les comptes spéciaux sont **téléchargés puis jetés**, pas
@@ -228,22 +241,75 @@ pour ne plus l'être.
    `grouper_recettes` **lève** sur une famille inconnue : si des recettes de
    comptes spéciaux y étaient, le connecteur échouerait déjà.
 
-   Élargir le seul filtre des dépenses donnerait donc un volet de **229 Md€ de
-   dépenses sans rien en face**, dont le « solde » vaudrait leur opposé. C'est
-   mot pour mot ce que le module refuse déjà pour l'exercice 2023 — « un budget
-   amputé de sa moitié n'est pas un budget ».
-
-   **Ce qu'il faut vraiment** : une source pour les *recettes* des comptes
+   Ce jeu-là, donc, ne les porte pas. Le tour précédent en a conclu qu'élargir
+   le filtre des dépenses donnerait « **229 Md€ de dépenses sans rien en
+   face** », et qu'il fallait « une source pour les recettes des comptes
    spéciaux, compte par compte — l'évaluation des voies et moyens et les états
-   annexés au PLF. C'est un **nouveau connecteur**, et les ODAC en demandent un
-   second, aucun ne les couvrant aujourd'hui. La décision relève de **D7** : la
-   validation humaine préalable reste en vigueur pour les connecteurs et la
-   méthodologie.
+   annexés au PLF », c'est-à-dire **un nouveau connecteur**.
+
+   **C'est faux, et le portail publie ces recettes.** Le catalogue de
+   data.economie.gouv.fr porte, pour chacun des deux exercices que le connecteur
+   charge déjà, le pendant exact du jeu des dépenses :
+
+   | Exercice | Recettes CAS et CCF | Recettes des budgets annexes |
+   |---|---|---|
+   | 2024 | `plf-2024-recettes-des-cas-et-ccf` (89 lignes) | `plf-2024-recettes-des-budgets-annexes` (18) |
+   | 2025 | `plf25-recettes-des-cas-et-des-ccf` (86 lignes) | `plf25-recettes-des-budgets-annexes` (18) |
+
+   Même producteur, même API Explore, même granularité que les dépenses : les
+   lignes déclarent `libelle_mission`, `code_section`, `libelle_section` et
+   `code_ligne_de_recette` — c'est-à-dire le « compte par compte » que l'entrée
+   allait chercher dans des annexes non structurées.
+
+   **Et les deux côtés se rejoignent.** Recettes du PLF face aux crédits de
+   paiement, mesuré sur l'API le 17 août 2026 :
+
+   | Exercice | Périmètre | Dépenses | Recettes | Solde |
+   |---|---|---|---|---|
+   | 2024 | CAS | 79,95 | 77,48 | −2,47 |
+   | 2024 | CCF | 148,65 | 146,04 | −2,61 |
+   | 2024 | BA | 2,41 | 2,57 | +0,16 |
+   | 2024 | **ensemble** | **231,01** | **226,09** | **−4,91** |
+   | 2025 | CAS | 80,76 | 79,72 | −1,05 |
+   | 2025 | CCF | 145,73 | 145,50 | −0,23 |
+   | 2025 | BA | 2,51 | 2,84 | +0,32 |
+   | 2025 | **ensemble** | **229,01** | **228,05** | **−0,95** |
+
+   (Md€. Un compte d'affectation spéciale est équilibré par construction — ses
+   dépenses sont gagées sur ses recettes affectées —, ce que ces soldes
+   montrent.)
+
+   **Les intitulés joignent sans travail de rapprochement** : 12 missions côté
+   dépenses, 12 côté recettes, **12 intitulés identiques**, aucune ligne d'un
+   côté sans son pendant de l'autre. L'arbre du volet se sème donc avec la clé
+   que les deux jeux emploient déjà.
+
+   Ce qui restait vraiment à trouver était donc à trois appels d'API du jeu qui
+   était déjà lu. C'est la **cinquième** fois de suite que l'instrument est
+   faux — et cette fois-ci l'instrument était le raisonnement, pas une mesure :
+   aucun chiffre n'était erroné, on avait conclu de l'absence d'une colonne dans
+   un jeu à l'absence d'une source dans le portail, sans jamais interroger le
+   catalogue.
+
+   **Ce qui reste à décider — et c'est bien une décision, pas une tuyauterie.**
+   Publier ces volets ajoute trois jeux au connecteur : **D7**, la validation
+   humaine préalable vaut pour les connecteurs. Les **ODAC** restent, eux, sans
+   source repérée. Et une question de méthode se pose avant le code : un volet
+   « comptes spéciaux » à 229 Md€ posé à côté d'un budget général à 594 Md€
+   invite à les additionner, alors que 134 des 145 Md€ des comptes de concours
+   financiers sont des **avances aux collectivités territoriales** — de la
+   trésorerie qui revient, pas de la dépense publique de plus.
 
    Note pour qui reprend : `budget_lignes.py` calcule un `solde` (`nettes −
    total_credits_paiement`) qu'**aucun contrôle ni aucun test ne confronte au
    solde publié du PLF**. Le chiffre de tête du simulateur n'est donc vérifié
-   que par ses sommes internes, jamais contre la source.
+   que par ses sommes internes, jamais contre la source. Et il ne peut pas
+   l'être depuis ce portail : le seul jeu qui porte le tableau d'équilibre,
+   `plf25-ressources-et-charges-selon-distinction-fonctionnement-et-investissement`,
+   est **exporté cassé** — une unique colonne de texte, 30 rangs d'intitulés
+   (« Solde général », « Charges », « Emplois »…) et **pas un seul montant**.
+   Même famille de panne que les colonnes `*_lfi_2023` que le module refuse
+   déjà.
 2. **Provenance au niveau France — déclarée, sauf les missions, et la raison
    du refus vaut d'être lue.** `provenance.ts` attribue la variation d'un
    agrégat à ses composantes partout où la source déclare une hiérarchie. Le
@@ -323,31 +389,485 @@ pour ne plus l'être.
    qu'elles portent. Aujourd'hui la spec se lit comme tenue alors qu'elle ne
    l'est pas, ce qui est le pire des deux états.
 
-4. **« Le site ne publie ni classement » — et `/detail` en affiche un.**
-   Trouvé en lisant `/methode` déployée. La page de méthode écrit, sous les
-   règles d'affichage : « Deux territoires se comparent à la même année, à la
-   même unité et au même périmètre. **Le site ne publie ni score composite, ni
-   classement.** » Un test la verrouille (`methode-rendu.test.ts`).
+4. **Réservé.** L'entrée qui vivait ici — « le site ne publie ni classement »
+   contre un `/detail` qui en affichait un — est tranchée et passée au fait,
+   le 17 août 2026. La numérotation est gardée pour que les renvois des
+   entrées voisines restent justes.
 
-   Or `/detail` trie les territoires par valeur décroissante et n'en montre que
-   les cent premiers, sous une légende qui le dit : « **100 premiers
-   territoires sur 34 875** ». Et `main.ts` appelle cette table par son nom —
-   « un classement tronqué se lit, un fichier tronqué se réutilise de travers ».
+5. **Le cinquième objet partageable — et pourquoi il attend une plume, pas un
+   branchement.** La spec §13 liste cinq objets partageables ; le site en offre
+   quatre depuis que la fiche de territoire a le sien. Le manquant est le
+   **repère**, et `carteReperes` reste donc écrite, testée, sans appelant. Deux
+   des cinq natures, elles, sont mortes par décision : `carteScenario` et
+   `carteComparaison` ne peuvent pas avoir d'image, l'espace des budgets
+   encodés étant infini (**D-L3-b**, documentée dans `partage.ts`).
 
-   **Les deux lectures se défendent, et c'est pour ça que l'entrée existe.**
-   Le vocabulaire du dépôt distingue ailleurs les deux : `credits-missions.ts`
-   range les missions par écart en précisant « aucun classement, aucune note ».
-   Trier des valeurs publiées, en les affichant, n'est pas noter. Mais « les
-   cent premiers » est la langue d'un palmarès, le lecteur qui vient de voir ce
-   tableau lit ensuite qu'il n'existe pas, et aucune des deux pages ne renvoie
-   à l'autre.
+   **Les huit cadres de `/reperes` posent des questions, pas des
+   affirmations** : « La Sécu est-elle en déficit ? », « Les niches fiscales,
+   c'est combien ? », « Que finance la dépense publique ? ». Or `carteReperes`
+   n'a pas de corps — « un graphique ne se redessine pas à cette taille sans
+   devenir un trait décoratif » — et son titre porte l'image à lui seul. Une
+   carte qui circule en posant la question sans peindre la réponse est le
+   contraire de ce que cette nature existe pour faire.
 
-   Trancher relève de **D7** — c'est une affirmation de méthodologie, pas une
-   tuyauterie : ou la phrase se précise (« aucun score composite, aucun
-   palmarès entre territoires » et le tri assumé), ou `/detail` cesse de
-   présenter ses lignes comme un rang. Ne pas réécrire l'une des deux seul.
+   Écrire les huit affirmations est un travail **éditorial** : ce sont des
+   énoncés au sens du §14, et c'est le contrôle déterministe et le veto de
+   fusion (**D11**) qui en répondent, pas une tuyauterie de rendu.
+
+   **Et trois des huit n'ont pas de source unique**, mesuré sur le catalogue
+   publié : conjoncture (2 jeux), Europe (2), Sécu (2) — dette, fonctions,
+   État, niches et « 100 € » en ont une. `SourceCarte` ne nomme qu'un intitulé
+   et qu'un millésime ; en choisir un pour deux serait la faute que
+   `jeu_par_niveau` vient de corriger dans le catalogue. Ces trois-là
+   demanderaient donc aussi une carte qui sache dire deux sources, ou un
+   découpage plus fin que le cadre.
+
+   La fiche, elle, a été branchée parce que la mesure disait qu'elle le
+   pouvait : ses trois repères partagent une source aux quatre mailles.
 
 ### Fait
+
+- **Une table de plus, pas une contrainte élargie — et l'entrepôt n'a pas
+  bougé** (17 août 2026). Les exécutifs locaux — 94 présidents de département,
+  14 de région, 34 889 maires sortants — avaient été écrits dans
+  `geo.commune_officials` en élargissant son `check (role in ('maire'))`. DuckDB
+  n'applique pas une contrainte modifiée à une table déjà créée : `SchemaDivergent`
+  a donc exigé un entrepôt neuf, et j'ai incrémenté `entrepot.CLE` en v3.
+
+  **C'était le choix coûteux, et le fichier le disait deux fonctions plus
+  haut.** L'entrepôt v3 n'existant pas dans le bucket, le prochain `ingest`
+  aurait ouvert un entrepôt **vide** — et publier depuis là **effaçait les
+  données du site**. `ANCETRES_ADDITIFS` existe précisément pour l'éviter : un
+  schéma qui ne fait qu'**ajouter** est appliqué à l'ouverture par les
+  `create table if not exists`, sans rien reconstruire. Son commentaire est
+  explicite — « refuser l'addition n'est pas le choix prudent : c'est le choix
+  coûteux » — et quatre changements l'empruntaient déjà.
+
+  Les trois rôles vivent donc dans **`geo.local_executives`**, une table
+  ajoutée. Diff du schéma contre `origin/main` : **0 ligne retirée, 32
+  ajoutées**. `geo_level` entre dans la clé, ce qui règle explicitement la
+  collision du code « 75 » entre le département de Paris et l'Île-de-France.
+
+  **Vérifié sur un entrepôt fabriqué comme celui du bucket** — schéma
+  d'`origin/main`, empreinte enregistrée : il s'ouvre sans lever, la table
+  apparaît, les deux « 75 » cohabitent, et l'entrepôt porte désormais deux
+  empreintes. Aucun rechargement, aucun risque pour les données en ligne.
+
+  **La leçon** : avant d'incrémenter la clé du schéma, se demander si le
+  changement peut se dire en **ajout**. Ici il le pouvait — une table au lieu
+  d'un rôle — et je ne me suis posé la question qu'après avoir poussé la clé.
+  Le compte de tables de `test_entrepot.py` est la garde qui rend l'ajout
+  visible : il passe de 22 à 23, et rien n'entre en silence.
+
+
+- **« Aucune source ne publie les maires 2020-2026 » — faux, sixième fois**
+  (17 août 2026). Le site nommait le maire en exercice d'une commune et
+  personne ailleurs. Il nomme désormais l'exécutif de chaque maille **et son
+  prédécesseur**, ce qui est le seul nom qui compte : la note se lit sur
+  2019-2025, et le maire en fonction depuis mars 2026 n'a aucun de ces
+  exercices derrière lui.
+
+  **L'erreur.** Le jeu « Répertoire national des élus » est une ressource
+  écrasée à chaque publication ; mesuré, ses 34 826 maires ont tous un mandat
+  de 2026. J'en ai conclu, et écrit à l'utilisateur, qu'« aucune source
+  officielle accessible ne republie les maires 2020-2026 », et j'ai proposé
+  Wikidata en repli — mesuré ensuite à **1,8 % des communes et 5 des 10 plus
+  grandes villes**, donc écarté.
+
+  **La conclusion venait d'un seul jeu.** La liste des jeux du même producteur
+  n'avait pas été lue. Le ministère de l'Intérieur publie « Élections
+  municipales 2026 — Maires et conseillers municipaux sortants », arrêté au
+  27 février 2026, Licence Ouverte v2 : **34 889 maires, 99,8 % des communes
+  publiées et 99,8 % de la population.** Pierre HURMIC à Bordeaux, Grégory
+  DOUCET à Lyon, Benoît PAYAN à Marseille, Anne HIDALGO à Paris.
+
+  C'est la sixième fois de suite dans ce fichier que l'instrument est faux — et
+  la deuxième fois que l'instrument est le **raisonnement** : on a conclu de
+  l'absence d'un historique dans un jeu à l'absence d'une source chez le
+  producteur, exactement comme on avait conclu de l'absence d'une colonne à
+  l'absence des recettes des comptes spéciaux. La règle du dépôt disait déjà
+  « avant d'écrire qu'un chiffre ne tient pas, chercher le contrôle qui
+  l'aurait refusé ». Elle en gagne une : **avant d'écrire qu'une donnée n'est
+  publiée nulle part, lister les jeux du producteur, pas seulement celui qu'on
+  connaît.**
+
+  **Trois pièges dans les fichiers, chacun avec son test.** Les dates des
+  sortants sont en `JJ/MM/AA` quand le RNE courant les écrit en `AAAA-MM-JJ` —
+  deux formats chez un seul producteur, et `18/05/20` lu tel quel serait une
+  date de l'an 20. « 4ème Vice-président » contient « Président », donc une
+  comparaison lâche gardait neuf vice-présidents par département. Et le
+  département de Paris et la région Île-de-France portent tous deux le code
+  « 75 » : le rôle est entré dans la clé primaire, sans quoi le second écrasait
+  le premier en silence.
+
+  **Ce que la source ne permet toujours pas** : un maire sortant sur trente a
+  pris ses fonctions en cours de mandature, et le fichier ne donne que le
+  dernier. La fiche écrit donc « Avant lui : X, en fonction depuis juillet
+  2020 », jamais « maire de 2020 à 2026 ». Et les départements et régions n'ont
+  pas d'équivalent « sortants », leur mandature 2021-2028 courant toujours :
+  leurs présidents couvrent les exercices 2021 et suivants, jamais 2019 ni 2020.
+
+
+- **Le palmarès, et un plafond encombré de deux mille communes** (17 août
+  2026). La note vivait sur une fiche et dans le classement d'une fiche — deux
+  endroits qui demandent de savoir d'avance quel territoire on cherche.
+  `/bilan` ouvre désormais sur les mieux et les moins bien gérées d'un échelon.
+
+  **Trois défauts, tous trouvés en peignant la page avec les fichiers publiés**,
+  aucun par les 946 tests.
+
+  Les dix « communes les mieux gérées de France » étaient Abbans-Dessous,
+  Ablaincourt-Pressoir, Ablancourt, Accons : **les quatre premières de
+  l'alphabet parmi 2 102 communes qui valent exactement 20 sur 20.** La note est
+  bornée aux deux bouts par construction — 2 102 à 20, 2 221 à 0 —, donc l'ex
+  æquo n'est pas un cas limite, c'est le cas courant. Le tri départage
+  maintenant par population et le cadrage dit combien partagent la note : la
+  liste se lit « les plus grandes des 2 102 à 20/20 », et non un palmarès
+  national inventé.
+
+  Le bas montrait **les moins peuplées sous une phrase promettant les plus
+  peuplées** — un tri unique « note décroissante, population décroissante »
+  suivi d'un `slice(-N)` prend, parmi les derniers ex æquo, les plus petits. Le
+  texte publié démentait le tableau publié, à deux lignes d'écart.
+
+  Et les rangs étaient **fabriqués** : « 1re, 2e, 3e » pour 2 102 communes à
+  égalité, « 34 778e, 34 777e » à l'autre bout. Les ex æquo partagent leur rang,
+  la convention que `situation.ts` tenait déjà. Dix lignes qui affichent « 1 »
+  disent au lecteur, mieux qu'une phrase, que le plafond est encombré.
+
+  **L'accord du participe a cassé une seconde fois, dans un module vieux d'un
+  commit** : « les départements les mieux et les moins bien gérées ». La table
+  des mailles porte désormais le genre à côté du pluriel. C'est le même défaut
+  que le critère de classement une heure plus tôt — ce qui est exactement
+  pourquoi la garde écrite là-bas valait la peine, et pourquoi ce module-ci
+  avait besoin de la sienne.
+
+- **`git checkout -- <fichier>` a détruit du travail non commité, quatrième
+  fois** (17 août 2026). Employé par réflexe pour défaire un sabotage de
+  vérification, il a emporté le branchement du palmarès dans `main.ts`, écrit
+  quelques minutes plus tôt et jamais commité. Refait à l'identique depuis le
+  script qui l'avait posé — mais le script n'existait que par chance.
+
+  **La règle** : un sabotage se défait avec la copie qu'on a prise avant lui
+  (`cp fichier /tmp/x.bak` puis `cp /tmp/x.bak fichier`), jamais avec `git
+  checkout`, qui ne distingue pas ce que le sabotage a changé de ce que le
+  travail a écrit. Les trois sabotages du même quart d'heure employaient
+  d'ailleurs la copie ; c'est le quatrième, tapé à la main, qui a employé git.
+
+
+- **La page de méthode décrivait un autre site** (17 août 2026). Deux de ses
+  règles d'affichage étaient devenues fausses, et une page de méthode qui
+  décrit un autre site que celui qu'on lit est pire qu'une page absente : elle
+  donne au lecteur une garantie qu'il peut démentir d'un coup d'œil, sur la
+  page même.
+
+  « **Le site ne publie ni score composite, ni classement** » — alors que la
+  fiche ouvre sur une note sur 20 et que le classement range par elle. C'était
+  l'entrée n°4 du reste-à-faire, qui pesait déjà avant la note et que la note a
+  rendue intenable. Ce que la phrase protégeait vraiment est gardé et dit :
+  aucune comparaison d'un échelon à l'autre, aucun indice sans dimension
+  agrégeant des mesures d'unités différentes. Les règles disent en plus ce que
+  la note mesure, ce qu'elle refuse de juger, et pourquoi son barème est propre
+  à chaque échelon.
+
+  « **Tous les montants sont en millions d'euros** » — alors que
+  `montantLisible` choisit l'échelle sur le montant et écrit « milliards
+  d'euros » en toutes lettres au-delà du millier de millions. Celle-là est plus
+  ancienne que cette branche : la règle qu'elle décrit a été remplacée le jour
+  où les montants ont cessé de demander une division de tête, et la page de
+  méthode ne l'a pas suivie.
+
+  **La leçon.** Aucun test ne compare la page de méthode au comportement
+  qu'elle décrit — ils vérifient que la page contient ses phrases, pas que ses
+  phrases sont vraies. Un document de méthode se périme en silence, et c'est le
+  seul document du site dont le lecteur ne peut pas vérifier l'exactitude
+  autrement qu'en lisant tout le reste. Trois sabotages tiennent la correction.
+
+  Et les motifs des nouvelles assertions s'écrivent `\s+` et non avec une
+  espace : le gabarit se replie sur plusieurs lignes, donc une espace du source
+  devient un retour et son indentation dans le rendu. Le fichier employait déjà
+  ce motif pour la phrase des producteurs ; ma première version des assertions
+  l'a manqué, et deux d'entre elles ont échoué sur du texte pourtant présent.
+  Même famille que l'insécable, dixième fois qu'un blanc invisible fait échouer
+  une vérification.
+
+
+- **La note entre au classement, et un accord de participe tombe** (17 août
+  2026). La note vivait sur une fiche et nulle part ailleurs : un lecteur
+  voyait « 8,4/20 » sans savoir si c'était le haut ou le bas. Elle est
+  désormais le premier critère du classement, au-dessus des quatre mesures dont
+  elle sort.
+
+  **Le barème n'est pas recalculé.** La fiche lit des séries, le classement lit
+  des couches de carte ; `noteDepuisCouches` recompose la forme qu'attend
+  `note()` plutôt que de réécrire la grille — deux écrans du même site ne
+  doivent pas pouvoir afficher deux notes différentes du même territoire.
+  Vérifié au navigateur sur les fichiers publiés : Bordeaux 8,4, Gironde 1,1,
+  Nouvelle-Aquitaine 12,0, identiques des deux côtés.
+
+  **Le défaut trouvé en peignant** : le critère s'annonçait « 27 887 communes
+  sont mieux **notés** ». Un participe passé s'accorde, et le sujet change avec
+  la maille — « communes » et « régions » au féminin, « départements » au
+  masculin. Les quatre critères d'origine y échappaient par construction, en
+  employant des verbes pleins (« dépensent plus », « doivent moins »), mais la
+  règle n'était écrite nulle part : le cinquième critère l'a enfreinte le jour
+  où il est arrivé. Un test lit `main.ts` et refuse toute formule portant un
+  participe accordé.
+
+  **Et la sonde des 320 px mentait de sept signalements.** Elle comptait comme
+  débordant le lien d'évitement, qui vit à `left:-9999px` — un élément
+  entièrement hors écran à gauche n'élargit pas le corps, et `scrollWidth`
+  faisait déjà foi juste en dessous. Corrigée, elle rend **0 signalement** sur
+  les sept adresses. Une sonde qui crie sans raison cesse d'être lue, ce qui
+  est pire que pas de sonde.
+
+
+- **La note de gestion, et pourquoi elle n'a pas un barème mais quatre**
+  (17 août 2026). Le site répond enfin à la question qu'on vient lui poser —
+  « est-ce que ma commune est bien gérée » — par une note sur 20 en tête de
+  fiche, décomposée en trois termes et refaisable de tête.
+
+  **Le premier barème était unique, et il était faux.** Mesuré sur la
+  publication `2026-08-11T0807`, avant toute correction :
+
+  | échelon | taux d'épargne médian | trajectoire médiane |
+  |---|---|---|
+  | commune | 16,9 % | −2,7 pts |
+  | région | 18,6 % | −2,3 pts |
+  | département | **9,6 %** | **−4,4 pts** |
+
+  Un département n'a pas la marge d'une commune, et **ce n'est pas une faute de
+  gestion** : ses recettes de fonctionnement portent le RSA, l'APA et la PCH,
+  des prestations qui entrent et ressortent. Rapporter l'épargne à ces
+  recettes-là donne mécaniquement la moitié du taux d'une commune. Le barème
+  commun retirait donc ~2,3 points sur 8 à l'échelon entier **pour sa
+  définition de périmètre** — exactement la comparaison que la charte refuse
+  (« aucune comparaison territoriale sans contrôle de définition, périmètre,
+  période et unité »). La Gironde sortait à **0,2/20**, la médiane des
+  départements à 10,3 contre 12,8 pour les communes.
+
+  **Et la trajectoire médiane est négative aux trois échelons.** Entre 2019 et
+  2025, l'inflation et la crise de l'énergie ont comprimé l'épargne de presque
+  toutes les collectivités : une borne centrée sur zéro faisait perdre des
+  points à la moitié d'entre elles pour un choc que personne n'a décidé. Le
+  terme est recentré sur le mouvement médian de son échelon — il mesure ce
+  qu'il prétendait mesurer, et plus le cycle.
+
+  Après correction, les médianes se rejoignent — commune 12,8, département
+  12,3, région 11,6 — et une mention veut dire la même chose partout. Les cinq
+  mentions portent chacune 14 à 25 % des communes ; plafond 4,2 %, plancher
+  6,0 %, contre **34 % à 20/20** pour la toute première version à paliers.
+
+  **Ce que la note refuse restera ce qui la défend** : ni le niveau de dépense,
+  ni sa répartition, ni les taux d'impôts. Dépenser beaucoup en action sociale
+  est un choix d'électeurs, pas une faute de gestion — c'est la ligne que
+  l'Argus des communes ne tient pas, lui qui note « les coûts fixes » et « la
+  pression fiscale ». Un test lit `note.ts` comme du texte et échoue si l'un de
+  ces quatre identifiants y entre.
+
+  Les seuils de dette viennent de la **LPFP 2018-2022** (art. 29), qui sont
+  eux-mêmes propres à chaque échelon — 12 ans pour le bloc communal, 10 pour
+  les départements, 9 pour les régions. Ceux de marge et de trajectoire sont
+  **empiriques et le disent** : aucune doctrine ne publie de seuil d'épargne
+  par échelon, et un seuil rond inventé aurait caché ce fait sous une
+  apparence officielle.
+
+  **La leçon de méthode.** Rien de tout cela ne se voyait dans les 912 tests :
+  le barème unique passait tous ses tests unitaires, parce qu'ils portaient sur
+  des communes inventées. C'est de peindre la note avec les fichiers publiés,
+  échelon par échelon, qui a montré qu'un échelon entier était puni pour sa
+  définition comptable. Quatre sabotages tiennent désormais la correction.
+
+  Et l'espace insécable a encore fait échouer une vérification — **neuvième
+  fois**. Elle s'écrit `\u00a0` dans le module comme dans les motifs, jamais au
+  clavier. Un piège de plus a été noté au passage : `\s` en JavaScript
+  **comprend l'insécable**, donc un texte normalisé par `replace(/\s+/g, " ")`
+  ne la porte plus — deux assertions du même fichier ne lisent pas la même
+  chaîne, et chacune le dit.
+
+
+- **Deux défauts d'accessibilité qu'aucun test du dépôt ne pouvait voir**
+  (17 août 2026). §17 balayé pour la première fois, à l'`axe-core` dans un vrai
+  navigateur, WCAG 2.1 AA, huit adresses × deux largeurs. Quinze nœuds en
+  violation, de deux natures.
+
+  **Un contraste à 2,1:1, et l'opacité en était la cause.** Les paliers du
+  simulateur déclarent `--encre-douce`, un ton choisi et documenté pour tenir
+  4,66:1 sur le carreau clair. `.simu__palier` les estompe à `opacity: 0.55`,
+  ce qui compose `#a3aaa2` sur `#f2f1ec` : **2,1:1** pour un seuil de 4,5.
+
+  Les contrôles du dépôt calculent les ratios sur les couleurs **déclarées** —
+  et l'opacité n'est pas une couleur. C'est la première fois qu'un défaut de
+  cette session demande un moteur de rendu pour être vu : ni la lecture de la
+  feuille, ni les tests de couleur ne pouvaient composer la valeur. L'estompe
+  est levée là où le fond est clair ; elle reste dans la barre de solde, où les
+  marches sont blanches sur un aplat d'encre.
+
+  **Sept cadres défilants inatteignables au clavier** (WCAG 2.1.1). Sous 40 rem,
+  cinq tableaux passent en `overflow-x: auto`, et c'est la bonne décision — « un
+  tableau large défile dans son propre cadre ; la page, jamais ». Mais un cadre
+  qui défile sans contenu focalisable ne défile qu'à la souris : les colonnes
+  cachées sont perdues pour qui navigue au clavier. Les huit conteneurs portent
+  `tabindex="0"`, avec un anneau de focus sur le bord du cadre.
+
+  **Et c'est un cas que ma propre sonde du §24 excusait** : elle sautait
+  délibérément tout conteneur en `overflow-x: auto` comme « autorisé à
+  défiler ». Les deux règles disent vrai en même temps — il a le droit de
+  défiler, et il doit être atteignable. Une sonde qui connaît une exception
+  finit par ne plus regarder ce qu'elle excuse.
+
+- **L'accueil avait l'échelle d'un tableau de bord** (17 août 2026). Première
+  passe de design du dépôt, avec le skill que ces règles imposent, installé
+  avant d'y toucher.
+
+  **L'audit a d'abord dit le contraire de ce qu'on attendait.** Le site n'est
+  pas mal dessiné : jetons nommés, contrastes calculés et écrits (dix-sept
+  ratios dans la feuille), sombre à parité complète de jetons avec une bascule,
+  polices auto-hébergées, mouvement réduit honoré, cibles à 44 px, aucun script
+  tiers. La fiche et `/reperes` tiennent — la courbe d'inflation est bonne. Il
+  n'y avait pas de refonte à faire sur six pages sur huit, et en faire une
+  aurait cassé un système accessible pour rien.
+
+  **Une page était faible, et c'est celle qu'on ouvre.** Mesuré, pas ressenti :
+  l'échelle typographique s'arrête à 28 px, ce qui est juste pour des vues
+  denses — mais l'accueil en héritait, et sa phrase d'ouverture s'écrivait à
+  20 px, la taille du nom d'un territoire sur sa fiche. Elle se lisait comme un
+  sous-titre. Quatre blocs sur cinq portaient le même cadre, le même rayon, le
+  même rembourrage ; **six micro-étiquettes en capitales espacées** se
+  suivaient sur une seule page, chaque section s'annonçant avant de parler.
+
+  Trois changements, tous dans la feuille de style : un cran d'affiche
+  (`--texte-affiche`, borné par `clamp` pour tenir en deux lignes à 1 440 px) ;
+  une seule carte au lieu de cinq, celle du verdict, les autres en bandes
+  séparées d'un filet ; les sur-titres redevenus des titres dans la serif du
+  site. Les références légales, longues de cent caractères et soulignées plein
+  cadre, se bornent à la mesure de lecture.
+
+  **Le premier essai était trop gros** : `clamp(2rem, 4.4vw, 3.25rem)` avec un
+  cadre à 22ch donnait neuf lignes de titre qui remplissaient l'écran. Une
+  phrase de douze mots ne prend pas un corps d'affiche — c'est une faute de
+  taille, pas de copie. Corrigé en mesurant le nombre de lignes rendu à trois
+  largeurs, jamais à l'œil.
+
+  **Et le système s'est défendu tout seul** : le premier correctif écrivait la
+  taille en dur, et un test d'architecture l'a refusée — « toutes les tailles de
+  texte passent par l'échelle ». Le palier est donc un cran de l'échelle, pas
+  une exception glissée dans une règle.
+
+- **`/reperes` défilait horizontalement à 320 px, et la première correction ne
+  suffisait pas** (17 août 2026). Corps de page à 385 px pour une fenêtre de
+  320. Mesuré au navigateur sur le site construit, jamais déduit d'une lecture
+  de feuille de style.
+
+  **Deux causes, l'une derrière l'autre.** `repeat(auto-fit, minmax(20rem, 1fr))`
+  garde sa piste de 20 rem même quand le conteneur est plus étroit : la section
+  nationale n'offre que 190 px, et les deux cadres qui n'occupent pas la rangée
+  entière — la dette et l'Europe — en prenaient 320. Même chose pour « 100 € »,
+  18 rem dans un cadre de 156. `min(Nrem, 100%)` ne change rien au-dessus de
+  N rem ; il laisse seulement la piste descendre avec son conteneur.
+
+  Cela a ramené le corps à **330 px, pas à 320**. Le reste venait de
+  `.bloc__chiffre` : un flex sans `flex-wrap`, où le chiffre est au corps le
+  plus gros du site — « 3 536 100 M€ » suivi de la pilule « 2026-Q1 » demande
+  330 px, et la pilule sortait du cadre.
+
+  **La leçon vaut plus que les deux lignes de CSS** : 385 → 330 est une grosse
+  amélioration et reste une page qui défile. S'arrêter à la première mesure
+  aurait produit une affirmation fausse. Les quatre autres grilles du fichier —
+  16, 12, 9,5 et 9 rem — ont été mesurées aux mêmes 320 px et tiennent : elles
+  restent telles quelles.
+
+  **Ce n'est pas le §24**, qui ne porte que sur les surfaces *nouvelles* : ces
+  cadres sont plus anciens que le cadre de partage dont la vérification a fait
+  chercher. Celui-ci passe — ses deux boutons mesurent 139 et 140 px, bords
+  droits à 155 et 301.
+
+  Et la première sonde ne certifiait rien : elle annonçait zéro débordement sur
+  les huit pages sans jamais attendre que le cadre de partage paraisse — elle
+  mesurait donc toutes les surfaces sauf celle qu'on venait d'ajouter. C'est
+  l'attente explicite qui a fait apparaître le défilement de `/reperes`.
+
+- **Les deux défis de l'atelier, en Md€ sous un compteur en M€**
+  (17 août 2026). « Dégagez 10 Md€ » et « 30 Md€ sans toucher à l'école »,
+  avec leur avancement peint à côté : « +9 520 M€ ». Savoir si le défi était
+  tenu demandait une conversion de tête.
+
+  Ce n'est pas une trouvaille : `mission.ts` a converti ses paliers pour
+  exactement cette raison, son commentaire cite le même écran et le même
+  compteur, et il énumère les trois assertions du dépôt qui refusent `Md€`.
+  Les défis vivent sur cet écran-là, à quelques pixels des paliers — la
+  correction avait été portée dans un module et pas dans son voisin.
+
+  Le test ne vise donc pas une chaîne : il balaie **tout** ce que l'atelier
+  rend, un budget réglé, et refuse `Md€` comme `k€`. Trouvé en peignant
+  l'atelier avec les fichiers publiés, jamais par les 912 tests.
+
+  Et la sabotage a d'abord échoué en silence : le motif tapé à la main portait
+  une espace ordinaire là où la source écrit `\u202f`. Sixième fois que cette
+  espace-là fait passer une vérification pour verte.
+
+- **La fiche de territoire se partage, et l'adresse du site cesse d'être
+  coupée** (17 août 2026). La spec §13 liste cinq objets partageables ; le site
+  en offrait trois. Deux des cinq natures de carte sont mortes par la décision
+  D-L3-b, documentée — l'espace des budgets encodés est infini. Pour la fiche,
+  aucun refus n'était consigné : `carteFiche` était écrite, testée, sans un
+  appelant.
+
+  Ce qui manquait était une seule ligne de données. `reperes()` rendait
+  `{role, terme, valeur, exercice, variation}` — de quoi peindre l'écran, où
+  l'entête porte déjà l'unité et la source, mais pas de quoi faire sortir un
+  chiffre du site. `Repere` porte désormais `id`, et le catalogue donne le
+  reste. Rien n'est peint si les trois repères ne partagent pas une source :
+  `SourceCarte` n'en nomme qu'une, et en choisir une pour trois serait la faute
+  que l'entrée précédente vient de corriger. Vérifié sur les quatre mailles —
+  une source chacune.
+
+  Le build n'écrit pas 34 875 PNG : la carte se dessine dans le navigateur, au
+  clic, et `telecharger` la remet en SVG. C'est le seul objet du site dont
+  l'image existe sans avoir d'adresse, et `partageFiche` rend donc `image: null`
+  comme un scénario, pour une raison voisine mais différente.
+
+  **Deux défauts trouvés en peignant les cartes avec les données publiées, et
+  les deux étaient là avant.** L'adresse du site était bornée au tiers de la
+  largeur utile — 352 unités — quand celle du dépôt en demande 373 : **les six
+  cartes que le build écrit** portaient « https://plateforme-9sz.pages.… ».
+  C'est la seule chaîne d'une carte qui devient inutile en perdant sa fin, et
+  c'est elle qui existe pour ramener le lecteur ici ; c'est donc la mention
+  d'unité qui cède désormais. Et les trois variations d'une fiche se lisent de
+  haut en bas : la Nouvelle-Aquitaine peignait « +10 % » entre « +9,1 % » et
+  « +5,4 % » — la règle de la décimale, dans la seule colonne où personne ne
+  l'avait cherchée.
+
+- **La source d'un chiffre, maille par maille** (17 août 2026). L'export CSV
+  d'un **département** écrivait en tête de fichier :
+
+      # Source : OFGL, Finances des communes (consolidee)
+
+  et la même phrase pour les **cartes grises**, une recette que seules les
+  régions perçoivent. Reproduit sur la publication `2026-08-11T0807`, sur trois
+  indicateurs.
+
+  Ce n'est pas une faute du connecteur, qui télécharge bien les trois jeux
+  (`normalize/ofgl.py`, `JEUX`) et trace chaque run sous le sien : c'est que
+  `core.indicators.dataset_id` ne porte **qu'un jeu par indicateur**, et que
+  l'OFGL les déclare tous sous celui des communes, en dur. Le catalogue publié
+  répétait cette déclaration. **73 des 93 agrégats** de l'OFGL en dépendaient,
+  dont 16 qui n'existent pas du tout à la maille commune.
+
+  Le jeu réel est dans le run qui a écrit l'observation. La publication le lit
+  et déclare `jeu_par_niveau` — **les seules mailles dont la source diffère**,
+  parce que le site lit `jeu_par_niveau[niveau] ?? jeu` et que republier
+  l'identité pour trois cent quinze indicateurs gonflerait le catalogue sans
+  rien apprendre. Deux prudences : une maille qu'ont écrite deux jeux se tait,
+  et un indicateur non publié reste dehors.
+
+  C'est la règle que le docstring d'`indicateurs()` posait déjà pour les
+  niveaux — « le catalogue dit la vérité de ce qui est publié, pas ce qu'un
+  connecteur a déclaré » — et que le champ `jeu` était seul à ne pas tenir.
+
+  Le branchement a son propre test : `export.ts` avait la fonction juste, et une
+  fonction juste qu'aucun appelant n'emploie laisse le défaut en ligne. Les deux
+  gardes ont été éprouvées par sabotage.
 
 - **Le dénominateur des budgets locaux** (16 août 2026). Les trois volets
   s'intitulent « le budget de **tous** les départements », « de **toutes** les

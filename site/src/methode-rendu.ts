@@ -312,17 +312,33 @@ export function renduMethode(): string {
 
     <h4>${TITRES.ecran}</h4>
     <ul class="methode-methode__ecran">
-      <li>Tous les montants sont en millions d'euros, avec deux décimales sous le
-        million : une colonne qui change d'unité d'une ligne à l'autre ne se
-        compare pas.</li>
+      <li>L'unité d'un montant s'écrit en toutes lettres — « 417,14 millions
+        d'euros », « 3 536,10 milliards d'euros » — et l'échelle est choisie sur
+        le montant, jamais fixée d'avance : « 3 536 100 M€ » demandait au lecteur
+        de savoir qu'un sigle vaut un million pour comprendre qu'il lisait trois
+        mille cinq cents milliards. Un tableau, où l'unité ne peut pas se répéter
+        dans chaque cellule, prend une seule échelle pour tout le tableau, choisie
+        sur son plus gros montant et nommée dans sa légende : une colonne qui
+        change d'unité d'une ligne à l'autre ne se compare pas.</li>
       <li>Un taux varie en points, jamais en pourcentage — y compris les taux que
         la source publie pour mille et que l'écran montre en pourcentage.</li>
       <li>Les budgets ne s'additionnent pas : l'État, la Sécurité sociale et chaque
         échelon de collectivité se lisent séparément, et la seule addition publiée
         est celle de la comptabilité nationale, qui a son propre cadre et son
         propre solde.</li>
-      <li>Deux territoires se comparent à la même année, à la même unité et au même
-        périmètre. Le site ne publie ni score composite, ni classement.</li>
+      <li>Deux territoires se comparent à la même année, à la même unité et au
+        même périmètre — et jamais d'un échelon à l'autre. Le site publie une note
+        de gestion sur 20 et range les territoires par leurs valeurs publiées ;
+        il ne publie aucun palmarès entre échelons, et aucune note qui agrège des
+        mesures d'unités différentes en un indice sans dimension.</li>
+      <li>La note de gestion mesure la solvabilité, et elle seule : la marge
+        dégagée sur le fonctionnement, le temps qu'il faudrait pour rembourser la
+        dette, et le sens dans lequel les deux vont depuis 2019. Elle ne juge ni
+        le niveau de dépense, ni sa répartition, ni les taux d'impôts, qui sont
+        des choix d'électeurs et non des fautes de gestion. Son barème est propre
+        à chaque échelon : les recettes de fonctionnement d'un département portent
+        le RSA, l'APA et la PCH, qui entrent et ressortent, si bien qu'un barème
+        commun lui retirerait des points pour sa définition comptable.</li>
       <li>Chaque chiffre porte son unité et son millésime là où il est affiché.
         Sa source est nommée à côté de lui dans les analyses, sur les images
         partagées et dans les citations ; ailleurs, elle est sur cette page.</li>

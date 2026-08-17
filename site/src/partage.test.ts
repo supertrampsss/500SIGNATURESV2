@@ -32,6 +32,7 @@ import {
   offrir,
   partageAnalyse,
   partageComparaison,
+  partageFiche,
   partageScenario,
   permalien,
   resume,
@@ -480,4 +481,70 @@ test("l'écouteur du partage est délégué, posé une seule fois", () => {
     MAIN.indexOf("type GestePartage"),
   );
   assert.ok(montrer.length > 500 && !montrer.includes("addEventListener"), montrer.length);
+});
+
+/* --------------------------------------------------------------------------
+ * La fiche de territoire — le quatrième objet partageable (spec §13)
+ * ----------------------------------------------------------------------- */
+
+const REPERES_FICHE = [
+  { libelle: "Ce qu'elle encaisse", valeur: 417_137_958.52, unite: "EUR" },
+  { libelle: "Ce qu'elle dépense", valeur: 369_005_123.4, unite: "EUR" },
+  { libelle: "Ce qui reste", valeur: 48_132_835.12, unite: "EUR" },
+  { libelle: "Ce qu'elle doit", valeur: 297_450_000, unite: "EUR" },
+];
+
+test("la fiche partagée porte son nom, sa maille, trois chiffres et leur exercice", () => {
+  const objet = partageFiche({
+    nom: "Bordeaux",
+    maille: "commune",
+    exercice: "2025",
+    reperes: REPERES_FICHE,
+    permalien: "https://exemple.test/territoire?territoire=33063",
+  });
+  assert.equal(objet.titre, "Bordeaux — commune");
+  const texte = resume(objet);
+  assert.ok(texte.includes("Ce qu'elle encaisse"), texte);
+  assert.ok(texte.includes("exercice 2025"), texte);
+  // Un chiffre ne voyage pas sans son unité : la mention ferme la ligne.
+  assert.ok(texte.includes("millions d'euros"), texte);
+  assert.ok(texte.endsWith("https://exemple.test/territoire?territoire=33063"), texte);
+});
+
+test("la fiche partagée s'arrête à trois chiffres, comme sa carte", () => {
+  const objet = partageFiche({
+    nom: "Bordeaux",
+    maille: "commune",
+    exercice: "2025",
+    reperes: REPERES_FICHE,
+    permalien: "https://exemple.test/",
+  });
+  // Le quatrième rôle reste à l'écran, où il a la place de sa ligne. Le
+  // collage et l'image doivent dire la même chose, et l'image en porte trois.
+  assert.ok(!resume(objet).includes("Ce qu'elle doit"), resume(objet));
+  assert.equal(objet.lignes.length, 2);
+});
+
+test("une fiche sans repère publié ne pose pas une unité sans nombre", () => {
+  const objet = partageFiche({
+    nom: "Bordeaux",
+    maille: "commune",
+    exercice: "2025",
+    reperes: [],
+    permalien: "https://exemple.test/",
+  });
+  assert.deepEqual(objet.lignes, ["Bordeaux — commune"]);
+  assert.ok(!resume(objet).includes("millions d'euros"), resume(objet));
+});
+
+test("une fiche n'annonce aucune image : le build n'en écrit pas 34 875", () => {
+  // Même règle qu'un scénario (D-L3-b) et pour une raison voisine : l'image
+  // d'une fiche se construit dans le navigateur, elle n'a pas d'adresse.
+  assert.equal(
+    partageFiche({
+      nom: "Bordeaux", maille: "commune", exercice: "2025",
+      reperes: REPERES_FICHE, permalien: "https://exemple.test/",
+    }).image,
+    null,
+  );
 });

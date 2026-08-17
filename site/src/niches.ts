@@ -99,7 +99,7 @@ export function rendu(
       c'est un impôt qui n'est pas encaissé, et qui n'apparaît sur aucune ligne du
       budget. Les ${MONTRES} dispositifs les plus coûteux en portent
       ${echapper(String(part))}&nbsp;%.${prevision}</p>
-    <table class="niches">
+    <table class="niches" tabindex="0">
       <caption>${echapper(String(niches.dispositifs.length))} dépenses fiscales chiffrées
         sur les 465 recensées, ${echapper(exercice)} · Voies et moyens tome 2 annexé au
         projet de loi de finances pour 2026 · euros courants</caption>

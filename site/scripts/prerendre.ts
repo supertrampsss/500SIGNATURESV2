@@ -495,66 +495,42 @@ const PAGE_ANALYSES = {
 };
 
 /**
- * Les mots de la page MÉTHODE, écrits une fois — même raison que
- * `PAGE_ANALYSES` juste au-dessus : son `<title>`, sa description et la phrase
- * de son image les lisent tous ici.
+ * Les mots de la page BILAN, écrits une fois.
  *
- * La description énumère ce que la page rend, et rien de plus : les jeux du
- * manifeste producteur par producteur (`renduSources`), la production et le
- * contrôle des chiffres (`renduMethode`), la grille de verdicts
- * (`renduGrille`). Aucune accroche écrite pour l'occasion, aucune réserve —
- * c'est la page qui en attire le plus, et elle n'en porte aucune.
- */
-const PAGE_METHODE = {
-  titre: "Méthode — Où va l'argent public",
-  description:
-    "Les jeux de données publiés, producteur par producteur ; comment chaque chiffre est produit " +
-    "et vérifié ; la grille de verdicts des analyses.",
-};
-
-/**
- * Les mots de la page REPÈRES, écrits une fois — même raison que les deux
- * blocs au-dessus.
- *
- * La description énumère les huit blocs que la page rend, dans l'ordre où elle
- * les pose, et rien de plus : aucune accroche écrite pour l'occasion, aucune
- * réserve.
+ * BILAN a absorbé REPÈRES, DÉTAIL et MÉTHODE le 17 août 2026 : quatre onglets
+ * disaient « parcourez les données » et personne ne savait lequel ouvrir. La
+ * description énumère ce que la page rend, dans l'ordre où elle le pose, et
+ * rien de plus : aucune accroche écrite pour l'occasion, aucune réserve.
  *
  * Elle ne dit PAS l'unité des montants, et ce n'est pas un oubli. Cette phrase
  * est lue deux fois — en `<meta name="description">` et comme phrase de la
  * carte de partage — et une carte de section ne peint aucun chiffre :
  * `carteSection` (carte-og.ts) refuse la mention d'unité pour cette raison
  * exacte, « annoncer des millions d'euros sous une image qui n'en porte aucun
- * serait faux », et un test du dépôt tient ce refus sur les cinq cartes.
- * L'unité se dit là où les nombres sont, dans les légendes des tableaux de la
- * page, pas dans une phrase qui part sur une image vide de nombres.
+ * serait faux ». L'unité se dit là où les nombres sont, dans les légendes des
+ * tableaux de la page.
  */
-const PAGE_REPERES = {
-  titre: "Repères — Où va l'argent public",
+const PAGE_BILAN = {
+  titre: "Bilan — Où va l'argent public",
   description:
     "La conjoncture, la dette publique et ses sous-secteurs, la France face à ses voisins " +
     "européens, 100 € du budget de l'État, la dépense publique par fonction, le solde de la " +
-    "Sécurité sociale, les niches fiscales.",
+    "Sécurité sociale, les niches fiscales, et le classement des territoires.",
 };
 
 /**
- * Le chemin de la page MÉTHODE, lu dans `routes.ts` plutôt que recopié.
+ * Le chemin de la page BILAN, lu dans `routes.ts` plutôt que recopié.
  *
  * C'est la même table que le plan du site lit (`CHEMINS_DE_VUE`) : le document
  * est donc écrit exactement là où le plan l'annonce, et un chemin renommé
  * demain déplace les deux ensemble. Recopié ici, il aurait fait diverger le
  * plan et le disque — et `validerIndexation` aurait déclaré l'adresse morte.
  */
-const CHEMIN_METHODE = CHEMINS.methode;
-const DOSSIER_METHODE = CHEMIN_METHODE.replace(/^\//, "");
-
-/** Le chemin de la page REPÈRES, lu dans `routes.ts` pour la même raison que
- *  celui de la méthode juste au-dessus. */
-const CHEMIN_REPERES = CHEMINS.reperes;
-const DOSSIER_REPERES = CHEMIN_REPERES.replace(/^\//, "");
+const CHEMIN_BILAN = CHEMINS.bilan;
+const DOSSIER_BILAN = CHEMIN_BILAN.replace(/^\//, "");
 
 /**
- * Les cinq cartes de section, et l'endroit où chacune est servie.
+ * Les quatre cartes de section, et l'endroit où chacune est servie.
  *
  * Une page qui n'a pas d'objet à montrer porte l'image de sa section — et
  * jamais celle d'une autre. `/simulateur` est le cas qui a rendu la faute
@@ -573,6 +549,12 @@ export function sections(shell: string): { chemin: string; nature: string; titre
     // L'accueil, et toutes les vues de l'application qui partagent le gabarit :
     // le titre et la description que le document porte réellement.
     { chemin: "", nature: "Le site", titre: titreDuGabarit(shell), phrase: descriptionDuGabarit(shell) },
+    // L'index des analyses éditoriales. L'onglet ANALYSES a disparu de la barre
+    // de navigation le 17 août 2026 — c'était une vue de tableaux, absorbée par
+    // BILAN —, mais `/analyses/` est une autre chose : le sommaire des articles
+    // que `chargerAnalyses` lit et que `controle_analyses` contrôle. Il reste
+    // servi, reste au plan du site, et garde donc sa carte. La lui retirer
+    // laissait un `og:image` mort — ce que `validerCartes` a refusé au build.
     { chemin: "analyses", nature: "Analyses", titre: marque, phrase: PAGE_ANALYSES.description },
     // Le simulateur ne déclare aucune phrase qui ne dépende des fichiers
     // publiés : le seul titre qu'il écrit à l'écran compte les budgets qu'il a
@@ -591,36 +573,16 @@ export function sections(shell: string): { chemin: string; nature: string; titre
       titre: marque,
       phrase: MESSAGE_PRINCIPAL,
     },
-    // La méthode a son document propre depuis qu'elle est pré-rendue : servie
-    // par le gabarit, elle empruntait la carte du site, dont le chapeau dit
-    // « Le site » et la phrase le message principal. Sous un titre qui annonce
-    // les sources, c'était l'accueil qu'on montrait. Sa phrase est celle que le
-    // document porte en description, pour que l'image et la page disent la même
-    // chose — c'est la règle qu'`PAGE_ANALYSES` tient déjà pour l'index.
+    // BILAN a son document propre : elle a quitté le lot des adresses que le
+    // gabarit sert, et la carte du site annonce l'ACCUEIL — chapeau « Le site »,
+    // message principal en phrase. Sous un titre qui annonce la dette, les
+    // 100 €, les niches et le classement des territoires, c'est l'accueil
+    // qu'on aurait montré.
     {
-      chemin: DOSSIER_METHODE,
-      nature: "Méthode",
+      chemin: DOSSIER_BILAN,
+      nature: "Bilan",
       titre: marque,
-      phrase: PAGE_METHODE.description,
-    },
-    // REPÈRES a la sienne pour exactement la raison qui a donné la sienne à la
-    // méthode : elle vient de quitter le lot des adresses que le gabarit sert,
-    // et la carte du site annonce l'ACCUEIL — chapeau « Le site », message
-    // principal en phrase. Sous un titre qui annonce la dette, les 100 € et les
-    // niches, c'est l'accueil qu'on aurait montré.
-    //
-    // Le chapeau est « Repères », le mot que la barre de navigation du site
-    // emploie pour cette page. Il se lit à un « s » près de celui de
-    // `carteReperes`, « Repère », et ce n'est pas la même chose : cette
-    // nature-là est celle d'un objet partageable, un repère et son
-    // titre-affirmation ; celle-ci est une PAGE, sixième nature de
-    // `carte-og.ts`, sans un chiffre dessus. Le mot est celui du site, pas un
-    // mot choisi ici pour éviter la ressemblance.
-    {
-      chemin: DOSSIER_REPERES,
-      nature: "Repères",
-      titre: marque,
-      phrase: PAGE_REPERES.description,
+      phrase: PAGE_BILAN.description,
     },
   ];
 }
@@ -1021,9 +983,10 @@ export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
   // Les deux cadres que le build ne sait pas remplir : `fraicheur.json` et
   // `journal.json` sont publiés, et c'est `peindreMethode` qui va les chercher.
   // Repliés plutôt que laissés vides — voir `replierCadre`.
-  html = replierCadre(html, "methode-fraicheur");
-  html = replierCadre(html, "methode-journal");
-  html = deplierCadre(html, "vue-methode");
+  // La fraîcheur et le journal des corrections ont disparu avec l'onglet
+  // MÉTHODE : ils décrivaient le site, pas les comptes publics. Les sources,
+  // elles, restent — la Licence Ouverte impose de citer les producteurs.
+  html = deplierCadre(html, "vue-bilan");
   return replierCadre(html, "vue-accueil");
 }
 
@@ -1116,9 +1079,9 @@ export function injecterReperes(
   for (const [id, corps] of [...ouvrants, centEuros]) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }
-  html = replierCadre(html, "sommaire-reperes");
+  html = replierCadre(html, "sommaire-bilan");
   html = deplierCadre(html, "national");
-  html = deplierCadre(html, "vue-reperes");
+  html = deplierCadre(html, "vue-bilan");
   // L'accueil replié, pour la raison qu'`injecterMethode` nomme : le gabarit le
   // sert déplié pour la racine, et ce document-ci le montrerait au-dessus des
   // repères jusqu'à ce que `basculerVue` tranche.
@@ -1660,48 +1623,34 @@ async function main(): Promise<void> {
   await writeFile(path.join(DIST, "index.html"), htmlSite, "utf8");
   ecrites.push({ chemin: "index.html", html: htmlSite });
 
-  // La page MÉTHODE, à son propre chemin. Elle quitte donc le lot des adresses
-  // que le gabarit sert — cinq restent — et devient une adresse à un document,
-  // qui doit dès lors déclarer sa canonique : `validerIndexation` l'exige plus
-  // bas, sans qu'une ligne y change. C'est ce que ce contrôle-là dit depuis le
-  // début, et le compte des deux côtés a bougé ensemble.
-  const htmlMethode = injecterAnnonce(
-    injecterMethode(shell, jeux),
-    {
-      titre: PAGE_METHODE.titre,
-      description: PAGE_METHODE.description,
-      canonique: CHEMIN_METHODE,
-      image: `${CHEMIN_METHODE}/carte.png`,
-    },
-    SITE,
-  );
-  await ecrirePage(path.join(DIST, DOSSIER_METHODE), htmlMethode);
-  ecrites.push({ chemin: `${DOSSIER_METHODE}/index.html`, html: htmlMethode });
-
-  // La page REPÈRES, au même chemin qu'elle a toujours eu et par le même geste
-  // que la méthode : `injecterAnnonce`, jamais `injecter`. Elle quitte à son
-  // tour le lot des adresses que le gabarit sert — quatre restent — et doit
-  // donc déclarer sa canonique, ce que `validerIndexation` exige plus bas sans
-  // qu'une ligne y change. Le plan du site, lui, ne bouge pas d'un compte :
-  // `/reperes` y figurait déjà, servie par le repli. Ce qui change est le
-  // document qui répond, pas la liste.
+  // La page BILAN, à son propre chemin. Elle réunit ce que REPÈRES et MÉTHODE
+  // écrivaient séparément : les huit cadres nationaux, puis les sources et la
+  // grille de verdicts que la méthode portait. Deux documents s'écrivaient au
+  // même endroit depuis la fusion des onglets — le second écrasait le premier,
+  // et la page perdait ses sources sans qu'aucun contrôle ne le voie.
   //
   // Le catalogue est celui du navigateur, indicateurs calculés compris — voir
   // `injecterReperes`, point 1. `corpsAccueil` en compose un identique pour
   // lui-même ; le composer deux fois vaut mieux que de le passer d'une page à
   // l'autre, où l'on ne verrait plus lequel des deux catalogues chaque page lit.
-  const htmlReperes = injecterAnnonce(
-    injecterReperes(shell, pays, [...catalogue, ...indicateursDerives(catalogue)], niches, budget),
+  const htmlBilan = injecterAnnonce(
+    injecterReperes(
+      injecterMethode(shell, jeux),
+      pays,
+      [...catalogue, ...indicateursDerives(catalogue)],
+      niches,
+      budget,
+    ),
     {
-      titre: PAGE_REPERES.titre,
-      description: PAGE_REPERES.description,
-      canonique: CHEMIN_REPERES,
-      image: `${CHEMIN_REPERES}/carte.png`,
+      titre: PAGE_BILAN.titre,
+      description: PAGE_BILAN.description,
+      canonique: CHEMIN_BILAN,
+      image: `${CHEMIN_BILAN}/carte.png`,
     },
     SITE,
   );
-  await ecrirePage(path.join(DIST, DOSSIER_REPERES), htmlReperes);
-  ecrites.push({ chemin: `${DOSSIER_REPERES}/index.html`, html: htmlReperes });
+  await ecrirePage(path.join(DIST, DOSSIER_BILAN), htmlBilan);
+  ecrites.push({ chemin: `${DOSSIER_BILAN}/index.html`, html: htmlBilan });
 
   await validerImagesAnnoncees(DIST, ecrites, SITE);
   await validerImageDuScenario(DIST);
@@ -1714,7 +1663,7 @@ async function main(): Promise<void> {
 
   console.log(
     `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), dist/analyses/index.html, ` +
-      `dist/${DOSSIER_METHODE}/index.html, dist/${DOSSIER_REPERES}/index.html, ` +
+      `dist/${DOSSIER_BILAN}/index.html, ` +
       `${analyses.length + sections(shell).length} carte(s) de partage, ` +
       `${adresses.length} adresse(s) au plan du site, sous ${SITE}.`,
   );

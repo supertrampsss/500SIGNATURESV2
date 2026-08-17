@@ -489,15 +489,29 @@ function dessiner(cadre: Cadre): string {
     largeurSource,
     SOURCE_LIGNES,
   );
-  // L'adresse est mesurée AVANT la mention d'unité, qui partage sa ligne : elle
-  // est bornée au tiers de la largeur utile, mais c'est ce qu'elle occupe
-  // vraiment — jamais sa borne — qui dit ce qui reste à gauche.
-  const adresse = replier(cadre.site, TAILLE_PIED, LARGEUR_UTILE / 3, 1)[0] ?? "";
+  // L'adresse est mesurée AVANT la mention d'unité, qui partage sa ligne :
+  // c'est ce que l'adresse occupe vraiment qui dit ce qui reste à gauche.
+  //
+  // **Et elle ne se borne pas.** Elle était coupée au tiers de la largeur
+  // utile — 352 unités — quand l'adresse de publication de ce dépôt en demande
+  // 373 : les six cartes que le build écrit portaient toutes
+  // « https://plateforme-9sz.pages.… ». Une adresse est la seule chaîne de la
+  // carte qui devient INUTILE en perdant sa fin : elle ne se retape pas, et
+  // c'est elle qui existe pour ramener ici le lecteur qui a vu l'image passer.
+  // Les autres se lisent tronquées ; celle-ci ne se lit plus du tout.
+  //
+  // C'est donc la mention d'unité qui cède, et elle disparaît plutôt que de se
+  // réduire à un caractère de suite — même geste que `corpsRangees` quand la
+  // valeur prend toute la rangée. Le cas ne s'est jamais présenté : les deux
+  // ensemble demandent 867 unités sur 1 056.
+  const adresse = replier(cadre.site, TAILLE_PIED, LARGEUR_UTILE, 1)[0] ?? "";
   const restePourUnite =
     LARGEUR_UTILE - largeurApprochee(adresse, TAILLE_PIED) - GOUTTIERE;
+  const replieUnite =
+    restePourUnite > 0 ? (replier(cadre.unite, TAILLE_PIED, restePourUnite, 1)[0] ?? "") : "";
   const pied =
     texte(
-      replier(cadre.unite, TAILLE_PIED, restePourUnite, 1)[0] ?? "",
+      replieUnite === "…" ? "" : replieUnite,
       MARGE,
       PIED_UNITE,
       TAILLE_PIED,
@@ -887,7 +901,16 @@ export function carteFiche(donnees: DonneesFiche): string {
     const variation =
       chiffre.variation == null
         ? ""
-        : ` (${formaterVariation(chiffre.variation, chiffre.unite, modeVariation(chiffre.unite))})`;
+        : // Trois variations empilées se lisent de haut en bas : c'est une
+          // colonne, et une colonne comparée garde sa décimale (CLAUDE.md).
+          // Sans elle, la Nouvelle-Aquitaine peignait « +10 % » entre
+          // « +9,1 % » et « +5,4 % », et les trois cessaient de s'aligner.
+          ` (${formaterVariation(
+            chiffre.variation,
+            chiffre.unite,
+            modeVariation(chiffre.unite),
+            true,
+          )})`;
     return { libelle: chiffre.libelle, valeur: `${montant}${variation}` };
   });
   // L'exercice se dit avec l'unité, là où le lecteur apprend ce que sont les

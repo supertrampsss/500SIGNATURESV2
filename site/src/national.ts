@@ -7,6 +7,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { nomPays } from "./pays-noms.ts";
 import { formater } from "./echelle.ts";
 
 const SOUS_SECTEURS = [
@@ -17,14 +18,7 @@ const SOUS_SECTEURS = [
 ];
 
 const VOISINS = ["FR", "DE", "ES", "IT", "NL", "EA20"];
-const NOMS_PAYS: Record<string, string> = {
-  FR: "France",
-  DE: "Allemagne",
-  ES: "Espagne",
-  IT: "Italie",
-  NL: "Pays-Bas",
-  EA20: "Zone euro",
-};
+
 
 function derniere(serie: Record<string, number> | undefined): [string, number] | null {
   if (!serie) return null;
@@ -119,7 +113,7 @@ export function renduEurope(pays: Record<string, Territoire>): string {
         return valeur ? formater(valeur[1], "percent", false) : "—";
       };
       return `<tr${code === "FR" ? ' class="souligne"' : ""}>
-        <th scope="row">${NOMS_PAYS[code] ?? code}</th>
+        <th scope="row">${nomPays(code)}</th>
         <td>${cellule("eurostat_dette_pib")}</td>
         <td>${cellule("eurostat_deficit_pib")}</td>
         <td>${cellule("eurostat_chomage")}</td>
@@ -129,7 +123,7 @@ export function renduEurope(pays: Record<string, Territoire>): string {
   const annee = derniere(pays["FR"].series["eurostat_dette_pib"])?.[0] ?? "";
   return `
     <h3>La France et ses voisins</h3>
-    <table class="comparaison">
+    <table class="comparaison" tabindex="0">
       <caption>Année ${annee} · sources harmonisées Eurostat</caption>
       <thead><tr><th scope="col">Pays</th><th scope="col">Dette / PIB</th>
         <th scope="col">Déficit / PIB</th><th scope="col">Chômage</th></tr></thead>

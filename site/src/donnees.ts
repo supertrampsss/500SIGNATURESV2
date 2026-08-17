@@ -19,6 +19,16 @@ export type Indicateur = {
   confiance: string;
   badges: string[];
   jeu: string;
+  /**
+   * Les mailles dont la source **diffère** de `jeu`, et elles seules.
+   *
+   * Un indicateur ne porte qu'un jeu, quand une série peut venir d'un jeu par
+   * maille : les agrégats de l'OFGL sont déclarés sous « Finances des
+   * communes » alors que le département et la région ont chacun le leur. Se
+   * lit `jeu_par_niveau?.[niveau] ?? jeu` — voir `jeuDuNiveau`. Absent quand il
+   * n'y a rien à corriger, et des publications antérieures au 17 août 2026.
+   */
+  jeu_par_niveau?: Record<string, string>;
   periodes: string[];
   /** Périodes réellement disponibles à chaque niveau (docs/10). */
   periodes_par_niveau?: Record<string, string[]>;
@@ -67,6 +77,11 @@ export type Territoire = {
   /** Maire en exercice (RNE). Nom et prise de fonction seulement : ni date de
    *  naissance, ni sexe, ni profession ne sont chargés. */
   maire?: { nom: string; depuis: string | null };
+  /** L'exécutif de la mandature précédente, quand il est publié. Seules les
+   *  communes en ont un : le ministère arrête la liste des maires sortants
+   *  avant chaque scrutin municipal, et rien d'équivalent n'existe pour les
+   *  conseils départementaux et régionaux, dont la mandature court toujours. */
+  maire_precedent?: { nom: string; depuis: string | null };
 };
 
 export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };

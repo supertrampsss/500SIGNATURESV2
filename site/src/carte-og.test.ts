@@ -1098,3 +1098,56 @@ test("30. replier rend zéro ligne quand on ne lui en demande aucune", () => {
   assert.deepEqual(replier("un deux trois", 20, 120, 0), []);
   assert.deepEqual(replier("un deux trois", 20, 120, -1), []);
 });
+
+/* --------------------------------------------------------------------------
+ * L'adresse du site ne se tronque pas
+ *
+ * Mesurée sur l'adresse de publication réelle du dépôt : 373 unités à corps 24,
+ * quand le tiers de la largeur utile en offrait 352. Les six cartes que le
+ * build écrit portaient « https://plateforme-9sz.pages.… », c'est-à-dire une
+ * adresse qui ne se retape pas — la seule chaîne de la carte qui devient
+ * inutile en perdant sa fin, et celle qui existe pour ramener le lecteur ici.
+ * ----------------------------------------------------------------------- */
+
+test("l'adresse de publication du dépôt est peinte entière", () => {
+  const site = "https://plateforme-9sz.pages.dev";
+  // Le repère de la faute : elle demande plus que ce que l'ancienne borne
+  // offrait. Sans cette assertion, le test resterait vert si la borne changeait
+  // et prouverait seulement qu'une adresse courte tient.
+  assert.ok(
+    largeurApprochee(site, 24) > (LARGEUR - 2 * GEOMETRIE.MARGE) / 3,
+    "l'adresse tient désormais dans l'ancienne borne : ce test n'éprouve plus rien",
+  );
+  for (const [nom, svg] of [
+    ["fiche", carteFiche({ ...FICHE, site })],
+    ["repère", carteReperes({ ...REPERES, site })],
+    ["scénario", carteScenario({ ...SCENARIO, site })],
+  ] as [string, string][]) {
+    assert.ok(svg.includes(`>${site}<`), `${nom} : l'adresse est coupée`);
+    assert.ok(!svg.includes("pages.…"), `${nom} : l'adresse porte un caractère de suite`);
+  }
+});
+
+test("la mention d'unité cède la ligne à l'adresse, elle ne la coupe pas", () => {
+  // Une adresse qui prendrait toute la ligne : la mention disparaît plutôt que
+  // de se réduire à un « … » qui n'apprend rien — même geste que `corpsRangees`
+  // quand la valeur occupe toute la rangée.
+  const svg = carteFiche({ ...FICHE, site: `https://${"w".repeat(120)}.fr` });
+  assert.ok(!svg.includes(">…<"), "un caractère de suite seul a été peint à la place de l'unité");
+});
+
+test("les trois variations d'une fiche gardent leur décimale", () => {
+  // Le cas réel : Nouvelle-Aquitaine peignait « +10 % » entre « +9,1 % » et
+  // « +5,4 % » — une colonne de trois qui cesse de s'aligner sur celle du
+  // milieu (CLAUDE.md, « une colonne comparée garde sa décimale »).
+  const svg = carteFiche({
+    ...FICHE,
+    chiffres: [
+      { libelle: "Ce qu'elle encaisse", valeur: 2_668_311_586, unite: "EUR", variation: 9.125 },
+      { libelle: "Ce qu'elle dépense", valeur: 2_158_000_000, unite: "EUR", variation: 10 },
+      { libelle: "Ce qui reste", valeur: 510_600_000, unite: "EUR", variation: 5.4 },
+    ],
+  });
+  assert.ok(svg.includes("+10,0 %"), `la variation ronde a perdu sa décimale : ${svg}`);
+  assert.ok(!svg.includes("+10 %"), "« +10 % » entre « +9,1 % » et « +5,4 % »");
+});

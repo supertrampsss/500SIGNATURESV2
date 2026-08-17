@@ -34,7 +34,7 @@
  */
 
 import type { Indicateur } from "./donnees.ts";
-import { millions } from "./echelle.ts";
+import { moins } from "./echelle.ts";
 import { accentuer } from "./traductions.ts";
 
 /** Premier exercice de la fenêtre du site. */
@@ -157,9 +157,41 @@ function evolutionDe(valeurs: (number | null)[], colonnes: string[]): Evolution 
   };
 }
 
-/** Un montant en millions, sans son sigle : la légende le porte une fois. */
-function sansSigle(valeur: number): string {
-  return millions(valeur).replace(/\s*M€$/u, "");
+/**
+ * L'échelle du tableau entier, choisie sur son plus gros montant.
+ *
+ * Une cellule ne peut pas porter « milliards d'euros » en toutes lettres —
+ * sept colonnes le répéteraient sept fois par ligne. C'est donc la légende qui
+ * nomme l'unité, une fois, et les cellules qui portent le nombre. Mais la
+ * légende disait « millions » quel que soit le territoire, ce qui donnait
+ * « 336 069 » pour l'État : six rangs qu'il fallait diviser de tête.
+ *
+ * L'échelle suit donc la maille — millions pour une commune, milliards pour
+ * l'État — et **une seule pour tout le tableau** : deux lignes de la même
+ * colonne changeant d'unité ne se comparent plus, ce qui est précisément ce
+ * que ce tableau existe pour permettre.
+ */
+function echelleDuTableau(lignes: readonly { valeurs: readonly (number | null)[] }[]): {
+  diviseur: number;
+  mot: string;
+} {
+  const maximum = Math.max(
+    0,
+    ...lignes.flatMap((l) => l.valeurs.filter((v): v is number => v !== null).map(Math.abs)),
+  );
+  return maximum >= 1e9
+    ? { diviseur: 1e9, mot: "milliards d'euros" }
+    : { diviseur: 1e6, mot: "millions d'euros" };
+}
+
+/** Un montant à l'échelle du tableau, sans son unité : la légende la porte. */
+function sansSigle(valeur: number, diviseur: number): string {
+  return moins(
+    new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(valeur / diviseur),
+  );
 }
 
 function echapper(texte: string): string {
@@ -203,6 +235,7 @@ export function rendreExercices(tableau: Tableau | null): string {
   const premier = tableau.exercices[0]!;
   const dernier = tableau.exercices[tableau.exercices.length - 1]!;
   const entetes = tableau.exercices.map((a) => `<th scope="col">${a}</th>`).join("");
+  const { diviseur, mot } = echelleDuTableau(tableau.lignes);
   const corps = tableau.lignes
     .map(
       ({ libelle, terme, valeurs, evolution }) => `<tr><th scope="row">${
@@ -210,15 +243,15 @@ export function rendreExercices(tableau: Tableau | null): string {
           ? `<abbr title="${echapper(terme)} (libellé du fichier publié)">${echapper(libelle)}</abbr>`
           : echapper(libelle)
       }</th>${valeurs
-        .map((v) => `<td>${v === null ? "" : sansSigle(v)}</td>`)
+        .map((v) => `<td>${v === null ? "" : sansSigle(v, diviseur)}</td>`)
         .join("")}${rendreEvolution(evolution, premier, dernier)}</tr>`,
     )
     .join("");
   return `<section class="bloc-lecture bloc-lecture--tableau">
     <h3>Évolution</h3>
-    <div class="tableau-exercices">
+    <div class="tableau-exercices" tabindex="0">
       <table>
-        <caption>Montants en millions d'euros. Une colonne vide : l'agrégat n'est pas publié cet exercice-là.</caption>
+        <caption>Montants en ${mot}. Une colonne vide : l'agrégat n'est pas publié cet exercice-là.</caption>
         <thead><tr><th scope="col"></th>${entetes}<th scope="col" class="tableau-exercices__evo">${premier}\u2009\u2192\u2009${dernier}</th></tr></thead>
         <tbody>${corps}</tbody>
       </table>

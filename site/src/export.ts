@@ -20,7 +20,45 @@
  * doit pas être un chiffre orphelin.
  */
 
+import type { Indicateur, Jeu } from "./donnees.ts";
 import { modeVariation, variationExportee } from "./evolution-carte.ts";
+
+/**
+ * La source du chiffre exporté, à la maille où on l'exporte.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI CE N'EST PAS `indicateur.jeu`
+ * ─────────────────────────────────────────────────────────────────────────
+ * Un indicateur ne porte qu'un jeu, quand une série peut venir d'un jeu par
+ * maille. Le connecteur de l'OFGL télécharge « Finances des communes », « des
+ * départements » et « des régions », puis déclare ses quatre-vingt-treize
+ * agrégats sous le premier. Lu tel quel, cet en-tête écrivait :
+ *
+ *     # Source : OFGL, Finances des communes (consolidee)
+ *
+ * en tête d'un export de **départements**, et la même phrase pour les cartes
+ * grises — une recette que seules les régions perçoivent. C'est la faute que ce
+ * fichier existe pour empêcher : « un CSV anonyme retrouvé dans un dossier
+ * trois mois plus tard ne doit pas être un chiffre orphelin » — une source
+ * fausse est pire qu'orpheline, elle envoie chercher dans le mauvais fichier.
+ *
+ * La publication déclare désormais les mailles dont le jeu diffère
+ * (`jeu_par_niveau`, docs/10). Absent — publication antérieure, ou rien à
+ * corriger — on retombe sur `jeu`, c'est-à-dire sur ce qui se faisait déjà.
+ *
+ * Le producteur et le titre, jamais l'identifiant : « ofgl-departements » ne
+ * dit rien à qui ouvre le fichier. Il reste le dernier repli, parce qu'un jeu
+ * absent du manifeste vaut encore mieux qu'une ligne « Source : » vide.
+ */
+export function sourceDuNiveau(
+  indicateur: Pick<Indicateur, "jeu" | "jeu_par_niveau">,
+  niveau: string,
+  jeux: readonly Jeu[],
+): string {
+  const id = indicateur.jeu_par_niveau?.[niveau] ?? indicateur.jeu;
+  const jeu = jeux.find((candidat) => candidat.id === id);
+  return jeu ? `${jeu.producteur}, ${jeu.titre}` : id;
+}
 
 export type LigneExport = {
   code: string;
@@ -184,7 +222,12 @@ export function enCsvEvolution(
   return "\uFEFF" + [...commentaires, entetes.join(";"), ...corps].join("\r\n") + "\r\n";
 }
 
-export function nomDeFichier(indicateur: string, niveau: string, periode: string): string {
+export function nomDeFichier(
+  indicateur: string,
+  niveau: string,
+  periode: string,
+  extension = "csv",
+): string {
   const propre = (texte: string) =>
     texte
       .normalize("NFD")
@@ -192,12 +235,16 @@ export function nomDeFichier(indicateur: string, niveau: string, periode: string
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-  return `${propre(indicateur)}-${propre(niveau)}-${periode}.csv`;
+  return `${propre(indicateur)}-${propre(niveau)}-${periode}.${extension}`;
 }
 
-/** Déclenche le téléchargement côté navigateur. Non testé : DOM pur. */
-export function telecharger(contenu: string, fichier: string): void {
-  const blob = new Blob([contenu], { type: "text/csv;charset=utf-8" });
+/** Déclenche le téléchargement côté navigateur. Non testé : DOM pur.
+ *
+ *  Le type est celui du contenu, pas celui du premier appelant : la carte
+ *  d'une fiche est un SVG, et un SVG servi en `text/csv` s'ouvre dans un
+ *  tableur au lieu de s'afficher. */
+export function telecharger(contenu: string, fichier: string, type = "text/csv"): void {
+  const blob = new Blob([contenu], { type: `${type};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const lien = document.createElement("a");
   lien.href = url;

@@ -70,6 +70,16 @@ LOCAL = Path(os.environ.get("PLATEFORME_ENTREPOT", "/tmp/plateforme.duckdb"))
 # constaté que le diff ne retire ni ne modifie une seule ligne. Le test
 # `test_entrepot.py` refait ce constat sur l'ancêtre déclaré.
 ANCETRES_ADDITIFS = {
+    # 2026-08-17 — ajout de `geo.local_executives`, pour publier les présidents
+    # de conseil départemental et régional et les maires de la mandature
+    # précédente. Le diff ne retire ni ne modifie une ligne : un seul bloc de
+    # table ajouté avant la section `core`.
+    #
+    # Une première version élargissait le `check` de `geo.commune_officials`
+    # au lieu d'ajouter une table. C'était une MODIFICATION, donc un entrepôt
+    # neuf et un rechargement complet — le « choix coûteux » que le commentaire
+    # ci-dessus nomme. La table séparée dit la même chose sans rien reconstruire.
+    "0edcd1faf26b1468314e5f2a675b48deb02b9824290d43c68d9d82a02fcfb62b",
     # 2026-08-07 — ajout de `fin.public_subsidies` et de sa séquence, pour
     # publier les associations subventionnées bénéficiaire par bénéficiaire.
     "db880ae9ef1690935b433fe8020e6c3856a88da99c076604071be824494f656a",
@@ -473,6 +483,7 @@ RATTACHEMENTS = [
     ("core.observations_revisions", "run_id", "meta.ingestion_runs", "run_id"),
     ("core.indicators", "dataset_id", "meta.dataset_registry", "dataset_id"),
     ("geo.commune_officials", "run_id", "meta.ingestion_runs", "run_id"),
+    ("geo.local_executives", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.public_budgets", "run_id", "meta.ingestion_runs", "run_id"),
     ("fin.public_budgets", "dataset_id", "meta.dataset_registry", "dataset_id"),
     ("fin.public_employment", "run_id", "meta.ingestion_runs", "run_id"),

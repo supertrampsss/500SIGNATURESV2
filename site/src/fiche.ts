@@ -5,11 +5,15 @@
  */
 
 import { rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
+import { note } from "./note.ts";
+import { rendreNote } from "./note-rendu.ts";
 import { blocs, rendreBlocs } from "./blocs.ts";
 import { exercices, rendreExercices } from "./exercices.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 
-const NIVEAUX: Record<string, string> = {
+/** L'intitulé de chaque maille. Exporté pour que le partage d'une fiche
+ *  nomme la maille avec le mot que la fiche affiche, et pas un autre. */
+export const NIVEAUX: Record<string, string> = {
   commune: "Commune",
   // Paris, Lyon et Marseille n'existent que par arrondissement dans certaines
   // sources — la carte des loyers de l'ANIL, par exemple, dont les codes 75056,
@@ -19,6 +23,48 @@ const NIVEAUX: Record<string, string> = {
   departement: "Département",
   region: "Région",
   pays: "Niveau national",
+};
+
+/** « 2020-07-03 » -> « juillet 2020 ». Le jour d'une prise de fonction
+ *  n'apprend rien ; le mois situe le mandat. */
+function mois(date: string): string {
+  return echapper(
+    new Date(date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+  );
+}
+
+/** « de juillet 2020 à mars 2026 », ou « en fonction depuis juillet 2020 »
+ *  quand aucun successeur n'est publié — une quinzaine de communes. On
+ *  n'invente pas une fin, et on n'écrit pas une période à l'envers. */
+function periodeExecutif(depuis: string, jusqu?: string | null): string {
+  const debut = new Date(depuis);
+  if (jusqu) {
+    const fin = new Date(jusqu);
+    if (!Number.isNaN(fin.getTime()) && fin > debut) {
+      return `en fonction de ${mois(depuis)} à ${mois(jusqu)}`;
+    }
+  }
+  return `en fonction depuis ${mois(depuis)}`;
+}
+
+/**
+ * L'intitulé de l'exécutif, par maille.
+ *
+ * Une fiche de département écrivait « Maire : » parce que le champ publié
+ * s'appelle `maire` — le nom du champ a été gardé pour ne pas casser les
+ * lecteurs existants, mais il porte désormais le rôle de la maille. Une maille
+ * absente de cette table n'affiche pas de ligne d'exécutif : la France n'en a
+ * pas dans cette source, et un arrondissement municipal non plus.
+ *
+ * **La date qui suit n'est pas la même chose d'une maille à l'autre**, et la
+ * phrase le dit : un maire est en fonction depuis le début de son mandat, un
+ * président depuis que son assemblée l'a élu — ce qui vient après les
+ * élections, parfois de plusieurs mois.
+ */
+const EXECUTIFS: Record<string, string> = {
+  commune: "Maire",
+  departement: "Président du conseil départemental",
+  region: "Président du conseil régional",
 };
 
 /**
@@ -255,6 +301,25 @@ export function afficherFiche(
   // blocs partent de là et disent ce qu'un nombre posé ne dit pas : d'où vient
   // le mouvement.
   const ouvertureChiffree = rendreReperes(reperesDOuverture(territoire.series ?? {}, niveau));
+  // La note ouvre la fiche : « est-ce que ma commune est bien gérée » est la
+  // question qu'on vient poser, et elle était nulle part sur cette page. Elle
+  // ne s'affiche que là où les trois séries de l'OFGL existent — la France n'a
+  // pas de compte administratif, et `note()` rend `null` plutôt que de noter
+  // un territoire sur des séries qu'il ne porte pas.
+  // **C'est le PRÉDÉCESSEUR qu'on nomme sous le tableau**, quand il existe :
+  // la note se lit sur 2019-2025, et le maire entré en fonction en mars 2026
+  // n'a aucun de ces exercices derrière lui. Là où aucun prédécesseur n'est
+  // publié — départements et régions, dont la mandature court toujours —,
+  // c'est l'exécutif en exercice, qui couvre bien une partie des exercices.
+  const auxComptes = territoire.maire_precedent ?? territoire.maire;
+  const noteChiffree = rendreNote(
+    note(territoire.series ?? {}, niveau),
+    territoire.series ?? {},
+    auxComptes,
+    EXECUTIFS[niveau] ?? "",
+    // La fin du mandat du prédécesseur : l'arrivée de celui en exercice.
+    territoire.maire_precedent ? territoire.maire?.depuis : null,
+  );
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
@@ -269,15 +334,36 @@ export function afficherFiche(
         : ""
     }</p>
     ${
-      territoire.maire
-        ? `<p class="fiche__maire">Maire : <strong>${echapper(territoire.maire.nom)}</strong>${
-            territoire.maire.depuis
-              ? ` <span>depuis ${echapper(
-                  new Date(territoire.maire.depuis).toLocaleDateString("fr-FR", {
-                    month: "long",
-                    year: "numeric",
-                  }),
-                )}</span>`
+      territoire.maire && EXECUTIFS[niveau]
+        ? `<p class="fiche__maire">${EXECUTIFS[niveau]} : <strong>${echapper(territoire.maire.nom)}</strong>${
+            territoire.maire.depuis ? ` <span>depuis ${mois(territoire.maire.depuis)}</span>` : ""
+          }${
+            // **Le prédécesseur, parce que c'est lui qui a présidé aux comptes
+            // affichés.** La note se lit sur 2019-2025 ; le maire en exercice
+            // a pris ses fonctions en mars 2026 et n'a aucun de ces exercices
+            // derrière lui. Sans cette ligne, la fiche posait un nom au-dessus
+            // d'un bilan qui n'est pas le sien.
+            //
+            // « avant lui », jamais « maire de 2020 à 2026 » : un maire sortant
+            // sur trente a pris ses fonctions en cours de mandature, et la
+            // source ne donne que le dernier de la mandature.
+            territoire.maire_precedent
+              ? `<span class="fiche__precedent">Avant lui : ${echapper(
+                  territoire.maire_precedent.nom,
+                )}${
+                  // **Une période, pas un « depuis ».** Un ancien maire ne se
+                  // dit pas au présent : « en fonction depuis juillet 2020 »
+                  // sous le nom de son successeur laissait lire deux maires à
+                  // la fois. La fin est la prise de fonction du successeur —
+                  // un mandat finit quand le suivant commence — et elle est
+                  // publiée, contrairement à ce que j'avais d'abord conclu.
+                  territoire.maire_precedent.depuis
+                    ? `, ${periodeExecutif(
+                        territoire.maire_precedent.depuis,
+                        territoire.maire?.depuis,
+                      )}`
+                    : ""
+                }</span>`
               : ""
           }</p>`
         : ""
@@ -287,13 +373,14 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}${rendreExercices(
+      `<div class="fiche__essentiel">${noteChiffree}${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}${rendreExercices(
         exercices({
           cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
           series: territoire.series ?? {},
           catalogue: options.indicateurs,
         }),
-      )}<div class="fiche__situation" id="fiche-situation"></div></div>`
+      )}<div class="fiche__situation" id="fiche-situation"></div></div>
+    <div class="fiche__partage" id="fiche-partage"></div>`
     }
   `;
 }

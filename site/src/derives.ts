@@ -513,6 +513,10 @@ export function indicateursDerives(catalogue: Indicateur[]): Indicateur[] {
       // compétences — alors qu'un agrégat de délinquance, lui, se compare bien à
       // son département, qui est un territoire.
       jeu: (connus.get(derive.entrees[0]) as Indicateur).jeu,
+      // Et par la même occasion les mailles dont ce jeu-là n'est pas la source :
+      // hériter du jeu sans ses exceptions ferait dire à un dérivé communal ce
+      // que son entrée dit déjà correctement à la maille département.
+      jeu_par_niveau: (connus.get(derive.entrees[0]) as Indicateur).jeu_par_niveau,
       periodes,
     };
   });

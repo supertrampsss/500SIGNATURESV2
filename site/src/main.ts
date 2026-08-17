@@ -13,7 +13,11 @@ import { traduire } from "./traductions.ts";
 import { libelleTheme, THEMES } from "./themes.ts";
 import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { afficherFiche, NIVEAUX, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
+import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
+import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
+import { palmares, rendrePalmares, type Ligne as LignePalmares } from "./palmares.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -32,6 +36,7 @@ import { apercuScenario } from "./apercu-scenario.ts";
 import {
   offrir,
   partageAnalyse,
+  partageFiche,
   partageComparaison,
   partageScenario,
   permalien,
@@ -59,7 +64,7 @@ import { afficherQuestions } from "./questions.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
-  enCsv, enCsvEvolution, nomDeFichier, telecharger,
+  enCsv, enCsvEvolution, nomDeFichier, sourceDuNiveau, telecharger,
   type LigneExport, type LigneExportEvolution,
 } from "./export.ts";
 import {
@@ -92,12 +97,8 @@ import { ouvrirRepertoire, populationsDuRepertoire, type Repertoire } from "./re
 import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
-import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import { adresseTerritoire, cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
-import { afficherFraicheur } from "./fraicheur.ts";
-import { afficherJournal } from "./journal.ts";
-import { renduGrille, renduMethode, renduSources } from "./methode-rendu.ts";
 import {
   rendu as renduAccueil,
   exemplesTerritoires,
@@ -806,6 +807,7 @@ function afficherApercu(): void {
     indicateurs: nationaux,
     comparateurs: [],
   });
+  poserPartageDeLaFiche("pays", "FR", france);
   appliquerVitesse();
 }
 
@@ -1003,7 +1005,6 @@ function suivreLaSelection(code: string): void {
   const vue = vueDuCode(code);
   if (vue === etat.vue) return;
   etat.vue = vue;
-  construireBarreCarte();
   cadrer(vue);
 }
 
@@ -1063,6 +1064,7 @@ async function montrerFiche(code: string): Promise<void> {
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
   });
+  poserPartageDeLaFiche(niveau, code, territoire);
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
   injecterActionsFiche();
@@ -1146,6 +1148,15 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
       ...CLASSEMENTS.map((c) => donnees.valeursCarte(c.id, niveau, exercice)),
       donnees.valeursCarte("ofgl_epargne_brute", niveau, exercice),
     ]);
+    // Les deux couches d'ouverture, pour le terme de trajectoire de la note.
+    // Elles sont demandées à part et sans faire échouer le reste : un exercice
+    // 2019 absent d'une maille vaut « pas de trajectoire », ce que la note sait
+    // déjà traiter — pas « pas de classement ».
+    const [recettesAvant, epargneAvant] = await Promise.all([
+      donnees.valeursCarte(RECETTES, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+      donnees.valeursCarte(EPARGNE, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+    ]);
+    if (etat.selection !== code || document.getElementById("fiche-situation") !== cible) return;
     if (etat.selection !== code || document.getElementById("fiche-situation") !== cible) return;
     const habitants = populationsDuRepertoire(index, exercice);
     const dette = couches[CLASSEMENTS.length - 1];
@@ -1179,6 +1190,39 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
       // classement où il ne veut rien dire.
       valeur: (t: string) =>
         dette[t] > 0 && epargne[t] > 0 ? dette[t] / epargne[t] : null,
+    });
+    // **La note de gestion, en tête du classement.** Elle est la question que
+    // le lecteur pose — « est-ce que ma commune est bien gérée » —, et les
+    // quatre critères au-dessus sont les mesures dont elle sort. Sans elle, la
+    // fiche disait la note et le classement ne savait pas la situer.
+    //
+    // Le barème n'est pas recalculé ici : `noteDepuisCouches` recompose la
+    // forme que `note()` attend, pour que les deux écrans ne puissent pas
+    // afficher deux notes différentes du même territoire.
+    const recettes = couches[1];
+    criteres.unshift({
+      libelle: "Note de gestion",
+      // **Un verbe, jamais un participe.** Le sujet change avec la maille —
+      // « communes » et « régions » au féminin, « départements » au masculin —
+      // et « 27 887 communes sont mieux notés » se lisait comme une faute. Les
+      // quatre critères au-dessus emploient des verbes pleins pour cette
+      // raison exacte : « dépensent plus », « doivent moins ».
+      dessus: "ont une meilleure note",
+      dessous: "ont une note plus basse",
+      ecrire: (v: number) =>
+        `${v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/20`,
+      valeur: (t: string) =>
+        noteDepuisCouches(
+          {
+            recettes: recettes[t],
+            epargne: epargne[t],
+            dette: dette[t],
+            recettesAvant: recettesAvant[t],
+            epargneAvant: epargneAvant[t],
+          },
+          exercice,
+          niveau,
+        )?.valeur ?? null,
     });
     const noms: Record<string, string> = {};
     index.codes.forEach((t, rang) => {
@@ -1583,72 +1627,16 @@ function themesCartographiables(): string[] {
   return [...new Set(catalogue.filter((i) => i.niveaux?.includes(etat.niveau)).map((i) => i.theme))];
 }
 
-/** Maille et territoire vivent sous la carte, en pilules : ce sont des
- *  réglages de cadrage, pas des questions posées au lecteur. */
-function construireBarreCarte(): void {
-  // **Replié, pas étalé.** Six pastilles — Métropole, Guadeloupe, Martinique,
-  // Guyane, La Réunion, Mayotte — occupaient une ligne entière pour un réglage
-  // qu'on touche une fois par visite, quand on le touche. Un menu déroulant dit
-  // la même chose en un mot, et rend la ligne à la carte.
-  $("pilules-vue").innerHTML = `<label class="visuellement-cache" for="cadrage">Territoire cadré</label>`
-    + `<select id="cadrage" class="pilule pilule--menu">${Object.entries(VUES)
-      .map(([cle, v]) => `<option value="${cle}"${cle === etat.vue ? " selected" : ""}>${
-        v.nom
-      }</option>`)
-      .join("")}</select>`;
-}
+/* Les deux menus posés sur la carte — la maille cadrée et l'indicateur peint —
+   ont été retirés de l'écran le 17 août 2026. Ils occupaient le haut de la
+   carte à toutes les largeurs pour des réglages que personne n'employait, et
+   ils demandaient au lecteur de choisir avant d'avoir rien vu.
 
-/**
- * Le sélecteur d'indicateur de la carte, à côté des pilules.
- *
- * La carte ne se pilotait que par « Voir sur la carte », replié dans le détail
- * d'une mesure du panneau : pour peindre le chômage, il fallait déjà savoir où
- * le chercher. Le sélecteur est construit en JS, dans la barre existante, et
- * n'offre que ce qui se peint à la maille affichée (`peintSurCarte`), groupé
- * par thème cartographiable.
- */
-function construireSelecteurCarte(): void {
-  const barre = document.querySelector<HTMLElement>(".carte-barre");
-  if (!barre) return;
-  let boite = document.getElementById("pilules-indicateur");
-  if (!boite) {
-    boite = document.createElement("div");
-    boite.id = "pilules-indicateur";
-    boite.className = "pilules";
-    // Un `select` natif, pas un menu maison : il est déjà accessible au
-    // clavier, au lecteur d'écran et au doigt, et il sait grouper.
-    // Les réglages en ligne ne font que le ramener à la taille des pilules
-    // voisines ; le dessin (chevron, anneau de focus) reste celui de la
-    // feuille de style. `.pilule` conviendrait mieux, mais son `background:
-    // none` effacerait le chevron : à demander en règle `.pilules select`.
-    boite.innerHTML = `<select id="carte-indicateur"
-      aria-label="Indicateur peint sur la carte"
-      style="border:0;min-height:1.75rem;min-width:0;max-width:min(20rem, 48vw);
-             font-size:var(--texte-s);color:var(--encre-douce);
-             background-color:transparent;border-radius:var(--rayon-pilule);
-             padding:var(--espace-2) var(--espace-8) var(--espace-2) var(--espace-5)"></select>`;
-    barre.prepend(boite);
-    // Sur téléphone la barre défile horizontalement : l'ancrage du défilement
-    // compense l'insertion en tête pour garder les pilules à leur place, et le
-    // sélecteur naissait hors écran, à gauche. Il ouvre la barre, il doit être
-    // ce qu'on voit en premier.
-    barre.scrollLeft = 0;
-    boite.querySelector("select")?.addEventListener("change", (evenement) => {
-      const choisi = (evenement.target as HTMLSelectElement).value;
-      if (choisi) void choisirIndicateur(choisi);
-    });
-  }
-  const groupes = groupesCarte(
-    catalogue,
-    themesCartographiables(),
-    peintSurCarte,
-    libelleTheme,
-    traduire,
-  );
-  boite.hidden = nombreDeChoix(groupes) === 0;
-  const select = boite.querySelector("select");
-  if (select) select.innerHTML = rendreSelecteur(groupes, etat.indicateur);
-}
+   Ce qu'ils réglaient n'est pas perdu : `?vue=` et `?indicateur=` restent lus
+   et écrits par `lireUrl`/`ecrireUrl`, un lien partagé ouvre toujours la bonne
+   couche, et `choisirIndicateur` reste appelée depuis « Voir sur la carte »
+   dans le détail d'une mesure. C'est l'écran qui perd deux menus, pas le site
+   qui perd un réglage. */
 
 /** Périodes du niveau affiché, la plus récente d'abord — pas de l'indicateur
  *  tous niveaux confondus : l'historique communal est plus court que celui
@@ -1676,20 +1664,6 @@ function construireSelecteurs(): void {
   // L'évolution demande deux millésimes publiés à cette maille : à moins,
   // retour au niveau — proprement, bouton masqué compris.
   if (periodes.length < 2) etat.mode = "niveau";
-  construireBarreCarte();
-  construireSelecteurCarte();
-}
-
-/**
- * Cet indicateur a-t-il une couche à peindre, ici et maintenant ?
- *
- * Mêmes refus que `choisirIndicateur` — une série nationale n'existe pas par
- * commune, un indicateur reconstitué n'a pas de fichier de carte. Écrit à part
- * pour que la fiche puisse le demander *avant* de proposer le bouton : un
- * bouton qui ne fait rien est pire que pas de bouton.
- */
-function peintSurCarte(indicateur: Indicateur): boolean {
-  return !!indicateur.niveaux?.includes(etat.niveau) && !IDS_DERIVES.has(indicateur.id);
 }
 
 async function choisirIndicateur(id: string): Promise<void> {
@@ -1919,7 +1893,10 @@ function brancherCommandes(): void {
   // `demarrer()` fait après cet appel. Même garde que `majTableau`.
   document.getElementById("exporter")?.addEventListener("click", () => {
     const indicateur = indicateurCourant();
-    const jeu = jeux.find((j) => j.id === indicateur.jeu);
+    // La source se lit à la maille exportée, pas sur l'indicateur seul :
+    // l'OFGL déclare ses agrégats sous « Finances des communes » quelle que
+    // soit la maille chargée (voir `sourceDuNiveau`).
+    const source = sourceDuNiveau(indicateur, etat.niveau, jeux);
     if (exportEvolution) {
       telecharger(
         enCsvEvolution(exportEvolution.lignes, {
@@ -1929,7 +1906,7 @@ function brancherCommandes(): void {
           periodeApres: etat.periode,
           niveau: etat.niveau,
           parHabitant: parHabitantAffiche,
-          source: jeu ? `${jeu.producteur}, ${jeu.titre}` : indicateur.jeu,
+          source,
         }),
         nomDeFichier(
           indicateur.libelle,
@@ -1946,7 +1923,7 @@ function brancherCommandes(): void {
         periode: etat.periode,
         niveau: etat.niveau,
         parHabitant: exportCourant.parHabitant,
-        source: jeu ? `${jeu.producteur}, ${jeu.titre}` : indicateur.jeu,
+        source,
       }),
       nomDeFichier(indicateur.libelle, etat.niveau, etat.periode),
     );
@@ -2066,7 +2043,11 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
     // La page DÉTAIL porte le même champ : sans ce repeint, choisir une ville
     // depuis cette page ouvrait la fiche de la carte et laissait le tableau sur
     // la ville précédente. On ne pouvait tout simplement pas en changer.
-    if (document.body.dataset.vue === "detail") await peindreDetail();
+    if (document.body.dataset.vue === "bilan") {
+      await peindreDetail();
+      // Changer de territoire peut changer de maille, donc de palmarès.
+      void peindrePalmares();
+    }
   });
 
 }
@@ -2143,7 +2124,77 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  *  Ce qu'elle portait vit ailleurs — le fichier public est lié depuis le pied
  *  de page, et chaque mesure garde sa définition et sa source dans son rond
  *  « i ». Ce qui a réellement disparu de l'écran est écrit dans la PR. */
-const VUES_PAGE = ["territoire", "detail", "reperes", "methode"] as const;
+const VUES_PAGE = ["territoire", "bilan"] as const;
+
+/**
+ * Le palmarès des notes, en tête de la page BILAN.
+ *
+ * Il ne dépend pas de la sélection : c'est précisément la page qu'un lecteur
+ * ouvre pour demander « et les autres ? », et exiger d'avoir d'abord choisi un
+ * territoire l'aurait rendue inutile à qui n'en a choisi aucun. La maille est
+ * celle de la sélection quand il y en a une, la commune sinon.
+ *
+ * Les couches sont un fichier par indicateur et par maille : la France entière
+ * tient en cinq fetchs, et non en cent fichiers de département. Les deux
+ * couches d'ouverture tolèrent l'absence, comme dans `poserSituation` — un
+ * exercice 2019 manquant vaut « pas de trajectoire », que la note sait traiter.
+ */
+async function peindrePalmares(): Promise<void> {
+  const cible = document.getElementById("palmares");
+  if (!cible) return;
+  await publiee;
+  const selection = etat.selection ? niveauSelection() : "commune";
+  const niveau = MAILLES_CLASSEES.has(selection) ? selection : "commune";
+  const exercice = dernierExerciceOfgl(niveau);
+  if (!exercice) return;
+  try {
+    const [index, recettes, epargne, dette, recettesAvant, epargneAvant] = await Promise.all([
+      donnees.indexTerritoires(niveau),
+      donnees.valeursCarte(RECETTES, niveau, exercice),
+      donnees.valeursCarte(EPARGNE, niveau, exercice),
+      donnees.valeursCarte("ofgl_encours_dette", niveau, exercice),
+      donnees.valeursCarte(RECETTES, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+      donnees.valeursCarte(EPARGNE, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+    ]);
+    if (document.getElementById("palmares") !== cible) return;
+    const lignes: LignePalmares[] = [];
+    index.codes.forEach((code, rang) => {
+      const note = noteDepuisCouches(
+        {
+          recettes: recettes[code],
+          epargne: epargne[code],
+          dette: dette[code],
+          recettesAvant: recettesAvant[code],
+          epargneAvant: epargneAvant[code],
+        },
+        exercice,
+        niveau,
+      );
+      // La population départage les ex æquo, et ils sont deux mille au
+      // plafond : sans elle, « les dix mieux gérées » sortaient les dix
+      // premières de l'alphabet parmi deux mille. `population_municipale` est
+      // publiée par l'index, dans l'ordre de `codes`.
+      if (note) {
+        lignes.push({
+          code,
+          nom: index.noms[rang] ?? code,
+          note,
+          population: index.population_municipale?.[rang] ?? null,
+        });
+      }
+    });
+    cible.innerHTML = rendrePalmares(palmares(lignes), niveau);
+    // Chaque ligne ouvre la fiche du territoire, à la maille du palmarès —
+    // même contrat que le pli du classement, même gestionnaire par délégation.
+    cible.addEventListener("click", (evenement) => {
+      const place = (evenement.target as HTMLElement).closest<HTMLElement>("[data-territoire]");
+      if (place?.dataset.territoire) void ouvrirTerritoire(place.dataset.territoire, niveau);
+    });
+  } catch {
+    // Une couche absente d'une publication ne doit pas emporter la page : le
+    // palmarès ne s'affiche pas, les tableaux du territoire restent.
+  }
+}
 
 /** La page DÉTAIL pour le territoire sélectionné.
  *
@@ -2317,76 +2368,8 @@ function vuesConnues(): readonly string[] {
   return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
 }
 
-/**
- * La page MÉTHODE.
- *
- * Deux fichiers publiés à chaque exécution du pipeline : ce que le site a
- * corrigé depuis la dernière fois, et à quelle date il a lu chaque source. Les
- * deux modules qui les rendent existaient, testés, sans être appelés.
- *
- * Peinte une seule fois : elle ne dépend d'aucune sélection.
- */
-let methodePeinte = false;
 
-/**
- * Résolue une fois `donnees.initialiser()` revenu, dans `demarrer`.
- *
- * `basculerVue` peint la première vue AVANT cet appel (docs plus bas). Tant
- * qu'il n'a pas résolu, `donnees.racine` vaut "" : un fetch parti depuis un
- * peintre résoudrait contre l'origine du site elle-même, où la retombée SPA
- * de Cloudflare Pages répond 200 avec `index.html` — `r.json()` lève, silence
- * en apparence. Pire : `donnees.ts:78-88` cache par CHEMIN RELATIF, pas par
- * URL résolue, donc ce fetch parti trop tôt fige l'échec dans le cache pour
- * le reste de la session, même une fois `racine` correctement affectée. Tout
- * peintre qui appelle `donnees.*` doit donc attendre `prete` en premier.
- */
-let resoudrePrete: () => void;
-const prete = new Promise<void>((resolve) => {
-  resoudrePrete = resolve;
-});
 
-async function peindreMethode(): Promise<void> {
-  if (methodePeinte) return;
-  // Ni la méthode ni la grille ne lisent un fichier publié : peintes avant
-  // `prete`, elles s'affichent même si les données tardent ou manquent.
-  $("methode-methode").innerHTML = renduMethode();
-  $("methode-grille").innerHTML = renduGrille();
-  await prete;
-  let rendu = false;
-  // Les sources viennent du manifeste, donc après `prete`. Un manifeste
-  // absent laisse le bloc vide et la page tient — même règle que la
-  // fraîcheur et le journal ci-dessous.
-  const blocSources = $("methode-sources");
-  blocSources.innerHTML = renduSources(jeux);
-  blocSources.hidden = blocSources.innerHTML === "";
-  if (!blocSources.hidden) rendu = true;
-  // `.bloc` est un cadre bordé, ombré : un booléen à `false` veut dire « rien
-  // à montrer », et laisser le cadre affiché peignait un cadre vide plutôt
-  // que rien — comme partout ailleurs sur le site (`afficherBudgetEtat` et
-  // consorts), le retour du peintre commande la visibilité du conteneur.
-  const blocFraicheur = $("methode-fraicheur");
-  try {
-    const affiche = afficherFraicheur(blocFraicheur, await donnees.fraicheur());
-    blocFraicheur.hidden = !affiche;
-    if (affiche) rendu = true;
-  } catch {
-    // Fichier non publié : le bloc reste vide, la page tient.
-    blocFraicheur.hidden = true;
-  }
-  const blocJournal = $("methode-journal");
-  try {
-    const affiche = afficherJournal(blocJournal, await donnees.journal());
-    blocJournal.hidden = !affiche;
-    if (affiche) rendu = true;
-  } catch {
-    // Idem : rien à dire vaut mieux qu'une erreur à lire.
-    blocJournal.hidden = true;
-  }
-  // Latché seulement si quelque chose s'est vraiment affiché : le défaut
-  // corrigé ici latchait avant même d'essayer, si bien qu'un premier échec
-  // (chargement à froid vers cette vue) gelait la vue vide pour la session.
-  methodePeinte = rendu;
-}
 
 /* --------------------------------------------------------------------------
  * L'accueil, à la racine du site.
@@ -2539,11 +2522,13 @@ function basculerVue(): void {
   $("vue-accueil").hidden = vue !== "accueil";
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
-  $("vue-detail").hidden = vue !== "detail";
-  if (vue === "detail") void peindreDetail();
-  $("vue-reperes").hidden = vue !== "reperes";
-  $("vue-methode").hidden = vue !== "methode";
-  if (vue === "methode") void peindreMethode();
+  // BILAN réunit ce que REPÈRES et DÉTAIL montraient séparément : les repères
+  // nationaux, puis le classement des territoires et leur comparaison.
+  $("vue-bilan").hidden = vue !== "bilan";
+  if (vue === "bilan") {
+    void peindreDetail();
+    void peindrePalmares();
+  }
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
@@ -2576,7 +2561,7 @@ function basculerVue(): void {
  * diverger un.
  */
 function peindreSommaireReperes(): void {
-  const cadre = document.getElementById("sommaire-reperes");
+  const cadre = document.getElementById("sommaire-bilan");
   if (!cadre) return;
   const entrees = [...document.querySelectorAll<HTMLElement>("#national .bloc")]
     .map((bloc) => ({ bloc, titre: bloc.querySelector("h2, h3")?.textContent?.trim() }))
@@ -3260,7 +3245,11 @@ type GestePartage = { cle: string; libelle: string };
  * pas : un href vers une image que rien ne produit est un aperçu cassé de
  * plus, pas un partage.
  */
-function rendrePartage(gestes: readonly GestePartage[], image: string | null): string {
+function rendrePartage(
+  gestes: readonly GestePartage[],
+  image: string | null,
+  imageConstruite = false,
+): string {
   const boutons = gestes
     .map(
       (geste) =>
@@ -3272,8 +3261,15 @@ function rendrePartage(gestes: readonly GestePartage[], image: string | null): s
   const telecharger = image
     ? `<a class="partage__geste" href="${echapper(image)}" download>Télécharger l'image</a>`
     : "";
+  // L'image d'une fiche n'a pas d'adresse — le build n'en rasterise pas 34 875
+  // — mais elle existe : `carteFiche` la dessine, et le navigateur la
+  // télécharge. Un bouton, donc, jamais un lien : il n'y a pas de href à
+  // écrire, et un href mort est exactement ce que la règle ci-dessus refuse.
+  const carte = imageConstruite
+    ? `<button type="button" class="partage__geste" data-carte="1">Télécharger l'image</button>`
+    : "";
   return `<div class="partage">
-    ${boutons}${telecharger}
+    ${boutons}${telecharger}${carte}
     <p class="partage__message" role="status" aria-live="polite"></p>
     <textarea class="partage__repli" readonly hidden aria-label="Résumé à copier"></textarea>
   </div>`;
@@ -3422,6 +3418,139 @@ function partageDeLaPage(): { objet: Partage; forme: Forme } | null {
     }),
     forme: "complet",
   };
+}
+
+/* --------------------------------------------------------------------------
+ * La fiche de territoire, quatrième objet partageable (spec §13)
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Les trois repères de la fiche, avec ce qu'il faut pour les partager.
+ *
+ * `reperes()` rend le rôle, le terme et le nombre — ce qu'il faut à l'écran,
+ * où l'entête de la fiche porte déjà l'unité et la source. Un chiffre qui SORT
+ * du site en demande davantage : son unité, sa source et son millésime. C'est
+ * `id` qui les donne, par le catalogue, et c'est pour cela qu'il existe.
+ *
+ * Rien n'est rendu si les trois ne partagent pas une source : `SourceCarte`
+ * n'en nomme qu'une, et en choisir une pour trois serait la faute que ce lot
+ * vient de corriger dans le catalogue lui-même.
+ */
+function reperesPartageables(
+  niveau: string,
+  territoire: Territoire,
+): { chiffres: ChiffreCarte[]; source: string; exercice: string } | null {
+  const trois = reperesDOuverture(territoire.series ?? {}, niveau).slice(0, 3);
+  if (!trois.length) return null;
+  const decrits = trois.map((repere) => {
+    const indicateur = catalogue.find((candidat) => candidat.id === repere.id);
+    return indicateur ? { repere, indicateur } : null;
+  });
+  if (decrits.some((decrit) => decrit === null)) return null;
+  const connus = decrits as { repere: (typeof trois)[number]; indicateur: Indicateur }[];
+  const sources = new Set(
+    connus.map(({ indicateur }) => sourceDuNiveau(indicateur, niveau, jeux)),
+  );
+  if (sources.size !== 1) return null;
+  return {
+    chiffres: connus.map(({ repere, indicateur }) => ({
+      libelle: repere.role,
+      valeur: repere.valeur,
+      unite: indicateur.unite,
+      variation: repere.variation,
+    })),
+    source: [...sources][0],
+    // L'exercice du premier repère : les trois viennent du même jeu, donc du
+    // même chargement. Une carte qui daterait ses trois nombres d'un seul
+    // millésime alors qu'ils en portent deux serait fausse — d'où le refus
+    // ci-dessous plutôt qu'un « exercice le plus récent » qui masquerait l'écart.
+    exercice: connus[0].repere.exercice,
+  };
+}
+
+/** Ce qu'une fiche donne à partager : son nom, sa maille, trois chiffres. */
+function partageDeLaFiche(niveau: string, code: string, territoire: Territoire): Partage | null {
+  const lus = reperesPartageables(niveau, territoire);
+  const maille = NIVEAUX[niveau] ?? niveau;
+  return partageFiche({
+    nom: territoire.nom,
+    maille,
+    exercice: lus?.exercice ?? "",
+    reperes: lus?.chiffres ?? [],
+    permalien: new URL(adresseTerritoire(code, niveau), location.origin).toString(),
+  });
+}
+
+/**
+ * L'image d'une fiche, dessinée dans le navigateur.
+ *
+ * Le build rasterise une image par analyse et une par section ; il n'en écrit
+ * aucune par territoire, et trente-quatre mille huit cent soixante-quinze PNG
+ * ne sont pas une option. `carteFiche` est pure et rend une chaîne : le SVG se
+ * construit ici, au moment du geste, et `telecharger` le remet au lecteur —
+ * c'est le même utilitaire que l'export CSV, avec ses tests.
+ *
+ * `null` quand la provenance manque : `carteFiche` **lève** dans ce cas
+ * (`exigerProvenance`), et une exception au clic d'un bouton n'est pas une
+ * réponse. Le bouton ne paraît alors pas.
+ */
+function carteDeLaFiche(niveau: string, territoire: Territoire): string | null {
+  const lus = reperesPartageables(niveau, territoire);
+  if (!lus) return null;
+  return carteFiche({
+    territoire: `${territoire.nom} — ${NIVEAUX[niveau] ?? niveau}`,
+    chiffres: lus.chiffres,
+    exercice: lus.exercice,
+    source: { titre: lus.source, millesime: lus.exercice },
+    site: location.origin,
+  });
+}
+
+/**
+ * Le cadre de partage au pied de la fiche, à toutes les mailles.
+ *
+ * Reposé à chaque fiche affichée — `afficherFiche` réécrit tout le panneau — et
+ * ses écouteurs sont délégués sur `#fiche`, qui n'est jamais remplacé : même
+ * motif que `brancherPartage` sur l'atelier.
+ */
+function poserPartageDeLaFiche(niveau: string, code: string, territoire: Territoire): void {
+  const cible = document.getElementById("fiche-partage");
+  if (!cible) return;
+  fichePartagee = { niveau, code, territoire };
+  cible.innerHTML = rendrePartage(
+    [{ cle: "fiche", libelle: "Partager cette fiche" }],
+    null,
+    carteDeLaFiche(niveau, territoire) !== null,
+  );
+}
+
+/** La fiche dont le cadre de partage est posé. Les écouteurs sont délégués et
+ *  survivent au repeint du panneau ; ce qu'ils partagent, non. */
+let fichePartagee: { niveau: string; code: string; territoire: Territoire } | null = null;
+
+/** Les deux gestes du pied de fiche, posés une fois sur `#fiche`. */
+function brancherPartageDeLaFiche(): void {
+  const panneau = $("fiche");
+  brancherPartage(panneau, () => {
+    if (!fichePartagee) return null;
+    const objet = partageDeLaFiche(
+      fichePartagee.niveau,
+      fichePartagee.code,
+      fichePartagee.territoire,
+    );
+    return objet ? { objet, forme: "complet" as Forme } : null;
+  });
+  panneau.addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("button[data-carte]");
+    if (!bouton || !fichePartagee) return;
+    const svg = carteDeLaFiche(fichePartagee.niveau, fichePartagee.territoire);
+    if (!svg) return;
+    telecharger(
+      svg,
+      nomDeFichier(fichePartagee.territoire.nom, fichePartagee.niveau, "carte", "svg"),
+      "image/svg+xml",
+    );
+  });
 }
 
 /**
@@ -3760,6 +3889,11 @@ async function demarrer(): Promise<void> {
   // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
   // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
   brancherCitations();
+  // Le pied de fiche, lui, attend bien les données — c'est le catalogue qui
+  // donne l'unité et la source de ses trois repères. Ses écouteurs, en
+  // revanche, sont posés dès maintenant : ils sont délégués sur `#fiche`, qui
+  // n'est jamais remplacé, et le cadre qu'ils servent apparaît avec la fiche.
+  brancherPartageDeLaFiche();
   // Et encore pour la même raison : l'appel « Chercher ma commune » de
   // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
   // dès le premier octet de HTML.
@@ -3792,9 +3926,6 @@ async function demarrer(): Promise<void> {
   window.addEventListener("popstate", basculerVue);
   basculerVue();
   const manifeste = await donnees.initialiser();
-  // `donnees.racine` est résolue : les peintres qui attendaient `prete`
-  // peuvent partir sans risquer la retombée SPA décrite à sa déclaration.
-  resoudrePrete();
   // Un seul champ pour tout le site, dans l'en-tête : il y en avait deux, sur
   // le même index, sans état commun. Câblé ici, avant la garde éditoriale
   // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page
@@ -3921,7 +4052,13 @@ async function demarrer(): Promise<void> {
     },
     bounds: VUES[etat.vue]?.bornes ?? VUES.metropole.bornes,
     fitBoundsOptions: { padding: paddingCarte() },
+    // Rabattue par défaut : MapLibre l'affiche dépliée, et la ligne de crédits
+    // — quatre producteurs et une licence — occupait le bas de la carte en
+    // permanence pour une mention qu'on lit une fois. `compact` la réduit au
+    // bouton « i » ; rien n'est retiré, la licence reste à un clic, ce que la
+    // Licence Ouverte demande.
     attributionControl: {
+      compact: true,
       customAttribution: "IGN Admin Express · OFGL · Licence Ouverte 2.0",
     },
   });

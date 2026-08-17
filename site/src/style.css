@@ -154,6 +154,16 @@
   --texte-xxl: 1.25rem;   /* 20px — titre de fiche, titre de vue */
   --texte-3xl: 1.5rem;    /* 24px — chiffre d'aperçu */
   --texte-4xl: 1.75rem;   /* 28px — chiffre héros d'un bloc national */
+  /* Le seul cran d'affiche, et il n'a qu'un usage : la phrase d'ouverture de
+     l'accueil. Les six autres pages sont des vues denses — une fiche, un
+     tableau, un atelier — et une vue dense n'a pas besoin d'un corps
+     d'affiche ; c'est pourquoi l'échelle s'arrêtait à 28 px. Mais l'accueil
+     est une page d'entrée, et sa phrase s'écrivait à 20 px, la taille du nom
+     d'un territoire sur sa fiche : elle se lisait comme un sous-titre.
+     Borné des deux côtés — 25,6 px sur un téléphone, 38,4 px au-delà de
+     1 440 px — pour que la phrase tienne en deux lignes sur un écran de
+     bureau, ce qu'aucune valeur fixe ne garantit à cette longueur. */
+  --texte-affiche: clamp(1.6rem, 2.6vw, 2.4rem);
   /* Échelle d'espacement — 8 crans, mêmes pixels entiers. Avant : 84 valeurs
      de padding distinctes. Les réservations de place pour un contrôle
      superposé (flèche de select, loupe, bouton fermer) et les échelles
@@ -1263,6 +1273,18 @@ tbody tr:hover {
     overflow-x: auto;
     max-width: 100%;
   }
+  /* Un cadre qui défile se focalise, sinon il ne défile qu'à la souris : le
+     lecteur au clavier n'atteint jamais les colonnes cachées (WCAG 2.1.1).
+     Les huit conteneurs portent donc `tabindex="0"` dans leur balisage, et
+     l'anneau de focus doit se voir sur le bord du cadre, pas sur une cellule. */
+  .pont:focus-visible,
+  .comparaison:focus-visible,
+  .fonctions:focus-visible,
+  .secu:focus-visible,
+  .niches:focus-visible {
+    outline: 2px solid var(--dore);
+    outline-offset: 2px;
+  }
   .champ select,
   .champ input[type="search"] {
     min-width: 0;
@@ -1324,9 +1346,17 @@ tbody tr:hover {
   font-size: var(--texte-xxl);
   margin: 0 0 0.9rem;
 }
+/* `minmax(20rem, …)` garde sa piste de 20 rem même quand le conteneur est plus
+   étroit qu'elle : à 320 px de fenêtre, la section n'offre que 190 px et les
+   deux cadres qui n'occupent pas la rangée entière — la dette et l'Europe — en
+   prenaient 320. Le corps de page défilait alors sur 385 px.
+
+   `min(20rem, 100%)` ne change rien au-dessus de 20 rem, où la piste vaut
+   toujours 20 rem : il donne seulement à la piste le droit de descendre avec
+   son conteneur. Mesuré au navigateur, pas déduit — §24. */
 .national__grille {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
   gap: 1.25rem;
 }
 .bloc {
@@ -1349,6 +1379,11 @@ tbody tr:hover {
 .bloc__chiffre {
   margin: 0.5rem 0 0;
   display: flex;
+  /* Le chiffre est au corps le plus gros du site et le millésime le suit sur la
+     même ligne : « 3 536 100 M€ » puis « 2026-Q1 » demandent 330 px, et un flex
+     ne passe pas à la ligne tout seul. La pilule du millésime sortait donc du
+     cadre, et le corps de `/reperes` avec elle. */
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
 }
@@ -1564,7 +1599,9 @@ tbody tr:hover {
    Le chiffre porte l'information, la barre ne fait qu'ordonner le regard. */
 .cent__grille {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  /* Même piste qui ne rétrécit pas que `.national__grille` : 18 rem dans un
+     cadre qui n'en offre que 156 px à 320 px de fenêtre. */
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
   gap: 1.25rem 2rem;
   margin-top: 0.6rem;
 }
@@ -2218,6 +2255,296 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* ===========================================================================
+   LE PALMARÈS DES NOTES
+   ===========================================================================
+   Deux colonnes, le haut et le bas d'un échelon. Trente-quatre mille lignes ne
+   se lisent pas ; les deux bouts se lisent, et c'est eux qu'on vient chercher.
+
+   Aucune couleur de verdict, pour la même raison que la note elle-même : un
+   « critique » peint en rouge en face d'un nom de commune fait du barème un
+   jugement là où il n'est qu'une mesure.
+
+   Les colonnes descendent en une seule sous 40rem — le seul point de rupture
+   que la feuille connaisse en dessous du bureau. */
+.palmares {
+  margin: 0 0 var(--espace-7);
+}
+.palmares__titre {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  line-height: 1.2;
+}
+.palmares__cadrage {
+  margin: var(--espace-4) 0 0;
+  max-width: 62ch;
+  font-size: var(--texte-s);
+  line-height: 1.5;
+  color: var(--encre-douce);
+}
+.palmares__colonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: var(--espace-7);
+  margin-top: var(--espace-6);
+}
+.palmares__colonne h4 {
+  margin: 0 0 var(--espace-4);
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--encre-douce);
+}
+.palmares__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.palmares__liste button {
+  display: grid;
+  /* Le rang tient quatre chiffres — « 34 778 » est un rang réel —, la note en
+     tient quatre avec sa décimale, et le nom prend ce qui reste. */
+  grid-template-columns: 3.5rem 1fr auto auto;
+  align-items: baseline;
+  gap: var(--espace-4);
+  width: 100%;
+  padding: var(--espace-4) var(--espace-2);
+  border: 0;
+  border-top: 1px solid var(--trait);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.palmares__liste li:first-child button {
+  border-top: 0;
+}
+.palmares__liste button:hover {
+  background: var(--accent-teinte);
+}
+.palmares__rang {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.palmares__nom {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palmares__note {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+}
+.palmares__mention {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+@media (max-width: 40rem) {
+  /* La mention sort : à 320 px, « confortable » derrière un nom de commune
+     tronqué et une note pousse la ligne à défiler. La note reste, elle est ce
+     qui range la colonne. */
+  .palmares__mention {
+    display: none;
+  }
+  .palmares__liste button {
+    grid-template-columns: 2.5rem 1fr auto;
+    gap: var(--espace-3);
+  }
+}
+
+/* ===========================================================================
+   LA NOTE DE GESTION
+   ===========================================================================
+   Elle ouvre la fiche parce qu'elle répond à la question qu'on vient poser :
+   « est-ce que ma commune est bien gérée ». Elle est donc le seul objet de la
+   page à porter le corps d'affichage — au-dessus des repères, qui la
+   soutiennent.
+
+   Aucune couleur de verdict. Un « critique » peint en rouge sur 34 875
+   communes fait du barème un jugement là où il n'est qu'une mesure, et le
+   site n'a de toute façon qu'un accent (§4.2 de la charte d'interface). La
+   hiérarchie se fait au corps et au poids, comme partout ailleurs ici.
+
+   La grille du détail est en `grid` et non en `table` visuellement : les trois
+   points se lisent en colonne, alignés à droite, et c'est cette colonne que le
+   lecteur additionne pour retrouver le total. `tabular-nums` garantit
+   l'alignement que la décimale fixe rend utile. */
+.note {
+  margin: var(--espace-6) 0 0;
+  padding: var(--espace-7);
+  background: var(--papier-creuse);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+}
+.note__titre {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--encre-douce);
+}
+.note__valeur {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--espace-2) var(--espace-4);
+  margin: var(--espace-4) 0 0;
+}
+.note__valeur strong {
+  font-family: var(--serif);
+  font-size: var(--texte-affiche);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.note__bareme {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  color: var(--encre-douce);
+  /* Collée au nombre : « 14,5 » et « / 20 » sont une seule mesure, et
+     l'écart de la grille les faisait lire comme deux. */
+  margin-left: calc(var(--espace-4) * -1);
+}
+.note__mention {
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.note__detail {
+  width: 100%;
+  margin: var(--espace-6) 0 0;
+  border-collapse: collapse;
+  font-size: var(--texte-m);
+}
+/* La légende sous le tableau : millésime et source. En tête, elle séparait la
+   note de ce qui la produit. */
+.note__detail caption {
+  caption-side: bottom;
+  margin-top: var(--espace-4);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  text-align: left;
+}
+.note__detail th,
+.note__detail td {
+  padding: var(--espace-4) 0;
+  border-top: 1px solid var(--trait);
+  text-align: left;
+  font-weight: 400;
+}
+.note__detail tr:first-child th,
+.note__detail tr:first-child td {
+  border-top: 0;
+}
+.note__mesure {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.note__points {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.note__sur {
+  color: var(--encre-douce);
+}
+/* La note exercice par exercice, repliée : elle répond à « et avant ? », qui
+   se pose APRÈS avoir lu la note, jamais avant. Dépliée d'office, sept colonnes
+   de chiffres pousseraient les repères hors de l'écran d'ouverture. */
+.note__parcours {
+  margin: var(--espace-6) 0 0;
+  border-top: 1px solid var(--trait);
+  padding-top: var(--espace-5);
+}
+.note__parcours summary {
+  cursor: pointer;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+/* Le cadre défile ; la page, jamais. `tabindex` parce qu'un cadre défilant
+   sans contenu focalisable ne défile qu'à la souris (WCAG 2.1.1) — c'est le
+   défaut relevé sur les sept autres cadres du site. */
+.note__parcours-cadre {
+  overflow-x: auto;
+  margin-top: var(--espace-5);
+}
+.note__parcours-cadre:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.note__parcours-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texte-m);
+  font-variant-numeric: tabular-nums;
+}
+.note__parcours-table caption {
+  caption-side: bottom;
+  margin-top: var(--espace-4);
+  font-size: var(--texte-xs);
+  line-height: 1.5;
+  color: var(--encre-douce);
+  text-align: left;
+}
+.note__parcours-table th,
+.note__parcours-table td {
+  padding: var(--espace-3) var(--espace-4);
+  border-top: 1px solid var(--trait);
+  text-align: right;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.note__parcours-table thead th,
+.note__parcours-table tbody th {
+  text-align: left;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.note__parcours-table thead th {
+  border-top: 0;
+}
+/* Le total se lit d'un coup d'œil parmi ses deux termes. */
+.note__parcours-total td {
+  font-weight: 600;
+}
+.note__parcours-total th,
+.note__parcours-total td {
+  border-top: 1px solid var(--trait-fort);
+}
+/* À l'étroit, le tableau se resserre : la mesure passe au petit corps et les
+   lignes perdent de la hauteur. La colonne de points garde son alignement à
+   droite — c'est la seule chose qui doit le garder, puisque c'est elle que le
+   lecteur additionne.
+
+   Le seuil est **40rem, pas une valeur choisie pour ce bloc** : la feuille n'a
+   que deux points de rupture, et un test du dépôt refuse le troisième. Une
+   grille de rupture par composant produit des sauts de mise en page à des
+   largeurs que personne n'a décidées. */
+@media (max-width: 40rem) {
+  .note {
+    padding: var(--espace-6);
+  }
+  .note__detail th,
+  .note__detail td {
+    padding: var(--espace-3) 0;
+  }
+  .note__mesure {
+    font-size: var(--texte-xs);
+  }
+}
+
+/* ===========================================================================
    LES QUATRE REPÈRES D'OUVERTURE
    ===========================================================================
    Des cartes, et non une bande tenue par deux filets : quatre nombres posés
@@ -2319,6 +2646,12 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    ------------------------------------------------------------------------ */
 .tableau-exercices {
   overflow-x: auto;
+}
+/* Même raison que les cinq tableaux ci-dessus : ce cadre-ci défile à toutes
+   les largeurs, et son `tabindex="0"` doit se voir quand on l'atteint. */
+.tableau-exercices:focus-visible {
+  outline: 2px solid var(--dore);
+  outline-offset: 2px;
 }
 .tableau-exercices table {
   border-collapse: collapse;
@@ -4145,9 +4478,21 @@ summary.pont__rangee,
   margin-top: var(--espace-4);
   flex-wrap: wrap;
 }
+/* `.simu__palier` s'estompe à `opacity: 0.55`, et c'est juste dans la barre de
+   solde : là les marches sont blanches sur un aplat d'encre, et l'estompe ne
+   les fait pas passer sous le seuil. Ici le fond est le carreau clair, la
+   couleur est `--encre-douce` — un ton choisi et documenté pour tenir 4,66:1
+   sur ce fond-là — et 55 % d'opacité le ramènent à **2,1:1**. Le seuil est 4,5.
+
+   Aucun test ne pouvait le voir : ils calculent les ratios sur les couleurs
+   DÉCLARÉES, et l'opacité n'est pas une couleur. C'est axe-core, dans un vrai
+   navigateur, qui a lu la valeur composée. L'estompe est donc levée ici : la
+   marche non franchie se distingue déjà par son trait et par l'absence
+   d'aplat, ce qui ne coûte aucun contraste. */
 .mission .simu__palier {
   border-color: var(--trait-fort);
   color: var(--encre-douce);
+  opacity: 1;
 }
 .mission .simu__palier--franchi {
   background: var(--encre);
@@ -6447,55 +6792,88 @@ body[data-carte="oui"] .legende {
   padding: var(--espace-7) 0 var(--espace-8);
 }
 
-/* ---- L'ouverture : le message, puis l'unité, puis la preuve ---- */
+/* ---- L'ouverture ----------------------------------------------------------
+   Le message du site s'écrivait à `--texte-xxl`, 20 px : la même taille que le
+   nom d'un territoire sur sa fiche. L'échelle du dépôt s'arrête à 28 px, et
+   c'est juste — une vue dense n'a pas besoin d'un corps d'affiche, et les six
+   autres pages sont des vues denses. L'accueil, lui, est une page d'entrée :
+   il héritait d'une échelle de tableau de bord, et sa phrase d'ouverture se
+   lisait comme un sous-titre.
 
+   D'où un palier d'affiche, et un seul usage. `clamp` le borne des deux côtés :
+   32 px sur un téléphone, 52 px sur un grand écran, et rien à corriger entre
+   les deux. Aucune autre règle du fichier ne le lit. */
 .accueil__ouverture {
-  margin-bottom: var(--espace-7);
+  margin-bottom: var(--espace-8);
 }
 .accueil__message {
-  margin: 0 0 var(--espace-4);
+  margin: 0 0 var(--espace-5);
   font-family: var(--serif);
-  font-size: var(--texte-xxl);
+  font-size: var(--texte-affiche);
   font-weight: 600;
-  line-height: 1.35;
+  /* 1,15 et non 1,35 : à cette taille, l'interligne de lecture creuse des
+     couloirs blancs entre les lignes du titre. */
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
   color: var(--encre);
 }
 /* La mention d'unité, posée une fois pour toute la page : elle appartient à
    l'ouverture, entre le message et sa preuve, et aucun bloc ne la répète —
-   répétée, elle cesse d'être lue là où elle compte. */
+   répétée, elle cesse d'être lue là où elle compte.
+   Elle était en capitales espacées, c'est-à-dire habillée comme un sur-titre,
+   juste sous un titre : deux étiquettes pour une seule voix. Elle redevient
+   une phrase. */
 .accueil__cadrage {
   margin: 0;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
+  font-size: var(--texte-l);
   color: var(--encre-douce);
 }
 
-/* ---- Les cinq blocs ---- */
+/* ---- Les cinq blocs -------------------------------------------------------
+   Ils étaient cinq cartes identiques empilées — même cadre, même rembourrage,
+   même rayon, même sur-titre en capitales — et la page se lisait comme une
+   liste de boîtes plutôt que comme un parcours. Une carte doit dire « ceci se
+   détache » ; cinq cartes ne disent plus rien.
 
+   Une seule garde son cadre, le verdict : c'est l'objet mis en avant, et il
+   porte une citation, deux chiffres et un cran. Les autres deviennent des
+   bandes ouvertes séparées d'un filet — le rythme vient de là, sans une
+   couleur de plus. */
 .accueil__bloc {
-  margin-bottom: var(--espace-7);
+  margin-bottom: var(--espace-8);
+  padding: var(--espace-8) 0 0;
+  border-top: 1px solid var(--trait);
+}
+/* Le verdict, et lui seul, reste une carte. */
+.accueil__bloc--verdict {
   padding: var(--espace-7);
   background: var(--papier);
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
 }
+/* Les intitulés de section étaient six micro-étiquettes en capitales espacées
+   sur une même page — le sur-titre de l'ouverture plus un par bloc. C'est le
+   tic le plus reconnaissable d'une page composée à la chaîne : chaque section
+   s'annonce avant de parler. Ils redeviennent des titres, dans la serif du
+   site, à une taille qui les distingue du corps sans crier. */
 .accueil__bloc h3 {
-  margin: 0 0 var(--espace-5);
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--encre-douce);
+  margin: 0 0 var(--espace-6);
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+  font-weight: 600;
+  line-height: 1.25;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--encre);
 }
 /* La bande de confiance ferme la page : elle se lit, elle ne se consulte pas.
    Sans cadre, elle cesse de peser autant que le verdict qu'elle sert. */
+/* Elle ferme la page : plus rien dessous, donc plus de marge dessous. Le reste
+   de son dessin — pas de cadre, un filet au-dessus — est devenu celui de tous
+   les blocs, et n'a plus à se redire ici. */
 .accueil__bloc--confiance {
   margin-bottom: 0;
-  padding: var(--espace-7) 0 0;
-  background: none;
-  border: 0;
-  border-top: 1px solid var(--trait);
-  border-radius: 0;
 }
 
 /* Les trois appels à l'action, dans l'ordre de l'entonnoir. Un seul dessin
@@ -6542,10 +6920,26 @@ body[data-carte="oui"] .legende {
   font-size: var(--texte-s);
   color: var(--encre-douce);
 }
+/* La référence du document cité. Elle porte le titre légal entier, qui fait
+   cent caractères : souligné d'un trait plein sur toute la largeur de la carte,
+   il pesait plus lourd que la citation qu'il sert. Il reste un lien, souligné
+   et cliquable — c'est ce qui permet d'aller vérifier —, mais il se borne à la
+   mesure de lecture et son trait s'éclaircit : une référence se lit après le
+   chiffre, jamais avant. */
 .accueil__source-declaration {
   margin: 0 0 var(--espace-5);
+  max-width: 62ch;
   font-size: var(--texte-xs);
+  line-height: 1.5;
   color: var(--encre-douce);
+}
+.accueil__source-declaration a {
+  text-decoration-color: var(--trait-fort);
+  text-underline-offset: 0.15em;
+}
+.accueil__source-declaration a:hover,
+.accueil__source-declaration a:focus-visible {
+  text-decoration-color: currentcolor;
 }
 /* Le chiffre annoncé et celui des comptes, l'un sous l'autre : les mettre côte
    à côte les ferait lire comme un score, alors que ce sont deux mesures dont
@@ -6572,11 +6966,24 @@ body[data-carte="oui"] .legende {
 }
 /* L'exercice et la source du chiffre, sur sa ligne : ce qui change la lecture
    d'un chiffre se dit avec lui, jamais en note après le tableau. */
+/* La provenance du chiffre des comptes. Même nature que la référence ci-dessus,
+   donc même dessin : les deux citent le même document, et n'en habiller qu'un
+   des deux serait pire que de n'en habiller aucun. */
 .accueil__provenance {
   display: block;
   margin-top: var(--espace-1);
+  max-width: 62ch;
   font-size: var(--texte-xs);
+  line-height: 1.5;
   color: var(--encre-douce);
+}
+.accueil__provenance a {
+  text-decoration-color: var(--trait-fort);
+  text-underline-offset: 0.15em;
+}
+.accueil__provenance a:hover,
+.accueil__provenance a:focus-visible {
+  text-decoration-color: currentcolor;
 }
 .accueil__cran {
   margin: 0 0 var(--espace-5);
