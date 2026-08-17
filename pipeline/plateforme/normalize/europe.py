@@ -30,7 +30,12 @@ DATASET_PAR_JEU = {
     "ilc_di12": "eurostat-ilc-di12",
     "ilc_di11": "eurostat-ilc-di11",
     "crim_off_cat": "eurostat-crim-off-cat",
+    "gov_10a_main": "eurostat-gov-10a-main",
 }
+
+# Les comptes des administrations publiques sont publiés en **millions**
+# d'euros ; le site publie en euros, comme la dette et le budget de l'État.
+MILLION = 1_000_000
 
 # Agrégats retenus, avec les filtres qui les rendent comparables entre pays.
 INDICATEURS = {
@@ -171,6 +176,156 @@ INDICATEURS = {
         " 0101 (intentional homicide), pour 100 000 habitants.",
         "unite": "pour_100000_habitants",
     },
+    # ── Pour 100 € encaissés, ce qui ressort ─────────────────────────────────
+    #
+    # « Où va l'argent public » a deux réponses déjà publiées ici — les 100 € du
+    # budget de l'État, les 100 € de prestations sociales — et il en manquait la
+    # plus large : celle de **toutes** les administrations publiques, État,
+    # collectivités et Sécurité sociale ensemble, en comptabilité nationale.
+    #
+    # **Pourquoi Eurostat et non le cube de l'INSEE**, alors que celui-ci
+    # remonte à 1959 et qu'il est déjà chargé pour le solde : ses agrégats
+    # totaux ne se referment pas. Mesuré à nouveau le 17 août 2026, son `OTR`
+    # donne **2 034 Md€** de ressources en 2024 quand la statistique publique en
+    # annonce 1 504 — l'écart vient d'un périmètre de consolidation que la
+    # source ne documente pas, et `apu.py` refuse déjà ces totaux pour cette
+    # raison. Sans total fiable, aucune part n'est calculable.
+    #
+    # Ici l'identité se referme à l'euro : TR − TE = B9, soit
+    # 1 503 590,1 − 1 672 708,2 = −169 118,1, exactement le solde que le site
+    # publie depuis l'INSEE. Les deux sources disent le même déficit ; c'est ce
+    # qui autorise à composer les parts sur celle qui donne aussi les totaux.
+    "eurostat_apu_recettes": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "TR", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Recettes des administrations publiques",
+        "public": "Tout ce qu'encaissent en un an l'État, les collectivités, la"
+        " Sécurité sociale et les organismes qu'ils financent : impôts, cotisations,"
+        " ventes de services et transferts reçus.",
+        "technique": "Total des recettes des administrations publiques (S13), TR au"
+        " sens du SEC 2010, en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_depenses": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "TE", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Dépenses des administrations publiques",
+        "public": "Tout ce que dépensent en un an les administrations publiques."
+        " La différence avec leurs recettes est le déficit public.",
+        "technique": "Total des dépenses des administrations publiques (S13), TE au"
+        " sens du SEC 2010, en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_impots_production": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D2REC", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Impôts sur la production et les importations",
+        "public": "La TVA, les taxes sur les carburants, les impôts fonciers des entreprises : ce qui est prélevé sur ce qui est produit ou vendu, pas sur les revenus.",
+        "technique": "Impôts sur la production et les importations reçus par les administrations publiques (D.2), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_impots_revenu": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D5REC", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Impôts sur le revenu et le patrimoine",
+        "public": "L'impôt sur le revenu, la CSG, l'impôt sur les sociétés, la taxe d'habitation et la taxe foncière des ménages.",
+        "technique": "Impôts courants sur le revenu, le patrimoine, etc. reçus par les administrations publiques (D.5), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_cotisations": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D61REC", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Cotisations sociales",
+        "public": "Ce que salariés et employeurs versent pour la retraite, la maladie, le chômage et la famille.",
+        "technique": "Cotisations sociales nettes reçues par les administrations publiques (D.61), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_prestations": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D62PAY", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Prestations sociales en espèces",
+        "public": "Les retraites, les allocations chômage et familiales, le RSA : ce qui est versé directement aux personnes.",
+        "technique": "Prestations sociales autres que transferts sociaux en nature (D.62), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_transferts_nature": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D632PAY", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Soins et services remboursés",
+        "public": "Ce que les administrations achètent pour les ménages et leur fournissent : remboursements de soins, médicaments, transports sanitaires.",
+        "technique": "Transferts sociaux en nature de production marchande acquise (D.632), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_remunerations": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D1PAY", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Rémunération des agents publics",
+        "public": "Les salaires et cotisations employeur de tous les agents publics : enseignants, soignants, policiers, agents des collectivités.",
+        "technique": "Rémunération des salariés versée par les administrations publiques (D.1), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_consommations": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "P2", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Achats de biens et de services",
+        "public": "Ce que les administrations achètent pour fonctionner : fournitures, énergie, entretien, prestations extérieures.",
+        "technique": "Consommation intermédiaire des administrations publiques (P.2), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_interets": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D41PAY", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Intérêts de la dette",
+        "public": "Ce que coûte chaque année la dette publique, hors remboursement du capital.",
+        "technique": "Intérêts versés par les administrations publiques (D.41), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_investissement": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "P51G", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Investissement",
+        "public": "Les routes, les écoles, les hôpitaux, les équipements : ce qui est construit ou acheté pour durer.",
+        "technique": "Formation brute de capital fixe des administrations publiques (P.51g), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_subventions": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D3PAY", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Subventions",
+        "public": "Ce qui est versé aux entreprises pour abaisser leurs coûts de production ou leurs prix de vente.",
+        "technique": "Subventions versées par les administrations publiques (D.3), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_transferts_courants": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D7PAY", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Transferts courants versés",
+        "public": "Les versements à d'autres administrations, à l'Union européenne, aux associations et à la coopération internationale.",
+        "technique": "Autres transferts courants versés par les administrations publiques (D.7), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_apu_transferts_capital": {
+        "jeu": "gov_10a_main",
+        "params": {"sector": "S13", "na_item": "D9PAY", "unit": "MIO_EUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Transferts en capital",
+        "public": "Les aides à l'investissement versées aux entreprises, aux ménages et aux autres administrations.",
+        "technique": "Transferts en capital à payer par les administrations publiques (D.9), en euros courants.",
+        "unite": "EUR",
+    },
     "eurostat_cambriolages_100k": {
         "jeu": "crim_off_cat",
         "params": {"iccs": "ICCS05012", "unit": "P_HTHAB", "freq": "A"},
@@ -265,8 +420,9 @@ def run(store_spec: str) -> int:
             )
             points = decoder(json.loads(contenu))
             pays = enregistrer_pays(conn, {p["geo"] for p in points})
+            facteur = fiche.get("facteur", 1)
             lignes = [
-                (indicateur, "pays", p["geo"], MILLESIME, p["time"], p["valeur"],
+                (indicateur, "pays", p["geo"], MILLESIME, p["time"], p["valeur"] * facteur,
                  [DRAPEAUX[p["statut"]]] if p.get("statut") in DRAPEAUX else [], run_id)
                 for p in points
                 if p["geo"] in pays

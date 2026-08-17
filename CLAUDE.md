@@ -433,6 +433,90 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Pour 100 € encaissés par toutes les administrations, ce qui ressort**
+  (17 août 2026). Le site répondait deux fois à « où va l'argent public » — les
+  100 € du budget de l'État, les 100 € de prestations sociales — et aucune des
+  deux ne portait le déficit, parce qu'aucune ne met l'État, les collectivités
+  et la Sécurité sociale dans le même cadre. Le troisième « 100 € » le fait,
+  et le cadrage dit **avant les nombres** ce qui le sépare des deux autres :
+  comptabilité nationale contre comptabilité budgétaire, un encaissement
+  réparti contre une dépense répartie.
+
+  **Les parts ne sont pas ramenées à cent, et c'est le sujet.** Elles sont
+  rapportées aux **recettes**, si bien que leur somme vaut ce qui est dépensé
+  pour 100 € reçus — **109,77 €** en 2025, dont **9,77 €** de déficit, à sa
+  place et dans l'unité du lecteur. Les ramener à cent aurait fait disparaître
+  la seule chose que ce tableau existe pour montrer.
+
+  | Pour 100 € encaissés, 2025 | |
+  |---|---|
+  | Cotisations sociales | 31,94 € |
+  | Impôts sur la production et la consommation | 30,12 € |
+  | Impôts sur le revenu et le patrimoine | 24,97 € |
+  | Retraites, chômage, allocations | 37,11 € |
+  | Rémunération des agents publics | 23,69 € |
+  | Soins et services remboursés | 12,26 € |
+  | **Total dépensé** | **109,77 €** |
+
+  Neuf postes nommés couvrent 98,85 % des dépenses et trois familles de
+  recettes 87,03 % des recettes : les deux restes sont **écrits en ligne**,
+  jamais laissés au lecteur.
+
+  **Le cube de l'INSEE ne pouvait pas porter cette décomposition, et c'est un
+  refus mesuré.** `DD_CNA_APU` publie ses deux agrégats totaux dans un état
+  inutilisable — mesuré le 17 août 2026, secteur S13 consolidé :
+
+  | Ligne | 2023 | 2024 |
+  |---|---|---|
+  | `OTR` (total des ressources) | 1 986 263,5 | **2 034 210,1** |
+  | `OTE` (total des emplois) | 0,0 | **0,0** |
+
+  Un total de ressources à 2 034 Md€ quand les comptes publient 1 504, et un
+  total d'emplois à zéro : c'est la même famille de panne que les colonnes
+  `*_lfi_2023` et que le tableau d'équilibre exporté sans montants, et le
+  connecteur du solde refusait déjà ces agrégats pour cette raison.
+
+  **Eurostat referme l'identité, lui, et à l'euro.** `gov_10a_main` donne
+  `TR − TE` égal au solde que le site publie déjà depuis l'INSEE :
+
+  | Exercice | TR − TE | `insee_apu_solde` | écart |
+  |---|---|---|---|
+  | 2023 | −151 920 300 000 | −151 920 300 000 | **0,00 €** |
+  | 2024 | −169 118 100 000 | −169 118 100 000 | **0,00 €** |
+  | 2025 | −152 511 100 000 | −152 532 000 000 | 20,9 M€, soit 0,0013 % |
+
+  L'exercice courant est le seul à ne pas se refermer, de deux dizaines de
+  millions sur mille cinq cents milliards : deux producteurs qui publient une
+  première estimation à deux dates. Les quatorze séries sont publiées **en
+  euros** et non en millions — la source compte en `MIO_EUR`, et sans facteur
+  « 1 503 590 » se serait affiché « 1 503 590 € », une faute d'un facteur
+  million sur un chiffre qui reste plausible.
+
+- **Trois cadres servis dépliés et vides en production, et la liste qui ne
+  pouvait pas les voir** (17 août 2026). Le document pré-rendu de `/bilan/`
+  portait `bloc-redistribution` et `bloc-retraites` **bordés, ombrés et vides**
+  — ce que `.bloc` dessine comme une panne — jusqu'à l'arrivée du paquet. La
+  docstring d'`injecterReperes` posait pourtant déjà la règle : « un bloc dont
+  la source n'est pas publiée est **replié**, jamais laissé vide ».
+
+  **La cause est celle du mois dernier, au mot près.** Deux tests parcouraient
+  les cadres du gabarit — mais depuis une liste de huit identifiants **écrite à
+  la main**, et une liste écrite à la main ne pousse pas : les trois cadres
+  arrivés après elle ne lui ont jamais été ajoutés, et elle est restée verte.
+  C'est exactement le défaut que la garde des cadres défilants avait dû
+  corriger quelques heures plus tôt, dans un autre fichier, pour la même
+  raison. La liste se **déduit** désormais du gabarit — tout `<article
+  id="bloc-…">` de la section nationale — et un test refuse tout cadre servi
+  déplié et vide. Sabotage : un cadre neuf posé au gabarit et oublié du
+  pré-rendu fait rougir la garde.
+
+  **Et j'ai failli lire un 200 pour une preuve, une fois de plus.** J'ai
+  d'abord mesuré `/reperes` — 21 017 octets, titre « Où va l'argent public »,
+  aucune canonique : le repli SPA servant le gabarit, exactement le piège que
+  ce fichier consigne déjà. Le document pré-rendu est à `/bilan/`, et
+  `/reperes` sans barre oblique est un alias que rien ne redirige. Le
+  diagnostic juste a demandé de comparer quatre adresses, pas d'en lire une.
+
 - **« Pour 100 € cotisés, combien de pension ? » — le chiffre existait, et je
   m'étais arrêté trop tôt** (17 août 2026). L'entrée précédente concluait qu'un
   volet retraites demandait « une donnée qu'aucun connecteur ne charge », et

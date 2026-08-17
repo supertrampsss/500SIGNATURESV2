@@ -52,6 +52,9 @@ import { rendu as renduFonctions } from "../src/fonctions.ts";
 import { rendu as renduSecu } from "../src/secu.ts";
 import { rendu as renduNiches } from "../src/niches.ts";
 import { rendu as renduCentEuros } from "../src/cent-euros.ts";
+import { rendu as renduCentEurosApu } from "../src/cent-euros-apu.ts";
+import { rendu as renduRedistribution } from "../src/redistribution.ts";
+import { rendu as renduRetraites } from "../src/retraites.ts";
 import { exercicesDisponibles, rendu as renduBudgetEtat } from "../src/etat.ts";
 import { rendu as renduQuestions } from "../src/questions.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
@@ -1048,8 +1051,15 @@ export function injecterReperes(
   budget: BudgetEtat,
 ): string {
   const exercice = exercicesDisponibles(budget)[0];
-  // Les sept blocs dont `demarrer()` lit le retour pour ouvrir la section
-  // nationale. La dette n'y ajoute rien que l'Europe ne dise déjà — les deux
+  // Les blocs dont `demarrer()` lit le retour pour ouvrir la section
+  // nationale — tous ceux du gabarit sauf « 100 € du budget de l'État ». Un
+  // cadre oublié ici reste déplié et VIDE dans le document servi, ce qui se lit
+  // comme une panne ; le test « 15 quinquies » déduit la liste du gabarit
+  // plutôt que de la reprendre à la main, parce qu'une liste écrite à la main
+  // ne pousse pas : les trois cadres arrivés après elle — les 100 € de toutes
+  // les administrations, la redistribution, les retraites — sont restés vides
+  // en production sans qu'aucun contrôle le voie.
+  // La dette n'y ajoute rien que l'Europe ne dise déjà — les deux
   // sont vides exactement quand la France n'est pas publiée, et
   // `afficherNational` rend ce vide-là — mais elle y figure parce que c'est un
   // bloc à remplir comme un autre.
@@ -1057,8 +1067,11 @@ export function injecterReperes(
     ["bloc-conjoncture", renduConjoncture(pays, catalogue)],
     ["bloc-dette", renduDette(pays, catalogue)],
     ["bloc-europe", renduEurope(pays)],
+    ["bloc-cent-euros-apu", renduCentEurosApu(pays)],
     ["bloc-fonctions", renduFonctions(pays, catalogue)],
     ["bloc-secu", renduSecu(pays, catalogue)],
+    ["bloc-redistribution", renduRedistribution(pays, catalogue)],
+    ["bloc-retraites", renduRetraites(pays)],
     ["bloc-etat", exercice ? renduBudgetEtat(budget, exercice) : ""],
     ["bloc-niches", renduNiches(niches, pays, catalogue)],
   ];
@@ -1068,7 +1081,7 @@ export function injecterReperes(
         "page partirait sur ses seules questions, c'est-à-dire exactement l'état d'avant ce pré-rendu.",
     );
   }
-  // Le huitième, qui n'ouvre pas la section : voir la docstring, point 2.
+  // Le seul qui n'ouvre pas la section : voir la docstring, point 2.
   const centEuros: [string, string] = [
     "bloc-cent-euros",
     exercice ? renduCentEuros(budget, exercice) : "",
