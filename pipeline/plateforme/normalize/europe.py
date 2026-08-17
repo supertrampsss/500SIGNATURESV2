@@ -98,8 +98,8 @@ INDICATEURS = {
         "jeu": "spr_exp_pens",
         "params": {"spdepb": "TOTAL", "spdepm": "TOTAL", "unit": "PC_GDP", "freq": "A"},
         "libelle": "Dépenses de pensions en % du PIB",
-        "public": "Tout ce qu'un pays verse en pensions — retraite de droit direct,"
-        " réversion, invalidité, préretraite — rapporté à la richesse qu'il produit"
+        "public": "Tout ce qu'un pays verse en pensions (retraite de droit direct,"
+        " réversion, invalidité, préretraite), rapporté à la richesse qu'il produit"
         " en un an. Les prestations sont comptées de la même façon dans chaque pays,"
         " quels que soient les régimes qui les servent.",
         "technique": "Dépenses de pensions au sens du SESPROS, toutes catégories et"
