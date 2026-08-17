@@ -91,7 +91,7 @@ export function rendu(
     <p class="bloc__complement">En ${echapper(annee)}, les administrations publiques
       françaises (État, collectivités et Sécurité sociale réunis) ont dépensé
       <strong>${echapper(pourcentage(totalFr))} du produit intérieur brut</strong>${totauxCompares}.</p>
-    <table class="fonctions">
+    <table class="fonctions" tabindex="0">
       <caption>Par fonction, en % du PIB · définitions harmonisées Eurostat (COFOG)</caption>
       <thead><tr><th scope="col">Fonction</th><th scope="col">France</th>
         ${COMPARES.map(([, nom]) => `<th scope="col">${echapper(nom)}</th>`).join("")}

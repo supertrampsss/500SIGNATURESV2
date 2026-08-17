@@ -216,7 +216,7 @@ export function rendreExercices(tableau: Tableau | null): string {
     .join("");
   return `<section class="bloc-lecture bloc-lecture--tableau">
     <h3>Évolution</h3>
-    <div class="tableau-exercices">
+    <div class="tableau-exercices" tabindex="0">
       <table>
         <caption>Montants en millions d'euros. Une colonne vide : l'agrégat n'est pas publié cet exercice-là.</caption>
         <thead><tr><th scope="col"></th>${entetes}<th scope="col" class="tableau-exercices__evo">${premier}\u2009\u2192\u2009${dernier}</th></tr></thead>

@@ -140,7 +140,7 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
       sociale françaises ont dépensé <strong>${echapper(pourcentage(depensesFr))} du produit
       intérieur brut</strong> et reçu ${echapper(pourcentage(recettesFr))}, soit
       ${lecture}.</p>
-    <table class="secu">
+    <table class="secu" tabindex="0">
       <caption>Sous-secteur administrations de sécurité sociale (S1314), ${echapper(
         annee,
       )} · % du PIB, définitions harmonisées Eurostat</caption>
@@ -148,7 +148,7 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
         <th scope="col">Recettes</th><th scope="col">Solde</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
-    <table class="secu secu--serie">
+    <table class="secu secu--serie" tabindex="0">
       <caption>Le solde français année par année, en points de PIB</caption>
       <thead><tr><th scope="col">Année</th><th scope="col">Solde</th></tr></thead>
       <tbody>${frise}</tbody>

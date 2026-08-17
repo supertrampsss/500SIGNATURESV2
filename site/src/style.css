@@ -1273,6 +1273,18 @@ tbody tr:hover {
     overflow-x: auto;
     max-width: 100%;
   }
+  /* Un cadre qui défile se focalise, sinon il ne défile qu'à la souris : le
+     lecteur au clavier n'atteint jamais les colonnes cachées (WCAG 2.1.1).
+     Les huit conteneurs portent donc `tabindex="0"` dans leur balisage, et
+     l'anneau de focus doit se voir sur le bord du cadre, pas sur une cellule. */
+  .pont:focus-visible,
+  .comparaison:focus-visible,
+  .fonctions:focus-visible,
+  .secu:focus-visible,
+  .niches:focus-visible {
+    outline: 2px solid var(--dore);
+    outline-offset: 2px;
+  }
   .champ select,
   .champ input[type="search"] {
     min-width: 0;
@@ -2344,6 +2356,12 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    ------------------------------------------------------------------------ */
 .tableau-exercices {
   overflow-x: auto;
+}
+/* Même raison que les cinq tableaux ci-dessus : ce cadre-ci défile à toutes
+   les largeurs, et son `tabindex="0"` doit se voir quand on l'atteint. */
+.tableau-exercices:focus-visible {
+  outline: 2px solid var(--dore);
+  outline-offset: 2px;
 }
 .tableau-exercices table {
   border-collapse: collapse;
@@ -4170,9 +4188,21 @@ summary.pont__rangee,
   margin-top: var(--espace-4);
   flex-wrap: wrap;
 }
+/* `.simu__palier` s'estompe à `opacity: 0.55`, et c'est juste dans la barre de
+   solde : là les marches sont blanches sur un aplat d'encre, et l'estompe ne
+   les fait pas passer sous le seuil. Ici le fond est le carreau clair, la
+   couleur est `--encre-douce` — un ton choisi et documenté pour tenir 4,66:1
+   sur ce fond-là — et 55 % d'opacité le ramènent à **2,1:1**. Le seuil est 4,5.
+
+   Aucun test ne pouvait le voir : ils calculent les ratios sur les couleurs
+   DÉCLARÉES, et l'opacité n'est pas une couleur. C'est axe-core, dans un vrai
+   navigateur, qui a lu la valeur composée. L'estompe est donc levée ici : la
+   marche non franchie se distingue déjà par son trait et par l'absence
+   d'aplat, ce qui ne coûte aucun contraste. */
 .mission .simu__palier {
   border-color: var(--trait-fort);
   color: var(--encre-douce);
+  opacity: 1;
 }
 .mission .simu__palier--franchi {
   background: var(--encre);

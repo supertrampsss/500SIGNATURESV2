@@ -129,7 +129,7 @@ export function renduEurope(pays: Record<string, Territoire>): string {
   const annee = derniere(pays["FR"].series["eurostat_dette_pib"])?.[0] ?? "";
   return `
     <h3>La France et ses voisins</h3>
-    <table class="comparaison">
+    <table class="comparaison" tabindex="0">
       <caption>Année ${annee} · sources harmonisées Eurostat</caption>
       <thead><tr><th scope="col">Pays</th><th scope="col">Dette / PIB</th>
         <th scope="col">Déficit / PIB</th><th scope="col">Chômage</th></tr></thead>

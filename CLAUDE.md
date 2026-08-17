@@ -434,6 +434,36 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Deux défauts d'accessibilité qu'aucun test du dépôt ne pouvait voir**
+  (17 août 2026). §17 balayé pour la première fois, à l'`axe-core` dans un vrai
+  navigateur, WCAG 2.1 AA, huit adresses × deux largeurs. Quinze nœuds en
+  violation, de deux natures.
+
+  **Un contraste à 2,1:1, et l'opacité en était la cause.** Les paliers du
+  simulateur déclarent `--encre-douce`, un ton choisi et documenté pour tenir
+  4,66:1 sur le carreau clair. `.simu__palier` les estompe à `opacity: 0.55`,
+  ce qui compose `#a3aaa2` sur `#f2f1ec` : **2,1:1** pour un seuil de 4,5.
+
+  Les contrôles du dépôt calculent les ratios sur les couleurs **déclarées** —
+  et l'opacité n'est pas une couleur. C'est la première fois qu'un défaut de
+  cette session demande un moteur de rendu pour être vu : ni la lecture de la
+  feuille, ni les tests de couleur ne pouvaient composer la valeur. L'estompe
+  est levée là où le fond est clair ; elle reste dans la barre de solde, où les
+  marches sont blanches sur un aplat d'encre.
+
+  **Sept cadres défilants inatteignables au clavier** (WCAG 2.1.1). Sous 40 rem,
+  cinq tableaux passent en `overflow-x: auto`, et c'est la bonne décision — « un
+  tableau large défile dans son propre cadre ; la page, jamais ». Mais un cadre
+  qui défile sans contenu focalisable ne défile qu'à la souris : les colonnes
+  cachées sont perdues pour qui navigue au clavier. Les huit conteneurs portent
+  `tabindex="0"`, avec un anneau de focus sur le bord du cadre.
+
+  **Et c'est un cas que ma propre sonde du §24 excusait** : elle sautait
+  délibérément tout conteneur en `overflow-x: auto` comme « autorisé à
+  défiler ». Les deux règles disent vrai en même temps — il a le droit de
+  défiler, et il doit être atteignable. Une sonde qui connaît une exception
+  finit par ne plus regarder ce qu'elle excuse.
+
 - **L'accueil avait l'échelle d'un tableau de bord** (17 août 2026). Première
   passe de design du dépôt, avec le skill que ces règles imposent, installé
   avant d'y toucher.
