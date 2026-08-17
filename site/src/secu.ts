@@ -28,15 +28,20 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { moins, pourcentage } from "./echelle.ts";
 import { rendu as renduCentEuros } from "./cent-euros-secu.ts";
+import { nomPays } from "./pays-noms.ts";
 
 export const DEPENSES = "eurostat_secu_depenses_pib";
 export const RECETTES = "eurostat_secu_recettes_pib";
 export const SOLDE = "eurostat_secu_solde_pib";
 
+/* Les repères de comparaison. Leur nom vient de `pays-noms.ts`, qui les
+   porte tous les quarante-huit : la publication nomme un pays par son code
+   (`normalize/europe.py` écrit `name = code`), et trois modules du site
+   recopiaient chacun sa petite table de traduction. */
 const COMPARES: [string, string][] = [
-  ["FR", "France"],
-  ["DE", "Allemagne"],
-  ["EA20", "Zone euro"],
+  ["FR", nomPays("FR")],
+  ["DE", nomPays("DE")],
+  ["EA20", nomPays("EA20")],
 ];
 
 const FINE = "\u202f";

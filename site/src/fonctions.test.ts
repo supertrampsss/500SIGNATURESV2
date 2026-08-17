@@ -44,7 +44,7 @@ test("le total France est annoncé avec l'année et les points de comparaison", 
   assert.match(html, /En 2024/);
   assert.match(html, new RegExp(`57,3${FINE}% du produit intérieur brut`));
   assert.match(html, new RegExp(`Allemagne : 49,5${FINE}%`));
-  assert.match(html, new RegExp(`Zone euro : 49,8${FINE}%`));
+  assert.match(html, new RegExp(`Zone euro \\(20 pays\\) : 49,8${FINE}%`));
 });
 
 test("les fonctions sont triées par poids décroissant", () => {
