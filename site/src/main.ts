@@ -3995,7 +3995,9 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
-  afficherQuestions($("questions"));
+  // Les questions qui exigent une série que la publication ne porte pas encore
+  // ne sont pas listées : une ancre vers un bloc vide est un lien mort.
+  afficherQuestions($("questions"), new Set(catalogue.map((i) => i.id)));
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();

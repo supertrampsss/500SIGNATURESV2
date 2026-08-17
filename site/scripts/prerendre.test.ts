@@ -1307,8 +1307,20 @@ test("15. /bilan sert ses huit blocs sans exécuter une ligne", () => {
 
   // Les questions, que `demarrer()` peint hors de la section nationale — donc
   // servies même le jour où plus aucune série nationale ne l'est.
+  // Une question qui exige une série absente du catalogue d'essai n'est pas
+  // servie, et c'est la règle : une ancre vers un bloc que la publication ne
+  // porte pas est un lien mort. Le contrôle porte donc sur ce que ce
+  // catalogue-là permet de répondre — et il vérifie d'abord que les deux
+  // familles existent, sans quoi il passerait sur une liste vide.
+  const exigeantes = QUESTIONS.filter((q) => q.exige);
+  assert.ok(exigeantes.length > 0, "aucune question n'exige de série : ce contrôle vise à côté");
   for (const question of QUESTIONS) {
-    assert.ok(texte.includes(echapper(question.question)), `« ${question.question} » n'est pas servie`);
+    const servie = texte.includes(echapper(question.question));
+    if (question.exige && !CATALOGUE_REPERES.some((i) => i.id === question.exige)) {
+      assert.ok(!servie, `« ${question.question} » est servie sans sa série`);
+      continue;
+    }
+    assert.ok(servie, `« ${question.question} » n'est pas servie`);
   }
 
   // Et il en reste beaucoup plus que les 2 597 signes de l'accueil, qui est ce

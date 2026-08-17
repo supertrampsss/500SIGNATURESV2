@@ -15,6 +15,14 @@ export type Question = {
   question: string;
   reponse: string;
   cible: string;
+  /** L'indicateur sans lequel la réponse n'existe pas encore.
+   *
+   *  Une question posée au-dessus d'un bloc que la publication ne porte pas
+   *  mène à une ancre vide — « rien de cliquable ne doit mener à une section
+   *  vide » est déjà la règle du simulateur dans le menu, et du sommaire de
+   *  cette page. Les questions écrites avant ce champ n'en ont pas besoin :
+   *  leurs blocs sont publiés depuis toujours. */
+  exige?: string;
 };
 
 export const QUESTIONS: Question[] = [
@@ -115,6 +123,24 @@ export const QUESTIONS: Question[] = [
     cible: "#recherche",
   },
   {
+    question: "Combien touchent les retraités ?",
+    reponse:
+      "Le nombre de retraités, la pension moyenne brute et nette, l'âge conjoncturel" +
+      " de départ et le nombre de cotisants par retraité. Chaque mesure porte son" +
+      " millésime : elles ne sortent pas du même tableau.",
+    cible: "#bloc-retraites",
+    exige: "drees_pension_moyenne_brute",
+  },
+  {
+    question: "À quoi sert la redistribution ?",
+    reponse:
+      "Les neuf déciles du niveau de vie avant et après impôts et prestations, et" +
+      " l'écart entre les deux. La bascule est au troisième décile : en dessous elle" +
+      " ajoute, au-dessus elle retranche.",
+    cible: "#bloc-redistribution",
+    exige: "insee_niveau_vie_d1",
+  },
+  {
     question: "Comment la France se compare-t-elle à ses voisins ?",
     reponse:
       "Dette, déficit, chômage et PIB par habitant, sur les définitions" +
@@ -146,9 +172,19 @@ function echapper(texte: string): string {
  * site sait et ne sait pas répondre ; elle n'est donc pas supprimée, elle
  * attend qu'on ouvre la question. Le sommaire redevient un sommaire.
  */
-export function rendu(questions: Question[] = QUESTIONS): string {
+/**
+ * Rendu pur, et le filtre qui empêche un lien mort.
+ *
+ * `publies` est l'ensemble des indicateurs du catalogue : une question qui en
+ * exige un absent n'est pas listée. Sans argument, rien n'est filtré — le
+ * gabarit ne doit pas perdre des questions faute de savoir ce qui est publié.
+ */
+export function rendu(questions: Question[] = QUESTIONS, publies?: Set<string>): string {
+  const retenues = publies
+    ? questions.filter((q) => !q.exige || publies.has(q.exige))
+    : questions;
   return `<ul class="questions">
-    ${questions
+    ${retenues
       .map(
         (q) => `<li>
           <details>
@@ -162,6 +198,6 @@ export function rendu(questions: Question[] = QUESTIONS): string {
   </ul>`;
 }
 
-export function afficherQuestions(bloc: HTMLElement): void {
-  bloc.innerHTML = rendu();
+export function afficherQuestions(bloc: HTMLElement, publies?: Set<string>): void {
+  bloc.innerHTML = rendu(QUESTIONS, publies);
 }
