@@ -245,7 +245,7 @@ test("la fenêtre est la même à toutes les mailles, quelle que soit l'électio
   // La règle du dépôt : la fenêtre est dans les millésimes des phrases, 2019 et
   // 2025. Elle suivait le calendrier électoral de la maille — municipales 2020
   // pour une commune, départementales 2021 pour un département — si bien que la
-  // Gironde s'ouvrait sur « contre 1 763 M€ en 2020 » quand Bordeaux disait
+  // Gironde s'ouvrait sur « contre1,76 milliards d'euros en 2020 » quand Bordeaux disait
   // 2019. Deux territoires qu'on vient précisément comparer.
   const M = 1_000_000;
   const annees = ["2018", "2019", "2020", "2021", "2022", "2023", "2024", "2025"];
@@ -283,7 +283,7 @@ test("la fenêtre est la même à toutes les mailles, quelle que soit l'électio
   }
 });
 test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => {
-  // « Salaire net mensuel moyen : 0,00 M€ », deux exercices de suite, avec
+  // « Salaire net mensuel moyen :0,00 millions d'euros », deux exercices de suite, avec
   // « +4 % » à côté d'un chiffre nul : la règle des millions sert à comparer
   // des masses budgétaires entre elles, pas à dire une paie.
   const ECHELLE = fs.readFileSync(new URL("./echelle.ts", import.meta.url), "utf8");

@@ -85,21 +85,24 @@ test("un repère garde sa décimale sur un compte rond", () => {
   assert.doesNotMatch(html, /\+10\s%/u, html);
 });
 
-test("le rendu dit le rôle avant le terme, et le montant en millions", () => {
+test("le rendu dit le rôle avant le terme, et l'unité en toutes lettres", () => {
   const html = rendreReperes(reperes(BORDEAUX, "commune"));
   assert.match(html, /class="reperes"/);
   assert.match(html, /<span class="repere__role">Ce qu&#39;elle encaisse<\/span>/);
-  // Le nombre porte le corps de titre, le sigle rejoint la légende. Une seule
-  // décimale au-dessus du million : c'est la règle de `millions`, celle de
-  // toute la fiche, et un repère n'y déroge pas.
-  assert.match(html, /<span class="repere__valeur">417,1<\/span>/);
-  assert.match(html, /M€ de recettes · \+18,5\s%/u);
-  assert.match(html, /M€ d&#39;épargne · −16,8\s%/u);
+  // Le nombre porte le corps de titre, l'unité rejoint la légende — et elle
+  // s'y écrit en toutes lettres. « M€ » demandait au lecteur de savoir que le
+  // sigle vaut un million ; à la maille de l'État il fallait le savoir pour
+  // comprendre que « 3 536 100 M€ » est une dette de trois mille cinq cents
+  // milliards. Deux décimales, toujours, pour que les quatre repères
+  // s'alignent quand l'un d'eux tombe rond.
+  assert.match(html, /<span class="repere__valeur">417,14<\/span>/);
+  assert.match(html, /millions d&#39;euros de recettes · \+18,5\s%/u);
+  assert.match(html, /millions d&#39;euros d&#39;épargne · −16,8\s%/u);
   // L'élision se fait devant une voyelle : « d'épargne », jamais « de épargne ».
   assert.doesNotMatch(html, /de épargne/);
   // Le sigle n'est pas resté collé au nombre : c'est une espace fine
   // insécable qui les sépare, pas une espace ordinaire.
-  assert.doesNotMatch(html, /class="repere__valeur">[^<]*M€/);
+  assert.doesNotMatch(html, /class="repere__valeur">[^<]*(?:millions|milliards)/);
   // Aucun par-habitant dans un repère d'ouverture : la règle du site le réserve
   // aux tableaux dépliés.
   assert.doesNotMatch(html, /par habitant|hab\./);

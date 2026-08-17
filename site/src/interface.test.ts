@@ -132,9 +132,12 @@ test("la fiche n'aligne plus une seule ligne de mesure", () => {
   assert.doesNotMatch(FICHE, /data-mesure=/);
   assert.doesNotMatch(FICHE, /class="mesures"/);
   assert.doesNotMatch(FICHE, /theme-groupe|onglets-themes|onglets-rubriques/);
-  // On peint toujours depuis le sélecteur de la carte : c'est lui qui choisit
-  // l'indicateur, et il n'a jamais été dans la fiche.
-  assert.match(MAIN, /function peintSurCarte\(indicateur: Indicateur\): boolean/);
+  // Le sélecteur d'indicateur de la carte a été retiré de l'écran le 17 août
+  // 2026 : deux menus posés sur la carte pour des réglages que personne
+  // n'employait. Ce qu'ils réglaient reste piloté par l'adresse, et « Voir sur
+  // la carte » dans le détail d'une mesure appelle toujours `choisirIndicateur`.
+  assert.doesNotMatch(MAIN, /construireSelecteurCarte|construireBarreCarte/);
+  assert.match(MAIN, /async function choisirIndicateur\(id: string\): Promise<void>/);
 });
 
 test("un maire absent n'écrit rien, comme toute donnée absente", () => {

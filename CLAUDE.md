@@ -86,10 +86,21 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 Ces règles ont dû être répétées d'une session à l'autre. Elles sont écrites ici
 pour ne plus l'être.
 
-- **Tous les montants en millions d'euros (M€)**, deux décimales sous le
-  million. Jamais de k€ ni de Md€ : une colonne qui change d'unité d'une ligne
-  à l'autre ne se compare pas. Le **par-habitant ne s'affiche que dans les
-  tableaux dépliés**, jamais dans un résumé, une ouverture ou une carte.
+- **Un montant se lit sans conversion de tête, et son unité s'écrit en toutes
+  lettres.** « 3 536 100 M€ » n'est pas un chiffre lisible : sept rangs et un
+  sigle de deux lettres, et il faut être du métier pour savoir qu'on lit trois
+  mille cinq cents milliards de dette. La règle « tout en M€ » était juste pour
+  une commune et fausse pour l'État — elle demandait au lecteur de diviser.
+
+  `montantLisible` (echelle.ts) choisit donc l'échelle sur le montant —
+  millions en dessous du millier de millions, milliards au-delà —, garde
+  **deux décimales** et écrit **« millions d'euros » / « milliards d'euros »**,
+  jamais un sigle. Un tableau, où l'unité ne peut pas se répéter dans chaque
+  cellule, prend **une seule échelle pour tout le tableau**, choisie sur son
+  plus gros montant et nommée dans la légende.
+
+  Le **par-habitant ne s'affiche que dans les tableaux dépliés**, jamais dans
+  un résumé, une ouverture ou une carte.
 - **Dire l'unité là où le nombre est gros.** « Santé 1 643 M€ » se lit
   « 1 643 milliards » par qui n'a pas le nez sur le sigle ; toute page qui
   aligne des montants d'État écrit « montants en millions d'euros » dans son

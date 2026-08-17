@@ -26,7 +26,7 @@
  * « ce qui manque » : un solde, pas une épargne.
  */
 
-import { millions, moins, pourcentage } from "./echelle.ts";
+import { moins, montantLisible, pourcentage } from "./echelle.ts";
 
 export type Role = {
   /** Ce que le nombre est, en trois mots. */
@@ -158,9 +158,16 @@ export function rendreReperes(liste: Repere[]): string {
   if (!liste.length) return "";
   const cases = liste
     .map(({ role, terme, valeur, variation }) => {
-      // `millions` rend « 417,14 M€ ». Le nombre porte le corps de titre, le
-      // sigle rejoint la ligne du terme : « 417,14 » puis « M€ · +18,5 % ».
-      const [nombre, unite] = separer(millions(valeur));
+      // `montantLisible` rend « 417,14 millions d'euros » ou « 380,39 milliards
+      // d'euros » selon la taille du montant. Le nombre porte le corps de
+      // titre, l'unité rejoint la ligne du terme : « 380,39 » puis
+      // « milliards d'euros de recettes nettes · +28,8 % ».
+      //
+      // Elle s'écrit en toutes lettres, et c'est le point : « 3 536 100 M€ »
+      // demandait de savoir que le sigle vaut un million pour comprendre qu'on
+      // lit trois mille cinq cents milliards de dette. Personne hors du métier
+      // ne fait cette conversion de tête, et le site existe pour les autres.
+      const [nombre, unite] = separer(montantLisible(valeur));
       const evolution = variation === null ? "" : ` · ${signe(variation)}`;
       // « de épargne » : l'élision se fait devant une voyelle, et « épargne »
       // est le seul terme concerné aujourd'hui. La règle vaut mieux que le cas.
@@ -183,12 +190,19 @@ export function rendreReperes(liste: Repere[]): string {
  * insécable, et un `lastIndexOf(" ")` ne la trouvait pas. Le nombre gardait
  * alors son sigle et la légende commençait par « de recettes ».
  *
- * Le nombre de décimales n'est pas décidé ici : c'est `millions` qui l'arrête,
- * et il en met une seule au-dessus du million. Cette règle est celle du site,
- * elle vaut pour toute la fiche, et un repère n'a aucune raison d'y déroger.
+ * Le nombre de décimales n'est pas décidé ici : c'est `montantLisible` qui
+ * l'arrête, et il en met deux. Cette règle est celle du site, elle vaut pour
+ * toute la fiche, et un repère n'a aucune raison d'y déroger.
+ *
+ * **La coupe se fait sur l'insécable, pas sur la dernière espace.** L'unité
+ * s'écrit désormais en toutes lettres — « milliards d'euros » — et chercher la
+ * dernière espace rendait « 380,39 milliards » d'un côté et « d'euros » de
+ * l'autre. `montantLisible` pose une insécable entre le nombre et son unité,
+ * et c'est elle, et elle seule, qui marque la coupe : les espaces de milliers
+ * sont des fines insécables, d'un autre caractère.
  */
 function separer(formate: string): [string, string] {
-  const coupe = formate.search(/\s\S*$/u);
+  const coupe = formate.indexOf("\u00a0");
   if (coupe === -1) return [formate, ""];
   return [formate.slice(0, coupe), formate.slice(coupe + 1)];
 }

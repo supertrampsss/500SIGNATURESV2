@@ -82,15 +82,41 @@ test("un identifiant sans série ne fait pas une ligne vide", () => {
   );
 });
 
-test("les montants sont en millions, et le sigle est dans la légende", () => {
-  // Répété quatre-vingts fois dans une grille, « M€ » n'ajoute rien et
-  // empêche les colonnes de s'aligner.
+test("l'unité est dans la légende, à l'échelle du tableau entier", () => {
+  // Répétée quatre-vingts fois dans une grille, l'unité n'ajoute rien et
+  // empêche les colonnes de s'aligner : la légende la porte une fois.
+  //
+  // Et elle suit le plus gros montant du tableau. « Montants en millions »
+  // valait pour toute maille, ce qui donnait « 336 069 » à l'État — six rangs
+  // qu'il fallait diviser de tête. Deux décimales toujours, pour que la
+  // colonne reste alignée quand un montant tombe rond.
   const html = rendreExercices(
     exercices({ cites: ["ofgl_depenses_fonctionnement"], series: SERIES, catalogue: CATALOGUE }),
   );
-  assert.match(html, /<td>294,1<\/td>/);
-  assert.doesNotMatch(html.replace(/<caption>[\s\S]*?<\/caption>/, ""), /M€/);
+  assert.match(html, /<td>294,10<\/td>/);
+  const corps = html.replace(/<caption>[\s\S]*?<\/caption>/, "");
+  assert.doesNotMatch(corps, /M€|millions|milliards/);
   assert.match(html, /<caption>Montants en millions d'euros\./);
+});
+
+test("un tableau de l'État se lit en milliards, pas en millions", () => {
+  // Le cas qui a fait changer la règle : à la maille nationale, la même
+  // fonction écrivait « 336 069 » sous une légende qui disait « millions ».
+  const millier = Object.fromEntries(
+    Object.entries(SERIES.ofgl_depenses_fonctionnement).map(([a, v]) => [a, v * 4000]),
+  );
+  const html = rendreExercices(
+    exercices({
+      cites: ["ofgl_depenses_fonctionnement"],
+      series: { ofgl_depenses_fonctionnement: millier },
+      catalogue: CATALOGUE,
+    }),
+  );
+  assert.match(html, /<caption>Montants en milliards d'euros\./);
+    // L'espace des milliers est une fine insécable : tapée à la main dans le
+  // motif, elle passe pour une espace ordinaire et le test échoue sur une
+  // valeur pourtant juste. Septième fois cette session.
+  assert.match(html, /<td>1\u202f176,40<\/td>/u);
 });
 
 /**

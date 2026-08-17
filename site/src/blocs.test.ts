@@ -132,7 +132,10 @@ function lu(html: string): string {
   return html.replace(/<[^>]*>/gu, "").replace(/&#39;/gu, "'").replace(/&amp;/gu, "&");
 }
 
-const FIN = " "; // l'espace fine insécable que `millions` pose avant le sigle
+const FIN = " "; // l'espace fine insécable des milliers et du signe %
+// L'insécable que `montantLisible` pose entre le nombre et son unité écrite
+// en toutes lettres : « 369,01 millions d'euros ».
+const U = "\u00a0";
 
 test("les quatre blocs suivent l'argent, et dans cet ordre", () => {
   assert.deepEqual(
@@ -152,35 +155,35 @@ test("Bordeaux se lit comme la maquette l'a écrit", () => {
   const [ou, qui, reste, paye] = deBordeaux().map((b) => lu(b.texte));
   assert.equal(
     ou,
-    `Bordeaux dépense 369,0${FIN}M€ par an pour faire tourner ses services, soit 74,9${FIN}M€ de plus qu'en 2019.` +
-      ` La moitié de cette augmentation tient aux salaires de ses agents, qui passent de 143,6 à 183,1${FIN}M€` +
+    `Bordeaux dépense 369,01${U}millions d'euros par an pour faire tourner ses services, soit 74,93${U}millions d'euros de plus qu'en 2019.` +
+      ` La moitié de cette augmentation tient aux salaires de ses agents, qui passent de 143,59 à 183,05${U}millions d'euros` +
       ` : c'est un euro sur deux du budget de fonctionnement.` +
-      ` Viennent ensuite les achats, l'énergie et les prestataires (+21,2${FIN}M€),` +
-      ` puis les aides et subventions versées (+13,8${FIN}M€).`,
+      ` Viennent ensuite les achats, l'énergie et les prestataires (+21,17${U}millions d'euros),` +
+      ` puis les aides et subventions versées (+13,81${U}millions d'euros).`,
   );
   assert.equal(
     qui,
-    `Les recettes augmentent de 65,2${FIN}M€.` +
-      ` La taxe foncière et les impôts des entreprises en apportent 90${FIN}%, soit 58,8${FIN}M€.` +
+    `Les recettes augmentent de 65,18${U}millions d'euros.` +
+      ` La taxe foncière et les impôts des entreprises en apportent 90${FIN}%, soit 58,78${U}millions d'euros.` +
       ` Pendant ce temps, ce que l'État verse à la ville diminue` +
-      ` : la dotation principale recule de 37,3 à 36,5${FIN}M€.`,
+      ` : la dotation principale recule de 37,29 à 36,48${U}millions d'euros.`,
   );
   assert.equal(
     reste,
-    `Il faudrait 8,6 années d'épargne pour rembourser les 413,0${FIN}M€ que la ville doit encore,` +
+    `Il faudrait 8,6 années d'épargne pour rembourser les 412,98${U}millions d'euros que la ville doit encore,` +
       ` contre 4,4 années en 2019.`,
   );
   assert.equal(
     paye,
-    `La ville a investi 136,0${FIN}M€ en 2025, contre 81,4${FIN}M€ en 2019.` +
-      ` Les dépenses d'équipement en font 109,9${FIN}M€, soit 81${FIN}%.`,
+    `La ville a investi 135,97${U}millions d'euros en 2025, contre 81,39${U}millions d'euros en 2019.` +
+      ` Les dépenses d'équipement en font 109,85${U}millions d'euros, soit 81${FIN}%.`,
   );
 });
 
 /**
  * La décomposition sert la variation, pas le stock.
  *
- * « +25,5 % » est un résumé ; « sur 74,9 M€ de hausse, 39,5 viennent des
+ * « +25,5 % » est un résumé ; « sur74,90 millions d'euros de hausse, 39,5 viennent des
  * salaires » est une explication. Le premier bloc doit donc nommer les postes
  * du mouvement, dans l'ordre de ce qu'ils y ont mis.
  */
@@ -209,7 +212,7 @@ test("une décomposition qui ne somme pas au total n'est pas écrite", () => {
   assert.deepEqual(ou.cites, ["ofgl_depenses_fonctionnement"]);
   assert.equal(
     lu(ou.texte),
-    `Bordeaux dépense 369,0${FIN}M€ par an pour faire tourner ses services, soit 74,9${FIN}M€ de plus qu'en 2019.`,
+    `Bordeaux dépense 369,01${U}millions d'euros par an pour faire tourner ses services, soit 74,93${U}millions d'euros de plus qu'en 2019.`,
   );
   // Et rien qui s'excuse de ne pas décomposer.
   assert.doesNotMatch(lu(ou.texte), /non publié|indisponible|ne permet pas|faute de/i);
@@ -235,8 +238,8 @@ test("la France nomme la famille de recettes qui porte la hausse", () => {
   assert.deepEqual([depenses.titre, recettes.titre], ["Le train de vie", "Qui règle l'addition"]);
   assert.equal(
     lu(recettes.texte),
-    `Les recettes augmentent de 85${FIN}133${FIN}M€.` +
-      ` Les impôts que l'État perçoit en apportent 88${FIN}%, soit 75${FIN}109${FIN}M€.`,
+    `Les recettes augmentent de 85,13${U}milliards d'euros.` +
+      ` Les impôts que l'État perçoit en apportent 88${FIN}%, soit 75,11${U}milliards d'euros.`,
   );
   assert.deepEqual(recettes.cites, ["etat_recettes_nettes_bg", "etat_recettes_fiscales"]);
   // Le terme du fichier publié reste sous le curseur, comme pour une commune.
@@ -255,8 +258,8 @@ test("la dépense de l'État pose son total sans rien décomposer ni s'en excuse
   assert.deepEqual(depenses.cites, ["etat_depenses_nettes_bg"]);
   assert.equal(
     lu(depenses.texte),
-    `L'État dépense 441${FIN}194${FIN}M€ par an sur son budget général,` +
-      ` soit 105${FIN}126${FIN}M€ de plus qu'en 2019.`,
+    `L'État dépense 441,19${U}milliards d'euros par an sur son budget général,` +
+      ` soit 105,13${U}milliards d'euros de plus qu'en 2019.`,
   );
   assert.doesNotMatch(lu(depenses.texte), /non publié|indisponible|décomposition|faute de/i);
 });
@@ -282,7 +285,7 @@ test("une composante que la table ne nomme pas ne se dit pas, même décomposée
         : i
     ),
   });
-  assert.equal(lu(recettes.texte), `Les recettes augmentent de 85${FIN}133${FIN}M€.`);
+  assert.equal(lu(recettes.texte), `Les recettes augmentent de 85,13${U}milliards d'euros.`);
   assert.deepEqual(recettes.cites, ["etat_recettes_nettes_bg"]);
   assert.doesNotMatch(recettes.texte, /Impôt sur le revenu|Impôt sur les sociétés/u);
 });
@@ -310,7 +313,7 @@ test("les postes du budget de l'État n'empruntent aucun mot d'un autre cadre", 
  * Ce que les repères disent, les blocs ne le redisent pas — et réciproquement.
  *
  * Les repères écrivent « Ce qu'elle doit 413,0 · +63,7 % » ; l'ancienne
- * ouverture enchaînait « l'encours passe de 252,3 M€ à 413,0 M€, soit +63,7 % ».
+ * ouverture enchaînait « l'encours passe de252,30 millions d'euros à413,00 millions d'euros, soit +63,7 % ».
  * Les blocs partent des mêmes agrégats mais n'en disent que le mouvement et sa
  * provenance : aucune phrase ne pose une variation en pourcentage.
  */
@@ -392,7 +395,7 @@ test("le verbe s'accorde avec le poste, pas avec le nombre de postes", () => {
   });
   assert.match(
     lu(unSeulSuivant[0].texte),
-    new RegExp(`Viennent ensuite les achats, l'énergie et les prestataires \\(\\+10,0${FIN}M€\\)\\.$`, "u"),
+    new RegExp(`Viennent ensuite les achats, l'énergie et les prestataires \\(\\+10,00${U}millions d'euros\\)\\.$`, "u"),
   );
 });
 

@@ -95,7 +95,6 @@ import { ouvrirRepertoire, populationsDuRepertoire, type Repertoire } from "./re
 import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
-import { groupesCarte, nombreDeChoix, rendreSelecteur } from "./selecteur-carte.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import { adresseTerritoire, cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { afficherFraicheur } from "./fraicheur.ts";
@@ -1007,7 +1006,6 @@ function suivreLaSelection(code: string): void {
   const vue = vueDuCode(code);
   if (vue === etat.vue) return;
   etat.vue = vue;
-  construireBarreCarte();
   cadrer(vue);
 }
 
@@ -1588,72 +1586,16 @@ function themesCartographiables(): string[] {
   return [...new Set(catalogue.filter((i) => i.niveaux?.includes(etat.niveau)).map((i) => i.theme))];
 }
 
-/** Maille et territoire vivent sous la carte, en pilules : ce sont des
- *  réglages de cadrage, pas des questions posées au lecteur. */
-function construireBarreCarte(): void {
-  // **Replié, pas étalé.** Six pastilles — Métropole, Guadeloupe, Martinique,
-  // Guyane, La Réunion, Mayotte — occupaient une ligne entière pour un réglage
-  // qu'on touche une fois par visite, quand on le touche. Un menu déroulant dit
-  // la même chose en un mot, et rend la ligne à la carte.
-  $("pilules-vue").innerHTML = `<label class="visuellement-cache" for="cadrage">Territoire cadré</label>`
-    + `<select id="cadrage" class="pilule pilule--menu">${Object.entries(VUES)
-      .map(([cle, v]) => `<option value="${cle}"${cle === etat.vue ? " selected" : ""}>${
-        v.nom
-      }</option>`)
-      .join("")}</select>`;
-}
+/* Les deux menus posés sur la carte — la maille cadrée et l'indicateur peint —
+   ont été retirés de l'écran le 17 août 2026. Ils occupaient le haut de la
+   carte à toutes les largeurs pour des réglages que personne n'employait, et
+   ils demandaient au lecteur de choisir avant d'avoir rien vu.
 
-/**
- * Le sélecteur d'indicateur de la carte, à côté des pilules.
- *
- * La carte ne se pilotait que par « Voir sur la carte », replié dans le détail
- * d'une mesure du panneau : pour peindre le chômage, il fallait déjà savoir où
- * le chercher. Le sélecteur est construit en JS, dans la barre existante, et
- * n'offre que ce qui se peint à la maille affichée (`peintSurCarte`), groupé
- * par thème cartographiable.
- */
-function construireSelecteurCarte(): void {
-  const barre = document.querySelector<HTMLElement>(".carte-barre");
-  if (!barre) return;
-  let boite = document.getElementById("pilules-indicateur");
-  if (!boite) {
-    boite = document.createElement("div");
-    boite.id = "pilules-indicateur";
-    boite.className = "pilules";
-    // Un `select` natif, pas un menu maison : il est déjà accessible au
-    // clavier, au lecteur d'écran et au doigt, et il sait grouper.
-    // Les réglages en ligne ne font que le ramener à la taille des pilules
-    // voisines ; le dessin (chevron, anneau de focus) reste celui de la
-    // feuille de style. `.pilule` conviendrait mieux, mais son `background:
-    // none` effacerait le chevron : à demander en règle `.pilules select`.
-    boite.innerHTML = `<select id="carte-indicateur"
-      aria-label="Indicateur peint sur la carte"
-      style="border:0;min-height:1.75rem;min-width:0;max-width:min(20rem, 48vw);
-             font-size:var(--texte-s);color:var(--encre-douce);
-             background-color:transparent;border-radius:var(--rayon-pilule);
-             padding:var(--espace-2) var(--espace-8) var(--espace-2) var(--espace-5)"></select>`;
-    barre.prepend(boite);
-    // Sur téléphone la barre défile horizontalement : l'ancrage du défilement
-    // compense l'insertion en tête pour garder les pilules à leur place, et le
-    // sélecteur naissait hors écran, à gauche. Il ouvre la barre, il doit être
-    // ce qu'on voit en premier.
-    barre.scrollLeft = 0;
-    boite.querySelector("select")?.addEventListener("change", (evenement) => {
-      const choisi = (evenement.target as HTMLSelectElement).value;
-      if (choisi) void choisirIndicateur(choisi);
-    });
-  }
-  const groupes = groupesCarte(
-    catalogue,
-    themesCartographiables(),
-    peintSurCarte,
-    libelleTheme,
-    traduire,
-  );
-  boite.hidden = nombreDeChoix(groupes) === 0;
-  const select = boite.querySelector("select");
-  if (select) select.innerHTML = rendreSelecteur(groupes, etat.indicateur);
-}
+   Ce qu'ils réglaient n'est pas perdu : `?vue=` et `?indicateur=` restent lus
+   et écrits par `lireUrl`/`ecrireUrl`, un lien partagé ouvre toujours la bonne
+   couche, et `choisirIndicateur` reste appelée depuis « Voir sur la carte »
+   dans le détail d'une mesure. C'est l'écran qui perd deux menus, pas le site
+   qui perd un réglage. */
 
 /** Périodes du niveau affiché, la plus récente d'abord — pas de l'indicateur
  *  tous niveaux confondus : l'historique communal est plus court que celui
@@ -1681,20 +1623,6 @@ function construireSelecteurs(): void {
   // L'évolution demande deux millésimes publiés à cette maille : à moins,
   // retour au niveau — proprement, bouton masqué compris.
   if (periodes.length < 2) etat.mode = "niveau";
-  construireBarreCarte();
-  construireSelecteurCarte();
-}
-
-/**
- * Cet indicateur a-t-il une couche à peindre, ici et maintenant ?
- *
- * Mêmes refus que `choisirIndicateur` — une série nationale n'existe pas par
- * commune, un indicateur reconstitué n'a pas de fichier de carte. Écrit à part
- * pour que la fiche puisse le demander *avant* de proposer le bouton : un
- * bouton qui ne fait rien est pire que pas de bouton.
- */
-function peintSurCarte(indicateur: Indicateur): boolean {
-  return !!indicateur.niveaux?.includes(etat.niveau) && !IDS_DERIVES.has(indicateur.id);
 }
 
 async function choisirIndicateur(id: string): Promise<void> {
@@ -4078,7 +4006,13 @@ async function demarrer(): Promise<void> {
     },
     bounds: VUES[etat.vue]?.bornes ?? VUES.metropole.bornes,
     fitBoundsOptions: { padding: paddingCarte() },
+    // Rabattue par défaut : MapLibre l'affiche dépliée, et la ligne de crédits
+    // — quatre producteurs et une licence — occupait le bas de la carte en
+    // permanence pour une mention qu'on lit une fois. `compact` la réduit au
+    // bouton « i » ; rien n'est retiré, la licence reste à un clic, ce que la
+    // Licence Ouverte demande.
     attributionControl: {
+      compact: true,
       customAttribution: "IGN Admin Express · OFGL · Licence Ouverte 2.0",
     },
   });
