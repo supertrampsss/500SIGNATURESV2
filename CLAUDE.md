@@ -445,6 +445,36 @@ pour ne plus l'être.
 
 ### Fait
 
+- **La note entre au classement, et un accord de participe tombe** (17 août
+  2026). La note vivait sur une fiche et nulle part ailleurs : un lecteur
+  voyait « 8,4/20 » sans savoir si c'était le haut ou le bas. Elle est
+  désormais le premier critère du classement, au-dessus des quatre mesures dont
+  elle sort.
+
+  **Le barème n'est pas recalculé.** La fiche lit des séries, le classement lit
+  des couches de carte ; `noteDepuisCouches` recompose la forme qu'attend
+  `note()` plutôt que de réécrire la grille — deux écrans du même site ne
+  doivent pas pouvoir afficher deux notes différentes du même territoire.
+  Vérifié au navigateur sur les fichiers publiés : Bordeaux 8,4, Gironde 1,1,
+  Nouvelle-Aquitaine 12,0, identiques des deux côtés.
+
+  **Le défaut trouvé en peignant** : le critère s'annonçait « 27 887 communes
+  sont mieux **notés** ». Un participe passé s'accorde, et le sujet change avec
+  la maille — « communes » et « régions » au féminin, « départements » au
+  masculin. Les quatre critères d'origine y échappaient par construction, en
+  employant des verbes pleins (« dépensent plus », « doivent moins »), mais la
+  règle n'était écrite nulle part : le cinquième critère l'a enfreinte le jour
+  où il est arrivé. Un test lit `main.ts` et refuse toute formule portant un
+  participe accordé.
+
+  **Et la sonde des 320 px mentait de sept signalements.** Elle comptait comme
+  débordant le lien d'évitement, qui vit à `left:-9999px` — un élément
+  entièrement hors écran à gauche n'élargit pas le corps, et `scrollWidth`
+  faisait déjà foi juste en dessous. Corrigée, elle rend **0 signalement** sur
+  les sept adresses. Une sonde qui crie sans raison cesse d'être lue, ce qui
+  est pire que pas de sonde.
+
+
 - **La note de gestion, et pourquoi elle n'a pas un barème mais quatre**
   (17 août 2026). Le site répond enfin à la question qu'on vient lui poser —
   « est-ce que ma commune est bien gérée » — par une note sur 20 en tête de
