@@ -142,12 +142,19 @@ test("aucune vue existante ne bouge : la carte reste à /territoire", () => {
 test("un lien déjà partagé ne change pas de destination", () => {
   // Les liens d'avant les chemins portent la vue dans le fragment : la racine
   // ne les avale pas, elle les laisse résoudre vers leur vue.
+  //
+  // REPÈRES, DÉTAIL et MÉTHODE ont fusionné dans BILAN le 17 août 2026. Ce que
+  // ce test tient n'a pas changé — un lien partagé ne tombe pas sur une page
+  // blanche —, mais la destination des trois est désormais la vue qui les a
+  // absorbés. C'est exactement ce que la table `ALIAS` existe pour dire.
   for (const [fragment, vue] of [
     ["#carte", "territoire"],
     ["#donnees", "territoire"],
-    ["#decryptages", "reperes"],
-    ["#analyses", "detail"],
-    ["#methode", "methode"],
+    ["#decryptages", "bilan"],
+    ["#analyses", "bilan"],
+    ["#methode", "bilan"],
+    ["#reperes", "bilan"],
+    ["#detail", "bilan"],
   ]) {
     assert.equal(vueDepuisAdresse("/", fragment), vue, fragment);
     assert.equal(estAccueil("/", fragment), false, fragment);

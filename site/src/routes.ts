@@ -18,10 +18,8 @@ import { MAILLES_HORS_CARTE } from "./mailles.ts";
  *  les chemins, `vuesConnues()` dans `main.ts` tranche ce qui est ouvrable. */
 export const CHEMINS: Record<string, string> = {
   territoire: "/territoire",
-  reperes: "/reperes",
-  detail: "/detail",
+  bilan: "/bilan",
   simulateur: "/simulateur",
-  methode: "/methode",
 };
 
 /**
@@ -35,9 +33,17 @@ export const CHEMINS: Record<string, string> = {
  */
 export const ALIAS: Record<string, string> = {
   carte: "territoire",
-  analyses: "detail",
-  decryptages: "reperes",
   donnees: "territoire",
+  // REPÈRES, DÉTAIL et MÉTHODE ont fusionné dans BILAN le 17 août 2026 : quatre
+  // onglets disaient « parcourez les données » et personne ne savait lequel
+  // ouvrir. Leurs adresses continuent d'ouvrir ce qu'elles promettaient, parce
+  // qu'un lien partagé ne doit pas tomber sur une page blanche — c'est la règle
+  // que cette table tient depuis le lot 0.
+  reperes: "bilan",
+  detail: "bilan",
+  methode: "bilan",
+  analyses: "bilan",
+  decryptages: "bilan",
 };
 
 /** Le chemin d'une vue. Une vue inconnue retombe sur la racine du site. */
@@ -59,12 +65,22 @@ function vueDuNom(nom: string): string | null {
  * pouvoir laisser en place celle qui est déjà affichée.
  */
 export function vueDepuisAdresse(chemin: string, fragment: string): string | null {
-  const segment = chemin.replace(/^\/+|\/+$/g, "").split("/")[0];
-  if (segment) return vueDuNom(segment);
+  const segments = chemin.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+  if (segments.length) {
+    const nom = segments[0];
+    // Une vue réelle se reconnaît à n'importe quelle profondeur :
+    // `/simulateur/comparer` est le comparateur de scénarios.
+    const directe = vueDuNom(nom);
+    if (directe) return directe;
+    // **Un ancien nom ne vaut qu'en segment unique.** `/reperes` doit ouvrir
+    // BILAN qui l'a absorbé, mais `/analyses/taxe-zucman` est une page
+    // éditoriale servie telle quelle : résoudre son premier segment la ferait
+    // ouvrir comme une vue et l'article ne s'afficherait jamais. C'est le
+    // défaut que le lot 0 a corrigé, et cette garde le tient toujours.
+    return segments.length === 1 ? vueDuNom(ALIAS[nom] ?? nom) : null;
+  }
   const ancre = fragment.replace(/^#/, "");
   if (!ancre) return null;
-  // Les alias sont résolus uniquement pour les fragments : anciens liens
-  // partagés avant l'existence des chemins.
   const resolu = ALIAS[ancre] ?? ancre;
   return resolu in CHEMINS ? resolu : null;
 }

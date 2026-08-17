@@ -402,26 +402,36 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
     toutes.map((s) => [s.chemin, s.nature]),
     [
       ["", "Le site"],
+      // `/analyses/` n'est pas l'onglet ANALYSES, qui a quitté la barre de
+      // navigation le 17 août 2026 : c'est le sommaire des articles
+      // éditoriaux, toujours servi et toujours au plan du site. Il garde donc
+      // sa carte — sans elle, son document annonçait un `og:image` que le
+      // build n'écrivait plus.
       ["analyses", "Analyses"],
       ["simulateur", "Simulateur"],
-      // La méthode a rejoint la liste en recevant son propre document : servie
-      // par le gabarit, elle empruntait la carte du site — chapeau « Le site »,
-      // phrase du message principal — sous un titre qui annonce les sources.
-      ["methode", "Méthode"],
-      // REPÈRES l'a rejointe pour la même raison, et son chapeau est le mot que
-      // la barre de navigation emploie. Un « s » le sépare de « Repère », la
-      // nature d'un objet partageable ; l'assertion sur ce mot-là, quelques
-      // lignes plus bas, distingue donc les deux.
-      ["reperes", "Repères"],
+      // BILAN a rejoint la liste en recevant son propre document : servie par
+      // le gabarit, elle empruntait la carte du site — chapeau « Le site »,
+      // phrase du message principal — sous un titre qui annonce la dette, les
+      // 100 €, les niches et le classement des territoires.
+      ["bilan", "Bilan"],
     ],
   );
+  // **Les sections se retrouvent par leur nom, jamais par leur rang.** Une
+  // section retirée décalait les rangs sans rien casser : les assertions
+  // ci-dessous ont porté un temps sur BILAN sous un commentaire qui disait
+  // « le simulateur », et les deux passaient parce que les deux portent la
+  // marque en titre. Un test qui se trompe de sujet en silence ne tient rien.
+  const parNature = (nature: string) => {
+    const trouvee = toutes.find((s) => s.nature === nature);
+    assert.ok(trouvee, `section ${nature} absente`);
+    return trouvee;
+  };
   // La section du simulateur est peinte À L'ENDROIT où la fonction d'edge
   // annonce l'image : deux chemins se seraient désaccordés en silence.
-  assert.equal(path.join("/", toutes[2].chemin, "carte.png"), IMAGE_SCENARIO);
-  // Et celle de la méthode à l'endroit où son document annonce la sienne.
-  assert.equal(path.join("/", toutes[3].chemin), CHEMINS.methode);
-  // Idem pour REPÈRES : le chemin vient de `routes.ts`, jamais recopié.
-  assert.equal(path.join("/", toutes[4].chemin), CHEMINS.reperes);
+  assert.equal(path.join("/", parNature("Simulateur").chemin, "carte.png"), IMAGE_SCENARIO);
+  // Et celle de BILAN à l'endroit où son document annonce la sienne : le
+  // chemin vient de `routes.ts`, jamais recopié.
+  assert.equal(path.join("/", parNature("Bilan").chemin), CHEMINS.bilan);
 
   // Le chapeau peint est celui de la section, jamais « Repère ». Il est lu sur
   // le SVG rendu, pas sur les données : c'est ce que le lecteur voit.
@@ -438,8 +448,8 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
   // Le titre du simulateur est la marque, pas le titre du gabarit : celui-ci
   // nomme la vue d'accueil, et l'écrire sur l'image d'un scénario partagé
   // rouvrirait le démenti.
-  assert.equal(toutes[2].titre, marqueDuGabarit(GABARIT));
-  assert.notEqual(toutes[2].titre, titreDuGabarit(GABARIT));
+  assert.equal(parNature("Simulateur").titre, marqueDuGabarit(GABARIT));
+  assert.notEqual(parNature("Simulateur").titre, titreDuGabarit(GABARIT));
 
   // Écrites, toutes : le contrôle des pages ne verrait pas celle du
   // simulateur, qu'aucune page pré-rendue ne déclare.
@@ -619,13 +629,13 @@ const CHEMINS_DE_VUE = new Set(Object.values(CHEMINS));
  * Ceux d'entre eux que le repli SPA sert : le build ne leur écrit aucun
  * fichier, Cloudflare Pages y sert le gabarit.
  *
- * `/methode` n'en est plus — elle a son propre document depuis qu'elle est
- * pré-rendue — et `/reperes` non plus, pour la même raison. Le `dist` d'essai
+ * `/bilan` n'en est plus — elle a son propre document depuis qu'elle est
+ * pré-rendue — et `/bilan` non plus, pour la même raison. Le `dist` d'essai
  * doit avoir la même forme que le vrai, sans quoi le contrôle des canoniques
  * n'y verrait jamais le cas d'une vue pré-rendue : il jugerait un gabarit à six
  * adresses là où la production en a quatre.
  */
-const PAGES_PROPRES = new Set([CHEMINS.methode, CHEMINS.reperes]);
+const PAGES_PROPRES = new Set([CHEMINS.bilan, CHEMINS.bilan]);
 const SERVIS_PAR_LE_REPLI = new Set([...CHEMINS_DE_VUE].filter((c) => !PAGES_PROPRES.has(c)));
 
 /**
@@ -672,7 +682,7 @@ test("9. le plan du site liste la racine, les chemins de vues et les analyses pu
 });
 
 test("10. robots.txt et le plan lisent l'adresse du site, ils ne la portent pas en dur", () => {
-  const adresses = ["/", "/methode", "/analyses/"];
+  const adresses = ["/", "/bilan", "/analyses/"];
   const robots = robotsDuSite(SITE_ESSAI);
   const plan = planDuSite(SITE_ESSAI, adresses);
 
@@ -736,7 +746,7 @@ test("11 bis. un 404.html tuerait les chemins de vues du plan, et le build le di
   const racine = await distEssai(adresses);
   await validerIndexation(racine, SITE_ESSAI);
 
-  // Le repli SPA est ce qui fait répondre `/territoire`, `/methode` et les
+  // Le repli SPA est ce qui fait répondre `/territoire`, `/bilan` et les
   // autres : Cloudflare Pages sert le gabarit pour tout chemin sans fichier
   // TANT QU'aucun 404.html n'existe (spec §7.2, décision 11). La règle était
   // écrite dans la spec et tenue par personne ; elle est tenue ici, parce que
@@ -963,7 +973,7 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
 });
 
 /* --------------------------------------------------------------------------
- * 14. `/methode` est SERVIE, pas seulement peinte
+ * 14. `/bilan` est SERVIE, pas seulement peinte
  *
  * C'est la page vers laquelle la bande de confiance de l'accueil renvoie. Servie
  * par le gabarit, elle partait vide : un robot — ou un lecteur dont le paquet
@@ -1007,7 +1017,7 @@ const JEUX_ESSAI: Jeu[] = [
   },
 ];
 
-test("14. /methode sert ses sources, sa méthode et sa grille sans exécuter une ligne", () => {
+test("14. /bilan sert ses sources, sa méthode et sa grille sans exécuter une ligne", () => {
   const html = injecterMethode(GABARIT_REEL, JEUX_ESSAI);
   const texte = texteDuMain(html);
 
@@ -1071,25 +1081,25 @@ test("14 ter. le cadre de la méthode part déplié, et l'accueil replié", () =
   // Déplié, sans quoi la page serait écrite dans le document et servie à
   // personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas.
   // C'est l'état d'avant ce pré-rendu, et il reviendrait sans un mot.
-  assert.match(html, /<div class="vue" id="vue-methode">/);
+  assert.match(html, /<div class="vue" id="vue-bilan">/);
   // L'accueil replié : le gabarit le sert déplié pour la racine, et ce
   // document-ci montrerait l'accueil au-dessus de la méthode jusqu'à ce que
   // `basculerVue` tranche — le clignotement que ce document fait disparaître.
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" hidden>/);
-  // Les deux cadres que le build ne sait pas remplir sont repliés : `.bloc` est
-  // un cadre bordé, ombré, et deux cases vides se lisent comme une panne.
-  assert.match(html, /id="methode-fraicheur" hidden>/);
-  assert.match(html, /id="methode-journal" hidden>/);
-  // Mais toujours présents : `peindreMethode` (main.ts) écrit dedans, et `$` y
-  // renverrait `null`.
-  for (const id of ["methode-fraicheur", "methode-journal", "methode-sources"]) {
+  // Les cadres que le build remplit sont là et pleins. La fraîcheur et le
+  // journal ont disparu avec l'onglet MÉTHODE : ils décrivaient le site, pas
+  // les comptes publics. Les sources restent — la Licence Ouverte impose de
+  // citer les producteurs, et elles vivent désormais au pied de BILAN.
+  for (const id of ["methode-sources", "methode-methode", "methode-grille"]) {
     assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
   }
+  assert.doesNotMatch(html, /id="methode-fraicheur"/);
+  assert.doesNotMatch(html, /id="methode-journal"/);
 
   // Trois défauts muets, trois échecs.
   assert.throws(
-    () => injecterMethode(GABARIT_REEL.replace('id="vue-methode"', 'id="vue-recette"'), JEUX_ESSAI),
-    /vue-methode/,
+    () => injecterMethode(GABARIT_REEL.replace('id="vue-bilan"', 'id="vue-recette"'), JEUX_ESSAI),
+    /vue-bilan/,
   );
   assert.throws(
     () =>
@@ -1104,12 +1114,12 @@ test("14 ter. le cadre de la méthode part déplié, et l'accueil replié", () =
   assert.throws(() => injecterMethode(GABARIT_REEL, []), /sans une seule source/);
 });
 
-test("14 quater. le document de /methode déclare sa canonique, le gabarit toujours aucune", async () => {
+test("14 quater. le document de /bilan déclare sa canonique, le gabarit toujours aucune", async () => {
   const adresses = adressesPubliees(await analysesPubliees());
   // Le chemin de la méthode est bien au plan, et il n'est plus servi par le
   // repli : sans cela, ce test ne dirait rien de ce qu'il prétend garder.
-  assert.ok(adresses.includes(CHEMINS.methode), "/methode n'est plus au plan du site");
-  assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.methode), "/methode est encore servie par le gabarit");
+  assert.ok(adresses.includes(CHEMINS.bilan), "/bilan n'est plus au plan du site");
+  assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.bilan), "/bilan est encore servie par le gabarit");
 
   // Tel que le build l'écrit, tout passe.
   await validerIndexation(await distEssai(adresses), SITE_ESSAI);
@@ -1119,14 +1129,14 @@ test("14 quater. le document de /methode déclare sa canonique, le gabarit toujo
   // une liste. Sans canonique, elle est annoncée au plan sous une adresse et
   // n'en déclare aucune.
   const muette = await distEssai(adresses);
-  await writeFile(path.join(muette, CHEMINS.methode.replace(/^\//, ""), "index.html"), GABARIT);
+  await writeFile(path.join(muette, CHEMINS.bilan.replace(/^\//, ""), "index.html"), GABARIT);
   await assert.rejects(() => validerIndexation(muette, SITE_ESSAI), /deux adresses pour une seule page/);
 
   // Et celle du gabarit y serait un doublon déclaré : le gabarit répond à la
   // racine, elle non.
   const empruntee = await distEssai(adresses);
   await writeFile(
-    path.join(empruntee, CHEMINS.methode.replace(/^\//, ""), "index.html"),
+    path.join(empruntee, CHEMINS.bilan.replace(/^\//, ""), "index.html"),
     injecterAnnonce(GABARIT, { ...PAGE, canonique: "/" }, SITE_ESSAI),
   );
   await assert.rejects(() => validerIndexation(empruntee, SITE_ESSAI), /deux adresses pour une seule page/);
@@ -1141,33 +1151,33 @@ test("14 quinquies. le build écrit cette page, et l'écrit avant le plan du sit
   assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
   assert.match(
     corps,
-    /injecterAnnonce\(\s*injecterMethode\(shell, jeux\),/,
-    "main() n'écrit plus la page MÉTHODE : le lien de confiance de l'accueil rouvrirait une page vide.",
+    /injecterAnnonce\(\s*injecterReperes\(\s*injecterMethode\(shell, jeux\),/,
+    "main() n'écrit plus la page BILAN : le lien de confiance de l'accueil rouvrirait une page vide.",
   );
   assert.match(
     corps,
-    /await ecrirePage\(path\.join\(DIST, DOSSIER_METHODE\), htmlMethode\);/,
-    "main() ne range plus la page MÉTHODE : le plan annoncerait une adresse que le gabarit sert.",
+    /await ecrirePage\(path\.join\(DIST, DOSSIER_BILAN\), htmlBilan\);/,
+    "main() ne range plus la page BILAN : le plan annoncerait une adresse que le gabarit sert.",
   );
   // Par `injecterAnnonce`, jamais par `injecter` : celui-ci remplace `<main>`
   // entier et pose `data-page="editorial"`, ce qui arrêterait le paquet avant
   // la fraîcheur et le journal — deux fichiers publiés que seul le navigateur
   // va chercher.
-  assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_METHODE/);
+  assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_BILAN/);
   // Rangée avant que le plan ne soit écrit et relu, comme toute autre page :
   // annoncée plus tôt, elle serait déclarée morte par son propre contrôle.
-  const rangee = corps.indexOf("await ecrirePage(path.join(DIST, DOSSIER_METHODE)");
+  const rangee = corps.indexOf("await ecrirePage(path.join(DIST, DOSSIER_BILAN)");
   const plan = corps.indexOf("await ecrireIndexation(");
-  assert.ok(rangee > 0 && plan > rangee, "la page MÉTHODE est écrite après le plan qui l'annonce");
+  assert.ok(rangee > 0 && plan > rangee, "la page BILAN est écrite après le plan qui l'annonce");
 });
 
 /* --------------------------------------------------------------------------
- * 15. /reperes est SERVIE, pas seulement câblée
+ * 15. /bilan est SERVIE, pas seulement câblée
  *
  * C'était le dernier écart de pré-rendu du site, et son motif était technique :
  * `afficherNational` prenait deux `HTMLElement` et les mutait, donc rien de ce
  * bloc-là n'était appelable sous Node. Ses deux rendus purs extraits, le
- * chemin est le même que celui de `/methode`.
+ * chemin est le même que celui de `/bilan`.
  * ----------------------------------------------------------------------- */
 
 /** Les huit cadres de blocs du gabarit, dans l'ordre où il les pose. Lus ici
@@ -1265,7 +1275,7 @@ const BUDGET_ESSAI: BudgetEtat = {
 const REPERES_ESSAI = () =>
   injecterReperes(GABARIT_REEL, PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI);
 
-test("15. /reperes sert ses huit blocs sans exécuter une ligne", () => {
+test("15. /bilan sert ses huit blocs sans exécuter une ligne", () => {
   const html = REPERES_ESSAI();
   const texte = texteDuMain(html);
 
@@ -1311,7 +1321,7 @@ test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil rep
 
   // Dépliée, sans quoi la page serait écrite dans le document et servie à
   // personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas.
-  assert.match(html, /<div class="vue" id="vue-reperes">/);
+  assert.match(html, /<div class="vue" id="vue-bilan">/);
   // La section nationale est `hidden` dans le gabarit — c'est le retour des
   // peintres qui l'ouvre côté navigateur, et le pré-rendu doit l'ouvrir aussi.
   assert.match(html, /<section class="national" id="national">/);
@@ -1321,10 +1331,10 @@ test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil rep
   // Le sommaire est replié : `peindreSommaireReperes` (main.ts) le construit en
   // LISANT les titres des blocs dans le DOM, ce que ce script n'a pas. Il
   // commande déjà sa visibilité dans les deux sens, donc il le rouvre.
-  assert.match(html, /id="sommaire-reperes"[^>]* hidden>/);
+  assert.match(html, /id="sommaire-bilan"[^>]* hidden>/);
   // Mais tous les cadres restent présents : `$` y renverrait `null`, et le
   // navigateur ne pourrait plus repeindre.
-  for (const id of [...CADRES_REPERES, "sommaire-reperes", "questions", "national"]) {
+  for (const id of [...CADRES_REPERES, "sommaire-bilan", "questions", "national"]) {
     assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
   }
   // Le document reste celui de l'application : `data-page="editorial"`
@@ -1355,8 +1365,8 @@ test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repèr
   // Trois cadres retirés, trois échecs — les mêmes défauts muets que
   // `injecterMethode` ferme, sur les cadres de cette page-ci.
   assert.throws(
-    () => injecterReperes(GABARIT_REEL.replace('id="vue-reperes"', 'id="vue-jalons"'), PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI),
-    /vue-reperes/,
+    () => injecterReperes(GABARIT_REEL.replace('id="vue-bilan"', 'id="vue-jalons"'), PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI),
+    /vue-bilan/,
   );
   assert.throws(
     () => injecterReperes(GABARIT_REEL.replace('id="national"', 'id="hexagone"'), PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI),
@@ -1388,12 +1398,12 @@ test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repèr
   );
 });
 
-test("15 quinquies. le document de /reperes déclare sa canonique, le gabarit toujours aucune", async () => {
+test("15 quinquies. le document de /bilan déclare sa canonique, le gabarit toujours aucune", async () => {
   const adresses = adressesPubliees(await analysesPubliees());
   // Le chemin est au plan, et il n'est plus servi par le repli : sans cela, ce
   // test ne dirait rien de ce qu'il prétend garder.
-  assert.ok(adresses.includes(CHEMINS.reperes), "/reperes n'est plus au plan du site");
-  assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.reperes), "/reperes est encore servie par le gabarit");
+  assert.ok(adresses.includes(CHEMINS.bilan), "/bilan n'est plus au plan du site");
+  assert.ok(!SERVIS_PAR_LE_REPLI.has(CHEMINS.bilan), "/bilan est encore servie par le gabarit");
   // Le gabarit en sert encore plusieurs : c'est ce qui lui vaut de n'en
   // déclarer aucune, et une page pré-rendue de plus ne doit pas le faire
   // tomber à une seule sans qu'on le voie.
@@ -1404,7 +1414,7 @@ test("15 quinquies. le document de /reperes déclare sa canonique, le gabarit to
   // Seule à son fichier, elle doit déclarer SON adresse. Le message du
   // validateur nomme les deux adresses en cause.
   const muette = await distEssai(adresses);
-  await writeFile(path.join(muette, CHEMINS.reperes.replace(/^\//, ""), "index.html"), GABARIT);
+  await writeFile(path.join(muette, CHEMINS.bilan.replace(/^\//, ""), "index.html"), GABARIT);
   await assert.rejects(() => validerIndexation(muette, SITE_ESSAI), /deux adresses pour une seule page/);
 });
 
@@ -1416,34 +1426,34 @@ test("15 sexies. le build écrit cette page, et l'écrit avant le plan du site",
   assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
   assert.match(
     corps,
-    /injecterAnnonce\(\s*injecterReperes\(shell, pays,/,
-    "main() n'écrit plus la page REPÈRES : le chemin repartirait sur le gabarit vide.",
+    /injecterAnnonce\(\s*injecterReperes\(/,
+    "main() n'écrit plus la page BILAN : le chemin repartirait sur le gabarit vide.",
   );
   assert.match(
     corps,
-    /await ecrirePage\(path\.join\(DIST, DOSSIER_REPERES\), htmlReperes\);/,
-    "main() ne range plus la page REPÈRES : le plan annoncerait une adresse que le gabarit sert.",
+    /await ecrirePage\(path\.join\(DIST, DOSSIER_BILAN\), htmlBilan\);/,
+    "main() ne range plus la page BILAN : le plan annoncerait une adresse que le gabarit sert.",
   );
   // Le catalogue est celui du navigateur, indicateurs calculés compris : trois
   // blocs filtrent sur « cet indicateur est-il publié ? », et un pré-rendu qui
   // lirait le catalogue brut ferait apparaître ou disparaître un bloc à
   // l'arrivée du paquet.
-  assert.match(corps, /injecterReperes\(shell, pays, \[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\]/);
+  assert.match(corps, /injecterReperes\(\s*injecterMethode\(shell, jeux\),\s*pays,\s*\[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\]/);
   // Sa propre carte de partage, jamais celle du site : celle-là a le chapeau
   // « Le site » et le message principal en phrase, et sous un titre qui annonce
   // la dette et les niches, c'est l'accueil qu'elle montrerait. Rien d'autre ne
   // l'attrape — `validerImagesAnnoncees` ne vérifie que l'EXISTENCE du fichier
   // annoncé, et `/carte.png` existe.
-  assert.match(corps, /image: `\$\{CHEMIN_REPERES\}\/carte\.png`,/);
+  assert.match(corps, /image: `\$\{CHEMIN_BILAN\}\/carte\.png`,/);
   // Et sa propre canonique. `validerIndexation` la refuserait à la
   // publication — mais il faut avoir lancé le build entier, réseau compris,
   // pour l'apprendre ; ici, une seconde suffit.
-  assert.match(corps, /canonique: CHEMIN_REPERES,/);
+  assert.match(corps, /canonique: CHEMIN_BILAN,/);
   // Par `injecterAnnonce`, jamais par `injecter` : celui-ci pose
   // `data-page="editorial"`, qui arrêterait le paquet avant les graphiques.
-  assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_REPERES/);
+  assert.doesNotMatch(corps, /injecter\(shell, \{[\s\S]*?canonique: CHEMIN_BILAN/);
   // Rangée avant que le plan ne soit écrit et relu, comme toute autre page.
-  const rangee = corps.indexOf("await ecrirePage(path.join(DIST, DOSSIER_REPERES)");
+  const rangee = corps.indexOf("await ecrirePage(path.join(DIST, DOSSIER_BILAN)");
   const plan = corps.indexOf("await ecrireIndexation(");
-  assert.ok(rangee > 0 && plan > rangee, "la page REPÈRES est écrite après le plan qui l'annonce");
+  assert.ok(rangee > 0 && plan > rangee, "la page BILAN est écrite après le plan qui l'annonce");
 });

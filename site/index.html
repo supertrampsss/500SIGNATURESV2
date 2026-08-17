@@ -64,16 +64,18 @@
         <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
       </div>
 
+      <!-- Trois entrées, et c'est tout. ANALYSES, REPÈRES, DÉTAIL et MÉTHODE
+           disaient quatre fois « parcourez les données » et personne ne savait
+           laquelle ouvrir. Ce qu'elles montraient est réuni dans BILAN, qui
+           répond aux deux seules questions que le site existe pour traiter :
+           ma commune est-elle bien gérée, et la France l'est-elle face à ses
+           voisins. -->
+      <!-- Deux entrées écrites ici, une troisième ajoutée par le code : celle
+           du simulateur n'apparaît que si un budget est publié, et rien de
+           cliquable ne doit mener à une vue vide (main.ts). -->
       <nav class="entete__nav" aria-label="Vues">
-        <!-- Sans data-vue, volontairement : l'intercepteur de clic ne capture
-             que les liens qui en portent un (main.ts). Celui-ci doit provoquer
-             un chargement de page complet, vers /analyses/, qui est une page
-             statique servie par le serveur — pas une vue de l'app monoécran. -->
-        <a href="/analyses/">Analyses</a>
         <a href="/territoire" data-vue="territoire">Territoire</a>
-        <a href="/reperes" data-vue="reperes">Repères</a>
-        <a href="/detail" data-vue="detail">Détail</a>
-        <a href="/methode" data-vue="methode">Méthode</a>
+        <a href="/bilan" data-vue="bilan">Bilan</a>
       </nav>
 
       <button type="button" class="bascule-theme" id="theme-bascule"
@@ -176,7 +178,7 @@
       </div>
     </div>
 
-    <div class="vue" id="vue-reperes" hidden>
+    <div class="vue" id="vue-bilan" hidden>
       <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
 
       <section class="national" id="national" hidden>
@@ -188,7 +190,7 @@
         <!-- Sommaire de la vue : huit blocs de plusieurs écrans chacun se
              lisaient en un seul défilement de 6 600 px, sans moyen de savoir
              ce qui restait dessous ni d'y aller. -->
-        <nav class="sommaire-vue" id="sommaire-reperes" aria-label="Sections de la page"></nav>
+        <nav class="sommaire-vue" id="sommaire-bilan" aria-label="Sections de la page"></nav>
         <article class="bloc bloc--large" id="bloc-conjoncture"></article>
         <div class="national__grille">
           <article class="bloc" id="bloc-dette"></article>
@@ -199,6 +201,27 @@
         <article class="bloc bloc--large" id="bloc-secu"></article>
         <article class="bloc bloc--large" id="bloc-etat"></article>
         <article class="bloc bloc--large" id="bloc-niches"></article>
+      </section>
+
+      <!-- Ce que portait la vue DÉTAIL : le classement de la couche affichée,
+           son export, et la comparaison de deux territoires. -->
+      <section class="bilan__territoires">
+        <div id="detail"></div>
+        <section class="comparateur" id="comparateur" hidden></section>
+        <section class="classement">
+          <table id="tableau-donnees"></table>
+          <button type="button" class="bouton-filet" id="exporter" hidden></button>
+        </section>
+      </section>
+
+      <!-- Les sources, au pied de la page. L'onglet MÉTHODE a disparu ; la
+           Licence Ouverte, elle, impose toujours de citer les producteurs. Une
+           attribution se lit après les chiffres qu'elle couvre, pas dans un
+           onglet que personne n'ouvre. -->
+      <section class="bilan__sources">
+        <div class="bloc bloc--large" id="methode-sources"></div>
+        <div class="bloc bloc--large" id="methode-methode"></div>
+        <div class="bloc bloc--large" id="methode-grille"></div>
       </section>
     </div>
 
@@ -222,38 +245,6 @@
       <section class="simu-recapitulatif" id="simu-recapitulatif" hidden></section>
     </div>
 
-    <div class="vue" id="vue-detail" hidden>
-      <div id="detail"></div>
-
-      <!-- Le classement de la couche affichée, son export et la comparaison de
-           territoires vivaient dans la vue DONNÉES, retirée. Le code qui les
-           remplit n'a jamais bougé : il lui manquait ces trois conteneurs. -->
-      <section class="comparateur" id="comparateur" hidden></section>
-
-      <section class="classement">
-        <table id="tableau-donnees"></table>
-        <button type="button" class="bouton-filet" id="exporter" hidden></button>
-      </section>
-    </div>
-
-    <!-- La méthode : les sources, la méthode, la grille de verdicts, quand le
-         site a lu chaque source et ce qu'il a corrigé.
-
-         `hidden` ici, mais pas dans le document servi à `/methode` : ce
-         chemin-là a le sien, et le pré-rendu y déplie ce cadre après avoir
-         rempli `methode-sources`, `methode-methode` et `methode-grille` — les
-         trois que le build sait calculer. Les deux derniers restent au
-         navigateur, qui va chercher `fraicheur.json` et `journal.json`. -->
-    <div class="vue" id="vue-methode" hidden>
-      <section class="methode">
-        <h2>Méthode</h2>
-        <div class="bloc bloc--large" id="methode-sources"></div>
-        <div class="bloc bloc--large" id="methode-methode"></div>
-        <div class="bloc bloc--large" id="methode-grille"></div>
-        <div class="bloc bloc--large" id="methode-fraicheur"></div>
-        <div class="bloc bloc--large" id="methode-journal"></div>
-      </section>
-    </div>
 
     </main>
 

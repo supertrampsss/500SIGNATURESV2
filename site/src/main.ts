@@ -97,9 +97,6 @@ import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
 import { adresseTerritoire, cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
-import { afficherFraicheur } from "./fraicheur.ts";
-import { afficherJournal } from "./journal.ts";
-import { renduGrille, renduMethode, renduSources } from "./methode-rendu.ts";
 import {
   rendu as renduAccueil,
   exemplesTerritoires,
@@ -2002,7 +1999,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
     // La page DÉTAIL porte le même champ : sans ce repeint, choisir une ville
     // depuis cette page ouvrait la fiche de la carte et laissait le tableau sur
     // la ville précédente. On ne pouvait tout simplement pas en changer.
-    if (document.body.dataset.vue === "detail") await peindreDetail();
+    if (document.body.dataset.vue === "bilan") await peindreDetail();
   });
 
 }
@@ -2079,7 +2076,7 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  *  Ce qu'elle portait vit ailleurs — le fichier public est lié depuis le pied
  *  de page, et chaque mesure garde sa définition et sa source dans son rond
  *  « i ». Ce qui a réellement disparu de l'écran est écrit dans la PR. */
-const VUES_PAGE = ["territoire", "detail", "reperes", "methode"] as const;
+const VUES_PAGE = ["territoire", "bilan"] as const;
 
 /** La page DÉTAIL pour le territoire sélectionné.
  *
@@ -2253,76 +2250,8 @@ function vuesConnues(): readonly string[] {
   return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
 }
 
-/**
- * La page MÉTHODE.
- *
- * Deux fichiers publiés à chaque exécution du pipeline : ce que le site a
- * corrigé depuis la dernière fois, et à quelle date il a lu chaque source. Les
- * deux modules qui les rendent existaient, testés, sans être appelés.
- *
- * Peinte une seule fois : elle ne dépend d'aucune sélection.
- */
-let methodePeinte = false;
 
-/**
- * Résolue une fois `donnees.initialiser()` revenu, dans `demarrer`.
- *
- * `basculerVue` peint la première vue AVANT cet appel (docs plus bas). Tant
- * qu'il n'a pas résolu, `donnees.racine` vaut "" : un fetch parti depuis un
- * peintre résoudrait contre l'origine du site elle-même, où la retombée SPA
- * de Cloudflare Pages répond 200 avec `index.html` — `r.json()` lève, silence
- * en apparence. Pire : `donnees.ts:78-88` cache par CHEMIN RELATIF, pas par
- * URL résolue, donc ce fetch parti trop tôt fige l'échec dans le cache pour
- * le reste de la session, même une fois `racine` correctement affectée. Tout
- * peintre qui appelle `donnees.*` doit donc attendre `prete` en premier.
- */
-let resoudrePrete: () => void;
-const prete = new Promise<void>((resolve) => {
-  resoudrePrete = resolve;
-});
 
-async function peindreMethode(): Promise<void> {
-  if (methodePeinte) return;
-  // Ni la méthode ni la grille ne lisent un fichier publié : peintes avant
-  // `prete`, elles s'affichent même si les données tardent ou manquent.
-  $("methode-methode").innerHTML = renduMethode();
-  $("methode-grille").innerHTML = renduGrille();
-  await prete;
-  let rendu = false;
-  // Les sources viennent du manifeste, donc après `prete`. Un manifeste
-  // absent laisse le bloc vide et la page tient — même règle que la
-  // fraîcheur et le journal ci-dessous.
-  const blocSources = $("methode-sources");
-  blocSources.innerHTML = renduSources(jeux);
-  blocSources.hidden = blocSources.innerHTML === "";
-  if (!blocSources.hidden) rendu = true;
-  // `.bloc` est un cadre bordé, ombré : un booléen à `false` veut dire « rien
-  // à montrer », et laisser le cadre affiché peignait un cadre vide plutôt
-  // que rien — comme partout ailleurs sur le site (`afficherBudgetEtat` et
-  // consorts), le retour du peintre commande la visibilité du conteneur.
-  const blocFraicheur = $("methode-fraicheur");
-  try {
-    const affiche = afficherFraicheur(blocFraicheur, await donnees.fraicheur());
-    blocFraicheur.hidden = !affiche;
-    if (affiche) rendu = true;
-  } catch {
-    // Fichier non publié : le bloc reste vide, la page tient.
-    blocFraicheur.hidden = true;
-  }
-  const blocJournal = $("methode-journal");
-  try {
-    const affiche = afficherJournal(blocJournal, await donnees.journal());
-    blocJournal.hidden = !affiche;
-    if (affiche) rendu = true;
-  } catch {
-    // Idem : rien à dire vaut mieux qu'une erreur à lire.
-    blocJournal.hidden = true;
-  }
-  // Latché seulement si quelque chose s'est vraiment affiché : le défaut
-  // corrigé ici latchait avant même d'essayer, si bien qu'un premier échec
-  // (chargement à froid vers cette vue) gelait la vue vide pour la session.
-  methodePeinte = rendu;
-}
 
 /* --------------------------------------------------------------------------
  * L'accueil, à la racine du site.
@@ -2475,11 +2404,10 @@ function basculerVue(): void {
   $("vue-accueil").hidden = vue !== "accueil";
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
-  $("vue-detail").hidden = vue !== "detail";
-  if (vue === "detail") void peindreDetail();
-  $("vue-reperes").hidden = vue !== "reperes";
-  $("vue-methode").hidden = vue !== "methode";
-  if (vue === "methode") void peindreMethode();
+  // BILAN réunit ce que REPÈRES et DÉTAIL montraient séparément : les repères
+  // nationaux, puis le classement des territoires et leur comparaison.
+  $("vue-bilan").hidden = vue !== "bilan";
+  if (vue === "bilan") void peindreDetail();
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
@@ -2512,7 +2440,7 @@ function basculerVue(): void {
  * diverger un.
  */
 function peindreSommaireReperes(): void {
-  const cadre = document.getElementById("sommaire-reperes");
+  const cadre = document.getElementById("sommaire-bilan");
   if (!cadre) return;
   const entrees = [...document.querySelectorAll<HTMLElement>("#national .bloc")]
     .map((bloc) => ({ bloc, titre: bloc.querySelector("h2, h3")?.textContent?.trim() }))
@@ -3877,9 +3805,6 @@ async function demarrer(): Promise<void> {
   window.addEventListener("popstate", basculerVue);
   basculerVue();
   const manifeste = await donnees.initialiser();
-  // `donnees.racine` est résolue : les peintres qui attendaient `prete`
-  // peuvent partir sans risquer la retombée SPA décrite à sa déclaration.
-  resoudrePrete();
   // Un seul champ pour tout le site, dans l'en-tête : il y en avait deux, sur
   // le même index, sans état commun. Câblé ici, avant la garde éditoriale
   // ci-dessous, pour fonctionner aussi bien sur la carte que sur une page

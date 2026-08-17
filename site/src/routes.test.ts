@@ -11,9 +11,12 @@ import { ALIAS, CHEMINS, cheminDeVue, vueDepuisAdresse } from "./routes.ts";
 test("un chemin nomme sa vue", () => {
   assert.equal(vueDepuisAdresse("/territoire", ""), "territoire");
   assert.equal(vueDepuisAdresse("/simulateur", ""), "simulateur");
-  assert.equal(vueDepuisAdresse("/reperes", ""), "reperes");
-  assert.equal(vueDepuisAdresse("/detail", ""), "detail");
-  assert.equal(vueDepuisAdresse("/methode", ""), "methode");
+  assert.equal(vueDepuisAdresse("/bilan", ""), "bilan");
+  // REPÈRES, DÉTAIL et MÉTHODE ont fusionné dans BILAN : leurs adresses
+  // continuent d'ouvrir ce qu'elles promettaient, par la table des alias.
+  assert.equal(vueDepuisAdresse("/reperes", ""), "bilan");
+  assert.equal(vueDepuisAdresse("/detail", ""), "bilan");
+  assert.equal(vueDepuisAdresse("/methode", ""), "bilan");
 });
 
 test("la racine sans fragment ne demande aucune vue", () => {
@@ -26,10 +29,10 @@ test("la racine sans fragment ne demande aucune vue", () => {
 test("les anciens liens à fragment ouvrent ce qu'ils promettaient", () => {
   // `#carte` était une vue avant de devenir un mode de la vue territoire.
   assert.equal(vueDepuisAdresse("/", "#carte"), "territoire");
-  // `#analyses` désignait les tableaux d'un territoire ; le nom est passé à
-  // l'éditorial, les tableaux s'appellent désormais `detail`.
-  assert.equal(vueDepuisAdresse("/", "#analyses"), "detail");
-  assert.equal(vueDepuisAdresse("/", "#decryptages"), "reperes");
+  // Tous les anciens noms mènent à BILAN, qui a absorbé ce qu'ils
+  // désignaient. Un lien partagé il y a un an ouvre encore quelque chose.
+  assert.equal(vueDepuisAdresse("/", "#analyses"), "bilan");
+  assert.equal(vueDepuisAdresse("/", "#decryptages"), "bilan");
   // `#donnees` a été retiré : le lien ne doit pas laisser sur une page blanche.
   assert.equal(vueDepuisAdresse("/", "#donnees"), "territoire");
   assert.equal(vueDepuisAdresse("/", "#simulateur"), "simulateur");
@@ -40,7 +43,7 @@ test("une ancre interne n'est pas une vue", () => {
   // inconnue renverrait le lecteur ailleurs au moment précis où il descend
   // dans ce qu'il lit.
   assert.equal(vueDepuisAdresse("/", "#bloc-etat"), null);
-  assert.equal(vueDepuisAdresse("/reperes", "#bloc-niches"), "reperes");
+  assert.equal(vueDepuisAdresse("/bilan", "#bloc-niches"), "bilan");
 });
 
 test("un chemin inconnu ne nomme aucune vue", () => {
