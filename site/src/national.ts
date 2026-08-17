@@ -8,7 +8,7 @@
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { nomPays } from "./pays-noms.ts";
-import { formater } from "./echelle.ts";
+import { formater, SUFFIXE_POUR_100000 } from "./echelle.ts";
 
 const SOUS_SECTEURS = [
   "insee_dette_etat_montant",
@@ -18,6 +18,23 @@ const SOUS_SECTEURS = [
 ];
 
 const VOISINS = ["FR", "DE", "ES", "IT", "NL", "EA20"];
+
+/**
+ * Les pensions, dans le tableau des voisins.
+ *
+ * « La France dépense trop pour ses retraites » est une phrase qu'on entend
+ * sans jamais le chiffre qui la juge, et ce chiffre n'a de sens qu'à côté de
+ * ceux des voisins : un pays qui verse ses pensions par des fonds privés en
+ * dépense peu au sens public sans que ses retraités touchent moins. Le
+ * SESPROS compte les mêmes prestations partout, quels que soient les régimes
+ * qui les servent — c'est la seule base qui rende la comparaison honnête.
+ *
+ * Le total, et non la seule vieillesse : réversion, invalidité et préretraite
+ * sont des pensions, et les retrancher déplacerait le chiffre français de
+ * plusieurs points de PIB sans que la colonne le dise. La série de la seule
+ * vieillesse est publiée à côté, sur la fiche de la France.
+ */
+const RETRAITES = "eurostat_retraites_pib";
 
 
 function derniere(serie: Record<string, number> | undefined): [string, number] | null {
@@ -117,22 +134,107 @@ export function renduEurope(pays: Record<string, Territoire>): string {
         <td>${cellule("eurostat_dette_pib")}</td>
         <td>${cellule("eurostat_deficit_pib")}</td>
         <td>${cellule("eurostat_chomage")}</td>
+        <td>${cellule(RETRAITES)}</td>
       </tr>`;
     })
     .join("");
   const annee = derniere(pays["FR"].series["eurostat_dette_pib"])?.[0] ?? "";
+  // Les pensions ne sortent pas du même millésime que la dette : le SESPROS
+  // publie deux ans après l'exercice, la dette dans l'année. Dater toute la
+  // colonne de l'année du tableau ferait dire à ce chiffre ce qu'il ne dit
+  // pas ; son année est donc écrite dans son intitulé, une fois.
+  const anneeRetraites = derniere(pays["FR"].series[RETRAITES])?.[0] ?? "";
   return `
     <h3>La France et ses voisins</h3>
     <table class="comparaison" tabindex="0">
       <caption>Année ${annee} · sources harmonisées Eurostat</caption>
       <thead><tr><th scope="col">Pays</th><th scope="col">Dette / PIB</th>
-        <th scope="col">Déficit / PIB</th><th scope="col">Chômage</th></tr></thead>
+        <th scope="col">Déficit / PIB</th><th scope="col">Chômage</th>
+        <th scope="col">Pensions / PIB${
+          anneeRetraites ? ` <span class="millesime">${anneeRetraites}</span>` : ""
+        }</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
+    ${renduVieQuotidienne(pays)}
     <p class="avertissement">Ces chiffres viennent d'Eurostat, qui applique la même
       définition à tous les pays : c'est ce qui rend la comparaison possible. Ils
       peuvent différer légèrement des chiffres publiés par chaque institut national.
       Un déficit est un nombre négatif.</p>`;
+}
+
+/**
+ * Ce que la comparaison européenne dit d'autre que des finances publiques.
+ *
+ * Le tableau des voisins ne portait que de l'argent public, et le site ne
+ * disait donc rien de deux questions qu'il porte pourtant commune par commune :
+ * qui vit avec quoi, et ce que la police enregistre. Les deux se comparent chez
+ * Eurostat, et nulle part ailleurs honnêtement.
+ *
+ * **Aucune colonne ne partage le millésime des autres** : l'enquête EU-SILC
+ * publie l'année même, la statistique de police deux ans après. Chaque intitulé
+ * porte donc le sien, et la légende ne date rien — une année en tête de tableau
+ * aurait daté quatre chiffres de trois millésimes différents.
+ *
+ * **Les faits enregistrés d'Eurostat comptent pour cent mille habitants** quand
+ * ceux que le site publie par commune (SSMSI) comptent pour mille. Les deux ne
+ * se mélangent jamais : l'unité est dans l'intitulé, et la conversion n'est
+ * faite nulle part.
+ */
+const VIE_QUOTIDIENNE: [id: string, titre: string, unite: string][] = [
+  ["eurostat_gini", "Indice de Gini", "indice"],
+  ["eurostat_rapport_interquintile", "Rapport S80/S20", "ratio"],
+  ["eurostat_homicides_100k", "Homicides pour 100 000 habitants", "pour_100000_habitants"],
+  [
+    "eurostat_cambriolages_100k",
+    "Cambriolages de logement pour 100 000 habitants",
+    "pour_100000_habitants",
+  ],
+];
+
+function renduVieQuotidienne(pays: Record<string, Territoire>): string {
+  const colonnes = VIE_QUOTIDIENNE.filter(([id]) => derniere(pays["FR"].series[id]));
+  // Un tableau d'une seule colonne n'est pas une comparaison : tant que la
+  // publication ne porte pas ces séries, ce second tableau n'existe pas.
+  if (!colonnes.length) return "";
+  const lignes = VOISINS.filter((code) => pays[code])
+    .map((code) => {
+      const series = pays[code].series;
+      const cellules = colonnes
+        .map(([id, , unite]) => {
+          const valeur = derniere(series[id]);
+          // Le nombre seul : l'unité est dans l'intitulé de la colonne, et
+          // « 295,5 pour 100 000 habitants » répété six fois ferait une
+          // cellule plus large que le tableau.
+          const ecrit = valeur
+            ? formater(valeur[1], unite, false).replace(SUFFIXE_POUR_100000, "")
+            : "—";
+          return `<td>${ecrit}</td>`;
+        })
+        .join("");
+      return `<tr${code === "FR" ? ' class="souligne"' : ""}>
+        <th scope="row">${nomPays(code)}</th>${cellules}
+      </tr>`;
+    })
+    .join("");
+  const entetes = colonnes
+    .map(([id, titre]) => {
+      const annee = derniere(pays["FR"].series[id])?.[0] ?? "";
+      return `<th scope="col">${titre}${
+        annee ? ` <span class="millesime">${annee}</span>` : ""
+      }</th>`;
+    })
+    .join("");
+  return `
+    <h4>Niveau de vie et faits enregistrés</h4>
+    <table class="comparaison" tabindex="0">
+      <caption>Millésime en tête de colonne · sources harmonisées Eurostat</caption>
+      <thead><tr><th scope="col">Pays</th>${entetes}</tr></thead>
+      <tbody>${lignes}</tbody>
+    </table>
+    <p class="avertissement">Un fait enregistré n'est pas un fait commis : ce que la
+      police consigne dépend de ce qui lui est déclaré, et les pratiques
+      d'enregistrement diffèrent d'un pays à l'autre plus qu'elles ne diffèrent
+      d'une commune à l'autre.</p>`;
 }
 
 /**

@@ -35,11 +35,28 @@ const FRANCE = territoire({
   eurostat_dette_pib: { "2024": 113.0 },
   eurostat_deficit_pib: { "2024": -5.8 },
   eurostat_chomage: { "2024": 7.4 },
+  // Le SESPROS publie deux ans après l'exercice : la colonne des pensions
+  // n'est pas du millésime du tableau, et le fixture le pose exprès.
+  eurostat_retraites_pib: { "2022": 14.4, "2023": 14.9 },
+  // Trois millésimes différents dans le même tableau : l'enquête sur les
+  // revenus publie l'année même, la statistique de police deux ans après.
+  eurostat_gini: { "2025": 30.4 },
+  eurostat_rapport_interquintile: { "2025": 4.74 },
+  eurostat_homicides_100k: { "2024": 1.28 },
+  eurostat_cambriolages_100k: { "2024": 295.47 },
 });
 
 const PAYS: Record<string, Territoire> = {
   FR: FRANCE,
-  DE: territoire({ eurostat_dette_pib: { "2024": 62.5 }, eurostat_chomage: { "2024": 3.4 } }),
+  DE: territoire({
+    eurostat_dette_pib: { "2024": 62.5 },
+    eurostat_chomage: { "2024": 3.4 },
+    eurostat_retraites_pib: { "2023": 12.1 },
+    eurostat_gini: { "2025": 29.4 },
+    eurostat_homicides_100k: { "2024": 0.83 },
+    // Un compte rond : c'est lui qui fait tomber la décimale d'une colonne.
+    eurostat_cambriolages_100k: { "2024": 94 },
+  }),
   EA20: territoire({ eurostat_dette_pib: { "2024": 87.4 } }),
 };
 
@@ -154,4 +171,64 @@ test("France publiée mais dette absente : le cadre dette reste intact, l'envelo
   assert.equal(afficherNational(dette, europe, sansDette, CATALOGUE), true);
   assert.equal(dette.innerHTML, "");
   assert.notEqual(europe.innerHTML, "");
+});
+
+test("les pensions entrent au tableau des voisins, avec leur propre millésime", () => {
+  // « La France dépense trop pour ses retraites » est une phrase qu'on entend
+  // sans le chiffre qui la juge, et ce chiffre ne veut rien dire seul.
+  const html = renduEurope(PAYS);
+  assert.match(html, /<th scope="col">Pensions \/ PIB/);
+  assert.match(html, new RegExp(`14,9${FINE}%`));
+  assert.match(html, new RegExp(`12,1${FINE}%`));
+  // Le millésime du SESPROS n'est pas celui du tableau : l'écrire dans la
+  // légende générale ferait dater ces chiffres de l'année de la dette.
+  assert.match(html, /Pensions \/ PIB <span class="millesime">2023<\/span>/);
+  assert.match(html, /<caption>Année 2024 ·/);
+});
+
+test("un pays sans pension publiée garde sa ligne et perd sa cellule", () => {
+  // La zone euro n'a que sa dette dans ce lot : quatre colonnes, trois tirets.
+  const html = renduEurope(PAYS);
+  assert.match(
+    html,
+    new RegExp(`Zone euro \\(20 pays\\)</th>\\s*<td>87,4${FINE}%</td>\\s*<td>—</td>\\s*<td>—</td>\\s*<td>—</td>`),
+  );
+});
+
+test("le second tableau compare le niveau de vie et les faits enregistrés", () => {
+  const html = renduEurope(PAYS);
+  assert.match(html, /Niveau de vie et faits enregistrés/);
+  // L'indice garde sa décimale : « 30 » et « 29 » se liraient comme égaux à
+  // un dixième près, et c'est à ce dixième que l'écart se joue.
+  assert.match(html, />30,4</);
+  assert.match(html, />29,4</);
+  // Le rapport en garde deux : arrondi à l'entier, 4,74 devient 5.
+  assert.match(html, />4,74</);
+  // Un taux pour cent mille habitants ne se convertit pas en pourcentage, et
+  // son unité vit dans l'intitulé — pas répétée dans chaque cellule.
+  assert.match(html, /<th scope="col">Homicides pour 100/);
+  assert.match(html, />1,3</);
+  assert.doesNotMatch(html, />1,3 pour 100/);
+  // Un compte rond garde sa décimale : « 94 » posé entre « 295,5 » et
+  // « 166,8 » cesse d'aligner la colonne qu'on lit de haut en bas.
+  assert.match(html, />94,0</);
+  assert.match(html, />295,5</);
+});
+
+test("chaque colonne du second tableau porte son propre millésime", () => {
+  // Une année en tête de tableau daterait quatre chiffres de trois millésimes
+  // différents. La légende ne date donc rien.
+  const html = renduEurope(PAYS);
+  assert.match(html, /Indice de Gini <span class="millesime">2025<\/span>/);
+  assert.match(html, /Homicides pour 100\s000 habitants <span class="millesime">2024<\/span>/);
+  assert.match(html, /<caption>Millésime en tête de colonne/);
+});
+
+test("sans ces séries publiées, le second tableau n'existe pas", () => {
+  // Un tableau d'une seule colonne n'est pas une comparaison, et un tableau
+  // vide sous un titre est pire qu'un titre absent.
+  const sans = { FR: territoire({ eurostat_dette_pib: { "2024": 113.0 } }) };
+  const html = renduEurope(sans);
+  assert.match(html, /La France et ses voisins/);
+  assert.doesNotMatch(html, /Niveau de vie et faits enregistrés/);
 });

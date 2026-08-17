@@ -5743,6 +5743,15 @@ summary.pont__rangee,
 .analyses__defilement {
   overflow-x: auto;
 }
+/* Le `tabindex="0"` de ces quatre cadres doit se voir quand on l'atteint, comme
+   pour `.tableau-exercices` : un cadre qu'on peut atteindre sans savoir qu'on
+   l'a atteint ne se défile pas plus qu'avant. */
+.analyses__defilement:focus-visible,
+.analyse-rendu__defilement:focus-visible,
+.scenarios-rendu__defilement:focus-visible {
+  outline: 2px solid var(--dore);
+  outline-offset: 2px;
+}
 .analyses__table {
   width: 100%;
   border-collapse: collapse;

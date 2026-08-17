@@ -325,7 +325,7 @@ export function rendreCredits(donnees: Credits): string {
     ${rouge}
     <details class="credits__pli">
       <summary>Les ${compte(bilan.nombre)} missions, votés et consommés, exercice par exercice</summary>
-      <div class="analyses__defilement">
+      <div class="analyses__defilement" tabindex="0">
         <table class="analyses__table credits__table">
           ${legende}
           <thead>
