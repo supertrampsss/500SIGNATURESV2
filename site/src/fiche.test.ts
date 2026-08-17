@@ -15,7 +15,8 @@ import fs from "node:fs";
 import { test } from "node:test";
 
 import type { Indicateur } from "./donnees.ts";
-import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme, THEMES_RANGES } from "./fiche.ts";
+import { THEMES } from "./themes.ts";
 
 /** Sources lues telles quelles : ces contrôles portent sur la forme rendue,
  *  pas sur une valeur calculée. */
@@ -33,14 +34,21 @@ const TOUS_LES_THEMES = [
   "education", "securite", "equipements", "tourisme",
 ];
 
-test("les vingt-sept thèmes publiés sont rangés à la main, aucun par défaut", () => {
+test("tous les thèmes nommés sont rangés à la main, aucun par défaut", () => {
   // Un thème non listé tombe dans la dernière rubrique : c'est un filet, pas
-  // une décision. Ce test dit combien de thèmes le site publie, pour qu'un
-  // vingt-huitième n'y arrive pas en silence.
-  assert.equal(TOUS_LES_THEMES.length, 27);
-  for (const theme of TOUS_LES_THEMES) {
-    if (theme === "tourisme") continue; // dernier de la dernière rubrique
-    assert.notEqual(rubriqueDuTheme(theme), undefined);
+  // une décision.
+  //
+  // **La version précédente de ce contrôle ne pouvait pas le voir.** Elle
+  // comptait une liste de thèmes écrite ici même — « pour qu'un vingt-huitième
+  // n'y arrive pas en silence » — et le vingt-huitième est arrivé sans la
+  // toucher : elle est restée verte. La liste se lit donc dans `THEMES`, la
+  // table que le site emploie pour nommer un thème à l'écran, et
+  // l'appartenance dans `THEMES_RANGES`, qui distingue « rangé dans la
+  // dernière rubrique » de « tombé dedans ».
+  const nommes = Object.keys(THEMES);
+  assert.ok(nommes.length >= 27, `${nommes.length} thèmes nommés`);
+  for (const theme of nommes) {
+    assert.ok(THEMES_RANGES.has(theme), `le thème « ${theme} » n'est rangé nulle part`);
   }
   // Les subventions de l'État aux associations sont de l'argent public qui
   // sort, pas un trait du cadre de vie.
