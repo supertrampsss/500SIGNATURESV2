@@ -125,22 +125,35 @@ export function lignes(note: Note): { terme: string; mesure: string; points: str
 export type Executif = { nom: string; depuis: string | null };
 
 /**
- * Qui était en fonction, et sur quels exercices du tableau.
+ * Qui a tenu ces comptes, sur quelle période, et sur quels exercices du tableau.
  *
  * ─────────────────────────────────────────────────────────────────────────
- * CE QUE CETTE PHRASE PEUT DIRE, ET CE QU'ELLE NE PEUT PAS
+ * UN ANCIEN MAIRE NE SE DIT PAS AU PRÉSENT
  * ─────────────────────────────────────────────────────────────────────────
- * Elle ne dit **que les exercices entièrement couverts**. Pierre HURMIC prend
- * ses fonctions en juillet 2020 : 2021 à 2025 sont les siens, 2020 est à
- * cheval, et 2019 appartient à quelqu'un que la source ne nomme pas — le
- * ministère n'arrête la liste des sortants qu'avant un scrutin, et celle
- * d'avant 2020 n'est pas republiée.
+ * La phrase écrivait « Maire Pierre HURMIC **est en fonction depuis** juillet
+ * 2020 » sur une fiche qui, deux lignes plus haut, nomme Thomas CAZENAVE comme
+ * maire. Un présent et un « depuis » sans fin décrivent quelqu'un qui exerce
+ * encore ; le lecteur y lit soit une contradiction, soit deux maires à la fois.
  *
- * Écrire « maire de 2020 à 2026 » serait donc faux deux fois : la source ne
- * donne pas la fin du mandat, et un maire sortant sur trente a pris ses
- * fonctions en cours de mandature après une démission ou un décès.
+ * L'interdiction que je m'étais posée — « la source ne donne pas la fin du
+ * mandat » — était mal raisonnée. Le fichier des sortants n'en donne pas, mais
+ * **la prise de fonction du successeur est publiée**, et c'est exactement la
+ * borne cherchée : le mandat de l'un finit quand celui de l'autre commence.
+ * `jusqu` la porte, et la phrase passe au passé.
  *
- * Rien n'est écrit si l'exécutif a pris ses fonctions après le dernier
+ * Sans successeur publié — une quinzaine de communes —, aucune fin n'est
+ * inventée et la phrase reste au présent : c'est alors le cas des présidents
+ * de département et de région, qui exercent bel et bien encore.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * CE QUE LA PHRASE NE REVENDIQUE PAS
+ * ─────────────────────────────────────────────────────────────────────────
+ * **Que les exercices entièrement couverts.** Prendre ses fonctions en juillet
+ * 2020 fait de 2020 une année à cheval et de 2019 celle de quelqu'un que la
+ * source ne nomme pas : le ministère n'arrête la liste des sortants qu'avant
+ * un scrutin, et celle d'avant 2020 n'est pas republiée.
+ *
+ * Et rien n'est écrit si l'exécutif a pris ses fonctions après le dernier
  * exercice du tableau — c'est le cas de tout maire élu en mars 2026 face à des
  * comptes qui s'arrêtent en 2025, et poser son nom là serait lui attribuer un
  * bilan qui n'est pas le sien.
@@ -149,6 +162,7 @@ export function phraseExecutif(
   executif: Executif | undefined,
   role: string,
   exercices: string[],
+  jusqu?: string | null,
 ): string {
   if (!executif?.depuis || !exercices.length) return "";
   const priseDeFonction = new Date(executif.depuis);
@@ -158,14 +172,34 @@ export function phraseExecutif(
   const premier = String(priseDeFonction.getFullYear() + 1);
   const couverts = exercices.filter((e) => e >= premier);
   if (!couverts.length) return "";
-  const mois = priseDeFonction.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
   const etendue =
     couverts.length === 1
       ? `l'exercice ${couverts[0]}`
       : `les exercices ${couverts[0]} à ${couverts[couverts.length - 1]}`;
-  return ` ${echapper(role)} ${echapper(executif.nom)} est en fonction depuis ${echapper(
-    mois,
-  )} : ${etendue} sont entièrement ${couverts.length === 1 ? "le sien" : "les siens"}.`;
+  const suite = `${etendue} ${couverts.length === 1 ? "est entièrement le sien" : "sont entièrement les siens"}.`;
+  return ` ${echapper(role)} ${echapper(executif.nom)} ${periode(
+    executif.depuis,
+    jusqu,
+  )} : ${suite}`;
+}
+
+/**
+ * « de juillet 2020 à mars 2026 », ou « en fonction depuis juillet 2021 ».
+ *
+ * La fin vient de la prise de fonction du successeur : un mandat finit quand
+ * le suivant commence. Une fin antérieure au début serait une donnée fausse en
+ * amont — on n'écrit alors pas de période plutôt qu'une période à l'envers.
+ */
+function periode(depuis: string, jusqu?: string | null): string {
+  const debut = new Date(depuis);
+  const mois = (d: Date) => d.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  if (jusqu) {
+    const fin = new Date(jusqu);
+    if (!Number.isNaN(fin.getTime()) && fin > debut) {
+      return `a été en fonction de ${echapper(mois(debut))} à ${echapper(mois(fin))}`;
+    }
+  }
+  return `est en fonction depuis ${echapper(mois(debut))}`;
 }
 
 /**
@@ -199,6 +233,7 @@ export function rendreParcours(
   niveau: string,
   executif?: { nom: string; depuis: string | null },
   role = "",
+  jusqu?: string | null,
 ): string {
   const exercices = exercicesNotables(series);
   // Une colonne unique ne se compare pas : le tableau ne s'écrit qu'à partir
@@ -263,10 +298,11 @@ export function rendreNote(
   series: Record<string, Record<string, number>> = {},
   executif?: { nom: string; depuis: string | null },
   role = "",
+  jusqu?: string | null,
 ): string {
   if (!note) return "";
   const total = points(note.valeur);
-  const parcours = rendreParcours(series, note.niveau, executif, role);
+  const parcours = rendreParcours(series, note.niveau, executif, role, jusqu);
   const rangs = lignes(note)
     .map(
       (l) => `<tr>

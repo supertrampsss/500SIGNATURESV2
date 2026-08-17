@@ -33,6 +33,20 @@ function mois(date: string): string {
   );
 }
 
+/** « de juillet 2020 à mars 2026 », ou « en fonction depuis juillet 2020 »
+ *  quand aucun successeur n'est publié — une quinzaine de communes. On
+ *  n'invente pas une fin, et on n'écrit pas une période à l'envers. */
+function periodeExecutif(depuis: string, jusqu?: string | null): string {
+  const debut = new Date(depuis);
+  if (jusqu) {
+    const fin = new Date(jusqu);
+    if (!Number.isNaN(fin.getTime()) && fin > debut) {
+      return `en fonction de ${mois(depuis)} à ${mois(jusqu)}`;
+    }
+  }
+  return `en fonction depuis ${mois(depuis)}`;
+}
+
 /**
  * L'intitulé de l'exécutif, par maille.
  *
@@ -303,6 +317,8 @@ export function afficherFiche(
     territoire.series ?? {},
     auxComptes,
     EXECUTIFS[niveau] ?? "",
+    // La fin du mandat du prédécesseur : l'arrivée de celui en exercice.
+    territoire.maire_precedent ? territoire.maire?.depuis : null,
   );
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
@@ -335,8 +351,17 @@ export function afficherFiche(
               ? `<span class="fiche__precedent">Avant lui : ${echapper(
                   territoire.maire_precedent.nom,
                 )}${
+                  // **Une période, pas un « depuis ».** Un ancien maire ne se
+                  // dit pas au présent : « en fonction depuis juillet 2020 »
+                  // sous le nom de son successeur laissait lire deux maires à
+                  // la fois. La fin est la prise de fonction du successeur —
+                  // un mandat finit quand le suivant commence — et elle est
+                  // publiée, contrairement à ce que j'avais d'abord conclu.
                   territoire.maire_precedent.depuis
-                    ? `, en fonction depuis ${mois(territoire.maire_precedent.depuis)}`
+                    ? `, ${periodeExecutif(
+                        territoire.maire_precedent.depuis,
+                        territoire.maire?.depuis,
+                      )}`
                     : ""
                 }</span>`
               : ""

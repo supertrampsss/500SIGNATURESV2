@@ -193,12 +193,51 @@ test("la phrase d'exécutif ne revendique que les exercices entièrement couvert
   // nomme pas. Revendiquer 2020 ou 2019 lui attribuerait des comptes qu'il n'a
   // pas tenus.
   const exercices = ["2019", "2020", "2021", "2022", "2023", "2024", "2025"];
-  const lu = phraseExecutif({ nom: "Pierre HURMIC", depuis: "2020-07-03" }, "Maire", exercices);
-  assert.match(lu, /Maire Pierre HURMIC est en fonction depuis juillet 2020/);
+  const lu = phraseExecutif(
+    { nom: "Pierre HURMIC", depuis: "2020-07-03" },
+    "Maire",
+    exercices,
+    "2026-03-22",
+  );
   assert.match(lu, /les exercices 2021 à 2025 sont entièrement les siens/);
   assert.doesNotMatch(lu, /2019/);
-  // Et jamais une fin de mandat : la source ne la donne pas.
-  assert.doesNotMatch(lu, /à 2026|jusqu/);
+});
+
+test("un ancien exécutif ne se dit pas au présent", () => {
+  // **Le défaut signalé par l'auteur.** La légende écrivait « Maire Pierre
+  // HURMIC EST EN FONCTION DEPUIS juillet 2020 » sur une fiche qui nomme
+  // Thomas CAZENAVE comme maire deux lignes plus haut : un présent et un
+  // « depuis » sans fin décrivent quelqu'un qui exerce encore, et le lecteur y
+  // lit deux maires à la fois.
+  //
+  // La fin existe et elle est publiée : c'est la prise de fonction du
+  // successeur. Un mandat finit quand le suivant commence.
+  const exercices = ["2019", "2020", "2021", "2022", "2023", "2024", "2025"];
+  const ancien = phraseExecutif(
+    { nom: "Pierre HURMIC", depuis: "2020-07-03" },
+    "Maire",
+    exercices,
+    "2026-03-22",
+  );
+  assert.match(ancien, /Maire Pierre HURMIC a été en fonction de juillet 2020 à mars 2026/);
+  assert.doesNotMatch(ancien, /est en fonction/);
+
+  // Sans successeur publié, aucune fin n'est inventée et le présent reste
+  // juste : c'est le cas des présidents de département et de région, qui
+  // exercent bel et bien encore.
+  const enCours = phraseExecutif({ nom: "Jean-Luc GLEYZE", depuis: "2021-07-01" }, "Président", exercices);
+  assert.match(enCours, /Président Jean-Luc GLEYZE est en fonction depuis juillet 2021/);
+  assert.doesNotMatch(enCours, /a été/);
+
+  // Une fin antérieure au début serait une donnée fausse en amont : on
+  // n'écrit pas une période à l'envers.
+  const envers = phraseExecutif(
+    { nom: "A B", depuis: "2020-07-03" },
+    "Maire",
+    exercices,
+    "2019-01-01",
+  );
+  assert.match(envers, /est en fonction depuis juillet 2020/);
 });
 
 test("un exécutif entré après le dernier exercice n'est pas nommé", () => {

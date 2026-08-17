@@ -353,8 +353,27 @@ test("le prédécesseur est nommé, parce que c'est lui qui a présidé aux comp
   // « Avant lui », jamais « maire de 2020 à 2026 » : un maire sortant sur
   // trente a pris ses fonctions en cours de mandature, et la source ne donne
   // que le dernier de la mandature.
-  assert.match(html, /Avant lui\s*: Pierre HURMIC, en fonction depuis juillet 2020/);
-  assert.doesNotMatch(html, /de 2020 à 2026/);
+  // **Une période, pas un « depuis ».** Un ancien maire ne se dit pas au
+  // présent : « en fonction depuis juillet 2020 » sous le nom de son
+  // successeur laissait lire deux maires à la fois. La fin est la prise de
+  // fonction du successeur, qui est publiée.
+  assert.match(html, /Avant lui\s*: Pierre HURMIC, en fonction de juillet 2020 à mars 2026/);
+  assert.doesNotMatch(html, /Pierre HURMIC, en fonction depuis/);
+});
+
+test("sans successeur publié, aucune fin de mandat n'est inventée", () => {
+  // Une quinzaine de communes n'ont pas de maire dans le fichier courant.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Essai", parent: "33", region: "75", population: 1000,
+      drapeaux: {}, series: {},
+      maire_precedent: { nom: "Pierre HURMIC", depuis: "2020-07-03" },
+    } as never,
+    indicateurs: [],
+  });
+  assert.doesNotMatch(cible.innerHTML, /à mars|à undefined|Invalid Date/);
 });
 
 test("sans prédécesseur publié, aucune ligne vide ne s'écrit", () => {
