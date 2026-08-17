@@ -292,7 +292,18 @@ export function afficherFiche(
   // ne s'affiche que là où les trois séries de l'OFGL existent — la France n'a
   // pas de compte administratif, et `note()` rend `null` plutôt que de noter
   // un territoire sur des séries qu'il ne porte pas.
-  const noteChiffree = rendreNote(note(territoire.series ?? {}, niveau), territoire.series ?? {});
+  // **C'est le PRÉDÉCESSEUR qu'on nomme sous le tableau**, quand il existe :
+  // la note se lit sur 2019-2025, et le maire entré en fonction en mars 2026
+  // n'a aucun de ces exercices derrière lui. Là où aucun prédécesseur n'est
+  // publié — départements et régions, dont la mandature court toujours —,
+  // c'est l'exécutif en exercice, qui couvre bien une partie des exercices.
+  const auxComptes = territoire.maire_precedent ?? territoire.maire;
+  const noteChiffree = rendreNote(
+    note(territoire.series ?? {}, niveau),
+    territoire.series ?? {},
+    auxComptes,
+    EXECUTIFS[niveau] ?? "",
+  );
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${

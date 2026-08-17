@@ -10,7 +10,7 @@ import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { SOLVABILITE_POINTS, note, noter, solvabilite } from "./note.ts";
-import { lignes, rendreNote } from "./note-rendu.ts";
+import { lignes, phraseExecutif, rendreNote } from "./note-rendu.ts";
 
 const SOLIDE = {
   ofgl_recettes_fonctionnement: { "2019": 90e6, "2025": 100e6 },
@@ -185,4 +185,42 @@ test("le bloc lit le barème de SON échelon", () => {
     /bornes\(note\.niveau\)/,
     "le barème est lu ailleurs que sur l'échelon de la note",
   );
+});
+
+test("la phrase d'exécutif ne revendique que les exercices entièrement couverts", () => {
+  // Pierre HURMIC prend ses fonctions en juillet 2020 : 2021 à 2025 sont les
+  // siens, 2020 est à cheval, et 2019 appartient à quelqu'un que la source ne
+  // nomme pas. Revendiquer 2020 ou 2019 lui attribuerait des comptes qu'il n'a
+  // pas tenus.
+  const exercices = ["2019", "2020", "2021", "2022", "2023", "2024", "2025"];
+  const lu = phraseExecutif({ nom: "Pierre HURMIC", depuis: "2020-07-03" }, "Maire", exercices);
+  assert.match(lu, /Maire Pierre HURMIC est en fonction depuis juillet 2020/);
+  assert.match(lu, /les exercices 2021 à 2025 sont entièrement les siens/);
+  assert.doesNotMatch(lu, /2019/);
+  // Et jamais une fin de mandat : la source ne la donne pas.
+  assert.doesNotMatch(lu, /à 2026|jusqu/);
+});
+
+test("un exécutif entré après le dernier exercice n'est pas nommé", () => {
+  // Un maire élu en mars 2026 face à des comptes qui s'arrêtent en 2025 :
+  // poser son nom là lui attribuerait un bilan qui n'est pas le sien. C'est le
+  // cas de presque tous les maires en exercice.
+  const exercices = ["2019", "2020", "2021", "2022", "2023", "2024", "2025"];
+  assert.equal(phraseExecutif({ nom: "Thomas CAZENAVE", depuis: "2026-03-22" }, "Maire", exercices), "");
+  // Ni un exécutif sans date, ni une date illisible.
+  assert.equal(phraseExecutif({ nom: "X", depuis: null }, "Maire", exercices), "");
+  assert.equal(phraseExecutif({ nom: "X", depuis: "pas une date" }, "Maire", exercices), "");
+  assert.equal(phraseExecutif(undefined, "Maire", exercices), "");
+});
+
+test("un seul exercice couvert se dit au singulier", () => {
+  const lu = phraseExecutif({ nom: "A B", depuis: "2024-03-01" }, "Maire", ["2024", "2025"]);
+  assert.match(lu, /l'exercice 2025 sont entièrement le sien|l'exercice 2025/);
+  assert.doesNotMatch(lu, /les siens/);
+});
+
+test("le nom de l'exécutif est échappé dans la légende", () => {
+  const lu = phraseExecutif({ nom: `L'<script>`, depuis: "2020-07-03" }, "Maire", ["2022", "2023"]);
+  assert.doesNotMatch(lu, /<script>/);
+  assert.match(lu, /&lt;script&gt;/);
 });

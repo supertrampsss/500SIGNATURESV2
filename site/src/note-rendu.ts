@@ -120,6 +120,54 @@ export function lignes(note: Note): { terme: string; mesure: string; points: str
   ];
 }
 
+/** Un exécutif tel que la publication le porte : un nom et une prise de
+ *  fonction, rien d'autre. */
+export type Executif = { nom: string; depuis: string | null };
+
+/**
+ * Qui était en fonction, et sur quels exercices du tableau.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * CE QUE CETTE PHRASE PEUT DIRE, ET CE QU'ELLE NE PEUT PAS
+ * ─────────────────────────────────────────────────────────────────────────
+ * Elle ne dit **que les exercices entièrement couverts**. Pierre HURMIC prend
+ * ses fonctions en juillet 2020 : 2021 à 2025 sont les siens, 2020 est à
+ * cheval, et 2019 appartient à quelqu'un que la source ne nomme pas — le
+ * ministère n'arrête la liste des sortants qu'avant un scrutin, et celle
+ * d'avant 2020 n'est pas republiée.
+ *
+ * Écrire « maire de 2020 à 2026 » serait donc faux deux fois : la source ne
+ * donne pas la fin du mandat, et un maire sortant sur trente a pris ses
+ * fonctions en cours de mandature après une démission ou un décès.
+ *
+ * Rien n'est écrit si l'exécutif a pris ses fonctions après le dernier
+ * exercice du tableau — c'est le cas de tout maire élu en mars 2026 face à des
+ * comptes qui s'arrêtent en 2025, et poser son nom là serait lui attribuer un
+ * bilan qui n'est pas le sien.
+ */
+export function phraseExecutif(
+  executif: Executif | undefined,
+  role: string,
+  exercices: string[],
+): string {
+  if (!executif?.depuis || !exercices.length) return "";
+  const priseDeFonction = new Date(executif.depuis);
+  if (Number.isNaN(priseDeFonction.getTime())) return "";
+  // Un exercice est entièrement couvert s'il commence après la prise de
+  // fonction : l'année de la prise de fonction est toujours à cheval.
+  const premier = String(priseDeFonction.getFullYear() + 1);
+  const couverts = exercices.filter((e) => e >= premier);
+  if (!couverts.length) return "";
+  const mois = priseDeFonction.toLocaleDateString("fr-FR", { month: "long", year: "numeric" });
+  const etendue =
+    couverts.length === 1
+      ? `l'exercice ${couverts[0]}`
+      : `les exercices ${couverts[0]} à ${couverts[couverts.length - 1]}`;
+  return ` ${echapper(role)} ${echapper(executif.nom)} est en fonction depuis ${echapper(
+    mois,
+  )} : ${etendue} sont entièrement ${couverts.length === 1 ? "le sien" : "les siens"}.`;
+}
+
 /**
  * La solvabilité exercice par exercice — dont 2019, la première colonne.
  *
@@ -149,6 +197,8 @@ export function lignes(note: Note): { terme: string; mesure: string; points: str
 export function rendreParcours(
   series: Record<string, Record<string, number>>,
   niveau: string,
+  executif?: { nom: string; depuis: string | null },
+  role = "",
 ): string {
   const exercices = exercicesNotables(series);
   // Une colonne unique ne se compare pas : le tableau ne s'écrit qu'à partir
@@ -173,7 +223,11 @@ export function rendreParcours(
     <summary>La note, exercice par exercice</summary>
     <div class="note__parcours-cadre" tabindex="0">
       <table class="note__parcours-table">
-        <caption>Marge et dette seules, sur ${SOLVABILITE_POINTS} points : le troisième terme de la note est un écart depuis 2019, il n'existe pas pour 2019 même.</caption>
+        <caption>Marge et dette seules, sur ${SOLVABILITE_POINTS} points : le troisième terme de la note est un écart depuis 2019, il n'existe pas pour 2019 même.${phraseExecutif(
+          executif,
+          role,
+          colonnes.map((c) => c.exercice),
+        )}</caption>
         <thead><tr><th scope="col">Exercice</th>${entetes}</tr></thead>
         <tbody>
           ${ligne("Marge de fonctionnement", (c) => pourcentage(c.tauxEpargne, true))}
@@ -207,10 +261,12 @@ export function rendreParcours(
 export function rendreNote(
   note: Note | null,
   series: Record<string, Record<string, number>> = {},
+  executif?: { nom: string; depuis: string | null },
+  role = "",
 ): string {
   if (!note) return "";
   const total = points(note.valeur);
-  const parcours = rendreParcours(series, note.niveau);
+  const parcours = rendreParcours(series, note.niveau, executif, role);
   const rangs = lignes(note)
     .map(
       (l) => `<tr>
