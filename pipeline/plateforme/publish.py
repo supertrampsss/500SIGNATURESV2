@@ -633,6 +633,37 @@ CRITERES_GROUPE = CASCADE_CRITERES[-1]
 # la médiane bouge d'un tiers si l'une d'elles change de politique.
 GROUPE_MINIMAL = 20
 
+# Comment se nomme la valeur d'un critère, pour qu'un groupe se lise.
+#
+# Les bornes des strates ne sont pas les nôtres : l'OFGL les écrit dans la
+# description de sa propre colonne `tranche_population` — « 0 si < 100 hab ;
+# 1 si >= 100 hab et < 200 hab ; … ; 10 si >= 100 000 hab ». Les recopier ici
+# est le seul moyen d'écrire « 48 communes de 100 000 habitants et plus »
+# plutôt que « 48 communes de tranche 10 », qui ne se lit pas.
+#
+# Ce sont des adjectifs accordés au féminin pluriel : seules les communes
+# portent ces critères — l'OFGL ne les publie que pour elles —, et la phrase
+# qu'ils composent parle donc toujours de communes.
+LIBELLES_CRITERES: dict[str, dict[str, str]] = {
+    "tranche_population": {
+        "0": "de moins de 100 habitants",
+        "1": "de 100 à 200 habitants",
+        "2": "de 200 à 500 habitants",
+        "3": "de 500 à 2\u202f000 habitants",
+        "4": "de 2\u202f000 à 3\u202f500 habitants",
+        "5": "de 3\u202f500 à 5\u202f000 habitants",
+        "6": "de 5\u202f000 à 10\u202f000 habitants",
+        "7": "de 10\u202f000 à 20\u202f000 habitants",
+        "8": "de 20\u202f000 à 50\u202f000 habitants",
+        "9": "de 50\u202f000 à 100\u202f000 habitants",
+        "10": "de 100\u202f000 habitants et plus",
+    },
+    "rural": {"Oui": "rurales", "Non": "urbaines"},
+    "outre_mer": {"Oui": "d'outre-mer", "Non": "de métropole"},
+    "montagne": {"Oui": "de montagne", "Non": "hors montagne"},
+    "touristique": {"Oui": "touristiques", "Non": "non touristiques"},
+}
+
 # Les jeux dont les effectifs sont comptés **au lieu de travail**.
 #
 # La règle « un effectif additif se rapporte à mille habitants » vaut pour ce
@@ -2292,6 +2323,61 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
 DENOMINATEUR = "ofgl_population_reference"
 
 
+def groupes_semblables(entites: dict[str, dict], codes: list[str]) -> dict | None:
+    """Le groupe de communes semblables de chaque territoire, dans l'index.
+
+    Les quartiles par groupe de pairs sont publiés depuis longtemps
+    (`comparaisons.json`), et la page de méthode décrit le groupe qu'ils
+    définissent — mais **aucun écran ne le montrait**, faute d'un seul champ :
+    la clé du groupe se construit des drapeaux d'un territoire, et l'index de
+    la maille, seul fichier qu'une page d'ensemble charge, ne les portait pas.
+    Les lots départementaux les portent, eux, mais les lire tous pour composer
+    un groupe demanderait cent fichiers de séries complètes.
+
+    **Un dictionnaire, pas cinq colonnes.** Publier les cinq drapeaux comme
+    cinq colonnes de 34 875 valeurs coûte près d'un mégaoctet — 40 % de plus
+    sur un fichier qu'un téléphone télécharge pour peindre une page. Les
+    combinaisons, elles, sont au plus 176 (onze strates fois quatre oui/non) :
+    la clé est écrite une fois dans `cles`, et chaque territoire n'en porte que
+    le rang. C'est la même économie que le format colonnaire lui-même.
+
+    La clé est composée dans l'ordre de `CASCADE_CRITERES[0]`, le jeu le plus
+    fin ; les jeux plus larges en sont des sous-ensembles, et le site
+    reconstitue leurs clés en choisissant des positions. Un test le vérifie —
+    sans cette propriété, la cascade publiée serait inapplicable.
+
+    -> {"cascade", "minimum", "libelles", "cles", "groupe"} ou `None` si la
+       maille n'a pas de critères (l'OFGL n'en publie que pour les communes).
+    """
+    criteres = CASCADE_CRITERES[0]
+    cles: list[str] = []
+    rang_par_cle: dict[str, int] = {}
+    colonne: list[int | None] = []
+    for code in codes:
+        drapeaux = entites[code].get("drapeaux") or {}
+        valeurs = [drapeaux.get(critere) for critere in criteres]
+        if any(valeur is None for valeur in valeurs):
+            # Un territoire dont un seul critère manque n'a pas de groupe : le
+            # composer sur quatre critères le rangerait avec des communes qui
+            # ne lui ressemblent pas sur le cinquième, sans que rien ne le dise.
+            colonne.append(None)
+            continue
+        cle = "|".join(str(valeur) for valeur in valeurs)
+        if cle not in rang_par_cle:
+            rang_par_cle[cle] = len(cles)
+            cles.append(cle)
+        colonne.append(rang_par_cle[cle])
+    if not cles:
+        return None
+    return {
+        "cascade": CASCADE_CRITERES,
+        "minimum": GROUPE_MINIMAL,
+        "libelles": LIBELLES_CRITERES,
+        "cles": cles,
+        "groupe": colonne,
+    }
+
+
 def index_territoires(conn, niveau: str, entites: dict[str, dict], valeurs: dict) -> dict:
     """L'index léger d'une maille : de quoi peindre et classer, sans les séries.
 
@@ -2315,7 +2401,9 @@ def index_territoires(conn, niveau: str, entites: dict[str, dict], valeurs: dict
       de `population_reference` ;
     - `unite` : des habitants, pour les deux populations ;
     - `millesime_geographique` : le millésime du référentiel INSEE d'où sortent
-      les noms, les rattachements et la population municipale.
+      les noms, les rattachements et la population municipale ;
+    - `semblables` : le groupe de communes semblables de chaque territoire,
+      quand la maille en a un — voir `groupes_semblables`.
     """
     (millesime,) = conn.execute(
         "select max(vintage) from geo.geography_reference where geo_level = ?",
@@ -2332,11 +2420,13 @@ def index_territoires(conn, niveau: str, entites: dict[str, dict], valeurs: dict
             return None
         return int(valeur) if float(valeur).is_integer() else valeur
 
+    semblables = groupes_semblables(entites, codes)
     return {
         "denominateur": DENOMINATEUR,
         "periodes": periodes,
         "unite": "habitants",
         "millesime_geographique": millesime,
+        **({"semblables": semblables} if semblables else {}),
         "codes": codes,
         "noms": [entites[code]["nom"] for code in codes],
         "parents": [entites[code]["parent"] for code in codes],

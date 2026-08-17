@@ -159,13 +159,19 @@ export function rangs(lignes: Ligne[], toutes: number[]): number[] {
   return lignes.map((l) => 1 + toutes.filter((v) => v > l.note.valeur).length);
 }
 
-function rangee(ligne: Ligne, rang: number): string {
+function rangee(ligne: Ligne, rang: number, vous?: string): string {
   const valeur = ligne.note.valeur.toLocaleString("fr-FR", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   });
-  return `<li>
-    <button type="button" data-territoire="${echapper(ligne.code)}">
+  // Le territoire dont on lit le groupe se reconnaît dans sa propre liste :
+  // sans repère, dix noms de communes semblables se ressemblent tous, et
+  // c'est justement celui-là qu'on est venu chercher.
+  const sien = vous !== undefined && vous === ligne.code;
+  return `<li${sien ? ' class="palmares__vous"' : ""}>
+    <button type="button" data-territoire="${echapper(ligne.code)}"${
+      sien ? ' aria-current="true"' : ""
+    }>
       <span class="palmares__rang nombre">${rang}</span>
       <span class="palmares__nom">${echapper(ligne.nom)}</span>
       <span class="palmares__note nombre">${echapper(valeur)}</span>
@@ -192,14 +198,8 @@ export function rendrePalmares(resultat: Palmares | null, niveau: string): strin
   const toutes = resultat.valeurs;
   const rangsTete = rangs(tete, toutes);
   const rangsQueue = rangs(queue, toutes);
-  /** « 2 102 communes valent exactement 20,0 » — dit seulement quand elles sont
-   *  plusieurs, sinon la phrase apprendrait que la première est la première. */
   const exAequo = (combien: number, valeur: number, quoi: string) =>
-    combien > 1
-      ? ` ${nombre(combien)} ${echapper(pluriel)} valent exactement ${note(
-          valeur,
-        )} sur 20 : ce sont les plus peuplées d'entre elles qui sont montrées ${quoi}.`
-      : "";
+    phraseExAequo(combien, valeur, quoi, pluriel);
   return `<section class="palmares" aria-labelledby="palmares-titre-${echapper(niveau)}">
     <h3 class="palmares__titre" id="palmares-titre-${echapper(niveau)}">Les ${echapper(
       pluriel,
@@ -220,19 +220,135 @@ export function rendrePalmares(resultat: Palmares | null, niveau: string): strin
       tete[0]?.note.valeur ?? 0,
       "en tête",
     )}${exAequo(resultat.exAequoQueue, queue[0]?.note.valeur ?? 0, "en bas")}</p>
-    <div class="palmares__colonnes">
+    ${colonnes(tete, rangsTete, queue, rangsQueue, feminin)}
+  </section>`;
+}
+
+/**
+ * Les deux colonnes, et leurs deux titres accordés.
+ *
+ * « Les mieux notées » s'écrivait en dur au féminin, sous un titre qui venait
+ * pourtant d'être corrigé : la page des départements portait « Les départements
+ * les mieux et les moins bien gérés » puis, deux lignes plus bas, « Les mieux
+ * notées ». C'est la troisième fois que ce participe tombe — le critère du
+ * classement, le titre du palmarès, puis ses colonnes.
+ */
+function colonnes(
+  tete: Ligne[],
+  rangsTete: number[],
+  queue: Ligne[],
+  rangsQueue: number[],
+  feminin: boolean,
+  vous?: string,
+): string {
+  const note = feminin ? "notées" : "notés";
+  return `<div class="palmares__colonnes">
       <div class="palmares__colonne">
-        <h4>Les mieux notées</h4>
+        <h4>Les mieux ${note}</h4>
         <ol class="palmares__liste">${tete
-          .map((l, i) => rangee(l, rangsTete[i]))
+          .map((l, i) => rangee(l, rangsTete[i], vous))
           .join("")}</ol>
       </div>
       <div class="palmares__colonne">
-        <h4>Les moins bien notées</h4>
+        <h4>Les moins bien ${note}</h4>
         <ol class="palmares__liste palmares__liste--queue">${queue
-          .map((l, i) => rangee(l, rangsQueue[i]))
+          .map((l, i) => rangee(l, rangsQueue[i], vous))
           .join("")}</ol>
       </div>
-    </div>
+    </div>`;
+}
+
+/**
+ * « 2 102 communes valent exactement 20,0 » — dit seulement quand elles sont
+ * plusieurs, sinon la phrase apprendrait que la première est la première.
+ *
+ * **Elle est partagée par les deux palmarès**, et pas par élégance : le groupe
+ * de communes semblables a d'abord été écrit sans elle, et il montrait cinq
+ * communes à 20 sur 20 en tête des 635 semblables à Sare — dont 47 valent
+ * exactement 20 — comme s'il s'agissait des cinq meilleures. C'est la faute
+ * qui avait déjà coûté un correctif au palmarès de l'échelon, reproduite dans
+ * un module neuf le jour de sa naissance.
+ */
+function phraseExAequo(
+  combien: number,
+  valeur: number,
+  quoi: string,
+  pluriel: string,
+): string {
+  if (combien <= 1) return "";
+  const note = valeur.toLocaleString("fr-FR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  });
+  return ` ${combien.toLocaleString("fr-FR")} ${echapper(
+    pluriel,
+  )} valent exactement ${note} sur 20 : ce sont les plus peuplées d'entre elles qui sont montrées ${quoi}.`;
+}
+
+/** Le territoire dont on lit le groupe, tel que la phrase le nomme. */
+export type Vous = { code: string; nom: string; note: Note };
+
+/** « 1re », « 34e ». Le premier rang porte sa marque, les autres non — et les
+ *  communes sont féminines, seule maille qui porte des critères de groupe. */
+function ordinal(rang: number): string {
+  return rang === 1 ? "1re" : `${rang}e`;
+}
+
+/**
+ * Le palmarès du groupe de communes semblables.
+ *
+ * Même barème, même tri, mêmes colonnes que le palmarès de l'échelon : seule
+ * change la population comparée. La phrase de cadrage porte ce qui fait la
+ * différence — **les critères du groupe**, sans lesquels « 48 communes » ne
+ * veut rien dire, et **la place du territoire dans son groupe**, qui est la
+ * réponse qu'on est venu chercher.
+ *
+ * Le rang se lit sur les communes du groupe **qui portent une note**, jamais
+ * sur celles qui existent : c'est la règle que `situation.ts` et le palmarès
+ * tiennent déjà.
+ */
+export function rendreSemblables(
+  resultat: Palmares | null,
+  intitules: string[],
+  vous: Vous,
+): string {
+  if (!resultat) return "";
+  const { tete, queue, effectif, mediane, exercice, valeurs } = resultat;
+  const nombre = (n: number) => n.toLocaleString("fr-FR");
+  const note = (n: number) =>
+    n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const rang = 1 + valeurs.filter((v) => v > vous.note.valeur).length;
+  const partagent = valeurs.filter((v) => v === vous.note.valeur).length;
+  // Un rang partagé se dit : « 22e » quand deux communes du groupe valent
+  // exactement la même note laisse croire à une place propre.
+  const egalite =
+    partagent > 1
+      ? `, à égalité avec ${partagent === 2 ? "une autre" : `${nombre(partagent - 1)} autres`}`
+      : "";
+  return `<section class="palmares palmares--semblables" aria-labelledby="palmares-semblables">
+    <h3 class="palmares__titre" id="palmares-semblables">Les communes semblables à ${echapper(
+      vous.nom,
+    )}</h3>
+    <p class="palmares__cadrage">${nombre(effectif)} communes ${echapper(
+      intitules.join(", "),
+    )}, qui publient les trois séries de leurs comptes. Les critères de
+    comparaison sont ceux de l'Observatoire des finances locales. Note de
+    gestion de l'exercice ${echapper(exercice)}.${
+      // Le millésime dominant est écrit ; celles qui en diffèrent sont
+      // comptées plutôt que tues, comme au palmarès de l'échelon.
+      resultat.autresExercices
+        ? ` ${nombre(resultat.autresExercices)} ${
+            resultat.autresExercices === 1 ? "est notée" : "sont notées"
+          } sur l'exercice précédent.`
+        : ""
+    } ${echapper(vous.nom)} est ${ordinal(rang)} sur ${nombre(effectif)}, à ${note(
+      vous.note.valeur,
+    )} sur 20${egalite} ; la note médiane du groupe est de ${note(mediane)} sur 20.${phraseExAequo(
+      resultat.exAequoTete,
+      tete[0]?.note.valeur ?? 0,
+      "en tête",
+      "communes",
+    )}${phraseExAequo(resultat.exAequoQueue, queue[0]?.note.valeur ?? 0, "en bas", "communes")}</p>
+    ${colonnes(tete, rangs(tete, valeurs), queue, rangs(queue, valeurs), true, vous.code)}
   </section>`;
 }
