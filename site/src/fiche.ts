@@ -5,6 +5,8 @@
  */
 
 import { rendreReperes, reperes as reperesDOuverture } from "./reperes.ts";
+import { note } from "./note.ts";
+import { rendreNote } from "./note-rendu.ts";
 import { blocs, rendreBlocs } from "./blocs.ts";
 import { exercices, rendreExercices } from "./exercices.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -257,6 +259,12 @@ export function afficherFiche(
   // blocs partent de là et disent ce qu'un nombre posé ne dit pas : d'où vient
   // le mouvement.
   const ouvertureChiffree = rendreReperes(reperesDOuverture(territoire.series ?? {}, niveau));
+  // La note ouvre la fiche : « est-ce que ma commune est bien gérée » est la
+  // question qu'on vient poser, et elle était nulle part sur cette page. Elle
+  // ne s'affiche que là où les trois séries de l'OFGL existent — la France n'a
+  // pas de compte administratif, et `note()` rend `null` plutôt que de noter
+  // un territoire sur des séries qu'il ne porte pas.
+  const noteChiffree = rendreNote(note(territoire.series ?? {}, niveau), territoire.nom);
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${
@@ -289,7 +297,7 @@ export function afficherFiche(
       // blocs posent 2019 et le dernier exercice ; ce qui s'est passé entre
       // les deux n'existait nulle part. Les rangs (« Où ça se situe ») se
       // posent après, depuis main.ts : ils demandent la maille entière.
-      `<div class="fiche__essentiel">${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}${rendreExercices(
+      `<div class="fiche__essentiel">${noteChiffree}${ouvertureChiffree}${rendreBlocs(blocsDeLecture)}${rendreExercices(
         exercices({
           cites: blocsDeLecture.flatMap((bloc) => bloc.cites),
           series: territoire.series ?? {},

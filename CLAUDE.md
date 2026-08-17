@@ -445,6 +445,70 @@ pour ne plus l'être.
 
 ### Fait
 
+- **La note de gestion, et pourquoi elle n'a pas un barème mais quatre**
+  (17 août 2026). Le site répond enfin à la question qu'on vient lui poser —
+  « est-ce que ma commune est bien gérée » — par une note sur 20 en tête de
+  fiche, décomposée en trois termes et refaisable de tête.
+
+  **Le premier barème était unique, et il était faux.** Mesuré sur la
+  publication `2026-08-11T0807`, avant toute correction :
+
+  | échelon | taux d'épargne médian | trajectoire médiane |
+  |---|---|---|
+  | commune | 16,9 % | −2,7 pts |
+  | région | 18,6 % | −2,3 pts |
+  | département | **9,6 %** | **−4,4 pts** |
+
+  Un département n'a pas la marge d'une commune, et **ce n'est pas une faute de
+  gestion** : ses recettes de fonctionnement portent le RSA, l'APA et la PCH,
+  des prestations qui entrent et ressortent. Rapporter l'épargne à ces
+  recettes-là donne mécaniquement la moitié du taux d'une commune. Le barème
+  commun retirait donc ~2,3 points sur 8 à l'échelon entier **pour sa
+  définition de périmètre** — exactement la comparaison que la charte refuse
+  (« aucune comparaison territoriale sans contrôle de définition, périmètre,
+  période et unité »). La Gironde sortait à **0,2/20**, la médiane des
+  départements à 10,3 contre 12,8 pour les communes.
+
+  **Et la trajectoire médiane est négative aux trois échelons.** Entre 2019 et
+  2025, l'inflation et la crise de l'énergie ont comprimé l'épargne de presque
+  toutes les collectivités : une borne centrée sur zéro faisait perdre des
+  points à la moitié d'entre elles pour un choc que personne n'a décidé. Le
+  terme est recentré sur le mouvement médian de son échelon — il mesure ce
+  qu'il prétendait mesurer, et plus le cycle.
+
+  Après correction, les médianes se rejoignent — commune 12,8, département
+  12,3, région 11,6 — et une mention veut dire la même chose partout. Les cinq
+  mentions portent chacune 14 à 25 % des communes ; plafond 4,2 %, plancher
+  6,0 %, contre **34 % à 20/20** pour la toute première version à paliers.
+
+  **Ce que la note refuse restera ce qui la défend** : ni le niveau de dépense,
+  ni sa répartition, ni les taux d'impôts. Dépenser beaucoup en action sociale
+  est un choix d'électeurs, pas une faute de gestion — c'est la ligne que
+  l'Argus des communes ne tient pas, lui qui note « les coûts fixes » et « la
+  pression fiscale ». Un test lit `note.ts` comme du texte et échoue si l'un de
+  ces quatre identifiants y entre.
+
+  Les seuils de dette viennent de la **LPFP 2018-2022** (art. 29), qui sont
+  eux-mêmes propres à chaque échelon — 12 ans pour le bloc communal, 10 pour
+  les départements, 9 pour les régions. Ceux de marge et de trajectoire sont
+  **empiriques et le disent** : aucune doctrine ne publie de seuil d'épargne
+  par échelon, et un seuil rond inventé aurait caché ce fait sous une
+  apparence officielle.
+
+  **La leçon de méthode.** Rien de tout cela ne se voyait dans les 912 tests :
+  le barème unique passait tous ses tests unitaires, parce qu'ils portaient sur
+  des communes inventées. C'est de peindre la note avec les fichiers publiés,
+  échelon par échelon, qui a montré qu'un échelon entier était puni pour sa
+  définition comptable. Quatre sabotages tiennent désormais la correction.
+
+  Et l'espace insécable a encore fait échouer une vérification — **neuvième
+  fois**. Elle s'écrit `\u00a0` dans le module comme dans les motifs, jamais au
+  clavier. Un piège de plus a été noté au passage : `\s` en JavaScript
+  **comprend l'insécable**, donc un texte normalisé par `replace(/\s+/g, " ")`
+  ne la porte plus — deux assertions du même fichier ne lisent pas la même
+  chaîne, et chacune le dit.
+
+
 - **Deux défauts d'accessibilité qu'aucun test du dépôt ne pouvait voir**
   (17 août 2026). §17 balayé pour la première fois, à l'`axe-core` dans un vrai
   navigateur, WCAG 2.1 AA, huit adresses × deux largeurs. Quinze nœuds en

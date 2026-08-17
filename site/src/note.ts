@@ -62,6 +62,11 @@ export type Note = {
   mesures: Mesures;
   /** Ce que chaque terme apporte, pour que la note se lise et se conteste. */
   detail: { marge: number; dette: number; trajectoire: number };
+  /** L'échelon dont le barème a produit cette note. Une note se conteste sur
+   *  son barème autant que sur ses mesures, et les barèmes diffèrent d'un
+   *  échelon à l'autre : sans ce champ, deux notes de 12 pourraient venir de
+   *  deux grilles sans que rien ne le dise. */
+  niveau: string;
 };
 
 type Series = Record<string, Record<string, number>>;
@@ -105,27 +110,100 @@ function entre(valeur: number, bas: number, haut: number): number {
 }
 
 /**
- * Les bornes, et d'où elles viennent.
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI LES BORNES SONT PROPRES À CHAQUE ÉCHELON
+ * ─────────────────────────────────────────────────────────────────────────
+ * Un premier barème unique a été mesuré sur la publication 2026-08-11T0807.
+ * Il donnait ceci, et c'était faux :
  *
- * `MARGE` : un taux d'épargne brute de 10 % est le plancher d'alerte usuel des
- * analyses financières locales, 15 % le niveau confortable. On étale de 0 à
- * 25 % pour que les communes très au-dessus se distinguent encore.
+ * | échelon      | taux d'épargne médian | trajectoire médiane |
+ * |--------------|-----------------------|---------------------|
+ * | commune      | 16,9 %                | −2,7 pts            |
+ * | région       | 18,6 %                | −2,3 pts            |
+ * | département  | **9,6 %**             | **−4,4 pts**        |
  *
- * `DETTE` : le plafond national de référence de la loi de programmation des
- * finances publiques 2018-2022 est de **12 ans** pour le bloc communal, et
- * 8 ans est le seuil de vigilance courant. Au-delà de 15 ans, la note du terme
- * est nulle ; en dessous de 2 ans, elle est pleine.
+ * **Un département n'a pas la marge d'une commune, et ce n'est pas une faute
+ * de gestion.** Ses recettes de fonctionnement portent le RSA, l'APA et la
+ * PCH — des prestations qui entrent et ressortent — quand celles d'une commune
+ * ne portent rien de tel. Rapporter l'épargne à ces recettes-là donne
+ * mécaniquement la moitié du taux d'une commune. Le barème commun retirait
+ * donc ~2,3 points sur 8 à l'échelon entier, pour sa définition de périmètre.
+ * C'est exactement la comparaison que la charte du dépôt refuse : « aucune
+ * comparaison territoriale sans contrôle de définition, périmètre, période et
+ * unité ».
  *
- * `TRAJECTOIRE` : ±8 points d'épargne sur six exercices est l'amplitude
- * réellement observée sur les grosses communes, bornes comprises.
+ * **Et la trajectoire médiane est négative aux trois échelons.** Entre 2019 et
+ * 2025, l'inflation et la crise de l'énergie ont comprimé l'épargne de
+ * presque toutes les collectivités. Une borne centrée sur zéro faisait donc
+ * perdre des points à la moitié d'entre elles pour un choc macroéconomique
+ * qu'aucune n'a décidé. Le terme est recentré sur le mouvement **médian de son
+ * échelon** : il mesure ce qu'il a toujours prétendu mesurer — a-t-elle fait
+ * mieux ou moins bien que les autres sur la même période — et plus le cycle.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * D'OÙ VIENT CHAQUE BORNE
+ * ─────────────────────────────────────────────────────────────────────────
+ * `DETTE` : les plafonds de référence de la **loi de programmation des
+ * finances publiques 2018-2022** (art. 29), qui sont eux-mêmes propres à
+ * chaque échelon — 12 ans pour le bloc communal, 10 pour les départements,
+ * 9 pour les régions. Le terme est nul à une fois et demie le plafond, plein
+ * en dessous de 2 ans. Ce sont des seuils publiés, pas des seuils d'ici.
+ *
+ * `MARGE` et `TRAJECTOIRE` : mesurées sur la publication 2026-08-11T0807 —
+ * premier et neuvième déciles de l'échelon pour la marge, médiane de l'échelon
+ * pour le point de bascule de la trajectoire. Elles sont **empiriques, et le
+ * disent** : aucune doctrine ne publie de seuil d'épargne par échelon, et
+ * inventer un seuil rond aurait caché ce fait sous un chiffre d'apparence
+ * officielle.
+ *
+ * Ce sont des **constantes**, pas des quantiles recalculés à chaque
+ * publication. Une note qui bougerait parce que les voisins ont bougé ne
+ * dirait plus rien du territoire qu'elle décrit — c'est la règle que la
+ * mention tient déjà, et elle vaut pour le barème.
  */
-export const BORNES = {
-  MARGE: { bas: 0, haut: 25, points: 8 },
-  DETTE: { pire: 15, meilleur: 2, points: 8 },
-  TRAJECTOIRE: { bas: -8, haut: 8, points: 4 },
-} as const;
+type Bornes = {
+  MARGE: { bas: number; haut: number; points: number };
+  DETTE: { pire: number; meilleur: number; points: number };
+  TRAJECTOIRE: { bas: number; haut: number; points: number };
+};
 
-export function noter(mesures: Mesures): Note {
+export const BORNES_PAR_NIVEAU: Record<string, Bornes> = {
+  // Communes : déciles 4,1 % et 33,0 % ; médiane de trajectoire −2,7 pts.
+  commune: {
+    MARGE: { bas: 4, haut: 33, points: 8 },
+    DETTE: { pire: 18, meilleur: 2, points: 8 },
+    TRAJECTOIRE: { bas: -12.7, haut: 7.3, points: 4 },
+  },
+  // Un arrondissement municipal n'a pas de compte administratif propre ; s'il
+  // en portait un, il serait du bloc communal.
+  arrondissement_municipal: {
+    MARGE: { bas: 4, haut: 33, points: 8 },
+    DETTE: { pire: 18, meilleur: 2, points: 8 },
+    TRAJECTOIRE: { bas: -12.7, haut: 7.3, points: 4 },
+  },
+  // Départements : déciles 4,5 % et 15,0 % ; médiane de trajectoire −4,4 pts.
+  departement: {
+    MARGE: { bas: 4, haut: 15, points: 8 },
+    DETTE: { pire: 15, meilleur: 2, points: 8 },
+    TRAJECTOIRE: { bas: -14.4, haut: 5.6, points: 4 },
+  },
+  // Régions : déciles 8,6 % et 24,8 % ; médiane de trajectoire −2,3 pts.
+  region: {
+    MARGE: { bas: 9, haut: 25, points: 8 },
+    DETTE: { pire: 13.5, meilleur: 2, points: 8 },
+    TRAJECTOIRE: { bas: -12.3, haut: 7.7, points: 4 },
+  },
+};
+
+/** Le barème d'un échelon. Un échelon inconnu n'est pas noté : c'est ce que
+ *  `note()` en fait, et non un repli sur le barème d'un autre. */
+export function bornes(niveau: string): Bornes | null {
+  return BORNES_PAR_NIVEAU[niveau] ?? null;
+}
+
+export function noter(mesures: Mesures, niveau: string): Note {
+  const BORNES = bornes(niveau);
+  if (!BORNES) throw new Error(`aucun barème pour l'échelon ${niveau}`);
   const marge = entre(mesures.tauxEpargne, BORNES.MARGE.bas, BORNES.MARGE.haut) * BORNES.MARGE.points;
   // Une épargne nulle ou négative ne rembourse rien : le terme vaut zéro, et
   // ce n'est pas un trou de donnée mais le pire cas possible.
@@ -156,13 +234,22 @@ export function noter(mesures: Mesures): Note {
     valeur: arrondi(detail.marge + detail.dette + detail.trajectoire),
     mesures,
     detail,
+    niveau,
   };
 }
 
-/** La note d'un territoire, ou `null` s'il ne porte pas les trois séries. */
-export function note(series: Series): Note | null {
+/**
+ * La note d'un territoire, ou `null`.
+ *
+ * `null` dans deux cas, et les deux sont des faits sur ce qui est publié : le
+ * territoire ne porte pas les trois séries de l'OFGL, ou son échelon n'a pas
+ * de barème. La France est le second cas — elle n'a pas de compte
+ * administratif, et lui appliquer le barème d'une commune n'aurait aucun sens.
+ */
+export function note(series: Series, niveau: string): Note | null {
+  if (!bornes(niveau)) return null;
   const mesures = mesurer(series);
-  return mesures ? noter(mesures) : null;
+  return mesures ? noter(mesures, niveau) : null;
 }
 
 /**

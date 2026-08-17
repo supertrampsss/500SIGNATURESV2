@@ -2255,6 +2255,135 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* ===========================================================================
+   LA NOTE DE GESTION
+   ===========================================================================
+   Elle ouvre la fiche parce qu'elle répond à la question qu'on vient poser :
+   « est-ce que ma commune est bien gérée ». Elle est donc le seul objet de la
+   page à porter le corps d'affichage — au-dessus des repères, qui la
+   soutiennent.
+
+   Aucune couleur de verdict. Un « critique » peint en rouge sur 34 875
+   communes fait du barème un jugement là où il n'est qu'une mesure, et le
+   site n'a de toute façon qu'un accent (§4.2 de la charte d'interface). La
+   hiérarchie se fait au corps et au poids, comme partout ailleurs ici.
+
+   La grille du détail est en `grid` et non en `table` visuellement : les trois
+   points se lisent en colonne, alignés à droite, et c'est cette colonne que le
+   lecteur additionne pour retrouver le total. `tabular-nums` garantit
+   l'alignement que la décimale fixe rend utile. */
+.note {
+  margin: var(--espace-6) 0 0;
+  padding: var(--espace-7);
+  background: var(--papier-creuse);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+}
+.note__titre {
+  margin: 0;
+  font-family: inherit;
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--encre-douce);
+}
+.note__valeur {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--espace-2) var(--espace-4);
+  margin: var(--espace-4) 0 0;
+}
+.note__valeur strong {
+  font-family: var(--serif);
+  font-size: var(--texte-affiche);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.note__bareme {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  color: var(--encre-douce);
+  /* Collée au nombre : « 14,5 » et « / 20 » sont une seule mesure, et
+     l'écart de la grille les faisait lire comme deux. */
+  margin-left: calc(var(--espace-4) * -1);
+}
+.note__mention {
+  padding: var(--espace-2) var(--espace-5);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.note__detail {
+  width: 100%;
+  margin: var(--espace-6) 0 0;
+  border-collapse: collapse;
+  font-size: var(--texte-m);
+}
+/* La légende sous le tableau : millésime et source. En tête, elle séparait la
+   note de ce qui la produit. */
+.note__detail caption {
+  caption-side: bottom;
+  margin-top: var(--espace-4);
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  text-align: left;
+}
+.note__detail th,
+.note__detail td {
+  padding: var(--espace-4) 0;
+  border-top: 1px solid var(--trait);
+  text-align: left;
+  font-weight: 400;
+}
+.note__detail tr:first-child th,
+.note__detail tr:first-child td {
+  border-top: 0;
+}
+.note__mesure {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.note__points {
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.note__sur {
+  color: var(--encre-douce);
+}
+.note__portee {
+  margin: var(--espace-6) 0 0;
+  font-size: var(--texte-xs);
+  line-height: 1.5;
+  color: var(--encre-douce);
+}
+/* À l'étroit, le tableau se resserre : la mesure passe au petit corps et les
+   lignes perdent de la hauteur. La colonne de points garde son alignement à
+   droite — c'est la seule chose qui doit le garder, puisque c'est elle que le
+   lecteur additionne.
+
+   Le seuil est **40rem, pas une valeur choisie pour ce bloc** : la feuille n'a
+   que deux points de rupture, et un test du dépôt refuse le troisième. Une
+   grille de rupture par composant produit des sauts de mise en page à des
+   largeurs que personne n'a décidées. */
+@media (max-width: 40rem) {
+  .note {
+    padding: var(--espace-6);
+  }
+  .note__detail th,
+  .note__detail td {
+    padding: var(--espace-3) 0;
+  }
+  .note__mesure {
+    font-size: var(--texte-xs);
+  }
+}
+
+/* ===========================================================================
    LES QUATRE REPÈRES D'OUVERTURE
    ===========================================================================
    Des cartes, et non une bande tenue par deux filets : quatre nombres posés
