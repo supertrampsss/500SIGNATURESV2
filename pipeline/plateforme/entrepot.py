@@ -42,7 +42,14 @@ SCHEMA = Path(__file__).resolve().parents[2] / "infra/entrepot/schema.sql"
 # Clé du fichier d'entrepôt dans le bucket. Le nom porte la version du schéma :
 # un changement de structure produit un nouveau fichier plutôt que d'écraser
 # celui que l'ancien code sait encore lire.
-CLE = "entrepot/plateforme-v2.duckdb"
+#
+# v3 (17 août 2026) : `geo.commune_officials` accepte trois rôles de plus —
+# `maire_precedent`, `president_departement`, `president_region`. DuckDB
+# n'applique pas un changement de contrainte à une table existante, donc un
+# entrepôt v2 rechargé aurait refusé les nouvelles lignes à l'écriture, très
+# loin du `check` qui les cause. La garde de `SchemaDivergent` a fait échouer
+# un test avant que ce soit possible — c'est exactement son travail.
+CLE = "entrepot/plateforme-v3.duckdb"
 
 # Emplacement local du fichier pendant un run. Le runner GitHub est éphémère :
 # ce chemin ne survit pas au job, et c'est voulu — la seule copie qui fait foi
