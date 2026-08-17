@@ -394,6 +394,25 @@ pour ne plus l'être.
    le 17 août 2026. La numérotation est gardée pour que les renvois des
    entrées voisines restent justes.
 
+6. **Un volet « retraites » à part entière — ce qui manque n'est pas une source,
+   c'est un angle.** La question des retraites est désormais répondue en deux
+   endroits : « 100 € de prestations sociales » montre que la vieillesse-survie
+   est le premier risque (`drees_protection_sociale_vieillesse`, série de 66
+   ans, déjà publiée), et le tableau des voisins pose les 14,6 % du PIB
+   français à côté des 11,5 % allemands et des 15,5 % italiens.
+
+   Un troisième cadre qui répéterait ces deux chiffres serait du bruit. Ce qui
+   manque pour en faire un vrai volet est **une donnée qu'aucun connecteur ne
+   charge** : le nombre de cotisants par retraité, l'âge effectif de départ, la
+   pension moyenne par génération. Ce sont les trois chiffres qui font le débat,
+   et aucun n'est dans l'entrepôt — la DREES les publie (« Les retraités et les
+   retraites »), ce qui suppose **un connecteur de plus, donc D7**.
+
+   Le solde de la branche vieillesse du PLFSS, lui, est déjà chargé et réglable
+   dans le simulateur : c'est le seul de ces chiffres qui n'a pas besoin d'une
+   source neuve, et il vit là où on peut agir dessus plutôt que dans un cadre
+   qui le contemple.
+
 5. **Le cinquième objet partageable — et pourquoi il attend une plume, pas un
    branchement.** La spec §13 liste cinq objets partageables ; le site en offre
    quatre depuis que la fiche de territoire a le sien. Le manquant est le
@@ -466,6 +485,40 @@ pour ne plus l'être.
   Les titres de colonnes lisaient encore « Les mieux notées » sous un titre
   corrigé en « les départements […] gérés » : **troisième fois** que ce
   participe tombe ici.
+
+- **Ce que la redistribution change, décile par décile** (17 août 2026). Le site
+  disait ce que l'État encaisse et ce qu'il dépense, jamais ce que cet argent
+  **fait** aux revenus. L'INSEE publie les neuf déciles du niveau de vie avant
+  et après impôts et prestations, de 1996 à 2024 : chargé pour de vrai depuis
+  Melodi, **580 observations sur 29 exercices**.
+
+  | 2024 | avant | après | écart |
+  |---|---|---|---|
+  | 10 % les plus modestes | 9 970 € | 13 970 € | **+4 000 €** |
+  | 30 % les plus modestes | 21 120 € | 20 980 € | −140 € |
+  | 10 % les plus aisés | 58 710 € | 48 580 € | **−10 130 €** |
+
+  La bascule est au **troisième décile**, et le rapport interdécile passe de
+  5,89 à 3,48.
+
+  **Trois pièges dans le jeu, un test chacun.** Le cinquième décile n'a pas de
+  code `D5_SL` : l'INSEE le publie sous `MED_SL`, et le chercher sous son nom
+  attendu ferait un trou au milieu du tableau, à l'endroit où le lecteur se
+  place lui-même. Le même jeu porte d'autres zonages et des croisements par âge
+  — la médiane y arrive **soixante-dix-sept fois** — si bien qu'un filtre
+  manquant garde la série de la bonne longueur et la remplit d'ailleurs. Et le
+  jeu **non** rétropolé porte deux valeurs pour 1996, 2010, 2012 et 2020, de
+  part et d'autre d'une rupture de méthode : ce module emploie le rétropolé et
+  **lève** plutôt que de garder la dernière lue.
+
+  **Mon propre fixture de test portait ce piège** : 33 890 € comme médiane après
+  redistribution, lue dans le jeu sans filtrer les croisements. La vraie est
+  26 740 €. C'est de peindre le bloc avec les séries chargées qui l'a montré —
+  les sept tests unitaires passaient sur la valeur fausse.
+
+  **Pas d'indice de Gini ici, et c'est un refus** : le site porte déjà celui
+  d'EU-SILC, sur l'échelle 0-100 et sur un autre champ. Deux indices du même
+  nom sur une même page se liraient comme un seul.
 
 - **Les retraites, les inégalités et la délinquance de la France, posées à côté
   de celles des voisins** (17 août 2026). D7 accordé, `europe.py` étendu plutôt
