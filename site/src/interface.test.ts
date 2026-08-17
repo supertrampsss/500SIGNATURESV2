@@ -1418,9 +1418,26 @@ test("le site ne dessine pas de corrélations et ne mêle pas deux unités", () 
   // Les euros constants introduisaient une seconde unité à côté du million
   // d'euros courants, que les règles d'affichage n'admettent pas.
   assert.doesNotMatch(MAIN, /from "\.\/euros-constants\.ts"/);
-  // Et le conteneur que rien n'a jamais rempli.
+});
+
+test("aucun conteneur que rien ne remplit", () => {
+  // `#palmares` a été retiré au lot 0 parce que RIEN ne l'écrivait : un cadre
+  // vide dans le document est une promesse que la page ne tient pas, et il a
+  // survécu des mois sans que personne s'en aperçoive.
+  //
+  // Il est revenu le 17 août 2026, rempli cette fois — le palmarès des notes.
+  // Ce que la garde d'origine protégeait n'était pas l'absence d'un palmarès
+  // mais l'absence d'un conteneur mort, et c'est cela qu'elle vérifie
+  // désormais : le conteneur peut exister, à condition que `main.ts` l'écrive.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  assert.doesNotMatch(balises, /id="palmares"/);
+  if (/id="palmares"/.test(balises)) {
+    assert.match(
+      MAIN,
+      /getElementById\("palmares"\)/,
+      "#palmares est dans le document et personne ne l'écrit",
+    );
+    assert.match(MAIN, /rendrePalmares\(/);
+  }
 });
 
 /* ------------------------------------------------------------------------

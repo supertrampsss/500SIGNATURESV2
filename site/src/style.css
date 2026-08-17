@@ -2255,6 +2255,110 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* ===========================================================================
+   LE PALMARÈS DES NOTES
+   ===========================================================================
+   Deux colonnes, le haut et le bas d'un échelon. Trente-quatre mille lignes ne
+   se lisent pas ; les deux bouts se lisent, et c'est eux qu'on vient chercher.
+
+   Aucune couleur de verdict, pour la même raison que la note elle-même : un
+   « critique » peint en rouge en face d'un nom de commune fait du barème un
+   jugement là où il n'est qu'une mesure.
+
+   Les colonnes descendent en une seule sous 40rem — le seul point de rupture
+   que la feuille connaisse en dessous du bureau. */
+.palmares {
+  margin: 0 0 var(--espace-7);
+}
+.palmares__titre {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  line-height: 1.2;
+}
+.palmares__cadrage {
+  margin: var(--espace-4) 0 0;
+  max-width: 62ch;
+  font-size: var(--texte-s);
+  line-height: 1.5;
+  color: var(--encre-douce);
+}
+.palmares__colonnes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
+  gap: var(--espace-7);
+  margin-top: var(--espace-6);
+}
+.palmares__colonne h4 {
+  margin: 0 0 var(--espace-4);
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--encre-douce);
+}
+.palmares__liste {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.palmares__liste button {
+  display: grid;
+  /* Le rang tient quatre chiffres — « 34 778 » est un rang réel —, la note en
+     tient quatre avec sa décimale, et le nom prend ce qui reste. */
+  grid-template-columns: 3.5rem 1fr auto auto;
+  align-items: baseline;
+  gap: var(--espace-4);
+  width: 100%;
+  padding: var(--espace-4) var(--espace-2);
+  border: 0;
+  border-top: 1px solid var(--trait);
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.palmares__liste li:first-child button {
+  border-top: 0;
+}
+.palmares__liste button:hover {
+  background: var(--accent-teinte);
+}
+.palmares__rang {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+}
+.palmares__nom {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.palmares__note {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+}
+.palmares__mention {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  white-space: nowrap;
+}
+@media (max-width: 40rem) {
+  /* La mention sort : à 320 px, « confortable » derrière un nom de commune
+     tronqué et une note pousse la ligne à défiler. La note reste, elle est ce
+     qui range la colonne. */
+  .palmares__mention {
+    display: none;
+  }
+  .palmares__liste button {
+    grid-template-columns: 2.5rem 1fr auto;
+    gap: var(--espace-3);
+  }
+}
+
+/* ===========================================================================
    LA NOTE DE GESTION
    ===========================================================================
    Elle ouvre la fiche parce qu'elle répond à la question qu'on vient poser :

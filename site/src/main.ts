@@ -17,6 +17,7 @@ import { afficherFiche, NIVEAUX, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.t
 import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
 import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
 import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
+import { palmares, rendrePalmares, type Ligne as LignePalmares } from "./palmares.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -2042,7 +2043,11 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
     // La page DÉTAIL porte le même champ : sans ce repeint, choisir une ville
     // depuis cette page ouvrait la fiche de la carte et laissait le tableau sur
     // la ville précédente. On ne pouvait tout simplement pas en changer.
-    if (document.body.dataset.vue === "bilan") await peindreDetail();
+    if (document.body.dataset.vue === "bilan") {
+      await peindreDetail();
+      // Changer de territoire peut changer de maille, donc de palmarès.
+      void peindrePalmares();
+    }
   });
 
 }
@@ -2120,6 +2125,65 @@ function brancherSommaireSources(parTheme: [string, Indicateur[]][]): void {
  *  de page, et chaque mesure garde sa définition et sa source dans son rond
  *  « i ». Ce qui a réellement disparu de l'écran est écrit dans la PR. */
 const VUES_PAGE = ["territoire", "bilan"] as const;
+
+/**
+ * Le palmarès des notes, en tête de la page BILAN.
+ *
+ * Il ne dépend pas de la sélection : c'est précisément la page qu'un lecteur
+ * ouvre pour demander « et les autres ? », et exiger d'avoir d'abord choisi un
+ * territoire l'aurait rendue inutile à qui n'en a choisi aucun. La maille est
+ * celle de la sélection quand il y en a une, la commune sinon.
+ *
+ * Les couches sont un fichier par indicateur et par maille : la France entière
+ * tient en cinq fetchs, et non en cent fichiers de département. Les deux
+ * couches d'ouverture tolèrent l'absence, comme dans `poserSituation` — un
+ * exercice 2019 manquant vaut « pas de trajectoire », que la note sait traiter.
+ */
+async function peindrePalmares(): Promise<void> {
+  const cible = document.getElementById("palmares");
+  if (!cible) return;
+  await publiee;
+  const selection = etat.selection ? niveauSelection() : "commune";
+  const niveau = MAILLES_CLASSEES.has(selection) ? selection : "commune";
+  const exercice = dernierExerciceOfgl(niveau);
+  if (!exercice) return;
+  try {
+    const [index, recettes, epargne, dette, recettesAvant, epargneAvant] = await Promise.all([
+      donnees.indexTerritoires(niveau),
+      donnees.valeursCarte(RECETTES, niveau, exercice),
+      donnees.valeursCarte(EPARGNE, niveau, exercice),
+      donnees.valeursCarte("ofgl_encours_dette", niveau, exercice),
+      donnees.valeursCarte(RECETTES, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+      donnees.valeursCarte(EPARGNE, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+    ]);
+    if (document.getElementById("palmares") !== cible) return;
+    const lignes: LignePalmares[] = [];
+    index.codes.forEach((code, rang) => {
+      const note = noteDepuisCouches(
+        {
+          recettes: recettes[code],
+          epargne: epargne[code],
+          dette: dette[code],
+          recettesAvant: recettesAvant[code],
+          epargneAvant: epargneAvant[code],
+        },
+        exercice,
+        niveau,
+      );
+      if (note) lignes.push({ code, nom: index.noms[rang] ?? code, note });
+    });
+    cible.innerHTML = rendrePalmares(palmares(lignes), niveau);
+    // Chaque ligne ouvre la fiche du territoire, à la maille du palmarès —
+    // même contrat que le pli du classement, même gestionnaire par délégation.
+    cible.addEventListener("click", (evenement) => {
+      const place = (evenement.target as HTMLElement).closest<HTMLElement>("[data-territoire]");
+      if (place?.dataset.territoire) void ouvrirTerritoire(place.dataset.territoire, niveau);
+    });
+  } catch {
+    // Une couche absente d'une publication ne doit pas emporter la page : le
+    // palmarès ne s'affiche pas, les tableaux du territoire restent.
+  }
+}
 
 /** La page DÉTAIL pour le territoire sélectionné.
  *
@@ -2450,7 +2514,10 @@ function basculerVue(): void {
   // BILAN réunit ce que REPÈRES et DÉTAIL montraient séparément : les repères
   // nationaux, puis le classement des territoires et leur comparaison.
   $("vue-bilan").hidden = vue !== "bilan";
-  if (vue === "bilan") void peindreDetail();
+  if (vue === "bilan") {
+    void peindreDetail();
+    void peindrePalmares();
+  }
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
