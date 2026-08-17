@@ -313,10 +313,35 @@ test("la méthode nomme le contrôle qui remplace la relecture, et sa commande",
 
 test("la méthode tient les règles d'affichage du site", () => {
   const html = renduMethode();
-  assert.match(html, /millions d'euros/);
+  assert.match(html, /millions\s+d'euros/);
+  assert.match(html, /milliards\s+d'euros/);
   assert.match(html, /varie en points/);
   assert.match(html, /budgets ne s'additionnent pas/);
-  assert.match(html, /ni score composite, ni classement/);
+});
+
+test("la méthode décrit le site tel qu'il est, pas tel qu'il fut", () => {
+  // **Deux affirmations de cette page étaient devenues fausses**, et une page
+  // de méthode qui décrit un autre site que celui qu'on lit est pire qu'une
+  // page absente : elle donne au lecteur une garantie qu'il peut vérifier
+  // fausse en un coup d'œil.
+  const html = renduMethode();
+
+  // 1. « Le site ne publie ni score composite, ni classement » — alors que la
+  // fiche ouvre sur une note sur 20 et que le classement range par elle. Ce
+  // que la phrase protégeait vraiment reste écrit : aucune comparaison d'un
+  // échelon à l'autre, aucun indice sans dimension.
+  assert.doesNotMatch(html, /ne publie ni score composite/);
+  assert.match(html, /note\s+de gestion sur 20/);
+  assert.match(html, /jamais d'un échelon à l'autre/);
+  // Et ce que la note refuse, dit là où le lecteur vient chercher la méthode.
+  assert.match(html, /ne juge ni\s+le niveau de dépense/);
+  assert.match(html, /barème est propre\s+à chaque échelon/);
+
+  // 2. « Tous les montants sont en millions d'euros » — alors que
+  // `montantLisible` choisit l'échelle sur le montant et écrit « milliards
+  // d'euros » en toutes lettres au-delà du millier de millions.
+  assert.doesNotMatch(html, /Tous les montants sont en millions/);
+  assert.match(html, /en toutes lettres/);
 });
 
 test("les intertitres de la page sont exactement la liste fermée du module", () => {
