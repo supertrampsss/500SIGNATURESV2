@@ -30,7 +30,14 @@
  */
 
 import { pourcentage } from "./echelle.ts";
-import { bornes, mention, type Note } from "./note.ts";
+import {
+  SOLVABILITE_POINTS,
+  bornes,
+  exercicesNotables,
+  mention,
+  solvabilite,
+  type Note,
+} from "./note.ts";
 
 function echapper(texte: string): string {
   return texte.replace(
@@ -114,14 +121,96 @@ export function lignes(note: Note): { terme: string; mesure: string; points: str
 }
 
 /**
+ * La solvabilité exercice par exercice — dont 2019, la première colonne.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI CE TABLEAU EXISTE, ET POURQUOI IL EST SUR 16
+ * ─────────────────────────────────────────────────────────────────────────
+ * Une note seule laisse ouverte la question qu'on se pose juste après :
+ * « et avant, c'était mieux ? ». La trajectoire y répond pour la marge, en
+ * points, mais elle ne dit rien de la dette — une collectivité peut avoir
+ * gagné de la marge en empruntant.
+ *
+ * Le total est sur 16 et non sur 20 parce que le troisième terme de la note
+ * est un écart depuis 2019 : il n'existe pas POUR 2019, et le porter demanderait
+ * une borne six ans plus tôt que les fichiers ne publient pas (`note.ts`).
+ * Deux totaux différents sur un même écran est un risque de confusion, et il
+ * est pris délibérément : l'alternative — donner au terme sa demi-valeur par
+ * défaut à chaque exercice ancien — poserait un remplissage là où le lecteur
+ * lirait une mesure.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * L'UNITÉ NE SE MÊLE PAS
+ * ─────────────────────────────────────────────────────────────────────────
+ * Ce tableau est le sien, et non une ligne ajoutée au tableau « Évolution » :
+ * celui-ci aligne des euros sous une seule échelle nommée dans sa légende, et
+ * y glisser une ligne en points mêlerait deux unités dans une même table.
+ */
+export function rendreParcours(
+  series: Record<string, Record<string, number>>,
+  niveau: string,
+): string {
+  const exercices = exercicesNotables(series);
+  // Une colonne unique ne se compare pas : le tableau ne s'écrit qu'à partir
+  // de deux exercices, comme le tableau des exercices du reste de la fiche.
+  if (exercices.length < 2) return "";
+  const colonnes = exercices
+    .map((exercice) => solvabilite(series, exercice, niveau))
+    .filter((c): c is NonNullable<typeof c> => c !== null);
+  if (colonnes.length < 2) return "";
+
+  const entetes = colonnes.map((c) => `<th scope="col">${echapper(c.exercice)}</th>`).join("");
+  const ligne = (
+    intitule: string,
+    cellule: (c: (typeof colonnes)[number]) => string,
+    classe = "",
+  ) =>
+    `<tr${classe ? ` class="${classe}"` : ""}><th scope="row">${echapper(intitule)}</th>${colonnes
+      .map((c) => `<td>${echapper(cellule(c))}</td>`)
+      .join("")}</tr>`;
+
+  return `<details class="note__parcours">
+    <summary>La note, exercice par exercice</summary>
+    <div class="note__parcours-cadre" tabindex="0">
+      <table class="note__parcours-table">
+        <caption>Marge et dette seules, sur ${SOLVABILITE_POINTS} points : le troisième terme de la note est un écart depuis 2019, il n'existe pas pour 2019 même.</caption>
+        <thead><tr><th scope="col">Exercice</th>${entetes}</tr></thead>
+        <tbody>
+          ${ligne("Marge de fonctionnement", (c) => pourcentage(c.tauxEpargne, true))}
+          ${ligne("Poids de la dette", (c) =>
+            c.desendettement === null ? "aucune épargne" : nombreEtNom(c.desendettement, "année"),
+          )}
+          ${ligne(
+            `Solvabilité sur ${SOLVABILITE_POINTS}`,
+            (c) => points(c.valeur),
+            "note__parcours-total",
+          )}
+        </tbody>
+      </table>
+    </div>
+  </details>`;
+}
+
+/**
  * Le bloc entier.
  *
- * `nom` sert la phrase de méthode : « Bordeaux » plutôt que « ce territoire ».
- * Une note nominative se conteste mieux qu'une note anonyme.
+ * `series` et `niveau` servent le tableau exercice par exercice, qui répond à
+ * la question qu'une note seule laisse ouverte : « et avant, c'était mieux ? ».
+ *
+ * **La phrase de portée est partie de la fiche** — « la note mesure la
+ * solvabilité de X […] elle ne juge ni le niveau de dépense » —, et elle n'est
+ * pas perdue : elle vit dans les règles d'affichage de la page BILAN, où le
+ * lecteur qui conteste une note va chercher la méthode. Sur la fiche, elle
+ * occupait six lignes sous trois chiffres pour dire ce que les trois chiffres
+ * montrent déjà.
  */
-export function rendreNote(note: Note | null, nom: string): string {
+export function rendreNote(
+  note: Note | null,
+  series: Record<string, Record<string, number>> = {},
+): string {
   if (!note) return "";
   const total = points(note.valeur);
+  const parcours = rendreParcours(series, note.niveau);
   const rangs = lignes(note)
     .map(
       (l) => `<tr>
@@ -139,8 +228,6 @@ export function rendreNote(note: Note | null, nom: string): string {
       <caption>Exercice ${echapper(note.mesures.exercice)}. Source : OFGL, comptes des collectivités locales.</caption>
       <tbody>${rangs}</tbody>
     </table>
-    <p class="note__portee">La note mesure la solvabilité de ${echapper(
-      nom,
-    )} : la marge dégagée sur le fonctionnement, le temps qu'il faudrait pour rembourser la dette, et le sens dans lequel les deux vont depuis 2019. Elle ne juge ni le niveau de dépense, ni sa répartition, ni les taux d'impôts, qui sont des choix d'électeurs.</p>
+    ${parcours}
   </section>`;
 }

@@ -264,7 +264,7 @@ export function afficherFiche(
   // ne s'affiche que là où les trois séries de l'OFGL existent — la France n'a
   // pas de compte administratif, et `note()` rend `null` plutôt que de noter
   // un territoire sur des séries qu'il ne porte pas.
-  const noteChiffree = rendreNote(note(territoire.series ?? {}, niveau), territoire.nom);
+  const noteChiffree = rendreNote(note(territoire.series ?? {}, niveau), territoire.series ?? {});
   cible.innerHTML = `
     <h2 class="fiche__titre">${echapper(territoire.nom)}</h2>
     <p class="fiche__meta">${NIVEAUX[niveau] ?? niveau}${situe}${

@@ -253,6 +253,89 @@ export function note(series: Series, niveau: string): Note | null {
 }
 
 /**
+ * La solvabilité d'un exercice donné : les deux termes structurels, sur 16.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI SUR 16, ET PAS SUR 20
+ * ─────────────────────────────────────────────────────────────────────────
+ * Le troisième terme de la note est **par construction** un écart depuis 2019.
+ * Le porter sur l'exercice 2019 lui-même demanderait une borne six ans plus
+ * tôt : les communes n'ont que sept exercices publiés, 2019 à 2025 — pas de
+ * 2013, pas même de 2018 (les départements et les régions s'arrêtent à 2018).
+ * Mesuré sur le catalogue, pas supposé.
+ *
+ * Deux issues étaient possibles et une seule est honnête. Donner au terme sa
+ * demi-valeur par défaut, comme pour une borne absente, poserait 2 points sur 4
+ * à chaque exercice ancien : le lecteur lirait une mesure là où il n'y a qu'un
+ * remplissage, et 2019 sortirait mécaniquement au milieu. L'autre est de dire
+ * que ce terme n'existe pas avant le dernier exercice, et de comparer les
+ * années sur **ce qui est mesurable à toutes** : la marge et la dette.
+ *
+ * D'où un second total, nommé et borné à 16, qui ne se confond pas avec la
+ * note. Et il n'y a rien à regretter : la trajectoire EST déjà la comparaison
+ * 2019 → aujourd'hui, écrite en points de marge sur la ligne du dessus.
+ */
+export const SOLVABILITE_POINTS =
+  BORNES_PAR_NIVEAU.commune.MARGE.points + BORNES_PAR_NIVEAU.commune.DETTE.points;
+
+export type Solvabilite = {
+  exercice: string;
+  tauxEpargne: number;
+  desendettement: number | null;
+  marge: number;
+  dette: number;
+  /** Sur `SOLVABILITE_POINTS`, un chiffre après la virgule. */
+  valeur: number;
+};
+
+export function solvabilite(
+  series: Series,
+  exercice: string,
+  niveau: string,
+): Solvabilite | null {
+  const BORNES = bornes(niveau);
+  if (!BORNES) return null;
+  const recettes = series[RECETTES]?.[exercice];
+  const epargne = series[EPARGNE]?.[exercice];
+  const dette = series[DETTE]?.[exercice];
+  if (!recettes || epargne === undefined || dette === undefined) return null;
+
+  const tauxEpargne = (epargne / recettes) * 100;
+  const desendettement = epargne > 0 ? dette / epargne : null;
+  const arrondi = (n: number) => Math.round(n * 10) / 10;
+  const pointsMarge = arrondi(
+    entre(tauxEpargne, BORNES.MARGE.bas, BORNES.MARGE.haut) * BORNES.MARGE.points,
+  );
+  const pointsDette = arrondi(
+    desendettement === null
+      ? 0
+      : entre(
+          BORNES.DETTE.pire - desendettement,
+          0,
+          BORNES.DETTE.pire - BORNES.DETTE.meilleur,
+        ) * BORNES.DETTE.points,
+  );
+  return {
+    exercice,
+    tauxEpargne,
+    desendettement,
+    marge: pointsMarge,
+    dette: pointsDette,
+    // Somme des termes ARRONDIS, comme la note : un lecteur qui additionne la
+    // colonne doit retrouver le total affiché.
+    valeur: arrondi(pointsMarge + pointsDette),
+  };
+}
+
+/** Les exercices où les trois séries existent ensemble, du plus ancien au plus
+ *  récent. Un exercice qui n'en porte que deux ne donne pas de solvabilité. */
+export function exercicesNotables(series: Series): string[] {
+  return Object.keys(series[RECETTES] ?? {})
+    .filter((a) => series[EPARGNE]?.[a] !== undefined && series[DETTE]?.[a] !== undefined)
+    .sort();
+}
+
+/**
  * La note d'un territoire à partir des couches de la carte, et non de sa fiche.
  *
  * Le classement lit des couches — un fichier par indicateur, par maille et par

@@ -2459,11 +2459,68 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .note__sur {
   color: var(--encre-douce);
 }
-.note__portee {
+/* La note exercice par exercice, repliée : elle répond à « et avant ? », qui
+   se pose APRÈS avoir lu la note, jamais avant. Dépliée d'office, sept colonnes
+   de chiffres pousseraient les repères hors de l'écran d'ouverture. */
+.note__parcours {
   margin: var(--espace-6) 0 0;
+  border-top: 1px solid var(--trait);
+  padding-top: var(--espace-5);
+}
+.note__parcours summary {
+  cursor: pointer;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+/* Le cadre défile ; la page, jamais. `tabindex` parce qu'un cadre défilant
+   sans contenu focalisable ne défile qu'à la souris (WCAG 2.1.1) — c'est le
+   défaut relevé sur les sept autres cadres du site. */
+.note__parcours-cadre {
+  overflow-x: auto;
+  margin-top: var(--espace-5);
+}
+.note__parcours-cadre:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.note__parcours-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texte-m);
+  font-variant-numeric: tabular-nums;
+}
+.note__parcours-table caption {
+  caption-side: bottom;
+  margin-top: var(--espace-4);
   font-size: var(--texte-xs);
   line-height: 1.5;
   color: var(--encre-douce);
+  text-align: left;
+}
+.note__parcours-table th,
+.note__parcours-table td {
+  padding: var(--espace-3) var(--espace-4);
+  border-top: 1px solid var(--trait);
+  text-align: right;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.note__parcours-table thead th,
+.note__parcours-table tbody th {
+  text-align: left;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+.note__parcours-table thead th {
+  border-top: 0;
+}
+/* Le total se lit d'un coup d'œil parmi ses deux termes. */
+.note__parcours-total td {
+  font-weight: 600;
+}
+.note__parcours-total th,
+.note__parcours-total td {
+  border-top: 1px solid var(--trait-fort);
 }
 /* À l'étroit, le tableau se resserre : la mesure passe au petit corps et les
    lignes perdent de la hauteur. La colonne de points garde son alignement à
