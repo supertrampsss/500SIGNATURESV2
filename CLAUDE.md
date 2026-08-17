@@ -401,6 +401,36 @@ pour ne plus l'être.
    tuyauterie : ou la phrase se précise (« aucun score composite, aucun
    palmarès entre territoires » et le tri assumé), ou `/detail` cesse de
    présenter ses lignes comme un rang. Ne pas réécrire l'une des deux seul.
+5. **Le cinquième objet partageable — et pourquoi il attend une plume, pas un
+   branchement.** La spec §13 liste cinq objets partageables ; le site en offre
+   quatre depuis que la fiche de territoire a le sien. Le manquant est le
+   **repère**, et `carteReperes` reste donc écrite, testée, sans appelant. Deux
+   des cinq natures, elles, sont mortes par décision : `carteScenario` et
+   `carteComparaison` ne peuvent pas avoir d'image, l'espace des budgets
+   encodés étant infini (**D-L3-b**, documentée dans `partage.ts`).
+
+   **Les huit cadres de `/reperes` posent des questions, pas des
+   affirmations** : « La Sécu est-elle en déficit ? », « Les niches fiscales,
+   c'est combien ? », « Que finance la dépense publique ? ». Or `carteReperes`
+   n'a pas de corps — « un graphique ne se redessine pas à cette taille sans
+   devenir un trait décoratif » — et son titre porte l'image à lui seul. Une
+   carte qui circule en posant la question sans peindre la réponse est le
+   contraire de ce que cette nature existe pour faire.
+
+   Écrire les huit affirmations est un travail **éditorial** : ce sont des
+   énoncés au sens du §14, et c'est le contrôle déterministe et le veto de
+   fusion (**D11**) qui en répondent, pas une tuyauterie de rendu.
+
+   **Et trois des huit n'ont pas de source unique**, mesuré sur le catalogue
+   publié : conjoncture (2 jeux), Europe (2), Sécu (2) — dette, fonctions,
+   État, niches et « 100 € » en ont une. `SourceCarte` ne nomme qu'un intitulé
+   et qu'un millésime ; en choisir un pour deux serait la faute que
+   `jeu_par_niveau` vient de corriger dans le catalogue. Ces trois-là
+   demanderaient donc aussi une carte qui sache dire deux sources, ou un
+   découpage plus fin que le cadre.
+
+   La fiche, elle, a été branchée parce que la mesure disait qu'elle le
+   pouvait : ses trois repères partagent une source aux quatre mailles.
 
 ### Fait
 
