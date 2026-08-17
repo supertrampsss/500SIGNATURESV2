@@ -427,6 +427,97 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Les communes semblables, promises et jamais montrées** (17 août 2026). Les
+  quartiles par groupe de pairs sont publiés depuis le 5 août, la page de
+  méthode décrit le groupe qu'ils définissent, l'accueil pose la question
+  « Ma commune dépense-t-elle plus que les communes comparables ? » — et
+  **aucun écran ne le montrait**. `comparaisons.json` était chargé par le
+  navigateur pour n'alimenter qu'une poignée de diagnostic.
+
+  Il manquait **un seul champ**. La clé du groupe se construit des drapeaux
+  d'un territoire, et l'index de la maille — le seul fichier qu'une page
+  d'ensemble charge — ne les portait pas. Il les porte, sous forme de
+  dictionnaire et non de cinq colonnes : mesuré, cinq colonnes de 34 875
+  valeurs coûtent **976 611 octets** quand les 93 combinaisons distinctes en
+  coûtent **85 084**, soit +3,8 % sur l'index au lieu de +44 %.
+
+  `/bilan` ouvre donc sur le groupe de la commune affichée, au-dessus du
+  palmarès de l'échelon : même barème, même tri, mêmes colonnes, seule change
+  la population comparée. Bordeaux : « 25 communes de 100 000 habitants et
+  plus, urbaines, de métropole, hors montagne, touristiques […] 22e sur 25, à
+  8,4 sur 20 ».
+
+  **Balayé sur les 34 875 communes** : 34 628 obtiennent leur groupe sur les
+  cinq critères, 147 retombent sur trois, 29 sur deux, **64 n'en ont aucun** et
+  7 n'ont aucun critère publié. Les 64 sont **toutes d'outre-mer**, et c'est un
+  refus, pas un trou : leurs strates comptent chacune moins de vingt communes,
+  et retirer le critère d'outre-mer les comparerait à des communes
+  métropolitaines.
+
+  **Deux défauts trouvés en peignant, aucun par les 978 tests.** Le groupe
+  montrait cinq communes à 20/20 sans dire combien partageaient la note — 47
+  des 635 semblables à Sare : c'est la faute exacte que le palmarès de
+  l'échelon avait déjà coûté un correctif, refaite dans un module neuf le jour
+  de sa naissance, et la phrase des ex æquo est désormais partagée par les
+  deux. Et la ligne mise en avant composait `--encre-douce` sur un fond
+  d'accent à 6 % : **4,49:1** pour un seuil de 4,5, relevée à l'`axe-core`,
+  même famille que l'estompe des paliers du simulateur.
+
+  Les titres de colonnes lisaient encore « Les mieux notées » sous un titre
+  corrigé en « les départements […] gérés » : **troisième fois** que ce
+  participe tombe ici.
+
+- **Les retraites, les inégalités et la délinquance de la France, posées à côté
+  de celles des voisins** (17 août 2026). D7 accordé, `europe.py` étendu plutôt
+  qu'un connecteur neuf — le geste qui avait marché pour les maires. Six séries
+  chargées pour de vrai contre Eurostat, dans un entrepôt local : 4 079
+  observations, **aucun doublon (pays, période)**.
+
+  | Jeu | Séries | Pays |
+  |---|---|---|
+  | `spr_exp_pens` | pensions totales et vieillesse seule, % du PIB | 42 |
+  | `ilc_di12` | indice de Gini du niveau de vie | 40 |
+  | `ilc_di11` | rapport interquintile S80/S20 | 46 |
+  | `crim_off_cat` | homicides et cambriolages de logement pour 100 000 | 41 |
+
+  France 2023 : pensions **14,61 %** du PIB, vieillesse seule 12,07 %. France
+  2025 : Gini 30,4, S80/S20 4,74. France 2024 : 1,28 homicide et 295,47
+  cambriolages de logement pour 100 000 habitants.
+
+  **Une donnée publiée qu'aucun écran ne montre n'est pas livrée** — ce fichier
+  porte déjà l'entrée « les quarante-trois séries invisibles ». Le tableau des
+  voisins gagne donc une colonne « Pensions / PIB » et un second tableau
+  « Niveau de vie et faits enregistrés ». Chaque colonne porte **son propre
+  millésime** : l'enquête EU-SILC publie l'année même, la statistique de police
+  deux ans après, et une année en tête de tableau en daterait trois.
+
+  **Deux unités neuves, pour deux raisons de fond.** Un indice et un rapport
+  publiés en `count` s'arrondissent à « 30 » et « 5 », c'est-à-dire perdent
+  exactement les dixièmes où se joue l'écart entre pays. Et les taux
+  d'Eurostat comptent **pour cent mille habitants** quand les séries du SSMSI
+  que le site publie comptent **pour mille** : deux unités distinctes, aucune
+  conversion silencieuse de l'une vers l'autre.
+
+  En peignant le tableau, **le sixième formateur** à laisser tomber la décimale
+  d'une colonne comparée : « Allemagne 94 » entre « 295,5 » et « 166,8 ».
+
+- **Quatre cadres défilants inatteignables au clavier, et la garde qui ne
+  pouvait pas les voir** (17 août 2026). `axe-core` sur `/bilan` : quatre
+  violations WCAG 2.1.1, exactement le défaut pour lequel huit autres cadres
+  avaient été corrigés il y a quelques heures.
+
+  **La garde écrite alors énumérait huit gabarits à la main.** Une liste écrite
+  à la main ne pousse pas : les cadres des analyses, du rendu d'analyse, des
+  crédits par mission et des scénarios sont arrivés après elle, et elle est
+  restée verte. Elle **déduit** désormais sa liste de la feuille de style —
+  toute classe dont une règle déclare `overflow-x: auto` doit porter
+  `tabindex="0"` partout où un gabarit l'écrit — moins les cadres dont le
+  contenu propre est focalisable, qui défilent déjà au clavier.
+
+  La fenêtre d'exemption s'arrête à la fermeture du cadre : sans cette coupe,
+  un bouton écrit **après** le tableau des scénarios exemptait un cadre qui
+  n'en contient aucun. La première version de la garde avait ce trou.
+
 - **Une table de plus, pas une contrainte élargie — et l'entrepôt n'a pas
   bougé** (17 août 2026). Les exécutifs locaux — 94 présidents de département,
   14 de région, 34 889 maires sortants — avaient été écrits dans
