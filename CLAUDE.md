@@ -487,6 +487,16 @@ pour ne plus l'être.
   c'est leur destination qui ne l'était plus. **Un script de sabotage n'emploie
   que des chemins absolus, et ses commandes tournent en sous-shell.**
 
+  **Et le tiret cadratin a fait rougir la CI, pour la deuxième fois.** Les sept
+  libellés s'écrivaient « Prestations en espèces — vieillesse » ;
+  `test_aucun_cadratin_dans_les_definitions_publiees` refuse ce signe dans un
+  champ publié. Ce n'est pas le test qui manquait, c'est ma vérification :
+  après avoir écrit ces libellés je n'ai relancé que `tests/test_europe.py`,
+  et cette règle-là vit dans un autre fichier. **Un champ publié se vérifie sur
+  la suite entière, jamais sur le fichier de test du module qu'on écrit** — un
+  connecteur neuf est lu par au moins trois contrôles transverses (typographie,
+  vocabulaire, déclarations) qu'aucun nom de fichier ne désigne.
+
 - **Pour 100 € encaissés par toutes les administrations, ce qui ressort**
   (17 août 2026). Le site répondait deux fois à « où va l'argent public » — les
   100 € du budget de l'État, les 100 € de prestations sociales — et aucune des
