@@ -195,7 +195,7 @@ test("le cadrage et le titre viennent du fichier, jamais d'une phrase d'État", 
 
 test("le défi de l'école ne s'affiche pas sur un budget qui n'en porte pas", () => {
   const noms = defis(INDEX, new Map(), 0, -1).map((d) => d.nom);
-  assert.deepEqual(noms, ["Dégagez 10 Md€", "L'équilibre"]);
+  assert.deepEqual(noms, ["Dégagez 10\u202f000 M€", "L'équilibre"]);
 });
 
 /* ------------------------------------------------------------ le partage */

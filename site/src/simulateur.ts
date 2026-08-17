@@ -408,16 +408,23 @@ function masseExiste(index: Index, motif: RegExp): boolean {
  * est le seul qui apprenne quelque chose : il rend visible que les grandes
  * masses ne sont pas où on les cherche, en interdisant la plus grosse — et il
  * ne s'affiche que sur un budget qui la porte.
+ *
+ * **En M€, comme tout le reste du site.** Ils s'écrivaient « Dégagez 10 Md€ »
+ * et « 30 Md€ sans toucher à l'école », et l'écran pose leur avancement juste
+ * à côté : « +9 520 M€ ». Savoir si le défi était tenu demandait une
+ * conversion de tête — exactement ce que la règle des M€ existe pour éviter.
+ * `mission.ts` a corrigé ses paliers pour cette raison, et cite le même
+ * écran ; les défis, sur ce même écran, y avaient échappé.
  */
 export function defis(index: Index, reglages: Reglages, ecart: number, solde: number): Defi[] {
   const ecole = missionTouchee(index, reglages, MISSION_ECOLE);
   const protegeable = masseExiste(index, MISSION_ECOLE);
   return [
-    { nom: "Dégagez 10 Md€", reussi: ecart >= 1e10, valeur: ecart, cible: 1e10, obstacle: null },
+    { nom: "Dégagez 10\u202f000 M€", reussi: ecart >= 1e10, valeur: ecart, cible: 1e10, obstacle: null },
     ...(protegeable
       ? [
           {
-            nom: "30 Md€ sans toucher à l'école",
+            nom: "30\u202f000 M€ sans toucher à l'école",
             reussi: ecart >= 3e10 && !ecole,
             valeur: ecart,
             cible: 3e10,

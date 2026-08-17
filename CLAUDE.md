@@ -434,6 +434,25 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Les deux défis de l'atelier, en Md€ sous un compteur en M€**
+  (17 août 2026). « Dégagez 10 Md€ » et « 30 Md€ sans toucher à l'école »,
+  avec leur avancement peint à côté : « +9 520 M€ ». Savoir si le défi était
+  tenu demandait une conversion de tête.
+
+  Ce n'est pas une trouvaille : `mission.ts` a converti ses paliers pour
+  exactement cette raison, son commentaire cite le même écran et le même
+  compteur, et il énumère les trois assertions du dépôt qui refusent `Md€`.
+  Les défis vivent sur cet écran-là, à quelques pixels des paliers — la
+  correction avait été portée dans un module et pas dans son voisin.
+
+  Le test ne vise donc pas une chaîne : il balaie **tout** ce que l'atelier
+  rend, un budget réglé, et refuse `Md€` comme `k€`. Trouvé en peignant
+  l'atelier avec les fichiers publiés, jamais par les 912 tests.
+
+  Et la sabotage a d'abord échoué en silence : le motif tapé à la main portait
+  une espace ordinaire là où la source écrit `\u202f`. Sixième fois que cette
+  espace-là fait passer une vérification pour verte.
+
 - **La fiche de territoire se partage, et l'adresse du site cesse d'être
   coupée** (17 août 2026). La spec §13 liste cinq objets partageables ; le site
   en offrait trois. Deux des cinq natures de carte sont mortes par la décision

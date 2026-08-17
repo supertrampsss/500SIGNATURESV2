@@ -412,7 +412,7 @@ test("les défis d'un budget n'apparaissent qu'une fois ce budget touché", () =
   // est — et l'écart dit à quel programme il ressemble.
   assert.doesNotMatch(page(new Map()), /simu__defi\b/);
   const html = page(reglages(["140", -21]));
-  assert.match(html, /Dégagez 10 Md€/);
+  assert.match(html, /Dégagez 10\u202f000 M€/);
   assert.match(html, /L&#39;équilibre/);
   assert.match(html, /Votre écart, c'est le programme/);
 });
@@ -434,7 +434,7 @@ test("un défi dit sa progression, ou ce qui le bloque, et « tenu » quand il l
   const ecart = ecartAuReel(BUDGET, table);
   const html = renduDefis(defis(INDEX, table, ecart, totaux(BUDGET, table).solde));
   // 12 Md€ dégagés : le premier défi est tenu.
-  assert.match(html, /Dégagez 10 Md€<\/span>\s*<span class="simu__defi-etat nombre">tenu/);
+  assert.match(html, /Dégagez 10\u202f000 M€<\/span>\s*<span class="simu__defi-etat nombre">tenu/);
   // Le deuxième ne l'est pas, et ce n'est pas une question de chiffre.
   assert.match(html, /l&#39;école est touchée/);
   assert.match(html, /simu__defi--tenu/);
@@ -718,4 +718,33 @@ test("la somme des branches n'est pas le budget de la Sécurité sociale", () =>
   assert.match(VOLETS, /CODE_ELIMINATION/);
   assert.match(VOLETS, /Transferts entre branches, comptés deux fois/);
   assert.match(VOLETS, /elimineDepense = totalBranches\.depenses - totalConsolide\.depenses/);
+});
+
+/**
+ * Aucune unité qui ne soit le million d'euros, sur tout l'atelier.
+ *
+ * `mission.ts` a converti ses paliers de « 10 Md€ » en « 10 000 M€ », et son
+ * commentaire nomme la raison : le compteur voisin dit « 159 297 M€ », et
+ * savoir si la marche était franchie demandait une conversion de tête. Les
+ * défis, sur le MÊME écran et à quelques pixels de là, écrivaient encore
+ * « Dégagez 10 Md€ » au-dessus de « +9 520 M€ » — la correction avait été
+ * portée dans un module et pas dans son voisin.
+ *
+ * Ce test ne vise donc pas une chaîne : il balaie ce que l'atelier rend, défis
+ * compris, pour qu'une troisième unité ne réapparaisse pas dans un coin que
+ * personne ne regarde.
+ */
+test("l'atelier n'écrit ni Md€ ni k€, nulle part", () => {
+  // Un budget réglé : c'est seulement une fois des gestes posés que le bloc des
+  // défis et celui du plan paraissent. À vide, ils sont `hidden` et le balayage
+  // ne verrait ni l'un ni l'autre.
+  const [premiere] = [...INDEX.keys()];
+  const html = renduAtelier([VOLET], atelier(reglages([premiere, -10])), []);
+  assert.ok(html.length > 1000, "l'atelier n'a rien rendu : le balayage ne prouverait rien");
+  for (const unite of ["Md€", "k€"]) {
+    assert.ok(
+      !html.includes(unite),
+      `« ${unite} » dans l'atelier : ${html.slice(Math.max(0, html.indexOf(unite) - 90), html.indexOf(unite) + 40)}`,
+    );
+  }
 });
