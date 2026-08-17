@@ -24,6 +24,7 @@ import {
   type Ligne as LignePalmares,
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
+import { afficherRedistribution } from "./redistribution.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -4350,6 +4351,9 @@ async function demarrer(): Promise<void> {
       $("national").hidden = false;
     }
     if (afficherSecu($("bloc-secu"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    if (afficherRedistribution($("bloc-redistribution"), pays, catalogue)) {
       $("national").hidden = false;
     }
     // Les niches fiscales ont leur propre fichier — le détail des dispositifs

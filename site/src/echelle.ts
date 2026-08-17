@@ -360,7 +360,14 @@ export function millions(valeur: number): string {
  * grandeur : le budget d'une petite commune est lui aussi un petit nombre, et
  * il reste un agrégat.
  */
-const VALEURS_UNITAIRES = new Set(["insee_salaire_net_eqtp_mensuel"]);
+const VALEURS_UNITAIRES = new Set([
+  "insee_salaire_net_eqtp_mensuel",
+  // Les dix-huit déciles du niveau de vie, avant et après redistribution : ce
+  // qu'une personne a pour vivre en un an. « 0,01 M€ » y serait la même faute
+  // que « 0,00 M€ » sur un salaire mensuel, à un rang près.
+  ...Array.from({ length: 9 }, (_, i) => `insee_niveau_vie_d${i + 1}`),
+  ...Array.from({ length: 9 }, (_, i) => `insee_niveau_vie_d${i + 1}_avant_redistribution`),
+]);
 
 export function formater(
   valeur: number,

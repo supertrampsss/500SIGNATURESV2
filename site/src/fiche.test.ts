@@ -297,7 +297,13 @@ test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => 
   // « +4 % » à côté d'un chiffre nul : la règle des millions sert à comparer
   // des masses budgétaires entre elles, pas à dire une paie.
   const ECHELLE = fs.readFileSync(new URL("./echelle.ts", import.meta.url), "utf8");
-  assert.match(ECHELLE, /const VALEURS_UNITAIRES = new Set\(\["insee_salaire_net_eqtp_mensuel"\]\);/);
+  // L'assertion portait sur le contenu exact d'un ensemble d'un seul élément.
+  // Il en compte dix-neuf depuis que les déciles du niveau de vie sont publiés
+  // — eux aussi ce qu'une personne a pour vivre —, et figer la liste ferait
+  // tomber ce contrôle à chaque série unitaire de plus, sans rien protéger de
+  // mieux. Ce qui compte est que le salaire y soit **nommé**.
+  assert.match(ECHELLE, /const VALEURS_UNITAIRES = new Set\(\[/);
+  assert.match(ECHELLE, /"insee_salaire_net_eqtp_mensuel",?\n/);
   // Nommées, jamais devinées par un seuil de grandeur : le budget d'une petite
   // commune est lui aussi un petit nombre, et il reste un agrégat.
   assert.doesNotMatch(ECHELLE, /valeur < 1[_ ]?000[_ ]?000/);
