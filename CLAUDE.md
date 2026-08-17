@@ -201,10 +201,12 @@ pour ne plus l'être.
 
    Ce qui reste est donc le sujet d'origine, et lui seul : **étendre le
    simulateur aux comptes spéciaux, aux budgets annexes et aux ODAC.**
-   L'obstacle arithmétique que cette entrée invoquait n'existe pas. Le vrai est
-   ailleurs, et il est mesuré.
+   L'obstacle arithmétique que cette entrée invoquait n'existe pas — et
+   l'obstacle de source qu'elle a invoqué ensuite non plus. Ce qui reste tient
+   en trois jeux à charger et une question de méthode, tous deux mesurés
+   ci-dessous.
 
-   **Les dépenses sont là, les recettes ne le sont pas.** Le simulateur ne lit
+   **Les dépenses sont là, et les recettes aussi.** Le simulateur ne lit
    pas la situation mensuelle mais le PLF (`normalize/budget_lignes.py`,
    `fin.state_budget_detail`). Deux filtres y écartent tout ce qui n'est pas
    `BG` — donc les comptes spéciaux sont **téléchargés puis jetés**, pas
@@ -228,22 +230,75 @@ pour ne plus l'être.
    `grouper_recettes` **lève** sur une famille inconnue : si des recettes de
    comptes spéciaux y étaient, le connecteur échouerait déjà.
 
-   Élargir le seul filtre des dépenses donnerait donc un volet de **229 Md€ de
-   dépenses sans rien en face**, dont le « solde » vaudrait leur opposé. C'est
-   mot pour mot ce que le module refuse déjà pour l'exercice 2023 — « un budget
-   amputé de sa moitié n'est pas un budget ».
-
-   **Ce qu'il faut vraiment** : une source pour les *recettes* des comptes
+   Ce jeu-là, donc, ne les porte pas. Le tour précédent en a conclu qu'élargir
+   le filtre des dépenses donnerait « **229 Md€ de dépenses sans rien en
+   face** », et qu'il fallait « une source pour les recettes des comptes
    spéciaux, compte par compte — l'évaluation des voies et moyens et les états
-   annexés au PLF. C'est un **nouveau connecteur**, et les ODAC en demandent un
-   second, aucun ne les couvrant aujourd'hui. La décision relève de **D7** : la
-   validation humaine préalable reste en vigueur pour les connecteurs et la
-   méthodologie.
+   annexés au PLF », c'est-à-dire **un nouveau connecteur**.
+
+   **C'est faux, et le portail publie ces recettes.** Le catalogue de
+   data.economie.gouv.fr porte, pour chacun des deux exercices que le connecteur
+   charge déjà, le pendant exact du jeu des dépenses :
+
+   | Exercice | Recettes CAS et CCF | Recettes des budgets annexes |
+   |---|---|---|
+   | 2024 | `plf-2024-recettes-des-cas-et-ccf` (89 lignes) | `plf-2024-recettes-des-budgets-annexes` (18) |
+   | 2025 | `plf25-recettes-des-cas-et-des-ccf` (86 lignes) | `plf25-recettes-des-budgets-annexes` (18) |
+
+   Même producteur, même API Explore, même granularité que les dépenses : les
+   lignes déclarent `libelle_mission`, `code_section`, `libelle_section` et
+   `code_ligne_de_recette` — c'est-à-dire le « compte par compte » que l'entrée
+   allait chercher dans des annexes non structurées.
+
+   **Et les deux côtés se rejoignent.** Recettes du PLF face aux crédits de
+   paiement, mesuré sur l'API le 17 août 2026 :
+
+   | Exercice | Périmètre | Dépenses | Recettes | Solde |
+   |---|---|---|---|---|
+   | 2024 | CAS | 79,95 | 77,48 | −2,47 |
+   | 2024 | CCF | 148,65 | 146,04 | −2,61 |
+   | 2024 | BA | 2,41 | 2,57 | +0,16 |
+   | 2024 | **ensemble** | **231,01** | **226,09** | **−4,91** |
+   | 2025 | CAS | 80,76 | 79,72 | −1,05 |
+   | 2025 | CCF | 145,73 | 145,50 | −0,23 |
+   | 2025 | BA | 2,51 | 2,84 | +0,32 |
+   | 2025 | **ensemble** | **229,01** | **228,05** | **−0,95** |
+
+   (Md€. Un compte d'affectation spéciale est équilibré par construction — ses
+   dépenses sont gagées sur ses recettes affectées —, ce que ces soldes
+   montrent.)
+
+   **Les intitulés joignent sans travail de rapprochement** : 12 missions côté
+   dépenses, 12 côté recettes, **12 intitulés identiques**, aucune ligne d'un
+   côté sans son pendant de l'autre. L'arbre du volet se sème donc avec la clé
+   que les deux jeux emploient déjà.
+
+   Ce qui restait vraiment à trouver était donc à trois appels d'API du jeu qui
+   était déjà lu. C'est la **cinquième** fois de suite que l'instrument est
+   faux — et cette fois-ci l'instrument était le raisonnement, pas une mesure :
+   aucun chiffre n'était erroné, on avait conclu de l'absence d'une colonne dans
+   un jeu à l'absence d'une source dans le portail, sans jamais interroger le
+   catalogue.
+
+   **Ce qui reste à décider — et c'est bien une décision, pas une tuyauterie.**
+   Publier ces volets ajoute trois jeux au connecteur : **D7**, la validation
+   humaine préalable vaut pour les connecteurs. Les **ODAC** restent, eux, sans
+   source repérée. Et une question de méthode se pose avant le code : un volet
+   « comptes spéciaux » à 229 Md€ posé à côté d'un budget général à 594 Md€
+   invite à les additionner, alors que 134 des 145 Md€ des comptes de concours
+   financiers sont des **avances aux collectivités territoriales** — de la
+   trésorerie qui revient, pas de la dépense publique de plus.
 
    Note pour qui reprend : `budget_lignes.py` calcule un `solde` (`nettes −
    total_credits_paiement`) qu'**aucun contrôle ni aucun test ne confronte au
    solde publié du PLF**. Le chiffre de tête du simulateur n'est donc vérifié
-   que par ses sommes internes, jamais contre la source.
+   que par ses sommes internes, jamais contre la source. Et il ne peut pas
+   l'être depuis ce portail : le seul jeu qui porte le tableau d'équilibre,
+   `plf25-ressources-et-charges-selon-distinction-fonctionnement-et-investissement`,
+   est **exporté cassé** — une unique colonne de texte, 30 rangs d'intitulés
+   (« Solde général », « Charges », « Emplois »…) et **pas un seul montant**.
+   Même famille de panne que les colonnes `*_lfi_2023` que le module refuse
+   déjà.
 2. **Provenance au niveau France — déclarée, sauf les missions, et la raison
    du refus vaut d'être lue.** `provenance.ts` attribue la variation d'un
    agrégat à ses composantes partout où la source déclare une hiérarchie. Le
