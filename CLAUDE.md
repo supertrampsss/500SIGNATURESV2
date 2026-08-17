@@ -394,24 +394,11 @@ pour ne plus l'être.
    le 17 août 2026. La numérotation est gardée pour que les renvois des
    entrées voisines restent justes.
 
-6. **Un volet « retraites » à part entière — ce qui manque n'est pas une source,
-   c'est un angle.** La question des retraites est désormais répondue en deux
-   endroits : « 100 € de prestations sociales » montre que la vieillesse-survie
-   est le premier risque (`drees_protection_sociale_vieillesse`, série de 66
-   ans, déjà publiée), et le tableau des voisins pose les 14,6 % du PIB
-   français à côté des 11,5 % allemands et des 15,5 % italiens.
-
-   Un troisième cadre qui répéterait ces deux chiffres serait du bruit. Ce qui
-   manque pour en faire un vrai volet est **une donnée qu'aucun connecteur ne
-   charge** : le nombre de cotisants par retraité, l'âge effectif de départ, la
-   pension moyenne par génération. Ce sont les trois chiffres qui font le débat,
-   et aucun n'est dans l'entrepôt — la DREES les publie (« Les retraités et les
-   retraites »), ce qui suppose **un connecteur de plus, donc D7**.
-
-   Le solde de la branche vieillesse du PLFSS, lui, est déjà chargé et réglable
-   dans le simulateur : c'est le seul de ces chiffres qui n'a pas besoin d'une
-   source neuve, et il vit là où on peut agir dessus plutôt que dans un cadre
-   qui le contemple.
+6. **Réservé.** L'entrée qui vivait ici — « un volet retraites demande une
+   donnée qu'aucun connecteur ne charge » — est tranchée et passée au fait, le
+   17 août 2026 : la DREES publie ces séries en pièces jointes de son jeu 1393,
+   et le connecteur les charge. La numérotation est gardée pour que les renvois
+   des entrées voisines restent justes.
 
 5. **Le cinquième objet partageable — et pourquoi il attend une plume, pas un
    branchement.** La spec §13 liste cinq objets partageables ; le site en offre
@@ -445,6 +432,49 @@ pour ne plus l'être.
    pouvait : ses trois repères partagent une source aux quatre mailles.
 
 ### Fait
+
+- **Les retraités enfin nommés : combien, combien, à quel âge** (17 août 2026).
+  D7 accordé. Le site publiait ce que la vieillesse **coûte** — 426,7 Md€, la
+  première dépense publique française — et rien de ce qu'elle est. Connecteur
+  `retraites.py`, **199 observations sur 11 séries**, chargées depuis les
+  classeurs de la DREES :
+
+  | Mesure | Valeur | Exercice |
+  |---|---|---|
+  | Nombre de retraités | 17 889 187 | 2022 |
+  | Pension mensuelle brute moyenne | 1 565 € | 2022 |
+  | Pension mensuelle nette moyenne | 1 457 € | 2022 |
+  | Âge conjoncturel moyen de départ | 62,7 ans | 2022 |
+  | Cotisants par retraité | 1,72 | **2016** |
+
+  Femmes 1 241 €, hommes 1 933 € : **35,8 % de moins**, et le bloc calcule
+  l'écart plutôt que de le laisser au lecteur.
+
+  **L'entrée n°6 du reste-à-faire disait « une donnée qu'aucun connecteur ne
+  charge », et c'était vrai — mais pas « introuvable ».** Le portail de la DREES
+  diffuse par API des jeux d'un seul millésime (les neuf « Caractéristiques des
+  retraités » sont tous de 2016) ; les séries longues, elles, sont **attachées**
+  au jeu 1393 sous forme de classeurs, un par édition. Lister les jeux ne
+  suffisait pas : il fallait lister leurs **pièces jointes**.
+
+  **Quatre pièges de classeur, un test chacun.** Les effectifs sont **en
+  milliers** — publier 17 889 retraités au lieu de 17,9 millions donne un
+  nombre plausible. Les millésimes portent des appels de note (« 2020 2 »), et
+  lus tels quels ils font des périodes fantômes. L'onglet des âges est
+  **transposé**, et le lire comme les autres rend zéro ligne **sans erreur**.
+  Et deux blocs de colonnes disent « pension brute moyenne » dans le même
+  onglet : hors majoration pour trois enfants (1 522 €) et y compris (1 565 €).
+
+  D'où la règle du module : **aucune colonne n'est prise sur sa position
+  seule**. Chaque onglet est contrôlé par une identité que ses colonnes doivent
+  vérifier — femmes + hommes = ensemble, femmes < ensemble < hommes, un âge
+  entre 55 et 70 ans, un rapport entre 1 et 3 — et le chargement lève plutôt
+  que de publier une colonne prise pour une autre. Une édition suivante qui
+  déplace ses colonnes tombe ici, pas en ligne.
+
+  **Le rapport cotisants/retraité s'arrête en 2016** chez ce producteur. Il est
+  publié avec son millésime, à côté de mesures de 2022 : une date n'est pas une
+  réserve, c'est la moitié d'un chiffre.
 
 - **Les communes semblables, promises et jamais montrées** (17 août 2026). Les
   quartiles par groupe de pairs sont publiés depuis le 5 août, la page de

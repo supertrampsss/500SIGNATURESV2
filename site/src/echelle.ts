@@ -226,6 +226,9 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
       " celle des 20 % les plus modestes, après impôts et prestations."
     );
   }
+  if (unite === "annees") {
+    return `${classes} Âge en années, avec sa décimale : les écarts se jouent en mois.`;
+  }
   // Les faits enregistrés d'Eurostat comptent **pour cent mille habitants**
   // quand ceux du SSMSI comptent pour mille : deux unités, deux séries, et
   // aucune conversion silencieuse de l'une vers l'autre. Ce qui varie d'un
@@ -367,6 +370,12 @@ const VALEURS_UNITAIRES = new Set([
   // que « 0,00 M€ » sur un salaire mensuel, à un rang près.
   ...Array.from({ length: 9 }, (_, i) => `insee_niveau_vie_d${i + 1}`),
   ...Array.from({ length: 9 }, (_, i) => `insee_niveau_vie_d${i + 1}_avant_redistribution`),
+  // Et les pensions mensuelles moyennes : « 0,00 M€ » y serait la faute exacte
+  // que le salaire mensuel a déjà corrigée.
+  "drees_pension_moyenne_brute",
+  "drees_pension_moyenne_brute_femmes",
+  "drees_pension_moyenne_brute_hommes",
+  "drees_pension_moyenne_nette",
 ]);
 
 export function formater(
@@ -450,6 +459,15 @@ function formaterNombre(
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(valeur);
+  }
+  // Un âge de départ à la retraite se lit avec sa décimale et son unité : la
+  // série bouge de quelques dixièmes d'année par réforme, et « 63 ans » à côté
+  // de « 62,3 ans » cesserait d'aligner la colonne.
+  if (unite === "annees") {
+    return `${new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(valeur)} ans`;
   }
   // Un taux pour cent mille habitants ne se convertit ni en pourcentage — un
   // homicide vaudrait « 0,00 % » — ni en pour mille comme les séries du SSMSI,
