@@ -427,6 +427,54 @@ pour ne plus l'être.
 
 ### Fait
 
+- **« Aucune source ne publie les maires 2020-2026 » — faux, sixième fois**
+  (17 août 2026). Le site nommait le maire en exercice d'une commune et
+  personne ailleurs. Il nomme désormais l'exécutif de chaque maille **et son
+  prédécesseur**, ce qui est le seul nom qui compte : la note se lit sur
+  2019-2025, et le maire en fonction depuis mars 2026 n'a aucun de ces
+  exercices derrière lui.
+
+  **L'erreur.** Le jeu « Répertoire national des élus » est une ressource
+  écrasée à chaque publication ; mesuré, ses 34 826 maires ont tous un mandat
+  de 2026. J'en ai conclu, et écrit à l'utilisateur, qu'« aucune source
+  officielle accessible ne republie les maires 2020-2026 », et j'ai proposé
+  Wikidata en repli — mesuré ensuite à **1,8 % des communes et 5 des 10 plus
+  grandes villes**, donc écarté.
+
+  **La conclusion venait d'un seul jeu.** La liste des jeux du même producteur
+  n'avait pas été lue. Le ministère de l'Intérieur publie « Élections
+  municipales 2026 — Maires et conseillers municipaux sortants », arrêté au
+  27 février 2026, Licence Ouverte v2 : **34 889 maires, 99,8 % des communes
+  publiées et 99,8 % de la population.** Pierre HURMIC à Bordeaux, Grégory
+  DOUCET à Lyon, Benoît PAYAN à Marseille, Anne HIDALGO à Paris.
+
+  C'est la sixième fois de suite dans ce fichier que l'instrument est faux — et
+  la deuxième fois que l'instrument est le **raisonnement** : on a conclu de
+  l'absence d'un historique dans un jeu à l'absence d'une source chez le
+  producteur, exactement comme on avait conclu de l'absence d'une colonne à
+  l'absence des recettes des comptes spéciaux. La règle du dépôt disait déjà
+  « avant d'écrire qu'un chiffre ne tient pas, chercher le contrôle qui
+  l'aurait refusé ». Elle en gagne une : **avant d'écrire qu'une donnée n'est
+  publiée nulle part, lister les jeux du producteur, pas seulement celui qu'on
+  connaît.**
+
+  **Trois pièges dans les fichiers, chacun avec son test.** Les dates des
+  sortants sont en `JJ/MM/AA` quand le RNE courant les écrit en `AAAA-MM-JJ` —
+  deux formats chez un seul producteur, et `18/05/20` lu tel quel serait une
+  date de l'an 20. « 4ème Vice-président » contient « Président », donc une
+  comparaison lâche gardait neuf vice-présidents par département. Et le
+  département de Paris et la région Île-de-France portent tous deux le code
+  « 75 » : le rôle est entré dans la clé primaire, sans quoi le second écrasait
+  le premier en silence.
+
+  **Ce que la source ne permet toujours pas** : un maire sortant sur trente a
+  pris ses fonctions en cours de mandature, et le fichier ne donne que le
+  dernier. La fiche écrit donc « Avant lui : X, en fonction depuis juillet
+  2020 », jamais « maire de 2020 à 2026 ». Et les départements et régions n'ont
+  pas d'équivalent « sortants », leur mandature 2021-2028 courant toujours :
+  leurs présidents couvrent les exercices 2021 et suivants, jamais 2019 ni 2020.
+
+
 - **Le palmarès, et un plafond encombré de deux mille communes** (17 août
   2026). La note vivait sur une fiche et dans le classement d'une fiche — deux
   endroits qui demandent de savoir d'avance quel territoire on cherche.

@@ -116,3 +116,94 @@ def test_le_module_dit_que_la_source_n_a_pas_d_historique():
     assert "écrasée" in doc
     assert "2019 ni 2020" in doc or "jamais 2019" in doc
     assert "juillet 2021" in doc
+
+
+# ----------------------------------------------------------------------------
+# Les maires sortants : la mandature 2020-2026.
+# ----------------------------------------------------------------------------
+
+ENTETE_SORTANTS = [
+    "Code du département", "Libellé du département",
+    "Code de la collectivité à statut particulier",
+    "Libellé de la collectivité à statut particulier", "Code de la commune",
+    "Libellé de la commune", "Nom de l'élu", "Prénom de l'élu", "Code sexe",
+    "Date de naissance", "Code de la catégorie socio-professionnelle",
+    "Libellé de la catégorie socio-professionnelle", "Date de début du mandat",
+    "Date de début de la fonction",
+]
+
+
+def ligne_sortant(code: str, nom: str, prenom: str, fonction: str) -> list[str]:
+    champs = [""] * len(ENTETE_SORTANTS)
+    champs[4], champs[6], champs[7] = code, nom, prenom
+    champs[12] = "18/05/20"
+    champs[13] = fonction
+    return champs
+
+
+def test_les_dates_des_sortants_sont_en_jour_mois_annee():
+    """**Deux formats chez un seul producteur.** Le RNE courant écrit
+    `2026-03-15`, le fichier des sortants `18/05/20`. Lue telle quelle, cette
+    seconde date serait entrée en base comme une date de l'an 20."""
+    assert m.date_fr("18/05/20") == "2020-05-18"
+    assert m.date_fr("03/07/20") == "2020-07-03"
+    assert m.date_fr("21/10/20") == "2020-10-21"
+    # Une date vide ou illisible ne devient pas une date fausse.
+    assert m.date_fr("") is None
+    assert m.date_fr("2020-05-18") is None
+
+
+def test_le_sortant_est_lu_avec_sa_prise_de_fonction():
+    """Un maire sortant sur trente a pris ses fonctions en cours de mandature,
+    après une démission ou un décès. C'est la prise de fonction qui est
+    publiée, jamais le début du mandat du conseil."""
+    contenu = csv_bytes(ENTETE_SORTANTS, [
+        ligne_sortant("33063", "HURMIC", "Pierre", "03/07/20"),
+        ligne_sortant("13055", "PAYAN", "Benoît", "21/10/20"),
+    ])
+    lus = m.sortants(contenu)
+    assert [x["geo_code"] for x in lus] == ["33063", "13055"]
+    assert lus[0]["since"] == "2020-07-03"
+    # Et non « 2020-05-18 », le début du mandat du conseil.
+    assert lus[1]["since"] == "2020-10-21"
+
+
+def test_le_code_commune_des_sortants_se_complete():
+    """`1001` -> `01001` : le zéro de tête saute au passage par un tableur, et
+    un code à quatre caractères ne joint aucun référentiel."""
+    contenu = csv_bytes(ENTETE_SORTANTS, [ligne_sortant("1001", "A", "A", "18/05/20")])
+    assert m.sortants(contenu)[0]["geo_code"] == "01001"
+
+
+def test_une_commune_en_double_ne_fait_pas_echouer_le_chargement():
+    """Mesuré : une commune apparaît deux fois dans le fichier réel. La
+    première ligne est gardée — échouer ferait perdre 34 888 maires pour une
+    seule ligne douteuse."""
+    contenu = csv_bytes(ENTETE_SORTANTS, [
+        ligne_sortant("33063", "HURMIC", "Pierre", "03/07/20"),
+        ligne_sortant("33063", "AUTRE", "Quelqu'un", "04/07/20"),
+    ])
+    lus = m.sortants(contenu)
+    assert len(lus) == 1 and lus[0]["surname"] == "HURMIC"
+
+
+def test_le_sortant_a_son_propre_role():
+    """Le maire en exercice et le maire sortant cohabitent sur la même commune :
+    sans deux rôles distincts, le second écraserait le premier et la fiche
+    afficherait un seul nom, sans qu'on sache lequel."""
+    from plateforme.publish import ROLE_PRECEDENT_PAR_NIVEAU
+
+    assert m.ROLE_SORTANT != ROLE_PAR_NIVEAU["commune"]
+    assert ROLE_PRECEDENT_PAR_NIVEAU["commune"] == m.ROLE_SORTANT
+    # Aucun équivalent pour les autres mailles : leur mandature court toujours.
+    assert set(ROLE_PRECEDENT_PAR_NIVEAU) == {"commune"}
+
+
+def test_le_module_garde_la_mesure_qui_a_corrige_l_erreur():
+    """On avait conclu que les maires 2020-2026 n'étaient publiés nulle part,
+    en lisant un seul jeu sans lister ceux du producteur. L'erreur et sa
+    correction sont écrites dans le module pour que personne ne la refasse."""
+    doc = m.__doc__ or ""
+    assert "C'était faux" in doc
+    assert "99,8" in doc
+    assert "sortants" in doc.lower()

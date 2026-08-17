@@ -331,3 +331,47 @@ test("l'exécutif porte le titre de sa maille, jamais « Maire » partout", () =
   assert.doesNotMatch(avec("pays"), /Jean DUPONT/);
   assert.doesNotMatch(avec("pays"), /undefined/);
 });
+
+test("le prédécesseur est nommé, parce que c'est lui qui a présidé aux comptes", () => {
+  // **Le fond de l'affaire.** La note se lit sur 2019-2025 ; le maire en
+  // exercice a pris ses fonctions en mars 2026 et n'a aucun de ces exercices
+  // derrière lui. Sans cette ligne, la fiche pose un nom au-dessus d'un bilan
+  // qui n'est pas le sien.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Bordeaux", parent: "33", region: "75", population: 267_991,
+      drapeaux: {}, series: {},
+      maire: { nom: "Thomas CAZENAVE", depuis: "2026-03-22" },
+      maire_precedent: { nom: "Pierre HURMIC", depuis: "2020-07-03" },
+    } as never,
+    indicateurs: [],
+  });
+  const html = cible.innerHTML;
+  assert.match(html, /Maire\s*: <strong>Thomas CAZENAVE<\/strong> <span>depuis mars 2026<\/span>/);
+  // « Avant lui », jamais « maire de 2020 à 2026 » : un maire sortant sur
+  // trente a pris ses fonctions en cours de mandature, et la source ne donne
+  // que le dernier de la mandature.
+  assert.match(html, /Avant lui\s*: Pierre HURMIC, en fonction depuis juillet 2020/);
+  assert.doesNotMatch(html, /de 2020 à 2026/);
+});
+
+test("sans prédécesseur publié, aucune ligne vide ne s'écrit", () => {
+  // Les départements et régions n'ont pas de « sortants » : leur mandature
+  // 2021-2028 court toujours, et le ministère n'arrête la liste qu'avant un
+  // scrutin.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "departement",
+    territoire: {
+      nom: "Gironde", parent: null, region: "75", population: 1_643_000,
+      drapeaux: {}, series: {},
+      maire: { nom: "Jean-Luc GLEYZE", depuis: "2021-07-01" },
+    } as never,
+    indicateurs: [],
+  });
+  assert.match(cible.innerHTML, /Président du conseil départemental\s*: <strong>Jean-Luc GLEYZE/);
+  assert.doesNotMatch(cible.innerHTML, /Avant lui/);
+  assert.doesNotMatch(cible.innerHTML, /undefined/);
+});

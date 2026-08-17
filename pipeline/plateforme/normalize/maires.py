@@ -28,19 +28,34 @@ régionaux portent une colonne « Libellé de la fonction » d'où sortent les
 La même règle qu'au-dessus s'applique : nom, prénom, prise de fonction, rien
 d'autre.
 
-**Ce que la source ne permet pas, et qu'il faut savoir en lisant ce module.**
-Le RNE national est une ressource *écrasée* à chaque publication : data.gouv.fr
-n'en garde aucune version antérieure. Il donne donc l'exécutif EN EXERCICE, et
-jamais ses prédécesseurs. Mesuré le 17 août 2026 : les 34 826 maires du fichier
-ont tous un mandat commençant en 2026 — les municipales de mars 2026 ont effacé
-du fichier les maires de la mandature 2020-2026, qu'aucune source officielle
-accessible ne republie. Les présidents, eux, tiennent leur fonction depuis
-juillet 2021 (départementales et régionales de 2021) et couvrent donc les
-exercices 2021 et suivants, jamais 2019 ni 2020.
+**Les maires sortants, c'est-à-dire la mandature 2020-2026.** Le jeu RNE est une
+ressource *écrasée* à chaque publication : mesuré le 17 août 2026, ses
+34 826 maires ont tous un mandat commençant en 2026, les municipales de mars
+ayant effacé leurs prédécesseurs. On a d'abord conclu de là que les maires
+2020-2026 n'étaient publiés nulle part. **C'était faux, et l'erreur mérite
+d'être gardée** : la conclusion venait d'un seul jeu, sans que la liste des jeux
+du ministère qui le publie ait été lue.
 
-C'est pour cela que le site n'écrit pas « le maire qui a présidé à ces comptes »
-mais « l'exécutif en exercice, depuis telle date » : la seconde phrase est vraie,
-la première ne le serait qu'avec un historique que personne ne publie.
+Le ministère publie « Élections municipales 2026 — Maires et conseillers
+municipaux sortants », arrêté au 27 février 2026, soit juste avant le scrutin.
+Mesuré : 34 889 maires, 99,8 % des communes que le site publie et 99,8 % de la
+population. Pierre HURMIC à Bordeaux, Grégory DOUCET à Lyon, Benoît PAYAN à
+Marseille, Anne HIDALGO à Paris.
+
+**Les dates y sont en JJ/MM/AA**, quand le RNE courant les écrit en AAAA-MM-JJ.
+Deux formats dans deux fichiers du même producteur : `date_fr` les ramène au
+même, et un test tient la conversion. Lues telles quelles, elles auraient donné
+des dates de l'an 20.
+
+**Un maire sortant n'est pas forcément celui de 2020** : 31 480 ont pris leurs
+fonctions en 2020, et 3 394 plus tard — démissions, décès, recompositions. Le
+fichier donne le DERNIER de la mandature, et le site écrit donc « en fonction
+depuis le … », jamais « maire de 2020 à 2026 ».
+
+**Ce qui reste hors d'atteinte** : les présidents de département et de région
+n'ont pas d'équivalent « sortants », leur mandature 2021-2028 étant en cours.
+Ils tiennent leur fonction depuis juillet 2021 et couvrent donc les exercices
+2021 et suivants, jamais 2019 ni 2020.
 
 Usage : python -m plateforme.normalize.maires [--store r2:plateforme-raw]
 """
@@ -49,6 +64,7 @@ import json
 import argparse
 import csv
 import io
+from datetime import datetime
 from collections import Counter
 
 
@@ -66,6 +82,18 @@ RESSOURCE = "conseillers-municipaux"
 
 FONCTION_MAIRE = "Maire"
 COLONNES = {"commune": 4, "nom": 6, "prenom": 7, "debut_mandat": 12, "fonction": 13}
+
+#: Le jeu des maires sortants — un AUTRE jeu du même producteur, avec son
+#: propre identifiant : il n'est pas une ressource du RNE mais un arrêté
+#: préélectoral, publié une fois avant chaque scrutin municipal.
+CATALOGUE_SORTANTS = "https://www.data.gouv.fr/api/1/datasets/69a233819c17f13feedbc2cc/"
+RESSOURCE_SORTANTS = "maires-sortants"
+ROLE_SORTANT = "maire_precedent"
+
+#: Les colonnes du fichier des sortants. Même forme que le RNE des maires, mais
+#: **les dates y sont en JJ/MM/AA** : voir `date_fr`.
+COLONNES_SORTANTS = {"commune": 4, "nom": 6, "prenom": 7, "debut_fonction": 13}
+ENTETE_SORTANTS = ("Code de la commune", "Nom de l'élu", "Date de début de la fonction")
 
 #: Les exécutifs départementaux et régionaux : la ressource du catalogue, le
 #: rôle écrit en base, l'intitulé exact de la fonction dans le fichier, et les
@@ -93,14 +121,17 @@ EXECUTIFS = [
 ]
 
 
-def url_courante(ressource: str = RESSOURCE) -> str:
+def url_courante(ressource: str = RESSOURCE, catalogue_url: str = CATALOGUE) -> str:
     """L'URL du fichier change à chaque publication : on la relit du catalogue
-    plutôt que de la figer et de découvrir un 404 dans six mois."""
-    catalogue = fetch(CATALOGUE).json()
+    plutôt que de la figer et de découvrir un 404 dans six mois.
+
+    Le catalogue est un paramètre parce que les maires sortants ne sont pas une
+    ressource du RNE : c'est un jeu distinct du même producteur."""
+    catalogue = fetch(catalogue_url).json()
     for entree in catalogue["resources"]:
         if ressource in entree["title"]:
             return entree["url"]
-    raise ValueError(f"aucune ressource « {ressource} » dans {CATALOGUE}")
+    raise ValueError(f"aucune ressource « {ressource} » dans {catalogue_url}")
 
 
 def code_commune(brut: str) -> str:
@@ -125,6 +156,58 @@ def maires(contenu: bytes) -> list[dict]:
                 "surname": " ".join(ligne[COLONNES["nom"]].split()),
                 "given_name": " ".join(ligne[COLONNES["prenom"]].split()),
                 "since": ligne[COLONNES["debut_mandat"]].strip() or None,
+            }
+        )
+    return sortie
+
+
+def date_fr(brut: str) -> str | None:
+    """`18/05/20` -> `2020-05-18`.
+
+    Le fichier des sortants écrit ses dates en JJ/MM/AA quand le RNE courant les
+    écrit en AAAA-MM-JJ — deux formats, deux fichiers, un seul producteur. Lues
+    telles quelles, `18/05/20` serait entrée en base comme une date de l'an 20.
+
+    Le siècle : le RNE ne porte que des mandats en cours ou tout juste clos, donc
+    une année à deux chiffres est toujours des années 2000. `%y` de Python coupe
+    à 69, ce qui est le bon comportement ici et le restera longtemps.
+    """
+    brut = (brut or "").strip()
+    if not brut:
+        return None
+    try:
+        return datetime.strptime(brut, "%d/%m/%y").date().isoformat()
+    except ValueError:
+        return None
+
+
+def sortants(contenu: bytes) -> list[dict]:
+    """Le maire sortant de chaque commune, arrêté avant le scrutin de 2026.
+
+    Une commune peut apparaître deux fois — mesuré : une seule le fait. On garde
+    la première ligne plutôt que d'échouer, et `controler` compte les doublons.
+    """
+    controler_entete(contenu, ENTETE_SORTANTS)
+    cols = COLONNES_SORTANTS
+    lecteur = csv.reader(io.StringIO(contenu.decode("utf-8", errors="replace")), delimiter=";")
+    next(lecteur, None)
+    vus: set[str] = set()
+    sortie = []
+    for ligne in lecteur:
+        if len(ligne) <= max(cols.values()):
+            continue
+        code = code_commune(ligne[cols["commune"]])
+        if code in vus:
+            continue
+        vus.add(code)
+        sortie.append(
+            {
+                "geo_code": code,
+                "surname": " ".join(ligne[cols["nom"]].split()),
+                "given_name": " ".join(ligne[cols["prenom"]].split()),
+                # La prise de FONCTION : un maire sortant sur trente a pris la
+                # sienne en cours de mandature, après une démission ou un décès.
+                "since": date_fr(ligne[cols["debut_fonction"]]),
             }
         )
     return sortie
@@ -311,11 +394,26 @@ def run(store_spec: str) -> int:
         if ecartes:
             print(f"{ecartes} communes absentes du référentiel, écartées")
 
+        # Les maires sortants : un AUTRE jeu du même producteur, arrêté avant
+        # le scrutin de mars 2026. C'est la seule fenêtre publiée sur la
+        # mandature 2020-2026 — le RNE, lui, l'a écrasée.
+        url_sortants = url_courante(RESSOURCE_SORTANTS, CATALOGUE_SORTANTS)
+        brut_sortants = telecharger(url_sortants)
+        entrepot.record_asset(
+            conn, store, run_id, DATASET, SOURCE,
+            "maires-sortants.csv", brut_sortants, url_sortants, "text/csv",
+        )
+        precedents = sortants(brut_sortants)
+        controler(precedents)
+        poses, hors = ecrire_executifs(conn, run_id, ROLE_SORTANT, "commune", precedents)
+        print(f"maires sortants : {poses} communes" + (f", {hors} hors référentiel" if hors else ""))
+
         # Les deux exécutifs des autres mailles. Ils sont chargés dans le même
         # run que les maires : c'est le même producteur, le même jeu du
         # catalogue et la même publication — trois runs séparés auraient laissé
         # croire à trois sources.
-        lues = len(lignes)
+        lues = len(lignes) + len(precedents)
+        ecrites += poses
         for executif in EXECUTIFS:
             url_exec = url_courante(executif["ressource"])
             brut = telecharger(url_exec)

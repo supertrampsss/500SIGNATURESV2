@@ -236,7 +236,8 @@ create table if not exists geo.commune_officials (
     geo_code    text not null,
     geo_vintage smallint not null,
     role        text not null default 'maire'
-                check (role in ('maire', 'president_departement', 'president_region')),
+                check (role in ('maire', 'maire_precedent',
+                                'president_departement', 'president_region')),
     surname     text not null,
     given_name  text not null,
     -- Début du MANDAT d'élu pour un maire ; début de la FONCTION pour un

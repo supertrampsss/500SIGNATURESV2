@@ -25,6 +25,14 @@ export const NIVEAUX: Record<string, string> = {
   pays: "Niveau national",
 };
 
+/** « 2020-07-03 » -> « juillet 2020 ». Le jour d'une prise de fonction
+ *  n'apprend rien ; le mois situe le mandat. */
+function mois(date: string): string {
+  return echapper(
+    new Date(date).toLocaleDateString("fr-FR", { month: "long", year: "numeric" }),
+  );
+}
+
 /**
  * L'intitulé de l'exécutif, par maille.
  *
@@ -301,13 +309,25 @@ export function afficherFiche(
     ${
       territoire.maire && EXECUTIFS[niveau]
         ? `<p class="fiche__maire">${EXECUTIFS[niveau]} : <strong>${echapper(territoire.maire.nom)}</strong>${
-            territoire.maire.depuis
-              ? ` <span>depuis ${echapper(
-                  new Date(territoire.maire.depuis).toLocaleDateString("fr-FR", {
-                    month: "long",
-                    year: "numeric",
-                  }),
-                )}</span>`
+            territoire.maire.depuis ? ` <span>depuis ${mois(territoire.maire.depuis)}</span>` : ""
+          }${
+            // **Le prédécesseur, parce que c'est lui qui a présidé aux comptes
+            // affichés.** La note se lit sur 2019-2025 ; le maire en exercice
+            // a pris ses fonctions en mars 2026 et n'a aucun de ces exercices
+            // derrière lui. Sans cette ligne, la fiche posait un nom au-dessus
+            // d'un bilan qui n'est pas le sien.
+            //
+            // « avant lui », jamais « maire de 2020 à 2026 » : un maire sortant
+            // sur trente a pris ses fonctions en cours de mandature, et la
+            // source ne donne que le dernier de la mandature.
+            territoire.maire_precedent
+              ? `<span class="fiche__precedent">Avant lui : ${echapper(
+                  territoire.maire_precedent.nom,
+                )}${
+                  territoire.maire_precedent.depuis
+                    ? `, en fonction depuis ${mois(territoire.maire_precedent.depuis)}`
+                    : ""
+                }</span>`
               : ""
           }</p>`
         : ""

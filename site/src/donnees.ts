@@ -77,6 +77,11 @@ export type Territoire = {
   /** Maire en exercice (RNE). Nom et prise de fonction seulement : ni date de
    *  naissance, ni sexe, ni profession ne sont chargés. */
   maire?: { nom: string; depuis: string | null };
+  /** L'exécutif de la mandature précédente, quand il est publié. Seules les
+   *  communes en ont un : le ministère arrête la liste des maires sortants
+   *  avant chaque scrutin municipal, et rien d'équivalent n'existe pour les
+   *  conseils départementaux et régionaux, dont la mandature court toujours. */
+  maire_precedent?: { nom: string; depuis: string | null };
 };
 
 export type EntreeRecherche = { c: string; n: string; l: string; p: string | null };

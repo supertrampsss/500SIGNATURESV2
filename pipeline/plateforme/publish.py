@@ -1884,6 +1884,12 @@ ROLE_PAR_NIVEAU = {
     "region": "president_region",
 }
 
+#: L'exécutif de la mandature précédente, quand il est publié. Seules les
+#: communes en ont un : le ministère arrête la liste des maires sortants avant
+#: chaque scrutin municipal, et rien d'équivalent n'existe pour les conseils
+#: départementaux et régionaux, dont la mandature 2021-2028 court toujours.
+ROLE_PRECEDENT_PAR_NIVEAU = {"commune": "maire_precedent"}
+
 
 def maires(conn, role: str = "maire") -> dict[str, dict]:
     """L'exécutif en exercice de chaque territoire d'une maille.
@@ -2217,6 +2223,11 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
     # pour un département ou une région. La France n'en a pas dans cette table,
     # et un arrondissement municipal n'en a pas dans la source.
     elus = maires(conn, ROLE_PAR_NIVEAU[niveau]) if niveau in ROLE_PAR_NIVEAU else {}
+    precedents = (
+        maires(conn, ROLE_PRECEDENT_PAR_NIVEAU[niveau])
+        if niveau in ROLE_PRECEDENT_PAR_NIVEAU
+        else {}
+    )
     return {
         code: {
             "nom": nom,
@@ -2235,7 +2246,8 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
             # une erreur, c'est une absence.
             "drapeaux": _objet(drapeaux),
             "evenements": changements.get(code, []),
-            **({"maire": elus[code]} if code in elus else {}),  # noqa: E501 — voir ROLE_PAR_NIVEAU
+            **({"maire": elus[code]} if code in elus else {}),  # voir ROLE_PAR_NIVEAU
+            **({"maire_precedent": precedents[code]} if code in precedents else {}),
         }
         for code, nom, parent, region, population, drapeaux in conn.execute(
             """
