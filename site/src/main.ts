@@ -2170,7 +2170,18 @@ async function peindrePalmares(): Promise<void> {
         exercice,
         niveau,
       );
-      if (note) lignes.push({ code, nom: index.noms[rang] ?? code, note });
+      // La population départage les ex æquo, et ils sont deux mille au
+      // plafond : sans elle, « les dix mieux gérées » sortaient les dix
+      // premières de l'alphabet parmi deux mille. `population_municipale` est
+      // publiée par l'index, dans l'ordre de `codes`.
+      if (note) {
+        lignes.push({
+          code,
+          nom: index.noms[rang] ?? code,
+          note,
+          population: index.population_municipale?.[rang] ?? null,
+        });
+      }
     });
     cible.innerHTML = rendrePalmares(palmares(lignes), niveau);
     // Chaque ligne ouvre la fiche du territoire, à la maille du palmarès —

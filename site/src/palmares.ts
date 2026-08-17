@@ -37,8 +37,12 @@ function echapper(texte: string): string {
   );
 }
 
-/** Un territoire noté, tel que le palmarès le range. */
-export type Ligne = { code: string; nom: string; note: Note };
+/** Un territoire noté, tel que le palmarès le range.
+ *
+ *  `population` départage les ex æquo, et il y en a beaucoup : voir
+ *  `palmares()`. Facultative — un territoire sans population publiée passe
+ *  après ceux qui en ont une, il n'est pas écarté. */
+export type Ligne = { code: string; nom: string; note: Note; population?: number | null };
 
 export type Palmares = {
   /** Les mieux notées, de la meilleure à la moins bonne. */
@@ -56,21 +60,53 @@ export type Palmares = {
   exercice: string;
   /** Combien de territoires sont notés sur un autre exercice que celui-là. */
   autresExercices: number;
+  /** Combien partagent exactement la meilleure note, et la pire. La note est
+   *  bornée à 20 et à 0 par construction : 2 102 communes atteignent 20 sur 20
+   *  et 2 221 sont à 0. Sans ces deux nombres, dix noms tirés d'un paquet de
+   *  deux mille passeraient pour « les dix meilleures de France ». */
+  exAequoTete: number;
+  exAequoQueue: number;
+  /** Toutes les notes de l'échelon, pour que le rendu calcule un rang partagé
+   *  sans refaire le tri. */
+  valeurs: number[];
 };
 
 /**
  * Range les territoires notés et prend les deux bouts.
  *
- * Le tri départage les ex æquo par le nom, sinon deux publications
- * successives des mêmes données rendraient deux palmarès différents — l'ordre
- * de `Object.keys` n'est pas une garantie, et un lecteur qui revient sur la
- * page verrait ses dix premières bouger sans que rien n'ait changé.
+ * ─────────────────────────────────────────────────────────────────────────
+ * LES EX ÆQUO NE SONT PAS UN CAS LIMITE, C'EST LE CAS COURANT
+ * ─────────────────────────────────────────────────────────────────────────
+ * La note est bornée aux deux bouts : **2 102 communes valent exactement 20 sur
+ * 20 et 2 221 valent exactement 0** (publication 2026-08-11T0807). Un premier
+ * tri départageait par le nom, et « les dix communes les mieux gérées de
+ * France » sortaient Abbans-Dessous, Ablaincourt-Pressoir, Ablancourt, Accons :
+ * les quatre premières de l'alphabet parmi deux mille. Une liste comme celle-là
+ * se fait démonter en une heure, et elle le mérite.
+ *
+ * Le tri départage donc **par population décroissante**, et le rendu **dit
+ * combien partagent la note**. Une commune de quarante mille habitants à 20 sur
+ * 20 apprend quelque chose ; un hameau de trente, non — non qu'il soit moins
+ * bien géré, mais parce que son ratio bascule sur une seule opération.
+ *
+ * Le nom reste en dernier recours, sans quoi deux publications des mêmes
+ * données rendraient deux palmarès différents : l'ordre de `Object.keys` n'est
+ * pas une garantie, et un lecteur qui revient verrait ses dix premières bouger
+ * sans que rien n'ait changé.
  */
 export function palmares(lignes: Ligne[], combien = 10): Palmares | null {
   if (!lignes.length) return null;
-  const rangees = [...lignes].sort(
-    (a, b) => b.note.valeur - a.note.valeur || a.nom.localeCompare(b.nom, "fr"),
-  );
+  // **Le haut et le bas se trient séparément, et pas l'un à l'envers de
+  // l'autre.** Un tri unique « note décroissante, population décroissante »
+  // suivi d'un `slice(-N)` prend, parmi les derniers ex æquo, les MOINS
+  // peuplés — l'inverse de ce que le cadrage annonce. Le bas se trie donc par
+  // note croissante ET population décroissante : les plus grandes villes des
+  // deux bouts, comme la phrase le dit.
+  const parPopulation = (a: Ligne, b: Ligne) =>
+    (b.population ?? -1) - (a.population ?? -1) || a.nom.localeCompare(b.nom, "fr");
+  const meilleures = [...lignes].sort((a, b) => b.note.valeur - a.note.valeur || parPopulation(a, b));
+  const pires = [...lignes].sort((a, b) => a.note.valeur - b.note.valeur || parPopulation(a, b));
+  const rangees = meilleures;
   const valeurs = rangees.map((l) => l.note.valeur);
   const milieu = Math.floor((valeurs.length - 1) / 2);
 
@@ -84,21 +120,44 @@ export function palmares(lignes: Ligne[], combien = 10): Palmares | null {
     // Deux bouts qui ne se chevauchent pas : sous vingt territoires notés, le
     // haut et le bas montreraient deux fois les mêmes lignes, et le lecteur
     // lirait une commune à la fois parmi les meilleures et parmi les pires.
-    tete: rangees.slice(0, Math.min(combien, Math.floor(rangees.length / 2))),
-    queue: rangees.slice(-Math.min(combien, Math.floor(rangees.length / 2))).reverse(),
+    tete: meilleures.slice(0, Math.min(combien, Math.floor(rangees.length / 2))),
+    queue: pires.slice(0, Math.min(combien, Math.floor(rangees.length / 2))),
     effectif: rangees.length,
     mediane: valeurs[milieu],
     exercice,
     autresExercices: rangees.length - compte,
+    exAequoTete: valeurs.filter((v) => v === valeurs[0]).length,
+    exAequoQueue: valeurs.filter((v) => v === valeurs[valeurs.length - 1]).length,
+    valeurs,
   };
 }
 
-/** Le nom de l'échelon, au pluriel, tel que la phrase du dénominateur le dit. */
-const MAILLES: Record<string, string> = {
-  commune: "communes",
-  departement: "départements",
-  region: "régions",
+/**
+ * L'échelon au pluriel, et son genre.
+ *
+ * **Le genre n'est pas un détail de style** : le titre s'écrit « les communes
+ * les mieux et les moins bien gérées » et « les départements […] gérés ». Écrit
+ * en dur au féminin, il donnait « les départements les mieux gérées » — la
+ * faute exacte que le classement venait de corriger sur « 27 887 communes sont
+ * mieux notés », réapparue dans un module neuf le jour où il est arrivé.
+ */
+const MAILLES: Record<string, { pluriel: string; feminin: boolean }> = {
+  commune: { pluriel: "communes", feminin: true },
+  departement: { pluriel: "départements", feminin: false },
+  region: { pluriel: "régions", feminin: true },
 };
+
+/**
+ * Le rang d'une note, à la convention du classement sportif.
+ *
+ * **Deux mille cent deux communes valent exactement 20 sur 20** : leur écrire
+ * « 1re, 2e, 3e… » serait un rang inventé. Elles sont toutes premières, et dix
+ * lignes qui affichent « 1 » disent au lecteur, mieux qu'une phrase, que le
+ * plafond est encombré. C'est déjà la convention de `situation.ts`.
+ */
+export function rangs(lignes: Ligne[], toutes: number[]): number[] {
+  return lignes.map((l) => 1 + toutes.filter((v) => v > l.note.valeur).length);
+}
 
 function rangee(ligne: Ligne, rang: number): string {
   const valeur = ligne.note.valeur.toLocaleString("fr-FR", {
@@ -125,16 +184,29 @@ export function rendrePalmares(resultat: Palmares | null, niveau: string): strin
   const maille = MAILLES[niveau];
   if (!resultat || !maille) return "";
   const { tete, queue, effectif, mediane, exercice, autresExercices } = resultat;
+  const { pluriel, feminin } = maille;
+  const gere = feminin ? "gérées" : "gérés";
   const nombre = (n: number) => n.toLocaleString("fr-FR");
   const note = (n: number) =>
     n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const toutes = resultat.valeurs;
+  const rangsTete = rangs(tete, toutes);
+  const rangsQueue = rangs(queue, toutes);
+  /** « 2 102 communes valent exactement 20,0 » — dit seulement quand elles sont
+   *  plusieurs, sinon la phrase apprendrait que la première est la première. */
+  const exAequo = (combien: number, valeur: number, quoi: string) =>
+    combien > 1
+      ? ` ${nombre(combien)} ${echapper(pluriel)} valent exactement ${note(
+          valeur,
+        )} sur 20 : ce sont les plus peuplées d'entre elles qui sont montrées ${quoi}.`
+      : "";
   return `<section class="palmares" aria-labelledby="palmares-titre-${echapper(niveau)}">
     <h3 class="palmares__titre" id="palmares-titre-${echapper(niveau)}">Les ${echapper(
-      maille,
-    )} les mieux et les moins bien gérées</h3>
+      pluriel,
+    )} les mieux et les moins bien ${gere}</h3>
     <p class="palmares__cadrage">Note de gestion de l'exercice ${echapper(exercice)}, sur ${nombre(
       effectif,
-    )} ${echapper(maille)} qui publient les trois séries de l'Observatoire des finances locales.${
+    )} ${echapper(pluriel)} qui publient les trois séries de l'Observatoire des finances locales.${
       // Le millésime dominant est écrit ; celles qui en diffèrent sont
       // comptées plutôt que tues. Sans ce compte, la phrase daterait de
       // l'exercice le plus fréquent un tableau qui en mélange deux.
@@ -143,16 +215,22 @@ export function rendrePalmares(resultat: Palmares | null, niveau: string): strin
             autresExercices === 1 ? "est notée" : "sont notées"
           } sur l'exercice précédent, faute d'avoir publié celui-ci.`
         : ""
-    } La note médiane est de ${note(mediane)} sur 20.</p>
+    } La note médiane est de ${note(mediane)} sur 20.${exAequo(
+      resultat.exAequoTete,
+      tete[0]?.note.valeur ?? 0,
+      "en tête",
+    )}${exAequo(resultat.exAequoQueue, queue[0]?.note.valeur ?? 0, "en bas")}</p>
     <div class="palmares__colonnes">
       <div class="palmares__colonne">
         <h4>Les mieux notées</h4>
-        <ol class="palmares__liste">${tete.map((l, i) => rangee(l, i + 1)).join("")}</ol>
+        <ol class="palmares__liste">${tete
+          .map((l, i) => rangee(l, rangsTete[i]))
+          .join("")}</ol>
       </div>
       <div class="palmares__colonne">
         <h4>Les moins bien notées</h4>
         <ol class="palmares__liste palmares__liste--queue">${queue
-          .map((l, i) => rangee(l, effectif - i))
+          .map((l, i) => rangee(l, rangsQueue[i]))
           .join("")}</ol>
       </div>
     </div>

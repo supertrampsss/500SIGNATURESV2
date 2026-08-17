@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { noter } from "./note.ts";
-import { palmares, rendrePalmares, type Ligne } from "./palmares.ts";
+import { palmares, rangs, rendrePalmares, type Ligne } from "./palmares.ts";
 
 /** Un échelon d'essai : `n` territoires dont la note décroît régulièrement. */
 function echelon(n: number, exercice = "2025"): Ligne[] {
@@ -147,4 +147,112 @@ test("chaque ligne ouvre la fiche du territoire, et son nom est échappé", () =
   );
   assert.match(html, /data-territoire="33063"/);
   assert.doesNotMatch(html, /<script>/);
+});
+
+test("le titre s'accorde avec le genre de l'échelon", () => {
+  // **La faute exacte que le classement venait de corriger**, réapparue dans
+  // un module neuf le jour où il est arrivé : « les départements les mieux et
+  // les moins bien gérées ». Le participe s'accorde, et « départements » est
+  // masculin quand « communes » et « régions » sont féminins.
+  const p = palmares(echelon(40));
+  assert.match(texte(rendrePalmares(p, "commune")), /communes les mieux et les moins bien gérées/);
+  assert.match(texte(rendrePalmares(p, "region")), /régions les mieux et les moins bien gérées/);
+  assert.match(
+    texte(rendrePalmares(p, "departement")),
+    /départements les mieux et les moins bien gérés/,
+  );
+});
+
+test("les ex æquo du plafond sont comptés, et départagés par la population", () => {
+  // **2 102 communes valent exactement 20 sur 20** et 2 221 valent 0 : la note
+  // est bornée aux deux bouts. Un tri qui départageait par le nom sortait
+  // Abbans-Dessous, Ablaincourt-Pressoir, Ablancourt — les premières de
+  // l'alphabet parmi deux mille, présentées comme « les mieux gérées de
+  // France ».
+  const parfaite = (code: string, nom: string, population: number | null): Ligne => ({
+    code,
+    nom,
+    population,
+    note: noter({ tauxEpargne: 90, desendettement: 0.1, trajectoire: 40, exercice: "2025" }, "commune"),
+  });
+  const lignes = [
+    parfaite("a", "Abbans-Dessous", 120),
+    parfaite("b", "Bordeaux", 260_000),
+    parfaite("c", "Cenon", 25_000),
+    ...echelon(60).map((l, i) => ({ ...l, code: `z${i}`, population: 1_000 })),
+  ];
+  const p = palmares(lignes);
+  assert.ok(p);
+  assert.equal(p.exAequoTete, 3);
+  // La plus peuplée d'abord, pas la première de l'alphabet.
+  assert.equal(p.tete[0].nom, "Bordeaux");
+  assert.equal(p.tete[1].nom, "Cenon");
+  // Et le lecteur l'apprend, plutôt que de croire à un palmarès de trois.
+  const lu = texte(rendrePalmares(p, "commune"));
+  assert.match(lu, /3 communes valent exactement 20,0 sur 20/);
+  assert.match(lu, /plus peuplées d'entre elles qui sont montrées en tête/);
+});
+
+test("sans ex æquo, rien n'est dit : la première est la première", () => {
+  // « 1 commune vaut exactement 19,4 sur 20 » n'apprend rien.
+  const p = palmares(echelon(60));
+  assert.ok(p);
+  assert.equal(p.exAequoTete, 1);
+  assert.doesNotMatch(texte(rendrePalmares(p, "commune")), /valent exactement/);
+});
+
+test("un territoire sans population publiée n'est pas écarté", () => {
+  // Il passe après ceux qui en ont une, il ne disparaît pas du palmarès.
+  const p = palmares([
+    { ...echelon(1)[0], code: "sans", nom: "Sans population", population: null },
+    ...echelon(40).map((l, i) => ({ ...l, code: `q${i}`, population: 500 })),
+  ]);
+  assert.ok(p);
+  assert.equal(p.effectif, 41);
+});
+
+test("les deux bouts montrent les plus peuplées, y compris le bas", () => {
+  // **Le défaut, vu au navigateur sur les fichiers publiés.** Un tri unique
+  // « note décroissante, population décroissante » suivi d'un `slice(-N)`
+  // prend, parmi les derniers ex æquo, les MOINS peuplés : le bas affichait
+  // Fontanès-de-Sault et Vérignon sous une phrase annonçant « les plus
+  // peuplées d'entre elles ». Le texte publié démentait le tableau publié.
+  const nulle = (code: string, nom: string, population: number): Ligne => ({
+    code,
+    nom,
+    population,
+    note: noter({ tauxEpargne: -50, desendettement: null, trajectoire: -40, exercice: "2025" }, "commune"),
+  });
+  const p = palmares([
+    nulle("a", "Hameau", 30),
+    nulle("b", "Grande-Ville", 90_000),
+    nulle("c", "Bourg", 4_000),
+    ...echelon(60).map((l, i) => ({ ...l, code: `z${i}`, population: 2_000 })),
+  ]);
+  assert.ok(p);
+  assert.equal(p.queue[0].nom, "Grande-Ville", "le bas montre la plus petite au lieu de la plus grande");
+  assert.equal(p.queue[1].nom, "Bourg");
+});
+
+test("des ex æquo partagent leur rang, ils n'en reçoivent pas d'inventés", () => {
+  // 2 102 communes valent exactement 20 sur 20. Leur écrire « 1re, 2e, 3e… »
+  // serait un rang fabriqué ; et en bas, « 34 778e, 34 777e » l'était aussi.
+  // Elles sont toutes premières — dix lignes qui affichent « 1 » disent au
+  // lecteur, mieux qu'une phrase, que le plafond est encombré. C'est la
+  // convention que `situation.ts` tient déjà.
+  const parfaite = (code: string, population: number): Ligne => ({
+    code,
+    nom: `Ville ${code}`,
+    population,
+    note: noter({ tauxEpargne: 90, desendettement: 0.1, trajectoire: 40, exercice: "2025" }, "commune"),
+  });
+  const p = palmares([parfaite("a", 9), parfaite("b", 8), parfaite("c", 7), ...echelon(60)]);
+  assert.ok(p);
+  assert.deepEqual(rangs(p.tete.slice(0, 3), p.valeurs), [1, 1, 1]);
+  // Et la quatrième, elle, n'est pas première.
+  assert.ok(rangs(p.tete, p.valeurs)[3] > 1);
+  // Le rendu emploie ces rangs-là, pas la position dans la liste.
+  const lu = rendrePalmares(p, "commune");
+  const affiches = [...lu.matchAll(/class="palmares__rang nombre">([^<]*)</g)].map((m) => m[1]);
+  assert.deepEqual(affiches.slice(0, 3), ["1", "1", "1"]);
 });
