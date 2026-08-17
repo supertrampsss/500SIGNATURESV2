@@ -156,6 +156,47 @@ pour ne plus l'être.
 
 ## Reste à faire, par ordre de gravité
 
+0. **URGENT — le bump de `entrepot.CLE` en v3 est une mine, et il y avait une
+   sortie.** (17 août 2026.) Les exécutifs locaux — 94 présidents de
+   département, 14 de région, 34 889 maires sortants — sont chargés, testés et
+   poussés, mais **ils n'apparaîtront pas en ligne** : ils vivent dans
+   l'entrepôt, et l'entrepôt v3 n'existe pas dans le bucket. Le prochain
+   `ingest` ouvrirait un entrepôt **vide**, et publier depuis là **effacerait
+   les données du site**.
+
+   La cause : `geo.commune_officials` porte un `check (role in (…))`, et y
+   ajouter trois rôles **modifie** une table existante. DuckDB n'applique pas un
+   changement de contrainte à une table déjà créée, donc `SchemaDivergent` a
+   exigé un nouvel entrepôt — ce qu'un test a correctement fait échouer, et que
+   j'ai réglé en incrémentant la clé.
+
+   **C'était le choix coûteux, et le fichier le disait déjà.** `ANCETRES_ADDITIFS`
+   existe précisément pour éviter ça : un schéma qui ne fait qu'**ajouter** est
+   appliqué par les `create table if not exists` à l'ouverture, sans rien
+   reconstruire. Le commentaire au-dessus est explicite — « reconstruire
+   l'entrepôt entier pour une table de plus coûterait un rechargement complet de
+   toutes les sources […] refuser l'addition n'est donc pas le choix prudent :
+   c'est le choix coûteux ». Quatre entrées l'empruntent déjà.
+
+   **Ce qu'il faut faire, et ce n'est pas un rechargement.** Porter les trois
+   nouveaux rôles dans une **table neuve** — `geo.local_executives`, avec
+   `geo_level` dans la clé, ce qui règle aussi la collision du code « 75 » entre
+   le département de Paris et l'Île-de-France —, laisser
+   `geo.commune_officials` intacte, remettre `CLE` en v2 et déclarer l'empreinte
+   v2 dans `ANCETRES_ADDITIFS`. La publication lit alors les deux tables. Aucun
+   rechargement, aucun risque pour les données en ligne.
+
+   L'autre voie — garder v3 et lancer les jobs `rechargement-socle` puis
+   `rechargement-communes` — coûte plusieurs heures (72 agrégats OFGL sur quatre
+   mailles, des lots communaux de 195 Mo) et laisse le site sur des données
+   partielles pendant ce temps. Elle n'est justifiée que si l'on veut de toute
+   façon reconstruire.
+
+   **La leçon** : avant d'incrémenter la clé du schéma, se demander si le
+   changement peut se dire en ajout. Ici il le pouvait, et je ne me suis posé la
+   question qu'après avoir poussé.
+
+
 1. **Simulateur — comptes spéciaux, budgets annexes et ODAC.** Ce qui reste
    hors du budget général de l'État et hors des trois échelons publiés.
 
