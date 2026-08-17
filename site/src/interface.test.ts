@@ -2867,3 +2867,50 @@ test("le chiffre de tête et son millésime passent à la ligne plutôt que de s
     "le millésime sort du cadre à 320 px, et le corps de page défile avec lui",
   );
 });
+
+/**
+ * Les deux correctifs d'accessibilité que seul un navigateur voyait.
+ *
+ * `axe-core` n'est pas dans l'intégration continue : ces deux gardes sont donc
+ * la seule chose qui empêche les quinze nœuds de revenir. Elles sont
+ * grossières — du texte dans une feuille et dans huit gabarits — et c'est
+ * exactement leur intérêt : elles coûtent une milliseconde et tiennent la
+ * mesure qui a coûté un moteur de rendu.
+ */
+test("les paliers de la mission ne s'estompent pas sur fond clair", () => {
+  // `opacity: 0.55` composait --encre-douce en #a3aaa2 sur le carreau : 2,1:1
+  // pour un seuil de 4,5. Les tests de couleur du dépôt ne pouvaient pas le
+  // voir — ils lisent des couleurs déclarées, et l'opacité n'en est pas une.
+  const bloc = CSS.slice(CSS.indexOf(".mission .simu__palier {"));
+  const declaration = bloc.slice(0, bloc.indexOf("}"));
+  assert.match(
+    declaration,
+    /opacity:\s*1/,
+    "l'estompe est revenue sur fond clair : le contraste retombe à 2,1:1",
+  );
+});
+
+test("les huit cadres qui défilent sont atteignables au clavier", () => {
+  // Un `overflow-x: auto` sans contenu focalisable ne défile qu'à la souris
+  // (WCAG 2.1.1) : les colonnes cachées sont perdues pour qui navigue au
+  // clavier. Le sélecteur est vérifié avant le `tabindex`, sans quoi un
+  // renommage de classe rendrait ce test vert sur un gabarit disparu.
+  const gabarits: [string, string][] = [
+    ["etat.ts", 'class="pont"'],
+    ["etat.ts", 'class="comparaison"'],
+    ["national.ts", 'class="comparaison"'],
+    ["fonctions.ts", 'class="fonctions"'],
+    ["niches.ts", 'class="niches"'],
+    ["secu.ts", 'class="secu"'],
+    ["secu.ts", 'class="secu secu--serie"'],
+    ["exercices.ts", 'class="tableau-exercices"'],
+  ];
+  for (const [fichier, motif] of gabarits) {
+    const source = readFileSync(new URL(`./${fichier}`, import.meta.url), "utf8");
+    assert.ok(source.includes(motif), `${fichier} : ${motif} introuvable, le test vise à côté`);
+    assert.ok(
+      source.includes(`${motif} tabindex="0"`),
+      `${fichier} : ${motif} défile sans être atteignable au clavier`,
+    );
+  }
+});
