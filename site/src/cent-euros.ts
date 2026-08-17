@@ -251,5 +251,10 @@ export function afficherCentEuros(
   const html = rendu(budget, exercice);
   if (!html) return false;
   bloc.innerHTML = html;
+  // Le cadre est peut-être REPLIÉ : le pré-rendu replie ce qu'il ne peut pas
+  // écrire, et rien ne le rouvrait. Un bloc dont les séries sont publiées
+  // APRÈS le dernier déploiement restait alors invisible à tout lecteur —
+  // écrit, peint, et caché. Qui remplit un cadre le déplie.
+  bloc.hidden = false;
   return true;
 }

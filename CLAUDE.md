@@ -492,6 +492,25 @@ pour ne plus l'être.
   « 1 503 590 » se serait affiché « 1 503 590 € », une faute d'un facteur
   million sur un chiffre qui reste plausible.
 
+- **Un bloc écrit, peint, et caché** (17 août 2026). Le pré-rendu **replie**
+  tout cadre dont il ne peut pas écrire le corps, et **rien ne le rouvrait**.
+  Aucun des dix peintres de bloc ne déplie le cadre qu'il remplit : un bloc
+  dont les séries sont publiées **après** le dernier déploiement restait donc
+  invisible à tout lecteur — écrit, testé, peint dans le DOM, et `hidden`.
+
+  Ce n'est pas une hypothèse : c'est la séquence exacte que ces 100 € allaient
+  suivre. `deploy.yml` se déclenche sur `site/**`, l'ingestion ne déclenche
+  aucun déploiement, et les séries des APU arrivent par l'ingestion que la
+  fusion déclenche — donc **après** le build qui replie le cadre. Le bloc
+  serait parti en production invisible, jusqu'au prochain commit sur le site.
+
+  Vérifié dans le navigateur en refaisant la séquence : build sur un miroir
+  privé des 476 séries des APU (cadre `REPLIÉ` dans le document statique),
+  séries rétablies, page chargée — `hidden:false`, `offsetHeight>0`, titre
+  peint. Les dix peintres déplient désormais, et un test **déduit la liste des
+  peintres de main.ts** plutôt que de la recopier : troisième garde de ce dépôt
+  à devoir apprendre qu'une liste écrite à la main ne pousse pas.
+
 - **Trois cadres servis dépliés et vides en production, et la liste qui ne
   pouvait pas les voir** (17 août 2026). Le document pré-rendu de `/bilan/`
   portait `bloc-redistribution` et `bloc-retraites` **bordés, ombrés et vides**

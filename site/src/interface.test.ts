@@ -2860,6 +2860,36 @@ test("tout cadre qui défile est atteignable au clavier, la liste étant déduit
   assert.deepEqual(manquants, [], `cadres défilants sans tabindex :\n${manquants.join("\n")}`);
 });
 
+test("qui remplit un cadre le déplie", () => {
+  // Le pré-rendu REPLIE tout cadre dont il ne peut pas écrire le corps —
+  // `.bloc` est bordé et ombré, et une case vide se lit comme une panne. Rien
+  // ne le rouvrait : un bloc dont les séries sont publiées APRÈS le dernier
+  // déploiement restait invisible à tout lecteur, écrit, peint et caché, jusqu'à
+  // ce qu'un commit sur `site/**` refasse le document. La publication ne
+  // déclenche pas de déploiement — c'est le cas qu'ont posé les 100 € de toutes
+  // les administrations, dont les séries arrivent par l'ingestion qui suit la
+  // fusion.
+  //
+  // La liste des peintres se DÉDUIT de main.ts : une liste écrite à la main ne
+  // pousse pas, et c'est la troisième garde de ce dépôt à devoir l'apprendre.
+  const peintres = [...MAIN.matchAll(/\bafficher([A-Z][A-Za-z]*)\(\$\("bloc-/g)].map((m) => m[1]);
+  assert.ok(peintres.length >= 9, `${peintres.length} peintre(s) de bloc lus dans main.ts`);
+  const manquants: string[] = [];
+  for (const peintre of new Set(peintres)) {
+    // Le module qui exporte ce peintre, trouvé par son import — jamais un nom
+    // de fichier deviné, qui ferait passer ce test sur un fichier absent.
+    const importe = MAIN.match(new RegExp(`import \\{[^}]*\\bafficher${peintre}\\b[^}]*\\} from "\\./([^"]+)"`));
+    assert.ok(importe, `afficher${peintre} : import introuvable dans main.ts`);
+    const source = readFileSync(new URL(`./${importe[1]}`, import.meta.url), "utf8");
+    const corps = source.slice(source.indexOf(`export function afficher${peintre}`));
+    const fin = corps.indexOf("\n}\n");
+    const fonction = corps.slice(0, fin === -1 ? undefined : fin);
+    assert.match(fonction, /\.innerHTML =/, `afficher${peintre} : ce test vise à côté`);
+    if (!/\.hidden = false/.test(fonction)) manquants.push(`${importe[1]} : afficher${peintre}`);
+  }
+  assert.deepEqual(manquants, [], `peintres qui remplissent un cadre sans le déplier :\n${manquants.join("\n")}`);
+});
+
 test("les huit cadres qui défilent sont atteignables au clavier", () => {
   // Un `overflow-x: auto` sans contenu focalisable ne défile qu'à la souris
   // (WCAG 2.1.1) : les colonnes cachées sont perdues pour qui navigue au
