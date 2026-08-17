@@ -1324,9 +1324,17 @@ tbody tr:hover {
   font-size: var(--texte-xxl);
   margin: 0 0 0.9rem;
 }
+/* `minmax(20rem, …)` garde sa piste de 20 rem même quand le conteneur est plus
+   étroit qu'elle : à 320 px de fenêtre, la section n'offre que 190 px et les
+   deux cadres qui n'occupent pas la rangée entière — la dette et l'Europe — en
+   prenaient 320. Le corps de page défilait alors sur 385 px.
+
+   `min(20rem, 100%)` ne change rien au-dessus de 20 rem, où la piste vaut
+   toujours 20 rem : il donne seulement à la piste le droit de descendre avec
+   son conteneur. Mesuré au navigateur, pas déduit — §24. */
 .national__grille {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr));
   gap: 1.25rem;
 }
 .bloc {
@@ -1564,7 +1572,9 @@ tbody tr:hover {
    Le chiffre porte l'information, la barre ne fait qu'ordonner le regard. */
 .cent__grille {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+  /* Même piste qui ne rétrécit pas que `.national__grille` : 18 rem dans un
+     cadre qui n'en offre que 156 px à 320 px de fenêtre. */
+  grid-template-columns: repeat(auto-fit, minmax(min(18rem, 100%), 1fr));
   gap: 1.25rem 2rem;
   margin-top: 0.6rem;
 }

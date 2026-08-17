@@ -2816,3 +2816,30 @@ test("l'image d'une fiche se construit au clic, elle ne s'annonce pas comme un f
     "aucun écouteur ne sert le bouton d'image construite",
   );
 });
+
+/**
+ * Une piste de grille ne reste pas plus large que son cadre.
+ *
+ * `repeat(auto-fit, minmax(20rem, 1fr))` garde sa piste de 20 rem même quand le
+ * conteneur est plus étroit qu'elle. Mesuré au navigateur à 320 px : la section
+ * nationale n'offre que 190 px et deux de ses cadres en prenaient 320, « 100 € »
+ * 288 px dans un cadre de 156. Le corps de `/reperes` défilait alors sur 385 px
+ * — le §24 pris en défaut, sur des surfaces plus anciennes que le cadre de
+ * partage qui a fait chercher.
+ *
+ * `min(Nrem, 100%)` ne change rien au-dessus de N rem ; il donne à la piste le
+ * droit de descendre avec son conteneur. Les quatre autres grilles de ce fichier
+ * — 16, 12, 9,5 et 9 rem — ont été mesurées aux mêmes 320 px et tiennent : elles
+ * restent telles quelles, faute de défaut à corriger.
+ */
+test("les deux grilles qui débordaient à 320 px bornent leur piste", () => {
+  for (const grille of ["national__grille", "cent__grille"]) {
+    const bloc = CSS.slice(CSS.indexOf(`.${grille} {`));
+    const declaration = bloc.slice(0, bloc.indexOf("}"));
+    assert.match(
+      declaration,
+      /grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(min\(\d+rem,\s*100%\),\s*1fr\)\)/,
+      `.${grille} : la piste ne peut plus descendre sous sa taille, et déborde à 320 px`,
+    );
+  }
+});
