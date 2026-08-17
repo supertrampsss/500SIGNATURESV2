@@ -253,6 +253,51 @@ export function note(series: Series, niveau: string): Note | null {
 }
 
 /**
+ * La note d'un territoire à partir des couches de la carte, et non de sa fiche.
+ *
+ * Le classement lit des couches — un fichier par indicateur, par maille et par
+ * exercice, `{code: valeur}` — quand la fiche lit des séries. Cette fonction
+ * recompose la forme que `note()` attend **pour réutiliser le même barème** :
+ * une seconde implémentation de la grille aurait fini par diverger de la
+ * première, et deux notes différentes pour le même territoire sur deux écrans
+ * du même site est le défaut qu'aucun lecteur ne pardonne.
+ *
+ * Les deux valeurs d'ouverture sont facultatives : sans elles, le terme de
+ * trajectoire vaut la moitié de ses points, comme sur la fiche.
+ */
+export function noteDepuisCouches(
+  valeurs: {
+    recettes?: number;
+    epargne?: number;
+    dette?: number;
+    recettesAvant?: number;
+    epargneAvant?: number;
+  },
+  exercice: string,
+  niveau: string,
+): Note | null {
+  const { recettes, epargne, dette, recettesAvant, epargneAvant } = valeurs;
+  if (recettes === undefined || epargne === undefined || dette === undefined) return null;
+  // Si l'exercice noté EST la borne d'ouverture, il n'y a pas de trajectoire à
+  // mesurer — et les deux valeurs s'écraseraient sous la même clé, ce qui
+  // aurait donné une trajectoire nulle au lieu d'une trajectoire absente.
+  const serie = (courant: number, avant?: number) =>
+    avant === undefined || exercice === OUVERTURE
+      ? { [exercice]: courant }
+      : { [OUVERTURE]: avant, [exercice]: courant };
+  return note(
+    {
+      [RECETTES]: serie(recettes, recettesAvant),
+      [EPARGNE]: serie(epargne, epargneAvant),
+      // La dette d'ouverture n'entre dans aucun terme : seule la trajectoire
+      // regarde 2019, et elle ne regarde que la marge.
+      [DETTE]: { [exercice]: dette },
+    },
+    niveau,
+  );
+}
+
+/**
  * La mention, parce qu'un nombre sur 20 ne se lit pas seul.
  *
  * Cinq crans, bornes rondes. Ils ne sont pas calibrés sur la distribution :

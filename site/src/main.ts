@@ -15,7 +15,8 @@ import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, NIVEAUX, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
 import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
-import { reperes as reperesDOuverture } from "./reperes.ts";
+import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
+import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -1146,6 +1147,15 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
       ...CLASSEMENTS.map((c) => donnees.valeursCarte(c.id, niveau, exercice)),
       donnees.valeursCarte("ofgl_epargne_brute", niveau, exercice),
     ]);
+    // Les deux couches d'ouverture, pour le terme de trajectoire de la note.
+    // Elles sont demandées à part et sans faire échouer le reste : un exercice
+    // 2019 absent d'une maille vaut « pas de trajectoire », ce que la note sait
+    // déjà traiter — pas « pas de classement ».
+    const [recettesAvant, epargneAvant] = await Promise.all([
+      donnees.valeursCarte(RECETTES, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+      donnees.valeursCarte(EPARGNE, niveau, OUVERTURE).catch(() => ({}) as Record<string, number>),
+    ]);
+    if (etat.selection !== code || document.getElementById("fiche-situation") !== cible) return;
     if (etat.selection !== code || document.getElementById("fiche-situation") !== cible) return;
     const habitants = populationsDuRepertoire(index, exercice);
     const dette = couches[CLASSEMENTS.length - 1];
@@ -1179,6 +1189,39 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
       // classement où il ne veut rien dire.
       valeur: (t: string) =>
         dette[t] > 0 && epargne[t] > 0 ? dette[t] / epargne[t] : null,
+    });
+    // **La note de gestion, en tête du classement.** Elle est la question que
+    // le lecteur pose — « est-ce que ma commune est bien gérée » —, et les
+    // quatre critères au-dessus sont les mesures dont elle sort. Sans elle, la
+    // fiche disait la note et le classement ne savait pas la situer.
+    //
+    // Le barème n'est pas recalculé ici : `noteDepuisCouches` recompose la
+    // forme que `note()` attend, pour que les deux écrans ne puissent pas
+    // afficher deux notes différentes du même territoire.
+    const recettes = couches[1];
+    criteres.unshift({
+      libelle: "Note de gestion",
+      // **Un verbe, jamais un participe.** Le sujet change avec la maille —
+      // « communes » et « régions » au féminin, « départements » au masculin —
+      // et « 27 887 communes sont mieux notés » se lisait comme une faute. Les
+      // quatre critères au-dessus emploient des verbes pleins pour cette
+      // raison exacte : « dépensent plus », « doivent moins ».
+      dessus: "ont une meilleure note",
+      dessous: "ont une note plus basse",
+      ecrire: (v: number) =>
+        `${v.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}/20`,
+      valeur: (t: string) =>
+        noteDepuisCouches(
+          {
+            recettes: recettes[t],
+            epargne: epargne[t],
+            dette: dette[t],
+            recettesAvant: recettesAvant[t],
+            epargneAvant: epargneAvant[t],
+          },
+          exercice,
+          niveau,
+        )?.valeur ?? null,
     });
     const noms: Record<string, string> = {};
     index.codes.forEach((t, rang) => {

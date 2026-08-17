@@ -3,6 +3,7 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 import { situation, rendreSituation } from "./situation.ts";
 
@@ -108,4 +109,31 @@ test("le premier de la maille n'a personne au-dessus, et la phrase le dit", () =
   // « 0 communes dépensent plus » est une phrase de machine.
   const html = rendreSituation(situation(entree("b")), "commune", "2025");
   assert.match(html, /aucune commune ne fait plus, sur 4/);
+});
+
+test("les verbes du classement s'accordent à toutes les mailles", () => {
+  // **Le défaut, trouvé en peignant la fiche avec les fichiers publiés.** Le
+  // critère de la note s'annonçait « 27 887 communes sont mieux notés » : un
+  // participe passé doit s'accorder, et le sujet change avec la maille —
+  // « communes » et « régions » au féminin, « départements » au masculin.
+  // Aucune formule ne peut donc porter de participe accordé.
+  //
+  // Les quatre critères d'origine y échappaient par construction, en employant
+  // des verbes pleins : « dépensent plus », « doivent moins ». La règle n'était
+  // écrite nulle part, et le cinquième critère l'a enfreinte le jour où il est
+  // arrivé. Elle l'est ici, sur la source de `main.ts` — c'est là que vivent
+  // les formules.
+  const source = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+  const formules = [...source.matchAll(/\n\s*(?:dessus|dessous): "([^"]+)",/g)].map((m) => m[1]);
+  assert.ok(formules.length >= 10, `formules introuvables (${formules.length})`);
+  for (const formule of formules) {
+    assert.doesNotMatch(
+      formule,
+      // Un participe accordé au masculin ou au féminin pluriel : « notés »,
+      // « notées », « classés ». Les verbes conjugués du classement —
+      // « dépensent », « doivent », « ont » — n'ont pas cette terminaison.
+      /\wés\b|\wées\b/u,
+      `« ${formule} » porte un participe accordé : il sera faux à l'une des trois mailles`,
+    );
+  }
 });
