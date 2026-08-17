@@ -59,7 +59,7 @@ import { afficherQuestions } from "./questions.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
-  enCsv, enCsvEvolution, nomDeFichier, telecharger,
+  enCsv, enCsvEvolution, nomDeFichier, sourceDuNiveau, telecharger,
   type LigneExport, type LigneExportEvolution,
 } from "./export.ts";
 import {
@@ -1919,7 +1919,10 @@ function brancherCommandes(): void {
   // `demarrer()` fait après cet appel. Même garde que `majTableau`.
   document.getElementById("exporter")?.addEventListener("click", () => {
     const indicateur = indicateurCourant();
-    const jeu = jeux.find((j) => j.id === indicateur.jeu);
+    // La source se lit à la maille exportée, pas sur l'indicateur seul :
+    // l'OFGL déclare ses agrégats sous « Finances des communes » quelle que
+    // soit la maille chargée (voir `sourceDuNiveau`).
+    const source = sourceDuNiveau(indicateur, etat.niveau, jeux);
     if (exportEvolution) {
       telecharger(
         enCsvEvolution(exportEvolution.lignes, {
@@ -1929,7 +1932,7 @@ function brancherCommandes(): void {
           periodeApres: etat.periode,
           niveau: etat.niveau,
           parHabitant: parHabitantAffiche,
-          source: jeu ? `${jeu.producteur}, ${jeu.titre}` : indicateur.jeu,
+          source,
         }),
         nomDeFichier(
           indicateur.libelle,
@@ -1946,7 +1949,7 @@ function brancherCommandes(): void {
         periode: etat.periode,
         niveau: etat.niveau,
         parHabitant: exportCourant.parHabitant,
-        source: jeu ? `${jeu.producteur}, ${jeu.titre}` : indicateur.jeu,
+        source,
       }),
       nomDeFichier(indicateur.libelle, etat.niveau, etat.periode),
     );

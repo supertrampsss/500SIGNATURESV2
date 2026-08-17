@@ -404,6 +404,37 @@ pour ne plus l'être.
 
 ### Fait
 
+- **La source d'un chiffre, maille par maille** (17 août 2026). L'export CSV
+  d'un **département** écrivait en tête de fichier :
+
+      # Source : OFGL, Finances des communes (consolidee)
+
+  et la même phrase pour les **cartes grises**, une recette que seules les
+  régions perçoivent. Reproduit sur la publication `2026-08-11T0807`, sur trois
+  indicateurs.
+
+  Ce n'est pas une faute du connecteur, qui télécharge bien les trois jeux
+  (`normalize/ofgl.py`, `JEUX`) et trace chaque run sous le sien : c'est que
+  `core.indicators.dataset_id` ne porte **qu'un jeu par indicateur**, et que
+  l'OFGL les déclare tous sous celui des communes, en dur. Le catalogue publié
+  répétait cette déclaration. **73 des 93 agrégats** de l'OFGL en dépendaient,
+  dont 16 qui n'existent pas du tout à la maille commune.
+
+  Le jeu réel est dans le run qui a écrit l'observation. La publication le lit
+  et déclare `jeu_par_niveau` — **les seules mailles dont la source diffère**,
+  parce que le site lit `jeu_par_niveau[niveau] ?? jeu` et que republier
+  l'identité pour trois cent quinze indicateurs gonflerait le catalogue sans
+  rien apprendre. Deux prudences : une maille qu'ont écrite deux jeux se tait,
+  et un indicateur non publié reste dehors.
+
+  C'est la règle que le docstring d'`indicateurs()` posait déjà pour les
+  niveaux — « le catalogue dit la vérité de ce qui est publié, pas ce qu'un
+  connecteur a déclaré » — et que le champ `jeu` était seul à ne pas tenir.
+
+  Le branchement a son propre test : `export.ts` avait la fonction juste, et une
+  fonction juste qu'aucun appelant n'emploie laisse le défaut en ligne. Les deux
+  gardes ont été éprouvées par sabotage.
+
 - **Le dénominateur des budgets locaux** (16 août 2026). Les trois volets
   s'intitulent « le budget de **tous** les départements », « de **toutes** les
   communes », « de **toutes** les régions », et agrègent 97 départements sur

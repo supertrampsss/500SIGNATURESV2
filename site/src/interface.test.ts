@@ -2755,3 +2755,22 @@ test("une carte cachée et une barre repliée le restent bien à l'écran", () =
   assert.match(CSS_REGLES, /\.analyse-rendu__index-ligne\[hidden\] \{\n\s*display: none;/);
   assert.match(CSS_REGLES, /\.analyses-filtres\[hidden\] \{\n\s*display: none;/);
 });
+
+/**
+ * L'export CSV nomme sa source à la maille exportée.
+ *
+ * Le module `export.ts` a la fonction et ses tests ; ce qui se vérifie ici est
+ * son BRANCHEMENT. Une fonction juste qu'aucun appelant n'emploie laisse le
+ * défaut en ligne — c'est le piège que ce dépôt a déjà rencontré deux fois, un
+ * test vert au-dessus d'un écran faux.
+ */
+test("l'export lit la source à la maille, et plus le seul jeu de l'indicateur", () => {
+  assert.ok(
+    MAIN.includes("sourceDuNiveau(indicateur, etat.niveau, jeux)"),
+    "main.ts ne demande plus la source à la maille exportée",
+  );
+  assert.ok(
+    !/source:\s*jeu\s*\?/.test(MAIN),
+    "l'ancienne résolution — le jeu de l'indicateur, quelle que soit la maille — est revenue",
+  );
+});

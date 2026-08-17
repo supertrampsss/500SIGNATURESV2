@@ -19,6 +19,16 @@ export type Indicateur = {
   confiance: string;
   badges: string[];
   jeu: string;
+  /**
+   * Les mailles dont la source **diffère** de `jeu`, et elles seules.
+   *
+   * Un indicateur ne porte qu'un jeu, quand une série peut venir d'un jeu par
+   * maille : les agrégats de l'OFGL sont déclarés sous « Finances des
+   * communes » alors que le département et la région ont chacun le leur. Se
+   * lit `jeu_par_niveau?.[niveau] ?? jeu` — voir `jeuDuNiveau`. Absent quand il
+   * n'y a rien à corriger, et des publications antérieures au 17 août 2026.
+   */
+  jeu_par_niveau?: Record<string, string>;
   periodes: string[];
   /** Périodes réellement disponibles à chaque niveau (docs/10). */
   periodes_par_niveau?: Record<string, string[]>;
