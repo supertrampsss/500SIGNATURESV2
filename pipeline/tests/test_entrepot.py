@@ -57,9 +57,15 @@ def test_le_schema_s_applique_deux_fois_sans_erreur(tmp_path):
         """select count(*) from information_schema.tables
            where table_schema in ('meta','geo','core','fin')"""
     ).fetchone()[0]
-    # 21 tables du modèle — `fin.social_budget_branch` est la dernière venue —,
+    # 22 tables du modèle — `geo.local_executives` est la dernière venue, le
+    # 17 août 2026, pour les présidents de conseil et les maires sortants —,
     # plus la table d'empreinte du schéma.
-    assert tables == 22
+    #
+    # Ce compte est une garde : une table qui apparaît sans qu'on l'ait voulu
+    # se voit ici. Le faire monter demande d'avoir d'abord déclaré l'empreinte
+    # de l'ancêtre dans `ANCETRES_ADDITIFS`, sans quoi les entrepôts existants
+    # refuseraient de s'ouvrir.
+    assert tables == 23
     connexion.close()
 
 

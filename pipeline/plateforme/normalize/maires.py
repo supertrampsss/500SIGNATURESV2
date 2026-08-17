@@ -305,10 +305,17 @@ def ecrire(conn, run_id: str, lignes: list[dict]) -> tuple[int, int]:
 
 
 def ecrire_executifs(conn, run_id: str, role: str, niveau: str, lignes: list[dict]) -> tuple[int, int]:
-    """Écrit une présidence par collectivité de la maille, et rien d'autre.
+    """Écrit un exécutif par collectivité de la maille, et rien d'autre.
+
+    **Dans `geo.local_executives`, pas dans `geo.commune_officials`.** Celle-ci
+    borne son rôle par un `check (role in ('maire'))`, et DuckDB n'applique pas
+    une contrainte modifiée à une table déjà créée : l'élargir imposait un
+    entrepôt neuf, donc un rechargement complet de toutes les sources. Une table
+    ajoutée se crée à l'ouverture — c'est ce que `entrepot.ANCETRES_ADDITIFS`
+    permet, et le seul chemin qui met ces noms en ligne sans rien reconstruire.
 
     Même garde que pour les maires : un code inconnu du référentiel signale un
-    décalage de millésime, pas une information. La clé primaire porte le rôle,
+    décalage de millésime, pas une information. `geo_level` est dans la clé,
     donc le département « 75 » et la région « 75 » cohabitent sans s'écraser.
     """
     if not lignes:
@@ -327,14 +334,15 @@ def ecrire_executifs(conn, run_id: str, role: str, niveau: str, lignes: list[dic
             ).fetchall()
         }
         gardees = [ligne for ligne in lignes if ligne["geo_code"] in connus]
-        curseur.execute("delete from geo.commune_officials where role = ?", (role,))
+        curseur.execute("delete from geo.local_executives where role = ?", (role,))
         entrepot.copier(
             conn,
-            "geo.commune_officials",
-            ["geo_code", "geo_vintage", "role", "surname", "given_name", "since", "run_id"],
+            "geo.local_executives",
+            ["geo_code", "geo_level", "geo_vintage", "role", "surname",
+             "given_name", "since", "run_id"],
             (
                 (
-                    ligne["geo_code"], MILLESIME, role, ligne["surname"],
+                    ligne["geo_code"], niveau, MILLESIME, role, ligne["surname"],
                     ligne["given_name"], ligne["since"], run_id,
                 )
                 for ligne in gardees

@@ -1903,13 +1903,17 @@ def maires(conn, role: str = "maire") -> dict[str, dict]:
     ensemble mêlerait deux exécutifs sous une seule clé. Chaque maille demande
     le sien.
     """
+    # Le maire en exercice vit dans `commune_officials` ; les autres exécutifs
+    # dans `local_executives`, une table ajoutée plutôt qu'un rôle de plus —
+    # élargir le `check` de la première aurait imposé de reconstruire l'entrepôt
+    # entier (voir `entrepot.ANCETRES_ADDITIFS`).
+    table = "geo.commune_officials" if role == "maire" else "geo.local_executives"
     try:
         lignes = conn.execute(
-            "select geo_code, surname, given_name, since from geo.commune_officials"
-            " where role = ?",
+            f"select geo_code, surname, given_name, since from {table} where role = ?",
             (role,),
         ).fetchall()
-    except Exception:  # noqa: BLE001 — table absente tant que 0010 n'est pas appliquée
+    except Exception:  # noqa: BLE001 — table absente tant que la migration n'est pas appliquée
         entrepot.annuler(conn)
         return {}
     return {

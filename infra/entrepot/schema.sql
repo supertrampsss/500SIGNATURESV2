@@ -225,27 +225,48 @@ create table if not exists geo.geography_history (
 -- Maires en exercice (RNE). Ni date de naissance, ni sexe, ni profession : la
 -- règle du projet interdit de stocker des données personnelles, et l'identité
 -- d'un maire n'est publique qu'au titre de la fonction qu'il exerce.
--- Les exécutifs locaux. Le nom dit « commune » parce que la table n'a d'abord
--- porté que des maires ; elle porte aussi, depuis le 17 août 2026, les
--- présidents de conseil départemental et de conseil régional.
---
--- **Le rôle fait partie de la clé, et il le faut** : le département de Paris et
--- la région Île-de-France portent tous deux le code « 75 ». Sans le rôle dans
--- la clé primaire, le second écraserait le premier en silence.
 create table if not exists geo.commune_officials (
     geo_code    text not null,
     geo_vintage smallint not null,
-    role        text not null default 'maire'
-                check (role in ('maire', 'maire_precedent',
-                                'president_departement', 'president_region')),
+    role        text not null default 'maire' check (role in ('maire')),
     surname     text not null,
     given_name  text not null,
-    -- Début du MANDAT d'élu pour un maire ; début de la FONCTION pour un
-    -- président, qui est élu conseiller puis porté à la présidence par son
-    -- assemblée, parfois des mois plus tard.
     since       date,
     run_id      uuid,  -- -> meta.ingestion_runs, vérifié par entrepot.verifier_integrite
     primary key (geo_code, geo_vintage, role)
+);
+
+-- Les exécutifs locaux autres que le maire en exercice : présidents de conseil
+-- départemental et régional, et maires de la mandature précédente.
+--
+-- **Pourquoi une table de plus plutôt qu'un rôle de plus.** `commune_officials`
+-- borne son rôle par un `check (role in ('maire'))`, et DuckDB n'applique pas
+-- une contrainte modifiée à une table déjà créée : l'élargir imposait un
+-- entrepôt neuf, donc un rechargement complet de toutes les sources. Une table
+-- ajoutée, elle, est créée à l'ouverture par le `if not exists` ci-dessous —
+-- c'est ce que `entrepot.ANCETRES_ADDITIFS` permet, et son commentaire dit
+-- pourquoi : « refuser l'addition n'est pas le choix prudent, c'est le choix
+-- coûteux ».
+--
+-- **`geo_level` est dans la clé, et il le faut** : le département de Paris et
+-- la région Île-de-France portent tous deux le code « 75 ». Sans lui, le second
+-- écraserait le premier en silence et une fiche montrerait l'exécutif de
+-- l'autre collectivité.
+--
+-- `since` est le début de la FONCTION, pas du mandat d'élu : un président est
+-- élu conseiller puis porté à la présidence par son assemblée, parfois des mois
+-- plus tard. Comme pour les maires, ni date de naissance, ni sexe, ni
+-- profession : l'identité d'un élu n'est publique qu'au titre de sa fonction.
+create table if not exists geo.local_executives (
+    geo_code    text not null,
+    geo_level   text not null,
+    geo_vintage smallint not null,
+    role        text not null,
+    surname     text not null,
+    given_name  text not null,
+    since       date,
+    run_id      uuid,  -- -> meta.ingestion_runs, vérifié par entrepot.verifier_integrite
+    primary key (geo_code, geo_level, role)
 );
 
 -- ---------------------------------------------------------------- core
