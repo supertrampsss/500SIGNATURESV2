@@ -434,6 +434,39 @@ pour ne plus l'être.
 
 ### Fait
 
+- **`/reperes` défilait horizontalement à 320 px, et la première correction ne
+  suffisait pas** (17 août 2026). Corps de page à 385 px pour une fenêtre de
+  320. Mesuré au navigateur sur le site construit, jamais déduit d'une lecture
+  de feuille de style.
+
+  **Deux causes, l'une derrière l'autre.** `repeat(auto-fit, minmax(20rem, 1fr))`
+  garde sa piste de 20 rem même quand le conteneur est plus étroit : la section
+  nationale n'offre que 190 px, et les deux cadres qui n'occupent pas la rangée
+  entière — la dette et l'Europe — en prenaient 320. Même chose pour « 100 € »,
+  18 rem dans un cadre de 156. `min(Nrem, 100%)` ne change rien au-dessus de
+  N rem ; il laisse seulement la piste descendre avec son conteneur.
+
+  Cela a ramené le corps à **330 px, pas à 320**. Le reste venait de
+  `.bloc__chiffre` : un flex sans `flex-wrap`, où le chiffre est au corps le
+  plus gros du site — « 3 536 100 M€ » suivi de la pilule « 2026-Q1 » demande
+  330 px, et la pilule sortait du cadre.
+
+  **La leçon vaut plus que les deux lignes de CSS** : 385 → 330 est une grosse
+  amélioration et reste une page qui défile. S'arrêter à la première mesure
+  aurait produit une affirmation fausse. Les quatre autres grilles du fichier —
+  16, 12, 9,5 et 9 rem — ont été mesurées aux mêmes 320 px et tiennent : elles
+  restent telles quelles.
+
+  **Ce n'est pas le §24**, qui ne porte que sur les surfaces *nouvelles* : ces
+  cadres sont plus anciens que le cadre de partage dont la vérification a fait
+  chercher. Celui-ci passe — ses deux boutons mesurent 139 et 140 px, bords
+  droits à 155 et 301.
+
+  Et la première sonde ne certifiait rien : elle annonçait zéro débordement sur
+  les huit pages sans jamais attendre que le cadre de partage paraisse — elle
+  mesurait donc toutes les surfaces sauf celle qu'on venait d'ajouter. C'est
+  l'attente explicite qui a fait apparaître le défilement de `/reperes`.
+
 - **Les deux défis de l'atelier, en Md€ sous un compteur en M€**
   (17 août 2026). « Dégagez 10 Md€ » et « 30 Md€ sans toucher à l'école »,
   avec leur avancement peint à côté : « +9 520 M€ ». Savoir si le défi était

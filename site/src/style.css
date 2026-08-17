@@ -1357,6 +1357,11 @@ tbody tr:hover {
 .bloc__chiffre {
   margin: 0.5rem 0 0;
   display: flex;
+  /* Le chiffre est au corps le plus gros du site et le millésime le suit sur la
+     même ligne : « 3 536 100 M€ » puis « 2026-Q1 » demandent 330 px, et un flex
+     ne passe pas à la ligne tout seul. La pilule du millésime sortait donc du
+     cadre, et le corps de `/reperes` avec elle. */
+  flex-wrap: wrap;
   align-items: baseline;
   gap: 0.5rem;
 }

@@ -2843,3 +2843,27 @@ test("les deux grilles qui débordaient à 320 px bornent leur piste", () => {
     );
   }
 });
+
+/**
+ * Le chiffre de tête d'un cadre et son millésime passent à la ligne.
+ *
+ * Deuxième cause du défilement de `/reperes`, cachée derrière la première :
+ * borner les pistes de grille a ramené le corps de 385 px à 330, pas à 320. Le
+ * reste venait d'ici — `.bloc__chiffre` est un flex, le chiffre y est au corps
+ * le plus gros du site, et « 3 536 100 M€ » suivi de la pilule « 2026-Q1 »
+ * demande 330 px. Un flex ne passe pas à la ligne tout seul.
+ *
+ * La leçon vaut plus que la ligne : une grosse amélioration mesurée — 385 vers
+ * 330 — n'est pas une page réparée, et s'arrêter là aurait produit une
+ * affirmation fausse.
+ */
+test("le chiffre de tête et son millésime passent à la ligne plutôt que de sortir", () => {
+  const bloc = CSS.slice(CSS.indexOf(".bloc__chiffre {"));
+  const declaration = bloc.slice(0, bloc.indexOf("}"));
+  assert.match(declaration, /display:\s*flex/, ".bloc__chiffre n'est plus un flex : ce test vise le mauvais sélecteur");
+  assert.match(
+    declaration,
+    /flex-wrap:\s*wrap/,
+    "le millésime sort du cadre à 320 px, et le corps de page défile avec lui",
+  );
+});
