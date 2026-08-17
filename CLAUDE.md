@@ -434,6 +434,44 @@ pour ne plus l'être.
 
 ### Fait
 
+- **L'accueil avait l'échelle d'un tableau de bord** (17 août 2026). Première
+  passe de design du dépôt, avec le skill que ces règles imposent, installé
+  avant d'y toucher.
+
+  **L'audit a d'abord dit le contraire de ce qu'on attendait.** Le site n'est
+  pas mal dessiné : jetons nommés, contrastes calculés et écrits (dix-sept
+  ratios dans la feuille), sombre à parité complète de jetons avec une bascule,
+  polices auto-hébergées, mouvement réduit honoré, cibles à 44 px, aucun script
+  tiers. La fiche et `/reperes` tiennent — la courbe d'inflation est bonne. Il
+  n'y avait pas de refonte à faire sur six pages sur huit, et en faire une
+  aurait cassé un système accessible pour rien.
+
+  **Une page était faible, et c'est celle qu'on ouvre.** Mesuré, pas ressenti :
+  l'échelle typographique s'arrête à 28 px, ce qui est juste pour des vues
+  denses — mais l'accueil en héritait, et sa phrase d'ouverture s'écrivait à
+  20 px, la taille du nom d'un territoire sur sa fiche. Elle se lisait comme un
+  sous-titre. Quatre blocs sur cinq portaient le même cadre, le même rayon, le
+  même rembourrage ; **six micro-étiquettes en capitales espacées** se
+  suivaient sur une seule page, chaque section s'annonçant avant de parler.
+
+  Trois changements, tous dans la feuille de style : un cran d'affiche
+  (`--texte-affiche`, borné par `clamp` pour tenir en deux lignes à 1 440 px) ;
+  une seule carte au lieu de cinq, celle du verdict, les autres en bandes
+  séparées d'un filet ; les sur-titres redevenus des titres dans la serif du
+  site. Les références légales, longues de cent caractères et soulignées plein
+  cadre, se bornent à la mesure de lecture.
+
+  **Le premier essai était trop gros** : `clamp(2rem, 4.4vw, 3.25rem)` avec un
+  cadre à 22ch donnait neuf lignes de titre qui remplissaient l'écran. Une
+  phrase de douze mots ne prend pas un corps d'affiche — c'est une faute de
+  taille, pas de copie. Corrigé en mesurant le nombre de lignes rendu à trois
+  largeurs, jamais à l'œil.
+
+  **Et le système s'est défendu tout seul** : le premier correctif écrivait la
+  taille en dur, et un test d'architecture l'a refusée — « toutes les tailles de
+  texte passent par l'échelle ». Le palier est donc un cran de l'échelle, pas
+  une exception glissée dans une règle.
+
 - **`/reperes` défilait horizontalement à 320 px, et la première correction ne
   suffisait pas** (17 août 2026). Corps de page à 385 px pour une fenêtre de
   320. Mesuré au navigateur sur le site construit, jamais déduit d'une lecture

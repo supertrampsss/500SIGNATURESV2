@@ -154,6 +154,16 @@
   --texte-xxl: 1.25rem;   /* 20px — titre de fiche, titre de vue */
   --texte-3xl: 1.5rem;    /* 24px — chiffre d'aperçu */
   --texte-4xl: 1.75rem;   /* 28px — chiffre héros d'un bloc national */
+  /* Le seul cran d'affiche, et il n'a qu'un usage : la phrase d'ouverture de
+     l'accueil. Les six autres pages sont des vues denses — une fiche, un
+     tableau, un atelier — et une vue dense n'a pas besoin d'un corps
+     d'affiche ; c'est pourquoi l'échelle s'arrêtait à 28 px. Mais l'accueil
+     est une page d'entrée, et sa phrase s'écrivait à 20 px, la taille du nom
+     d'un territoire sur sa fiche : elle se lisait comme un sous-titre.
+     Borné des deux côtés — 25,6 px sur un téléphone, 38,4 px au-delà de
+     1 440 px — pour que la phrase tienne en deux lignes sur un écran de
+     bureau, ce qu'aucune valeur fixe ne garantit à cette longueur. */
+  --texte-affiche: clamp(1.6rem, 2.6vw, 2.4rem);
   /* Échelle d'espacement — 8 crans, mêmes pixels entiers. Avant : 84 valeurs
      de padding distinctes. Les réservations de place pour un contrôle
      superposé (flèche de select, loupe, bouton fermer) et les échelles
@@ -6462,55 +6472,88 @@ body[data-carte="oui"] .legende {
   padding: var(--espace-7) 0 var(--espace-8);
 }
 
-/* ---- L'ouverture : le message, puis l'unité, puis la preuve ---- */
+/* ---- L'ouverture ----------------------------------------------------------
+   Le message du site s'écrivait à `--texte-xxl`, 20 px : la même taille que le
+   nom d'un territoire sur sa fiche. L'échelle du dépôt s'arrête à 28 px, et
+   c'est juste — une vue dense n'a pas besoin d'un corps d'affiche, et les six
+   autres pages sont des vues denses. L'accueil, lui, est une page d'entrée :
+   il héritait d'une échelle de tableau de bord, et sa phrase d'ouverture se
+   lisait comme un sous-titre.
 
+   D'où un palier d'affiche, et un seul usage. `clamp` le borne des deux côtés :
+   32 px sur un téléphone, 52 px sur un grand écran, et rien à corriger entre
+   les deux. Aucune autre règle du fichier ne le lit. */
 .accueil__ouverture {
-  margin-bottom: var(--espace-7);
+  margin-bottom: var(--espace-8);
 }
 .accueil__message {
-  margin: 0 0 var(--espace-4);
+  margin: 0 0 var(--espace-5);
   font-family: var(--serif);
-  font-size: var(--texte-xxl);
+  font-size: var(--texte-affiche);
   font-weight: 600;
-  line-height: 1.35;
+  /* 1,15 et non 1,35 : à cette taille, l'interligne de lecture creuse des
+     couloirs blancs entre les lignes du titre. */
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
   color: var(--encre);
 }
 /* La mention d'unité, posée une fois pour toute la page : elle appartient à
    l'ouverture, entre le message et sa preuve, et aucun bloc ne la répète —
-   répétée, elle cesse d'être lue là où elle compte. */
+   répétée, elle cesse d'être lue là où elle compte.
+   Elle était en capitales espacées, c'est-à-dire habillée comme un sur-titre,
+   juste sous un titre : deux étiquettes pour une seule voix. Elle redevient
+   une phrase. */
 .accueil__cadrage {
   margin: 0;
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
+  font-size: var(--texte-l);
   color: var(--encre-douce);
 }
 
-/* ---- Les cinq blocs ---- */
+/* ---- Les cinq blocs -------------------------------------------------------
+   Ils étaient cinq cartes identiques empilées — même cadre, même rembourrage,
+   même rayon, même sur-titre en capitales — et la page se lisait comme une
+   liste de boîtes plutôt que comme un parcours. Une carte doit dire « ceci se
+   détache » ; cinq cartes ne disent plus rien.
 
+   Une seule garde son cadre, le verdict : c'est l'objet mis en avant, et il
+   porte une citation, deux chiffres et un cran. Les autres deviennent des
+   bandes ouvertes séparées d'un filet — le rythme vient de là, sans une
+   couleur de plus. */
 .accueil__bloc {
-  margin-bottom: var(--espace-7);
+  margin-bottom: var(--espace-8);
+  padding: var(--espace-8) 0 0;
+  border-top: 1px solid var(--trait);
+}
+/* Le verdict, et lui seul, reste une carte. */
+.accueil__bloc--verdict {
   padding: var(--espace-7);
   background: var(--papier);
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
 }
+/* Les intitulés de section étaient six micro-étiquettes en capitales espacées
+   sur une même page — le sur-titre de l'ouverture plus un par bloc. C'est le
+   tic le plus reconnaissable d'une page composée à la chaîne : chaque section
+   s'annonce avant de parler. Ils redeviennent des titres, dans la serif du
+   site, à une taille qui les distingue du corps sans crier. */
 .accueil__bloc h3 {
-  margin: 0 0 var(--espace-5);
-  font-size: var(--texte-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: var(--encre-douce);
+  margin: 0 0 var(--espace-6);
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+  font-weight: 600;
+  line-height: 1.25;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--encre);
 }
 /* La bande de confiance ferme la page : elle se lit, elle ne se consulte pas.
    Sans cadre, elle cesse de peser autant que le verdict qu'elle sert. */
+/* Elle ferme la page : plus rien dessous, donc plus de marge dessous. Le reste
+   de son dessin — pas de cadre, un filet au-dessus — est devenu celui de tous
+   les blocs, et n'a plus à se redire ici. */
 .accueil__bloc--confiance {
   margin-bottom: 0;
-  padding: var(--espace-7) 0 0;
-  background: none;
-  border: 0;
-  border-top: 1px solid var(--trait);
-  border-radius: 0;
 }
 
 /* Les trois appels à l'action, dans l'ordre de l'entonnoir. Un seul dessin
@@ -6557,10 +6600,26 @@ body[data-carte="oui"] .legende {
   font-size: var(--texte-s);
   color: var(--encre-douce);
 }
+/* La référence du document cité. Elle porte le titre légal entier, qui fait
+   cent caractères : souligné d'un trait plein sur toute la largeur de la carte,
+   il pesait plus lourd que la citation qu'il sert. Il reste un lien, souligné
+   et cliquable — c'est ce qui permet d'aller vérifier —, mais il se borne à la
+   mesure de lecture et son trait s'éclaircit : une référence se lit après le
+   chiffre, jamais avant. */
 .accueil__source-declaration {
   margin: 0 0 var(--espace-5);
+  max-width: 62ch;
   font-size: var(--texte-xs);
+  line-height: 1.5;
   color: var(--encre-douce);
+}
+.accueil__source-declaration a {
+  text-decoration-color: var(--trait-fort);
+  text-underline-offset: 0.15em;
+}
+.accueil__source-declaration a:hover,
+.accueil__source-declaration a:focus-visible {
+  text-decoration-color: currentcolor;
 }
 /* Le chiffre annoncé et celui des comptes, l'un sous l'autre : les mettre côte
    à côte les ferait lire comme un score, alors que ce sont deux mesures dont
@@ -6587,11 +6646,24 @@ body[data-carte="oui"] .legende {
 }
 /* L'exercice et la source du chiffre, sur sa ligne : ce qui change la lecture
    d'un chiffre se dit avec lui, jamais en note après le tableau. */
+/* La provenance du chiffre des comptes. Même nature que la référence ci-dessus,
+   donc même dessin : les deux citent le même document, et n'en habiller qu'un
+   des deux serait pire que de n'en habiller aucun. */
 .accueil__provenance {
   display: block;
   margin-top: var(--espace-1);
+  max-width: 62ch;
   font-size: var(--texte-xs);
+  line-height: 1.5;
   color: var(--encre-douce);
+}
+.accueil__provenance a {
+  text-decoration-color: var(--trait-fort);
+  text-underline-offset: 0.15em;
+}
+.accueil__provenance a:hover,
+.accueil__provenance a:focus-visible {
+  text-decoration-color: currentcolor;
 }
 .accueil__cran {
   margin: 0 0 var(--espace-5);
