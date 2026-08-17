@@ -302,3 +302,32 @@ test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => 
   // commune est lui aussi un petit nombre, et il reste un agrégat.
   assert.doesNotMatch(ECHELLE, /valeur < 1[_ ]?000[_ ]?000/);
 });
+
+test("l'exécutif porte le titre de sa maille, jamais « Maire » partout", () => {
+  // Le champ publié s'appelle `maire` — gardé tel quel pour ne pas casser les
+  // lecteurs existants — mais il porte le président du conseil sur un
+  // département et sur une région. Une fiche de la Gironde écrivait donc
+  // « Maire : Jean-Luc Gleyze ».
+  const avec = (niveau: string) => {
+    const cible = { innerHTML: "" } as HTMLElement;
+    afficherFiche(cible, {
+      niveau,
+      territoire: {
+        nom: "Essai",
+        parent: null,
+        population: 1000,
+        drapeaux: {},
+        series: {},
+        maire: { nom: "Jean DUPONT", depuis: "2021-07-01" },
+      } as never,
+      indicateurs: [],
+    });
+    return cible.innerHTML;
+  };
+  assert.match(avec("commune"), /Maire\s*: <strong>Jean DUPONT/);
+  assert.match(avec("departement"), /Président du conseil départemental\s*: <strong>Jean DUPONT/);
+  assert.match(avec("region"), /Président du conseil régional\s*: <strong>Jean DUPONT/);
+  // Une maille sans exécutif publié n'affiche pas de ligne vide ni « undefined ».
+  assert.doesNotMatch(avec("pays"), /Jean DUPONT/);
+  assert.doesNotMatch(avec("pays"), /undefined/);
+});

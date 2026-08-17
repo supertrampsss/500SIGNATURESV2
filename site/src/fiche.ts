@@ -26,6 +26,26 @@ export const NIVEAUX: Record<string, string> = {
 };
 
 /**
+ * L'intitulé de l'exécutif, par maille.
+ *
+ * Une fiche de département écrivait « Maire : » parce que le champ publié
+ * s'appelle `maire` — le nom du champ a été gardé pour ne pas casser les
+ * lecteurs existants, mais il porte désormais le rôle de la maille. Une maille
+ * absente de cette table n'affiche pas de ligne d'exécutif : la France n'en a
+ * pas dans cette source, et un arrondissement municipal non plus.
+ *
+ * **La date qui suit n'est pas la même chose d'une maille à l'autre**, et la
+ * phrase le dit : un maire est en fonction depuis le début de son mandat, un
+ * président depuis que son assemblée l'a élu — ce qui vient après les
+ * élections, parfois de plusieurs mois.
+ */
+const EXECUTIFS: Record<string, string> = {
+  commune: "Maire",
+  departement: "Président du conseil départemental",
+  region: "Président du conseil régional",
+};
+
+/**
  * Échappement pur, sans DOM.
  *
  * La version précédente passait par `document.createElement`, ce qui avait deux
@@ -279,8 +299,8 @@ export function afficherFiche(
         : ""
     }</p>
     ${
-      territoire.maire
-        ? `<p class="fiche__maire">Maire : <strong>${echapper(territoire.maire.nom)}</strong>${
+      territoire.maire && EXECUTIFS[niveau]
+        ? `<p class="fiche__maire">${EXECUTIFS[niveau]} : <strong>${echapper(territoire.maire.nom)}</strong>${
             territoire.maire.depuis
               ? ` <span>depuis ${echapper(
                   new Date(territoire.maire.depuis).toLocaleDateString("fr-FR", {

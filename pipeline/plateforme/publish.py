@@ -1875,17 +1875,33 @@ def _mediane(valeurs: list[float]) -> float:
     return tri[milieu] if len(tri) % 2 else (tri[milieu - 1] + tri[milieu]) / 2
 
 
-def maires(conn) -> dict[str, dict]:
-    """Le maire en exercice de chaque commune.
+#: Le rôle que porte l'exécutif de chaque maille. Une maille absente n'a pas
+#: d'exécutif publié — la France n'en a pas dans cette table, et un
+#: arrondissement municipal n'en a pas du tout dans la source.
+ROLE_PAR_NIVEAU = {
+    "commune": "maire",
+    "departement": "president_departement",
+    "region": "president_region",
+}
+
+
+def maires(conn, role: str = "maire") -> dict[str, dict]:
+    """L'exécutif en exercice de chaque territoire d'une maille.
 
     Ni date de naissance, ni sexe, ni catégorie socio-professionnelle : la
     source les porte, la table ne les charge pas, et l'export ne peut donc pas
     les laisser fuir.
+
+    **Le rôle est un paramètre, pas une constante**, parce que le département
+    de Paris et la région Île-de-France portent le même code « 75 » : les lire
+    ensemble mêlerait deux exécutifs sous une seule clé. Chaque maille demande
+    le sien.
     """
     try:
         lignes = conn.execute(
             "select geo_code, surname, given_name, since from geo.commune_officials"
-            " where role = 'maire'"
+            " where role = ?",
+            (role,),
         ).fetchall()
     except Exception:  # noqa: BLE001 — table absente tant que 0010 n'est pas appliquée
         entrepot.annuler(conn)
@@ -2197,7 +2213,10 @@ def agregats_nationaux(conn) -> tuple[dict[str, dict[str, float]], dict]:
 
 def territoires(conn, niveau: str) -> dict[str, dict]:
     changements = evenements(conn, niveau)
-    elus = maires(conn) if niveau == "commune" else {}
+    # L'exécutif de la maille : maire pour une commune, président du conseil
+    # pour un département ou une région. La France n'en a pas dans cette table,
+    # et un arrondissement municipal n'en a pas dans la source.
+    elus = maires(conn, ROLE_PAR_NIVEAU[niveau]) if niveau in ROLE_PAR_NIVEAU else {}
     return {
         code: {
             "nom": nom,
@@ -2216,7 +2235,7 @@ def territoires(conn, niveau: str) -> dict[str, dict]:
             # une erreur, c'est une absence.
             "drapeaux": _objet(drapeaux),
             "evenements": changements.get(code, []),
-            **({"maire": elus[code]} if code in elus else {}),
+            **({"maire": elus[code]} if code in elus else {}),  # noqa: E501 — voir ROLE_PAR_NIVEAU
         }
         for code, nom, parent, region, population, drapeaux in conn.execute(
             """

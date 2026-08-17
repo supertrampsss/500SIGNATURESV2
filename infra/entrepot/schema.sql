@@ -225,12 +225,23 @@ create table if not exists geo.geography_history (
 -- Maires en exercice (RNE). Ni date de naissance, ni sexe, ni profession : la
 -- règle du projet interdit de stocker des données personnelles, et l'identité
 -- d'un maire n'est publique qu'au titre de la fonction qu'il exerce.
+-- Les exécutifs locaux. Le nom dit « commune » parce que la table n'a d'abord
+-- porté que des maires ; elle porte aussi, depuis le 17 août 2026, les
+-- présidents de conseil départemental et de conseil régional.
+--
+-- **Le rôle fait partie de la clé, et il le faut** : le département de Paris et
+-- la région Île-de-France portent tous deux le code « 75 ». Sans le rôle dans
+-- la clé primaire, le second écraserait le premier en silence.
 create table if not exists geo.commune_officials (
     geo_code    text not null,
     geo_vintage smallint not null,
-    role        text not null default 'maire' check (role in ('maire')),
+    role        text not null default 'maire'
+                check (role in ('maire', 'president_departement', 'president_region')),
     surname     text not null,
     given_name  text not null,
+    -- Début du MANDAT d'élu pour un maire ; début de la FONCTION pour un
+    -- président, qui est élu conseiller puis porté à la présidence par son
+    -- assemblée, parfois des mois plus tard.
     since       date,
     run_id      uuid,  -- -> meta.ingestion_runs, vérifié par entrepot.verifier_integrite
     primary key (geo_code, geo_vintage, role)

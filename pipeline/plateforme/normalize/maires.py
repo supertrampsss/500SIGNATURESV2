@@ -21,6 +21,27 @@ multiplierait le volume par quinze pour une question que le site ne pose pas.
 `01001` : le zéro de tête saute au passage par un tableur. On complète à cinq
 caractères, ce qui laisse intacts les codes corses (`2A004`) et ultramarins.
 
+**Les présidents de département et de région, depuis le 17 août 2026.** Le RNE
+publie un fichier par type de mandat ; ceux des conseillers départementaux et
+régionaux portent une colonne « Libellé de la fonction » d'où sortent les
+94 présidents de conseil départemental et les 14 présidents de conseil régional.
+La même règle qu'au-dessus s'applique : nom, prénom, prise de fonction, rien
+d'autre.
+
+**Ce que la source ne permet pas, et qu'il faut savoir en lisant ce module.**
+Le RNE national est une ressource *écrasée* à chaque publication : data.gouv.fr
+n'en garde aucune version antérieure. Il donne donc l'exécutif EN EXERCICE, et
+jamais ses prédécesseurs. Mesuré le 17 août 2026 : les 34 826 maires du fichier
+ont tous un mandat commençant en 2026 — les municipales de mars 2026 ont effacé
+du fichier les maires de la mandature 2020-2026, qu'aucune source officielle
+accessible ne republie. Les présidents, eux, tiennent leur fonction depuis
+juillet 2021 (départementales et régionales de 2021) et couvrent donc les
+exercices 2021 et suivants, jamais 2019 ni 2020.
+
+C'est pour cela que le site n'écrit pas « le maire qui a présidé à ces comptes »
+mais « l'exécutif en exercice, depuis telle date » : la seconde phrase est vraie,
+la première ne le serait qu'avec un historique que personne ne publie.
+
 Usage : python -m plateforme.normalize.maires [--store r2:plateforme-raw]
 """
 
@@ -46,15 +67,40 @@ RESSOURCE = "conseillers-municipaux"
 FONCTION_MAIRE = "Maire"
 COLONNES = {"commune": 4, "nom": 6, "prenom": 7, "debut_mandat": 12, "fonction": 13}
 
+#: Les exécutifs départementaux et régionaux : la ressource du catalogue, le
+#: rôle écrit en base, l'intitulé exact de la fonction dans le fichier, et les
+#: colonnes utiles.
+#:
+#: Les deux fichiers ont la même forme — code de la collectivité en tête, puis
+#: un libellé, puis un découpage (canton ou section départementale) — d'où des
+#: indices identiques. Ils sont écrits plutôt que devinés, et `controler_entete`
+#: refuse le chargement si la source les déplace.
+EXECUTIFS = [
+    {
+        "ressource": "conseillers-departementaux",
+        "role": "president_departement",
+        "fonction": "Président du conseil départemental",
+        "colonnes": {"geo": 0, "nom": 4, "prenom": 5, "debut_fonction": 12, "fonction": 11},
+        "entete": ("Code du département", "Nom de l'élu", "Libellé de la fonction"),
+    },
+    {
+        "ressource": "conseillers-regionaux",
+        "role": "president_region",
+        "fonction": "Président du conseil régional",
+        "colonnes": {"geo": 0, "nom": 4, "prenom": 5, "debut_fonction": 12, "fonction": 11},
+        "entete": ("Code de la région", "Nom de l'élu", "Libellé de la fonction"),
+    },
+]
 
-def url_courante() -> str:
+
+def url_courante(ressource: str = RESSOURCE) -> str:
     """L'URL du fichier change à chaque publication : on la relit du catalogue
     plutôt que de la figer et de découvrir un 404 dans six mois."""
     catalogue = fetch(CATALOGUE).json()
-    for ressource in catalogue["resources"]:
-        if RESSOURCE in ressource["title"]:
-            return ressource["url"]
-    raise ValueError(f"aucune ressource « {RESSOURCE} » dans {CATALOGUE}")
+    for entree in catalogue["resources"]:
+        if ressource in entree["title"]:
+            return entree["url"]
+    raise ValueError(f"aucune ressource « {ressource} » dans {CATALOGUE}")
 
 
 def code_commune(brut: str) -> str:
@@ -79,6 +125,56 @@ def maires(contenu: bytes) -> list[dict]:
                 "surname": " ".join(ligne[COLONNES["nom"]].split()),
                 "given_name": " ".join(ligne[COLONNES["prenom"]].split()),
                 "since": ligne[COLONNES["debut_mandat"]].strip() or None,
+            }
+        )
+    return sortie
+
+
+def controler_entete(contenu: bytes, attendus: tuple[str, ...]) -> list[str]:
+    """Refuse de lire un fichier dont l'en-tête a bougé.
+
+    Les colonnes sont désignées par leur rang, parce que le RNE ne nomme pas ses
+    fichiers de la même façon d'un mandat à l'autre. Un rang est muet : si la
+    source insère une colonne, on lirait un prénom là où on attend une fonction
+    et le contrôle de doublons ne verrait rien. L'en-tête est donc vérifié.
+    """
+    entete = next(
+        csv.reader(io.StringIO(contenu[:4096].decode("utf-8", errors="replace")), delimiter=";"),
+        [],
+    )
+    manquants = [c for c in attendus if c not in entete]
+    if manquants:
+        raise ValueError(f"colonnes absentes de l'en-tête RNE : {manquants}")
+    return entete
+
+
+def presidents(contenu: bytes, executif: dict) -> list[dict]:
+    """Retient une ligne par collectivité : celle dont la fonction est la
+    présidence de l'assemblée.
+
+    Le code n'est pas complété à cinq caractères comme un code commune : un
+    département s'écrit « 01 » ou « 971 », une région « 75 », et c'est ainsi que
+    le référentiel géographique les porte.
+    """
+    controler_entete(contenu, executif["entete"])
+    cols = executif["colonnes"]
+    lecteur = csv.reader(io.StringIO(contenu.decode("utf-8", errors="replace")), delimiter=";")
+    next(lecteur, None)  # en-tête
+    sortie = []
+    for ligne in lecteur:
+        if len(ligne) <= max(cols.values()):
+            continue
+        if ligne[cols["fonction"]].strip() != executif["fonction"]:
+            continue
+        sortie.append(
+            {
+                "geo_code": ligne[cols["geo"]].strip(),
+                "surname": " ".join(ligne[cols["nom"]].split()),
+                "given_name": " ".join(ligne[cols["prenom"]].split()),
+                # La prise de FONCTION, pas le début du mandat de conseiller :
+                # un président est d'abord élu conseiller, puis porté à la
+                # présidence par son assemblée, parfois des mois plus tard.
+                "since": ligne[cols["debut_fonction"]].strip() or None,
             }
         )
     return sortie
@@ -116,6 +212,46 @@ def ecrire(conn, run_id: str, lignes: list[dict]) -> tuple[int, int]:
             (
                 (
                     ligne["geo_code"], MILLESIME, "maire", ligne["surname"],
+                    ligne["given_name"], ligne["since"], run_id,
+                )
+                for ligne in gardees
+            ),
+        )
+    conn.commit()
+    return len(gardees), len(lignes) - len(gardees)
+
+
+def ecrire_executifs(conn, run_id: str, role: str, niveau: str, lignes: list[dict]) -> tuple[int, int]:
+    """Écrit une présidence par collectivité de la maille, et rien d'autre.
+
+    Même garde que pour les maires : un code inconnu du référentiel signale un
+    décalage de millésime, pas une information. La clé primaire porte le rôle,
+    donc le département « 75 » et la région « 75 » cohabitent sans s'écraser.
+    """
+    if not lignes:
+        raise ValueError(f"aucun {role} lu : le format de la source a dû changer")
+    compte = Counter(ligne["geo_code"] for ligne in lignes)
+    doublons = sorted(code for code, n in compte.items() if n > 1)
+    if doublons:
+        raise ValueError(f"plusieurs {role} pour {doublons[:5]}")
+    with conn.cursor() as curseur:
+        connus = {
+            code
+            for (code,) in curseur.execute(
+                "select geo_code from geo.geography_reference"
+                " where geo_level = ? and vintage = ?",
+                (niveau, MILLESIME),
+            ).fetchall()
+        }
+        gardees = [ligne for ligne in lignes if ligne["geo_code"] in connus]
+        curseur.execute("delete from geo.commune_officials where role = ?", (role,))
+        entrepot.copier(
+            conn,
+            "geo.commune_officials",
+            ["geo_code", "geo_vintage", "role", "surname", "given_name", "since", "run_id"],
+            (
+                (
+                    ligne["geo_code"], MILLESIME, role, ligne["surname"],
                     ligne["given_name"], ligne["since"], run_id,
                 )
                 for ligne in gardees
@@ -171,10 +307,30 @@ def run(store_spec: str) -> int:
         controler(lignes)
         ecrites, ecartes = ecrire(conn, run_id, lignes)
         constat = enregistrer_couverture(conn, run_id, ecrites)
-        entrepot.finish_run(conn, run_id, "success", rows_read=len(lignes), rows_written=ecrites)
         print(f"maires : {ecrites} communes, couverture {constat['couverture_pct']} %")
         if ecartes:
             print(f"{ecartes} communes absentes du référentiel, écartées")
+
+        # Les deux exécutifs des autres mailles. Ils sont chargés dans le même
+        # run que les maires : c'est le même producteur, le même jeu du
+        # catalogue et la même publication — trois runs séparés auraient laissé
+        # croire à trois sources.
+        lues = len(lignes)
+        for executif in EXECUTIFS:
+            url_exec = url_courante(executif["ressource"])
+            brut = telecharger(url_exec)
+            entrepot.record_asset(
+                conn, store, run_id, DATASET, SOURCE,
+                f"{executif['ressource']}.csv", brut, url_exec, "text/csv",
+            )
+            trouves = presidents(brut, executif)
+            niveau = "departement" if executif["role"].endswith("departement") else "region"
+            posees, hors = ecrire_executifs(conn, run_id, executif["role"], niveau, trouves)
+            lues += len(trouves)
+            ecrites += posees
+            print(f"{executif['role']} : {posees} {niveau}s" + (f", {hors} hors référentiel" if hors else ""))
+
+        entrepot.finish_run(conn, run_id, "success", rows_read=lues, rows_written=ecrites)
         return 0
     except Exception as error:  # noqa: BLE001 — tout échec finit tracé dans le lineage
         entrepot.finish_run(conn, run_id, "failed", error=str(error))
