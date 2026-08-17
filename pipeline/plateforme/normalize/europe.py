@@ -310,7 +310,7 @@ INDICATEURS = {
             (
                 "vieillesse",
                 "GF1002",
-                "Prestations en espèces — vieillesse",
+                "Prestations en espèces : vieillesse",
                 "Les pensions de retraite de droit direct, et les minima"
                 " vieillesse. C'est le premier poste de la dépense publique"
                 " française, très loin devant les autres prestations.",
@@ -318,7 +318,7 @@ INDICATEURS = {
             (
                 "maladie_invalidite",
                 "GF1001",
-                "Prestations en espèces — maladie et invalidité",
+                "Prestations en espèces : maladie et invalidité",
                 "Les indemnités journalières d'arrêt maladie, les pensions"
                 " d'invalidité et les rentes d'accident du travail : de l'argent"
                 " versé, distinct des soins remboursés.",
@@ -326,33 +326,33 @@ INDICATEURS = {
             (
                 "chomage",
                 "GF1005",
-                "Prestations en espèces — chômage",
+                "Prestations en espèces : chômage",
                 "Les allocations versées aux demandeurs d'emploi.",
             ),
             (
                 "survivants",
                 "GF1003",
-                "Prestations en espèces — survivants",
+                "Prestations en espèces : survivants",
                 "Les pensions de réversion, versées au conjoint survivant.",
             ),
             (
                 "famille",
                 "GF1004",
-                "Prestations en espèces — famille et enfants",
+                "Prestations en espèces : famille et enfants",
                 "Les allocations familiales, la prestation d'accueil du jeune"
                 " enfant, le complément de libre choix de mode de garde.",
             ),
             (
                 "exclusion",
                 "GF1007",
-                "Prestations en espèces — lutte contre l'exclusion",
+                "Prestations en espèces : lutte contre l'exclusion",
                 "Le RSA et les autres minima sociaux qui ne relèvent ni de la"
                 " vieillesse, ni de l'invalidité, ni du chômage.",
             ),
             (
                 "logement",
                 "GF1006",
-                "Prestations en espèces — logement",
+                "Prestations en espèces : logement",
                 "La part des aides au logement versée en espèces. L'essentiel"
                 " des aides au logement passe par d'autres canaux et n'est pas"
                 " compté ici.",
