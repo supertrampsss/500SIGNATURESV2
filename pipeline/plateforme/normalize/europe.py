@@ -26,6 +26,10 @@ DATASET_PAR_JEU = {
     "gov_10dd_edpt1": "eurostat-gov-10dd-edpt1",
     "nama_10_pc": "eurostat-nama-10-pc",
     "une_rt_a": "eurostat-une-rt-a",
+    "spr_exp_pens": "eurostat-spr-exp-pens",
+    "ilc_di12": "eurostat-ilc-di12",
+    "ilc_di11": "eurostat-ilc-di11",
+    "crim_off_cat": "eurostat-crim-off-cat",
 }
 
 # Agrégats retenus, avec les filtres qui les rendent comparables entre pays.
@@ -75,6 +79,107 @@ INDICATEURS = {
         "technique": "Taux de chômage au sens du BIT, 15-74 ans, tous sexes,"
         " en % de la population active.",
         "unite": "percent",
+    },
+    # ── Les retraites, comparées ─────────────────────────────────────────────
+    #
+    # La France dépense pour ses retraites une part de sa richesse que le débat
+    # public cite constamment sans jamais la poser à côté de celle des voisins.
+    # ESSPROS est le seul cadre qui rende la comparaison honnête : il compte les
+    # mêmes prestations partout, quels que soient les régimes qui les servent —
+    # ce qui est exactement le piège d'une comparaison faite sur des chiffres
+    # nationaux, où « retraites » désigne quarante-deux régimes ici et un fonds
+    # de pension ailleurs.
+    #
+    # Deux séries et pas une : le total des pensions comprend la réversion,
+    # l'invalidité et les préretraites, quand « vieillesse » ne compte que la
+    # pension de droit direct. Les confondre déplace le chiffre français de
+    # plusieurs points de PIB.
+    "eurostat_retraites_pib": {
+        "jeu": "spr_exp_pens",
+        "params": {"spdepb": "TOTAL", "spdepm": "TOTAL", "unit": "PC_GDP", "freq": "A"},
+        "libelle": "Dépenses de pensions en % du PIB",
+        "public": "Tout ce qu'un pays verse en pensions (retraite de droit direct,"
+        " réversion, invalidité, préretraite), rapporté à la richesse qu'il produit"
+        " en un an. Les prestations sont comptées de la même façon dans chaque pays,"
+        " quels que soient les régimes qui les servent.",
+        "technique": "Dépenses de pensions au sens du SESPROS, toutes catégories et"
+        " sous condition de ressources comprises, en % du PIB.",
+        "unite": "percent",
+    },
+    "eurostat_retraites_vieillesse_pib": {
+        "jeu": "spr_exp_pens",
+        "params": {"spdepb": "OLD", "spdepm": "TOTAL", "unit": "PC_GDP", "freq": "A"},
+        "libelle": "Pensions de vieillesse en % du PIB",
+        "public": "La seule retraite de droit direct, sans la réversion ni"
+        " l'invalidité ni les préretraites, rapportée à la richesse produite en un an.",
+        "technique": "Dépenses de pensions de vieillesse (catégorie OLD) au sens du"
+        " SESPROS, en % du PIB.",
+        "unite": "percent",
+    },
+    # ── Les inégalités, comparées ────────────────────────────────────────────
+    #
+    # Deux mesures, parce qu'aucune ne suffit : l'indice de Gini résume toute la
+    # distribution en un nombre, le rapport interquintile dit combien les 20 %
+    # les plus aisés touchent de plus que les 20 % les plus modestes. Le premier
+    # bouge peu et se lit mal, le second se lit sans mode d'emploi.
+    "eurostat_gini": {
+        "jeu": "ilc_di12",
+        "params": {"age": "TOTAL", "statinfo": "GINI_HND", "freq": "A"},
+        "libelle": "Indice de Gini du niveau de vie",
+        "public": "Zéro si tout le monde touchait le même revenu, cent si une seule"
+        " personne touchait tout. Il porte sur le niveau de vie après impôts et"
+        " prestations, sur une échelle de 0 à 100.",
+        "technique": "Coefficient de Gini du revenu disponible équivalisé, tous âges,"
+        " enquête EU-SILC, échelle 0-100.",
+        # Ni un effectif ni un pourcentage : un indice sur 0-100, qui bouge de
+        # quelques dixièmes d'une année à l'autre. Publié en `count`, il
+        # s'afficherait « 30 » là où la source écrit 30,4 — et une colonne lue
+        # d'un pays à l'autre cesserait de s'aligner.
+        "unite": "indice",
+    },
+    "eurostat_rapport_interquintile": {
+        "jeu": "ilc_di11",
+        "params": {"age": "TOTAL", "sex": "T", "unit": "RAT", "freq": "A"},
+        "libelle": "Rapport interquintile S80/S20 du niveau de vie",
+        "public": "Combien de fois les 20 % de personnes les plus aisées touchent"
+        " ce que touchent les 20 % les plus modestes, après impôts et prestations.",
+        "technique": "Rapport S80/S20 du revenu disponible équivalisé, tous âges,"
+        " tous sexes, enquête EU-SILC.",
+        # Un rapport, pas un compte : 4,74 arrondi à 5 ferait disparaître
+        # l'écart que la mesure existe pour dire.
+        "unite": "ratio",
+    },
+    # ── La délinquance, comparée ─────────────────────────────────────────────
+    #
+    # Le site publie déjà, commune par commune, les faits que la police et la
+    # gendarmerie **enregistrent** (SSMSI). Ces deux séries-ci les posent en
+    # regard des autres pays, et pas dans la même unité : Eurostat compte pour
+    # cent mille habitants quand le SSMSI compte pour mille. Les deux ne se
+    # mélangent donc jamais dans une même colonne — et un taux enregistré reste
+    # un taux enregistré : il dépend de ce qui est déclaré et de ce que chaque
+    # police consigne, ce qui varie plus d'un pays à l'autre que d'une commune
+    # à l'autre. L'homicide est la classe la moins exposée à cet écart, et c'est
+    # pourquoi il ouvre la série.
+    "eurostat_homicides_100k": {
+        "jeu": "crim_off_cat",
+        "params": {"iccs": "ICCS0101", "unit": "P_HTHAB", "freq": "A"},
+        "libelle": "Homicides volontaires enregistrés pour 100 000 habitants",
+        "public": "Les homicides volontaires que la police enregistre en un an,"
+        " rapportés à cent mille habitants. C'est la classe la moins dépendante"
+        " du dépôt de plainte, donc la plus comparable d'un pays à l'autre.",
+        "technique": "Infractions enregistrées par la police, classification ICCS"
+        " 0101 (intentional homicide), pour 100 000 habitants.",
+        "unite": "pour_100000_habitants",
+    },
+    "eurostat_cambriolages_100k": {
+        "jeu": "crim_off_cat",
+        "params": {"iccs": "ICCS05012", "unit": "P_HTHAB", "freq": "A"},
+        "libelle": "Cambriolages de logement enregistrés pour 100 000 habitants",
+        "public": "Les cambriolages de résidence que la police enregistre en un an,"
+        " rapportés à cent mille habitants. Un fait non déclaré n'y figure pas.",
+        "technique": "Infractions enregistrées par la police, classification ICCS"
+        " 05012 (burglary of private residential premises), pour 100 000 habitants.",
+        "unite": "pour_100000_habitants",
     },
 }
 

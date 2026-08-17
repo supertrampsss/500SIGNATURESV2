@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { noter } from "./note.ts";
-import { palmares, rangs, rendrePalmares, type Ligne } from "./palmares.ts";
+import { palmares, rangs, rendrePalmares, rendreSemblables, type Ligne } from "./palmares.ts";
 
 /** Un échelon d'essai : `n` territoires dont la note décroît régulièrement. */
 function echelon(n: number, exercice = "2025"): Ligne[] {
@@ -255,4 +255,148 @@ test("des ex æquo partagent leur rang, ils n'en reçoivent pas d'inventés", ()
   const lu = rendrePalmares(p, "commune");
   const affiches = [...lu.matchAll(/class="palmares__rang nombre">([^<]*)</g)].map((m) => m[1]);
   assert.deepEqual(affiches.slice(0, 3), ["1", "1", "1"]);
+});
+
+test("les titres de colonnes s'accordent aussi, pas seulement celui du haut", () => {
+  // Le titre disait « les départements les mieux et les moins bien gérés » et
+  // ses deux colonnes, deux lignes plus bas, « Les mieux notées ». Le
+  // participe est tombé trois fois dans ce dépôt : au critère du classement,
+  // au titre du palmarès, puis à ses colonnes.
+  const p = palmares(echelon(40));
+  assert.match(texte(rendrePalmares(p, "departement")), /Les mieux notés/);
+  assert.match(texte(rendrePalmares(p, "departement")), /Les moins bien notés/);
+  assert.match(texte(rendrePalmares(p, "commune")), /Les mieux notées/);
+});
+
+/* ---------------------------------------------------------------------- *
+ * LE GROUPE DE COMMUNES SEMBLABLES                                        *
+ * ---------------------------------------------------------------------- */
+
+const INTITULES = ["de 100\u202f000 habitants et plus", "urbaines", "de métropole"];
+
+test("le groupe nomme ses critères : « 40 communes » seul ne veut rien dire", () => {
+  const groupe = echelon(40);
+  const rendu = texte(
+    rendreSemblables(palmares(groupe, 5), INTITULES, {
+      code: groupe[7].code,
+      nom: groupe[7].nom,
+      note: groupe[7].note,
+    }),
+  );
+  assert.match(rendu, /40 communes de 100\s000 habitants et plus, urbaines, de métropole/);
+  // Et la source des critères, qui n'est pas la nôtre.
+  assert.match(rendu, /Observatoire des finances locales/);
+});
+
+test("la place du territoire dans son groupe est la réponse qu'on vient chercher", () => {
+  const groupe = echelon(40);
+  // Les notes décroissent avec le rang du tableau : le huitième est 8e.
+  const rendu = texte(
+    rendreSemblables(palmares(groupe, 5), INTITULES, {
+      code: groupe[7].code,
+      nom: groupe[7].nom,
+      note: groupe[7].note,
+    }),
+  );
+  assert.match(rendu, /Ville 007 est 8e sur 40/);
+  // Le premier porte sa marque, et les communes sont féminines.
+  const premier = texte(
+    rendreSemblables(palmares(groupe, 5), INTITULES, {
+      code: groupe[0].code,
+      nom: groupe[0].nom,
+      note: groupe[0].note,
+    }),
+  );
+  assert.match(premier, /Ville 000 est 1re sur 40/);
+});
+
+test("un rang partagé se dit, il ne se présente pas comme une place propre", () => {
+  // Le plafond de la note est encombré : douze communes du même groupe à
+  // 20 sur 20 ne sont pas douzièmes, elles sont toutes premières.
+  const plates: Ligne[] = Array.from({ length: 30 }, (_, i) => ({
+    code: `p${i}`,
+    nom: `Plate ${i}`,
+    note: noter(
+      { tauxEpargne: 40, desendettement: 1, trajectoire: 5, exercice: "2025" },
+      "commune",
+    ),
+  }));
+  const rendu = texte(
+    rendreSemblables(palmares(plates, 5), INTITULES, {
+      code: plates[3].code,
+      nom: plates[3].nom,
+      note: plates[3].note,
+    }),
+  );
+  assert.match(rendu, /est 1re sur 30/);
+  assert.match(rendu, /à égalité avec 29 autres/);
+  // À deux, la commune ne compte pas : « à égalité avec 1 autre » se lit mal.
+  const paire = plates.slice(0, 2).concat(echelon(28));
+  const deux = texte(
+    rendreSemblables(palmares(paire, 5), INTITULES, {
+      code: paire[0].code,
+      nom: paire[0].nom,
+      note: paire[0].note,
+    }),
+  );
+  assert.match(deux, /à égalité avec une autre/);
+});
+
+test("le territoire lu se reconnaît dans sa propre liste", () => {
+  // Dix noms de communes semblables se ressemblent tous ; c'est justement
+  // celui-là qu'on est venu chercher.
+  const groupe = echelon(40);
+  const html = rendreSemblables(palmares(groupe, 5), INTITULES, {
+    code: groupe[0].code,
+    nom: groupe[0].nom,
+    note: groupe[0].note,
+  });
+  assert.match(html, /class="palmares__vous"/);
+  assert.match(html, /aria-current="true"/);
+  // Et une seule ligne le porte.
+  assert.equal(html.match(/aria-current="true"/g)?.length, 1);
+});
+
+test("un groupe vide ne peint rien plutôt qu'une section sans tableau", () => {
+  assert.equal(rendreSemblables(null, INTITULES, {
+    code: "c0",
+    nom: "Ville",
+    note: echelon(1)[0].note,
+  }), "");
+});
+
+test("le groupe dit combien partagent sa meilleure et sa pire note", () => {
+  // Cinq communes à 20 sur 20 en tête des 635 semblables à Sare — dont 47
+  // valent exactement 20 — se lisaient comme les cinq meilleures. C'est la
+  // faute que le palmarès de l'échelon avait déjà corrigée, refaite dans un
+  // module neuf le jour de sa naissance.
+  const plates: Ligne[] = Array.from({ length: 30 }, (_, i) => ({
+    code: `p${i}`,
+    nom: `Plate ${i}`,
+    note: noter(
+      { tauxEpargne: 40, desendettement: 1, trajectoire: 5, exercice: "2025" },
+      "commune",
+    ),
+  }));
+  const rendu = texte(
+    rendreSemblables(palmares(plates, 5), INTITULES, {
+      code: plates[0].code,
+      nom: plates[0].nom,
+      note: plates[0].note,
+    }),
+  );
+  assert.match(rendu, /30 communes valent exactement 19,5 sur 20/);
+  assert.match(rendu, /les plus peuplées d'entre elles qui sont montrées en tête/);
+});
+
+test("l'exercice minoritaire du groupe est compté, pas tu", () => {
+  const melange = echelon(20).concat(echelon(3, "2024"));
+  const rendu = texte(
+    rendreSemblables(palmares(melange, 5), INTITULES, {
+      code: melange[0].code,
+      nom: melange[0].nom,
+      note: melange[0].note,
+    }),
+  );
+  assert.match(rendu, /3 sont notées sur l'exercice précédent/);
 });

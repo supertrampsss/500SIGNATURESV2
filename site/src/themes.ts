@@ -31,6 +31,7 @@ export const THEMES: Record<string, string> = {
   elections: "Participation électorale",
   fonctions: "Dépenses par fonction",
   securite_sociale: "Sécurité sociale",
+  retraites: "Retraites",
   securite: "Sécurité",
   sante: "Santé",
   education: "Éducation",

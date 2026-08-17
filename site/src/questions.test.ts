@@ -85,3 +85,29 @@ test("les questions du recensement portent la réserve qui change la lecture", (
   assert.match(unions!.reponse, /où les époux habitent/);
   assert.match(unions!.reponse, /2016/);
 });
+
+test("une question dont la série n'est pas publiée n'est pas listée", () => {
+  // « Rien de cliquable ne doit mener à une section vide » : c'est la règle du
+  // simulateur dans le menu et du sommaire de la page. Une question posée
+  // au-dessus d'un bloc que la publication ne porte pas mène à une ancre vide.
+  const questions = [
+    { question: "Publiée", reponse: "oui", cible: "#a", exige: "serie_presente" },
+    { question: "Pas encore", reponse: "non", cible: "#b", exige: "serie_absente" },
+    { question: "Sans exigence", reponse: "toujours", cible: "#c" },
+  ];
+  const html = rendu(questions, new Set(["serie_presente"]));
+  assert.match(html, /Publiée/);
+  assert.match(html, /Sans exigence/);
+  assert.doesNotMatch(html, /Pas encore/);
+  // Sans catalogue — le rendu pré-rendu au build — rien n'est filtré : le
+  // gabarit ne doit pas perdre des questions faute de savoir ce qui est publié.
+  assert.match(rendu(questions), /Pas encore/);
+});
+
+test("les deux questions neuves déclarent la série dont elles dépendent", () => {
+  const neuves = QUESTIONS.filter((q) =>
+    ["#bloc-retraites", "#bloc-redistribution"].includes(q.cible),
+  );
+  assert.equal(neuves.length, 2);
+  for (const q of neuves) assert.ok(q.exige, q.question);
+});

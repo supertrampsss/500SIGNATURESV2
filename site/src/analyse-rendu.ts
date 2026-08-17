@@ -342,7 +342,7 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
   // Un exercice par colonne : sur une analyse à plusieurs millésimes, le
   // tableau déborde de la carte, et c'est lui qui défile — jamais la page
   // entière (même règle que `.analyses__defilement`).
-  const tableau = `<div class="analyse-rendu__defilement"><table class="analyse-rendu__tableau">
+  const tableau = `<div class="analyse-rendu__defilement" tabindex="0"><table class="analyse-rendu__tableau">
     ${legende}
     <thead><tr><th scope="col">Chiffre</th>${exercices
       .map((e) => `<th scope="col">${echapper(e)}</th>`)

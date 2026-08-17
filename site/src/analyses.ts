@@ -163,7 +163,7 @@ export function rendu(nom: string, liste: Rubrique[]): string {
         ? [...new Set(restantes.flatMap((l) => Object.keys(l.valeurs)))].sort()
         : r.exercices;
       const tableau = restantes.length
-        ? `<div class="analyses__defilement">
+        ? `<div class="analyses__defilement" tabindex="0">
         <table class="analyses__table">
           <thead><tr><th scope="col">Indicateur</th>${exercices
             .map((e) => `<th scope="col">${echapper(e)}</th>`)

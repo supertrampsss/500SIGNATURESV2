@@ -17,7 +17,15 @@ import { afficherFiche, NIVEAUX, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.t
 import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
 import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
 import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
-import { palmares, rendrePalmares, type Ligne as LignePalmares } from "./palmares.ts";
+import {
+  palmares,
+  rendrePalmares,
+  rendreSemblables,
+  type Ligne as LignePalmares,
+} from "./palmares.ts";
+import { groupeDe } from "./semblables.ts";
+import { afficherRedistribution } from "./redistribution.ts";
+import { afficherRetraites } from "./retraites.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -93,7 +101,12 @@ import {
 import {
   MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES, niveauPourZoom, suggestions,
 } from "./mailles.ts";
-import { ouvrirRepertoire, populationsDuRepertoire, type Repertoire } from "./repertoire.ts";
+import {
+  ouvrirRepertoire,
+  populationsDuRepertoire,
+  type IndexTerritoires,
+  type Repertoire,
+} from "./repertoire.ts";
 import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
@@ -2139,6 +2152,34 @@ const VUES_PAGE = ["territoire", "bilan"] as const;
  * couches d'ouverture tolèrent l'absence, comme dans `poserSituation` — un
  * exercice 2019 manquant vaut « pas de trajectoire », que la note sait traiter.
  */
+/**
+ * Le palmarès du groupe de pairs du territoire ouvert, au-dessus de celui de
+ * l'échelon.
+ *
+ * Il ne paraît qu'à la maille commune, et seulement quand une commune est
+ * ouverte : c'est le seul échelon dont l'OFGL publie des critères de
+ * comparaison, et un groupe sans territoire à situer dedans n'a personne à
+ * situer. Le palmarès de l'échelon, lui, reste affiché dans tous les cas —
+ * c'est la page qu'on ouvre pour demander « et les autres ? ».
+ */
+function rendreGroupeSemblable(
+  index: IndexTerritoires,
+  lignes: LignePalmares[],
+  niveau: string,
+): string {
+  if (niveau !== "commune" || !etat.selection || niveauSelection() !== "commune") return "";
+  const groupe = groupeDe(index, etat.selection);
+  if (!groupe) return "";
+  const membres = lignes.filter((ligne) => groupe.codes.has(ligne.code));
+  const vous = membres.find((ligne) => ligne.code === etat.selection);
+  if (!vous) return "";
+  return rendreSemblables(palmares(membres, 5), groupe.intitules, {
+    code: vous.code,
+    nom: vous.nom,
+    note: vous.note,
+  });
+}
+
 async function peindrePalmares(): Promise<void> {
   const cible = document.getElementById("palmares");
   if (!cible) return;
@@ -2183,7 +2224,12 @@ async function peindrePalmares(): Promise<void> {
         });
       }
     });
-    cible.innerHTML = rendrePalmares(palmares(lignes), niveau);
+    // Le groupe de communes semblables, quand une commune est ouverte : le
+    // même barème et le même tri, sur la seule population qui répond à
+    // « et les communes qui ressemblent à la mienne ? ». Il se compose des
+    // drapeaux publiés avec l'index et des notes déjà calculées ci-dessus :
+    // pas une requête de plus.
+    cible.innerHTML = rendreGroupeSemblable(index, lignes, niveau) + rendrePalmares(palmares(lignes), niveau);
     // Chaque ligne ouvre la fiche du territoire, à la maille du palmarès —
     // même contrat que le pli du classement, même gestionnaire par délégation.
     cible.addEventListener("click", (evenement) => {
@@ -3949,7 +3995,9 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
-  afficherQuestions($("questions"));
+  // Les questions qui exigent une série que la publication ne porte pas encore
+  // ne sont pas listées : une ancre vers un bloc vide est un lien mort.
+  afficherQuestions($("questions"), new Set(catalogue.map((i) => i.id)));
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();
@@ -4308,6 +4356,12 @@ async function demarrer(): Promise<void> {
     if (afficherSecu($("bloc-secu"), pays, catalogue)) {
       $("national").hidden = false;
     }
+    if (afficherRedistribution($("bloc-redistribution"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    if (afficherRetraites($("bloc-retraites"), pays)) {
+      $("national").hidden = false;
+    }
     // Les niches fiscales ont leur propre fichier — le détail des dispositifs
     // n'a pas sa place dans une série pays — mais leur total en est un : le
     // bloc a besoin des deux, il est donc chargé ici.
@@ -4422,6 +4476,13 @@ async function demarrer(): Promise<void> {
         l'intercommunalité : dans une métropole intégrée, la voirie, les déchets
         ou l'urbanisme sont payés par l'intercommunalité et n'apparaissent pas
         dans le budget communal.</li>
+      <li>Un groupe de moins de vingt communes ne compare plus : sa médiane
+        bouge d'un tiers si l'une d'elles change de politique. Les critères les
+        plus fins — tourisme, montagne, puis caractère rural — sont alors
+        abandonnés dans cet ordre, et ceux qui restent sont écrits avec le
+        groupe. Soixante-quatre communes d'outre-mer n'ont ainsi aucun groupe,
+        leurs strates comptant chacune moins de vingt communes : les comparer à
+        des communes métropolitaines changerait le périmètre.</li>
       <li>Les communes nouvelles portent l'historique de leurs communes
         d'origine, additionné sous le code actuel.</li>
       <li>Un établissement public territorial est inclus dans la Métropole du

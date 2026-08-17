@@ -348,6 +348,19 @@ jobs:
             python -m plateforme.normalize.europe --store r2:plateforme-raw
             exit $?
           fi
+          if [ "$JOB" = "europe-et-publication" ]; then
+            # Six séries européennes neuves — pensions, inégalités, faits
+            # enregistrés — et la publication qui les met à l'écran. Les
+            # charger sans republier les laisserait dans l'entrepôt sans
+            # qu'aucune page ne les montre, ce qui est le défaut que le
+            # registre appelle « les séries invisibles ».
+            python -m plateforme.normalize.europe --store r2:plateforme-raw
+            python -m plateforme.normalize.redistribution --store r2:plateforme-raw
+            python -m plateforme.normalize.retraites --store r2:plateforme-raw
+            python -m plateforme.normalize.rendement_retraite
+            python -m plateforme.publish --publication r2:plateforme-published
+            exit $?
+          fi
           if [ "$JOB" = "ofgl-et-publication" ]; then
             # Les critères de comparaison arrivent avec les finances locales :
             # recharger l'un sans republier l'autre laisserait le site incohérent.

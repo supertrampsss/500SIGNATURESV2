@@ -1075,7 +1075,14 @@ export function injecterReperes(
   ];
 
   let html = shell;
-  html = remplirCadre(html, "questions", renduQuestions());
+  // Le pré-rendu connaît le catalogue : une question qui exige une série non
+  // publiée ne doit pas entrer dans le document statique pour en être retirée
+  // à l'affichage — le lecteur la verrait paraître puis disparaître.
+  html = remplirCadre(
+    html,
+    "questions",
+    renduQuestions(undefined, new Set(catalogue.map((i) => i.id))),
+  );
   for (const [id, corps] of [...ouvrants, centEuros]) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }

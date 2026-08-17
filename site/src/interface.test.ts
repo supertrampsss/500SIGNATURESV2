@@ -5,7 +5,7 @@
  */
 
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -2818,6 +2818,46 @@ test("les paliers de la mission ne s'estompent pas sur fond clair", () => {
     /opacity:\s*1/,
     "l'estompe est revenue sur fond clair : le contraste retombe à 2,1:1",
   );
+});
+
+test("tout cadre qui défile est atteignable au clavier, la liste étant déduite", () => {
+  // La version précédente de ce contrôle énumérait huit gabarits à la main, et
+  // **elle en a manqué quatre** : les cadres défilants des analyses, du rendu
+  // d'analyse et des scénarios sont arrivés après elle, et une liste écrite à
+  // la main ne pousse pas toute seule. `axe-core` les a trouvés sur /bilan.
+  //
+  // La liste se déduit donc de la feuille de style : toute classe dont une
+  // règle déclare `overflow-x: auto` doit porter `tabindex="0"` partout où un
+  // gabarit l'écrit. Un cadre défilant neuf tombe ici le jour de sa naissance.
+  const feuille = readFileSync(new URL("./style.css", import.meta.url), "utf8");
+  const defilantes = new Set<string>();
+  for (const bloc of feuille.matchAll(/([^{}]+)\{([^}]*)\}/g)) {
+    if (!/overflow-x:\s*auto/.test(bloc[2])) continue;
+    for (const classe of bloc[1].matchAll(/\.([a-zA-Z0-9_-]+)/g)) defilantes.add(classe[1]);
+  }
+  assert.ok(defilantes.size >= 5, `${defilantes.size} classes défilantes trouvées`);
+
+  const manquants: string[] = [];
+  for (const fichier of readdirSync(new URL(".", import.meta.url)).filter(
+    (f) => f.endsWith(".ts") && !f.endsWith(".test.ts"),
+  )) {
+    const source = readFileSync(new URL(`./${fichier}`, import.meta.url), "utf8");
+    for (const balise of source.matchAll(/<[a-z]+[^>]*class="([^"]*)"[^>]*>/g)) {
+      const classes = balise[1].split(/\s+/);
+      if (!classes.some((c) => defilantes.has(c))) continue;
+      // La règle WCAG est « atteignable » : un cadre dont le CONTENU est
+      // focalisable défile déjà au clavier, et `axe-core` le laisse passer.
+      // `.pilules` ne contient que des boutons ; c'est la seule exception, et
+      // elle se vérifie en lisant les six lignes qui suivent le gabarit.
+      // La fenêtre s'arrête à la fermeture du cadre : sans cette coupe, un
+      // bouton écrit APRÈS le tableau — `renduAbandons`, juste sous celui des
+      // scénarios — exemptait un cadre qui n'en contient aucun.
+      const suite = source.slice(balise.index ?? 0, (balise.index ?? 0) + 600).split("</div>")[0];
+      if (/<(?:button|a|input|select)\b/.test(suite)) continue;
+      if (!balise[0].includes('tabindex="0"')) manquants.push(`${fichier} : ${balise[0].slice(0, 70)}`);
+    }
+  }
+  assert.deepEqual(manquants, [], `cadres défilants sans tabindex :\n${manquants.join("\n")}`);
 });
 
 test("les huit cadres qui défilent sont atteignables au clavier", () => {

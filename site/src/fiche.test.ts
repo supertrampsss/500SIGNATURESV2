@@ -15,7 +15,8 @@ import fs from "node:fs";
 import { test } from "node:test";
 
 import type { Indicateur } from "./donnees.ts";
-import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme, THEMES_RANGES } from "./fiche.ts";
+import { THEMES } from "./themes.ts";
 
 /** Sources lues telles quelles : ces contrôles portent sur la forme rendue,
  *  pas sur une valeur calculée. */
@@ -33,14 +34,21 @@ const TOUS_LES_THEMES = [
   "education", "securite", "equipements", "tourisme",
 ];
 
-test("les vingt-sept thèmes publiés sont rangés à la main, aucun par défaut", () => {
+test("tous les thèmes nommés sont rangés à la main, aucun par défaut", () => {
   // Un thème non listé tombe dans la dernière rubrique : c'est un filet, pas
-  // une décision. Ce test dit combien de thèmes le site publie, pour qu'un
-  // vingt-huitième n'y arrive pas en silence.
-  assert.equal(TOUS_LES_THEMES.length, 27);
-  for (const theme of TOUS_LES_THEMES) {
-    if (theme === "tourisme") continue; // dernier de la dernière rubrique
-    assert.notEqual(rubriqueDuTheme(theme), undefined);
+  // une décision.
+  //
+  // **La version précédente de ce contrôle ne pouvait pas le voir.** Elle
+  // comptait une liste de thèmes écrite ici même — « pour qu'un vingt-huitième
+  // n'y arrive pas en silence » — et le vingt-huitième est arrivé sans la
+  // toucher : elle est restée verte. La liste se lit donc dans `THEMES`, la
+  // table que le site emploie pour nommer un thème à l'écran, et
+  // l'appartenance dans `THEMES_RANGES`, qui distingue « rangé dans la
+  // dernière rubrique » de « tombé dedans ».
+  const nommes = Object.keys(THEMES);
+  assert.ok(nommes.length >= 27, `${nommes.length} thèmes nommés`);
+  for (const theme of nommes) {
+    assert.ok(THEMES_RANGES.has(theme), `le thème « ${theme} » n'est rangé nulle part`);
   }
   // Les subventions de l'État aux associations sont de l'argent public qui
   // sort, pas un trait du cadre de vie.
@@ -297,7 +305,13 @@ test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => 
   // « +4 % » à côté d'un chiffre nul : la règle des millions sert à comparer
   // des masses budgétaires entre elles, pas à dire une paie.
   const ECHELLE = fs.readFileSync(new URL("./echelle.ts", import.meta.url), "utf8");
-  assert.match(ECHELLE, /const VALEURS_UNITAIRES = new Set\(\["insee_salaire_net_eqtp_mensuel"\]\);/);
+  // L'assertion portait sur le contenu exact d'un ensemble d'un seul élément.
+  // Il en compte dix-neuf depuis que les déciles du niveau de vie sont publiés
+  // — eux aussi ce qu'une personne a pour vivre —, et figer la liste ferait
+  // tomber ce contrôle à chaque série unitaire de plus, sans rien protéger de
+  // mieux. Ce qui compte est que le salaire y soit **nommé**.
+  assert.match(ECHELLE, /const VALEURS_UNITAIRES = new Set\(\[/);
+  assert.match(ECHELLE, /"insee_salaire_net_eqtp_mensuel",?\n/);
   // Nommées, jamais devinées par un seuil de grandeur : le budget d'une petite
   // commune est lui aussi un petit nombre, et il reste un agrégat.
   assert.doesNotMatch(ECHELLE, /valeur < 1[_ ]?000[_ ]?000/);

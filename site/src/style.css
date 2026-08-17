@@ -2321,6 +2321,33 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .palmares__liste li:first-child button {
   border-top: 0;
 }
+/* Le groupe de communes semblables se lit avant le palmarès de l'échelon, et
+   il en est séparé par un filet : ce sont deux populations différentes — les
+   quarante-huit communes qui ressemblent à la vôtre, puis les trente-quatre
+   mille de France — et rien ne devait laisser croire à une suite. */
+.palmares--semblables {
+  padding-bottom: var(--espace-7);
+  border-bottom: 1px solid var(--trait);
+}
+/* Le territoire qu'on lit, dans sa propre liste. Un filet à gauche et un fond
+   d'accent : aucune couleur de verdict, pour la raison qui vaut pour la note
+   elle-même — le repère dit une place, pas un jugement. */
+.palmares__vous button {
+  background: var(--accent-teinte);
+  box-shadow: inset 2px 0 0 var(--accent);
+  font-weight: 600;
+}
+/* Et le rang comme la mention passent à l'encre pleine SUR CETTE LIGNE-LÀ.
+   `--encre-douce` tient 4,66:1 sur le carreau clair, mesuré et écrit dans
+   cette feuille ; posé sur le fond d'accent, qui est une couche à 6 %, il
+   compose #626f66 sur #ededea et tombe à **4,49:1** pour un seuil de 4,5 —
+   relevé à l'axe-core sur la section neuve. Même famille que l'estompe des
+   paliers du simulateur : un contraste calculé sur des couleurs déclarées ne
+   voit pas ce que la composition en fait. */
+.palmares__vous button .palmares__rang,
+.palmares__vous button .palmares__mention {
+  color: var(--encre);
+}
 .palmares__liste button:hover {
   background: var(--accent-teinte);
 }
@@ -5715,6 +5742,15 @@ summary.pont__rangee,
    savoir ce qu'ils comptent. */
 .analyses__defilement {
   overflow-x: auto;
+}
+/* Le `tabindex="0"` de ces quatre cadres doit se voir quand on l'atteint, comme
+   pour `.tableau-exercices` : un cadre qu'on peut atteindre sans savoir qu'on
+   l'a atteint ne se défile pas plus qu'avant. */
+.analyses__defilement:focus-visible,
+.analyse-rendu__defilement:focus-visible,
+.scenarios-rendu__defilement:focus-visible {
+  outline: 2px solid var(--dore);
+  outline-offset: 2px;
 }
 .analyses__table {
   width: 100%;

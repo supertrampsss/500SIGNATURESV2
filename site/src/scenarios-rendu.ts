@@ -211,7 +211,7 @@ export function renduComparaison(colonnes: Comparable[], lignes: LigneComparee[]
     })
     .join("");
 
-  return `<div class="scenarios-rendu__defilement"><table class="scenarios-rendu__tableau">
+  return `<div class="scenarios-rendu__defilement" tabindex="0"><table class="scenarios-rendu__tableau">
     <caption>Montants en millions d'euros.</caption>
     <thead><tr><th scope="col">Ligne</th>${entetes}</tr></thead>
     <tbody>${corps}</tbody>

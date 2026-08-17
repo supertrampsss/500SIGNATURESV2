@@ -1151,3 +1151,124 @@ def test_la_nomenclature_par_destination_ne_touche_pas_le_pont_du_budget_de_l_et
         )
     finally:
         conn.close()
+
+
+# Deux strates et deux caractères ruraux : de quoi vérifier que la clé du
+# groupe distingue ce qu'elle doit distinguer, et que les deux communes ne
+# tombent pas dans le même sac par construction du fixture.
+DRAPEAUX_REELS = {
+    "33063": '{"tranche_population":"10","rural":"Non","outre_mer":"Non",'
+    '"montagne":"Non","touristique":"Oui"}',
+    "33281": '{"tranche_population":"9","rural":"Non","outre_mer":"Non",'
+    '"montagne":"Non","touristique":"Non"}',
+}
+
+
+def _drapeaux_reels(conn) -> None:
+    """Remplace les drapeaux du fixture par ceux que l'OFGL publie vraiment.
+
+    Le fixture pose une strate écrite en toutes lettres et des booléens ; la
+    source, elle, publie un code de strate et « Oui »/« Non ». Le groupe de
+    communes semblables se construit sur ces valeurs-là.
+    """
+    for code, flags in DRAPEAUX_REELS.items():
+        conn.execute(
+            "update geo.geography_reference set flags = ? where geo_level = 'commune'"
+            " and geo_code = ?",
+            (flags, code),
+        )
+    conn.commit()
+
+
+def test_l_index_porte_le_groupe_de_communes_semblables(tmp_path):
+    """Sans ce champ, « les communes semblables » n'existait nulle part.
+
+    Les quartiles par groupe de pairs sont publiés depuis longtemps et la page
+    de méthode décrit le groupe qu'ils définissent — mais la clé se construit
+    des drapeaux d'un territoire, et l'index de la maille, seul fichier qu'une
+    page d'ensemble charge, ne les portait pas.
+    """
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        _drapeaux_reels(conn)
+        index = publish.index_territoires(
+            conn, "commune", publish.territoires(conn, "commune"),
+            publish.valeurs_par_niveau(conn, "commune"),
+        )
+        semblables = index["semblables"]
+        assert semblables["cascade"] == publish.CASCADE_CRITERES
+        assert semblables["minimum"] == publish.GROUPE_MINIMAL
+
+        # Chaque territoire porte le rang de sa clé, dans l'ordre de `codes`.
+        bordeaux = index["codes"].index("33063")
+        merignac = index["codes"].index("33281")
+        assert semblables["cles"][semblables["groupe"][bordeaux]] == "10|Non|Non|Non|Oui"
+        # Deux communes de strates différentes ne partagent pas un groupe : la
+        # clé les sépare, sans quoi le repère comparerait Bordeaux à Mérignac
+        # comme s'ils étaient semblables.
+        assert semblables["groupe"][bordeaux] != semblables["groupe"][merignac]
+    finally:
+        conn.close()
+
+
+def test_les_jeux_de_la_cascade_se_lisent_dans_la_cle_publiee(tmp_path):
+    """La clé n'est écrite qu'une fois, dans l'ordre du jeu le plus fin.
+
+    Le site reconstitue les jeux plus larges en choisissant des positions dans
+    cette clé — c'est ce qui permet de publier un seul dictionnaire au lieu de
+    cinq colonnes de trente-quatre mille valeurs. La propriété qui l'autorise
+    est que **chaque jeu de la cascade est un sous-ensemble du premier** : sans
+    elle, la cascade publiée serait inapplicable, et la commune atypique
+    perdrait le repère que la cascade existe précisément pour lui garder.
+    """
+    fin = publish.CASCADE_CRITERES[0]
+    for criteres in publish.CASCADE_CRITERES[1:]:
+        manquants = [critere for critere in criteres if critere not in fin]
+        assert not manquants, manquants
+
+
+def test_chaque_valeur_de_critere_publiee_porte_son_intitule(tmp_path):
+    """Un groupe se nomme, ou il ne se lit pas.
+
+    « 48 communes de tranche 10 » ne dit rien à personne : les bornes des
+    strates sont publiées par l'OFGL dans la description de sa propre colonne,
+    et `LIBELLES_CRITERES` les recopie. Une valeur nouvelle chez le producteur
+    — une strate de plus, un critère qui passerait de « Oui » à « oui » —
+    laisserait le site écrire un groupe muet. Ce contrôle la fait tomber ici.
+    """
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        _drapeaux_reels(conn)
+        index = publish.index_territoires(
+            conn, "commune", publish.territoires(conn, "commune"),
+            publish.valeurs_par_niveau(conn, "commune"),
+        )
+        criteres = publish.CASCADE_CRITERES[0]
+        for cle in index["semblables"]["cles"]:
+            for critere, valeur in zip(criteres, cle.split("|"), strict=True):
+                assert valeur in publish.LIBELLES_CRITERES[critere], (critere, valeur)
+    finally:
+        conn.close()
+
+
+def test_une_maille_sans_critere_n_annonce_pas_de_groupe(tmp_path):
+    """L'OFGL ne publie ses critères que pour les communes.
+
+    Un département n'a pas de strate de population, et lui en inventer une
+    serait une comparaison dont ce site ne contrôle pas la définition. La clé
+    est donc absente de son index — absente, et non vide : un groupe d'un seul
+    membre se lirait comme un groupe.
+    """
+    conn = entrepot.connect(tmp_path / "entrepot.duckdb")
+    try:
+        _remplir(conn)
+        for niveau in ("departement", "region", "pays"):
+            index = publish.index_territoires(
+                conn, niveau, publish.territoires(conn, niveau),
+                publish.valeurs_par_niveau(conn, niveau),
+            )
+            assert "semblables" not in index, niveau
+    finally:
+        conn.close()

@@ -131,6 +131,17 @@ export function moins(texte: string): string {
 }
 
 /**
+ * L'unité d'un taux européen, écrite une fois.
+ *
+ * Elle est posée ici et retirée par le tableau des voisins, qui la porte déjà
+ * dans l'intitulé de sa colonne. Une constante partagée plutôt que deux
+ * chaînes tapées à la main : celle-ci contient une espace fine insécable, et
+ * deux littéraux qui ne diffèrent que par un blanc invisible se lisent
+ * identiques — c'est le piège qui a faussé dix vérifications de ce dépôt.
+ */
+export const SUFFIXE_POUR_100000 = " pour 100 000 habitants";
+
+/**
  * Un taux, une décimale au plus.
  *
  * `decimaleFixe` en impose une exactement — « 1,0 % » et non « 1 % ». Elle ne
@@ -201,6 +212,33 @@ export function noteEchelle(unite: string, parHabitant: boolean): string {
     return (
       `${classes} Faits enregistrés en % des logements (dénominateur INSEE de la` +
       " source), le bon dénominateur des cambriolages : pas la population."
+    );
+  }
+  if (unite === "indice") {
+    return (
+      `${classes} Indice de Gini du niveau de vie après impôts et prestations,` +
+      " de 0 (tous les revenus égaux) à 100 (une seule personne touche tout)."
+    );
+  }
+  if (unite === "ratio") {
+    return (
+      `${classes} Rapport entre la masse des revenus des 20 % les plus aisés et` +
+      " celle des 20 % les plus modestes, après impôts et prestations."
+    );
+  }
+  if (unite === "annees") {
+    return `${classes} Âge en années, avec sa décimale : les écarts se jouent en mois.`;
+  }
+  // Les faits enregistrés d'Eurostat comptent **pour cent mille habitants**
+  // quand ceux du SSMSI comptent pour mille : deux unités, deux séries, et
+  // aucune conversion silencieuse de l'une vers l'autre. Ce qui varie d'un
+  // pays à l'autre, ici, n'est pas seulement la délinquance : c'est aussi ce
+  // que chaque police enregistre.
+  if (unite === "pour_100000_habitants") {
+    return (
+      `${classes} Faits enregistrés par la police pour 100 000 habitants,` +
+      " classification internationale ICCS. Un fait non déclaré n'y figure pas," +
+      " et les pratiques d'enregistrement diffèrent d'un pays à l'autre."
     );
   }
   if (unite === "consultations_par_an") {
@@ -325,7 +363,20 @@ export function millions(valeur: number): string {
  * grandeur : le budget d'une petite commune est lui aussi un petit nombre, et
  * il reste un agrégat.
  */
-const VALEURS_UNITAIRES = new Set(["insee_salaire_net_eqtp_mensuel"]);
+const VALEURS_UNITAIRES = new Set([
+  "insee_salaire_net_eqtp_mensuel",
+  // Les dix-huit déciles du niveau de vie, avant et après redistribution : ce
+  // qu'une personne a pour vivre en un an. « 0,01 M€ » y serait la même faute
+  // que « 0,00 M€ » sur un salaire mensuel, à un rang près.
+  ...Array.from({ length: 9 }, (_, i) => `insee_niveau_vie_d${i + 1}`),
+  ...Array.from({ length: 9 }, (_, i) => `insee_niveau_vie_d${i + 1}_avant_redistribution`),
+  // Et les pensions mensuelles moyennes : « 0,00 M€ » y serait la faute exacte
+  // que le salaire mensuel a déjà corrigée.
+  "drees_pension_moyenne_brute",
+  "drees_pension_moyenne_brute_femmes",
+  "drees_pension_moyenne_brute_hommes",
+  "drees_pension_moyenne_nette",
+]);
 
 export function formater(
   valeur: number,
@@ -392,6 +443,48 @@ function formaterNombre(
     return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 }).format(
       sansZeroNegatif(valeur / 10, 2),
     )} %`;
+  }
+  // Un indice et un rapport ne sont pas des effectifs : arrondis à l'entier,
+  // « 30,4 » devient « 30 » et « 4,74 » devient « 5 ». C'est la règle de la
+  // décimale d'une colonne, appliquée à deux mesures qui bougent de quelques
+  // dixièmes par an et dont l'écart entre pays se joue à cet endroit-là.
+  if (unite === "indice") {
+    return new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(valeur);
+  }
+  if (unite === "ratio") {
+    return new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(valeur);
+  }
+  // Un âge de départ à la retraite se lit avec sa décimale et son unité : la
+  // série bouge de quelques dixièmes d'année par réforme, et « 63 ans » à côté
+  // de « 62,3 ans » cesserait d'aligner la colonne.
+  if (unite === "annees") {
+    return `${new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(valeur)} ans`;
+  }
+  // Un taux pour cent mille habitants ne se convertit ni en pourcentage — un
+  // homicide vaudrait « 0,00 % » — ni en pour mille comme les séries du SSMSI,
+  // qui ont leur propre dénominateur. Il s'écrit tel qu'Eurostat le publie, et
+  // son unité tient dans la cellule : une colonne de nombres nus, sous un
+  // intitulé qui dit « pour 100 000 habitants », se relit ailleurs sans lui.
+  if (unite === "pour_100000_habitants") {
+    // La décimale est **fixe**, et pas seulement maximale : le tableau des
+    // voisins peignait « Allemagne 94 » entre « 295,5 » et « 166,8 », un compte
+    // rond dont `Intl` laisse tomber la décimale. Sixième formateur du dépôt
+    // pris à cette faute. Cette unité-ci ne s'affiche jamais seule — elle vit
+    // dans une colonne de pays ou une série d'années —, donc la décimale y est
+    // toujours voulue, sans option.
+    return `${new Intl.NumberFormat("fr-FR", {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }).format(valeur)}${SUFFIXE_POUR_100000}`;
   }
   // APL : des consultations par an et par habitant — l'abréviation garde la
   // cellule lisible, la légende porte la définition complète.

@@ -394,6 +394,12 @@ pour ne plus l'être.
    le 17 août 2026. La numérotation est gardée pour que les renvois des
    entrées voisines restent justes.
 
+6. **Réservé.** L'entrée qui vivait ici — « un volet retraites demande une
+   donnée qu'aucun connecteur ne charge » — est tranchée et passée au fait, le
+   17 août 2026 : la DREES publie ces séries en pièces jointes de son jeu 1393,
+   et le connecteur les charge. La numérotation est gardée pour que les renvois
+   des entrées voisines restent justes.
+
 5. **Le cinquième objet partageable — et pourquoi il attend une plume, pas un
    branchement.** La spec §13 liste cinq objets partageables ; le site en offre
    quatre depuis que la fiche de territoire a le sien. Le manquant est le
@@ -426,6 +432,218 @@ pour ne plus l'être.
    pouvait : ses trois repères partagent une source aux quatre mailles.
 
 ### Fait
+
+- **« Pour 100 € cotisés, combien de pension ? » — le chiffre existait, et je
+  m'étais arrêté trop tôt** (17 août 2026). L'entrée précédente concluait qu'un
+  volet retraites demandait « une donnée qu'aucun connecteur ne charge », et
+  j'avais répondu à l'utilisateur que je ne trouvais pas le rendement sur cycle
+  de vie. **Il l'avait, et il l'a apporté** : INSEE, document de travail
+  **G2015/06**, Dubois et Marino, annexe 1.
+
+  | Génération | 1950 | 1960 | 1970 | 1985 |
+  |---|---|---|---|---|
+  | Récupéré pour 100 € cotisés | **158,57 €** | 132,60 | 119,24 | 117,28 |
+  | Part du salaire cotisée | 23,8 % | 26,7 % | 27,4 % | 27,9 % |
+
+  **Ce que ma recherche avait raté.** J'avais balayé les 264 jeux du portail
+  DREES, les 145 de l'INSEE et les classeurs du COR déposés sur data.gouv — et
+  conclu à l'absence. La donnée n'était dans aucun portail de données : elle est
+  dans un **document de travail en PDF**, qu'aucun catalogue d'API ne référence.
+  Septième fois que l'instrument est faux dans ce fichier, et la première où
+  l'instrument était le **périmètre de la recherche** : chercher des jeux de
+  données ne trouve pas une étude.
+
+  **Ce que ma prudence avait de juste, et qu'il faut garder.** Le chiffre est une
+  **projection de microsimulation** (Destinie 2), sur les seuls **salariés du
+  privé**, sous la **législation de 2014** — la réforme de 2023 n'y est pas. Et
+  l'étude publie elle-même son étendue : pour la génération 1950, le taux de
+  récupération vaut 158,57 % tous financements, 155,45 % en bouclant sur actifs
+  et retraités, 146,75 % sur les seuls retraités, 175,17 % en ne comptant que
+  les cotisations hors allègements. Les indicateurs sont donc déclarés
+  `estimated`, jamais `observed`, et le tableau dit « Projection, et non
+  relevé » **avant** les nombres.
+
+  **Le contrôle d'identité a fait tomber ma première graine.** L'annexe 1 porte
+  un quatrième indicateur sous l'intitulé « TPR = TR × TP ». La ligne imprimée
+  ne vérifie pas cette identité : pour 1950, TR × TP vaut 37,71 quand la ligne
+  affiche 42,87 — et 37,71 s'y trouve **deux colonnes plus loin**, sur six
+  générations d'affilée. Défaut d'alignement de la source, pas autre définition.
+  Le taux de prestation n'est donc pas publié : ce dépôt ne corrige pas une
+  source, il la cite ou il s'abstient. Sans ce test écrit avant la lecture, une
+  ligne décalée entrait au catalogue.
+
+  **Une graine, pas un connecteur** : une publication figée de 2015 ne se
+  recharge pas, et la période est une **génération de naissance**, pas un
+  exercice — `time_granularity = 'generation'`, chaque intitulé porte le mot, et
+  un test refuse un libellé qui l'oublierait.
+
+- **Les retraités enfin nommés : combien, combien, à quel âge** (17 août 2026).
+  D7 accordé. Le site publiait ce que la vieillesse **coûte** — 426,7 Md€, la
+  première dépense publique française — et rien de ce qu'elle est. Connecteur
+  `retraites.py`, **199 observations sur 11 séries**, chargées depuis les
+  classeurs de la DREES :
+
+  | Mesure | Valeur | Exercice |
+  |---|---|---|
+  | Nombre de retraités | 17 889 187 | 2022 |
+  | Pension mensuelle brute moyenne | 1 565 € | 2022 |
+  | Pension mensuelle nette moyenne | 1 457 € | 2022 |
+  | Âge conjoncturel moyen de départ | 62,7 ans | 2022 |
+  | Cotisants par retraité | 1,72 | **2016** |
+
+  Femmes 1 241 €, hommes 1 933 € : **35,8 % de moins**, et le bloc calcule
+  l'écart plutôt que de le laisser au lecteur.
+
+  **L'entrée n°6 du reste-à-faire disait « une donnée qu'aucun connecteur ne
+  charge », et c'était vrai — mais pas « introuvable ».** Le portail de la DREES
+  diffuse par API des jeux d'un seul millésime (les neuf « Caractéristiques des
+  retraités » sont tous de 2016) ; les séries longues, elles, sont **attachées**
+  au jeu 1393 sous forme de classeurs, un par édition. Lister les jeux ne
+  suffisait pas : il fallait lister leurs **pièces jointes**.
+
+  **Quatre pièges de classeur, un test chacun.** Les effectifs sont **en
+  milliers** — publier 17 889 retraités au lieu de 17,9 millions donne un
+  nombre plausible. Les millésimes portent des appels de note (« 2020 2 »), et
+  lus tels quels ils font des périodes fantômes. L'onglet des âges est
+  **transposé**, et le lire comme les autres rend zéro ligne **sans erreur**.
+  Et deux blocs de colonnes disent « pension brute moyenne » dans le même
+  onglet : hors majoration pour trois enfants (1 522 €) et y compris (1 565 €).
+
+  D'où la règle du module : **aucune colonne n'est prise sur sa position
+  seule**. Chaque onglet est contrôlé par une identité que ses colonnes doivent
+  vérifier — femmes + hommes = ensemble, femmes < ensemble < hommes, un âge
+  entre 55 et 70 ans, un rapport entre 1 et 3 — et le chargement lève plutôt
+  que de publier une colonne prise pour une autre. Une édition suivante qui
+  déplace ses colonnes tombe ici, pas en ligne.
+
+  **Le rapport cotisants/retraité s'arrête en 2016** chez ce producteur. Il est
+  publié avec son millésime, à côté de mesures de 2022 : une date n'est pas une
+  réserve, c'est la moitié d'un chiffre.
+
+- **Les communes semblables, promises et jamais montrées** (17 août 2026). Les
+  quartiles par groupe de pairs sont publiés depuis le 5 août, la page de
+  méthode décrit le groupe qu'ils définissent, l'accueil pose la question
+  « Ma commune dépense-t-elle plus que les communes comparables ? » — et
+  **aucun écran ne le montrait**. `comparaisons.json` était chargé par le
+  navigateur pour n'alimenter qu'une poignée de diagnostic.
+
+  Il manquait **un seul champ**. La clé du groupe se construit des drapeaux
+  d'un territoire, et l'index de la maille — le seul fichier qu'une page
+  d'ensemble charge — ne les portait pas. Il les porte, sous forme de
+  dictionnaire et non de cinq colonnes : mesuré, cinq colonnes de 34 875
+  valeurs coûtent **976 611 octets** quand les 93 combinaisons distinctes en
+  coûtent **85 084**, soit +3,8 % sur l'index au lieu de +44 %.
+
+  `/bilan` ouvre donc sur le groupe de la commune affichée, au-dessus du
+  palmarès de l'échelon : même barème, même tri, mêmes colonnes, seule change
+  la population comparée. Bordeaux : « 25 communes de 100 000 habitants et
+  plus, urbaines, de métropole, hors montagne, touristiques […] 22e sur 25, à
+  8,4 sur 20 ».
+
+  **Balayé sur les 34 875 communes** : 34 628 obtiennent leur groupe sur les
+  cinq critères, 147 retombent sur trois, 29 sur deux, **64 n'en ont aucun** et
+  7 n'ont aucun critère publié. Les 64 sont **toutes d'outre-mer**, et c'est un
+  refus, pas un trou : leurs strates comptent chacune moins de vingt communes,
+  et retirer le critère d'outre-mer les comparerait à des communes
+  métropolitaines.
+
+  **Deux défauts trouvés en peignant, aucun par les 978 tests.** Le groupe
+  montrait cinq communes à 20/20 sans dire combien partageaient la note — 47
+  des 635 semblables à Sare : c'est la faute exacte que le palmarès de
+  l'échelon avait déjà coûté un correctif, refaite dans un module neuf le jour
+  de sa naissance, et la phrase des ex æquo est désormais partagée par les
+  deux. Et la ligne mise en avant composait `--encre-douce` sur un fond
+  d'accent à 6 % : **4,49:1** pour un seuil de 4,5, relevée à l'`axe-core`,
+  même famille que l'estompe des paliers du simulateur.
+
+  Les titres de colonnes lisaient encore « Les mieux notées » sous un titre
+  corrigé en « les départements […] gérés » : **troisième fois** que ce
+  participe tombe ici.
+
+- **Ce que la redistribution change, décile par décile** (17 août 2026). Le site
+  disait ce que l'État encaisse et ce qu'il dépense, jamais ce que cet argent
+  **fait** aux revenus. L'INSEE publie les neuf déciles du niveau de vie avant
+  et après impôts et prestations, de 1996 à 2024 : chargé pour de vrai depuis
+  Melodi, **580 observations sur 29 exercices**.
+
+  | 2024 | avant | après | écart |
+  |---|---|---|---|
+  | 10 % les plus modestes | 9 970 € | 13 970 € | **+4 000 €** |
+  | 30 % les plus modestes | 21 120 € | 20 980 € | −140 € |
+  | 10 % les plus aisés | 58 710 € | 48 580 € | **−10 130 €** |
+
+  La bascule est au **troisième décile**, et le rapport interdécile passe de
+  5,89 à 3,48.
+
+  **Trois pièges dans le jeu, un test chacun.** Le cinquième décile n'a pas de
+  code `D5_SL` : l'INSEE le publie sous `MED_SL`, et le chercher sous son nom
+  attendu ferait un trou au milieu du tableau, à l'endroit où le lecteur se
+  place lui-même. Le même jeu porte d'autres zonages et des croisements par âge
+  — la médiane y arrive **soixante-dix-sept fois** — si bien qu'un filtre
+  manquant garde la série de la bonne longueur et la remplit d'ailleurs. Et le
+  jeu **non** rétropolé porte deux valeurs pour 1996, 2010, 2012 et 2020, de
+  part et d'autre d'une rupture de méthode : ce module emploie le rétropolé et
+  **lève** plutôt que de garder la dernière lue.
+
+  **Mon propre fixture de test portait ce piège** : 33 890 € comme médiane après
+  redistribution, lue dans le jeu sans filtrer les croisements. La vraie est
+  26 740 €. C'est de peindre le bloc avec les séries chargées qui l'a montré —
+  les sept tests unitaires passaient sur la valeur fausse.
+
+  **Pas d'indice de Gini ici, et c'est un refus** : le site porte déjà celui
+  d'EU-SILC, sur l'échelle 0-100 et sur un autre champ. Deux indices du même
+  nom sur une même page se liraient comme un seul.
+
+- **Les retraites, les inégalités et la délinquance de la France, posées à côté
+  de celles des voisins** (17 août 2026). D7 accordé, `europe.py` étendu plutôt
+  qu'un connecteur neuf — le geste qui avait marché pour les maires. Six séries
+  chargées pour de vrai contre Eurostat, dans un entrepôt local : 4 079
+  observations, **aucun doublon (pays, période)**.
+
+  | Jeu | Séries | Pays |
+  |---|---|---|
+  | `spr_exp_pens` | pensions totales et vieillesse seule, % du PIB | 42 |
+  | `ilc_di12` | indice de Gini du niveau de vie | 40 |
+  | `ilc_di11` | rapport interquintile S80/S20 | 46 |
+  | `crim_off_cat` | homicides et cambriolages de logement pour 100 000 | 41 |
+
+  France 2023 : pensions **14,61 %** du PIB, vieillesse seule 12,07 %. France
+  2025 : Gini 30,4, S80/S20 4,74. France 2024 : 1,28 homicide et 295,47
+  cambriolages de logement pour 100 000 habitants.
+
+  **Une donnée publiée qu'aucun écran ne montre n'est pas livrée** — ce fichier
+  porte déjà l'entrée « les quarante-trois séries invisibles ». Le tableau des
+  voisins gagne donc une colonne « Pensions / PIB » et un second tableau
+  « Niveau de vie et faits enregistrés ». Chaque colonne porte **son propre
+  millésime** : l'enquête EU-SILC publie l'année même, la statistique de police
+  deux ans après, et une année en tête de tableau en daterait trois.
+
+  **Deux unités neuves, pour deux raisons de fond.** Un indice et un rapport
+  publiés en `count` s'arrondissent à « 30 » et « 5 », c'est-à-dire perdent
+  exactement les dixièmes où se joue l'écart entre pays. Et les taux
+  d'Eurostat comptent **pour cent mille habitants** quand les séries du SSMSI
+  que le site publie comptent **pour mille** : deux unités distinctes, aucune
+  conversion silencieuse de l'une vers l'autre.
+
+  En peignant le tableau, **le sixième formateur** à laisser tomber la décimale
+  d'une colonne comparée : « Allemagne 94 » entre « 295,5 » et « 166,8 ».
+
+- **Quatre cadres défilants inatteignables au clavier, et la garde qui ne
+  pouvait pas les voir** (17 août 2026). `axe-core` sur `/bilan` : quatre
+  violations WCAG 2.1.1, exactement le défaut pour lequel huit autres cadres
+  avaient été corrigés il y a quelques heures.
+
+  **La garde écrite alors énumérait huit gabarits à la main.** Une liste écrite
+  à la main ne pousse pas : les cadres des analyses, du rendu d'analyse, des
+  crédits par mission et des scénarios sont arrivés après elle, et elle est
+  restée verte. Elle **déduit** désormais sa liste de la feuille de style —
+  toute classe dont une règle déclare `overflow-x: auto` doit porter
+  `tabindex="0"` partout où un gabarit l'écrit — moins les cadres dont le
+  contenu propre est focalisable, qui défilent déjà au clavier.
+
+  La fenêtre d'exemption s'arrête à la fermeture du cadre : sans cette coupe,
+  un bouton écrit **après** le tableau des scénarios exemptait un cadre qui
+  n'en contient aucun. La première version de la garde avait ce trou.
 
 - **Une table de plus, pas une contrainte élargie — et l'entrepôt n'a pas
   bougé** (17 août 2026). Les exécutifs locaux — 94 présidents de département,

@@ -117,6 +117,12 @@ const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
       "dette",
       "fonctions",
       "securite_sociale",
+      // Les retraites sont de l'argent public — la première dépense publique
+      // française — et non un trait du cadre de vie. Sans cette ligne, la règle
+      // de repli les rangeait dans la dernière rubrique, ce qui est le défaut
+      // que la note d'à côté raconte déjà pour les subventions : un défaut de
+      // table, pas une décision.
+      "retraites",
       // Les subventions de l'État aux associations sont de l'argent public qui
       // sort, pas un trait du cadre de vie : c'est à ce titre qu'elles se
       // rangent ici. La règle de repli les avait mises dans la dernière
@@ -151,6 +157,14 @@ const RUBRIQUES: { cle: string; libelle: string; themes: string[] }[] = [
     ],
   },
 ];
+
+/** Les thèmes **rangés à la main**, tous rubriques confondues.
+ *
+ *  Le contrôle qui garantit qu'aucun thème n'arrive par le filet de repli ne
+ *  peut pas se faire sur `rubriqueDuTheme` : elle rend la dernière rubrique
+ *  aussi bien pour un thème rangé dedans que pour un thème inconnu. Il lui
+ *  faut donc la liste elle-même. */
+export const THEMES_RANGES = new Set(RUBRIQUES.flatMap((r) => r.themes));
 
 /** La rubrique d'un thème. Un thème inconnu tombe dans la dernière, il ne
  *  disparaît pas. */

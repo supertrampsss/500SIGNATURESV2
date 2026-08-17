@@ -35,6 +35,10 @@ export type IndexTerritoires = {
   /** Une ligne par territoire, une colonne par période. `null` = pas de
    *  référence publiée cet exercice-là. */
   population_reference: (number | null)[][];
+  /** Le groupe de communes semblables de chaque territoire — absent des
+   *  mailles qui n'ont pas de critères, et des publications antérieures à ce
+   *  champ. Voir `semblables.ts`. */
+  semblables?: import("./semblables.ts").Semblables;
 };
 
 export type Repertoire = {
