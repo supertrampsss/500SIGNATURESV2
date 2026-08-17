@@ -92,3 +92,55 @@ test("une mesure absente laisse sa ligne dehors, jamais une ligne vide", () => {
   assert.match(html, /Nombre de retraités/);
   assert.doesNotMatch(html, /Cotisants par retraité<\/th>/);
 });
+
+/* ---------------------------------------------------------------------- *
+ * CE QU'UNE GÉNÉRATION RÉCUPÈRE                                           *
+ * ---------------------------------------------------------------------- */
+
+const AVEC_GENERATIONS = {
+  ...SERIES,
+  insee_retraite_taux_recuperation: {
+    "1950": 158.57, "1960": 132.6, "1970": 119.24, "1985": 117.28,
+  },
+  insee_retraite_taux_prelevement: {
+    "1950": 23.78, "1960": 26.72, "1970": 27.41, "1985": 27.92,
+  },
+};
+
+test("la question se lit en euros pour 100 € cotisés, avec ses deux décimales", () => {
+  // Le catalogue publie un pourcentage parce que l'INSEE le calcule ainsi ; la
+  // question se pose en euros. Et 158,57 contre 117,28 se joue aux centimes.
+  const lu = texte(rendu({ FR: territoire(AVEC_GENERATIONS) }));
+  assert.match(lu, /158,57\s?€/);
+  assert.match(lu, /117,28\s?€/);
+  assert.match(lu, /Pour 100\s?€ cotisés/);
+});
+
+test("le tableau des générations s'annonce comme une projection, avant les nombres", () => {
+  // Un calcul de modèle posé sans mention à côté de chiffres constatés ferait
+  // passer une simulation pour un relevé.
+  const lu = texte(rendu({ FR: territoire(AVEC_GENERATIONS) }));
+  assert.match(lu, /Projection/);
+  assert.match(lu, /Destinie 2/);
+  assert.match(lu, /salariés du secteur privé/);
+  assert.match(lu, /législation de 2014/);
+  assert.match(lu, /réforme de 2023/);
+  assert.match(lu, /G2015\/06/);
+});
+
+test("moins de trois générations ne font pas une pente", () => {
+  const deux = {
+    ...SERIES,
+    insee_retraite_taux_recuperation: { "1950": 158.57, "1985": 117.28 },
+    insee_retraite_taux_prelevement: { "1950": 23.78, "1985": 27.92 },
+  };
+  const html = rendu({ FR: territoire(deux) });
+  assert.match(html, /Les retraites/);
+  assert.doesNotMatch(html, /Pour 100/);
+});
+
+test("sans la série des générations, le reste du bloc tient", () => {
+  const html = rendu({ FR: territoire(SERIES) });
+  assert.match(html, /17\s?889\s?187/);
+  assert.doesNotMatch(html, /Destinie/);
+});

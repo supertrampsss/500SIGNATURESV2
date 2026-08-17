@@ -29,7 +29,7 @@ MODULES = [
     "europe",
     "famille",
     "fiscalite",
-    "logement", "macro", "population", "professions", "redistribution", "retraites", "revenus",
+    "logement", "macro", "population", "professions", "redistribution", "rendement_retraite", "retraites", "revenus",
     "sante",
     "secu", "securite",
 ]

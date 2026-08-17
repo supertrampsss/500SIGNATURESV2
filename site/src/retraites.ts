@@ -43,6 +43,18 @@ const AGE_FEMMES = "drees_age_depart_femmes";
 const AGE_HOMMES = "drees_age_depart_hommes";
 const COTISANTS = "drees_cotisants_par_retraite";
 
+/** Ce qu'une génération récupère de ses cotisations, par génération de naissance.
+ *
+ *  **Ce sont des projections, et le tableau le dit.** Elles sortent du modèle
+ *  Destinie 2 de l'INSEE, portent sur les seuls salariés du privé et supposent
+ *  la législation de 2014 — la réforme de 2023 n'y est pas. Les poser sans
+ *  mention à côté des chiffres constatés de la DREES ferait passer un calcul
+ *  pour un relevé, ce que ce site refuse partout ailleurs : elles ont donc leur
+ *  propre tableau, leur propre légende et leur propre source. */
+const GENERATIONS = ["1950", "1960", "1970", "1985"];
+const RECUPERATION = "insee_retraite_taux_recuperation";
+const PRELEVEMENT = "insee_retraite_taux_prelevement";
+
 function echapper(texte: string): string {
   return texte.replace(
     /[&<>"']/g,
@@ -135,12 +147,71 @@ export function rendu(pays: Record<string, Territoire>): string {
         ${rangee("Cotisants par retraité", cotisants, "ratio")}
       </tbody>
     </table>
+    ${renduGenerations(france)}
     <p class="avertissement">L'âge est dit « conjoncturel » : il ne donne pas l'âge
       auquel une génération est partie, qui ne se connaît qu'une fois qu'elle est
       partie, mais celui qu'on observerait si les comportements de l'année
       duraient. Le rapport cotisants/retraité commande l'équilibre d'un régime
       par répartition, où les pensions d'aujourd'hui sont payées par les
       cotisations d'aujourd'hui.</p>`;
+}
+
+/**
+ * Ce qu'une génération récupère pour 100 € cotisés.
+ *
+ * Le tableau du dessus dit ce que les retraités touchent aujourd'hui ; celui-ci
+ * dit ce qu'une génération retire de ce qu'elle a versé, sur toute sa vie.
+ * C'est la question que le débat pose, et la seule réponse chiffrée publique
+ * est un calcul de modèle : la légende le dit avant les nombres, pas après.
+ */
+/**
+ * Le taux de récupération, reformulé en euros pour 100 € cotisés.
+ *
+ * Le catalogue le publie en pourcentage — 158,57 % — parce que c'est ainsi que
+ * l'INSEE le calcule. La question, elle, se pose en euros : « pour 100 €
+ * cotisés, combien je récupère ». La conversion est l'identité, et le
+ * dénominateur est dans l'intitulé de la colonne.
+ *
+ * **Deux décimales, comme la source.** C'est une colonne qu'on lit de haut en
+ * bas, et 158,57 € contre 117,28 € se joue aux centimes autant qu'aux euros.
+ */
+function pour100(taux: number): string {
+  return `${new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(taux)} €`;
+}
+
+function renduGenerations(france: Territoire): string {
+  const recuperation = france.series[RECUPERATION];
+  const prelevement = france.series[PRELEVEMENT];
+  if (!recuperation || !prelevement) return "";
+  const lignes = GENERATIONS.filter(
+    (generation) => recuperation[generation] !== undefined,
+  );
+  // Deux générations ne font pas une évolution : sous ce seuil, le tableau
+  // montrerait un écart sans la pente qui lui donne son sens.
+  if (lignes.length < 3) return "";
+  return `
+    <h4>Pour 100 € cotisés, ce qu'une génération récupère</h4>
+    <table class="comparaison" tabindex="0">
+      <caption><strong>Projection</strong>, et non relevé : calcul par microsimulation
+        (modèle Destinie 2 de l'INSEE), pour les <strong>salariés du secteur privé</strong>
+        vivants à 60 ans, sous la <strong>législation de 2014</strong> — la réforme de 2023
+        n'y est pas. Source : INSEE, document de travail G2015/06, Dubois et Marino.</caption>
+      <thead><tr><th scope="col">Génération née en</th>
+        <th scope="col">Récupéré pour 100 € cotisés</th>
+        <th scope="col">Part du salaire cotisée</th></tr></thead>
+      <tbody>${lignes
+        .map(
+          (generation) => `<tr>
+            <th scope="row">${echapper(generation)}</th>
+            <td>${pour100(recuperation[generation])}</td>
+            <td>${formater(prelevement[generation], "percent", false)}</td>
+          </tr>`,
+        )
+        .join("")}</tbody>
+    </table>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

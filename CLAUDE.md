@@ -433,6 +433,50 @@ pour ne plus l'être.
 
 ### Fait
 
+- **« Pour 100 € cotisés, combien de pension ? » — le chiffre existait, et je
+  m'étais arrêté trop tôt** (17 août 2026). L'entrée précédente concluait qu'un
+  volet retraites demandait « une donnée qu'aucun connecteur ne charge », et
+  j'avais répondu à l'utilisateur que je ne trouvais pas le rendement sur cycle
+  de vie. **Il l'avait, et il l'a apporté** : INSEE, document de travail
+  **G2015/06**, Dubois et Marino, annexe 1.
+
+  | Génération | 1950 | 1960 | 1970 | 1985 |
+  |---|---|---|---|---|
+  | Récupéré pour 100 € cotisés | **158,57 €** | 132,60 | 119,24 | 117,28 |
+  | Part du salaire cotisée | 23,8 % | 26,7 % | 27,4 % | 27,9 % |
+
+  **Ce que ma recherche avait raté.** J'avais balayé les 264 jeux du portail
+  DREES, les 145 de l'INSEE et les classeurs du COR déposés sur data.gouv — et
+  conclu à l'absence. La donnée n'était dans aucun portail de données : elle est
+  dans un **document de travail en PDF**, qu'aucun catalogue d'API ne référence.
+  Septième fois que l'instrument est faux dans ce fichier, et la première où
+  l'instrument était le **périmètre de la recherche** : chercher des jeux de
+  données ne trouve pas une étude.
+
+  **Ce que ma prudence avait de juste, et qu'il faut garder.** Le chiffre est une
+  **projection de microsimulation** (Destinie 2), sur les seuls **salariés du
+  privé**, sous la **législation de 2014** — la réforme de 2023 n'y est pas. Et
+  l'étude publie elle-même son étendue : pour la génération 1950, le taux de
+  récupération vaut 158,57 % tous financements, 155,45 % en bouclant sur actifs
+  et retraités, 146,75 % sur les seuls retraités, 175,17 % en ne comptant que
+  les cotisations hors allègements. Les indicateurs sont donc déclarés
+  `estimated`, jamais `observed`, et le tableau dit « Projection, et non
+  relevé » **avant** les nombres.
+
+  **Le contrôle d'identité a fait tomber ma première graine.** L'annexe 1 porte
+  un quatrième indicateur sous l'intitulé « TPR = TR × TP ». La ligne imprimée
+  ne vérifie pas cette identité : pour 1950, TR × TP vaut 37,71 quand la ligne
+  affiche 42,87 — et 37,71 s'y trouve **deux colonnes plus loin**, sur six
+  générations d'affilée. Défaut d'alignement de la source, pas autre définition.
+  Le taux de prestation n'est donc pas publié : ce dépôt ne corrige pas une
+  source, il la cite ou il s'abstient. Sans ce test écrit avant la lecture, une
+  ligne décalée entrait au catalogue.
+
+  **Une graine, pas un connecteur** : une publication figée de 2015 ne se
+  recharge pas, et la période est une **génération de naissance**, pas un
+  exercice — `time_granularity = 'generation'`, chaque intitulé porte le mot, et
+  un test refuse un libellé qui l'oublierait.
+
 - **Les retraités enfin nommés : combien, combien, à quel âge** (17 août 2026).
   D7 accordé. Le site publiait ce que la vieillesse **coûte** — 426,7 Md€, la
   première dépense publique française — et rien de ce qu'elle est. Connecteur

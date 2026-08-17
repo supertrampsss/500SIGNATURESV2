@@ -357,6 +357,7 @@ jobs:
             python -m plateforme.normalize.europe --store r2:plateforme-raw
             python -m plateforme.normalize.redistribution --store r2:plateforme-raw
             python -m plateforme.normalize.retraites --store r2:plateforme-raw
+            python -m plateforme.normalize.rendement_retraite
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi
