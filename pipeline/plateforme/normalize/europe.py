@@ -31,6 +31,7 @@ DATASET_PAR_JEU = {
     "ilc_di11": "eurostat-ilc-di11",
     "crim_off_cat": "eurostat-crim-off-cat",
     "gov_10a_main": "eurostat-gov-10a-main",
+    "gov_10a_exp": "eurostat-gov-10a-exp",
 }
 
 # Les comptes des administrations publiques sont publiés en **millions**
@@ -252,6 +253,135 @@ INDICATEURS = {
         "libelle": "Prestations sociales en espèces",
         "public": "Les retraites, les allocations chômage et familiales, le RSA : ce qui est versé directement aux personnes.",
         "technique": "Prestations sociales autres que transferts sociaux en nature (D.62), en euros courants.",
+        "unite": "EUR",
+    },
+    # ─────────────────────────────────────────────────────────────────────
+    # CE QUE RECOUVRE « PRESTATIONS SOCIALES EN ESPÈCES »
+    # ─────────────────────────────────────────────────────────────────────
+    # Le poste le plus lourd de la dépense publique est aussi le plus muet :
+    # « retraites, chômage, allocations » met dans un seul nombre trois choses
+    # qui n'ont ni le même montant, ni le même public, ni le même débat. La
+    # retraite y pèse **neuf fois** le chômage — 362,2 Md€ contre 40,7 en
+    # 2024 — et l'ordre des mots du libellé ne le dit pas. Deux fonctions
+    # manquaient d'ailleurs au trio, et chacune vaut plus que le chômage : les
+    # pensions de réversion (40,3) et les arrêts maladie et l'invalidité (50,3).
+    #
+    # `gov_10a_main` ne le décompose pas : il ne porte que la transaction
+    # entière (D62PAY). La ventilation vit dans `gov_10a_exp`, qui croise la
+    # transaction avec la fonction (COFOG) — même producteur, même secteur
+    # S13, même unité, et **la transaction s'y nomme `D62` et non `D62PAY`**.
+    #
+    # DEUX MESURES AVANT DE PUBLIER, les deux faites le 17 août 2026 :
+    #
+    # 1. La ventilation se referme. Sept fonctions de protection sociale plus
+    #    trois postes hors protection sociale (bourses, culture, santé) font
+    #    561 878,3 M€ en 2024 contre 561 878,4 déclarés au total : 0,1 M€
+    #    d'arrondi. Le site n'a donc pas à inventer de reste — il le calcule.
+    #
+    # 2. Elle ne dit PAS la même année que le jeu principal, et l'écart n'est
+    #    pas nul. `D62PAY` (jeu principal) contre `D62` total (jeu par
+    #    fonction) : identiques à l'euro jusqu'en 2022, puis +1 248,8 M€ en
+    #    2023 et +1 806,9 M€ en 2024, soit 0,24 % et 0,32 %. Deux millésimes
+    #    d'un même compte, publiés à deux dates. La ventilation s'arrête à
+    #    2024 quand le jeu principal donne 2025.
+    #
+    # D'où la règle que le site tient : le tableau de ventilation porte **son
+    # propre exercice et son propre total**, jamais les parts du tableau
+    # principal redistribuées à la main sur des clés d'une autre année.
+    **{
+        f"eurostat_apu_prestations_{cle}": {
+            "jeu": "gov_10a_exp",
+            "params": {
+                "sector": "S13",
+                "na_item": "D62",
+                "cofog99": cofog,
+                "unit": "MIO_EUR",
+                "freq": "A",
+            },
+            "facteur": MILLION,
+            "libelle": libelle,
+            "public": public,
+            "technique": "Prestations sociales en espèces (D.62) versées par les"
+            f" administrations publiques au titre de la fonction {cofog} de la"
+            " nomenclature COFOG, en euros courants.",
+            "unite": "EUR",
+        }
+        for cle, cofog, libelle, public in (
+            (
+                "vieillesse",
+                "GF1002",
+                "Prestations en espèces — vieillesse",
+                "Les pensions de retraite de droit direct, et les minima"
+                " vieillesse. C'est le premier poste de la dépense publique"
+                " française, très loin devant les autres prestations.",
+            ),
+            (
+                "maladie_invalidite",
+                "GF1001",
+                "Prestations en espèces — maladie et invalidité",
+                "Les indemnités journalières d'arrêt maladie, les pensions"
+                " d'invalidité et les rentes d'accident du travail : de l'argent"
+                " versé, distinct des soins remboursés.",
+            ),
+            (
+                "chomage",
+                "GF1005",
+                "Prestations en espèces — chômage",
+                "Les allocations versées aux demandeurs d'emploi.",
+            ),
+            (
+                "survivants",
+                "GF1003",
+                "Prestations en espèces — survivants",
+                "Les pensions de réversion, versées au conjoint survivant.",
+            ),
+            (
+                "famille",
+                "GF1004",
+                "Prestations en espèces — famille et enfants",
+                "Les allocations familiales, la prestation d'accueil du jeune"
+                " enfant, le complément de libre choix de mode de garde.",
+            ),
+            (
+                "exclusion",
+                "GF1007",
+                "Prestations en espèces — lutte contre l'exclusion",
+                "Le RSA et les autres minima sociaux qui ne relèvent ni de la"
+                " vieillesse, ni de l'invalidité, ni du chômage.",
+            ),
+            (
+                "logement",
+                "GF1006",
+                "Prestations en espèces — logement",
+                "La part des aides au logement versée en espèces. L'essentiel"
+                " des aides au logement passe par d'autres canaux et n'est pas"
+                " compté ici.",
+            ),
+        )
+    },
+    # Le total de la ventilation, qui n'est PAS le poste du tableau principal :
+    # même transaction, autre millésime, et l'écart est mesuré ci-dessus. Il est
+    # publié parce que sans lui le site ne peut pas nommer ce que les sept
+    # fonctions laissent dehors — les prestations versées au titre de
+    # l'éducation, de la culture et de la santé, qui ne sont pas de la
+    # protection sociale et pèsent 6,2 Md€.
+    "eurostat_apu_prestations_ventilees": {
+        "jeu": "gov_10a_exp",
+        "params": {
+            "sector": "S13",
+            "na_item": "D62",
+            "cofog99": "TOTAL",
+            "unit": "MIO_EUR",
+            "freq": "A",
+        },
+        "facteur": MILLION,
+        "libelle": "Prestations sociales en espèces, toutes fonctions",
+        "public": "Le même total que « prestations sociales en espèces », mais"
+        " lu dans le jeu qui le ventile par fonction : c'est lui qui sert de"
+        " dénominateur à la ventilation.",
+        "technique": "Prestations sociales en espèces (D.62), toutes fonctions"
+        " COFOG confondues, en euros courants. Diffère de D62PAY du jeu"
+        " gov_10a_main de 0,3 % sur les exercices récents : deux millésimes.",
         "unite": "EUR",
     },
     "eurostat_apu_transferts_nature": {
