@@ -36,6 +36,16 @@ const VOISINS = ["FR", "DE", "ES", "IT", "NL", "EA20"];
  */
 const RETRAITES = "eurostat_retraites_pib";
 
+/** Et la vieillesse seule, à côté du total.
+ *
+ *  Publier une série qu'aucun écran ne montre est le défaut que le registre
+ *  appelle « les séries invisibles » : celle-ci l'était, seule des six séries
+ *  européennes neuves. Elle a sa colonne parce qu'elle apprend quelque chose —
+ *  la part des pensions qui n'est pas de la retraite de droit direct varie
+ *  beaucoup d'un pays à l'autre, et c'est elle qui rend deux totaux
+ *  comparables ou non. */
+const VIEILLESSE = "eurostat_retraites_vieillesse_pib";
+
 
 function derniere(serie: Record<string, number> | undefined): [string, number] | null {
   if (!serie) return null;
@@ -135,6 +145,7 @@ export function renduEurope(pays: Record<string, Territoire>): string {
         <td>${cellule("eurostat_deficit_pib")}</td>
         <td>${cellule("eurostat_chomage")}</td>
         <td>${cellule(RETRAITES)}</td>
+        <td>${cellule(VIEILLESSE)}</td>
       </tr>`;
     })
     .join("");
@@ -152,7 +163,8 @@ export function renduEurope(pays: Record<string, Territoire>): string {
         <th scope="col">Déficit / PIB</th><th scope="col">Chômage</th>
         <th scope="col">Pensions / PIB${
           anneeRetraites ? ` <span class="millesime">${anneeRetraites}</span>` : ""
-        }</th></tr></thead>
+        }</th>
+        <th scope="col">dont vieillesse</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
     ${renduVieQuotidienne(pays)}

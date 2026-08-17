@@ -38,6 +38,7 @@ const FRANCE = territoire({
   // Le SESPROS publie deux ans après l'exercice : la colonne des pensions
   // n'est pas du millésime du tableau, et le fixture le pose exprès.
   eurostat_retraites_pib: { "2022": 14.4, "2023": 14.9 },
+  eurostat_retraites_vieillesse_pib: { "2023": 12.1 },
   // Trois millésimes différents dans le même tableau : l'enquête sur les
   // revenus publie l'année même, la statistique de police deux ans après.
   eurostat_gini: { "2025": 30.4 },
@@ -52,6 +53,7 @@ const PAYS: Record<string, Territoire> = {
     eurostat_dette_pib: { "2024": 62.5 },
     eurostat_chomage: { "2024": 3.4 },
     eurostat_retraites_pib: { "2023": 12.1 },
+    eurostat_retraites_vieillesse_pib: { "2023": 9.6 },
     eurostat_gini: { "2025": 29.4 },
     eurostat_homicides_100k: { "2024": 0.83 },
     // Un compte rond : c'est lui qui fait tomber la décimale d'une colonne.
@@ -231,4 +233,13 @@ test("sans ces séries publiées, le second tableau n'existe pas", () => {
   const html = renduEurope(sans);
   assert.match(html, /La France et ses voisins/);
   assert.doesNotMatch(html, /Niveau de vie et faits enregistrés/);
+});
+
+test("la vieillesse seule a sa colonne : une série publiée se montre", () => {
+  // Elle était la seule des six séries européennes neuves qu'aucun écran ne
+  // portait — le défaut que le registre appelle « les séries invisibles ».
+  const html = renduEurope(PAYS);
+  assert.match(html, /<th scope="col">dont vieillesse<\/th>/);
+  assert.match(html, new RegExp(`12,1${FINE}%`));
+  assert.match(html, new RegExp(`9,6${FINE}%`));
 });
