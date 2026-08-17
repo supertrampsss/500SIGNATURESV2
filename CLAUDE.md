@@ -389,29 +389,11 @@ pour ne plus l'être.
    qu'elles portent. Aujourd'hui la spec se lit comme tenue alors qu'elle ne
    l'est pas, ce qui est le pire des deux états.
 
-4. **« Le site ne publie ni classement » — et `/detail` en affiche un.**
-   Trouvé en lisant `/methode` déployée. La page de méthode écrit, sous les
-   règles d'affichage : « Deux territoires se comparent à la même année, à la
-   même unité et au même périmètre. **Le site ne publie ni score composite, ni
-   classement.** » Un test la verrouille (`methode-rendu.test.ts`).
+4. **Réservé.** L'entrée qui vivait ici — « le site ne publie ni classement »
+   contre un `/detail` qui en affichait un — est tranchée et passée au fait,
+   le 17 août 2026. La numérotation est gardée pour que les renvois des
+   entrées voisines restent justes.
 
-   Or `/detail` trie les territoires par valeur décroissante et n'en montre que
-   les cent premiers, sous une légende qui le dit : « **100 premiers
-   territoires sur 34 875** ». Et `main.ts` appelle cette table par son nom —
-   « un classement tronqué se lit, un fichier tronqué se réutilise de travers ».
-
-   **Les deux lectures se défendent, et c'est pour ça que l'entrée existe.**
-   Le vocabulaire du dépôt distingue ailleurs les deux : `credits-missions.ts`
-   range les missions par écart en précisant « aucun classement, aucune note ».
-   Trier des valeurs publiées, en les affichant, n'est pas noter. Mais « les
-   cent premiers » est la langue d'un palmarès, le lecteur qui vient de voir ce
-   tableau lit ensuite qu'il n'existe pas, et aucune des deux pages ne renvoie
-   à l'autre.
-
-   Trancher relève de **D7** — c'est une affirmation de méthodologie, pas une
-   tuyauterie : ou la phrase se précise (« aucun score composite, aucun
-   palmarès entre territoires » et le tri assumé), ou `/detail` cesse de
-   présenter ses lignes comme un rang. Ne pas réécrire l'une des deux seul.
 5. **Le cinquième objet partageable — et pourquoi il attend une plume, pas un
    branchement.** La spec §13 liste cinq objets partageables ; le site en offre
    quatre depuis que la fiche de territoire a le sien. Le manquant est le
@@ -444,6 +426,43 @@ pour ne plus l'être.
    pouvait : ses trois repères partagent une source aux quatre mailles.
 
 ### Fait
+
+- **La page de méthode décrivait un autre site** (17 août 2026). Deux de ses
+  règles d'affichage étaient devenues fausses, et une page de méthode qui
+  décrit un autre site que celui qu'on lit est pire qu'une page absente : elle
+  donne au lecteur une garantie qu'il peut démentir d'un coup d'œil, sur la
+  page même.
+
+  « **Le site ne publie ni score composite, ni classement** » — alors que la
+  fiche ouvre sur une note sur 20 et que le classement range par elle. C'était
+  l'entrée n°4 du reste-à-faire, qui pesait déjà avant la note et que la note a
+  rendue intenable. Ce que la phrase protégeait vraiment est gardé et dit :
+  aucune comparaison d'un échelon à l'autre, aucun indice sans dimension
+  agrégeant des mesures d'unités différentes. Les règles disent en plus ce que
+  la note mesure, ce qu'elle refuse de juger, et pourquoi son barème est propre
+  à chaque échelon.
+
+  « **Tous les montants sont en millions d'euros** » — alors que
+  `montantLisible` choisit l'échelle sur le montant et écrit « milliards
+  d'euros » en toutes lettres au-delà du millier de millions. Celle-là est plus
+  ancienne que cette branche : la règle qu'elle décrit a été remplacée le jour
+  où les montants ont cessé de demander une division de tête, et la page de
+  méthode ne l'a pas suivie.
+
+  **La leçon.** Aucun test ne compare la page de méthode au comportement
+  qu'elle décrit — ils vérifient que la page contient ses phrases, pas que ses
+  phrases sont vraies. Un document de méthode se périme en silence, et c'est le
+  seul document du site dont le lecteur ne peut pas vérifier l'exactitude
+  autrement qu'en lisant tout le reste. Trois sabotages tiennent la correction.
+
+  Et les motifs des nouvelles assertions s'écrivent `\s+` et non avec une
+  espace : le gabarit se replie sur plusieurs lignes, donc une espace du source
+  devient un retour et son indentation dans le rendu. Le fichier employait déjà
+  ce motif pour la phrase des producteurs ; ma première version des assertions
+  l'a manqué, et deux d'entre elles ont échoué sur du texte pourtant présent.
+  Même famille que l'insécable, dixième fois qu'un blanc invisible fait échouer
+  une vérification.
+
 
 - **La note entre au classement, et un accord de participe tombe** (17 août
   2026). La note vivait sur une fiche et nulle part ailleurs : un lecteur
