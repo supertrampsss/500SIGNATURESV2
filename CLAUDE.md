@@ -427,6 +427,53 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Le palmarès, et un plafond encombré de deux mille communes** (17 août
+  2026). La note vivait sur une fiche et dans le classement d'une fiche — deux
+  endroits qui demandent de savoir d'avance quel territoire on cherche.
+  `/bilan` ouvre désormais sur les mieux et les moins bien gérées d'un échelon.
+
+  **Trois défauts, tous trouvés en peignant la page avec les fichiers publiés**,
+  aucun par les 946 tests.
+
+  Les dix « communes les mieux gérées de France » étaient Abbans-Dessous,
+  Ablaincourt-Pressoir, Ablancourt, Accons : **les quatre premières de
+  l'alphabet parmi 2 102 communes qui valent exactement 20 sur 20.** La note est
+  bornée aux deux bouts par construction — 2 102 à 20, 2 221 à 0 —, donc l'ex
+  æquo n'est pas un cas limite, c'est le cas courant. Le tri départage
+  maintenant par population et le cadrage dit combien partagent la note : la
+  liste se lit « les plus grandes des 2 102 à 20/20 », et non un palmarès
+  national inventé.
+
+  Le bas montrait **les moins peuplées sous une phrase promettant les plus
+  peuplées** — un tri unique « note décroissante, population décroissante »
+  suivi d'un `slice(-N)` prend, parmi les derniers ex æquo, les plus petits. Le
+  texte publié démentait le tableau publié, à deux lignes d'écart.
+
+  Et les rangs étaient **fabriqués** : « 1re, 2e, 3e » pour 2 102 communes à
+  égalité, « 34 778e, 34 777e » à l'autre bout. Les ex æquo partagent leur rang,
+  la convention que `situation.ts` tenait déjà. Dix lignes qui affichent « 1 »
+  disent au lecteur, mieux qu'une phrase, que le plafond est encombré.
+
+  **L'accord du participe a cassé une seconde fois, dans un module vieux d'un
+  commit** : « les départements les mieux et les moins bien gérées ». La table
+  des mailles porte désormais le genre à côté du pluriel. C'est le même défaut
+  que le critère de classement une heure plus tôt — ce qui est exactement
+  pourquoi la garde écrite là-bas valait la peine, et pourquoi ce module-ci
+  avait besoin de la sienne.
+
+- **`git checkout -- <fichier>` a détruit du travail non commité, quatrième
+  fois** (17 août 2026). Employé par réflexe pour défaire un sabotage de
+  vérification, il a emporté le branchement du palmarès dans `main.ts`, écrit
+  quelques minutes plus tôt et jamais commité. Refait à l'identique depuis le
+  script qui l'avait posé — mais le script n'existait que par chance.
+
+  **La règle** : un sabotage se défait avec la copie qu'on a prise avant lui
+  (`cp fichier /tmp/x.bak` puis `cp /tmp/x.bak fichier`), jamais avec `git
+  checkout`, qui ne distingue pas ce que le sabotage a changé de ce que le
+  travail a écrit. Les trois sabotages du même quart d'heure employaient
+  d'ailleurs la copie ; c'est le quatrième, tapé à la main, qui a employé git.
+
+
 - **La page de méthode décrivait un autre site** (17 août 2026). Deux de ses
   règles d'affichage étaient devenues fausses, et une page de méthode qui
   décrit un autre site que celui qu'on lit est pire qu'une page absente : elle
