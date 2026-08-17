@@ -404,6 +404,38 @@ pour ne plus l'être.
 
 ### Fait
 
+- **La fiche de territoire se partage, et l'adresse du site cesse d'être
+  coupée** (17 août 2026). La spec §13 liste cinq objets partageables ; le site
+  en offrait trois. Deux des cinq natures de carte sont mortes par la décision
+  D-L3-b, documentée — l'espace des budgets encodés est infini. Pour la fiche,
+  aucun refus n'était consigné : `carteFiche` était écrite, testée, sans un
+  appelant.
+
+  Ce qui manquait était une seule ligne de données. `reperes()` rendait
+  `{role, terme, valeur, exercice, variation}` — de quoi peindre l'écran, où
+  l'entête porte déjà l'unité et la source, mais pas de quoi faire sortir un
+  chiffre du site. `Repere` porte désormais `id`, et le catalogue donne le
+  reste. Rien n'est peint si les trois repères ne partagent pas une source :
+  `SourceCarte` n'en nomme qu'une, et en choisir une pour trois serait la faute
+  que l'entrée précédente vient de corriger. Vérifié sur les quatre mailles —
+  une source chacune.
+
+  Le build n'écrit pas 34 875 PNG : la carte se dessine dans le navigateur, au
+  clic, et `telecharger` la remet en SVG. C'est le seul objet du site dont
+  l'image existe sans avoir d'adresse, et `partageFiche` rend donc `image: null`
+  comme un scénario, pour une raison voisine mais différente.
+
+  **Deux défauts trouvés en peignant les cartes avec les données publiées, et
+  les deux étaient là avant.** L'adresse du site était bornée au tiers de la
+  largeur utile — 352 unités — quand celle du dépôt en demande 373 : **les six
+  cartes que le build écrit** portaient « https://plateforme-9sz.pages.… ».
+  C'est la seule chaîne d'une carte qui devient inutile en perdant sa fin, et
+  c'est elle qui existe pour ramener le lecteur ici ; c'est donc la mention
+  d'unité qui cède désormais. Et les trois variations d'une fiche se lisent de
+  haut en bas : la Nouvelle-Aquitaine peignait « +10 % » entre « +9,1 % » et
+  « +5,4 % » — la règle de la décimale, dans la seule colonne où personne ne
+  l'avait cherchée.
+
 - **La source d'un chiffre, maille par maille** (17 août 2026). L'export CSV
   d'un **département** écrivait en tête de fichier :
 

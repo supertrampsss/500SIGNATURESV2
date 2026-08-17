@@ -9,7 +9,9 @@ import { blocs, rendreBlocs } from "./blocs.ts";
 import { exercices, rendreExercices } from "./exercices.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 
-const NIVEAUX: Record<string, string> = {
+/** L'intitulé de chaque maille. Exporté pour que le partage d'une fiche
+ *  nomme la maille avec le mot que la fiche affiche, et pas un autre. */
+export const NIVEAUX: Record<string, string> = {
   commune: "Commune",
   // Paris, Lyon et Marseille n'existent que par arrondissement dans certaines
   // sources — la carte des loyers de l'ANIL, par exemple, dont les codes 75056,
@@ -293,7 +295,8 @@ export function afficherFiche(
           series: territoire.series ?? {},
           catalogue: options.indicateurs,
         }),
-      )}<div class="fiche__situation" id="fiche-situation"></div></div>`
+      )}<div class="fiche__situation" id="fiche-situation"></div></div>
+    <div class="fiche__partage" id="fiche-partage"></div>`
     }
   `;
 }

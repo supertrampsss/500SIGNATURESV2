@@ -70,6 +70,11 @@ export const ROLES: Record<string, readonly Role[]> = {
 
 export type Repere = {
   role: string;
+  /** L'indicateur qui porte ce repère. Sans lui, un repère est un nombre et
+   *  trois mots : ni son unité, ni sa source ne se retrouvent, et la fiche ne
+   *  peut ni le citer ni le peindre sur une carte qui circule seule. Le rôle
+   *  et le terme sont écrits pour l'œil, celui-ci pour le catalogue. */
+  id: string;
   terme: string;
   /** Le montant de l'exercice le plus récent, tel qu'il sera formaté. */
   valeur: number;
@@ -104,6 +109,7 @@ export function reperes(series: Series, niveau: string): Repere[] {
     if (dernier === undefined) continue;
     sortie.push({
       role,
+      id,
       terme,
       valeur: serie[dernier],
       exercice: dernier,

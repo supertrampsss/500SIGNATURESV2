@@ -254,6 +254,56 @@ export function partageComparaison(comparaison: {
   };
 }
 
+/**
+ * Une fiche de territoire : son nom, ses repères, l'exercice qui les porte.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI LES CHIFFRES MONTENT ICI, ALORS QU'ILS NE MONTENT PAS AILLEURS
+ * ─────────────────────────────────────────────────────────────────────────
+ * Le résumé d'une analyse s'en abstient — deux montants du même exercice sous
+ * deux définitions se lisent nus comme une contradiction. Ceux d'une fiche
+ * n'ont pas ce piège : ce qui entre, ce qui sort, ce qui reste sont trois
+ * grandeurs distinctes, et c'est précisément ce qu'on partage quand on partage
+ * le budget de sa commune. Chacun garde son rôle devant lui, l'exercice les
+ * date tous les trois, et la mention d'unité ferme la ligne.
+ *
+ * **Trois, comme la carte**, et les trois premiers dans l'ordre que la fiche a
+ * choisi : le collage et l'image disent alors la même chose. Le quatrième
+ * repère reste à l'écran, où il a la place de sa ligne.
+ *
+ * `image` vaut `null`, et pour une raison propre à cet objet : une fiche a
+ * bien une adresse stable, mais trente-quatre mille huit cent soixante-quinze
+ * PNG ne se rasterisent pas au build. L'image se construit donc dans le
+ * navigateur, à partir de `carteFiche`, et se télécharge — elle n'a pas
+ * d'adresse, donc rien à annoncer ici.
+ */
+export function partageFiche(fiche: {
+  nom: string;
+  maille: string;
+  exercice: string;
+  reperes: readonly { libelle: string; valeur: number; unite: string }[];
+  permalien: string;
+}): Partage {
+  const titre = `${fiche.nom} — ${fiche.maille}`;
+  const chiffres = fiche.reperes
+    .slice(0, 3)
+    .map((repere) => `${repere.libelle} ${formater(repere.valeur, repere.unite, false)}`)
+    .join(" · ");
+  // Sans chiffre publié, la deuxième ligne serait « exercice 2025. Montants en
+  // millions d'euros. » sous un nom de commune : une mention d'unité sans un
+  // nombre à mesurer. Le titre et le lien suffisent alors.
+  const lignes = chiffres
+    ? [titre, `${chiffres} — exercice ${fiche.exercice}. ${MENTION_UNITE}`]
+    : [titre];
+  return {
+    titre,
+    permalien: fiche.permalien,
+    lignes,
+    compact: null,
+    image: null,
+  };
+}
+
 /* --------------------------------------------------------------------------
  * Le geste : le panneau du système, sinon le presse-papiers
  * ----------------------------------------------------------------------- */

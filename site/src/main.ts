@@ -13,7 +13,9 @@ import { traduire } from "./traductions.ts";
 import { libelleTheme, THEMES } from "./themes.ts";
 import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { afficherFiche, NIVEAUX, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
+import { reperes as reperesDOuverture } from "./reperes.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -32,6 +34,7 @@ import { apercuScenario } from "./apercu-scenario.ts";
 import {
   offrir,
   partageAnalyse,
+  partageFiche,
   partageComparaison,
   partageScenario,
   permalien,
@@ -806,6 +809,7 @@ function afficherApercu(): void {
     indicateurs: nationaux,
     comparateurs: [],
   });
+  poserPartageDeLaFiche("pays", "FR", france);
   appliquerVitesse();
 }
 
@@ -1063,6 +1067,7 @@ async function montrerFiche(code: string): Promise<void> {
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
   });
+  poserPartageDeLaFiche(niveau, code, territoire);
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
   injecterActionsFiche();
@@ -3263,7 +3268,11 @@ type GestePartage = { cle: string; libelle: string };
  * pas : un href vers une image que rien ne produit est un aperçu cassé de
  * plus, pas un partage.
  */
-function rendrePartage(gestes: readonly GestePartage[], image: string | null): string {
+function rendrePartage(
+  gestes: readonly GestePartage[],
+  image: string | null,
+  imageConstruite = false,
+): string {
   const boutons = gestes
     .map(
       (geste) =>
@@ -3275,8 +3284,15 @@ function rendrePartage(gestes: readonly GestePartage[], image: string | null): s
   const telecharger = image
     ? `<a class="partage__geste" href="${echapper(image)}" download>Télécharger l'image</a>`
     : "";
+  // L'image d'une fiche n'a pas d'adresse — le build n'en rasterise pas 34 875
+  // — mais elle existe : `carteFiche` la dessine, et le navigateur la
+  // télécharge. Un bouton, donc, jamais un lien : il n'y a pas de href à
+  // écrire, et un href mort est exactement ce que la règle ci-dessus refuse.
+  const carte = imageConstruite
+    ? `<button type="button" class="partage__geste" data-carte="1">Télécharger l'image</button>`
+    : "";
   return `<div class="partage">
-    ${boutons}${telecharger}
+    ${boutons}${telecharger}${carte}
     <p class="partage__message" role="status" aria-live="polite"></p>
     <textarea class="partage__repli" readonly hidden aria-label="Résumé à copier"></textarea>
   </div>`;
@@ -3425,6 +3441,139 @@ function partageDeLaPage(): { objet: Partage; forme: Forme } | null {
     }),
     forme: "complet",
   };
+}
+
+/* --------------------------------------------------------------------------
+ * La fiche de territoire, quatrième objet partageable (spec §13)
+ * ----------------------------------------------------------------------- */
+
+/**
+ * Les trois repères de la fiche, avec ce qu'il faut pour les partager.
+ *
+ * `reperes()` rend le rôle, le terme et le nombre — ce qu'il faut à l'écran,
+ * où l'entête de la fiche porte déjà l'unité et la source. Un chiffre qui SORT
+ * du site en demande davantage : son unité, sa source et son millésime. C'est
+ * `id` qui les donne, par le catalogue, et c'est pour cela qu'il existe.
+ *
+ * Rien n'est rendu si les trois ne partagent pas une source : `SourceCarte`
+ * n'en nomme qu'une, et en choisir une pour trois serait la faute que ce lot
+ * vient de corriger dans le catalogue lui-même.
+ */
+function reperesPartageables(
+  niveau: string,
+  territoire: Territoire,
+): { chiffres: ChiffreCarte[]; source: string; exercice: string } | null {
+  const trois = reperesDOuverture(territoire.series ?? {}, niveau).slice(0, 3);
+  if (!trois.length) return null;
+  const decrits = trois.map((repere) => {
+    const indicateur = catalogue.find((candidat) => candidat.id === repere.id);
+    return indicateur ? { repere, indicateur } : null;
+  });
+  if (decrits.some((decrit) => decrit === null)) return null;
+  const connus = decrits as { repere: (typeof trois)[number]; indicateur: Indicateur }[];
+  const sources = new Set(
+    connus.map(({ indicateur }) => sourceDuNiveau(indicateur, niveau, jeux)),
+  );
+  if (sources.size !== 1) return null;
+  return {
+    chiffres: connus.map(({ repere, indicateur }) => ({
+      libelle: repere.role,
+      valeur: repere.valeur,
+      unite: indicateur.unite,
+      variation: repere.variation,
+    })),
+    source: [...sources][0],
+    // L'exercice du premier repère : les trois viennent du même jeu, donc du
+    // même chargement. Une carte qui daterait ses trois nombres d'un seul
+    // millésime alors qu'ils en portent deux serait fausse — d'où le refus
+    // ci-dessous plutôt qu'un « exercice le plus récent » qui masquerait l'écart.
+    exercice: connus[0].repere.exercice,
+  };
+}
+
+/** Ce qu'une fiche donne à partager : son nom, sa maille, trois chiffres. */
+function partageDeLaFiche(niveau: string, code: string, territoire: Territoire): Partage | null {
+  const lus = reperesPartageables(niveau, territoire);
+  const maille = NIVEAUX[niveau] ?? niveau;
+  return partageFiche({
+    nom: territoire.nom,
+    maille,
+    exercice: lus?.exercice ?? "",
+    reperes: lus?.chiffres ?? [],
+    permalien: new URL(adresseTerritoire(code, niveau), location.origin).toString(),
+  });
+}
+
+/**
+ * L'image d'une fiche, dessinée dans le navigateur.
+ *
+ * Le build rasterise une image par analyse et une par section ; il n'en écrit
+ * aucune par territoire, et trente-quatre mille huit cent soixante-quinze PNG
+ * ne sont pas une option. `carteFiche` est pure et rend une chaîne : le SVG se
+ * construit ici, au moment du geste, et `telecharger` le remet au lecteur —
+ * c'est le même utilitaire que l'export CSV, avec ses tests.
+ *
+ * `null` quand la provenance manque : `carteFiche` **lève** dans ce cas
+ * (`exigerProvenance`), et une exception au clic d'un bouton n'est pas une
+ * réponse. Le bouton ne paraît alors pas.
+ */
+function carteDeLaFiche(niveau: string, territoire: Territoire): string | null {
+  const lus = reperesPartageables(niveau, territoire);
+  if (!lus) return null;
+  return carteFiche({
+    territoire: `${territoire.nom} — ${NIVEAUX[niveau] ?? niveau}`,
+    chiffres: lus.chiffres,
+    exercice: lus.exercice,
+    source: { titre: lus.source, millesime: lus.exercice },
+    site: location.origin,
+  });
+}
+
+/**
+ * Le cadre de partage au pied de la fiche, à toutes les mailles.
+ *
+ * Reposé à chaque fiche affichée — `afficherFiche` réécrit tout le panneau — et
+ * ses écouteurs sont délégués sur `#fiche`, qui n'est jamais remplacé : même
+ * motif que `brancherPartage` sur l'atelier.
+ */
+function poserPartageDeLaFiche(niveau: string, code: string, territoire: Territoire): void {
+  const cible = document.getElementById("fiche-partage");
+  if (!cible) return;
+  fichePartagee = { niveau, code, territoire };
+  cible.innerHTML = rendrePartage(
+    [{ cle: "fiche", libelle: "Partager cette fiche" }],
+    null,
+    carteDeLaFiche(niveau, territoire) !== null,
+  );
+}
+
+/** La fiche dont le cadre de partage est posé. Les écouteurs sont délégués et
+ *  survivent au repeint du panneau ; ce qu'ils partagent, non. */
+let fichePartagee: { niveau: string; code: string; territoire: Territoire } | null = null;
+
+/** Les deux gestes du pied de fiche, posés une fois sur `#fiche`. */
+function brancherPartageDeLaFiche(): void {
+  const panneau = $("fiche");
+  brancherPartage(panneau, () => {
+    if (!fichePartagee) return null;
+    const objet = partageDeLaFiche(
+      fichePartagee.niveau,
+      fichePartagee.code,
+      fichePartagee.territoire,
+    );
+    return objet ? { objet, forme: "complet" as Forme } : null;
+  });
+  panneau.addEventListener("click", (evenement) => {
+    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("button[data-carte]");
+    if (!bouton || !fichePartagee) return;
+    const svg = carteDeLaFiche(fichePartagee.niveau, fichePartagee.territoire);
+    if (!svg) return;
+    telecharger(
+      svg,
+      nomDeFichier(fichePartagee.territoire.nom, fichePartagee.niveau, "carte", "svg"),
+      "image/svg+xml",
+    );
+  });
 }
 
 /**
@@ -3763,6 +3912,11 @@ async function demarrer(): Promise<void> {
   // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
   // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.
   brancherCitations();
+  // Le pied de fiche, lui, attend bien les données — c'est le catalogue qui
+  // donne l'unité et la source de ses trois repères. Ses écouteurs, en
+  // revanche, sont posés dès maintenant : ils sont délégués sur `#fiche`, qui
+  // n'est jamais remplacé, et le cadre qu'ils servent apparaît avec la fiche.
+  brancherPartageDeLaFiche();
   // Et encore pour la même raison : l'appel « Chercher ma commune » de
   // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
   // dès le premier octet de HTML.

@@ -2774,3 +2774,45 @@ test("l'export lit la source à la maille, et plus le seul jeu de l'indicateur",
     "l'ancienne résolution — le jeu de l'indicateur, quelle que soit la maille — est revenue",
   );
 });
+
+/**
+ * La fiche de territoire est partageable, à toutes les mailles.
+ *
+ * Spec §13 : cinq objets partageables, dont « Fiche territoire — nom du
+ * territoire, trois chiffres, exercice ». `carteFiche` et `partageFiche` ont
+ * leurs tests ; ce qui se vérifie ici est qu'un appelant existe, et qu'il
+ * existe aux DEUX endroits où la fiche s'affiche — le panneau d'accueil, qui
+ * montre la France, et la sélection d'un territoire. « La même fiche à toutes
+ * les mailles » (CLAUDE.md) vaut aussi pour ce qu'on peut en emporter.
+ */
+test("le pied de fiche porte le partage, sur la France comme sur un territoire", () => {
+  assert.ok(
+    FICHE.includes('id="fiche-partage"'),
+    "la fiche ne laisse plus de conteneur au cadre de partage",
+  );
+  const poses = MAIN.match(/poserPartageDeLaFiche\(/g) ?? [];
+  assert.equal(
+    poses.length - 1,
+    2,
+    `le cadre de partage est posé ${poses.length - 1} fois pour deux affichages de fiche`,
+  );
+  assert.ok(
+    MAIN.includes('poserPartageDeLaFiche("pays", "FR", france)'),
+    "le panneau d'accueil, qui montre la France, n'offre pas son partage",
+  );
+  assert.ok(MAIN.includes("brancherPartageDeLaFiche();"), "les gestes ne sont branchés nulle part");
+});
+
+test("l'image d'une fiche se construit au clic, elle ne s'annonce pas comme un fichier", () => {
+  // Le build n'écrit pas 34 875 PNG : `partageFiche` rend `image: null`, et le
+  // bouton passe par `carteFiche` puis `telecharger`. Un href vers une image
+  // que rien ne produit est l'aperçu cassé que `validerImagesAnnoncees` refuse.
+  assert.ok(
+    MAIN.includes('nomDeFichier(fichePartagee.territoire.nom, fichePartagee.niveau, "carte", "svg")'),
+    "la carte de fiche ne se télécharge pas, ou pas en SVG",
+  );
+  assert.ok(
+    /button\[data-carte\]/.test(MAIN),
+    "aucun écouteur ne sert le bouton d'image construite",
+  );
+});

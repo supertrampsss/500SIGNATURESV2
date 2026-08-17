@@ -222,7 +222,12 @@ export function enCsvEvolution(
   return "\uFEFF" + [...commentaires, entetes.join(";"), ...corps].join("\r\n") + "\r\n";
 }
 
-export function nomDeFichier(indicateur: string, niveau: string, periode: string): string {
+export function nomDeFichier(
+  indicateur: string,
+  niveau: string,
+  periode: string,
+  extension = "csv",
+): string {
   const propre = (texte: string) =>
     texte
       .normalize("NFD")
@@ -230,12 +235,16 @@ export function nomDeFichier(indicateur: string, niveau: string, periode: string
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-|-$/g, "");
-  return `${propre(indicateur)}-${propre(niveau)}-${periode}.csv`;
+  return `${propre(indicateur)}-${propre(niveau)}-${periode}.${extension}`;
 }
 
-/** Déclenche le téléchargement côté navigateur. Non testé : DOM pur. */
-export function telecharger(contenu: string, fichier: string): void {
-  const blob = new Blob([contenu], { type: "text/csv;charset=utf-8" });
+/** Déclenche le téléchargement côté navigateur. Non testé : DOM pur.
+ *
+ *  Le type est celui du contenu, pas celui du premier appelant : la carte
+ *  d'une fiche est un SVG, et un SVG servi en `text/csv` s'ouvre dans un
+ *  tableur au lieu de s'afficher. */
+export function telecharger(contenu: string, fichier: string, type = "text/csv"): void {
+  const blob = new Blob([contenu], { type: `${type};charset=utf-8` });
   const url = URL.createObjectURL(blob);
   const lien = document.createElement("a");
   lien.href = url;
