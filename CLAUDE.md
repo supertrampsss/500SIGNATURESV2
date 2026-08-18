@@ -153,6 +153,43 @@ pour ne plus l'être.
   Une valeur unique ne s'analyse pas.
 - **Les recherches sont permissives** : mot à mot, sans exiger la contiguïté, et
   la liste ne tronque pas au point de cacher la moitié des réponses.
+- **Une mesure se montre avant de s'écrire.** Un tableau de chiffres demande au
+  lecteur de diviser ; une figure le lui épargne. « 24,09 » posé au-dessus de
+  « 2,70 » ne dit pas *neuf fois*. La direction, arrêtée le 18 août 2026 après
+  dix maquettes puis cinq, vaut pour **tout le site** :
+
+  - **La forme se choisit sur le métier de la donnée, avant la couleur.**
+    Comparer des magnitudes → barres horizontales alignées à gauche. Une part
+    d'un tout qui **dépasse** son tout → barres empilées et un repère, parce
+    qu'un disque est fermé à cent par construction et ne peut pas montrer un
+    déficit. Plusieurs mesures d'unités différentes dans le temps → indice base
+    100 sur le premier exercice. Un avant/après par tranche → haltères. Jamais
+    un camembert pour comparer des tailles : l'œil compare des longueurs, pas
+    des angles.
+  - **La figure ne remplace pas le tableau, elle le précède.** La figure montre
+    des proportions ; le tableau donne les chiffres exacts, la légende et la
+    source. Les deux, dans cet ordre.
+  - **Une magnitude ne prend qu'une teinte.** La longueur porte déjà la mesure,
+    et plusieurs couleurs feraient croire à une seconde dimension. La couleur
+    catégorielle est réservée à ce qui est vraiment une **identité** — un poste,
+    un sous-secteur, une famille de recettes — jamais à un rang ni à une valeur.
+  - **Une teinte de série se mesure**, elle ne se choisit pas à l'œil. Les rangs
+    viennent d'une gamme passée au validateur de palette catégorielle sur les
+    **deux** fonds : bande de luminosité, chroma, ΔE en protanopie, ΔE en vision
+    normale, contraste. Un ton inventé au coup par coup casse la séparation des
+    autres — la validation est une propriété de la gamme entière.
+  - **La règle éditoriale ne bouge pas.** « Aucune couleur de jugement »
+    interdit le rouge qui juge un chiffre, pas la teinte qui distingue une
+    catégorie.
+  - **En HTML, pas en SVG étiré.** Un repère dont la hauteur est une fraction de
+    la LARGEUR n'a pas de taille propre : à 1 000 px de large, une rangée de 34
+    unités fait 340 px de haut. En HTML la longueur reste un pourcentage exact
+    et le texte garde les jetons de la charte.
+  - **Une échelle part de zéro.** Tronquée au minimum, elle ferait lire « deux
+    fois » là où le rapport est de un à neuf.
+  - **Une direction visuelle se montre, elle ne se décrit pas.** Les maquettes
+    passent avant le code : deux fois de suite, c'est de les montrer qui a évité
+    de livrer la mauvaise.
 
 ## Reste à faire, par ordre de gravité
 
