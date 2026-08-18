@@ -1958,10 +1958,6 @@ function brancherCommandes(): void {
     basculerVue();
   });
 
-  $("carte-bascule").addEventListener("click", () => {
-    carteOuverte = !carteOuverte;
-    appliquerModeCarte(carteOuverte);
-  });
 
   // Retirer un territoire de la comparaison : les « × » des en-têtes du
   // tableau (rendus par `comparateur.ts`) et les pilules de rappel.
@@ -2538,7 +2534,6 @@ function basculerVue(): void {
   const demandee = vueDepuisAdresse(location.pathname, location.hash);
   // `#carte` ouvre la vue territoire ET déploie la carte : le lien tenait sa
   // promesse quand la carte était une vue, il la tient encore.
-  if (location.hash === "#carte") carteOuverte = true;
   const cible = demandee ?? "";
   // Une ancre interne — le sommaire de Décryptages vise `#bloc-etat` — passe
   // aussi par `hashchange`. Elle ne nomme pas une vue : la traiter comme une
@@ -2565,7 +2560,7 @@ function basculerVue(): void {
   document.body.dataset.vue = vue;
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.
-  appliquerModeCarte(vue === "territoire" && carteOuverte);
+  appliquerModeCarte(vue === "territoire");
   $("vue-accueil").hidden = vue !== "accueil";
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
@@ -2636,7 +2631,6 @@ function peindreSommaireReperes(): void {
  *  Elle l'est **par défaut**. Repliée, il fallait la demander pour voir ce
  *  qu'aucune fiche ne montre : la répartition dans l'espace. Le bouton reste,
  *  pour la refermer quand on vient lire plutôt que situer. */
-let carteOuverte = true;
 
 /**
  * Ouvre ou referme le fond de carte.
@@ -2650,10 +2644,6 @@ function appliquerModeCarte(ouverte: boolean): void {
   const avant = document.body.dataset.carte === "oui";
   if (ouverte) document.body.dataset.carte = "oui";
   else delete document.body.dataset.carte;
-  const bouton = document.getElementById("carte-bascule");
-  bouton?.setAttribute("aria-pressed", String(ouverte));
-  const texte = document.getElementById("carte-bascule-texte");
-  if (texte) texte.textContent = ouverte ? "Masquer la carte" : "Voir sur la carte";
   if (ouverte && !avant) requestAnimationFrame(() => carte?.resize());
 }
 
@@ -3964,9 +3954,6 @@ async function demarrer(): Promise<void> {
   if (vueDuFragment) {
     // La règle `#carte` vit dans `basculerVue`, mais la réécriture ci-dessous
     // efface le fragment avant qu'elle ne puisse s'y appliquer : un lien
-    // `/#carte` n'ouvrait la carte déployée que parce que `carteOuverte` vaut
-    // `true` au départ, ce qu'aucun test ne reliait.
-    if (fragmentInitial === "#carte") carteOuverte = true;
     history.replaceState(null, "", `${cheminDeVue(vueDuFragment)}${location.search}`);
   }
   window.addEventListener("hashchange", basculerVue);
@@ -4112,6 +4099,27 @@ async function demarrer(): Promise<void> {
     },
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  // `compact: true` ne suffit pas : MapLibre rend l'attribution OUVERTE au
+  // premier affichage — 473 px de crédits en bas de carte — et ne la replie
+  // qu'au premier clic sur le bouton « i ».
+  //
+  // Retirer la classe `maplibregl-compact-show` ne marche pas : l'élément est
+  // un `<details open>` dont MapLibre resynchronise la classe sur l'attribut,
+  // si bien qu'elle revient aussitôt. Vu au navigateur — c'est l'attribut qu'il
+  // faut fermer, pas la classe. Rien n'est caché : la mention reste à un clic,
+  // ce que la Licence Ouverte demande.
+  // Et le geste ne s'accroche PAS à `load` : cet événement attend les tuiles,
+  // qui viennent d'un tiers. Sur un réseau lent — ou absent, ce qui est le cas
+  // des vérifications hors ligne — il ne vient jamais, et l'attribution reste
+  // ouverte tout ce temps. La commande, elle, est dans le DOM dès
+  // `addControl` : une image suffit.
+  requestAnimationFrame(() => {
+    for (const boite of document.querySelectorAll<HTMLDetailsElement>(
+      "details.maplibregl-ctrl-attrib",
+    )) {
+      boite.open = false;
+    }
+  });
   // Le canevas est dans l'ordre de tabulation par défaut : à la cinquième
   // tabulation, le focus entrait dans la carte et n'en ressortait plus, sur un
   // élément qui n'offre rien au clavier. Les commandes, elles, restent

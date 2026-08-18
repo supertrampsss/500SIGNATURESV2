@@ -3054,6 +3054,15 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   }
 }
 
+/* Le prédécesseur est une PHRASE À PART, pas la suite de celle du maire en
+   exercice : ce sont deux personnes, et les coller donnait à lire
+   « depuis mars 2026Avant lui : … ». `display: block` suffit — la ligne garde
+   sa taille et sa couleur de texte second. */
+.fiche__precedent {
+  display: block;
+  margin-top: 0.15rem;
+}
+
 .camembert {
   margin: 0.8rem 0 0;
 }

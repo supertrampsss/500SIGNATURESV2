@@ -490,22 +490,25 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   // sans fond de carte derrière.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.doesNotMatch(balises, /data-vue="carte"/);
-  assert.match(balises, /id="carte-bascule"/);
+  // Et plus de bouton non plus : la carte EST cette vue, elle ne se replie
+  // pas. Un bouton qui n'a qu'un état utile n'est pas un choix, c'est une
+  // barre qui prend de la hauteur.
+  assert.doesNotMatch(balises, /id="carte-bascule"/);
+  assert.doesNotMatch(MAIN, /carteOuverte/);
   // Les liens `#carte` déjà partagés continuent d'ouvrir ce qu'ils
-  // promettaient : la fiche, carte déployée.
+  // promettaient : la fiche, carte déployée — c'est désormais le seul état.
   // La table des alias a rejoint `routes.ts`, où elle se teste sans navigateur.
   assert.match(ROUTES, /carte: "territoire"/);
-  assert.match(MAIN, /if \(location\.hash === "#carte"\) carteOuverte = true;/);
   // La carte se mesure au montage : rendue dans un conteneur replié, elle
   // garderait cette taille au déploiement.
   assert.match(MAIN, /requestAnimationFrame\(\(\) => carte\?\.resize\(\)\);/);
 
-  // La réécriture des liens à fragment efface le fragment : la règle `#carte`
-  // doit être consommée depuis le fragment tel qu'il est arrivé, sinon elle
-  // ne s'applique jamais au démarrage et le déploiement de la carte ne tient
-  // plus qu'à la valeur initiale de `carteOuverte`.
+  // La réécriture des liens à fragment efface le fragment : le fragment doit
+  // être lu tel qu'il est arrivé, sinon les règles qui en dépendent ne
+  // s'appliquent jamais au démarrage. La règle `#carte` elle-même a disparu
+  // avec l'état qu'elle posait — la carte est déployée dans tous les cas — mais
+  // la lecture du fragment initial reste, et d'autres règles s'y adossent.
   assert.match(MAIN, /const fragmentInitial = location\.hash;/);
-  assert.match(MAIN, /if \(fragmentInitial === "#carte"\) carteOuverte = true;/);
   const ouverture = MAIN.slice(MAIN.indexOf("const fragmentInitial = location.hash;"));
   assert.ok(
     ouverture.indexOf('if (fragmentInitial === "#carte") carteOuverte = true;') <
@@ -712,11 +715,34 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   assert.doesNotMatch(MAIN, /\$\("comparateur"\)\.addEventListener/);
 });
 
-test("la carte est déployée d'emblée sur la vue territoire", () => {
+test("la carte est déployée d'emblée, et rien ne la replie", () => {
   // Repliée, il fallait la demander pour voir ce qu'aucune fiche ne montre :
-  // la répartition dans l'espace. Le bouton reste, pour la refermer.
-  assert.match(MAIN, /let carteOuverte = true;/);
-  assert.match(PAGE, /id="carte-bascule"/);
+  // la répartition dans l'espace. Le bouton qui permettait de la refermer est
+  // parti avec l'état qu'il commandait — le mode se pose une fois, à
+  // l'ouverture de la vue.
+  assert.match(MAIN, /appliquerModeCarte\(vue === "territoire"\)/);
+  assert.doesNotMatch(MAIN, /carteOuverte/);
+  assert.doesNotMatch(PAGE, /id="carte-bascule"/);
+});
+
+test("l'attribution de la carte est repliée au premier rendu", () => {
+  // `compact: true` pose le bouton « i » mais MapLibre rend la boîte OUVERTE
+  // au premier affichage : la ligne de crédits — quatre producteurs et une
+  // licence — mangeait le bas de la carte jusqu'au premier clic. Rien n'est
+  // retiré : la mention reste à un clic, ce que la Licence Ouverte demande.
+  assert.match(MAIN, /compact: true/);
+  // C'est l'ATTRIBUT `open` du `<details>` qu'on ferme, pas la classe : MapLibre
+  // resynchronise la classe sur l'attribut, si bien qu'une classe retirée
+  // revient aussitôt. Vu au navigateur.
+  assert.match(MAIN, /details\.maplibregl-ctrl-attrib/);
+  assert.match(MAIN, /boite\.open = false;/);
+  // Et pas sur `load`, qui attend les tuiles d'un tiers : sur un réseau lent ou
+  // absent il ne vient jamais, et l'attribution resterait ouverte tout ce temps.
+  // (main.ts emploie `carte.once("load")` ailleurs, à bon droit — l'assertion
+  // porte donc sur CE geste-ci, pas sur l'absence de l'événement.)
+  assert.match(MAIN, /requestAnimationFrame\(\(\) => \{\s+for \(const boite of/);
+  const geste = MAIN.slice(MAIN.indexOf("requestAnimationFrame(() => {"));
+  assert.doesNotMatch(geste.slice(0, 400), /once\("load"/);
 });
 
 test("la carte est à gauche, la fiche en barre latérale à droite", () => {

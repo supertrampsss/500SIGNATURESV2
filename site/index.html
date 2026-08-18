@@ -112,16 +112,10 @@
          `basculerVue` ne tranche montreraient l'accueil ET le cadre de la carte
          l'un sous l'autre. -->
     <div class="vue vue--territoire" id="vue-territoire" hidden>
-      <!-- La carte n'est plus une entrée de menu séparée : c'était deux liens
-           pour un seul écran, le panneau étant identique de part et d'autre.
-           Elle est un mode de cette vue, que ce bouton ouvre et referme. -->
-      <div class="vue-barre">
-        <button type="button" class="bouton-filet" id="carte-bascule" aria-pressed="false">
-          <span class="bouton-filet__icone" aria-hidden="true"></span>
-          <span id="carte-bascule-texte">Voir sur la carte</span>
-        </button>
-      </div>
-
+      <!-- La carte n'a plus de bouton pour la replier : elle EST cette vue, et
+           un bouton qui n'a qu'un état utile n'est pas un choix, c'est une
+           barre qui prend de la hauteur. Le mode `data-carte` reste, posé une
+           fois pour toutes à l'ouverture de la vue. -->
       <div class="atelier" aria-label="Carte interactive">
         <!-- La carte et ses surcouches dans un même cadre : légende, barre de
              commandes, étiquettes et infobulle se posent sur LA CARTE. Sans ce
