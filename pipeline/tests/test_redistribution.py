@@ -55,8 +55,15 @@ def test_le_cinquieme_decile_est_la_mediane_de_la_source():
 def test_les_dix_huit_deciles_et_les_deux_rapports_sont_declares():
     deciles = [i for i in redistribution.INDICATEURS if "niveau_vie_d" in i]
     assert len(deciles) == 18, deciles
+    # Le compte des séries « avant » n'est pas figé : il grandit avec chaque
+    # mesure dont la paire avant/après apprend quelque chose. Ce qui se vérifie
+    # est donc l'APPARIEMENT — une série « avant » sans son « après » mesurerait
+    # un état sans mesurer ce que la redistribution en fait, qui est le sujet.
     avant = [i for i in redistribution.INDICATEURS if i.endswith("_avant_redistribution")]
-    assert len(avant) == 10, avant
+    assert len(avant) >= 10, avant
+    for identifiant in avant:
+        apres = identifiant.removesuffix("_avant_redistribution")
+        assert apres in redistribution.INDICATEURS, f"{identifiant} n'a pas son après"
 
 
 def test_un_autre_zonage_du_meme_jeu_n_entre_pas():
@@ -143,9 +150,37 @@ def test_la_definition_nomme_le_champ_metropolitain(entrepot_neuf):
         assert "métropolitaine" in technique, technique
 
 
-def test_aucun_indice_de_gini_n_est_publie_ici():
-    """Refus documenté : le site porte déjà un Gini européen, sur l'échelle
-    0-100 d'EU-SILC et sur un autre champ. Deux indices du même nom, sur deux
-    échelles, posés sur les mêmes pages, se liraient comme un seul."""
-    mesures = {fiche["mesure"] for fiche in redistribution.INDICATEURS.values()}
-    assert not {m for m in mesures if m.startswith("GI_")}, mesures
+def test_un_gini_publie_ici_dit_ce_qui_le_separe_de_l_europeen():
+    """Le refus d'origine est levé, et remplacé par ce qu'il protégeait.
+
+    Il disait : « le site porte déjà un Gini européen, sur l'échelle 0-100
+    d'EU-SILC et sur un autre champ ; deux indices du même nom se liraient comme
+    un seul ». Le risque est réel et il n'a pas disparu. Ce qui a changé est la
+    VALEUR de l'autre série : `eurostat_gini` ne mesure QU'APRÈS redistribution,
+    donc il ne peut pas dire ce que la redistribution FAIT. La paire avant/après
+    le dit, et c'est la seule mesure du jeu qui le dise en un nombre.
+
+    Un refus général est donc remplacé par une obligation précise : tout Gini
+    publié ici nomme son champ dans son libellé, et nomme la série européenne
+    dans sa définition technique. Le lecteur qui croise les deux sait alors
+    laquelle il lit — ce que le refus obtenait en n'en publiant qu'une.
+    """
+    ginis = {
+        identifiant: fiche
+        for identifiant, fiche in redistribution.INDICATEURS.items()
+        if fiche["mesure"].startswith("GI_")
+    }
+    # Sans cette borne, la garde passerait au vert sur un dictionnaire vide le
+    # jour où quelqu'un retirerait les deux séries.
+    assert len(ginis) == 2, sorted(ginis)
+    for identifiant, fiche in ginis.items():
+        assert "métropolitaine" in fiche["libelle"], identifiant
+        assert "eurostat_gini" in fiche["technique"], identifiant
+        # L'échelle est dite, parce que c'est elle qui trompe : 0-1 ici, 0-100
+        # là-bas. Un « 0,30 » et un « 30 » sont le même chiffre et ne se lisent
+        # pas pareil.
+        assert "0-1" in fiche["technique"], identifiant
+        assert fiche["unite"] == "ratio", identifiant
+    # Et la paire est complète : publier l'après sans l'avant redonnerait
+    # exactement la série européenne, sans rien apprendre de plus.
+    assert {f["mesure"] for f in ginis.values()} == {"GI_SL", "GI_SL_BR"}
