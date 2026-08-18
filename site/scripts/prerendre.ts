@@ -41,25 +41,18 @@ import { indicateursDerives } from "../src/derives.ts";
 // `rendu()` et `renduAccueil` — c'est ce qui les rend appelables ici autant que
 // dans le navigateur (`peindreMethode`, main.ts), avec le même code.
 import { renduGrille, renduMethode, renduSources } from "../src/methode-rendu.ts";
-// Les huit blocs de la page REPÈRES, purs eux aussi. Sept modules exportaient
-// déjà leur `rendu()` — c'est le motif du dépôt, « rendu pur, sans DOM : c'est
-// lui qui est testé » — et `national.ts` vient de recevoir les deux siens. Rien
-// n'est recomposé ici : ce sont les fonctions que `demarrer()` (main.ts)
+// Les blocs de la page REPÈRES, purs eux aussi — exactement ceux des
+// maquettes validées, un par chapitre plus la paire du chapitre 4. C'est le
+// motif du dépôt, « rendu pur, sans DOM : c'est lui qui est testé » : rien
+// n'est recomposé ici, ce sont les fonctions que `demarrer()` (main.ts)
 // appelle, avec les mêmes fichiers.
-import { rendu as renduConjoncture } from "../src/conjoncture.ts";
-import { renduEurope } from "../src/national.ts";
 import { rendu as renduTenable } from "../src/tenable.ts";
-import { rendu as renduRecettesEtat, } from "../src/recettes-etat.ts";
+import { rendu as renduRecettesEtat } from "../src/recettes-etat.ts";
 import { pont as pontPerimetre } from "../src/ouverture.ts";
-import { rendu as renduFonctions } from "../src/fonctions.ts";
 import { rendu as renduSecu } from "../src/secu.ts";
-import { rendu as renduNiches } from "../src/niches.ts";
-import { rendu as renduCentEuros } from "../src/cent-euros.ts";
 import { rendu as renduCentEurosApu } from "../src/cent-euros-apu.ts";
 import { rendu as renduOuverture } from "../src/ouverture.ts";
 import { rendu as renduRedistribution } from "../src/redistribution.ts";
-import { rendu as renduRetraites } from "../src/retraites.ts";
-import { exercicesDisponibles, rendu as renduBudgetEtat } from "../src/etat.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
@@ -1008,11 +1001,10 @@ export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
  * qu'une chose : les avoir déjà appelés quand la page part.
  *
  * Le document reste celui de l'application, comme `/methode` et pour la même
- * raison : le paquet doit finir le travail. La conjoncture attache une
- * infobulle et un sélecteur de fenêtre à son graphique, le budget de l'État un
- * sélecteur d'exercice, le sommaire de la vue se construit sur les blocs
- * réellement peints. Tout cela demande un navigateur — et tout cela est un
- * SUPPLÉMENT à ce que le pré-rendu écrit, jamais sa condition.
+ * raison : le paquet doit finir le travail. Le sommaire de la vue se construit
+ * sur les blocs réellement peints, les dépliants gardent leur comportement.
+ * Tout cela demande un navigateur — et tout cela est un SUPPLÉMENT à ce que
+ * le pré-rendu écrit, jamais sa condition.
  * ----------------------------------------------------------------------- */
 
 /**
@@ -1028,12 +1020,12 @@ export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
  *    pré-rendu qui lirait le catalogue brut ferait apparaître ou disparaître un
  *    bloc à l'arrivée du paquet.
  *
- * 2. **« 100 € » n'ouvre pas la section nationale.** Les six autres appels de
- *    `demarrer()` posent `$("national").hidden = false` ; celui-là est le seul
- *    dont le retour n'est pas lu. Ce n'est pas reproduit par goût de la
- *    fidélité : c'est que ce document doit servir la MÊME page que le client
- *    peindrait, et un pré-rendu qui ouvrirait la section là où le client la
- *    laisse fermée montrerait un bloc que le paquet ferait disparaître.
+ * 2. **La liste est celle des maquettes validées, et rien d'autre.** La
+ *    première mise en production gardait sept blocs hérités que la maquette ne
+ *    montrait pas — conjoncture, pont budgétaire, niches, 100 € de l'État,
+ *    fonctions, retraites, Europe — et la page livrée ne ressemblait plus à ce
+ *    qui avait été validé. Leurs `rendu()` existent toujours ; aucun n'est
+ *    appelé ici tant qu'une maquette ne leur a pas rendu une place.
  *
  * Un bloc dont la source n'est pas publiée est **replié**, jamais laissé vide :
  * `.bloc` est un cadre bordé, ombré, et une case vide se lit comme une panne —
@@ -1053,32 +1045,24 @@ export function injecterReperes(
   niches: DepensesFiscales,
   budget: BudgetEtat,
 ): string {
-  const exercice = exercicesDisponibles(budget)[0];
+  // Les deux fichiers restent lus et passés ici : la signature ne bouge pas à
+  // chaque maquette, et le jour où un bloc du budget revient, sa donnée est
+  // déjà là. Aucun bloc actuel ne les lit.
+  void niches;
+  void budget;
   // Les blocs dont `demarrer()` lit le retour pour ouvrir la section
-  // nationale — tous ceux du gabarit sauf « 100 € du budget de l'État ». Un
-  // cadre oublié ici reste déplié et VIDE dans le document servi, ce qui se lit
-  // comme une panne ; le test « 15 quinquies » déduit la liste du gabarit
-  // plutôt que de la reprendre à la main, parce qu'une liste écrite à la main
-  // ne pousse pas : les trois cadres arrivés après elle — les 100 € de toutes
-  // les administrations, la redistribution, les retraites — sont restés vides
-  // en production sans qu'aucun contrôle le voie.
-  // La dette n'y ajoute rien que l'Europe ne dise déjà — les deux
-  // sont vides exactement quand la France n'est pas publiée, et
-  // `afficherNational` rend ce vide-là — mais elle y figure parce que c'est un
-  // bloc à remplir comme un autre.
+  // nationale — c'est-à-dire TOUS les blocs du gabarit : un chapitre porte
+  // exactement les blocs de sa maquette (docstring, point 2). Un cadre oublié
+  // ici reste déplié et VIDE dans le document servi, ce qui se lit comme une
+  // panne ; le test « 15 quinquies » déduit la liste du gabarit plutôt que de
+  // la reprendre à la main, parce qu'une liste écrite à la main ne pousse pas.
   const ouvrants: [string, string][] = [
     ["bloc-ouverture", renduOuverture(pays)],
-    ["bloc-conjoncture", renduConjoncture(pays, catalogue)],
-    ["bloc-dette", renduTenable(pays, catalogue)],
     ["bloc-recettes-etat", renduRecettesEtat(pays, catalogue)],
-    ["bloc-europe", renduEurope(pays)],
     ["bloc-cent-euros-apu", renduCentEurosApu(pays)],
-    ["bloc-fonctions", renduFonctions(pays, catalogue)],
-    ["bloc-secu", renduSecu(pays, catalogue)],
     ["bloc-redistribution", renduRedistribution(pays, catalogue)],
-    ["bloc-retraites", renduRetraites(pays)],
-    ["bloc-etat", exercice ? renduBudgetEtat(budget, exercice) : ""],
-    ["bloc-niches", renduNiches(niches, pays, catalogue)],
+    ["bloc-secu", renduSecu(pays, catalogue)],
+    ["bloc-dette", renduTenable(pays, catalogue)],
   ];
   if (!ouvrants.some(([, corps]) => corps !== "")) {
     throw new Error(
@@ -1086,14 +1070,9 @@ export function injecterReperes(
         "page partirait sur ses seules questions, c'est-à-dire exactement l'état d'avant ce pré-rendu.",
     );
   }
-  // Le seul qui n'ouvre pas la section : voir la docstring, point 2.
-  const centEuros: [string, string] = [
-    "bloc-cent-euros",
-    exercice ? renduCentEuros(budget, exercice) : "",
-  ];
 
   let html = shell;
-  for (const [id, corps] of [...ouvrants, centEuros]) {
+  for (const [id, corps] of ouvrants) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }
   // Le pont entre les chapitres 1 et 2 : la phrase qui fait descendre d'un

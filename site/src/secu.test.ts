@@ -1,8 +1,8 @@
 /**
- * « La Sécu est-elle en déficit ? » : le bloc doit employer les mots de la
- * comptabilité nationale (capacité / besoin de financement, points de PIB) et
- * désamorcer la confusion avec le « trou de la Sécu » parlementaire — sinon il
- * fabrique la comparaison interdite au lieu de l'empêcher.
+ * « La Sécu est-elle en déficit ? » : le bloc emploie les mots de la
+ * comptabilité nationale, répond à sa propre question, et montre le solde
+ * comme l'écart entre deux lignes — recettes et dépenses, un exercice par
+ * colonne (maquette 4.5 de la shortlist validée).
  */
 
 import assert from "node:assert/strict";
@@ -11,7 +11,7 @@ import { test } from "node:test";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { DEPENSES, RECETTES, SOLDE, points, rendu } from "./secu.ts";
 
-const FINE = " ";
+const FINE = "\u202f";
 
 const CATALOGUE = [
   { id: DEPENSES, libelle: "Dépenses de la Sécurité sociale" },
@@ -25,16 +25,10 @@ function territoire(series: Record<string, Record<string, number>>): Territoire 
 
 const PAYS: Record<string, Territoire> = {
   FR: territoire({
-    [DEPENSES]: { "2020": 28.5, "2024": 26.5, "2025": 26.8 },
-    [RECETTES]: { "2020": 26.5, "2024": 26.5, "2025": 26.6 },
-    [SOLDE]: { "2020": -2.1, "2024": 0.0, "2025": -0.2 },
+    [DEPENSES]: { "2020": 28.5, "2022": 27.0, "2024": 26.5, "2025": 26.8 },
+    [RECETTES]: { "2020": 26.5, "2022": 27.3, "2024": 26.5, "2025": 26.6 },
+    [SOLDE]: { "2020": -2.1, "2022": 0.3, "2024": 0.0, "2025": -0.2 },
   }),
-  DE: territoire({
-    [DEPENSES]: { "2025": 21.0 },
-    [RECETTES]: { "2025": 20.9 },
-    [SOLDE]: { "2025": 0.0 },
-  }),
-  EA20: territoire({ [DEPENSES]: { "2024": 21.5 } }),
 };
 
 test("le solde se lit signé, en % du PIB, chiffres tabulaires", () => {
@@ -45,17 +39,16 @@ test("le solde se lit signé, en % du PIB, chiffres tabulaires", () => {
   //
   // Le signe est le moins typographique U+2212, jamais le trait d'union U+002D
   // que rend `Intl`.
-  assert.equal(points(-2.1), `\u22122,1${FINE}%`);
+  assert.equal(points(-2.1), `−2,1${FINE}%`);
   assert.equal(points(0.4), `+0,4${FINE}%`);
   assert.equal(points(0), `0,0${FINE}%`);
-  assert.ok(!points(-2.1).includes("\u002D"), "aucun trait d'union ne doit rester");
+  assert.ok(!points(-2.1).includes("-"), "aucun trait d'union ne doit rester");
 });
 
 test("la question du titre reçoit sa réponse, avec les choses nommées", () => {
   // « Il lui manque donc 0,2 % » ne nommait rien, et le lecteur l'a refusé :
   // la réponse est Oui ou Non, les recettes et les dépenses sont signées, et
-  // le déficit est écrit en euros — 6 milliards, sans qualificatif : le
-  // chiffre parle seul.
+  // le déficit est écrit en euros — sans qualificatif : le chiffre parle seul.
   const html = rendu(PAYS, CATALOGUE);
   assert.match(html, /En 2025/);
   assert.match(html, /<strong>Oui\.<\/strong>/);
@@ -65,74 +58,41 @@ test("la question du titre reçoit sa réponse, avec les choses nommées", () =>
   assert.doesNotMatch(html, /léger/i);
 });
 
-test("la comparaison porte les trois pays, et une valeur absente reste un tiret", () => {
+test("un exercice par colonne, en ordre, et le solde est l'écart entre deux lignes", () => {
+  // La maquette validée montre la série année par année — le choc de 2020 se
+  // lit dans la ligne du solde, pas dans un chiffre isolé.
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, /France/);
-  assert.match(html, /Allemagne/);
-  // EA20 n'a rien en 2025 : sa ligne dit « — » plutôt qu'un chiffre d'une
-  // autre année, qui casserait la comparaison à périmètre et période égaux.
-  assert.match(html, /Zone euro/);
+  const tetes = [...html.matchAll(/<th scope="col">(\d{4})<\/th>/g)].map((m) => m[1]);
+  assert.deepEqual(tetes, ["2020", "2022", "2024", "2025"]);
+  assert.match(html, new RegExp(`−2,1${FINE}%`));
+  assert.ok(html.indexOf("Recettes") < html.indexOf("Dépenses"));
+  assert.ok(html.indexOf("Dépenses") < html.indexOf("Solde"));
+});
+
+test("une année dont le détail manque garde sa colonne, en tirets", () => {
+  // Le solde de 2019 est publié sans ses recettes ni ses dépenses : la
+  // colonne reste, en « — » — un chiffre d'une autre année à sa place
+  // casserait la lecture ligne à ligne.
+  const troue = {
+    FR: territoire({
+      [DEPENSES]: { "2025": 26.8 },
+      [RECETTES]: { "2025": 26.6 },
+      [SOLDE]: { "2019": 0.5, "2025": -0.2 },
+    }),
+  };
+  const html = rendu(troue, CATALOGUE);
+  assert.match(html, /<th scope="col">2019<\/th>/);
   assert.match(html, /—/);
 });
 
-test("la série du solde est là, chronologique, avec l'année du choc Covid", () => {
-  const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, new RegExp(`2020.*\u22122,1${FINE}%`, "s"));
-  assert.ok(html.indexOf("2020") < html.lastIndexOf("2025"));
-});
-
-test("le premier titre du bloc répond à la question qui pointe dessus", () => {
-  // `#bloc-secu` porte DEUX moitiés sous deux titres, et la seule question qui
-  // y renvoie est celle du déficit. Le lecteur qui la suivait atterrissait sur
-  // « 100 € de prestations sociales, où vont-ils ? » — une autre question, à
-  // laquelle rien ne renvoie ici. `peindreSommaireReperes` nomme aussi l'entrée
-  // du sommaire d'après ce premier titre.
-  //
-  // Le catalogue et les séries portent ici les SIX risques en plus du solde :
-  // sans eux `cent-euros-secu` rend une chaîne vide, le bloc n'a qu'un titre, et
-  // la garde passerait quel que soit l'ordre. La première version de ce test
-  // avait précisément ce trou — remettre l'ancien ordre laissait les 884 au vert,
-  // et c'est un sabotage qui l'a montré, pas une relecture.
-  const RISQUES = [
-    "drees_protection_sociale_vieillesse",
-    "drees_protection_sociale_sante",
-    "drees_protection_sociale_famille",
-    "drees_protection_sociale_emploi",
-    "drees_protection_sociale_pauvrete",
-    "drees_protection_sociale_logement",
-  ];
-  const catalogue = [...CATALOGUE, ...RISQUES.map((id) => ({ id }))] as Indicateur[];
-  const france = PAYS["FR"] as Territoire;
-  const pays = {
-    ...PAYS,
-    FR: {
-      ...france,
-      series: {
-        ...france.series,
-        ...Object.fromEntries(RISQUES.map((id, i) => [id, { "2024": (i + 1) * 1_000_000_000 }])),
-      },
-    },
-  } as Record<string, Territoire>;
-
-  const html = rendu(pays, catalogue);
-  // Le témoin : les deux moitiés sont bien là, sinon la suite ne prouve rien.
-  assert.match(html, /100.{0,8}€ de prestations sociales/);
-  assert.match(html, /La Sécu est-elle en déficit/);
-
-  const premier = html.slice(html.indexOf("<h3"), html.indexOf("</h3>"));
-  assert.match(premier, /déficit/i, `premier titre du bloc : ${premier}`);
-});
-
 test("les colonnes comparées gardent leur décimale, même sur un compte rond", () => {
-  // L'Allemagne dépense exactement 21,0 % du PIB. Sans décimale imposée, `Intl`
-  // la laissait tomber et la colonne lisait « 21 » juste au-dessus de
-  // « 20,9 » — et à côté d'un solde « 0,0 pt », `points()` posant déjà ce
-  // minimum de son côté. Trois formats sur une même ligne d'un tableau qu'on
-  // vient précisément comparer.
+  // Les dépenses de 2022 valent exactement 27,0 % du PIB. Sans décimale
+  // imposée, `Intl` la laissait tomber et la ligne lisait « 27 » entre
+  // « 28,5 » et « 26,5 » — trois formats sur une ligne qu'on vient
+  // précisément lire d'une année à l'autre.
   const html = rendu(PAYS, CATALOGUE);
-  const ligne = html.slice(html.indexOf("Allemagne"), html.indexOf("</tr>", html.indexOf("Allemagne")));
-  assert.match(ligne, new RegExp(`21,0${FINE}%`), ligne);
-  assert.doesNotMatch(ligne, new RegExp(`>21${FINE}%`), ligne);
+  assert.match(html, new RegExp(`−27,0${FINE}%`));
+  assert.doesNotMatch(html, new RegExp(`−27${FINE}%`));
 });
 
 test("aucune réserve qui s'excuse sous le tableau", () => {
@@ -143,6 +103,16 @@ test("aucune réserve qui s'excuse sous le tableau", () => {
   assert.doesNotMatch(html, /trou de la Sécu/);
   assert.doesNotMatch(html, /ne se comparent pas/);
   assert.doesNotMatch(html, /class="avertissement"/);
+});
+
+test("le bloc ne porte que la maquette validée : ni comparaison de pays, ni 100 €", () => {
+  // Deux moitiés ont vécu ici et la maquette validée ne les montre pas : le
+  // tableau France / Allemagne / zone euro, et « 100 € de prestations
+  // sociales » (cent-euros-secu.ts, gardé sans appelant). Un chapitre porte
+  // exactement les blocs de sa maquette.
+  const html = rendu(PAYS, CATALOGUE);
+  assert.doesNotMatch(html, /Allemagne|Zone euro/);
+  assert.doesNotMatch(html, /prestations sociales, où vont-ils/);
 });
 
 test("sans données françaises ou sans indicateur publié, le bloc ne s'affiche pas", () => {

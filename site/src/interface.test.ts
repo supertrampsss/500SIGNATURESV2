@@ -46,7 +46,7 @@ test("REPÈRES dit son unité sous son titre", () => {
   // la section, jamais posée après les tableaux.
   const section = PAGE_BALISES.slice(
     PAGE_BALISES.indexOf('<section class="national"'),
-    PAGE_BALISES.indexOf('id="bloc-conjoncture"'),
+    PAGE_BALISES.indexOf('id="bloc-ouverture"'),
   );
   assert.ok(section.length > 100, "section national introuvable");
   assert.match(section, /Montants en millions d&#39;euros\.|Montants en millions d'euros\./);
@@ -704,7 +704,11 @@ test("une vue longue dit ce qu'elle contient", () => {
     MAIN.indexOf("function peindreSommaireReperes"),
     MAIN.indexOf("/** La carte est-elle déployée ?"),
   );
-  assert.match(corps, /querySelector\("h2, h3"\)/);
+  // Le critère est le CONTENU du bloc, pas un titre : l'ouverture du chapitre 1
+  // est une phrase et un tableau sans h3, et un critère « porte un titre » la
+  // rayait du sommaire.
+  assert.match(corps, /childElementCount > 0/);
+  assert.match(corps, /!bloc\.hidden/);
   assert.match(corps, /if \(entrees\.length < 2\)/);
   // Et il nomme les CHAPITRES, pas les douze cadres : un sommaire qui répète
   // la page n'ajoute rien à la page. L'ancre vise donc la section du chapitre.
@@ -3019,7 +3023,9 @@ test("qui remplit un cadre le déplie", () => {
   // La liste des peintres se DÉDUIT de main.ts : une liste écrite à la main ne
   // pousse pas, et c'est la troisième garde de ce dépôt à devoir l'apprendre.
   const peintres = [...MAIN.matchAll(/\bafficher([A-Z][A-Za-z]*)\(\$\("bloc-/g)].map((m) => m[1]);
-  assert.ok(peintres.length >= 9, `${peintres.length} peintre(s) de bloc lus dans main.ts`);
+  // Six peintres : un par bloc de la maquette validée — les sept blocs hérités
+  // sont sortis de /bilan le jour où la page a cessé de lui ressembler.
+  assert.ok(peintres.length >= 6, `${peintres.length} peintre(s) de bloc lus dans main.ts`);
   const manquants: string[] = [];
   for (const peintre of new Set(peintres)) {
     // Le module qui exporte ce peintre, trouvé par son import — jamais un nom
@@ -3048,7 +3054,6 @@ test("les huit cadres qui défilent sont atteignables au clavier", () => {
     ["fonctions.ts", 'class="fonctions"'],
     ["niches.ts", 'class="niches"'],
     ["secu.ts", 'class="secu"'],
-    ["secu.ts", 'class="secu secu--serie"'],
     ["exercices.ts", 'class="tableau-exercices"'],
   ];
   for (const [fichier, motif] of gabarits) {

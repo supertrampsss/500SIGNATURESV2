@@ -196,23 +196,32 @@ ${
       .map((an) => `<td>${cellule(an)}</td>`)
       .join("")}</tr>`;
 
+  // La maquette validée pose l'affirmation à gauche et sa preuve à droite :
+  // les phrases dans une colonne, le tableau dans l'autre. Sous 56 rem, la
+  // grille retombe en pile et l'ordre de lecture reste le même.
   return `
-    <p class="ouverture__phrase">En ${echapper(c.fin)}, les administrations publiques ont
-      encaissé <strong class="flux--plus">+${montantLisible(c.recettes)}</strong> et dépensé
-      <strong class="flux--moins">−${montantLisible(c.depenses)}</strong>. Les
-      <strong>${montantLisible(c.emprunte)}</strong> manquants ont été empruntés.</p>
-    ${piege}
-    <table class="comparaison ouverture__evolution" tabindex="0">
-      <caption>Milliards d'euros courants. En 2021, l'année du « quoi qu'il en coûte »,
-        l'emprunt a presque triplé par rapport à 2019 ; il n'est jamais redescendu à son
-        niveau d'avant.</caption>
-      <thead><tr><th scope="col"></th>${colonnes}</tr></thead>
-      <tbody>
-        ${ligne("Recettes", (an) => `<span class="flux--plus">${milliards(r[an], "+")}</span>`)}
-        ${ligne("Dépenses", (an) => `<span class="flux--moins">${milliards(d[an], "−")}</span>`)}
-        ${ligne("Emprunté", (an) => `<strong>${milliards(d[an] - r[an], "−")}</strong>`)}
-      </tbody>
-    </table>
+    <div class="chapitre__duo">
+      <div>
+        <p class="ouverture__phrase">En ${echapper(c.fin)}, les administrations publiques ont
+          encaissé <strong class="flux--plus">+${montantLisible(c.recettes)}</strong> et dépensé
+          <strong class="flux--moins">−${montantLisible(c.depenses)}</strong>. Les
+          <strong>${montantLisible(c.emprunte)}</strong> manquants ont été empruntés.</p>
+        ${piege}
+      </div>
+      <div>
+        <table class="comparaison ouverture__evolution" tabindex="0">
+          <caption>Milliards d'euros courants. En 2021, l'année du « quoi qu'il en coûte »,
+            l'emprunt a presque triplé par rapport à 2019 ; il n'est jamais redescendu à son
+            niveau d'avant.</caption>
+          <thead><tr><th scope="col"></th>${colonnes}</tr></thead>
+          <tbody>
+            ${ligne("Recettes", (an) => `<span class="flux--plus">${milliards(r[an], "+")}</span>`)}
+            ${ligne("Dépenses", (an) => `<span class="flux--moins">${milliards(d[an], "−")}</span>`)}
+            ${ligne("Emprunté", (an) => `<strong>${milliards(d[an] - r[an], "−")}</strong>`)}
+          </tbody>
+        </table>
+      </div>
+    </div>
     <p class="ouverture__lecture">Rapporté aux habitants, la dépense publique représente
       <strong>${EUROS.format(c.parHabitant)} €</strong> par personne et par an. Elle ne leur est pas
       prélevée à chacun&nbsp;: elle comprend les retraites, les soins et les salaires des agents,

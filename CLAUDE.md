@@ -470,6 +470,43 @@ pour ne plus l'être.
 
 ### Fait
 
+- **La page livrée ne ressemblait pas à la maquette validée, et la cause
+  n'était pas un détail** (18 août 2026). « On valide les maquettes et le
+  résultat est complètement différent » — et c'était vrai. Les blocs de la
+  maquette C avaient été MONTÉS DANS la page existante au lieu de la
+  remplacer : les cinq chapitres gardaient **sept blocs hérités** que la
+  maquette ne montrait pas — conjoncture, pont budgétaire de l'État, niches,
+  100 € du budget de l'État, dépense par fonction, retraites, Europe — plus
+  deux moitiés à l'intérieur du bloc Sécu (comparaison de pays, 100 € de
+  prestations sociales). Et l'étape qui l'aurait vu n'a pas été faite :
+  **la page construite n'a jamais été posée à côté de la maquette avant de
+  partir.**
+
+  La correction est une soustraction. Les chapitres portent exactement la
+  shortlist validée — 1.1 ouverture, 2.3 tableau typographié, 3.2 poste qui
+  s'ouvre en place, 4.1 haltères, 4.4 déciles, 4.5 Sécu année par année,
+  5.4 voisins, 5.5 thèse et preuves —, les blocs d'un chapitre ne sont plus
+  des cartes, l'affirmation se pose à côté de sa preuve (`.chapitre__duo`),
+  et les titres de bloc qui répétaient la question du chapitre sont partis.
+  La Sécu est un seul tableau transposé, un exercice par colonne, comme la
+  maquette 4.5 — le solde est l'écart entre deux lignes. Vérifié cette fois
+  en peignant la page construite sur la publication réelle, aux deux thèmes
+  et à 320 px (zéro débordement, zéro violation axe-core), et en la comparant
+  à la maquette.
+
+  **Ce que la règle du dépôt en retient.** « Une donnée publiée qu'aucun
+  écran ne montre n'est pas livrée » plie ici devant l'instruction explicite
+  du propriétaire : conjoncture, fonctions, retraites, niches, budget détaillé
+  de l'État, Europe et les deux moitiés de la Sécu perdent leur écran. Leurs
+  modules gardent rendu et tests sans appelant (`cent-euros-secu.ts` en
+  tête) : un bloc qui veut revenir passe d'abord par une maquette. Les gardes
+  neuves l'imposent : un `<article id="bloc-…">` ajouté au gabarit sans
+  câblage du pré-rendu rougit (« 15 sexies »), un titre de bloc redondant
+  rougit, la moitié « 100 € » remise dans la Sécu rougit — quatre sabotages,
+  quatre rouges. **Une maquette validée ne se monte pas dans une page : elle
+  la remplace, et la page construite se compare à la maquette avant de
+  partir.**
+
 - **La maquette C en production, et les trois reproches qui l'ont corrigée en
   route** (18 août 2026). Le bilan est monté sur la maquette validée : cinq
   identités de chapitre issues d'une gamme repassée au validateur (huit
