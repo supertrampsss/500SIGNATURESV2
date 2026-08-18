@@ -470,6 +470,46 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Les défaillances, et le chiffre que la moyenne cache** (18 août 2026).
+  Eurostat ne publie qu'un **indice**, toutes entreprises confondues. C'est
+  insuffisant d'une façon qui trompe : l'essentiel des créations sont des
+  micro-entreprises, si bien que l'agrégat mélange des fermetures d'unités sans
+  salarié et des fermetures d'entreprises qui employaient.
+
+  | Cumul 12 mois à juin 2026 | | contre la moyenne 2010-2019 |
+  |---|---|---|
+  | Microentreprises et taille indéterminée | 65 182 | +16,3 % |
+  | Très petites entreprises | 3 494 | **+73,7 %** |
+  | Petites entreprises | 1 529 | **+68,0 %** |
+  | Moyennes entreprises | 532 | **+61,7 %** |
+  | ETI et grandes entreprises | 66 | **+100,0 %** |
+  | **Ensemble** | **70 803** | +19,3 % |
+
+  L'agrégat affiche **+19,3 %** ; **hors micro-entreprises, la hausse est de
+  71,2 %** — 5 621 défaillances contre 3 283 en moyenne sur la décennie. Le
+  chiffre d'ensemble est dominé par les micro-entreprises et cache le fait.
+
+  **Une graine, et pas un connecteur, faute d'accès.** L'API Webstat porte 81
+  séries mensuelles depuis 1991 mais demande une clé enregistrée : les quatre
+  schémas d'authentification essayés rendent un 401. Le portail Explore ouvert
+  expose les métadonnées de ces mêmes séries avec `has_records: false`, et son
+  export CSV est **vide**. Le module lit donc le Stat Info mensuel, publication
+  figée : trois points — la moyenne 2010-2019, juin 2025, juin 2026 — et aucune
+  série. Le jour où la clé existe, il est remplacé et la profondeur arrive.
+
+  **Deux identités, deux contrôles.** Les tailles somment **exactement** à
+  l'ensemble (65 182 + 3 494 + 1 529 + 532 + 66 = 70 803) ; les secteurs somment
+  **plus bas**, et c'est la source qui le dit — « l'Ensemble comprend des unités
+  dont le secteur n'est pas connu », 173 unités à juin 2026. Le contrôle refuse
+  donc une somme de tailles inexacte, et une somme de secteurs qui s'écarte de
+  plus d'un pour cent. Trois sabotages, trois refus.
+
+  **Et le tiret cadratin a fait rougir la CI pour la quatrième fois**, dans un
+  libellé cette fois. La leçon écrite la fois précédente — « un champ publié se
+  vérifie sur la suite entière » — était juste et n'a pas suffi : je l'ai
+  appliquée aux définitions et pas aux libellés. **Tout champ qui part au
+  catalogue passe par la suite entière, libellé compris.**
+
 - **« Tu mets jamais de couleur » — le validateur donne raison au lecteur**
   (18 août 2026). Reproche reçu sur les blocs « 100 € » ; vérifié avant d'être
   concédé, et la mesure est pire que le reproche.

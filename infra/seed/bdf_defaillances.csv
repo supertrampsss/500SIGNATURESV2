@@ -1,0 +1,18 @@
+axe,cle,libelle,moyenne_2010_2019,cumul_2025_06,cumul_2026_06
+taille,micro,Microentreprises et taille indéterminée,56059,62242,65182
+taille,tpe,Très petites entreprises,2011,3187,3494
+taille,pe,Petites entreprises,910,1431,1529
+taille,me,Moyennes entreprises,329,472,532
+taille,eti_ge,ETI et grandes entreprises,33,55,66
+taille,ensemble,Ensemble des entreprises,59342,67387,70803
+secteur,az,"Agriculture, sylviculture et pêche",1359,1530,1783
+secteur,be,Industrie,4442,4273,4458
+secteur,fz,Construction,14684,14720,14483
+secteur,g,Commerce et réparation automobile,13071,13713,14144
+secteur,h,Transports et entreposage,1902,3154,3244
+secteur,i,Hébergement et restauration,7374,9012,9692
+secteur,jz,Information et communication,1480,2099,2146
+secteur,kz,Activités financières et d'assurance,1150,1653,1717
+secteur,lz,Activités immobilières,1984,2514,2653
+secteur,mn,Conseils et services aux entreprises,6379,8251,9085
+secteur,ps,"Enseignement, santé, action sociale et services aux ménages",5311,6352,7225
