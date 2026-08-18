@@ -8,6 +8,7 @@
  */
 
 import assert from "node:assert/strict";
+import { readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { barresMagnitude, type Part } from "./barres.ts";
@@ -76,4 +77,72 @@ test("les libellés sont échappés", () => {
   const html = barresMagnitude("t", [{ libelle: '<img src=x onerror="a">', valeur: 1 }], euros);
   assert.doesNotMatch(html, /<img/);
   assert.match(html, /&lt;img/);
+});
+
+test("aucun disque ne compare plus des tailles sur ce site", () => {
+  // La direction du 18 août 2026 vaut pour TOUT le site, et trois camemberts y
+  // survivaient : deux dans « 100 € du budget de l'État », un dans « 100 € de
+  // prestations sociales ». L'œil compare des longueurs alignées, pas des
+  // angles — et la gamme de huit teintes qui les peignait échouait quatre
+  // contrôles de palette sur cinq, dont sept teintes sur huit sous le plancher
+  // de chroma : un disque dont sept parts sur huit lisent comme du gris.
+  //
+  // La garde balaie les modules, pas une liste écrite à la main : une liste
+  // écrite à la main ne pousse pas, et ce dépôt l'a déjà appris trois fois.
+  const modules = readdirSync(new URL(".", import.meta.url))
+    .filter((f) => f.endsWith(".ts") && !f.endsWith(".test.ts"));
+  for (const nom of modules) {
+    const source = readFileSync(new URL(nom, import.meta.url), "utf8");
+    // Le mot reste permis en commentaire — il raconte pourquoi la figure a
+    // changé. Ce qui est refusé est de le RENDRE : une classe, une balise.
+    const rendu = source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+    assert.doesNotMatch(rendu, /camembert/, `${nom} rend encore un camembert`);
+    // Un arc de disque se trace en `stroke-dasharray` sur un `<circle>` : la
+    // forme peut revenir sous un autre nom, pas sous une autre technique.
+    assert.doesNotMatch(rendu, /<circle[\s\S]{0,200}stroke-dasharray/, nom);
+  }
+});
+
+test("la gamme de huit teintes qui a échoué au validateur n'est plus déclarée", () => {
+  // #0f1b2e, #c56a4d, #6e7d73, #b69b53, #41547a, #8b6a52, #8b93a0, #5d6d66 :
+  // ΔE 5,3 en protanopie (seuil 8), ΔE 13,3 en vision normale (seuil 15),
+  // contraste 2,58:1 et 2,97:1 (seuil 3:1), sept teintes sous le plancher de
+  // chroma. Elle était écrite en dur dans `cent-euros.ts` et peignait deux
+  // camemberts.
+  //
+  // Ce que la garde refuse est la GAMME, pas ses teintes une à une : la
+  // validation est une propriété de l'ensemble, et trois de ces tons servent
+  // encore d'identité de pays sur les courbes de conjoncture — une identité,
+  // pas un rang ni une valeur, ce que la charte autorise. Quatre au même
+  // endroit, c'est la gamme qui revient.
+  const GAMME = [
+    "#0f1b2e",
+    "#c56a4d",
+    "#6e7d73",
+    "#b69b53",
+    "#41547a",
+    "#8b6a52",
+    "#8b93a0",
+    "#5d6d66",
+  ];
+  const modules = readdirSync(new URL(".", import.meta.url)).filter(
+    (f) => f.endsWith(".ts") && !f.endsWith(".test.ts"),
+  );
+  for (const nom of modules) {
+    const source = readFileSync(new URL(nom, import.meta.url), "utf8");
+    const rendu = source.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+    const presentes = GAMME.filter((teinte) => rendu.includes(teinte));
+    assert.ok(presentes.length < 4, `${nom} redéclare la gamme : ${presentes.join(", ")}`);
+  }
+});
+
+test("un titre vide ne laisse pas une légende vide au-dessus de la figure", () => {
+  // L'appelant qui a déjà écrit le titre au-dessus passe `""` : sans cette
+  // coupe, « D'où viennent 100 € ? » se lisait deux fois de suite — vu au
+  // navigateur, pas déduit.
+  const html = barresMagnitude("", VENTILATION, euros);
+  assert.doesNotMatch(html, /figcaption/);
+  assert.match(html, /barres__rangs/);
+  // Et un titre donné reste écrit.
+  assert.match(barresMagnitude("Un titre", VENTILATION, euros), /barres__titre">Un titre</);
 });

@@ -523,9 +523,14 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   assert.match(MAIN, /vueDepuisAdresse\(location\.pathname, location\.hash\)/);
   // Le chemin est lu AVANT toute autre source : c'est lui qui fait foi.
   // La borne générique "/**\n * Le sommaire" matchait d'abord le sommaire de
-  // « Sources et méthode », plus haut dans le fichier : on vise ici celui de
-  // REPÈRES, qui suit basculerVue.
-  const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf("/**\n * Le sommaire de REPÈRES."));
+  // « Sources et méthode », plus haut dans le fichier : on vise ici celui du
+  // BILAN, qui suit basculerVue.
+  const BORNE = "/**\n * Le sommaire du BILAN";
+  // Une borne introuvable rend −1, et `slice(a, -1)` découpe jusqu'à la fin du
+  // fichier : le test resterait vert en ne mesurant plus rien. C'est ce qui
+  // s'est produit quand ce commentaire a été retitré.
+  assert.ok(MAIN.includes(BORNE), "borne du sommaire introuvable dans main.ts");
+  const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf(BORNE));
   assert.ok(corps.length > 200, "corps de basculerVue introuvable");
   assert.ok(
     corps.indexOf("vueDepuisAdresse(") < corps.indexOf("vuesConnues()"),
@@ -590,6 +595,37 @@ test("les trois états d'une zone de données se distinguent", () => {
   assert.match(echec, /bloc\.textContent = detail;/);
 });
 
+test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu", () => {
+  // Un enfant de grille a `min-width: auto` et refuse de descendre sous la
+  // largeur de son contenu : une colonne écrite `1fr` laisse donc un tableau
+  // large pousser le CORPS DE LA PAGE, alors même que ce tableau défile déjà
+  // dans son propre cadre. Mesuré à 320 px avant correction : corps à 547 px,
+  // la paire de chapitre à 482 px de contenu pour 190 px de place.
+  //
+  // La règle vaut pour les DEUX règles de la paire — celle à une colonne comme
+  // celle à deux. C'est la version à une colonne qui manquait, et c'est elle
+  // qui sert au téléphone, c'est-à-dire là où la place manque.
+  for (const selecteur of [".chapitre", ".chapitre__paire"]) {
+    const regles = [...CSS_REGLES.matchAll(new RegExp(`\\${selecteur} \\{([^}]*)\\}`, "g"))].map(
+      (m) => m[1]!,
+    );
+    assert.ok(regles.length > 0, `${selecteur} sans règle`);
+    for (const corps of regles) {
+      const colonnes = corps.match(/grid-template-columns:([^;]*);/);
+      if (!colonnes) continue;
+      // Le `1fr` d'un `minmax(0, 1fr)` est justement la forme voulue : on ne
+      // cherche que les pistes nues, une fois les minmax retirés.
+      const nues = colonnes[1]!.replace(/minmax\([^)]*\)/g, "");
+      assert.doesNotMatch(
+        nues,
+        /\bfr\b|\d+fr/,
+        `${selecteur} : une piste en fr sans minmax(0,…) laisse son contenu élargir la page`,
+      );
+      assert.match(colonnes[1]!, /minmax\(0,/, selecteur);
+    }
+  }
+});
+
 test("une vue longue dit ce qu'elle contient", () => {
   // Huit blocs de plusieurs écrans sur 6 600 px de défilement, sans moyen de
   // savoir ce qui restait dessous ni d'y aller.
@@ -603,6 +639,11 @@ test("une vue longue dit ce qu'elle contient", () => {
   );
   assert.match(corps, /querySelector\("h2, h3"\)/);
   assert.match(corps, /if \(entrees\.length < 2\)/);
+  // Et il nomme les CHAPITRES, pas les douze cadres : un sommaire qui répète
+  // la page n'ajoute rien à la page. L'ancre vise donc la section du chapitre.
+  assert.match(corps, /#national \.chapitre/);
+  assert.match(corps, /\.chapitre__question/);
+  assert.doesNotMatch(corps, /#national \.bloc/);
   // Une ancre interne ne doit pas être prise pour une vue inconnue et renvoyer
   // le lecteur sur TERRITOIRE au moment où il descend dans ce qu'il lit.
   // Le fragment fait partie de la garde depuis qu'un Back vers `/` — cible

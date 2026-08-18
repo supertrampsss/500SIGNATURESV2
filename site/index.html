@@ -175,36 +175,73 @@
     <div class="vue" id="vue-bilan" hidden>
       <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
 
+      <!-- ═══════════════════════════════════════════════════════════════
+           BILAN, EN SIX CHAPITRES
+           ═══════════════════════════════════════════════════════════════
+           Onze blocs à la file, tous en pleine largeur, faisaient 18 289 px de
+           défilement — vingt écrans — sans qu'aucun ne réponde au précédent.
+           Quatre sujets y revenaient chacun trois ou quatre fois : la dépense
+           de l'État, sa décomposition, les retraites, le déficit.
+
+           Il n'y avait pas de désordre : il n'y avait pas de fil. Chaque
+           chapitre pose UNE question et passe la main au suivant. Rien n'est
+           jeté — les blocs sont les mêmes, rangés sous la question à laquelle
+           ils répondent.
+
+           Les blocs qui tiennent côte à côte sont dans `.chapitre__paire` :
+           deux d'entre eux le faisaient déjà, neuf ne le faisaient pas. -->
       <section class="national" id="national" hidden>
         <h2>La France dans son ensemble</h2>
-        <!-- L'unité se dit là où le nombre est gros : cette page aligne
-             « 3 536 100 M€ » de dette et « 932 548 M€ » de prestations, qui se
-             lisent « milliards » par qui n'a pas le nez sur le sigle. -->
         <p class="national__unite">Montants en millions d'euros.</p>
-        <!-- Sommaire de la vue : huit blocs de plusieurs écrans chacun se
-             lisaient en un seul défilement de 6 600 px, sans moyen de savoir
-             ce qui restait dessous ni d'y aller. -->
         <nav class="sommaire-vue" id="sommaire-bilan" aria-label="Sections de la page"></nav>
-        <article class="bloc bloc--large" id="bloc-conjoncture"></article>
-        <div class="national__grille">
-          <article class="bloc" id="bloc-dette"></article>
-          <article class="bloc" id="bloc-europe"></article>
-        </div>
-        <article class="bloc bloc--large" id="bloc-cent-euros"></article>
-        <!-- Le même « 100 € », mais sur toutes les administrations publiques :
-             c'est le seul des trois auquel le déficit se rattache. -->
-        <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
-        <article class="bloc bloc--large" id="bloc-fonctions"></article>
-        <article class="bloc bloc--large" id="bloc-secu"></article>
-        <!-- Ce que la redistribution change, décile par décile : le seul bloc
-             qui dise ce que l'argent public fait aux revenus, et non ce qu'il
-             coûte ou d'où il vient. -->
-        <article class="bloc bloc--large" id="bloc-redistribution"></article>
-        <!-- Combien de retraités, quelle pension, à quel âge, et combien
-             d'actifs cotisent pour eux : les quatre chiffres du débat. -->
-        <article class="bloc bloc--large" id="bloc-retraites"></article>
-        <article class="bloc bloc--large" id="bloc-etat"></article>
-        <article class="bloc bloc--large" id="bloc-niches"></article>
+
+        <section class="chapitre" id="chapitre-combien">
+          <p class="chapitre__rang">Chapitre 1</p>
+          <h3 class="chapitre__question">Combien pèse l'argent public&nbsp;?</h3>
+          <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
+          <article class="bloc bloc--large" id="bloc-conjoncture"></article>
+        </section>
+
+        <section class="chapitre" id="chapitre-recettes">
+          <p class="chapitre__rang">Chapitre 2</p>
+          <h3 class="chapitre__question">D'où vient cet argent&nbsp;?</h3>
+          <!-- Le pont budgétaire ne tient pas dans une demi-largeur : mesuré
+               à 503 px, ses vingt intitulés passent tous sur deux ou trois
+               lignes et le bloc grandit de moitié (1 168 → 1 734 px) pour
+               n'économiser que 238 px de page. Un tableau à quatre colonnes
+               reste en pleine largeur. -->
+          <article class="bloc bloc--large" id="bloc-etat"></article>
+          <article class="bloc bloc--large" id="bloc-niches"></article>
+        </section>
+
+        <section class="chapitre" id="chapitre-depenses">
+          <p class="chapitre__rang">Chapitre 3</p>
+          <h3 class="chapitre__question">Où va-t-il&nbsp;?</h3>
+          <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
+          <div class="chapitre__paire">
+            <article class="bloc" id="bloc-cent-euros"></article>
+            <article class="bloc" id="bloc-fonctions"></article>
+          </div>
+        </section>
+
+        <section class="chapitre" id="chapitre-pour-qui">
+          <p class="chapitre__rang">Chapitre 4</p>
+          <h3 class="chapitre__question">À qui ça profite&nbsp;?</h3>
+          <article class="bloc bloc--large" id="bloc-redistribution"></article>
+          <div class="chapitre__paire">
+            <article class="bloc" id="bloc-retraites"></article>
+            <article class="bloc" id="bloc-secu"></article>
+          </div>
+        </section>
+
+        <section class="chapitre" id="chapitre-tenable">
+          <p class="chapitre__rang">Chapitre 5</p>
+          <h3 class="chapitre__question">Est-ce tenable&nbsp;?</h3>
+          <div class="chapitre__paire">
+            <article class="bloc" id="bloc-dette"></article>
+            <article class="bloc" id="bloc-europe"></article>
+          </div>
+        </section>
       </section>
 
       <!-- Ce que portait la vue DÉTAIL : le classement de la couche affichée,

@@ -26,13 +26,22 @@ export const CROISSANCE = "eurostat_croissance_pib";
 
 const FINE = "\u202f";
 
-/** Pays comparés : la France en avant, trois voisins, la zone euro en repère. */
+/** Pays comparés : la France en avant, trois voisins, la zone euro en repère.
+ *
+ *  Les teintes passent par les jetons `--serie-*` plutôt que par des hexadéci-
+ *  maux écrits ici : elles étaient cinq tons de la gamme jamais mesurée, et le
+ *  validateur de palette leur donnait ΔE 5,3 en protanopie et **9,4 en vision
+ *  normale** entre l'Italie et l'Allemagne — deux courbes que personne ne
+ *  distingue. La gamme validée et ses cinq mesures vivent dans la feuille de
+ *  style, à côté de `--serie-1` ; une teinte inventée ici casserait la
+ *  séparation des quatre autres, la validation étant une propriété de la gamme
+ *  entière. */
 export const PAYS: { code: string; nom: string; couleur: string; accent?: boolean; pointille?: boolean }[] = [
-  { code: "FR", nom: "France", couleur: "#0f1b2e", accent: true },
-  { code: "DE", nom: "Allemagne", couleur: "#c56a4d" },
-  { code: "IT", nom: "Italie", couleur: "#6e7d73" },
-  { code: "ES", nom: "Espagne", couleur: "#b69b53" },
-  { code: "EA20", nom: "Zone euro", couleur: "#8b93a0", pointille: true },
+  { code: "FR", nom: "France", couleur: "var(--serie-1)", accent: true },
+  { code: "DE", nom: "Allemagne", couleur: "var(--serie-2)" },
+  { code: "IT", nom: "Italie", couleur: "var(--serie-3)" },
+  { code: "ES", nom: "Espagne", couleur: "var(--serie-4)" },
+  { code: "EA20", nom: "Zone euro", couleur: "var(--serie-5)", pointille: true },
 ];
 
 export const FENETRES: { cle: string; libelle: string; annees: number | null }[] = [

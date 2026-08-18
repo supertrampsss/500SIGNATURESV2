@@ -470,6 +470,87 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Le bilan raconte enfin quelque chose, et la moitié de sa longueur était une
+  bibliographie** (18 août 2026). « Un amas d'analyses qui n'ont aucun lien
+  entre elles ». Douze cadres alignés sans ordre, un sommaire qui les
+  réénumérait, 19 283 px de défilement. La page est désormais **cinq
+  chapitres** — combien pèse l'argent public, d'où il vient, où il va, à qui il
+  profite, est-ce tenable — et le sommaire nomme les cinq questions au lieu des
+  douze cadres : un sommaire qui répète la page n'ajoute rien à la page.
+
+  **Ce que la mesure a désigné n'était pas ce que je croyais réduire.** Je
+  cherchais à apparier des cadres pour gagner de la hauteur ; le profil disait
+  autre chose :
+
+  | Section | Hauteur |
+  |---|---|
+  | Les cinq chapitres | 9 694 px |
+  | Le pied « sources et méthode » | **7 683 px**, dont **5 210 pour la seule liste des jeux** |
+  | Les tableaux d'un territoire | 1 457 px |
+
+  Un quart du bilan de la France était une bibliographie dépliée. Elle est
+  repliée, son décompte et ses producteurs annoncés au-dessus : la Licence
+  Ouverte demande de citer, pas de déplier. **14 097 px** au total, contre
+  19 283 — sans retirer une ligne de contenu.
+
+  **Et l'appariement que je voulais faire était une mauvaise affaire, mesurée
+  et refusée.** Le pont budgétaire mis en demi-largeur passe de 1 168 à
+  1 734 px — ses vingt intitulés tombent tous sur deux ou trois lignes — pour
+  n'économiser que 238 px de page. La mesure est écrite dans le gabarit, à côté
+  du cadre resté en pleine largeur.
+
+  **Le corps de la page débordait à 547 px pour une fenêtre de 320.** Un enfant
+  de grille a `min-width: auto` : une colonne écrite `1fr` laisse son contenu
+  pousser la PAGE, même quand ce contenu est un tableau qui défile déjà dans son
+  propre cadre. J'avais écrit `minmax(0, 1fr)` dans la règle à deux colonnes et
+  laissé `1fr` dans celle à une colonne — c'est-à-dire dans celle qui sert au
+  téléphone, là où la place manque. Un test lit les deux règles.
+
+- **Trois camemberts, et une palette de cinq courbes que personne ne
+  distinguait** (18 août 2026). La direction du 18 août dit que la forme se
+  choisit sur le métier de la donnée et qu'elle vaut pour **tout le site** :
+  trois disques y survivaient, deux dans « 100 € du budget de l'État », un dans
+  « 100 € de prestations sociales ». Ils comparent des tailles ; l'œil compare
+  des longueurs alignées. Ce sont des barres, d'une seule teinte, et le détail
+  ligne à ligne qui les doublait reste dessous.
+
+  **Le vrai défaut était ailleurs, et il fallait le mesurer pour le voir.** Le
+  premier graphique de la page — cinq pays, cinq courbes qui se croisent —
+  employait cinq tons de la gamme jamais validée. Passés au validateur en
+  `--pairs all` :
+
+  | Contrôle | Résultat |
+  |---|---|
+  | Chroma | quatre des cinq sous le plancher |
+  | ΔE protanopie | **5,3** entre l'Italie et l'Allemagne, seuil 8 |
+  | ΔE vision normale | **9,4**, seuil 15 — indistinguables avec une vue complète |
+  | Contraste sur le fond | 2,38:1 et 2,74:1, seuil 3:1 |
+
+  Deux courbes que personne ne distingue, sur la figure d'ouverture du bilan.
+  Les rangs 2 à 5 de la gamme entrent donc — c'est ce que la feuille annonçait
+  (« les sept autres rangs entreront avec la première figure qui en aura
+  besoin ») — mesurés sur les **deux fonds réels du cadre**, `--papier` clair et
+  sombre, avec les mêmes valeurs : ΔE 10,8 en daltonisme, 19,2 en vision
+  normale, contraste ≥ 3:1 des deux côtés.
+
+  **Le chroma est borné en haut, et c'est une décision.** L'optimum de
+  séparation non borné donnait un violet #9800e8 et un rose #e83890 : mesurés
+  justes, faux de registre. Une contrainte de sobriété écrite dans la recherche
+  vaut mieux qu'un ton corrigé à l'œil après coup — un ton inventé au coup par
+  coup casse la séparation des autres, la validation étant une propriété de la
+  gamme entière.
+
+  **Ce que la garde refuse n'est pas une teinte, c'est la gamme.** Trois de ces
+  tons servent encore d'identité de pays ailleurs ; les bannir un à un aurait
+  été une règle fausse. Le test refuse quatre de la gamme au même endroit.
+
+  **Et un test s'était éteint sans rougir.** `interface.test.ts` découpait
+  `main.ts` sur le titre d'un commentaire ; en retitrant ce commentaire, j'ai
+  rendu `indexOf` égal à −1, et `slice(a, -1)` découpe jusqu'à la fin du
+  fichier. Le test restait vert en ne mesurant plus rien. Il vérifie désormais
+  que sa borne existe avant de s'en servir. **Une borne de découpe introuvable
+  ne lève pas : elle rend un test muet.**
+
 - **Les défaillances, et le chiffre que la moyenne cache** (18 août 2026).
   Eurostat ne publie qu'un **indice**, toutes entreprises confondues. C'est
   insuffisant d'une façon qui trompe : l'essentiel des créations sont des

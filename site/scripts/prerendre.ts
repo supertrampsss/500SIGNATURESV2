@@ -53,6 +53,7 @@ import { rendu as renduSecu } from "../src/secu.ts";
 import { rendu as renduNiches } from "../src/niches.ts";
 import { rendu as renduCentEuros } from "../src/cent-euros.ts";
 import { rendu as renduCentEurosApu } from "../src/cent-euros-apu.ts";
+import { rendu as renduOuverture } from "../src/ouverture.ts";
 import { rendu as renduRedistribution } from "../src/redistribution.ts";
 import { rendu as renduRetraites } from "../src/retraites.ts";
 import { exercicesDisponibles, rendu as renduBudgetEtat } from "../src/etat.ts";
@@ -1064,6 +1065,7 @@ export function injecterReperes(
   // `afficherNational` rend ce vide-là — mais elle y figure parce que c'est un
   // bloc à remplir comme un autre.
   const ouvrants: [string, string][] = [
+    ["bloc-ouverture", renduOuverture(pays)],
     ["bloc-conjoncture", renduConjoncture(pays, catalogue)],
     ["bloc-dette", renduDette(pays, catalogue)],
     ["bloc-europe", renduEurope(pays)],

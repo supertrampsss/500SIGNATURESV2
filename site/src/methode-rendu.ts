@@ -184,6 +184,12 @@ function pluriel(nombre: number): string {
  * le fichier d'origine : son producteur, son titre, sa licence, et la date à
  * laquelle le site l'a lu. Rien n'est rendu quand le manifeste est vide — un
  * cadre vide se lit comme une panne.
+ *
+ * La liste est **repliée**, son décompte et ses producteurs annoncés au-dessus.
+ * Mesurée au navigateur sur la publication du 18 août 2026, elle faisait 5 210
+ * px à elle seule pour 19 283 px de page : un quart du bilan de la France était
+ * une bibliographie. La Licence Ouverte demande de citer les producteurs, pas de
+ * les déplier — le pli garde chaque ligne dans le document, à un geste.
  */
 export function renduSources(jeux: readonly Jeu[]): string {
   if (jeux.length === 0) return "";
@@ -215,7 +221,10 @@ export function renduSources(jeux: readonly Jeu[]): string {
       Chaque ligne mène au fichier d'origine, avec sa licence et la date à laquelle
       le site l'a lu : le chiffre affiché se retrouve dans le fichier du producteur.
     </p>
-    <dl class="methode-sources__producteurs">${liste}</dl>
+    <details class="methode-sources__liste">
+      <summary>Voir les ${formater(jeux.length, "count", false)} jeux, producteur par producteur</summary>
+      <dl class="methode-sources__producteurs">${liste}</dl>
+    </details>
   `;
 }
 

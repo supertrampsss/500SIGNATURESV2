@@ -1195,17 +1195,20 @@ test("14 quinquies. le build écrit cette page, et l'écrit avant le plan du sit
  * C'est le geste que la garde des cadres défilants a déjà dû faire
  * (`interface.test.ts`), pour exactement la même raison.
  */
+// Le gabarit ENTIER, et non une tranche : la section nationale contient
+// désormais des `<section class="chapitre">`, si bien qu'une tranche bornée à
+// la première `</section>` s'arrêtait au premier chapitre et ne voyait que
+// deux cadres sur douze. Les `<article id="bloc-…">` n'existent nulle part
+// ailleurs dans la page — le test suivant le vérifie par leur nombre.
 const CADRES_REPERES = [
-  ...GABARIT_REEL.slice(
-    GABARIT_REEL.indexOf('<section class="national"'),
-    GABARIT_REEL.indexOf("</section>", GABARIT_REEL.indexOf('<section class="national"')),
-  ).matchAll(/<article[^>]*id="(bloc-[a-z0-9-]+)"/g),
+  ...GABARIT_REEL.matchAll(/<article[^>]*id="(bloc-[a-z0-9-]+)"/g),
 ].map((m) => m[1]);
 
 test("15 quinquies. la liste des cadres se lit dans le gabarit, et elle n'est pas vide", () => {
   // Sans cette sonde, un gabarit remanié rendrait une liste vide et les deux
   // tests qui la parcourent passeraient en ne vérifiant rien.
-  assert.ok(CADRES_REPERES.length >= 10, `${CADRES_REPERES.length} cadre(s) lus dans le gabarit`);
+  assert.ok(CADRES_REPERES.length >= 12, `${CADRES_REPERES.length} cadre(s) lus dans le gabarit`);
+  assert.equal(new Set(CADRES_REPERES).size, CADRES_REPERES.length, "un cadre est déclaré deux fois");
   assert.ok(CADRES_REPERES.includes("bloc-cent-euros-apu"), CADRES_REPERES.join(", "));
 });
 

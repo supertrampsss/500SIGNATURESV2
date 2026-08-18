@@ -27,6 +27,7 @@ import { groupeDe } from "./semblables.ts";
 import { afficherRedistribution } from "./redistribution.ts";
 import { afficherRetraites } from "./retraites.ts";
 import { afficherCentEurosApu } from "./cent-euros-apu.ts";
+import { afficherOuverture } from "./ouverture.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -2587,27 +2588,37 @@ function basculerVue(): void {
 }
 
 /**
- * Le sommaire de REPÈRES.
+ * Le sommaire du BILAN : les cinq questions, pas les douze cadres.
  *
- * La vue aligne huit blocs de plusieurs écrans chacun — conjoncture, dette,
- * Europe, les 100 €, fonctions, Sécurité sociale, budget de l'État, niches —
- * soit un défilement de 6 600 px mesuré à 1440 px de large. Rien ne disait ce
- * qui restait dessous, et il n'y avait pas d'autre moyen d'y aller que de
- * pousser la molette.
+ * Il énumérait chaque bloc — conjoncture, dette, Europe, les 100 €, fonctions,
+ * Sécurité sociale, budget de l'État, niches — c'est-à-dire douze entrées sans
+ * lien entre elles pour une page qui en raconte cinq. Un sommaire de douze
+ * titres devant une page de douze cadres ne dit rien de plus que la page ; il
+ * la répète. Les entrées sont donc les **questions des chapitres**, dans leur
+ * ordre : combien, d'où, où il va, pour qui, est-ce tenable.
  *
- * Le sommaire se construit sur ce qui s'est **réellement affiché** : un bloc
- * dont la source n'est pas publiée reste vide et n'entre pas au sommaire.
- * Rien de cliquable ne doit mener à une section vide — c'est déjà la règle du
- * simulateur dans le menu, c'est la même ici. Le titre de l'entrée est celui
- * du bloc, lu dans le DOM : deux libellés à tenir à jour en auraient fait
- * diverger un.
+ * Le sommaire se construit sur ce qui s'est **réellement affiché** : un
+ * chapitre dont aucun bloc n'a de titre — parce qu'aucune de ses sources n'est
+ * publiée — n'entre pas au sommaire. Rien de cliquable ne doit mener à une
+ * section vide, c'est déjà la règle du simulateur dans le menu. Le libellé est
+ * lu dans le DOM : deux libellés à tenir à jour en auraient fait diverger un.
  */
 function peindreSommaireReperes(): void {
   const cadre = document.getElementById("sommaire-bilan");
   if (!cadre) return;
-  const entrees = [...document.querySelectorAll<HTMLElement>("#national .bloc")]
-    .map((bloc) => ({ bloc, titre: bloc.querySelector("h2, h3")?.textContent?.trim() }))
-    .filter((e): e is { bloc: HTMLElement; titre: string } => Boolean(e.titre));
+  const entrees = [...document.querySelectorAll<HTMLElement>("#national .chapitre")]
+    .filter((chapitre) =>
+      // Un cadre rempli porte son titre ; un cadre que le pré-rendu a replié
+      // faute de source n'en a pas. Un chapitre entier peut donc être vide.
+      [...chapitre.querySelectorAll<HTMLElement>(".bloc")].some((bloc) =>
+        bloc.querySelector("h2, h3"),
+      ),
+    )
+    .map((chapitre) => ({
+      chapitre,
+      titre: chapitre.querySelector(".chapitre__question")?.textContent?.trim(),
+    }))
+    .filter((e): e is { chapitre: HTMLElement; titre: string } => Boolean(e.titre));
   // Un sommaire d'une entrée nomme ce qui est déjà seul à l'écran.
   if (entrees.length < 2) {
     cadre.hidden = true;
@@ -2615,11 +2626,9 @@ function peindreSommaireReperes(): void {
   }
   cadre.hidden = false;
   cadre.replaceChildren(
-    ...entrees.map(({ bloc, titre }) => {
-      // Les blocs vides gardent leur `id` du gabarit ; ceux qui portent un
-      // titre l'ont rempli. L'ancre vise donc toujours quelque chose.
+    ...entrees.map(({ chapitre, titre }) => {
       const lien = document.createElement("a");
-      lien.href = `#${bloc.id}`;
+      lien.href = `#${chapitre.id}`;
       lien.textContent = titre;
       return lien;
     }),
@@ -4351,8 +4360,14 @@ async function demarrer(): Promise<void> {
   // pays sont disponibles.
   try {
     const pays = await donnees.territoires("pays", "tous");
-    // La conjoncture d'abord : c'est le pouls le plus récent, le lecteur qui
-    // arrive « pour l'économie » doit la voir avant les stocks annuels.
+    // L'OUVERTURE d'abord, et la conjoncture après elle : la page ouvrait sur
+    // 1 412 px d'inflation et de croissance avant d'avoir dit de quoi elle
+    // parle. Le lecteur doit savoir en quatre secondes de combien il est
+    // question — ce qui est encaissé, ce qui est dépensé, l'écart — puis la
+    // conjoncture lui donne le pouls du moment.
+    if (afficherOuverture($("bloc-ouverture"), pays)) {
+      $("national").hidden = false;
+    }
     if (afficherConjoncture($("bloc-conjoncture"), pays, catalogue)) {
       $("national").hidden = false;
     }

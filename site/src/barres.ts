@@ -39,7 +39,14 @@
  * le tableau qui la suit.
  */
 
-export type Part = { libelle: string; valeur: number; regroupement?: boolean };
+export type Part = {
+  libelle: string;
+  valeur: number;
+  regroupement?: boolean;
+  /** Ce que le regroupement contient : « Autres » ne dit rien de ce qu'il
+   *  rassemble, et un rang de figure n'a pas la place de l'écrire en clair. */
+  detail?: string;
+};
 
 function echapper(texte: string): string {
   return texte.replace(
@@ -64,7 +71,7 @@ export function barresMagnitude(
   if (!maximum) return "";
   const rangs = entrees
     .map(
-      (e) => `<li class="barres__rang">
+      (e) => `<li class="barres__rang"${e.detail ? ` title="${echapper(e.detail)}"` : ""}>
         <span class="barres__nom">${echapper(e.libelle)}</span>
         <span class="barres__piste">
           <span class="barres__marque${e.regroupement ? " barres__marque--reste" : ""}"
@@ -74,8 +81,12 @@ export function barresMagnitude(
       </li>`,
     )
     .join("");
+  // Un titre vide ne fait pas une légende vide : l'appelant qui passe `""` a
+  // déjà écrit le titre au-dessus de la figure, et le répéter le faisait lire
+  // deux fois de suite à l'écran — vu au navigateur sur « D'où viennent
+  // 100 € ? ». La figure garde alors le nom que lui donne le titre voisin.
+  const legende = titre ? `<figcaption class="barres__titre">${echapper(titre)}</figcaption>` : "";
   return `<figure class="barres">
-    <figcaption class="barres__titre">${echapper(titre)}</figcaption>
-    <ul class="barres__rangs">${rangs}</ul>
+    ${legende}<ul class="barres__rangs">${rangs}</ul>
   </figure>`;
 }
