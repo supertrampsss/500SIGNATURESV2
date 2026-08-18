@@ -3058,9 +3058,31 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    exercice : ce sont deux personnes, et les coller donnait à lire
    « depuis mars 2026Avant lui : … ». `display: block` suffit — la ligne garde
    sa taille et sa couleur de texte second. */
+/* La colonne du premier exercice, dans le bloc de la note. Elle est en encre
+   seconde : c'est le point de départ, la valeur du jour reste la principale.
+   `note__vide` porte le tiret du terme qui n'existe pas au départ — la
+   trajectoire est un écart DEPUIS le premier exercice. */
+.note__detail thead th {
+  font-size: var(--texte-xs);
+  font-weight: 500;
+  color: var(--encre-douce);
+  text-align: right;
+  padding-bottom: var(--espace-1);
+}
+.note__detail thead th:first-child {
+  text-align: left;
+}
+.note__mesure--debut {
+  color: var(--encre-douce);
+}
+.note__vide {
+  color: var(--trait-fort);
+  cursor: help;
+}
+
 .fiche__precedent {
   display: block;
-  margin-top: 0.15rem;
+  margin-top: var(--espace-1);
 }
 
 .camembert {

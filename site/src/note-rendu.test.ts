@@ -111,6 +111,30 @@ test("une épargne nulle se dit en toutes lettres, jamais en durée", () => {
   assert.equal(dette.points, "0,0");
 });
 
+test("la note pose le premier exercice à côté du dernier", () => {
+  // « 19,9 sur 20 » ne dit pas si le territoire s'est amélioré ou s'il part de
+  // haut. Deux colonnes le disent, et c'est la comparaison que le lecteur
+  // faisait de tête en ouvrant un dépliant.
+  const lu = texte(rendreNote(note(SOLIDE, "commune"), SOLIDE));
+  const exercices = Object.keys(SOLIDE["ofgl_recettes_fonctionnement"]).sort();
+  assert.ok(exercices.length >= 2, "fixture à un seul exercice : ce test vise à côté");
+  assert.match(lu, new RegExp(exercices[0]));
+  assert.match(lu, new RegExp(exercices[exercices.length - 1]));
+  // Le troisième terme est SANS OBJET au premier exercice, et pas « 0 » : la
+  // trajectoire est un écart DEPUIS cet exercice, elle n'existe pas pour lui.
+  // Écrire zéro ferait passer une impossibilité pour une mesure.
+  assert.match(lu, /sans objet/);
+});
+
+test("le premier exercice se déduit des séries, il n'est pas écrit en dur", () => {
+  // La fenêtre se lit sur les exercices publiés — c'est la règle du dépôt, et
+  // un « 2019 » en dur mentirait le jour où un échelon en publie un autre.
+  const SOURCE = readFileSync(new URL("./note-rendu.ts", import.meta.url), "utf8");
+  const corps = SOURCE.slice(SOURCE.indexOf("export function rendreNote"));
+  assert.doesNotMatch(corps, /"2019"/);
+  assert.match(corps, /exercicesNotables\(series\)\[0\]/);
+});
+
 test("le bloc porte son exercice et sa source", () => {
   const lu = texte(rendreNote(note(SOLIDE, "commune"), SOLIDE));
   // Un chiffre ne s'affiche jamais seul (docs/04) : millésime et source.

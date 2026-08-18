@@ -303,21 +303,74 @@ export function rendreNote(
   if (!note) return "";
   const total = points(note.valeur);
   const parcours = rendreParcours(series, note.niveau, executif, role, jusqu);
+  // ─────────────────────────────────────────────────────────────────────
+  // DEUX COLONNES : LE DÉPART ET L'ARRIVÉE
+  // ─────────────────────────────────────────────────────────────────────
+  // Une note seule ne se lit pas : « 19,9 sur 20 » ne dit pas si le territoire
+  // s'est amélioré ou s'il part de haut. Le premier exercice de la fenêtre est
+  // donc posé à côté du dernier, dans le bloc lui-même — c'est la comparaison
+  // que le lecteur fait de tête, et qu'on lui faisait ouvrir un dépliant pour
+  // obtenir.
+  //
+  // Le troisième terme est VIDE en 2019, et c'est structurel, pas un trou de
+  // donnée : la trajectoire est un écart DEPUIS 2019, elle n'existe pas pour
+  // 2019 même. L'écrire « 0 point » ferait passer une impossibilité pour une
+  // mesure. La cellule dit donc pourquoi elle est vide.
+  // Le premier exercice se DÉDUIT des séries publiées, jamais écrit en dur :
+  // la règle du dépôt est que la fenêtre se lit sur les exercices publiés, et
+  // un « 2019 » en dur mentirait le jour où un échelon en publie un autre.
+  const premier = exercicesNotables(series)[0];
+  const debut =
+    premier && premier !== note.mesures.exercice
+      ? solvabilite(series, premier, note.niveau)
+      : null;
+  const cellulesDebut: Record<string, string> = debut
+    ? {
+        "Marge de fonctionnement": pourcentage(debut.tauxEpargne, true),
+        "Poids de la dette":
+          debut.desendettement === null
+            ? "aucune épargne"
+            : nombreEtNom(debut.desendettement, "année"),
+      }
+    : {};
+  const colonneDebut = Object.keys(cellulesDebut).length > 0;
+
   const rangs = lignes(note)
     .map(
       (l) => `<tr>
-        <th scope="row">${echapper(l.terme)}</th>
+        <th scope="row">${echapper(l.terme)}</th>${
+          colonneDebut
+            ? `<td class="note__mesure note__mesure--debut">${
+                cellulesDebut[l.terme] === undefined
+                  ? '<span class="note__vide">sans objet</span>'
+                  : echapper(cellulesDebut[l.terme])
+              }</td>`
+            : ""
+        }
         <td class="note__mesure">${echapper(l.mesure)}</td>
         <td class="note__points">${echapper(l.points)}<span class="note__sur"> / ${l.sur}</span></td>
       </tr>`,
     )
     .join("");
+
+  const entete = colonneDebut
+    ? `<thead><tr><th scope="col"></th>
+        <th scope="col">${echapper(premier ?? "")}</th>
+        <th scope="col">${echapper(note.mesures.exercice)}</th>
+        <th scope="col">Points</th></tr></thead>`
+    : "";
+
   return `<section class="note" aria-labelledby="note-titre">
     <h3 class="note__titre" id="note-titre">Gestion financière</h3>
     <p class="note__valeur"><strong>${echapper(total)}</strong><span class="note__bareme"> / 20</span>
       <span class="note__mention">${echapper(mention(note.valeur))}</span></p>
     <table class="note__detail">
-      <caption>Exercice ${echapper(note.mesures.exercice)}. Source : OFGL, comptes des collectivités locales.</caption>
+      <caption>Exercice ${echapper(note.mesures.exercice)}${
+        colonneDebut
+          ? `, comparé à ${echapper(premier ?? "")} : les points sont ceux de ${echapper(note.mesures.exercice)}`
+          : ""
+      }. Source : OFGL, comptes des collectivités locales.</caption>
+      ${entete}
       <tbody>${rangs}</tbody>
     </table>
     ${parcours}
