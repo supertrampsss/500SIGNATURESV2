@@ -1,25 +1,14 @@
 /**
- * Le bloc Sécurité sociale, en deux temps.
+ * « La Sécu est-elle en déficit ? » : dépenses, recettes et solde du
+ * sous-secteur administrations de sécurité sociale (S1314), en % du PIB,
+ * année par année — le solde est l'écart entre deux lignes, pas un chiffre
+ * isolé (maquette 4.5 de la shortlist validée).
  *
- * 1. « La Sécu est-elle en déficit ? » : dépenses, recettes et solde du
- *    sous-secteur administrations de sécurité sociale (S1314), en % du PIB.
- * 2. « 100 € de prestations sociales, où vont-ils ? » : la répartition par
- *    risque. Le rendu vit dans `cent-euros-secu.ts`.
- *
- * La répartition venait en premier, par symétrie avec « 100 € du budget de
- * l'État » qui précède le pont détaillé. Mais ce bloc-ci, contrairement à celui
- * de l'État, est la CIBLE d'une question : la seule qui y renvoie est celle du
- * déficit, et elle déposait le lecteur sur l'autre moitié. La symétrie de mise
- * en page cède devant l'endroit où le lecteur atterrit.
- *
- * Les deux ne se recouvrent pas — une répartition d'une dépense d'un côté, un
- * solde comparé de l'autre, sur deux périmètres différents — et le second le
- * dit. Ils tiennent dans le même bloc parce qu'ils répondent à la même
- * question posée deux fois.
- *
- * Le bloc dit deux pièges de vocabulaire : ce solde n'est pas le « trou de la
- * Sécu » débattu au Parlement (autre périmètre : régime général + FSV), et les
- * recettes ne sont pas que des cotisations (CSG, fractions de TVA).
+ * Le bloc a porté deux autres choses, sorties parce que la maquette validée
+ * ne les montre pas : la répartition « 100 € de prestations sociales »
+ * (`cent-euros-secu.ts`, qui garde son rendu et ses tests sans appelant) et
+ * un tableau de comparaison France / Allemagne / zone euro. Un chapitre porte
+ * exactement les blocs de sa maquette.
  *
  * Le solde s'exprime en **% du PIB**, comme le déficit public partout
  * ailleurs sur le site : c'est un niveau (recettes moins dépenses d'une même
@@ -29,22 +18,10 @@
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { moins, montantLisible, pourcentage } from "./echelle.ts";
-import { rendu as renduCentEuros } from "./cent-euros-secu.ts";
-import { nomPays } from "./pays-noms.ts";
 
 export const DEPENSES = "eurostat_secu_depenses_pib";
 export const RECETTES = "eurostat_secu_recettes_pib";
 export const SOLDE = "eurostat_secu_solde_pib";
-
-/* Les repères de comparaison. Leur nom vient de `pays-noms.ts`, qui les
-   porte tous les quarante-huit : la publication nomme un pays par son code
-   (`normalize/europe.py` écrit `name = code`), et trois modules du site
-   recopiaient chacun sa petite table de traduction. */
-const COMPARES: [string, string][] = [
-  ["FR", nomPays("FR")],
-  ["DE", nomPays("DE")],
-  ["EA20", nomPays("EA20")],
-];
 
 const FINE = "\u202f";
 
@@ -75,39 +52,23 @@ export function points(valeur: number): string {
   return `${moins(texte)}${FINE}%`;
 }
 
-function derniere(serie: Record<string, number> | undefined): [string, number] | null {
-  if (!serie) return null;
-  const periodes = Object.keys(serie).sort();
-  const p = periodes[periodes.length - 1];
-  return p ? [p, serie[p]] : null;
-}
-
-/** Rendu pur, sans DOM : c'est lui qui est testé. Les deux moitiés sont
- *  indépendantes — l'une peut être publiée sans l'autre, et ce qui manque ne
- *  s'écrit pas.
+/** Rendu pur, sans DOM : c'est lui qui est testé.
  *
- *  **Le solde en premier, parce que c'est lui qu'on vient lire.** La seule
- *  question qui pointe sur `#bloc-secu` est « La Sécu est-elle en déficit ? »,
- *  et le lecteur qui la suivait atterrissait sur « 100 € de prestations
- *  sociales, où vont-ils ? » — une autre question, à laquelle rien ne renvoie
- *  ici. Le sommaire de REPÈRES nomme l'entrée d'après ce même premier titre :
- *  il annonçait donc le bloc du déficit sous le nom de la répartition. */
+ *  Un tableau, un exercice par colonne (la règle du dépôt : un tableau
+ *  d'analyse montre tous les exercices publiés), trois lignes — recettes en
+ *  positif, dépenses en négatif, et le solde est l'écart entre les deux. */
 export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[]): string {
-  const html = renduSolde(pays, catalogue) + renduCentEuros(pays["FR"], catalogue);
-  return html.trim() ? html : "";
-}
-
-function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): string {
   const france = pays["FR"];
-  const dernieres = derniere(france?.series?.[SOLDE]);
-  if (!france || !dernieres) return "";
-  const [annee, soldeFr] = dernieres;
+  if (!france) return "";
   if (!catalogue.some((i) => i.id === SOLDE)) return "";
-  const valeur = (code: string, id: string): number | undefined =>
-    pays[code]?.series?.[id]?.[annee];
-
-  const depensesFr = valeur("FR", DEPENSES);
-  const recettesFr = valeur("FR", RECETTES);
+  const serie = (id: string) => france.series?.[id] ?? {};
+  const soldes = serie(SOLDE);
+  const annees = Object.keys(soldes).sort();
+  const annee = annees[annees.length - 1];
+  if (!annee) return "";
+  const soldeFr = soldes[annee];
+  const depensesFr = serie(DEPENSES)[annee];
+  const recettesFr = serie(RECETTES)[annee];
   if (depensesFr === undefined || recettesFr === undefined) return "";
 
   // La réponse à la question du titre, avec les choses nommées : recettes,
@@ -115,40 +76,19 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
   // montant vient du produit de deux chiffres publiés (solde en % du PIB,
   // PIB en euros), et « environ » dit l'arrondi du premier. Aucun
   // qualificatif : 6 milliards, c'est 6 milliards, le chiffre parle seul.
-  const pib = pays["FR"]?.series?.["eurostat_pib_montant"]?.[annee];
+  const pib = serie("eurostat_pib_montant")[annee];
   const enEuros =
     pib !== undefined
       ? ` : le déficit est d'environ ${montantLisible(Math.abs((soldeFr / 100) * pib))}`
       : "";
 
-  const lignes = COMPARES.map(([code, nom]) => {
-    const d = valeur(code, DEPENSES);
-    const r = valeur(code, RECETTES);
-    const s = valeur(code, SOLDE);
-    // Un comparateur sans valeur cette année-là garde sa ligne, en tirets :
-    // « pas encore publié » se dit, un comparateur qui disparaît se devine.
-    const cellule = (v: number | undefined, rendu: (n: number) => string) =>
-      v === undefined ? "—" : echapper(rendu(v));
-    return `<tr>
-      <th scope="row">${echapper(nom)}</th>
-      <td class="flux--plus">${cellule(r, (n) => `+${pourcentage(n, true)}`)}</td>
-      <td class="flux--moins">${cellule(d, (n) => `−${pourcentage(n, true)}`)}</td>
-      <td>${cellule(s, points)}</td>
-    </tr>`;
-  }).join("");
-
-  // Le solde dans le temps : la série qui répond à « la Sécu est-elle en
-  // déficit ? » mieux qu'un chiffre isolé — le signe change d'une année à
-  // l'autre, et 2020 le montre.
-  const serieSolde = Object.entries(france.series?.[SOLDE] ?? {}).sort(([a], [b]) =>
-    a.localeCompare(b),
-  );
-  const frise = serieSolde
-    .map(
-      ([a, v]) => `<tr><th scope="row">${echapper(a)}</th>
-      <td class="${v < 0 ? "secu__besoin" : "secu__capacite"}">${echapper(points(v))}</td></tr>`,
-    )
-    .join("");
+  // Une année dont le solde est publié mais pas le détail garde sa colonne,
+  // en tirets : « pas encore publié » se dit, une colonne qui disparaît se
+  // devine.
+  const cellule = (v: number | undefined, ecrire: (n: number) => string) =>
+    v === undefined ? "—" : echapper(ecrire(v));
+  const rangee = (valeurs: Record<string, number>, classe: string, ecrire: (n: number) => string) =>
+    annees.map((a) => `<td class="${classe}">${cellule(valeurs[a], ecrire)}</td>`).join("");
 
   return `
     <h3>La Sécu est-elle en déficit ?</h3>
@@ -162,18 +102,21 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
         pourcentage(recettesFr),
       )}</strong> (cotisations, CSG et impôts affectés)${enEuros}.</p>
     <table class="secu" tabindex="0">
-      <caption>Sous-secteur administrations de sécurité sociale (S1314), ${echapper(
-        annee,
-      )} · % du PIB, définitions harmonisées Eurostat</caption>
-      <thead><tr><th scope="col">Territoire</th><th scope="col">Recettes</th>
-        <th scope="col">Dépenses</th><th scope="col">Solde</th></tr></thead>
-      <tbody>${lignes}</tbody>
-    </table>
-    <table class="secu secu--serie" tabindex="0">
-      <caption>Le solde français année par année, en % du PIB. Excédentaire avant la
-        crise sanitaire, en fort déficit en 2020, revenue près de l'équilibre depuis.</caption>
-      <thead><tr><th scope="col">Année</th><th scope="col">Solde</th></tr></thead>
-      <tbody>${frise}</tbody>
+      <caption>Sous-secteur administrations de sécurité sociale (S1314), % du PIB,
+        définitions harmonisées Eurostat. Excédentaire avant la crise sanitaire, en fort
+        déficit en 2020, revenue près de l'équilibre depuis.</caption>
+      <thead><tr><th scope="col">% du PIB</th>${annees
+        .map((a) => `<th scope="col">${echapper(a)}</th>`)
+        .join("")}</tr></thead>
+      <tbody>
+        <tr><th scope="row">Recettes</th>${rangee(serie(RECETTES), "flux--plus", (n) => `+${pourcentage(n, true)}`)}</tr>
+        <tr><th scope="row">Dépenses</th>${rangee(serie(DEPENSES), "flux--moins", (n) => `−${pourcentage(n, true)}`)}</tr>
+      </tbody>
+      <tfoot><tr><th scope="row">Solde</th>${annees
+        .map(
+          (a) => `<td class="${soldes[a] < 0 ? "secu__besoin" : "secu__capacite"}">${echapper(points(soldes[a]))}</td>`,
+        )
+        .join("")}</tr></tfoot>
     </table>
 `;
 }

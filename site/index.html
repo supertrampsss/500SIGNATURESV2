@@ -198,20 +198,18 @@
     <div class="vue" id="vue-bilan" hidden>
 
       <!-- ═══════════════════════════════════════════════════════════════
-           BILAN, EN SIX CHAPITRES
+           BILAN, EN CINQ CHAPITRES
            ═══════════════════════════════════════════════════════════════
-           Onze blocs à la file, tous en pleine largeur, faisaient 18 289 px de
-           défilement — vingt écrans — sans qu'aucun ne réponde au précédent.
-           Quatre sujets y revenaient chacun trois ou quatre fois : la dépense
-           de l'État, sa décomposition, les retraites, le déficit.
+           Chaque chapitre pose UNE question et n'y répond qu'UNE fois. La
+           première version de cette page gardait, sous chaque question, les
+           anciens blocs EN PLUS de ceux de la maquette validée : sept cadres
+           que la maquette ne montrait pas, et la page livrée ne ressemblait
+           plus à ce qui avait été validé. La règle depuis : un chapitre porte
+           exactement les blocs de sa maquette, rien d'hérité — un bloc qu'on
+           veut garder se fait sa place dans une maquette, pas dans le code.
 
-           Il n'y avait pas de désordre : il n'y avait pas de fil. Chaque
-           chapitre pose UNE question et passe la main au suivant. Rien n'est
-           jeté — les blocs sont les mêmes, rangés sous la question à laquelle
-           ils répondent.
-
-           Les blocs qui tiennent côte à côte sont dans `.chapitre__paire` :
-           deux d'entre eux le faisaient déjà, neuf ne le faisaient pas. -->
+           Les blocs s'empilent, comme la maquette : la mise en deux colonnes
+           vit À L'INTÉRIEUR des blocs (`.chapitre__duo`), jamais entre eux. -->
       <section class="national" id="national" hidden>
         <h2>La France dans son ensemble</h2>
         <p class="national__unite">Montants en millions d'euros.</p>
@@ -223,7 +221,6 @@
           <p class="chapitre__perimetre">L'État, la Sécurité sociale, les collectivités et les
             organismes qu'ils financent, comptés ensemble.</p>
           <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
-          <article class="bloc bloc--large" id="bloc-conjoncture"></article>
           <!-- Le pont des périmètres : 1 562 milliards au chapitre 1, 380 au
                chapitre 2 — sans cette phrase, les deux chiffres d'encaissement
                se lisaient comme une contradiction. Rempli par le peintre de
@@ -239,34 +236,23 @@
           <!-- Les recettes avec leur évolution : montant 2017, montant 2025,
                variation. Une variation sans ses deux bouts ne se vérifie pas. -->
           <article class="bloc bloc--large" id="bloc-recettes-etat"></article>
-          <div class="chapitre__paire">
-            <article class="bloc" id="bloc-etat"></article>
-            <article class="bloc" id="bloc-niches"></article>
-          </div>
         </section>
 
         <section class="chapitre" id="chapitre-depenses">
           <p class="chapitre__rang">Chapitre 3</p>
           <h3 class="chapitre__question">Où va cet argent&nbsp;?</h3>
-          <p class="chapitre__perimetre">Toutes les administrations publiques réunies, puis
-            l'État seul et la dépense par fonction.</p>
+          <p class="chapitre__perimetre">Toutes les administrations publiques réunies&nbsp;:
+            chaque euro dépensé, rapporté à 100&nbsp;€ encaissés.</p>
           <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
-          <div class="chapitre__paire">
-            <article class="bloc" id="bloc-cent-euros"></article>
-            <article class="bloc" id="bloc-fonctions"></article>
-          </div>
         </section>
 
         <section class="chapitre" id="chapitre-pour-qui">
           <p class="chapitre__rang">Chapitre 4</p>
           <h3 class="chapitre__question">La redistribution&nbsp;: qui reçoit, qui paie&nbsp;?</h3>
-          <p class="chapitre__perimetre">Impôts et prestations réunis, puis les retraites et la
+          <p class="chapitre__perimetre">Impôts et prestations réunis, puis la
             Sécurité sociale.</p>
           <article class="bloc bloc--large" id="bloc-redistribution"></article>
-          <div class="chapitre__paire">
-            <article class="bloc" id="bloc-retraites"></article>
-            <article class="bloc" id="bloc-secu"></article>
-          </div>
+          <article class="bloc bloc--large" id="bloc-secu"></article>
         </section>
 
         <section class="chapitre" id="chapitre-tenable">
@@ -274,10 +260,7 @@
           <h3 class="chapitre__question">Est-ce tenable&nbsp;?</h3>
           <p class="chapitre__perimetre">La dette de toutes les administrations publiques, ce
             qu'elle coûte, et les voisins européens.</p>
-          <div class="chapitre__paire">
-            <article class="bloc" id="bloc-dette"></article>
-            <article class="bloc" id="bloc-europe"></article>
-          </div>
+          <article class="bloc bloc--large" id="bloc-dette"></article>
         </section>
       </section>
 

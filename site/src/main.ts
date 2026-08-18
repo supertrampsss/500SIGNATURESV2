@@ -25,13 +25,11 @@ import {
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
 import { afficherRedistribution } from "./redistribution.ts";
-import { afficherRetraites } from "./retraites.ts";
 import { afficherCentEurosApu } from "./cent-euros-apu.ts";
 import { afficherOuverture } from "./ouverture.ts";
 import { afficherRecettesEtat } from "./recettes-etat.ts";
 import { afficherTenable } from "./tenable.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
-import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
 import {
   afficherAtelier,
@@ -71,7 +69,6 @@ import { lister as listerScenarios, enregistrer as enregistrerScenario, renommer
 import { comparer as comparerScenarios } from "./comparaison.ts";
 import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
-import { afficherCentEuros } from "./cent-euros.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
@@ -88,10 +85,6 @@ import {
   type Evolution,
   type ModeVariation,
 } from "./evolution-carte.ts";
-import { afficherNational } from "./national.ts";
-import { afficherFonctions } from "./fonctions.ts";
-import { afficherConjoncture } from "./conjoncture.ts";
-import { afficherNiches } from "./niches.ts";
 import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
@@ -2612,10 +2605,12 @@ function peindreSommaireReperes(): void {
   if (!cadre) return;
   const entrees = [...document.querySelectorAll<HTMLElement>("#national .chapitre")]
     .filter((chapitre) =>
-      // Un cadre rempli porte son titre ; un cadre que le pré-rendu a replié
-      // faute de source n'en a pas. Un chapitre entier peut donc être vide.
-      [...chapitre.querySelectorAll<HTMLElement>(".bloc")].some((bloc) =>
-        bloc.querySelector("h2, h3"),
+      // Un cadre rempli porte des enfants ; un cadre que le pré-rendu a replié
+      // faute de source est vide. Le critère est le contenu, pas un titre :
+      // l'ouverture du chapitre 1 est une phrase et un tableau, sans h3, et un
+      // critère « porte un titre » l'aurait rayée du sommaire.
+      [...chapitre.querySelectorAll<HTMLElement>(".bloc")].some(
+        (bloc) => !bloc.hidden && bloc.childElementCount > 0,
       ),
     )
     .map((chapitre) => ({
@@ -4361,65 +4356,31 @@ async function demarrer(): Promise<void> {
   // pays sont disponibles.
   try {
     const pays = await donnees.territoires("pays", "tous");
-    // L'OUVERTURE d'abord, et la conjoncture après elle : la page ouvrait sur
-    // 1 412 px d'inflation et de croissance avant d'avoir dit de quoi elle
-    // parle. Le lecteur doit savoir en quatre secondes de combien il est
-    // question — ce qui est encaissé, ce qui est dépensé, l'écart — puis la
-    // conjoncture lui donne le pouls du moment.
+    // Les cinq chapitres portent EXACTEMENT les blocs de la maquette validée,
+    // et rien d'autre : la première mise en production gardait sept blocs
+    // hérités que la maquette ne montrait pas, et la page livrée ne
+    // ressemblait plus à ce qui avait été validé. Un bloc qui veut revenir
+    // ici passe d'abord par une maquette.
     if (afficherOuverture($("bloc-ouverture"), pays)) {
-      $("national").hidden = false;
-    }
-    if (afficherConjoncture($("bloc-conjoncture"), pays, catalogue)) {
-      $("national").hidden = false;
-    }
-    if (afficherTenable($("bloc-dette"), pays, catalogue)) {
-      $("national").hidden = false;
-    }
-    if (afficherNational($("bloc-europe"), pays, catalogue)) {
       $("national").hidden = false;
     }
     if (afficherRecettesEtat($("bloc-recettes-etat"), pays, catalogue)) {
       $("national").hidden = false;
     }
-    if (afficherFonctions($("bloc-fonctions"), pays, catalogue)) {
-      $("national").hidden = false;
-    }
-    if (afficherSecu($("bloc-secu"), pays, catalogue)) {
+    if (afficherCentEurosApu($("bloc-cent-euros-apu"), pays)) {
       $("national").hidden = false;
     }
     if (afficherRedistribution($("bloc-redistribution"), pays, catalogue)) {
       $("national").hidden = false;
     }
-    if (afficherRetraites($("bloc-retraites"), pays)) {
+    if (afficherSecu($("bloc-secu"), pays, catalogue)) {
       $("national").hidden = false;
     }
-    if (afficherCentEurosApu($("bloc-cent-euros-apu"), pays)) {
-      $("national").hidden = false;
-    }
-    // Les niches fiscales ont leur propre fichier — le détail des dispositifs
-    // n'a pas sa place dans une série pays — mais leur total en est un : le
-    // bloc a besoin des deux, il est donc chargé ici.
-    const niches = await donnees.depensesFiscales();
-    if (afficherNiches($("bloc-niches"), niches, pays, catalogue)) {
+    if (afficherTenable($("bloc-dette"), pays, catalogue)) {
       $("national").hidden = false;
     }
   } catch {
     // Les séries nationales ne sont pas encore publiées : la carte reste utile.
-  }
-
-  // Le budget de l'État a son propre fichier : il est chargé à part pour qu'une
-  // publication sans lui n'empêche pas le reste de s'afficher.
-  try {
-    const budget = await donnees.budgetEtat();
-    // « 100 € » d'abord : c'est la question que le lecteur se pose, le pont
-    // détaillé vient ensuite pour celui qui veut vérifier.
-    const dernier = exercicesDisponibles(budget)[0];
-    if (dernier) afficherCentEuros($("bloc-cent-euros"), budget, dernier);
-    if (afficherBudgetEtat($("bloc-etat"), budget)) {
-      $("national").hidden = false;
-    }
-  } catch {
-    // Budget de l'État non publié : le reste du bloc national tient debout.
   }
 
   peindreSommaireReperes();

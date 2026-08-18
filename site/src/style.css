@@ -3132,17 +3132,19 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────
-   LES SIX CHAPITRES DE BILAN
+   LES CINQ CHAPITRES DE BILAN
    ─────────────────────────────────────────────────────────────────────────
-   Le rang et la question sont la seule chrome ajoutée : un filet en tête de
-   chapitre, un rang en petites capitales, la question en serif. Rien de plus —
-   la page porte déjà onze cadres bordés, et un septième niveau de boîte les
-   rendrait illisibles.
+   Le rang et la question sont la seule chrome : un filet teinté en tête de
+   chapitre, un rang en petites capitales, la question en serif. Les blocs
+   d'un chapitre ne sont PAS des cartes — la maquette validée pose le contenu
+   à même la page, et la première mise en production, qui gardait les cadres
+   bordés, ne lui ressemblait plus.
 
-   `.chapitre__paire` met deux blocs côte à côte au-dessus de 60rem. C'est le
-   point de rupture existant du site, pas un seuil taillé pour cette grille :
-   onze blocs en pleine largeur dans 1 440 px faisaient vingt écrans de
-   défilement alors que deux d'entre eux prouvaient déjà que la place existe. */
+   `.chapitre__duo` pose l'affirmation à côté de sa preuve au-dessus de 60rem,
+   À L'INTÉRIEUR d'un bloc — jamais entre deux blocs, qui s'empilent comme
+   dans la maquette. (`.chapitre__paire`, qui mettait deux blocs côte à côte,
+   n'a plus d'occurrence au gabarit ; la règle reste pour la garde des
+   grilles.) */
 /* Chaque chapitre porte une identité de la gamme : filet, rang, totaux. La
    teinte dit « c'est ce chapitre-là », jamais un rang ni un jugement — les
    cinq sont des rangs de la gamme validée (voir --serie-1). */
@@ -3308,8 +3310,17 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 .tenable__rang .apu__piste span { background: var(--serie-5); }
 .tenable__rang--taux .apu__piste span { background: var(--serie-6); }
-.tenable__duo { display: grid; gap: var(--espace-7); margin-top: var(--espace-5); }
-@media (min-width: 60rem) { .tenable__duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+/* L'affirmation à côté de sa preuve, dans tous les blocs des chapitres :
+   `.tenable__duo` est né dans le bloc de la dette, `.chapitre__duo` est la
+   même grille pour les autres. `minmax(0, 1fr)` pour la raison écrite sous
+   `.chapitre` : un tableau qui défile dans son cadre ne doit pas pousser la
+   page. */
+.tenable__duo,
+.chapitre__duo { display: grid; gap: var(--espace-7); margin-top: var(--espace-5); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 60rem) {
+  .tenable__duo,
+  .chapitre__duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+}
 
 .chapitre__question {
   font-family: var(--serif);
@@ -3335,9 +3346,13 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   }
 }
 
-/* L'ouverture n'est pas un bloc comme les autres : c'est la thèse de la page.
-   Elle n'a donc ni bordure ni ombre — un cadre autour du titre d'un chapitre
-   le rangerait au même niveau que ce qu'il annonce. */
+/* Dans un chapitre, un bloc n'est pas une carte : la maquette validée pose
+   l'affirmation, la figure et le tableau à même la page, et le filet teinté
+   du chapitre suffit comme chrome. La règle vaut pour TOUS les blocs des
+   chapitres — la première mise en production les gardait bordés et ombrés,
+   et la page ne ressemblait plus à ce qui avait été validé. Hors des
+   chapitres (sources, fiche), `.bloc` reste une carte. */
+.chapitre .bloc,
 .ouverture.bloc {
   border: 0;
   box-shadow: none;

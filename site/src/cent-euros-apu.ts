@@ -243,53 +243,61 @@ export function rendu(pays: Record<string, Territoire>): string {
   const [premierPoste, ...autresPostes] = postes;
   const ventilation = renduVentilation(france);
 
+  // L'affirmation et les recettes à gauche, les dépenses en barres à droite,
+  // comme la maquette validée. Pas de titre de bloc : la question du chapitre,
+  // juste au-dessus, le porte déjà.
   return `
-    <h3>Pour 100 € encaissés, ce qui ressort</h3>
-    <p class="bloc__complement">Toutes les administrations publiques réunies
-      (l'État, les collectivités, la Sécurité sociale et les organismes qu'ils
-      financent) ont encaissé <strong>${montantLisible(total)}</strong> en
-      ${echapper(exercice)} et dépensé <strong>${pour100(depense)}</strong> pour chaque
-      100 € reçus. Les <strong>${pour100(Math.abs(solde))}</strong> manquants ont été
-      empruntés : c'est le déficit public.</p>
-    <table class="comparaison" tabindex="0">
-      <caption>Comptabilité nationale, exercice ${echapper(exercice)}. Ce tableau ne se
-        soustrait ni des « 100 € du budget de l'État », qui comptent l'État seul en
-        comptabilité budgétaire, ni des « 100 € de prestations sociales », qui
-        répartissent une dépense et non un encaissement. Source : Eurostat, comptes
-        des administrations publiques.</caption>
-      <thead><tr><th scope="col">D'où viennent les 100 €</th>
-        <th scope="col">Montant</th></tr></thead>
-      <tbody>${ressources
-        .map(
-          ([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th>
-            <td class="flux--plus">+${pour100(valeur)}</td></tr>`,
-        )
-        .join("")}
-        <tr><th scope="row">Ventes de services et autres recettes</th>
-          <td class="flux--plus">+${pour100(autresRecettes)}</td></tr>
-        <tr class="souligne"><th scope="row">Total encaissé</th>
-          <td class="flux--plus">+${pour100(100)}</td></tr>
-      </tbody>
-    </table>
-    <h4>Où ils vont</h4>
-    ${
-      ventilation
-        ? `<details class="apu__ouvrir">
-      <summary>
-        <div class="apu__rang">
-          <span class="apu__nom">${echapper(premierPoste[0])}</span>
-          <span class="apu__piste"><span style="width:100%"></span></span>
-          <span class="apu__valeur flux--moins">−${pour100(premierPoste[1] ?? 0)}</span>
-        </div>
-      </summary>
-      ${ventilation}
-    </details>`
-        : rang(premierPoste[0], premierPoste[1] ?? 0)
-    }
-    ${autresPostes.map(([libelle, valeur]) => rang(libelle, valeur ?? 0)).join("")}
-    ${rang("Autres dépenses", reste)}
-    ${rang("Total dépensé", depense, { total: true })}
-    ${rang("Dépensé sans avoir été reçu : l'emprunt", Math.abs(solde), { creux: true })}`;
+    <div class="chapitre__duo">
+      <div>
+        <p class="bloc__complement">Toutes les administrations publiques réunies
+          (l'État, les collectivités, la Sécurité sociale et les organismes qu'ils
+          financent) ont encaissé <strong>${montantLisible(total)}</strong> en
+          ${echapper(exercice)} et dépensé <strong>${pour100(depense)}</strong> pour chaque
+          100 € reçus. Les <strong>${pour100(Math.abs(solde))}</strong> manquants ont été
+          empruntés : c'est le déficit public.</p>
+        <table class="comparaison" tabindex="0">
+          <caption>Comptabilité nationale, exercice ${echapper(exercice)}. Ce tableau ne se
+            soustrait ni des « 100 € du budget de l'État », qui comptent l'État seul en
+            comptabilité budgétaire, ni des « 100 € de prestations sociales », qui
+            répartissent une dépense et non un encaissement. Source : Eurostat, comptes
+            des administrations publiques.</caption>
+          <thead><tr><th scope="col">D'où viennent les 100 €</th>
+            <th scope="col">Montant</th></tr></thead>
+          <tbody>${ressources
+            .map(
+              ([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th>
+                <td class="flux--plus">+${pour100(valeur)}</td></tr>`,
+            )
+            .join("")}
+            <tr><th scope="row">Ventes de services et autres recettes</th>
+              <td class="flux--plus">+${pour100(autresRecettes)}</td></tr>
+            <tr class="souligne"><th scope="row">Total encaissé</th>
+              <td class="flux--plus">+${pour100(100)}</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h4>Où ils vont</h4>
+        ${
+          ventilation
+            ? `<details class="apu__ouvrir">
+          <summary>
+            <div class="apu__rang">
+              <span class="apu__nom">${echapper(premierPoste[0])}</span>
+              <span class="apu__piste"><span style="width:100%"></span></span>
+              <span class="apu__valeur flux--moins">−${pour100(premierPoste[1] ?? 0)}</span>
+            </div>
+          </summary>
+          ${ventilation}
+        </details>`
+            : rang(premierPoste[0], premierPoste[1] ?? 0)
+        }
+        ${autresPostes.map(([libelle, valeur]) => rang(libelle, valeur ?? 0)).join("")}
+        ${rang("Autres dépenses", reste)}
+        ${rang("Total dépensé", depense, { total: true })}
+        ${rang("Dépensé sans avoir été reçu : l'emprunt", Math.abs(solde), { creux: true })}
+      </div>
+    </div>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

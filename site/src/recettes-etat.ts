@@ -173,28 +173,37 @@ export function rendu(
     )
     .join("");
 
+  // L'affirmation à gauche, la preuve à droite, comme la maquette validée.
+  // Pas de titre de bloc : la question du chapitre, juste au-dessus, le porte
+  // déjà — « D'où vient l'argent de l'État ? » suivi d'un second titre disait
+  // deux fois la même chose.
   return `
-    <h3>Les recettes de l'État, et d'où elles viennent</h3>
-    <p class="bloc__complement">Depuis ${echapper(debut)}, les recettes de l'État ont augmenté
-      de <strong>${echapper(variation(total.avant, total.apres))}</strong>${
-        inflation
-          ? ` pendant que les prix montaient de <strong>${echapper(
-              inflation.replace("+", ""),
-            )}</strong> : une fois l'inflation retirée, elles n'ont presque pas bougé`
-          : ""
-      }.</p>
-    <table class="comparaison recettes" tabindex="0">
-      <caption>Milliards d'euros, exercices réellement exécutés. « Autres impôts et taxes »
-        est la soustraction des trois impôts nommés du total des recettes fiscales.
-        Source : situation mensuelle budgétaire de l'État au 31 décembre.</caption>
-      <thead><tr><th scope="col">Recettes</th><th scope="col">${echapper(debut)}</th>
-        <th scope="col">${echapper(fin)}</th><th scope="col">Variation</th></tr></thead>
-      <tbody>${rangees}</tbody>
-      <tfoot><tr><th scope="row">${echapper(total.libelle)}</th>
-        <td class="flux--plus">${plus(total.avant)}</td>
-        <td class="flux--plus">${plus(total.apres)}</td>
-        <td>${echapper(variation(total.avant, total.apres))}</td></tr></tfoot>
-    </table>`;
+    <div class="chapitre__duo">
+      <div>
+        <p class="bloc__complement">Depuis ${echapper(debut)}, les recettes de l'État ont augmenté
+          de <strong>${echapper(variation(total.avant, total.apres))}</strong>${
+            inflation
+              ? ` pendant que les prix montaient de <strong>${echapper(
+                  inflation.replace("+", ""),
+                )}</strong> : une fois l'inflation retirée, elles n'ont presque pas bougé`
+              : ""
+          }.</p>
+      </div>
+      <div>
+        <table class="comparaison recettes" tabindex="0">
+          <caption>Milliards d'euros, exercices réellement exécutés. « Autres impôts et taxes »
+            est la soustraction des trois impôts nommés du total des recettes fiscales.
+            Source : situation mensuelle budgétaire de l'État au 31 décembre.</caption>
+          <thead><tr><th scope="col">Recettes</th><th scope="col">${echapper(debut)}</th>
+            <th scope="col">${echapper(fin)}</th><th scope="col">Variation</th></tr></thead>
+          <tbody>${rangees}</tbody>
+          <tfoot><tr><th scope="row">${echapper(total.libelle)}</th>
+            <td class="flux--plus">${plus(total.avant)}</td>
+            <td class="flux--plus">${plus(total.apres)}</td>
+            <td>${echapper(variation(total.avant, total.apres))}</td></tr></tfoot>
+        </table>
+      </div>
+    </div>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

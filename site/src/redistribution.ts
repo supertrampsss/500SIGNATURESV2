@@ -154,25 +154,33 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
   <p class="bloc__complement">Point clair : avant impôts et prestations. Point plein :
     après. Trait plein : le revenu monte ; hachures : il descend.</p>`;
 
+  // Les haltères à gauche, le tableau des neuf seuils à droite, comme la
+  // maquette validée (4.1 et 4.4 de la shortlist). L'affirmation reste en
+  // pleine largeur au-dessus des deux.
   return `
-    <h3>Ce que la redistribution change</h3>
     <p class="bloc__complement">En ${echapper(exercice)}, le seuil des 10 % les plus
       modestes passe de <strong>${euros(premier.avant, AVANT(1))}</strong> à
       <strong>${euros(premier.apres, APRES(1))}</strong> par an, celui des 10 % les plus
       aisés de <strong>${euros(dernier.avant, AVANT(9))}</strong> à
       <strong>${euros(dernier.apres, APRES(9))}</strong>.</p>
     ${resserrement}
-    ${halteres}
-    <table class="comparaison" tabindex="0">
-      <caption>Seuils de niveau de vie annuel, France métropolitaine, euros courants de
-        ${echapper(exercice)}. Un seuil n'est pas un revenu moyen : les 10 % les plus
-        modestes vivent avec <em>moins</em> que le premier seuil. Source : INSEE, enquête
-        Revenus fiscaux et sociaux rétropolée.</caption>
-      <thead><tr><th scope="col">Seuil qui sépare</th>
-        <th scope="col">Avant impôts et prestations</th>
-        <th scope="col">Après</th><th scope="col">Ce que ça change</th></tr></thead>
-      <tbody>${rangees}</tbody>
-    </table>`;
+    <div class="chapitre__duo">
+      <div>
+        ${halteres}
+      </div>
+      <div>
+        <table class="comparaison" tabindex="0">
+          <caption>Seuils de niveau de vie annuel, France métropolitaine, euros courants de
+            ${echapper(exercice)}. Un seuil n'est pas un revenu moyen : les 10 % les plus
+            modestes vivent avec <em>moins</em> que le premier seuil. Source : INSEE, enquête
+            Revenus fiscaux et sociaux rétropolée.</caption>
+          <thead><tr><th scope="col">Seuil qui sépare</th>
+            <th scope="col">Avant impôts et prestations</th>
+            <th scope="col">Après</th><th scope="col">Ce que ça change</th></tr></thead>
+          <tbody>${rangees}</tbody>
+        </table>
+      </div>
+    </div>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

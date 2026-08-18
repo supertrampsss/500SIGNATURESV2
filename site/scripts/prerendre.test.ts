@@ -1206,7 +1206,9 @@ const CADRES_REPERES = [
 test("15 quinquies. la liste des cadres se lit dans le gabarit, et elle n'est pas vide", () => {
   // Sans cette sonde, un gabarit remanié rendrait une liste vide et les deux
   // tests qui la parcourent passeraient en ne vérifiant rien.
-  assert.ok(CADRES_REPERES.length >= 12, `${CADRES_REPERES.length} cadre(s) lus dans le gabarit`);
+  // Six cadres : un par chapitre, deux au chapitre 4 — exactement la maquette
+  // validée, et rien d'hérité.
+  assert.ok(CADRES_REPERES.length >= 6, `${CADRES_REPERES.length} cadre(s) lus dans le gabarit`);
   assert.equal(new Set(CADRES_REPERES).size, CADRES_REPERES.length, "un cadre est déclaré deux fois");
   assert.ok(CADRES_REPERES.includes("bloc-cent-euros-apu"), CADRES_REPERES.join(", "));
 });
@@ -1316,27 +1318,20 @@ const BUDGET_ESSAI: BudgetEtat = {
 const REPERES_ESSAI = () =>
   injecterReperes(GABARIT_REEL, PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI);
 
-test("15. /bilan sert ses huit blocs sans exécuter une ligne", () => {
+test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
   const html = REPERES_ESSAI();
   const texte = texteDuMain(html);
 
-  // Le titre de chaque bloc, dans les mots que le module rend — jamais une
-  // chaîne tapée ici, qui ne dirait rien de ce que la page écrit vraiment.
-  for (const titre of [
-    "Où en est l'économie ?",
-    "La dette, et ce qu'elle coûte",
-    "La France et ses voisins",
-    "100 € du budget de l'État",
-    "Que finance la dépense publique ?",
+  // Ce que les deux blocs alimentés par ce fixture écrivent, dans les mots que
+  // le module rend — jamais une chaîne tapée ici, qui ne dirait rien de ce que
+  // la page écrit vraiment. Les quatre autres blocs n'ont pas leurs séries
+  // dans ce fixture : le test « 15 ter » vérifie qu'ils partent repliés.
+  for (const phrase of [
+    "la charge de la dette va augmenter",
     "La Sécu est-elle en déficit ?",
-    "Budget de l'État",
   ]) {
-    assert.ok(texte.includes(titre), `le bloc « ${titre} » n'est pas servi`);
+    assert.ok(texte.includes(phrase), `« ${phrase} » n'est pas servi`);
   }
-  // Le huitième titre porte une espace insécable, écrite en entité HTML : elle
-  // traverse l'injection telle quelle, et l'attendre en espace ordinaire
-  // ferait passer ce test pour la mauvaise raison le jour où elle sauterait.
-  assert.ok(texte.includes("Les niches fiscales, c'est combien&nbsp;?"), "le bloc des niches n'est pas servi");
 
   // Un chiffre donné en entrée, ressorti formaté par le formateur commun : la
   // preuve que les blocs ont lu les séries et pas un repli. Lu sur le HTML et
@@ -1346,12 +1341,10 @@ test("15. /bilan sert ses huit blocs sans exécuter une ligne", () => {
   assert.ok(/\u202f/.test(detteMd), `« ${detteMd} » sans séparateur : cette sonde ne prouverait rien`);
   assert.ok(html.includes(detteMd), `la dette publiée « ${detteMd} » n'est pas servie`);
 
-  // Et il en reste beaucoup plus que les 2 597 signes de l'accueil, qui est ce
-  // que ce chemin servait. Le seuil était de 6 000 quand la page portait aussi
-  // les seize questions d'entrée ; elles sont parties avec la refonte en
-  // chapitres — elles doublaient le sommaire — et le seuil suit la mesure :
-  // 3 935 signes sur ce catalogue d'essai, contre 2 597 pour l'accueil seul.
-  assert.ok(texte.length > 3500, `<main> ne porte que ${texte.length} signes de texte`);
+  // Le seuil suit la mesure : 2 181 signes sur ce fixture, qui n'alimente que
+  // deux des six blocs — la page réduite à la maquette validée porte moins de
+  // texte que celle qui gardait les sept blocs hérités, et c'est voulu.
+  assert.ok(texte.length > 2000, `<main> ne porte que ${texte.length} signes de texte`);
 });
 
 test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil replié", () => {
@@ -1381,22 +1374,22 @@ test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil rep
 });
 
 test("15 ter. un bloc sans source publiée est replié, jamais laissé vide", () => {
-  // `.bloc` est un cadre bordé, ombré : déplié et vide, il se lit comme une
-  // panne. Ici, ni budget de l'État ni niches ne sont publiés.
-  const html = injecterReperes(
-    GABARIT_REEL,
-    PAYS_ESSAI,
-    CATALOGUE_REPERES,
-    { exercices: [], realise: null, dispositifs: [] },
-    { etapes: [], lignes: [], exercices: {}, quarantaine: {} },
-  );
-  for (const id of ["bloc-cent-euros", "bloc-etat", "bloc-niches"]) {
+  // Un cadre déplié et vide se lit comme une panne. Le fixture n'alimente que
+  // la dette et la Sécu : les quatre autres blocs des chapitres doivent partir
+  // repliés.
+  const html = REPERES_ESSAI();
+  for (const id of [
+    "bloc-ouverture",
+    "bloc-recettes-etat",
+    "bloc-cent-euros-apu",
+    "bloc-redistribution",
+  ]) {
     assert.match(html, new RegExp(`id="${id}"[^>]* hidden>`), `« ${id} » est resté déplié et vide`);
   }
   // Les blocs qui ont leurs séries, eux, sont écrits — sans quoi ce test
   // passerait sur une page entièrement repliée sans rien prouver.
   assert.doesNotMatch(html, /id="bloc-dette"[^>]* hidden>/);
-  assert.ok(texteDuMain(html).includes("La dette, et ce qu'elle coûte"));
+  assert.ok(texteDuMain(html).includes("la charge de la dette va augmenter"));
 });
 
 test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repères", () => {

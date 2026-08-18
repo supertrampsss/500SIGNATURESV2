@@ -212,8 +212,10 @@ export function rendu(
       }).join("")
     : "";
 
+  // Pas de titre de bloc : la question du chapitre — « Est-ce tenable ? » —
+  // est juste au-dessus, et la maquette validée pose la réponse directement
+  // sous elle.
   return `
-    <h3>La dette, et ce qu'elle coûte</h3>
     ${reponse}
     <div class="tenable__duo">
       <div>

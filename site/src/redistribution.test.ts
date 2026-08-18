@@ -54,7 +54,10 @@ const texte = (html: string) =>
 test("les deux colonnes et leur écart, décile par décile", () => {
   const html = rendu({ FR: territoire(series()) }, CATALOGUE);
   const lu = texte(html);
-  assert.match(lu, /Ce que la redistribution change/);
+  // Pas de titre de bloc : la question du chapitre — « La redistribution :
+  // qui reçoit, qui paie ? » — est juste au-dessus dans le gabarit, et la
+  // maquette validée n'en met pas de second.
+  assert.doesNotMatch(lu, /Ce que la redistribution change/);
   // Neuf lignes, et les rangs se lisent en toutes lettres : « D3 » ne se lit
   // pas.
   assert.match(lu, /les 10\s?% les plus modestes/);
