@@ -10,7 +10,6 @@ import { test } from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { DEPENSES, RECETTES, SOLDE, points, rendu } from "./secu.ts";
-import { QUESTIONS } from "./questions.ts";
 
 const FINE = " ";
 
@@ -110,9 +109,6 @@ test("le premier titre du bloc répond à la question qui pointe dessus", () => 
   assert.match(html, /100.{0,8}€ de prestations sociales/);
   assert.match(html, /La Sécu est-elle en déficit/);
 
-  const question = QUESTIONS.find((q) => q.cible === "#bloc-secu");
-  assert.ok(question, "aucune question ne pointe sur #bloc-secu");
-  assert.equal(question.question, "La Sécu est-elle en déficit ?");
   const premier = html.slice(html.indexOf("<h3"), html.indexOf("</h3>"));
   assert.match(premier, /déficit/i, `premier titre du bloc : ${premier}`);
 });

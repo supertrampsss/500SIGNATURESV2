@@ -29,9 +29,7 @@
  * lecteur additionne pour vérifier le total.
  */
 
-import { pourcentage } from "./echelle.ts";
 import {
-  SOLVABILITE_POINTS,
   bornes,
   exercicesNotables,
   mention,
@@ -51,24 +49,23 @@ function points(valeur: number): string {
   return valeur.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
-/** Une décimale, et l'accord du nom qui suit.
+/** La valeur nue, une décimale, sans son nom.
  *
- *  En français, le pluriel commence à 2 : « 1,5 année », « 0,7 point ». Le
- *  bloc écrivait « −0,7 points de marge », qui se lit comme une faute de
- *  frappe et fait douter du reste.
+ *  **L'unité s'écrit une fois par ligne, dans la colonne d'intitulé.** Elle
+ *  était collée à chaque valeur — « 26,3 % des recettes », « 7,5 années
+ *  d'épargne » —, ce qui faisait quatre colonnes de phrases là où le lecteur
+ *  veut quatre colonnes de nombres, et poussait la colonne des points hors du
+ *  cadre : « / 8 » était coupé, vu au navigateur.
  *
- *  L'espace entre le nombre et son nom est **insécable**, comme partout où ce
- *  site pose une unité (`montantLisible`). Elle est écrite `\u00a0` et non
- *  tapée au clavier : une insécable tapée à la main est invisible à la
- *  relecture, et neuf vérifications de ce dépôt sont passées pour vertes à
- *  cause d'une espace qu'on croyait ordinaire. */
-function nombreEtNom(valeur: number, singulier: string): string {
-  const nombre = Math.abs(valeur).toLocaleString("fr-FR", {
+ *  Le signe reste porté par l'appelant, parce que lui seul sait si la mesure
+ *  se lit signée : un taux d'épargne ne l'est pas, un écart l'est toujours. */
+function nombre(valeur: number): string {
+  return Math.abs(valeur).toLocaleString("fr-FR", {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   });
-  return `${nombre}\u00a0${singulier}${Math.abs(valeur) >= 2 ? "s" : ""}`;
 }
+
 
 /**
  * Les trois lignes du détail : le terme, la mesure qui le produit, ses points.
@@ -79,7 +76,14 @@ function nombreEtNom(valeur: number, singulier: string): string {
  * trajectoire est un écart entre deux pourcentages, l'écrire « +14 % » serait
  * faux de la façon exacte que le dépôt refuse partout ailleurs.
  */
-export function lignes(note: Note): { terme: string; mesure: string; points: string; sur: number }[] {
+export function lignes(note: Note): {
+  terme: string;
+  unite: string;
+  mesure: string;
+  evolution: string | null;
+  points: string;
+  sur: number;
+}[] {
   const { mesures, detail } = note;
   // Le barème de l'échelon qui a produit la note, jamais un autre : les points
   // sur lesquels chaque terme est noté se lisent là où ils ont été calculés.
@@ -88,32 +92,50 @@ export function lignes(note: Note): { terme: string; mesure: string; points: str
   return [
     {
       terme: "Marge de fonctionnement",
-      mesure: `${pourcentage(mesures.tauxEpargne, true)} des recettes`,
+      // **L'unité s'écrit une fois, dans la colonne d'intitulé.** Elle était
+      // collée à chaque valeur — « 26,3 % des recettes », « 7,5 années
+      // d'épargne » —, ce qui donnait quatre colonnes de phrases là où le
+      // lecteur veut quatre colonnes de nombres, et poussait la colonne des
+      // points hors du cadre. Mesuré au navigateur : « / 8 » était coupé.
+      unite: "% des recettes",
+      mesure: nombre(mesures.tauxEpargne),
+      // L'évolution de la marge EST la trajectoire : elle s'écrit ici, sur la
+      // ligne de la mesure dont elle est l'écart, et le troisième terme ne la
+      // répète pas — un même nombre écrit deux fois dans un tableau de trois
+      // lignes se lit comme une erreur.
+      evolution:
+        mesures.trajectoire === null
+          ? null
+          : `${mesures.trajectoire >= 0 ? "+" : "−"}${nombre(mesures.trajectoire)}`,
       points: points(detail.marge),
       sur: BORNES.MARGE.points,
     },
     {
       terme: "Poids de la dette",
+      unite: "années d'épargne",
       mesure:
         mesures.desendettement === null
           ? // Le ratio n'existe pas quand l'épargne est nulle ou négative. Écrire
             // « l'infini » ferait passer une impossibilité pour une durée ; la
             // phrase dit ce que la mesure dit.
             "aucune épargne pour rembourser"
-          : `${nombreEtNom(mesures.desendettement, "année")} d'épargne`,
+          : nombre(mesures.desendettement),
+      evolution: null,
       points: points(detail.dette),
       sur: BORNES.DETTE.points,
     },
     {
-      terme: "Trajectoire depuis 2019",
-      mesure:
-        mesures.trajectoire === null
-          ? "exercice 2019 non publié"
-          : // **Un taux varie en points, jamais en pourcentage.** La trajectoire
-            // est l'écart entre deux taux d'épargne : l'écrire « −4,9 % »
-            // dirait que la marge a baissé de 4,9 % de sa valeur, quand elle a
-            // perdu 4,9 points de recettes.
-            `${mesures.trajectoire >= 0 ? "+" : "−"}${nombreEtNom(mesures.trajectoire, "point")} de marge`,
+      // **La trajectoire n'est pas une valeur de 2025.** Elle était affichée
+      // dans la colonne de l'exercice d'arrivée, où elle se lisait comme une
+      // mesure de cet exercice : c'est un ÉCART entre deux exercices, et elle a
+      // donc sa propre colonne.
+      terme: "Trajectoire de la marge",
+      unite: "points de marge",
+      // Ce terme n'a ni valeur de départ ni valeur d'arrivée : il note l'écart
+      // écrit une ligne plus haut. Ses trois cellules restent donc vides, et la
+      // légende dit ce qu'il note.
+      mesure: "",
+      evolution: "",
       points: points(detail.trajectoire),
       sur: BORNES.TRAJECTOIRE.points,
     },
@@ -203,84 +225,6 @@ function periode(depuis: string, jusqu?: string | null): string {
 }
 
 /**
- * La solvabilité exercice par exercice — dont 2019, la première colonne.
- *
- * ─────────────────────────────────────────────────────────────────────────
- * POURQUOI CE TABLEAU EXISTE, ET POURQUOI IL EST SUR 16
- * ─────────────────────────────────────────────────────────────────────────
- * Une note seule laisse ouverte la question qu'on se pose juste après :
- * « et avant, c'était mieux ? ». La trajectoire y répond pour la marge, en
- * points, mais elle ne dit rien de la dette — une collectivité peut avoir
- * gagné de la marge en empruntant.
- *
- * Le total est sur 16 et non sur 20 parce que le troisième terme de la note
- * est un écart depuis 2019 : il n'existe pas POUR 2019, et le porter demanderait
- * une borne six ans plus tôt que les fichiers ne publient pas (`note.ts`).
- * Deux totaux différents sur un même écran est un risque de confusion, et il
- * est pris délibérément : l'alternative — donner au terme sa demi-valeur par
- * défaut à chaque exercice ancien — poserait un remplissage là où le lecteur
- * lirait une mesure.
- *
- * ─────────────────────────────────────────────────────────────────────────
- * L'UNITÉ NE SE MÊLE PAS
- * ─────────────────────────────────────────────────────────────────────────
- * Ce tableau est le sien, et non une ligne ajoutée au tableau « Évolution » :
- * celui-ci aligne des euros sous une seule échelle nommée dans sa légende, et
- * y glisser une ligne en points mêlerait deux unités dans une même table.
- */
-export function rendreParcours(
-  series: Record<string, Record<string, number>>,
-  niveau: string,
-  executif?: { nom: string; depuis: string | null },
-  role = "",
-  jusqu?: string | null,
-): string {
-  const exercices = exercicesNotables(series);
-  // Une colonne unique ne se compare pas : le tableau ne s'écrit qu'à partir
-  // de deux exercices, comme le tableau des exercices du reste de la fiche.
-  if (exercices.length < 2) return "";
-  const colonnes = exercices
-    .map((exercice) => solvabilite(series, exercice, niveau))
-    .filter((c): c is NonNullable<typeof c> => c !== null);
-  if (colonnes.length < 2) return "";
-
-  const entetes = colonnes.map((c) => `<th scope="col">${echapper(c.exercice)}</th>`).join("");
-  const ligne = (
-    intitule: string,
-    cellule: (c: (typeof colonnes)[number]) => string,
-    classe = "",
-  ) =>
-    `<tr${classe ? ` class="${classe}"` : ""}><th scope="row">${echapper(intitule)}</th>${colonnes
-      .map((c) => `<td>${echapper(cellule(c))}</td>`)
-      .join("")}</tr>`;
-
-  return `<details class="note__parcours">
-    <summary>La note, exercice par exercice</summary>
-    <div class="note__parcours-cadre" tabindex="0">
-      <table class="note__parcours-table">
-        <caption>Marge et dette seules, sur ${SOLVABILITE_POINTS} points : le troisième terme de la note est un écart depuis 2019, il n'existe pas pour 2019 même.${phraseExecutif(
-          executif,
-          role,
-          colonnes.map((c) => c.exercice),
-        )}</caption>
-        <thead><tr><th scope="col">Exercice</th>${entetes}</tr></thead>
-        <tbody>
-          ${ligne("Marge de fonctionnement", (c) => pourcentage(c.tauxEpargne, true))}
-          ${ligne("Poids de la dette", (c) =>
-            c.desendettement === null ? "aucune épargne" : nombreEtNom(c.desendettement, "année"),
-          )}
-          ${ligne(
-            `Solvabilité sur ${SOLVABILITE_POINTS}`,
-            (c) => points(c.valeur),
-            "note__parcours-total",
-          )}
-        </tbody>
-      </table>
-    </div>
-  </details>`;
-}
-
-/**
  * Le bloc entier.
  *
  * `series` et `niveau` servent le tableau exercice par exercice, qui répond à
@@ -302,7 +246,6 @@ export function rendreNote(
 ): string {
   if (!note) return "";
   const total = points(note.valeur);
-  const parcours = rendreParcours(series, note.niveau, executif, role, jusqu);
   // ─────────────────────────────────────────────────────────────────────
   // DEUX COLONNES : LE DÉPART ET L'ARRIVÉE
   // ─────────────────────────────────────────────────────────────────────
@@ -326,39 +269,56 @@ export function rendreNote(
       : null;
   const cellulesDebut: Record<string, string> = debut
     ? {
-        "Marge de fonctionnement": pourcentage(debut.tauxEpargne, true),
+        "Marge de fonctionnement": nombre(debut.tauxEpargne),
         "Poids de la dette":
           debut.desendettement === null
             ? "aucune épargne"
-            : nombreEtNom(debut.desendettement, "année"),
+            : nombre(debut.desendettement),
       }
     : {};
   const colonneDebut = Object.keys(cellulesDebut).length > 0;
 
+  // L'évolution de chaque terme, quand ses deux bouts existent. Celle de la
+  // marge est la trajectoire elle-même : elle n'est donc PAS répétée sur la
+  // ligne de la marge — le troisième terme la porte, avec les points qu'elle
+  // vaut, et un même nombre écrit deux fois dans un tableau de trois lignes se
+  // lit comme une erreur.
+  const evolutionDette =
+    debut && debut.desendettement !== null && note.mesures.desendettement !== null
+      ? `${note.mesures.desendettement - debut.desendettement >= 0 ? "+" : "−"}${nombre(
+          note.mesures.desendettement - debut.desendettement,
+        )}`
+      : null;
+  const cellulesEvolution: Record<string, string | null> = { "Poids de la dette": evolutionDette };
+
+  // **Une cellule vide reste vide.** « Sans objet » écrit trois fois sur la
+  // ligne de la trajectoire remplissait de mots une ligne qui n'a qu'un
+  // chiffre à donner, et le lecteur y lisait une panne. Ce que ces cellules
+  // n'ont pas à dire, la légende le dit une fois.
+  const cellule = (contenu: string | null | undefined, classe: string) =>
+    `<td class="${classe}">${contenu ? echapper(contenu) : ""}</td>`;
+
   const rangs = lignes(note)
     .map(
       (l) => `<tr>
-        <th scope="row">${echapper(l.terme)}</th>${
-          colonneDebut
-            ? `<td class="note__mesure note__mesure--debut">${
-                cellulesDebut[l.terme] === undefined
-                  ? '<span class="note__vide">sans objet</span>'
-                  : echapper(cellulesDebut[l.terme])
-              }</td>`
-            : ""
+        <th scope="row">${echapper(l.terme)}<span class="note__unite">${echapper(
+          l.unite,
+        )}</span></th>${
+          colonneDebut ? cellule(cellulesDebut[l.terme], "note__mesure note__mesure--debut") : ""
         }
-        <td class="note__mesure">${echapper(l.mesure)}</td>
+        ${cellule(l.mesure, "note__mesure")}
+        ${cellule(l.evolution ?? cellulesEvolution[l.terme], "note__mesure note__mesure--ecart")}
         <td class="note__points">${echapper(l.points)}<span class="note__sur"> / ${l.sur}</span></td>
       </tr>`,
     )
     .join("");
 
-  const entete = colonneDebut
-    ? `<thead><tr><th scope="col"></th>
-        <th scope="col">${echapper(premier ?? "")}</th>
-        <th scope="col">${echapper(note.mesures.exercice)}</th>
-        <th scope="col">Points</th></tr></thead>`
-    : "";
+  const entete = `<thead><tr><th scope="col"></th>${
+    colonneDebut ? `<th scope="col">${echapper(premier ?? "")}</th>` : ""
+  }
+      <th scope="col">${echapper(note.mesures.exercice)}</th>
+      <th scope="col">Évolution</th>
+      <th scope="col">Points</th></tr></thead>`;
 
   return `<section class="note" aria-labelledby="note-titre">
     <h3 class="note__titre" id="note-titre">Gestion financière</h3>
@@ -367,12 +327,13 @@ export function rendreNote(
     <table class="note__detail">
       <caption>Exercice ${echapper(note.mesures.exercice)}${
         colonneDebut
-          ? `, comparé à ${echapper(premier ?? "")} : les points sont ceux de ${echapper(note.mesures.exercice)}`
+          ? `, comparé à ${echapper(premier ?? "")} : les points sont ceux de ${echapper(
+              note.mesures.exercice,
+            )}. La trajectoire note l'évolution de la marge`
           : ""
       }. Source : OFGL, comptes des collectivités locales.</caption>
       ${entete}
       <tbody>${rangs}</tbody>
     </table>
-    ${parcours}
   </section>`;
 }

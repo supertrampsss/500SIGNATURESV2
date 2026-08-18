@@ -252,6 +252,8 @@ export function renduSources(jeux: readonly Jeu[]): string {
 export function renduMethode(): string {
   return `
     <h3>${TITRES.methode}</h3>
+    <details class="methode__pli">
+    <summary>Voir comment un chiffre passe du fichier du producteur à l'écran</summary>
     <p class="methode-methode__intro">
       Deux chemins, qui ne se croisent qu'une fois. Les chiffres viennent des
       fichiers de leurs producteurs et sont republiés tels que le pipeline les a
@@ -360,6 +362,8 @@ export function renduMethode(): string {
       d'audience : les seules requêtes qu'elle émet vont chercher les fichiers
       publiés et les tuiles de la carte.
     </p>
+    </details>
+    </details>
   `;
 }
 
@@ -387,6 +391,8 @@ export function renduGrille(): string {
 
   return `
     <h3>${TITRES.grille}</h3>
+    <details class="methode__pli">
+    <summary>Voir les crans du verdict, les confusions et les registres</summary>
     <p class="methode-grille__intro">
       Les règles que chaque analyse suit, écrites avant les analyses elles-mêmes :
       les crans que le site peut rendre, les confusions qu'il peut nommer, les
@@ -426,5 +432,7 @@ export function renduGrille(): string {
       dans le critère. La file des sujets est publique — les issues du dépôt
       — ce qui rend le biais de sélection observable.
     </p>
+    </details>
+    </details>
   `;
 }

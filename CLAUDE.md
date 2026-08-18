@@ -470,6 +470,73 @@ pour ne plus l'être.
 
 ### Fait
 
+- **« Illisible », et cette fois la mesure ne suffisait pas** (18 août 2026).
+  Le bilan avait perdu un quart de sa longueur et gardait tout ce qui n'était
+  pas le récit : seize questions d'entrée qui doublaient le sommaire, le
+  palmarès des communes, le tableau de classement d'une couche de carte, et
+  7 683 px de sources et de méthode. « Tout ce qui n'est pas lié aux chapitres
+  doit disparaître » — et c'était juste.
+
+  | | avant | après |
+  |---|---|---|
+  | Défilement de `/bilan` | 19 283 px | **9 228 px** |
+  | Pied « sources et méthode » | 7 683 px | 420 px |
+  | Questions d'entrée | 351 px | parties |
+  | Tableaux de territoire | 1 457 px | passés sous la carte |
+  | Chapitre 1 | 1 678 px | 1 103 px |
+
+  **Le classement suit ce qu'il range.** Palmarès, tableau de la couche,
+  export et comparateur vivaient au pied du bilan : ils rangent une couche de
+  carte — un échelon, un millésime, un indicateur — quand le bilan raconte la
+  France. Ils sont sous la carte, et le peintre se déclenche sur la vue
+  territoire au lieu de la vue bilan.
+
+  **Deux graphiques qui se lisent ensemble se posent côte à côte.** L'inflation
+  et la croissance étaient empilées, deux SVG de 720 unités étirés sur 1 022 px :
+  1 188 px pour une comparaison qui tient en un regard. En deux colonnes,
+  614 px.
+
+  **Et le pont budgétaire est passé en demi-largeur, contre ma propre mesure.**
+  J'avais écrit la veille que l'appariement coûtait 566 px de hauteur pour n'en
+  économiser que 238 : vrai, et hors sujet. Le lecteur ne demandait pas une page
+  plus courte, il disait qu'une pleine largeur de tableau est illisible. Une
+  mesure répond à la question qu'on lui pose ; encore faut-il poser la bonne.
+
+- **Le tableau de la note mettait un écart dans la colonne d'une année**
+  (18 août 2026). « Les années ne sont pas alignées avec ce qui est en dessous,
+  il y a une évolution sur une année 2025 alors que ça devrait être une
+  troisième colonne. » Trois défauts dans un tableau de trois lignes :
+
+  1. **Les en-têtes étaient à gauche, les points à droite.** « 2025 » et
+     « Points » flottaient au-dessus de rien. Une colonne de nombres se lit
+     alignée à droite, en-tête compris.
+  2. **L'unité était collée à chaque valeur** — « 26,3 % des recettes »,
+     « 7,5 années d'épargne » — ce qui faisait des colonnes de phrases et
+     poussait les points hors du cadre : « / 8 » était coupé. Elle s'écrit
+     désormais une fois, sous l'intitulé de la ligne.
+  3. **La trajectoire est un écart, pas une valeur de 2025.** Elle a sa colonne.
+     Et comme l'évolution de la marge EST la trajectoire, elle n'est écrite
+     qu'une fois : sur la ligne de la mesure dont elle est l'écart.
+
+  Le dépliant « La note, exercice par exercice » est parti : il posait un second
+  total, sur 16, sous une note sur 20.
+
+- **« Avant lui » sous le nom de Martine BLANC** (18 août 2026). La source ne
+  publie pas le genre, et le déduire d'un prénom se trompe : c'est **« Avant »**,
+  sans pronom. Et la même personne était son propre prédécesseur — le fichier
+  des sortants est arrêté avant chaque scrutin, si bien qu'un maire réélu y
+  figure deux fois. La fiche affichait « depuis mars 2026 », c'est-à-dire une
+  prise de fonction postérieure à tous les exercices notés, alors que Martine
+  BLANC est en fonction **depuis juin 2023**. La comparaison des deux noms se
+  fait sur le nom normalisé — casse, accents, espaces —, jamais sur la chaîne.
+
+- **Un sabotage sans effet se voit maintenant.** Deux des cinq sabotages du jour
+  employaient un `\n` dans un motif `sed`, qui ne traverse pas les lignes : le
+  fichier n'était pas modifié et la suite passait au vert, ce qui se lit
+  exactement comme « la garde ne voit rien ». Le script compare désormais le
+  fichier à sa copie avant de lancer les tests, et **dit** quand le motif n'a
+  rien changé. C'est la deuxième fois que ce dépôt paie un sabotage muet.
+
 - **Le bilan raconte enfin quelque chose, et la moitié de sa longueur était une
   bibliographie** (18 août 2026). « Un amas d'analyses qui n'ont aucun lien
   entre elles ». Douze cadres alignés sans ordre, un sommaire qui les

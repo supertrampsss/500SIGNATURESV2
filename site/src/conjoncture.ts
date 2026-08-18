@@ -188,6 +188,7 @@ export function renduVolet(
   }).join("");
 
   return `
+    <section class="conjoncture__volet">
     <h4 class="graphique__titre">${echapper(volet.titre)}</h4>
     <p class="bloc__complement">${volet.phrase(periode, valeurFr, zoneEuro)}</p>
     <div class="graphique" data-volet="${volet.cle}">
@@ -196,7 +197,8 @@ export function renduVolet(
       <p class="graphique__legende">${legende}</p>
     </div>
     <p class="avertissement">${volet.note} Source : Eurostat, dernière valeur publiée,
-      jamais de prévision ici.</p>`;
+      jamais de prévision ici.</p>
+    </section>`;
 }
 
 /** Rendu pur du bloc entier ; chaîne vide si la conjoncture n'est pas publiée. */
@@ -211,7 +213,13 @@ export function rendu(
     .map((v) => renduVolet(v, pays, fenetre, largeur))
     .filter(Boolean);
   if (!volets.length) return "";
-  return `<h3>Où en est l'économie ?</h3>${volets.join("")}`;
+  // **Les deux volets côte à côte.** Empilés, ils faisaient 1 188 px de haut à
+  // eux seuls dans un cadre en pleine largeur : deux graphiques de 720 unités
+  // étirés sur 1 022 px, l'un sous l'autre, pour comparer deux séries qui se
+  // lisent ensemble. Côte à côte, la page respire et la comparaison est à
+  // portée d'œil. Sous 60rem la grille repasse à une colonne — le point de
+  // rupture du site, pas un seuil taillé pour ce bloc.
+  return `<h3>Où en est l'économie ?</h3><div class="conjoncture__volets">${volets.join("")}</div>`;
 }
 
 /* ------------------------------------------------------------------ *

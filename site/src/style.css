@@ -2528,20 +2528,46 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   color: var(--encre-douce);
   text-align: left;
 }
+/* **Les en-têtes s'alignent sur leurs cellules, pas sur le bord du tableau.**
+   Ils étaient tous à gauche pendant que la colonne de points était à droite :
+   « 2025 » et « Points » flottaient au-dessus de rien, et « 2019 » au-dessus
+   d'un chiffre qui ne commençait pas là. Une colonne de nombres se lit alignée
+   à droite, en-tête compris — c'est ce qui permet de la parcourir du regard. */
 .note__detail th,
 .note__detail td {
-  padding: var(--espace-4) 0;
+  padding: var(--espace-4) var(--espace-3);
   border-top: 1px solid var(--trait);
-  text-align: left;
+  text-align: right;
   font-weight: 400;
+}
+.note__detail th[scope="row"],
+.note__detail thead th:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.note__detail .note__points {
+  padding-right: 0;
 }
 .note__detail tr:first-child th,
 .note__detail tr:first-child td {
   border-top: 0;
 }
+/* L'unité de la ligne, sous son intitulé : écrite une fois, pas dans chacune
+   des quatre cellules de la rangée. */
+.note__unite {
+  display: block;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
 .note__mesure {
   color: var(--encre-douce);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* L'écart porte l'encre pleine : c'est la colonne que le lecteur vient
+   chercher, et elle se lirait comme une note de bas de page en gris. */
+.note__mesure--ecart {
+  color: var(--encre);
 }
 .note__points {
   text-align: right;
@@ -3252,6 +3278,25 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 .cent__figure h4 {
   margin: 0;
+}
+
+/* Les deux volets de conjoncture, côte à côte au-dessus de 60rem : empilés,
+   ils faisaient 1 188 px dans un cadre en pleine largeur, pour deux séries qui
+   se lisent ensemble. `minmax(0, 1fr)` et pas `1fr` — un enfant de grille
+   refuse sinon de descendre sous la largeur de son contenu, et le SVG pousse
+   la page. */
+.conjoncture__volets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espace-7);
+}
+@media (min-width: 60rem) {
+  .conjoncture__volets {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.conjoncture__volet > .graphique__titre {
+  margin-top: 0;
 }
 
 /* Annotations du graphique : les points qui parlent. */
@@ -7451,9 +7496,26 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
   font-size: var(--texte-m);
 }
-/* La bibliographie est repliée : elle faisait 5 210 px sur 19 283 de page. Le
-   résumé porte le décompte, donc le lecteur sait ce qu'il ouvre. */
-.methode-sources__liste > summary {
+/* Le classement de la couche affichée, sous la carte. Il vivait au pied du
+   BILAN, où il n'avait rien à voir avec les cinq chapitres ; il suit désormais
+   ce qu'il range. La carte occupe une hauteur d'écran : cette section commence
+   dessous, et respire comme le reste du site. */
+.territoire__tables {
+  display: grid;
+  gap: var(--espace-6);
+  padding: var(--espace-8) var(--espace-6) var(--espace-8);
+  max-width: 78rem;
+  margin: 0 auto;
+}
+
+/* Le pied de page se replie. Les trois documents de référence — les sources,
+   la méthode, la grille — faisaient 7 683 px pour 9 694 px de chapitres : le
+   bilan de la France finissait sur autant d'appareil que de récit. Ils restent
+   dans le document, à un geste : la Licence Ouverte demande de citer, et la
+   méthode d'un site public se publie — ni l'une ni l'autre ne demandent d'être
+   dépliées sous les yeux de qui vient lire des chiffres. */
+.methode-sources__liste > summary,
+.methode__pli > summary {
   cursor: pointer;
   min-height: var(--cible);
   display: flex;
@@ -7463,18 +7525,22 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
   list-style: none;
 }
-.methode-sources__liste > summary::-webkit-details-marker {
+.methode-sources__liste > summary::-webkit-details-marker,
+.methode__pli > summary::-webkit-details-marker {
   display: none;
 }
-.methode-sources__liste > summary::before {
+.methode-sources__liste > summary::before,
+.methode__pli > summary::before {
   content: "›";
   display: inline-block;
   transition: transform var(--transition);
 }
-.methode-sources__liste[open] > summary::before {
+.methode-sources__liste[open] > summary::before,
+.methode__pli[open] > summary::before {
   transform: rotate(90deg);
 }
-.methode-sources__liste > summary:hover {
+.methode-sources__liste > summary:hover,
+.methode__pli > summary:hover {
   color: var(--encre);
 }
 .methode-sources__producteurs {

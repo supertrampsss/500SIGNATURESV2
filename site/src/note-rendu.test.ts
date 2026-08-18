@@ -77,8 +77,13 @@ test("un taux varie en points, jamais en pourcentage", () => {
   // pluriel ci-dessous lit la chaîne brute et en exige une insecable. Les deux
   // assertions ne portent pas sur la même chaîne.
   const lu = texte(html);
-  assert.match(lu, /−4,9 points de marge/);
-  assert.doesNotMatch(lu, /−4,9 ?% de marge/);
+  // L'unité est en tête de colonne (« Évolution ») et non collée à la valeur :
+  // ce qui doit rester, c'est le mot « points », jamais un pourcentage.
+  // L'unité est écrite une fois, sous l'intitulé de la ligne ; la valeur est
+  // nue. Ce qui doit rester, c'est le mot « points », jamais un pourcentage.
+  assert.match(lu, /Marge de fonctionnement points de marge|points de marge/);
+  assert.match(lu, /−4,9/);
+  assert.doesNotMatch(lu, /−4,9 ?%/);
 });
 
 test("le pluriel commence à 2, et l'espace de l'unité est insécable", () => {
@@ -92,13 +97,17 @@ test("le pluriel commence à 2, et l'espace de l'unité est insécable", () => {
   const petit = lignes(
     noter({ tauxEpargne: 12, desendettement: 1.5, trajectoire: -0.7, exercice: "2025" }, "commune"),
   );
-  assert.match(petit[1].mesure, /^1,5\u00a0année d'épargne$/);
-  assert.match(petit[2].mesure, /^−0,7\u00a0point de marge$/);
+  assert.equal(petit[1].mesure, "1,5");
+  assert.equal(petit[0].evolution, "−0,7");
   const grand = lignes(
     noter({ tauxEpargne: 12, desendettement: 3, trajectoire: 4.9, exercice: "2025" }, "commune"),
   );
-  assert.match(grand[1].mesure, /^3,0\u00a0années d'épargne$/);
-  assert.match(grand[2].mesure, /^\+4,9\u00a0points de marge$/);
+  assert.equal(grand[1].mesure, "3,0");
+  assert.equal(grand[0].evolution, "+4,9");
+  // L'unité, elle, est écrite une seule fois : dans la colonne d'intitulé.
+  assert.equal(grand[0].unite, "% des recettes");
+  assert.equal(grand[1].unite, "années d'épargne");
+  assert.equal(grand[2].unite, "points de marge");
 });
 
 test("une épargne nulle se dit en toutes lettres, jamais en durée", () => {
@@ -120,10 +129,15 @@ test("la note pose le premier exercice à côté du dernier", () => {
   assert.ok(exercices.length >= 2, "fixture à un seul exercice : ce test vise à côté");
   assert.match(lu, new RegExp(exercices[0]));
   assert.match(lu, new RegExp(exercices[exercices.length - 1]));
-  // Le troisième terme est SANS OBJET au premier exercice, et pas « 0 » : la
-  // trajectoire est un écart DEPUIS cet exercice, elle n'existe pas pour lui.
-  // Écrire zéro ferait passer une impossibilité pour une mesure.
-  assert.match(lu, /sans objet/);
+  // Le troisième terme n'a pas de valeur au premier exercice, et sa cellule
+  // reste VIDE plutôt que d'afficher « 0 » : la trajectoire est un écart
+  // DEPUIS cet exercice, elle n'existe pas pour lui, et écrire zéro ferait
+  // passer une impossibilité pour une mesure.
+  const html = rendreNote(note(SOLIDE, "commune"), SOLIDE);
+  const trajectoire = html.split("<tr>").find((r) => r.includes("Trajectoire"));
+  assert.ok(trajectoire);
+  assert.equal(trajectoire.match(/<td[^>]*><\/td>/g)?.length, 3, trajectoire);
+  assert.doesNotMatch(trajectoire, />0,0</);
 });
 
 test("le premier exercice se déduit des séries, il n'est pas écrit en dur", () => {
@@ -158,28 +172,59 @@ test("le bloc ne porte aucun paragraphe de portée", () => {
   assert.doesNotMatch(lu, /La note mesure la solvabilité/);
 });
 
-test("le parcours donne la solvabilité de chaque exercice, 2019 compris", () => {
-  // La question qu'une note seule laisse ouverte : « et avant, c'était
-  // mieux ? ». La trajectoire y répond pour la marge et ne dit rien de la
-  // dette — une collectivité peut avoir gagné de la marge en empruntant.
+test("la note ne porte plus de dépliant exercice par exercice", () => {
+  // Retiré à la demande de l'auteur. Il posait un SECOND total, sur 16, sous
+  // une note sur 20 — deux barèmes sur un même écran —, et il répétait en sept
+  // colonnes ce que les colonnes de départ et d'arrivée disent en deux.
   const lu = texte(rendreNote(note(SOLIDE, "commune"), SOLIDE));
-  assert.match(lu, /exercice par exercice/);
-  assert.match(lu, /2019/);
-  assert.match(lu, /Solvabilité sur 16/);
-  // Sur 16, et le tableau dit pourquoi : le troisième terme est un écart
-  // depuis 2019, il n'existe pas pour 2019 même.
-  assert.match(lu, /écart depuis 2019/);
+  assert.doesNotMatch(lu, /exercice par exercice/);
+  assert.doesNotMatch(lu, /Solvabilité sur/);
+  assert.doesNotMatch(lu, /écart depuis 2019/);
 });
 
-test("le parcours ne s'écrit pas sur une seule colonne", () => {
-  // Une valeur unique ne s'analyse pas — la règle du dépôt pour tout tableau
-  // d'exercices.
-  const seul = {
-    ofgl_recettes_fonctionnement: { "2025": 100e6 },
-    ofgl_epargne_brute: { "2025": 20e6 },
-    ofgl_encours_dette: { "2025": 60e6 },
-  };
-  assert.doesNotMatch(texte(rendreNote(note(seul, "commune"), seul)), /exercice par exercice/);
+test("l'évolution a sa colonne, jamais celle de l'exercice d'arrivée", () => {
+  // **Le défaut signalé par l'auteur.** « −3,3 points de marge » était écrit
+  // dans la colonne « 2025 », où il se lisait comme une mesure de 2025 : c'est
+  // un écart ENTRE deux exercices.
+  const html = rendreNote(note(SOLIDE, "commune"), SOLIDE);
+  assert.match(html, /<th scope="col">Évolution<\/th>/);
+  // La colonne d'évolution vient APRÈS celle de l'exercice d'arrivée et AVANT
+  // les points : c'est l'ordre dans lequel on lit un écart.
+  const entete = html.slice(html.indexOf("<thead"), html.indexOf("</thead>"));
+  assert.ok(
+    entete.indexOf("Évolution") > entete.lastIndexOf("2025") &&
+      entete.indexOf("Évolution") < entete.indexOf("Points"),
+    entete,
+  );
+  // Et l'unité n'est plus collée à la valeur : elle ferait de la colonne
+  // d'arrivée le double de la colonne de départ qu'elle est censée égaler.
+  // L'unité n'est plus collée à la valeur : elle est écrite une fois, dans la
+  // colonne d'intitulé, où elle ne pousse aucune colonne de nombres.
+  assert.match(html, /note__unite">% des recettes</);
+  const cellules = [...html.matchAll(/class="note__mesure[^"]*">([^<]*)</g)].map((m) => m[1]);
+  for (const c of cellules) assert.doesNotMatch(c, /recettes|épargne|marge/, c);
+});
+
+test("un même nombre n'est pas écrit deux fois dans le tableau de la note", () => {
+  // L'évolution de la marge EST la trajectoire : elle s'écrit sur la ligne de
+  // la mesure dont elle est l'écart, et le troisième terme ne la répète pas —
+  // un même nombre deux fois dans un tableau de trois lignes se lit comme une
+  // erreur.
+  const html = rendreNote(note(SOLIDE, "commune"), SOLIDE);
+  const rangs = html.split("<tr>").slice(1);
+  const marge = rangs.find((r) => r.includes("Marge de fonctionnement"));
+  const trajectoire = rangs.find((r) => r.includes("Trajectoire"));
+  assert.ok(marge && trajectoire);
+  assert.match(marge, /note__mesure--ecart">−?\+?\d/);
+  // Et la ligne de la trajectoire n'a que ses points.
+  assert.match(trajectoire, /note__mesure--ecart"><\/td>/);
+});
+
+test("aucune cellule vide ne s'excuse", () => {
+  // « Sans objet » écrit trois fois sur une ligne remplissait de mots une
+  // ligne qui n'a qu'un chiffre à donner, et le lecteur y lisait une panne.
+  const html = rendreNote(note(SOLIDE, "commune"), SOLIDE);
+  assert.doesNotMatch(html, /sans objet/);
 });
 
 test("la solvabilité d'un exercice est la somme de ses deux termes affichés", () => {

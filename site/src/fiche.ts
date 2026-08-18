@@ -36,6 +36,26 @@ function mois(date: string): string {
 /** « de juillet 2020 à mars 2026 », ou « en fonction depuis juillet 2020 »
  *  quand aucun successeur n'est publié — une quinzaine de communes. On
  *  n'invente pas une fin, et on n'écrit pas une période à l'envers. */
+/**
+ * Deux noms d'exécutif désignent-ils la même personne ?
+ *
+ * Les deux viennent de fichiers différents du même producteur — le répertoire
+ * courant et la liste des sortants — et rien ne garantit qu'ils s'écrivent
+ * pareil : une casse, un accent, une espace double suffisent à faire de
+ * Martine BLANC deux personnes. La comparaison se fait donc sur le nom
+ * normalisé, pas sur la chaîne.
+ */
+function memePersonne(a: string, b: string): boolean {
+  const nu = (nom: string) =>
+    nom
+      .normalize("NFD")
+      .replace(/\p{Diacritic}/gu, "")
+      .replace(/[^\p{Letter}]+/gu, " ")
+      .trim()
+      .toUpperCase();
+  return nu(a) === nu(b) && nu(a) !== "";
+}
+
 function periodeExecutif(depuis: string, jusqu?: string | null): string {
   const debut = new Date(depuis);
   if (jusqu) {
@@ -349,37 +369,55 @@ export function afficherFiche(
     }</p>
     ${
       territoire.maire && EXECUTIFS[niveau]
-        ? `<p class="fiche__maire">${EXECUTIFS[niveau]} : <strong>${echapper(territoire.maire.nom)}</strong>${
-            territoire.maire.depuis ? ` <span>depuis ${mois(territoire.maire.depuis)}</span>` : ""
-          }${
+        ? (() => {
+            // **Un exécutif reconduit n'a pas de prédécesseur : il est le sien.**
+            // La source arrête une liste de sortants avant chaque scrutin, si
+            // bien qu'un maire réélu figure deux fois — une fois comme sortant,
+            // une fois comme élu. La fiche écrivait alors « Martine BLANC depuis
+            // mars 2026 · Avant : Martine BLANC, de juin 2023 à mars 2026 »,
+            // c'est-à-dire la même personne présentée comme son propre
+            // prédécesseur, avec une prise de fonction six ans trop tardive
+            // pour les exercices affichés.
+            //
+            // La date affichée est donc celle de la PREMIÈRE prise de fonction
+            // connue, et la ligne « Avant » disparaît.
+            const reconduit =
+              territoire.maire_precedent !== undefined &&
+              territoire.maire_precedent !== null &&
+              memePersonne(territoire.maire_precedent.nom, territoire.maire!.nom);
+            const precedent = reconduit ? undefined : territoire.maire_precedent;
+            const depuis = reconduit
+              ? (territoire.maire_precedent?.depuis ?? territoire.maire!.depuis)
+              : territoire.maire!.depuis;
+            return `<p class="fiche__maire">${EXECUTIFS[niveau]} : <strong>${echapper(territoire.maire!.nom)}</strong>${
+              depuis ? ` <span>depuis ${mois(depuis)}</span>` : ""
+            }${
             // **Le prédécesseur, parce que c'est lui qui a présidé aux comptes
             // affichés.** La note se lit sur 2019-2025 ; le maire en exercice
             // a pris ses fonctions en mars 2026 et n'a aucun de ces exercices
             // derrière lui. Sans cette ligne, la fiche posait un nom au-dessus
             // d'un bilan qui n'est pas le sien.
             //
-            // « avant lui », jamais « maire de 2020 à 2026 » : un maire sortant
-            // sur trente a pris ses fonctions en cours de mandature, et la
-            // source ne donne que le dernier de la mandature.
-            territoire.maire_precedent
-              ? `<span class="fiche__precedent">Avant lui : ${echapper(
-                  territoire.maire_precedent.nom,
-                )}${
+            // « Avant », jamais « avant lui » ni « avant elle » : la source
+            // ne publie pas le genre de la personne, et le déduire d'un prénom
+            // se trompe. Jamais non plus « maire de 2020 à 2026 » : un maire
+            // sortant sur trente a pris ses fonctions en cours de mandature, et
+            // la source ne donne que le dernier de la mandature.
+            precedent
+              ? `<span class="fiche__precedent">Avant : ${echapper(precedent.nom)}${
                   // **Une période, pas un « depuis ».** Un ancien maire ne se
                   // dit pas au présent : « en fonction depuis juillet 2020 »
                   // sous le nom de son successeur laissait lire deux maires à
                   // la fois. La fin est la prise de fonction du successeur —
                   // un mandat finit quand le suivant commence — et elle est
                   // publiée, contrairement à ce que j'avais d'abord conclu.
-                  territoire.maire_precedent.depuis
-                    ? `, ${periodeExecutif(
-                        territoire.maire_precedent.depuis,
-                        territoire.maire?.depuis,
-                      )}`
+                  precedent.depuis
+                    ? `, ${periodeExecutif(precedent.depuis, territoire.maire?.depuis)}`
                     : ""
                 }</span>`
               : ""
-          }</p>`
+            }</p>`;
+          })()
         : ""
     }
     ${

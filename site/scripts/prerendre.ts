@@ -57,7 +57,6 @@ import { rendu as renduOuverture } from "../src/ouverture.ts";
 import { rendu as renduRedistribution } from "../src/redistribution.ts";
 import { rendu as renduRetraites } from "../src/retraites.ts";
 import { exercicesDisponibles, rendu as renduBudgetEtat } from "../src/etat.ts";
-import { rendu as renduQuestions } from "../src/questions.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
@@ -1090,14 +1089,6 @@ export function injecterReperes(
   ];
 
   let html = shell;
-  // Le pré-rendu connaît le catalogue : une question qui exige une série non
-  // publiée ne doit pas entrer dans le document statique pour en être retirée
-  // à l'affichage — le lecteur la verrait paraître puis disparaître.
-  html = remplirCadre(
-    html,
-    "questions",
-    renduQuestions(undefined, new Set(catalogue.map((i) => i.id))),
-  );
   for (const [id, corps] of [...ouvrants, centEuros]) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }

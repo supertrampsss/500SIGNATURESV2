@@ -70,7 +70,6 @@ import { comparer as comparerScenarios } from "./comparaison.ts";
 import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
-import { afficherQuestions } from "./questions.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
@@ -2051,10 +2050,10 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
       bouton.dataset.niveau ?? null,
       bouton.firstChild?.textContent?.trim(),
     );
-    // La page DÉTAIL porte le même champ : sans ce repeint, choisir une ville
-    // depuis cette page ouvrait la fiche de la carte et laissait le tableau sur
-    // la ville précédente. On ne pouvait tout simplement pas en changer.
-    if (document.body.dataset.vue === "bilan") {
+    // Les tableaux sous la carte portent le même champ : sans ce repeint,
+    // choisir une ville ouvrait la fiche et laissait le tableau sur la ville
+    // précédente. On ne pouvait tout simplement pas en changer.
+    if (document.body.dataset.vue === "territoire") {
       await peindreDetail();
       // Changer de territoire peut changer de maille, donc de palmarès.
       void peindrePalmares();
@@ -2565,13 +2564,16 @@ function basculerVue(): void {
   $("vue-accueil").hidden = vue !== "accueil";
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
-  // BILAN réunit ce que REPÈRES et DÉTAIL montraient séparément : les repères
-  // nationaux, puis le classement des territoires et leur comparaison.
-  $("vue-bilan").hidden = vue !== "bilan";
-  if (vue === "bilan") {
+  // **Le classement suit la carte, plus le bilan.** Il range la couche
+  // affichée — l'échelon, le millésime, l'indicateur réglés sur la carte —, et
+  // il n'avait rien à voir avec les cinq chapitres du bilan, qui racontent la
+  // France.
+  if (vue === "territoire") {
     void peindreDetail();
     void peindrePalmares();
   }
+  // BILAN ne porte plus que les cinq chapitres et le pied de sources.
+  $("vue-bilan").hidden = vue !== "bilan";
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
@@ -3992,9 +3994,6 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
-  // Les questions qui exigent une série que la publication ne porte pas encore
-  // ne sont pas listées : une ancre vers un bloc vide est un lien mort.
-  afficherQuestions($("questions"), new Set(catalogue.map((i) => i.id)));
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();

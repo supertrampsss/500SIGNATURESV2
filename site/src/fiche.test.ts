@@ -364,15 +364,58 @@ test("le prédécesseur est nommé, parce que c'est lui qui a présidé aux comp
   });
   const html = cible.innerHTML;
   assert.match(html, /Maire\s*: <strong>Thomas CAZENAVE<\/strong> <span>depuis mars 2026<\/span>/);
-  // « Avant lui », jamais « maire de 2020 à 2026 » : un maire sortant sur
-  // trente a pris ses fonctions en cours de mandature, et la source ne donne
-  // que le dernier de la mandature.
+  // « Avant », jamais « avant lui » ni « avant elle » : la source ne publie pas
+  // le genre de la personne, et le déduire d'un prénom se trompe. Jamais non
+  // plus « maire de 2020 à 2026 » : un maire sortant sur trente a pris ses
+  // fonctions en cours de mandature, et la source ne donne que le dernier.
   // **Une période, pas un « depuis ».** Un ancien maire ne se dit pas au
   // présent : « en fonction depuis juillet 2020 » sous le nom de son
   // successeur laissait lire deux maires à la fois. La fin est la prise de
   // fonction du successeur, qui est publiée.
-  assert.match(html, /Avant lui\s*: Pierre HURMIC, en fonction de juillet 2020 à mars 2026/);
+  assert.match(html, /Avant\s*: Pierre HURMIC, en fonction de juillet 2020 à mars 2026/);
+  assert.doesNotMatch(html, /Avant (lui|elle)/);
   assert.doesNotMatch(html, /Pierre HURMIC, en fonction depuis/);
+});
+
+test("un exécutif reconduit n'est pas son propre prédécesseur", () => {
+  // La source arrête une liste de sortants avant chaque scrutin : un maire
+  // réélu y figure deux fois. La fiche écrivait « Martine BLANC depuis mars
+  // 2026 · Avant : Martine BLANC, de juin 2023 à mars 2026 » — la même
+  // personne présentée comme son propre prédécesseur, et une prise de fonction
+  // postérieure à TOUS les exercices affichés.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Essai", parent: "73", region: "84", population: 1000,
+      drapeaux: {}, series: {},
+      maire: { nom: "Martine BLANC", depuis: "2026-03-20" },
+      maire_precedent: { nom: "Martine BLANC", depuis: "2023-06-15" },
+    } as never,
+    indicateurs: [],
+  });
+  const html = cible.innerHTML;
+  // La date affichée est celle de la PREMIÈRE prise de fonction connue.
+  assert.match(html, /Maire\s*: <strong>Martine BLANC<\/strong> <span>depuis juin 2023<\/span>/);
+  assert.doesNotMatch(html, /Avant/);
+  assert.doesNotMatch(html, /mars 2026/);
+});
+
+test("la reconduction se lit sur le nom normalisé, pas sur la chaîne", () => {
+  // Les deux noms viennent de deux fichiers du même producteur : une casse, un
+  // accent ou une espace double suffirait à faire deux personnes d'une seule.
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Essai", parent: "73", region: "84", population: 1000,
+      drapeaux: {}, series: {},
+      maire: { nom: "Martine  BLANC", depuis: "2026-03-20" },
+      maire_precedent: { nom: "Martine Blànc", depuis: "2023-06-15" },
+    } as never,
+    indicateurs: [],
+  });
+  assert.doesNotMatch(cible.innerHTML, /Avant/);
 });
 
 test("sans successeur publié, aucune fin de mandat n'est inventée", () => {
@@ -405,6 +448,6 @@ test("sans prédécesseur publié, aucune ligne vide ne s'écrit", () => {
     indicateurs: [],
   });
   assert.match(cible.innerHTML, /Président du conseil départemental\s*: <strong>Jean-Luc GLEYZE/);
-  assert.doesNotMatch(cible.innerHTML, /Avant lui/);
+  assert.doesNotMatch(cible.innerHTML, /Avant/);
   assert.doesNotMatch(cible.innerHTML, /undefined/);
 });
