@@ -262,20 +262,19 @@ function renduVieQuotidienne(pays: Record<string, Territoire>): string {
  * exactement ce que dit `renduEurope`, vide dans ce seul cas.
  */
 export function afficherNational(
-  blocDette: HTMLElement,
   blocEurope: HTMLElement,
   pays: Record<string, Territoire>,
   catalogue: Indicateur[],
 ): boolean {
-  const dette = renduDette(pays, catalogue);
-  if (dette) blocDette.innerHTML = dette;
+  // La dette est partie au module « Est-ce tenable ? » (tenable.ts), qui
+  // répond à la question du chapitre au lieu de la reposer. Ce peintre-ci ne
+  // garde que l'Europe. Le paramètre catalogue reste : la signature est celle
+  // que la garde des peintres attend.
+  void catalogue;
   const europe = renduEurope(pays);
   if (europe) blocEurope.innerHTML = europe;
-  // Le cadre est peut-être REPLIÉ : le pré-rendu replie ce qu'il ne peut pas
-  // écrire, et rien ne le rouvrait. Un bloc dont les séries sont publiées
-  // APRÈS le dernier déploiement restait alors invisible à tout lecteur —
-  // écrit, peint, et caché. Qui remplit un cadre le déplie.
-  if (dette) blocDette.hidden = false;
+  // Qui remplit un cadre le déplie : le pré-rendu replie ce qu'il ne peut pas
+  // écrire, et rien d'autre ne le rouvrirait.
   if (europe) blocEurope.hidden = false;
   return europe !== "";
 }

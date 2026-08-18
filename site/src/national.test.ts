@@ -143,36 +143,19 @@ test("sans France publiée, le bloc européen ne s'écrit pas", () => {
  * L'enveloppe DOM
  * ---------------------------------------------------------------------- */
 
-test("l'enveloppe pose chaque chaîne dans son cadre, et rend ce qu'elle rendait", () => {
-  const dette = { innerHTML: "" } as HTMLElement;
+test("l'enveloppe pose l'Europe dans son cadre, et rend ce qu'elle rendait", () => {
+  // La dette est partie au module « Est-ce tenable ? » (tenable.ts), qui
+  // répond à la question du chapitre au lieu de la reposer : ce peintre-ci ne
+  // garde que l'Europe.
   const europe = { innerHTML: "" } as HTMLElement;
-  assert.equal(afficherNational(dette, europe, PAYS, CATALOGUE), true);
-  // Chacune dans SON cadre, et pas l'autre : deux articles distincts de la
-  // grille, qu'une seule chaîne aurait collés dans le même.
-  assert.equal(dette.innerHTML, renduDette(PAYS, CATALOGUE));
+  assert.equal(afficherNational(europe, PAYS, CATALOGUE), true);
   assert.equal(europe.innerHTML, renduEurope(PAYS));
-  assert.notEqual(dette.innerHTML, europe.innerHTML);
 });
 
-test("sans France publiée, l'enveloppe rend false et ne touche à aucun cadre", () => {
-  // La sémantique d'origine, mot pour mot : `afficherNational` rendait `false`
-  // pour ce cas-là et pour lui seul.
-  const dette = { innerHTML: "" } as HTMLElement;
+test("sans France publiée, l'enveloppe rend false et ne touche pas au cadre", () => {
   const europe = { innerHTML: "" } as HTMLElement;
-  assert.equal(afficherNational(dette, europe, {}, CATALOGUE), false);
-  assert.equal(dette.innerHTML, "");
+  assert.equal(afficherNational(europe, {}, CATALOGUE), false);
   assert.equal(europe.innerHTML, "");
-});
-
-test("France publiée mais dette absente : le cadre dette reste intact, l'enveloppe rend true", () => {
-  // Le cas que l'ancien code écrivait sous un `if` : un bloc dette qui ne
-  // s'écrit pas n'empêchait pas la section nationale de s'ouvrir.
-  const sansDette = { FR: territoire({ eurostat_dette_pib: { "2024": 113.0 } }) };
-  const dette = { innerHTML: "" } as HTMLElement;
-  const europe = { innerHTML: "" } as HTMLElement;
-  assert.equal(afficherNational(dette, europe, sansDette, CATALOGUE), true);
-  assert.equal(dette.innerHTML, "");
-  assert.notEqual(europe.innerHTML, "");
 });
 
 test("les pensions entrent au tableau des voisins, avec leur propre millésime", () => {

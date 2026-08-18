@@ -28,6 +28,8 @@ import { afficherRedistribution } from "./redistribution.ts";
 import { afficherRetraites } from "./retraites.ts";
 import { afficherCentEurosApu } from "./cent-euros-apu.ts";
 import { afficherOuverture } from "./ouverture.ts";
+import { afficherRecettesEtat } from "./recettes-etat.ts";
+import { afficherTenable } from "./tenable.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -4370,7 +4372,13 @@ async function demarrer(): Promise<void> {
     if (afficherConjoncture($("bloc-conjoncture"), pays, catalogue)) {
       $("national").hidden = false;
     }
-    if (afficherNational($("bloc-dette"), $("bloc-europe"), pays, catalogue)) {
+    if (afficherTenable($("bloc-dette"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    if (afficherNational($("bloc-europe"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    if (afficherRecettesEtat($("bloc-recettes-etat"), pays, catalogue)) {
       $("national").hidden = false;
     }
     if (afficherFonctions($("bloc-fonctions"), pays, catalogue)) {

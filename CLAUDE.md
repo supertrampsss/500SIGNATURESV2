@@ -470,6 +470,59 @@ pour ne plus l'être.
 
 ### Fait
 
+- **La maquette C en production, et les trois reproches qui l'ont corrigée en
+  route** (18 août 2026). Le bilan est monté sur la maquette validée : cinq
+  identités de chapitre issues d'une gamme repassée au validateur (huit
+  teintes, chroma jusqu'à 0,20, ΔE 8,4 en protanopie et 15,3 en vision normale,
+  contraste ≥ 3:1 sur les deux fonds), un périmètre écrit sous chaque question,
+  et **le pont des périmètres** entre les chapitres 1 et 2 — 1 562 milliards
+  encaissés par l'ensemble puis 380 par l'État seul se lisaient comme une
+  contradiction tant que la phrase de passage n'existait pas.
+
+  Les trois reproches du lecteur, tous justes :
+
+  1. **Une évolution donne ses deux bouts.** « +30 % depuis 2017 » ne se
+     vérifie pas ; le tableau des recettes porte trois colonnes — 2017, 2025,
+     variation — et la variation est calculée sur les deux montants affichés.
+  2. **Une dépense s'écrit en négatif**, sous-lignes comprises : les retraites
+     à −24,09 € ne sont pas un gain. Les recettes s'écrivent en positif. Le
+     signe porte le sens **sans couleur** : le vert de la gamme tient 3:1, le
+     seuil des marques, et un texte exige 4,5:1 — mesuré à l'axe-core, et la
+     même mesure a repris les rangs de chapitre qui portaient leur teinte.
+  3. **« Léger » a sauté.** 6 milliards, c'est 6 milliards : « Oui. Le déficit
+     est d'environ 6,0 milliards d'euros » — le chiffre parle seul, et le
+     montant est le produit de deux chiffres publiés, « environ » disant
+     l'arrondi du premier.
+
+  **Deux pièges de dénominateur, écrits dans la page même.** L'ouverture dit
+  que la part de la dépense passe de 57,7 % à 57,3 % **pendant que la dépense
+  augmente de 5,8 % une fois l'inflation retirée** — le ratio baisse parce que
+  la richesse monte d'autant, et ce qui décroche, ce sont les recettes
+  (+2,3 %). La phrase du décrochage est gardée par les séries : le jour où
+  elle serait fausse, elle disparaît au lieu de mentir. Et la TVA de l'État
+  affiche −35,7 % depuis 2017 **sans que la taxe baisse** — une part croissante
+  est reversée à la Sécu et aux collectivités : sa variation est remplacée par
+  la note, comme celle du reste « autres impôts et taxes », qui triple en
+  miroir (+200 %) et aurait fait lire une explosion d'impôts qui n'existe pas.
+
+  **« Est-ce tenable » répond enfin à sa question**, factuellement : la dette a
+  augmenté de 56,2 % depuis 2017 quand la richesse augmentait de 30,5 %,
+  l'État emprunte à 3,3 % contre 0,8 % en 2017, et les intérêts coûtent déjà
+  66,64 milliards par an. Chaque nombre de la réponse est recalculé des séries
+  à l'affichage. La dette se lit **année par année** et le taux montre son
+  creux de 2020 — cherché dans la série, jamais écrit en dur : sans l'année où
+  la France était payée pour emprunter, la remontée n'a pas d'échelle.
+
+  **Le doublon des 100 € est mort** : la ventilation des retraites vivait en
+  barres puis en tableau, mêmes chiffres deux fois. Elle vit dans un dépliant
+  sous sa propre ligne. La redistribution a ses haltères — trait plein quand le
+  revenu monte, hachures quand il descend, jamais une couleur de jugement.
+
+  **Vu en peignant, aucun des 1 064 tests ne le voyait** : la comparaison des
+  voisins écrasée à 10 px de barre dans une demi-colonne (ses intitulés
+  mangeaient la piste), et le +200 % du reste en tête de tableau. Six
+  sabotages, six rouges.
+
 - **« Illisible », et cette fois la mesure ne suffisait pas** (18 août 2026).
   Le bilan avait perdu un quart de sa longueur et gardait tout ce qui n'était
   pas le récit : seize questions d'entrée qui doublaient le sommaire, le

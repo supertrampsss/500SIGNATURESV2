@@ -47,7 +47,10 @@ import { renduGrille, renduMethode, renduSources } from "../src/methode-rendu.ts
 // n'est recomposé ici : ce sont les fonctions que `demarrer()` (main.ts)
 // appelle, avec les mêmes fichiers.
 import { rendu as renduConjoncture } from "../src/conjoncture.ts";
-import { renduDette, renduEurope } from "../src/national.ts";
+import { renduEurope } from "../src/national.ts";
+import { rendu as renduTenable } from "../src/tenable.ts";
+import { rendu as renduRecettesEtat, } from "../src/recettes-etat.ts";
+import { pont as pontPerimetre } from "../src/ouverture.ts";
 import { rendu as renduFonctions } from "../src/fonctions.ts";
 import { rendu as renduSecu } from "../src/secu.ts";
 import { rendu as renduNiches } from "../src/niches.ts";
@@ -1066,7 +1069,8 @@ export function injecterReperes(
   const ouvrants: [string, string][] = [
     ["bloc-ouverture", renduOuverture(pays)],
     ["bloc-conjoncture", renduConjoncture(pays, catalogue)],
-    ["bloc-dette", renduDette(pays, catalogue)],
+    ["bloc-dette", renduTenable(pays, catalogue)],
+    ["bloc-recettes-etat", renduRecettesEtat(pays, catalogue)],
     ["bloc-europe", renduEurope(pays)],
     ["bloc-cent-euros-apu", renduCentEurosApu(pays)],
     ["bloc-fonctions", renduFonctions(pays, catalogue)],
@@ -1092,6 +1096,13 @@ export function injecterReperes(
   for (const [id, corps] of [...ouvrants, centEuros]) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }
+  // Le pont entre les chapitres 1 et 2 : la phrase qui fait descendre d'un
+  // étage (1 562 milliards pour l'ensemble, 380 pour l'État seul). Sans elle,
+  // les deux chiffres d'encaissement se lisaient comme une contradiction.
+  // Le gabarit sert le pont `hidden` (le repli SPA ne doit pas montrer un
+  // paragraphe vide) : le remplir demande donc aussi de le déplier.
+  const pont = pontPerimetre(pays);
+  html = pont ? deplierCadre(remplirCadre(html, "pont-perimetre", pont), "pont-perimetre") : html;
   html = replierCadre(html, "sommaire-bilan");
   html = deplierCadre(html, "national");
   html = deplierCadre(html, "vue-bilan");
