@@ -123,6 +123,44 @@
      #b69b53 il tombait à 2,69:1 sur blanc — invisible là où il compte. */
   --dore: #96793a;
   --alerte: #ad5438;
+  /* ─────────────────────────────────────────────────────────────────────
+     TEINTE DE SÉRIE — mesurée, pas choisie à l'œil
+     ─────────────────────────────────────────────────────────────────────
+     La gamme catégorielle qui vit en dur dans `cent-euros.ts` — #0f1b2e,
+     #c56a4d, #6e7d73, #b69b53, #41547a, #8b6a52, #8b93a0, #5d6d66 — n'avait
+     jamais été mesurée. Passée au validateur de palette catégorielle, elle
+     échoue quatre contrôles sur cinq :
+
+       plancher de chroma       SEPT des huit teintes lisent comme du gris
+       séparation daltonisme    ΔE 5,3 (protanopie) sur #6e7d73 ↔ #c56a4d
+       plancher vision normale  ΔE 13,3 sur #8b93a0 ↔ #8b6a52, sous le seuil
+                                de 15 : indistinguables même avec une vue
+                                complète
+       contraste sur le fond    2,58:1 et 2,97:1, sous le seuil de 3:1
+
+     Ce n'était donc pas de la sobriété : c'était une figure dont sept parts
+     sur huit sont grises et dont deux paires ne se distinguent pas.
+
+     `--serie-1` est le premier rang d'une gamme de huit qui passe les cinq
+     contrôles SUR LES DEUX FONDS — papier #fbfaf6 et nuit #0d1524 — avec les
+     mêmes valeurs : bande de luminosité, chroma, ΔE 10,2 en protanopie, 18,4
+     en vision normale, contraste ≥ 3:1 partout. Les sept autres rangs
+     entreront avec la première figure qui en aura besoin ; les poser d'avance
+     serait de la place gardée pour rien, et les INVENTER au coup par coup
+     serait pire : la validation est une propriété de la gamme entière, un
+     neuvième ton fabriqué casse la séparation des huit premiers.
+
+     C'est pour ça qu'elle n'a pas de contrepartie sombre : la parité de la
+     charte demande qu'un jeton soit JUSTE dans les deux thèmes, pas qu'il ait
+     deux valeurs. Mesuré, pas supposé.
+
+     La règle éditoriale ne bouge pas : cette teinte dit une IDENTITÉ — « ceci
+     est une mesure » — jamais un jugement, et jamais un rang. */
+  --serie-1: #2a68c4;
+  /* Le regroupement n'est pas un poste : « ce qui reste » garde le gris, et ne
+     prend jamais un rang de série — sinon il se lirait comme une catégorie
+     nommée. */
+  --serie-reste: #8b93a0;
   /* Taille minimale d'une cible tactile : 44px (WCAG 2.5.5). Nommée, parce
      qu'elle sert de hauteur de rangée, de hauteur de barre et de zone de
      frappe étendue — trois endroits qui doivent bouger ensemble. */
@@ -2938,6 +2976,84 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* Camembert des 100 € : la figure demandée, faite proprement — anneaux
    nets, valeurs sur les parts lisibles, « Autres » regroupé et détaillé au
    survol, l'exhaustif en repli dessous. */
+/* ─────────────────────────────────────────────────────────────────────────
+   BARRES DE MAGNITUDE
+   ─────────────────────────────────────────────────────────────────────────
+   Une grille de trois colonnes : le libellé, la piste, la valeur. Le libellé
+   est à GAUCHE et non au-dessus — c'est ce qui aligne les débuts de barre, et
+   des barres qui ne partent pas du même x ne se comparent pas.
+
+   Sous 40rem la colonne de libellés passe au-dessus de sa barre : à 320 px,
+   « Prestations hors protection sociale » mangerait les deux tiers de la
+   largeur et ne laisserait plus rien à comparer. C'est le seul endroit où
+   l'alignement cède, et il cède parce que l'alternative est pire.
+
+   `minmax(0, 1fr)` sur la piste : sans le zéro, une grille refuse de descendre
+   sous la largeur intrinsèque de son contenu et la troisième colonne sort du
+   cadre. */
+.barres {
+  margin: 0.9rem 0 0;
+}
+.barres__titre {
+  font-family: var(--serif);
+  font-size: var(--texte-m);
+  color: var(--encre);
+  margin-bottom: 0.5rem;
+}
+.barres__rangs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: minmax(6rem, 12rem) minmax(0, 1fr) auto;
+  gap: 0.42rem 0.7rem;
+  align-items: center;
+}
+.barres__rang {
+  display: contents;
+}
+.barres__nom {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  overflow-wrap: break-word;
+}
+.barres__piste {
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-xs);
+  height: 0.85rem;
+  min-width: 0;
+}
+.barres__marque {
+  display: block;
+  height: 100%;
+  border-radius: var(--rayon-xs);
+  background: var(--serie-1);
+}
+.barres__marque--reste {
+  background: var(--serie-reste);
+}
+.barres__valeur {
+  font-size: var(--texte-s);
+  font-weight: 600;
+  color: var(--encre);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 40rem, et pas un seuil taillé pour cette figure : le site n'a que deux points
+   de rupture — 40rem et 60rem — et un test d'architecture refuse le troisième.
+   Une figure ne justifie pas d'ouvrir un palier que toute la feuille devra
+   ensuite porter. */
+@media (max-width: 40rem) {
+  .barres__rangs {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .barres__nom {
+    grid-column: 1 / -1;
+    margin-bottom: -0.3rem;
+  }
+}
+
 .camembert {
   margin: 0.8rem 0 0;
 }

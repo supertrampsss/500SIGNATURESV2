@@ -40,6 +40,7 @@
 
 import type { Territoire } from "./donnees.ts";
 import { montantLisible } from "./echelle.ts";
+import { barresMagnitude, type Part } from "./barres.ts";
 
 const RECETTES = "eurostat_apu_recettes";
 const DEPENSES = "eurostat_apu_depenses";
@@ -150,8 +151,22 @@ function renduVentilation(france: Territoire): string {
   const ensemble = part(total[exercice]);
   const reste = ensemble - lignes.reduce((somme, [, valeur]) => somme + valeur, 0);
 
+  // La figure AVANT le tableau : « 24,09 » posé au-dessus de « 2,70 » ne dit
+  // pas *neuf fois*, il demande au lecteur de diviser. Une barre neuf fois plus
+  // longue le dit sans qu'on ait à le calculer — c'est toute la raison d'être
+  // de cette figure, et la seule chose que le tableau ne savait pas faire.
+  //
+  // Le tableau reste dessous : la figure montre des proportions, le tableau
+  // donne les chiffres exacts et l'identité de chaque ligne sans dépendre
+  // d'une longueur.
+  const magnitudes: Part[] = [
+    ...lignes.map(([libelle, valeur]) => ({ libelle, valeur })),
+    { libelle: "Hors protection sociale", valeur: reste, regroupement: true },
+  ];
+
   return `
     <h4>Retraites, chômage, allocations : ce que recouvre le poste</h4>
+    ${barresMagnitude(`Pour 100 € encaissés en ${exercice}`, magnitudes, pour100)}
     <table class="comparaison" tabindex="0">
       <caption>Exercice ${echapper(exercice)} — la ventilation par fonction s'arrête un
         exercice plus tôt que les totaux ci-dessus, et les parts sont donc rapportées aux

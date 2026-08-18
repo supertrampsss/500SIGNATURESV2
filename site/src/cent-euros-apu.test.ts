@@ -120,6 +120,22 @@ test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé 
   assert.match(lu, /Ensemble du poste 37,37\s?€/);
 });
 
+test("la figure précède le tableau, et son rapport est celui des nombres", () => {
+  // Le tableau seul demandait au lecteur de diviser 24,09 par 2,70. La figure
+  // le lui montre — c'est sa seule raison d'être, et c'est ce qui se vérifie.
+  const html = rendu({ FR: territoire(SERIES) });
+  const figure = html.indexOf("barres__rangs");
+  const tableauVentile = html.indexOf("Pour 100 € encaissés en 2024</th>");
+  assert.ok(figure > -1, "aucune figure peinte");
+  assert.ok(figure < tableauVentile, "la figure est passée sous son tableau");
+  const largeurs = [...html.matchAll(/width:([0-9.]+)%/g)].map((m) => Number(m[1]));
+  assert.equal(largeurs[0], 100, "la plus grande barre n'occupe pas la piste");
+  assert.ok(
+    Math.abs(largeurs[0] / largeurs[2] - 24.09 / 2.7) < 0.05,
+    `rapport dessiné ${largeurs[0] / largeurs[2]}, rapport des nombres 8,9`,
+  );
+});
+
 test("la ventilation porte son exercice, et ses parts en viennent", () => {
   // Deux jeux de la même source, deux millésimes : la ventilation s'arrête en
   // 2024 quand les totaux donnent 2025. Redistribuer les 37,11 € de 2025 sur
