@@ -595,6 +595,28 @@ test("les trois états d'une zone de données se distinguent", () => {
   assert.match(echec, /bloc\.textContent = detail;/);
 });
 
+test("ce qui se peint sur le support suit le thème du support", () => {
+  // Le halo des annotations du graphique était `rgb(255 255 255 / 0.85)` écrit
+  // en dur, quand son `fill` suivait `--encre`. En thème sombre l'encre est
+  // claire : le chiffre clair se retrouvait bordé d'un liseré clair de 3 px, et
+  // « +7,3 % » se lisait comme une tache. Même cause pour l'aire sous la
+  // courbe, un aplat d'encre à 5 % posé sur un fond d'encre.
+  //
+  // Ni les tests de couleur ni axe-core ne pouvaient le voir : les uns
+  // calculent les ratios sur les couleurs DÉCLARÉES et un halo n'est pas un
+  // fond, l'autre ne mesure pas le texte d'un SVG. C'est la peinture qui l'a
+  // montré, comme pour l'opacité des paliers.
+  for (const selecteur of [".graphique__valeur", ".graphique__aire"]) {
+    const corps = CSS_REGLES.match(new RegExp(`\\${selecteur} \\{([^}]*)\\}`))?.[1];
+    assert.ok(corps, `${selecteur} sans règle`);
+    for (const propriete of ["stroke", "fill"]) {
+      const valeur = corps.match(new RegExp(`(?:^|\\n)\\s*${propriete}:([^;]*);`))?.[1];
+      if (!valeur || valeur.trim() === "none") continue;
+      assert.match(valeur, /var\(--/, `${selecteur} : ${propriete} ne suit pas le thème`);
+    }
+  }
+});
+
 test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu", () => {
   // Un enfant de grille a `min-width: auto` et refuse de descendre sous la
   // largeur de son contenu : une colonne écrite `1fr` laisse donc un tableau

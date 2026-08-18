@@ -544,6 +544,18 @@ pour ne plus l'être.
   tons servent encore d'identité de pays ailleurs ; les bannir un à un aurait
   été une règle fausse. Le test refuse quatre de la gamme au même endroit.
 
+  **Et le halo des annotations était blanc en dur.** `graphique__valeur`
+  déclarait `stroke: rgb(255 255 255 / 0.85)` quand son `fill` suivait
+  `--encre` : en thème sombre, l'encre est claire, et le chiffre clair se
+  retrouvait bordé d'un liseré clair de 3 px — « +7,3 % » se lisait comme une
+  tache. Même cause pour l'aire sous la courbe, un aplat d'encre à 5 % posé sur
+  un fond d'encre. Ni les tests de couleur ni `axe-core` ne pouvaient le voir :
+  les uns calculent les ratios sur les couleurs **déclarées** et un halo n'est
+  pas un fond, l'autre ne mesure pas le texte d'un SVG. C'est la peinture qui
+  l'a montré, exactement comme l'opacité des paliers du simulateur. **Ce qui se
+  peint sur le support prend la couleur du support, jamais un blanc écrit en
+  dur.**
+
   **Et un test s'était éteint sans rougir.** `interface.test.ts` découpait
   `main.ts` sur le titre d'un commentaire ; en retitrant ce commentaire, j'ai
   rendu `indexOf` égal à −1, et `slice(a, -1)` découpe jusqu'à la fin du

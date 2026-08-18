@@ -3262,11 +3262,18 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   fill: var(--encre);
   font-variant-numeric: tabular-nums;
   paint-order: stroke;
-  stroke: rgb(255 255 255 / 0.85);
+  /* Le halo prend la couleur du SUPPORT, pas du blanc écrit en dur. Écrit en
+     dur, il restait blanc en thème sombre pendant que `fill` suivait le
+     thème : l'encre claire du chiffre était bordée d'un liseré clair de 3 px,
+     et « +7,3 % » se lisait comme une tache. Vu au navigateur — aucun test ne
+     compose une couleur, et axe ne mesure pas le texte d'un SVG. */
+  stroke: color-mix(in srgb, var(--papier) 85%, transparent);
   stroke-width: 3px;
 }
 .graphique__aire {
-  fill: rgb(15 27 46 / 0.05);
+  /* Même cause : un aplat d'encre à 5 % sur un fond d'encre ne se voit pas.
+     L'aire suit l'encre du thème, qui est claire en sombre. */
+  fill: color-mix(in srgb, var(--encre) 5%, transparent);
   stroke: none;
 }
 .graphique__fenetre:disabled {
