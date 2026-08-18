@@ -1,0 +1,213 @@
+/**
+ * D'où vient l'argent de l'État, avec son évolution.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * UNE ÉVOLUTION DONNE SES DEUX BOUTS
+ * ─────────────────────────────────────────────────────────────────────────
+ * La maquette écrivait « +30 % depuis 2017 » sans le montant de 2017, et le
+ * lecteur l'a refusée : une variation sans ses deux bouts ne se vérifie pas.
+ * Le tableau porte donc TROIS colonnes — le montant de l'exercice de
+ * référence, celui du dernier exercice, la variation — et la variation est
+ * calculée sur les deux montants affichés, jamais ailleurs.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * LA TVA, ET LE FAUX EFFONDREMENT
+ * ─────────────────────────────────────────────────────────────────────────
+ * La TVA de l'État passe de 152 à 98 milliards : −35,7 %. Ce n'est pas une
+ * baisse d'impôt — une part croissante de la TVA est reversée chaque année à
+ * la Sécurité sociale et aux collectivités, et seule la part gardée par
+ * l'État est comptée ici. Laisser la variation nue aurait fait lire un
+ * effondrement qui n'existe pas : la note est À CÔTÉ du chiffre, pas en pied
+ * de page. C'est le piège symétrique de celui de l'ouverture (un ratio qui
+ * baisse pendant que le montant monte) : ici un montant qui baisse pendant
+ * que la taxe, elle, ne baisse pas.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * LES GROS MONTANTS S'ÉCRIVENT GROS
+ * ─────────────────────────────────────────────────────────────────────────
+ * La hiérarchie typographique suit le montant : la TVA à 98 milliards s'écrit
+ * plus grande que les recettes sans impôt à 24. C'est la demande explicite du
+ * lecteur, et c'est le registre du tableau typographié — la taille porte la
+ * magnitude sans qu'une barre s'en mêle.
+ *
+ * « Autres impôts et taxes » est une soustraction de séries publiées :
+ * recettes fiscales moins TVA, impôt sur le revenu et impôt sur les sociétés.
+ * Le total, lui, est la série publiée des recettes nettes — jamais la somme
+ * des lignes, qui laisserait un écart d'arrondi passer pour un compte rond.
+ */
+
+import type { Indicateur, Territoire } from "./donnees.ts";
+import { variation } from "./ouverture.ts";
+
+const REFERENCE = "2017";
+
+const TVA = "etat_tva";
+const IMPOT_REVENU = "etat_impot_revenu";
+const IMPOT_SOCIETES = "etat_impot_societes";
+const FISCALES = "etat_recettes_fiscales";
+const NON_FISCALES = "etat_recettes_non_fiscales";
+const NETTES = "etat_recettes_nettes_bg";
+
+function echapper(texte: string): string {
+  return texte.replace(
+    /[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string,
+  );
+}
+
+const MILLIARDS = new Intl.NumberFormat("fr-FR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/** Un montant en milliards, signé + : une recette entre. */
+function plus(valeur: number): string {
+  return `+${MILLIARDS.format(valeur / 1e9)}`;
+}
+
+type Ligne = {
+  libelle: string;
+  avant: number;
+  apres: number;
+  /** La note qui remplace la variation quand elle serait un mensonge de
+   *  périmètre : la TVA partagée n'a pas de variation lisible. */
+  note?: string;
+};
+
+/** Les lignes du tableau, ou null tant que les séries ne couvrent pas les
+ *  deux exercices. */
+export function lignes(
+  france: Territoire | undefined,
+): { debut: string; fin: string; lignes: Ligne[]; total: Ligne } | null {
+  if (!france) return null;
+  const serie = (id: string) => france.series[id] ?? {};
+  const nettes = serie(NETTES);
+  const exercices = Object.keys(nettes)
+    .filter((an) => [TVA, IMPOT_REVENU, IMPOT_SOCIETES, FISCALES, NON_FISCALES].every(
+      (id) => serie(id)[an] !== undefined,
+    ))
+    .sort();
+  if (exercices.length < 2) return null;
+  const fin = exercices[exercices.length - 1];
+  const debut = exercices.includes(REFERENCE) && REFERENCE !== fin ? REFERENCE : exercices[0];
+
+  const paire = (id: string): [number, number] => [serie(id)[debut], serie(id)[fin]];
+  const [tvaA, tvaB] = paire(TVA);
+  const [irA, irB] = paire(IMPOT_REVENU);
+  const [isA, isB] = paire(IMPOT_SOCIETES);
+  const [fiscA, fiscB] = paire(FISCALES);
+  const [nfA, nfB] = paire(NON_FISCALES);
+
+  const brutes: Ligne[] = [
+    {
+      libelle: "Taxe sur la valeur ajoutée",
+      avant: tvaA,
+      apres: tvaB,
+      note:
+        "une part croissante est reversée à la Sécurité sociale et aux collectivités ; " +
+        "seule la part gardée par l'État est comptée ici",
+    },
+    { libelle: "Impôt sur le revenu", avant: irA, apres: irB },
+    {
+      libelle: "Autres impôts et taxes",
+      avant: fiscA - tvaA - irA - isA,
+      apres: fiscB - tvaB - irB - isB,
+      // Mesuré sur les séries réelles : ce reste triple entre 2017 et 2025
+      // (+200 %), en miroir mécanique du partage de la TVA — des recettes
+      // autrefois comptées ailleurs y entrent. La variation d'un reste dont
+      // la composition change ne se lit pas : elle prend une note, comme la
+      // TVA dont elle est le reflet.
+      note:
+        "un ensemble par soustraction, dont la composition change avec le partage " +
+        "des impôts : sa variation ne se lit pas seule",
+    },
+    { libelle: "Impôt sur les sociétés", avant: isA, apres: isB },
+    { libelle: "Recettes sans impôt (dividendes, amendes)", avant: nfA, apres: nfB },
+  ];
+  // Du plus gros au plus petit sur le dernier exercice : la hiérarchie
+  // typographique suit ce tri, et un tableau trié se lit sans chercher.
+  brutes.sort((a, b) => b.apres - a.apres);
+  return {
+    debut,
+    fin,
+    lignes: brutes,
+    total: { libelle: "Total encaissé par l'État", avant: nettes[debut], apres: nettes[fin] },
+  };
+}
+
+/** Le bloc, ou la chaîne vide. */
+export function rendu(
+  pays: Record<string, Territoire>,
+  catalogue: Indicateur[],
+): string {
+  const publies = new Set(catalogue.map((i) => i.id));
+  if (![TVA, IMPOT_REVENU, IMPOT_SOCIETES, FISCALES, NON_FISCALES, NETTES].every((id) =>
+    publies.has(id),
+  ))
+    return "";
+  const donnees = lignes(pays["FR"]);
+  if (!donnees) return "";
+  const { debut, fin, total } = donnees;
+
+  // Les prix sur la même fenêtre, pour dire si les recettes ont bougé en
+  // vrai. La phrase se tait sans l'indice plutôt que de comparer du courant.
+  const prix = pays["FR"]?.series["eurostat_prix_ensemble"] ?? {};
+  const inflation =
+    prix[debut] !== undefined && prix[fin] !== undefined
+      ? variation(prix[debut], prix[fin])
+      : null;
+
+  // La taille suit le rang : le plus gros montant au plus gros corps. Cinq
+  // rangs, cinq crans, écrits en classe et non en style — la feuille garde la
+  // main sur l'échelle.
+  const rangees = donnees.lignes
+    .map(
+      (l, rang) => `<tr class="recettes__rang recettes__rang--${rang}">
+        <th scope="row">${echapper(l.libelle)}${
+          l.note ? `<span class="recettes__note">${echapper(l.note)}</span>` : ""
+        }</th>
+        <td class="flux--plus">${plus(l.avant)}</td>
+        <td class="flux--plus">${plus(l.apres)}</td>
+        <td>${l.note ? "" : echapper(variation(l.avant, l.apres))}</td>
+      </tr>`,
+    )
+    .join("");
+
+  return `
+    <h3>Les recettes de l'État, et d'où elles viennent</h3>
+    <p class="bloc__complement">Depuis ${echapper(debut)}, les recettes de l'État ont augmenté
+      de <strong>${echapper(variation(total.avant, total.apres))}</strong>${
+        inflation
+          ? ` pendant que les prix montaient de <strong>${echapper(
+              inflation.replace("+", ""),
+            )}</strong> : une fois l'inflation retirée, elles n'ont presque pas bougé`
+          : ""
+      }.</p>
+    <table class="comparaison recettes" tabindex="0">
+      <caption>Milliards d'euros, exercices réellement exécutés. « Autres impôts et taxes »
+        est la soustraction des trois impôts nommés du total des recettes fiscales.
+        Source : situation mensuelle budgétaire de l'État au 31 décembre.</caption>
+      <thead><tr><th scope="col">Recettes</th><th scope="col">${echapper(debut)}</th>
+        <th scope="col">${echapper(fin)}</th><th scope="col">Variation</th></tr></thead>
+      <tbody>${rangees}</tbody>
+      <tfoot><tr><th scope="row">${echapper(total.libelle)}</th>
+        <td class="flux--plus">${plus(total.avant)}</td>
+        <td class="flux--plus">${plus(total.apres)}</td>
+        <td>${echapper(variation(total.avant, total.apres))}</td></tr></tfoot>
+    </table>`;
+}
+
+/** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se
+ *  construit sur ce qui s'est réellement affiché. */
+export function afficherRecettesEtat(
+  cadre: HTMLElement,
+  pays: Record<string, Territoire>,
+  catalogue: Indicateur[],
+): boolean {
+  const html = rendu(pays, catalogue);
+  if (html) cadre.innerHTML = html;
+  // Qui remplit un cadre le déplie : le pré-rendu replie ce qu'il ne peut pas
+  // écrire, et rien d'autre ne le rouvrirait.
+  if (html) cadre.hidden = false;
+  return html !== "";
+}

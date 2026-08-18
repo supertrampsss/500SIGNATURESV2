@@ -37,22 +37,32 @@ const PAYS: Record<string, Territoire> = {
   EA20: territoire({ [DEPENSES]: { "2024": 21.5 } }),
 };
 
-test("le solde se lit signé, en points de PIB, chiffres tabulaires", () => {
+test("le solde se lit signé, en % du PIB, chiffres tabulaires", () => {
+  // Il s'écrivait « pt », et c'était une sur-application de la règle des
+  // points : elle vaut pour la VARIATION d'un taux dans le temps, pas pour un
+  // niveau. Le solde est recettes moins dépenses d'une même année — de la
+  // même nature que le déficit public que le site écrit « −5,1 % ».
+  //
   // Le signe est le moins typographique U+2212, jamais le trait d'union U+002D
-  // que rend `Intl` : le bloc voisin écrit « −5,1 % », et deux signes de deux
-  // largeurs pour la même soustraction se voient à l'écran. Écrit ici en
-  // échappement pour que la différence reste lisible dans le test lui-même.
-  assert.equal(points(-2.1), `\u22122,1${FINE}pt`);
-  assert.equal(points(0.4), `+0,4${FINE}pt`);
-  assert.equal(points(0), `0,0${FINE}pt`);
+  // que rend `Intl`.
+  assert.equal(points(-2.1), `\u22122,1${FINE}%`);
+  assert.equal(points(0.4), `+0,4${FINE}%`);
+  assert.equal(points(0), `0,0${FINE}%`);
   assert.ok(!points(-2.1).includes("\u002D"), "aucun trait d'union ne doit rester");
 });
 
-test("l'année affichée est la dernière du solde français, et 2025 est déficitaire", () => {
+test("la question du titre reçoit sa réponse, avec les choses nommées", () => {
+  // « Il lui manque donc 0,2 % » ne nommait rien, et le lecteur l'a refusé :
+  // la réponse est Oui ou Non, les recettes et les dépenses sont signées, et
+  // le déficit est écrit en euros — 6 milliards, sans qualificatif : le
+  // chiffre parle seul.
   const html = rendu(PAYS, CATALOGUE);
   assert.match(html, /En 2025/);
-  assert.match(html, /besoin de financement de 0,2/);
-  assert.doesNotMatch(html, /capacité de financement/);
+  assert.match(html, /<strong>Oui\.<\/strong>/);
+  assert.match(html, /flux--moins">−/);
+  assert.match(html, /flux--plus">\+/);
+  assert.doesNotMatch(html, /besoin de financement/);
+  assert.doesNotMatch(html, /léger/i);
 });
 
 test("la comparaison porte les trois pays, et une valeur absente reste un tiret", () => {
@@ -67,7 +77,7 @@ test("la comparaison porte les trois pays, et une valeur absente reste un tiret"
 
 test("la série du solde est là, chronologique, avec l'année du choc Covid", () => {
   const html = rendu(PAYS, CATALOGUE);
-  assert.match(html, new RegExp(`2020.*\u22122,1${FINE}pt`, "s"));
+  assert.match(html, new RegExp(`2020.*\u22122,1${FINE}%`, "s"));
   assert.ok(html.indexOf("2020") < html.lastIndexOf("2025"));
 });
 

@@ -647,6 +647,21 @@ test("le pied du bilan est replié : trois documents de référence, pas trois c
   }
 });
 
+test("la gamme ne peint jamais du texte : rang de chapitre et signes en encre", () => {
+  // La gamme est validée à 3:1 — le seuil des MARQUES graphiques. Un texte de
+  // 12 px exige 4,5:1, et l'axe-core a relevé quatre rangs de chapitre sur
+  // cinq en violation quand ils portaient la teinte du chapitre. L'identité
+  // passe par le filet de 4 px, qui est une marque ; le rang reste en encre
+  // douce, et les signes +/− des flux ne portent aucune couleur.
+  const rang = CSS_REGLES.match(/\.chapitre__rang \{([^}]*)\}/)?.[1];
+  assert.ok(rang, ".chapitre__rang sans règle");
+  assert.match(rang, /color: var\(--encre-douce\)/);
+  assert.doesNotMatch(rang, /var\(--chapitre/);
+  const flux = CSS_REGLES.match(/\.flux--plus,\s*\.flux--moins \{([^}]*)\}/)?.[1];
+  assert.ok(flux, ".flux--plus/.flux--moins sans règle commune");
+  assert.doesNotMatch(flux, /color:/);
+});
+
 test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu", () => {
   // Un enfant de grille a `min-width: auto` et refuse de descendre sous la
   // largeur de son contenu : une colonne écrite `1fr` laisse donc un tableau

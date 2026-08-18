@@ -29,18 +29,25 @@
  * des dépenses ; le solde de la soustraction est une ligne, jamais un silence.
  *
  * ─────────────────────────────────────────────────────────────────────────
- * ET LE PREMIER POSTE S'OUVRE, SUR SON PROPRE EXERCICE
+ * LE PREMIER POSTE S'OUVRE EN PLACE, ET LE DOUBLON EST MORT
  * ─────────────────────────────────────────────────────────────────────────
- * « Retraites, chômage, allocations » mettait dans un seul nombre trois choses
- * qui n'ont ni le même montant, ni le même public, ni le même débat — la
- * retraite y pèse **neuf fois** le chômage, et l'ordre des mots suggérait le
- * contraire. `renduVentilation` l'ouvre en sept fonctions, avec le refus que
- * sa docstring porte : deux jeux, deux millésimes, deux dénominateurs.
+ * La ventilation de « Retraites, chômage, allocations » vivait dans une
+ * seconde section qui peignait les huit lignes en barres PUIS les réécrivait
+ * en tableau : mêmes chiffres, deux fois, et le lecteur l'a refusé. Elle vit
+ * désormais dans un dépliant sous sa propre ligne — elle n'existe qu'une
+ * fois, à sa place — avec le refus d'origine intact : deux jeux, deux
+ * millésimes, deux dénominateurs, dits dans le dépliant même.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * LES SIGNES
+ * ─────────────────────────────────────────────────────────────────────────
+ * Une recette entre : +. Une dépense sort : −, et les sous-lignes du poste
+ * aussi — les retraites sont une dépense, pas un gain. L'emprunt garde ses
+ * hachures, jamais une couleur.
  */
 
 import type { Territoire } from "./donnees.ts";
 import { montantLisible } from "./echelle.ts";
-import { barresMagnitude, type Part } from "./barres.ts";
 
 const RECETTES = "eurostat_apu_recettes";
 const DEPENSES = "eurostat_apu_depenses";
@@ -150,42 +157,32 @@ function renduVentilation(france: Territoire): string {
   );
   const ensemble = part(total[exercice]);
   const reste = ensemble - lignes.reduce((somme, [, valeur]) => somme + valeur, 0);
+  const maximum = Math.max(...lignes.map(([, v]) => v));
 
-  // La figure AVANT le tableau : « 24,09 » posé au-dessus de « 2,70 » ne dit
-  // pas *neuf fois*, il demande au lecteur de diviser. Une barre neuf fois plus
-  // longue le dit sans qu'on ait à le calculer — c'est toute la raison d'être
-  // de cette figure, et la seule chose que le tableau ne savait pas faire.
-  //
-  // Le tableau reste dessous : la figure montre des proportions, le tableau
-  // donne les chiffres exacts et l'identité de chaque ligne sans dépendre
-  // d'une longueur.
-  const magnitudes: Part[] = [
-    ...lignes.map(([libelle, valeur]) => ({ libelle, valeur })),
-    { libelle: "Hors protection sociale", valeur: reste, regroupement: true },
-  ];
+  const rang = ([libelle, valeur]: readonly [string, number], creux = false) => `
+    <div class="apu__rang">
+      <span class="apu__nom">${echapper(libelle)}</span>
+      <span class="apu__piste${creux ? " apu__piste--creux" : ""}"><span
+        style="width:${((valeur / maximum) * 100).toFixed(1)}%"></span></span>
+      <span class="apu__valeur flux--moins">−${pour100(valeur)}</span>
+    </div>`;
 
   return `
-    <h4>Retraites, chômage, allocations : ce que recouvre le poste</h4>
-    ${barresMagnitude(`Pour 100 € encaissés en ${exercice}`, magnitudes, pour100)}
-    <table class="comparaison" tabindex="0">
-      <caption>Exercice ${echapper(exercice)} — la ventilation par fonction s'arrête un
-        exercice plus tôt que les totaux ci-dessus, et les parts sont donc rapportées aux
-        recettes de ${echapper(exercice)}, jamais à celles du tableau précédent. Source :
-        Eurostat, dépenses des administrations publiques par fonction (COFOG).</caption>
-      <thead><tr><th scope="col">Pour 100 € encaissés en ${echapper(exercice)}</th>
-        <th scope="col">Montant</th></tr></thead>
-      <tbody>${lignes
-        .map(
-          ([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th>
-            <td>${pour100(valeur)}</td></tr>`,
-        )
-        .join("")}
-        <tr><th scope="row">Prestations hors protection sociale (bourses, culture, santé)</th>
-          <td>${pour100(reste)}</td></tr>
-        <tr class="souligne"><th scope="row">Ensemble du poste</th>
-          <td>${pour100(ensemble)}</td></tr>
-      </tbody>
-    </table>`;
+    <div class="apu__detail">
+      <p class="bloc__complement">La retraite pèse <strong>neuf fois</strong> le chômage, et
+        l'ordre des mots du libellé suggérait le contraire. Parts de l'exercice
+        ${echapper(exercice)}, rapportées aux recettes de ${echapper(exercice)} : la
+        ventilation par fonction s'arrête un exercice plus tôt que les totaux, et une part
+        dont le dénominateur vient d'ailleurs ne mesurerait rien. Source : Eurostat, dépenses
+        des administrations publiques par fonction (COFOG).</p>
+      ${lignes.map((l) => rang(l)).join("")}
+      ${rang(["Prestations hors protection sociale (bourses, culture, santé)", reste], true)}
+      <div class="apu__rang apu__total">
+        <span class="apu__nom">Ensemble du poste, exercice ${echapper(exercice)}</span>
+        <span></span>
+        <span class="apu__valeur flux--moins">−${pour100(ensemble)}</span>
+      </div>
+    </div>`;
 }
 
 /**
@@ -226,14 +223,34 @@ export function rendu(pays: Record<string, Territoire>): string {
   );
   const autresRecettes = 100 - ressources.reduce((somme, [, valeur]) => somme + valeur, 0);
 
+  const maximum = Math.max(...postes.map(([, v]) => v ?? 0));
+  // Le total n'a pas de barre : à trois fois le plus gros poste, elle serait
+  // tronquée à 100 % et lirait comme un poste de plus.
+  const rang = (libelle: string, valeur: number, options: { creux?: boolean; total?: boolean } = {}) => `
+    <div class="apu__rang${options.total ? " apu__total" : ""}">
+      <span class="apu__nom">${echapper(libelle)}</span>
+      ${
+        options.total
+          ? "<span></span>"
+          : `<span class="apu__piste${options.creux ? " apu__piste--creux" : ""}"><span
+        style="width:${Math.min(100, (valeur / maximum) * 100).toFixed(1)}%"></span></span>`
+      }
+      <span class="apu__valeur flux--moins">−${pour100(valeur)}</span>
+    </div>`;
+
+  // Le premier poste s'ouvre À SA PLACE : sa ventilation n'existe qu'une fois,
+  // dans ce dépliant, jamais dans une seconde section qui la répète.
+  const [premierPoste, ...autresPostes] = postes;
+  const ventilation = renduVentilation(france);
+
   return `
     <h3>Pour 100 € encaissés, ce qui ressort</h3>
-    <p class="bloc__complement">Toutes les administrations publiques réunies —
-      l'État, les collectivités, la Sécurité sociale et les organismes qu'ils
-      financent — ont encaissé <strong>${montantLisible(total)}</strong> en
+    <p class="bloc__complement">Toutes les administrations publiques réunies
+      (l'État, les collectivités, la Sécurité sociale et les organismes qu'ils
+      financent) ont encaissé <strong>${montantLisible(total)}</strong> en
       ${echapper(exercice)} et dépensé <strong>${pour100(depense)}</strong> pour chaque
-      100 € reçus. L'écart, <strong>${pour100(Math.abs(solde))}</strong>, est le déficit
-      public.</p>
+      100 € reçus. Les <strong>${pour100(Math.abs(solde))}</strong> manquants ont été
+      empruntés : c'est le déficit public.</p>
     <table class="comparaison" tabindex="0">
       <caption>Comptabilité nationale, exercice ${echapper(exercice)}. Ce tableau ne se
         soustrait ni des « 100 € du budget de l'État », qui comptent l'État seul en
@@ -245,25 +262,34 @@ export function rendu(pays: Record<string, Territoire>): string {
       <tbody>${ressources
         .map(
           ([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th>
-            <td>${pour100(valeur)}</td></tr>`,
+            <td class="flux--plus">+${pour100(valeur)}</td></tr>`,
         )
         .join("")}
         <tr><th scope="row">Ventes de services et autres recettes</th>
-          <td>${pour100(autresRecettes)}</td></tr>
-      </tbody>
-      <thead><tr><th scope="col">Où ils vont</th><th scope="col">Montant</th></tr></thead>
-      <tbody>${postes
-        .map(
-          ([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th>
-            <td>${pour100(valeur ?? 0)}</td></tr>`,
-        )
-        .join("")}
-        <tr><th scope="row">Autres dépenses</th><td>${pour100(reste)}</td></tr>
-        <tr class="souligne"><th scope="row">Total dépensé</th>
-          <td>${pour100(depense)}</td></tr>
+          <td class="flux--plus">+${pour100(autresRecettes)}</td></tr>
+        <tr class="souligne"><th scope="row">Total encaissé</th>
+          <td class="flux--plus">+${pour100(100)}</td></tr>
       </tbody>
     </table>
-    ${renduVentilation(france)}`;
+    <h4>Où ils vont</h4>
+    ${
+      ventilation
+        ? `<details class="apu__ouvrir">
+      <summary>
+        <div class="apu__rang">
+          <span class="apu__nom">${echapper(premierPoste[0])}</span>
+          <span class="apu__piste"><span style="width:100%"></span></span>
+          <span class="apu__valeur flux--moins">−${pour100(premierPoste[1] ?? 0)}</span>
+        </div>
+      </summary>
+      ${ventilation}
+    </details>`
+        : rang(premierPoste[0], premierPoste[1] ?? 0)
+    }
+    ${autresPostes.map(([libelle, valeur]) => rang(libelle, valeur ?? 0)).join("")}
+    ${rang("Autres dépenses", reste)}
+    ${rang("Total dépensé", depense, { total: true })}
+    ${rang("Dépensé sans avoir été reçu : l'emprunt", Math.abs(solde), { creux: true })}`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

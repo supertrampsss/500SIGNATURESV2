@@ -71,7 +71,19 @@ test("les parts se rapportent aux recettes, donc leur somme dépasse 100 €", (
   // existe pour montrer : le déficit.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
   assert.match(lu, /dépensé 109,77\s?€ pour chaque 100\s?€ reçus/);
-  assert.match(lu, /9,77\s?€.{0,40}déficit public/);
+  assert.match(lu, /9,77\s?€.{0,60}déficit public/);
+});
+
+test("les recettes s'écrivent en positif, les dépenses en négatif", () => {
+  // La demande explicite du lecteur : une recette entre (+), une dépense sort
+  // (−) — et les sous-lignes des retraites sont des dépenses, pas des gains.
+  const html = rendu({ FR: territoire(SERIES) });
+  assert.match(html, /flux--plus">\+31,94\s?€/);
+  assert.match(html, /flux--moins">−37,11\s?€/);
+  assert.match(html, /flux--moins">−24,09\s?€/);
+  assert.match(html, /flux--moins">−109,77\s?€/);
+  // Et l'emprunt garde ses hachures — une texture, jamais une couleur.
+  assert.match(html, /apu__piste--creux/);
 });
 
 test("le reste non détaillé est une ligne, jamais un silence", () => {
@@ -79,9 +91,8 @@ test("le reste non détaillé est une ligne, jamais un silence", () => {
   // écrite plutôt que laissée au lecteur.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
   assert.match(lu, /Autres dépenses/);
-  const html = rendu({ FR: territoire(SERIES) });
   // 1 714,1372 − la somme des neuf postes = 19,62 Md€, soit 1,26 € pour 100.
-  assert.match(html, />1,26\s?€</);
+  assert.match(lu, /Autres dépenses −1,26\s?€/);
 });
 
 test("le tableau dit ce qui le sépare des deux autres « 100 € » du site", () => {
@@ -95,40 +106,51 @@ test("les recettes se décomposent aussi, reste compris", () => {
   const lu = texte(rendu({ FR: territoire(SERIES) }));
   assert.match(lu, /Cotisations sociales/);
   assert.match(lu, /Ventes de services et autres recettes/);
-  // 498,7 + 470,4 + 389,9 = 1 359 sur 1 561,6, soit 12,97 € de reste.
-  assert.match(rendu({ FR: territoire(SERIES) }), />12,97\s?€</);
+  // 498,7 + 470,4 + 389,9 = 1 359 sur 1 561,6, soit 12,97 € de reste — en
+  // positif : une recette entre.
+  assert.match(rendu({ FR: territoire(SERIES) }), />\+12,97\s?€</);
 });
 
 test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé suggère", () => {
   // « Retraites, chômage, allocations » mettait dans un seul nombre trois
   // choses qui n'ont ni le même montant, ni le même public. Séparées, la
-  // retraite pèse NEUF fois le chômage.
+  // retraite pèse NEUF fois le chômage — et chaque sous-ligne est une
+  // dépense : négative.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
   for (const attendu of [
-    /Retraites 24,09\s?€/,
-    /Arrêts maladie et invalidité 3,34\s?€/,
-    /Chômage 2,70\s?€/,
-    /Pensions de réversion 2,68\s?€/,
-    /Famille et enfants 2,29\s?€/,
-    /RSA et autres minima sociaux 1,79\s?€/,
+    /Retraites −24,09\s?€/,
+    /Arrêts maladie et invalidité −3,34\s?€/,
+    /Chômage −2,70\s?€/,
+    /Pensions de réversion −2,68\s?€/,
+    /Famille et enfants −2,29\s?€/,
+    /RSA et autres minima sociaux −1,79\s?€/,
   ]) {
     assert.match(lu, attendu);
   }
-  // Le reste de la ventilation est écrit, comme celui du tableau du dessus :
+  // Le reste de la ventilation est écrit, comme celui du bloc principal :
   // 561,8784 − la somme des sept fonctions = 6,155 Md€, soit 0,41 € pour 100.
-  assert.match(lu, /hors protection sociale.{0,40}0,41\s?€/);
-  assert.match(lu, /Ensemble du poste 37,37\s?€/);
+  assert.match(lu, /hors protection sociale.{0,60}−0,41\s?€/);
+  assert.match(lu, /Ensemble du poste, exercice 2024 −37,37\s?€/);
 });
 
-test("la figure précède le tableau, et son rapport est celui des nombres", () => {
-  // Le tableau seul demandait au lecteur de diviser 24,09 par 2,70. La figure
-  // le lui montre — c'est sa seule raison d'être, et c'est ce qui se vérifie.
+test("la ventilation n'existe qu'une fois : le doublon est mort", () => {
+  // Elle était peinte en barres PUIS réécrite en tableau — mêmes chiffres,
+  // deux fois — et le lecteur l'a refusé. Elle vit dans le dépliant du poste,
+  // à sa place, et chaque valeur n'apparaît qu'une fois.
   const html = rendu({ FR: territoire(SERIES) });
-  const figure = html.indexOf("barres__rangs");
-  const tableauVentile = html.indexOf("Pour 100 € encaissés en 2024</th>");
-  assert.ok(figure > -1, "aucune figure peinte");
-  assert.ok(figure < tableauVentile, "la figure est passée sous son tableau");
-  const largeurs = [...html.matchAll(/width:([0-9.]+)%/g)].map((m) => Number(m[1]));
+  assert.equal(html.split("24,09").length - 1, 1, "24,09 € écrit plus d'une fois");
+  assert.equal(html.split("2,70").length - 1, 1, "2,70 € écrit plus d'une fois");
+  // Le dépliant est dans le flux des postes, pas dans une section à lui.
+  assert.match(html, /<details class="apu__ouvrir">/);
+  assert.doesNotMatch(html, /ce que recouvre le poste<\/h4>/);
+});
+
+test("le rapport des barres est celui des nombres, dans le dépliant", () => {
+  // « 24,09 » posé au-dessus de « 2,70 » ne dit pas NEUF FOIS : la barre le
+  // dit. Le rapport dessiné doit être celui des nombres.
+  const html = rendu({ FR: territoire(SERIES) });
+  const detail = html.slice(html.indexOf('class="apu__detail"'));
+  const largeurs = [...detail.matchAll(/width:([0-9.]+)%/g)].map((m) => Number(m[1]));
   assert.equal(largeurs[0], 100, "la plus grande barre n'occupe pas la piste");
   assert.ok(
     Math.abs(largeurs[0] / largeurs[2] - 24.09 / 2.7) < 0.05,
@@ -141,24 +163,23 @@ test("la ventilation porte son exercice, et ses parts en viennent", () => {
   // 2024 quand les totaux donnent 2025. Redistribuer les 37,11 € de 2025 sur
   // des clés de 2024 aurait donné un tableau qui tombe juste et qui ment.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /Exercice 2024/);
-  assert.match(lu, /Pour 100\s?€ encaissés en 2024/);
+  assert.match(lu, /exercice 2024/i);
   assert.match(lu, /s'arrête un exercice plus tôt/);
   // 362,1784 / 1 503,59 = 24,09 €. Sur les recettes de 2025 il aurait affiché
   // 23,19 € : c'est cette valeur-là que le tableau ne doit jamais porter.
   assert.doesNotMatch(lu, /Retraites 23,19\s?€/);
-  // Et l'ensemble du poste ventilé n'est pas celui du tableau principal : même
-  // compte, deux millésimes, 37,37 contre 37,11.
-  assert.match(lu, /Retraites, chômage, allocations 37,11\s?€/);
+  // Et l'ensemble du poste ventilé n'est pas celui de la ligne principale :
+  // même compte, deux millésimes, 37,37 contre 37,11.
+  assert.match(lu, /Retraites, chômage, allocations −37,11\s?€/);
 });
 
 test("sans ses sept fonctions, la ventilation se tait plutôt que d'en montrer six", () => {
   const ampute = { ...SERIES } as Record<string, Record<string, number>>;
   delete ampute["eurostat_apu_prestations_chomage"];
   const lu = texte(rendu({ FR: territoire(ampute) }));
-  assert.doesNotMatch(lu, /ce que recouvre le poste/);
-  // Mais le tableau principal, lui, reste servi.
-  assert.match(lu, /Total dépensé 109,77\s?€/);
+  assert.doesNotMatch(lu, /Arrêts maladie/);
+  // Mais le bloc principal, lui, reste servi — le poste sans son dépliant.
+  assert.match(lu, /Total dépensé −109,77\s?€/);
 });
 
 test("un exercice sans ses deux totaux n'est pas retenu", () => {

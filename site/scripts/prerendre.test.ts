@@ -36,7 +36,7 @@ import type {
   Jeu,
   Territoire,
 } from "../src/donnees.ts";
-import { formater, millions } from "../src/echelle.ts";
+import { formater } from "../src/echelle.ts";
 import { TITRES_METHODE } from "../src/methode-rendu.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
@@ -1242,7 +1242,10 @@ function territoireEssai(series: Record<string, Record<string, number>>): Territ
  */
 const PAYS_ESSAI: Record<string, Territoire> = {
   FR: territoireEssai({
-    insee_dette_apu_montant: { "2025": 3_400_000_000_000 },
+    // La dette en TRIMESTRES : le bloc « Est-ce tenable ? » lit les fins
+    // d'année de la série trimestrielle, comme la publication réelle.
+    insee_dette_apu_montant: { "2024-Q4": 3_306_100_000_000, "2025-Q4": 3_400_000_000_000 },
+    eurostat_taux_10_ans: { "2017": 0.81, "2025": 3.35 },
     insee_dette_apu_part_pib: { "2024": 113.0, "2025": 115.6 },
     insee_dette_etat_montant: { "2025": 2_800_000_000_000 },
     eurostat_dette_pib: { "2024": 113.0 },
@@ -1261,6 +1264,8 @@ const PAYS_ESSAI: Record<string, Territoire> = {
 
 const CATALOGUE_REPERES = [
   { id: "insee_dette_etat_montant", libelle: "Dette de l'État" },
+  { id: "insee_dette_apu_montant", libelle: "Dette publique" },
+  { id: "eurostat_taux_10_ans", libelle: "Taux d'emprunt à 10 ans" },
   { id: "eurostat_inflation_ipch", libelle: "Inflation" },
   { id: "eurostat_fonction_sante", libelle: "Santé" },
   { id: "eurostat_secu_solde_pib", libelle: "Solde des administrations de sécurité sociale" },
@@ -1319,7 +1324,7 @@ test("15. /bilan sert ses huit blocs sans exécuter une ligne", () => {
   // chaîne tapée ici, qui ne dirait rien de ce que la page écrit vraiment.
   for (const titre of [
     "Où en est l'économie ?",
-    "Dette publique",
+    "La dette, et ce qu'elle coûte",
     "La France et ses voisins",
     "100 € du budget de l'État",
     "Que finance la dépense publique ?",
@@ -1337,9 +1342,9 @@ test("15. /bilan sert ses huit blocs sans exécuter une ligne", () => {
   // preuve que les blocs ont lu les séries et pas un repli. Lu sur le HTML et
   // non sur `texteDuMain`, qui ramène toute espace à l'espace ordinaire — les
   // séparateurs de `millions` sont des espaces fines insécables (test 14 bis).
-  const dette = millions(3_400_000_000_000);
-  assert.ok(dette.endsWith("M€"), `« ${dette} » ne dit pas son unité : cette sonde ne prouverait rien`);
-  assert.ok(html.includes(dette), `la dette publiée « ${dette} » n'est pas servie`);
+  const detteMd = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(3400);
+  assert.ok(/\u202f/.test(detteMd), `« ${detteMd} » sans séparateur : cette sonde ne prouverait rien`);
+  assert.ok(html.includes(detteMd), `la dette publiée « ${detteMd} » n'est pas servie`);
 
   // Et il en reste beaucoup plus que les 2 597 signes de l'accueil, qui est ce
   // que ce chemin servait. Le seuil était de 6 000 quand la page portait aussi
@@ -1391,7 +1396,7 @@ test("15 ter. un bloc sans source publiée est replié, jamais laissé vide", ()
   // Les blocs qui ont leurs séries, eux, sont écrits — sans quoi ce test
   // passerait sur une page entièrement repliée sans rien prouver.
   assert.doesNotMatch(html, /id="bloc-dette"[^>]* hidden>/);
-  assert.ok(texteDuMain(html).includes("Dette publique"));
+  assert.ok(texteDuMain(html).includes("La dette, et ce qu'elle coûte"));
 });
 
 test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repères", () => {

@@ -157,33 +157,31 @@
      La règle éditoriale ne bouge pas : cette teinte dit une IDENTITÉ — « ceci
      est une mesure » — jamais un jugement, et jamais un rang. */
   --serie-1: #2a68c4;
-  /* Les rangs 2 à 5 sont entrés avec la première figure qui en avait besoin :
-     les cinq courbes de conjoncture, qui se distinguaient par cinq teintes de
-     la gamme non mesurée. Passées au validateur, elles échouaient quatre
-     contrôles sur cinq sur le carreau — dont ΔE 5,3 en protanopie entre
-     l'Italie et l'Allemagne, et **9,4 en vision normale** pour un plancher de
-     15 : deux courbes que personne ne distingue, même avec une vue complète.
+  /* La gamme est passée de cinq à HUIT rangs le 18 août 2026, quand le bilan a
+     reçu ses identités de chapitre — et le lecteur avait reproché la version
+     précédente : « ça manque de couleur ». La borne haute de chroma est montée
+     de 0,16 à 0,20, et c'est la seule chose qui a changé dans la recherche.
 
-     La gamme retenue est mesurée `--pairs all` — cinq courbes qui se croisent,
-     n'importe quelles deux peuvent se toucher — sur les DEUX fonds du cadre,
-     `--papier` clair (#ffffff) et sombre (#131d2f), avec les mêmes valeurs :
+     Mesurée `--pairs all` — n'importe quelles deux teintes peuvent se
+     toucher — sur les DEUX fonds du cadre, `--papier` clair (#ffffff) et
+     sombre (#131d2f), avec les mêmes valeurs :
 
-       bande de luminosité   les cinq dedans, dans les deux bandes
-       chroma                les cinq au-dessus de 0,10
-       ΔE daltonisme         10,8 (deutéranopie), seuil 8
-       ΔE vision normale     19,2, seuil 15
-       contraste sur le fond les cinq au-dessus de 3:1, des deux côtés
+       bande de luminosité   les huit dedans, dans les deux bandes
+       chroma                les huit entre 0,11 et 0,20
+       ΔE daltonisme         8,4 (protanopie), seuil 8
+       ΔE vision normale     15,3, seuil 15
+       contraste sur le fond les huit au-dessus de 3:1, des deux côtés
 
-     Le chroma est borné en haut à 0,16 : la séparation seule produit des tons
-     criards — l'optimum non borné donnait un violet #9800e8 et un rose #e83890,
-     mesurés justes et faux de registre.
-
-     Ces teintes disent une IDENTITÉ — un pays —, jamais un rang ni une valeur.
-     C'est ce que la charte autorise, et c'est tout ce qu'elle autorise. */
-  --serie-2: #9c5078;
-  --serie-3: #447404;
-  --serie-4: #bc8828;
-  --serie-5: #04a4a0;
+     Ces teintes disent une IDENTITÉ — un pays, un chapitre, un poste — jamais
+     un rang ni une valeur. C'est ce que la charte autorise, et c'est tout ce
+     qu'elle autorise : le déficit garde ses hachures, jamais une teinte. */
+  --serie-2: #04784c;
+  --serie-3: #b88420;
+  --serie-4: #ac3c94;
+  --serie-5: #9474f0;
+  --serie-6: #28a0c0;
+  --serie-7: #c03c14;
+  --serie-8: #f05484;
   /* Le regroupement n'est pas un poste : « ce qui reste » garde le gris, et ne
      prend jamais un rang de série — sinon il se lirait comme une catégorie
      nommée. */
@@ -3145,8 +3143,16 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    point de rupture existant du site, pas un seuil taillé pour cette grille :
    onze blocs en pleine largeur dans 1 440 px faisaient vingt écrans de
    défilement alors que deux d'entre eux prouvaient déjà que la place existe. */
+/* Chaque chapitre porte une identité de la gamme : filet, rang, totaux. La
+   teinte dit « c'est ce chapitre-là », jamais un rang ni un jugement — les
+   cinq sont des rangs de la gamme validée (voir --serie-1). */
+#chapitre-combien { --chapitre: var(--serie-1); }
+#chapitre-recettes { --chapitre: var(--serie-2); }
+#chapitre-depenses { --chapitre: var(--serie-3); }
+#chapitre-pour-qui { --chapitre: var(--serie-4); }
+#chapitre-tenable { --chapitre: var(--serie-5); }
 .chapitre {
-  border-top: 2px solid var(--encre);
+  border-top: 4px solid var(--chapitre, var(--encre));
   padding-top: var(--espace-5);
   margin-top: var(--espace-8);
   display: grid;
@@ -3165,9 +3171,146 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-size: var(--texte-xs);
   letter-spacing: 0.1em;
   text-transform: uppercase;
+  /* L'encre douce, PAS la teinte du chapitre : la gamme est validée à 3:1
+     pour des marques graphiques, et un texte de 12 px exige 4,5:1 — mesuré à
+     l'axe-core, quatre rangs sur cinq échouaient. L'identité du chapitre
+     passe par le filet de 4 px au-dessus, qui est une marque. */
   color: var(--encre-douce);
+  font-weight: 600;
   margin: 0;
 }
+/* Le périmètre sous la question : « toutes les administrations publiques » ou
+   « le budget de l'État seul ». Sans lui, 1 562 milliards au chapitre 1 puis
+   380 au chapitre 2 se lisaient comme une contradiction. */
+.chapitre__perimetre {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  margin: 0;
+  max-width: 66ch;
+}
+/* Le pont entre deux périmètres : la phrase qui fait descendre d'un étage. */
+.chapitre__pont {
+  font-size: var(--texte-m);
+  background: var(--papier-creuse);
+  border-left: 3px solid var(--chapitre, var(--trait-fort));
+  border-radius: var(--rayon-xs);
+  padding: var(--espace-4) var(--espace-5);
+  max-width: 62ch;
+}
+/* La réponse à la question du chapitre, écrite avant les preuves. */
+.reponse {
+  background: color-mix(in srgb, var(--chapitre, var(--encre)) 9%, var(--papier));
+  border-left: 4px solid var(--chapitre, var(--encre));
+  padding: var(--espace-5) var(--espace-6);
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  line-height: 1.5;
+  max-width: 56ch;
+  margin: var(--espace-4) 0 0;
+}
+/* Le sens d'un flux : une recette entre (+), une dépense sort (−). Le SIGNE
+   porte le sens, pas une couleur : le vert de la gamme tient 3:1 — le seuil
+   des marques graphiques — et un texte exige 4,5:1, mesuré à l'axe-core en
+   thème sombre. Et un vert sur les recettes aurait frôlé la couleur de
+   jugement que la charte refuse. */
+.flux--plus,
+.flux--moins { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Les haltères : avant et après reliés par un trait dont la longueur EST
+   l'effet mesuré. Trait plein quand la valeur monte, hachures quand elle
+   descend — jamais une couleur de jugement. */
+.halteres { display: grid; gap: var(--espace-5); margin: var(--espace-5) 0 var(--espace-3); }
+.haltere__nom { font-size: var(--texte-s); margin: 0; }
+.haltere__piste { position: relative; height: var(--espace-7); }
+.haltere__trait,
+.haltere__trait--baisse {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  transform: translateY(-50%);
+  background: var(--serie-4);
+}
+.haltere__trait--baisse {
+  background: repeating-linear-gradient(135deg, var(--encre-douce) 0 2px, transparent 2px 6px);
+}
+.haltere__avant,
+.haltere__apres {
+  position: absolute;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+.haltere__avant { width: var(--espace-4); height: var(--espace-4); background: var(--trait-fort); }
+.haltere__apres { width: var(--espace-5); height: var(--espace-5); background: var(--serie-4); }
+.haltere__valeurs { font-size: var(--texte-xs); color: var(--encre-douce); margin: 0; font-variant-numeric: tabular-nums; }
+
+/* Les rangs à barre du bloc des 100 € : libellé, piste, montant signé. Le
+   premier poste est un dépliant qui s'ouvre À SA PLACE — la ventilation
+   n'existe qu'une fois, jamais dans une seconde section qui la répète. */
+.apu__rang {
+  display: grid;
+  grid-template-columns: minmax(7rem, 15rem) minmax(0, 1fr) 5.2rem;
+  gap: var(--espace-4);
+  align-items: center;
+  padding: var(--espace-3) 0;
+  border-top: 1px solid var(--trait);
+}
+.apu__nom { font-size: var(--texte-m); }
+.apu__piste { height: var(--espace-5); background: var(--papier-creuse); border-radius: var(--rayon-xs); overflow: hidden; }
+.apu__piste span { display: block; height: 100%; border-radius: var(--rayon-xs); background: var(--serie-3); }
+.apu__piste--creux span {
+  background: repeating-linear-gradient(135deg, var(--encre-douce) 0 2px, transparent 2px 6px);
+  outline: 1px solid var(--trait-fort);
+}
+.apu__valeur { text-align: right; font-size: var(--texte-m); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.apu__detail { margin: var(--espace-4) 0 var(--espace-2) var(--espace-5); padding-left: var(--espace-5); border-left: 2px solid var(--serie-3); }
+.apu__detail .apu__rang { border-top: 0; padding: var(--espace-2) 0; grid-template-columns: minmax(6rem, 11rem) minmax(0, 1fr) 4.6rem; }
+.apu__detail .apu__piste { height: var(--espace-4); }
+.apu__ouvrir > summary { cursor: pointer; list-style: none; }
+.apu__ouvrir > summary::-webkit-details-marker { display: none; }
+.apu__ouvrir > summary .apu__nom::before {
+  content: "›";
+  display: inline-block;
+  margin-right: var(--espace-3);
+  color: var(--serie-3);
+  font-weight: 700;
+  transition: transform var(--transition);
+}
+.apu__ouvrir[open] > summary .apu__nom::before { transform: rotate(90deg); }
+.apu__total { border-top: 2px solid var(--serie-3); font-weight: 700; }
+
+/* Les recettes de l'État : la taille suit le montant. Cinq crans, du plus
+   gros au plus petit — la demande explicite du lecteur, et le registre du
+   tableau typographié. La note de périmètre (TVA partagée) vit sous le
+   libellé, à côté du chiffre qu'elle éclaire. */
+.recettes__rang--0 th { font-size: var(--texte-l); }
+.recettes__rang--0 td { font-size: var(--texte-3xl); font-weight: 700; }
+.recettes__rang--1 th { font-size: var(--texte-l); }
+.recettes__rang--1 td { font-size: var(--texte-xxl); font-weight: 700; }
+.recettes__rang--2 td { font-size: var(--texte-xl); font-weight: 600; }
+.recettes__rang--3 td { font-size: var(--texte-l); font-weight: 600; }
+.recettes__rang--4 th { color: var(--encre-douce); }
+.recettes__note {
+  display: block;
+  font-size: var(--texte-xs);
+  font-weight: 400;
+  color: var(--encre-douce);
+  max-width: 40ch;
+}
+
+/* La dette et les taux, année par année : des rangs à barre datés. */
+.tenable__rang {
+  display: grid;
+  grid-template-columns: 3.6rem minmax(0, 1fr) 5.4rem;
+  gap: var(--espace-4);
+  align-items: center;
+  padding: var(--espace-1) 0;
+}
+.tenable__rang .apu__piste span { background: var(--serie-5); }
+.tenable__rang--taux .apu__piste span { background: var(--serie-6); }
+.tenable__duo { display: grid; gap: var(--espace-7); margin-top: var(--espace-5); }
+@media (min-width: 60rem) { .tenable__duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; } }
+
 .chapitre__question {
   font-family: var(--serif);
   font-size: var(--texte-l);

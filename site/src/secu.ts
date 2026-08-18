@@ -21,12 +21,14 @@
  * Sécu » débattu au Parlement (autre périmètre : régime général + FSV), et les
  * recettes ne sont pas que des cotisations (CSG, fractions de TVA).
  *
- * Le solde s'exprime en **points de PIB**, pas en pourcentage d'un total : la
- * différence entre deux grandeurs en % du PIB se compte en points.
+ * Le solde s'exprime en **% du PIB**, comme le déficit public partout
+ * ailleurs sur le site : c'est un niveau (recettes moins dépenses d'une même
+ * année), pas la variation d'un taux — la règle des points ne vaut que pour
+ * les variations.
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { moins, pourcentage } from "./echelle.ts";
+import { moins, montantLisible, pourcentage } from "./echelle.ts";
 import { rendu as renduCentEuros } from "./cent-euros-secu.ts";
 import { nomPays } from "./pays-noms.ts";
 
@@ -53,7 +55,14 @@ function echapper(texte: string): string {
   );
 }
 
-/** Un solde se lit signé, en points de PIB : « +0,4 pt » / « −2,1 pt ». */
+/** Un solde se lit signé, en % du PIB : « +0,4 % » / « −2,1 % ».
+ *
+ *  Il s'écrivait « pt », et c'était une sur-application de la règle des
+ *  points : elle vaut pour la VARIATION d'un taux dans le temps, pas pour un
+ *  niveau. Le solde de la Sécu est recettes moins dépenses d'une même année,
+ *  deux niveaux en % du PIB — de la même nature que le déficit public que le
+ *  site écrit « −5,1 % » partout ailleurs. Deux écritures pour une même
+ *  nature de chiffre se lisaient comme deux mesures. */
 export function points(valeur: number): string {
   const texte = valeur.toLocaleString("fr-FR", {
     signDisplay: "exceptZero",
@@ -63,7 +72,7 @@ export function points(valeur: number): string {
   // Le moins typographique, comme partout ailleurs : `Intl` rend un trait
   // d'union, et « -0,2 pt » se lisait sous « −5,1 % » dans le bloc voisin —
   // deux signes de deux largeurs pour la même soustraction.
-  return `${moins(texte)}${FINE}pt`;
+  return `${moins(texte)}${FINE}%`;
 }
 
 function derniere(serie: Record<string, number> | undefined): [string, number] | null {
@@ -101,14 +110,16 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
   const recettesFr = valeur("FR", RECETTES);
   if (depensesFr === undefined || recettesFr === undefined) return "";
 
-  // « Capacité » ou « besoin de financement » : les mots de la comptabilité
-  // nationale, pas une paraphrase — c'est ce que mesure B9.
-  const lecture =
-    soldeFr > 0
-      ? `une capacité de financement de ${points(soldeFr)} de PIB`
-      : soldeFr < 0
-        ? `un besoin de financement de ${points(Math.abs(soldeFr)).replace("+", "")} de PIB`
-        : "un solde équilibré";
+  // La réponse à la question du titre, avec les choses nommées : recettes,
+  // dépenses, déficit — et le déficit en euros, pas seulement en part. Le
+  // montant vient du produit de deux chiffres publiés (solde en % du PIB,
+  // PIB en euros), et « environ » dit l'arrondi du premier. Aucun
+  // qualificatif : 6 milliards, c'est 6 milliards, le chiffre parle seul.
+  const pib = pays["FR"]?.series?.["eurostat_pib_montant"]?.[annee];
+  const enEuros =
+    pib !== undefined
+      ? ` : le déficit est d'environ ${montantLisible(Math.abs((soldeFr / 100) * pib))}`
+      : "";
 
   const lignes = COMPARES.map(([code, nom]) => {
     const d = valeur(code, DEPENSES);
@@ -120,8 +131,8 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
       v === undefined ? "—" : echapper(rendu(v));
     return `<tr>
       <th scope="row">${echapper(nom)}</th>
-      <td>${cellule(d, (n) => pourcentage(n, true))}</td>
-      <td>${cellule(r, (n) => pourcentage(n, true))}</td>
+      <td class="flux--plus">${cellule(r, (n) => `+${pourcentage(n, true)}`)}</td>
+      <td class="flux--moins">${cellule(d, (n) => `−${pourcentage(n, true)}`)}</td>
       <td>${cellule(s, points)}</td>
     </tr>`;
   }).join("");
@@ -141,20 +152,26 @@ function renduSolde(pays: Record<string, Territoire>, catalogue: Indicateur[]): 
 
   return `
     <h3>La Sécu est-elle en déficit ?</h3>
-    <p class="bloc__complement">En ${echapper(annee)}, les administrations de sécurité
-      sociale françaises ont dépensé <strong>${echapper(pourcentage(depensesFr))} du produit
-      intérieur brut</strong> et reçu ${echapper(pourcentage(recettesFr))}, soit
-      ${lecture}.</p>
+    <p class="bloc__complement"><strong>${
+      soldeFr < 0 ? "Oui." : soldeFr > 0 ? "Non, elle est en excédent." : "Non, elle est à l'équilibre."
+    }</strong> En ${echapper(annee)}, les administrations de sécurité sociale françaises ont
+      dépensé <strong class="flux--moins">−${echapper(
+        pourcentage(depensesFr),
+      )}</strong> de la richesse produite (les prestations versées et leur gestion) et encaissé
+      <strong class="flux--plus">+${echapper(
+        pourcentage(recettesFr),
+      )}</strong> (cotisations, CSG et impôts affectés)${enEuros}.</p>
     <table class="secu" tabindex="0">
       <caption>Sous-secteur administrations de sécurité sociale (S1314), ${echapper(
         annee,
       )} · % du PIB, définitions harmonisées Eurostat</caption>
-      <thead><tr><th scope="col">Territoire</th><th scope="col">Dépenses</th>
-        <th scope="col">Recettes</th><th scope="col">Solde</th></tr></thead>
+      <thead><tr><th scope="col">Territoire</th><th scope="col">Recettes</th>
+        <th scope="col">Dépenses</th><th scope="col">Solde</th></tr></thead>
       <tbody>${lignes}</tbody>
     </table>
     <table class="secu secu--serie" tabindex="0">
-      <caption>Le solde français année par année, en points de PIB</caption>
+      <caption>Le solde français année par année, en % du PIB. Excédentaire avant la
+        crise sanitaire, en fort déficit en 2020, revenue près de l'équilibre depuis.</caption>
       <thead><tr><th scope="col">Année</th><th scope="col">Solde</th></tr></thead>
       <tbody>${frise}</tbody>
     </table>
