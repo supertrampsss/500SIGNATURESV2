@@ -433,6 +433,57 @@ pour ne plus l'être.
 
 ### Fait
 
+- **« Tu mets jamais de couleur » — le validateur donne raison au lecteur**
+  (18 août 2026). Reproche reçu sur les blocs « 100 € » ; vérifié avant d'être
+  concédé, et la mesure est pire que le reproche.
+
+  **Ce qui était vrai à moitié.** Le site A des graphiques — `graphique.ts`
+  trace des séries temporelles multi-pays, et le bloc frère des 100 € porte un
+  camembert. C'est le bloc que je venais d'écrire qui était le seul des trois
+  « 100 € » à n'avoir que des lignes de tableau. Pas une consigne : un oubli.
+
+  **Ce qui était vrai entièrement.** La gamme catégorielle du dépôt —
+  `#0f1b2e, #c56a4d, #6e7d73, #b69b53, #41547a, #8b6a52, #8b93a0, #5d6d66`,
+  écrite en dur dans `cent-euros.ts` — n'avait jamais été mesurée. Passée au
+  validateur de palette catégorielle, elle échoue **quatre contrôles sur
+  cinq** :
+
+  | Contrôle | Résultat |
+  |---|---|
+  | Plancher de chroma | **sept des huit teintes lisent comme du gris** |
+  | Séparation daltonisme | ΔE **5,3** (protanopie), seuil 8 |
+  | Plancher vision normale | ΔE **13,3**, seuil 15 — indistinguables même avec une vue complète |
+  | Contraste sur le fond | 2,58:1 et 2,97:1, seuil 3:1 |
+
+  Ce n'était donc pas de la sobriété : c'était un camembert dont sept parts sur
+  huit sont grises. La règle éditoriale « aucune couleur de jugement » n'est pas
+  en cause et ne bouge pas — elle interdit le rouge qui juge un chiffre, pas la
+  teinte qui distingue une catégorie.
+
+  `--serie-1` (#2a68c4) est le premier rang d'une gamme de huit qui passe les
+  cinq contrôles **sur les deux fonds avec les mêmes valeurs** : c'est pour ça
+  qu'elle n'a pas de contrepartie sombre. La parité de la charte demande qu'un
+  jeton soit JUSTE dans les deux thèmes, pas qu'il ait deux valeurs.
+
+  **Et la première figure était fausse d'une façon que seul le navigateur
+  montre.** Un SVG en `viewBox="0 0 100 H"` étiré à la largeur disponible : à
+  1 000 px de large, une rangée de 34 unités devient **340 px de haut**, et huit
+  fonctions occupaient trois écrans. Un repère où la hauteur d'une rangée est
+  une fraction de la LARGEUR n'a pas de taille propre — il prend celle de son
+  conteneur. Refaite en HTML : la longueur reste un pourcentage exact, la
+  hauteur et le texte gardent les jetons de la charte.
+
+  **La forme se choisit sur le métier de la donnée, avant la couleur.**
+  Comparer des magnitudes se lit en barres horizontales alignées, jamais en
+  parts d'un disque : l'œil compare des longueurs, pas des angles. Une seule
+  teinte — la longueur porte déjà la mesure, et huit couleurs feraient croire à
+  une seconde dimension. Un test refuse l'échelle tronquée, celle qui ferait
+  lire « deux fois » là où le rapport est de un à neuf.
+
+  Dix maquettes ont été montrées avant de coder, et c'est ce qui a évité de
+  livrer la mauvaise. **Une direction visuelle se montre, elle ne se décrit
+  pas.**
+
 - **« Retraites, chômage, allocations » : un seul nombre pour neuf fois un
   autre** (17 août 2026). Le poste le plus lourd de la dépense publique était
   aussi le plus muet. Séparé, il dit tout autre chose que son libellé :
