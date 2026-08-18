@@ -107,6 +107,109 @@ for _decile in range(1, 10):
     INDICATEURS[f"insee_niveau_vie_d{_decile}_avant_redistribution"] = _fiche_decile(
         _decile, avant=True
     )
+# ═════════════════════════════════════════════════════════════════════════
+# CE QUE LE JEU PORTE ET QUE LE CONNECTEUR JETAIT
+# ═════════════════════════════════════════════════════════════════════════
+# `DS_ERFS_RETROPOLE` publie 44 mesures ; ce module n'en lisait que vingt. Les
+# déciles disent la forme de la distribution, mais pas combien de gens sont
+# pauvres, ni de combien la redistribution resserre l'écart. Ces trois familles
+# le disent, et elles sont dans le jeu déjà chargé — aucun connecteur neuf,
+# aucun appel de plus : la même page d'observations, d'autres identifiants.
+#
+# LE GINI EST SUR 0-1 ICI, ET SUR 0-100 CHEZ EUROSTAT. Le site publie déjà
+# `eurostat_gini` sur l'échelle centésimale, sur un autre champ et une autre
+# enquête. Les deux ne se posent donc PAS sur le même écran sans dire laquelle
+# est laquelle — c'est la raison pour laquelle celui-ci porte « France
+# métropolitaine » dans son libellé, et pourquoi son unité est un ratio et non
+# un indice : deux nombres nommés « Gini » sur une même page se liraient comme
+# un seul.
+def _fiche_pauvrete(seuil: int, mesure: str, libelle: str, unite: str,
+                    public: str, technique: str) -> dict:
+    return {"mesure": mesure, "libelle": libelle, "unite": unite,
+            "public": public, "technique": technique, "formule": None}
+
+
+for _seuil in (50, 60):
+    INDICATEURS[f"insee_taux_pauvrete_{_seuil}"] = _fiche_pauvrete(
+        _seuil, f"PR_MD{_seuil}",
+        f"Taux de pauvreté au seuil de {_seuil} % du niveau de vie médian",
+        "percent",
+        f"La part de la population dont le niveau de vie est inférieur à {_seuil} %"
+        " du niveau de vie médian, après impôts et prestations. Le seuil à 60 % est la"
+        " convention européenne, celui à 50 % la convention française.",
+        f"Taux de pauvreté monétaire au seuil de {_seuil} % de la médiane, ERFS"
+        " rétropolée, France métropolitaine, revenu disponible.",
+    )
+    INDICATEURS[f"insee_personnes_pauvres_{_seuil}"] = _fiche_pauvrete(
+        _seuil, f"NUM_PER_MD{_seuil}",
+        f"Personnes sous le seuil de pauvreté à {_seuil} %",
+        "count",
+        f"Le nombre de personnes vivant sous le seuil de {_seuil} % du niveau de vie"
+        " médian. Un taux se discute, un nombre de personnes se compte.",
+        f"Effectif de personnes pauvres au seuil de {_seuil} %, ERFS rétropolée,"
+        " France métropolitaine. La source compte en MILLIERS ; la série est"
+        " publiée en personnes.",
+    )
+    # Le producteur compte en milliers : « 9 817 » est 9,8 millions de personnes.
+    # Publier le nombre brut donnerait « 9 817 personnes pauvres en France », un
+    # chiffre faux et parfaitement plausible — c'est exactement la faute que le
+    # connecteur des retraites a déjà coûtée sur les effectifs de retraités.
+    INDICATEURS[f"insee_personnes_pauvres_{_seuil}"]["facteur"] = 1_000
+    INDICATEURS[f"insee_seuil_pauvrete_{_seuil}"] = _fiche_pauvrete(
+        _seuil, f"PT_MD{_seuil}",
+        f"Seuil de pauvreté à {_seuil} % du niveau de vie médian",
+        "EUR",
+        f"Le revenu mensuel en dessous duquel une personne est comptée pauvre au"
+        f" seuil de {_seuil} %. Un montant, et non un taux.",
+        f"Seuil de pauvreté monétaire à {_seuil} % de la médiane, ERFS rétropolée,"
+        " France métropolitaine, euros courants mensuels.",
+    )
+    INDICATEURS[f"insee_intensite_pauvrete_{_seuil}"] = _fiche_pauvrete(
+        _seuil, f"PI_MD{_seuil}",
+        f"Intensité de la pauvreté au seuil de {_seuil} %",
+        "percent",
+        "De combien le niveau de vie des personnes pauvres est en dessous du seuil."
+        " Un taux de pauvreté dit combien de gens ; l'intensité dit à quel point.",
+        f"Intensité de la pauvreté au seuil de {_seuil} %, écart relatif entre la"
+        " médiane des personnes pauvres et le seuil, ERFS rétropolée, France"
+        " métropolitaine.",
+    )
+
+# L'indice de Gini et le rapport interquintile, AVANT et APRÈS. Publier l'un
+# sans l'autre laisserait croire que la France est inégalitaire ou égalitaire ;
+# les deux ensemble mesurent ce que la redistribution FAIT, qui est la question.
+for _cle, _mesure, _moment, _apres in (
+    ("", "GI_SL", "après impôts et prestations", True),
+    ("_avant_redistribution", "GI_SL_BR", "avant impôts et prestations", False),
+):
+    INDICATEURS[f"insee_gini{_cle}"] = {
+        "mesure": _mesure,
+        "libelle": f"Indice de Gini du niveau de vie, {'après' if _apres else 'avant'}"
+        " redistribution (France métropolitaine)",
+        "unite": "ratio",
+        "public": "Zéro si tout le monde avait le même niveau de vie, un si une seule"
+        f" personne avait tout. Mesuré {_moment}.",
+        "technique": f"Indice de Gini du niveau de vie ({_mesure}), ERFS rétropolée,"
+        " France métropolitaine, échelle 0-1. À ne pas confondre avec"
+        " `eurostat_gini`, qui porte sur l'enquête EU-SILC et l'échelle 0-100.",
+        "formule": None,
+    }
+
+for _cle, _mesure, _apres in (("", "S80S20_SL", True),
+                              ("_avant_redistribution", "S80S20_SL_BR", False)):
+    INDICATEURS[f"insee_rapport_interquintile{_cle}"] = {
+        "mesure": _mesure,
+        "libelle": f"Rapport interquintile S80/S20, {'après' if _apres else 'avant'}"
+        " redistribution",
+        "unite": "ratio",
+        "public": "Combien de fois les 20 % les plus aisés touchent de plus que les"
+        f" 20 % les plus modestes, {'après' if _apres else 'avant'} impôts et"
+        " prestations.",
+        "technique": f"Rapport interquintile de masse ({_mesure}), ERFS rétropolée,"
+        " France métropolitaine.",
+        "formule": "S80 / S20",
+    }
+
 INDICATEURS["insee_rapport_interdecile"] = {
     "mesure": "IR_D9_D1_SL",
     "libelle": "Rapport interdécile D9/D1, après redistribution",
@@ -221,7 +324,8 @@ def run(store_spec: str) -> int:
                     ["indicator_id", "geo_level", "geo_code", "geo_vintage", "period",
                      "value", "run_id"],
                     (
-                        (indicateur, "pays", "FR", MILLESIME, periode, valeur, run_id)
+                        (indicateur, "pays", "FR", MILLESIME, periode,
+                         valeur * fiche.get("facteur", 1), run_id)
                         for periode, valeur in lignes
                     ),
                 )

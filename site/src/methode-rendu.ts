@@ -184,6 +184,12 @@ function pluriel(nombre: number): string {
  * le fichier d'origine : son producteur, son titre, sa licence, et la date à
  * laquelle le site l'a lu. Rien n'est rendu quand le manifeste est vide — un
  * cadre vide se lit comme une panne.
+ *
+ * La liste est **repliée**, son décompte et ses producteurs annoncés au-dessus.
+ * Mesurée au navigateur sur la publication du 18 août 2026, elle faisait 5 210
+ * px à elle seule pour 19 283 px de page : un quart du bilan de la France était
+ * une bibliographie. La Licence Ouverte demande de citer les producteurs, pas de
+ * les déplier — le pli garde chaque ligne dans le document, à un geste.
  */
 export function renduSources(jeux: readonly Jeu[]): string {
   if (jeux.length === 0) return "";
@@ -215,7 +221,10 @@ export function renduSources(jeux: readonly Jeu[]): string {
       Chaque ligne mène au fichier d'origine, avec sa licence et la date à laquelle
       le site l'a lu : le chiffre affiché se retrouve dans le fichier du producteur.
     </p>
-    <dl class="methode-sources__producteurs">${liste}</dl>
+    <details class="methode-sources__liste">
+      <summary>Voir les ${formater(jeux.length, "count", false)} jeux, producteur par producteur</summary>
+      <dl class="methode-sources__producteurs">${liste}</dl>
+    </details>
   `;
 }
 
@@ -243,6 +252,8 @@ export function renduSources(jeux: readonly Jeu[]): string {
 export function renduMethode(): string {
   return `
     <h3>${TITRES.methode}</h3>
+    <details class="methode__pli">
+    <summary>Voir comment un chiffre passe du fichier du producteur à l'écran</summary>
     <p class="methode-methode__intro">
       Deux chemins, qui ne se croisent qu'une fois. Les chiffres viennent des
       fichiers de leurs producteurs et sont republiés tels que le pipeline les a
@@ -351,6 +362,8 @@ export function renduMethode(): string {
       d'audience : les seules requêtes qu'elle émet vont chercher les fichiers
       publiés et les tuiles de la carte.
     </p>
+    </details>
+    </details>
   `;
 }
 
@@ -378,6 +391,8 @@ export function renduGrille(): string {
 
   return `
     <h3>${TITRES.grille}</h3>
+    <details class="methode__pli">
+    <summary>Voir les crans du verdict, les confusions et les registres</summary>
     <p class="methode-grille__intro">
       Les règles que chaque analyse suit, écrites avant les analyses elles-mêmes :
       les crans que le site peut rendre, les confusions qu'il peut nommer, les
@@ -417,5 +432,7 @@ export function renduGrille(): string {
       dans le critère. La file des sujets est publique — les issues du dépôt
       — ce qui rend le biais de sélection observable.
     </p>
+    </details>
+    </details>
   `;
 }

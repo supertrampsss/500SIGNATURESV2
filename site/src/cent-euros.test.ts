@@ -137,7 +137,7 @@ test("une petite part seule garde son nom, deux petites se regroupent", () => {
   );
   assert.equal(deux[1].part, 4);
   const html = rendu(BUDGET, "2025");
-  assert.match(html, /camembert__libelle">Fonds de concours/);
+  assert.match(html, /barres__nom">Fonds de concours/);
 });
 
 test("un exercice sans exécution ne produit rien plutôt qu'un cadre vide", () => {

@@ -358,6 +358,13 @@ jobs:
             python -m plateforme.normalize.redistribution --store r2:plateforme-raw
             python -m plateforme.normalize.retraites --store r2:plateforme-raw
             python -m plateforme.normalize.rendement_retraite
+            # Les défaillances d'entreprises : une graine transcrite du Stat
+            # Info de la Banque de France, pas un téléchargement — le portail
+            # de données du producteur publie ce jeu vide (`has_records:
+            # false`). Elle vit dans la même publication que le reste : une
+            # série chargée qu'aucune page ne montre est le défaut que le
+            # registre appelle « les séries invisibles ».
+            python -m plateforme.normalize.defaillances
             python -m plateforme.publish --publication r2:plateforme-published
             exit $?
           fi

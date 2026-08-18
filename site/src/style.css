@@ -157,6 +157,33 @@
      La règle éditoriale ne bouge pas : cette teinte dit une IDENTITÉ — « ceci
      est une mesure » — jamais un jugement, et jamais un rang. */
   --serie-1: #2a68c4;
+  /* Les rangs 2 à 5 sont entrés avec la première figure qui en avait besoin :
+     les cinq courbes de conjoncture, qui se distinguaient par cinq teintes de
+     la gamme non mesurée. Passées au validateur, elles échouaient quatre
+     contrôles sur cinq sur le carreau — dont ΔE 5,3 en protanopie entre
+     l'Italie et l'Allemagne, et **9,4 en vision normale** pour un plancher de
+     15 : deux courbes que personne ne distingue, même avec une vue complète.
+
+     La gamme retenue est mesurée `--pairs all` — cinq courbes qui se croisent,
+     n'importe quelles deux peuvent se toucher — sur les DEUX fonds du cadre,
+     `--papier` clair (#ffffff) et sombre (#131d2f), avec les mêmes valeurs :
+
+       bande de luminosité   les cinq dedans, dans les deux bandes
+       chroma                les cinq au-dessus de 0,10
+       ΔE daltonisme         10,8 (deutéranopie), seuil 8
+       ΔE vision normale     19,2, seuil 15
+       contraste sur le fond les cinq au-dessus de 3:1, des deux côtés
+
+     Le chroma est borné en haut à 0,16 : la séparation seule produit des tons
+     criards — l'optimum non borné donnait un violet #9800e8 et un rose #e83890,
+     mesurés justes et faux de registre.
+
+     Ces teintes disent une IDENTITÉ — un pays —, jamais un rang ni une valeur.
+     C'est ce que la charte autorise, et c'est tout ce qu'elle autorise. */
+  --serie-2: #9c5078;
+  --serie-3: #447404;
+  --serie-4: #bc8828;
+  --serie-5: #04a4a0;
   /* Le regroupement n'est pas un poste : « ce qui reste » garde le gris, et ne
      prend jamais un rang de série — sinon il se lirait comme une catégorie
      nommée. */
@@ -2501,20 +2528,46 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   color: var(--encre-douce);
   text-align: left;
 }
+/* **Les en-têtes s'alignent sur leurs cellules, pas sur le bord du tableau.**
+   Ils étaient tous à gauche pendant que la colonne de points était à droite :
+   « 2025 » et « Points » flottaient au-dessus de rien, et « 2019 » au-dessus
+   d'un chiffre qui ne commençait pas là. Une colonne de nombres se lit alignée
+   à droite, en-tête compris — c'est ce qui permet de la parcourir du regard. */
 .note__detail th,
 .note__detail td {
-  padding: var(--espace-4) 0;
+  padding: var(--espace-4) var(--espace-3);
   border-top: 1px solid var(--trait);
-  text-align: left;
+  text-align: right;
   font-weight: 400;
+}
+.note__detail th[scope="row"],
+.note__detail thead th:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.note__detail .note__points {
+  padding-right: 0;
 }
 .note__detail tr:first-child th,
 .note__detail tr:first-child td {
   border-top: 0;
 }
+/* L'unité de la ligne, sous son intitulé : écrite une fois, pas dans chacune
+   des quatre cellules de la rangée. */
+.note__unite {
+  display: block;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
 .note__mesure {
   color: var(--encre-douce);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+/* L'écart porte l'encre pleine : c'est la colonne que le lecteur vient
+   chercher, et elle se lirait comme une note de bas de page en gris. */
+.note__mesure--ecart {
+  color: var(--encre);
 }
 .note__points {
   text-align: right;
@@ -3054,64 +3107,196 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   }
 }
 
-.camembert {
-  margin: 0.8rem 0 0;
+/* Le prédécesseur est une PHRASE À PART, pas la suite de celle du maire en
+   exercice : ce sont deux personnes, et les coller donnait à lire
+   « depuis mars 2026Avant lui : … ». `display: block` suffit — la ligne garde
+   sa taille et sa couleur de texte second. */
+/* La colonne du premier exercice, dans le bloc de la note. Elle est en encre
+   seconde : c'est le point de départ, la valeur du jour reste la principale.
+   `note__vide` porte le tiret du terme qui n'existe pas au départ — la
+   trajectoire est un écart DEPUIS le premier exercice. */
+.note__detail thead th {
+  font-size: var(--texte-xs);
+  font-weight: 500;
+  color: var(--encre-douce);
+  text-align: right;
+  padding-bottom: var(--espace-1);
 }
-.camembert h4 {
+.note__detail thead th:first-child {
+  text-align: left;
+}
+.note__mesure--debut {
+  color: var(--encre-douce);
+}
+.note__vide {
+  color: var(--trait-fort);
+  cursor: help;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   LES SIX CHAPITRES DE BILAN
+   ─────────────────────────────────────────────────────────────────────────
+   Le rang et la question sont la seule chrome ajoutée : un filet en tête de
+   chapitre, un rang en petites capitales, la question en serif. Rien de plus —
+   la page porte déjà onze cadres bordés, et un septième niveau de boîte les
+   rendrait illisibles.
+
+   `.chapitre__paire` met deux blocs côte à côte au-dessus de 60rem. C'est le
+   point de rupture existant du site, pas un seuil taillé pour cette grille :
+   onze blocs en pleine largeur dans 1 440 px faisaient vingt écrans de
+   défilement alors que deux d'entre eux prouvaient déjà que la place existe. */
+.chapitre {
+  border-top: 2px solid var(--encre);
+  padding-top: var(--espace-5);
+  margin-top: var(--espace-8);
+  display: grid;
+  /* `minmax(0, 1fr)` et pas `1fr` : un enfant de grille a `min-width: auto` et
+     refuse de descendre sous la largeur de son contenu. Sans le zéro, un
+     tableau large poussait le corps de la page à 547 px pour une fenêtre de
+     320 — mesuré au navigateur. */
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espace-6);
+}
+.chapitre:first-of-type {
+  margin-top: var(--espace-6);
+}
+.chapitre__rang {
+  font-family: var(--sans);
+  font-size: var(--texte-xs);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--encre-douce);
   margin: 0;
 }
-.camembert__scene {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.camembert__scene svg {
-  width: 13rem;
-  max-width: 100%;
-  flex: 0 0 auto;
-}
-.camembert__segment {
-  fill: none;
-  stroke-width: 42;
-}
-.camembert__part {
-  /* Unités du viewBox 220×220, rendu à 13rem : ~12,3px à l'écran. */
-  font-size: 13px;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-.camembert__centre {
+.chapitre__question {
   font-family: var(--serif);
-  font-size: 20px;
-  font-weight: 650;
-  fill: var(--encre);
+  font-size: var(--texte-l);
+  font-weight: 600;
+  margin: 0;
+  text-wrap: balance;
 }
-.camembert__legende {
+.chapitre__paire {
+  display: grid;
+  gap: var(--espace-6);
+  /* `minmax(0, 1fr)` dans les DEUX règles, pas seulement dans celle à deux
+     colonnes : une colonne unique en `1fr` laisse ses enfants à
+     `min-width: auto`, si bien qu'un tableau qui défile dans son cadre pousse
+     quand même le corps de la page. Mesuré à 320 px : corps à 547 px, la paire
+     à 482 px de contenu pour 190 px de place. */
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+}
+@media (min-width: 60rem) {
+  .chapitre__paire {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+/* L'ouverture n'est pas un bloc comme les autres : c'est la thèse de la page.
+   Elle n'a donc ni bordure ni ombre — un cadre autour du titre d'un chapitre
+   le rangerait au même niveau que ce qu'il annonce. */
+.ouverture.bloc {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  padding: 0;
+}
+.ouverture__phrase {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  line-height: 1.35;
+  margin: 0 0 var(--espace-6);
+  text-wrap: balance;
+}
+.ouverture__chiffres {
   list-style: none;
   margin: 0;
   padding: 0;
-  flex: 1 1 14rem;
-  font-size: var(--texte-s);
   display: grid;
-  gap: 0.28rem;
+  gap: var(--espace-6);
+  grid-template-columns: 1fr;
 }
-.camembert__legende li {
-  display: flex;
-  align-items: baseline;
-  gap: 0.5rem;
+@media (min-width: 40rem) {
+  .ouverture__chiffres {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
-.camembert__legende strong {
-  margin-left: auto;
+.ouverture__valeur {
+  display: block;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: var(--texte-xl);
+  line-height: 1;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
-.camembert__puce {
-  width: 0.7rem;
-  height: 0.7rem;
-  border-radius: var(--rayon-xs);
-  flex: none;
-  align-self: center;
+.ouverture__quoi {
+  display: block;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  margin-top: var(--espace-2);
+}
+/* Aucune couleur sur le chiffre du déficit : la charte interdit la teinte qui
+   JUGE un nombre, et un déficit peint en bleu ou en rouge est exactement ça.
+   Elle échouait d'ailleurs le contraste en thème sombre — la règle éditoriale
+   et la règle d'accessibilité disaient la même chose. Le signe et le libellé
+   suffisent. */
+.ouverture__ecart-depuis {
+  display: block;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  color: var(--encre);
+  font-weight: 600;
+  margin-top: var(--espace-1);
+}
+.ouverture__base {
+  margin: var(--espace-5) 0 0;
+  max-width: 62ch;
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.ouverture__lecture {
+  margin: var(--espace-6) 0 0;
+  max-width: 62ch;
+  font-size: var(--texte-m);
+}
+.ouverture__source {
+  margin: var(--espace-4) 0 0;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+.fiche__precedent {
+  display: block;
+  margin-top: var(--espace-1);
+}
+
+/* La figure des parts : un titre, la question, puis les barres. Le disque est
+   parti — comparer des tailles se lit en longueurs alignées, et la gamme de
+   huit teintes qui le peignait échouait quatre contrôles de palette sur cinq. */
+.cent__figure {
+  margin: 0.8rem 0 0;
+}
+.cent__figure h4 {
+  margin: 0;
+}
+
+/* Les deux volets de conjoncture, côte à côte au-dessus de 60rem : empilés,
+   ils faisaient 1 188 px dans un cadre en pleine largeur, pour deux séries qui
+   se lisent ensemble. `minmax(0, 1fr)` et pas `1fr` — un enfant de grille
+   refuse sinon de descendre sous la largeur de son contenu, et le SVG pousse
+   la page. */
+.conjoncture__volets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espace-7);
+}
+@media (min-width: 60rem) {
+  .conjoncture__volets {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+.conjoncture__volet > .graphique__titre {
+  margin-top: 0;
 }
 
 /* Annotations du graphique : les points qui parlent. */
@@ -3122,11 +3307,18 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   fill: var(--encre);
   font-variant-numeric: tabular-nums;
   paint-order: stroke;
-  stroke: rgb(255 255 255 / 0.85);
+  /* Le halo prend la couleur du SUPPORT, pas du blanc écrit en dur. Écrit en
+     dur, il restait blanc en thème sombre pendant que `fill` suivait le
+     thème : l'encre claire du chiffre était bordée d'un liseré clair de 3 px,
+     et « +7,3 % » se lisait comme une tache. Vu au navigateur — aucun test ne
+     compose une couleur, et axe ne mesure pas le texte d'un SVG. */
+  stroke: color-mix(in srgb, var(--papier) 85%, transparent);
   stroke-width: 3px;
 }
 .graphique__aire {
-  fill: rgb(15 27 46 / 0.05);
+  /* Même cause : un aplat d'encre à 5 % sur un fond d'encre ne se voit pas.
+     L'aire suit l'encre du thème, qui est claire en sombre. */
+  fill: color-mix(in srgb, var(--encre) 5%, transparent);
   stroke: none;
 }
 .graphique__fenetre:disabled {
@@ -4430,17 +4622,10 @@ summary.pont__rangee,
 /* Ce que le mini-tableau montre, et sur combien : six colonnes muettes tirées
    d'une série de dix-neuf laissaient croire à la série entière. */
 
-/* Un camembert seul dans un bloc large : sans cette borne, la légende étire
-   ses parts jusqu'au bord droit et la ligne de lecture se casse. */
+/* Une figure seule dans un bloc large : sans cette borne, ses rangs s'étirent
+   jusqu'au bord droit et la ligne de lecture se casse. */
 .cent__solo {
   max-width: 44rem;
-}
-
-/* Le montant réel à côté de la part : présent, jamais dominant. */
-.camembert__montant {
-  color: var(--encre-douce);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -7310,6 +7495,53 @@ body[data-carte="oui"] .legende {
 .methode-methode__reseau {
   color: var(--encre-douce);
   font-size: var(--texte-m);
+}
+/* Le classement de la couche affichée, sous la carte. Il vivait au pied du
+   BILAN, où il n'avait rien à voir avec les cinq chapitres ; il suit désormais
+   ce qu'il range. La carte occupe une hauteur d'écran : cette section commence
+   dessous, et respire comme le reste du site. */
+.territoire__tables {
+  display: grid;
+  gap: var(--espace-6);
+  padding: var(--espace-8) var(--espace-6) var(--espace-8);
+  max-width: 78rem;
+  margin: 0 auto;
+}
+
+/* Le pied de page se replie. Les trois documents de référence — les sources,
+   la méthode, la grille — faisaient 7 683 px pour 9 694 px de chapitres : le
+   bilan de la France finissait sur autant d'appareil que de récit. Ils restent
+   dans le document, à un geste : la Licence Ouverte demande de citer, et la
+   méthode d'un site public se publie — ni l'une ni l'autre ne demandent d'être
+   dépliées sous les yeux de qui vient lire des chiffres. */
+.methode-sources__liste > summary,
+.methode__pli > summary {
+  cursor: pointer;
+  min-height: var(--cible);
+  display: flex;
+  align-items: center;
+  gap: var(--espace-3);
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  list-style: none;
+}
+.methode-sources__liste > summary::-webkit-details-marker,
+.methode__pli > summary::-webkit-details-marker {
+  display: none;
+}
+.methode-sources__liste > summary::before,
+.methode__pli > summary::before {
+  content: "›";
+  display: inline-block;
+  transition: transform var(--transition);
+}
+.methode-sources__liste[open] > summary::before,
+.methode__pli[open] > summary::before {
+  transform: rotate(90deg);
+}
+.methode-sources__liste > summary:hover,
+.methode__pli > summary:hover {
+  color: var(--encre);
 }
 .methode-sources__producteurs {
   margin: var(--espace-4) 0 var(--espace-6);

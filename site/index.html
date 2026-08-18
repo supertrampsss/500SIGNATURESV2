@@ -112,16 +112,10 @@
          `basculerVue` ne tranche montreraient l'accueil ET le cadre de la carte
          l'un sous l'autre. -->
     <div class="vue vue--territoire" id="vue-territoire" hidden>
-      <!-- La carte n'est plus une entrée de menu séparée : c'était deux liens
-           pour un seul écran, le panneau étant identique de part et d'autre.
-           Elle est un mode de cette vue, que ce bouton ouvre et referme. -->
-      <div class="vue-barre">
-        <button type="button" class="bouton-filet" id="carte-bascule" aria-pressed="false">
-          <span class="bouton-filet__icone" aria-hidden="true"></span>
-          <span id="carte-bascule-texte">Voir sur la carte</span>
-        </button>
-      </div>
-
+      <!-- La carte n'a plus de bouton pour la replier : elle EST cette vue, et
+           un bouton qui n'a qu'un état utile n'est pas un choix, c'est une
+           barre qui prend de la hauteur. Le mode `data-carte` reste, posé une
+           fois pour toutes à l'ouverture de la vue. -->
       <div class="atelier" aria-label="Carte interactive">
         <!-- La carte et ses surcouches dans un même cadre : légende, barre de
              commandes, étiquettes et infobulle se posent sur LA CARTE. Sans ce
@@ -176,46 +170,14 @@
           </div>
         </aside>
       </div>
-    </div>
 
-    <div class="vue" id="vue-bilan" hidden>
-      <nav class="questions__cadre" id="questions" aria-label="Questions fréquentes"></nav>
-
-      <section class="national" id="national" hidden>
-        <h2>La France dans son ensemble</h2>
-        <!-- L'unité se dit là où le nombre est gros : cette page aligne
-             « 3 536 100 M€ » de dette et « 932 548 M€ » de prestations, qui se
-             lisent « milliards » par qui n'a pas le nez sur le sigle. -->
-        <p class="national__unite">Montants en millions d'euros.</p>
-        <!-- Sommaire de la vue : huit blocs de plusieurs écrans chacun se
-             lisaient en un seul défilement de 6 600 px, sans moyen de savoir
-             ce qui restait dessous ni d'y aller. -->
-        <nav class="sommaire-vue" id="sommaire-bilan" aria-label="Sections de la page"></nav>
-        <article class="bloc bloc--large" id="bloc-conjoncture"></article>
-        <div class="national__grille">
-          <article class="bloc" id="bloc-dette"></article>
-          <article class="bloc" id="bloc-europe"></article>
-        </div>
-        <article class="bloc bloc--large" id="bloc-cent-euros"></article>
-        <!-- Le même « 100 € », mais sur toutes les administrations publiques :
-             c'est le seul des trois auquel le déficit se rattache. -->
-        <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
-        <article class="bloc bloc--large" id="bloc-fonctions"></article>
-        <article class="bloc bloc--large" id="bloc-secu"></article>
-        <!-- Ce que la redistribution change, décile par décile : le seul bloc
-             qui dise ce que l'argent public fait aux revenus, et non ce qu'il
-             coûte ou d'où il vient. -->
-        <article class="bloc bloc--large" id="bloc-redistribution"></article>
-        <!-- Combien de retraités, quelle pension, à quel âge, et combien
-             d'actifs cotisent pour eux : les quatre chiffres du débat. -->
-        <article class="bloc bloc--large" id="bloc-retraites"></article>
-        <article class="bloc bloc--large" id="bloc-etat"></article>
-        <article class="bloc bloc--large" id="bloc-niches"></article>
-      </section>
-
-      <!-- Ce que portait la vue DÉTAIL : le classement de la couche affichée,
-           son export, et la comparaison de deux territoires. -->
-      <section class="bilan__territoires">
+      <!-- Le classement de la couche affichée, son export, et la comparaison
+           de deux territoires. **Ils vivaient au pied du BILAN**, où ils
+           n'avaient rien à voir avec les cinq chapitres : le bilan raconte la
+           France, ces tableaux rangent des territoires. Ils suivent désormais
+           la carte, qui est ce qu'ils rangent — la couche affichée, l'échelon
+           choisi, le millésime réglé. -->
+      <section class="territoire__tables">
         <!-- Le palmarès des notes, avant les tableaux d'un territoire : un
              lecteur qui vient demander « et les autres ? » n'avait aucune page
              à ouvrir, la note ne vivant que sur la fiche d'un territoire déjà
@@ -228,6 +190,76 @@
         <section class="classement">
           <table id="tableau-donnees"></table>
           <button type="button" class="bouton-filet" id="exporter" hidden></button>
+        </section>
+      </section>
+
+    </div>
+
+    <div class="vue" id="vue-bilan" hidden>
+
+      <!-- ═══════════════════════════════════════════════════════════════
+           BILAN, EN SIX CHAPITRES
+           ═══════════════════════════════════════════════════════════════
+           Onze blocs à la file, tous en pleine largeur, faisaient 18 289 px de
+           défilement — vingt écrans — sans qu'aucun ne réponde au précédent.
+           Quatre sujets y revenaient chacun trois ou quatre fois : la dépense
+           de l'État, sa décomposition, les retraites, le déficit.
+
+           Il n'y avait pas de désordre : il n'y avait pas de fil. Chaque
+           chapitre pose UNE question et passe la main au suivant. Rien n'est
+           jeté — les blocs sont les mêmes, rangés sous la question à laquelle
+           ils répondent.
+
+           Les blocs qui tiennent côte à côte sont dans `.chapitre__paire` :
+           deux d'entre eux le faisaient déjà, neuf ne le faisaient pas. -->
+      <section class="national" id="national" hidden>
+        <h2>La France dans son ensemble</h2>
+        <p class="national__unite">Montants en millions d'euros.</p>
+        <nav class="sommaire-vue" id="sommaire-bilan" aria-label="Sections de la page"></nav>
+
+        <section class="chapitre" id="chapitre-combien">
+          <p class="chapitre__rang">Chapitre 1</p>
+          <h3 class="chapitre__question">Combien pèse l'argent public&nbsp;?</h3>
+          <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
+          <article class="bloc bloc--large" id="bloc-conjoncture"></article>
+        </section>
+
+        <section class="chapitre" id="chapitre-recettes">
+          <p class="chapitre__rang">Chapitre 2</p>
+          <h3 class="chapitre__question">D'où vient cet argent&nbsp;?</h3>
+          <div class="chapitre__paire">
+            <article class="bloc" id="bloc-etat"></article>
+            <article class="bloc" id="bloc-niches"></article>
+          </div>
+        </section>
+
+        <section class="chapitre" id="chapitre-depenses">
+          <p class="chapitre__rang">Chapitre 3</p>
+          <h3 class="chapitre__question">Où va-t-il&nbsp;?</h3>
+          <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
+          <div class="chapitre__paire">
+            <article class="bloc" id="bloc-cent-euros"></article>
+            <article class="bloc" id="bloc-fonctions"></article>
+          </div>
+        </section>
+
+        <section class="chapitre" id="chapitre-pour-qui">
+          <p class="chapitre__rang">Chapitre 4</p>
+          <h3 class="chapitre__question">À qui ça profite&nbsp;?</h3>
+          <article class="bloc bloc--large" id="bloc-redistribution"></article>
+          <div class="chapitre__paire">
+            <article class="bloc" id="bloc-retraites"></article>
+            <article class="bloc" id="bloc-secu"></article>
+          </div>
+        </section>
+
+        <section class="chapitre" id="chapitre-tenable">
+          <p class="chapitre__rang">Chapitre 5</p>
+          <h3 class="chapitre__question">Est-ce tenable&nbsp;?</h3>
+          <div class="chapitre__paire">
+            <article class="bloc" id="bloc-dette"></article>
+            <article class="bloc" id="bloc-europe"></article>
+          </div>
         </section>
       </section>
 

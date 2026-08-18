@@ -52,9 +52,14 @@ test("les parts affichées sont celles de la source, pas un arrondi commode", ()
   assert.equal(lignes[0].montant, "426\u202f665\u202fM€");
 });
 
-test("le montant réel accompagne chaque part dans la légende du camembert", () => {
+test("le montant réel accompagne chaque part, dans le détail sous la figure", () => {
+  // Il vivait dans la légende du camembert. La figure est devenue des barres
+  // alignées — un rang y porte son libellé, sa longueur et sa part sur 100 €,
+  // et ajouter un quatrième champ en ferait un tableau déguisé. Le montant en
+  // euros est donc là où il était déjà : dans le détail ligne à ligne, avec le
+  // régime qui le verse et ce qu'il couvre.
   const html = plat(rendu(territoire(SERIES), CATALOGUE));
-  assert.match(html, /La retraite<\/span> <span class="camembert__montant">426.665.M€/);
+  assert.match(html, /La retraite, 426.665.M€ \(/);
   assert.match(html, /45,75 €/);
   assert.match(html, /932.548.M€<\/strong> de prestations sociales/);
 });

@@ -153,6 +153,43 @@ pour ne plus l'être.
   Une valeur unique ne s'analyse pas.
 - **Les recherches sont permissives** : mot à mot, sans exiger la contiguïté, et
   la liste ne tronque pas au point de cacher la moitié des réponses.
+- **Une mesure se montre avant de s'écrire.** Un tableau de chiffres demande au
+  lecteur de diviser ; une figure le lui épargne. « 24,09 » posé au-dessus de
+  « 2,70 » ne dit pas *neuf fois*. La direction, arrêtée le 18 août 2026 après
+  dix maquettes puis cinq, vaut pour **tout le site** :
+
+  - **La forme se choisit sur le métier de la donnée, avant la couleur.**
+    Comparer des magnitudes → barres horizontales alignées à gauche. Une part
+    d'un tout qui **dépasse** son tout → barres empilées et un repère, parce
+    qu'un disque est fermé à cent par construction et ne peut pas montrer un
+    déficit. Plusieurs mesures d'unités différentes dans le temps → indice base
+    100 sur le premier exercice. Un avant/après par tranche → haltères. Jamais
+    un camembert pour comparer des tailles : l'œil compare des longueurs, pas
+    des angles.
+  - **La figure ne remplace pas le tableau, elle le précède.** La figure montre
+    des proportions ; le tableau donne les chiffres exacts, la légende et la
+    source. Les deux, dans cet ordre.
+  - **Une magnitude ne prend qu'une teinte.** La longueur porte déjà la mesure,
+    et plusieurs couleurs feraient croire à une seconde dimension. La couleur
+    catégorielle est réservée à ce qui est vraiment une **identité** — un poste,
+    un sous-secteur, une famille de recettes — jamais à un rang ni à une valeur.
+  - **Une teinte de série se mesure**, elle ne se choisit pas à l'œil. Les rangs
+    viennent d'une gamme passée au validateur de palette catégorielle sur les
+    **deux** fonds : bande de luminosité, chroma, ΔE en protanopie, ΔE en vision
+    normale, contraste. Un ton inventé au coup par coup casse la séparation des
+    autres — la validation est une propriété de la gamme entière.
+  - **La règle éditoriale ne bouge pas.** « Aucune couleur de jugement »
+    interdit le rouge qui juge un chiffre, pas la teinte qui distingue une
+    catégorie.
+  - **En HTML, pas en SVG étiré.** Un repère dont la hauteur est une fraction de
+    la LARGEUR n'a pas de taille propre : à 1 000 px de large, une rangée de 34
+    unités fait 340 px de haut. En HTML la longueur reste un pourcentage exact
+    et le texte garde les jetons de la charte.
+  - **Une échelle part de zéro.** Tronquée au minimum, elle ferait lire « deux
+    fois » là où le rapport est de un à neuf.
+  - **Une direction visuelle se montre, elle ne se décrit pas.** Les maquettes
+    passent avant le code : deux fois de suite, c'est de les montrer qui a évité
+    de livrer la mauvaise.
 
 ## Reste à faire, par ordre de gravité
 
@@ -432,6 +469,206 @@ pour ne plus l'être.
    pouvait : ses trois repères partagent une source aux quatre mailles.
 
 ### Fait
+
+- **« Illisible », et cette fois la mesure ne suffisait pas** (18 août 2026).
+  Le bilan avait perdu un quart de sa longueur et gardait tout ce qui n'était
+  pas le récit : seize questions d'entrée qui doublaient le sommaire, le
+  palmarès des communes, le tableau de classement d'une couche de carte, et
+  7 683 px de sources et de méthode. « Tout ce qui n'est pas lié aux chapitres
+  doit disparaître » — et c'était juste.
+
+  | | avant | après |
+  |---|---|---|
+  | Défilement de `/bilan` | 19 283 px | **9 228 px** |
+  | Pied « sources et méthode » | 7 683 px | 420 px |
+  | Questions d'entrée | 351 px | parties |
+  | Tableaux de territoire | 1 457 px | passés sous la carte |
+  | Chapitre 1 | 1 678 px | 1 103 px |
+
+  **Le classement suit ce qu'il range.** Palmarès, tableau de la couche,
+  export et comparateur vivaient au pied du bilan : ils rangent une couche de
+  carte — un échelon, un millésime, un indicateur — quand le bilan raconte la
+  France. Ils sont sous la carte, et le peintre se déclenche sur la vue
+  territoire au lieu de la vue bilan.
+
+  **Deux graphiques qui se lisent ensemble se posent côte à côte.** L'inflation
+  et la croissance étaient empilées, deux SVG de 720 unités étirés sur 1 022 px :
+  1 188 px pour une comparaison qui tient en un regard. En deux colonnes,
+  614 px.
+
+  **Et le pont budgétaire est passé en demi-largeur, contre ma propre mesure.**
+  J'avais écrit la veille que l'appariement coûtait 566 px de hauteur pour n'en
+  économiser que 238 : vrai, et hors sujet. Le lecteur ne demandait pas une page
+  plus courte, il disait qu'une pleine largeur de tableau est illisible. Une
+  mesure répond à la question qu'on lui pose ; encore faut-il poser la bonne.
+
+- **Le tableau de la note mettait un écart dans la colonne d'une année**
+  (18 août 2026). « Les années ne sont pas alignées avec ce qui est en dessous,
+  il y a une évolution sur une année 2025 alors que ça devrait être une
+  troisième colonne. » Trois défauts dans un tableau de trois lignes :
+
+  1. **Les en-têtes étaient à gauche, les points à droite.** « 2025 » et
+     « Points » flottaient au-dessus de rien. Une colonne de nombres se lit
+     alignée à droite, en-tête compris.
+  2. **L'unité était collée à chaque valeur** — « 26,3 % des recettes »,
+     « 7,5 années d'épargne » — ce qui faisait des colonnes de phrases et
+     poussait les points hors du cadre : « / 8 » était coupé. Elle s'écrit
+     désormais une fois, sous l'intitulé de la ligne.
+  3. **La trajectoire est un écart, pas une valeur de 2025.** Elle a sa colonne.
+     Et comme l'évolution de la marge EST la trajectoire, elle n'est écrite
+     qu'une fois : sur la ligne de la mesure dont elle est l'écart.
+
+  Le dépliant « La note, exercice par exercice » est parti : il posait un second
+  total, sur 16, sous une note sur 20.
+
+- **« Avant lui » sous le nom de Martine BLANC** (18 août 2026). La source ne
+  publie pas le genre, et le déduire d'un prénom se trompe : c'est **« Avant »**,
+  sans pronom. Et la même personne était son propre prédécesseur — le fichier
+  des sortants est arrêté avant chaque scrutin, si bien qu'un maire réélu y
+  figure deux fois. La fiche affichait « depuis mars 2026 », c'est-à-dire une
+  prise de fonction postérieure à tous les exercices notés, alors que Martine
+  BLANC est en fonction **depuis juin 2023**. La comparaison des deux noms se
+  fait sur le nom normalisé — casse, accents, espaces —, jamais sur la chaîne.
+
+- **Un sabotage sans effet se voit maintenant.** Deux des cinq sabotages du jour
+  employaient un `\n` dans un motif `sed`, qui ne traverse pas les lignes : le
+  fichier n'était pas modifié et la suite passait au vert, ce qui se lit
+  exactement comme « la garde ne voit rien ». Le script compare désormais le
+  fichier à sa copie avant de lancer les tests, et **dit** quand le motif n'a
+  rien changé. C'est la deuxième fois que ce dépôt paie un sabotage muet.
+
+- **Le bilan raconte enfin quelque chose, et la moitié de sa longueur était une
+  bibliographie** (18 août 2026). « Un amas d'analyses qui n'ont aucun lien
+  entre elles ». Douze cadres alignés sans ordre, un sommaire qui les
+  réénumérait, 19 283 px de défilement. La page est désormais **cinq
+  chapitres** — combien pèse l'argent public, d'où il vient, où il va, à qui il
+  profite, est-ce tenable — et le sommaire nomme les cinq questions au lieu des
+  douze cadres : un sommaire qui répète la page n'ajoute rien à la page.
+
+  **Ce que la mesure a désigné n'était pas ce que je croyais réduire.** Je
+  cherchais à apparier des cadres pour gagner de la hauteur ; le profil disait
+  autre chose :
+
+  | Section | Hauteur |
+  |---|---|
+  | Les cinq chapitres | 9 694 px |
+  | Le pied « sources et méthode » | **7 683 px**, dont **5 210 pour la seule liste des jeux** |
+  | Les tableaux d'un territoire | 1 457 px |
+
+  Un quart du bilan de la France était une bibliographie dépliée. Elle est
+  repliée, son décompte et ses producteurs annoncés au-dessus : la Licence
+  Ouverte demande de citer, pas de déplier. **14 097 px** au total, contre
+  19 283 — sans retirer une ligne de contenu.
+
+  **Et l'appariement que je voulais faire était une mauvaise affaire, mesurée
+  et refusée.** Le pont budgétaire mis en demi-largeur passe de 1 168 à
+  1 734 px — ses vingt intitulés tombent tous sur deux ou trois lignes — pour
+  n'économiser que 238 px de page. La mesure est écrite dans le gabarit, à côté
+  du cadre resté en pleine largeur.
+
+  **Le corps de la page débordait à 547 px pour une fenêtre de 320.** Un enfant
+  de grille a `min-width: auto` : une colonne écrite `1fr` laisse son contenu
+  pousser la PAGE, même quand ce contenu est un tableau qui défile déjà dans son
+  propre cadre. J'avais écrit `minmax(0, 1fr)` dans la règle à deux colonnes et
+  laissé `1fr` dans celle à une colonne — c'est-à-dire dans celle qui sert au
+  téléphone, là où la place manque. Un test lit les deux règles.
+
+- **Trois camemberts, et une palette de cinq courbes que personne ne
+  distinguait** (18 août 2026). La direction du 18 août dit que la forme se
+  choisit sur le métier de la donnée et qu'elle vaut pour **tout le site** :
+  trois disques y survivaient, deux dans « 100 € du budget de l'État », un dans
+  « 100 € de prestations sociales ». Ils comparent des tailles ; l'œil compare
+  des longueurs alignées. Ce sont des barres, d'une seule teinte, et le détail
+  ligne à ligne qui les doublait reste dessous.
+
+  **Le vrai défaut était ailleurs, et il fallait le mesurer pour le voir.** Le
+  premier graphique de la page — cinq pays, cinq courbes qui se croisent —
+  employait cinq tons de la gamme jamais validée. Passés au validateur en
+  `--pairs all` :
+
+  | Contrôle | Résultat |
+  |---|---|
+  | Chroma | quatre des cinq sous le plancher |
+  | ΔE protanopie | **5,3** entre l'Italie et l'Allemagne, seuil 8 |
+  | ΔE vision normale | **9,4**, seuil 15 — indistinguables avec une vue complète |
+  | Contraste sur le fond | 2,38:1 et 2,74:1, seuil 3:1 |
+
+  Deux courbes que personne ne distingue, sur la figure d'ouverture du bilan.
+  Les rangs 2 à 5 de la gamme entrent donc — c'est ce que la feuille annonçait
+  (« les sept autres rangs entreront avec la première figure qui en aura
+  besoin ») — mesurés sur les **deux fonds réels du cadre**, `--papier` clair et
+  sombre, avec les mêmes valeurs : ΔE 10,8 en daltonisme, 19,2 en vision
+  normale, contraste ≥ 3:1 des deux côtés.
+
+  **Le chroma est borné en haut, et c'est une décision.** L'optimum de
+  séparation non borné donnait un violet #9800e8 et un rose #e83890 : mesurés
+  justes, faux de registre. Une contrainte de sobriété écrite dans la recherche
+  vaut mieux qu'un ton corrigé à l'œil après coup — un ton inventé au coup par
+  coup casse la séparation des autres, la validation étant une propriété de la
+  gamme entière.
+
+  **Ce que la garde refuse n'est pas une teinte, c'est la gamme.** Trois de ces
+  tons servent encore d'identité de pays ailleurs ; les bannir un à un aurait
+  été une règle fausse. Le test refuse quatre de la gamme au même endroit.
+
+  **Et le halo des annotations était blanc en dur.** `graphique__valeur`
+  déclarait `stroke: rgb(255 255 255 / 0.85)` quand son `fill` suivait
+  `--encre` : en thème sombre, l'encre est claire, et le chiffre clair se
+  retrouvait bordé d'un liseré clair de 3 px — « +7,3 % » se lisait comme une
+  tache. Même cause pour l'aire sous la courbe, un aplat d'encre à 5 % posé sur
+  un fond d'encre. Ni les tests de couleur ni `axe-core` ne pouvaient le voir :
+  les uns calculent les ratios sur les couleurs **déclarées** et un halo n'est
+  pas un fond, l'autre ne mesure pas le texte d'un SVG. C'est la peinture qui
+  l'a montré, exactement comme l'opacité des paliers du simulateur. **Ce qui se
+  peint sur le support prend la couleur du support, jamais un blanc écrit en
+  dur.**
+
+  **Et un test s'était éteint sans rougir.** `interface.test.ts` découpait
+  `main.ts` sur le titre d'un commentaire ; en retitrant ce commentaire, j'ai
+  rendu `indexOf` égal à −1, et `slice(a, -1)` découpe jusqu'à la fin du
+  fichier. Le test restait vert en ne mesurant plus rien. Il vérifie désormais
+  que sa borne existe avant de s'en servir. **Une borne de découpe introuvable
+  ne lève pas : elle rend un test muet.**
+
+- **Les défaillances, et le chiffre que la moyenne cache** (18 août 2026).
+  Eurostat ne publie qu'un **indice**, toutes entreprises confondues. C'est
+  insuffisant d'une façon qui trompe : l'essentiel des créations sont des
+  micro-entreprises, si bien que l'agrégat mélange des fermetures d'unités sans
+  salarié et des fermetures d'entreprises qui employaient.
+
+  | Cumul 12 mois à juin 2026 | | contre la moyenne 2010-2019 |
+  |---|---|---|
+  | Microentreprises et taille indéterminée | 65 182 | +16,3 % |
+  | Très petites entreprises | 3 494 | **+73,7 %** |
+  | Petites entreprises | 1 529 | **+68,0 %** |
+  | Moyennes entreprises | 532 | **+61,7 %** |
+  | ETI et grandes entreprises | 66 | **+100,0 %** |
+  | **Ensemble** | **70 803** | +19,3 % |
+
+  L'agrégat affiche **+19,3 %** ; **hors micro-entreprises, la hausse est de
+  71,2 %** — 5 621 défaillances contre 3 283 en moyenne sur la décennie. Le
+  chiffre d'ensemble est dominé par les micro-entreprises et cache le fait.
+
+  **Une graine, et pas un connecteur, faute d'accès.** L'API Webstat porte 81
+  séries mensuelles depuis 1991 mais demande une clé enregistrée : les quatre
+  schémas d'authentification essayés rendent un 401. Le portail Explore ouvert
+  expose les métadonnées de ces mêmes séries avec `has_records: false`, et son
+  export CSV est **vide**. Le module lit donc le Stat Info mensuel, publication
+  figée : trois points — la moyenne 2010-2019, juin 2025, juin 2026 — et aucune
+  série. Le jour où la clé existe, il est remplacé et la profondeur arrive.
+
+  **Deux identités, deux contrôles.** Les tailles somment **exactement** à
+  l'ensemble (65 182 + 3 494 + 1 529 + 532 + 66 = 70 803) ; les secteurs somment
+  **plus bas**, et c'est la source qui le dit — « l'Ensemble comprend des unités
+  dont le secteur n'est pas connu », 173 unités à juin 2026. Le contrôle refuse
+  donc une somme de tailles inexacte, et une somme de secteurs qui s'écarte de
+  plus d'un pour cent. Trois sabotages, trois refus.
+
+  **Et le tiret cadratin a fait rougir la CI pour la quatrième fois**, dans un
+  libellé cette fois. La leçon écrite la fois précédente — « un champ publié se
+  vérifie sur la suite entière » — était juste et n'a pas suffi : je l'ai
+  appliquée aux définitions et pas aux libellés. **Tout champ qui part au
+  catalogue passe par la suite entière, libellé compris.**
 
 - **« Tu mets jamais de couleur » — le validateur donne raison au lecteur**
   (18 août 2026). Reproche reçu sur les blocs « 100 € » ; vérifié avant d'être

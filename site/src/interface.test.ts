@@ -20,6 +20,7 @@ import { adresseTerritoire, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES } from "./mailles.ts";
 import { MAXIMUM } from "./comparateur.ts";
 import { rubriques, type Rubrique } from "./analyses.ts";
+import { renduGrille, renduMethode } from "./methode-rendu.ts";
 import { ORDRE_THEMES } from "./fiche.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
@@ -490,22 +491,25 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   // sans fond de carte derrière.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.doesNotMatch(balises, /data-vue="carte"/);
-  assert.match(balises, /id="carte-bascule"/);
+  // Et plus de bouton non plus : la carte EST cette vue, elle ne se replie
+  // pas. Un bouton qui n'a qu'un état utile n'est pas un choix, c'est une
+  // barre qui prend de la hauteur.
+  assert.doesNotMatch(balises, /id="carte-bascule"/);
+  assert.doesNotMatch(MAIN, /carteOuverte/);
   // Les liens `#carte` déjà partagés continuent d'ouvrir ce qu'ils
-  // promettaient : la fiche, carte déployée.
+  // promettaient : la fiche, carte déployée — c'est désormais le seul état.
   // La table des alias a rejoint `routes.ts`, où elle se teste sans navigateur.
   assert.match(ROUTES, /carte: "territoire"/);
-  assert.match(MAIN, /if \(location\.hash === "#carte"\) carteOuverte = true;/);
   // La carte se mesure au montage : rendue dans un conteneur replié, elle
   // garderait cette taille au déploiement.
   assert.match(MAIN, /requestAnimationFrame\(\(\) => carte\?\.resize\(\)\);/);
 
-  // La réécriture des liens à fragment efface le fragment : la règle `#carte`
-  // doit être consommée depuis le fragment tel qu'il est arrivé, sinon elle
-  // ne s'applique jamais au démarrage et le déploiement de la carte ne tient
-  // plus qu'à la valeur initiale de `carteOuverte`.
+  // La réécriture des liens à fragment efface le fragment : le fragment doit
+  // être lu tel qu'il est arrivé, sinon les règles qui en dépendent ne
+  // s'appliquent jamais au démarrage. La règle `#carte` elle-même a disparu
+  // avec l'état qu'elle posait — la carte est déployée dans tous les cas — mais
+  // la lecture du fragment initial reste, et d'autres règles s'y adossent.
   assert.match(MAIN, /const fragmentInitial = location\.hash;/);
-  assert.match(MAIN, /if \(fragmentInitial === "#carte"\) carteOuverte = true;/);
   const ouverture = MAIN.slice(MAIN.indexOf("const fragmentInitial = location.hash;"));
   assert.ok(
     ouverture.indexOf('if (fragmentInitial === "#carte") carteOuverte = true;') <
@@ -520,9 +524,14 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   assert.match(MAIN, /vueDepuisAdresse\(location\.pathname, location\.hash\)/);
   // Le chemin est lu AVANT toute autre source : c'est lui qui fait foi.
   // La borne générique "/**\n * Le sommaire" matchait d'abord le sommaire de
-  // « Sources et méthode », plus haut dans le fichier : on vise ici celui de
-  // REPÈRES, qui suit basculerVue.
-  const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf("/**\n * Le sommaire de REPÈRES."));
+  // « Sources et méthode », plus haut dans le fichier : on vise ici celui du
+  // BILAN, qui suit basculerVue.
+  const BORNE = "/**\n * Le sommaire du BILAN";
+  // Une borne introuvable rend −1, et `slice(a, -1)` découpe jusqu'à la fin du
+  // fichier : le test resterait vert en ne mesurant plus rien. C'est ce qui
+  // s'est produit quand ce commentaire a été retitré.
+  assert.ok(MAIN.includes(BORNE), "borne du sommaire introuvable dans main.ts");
+  const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf(BORNE));
   assert.ok(corps.length > 200, "corps de basculerVue introuvable");
   assert.ok(
     corps.indexOf("vueDepuisAdresse(") < corps.indexOf("vuesConnues()"),
@@ -587,6 +596,88 @@ test("les trois états d'une zone de données se distinguent", () => {
   assert.match(echec, /bloc\.textContent = detail;/);
 });
 
+test("ce qui se peint sur le support suit le thème du support", () => {
+  // Le halo des annotations du graphique était `rgb(255 255 255 / 0.85)` écrit
+  // en dur, quand son `fill` suivait `--encre`. En thème sombre l'encre est
+  // claire : le chiffre clair se retrouvait bordé d'un liseré clair de 3 px, et
+  // « +7,3 % » se lisait comme une tache. Même cause pour l'aire sous la
+  // courbe, un aplat d'encre à 5 % posé sur un fond d'encre.
+  //
+  // Ni les tests de couleur ni axe-core ne pouvaient le voir : les uns
+  // calculent les ratios sur les couleurs DÉCLARÉES et un halo n'est pas un
+  // fond, l'autre ne mesure pas le texte d'un SVG. C'est la peinture qui l'a
+  // montré, comme pour l'opacité des paliers.
+  for (const selecteur of [".graphique__valeur", ".graphique__aire"]) {
+    const corps = CSS_REGLES.match(new RegExp(`\\${selecteur} \\{([^}]*)\\}`))?.[1];
+    assert.ok(corps, `${selecteur} sans règle`);
+    for (const propriete of ["stroke", "fill"]) {
+      const valeur = corps.match(new RegExp(`(?:^|\\n)\\s*${propriete}:([^;]*);`))?.[1];
+      if (!valeur || valeur.trim() === "none") continue;
+      assert.match(valeur, /var\(--/, `${selecteur} : ${propriete} ne suit pas le thème`);
+    }
+  }
+});
+
+test("le bilan ne porte que ses chapitres et son pied de sources", () => {
+  // « Un amas d'analyses qui n'ont aucun lien entre elles » : la vue portait
+  // aussi seize questions d'entrée — qui doublaient le sommaire — et les
+  // tableaux de territoire, qui rangent une couche de carte et n'ont rien à
+  // voir avec les cinq chapitres. Ce que le bilan garde : la section
+  // nationale, et le pied que la Licence Ouverte impose.
+  const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
+  const debut = balises.indexOf('id="vue-bilan"');
+  const fin = balises.indexOf('id="vue-simulateur"');
+  assert.ok(debut > 0 && fin > debut, "bornes de la vue BILAN introuvables");
+  const vue = balises.slice(debut, fin);
+  assert.match(vue, /id="national"/);
+  assert.match(vue, /class="bilan__sources"/);
+  for (const intrus of ['id="questions"', 'id="palmares"', 'id="detail"', 'id="tableau-donnees"']) {
+    assert.ok(!vue.includes(intrus), `${intrus} est resté dans le bilan`);
+  }
+});
+
+test("le pied du bilan est replié : trois documents de référence, pas trois chapitres", () => {
+  // Mesuré au navigateur : les sources, la méthode et la grille faisaient
+  // 7 683 px pour 9 694 px de chapitres — le bilan de la France finissait sur
+  // autant d'appareil que de récit. Ils restent dans le document, à un geste.
+  for (const rendu of [renduMethode(), renduGrille()]) {
+    assert.match(rendu, /<details class="methode__pli">/);
+    assert.doesNotMatch(rendu, /<details[^>]+open/);
+    assert.match(rendu, /<summary>[^<]+<\/summary>/);
+  }
+});
+
+test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu", () => {
+  // Un enfant de grille a `min-width: auto` et refuse de descendre sous la
+  // largeur de son contenu : une colonne écrite `1fr` laisse donc un tableau
+  // large pousser le CORPS DE LA PAGE, alors même que ce tableau défile déjà
+  // dans son propre cadre. Mesuré à 320 px avant correction : corps à 547 px,
+  // la paire de chapitre à 482 px de contenu pour 190 px de place.
+  //
+  // La règle vaut pour les DEUX règles de la paire — celle à une colonne comme
+  // celle à deux. C'est la version à une colonne qui manquait, et c'est elle
+  // qui sert au téléphone, c'est-à-dire là où la place manque.
+  for (const selecteur of [".chapitre", ".chapitre__paire"]) {
+    const regles = [...CSS_REGLES.matchAll(new RegExp(`\\${selecteur} \\{([^}]*)\\}`, "g"))].map(
+      (m) => m[1]!,
+    );
+    assert.ok(regles.length > 0, `${selecteur} sans règle`);
+    for (const corps of regles) {
+      const colonnes = corps.match(/grid-template-columns:([^;]*);/);
+      if (!colonnes) continue;
+      // Le `1fr` d'un `minmax(0, 1fr)` est justement la forme voulue : on ne
+      // cherche que les pistes nues, une fois les minmax retirés.
+      const nues = colonnes[1]!.replace(/minmax\([^)]*\)/g, "");
+      assert.doesNotMatch(
+        nues,
+        /\bfr\b|\d+fr/,
+        `${selecteur} : une piste en fr sans minmax(0,…) laisse son contenu élargir la page`,
+      );
+      assert.match(colonnes[1]!, /minmax\(0,/, selecteur);
+    }
+  }
+});
+
 test("une vue longue dit ce qu'elle contient", () => {
   // Huit blocs de plusieurs écrans sur 6 600 px de défilement, sans moyen de
   // savoir ce qui restait dessous ni d'y aller.
@@ -600,6 +691,11 @@ test("une vue longue dit ce qu'elle contient", () => {
   );
   assert.match(corps, /querySelector\("h2, h3"\)/);
   assert.match(corps, /if \(entrees\.length < 2\)/);
+  // Et il nomme les CHAPITRES, pas les douze cadres : un sommaire qui répète
+  // la page n'ajoute rien à la page. L'ancre vise donc la section du chapitre.
+  assert.match(corps, /#national \.chapitre/);
+  assert.match(corps, /\.chapitre__question/);
+  assert.doesNotMatch(corps, /#national \.bloc/);
   // Une ancre interne ne doit pas être prise pour une vue inconnue et renvoyer
   // le lecteur sur TERRITOIRE au moment où il descend dans ce qu'il lit.
   // Le fragment fait partie de la garde depuis qu'un Back vers `/` — cible
@@ -712,11 +808,34 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   assert.doesNotMatch(MAIN, /\$\("comparateur"\)\.addEventListener/);
 });
 
-test("la carte est déployée d'emblée sur la vue territoire", () => {
+test("la carte est déployée d'emblée, et rien ne la replie", () => {
   // Repliée, il fallait la demander pour voir ce qu'aucune fiche ne montre :
-  // la répartition dans l'espace. Le bouton reste, pour la refermer.
-  assert.match(MAIN, /let carteOuverte = true;/);
-  assert.match(PAGE, /id="carte-bascule"/);
+  // la répartition dans l'espace. Le bouton qui permettait de la refermer est
+  // parti avec l'état qu'il commandait — le mode se pose une fois, à
+  // l'ouverture de la vue.
+  assert.match(MAIN, /appliquerModeCarte\(vue === "territoire"\)/);
+  assert.doesNotMatch(MAIN, /carteOuverte/);
+  assert.doesNotMatch(PAGE, /id="carte-bascule"/);
+});
+
+test("l'attribution de la carte est repliée au premier rendu", () => {
+  // `compact: true` pose le bouton « i » mais MapLibre rend la boîte OUVERTE
+  // au premier affichage : la ligne de crédits — quatre producteurs et une
+  // licence — mangeait le bas de la carte jusqu'au premier clic. Rien n'est
+  // retiré : la mention reste à un clic, ce que la Licence Ouverte demande.
+  assert.match(MAIN, /compact: true/);
+  // C'est l'ATTRIBUT `open` du `<details>` qu'on ferme, pas la classe : MapLibre
+  // resynchronise la classe sur l'attribut, si bien qu'une classe retirée
+  // revient aussitôt. Vu au navigateur.
+  assert.match(MAIN, /details\.maplibregl-ctrl-attrib/);
+  assert.match(MAIN, /boite\.open = false;/);
+  // Et pas sur `load`, qui attend les tuiles d'un tiers : sur un réseau lent ou
+  // absent il ne vient jamais, et l'attribution resterait ouverte tout ce temps.
+  // (main.ts emploie `carte.once("load")` ailleurs, à bon droit — l'assertion
+  // porte donc sur CE geste-ci, pas sur l'absence de l'événement.)
+  assert.match(MAIN, /requestAnimationFrame\(\(\) => \{\s+for \(const boite of/);
+  const geste = MAIN.slice(MAIN.indexOf("requestAnimationFrame(() => {"));
+  assert.doesNotMatch(geste.slice(0, 400), /once\("load"/);
 });
 
 test("la carte est à gauche, la fiche en barre latérale à droite", () => {
@@ -831,7 +950,19 @@ test("le détail d'un territoire porte son classement, son export et sa comparai
   // les remplit est resté : `majTableau`, `majTableauEvolution` et
   // `majComparateur` se taisaient faute d'endroit où écrire.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
-  const vue = balises.slice(balises.indexOf('id="bilan__territoires"') >= 0 ? balises.indexOf('id="bilan__territoires"') : balises.indexOf('class="bilan__territoires"'), balises.length);
+  const depart = balises.indexOf('class="territoire__tables"');
+  // Une borne introuvable rend −1, et `slice(-1)` découpe la fin du fichier :
+  // le test resterait vert en ne mesurant plus rien.
+  assert.ok(depart > 0, "section des tableaux de territoire introuvable");
+  const vue = balises.slice(depart);
+  // **Ils suivent la carte, pas le bilan.** Ils rangent la couche affichée —
+  // l'échelon, le millésime, l'indicateur choisis sur la carte — et n'avaient
+  // rien à voir avec les cinq chapitres du bilan.
+  assert.ok(
+    balises.indexOf('id="vue-territoire"') < depart &&
+      depart < balises.indexOf('id="vue-bilan"'),
+    "les tableaux de territoire doivent vivre dans la vue TERRITOIRE",
+  );
   assert.match(vue, /id="tableau-donnees"/);
   assert.match(vue, /id="exporter"/);
   assert.match(vue, /id="comparateur"/);

@@ -38,7 +38,6 @@ import type {
 } from "../src/donnees.ts";
 import { formater, millions } from "../src/echelle.ts";
 import { TITRES_METHODE } from "../src/methode-rendu.ts";
-import { QUESTIONS } from "../src/questions.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
@@ -1195,17 +1194,20 @@ test("14 quinquies. le build écrit cette page, et l'écrit avant le plan du sit
  * C'est le geste que la garde des cadres défilants a déjà dû faire
  * (`interface.test.ts`), pour exactement la même raison.
  */
+// Le gabarit ENTIER, et non une tranche : la section nationale contient
+// désormais des `<section class="chapitre">`, si bien qu'une tranche bornée à
+// la première `</section>` s'arrêtait au premier chapitre et ne voyait que
+// deux cadres sur douze. Les `<article id="bloc-…">` n'existent nulle part
+// ailleurs dans la page — le test suivant le vérifie par leur nombre.
 const CADRES_REPERES = [
-  ...GABARIT_REEL.slice(
-    GABARIT_REEL.indexOf('<section class="national"'),
-    GABARIT_REEL.indexOf("</section>", GABARIT_REEL.indexOf('<section class="national"')),
-  ).matchAll(/<article[^>]*id="(bloc-[a-z0-9-]+)"/g),
+  ...GABARIT_REEL.matchAll(/<article[^>]*id="(bloc-[a-z0-9-]+)"/g),
 ].map((m) => m[1]);
 
 test("15 quinquies. la liste des cadres se lit dans le gabarit, et elle n'est pas vide", () => {
   // Sans cette sonde, un gabarit remanié rendrait une liste vide et les deux
   // tests qui la parcourent passeraient en ne vérifiant rien.
-  assert.ok(CADRES_REPERES.length >= 10, `${CADRES_REPERES.length} cadre(s) lus dans le gabarit`);
+  assert.ok(CADRES_REPERES.length >= 12, `${CADRES_REPERES.length} cadre(s) lus dans le gabarit`);
+  assert.equal(new Set(CADRES_REPERES).size, CADRES_REPERES.length, "un cadre est déclaré deux fois");
   assert.ok(CADRES_REPERES.includes("bloc-cent-euros-apu"), CADRES_REPERES.join(", "));
 });
 
@@ -1339,27 +1341,12 @@ test("15. /bilan sert ses huit blocs sans exécuter une ligne", () => {
   assert.ok(dette.endsWith("M€"), `« ${dette} » ne dit pas son unité : cette sonde ne prouverait rien`);
   assert.ok(html.includes(dette), `la dette publiée « ${dette} » n'est pas servie`);
 
-  // Les questions, que `demarrer()` peint hors de la section nationale — donc
-  // servies même le jour où plus aucune série nationale ne l'est.
-  // Une question qui exige une série absente du catalogue d'essai n'est pas
-  // servie, et c'est la règle : une ancre vers un bloc que la publication ne
-  // porte pas est un lien mort. Le contrôle porte donc sur ce que ce
-  // catalogue-là permet de répondre — et il vérifie d'abord que les deux
-  // familles existent, sans quoi il passerait sur une liste vide.
-  const exigeantes = QUESTIONS.filter((q) => q.exige);
-  assert.ok(exigeantes.length > 0, "aucune question n'exige de série : ce contrôle vise à côté");
-  for (const question of QUESTIONS) {
-    const servie = texte.includes(echapper(question.question));
-    if (question.exige && !CATALOGUE_REPERES.some((i) => i.id === question.exige)) {
-      assert.ok(!servie, `« ${question.question} » est servie sans sa série`);
-      continue;
-    }
-    assert.ok(servie, `« ${question.question} » n'est pas servie`);
-  }
-
   // Et il en reste beaucoup plus que les 2 597 signes de l'accueil, qui est ce
-  // que ce chemin servait.
-  assert.ok(texte.length > 6000, `<main> ne porte que ${texte.length} signes de texte`);
+  // que ce chemin servait. Le seuil était de 6 000 quand la page portait aussi
+  // les seize questions d'entrée ; elles sont parties avec la refonte en
+  // chapitres — elles doublaient le sommaire — et le seuil suit la mesure :
+  // 3 935 signes sur ce catalogue d'essai, contre 2 597 pour l'accueil seul.
+  assert.ok(texte.length > 3500, `<main> ne porte que ${texte.length} signes de texte`);
 });
 
 test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil replié", () => {
@@ -1380,7 +1367,7 @@ test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil rep
   assert.match(html, /id="sommaire-bilan"[^>]* hidden>/);
   // Mais tous les cadres restent présents : `$` y renverrait `null`, et le
   // navigateur ne pourrait plus repeindre.
-  for (const id of [...CADRES_REPERES, "sommaire-bilan", "questions", "national"]) {
+  for (const id of [...CADRES_REPERES, "sommaire-bilan", "national"]) {
     assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
   }
   // Le document reste celui de l'application : `data-page="editorial"`
@@ -1430,7 +1417,7 @@ test("15 quater. le pré-rendu rougit plutôt que de servir une page sans repèr
     /n'est plus vide/,
   );
   // Et une publication sans une seule série nationale : la page partirait sur
-  // ses seules questions, c'est-à-dire l'état d'avant ce pré-rendu.
+  // vide, c'est-à-dire l'état d'avant ce pré-rendu.
   assert.throws(
     () =>
       injecterReperes(

@@ -26,13 +26,22 @@ export const CROISSANCE = "eurostat_croissance_pib";
 
 const FINE = "\u202f";
 
-/** Pays comparés : la France en avant, trois voisins, la zone euro en repère. */
+/** Pays comparés : la France en avant, trois voisins, la zone euro en repère.
+ *
+ *  Les teintes passent par les jetons `--serie-*` plutôt que par des hexadéci-
+ *  maux écrits ici : elles étaient cinq tons de la gamme jamais mesurée, et le
+ *  validateur de palette leur donnait ΔE 5,3 en protanopie et **9,4 en vision
+ *  normale** entre l'Italie et l'Allemagne — deux courbes que personne ne
+ *  distingue. La gamme validée et ses cinq mesures vivent dans la feuille de
+ *  style, à côté de `--serie-1` ; une teinte inventée ici casserait la
+ *  séparation des quatre autres, la validation étant une propriété de la gamme
+ *  entière. */
 export const PAYS: { code: string; nom: string; couleur: string; accent?: boolean; pointille?: boolean }[] = [
-  { code: "FR", nom: "France", couleur: "#0f1b2e", accent: true },
-  { code: "DE", nom: "Allemagne", couleur: "#c56a4d" },
-  { code: "IT", nom: "Italie", couleur: "#6e7d73" },
-  { code: "ES", nom: "Espagne", couleur: "#b69b53" },
-  { code: "EA20", nom: "Zone euro", couleur: "#8b93a0", pointille: true },
+  { code: "FR", nom: "France", couleur: "var(--serie-1)", accent: true },
+  { code: "DE", nom: "Allemagne", couleur: "var(--serie-2)" },
+  { code: "IT", nom: "Italie", couleur: "var(--serie-3)" },
+  { code: "ES", nom: "Espagne", couleur: "var(--serie-4)" },
+  { code: "EA20", nom: "Zone euro", couleur: "var(--serie-5)", pointille: true },
 ];
 
 export const FENETRES: { cle: string; libelle: string; annees: number | null }[] = [
@@ -179,6 +188,7 @@ export function renduVolet(
   }).join("");
 
   return `
+    <section class="conjoncture__volet">
     <h4 class="graphique__titre">${echapper(volet.titre)}</h4>
     <p class="bloc__complement">${volet.phrase(periode, valeurFr, zoneEuro)}</p>
     <div class="graphique" data-volet="${volet.cle}">
@@ -187,7 +197,8 @@ export function renduVolet(
       <p class="graphique__legende">${legende}</p>
     </div>
     <p class="avertissement">${volet.note} Source : Eurostat, dernière valeur publiée,
-      jamais de prévision ici.</p>`;
+      jamais de prévision ici.</p>
+    </section>`;
 }
 
 /** Rendu pur du bloc entier ; chaîne vide si la conjoncture n'est pas publiée. */
@@ -202,7 +213,13 @@ export function rendu(
     .map((v) => renduVolet(v, pays, fenetre, largeur))
     .filter(Boolean);
   if (!volets.length) return "";
-  return `<h3>Où en est l'économie ?</h3>${volets.join("")}`;
+  // **Les deux volets côte à côte.** Empilés, ils faisaient 1 188 px de haut à
+  // eux seuls dans un cadre en pleine largeur : deux graphiques de 720 unités
+  // étirés sur 1 022 px, l'un sous l'autre, pour comparer deux séries qui se
+  // lisent ensemble. Côte à côte, la page respire et la comparaison est à
+  // portée d'œil. Sous 60rem la grille repasse à une colonne — le point de
+  // rupture du site, pas un seuil taillé pour ce bloc.
+  return `<h3>Où en est l'économie ?</h3><div class="conjoncture__volets">${volets.join("")}</div>`;
 }
 
 /* ------------------------------------------------------------------ *

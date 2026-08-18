@@ -12,7 +12,7 @@
  * de la protection sociale de la DREES donnent les prestations par risque
  * (vieillesse-survie, santé, famille, emploi, logement, pauvreté-exclusion) ;
  * ils ne donnent pas la ventilation des recettes, et aucun autre indicateur du
- * catalogue ne la porte. Il n'y a donc qu'un camembert, et le repli des
+ * catalogue ne la porte. Il n'y a donc qu'une figure, et le repli des
  * réserves dit pourquoi.
  *
  * Périmètre : tous les régimes, en comptabilité nationale. Plus large que la
@@ -21,7 +21,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { camembert, colonne } from "./cent-euros.ts";
+import { colonne, figureParts } from "./cent-euros.ts";
 import { formater } from "./echelle.ts";
 
 /** Les six risques de la nomenclature DREES (ps_niveau 1), qui partitionnent
@@ -133,9 +133,9 @@ export function rendu(france: Territoire | undefined, catalogue: Indicateur[]): 
   if (!lignes.length) return "";
   const total = lignes.reduce((somme, l) => somme + l.valeur, 0);
 
-  // Un camembert seul dans un bloc large : sans largeur maximale, la légende
-  // étire ses parts jusqu'au bord droit et la ligne de lecture se casse. La
-  // borne vit dans `.cent__solo`, côté feuille de style.
+  // Une figure seule dans un bloc large : sans largeur maximale, ses rangs
+  // s'étirent jusqu'au bord droit et la ligne de lecture se casse. La borne vit
+  // dans `.cent__solo`, côté feuille de style.
   return `
     <h3>100 € de prestations sociales, où vont-ils ?
       <span class="cent-euros__exercice">versées en ${echapper(annee)}</span></h3>
@@ -144,10 +144,10 @@ export function rendu(france: Territoire | undefined, catalogue: Indicateur[]): 
       tous régimes confondus : Sécurité sociale, retraites complémentaires obligatoires,
       assurance chômage, État, collectivités, mutuelles et sociétés d'assurance.</p>
     <div class="cent__solo">
-      ${camembert(
+      ${figureParts(
         "Où vont 100 € ?",
         "Part de chaque risque dans le total des prestations versées.",
-        lignes.map((l) => ({ libelle: l.libelle, part: l.part, montant: l.montant })),
+        lignes.map((l) => ({ libelle: l.libelle, part: l.part })),
       )}
     </div>
     <details class="repli">

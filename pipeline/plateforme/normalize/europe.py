@@ -32,6 +32,16 @@ DATASET_PAR_JEU = {
     "crim_off_cat": "eurostat-crim-off-cat",
     "gov_10a_main": "eurostat-gov-10a-main",
     "gov_10a_exp": "eurostat-gov-10a-exp",
+    # Le tableau de bord d'un bilan : ce qui manquait pour que chaque chapitre
+    # ait son axe du temps, et non un seul millésime.
+    "nama_10_gdp": "eurostat-nama-10-gdp",
+    "demo_gind": "eurostat-demo-gind",
+    "irt_lt_mcby_a": "eurostat-irt-lt-mcby-a",
+    "sts_rb_q": "eurostat-sts-rb-q",
+    "lfsi_emp_a": "eurostat-lfsi-emp-a",
+    "nasa_10_ki": "eurostat-nasa-10-ki",
+    "sts_inpr_a": "eurostat-sts-inpr-a",
+    "prc_hicp_aind": "eurostat-prc-hicp-aind",
 }
 
 # Les comptes des administrations publiques sont publiés en **millions**
@@ -383,6 +393,211 @@ INDICATEURS = {
         " COFOG confondues, en euros courants. Diffère de D62PAY du jeu"
         " gov_10a_main de 0,3 % sur les exercices récents : deux millésimes.",
         "unite": "EUR",
+    },
+
+    # ═════════════════════════════════════════════════════════════════════
+    # LE TABLEAU DE BORD D'UN BILAN
+    # ═════════════════════════════════════════════════════════════════════
+    # Un bilan se lit sur une durée, pas sur un instantané. Les séries des
+    # administrations publiques donnaient déjà trente ans de profondeur ; ce
+    # qui manquait était le DÉNOMINATEUR — le PIB en euros et la population —
+    # et les mesures qui disent si la trajectoire tient : ce que la dette
+    # coûte, combien d'entreprises tombent, combien de gens travaillent.
+    #
+    # Deux d'entre elles ferment un trou mesuré : sans PIB en niveau, aucun
+    # « % du PIB » ne peut être calculé par le site — il ne peut que reprendre
+    # celui que la source publie déjà ; et sans population, les seize séries de
+    # sécurité restent des nombres bruts sans dénominateur national.
+    "eurostat_pib_montant": {
+        "jeu": "nama_10_gdp",
+        "params": {"na_item": "B1GQ", "unit": "CP_MEUR", "freq": "A"},
+        "facteur": MILLION,
+        "libelle": "Produit intérieur brut",
+        "public": "La valeur de tout ce qui est produit en un an dans le pays."
+        " C'est la mesure à laquelle on rapporte la dette, le déficit et la"
+        " dépense publique pour les comparer d'un pays à l'autre.",
+        "technique": "PIB aux prix courants du marché (B1GQ), en euros courants.",
+        "unite": "EUR",
+    },
+    "eurostat_population": {
+        "jeu": "demo_gind",
+        "params": {"indic_de": "JAN", "freq": "A"},
+        "libelle": "Population au 1er janvier",
+        "public": "Le nombre d'habitants au premier jour de l'année. C'est le"
+        " dénominateur de tout ce qui se lit « par habitant ».",
+        "technique": "Population totale au 1er janvier, estimation Eurostat.",
+        "unite": "count",
+    },
+    # ─────────────────────────────────────────────────────────────────────
+    # CE QUE LA DETTE COÛTE, ET CE QU'ELLE COÛTERA
+    # ─────────────────────────────────────────────────────────────────────
+    # Le taux à l'émission n'est pas le taux payé : la charge d'intérêt porte
+    # un stock d'ancienne dette contractée moins cher. L'écart entre les deux
+    # est donc la charge à venir, mécaniquement, même à taux stables — et il ne
+    # se voit qu'en publiant les deux.
+    "eurostat_taux_10_ans": {
+        "jeu": "irt_lt_mcby_a",
+        "params": {"int_rt": "MCBY", "freq": "A"},
+        "libelle": "Taux d'intérêt à 10 ans",
+        "public": "Le taux auquel l'État emprunte sur dix ans. Il monte quand"
+        " les prêteurs jugent le pays plus risqué, et chaque nouvelle dette est"
+        " contractée à ce prix-là.",
+        "technique": "Taux d'intérêt à long terme des obligations d'État, critère"
+        " de convergence de Maastricht, moyenne annuelle.",
+        "unite": "percent",
+    },
+    # ─────────────────────────────────────────────────────────────────────
+    # LE TISSU PRODUCTIF
+    # ─────────────────────────────────────────────────────────────────────
+    # Eurostat ne publie qu'un INDICE, toutes entreprises confondues. C'est la
+    # limite de cette source, et elle compte : l'essentiel des créations sont
+    # des micro-entreprises, si bien qu'un indice global mélange des ouvertures
+    # sans salarié et des fermetures d'entreprises qui en employaient. Le
+    # nombre par taille et par secteur vient de la Banque de France
+    # (`normalize/defaillances.py`), et c'est lui qu'il faut lire pour juger.
+    "eurostat_defaillances": {
+        "jeu": "sts_rb_q",
+        "params": {"indic_bt": "BKRT", "s_adj": "SCA", "unit": "I21",
+                   "nace_r2": "B-S_X_O_S94", "freq": "Q"},
+        "libelle": "Défaillances d'entreprises",
+        "public": "Le nombre d'entreprises qui déposent le bilan, rapporté à"
+        " l'année 2021. Toutes tailles confondues, micro-entreprises comprises.",
+        "technique": "Déclarations de faillite, indice base 2021 = 100,"
+        " corrigé des variations saisonnières et des jours ouvrables,"
+        " sections B à S de la NACE hors administration publique.",
+        "unite": "indice",
+    },
+    "eurostat_creations_entreprises_indice": {
+        "jeu": "sts_rb_q",
+        "params": {"indic_bt": "REG", "s_adj": "SCA", "unit": "I21",
+                   "nace_r2": "B-S_X_O_S94", "freq": "Q"},
+        "libelle": "Créations d'entreprises",
+        "public": "Le nombre d'entreprises immatriculées, rapporté à 2021."
+        " À lire avec les défaillances : les deux courbes ensemble disent si le"
+        " tissu se renouvelle ou se vide.",
+        "technique": "Immatriculations d'entreprises, indice base 2021 = 100,"
+        " corrigé des variations saisonnières et des jours ouvrables.",
+        "unite": "indice",
+    },
+    "eurostat_production_industrielle": {
+        "jeu": "sts_inpr_a",
+        "params": {"nace_r2": "B-D", "s_adj": "CA", "unit": "I21", "freq": "A"},
+        "libelle": "Production industrielle",
+        "public": "Ce que l'industrie produit, rapporté à l'année 2021.",
+        "technique": "Indice de production industrielle, base 2021 = 100,"
+        " sections B à D de la NACE, corrigé des jours ouvrables.",
+        "unite": "indice",
+    },
+    # ─────────────────────────────────────────────────────────────────────
+    # L'EMPLOI, DES DEUX CÔTÉS
+    # ─────────────────────────────────────────────────────────────────────
+    # Le chômage seul ne dit pas l'emploi : les deux peuvent monter ensemble,
+    # quand la population active grossit plus vite que les emplois créés. Le
+    # taux d'emploi est donc publié à côté, et le chômage des jeunes à part —
+    # il est du double de celui de l'ensemble, et l'écart avec les voisins y est
+    # bien plus large que sur le taux général.
+    "eurostat_taux_emploi": {
+        "jeu": "lfsi_emp_a",
+        "params": {"indic_em": "EMP_LFS", "sex": "T", "age": "Y20-64",
+                   "unit": "PC_POP", "freq": "A"},
+        "libelle": "Taux d'emploi des 20-64 ans",
+        "public": "La part des 20-64 ans qui ont un emploi. C'est le pendant du"
+        " taux de chômage, et les deux ne bougent pas toujours dans le même sens.",
+        "technique": "Taux d'emploi, 20-64 ans, tous sexes, enquête sur les forces"
+        " de travail, en % de la population du même âge.",
+        "unite": "percent",
+    },
+    "eurostat_chomage_jeunes": {
+        "jeu": "une_rt_a",
+        # La classe d'âge se nomme Y15-24 ici. `Y_LT25` n'existe pas dans ce jeu
+        # et rend une série vide sans lever — même piège que « TOTAL ».
+        "params": {"age": "Y15-24", "sex": "T", "unit": "PC_ACT", "freq": "A"},
+        "libelle": "Taux de chômage des 15-24 ans",
+        "public": "La part des jeunes actifs sans emploi qui en cherchent un."
+        " Elle vaut environ le double du taux de chômage de l'ensemble.",
+        "technique": "Taux de chômage au sens du BIT, 15-24 ans, tous sexes,"
+        " en % de la population active du même âge.",
+        "unite": "percent",
+    },
+    # ─────────────────────────────────────────────────────────────────────
+    # LES MÉNAGES ET LES ENTREPRISES
+    # ─────────────────────────────────────────────────────────────────────
+    # Ces quatre séries remontent à 1949 pour trois d'entre elles. Elles disent
+    # ce que les comptes publics ne disent pas : ce que les gens font de leur
+    # revenu, et ce que les entreprises font de leur marge.
+    "eurostat_taux_epargne_menages": {
+        "jeu": "nasa_10_ki",
+        "params": {"na_item": "SRG_S14", "unit": "PC", "freq": "A"},
+        "libelle": "Taux d'épargne des ménages",
+        "public": "La part du revenu que les ménages n'ont pas dépensée. Elle monte"
+        " quand ils sont inquiets, et ce qui est épargné n'est pas consommé.",
+        "technique": "Taux d'épargne brut des ménages (B8G rapporté au revenu"
+        " disponible brut ajusté), en %.",
+        "unite": "percent",
+    },
+    "eurostat_dette_menages_revenu": {
+        "jeu": "nasa_10_ki",
+        "params": {"na_item": "DIR_S14", "unit": "PC", "freq": "A"},
+        "libelle": "Dette des ménages rapportée à leur revenu",
+        "public": "Ce que les ménages doivent, rapporté à ce qu'ils gagnent en un an."
+        " À ne pas confondre avec la dette publique : celle-ci est privée.",
+        "technique": "Ratio d'endettement brut des ménages (passifs AF4 rapportés"
+        " au revenu disponible brut ajusté), en %.",
+        "unite": "percent",
+    },
+    "eurostat_marge_entreprises": {
+        "jeu": "nasa_10_ki",
+        "params": {"na_item": "B2G_B3G_RAT_S11", "unit": "PC", "freq": "A"},
+        "libelle": "Taux de marge des entreprises",
+        "public": "Ce qui reste aux entreprises non financières une fois payés les"
+        " salaires et les impôts sur la production, rapporté à ce qu'elles produisent.",
+        "technique": "Excédent brut d'exploitation et revenu mixte des sociétés non"
+        " financières rapportés à leur valeur ajoutée brute, en %.",
+        "unite": "percent",
+    },
+    "eurostat_investissement_entreprises_pib": {
+        "jeu": "nasa_10_ki",
+        "params": {"na_item": "P51G_RAT_GDP_BUS", "unit": "PC", "freq": "A"},
+        "libelle": "Investissement des entreprises en % du PIB",
+        "public": "Ce que les entreprises consacrent chaque année à leurs machines,"
+        " leurs bâtiments et leurs logiciels. C'est ce qui prépare la production"
+        " de demain.",
+        "technique": "Formation brute de capital fixe des sociétés (S11 et S12)"
+        " rapportée au PIB, en %.",
+        "unite": "percent",
+    },
+    # ─────────────────────────────────────────────────────────────────────
+    # L'INFLATION, PAR CE QUE LES GENS ACHÈTENT
+    # ─────────────────────────────────────────────────────────────────────
+    # « 2,4 % » est une moyenne qui ne ressemble à personne : sur la même
+    # période l'énergie et l'alimentation ont fait bien davantage. Les trois
+    # séries sont des INDICES et non des taux, ce qui est délibéré — un indice
+    # se cumule (« +54 % depuis 2021 »), un taux annuel ne se cumule pas sans
+    # se tromper.
+    **{
+        f"eurostat_prix_{cle}": {
+            "jeu": "prc_hicp_aind",
+            "params": {"coicop": coicop, "unit": "INX_A_AVG", "freq": "A"},
+            "libelle": libelle,
+            "public": public,
+            "technique": "Indice des prix à la consommation harmonisé (IPCH),"
+            f" poste {coicop}, moyenne annuelle, base 2015 = 100.",
+            "unite": "indice",
+        }
+        for cle, coicop, libelle, public in (
+            ("ensemble", "CP00", "Prix à la consommation, ensemble",
+             "Le niveau général des prix. C'est la moyenne dont on tire le taux"
+             " d'inflation, et elle recouvre des postes très différents."),
+            ("energie", "NRG", "Prix de l'énergie",
+             "Carburants, gaz, électricité, fioul. C'est le poste qui a le plus"
+             " bougé, et celui qui entraîne les autres."),
+            ("alimentation", "FOOD", "Prix de l'alimentation",
+             "Ce qu'on achète pour manger. Le poste que les ménages voient"
+             " le plus souvent, et celui qui pèse le plus sur les revenus modestes."),
+            ("sous_jacente", "TOT_X_NRG_FOOD", "Prix hors énergie et alimentation",
+             "Tout le reste. On le regarde à part parce que l'énergie et"
+             " l'alimentation dépendent de prix mondiaux que le pays ne fixe pas."),
+        )
     },
     "eurostat_apu_transferts_nature": {
         "jeu": "gov_10a_main",

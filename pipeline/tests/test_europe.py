@@ -67,10 +67,24 @@ def test_chaque_serie_filtre_une_seule_valeur_par_pays_et_par_annee():
     """
     for indicateur, fiche in europe.INDICATEURS.items():
         params = fiche["params"]
-        assert params.get("freq") == "A", indicateur
-        # `ilc_di12` n'a pas de dimension `unit` mais un `statinfo` qui joue le
-        # même rôle : c'est lui qui choisit entre les variantes de l'indice.
-        assert "unit" in params or "statinfo" in params, indicateur
+        # La fréquence est déclarée, pas forcément annuelle : les défaillances
+        # d'entreprises sont trimestrielles, et le site publie déjà des séries
+        # trimestrielles (la dette par sous-secteur). Ce que la garde exige est
+        # qu'une fréquence soit CHOISIE — un jeu qui en porte deux rendrait
+        # l'année et ses quatre trimestres dans la même série.
+        assert params.get("freq") in ("A", "Q", "M"), indicateur
+        # Tous les jeux n'appellent pas « unit » la dimension qui choisit la
+        # variante d'une mesure : `ilc_di12` l'appelle `statinfo`, `demo_gind`
+        # l'appelle `indic_de` (population au 1er janvier, naissances, décès…),
+        # `irt_lt_mcby_a` l'appelle `int_rt` (rendement à long terme, taux du
+        # marché monétaire…), `sts_rb_q` et `sts_inpr_a` l'appellent `indic_bt`
+        # ou `nace_r2`. Ce qui compte n'est pas le nom mais qu'UNE de ces
+        # dimensions soit filtrée — sans quoi plusieurs mesures se rangent sous
+        # la même clé (pays, période) et la dernière lue écrase les autres, en
+        # silence. C'est le piège qui a rendu `D62PAY` muet dans un jeu où la
+        # transaction s'appelle `D62`.
+        DISCRIMINANTES = {"unit", "statinfo", "indic_de", "int_rt", "indic_bt", "na_item"}
+        assert DISCRIMINANTES & set(params), indicateur
 
 
 def test_l_unite_publiee_dit_le_denominateur():

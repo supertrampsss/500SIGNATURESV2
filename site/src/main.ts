@@ -27,6 +27,7 @@ import { groupeDe } from "./semblables.ts";
 import { afficherRedistribution } from "./redistribution.ts";
 import { afficherRetraites } from "./retraites.ts";
 import { afficherCentEurosApu } from "./cent-euros-apu.ts";
+import { afficherOuverture } from "./ouverture.ts";
 import { afficherAnalyses, rubriques } from "./analyses.ts";
 import { afficherBudgetEtat, exercicesDisponibles } from "./etat.ts";
 import { indexer, type Budget } from "./simulateur.ts";
@@ -69,7 +70,6 @@ import { comparer as comparerScenarios } from "./comparaison.ts";
 import { renduBarre, renduComparaison, renduDisparues, type Comparable } from "./scenarios-rendu.ts";
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherCentEuros } from "./cent-euros.ts";
-import { afficherQuestions } from "./questions.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
 import {
@@ -1958,10 +1958,6 @@ function brancherCommandes(): void {
     basculerVue();
   });
 
-  $("carte-bascule").addEventListener("click", () => {
-    carteOuverte = !carteOuverte;
-    appliquerModeCarte(carteOuverte);
-  });
 
   // Retirer un territoire de la comparaison : les « × » des en-têtes du
   // tableau (rendus par `comparateur.ts`) et les pilules de rappel.
@@ -2054,10 +2050,10 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
       bouton.dataset.niveau ?? null,
       bouton.firstChild?.textContent?.trim(),
     );
-    // La page DÉTAIL porte le même champ : sans ce repeint, choisir une ville
-    // depuis cette page ouvrait la fiche de la carte et laissait le tableau sur
-    // la ville précédente. On ne pouvait tout simplement pas en changer.
-    if (document.body.dataset.vue === "bilan") {
+    // Les tableaux sous la carte portent le même champ : sans ce repeint,
+    // choisir une ville ouvrait la fiche et laissait le tableau sur la ville
+    // précédente. On ne pouvait tout simplement pas en changer.
+    if (document.body.dataset.vue === "territoire") {
       await peindreDetail();
       // Changer de territoire peut changer de maille, donc de palmarès.
       void peindrePalmares();
@@ -2538,7 +2534,6 @@ function basculerVue(): void {
   const demandee = vueDepuisAdresse(location.pathname, location.hash);
   // `#carte` ouvre la vue territoire ET déploie la carte : le lien tenait sa
   // promesse quand la carte était une vue, il la tient encore.
-  if (location.hash === "#carte") carteOuverte = true;
   const cible = demandee ?? "";
   // Une ancre interne — le sommaire de Décryptages vise `#bloc-etat` — passe
   // aussi par `hashchange`. Elle ne nomme pas une vue : la traiter comme une
@@ -2565,17 +2560,20 @@ function basculerVue(): void {
   document.body.dataset.vue = vue;
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.
-  appliquerModeCarte(vue === "territoire" && carteOuverte);
+  appliquerModeCarte(vue === "territoire");
   $("vue-accueil").hidden = vue !== "accueil";
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
-  // BILAN réunit ce que REPÈRES et DÉTAIL montraient séparément : les repères
-  // nationaux, puis le classement des territoires et leur comparaison.
-  $("vue-bilan").hidden = vue !== "bilan";
-  if (vue === "bilan") {
+  // **Le classement suit la carte, plus le bilan.** Il range la couche
+  // affichée — l'échelon, le millésime, l'indicateur réglés sur la carte —, et
+  // il n'avait rien à voir avec les cinq chapitres du bilan, qui racontent la
+  // France.
+  if (vue === "territoire") {
     void peindreDetail();
     void peindrePalmares();
   }
+  // BILAN ne porte plus que les cinq chapitres et le pied de sources.
+  $("vue-bilan").hidden = vue !== "bilan";
   $("vue-simulateur").hidden = vue !== "simulateur";
   document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
     // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
@@ -2592,27 +2590,37 @@ function basculerVue(): void {
 }
 
 /**
- * Le sommaire de REPÈRES.
+ * Le sommaire du BILAN : les cinq questions, pas les douze cadres.
  *
- * La vue aligne huit blocs de plusieurs écrans chacun — conjoncture, dette,
- * Europe, les 100 €, fonctions, Sécurité sociale, budget de l'État, niches —
- * soit un défilement de 6 600 px mesuré à 1440 px de large. Rien ne disait ce
- * qui restait dessous, et il n'y avait pas d'autre moyen d'y aller que de
- * pousser la molette.
+ * Il énumérait chaque bloc — conjoncture, dette, Europe, les 100 €, fonctions,
+ * Sécurité sociale, budget de l'État, niches — c'est-à-dire douze entrées sans
+ * lien entre elles pour une page qui en raconte cinq. Un sommaire de douze
+ * titres devant une page de douze cadres ne dit rien de plus que la page ; il
+ * la répète. Les entrées sont donc les **questions des chapitres**, dans leur
+ * ordre : combien, d'où, où il va, pour qui, est-ce tenable.
  *
- * Le sommaire se construit sur ce qui s'est **réellement affiché** : un bloc
- * dont la source n'est pas publiée reste vide et n'entre pas au sommaire.
- * Rien de cliquable ne doit mener à une section vide — c'est déjà la règle du
- * simulateur dans le menu, c'est la même ici. Le titre de l'entrée est celui
- * du bloc, lu dans le DOM : deux libellés à tenir à jour en auraient fait
- * diverger un.
+ * Le sommaire se construit sur ce qui s'est **réellement affiché** : un
+ * chapitre dont aucun bloc n'a de titre — parce qu'aucune de ses sources n'est
+ * publiée — n'entre pas au sommaire. Rien de cliquable ne doit mener à une
+ * section vide, c'est déjà la règle du simulateur dans le menu. Le libellé est
+ * lu dans le DOM : deux libellés à tenir à jour en auraient fait diverger un.
  */
 function peindreSommaireReperes(): void {
   const cadre = document.getElementById("sommaire-bilan");
   if (!cadre) return;
-  const entrees = [...document.querySelectorAll<HTMLElement>("#national .bloc")]
-    .map((bloc) => ({ bloc, titre: bloc.querySelector("h2, h3")?.textContent?.trim() }))
-    .filter((e): e is { bloc: HTMLElement; titre: string } => Boolean(e.titre));
+  const entrees = [...document.querySelectorAll<HTMLElement>("#national .chapitre")]
+    .filter((chapitre) =>
+      // Un cadre rempli porte son titre ; un cadre que le pré-rendu a replié
+      // faute de source n'en a pas. Un chapitre entier peut donc être vide.
+      [...chapitre.querySelectorAll<HTMLElement>(".bloc")].some((bloc) =>
+        bloc.querySelector("h2, h3"),
+      ),
+    )
+    .map((chapitre) => ({
+      chapitre,
+      titre: chapitre.querySelector(".chapitre__question")?.textContent?.trim(),
+    }))
+    .filter((e): e is { chapitre: HTMLElement; titre: string } => Boolean(e.titre));
   // Un sommaire d'une entrée nomme ce qui est déjà seul à l'écran.
   if (entrees.length < 2) {
     cadre.hidden = true;
@@ -2620,11 +2628,9 @@ function peindreSommaireReperes(): void {
   }
   cadre.hidden = false;
   cadre.replaceChildren(
-    ...entrees.map(({ bloc, titre }) => {
-      // Les blocs vides gardent leur `id` du gabarit ; ceux qui portent un
-      // titre l'ont rempli. L'ancre vise donc toujours quelque chose.
+    ...entrees.map(({ chapitre, titre }) => {
       const lien = document.createElement("a");
-      lien.href = `#${bloc.id}`;
+      lien.href = `#${chapitre.id}`;
       lien.textContent = titre;
       return lien;
     }),
@@ -2636,7 +2642,6 @@ function peindreSommaireReperes(): void {
  *  Elle l'est **par défaut**. Repliée, il fallait la demander pour voir ce
  *  qu'aucune fiche ne montre : la répartition dans l'espace. Le bouton reste,
  *  pour la refermer quand on vient lire plutôt que situer. */
-let carteOuverte = true;
 
 /**
  * Ouvre ou referme le fond de carte.
@@ -2650,10 +2655,6 @@ function appliquerModeCarte(ouverte: boolean): void {
   const avant = document.body.dataset.carte === "oui";
   if (ouverte) document.body.dataset.carte = "oui";
   else delete document.body.dataset.carte;
-  const bouton = document.getElementById("carte-bascule");
-  bouton?.setAttribute("aria-pressed", String(ouverte));
-  const texte = document.getElementById("carte-bascule-texte");
-  if (texte) texte.textContent = ouverte ? "Masquer la carte" : "Voir sur la carte";
   if (ouverte && !avant) requestAnimationFrame(() => carte?.resize());
 }
 
@@ -3964,9 +3965,6 @@ async function demarrer(): Promise<void> {
   if (vueDuFragment) {
     // La règle `#carte` vit dans `basculerVue`, mais la réécriture ci-dessous
     // efface le fragment avant qu'elle ne puisse s'y appliquer : un lien
-    // `/#carte` n'ouvrait la carte déployée que parce que `carteOuverte` vaut
-    // `true` au départ, ce qu'aucun test ne reliait.
-    if (fragmentInitial === "#carte") carteOuverte = true;
     history.replaceState(null, "", `${cheminDeVue(vueDuFragment)}${location.search}`);
   }
   window.addEventListener("hashchange", basculerVue);
@@ -3996,9 +3994,6 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
-  // Les questions qui exigent une série que la publication ne porte pas encore
-  // ne sont pas listées : une ancre vers un bloc vide est un lien mort.
-  afficherQuestions($("questions"), new Set(catalogue.map((i) => i.id)));
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();
@@ -4112,6 +4107,27 @@ async function demarrer(): Promise<void> {
     },
   });
   carte.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
+  // `compact: true` ne suffit pas : MapLibre rend l'attribution OUVERTE au
+  // premier affichage — 473 px de crédits en bas de carte — et ne la replie
+  // qu'au premier clic sur le bouton « i ».
+  //
+  // Retirer la classe `maplibregl-compact-show` ne marche pas : l'élément est
+  // un `<details open>` dont MapLibre resynchronise la classe sur l'attribut,
+  // si bien qu'elle revient aussitôt. Vu au navigateur — c'est l'attribut qu'il
+  // faut fermer, pas la classe. Rien n'est caché : la mention reste à un clic,
+  // ce que la Licence Ouverte demande.
+  // Et le geste ne s'accroche PAS à `load` : cet événement attend les tuiles,
+  // qui viennent d'un tiers. Sur un réseau lent — ou absent, ce qui est le cas
+  // des vérifications hors ligne — il ne vient jamais, et l'attribution reste
+  // ouverte tout ce temps. La commande, elle, est dans le DOM dès
+  // `addControl` : une image suffit.
+  requestAnimationFrame(() => {
+    for (const boite of document.querySelectorAll<HTMLDetailsElement>(
+      "details.maplibregl-ctrl-attrib",
+    )) {
+      boite.open = false;
+    }
+  });
   // Le canevas est dans l'ordre de tabulation par défaut : à la cinquième
   // tabulation, le focus entrait dans la carte et n'en ressortait plus, sur un
   // élément qui n'offre rien au clavier. Les commandes, elles, restent
@@ -4343,8 +4359,14 @@ async function demarrer(): Promise<void> {
   // pays sont disponibles.
   try {
     const pays = await donnees.territoires("pays", "tous");
-    // La conjoncture d'abord : c'est le pouls le plus récent, le lecteur qui
-    // arrive « pour l'économie » doit la voir avant les stocks annuels.
+    // L'OUVERTURE d'abord, et la conjoncture après elle : la page ouvrait sur
+    // 1 412 px d'inflation et de croissance avant d'avoir dit de quoi elle
+    // parle. Le lecteur doit savoir en quatre secondes de combien il est
+    // question — ce qui est encaissé, ce qui est dépensé, l'écart — puis la
+    // conjoncture lui donne le pouls du moment.
+    if (afficherOuverture($("bloc-ouverture"), pays)) {
+      $("national").hidden = false;
+    }
     if (afficherConjoncture($("bloc-conjoncture"), pays, catalogue)) {
       $("national").hidden = false;
     }

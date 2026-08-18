@@ -222,6 +222,24 @@ test("les producteurs nommés sont exactement ceux des jeux reçus", () => {
   assert.doesNotMatch(html, /Eurostat|URSSAF|DINUM/);
 });
 
+test("la bibliographie est repliée, et son décompte reste lisible fermé", () => {
+  // Mesurée au navigateur sur la publication du 18 août 2026, la liste des
+  // producteurs faisait 5 210 px pour 19 283 px de page : un quart du bilan de
+  // la France était une bibliographie dépliée. Elle reste dans le document —
+  // la Licence Ouverte demande de citer les producteurs — mais pliée.
+  const html = renduSources(JEUX);
+  assert.match(html, /<details class="methode-sources__liste">/);
+  // Pliée, pas retirée : la liste est bien à l'intérieur du pli.
+  const pli = html.slice(html.indexOf("<details"), html.indexOf("</details>"));
+  assert.match(pli, /<dl class="methode-sources__producteurs">/);
+  // Et surtout pas `open` : le pli serait décoratif.
+  assert.doesNotMatch(html, /<details[^>]+open/);
+  // Le résumé dit ce qu'on ouvre. Le décompte est au-dessus du pli, dans
+  // l'intro, et repris dans le résumé : fermé, la page dit toujours combien de
+  // jeux elle cite.
+  assert.match(html, new RegExp(`<summary>[^<]*${JEUX.length} jeux[^<]*</summary>`));
+});
+
 test("l'ordre est celui du manifeste : aucun tri, donc aucun palmarès", () => {
   // INSEE arrive après OFGL dans la fixture ; un tri alphabétique l'aurait mis
   // devant, et un tri par nombre de jeux aurait fait un classement des sources.
