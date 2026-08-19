@@ -7636,6 +7636,172 @@ body[data-carte="oui"] .legende {
   max-width: 78rem;
   margin: 0 auto;
 }
+/* « Sa place parmi les autres » et « Les communes semblables » (#palmares),
+   puis la suite du panneau (#detail) : ils continuent la colonne étroite du
+   panneau de la fiche, pas la pleine largeur du classement qui les suit. Sans
+   ce réglage, la page passait d'une colonne de 662 px à côté de la carte à un
+   bloc de 1216 px de large au défilement suivant — le même geste de lecture
+   changeant brutalement de forme. `#comparateur` et `.classement`, qui
+   rangent une couche entière de territoires et non un seul, gardent la pleine
+   largeur : `justify-self` ne les touche pas, lui seul étant posé ici. */
+#palmares,
+#detail {
+  justify-self: end;
+  width: var(--panneau-largeur);
+  max-width: 100%;
+}
+@media (max-width: 60rem) {
+  #palmares,
+  #detail {
+    justify-self: stretch;
+    width: auto;
+  }
+}
+
+/* ===========================================================================
+   DAVANTAGE DE DONNÉES — la suite du panneau, dix thèmes, jamais un bouton
+   ===========================================================================
+   Onze thèmes gardés sur les vingt-deux publiés, expliqués comme un chapitre
+   de BILAN : une affirmation, puis la preuve. Aucun rail de couleur sur les
+   cartes — la teinte ne vit que dans le remplissage des barres, où elle porte
+   la mesure ; une carte qui ne fait que décorer ne dit rien. */
+.davantage {
+  display: flex;
+  flex-direction: column;
+}
+.davantage__theme {
+  padding: var(--espace-6) 0;
+  border-top: 1px solid var(--trait);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+}
+.davantage__theme:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+.davantage__theme h3 {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+}
+.davantage__affirmation {
+  font-size: var(--texte-m);
+}
+.davantage__affirmation b {
+  font-weight: 600;
+}
+.davantage__source {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.davantage__note {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  border-left: 2px solid var(--trait-fort);
+  padding-left: var(--espace-3);
+}
+
+/* Une magnitude ne prend qu'une seule teinte (règle du dépôt) : `--accent` se
+   pose une fois sur le conteneur, jamais rang par rang. */
+.davantage__mag {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+}
+.davantage__rang {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--espace-3);
+  font-size: var(--texte-s);
+}
+.davantage__etiq {
+  color: var(--encre-douce);
+}
+.davantage__piste {
+  height: 0.75rem;
+  background: var(--fond);
+  border-radius: var(--rayon-xs);
+  overflow: hidden;
+}
+.davantage__piste > span {
+  display: block;
+  height: 100%;
+  background: var(--accent, var(--serie-1));
+  border-radius: var(--rayon-xs);
+}
+.davantage__val {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 40rem) {
+  .davantage__rang {
+    grid-template-columns: 8rem minmax(0, 1fr) auto;
+  }
+}
+
+.davantage__cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--espace-3);
+}
+.davantage__carte {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.davantage__v {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+}
+.davantage__l {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.davantage__e {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Vie associative : le nom et le montant de chaque association, pas
+   seulement leur total. */
+.davantage__associations {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  overflow: hidden;
+}
+.davantage__assoc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem var(--espace-4);
+  padding: var(--espace-3);
+}
+.davantage__assoc + .davantage__assoc {
+  border-top: 1px solid var(--trait);
+}
+.davantage__nom {
+  font-weight: 600;
+  font-size: var(--texte-s);
+}
+.davantage__montant {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texte-s);
+  text-align: right;
+  white-space: nowrap;
+}
+.davantage__objet {
+  grid-column: 1 / -1;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
 
 /* Le pied de page se replie. Les trois documents de référence — les sources,
    la méthode, la grille — faisaient 7 683 px pour 9 694 px de chapitres : le

@@ -10,10 +10,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
-import { libelleTheme, THEMES } from "./themes.ts";
+import { libelleTheme } from "./themes.ts";
 import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { afficherFiche, NIVEAUX, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { afficherFiche, NIVEAUX, rubriqueDuTheme } from "./fiche.ts";
 import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
 import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
 import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
@@ -30,7 +30,7 @@ import { afficherCentEurosApu } from "./cent-euros-apu.ts";
 import { afficherOuverture } from "./ouverture.ts";
 import { afficherRecettesEtat } from "./recettes-etat.ts";
 import { afficherTenable } from "./tenable.ts";
-import { afficherAnalyses, rubriques } from "./analyses.ts";
+import { rendu as davantageRendu } from "./davantage.ts";
 import { indexer, type Budget } from "./simulateur.ts";
 import {
   afficherAtelier,
@@ -479,17 +479,29 @@ function recalculerPopulations(): void {
  * fiche de s'afficher.
  */
 const associations: Record<string, donnees.SubventionsCommune> = {};
-const lotsAssociations = new Set<string>();
+// La promesse de chaque lot, pas seulement le fait qu'elle ait démarré :
+// `peindreDetail` et `montrerFiche` peuvent demander le même département en
+// concurrence, et un simple drapeau « déjà lancé » aurait rendu le second
+// appelant aussitôt, avant que le premier ait fini de charger — le thème
+// serait resté sur son agrégat pour de bon, aucun repeint ne suivant l'arrivée
+// tardive de la liste nominative.
+const chargementsAssociations = new Map<string, Promise<void>>();
 
 async function chargerAssociations(code: string): Promise<void> {
   const lot = code.startsWith("97") ? code.slice(0, 3) : code.slice(0, 2);
-  if (lotsAssociations.has(lot)) return;
-  lotsAssociations.add(lot);
-  try {
-    Object.assign(associations, await donnees.subventions(lot));
-  } catch {
-    // Rien à dire : le thème garde son agrégat, qui ne dépend pas de ce fichier.
+  let charge = chargementsAssociations.get(lot);
+  if (!charge) {
+    charge = donnees
+      .subventions(lot)
+      .then((lot_) => {
+        Object.assign(associations, lot_);
+      })
+      .catch(() => {
+        // Rien à dire : le thème garde son agrégat, qui ne dépend pas de ce fichier.
+      });
+    chargementsAssociations.set(lot, charge);
   }
+  await charge;
 }
 
 /** Les fiches communales sont réparties par département : on charge à la demande. */
@@ -2255,8 +2267,7 @@ async function peindreDetail(): Promise<void> {
     cible.innerHTML =
       `<p class="etat etat--vide"><span class="etat__titre">Aucun territoire choisi</span>` +
       `<span class="etat__quoi">Cherchez une commune, un département ou une région dans le` +
-      ` champ en haut de page. Cette vue en détaille alors tous les indicateurs publiés,` +
-      ` exercice par exercice.</span></p>`;
+      ` champ en haut de page.</span></p>`;
     return;
   }
   // Même défaut que celui corrigé à `peindreMethode`, même remède : `basculerVue`
@@ -2281,14 +2292,21 @@ async function peindreDetail(): Promise<void> {
   // 145 indicateurs nationaux ne passait le filtre de maille, et `#detail`
   // restait vide — le budget de l'État, ses 81 lignes, n'avait pas de page.
   const niveau = niveauSelection();
-  await chargerLotsNecessaires(niveau, [code]);
+  // Les deux en parallèle, comme dans `montrerFiche` : la liste nominative ne
+  // doit pas retarder le reste, et son absence ne doit pas l'empêcher. Cette
+  // page peut peindre sans que `montrerFiche` soit passée par là — appeler
+  // `chargerAssociations` ici aussi, plutôt que de compter sur son appel
+  // ailleurs, est ce qui la rend correcte seule.
+  await Promise.all([
+    chargerLotsNecessaires(niveau, [code]),
+    niveau === "commune" ? chargerAssociations(code) : Promise.resolve(),
+  ]);
   const territoire = entiteDe(code, niveau);
   if (!territoire) return;
-  afficherAnalyses(
-    cible,
-    territoire.nom,
-    rubriques(territoire, indicateursDeLaFiche(niveau), THEMES, ORDRE_THEMES),
-  );
+  // La liste nominative des associations n'existe qu'à la maille commune —
+  // ailleurs `associations[code]` n'a jamais de clé, ce qui est le comportement
+  // voulu : le thème garde alors son seul agrégat.
+  cible.innerHTML = davantageRendu(territoire, indicateursDeLaFiche(niveau), associations[code]);
   // Le comparateur suit la sélection : il n'a pas d'état propre, il relit
   // `etat.comparaison`, que l'adresse porte déjà.
   await majComparateur();

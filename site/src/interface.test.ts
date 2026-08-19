@@ -19,19 +19,9 @@ import {
 import { adresseTerritoire, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES } from "./mailles.ts";
 import { MAXIMUM } from "./comparateur.ts";
-import { rubriques, type Rubrique } from "./analyses.ts";
 import { renduGrille, renduMethode } from "./methode-rendu.ts";
-import { ORDRE_THEMES } from "./fiche.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
-
-/** Les libellés de thème que le banc de DÉTAIL passe à `rubriques`. La vraie
- *  table vit dans main.ts et n'en est pas exportée ; ce qui se vérifie ici est
- *  le nombre de lignes et de thèmes retenus, pas leur traduction. */
-const THEMES_BANC: Record<string, string> = {
-  budget_etat: "Budget de l'État",
-  finances_locales: "Finances locales",
-};
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
@@ -1268,15 +1258,19 @@ function executerLireUrl(adresse: string): Record<string, string | null> {
  *  `indicateursDeLaFiche` — les trois pièces dont l'accord fait la page. Ni
  *  l'une ni l'autre n'est recopiée ici : le banc testerait sa propre copie.
  *
- *  `rubriques` vient d'`analyses.ts`, où elle est déjà exportée : c'est elle qui
- *  décide qu'une ligne existe, et le banc lit le résultat qu'elle rend plutôt
- *  que le HTML, pour compter des lignes et des thèmes plutôt que des balises. */
+ *  `davantageRendu` (davantage.ts) fait sa propre curation, thème par thème :
+ *  le banc n'a pas à la rejouer, il capture ce qu'on lui passe — le
+ *  territoire, le catalogue déjà filtré par la maille, les associations —
+ *  pour vérifier l'accord des trois pièces plutôt que le rendu HTML. */
 async function executerPeindreDetail(
   selection: { code: string | null; niveau: string; maille: string | null },
   catalogue: Indicateur[],
   entites: Record<string, Territoire>,
+  associationsBanc: Record<string, unknown> = {},
 ): Promise<{
-  liste: Rubrique[];
+  territoire: Territoire | null;
+  indicateurs: Indicateur[];
+  associations: unknown;
   vide: string;
   charges: string[];
   comparateur: number;
@@ -1312,7 +1306,9 @@ async function executerPeindreDetail(
   const detail = { innerHTML: "" };
   const etat = { selection: selection.code, niveau: selection.niveau, maille: selection.maille };
   const charges: string[] = [];
-  let liste: Rubrique[] = [];
+  let territoire: Territoire | null = null;
+  let indicateurs: Indicateur[] = [];
+  let associationsRecues: unknown;
   let comparateur = 0;
   await (
     new Function(
@@ -1325,11 +1321,10 @@ async function executerPeindreDetail(
       "catalogue",
       "DENOMINATEURS",
       "chargerLotsNecessaires",
+      "chargerAssociations",
       "entiteDe",
-      "afficherAnalyses",
-      "rubriques",
-      "THEMES",
-      "ORDRE_THEMES",
+      "davantageRendu",
+      "associations",
       "majComparateur",
       `${corps}\nreturn peindreDetail();`,
     )(
@@ -1342,19 +1337,21 @@ async function executerPeindreDetail(
       async (niveau: string, codes: string[]) => {
         charges.push(`${niveau}:${codes.join(",")}`);
       },
+      async () => {},
       (code: string, niveau: string) => entites[`${niveau}:${code}`],
-      (_cible: unknown, _nom: string, rendues: Rubrique[]) => {
-        liste = rendues;
+      (t: Territoire, i: Indicateur[], a: unknown) => {
+        territoire = t;
+        indicateurs = i;
+        associationsRecues = a;
+        return "";
       },
-      rubriques,
-      THEMES_BANC,
-      ORDRE_THEMES,
+      associationsBanc,
       async () => {
         comparateur += 1;
       },
     ) as Promise<void>
   );
-  return { liste, vide: detail.innerHTML, charges, comparateur };
+  return { territoire, indicateurs, associations: associationsRecues, vide: detail.innerHTML, charges, comparateur };
 }
 
 test("choisir un territoire depuis une analyse pré-rendue ouvre ce territoire", async () => {
@@ -1453,34 +1450,32 @@ const FRANCE_BANC = {
   "region:FR": undefined,
 } as unknown as Record<string, Territoire>;
 
-test("la page DÉTAIL rend les indicateurs de la maille du territoire ouvert", async () => {
+test("la page DÉTAIL passe à davantageRendu le territoire et le catalogue de la maille ouverte", async () => {
   // La France s'ouvre à la maille pays sans que la carte quitte sa couche :
   // c'est `etat.maille` qui la porte, comme pour un arrondissement.
   const peinte = await executerPeindreDetail(
     { code: "FR", niveau: "region", maille: "pays" },
     CATALOGUE_BANC,
     FRANCE_BANC,
+    { FR: { exercice: "2021", beneficiaires: [] } },
   );
   // Le lot demandé est celui de la maille de sélection : chercher « FR » dans
   // les régions ne rendrait rien du tout.
   assert.deepEqual(peinte.charges, ["pays:FR"]);
+  assert.equal(peinte.territoire, FRANCE_BANC["pays:FR"]);
+  // Le catalogue passé à davantageRendu est déjà filtré par la maille : le
+  // local (« finances_locales ») n'est pas publié à cette maille, et le
+  // dénominateur ne fait jamais une ligne — c'est `indicateursDeLaFiche` qui
+  // fait ce travail, pas davantage.ts, et c'est cet accord que ce test tient.
   assert.deepEqual(
-    peinte.liste.map((r) => r.theme),
-    ["budget_etat"],
-    "seul le thème national a des lignes : le local n'est pas publié à cette maille",
-  );
-  assert.deepEqual(
-    peinte.liste[0]!.lignes.map((l) => l.id),
+    peinte.indicateurs.map((i) => i.id),
     ["etat_depenses_nettes", "etat_charge_dette"],
   );
-  // Un tableau d'analyse montre tous les exercices publiés, un par colonne.
-  assert.deepEqual(peinte.liste[0]!.exercices, ["2019", "2025"]);
-  // Le dénominateur ne fait jamais une ligne : le par-habitant se calcule, il
-  // ne s'affiche pas comme une mesure.
-  assert.ok(
-    !peinte.liste.some((r) => r.lignes.some((l) => l.id === "ofgl_population_reference")),
-    "la population de référence n'est pas une ligne de la fiche",
-  );
+  // Et davantage.ts reçoit bien les associations de ce territoire, telles que
+  // `main.ts` les tient — le banc ne rejoue pas sa curation, il vérifie
+  // qu'elle reçoit ce qu'il faut.
+  assert.deepEqual(peinte.associations, { exercice: "2021", beneficiaires: [] });
+
   // Et la même page à la maille d'à côté ne montre pas les lignes nationales :
   // c'est bien le filtre de maille qui travaille, pas l'ordre du catalogue.
   const region = await executerPeindreDetail(
@@ -1494,9 +1489,12 @@ test("la page DÉTAIL rend les indicateurs de la maille du territoire ouvert", a
     } as unknown as Record<string, Territoire>,
   );
   assert.deepEqual(
-    region.liste.map((r) => r.theme),
-    ["finances_locales"],
+    region.indicateurs.map((i) => i.id),
+    ["ofgl_depenses_fonctionnement"],
   );
+  // Aucune association publiée pour ce code dans le banc : `associations[code]`
+  // vaut `undefined`, et davantage.ts doit pouvoir le recevoir tel quel.
+  assert.equal(region.associations, undefined);
 });
 
 test("le comparateur de DÉTAIL est appelé pour se taire, il n'est pas sauté", async () => {
@@ -1518,7 +1516,7 @@ test("le comparateur de DÉTAIL est appelé pour se taire, il n'est pas sauté",
     CATALOGUE_BANC,
     FRANCE_BANC,
   );
-  assert.deepEqual(sans.liste, []);
+  assert.equal(sans.territoire, null);
   assert.deepEqual(sans.charges, []);
   assert.equal(sans.comparateur, 0);
   assert.match(sans.vide, /Aucun territoire choisi/);
