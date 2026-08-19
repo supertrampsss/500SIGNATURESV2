@@ -1341,10 +1341,12 @@ test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
   assert.ok(/\u202f/.test(detteMd), `« ${detteMd} » sans séparateur : cette sonde ne prouverait rien`);
   assert.ok(html.includes(detteMd), `la dette publiée « ${detteMd} » n'est pas servie`);
 
-  // Le seuil suit la mesure : 2 181 signes sur ce fixture, qui n'alimente que
-  // deux des six blocs — la page réduite à la maquette validée porte moins de
-  // texte que celle qui gardait les sept blocs hérités, et c'est voulu.
-  assert.ok(texte.length > 2000, `<main> ne porte que ${texte.length} signes de texte`);
+  // Le seuil suit la mesure : 1 492 signes sur ce fixture, qui n'alimente que
+  // deux des six blocs. Il a encore baissé après la refonte éditoriale du
+  // 19 août — titres de chapitre courts, chapeaux de périmètre et légendes
+  // explicatives retirés — et c'est voulu : la page réduite à la maquette
+  // valide porte moins de texte que celle qui gardait les sept blocs hérités.
+  assert.ok(texte.length > 1300, `<main> ne porte que ${texte.length} signes de texte`);
 });
 
 test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil replié", () => {

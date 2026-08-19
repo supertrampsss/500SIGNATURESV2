@@ -39,22 +39,21 @@ const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
 const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8");
 
-test("REPÈRES dit son unité sous son titre", () => {
-  // « Dire l'unité là où le nombre est gros » : la page aligne « 3 536 100 M€ »
-  // de dette et « 932 548 M€ » de prestations, qui se lisent « milliards » par
-  // qui ne regarde pas le sigle. La ligne est dans le cadrage, sous le titre de
-  // la section, jamais posée après les tableaux.
+test("le bilan n'annonce plus une unité générique que les chiffres démentent", () => {
+  // « Montants en millions d'euros. » coiffait la section quand chaque montant
+  // s'écrivait encore en millions bruts. Depuis `montantLisible` (échelle
+  // choisie sur le montant, unité en toutes lettres — « 1 561,63 milliards
+  // d'euros »), la mention générique ne décrivait plus ce que la page montre :
+  // elle promettait des millions là où le lecteur lit des milliards en toutes
+  // lettres. Le titre « La France dans son ensemble » est parti avec elle —
+  // ce n'est pas la France, c'est le bilan, et l'onglet actif le dit déjà.
   const section = PAGE_BALISES.slice(
     PAGE_BALISES.indexOf('<section class="national"'),
     PAGE_BALISES.indexOf('id="bloc-ouverture"'),
   );
-  assert.ok(section.length > 100, "section national introuvable");
-  assert.match(section, /Montants en millions d&#39;euros\.|Montants en millions d'euros\./);
-  // Sous le titre, et avant le premier bloc chiffré.
-  assert.ok(
-    section.indexOf("La France dans son ensemble") < section.indexOf("Montants en millions"),
-    "l'unité doit suivre le titre de la section",
-  );
+  assert.ok(section.length > 50, "section national introuvable");
+  assert.doesNotMatch(section, /Montants en millions d&#39;euros\.|Montants en millions d'euros\./);
+  assert.doesNotMatch(section, /La France dans son ensemble/);
 });
 
 test("la colonne des variations de /detail demande la décimale, la carte non", () => {

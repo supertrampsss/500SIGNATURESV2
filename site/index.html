@@ -211,28 +211,30 @@
            Les blocs s'empilent, comme la maquette : la mise en deux colonnes
            vit À L'INTÉRIEUR des blocs (`.chapitre__duo`), jamais entre eux. -->
       <section class="national" id="national" hidden>
-        <h2>La France dans son ensemble</h2>
-        <p class="national__unite">Montants en millions d'euros.</p>
         <nav class="sommaire-vue" id="sommaire-bilan" aria-label="Sections de la page"></nav>
 
+        <!-- Les titres de chapitre sont courts et ne posent plus une phrase
+             entière en question : « Combien pèse l'argent public ? » empilé
+             cinq fois dans le sommaire se lisait comme une table des matières
+             de roman. Le rang (« Chapitre 1 ») porte déjà le numéro. Les
+             chapeaux de périmètre (« L'État, la Sécurité sociale... »)
+             répétaient ce que chaque bloc dit déjà dans sa première phrase —
+             partis avec les titres. -->
         <section class="chapitre" id="chapitre-combien">
           <p class="chapitre__rang">Chapitre 1</p>
-          <h3 class="chapitre__question">Combien pèse l'argent public&nbsp;?</h3>
-          <p class="chapitre__perimetre">L'État, la Sécurité sociale, les collectivités et les
-            organismes qu'ils financent, comptés ensemble.</p>
+          <h2 class="chapitre__question">L'argent public</h2>
           <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
-          <!-- Le pont des périmètres : 1 562 milliards au chapitre 1, 380 au
-               chapitre 2 — sans cette phrase, les deux chiffres d'encaissement
-               se lisaient comme une contradiction. Rempli par le peintre de
-               l'ouverture, qui a les deux séries sous la main. -->
-          <p class="chapitre__pont" id="pont-perimetre" hidden></p>
         </section>
 
         <section class="chapitre" id="chapitre-recettes">
           <p class="chapitre__rang">Chapitre 2</p>
-          <h3 class="chapitre__question">D'où vient l'argent de l'État&nbsp;?</h3>
-          <p class="chapitre__perimetre">Le budget de l'État seul, en comptabilité budgétaire.
-            La Sécurité sociale et les collectivités encaissent le leur directement.</p>
+          <h2 class="chapitre__question">D'où vient l'argent</h2>
+          <!-- Le pont des périmètres : 1 562 milliards au chapitre 1, 380 ici
+               — sans cette phrase, les deux chiffres d'encaissement se
+               lisaient comme une contradiction. Rempli par le peintre de
+               l'ouverture, qui a les deux séries sous la main ; il ouvre ce
+               chapitre-ci, puisque c'est lui qui descend d'un étage. -->
+          <p class="chapitre__pont" id="pont-perimetre" hidden></p>
           <!-- Les recettes avec leur évolution : montant 2017, montant 2025,
                variation. Une variation sans ses deux bouts ne se vérifie pas. -->
           <article class="bloc bloc--large" id="bloc-recettes-etat"></article>
@@ -240,26 +242,20 @@
 
         <section class="chapitre" id="chapitre-depenses">
           <p class="chapitre__rang">Chapitre 3</p>
-          <h3 class="chapitre__question">Où va cet argent&nbsp;?</h3>
-          <p class="chapitre__perimetre">Toutes les administrations publiques réunies&nbsp;:
-            chaque euro dépensé, rapporté à 100&nbsp;€ encaissés.</p>
+          <h2 class="chapitre__question">Où va l'argent</h2>
           <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
         </section>
 
         <section class="chapitre" id="chapitre-pour-qui">
           <p class="chapitre__rang">Chapitre 4</p>
-          <h3 class="chapitre__question">La redistribution&nbsp;: qui reçoit, qui paie&nbsp;?</h3>
-          <p class="chapitre__perimetre">Impôts et prestations réunis, puis la
-            Sécurité sociale.</p>
+          <h2 class="chapitre__question">Qui reçoit, qui paie</h2>
           <article class="bloc bloc--large" id="bloc-redistribution"></article>
           <article class="bloc bloc--large" id="bloc-secu"></article>
         </section>
 
         <section class="chapitre" id="chapitre-tenable">
           <p class="chapitre__rang">Chapitre 5</p>
-          <h3 class="chapitre__question">Est-ce tenable&nbsp;?</h3>
-          <p class="chapitre__perimetre">La dette de toutes les administrations publiques, ce
-            qu'elle coûte, et les voisins européens.</p>
+          <h2 class="chapitre__question">Est-ce tenable&nbsp;?</h2>
           <article class="bloc bloc--large" id="bloc-dette"></article>
         </section>
       </section>

@@ -112,51 +112,12 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
       : "";
 
   const premier = lignes[0];
-  const median = lignes[4];
   const dernier = lignes[8];
 
-  // Les haltères : avant et après reliés par un trait dont la longueur EST
-  // l'effet de la redistribution — la forme faite pour un avant/après, et
-  // celle que le lecteur a demandée. Trois rangs suffisent : le bas, le
-  // milieu, le haut ; le tableau au-dessous donne les neuf.
-  //
-  // L'échelle est commune aux trois pistes : de zéro au plus grand des six
-  // nombres. Trait plein quand le revenu monte, hachures quand il descend —
-  // jamais une couleur de jugement.
-  const etendue = Math.max(...[premier, median, dernier].flatMap((l) => [l.avant, l.apres]));
-  const pct = (v: number) => ((v / etendue) * 100).toFixed(1);
-  const haltere = (nom: string, l: { avant: number; apres: number }, avantId: string, apresId: string) => {
-    const monte = l.apres >= l.avant;
-    const gauche = Math.min(l.avant, l.apres);
-    const droite = Math.max(l.avant, l.apres);
-    return `<div>
-      <p class="haltere__nom">${echapper(nom)}</p>
-      <div class="haltere__piste">
-        <span class="${monte ? "haltere__trait" : "haltere__trait--baisse"}"
-          style="left:${pct(gauche)}%;width:${pct(droite - gauche)}%"></span>
-        <span class="haltere__avant" style="left:${pct(l.avant)}%"></span>
-        <span class="haltere__apres" style="left:${pct(l.apres)}%"></span>
-      </div>
-      <p class="haltere__valeurs">${euros(l.avant, avantId)} avant, ${euros(
-        l.apres,
-        apresId,
-      )} après : <strong>${l.apres - l.avant >= 0 ? "+" : "−"}${euros(
-        Math.abs(l.apres - l.avant),
-        apresId,
-      )}</strong></p>
-    </div>`;
-  };
-  const halteres = `<div class="halteres">
-    ${haltere(premier.rang, premier, AVANT(1), APRES(1))}
-    ${haltere(median.rang, median, AVANT(5), APRES(5))}
-    ${haltere(dernier.rang, dernier, AVANT(9), APRES(9))}
-  </div>
-  <p class="bloc__complement">Point clair : avant impôts et prestations. Point plein :
-    après. Trait plein : le revenu monte ; hachures : il descend.</p>`;
-
-  // Les haltères à gauche, le tableau des neuf seuils à droite, comme la
-  // maquette validée (4.1 et 4.4 de la shortlist). L'affirmation reste en
-  // pleine largeur au-dessus des deux.
+  // Le tableau des neuf seuils, seul : les haltères qui l'accompagnaient
+  // (avant/après reliés par un trait) doublaient l'information qu'il porte
+  // déjà, colonne par colonne, sans rien ajouter que le tableau ne dise — le
+  // lecteur les a jugées de trop.
   return `
     <p class="bloc__complement">En ${echapper(exercice)}, le seuil des 10 % les plus
       modestes passe de <strong>${euros(premier.avant, AVANT(1))}</strong> à
@@ -164,23 +125,16 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
       aisés de <strong>${euros(dernier.avant, AVANT(9))}</strong> à
       <strong>${euros(dernier.apres, APRES(9))}</strong>.</p>
     ${resserrement}
-    <div class="chapitre__duo">
-      <div>
-        ${halteres}
-      </div>
-      <div>
-        <table class="comparaison" tabindex="0">
-          <caption>Seuils de niveau de vie annuel, France métropolitaine, euros courants de
-            ${echapper(exercice)}. Un seuil n'est pas un revenu moyen : les 10 % les plus
-            modestes vivent avec <em>moins</em> que le premier seuil. Source : INSEE, enquête
-            Revenus fiscaux et sociaux rétropolée.</caption>
-          <thead><tr><th scope="col">Seuil qui sépare</th>
-            <th scope="col">Avant impôts et prestations</th>
-            <th scope="col">Après</th><th scope="col">Ce que ça change</th></tr></thead>
-          <tbody>${rangees}</tbody>
-        </table>
-      </div>
-    </div>`;
+    <table class="comparaison" tabindex="0">
+      <caption>Seuils de niveau de vie annuel, France métropolitaine, euros courants de
+        ${echapper(exercice)}. Un seuil n'est pas un revenu moyen : les 10 % les plus
+        modestes vivent avec <em>moins</em> que le premier seuil. Source : INSEE, enquête
+        Revenus fiscaux et sociaux rétropolée.</caption>
+      <thead><tr><th scope="col">Seuil qui sépare</th>
+        <th scope="col">Avant impôts et prestations</th>
+        <th scope="col">Après</th><th scope="col">Ce que ça change</th></tr></thead>
+      <tbody>${rangees}</tbody>
+    </table>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se
