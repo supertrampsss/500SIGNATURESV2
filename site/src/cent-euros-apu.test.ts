@@ -94,14 +94,16 @@ test("le reste non détaillé est une ligne, jamais un silence", () => {
   assert.match(lu, /Autres dépenses −1,26\s?€/);
 });
 
-test("la légende du tableau tient en une ligne : exercice et source, rien de plus", () => {
-  // La légende expliquait aussi ce qui sépare ce tableau des deux autres
-  // « 100 € » du site — utile tant qu'ils vivaient sur la même page, plus
-  // maintenant qu'ils en sont partis. Il reste l'exercice et la source, ce
-  // qu'un tableau chiffré doit toujours porter.
-  const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /exercice 2025/i);
-  assert.match(lu, /Eurostat/);
+test("la source est une ligne courte sous le tableau, pas une légende au-dessus", () => {
+  // La légende vivait au-dessus du tableau et expliquait aussi ce qui sépare
+  // ce tableau des deux autres « 100 € » du site — utile tant qu'ils
+  // vivaient sur la même page, plus maintenant qu'ils en sont partis. La
+  // source, elle, se tient courte et sous le tableau, comme partout ailleurs
+  // sur le site.
+  const html = rendu({ FR: territoire(SERIES) });
+  assert.doesNotMatch(html, /<caption>/);
+  assert.match(html, /<\/table>\s*<p class="bloc__complement">Source : Eurostat\.<\/p>/);
+  const lu = texte(html);
   assert.doesNotMatch(lu, /ne se soustrait ni des/);
   assert.doesNotMatch(lu, /100\s?€ de prestations sociales/);
 });
@@ -137,36 +139,41 @@ test("le premier poste s'ouvre, et la retraite n'y pèse pas ce que le libellé 
   assert.match(lu, /hors protection sociale.{0,60}−0,41\s?€/);
 });
 
-test("le dépliant s'ouvre par défaut, et ses deux totaux ne s'affichent plus", () => {
-  // « Tu déplies automatiquement et tu enlèves le total de 37,11 € » : deux
-  // totaux à quelques centimes l'un de l'autre (37,11 dans la ligne
-  // principale, 37,37 dans le dépliant lui-même, deux millésimes) faisaient
-  // lire une erreur. Seul le détail reste — le lecteur peut toujours replier.
+test("aucune ligne « Retraites, chômage, allocations » ne résume plus les sept fonctions", () => {
+  // Le repli forçait à cliquer pour voir sept lignes qui pèsent plus du tiers
+  // de la dépense publique. Il est parti : ni le repli, ni un total à part
+  // pour le poste qu'il résumait, seulement les sept fonctions au même niveau
+  // que les huit autres postes.
   const html = rendu({ FR: territoire(SERIES) });
-  assert.match(html, /<details class="apu__ouvrir" open>/);
+  assert.doesNotMatch(html, /<details/);
+  assert.doesNotMatch(html, /apu__ouvrir/);
   assert.doesNotMatch(html, /37,11/);
   assert.doesNotMatch(html, /37,37/);
   assert.doesNotMatch(html, /Ensemble du poste/);
+  assert.doesNotMatch(html, /Retraites, chômage, allocations/);
 });
 
 test("la ventilation n'existe qu'une fois : le doublon est mort", () => {
   // Elle était peinte en barres PUIS réécrite en tableau — mêmes chiffres,
-  // deux fois — et le lecteur l'a refusé. Elle vit dans le dépliant du poste,
-  // à sa place, et chaque valeur n'apparaît qu'une fois.
+  // deux fois — et le lecteur l'a refusé. Chaque valeur n'apparaît qu'une
+  // fois, directement dans le flux des postes.
   const html = rendu({ FR: territoire(SERIES) });
   assert.equal(html.split("24,09").length - 1, 1, "24,09 € écrit plus d'une fois");
   assert.equal(html.split("2,70").length - 1, 1, "2,70 € écrit plus d'une fois");
-  // Le dépliant est dans le flux des postes, pas dans une section à lui.
-  assert.match(html, /<details class="apu__ouvrir" open>/);
   assert.doesNotMatch(html, /ce que recouvre le poste<\/h4>/);
 });
 
-test("le rapport des barres est celui des nombres, dans le dépliant", () => {
+test("le rapport des barres est celui des nombres, parmi les fonctions", () => {
   // « 24,09 » posé au-dessus de « 2,70 » ne dit pas NEUF FOIS : la barre le
   // dit. Le rapport dessiné doit être celui des nombres.
   const html = rendu({ FR: territoire(SERIES) });
-  const detail = html.slice(html.indexOf('class="apu__detail"'));
-  const largeurs = [...detail.matchAll(/width:([0-9.]+)%/g)].map((m) => Number(m[1]));
+  // Les sept fonctions sont les sept premiers rangs de « Où ils vont » : entre
+  // le titre de la colonne et le premier poste du tableau principal
+  // (« Rémunération des agents publics »), qui commence le flux ordinaire.
+  const debut = html.indexOf("Où ils vont");
+  const fin = html.indexOf("Rémunération des agents publics");
+  const fonctions = html.slice(debut, fin);
+  const largeurs = [...fonctions.matchAll(/width:([0-9.]+)%/g)].map((m) => Number(m[1]));
   assert.equal(largeurs[0], 100, "la plus grande barre n'occupe pas la piste");
   assert.ok(
     Math.abs(largeurs[0] / largeurs[2] - 24.09 / 2.7) < 0.05,
@@ -174,20 +181,16 @@ test("le rapport des barres est celui des nombres, dans le dépliant", () => {
   );
 });
 
-test("la ventilation porte son exercice, et ses parts en viennent", () => {
+test("la ventilation reste calculée sur son propre exercice, même si la mention n'est plus affichée", () => {
   // Deux jeux de la même source, deux millésimes : la ventilation s'arrête en
   // 2024 quand les totaux donnent 2025. Redistribuer les 37,11 € de 2025 sur
-  // des clés de 2024 aurait donné un tableau qui tombe juste et qui ment.
+  // des clés de 2024 aurait donné un tableau qui tombe juste et qui ment — le
+  // calcul reste correct même si la phrase qui le disait a été retirée.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /exercice 2024/i);
-  assert.match(lu, /s'arrête un exercice plus tôt/);
   // 362,1784 / 1 503,59 = 24,09 €. Sur les recettes de 2025 il aurait affiché
   // 23,19 € : c'est cette valeur-là que le tableau ne doit jamais porter.
   assert.doesNotMatch(lu, /Retraites 23,19\s?€/);
-  // Le libellé du poste, lui, reste affiché — sans sa valeur : les deux
-  // totaux à deux millésimes ont été retirés (voir « le dépliant s'ouvre par
-  // défaut »).
-  assert.match(lu, /Retraites, chômage, allocations/);
+  assert.match(lu, /Retraites −24,09\s?€/);
 });
 
 test("sans ses sept fonctions, la ventilation se tait plutôt que d'en montrer six", () => {

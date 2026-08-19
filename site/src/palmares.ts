@@ -327,6 +327,16 @@ export type Voisinage = {
  * La fenêtre glisse vers le bord quand le territoire est trop près du haut ou
  * du bas pour tenir `2 * rayon + 1` rangs entiers — un territoire 2e sur 25
  * montre les rangs 1 à 7, pas seulement 1 à 5 suivis d'un trou.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * UN GROUPE SANS ÉCART NE SE COMPARE PAS
+ * ─────────────────────────────────────────────────────────────────────────
+ * « Magnat-l'Étrange est 1re sur 12, à égalité avec 11 autres » est vrai et
+ * ne dit rien : quand tout le groupe partage EXACTEMENT la même note (souvent
+ * un plancher à 0/20, plus souvent le signe d'une donnée qui manque à ce
+ * gabarit de communes qu'une vraie égalité de gestion), comparer, c'est
+ * comparer un nombre à lui-même. La fenêtre ne s'affiche que si le groupe a
+ * un écart réel entre son meilleur et son pire.
  */
 export function voisinage(lignes: Ligne[], vousCode: string, rayon = 3): Voisinage | null {
   if (!lignes.length) return null;
@@ -335,6 +345,7 @@ export function voisinage(lignes: Ligne[], vousCode: string, rayon = 3): Voisina
   const triees = [...lignes].sort((a, b) => b.note.valeur - a.note.valeur || parPopulation(a, b));
   const position = triees.findIndex((l) => l.code === vousCode);
   if (position === -1) return null;
+  if (triees[0].note.valeur === triees[triees.length - 1].note.valeur) return null;
 
   const taille = Math.min(2 * rayon + 1, triees.length);
   const debut = Math.min(Math.max(0, position - rayon), triees.length - taille);

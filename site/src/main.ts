@@ -10,10 +10,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
 import { traduire } from "./traductions.ts";
-import { libelleTheme, THEMES } from "./themes.ts";
+import { libelleTheme } from "./themes.ts";
 import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { afficherFiche, NIVEAUX, ORDRE_THEMES, rubriqueDuTheme } from "./fiche.ts";
+import { afficherFiche, NIVEAUX, rubriqueDuTheme } from "./fiche.ts";
 import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
 import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
 import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
@@ -30,7 +30,7 @@ import { afficherCentEurosApu } from "./cent-euros-apu.ts";
 import { afficherOuverture } from "./ouverture.ts";
 import { afficherRecettesEtat } from "./recettes-etat.ts";
 import { afficherTenable } from "./tenable.ts";
-import { afficherAnalyses, rubriques } from "./analyses.ts";
+import { rendu as davantageRendu } from "./davantage.ts";
 import { indexer, type Budget } from "./simulateur.ts";
 import {
   afficherAtelier,
@@ -72,10 +72,7 @@ import { renduBarre, renduComparaison, renduDisparues, type Comparable } from ".
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
-import {
-  enCsv, enCsvEvolution, nomDeFichier, sourceDuNiveau, telecharger,
-  type LigneExport, type LigneExportEvolution,
-} from "./export.ts";
+import { nomDeFichier, sourceDuNiveau, telecharger } from "./export.ts";
 import {
   coucheEvolution,
   echelleDivergente,
@@ -158,12 +155,6 @@ const LISERE: Record<string, number[]> = {
 
 /** Expression MapLibre, sortie du littéral de calque : son type d'union ne
  *  survit pas à l'inférence, comme pour `expressionCouleur`. */
-/** Ce que le tableau montre, quand il ne montre pas tout : « 100 premiers
- *  territoires » s'affichait au-dessus de dix-sept lignes. */
-function fenetreDuTableau(total: number): string {
-  return total > 100 ? ` · 100 premiers territoires sur ${total.toLocaleString("fr-FR")}` : "";
-}
-
 function largeurLisere(couche: string): unknown {
   return ["interpolate", ["linear"], ["zoom"], ...LISERE[couche]];
 }
@@ -276,16 +267,6 @@ let evolutionAffichee: {
   avant: string;
 } | null = null;
 let survole: string | null = null;
-/** Ce que le bouton d'export téléchargera : toutes les lignes de la couche
- *  affichée, pas les 100 que montre le tableau, avec la déclinaison qui a
- *  servi à les calculer. */
-let exportCourant: { lignes: LigneExport[]; parHabitant: boolean } = {
-  lignes: [],
-  parHabitant: false,
-};
-/** En mode évolution, l'export emporte les deux millésimes et la variation :
- *  non nul seulement quand c'est la couche affichée. */
-let exportEvolution: { lignes: LigneExportEvolution[]; avant: string } | null = null;
 /** Le clic de compatibilité qui suit un geste sur la poignée du tiroir : il
  *  part vers la carte, qui vient d'apparaître sous le doigt. Voir
  *  `garde-geste.ts` pour le mécanisme. */
@@ -479,17 +460,29 @@ function recalculerPopulations(): void {
  * fiche de s'afficher.
  */
 const associations: Record<string, donnees.SubventionsCommune> = {};
-const lotsAssociations = new Set<string>();
+// La promesse de chaque lot, pas seulement le fait qu'elle ait démarré :
+// `peindreDetail` et `montrerFiche` peuvent demander le même département en
+// concurrence, et un simple drapeau « déjà lancé » aurait rendu le second
+// appelant aussitôt, avant que le premier ait fini de charger — le thème
+// serait resté sur son agrégat pour de bon, aucun repeint ne suivant l'arrivée
+// tardive de la liste nominative.
+const chargementsAssociations = new Map<string, Promise<void>>();
 
 async function chargerAssociations(code: string): Promise<void> {
   const lot = code.startsWith("97") ? code.slice(0, 3) : code.slice(0, 2);
-  if (lotsAssociations.has(lot)) return;
-  lotsAssociations.add(lot);
-  try {
-    Object.assign(associations, await donnees.subventions(lot));
-  } catch {
-    // Rien à dire : le thème garde son agrégat, qui ne dépend pas de ce fichier.
+  let charge = chargementsAssociations.get(lot);
+  if (!charge) {
+    charge = donnees
+      .subventions(lot)
+      .then((lot_) => {
+        Object.assign(associations, lot_);
+      })
+      .catch(() => {
+        // Rien à dire : le thème garde son agrégat, qui ne dépend pas de ce fichier.
+      });
+    chargementsAssociations.set(lot, charge);
   }
+  await charge;
 }
 
 /** Les fiches communales sont réparties par département : on charge à la demande. */
@@ -559,92 +552,6 @@ function majLegende(
   $("legende").title = `Légende : ${traduire(indicateur.libelle)}`;
 }
 
-function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
-  // Le tableau vivait dans la vue DONNÉES, retirée : sans conteneur, il n'y a
-  // rien à peindre, et `$` rend `null` plutôt que de lever.
-  if (!document.getElementById("tableau-donnees")) return;
-  const indicateur = indicateurCourant();
-  const toutes = Object.entries(valeurs)
-    .map(([code, brut]) => {
-      const population = populations[code];
-      const valeur = parHabitant && population ? brut / population : brut;
-      return { code, nom: nomDe(code), valeur, calculable: !parHabitant || !!population };
-    })
-    .filter((l) => l.calculable)
-    .sort((a, b) => b.valeur - a.valeur);
-
-  // Le tableau montre les 100 premiers ; l'export, lui, emporte tout : un
-  // classement tronqué se lit, un fichier tronqué se réutilise de travers.
-  exportCourant = {
-    lignes: toutes.map(({ code, nom, valeur }) => ({ code, nom, valeur })),
-    parHabitant,
-  };
-  const exporter = $<HTMLButtonElement>("exporter");
-  exporter.hidden = toutes.length === 0;
-  exporter.textContent = `Télécharger en CSV (${toutes.length.toLocaleString("fr-FR")} territoire${
-    toutes.length > 1 ? "s" : ""
-  })`;
-
-  const lignes = toutes.slice(0, 100);
-  $("tableau-donnees").innerHTML = `
-    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""}${fenetreDuTableau(toutes.length)}</caption>
-    <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">Valeur</th></tr></thead>
-    <tbody>${lignes
-      .map(
-        (l) =>
-          `<tr><td>${l.nom}</td><td>${l.code}</td><td>${formater(
-            l.valeur,
-            indicateur.unite,
-            parHabitant,
-          )}</td></tr>`,
-      )
-      .join("")}</tbody>`;
-}
-
-/** Le tableau et l'export suivent la couche affichée : en mode évolution, les
- *  deux millésimes et la variation — un classement de variations sans les
- *  valeurs dont elles viennent ne se vérifierait pas. */
-function majTableauEvolution(
-  couche: Record<string, Evolution>,
-  mode: ModeVariation,
-  periodePrecedente: string,
-  parHabitant: boolean,
-): void {
-  if (!document.getElementById("tableau-donnees")) return;
-  const indicateur = indicateurCourant();
-  const toutes = Object.entries(couche)
-    .map(([code, e]) => ({ code, nom: nomDe(code), ...e }))
-    .sort((a, b) => b.variation - a.variation);
-
-  exportEvolution = {
-    lignes: toutes.map(({ code, nom, avant, apres, variation }) => ({
-      code, nom, avant, apres, variation,
-    })),
-    avant: periodePrecedente,
-  };
-  const exporter = $<HTMLButtonElement>("exporter");
-  exporter.hidden = toutes.length === 0;
-  exporter.textContent = `Télécharger en CSV (${toutes.length.toLocaleString("fr-FR")} territoire${
-    toutes.length > 1 ? "s" : ""
-  })`;
-
-  const lignes = toutes.slice(0, 100);
-  const lisible = (v: number) => formater(v, indicateur.unite, parHabitant);
-  $("tableau-donnees").innerHTML = `
-    <caption>${traduire(indicateur.libelle)}, évolution ${etat.periode} vs ${periodePrecedente}${
-      parHabitant ? ", par habitant" : ""
-    }${fenetreDuTableau(toutes.length)}</caption>
-    <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">${periodePrecedente}</th><th scope="col">${etat.periode}</th><th scope="col">Variation</th></tr></thead>
-    <tbody>${lignes
-      .map(
-        (l) =>
-          `<tr><td>${l.nom}</td><td>${l.code}</td><td>${lisible(l.avant)}</td><td>${lisible(
-            l.apres,
-          )}</td><td>${formaterVariation(l.variation, indicateur.unite, mode, true)}</td></tr>`,
-      )
-      .join("")}</tbody>`;
-}
-
 /** Montre la couche de la maille affichée et lui applique sa couleur. */
 function appliquerCouche(expression: unknown): void {
   for (const [niveau, couche] of Object.entries(COUCHES)) {
@@ -702,7 +609,6 @@ async function peindreEvolution(
   appliquerCouche(expressionCouleur(variations, echelle, false, {}));
 
   majLegende(echelle, parHabitant, { avant: periodePrecedente, mode });
-  majTableauEvolution(couche, mode, periodePrecedente, parHabitant);
   planifierEtiquettes();
 
   affichees = variations;
@@ -727,7 +633,6 @@ async function peindre(): Promise<void> {
     await peindreEvolution(valeurs, periodes[1], parHabitant);
   } else {
     evolutionAffichee = null;
-    exportEvolution = null;
 
     const echantillon = Object.entries(valeurs)
       .map(([code, brut]) => (parHabitant ? brut / (populations[code] ?? NaN) : brut))
@@ -737,7 +642,6 @@ async function peindre(): Promise<void> {
     appliquerCouche(expressionCouleur(valeurs, echelle, parHabitant, populations));
 
     majLegende(echelle, parHabitant);
-    majTableau(valeurs, parHabitant);
     planifierEtiquettes();
 
     affichees = Object.fromEntries(
@@ -1898,47 +1802,6 @@ function brancherCommandes(): void {
   );
   tiroirRedimensionnable();
 
-  // Le bouton d'export vivait dans la vue DONNÉES, retirée : sans lui, `$` rend
-  // `null` et l'écouteur levait au démarrage, emportant tout ce que
-  // `demarrer()` fait après cet appel. Même garde que `majTableau`.
-  document.getElementById("exporter")?.addEventListener("click", () => {
-    const indicateur = indicateurCourant();
-    // La source se lit à la maille exportée, pas sur l'indicateur seul :
-    // l'OFGL déclare ses agrégats sous « Finances des communes » quelle que
-    // soit la maille chargée (voir `sourceDuNiveau`).
-    const source = sourceDuNiveau(indicateur, etat.niveau, jeux);
-    if (exportEvolution) {
-      telecharger(
-        enCsvEvolution(exportEvolution.lignes, {
-          indicateur: indicateur.libelle,
-          unite: indicateur.unite,
-          periodeAvant: exportEvolution.avant,
-          periodeApres: etat.periode,
-          niveau: etat.niveau,
-          parHabitant: parHabitantAffiche,
-          source,
-        }),
-        nomDeFichier(
-          indicateur.libelle,
-          etat.niveau,
-          `evolution-${exportEvolution.avant}-${etat.periode}`,
-        ),
-      );
-      return;
-    }
-    telecharger(
-      enCsv(exportCourant.lignes, {
-        indicateur: indicateur.libelle,
-        unite: indicateur.unite,
-        periode: etat.periode,
-        niveau: etat.niveau,
-        parHabitant: exportCourant.parHabitant,
-        source,
-      }),
-      nomDeFichier(indicateur.libelle, etat.niveau, etat.periode),
-    );
-  });
-
   // La navigation change de vue sans recharger la page. Les modificateurs et le
   // clic du milieu sont laissés au navigateur : « ouvrir dans un nouvel onglet »
   // doit continuer de fonctionner sur un vrai lien.
@@ -2255,8 +2118,7 @@ async function peindreDetail(): Promise<void> {
     cible.innerHTML =
       `<p class="etat etat--vide"><span class="etat__titre">Aucun territoire choisi</span>` +
       `<span class="etat__quoi">Cherchez une commune, un département ou une région dans le` +
-      ` champ en haut de page. Cette vue en détaille alors tous les indicateurs publiés,` +
-      ` exercice par exercice.</span></p>`;
+      ` champ en haut de page.</span></p>`;
     return;
   }
   // Même défaut que celui corrigé à `peindreMethode`, même remède : `basculerVue`
@@ -2281,14 +2143,21 @@ async function peindreDetail(): Promise<void> {
   // 145 indicateurs nationaux ne passait le filtre de maille, et `#detail`
   // restait vide — le budget de l'État, ses 81 lignes, n'avait pas de page.
   const niveau = niveauSelection();
-  await chargerLotsNecessaires(niveau, [code]);
+  // Les deux en parallèle, comme dans `montrerFiche` : la liste nominative ne
+  // doit pas retarder le reste, et son absence ne doit pas l'empêcher. Cette
+  // page peut peindre sans que `montrerFiche` soit passée par là — appeler
+  // `chargerAssociations` ici aussi, plutôt que de compter sur son appel
+  // ailleurs, est ce qui la rend correcte seule.
+  await Promise.all([
+    chargerLotsNecessaires(niveau, [code]),
+    niveau === "commune" ? chargerAssociations(code) : Promise.resolve(),
+  ]);
   const territoire = entiteDe(code, niveau);
   if (!territoire) return;
-  afficherAnalyses(
-    cible,
-    territoire.nom,
-    rubriques(territoire, indicateursDeLaFiche(niveau), THEMES, ORDRE_THEMES),
-  );
+  // La liste nominative des associations n'existe qu'à la maille commune —
+  // ailleurs `associations[code]` n'a jamais de clé, ce qui est le comportement
+  // voulu : le thème garde alors son seul agrégat.
+  cible.innerHTML = davantageRendu(territoire, indicateursDeLaFiche(niveau), associations[code]);
   // Le comparateur suit la sélection : il n'a pas d'état propre, il relit
   // `etat.comparaison`, que l'adresse porte déjà.
   await majComparateur();
@@ -2588,56 +2457,6 @@ function basculerVue(): void {
   // vise `#bloc-etat` — et remonter annulerait le défilement du navigateur
   // vers elle, qui est précisément ce que le lecteur demandait.
   if (vue !== precedente) window.scrollTo({ top: 0 });
-}
-
-/**
- * Le sommaire du BILAN : les cinq questions, pas les douze cadres.
- *
- * Il énumérait chaque bloc — conjoncture, dette, Europe, les 100 €, fonctions,
- * Sécurité sociale, budget de l'État, niches — c'est-à-dire douze entrées sans
- * lien entre elles pour une page qui en raconte cinq. Un sommaire de douze
- * titres devant une page de douze cadres ne dit rien de plus que la page ; il
- * la répète. Les entrées sont donc les **questions des chapitres**, dans leur
- * ordre : combien, d'où, où il va, pour qui, est-ce tenable.
- *
- * Le sommaire se construit sur ce qui s'est **réellement affiché** : un
- * chapitre dont aucun bloc n'a de titre — parce qu'aucune de ses sources n'est
- * publiée — n'entre pas au sommaire. Rien de cliquable ne doit mener à une
- * section vide, c'est déjà la règle du simulateur dans le menu. Le libellé est
- * lu dans le DOM : deux libellés à tenir à jour en auraient fait diverger un.
- */
-function peindreSommaireReperes(): void {
-  const cadre = document.getElementById("sommaire-bilan");
-  if (!cadre) return;
-  const entrees = [...document.querySelectorAll<HTMLElement>("#national .chapitre")]
-    .filter((chapitre) =>
-      // Un cadre rempli porte des enfants ; un cadre que le pré-rendu a replié
-      // faute de source est vide. Le critère est le contenu, pas un titre :
-      // l'ouverture du chapitre 1 est une phrase et un tableau, sans h3, et un
-      // critère « porte un titre » l'aurait rayée du sommaire.
-      [...chapitre.querySelectorAll<HTMLElement>(".bloc")].some(
-        (bloc) => !bloc.hidden && bloc.childElementCount > 0,
-      ),
-    )
-    .map((chapitre) => ({
-      chapitre,
-      titre: chapitre.querySelector(".chapitre__question")?.textContent?.trim(),
-    }))
-    .filter((e): e is { chapitre: HTMLElement; titre: string } => Boolean(e.titre));
-  // Un sommaire d'une entrée nomme ce qui est déjà seul à l'écran.
-  if (entrees.length < 2) {
-    cadre.hidden = true;
-    return;
-  }
-  cadre.hidden = false;
-  cadre.replaceChildren(
-    ...entrees.map(({ chapitre, titre }) => {
-      const lien = document.createElement("a");
-      lien.href = `#${chapitre.id}`;
-      lien.textContent = titre;
-      return lien;
-    }),
-  );
 }
 
 /** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue.
@@ -4388,8 +4207,6 @@ async function demarrer(): Promise<void> {
   } catch {
     // Les séries nationales ne sont pas encore publiées : la carte reste utile.
   }
-
-  peindreSommaireReperes();
 
   await majComparateur();
 

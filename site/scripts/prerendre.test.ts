@@ -1341,12 +1341,15 @@ test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
   assert.ok(/\u202f/.test(detteMd), `« ${detteMd} » sans séparateur : cette sonde ne prouverait rien`);
   assert.ok(html.includes(detteMd), `la dette publiée « ${detteMd} » n'est pas servie`);
 
-  // Le seuil suit la mesure : 1 492 signes sur ce fixture, qui n'alimente que
-  // deux des six blocs. Il a encore baissé après la refonte éditoriale du
-  // 19 août — titres de chapitre courts, chapeaux de périmètre et légendes
-  // explicatives retirés — et c'est voulu : la page réduite à la maquette
-  // valide porte moins de texte que celle qui gardait les sept blocs hérités.
-  assert.ok(texte.length > 1300, `<main> ne porte que ${texte.length} signes de texte`);
+  // Le seuil suit la mesure : 1 051 signes sur ce fixture, qui n'alimente que
+  // deux des six blocs. Il a encore baissé après le 19 août — « qui la
+  // porte » plié dans la réponse plutôt que répété dans une légende, le
+  // graphique du taux d'emprunt retiré (déjà dans la réponse), le sommaire
+  // du bilan retiré, et les trois légendes qui expliquaient un tableau au lieu
+  // de le laisser parler (COFOG, seuils de décile, sous-secteur S1314) — et
+  // c'est voulu : la page porte moins de texte qu'avant sans en dire moins,
+  // les mêmes faits vivant en un seul endroit chacun.
+  assert.ok(texte.length > 950, `<main> ne porte que ${texte.length} signes de texte`);
 });
 
 test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil replié", () => {
@@ -1361,13 +1364,9 @@ test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil rep
   // L'accueil replié, sans quoi il s'afficherait au-dessus des repères jusqu'à
   // ce que `basculerVue` tranche.
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" hidden>/);
-  // Le sommaire est replié : `peindreSommaireReperes` (main.ts) le construit en
-  // LISANT les titres des blocs dans le DOM, ce que ce script n'a pas. Il
-  // commande déjà sa visibilité dans les deux sens, donc il le rouvre.
-  assert.match(html, /id="sommaire-bilan"[^>]* hidden>/);
   // Mais tous les cadres restent présents : `$` y renverrait `null`, et le
   // navigateur ne pourrait plus repeindre.
-  for (const id of [...CADRES_REPERES, "sommaire-bilan", "national"]) {
+  for (const id of [...CADRES_REPERES, "national"]) {
     assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
   }
   // Le document reste celui de l'application : `data-page="editorial"`

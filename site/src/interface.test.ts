@@ -19,19 +19,9 @@ import {
 import { adresseTerritoire, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES } from "./mailles.ts";
 import { MAXIMUM } from "./comparateur.ts";
-import { rubriques, type Rubrique } from "./analyses.ts";
 import { renduGrille, renduMethode } from "./methode-rendu.ts";
-import { ORDRE_THEMES } from "./fiche.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
-
-/** Les libellés de thème que le banc de DÉTAIL passe à `rubriques`. La vraie
- *  table vit dans main.ts et n'en est pas exportée ; ce qui se vérifie ici est
- *  le nombre de lignes et de thèmes retenus, pas leur traduction. */
-const THEMES_BANC: Record<string, string> = {
-  budget_etat: "Budget de l'État",
-  finances_locales: "Finances locales",
-};
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
@@ -54,39 +44,6 @@ test("le bilan n'annonce plus une unité générique que les chiffres démentent
   assert.ok(section.length > 50, "section national introuvable");
   assert.doesNotMatch(section, /Montants en millions d&#39;euros\.|Montants en millions d'euros\./);
   assert.doesNotMatch(section, /La France dans son ensemble/);
-});
-
-test("la colonne des variations de /detail demande la décimale, la carte non", () => {
-  // `formaterVariation` sert la carte ET la colonne de /detail. Sur la carte le
-  // rendu compact est voulu — deux tests d'evolution-carte le tiennent. Dans la
-  // colonne, triée par variation décroissante, « +224 % » tombait entre
-  // « +239,7 % » et « +221,1 % » : 7 des 100 lignes de la Gironde.
-  //
-  // Sans cette garde, débrancher le quatrième argument ne fait rien tomber :
-  // le test d'evolution-carte prouve que l'option marche, pas qu'on l'emploie.
-  const appel = MAIN.match(/formaterVariation\(l\.variation, indicateur\.unite, mode[^)]*\)/);
-  assert.ok(appel, "appel de formaterVariation introuvable dans le tableau");
-  assert.match(appel[0], /,\s*true\)$/, appel[0]);
-});
-
-test("les deux tableaux de /detail bornent leur légende de la même façon", () => {
-  // `fenetreDuTableau` existe pour un défaut que son propre commentaire nomme :
-  // « 100 premiers territoires » s'affichait au-dessus de dix-sept lignes. Le
-  // correctif n'avait été posé que sur un des deux tableaux ; celui du mode
-  // évolution écrivait la mention EN DUR, donc sans condition sur le nombre de
-  // lignes et sans le dénominateur que l'autre donne (« sur 34 875 »).
-  //
-  // Une seule occurrence du littéral doit subsister : celle de l'aide, dans le
-  // commentaire de la fonction.
-  const enDur = [...MAIN.matchAll(/· 100 premiers territoires/g)];
-  assert.equal(enDur.length, 1, `mention en dur : ${enDur.length} occurrence(s)`);
-  assert.match(
-    MAIN.slice(MAIN.indexOf("function fenetreDuTableau")),
-    /total > 100 \? ` · 100 premiers territoires sur/,
-  );
-  // Et les deux légendes passent par elle.
-  const appels = [...MAIN.matchAll(/\$\{fenetreDuTableau\(/g)];
-  assert.equal(appels.length, 2, `appels à fenetreDuTableau : ${appels.length}`);
 });
 
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
@@ -522,14 +479,14 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   // ne pouvait être indexée ni servie pré-rendue.
   assert.match(MAIN, /vueDepuisAdresse\(location\.pathname, location\.hash\)/);
   // Le chemin est lu AVANT toute autre source : c'est lui qui fait foi.
-  // La borne générique "/**\n * Le sommaire" matchait d'abord le sommaire de
-  // « Sources et méthode », plus haut dans le fichier : on vise ici celui du
-  // BILAN, qui suit basculerVue.
-  const BORNE = "/**\n * Le sommaire du BILAN";
+  // Le sommaire du BILAN, qui suivait basculerVue, est parti avec le sommaire
+  // lui-même (retiré) ; la borne vise désormais le commentaire qui le suit
+  // directement dans le fichier.
+  const BORNE = "/** La carte est-elle déployée ?";
   // Une borne introuvable rend −1, et `slice(a, -1)` découpe jusqu'à la fin du
   // fichier : le test resterait vert en ne mesurant plus rien. C'est ce qui
   // s'est produit quand ce commentaire a été retitré.
-  assert.ok(MAIN.includes(BORNE), "borne du sommaire introuvable dans main.ts");
+  assert.ok(MAIN.includes(BORNE), "borne introuvable dans main.ts");
   const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf(BORNE));
   assert.ok(corps.length > 200, "corps de basculerVue introuvable");
   assert.ok(
@@ -646,19 +603,23 @@ test("le pied du bilan est replié : trois documents de référence, pas trois c
   }
 });
 
-test("la gamme ne peint jamais du texte : rang de chapitre et signes en encre", () => {
+test("la gamme ne peint jamais du texte : les signes de flux restent en encre", () => {
   // La gamme est validée à 3:1 — le seuil des MARQUES graphiques. Un texte de
-  // 12 px exige 4,5:1, et l'axe-core a relevé quatre rangs de chapitre sur
-  // cinq en violation quand ils portaient la teinte du chapitre. L'identité
-  // passe par le filet de 4 px, qui est une marque ; le rang reste en encre
-  // douce, et les signes +/− des flux ne portent aucune couleur.
-  const rang = CSS_REGLES.match(/\.chapitre__rang \{([^}]*)\}/)?.[1];
-  assert.ok(rang, ".chapitre__rang sans règle");
-  assert.match(rang, /color: var\(--encre-douce\)/);
-  assert.doesNotMatch(rang, /var\(--chapitre/);
+  // 12 px exige 4,5:1 : les signes +/− des flux ne portent donc aucune
+  // couleur, l'identité du chapitre passant par le filet de 4 px au-dessus,
+  // qui est une marque.
   const flux = CSS_REGLES.match(/\.flux--plus,\s*\.flux--moins \{([^}]*)\}/)?.[1];
   assert.ok(flux, ".flux--plus/.flux--moins sans règle commune");
   assert.doesNotMatch(flux, /color:/);
+});
+
+test("les chapitres du bilan ne se numérotent pas : un intitulé, comme sur /territoire", () => {
+  // « Chapitre 1 », « Chapitre 2 »… empilé cinq fois lisait comme une table
+  // des matières de roman, et /territoire ne numérote aucune de ses
+  // sections. Régression exacte d'une première correction qui n'avait
+  // raccourci que les questions sans retirer le mot « Chapitre ».
+  assert.doesNotMatch(PAGE, /chapitre__rang/);
+  assert.doesNotMatch(PAGE, />Chapitre\s+\d</);
 });
 
 test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu", () => {
@@ -692,28 +653,7 @@ test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu",
   }
 });
 
-test("une vue longue dit ce qu'elle contient", () => {
-  // Huit blocs de plusieurs écrans sur 6 600 px de défilement, sans moyen de
-  // savoir ce qui restait dessous ni d'y aller.
-  assert.match(PAGE, /id="sommaire-bilan"/);
-  assert.match(MAIN, /function peindreSommaireReperes\(\)/);
-  // Le sommaire se construit sur ce qui s'est réellement affiché : rien de
-  // cliquable ne doit mener à une section vide.
-  const corps = MAIN.slice(
-    MAIN.indexOf("function peindreSommaireReperes"),
-    MAIN.indexOf("/** La carte est-elle déployée ?"),
-  );
-  // Le critère est le CONTENU du bloc, pas un titre : l'ouverture du chapitre 1
-  // est une phrase et un tableau sans h3, et un critère « porte un titre » la
-  // rayait du sommaire.
-  assert.match(corps, /childElementCount > 0/);
-  assert.match(corps, /!bloc\.hidden/);
-  assert.match(corps, /if \(entrees\.length < 2\)/);
-  // Et il nomme les CHAPITRES, pas les douze cadres : un sommaire qui répète
-  // la page n'ajoute rien à la page. L'ancre vise donc la section du chapitre.
-  assert.match(corps, /#national \.chapitre/);
-  assert.match(corps, /\.chapitre__question/);
-  assert.doesNotMatch(corps, /#national \.bloc/);
+test("une ancre interne d'une vue longue ne recharge pas la vue depuis le haut", () => {
   // Une ancre interne ne doit pas être prise pour une vue inconnue et renvoyer
   // le lecteur sur TERRITOIRE au moment où il descend dans ce qu'il lit.
   // Le fragment fait partie de la garde depuis qu'un Back vers `/` — cible
@@ -729,6 +669,14 @@ test("une vue longue dit ce qu'elle contient", () => {
   // doit être conditionnel, sinon il annule le défilement vers l'ancre.
   assert.match(MAIN, /const precedente = document\.body\.dataset\.vue;/);
   assert.match(MAIN, /if \(vue !== precedente\) window\.scrollTo\(\{ top: 0 \}\);/);
+});
+
+test("le sommaire du bilan est parti, pas seulement replié", () => {
+  // Douze puis cinq entrées répétaient les questions déjà posées à l'écran :
+  // un sommaire de la page qu'on est déjà en train de lire n'ajoute rien.
+  assert.doesNotMatch(PAGE, /id="sommaire-bilan"/);
+  assert.doesNotMatch(MAIN, /peindreSommaireReperes/);
+  assert.doesNotMatch(CSS, /\.sommaire-vue/);
 });
 
 test("le Back vers `/` n'est plus avalé par la garde des ancres internes", () => {
@@ -805,25 +753,25 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   assert.doesNotMatch(MAIN, /location\.hash = "#donnees"/);
   // Les fonctions qui peignaient dans ses conteneurs se taisent au lieu de
   // lever : `$` rend `null`, et `null.innerHTML` casse toute la fiche.
-  for (const garde of [
-    'if (!document.getElementById("tableau-donnees")) return;',
-    'if (!document.getElementById("sources-contenu")) return;',
-  ]) {
-    assert.ok(MAIN.includes(garde), `garde manquante : ${garde}`);
-  }
-  // Les écouteurs aussi. `brancherCommandes()` accrochait `#exporter` et
-  // `#comparateur` sans garde : `$` rend `null`, `null.addEventListener` lève,
-  // et l'exception remontait au `.catch` de `demarrer()` — tout ce qui suit
-  // l'appel ne s'exécutait plus, blocs de Décryptages compris.
-  for (const ecouteur of ["exporter", "comparateur"]) {
-    assert.match(
-      MAIN,
-      new RegExp(`document\\.getElementById\\("${ecouteur}"\\)\\?\\.addEventListener`),
-      `écouteur non gardé : #${ecouteur}`,
-    );
-  }
-  assert.doesNotMatch(MAIN, /\$\("exporter"\)\.addEventListener/);
+  assert.ok(
+    MAIN.includes('if (!document.getElementById("sources-contenu")) return;'),
+    "garde manquante pour #sources-contenu",
+  );
+  // Les écouteurs aussi. `brancherCommandes()` accrochait `#comparateur` sans
+  // garde : `$` rend `null`, `null.addEventListener` lève, et l'exception
+  // remontait au `.catch` de `demarrer()` — tout ce qui suit l'appel ne
+  // s'exécutait plus, blocs de Décryptages compris.
+  assert.match(
+    MAIN,
+    /document\.getElementById\("comparateur"\)\?\.addEventListener/,
+    "écouteur non gardé : #comparateur",
+  );
   assert.doesNotMatch(MAIN, /\$\("comparateur"\)\.addEventListener/);
+  // Le classement de la couche et son export ont été retirés : ni le
+  // conteneur, ni le bouton, ni leur guard ne devraient réapparaître.
+  assert.doesNotMatch(PAGE, /id="tableau-donnees"/);
+  assert.doesNotMatch(PAGE, /id="exporter"/);
+  assert.doesNotMatch(MAIN, /getElementById\("exporter"\)/);
 });
 
 test("la carte est déployée d'emblée, et rien ne la replie", () => {
@@ -963,36 +911,27 @@ test("aucun fetch de DÉTAIL ne part avant que l'initialisation n'ait résolu", 
 });
 
 
-test("le détail d'un territoire porte son classement, son export et sa comparaison", () => {
-  // Trois conteneurs disparus avec la vue DONNÉES, alors que tout le code qui
-  // les remplit est resté : `majTableau`, `majTableauEvolution` et
-  // `majComparateur` se taisaient faute d'endroit où écrire.
+test("le détail d'un territoire porte sa comparaison, plus son classement ni son export", () => {
+  // Le classement de la couche affichée et son export CSV ont été retirés du
+  // gabarit : demandé par le propriétaire du site, un tableau de cent
+  // territoires sous « Davantage de données » n'avait plus sa place.
+  // `#comparateur`, lui, reste — ce n'est pas la même fonctionnalité.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   const depart = balises.indexOf('class="territoire__tables"');
   // Une borne introuvable rend −1, et `slice(-1)` découpe la fin du fichier :
   // le test resterait vert en ne mesurant plus rien.
   assert.ok(depart > 0, "section des tableaux de territoire introuvable");
   const vue = balises.slice(depart);
-  // **Ils suivent la carte, pas le bilan.** Ils rangent la couche affichée —
-  // l'échelon, le millésime, l'indicateur choisis sur la carte — et n'avaient
-  // rien à voir avec les cinq chapitres du bilan.
+  // **Il suit la carte, pas le bilan.** Il n'avait rien à voir avec les cinq
+  // chapitres du bilan.
   assert.ok(
     balises.indexOf('id="vue-territoire"') < depart &&
       depart < balises.indexOf('id="vue-bilan"'),
     "les tableaux de territoire doivent vivre dans la vue TERRITOIRE",
   );
-  assert.match(vue, /id="tableau-donnees"/);
-  assert.match(vue, /id="exporter"/);
   assert.match(vue, /id="comparateur"/);
-  // `majTableau` écrit dans `#exporter` sans le tester : les deux vont ensemble
-  // ou pas du tout.
-  assert.ok(
-    vue.indexOf('id="tableau-donnees"') !== -1 && vue.indexOf('id="exporter"') !== -1,
-    "le tableau et son bouton d'export doivent être posés ensemble",
-  );
-  // Le tableau est un tableau : `majTableau` y écrit un `<caption>`, un
-  // `<thead>` et un `<tbody>`.
-  assert.match(vue, /<table[^>]*id="tableau-donnees"/);
+  assert.doesNotMatch(vue, /id="tableau-donnees"/);
+  assert.doesNotMatch(vue, /id="exporter"/);
 });
 
 test("le seul cadre qui somme les trois budgets est montré, à côté de l'atelier", () => {
@@ -1264,15 +1203,19 @@ function executerLireUrl(adresse: string): Record<string, string | null> {
  *  `indicateursDeLaFiche` — les trois pièces dont l'accord fait la page. Ni
  *  l'une ni l'autre n'est recopiée ici : le banc testerait sa propre copie.
  *
- *  `rubriques` vient d'`analyses.ts`, où elle est déjà exportée : c'est elle qui
- *  décide qu'une ligne existe, et le banc lit le résultat qu'elle rend plutôt
- *  que le HTML, pour compter des lignes et des thèmes plutôt que des balises. */
+ *  `davantageRendu` (davantage.ts) fait sa propre curation, thème par thème :
+ *  le banc n'a pas à la rejouer, il capture ce qu'on lui passe — le
+ *  territoire, le catalogue déjà filtré par la maille, les associations —
+ *  pour vérifier l'accord des trois pièces plutôt que le rendu HTML. */
 async function executerPeindreDetail(
   selection: { code: string | null; niveau: string; maille: string | null },
   catalogue: Indicateur[],
   entites: Record<string, Territoire>,
+  associationsBanc: Record<string, unknown> = {},
 ): Promise<{
-  liste: Rubrique[];
+  territoire: Territoire | null;
+  indicateurs: Indicateur[];
+  associations: unknown;
   vide: string;
   charges: string[];
   comparateur: number;
@@ -1308,7 +1251,9 @@ async function executerPeindreDetail(
   const detail = { innerHTML: "" };
   const etat = { selection: selection.code, niveau: selection.niveau, maille: selection.maille };
   const charges: string[] = [];
-  let liste: Rubrique[] = [];
+  let territoire: Territoire | null = null;
+  let indicateurs: Indicateur[] = [];
+  let associationsRecues: unknown;
   let comparateur = 0;
   await (
     new Function(
@@ -1321,11 +1266,10 @@ async function executerPeindreDetail(
       "catalogue",
       "DENOMINATEURS",
       "chargerLotsNecessaires",
+      "chargerAssociations",
       "entiteDe",
-      "afficherAnalyses",
-      "rubriques",
-      "THEMES",
-      "ORDRE_THEMES",
+      "davantageRendu",
+      "associations",
       "majComparateur",
       `${corps}\nreturn peindreDetail();`,
     )(
@@ -1338,19 +1282,21 @@ async function executerPeindreDetail(
       async (niveau: string, codes: string[]) => {
         charges.push(`${niveau}:${codes.join(",")}`);
       },
+      async () => {},
       (code: string, niveau: string) => entites[`${niveau}:${code}`],
-      (_cible: unknown, _nom: string, rendues: Rubrique[]) => {
-        liste = rendues;
+      (t: Territoire, i: Indicateur[], a: unknown) => {
+        territoire = t;
+        indicateurs = i;
+        associationsRecues = a;
+        return "";
       },
-      rubriques,
-      THEMES_BANC,
-      ORDRE_THEMES,
+      associationsBanc,
       async () => {
         comparateur += 1;
       },
     ) as Promise<void>
   );
-  return { liste, vide: detail.innerHTML, charges, comparateur };
+  return { territoire, indicateurs, associations: associationsRecues, vide: detail.innerHTML, charges, comparateur };
 }
 
 test("choisir un territoire depuis une analyse pré-rendue ouvre ce territoire", async () => {
@@ -1449,34 +1395,32 @@ const FRANCE_BANC = {
   "region:FR": undefined,
 } as unknown as Record<string, Territoire>;
 
-test("la page DÉTAIL rend les indicateurs de la maille du territoire ouvert", async () => {
+test("la page DÉTAIL passe à davantageRendu le territoire et le catalogue de la maille ouverte", async () => {
   // La France s'ouvre à la maille pays sans que la carte quitte sa couche :
   // c'est `etat.maille` qui la porte, comme pour un arrondissement.
   const peinte = await executerPeindreDetail(
     { code: "FR", niveau: "region", maille: "pays" },
     CATALOGUE_BANC,
     FRANCE_BANC,
+    { FR: { exercice: "2021", beneficiaires: [] } },
   );
   // Le lot demandé est celui de la maille de sélection : chercher « FR » dans
   // les régions ne rendrait rien du tout.
   assert.deepEqual(peinte.charges, ["pays:FR"]);
+  assert.equal(peinte.territoire, FRANCE_BANC["pays:FR"]);
+  // Le catalogue passé à davantageRendu est déjà filtré par la maille : le
+  // local (« finances_locales ») n'est pas publié à cette maille, et le
+  // dénominateur ne fait jamais une ligne — c'est `indicateursDeLaFiche` qui
+  // fait ce travail, pas davantage.ts, et c'est cet accord que ce test tient.
   assert.deepEqual(
-    peinte.liste.map((r) => r.theme),
-    ["budget_etat"],
-    "seul le thème national a des lignes : le local n'est pas publié à cette maille",
-  );
-  assert.deepEqual(
-    peinte.liste[0]!.lignes.map((l) => l.id),
+    peinte.indicateurs.map((i) => i.id),
     ["etat_depenses_nettes", "etat_charge_dette"],
   );
-  // Un tableau d'analyse montre tous les exercices publiés, un par colonne.
-  assert.deepEqual(peinte.liste[0]!.exercices, ["2019", "2025"]);
-  // Le dénominateur ne fait jamais une ligne : le par-habitant se calcule, il
-  // ne s'affiche pas comme une mesure.
-  assert.ok(
-    !peinte.liste.some((r) => r.lignes.some((l) => l.id === "ofgl_population_reference")),
-    "la population de référence n'est pas une ligne de la fiche",
-  );
+  // Et davantage.ts reçoit bien les associations de ce territoire, telles que
+  // `main.ts` les tient — le banc ne rejoue pas sa curation, il vérifie
+  // qu'elle reçoit ce qu'il faut.
+  assert.deepEqual(peinte.associations, { exercice: "2021", beneficiaires: [] });
+
   // Et la même page à la maille d'à côté ne montre pas les lignes nationales :
   // c'est bien le filtre de maille qui travaille, pas l'ordre du catalogue.
   const region = await executerPeindreDetail(
@@ -1490,9 +1434,12 @@ test("la page DÉTAIL rend les indicateurs de la maille du territoire ouvert", a
     } as unknown as Record<string, Territoire>,
   );
   assert.deepEqual(
-    region.liste.map((r) => r.theme),
-    ["finances_locales"],
+    region.indicateurs.map((i) => i.id),
+    ["ofgl_depenses_fonctionnement"],
   );
+  // Aucune association publiée pour ce code dans le banc : `associations[code]`
+  // vaut `undefined`, et davantage.ts doit pouvoir le recevoir tel quel.
+  assert.equal(region.associations, undefined);
 });
 
 test("le comparateur de DÉTAIL est appelé pour se taire, il n'est pas sauté", async () => {
@@ -1514,7 +1461,7 @@ test("le comparateur de DÉTAIL est appelé pour se taire, il n'est pas sauté",
     CATALOGUE_BANC,
     FRANCE_BANC,
   );
-  assert.deepEqual(sans.liste, []);
+  assert.equal(sans.territoire, null);
   assert.deepEqual(sans.charges, []);
   assert.equal(sans.comparateur, 0);
   assert.match(sans.vide, /Aucun territoire choisi/);
@@ -2843,17 +2790,6 @@ test("une carte cachée et une barre repliée le restent bien à l'écran", () =
  * défaut en ligne — c'est le piège que ce dépôt a déjà rencontré deux fois, un
  * test vert au-dessus d'un écran faux.
  */
-test("l'export lit la source à la maille, et plus le seul jeu de l'indicateur", () => {
-  assert.ok(
-    MAIN.includes("sourceDuNiveau(indicateur, etat.niveau, jeux)"),
-    "main.ts ne demande plus la source à la maille exportée",
-  );
-  assert.ok(
-    !/source:\s*jeu\s*\?/.test(MAIN),
-    "l'ancienne résolution — le jeu de l'indicateur, quelle que soit la maille — est revenue",
-  );
-});
-
 /**
  * La fiche de territoire est partageable, à toutes les mailles.
  *

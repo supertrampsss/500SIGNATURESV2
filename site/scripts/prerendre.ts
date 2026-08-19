@@ -1030,13 +1030,6 @@ export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
  * Un bloc dont la source n'est pas publiée est **replié**, jamais laissé vide :
  * `.bloc` est un cadre bordé, ombré, et une case vide se lit comme une panne —
  * la règle que `replierCadre` porte déjà pour la méthode.
- *
- * Le sommaire de la vue est replié lui aussi, et c'est le seul endroit où ce
- * document est moins riche que la page peinte : `peindreSommaireReperes`
- * (main.ts) le construit en LISANT les titres des blocs dans le DOM, et rien
- * ici n'a de DOM. Il se déplie tout seul à l'arrivée du paquet, qui commande
- * déjà sa visibilité dans les deux sens. Le replier plutôt que le laisser vide
- * évite le filet horizontal sans lien que `.sommaire-vue` dessine à vide.
  */
 export function injecterReperes(
   shell: string,
@@ -1082,7 +1075,6 @@ export function injecterReperes(
   // paragraphe vide) : le remplir demande donc aussi de le déplier.
   const pont = pontPerimetre(pays);
   html = pont ? deplierCadre(remplirCadre(html, "pont-perimetre", pont), "pont-perimetre") : html;
-  html = replierCadre(html, "sommaire-bilan");
   html = deplierCadre(html, "national");
   html = deplierCadre(html, "vue-bilan");
   // L'accueil replié, pour la raison qu'`injecterMethode` nomme : le gabarit le

@@ -342,25 +342,28 @@ test("une fenêtre demandée plus grande que le groupe ne déborde pas", () => {
 });
 
 test("un rang partagé se dit, il ne se présente pas comme une place propre", () => {
-  // Le plafond de la note est encombré : douze communes du même groupe à
-  // 20 sur 20 ne sont pas douzièmes, elles sont toutes premières.
-  const plates: Ligne[] = Array.from({ length: 30 }, (_, i) => ({
+  // Le plafond de la note est encombré : douze communes à 20 sur 20 ne sont
+  // pas douzièmes, elles sont toutes premières. Le reste du groupe varie
+  // (`echelon`), sans quoi le groupe entier serait à égalité et la
+  // comparaison ne se serait pas affichée du tout (voir le test dédié).
+  const plates: Ligne[] = Array.from({ length: 12 }, (_, i) => ({
     code: `p${i}`,
     nom: `Plate ${i}`,
     note: noter(
-      { tauxEpargne: 40, desendettement: 1, trajectoire: 5, exercice: "2025" },
+      { tauxEpargne: 90, desendettement: 0.1, trajectoire: 40, exercice: "2025" },
       "commune",
     ),
   }));
+  const groupe = plates.concat(echelon(18));
   const rendu = texte(
-    rendreVoisinage(voisinage(plates, plates[3].code), INTITULES, {
+    rendreVoisinage(voisinage(groupe, plates[3].code), INTITULES, {
       code: plates[3].code,
       nom: plates[3].nom,
       note: plates[3].note,
     }),
   );
   assert.match(rendu, /est 1re sur 30/);
-  assert.match(rendu, /à égalité avec 29 autres/);
+  assert.match(rendu, /à égalité avec 11 autres/);
   // À deux, la commune ne compte pas : « à égalité avec 1 autre » se lit mal.
   const paire = plates.slice(0, 2).concat(echelon(28));
   const deux = texte(
@@ -399,6 +402,31 @@ test("un groupe vide ne peint rien plutôt qu'une section sans tableau", () => {
   );
   // Et un code absent du groupe : la fenêtre n'a personne à entourer.
   assert.equal(voisinage(echelon(10), "inconnu"), null);
+});
+
+test("un groupe sans écart ne se compare pas : « à égalité avec tous » ne dit rien", () => {
+  // Le cas vu au navigateur : « Magnat-l'Étrange est 1re sur 12, à égalité
+  // avec 11 autres » — tout le groupe partage exactement la même note (ici
+  // 0 sur 20), et la comparaison ne porte aucune information.
+  const plancher: Ligne[] = Array.from({ length: 12 }, (_, i) => ({
+    code: `z${i}`,
+    nom: `Zéro ${i}`,
+    note: noter(
+      { tauxEpargne: -100, desendettement: null, trajectoire: -100, exercice: "2025" },
+      "commune",
+    ),
+  }));
+  assert.equal(voisinage(plancher, plancher[0].code), null);
+
+  // Un groupe avec le plus petit écart réel, lui, se compare normalement.
+  const presque = plancher.map((l, i) => (i === 11 ? { ...l, code: "haut" } : l));
+  presque[11] = {
+    code: "haut",
+    nom: "Un peu mieux",
+    note: noter({ tauxEpargne: 5, desendettement: 4, trajectoire: 0, exercice: "2025" }, "commune"),
+  };
+  const v = voisinage(presque, presque[0].code);
+  assert.ok(v, "un groupe avec un vrai écart doit se comparer");
 });
 
 test("l'exercice minoritaire du groupe est compté, pas tu", () => {

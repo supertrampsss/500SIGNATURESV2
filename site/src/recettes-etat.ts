@@ -33,8 +33,15 @@
  * lecteur, et c'est le registre du tableau typographié — la taille porte la
  * magnitude sans qu'une barre s'en mêle.
  *
- * « Autres impôts et taxes » est une soustraction de séries publiées :
- * recettes fiscales moins TVA, impôt sur le revenu et impôt sur les sociétés.
+ * « Autres impôts et taxes » vivait comme une soustraction opaque, et c'était
+ * en plus la plus grosse ligne du tableau — un residu sans nom au corps le
+ * plus gros. La TICPE (taxe sur les produits énergétiques, part de l'État)
+ * est publiée par la source comme sa propre ligne ; elle en sort et prend son
+ * nom. « Autres recettes fiscales » reste une soustraction — recettes
+ * fiscales moins TVA, impôt sur le revenu, impôt sur les sociétés et TICPE —
+ * et reste sans détail : la source elle-même ne publie pas plus fin que
+ * cette ligne-là.
+ *
  * Le total, lui, est la série publiée des recettes nettes — jamais la somme
  * des lignes, qui laisserait un écart d'arrondi passer pour un compte rond.
  */
@@ -47,6 +54,7 @@ const REFERENCE = "2017";
 const TVA = "etat_tva";
 const IMPOT_REVENU = "etat_impot_revenu";
 const IMPOT_SOCIETES = "etat_impot_societes";
+const TICPE = "etat_ticpe";
 const FISCALES = "etat_recettes_fiscales";
 const NON_FISCALES = "etat_recettes_non_fiscales";
 const NETTES = "etat_recettes_nettes_bg";
@@ -86,7 +94,7 @@ export function lignes(
   const serie = (id: string) => france.series[id] ?? {};
   const nettes = serie(NETTES);
   const exercices = Object.keys(nettes)
-    .filter((an) => [TVA, IMPOT_REVENU, IMPOT_SOCIETES, FISCALES, NON_FISCALES].every(
+    .filter((an) => [TVA, IMPOT_REVENU, IMPOT_SOCIETES, TICPE, FISCALES, NON_FISCALES].every(
       (id) => serie(id)[an] !== undefined,
     ))
     .sort();
@@ -98,6 +106,7 @@ export function lignes(
   const [tvaA, tvaB] = paire(TVA);
   const [irA, irB] = paire(IMPOT_REVENU);
   const [isA, isB] = paire(IMPOT_SOCIETES);
+  const [ticpeA, ticpeB] = paire(TICPE);
   const [fiscA, fiscB] = paire(FISCALES);
   const [nfA, nfB] = paire(NON_FISCALES);
 
@@ -115,14 +124,25 @@ export function lignes(
     },
     { libelle: "Impôt sur le revenu", avant: irA, apres: irB },
     {
-      libelle: "Autres impôts et taxes",
-      avant: fiscA - tvaA - irA - isA,
-      apres: fiscB - tvaB - irB - isB,
-      // Mesuré sur les séries réelles : ce reste triple entre 2017 et 2025
-      // (+200 %), en miroir mécanique du partage de la TVA — des recettes
-      // autrefois comptées ailleurs y entrent. La variation d'un reste dont
-      // la composition change ne se lit pas : elle prend une note courte,
-      // comme la TVA dont elle est le reflet.
+      // Nommée : c'est la taxe sur les carburants et les énergies, part de
+      // l'État. Elle vivait fondue dans le reste, sans nom, alors que la
+      // source la publie comme sa propre ligne.
+      libelle: "Taxe sur les produits énergétiques (TICPE)",
+      avant: ticpeA,
+      apres: ticpeB,
+    },
+    {
+      libelle: "Autres recettes fiscales",
+      avant: fiscA - tvaA - irA - isA - ticpeA,
+      apres: fiscB - tvaB - irB - isB - ticpeB,
+      // Ce qui reste après avoir nommé les quatre impôts qui pèsent le plus :
+      // droits de succession et de mutation, taxe sur les salaires, droits de
+      // douane, et une vingtaine d'autres lignes plus petites que la
+      // situation mensuelle budgétaire ne détaille pas au-delà de son propre
+      // « Autres recettes fiscales ». Ce reste a plus que triplé depuis 2017 ;
+      // le site ne publie pas la décomposition qui expliquerait pourquoi, et
+      // ne l'invente pas non plus : la variation prend une note plutôt qu'un
+      // pourcentage qu'aucune ligne ne viendrait justifier.
       note: "composition en évolution",
     },
     { libelle: "Impôt sur les sociétés", avant: isA, apres: isB },
@@ -145,7 +165,7 @@ export function rendu(
   catalogue: Indicateur[],
 ): string {
   const publies = new Set(catalogue.map((i) => i.id));
-  if (![TVA, IMPOT_REVENU, IMPOT_SOCIETES, FISCALES, NON_FISCALES, NETTES].every((id) =>
+  if (![TVA, IMPOT_REVENU, IMPOT_SOCIETES, TICPE, FISCALES, NON_FISCALES, NETTES].every((id) =>
     publies.has(id),
   ))
     return "";
@@ -202,9 +222,6 @@ export function rendu(
       </div>
       <div>
         <table class="comparaison recettes" tabindex="0">
-          <caption>Milliards d'euros, exercices réellement exécutés. « Autres impôts et taxes »
-            est la soustraction des trois impôts nommés du total des recettes fiscales.
-            Source : situation mensuelle budgétaire de l'État au 31 décembre.</caption>
           <thead><tr><th scope="col">Recettes</th><th scope="col">${echapper(debut)}</th>
             <th scope="col">${echapper(fin)}</th><th scope="col">Variation</th></tr></thead>
           <tbody>${rangees}</tbody>
@@ -213,6 +230,8 @@ export function rendu(
             <td class="flux--plus">${plus(total.apres)}</td>
             <td>${echapper(variation(total.avant, total.apres))}</td></tr></tfoot>
         </table>
+        <p class="bloc__complement">Milliards d'euros, exercices réellement exécutés.
+          Source : situation mensuelle budgétaire de l'État.</p>
       </div>
     </div>`;
 }

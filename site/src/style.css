@@ -3004,30 +3004,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   }
 }
 
-/* Le sommaire d'une vue longue : les sections qu'elle contient, en pilules
-   d'ancre. Décryptages alignait huit blocs sur 6 600 px sans dire ce qui
-   restait dessous ni permettre d'y aller. */
-.sommaire-vue {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espace-3);
-  margin: 0 0 var(--espace-7);
-  padding-bottom: var(--espace-6);
-  border-bottom: 1px solid var(--trait);
-}
-.sommaire-vue a {
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  text-decoration: none;
-  padding: var(--espace-3) var(--espace-5);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-pilule);
-  transition: border-color var(--transition), color var(--transition);
-}
-.sommaire-vue a:hover {
-  border-color: var(--trait-fort);
-  color: var(--encre);
-}
 /* Une ancre atteinte se signale sous le titre visé, pas au ras de l'en-tête
    collant qui le recouvrait. */
 .national [id],
@@ -3145,18 +3121,19 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* ─────────────────────────────────────────────────────────────────────────
    LES CINQ CHAPITRES DE BILAN
    ─────────────────────────────────────────────────────────────────────────
-   Le rang et la question sont la seule chrome : un filet teinté en tête de
-   chapitre, un rang en petites capitales, la question en serif. Les blocs
-   d'un chapitre ne sont PAS des cartes — la maquette validée pose le contenu
-   à même la page, et la première mise en production, qui gardait les cadres
-   bordés, ne lui ressemblait plus.
+   La question est la seule chrome : un filet teinté en tête de chapitre, la
+   question en serif. Ni le mot « Chapitre » ni son numéro ne s'affichent —
+   la page ne se lit pas comme un livre, et /territoire ne numérote pas ses
+   sections non plus. Les blocs d'un chapitre ne sont PAS des cartes — la
+   maquette validée pose le contenu à même la page, et la première mise en
+   production, qui gardait les cadres bordés, ne lui ressemblait plus.
 
    `.chapitre__duo` pose l'affirmation à côté de sa preuve au-dessus de 60rem,
    À L'INTÉRIEUR d'un bloc — jamais entre deux blocs, qui s'empilent comme
    dans la maquette. (`.chapitre__paire`, qui mettait deux blocs côte à côte,
    n'a plus d'occurrence au gabarit ; la règle reste pour la garde des
    grilles.) */
-/* Chaque chapitre porte une identité de la gamme : filet, rang, totaux. La
+/* Chaque chapitre porte une identité de la gamme : filet et totaux. La
    teinte dit « c'est ce chapitre-là », jamais un rang ni un jugement — les
    cinq sont des rangs de la gamme validée (voir --serie-1). */
 #chapitre-combien { --chapitre: var(--serie-1); }
@@ -3178,28 +3155,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 .chapitre:first-of-type {
   margin-top: var(--espace-6);
-}
-.chapitre__rang {
-  font-family: var(--sans);
-  font-size: var(--texte-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  /* L'encre douce, PAS la teinte du chapitre : la gamme est validée à 3:1
-     pour des marques graphiques, et un texte de 12 px exige 4,5:1 — mesuré à
-     l'axe-core, quatre rangs sur cinq échouaient. L'identité du chapitre
-     passe par le filet de 4 px au-dessus, qui est une marque. */
-  color: var(--encre-douce);
-  font-weight: 600;
-  margin: 0;
-}
-/* Le périmètre sous la question : « toutes les administrations publiques » ou
-   « le budget de l'État seul ». Sans lui, 1 562 milliards au chapitre 1 puis
-   380 au chapitre 2 se lisaient comme une contradiction. */
-.chapitre__perimetre {
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  margin: 0;
-  max-width: 66ch;
 }
 /* Le pont entre deux périmètres : la phrase qui fait descendre d'un étage. */
 .chapitre__pont {
@@ -3248,36 +3203,16 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   outline: 1px solid var(--trait-fort);
 }
 .apu__valeur { text-align: right; font-size: var(--texte-m); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.apu__detail { margin: var(--espace-4) 0 var(--espace-2) var(--espace-5); padding-left: var(--espace-5); border-left: 2px solid var(--serie-3); }
-.apu__detail .apu__rang { border-top: 0; padding: var(--espace-2) 0; grid-template-columns: minmax(6rem, 11rem) minmax(0, 1fr) 4.6rem; }
-.apu__detail .apu__piste { height: var(--espace-4); }
-/* Le sommaire du dépliant portait le total du poste (−37,11 €) juste au-dessus
-   d'un second total du dépliant lui-même (−37,37 €, un autre exercice) : deux
-   chiffres à quelques centimes l'un de l'autre pour la même ligne, lus comme
-   une erreur. Le sommaire ne garde que le libellé ; le dépliant s'ouvre par
-   défaut (`open`), le détail restant accessible d'un clic pour qui veut le
-   replier. */
-.apu__ouvrir { border-top: 1px solid var(--trait); }
-.apu__ouvrir > summary { cursor: pointer; list-style: none; padding: var(--espace-3) 0; }
-.apu__ouvrir > summary::-webkit-details-marker { display: none; }
-.apu__ouvrir > summary .apu__nom::before {
-  content: "›";
-  display: inline-block;
-  margin-right: var(--espace-3);
-  color: var(--serie-3);
-  font-weight: 700;
-  transition: transform var(--transition);
-}
-.apu__ouvrir[open] > summary .apu__nom::before { transform: rotate(90deg); }
 .apu__total { border-top: 2px solid var(--serie-3); font-weight: 700; }
 
-/* Les recettes de l'État : la taille suit le montant. Cinq crans, du plus
-   gros au plus petit — la demande explicite du lecteur, et le registre du
-   tableau typographié. La note de périmètre (TVA partagée) vit dans la
-   colonne Variation, à la place du pourcentage qu'elle remplace : sans son
-   propre `font-size`, elle aurait hérité du corps géant des cellules de
-   montant (`.recettes__rang--0 td` etc.), qui vise les DEUX autres colonnes
-   de la même ligne. */
+/* Les recettes de l'État : la taille suit le montant. Six crans (depuis que
+   la TICPE est sortie du reste et prend sa propre ligne), du plus gros au
+   plus petit — la demande explicite du lecteur, et le registre du tableau
+   typographié. La note de périmètre (TVA partagée) vit dans la colonne
+   Variation, à la place du pourcentage qu'elle remplace : sans son propre
+   `font-size`, elle aurait hérité du corps géant des cellules de montant
+   (`.recettes__rang--0 td` etc.), qui vise les DEUX autres colonnes de la
+   même ligne. */
 .recettes__rang--0 th { font-size: var(--texte-l); }
 .recettes__rang--0 td { font-size: var(--texte-3xl); font-weight: 700; }
 .recettes__rang--1 th { font-size: var(--texte-l); }
@@ -3285,6 +3220,7 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .recettes__rang--2 td { font-size: var(--texte-xl); font-weight: 600; }
 .recettes__rang--3 td { font-size: var(--texte-l); font-weight: 600; }
 .recettes__rang--4 th { color: var(--encre-douce); }
+.recettes__rang--5 th { color: var(--encre-douce); }
 .recettes__note {
   font-size: var(--texte-xs);
   font-weight: 400;
@@ -3301,16 +3237,11 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   padding: var(--espace-1) 0;
 }
 .tenable__rang .apu__piste span { background: var(--serie-5); }
-.tenable__rang--taux .apu__piste span { background: var(--serie-6); }
 /* L'affirmation à côté de sa preuve, dans tous les blocs des chapitres :
-   `.tenable__duo` est né dans le bloc de la dette, `.chapitre__duo` est la
-   même grille pour les autres. `minmax(0, 1fr)` pour la raison écrite sous
-   `.chapitre` : un tableau qui défile dans son cadre ne doit pas pousser la
-   page. */
-.tenable__duo,
+   `minmax(0, 1fr)` pour la raison écrite sous `.chapitre` : un tableau qui
+   défile dans son cadre ne doit pas pousser la page. */
 .chapitre__duo { display: grid; gap: var(--espace-7); margin-top: var(--espace-5); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 60rem) {
-  .tenable__duo,
   .chapitre__duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
 }
 
@@ -7646,16 +7577,260 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
   font-size: var(--texte-m);
 }
-/* Le classement de la couche affichée, sous la carte. Il vivait au pied du
-   BILAN, où il n'avait rien à voir avec les cinq chapitres ; il suit désormais
-   ce qu'il range. La carte occupe une hauteur d'écran : cette section commence
-   dessous, et respire comme le reste du site. */
+/* Le palmarès d'un territoire et la suite du panneau, sous la carte. La carte
+   occupe une hauteur d'écran : cette section commence dessous, et respire
+   comme le reste du site. Le classement de la couche affichée et son export
+   CSV, qui vivaient ici, ont été retirés à la demande du propriétaire du
+   site : `#tableau-donnees` et `#exporter` n'existent plus dans le gabarit. */
 .territoire__tables {
   display: grid;
   gap: var(--espace-6);
   padding: var(--espace-8) var(--espace-6) var(--espace-8);
   max-width: 78rem;
   margin: 0 auto;
+}
+/* « Sa place parmi les autres » et « Les communes semblables » (#palmares),
+   puis la suite du panneau (#detail) : ils continuent la colonne étroite du
+   panneau de la fiche, pas sa pleine largeur. Sans ce réglage, la page
+   passait d'une colonne de 662 px à côté de la carte à un bloc de 1216 px de
+   large au défilement suivant — le même geste de lecture changeant
+   brutalement de forme. */
+#palmares,
+#detail {
+  justify-self: end;
+  width: var(--panneau-largeur);
+  max-width: 100%;
+}
+@media (max-width: 60rem) {
+  #palmares,
+  #detail {
+    justify-self: stretch;
+    width: auto;
+  }
+}
+
+/* ===========================================================================
+   DAVANTAGE DE DONNÉES — la suite du panneau, dix thèmes, jamais un bouton
+   ===========================================================================
+   Onze thèmes gardés sur les vingt-deux publiés, expliqués comme un chapitre
+   de BILAN : une affirmation, puis la preuve. Aucun rail de couleur sur les
+   cartes — la teinte ne vit que dans le remplissage des barres, où elle porte
+   la mesure ; une carte qui ne fait que décorer ne dit rien. */
+.davantage {
+  display: flex;
+  flex-direction: column;
+}
+.davantage__theme {
+  padding: var(--espace-6) 0;
+  border-top: 1px solid var(--trait);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-3);
+}
+.davantage__theme:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+.davantage__theme h3 {
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+}
+.davantage__affirmation {
+  font-size: var(--texte-m);
+}
+.davantage__affirmation b {
+  font-weight: 600;
+}
+.davantage__source {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.davantage__note {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  border-left: 2px solid var(--trait-fort);
+  padding-left: var(--espace-3);
+}
+
+/* Une magnitude ne prend qu'une seule teinte (règle du dépôt) : `--accent` se
+   pose une fois sur le conteneur, jamais rang par rang. */
+.davantage__mag {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+}
+.davantage__rang {
+  display: grid;
+  grid-template-columns: 11.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--espace-3);
+  font-size: var(--texte-s);
+}
+.davantage__etiq {
+  color: var(--encre-douce);
+}
+.davantage__piste {
+  height: 0.75rem;
+  background: var(--fond);
+  border-radius: var(--rayon-xs);
+  overflow: hidden;
+}
+.davantage__piste > span {
+  display: block;
+  height: 100%;
+  background: var(--accent, var(--serie-1));
+  border-radius: var(--rayon-xs);
+}
+.davantage__val {
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@media (max-width: 40rem) {
+  .davantage__rang {
+    grid-template-columns: 8rem minmax(0, 1fr) auto;
+  }
+}
+
+.davantage__cartes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));
+  gap: var(--espace-3);
+}
+.davantage__carte {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-3);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.davantage__v {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+}
+.davantage__l {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+}
+.davantage__e {
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Vie associative : le nom et le montant de chaque association, pas
+   seulement leur total. */
+.davantage__associations {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  overflow: hidden;
+}
+.davantage__assoc {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.2rem var(--espace-4);
+  padding: var(--espace-3);
+}
+.davantage__assoc + .davantage__assoc {
+  border-top: 1px solid var(--trait);
+}
+.davantage__nom {
+  font-weight: 600;
+  font-size: var(--texte-s);
+}
+.davantage__montant {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--texte-s);
+  text-align: right;
+  white-space: nowrap;
+}
+.davantage__objet {
+  grid-column: 1 / -1;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+}
+
+/* Une liste qui se lit un par un, pas en longueur les uns contre les autres :
+   des comptes de personnes ou de diplômes gardent leurs chiffres alignés en
+   colonne, jamais en barre. */
+.davantage__theme h4 {
+  font-family: var(--serif);
+  font-size: var(--texte-m);
+  font-weight: 600;
+  margin: 0 0 var(--espace-2);
+}
+/* Chaque table de détail (âges, diplômes, pauvreté) prend un cadre propre,
+   comme les cartes de tête juste au-dessus : un `h4` seul au-dessus d'une
+   table sans en-tête se lisait comme du texte qui traîne, pas comme un bloc
+   d'information. */
+.davantage__groupe {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-4);
+}
+.davantage__groupe + .davantage__groupe {
+  margin-top: var(--espace-3);
+}
+.davantage__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texte-s);
+}
+.davantage__table td,
+.davantage__table th {
+  padding: var(--espace-2) 0;
+  border-bottom: 1px solid var(--trait);
+  text-align: left;
+}
+.davantage__table thead th {
+  color: var(--encre-douce);
+  font-weight: 600;
+  text-align: right;
+}
+.davantage__table thead th:first-child {
+  text-align: left;
+}
+.davantage__table tbody tr:last-child td {
+  border-bottom: none;
+}
+.davantage__num,
+.davantage__exercice {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.davantage__exercice {
+  color: var(--encre-douce);
+}
+
+/* Le pli qui ouvre le reste de la liste nominative, au-delà des associations
+   déjà visibles. */
+.davantage__pli > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  color: var(--encre-douce);
+  padding: var(--espace-2) 0;
+}
+.davantage__pli > summary::-webkit-details-marker {
+  display: none;
+}
+.davantage__pli > summary::before {
+  content: "›";
+  display: inline-block;
+  margin-right: 0.35rem;
+  transition: transform var(--transition);
+}
+.davantage__pli[open] > summary::before {
+  transform: rotate(90deg);
+}
+.davantage__pli > summary:hover {
+  color: var(--encre);
 }
 
 /* Le pied de page se replie. Les trois documents de référence — les sources,

@@ -171,12 +171,11 @@
         </aside>
       </div>
 
-      <!-- Le classement de la couche affichée, son export, et la comparaison
-           de deux territoires. **Ils vivaient au pied du BILAN**, où ils
-           n'avaient rien à voir avec les cinq chapitres : le bilan raconte la
-           France, ces tableaux rangent des territoires. Ils suivent désormais
-           la carte, qui est ce qu'ils rangent — la couche affichée, l'échelon
-           choisi, le millésime réglé. -->
+      <!-- Le palmarès d'un territoire, sa suite dans le panneau, et la
+           comparaison de deux territoires. Le classement de la couche
+           affichée et son export CSV — cent territoires sur les 34 875
+           communes, réglés sur l'indicateur affiché — ont été retirés :
+           demandé par le propriétaire du site, ils n'ont plus d'écran. -->
       <section class="territoire__tables">
         <!-- Le palmarès des notes, avant les tableaux d'un territoire : un
              lecteur qui vient demander « et les autres ? » n'avait aucune page
@@ -187,10 +186,6 @@
         <div id="palmares"></div>
         <div id="detail"></div>
         <section class="comparateur" id="comparateur" hidden></section>
-        <section class="classement">
-          <table id="tableau-donnees"></table>
-          <button type="button" class="bouton-filet" id="exporter" hidden></button>
-        </section>
       </section>
 
     </div>
@@ -211,23 +206,21 @@
            Les blocs s'empilent, comme la maquette : la mise en deux colonnes
            vit À L'INTÉRIEUR des blocs (`.chapitre__duo`), jamais entre eux. -->
       <section class="national" id="national" hidden>
-        <nav class="sommaire-vue" id="sommaire-bilan" aria-label="Sections de la page"></nav>
-
         <!-- Les titres de chapitre sont courts et ne posent plus une phrase
              entière en question : « Combien pèse l'argent public ? » empilé
              cinq fois dans le sommaire se lisait comme une table des matières
-             de roman. Le rang (« Chapitre 1 ») porte déjà le numéro. Les
-             chapeaux de périmètre (« L'État, la Sécurité sociale... »)
-             répétaient ce que chaque bloc dit déjà dans sa première phrase —
-             partis avec les titres. -->
+             de roman. Le mot « Chapitre » et son numéro sont partis avec
+             elle — la page ne se lit pas comme un livre, et /territoire ne
+             numérote pas ses sections non plus : un intitulé seul, comme là-
+             bas. Les chapeaux de périmètre (« L'État, la Sécurité
+             sociale... ») répétaient ce que chaque bloc dit déjà dans sa
+             première phrase — partis avec les titres. -->
         <section class="chapitre" id="chapitre-combien">
-          <p class="chapitre__rang">Chapitre 1</p>
           <h2 class="chapitre__question">L'argent public</h2>
           <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
         </section>
 
         <section class="chapitre" id="chapitre-recettes">
-          <p class="chapitre__rang">Chapitre 2</p>
           <h2 class="chapitre__question">D'où vient l'argent</h2>
           <!-- Le pont des périmètres : 1 562 milliards au chapitre 1, 380 ici
                — sans cette phrase, les deux chiffres d'encaissement se
@@ -241,20 +234,17 @@
         </section>
 
         <section class="chapitre" id="chapitre-depenses">
-          <p class="chapitre__rang">Chapitre 3</p>
           <h2 class="chapitre__question">Où va l'argent</h2>
           <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
         </section>
 
         <section class="chapitre" id="chapitre-pour-qui">
-          <p class="chapitre__rang">Chapitre 4</p>
           <h2 class="chapitre__question">Qui reçoit, qui paie</h2>
           <article class="bloc bloc--large" id="bloc-redistribution"></article>
           <article class="bloc bloc--large" id="bloc-secu"></article>
         </section>
 
         <section class="chapitre" id="chapitre-tenable">
-          <p class="chapitre__rang">Chapitre 5</p>
           <h2 class="chapitre__question">Est-ce tenable&nbsp;?</h2>
           <article class="bloc bloc--large" id="bloc-dette"></article>
         </section>

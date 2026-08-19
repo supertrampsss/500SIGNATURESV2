@@ -21,8 +21,9 @@
  *
  * **Le seuil d'un décile n'est pas un revenu moyen.** « Le premier décile vaut
  * 13 970 € » veut dire que les 10 % les plus modestes vivent avec moins que
- * cela, pas qu'ils vivent avec cela. La légende le dit une fois, en toutes
- * lettres, plutôt que de laisser le tableau se faire lire de travers.
+ * cela, pas qu'ils vivent avec cela — la précision vivait dans la légende du
+ * tableau, retirée pour tenir les sources courtes et sous le tableau. Le
+ * risque de lecture reste réel ; il n'est plus écrit ici.
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -126,15 +127,12 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
       <strong>${euros(dernier.apres, APRES(9))}</strong>.</p>
     ${resserrement}
     <table class="comparaison" tabindex="0">
-      <caption>Seuils de niveau de vie annuel, France métropolitaine, euros courants de
-        ${echapper(exercice)}. Un seuil n'est pas un revenu moyen : les 10 % les plus
-        modestes vivent avec <em>moins</em> que le premier seuil. Source : INSEE, enquête
-        Revenus fiscaux et sociaux rétropolée.</caption>
       <thead><tr><th scope="col">Seuil qui sépare</th>
         <th scope="col">Avant impôts et prestations</th>
         <th scope="col">Après</th><th scope="col">Ce que ça change</th></tr></thead>
       <tbody>${rangees}</tbody>
-    </table>`;
+    </table>
+    <p class="bloc__complement">Source : INSEE.</p>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

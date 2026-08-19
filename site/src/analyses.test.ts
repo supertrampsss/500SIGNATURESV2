@@ -47,6 +47,24 @@ test("un taux garde sa décimale, même sur un compte rond", () => {
   assert.equal(valeurLisible(0, "percent"), "0,0 %");
 });
 
+test("un compte n'a jamais de décimale, même quand l'estimation en publie une", () => {
+  // « 171 776,9 logements » ne dit rien de plus que « 171 777 » : le dixième
+  // est un artefact de l'estimation statistique, pas une mesure plus fine.
+  assert.equal(valeurLisible(171_776.9, "count"), "171\u202f777");
+  assert.equal(valeurLisible(209.0, "count"), "209");
+  // Une autre unité non ronde garde sa décimale : ce n'est que le compte qui
+  // s'arrondit toujours.
+  assert.equal(valeurLisible(13.5, "€/m²/mois"), "13,5 €/m²/mois");
+});
+
+test("un taux pour mille se lit en ‰, jamais le code interne de son unité", () => {
+  // « 39,1 pour_1000_habitants » recopiait le vocabulaire de la source. Le
+  // dénominateur des cambriolages (des logements, pas des habitants) reste
+  // distingué : les deux unités se côtoient dans le même tableau de Sécurité.
+  assert.equal(valeurLisible(39.1, "pour_1000_habitants"), "39,1 ‰");
+  assert.equal(valeurLisible(1.8, "pour_1000_logements"), "1,8 ‰ (logements)");
+});
+
 test("chaque exercice publié a sa colonne, et une absence reste vide", () => {
   const liste = rubriques(BORDEAUX, CATALOGUE, LIBELLES, ["finances_locales", "population"]);
   const finances = liste.find((r) => r.theme === "finances_locales")!;

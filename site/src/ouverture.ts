@@ -204,9 +204,6 @@ ${
       </div>
       <div>
         <table class="comparaison ouverture__evolution" tabindex="0">
-          <caption>Milliards d'euros courants. En 2021, l'année du « quoi qu'il en coûte »,
-            l'emprunt a presque triplé par rapport à 2019 ; il n'est jamais redescendu à son
-            niveau d'avant.</caption>
           <thead><tr><th scope="col"></th>${colonnes}</tr></thead>
           <tbody>
             ${ligne("Recettes", (an) => `<span class="flux--plus">${milliards(r[an], "+")}</span>`)}
@@ -216,9 +213,8 @@ ${
         </table>
       </div>
     </div>
-    <p class="ouverture__source">Comptabilité nationale, exercices ${echapper(c.debut)} à
-      ${echapper(c.fin)}. Source&nbsp;: Eurostat, comptes des administrations publiques,
-      comptes nationaux annuels et indice des prix à la consommation harmonisé.</p>`;
+    <p class="ouverture__source">Milliards d'euros courants, exercices ${echapper(c.debut)} à
+      ${echapper(c.fin)}. Source&nbsp;: Eurostat.</p>`;
 }
 
 /**
