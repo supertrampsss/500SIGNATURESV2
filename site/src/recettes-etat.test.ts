@@ -52,11 +52,13 @@ test("chaque évolution donne ses deux bouts : 2017, 2025, puis la variation", (
 test("la TVA ne porte pas de variation nue : sa note de périmètre la remplace", () => {
   // 152 → 98 milliards : −35,7 %, et ce n'est PAS une baisse d'impôt — une
   // part croissante est reversée à la Sécurité sociale et aux collectivités.
-  // La variation nue aurait fait lire un effondrement qui n'existe pas.
+  // La variation nue aurait fait lire un effondrement qui n'existe pas. La
+  // note tient en une ligne, dans la colonne Variation elle-même — pas sous
+  // le libellé, où elle poussait la ligne sur deux hauteurs de texte.
   const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
   const rangTva = html.slice(html.indexOf("Taxe sur la valeur ajoutée"), html.indexOf("</tr>", html.indexOf("Taxe sur la valeur ajoutée")));
   assert.doesNotMatch(rangTva, /−35,7/);
-  assert.match(rangTva, /part croissante est reversée/);
+  assert.match(rangTva, /recettes__note">part reversée en hausse</);
   // Les deux bouts, eux, restent écrits : le lecteur voit 152 puis 98.
   assert.match(rangTva, /\+152,4/);
   assert.match(rangTva, /\+98,1/);
@@ -84,7 +86,7 @@ test("un reste par soustraction n'affiche pas de variation", () => {
   const depart = html.indexOf("Autres impôts et taxes", html.indexOf("<tbody"));
   const rang = html.slice(depart, html.indexOf("</tr>", depart));
   assert.doesNotMatch(rang, /\+\d+,\d\s?%/u);
-  assert.match(rang, /composition change/);
+  assert.match(rang, /recettes__note">composition en évolution</);
 });
 
 test("le total est la série publiée, jamais la somme des lignes", () => {

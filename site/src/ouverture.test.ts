@@ -132,8 +132,11 @@ test("le pont des périmètres nomme les deux encaissements", () => {
   // 1 562 milliards pour l'ensemble, 380 pour l'État seul : sans la phrase de
   // passage, les deux chiffres du chapitre 1 et du chapitre 2 se lisaient
   // comme une contradiction — le premier reproche du lecteur sur la maquette.
+  // Elle vit désormais EN TÊTE du chapitre 2 : « Le chapitre suivant descend
+  // d'un étage » n'a plus de sens à cet endroit, et est parti avec le
+  // déplacement.
   const lu = texte(pont({ FR: territoire(SERIES) }));
-  assert.match(lu, /descend d'un étage/);
+  assert.doesNotMatch(lu, /descend d'un étage/);
   assert.match(lu, /1 561,63 milliards d'euros/);
   assert.match(lu, /380,39 milliards d'euros/);
   assert.match(lu, /Sécurité sociale/);
@@ -144,10 +147,13 @@ test("le pont des périmètres nomme les deux encaissements", () => {
   assert.equal(pont({ FR: territoire(sans) }), "");
 });
 
-test("le par-habitant est donné, jamais comme une facture", () => {
+test("la lecture par-habitant est partie : elle brouillait plus qu'elle n'aidait", () => {
+  // « Rapporté aux habitants, la dépense publique représente 24 885 € par
+  // personne et par an. Elle ne leur est pas prélevée à chacun... » — le
+  // lecteur ne l'a pas comprise. Le chapitre s'arrête à la table d'évolution.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /24 885 € par personne et par an/);
-  assert.match(lu, /Elle ne leur est pas prélevée à chacun/);
+  assert.doesNotMatch(lu, /par personne et par an/);
+  assert.doesNotMatch(lu, /prélevée à chacun/);
 });
 
 test("une variation s'écrit signée, une décimale, en pourcentage", () => {

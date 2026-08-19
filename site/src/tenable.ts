@@ -219,7 +219,7 @@ export function rendu(
     ${reponse}
     <div class="tenable__duo">
       <div>
-        <h4>La dette, année par année</h4>
+        <h3 class="sous-titre">La dette, année par année</h3>
         ${rangsDette}
         <p class="bloc__complement">Milliards d'euros, fin d'année ; la dernière ligne est le
           dernier trimestre publié.${parHabitant}${
@@ -227,7 +227,7 @@ export function rendu(
           } Source : INSEE, dette au sens de Maastricht.</p>
       </div>
       <div>
-        <h4>Le coût d'un nouvel emprunt à 10 ans</h4>
+        <h3 class="sous-titre">Le coût d'un nouvel emprunt à 10 ans</h3>
         ${rangsTaux}
         <p class="bloc__complement">En ${echapper(creux)}, la France ${
           taux[creux] < 0 ? "était payée pour emprunter" : "empruntait au plus bas"
@@ -236,10 +236,15 @@ export function rendu(
     </div>
     ${
       voisins
-        ? `<h4>La dette rapportée à la richesse produite en un an</h4>
+        ? // Le millésime vivait dans une légende à part sous le titre ; il
+          // tient dans le titre lui-même, à côté de « en un an » qu'il
+          // précise. La source reste écrite — un chiffre de comparaison
+          // internationale sans elle ne se contrôle pas — mais en une ligne
+          // courte, pas dans un paragraphe qui répète « même définition pour
+          // tous » que le titre dit déjà.
+          `<h3 class="sous-titre">La dette rapportée à la richesse produite en un an, ${echapper(partFr![0])}</h3>
     ${voisins}
-    <p class="bloc__complement">Exercice ${echapper(partFr![0])}, même définition pour
-      tous : la dette au sens de Maastricht. Source : Eurostat.</p>`
+    <p class="bloc__complement">Source : Eurostat.</p>`
         : ""
     }`;
 }

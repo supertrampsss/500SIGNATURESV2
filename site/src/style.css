@@ -1439,6 +1439,17 @@ tbody tr:hover {
   color: var(--encre-douce);
   font-weight: 600;
 }
+/* Dans un chapitre de bilan, le titre du bloc est un `h2` (le rang de la page
+   descend de un cran quand le bloc n'a plus de titre à lui) : ses
+   sous-titres internes (« Où ils vont », « La dette, année par année »…)
+   passent donc de h4 à h3 pour rester consécutifs, sans hériter du corps
+   de titre de bloc que `.bloc h3` réserve aux titres de premier rang. */
+.bloc h3.sous-titre {
+  margin: 1rem 0 0.4rem;
+  font-size: var(--texte-m);
+  color: var(--encre-douce);
+  font-weight: 600;
+}
 .bloc__chiffre {
   margin: 0.5rem 0 0;
   display: flex;
@@ -3218,34 +3229,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .flux--plus,
 .flux--moins { font-weight: 600; font-variant-numeric: tabular-nums; }
 
-/* Les haltères : avant et après reliés par un trait dont la longueur EST
-   l'effet mesuré. Trait plein quand la valeur monte, hachures quand elle
-   descend — jamais une couleur de jugement. */
-.halteres { display: grid; gap: var(--espace-5); margin: var(--espace-5) 0 var(--espace-3); }
-.haltere__nom { font-size: var(--texte-s); margin: 0; }
-.haltere__piste { position: relative; height: var(--espace-7); }
-.haltere__trait,
-.haltere__trait--baisse {
-  position: absolute;
-  top: 50%;
-  height: 3px;
-  transform: translateY(-50%);
-  background: var(--serie-4);
-}
-.haltere__trait--baisse {
-  background: repeating-linear-gradient(135deg, var(--encre-douce) 0 2px, transparent 2px 6px);
-}
-.haltere__avant,
-.haltere__apres {
-  position: absolute;
-  top: 50%;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-.haltere__avant { width: var(--espace-4); height: var(--espace-4); background: var(--trait-fort); }
-.haltere__apres { width: var(--espace-5); height: var(--espace-5); background: var(--serie-4); }
-.haltere__valeurs { font-size: var(--texte-xs); color: var(--encre-douce); margin: 0; font-variant-numeric: tabular-nums; }
-
 /* Les rangs à barre du bloc des 100 € : libellé, piste, montant signé. Le
    premier poste est un dépliant qui s'ouvre À SA PLACE — la ventilation
    n'existe qu'une fois, jamais dans une seconde section qui la répète. */
@@ -3268,7 +3251,14 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .apu__detail { margin: var(--espace-4) 0 var(--espace-2) var(--espace-5); padding-left: var(--espace-5); border-left: 2px solid var(--serie-3); }
 .apu__detail .apu__rang { border-top: 0; padding: var(--espace-2) 0; grid-template-columns: minmax(6rem, 11rem) minmax(0, 1fr) 4.6rem; }
 .apu__detail .apu__piste { height: var(--espace-4); }
-.apu__ouvrir > summary { cursor: pointer; list-style: none; }
+/* Le sommaire du dépliant portait le total du poste (−37,11 €) juste au-dessus
+   d'un second total du dépliant lui-même (−37,37 €, un autre exercice) : deux
+   chiffres à quelques centimes l'un de l'autre pour la même ligne, lus comme
+   une erreur. Le sommaire ne garde que le libellé ; le dépliant s'ouvre par
+   défaut (`open`), le détail restant accessible d'un clic pour qui veut le
+   replier. */
+.apu__ouvrir { border-top: 1px solid var(--trait); }
+.apu__ouvrir > summary { cursor: pointer; list-style: none; padding: var(--espace-3) 0; }
 .apu__ouvrir > summary::-webkit-details-marker { display: none; }
 .apu__ouvrir > summary .apu__nom::before {
   content: "›";
@@ -3283,8 +3273,11 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 
 /* Les recettes de l'État : la taille suit le montant. Cinq crans, du plus
    gros au plus petit — la demande explicite du lecteur, et le registre du
-   tableau typographié. La note de périmètre (TVA partagée) vit sous le
-   libellé, à côté du chiffre qu'elle éclaire. */
+   tableau typographié. La note de périmètre (TVA partagée) vit dans la
+   colonne Variation, à la place du pourcentage qu'elle remplace : sans son
+   propre `font-size`, elle aurait hérité du corps géant des cellules de
+   montant (`.recettes__rang--0 td` etc.), qui vise les DEUX autres colonnes
+   de la même ligne. */
 .recettes__rang--0 th { font-size: var(--texte-l); }
 .recettes__rang--0 td { font-size: var(--texte-3xl); font-weight: 700; }
 .recettes__rang--1 th { font-size: var(--texte-l); }
@@ -3293,11 +3286,10 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .recettes__rang--3 td { font-size: var(--texte-l); font-weight: 600; }
 .recettes__rang--4 th { color: var(--encre-douce); }
 .recettes__note {
-  display: block;
   font-size: var(--texte-xs);
   font-weight: 400;
+  font-style: italic;
   color: var(--encre-douce);
-  max-width: 40ch;
 }
 
 /* La dette et les taux, année par année : des rangs à barre datés. */

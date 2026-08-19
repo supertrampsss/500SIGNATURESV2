@@ -17,10 +17,13 @@
  * baisse d'impôt — une part croissante de la TVA est reversée chaque année à
  * la Sécurité sociale et aux collectivités, et seule la part gardée par
  * l'État est comptée ici. Laisser la variation nue aurait fait lire un
- * effondrement qui n'existe pas : la note est À CÔTÉ du chiffre, pas en pied
- * de page. C'est le piège symétrique de celui de l'ouverture (un ratio qui
- * baisse pendant que le montant monte) : ici un montant qui baisse pendant
- * que la taxe, elle, ne baisse pas.
+ * effondrement qui n'existe pas. La note vivait sous le libellé, en phrase
+ * complète, et poussait chaque ligne notée sur deux lignes de tableau ; elle
+ * tient maintenant dans la colonne Variation elle-même, à la place du
+ * pourcentage qu'elle remplace — quelques mots, jamais le mécanisme entier.
+ * C'est le piège symétrique de celui de l'ouverture (un ratio qui baisse
+ * pendant que le montant monte) : ici un montant qui baisse pendant que la
+ * taxe, elle, ne baisse pas.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * LES GROS MONTANTS S'ÉCRIVENT GROS
@@ -103,9 +106,12 @@ export function lignes(
       libelle: "Taxe sur la valeur ajoutée",
       avant: tvaA,
       apres: tvaB,
-      note:
-        "une part croissante est reversée à la Sécurité sociale et aux collectivités ; " +
-        "seule la part gardée par l'État est comptée ici",
+      // La note complète (« une part croissante est reversée à la Sécurité
+      // sociale et aux collectivités ; seule la part gardée par l'État est
+      // comptée ici ») tient dans le titre du tableau au complet, pas dans une
+      // cellule de la colonne Variation — elle y devient une phrase courte,
+      // sur une seule ligne, quitte à perdre le détail du mécanisme.
+      note: "part reversée en hausse",
     },
     { libelle: "Impôt sur le revenu", avant: irA, apres: irB },
     {
@@ -115,11 +121,9 @@ export function lignes(
       // Mesuré sur les séries réelles : ce reste triple entre 2017 et 2025
       // (+200 %), en miroir mécanique du partage de la TVA — des recettes
       // autrefois comptées ailleurs y entrent. La variation d'un reste dont
-      // la composition change ne se lit pas : elle prend une note, comme la
-      // TVA dont elle est le reflet.
-      note:
-        "un ensemble par soustraction, dont la composition change avec le partage " +
-        "des impôts : sa variation ne se lit pas seule",
+      // la composition change ne se lit pas : elle prend une note courte,
+      // comme la TVA dont elle est le reflet.
+      note: "composition en évolution",
     },
     { libelle: "Impôt sur les sociétés", avant: isA, apres: isB },
     { libelle: "Recettes sans impôt (dividendes, amendes)", avant: nfA, apres: nfB },
@@ -160,15 +164,22 @@ export function rendu(
   // La taille suit le rang : le plus gros montant au plus gros corps. Cinq
   // rangs, cinq crans, écrits en classe et non en style — la feuille garde la
   // main sur l'échelle.
+  // La note vivait sous le libellé, en dessous de la ligne : elle poussait la
+  // valeur sur une ligne de plus et se lisait comme un texte à part, jamais
+  // rattaché au chiffre qu'elle explique. Elle tient maintenant dans la
+  // colonne Variation elle-même, à la place du pourcentage qu'elle remplace —
+  // une ligne, jusqu'au bout.
   const rangees = donnees.lignes
     .map(
       (l, rang) => `<tr class="recettes__rang recettes__rang--${rang}">
-        <th scope="row">${echapper(l.libelle)}${
-          l.note ? `<span class="recettes__note">${echapper(l.note)}</span>` : ""
-        }</th>
+        <th scope="row">${echapper(l.libelle)}</th>
         <td class="flux--plus">${plus(l.avant)}</td>
         <td class="flux--plus">${plus(l.apres)}</td>
-        <td>${l.note ? "" : echapper(variation(l.avant, l.apres))}</td>
+        <td>${
+          l.note
+            ? `<span class="recettes__note">${echapper(l.note)}</span>`
+            : echapper(variation(l.avant, l.apres))
+        }</td>
       </tr>`,
     )
     .join("");

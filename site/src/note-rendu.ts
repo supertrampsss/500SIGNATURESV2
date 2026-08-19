@@ -320,18 +320,19 @@ export function rendreNote(
       <th scope="col">Évolution</th>
       <th scope="col">Points</th></tr></thead>`;
 
+  // La légende expliquait le montage de la colonne « Évolution » et rappelait
+  // que les points sont ceux de l'exercice courant — une phrase que l'en-tête
+  // du tableau dit déjà (deux colonnes nommées, une troisième « Évolution »).
+  // Ne reste que l'exercice et la source, ce qu'un chiffre publié doit
+  // toujours porter. Un commentaire HTML `<!-- -->` finit dans le document
+  // rendu : la garde des cadratins l'aurait lu comme du texte publié.
   return `<section class="note" aria-labelledby="note-titre">
     <h3 class="note__titre" id="note-titre">Gestion financière</h3>
     <p class="note__valeur"><strong>${echapper(total)}</strong><span class="note__bareme"> / 20</span>
       <span class="note__mention">${echapper(mention(note.valeur))}</span></p>
     <table class="note__detail">
-      <caption>Exercice ${echapper(note.mesures.exercice)}${
-        colonneDebut
-          ? `, comparé à ${echapper(premier ?? "")} : les points sont ceux de ${echapper(
-              note.mesures.exercice,
-            )}. La trajectoire note l'évolution de la marge`
-          : ""
-      }. Source : OFGL, comptes des collectivités locales.</caption>
+      <caption>Exercice ${echapper(note.mesures.exercice)}. Source : OFGL, comptes des
+        collectivités locales.</caption>
       ${entete}
       <tbody>${rangs}</tbody>
     </table>

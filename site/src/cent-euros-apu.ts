@@ -167,21 +167,19 @@ function renduVentilation(france: Territoire): string {
       <span class="apu__valeur flux--moins">−${pour100(valeur)}</span>
     </div>`;
 
+  // Ni le total du dépliant (−37,37 €, exercice ${exercice}) ni celui de la
+  // ligne qu'il détaille (−37,11 €, exercice courant) ne sont répétés ici :
+  // deux jeux, deux millésimes, deux totaux à quelques centimes l'un de
+  // l'autre — les montrer tous les deux à la fois lisait comme une erreur. Le
+  // millésime reste écrit, parce qu'une part dont le dénominateur vient d'un
+  // autre exercice que celui du reste de la page doit le dire.
   return `
     <div class="apu__detail">
-      <p class="bloc__complement">La retraite pèse <strong>neuf fois</strong> le chômage, et
-        l'ordre des mots du libellé suggérait le contraire. Parts de l'exercice
-        ${echapper(exercice)}, rapportées aux recettes de ${echapper(exercice)} : la
-        ventilation par fonction s'arrête un exercice plus tôt que les totaux, et une part
-        dont le dénominateur vient d'ailleurs ne mesurerait rien. Source : Eurostat, dépenses
-        des administrations publiques par fonction (COFOG).</p>
+      <p class="bloc__complement">Exercice ${echapper(exercice)} : la ventilation par fonction
+        s'arrête un exercice plus tôt que les recettes qui la rapportent à 100&nbsp;€. Source :
+        Eurostat, dépenses des administrations publiques par fonction (COFOG).</p>
       ${lignes.map((l) => rang(l)).join("")}
       ${rang(["Prestations hors protection sociale (bourses, culture, santé)", reste], true)}
-      <div class="apu__rang apu__total">
-        <span class="apu__nom">Ensemble du poste, exercice ${echapper(exercice)}</span>
-        <span></span>
-        <span class="apu__valeur flux--moins">−${pour100(ensemble)}</span>
-      </div>
     </div>`;
 }
 
@@ -254,13 +252,12 @@ export function rendu(pays: Record<string, Territoire>): string {
           financent) ont encaissé <strong>${montantLisible(total)}</strong> en
           ${echapper(exercice)} et dépensé <strong>${pour100(depense)}</strong> pour chaque
           100 € reçus. Les <strong>${pour100(Math.abs(solde))}</strong> manquants ont été
-          empruntés : c'est le déficit public.</p>
+          empruntés : c'est le déficit public. Le premier poste — retraites, chômage,
+          allocations — en prend plus du tiers, et à l'intérieur, <strong>la retraite pèse
+          neuf fois le chômage</strong>.</p>
         <table class="comparaison" tabindex="0">
-          <caption>Comptabilité nationale, exercice ${echapper(exercice)}. Ce tableau ne se
-            soustrait ni des « 100 € du budget de l'État », qui comptent l'État seul en
-            comptabilité budgétaire, ni des « 100 € de prestations sociales », qui
-            répartissent une dépense et non un encaissement. Source : Eurostat, comptes
-            des administrations publiques.</caption>
+          <caption>Comptabilité nationale, exercice ${echapper(exercice)}. Source&nbsp;: Eurostat,
+            comptes des administrations publiques.</caption>
           <thead><tr><th scope="col">D'où viennent les 100 €</th>
             <th scope="col">Montant</th></tr></thead>
           <tbody>${ressources
@@ -277,17 +274,11 @@ export function rendu(pays: Record<string, Territoire>): string {
         </table>
       </div>
       <div>
-        <h4>Où ils vont</h4>
+        <h3 class="sous-titre">Où ils vont</h3>
         ${
           ventilation
-            ? `<details class="apu__ouvrir">
-          <summary>
-            <div class="apu__rang">
-              <span class="apu__nom">${echapper(premierPoste[0])}</span>
-              <span class="apu__piste"><span style="width:100%"></span></span>
-              <span class="apu__valeur flux--moins">−${pour100(premierPoste[1] ?? 0)}</span>
-            </div>
-          </summary>
+            ? `<details class="apu__ouvrir" open>
+          <summary><span class="apu__nom">${echapper(premierPoste[0])}</span></summary>
           ${ventilation}
         </details>`
             : rang(premierPoste[0], premierPoste[1] ?? 0)

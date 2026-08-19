@@ -47,7 +47,6 @@ const REFERENCE = "2017";
 const RECETTES = "eurostat_apu_recettes";
 const DEPENSES = "eurostat_apu_depenses";
 const PIB = "eurostat_pib_montant";
-const POPULATION = "eurostat_population";
 const PRIX = "eurostat_prix_ensemble";
 const ETAT = "etat_recettes_nettes_bg";
 
@@ -91,7 +90,6 @@ export type Ouverture = {
   reelDepenses: number | null;
   reelRecettes: number | null;
   reelPib: number | null;
-  parHabitant: number;
   /** Les exercices du tableau d'évolution : début, un sur deux, fin. */
   exercices: string[];
 };
@@ -104,7 +102,7 @@ export type Ouverture = {
 export function chiffres(france: Territoire | undefined): Ouverture | null {
   if (!france) return null;
   const serie = (id: string) => france.series[id] ?? {};
-  const [r, d, p, h, prix] = [RECETTES, DEPENSES, PIB, POPULATION, PRIX].map(serie);
+  const [r, d, p, prix] = [RECETTES, DEPENSES, PIB, PRIX].map(serie);
   const communs = Object.keys(r)
     .filter((an) => d[an] !== undefined && p[an] !== undefined)
     .sort();
@@ -113,9 +111,6 @@ export function chiffres(france: Territoire | undefined): Ouverture | null {
   // La référence si elle est publiée, le premier exercice sinon : un module qui
   // exigerait 2017 se tairait entièrement sur une source qui commence après.
   const debut = communs.includes(REFERENCE) && REFERENCE !== fin ? REFERENCE : communs[0];
-
-  const habitants = h[fin] ?? h[Object.keys(h).sort().pop() ?? ""];
-  if (!habitants) return null;
 
   // L'évolution en euros constants : chaque bout déflaté par l'indice des prix
   // de son exercice. Null plutôt qu'un chiffre courant déguisé en constant.
@@ -142,7 +137,6 @@ export function chiffres(france: Territoire | undefined): Ouverture | null {
     reelDepenses: reel(d),
     reelRecettes: reel(r),
     reelPib: reel(p),
-    parHabitant: d[fin] / habitants,
     exercices,
   };
 }
@@ -222,33 +216,30 @@ ${
         </table>
       </div>
     </div>
-    <p class="ouverture__lecture">Rapporté aux habitants, la dépense publique représente
-      <strong>${EUROS.format(c.parHabitant)} €</strong> par personne et par an. Elle ne leur est pas
-      prélevée à chacun&nbsp;: elle comprend les retraites, les soins et les salaires des agents,
-      c'est-à-dire de l'argent qui leur revient.</p>
     <p class="ouverture__source">Comptabilité nationale, exercices ${echapper(c.debut)} à
       ${echapper(c.fin)}. Source&nbsp;: Eurostat, comptes des administrations publiques,
       comptes nationaux annuels et indice des prix à la consommation harmonisé.</p>`;
 }
 
 /**
- * Le pont des périmètres, entre les chapitres 1 et 2.
+ * Le pont des périmètres, en tête du chapitre 2.
  *
- * 1 562 milliards encaissés au chapitre 1, 380 au chapitre 2 : sans la phrase
- * qui fait descendre d'un étage, les deux chiffres se lisaient comme une
- * contradiction — c'est le premier reproche du lecteur sur la maquette. La
- * chaîne vide tant que les deux séries ne partagent pas l'exercice.
+ * 1 562 milliards encaissés au chapitre 1, 380 ici : sans cette phrase, les
+ * deux chiffres se lisaient comme une contradiction — c'est le premier
+ * reproche du lecteur sur la maquette. Elle vivait sous « Le chapitre suivant
+ * descend d'un étage. », une amorce qui n'a plus de sens une fois posée EN
+ * TÊTE du chapitre suivant plutôt qu'à la fin du précédent. La chaîne vide
+ * tant que les deux séries ne partagent pas l'exercice.
  */
 export function pont(pays: Record<string, Territoire>): string {
   const france = pays["FR"];
   const c = chiffres(france);
   const etat = france?.series[ETAT]?.[c?.fin ?? ""];
   if (!c || etat === undefined) return "";
-  return `<strong>Le chapitre suivant descend d'un étage.</strong> Sur ces
-    ${montantLisible(c.recettes)} encaissés par l'ensemble, le budget de l'État en encaisse
-    <strong>${montantLisible(etat)}</strong> en propre. Le reste est encaissé directement par la
-    Sécurité sociale (les cotisations sur les salaires), les collectivités (impôts locaux) et
-    les autres organismes publics.`;
+  return `Sur ${montantLisible(c.recettes)} encaissés par l'ensemble des administrations
+    publiques, le budget de l'État en encaisse <strong>${montantLisible(etat)}</strong> en
+    propre. Le reste est encaissé directement par la Sécurité sociale (les cotisations sur les
+    salaires), les collectivités (impôts locaux) et les autres organismes publics.`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint. Le pont est rempli ici
