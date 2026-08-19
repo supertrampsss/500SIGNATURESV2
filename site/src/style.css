@@ -3145,18 +3145,19 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* ─────────────────────────────────────────────────────────────────────────
    LES CINQ CHAPITRES DE BILAN
    ─────────────────────────────────────────────────────────────────────────
-   Le rang et la question sont la seule chrome : un filet teinté en tête de
-   chapitre, un rang en petites capitales, la question en serif. Les blocs
-   d'un chapitre ne sont PAS des cartes — la maquette validée pose le contenu
-   à même la page, et la première mise en production, qui gardait les cadres
-   bordés, ne lui ressemblait plus.
+   La question est la seule chrome : un filet teinté en tête de chapitre, la
+   question en serif. Ni le mot « Chapitre » ni son numéro ne s'affichent —
+   la page ne se lit pas comme un livre, et /territoire ne numérote pas ses
+   sections non plus. Les blocs d'un chapitre ne sont PAS des cartes — la
+   maquette validée pose le contenu à même la page, et la première mise en
+   production, qui gardait les cadres bordés, ne lui ressemblait plus.
 
    `.chapitre__duo` pose l'affirmation à côté de sa preuve au-dessus de 60rem,
    À L'INTÉRIEUR d'un bloc — jamais entre deux blocs, qui s'empilent comme
    dans la maquette. (`.chapitre__paire`, qui mettait deux blocs côte à côte,
    n'a plus d'occurrence au gabarit ; la règle reste pour la garde des
    grilles.) */
-/* Chaque chapitre porte une identité de la gamme : filet, rang, totaux. La
+/* Chaque chapitre porte une identité de la gamme : filet et totaux. La
    teinte dit « c'est ce chapitre-là », jamais un rang ni un jugement — les
    cinq sont des rangs de la gamme validée (voir --serie-1). */
 #chapitre-combien { --chapitre: var(--serie-1); }
@@ -3178,28 +3179,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 .chapitre:first-of-type {
   margin-top: var(--espace-6);
-}
-.chapitre__rang {
-  font-family: var(--sans);
-  font-size: var(--texte-xs);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  /* L'encre douce, PAS la teinte du chapitre : la gamme est validée à 3:1
-     pour des marques graphiques, et un texte de 12 px exige 4,5:1 — mesuré à
-     l'axe-core, quatre rangs sur cinq échouaient. L'identité du chapitre
-     passe par le filet de 4 px au-dessus, qui est une marque. */
-  color: var(--encre-douce);
-  font-weight: 600;
-  margin: 0;
-}
-/* Le périmètre sous la question : « toutes les administrations publiques » ou
-   « le budget de l'État seul ». Sans lui, 1 562 milliards au chapitre 1 puis
-   380 au chapitre 2 se lisaient comme une contradiction. */
-.chapitre__perimetre {
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  margin: 0;
-  max-width: 66ch;
 }
 /* Le pont entre deux périmètres : la phrase qui fait descendre d'un étage. */
 .chapitre__pont {

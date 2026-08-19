@@ -646,19 +646,23 @@ test("le pied du bilan est replié : trois documents de référence, pas trois c
   }
 });
 
-test("la gamme ne peint jamais du texte : rang de chapitre et signes en encre", () => {
+test("la gamme ne peint jamais du texte : les signes de flux restent en encre", () => {
   // La gamme est validée à 3:1 — le seuil des MARQUES graphiques. Un texte de
-  // 12 px exige 4,5:1, et l'axe-core a relevé quatre rangs de chapitre sur
-  // cinq en violation quand ils portaient la teinte du chapitre. L'identité
-  // passe par le filet de 4 px, qui est une marque ; le rang reste en encre
-  // douce, et les signes +/− des flux ne portent aucune couleur.
-  const rang = CSS_REGLES.match(/\.chapitre__rang \{([^}]*)\}/)?.[1];
-  assert.ok(rang, ".chapitre__rang sans règle");
-  assert.match(rang, /color: var\(--encre-douce\)/);
-  assert.doesNotMatch(rang, /var\(--chapitre/);
+  // 12 px exige 4,5:1 : les signes +/− des flux ne portent donc aucune
+  // couleur, l'identité du chapitre passant par le filet de 4 px au-dessus,
+  // qui est une marque.
   const flux = CSS_REGLES.match(/\.flux--plus,\s*\.flux--moins \{([^}]*)\}/)?.[1];
   assert.ok(flux, ".flux--plus/.flux--moins sans règle commune");
   assert.doesNotMatch(flux, /color:/);
+});
+
+test("les chapitres du bilan ne se numérotent pas : un intitulé, comme sur /territoire", () => {
+  // « Chapitre 1 », « Chapitre 2 »… empilé cinq fois lisait comme une table
+  // des matières de roman, et /territoire ne numérote aucune de ses
+  // sections. Régression exacte d'une première correction qui n'avait
+  // raccourci que les questions sans retirer le mot « Chapitre ».
+  assert.doesNotMatch(PAGE, /chapitre__rang/);
+  assert.doesNotMatch(PAGE, />Chapitre\s+\d</);
 });
 
 test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu", () => {
