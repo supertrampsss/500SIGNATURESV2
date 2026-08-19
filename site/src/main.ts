@@ -20,7 +20,8 @@ import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
 import {
   palmares,
   rendrePalmares,
-  rendreSemblables,
+  rendreVoisinage,
+  voisinage,
   type Ligne as LignePalmares,
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
@@ -2145,14 +2146,16 @@ const VUES_PAGE = ["territoire", "bilan"] as const;
  * exercice 2019 manquant vaut « pas de trajectoire », que la note sait traiter.
  */
 /**
- * Le palmarès du groupe de pairs du territoire ouvert, au-dessus de celui de
- * l'échelon.
+ * Le voisinage de rang du territoire ouvert, dans son groupe de pairs.
  *
  * Il ne paraît qu'à la maille commune, et seulement quand une commune est
  * ouverte : c'est le seul échelon dont l'OFGL publie des critères de
  * comparaison, et un groupe sans territoire à situer dedans n'a personne à
- * situer. Le palmarès de l'échelon, lui, reste affiché dans tous les cas —
- * c'est la page qu'on ouvre pour demander « et les autres ? ».
+ * situer. Quand il paraît, il REMPLACE le palmarès national de l'échelon
+ * (`peindrePalmares`) plutôt que de s'ajouter à lui : « qui est en tête des
+ * 34 778 communes de France » ne répond pas à la question qu'on vient poser
+ * en ouvrant une commune, c'est « où suis-je, moi ». Le palmarès national
+ * reste la réponse par défaut tant qu'aucune commune n'est ouverte.
  */
 function rendreGroupeSemblable(
   index: IndexTerritoires,
@@ -2165,7 +2168,7 @@ function rendreGroupeSemblable(
   const membres = lignes.filter((ligne) => groupe.codes.has(ligne.code));
   const vous = membres.find((ligne) => ligne.code === etat.selection);
   if (!vous) return "";
-  return rendreSemblables(palmares(membres, 5), groupe.intitules, {
+  return rendreVoisinage(voisinage(membres, vous.code), groupe.intitules, {
     code: vous.code,
     nom: vous.nom,
     note: vous.note,
@@ -2220,8 +2223,11 @@ async function peindrePalmares(): Promise<void> {
     // même barème et le même tri, sur la seule population qui répond à
     // « et les communes qui ressemblent à la mienne ? ». Il se compose des
     // drapeaux publiés avec l'index et des notes déjà calculées ci-dessus :
-    // pas une requête de plus.
-    cible.innerHTML = rendreGroupeSemblable(index, lignes, niveau) + rendrePalmares(palmares(lignes), niveau);
+    // pas une requête de plus. Quand il s'affiche, il remplace le palmarès
+    // national de l'échelon plutôt que de s'y ajouter — voir la docstring de
+    // `rendreGroupeSemblable`.
+    const groupe = rendreGroupeSemblable(index, lignes, niveau);
+    cible.innerHTML = groupe || rendrePalmares(palmares(lignes), niveau);
     // Chaque ligne ouvre la fiche du territoire, à la maille du palmarès —
     // même contrat que le pli du classement, même gestionnaire par délégation.
     cible.addEventListener("click", (evenement) => {

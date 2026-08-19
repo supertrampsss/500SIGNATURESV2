@@ -288,42 +288,108 @@ function phraseExAequo(
 /** Le territoire dont on lit le groupe, tel que la phrase le nomme. */
 export type Vous = { code: string; nom: string; note: Note };
 
-/** « 1re », « 34e ». Le premier rang porte sa marque, les autres non — et les
- *  communes sont féminines, seule maille qui porte des critères de groupe. */
-function ordinal(rang: number): string {
-  return rang === 1 ? "1re" : `${rang}e`;
+export type Voisinage = {
+  /** La fenêtre, dans l'ordre du classement — pas « les meilleures » et « les
+   *  moins bonnes » du groupe séparément, une suite de rangs consécutifs. */
+  lignes: Ligne[];
+  /** Le rang de chaque ligne de la fenêtre, à la même convention que
+   *  `rangs()` — calculé sur le groupe entier, pas sur la fenêtre seule. */
+  rangs: number[];
+  /** L'index de « vous » dans `lignes` — toujours présent, la fenêtre est
+   *  construite autour de lui. */
+  indexVous: number;
+  effectif: number;
+  mediane: number;
+  exercice: string;
+  autresExercices: number;
+  /** Combien de territoires du groupe ENTIER partagent exactement la note de
+   *  « vous » — pas seulement ceux visibles dans la fenêtre. Un plafond
+   *  encombré de 30 communes à égalité ne devient pas 6 parce que la fenêtre
+   *  n'en montre que 7 : « à égalité avec 29 autres » reste vrai même quand
+   *  la liste affichée n'en montre qu'une poignée. */
+  partageVous: number;
+};
+
+/**
+ * La fenêtre de rangs autour d'un territoire, dans son groupe.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * POURQUOI UNE FENÊTRE, ET PAS « LES MEILLEURES » ET « LES MOINS BONNES »
+ * ─────────────────────────────────────────────────────────────────────────
+ * `rendreSemblables` montrait le haut et le bas du groupe — deux listes que
+ * `colonnes()` sert aussi au palmarès de l'échelon. Une commune classée 14e
+ * sur 25 n'apparaissait dans AUCUNE des deux : ni parmi les 5 meilleures, ni
+ * parmi les 5 moins bonnes. La question posée par cette section n'est pas
+ * « qui est en tête du groupe », c'est « où suis-je, moi » — la réponse est
+ * une fenêtre de rangs CONSÉCUTIFS centrée sur le territoire, qui le contient
+ * donc toujours.
+ *
+ * La fenêtre glisse vers le bord quand le territoire est trop près du haut ou
+ * du bas pour tenir `2 * rayon + 1` rangs entiers — un territoire 2e sur 25
+ * montre les rangs 1 à 7, pas seulement 1 à 5 suivis d'un trou.
+ */
+export function voisinage(lignes: Ligne[], vousCode: string, rayon = 3): Voisinage | null {
+  if (!lignes.length) return null;
+  const parPopulation = (a: Ligne, b: Ligne) =>
+    (b.population ?? -1) - (a.population ?? -1) || a.nom.localeCompare(b.nom, "fr");
+  const triees = [...lignes].sort((a, b) => b.note.valeur - a.note.valeur || parPopulation(a, b));
+  const position = triees.findIndex((l) => l.code === vousCode);
+  if (position === -1) return null;
+
+  const taille = Math.min(2 * rayon + 1, triees.length);
+  const debut = Math.min(Math.max(0, position - rayon), triees.length - taille);
+  const fenetre = triees.slice(debut, debut + taille);
+
+  const valeurs = triees.map((l) => l.note.valeur);
+  const milieu = Math.floor((valeurs.length - 1) / 2);
+  const exercices = new Map<string, number>();
+  for (const l of triees) {
+    exercices.set(l.note.mesures.exercice, (exercices.get(l.note.mesures.exercice) ?? 0) + 1);
+  }
+  const [exercice, compte] = [...exercices].sort((a, b) => b[1] - a[1])[0];
+
+  return {
+    lignes: fenetre,
+    rangs: rangs(fenetre, valeurs),
+    indexVous: position - debut,
+    effectif: triees.length,
+    mediane: valeurs[milieu],
+    exercice,
+    autresExercices: triees.length - compte,
+    partageVous: valeurs.filter((v) => v === valeurs[position]).length,
+  };
 }
 
 /**
- * Le palmarès du groupe de communes semblables.
+ * Le voisinage de rang du territoire choisi, dans son groupe de semblables.
  *
- * Même barème, même tri, mêmes colonnes que le palmarès de l'échelon : seule
- * change la population comparée. La phrase de cadrage porte ce qui fait la
- * différence — **les critères du groupe**, sans lesquels « 48 communes » ne
- * veut rien dire, et **la place du territoire dans son groupe**, qui est la
- * réponse qu'on est venu chercher.
- *
- * Le rang se lit sur les communes du groupe **qui portent une note**, jamais
- * sur celles qui existent : c'est la règle que `situation.ts` et le palmarès
- * tiennent déjà.
+ * Une seule liste, jamais deux colonnes disjointes : `voisinage()` construit
+ * déjà la fenêtre autour de « vous », qui s'y trouve donc toujours — plus
+ * besoin de deux populations (« les meilleures », « les moins bonnes ») dont
+ * une seule, généralement, contient le territoire qu'on est venu chercher.
  */
-export function rendreSemblables(
-  resultat: Palmares | null,
-  intitules: string[],
-  vous: Vous,
-): string {
+export function rendreVoisinage(resultat: Voisinage | null, intitules: string[], vous: Vous): string {
   if (!resultat) return "";
-  const { tete, queue, effectif, mediane, exercice, valeurs } = resultat;
+  const {
+    lignes,
+    rangs: rangsFenetre,
+    effectif,
+    mediane,
+    exercice,
+    autresExercices,
+    indexVous,
+    partageVous,
+  } = resultat;
   const nombre = (n: number) => n.toLocaleString("fr-FR");
   const note = (n: number) =>
     n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const rang = 1 + valeurs.filter((v) => v > vous.note.valeur).length;
-  const partagent = valeurs.filter((v) => v === vous.note.valeur).length;
-  // Un rang partagé se dit : « 22e » quand deux communes du groupe valent
-  // exactement la même note laisse croire à une place propre.
+  const rangVous = rangsFenetre[indexVous];
+  // Compté sur le groupe entier, pas sur la fenêtre affichée : un plafond
+  // encombré de 30 communes reste 29 autres même quand la liste n'en montre
+  // que 6.
   const egalite =
-    partagent > 1
-      ? `, à égalité avec ${partagent === 2 ? "une autre" : `${nombre(partagent - 1)} autres`}`
+    partageVous > 1
+      ? `, à égalité avec ${partageVous === 2 ? "une autre" : `${nombre(partageVous - 1)} autres`}`
       : "";
   return `<section class="palmares palmares--semblables" aria-labelledby="palmares-semblables">
     <h3 class="palmares__titre" id="palmares-semblables">Les communes semblables à ${echapper(
@@ -334,21 +400,23 @@ export function rendreSemblables(
     )}, qui publient les trois séries de leurs comptes. Les critères de
     comparaison sont ceux de l'Observatoire des finances locales. Note de
     gestion de l'exercice ${echapper(exercice)}.${
-      // Le millésime dominant est écrit ; celles qui en diffèrent sont
-      // comptées plutôt que tues, comme au palmarès de l'échelon.
-      resultat.autresExercices
-        ? ` ${nombre(resultat.autresExercices)} ${
-            resultat.autresExercices === 1 ? "est notée" : "sont notées"
+      autresExercices
+        ? ` ${nombre(autresExercices)} ${
+            autresExercices === 1 ? "est notée" : "sont notées"
           } sur l'exercice précédent.`
         : ""
-    } ${echapper(vous.nom)} est ${ordinal(rang)} sur ${nombre(effectif)}, à ${note(
+    } ${echapper(vous.nom)} est ${ordinal(rangVous)} sur ${nombre(effectif)}, à ${note(
       vous.note.valeur,
-    )} sur 20${egalite} ; la note médiane du groupe est de ${note(mediane)} sur 20.${phraseExAequo(
-      resultat.exAequoTete,
-      tete[0]?.note.valeur ?? 0,
-      "en tête",
-      "communes",
-    )}${phraseExAequo(resultat.exAequoQueue, queue[0]?.note.valeur ?? 0, "en bas", "communes")}</p>
-    ${colonnes(tete, rangs(tete, valeurs), queue, rangs(queue, valeurs), true, vous.code)}
+    )} sur 20${egalite} ; la note médiane du groupe est de ${note(mediane)} sur 20.</p>
+    <ol class="palmares__liste">${lignes
+      .map((l, i) => rangee(l, rangsFenetre[i], vous.code))
+      .join("")}</ol>
   </section>`;
 }
+
+/** « 1re », « 34e ». Le premier rang porte sa marque, les autres non — et les
+ *  communes sont féminines, seule maille qui porte des critères de groupe. */
+function ordinal(rang: number): string {
+  return rang === 1 ? "1re" : `${rang}e`;
+}
+
