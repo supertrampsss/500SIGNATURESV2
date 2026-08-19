@@ -7761,10 +7761,19 @@ body[data-carte="oui"] .legende {
   font-family: var(--serif);
   font-size: var(--texte-m);
   font-weight: 600;
-  margin: var(--espace-4) 0 var(--espace-2);
+  margin: 0 0 var(--espace-2);
 }
-.davantage__theme h4:first-child {
-  margin-top: 0;
+/* Chaque table de détail (âges, diplômes, pauvreté) prend un cadre propre,
+   comme les cartes de tête juste au-dessus : un `h4` seul au-dessus d'une
+   table sans en-tête se lisait comme du texte qui traîne, pas comme un bloc
+   d'information. */
+.davantage__groupe {
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon-s);
+  padding: var(--espace-4);
+}
+.davantage__groupe + .davantage__groupe {
+  margin-top: var(--espace-3);
 }
 .davantage__table {
   width: 100%;
@@ -7798,8 +7807,8 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
 }
 
-/* Le pli qui ouvre la liste nominative complète : la table par activité
-   suffit à la plupart des lectures, la liste entière reste à un geste. */
+/* Le pli qui ouvre le reste de la liste nominative, au-delà des associations
+   déjà visibles. */
 .davantage__pli > summary {
   cursor: pointer;
   list-style: none;

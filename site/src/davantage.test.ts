@@ -231,21 +231,23 @@ test("un compte n'a pas de décimale dans le tableau des diplômes", () => {
   assert.doesNotMatch(bloc, /636,0/);
 });
 
-test("sécurité montre 2019, le dernier exercice et l'écart en points, jamais divisé par dix", () => {
+test("sécurité montre 2019, le dernier exercice et l'évolution en pourcentage", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-securite"'), html.indexOf('id="davantage-tourisme"'));
   assert.doesNotMatch(bloc, /davantage__mag/, "la sécurité se lit en table, plus en barres");
   assert.match(bloc, /<th>2019<\/th>/);
-  // 7,2 − 9,4 = −2,2 points, jamais divisé par dix (registre ‰, pas %).
+  // (7,2 − 9,4) / 9,4 = −23,4 %, la même formule de variation que le reste du
+  // site — jamais un écart en points de ‰, qui ne se lisait pas.
   assert.match(bloc, /9,4 ‰/);
-  assert.match(bloc, /−2,2 pts/);
+  assert.match(bloc, /−23,4 %/);
+  assert.doesNotMatch(bloc, /pts?</);
   // Cambriolages n'a pas de valeur 2019 dans le banc : l'absence se voit,
-  // elle ne s'invente pas en écart nul.
+  // elle ne s'invente pas en variation nulle.
   const ligneCambriolages = bloc.slice(bloc.indexOf("Cambriolages"));
   assert.match(ligneCambriolages, /<td class="davantage__num">—<\/td>/);
 });
 
-test("vie associative récapitule par mission budgétaire, en M€ à deux décimales, avec un pli vers la liste complète", () => {
+test("vie associative liste les associations nommément, sans récap par mission", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, {
     exercice: "2021",
     beneficiaires: [
@@ -260,15 +262,40 @@ test("vie associative récapitule par mission budgétaire, en M€ à deux déci
     ],
   } as never);
   const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'), html.indexOf('id="davantage-population"'));
-  // 120 000 € = 0,12 M€, toujours deux décimales.
-  assert.match(bloc, /Sport, jeunesse et vie associative<\/td><td class="davantage__num">0,12\u202fM€/);
-  assert.match(bloc, /Culture<\/td><td class="davantage__num">0,03\u202fM€/);
-  // Mission absente de la nomenclature : un intitulé plutôt qu'une case vide.
-  assert.match(bloc, /Autres programmes<\/td><td class="davantage__num">0,01\u202fM€/);
-  // Le pli mène à la liste complète, fermé par défaut — un geste, pas un
-  // mur imposé.
+  // Le récap par mission budgétaire est parti : une subvention peut porter un
+  // code de programme sans rapport lisible avec l'activité de l'association
+  // (voir le docstring de la fonction), et regrouper par ce code fait lire
+  // une mission comme sous-dotée alors que l'argent est ailleurs.
+  assert.doesNotMatch(bloc, /davantage__table/);
+  assert.doesNotMatch(bloc, /Sport, jeunesse et vie associative<\/td>/);
+  // Les trois associations sont toutes visibles directement : sous le seuil
+  // de 15, aucun pli ne s'affiche.
+  assert.doesNotMatch(bloc, /<details/);
+  assert.match(bloc, /ASSO SPORT/);
+  assert.match(bloc, /ASSO CULTURE/);
+  assert.match(bloc, /ASSO SANS MISSION CONNUE/);
+});
+
+test("au-delà de 15 associations, le reste se déplie plutôt que de s'afficher d'un bloc", () => {
+  const beneficiaires = Array.from({ length: 18 }, (_, i) => ({
+    siren: String(i),
+    nom: `ASSO ${i}`,
+    programme: "219",
+    objet: null,
+    montant: 1000 - i,
+  }));
+  const html = rendu(TERRITOIRE, CATALOGUE, { exercice: "2021", beneficiaires } as never);
+  const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'), html.indexOf('id="davantage-population"'));
+  const avantPli = bloc.slice(0, bloc.indexOf("<details"));
+  // Les quinze mieux dotées (déjà triées, la plus dotée d'abord) sont
+  // visibles sans geste.
+  for (let i = 0; i < 15; i += 1) assert.match(avantPli, new RegExp(`ASSO ${i}\\b`));
+  assert.doesNotMatch(avantPli, /ASSO 15\b/);
+  // Le pli porte les trois restantes, fermé par défaut.
   assert.match(bloc, /<details class="davantage__pli">/);
   assert.doesNotMatch(bloc, /<details class="davantage__pli" open/);
-  assert.match(bloc, /Voir les 3 associations/);
-  assert.match(bloc, /ASSO SPORT/);
+  assert.match(bloc, /Voir les 3 autres associations/);
+  const dansLePli = bloc.slice(bloc.indexOf("<details"));
+  assert.match(dansLePli, /ASSO 15\b/);
+  assert.match(dansLePli, /ASSO 17\b/);
 });

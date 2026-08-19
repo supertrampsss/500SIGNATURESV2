@@ -28,6 +28,7 @@
 import { valeurLisible } from "./analyses.ts";
 import type { Indicateur, SubventionsCommune, Territoire } from "./donnees.ts";
 import { pourcentage } from "./echelle.ts";
+import { variation } from "./ouverture.ts";
 
 function echapper(texte: string): string {
   return texte.replace(
@@ -278,23 +279,28 @@ function themePopulationRevenusDiplomes(indicateurs: Indicateur[], territoire: T
   // pas.
   const lignesAges = AGES.map((a) => population.find((l) => l.id === a.id)).filter((l): l is Ligne => Boolean(l));
   const memeExercice = lignesAges.length === AGES.length && lignesAges.every((l) => l.exercice === lignesAges[0]!.exercice);
+  const groupe = (titre: string, tableau: string) =>
+    tableau ? `<div class="davantage__groupe"><h4>${echapper(titre)}</h4>${tableau}</div>` : "";
+
   const ageTable = memeExercice
-    ? `<h4>Population par tranche d'âge, ${echapper(lignesAges[0]!.exercice)}</h4>${table(
-        lignesAges.map((l) => ({ libelle: l.libelle, valeur: l.texte })),
-      )}`
+    ? groupe(
+        `Population par tranche d'âge, ${lignesAges[0]!.exercice}`,
+        table(lignesAges.map((l) => ({ libelle: l.libelle, valeur: l.texte }))),
+      )
     : "";
 
   const diplomesTable = diplomes.length
-    ? `<h4>Diplômes de la population, ${echapper(diplomes[0]!.exercice)}</h4>${table(
-        [...diplomes].sort((a, b) => b.brut - a.brut).map((l) => ({ libelle: l.libelle, valeur: l.texte })),
-      )}`
+    ? groupe(
+        `Diplômes de la population, ${diplomes[0]!.exercice}`,
+        table([...diplomes].sort((a, b) => b.brut - a.brut).map((l) => ({ libelle: l.libelle, valeur: l.texte }))),
+      )
     : "";
 
   // La pauvreté, sous les diplômes : le taux publié à la maille de ce
   // territoire, et les deux prestations que la CAF verse aux foyers modestes.
   const pauvrete = revenus.filter((l) => ["insee_taux_pauvrete", "cnaf_foyers_rsa", "cnaf_foyers_prime_activite"].includes(l.id));
   const pauvreteTable = pauvrete.length
-    ? `<h4>Pauvreté</h4>${table(pauvrete.map((l) => ({ libelle: l.libelle, valeur: l.texte, exercice: l.exercice })))}`
+    ? groupe("Pauvreté", table(pauvrete.map((l) => ({ libelle: l.libelle, valeur: l.texte, exercice: l.exercice }))))
     : "";
 
   return section(
@@ -411,18 +417,6 @@ function themeSecteurs(territoire: Territoire): string {
   );
 }
 
-/** Un écart entre deux taux, signé, jamais divisé par dix : `formaterVariation`
- *  (evolution-carte.ts) convertit les `pour_1000_*` en pourcentage pour la
- *  carte, un registre différent de celui d'ici, où le taux lui-même reste en
- *  ‰. Diviser l'écart et pas le taux aurait contredit la colonne juste à
- *  côté. */
-function ecartPoints(depart: number, arrivee: number): string {
-  const ecart = Math.round((arrivee - depart) * 10) / 10;
-  const texte = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.abs(ecart));
-  if (ecart === 0) return `0 pt`;
-  return `${ecart > 0 ? "+" : "−"}${texte} pt${Math.abs(ecart) >= 2 ? "s" : ""}`;
-}
-
 const EXERCICE_REFERENCE = "2019";
 
 /** Sécurité : les seuls taux (pour mille habitants ou logements), avec leur
@@ -481,7 +475,7 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
         `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${
           l.depart === null ? "—" : echapper(l.texteDepart)
         }</td><td class="davantage__num">${echapper(l.texteArrivee)}</td><td class="davantage__num">${
-          l.depart === null ? "—" : echapper(ecartPoints(l.depart, l.arrivee))
+          l.depart === null || l.depart === 0 ? "—" : echapper(variation(l.depart, l.arrivee))
         }</td></tr>`,
     )
     .join("")}</tbody></table>`;
@@ -497,11 +491,19 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
  *  par l'État, pas seulement leur total. La liste nominative vit dans un
  *  fichier à part (`donnees.subventions`, publié par département) ; en son
  *  absence — département non chargé, ou aucune association identifiée — le
- *  thème garde son seul agrégat plutôt que de ne rien afficher. */
-/** Millions d'euros, toujours deux décimales : contrairement à `millions()`
- *  (qui ajuste le nombre de décimales à la taille du montant), une somme par
- *  mission reste comparable d'une ligne à l'autre du même tableau — c'est la
- *  règle de la décimale fixe, tenue ici pour une seule colonne. */
+ *  thème garde son seul agrégat plutôt que de ne rien afficher.
+ *
+ *  Un récapitulatif par mission budgétaire a vécu ici : le code du
+ *  programme, seule typologie du jaune qui soit un vocabulaire contrôlé,
+ *  suffit à grouper les montants, mais pas à leur donner un sens de
+ *  lecteur — une subvention d'action sociale pour demandeurs d'asile peut
+ *  être rattachée au programme « Hébergement… » (mission Cohésion des
+ *  territoires) plutôt qu'à « Immigration, asile et intégration », parce
+ *  que c'est la ligne budgétaire réelle de l'État, pas l'activité de
+ *  l'association. Un regroupement qui peut faire lire une mission comme
+ *  sous-dotée alors que l'argent est ailleurs dans le même tableau est
+ *  retiré plutôt que corrigé au cas par cas. */
+/** Millions d'euros, toujours deux décimales. */
 function millionsDeuxDecimales(valeur: number): string {
   return `${new Intl.NumberFormat("fr-FR", {
     minimumFractionDigits: 2,
@@ -509,7 +511,8 @@ function millionsDeuxDecimales(valeur: number): string {
   }).format(valeur / 1e6)} M€`;
 }
 
-const MISSION_INCONNUE = "Autres programmes";
+/** Combien d'associations s'affichent directement, sans dépli. */
+const ASSOCIATIONS_VISIBLES = 15;
 
 function themeVieAssociative(
   indicateurs: Indicateur[],
@@ -532,33 +535,24 @@ function themeVieAssociative(
         : `${beneficiaires.length} associations subventionnées par l'État à ${echapper(nom)} en ${echapper(exercice)}, pour ${echapper(
             millionsDeuxDecimales(total),
           )} au total.`;
-    // Par activité : la seule typologie du jaune qui soit un vocabulaire
-    // contrôlé (`programmes_budgetaires()`, publish.py) — la mission
-    // budgétaire de chaque programme, déjà résolue à la publication.
-    const parMission = new Map<string, number>();
-    for (const p of associations!.programmes ?? []) {
-      const cle = p.mission || MISSION_INCONNUE;
-      parMission.set(cle, (parMission.get(cle) ?? 0) + p.montant);
-    }
-    const recap = [...parMission.entries()].sort((a, b) => b[1] - a[1]);
-    const tableauMissions = recap.length
-      ? table(recap.map(([mission, montant]) => ({ libelle: mission, valeur: millionsDeuxDecimales(montant) })))
+    // La plus dotée d'abord (donnees.ts) : les quinze premières s'affichent
+    // directement, le reste se déplie.
+    const ligneAssoc = (b: (typeof beneficiaires)[number]) =>
+      `<div class="davantage__assoc"><span class="davantage__nom">${echapper(b.nom)}</span><span class="davantage__montant">${echapper(
+        euros(b.montant),
+      )}</span>${b.objet ? `<span class="davantage__objet">${echapper(b.objet)}</span>` : ""}</div>`;
+    const visibles = beneficiaires.slice(0, ASSOCIATIONS_VISIBLES);
+    const reste = beneficiaires.slice(ASSOCIATIONS_VISIBLES);
+    const liste = `<div class="davantage__associations">${visibles.map(ligneAssoc).join("")}</div>`;
+    const pli = reste.length
+      ? `<details class="davantage__pli"><summary>Voir ${
+          reste.length === 1 ? "l'autre association" : `les ${reste.length} autres associations`
+        }</summary><div class="davantage__associations">${reste.map(ligneAssoc).join("")}</div></details>`
       : "";
-    const liste = `<div class="davantage__associations">${beneficiaires
-      .map(
-        (b) =>
-          `<div class="davantage__assoc"><span class="davantage__nom">${echapper(b.nom)}</span><span class="davantage__montant">${echapper(
-            euros(b.montant),
-          )}</span>${b.objet ? `<span class="davantage__objet">${echapper(b.objet)}</span>` : ""}</div>`,
-      )
-      .join("")}</div>`;
-    const pli = `<details class="davantage__pli"><summary>Voir ${
-      beneficiaires.length === 1 ? "l'association" : `les ${beneficiaires.length} associations`
-    }</summary>${liste}</details>`;
     return section(
       "vie-associative",
       "Vie associative",
-      `<p class="davantage__affirmation">${phrase}</p>${tableauMissions}${pli}`,
+      `<p class="davantage__affirmation">${phrase}</p>${liste}${pli}`,
       "Source : jaune budgétaire, effort financier de l'État en faveur des associations.",
     );
   }
