@@ -8,7 +8,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { noter } from "./note.ts";
-import { palmares, rangs, rendrePalmares, rendreSemblables, type Ligne } from "./palmares.ts";
+import { palmares, rangs, rendrePalmares, rendreVoisinage, voisinage, type Ligne } from "./palmares.ts";
 
 /** Un échelon d'essai : `n` territoires dont la note décroît régulièrement. */
 function echelon(n: number, exercice = "2025"): Ligne[] {
@@ -269,7 +269,7 @@ test("les titres de colonnes s'accordent aussi, pas seulement celui du haut", ()
 });
 
 /* ---------------------------------------------------------------------- *
- * LE GROUPE DE COMMUNES SEMBLABLES                                        *
+ * LE VOISINAGE DE RANG DANS LE GROUPE DE COMMUNES SEMBLABLES              *
  * ---------------------------------------------------------------------- */
 
 const INTITULES = ["de 100\u202f000 habitants et plus", "urbaines", "de métropole"];
@@ -277,7 +277,7 @@ const INTITULES = ["de 100\u202f000 habitants et plus", "urbaines", "de métropo
 test("le groupe nomme ses critères : « 40 communes » seul ne veut rien dire", () => {
   const groupe = echelon(40);
   const rendu = texte(
-    rendreSemblables(palmares(groupe, 5), INTITULES, {
+    rendreVoisinage(voisinage(groupe, groupe[7].code), INTITULES, {
       code: groupe[7].code,
       nom: groupe[7].nom,
       note: groupe[7].note,
@@ -292,7 +292,7 @@ test("la place du territoire dans son groupe est la réponse qu'on vient cherche
   const groupe = echelon(40);
   // Les notes décroissent avec le rang du tableau : le huitième est 8e.
   const rendu = texte(
-    rendreSemblables(palmares(groupe, 5), INTITULES, {
+    rendreVoisinage(voisinage(groupe, groupe[7].code), INTITULES, {
       code: groupe[7].code,
       nom: groupe[7].nom,
       note: groupe[7].note,
@@ -301,13 +301,44 @@ test("la place du territoire dans son groupe est la réponse qu'on vient cherche
   assert.match(rendu, /Ville 007 est 8e sur 40/);
   // Le premier porte sa marque, et les communes sont féminines.
   const premier = texte(
-    rendreSemblables(palmares(groupe, 5), INTITULES, {
+    rendreVoisinage(voisinage(groupe, groupe[0].code), INTITULES, {
       code: groupe[0].code,
       nom: groupe[0].nom,
       note: groupe[0].note,
     }),
   );
   assert.match(premier, /Ville 000 est 1re sur 40/);
+});
+
+test("la fenêtre contient toujours le territoire, même loin des deux bouts", () => {
+  // C'est le défaut que cette section corrige : le groupe de semblables
+  // montrait « les 5 meilleures » et « les 5 moins bonnes », deux listes
+  // disjointes qui ne contenaient JAMAIS une commune classée au milieu — la
+  // 14e sur 25, par exemple, n'apparaissait dans aucune des deux.
+  const groupe = echelon(25);
+  const milieu = groupe[13]; // 14e sur 25
+  const v = voisinage(groupe, milieu.code);
+  assert.ok(v);
+  assert.ok(v.lignes.some((l) => l.code === milieu.code), "la commune n'est pas dans sa fenêtre");
+  assert.equal(v.lignes[v.indexVous].code, milieu.code);
+});
+
+test("la fenêtre glisse vers le bord plutôt que de se tronquer", () => {
+  // Une commune 2e sur 25 avec un rayon de 3 ne montre pas seulement les
+  // rangs 1 à 5 (un trou en dessous d'elle) : la fenêtre glisse pour tenir
+  // ses 7 rangs quand la place existe de l'autre côté.
+  const groupe = echelon(25);
+  const v = voisinage(groupe, groupe[1].code, 3);
+  assert.ok(v);
+  assert.equal(v.lignes.length, 7);
+  assert.equal(v.lignes[0].code, groupe[0].code, "la fenêtre ne part pas du premier rang");
+});
+
+test("une fenêtre demandée plus grande que le groupe ne déborde pas", () => {
+  const groupe = echelon(4);
+  const v = voisinage(groupe, groupe[0].code, 3);
+  assert.ok(v);
+  assert.equal(v.lignes.length, 4);
 });
 
 test("un rang partagé se dit, il ne se présente pas comme une place propre", () => {
@@ -322,7 +353,7 @@ test("un rang partagé se dit, il ne se présente pas comme une place propre", (
     ),
   }));
   const rendu = texte(
-    rendreSemblables(palmares(plates, 5), INTITULES, {
+    rendreVoisinage(voisinage(plates, plates[3].code), INTITULES, {
       code: plates[3].code,
       nom: plates[3].nom,
       note: plates[3].note,
@@ -333,7 +364,7 @@ test("un rang partagé se dit, il ne se présente pas comme une place propre", (
   // À deux, la commune ne compte pas : « à égalité avec 1 autre » se lit mal.
   const paire = plates.slice(0, 2).concat(echelon(28));
   const deux = texte(
-    rendreSemblables(palmares(paire, 5), INTITULES, {
+    rendreVoisinage(voisinage(paire, paire[0].code), INTITULES, {
       code: paire[0].code,
       nom: paire[0].nom,
       note: paire[0].note,
@@ -343,10 +374,10 @@ test("un rang partagé se dit, il ne se présente pas comme une place propre", (
 });
 
 test("le territoire lu se reconnaît dans sa propre liste", () => {
-  // Dix noms de communes semblables se ressemblent tous ; c'est justement
-  // celui-là qu'on est venu chercher.
+  // La fenêtre le contient toujours ; c'est justement celui-là qu'on est
+  // venu chercher.
   const groupe = echelon(40);
-  const html = rendreSemblables(palmares(groupe, 5), INTITULES, {
+  const html = rendreVoisinage(voisinage(groupe, groupe[0].code), INTITULES, {
     code: groupe[0].code,
     nom: groupe[0].nom,
     note: groupe[0].note,
@@ -358,41 +389,22 @@ test("le territoire lu se reconnaît dans sa propre liste", () => {
 });
 
 test("un groupe vide ne peint rien plutôt qu'une section sans tableau", () => {
-  assert.equal(rendreSemblables(null, INTITULES, {
-    code: "c0",
-    nom: "Ville",
-    note: echelon(1)[0].note,
-  }), "");
-});
-
-test("le groupe dit combien partagent sa meilleure et sa pire note", () => {
-  // Cinq communes à 20 sur 20 en tête des 635 semblables à Sare — dont 47
-  // valent exactement 20 — se lisaient comme les cinq meilleures. C'est la
-  // faute que le palmarès de l'échelon avait déjà corrigée, refaite dans un
-  // module neuf le jour de sa naissance.
-  const plates: Ligne[] = Array.from({ length: 30 }, (_, i) => ({
-    code: `p${i}`,
-    nom: `Plate ${i}`,
-    note: noter(
-      { tauxEpargne: 40, desendettement: 1, trajectoire: 5, exercice: "2025" },
-      "commune",
-    ),
-  }));
-  const rendu = texte(
-    rendreSemblables(palmares(plates, 5), INTITULES, {
-      code: plates[0].code,
-      nom: plates[0].nom,
-      note: plates[0].note,
+  assert.equal(
+    rendreVoisinage(voisinage([], "c0"), INTITULES, {
+      code: "c0",
+      nom: "Ville",
+      note: echelon(1)[0].note,
     }),
+    "",
   );
-  assert.match(rendu, /30 communes valent exactement 19,5 sur 20/);
-  assert.match(rendu, /les plus peuplées d'entre elles qui sont montrées en tête/);
+  // Et un code absent du groupe : la fenêtre n'a personne à entourer.
+  assert.equal(voisinage(echelon(10), "inconnu"), null);
 });
 
 test("l'exercice minoritaire du groupe est compté, pas tu", () => {
   const melange = echelon(20).concat(echelon(3, "2024"));
   const rendu = texte(
-    rendreSemblables(palmares(melange, 5), INTITULES, {
+    rendreVoisinage(voisinage(melange, melange[0].code), INTITULES, {
       code: melange[0].code,
       nom: melange[0].nom,
       note: melange[0].note,
