@@ -7625,10 +7625,11 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
   font-size: var(--texte-m);
 }
-/* Le classement de la couche affichée, sous la carte. Il vivait au pied du
-   BILAN, où il n'avait rien à voir avec les cinq chapitres ; il suit désormais
-   ce qu'il range. La carte occupe une hauteur d'écran : cette section commence
-   dessous, et respire comme le reste du site. */
+/* Le palmarès d'un territoire et la suite du panneau, sous la carte. La carte
+   occupe une hauteur d'écran : cette section commence dessous, et respire
+   comme le reste du site. Le classement de la couche affichée et son export
+   CSV, qui vivaient ici, ont été retirés à la demande du propriétaire du
+   site : `#tableau-donnees` et `#exporter` n'existent plus dans le gabarit. */
 .territoire__tables {
   display: grid;
   gap: var(--espace-6);
@@ -7638,12 +7639,10 @@ body[data-carte="oui"] .legende {
 }
 /* « Sa place parmi les autres » et « Les communes semblables » (#palmares),
    puis la suite du panneau (#detail) : ils continuent la colonne étroite du
-   panneau de la fiche, pas la pleine largeur du classement qui les suit. Sans
-   ce réglage, la page passait d'une colonne de 662 px à côté de la carte à un
-   bloc de 1216 px de large au défilement suivant — le même geste de lecture
-   changeant brutalement de forme. `#comparateur` et `.classement`, qui
-   rangent une couche entière de territoires et non un seul, gardent la pleine
-   largeur : `justify-self` ne les touche pas, lui seul étant posé ici. */
+   panneau de la fiche, pas sa pleine largeur. Sans ce réglage, la page
+   passait d'une colonne de 662 px à côté de la carte à un bloc de 1216 px de
+   large au défilement suivant — le même geste de lecture changeant
+   brutalement de forme. */
 #palmares,
 #detail {
   justify-self: end;

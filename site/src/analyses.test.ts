@@ -47,6 +47,14 @@ test("un taux garde sa décimale, même sur un compte rond", () => {
   assert.equal(valeurLisible(0, "percent"), "0,0 %");
 });
 
+test("un taux pour mille se lit en ‰, jamais le code interne de son unité", () => {
+  // « 39,1 pour_1000_habitants » recopiait le vocabulaire de la source. Le
+  // dénominateur des cambriolages (des logements, pas des habitants) reste
+  // distingué : les deux unités se côtoient dans le même tableau de Sécurité.
+  assert.equal(valeurLisible(39.1, "pour_1000_habitants"), "39,1 ‰");
+  assert.equal(valeurLisible(1.8, "pour_1000_logements"), "1,8 ‰ (logements)");
+});
+
 test("chaque exercice publié a sa colonne, et une absence reste vide", () => {
   const liste = rubriques(BORDEAUX, CATALOGUE, LIBELLES, ["finances_locales", "population"]);
   const finances = liste.find((r) => r.theme === "finances_locales")!;

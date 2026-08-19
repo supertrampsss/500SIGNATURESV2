@@ -46,39 +46,6 @@ test("le bilan n'annonce plus une unité générique que les chiffres démentent
   assert.doesNotMatch(section, /La France dans son ensemble/);
 });
 
-test("la colonne des variations de /detail demande la décimale, la carte non", () => {
-  // `formaterVariation` sert la carte ET la colonne de /detail. Sur la carte le
-  // rendu compact est voulu — deux tests d'evolution-carte le tiennent. Dans la
-  // colonne, triée par variation décroissante, « +224 % » tombait entre
-  // « +239,7 % » et « +221,1 % » : 7 des 100 lignes de la Gironde.
-  //
-  // Sans cette garde, débrancher le quatrième argument ne fait rien tomber :
-  // le test d'evolution-carte prouve que l'option marche, pas qu'on l'emploie.
-  const appel = MAIN.match(/formaterVariation\(l\.variation, indicateur\.unite, mode[^)]*\)/);
-  assert.ok(appel, "appel de formaterVariation introuvable dans le tableau");
-  assert.match(appel[0], /,\s*true\)$/, appel[0]);
-});
-
-test("les deux tableaux de /detail bornent leur légende de la même façon", () => {
-  // `fenetreDuTableau` existe pour un défaut que son propre commentaire nomme :
-  // « 100 premiers territoires » s'affichait au-dessus de dix-sept lignes. Le
-  // correctif n'avait été posé que sur un des deux tableaux ; celui du mode
-  // évolution écrivait la mention EN DUR, donc sans condition sur le nombre de
-  // lignes et sans le dénominateur que l'autre donne (« sur 34 875 »).
-  //
-  // Une seule occurrence du littéral doit subsister : celle de l'aide, dans le
-  // commentaire de la fonction.
-  const enDur = [...MAIN.matchAll(/· 100 premiers territoires/g)];
-  assert.equal(enDur.length, 1, `mention en dur : ${enDur.length} occurrence(s)`);
-  assert.match(
-    MAIN.slice(MAIN.indexOf("function fenetreDuTableau")),
-    /total > 100 \? ` · 100 premiers territoires sur/,
-  );
-  // Et les deux légendes passent par elle.
-  const appels = [...MAIN.matchAll(/\$\{fenetreDuTableau\(/g)];
-  assert.equal(appels.length, 2, `appels à fenetreDuTableau : ${appels.length}`);
-});
-
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
   // Première version : la légende recouvrait le sud-ouest de la France. La
   // leçon n'a pas changé quand la carte est devenue la page : les surcouches
@@ -799,25 +766,25 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   assert.doesNotMatch(MAIN, /location\.hash = "#donnees"/);
   // Les fonctions qui peignaient dans ses conteneurs se taisent au lieu de
   // lever : `$` rend `null`, et `null.innerHTML` casse toute la fiche.
-  for (const garde of [
-    'if (!document.getElementById("tableau-donnees")) return;',
-    'if (!document.getElementById("sources-contenu")) return;',
-  ]) {
-    assert.ok(MAIN.includes(garde), `garde manquante : ${garde}`);
-  }
-  // Les écouteurs aussi. `brancherCommandes()` accrochait `#exporter` et
-  // `#comparateur` sans garde : `$` rend `null`, `null.addEventListener` lève,
-  // et l'exception remontait au `.catch` de `demarrer()` — tout ce qui suit
-  // l'appel ne s'exécutait plus, blocs de Décryptages compris.
-  for (const ecouteur of ["exporter", "comparateur"]) {
-    assert.match(
-      MAIN,
-      new RegExp(`document\\.getElementById\\("${ecouteur}"\\)\\?\\.addEventListener`),
-      `écouteur non gardé : #${ecouteur}`,
-    );
-  }
-  assert.doesNotMatch(MAIN, /\$\("exporter"\)\.addEventListener/);
+  assert.ok(
+    MAIN.includes('if (!document.getElementById("sources-contenu")) return;'),
+    "garde manquante pour #sources-contenu",
+  );
+  // Les écouteurs aussi. `brancherCommandes()` accrochait `#comparateur` sans
+  // garde : `$` rend `null`, `null.addEventListener` lève, et l'exception
+  // remontait au `.catch` de `demarrer()` — tout ce qui suit l'appel ne
+  // s'exécutait plus, blocs de Décryptages compris.
+  assert.match(
+    MAIN,
+    /document\.getElementById\("comparateur"\)\?\.addEventListener/,
+    "écouteur non gardé : #comparateur",
+  );
   assert.doesNotMatch(MAIN, /\$\("comparateur"\)\.addEventListener/);
+  // Le classement de la couche et son export ont été retirés : ni le
+  // conteneur, ni le bouton, ni leur guard ne devraient réapparaître.
+  assert.doesNotMatch(PAGE, /id="tableau-donnees"/);
+  assert.doesNotMatch(PAGE, /id="exporter"/);
+  assert.doesNotMatch(MAIN, /getElementById\("exporter"\)/);
 });
 
 test("la carte est déployée d'emblée, et rien ne la replie", () => {
@@ -957,36 +924,27 @@ test("aucun fetch de DÉTAIL ne part avant que l'initialisation n'ait résolu", 
 });
 
 
-test("le détail d'un territoire porte son classement, son export et sa comparaison", () => {
-  // Trois conteneurs disparus avec la vue DONNÉES, alors que tout le code qui
-  // les remplit est resté : `majTableau`, `majTableauEvolution` et
-  // `majComparateur` se taisaient faute d'endroit où écrire.
+test("le détail d'un territoire porte sa comparaison, plus son classement ni son export", () => {
+  // Le classement de la couche affichée et son export CSV ont été retirés du
+  // gabarit : demandé par le propriétaire du site, un tableau de cent
+  // territoires sous « Davantage de données » n'avait plus sa place.
+  // `#comparateur`, lui, reste — ce n'est pas la même fonctionnalité.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   const depart = balises.indexOf('class="territoire__tables"');
   // Une borne introuvable rend −1, et `slice(-1)` découpe la fin du fichier :
   // le test resterait vert en ne mesurant plus rien.
   assert.ok(depart > 0, "section des tableaux de territoire introuvable");
   const vue = balises.slice(depart);
-  // **Ils suivent la carte, pas le bilan.** Ils rangent la couche affichée —
-  // l'échelon, le millésime, l'indicateur choisis sur la carte — et n'avaient
-  // rien à voir avec les cinq chapitres du bilan.
+  // **Il suit la carte, pas le bilan.** Il n'avait rien à voir avec les cinq
+  // chapitres du bilan.
   assert.ok(
     balises.indexOf('id="vue-territoire"') < depart &&
       depart < balises.indexOf('id="vue-bilan"'),
     "les tableaux de territoire doivent vivre dans la vue TERRITOIRE",
   );
-  assert.match(vue, /id="tableau-donnees"/);
-  assert.match(vue, /id="exporter"/);
   assert.match(vue, /id="comparateur"/);
-  // `majTableau` écrit dans `#exporter` sans le tester : les deux vont ensemble
-  // ou pas du tout.
-  assert.ok(
-    vue.indexOf('id="tableau-donnees"') !== -1 && vue.indexOf('id="exporter"') !== -1,
-    "le tableau et son bouton d'export doivent être posés ensemble",
-  );
-  // Le tableau est un tableau : `majTableau` y écrit un `<caption>`, un
-  // `<thead>` et un `<tbody>`.
-  assert.match(vue, /<table[^>]*id="tableau-donnees"/);
+  assert.doesNotMatch(vue, /id="tableau-donnees"/);
+  assert.doesNotMatch(vue, /id="exporter"/);
 });
 
 test("le seul cadre qui somme les trois budgets est montré, à côté de l'atelier", () => {
@@ -2845,17 +2803,6 @@ test("une carte cachée et une barre repliée le restent bien à l'écran", () =
  * défaut en ligne — c'est le piège que ce dépôt a déjà rencontré deux fois, un
  * test vert au-dessus d'un écran faux.
  */
-test("l'export lit la source à la maille, et plus le seul jeu de l'indicateur", () => {
-  assert.ok(
-    MAIN.includes("sourceDuNiveau(indicateur, etat.niveau, jeux)"),
-    "main.ts ne demande plus la source à la maille exportée",
-  );
-  assert.ok(
-    !/source:\s*jeu\s*\?/.test(MAIN),
-    "l'ancienne résolution — le jeu de l'indicateur, quelle que soit la maille — est revenue",
-  );
-});
-
 /**
  * La fiche de territoire est partageable, à toutes les mailles.
  *

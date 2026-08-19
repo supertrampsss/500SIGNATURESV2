@@ -72,10 +72,7 @@ import { renduBarre, renduComparaison, renduDisparues, type Comparable } from ".
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
-import {
-  enCsv, enCsvEvolution, nomDeFichier, sourceDuNiveau, telecharger,
-  type LigneExport, type LigneExportEvolution,
-} from "./export.ts";
+import { nomDeFichier, sourceDuNiveau, telecharger } from "./export.ts";
 import {
   coucheEvolution,
   echelleDivergente,
@@ -158,12 +155,6 @@ const LISERE: Record<string, number[]> = {
 
 /** Expression MapLibre, sortie du littéral de calque : son type d'union ne
  *  survit pas à l'inférence, comme pour `expressionCouleur`. */
-/** Ce que le tableau montre, quand il ne montre pas tout : « 100 premiers
- *  territoires » s'affichait au-dessus de dix-sept lignes. */
-function fenetreDuTableau(total: number): string {
-  return total > 100 ? ` · 100 premiers territoires sur ${total.toLocaleString("fr-FR")}` : "";
-}
-
 function largeurLisere(couche: string): unknown {
   return ["interpolate", ["linear"], ["zoom"], ...LISERE[couche]];
 }
@@ -276,16 +267,6 @@ let evolutionAffichee: {
   avant: string;
 } | null = null;
 let survole: string | null = null;
-/** Ce que le bouton d'export téléchargera : toutes les lignes de la couche
- *  affichée, pas les 100 que montre le tableau, avec la déclinaison qui a
- *  servi à les calculer. */
-let exportCourant: { lignes: LigneExport[]; parHabitant: boolean } = {
-  lignes: [],
-  parHabitant: false,
-};
-/** En mode évolution, l'export emporte les deux millésimes et la variation :
- *  non nul seulement quand c'est la couche affichée. */
-let exportEvolution: { lignes: LigneExportEvolution[]; avant: string } | null = null;
 /** Le clic de compatibilité qui suit un geste sur la poignée du tiroir : il
  *  part vers la carte, qui vient d'apparaître sous le doigt. Voir
  *  `garde-geste.ts` pour le mécanisme. */
@@ -571,92 +552,6 @@ function majLegende(
   $("legende").title = `Légende : ${traduire(indicateur.libelle)}`;
 }
 
-function majTableau(valeurs: Record<string, number>, parHabitant: boolean): void {
-  // Le tableau vivait dans la vue DONNÉES, retirée : sans conteneur, il n'y a
-  // rien à peindre, et `$` rend `null` plutôt que de lever.
-  if (!document.getElementById("tableau-donnees")) return;
-  const indicateur = indicateurCourant();
-  const toutes = Object.entries(valeurs)
-    .map(([code, brut]) => {
-      const population = populations[code];
-      const valeur = parHabitant && population ? brut / population : brut;
-      return { code, nom: nomDe(code), valeur, calculable: !parHabitant || !!population };
-    })
-    .filter((l) => l.calculable)
-    .sort((a, b) => b.valeur - a.valeur);
-
-  // Le tableau montre les 100 premiers ; l'export, lui, emporte tout : un
-  // classement tronqué se lit, un fichier tronqué se réutilise de travers.
-  exportCourant = {
-    lignes: toutes.map(({ code, nom, valeur }) => ({ code, nom, valeur })),
-    parHabitant,
-  };
-  const exporter = $<HTMLButtonElement>("exporter");
-  exporter.hidden = toutes.length === 0;
-  exporter.textContent = `Télécharger en CSV (${toutes.length.toLocaleString("fr-FR")} territoire${
-    toutes.length > 1 ? "s" : ""
-  })`;
-
-  const lignes = toutes.slice(0, 100);
-  $("tableau-donnees").innerHTML = `
-    <caption>${traduire(indicateur.libelle)}, ${etat.periode}${parHabitant ? ", par habitant" : ""}${fenetreDuTableau(toutes.length)}</caption>
-    <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">Valeur</th></tr></thead>
-    <tbody>${lignes
-      .map(
-        (l) =>
-          `<tr><td>${l.nom}</td><td>${l.code}</td><td>${formater(
-            l.valeur,
-            indicateur.unite,
-            parHabitant,
-          )}</td></tr>`,
-      )
-      .join("")}</tbody>`;
-}
-
-/** Le tableau et l'export suivent la couche affichée : en mode évolution, les
- *  deux millésimes et la variation — un classement de variations sans les
- *  valeurs dont elles viennent ne se vérifierait pas. */
-function majTableauEvolution(
-  couche: Record<string, Evolution>,
-  mode: ModeVariation,
-  periodePrecedente: string,
-  parHabitant: boolean,
-): void {
-  if (!document.getElementById("tableau-donnees")) return;
-  const indicateur = indicateurCourant();
-  const toutes = Object.entries(couche)
-    .map(([code, e]) => ({ code, nom: nomDe(code), ...e }))
-    .sort((a, b) => b.variation - a.variation);
-
-  exportEvolution = {
-    lignes: toutes.map(({ code, nom, avant, apres, variation }) => ({
-      code, nom, avant, apres, variation,
-    })),
-    avant: periodePrecedente,
-  };
-  const exporter = $<HTMLButtonElement>("exporter");
-  exporter.hidden = toutes.length === 0;
-  exporter.textContent = `Télécharger en CSV (${toutes.length.toLocaleString("fr-FR")} territoire${
-    toutes.length > 1 ? "s" : ""
-  })`;
-
-  const lignes = toutes.slice(0, 100);
-  const lisible = (v: number) => formater(v, indicateur.unite, parHabitant);
-  $("tableau-donnees").innerHTML = `
-    <caption>${traduire(indicateur.libelle)}, évolution ${etat.periode} vs ${periodePrecedente}${
-      parHabitant ? ", par habitant" : ""
-    }${fenetreDuTableau(toutes.length)}</caption>
-    <thead><tr><th scope="col">Territoire</th><th scope="col">Code</th><th scope="col">${periodePrecedente}</th><th scope="col">${etat.periode}</th><th scope="col">Variation</th></tr></thead>
-    <tbody>${lignes
-      .map(
-        (l) =>
-          `<tr><td>${l.nom}</td><td>${l.code}</td><td>${lisible(l.avant)}</td><td>${lisible(
-            l.apres,
-          )}</td><td>${formaterVariation(l.variation, indicateur.unite, mode, true)}</td></tr>`,
-      )
-      .join("")}</tbody>`;
-}
-
 /** Montre la couche de la maille affichée et lui applique sa couleur. */
 function appliquerCouche(expression: unknown): void {
   for (const [niveau, couche] of Object.entries(COUCHES)) {
@@ -714,7 +609,6 @@ async function peindreEvolution(
   appliquerCouche(expressionCouleur(variations, echelle, false, {}));
 
   majLegende(echelle, parHabitant, { avant: periodePrecedente, mode });
-  majTableauEvolution(couche, mode, periodePrecedente, parHabitant);
   planifierEtiquettes();
 
   affichees = variations;
@@ -739,7 +633,6 @@ async function peindre(): Promise<void> {
     await peindreEvolution(valeurs, periodes[1], parHabitant);
   } else {
     evolutionAffichee = null;
-    exportEvolution = null;
 
     const echantillon = Object.entries(valeurs)
       .map(([code, brut]) => (parHabitant ? brut / (populations[code] ?? NaN) : brut))
@@ -749,7 +642,6 @@ async function peindre(): Promise<void> {
     appliquerCouche(expressionCouleur(valeurs, echelle, parHabitant, populations));
 
     majLegende(echelle, parHabitant);
-    majTableau(valeurs, parHabitant);
     planifierEtiquettes();
 
     affichees = Object.fromEntries(
@@ -1909,47 +1801,6 @@ function brancherCommandes(): void {
     true,
   );
   tiroirRedimensionnable();
-
-  // Le bouton d'export vivait dans la vue DONNÉES, retirée : sans lui, `$` rend
-  // `null` et l'écouteur levait au démarrage, emportant tout ce que
-  // `demarrer()` fait après cet appel. Même garde que `majTableau`.
-  document.getElementById("exporter")?.addEventListener("click", () => {
-    const indicateur = indicateurCourant();
-    // La source se lit à la maille exportée, pas sur l'indicateur seul :
-    // l'OFGL déclare ses agrégats sous « Finances des communes » quelle que
-    // soit la maille chargée (voir `sourceDuNiveau`).
-    const source = sourceDuNiveau(indicateur, etat.niveau, jeux);
-    if (exportEvolution) {
-      telecharger(
-        enCsvEvolution(exportEvolution.lignes, {
-          indicateur: indicateur.libelle,
-          unite: indicateur.unite,
-          periodeAvant: exportEvolution.avant,
-          periodeApres: etat.periode,
-          niveau: etat.niveau,
-          parHabitant: parHabitantAffiche,
-          source,
-        }),
-        nomDeFichier(
-          indicateur.libelle,
-          etat.niveau,
-          `evolution-${exportEvolution.avant}-${etat.periode}`,
-        ),
-      );
-      return;
-    }
-    telecharger(
-      enCsv(exportCourant.lignes, {
-        indicateur: indicateur.libelle,
-        unite: indicateur.unite,
-        periode: etat.periode,
-        niveau: etat.niveau,
-        parHabitant: exportCourant.parHabitant,
-        source,
-      }),
-      nomDeFichier(indicateur.libelle, etat.niveau, etat.periode),
-    );
-  });
 
   // La navigation change de vue sans recharger la page. Les modificateurs et le
   // clic du milieu sont laissés au navigateur : « ouvrir dans un nouvel onglet »

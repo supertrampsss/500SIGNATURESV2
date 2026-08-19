@@ -76,6 +76,13 @@ export function valeurLisible(valeur: number, unite: string): string {
     minimumFractionDigits: decimales,
     maximumFractionDigits: decimales,
   }).format(valeur);
+  // « 39,1 pour_1000_habitants » recopiait le code interne de l'unité : le
+  // signe pour mille se lit sans qu'il faille connaître le vocabulaire de la
+  // source. Le dénominateur des cambriolages (des logements, pas des
+  // habitants) reste distingué, faute de quoi il se lirait comme les autres
+  // taux du même tableau — celui de la Sécurité, où les deux se côtoient.
+  if (unite === "pour_1000_habitants") return `${nombre} ‰`;
+  if (unite === "pour_1000_logements") return `${nombre} ‰ (logements)`;
   return unite && unite !== "count" ? `${nombre} ${unite}` : nombre;
 }
 
