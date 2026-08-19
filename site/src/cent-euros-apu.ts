@@ -28,15 +28,19 @@
  * **Le reste non détaillé est écrit.** Les neuf postes nommés couvrent 98,85 %
  * des dépenses ; le solde de la soustraction est une ligne, jamais un silence.
  *
+ * La légende qui vivait au-dessus du tableau des recettes (exercice, source,
+ * ce qui sépare ce « 100 € » des deux autres) est partie : ce qui sépare les
+ * trois tient dans ce docstring, l'exercice dans la phrase d'ouverture, et la
+ * source dans une ligne courte sous le tableau.
+ *
  * ─────────────────────────────────────────────────────────────────────────
- * LE PREMIER POSTE S'OUVRE EN PLACE, ET LE DOUBLON EST MORT
+ * LE PREMIER POSTE NE S'AFFICHE PLUS COMME UNE LIGNE À PART
  * ─────────────────────────────────────────────────────────────────────────
- * La ventilation de « Retraites, chômage, allocations » vivait dans une
- * seconde section qui peignait les huit lignes en barres PUIS les réécrivait
- * en tableau : mêmes chiffres, deux fois, et le lecteur l'a refusé. Elle vit
- * désormais dans un dépliant sous sa propre ligne — elle n'existe qu'une
- * fois, à sa place — avec le refus d'origine intact : deux jeux, deux
- * millésimes, deux dénominateurs, dits dans le dépliant même.
+ * « Retraites, chômage, allocations » vivait sous un repli qu'il fallait
+ * ouvrir pour voir sept lignes qui pèsent plus que la moitié de la dépense
+ * publique. Le repli est parti : ses sept fonctions (retraites, chômage,
+ * réversion, famille, RSA, arrêts maladie, aides au logement) s'affichent
+ * directement, au même niveau que les huit autres postes.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * LES SIGNES
@@ -167,20 +171,13 @@ function renduVentilation(france: Territoire): string {
       <span class="apu__valeur flux--moins">−${pour100(valeur)}</span>
     </div>`;
 
-  // Ni le total du dépliant (−37,37 €, exercice ${exercice}) ni celui de la
-  // ligne qu'il détaille (−37,11 €, exercice courant) ne sont répétés ici :
-  // deux jeux, deux millésimes, deux totaux à quelques centimes l'un de
-  // l'autre — les montrer tous les deux à la fois lisait comme une erreur. Le
-  // millésime reste écrit, parce qu'une part dont le dénominateur vient d'un
-  // autre exercice que celui du reste de la page doit le dire.
-  return `
-    <div class="apu__detail">
-      <p class="bloc__complement">Exercice ${echapper(exercice)} : la ventilation par fonction
-        s'arrête un exercice plus tôt que les recettes qui la rapportent à 100&nbsp;€. Source :
-        Eurostat, dépenses des administrations publiques par fonction (COFOG).</p>
-      ${lignes.map((l) => rang(l)).join("")}
-      ${rang(["Prestations hors protection sociale (bourses, culture, santé)", reste], true)}
-    </div>`;
+  // Les sept fonctions se lisent au même niveau que le reste des postes, sans
+  // ligne « Retraites, chômage, allocations » qui les résumerait avant de les
+  // détailler. Leur somme (le jeu qui les croise avec la fonction) reste
+  // légèrement différente du poste qu'elles remplacent visuellement (le jeu
+  // principal, exercice suivant) — l'un et l'autre restent chacun un chiffre
+  // publié, jamais recalé sur l'autre.
+  return lignes.map((l) => rang(l)).join("") + rang(["Prestations hors protection sociale (bourses, culture, santé)", reste], true);
 }
 
 /**
@@ -236,8 +233,9 @@ export function rendu(pays: Record<string, Territoire>): string {
       <span class="apu__valeur flux--moins">−${pour100(valeur)}</span>
     </div>`;
 
-  // Le premier poste s'ouvre À SA PLACE : sa ventilation n'existe qu'une fois,
-  // dans ce dépliant, jamais dans une seconde section qui la répète.
+  // Le premier poste ne s'affiche plus comme une ligne à part qui se déplie :
+  // sa ventilation, quand elle est publiée, prend directement sa place, au
+  // même niveau que les huit autres postes.
   const [premierPoste, ...autresPostes] = postes;
   const ventilation = renduVentilation(france);
 
@@ -256,8 +254,6 @@ export function rendu(pays: Record<string, Territoire>): string {
           allocations — en prend plus du tiers, et à l'intérieur, <strong>la retraite pèse
           neuf fois le chômage</strong>.</p>
         <table class="comparaison" tabindex="0">
-          <caption>Comptabilité nationale, exercice ${echapper(exercice)}. Source&nbsp;: Eurostat,
-            comptes des administrations publiques.</caption>
           <thead><tr><th scope="col">D'où viennent les 100 €</th>
             <th scope="col">Montant</th></tr></thead>
           <tbody>${ressources
@@ -272,17 +268,11 @@ export function rendu(pays: Record<string, Territoire>): string {
               <td class="flux--plus">+${pour100(100)}</td></tr>
           </tbody>
         </table>
+        <p class="bloc__complement">Source : Eurostat.</p>
       </div>
       <div>
         <h3 class="sous-titre">Où ils vont</h3>
-        ${
-          ventilation
-            ? `<details class="apu__ouvrir" open>
-          <summary><span class="apu__nom">${echapper(premierPoste[0])}</span></summary>
-          ${ventilation}
-        </details>`
-            : rang(premierPoste[0], premierPoste[1] ?? 0)
-        }
+        ${ventilation || rang(premierPoste[0], premierPoste[1] ?? 0)}
         ${autresPostes.map(([libelle, valeur]) => rang(libelle, valeur ?? 0)).join("")}
         ${rang("Autres dépenses", reste)}
         ${rang("Total dépensé", depense, { total: true })}

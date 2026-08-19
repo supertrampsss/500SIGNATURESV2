@@ -95,13 +95,10 @@ test("le rapport interdécile se lit des deux côtés", () => {
   assert.match(lu, /3,48 fois/);
 });
 
-test("le champ et la nature du seuil sont dits, pas supposés", () => {
-  const lu = texte(rendu({ FR: territoire(series()) }, CATALOGUE));
-  // Une série nationale qui exclut les DROM sans le dire est une comparaison
-  // dont on ne contrôle pas le périmètre.
-  assert.match(lu, /France métropolitaine/);
-  // Et un seuil de décile n'est pas un revenu moyen.
-  assert.match(lu, /n'est pas un revenu moyen/);
+test("la source est une ligne courte sous le tableau, pas une légende au-dessus", () => {
+  const html = rendu({ FR: territoire(series()) }, CATALOGUE);
+  assert.doesNotMatch(html, /<caption>/);
+  assert.match(html, /<\/table>\s*<p class="bloc__complement">Source : INSEE\.<\/p>/);
 });
 
 test("rien n'est peint tant que les séries ne sont pas publiées", () => {

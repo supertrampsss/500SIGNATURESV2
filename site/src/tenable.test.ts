@@ -74,20 +74,23 @@ test("la dette se lit année par année, fins d'année plus le dernier trimestre
   assert.match(lu, /2017.*2 263.*2026 Q1.*3 536/s);
 });
 
-test("le taux montre son creux : sans 2020, la remontée n'a pas d'échelle", () => {
-  // Le creux est cherché dans la série, jamais écrit en dur.
-  const lu = texte(rendu(PAYS, CATALOGUE));
-  // −0,15 s'arrondit à −0,2 (arrondi au plus proche), et le signe est le
-  // moins typographique, jamais le trait d'union que rend Intl.
-  assert.match(lu, /2020 −0,2 %/);
-  assert.match(lu, /était payée pour emprunter/);
+test("le coût d'un nouvel emprunt ne porte plus son propre graphique", () => {
+  // « 3,3 % contre 0,8 % en 2017 » est déjà dans la réponse ; un second
+  // graphique pour les mêmes deux nombres ne les rendait pas plus vrais.
+  const html = rendu(PAYS, CATALOGUE);
+  assert.doesNotMatch(html, /Le coût d'un nouvel emprunt/);
+  assert.doesNotMatch(html, /tenable__rang--taux/);
 });
 
-test("le par-habitant et les porteurs de la dette sont écrits", () => {
-  const lu = texte(rendu(PAYS, CATALOGUE));
+test("le par-habitant et les porteurs de la dette sont écrits, dans la réponse", () => {
+  // « Qui la porte » vivait dans la légende du graphique, sous « année par
+  // année » ; il est dans la réponse elle-même, avant le graphique.
+  const html = rendu(PAYS, CATALOGUE);
+  const lu = texte(html);
   assert.match(lu, /51 165 € par habitant/);
   assert.match(lu, /L'État 2 861,40 milliards d'euros/);
   assert.match(lu, /Sécurité sociale 281,50 milliards/);
+  assert.ok(html.indexOf("Qui la porte") < html.indexOf("La dette, année par année"));
 });
 
 test("les voisins partagent le millésime de la France, sans tri par valeur", () => {

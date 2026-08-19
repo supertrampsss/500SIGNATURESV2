@@ -26,6 +26,9 @@ const CATALOGUE = [
   { id: "insee_diplome_cap_bep", libelle: "CAP ou BEP", theme: "diplomes", unite: "count" },
   { id: "insee_diplome_bac", libelle: "Baccalauréat", theme: "diplomes", unite: "count" },
 
+  { id: "insee_taux_pauvrete", libelle: "Taux de pauvreté", theme: "revenus", unite: "percent" },
+  { id: "cnaf_foyers_rsa", libelle: "Foyers allocataires du RSA", theme: "revenus", unite: "count" },
+
   { id: "insee_actifs_occupes", libelle: "Actifs ayant un emploi", theme: "emploi", unite: "count" },
   { id: "insee_chomeurs_rp", libelle: "Chômeurs déclarés (recensement)", theme: "emploi", unite: "count" },
   { id: "insee_taux_chomage_localise", libelle: "Taux de chômage", theme: "emploi", unite: "percent" },
@@ -66,6 +69,8 @@ const TERRITOIRE = {
     dgfip_ircom_revenu_fiscal_reference: { "2024": 86_900_000 },
     insee_diplome_cap_bep: { "2023": 636 },
     insee_diplome_bac: { "2023": 441 },
+    insee_taux_pauvrete: { "2021": 12.3 },
+    cnaf_foyers_rsa: { "2024": 225 },
     insee_actifs_occupes: { "2023": 1_299 },
     insee_chomeurs_rp: { "2023": 228 },
     insee_taux_chomage_localise: { "2023": 14.9 },
@@ -82,8 +87,8 @@ const TERRITOIRE = {
     anil_loyer_appartement: { "2025": 13.5 },
     insee_logements_vacants: { "2023": 100 },
     // Vols sans violence : taux à jour, décompte brut à jour aussi (doit être
-    // écarté, l'unité n'étant pas un taux).
-    ssmsi_vols_sans_violence_taux: { "2024": 8.7, "2025": 7.2 },
+    // écarté, l'unité n'étant pas un taux). 2019 sert de référence d'évolution.
+    ssmsi_vols_sans_violence_taux: { "2019": 9.4, "2024": 8.7, "2025": 7.2 },
     ssmsi_vols_sans_violence_nombre: { "2025": 29 },
     ssmsi_cambriolages_taux: { "2024": 2.8, "2025": 1.8 },
     // Vols dans les véhicules : plus aucune valeur au dernier exercice du
@@ -102,20 +107,9 @@ test("un thème hors liste ne rend rien : finances locales ne s'invite pas", () 
   assert.doesNotMatch(html, /finances_locales/);
 });
 
-test("dix thèmes rendus, dans l'ordre, un seul bloc pour les deux tableaux de secteurs", () => {
+test("sept blocs rendus, dans l'ordre, un seul pour population/revenus/diplômes et un seul pour les deux tableaux de secteurs", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
-  const ids = [
-    "vie-associative",
-    "population",
-    "revenus",
-    "diplomes",
-    "emploi",
-    "professions",
-    "secteurs",
-    "logement",
-    "securite",
-    "tourisme",
-  ];
+  const ids = ["vie-associative", "population", "emploi", "professions", "secteurs", "logement", "securite", "tourisme"];
   let dernierIndex = -1;
   for (const id of ids) {
     const motif = new RegExp(`id="davantage-${id}"`);
@@ -127,6 +121,10 @@ test("dix thèmes rendus, dans l'ordre, un seul bloc pour les deux tableaux de s
   // Un seul bloc porte les secteurs — pas un tableau « salariés » et un
   // tableau « établissements » séparés.
   assert.equal((html.match(/Salariés par établissement/g) ?? []).length, 1);
+  // Un seul bloc « davantage-population » porte les trois anciens thèmes —
+  // « davantage-revenus » et « davantage-diplomes » n'existent plus.
+  assert.doesNotMatch(html, /id="davantage-revenus"/);
+  assert.doesNotMatch(html, /id="davantage-diplomes"/);
 });
 
 test("le ratio salariés par établissement se calcule secteur par secteur, le plus fort en tête", () => {
@@ -196,4 +194,81 @@ test("un indicateur en pourcentage se lit en note, jamais mêlé aux barres de m
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-emploi"'), html.indexOf('id="davantage-professions"'));
   assert.match(bloc, /Taux de chômage : 14,9 %/);
+});
+
+test("le revenu fiscal de référence se lit par foyer, jamais en total", () => {
+  // 86 900 000 € / 2 787 foyers = 31 180 € par foyer, arrondi à l'euro. Le
+  // total en millions ne parle à personne : il ne doit apparaître nulle part.
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-population"'), html.indexOf('id="davantage-emploi"'));
+  assert.match(bloc, /31\u202f180\u00a0€/);
+  assert.match(bloc, /par foyer/);
+  assert.doesNotMatch(bloc, /86,9\s?M€/);
+});
+
+test("la pauvreté vient sous les diplômes, dans le même bloc fusionné", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-population"'), html.indexOf('id="davantage-emploi"'));
+  const posDiplomes = bloc.indexOf("Diplômes de la population");
+  const posPauvrete = bloc.indexOf("Pauvreté");
+  assert.ok(posDiplomes > -1 && posPauvrete > -1, "les deux titres doivent être présents");
+  assert.ok(posPauvrete > posDiplomes, "la pauvreté doit venir après les diplômes");
+  assert.match(bloc, /Taux de pauvreté/);
+  assert.match(bloc, /Foyers allocataires du RSA/);
+});
+
+test("population, revenus et diplômes se lisent en colonnes, jamais en barre de magnitude", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-population"'), html.indexOf('id="davantage-emploi"'));
+  assert.doesNotMatch(bloc, /davantage__mag/);
+  assert.match(bloc, /davantage__table/);
+});
+
+test("un compte n'a pas de décimale dans le tableau des diplômes", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-population"'), html.indexOf('id="davantage-emploi"'));
+  assert.match(bloc, />636</);
+  assert.doesNotMatch(bloc, /636,0/);
+});
+
+test("sécurité montre 2019, le dernier exercice et l'écart en points, jamais divisé par dix", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-securite"'), html.indexOf('id="davantage-tourisme"'));
+  assert.doesNotMatch(bloc, /davantage__mag/, "la sécurité se lit en table, plus en barres");
+  assert.match(bloc, /<th>2019<\/th>/);
+  // 7,2 − 9,4 = −2,2 points, jamais divisé par dix (registre ‰, pas %).
+  assert.match(bloc, /9,4 ‰/);
+  assert.match(bloc, /−2,2 pts/);
+  // Cambriolages n'a pas de valeur 2019 dans le banc : l'absence se voit,
+  // elle ne s'invente pas en écart nul.
+  const ligneCambriolages = bloc.slice(bloc.indexOf("Cambriolages"));
+  assert.match(ligneCambriolages, /<td class="davantage__num">—<\/td>/);
+});
+
+test("vie associative récapitule par mission budgétaire, en M€ à deux décimales, avec un pli vers la liste complète", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, {
+    exercice: "2021",
+    beneficiaires: [
+      { siren: "1", nom: "ASSO SPORT", programme: "219", objet: null, montant: 120_000 },
+      { siren: "2", nom: "ASSO CULTURE", programme: "224", objet: null, montant: 30_000 },
+      { siren: "3", nom: "ASSO SANS MISSION CONNUE", programme: "999", objet: null, montant: 5_000 },
+    ],
+    programmes: [
+      { code: "219", libelle: "Sport", mission: "Sport, jeunesse et vie associative", montant: 120_000 },
+      { code: "224", libelle: "Soutien aux politiques du ministère de la culture", mission: "Culture", montant: 30_000 },
+      { code: "999", libelle: "Programme 999", mission: "", montant: 5_000 },
+    ],
+  } as never);
+  const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'), html.indexOf('id="davantage-population"'));
+  // 120 000 € = 0,12 M€, toujours deux décimales.
+  assert.match(bloc, /Sport, jeunesse et vie associative<\/td><td class="davantage__num">0,12\u202fM€/);
+  assert.match(bloc, /Culture<\/td><td class="davantage__num">0,03\u202fM€/);
+  // Mission absente de la nomenclature : un intitulé plutôt qu'une case vide.
+  assert.match(bloc, /Autres programmes<\/td><td class="davantage__num">0,01\u202fM€/);
+  // Le pli mène à la liste complète, fermé par défaut — un geste, pas un
+  // mur imposé.
+  assert.match(bloc, /<details class="davantage__pli">/);
+  assert.doesNotMatch(bloc, /<details class="davantage__pli" open/);
+  assert.match(bloc, /Voir les 3 associations/);
+  assert.match(bloc, /ASSO SPORT/);
 });

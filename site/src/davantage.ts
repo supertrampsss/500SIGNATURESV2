@@ -92,7 +92,7 @@ function barresMagnitude(lignes: Ligne[], accent: string): string {
     .join("")}</div>`;
 }
 
-function cartesChiffres(lignes: Ligne[]): string {
+function cartesChiffres(lignes: { texte: string; libelle: string; exercice: string }[]): string {
   if (!lignes.length) return "";
   return `<div class="davantage__cartes">${lignes
     .map(
@@ -104,6 +104,21 @@ function cartesChiffres(lignes: Ligne[]): string {
         )}</span></div>`,
     )
     .join("")}</div>`;
+}
+
+/** Une table à deux colonnes — l'indicateur, sa valeur — quand une liste se
+ *  lit mieux en colonne qu'en barre : des comptes de personnes qui n'ont pas
+ *  à se comparer en longueur les uns aux autres, juste à se lire un par un. */
+function table(lignes: { libelle: string; valeur: string; exercice?: string }[]): string {
+  if (!lignes.length) return "";
+  return `<table class="davantage__table"><tbody>${lignes
+    .map(
+      (l) =>
+        `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${echapper(l.valeur)}</td>${
+          l.exercice ? `<td class="davantage__exercice">${echapper(l.exercice)}</td>` : ""
+        }</tr>`,
+    )
+    .join("")}</tbody></table>`;
 }
 
 function section(id: string, libelle: string, corps: string, source: string): string {
@@ -129,7 +144,7 @@ function themeGenerique(
 ): string {
   const lignes = dernieresValeurs(
     territoire,
-    indicateurs.filter((i) => i.theme === id),
+    indicateurs.filter((i) => i.theme === id && !INDICATEURS_EXCLUS.has(i.id)),
   );
   if (!lignes.length) return "";
   const comptes = lignes.filter((l) => l.unite === "count");
@@ -152,44 +167,14 @@ function tete(lignes: Ligne[], unite: string): Ligne | null {
   return [...filtrees].sort((a, b) => b.brut - a.brut)[0];
 }
 
+/** Indicateurs exclus de tout rendu générique : un salaire mensuel moyen
+ *  n'est pas une masse — passé par le même M€ que le reste, il s'arrondit à
+ *  « 0,00 M€ » et n'apprend rien. Rendu à l'euro, il redirait ce que la carte
+ *  affiche déjà (`indicateurCourant`, `formater`) sans y ajouter la
+ *  comparaison entre communes que la carte, elle, permet. */
+const INDICATEURS_EXCLUS = new Set(["insee_salaire_net_eqtp_mensuel"]);
+
 const THEMES_GENERIQUES = [
-  {
-    id: "population",
-    libelle: "Population",
-    accent: "var(--serie-1)",
-    source: "Source : INSEE, état civil et recensement de la population.",
-    phrase: (lignes: Ligne[], nom: string) => {
-      const municipale = lignes.find((l) => l.id === "insee_population_municipale");
-      if (municipale) return `${echapper(nom)} compte ${echapper(municipale.texte)} habitants en ${echapper(municipale.exercice)}.`;
-      const t = tete(lignes, "count");
-      return t ? `${echapper(t.libelle)} : ${echapper(t.texte)} en ${echapper(t.exercice)}.` : "";
-    },
-  },
-  {
-    id: "revenus",
-    libelle: "Revenus et pauvreté",
-    accent: "var(--serie-3)",
-    source: "Source : DGFiP (revenus), CAF (prestations).",
-    phrase: (lignes: Ligne[], nom: string) => {
-      const foyers = lignes.find((l) => l.id === "dgfip_ircom_foyers_fiscaux");
-      const reference = lignes.find((l) => l.id === "dgfip_ircom_revenu_fiscal_reference");
-      if (foyers && reference) {
-        return `${echapper(foyers.texte)} foyers fiscaux à ${echapper(nom)}, pour un revenu fiscal de référence de ${echapper(reference.texte)} en ${echapper(reference.exercice)}.`;
-      }
-      const t = tete(lignes, "count") ?? tete(lignes, "EUR");
-      return t ? `${echapper(t.libelle)} : ${echapper(t.texte)} en ${echapper(t.exercice)}.` : "";
-    },
-  },
-  {
-    id: "diplomes",
-    libelle: "Diplômes de la population",
-    accent: "var(--serie-1)",
-    source: "Source : INSEE, recensement de la population.",
-    phrase: (lignes: Ligne[]) => {
-      const t = tete(lignes, "count");
-      return t ? `<b>${echapper(t.libelle)}</b> est le diplôme le plus courant : ${echapper(t.texte)} personnes en ${echapper(t.exercice)}.` : "";
-    },
-  },
   {
     id: "emploi",
     libelle: "Emploi et chômage",
@@ -226,6 +211,99 @@ const THEMES_GENERIQUES = [
     },
   },
 ];
+
+/** Les trois tranches d'âge de la population, dans l'ordre où elles se lisent
+ *  — la plus âgée d'abord, comme la barre de magnitude qu'elles remplaçaient
+ *  triait déjà par valeur décroissante dans la plupart des communes. */
+const AGES = [
+  { id: "insee_population_55_ans_et_plus", libelle: "55 ans et plus" },
+  { id: "insee_population_25_54_ans", libelle: "25 à 54 ans" },
+  { id: "insee_population_15_24_ans", libelle: "15 à 24 ans" },
+];
+
+/** Population, Revenus et pauvreté, Diplômes : un seul bloc plutôt que trois,
+ *  quatre chiffres de tête puis le détail en colonnes — jamais en barre, ces
+ *  comptes de personnes n'ayant pas à se comparer en longueur les uns aux
+ *  autres. Le revenu de tête est le revenu fiscal de référence PAR FOYER, pas
+ *  le total : « 86,9 M€ » ne dit rien à qui vient lire un revenu, quand
+ *  « 31 182 € par foyer » se compare à ce que le lecteur gagne lui-même. */
+function themePopulationRevenusDiplomes(indicateurs: Indicateur[], territoire: Territoire, nom: string): string {
+  const population = dernieresValeurs(territoire, indicateurs.filter((i) => i.theme === "population"));
+  const revenus = dernieresValeurs(territoire, indicateurs.filter((i) => i.theme === "revenus"));
+  const diplomes = dernieresValeurs(territoire, indicateurs.filter((i) => i.theme === "diplomes"));
+  if (!population.length && !revenus.length && !diplomes.length) return "";
+
+  const municipale = population.find((l) => l.id === "insee_population_municipale");
+  const foyers = revenus.find((l) => l.id === "dgfip_ircom_foyers_fiscaux");
+  const reference = revenus.find((l) => l.id === "dgfip_ircom_revenu_fiscal_reference");
+  const diplomeTete = tete(diplomes, "count");
+
+  const tetes: { valeur: string; libelle: string; exercice: string }[] = [];
+  if (municipale) tetes.push({ valeur: municipale.texte, libelle: "habitants", exercice: municipale.exercice });
+  if (foyers) tetes.push({ valeur: foyers.texte, libelle: "foyers fiscaux", exercice: foyers.exercice });
+  // Le total du revenu fiscal de référence ne parle à personne — « 86,9 M€ »
+  // n'est comparable à rien que le lecteur connaisse. Rapporté au foyer, il
+  // se lit contre son propre revenu.
+  let rfrParFoyerTexte = "";
+  if (foyers && reference && foyers.exercice === reference.exercice && foyers.brut > 0) {
+    rfrParFoyerTexte = euros(Math.round(reference.brut / foyers.brut));
+    tetes.push({ valeur: rfrParFoyerTexte, libelle: "revenu fiscal de référence, par foyer", exercice: reference.exercice });
+  }
+  if (diplomeTete) {
+    // Le libellé du diplôme reste tel quel : « titulaires d'un Aucun diplôme »
+    // n'aurait eu aucun sens pour la ligne « Aucun diplôme ou certificat
+    // d'études », qui EST elle-même un diplôme dominant possible.
+    tetes.push({ valeur: diplomeTete.texte, libelle: `${diplomeTete.libelle}, diplôme le plus courant`, exercice: diplomeTete.exercice });
+  }
+
+  const phraseMorceaux: string[] = [];
+  if (municipale) phraseMorceaux.push(`${echapper(nom)} compte ${echapper(municipale.texte)} habitants en ${echapper(municipale.exercice)}`);
+  if (rfrParFoyerTexte) phraseMorceaux.push(`le revenu fiscal de référence y est de ${echapper(rfrParFoyerTexte)} par foyer en ${echapper(reference!.exercice)}`);
+  if (diplomeTete) phraseMorceaux.push(`<b>${echapper(diplomeTete.libelle)}</b> est le diplôme le plus courant`);
+  const phrase = phraseMorceaux.length ? `${phraseMorceaux.join(", ")}.` : "";
+
+  const cartesTete = tetes.length
+    ? `<div class="davantage__cartes">${tetes
+        .map(
+          (t) =>
+            `<div class="davantage__carte"><span class="davantage__v">${echapper(t.valeur)}</span><span class="davantage__l">${echapper(
+              t.libelle,
+            )}</span><span class="davantage__e">${echapper(t.exercice)}</span></div>`,
+        )
+        .join("")}</div>`
+    : "";
+
+  // Âges : les trois tranches, seulement si elles publient toutes le même
+  // exercice — une pyramide où un étage daterait d'une autre année ne se lit
+  // pas.
+  const lignesAges = AGES.map((a) => population.find((l) => l.id === a.id)).filter((l): l is Ligne => Boolean(l));
+  const memeExercice = lignesAges.length === AGES.length && lignesAges.every((l) => l.exercice === lignesAges[0]!.exercice);
+  const ageTable = memeExercice
+    ? `<h4>Population par tranche d'âge, ${echapper(lignesAges[0]!.exercice)}</h4>${table(
+        lignesAges.map((l) => ({ libelle: l.libelle, valeur: l.texte })),
+      )}`
+    : "";
+
+  const diplomesTable = diplomes.length
+    ? `<h4>Diplômes de la population, ${echapper(diplomes[0]!.exercice)}</h4>${table(
+        [...diplomes].sort((a, b) => b.brut - a.brut).map((l) => ({ libelle: l.libelle, valeur: l.texte })),
+      )}`
+    : "";
+
+  // La pauvreté, sous les diplômes : le taux publié à la maille de ce
+  // territoire, et les deux prestations que la CAF verse aux foyers modestes.
+  const pauvrete = revenus.filter((l) => ["insee_taux_pauvrete", "cnaf_foyers_rsa", "cnaf_foyers_prime_activite"].includes(l.id));
+  const pauvreteTable = pauvrete.length
+    ? `<h4>Pauvreté</h4>${table(pauvrete.map((l) => ({ libelle: l.libelle, valeur: l.texte, exercice: l.exercice })))}`
+    : "";
+
+  return section(
+    "population",
+    "Population, revenus et diplômes",
+    `${phrase ? `<p class="davantage__affirmation">${phrase}</p>` : ""}${cartesTete}${ageTable}${diplomesTable}${pauvreteTable}`,
+    "Source : INSEE (population, diplômes, pauvreté), DGFiP (revenus), CAF (RSA, prime d'activité).",
+  );
+}
 
 /** Logement : cinq des quatorze indicateurs publiés — le stock total, le
  *  partage résidence principale / secondaire, le logement social, le loyer
@@ -333,10 +411,27 @@ function themeSecteurs(territoire: Territoire): string {
   );
 }
 
-/** Sécurité : les seuls taux (pour mille habitants ou logements), et
- *  seulement les catégories qui ont une valeur au dernier exercice publié —
- *  les décomptes bruts, qui doublent chaque taux sans rien ajouter, et les
- *  catégories que la source ne met plus à jour, ne sont pas repris. */
+/** Un écart entre deux taux, signé, jamais divisé par dix : `formaterVariation`
+ *  (evolution-carte.ts) convertit les `pour_1000_*` en pourcentage pour la
+ *  carte, un registre différent de celui d'ici, où le taux lui-même reste en
+ *  ‰. Diviser l'écart et pas le taux aurait contredit la colonne juste à
+ *  côté. */
+function ecartPoints(depart: number, arrivee: number): string {
+  const ecart = Math.round((arrivee - depart) * 10) / 10;
+  const texte = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(Math.abs(ecart));
+  if (ecart === 0) return `0 pt`;
+  return `${ecart > 0 ? "+" : "−"}${texte} pt${Math.abs(ecart) >= 2 ? "s" : ""}`;
+}
+
+const EXERCICE_REFERENCE = "2019";
+
+/** Sécurité : les seuls taux (pour mille habitants ou logements), avec leur
+ *  évolution depuis 2019 — la fenêtre tenue partout ailleurs sur le site — et
+ *  seulement les catégories qui ont une valeur au dernier exercice publié.
+ *  Les décomptes bruts, qui doublent chaque taux sans rien ajouter, et les
+ *  catégories que la source ne met plus à jour, ne sont pas repris. En
+ *  colonnes plutôt qu'en barres : ce qui compte ici est l'écart entre deux
+ *  dates, pas la longueur d'un seul taux. */
 function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): string {
   const taux = indicateurs.filter(
     (i) => i.theme === "securite" && (i.unite === "pour_1000_habitants" || i.unite === "pour_1000_logements"),
@@ -351,21 +446,49 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
     }
   }
   if (!dernier) return "";
-  const lignes: Ligne[] = [];
+  const lignes: {
+    libelle: string;
+    unite: string;
+    depart: number | null;
+    arrivee: number;
+    texteDepart: string;
+    texteArrivee: string;
+  }[] = [];
   for (const i of taux) {
-    const valeur = territoire.series[i.id]?.[dernier];
-    if (typeof valeur !== "number" || !Number.isFinite(valeur)) continue;
-    lignes.push({ id: i.id, libelle: i.libelle, unite: i.unite, exercice: dernier, brut: valeur, texte: valeurLisible(valeur, i.unite) });
+    const arrivee = territoire.series[i.id]?.[dernier];
+    if (typeof arrivee !== "number" || !Number.isFinite(arrivee)) continue;
+    const brutDepart = territoire.series[i.id]?.[EXERCICE_REFERENCE];
+    const depart = typeof brutDepart === "number" && Number.isFinite(brutDepart) ? brutDepart : null;
+    lignes.push({
+      libelle: i.libelle,
+      unite: i.unite,
+      depart,
+      arrivee,
+      texteDepart: depart === null ? "" : valeurLisible(depart, i.unite),
+      texteArrivee: valeurLisible(arrivee, i.unite),
+    });
   }
   if (!lignes.length) return "";
-  const triees = [...lignes].sort((a, b) => b.brut - a.brut);
+  const triees = [...lignes].sort((a, b) => b.arrivee - a.arrivee);
   const phrase = `<b>${echapper(triees[0].libelle)}</b> est la catégorie la plus fréquente en ${echapper(dernier)} : ${echapper(
-    triees[0].texte,
+    triees[0].texteArrivee,
   )}.`;
+  const tableau = `<table class="davantage__table"><thead><tr><th>Catégorie</th><th>${echapper(
+    EXERCICE_REFERENCE,
+  )}</th><th>${echapper(dernier)}</th><th>Évolution</th></tr></thead><tbody>${triees
+    .map(
+      (l) =>
+        `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${
+          l.depart === null ? "—" : echapper(l.texteDepart)
+        }</td><td class="davantage__num">${echapper(l.texteArrivee)}</td><td class="davantage__num">${
+          l.depart === null ? "—" : echapper(ecartPoints(l.depart, l.arrivee))
+        }</td></tr>`,
+    )
+    .join("")}</tbody></table>`;
   return section(
     "securite",
     "Sécurité",
-    `<p class="davantage__affirmation">${phrase}</p>${barresMagnitude(lignes, "var(--serie-7)")}`,
+    `<p class="davantage__affirmation">${phrase}</p>${tableau}`,
     "Source : SSMSI, taux pour 1 000 habitants (sauf cambriolages, pour 1 000 logements). Décomptes bruts et catégories sans valeur au dernier exercice non repris.",
   );
 }
@@ -375,6 +498,19 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
  *  fichier à part (`donnees.subventions`, publié par département) ; en son
  *  absence — département non chargé, ou aucune association identifiée — le
  *  thème garde son seul agrégat plutôt que de ne rien afficher. */
+/** Millions d'euros, toujours deux décimales : contrairement à `millions()`
+ *  (qui ajuste le nombre de décimales à la taille du montant), une somme par
+ *  mission reste comparable d'une ligne à l'autre du même tableau — c'est la
+ *  règle de la décimale fixe, tenue ici pour une seule colonne. */
+function millionsDeuxDecimales(valeur: number): string {
+  return `${new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(valeur / 1e6)} M€`;
+}
+
+const MISSION_INCONNUE = "Autres programmes";
+
 function themeVieAssociative(
   indicateurs: Indicateur[],
   territoire: Territoire,
@@ -389,12 +525,25 @@ function themeVieAssociative(
   const beneficiaires = associations?.beneficiaires ?? [];
   if (beneficiaires.length) {
     const exercice = associations!.exercice;
+    const total = beneficiaires.reduce((s, b) => s + b.montant, 0);
     const phrase =
       beneficiaires.length === 1
         ? `Une association subventionnée par l'État à ${echapper(nom)} en ${echapper(exercice)}.`
         : `${beneficiaires.length} associations subventionnées par l'État à ${echapper(nom)} en ${echapper(exercice)}, pour ${echapper(
-            euros(beneficiaires.reduce((s, b) => s + b.montant, 0)),
+            millionsDeuxDecimales(total),
           )} au total.`;
+    // Par activité : la seule typologie du jaune qui soit un vocabulaire
+    // contrôlé (`programmes_budgetaires()`, publish.py) — la mission
+    // budgétaire de chaque programme, déjà résolue à la publication.
+    const parMission = new Map<string, number>();
+    for (const p of associations!.programmes ?? []) {
+      const cle = p.mission || MISSION_INCONNUE;
+      parMission.set(cle, (parMission.get(cle) ?? 0) + p.montant);
+    }
+    const recap = [...parMission.entries()].sort((a, b) => b[1] - a[1]);
+    const tableauMissions = recap.length
+      ? table(recap.map(([mission, montant]) => ({ libelle: mission, valeur: millionsDeuxDecimales(montant) })))
+      : "";
     const liste = `<div class="davantage__associations">${beneficiaires
       .map(
         (b) =>
@@ -403,10 +552,13 @@ function themeVieAssociative(
           )}</span>${b.objet ? `<span class="davantage__objet">${echapper(b.objet)}</span>` : ""}</div>`,
       )
       .join("")}</div>`;
+    const pli = `<details class="davantage__pli"><summary>Voir ${
+      beneficiaires.length === 1 ? "l'association" : `les ${beneficiaires.length} associations`
+    }</summary>${liste}</details>`;
     return section(
       "vie-associative",
       "Vie associative",
-      `<p class="davantage__affirmation">${phrase}</p>${liste}`,
+      `<p class="davantage__affirmation">${phrase}</p>${tableauMissions}${pli}`,
       "Source : jaune budgétaire, effort financier de l'État en faveur des associations.",
     );
   }
@@ -416,10 +568,18 @@ function themeVieAssociative(
         compte.brut > 1 ? "s" : ""
       } par l'État à ${echapper(nom)} en ${echapper(compte.exercice)}.`
     : "";
+  const montant = lignes.find((l) => l.id === "etat_subventions_associations");
+  const cartes = [montant, compte]
+    .filter((l): l is Ligne => Boolean(l))
+    .map((l) => ({
+      texte: l.id === "etat_subventions_associations" ? millionsDeuxDecimales(l.brut) : l.texte,
+      libelle: l.libelle,
+      exercice: l.exercice,
+    }));
   return section(
     "vie-associative",
     "Vie associative",
-    `${phrase ? `<p class="davantage__affirmation">${phrase}</p>` : ""}${cartesChiffres(lignes)}`,
+    `${phrase ? `<p class="davantage__affirmation">${phrase}</p>` : ""}${cartesChiffres(cartes)}`,
     "Source : jaune budgétaire, effort financier de l'État en faveur des associations.",
   );
 }
@@ -432,7 +592,7 @@ function themeVieAssociative(
 function rendreGenerique(id: string, indicateurs: Indicateur[], territoire: Territoire): string {
   const t = THEMES_GENERIQUES.find((t) => t.id === id);
   if (!t) return "";
-  return themeGenerique(t.id, t.libelle, t.accent, indicateurs, territoire, (lignes) => t.phrase(lignes, territoire.nom), t.source);
+  return themeGenerique(t.id, t.libelle, t.accent, indicateurs, territoire, t.phrase, t.source);
 }
 
 export function rendu(
@@ -442,9 +602,7 @@ export function rendu(
 ): string {
   const blocs = [
     themeVieAssociative(indicateurs, territoire, territoire.nom, associations),
-    rendreGenerique("population", indicateurs, territoire),
-    rendreGenerique("revenus", indicateurs, territoire),
-    rendreGenerique("diplomes", indicateurs, territoire),
+    themePopulationRevenusDiplomes(indicateurs, territoire, territoire.nom),
     rendreGenerique("emploi", indicateurs, territoire),
     rendreGenerique("professions", indicateurs, territoire),
     themeSecteurs(territoire),

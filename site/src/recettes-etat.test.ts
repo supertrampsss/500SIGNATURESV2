@@ -17,6 +17,7 @@ const SERIES: Record<string, Record<string, number>> = {
   etat_tva: { "2013": 141.2 * Md, "2017": 152.4 * Md, "2025": 98.0741 * Md },
   etat_impot_revenu: { "2013": 67.0 * Md, "2017": 73.0 * Md, "2025": 94.9443 * Md },
   etat_impot_societes: { "2013": 47.2 * Md, "2017": 35.7 * Md, "2025": 59.9181 * Md },
+  etat_ticpe: { "2013": 13.0 * Md, "2017": 10.1 * Md, "2025": 16.2767 * Md },
   etat_recettes_fiscales: { "2013": 284.0 * Md, "2017": 295.6 * Md, "2025": 356.398 * Md },
   etat_recettes_non_fiscales: { "2013": 13.7 * Md, "2017": 13.8 * Md, "2025": 23.9921 * Md },
   etat_recettes_nettes_bg: { "2013": 297.7 * Md, "2017": 309.5 * Md, "2025": 380.3903 * Md },
@@ -27,6 +28,7 @@ const CATALOGUE = [
   "etat_tva",
   "etat_impot_revenu",
   "etat_impot_societes",
+  "etat_ticpe",
   "etat_recettes_fiscales",
   "etat_recettes_non_fiscales",
   "etat_recettes_nettes_bg",
@@ -46,6 +48,7 @@ test("chaque évolution donne ses deux bouts : 2017, 2025, puis la variation", (
   assert.match(lu, /2017 2025 Variation/);
   assert.match(lu, /Impôt sur le revenu \+73,0 \+94,9 \+30,1 %/);
   assert.match(lu, /Impôt sur les sociétés \+35,7 \+59,9 \+67,8 %/);
+  assert.match(lu, /Taxe sur les produits énergétiques \(TICPE\) \+10,1 \+16,3 \+61,2 %/);
   assert.match(lu, /Total encaissé par l'État \+309,5 \+380,4 \+22,9 %/);
 });
 
@@ -71,19 +74,17 @@ test("les recettes s'écrivent en positif, du plus gros au plus petit", () => {
   // Le tri suit le dernier exercice, et la hiérarchie typographique le suit :
   // le rang 0 est la TVA.
   const rangs = [...html.matchAll(/recettes__rang--(\d)/g)].map((m) => Number(m[1]));
-  assert.deepEqual(rangs, [0, 1, 2, 3, 4]);
+  assert.deepEqual(rangs, [0, 1, 2, 3, 4, 5]);
   assert.ok(html.indexOf("Taxe sur la valeur ajoutée") < html.indexOf("Impôt sur le revenu"));
 });
 
 test("un reste par soustraction n'affiche pas de variation", () => {
-  // Mesuré sur les séries réelles : « Autres impôts et taxes » triple entre
-  // 2017 et 2025, en miroir mécanique du partage de la TVA. « +200 % » en
-  // tête de tableau aurait fait lire une explosion d'impôts qui n'existe
-  // pas — la ligne prend une note, ses deux bouts restent écrits.
+  // Mesuré sur les séries réelles : une fois la TICPE sortie et nommée, ce
+  // qui reste (« Autres recettes fiscales ») plus que triple entre 2017 et
+  // 2025. La variation nue en tête de tableau ne se lit pas — la ligne prend
+  // une note, ses deux bouts restent écrits.
   const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
-  // La légende du tableau cite aussi ce libellé : viser l'occurrence du CORPS
-  // du tableau, pas la première du document.
-  const depart = html.indexOf("Autres impôts et taxes", html.indexOf("<tbody"));
+  const depart = html.indexOf("Autres recettes fiscales", html.indexOf("<tbody"));
   const rang = html.slice(depart, html.indexOf("</tr>", depart));
   assert.doesNotMatch(rang, /\+\d+,\d\s?%/u);
   assert.match(rang, /recettes__note">composition en évolution</);
@@ -93,11 +94,16 @@ test("le total est la série publiée, jamais la somme des lignes", () => {
   const donnees = lignes(territoire(SERIES));
   assert.ok(donnees);
   assert.equal(donnees.total.apres, 380.3903 * Md);
-  // « Autres impôts et taxes » est la soustraction déclarée : fiscales moins
-  // les trois impôts nommés.
-  const autres = donnees.lignes.find((l) => l.libelle.startsWith("Autres"));
+  // « Autres recettes fiscales » est la soustraction déclarée : fiscales
+  // moins les trois impôts nommés et la TICPE, elle aussi nommée.
+  const autres = donnees.lignes.find((l) => l.libelle === "Autres recettes fiscales");
   assert.ok(autres);
-  assert.ok(Math.abs(autres.apres - (356.398 - 98.0741 - 94.9443 - 59.9181) * Md) < 1e-3);
+  assert.ok(
+    Math.abs(autres.apres - (356.398 - 98.0741 - 94.9443 - 59.9181 - 16.2767) * Md) < 1e-3,
+  );
+  const ticpe = donnees.lignes.find((l) => l.libelle.includes("TICPE"));
+  assert.ok(ticpe);
+  assert.equal(ticpe.apres, 16.2767 * Md);
 });
 
 test("l'inflation de la même fenêtre cadre la hausse, et se tait sans indice", () => {

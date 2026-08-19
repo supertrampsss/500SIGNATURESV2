@@ -2459,56 +2459,6 @@ function basculerVue(): void {
   if (vue !== precedente) window.scrollTo({ top: 0 });
 }
 
-/**
- * Le sommaire du BILAN : les cinq questions, pas les douze cadres.
- *
- * Il énumérait chaque bloc — conjoncture, dette, Europe, les 100 €, fonctions,
- * Sécurité sociale, budget de l'État, niches — c'est-à-dire douze entrées sans
- * lien entre elles pour une page qui en raconte cinq. Un sommaire de douze
- * titres devant une page de douze cadres ne dit rien de plus que la page ; il
- * la répète. Les entrées sont donc les **questions des chapitres**, dans leur
- * ordre : combien, d'où, où il va, pour qui, est-ce tenable.
- *
- * Le sommaire se construit sur ce qui s'est **réellement affiché** : un
- * chapitre dont aucun bloc n'a de titre — parce qu'aucune de ses sources n'est
- * publiée — n'entre pas au sommaire. Rien de cliquable ne doit mener à une
- * section vide, c'est déjà la règle du simulateur dans le menu. Le libellé est
- * lu dans le DOM : deux libellés à tenir à jour en auraient fait diverger un.
- */
-function peindreSommaireReperes(): void {
-  const cadre = document.getElementById("sommaire-bilan");
-  if (!cadre) return;
-  const entrees = [...document.querySelectorAll<HTMLElement>("#national .chapitre")]
-    .filter((chapitre) =>
-      // Un cadre rempli porte des enfants ; un cadre que le pré-rendu a replié
-      // faute de source est vide. Le critère est le contenu, pas un titre :
-      // l'ouverture du chapitre 1 est une phrase et un tableau, sans h3, et un
-      // critère « porte un titre » l'aurait rayée du sommaire.
-      [...chapitre.querySelectorAll<HTMLElement>(".bloc")].some(
-        (bloc) => !bloc.hidden && bloc.childElementCount > 0,
-      ),
-    )
-    .map((chapitre) => ({
-      chapitre,
-      titre: chapitre.querySelector(".chapitre__question")?.textContent?.trim(),
-    }))
-    .filter((e): e is { chapitre: HTMLElement; titre: string } => Boolean(e.titre));
-  // Un sommaire d'une entrée nomme ce qui est déjà seul à l'écran.
-  if (entrees.length < 2) {
-    cadre.hidden = true;
-    return;
-  }
-  cadre.hidden = false;
-  cadre.replaceChildren(
-    ...entrees.map(({ chapitre, titre }) => {
-      const lien = document.createElement("a");
-      lien.href = `#${chapitre.id}`;
-      lien.textContent = titre;
-      return lien;
-    }),
-  );
-}
-
 /** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue.
  *
  *  Elle l'est **par défaut**. Repliée, il fallait la demander pour voir ce
@@ -4257,8 +4207,6 @@ async function demarrer(): Promise<void> {
   } catch {
     // Les séries nationales ne sont pas encore publiées : la carte reste utile.
   }
-
-  peindreSommaireReperes();
 
   await majComparateur();
 

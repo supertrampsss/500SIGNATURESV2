@@ -14,6 +14,11 @@
  * ailleurs sur le site : c'est un niveau (recettes moins dépenses d'une même
  * année), pas la variation d'un taux — la règle des points ne vaut que pour
  * les variations.
+ *
+ * La légende du tableau (définition du sous-secteur, lecture de la courbe
+ * excédent/déficit) est partie : les sources se tiennent courtes et sous le
+ * tableau, jamais en légende au-dessus. Le sous-secteur reste nommé dans ce
+ * docstring et dans la réponse du bloc.
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -102,9 +107,6 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
         pourcentage(recettesFr),
       )}</strong> (cotisations, CSG et impôts affectés)${enEuros}.</p>
     <table class="secu" tabindex="0">
-      <caption>Sous-secteur administrations de sécurité sociale (S1314), % du PIB,
-        définitions harmonisées Eurostat. Excédentaire avant la crise sanitaire, en fort
-        déficit en 2020, revenue près de l'équilibre depuis.</caption>
       <thead><tr><th scope="col">% du PIB</th>${annees
         .map((a) => `<th scope="col">${echapper(a)}</th>`)
         .join("")}</tr></thead>
@@ -118,6 +120,7 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
         )
         .join("")}</tr></tfoot>
     </table>
+    <p class="bloc__complement">Source : Eurostat.</p>
 `;
 }
 

@@ -13,16 +13,18 @@
  * le jour où les faits changent, la phrase change avec eux.
  *
  * ─────────────────────────────────────────────────────────────────────────
- * LES ÉVOLUTIONS, AVEC LEURS DEUX BOUTS
+ * LA DETTE, AVEC SES DEUX BOUTS
  * ─────────────────────────────────────────────────────────────────────────
  * La dette se montre année par année — c'est la demande du lecteur pour ce
- * chapitre — et le taux d'emprunt sur quatre exercices choisis, dont 2020,
- * l'année où la France était payée pour emprunter : sans ce point bas, la
- * remontée n'a pas d'échelle.
+ * chapitre. Le taux d'un nouvel emprunt à 10 ans, lui, ne porte plus son
+ * propre graphique : les deux chiffres qui comptaient (3,3 % aujourd'hui
+ * contre 0,8 % en 2017) sont déjà dans la réponse, et un second endroit pour
+ * les mêmes deux nombres ne les rendait pas plus vrais.
  *
  * Le bloc absorbe l'ancien bloc « Dette publique » (montant, part du PIB,
  * sous-secteurs) : deux blocs sur la dette dans le même chapitre auraient été
- * le doublon suivant.
+ * le doublon suivant. Qui porte la dette est dit dans la réponse elle-même,
+ * pas dans une légende à part sous le graphique.
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -100,14 +102,6 @@ export function rendu(
   const dernierTaux = anneesTaux[anneesTaux.length - 1];
   const premierTaux = anneesTaux.includes(REFERENCE) ? REFERENCE : anneesTaux[0];
   if (!dernierTaux || dernierTaux === premierTaux) return "";
-  // Quatre points : la référence, le creux de la fenêtre, un intermédiaire,
-  // le dernier. Le creux est cherché, pas écrit en dur — c'est lui qui donne
-  // l'échelle de la remontée.
-  const fenetre = anneesTaux.filter((an) => an >= premierTaux);
-  const creux = fenetre.reduce((bas, an) => (taux[an] < taux[bas] ? an : bas), fenetre[0]);
-  const pointsTaux = [...new Set([premierTaux, creux, fenetre[Math.floor(fenetre.length * 0.7)], dernierTaux])]
-    .filter((an): an is string => an !== undefined)
-    .sort();
 
   // La croissance de la richesse sur la même fenêtre, pour la réponse.
   const pib = serie(PIB);
@@ -125,6 +119,14 @@ export function rendu(
   const hausseDette = (detteFin / detteDebut - 1) * 100;
   const hausseRichesse =
     pibDebut !== undefined && pibFin !== undefined ? (pibFin / pibDebut - 1) * 100 : null;
+
+  const sousSecteurs = SOUS_SECTEURS.map(([id, libelle]) => {
+    const s = serie(id);
+    const p = Object.keys(s).sort().pop();
+    return p ? `${libelle} ${montantLisible(s[p])}` : "";
+  })
+    .filter(Boolean)
+    .join(" · ");
 
   const reponse = `<p class="reponse"><strong>Au rythme actuel, la charge de la dette va
       augmenter.</strong> La dette a augmenté de <strong>${UNE_DECIMALE.format(
@@ -144,7 +146,7 @@ export function rendu(
       encaissés : à mesure que les vieux emprunts sont remplacés par des neufs, cette
       facture monte.`
           : ""
-      }</p>`;
+      }${sousSecteurs ? ` Qui la porte : ${sousSecteurs}.` : ""}</p>`;
 
   // ── La dette, année par année ──────────────────────────────────────────
   const maximumDette = detteFin;
@@ -166,31 +168,6 @@ export function rendu(
   const habitants = population[Object.keys(population).sort().pop() ?? ""];
   const parHabitant =
     habitants !== undefined ? ` Soit <strong>${ENTIER.format(detteFin / habitants)}&nbsp;€</strong> par habitant.` : "";
-
-  const sousSecteurs = SOUS_SECTEURS.map(([id, libelle]) => {
-    const s = serie(id);
-    const p = Object.keys(s).sort().pop();
-    return p ? `${libelle} ${montantLisible(s[p])}` : "";
-  })
-    .filter(Boolean)
-    .join(" · ");
-
-  // ── Le taux, sur quatre points ─────────────────────────────────────────
-  const maxTaux = Math.max(...pointsTaux.map((an) => taux[an]));
-  const rangsTaux = pointsTaux
-    .map(
-      (an) => `<div class="tenable__rang tenable__rang--taux">
-        <span class="apu__nom">${echapper(an)}</span>
-        <span class="apu__piste"><span style="width:${Math.max(
-          0,
-          (taux[an] / maxTaux) * 100,
-        ).toFixed(1)}%"></span></span>
-        <span class="apu__valeur">${taux[an] < 0 ? "−" : ""}${UNE_DECIMALE.format(
-          Math.abs(taux[an]),
-        )}&nbsp;%</span>
-      </div>`,
-    )
-    .join("");
 
   // ── Les voisins ────────────────────────────────────────────────────────
   const dernierePart = (code: string): [string, number] | null => {
@@ -217,22 +194,11 @@ export function rendu(
   // sous elle.
   return `
     ${reponse}
-    <div class="tenable__duo">
-      <div>
-        <h3 class="sous-titre">La dette, année par année</h3>
-        ${rangsDette}
-        <p class="bloc__complement">Milliards d'euros, fin d'année ; la dernière ligne est le
-          dernier trimestre publié.${parHabitant}${
-            sousSecteurs ? ` Qui la porte : ${sousSecteurs}.` : ""
-          } Source : INSEE, dette au sens de Maastricht.</p>
-      </div>
-      <div>
-        <h3 class="sous-titre">Le coût d'un nouvel emprunt à 10 ans</h3>
-        ${rangsTaux}
-        <p class="bloc__complement">En ${echapper(creux)}, la France ${
-          taux[creux] < 0 ? "était payée pour emprunter" : "empruntait au plus bas"
-        }. Source : Eurostat, rendement des obligations d'État à 10 ans.</p>
-      </div>
+    <div>
+      <h3 class="sous-titre">La dette, année par année</h3>
+      ${rangsDette}
+      <p class="bloc__complement">Milliards d'euros, fin d'année ; la dernière ligne est le
+        dernier trimestre publié.${parHabitant} Source : INSEE.</p>
     </div>
     ${
       voisins

@@ -3004,30 +3004,6 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   }
 }
 
-/* Le sommaire d'une vue longue : les sections qu'elle contient, en pilules
-   d'ancre. Décryptages alignait huit blocs sur 6 600 px sans dire ce qui
-   restait dessous ni permettre d'y aller. */
-.sommaire-vue {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espace-3);
-  margin: 0 0 var(--espace-7);
-  padding-bottom: var(--espace-6);
-  border-bottom: 1px solid var(--trait);
-}
-.sommaire-vue a {
-  font-size: var(--texte-s);
-  color: var(--encre-douce);
-  text-decoration: none;
-  padding: var(--espace-3) var(--espace-5);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-pilule);
-  transition: border-color var(--transition), color var(--transition);
-}
-.sommaire-vue a:hover {
-  border-color: var(--trait-fort);
-  color: var(--encre);
-}
 /* Une ancre atteinte se signale sous le titre visé, pas au ras de l'en-tête
    collant qui le recouvrait. */
 .national [id],
@@ -3227,36 +3203,16 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   outline: 1px solid var(--trait-fort);
 }
 .apu__valeur { text-align: right; font-size: var(--texte-m); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
-.apu__detail { margin: var(--espace-4) 0 var(--espace-2) var(--espace-5); padding-left: var(--espace-5); border-left: 2px solid var(--serie-3); }
-.apu__detail .apu__rang { border-top: 0; padding: var(--espace-2) 0; grid-template-columns: minmax(6rem, 11rem) minmax(0, 1fr) 4.6rem; }
-.apu__detail .apu__piste { height: var(--espace-4); }
-/* Le sommaire du dépliant portait le total du poste (−37,11 €) juste au-dessus
-   d'un second total du dépliant lui-même (−37,37 €, un autre exercice) : deux
-   chiffres à quelques centimes l'un de l'autre pour la même ligne, lus comme
-   une erreur. Le sommaire ne garde que le libellé ; le dépliant s'ouvre par
-   défaut (`open`), le détail restant accessible d'un clic pour qui veut le
-   replier. */
-.apu__ouvrir { border-top: 1px solid var(--trait); }
-.apu__ouvrir > summary { cursor: pointer; list-style: none; padding: var(--espace-3) 0; }
-.apu__ouvrir > summary::-webkit-details-marker { display: none; }
-.apu__ouvrir > summary .apu__nom::before {
-  content: "›";
-  display: inline-block;
-  margin-right: var(--espace-3);
-  color: var(--serie-3);
-  font-weight: 700;
-  transition: transform var(--transition);
-}
-.apu__ouvrir[open] > summary .apu__nom::before { transform: rotate(90deg); }
 .apu__total { border-top: 2px solid var(--serie-3); font-weight: 700; }
 
-/* Les recettes de l'État : la taille suit le montant. Cinq crans, du plus
-   gros au plus petit — la demande explicite du lecteur, et le registre du
-   tableau typographié. La note de périmètre (TVA partagée) vit dans la
-   colonne Variation, à la place du pourcentage qu'elle remplace : sans son
-   propre `font-size`, elle aurait hérité du corps géant des cellules de
-   montant (`.recettes__rang--0 td` etc.), qui vise les DEUX autres colonnes
-   de la même ligne. */
+/* Les recettes de l'État : la taille suit le montant. Six crans (depuis que
+   la TICPE est sortie du reste et prend sa propre ligne), du plus gros au
+   plus petit — la demande explicite du lecteur, et le registre du tableau
+   typographié. La note de périmètre (TVA partagée) vit dans la colonne
+   Variation, à la place du pourcentage qu'elle remplace : sans son propre
+   `font-size`, elle aurait hérité du corps géant des cellules de montant
+   (`.recettes__rang--0 td` etc.), qui vise les DEUX autres colonnes de la
+   même ligne. */
 .recettes__rang--0 th { font-size: var(--texte-l); }
 .recettes__rang--0 td { font-size: var(--texte-3xl); font-weight: 700; }
 .recettes__rang--1 th { font-size: var(--texte-l); }
@@ -3264,6 +3220,7 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .recettes__rang--2 td { font-size: var(--texte-xl); font-weight: 600; }
 .recettes__rang--3 td { font-size: var(--texte-l); font-weight: 600; }
 .recettes__rang--4 th { color: var(--encre-douce); }
+.recettes__rang--5 th { color: var(--encre-douce); }
 .recettes__note {
   font-size: var(--texte-xs);
   font-weight: 400;
@@ -3280,16 +3237,11 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   padding: var(--espace-1) 0;
 }
 .tenable__rang .apu__piste span { background: var(--serie-5); }
-.tenable__rang--taux .apu__piste span { background: var(--serie-6); }
 /* L'affirmation à côté de sa preuve, dans tous les blocs des chapitres :
-   `.tenable__duo` est né dans le bloc de la dette, `.chapitre__duo` est la
-   même grille pour les autres. `minmax(0, 1fr)` pour la raison écrite sous
-   `.chapitre` : un tableau qui défile dans son cadre ne doit pas pousser la
-   page. */
-.tenable__duo,
+   `minmax(0, 1fr)` pour la raison écrite sous `.chapitre` : un tableau qui
+   défile dans son cadre ne doit pas pousser la page. */
 .chapitre__duo { display: grid; gap: var(--espace-7); margin-top: var(--espace-5); grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 60rem) {
-  .tenable__duo,
   .chapitre__duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
 }
 
@@ -7800,6 +7752,76 @@ body[data-carte="oui"] .legende {
   grid-column: 1 / -1;
   font-size: var(--texte-xs);
   color: var(--encre-douce);
+}
+
+/* Une liste qui se lit un par un, pas en longueur les uns contre les autres :
+   des comptes de personnes ou de diplômes gardent leurs chiffres alignés en
+   colonne, jamais en barre. */
+.davantage__theme h4 {
+  font-family: var(--serif);
+  font-size: var(--texte-m);
+  font-weight: 600;
+  margin: var(--espace-4) 0 var(--espace-2);
+}
+.davantage__theme h4:first-child {
+  margin-top: 0;
+}
+.davantage__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texte-s);
+}
+.davantage__table td,
+.davantage__table th {
+  padding: var(--espace-2) 0;
+  border-bottom: 1px solid var(--trait);
+  text-align: left;
+}
+.davantage__table thead th {
+  color: var(--encre-douce);
+  font-weight: 600;
+  text-align: right;
+}
+.davantage__table thead th:first-child {
+  text-align: left;
+}
+.davantage__table tbody tr:last-child td {
+  border-bottom: none;
+}
+.davantage__num,
+.davantage__exercice {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.davantage__exercice {
+  color: var(--encre-douce);
+}
+
+/* Le pli qui ouvre la liste nominative complète : la table par activité
+   suffit à la plupart des lectures, la liste entière reste à un geste. */
+.davantage__pli > summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  color: var(--encre-douce);
+  padding: var(--espace-2) 0;
+}
+.davantage__pli > summary::-webkit-details-marker {
+  display: none;
+}
+.davantage__pli > summary::before {
+  content: "›";
+  display: inline-block;
+  margin-right: 0.35rem;
+  transition: transform var(--transition);
+}
+.davantage__pli[open] > summary::before {
+  transform: rotate(90deg);
+}
+.davantage__pli > summary:hover {
+  color: var(--encre);
 }
 
 /* Le pied de page se replie. Les trois documents de référence — les sources,

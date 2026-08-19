@@ -479,14 +479,14 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   // ne pouvait être indexée ni servie pré-rendue.
   assert.match(MAIN, /vueDepuisAdresse\(location\.pathname, location\.hash\)/);
   // Le chemin est lu AVANT toute autre source : c'est lui qui fait foi.
-  // La borne générique "/**\n * Le sommaire" matchait d'abord le sommaire de
-  // « Sources et méthode », plus haut dans le fichier : on vise ici celui du
-  // BILAN, qui suit basculerVue.
-  const BORNE = "/**\n * Le sommaire du BILAN";
+  // Le sommaire du BILAN, qui suivait basculerVue, est parti avec le sommaire
+  // lui-même (retiré) ; la borne vise désormais le commentaire qui le suit
+  // directement dans le fichier.
+  const BORNE = "/** La carte est-elle déployée ?";
   // Une borne introuvable rend −1, et `slice(a, -1)` découpe jusqu'à la fin du
   // fichier : le test resterait vert en ne mesurant plus rien. C'est ce qui
   // s'est produit quand ce commentaire a été retitré.
-  assert.ok(MAIN.includes(BORNE), "borne du sommaire introuvable dans main.ts");
+  assert.ok(MAIN.includes(BORNE), "borne introuvable dans main.ts");
   const corps = MAIN.slice(MAIN.indexOf("function basculerVue"), MAIN.indexOf(BORNE));
   assert.ok(corps.length > 200, "corps de basculerVue introuvable");
   assert.ok(
@@ -653,28 +653,7 @@ test("les grilles du bilan laissent leurs colonnes descendre sous leur contenu",
   }
 });
 
-test("une vue longue dit ce qu'elle contient", () => {
-  // Huit blocs de plusieurs écrans sur 6 600 px de défilement, sans moyen de
-  // savoir ce qui restait dessous ni d'y aller.
-  assert.match(PAGE, /id="sommaire-bilan"/);
-  assert.match(MAIN, /function peindreSommaireReperes\(\)/);
-  // Le sommaire se construit sur ce qui s'est réellement affiché : rien de
-  // cliquable ne doit mener à une section vide.
-  const corps = MAIN.slice(
-    MAIN.indexOf("function peindreSommaireReperes"),
-    MAIN.indexOf("/** La carte est-elle déployée ?"),
-  );
-  // Le critère est le CONTENU du bloc, pas un titre : l'ouverture du chapitre 1
-  // est une phrase et un tableau sans h3, et un critère « porte un titre » la
-  // rayait du sommaire.
-  assert.match(corps, /childElementCount > 0/);
-  assert.match(corps, /!bloc\.hidden/);
-  assert.match(corps, /if \(entrees\.length < 2\)/);
-  // Et il nomme les CHAPITRES, pas les douze cadres : un sommaire qui répète
-  // la page n'ajoute rien à la page. L'ancre vise donc la section du chapitre.
-  assert.match(corps, /#national \.chapitre/);
-  assert.match(corps, /\.chapitre__question/);
-  assert.doesNotMatch(corps, /#national \.bloc/);
+test("une ancre interne d'une vue longue ne recharge pas la vue depuis le haut", () => {
   // Une ancre interne ne doit pas être prise pour une vue inconnue et renvoyer
   // le lecteur sur TERRITOIRE au moment où il descend dans ce qu'il lit.
   // Le fragment fait partie de la garde depuis qu'un Back vers `/` — cible
@@ -690,6 +669,14 @@ test("une vue longue dit ce qu'elle contient", () => {
   // doit être conditionnel, sinon il annule le défilement vers l'ancre.
   assert.match(MAIN, /const precedente = document\.body\.dataset\.vue;/);
   assert.match(MAIN, /if \(vue !== precedente\) window\.scrollTo\(\{ top: 0 \}\);/);
+});
+
+test("le sommaire du bilan est parti, pas seulement replié", () => {
+  // Douze puis cinq entrées répétaient les questions déjà posées à l'écran :
+  // un sommaire de la page qu'on est déjà en train de lire n'ajoute rien.
+  assert.doesNotMatch(PAGE, /id="sommaire-bilan"/);
+  assert.doesNotMatch(MAIN, /peindreSommaireReperes/);
+  assert.doesNotMatch(CSS, /\.sommaire-vue/);
 });
 
 test("le Back vers `/` n'est plus avalé par la garde des ancres internes", () => {
