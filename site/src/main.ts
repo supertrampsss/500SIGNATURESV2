@@ -112,6 +112,7 @@ import {
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
+import { renduGrille, renduMethode, renduSources } from "./methode-rendu.ts";
 import "./style.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
@@ -2561,6 +2562,34 @@ type EntreeReference = {
   exercice: string | null;
 };
 
+/** Les trois cadres du pied de BILAN — « Les sources », la méthode, la
+ *  grille de lecture. Le pré-rendu ne les écrit que dans le document de
+ *  /bilan/ : partout ailleurs, le gabarit les servait DÉPLIÉS ET VIDES, et
+ *  toute vue du SPA montrait trois barres bordées sans un mot après la carte
+ *  de la dette. Le gabarit les sert désormais repliés, et ce peintre les
+ *  remplit dès que le manifeste est là — le même code que le pré-rendu, pour
+ *  que les deux documents ne puissent pas diverger. Un cadre déjà écrit (le
+ *  document pré-rendu de /bilan/) n'est pas réécrit, seulement déplié. */
+function peindreSourcesMethode(): void {
+  const cadres: [string, () => string][] = [
+    ["methode-sources", () => renduSources(jeux)],
+    ["methode-methode", renduMethode],
+    ["methode-grille", renduGrille],
+  ];
+  for (const [id, rendu] of cadres) {
+    const cadre = document.getElementById(id);
+    if (!cadre) continue;
+    if (cadre.childElementCount === 0) {
+      const corps = rendu();
+      // Un manifeste sans jeux ne remplit rien : le cadre reste replié
+      // plutôt que servi vide — la règle de tout le site.
+      if (!corps) continue;
+      cadre.innerHTML = corps;
+    }
+    cadre.hidden = false;
+  }
+}
+
 /** Les scénarios de référence, chargés une fois à l'ouverture du simulateur.
  *  Vide tant qu'ils n'ont pas été chargés, ou si le fichier est absent — un
  *  fichier absent ne casse rien, même règle que partout ailleurs sur le site
@@ -3807,6 +3836,7 @@ async function demarrer(): Promise<void> {
   // qui se rechargent — exactement le comportement voulu ici.
   if (document.body.dataset.page === "editorial") return;
   jeux = manifeste.jeux;
+  peindreSourcesMethode();
   catalogue = await donnees.indicateurs();
   // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
   // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
