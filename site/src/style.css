@@ -7631,9 +7631,19 @@ body[data-carte="oui"] .legende {
   border-top: none;
   padding-top: 0;
 }
+.davantage__entete {
+  display: flex;
+  align-items: center;
+  gap: var(--espace-3);
+}
+.davantage__icone {
+  flex-shrink: 0;
+  color: var(--encre-douce);
+}
 .davantage__theme h3 {
   font-family: var(--serif);
   font-size: var(--texte-l);
+  margin: 0;
 }
 .davantage__affirmation {
   font-size: var(--texte-m);
@@ -7650,6 +7660,55 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
   border-left: 2px solid var(--trait-fort);
   padding-left: var(--espace-3);
+}
+
+/* Le chiffre d'ouverture d'un thème (emploi, sécurité) : un seul nombre,
+   en gros, avec le reste de la phrase à côté — plutôt qu'un paragraphe plat.
+   Réservé aux thèmes dont un seul chiffre résume vraiment la question. */
+.davantage__ouverture {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espace-4);
+  flex-wrap: wrap;
+}
+.davantage__ouverture-chiffre {
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.davantage__ouverture-reste {
+  font-size: var(--texte-m);
+  color: var(--encre-douce);
+}
+.davantage__ouverture-reste b {
+  color: var(--encre);
+  font-weight: 600;
+}
+
+/* La barre de magnitude de l'évolution (sécurité) : une seule teinte
+   neutre, jamais rouge/vert — elle montre l'AMPLEUR de l'écart, pas son
+   sens. Le signe reste dans le nombre, à droite. */
+.davantage__col-evol {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--espace-3);
+}
+.davantage__barre-evol {
+  width: 3.25rem;
+  height: 5px;
+  background: var(--papier-creuse);
+  border-radius: var(--rayon-xs);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.davantage__barre-evol > span {
+  display: block;
+  height: 100%;
+  background: var(--encre-douce);
+  border-radius: var(--rayon-xs);
 }
 
 /* Une magnitude ne prend qu'une seule teinte (règle du dépôt) : `--accent` se

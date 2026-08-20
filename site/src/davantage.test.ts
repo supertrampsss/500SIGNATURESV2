@@ -363,3 +363,50 @@ test("au-delà de 15 associations, le reste se déplie plutôt que de s'afficher
   assert.match(dansLePli, /ASSO 15\b/);
   assert.match(dansLePli, /ASSO 17\b/);
 });
+
+test("aucune phrase du panneau ne date son chiffre", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  assert.equal(/\ben\s+(?:19|20)\d\d\b/.test(html), false);
+  // Le millésime se déclare sous le chiffre d'une carte et en tête de colonne,
+  // jamais dans une phrase : ni affirmation, ni note, ni titre de groupe.
+  const phrases = [
+    ...(html.match(/<p class="davantage__(?:affirmation|note)">.*?<\/p>/g) ?? []),
+    ...(html.match(/<span class="davantage__ouverture-reste">.*?<\/span>/g) ?? []),
+    ...(html.match(/<h4>.*?<\/h4>/g) ?? []),
+  ];
+  assert.ok(phrases.length > 0);
+  for (const phrase of phrases) assert.equal(/(?:19|20)\d\d/.test(phrase), false);
+});
+
+test("chaque section porte l'icone de son theme", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const sections = html.match(/class="davantage__theme"/g) ?? [];
+  const icones = html.match(/class="davantage__icone"/g) ?? [];
+  assert.ok(sections.length > 0);
+  assert.equal(icones.length, sections.length);
+});
+
+test("emploi ouvre sur un chiffre detache de sa phrase", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-emploi"'));
+  assert.match(
+    bloc,
+    /<span class="davantage__ouverture-chiffre">1\u202f299<\/span><span class="davantage__ouverture-reste">personnes ont un emploi, 228 sont au ch\u00f4mage\.<\/span>/,
+  );
+});
+
+test("securite ouvre sur son taux et peint l'ampleur de l'ecart", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-securite"'));
+  assert.match(bloc, /<span class="davantage__ouverture-chiffre">7,2 \u2030<\/span>/);
+  assert.match(bloc, /<span class="davantage__barre-evol"><span style="width:100\.0%"><\/span><\/span>/);
+});
+
+test("la barre d'ecart ne porte aucune couleur de jugement", () => {
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const barres = html.match(/<span class="davantage__barre-evol">.*?<\/span><\/span>/g) ?? [];
+  assert.ok(barres.length > 0);
+  for (const barre of barres) {
+    assert.equal(/hausse|baisse|positif|negatif|rouge|vert|color/i.test(barre), false);
+  }
+});

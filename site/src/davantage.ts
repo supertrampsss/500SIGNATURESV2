@@ -23,6 +23,19 @@
  * **Aucun repli, aucun bouton.** Le lecteur qui vient de lire « Les communes
  * semblables » continue de faire défiler le même panneau ; il n'y a rien à
  * déplier.
+ *
+ * **Une icône par thème, un chiffre d'ouverture, une barre d'ampleur.** Dix
+ * blocs qui se suivent sans repère se lisent comme un seul mur : l'icône donne
+ * à chacun un point d'entrée, et `statOuverture` détache le chiffre de sa
+ * phrase là où l'ouverture EST un chiffre. Les icônes sont monochromes —
+ * `--encre-douce` — et la barre d'écart de la sécurité n'a qu'une teinte :
+ * elle montre l'ampleur de l'écart, jamais son sens. Aucune couleur de
+ * jugement, la règle du dépôt ne bouge pas.
+ *
+ * **Aucune phrase ne date son chiffre.** « ... en 2023 » posait un millésime
+ * dans chaque affirmation, dix fois sur la même page, pour une fenêtre que le
+ * tableau et la source portent déjà. Un test lit le panneau entier et refuse
+ * le motif.
  */
 
 import { valeurLisible } from "./analyses.ts";
@@ -122,13 +135,47 @@ function table(lignes: { libelle: string; valeur: string; exercice?: string }[])
     .join("")}</tbody></table>`;
 }
 
+/** Une icône neutre par thème — trait seul, une teinte (`currentColor`),
+ *  jamais de remplissage : elle identifie la section au premier regard sans
+ *  porter de jugement sur ce qu'elle montre. Sur la même grille 24×24 que le
+ *  reste du site. */
+const ICONES: Record<string, string> = {
+  "vie-associative":
+    '<circle cx="9" cy="9" r="3.2"/><circle cx="16" cy="10.5" r="2.6"/><path d="M3.5 19c.6-3 3-5 5.5-5s4.9 2 5.5 5"/><path d="M14 15.2c2 .2 3.6 1.8 4.1 3.8"/>',
+  population: '<circle cx="12" cy="8" r="3.4"/><path d="M5 20c.8-4 3.4-6.4 7-6.4s6.2 2.4 7 6.4"/>',
+  emploi: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/>',
+  professions: '<rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M8 17c.7-2 2-3 4-3s3.3 1 4 3"/>',
+  secteurs:
+    '<rect x="4" y="3" width="10" height="18" rx="1"/><rect x="14" y="9" width="6" height="12" rx="1"/><path d="M7 7h1M11 7h1M7 11h1M11 11h1M7 15h1M11 15h1"/>',
+  logement: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V10"/><path d="M10 20.5V14h4v6.5"/>',
+  securite: '<path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/>',
+  tourisme:
+    '<path d="M3 18v-7a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2"/><path d="M3 18v2"/><path d="M21 20v-6a2 2 0 0 0-2-2h-9v6"/><path d="M21 18v2"/><circle cx="6.5" cy="10" r="1.3"/>',
+};
+
 function section(id: string, libelle: string, corps: string, source: string): string {
   if (!corps) return "";
+  const icone = ICONES[id];
   return `<section class="davantage__theme" id="davantage-${echapper(id)}">
-    <h3>${echapper(libelle)}</h3>
+    <div class="davantage__entete">
+      ${
+        icone
+          ? `<svg class="davantage__icone" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${icone}</svg>`
+          : ""
+      }
+      <h3>${echapper(libelle)}</h3>
+    </div>
     ${corps}
     ${source ? `<p class="davantage__source">${source}</p>` : ""}
   </section>`;
+}
+
+/** Le chiffre d'ouverture d'un thème, en gros, avec le reste de la phrase à
+ *  côté — plutôt qu'une phrase plate. Réservé aux deux thèmes dont un seul
+ *  chiffre résume vraiment la question posée (l'emploi, la catégorie la plus
+ *  fréquente en sécurité) ; les autres gardent leur simple paragraphe. */
+function statOuverture(chiffre: string, reste: string): string {
+  return `<div class="davantage__ouverture"><span class="davantage__ouverture-chiffre">${chiffre}</span><span class="davantage__ouverture-reste">${reste}</span></div>`;
 }
 
 /** Un thème générique : les indicateurs `count` en barres, les `EUR` et le
@@ -156,7 +203,7 @@ function themeGenerique(
     barresMagnitude(comptes, accent),
     cartesChiffres([...monetaires, ...autres]),
     pourcentages
-      .map((l) => `<p class="davantage__note">${echapper(l.libelle)} : ${echapper(l.texte)} (${echapper(l.exercice)}).</p>`)
+      .map((l) => `<p class="davantage__note">${echapper(l.libelle)} : ${echapper(l.texte)}.</p>`)
       .join(""),
   ].join("");
   return section(id, libelle, `<p class="davantage__affirmation">${phrase(lignes)}</p>${corps}`, source);
@@ -204,12 +251,15 @@ function themeEmploi(indicateurs: Indicateur[], territoire: Territoire): string 
 
   const actifsOccupes = parId.get("insee_actifs_occupes");
   const chomeursRp = parId.get("insee_chomeurs_rp");
-  const phrase =
+  const ouverture =
     actifsOccupes && chomeursRp
-      ? `${echapper(actifsOccupes.texte)} personnes ont un emploi, ${echapper(chomeursRp.texte)} sont au chômage, en ${echapper(actifsOccupes.exercice)}.`
+      ? statOuverture(
+          echapper(actifsOccupes.texte),
+          `personnes ont un emploi, ${echapper(chomeursRp.texte)} sont au chômage.`,
+        )
       : (() => {
           const t = tete(lignes, "count");
-          return t ? `${echapper(t.libelle)} : ${echapper(t.texte)} en ${echapper(t.exercice)}.` : "";
+          return t ? statOuverture(echapper(t.texte), echapper(t.libelle)) : "";
         })();
 
   // Ni titre daté, ni colonne d'exercice par ligne : les deux mesures du
@@ -229,16 +279,11 @@ function themeEmploi(indicateurs: Indicateur[], territoire: Territoire): string 
     groupe("Population active", POPULATION_ACTIVE_IDS),
     groupe("Emploi et chômage", EMPLOI_CHOMAGE_IDS),
     pourcentages
-      .map((l) => `<p class="davantage__note">${echapper(l.libelle)} : ${echapper(l.texte)} (${echapper(l.exercice)}).</p>`)
+      .map((l) => `<p class="davantage__note">${echapper(l.libelle)} : ${echapper(l.texte)}.</p>`)
       .join(""),
   ].join("");
   if (!corps) return "";
-  return section(
-    "emploi",
-    "Emploi et chômage",
-    `<p class="davantage__affirmation">${phrase}</p>${corps}`,
-    "Source : INSEE (recensement), DARES (France Travail).",
-  );
+  return section("emploi", "Emploi et chômage", `${ouverture}${corps}`, "Source : INSEE (recensement), DARES (France Travail).");
 }
 
 const THEMES_GENERIQUES = [
@@ -249,7 +294,7 @@ const THEMES_GENERIQUES = [
     source: "Source : INSEE, recensement de la population.",
     phrase: (lignes: Ligne[]) => {
       const t = tete(lignes, "count");
-      return t ? `<b>${echapper(t.libelle)}</b> est la catégorie la plus représentée : ${echapper(t.texte)} personnes en ${echapper(t.exercice)}.` : "";
+      return t ? `<b>${echapper(t.libelle)}</b> est la catégorie la plus représentée : ${echapper(t.texte)} personnes.` : "";
     },
   },
   {
@@ -259,7 +304,7 @@ const THEMES_GENERIQUES = [
     source: "Source : INSEE, fréquentation et capacité touristique.",
     phrase: (lignes: Ligne[]) => {
       const t = tete(lignes, "count");
-      return t ? `<b>${echapper(t.libelle)}</b> est la première capacité d'accueil : ${echapper(t.texte)} en ${echapper(t.exercice)}.` : "";
+      return t ? `<b>${echapper(t.libelle)}</b> est la première capacité d'accueil : ${echapper(t.texte)}.` : "";
     },
   },
 ];
@@ -309,8 +354,8 @@ function themePopulationRevenusDiplomes(indicateurs: Indicateur[], territoire: T
   }
 
   const phraseMorceaux: string[] = [];
-  if (municipale) phraseMorceaux.push(`${echapper(nom)} compte ${echapper(municipale.texte)} habitants en ${echapper(municipale.exercice)}`);
-  if (rfrParFoyerTexte) phraseMorceaux.push(`le revenu fiscal de référence y est de ${echapper(rfrParFoyerTexte)} par foyer en ${echapper(reference!.exercice)}`);
+  if (municipale) phraseMorceaux.push(`${echapper(nom)} compte ${echapper(municipale.texte)} habitants`);
+  if (rfrParFoyerTexte) phraseMorceaux.push(`le revenu fiscal de référence y est de ${echapper(rfrParFoyerTexte)} par foyer`);
   if (diplomeTete) phraseMorceaux.push(`<b>${echapper(diplomeTete.libelle)}</b> est le diplôme le plus courant`);
   const phrase = phraseMorceaux.length ? `${phraseMorceaux.join(", ")}.` : "";
 
@@ -335,14 +380,14 @@ function themePopulationRevenusDiplomes(indicateurs: Indicateur[], territoire: T
 
   const ageTable = memeExercice
     ? groupe(
-        `Population par tranche d'âge, ${lignesAges[0]!.exercice}`,
+        "Population par tranche d'âge",
         table(lignesAges.map((l) => ({ libelle: l.libelle, valeur: l.texte }))),
       )
     : "";
 
   const diplomesTable = diplomes.length
     ? groupe(
-        `Diplômes de la population, ${diplomes[0]!.exercice}`,
+        "Diplômes de la population",
         table([...diplomes].sort((a, b) => b.brut - a.brut).map((l) => ({ libelle: l.libelle, valeur: l.texte }))),
       )
     : "";
@@ -394,10 +439,10 @@ function themeLogement(indicateurs: Indicateur[], territoire: Territoire): strin
     const part = total > 0 ? (secondaires.brut / total) * 100 : 0;
     phrase = `${echapper(pourcentage(part))} des logements sont des résidences secondaires (${echapper(
       secondaires.texte,
-    )} sur ${echapper(valeurLisible(total, "count"))}), en ${echapper(principales.exercice)}.`;
+    )} sur ${echapper(valeurLisible(total, "count"))}).`;
   } else {
     const t = lignes[0];
-    phrase = `${echapper(t.libelle)} : ${echapper(t.texte)} en ${echapper(t.exercice)}.`;
+    phrase = `${echapper(t.libelle)} : ${echapper(t.texte)}.`;
   }
   return section(
     "logement",
@@ -463,7 +508,7 @@ function themeSecteurs(territoire: Territoire): string {
   const t = triees[0];
   const phrase = `<b>${echapper(t.libelle)}</b> compte le plus de salariés pour un établissement : ${echapper(
     formaterRatio(t.ratio),
-  )} en ${echapper(t.exercice)}.`;
+  )}.`;
   return section(
     "secteurs",
     "Salariés par établissement, secteur par secteur",
@@ -549,9 +594,10 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
   }
   if (!lignes.length) return "";
   const triees = [...lignes].sort((a, b) => b.arrivee - a.arrivee);
-  const phrase = `<b>${echapper(triees[0].libelle)}</b> est la catégorie la plus fréquente en ${echapper(dernier)} : ${echapper(
-    triees[0].texteArrivee,
-  )}.`;
+  const ouverture = statOuverture(
+    echapper(triees[0].texteArrivee),
+    `<b>${echapper(triees[0].libelle)}</b> est la catégorie la plus fréquente.`,
+  );
   // Une colonne par colonne : le départ, l'arrivée et l'évolution n'ont pas
   // la même largeur de partie entière, chacune a donc sa propre largeur fixe.
   const colDepart = colonneDecimale(lignes.filter((l) => l.depart !== null).map((l) => tauxTable(l.depart!)));
@@ -559,6 +605,17 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
   const colEvolution = colonneDecimale(
     triees.filter((l) => l.depart !== null && l.depart !== 0).map((l) => variation(l.depart!, l.arrivee)),
   );
+  // La barre montre l'AMPLEUR de l'écart, jamais son sens : une seule teinte
+  // neutre, le signe reste dans le nombre — aucune couleur de jugement.
+  const ecarts = triees
+    .filter((l) => l.depart !== null && l.depart !== 0)
+    .map((l) => Math.abs((l.arrivee / l.depart! - 1) * 100));
+  const ecartMax = ecarts.length ? Math.max(...ecarts) : 1;
+  const barre = (depart: number | null, arrivee: number) => {
+    if (depart === null || depart === 0) return "";
+    const largeur = (Math.abs((arrivee / depart - 1) * 100) / ecartMax) * 100;
+    return `<span class="davantage__barre-evol"><span style="width:${largeur.toFixed(1)}%"></span></span>`;
+  };
   const tableau = `<table class="davantage__table"><thead><tr><th>Catégorie</th><th>${echapper(
     EXERCICE_REFERENCE,
   )}</th><th>${echapper(dernier)}</th><th>Évolution</th></tr></thead><tbody>${triees
@@ -566,16 +623,19 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
       (l) =>
         `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${
           l.depart === null ? "—" : colDepart(tauxTable(l.depart))
-        }</td><td class="davantage__num">${colArrivee(tauxTable(l.arrivee))}</td><td class="davantage__num">${
+        }</td><td class="davantage__num">${colArrivee(tauxTable(l.arrivee))}</td><td class="davantage__num"><div class="davantage__col-evol">${barre(
+          l.depart,
+          l.arrivee,
+        )}<span>${
           l.depart === null || l.depart === 0 ? "—" : colEvolution(variation(l.depart, l.arrivee))
-        }</td></tr>`,
+        }</span></div></td></tr>`,
     )
     .join("")}</tbody></table>`;
   return section(
     "securite",
     "Sécurité",
-    `<p class="davantage__affirmation">${phrase}</p>${tableau}`,
-    "Source : SSMSI, taux pour 1 000 habitants (sauf cambriolages, pour 1 000 logements). Décomptes bruts et catégories sans valeur au dernier exercice non repris.",
+    `${ouverture}${tableau}`,
+    "Source : SSMSI, taux pour 1 000 habitants (sauf cambriolages, pour 1 000 logements). Décomptes bruts et catégories sans valeur au dernier exercice non repris. La barre montre l'ampleur de l'écart, pas son sens.",
   );
 }
 
@@ -619,12 +679,11 @@ function themeVieAssociative(
   if (!lignes.length) return "";
   const beneficiaires = associations?.beneficiaires ?? [];
   if (beneficiaires.length) {
-    const exercice = associations!.exercice;
     const total = beneficiaires.reduce((s, b) => s + b.montant, 0);
     const phrase =
       beneficiaires.length === 1
-        ? `Une association subventionnée par l'État à ${echapper(nom)} en ${echapper(exercice)}.`
-        : `${beneficiaires.length} associations subventionnées par l'État à ${echapper(nom)} en ${echapper(exercice)}, pour ${echapper(
+        ? `Une association subventionnée par l'État à ${echapper(nom)}.`
+        : `${beneficiaires.length} associations subventionnées par l'État à ${echapper(nom)}, pour ${echapper(
             millionsDeuxDecimales(total),
           )} au total.`;
     // La plus dotée d'abord (donnees.ts) : les quinze premières s'affichent
@@ -652,7 +711,7 @@ function themeVieAssociative(
   const phrase = compte
     ? `${echapper(compte.texte)} établissement${compte.brut > 1 ? "s" : ""} associatif${compte.brut > 1 ? "s" : ""} subventionné${
         compte.brut > 1 ? "s" : ""
-      } par l'État à ${echapper(nom)} en ${echapper(compte.exercice)}.`
+      } par l'État à ${echapper(nom)}.`
     : "";
   const montant = lignes.find((l) => l.id === "etat_subventions_associations");
   const cartes = [montant, compte]
