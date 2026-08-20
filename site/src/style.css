@@ -7921,6 +7921,20 @@ body[data-carte="oui"] .legende {
    dans le document, à un geste : la Licence Ouverte demande de citer, et la
    méthode d'un site public se publie — ni l'une ni l'autre ne demandent d'être
    dépliées sous les yeux de qui vient lire des chiffres. */
+/* La ligne d'attribution au pied du document pré-rendu de /bilan/ — une
+   ligne de petit texte, jamais un cadre : le propriétaire a refusé les blocs,
+   et la Licence Ouverte ne demande que de citer les producteurs. */
+.bilan__attribution {
+  margin-top: var(--espace-7);
+  border-top: 1px solid var(--trait);
+  padding-top: var(--espace-5);
+}
+.bilan__attribution-ligne {
+  font-size: var(--texte-s);
+  color: var(--encre-douce);
+  margin: 0 0 var(--espace-3);
+}
+
 .methode-sources__liste > summary,
 .methode__pli > summary {
   cursor: pointer;

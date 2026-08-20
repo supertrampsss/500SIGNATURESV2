@@ -586,7 +586,10 @@ test("le bilan ne porte que ses chapitres et son pied de sources", () => {
   assert.ok(debut > 0 && fin > debut, "bornes de la vue BILAN introuvables");
   const vue = balises.slice(debut, fin);
   assert.match(vue, /id="national"/);
-  assert.match(vue, /class="bilan__sources"/);
+  // Le pied n'est plus une section de cadres : le propriétaire les a refusés,
+  // vides puis remplis. L'attribution que la Licence Ouverte impose tient en
+  // une ligne repliée, que seul le pré-rendu de /bilan/ déplie.
+  assert.match(vue, /class="bilan__attribution" id="methode-sources" hidden/);
   for (const intrus of ['id="questions"', 'id="palmares"', 'id="detail"', 'id="tableau-donnees"']) {
     assert.ok(!vue.includes(intrus), `${intrus} est resté dans le bilan`);
   }
