@@ -402,18 +402,18 @@ test("le rendu de la méthode est pur et ne prend aucune donnée", () => {
   assert.equal(renduMethode.length, 0);
 });
 
-test("les trois cadres du pied de bilan ne sont jamais servis dépliés et vides", () => {
-  // Le gabarit du SPA les sert repliés ; le pré-rendu les remplit puis les
-  // déplie pour /bilan/ ; et main.ts les peint à l'arrivée du manifeste avec
-  // ces mêmes fonctions. Servis dépliés et vides, ils se lisaient comme trois
-  // barres bordées sans un mot après la carte de la dette, sur toute vue du
-  // SPA — le défaut exact que « Trois cadres servis dépliés et vides » a déjà
-  // coûté une entrée au registre.
+test("les trois cadres du pied de bilan n'apparaissent jamais dans l'appli", () => {
+  // « Les sources », « La méthode » et « La grille de verdicts » n'existent
+  // que pour le document pré-rendu de /bilan/, où le pré-rendu les remplit
+  // puis les déplie. Dans l'appli, le gabarit les sert repliés et RIEN ne les
+  // déplie : servis dépliés ils se lisaient comme trois barres bordées après
+  // la carte de la dette — et remplis au chargement, le propriétaire les a
+  // refusés aussi. Ils ne s'affichent nulle part ailleurs que /bilan/.
   const gabarit = readFileSync(new URL("../index.html", import.meta.url), "utf8");
   for (const id of ["methode-sources", "methode-methode", "methode-grille"]) {
     assert.match(gabarit, new RegExp(`id="${id}" hidden></div>`));
   }
   const main = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
-  assert.match(main, /jeux = manifeste\.jeux;\s*\n\s*peindreSourcesMethode\(\);/);
-  assert.match(main, /renduGrille, renduMethode, renduSources \} from "\.\/methode-rendu\.ts"/);
+  assert.doesNotMatch(main, /methode-rendu/);
+  assert.doesNotMatch(main, /methode-sources|methode-methode|methode-grille/);
 });
