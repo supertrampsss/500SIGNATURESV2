@@ -1103,7 +1103,7 @@ test("14 ter. le cadre de la méthode part déplié, et l'accueil replié", () =
   assert.throws(
     () =>
       injecterMethode(
-        GABARIT_REEL.replace('id="methode-sources"></div>', 'id="methode-sources">déjà</div>'),
+        GABARIT_REEL.replace('id="methode-sources" hidden></div>', 'id="methode-sources" hidden>déjà</div>'),
         JEUX_ESSAI,
       ),
     /n'est plus vide/,

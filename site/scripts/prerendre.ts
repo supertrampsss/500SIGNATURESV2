@@ -976,9 +976,17 @@ export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
     );
   }
   let html = shell;
-  html = remplirCadre(html, "methode-sources", sources);
-  html = remplirCadre(html, "methode-methode", renduMethode());
-  html = remplirCadre(html, "methode-grille", renduGrille());
+  // Le gabarit sert ces trois cadres repliés — servis dépliés et vides, ils
+  // se lisaient comme trois barres bordées sans un mot sur toute vue du SPA,
+  // après la carte de la dette. Remplis ici, ils se déplient.
+  for (const [id, corps] of [
+    ["methode-sources", sources],
+    ["methode-methode", renduMethode()],
+    ["methode-grille", renduGrille()],
+  ] as const) {
+    html = remplirCadre(html, id, corps);
+    html = deplierCadre(html, id);
+  }
   // Les deux cadres que le build ne sait pas remplir : `fraicheur.json` et
   // `journal.json` sont publiés, et c'est `peindreMethode` qui va les chercher.
   // Repliés plutôt que laissés vides — voir `replierCadre`.

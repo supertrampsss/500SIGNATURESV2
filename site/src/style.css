@@ -7796,16 +7796,13 @@ body[data-carte="oui"] .legende {
 
 /* Vie associative : le nom et le montant de chaque association, pas
    seulement leur total. */
-.davantage__associations {
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-s);
-  overflow: hidden;
-}
+/* La liste des associations n'est pas encadrée non plus : le nom part de la
+   ligne de gauche, le montant tient la droite, un filet sépare les lignes. */
 .davantage__assoc {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.2rem var(--espace-4);
-  padding: var(--espace-3);
+  padding: var(--espace-3) 0;
 }
 .davantage__assoc + .davantage__assoc {
   border-top: 1px solid var(--trait);
@@ -7840,13 +7837,12 @@ body[data-carte="oui"] .legende {
    comme les cartes de tête juste au-dessus : un `h4` seul au-dessus d'une
    table sans en-tête se lisait comme du texte qui traîne, pas comme un bloc
    d'information. */
-.davantage__groupe {
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon-s);
-  padding: var(--espace-4);
-}
+/* Un groupe ne s'encadre pas : le rembourrage d'une boîte décalait son titre
+   et ses lignes de ~17 px quand tout le reste du panneau part de la ligne de
+   gauche — la maquette C validée pose le titre du groupe et sa table à plat,
+   séparés par les seuls filets des lignes. */
 .davantage__groupe + .davantage__groupe {
-  margin-top: var(--espace-3);
+  margin-top: var(--espace-5);
 }
 .davantage__table {
   width: 100%;
