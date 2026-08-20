@@ -29,8 +29,12 @@ const CATALOGUE = [
   { id: "insee_taux_pauvrete", libelle: "Taux de pauvreté", theme: "revenus", unite: "percent" },
   { id: "cnaf_foyers_rsa", libelle: "Foyers allocataires du RSA", theme: "revenus", unite: "count" },
 
+  { id: "insee_population_15_64_ans", libelle: "Population de 15 à 64 ans", theme: "emploi", unite: "count" },
+  { id: "insee_actifs", libelle: "Population active", theme: "emploi", unite: "count" },
+  { id: "insee_inactifs", libelle: "Inactifs de 15 à 64 ans", theme: "emploi", unite: "count" },
   { id: "insee_actifs_occupes", libelle: "Actifs ayant un emploi", theme: "emploi", unite: "count" },
   { id: "insee_chomeurs_rp", libelle: "Chômeurs déclarés (recensement)", theme: "emploi", unite: "count" },
+  { id: "dares_defm_abc", libelle: "Inscrits à France Travail (catégories A, B, C)", theme: "emploi", unite: "count" },
   { id: "insee_taux_chomage_localise", libelle: "Taux de chômage", theme: "emploi", unite: "percent" },
 
   { id: "insee_pcs_retraites", libelle: "Retraités", theme: "professions", unite: "count" },
@@ -71,8 +75,12 @@ const TERRITOIRE = {
     insee_diplome_bac: { "2023": 441 },
     insee_taux_pauvrete: { "2021": 12.3 },
     cnaf_foyers_rsa: { "2024": 225 },
+    insee_population_15_64_ans: { "2023": 2_400 },
+    insee_actifs: { "2023": 1_527 },
+    insee_inactifs: { "2023": 873 },
     insee_actifs_occupes: { "2023": 1_299 },
     insee_chomeurs_rp: { "2023": 228 },
+    dares_defm_abc: { "2024": 310 },
     insee_taux_chomage_localise: { "2023": 14.9 },
     insee_pcs_retraites: { "2023": 1_542 },
     insee_pcs_ouvriers: { "2023": 346 },
@@ -190,10 +198,37 @@ test("aucune valeur publiée pour un thème : pas de bloc, jamais un tableau vid
   assert.equal(html, "");
 });
 
-test("un indicateur en pourcentage se lit en note, jamais mêlé aux barres de magnitude", () => {
+test("un indicateur en pourcentage se lit en note, jamais mêlé aux tables de comptes", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-emploi"'), html.indexOf('id="davantage-professions"'));
   assert.match(bloc, /Taux de chômage : 14,9 %/);
+});
+
+test("emploi et chômage se lisent en deux tables groupées, jamais en barres à plat", () => {
+  // Six comptes qui ne sont pas six magnitudes indépendantes : la population
+  // 15-64 se partage en actifs/inactifs, les actifs en emploi/chômage — un
+  // arbre, pas une liste. Une rangée de barres à plat le faisait lire comme
+  // six catégories comparables en longueur, ce qu'aucune paire d'entre elles
+  // n'est.
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-emploi"'), html.indexOf('id="davantage-professions"'));
+  assert.doesNotMatch(bloc, /davantage__mag/);
+  assert.match(bloc, /<h4>Population active, 2023<\/h4>/);
+  assert.match(bloc, /Population de 15 à 64 ans/);
+  assert.match(bloc, /Population active/);
+  assert.match(bloc, /Inactifs de 15 à 64 ans/);
+  // Le deuxième groupe pose les deux mesures du chômage côte à côte : le
+  // recensement (2023) et les inscriptions à France Travail (2024, publiées
+  // plus tard) n'ont pas le même exercice, donc pas de millésime commun dans
+  // le titre — chaque ligne porte le sien.
+  assert.match(bloc, /<h4>Emploi et chômage<\/h4>/);
+  assert.doesNotMatch(bloc, /<h4>Emploi et chômage, \d{4}<\/h4>/);
+  assert.match(bloc, /Actifs ayant un emploi/);
+  assert.match(bloc, /Chômeurs déclarés \(recensement\)/);
+  assert.match(bloc, /Inscrits à France Travail \(catégories A, B, C\)/);
+  const emploiChomage = bloc.slice(bloc.indexOf("<h4>Emploi et chômage</h4>"));
+  assert.match(emploiChomage, /davantage__exercice">2023</);
+  assert.match(emploiChomage, /davantage__exercice">2024</);
 });
 
 test("le revenu fiscal de référence se lit par foyer, jamais en total", () => {
@@ -215,6 +250,12 @@ test("la pauvreté vient sous les diplômes, dans le même bloc fusionné", () =
   assert.ok(posPauvrete > posDiplomes, "la pauvreté doit venir après les diplômes");
   assert.match(bloc, /Taux de pauvreté/);
   assert.match(bloc, /Foyers allocataires du RSA/);
+  // Chaque ligne de la table portait son propre exercice (2021, 2024…) : le
+  // lecteur a jugé cette précision inutile, et elle cassait l'alignement de
+  // la colonne des valeurs. La table de pauvreté n'a donc que deux colonnes,
+  // comme celles des âges et des diplômes juste au-dessus.
+  const pauvreteTable = bloc.slice(bloc.indexOf("<h4>Pauvreté</h4>"));
+  assert.doesNotMatch(pauvreteTable, /davantage__exercice/);
 });
 
 test("population, revenus et diplômes se lisent en colonnes, jamais en barre de magnitude", () => {
@@ -245,6 +286,12 @@ test("sécurité montre 2019, le dernier exercice et l'évolution en pourcentage
   // elle ne s'invente pas en variation nulle.
   const ligneCambriolages = bloc.slice(bloc.indexOf("Cambriolages"));
   assert.match(ligneCambriolages, /<td class="davantage__num">—<\/td>/);
+  // « (logements) » ne s'écrit plus dans la cellule : elle est plus longue
+  // que les autres de sa colonne et cassait l'alignement des chiffres. Le
+  // libellé de la ligne et la légende sous le tableau portent déjà la
+  // distinction.
+  assert.match(ligneCambriolages, /<td class="davantage__num">1,8 ‰<\/td>/);
+  assert.doesNotMatch(ligneCambriolages, /\(logements\)/);
 });
 
 test("vie associative liste les associations nommément, sans récap par mission", () => {
@@ -274,6 +321,9 @@ test("vie associative liste les associations nommément, sans récap par mission
   assert.match(bloc, /ASSO SPORT/);
   assert.match(bloc, /ASSO CULTURE/);
   assert.match(bloc, /ASSO SANS MISSION CONNUE/);
+  // La ligne de source (« jaune budgétaire… ») est partie : demandée à
+  // retirer, sans remplacement.
+  assert.doesNotMatch(bloc, /davantage__source/);
 });
 
 test("au-delà de 15 associations, le reste se déplie plutôt que de s'afficher d'un bloc", () => {

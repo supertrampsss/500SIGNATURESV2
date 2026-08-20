@@ -127,7 +127,7 @@ function section(id: string, libelle: string, corps: string, source: string): st
   return `<section class="davantage__theme" id="davantage-${echapper(id)}">
     <h3>${echapper(libelle)}</h3>
     ${corps}
-    <p class="davantage__source">${source}</p>
+    ${source ? `<p class="davantage__source">${source}</p>` : ""}
   </section>`;
 }
 
@@ -175,22 +175,71 @@ function tete(lignes: Ligne[], unite: string): Ligne | null {
  *  comparaison entre communes que la carte, elle, permet. */
 const INDICATEURS_EXCLUS = new Set(["insee_salaire_net_eqtp_mensuel"]);
 
+/**
+ * Emploi et chômage : deux tables plutôt qu'une rangée de six barres.
+ *
+ * Les six comptes ne sont pas six magnitudes indépendantes à comparer en
+ * longueur : la population de 15 à 64 ans se partage en actifs et inactifs,
+ * et les actifs se partagent en emploi et chômage — un arbre, pas une liste
+ * plate. Des barres à plat le rendaient comme six catégories comparables,
+ * de la plus grande à la plus petite, ce qui n'est vrai d'aucune paire
+ * d'entre elles.
+ *
+ * Et le chômage a deux mesures qui ne coïncident jamais : le recensement
+ * (déclaratif, une question posée à tous les habitants) et les inscriptions
+ * à France Travail (administratif, catégories A, B, C). Les poser côte à
+ * côte plutôt que d'en choisir une est le seul moyen honnête de ne pas
+ * laisser croire qu'il n'y en a qu'une.
+ */
+const POPULATION_ACTIVE_IDS = ["insee_population_15_64_ans", "insee_actifs", "insee_inactifs"];
+const EMPLOI_CHOMAGE_IDS = ["insee_actifs_occupes", "insee_chomeurs_rp", "dares_defm_abc"];
+
+function themeEmploi(indicateurs: Indicateur[], territoire: Territoire): string {
+  const lignes = dernieresValeurs(
+    territoire,
+    indicateurs.filter((i) => i.theme === "emploi" && !INDICATEURS_EXCLUS.has(i.id)),
+  );
+  if (!lignes.length) return "";
+  const parId = new Map(lignes.map((l) => [l.id, l]));
+
+  const actifsOccupes = parId.get("insee_actifs_occupes");
+  const chomeursRp = parId.get("insee_chomeurs_rp");
+  const phrase =
+    actifsOccupes && chomeursRp
+      ? `${echapper(actifsOccupes.texte)} personnes ont un emploi, ${echapper(chomeursRp.texte)} sont au chômage, en ${echapper(actifsOccupes.exercice)}.`
+      : (() => {
+          const t = tete(lignes, "count");
+          return t ? `${echapper(t.libelle)} : ${echapper(t.texte)} en ${echapper(t.exercice)}.` : "";
+        })();
+
+  const groupe = (titre: string, ids: string[]) => {
+    const ls = ids.map((id) => parId.get(id)).filter((l): l is Ligne => Boolean(l));
+    if (!ls.length) return "";
+    const memeExercice = ls.every((l) => l.exercice === ls[0]!.exercice);
+    const t = memeExercice ? `${titre}, ${ls[0]!.exercice}` : titre;
+    return `<div class="davantage__groupe"><h4>${echapper(t)}</h4>${table(
+      ls.map((l) => ({ libelle: l.libelle, valeur: l.texte, exercice: memeExercice ? undefined : l.exercice })),
+    )}</div>`;
+  };
+
+  const pourcentages = lignes.filter((l) => l.unite === "percent");
+  const corps = [
+    groupe("Population active", POPULATION_ACTIVE_IDS),
+    groupe("Emploi et chômage", EMPLOI_CHOMAGE_IDS),
+    pourcentages
+      .map((l) => `<p class="davantage__note">${echapper(l.libelle)} : ${echapper(l.texte)} (${echapper(l.exercice)}).</p>`)
+      .join(""),
+  ].join("");
+  if (!corps) return "";
+  return section(
+    "emploi",
+    "Emploi et chômage",
+    `<p class="davantage__affirmation">${phrase}</p>${corps}`,
+    "Source : INSEE (recensement), DARES (France Travail).",
+  );
+}
+
 const THEMES_GENERIQUES = [
-  {
-    id: "emploi",
-    libelle: "Emploi et chômage",
-    accent: "var(--serie-2)",
-    source: "Source : INSEE (recensement), DARES (France Travail).",
-    phrase: (lignes: Ligne[]) => {
-      const actifs = lignes.find((l) => l.id === "insee_actifs_occupes");
-      const chomeurs = lignes.find((l) => l.id === "insee_chomeurs_rp");
-      if (actifs && chomeurs) {
-        return `${echapper(actifs.texte)} personnes ont un emploi, ${echapper(chomeurs.texte)} sont au chômage, en ${echapper(actifs.exercice)}.`;
-      }
-      const t = tete(lignes, "count");
-      return t ? `${echapper(t.libelle)} : ${echapper(t.texte)} en ${echapper(t.exercice)}.` : "";
-    },
-  },
   {
     id: "professions",
     libelle: "Professions et catégories sociales",
@@ -298,9 +347,13 @@ function themePopulationRevenusDiplomes(indicateurs: Indicateur[], territoire: T
 
   // La pauvreté, sous les diplômes : le taux publié à la maille de ce
   // territoire, et les deux prestations que la CAF verse aux foyers modestes.
+  // Les trois exercices diffèrent d'une ligne à l'autre (2024, 2024, 2023) ;
+  // la colonne qui les portait cassait l'alignement du tableau pour une
+  // précision que le lecteur a jugée de trop — la même mesure que les tables
+  // voisines (âges, diplômes), qui n'ont jamais eu cette colonne.
   const pauvrete = revenus.filter((l) => ["insee_taux_pauvrete", "cnaf_foyers_rsa", "cnaf_foyers_prime_activite"].includes(l.id));
   const pauvreteTable = pauvrete.length
-    ? groupe("Pauvreté", table(pauvrete.map((l) => ({ libelle: l.libelle, valeur: l.texte, exercice: l.exercice }))))
+    ? groupe("Pauvreté", table(pauvrete.map((l) => ({ libelle: l.libelle, valeur: l.texte }))))
     : "";
 
   return section(
@@ -419,6 +472,19 @@ function themeSecteurs(territoire: Territoire): string {
 
 const EXERCICE_REFERENCE = "2019";
 
+const UN_DECIMALE = new Intl.NumberFormat("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+/** Un taux, sans le nom de son dénominateur : dans la phrase d'ouverture, la
+ *  distinction « (logements) » évite de confondre les cambriolages avec les
+ *  taux pour habitants qui l'entourent. Dans le tableau, elle cassait
+ *  l'alignement des chiffres — une cellule plus longue que les autres de la
+ *  même colonne. Le libellé de la ligne (« Cambriolages de logement ») et la
+ *  légende sous le tableau portent déjà la distinction ; la cellule n'a plus
+ *  qu'à aligner son nombre. */
+function tauxTable(valeur: number): string {
+  return `${UN_DECIMALE.format(valeur)} ‰`;
+}
+
 /** Sécurité : les seuls taux (pour mille habitants ou logements), avec leur
  *  évolution depuis 2019 — la fenêtre tenue partout ailleurs sur le site — et
  *  seulement les catégories qui ont une valeur au dernier exercice publié.
@@ -445,7 +511,6 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
     unite: string;
     depart: number | null;
     arrivee: number;
-    texteDepart: string;
     texteArrivee: string;
   }[] = [];
   for (const i of taux) {
@@ -458,7 +523,6 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
       unite: i.unite,
       depart,
       arrivee,
-      texteDepart: depart === null ? "" : valeurLisible(depart, i.unite),
       texteArrivee: valeurLisible(arrivee, i.unite),
     });
   }
@@ -473,8 +537,8 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
     .map(
       (l) =>
         `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${
-          l.depart === null ? "—" : echapper(l.texteDepart)
-        }</td><td class="davantage__num">${echapper(l.texteArrivee)}</td><td class="davantage__num">${
+          l.depart === null ? "—" : echapper(tauxTable(l.depart))
+        }</td><td class="davantage__num">${echapper(tauxTable(l.arrivee))}</td><td class="davantage__num">${
           l.depart === null || l.depart === 0 ? "—" : echapper(variation(l.depart, l.arrivee))
         }</td></tr>`,
     )
@@ -553,7 +617,7 @@ function themeVieAssociative(
       "vie-associative",
       "Vie associative",
       `<p class="davantage__affirmation">${phrase}</p>${liste}${pli}`,
-      "Source : jaune budgétaire, effort financier de l'État en faveur des associations.",
+      "",
     );
   }
   const compte = lignes.find((l) => l.id === "etat_subventions_associations_etablissements");
@@ -574,7 +638,7 @@ function themeVieAssociative(
     "vie-associative",
     "Vie associative",
     `${phrase ? `<p class="davantage__affirmation">${phrase}</p>` : ""}${cartesChiffres(cartes)}`,
-    "Source : jaune budgétaire, effort financier de l'État en faveur des associations.",
+    "",
   );
 }
 
@@ -597,7 +661,7 @@ export function rendu(
   const blocs = [
     themeVieAssociative(indicateurs, territoire, territoire.nom, associations),
     themePopulationRevenusDiplomes(indicateurs, territoire, territoire.nom),
-    rendreGenerique("emploi", indicateurs, territoire),
+    themeEmploi(indicateurs, territoire),
     rendreGenerique("professions", indicateurs, territoire),
     themeSecteurs(territoire),
     themeLogement(indicateurs, territoire),
