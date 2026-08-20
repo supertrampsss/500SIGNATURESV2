@@ -9,6 +9,7 @@
  * chargée, sinon garde son seul agrégat.
  */
 
+import { readFileSync } from "node:fs";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -409,4 +410,16 @@ test("la barre d'ecart ne porte aucune couleur de jugement", () => {
   for (const barre of barres) {
     assert.equal(/hausse|baisse|positif|negatif|rouge|vert|color/i.test(barre), false);
   }
+});
+
+test("le titre d'un thème s'aligne sur la colonne, jamais sur son icône", () => {
+  const css = readFileSync(new URL("./style.css", import.meta.url), "utf8");
+  // En colonne étroite l'icône suit le titre (order), en colonne large elle
+  // pend dans la marge (margin négative sous média) : dans les deux cas le
+  // titre commence au même x que le chiffre d'ouverture et les tables.
+  assert.match(css, /\.davantage__icone \{[^}]*order: 2;/);
+  assert.match(
+    css,
+    /@media \(min-width: 60rem\) \{\s*\.davantage__entete \{\s*margin-left: calc\(-1\.25rem - var\(--espace-3\)\);/,
+  );
 });
