@@ -7807,6 +7807,19 @@ body[data-carte="oui"] .legende {
   color: var(--encre-douce);
 }
 
+/* Une colonne de décimales (`colonneDecimale`, davantage.ts) : la partie
+   entière prend une largeur fixe et commune à la colonne, le reste
+   (virgule, décimale, unité — même largeur sur toute la colonne) s'aligne
+   juste après. Comme le total tient donc en une largeur constante d'une
+   ligne à l'autre, le simple `text-align: right` déjà posé sur
+   `.davantage__num` suffit à aligner la virgule — inutile d'y ajouter du
+   flex, qui romprait `display: table-cell` sur la cellule et ferait
+   tomber les colonnes du tableau en rangées empilées. */
+.davantage__entier {
+  display: inline-block;
+  text-align: right;
+}
+
 /* Le pli qui ouvre le reste de la liste nominative, au-delà des associations
    déjà visibles. */
 .davantage__pli > summary {

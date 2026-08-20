@@ -213,22 +213,18 @@ test("emploi et chômage se lisent en deux tables groupées, jamais en barres à
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-emploi"'), html.indexOf('id="davantage-professions"'));
   assert.doesNotMatch(bloc, /davantage__mag/);
-  assert.match(bloc, /<h4>Population active, 2023<\/h4>/);
+  // Aucun des deux groupes ne porte de millésime, ni dans le titre ni par
+  // ligne : demandé à retirer, le recensement (2023) et les inscriptions à
+  // France Travail (2024) n'ayant de toute façon pas le même exercice.
+  assert.match(bloc, /<h4>Population active<\/h4>/);
   assert.match(bloc, /Population de 15 à 64 ans/);
   assert.match(bloc, /Population active/);
   assert.match(bloc, /Inactifs de 15 à 64 ans/);
-  // Le deuxième groupe pose les deux mesures du chômage côte à côte : le
-  // recensement (2023) et les inscriptions à France Travail (2024, publiées
-  // plus tard) n'ont pas le même exercice, donc pas de millésime commun dans
-  // le titre — chaque ligne porte le sien.
   assert.match(bloc, /<h4>Emploi et chômage<\/h4>/);
-  assert.doesNotMatch(bloc, /<h4>Emploi et chômage, \d{4}<\/h4>/);
   assert.match(bloc, /Actifs ayant un emploi/);
   assert.match(bloc, /Chômeurs déclarés \(recensement\)/);
   assert.match(bloc, /Inscrits à France Travail \(catégories A, B, C\)/);
-  const emploiChomage = bloc.slice(bloc.indexOf("<h4>Emploi et chômage</h4>"));
-  assert.match(emploiChomage, /davantage__exercice">2023</);
-  assert.match(emploiChomage, /davantage__exercice">2024</);
+  assert.doesNotMatch(bloc, /davantage__exercice/);
 });
 
 test("le revenu fiscal de référence se lit par foyer, jamais en total", () => {
@@ -279,8 +275,8 @@ test("sécurité montre 2019, le dernier exercice et l'évolution en pourcentage
   assert.match(bloc, /<th>2019<\/th>/);
   // (7,2 − 9,4) / 9,4 = −23,4 %, la même formule de variation que le reste du
   // site — jamais un écart en points de ‰, qui ne se lisait pas.
-  assert.match(bloc, /9,4 ‰/);
-  assert.match(bloc, /−23,4 %/);
+  assert.match(bloc, /,4 ‰/);
+  assert.match(bloc, /,4 %/);
   assert.doesNotMatch(bloc, /pts?</);
   // Cambriolages n'a pas de valeur 2019 dans le banc : l'absence se voit,
   // elle ne s'invente pas en variation nulle.
@@ -290,8 +286,26 @@ test("sécurité montre 2019, le dernier exercice et l'évolution en pourcentage
   // que les autres de sa colonne et cassait l'alignement des chiffres. Le
   // libellé de la ligne et la légende sous le tableau portent déjà la
   // distinction.
-  assert.match(ligneCambriolages, /<td class="davantage__num">1,8 ‰<\/td>/);
+  assert.match(ligneCambriolages, /,8 ‰/);
   assert.doesNotMatch(ligneCambriolages, /\(logements\)/);
+});
+
+test("un tableau de décimales aligne la virgule, pas seulement le bord droit", () => {
+  // « 15,2 ‰ » et « 5,0 ‰ » alignés sur leur seul bord droit font tomber
+  // leurs deux virgules à des endroits différents : c'est ce qui restait
+  // « pas aligné » une fois même le format uniforme (pourcentage, sans
+  // « (logements) »). La partie entière prend une largeur fixe, commune à
+  // toute la colonne, mesurée sur sa plus longue valeur.
+  const html = rendu(TERRITOIRE, CATALOGUE, undefined);
+  const bloc = html.slice(html.indexOf('id="davantage-securite"'), html.indexOf('id="davantage-tourisme"'));
+  // Vols sans violence, colonne 2025 : 7,2 ‰ — un seul chiffre entier.
+  assert.match(
+    bloc,
+    /<span class="davantage__entier" style="width:1ch">7<\/span><span class="davantage__reste">,2 ‰<\/span>/,
+  );
+  // Colonne « Évolution » : le signe compte comme un caractère de la partie
+  // entière, sa largeur suit donc la plus longue ligne de la colonne.
+  assert.match(bloc, /<span class="davantage__entier" style="width:3ch">−23<\/span>/);
 });
 
 test("vie associative liste les associations nommément, sans récap par mission", () => {

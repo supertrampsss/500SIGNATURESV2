@@ -212,13 +212,15 @@ function themeEmploi(indicateurs: Indicateur[], territoire: Territoire): string 
           return t ? `${echapper(t.libelle)} : ${echapper(t.texte)} en ${echapper(t.exercice)}.` : "";
         })();
 
+  // Ni titre daté, ni colonne d'exercice par ligne : les deux mesures du
+  // chômage ne partagent pas leur millésime (recensement, France Travail),
+  // et le lecteur a jugé cette précision inutile — la même mesure que la
+  // table de pauvreté, juste au-dessus dans le panneau.
   const groupe = (titre: string, ids: string[]) => {
     const ls = ids.map((id) => parId.get(id)).filter((l): l is Ligne => Boolean(l));
     if (!ls.length) return "";
-    const memeExercice = ls.every((l) => l.exercice === ls[0]!.exercice);
-    const t = memeExercice ? `${titre}, ${ls[0]!.exercice}` : titre;
-    return `<div class="davantage__groupe"><h4>${echapper(t)}</h4>${table(
-      ls.map((l) => ({ libelle: l.libelle, valeur: l.texte, exercice: memeExercice ? undefined : l.exercice })),
+    return `<div class="davantage__groupe"><h4>${echapper(titre)}</h4>${table(
+      ls.map((l) => ({ libelle: l.libelle, valeur: l.texte })),
     )}</div>`;
   };
 
@@ -485,6 +487,25 @@ function tauxTable(valeur: number): string {
   return `${UN_DECIMALE.format(valeur)} ‰`;
 }
 
+/** Aligner à droite ne suffit pas pour une colonne de décimales : « 15,2 ‰ »
+ *  et « 5,0 ‰ » alignés sur leur bord droit font tomber les deux virgules à
+ *  des endroits différents — c'est ce qui restait « pas aligné » dans cette
+ *  table une fois même le format uniforme. La partie entière (signe compris)
+ *  prend une largeur fixe, en caractères, commune à toute la colonne ; le
+ *  reste (virgule, décimale, unité) s'aligne à gauche juste après — la
+ *  virgule tombe alors au même endroit sur toutes les lignes. */
+function colonneDecimale(textes: string[]): (texte: string) => string {
+  const largeur = Math.max(1, ...textes.map((t) => (t.match(/^[+−-]?\d+/)?.[0].length ?? 1)));
+  return (texte: string) => {
+    const m = texte.match(/^([+−-]?\d+)(.*)$/);
+    if (!m) return echapper(texte);
+    const [, entier, reste] = m;
+    return `<span class="davantage__entier" style="width:${largeur}ch">${echapper(
+      entier,
+    )}</span><span class="davantage__reste">${echapper(reste)}</span>`;
+  };
+}
+
 /** Sécurité : les seuls taux (pour mille habitants ou logements), avec leur
  *  évolution depuis 2019 — la fenêtre tenue partout ailleurs sur le site — et
  *  seulement les catégories qui ont une valeur au dernier exercice publié.
@@ -531,15 +552,22 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
   const phrase = `<b>${echapper(triees[0].libelle)}</b> est la catégorie la plus fréquente en ${echapper(dernier)} : ${echapper(
     triees[0].texteArrivee,
   )}.`;
+  // Une colonne par colonne : le départ, l'arrivée et l'évolution n'ont pas
+  // la même largeur de partie entière, chacune a donc sa propre largeur fixe.
+  const colDepart = colonneDecimale(lignes.filter((l) => l.depart !== null).map((l) => tauxTable(l.depart!)));
+  const colArrivee = colonneDecimale(triees.map((l) => tauxTable(l.arrivee)));
+  const colEvolution = colonneDecimale(
+    triees.filter((l) => l.depart !== null && l.depart !== 0).map((l) => variation(l.depart!, l.arrivee)),
+  );
   const tableau = `<table class="davantage__table"><thead><tr><th>Catégorie</th><th>${echapper(
     EXERCICE_REFERENCE,
   )}</th><th>${echapper(dernier)}</th><th>Évolution</th></tr></thead><tbody>${triees
     .map(
       (l) =>
         `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${
-          l.depart === null ? "—" : echapper(tauxTable(l.depart))
-        }</td><td class="davantage__num">${echapper(tauxTable(l.arrivee))}</td><td class="davantage__num">${
-          l.depart === null || l.depart === 0 ? "—" : echapper(variation(l.depart, l.arrivee))
+          l.depart === null ? "—" : colDepart(tauxTable(l.depart))
+        }</td><td class="davantage__num">${colArrivee(tauxTable(l.arrivee))}</td><td class="davantage__num">${
+          l.depart === null || l.depart === 0 ? "—" : colEvolution(variation(l.depart, l.arrivee))
         }</td></tr>`,
     )
     .join("")}</tbody></table>`;
