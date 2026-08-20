@@ -423,3 +423,29 @@ test("le titre d'un thème s'aligne sur la colonne, jamais sur son icône", () =
     /@media \(min-width: 60rem\) \{\s*\.davantage__entete \{\s*margin-left: calc\(-1\.25rem - var\(--espace-3\)\);/,
   );
 });
+
+test("les montants des associations se lisent dans l'unité du total", () => {
+  const beneficiaires = [
+    { siren: "1", nom: "ASSO GROSSE", programme: "219", objet: null, montant: 1_276_550 },
+    { siren: "2", nom: "ASSO MOYENNE", programme: "224", objet: null, montant: 30_000 },
+    { siren: "3", nom: "ASSO PETITE", programme: "999", objet: null, montant: 5_000 },
+  ];
+  const html = rendu(TERRITOIRE, CATALOGUE, { exercice: "2021", beneficiaires } as never);
+  const bloc = html.slice(html.indexOf('id="davantage-vie-associative"'));
+  // 1 276 550 € demandait une conversion de tête à côté d'un total en M€.
+  assert.match(bloc, /ASSO GROSSE<\/span><span class="davantage__montant">1,28\u202fM€</);
+  assert.match(bloc, /ASSO MOYENNE<\/span><span class="davantage__montant">0,03\u202fM€</);
+  // Sous 10 000 €, « 0,00 M€ » ou « 0,01 M€ » n'apprendrait rien : l'euro reste.
+  assert.match(bloc, /ASSO PETITE<\/span><span class="davantage__montant">5\u202f000\u00a0€</);
+});
+
+test("ni les groupes ni la liste des associations ne s'encadrent", () => {
+  const css = readFileSync(new URL("./style.css", import.meta.url), "utf8");
+  // Le rembourrage d'une boîte décale son contenu de la ligne de gauche que
+  // tout le panneau partage — la maquette C validée pose tables et listes à
+  // plat. Une bordure ou un rembourrage horizontal qui revient recasse
+  // l'alignement des titres de groupe.
+  assert.doesNotMatch(css, /\.davantage__groupe \{[^}]*border/);
+  assert.doesNotMatch(css, /\.davantage__associations \{[^}]*border/);
+  assert.match(css, /\.davantage__assoc \{[^}]*padding: var\(--espace-3\) 0;/);
+});

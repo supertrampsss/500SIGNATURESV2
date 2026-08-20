@@ -688,9 +688,18 @@ function themeVieAssociative(
           )} au total.`;
     // La plus dotée d'abord (donnees.ts) : les quinze premières s'affichent
     // directement, le reste se déplie.
+    //
+    // Les montants se lisent dans l'unité du total (« 1,96 M€ ») : en euros
+    // bruts, « 1 276 550 € » demandait une conversion de tête à côté d'un
+    // total en millions. Sous 10 000 €, deux décimales de million
+    // arrondiraient à « 0,01 M€ » ou « 0,00 M€ » — le chiffre n'apprendrait
+    // plus rien (la faute exacte que le revenu par foyer a déjà coûtée) : ces
+    // lignes-là, qui vivent dans le dépli, restent à l'euro.
+    const montantAssoc = (montant: number) =>
+      montant >= 10_000 ? millionsDeuxDecimales(montant) : euros(montant);
     const ligneAssoc = (b: (typeof beneficiaires)[number]) =>
       `<div class="davantage__assoc"><span class="davantage__nom">${echapper(b.nom)}</span><span class="davantage__montant">${echapper(
-        euros(b.montant),
+        montantAssoc(b.montant),
       )}</span>${b.objet ? `<span class="davantage__objet">${echapper(b.objet)}</span>` : ""}</div>`;
     const visibles = beneficiaires.slice(0, ASSOCIATIONS_VISIBLES);
     const reste = beneficiaires.slice(ASSOCIATIONS_VISIBLES);
