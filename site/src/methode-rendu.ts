@@ -191,13 +191,12 @@ function pluriel(nombre: number): string {
  * une bibliographie. La Licence Ouverte demande de citer les producteurs, pas de
  * les déplier — le pli garde chaque ligne dans le document, à un geste.
  */
-export function renduSources(jeux: readonly Jeu[]): string {
-  if (jeux.length === 0) return "";
-  const groupes = parProducteur(jeux);
-  // Une liste de définitions, pas des intertitres : le nom d'un producteur
-  // définit les jeux qui le suivent, et les intertitres de la page restent la
-  // liste fermée de `TITRES` — celle que le test des réserves verrouille.
-  const liste = groupes
+/** La liste des jeux, producteur par producteur — une liste de définitions,
+ *  pas des intertitres : le nom d'un producteur définit les jeux qui le
+ *  suivent. Partagée entre le grand bloc (`renduSources`) et la ligne
+ *  d'attribution du pied de /bilan/ (`renduAttribution`). */
+function listeProducteurs(groupes: { producteur: string; jeux: Jeu[] }[]): string {
+  return groupes
     .map(
       ({ producteur, jeux: siens }) => `<dt>${echapper(producteur)}</dt>
         <dd><ul class="methode-sources__jeux">${siens
@@ -213,6 +212,12 @@ export function renduSources(jeux: readonly Jeu[]): string {
           .join("")}</ul></dd>`,
     )
     .join("");
+}
+
+export function renduSources(jeux: readonly Jeu[]): string {
+  if (jeux.length === 0) return "";
+  const groupes = parProducteur(jeux);
+  const liste = listeProducteurs(groupes);
   return `
     <h3>${TITRES.sources}</h3>
     <p class="methode-sources__intro">
@@ -224,6 +229,32 @@ export function renduSources(jeux: readonly Jeu[]): string {
     <details class="methode-sources__liste">
       <summary>Voir les ${formater(jeux.length, "count", false)} jeux, producteur par producteur</summary>
       <dl class="methode-sources__producteurs">${liste}</dl>
+    </details>
+  `;
+}
+
+/**
+ * L'attribution du pied de /bilan/, en une ligne — pas en cadres.
+ *
+ * Les trois blocs « Les sources », « La méthode », « La grille de verdicts »
+ * ont été refusés par le propriétaire, vides puis remplis. Ce qui doit rester
+ * est ce que la Licence Ouverte impose : citer les producteurs. Une ligne les
+ * nomme tous, et la liste des jeux — chaque fichier d'origine, sa licence, sa
+ * date de lecture — reste à un geste, dans un pli sans cadre.
+ */
+export function renduAttribution(jeux: readonly Jeu[]): string {
+  if (jeux.length === 0) return "";
+  const groupes = parProducteur(jeux);
+  const producteurs = groupes.map((g) => echapper(g.producteur)).join(", ");
+  return `
+    <p class="bilan__attribution-ligne">
+      Sources : ${formater(jeux.length, "count", false)} ${jeux.length > 1 ? "jeux" : "jeu"} de données,
+      de ${formater(groupes.length, "count", false)} producteur${pluriel(groupes.length)} —
+      ${producteurs}.
+    </p>
+    <details class="methode-sources__liste">
+      <summary>La liste des jeux, producteur par producteur</summary>
+      <dl class="methode-sources__producteurs">${listeProducteurs(groupes)}</dl>
     </details>
   `;
 }

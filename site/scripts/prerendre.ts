@@ -40,7 +40,7 @@ import { indicateursDerives } from "../src/derives.ts";
 // Les trois rendus de la page MÉTHODE : purs, sans DOM et sans `fetch`, comme
 // `rendu()` et `renduAccueil` — c'est ce qui les rend appelables ici autant que
 // dans le navigateur (`peindreMethode`, main.ts), avec le même code.
-import { renduGrille, renduMethode, renduSources } from "../src/methode-rendu.ts";
+import { renduAttribution } from "../src/methode-rendu.ts";
 // Les blocs de la page REPÈRES, purs eux aussi — exactement ceux des
 // maquettes validées, un par chapitre plus la paire du chapitre 4. C'est le
 // motif du dépôt, « rendu pur, sans DOM : c'est lui qui est testé » : rien
@@ -968,7 +968,7 @@ function replierCadre(html: string, id: string): string {
  * de la méthode jusqu'à ce que `basculerVue` tranche.
  */
 export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
-  const sources = renduSources(jeux);
+  const sources = renduAttribution(jeux);
   if (!sources) {
     throw new Error(
       "injecterMethode() : le manifeste ne déclare aucun jeu — la page vers laquelle la bande de " +
@@ -976,17 +976,12 @@ export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
     );
   }
   let html = shell;
-  // Le gabarit sert ces trois cadres repliés — servis dépliés et vides, ils
-  // se lisaient comme trois barres bordées sans un mot sur toute vue du SPA,
-  // après la carte de la dette. Remplis ici, ils se déplient.
-  for (const [id, corps] of [
-    ["methode-sources", sources],
-    ["methode-methode", renduMethode()],
-    ["methode-grille", renduGrille()],
-  ] as const) {
-    html = remplirCadre(html, id, corps);
-    html = deplierCadre(html, id);
-  }
+  // Une seule ligne d'attribution, plus jamais des cadres : le propriétaire
+  // les a refusés, vides puis remplis. Le gabarit la sert repliée — l'appli ne
+  // la montre donc jamais — et ce document-ci, le seul à la porter, la remplit
+  // puis la déplie.
+  html = remplirCadre(html, "methode-sources", sources);
+  html = deplierCadre(html, "methode-sources");
   // Les deux cadres que le build ne sait pas remplir : `fraicheur.json` et
   // `journal.json` sont publiés, et c'est `peindreMethode` qui va les chercher.
   // Repliés plutôt que laissés vides — voir `replierCadre`.

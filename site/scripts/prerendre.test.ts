@@ -37,7 +37,6 @@ import type {
   Territoire,
 } from "../src/donnees.ts";
 import { formater } from "../src/echelle.ts";
-import { TITRES_METHODE } from "../src/methode-rendu.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
@@ -1036,23 +1035,17 @@ test("14. /bilan sert ses sources, sa méthode et sa grille sans exécuter une l
     assert.ok(html.includes(`href="${echapper(jeu.url)}"`), `le lien de « ${jeu.titre} » n'est pas servi`);
   }
 
-  // Chacun des intertitres que la page rend, lus dans le module plutôt que
-  // recopiés : c'est `TITRES_METHODE` qui ferme cette liste, et un bloc ajouté
-  // ou retiré se voit ici sans qu'on y revienne.
-  for (const titre of TITRES_METHODE) {
-    assert.ok(texte.includes(titre), `l'intertitre « ${titre} » n'est pas servi`);
-  }
+  // Les blocs « La méthode » et « La grille de verdicts » ne sont plus
+  // servis : le propriétaire a refusé les cadres du pied, vides puis remplis.
+  // Ce qui reste est l'attribution que la Licence Ouverte impose — la ligne
+  // des producteurs, et la liste des jeux dans son pli.
+  assert.doesNotMatch(html, /methode-methode|methode-grille/);
 
   // Le compte des jeux et celui des producteurs sont produits en APPELANT
   // `formater`, jamais tapés : une valeur recopiée à la main ne dirait rien de
   // son séparateur.
   assert.ok(texte.includes(`${formater(JEUX_ESSAI.length, "count", false)} jeux`));
   assert.ok(texte.includes(`${formater(2, "count", false)} producteurs`));
-
-  // Et il en reste beaucoup plus que les 2 597 signes de l'accueil, qui est ce
-  // que ce chemin servait. Trois jeux d'essai en donnent 7 604 ; les 66 du
-  // manifeste publié en donnent 14 927.
-  assert.ok(texte.length > 6000, `<main> ne porte que ${texte.length} signes de texte`);
 });
 
 test("14 bis. le séparateur de milliers du compte des jeux traverse l'injection", () => {
@@ -1089,9 +1082,8 @@ test("14 ter. le cadre de la méthode part déplié, et l'accueil replié", () =
   // journal ont disparu avec l'onglet MÉTHODE : ils décrivaient le site, pas
   // les comptes publics. Les sources restent — la Licence Ouverte impose de
   // citer les producteurs, et elles vivent désormais au pied de BILAN.
-  for (const id of ["methode-sources", "methode-methode", "methode-grille"]) {
-    assert.ok(html.includes(`id="${id}"`), `le cadre « ${id} » a disparu du document`);
-  }
+  assert.ok(html.includes('id="methode-sources"'), "l'attribution a disparu du document");
+  assert.match(html, /<div class="bilan__attribution" id="methode-sources">/);
   assert.doesNotMatch(html, /id="methode-fraicheur"/);
   assert.doesNotMatch(html, /id="methode-journal"/);
 
