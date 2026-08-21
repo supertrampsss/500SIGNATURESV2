@@ -24,13 +24,18 @@
  * semblables » continue de faire défiler le même panneau ; il n'y a rien à
  * déplier.
  *
- * **Une icône par thème, un chiffre d'ouverture, une barre d'ampleur.** Dix
- * blocs qui se suivent sans repère se lisent comme un seul mur : l'icône donne
- * à chacun un point d'entrée, et `statOuverture` détache le chiffre de sa
- * phrase là où l'ouverture EST un chiffre. Les icônes sont monochromes —
- * `--encre-douce` — et la barre d'écart de la sécurité n'a qu'une teinte :
- * elle montre l'ampleur de l'écart, jamais son sens. Aucune couleur de
- * jugement, la règle du dépôt ne bouge pas.
+ * **Une icône par thème, un chiffre d'ouverture, et la forme choisie sur le
+ * métier de la donnée.** L'icône donne à chaque bloc un point d'entrée, et
+ * `statOuverture` détache le chiffre de sa phrase là où l'ouverture EST un
+ * chiffre. Des magnitudes comparables (âges, diplômes, professions,
+ * secteurs, hébergement, pauvreté) se lisent en barres d'une seule teinte ;
+ * un arbre de comptes (emploi : 15-64 = actifs + inactifs) se lit en cartes,
+ * où rien n'a de colonne à désaligner ; la sécurité, seule vraie table
+ * (deux exercices et une évolution par catégorie), aligne ses valeurs à
+ * droite en chiffres tabulaires — chaque colonne ayant un format constant,
+ * le bord droit aligne aussi les virgules. Jamais de table à deux colonnes
+ * étirée sur la largeur du panneau : le nombre pend à un mètre de son
+ * libellé, et « pas aligné » est revenu jusqu'à ce que la forme change.
  *
  * **Aucune phrase ne date son chiffre.** « ... en 2023 » posait un millésime
  * dans chaque affirmation, dix fois sur la même page, pour une fenêtre que le
@@ -106,33 +111,18 @@ function barresMagnitude(lignes: Ligne[], accent: string): string {
     .join("")}</div>`;
 }
 
-function cartesChiffres(lignes: { texte: string; libelle: string; exercice: string }[]): string {
+function cartesChiffres(lignes: { texte: string; libelle: string; exercice?: string }[]): string {
   if (!lignes.length) return "";
   return `<div class="davantage__cartes">${lignes
     .map(
       (l) =>
         `<div class="davantage__carte"><span class="davantage__v">${echapper(
           l.texte,
-        )}</span><span class="davantage__l">${echapper(l.libelle)}</span><span class="davantage__e">${echapper(
-          l.exercice,
-        )}</span></div>`,
+        )}</span><span class="davantage__l">${echapper(l.libelle)}</span>${
+          l.exercice ? `<span class="davantage__e">${echapper(l.exercice)}</span>` : ""
+        }</div>`,
     )
     .join("")}</div>`;
-}
-
-/** Une table à deux colonnes — l'indicateur, sa valeur — quand une liste se
- *  lit mieux en colonne qu'en barre : des comptes de personnes qui n'ont pas
- *  à se comparer en longueur les uns aux autres, juste à se lire un par un. */
-function table(lignes: { libelle: string; valeur: string; exercice?: string }[]): string {
-  if (!lignes.length) return "";
-  return `<table class="davantage__table"><tbody>${lignes
-    .map(
-      (l) =>
-        `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${echapper(l.valeur)}</td>${
-          l.exercice ? `<td class="davantage__exercice">${echapper(l.exercice)}</td>` : ""
-        }</tr>`,
-    )
-    .join("")}</tbody></table>`;
 }
 
 /** Une icône neutre par thème — trait seul, une teinte (`currentColor`),
@@ -262,15 +252,19 @@ function themeEmploi(indicateurs: Indicateur[], territoire: Territoire): string 
           return t ? statOuverture(echapper(t.texte), echapper(t.libelle)) : "";
         })();
 
-  // Ni titre daté, ni colonne d'exercice par ligne : les deux mesures du
-  // chômage ne partagent pas leur millésime (recensement, France Travail),
-  // et le lecteur a jugé cette précision inutile — la même mesure que la
-  // table de pauvreté, juste au-dessus dans le panneau.
+  // Ni barres, ni table étirée. Pas de barres : la population 15-64 se
+  // partage en actifs/inactifs, les actifs en emploi/chômage — un arbre, pas
+  // six magnitudes comparables en longueur. Pas de table pleine largeur : le
+  // nombre pendait à un mètre de son libellé, « pas aligné » à chaque
+  // lecture. Chaque compte est une carte, la forme des chiffres de tête —
+  // rien à aligner, chaque nombre vit au-dessus de son propre libellé. Sans
+  // millésime : le recensement et France Travail ne partagent pas le leur,
+  // et le lecteur a jugé cette précision inutile.
   const groupe = (titre: string, ids: string[]) => {
     const ls = ids.map((id) => parId.get(id)).filter((l): l is Ligne => Boolean(l));
     if (!ls.length) return "";
-    return `<div class="davantage__groupe"><h4>${echapper(titre)}</h4>${table(
-      ls.map((l) => ({ libelle: l.libelle, valeur: l.texte })),
+    return `<div class="davantage__groupe"><h4>${echapper(titre)}</h4>${cartesChiffres(
+      ls.map((l) => ({ texte: l.texte, libelle: l.libelle })),
     )}</div>`;
   };
 
@@ -312,6 +306,10 @@ const THEMES_GENERIQUES = [
 /** Les trois tranches d'âge de la population, dans l'ordre où elles se lisent
  *  — la plus âgée d'abord, comme la barre de magnitude qu'elles remplaçaient
  *  triait déjà par valeur décroissante dans la plupart des communes. */
+/** L'identité de teinte du bloc population — une par thème, comme les
+ *  professions (série 4), les secteurs (série 5) et le tourisme (série 3). */
+const ACCENT_POPULATION = "var(--serie-1)";
+
 const AGES = [
   { id: "insee_population_55_ans_et_plus", libelle: "55 ans et plus" },
   { id: "insee_population_25_54_ans", libelle: "25 à 54 ans" },
@@ -378,35 +376,34 @@ function themePopulationRevenusDiplomes(indicateurs: Indicateur[], territoire: T
   const groupe = (titre: string, tableau: string) =>
     tableau ? `<div class="davantage__groupe"><h4>${echapper(titre)}</h4>${tableau}</div>` : "";
 
-  const ageTable = memeExercice
-    ? groupe(
-        "Population par tranche d'âge",
-        table(lignesAges.map((l) => ({ libelle: l.libelle, valeur: l.texte }))),
-      )
-    : "";
+  // Des magnitudes comparables se lisent en barres, jamais en colonnes
+  // étirées sur toute la largeur — le nombre pendait à un mètre de son
+  // libellé, et « pas aligné » est revenu jusqu'à ce que la forme change.
+  // C'est la présentation des professions et de l'hébergement, jamais
+  // reprochée.
+  const ageTable = memeExercice ? groupe("Population par tranche d'âge", barresMagnitude(lignesAges, ACCENT_POPULATION)) : "";
 
   const diplomesTable = diplomes.length
-    ? groupe(
-        "Diplômes de la population",
-        table([...diplomes].sort((a, b) => b.brut - a.brut).map((l) => ({ libelle: l.libelle, valeur: l.texte }))),
-      )
+    ? groupe("Diplômes de la population", barresMagnitude(diplomes, ACCENT_POPULATION))
     : "";
 
-  // La pauvreté, sous les diplômes : le taux publié à la maille de ce
-  // territoire, et les deux prestations que la CAF verse aux foyers modestes.
-  // Les trois exercices diffèrent d'une ligne à l'autre (2024, 2024, 2023) ;
-  // la colonne qui les portait cassait l'alignement du tableau pour une
-  // précision que le lecteur a jugée de trop — la même mesure que les tables
-  // voisines (âges, diplômes), qui n'ont jamais eu cette colonne.
-  const pauvrete = revenus.filter((l) => ["insee_taux_pauvrete", "cnaf_foyers_rsa", "cnaf_foyers_prime_activite"].includes(l.id));
-  const pauvreteTable = pauvrete.length
-    ? groupe("Pauvreté", table(pauvrete.map((l) => ({ libelle: l.libelle, valeur: l.texte }))))
+  // La pauvreté, sous les diplômes : les deux prestations que la CAF verse
+  // aux foyers modestes, en barres comme le reste — et le taux de pauvreté en
+  // note, jamais mêlé à une colonne de comptes : un pourcentage au milieu
+  // d'effectifs cassait l'alignement et l'échelle à la fois.
+  const pauvreteComptes = revenus.filter((l) => ["cnaf_foyers_rsa", "cnaf_foyers_prime_activite"].includes(l.id));
+  const tauxPauvrete = revenus.find((l) => l.id === "insee_taux_pauvrete");
+  const pauvreteTable = pauvreteComptes.length
+    ? groupe("Pauvreté", barresMagnitude(pauvreteComptes, ACCENT_POPULATION))
+    : "";
+  const notePauvrete = tauxPauvrete
+    ? `<p class="davantage__note">${echapper(tauxPauvrete.libelle)} : ${echapper(tauxPauvrete.texte)}.</p>`
     : "";
 
   return section(
     "population",
     "Population, revenus et diplômes",
-    `${phrase ? `<p class="davantage__affirmation">${phrase}</p>` : ""}${cartesTete}${ageTable}${diplomesTable}${pauvreteTable}`,
+    `${phrase ? `<p class="davantage__affirmation">${phrase}</p>` : ""}${cartesTete}${ageTable}${diplomesTable}${pauvreteTable}${notePauvrete}`,
     "Source : INSEE (population, diplômes, pauvreté), DGFiP (revenus), CAF (RSA, prime d'activité).",
   );
 }
@@ -532,25 +529,6 @@ function tauxTable(valeur: number): string {
   return `${UN_DECIMALE.format(valeur)} ‰`;
 }
 
-/** Aligner à droite ne suffit pas pour une colonne de décimales : « 15,2 ‰ »
- *  et « 5,0 ‰ » alignés sur leur bord droit font tomber les deux virgules à
- *  des endroits différents — c'est ce qui restait « pas aligné » dans cette
- *  table une fois même le format uniforme. La partie entière (signe compris)
- *  prend une largeur fixe, en caractères, commune à toute la colonne ; le
- *  reste (virgule, décimale, unité) s'aligne à gauche juste après — la
- *  virgule tombe alors au même endroit sur toutes les lignes. */
-function colonneDecimale(textes: string[]): (texte: string) => string {
-  const largeur = Math.max(1, ...textes.map((t) => (t.match(/^[+−-]?\d+/)?.[0].length ?? 1)));
-  return (texte: string) => {
-    const m = texte.match(/^([+−-]?\d+)(.*)$/);
-    if (!m) return echapper(texte);
-    const [, entier, reste] = m;
-    return `<span class="davantage__entier" style="width:${largeur}ch">${echapper(
-      entier,
-    )}</span><span class="davantage__reste">${echapper(reste)}</span>`;
-  };
-}
-
 /** Sécurité : les seuls taux (pour mille habitants ou logements), avec leur
  *  évolution depuis 2019 — la fenêtre tenue partout ailleurs sur le site — et
  *  seulement les catégories qui ont une valeur au dernier exercice publié.
@@ -598,44 +576,28 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
     echapper(triees[0].texteArrivee),
     `<b>${echapper(triees[0].libelle)}</b> est la catégorie la plus fréquente.`,
   );
-  // Une colonne par colonne : le départ, l'arrivée et l'évolution n'ont pas
-  // la même largeur de partie entière, chacune a donc sa propre largeur fixe.
-  const colDepart = colonneDecimale(lignes.filter((l) => l.depart !== null).map((l) => tauxTable(l.depart!)));
-  const colArrivee = colonneDecimale(triees.map((l) => tauxTable(l.arrivee)));
-  const colEvolution = colonneDecimale(
-    triees.filter((l) => l.depart !== null && l.depart !== 0).map((l) => variation(l.depart!, l.arrivee)),
-  );
-  // La barre montre l'AMPLEUR de l'écart, jamais son sens : une seule teinte
-  // neutre, le signe reste dans le nombre — aucune couleur de jugement.
-  const ecarts = triees
-    .filter((l) => l.depart !== null && l.depart !== 0)
-    .map((l) => Math.abs((l.arrivee / l.depart! - 1) * 100));
-  const ecartMax = ecarts.length ? Math.max(...ecarts) : 1;
-  const barre = (depart: number | null, arrivee: number) => {
-    if (depart === null || depart === 0) return "";
-    const largeur = (Math.abs((arrivee / depart - 1) * 100) / ecartMax) * 100;
-    return `<span class="davantage__barre-evol"><span style="width:${largeur.toFixed(1)}%"></span></span>`;
-  };
+  // Des valeurs à plat, alignées à droite en chiffres tabulaires : chaque
+  // colonne a un format constant — une décimale, un même suffixe — donc le
+  // bord droit aligne aussi les virgules, sans artifice. Les spans à largeur
+  // fixe qui décomposaient chaque valeur décalaient le texte des en-têtes ;
+  // ils sont partis, comme les barres d'ampleur, refusées par le lecteur.
   const tableau = `<table class="davantage__table"><thead><tr><th>Catégorie</th><th>${echapper(
     EXERCICE_REFERENCE,
   )}</th><th>${echapper(dernier)}</th><th>Évolution</th></tr></thead><tbody>${triees
     .map(
       (l) =>
         `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${
-          l.depart === null ? "—" : colDepart(tauxTable(l.depart))
-        }</td><td class="davantage__num">${colArrivee(tauxTable(l.arrivee))}</td><td class="davantage__num"><div class="davantage__col-evol">${barre(
-          l.depart,
-          l.arrivee,
-        )}<span>${
-          l.depart === null || l.depart === 0 ? "—" : colEvolution(variation(l.depart, l.arrivee))
-        }</span></div></td></tr>`,
+          l.depart === null ? "—" : echapper(tauxTable(l.depart))
+        }</td><td class="davantage__num">${echapper(tauxTable(l.arrivee))}</td><td class="davantage__num">${
+          l.depart === null || l.depart === 0 ? "—" : echapper(variation(l.depart, l.arrivee))
+        }</td></tr>`,
     )
     .join("")}</tbody></table>`;
   return section(
     "securite",
     "Sécurité",
     `${ouverture}${tableau}`,
-    "Source : SSMSI, taux pour 1 000 habitants (sauf cambriolages, pour 1 000 logements). Décomptes bruts et catégories sans valeur au dernier exercice non repris. La barre montre l'ampleur de l'écart, pas son sens.",
+    "Source : SSMSI, taux pour 1 000 habitants (sauf cambriolages, pour 1 000 logements). Décomptes bruts et catégories sans valeur au dernier exercice non repris.",
   );
 }
 

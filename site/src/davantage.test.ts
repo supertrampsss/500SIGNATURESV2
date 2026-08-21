@@ -205,27 +205,31 @@ test("un indicateur en pourcentage se lit en note, jamais mêlé aux tables de c
   assert.match(bloc, /Taux de chômage : 14,9 %/);
 });
 
-test("emploi et chômage se lisent en deux tables groupées, jamais en barres à plat", () => {
-  // Six comptes qui ne sont pas six magnitudes indépendantes : la population
-  // 15-64 se partage en actifs/inactifs, les actifs en emploi/chômage — un
-  // arbre, pas une liste. Une rangée de barres à plat le faisait lire comme
-  // six catégories comparables en longueur, ce qu'aucune paire d'entre elles
-  // n'est.
+test("emploi et chômage se lisent en deux groupes de cartes, jamais en barres ni en table", () => {
+  // Pas de barres : la population 15-64 se partage en actifs/inactifs, les
+  // actifs en emploi/chômage — un arbre, pas six magnitudes comparables en
+  // longueur. Pas de table pleine largeur : le nombre pendait à un mètre de
+  // son libellé, « pas aligné » à chaque lecture. Chaque compte est une
+  // carte — le nombre au-dessus de son propre libellé, rien à aligner.
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-emploi"'), html.indexOf('id="davantage-professions"'));
   assert.doesNotMatch(bloc, /davantage__mag/);
-  // Aucun des deux groupes ne porte de millésime, ni dans le titre ni par
-  // ligne : demandé à retirer, le recensement (2023) et les inscriptions à
-  // France Travail (2024) n'ayant de toute façon pas le même exercice.
+  assert.doesNotMatch(bloc, /davantage__table/);
   assert.match(bloc, /<h4>Population active<\/h4>/);
-  assert.match(bloc, /Population de 15 à 64 ans/);
-  assert.match(bloc, /Population active/);
-  assert.match(bloc, /Inactifs de 15 à 64 ans/);
   assert.match(bloc, /<h4>Emploi et chômage<\/h4>/);
-  assert.match(bloc, /Actifs ayant un emploi/);
-  assert.match(bloc, /Chômeurs déclarés \(recensement\)/);
-  assert.match(bloc, /Inscrits à France Travail \(catégories A, B, C\)/);
-  assert.doesNotMatch(bloc, /davantage__exercice/);
+  for (const libelle of [
+    "Population de 15 à 64 ans",
+    "Inactifs de 15 à 64 ans",
+    "Actifs ayant un emploi",
+    "Chômeurs déclarés \\(recensement\\)",
+    "Inscrits à France Travail \\(catégories A, B, C\\)",
+  ]) {
+    assert.match(bloc, new RegExp(`davantage__l">${libelle}<`));
+  }
+  // Les cartes de ces groupes ne portent aucun millésime : le recensement et
+  // France Travail ne partagent pas le leur, et le lecteur a jugé cette
+  // précision inutile.
+  assert.doesNotMatch(bloc, /davantage__e"/);
 });
 
 test("le revenu fiscal de référence se lit par foyer, jamais en total", () => {
@@ -255,11 +259,24 @@ test("la pauvreté vient sous les diplômes, dans le même bloc fusionné", () =
   assert.doesNotMatch(pauvreteTable, /davantage__exercice/);
 });
 
-test("population, revenus et diplômes se lisent en colonnes, jamais en barre de magnitude", () => {
+test("âges, diplômes et pauvreté se lisent en barres, le taux de pauvreté en note", () => {
+  // Des magnitudes comparables se lisent en barres alignées à gauche — la
+  // forme des professions et de l'hébergement, jamais reprochée — plus
+  // jamais en colonnes étirées sur la largeur du panneau.
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-population"'), html.indexOf('id="davantage-emploi"'));
-  assert.doesNotMatch(bloc, /davantage__mag/);
-  assert.match(bloc, /davantage__table/);
+  assert.doesNotMatch(bloc, /davantage__table/);
+  // Le banc d'essai ne porte pas les trois tranches d'âge : diplômes et
+  // pauvreté font deux groupes de barres, chacun sous son titre.
+  const mags = bloc.match(/class="davantage__mag"/g) ?? [];
+  assert.equal(mags.length, 2, "diplômes et pauvreté : deux groupes de barres");
+  assert.match(bloc, /<h4>Diplômes de la population<\/h4>/);
+  assert.match(bloc, /<h4>Pauvreté<\/h4>/);
+  assert.match(bloc, /--accent:var\(--serie-1\)/);
+  // Le taux de pauvreté est un pourcentage : en note, jamais au milieu d'une
+  // colonne d'effectifs dont il casserait l'échelle et l'alignement.
+  assert.match(bloc, /<p class="davantage__note">Taux de pauvreté : 12,3 %\.<\/p>/);
+  assert.doesNotMatch(bloc, /davantage__(?:etiq|val)">Taux de pauvreté/);
 });
 
 test("un compte n'a pas de décimale dans le tableau des diplômes", () => {
@@ -291,22 +308,16 @@ test("sécurité montre 2019, le dernier exercice et l'évolution en pourcentage
   assert.doesNotMatch(ligneCambriolages, /\(logements\)/);
 });
 
-test("un tableau de décimales aligne la virgule, pas seulement le bord droit", () => {
-  // « 15,2 ‰ » et « 5,0 ‰ » alignés sur leur seul bord droit font tomber
-  // leurs deux virgules à des endroits différents : c'est ce qui restait
-  // « pas aligné » une fois même le format uniforme (pourcentage, sans
-  // « (logements) »). La partie entière prend une largeur fixe, commune à
-  // toute la colonne, mesurée sur sa plus longue valeur.
+test("les cellules de la sécurité sont du texte à plat, sans span de découpe", () => {
+  // Chaque colonne a un format constant — une décimale, un même suffixe —
+  // donc l'alignement à droite en chiffres tabulaires aligne aussi les
+  // virgules. Les spans à largeur fixe qui découpaient chaque valeur
+  // décalaient le texte des en-têtes de colonne : ils sont partis.
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-securite"'), html.indexOf('id="davantage-tourisme"'));
-  // Vols sans violence, colonne 2025 : 7,2 ‰ — un seul chiffre entier.
-  assert.match(
-    bloc,
-    /<span class="davantage__entier" style="width:1ch">7<\/span><span class="davantage__reste">,2 ‰<\/span>/,
-  );
-  // Colonne « Évolution » : le signe compte comme un caractère de la partie
-  // entière, sa largeur suit donc la plus longue ligne de la colonne.
-  assert.match(bloc, /<span class="davantage__entier" style="width:3ch">−23<\/span>/);
+  assert.doesNotMatch(bloc, /davantage__entier|davantage__reste/);
+  assert.match(bloc, /<td class="davantage__num">9,4 ‰<\/td>/);
+  assert.match(bloc, /<td class="davantage__num">−23,4\u00a0%<\/td>/);
 });
 
 test("vie associative liste les associations nommément, sans récap par mission", () => {
@@ -396,20 +407,18 @@ test("emploi ouvre sur un chiffre detache de sa phrase", () => {
   );
 });
 
-test("securite ouvre sur son taux et peint l'ampleur de l'ecart", () => {
+test("securite ouvre sur son taux, sans barre d'ampleur", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-securite"'));
   assert.match(bloc, /<span class="davantage__ouverture-chiffre">7,2 \u2030<\/span>/);
-  assert.match(bloc, /<span class="davantage__barre-evol"><span style="width:100\.0%"><\/span><\/span>/);
+  // Les barres d'ampleur de la colonne Évolution ont été refusées par le
+  // lecteur : la colonne ne porte que le nombre signé.
+  assert.doesNotMatch(bloc, /davantage__barre-evol|davantage__col-evol/);
 });
 
-test("la barre d'ecart ne porte aucune couleur de jugement", () => {
+test("aucune barre d'ampleur ne revient dans la colonne d'évolution", () => {
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
-  const barres = html.match(/<span class="davantage__barre-evol">.*?<\/span><\/span>/g) ?? [];
-  assert.ok(barres.length > 0);
-  for (const barre of barres) {
-    assert.equal(/hausse|baisse|positif|negatif|rouge|vert|color/i.test(barre), false);
-  }
+  assert.doesNotMatch(html, /barre-evol|col-evol/);
 });
 
 test("le titre d'un thème s'aligne sur la colonne, jamais sur son icône", () => {
@@ -448,4 +457,13 @@ test("ni les groupes ni la liste des associations ne s'encadrent", () => {
   assert.doesNotMatch(css, /\.davantage__groupe \{[^}]*border/);
   assert.doesNotMatch(css, /\.davantage__associations \{[^}]*border/);
   assert.match(css, /\.davantage__assoc \{[^}]*padding: var\(--espace-3\) 0;/);
+});
+
+test("l'alignement à droite des nombres bat la règle générale de la table", () => {
+  // `.davantage__table td` (spécificité 0,1,1) aligne tout à gauche : une
+  // classe seule (0,1,0) perd contre elle, et les nombres de la table n'ont
+  // JAMAIS été alignés à droite — le « pas aligné » qui survivait à chaque
+  // correctif de format. Le sélecteur doit porter la table ET la cellule.
+  const css = readFileSync(new URL("./style.css", import.meta.url), "utf8");
+  assert.match(css, /\.davantage__table td\.davantage__num,\s*\.davantage__num \{\s*text-align: right;/);
 });

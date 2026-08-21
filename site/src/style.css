@@ -7701,32 +7701,6 @@ body[data-carte="oui"] .legende {
   font-weight: 600;
 }
 
-/* La barre de magnitude de l'évolution (sécurité) : une seule teinte
-   neutre, jamais rouge/vert — elle montre l'AMPLEUR de l'écart, pas son
-   sens. Le signe reste dans le nombre, à droite. */
-.davantage__col-evol {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--espace-3);
-}
-.davantage__barre-evol {
-  width: 3.25rem;
-  height: 5px;
-  background: var(--papier-creuse);
-  border-radius: var(--rayon-xs);
-  overflow: hidden;
-  flex-shrink: 0;
-}
-.davantage__barre-evol > span {
-  display: block;
-  height: 100%;
-  background: var(--encre-douce);
-  border-radius: var(--rayon-xs);
-}
-
-/* Une magnitude ne prend qu'une seule teinte (règle du dépôt) : `--accent` se
-   pose une fois sur le conteneur, jamais rang par rang. */
 .davantage__mag {
   display: flex;
   flex-direction: column;
@@ -7866,27 +7840,17 @@ body[data-carte="oui"] .legende {
 .davantage__table tbody tr:last-child td {
   border-bottom: none;
 }
-.davantage__num,
-.davantage__exercice {
+/* `td.davantage__num` et pas `.davantage__num` seul : la règle générale
+   `.davantage__table td` (spécificité 0,1,1) alignait tout à gauche et
+   battait une classe seule (0,1,0) — les nombres de la table n'ont JAMAIS
+   été alignés à droite, et c'était le « pas aligné » qui survivait à chaque
+   correctif de format. Mesuré au navigateur : bord du texte contre bord de
+   la boîte, colonne par colonne. */
+.davantage__table td.davantage__num,
+.davantage__num {
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
-}
-.davantage__exercice {
-  color: var(--encre-douce);
-}
-
-/* Une colonne de décimales (`colonneDecimale`, davantage.ts) : la partie
-   entière prend une largeur fixe et commune à la colonne, le reste
-   (virgule, décimale, unité — même largeur sur toute la colonne) s'aligne
-   juste après. Comme le total tient donc en une largeur constante d'une
-   ligne à l'autre, le simple `text-align: right` déjà posé sur
-   `.davantage__num` suffit à aligner la virgule — inutile d'y ajouter du
-   flex, qui romprait `display: table-cell` sur la cellule et ferait
-   tomber les colonnes du tableau en rangées empilées. */
-.davantage__entier {
-  display: inline-block;
-  text-align: right;
 }
 
 /* Le pli qui ouvre le reste de la liste nominative, au-delà des associations
