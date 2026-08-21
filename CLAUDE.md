@@ -470,6 +470,55 @@ pour ne plus l'être.
 
 ### Fait
 
+- **Le panneau « davantage » à la direction C, et le pied du bilan réduit à
+  une ligne** (20 août 2026). Une journée de reproches du propriétaire, tous
+  fondés, et trois leçons qui dépassent leurs correctifs.
+
+  **« Pas aligné », répété trois fois, était trois défauts distincts.** Les
+  virgules d'une colonne ne tombaient pas sur la même verticale (partie
+  entière à largeur fixe, mesurée sur la colonne) ; puis le titre restait
+  décalé par son icône (elle pend désormais dans la marge en colonne large,
+  suit le titre en colonne étroite — tout texte du panneau part du même x) ;
+  puis les contenus restaient décalés par le rembourrage des cadres (cadres
+  supprimés : la maquette C validée n'en avait pas). La leçon : un reproche
+  qui revient après un correctif juste désigne la cause suivante, pas la
+  première mal corrigée. Chaque correctif se mesurait au navigateur — et
+  c'est la mesure qui a départagé les trois causes.
+
+  **Les montants des associations se lisent dans l'unité de leur total** —
+  « 1 276 550 € » sous « 1,96 M€ » demandait une conversion de tête. En M€ à
+  deux décimales dès 10 000 € ; en dessous — 55 % des subventions, mesuré sur
+  trois départements (médiane 7 000 €, minimum 25 €) — « 0,00 M€ »
+  n'apprendrait rien, et ces lignes du dépli restent à l'euro. Et l'espace
+  avant « M€ » dans `millionsDeuxDecimales` est une fine insécable : énième
+  fois qu'un blanc invisible fait échouer un motif écrit à l'espace ordinaire.
+
+  **Les « trois barres » du pied de bilan, et la fin de l'histoire.** Le
+  gabarit servait `#methode-sources`, `#methode-methode` et `#methode-grille`
+  DÉPLIÉS ET VIDES sur toute vue du SPA — seul le pré-rendu de /bilan/ les
+  remplissait : trois barres bordées sans un mot après la carte de la dette,
+  trouvées en mesurant le DOM de la page en production (34 px, texte vide).
+  Remplis au chargement, le propriétaire les a refusés aussi ; sur la page
+  pré-rendue, encore. Ils sont virés partout. Ce qui reste est ce que la
+  Licence Ouverte impose — citer les producteurs : `renduAttribution`, une
+  ligne de petit texte et la liste des jeux dans un pli sans cadre, dans le
+  seul document de /bilan/. `renduMethode` et `renduGrille` restent au module
+  avec leurs tests, sans appelant — la règle du dépôt pour un bloc retiré.
+
+  **Le merge à mauvaise base réintroduit du code supprimé, en silence.** Un
+  squash n'a pas d'ancêtre commun avec la branche : `git merge origin/main`
+  a re-ajouté l'import, la fonction et l'appel qu'un commit venait de
+  supprimer — sans conflit, sans un mot. C'est le test écrit une heure plus
+  tôt (« un main.ts qui touche à ces cadres rougit ») qui l'a vu avant la CI.
+  La règle : après tout merge d'`origin/main` sur cette branche, rejouer la
+  suite entière avant de pousser, et verrouiller toute suppression par un
+  test qui refuse son retour.
+
+  Et les années sont parties de TOUTES les phrases du panneau — affirmations,
+  notes, titres de groupe, ouvertures — pas seulement du tableau qui avait
+  déclenché le reproche : le millésime vit sous le chiffre d'une carte et en
+  tête de colonne, jamais dans une phrase. Un test lit le panneau entier.
+
 - **La page livrée ne ressemblait pas à la maquette validée, et la cause
   n'était pas un détail** (18 août 2026). « On valide les maquettes et le
   résultat est complètement différent » — et c'était vrai. Les blocs de la
