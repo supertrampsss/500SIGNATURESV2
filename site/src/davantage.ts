@@ -24,8 +24,7 @@
  * semblables » continue de faire défiler le même panneau ; il n'y a rien à
  * déplier.
  *
- * **Une icône par thème, un chiffre d'ouverture, et la forme choisie sur le
- * métier de la donnée.** L'icône donne à chaque bloc un point d'entrée, et
+ * **Un chiffre d'ouverture, et la forme choisie sur le métier de la donnée.**
  * `statOuverture` détache le chiffre de sa phrase là où l'ouverture EST un
  * chiffre. Des magnitudes comparables (âges, diplômes, professions,
  * secteurs, hébergement, pauvreté) se lisent en barres d'une seule teinte ;
@@ -125,36 +124,10 @@ function cartesChiffres(lignes: { texte: string; libelle: string; exercice?: str
     .join("")}</div>`;
 }
 
-/** Une icône neutre par thème — trait seul, une teinte (`currentColor`),
- *  jamais de remplissage : elle identifie la section au premier regard sans
- *  porter de jugement sur ce qu'elle montre. Sur la même grille 24×24 que le
- *  reste du site. */
-const ICONES: Record<string, string> = {
-  "vie-associative":
-    '<circle cx="9" cy="9" r="3.2"/><circle cx="16" cy="10.5" r="2.6"/><path d="M3.5 19c.6-3 3-5 5.5-5s4.9 2 5.5 5"/><path d="M14 15.2c2 .2 3.6 1.8 4.1 3.8"/>',
-  population: '<circle cx="12" cy="8" r="3.4"/><path d="M5 20c.8-4 3.4-6.4 7-6.4s6.2 2.4 7 6.4"/>',
-  emploi: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M3 12h18"/>',
-  professions: '<rect x="4" y="4" width="16" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.3"/><path d="M8 17c.7-2 2-3 4-3s3.3 1 4 3"/>',
-  secteurs:
-    '<rect x="4" y="3" width="10" height="18" rx="1"/><rect x="14" y="9" width="6" height="12" rx="1"/><path d="M7 7h1M11 7h1M7 11h1M11 11h1M7 15h1M11 15h1"/>',
-  logement: '<path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V10"/><path d="M10 20.5V14h4v6.5"/>',
-  securite: '<path d="M12 3l7 3v6c0 4.5-3 8-7 9-4-1-7-4.5-7-9V6l7-3z"/>',
-  tourisme:
-    '<path d="M3 18v-7a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2"/><path d="M3 18v2"/><path d="M21 20v-6a2 2 0 0 0-2-2h-9v6"/><path d="M21 18v2"/><circle cx="6.5" cy="10" r="1.3"/>',
-};
-
 function section(id: string, libelle: string, corps: string, source: string): string {
   if (!corps) return "";
-  const icone = ICONES[id];
   return `<section class="davantage__theme" id="davantage-${echapper(id)}">
-    <div class="davantage__entete">
-      ${
-        icone
-          ? `<svg class="davantage__icone" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">${icone}</svg>`
-          : ""
-      }
-      <h3>${echapper(libelle)}</h3>
-    </div>
+    <h3>${echapper(libelle)}</h3>
     ${corps}
     ${source ? `<p class="davantage__source">${source}</p>` : ""}
   </section>`;

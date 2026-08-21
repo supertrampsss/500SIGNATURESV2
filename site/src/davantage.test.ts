@@ -390,12 +390,12 @@ test("aucune phrase du panneau ne date son chiffre", () => {
   for (const phrase of phrases) assert.equal(/(?:19|20)\d\d/.test(phrase), false);
 });
 
-test("chaque section porte l'icone de son theme", () => {
+test("aucune section ne porte d'icône : le titre part seul", () => {
+  // Les icônes de thème ont été retirées à la demande du propriétaire. Le
+  // titre commence au bord gauche, sans pastille ni marge à négocier.
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
-  const sections = html.match(/class="davantage__theme"/g) ?? [];
-  const icones = html.match(/class="davantage__icone"/g) ?? [];
-  assert.ok(sections.length > 0);
-  assert.equal(icones.length, sections.length);
+  assert.ok((html.match(/class="davantage__theme"/g) ?? []).length > 0);
+  assert.doesNotMatch(html, /davantage__icone|davantage__entete/);
 });
 
 test("emploi ouvre sur un chiffre detache de sa phrase", () => {
@@ -421,16 +421,11 @@ test("aucune barre d'ampleur ne revient dans la colonne d'évolution", () => {
   assert.doesNotMatch(html, /barre-evol|col-evol/);
 });
 
-test("le titre d'un thème s'aligne sur la colonne, jamais sur son icône", () => {
+test("le titre d'un thème n'a plus d'icône à négocier", () => {
   const css = readFileSync(new URL("./style.css", import.meta.url), "utf8");
-  // En colonne étroite l'icône suit le titre (order), en colonne large elle
-  // pend dans la marge (margin négative sous média) : dans les deux cas le
-  // titre commence au même x que le chiffre d'ouverture et les tables.
-  assert.match(css, /\.davantage__icone \{[^}]*order: 2;/);
-  assert.match(
-    css,
-    /@media \(min-width: 60rem\) \{\s*\.davantage__entete \{\s*margin-left: calc\(-1\.25rem - var\(--espace-3\)\);/,
-  );
+  // Icônes retirées : plus de wrapper flex ni de marge négative pour aligner
+  // le titre sur la colonne — il part du bord, comme tout le panneau.
+  assert.doesNotMatch(css, /\.davantage__icone|\.davantage__entete/);
 });
 
 test("les montants des associations se lisent dans l'unité du total", () => {
