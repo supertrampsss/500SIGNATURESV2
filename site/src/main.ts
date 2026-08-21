@@ -909,17 +909,84 @@ function cadrer(vue: string): void {
   if (bornes && carte) carte.fitBounds(bornes, { padding: paddingCarte(), duration: 800 });
 }
 
-/** Amène la carte là où se trouve le territoire choisi.
+/** La boîte englobante d'un territoire, lue dans les tuiles déjà chargées.
  *
- *  Sans cela, chercher « Fort-de-France » ouvrait sa fiche et laissait la carte
- *  sur la métropole : on lisait les chiffres d'un territoire qu'on ne voyait
- *  pas. Le recadrage n'a lieu que si la vue change — sinon il ferait sursauter
- *  la carte à chaque clic. */
+ *  Aucun fichier publié ne porte les coordonnées des territoires : la seule
+ *  géométrie côté client est celle des tuiles. `querySourceFeatures` ne voit
+ *  que les tuiles chargées (celles de la fenêtre) — un territoire hors champ
+ *  rend null, et l'appelant recadre d'abord la vue avant de réessayer. Un
+ *  territoire est découpé entre plusieurs tuiles : on réunit ses morceaux. */
+function bornesDuTerritoire(code: string, couche: string): maplibregl.LngLatBounds | null {
+  if (!carte) return null;
+  let figures: maplibregl.GeoJSONFeature[] = [];
+  try {
+    figures = carte.querySourceFeatures("territoires", {
+      sourceLayer: couche,
+      filter: ["==", ["get", "code"], code],
+    });
+  } catch {
+    return null;
+  }
+  let bornes: maplibregl.LngLatBounds | null = null;
+  for (const figure of figures) {
+    const anneaux =
+      figure.geometry.type === "Polygon"
+        ? figure.geometry.coordinates
+        : figure.geometry.type === "MultiPolygon"
+          ? figure.geometry.coordinates.flat()
+          : [];
+    for (const anneau of anneaux) {
+      for (const [lng, lat] of anneau as [number, number][]) {
+        if (!bornes) bornes = new maplibregl.LngLatBounds([lng, lat], [lng, lat]);
+        else bornes.extend([lng, lat]);
+      }
+    }
+  }
+  return bornes;
+}
+
+/** Le code dont un recadrage différé est encore attendu : un clic rapide sur
+ *  un autre territoire annule le zoom du précédent. */
+let zoomAttendu: string | null = null;
+
+/** Amène la carte SUR le territoire choisi, pas seulement sur sa vue.
+ *
+ *  Recadrer la seule vue d'ensemble (métropole, Guadeloupe…) laissait la carte
+ *  immobile pour tout choix à l'intérieur d'une même vue : cliquer une commune
+ *  du groupe de semblables, ou la chercher au champ, ouvrait sa fiche sans que
+ *  la carte ne bouge — « zéro intérêt d'avoir cette carte ». La carte zoome
+ *  désormais sur le territoire lui-même, avec le rembourrage du panneau.
+ *
+ *  Deux temps quand il le faut : la géométrie vient des tuiles chargées, et un
+ *  territoire hors champ n'y est pas encore. On recadre alors sa vue
+ *  d'ensemble, et on zoome dès que la carte est au repos, si la sélection n'a
+ *  pas changé entre-temps. `maxZoom` borne l'arrivée : une petite commune
+ *  cadrée au plus près ne montrerait plus aucun voisin. */
 function suivreLaSelection(code: string): void {
+  if (!carte) return;
   const vue = vueDuCode(code);
-  if (vue === etat.vue) return;
   etat.vue = vue;
+  const couche = COUCHES[etat.niveau];
+  if (!couche) {
+    cadrer(vue);
+    return;
+  }
+  const zoomer = (bornes: maplibregl.LngLatBounds) =>
+    carte.fitBounds(bornes, { padding: paddingCarte(), duration: 800, maxZoom: 11.5 });
+  const bornes = bornesDuTerritoire(code, couche);
+  if (bornes) {
+    zoomAttendu = null;
+    zoomer(bornes);
+    return;
+  }
+  zoomAttendu = code;
   cadrer(vue);
+  carte.once("idle", () => {
+    if (zoomAttendu !== code) return;
+    zoomAttendu = null;
+    const trouvees = bornesDuTerritoire(code, couche);
+    if (trouvees) zoomer(trouvees);
+  });
 }
 
 async function montrerFiche(code: string): Promise<void> {

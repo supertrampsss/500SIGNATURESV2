@@ -6756,9 +6756,24 @@ summary.pont__rangee,
    Ces règles sont en fin de feuille pour gagner sur celles du mode plein
    cadre sans en retirer aucune : le jour où l'on veut revenir au fond
    d'écran, il suffit de supprimer ce bloc. */
+/* La grille vit sur la VUE, pas sur l'atelier : la carte doit rester collante
+   le long de TOUT ce qui suit — la fiche, puis « Sa place parmi les autres »
+   et le panneau « davantage ». Collée dans `.atelier`, elle s'arrêtait à la
+   fin de la fiche : `position: sticky` ne dépasse pas son conteneur, et les
+   tables vivaient dans une section sœur. `.atelier` passe en
+   `display: contents` (sous 60rem il redevient la colonne unique) : la carte,
+   la fiche et les tables partagent la même grille, et la piste de la carte
+   court sur les deux rangées de droite. */
 body[data-carte="oui"] .vue--territoire {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(30rem, 1fr) minmax(0, 1.25fr);
+  grid-template-rows: auto auto 1fr;
+  gap: var(--espace-6) var(--espace-7);
+  align-items: start;
   height: auto;
+  max-width: min(88rem, 100%);
+  margin-inline: auto;
+  padding-inline: var(--gouttiere);
 }
 /* La barre de vue s'aligne sur la grille, comme la carte et la fiche : le
    bouton se retrouvait collé au bord gauche de l'écran, à 224 px du contenu
@@ -6773,22 +6788,36 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    donc la plus grande part, sans descendre la carte sous les 30rem qu'il faut
    pour reconnaître la France. */
 body[data-carte="oui"] .vue--territoire .atelier {
-  display: grid;
-  grid-template-columns: minmax(30rem, 1fr) minmax(0, 1.25fr);
-  gap: var(--espace-7);
-  align-items: start;
-  position: static;
-  height: auto;
-  min-height: 0;
-  max-width: min(88rem, 100%);
-  margin-inline: auto;
-  padding-inline: var(--gouttiere);
-  background: transparent;
+  display: contents;
+}
+body[data-carte="oui"] .vue--territoire .vue-barre {
+  grid-column: 1 / -1;
+  grid-row: 1;
+}
+body[data-carte="oui"] .vue--territoire #panneau {
+  grid-column: 2;
+  grid-row: 2;
+}
+/* Les tables continuent la colonne de la fiche, à sa largeur : elles ne
+   redescendent plus dans une section pleine page sous la carte. */
+body[data-carte="oui"] .vue--territoire .territoire__tables {
+  grid-column: 2;
+  grid-row: 3;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+body[data-carte="oui"] .vue--territoire #palmares,
+body[data-carte="oui"] .vue--territoire #detail {
+  justify-self: stretch;
+  width: auto;
 }
 /* Le cadre de la carte, et le repère de toutes ses surcouches. Collant : la
    fiche est plus haute que lui, et une carte qui défile hors de l'écran au
    troisième bloc ne sert plus à rien. */
 body[data-carte="oui"] .atelier__carte {
+  grid-column: 1;
+  grid-row: 2 / span 2;
   position: sticky;
   top: var(--espace-5);
 }
@@ -6856,9 +6885,21 @@ body[data-carte="oui"] .legende {
 }
 /* Une colonne : la carte au-dessus, la fiche dessous. */
 @media (max-width: 60rem) {
+  body[data-carte="oui"] .vue--territoire {
+    display: block;
+    max-width: none;
+    margin-inline: 0;
+    padding-inline: 0;
+  }
   body[data-carte="oui"] .vue--territoire .atelier {
+    display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 0;
+  }
+  body[data-carte="oui"] .vue--territoire .territoire__tables {
+    max-width: 78rem;
+    margin: 0 auto;
+    padding: var(--espace-8) var(--espace-6);
   }
   body[data-carte="oui"] .atelier__carte {
     position: relative;
