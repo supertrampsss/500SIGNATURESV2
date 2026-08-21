@@ -52,6 +52,7 @@
 
 import type { Territoire } from "./donnees.ts";
 import { montantLisible } from "./echelle.ts";
+import { dessiner } from "./graphique.ts";
 
 const RECETTES = "eurostat_apu_recettes";
 const DEPENSES = "eurostat_apu_depenses";
@@ -181,6 +182,78 @@ function ventilationLignes(france: Territoire): Feuille[] | null {
   ];
 }
 
+/** Les teintes de série, validées sur les deux fonds (voir `conjoncture.ts`) :
+ *  jamais un hexadécimal inventé ici, qui casserait la séparation de la gamme. */
+const TEINTES = ["var(--serie-1)", "var(--serie-2)", "var(--serie-3)", "var(--serie-4)", "var(--serie-5)"];
+
+/**
+ * L'historique de « Où va l'argent » : la part de chaque grand poste dans la
+ * dépense publique, année après année depuis le premier exercice publié.
+ *
+ * Le tableau de barres ne montre qu'un exercice ; cette courbe montre comment
+ * la STRUCTURE de la dépense a bougé — la protection sociale qui monte, les
+ * intérêts qui plongent puis remontent. Une part de la dépense, pas des euros
+ * courants : un poste peut peser plus lourd dans un budget qui gonfle tout en
+ * représentant la même part. Les cinq plus gros postes au dernier exercice,
+ * pas un de plus — cinq lignes sont le maximum que la gamme validée sépare
+ * proprement sur les deux fonds.
+ *
+ * La chaîne vide tant que les dépenses et au moins cinq postes ne partagent
+ * pas une profondeur d'au moins deux exercices : une courbe d'un point n'est
+ * pas un historique.
+ */
+function historique(france: Territoire): string {
+  const serie = (id: string) => france.series[id];
+  const depenses = serie(DEPENSES);
+  if (!depenses) return "";
+  // La part d'un poste dans la dépense, année par année, sur les exercices que
+  // le poste et le total partagent.
+  const parts = POSTES.map(([id, libelle]) => {
+    const s = serie(id);
+    if (!s) return null;
+    const points = Object.keys(s)
+      .filter((an) => depenses[an] !== undefined && depenses[an] !== 0)
+      .sort()
+      .map((an) => [an, (s[an] / depenses[an]) * 100] as [string, number]);
+    return points.length >= 2 ? { libelle, points } : null;
+  }).filter((p): p is { libelle: string; points: [string, number][] } => p !== null);
+  if (parts.length < 5) return "";
+
+  // Les cinq plus lourds au dernier exercice : c'est là que le lecteur entre,
+  // et c'est l'ordre du tableau juste au-dessus.
+  const dernier = (points: [string, number][]) => points[points.length - 1][1];
+  const cinq = [...parts].sort((a, b) => dernier(b.points) - dernier(a.points)).slice(0, 5);
+
+  const series = cinq.map((p, i) => ({
+    nom: p.libelle,
+    couleur: TEINTES[i],
+    points: p.points,
+    accent: i === 0,
+  }));
+  const { svg } = dessiner(series, {
+    formater: (v) => `${Math.round(v)} %`,
+    titre: "La part de chaque poste dans la dépense publique",
+  });
+  if (!svg) return "";
+
+  const legende = cinq
+    .map(
+      (p, i) => `<span class="graphique__legende-item">
+        <span class="graphique__puce" style="--serie:${TEINTES[i]}"></span>${echapper(p.libelle)}</span>`,
+    )
+    .join("");
+  const debut = cinq[0].points[0][0];
+  const fin = cinq[0].points[cinq[0].points.length - 1][0];
+  return `
+    <h3 class="sous-titre">Comment la dépense se répartit, depuis ${echapper(debut)}</h3>
+    <div class="graphique">
+      <div class="graphique__cadre">${svg}</div>
+      <p class="graphique__legende">${legende}</p>
+    </div>
+    <p class="bloc__complement">Part de chaque poste dans la dépense publique totale, en %,
+      ${echapper(debut)}-${echapper(fin)}. Source : Eurostat.</p>`;
+}
+
 /**
  * Le bloc, ou la chaîne vide tant que les deux totaux et les neuf postes ne
  * sont pas publiés **sur le même exercice**.
@@ -284,6 +357,7 @@ export function rendu(pays: Record<string, Territoire>): string {
         ${feuilles.map((f) => rang(f.libelle, f.valeur, { creux: f.creux })).join("")}
         ${rang("Total dépensé", depense, { total: true })}
         ${rang("Dépensé sans avoir été reçu : l'emprunt", Math.abs(solde), { creux: true })}
+        ${historique(france)}
       </div>
     </div>`;
 }

@@ -242,3 +242,41 @@ test("rien n'est peint sans les deux totaux", () => {
   delete sansDepenses["eurostat_apu_depenses"];
   assert.equal(rendu({ FR: territoire(sansDepenses) }), "");
 });
+
+test("l'historique montre la part des cinq plus gros postes, année par année", () => {
+  const Md = 1e9;
+  // Deux exercices pour chaque poste, plus les totaux : de quoi tracer.
+  const deuxAns: Record<string, Record<string, number>> = {
+    eurostat_apu_recettes: { "2024": 1500 * Md, "2025": 1560 * Md },
+    eurostat_apu_depenses: { "2024": 1670 * Md, "2025": 1714 * Md },
+    eurostat_apu_prestations: { "2024": 560 * Md, "2025": 580 * Md },
+    eurostat_apu_remunerations: { "2024": 360 * Md, "2025": 370 * Md },
+    eurostat_apu_transferts_nature: { "2024": 185 * Md, "2025": 191 * Md },
+    eurostat_apu_consommations: { "2024": 158 * Md, "2025": 163 * Md },
+    eurostat_apu_investissement: { "2024": 128 * Md, "2025": 132 * Md },
+    eurostat_apu_transferts_courants: { "2024": 90 * Md, "2025": 94 * Md },
+    eurostat_apu_interets: { "2024": 55 * Md, "2025": 66 * Md },
+    eurostat_apu_subventions: { "2024": 54 * Md, "2025": 56 * Md },
+    eurostat_apu_transferts_capital: { "2024": 40 * Md, "2025": 46 * Md },
+  };
+  const html = rendu({ FR: territoire(deuxAns) });
+  assert.match(html, /Comment la dépense se répartit, depuis 2024/);
+  assert.match(html, /class="graphique__dessin"/);
+  // Cinq lignes, les cinq plus gros postes au dernier exercice, jamais plus —
+  // la gamme validée n'en sépare proprement pas davantage.
+  assert.equal((html.match(/class="graphique__legende-item"/g) ?? []).length, 5);
+  // La légende ne porte que les cinq — « Intérêts de la dette » (6e) reste
+  // dans les barres au-dessus mais pas dans les lignes de la courbe.
+  const legende = html.slice(html.indexOf("graphique__legende"));
+  assert.match(legende, /Retraites, chômage, allocations/);
+  assert.doesNotMatch(legende, /Intérêts de la dette/);
+  // Une part, pas des euros : l'axe est en %.
+  assert.match(html, /Part de chaque poste dans la dépense publique totale, en %/);
+});
+
+test("l'historique se tait sur un seul exercice : une courbe d'un point n'en est pas une", () => {
+  // Le fixture principal ne porte les postes que pour 2025 : pas d'historique.
+  const html = rendu({ FR: territoire(SERIES) });
+  assert.doesNotMatch(html, /Comment la dépense se répartit/);
+  assert.doesNotMatch(html, /class="graphique__dessin"/);
+});
