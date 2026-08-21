@@ -140,11 +140,24 @@ function pour100(part: number): string {
  * exercice avec les recettes : une part dont le dénominateur vient d'ailleurs
  * ne mesure rien.
  */
-function renduVentilation(france: Territoire): string {
+type Feuille = { libelle: string; valeur: number; creux?: boolean };
+
+/**
+ * La ventilation du premier poste en fonctions, comme DONNÉES — plus comme
+ * HTML : « Où ils vont » fond désormais ces fonctions dans une seule liste
+ * triée avec les autres postes, et le tri se fait sur les valeurs, pas sur des
+ * chaînes déjà rendues.
+ *
+ * `null` tant que les sept fonctions et leur total ne partagent pas un
+ * exercice avec les recettes : une part dont le dénominateur vient d'ailleurs
+ * ne mesure rien. Le dénominateur reste celui de l'exercice ventilé, jamais
+ * les recettes du tableau du dessus — voir le refus documenté ci-dessus.
+ */
+function ventilationLignes(france: Territoire): Feuille[] | null {
   const serie = (id: string) => france.series[id];
   const total = serie(VENTILEES);
   const recettes = serie(RECETTES);
-  if (!total || !recettes) return "";
+  if (!total || !recettes) return null;
   const exercice = Object.keys(total)
     .filter(
       (an) =>
@@ -152,32 +165,20 @@ function renduVentilation(france: Territoire): string {
     )
     .sort()
     .pop();
-  if (!exercice) return "";
+  if (!exercice) return null;
 
   const encaisse = recettes[exercice];
   const part = (montant: number) => (montant / encaisse) * 100;
-  const lignes = FONCTIONS.map(
-    ([id, libelle]) => [libelle, part(serie(id)![exercice])] as const,
-  );
+  const lignes: Feuille[] = FONCTIONS.map(([id, libelle]) => ({
+    libelle,
+    valeur: part(serie(id)![exercice]),
+  }));
   const ensemble = part(total[exercice]);
-  const reste = ensemble - lignes.reduce((somme, [, valeur]) => somme + valeur, 0);
-  const maximum = Math.max(...lignes.map(([, v]) => v));
-
-  const rang = ([libelle, valeur]: readonly [string, number], creux = false) => `
-    <div class="apu__rang">
-      <span class="apu__nom">${echapper(libelle)}</span>
-      <span class="apu__piste${creux ? " apu__piste--creux" : ""}"><span
-        style="width:${((valeur / maximum) * 100).toFixed(1)}%"></span></span>
-      <span class="apu__valeur flux--moins">−${pour100(valeur)}</span>
-    </div>`;
-
-  // Les sept fonctions se lisent au même niveau que le reste des postes, sans
-  // ligne « Retraites, chômage, allocations » qui les résumerait avant de les
-  // détailler. Leur somme (le jeu qui les croise avec la fonction) reste
-  // légèrement différente du poste qu'elles remplacent visuellement (le jeu
-  // principal, exercice suivant) — l'un et l'autre restent chacun un chiffre
-  // publié, jamais recalé sur l'autre.
-  return lignes.map((l) => rang(l)).join("") + rang(["Prestations hors protection sociale (bourses, culture, santé)", reste], true);
+  const reste = ensemble - lignes.reduce((somme, l) => somme + l.valeur, 0);
+  return [
+    ...lignes,
+    { libelle: "Prestations hors protection sociale (bourses, culture, santé)", valeur: reste, creux: true },
+  ];
 }
 
 /**
@@ -218,7 +219,21 @@ export function rendu(pays: Record<string, Territoire>): string {
   );
   const autresRecettes = 100 - ressources.reduce((somme, [, valeur]) => somme + valeur, 0);
 
-  const maximum = Math.max(...postes.map(([, v]) => v ?? 0));
+  // « Où ils vont » : une seule liste de postes-feuilles, triée du plus lourd
+  // au plus léger — demandé par le propriétaire. Le premier poste, quand sa
+  // ventilation est publiée, est remplacé par ses fonctions ; sinon il reste
+  // une ligne. Toutes les feuilles entrent dans le même tri et partagent une
+  // seule échelle de barre, pour que « Retraites » (24,09) et « Rémunération »
+  // (23,69) se comparent enfin d'un regard.
+  const ventilation = ventilationLignes(france);
+  const [premierPoste, ...autresPostes] = postes;
+  const feuilles: Feuille[] = [
+    ...(ventilation ?? [{ libelle: premierPoste[0], valeur: premierPoste[1] ?? 0 }]),
+    ...autresPostes.map(([libelle, valeur]) => ({ libelle, valeur: valeur ?? 0 })),
+    { libelle: "Autres dépenses", valeur: reste },
+  ].sort((a, b) => b.valeur - a.valeur);
+
+  const maximum = Math.max(...feuilles.map((f) => f.valeur));
   // Le total n'a pas de barre : à trois fois le plus gros poste, elle serait
   // tronquée à 100 % et lirait comme un poste de plus.
   const rang = (libelle: string, valeur: number, options: { creux?: boolean; total?: boolean } = {}) => `
@@ -232,12 +247,6 @@ export function rendu(pays: Record<string, Territoire>): string {
       }
       <span class="apu__valeur flux--moins">−${pour100(valeur)}</span>
     </div>`;
-
-  // Le premier poste ne s'affiche plus comme une ligne à part qui se déplie :
-  // sa ventilation, quand elle est publiée, prend directement sa place, au
-  // même niveau que les huit autres postes.
-  const [premierPoste, ...autresPostes] = postes;
-  const ventilation = renduVentilation(france);
 
   // L'affirmation et les recettes à gauche, les dépenses en barres à droite,
   // comme la maquette validée. Pas de titre de bloc : la question du chapitre,
@@ -272,9 +281,7 @@ export function rendu(pays: Record<string, Territoire>): string {
       </div>
       <div>
         <h3 class="sous-titre">Où ils vont</h3>
-        ${ventilation || rang(premierPoste[0], premierPoste[1] ?? 0)}
-        ${autresPostes.map(([libelle, valeur]) => rang(libelle, valeur ?? 0)).join("")}
-        ${rang("Autres dépenses", reste)}
+        ${feuilles.map((f) => rang(f.libelle, f.valeur, { creux: f.creux })).join("")}
         ${rang("Total dépensé", depense, { total: true })}
         ${rang("Dépensé sans avoir été reçu : l'emprunt", Math.abs(solde), { creux: true })}
       </div>
