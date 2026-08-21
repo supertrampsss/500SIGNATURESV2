@@ -7705,29 +7705,6 @@ body[data-carte="oui"] .legende {
   border-top: none;
   padding-top: 0;
 }
-/* Le titre d'un thème s'aligne sur la colonne, jamais sur son icône :
-   « Sécurité » commence au même x que « 13,1 ‰ » et que les tables dessous.
-   En colonne large, l'icône pend dans la marge de gauche (#detail est
-   justifié à droite d'une grille de 78rem — la place existe) ; en colonne
-   étroite, elle suit le titre sur la même ligne, faute de marge où pendre. */
-.davantage__entete {
-  display: flex;
-  align-items: center;
-  gap: var(--espace-3);
-}
-.davantage__icone {
-  flex-shrink: 0;
-  color: var(--encre-douce);
-  order: 2;
-}
-@media (min-width: 60rem) {
-  .davantage__entete {
-    margin-left: calc(-1.25rem - var(--espace-3));
-  }
-  .davantage__icone {
-    order: 0;
-  }
-}
 .davantage__theme h3 {
   font-family: var(--serif);
   font-size: var(--texte-l);
