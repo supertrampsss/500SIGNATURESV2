@@ -61,7 +61,7 @@ test("la TVA ne porte pas de variation nue : sa note de périmètre la remplace"
   const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
   const rangTva = html.slice(html.indexOf("Taxe sur la valeur ajoutée"), html.indexOf("</tr>", html.indexOf("Taxe sur la valeur ajoutée")));
   assert.doesNotMatch(rangTva, /−35,7/);
-  assert.match(rangTva, /recettes__note">part reversée en hausse</);
+  assert.match(rangTva, /recettes__note">une part croissante est reversée</);
   // Les deux bouts, eux, restent écrits : le lecteur voit 152 puis 98.
   assert.match(rangTva, /\+152,4/);
   assert.match(rangTva, /\+98,1/);
@@ -136,4 +136,16 @@ test("rien ne s'écrit sans le catalogue ou sans deux exercices", () => {
     Object.entries(SERIES).map(([id, s]) => [id, { "2025": s["2025"] ?? 1 }]),
   );
   assert.equal(rendu({ FR: territoire(seul) }, CATALOGUE), "");
+});
+
+test("la TVA est expliquée en clair à côté du tableau, pas seulement notée dans la cellule", () => {
+  // « Part reversée en hausse » seul laissait le lecteur avec sa question —
+  // « la TVA sert à financer autre chose ? ». Le mécanisme est écrit en
+  // toutes lettres : la taxe ne baisse pas, une part croissante est reversée
+  // à la Sécurité sociale et aux collectivités, le tableau ne compte que la
+  // part gardée par l'État.
+  const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
+  assert.match(html, /La TVA semble s'effondrer dans ce tableau/);
+  assert.match(html, /reversée chaque année à la Sécurité sociale et aux\s+collectivités/);
+  assert.match(html, /ne compte que la part que l'État garde pour lui/);
 });

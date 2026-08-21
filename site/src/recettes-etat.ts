@@ -120,7 +120,7 @@ export function lignes(
       // comptée ici ») tient dans le titre du tableau au complet, pas dans une
       // cellule de la colonne Variation — elle y devient une phrase courte,
       // sur une seule ligne, quitte à perdre le détail du mécanisme.
-      note: "part reversée en hausse",
+      note: "une part croissante est reversée",
     },
     { libelle: "Impôt sur le revenu", avant: irA, apres: irB },
     {
@@ -219,6 +219,12 @@ export function rendu(
                 )}</strong> : une fois l'inflation retirée, elles n'ont presque pas bougé`
               : ""
           }.</p>
+        <p class="bloc__complement">La TVA semble s'effondrer dans ce tableau&nbsp;: elle n'a
+          pas baissé. Ce que la taxe rapporte continue d'augmenter, mais une part croissante
+          en est <strong>reversée chaque année à la Sécurité sociale et aux
+          collectivités</strong> — pour compenser des cotisations et des impôts locaux
+          supprimés — et le tableau ne compte que la part que l'État garde pour lui. C'est
+          cette part-là qui diminue.</p>
       </div>
       <div>
         <table class="comparaison recettes" tabindex="0">

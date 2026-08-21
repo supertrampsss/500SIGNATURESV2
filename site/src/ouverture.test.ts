@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 
 import type { Territoire } from "./donnees.ts";
-import { chiffres, pont, rendu, variation } from "./ouverture.ts";
+import { chiffres, pont, rendu, variation, synthese } from "./ouverture.ts";
 
 const Md = 1e9;
 const SERIES: Record<string, Record<string, number>> = {
@@ -186,4 +186,29 @@ test("deux exercices au moins, sinon rien : une photo n'est pas un bilan", () =>
   };
   assert.equal(chiffres(territoire(seul)), null);
   assert.equal(rendu({ FR: territoire(seul) }), "");
+});
+
+test("la synthèse d'ouverture dit les quatre chiffres de la page, ou se tait", () => {
+  const Md = 1e9;
+  const avec = {
+    FR: territoire({
+      ...SERIES,
+      insee_dette_apu_montant: { "2025-Q4": 3460.5 * Md, "2026-Q1": 3536.1 * Md },
+      eurostat_taux_10_ans: { "2017": 0.81, "2025": 3.34979 },
+    }),
+  };
+  const html = synthese(avec);
+  assert.match(html, /encaissé <strong>1\u202f561,63\u00a0milliards d'euros<\/strong>/);
+  assert.match(html, /dépensé <strong>1\u202f714,14\u00a0milliards d'euros<\/strong>/);
+  assert.match(html, /152,51\u00a0milliards d'euros<\/strong> manquants ont été empruntés/);
+  assert.match(html, /La dette\s+atteint <strong>3\u202f536,10\u00a0milliards d'euros<\/strong>/);
+  assert.match(html, /emprunte aujourd'hui à\s+3,3&nbsp;%/);
+  // Sans la dette ou sans le taux, pas de synthèse : à moitié sourcée, elle
+  // ne s'écrit pas.
+  assert.equal(synthese({ FR: territoire(SERIES) }), "");
+  // La dette absente SEULE se tait aussi : le taux publié ne suffit pas.
+  assert.equal(
+    synthese({ FR: territoire({ ...SERIES, eurostat_taux_10_ans: { "2025": 3.3 } }) }),
+    "",
+  );
 });

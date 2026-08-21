@@ -3141,6 +3141,39 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 #chapitre-depenses { --chapitre: var(--serie-3); }
 #chapitre-pour-qui { --chapitre: var(--serie-4); }
 #chapitre-tenable { --chapitre: var(--serie-5); }
+/* Le bilan se lit comme la fiche territoire : des sections à plat, séparées
+   par le filet du chapitre — jamais des cartes. Les cadres bordés, ombrés et
+   rembourrés faisaient les « problèmes d'espace » que le propriétaire a
+   nommés : chaque bloc ajoutait son coussin au chapitre qui en a déjà un. */
+.national .bloc {
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* La synthèse d'ouverture : le sous-titre de la page entière, à plat, au
+   grand corps de la serif — quatre phrases avant le premier chapitre. */
+.bilan__synthese {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  line-height: 1.55;
+  max-width: 62ch;
+  margin: 0 0 var(--espace-6);
+}
+
+/* Les valeurs exactes sous la courbe de la dette : un cadre qui défile, la
+   page jamais. Les années prolongées se distinguent des publiées. */
+.tenable__valeurs {
+  overflow-x: auto;
+  margin-top: var(--espace-4);
+}
+.tenable__projete {
+  color: var(--encre-douce);
+  font-style: italic;
+}
+
 .chapitre {
   border-top: 4px solid var(--chapitre, var(--encre));
   padding-top: var(--espace-5);
