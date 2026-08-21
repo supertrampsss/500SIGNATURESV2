@@ -842,6 +842,19 @@ test("les surcouches de la carte s'ancrent sur la carte, pas sur la page", () =>
   assert.match(CSS, /body\[data-carte="oui"\] \.carte-barre \{\n\s*position: absolute;\n\s*top: var\(--espace-4\);/);
 });
 
+test("le bilan se lit à plat, comme la fiche territoire", () => {
+  // Les cadres bordés, ombrés et rembourrés faisaient les « problèmes
+  // d'espace » nommés par le propriétaire : chaque bloc ajoutait son coussin
+  // au chapitre qui a déjà le sien. À plat, séparés par le filet du chapitre.
+  assert.match(CSS, /\.national \.bloc \{\n\s*border: none;\n\s*border-radius: 0;\n\s*padding: 0;/);
+  // La synthèse d'ouverture est servie repliée : le repli SPA ne doit pas
+  // montrer un paragraphe vide, et seuls le peintre et le pré-rendu de
+  // /bilan/ la remplissent puis la déplient.
+  assert.match(PAGE_BALISES, /<p class="bilan__synthese" id="bilan-synthese" hidden><\/p>/);
+  const ouverture = readFileSync(new URL("./ouverture.ts", import.meta.url), "utf8");
+  assert.match(ouverture, /\["bilan-synthese", synthese\(pays\)\]/);
+});
+
 test("choisir un territoire zoome la carte sur lui, pas seulement sur sa vue", () => {
   // Recadrer la seule vue d'ensemble laissait la carte immobile pour tout
   // choix à l'intérieur d'une même vue : cliquer une commune du groupe de

@@ -28,6 +28,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { dessiner } from "./graphique.ts";
 import { montantLisible } from "./echelle.ts";
 import { nomPays } from "./pays-noms.ts";
 
@@ -74,6 +75,36 @@ export function finsAnnee(serie: Record<string, number>): [string, number][] {
   const points: [string, number][] = dernieres.map((p) => [p.slice(0, 4), serie[p]]);
   if (dernier && !dernier.endsWith("-Q4")) {
     points.push([dernier.replace("-", " "), serie[dernier]]);
+  }
+  return points;
+}
+
+/** L'horizon du prolongement : la question du lecteur est « et en 2032 ? ». */
+export const HORIZON = 2032;
+
+/**
+ * Le prolongement de la dette au rythme observé — un prolongement
+ * arithmétique, JAMAIS une prévision, et la légende le dit avec ces mots.
+ *
+ * Aucune institution ne publie de trajectoire de dette jusqu'à ${HORIZON} :
+ * inventer une prévision serait la faute que la charte interdit (aucun
+ * chiffre sans source). Ce qui peut s'écrire honnêtement est l'arithmétique
+ * du rythme courant : la hausse moyenne par an sur les cinq derniers
+ * exercices pleins, prolongée telle quelle. La méthode tient en une phrase et
+ * la légende la porte en entier — le lecteur peut refaire le calcul de tête.
+ */
+export function prolongement(annees: [string, number][]): [string, number][] {
+  // Le rythme se mesure sur les exercices PLEINS (fin d'année) ; l'ancre est
+  // le dernier point publié, trimestre en cours compris — un « 2026 projeté »
+  // posé à côté du 2026 T1 publié aurait mis deux valeurs sous la même année.
+  const pleines = annees.filter(([an]) => /^\d{4}$/.test(an));
+  if (pleines.length < 6 || !annees.length) return [];
+  const rythme = (pleines[pleines.length - 1][1] - pleines[pleines.length - 6][1]) / 5;
+  const [anAncre, valeurAncre] = annees[annees.length - 1];
+  const anneeAncre = Number(anAncre.slice(0, 4));
+  const points: [string, number][] = [];
+  for (let an = anneeAncre + 1; an <= HORIZON; an += 1) {
+    points.push([String(an), valeurAncre + rythme * (an - anneeAncre)]);
   }
   return points;
 }
@@ -148,21 +179,46 @@ export function rendu(
           : ""
       }${sousSecteurs ? ` Qui la porte : ${sousSecteurs}.` : ""}</p>`;
 
-  // ── La dette, année par année ──────────────────────────────────────────
-  const maximumDette = detteFin;
-  const rangsDette = annees
-    .map(
-      ([an, valeur], i) => `<div class="tenable__rang">
-        <span class="apu__nom">${echapper(an)}</span>
-        <span class="apu__piste"><span style="width:${((valeur / maximumDette) * 100).toFixed(
-          1,
-        )}%"></span></span>
-        <span class="apu__valeur"${i === annees.length - 1 ? ' style="font-weight:700"' : ""}>${ENTIER.format(
-          valeur / 1e9,
-        )}</span>
-      </div>`,
-    )
-    .join("");
+  // ── La dette, en courbe, prolongée à l'horizon ─────────────────────────
+  // Les barres horizontales année par année ont été refusées : « un graphique
+  // avec courbe serait plus parlant ». La courbe observée est pleine ; le
+  // prolongement est POINTILLÉ, anchré sur le dernier point publié, et sa
+  // légende dit la méthode en entier — un prolongement arithmétique du rythme
+  // observé, jamais une prévision.
+  const enMilliards: [string, number][] = annees.map(([an, v]) => [an, v / 1e9]);
+  const projete = prolongement(enMilliards);
+  const dernierObserve = enMilliards[enMilliards.length - 1];
+  const series = [
+    { nom: "Dette publiée", couleur: "#2a68c4", accent: true, points: enMilliards },
+    ...(projete.length
+      ? [
+          {
+            nom: "Prolongement",
+            couleur: "#2a68c4",
+            pointille: true,
+            points: [dernierObserve, ...projete] as [string, number][],
+          },
+        ]
+      : []),
+  ];
+  const { svg } = dessiner(series, {
+    formater: (v) => ENTIER.format(v),
+    titre: "La dette publique, en milliards d'euros",
+  });
+
+  // La figure ne remplace pas le tableau, elle le précède : les valeurs
+  // exactes, année par année, dans un cadre qui défile.
+  const colonnes = [...enMilliards, ...projete];
+  const tableau = `<div class="tenable__valeurs" tabindex="0"><table class="comparaison">
+    <thead><tr><th scope="col"></th>${colonnes
+      .map(([an]) => `<th scope="col">${echapper(an)}</th>`)
+      .join("")}</tr></thead>
+    <tbody><tr><th scope="row">Dette</th>${enMilliards
+      .map(([, v]) => `<td>${ENTIER.format(v)}</td>`)
+      .join("")}${projete
+      .map(([, v]) => `<td class="tenable__projete">${ENTIER.format(v)}</td>`)
+      .join("")}</tr></tbody>
+  </table></div>`;
 
   const population = serie(POPULATION);
   const habitants = population[Object.keys(population).sort().pop() ?? ""];
@@ -195,10 +251,13 @@ export function rendu(
   return `
     ${reponse}
     <div>
-      <h3 class="sous-titre">La dette, année par année</h3>
-      ${rangsDette}
-      <p class="bloc__complement">Milliards d'euros, fin d'année ; la dernière ligne est le
-        dernier trimestre publié.${parHabitant} Source : INSEE.</p>
+      <h3 class="sous-titre">La dette, jusqu'en ${HORIZON}</h3>
+      ${svg}
+      ${tableau}
+      <p class="bloc__complement">Milliards d'euros, fin d'année ; le dernier point plein est
+        le dernier trimestre publié.${parHabitant} Source : INSEE. Le pointillé prolonge la
+        hausse moyenne des cinq derniers exercices — un prolongement arithmétique du rythme
+        observé, pas une prévision.</p>
     </div>
     ${
       voisins

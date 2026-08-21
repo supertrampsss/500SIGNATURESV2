@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { finsAnnee, rendu } from "./tenable.ts";
+import { finsAnnee, HORIZON, prolongement, rendu } from "./tenable.ts";
 
 const Md = 1e9;
 const SERIES: Record<string, Record<string, number>> = {
@@ -90,7 +90,7 @@ test("le par-habitant et les porteurs de la dette sont écrits, dans la réponse
   assert.match(lu, /51 165 € par habitant/);
   assert.match(lu, /L'État 2 861,40 milliards d'euros/);
   assert.match(lu, /Sécurité sociale 281,50 milliards/);
-  assert.ok(html.indexOf("Qui la porte") < html.indexOf("La dette, année par année"));
+  assert.ok(html.indexOf("Qui la porte") < html.indexOf("La dette, jusqu'en"));
 });
 
 test("les voisins partagent le millésime de la France, sans tri par valeur", () => {
@@ -112,4 +112,32 @@ test("sans la dette ou sans le taux au catalogue, rien ne s'écrit", () => {
     FR: { ...PAYS["FR"], series: { ...SERIES, eurostat_taux_10_ans: { "2025": 3.35 } } },
   };
   assert.equal(rendu(sansTaux, CATALOGUE), "");
+});
+
+test("le prolongement est l'arithmétique du rythme observé, ancré au dernier point publié", () => {
+  // Cinq exercices pleins d'écart : (3000 − 2000) / 5 = 200 par an, depuis le
+  // dernier point publié (2026 T1, 3080) — jamais depuis l'exercice plein,
+  // qui poserait un second 2026 à côté du publié.
+  const annees: [string, number][] = [
+    ["2019", 1800], ["2020", 2000], ["2021", 2200], ["2022", 2400],
+    ["2023", 2600], ["2024", 2800], ["2025", 3000], ["2026 Q1", 3080],
+  ];
+  const points = prolongement(annees);
+  assert.equal(points[0]?.[0], "2027");
+  assert.equal(points[0]?.[1], 3080 + 200);
+  assert.equal(points[points.length - 1]?.[0], String(HORIZON));
+  assert.equal(points[points.length - 1]?.[1], 3080 + 200 * (HORIZON - 2026));
+  // Moins de six exercices pleins : pas de rythme mesurable, pas de trait.
+  assert.deepEqual(prolongement(annees.slice(0, 4)), []);
+});
+
+test("la dette se lit en courbe, le prolongement en pointillé, et la légende dit la méthode", () => {
+  const html = rendu(PAYS, CATALOGUE);
+  assert.match(html, /class="graphique__dessin"/);
+  assert.match(html, /La dette, jusqu'en 2032/);
+  assert.doesNotMatch(html, /tenable__rang">\s*<span class="apu__nom">20/);
+  // La figure ne remplace pas le tableau : les valeurs exactes suivent, dans
+  // un cadre qui défile, et la méthode du pointillé est écrite en entier.
+  assert.match(html, /class="tenable__valeurs" tabindex="0"/);
+  assert.match(html, /un prolongement arithmétique du rythme\s+observé, pas une prévision/);
 });

@@ -238,18 +238,54 @@ export function pont(pays: Record<string, Territoire>): string {
     salaires), les collectivités (impôts locaux) et les autres organismes publics.`;
 }
 
-/** L'enveloppe DOM. `false` quand rien n'est peint. Le pont est rempli ici
- *  aussi : le même peintre a les deux séries sous la main. */
+/**
+ * La synthèse d'ouverture de la page, avant le premier chapitre.
+ *
+ * La page partait directement sur « L'argent public » sans jamais dire, en
+ * quatre phrases, ce que ses cinq chapitres établissent — demandé par le
+ * propriétaire. Chaque nombre est recalculé des séries à l'affichage, comme
+ * la réponse du chapitre « Est-ce tenable ? » : le jour où les faits
+ * changent, la synthèse change avec eux. La chaîne vide tant que les quatre
+ * séries (recettes, dépenses, dette, taux à 10 ans) ne sont pas là — une
+ * synthèse à moitié sourcée ne s'écrit pas.
+ */
+export function synthese(pays: Record<string, Territoire>): string {
+  const france = pays["FR"];
+  const c = chiffres(france);
+  if (!c) return "";
+  const dette = france!.series["insee_dette_apu_montant"] ?? {};
+  const periodesDette = Object.keys(dette).sort();
+  const detteFin = dette[periodesDette[periodesDette.length - 1] ?? ""];
+  const taux = france!.series["eurostat_taux_10_ans"] ?? {};
+  const periodesTaux = Object.keys(taux).sort();
+  const tauxFin = taux[periodesTaux[periodesTaux.length - 1] ?? ""];
+  if (detteFin === undefined || tauxFin === undefined) return "";
+  return `En ${echapper(c.fin)}, les administrations publiques — l'État, la Sécurité
+    sociale, les collectivités — ont encaissé <strong>${montantLisible(c.recettes)}</strong>
+    et dépensé <strong>${montantLisible(c.depenses)}</strong> : les
+    <strong>${montantLisible(c.emprunte)}</strong> manquants ont été empruntés. La dette
+    atteint <strong>${montantLisible(detteFin)}</strong>, et l'État emprunte aujourd'hui à
+    ${PART.format(tauxFin)}&nbsp;%. Cette page dit d'où vient cet argent, où il va, qui
+    reçoit et qui paie, et si ce rythme est tenable.`;
+}
+
+/** L'enveloppe DOM. `false` quand rien n'est peint. Le pont et la synthèse
+ *  sont remplis ici aussi : le même peintre a toutes les séries sous la
+ *  main. */
 export function afficherOuverture(cadre: HTMLElement, pays: Record<string, Territoire>): boolean {
   const html = rendu(pays);
   if (html) {
     cadre.innerHTML = html;
     cadre.hidden = false;
-    const cible = document.getElementById("pont-perimetre");
-    const phrase = pont(pays);
-    if (cible && phrase) {
-      cible.innerHTML = phrase;
-      cible.hidden = false;
+    for (const [id, corps] of [
+      ["pont-perimetre", pont(pays)],
+      ["bilan-synthese", synthese(pays)],
+    ] as const) {
+      const cible = document.getElementById(id);
+      if (cible && corps) {
+        cible.innerHTML = corps;
+        cible.hidden = false;
+      }
     }
   }
   return html !== "";
