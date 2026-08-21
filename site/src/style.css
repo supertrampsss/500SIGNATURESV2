@@ -1396,18 +1396,27 @@ tbody tr:hover {
   font-size: var(--texte-xs);
   color: var(--encre-douce);
 }
+/* Le bilan se lit comme la fiche territoire : une colonne de lecture, jamais
+   une carte. Le cadre bordé et ombré était le dernier « cadre dans un cadre »
+   de la page — il en portait cinq chapitres qui, eux, étaient déjà à plat, et
+   son `margin: 0 1.5rem` s'ajoutait à la gouttière de `.vue`, soit un double
+   retrait. `/territoire` n'a aucune carte de page ; `/bilan` non plus. */
 .national {
-  padding: var(--espace-7);
-  margin: 0 1.5rem 1.25rem;
-  background: var(--papier);
-  border: 1px solid var(--trait);
-  border-radius: var(--rayon);
-  box-shadow: var(--ombre-1);
+  padding: 0;
+  margin: 0 0 var(--espace-7);
+  max-width: var(--colonne-texte);
 }
+/* Le titre d'un chapitre ne pèse plus autant que le titre de la page : il
+   déclarait `--texte-l` dans `.chapitre__question`, et cette règle-ci
+   l'écrasait à `--texte-xxl`, si bien qu'une section pesait le rang au-dessus
+   d'elle. Le cran de section de la fiche (`.bloc-lecture h3`) est `--texte-xl`
+   en 600 ; c'est celui-là. */
 .national h2 {
   font-family: var(--serif);
-  font-size: var(--texte-xxl);
-  margin: 0 0 0.9rem;
+  font-size: var(--texte-xl);
+  font-weight: 600;
+  line-height: 1.2;
+  margin: 0;
 }
 /* `minmax(20rem, …)` garde sa piste de 20 rem même quand le conteneur est plus
    étroit qu'elle : à 320 px de fenêtre, la section n'offre que 190 px et les
@@ -1445,10 +1454,14 @@ tbody tr:hover {
    passent donc de h4 à h3 pour rester consécutifs, sans hériter du corps
    de titre de bloc que `.bloc h3` réserve aux titres de premier rang. */
 .bloc h3.sous-titre {
-  margin: 1rem 0 0.4rem;
+  margin: var(--espace-6) 0 var(--espace-3);
   font-size: var(--texte-m);
   color: var(--encre-douce);
   font-weight: 600;
+  /* `.sous-titre` interdit le retour à la ligne pour les libellés d'en-tête ;
+     un sous-titre de bloc est une phrase (« La dette, jusqu'en 2032 ») et doit
+     pouvoir passer à la ligne sur un téléphone. */
+  white-space: normal;
 }
 .bloc__chiffre {
   margin: 0.5rem 0 0;
@@ -3136,6 +3149,10 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* Chaque chapitre porte une identité de la gamme : filet et totaux. La
    teinte dit « c'est ce chapitre-là », jamais un rang ni un jugement — les
    cinq sont des rangs de la gamme validée (voir --serie-1). */
+/* La couleur d'un chapitre ne teinte plus son chrome — filet, pont, réponse
+   sont passés au trait et à l'encre de la fiche. Elle reste déclarée parce que
+   les MARQUES la lisent encore : la piste des rangs et la courbe de la dette,
+   où une couleur porte une donnée et non une décoration. */
 #chapitre-combien { --chapitre: var(--serie-1); }
 #chapitre-recettes { --chapitre: var(--serie-2); }
 #chapitre-depenses { --chapitre: var(--serie-3); }
@@ -3174,10 +3191,14 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   font-style: italic;
 }
 
+/* Le filet d'une section, exactement celui de `.bloc-lecture` : un trait de
+   1 px. Les quatre pixels teintés par chapitre mettaient cinq couleurs de
+   chrome sur une page que la fiche tient avec une seule ; la couleur reste
+   aux marques des graphiques, où elle porte une donnée. */
 .chapitre {
-  border-top: 4px solid var(--chapitre, var(--encre));
-  padding-top: var(--espace-5);
-  margin-top: var(--espace-8);
+  border-top: 1px solid var(--trait);
+  padding-top: var(--espace-6);
+  margin-top: var(--espace-7);
   display: grid;
   /* `minmax(0, 1fr)` et pas `1fr` : un enfant de grille a `min-width: auto` et
      refuse de descendre sous la largeur de son contenu. Sans le zéro, un
@@ -3187,27 +3208,25 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   gap: var(--espace-6);
 }
 .chapitre:first-of-type {
-  margin-top: var(--espace-6);
+  border-top-color: var(--trait-fort);
 }
 /* Le pont entre deux périmètres : la phrase qui fait descendre d'un étage. */
 .chapitre__pont {
-  font-size: var(--texte-m);
-  background: var(--papier-creuse);
-  border-left: 3px solid var(--chapitre, var(--trait-fort));
-  border-radius: var(--rayon-xs);
-  padding: var(--espace-4) var(--espace-5);
-  max-width: 62ch;
+  font-size: var(--texte-l);
+  color: var(--encre-douce);
+  max-width: 64ch;
+  margin: 0;
 }
 /* La réponse à la question du chapitre, écrite avant les preuves. */
+/* La réponse à la question du chapitre : la phrase d'ouverture de la section,
+   au corps de la fiche — l'aplat teinté et le filet de 4 px sont les deux
+   seuls encarts colorés que la page portait, et la fiche n'en a aucun. */
 .reponse {
-  background: color-mix(in srgb, var(--chapitre, var(--encre)) 9%, var(--papier));
-  border-left: 4px solid var(--chapitre, var(--encre));
-  padding: var(--espace-5) var(--espace-6);
-  font-family: var(--serif);
   font-size: var(--texte-l);
   line-height: 1.5;
-  max-width: 56ch;
-  margin: var(--espace-4) 0 0;
+  color: var(--encre-douce);
+  max-width: 64ch;
+  margin: 0;
 }
 /* Le sens d'un flux : une recette entre (+), une dépense sort (−). Le SIGNE
    porte le sens, pas une couleur : le vert de la gamme tient 3:1 — le seuil
@@ -3216,6 +3235,84 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    jugement que la charte refuse. */
 .flux--plus,
 .flux--moins { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Le contraste éditorial de la fiche, appliqué aux phrases des chapitres : le
+   corps recule en `--encre-douce`, le nombre avance en `--encre`. Sans cette
+   règle, les `<strong>` des compléments restaient à la couleur héritée et la
+   phrase n'avait aucune hiérarchie interne. */
+.chapitre p {
+  color: var(--encre-douce);
+}
+.chapitre p strong,
+.chapitre p .flux--plus,
+.chapitre p .flux--moins {
+  color: var(--encre);
+}
+
+/* Les tableaux d'un chapitre se lisent comme le tableau des exercices de la
+   fiche : corps de 13 px, filets BAS, en-têtes discrets, aucune ligne qui
+   s'allume au survol, aucun en-tête collant teinté. Le tableau global qu'ils
+   héritaient était celui des grands tableaux de données de la vue Analyses —
+   un autre objet, une autre densité. */
+.chapitre table {
+  font-size: var(--texte-s);
+  font-variant-numeric: tabular-nums;
+}
+.chapitre table th,
+.chapitre table td {
+  padding: var(--espace-2) var(--espace-4);
+  border-top: 0;
+  border-bottom: 1px solid var(--trait);
+}
+.chapitre table thead th {
+  position: static;
+  background: transparent;
+  color: var(--encre-douce);
+  font-weight: 600;
+  font-size: var(--texte-xs);
+}
+.chapitre table thead th:first-child {
+  text-align: left;
+  padding-left: 0;
+}
+.chapitre table tbody th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--encre);
+  white-space: normal;
+  padding-left: 0;
+}
+.chapitre table tbody tr:hover {
+  background: transparent;
+}
+/* Les ombres de défilement latéral masquent leurs bords avec `--papier`, la
+   couleur de la carte qui portait ces tableaux. Sans carte, ce blanc se
+   détache du fond de la page en rectangle clair à gauche de chaque tableau. */
+.chapitre .comparaison,
+.chapitre .secu,
+.chapitre .fonctions,
+.chapitre .niches,
+.chapitre .pont {
+  background-image:
+    linear-gradient(to right, var(--fond) 40%, transparent),
+    linear-gradient(to left, var(--fond) 40%, transparent),
+    radial-gradient(farthest-side at 0 50%, rgb(15 27 46 / 0.14), rgb(15 27 46 / 0)),
+    radial-gradient(farthest-side at 100% 50%, rgb(15 27 46 / 0.14), rgb(15 27 46 / 0));
+}
+/* La colonne d'évolution, comme au tableau des exercices de la fiche :
+   détachée par un filet, en gras, collée au bord droit pendant que les
+   millésimes défilent. Elle SE DÉCLARE — viser la dernière colonne venue
+   aurait donné ce traitement à une colonne d'année, qui n'est pas une
+   variation. */
+.chapitre table .evolution {
+  border-left: 1px solid var(--trait-fort);
+  padding-right: 0;
+  color: var(--encre);
+  font-weight: 600;
+  position: sticky;
+  right: 0;
+  background: var(--fond);
+}
 
 /* Les rangs à barre du bloc des 100 € : libellé, piste, montant signé. Le
    premier poste est un dépliant qui s'ouvre À SA PLACE — la ventilation
@@ -3273,15 +3370,26 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 /* L'affirmation à côté de sa preuve, dans tous les blocs des chapitres :
    `minmax(0, 1fr)` pour la raison écrite sous `.chapitre` : un tableau qui
    défile dans son cadre ne doit pas pousser la page. */
-.chapitre__duo { display: grid; gap: var(--espace-7); margin-top: var(--espace-5); grid-template-columns: minmax(0, 1fr); }
-@media (min-width: 60rem) {
-  .chapitre__duo { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+/* Une seule colonne, à toutes les largeurs : la fiche territoire se lit du
+   haut en bas, et la mise en deux colonnes séparait une affirmation de la
+   preuve qui la suit d'une ligne. */
+.chapitre__duo {
+  display: grid;
+  gap: var(--espace-6);
+  grid-template-columns: minmax(0, 1fr);
+}
+.chapitre__duo:first-child {
+  margin-top: 0;
 }
 
 .chapitre__question {
   font-family: var(--serif);
-  font-size: var(--texte-l);
+  font-size: var(--texte-xl);
   font-weight: 600;
+  line-height: 1.2;
+  /* Aucune marge basse : `.chapitre` est une grille et son `gap` sépare déjà
+     le titre de son premier bloc. Les deux s'ajoutaient — 42 px mesurés au
+     navigateur entre le titre et sa phrase, contre 16 sur la fiche. */
   margin: 0;
   text-wrap: balance;
 }
@@ -3314,6 +3422,16 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   box-shadow: none;
   background: transparent;
   padding: 0;
+  /* Ni marge propre : `.chapitre` est une grille et son `gap` sépare déjà ses
+     blocs. Le `margin-top` de `.bloc--large` s'y ajoutait — 75 px entre un
+     titre de chapitre et sa première phrase, contre 16 sur la fiche. */
+  margin-top: 0;
+}
+/* La prose d'un chapitre tient dans la même mesure partout — 64ch, celle de
+   `.bloc-lecture p`. Elle valait 56, 62, 70ch ou rien selon le bloc. */
+.chapitre p,
+.chapitre .bloc__complement {
+  max-width: 64ch;
 }
 .ouverture__phrase {
   font-family: var(--serif);

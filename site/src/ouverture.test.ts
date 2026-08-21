@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 
 import type { Territoire } from "./donnees.ts";
-import { chiffres, pont, rendu, variation, synthese } from "./ouverture.ts";
+import { chiffres, pont, rendu, reperes, variation, synthese } from "./ouverture.ts";
 
 const Md = 1e9;
 const SERIES: Record<string, Record<string, number>> = {
@@ -97,8 +97,15 @@ test("les recettes s'écrivent en positif, les dépenses en négatif", () => {
   assert.match(html, /flux--plus">\+/);
   assert.match(html, /flux--moins">−/);
   const lu = texte(html);
-  assert.match(lu, /encaissé \+1 561,63 milliards d'euros/);
-  assert.match(lu, /dépensé −1 714,14 milliards d'euros/);
+  // Les trois montants d'ensemble ne sont plus dans une phrase du chapitre :
+  // ils ouvrent la page en repères, comme la fiche territoire ouvre sur ses
+  // quatre cartes. Le chapitre les redisait une troisième fois — après la
+  // synthèse, après les repères.
+  assert.doesNotMatch(lu, /encaissé \+1 561,63/);
+  const cartes = texte(reperes({ FR: territoire(SERIES) }));
+  assert.match(cartes, /Ce qu'elles encaissent 1 561,63 milliards d'euros/);
+  assert.match(cartes, /Ce qu'elles dépensent 1 714,14 milliards d'euros/);
+  assert.match(cartes, /Ce qui manque −152,51 milliards d'euros/);
   // Le tableau d'évolution : un exercice sur deux à partir de la base — le
   // fixture ne porte que les années impaires, donc trois colonnes ici, cinq
   // sur les séries réelles. Recettes +, dépenses −, emprunt −.
