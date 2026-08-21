@@ -807,14 +807,19 @@ test("l'attribution de la carte est repliée au premier rendu", () => {
   assert.doesNotMatch(geste.slice(0, 400), /once\("load"/);
 });
 
-test("la carte est à gauche, la fiche en barre latérale à droite", () => {
-  // Empilées, la carte poussait la fiche sous la ligne de flottaison : on
-  // ouvrait un territoire pour lire un texte qui commençait hors écran.
-  const bloc = CSS.slice(CSS.indexOf('body[data-carte="oui"] .vue--territoire .atelier'));
-  assert.match(bloc, /grid-template-columns: minmax\(30rem, 1fr\) minmax\(0, 1\.25fr\);/);
-  // La carte est collante : la fiche est plus haute qu'elle, et une carte qui
-  // sort de l'écran au troisième bloc ne sert plus à rien.
-  assert.match(bloc, /body\[data-carte="oui"\] \.atelier__carte \{\n\s*position: sticky;/);
+test("la carte est à gauche, collante le long de toute la page du territoire", () => {
+  // Empilées, la carte poussait la fiche sous la ligne de flottaison. Et
+  // collée dans `.atelier`, elle s'arrêtait à la fin de la fiche : `sticky`
+  // ne dépasse pas son conteneur, et « Sa place parmi les autres » comme le
+  // panneau « davantage » défilaient sans carte en face. La grille vit donc
+  // sur la vue, l'atelier passe en `display: contents`, et la piste de la
+  // carte court sur les rangées de la fiche ET des tables.
+  const bloc = CSS.slice(CSS.indexOf('/* La grille vit sur la VUE, pas sur l\'atelier'));
+  assert.match(bloc, /body\[data-carte="oui"\] \.vue--territoire \{[^}]*grid-template-columns: minmax\(30rem, 1fr\) minmax\(0, 1\.25fr\);/);
+  assert.match(bloc, /body\[data-carte="oui"\] \.vue--territoire \.atelier \{\n\s*display: contents;/);
+  assert.match(bloc, /\.atelier__carte \{\n\s*grid-column: 1;\n\s*grid-row: 2 \/ span 2;\n\s*position: sticky;/);
+  // Les tables continuent la colonne de la fiche, jamais une pleine page.
+  assert.match(bloc, /\.territoire__tables \{\n\s*grid-column: 2;\n\s*grid-row: 3;/);
   // Sous 60rem, une colonne : deux donneraient une carte trop étroite pour
   // viser une commune et une colonne de texte de trente caractères.
   assert.match(bloc, /@media \(max-width: 60rem\) \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/);
@@ -835,6 +840,20 @@ test("les surcouches de la carte s'ancrent sur la carte, pas sur la page", () =>
   // En haut du cadre : ce qu'on règle avant de lire la carte se met là où le
   // regard entre, et le bas reste au dessin.
   assert.match(CSS, /body\[data-carte="oui"\] \.carte-barre \{\n\s*position: absolute;\n\s*top: var\(--espace-4\);/);
+});
+
+test("choisir un territoire zoome la carte sur lui, pas seulement sur sa vue", () => {
+  // Recadrer la seule vue d'ensemble laissait la carte immobile pour tout
+  // choix à l'intérieur d'une même vue : cliquer une commune du groupe de
+  // semblables ou la chercher au champ ouvrait sa fiche sans que la carte ne
+  // bouge — « zéro intérêt d'avoir cette carte ». La géométrie vient des
+  // tuiles chargées, avec un second essai après recadrage de la vue quand le
+  // territoire est hors champ.
+  assert.match(MAIN, /function bornesDuTerritoire\(/);
+  assert.match(MAIN, /querySourceFeatures\("territoires"/);
+  assert.match(MAIN, /fitBounds\(bornes, \{ padding: paddingCarte\(\), duration: 800, maxZoom: 11\.5 \}\)/);
+  // Et le second essai ne zoome pas sur une sélection déjà remplacée.
+  assert.match(MAIN, /if \(zoomAttendu !== code\) return;/);
 });
 
 test("l'infobulle dit le nom du territoire, jamais son code", () => {

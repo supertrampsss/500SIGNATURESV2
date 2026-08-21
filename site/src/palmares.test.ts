@@ -274,40 +274,37 @@ test("les titres de colonnes s'accordent aussi, pas seulement celui du haut", ()
 
 const INTITULES = ["de 100\u202f000 habitants et plus", "urbaines", "de métropole"];
 
-test("le groupe nomme ses critères : « 40 communes » seul ne veut rien dire", () => {
+test("le groupe n'a plus de paragraphe de cadrage : le titre et la liste, rien d'autre", () => {
+  // Le paragraphe — effectif, critères, rang, médiane — a été demandé à
+  // retirer par le propriétaire. Les critères restent dits sur la page de
+  // méthode ; la liste porte les rangs et les notes.
   const groupe = echelon(40);
-  const rendu = texte(
-    rendreVoisinage(voisinage(groupe, groupe[7].code), INTITULES, {
-      code: groupe[7].code,
-      nom: groupe[7].nom,
-      note: groupe[7].note,
-    }),
-  );
-  assert.match(rendu, /40 communes de 100\s000 habitants et plus, urbaines, de métropole/);
-  // Et la source des critères, qui n'est pas la nôtre.
-  assert.match(rendu, /Observatoire des finances locales/);
+  const html = rendreVoisinage(voisinage(groupe, groupe[7].code), INTITULES, {
+    code: groupe[7].code,
+    nom: groupe[7].nom,
+    note: groupe[7].note,
+  });
+  assert.doesNotMatch(html, /palmares__cadrage/);
+  assert.doesNotMatch(html, /Observatoire des finances locales/);
+  assert.doesNotMatch(html, /qui publient les trois séries/);
+  assert.doesNotMatch(html, /médiane/);
+  assert.match(html, /Les communes semblables à Ville 007/);
+  assert.match(html, /class="palmares__liste"/);
 });
 
-test("la place du territoire dans son groupe est la réponse qu'on vient chercher", () => {
+test("la place du territoire se lit dans la liste, sur sa propre ligne", () => {
+  // La phrase « Ville 007 est 8e sur 40 » vivait dans le cadrage retiré : le
+  // rang se lit désormais dans la liste, où la ligne du territoire est
+  // marquée et porte son rang.
   const groupe = echelon(40);
-  // Les notes décroissent avec le rang du tableau : le huitième est 8e.
-  const rendu = texte(
-    rendreVoisinage(voisinage(groupe, groupe[7].code), INTITULES, {
-      code: groupe[7].code,
-      nom: groupe[7].nom,
-      note: groupe[7].note,
-    }),
-  );
-  assert.match(rendu, /Ville 007 est 8e sur 40/);
-  // Le premier porte sa marque, et les communes sont féminines.
-  const premier = texte(
-    rendreVoisinage(voisinage(groupe, groupe[0].code), INTITULES, {
-      code: groupe[0].code,
-      nom: groupe[0].nom,
-      note: groupe[0].note,
-    }),
-  );
-  assert.match(premier, /Ville 000 est 1re sur 40/);
+  const html = rendreVoisinage(voisinage(groupe, groupe[7].code), INTITULES, {
+    code: groupe[7].code,
+    nom: groupe[7].nom,
+    note: groupe[7].note,
+  });
+  const ligne = html.slice(html.indexOf('class="palmares__vous"'));
+  assert.match(ligne, /class="palmares__rang nombre">8</);
+  assert.match(ligne, /Ville 007/);
 });
 
 test("la fenêtre contient toujours le territoire, même loin des deux bouts", () => {
@@ -341,11 +338,10 @@ test("une fenêtre demandée plus grande que le groupe ne déborde pas", () => {
   assert.equal(v.lignes.length, 4);
 });
 
-test("un rang partagé se dit, il ne se présente pas comme une place propre", () => {
-  // Le plafond de la note est encombré : douze communes à 20 sur 20 ne sont
-  // pas douzièmes, elles sont toutes premières. Le reste du groupe varie
-  // (`echelon`), sans quoi le groupe entier serait à égalité et la
-  // comparaison ne se serait pas affichée du tout (voir le test dédié).
+test("un rang partagé se lit dans la liste : les ex æquo portent le même rang", () => {
+  // La phrase « à égalité avec 11 autres » vivait dans le cadrage retiré ;
+  // la convention des rangs partagés, elle, reste celle de `rangs()` — les
+  // douze communes à 20 sur 20 affichent toutes le rang 1.
   const plates: Ligne[] = Array.from({ length: 12 }, (_, i) => ({
     code: `p${i}`,
     nom: `Plate ${i}`,
@@ -355,25 +351,13 @@ test("un rang partagé se dit, il ne se présente pas comme une place propre", (
     ),
   }));
   const groupe = plates.concat(echelon(18));
-  const rendu = texte(
-    rendreVoisinage(voisinage(groupe, plates[3].code), INTITULES, {
-      code: plates[3].code,
-      nom: plates[3].nom,
-      note: plates[3].note,
-    }),
-  );
-  assert.match(rendu, /est 1re sur 30/);
-  assert.match(rendu, /à égalité avec 11 autres/);
-  // À deux, la commune ne compte pas : « à égalité avec 1 autre » se lit mal.
-  const paire = plates.slice(0, 2).concat(echelon(28));
-  const deux = texte(
-    rendreVoisinage(voisinage(paire, paire[0].code), INTITULES, {
-      code: paire[0].code,
-      nom: paire[0].nom,
-      note: paire[0].note,
-    }),
-  );
-  assert.match(deux, /à égalité avec une autre/);
+  const html = rendreVoisinage(voisinage(groupe, plates[3].code), INTITULES, {
+    code: plates[3].code,
+    nom: plates[3].nom,
+    note: plates[3].note,
+  });
+  const rangsUn = html.match(/class="palmares__rang nombre">1</g) ?? [];
+  assert.ok(rangsUn.length > 1, "les ex æquo du plafond partagent le rang 1");
 });
 
 test("le territoire lu se reconnaît dans sa propre liste", () => {
@@ -429,14 +413,18 @@ test("un groupe sans écart ne se compare pas : « à égalité avec tous » ne 
   assert.ok(v, "un groupe avec un vrai écart doit se comparer");
 });
 
-test("l'exercice minoritaire du groupe est compté, pas tu", () => {
+test("l'exercice minoritaire reste compté par voisinage(), même sans phrase à l'écran", () => {
+  // La phrase « 3 sont notées sur l'exercice précédent » vivait dans le
+  // cadrage retiré. Le décompte, lui, reste porté par le résultat : le jour
+  // où un écran doit le redire, il n'a pas à être recalculé.
   const melange = echelon(20).concat(echelon(3, "2024"));
-  const rendu = texte(
-    rendreVoisinage(voisinage(melange, melange[0].code), INTITULES, {
-      code: melange[0].code,
-      nom: melange[0].nom,
-      note: melange[0].note,
-    }),
-  );
-  assert.match(rendu, /3 sont notées sur l'exercice précédent/);
+  const v = voisinage(melange, melange[0].code);
+  assert.ok(v);
+  assert.equal(v.autresExercices, 3);
+  const html = rendreVoisinage(v, INTITULES, {
+    code: melange[0].code,
+    nom: melange[0].nom,
+    note: melange[0].note,
+  });
+  assert.doesNotMatch(html, /exercice précédent/);
 });

@@ -381,53 +381,22 @@ export function voisinage(lignes: Ligne[], vousCode: string, rayon = 3): Voisina
  */
 export function rendreVoisinage(resultat: Voisinage | null, intitules: string[], vous: Vous): string {
   if (!resultat) return "";
-  const {
-    lignes,
-    rangs: rangsFenetre,
-    effectif,
-    mediane,
-    exercice,
-    autresExercices,
-    indexVous,
-    partageVous,
-  } = resultat;
-  const nombre = (n: number) => n.toLocaleString("fr-FR");
-  const note = (n: number) =>
-    n.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-  const rangVous = rangsFenetre[indexVous];
-  // Compté sur le groupe entier, pas sur la fenêtre affichée : un plafond
-  // encombré de 30 communes reste 29 autres même quand la liste n'en montre
-  // que 6.
-  const egalite =
-    partageVous > 1
-      ? `, à égalité avec ${partageVous === 2 ? "une autre" : `${nombre(partageVous - 1)} autres`}`
-      : "";
+  const { lignes, rangs: rangsFenetre } = resultat;
+  // Le paragraphe de cadrage — effectif, critères, rang, médiane — est parti :
+  // demandé à retirer par le propriétaire. Le titre nomme le groupe, la liste
+  // porte les rangs et les notes ; les critères restent dits sur la page de
+  // méthode. `intitules` reste dans la signature : les autres appelants n'ont
+  // pas à changer pour un paragraphe retiré.
+  void intitules;
   return `<section class="palmares palmares--semblables" aria-labelledby="palmares-semblables">
     <h3 class="palmares__titre" id="palmares-semblables">Les communes semblables à ${echapper(
       vous.nom,
     )}</h3>
-    <p class="palmares__cadrage">${nombre(effectif)} communes ${echapper(
-      intitules.join(", "),
-    )}, qui publient les trois séries de leurs comptes. Les critères de
-    comparaison sont ceux de l'Observatoire des finances locales. Note de
-    gestion de l'exercice ${echapper(exercice)}.${
-      autresExercices
-        ? ` ${nombre(autresExercices)} ${
-            autresExercices === 1 ? "est notée" : "sont notées"
-          } sur l'exercice précédent.`
-        : ""
-    } ${echapper(vous.nom)} est ${ordinal(rangVous)} sur ${nombre(effectif)}, à ${note(
-      vous.note.valeur,
-    )} sur 20${egalite} ; la note médiane du groupe est de ${note(mediane)} sur 20.</p>
     <ol class="palmares__liste">${lignes
       .map((l, i) => rangee(l, rangsFenetre[i], vous.code))
       .join("")}</ol>
   </section>`;
 }
 
-/** « 1re », « 34e ». Le premier rang porte sa marque, les autres non — et les
- *  communes sont féminines, seule maille qui porte des critères de groupe. */
-function ordinal(rang: number): string {
-  return rang === 1 ? "1re" : `${rang}e`;
-}
+
 
