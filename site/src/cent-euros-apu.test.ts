@@ -163,22 +163,46 @@ test("la ventilation n'existe qu'une fois : le doublon est mort", () => {
   assert.doesNotMatch(html, /ce que recouvre le poste<\/h4>/);
 });
 
-test("le rapport des barres est celui des nombres, parmi les fonctions", () => {
+test("le rapport des barres est celui des nombres, sur toute la liste triée", () => {
   // « 24,09 » posé au-dessus de « 2,70 » ne dit pas NEUF FOIS : la barre le
-  // dit. Le rapport dessiné doit être celui des nombres.
+  // dit. La liste « Où ils vont » est désormais triée du plus lourd au plus
+  // léger et toutes les feuilles partagent une seule échelle — la plus grande
+  // occupe la piste, et le rapport dessiné entre deux barres est celui des
+  // nombres.
   const html = rendu({ FR: territoire(SERIES) });
-  // Les sept fonctions sont les sept premiers rangs de « Où ils vont » : entre
-  // le titre de la colonne et le premier poste du tableau principal
-  // (« Rémunération des agents publics »), qui commence le flux ordinaire.
-  const debut = html.indexOf("Où ils vont");
-  const fin = html.indexOf("Rémunération des agents publics");
-  const fonctions = html.slice(debut, fin);
-  const largeurs = [...fonctions.matchAll(/width:([0-9.]+)%/g)].map((m) => Number(m[1]));
-  assert.equal(largeurs[0], 100, "la plus grande barre n'occupe pas la piste");
+  const barre = (nom: string): number => {
+    const i = html.indexOf(`>${nom}<`);
+    const m = html.slice(i).match(/width:([0-9.]+)%/);
+    return m ? Number(m[1]) : NaN;
+  };
+  // La plus grande dépense (Retraites, 24,09) occupe toute la piste.
+  assert.equal(barre("Retraites"), 100);
+  // Chômage (2,70) : sa barre est dans le rapport 2,70 / 24,09 de celle des
+  // retraites — le même dénominateur pour toute la liste.
   assert.ok(
-    Math.abs(largeurs[0] / largeurs[2] - 24.09 / 2.7) < 0.05,
-    `rapport dessiné ${largeurs[0] / largeurs[2]}, rapport des nombres 8,9`,
+    Math.abs(barre("Chômage") / barre("Retraites") - 2.7 / 24.09) < 0.01,
+    `rapport dessiné ${barre("Chômage") / barre("Retraites")}, rapport des nombres ${2.7 / 24.09}`,
   );
+});
+
+test("« Où ils vont » se lit du plus lourd au plus léger, fonctions et postes mêlés", () => {
+  // Demande du propriétaire : la liste était scindée — les sept fonctions du
+  // premier poste d'abord, puis les huit autres postes — et zigzaguait
+  // (24,09 puis des petites, puis 23,69). Elle est désormais un seul tri
+  // décroissant. Retraites (24,09) puis Rémunération des agents publics
+  // (23,69) se suivent, et aucune valeur de barre ne remonte.
+  const html = rendu({ FR: territoire(SERIES) });
+  const colonne = html.slice(html.indexOf("Où ils vont"), html.indexOf("Total dépensé"));
+  const montants = [...colonne.matchAll(/flux--moins">−([0-9]+,[0-9]{2})/g)].map((m) =>
+    Number(m[1].replace(",", ".")),
+  );
+  assert.ok(montants.length >= 10, `trop peu de feuilles : ${montants.length}`);
+  for (let i = 1; i < montants.length; i += 1) {
+    assert.ok(montants[i] <= montants[i - 1], `ordre rompu à ${montants[i - 1]} → ${montants[i]}`);
+  }
+  // Les deux plus gros, dans le bon ordre.
+  assert.equal(montants[0], 24.09);
+  assert.equal(montants[1], 23.69);
 });
 
 test("la ventilation reste calculée sur son propre exercice, même si la mention n'est plus affichée", () => {
