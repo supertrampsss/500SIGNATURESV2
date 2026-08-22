@@ -25,6 +25,8 @@ import {
   type Ligne as LignePalmares,
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
+import { afficherEurope } from "./europe-comparaison.ts";
+import { afficherFonctions } from "./fonctions.ts";
 import { afficherRedistribution } from "./redistribution.ts";
 import { afficherCentEurosApu } from "./cent-euros-apu.ts";
 import { afficherOuverture } from "./ouverture.ts";
@@ -4305,6 +4307,9 @@ async function demarrer(): Promise<void> {
     if (afficherCentEurosApu($("bloc-cent-euros-apu"), pays)) {
       $("national").hidden = false;
     }
+    if (afficherFonctions($("bloc-fonctions"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
     if (afficherRedistribution($("bloc-redistribution"), pays, catalogue)) {
       $("national").hidden = false;
     }
@@ -4312,6 +4317,9 @@ async function demarrer(): Promise<void> {
       $("national").hidden = false;
     }
     if (afficherTenable($("bloc-dette"), pays, catalogue)) {
+      $("national").hidden = false;
+    }
+    if (afficherEurope($("bloc-europe"), pays)) {
       $("national").hidden = false;
     }
   } catch {
