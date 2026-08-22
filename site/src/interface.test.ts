@@ -842,6 +842,20 @@ test("les surcouches de la carte s'ancrent sur la carte, pas sur la page", () =>
   assert.match(CSS, /body\[data-carte="oui"\] \.carte-barre \{\n\s*position: absolute;\n\s*top: var\(--espace-4\);/);
 });
 
+test("cliquer une commune semblable met à jour toute la page, pas seulement la fiche", () => {
+  // Cliquer « Lyon » dans les semblables d'Angers ouvrait la fiche de Lyon
+  // mais laissait le groupe de semblables et le panneau « davantage » sur
+  // Angers : `ouvrirTerritoire` ne repeint que la fiche. Les deux tableaux
+  // délégués passent donc par `ouvrirDepuisTableau`, qui repeint ensuite le
+  // classement et le groupe.
+  assert.match(MAIN, /async function ouvrirDepuisTableau\(code: string, niveau: string \| null\)/);
+  assert.match(MAIN, /await ouvrirTerritoire\(code, niveau\);\s*\n\s*if \(document\.body\.dataset\.vue === "territoire"\) \{\s*\n\s*await peindreDetail\(\);\s*\n\s*void peindrePalmares\(\);/);
+  // Et le gestionnaire délégué est posé UNE seule fois : `peindrePalmares`
+  // s'exécute à chaque clic, ré-attacher empilerait un écouteur par clic.
+  assert.equal((MAIN.match(/if \(!cible\.dataset\.clicBranche\) \{/g) ?? []).length, 2);
+  assert.doesNotMatch(MAIN, /void ouvrirTerritoire\(place\.dataset\.territoire/);
+});
+
 test("le bilan se lit à plat, comme la fiche territoire", () => {
   // Les cadres bordés, ombrés et rembourrés faisaient les « problèmes
   // d'espace » nommés par le propriétaire : chaque bloc ajoutait son coussin

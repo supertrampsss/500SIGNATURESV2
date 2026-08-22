@@ -1215,11 +1215,17 @@ async function poserSituation(code: string, niveau: string): Promise<void> {
       exercice,
     );
     // Un rang appelle « et les autres ? ». Chaque place du pli ouvre la fiche
-    // du territoire, à la maille où le classement a été calculé.
-    cible.addEventListener("click", (evenement) => {
-      const place = (evenement.target as HTMLElement).closest<HTMLElement>("[data-territoire]");
-      if (place?.dataset.territoire) void ouvrirTerritoire(place.dataset.territoire, niveau);
-    });
+    // du territoire, à la maille où le classement a été calculé. Délégué et
+    // posé une seule fois, comme le groupe de semblables — voir la note là-bas.
+    if (!cible.dataset.clicBranche) {
+      cible.dataset.clicBranche = "oui";
+      cible.addEventListener("click", (evenement) => {
+        const place = (evenement.target as HTMLElement).closest<HTMLElement>("[data-territoire]");
+        if (place?.dataset.territoire) {
+          void ouvrirDepuisTableau(place.dataset.territoire, niveauPalmaresCourant());
+        }
+      });
+    }
   } catch {
     // Une couche manque à cette maille ou à cet exercice : la fiche s'arrête au
     // tableau des exercices, sans dire ce qu'elle n'a pas pu calculer.
@@ -1325,6 +1331,25 @@ function ouvrirLaMesure(id: string): void {
  * pré-rendue n'a ni panneau ni carte à peindre, elle va à l'adresse du
  * territoire.
  */
+/**
+ * Ouvrir un territoire depuis un TABLEAU sous la carte (le classement, le
+ * groupe de communes semblables), puis repeindre ces tableaux.
+ *
+ * `ouvrirTerritoire` ne rafraîchit que la fiche du panneau ; le classement et
+ * le groupe de semblables, qui portent le même territoire courant, restaient
+ * sur la commune précédente — cliquer « Lyon » dans les semblables d'Angers
+ * ouvrait la fiche de Lyon mais laissait le reste de la page sur Angers. Le
+ * gestionnaire de la recherche faisait déjà ce repeint ; ces deux tableaux-ci
+ * l'avaient oublié.
+ */
+async function ouvrirDepuisTableau(code: string, niveau: string | null): Promise<void> {
+  await ouvrirTerritoire(code, niveau);
+  if (document.body.dataset.vue === "territoire") {
+    await peindreDetail();
+    void peindrePalmares();
+  }
+}
+
 async function ouvrirTerritoire(
   code: string,
   niveauDemande: string | null,
@@ -2105,12 +2130,20 @@ function rendreGroupeSemblable(
   });
 }
 
+/** La maille sur laquelle le classement et le groupe de semblables sont
+ *  rendus : celle de la sélection si elle est classée, la commune sinon.
+ *  Recalculée à chaque clic — le gestionnaire délégué est posé une seule fois
+ *  et ne peut pas capturer la maille d'un rendu précédent. */
+function niveauPalmaresCourant(): string {
+  const selection = etat.selection ? niveauSelection() : "commune";
+  return MAILLES_CLASSEES.has(selection) ? selection : "commune";
+}
+
 async function peindrePalmares(): Promise<void> {
   const cible = document.getElementById("palmares");
   if (!cible) return;
   await publiee;
-  const selection = etat.selection ? niveauSelection() : "commune";
-  const niveau = MAILLES_CLASSEES.has(selection) ? selection : "commune";
+  const niveau = niveauPalmaresCourant();
   const exercice = dernierExerciceOfgl(niveau);
   if (!exercice) return;
   try {
@@ -2158,12 +2191,22 @@ async function peindrePalmares(): Promise<void> {
     // `rendreGroupeSemblable`.
     const groupe = rendreGroupeSemblable(index, lignes, niveau);
     cible.innerHTML = groupe || rendrePalmares(palmares(lignes), niveau);
-    // Chaque ligne ouvre la fiche du territoire, à la maille du palmarès —
-    // même contrat que le pli du classement, même gestionnaire par délégation.
-    cible.addEventListener("click", (evenement) => {
-      const place = (evenement.target as HTMLElement).closest<HTMLElement>("[data-territoire]");
-      if (place?.dataset.territoire) void ouvrirTerritoire(place.dataset.territoire, niveau);
-    });
+    // Chaque ligne ouvre la fiche du territoire, à la maille du palmarès. Le
+    // gestionnaire est délégué et posé UNE seule fois : `peindrePalmares`
+    // s'exécute à chaque clic (il repeint le groupe du nouveau territoire), et
+    // ré-attacher ici empilerait un écouteur de plus à chaque fois — un clic
+    // finissant par ouvrir la même fiche autant de fois qu'il y a d'écouteurs.
+    // L'élément `#palmares` persiste ; la délégation lit `data-territoire` sur
+    // le DOM courant, la maille est relue de l'état à chaque clic.
+    if (!cible.dataset.clicBranche) {
+      cible.dataset.clicBranche = "oui";
+      cible.addEventListener("click", (evenement) => {
+        const place = (evenement.target as HTMLElement).closest<HTMLElement>("[data-territoire]");
+        if (place?.dataset.territoire) {
+          void ouvrirDepuisTableau(place.dataset.territoire, niveauPalmaresCourant());
+        }
+      });
+    }
   } catch {
     // Une couche absente d'une publication ne doit pas emporter la page : le
     // palmarès ne s'affiche pas, les tableaux du territoire restent.
