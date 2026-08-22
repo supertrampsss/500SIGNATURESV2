@@ -46,7 +46,9 @@ import { millions } from "./echelle.ts";
 import { CONTRATS, PALIERS } from "./mission.ts";
 import { MESURES, type Mesure, type Soutien } from "./mesures.ts";
 
-export type Tampon = "adopte" | "rejete";
+/** `exclue` : écartée d'office parce qu'une mesure incompatible a été
+ *  adoptée — on ne vote pas deux barèmes de l'IR. */
+export type Tampon = "adopte" | "rejete" | "exclue";
 
 export type Phase = "mission" | "conseil" | "verdict";
 
@@ -57,6 +59,14 @@ export type EtatTunnel = {
   /** La pile, dans l'ordre où elle défile — les ajournées repassent en queue. */
   ordre: string[];
   tampons: Record<string, Tampon>;
+  /** Le défi reçu par l'adresse : le comblé à battre, en M€, sous les
+   *  engagements pré-signés. Absent hors défi. */
+  defi?: { comble: number };
+  /** Les tampons dans l'ordre où ils ont été posés, avec les exclusions que
+   *  chacun a entraînées : c'est ce que « Annuler » dépile. */
+  historique: { id: string; exclues: string[] }[];
+  /** Le soutien qui a fait tomber le gouvernement, s'il est tombé. */
+  censure?: string;
 };
 
 /** Les quatre soutiens, leur nom d'écran et leur point de départ. Marchés part
@@ -73,6 +83,23 @@ export const SEUIL_RUPTURE = 20;
 
 const PAR_ID = new Map(MESURES.map((m) => [m.id, m]));
 
+/** Les incompatibilités, symétrisées : `exclut` se déclare d'un côté du
+ *  catalogue, la table vaut dans les deux sens. */
+const EXCLUSIONS = new Map<string, Set<string>>();
+for (const m of MESURES) {
+  for (const autre of m.exclut ?? []) {
+    if (!EXCLUSIONS.has(m.id)) EXCLUSIONS.set(m.id, new Set());
+    if (!EXCLUSIONS.has(autre)) EXCLUSIONS.set(autre, new Set());
+    EXCLUSIONS.get(m.id)!.add(autre);
+    EXCLUSIONS.get(autre)!.add(m.id);
+  }
+}
+
+/** Sous ce niveau, un soutien fait TOMBER le gouvernement : la partie
+ *  s'arrête, le compteur aussi. C'est la mort subite de septennats — un
+ *  soutien n'est pas une jauge décorative. */
+export const SEUIL_CENSURE = 10;
+
 function echapper(texte: string): string {
   return texte.replace(
     /[&<>"']/g,
@@ -86,8 +113,19 @@ export function pile(engagements: readonly string[]): Mesure[] {
   return MESURES.filter((m) => !m.bloqueePar?.some((cle) => engagements.includes(cle)));
 }
 
-export function etatInitial(): EtatTunnel {
-  return { phase: "mission", engagements: [], ordre: [], tampons: {} };
+export function etatInitial(defi?: { comble: number; engagements: string[] } | null): EtatTunnel {
+  if (!defi) return { phase: "mission", engagements: [], ordre: [], tampons: {}, historique: [] };
+  // Un défi pré-signe les engagements de l'adversaire : « faites mieux, sous
+  // les mêmes règles ». Le joueur peut les dédire — le verdict comparera
+  // quand même, et c'est sa partie qui le dira.
+  return {
+    phase: "mission",
+    engagements: defi.engagements,
+    ordre: [],
+    tampons: {},
+    historique: [],
+    defi: { comble: defi.comble },
+  };
 }
 
 /** Signer ou dédire un engagement — possible seulement avant le conseil. */
@@ -105,6 +143,7 @@ export function commencer(etat: EtatTunnel): EtatTunnel {
     phase: "conseil",
     ordre: pile(etat.engagements).map((m) => m.id),
     tampons: {},
+    historique: [],
   };
 }
 
@@ -114,12 +153,50 @@ export function courante(etat: EtatTunnel): Mesure | null {
   return id ? (PAR_ID.get(id) ?? null) : null;
 }
 
-export function tamponner(etat: EtatTunnel, verdict: Tampon): EtatTunnel {
+export function tamponner(etat: EtatTunnel, verdict: "adopte" | "rejete"): EtatTunnel {
   const mesure = courante(etat);
   if (!mesure) return etat;
-  const tampons = { ...etat.tampons, [mesure.id]: verdict };
+  const tampons: Record<string, Tampon> = { ...etat.tampons, [mesure.id]: verdict };
+  // Adopter écarte les incompatibles encore en jeu : elles quittent le
+  // conseil avec le tampon `exclue`, et « Annuler » les ramènera avec elle.
+  const exclues: string[] = [];
+  if (verdict === "adopte") {
+    for (const autre of EXCLUSIONS.get(mesure.id) ?? []) {
+      if (etat.ordre.includes(autre) && !tampons[autre]) {
+        tampons[autre] = "exclue";
+        exclues.push(autre);
+      }
+    }
+  }
+  const historique = [...etat.historique, { id: mesure.id, exclues }];
   const reste = etat.ordre.some((i) => !tampons[i]);
-  return { ...etat, tampons, phase: reste ? "conseil" : "verdict" };
+  return { ...etat, tampons, historique, phase: reste ? "conseil" : "verdict" };
+}
+
+/**
+ * Annuler le dernier tampon — et lui seul.
+ *
+ * Le retour existe parce qu'un pouce glisse ; il dépile, il ne navigue pas :
+ * revenir trois mesures en arrière se fait en annulant trois fois, et les
+ * exclusions posées par le tampon annulé reviennent avec lui. Une censure
+ * s'annule aussi — c'est le même geste de trop.
+ */
+export function annuler(etat: EtatTunnel): EtatTunnel {
+  const dernier = etat.historique[etat.historique.length - 1];
+  if (!dernier) return etat;
+  const tampons = { ...etat.tampons };
+  delete tampons[dernier.id];
+  for (const id of dernier.exclues) delete tampons[id];
+  const { censure: _censure, ...sans } = etat;
+  return { ...sans, tampons, historique: etat.historique.slice(0, -1), phase: "conseil" };
+}
+
+/** La censure : si un soutien est au tapis, la partie s'arrête là. À appeler
+ *  après chaque tampon — pur, comme le reste. */
+export function verifierCensure(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  if (etat.phase !== "conseil") return etat;
+  const tombe = soutiens(etat, missionEuros).find((s) => s.valeur <= SEUIL_CENSURE);
+  return tombe ? { ...etat, phase: "verdict", censure: tombe.nom } : etat;
 }
 
 export function ajourner(etat: EtatTunnel): EtatTunnel {
@@ -229,6 +306,95 @@ export function profil(etat: EtatTunnel): { nom: string; phrase: string } {
 }
 
 /* --------------------------------------------------------------------------
+ * Le défi : un plan qui voyage dans l'adresse.
+ *
+ * `?defi=12500~ecole-sante.sans-impot` : le comblé à battre en M€, puis les
+ * engagements signés, séparés par des points. Rien d'autre ne voyage — ni le
+ * détail des tampons (la partie de l'adversaire lui appartient), ni le profil
+ * (il se recalcule). Un défi illisible est ignoré en silence : une adresse
+ * abîmée ouvre le simulateur normal, jamais une erreur.
+ * ----------------------------------------------------------------------- */
+
+export function encoderDefi(etat: EtatTunnel): string {
+  const engagements = etat.engagements.filter((cle) => CONTRATS.some((c) => c.cle === cle));
+  return `${Math.round(comble(etat))}${engagements.length ? "~" + engagements.join(".") : ""}`;
+}
+
+export function decoderDefi(texte: string | null): { comble: number; engagements: string[] } | null {
+  if (!texte) return null;
+  const [brut, reste] = texte.split("~", 2);
+  const combleM = Number(brut);
+  if (!Number.isFinite(combleM) || combleM < 0 || combleM > 10_000_000) return null;
+  const engagements = (reste ? reste.split(".") : []).filter((cle) =>
+    CONTRATS.some((c) => c.cle === cle),
+  );
+  return { comble: Math.round(combleM), engagements };
+}
+
+/* --------------------------------------------------------------------------
+ * La partie survit au rechargement.
+ *
+ * Sur téléphone — le vrai public — un onglet se recharge sans prévenir, et
+ * une pile de 78 mesures perdue au tampon 60 ne se repardonne pas. L'état vit
+ * dans `sessionStorage` : la session, pas plus — une partie n'est pas un
+ * document, et la retrouver trois jours plus tard n'aurait pas de sens.
+ * Chaque lecture et chaque écriture est gardée : navigation privée, quotas et
+ * iframes rendent le stockage indisponible sans prévenir, et le jeu doit
+ * jouer pareil sans lui.
+ * ----------------------------------------------------------------------- */
+
+const CLE_PARTIE = "tunnel-partie";
+
+function sauver(etat: EtatTunnel): void {
+  try {
+    sessionStorage.setItem(CLE_PARTIE, JSON.stringify(etat));
+  } catch {
+    // Stockage indisponible : la partie vit en mémoire, c'est tout.
+  }
+}
+
+function effacer(): void {
+  try {
+    sessionStorage.removeItem(CLE_PARTIE);
+  } catch {
+    // Rien à effacer là où rien ne s'écrit.
+  }
+}
+
+/** L'état sauvé, s'il est encore valable — une pile qui cite une mesure
+ *  disparue du catalogue est jetée entière : mieux vaut recommencer que
+ *  jouer une partie qui ne se terminera pas. */
+export function restaurer(): EtatTunnel | null {
+  try {
+    const brut = sessionStorage.getItem(CLE_PARTIE);
+    if (!brut) return null;
+    const lu = JSON.parse(brut) as EtatTunnel;
+    if (lu.phase !== "mission" && lu.phase !== "conseil" && lu.phase !== "verdict") return null;
+    if (!Array.isArray(lu.ordre) || !lu.ordre.every((id) => PAR_ID.has(id))) return null;
+    if (lu.phase !== "mission" && lu.ordre.length === 0) return null;
+    return {
+      phase: lu.phase,
+      engagements: (lu.engagements ?? []).filter((cle) => CONTRATS.some((c) => c.cle === cle)),
+      ordre: lu.ordre,
+      tampons: Object.fromEntries(
+        Object.entries(lu.tampons ?? {}).filter(
+          ([id, t]) => PAR_ID.has(id) && (t === "adopte" || t === "rejete" || t === "exclue"),
+        ),
+      ),
+      historique: Array.isArray(lu.historique)
+        ? lu.historique.filter(
+            (h) => h && PAR_ID.has(h.id) && Array.isArray(h.exclues) && h.exclues.every((i) => PAR_ID.has(i)),
+          )
+        : [],
+      ...(lu.defi && Number.isFinite(lu.defi.comble) ? { defi: { comble: lu.defi.comble } } : {}),
+      ...(typeof lu.censure === "string" ? { censure: lu.censure } : {}),
+    };
+  } catch {
+    return null;
+  }
+}
+
+/* --------------------------------------------------------------------------
  * Les rendus, purs : c'est eux qui sont testés.
  * ----------------------------------------------------------------------- */
 
@@ -263,6 +429,11 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
       : n === 1
         ? `1 engagement signé — ${retirees} mesures quittent la pile. L'exercice intéressant commence à deux.`
         : `${n} engagements signés — ${retirees} mesures quittent la pile. Chacun ferme des portes, c'est le jeu.`;
+  const defi = etat.defi
+    ? `<p class="tunnel__defi">Défi reçu&nbsp;: quelqu'un a trouvé
+        <strong>${echapper(millions(etat.defi.comble * 1e6))}</strong> — faites mieux.
+        Ses engagements sont pré-signés.</p>`
+    : "";
   return `
     <div class="tunnel__mission">
       <p class="tunnel__surtitre">Votre mission</p>
@@ -273,6 +444,7 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
       <p class="tunnel__surtitre">Signez vos engagements — chacun retire ses mesures de la pile</p>
       <div class="tunnel__engagements">${chips}</div>
       <p class="tunnel__note">${echapper(phrase)}</p>
+      ${defi}
       <button type="button" class="tunnel__commencer" data-action="commencer">Prendre mes fonctions&nbsp;&#8594;</button>
     </div>`;
 }
@@ -302,10 +474,16 @@ function renduJournal(etat: EtatTunnel): string {
   const lignes = faits
     .map((id) => {
       const m = PAR_ID.get(id)!;
-      const adoptee = etat.tampons[id] === "adopte";
-      return `<div class="tunnel__tampon${adoptee ? " tunnel__tampon--adopte" : ""}">
+      const tampon = etat.tampons[id];
+      return `<div class="tunnel__tampon${tampon === "adopte" ? " tunnel__tampon--adopte" : ""}">
         <span>${echapper(m.titre)}</span>
-        <b>${adoptee ? echapper(millions(m.effet * 1e6)) : "rejetée"}</b>
+        <b>${
+          tampon === "adopte"
+            ? echapper(millions(m.effet * 1e6))
+            : tampon === "exclue"
+              ? "incompatible"
+              : "rejetée"
+        }</b>
       </div>`;
     })
     .join("");
@@ -345,7 +523,9 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
         <div class="tunnel__jalons">${etat.ordre
           .map((id) => {
             const t = etat.tampons[id];
-            return `<span class="${t === "adopte" ? "tunnel__jalon--adopte" : t ? "tunnel__jalon--rejete" : ""}"></span>`;
+            return `<span class="${
+              t === "adopte" ? "tunnel__jalon--adopte" : t ? "tunnel__jalon--rejete" : ""
+            }"></span>`;
           })
           .join("")}</div>
         <p class="tunnel__fanfare">${echapper(fanfare)}</p>
@@ -374,7 +554,10 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
           <button type="button" class="tunnel__rejeter" data-geste="rejeter">Rejeter</button>
           <button type="button" class="tunnel__adopter" data-geste="adopter">Adopter</button>
         </div>
-        <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner — elle reviendra en fin de pile</button>
+        <div class="tunnel__seconds">
+          <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner — elle reviendra en fin de pile</button>
+          ${etat.historique.length ? '<button type="button" class="tunnel__ajourner" data-geste="annuler">&#8592; Annuler le dernier tampon</button>' : ""}
+        </div>
       </article>
       ${renduJournal(etat)}
     </div>`;
@@ -383,7 +566,12 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
 export function renduVerdict(etat: EtatTunnel, missionEuros: number): string {
   const combleM = comble(etat);
   const resteEuros = Math.max(0, missionEuros - combleM * 1e6);
-  const p = profil(etat);
+  const p = etat.censure
+    ? {
+        nom: "Censuré",
+        phrase: `${etat.censure} a lâché — le gouvernement tombe, le compteur s'arrête à ${millions(combleM * 1e6)}. Annulez le tampon de trop, ou rejouez autrement.`,
+      }
+    : profil(etat);
   const paliers = paliersTunnel(etat, missionEuros);
   const nFranchis = paliers.filter((x) => x.franchi).length;
   const adoptees = etat.ordre
@@ -399,6 +587,17 @@ export function renduVerdict(etat: EtatTunnel, missionEuros: number): string {
     )
     .join("");
   const rupture = soutiens(etat, missionEuros).find((s) => s.danger);
+  // Le duel : le comblé contre celui du défi. Aucun qualificatif de plus —
+  // « battu » et « manqué » disent le fait, les nombres disent l'écart.
+  const duel = etat.defi
+    ? `<p class="tunnel__duel">${
+        combleM > etat.defi.comble
+          ? "Défi <strong>battu</strong>"
+          : combleM === etat.defi.comble
+            ? "Défi à <strong>égalité</strong>"
+            : "Défi <strong>manqué</strong>"
+      } — ${echapper(millions(combleM * 1e6))} contre ${echapper(millions(etat.defi.comble * 1e6))}.</p>`
+    : "";
   return `
     <div class="tunnel__verdict">
       <p class="tunnel__surtitre">Votre verdict</p>
@@ -412,13 +611,24 @@ export function renduVerdict(etat: EtatTunnel, missionEuros: number): string {
         ${nFranchis} palier${nFranchis > 1 ? "s" : ""} sur ${paliers.length}${
           resteEuros === 0 ? " · l'équilibre" : ""
         }</p>
+      ${duel}
       ${gestes ? `<div class="tunnel__verdict-gestes"><p class="tunnel__surtitre">Vos plus gros gestes</p>${gestes}</div>` : ""}
       ${renduSoutiens(etat, missionEuros)}
       <div class="tunnel__verdict-boutons">
-        <button type="button" class="tunnel__adopter" data-action="copier">Copier le bilan</button>
+        <button type="button" class="tunnel__adopter" data-action="defier">Défier quelqu'un</button>
+        <button type="button" class="tunnel__rejeter" data-action="copier">Copier le bilan</button>
+        ${etat.censure ? '<button type="button" class="tunnel__rejeter" data-geste="annuler">&#8592; Annuler</button>' : ""}
         <button type="button" class="tunnel__rejeter" data-action="rejouer">Rejouer</button>
       </div>
+      <p class="tunnel__note">« Défier » copie un lien : la personne joue la même pile, sous vos
+        engagements, avec votre score à battre.</p>
     </div>`;
+}
+
+/** L'adresse qui porte le défi : la même pile, les mêmes engagements, le
+ *  score à battre. */
+export function adresseDefi(etat: EtatTunnel): string {
+  return `${location.origin}/simulateur?defi=${encodeURIComponent(encoderDefi(etat))}`;
 }
 
 /** Le texte du bilan à coller ailleurs — la version défi du verdict. */
@@ -428,7 +638,7 @@ export function bilanTexte(etat: EtatTunnel, missionEuros: number): string {
   return (
     `${p.nom} — ${millions(comble(etat) * 1e6)} trouvés sur les ${compteur(missionEuros)} ` +
     `qui manquent aux budgets publics (${nFranchis} palier${nFranchis > 1 ? "s" : ""} sur 4). ` +
-    `Faites mieux : ${location.origin}/simulateur`
+    `Faites mieux : ${adresseDefi(etat)}`
   );
 }
 
@@ -436,9 +646,7 @@ function renduPied(): string {
   return `<p class="tunnel__source">La mission est calculée sur les budgets publiés. Les effets
     des mesures sont des ordres de grandeur du débat public — lois de finances, rapports
     parlementaires, chiffrages d'instituts —, affichés avec leurs réserves. Les réactions des
-    soutiens sont des règles du jeu, pas des mesures.
-    <button type="button" class="tunnel__expert" data-action="expert">Régler ligne à ligne
-    (l'atelier expert)</button></p>`;
+    soutiens sont des règles du jeu, pas des mesures.</p>`;
 }
 
 export function rendu(etat: EtatTunnel, missionEuros: number): string {
@@ -456,12 +664,14 @@ export function rendu(etat: EtatTunnel, missionEuros: number): string {
  * repeint à chaque tampon, et des écouteurs posés sur les boutons repartiraient
  * avec eux.
  */
-export function afficherTunnel(
-  cadre: HTMLElement,
-  options: { missionEuros: number; surModeExpert: () => void },
-): void {
-  let etat = etatInitial();
+export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: number }): void {
+  // La partie en cours d'abord ; sinon le défi que l'adresse porte ; sinon
+  // une partie neuve. Un défi reçu pendant une partie en cours ne l'écrase
+  // pas : la partie du joueur vaut plus qu'un lien.
+  const recu = decoderDefi(new URLSearchParams(location.search).get("defi"));
+  let etat = restaurer() ?? etatInitial(recu);
   const peindre = () => {
+    sauver(etat);
     cadre.innerHTML = rendu(etat, options.missionEuros);
   };
   cadre.addEventListener("click", (evenement) => {
@@ -476,11 +686,18 @@ export function afficherTunnel(
     }
     const geste = cible.dataset.geste;
     if (geste === "adopter" || geste === "rejeter") {
-      etat = tamponner(etat, geste === "adopter" ? "adopte" : "rejete");
+      etat = verifierCensure(
+        tamponner(etat, geste === "adopter" ? "adopte" : "rejete"),
+        options.missionEuros,
+      );
       return peindre();
     }
     if (geste === "ajourner") {
       etat = ajourner(etat);
+      return peindre();
+    }
+    if (geste === "annuler") {
+      etat = annuler(etat);
       return peindre();
     }
     if (cible.dataset.action === "commencer") {
@@ -488,10 +705,22 @@ export function afficherTunnel(
       return peindre();
     }
     if (cible.dataset.action === "rejouer") {
+      effacer();
       etat = etatInitial();
       return peindre();
     }
-    if (cible.dataset.action === "expert") return options.surModeExpert();
+    if (cible.dataset.action === "defier") {
+      const adresse = adresseDefi(etat);
+      void navigator.clipboard?.writeText(adresse).then(
+        () => {
+          cible.textContent = "Lien copié — envoyez-le";
+        },
+        () => {
+          window.prompt("Le lien du défi — copiez-le :", adresse);
+        },
+      );
+      return;
+    }
     if (cible.dataset.action === "copier") {
       const texte = bilanTexte(etat, options.missionEuros);
       void navigator.clipboard?.writeText(texte).then(
