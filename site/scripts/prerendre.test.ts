@@ -260,12 +260,20 @@ test("2 quater. un chiffre d'un autre exercice n'est pas peint sous ce millésim
   // La carte ne porte qu'un millésime — celui du premier chiffre. Un montant
   // d'un autre exercice peint dessous serait daté faux, sur une image qui
   // circule seule et que rien ne vient corriger.
+  //
+  // L'autre exercice se DÉDUIT du premier plutôt que d'être écrit « 2024 » :
+  // écrit en dur, il ne différait du premier que tant que l'analyse qui ouvre
+  // le dossier portait 2025, et le contrôle passait au vert sans rien vérifier
+  // le jour où une analyse en 2024 est arrivée en tête.
+  const premier = analyse.chiffres[0]!.observe!.periode;
+  const autre = String(Number(premier) - 1);
+  assert.notEqual(autre, premier);
   const autreExercice = {
     ...analyse,
     chiffres: analyse.chiffres.map((chiffre, i) =>
       i === 0 || !chiffre.observe
         ? chiffre
-        : { ...chiffre, observe: { ...chiffre.observe, periode: "2024" } },
+        : { ...chiffre, observe: { ...chiffre.observe, periode: autre } },
     ),
   };
   const donnees = donneesCarteAnalyse(autreExercice, catalogueEnEuros([analyse]), "exemple.test");

@@ -3099,3 +3099,45 @@ test("la colonne d'évolution se déclare, elle n'est pas la dernière venue", (
   assert.match(CSS, /\.chapitre table \.evolution \{/);
   assert.doesNotMatch(CSS, /\.chapitre table td:last-child/);
 });
+
+test("l'entrée ANALYSES navigue pour de bon : elle ne porte pas de data-vue", () => {
+  // ANALYSES n'est pas une vue de l'application : ses pages sont pré-rendues,
+  // une par analyse plus leur index. Le gestionnaire délégué de la barre
+  // intercepte les liens `a[data-vue]` et appelle `basculerVue` ; avec un
+  // `data-vue`, le clic aurait cherché une vue « analyses » qui n'existe pas
+  // et le lecteur serait tombé sur TERRITOIRE.
+  const nav = PAGE.slice(PAGE.indexOf('<nav class="entete__nav"'));
+  const barre = nav.slice(0, nav.indexOf("</nav>"));
+  assert.match(barre, /<a href="\/analyses\/">Analyses<\/a>/);
+  assert.doesNotMatch(barre, /href="\/analyses\/"[^>]*data-vue/);
+  // Les deux autres en portent un, elles : ce sont bien des vues.
+  assert.match(barre, /href="\/territoire" data-vue="territoire"/);
+  assert.match(barre, /href="\/bilan" data-vue="bilan"/);
+});
+
+test("l'onglet ANALYSES se marque courant, et le marquage passe avant tout", () => {
+  // `basculerVue` — qui pose `aria-current` — sort à sa première ligne sur une
+  // page éditoriale : le marquage se fait donc à part. Et EN PREMIER dans
+  // `demarrer()`, parce que tout ce qui suit peut lever sur ces pages-là.
+  assert.match(MAIN, /function marquerOngletAnalyses\(\): void \{/);
+  const debut = MAIN.slice(MAIN.indexOf("async function demarrer(): Promise<void> {"));
+  const avantTheme = debut.slice(0, debut.indexOf("brancherTheme();"));
+  assert.match(avantTheme, /marquerOngletAnalyses\(\);/, "le marquage doit ouvrir demarrer()");
+});
+
+test("le pied de fiche ne fait pas tomber le démarrage d'une page éditoriale", () => {
+  // `$("fiche")` rend `null` sur l'index des analyses et sur une analyse :
+  // `brancherPartage` levait dessus, `demarrer()` s'arrêtait là, et TOUT ce
+  // qui suit ne s'exécutait plus — à commencer par `brancherRecherche`. Le
+  // champ de recherche de l'en-tête était donc MORT sur chaque page d'analyse,
+  // et le rattrapage de `demarrer()`, muet sur les pages éditoriales, ne le
+  // disait pas.
+  const fonction = MAIN.slice(MAIN.indexOf("function brancherPartageDeLaFiche(): void {"));
+  const corps = fonction.slice(0, fonction.indexOf("\n}"));
+  assert.match(corps, /if \(!panneau\) return;/);
+  // Le garde-fou doit précéder le premier usage du cadre.
+  assert.ok(
+    corps.indexOf("if (!panneau) return;") < corps.indexOf("brancherPartage(panneau"),
+    "le garde-fou doit venir avant l'usage",
+  );
+});

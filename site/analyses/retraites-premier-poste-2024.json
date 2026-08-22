@@ -1,0 +1,103 @@
+{
+  "slug": "retraites-premier-poste-2024",
+  "titre": "« Les retraites, premier poste de dépense » : photo-finish",
+  "type": "comparaison",
+  "publie_le": "2026-08-22",
+  "themes": [
+    "retraites",
+    "fonctions"
+  ],
+  "budgets_concernes": [
+    "secu"
+  ],
+  "mise_en_avant": false,
+  "affirmation": {
+    "texte": "Les retraites sont le premier poste de la dépense publique : près d'un quart de tout ce que l'État, la Sécurité sociale et les collectivités encaissent y passe.",
+    "auteur": null,
+    "date": null,
+    "source": {
+      "titre": "Dépenses des administrations publiques par transaction (Eurostat, gov_10a_main)",
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
+      "consulte_le": "2026-08-22"
+    }
+  },
+  "verdict": {
+    "cran": "exact",
+    "phrase": "Le quart est le bon ordre de grandeur, et il est vérifiable. Le rang, lui, se joue à un cheveu : sur 2024, le seul exercice où les deux postes sont publiés ensemble, la rémunération des agents publics dépasse les pensions de vieillesse de deux dixièmes de pour cent. Selon l'exercice comparé et la nomenclature retenue, la première place change de main."
+  },
+  "chiffres": [
+    {
+      "dit": "près d'un quart",
+      "observe": {
+        "indicateur": "eurostat_apu_prestations_vieillesse",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 362178400000.0
+      },
+      "registre": "fait_comptable",
+      "lecture": "Les pensions de vieillesse valent 362 178,4 M€ en 2024."
+    },
+    {
+      "dit": "premier poste",
+      "observe": {
+        "indicateur": "eurostat_apu_remunerations",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 363038000000.0
+      },
+      "registre": "fait_comptable",
+      "lecture": "La rémunération des agents publics vaut 363 038,0 M€."
+    },
+    {
+      "dit": "de tout ce qui est encaissé",
+      "observe": {
+        "indicateur": "eurostat_apu_recettes",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 1503590100000.0
+      },
+      "registre": "fait_comptable",
+      "lecture": "Les administrations encaissent 1 503 590,1 M€ en 2024."
+    },
+    {
+      "dit": "les retraites",
+      "observe": {
+        "indicateur": "eurostat_fonction_protection_sociale",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 23.7
+      },
+      "registre": "fait_comptable",
+      "lecture": "Par finalité, la protection sociale pèse 23,7 % du PIB."
+    }
+  ],
+  "hypotheses": [
+    "Les deux postes comparés ne recouvrent pas la même chose. Les pensions de vieillesse sont un transfert en espèces à des personnes ; la rémunération des agents publics est le prix d'un service produit — des soins, des cours, de la sécurité. Les mettre côte à côte classe des dépenses, cela ne les rend pas de même nature.",
+    "Le classement dépend de la nomenclature. Par nature, les pensions de vieillesse sont une ligne parmi d'autres transferts ; par finalité, elles se fondent dans la protection sociale, qui domine alors de très loin. Aucune des deux lectures n'est plus vraie que l'autre, et « premier poste » ne veut rien dire sans dire laquelle on emploie.",
+    "Les pensions de vieillesse ne sont publiées que jusqu'à 2024 quand le compte général va jusqu'à 2025. Comparer le poste de 2024 à celui de 2025 donnerait un classement qui ne mesure qu'un décalage de calendrier."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "titre": "Dépenses des administrations publiques par transaction (Eurostat, gov_10a_main)",
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
+      "consulte_le": "2026-08-22"
+    },
+    {
+      "titre": "Dépenses des administrations publiques par fonction (Eurostat, gov_10a_exp)",
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_exp/default/table",
+      "consulte_le": "2026-08-22"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Le simulateur porte les deux côtés : la branche retraite de la Sécurité sociale, et les rémunérations dans les budgets qui les portent. Signer « sans baisser une seule prestation » verrouille le premier et laisse le second ouvert."
+  },
+  "mises_a_jour": [],
+  "verifie_contre": ""
+}

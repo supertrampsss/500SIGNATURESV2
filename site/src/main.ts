@@ -2507,6 +2507,19 @@ function brancherAppelRecherche(): void {
   });
 }
 
+/** L'onglet ANALYSES, marqué courant sur ses propres pages.
+ *
+ *  Elles ne passent pas par `basculerVue` — un document éditoriale en sort à
+ *  la première ligne — et le marquage se fait donc ici, sur le chemin. Le lien
+ *  n'a pas de `data-vue` (voir le gabarit) : c'est ce qui le fait naviguer pour
+ *  de bon, et c'est aussi ce qui l'exclut de la boucle de `basculerVue`. */
+function marquerOngletAnalyses(): void {
+  if (!location.pathname.startsWith("/analyses")) return;
+  document
+    .querySelector('.entete__nav a[href="/analyses/"]')
+    ?.setAttribute("aria-current", "page");
+}
+
 function basculerVue(): void {
   // Une page éditoriale est pré-rendue : son contenu est déjà dans le HTML, et
   // aucune vue de l'application ne doit le masquer. L'en-tête, la recherche et
@@ -3510,9 +3523,22 @@ function poserPartageDeLaFiche(niveau: string, code: string, territoire: Territo
  *  survivent au repeint du panneau ; ce qu'ils partagent, non. */
 let fichePartagee: { niveau: string; code: string; territoire: Territoire } | null = null;
 
-/** Les deux gestes du pied de fiche, posés une fois sur `#fiche`. */
+/** Les deux gestes du pied de fiche, posés une fois sur `#fiche`.
+ *
+ *  **Le cadre peut ne pas exister.** Une page éditoriale — l'index des
+ *  analyses, une analyse — est pré-rendue sans aucun conteneur de la vue
+ *  territoire. `$` y rendait `null`, `brancherPartage` levait dessus, et
+ *  `demarrer()` s'arrêtait là : tout ce qui suit dans le démarrage ne
+ *  s'exécutait plus. La recherche de l'en-tête, branchée juste après, était
+ *  donc MORTE sur chaque page d'analyse — le champ acceptait le texte et ne
+ *  proposait jamais rien.
+ *
+ *  Et rien ne le disait : le rattrapage de `demarrer()` sort sans écrire sur
+ *  une page éditoriale, précisément pour ne pas barbouiller un article d'un
+ *  message de panne. Une levée y était donc silencieuse. */
 function brancherPartageDeLaFiche(): void {
   const panneau = $("fiche");
+  if (!panneau) return;
   brancherPartage(panneau, () => {
     if (!fichePartagee) return null;
     const objet = partageDeLaFiche(
@@ -3856,6 +3882,13 @@ async function ouvrirSimulateur(): Promise<void> {
 }
 
 async function demarrer(): Promise<void> {
+  // ANALYSES n'est pas une vue : ses pages sont pré-rendues, et `basculerVue`
+  // — qui pose `aria-current` sur l'entrée courante — en sort à la première
+  // ligne. Le marquage se fait donc ici, et EN PREMIER : tout ce qui suit peut
+  // échouer sur une page éditoriale, et le rattrapage de `demarrer()` sort
+  // sans rien écrire sur ces pages-là. Placé plus bas, l'onglet n'était pas
+  // marqué et rien ne le disait.
+  marquerOngletAnalyses();
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
   brancherTheme();

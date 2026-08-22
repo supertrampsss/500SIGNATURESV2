@@ -76,6 +76,15 @@
       <nav class="entete__nav" aria-label="Vues">
         <a href="/territoire" data-vue="territoire">Territoire</a>
         <a href="/bilan" data-vue="bilan">Bilan</a>
+        <!-- ANALYSES n'est PAS une vue de l'application : c'est un jeu de
+             documents pré-rendus, un par analyse plus leur index, servis
+             entiers par le serveur. Le lien n'a donc pas de `data-vue` — c'est
+             lui qui distingue les deux, et le gestionnaire délégué de la barre
+             ne s'applique qu'aux liens qui en portent un. Avec un `data-vue`,
+             le clic aurait été intercepté, `basculerVue` aurait cherché une
+             vue « analyses » qui n'existe pas, et le lecteur serait tombé sur
+             TERRITOIRE. Sans, le navigateur navigue pour de bon. -->
+        <a href="/analyses/">Analyses</a>
       </nav>
 
       <button type="button" class="bascule-theme" id="theme-bascule"

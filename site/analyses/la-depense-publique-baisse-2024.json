@@ -1,0 +1,103 @@
+{
+  "slug": "la-depense-publique-baisse-2024",
+  "titre": "« La dépense publique baisse » : le ratio baisse, la dépense monte",
+  "type": "decryptage",
+  "publie_le": "2026-08-22",
+  "themes": [
+    "macro",
+    "fonctions"
+  ],
+  "budgets_concernes": [
+    "etat"
+  ],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "La dépense publique française baisse : elle est passée de 58,6 % à 57,3 % du produit intérieur brut.",
+    "auteur": null,
+    "date": null,
+    "source": {
+      "titre": "Le compte des administrations publiques en 2025 (Insee Première)",
+      "url": "https://www.insee.fr/fr/statistiques/8997691",
+      "consulte_le": "2026-08-22"
+    }
+  },
+  "verdict": {
+    "cran": "exact",
+    "phrase": "Les deux chiffres sont ceux des comptes, et le ratio baisse bien. Ce qui baisse est le rapport entre la dépense et la richesse produite, pas la dépense : sur la même période, elle a augmenté. Un ratio peut reculer parce que le numérateur descend ou parce que le dénominateur monte — ici, c'est le second."
+  },
+  "chiffres": [
+    {
+      "dit": "58,6 % du PIB",
+      "observe": {
+        "indicateur": "eurostat_depenses_publiques_pib",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2013",
+        "valeur": 58.6
+      },
+      "registre": "fait_comptable",
+      "lecture": "La dépense publique valait 58,6 % du PIB en 2013."
+    },
+    {
+      "dit": "57,3 % du PIB",
+      "observe": {
+        "indicateur": "eurostat_depenses_publiques_pib",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 57.3
+      },
+      "registre": "fait_comptable",
+      "lecture": "Elle vaut 57,3 % en 2024 : le ratio a bien reculé."
+    },
+    {
+      "dit": "elle baisse",
+      "observe": {
+        "indicateur": "eurostat_apu_depenses",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2013",
+        "valeur": 1242358000000.0
+      },
+      "registre": "fait_comptable",
+      "lecture": "En euros, la dépense valait 1 242 358 M€ en 2013."
+    },
+    {
+      "dit": "elle baisse",
+      "observe": {
+        "indicateur": "eurostat_apu_depenses",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2025",
+        "valeur": 1714137200000.0
+      },
+      "registre": "fait_comptable",
+      "lecture": "Elle vaut 1 714 137,2 M€ en 2025 : le montant, lui, a monté."
+    }
+  ],
+  "hypotheses": [
+    "Les montants sont en euros courants : une partie de la hausse est de l'inflation, et une autre de la croissance en volume. Les distinguer demande de déflater par un indice de prix, ce que cette page ne fait pas.",
+    "Le ratio et le montant ne s'arrêtent pas au même exercice : le compte des administrations publiques est publié pour 2025, la série des ratios s'arrête à 2024. Chaque chiffre porte donc son propre millésime plutôt qu'un exercice commun qui n'existe pas.",
+    "Aucune des deux lectures n'est fausse, et aucune ne dit si le niveau est bon. Le ratio situe l'effort public dans la richesse produite ; le montant dit ce qui a été dépensé. Une phrase qui n'annonce pas laquelle des deux elle emploie laisse le lecteur choisir celle qui l'arrange."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "titre": "Dépenses des administrations publiques (Eurostat, gov_10a_main)",
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_main/default/table",
+      "consulte_le": "2026-08-22"
+    },
+    {
+      "titre": "Le compte des administrations publiques en 2025 (Insee Première n° 2106)",
+      "url": "https://www.insee.fr/fr/statistiques/8997691",
+      "consulte_le": "2026-08-22"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Le simulateur travaille en euros, jamais en part du produit intérieur brut : une coupe y baisse la dépense sans rien dire du ratio, dont le dénominateur ne dépend pas du budget."
+  },
+  "mises_a_jour": [],
+  "verifie_contre": ""
+}
