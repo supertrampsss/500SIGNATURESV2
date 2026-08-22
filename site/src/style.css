@@ -8170,3 +8170,376 @@ body[data-carte="oui"] .legende {
   font-size: var(--texte-xs);
   word-break: break-all; /* la commande dépasse la colonne sous 30rem */
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   LE TUNNEL — le simulateur en jeu de mesures (maquette validée).
+
+   La scène est SOMBRE dans les deux thèmes, exprès : c'est le « mode jeu »
+   validé sur maquette — l'encre du site devient le plateau, les cartes
+   restent en papier. Les couleurs sont donc littérales et non des jetons :
+   un jeton qui s'inverse en thème sombre aurait blanchi la scène. C'est le
+   seul endroit du site qui se le permet, et cette note en est la frontière.
+
+   Aucune couleur morale : le doré (--serie-3 clair) marque le progrès —
+   paliers, tampons adoptés —, l'argile l'action et l'alerte, jamais le
+   bien ou le mal d'une mesure. */
+.tunnel:empty { display: none; }
+.tunnel__cadre {
+  background: radial-gradient(120rem 44rem at 50% -12rem, #1b2a42 0%, #0f1b2e 60%);
+  border-radius: var(--rayon);
+  color: #ece9e1;
+  margin: var(--espace-4) 0 var(--espace-6);
+  overflow: hidden;
+}
+.tunnel__surtitre {
+  font-size: var(--texte-xs);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: #9aa39c;
+  margin: 0;
+}
+.tunnel__note { font-size: var(--texte-s); color: #9aa39c; margin: 0; }
+.tunnel__chapeau {
+  font-size: var(--texte-l);
+  color: #c9cec7;
+  max-width: 56ch;
+  margin: 0;
+}
+
+/* ── L'écran de mission ─────────────────────────────────────────────── */
+.tunnel__mission {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--espace-5);
+  padding: var(--espace-12) var(--espace-6);
+}
+.tunnel__compteur-geant {
+  font-family: var(--serif);
+  font-size: var(--texte-4xl);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+}
+.tunnel__engagements {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--espace-3);
+  max-width: 56rem;
+}
+.tunnel__engagement {
+  min-height: 44px;
+  padding: var(--espace-3) var(--espace-5);
+  border-radius: var(--rayon-pilule);
+  border: 1px solid #3f4750;
+  background: transparent;
+  color: #c9cec7;
+  font: inherit;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  cursor: pointer;
+}
+.tunnel__engagement--signe {
+  background: #ece9e1;
+  border-color: #ece9e1;
+  color: #0f1b2e;
+}
+.tunnel__commencer {
+  min-height: 44px;
+  padding: var(--espace-4) var(--espace-8);
+  border: none;
+  border-radius: var(--rayon-s);
+  background: var(--argile);
+  color: #fff;
+  font: inherit;
+  font-size: var(--texte-l);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 32px rgba(173, 84, 56, 0.35);
+}
+
+/* ── Le HUD du conseil ──────────────────────────────────────────────── */
+.tunnel__hud {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--espace-6);
+  align-items: center;
+  padding: var(--espace-4) var(--espace-6);
+  border-bottom: 1px solid #21304a;
+}
+.tunnel__compteur {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  white-space: nowrap;
+}
+.tunnel__jalons { display: flex; gap: 2px; margin-top: var(--espace-2); }
+.tunnel__jalons span {
+  flex-grow: 1;
+  height: 5px;
+  border-radius: var(--rayon-xs);
+  background: #21304a;
+}
+.tunnel__jalons .tunnel__jalon--adopte { background: #d9ac4d; }
+.tunnel__jalons .tunnel__jalon--rejete { background: #3f4750; }
+.tunnel__fanfare {
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  color: #d9ac4d;
+  min-height: 1.1rem;
+  margin: var(--espace-1) 0 0;
+  font-variant-numeric: tabular-nums;
+}
+.tunnel__soutiens {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--espace-3);
+}
+.tunnel__soutien { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.tunnel__soutien-nom {
+  font-size: var(--texte-xs);
+  font-weight: 700;
+  color: #c9cec7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tunnel__soutien-valeur {
+  font-size: var(--texte-s);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tunnel__jauge {
+  display: block;
+  height: 5px;
+  border-radius: var(--rayon-xs);
+  background: #21262c;
+  overflow: hidden;
+}
+.tunnel__jauge span { display: block; height: 100%; border-radius: var(--rayon-xs); background: #4cbd8c; }
+.tunnel__soutien:last-child .tunnel__jauge span { background: #74a6f0; }
+.tunnel__soutien--rupture .tunnel__soutien-nom,
+.tunnel__soutien--rupture .tunnel__soutien-valeur { color: #dd8763; }
+.tunnel__soutien--rupture .tunnel__jauge span { background: #dd8763; }
+
+/* ── La scène : chapitres, carte, journal ───────────────────────────── */
+.tunnel__scene {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 40rem) minmax(0, 1fr);
+  gap: var(--espace-6);
+  align-items: center;
+  padding: var(--espace-8) var(--espace-6);
+}
+.tunnel__chapitres, .tunnel__journal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-2);
+  align-self: center;
+  min-width: 0;
+}
+.tunnel__chapitre {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  font-size: var(--texte-s);
+  color: #9aa39c;
+  font-variant-numeric: tabular-nums;
+}
+.tunnel__chapitre--actif { color: #ece9e1; font-weight: 700; }
+.tunnel__tampon {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--espace-3);
+  font-size: var(--texte-s);
+  color: #c9cec7;
+  border-bottom: 1px solid #21304a;
+  padding-bottom: var(--espace-2);
+  font-variant-numeric: tabular-nums;
+}
+.tunnel__tampon span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tunnel__tampon b { white-space: nowrap; color: #626f66; font-weight: 700; }
+.tunnel__tampon--adopte b { color: #d9ac4d; }
+
+.tunnel__carte {
+  background: #fbfaf6;
+  color: #0f1b2e;
+  border-radius: var(--rayon);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+  padding: var(--espace-6) var(--espace-7) var(--espace-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+}
+.tunnel__carte-tete {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--espace-3);
+}
+.tunnel__carte-chapitre {
+  font-size: var(--texte-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--argile);
+}
+.tunnel__carte-numero {
+  font-size: var(--texte-xs);
+  color: #626f66;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.tunnel__carte-titre {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.tunnel__carte-detail { font-size: var(--texte-m); color: #626f66; margin: 0; }
+.tunnel__carte-effet {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--espace-4);
+  border-top: 1px solid #e3e1d8;
+  padding-top: var(--espace-3);
+}
+.tunnel__carte-effet .tunnel__surtitre { color: #626f66; }
+.tunnel__montant {
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  margin: 0;
+  white-space: nowrap;
+}
+.tunnel__montant small {
+  font-family: var(--sans);
+  font-size: var(--texte-xs);
+  font-weight: 500;
+  color: #626f66;
+  white-space: normal;
+}
+.tunnel__reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2);
+  justify-content: flex-end;
+  max-width: 18rem;
+}
+.tunnel__reaction {
+  font-size: var(--texte-xs);
+  color: #626f66;
+  border: 1px solid #e3e1d8;
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-1) var(--espace-3);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.tunnel__tampons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--espace-3);
+}
+.tunnel__adopter, .tunnel__rejeter {
+  min-height: 48px;
+  padding: var(--espace-4) var(--espace-3);
+  border-radius: var(--rayon-s);
+  font: inherit;
+  font-size: var(--texte-m);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.tunnel__adopter {
+  border: none;
+  background: var(--argile);
+  color: #fff;
+  box-shadow: 0 8px 28px rgba(173, 84, 56, 0.35);
+}
+.tunnel__rejeter {
+  border: 1.5px solid #c7cbc8;
+  background: transparent;
+  color: inherit;
+}
+.tunnel__carte .tunnel__rejeter { color: #0f1b2e; }
+.tunnel__ajourner {
+  align-self: center;
+  min-height: 36px;
+  border: none;
+  background: transparent;
+  color: #626f66;
+  font: inherit;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ── Le verdict ─────────────────────────────────────────────────────── */
+.tunnel__verdict {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espace-4);
+  padding: var(--espace-10) var(--espace-6);
+  max-width: 44rem;
+  margin: 0 auto;
+}
+.tunnel__verdict-nom {
+  font-family: var(--serif);
+  font-size: var(--texte-4xl);
+  font-weight: 700;
+  line-height: 1.08;
+  margin: 0;
+}
+.tunnel__verdict-bilan { font-size: var(--texte-m); color: #c9cec7; margin: 0; }
+.tunnel__verdict-bilan strong { color: #ece9e1; font-variant-numeric: tabular-nums; }
+.tunnel__verdict-gestes { display: flex; flex-direction: column; gap: var(--espace-2); }
+.tunnel__verdict-boutons { display: flex; flex-wrap: wrap; gap: var(--espace-3); }
+.tunnel__verdict-boutons .tunnel__adopter,
+.tunnel__verdict-boutons .tunnel__rejeter { text-transform: none; letter-spacing: 0; }
+
+/* ── Le pied : la frontière écrite, et la porte du mode expert ──────── */
+.tunnel__source {
+  font-size: var(--texte-xs);
+  color: #626f66;
+  margin: 0;
+  padding: var(--espace-4) var(--espace-6) var(--espace-5);
+  border-top: 1px solid #21304a;
+  max-width: none;
+}
+.tunnel__expert {
+  border: none;
+  background: transparent;
+  color: #9aa39c;
+  font: inherit;
+  font-size: var(--texte-xs);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  padding: 0;
+  margin-left: var(--espace-2);
+  min-height: 36px;
+}
+
+/* ── Téléphone : la scène s'empile, la carte d'abord ────────────────── */
+@media (max-width: 60rem) {
+  .tunnel__hud { grid-template-columns: minmax(0, 1fr); gap: var(--espace-3); }
+  .tunnel__scene { grid-template-columns: minmax(0, 1fr); padding: var(--espace-5) var(--espace-4); }
+  .tunnel__carte { order: -1; padding: var(--espace-5); }
+  .tunnel__mission { padding: var(--espace-8) var(--espace-4); }
+}
