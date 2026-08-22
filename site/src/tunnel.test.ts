@@ -342,6 +342,14 @@ test("les ancres publiées des cartes ne dérivent pas du reste du dépôt", () 
   assert.match(detail("geler-le-point-d-indice"), /370 016 M€/);
   assert.match(detail("desindexer-les-pensions"), /362 178 M€/);
   assert.match(detail("porter-l-effort-de-defense"), /60 004 M€/);
+  // Le montant de la carte, lui, est l'écart vers la cible : 6 000, pas
+  // 60 001 — la coquille qui a vécu en production s'était collé le « 1 »
+  // de « 1re marche ».
+  {
+    const defense = MESURES.find((m) => m.id.startsWith("porter-l-effort-de-defense"))!;
+    assert.equal(defense.effet, -6000);
+    assert.equal(defense.precision, "1re marche");
+  }
   assert.match(detail("revaloriser-les-enseignants"), /88 817 M€/);
   assert.match(detail("recruter-10-000-policiers"), /25 215 M€/);
 });
