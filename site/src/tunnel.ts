@@ -29,9 +29,12 @@
  * ─────────────────────────────────────────────────────────────────────────
  * LES RÈGLES DU JEU
  * ─────────────────────────────────────────────────────────────────────────
- * Un seul tampon par mesure : ADOPTER applique l'effet, REJETER est gratuit,
- * AJOURNER renvoie la mesure en fin de pile — une fois tamponnée, on ne
- * revient pas, comme en conseil. Les engagements signés au départ (les
+ * Un seul tampon par mesure : ADOPTER applique l'effet, REJETER est gratuit
+ * pour le compteur mais pas pour les soutiens des cartes totem (le second
+ * prix, affiché sur la carte : c'est le dilemme), AJOURNER renvoie la mesure
+ * en fin de pile — une fois tamponnée, on ne revient pas, comme en conseil.
+ * Au-delà de `REPORTS_GRATUITS` ajournements, chaque report coûte un point à
+ * chaque soutien : l'immobilisme se paie. Les engagements signés au départ (les
  * contrats de `mission.ts`) RETIRENT du tunnel les mesures qu'ils couvrent,
  * dans les deux sens : « sans toucher à l'école » interdit d'y couper comme
  * d'y ajouter — un engagement n'est pas une préférence.
@@ -76,7 +79,15 @@ export type EtatTunnel = {
   /** Le conseil de crise : vingt secondes par mesure, sinon elle est
    *  ajournée d'office. Choisi à l'écran de mission. */
   chrono?: boolean;
+  /** Les ajournements posés depuis le début du conseil. Au-delà de
+   *  `REPORTS_GRATUITS`, chaque report coûte un point à chaque soutien :
+   *  l'immobilisme se paie, et il ne s'annule pas. */
+  reports: number;
 };
+
+/** Les reports sans prix. Au-delà, chaque ajournement coûte un point à
+ *  chaque soutien : on peut temporiser, pas gouverner par le report. */
+export const REPORTS_GRATUITS = 5;
 
 /** Les quatre soutiens, leur nom d'écran et leur point de départ. Marchés part
  *  bas : le déficit est leur sujet, et combler la mission les remonte. */
@@ -112,15 +123,27 @@ export const SEUIL_CENSURE = 10;
 /** Le conseil de crise : ce que dure une mesure avant d'être ajournée. */
 export const CHRONO_SECONDES = 20;
 
+/** Une issue de télex : ce que coûte UNE des deux réponses possibles. */
+type IssueTelex = {
+  cle: string;
+  /** Le libellé du bouton. */
+  bouton: string;
+  /** M€ ajoutés à la mission (négatif : la vie devient plus chère). */
+  effet: number;
+  soutiens: Partial<Record<Soutien, number>>;
+};
+
 type Telex = {
   id: string;
   nom: string;
   texte: string;
-  /** M€ ajoutés à la mission (négatif : la vie devient plus chère) — ou
-   *  zéro, pour un télex qui ne touche que les soutiens. */
+  /** M€ appliqués dès la chute du télex — les bonnes nouvelles sans choix. */
   effet: number;
   soutiens: Partial<Record<Soutien, number>>;
-  declenche: (jauges: Record<Soutien, number>, combleM: number) => boolean;
+  /** Les deux issues d'un télex de crise : chacune a un prix, c'est le
+   *  dilemme. Absent pour les télex sans choix. */
+  issues?: [IssueTelex, IssueTelex];
+  declenche: (jauges: Record<Soutien, number>, combleM: number, poses: number) => boolean;
 };
 
 /**
@@ -136,34 +159,62 @@ export const TELEX: Telex[] = [
   {
     id: "taux",
     nom: "Les taux montent",
-    texte: "Les investisseurs doutent de votre trajectoire : l'État emprunte plus cher, et la charge de la dette s'alourdit. La mission grossit d'autant.",
-    effet: -2000,
+    texte: "Les investisseurs doutent de votre trajectoire : l'État emprunte plus cher. Rassurer les marchés se paie devant l'opinion ; laisser filer se paie en milliards.",
+    effet: 0,
     soutiens: {},
+    issues: [
+      { cle: "a", bouton: "Annoncer un plan d'économies", effet: 0, soutiens: { marches: 5, opinion: -4 } },
+      { cle: "b", bouton: "Laisser filer les taux", effet: -2000, soutiens: { marches: -2 } },
+    ],
     declenche: (j) => j.marches < SEUIL_RUPTURE + 10,
   },
   {
     id: "greve",
     nom: "Grève générale",
-    texte: "Le pays s'arrête un mardi, puis un jeudi. L'activité ralentit, les recettes fondent, et le patronat vous le fait savoir.",
-    effet: -1500,
-    soutiens: { entreprises: -4 },
+    texte: "Le pays s'arrête un mardi, puis un jeudi. Céder rouvre le portefeuille ; tenir laisse pourrir, et l'activité fond des deux côtés.",
+    effet: 0,
+    soutiens: {},
+    issues: [
+      { cle: "a", bouton: "Céder : un geste social", effet: -2000, soutiens: { opinion: 5, entreprises: -2 } },
+      { cle: "b", bouton: "Tenir bon", effet: -1500, soutiens: { opinion: -4, entreprises: -3 } },
+    ],
     declenche: (j) => j.opinion < SEUIL_RUPTURE + 10,
   },
   {
     id: "maires",
     nom: "La fronde des maires",
-    texte: "Mille écharpes tricolores sur les marches de votre ministère. Les chantiers locaux s'arrêtent, l'opinion prend fait et cause.",
-    effet: -1000,
-    soutiens: { opinion: -3 },
+    texte: "Mille écharpes tricolores sur les marches de votre ministère. Rouvrir la dotation coûte ; tenir bon fige les chantiers et braque les élus.",
+    effet: 0,
+    soutiens: {},
+    issues: [
+      { cle: "a", bouton: "Rouvrir la dotation", effet: -1000, soutiens: { territoires: 6 } },
+      { cle: "b", bouton: "Tenir bon", effet: -500, soutiens: { territoires: -3, opinion: -2 } },
+    ],
     declenche: (j) => j.territoires < SEUIL_RUPTURE + 10,
   },
   {
     id: "embauches",
     nom: "Gel des embauches",
-    texte: "Les entreprises repoussent leurs investissements. Moins d'activité, moins d'impôt sur les sociétés : la mission grossit.",
-    effet: -2000,
-    soutiens: { opinion: -2 },
+    texte: "Les entreprises repoussent leurs investissements. Un geste sur les charges coûte tout de suite ; l'attentisme coûte en activité et en impôt.",
+    effet: 0,
+    soutiens: {},
+    issues: [
+      { cle: "a", bouton: "Un geste ciblé sur les charges", effet: -1500, soutiens: { entreprises: 5 } },
+      { cle: "b", bouton: "Attendre que ça passe", effet: -2000, soutiens: { opinion: -2 } },
+    ],
     declenche: (j) => j.entreprises < SEUIL_RUPTURE + 10,
+  },
+  {
+    id: "notation",
+    nom: "La revue de notation",
+    texte: "Mi-parcours : beaucoup de tampons, peu de milliards trouvés. L'agence sort sa loupe. Promettre la rigueur rassure les marchés et se paie devant l'opinion ; l'ignorer se paie sur la note.",
+    effet: 0,
+    soutiens: {},
+    issues: [
+      { cle: "a", bouton: "Recevoir l'agence, promettre la rigueur", effet: 0, soutiens: { marches: 4, opinion: -3 } },
+      { cle: "b", bouton: "Ignorer la revue", effet: 0, soutiens: { marches: -5 } },
+    ],
+    declenche: (_j, combleM, poses) => poses >= 40 && combleM < 20000,
   },
   {
     id: "perspective",
@@ -198,7 +249,7 @@ export function pile(engagements: readonly string[]): Mesure[] {
 
 export function etatInitial(defi?: { comble: number; engagements: string[] } | null): EtatTunnel {
   if (!defi) {
-    return { phase: "mission", engagements: [], ordre: [], tampons: {}, historique: [], telex: { vus: [], surcout: 0, soutiens: {} } };
+    return { phase: "mission", engagements: [], ordre: [], tampons: {}, historique: [], telex: { vus: [], surcout: 0, soutiens: {} }, reports: 0 };
   }
   // Un défi pré-signe les engagements de l'adversaire : « faites mieux, sous
   // les mêmes règles ». Le joueur peut les dédire — le verdict comparera
@@ -210,6 +261,7 @@ export function etatInitial(defi?: { comble: number; engagements: string[] } | n
     tampons: {},
     historique: [],
     telex: { vus: [], surcout: 0, soutiens: {} },
+    reports: 0,
     defi: { comble: defi.comble },
   };
 }
@@ -231,6 +283,7 @@ export function commencer(etat: EtatTunnel): EtatTunnel {
     tampons: {},
     historique: [],
     telex: { vus: [], surcout: 0, soutiens: {} },
+    reports: 0,
   };
 }
 
@@ -295,7 +348,8 @@ export function verifierTelex(etat: EtatTunnel, missionEuros: number): EtatTunne
     soutiens(etat, missionEuros).map((s) => [s.cle, s.valeur]),
   ) as Record<Soutien, number>;
   const combleM = comble(etat);
-  const tombe = TELEX.find((t) => !etat.telex.vus.includes(t.id) && t.declenche(jauges, combleM));
+  const poses = Object.keys(etat.tampons).length;
+  const tombe = TELEX.find((t) => !etat.telex.vus.includes(t.id) && t.declenche(jauges, combleM, poses));
   if (!tombe) return etat;
   const cumules = { ...etat.telex.soutiens };
   for (const [cle, delta] of Object.entries(tombe.soutiens)) {
@@ -308,17 +362,39 @@ export function verifierTelex(etat: EtatTunnel, missionEuros: number): EtatTunne
   };
 }
 
-/** Refermer le télex — et regarder si ses effets viennent de censurer. */
+/** Refermer un télex sans choix — et regarder si ses effets censurent. */
 export function poursuivreTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   const { telexEnCours: _lu, ...sans } = etat;
   return verifierCensure(sans, missionEuros);
+}
+
+/**
+ * Trancher un télex de crise : appliquer le prix de l'issue choisie, puis
+ * refermer. Les deux issues coûtent — c'est le dilemme — et comme tout
+ * télex, le choix est le destin : « Annuler » n'y revient pas.
+ */
+export function trancherTelex(etat: EtatTunnel, cle: string, missionEuros: number): EtatTunnel {
+  const telex = TELEX.find((t) => t.id === etat.telexEnCours);
+  const issue = telex?.issues?.find((i) => i.cle === cle);
+  if (!issue) return etat;
+  const cumules = { ...etat.telex.soutiens };
+  for (const [soutien, delta] of Object.entries(issue.soutiens)) {
+    cumules[soutien as Soutien] = (cumules[soutien as Soutien] ?? 0) + delta;
+  }
+  return poursuivreTelex(
+    {
+      ...etat,
+      telex: { ...etat.telex, surcout: etat.telex.surcout + issue.effet, soutiens: cumules },
+    },
+    missionEuros,
+  );
 }
 
 export function ajourner(etat: EtatTunnel): EtatTunnel {
   const mesure = courante(etat);
   if (!mesure) return etat;
   const ordre = [...etat.ordre.filter((i) => i !== mesure.id), mesure.id];
-  return { ...etat, ordre };
+  return { ...etat, ordre, reports: etat.reports + 1 };
 }
 
 /** Le solde des tampons ADOPTÉS plus le surcoût des télex, en M€ — les
@@ -350,9 +426,16 @@ export function soutiens(
   return SOUTIENS.map(({ cle, nom, base }) => {
     let v = base + (etat.telex.soutiens[cle] ?? 0);
     for (const id of etat.ordre) {
-      if (etat.tampons[id] !== "adopte") continue;
-      v += PAR_ID.get(id)?.reactions[cle] ?? 0;
+      const tampon = etat.tampons[id];
+      if (tampon === "adopte") v += PAR_ID.get(id)?.reactions[cle] ?? 0;
+      // Le rejet a un prix sur les cartes qui en déclarent un : rejeter la
+      // mesure préférée d'un camp le fâche. Une exclue ne compte pas — ce
+      // n'était pas un choix.
+      else if (tampon === "rejete") v += PAR_ID.get(id)?.rejet?.[cle] ?? 0;
     }
+    // L'immobilisme se paie : chaque report au-delà des gratuits coûte un
+    // point à chaque soutien, et le report ne s'annule pas.
+    v -= Math.max(0, etat.reports - REPORTS_GRATUITS);
     // La seule règle « macro » : les Marchés remontent avec le comblé.
     if (cle === "marches" && missionM > 0) v += (c / missionM) * 60;
     const valeur = Math.max(4, Math.min(96, Math.round(v)));
@@ -514,6 +597,8 @@ export function restaurer(): EtatTunnel | null {
               soutiens: lu.telex.soutiens ?? {},
             }
           : { vus: [], surcout: 0, soutiens: {} },
+      // Une sauvegarde d'avant les reports repart à zéro report.
+      reports: Number.isFinite(lu.reports) && lu.reports >= 0 ? lu.reports : 0,
       ...(typeof lu.telexEnCours === "string" && TELEX.some((t) => t.id === lu.telexEnCours)
         ? { telexEnCours: lu.telexEnCours }
         : {}),
@@ -700,6 +785,16 @@ function renduJournal(etat: EtatTunnel): string {
   </div>`;
 }
 
+/** Les pastilles d'un jeu de réactions : « Opinion −4 · Marchés +5 ». */
+function pastilles(jeu: Partial<Record<Soutien, number>>): string {
+  return SOUTIENS.filter(({ cle }) => jeu[cle])
+    .map(({ cle, nom }) => {
+      const delta = jeu[cle]!;
+      return `<span class="tunnel__reaction">${echapper(nom)}&nbsp;${delta > 0 ? "+" : "−"}${Math.abs(delta)}</span>`;
+    })
+    .join("");
+}
+
 function renduTelex(id: string): string {
   const t = TELEX.find((x) => x.id === id);
   if (!t) return "";
@@ -711,16 +806,33 @@ function renduTelex(id: string): string {
       <h3 class="tunnel__carte-titre">${echapper(t.nom)}</h3>
       <p class="tunnel__carte-detail">${echapper(t.texte)}</p>
       ${
-        t.effet !== 0
+        t.issues
+          ? `<div class="tunnel__choix">${t.issues
+              .map(
+                (issue) => `<div class="tunnel__issue">
+                  <button type="button" class="tunnel__adopter" data-telex="${echapper(issue.cle)}">${echapper(issue.bouton)}</button>
+                  <p class="tunnel__prix">${
+                    issue.effet !== 0
+                      ? `<span class="tunnel__reaction">${echapper(millions(Math.abs(issue.effet) * 1e6))} de plus à trouver</span>`
+                      : ""
+                  }${pastilles(issue.soutiens)}</p>
+                </div>`,
+              )
+              .join("")}</div>`
+          : t.effet !== 0
           ? `<div class="tunnel__carte-effet"><div>
               <p class="tunnel__surtitre">Ça vous coûte</p>
               <p class="tunnel__montant">${echapper(millions(Math.abs(t.effet) * 1e6))} de plus à trouver</p>
             </div></div>`
           : ""
       }
-      <div class="tunnel__tampons" style="grid-template-columns: 1fr">
+      ${
+        t.issues
+          ? ""
+          : `<div class="tunnel__tampons" style="grid-template-columns: 1fr">
         <button type="button" class="tunnel__adopter" data-action="poursuivre">Poursuivre</button>
-      </div>
+      </div>`
+      }
     </article>`;
 }
 
@@ -737,12 +849,7 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
       : franchis.length
         ? `Palier franchi : ${franchis[franchis.length - 1]!.nom}`
         : "";
-  const reactions = SOUTIENS.filter(({ cle }) => mesure.reactions[cle])
-    .map(({ cle, nom }) => {
-      const delta = mesure.reactions[cle]!;
-      return `<span class="tunnel__reaction">${echapper(nom)}&nbsp;${delta > 0 ? "+" : "−"}${Math.abs(delta)}</span>`;
-    })
-    .join("");
+  const reactions = pastilles(mesure.reactions);
   return `
     <div class="tunnel__hud">
       <div class="tunnel__hud-reste">
@@ -782,12 +889,22 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
           </div>
           <div class="tunnel__reactions">${reactions}</div>
         </div>
+        ${
+          mesure.rejet
+            ? `<p class="tunnel__prix">Rejeter a aussi un prix&nbsp;: ${pastilles(mesure.rejet)}</p>`
+            : ""
+        }
         <div class="tunnel__tampons">
           <button type="button" class="tunnel__rejeter" data-geste="rejeter">Rejeter</button>
           <button type="button" class="tunnel__adopter" data-geste="adopter">Adopter</button>
         </div>
         <div class="tunnel__seconds">
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>
+          ${
+            etat.reports >= REPORTS_GRATUITS - 1
+              ? `<span class="tunnel__note">${etat.reports} report${etat.reports > 1 ? "s" : ""} · au-delà de ${REPORTS_GRATUITS}, chacun coûte 1 point à chaque soutien</span>`
+              : ""
+          }
           ${etat.historique.length ? '<button type="button" class="tunnel__ajourner" data-geste="annuler">&#8592; Annuler le dernier tampon</button>' : ""}
         </div>
       </article>`}
@@ -889,7 +1006,8 @@ function renduPied(): string {
   return `<p class="tunnel__source">La mission est calculée sur les budgets publiés. Les effets
     des mesures sont des ordres de grandeur du débat public (lois de finances, rapports
     parlementaires, chiffrages d'instituts), affichés avec leurs réserves. Les réactions des
-    soutiens sont des règles du jeu, pas des mesures.</p>`;
+    soutiens, à l'adoption comme au rejet, et les issues des télex sont des
+    règles du jeu, pas des mesures.</p>`;
 }
 
 export function rendu(etat: EtatTunnel, missionEuros: number): string {
@@ -945,9 +1063,14 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   };
   cadre.addEventListener("click", (evenement) => {
     const cible = (evenement.target as HTMLElement).closest<HTMLElement>(
-      "[data-geste], [data-action], [data-engagement]",
+      "[data-geste], [data-action], [data-engagement], [data-telex]",
     );
     if (!cible) return;
+    const issue = cible.dataset.telex;
+    if (issue) {
+      etat = trancherTelex(etat, issue, options.missionEuros);
+      return peindre();
+    }
     const engagement = cible.dataset.engagement;
     if (engagement) {
       etat = basculerEngagement(etat, engagement);
