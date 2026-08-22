@@ -67,6 +67,15 @@ export type EtatTunnel = {
   historique: { id: string; exclues: string[] }[];
   /** Le soutien qui a fait tomber le gouvernement, s'il est tombé. */
   censure?: string;
+  /** Les télex : les événements déjà tombés (un télex ne tombe qu'une fois),
+   *  le surcoût qu'ils ont ajouté à la mission (négatif), et ce qu'ils ont
+   *  fait aux soutiens. Un télex est le destin : « Annuler » n'y revient pas. */
+  telex: { vus: string[]; surcout: number; soutiens: Partial<Record<Soutien, number>> };
+  /** Le télex affiché en ce moment — la carte de mesure attend derrière. */
+  telexEnCours?: string;
+  /** Le conseil de crise : vingt secondes par mesure, sinon elle est
+   *  ajournée d'office. Choisi à l'écran de mission. */
+  chrono?: boolean;
 };
 
 /** Les quatre soutiens, leur nom d'écran et leur point de départ. Marchés part
@@ -100,6 +109,80 @@ for (const m of MESURES) {
  *  soutien n'est pas une jauge décorative. */
 export const SEUIL_CENSURE = 10;
 
+/** Le conseil de crise : ce que dure une mesure avant d'être ajournée. */
+export const CHRONO_SECONDES = 20;
+
+type Telex = {
+  id: string;
+  nom: string;
+  texte: string;
+  /** M€ ajoutés à la mission (négatif : la vie devient plus chère) — ou
+   *  zéro, pour un télex qui ne touche que les soutiens. */
+  effet: number;
+  soutiens: Partial<Record<Soutien, number>>;
+  declenche: (jauges: Record<Soutien, number>, combleM: number) => boolean;
+};
+
+/**
+ * Les télex : le monde répond aux tampons, entre deux mesures.
+ *
+ * Chacun tombe UNE fois par partie, au premier tampon qui remplit sa
+ * condition. Les mauvais tombent quand une jauge vacille (sous le seuil
+ * d'alerte, avant la censure) ; les bons, quand un palier saute. Leurs effets
+ * sont des règles du jeu, comme les réactions des mesures — et comme elles,
+ * ils ne s'annulent pas : un télex est le destin, pas un tampon.
+ */
+export const TELEX: Telex[] = [
+  {
+    id: "taux",
+    nom: "Les taux montent",
+    texte: "Les investisseurs doutent de votre trajectoire : l'État emprunte plus cher, et la charge de la dette s'alourdit. La mission grossit d'autant.",
+    effet: -2000,
+    soutiens: {},
+    declenche: (j) => j.marches < SEUIL_RUPTURE + 10,
+  },
+  {
+    id: "greve",
+    nom: "Grève générale",
+    texte: "Le pays s'arrête un mardi, puis un jeudi. L'activité ralentit, les recettes fondent — et le patronat vous le fait savoir.",
+    effet: -1500,
+    soutiens: { entreprises: -4 },
+    declenche: (j) => j.opinion < SEUIL_RUPTURE + 10,
+  },
+  {
+    id: "maires",
+    nom: "La fronde des maires",
+    texte: "Mille écharpes tricolores sur les marches de votre ministère. Les chantiers locaux s'arrêtent, l'opinion prend fait et cause.",
+    effet: -1000,
+    soutiens: { opinion: -3 },
+    declenche: (j) => j.territoires < SEUIL_RUPTURE + 10,
+  },
+  {
+    id: "embauches",
+    nom: "Gel des embauches",
+    texte: "Les entreprises repoussent leurs investissements. Moins d'activité, moins d'impôt sur les sociétés : la mission grossit.",
+    effet: -2000,
+    soutiens: { opinion: -2 },
+    declenche: (j) => j.entreprises < SEUIL_RUPTURE + 10,
+  },
+  {
+    id: "perspective",
+    nom: "Perspective relevée",
+    texte: "Les agences de notation saluent le cap des 50 000 M€ trouvés. Emprunter coûte un peu moins cher — les marchés respirent.",
+    effet: 0,
+    soutiens: { marches: 6 },
+    declenche: (_j, combleM) => combleM >= 50000,
+  },
+  {
+    id: "confiance",
+    nom: "Le retour de la confiance",
+    texte: "Cap des 100 000 M€. Les investisseurs reviennent, le patronat parle de « sérieux retrouvé ». Personne ne vous dira merci dans la rue.",
+    effet: 0,
+    soutiens: { marches: 4, entreprises: 3 },
+    declenche: (_j, combleM) => combleM >= 100000,
+  },
+];
+
 function echapper(texte: string): string {
   return texte.replace(
     /[&<>"']/g,
@@ -114,7 +197,9 @@ export function pile(engagements: readonly string[]): Mesure[] {
 }
 
 export function etatInitial(defi?: { comble: number; engagements: string[] } | null): EtatTunnel {
-  if (!defi) return { phase: "mission", engagements: [], ordre: [], tampons: {}, historique: [] };
+  if (!defi) {
+    return { phase: "mission", engagements: [], ordre: [], tampons: {}, historique: [], telex: { vus: [], surcout: 0, soutiens: {} } };
+  }
   // Un défi pré-signe les engagements de l'adversaire : « faites mieux, sous
   // les mêmes règles ». Le joueur peut les dédire — le verdict comparera
   // quand même, et c'est sa partie qui le dira.
@@ -124,6 +209,7 @@ export function etatInitial(defi?: { comble: number; engagements: string[] } | n
     ordre: [],
     tampons: {},
     historique: [],
+    telex: { vus: [], surcout: 0, soutiens: {} },
     defi: { comble: defi.comble },
   };
 }
@@ -144,6 +230,7 @@ export function commencer(etat: EtatTunnel): EtatTunnel {
     ordre: pile(etat.engagements).map((m) => m.id),
     tampons: {},
     historique: [],
+    telex: { vus: [], surcout: 0, soutiens: {} },
   };
 }
 
@@ -199,6 +286,34 @@ export function verifierCensure(etat: EtatTunnel, missionEuros: number): EtatTun
   return tombe ? { ...etat, phase: "verdict", censure: tombe.nom } : etat;
 }
 
+/** Le premier télex dont la condition vient d'être remplie tombe — un seul
+ *  par tampon, une seule fois par partie. Ses effets s'appliquent tout de
+ *  suite ; l'écran, lui, attend « Poursuivre ». */
+export function verifierTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  if (etat.phase !== "conseil" || etat.telexEnCours) return etat;
+  const jauges = Object.fromEntries(
+    soutiens(etat, missionEuros).map((s) => [s.cle, s.valeur]),
+  ) as Record<Soutien, number>;
+  const combleM = comble(etat);
+  const tombe = TELEX.find((t) => !etat.telex.vus.includes(t.id) && t.declenche(jauges, combleM));
+  if (!tombe) return etat;
+  const cumules = { ...etat.telex.soutiens };
+  for (const [cle, delta] of Object.entries(tombe.soutiens)) {
+    cumules[cle as Soutien] = (cumules[cle as Soutien] ?? 0) + delta;
+  }
+  return {
+    ...etat,
+    telexEnCours: tombe.id,
+    telex: { vus: [...etat.telex.vus, tombe.id], surcout: etat.telex.surcout + tombe.effet, soutiens: cumules },
+  };
+}
+
+/** Refermer le télex — et regarder si ses effets viennent de censurer. */
+export function poursuivreTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  const { telexEnCours: _lu, ...sans } = etat;
+  return verifierCensure(sans, missionEuros);
+}
+
 export function ajourner(etat: EtatTunnel): EtatTunnel {
   const mesure = courante(etat);
   if (!mesure) return etat;
@@ -206,12 +321,15 @@ export function ajourner(etat: EtatTunnel): EtatTunnel {
   return { ...etat, ordre };
 }
 
-/** Le solde des tampons ADOPTÉS, en M€ — les mesures qui coûtent retranchent. */
+/** Le solde des tampons ADOPTÉS plus le surcoût des télex, en M€ — les
+ *  mesures qui coûtent et le destin retranchent pareil. */
 export function trouve(etat: EtatTunnel): number {
-  return etat.ordre.reduce(
-    (somme, id) =>
-      etat.tampons[id] === "adopte" ? somme + (PAR_ID.get(id)?.effet ?? 0) : somme,
-    0,
+  return (
+    etat.ordre.reduce(
+      (somme, id) =>
+        etat.tampons[id] === "adopte" ? somme + (PAR_ID.get(id)?.effet ?? 0) : somme,
+      0,
+    ) + etat.telex.surcout
   );
 }
 
@@ -230,7 +348,7 @@ export function soutiens(
   const missionM = missionEuros / 1e6;
   const c = comble(etat);
   return SOUTIENS.map(({ cle, nom, base }) => {
-    let v = base;
+    let v = base + (etat.telex.soutiens[cle] ?? 0);
     for (const id of etat.ordre) {
       if (etat.tampons[id] !== "adopte") continue;
       v += PAR_ID.get(id)?.reactions[cle] ?? 0;
@@ -386,12 +504,99 @@ export function restaurer(): EtatTunnel | null {
             (h) => h && PAR_ID.has(h.id) && Array.isArray(h.exclues) && h.exclues.every((i) => PAR_ID.has(i)),
           )
         : [],
+      // Une sauvegarde d'avant les télex n'en portait pas : elle repart avec
+      // un ciel calme plutôt que d'être jetée.
+      telex:
+        lu.telex && Array.isArray(lu.telex.vus) && Number.isFinite(lu.telex.surcout)
+          ? {
+              vus: lu.telex.vus.filter((id) => TELEX.some((t) => t.id === id)),
+              surcout: lu.telex.surcout,
+              soutiens: lu.telex.soutiens ?? {},
+            }
+          : { vus: [], surcout: 0, soutiens: {} },
+      ...(typeof lu.telexEnCours === "string" && TELEX.some((t) => t.id === lu.telexEnCours)
+        ? { telexEnCours: lu.telexEnCours }
+        : {}),
+      ...(lu.chrono ? { chrono: true } : {}),
       ...(lu.defi && Number.isFinite(lu.defi.comble) ? { defi: { comble: lu.defi.comble } } : {}),
       ...(typeof lu.censure === "string" ? { censure: lu.censure } : {}),
     };
   } catch {
     return null;
   }
+}
+
+/* --------------------------------------------------------------------------
+ * Les décorations : ce qu'une partie raconte d'elle-même.
+ *
+ * Huit, pas une de plus — une vitrine pleine ne se regarde plus. Chacune se
+ * décrit par ce qu'il a fallu FAIRE, jamais par un jugement, et la collection
+ * (toutes parties confondues) vit dans `localStorage` : c'est le seul état du
+ * tunnel qui mérite de survivre à la session, parce qu'une collection est une
+ * promesse de revenir.
+ * ----------------------------------------------------------------------- */
+
+export const DECORATIONS: { id: string; nom: string; detail: string }[] = [
+  { id: "equilibre", nom: "L'équilibre", detail: "Plus un euro à trouver." },
+  { id: "sans-censure", nom: "Jamais censuré", detail: "Finir la pile, les quatre soutiens debout." },
+  { id: "parole-x4", nom: "Parole tenue ×4", detail: "Jouer sous les quatre engagements à la fois." },
+  { id: "zero-impot", nom: "Zéro impôt levé", detail: "Aucune recette nouvelle adoptée." },
+  { id: "funambule", nom: "Le funambule", detail: "Finir avec un soutien à 15 % ou moins — sans tomber." },
+  { id: "duel-gagne", nom: "Duel gagné", detail: "Battre le score d'un défi reçu." },
+  { id: "grand-chelem", nom: "Le grand chelem", detail: "Trois paliers, et les quatre soutiens à 40 % ou plus." },
+  { id: "integrale", nom: "L'intégrale", detail: "Tamponner les 78 mesures, sans engagement pour alléger la pile." },
+];
+
+/** Les décorations que CETTE partie vient de gagner — au verdict seulement. */
+export function decorations(etat: EtatTunnel, missionEuros: number): typeof DECORATIONS {
+  if (etat.phase !== "verdict") return [];
+  const jauges = soutiens(etat, missionEuros);
+  const combleM = comble(etat);
+  const reste = Math.max(0, missionEuros - combleM * 1e6);
+  const paliers = paliersTunnel(etat, missionEuros).filter((x) => x.franchi).length;
+  const finie = !etat.censure;
+  const gagnees = new Set<string>();
+  if (reste === 0) gagnees.add("equilibre");
+  if (finie) gagnees.add("sans-censure");
+  if (finie && etat.engagements.length === CONTRATS.length) gagnees.add("parole-x4");
+  if (
+    finie &&
+    combleM > 0 &&
+    !etat.ordre.some(
+      (id) => etat.tampons[id] === "adopte" && PAR_ID.get(id)?.bloqueePar?.includes("sans-impot"),
+    )
+  ) {
+    gagnees.add("zero-impot");
+  }
+  if (finie && jauges.some((j) => j.valeur <= 15)) gagnees.add("funambule");
+  if (finie && etat.defi && combleM > etat.defi.comble) gagnees.add("duel-gagne");
+  if (finie && paliers >= 3 && jauges.every((j) => j.valeur >= 40)) gagnees.add("grand-chelem");
+  if (finie && etat.ordre.length === MESURES.length) gagnees.add("integrale");
+  return DECORATIONS.filter((d) => gagnees.has(d.id));
+}
+
+const CLE_DECORATIONS = "tunnel-decorations";
+
+/** La collection, enrichie des gagnées du jour. Rendue telle quelle si le
+ *  stockage refuse — la vitrine vit alors le temps de la page. */
+export function collectionner(gagnees: readonly { id: string }[]): string[] {
+  let collection: string[] = [];
+  try {
+    const brut = localStorage.getItem(CLE_DECORATIONS);
+    if (brut) {
+      const lu = JSON.parse(brut) as unknown;
+      if (Array.isArray(lu)) collection = lu.filter((x): x is string => typeof x === "string");
+    }
+  } catch {
+    // Navigation privée : la collection repart de la partie du jour.
+  }
+  for (const d of gagnees) if (!collection.includes(d.id)) collection.push(d.id);
+  try {
+    localStorage.setItem(CLE_DECORATIONS, JSON.stringify(collection));
+  } catch {
+    // Sans stockage, la collection du jour reste vraie à l'écran.
+  }
+  return collection;
 }
 
 /* --------------------------------------------------------------------------
@@ -444,6 +649,8 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
       <p class="tunnel__surtitre">Signez vos engagements — chacun retire ses mesures de la pile</p>
       <div class="tunnel__engagements">${chips}</div>
       <p class="tunnel__note">${echapper(phrase)}</p>
+      <button type="button" class="tunnel__engagement${etat.chrono ? " tunnel__engagement--signe" : ""}"
+        data-action="chrono" aria-pressed="${etat.chrono ? "true" : "false"}">Conseil de crise — ${CHRONO_SECONDES}&#8239;s par mesure</button>
       ${defi}
       <button type="button" class="tunnel__commencer" data-action="commencer">Prendre mes fonctions&nbsp;&#8594;</button>
     </div>`;
@@ -493,6 +700,30 @@ function renduJournal(etat: EtatTunnel): string {
   </div>`;
 }
 
+function renduTelex(id: string): string {
+  const t = TELEX.find((x) => x.id === id);
+  if (!t) return "";
+  return `
+    <article class="tunnel__carte tunnel__carte--telex" aria-live="assertive">
+      <header class="tunnel__carte-tete">
+        <span class="tunnel__carte-chapitre">Télex — entre deux mesures</span>
+      </header>
+      <h3 class="tunnel__carte-titre">${echapper(t.nom)}</h3>
+      <p class="tunnel__carte-detail">${echapper(t.texte)}</p>
+      ${
+        t.effet !== 0
+          ? `<div class="tunnel__carte-effet"><div>
+              <p class="tunnel__surtitre">Ça vous coûte</p>
+              <p class="tunnel__montant">${echapper(millions(Math.abs(t.effet) * 1e6))} de plus à trouver</p>
+            </div></div>`
+          : ""
+      }
+      <div class="tunnel__tampons" style="grid-template-columns: 1fr">
+        <button type="button" class="tunnel__adopter" data-action="poursuivre">Poursuivre</button>
+      </div>
+    </article>`;
+}
+
 export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   const mesure = courante(etat);
   if (!mesure) return "";
@@ -534,7 +765,8 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
     </div>
     <div class="tunnel__scene">
       ${renduChapitres(etat)}
-      <article class="tunnel__carte" aria-live="polite">
+      ${etat.telexEnCours ? renduTelex(etat.telexEnCours) : `<article class="tunnel__carte" aria-live="polite">
+        ${etat.chrono ? '<span class="tunnel__chrono" aria-hidden="true"></span>' : ""}
         <header class="tunnel__carte-tete">
           <span class="tunnel__carte-chapitre">${echapper(mesure.chapitre)}</span>
           <span class="tunnel__carte-numero">mesure ${faits + 1} / ${etat.ordre.length}</span>
@@ -558,7 +790,7 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner — elle reviendra en fin de pile</button>
           ${etat.historique.length ? '<button type="button" class="tunnel__ajourner" data-geste="annuler">&#8592; Annuler le dernier tampon</button>' : ""}
         </div>
-      </article>
+      </article>`}
       ${renduJournal(etat)}
     </div>`;
 }
@@ -612,6 +844,17 @@ export function renduVerdict(etat: EtatTunnel, missionEuros: number): string {
           resteEuros === 0 ? " · l'équilibre" : ""
         }</p>
       ${duel}
+      ${(() => {
+        const gagnees = decorations(etat, missionEuros);
+        if (!gagnees.length) return "";
+        const collection = collectionner(gagnees);
+        return `<div class="tunnel__decorations"><p class="tunnel__surtitre">Vos décorations</p>
+          <div class="tunnel__decorations-rang">${gagnees
+            .map((d) => `<span class="tunnel__decoration" title="${echapper(d.detail)}">${echapper(d.nom)}</span>`)
+            .join("")}</div>
+          <p class="tunnel__note">Collection : ${collection.length} / ${DECORATIONS.length}.</p>
+        </div>`;
+      })()}
       ${gestes ? `<div class="tunnel__verdict-gestes"><p class="tunnel__surtitre">Vos plus gros gestes</p>${gestes}</div>` : ""}
       ${renduSoutiens(etat, missionEuros)}
       <div class="tunnel__verdict-boutons">
@@ -670,9 +913,20 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   // pas : la partie du joueur vaut plus qu'un lien.
   const recu = decoderDefi(new URLSearchParams(location.search).get("defi"));
   let etat = restaurer() ?? etatInitial(recu);
+  // Le minuteur du conseil de crise : réarmé à chaque peinture, désarmé
+  // avant — une seule échéance vit à la fois. À l'expiration, la mesure est
+  // ajournée d'office : le conseil n'attend pas.
+  let minuteur: ReturnType<typeof setTimeout> | undefined;
   const peindre = () => {
     sauver(etat);
     cadre.innerHTML = rendu(etat, options.missionEuros);
+    clearTimeout(minuteur);
+    if (etat.chrono && etat.phase === "conseil" && !etat.telexEnCours && courante(etat)) {
+      minuteur = setTimeout(() => {
+        etat = ajourner(etat);
+        peindre();
+      }, CHRONO_SECONDES * 1000);
+    }
   };
   cadre.addEventListener("click", (evenement) => {
     const cible = (evenement.target as HTMLElement).closest<HTMLElement>(
@@ -686,10 +940,13 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     const geste = cible.dataset.geste;
     if (geste === "adopter" || geste === "rejeter") {
-      etat = verifierCensure(
+      // Le télex tombe AVANT la censure : ses effets peuvent être ce qui
+      // censure, et le joueur doit lire pourquoi avant de tomber.
+      etat = verifierTelex(
         tamponner(etat, geste === "adopter" ? "adopte" : "rejete"),
         options.missionEuros,
       );
+      if (!etat.telexEnCours) etat = verifierCensure(etat, options.missionEuros);
       return peindre();
     }
     if (geste === "ajourner") {
@@ -702,6 +959,14 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     if (cible.dataset.action === "commencer") {
       etat = commencer(etat);
+      return peindre();
+    }
+    if (cible.dataset.action === "poursuivre") {
+      etat = poursuivreTelex(etat, options.missionEuros);
+      return peindre();
+    }
+    if (cible.dataset.action === "chrono") {
+      etat = { ...etat, chrono: !etat.chrono };
       return peindre();
     }
     if (cible.dataset.action === "rejouer") {

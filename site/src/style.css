@@ -8583,3 +8583,39 @@ body[data-carte="oui"] .legende {
   font-variant-numeric: tabular-nums;
 }
 .tunnel__duel strong { color: #d9ac4d; }
+
+/* Le télex : la carte d'événement — même papier, un liseré doré qui dit
+   « ceci n'est pas une mesure, c'est le monde qui répond ». */
+.tunnel__carte--telex { border-top: 4px solid #d9ac4d; }
+.tunnel__carte--telex .tunnel__carte-chapitre { color: #b88420; }
+
+/* Le chrono du conseil de crise : une réglette qui fond en vingt secondes,
+   recréée à chaque carte — l'animation repart d'elle-même. */
+.tunnel__chrono {
+  display: block;
+  height: 4px;
+  border-radius: var(--rayon-xs);
+  background: #d9ac4d;
+  animation: tunnel-fond 20s linear forwards;
+  transform-origin: left;
+}
+@keyframes tunnel-fond {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tunnel__chrono { animation: none; }
+}
+
+/* Les décorations : des pastilles au liseré doré, jamais un score. */
+.tunnel__decorations { display: flex; flex-direction: column; gap: var(--espace-2); }
+.tunnel__decorations-rang { display: flex; flex-wrap: wrap; gap: var(--espace-2); }
+.tunnel__decoration {
+  border: 1px solid #d9ac4d;
+  color: #d9ac4d;
+  border-radius: var(--rayon-pilule);
+  padding: var(--espace-2) var(--espace-4);
+  font-size: var(--texte-s);
+  font-weight: 600;
+  white-space: nowrap;
+}

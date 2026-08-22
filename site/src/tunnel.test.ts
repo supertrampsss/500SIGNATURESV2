@@ -18,6 +18,8 @@ import { MESURES } from "./mesures.ts";
 import {
   ajourner,
   annuler,
+  collectionner,
+  decorations,
   basculerEngagement,
   bilanTexte,
   decoderDefi,
@@ -38,6 +40,8 @@ import {
   tamponner,
   trouve,
   verifierCensure,
+  poursuivreTelex,
+  verifierTelex,
   type EtatTunnel,
 } from "./tunnel.ts";
 
@@ -397,4 +401,85 @@ test("le journal nomme les écartées « incompatible », jamais « rejetée »"
   const html = renduConseil(etat, MISSION);
   assert.match(html, /incompatible/);
   assert.match(html, /Annuler le dernier tampon/);
+});
+
+test("un télex tombe une fois, coûte ce qu'il annonce, et peut censurer en tombant", () => {
+  // Faire vaciller les Marchés sous 30 : flat tax à abattement (−3), ISF
+  // (−2), Zucman (−3), retour à 62 ans (−6) → 41 − 14 = 27, comblé nul.
+  // « Les taux montent » tombe : +2 000 M€ à trouver, une seule fois.
+  let etat = conseil();
+  etat = adopterId(etat, "flat-tax-a-20-avec-abattement-protegeant");
+  etat = adopterId(etat, "retablir-un-impot-sur-la-fortune-financiere");
+  etat = adopterId(etat, "impot-plancher-de-2-sur-les-patrimoines");
+  etat = adopterId(etat, "revenir-a-62-ans");
+  assert.equal(soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur, 27);
+  etat = verifierTelex(etat, MISSION);
+  assert.equal(etat.telexEnCours, "taux");
+  assert.equal(etat.telex.surcout, -2000);
+  assert.equal(trouve(etat), -12000 + 4500 + 15000 - 13000 - 2000);
+  // Refermer : pas de censure ici, le conseil reprend.
+  etat = poursuivreTelex(etat, MISSION);
+  assert.equal(etat.telexEnCours, undefined);
+  assert.equal(etat.phase, "conseil");
+  // Le même télex ne retombe jamais.
+  assert.equal(verifierTelex(etat, MISSION).telexEnCours, undefined);
+});
+
+test("les bons télex existent : franchir 50 000 M€ fait respirer les marchés", () => {
+  let etat = conseil();
+  etat = adopterId(etat, "flat-tax-a-20-des-le-premier");
+  const avant = soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur;
+  etat = verifierTelex(etat, MISSION);
+  // Le premier déclenché est « perspective » (comblé 150 000 ≥ 50 000).
+  assert.equal(etat.telexEnCours, "perspective");
+  assert.equal(etat.telex.surcout, 0);
+  const apres = soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur;
+  assert.ok(apres >= avant, "un bon télex ne fait pas baisser les marchés");
+  const html = renduConseil(etat, MISSION);
+  assert.match(html, /Télex — entre deux mesures/);
+  assert.match(html, /Perspective relevée/);
+  assert.match(html, /Poursuivre/);
+  assert.doesNotMatch(html, /REJETER/i);
+});
+
+test("les décorations se gagnent au verdict, jamais en cours de partie", () => {
+  let etat = conseil();
+  etat = adopterId(etat, "geler-le-point-d-indice-en-2026");
+  assert.deepEqual(decorations(etat, MISSION), [], "rien avant le verdict");
+  while (courante(etat)) etat = tamponner(etat, "rejete");
+  const gagnees = decorations(etat, MISSION).map((d) => d.id);
+  // Pile finie sans censure, sans recette nouvelle, les 78 tamponnées.
+  assert.ok(gagnees.includes("sans-censure"));
+  assert.ok(gagnees.includes("zero-impot"));
+  assert.ok(gagnees.includes("integrale"));
+  assert.ok(!gagnees.includes("equilibre"));
+  // Adopter la TVA fait perdre « Zéro impôt levé ».
+  let percepteur = conseil();
+  percepteur = adopterId(percepteur, "porter-le-taux-normal-de-tva-a");
+  while (courante(percepteur)) percepteur = tamponner(percepteur, "rejete");
+  assert.ok(!decorations(percepteur, MISSION).map((d) => d.id).includes("zero-impot"));
+  // Un duel gagné se décore.
+  let duel = { ...conseil(), defi: { comble: 5000 } };
+  duel = adopterId(duel, "porter-le-taux-normal-de-tva-a");
+  while (courante(duel)) duel = tamponner(duel, "rejete");
+  assert.ok(decorations(duel, MISSION).map((d) => d.id).includes("duel-gagne"));
+});
+
+test("la collection survit d'une partie à l'autre, et vit sans stockage", () => {
+  const memoire = new Map<string, string>();
+  (globalThis as { localStorage?: unknown }).localStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  try {
+    assert.deepEqual(collectionner([{ id: "sans-censure" }]), ["sans-censure"]);
+    assert.deepEqual(collectionner([{ id: "equilibre" }]), ["sans-censure", "equilibre"]);
+    // Regagner une décoration ne la compte pas deux fois.
+    assert.deepEqual(collectionner([{ id: "equilibre" }]), ["sans-censure", "equilibre"]);
+  } finally {
+    delete (globalThis as { localStorage?: unknown }).localStorage;
+  }
+  // Sans stockage du tout : la vitrine du jour reste vraie.
+  assert.deepEqual(collectionner([{ id: "funambule" }]), ["funambule"]);
 });
