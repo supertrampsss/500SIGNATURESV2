@@ -1,0 +1,253 @@
+/**
+ * Le tunnel et sa pile.
+ *
+ * Trois familles de garanties, qui ne se vérifient nulle part ailleurs :
+ * l'intégrité du catalogue (chaque mesure porte tout ce que sa carte affiche,
+ * et ses verrous pointent des contrats qui existent) ; la mécanique du jeu
+ * (un tampon par mesure, l'ajournée revient, le compteur ne devient jamais
+ * négatif, l'équilibre ne se franchit qu'à reste nul) ; et la frontière
+ * éditoriale (les ordres de grandeur et les règles du jeu sont annoncés comme
+ * tels dans le rendu — c'est ce qui sépare le tunnel du reste du site).
+ */
+
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import { CONTRATS } from "./mission.ts";
+import { MESURES } from "./mesures.ts";
+import {
+  ajourner,
+  basculerEngagement,
+  bilanTexte,
+  comble,
+  commencer,
+  courante,
+  etatInitial,
+  paliersTunnel,
+  pile,
+  profil,
+  rendu,
+  renduConseil,
+  renduMission,
+  renduVerdict,
+  soutiens,
+  tamponner,
+  trouve,
+  type EtatTunnel,
+} from "./tunnel.ts";
+
+const MISSION = 159_297e6;
+
+/** Un conseil ouvert sans engagement : la pile entière. */
+function conseil(): EtatTunnel {
+  return commencer(etatInitial());
+}
+
+/** Tamponner la mesure courante par son id attendu — le test échoue si la
+ *  pile ne présente pas celle qu'on croit. */
+function adopterId(etat: EtatTunnel, id: string): EtatTunnel {
+  while (courante(etat) && courante(etat)!.id !== id) {
+    etat = tamponner(etat, "rejete");
+  }
+  assert.equal(courante(etat)?.id, id, `« ${id} » n'est pas dans la pile`);
+  return tamponner(etat, "adopte");
+}
+
+test("le catalogue est entier : 78 mesures, ids uniques, cartes complètes", () => {
+  assert.equal(MESURES.length, 78);
+  assert.equal(new Set(MESURES.map((m) => m.id)).size, 78);
+  for (const m of MESURES) {
+    assert.ok(m.titre.length > 8, m.id);
+    // « Évaluations LFSS. » est courte et suffisante : elle nomme la source.
+    assert.ok(m.detail.length >= 15, `${m.id} : une carte sans provenance ne se défend pas`);
+    assert.ok(m.chapitre, m.id);
+    assert.notEqual(m.effet, 0, `${m.id} : une mesure sans effet n'a rien à faire en conseil`);
+    assert.ok(Object.keys(m.reactions).length >= 1, `${m.id} : aucune réaction déclarée`);
+  }
+});
+
+test("chaque verrou pointe un contrat qui existe dans mission.ts", () => {
+  const connus = new Set(CONTRATS.map((c) => c.cle));
+  for (const m of MESURES) {
+    for (const cle of m.bloqueePar ?? []) {
+      assert.ok(connus.has(cle), `${m.id} : contrat inconnu « ${cle} »`);
+    }
+  }
+});
+
+test("les deux variantes de la flat tax coexistent, et se contredisent comme prévu", () => {
+  // C'est la pédagogie du catalogue : « épargne les modestes » et « rapporte »
+  // ne coexistent pas. La sèche rapporte énormément, celle à abattement coûte.
+  const seche = MESURES.find((m) => m.id.startsWith("flat-tax-a-20-des"));
+  const abattement = MESURES.find((m) => m.id.startsWith("flat-tax-a-20-avec"));
+  assert.ok(seche && abattement);
+  assert.ok(seche!.effet > 100_000 && abattement!.effet < 0);
+  // Les fourchettes contestées sont AFFICHÉES : la précision fait partie du chiffre.
+  assert.match(seche!.precision ?? "", /arithmétique/);
+  const prestations = MESURES.find((m) => m.id.startsWith("reserver-les-prestations"));
+  assert.match(prestations!.precision ?? "", /fourchette/);
+});
+
+test("signer un engagement retire ses mesures — dans les deux sens, comme le contrat", () => {
+  const toutes = pile([]);
+  assert.equal(toutes.length, 78);
+  const sansEcole = pile(["ecole-sante"]);
+  // « Sans toucher à l'école ni à la santé » retire AUSSI la revalorisation
+  // des enseignants : un engagement n'est pas une préférence.
+  assert.ok(!sansEcole.some((m) => m.id.startsWith("revaloriser-les-enseignants")));
+  assert.ok(!sansEcole.some((m) => m.id.startsWith("doubler-les-franchises")));
+  const sansImpot = pile(["sans-impot"]);
+  assert.ok(!sansImpot.some((m) => m.id.startsWith("porter-le-taux-normal-de-tva")));
+  // Les baisses d'impôt restent : ne pas lever n'interdit pas d'alléger.
+  assert.ok(sansImpot.some((m) => m.id.startsWith("exonerer-de-droits-de-succession")));
+  // Tout signer laisse quand même un jeu jouable.
+  const toutSigne = pile(CONTRATS.map((c) => c.cle));
+  assert.ok(toutSigne.length >= 40, `${toutSigne.length} mesures restantes`);
+});
+
+test("un tampon par mesure, et l'ajournée revient en fin de pile", () => {
+  let etat = conseil();
+  const premiere = courante(etat)!;
+  etat = ajourner(etat);
+  assert.notEqual(courante(etat)!.id, premiere.id, "l'ajournée ne doit pas rester sur le bureau");
+  assert.equal(etat.ordre[etat.ordre.length - 1], premiere.id);
+  assert.equal(etat.ordre.length, 78, "ajourner ne supprime pas");
+  // Elle finit par revenir, et se tamponne comme les autres.
+  etat = adopterId(etat, premiere.id);
+  assert.equal(etat.tampons[premiere.id], "adopte");
+});
+
+test("rejeter est gratuit, adopter bouge le compteur — dans les deux sens", () => {
+  let etat = conseil();
+  etat = tamponner(etat, "rejete");
+  assert.equal(trouve(etat), 0);
+  etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
+  assert.equal(trouve(etat), 9800);
+  // Une mesure qui coûte retranche : créer des postes de soignants se paie.
+  etat = adopterId(etat, "creer-5-000-postes-de-soignants");
+  assert.equal(trouve(etat), 9800 - 350);
+});
+
+test("le compteur ne devient jamais négatif : dépenser ne crée pas une dette de mission", () => {
+  let etat = conseil();
+  etat = adopterId(etat, "revenir-a-62-ans");
+  assert.ok(trouve(etat) < 0);
+  assert.equal(comble(etat), 0);
+  const paliers = paliersTunnel(etat, MISSION);
+  assert.ok(paliers.every((p) => !p.franchi));
+});
+
+test("les paliers sont ceux de la mission, et l'équilibre exige un reste nul", () => {
+  let etat = conseil();
+  etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
+  etat = adopterId(etat, "reconduire-la-surtaxe-des-grandes-entreprises");
+  // 17 800 M€ : le premier palier (10 000) est franchi, pas le deuxième.
+  const paliers = paliersTunnel(etat, MISSION);
+  assert.deepEqual(
+    paliers.map((p) => p.franchi),
+    [true, false, false, false],
+  );
+  // Même comblé au-delà de tous les seuils ronds, l'équilibre reste fermé
+  // tant qu'il reste un euro à trouver.
+  const presque = paliersTunnel(etat, 17_800e6 + 1e6);
+  assert.equal(presque[presque.length - 1]!.franchi, false);
+  const equilibre = paliersTunnel(etat, 17_800e6);
+  assert.equal(equilibre[equilibre.length - 1]!.franchi, true);
+});
+
+test("les soutiens réagissent aux tampons, restent bornés, et la rupture s'annonce sous 20", () => {
+  let etat = conseil();
+  const depart = soutiens(etat, MISSION);
+  assert.deepEqual(
+    depart.map((s) => s.nom),
+    ["Opinion", "Entreprises", "Territoires", "Marchés"],
+  );
+  assert.ok(depart.every((s) => s.valeur >= 4 && s.valeur <= 96 && !s.danger));
+  // La flat tax sèche fait plonger l'opinion (−20) et remonter les marchés.
+  etat = adopterId(etat, "flat-tax-a-20-des-le-premier");
+  const apres = soutiens(etat, MISSION);
+  const opinion = apres.find((s) => s.cle === "opinion")!;
+  const marches = apres.find((s) => s.cle === "marches")!;
+  assert.equal(opinion.valeur, 42);
+  assert.ok(marches.valeur > depart.find((s) => s.cle === "marches")!.valeur);
+  assert.ok(!opinion.danger, "42 % n'est pas la rupture");
+});
+
+test("le profil nomme la forme du plan, jamais une note", () => {
+  assert.equal(profil(conseil()).nom, "L'observateur");
+  let percepteur = conseil();
+  percepteur = adopterId(percepteur, "porter-le-taux-normal-de-tva-a");
+  assert.equal(profil(percepteur).nom, "Le percepteur");
+  let chirurgien = conseil();
+  chirurgien = adopterId(chirurgien, "geler-le-point-d-indice-en-2026");
+  assert.equal(profil(chirurgien).nom, "Le chirurgien");
+  let relance = conseil();
+  relance = adopterId(relance, "revenir-a-62-ans");
+  assert.equal(profil(relance).nom, "La relance assumée");
+  // Dans l'ordre du catalogue : `adopterId` rejette tout ce qui précède sa
+  // cible, donc on adopte en avançant, jamais en revenant.
+  let equilibriste = conseil();
+  equilibriste = adopterId(equilibriste, "porter-le-taux-normal-de-tva-a");
+  equilibriste = adopterId(equilibriste, "repousser-l-age-legal-a-65-ans");
+  equilibriste = adopterId(equilibriste, "geler-le-point-d-indice-en-2026");
+  assert.equal(profil(equilibriste).nom, "L'équilibriste");
+});
+
+test("la pile épuisée bascule d'elle-même sur le verdict", () => {
+  let etat = conseil();
+  while (courante(etat)) etat = tamponner(etat, "rejete");
+  assert.equal(etat.phase, "verdict");
+  assert.equal(Object.keys(etat.tampons).length, 78);
+});
+
+test("l'écran de mission écrit le vrai compteur et compte ce que chaque signature retire", () => {
+  const html = renduMission(etatInitial(), MISSION);
+  assert.match(html, /159\u202f297\u202fM€/);
+  // Les intitulés sont échappés dans le rendu : « l'école » y est l&#39;école.
+  const lisible = html.replace(/&#39;/g, "'");
+  for (const contrat of CONTRATS) assert.ok(lisible.includes(contrat.nom), contrat.cle);
+  const signe = basculerEngagement(etatInitial(), "ecole-sante");
+  assert.match(renduMission(signe, MISSION), /9 mesures quittent la pile/);
+});
+
+test("la carte du conseil porte le montant, sa réserve, et la frontière éditoriale", () => {
+  const html = renduConseil(conseil(), MISSION);
+  // La première carte de la pile validée : la flat tax sèche, avec sa réserve.
+  assert.match(html, /Flat tax à 20 %/);
+  assert.match(html, /arithmétique brute/);
+  assert.match(html, /150\u202f000\u202fM€/);
+  assert.match(html, /Rejeter/);
+  assert.match(html, /Adopter/);
+  assert.match(html, /Ajourner/);
+  const page = rendu(conseil(), MISSION);
+  assert.match(page, /ordres de grandeur du débat public/);
+  assert.match(page, /règles du jeu, pas des mesures/);
+  assert.match(page, /l'atelier expert/);
+});
+
+test("le verdict se partage sans balise et dit le comblé et les paliers", () => {
+  let etat = conseil();
+  etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
+  while (courante(etat)) etat = tamponner(etat, "rejete");
+  const html = renduVerdict(etat, MISSION);
+  assert.match(html, /Le percepteur/);
+  assert.match(html, /Rejouer/);
+  assert.match(html, /Copier le bilan/);
+  assert.match(html, /Porter le taux normal de TVA/);
+});
+
+test("le bilan copié tient en une phrase, chiffres compris", () => {
+  // `location` n'existe pas sous node : le test le fournit, comme le
+  // navigateur le ferait.
+  (globalThis as { location?: { origin: string } }).location = {
+    origin: "https://exemple.test",
+  };
+  let etat = conseil();
+  etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
+  while (courante(etat)) etat = tamponner(etat, "rejete");
+  const texte = bilanTexte(etat, MISSION);
+  assert.match(texte, /Le percepteur/);
+  assert.match(texte, /9\u202f800/);
+  assert.match(texte, /Faites mieux : https:\/\/exemple\.test\/simulateur/);
+  delete (globalThis as { location?: unknown }).location;
+});

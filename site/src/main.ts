@@ -26,6 +26,8 @@ import {
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
+import { afficherTunnel } from "./tunnel.ts";
+import { aTrouverAuDepart } from "./mission.ts";
 import { afficherFonctions } from "./fonctions.ts";
 import { afficherRedistribution } from "./redistribution.ts";
 import { afficherCentEurosApu } from "./cent-euros-apu.ts";
@@ -3829,6 +3831,20 @@ async function ouvrirSimulateur(): Promise<void> {
     return basculerVue();
   }
   voletsMontes = volets;
+  // Le TUNNEL est l'entrée du simulateur : sa mission est le vrai compteur —
+  // ce que `mission.ts` calcule sur les volets chargés, jamais une constante.
+  // L'atelier reste monté ENTIER juste en dessous, replié : c'est le mode
+  // expert, ouvert depuis le pied du tunnel — ou d'office quand l'adresse
+  // porte un budget ou un face-à-face, parce qu'un lien partagé doit ouvrir
+  // ce qu'il promettait, pas un écran de mission.
+  afficherTunnel($("tunnel"), {
+    missionEuros: aTrouverAuDepart(volets),
+    surModeExpert: () => {
+      $("mode-expert").hidden = false;
+      $("mode-expert").scrollIntoView({ behavior: "smooth", block: "start" });
+    },
+  });
+  if (etat.budget || etat.face) $("mode-expert").hidden = false;
   // Le budget que l'adresse porte passe par la même porte qu'un scénario
   // cliqué : c'est le chemin d'un lien partagé et du bouton « Rejouer » d'une
   // analyse, donc précisément celui où le lecteur n'a aucune autre copie de ce
