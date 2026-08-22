@@ -17,9 +17,11 @@
  * l'école ni à la santé » fait disparaître les cartes qu'il couvre, dans les
  * deux sens : on ne peut ni les couper, ni les augmenter.
  *
- * Ce fichier est GÉNÉRÉ depuis le catalogue validé par le propriétaire
- * (« La pile de mesures », 78 mesures, 22 août 2026) ; l'ordre est celui de
- * la validation, et le tunnel le rejoue tel quel.
+ * Ce fichier est GÉNÉRÉ depuis les catalogues validés par le propriétaire :
+ * « La pile de mesures » (78 mesures) puis « Les mesures qui manquent »
+ * (18 ajouts sur les retraites, l'immigration, la sécurité, le chômage et le
+ * pouvoir d'achat), tous deux du 22 août 2026. L'ordre est celui de la
+ * validation, chapitre par chapitre, et le tunnel le rejoue tel quel.
  */
 
 export type Soutien = "opinion" | "entreprises" | "territoires" | "marches";
@@ -168,6 +170,35 @@ export const MESURES: Mesure[] = [
     bloqueePar: ["sans-impot"],
   },
   {
+    id: "tva-a-5-5-sur-l-electricite",
+    chapitre: "Impôts",
+    titre: "TVA à 5,5 % sur l'électricité, le gaz et les carburants",
+    effet: -12000,
+    precision: "très contesté",
+    detail: "Chiffrage de ses promoteurs autour de 12 000 ; les contre-chiffrages montent à 17 000, et le droit européen interdit le taux réduit sur les carburants en l'état. La mesure la plus populaire des sondages, avec sa fourchette et sa condition juridique.",
+    reactions: { opinion: 8, marches: -4 },
+  },
+  {
+    id: "fiscaliser-les-heures-supplementaires-comme-le",
+    exclut: ["flat-tax-a-20-des-le-premier", "flat-tax-a-20-avec-abattement-protegeant"],
+    chapitre: "Impôts",
+    titre: "Fiscaliser les heures supplémentaires comme le reste du salaire",
+    effet: 1700,
+    detail: "Dépense fiscale au tome des voies et moyens.",
+    reactions: { opinion: -6 },
+    bloqueePar: ["sans-impot"],
+  },
+  {
+    id: "elargir-la-taxe-sur-les-transactions",
+    chapitre: "Impôts",
+    titre: "Élargir la taxe sur les transactions financières",
+    effet: 2000,
+    precision: "fourchette 2 000 à 4 300",
+    detail: "Rapports parlementaires sur l'extension aux opérations intrajournalières.",
+    reactions: { entreprises: -2, marches: -3 },
+    bloqueePar: ["sans-impot"],
+  },
+  {
     id: "reconduire-la-surtaxe-des-grandes-entreprises",
     chapitre: "Entreprises et niches",
     titre: "Reconduire la surtaxe des grandes entreprises",
@@ -282,6 +313,35 @@ export const MESURES: Mesure[] = [
     reactions: { opinion: 5 },
   },
   {
+    id: "suspendre-la-reforme-des-retraites-jusqu",
+    exclut: ["repousser-l-age-legal-a-65-ans", "revenir-a-62-ans"],
+    chapitre: "Retraites",
+    titre: "Suspendre la réforme des retraites jusqu'en 2028 (l'âge gelé à 62 ans et 9 mois)",
+    effet: -1400,
+    precision: "monte chaque année",
+    detail: "Chiffrage du PLFSS : environ 100 M€ la première année, 1 400 la deuxième, davantage ensuite. La position médiane réellement votée.",
+    reactions: { opinion: 4, entreprises: -2, marches: -3 },
+  },
+  {
+    id: "remplacer-l-abattement-des-retraites-par",
+    exclut: ["flat-tax-a-20-des-le-premier", "flat-tax-a-20-avec-abattement-protegeant"],
+    chapitre: "Retraites",
+    titre: "Remplacer l'abattement de 10 % des retraités par un forfait de 2 000 €",
+    effet: 1200,
+    detail: "Évaluation du PLF 2026. Les petites pensions y gagnent, les grosses y perdent.",
+    reactions: { opinion: -3 },
+    bloqueePar: ["sans-impot"],
+  },
+  {
+    id: "ouvrir-un-etage-de-capitalisation-collective",
+    chapitre: "Retraites",
+    titre: "Ouvrir un étage de retraite par capitalisation collective",
+    effet: -500,
+    precision: "coûts de transition",
+    detail: "Position patronale au conclave des retraites. Cotiser pour soi, c'est cesser de financer les pensions courantes : la transition coûte avant de rapporter.",
+    reactions: { opinion: -4, entreprises: 4, marches: 4 },
+  },
+  {
     id: "doubler-les-franchises-medicales",
     chapitre: "Santé",
     titre: "Doubler les franchises médicales",
@@ -343,6 +403,24 @@ export const MESURES: Mesure[] = [
     detail: "Revues de dépenses publiées.",
     reactions: { territoires: -1 },
     bloqueePar: ["ecole-sante"],
+  },
+  {
+    id: "loi-grand-age-50-000-recrutements",
+    chapitre: "Santé",
+    titre: "Loi grand âge : 50 000 recrutements en Ehpad et à domicile",
+    effet: -2500,
+    detail: "Rapports publics sur les besoins en personnel du grand âge.",
+    reactions: { opinion: 4 },
+    bloqueePar: ["ecole-sante"],
+  },
+  {
+    id: "fiscalite-nutritionnelle-au-niveau-recommande",
+    chapitre: "Santé",
+    titre: "Fiscalité nutritionnelle au niveau recommandé (sucre, alcool)",
+    effet: 1500,
+    detail: "Recommandations chiffrées de la Cour des comptes sur les taxes comportementales.",
+    reactions: { opinion: -2, entreprises: -2 },
+    bloqueePar: ["sans-impot"],
   },
   {
     id: "recruter-10-000-policiers-et-gendarmes",
@@ -413,6 +491,41 @@ export const MESURES: Mesure[] = [
     reactions: { opinion: -2, territoires: 2 },
   },
   {
+    id: "supprimer-l-allocation-pour-demandeurs-d",
+    chapitre: "Sécurité et immigration",
+    titre: "Supprimer l'allocation pour demandeurs d'asile",
+    effet: 350,
+    detail: "Budget voté de l'ADA. Petite ligne, gros totem : la carte donne l'échelle.",
+    reactions: { opinion: 1, territoires: -1 },
+    bloqueePar: ["sans-prestation"],
+  },
+  {
+    id: "doubler-l-execution-des-eloignements-oqtf",
+    chapitre: "Sécurité et immigration",
+    titre: "Doubler l'exécution des éloignements (OQTF)",
+    effet: -400,
+    detail: "Coût unitaire d'un éloignement établi par la Cour des comptes, multiplié par le volume visé, rétention et laissez-passer compris. Éloigner coûte avant d'économiser.",
+    reactions: { opinion: 2 },
+  },
+  {
+    id: "doubler-les-moyens-du-renseignement-interieur",
+    chapitre: "Sécurité et immigration",
+    titre: "Doubler les moyens du renseignement intérieur",
+    effet: -300,
+    detail: "Budgets votés des services.",
+    reactions: { opinion: 1 },
+  },
+  {
+    id: "legaliser-et-taxer-le-cannabis",
+    chapitre: "Sécurité et immigration",
+    titre: "Légaliser et taxer le cannabis",
+    effet: 2800,
+    precision: "fourchette 2 000 à 3 200",
+    detail: "Travaux du Conseil d'analyse économique : recettes fiscales d'un marché légal, plus les économies de répression.",
+    reactions: { opinion: -3, entreprises: 1 },
+    bloqueePar: ["sans-impot"],
+  },
+  {
     id: "porter-l-effort-de-defense-vers-3",
     exclut: ["etaler-la-marche-2026-de-la-programmation"],
     chapitre: "Défense et international",
@@ -445,6 +558,16 @@ export const MESURES: Mesure[] = [
     effet: 2900,
     detail: "Mission APD : ~5 900 M€ votés.",
     reactions: { opinion: -2 },
+  },
+  {
+    id: "service-militaire-volontaire-de-50-000",
+    exclut: ["generaliser-le-service-national-universel"],
+    chapitre: "Défense et international",
+    titre: "Service militaire volontaire de 50 000 jeunes",
+    effet: -2000,
+    precision: "en régime",
+    detail: "Annonce de 2025 : environ 800 M€ la première année, 2 000 en régime de croisière. Remplace le SNU.",
+    reactions: { opinion: 3 },
   },
   {
     id: "taxer-le-kerosene-des-vols-interieurs-et",
@@ -592,6 +715,15 @@ export const MESURES: Mesure[] = [
     reactions: { opinion: -5, entreprises: 2 },
   },
   {
+    id: "doubler-les-bourses-etudiantes-sur-criteres",
+    chapitre: "École et culture",
+    titre: "Doubler les bourses étudiantes sur critères sociaux",
+    effet: -2400,
+    detail: "Budget voté des bourses, doublé.",
+    reactions: { opinion: 3 },
+    bloqueePar: ["ecole-sante"],
+  },
+  {
     id: "financer-100-000-logements-sociaux-de-plus",
     chapitre: "Logement",
     titre: "Financer 100 000 logements sociaux de plus par an",
@@ -648,6 +780,42 @@ export const MESURES: Mesure[] = [
     effet: -1800,
     detail: "Chiffrages CNAF des propositions.",
     reactions: { opinion: 3 },
+  },
+  {
+    id: "conditionner-le-rsa-a-15-heures",
+    exclut: ["verser-le-rsa-automatiquement-fin-du-non"],
+    chapitre: "Travail et solidarité",
+    titre: "Conditionner le RSA à 15 heures d'activité par semaine",
+    effet: -300,
+    precision: "coût d'accompagnement",
+    detail: "La généralisation de 2025 coûte d'abord son accompagnement (France Travail, départements) ; les économies revendiquées ne sont documentées nulle part. La carte affiche le coût, pas la promesse.",
+    reactions: { opinion: 3, entreprises: 2, territoires: -2 },
+    bloqueePar: ["sans-prestation"],
+  },
+  {
+    id: "porter-le-rsa-au-seuil-de",
+    chapitre: "Travail et solidarité",
+    titre: "Porter le RSA au seuil de pauvreté (environ +30 %)",
+    effet: -3500,
+    detail: "Chiffrages associatifs et parlementaires de la revalorisation, non-recours constant.",
+    reactions: { opinion: 2, entreprises: -2, marches: -2 },
+  },
+  {
+    id: "conge-de-naissance-mieux-remunere",
+    chapitre: "Travail et solidarité",
+    titre: "Congé de naissance mieux rémunéré, en remplacement du congé parental",
+    effet: -1300,
+    detail: "Évaluations de la réforme annoncée en PLFSS.",
+    reactions: { opinion: 3, entreprises: -1 },
+  },
+  {
+    id: "ouvrir-200-000-places-de-creche",
+    chapitre: "Travail et solidarité",
+    titre: "Ouvrir 200 000 places de crèche (service public de la petite enfance)",
+    effet: -1500,
+    detail: "Chiffrages du comité de filière petite enfance, en rythme annuel.",
+    reactions: { opinion: 3, entreprises: 2 },
+    bloqueePar: ["sans-collectivites"],
   },
   {
     id: "geler-le-point-d-indice-en-2026",
