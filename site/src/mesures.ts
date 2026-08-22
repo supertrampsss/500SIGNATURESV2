@@ -41,11 +41,16 @@ export type Mesure = {
   reactions: Partial<Record<Soutien, number>>;
   /** Les contrats (mission.ts) qui retirent cette mesure du tunnel. */
   bloqueePar?: string[];
+  /** Les mesures incompatibles : adopter celle-ci les écarte du conseil —
+   *  on ne vote pas deux barèmes de l'IR, ni 65 ans ET 62 ans. La relation
+   *  est symétrisée à l'exécution : la déclarer d'un côté suffit. */
+  exclut?: string[];
 };
 
 export const MESURES: Mesure[] = [
   {
     id: "flat-tax-a-20-des-le-premier",
+    exclut: ["flat-tax-a-20-avec-abattement-protegeant", "tranche-a-50-au-dela-de-250", "geler-le-bareme-de-l-impot-sur", "soumettre-les-revenus-du-capital-au-bareme"],
     chapitre: "Impôts",
     titre: "Flat tax à 20 % dès le premier euro — le barème disparaît, tout le monde paie",
     effet: 150000,
@@ -56,6 +61,7 @@ export const MESURES: Mesure[] = [
   },
   {
     id: "flat-tax-a-20-avec-abattement-protegeant",
+    exclut: ["tranche-a-50-au-dela-de-250", "geler-le-bareme-de-l-impot-sur", "soumettre-les-revenus-du-capital-au-bareme"],
     chapitre: "Impôts",
     titre: "Flat tax à 20 % avec abattement protégeant les revenus modestes",
     effet: -12000,
@@ -224,6 +230,7 @@ export const MESURES: Mesure[] = [
   },
   {
     id: "repousser-l-age-legal-a-65-ans",
+    exclut: ["revenir-a-62-ans"],
     chapitre: "Retraites",
     titre: "Repousser l'âge légal à 65 ans",
     effet: 8500,
@@ -407,6 +414,7 @@ export const MESURES: Mesure[] = [
   },
   {
     id: "porter-l-effort-de-defense-vers-3",
+    exclut: ["etaler-la-marche-2026-de-la-programmation"],
     chapitre: "Défense et international",
     titre: "Porter l'effort de défense vers 3 % du PIB",
     effet: -60001,
@@ -475,6 +483,7 @@ export const MESURES: Mesure[] = [
   },
   {
     id: "supprimer-le-bonus-automobile-electrique",
+    exclut: ["relancer-le-leasing-social-de-vehicules-electriques"],
     chapitre: "Écologie et transports",
     titre: "Supprimer le bonus automobile électrique",
     effet: 1500,
@@ -608,6 +617,7 @@ export const MESURES: Mesure[] = [
   },
   {
     id: "durcir-l-assurance-chomage-degressivite-duree",
+    exclut: ["revenir-sur-la-reforme-du-chomage-de"],
     chapitre: "Travail et solidarité",
     titre: "Durcir l'assurance chômage (dégressivité, durée)",
     effet: 2200,

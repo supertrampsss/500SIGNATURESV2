@@ -17,8 +17,12 @@ import { CONTRATS } from "./mission.ts";
 import { MESURES } from "./mesures.ts";
 import {
   ajourner,
+  annuler,
   basculerEngagement,
   bilanTexte,
+  decoderDefi,
+  encoderDefi,
+  restaurer,
   comble,
   commencer,
   courante,
@@ -33,6 +37,7 @@ import {
   soutiens,
   tamponner,
   trouve,
+  verifierCensure,
   type EtatTunnel,
 } from "./tunnel.ts";
 
@@ -222,7 +227,8 @@ test("la carte du conseil porte le montant, sa réserve, et la frontière édito
   const page = rendu(conseil(), MISSION);
   assert.match(page, /ordres de grandeur du débat public/);
   assert.match(page, /règles du jeu, pas des mesures/);
-  assert.match(page, /l'atelier expert/);
+  // La porte vers l'atelier a été retirée de l'écran par le propriétaire.
+  assert.doesNotMatch(page, /atelier expert/);
 });
 
 test("le verdict se partage sans balise et dit le comblé et les paliers", () => {
@@ -250,4 +256,145 @@ test("le bilan copié tient en une phrase, chiffres compris", () => {
   assert.match(texte, /9\u202f800/);
   assert.match(texte, /Faites mieux : https:\/\/exemple\.test\/simulateur/);
   delete (globalThis as { location?: unknown }).location;
+});
+
+test("le défi voyage dans l'adresse, et une adresse abîmée est ignorée en silence", () => {
+  let etat = conseil();
+  etat = { ...etat, engagements: ["ecole-sante", "sans-impot"] };
+  etat = adopterId(etat, "reconduire-la-surtaxe-des-grandes-entreprises");
+  const code = encoderDefi(etat);
+  assert.equal(code, "8000~ecole-sante.sans-impot");
+  const relu = decoderDefi(code);
+  assert.deepEqual(relu, { comble: 8000, engagements: ["ecole-sante", "sans-impot"] });
+  // Ce qui ne se lit pas n'ouvre rien : ni erreur, ni défi fantôme.
+  assert.equal(decoderDefi(null), null);
+  assert.equal(decoderDefi("n-importe-quoi"), null);
+  assert.equal(decoderDefi("-5"), null);
+  assert.equal(decoderDefi("999999999999"), null);
+  // Un contrat inconnu est écarté, le défi tient sur ce qui reste.
+  assert.deepEqual(decoderDefi("1200~inconnu.ecole-sante"), {
+    comble: 1200,
+    engagements: ["ecole-sante"],
+  });
+});
+
+test("un défi reçu pré-signe les engagements et s'affiche sur la mission", () => {
+  const etat = etatInitial({ comble: 12500, engagements: ["sans-prestation"] });
+  assert.deepEqual(etat.engagements, ["sans-prestation"]);
+  const html = renduMission(etat, MISSION);
+  assert.match(html, /Défi reçu/);
+  assert.match(html, /12 500 M€/);
+  assert.match(html, /pré-signés/);
+});
+
+test("le verdict tranche le duel : battu, égalité, manqué", () => {
+  const partie = (defi: number) => {
+    let etat = { ...conseil(), defi: { comble: defi } };
+    etat = adopterId(etat, "reconduire-la-surtaxe-des-grandes-entreprises");
+    while (courante(etat)) etat = tamponner(etat, "rejete");
+    return renduVerdict(etat, MISSION);
+  };
+  assert.match(partie(5000), /Défi <strong>battu<\/strong>/);
+  assert.match(partie(8000), /Défi à <strong>égalité<\/strong>/);
+  assert.match(partie(9000), /Défi <strong>manqué<\/strong>/);
+  assert.match(partie(9000), /Défier quelqu'un/);
+});
+
+test("la partie survit au rechargement, et une sauvegarde abîmée est jetée entière", () => {
+  // `sessionStorage` n'existe pas sous node : le test le fournit, minimal.
+  const memoire = new Map<string, string>();
+  (globalThis as { sessionStorage?: unknown }).sessionStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  try {
+    assert.equal(restaurer(), null, "rien de sauvé : rien à restaurer");
+    let etat = conseil();
+    etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
+    memoire.set("tunnel-partie", JSON.stringify(etat));
+    const relu = restaurer();
+    assert.ok(relu);
+    assert.equal(trouve(relu!), 9800);
+    assert.equal(relu!.phase, "conseil");
+    // Une pile qui cite une mesure disparue du catalogue est jetée ENTIÈRE :
+    // mieux vaut recommencer que jouer une partie qui ne se terminera pas.
+    memoire.set("tunnel-partie", JSON.stringify({ ...etat, ordre: [...etat.ordre, "disparue"] }));
+    assert.equal(restaurer(), null);
+    memoire.set("tunnel-partie", "{pas du json");
+    assert.equal(restaurer(), null);
+  } finally {
+    delete (globalThis as { sessionStorage?: unknown }).sessionStorage;
+  }
+});
+
+test("les ancres publiées des cartes ne dérivent pas du reste du dépôt", () => {
+  // Cinq cartes adossent leur ordre de grandeur à une ligne réellement
+  // publiée, citée dans leur texte. Ces nombres-là ne sont pas des chiffrages
+  // d'instituts : ce sont ceux que le site publie ailleurs (LFI 2025,
+  // comptes des APU), et une régénération du catalogue ne doit pas les
+  // emporter. C'est la première pierre de l'adossement ligne à ligne.
+  const detail = (prefixe: string) => MESURES.find((m) => m.id.startsWith(prefixe))!.detail;
+  assert.match(detail("geler-le-point-d-indice"), /370 016 M€/);
+  assert.match(detail("desindexer-les-pensions"), /362 178 M€/);
+  assert.match(detail("porter-l-effort-de-defense"), /60 004 M€/);
+  assert.match(detail("revaloriser-les-enseignants"), /88 817 M€/);
+  assert.match(detail("recruter-10-000-policiers"), /25 215 M€/);
+});
+
+test("adopter une mesure écarte ses incompatibles — et Annuler ramène tout", () => {
+  // On ne vote pas deux barèmes de l'IR : la flat tax sèche écarte l'autre
+  // variante, la tranche à 50, le gel du barème et la fin du PFU.
+  let etat = conseil();
+  etat = adopterId(etat, "flat-tax-a-20-des-le-premier");
+  assert.equal(etat.tampons["flat-tax-a-20-avec-abattement-protegeant"], "exclue");
+  assert.equal(etat.tampons["tranche-a-50-au-dela-de-250"], "exclue");
+  assert.equal(etat.tampons["geler-le-bareme-de-l-impot-sur"], "exclue");
+  assert.equal(etat.tampons["soumettre-les-revenus-du-capital-au-bareme"], "exclue");
+  // Une exclue ne compte pas dans le trouvé, et ne repasse pas sur le bureau.
+  assert.equal(trouve(etat), 150000);
+  assert.notEqual(courante(etat)?.id, "flat-tax-a-20-avec-abattement-protegeant");
+  // La symétrie vaut : 62 ans écarte 65 ans, déclaré de l'autre côté.
+  let retraites = conseil();
+  retraites = adopterId(retraites, "repousser-l-age-legal-a-65-ans");
+  assert.equal(retraites.tampons["revenir-a-62-ans"], "exclue");
+  // Annuler dépile le tampon ET ses exclusions.
+  const avant = etat.historique.length;
+  etat = annuler(etat);
+  assert.equal(etat.historique.length, avant - 1);
+  assert.equal(etat.tampons["flat-tax-a-20-des-le-premier"], undefined);
+  assert.equal(etat.tampons["tranche-a-50-au-dela-de-250"], undefined);
+  assert.equal(trouve(etat), 0);
+  // Annuler sur une pile vierge ne fait rien.
+  assert.equal(annuler(conseil()).historique.length, 0);
+});
+
+test("un soutien au tapis censure le gouvernement, et la censure s'annule", () => {
+  // Quatre coups durs à l'opinion, dans l'ordre de la pile : flat tax sèche
+  // (−20), TVA (−8), 65 ans (−12), désindexation (−9) → 62 − 49 = 13, elle
+  // tient encore… puis les franchises (−7) l'achèvent sous le seuil (10).
+  let etat = conseil();
+  etat = verifierCensure(adopterId(etat, "flat-tax-a-20-des-le-premier"), MISSION);
+  etat = verifierCensure(adopterId(etat, "porter-le-taux-normal-de-tva-a"), MISSION);
+  etat = verifierCensure(adopterId(etat, "repousser-l-age-legal-a-65-ans"), MISSION);
+  etat = verifierCensure(adopterId(etat, "desindexer-les-pensions-d-un-point"), MISSION);
+  assert.equal(etat.phase, "conseil", "à 13 %, l'opinion tient encore");
+  etat = verifierCensure(adopterId(etat, "doubler-les-franchises-medicales"), MISSION);
+  assert.equal(etat.phase, "verdict");
+  assert.equal(etat.censure, "Opinion");
+  const html = renduVerdict(etat, MISSION);
+  assert.match(html, /Censuré/);
+  assert.match(html, /le gouvernement tombe/);
+  // Le geste de trop s'annule : la partie reprend au conseil.
+  const reprise = annuler(etat);
+  assert.equal(reprise.phase, "conseil");
+  assert.equal(reprise.censure, undefined);
+});
+
+test("le journal nomme les écartées « incompatible », jamais « rejetée »", () => {
+  let etat = conseil();
+  etat = adopterId(etat, "flat-tax-a-20-des-le-premier");
+  const html = renduConseil(etat, MISSION);
+  assert.match(html, /incompatible/);
+  assert.match(html, /Annuler le dernier tampon/);
 });

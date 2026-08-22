@@ -3833,17 +3833,11 @@ async function ouvrirSimulateur(): Promise<void> {
   voletsMontes = volets;
   // Le TUNNEL est l'entrée du simulateur : sa mission est le vrai compteur —
   // ce que `mission.ts` calcule sur les volets chargés, jamais une constante.
-  // L'atelier reste monté ENTIER juste en dessous, replié : c'est le mode
-  // expert, ouvert depuis le pied du tunnel — ou d'office quand l'adresse
-  // porte un budget ou un face-à-face, parce qu'un lien partagé doit ouvrir
-  // ce qu'il promettait, pas un écran de mission.
-  afficherTunnel($("tunnel"), {
-    missionEuros: aTrouverAuDepart(volets),
-    surModeExpert: () => {
-      $("mode-expert").hidden = false;
-      $("mode-expert").scrollIntoView({ behavior: "smooth", block: "start" });
-    },
-  });
+  // L'atelier reste monté ENTIER juste en dessous, replié et SANS porte à
+  // l'écran — le propriétaire l'a retirée. Il ne s'ouvre plus que d'office,
+  // quand l'adresse porte un budget ou un face-à-face : un lien partagé doit
+  // ouvrir ce qu'il promettait, pas un écran de mission.
+  afficherTunnel($("tunnel"), { missionEuros: aTrouverAuDepart(volets) });
   if (etat.budget || etat.face) $("mode-expert").hidden = false;
   // Le budget que l'adresse porte passe par la même porte qu'un scénario
   // cliqué : c'est le chemin d'un lien partagé et du bouton « Rejouer » d'une
