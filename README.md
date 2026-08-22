@@ -82,4 +82,3 @@ auxquelles le site répond réellement sont écrites en clair sur la page d'accu
 | [docs/10-api-publique.md](docs/10-api-publique.md) | Contrat des fichiers publiés : URL stables, contenu, ordres de grandeur, exemples vérifiés |
 | [docs/SETUP.md](docs/SETUP.md) | Mise en place : secrets, migrations, seed, déploiement |
 
-Les conventions de travail pour les agents de code sont dans [CLAUDE.md](CLAUDE.md).
