@@ -907,12 +907,27 @@ export function rendu(etat: EtatTunnel, missionEuros: number): string {
  * repeint à chaque tampon, et des écouteurs posés sur les boutons repartiraient
  * avec eux.
  */
+/**
+ * Ce qui s'ouvre au montage : la sauvegarde, ou un défi reçu par l'adresse.
+ * Un défi l'emporte sur une sauvegarde restée à l'écran de mission : rien n'y
+ * est joué, il n'y a rien à protéger — sans ça, la simple visite d'hier
+ * avalerait le lien de défi d'aujourd'hui. Une partie en conseil ou au
+ * verdict, elle, reste prioritaire.
+ */
+export function reprendre(
+  sauve: EtatTunnel | null,
+  recu: ReturnType<typeof decoderDefi>,
+): EtatTunnel {
+  if (sauve && !(recu && sauve.phase === "mission")) return sauve;
+  return etatInitial(recu);
+}
+
 export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: number }): void {
   // La partie en cours d'abord ; sinon le défi que l'adresse porte ; sinon
   // une partie neuve. Un défi reçu pendant une partie en cours ne l'écrase
   // pas : la partie du joueur vaut plus qu'un lien.
   const recu = decoderDefi(new URLSearchParams(location.search).get("defi"));
-  let etat = restaurer() ?? etatInitial(recu);
+  let etat = reprendre(restaurer(), recu);
   // Le minuteur du conseil de crise : réarmé à chaque peinture, désarmé
   // avant — une seule échéance vit à la fois. À l'expiration, la mesure est
   // ajournée d'office : le conseil n'attend pas.
