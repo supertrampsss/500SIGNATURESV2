@@ -3035,3 +3035,53 @@ test("les huit cadres qui défilent sont atteignables au clavier", () => {
     );
   }
 });
+
+/* --------------------------------------------------------------------------
+ * Le bilan parle la langue de la fiche territoire
+ * ----------------------------------------------------------------------- */
+
+test("le bilan n'a plus de carte de page : une colonne au filet, comme la fiche", () => {
+  // Le dernier « cadre dans un cadre » du site : `.national` portait bordure,
+  // rayon et ombre autour de cinq chapitres déjà à plat, et sa marge de
+  // 1,5 rem s'ajoutait à la gouttière de `.vue`. `/territoire` n'a aucune
+  // carte de page ; `/bilan` non plus.
+  const bloc = CSS.slice(CSS.indexOf("\n.national {"), CSS.indexOf("\n.national h2"));
+  assert.doesNotMatch(bloc, /box-shadow/);
+  assert.doesNotMatch(bloc, /border:/);
+  assert.match(bloc, /max-width: var\(--colonne-texte\)/);
+});
+
+test("un chapitre se sépare au filet de la fiche, pas au filet teinté", () => {
+  // Cinq couleurs de chrome sur une page que la fiche tient avec une seule.
+  // La couleur reste déclarée pour les MARQUES — pistes et courbes.
+  const bloc = CSS.slice(CSS.indexOf("\n.chapitre {"), CSS.indexOf("\n.chapitre:first-of-type"));
+  assert.match(bloc, /border-top: 1px solid var\(--trait\)/);
+  assert.doesNotMatch(bloc, /4px/);
+  assert.match(CSS, /#chapitre-tenable \{ --chapitre: var\(--serie-5\); \}/);
+});
+
+test("le titre d'un chapitre pèse le cran de section de la fiche, pas celui de la page", () => {
+  // `.chapitre__question` déclarait `--texte-l` et `.national h2` l'écrasait à
+  // `--texte-xxl` : une section pesait le rang au-dessus d'elle.
+  const question = CSS.slice(CSS.indexOf("\n.chapitre__question {"));
+  assert.match(question.slice(0, question.indexOf("}")), /font-size: var\(--texte-xl\)/);
+  const h2 = CSS.slice(CSS.indexOf("\n.national h2 {"));
+  assert.match(h2.slice(0, h2.indexOf("}")), /font-size: var\(--texte-xl\)/);
+});
+
+test("ni le pont ni la réponse ne portent d'aplat teinté", () => {
+  // Les deux seuls encarts colorés de la page ; la fiche n'en a aucun.
+  for (const nom of ["\n.chapitre__pont {", "\n.reponse {"]) {
+    const regle = CSS.slice(CSS.indexOf(nom));
+    const corps = regle.slice(0, regle.indexOf("}"));
+    assert.doesNotMatch(corps, /background/, nom);
+    assert.doesNotMatch(corps, /border-left/, nom);
+  }
+});
+
+test("la colonne d'évolution se déclare, elle n'est pas la dernière venue", () => {
+  // Viser `td:last-child` aurait donné le filet et le gras de la colonne
+  // d'évolution à une colonne d'année, qui n'est pas une variation.
+  assert.match(CSS, /\.chapitre table \.evolution \{/);
+  assert.doesNotMatch(CSS, /\.chapitre table td:last-child/);
+});

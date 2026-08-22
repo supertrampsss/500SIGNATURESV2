@@ -97,7 +97,7 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
         <th scope="row">${echapper(ligne.rang)}</th>
         <td>${euros(ligne.avant, AVANT(i + 1))}</td>
         <td>${euros(ligne.apres, APRES(i + 1))}</td>
-        <td>${ecart > 0 ? "+" : ""}${euros(ecart, APRES(i + 1))}</td>
+        <td class="evolution">${ecart > 0 ? "+" : ""}${euros(ecart, APRES(i + 1))}</td>
       </tr>`;
     })
     .join("");
@@ -129,7 +129,8 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
     <table class="comparaison" tabindex="0">
       <thead><tr><th scope="col">Seuil qui sépare</th>
         <th scope="col">Avant impôts et prestations</th>
-        <th scope="col">Après</th><th scope="col">Ce que ça change</th></tr></thead>
+        <th scope="col">Après</th>
+        <th scope="col" class="evolution">Ce que ça change</th></tr></thead>
       <tbody>${rangees}</tbody>
     </table>
     <p class="bloc__complement">Source : INSEE.</p>`;

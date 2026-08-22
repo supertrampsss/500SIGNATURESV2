@@ -48,7 +48,11 @@ import { renduAttribution } from "../src/methode-rendu.ts";
 // appelle, avec les mêmes fichiers.
 import { rendu as renduTenable } from "../src/tenable.ts";
 import { rendu as renduRecettesEtat } from "../src/recettes-etat.ts";
-import { pont as pontPerimetre, synthese as syntheseOuverture } from "../src/ouverture.ts";
+import {
+  pont as pontPerimetre,
+  reperes as reperesOuverture,
+  synthese as syntheseOuverture,
+} from "../src/ouverture.ts";
 import { rendu as renduSecu } from "../src/secu.ts";
 import { rendu as renduCentEurosApu } from "../src/cent-euros-apu.ts";
 import { rendu as renduOuverture } from "../src/ouverture.ts";
@@ -1083,6 +1087,14 @@ export function injecterReperes(
   const syntheseBilan = syntheseOuverture(pays);
   html = syntheseBilan
     ? deplierCadre(remplirCadre(html, "bilan-synthese", syntheseBilan), "bilan-synthese")
+    : html;
+  // Les quatre repères d'ouverture, même règle : servis repliés, remplis puis
+  // dépliés. Le pré-rendu remplit chaque cadre nommément — un cadre qu'on
+  // ajoute au gabarit sans l'ajouter ici reste vide dans le document servi,
+  // et ne se peuple qu'une fois l'application montée.
+  const reperesBilan = reperesOuverture(pays);
+  html = reperesBilan
+    ? deplierCadre(remplirCadre(html, "bilan-reperes", reperesBilan), "bilan-reperes")
     : html;
   html = deplierCadre(html, "national");
   html = deplierCadre(html, "vue-bilan");
