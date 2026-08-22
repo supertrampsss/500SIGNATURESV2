@@ -41,6 +41,11 @@ export type Mesure = {
   detail: string;
   /** Le modèle de jeu : ce que chaque tampon ADOPTÉ fait aux soutiens. */
   reactions: Partial<Record<Soutien, number>>;
+  /** Ce que le REJET fait aux soutiens — le second prix, affiché sur la
+   *  carte. Déclaré pour les totems seulement : rejeter la mesure préférée
+   *  d'un camp le fâche, rejeter une mesure douloureuse soulage. C'est ce
+   *  qui fait le dilemme : aucun tampon n'est neutre sur ces cartes. */
+  rejet?: Partial<Record<Soutien, number>>;
   /** Les contrats (mission.ts) qui retirent cette mesure du tunnel. */
   bloqueePar?: string[];
   /** Les mesures incompatibles : adopter celle-ci les écarte du conseil —
@@ -97,6 +102,7 @@ export const MESURES: Mesure[] = [
     precision: "très contesté",
     detail: "Chiffrage de l'auteur ; les contre-chiffrages descendent sous 5 000.",
     reactions: { opinion: 5, entreprises: -7, marches: -3 },
+    rejet: { opinion: -3 },
     bloqueePar: ["sans-impot"],
   },
   {
@@ -123,6 +129,7 @@ export const MESURES: Mesure[] = [
     effet: 9800,
     detail: "Rendement d'un point de TVA, évaluations des voies et moyens.",
     reactions: { opinion: -8, marches: 3 },
+    rejet: { opinion: 3, marches: -3 },
     bloqueePar: ["sans-impot"],
   },
   {
@@ -132,6 +139,7 @@ export const MESURES: Mesure[] = [
     effet: -3000,
     detail: "Chiffrages des propositions de loi ; l'effet prix réel est débattu.",
     reactions: { opinion: 5, marches: -1 },
+    rejet: { opinion: -2 },
   },
   {
     id: "geler-le-bareme-de-l-impot-sur",
@@ -140,6 +148,7 @@ export const MESURES: Mesure[] = [
     effet: 1700,
     detail: "Évaluations des voies et moyens : la hausse d'impôt que personne ne vote : l'inflation fait monter tout le monde d'une tranche.",
     reactions: { opinion: -4, marches: 1 },
+    rejet: { opinion: 2, marches: -1 },
     bloqueePar: ["sans-impot"],
   },
   {
@@ -167,6 +176,7 @@ export const MESURES: Mesure[] = [
     effet: 3000,
     detail: "Rendement de l'ancienne contribution, revalorisé.",
     reactions: { opinion: -4 },
+    rejet: { opinion: 2 },
     bloqueePar: ["sans-impot"],
   },
   {
@@ -177,6 +187,7 @@ export const MESURES: Mesure[] = [
     precision: "très contesté",
     detail: "Chiffrage de ses promoteurs autour de 12 000 ; les contre-chiffrages montent à 17 000, et le droit européen interdit le taux réduit sur les carburants en l'état. La mesure la plus populaire des sondages, avec sa fourchette et sa condition juridique.",
     reactions: { opinion: 8, marches: -4 },
+    rejet: { opinion: -5 },
   },
   {
     id: "fiscaliser-les-heures-supplementaires-comme-le",
@@ -186,6 +197,7 @@ export const MESURES: Mesure[] = [
     effet: 1700,
     detail: "Dépense fiscale au tome des voies et moyens.",
     reactions: { opinion: -6 },
+    rejet: { opinion: 2 },
     bloqueePar: ["sans-impot"],
   },
   {
@@ -205,6 +217,7 @@ export const MESURES: Mesure[] = [
     effet: 8000,
     detail: "Rendement voté en LFI 2025.",
     reactions: { entreprises: -8, opinion: 3 },
+    rejet: { opinion: -2, entreprises: 3 },
     bloqueePar: ["sans-impot"],
   },
   {
@@ -214,6 +227,7 @@ export const MESURES: Mesure[] = [
     effet: 2000,
     detail: "Rapports sur les allègements généraux (LFSS).",
     reactions: { entreprises: -5 },
+    rejet: { entreprises: 2 },
     bloqueePar: ["sans-impot"],
   },
   {
@@ -258,6 +272,7 @@ export const MESURES: Mesure[] = [
     effet: -1100,
     detail: "Trajectoire inscrite puis gelée en loi de finances.",
     reactions: { entreprises: 4, territoires: -2 },
+    rejet: { entreprises: -2 },
   },
   {
     id: "repousser-l-age-legal-a-65-ans",
@@ -268,6 +283,7 @@ export const MESURES: Mesure[] = [
     precision: "en croisière",
     detail: "Ordres de grandeur du COR ; presque rien les premières années.",
     reactions: { opinion: -12, marches: 5 },
+    rejet: { opinion: 3, marches: -3 },
   },
   {
     id: "revenir-a-62-ans",
@@ -277,6 +293,7 @@ export const MESURES: Mesure[] = [
     precision: "à terme",
     detail: "Chiffrages COR de l'abrogation, horizon 2030.",
     reactions: { opinion: 8, marches: -6 },
+    rejet: { opinion: -3, marches: 2 },
   },
   {
     id: "desindexer-les-pensions-d-un-point",
@@ -285,6 +302,7 @@ export const MESURES: Mesure[] = [
     effet: 3600,
     detail: "Un point sur 362 178 M€ de pensions (2024, publié).",
     reactions: { opinion: -9, marches: 3 },
+    rejet: { opinion: 3, marches: -2 },
     bloqueePar: ["sans-prestation"],
   },
   {
@@ -311,6 +329,7 @@ export const MESURES: Mesure[] = [
     effet: -2000,
     detail: "Chiffrages des propositions de loi.",
     reactions: { opinion: 5 },
+    rejet: { opinion: -3 },
   },
   {
     id: "suspendre-la-reforme-des-retraites-jusqu",
@@ -321,6 +340,7 @@ export const MESURES: Mesure[] = [
     precision: "monte chaque année",
     detail: "Chiffrage du PLFSS : environ 100 M€ la première année, 1 400 la deuxième, davantage ensuite. La position médiane réellement votée.",
     reactions: { opinion: 4, entreprises: -2, marches: -3 },
+    rejet: { opinion: -2, marches: 2 },
   },
   {
     id: "remplacer-l-abattement-des-retraites-par",
@@ -348,6 +368,7 @@ export const MESURES: Mesure[] = [
     effet: 800,
     detail: "Évaluations LFSS.",
     reactions: { opinion: -7 },
+    rejet: { opinion: 2 },
     bloqueePar: ["ecole-sante", "sans-prestation"],
   },
   {
@@ -357,6 +378,7 @@ export const MESURES: Mesure[] = [
     effet: -350,
     detail: "Coût salarial moyen, année pleine.",
     reactions: { opinion: 6 },
+    rejet: { opinion: -4 },
     bloqueePar: ["ecole-sante"],
   },
   {
@@ -411,6 +433,7 @@ export const MESURES: Mesure[] = [
     effet: -2500,
     detail: "Rapports publics sur les besoins en personnel du grand âge.",
     reactions: { opinion: 4 },
+    rejet: { opinion: -4 },
     bloqueePar: ["ecole-sante"],
   },
   {
@@ -429,6 +452,7 @@ export const MESURES: Mesure[] = [
     effet: -600,
     detail: "Coût moyen chargé ; la mission Sécurités porte 25 215 M€ votés.",
     reactions: { opinion: 5 },
+    rejet: { opinion: -3 },
   },
   {
     id: "construire-15-000-places-de-prison-supplementaires",
@@ -438,6 +462,7 @@ export const MESURES: Mesure[] = [
     precision: "sur 10 ans",
     detail: "Coût par place des programmes immobiliers pénitentiaires.",
     reactions: { opinion: 3 },
+    rejet: { opinion: -2 },
   },
   {
     id: "recruter-3-000-magistrats-et-greffiers",
@@ -472,6 +497,7 @@ export const MESURES: Mesure[] = [
     precision: "fourchette 2 000–16 000",
     detail: "Fourchette du débat : ~16 000 revendiqués par ses promoteurs, 2 000 à 9 000 dans les contre-chiffrages une fois retiré ce que la Constitution et les traités interdisent en l'état. Retenu : le milieu, affiché avec sa fourchette et sa condition juridique : l'essentiel suppose une révision constitutionnelle.",
     reactions: { opinion: 3, entreprises: -2, territoires: -1 },
+    rejet: { marches: -2 },
     bloqueePar: ["sans-prestation"],
   },
   {
@@ -506,6 +532,7 @@ export const MESURES: Mesure[] = [
     effet: -400,
     detail: "Coût unitaire d'un éloignement établi par la Cour des comptes, multiplié par le volume visé, rétention et laissez-passer compris. Éloigner coûte avant d'économiser.",
     reactions: { opinion: 2 },
+    rejet: { opinion: -2 },
   },
   {
     id: "doubler-les-moyens-du-renseignement-interieur",
@@ -671,6 +698,7 @@ export const MESURES: Mesure[] = [
     effet: -3000,
     detail: "5 % de la masse salariale de l'enseignement scolaire (88 817 M€ votés).",
     reactions: { opinion: 4 },
+    rejet: { opinion: -4 },
     bloqueePar: ["ecole-sante"],
   },
   {
@@ -688,6 +716,7 @@ export const MESURES: Mesure[] = [
     effet: -800,
     detail: "Extension du dispositif existant, chiffrée par l'État.",
     reactions: { opinion: 4, territoires: 2 },
+    rejet: { opinion: -2 },
   },
   {
     id: "etendre-le-dedoublement-des-classes-au-cm1",
@@ -721,6 +750,7 @@ export const MESURES: Mesure[] = [
     effet: -2400,
     detail: "Budget voté des bourses, doublé.",
     reactions: { opinion: 3 },
+    rejet: { opinion: -2 },
     bloqueePar: ["ecole-sante"],
   },
   {
@@ -730,6 +760,7 @@ export const MESURES: Mesure[] = [
     effet: -1500,
     detail: "Aides à la pierre et TVA réduite, coûts constatés par logement.",
     reactions: { opinion: 3, territoires: 3 },
+    rejet: { opinion: -2 },
   },
   {
     id: "retablir-un-dispositif-d-investissement-locatif-recentre",
@@ -755,6 +786,7 @@ export const MESURES: Mesure[] = [
     effet: 2200,
     detail: "Études d'impact des réformes successives (Unédic).",
     reactions: { opinion: -6, marches: 2 },
+    rejet: { opinion: 2, marches: -2 },
     bloqueePar: ["sans-prestation"],
   },
   {
@@ -764,6 +796,7 @@ export const MESURES: Mesure[] = [
     effet: -2500,
     detail: "Mêmes études, en sens inverse.",
     reactions: { opinion: 4, marches: -2 },
+    rejet: { opinion: -2, marches: 2 },
   },
   {
     id: "verser-le-rsa-automatiquement-fin-du-non",
@@ -780,6 +813,7 @@ export const MESURES: Mesure[] = [
     effet: -1800,
     detail: "Chiffrages CNAF des propositions.",
     reactions: { opinion: 3 },
+    rejet: { opinion: -2 },
   },
   {
     id: "conditionner-le-rsa-a-15-heures",
@@ -807,6 +841,7 @@ export const MESURES: Mesure[] = [
     effet: -1300,
     detail: "Évaluations de la réforme annoncée en PLFSS.",
     reactions: { opinion: 3, entreprises: -1 },
+    rejet: { opinion: -2 },
   },
   {
     id: "ouvrir-200-000-places-de-creche",
@@ -815,6 +850,7 @@ export const MESURES: Mesure[] = [
     effet: -1500,
     detail: "Chiffrages du comité de filière petite enfance, en rythme annuel.",
     reactions: { opinion: 3, entreprises: 2 },
+    rejet: { opinion: -2, entreprises: -1 },
     bloqueePar: ["sans-collectivites"],
   },
   {
@@ -824,6 +860,7 @@ export const MESURES: Mesure[] = [
     effet: 3400,
     detail: "Un point sur 370 016 M€ de rémunérations publiques (2025).",
     reactions: { opinion: -6, territoires: -2 },
+    rejet: { opinion: 2, marches: -1 },
   },
   {
     id: "deux-jours-de-carence-dans-la-fonction",
@@ -832,6 +869,7 @@ export const MESURES: Mesure[] = [
     effet: 1000,
     detail: "Études d'impact des jours de carence.",
     reactions: { opinion: -4 },
+    rejet: { opinion: 1 },
   },
   {
     id: "ne-pas-remplacer-un-depart-administratif-sur",
@@ -882,6 +920,7 @@ export const MESURES: Mesure[] = [
     effet: 2200,
     detail: "Concours financiers de l'État aux collectivités.",
     reactions: { territoires: -8, opinion: -2 },
+    rejet: { territoires: 3, marches: -1 },
     bloqueePar: ["sans-collectivites"],
   },
   {

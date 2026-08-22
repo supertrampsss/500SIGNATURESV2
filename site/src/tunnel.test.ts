@@ -17,6 +17,8 @@ import { CONTRATS } from "./mission.ts";
 import { MESURES } from "./mesures.ts";
 import {
   ajourner,
+  REPORTS_GRATUITS,
+  TELEX,
   annuler,
   collectionner,
   decorations,
@@ -42,6 +44,7 @@ import {
   trouve,
   verifierCensure,
   poursuivreTelex,
+  trancherTelex,
   verifierTelex,
   type EtatTunnel,
 } from "./tunnel.ts";
@@ -388,16 +391,17 @@ test("adopter une mesure écarte ses incompatibles — et Annuler ramène tout",
 });
 
 test("un soutien au tapis censure le gouvernement, et la censure s'annule", () => {
-  // Quatre coups durs à l'opinion, dans l'ordre de la pile : flat tax sèche
-  // (−20), TVA (−8), 65 ans (−12), désindexation (−9) → 62 − 49 = 13, elle
-  // tient encore… puis les franchises (−7) l'achèvent sous le seuil (10).
+  // Des coups durs à l'opinion, adoptions ET rejets mêlés : la flat tax
+  // sèche (−20), la TVA (−8, et les rejets de Zucman puis du panier en
+  // route), 65 ans (−12) — à 12 %, elle tient encore. Puis rejeter le
+  // retour à 62 ans (−3) et désindexer (−9) l'achèvent sous le seuil (10) :
+  // depuis que le rejet a un prix, le mépris compte autant que la coupe.
   let etat = conseil();
   etat = verifierCensure(adopterId(etat, "flat-tax-a-20-des-le-premier"), MISSION);
   etat = verifierCensure(adopterId(etat, "porter-le-taux-normal-de-tva-a"), MISSION);
   etat = verifierCensure(adopterId(etat, "repousser-l-age-legal-a-65-ans"), MISSION);
+  assert.equal(etat.phase, "conseil", "à 12 %, l'opinion tient encore");
   etat = verifierCensure(adopterId(etat, "desindexer-les-pensions-d-un-point"), MISSION);
-  assert.equal(etat.phase, "conseil", "à 13 %, l'opinion tient encore");
-  etat = verifierCensure(adopterId(etat, "doubler-les-franchises-medicales"), MISSION);
   assert.equal(etat.phase, "verdict");
   assert.equal(etat.censure, "Opinion");
   const html = renduVerdict(etat, MISSION);
@@ -417,26 +421,48 @@ test("le journal nomme les écartées « incompatible », jamais « rejetée »"
   assert.match(html, /Annuler le dernier tampon/);
 });
 
-test("un télex tombe une fois, coûte ce qu'il annonce, et peut censurer en tombant", () => {
-  // Faire vaciller les Marchés sous 30 : flat tax à abattement (−3), ISF
-  // (−2), Zucman (−3), retour à 62 ans (−6) → 41 − 14 = 27, comblé nul.
-  // « Les taux montent » tombe : +2 000 M€ à trouver, une seule fois.
+test("un télex de crise tombe une fois, ne coûte rien avant d'être tranché, et chaque issue a son prix", () => {
+  // Faire vaciller les Marchés sous 30 (adoptions et rejets mêlés font 21).
+  // « Les taux montent » tombe : rien ne s'applique tant qu'on n'a pas
+  // tranché — le dilemme se lit d'abord.
   let etat = conseil();
   etat = adopterId(etat, "flat-tax-a-20-avec-abattement-protegeant");
   etat = adopterId(etat, "retablir-un-impot-sur-la-fortune-financiere");
   etat = adopterId(etat, "impot-plancher-de-2-sur-les-patrimoines");
   etat = adopterId(etat, "revenir-a-62-ans");
-  assert.equal(soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur, 27);
+  assert.equal(soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur, 21);
   etat = verifierTelex(etat, MISSION);
   assert.equal(etat.telexEnCours, "taux");
-  assert.equal(etat.telex.surcout, -2000);
-  assert.equal(trouve(etat), -12000 + 4500 + 15000 - 13000 - 2000);
-  // Refermer : pas de censure ici, le conseil reprend.
-  etat = poursuivreTelex(etat, MISSION);
+  assert.equal(etat.telex.surcout, 0, "un dilemme ne coûte rien avant d'être tranché");
+  // L'écran du dilemme : deux issues, leurs prix, pas de « Poursuivre ».
+  const ecran = renduConseil(etat, MISSION);
+  assert.match(ecran, /Annoncer un plan d&#39;économies/);
+  assert.match(ecran, /Laisser filer les taux/);
+  assert.ok(!ecran.includes("data-action=\"poursuivre\""));
+  // Trancher « laisser filer » : 2 000 M€ de plus à trouver, Marchés −2.
+  const marchesAvant = soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur;
+  etat = trancherTelex(etat, "b", MISSION);
   assert.equal(etat.telexEnCours, undefined);
   assert.equal(etat.phase, "conseil");
+  assert.equal(etat.telex.surcout, -2000);
+  assert.equal(trouve(etat), -12000 + 4500 + 15000 - 13000 - 2000);
+  assert.equal(soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur, marchesAvant - 2);
   // Le même télex ne retombe jamais.
   assert.equal(verifierTelex(etat, MISSION).telexEnCours, undefined);
+  // L'autre issue, sur une partie jumelle : le plan d'économies remonte les
+  // Marchés (+5) et se paie devant l'opinion (−4), sans toucher au compteur.
+  let jumelle = conseil();
+  jumelle = adopterId(jumelle, "flat-tax-a-20-avec-abattement-protegeant");
+  jumelle = adopterId(jumelle, "retablir-un-impot-sur-la-fortune-financiere");
+  jumelle = adopterId(jumelle, "impot-plancher-de-2-sur-les-patrimoines");
+  jumelle = adopterId(jumelle, "revenir-a-62-ans");
+  jumelle = verifierTelex(jumelle, MISSION);
+  const avant = Object.fromEntries(soutiens(jumelle, MISSION).map((s) => [s.cle, s.valeur]));
+  jumelle = trancherTelex(jumelle, "a", MISSION);
+  assert.equal(jumelle.telex.surcout, 0);
+  const apres = Object.fromEntries(soutiens(jumelle, MISSION).map((s) => [s.cle, s.valeur]));
+  assert.equal(apres.marches, avant.marches + 5);
+  assert.equal(apres.opinion, avant.opinion - 4);
 });
 
 test("les bons télex existent : franchir 50 000 M€ fait respirer les marchés", () => {
@@ -563,4 +589,88 @@ test("un défi reçu l'emporte sur une sauvegarde restée à l'écran de mission
   // Sans sauvegarde, le défi ouvre ; sans défi, la sauvegarde ouvre.
   assert.equal(reprendre(null, recu).defi?.comble, 8000);
   assert.equal(reprendre(vierge, null), vierge);
+});
+
+test("le rejet a un prix sur les cartes totem, et Annuler le rembourse", () => {
+  // Rejeter la revalorisation des enseignants fâche l'opinion (−4) : depuis
+  // la passe dilemmes, aucun tampon n'est neutre sur ces cartes.
+  let etat = conseil();
+  while (courante(etat)!.id !== "revaloriser-les-enseignants-de-5") etat = tamponner(etat, "rejete");
+  const avant = soutiens(etat, MISSION).find((s) => s.cle === "opinion")!.valeur;
+  etat = tamponner(etat, "rejete");
+  assert.equal(soutiens(etat, MISSION).find((s) => s.cle === "opinion")!.valeur, avant - 4);
+  // Le compteur, lui, ne bouge pas : rejeter reste gratuit en euros.
+  assert.equal(trouve(etat), 0);
+  assert.equal(comble(etat), 0);
+  // Annuler rembourse le prix du rejet comme celui d'une adoption.
+  etat = annuler(etat);
+  assert.equal(soutiens(etat, MISSION).find((s) => s.cle === "opinion")!.valeur, avant);
+  // Et le second prix s'affiche sur la carte, avant le tampon.
+  assert.match(renduConseil(etat, MISSION), /Rejeter a aussi un prix/);
+  // Une carte sans rejet déclaré reste neutre au rejet : le dilemme est
+  // réservé aux totems, comme le catalogue l'écrit.
+  let calme = conseil();
+  calme = adopterId(calme, "doubler-la-taxe-sur-les-rachats-d");
+  const jaugesAvant = soutiens(calme, MISSION).map((s) => s.valeur);
+  calme = tamponner(calme, "rejete"); // l'assurance-vie, sans rejet déclaré
+  assert.deepEqual(soutiens(calme, MISSION).map((s) => s.valeur), jaugesAvant);
+});
+
+test("l'immobilisme se paie : au-delà des reports gratuits, chaque ajournement coûte un point partout", () => {
+  let etat = conseil();
+  const depart = soutiens(etat, MISSION).map((s) => s.valeur);
+  for (let i = 0; i < REPORTS_GRATUITS; i++) etat = ajourner(etat);
+  assert.deepEqual(
+    soutiens(etat, MISSION).map((s) => s.valeur),
+    depart,
+    "les reports gratuits ne coûtent rien",
+  );
+  etat = ajourner(etat);
+  assert.deepEqual(
+    soutiens(etat, MISSION).map((s) => s.valeur),
+    depart.map((v) => v - 1),
+  );
+  etat = ajourner(etat);
+  assert.deepEqual(
+    soutiens(etat, MISSION).map((s) => s.valeur),
+    depart.map((v) => v - 2),
+  );
+  // Le rendu prévient dès qu'on approche du seuil.
+  assert.match(renduConseil(etat, MISSION), /chacun coûte 1 point/);
+  // Le report ne s'annule pas : « Annuler » dépile les tampons, pas le temps
+  // perdu — et une sauvegarde d'avant les reports repart à zéro.
+  assert.equal(annuler(etat).reports, etat.reports);
+});
+
+test("tout rejeter en choisissant toujours la pire issue reste jouable : trois dilemmes, pas de censure", () => {
+  // La partie paresseuse d'avant la passe dilemmes ne rencontrait rien.
+  // Elle traverse maintenant la revue de notation, les taux et la grève,
+  // finit meurtrie, mais le jeu ne devient jamais imperdable par ennui ni
+  // perdu d'office : les jauges tiennent au-dessus de la censure.
+  let etat = conseil();
+  let garde = 0;
+  while (etat.phase === "conseil" && garde++ < 400) {
+    if (etat.telexEnCours) {
+      const telex = TELEX.find((t) => t.id === etat.telexEnCours)!;
+      etat = telex.issues ? trancherTelex(etat, "b", MISSION) : poursuivreTelex(etat, MISSION);
+      continue;
+    }
+    if (!courante(etat)) break;
+    etat = verifierTelex(tamponner(etat, "rejete"), MISSION);
+    if (!etat.telexEnCours) etat = verifierCensure(etat, MISSION);
+  }
+  assert.equal(etat.phase, "verdict");
+  assert.equal(etat.censure, undefined);
+  assert.deepEqual(etat.telex.vus, ["notation", "taux", "greve"]);
+  assert.ok(soutiens(etat, MISSION).every((s) => s.valeur > 10));
+  // La revue de notation est bien le télex de mi-parcours : beaucoup de
+  // tampons, peu de milliards — elle ne tombe jamais dans une partie qui
+  // trouve tôt.
+  let studieuse = conseil();
+  studieuse = adopterId(studieuse, "flat-tax-a-20-des-le-premier");
+  for (let i = 0; i < 45; i++) {
+    if (!courante(studieuse)) break;
+    studieuse = tamponner(studieuse, "rejete");
+  }
+  assert.notEqual(verifierTelex(studieuse, MISSION).telexEnCours, "notation");
 });
