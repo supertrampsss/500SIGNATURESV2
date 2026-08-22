@@ -1017,7 +1017,9 @@ export function rendu(etat: EtatTunnel, missionEuros: number): string {
       : etat.phase === "conseil"
         ? renduConseil(etat, missionEuros)
         : renduVerdict(etat, missionEuros);
-  return `<div class="tunnel__cadre">${corps}${renduPied()}</div>`;
+  // La porte de sortie du plein écran : le seul lien vers le site quand le
+  // tunnel occupe tout l'écran. Invisible hors plein écran (style.css).
+  return `<div class="tunnel__cadre"><a class="tunnel__quitter" href="/">&#8592;&nbsp;Quitter le conseil</a>${corps}${renduPied()}</div>`;
 }
 
 /**

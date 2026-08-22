@@ -3838,7 +3838,11 @@ async function ouvrirSimulateur(): Promise<void> {
   // quand l'adresse porte un budget ou un face-à-face : un lien partagé doit
   // ouvrir ce qu'il promettait, pas un écran de mission.
   afficherTunnel($("tunnel"), { missionEuros: aTrouverAuDepart(volets) });
+  // Le vrai tunnel : plein écran, le site disparaît derrière la scène — sauf
+  // quand l'adresse porte un budget ou un face-à-face, où c'est l'atelier
+  // qu'un lien partagé promettait, et le tunnel reste un cadre dans la page.
   if (etat.budget || etat.face) $("mode-expert").hidden = false;
+  else $("tunnel").classList.add("tunnel--plein");
   // Le budget que l'adresse porte passe par la même porte qu'un scénario
   // cliqué : c'est le chemin d'un lien partagé et du bouton « Rejouer » d'une
   // analyse, donc précisément celui où le lecteur n'a aucune autre copie de ce

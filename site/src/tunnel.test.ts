@@ -674,3 +674,14 @@ test("tout rejeter en choisissant toujours la pire issue reste jouable : trois d
   }
   assert.notEqual(verifierTelex(studieuse, MISSION).telexEnCours, "notation");
 });
+
+test("le plein écran a sa porte de sortie : « Quitter le conseil » ramène au site", () => {
+  // La porte vit dans le cadre à toutes les phases : mission, conseil,
+  // verdict. C'est le seul lien vers le site quand le tunnel occupe l'écran.
+  for (const etape of [etatInitial(), conseil(), { ...conseil(), phase: "verdict" as const }]) {
+    const html = rendu(etape, MISSION);
+    assert.match(html, /tunnel__quitter/);
+    assert.match(html, /href="\/"/);
+    assert.match(html, /Quitter le conseil/);
+  }
+});

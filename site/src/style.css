@@ -8191,6 +8191,33 @@ body[data-carte="oui"] .legende {
   margin: var(--espace-4) 0 var(--espace-6);
   overflow: hidden;
 }
+/* Le vrai tunnel : la scène occupe tout l'écran, le site disparaît
+   derrière. La classe est posée au montage de la vue simulateur — sauf
+   quand un lien partagé ouvre l'atelier, où le cadre reste dans la page. */
+.tunnel--plein .tunnel__cadre {
+  position: fixed;
+  inset: 0;
+  /* Au-dessus de l'en-tête collant (z-index 30) : en plein écran, le site
+     entier passe derrière la scène. */
+  z-index: 40;
+  margin: 0;
+  border-radius: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+/* La porte de sortie : le seul lien vers le site, discret, en tête de
+   scène. Elle n'existe qu'en plein écran. */
+.tunnel__quitter { display: none; }
+.tunnel--plein .tunnel__quitter {
+  display: inline-block;
+  margin: var(--espace-3) 0 0 var(--espace-4);
+  font-size: var(--texte-s);
+  font-weight: 600;
+  color: #9aa39c;
+  text-decoration: none;
+}
+.tunnel--plein .tunnel__quitter:hover,
+.tunnel--plein .tunnel__quitter:focus-visible { color: #ece9e1; text-decoration: underline; }
 .tunnel__surtitre {
   font-size: var(--texte-xs);
   font-weight: 700;
