@@ -25,6 +25,7 @@ import {
   decoderDefi,
   encoderDefi,
   restaurer,
+  reprendre,
   comble,
   commencer,
   courante,
@@ -546,4 +547,20 @@ test("les 18 ajouts n'ouvrent aucun enchaînement absurde : âges, RSA, SNU, con
   assert.ok(prestations.has("porter-le-rsa-au-seuil-de"));
   const collectivites = new Set(pile(["sans-collectivites"]).map((m) => m.id));
   assert.ok(!collectivites.has("ouvrir-200-000-places-de-creche"));
+});
+
+test("un défi reçu l'emporte sur une sauvegarde restée à l'écran de mission", () => {
+  const recu = decoderDefi("8000~ecole-sante");
+  assert.ok(recu);
+  // Une simple visite d'hier (mission vierge sauvée) n'avale pas le défi.
+  const vierge = etatInitial();
+  const ouvert = reprendre(vierge, recu);
+  assert.equal(ouvert.defi?.comble, 8000);
+  assert.deepEqual(ouvert.engagements, ["ecole-sante"]);
+  // Une partie en conseil, elle, reste prioritaire : le défi attend.
+  const entamee = commencer(etatInitial());
+  assert.equal(reprendre(entamee, recu), entamee);
+  // Sans sauvegarde, le défi ouvre ; sans défi, la sauvegarde ouvre.
+  assert.equal(reprendre(null, recu).defi?.comble, 8000);
+  assert.equal(reprendre(vierge, null), vierge);
 });
