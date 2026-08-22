@@ -62,9 +62,9 @@ function adopterId(etat: EtatTunnel, id: string): EtatTunnel {
   return tamponner(etat, "adopte");
 }
 
-test("le catalogue est entier : 78 mesures, ids uniques, cartes complètes", () => {
-  assert.equal(MESURES.length, 78);
-  assert.equal(new Set(MESURES.map((m) => m.id)).size, 78);
+test("le catalogue est entier : 96 mesures, ids uniques, cartes complètes", () => {
+  assert.equal(MESURES.length, 96);
+  assert.equal(new Set(MESURES.map((m) => m.id)).size, 96);
   for (const m of MESURES) {
     assert.ok(m.titre.length > 8, m.id);
     // « Évaluations LFSS. » est courte et suffisante : elle nomme la source.
@@ -99,7 +99,7 @@ test("les deux variantes de la flat tax coexistent, et se contredisent comme pr�
 
 test("signer un engagement retire ses mesures — dans les deux sens, comme le contrat", () => {
   const toutes = pile([]);
-  assert.equal(toutes.length, 78);
+  assert.equal(toutes.length, 96);
   const sansEcole = pile(["ecole-sante"]);
   // « Sans toucher à l'école ni à la santé » retire AUSSI la revalorisation
   // des enseignants : un engagement n'est pas une préférence.
@@ -120,7 +120,7 @@ test("un tampon par mesure, et l'ajournée revient en fin de pile", () => {
   etat = ajourner(etat);
   assert.notEqual(courante(etat)!.id, premiere.id, "l'ajournée ne doit pas rester sur le bureau");
   assert.equal(etat.ordre[etat.ordre.length - 1], premiere.id);
-  assert.equal(etat.ordre.length, 78, "ajourner ne supprime pas");
+  assert.equal(etat.ordre.length, 96, "ajourner ne supprime pas");
   // Elle finit par revenir, et se tamponne comme les autres.
   etat = adopterId(etat, premiere.id);
   assert.equal(etat.tampons[premiere.id], "adopte");
@@ -206,7 +206,7 @@ test("la pile épuisée bascule d'elle-même sur le verdict", () => {
   let etat = conseil();
   while (courante(etat)) etat = tamponner(etat, "rejete");
   assert.equal(etat.phase, "verdict");
-  assert.equal(Object.keys(etat.tampons).length, 78);
+  assert.equal(Object.keys(etat.tampons).length, 96);
 });
 
 test("l'écran de mission écrit le vrai compteur et compte ce que chaque signature retire", () => {
@@ -216,7 +216,7 @@ test("l'écran de mission écrit le vrai compteur et compte ce que chaque signat
   const lisible = html.replace(/&#39;/g, "'");
   for (const contrat of CONTRATS) assert.ok(lisible.includes(contrat.nom), contrat.cle);
   const signe = basculerEngagement(etatInitial(), "ecole-sante");
-  assert.match(renduMission(signe, MISSION), /9 mesures quittent la pile/);
+  assert.match(renduMission(signe, MISSION), /11 mesures quittent la pile/);
 });
 
 test("la carte du conseil porte le montant, sa réserve, et la frontière éditoriale", () => {
@@ -342,6 +342,14 @@ test("les ancres publiées des cartes ne dérivent pas du reste du dépôt", () 
   assert.match(detail("geler-le-point-d-indice"), /370 016 M€/);
   assert.match(detail("desindexer-les-pensions"), /362 178 M€/);
   assert.match(detail("porter-l-effort-de-defense"), /60 004 M€/);
+  // Le montant de la carte, lui, est l'écart vers la cible : 6 000, pas
+  // 60 001 — la coquille qui a vécu en production s'était collé le « 1 »
+  // de « 1re marche ».
+  {
+    const defense = MESURES.find((m) => m.id.startsWith("porter-l-effort-de-defense"))!;
+    assert.equal(defense.effet, -6000);
+    assert.equal(defense.precision, "1re marche");
+  }
   assert.match(detail("revaloriser-les-enseignants"), /88 817 M€/);
   assert.match(detail("recruter-10-000-policiers"), /25 215 M€/);
 });
@@ -355,6 +363,11 @@ test("adopter une mesure écarte ses incompatibles — et Annuler ramène tout",
   assert.equal(etat.tampons["tranche-a-50-au-dela-de-250"], "exclue");
   assert.equal(etat.tampons["geler-le-bareme-de-l-impot-sur"], "exclue");
   assert.equal(etat.tampons["soumettre-les-revenus-du-capital-au-bareme"], "exclue");
+  // Les ajouts de la passe des manques suivent la même règle : sous une flat
+  // tax, ni le forfait des retraités ni la fiscalisation des heures sup n'ont
+  // de sens — le barème qu'ils modifient n'existe plus.
+  assert.equal(etat.tampons["remplacer-l-abattement-des-retraites-par"], "exclue");
+  assert.equal(etat.tampons["fiscaliser-les-heures-supplementaires-comme-le"], "exclue");
   // Une exclue ne compte pas dans le trouvé, et ne repasse pas sur le bureau.
   assert.equal(trouve(etat), 150000);
   assert.notEqual(courante(etat)?.id, "flat-tax-a-20-avec-abattement-protegeant");
@@ -448,7 +461,7 @@ test("les décorations se gagnent au verdict, jamais en cours de partie", () => 
   assert.deepEqual(decorations(etat, MISSION), [], "rien avant le verdict");
   while (courante(etat)) etat = tamponner(etat, "rejete");
   const gagnees = decorations(etat, MISSION).map((d) => d.id);
-  // Pile finie sans censure, sans recette nouvelle, les 78 tamponnées.
+  // Pile finie sans censure, sans recette nouvelle, les 96 tamponnées.
   assert.ok(gagnees.includes("sans-censure"));
   assert.ok(gagnees.includes("zero-impot"));
   assert.ok(gagnees.includes("integrale"));
@@ -482,4 +495,55 @@ test("la collection survit d'une partie à l'autre, et vit sans stockage", () =>
   }
   // Sans stockage du tout : la vitrine du jour reste vraie.
   assert.deepEqual(collectionner([{ id: "funambule" }]), ["funambule"]);
+});
+
+test("les 18 ajouts n'ouvrent aucun enchaînement absurde : âges, RSA, SNU, contrats", () => {
+  // Un seul choix d'âge de départ. Les deux âges passent avant la suspension
+  // dans la pile : on les ajourne pour qu'ils soient encore en jeu quand la
+  // suspension est tamponnée, et ils doivent tomber en « exclue ».
+  let etat = conseil();
+  const ages = new Set(["repousser-l-age-legal-a-65-ans", "revenir-a-62-ans"]);
+  while (courante(etat)!.id !== "suspendre-la-reforme-des-retraites-jusqu") {
+    etat = ages.has(courante(etat)!.id) ? ajourner(etat) : tamponner(etat, "rejete");
+  }
+  etat = tamponner(etat, "adopte");
+  assert.equal(etat.tampons["repousser-l-age-legal-a-65-ans"], "exclue");
+  assert.equal(etat.tampons["revenir-a-62-ans"], "exclue");
+  // Et dans l'autre sens : adopter un âge écarte la suspension, plus loin.
+  let autre = conseil();
+  autre = adopterId(autre, "repousser-l-age-legal-a-65-ans");
+  assert.equal(autre.tampons["suspendre-la-reforme-des-retraites-jusqu"], "exclue");
+  // Conditionner le RSA et le verser automatiquement se contredisent.
+  let rsa = conseil();
+  rsa = adopterId(rsa, "verser-le-rsa-automatiquement-fin-du-non");
+  assert.equal(rsa.tampons["conditionner-le-rsa-a-15-heures"], "exclue");
+  // Le service militaire volontaire remplace le SNU (déclaré côté volontariat,
+  // la symétrie fait le reste).
+  let snu = conseil();
+  snu = adopterId(snu, "service-militaire-volontaire-de-50-000");
+  assert.equal(snu.tampons["generaliser-le-service-national-universel"], "exclue");
+  // Les contrats couvrent les ajouts : « sans nouvel impôt » retire les
+  // recettes nouvelles, « école et santé » retire bourses et grand âge,
+  // « sans toucher aux prestations » retire les durcissements, « sans
+  // toucher aux collectivités » retire les crèches.
+  const sansImpot = new Set(pile(["sans-impot"]).map((m) => m.id));
+  for (const id of [
+    "fiscaliser-les-heures-supplementaires-comme-le",
+    "elargir-la-taxe-sur-les-transactions",
+    "fiscalite-nutritionnelle-au-niveau-recommande",
+    "legaliser-et-taxer-le-cannabis",
+    "remplacer-l-abattement-des-retraites-par",
+  ]) assert.ok(!sansImpot.has(id), id);
+  // La baisse de TVA sur l'énergie reste : ne pas lever n'interdit pas d'alléger.
+  assert.ok(sansImpot.has("tva-a-5-5-sur-l-electricite"));
+  const ecole = new Set(pile(["ecole-sante"]).map((m) => m.id));
+  assert.ok(!ecole.has("doubler-les-bourses-etudiantes-sur-criteres"));
+  assert.ok(!ecole.has("loi-grand-age-50-000-recrutements"));
+  const prestations = new Set(pile(["sans-prestation"]).map((m) => m.id));
+  assert.ok(!prestations.has("conditionner-le-rsa-a-15-heures"));
+  assert.ok(!prestations.has("supprimer-l-allocation-pour-demandeurs-d"));
+  // Les revalorisations, elles, restent jouables sous ce contrat.
+  assert.ok(prestations.has("porter-le-rsa-au-seuil-de"));
+  const collectivites = new Set(pile(["sans-collectivites"]).map((m) => m.id));
+  assert.ok(!collectivites.has("ouvrir-200-000-places-de-creche"));
 });
