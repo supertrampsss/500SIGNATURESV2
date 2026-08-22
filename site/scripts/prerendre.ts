@@ -55,6 +55,8 @@ import {
 } from "../src/ouverture.ts";
 import { rendu as renduSecu } from "../src/secu.ts";
 import { rendu as renduCentEurosApu } from "../src/cent-euros-apu.ts";
+import { rendu as renduFonctions } from "../src/fonctions.ts";
+import { rendu as renduEurope } from "../src/europe-comparaison.ts";
 import { rendu as renduOuverture } from "../src/ouverture.ts";
 import { rendu as renduRedistribution } from "../src/redistribution.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
@@ -1060,9 +1062,11 @@ export function injecterReperes(
     ["bloc-ouverture", renduOuverture(pays)],
     ["bloc-recettes-etat", renduRecettesEtat(pays, catalogue)],
     ["bloc-cent-euros-apu", renduCentEurosApu(pays)],
+    ["bloc-fonctions", renduFonctions(pays, catalogue)],
     ["bloc-redistribution", renduRedistribution(pays, catalogue)],
     ["bloc-secu", renduSecu(pays, catalogue)],
     ["bloc-dette", renduTenable(pays, catalogue)],
+    ["bloc-europe", renduEurope(pays)],
   ];
   if (!ouvrants.some(([, corps]) => corps !== "")) {
     throw new Error(

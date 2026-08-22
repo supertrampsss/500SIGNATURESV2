@@ -10,6 +10,36 @@
  *
  * Le module « 100 € » à côté raconte autre chose : le seul budget de l'État,
  * par nature de dépense. Les deux se complètent et le texte le dit.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * LE DÉNOMINATEUR EST LE PIB, PAS LES RECETTES
+ * ─────────────────────────────────────────────────────────────────────────
+ * Le bloc voisin, dans le même chapitre, rapporte les dépenses aux
+ * **recettes** — « pour 100 € encaissés, 109,77 € sortent », et l'écart est le
+ * déficit. Celui-ci les rapporte au **PIB**, parce que c'est ainsi qu'Eurostat
+ * publie la nomenclature et que c'est la seule forme comparable entre pays.
+ *
+ * Deux dénominateurs à un écran d'intervalle, c'est le genre de confusion que
+ * le dépôt refuse ailleurs. La parade n'est pas de convertir — une conversion
+ * produirait des nombres publiés nulle part — mais de nommer l'unité dans la
+ * phrase d'ouverture, dans chaque valeur affichée et sous le tableau.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * LA SOMME DES DIX EST LA DÉPENSE TOTALE, ET ON LE VÉRIFIE
+ * ─────────────────────────────────────────────────────────────────────────
+ * Les dix fonctions couvrent toute la dépense publique : leur somme doit
+ * retomber sur le total publié séparément (57,2 contre 57,3 % du PIB en 2024,
+ * l'écart étant celui des arrondis). Au-delà d'un demi-point, les deux séries
+ * ne disent pas le même exercice, et le bloc s'efface plutôt que d'afficher
+ * une décomposition qui ne se referme pas.
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * L'ÉVOLUTION SE DIT EN POINTS, JAMAIS EN POURCENTS
+ * ─────────────────────────────────────────────────────────────────────────
+ * Passer de 24,4 % à 23,7 % du PIB, c'est −0,7 **point**, pas −2,9 %. Les deux
+ * énoncés sont vrais et le second ne veut rien dire d'utile ici : il compare
+ * un ratio à lui-même. La colonne d'évolution porte des points, et le mot est
+ * écrit sous le tableau.
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
@@ -29,6 +59,33 @@ export const FONCTIONS = [
   "eurostat_fonction_environnement",
 ];
 export const TOTAL = "eurostat_depenses_publiques_pib";
+
+/**
+ * Ce que chaque fonction contient réellement.
+ *
+ * Les intitulés du catalogue sont ceux d'Eurostat : exacts, et illisibles.
+ * « Services généraux » ne dit rien à personne — c'est pourtant là que vit la
+ * charge de la dette, ce que le lecteur cherche justement ailleurs. Chaque
+ * glose est prise dans la définition de la fonction, jamais inventée ; une
+ * fonction sans glose s'affiche sans, plutôt que de bloquer le bloc.
+ */
+const GLOSES: Record<string, string> = {
+  eurostat_fonction_protection_sociale: "retraites, chômage, famille, exclusion, logement",
+  eurostat_fonction_sante: "soins, hôpitaux, médicaments",
+  eurostat_fonction_services_generaux: "administration, diplomatie, et la charge de la dette",
+  eurostat_fonction_affaires_economiques:
+    "transports, énergie, agriculture, aides aux entreprises",
+  eurostat_fonction_enseignement: "de la maternelle à l'université",
+  eurostat_fonction_ordre_securite: "police, justice, pompiers, prisons",
+  eurostat_fonction_defense: "forces armées et équipement militaire",
+  eurostat_fonction_culture: "sport, culture, audiovisuel public",
+  eurostat_fonction_logement: "urbanisme, eau, éclairage public",
+  eurostat_fonction_environnement: "déchets, eaux usées, air",
+};
+
+/** L'écart toléré, en points de PIB, entre la somme des dix fonctions et le
+ *  total publié à part. Au-delà, la décomposition ne se referme pas. */
+const TOLERANCE = 0.5;
 
 /* Les repères de comparaison. Leur nom vient de `pays-noms.ts`, qui les
    porte tous les quarante-huit : la publication nomme un pays par son code
@@ -53,6 +110,35 @@ function derniere(serie: Record<string, number> | undefined): [string, number] |
   return p ? [p, serie[p]] : null;
 }
 
+/** Un écart en points de PIB, avec son signe typographique. « = » plutôt que
+ *  « +0,0 » : un zéro signé se lit comme une hausse minuscule. */
+function points(ecart: number): string {
+  if (Math.abs(ecart) < 0.05) return "=";
+  const ecrit = new Intl.NumberFormat("fr-FR", {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(Math.abs(ecart));
+  return `${ecart > 0 ? "+" : "−"}${ecrit}`;
+}
+
+/**
+ * Le premier exercice que les dix fonctions publient toutes avec le total.
+ *
+ * C'est le point de départ de la colonne d'évolution. Un départ qui ne serait
+ * pas commun aux onze séries comparerait deux périmètres et appellerait ça une
+ * tendance. `null` quand ce départ n'existe pas ou vaut l'exercice d'arrivée :
+ * une colonne d'écarts tous nuls se lirait comme une structure figée.
+ */
+function departCommun(france: Territoire, arrivee: string): string | null {
+  const total = france.series[TOTAL];
+  if (!total) return null;
+  const communs = Object.keys(total)
+    .filter((an) => FONCTIONS.every((id) => france.series[id]?.[an] !== undefined))
+    .sort();
+  const depart = communs[0];
+  return depart && depart !== arrivee ? depart : null;
+}
+
 /** Rendu pur, sans DOM : c'est lui qui est testé. */
 export function rendu(
   pays: Record<string, Territoire>,
@@ -66,8 +152,17 @@ export function rendu(
   const valeur = (code: string, id: string): number | undefined =>
     pays[code]?.series?.[id]?.[annee];
 
-  const lignes = FONCTIONS.map((id) => ({ id, fr: valeur("FR", id) }))
-    .filter((l): l is { id: string; fr: number } => l.fr !== undefined)
+  const retenues = FONCTIONS.map((id) => ({ id, fr: valeur("FR", id) })).filter(
+    (l): l is { id: string; fr: number } => l.fr !== undefined,
+  );
+  // La décomposition doit se refermer sur le total publié à part : dix parts
+  // dont la somme ne retombe pas dessus décrivent deux exercices, et le
+  // lecteur additionnerait des nombres qui ne s'additionnent pas.
+  if (retenues.length < FONCTIONS.length) return "";
+  if (Math.abs(retenues.reduce((s, l) => s + l.fr, 0) - totalFr) > TOLERANCE) return "";
+
+  const depart = departCommun(france, annee);
+  const lignes = retenues
     .sort((a, b) => b.fr - a.fr)
     .map(({ id, fr }) => {
       const barres = `<span class="fonction__barre" style="width:${((fr / totalFr) * 100).toFixed(
@@ -77,11 +172,16 @@ export function rendu(
         const v = valeur(code, id);
         return `<td>${v === undefined ? "—" : echapper(pourcentage(v, true))}</td>`;
       }).join("");
+      const avant = depart === null ? undefined : france.series[id]?.[depart];
+      const glose = GLOSES[id];
       return `<tr>
-        <th scope="row">${echapper(libelle(id))}</th>
+        <th scope="row">${echapper(libelle(id))}${
+          glose ? `<span class="fonction__glose">${echapper(glose)}</span>` : ""
+        }</th>
         <td class="fonction__fr"><span class="fonction__piste">${barres}</span>
           <strong>${echapper(pourcentage(fr, true))}</strong></td>
         ${autres}
+        ${depart === null ? "" : `<td class="evolution">${avant === undefined ? "" : points(fr - avant)}</td>`}
       </tr>`;
     })
     .join("");
@@ -92,17 +192,30 @@ export function rendu(
   }).join("");
 
   return `
-    <h3>Que finance la dépense publique ?</h3>
-    <p class="bloc__complement">En ${echapper(annee)}, les administrations publiques
-      françaises (État, collectivités et Sécurité sociale réunis) ont dépensé
-      <strong>${echapper(pourcentage(totalFr))} du produit intérieur brut</strong>${totauxCompares}.</p>
+    <h3 class="sous-titre">À quoi ça sert</h3>
+    <p class="bloc__complement">Le tableau du dessus dit de quelle
+      <strong>nature</strong> est la dépense — des pensions, des salaires, des
+      achats. Celui-ci dit à quoi elle <strong>sert</strong> : un salaire
+      d'infirmière est de la santé, un salaire de professeur de l'enseignement,
+      et la lecture par nature les met dans la même ligne.
+      En ${echapper(annee)}, les administrations publiques françaises (État,
+      collectivités et Sécurité sociale réunis) ont dépensé <strong>${
+        echapper(pourcentage(totalFr))
+      } du produit intérieur brut</strong>${totauxCompares}.</p>
     <table class="fonctions" tabindex="0">
-      <caption>Par fonction, en % du PIB · définitions harmonisées Eurostat (COFOG)</caption>
       <thead><tr><th scope="col">Fonction</th><th scope="col">France</th>
         ${COMPARES.map(([, nom]) => `<th scope="col">${echapper(nom)}</th>`).join("")}
+        ${depart === null ? "" : `<th scope="col" class="evolution">Depuis ${echapper(depart)}</th>`}
       </tr></thead>
       <tbody>${lignes}</tbody>
     </table>
+    <p class="bloc__complement">En pourcentage du produit intérieur brut, pas
+      des recettes : c'est l'unité dans laquelle la nomenclature COFOG est
+      publiée, et la seule qui se compare d'un pays à l'autre.${
+        depart === null
+          ? ""
+          : ` La dernière colonne est l'écart avec ${echapper(depart)}, en points de PIB.`
+      } Source : Eurostat, dépenses des administrations publiques par fonction.</p>
 `;
 }
 

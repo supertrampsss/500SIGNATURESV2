@@ -1,0 +1,91 @@
+{
+  "slug": "championne-du-monde-prelevements-2024",
+  "titre": "« Championne du monde des prélèvements » : championne de quel monde ?",
+  "type": "decryptage",
+  "publie_le": "2026-08-22",
+  "themes": [
+    "europe",
+    "macro"
+  ],
+  "budgets_concernes": [
+    "etat"
+  ],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "La France est la championne du monde des prélèvements obligatoires.",
+    "auteur": null,
+    "date": null,
+    "source": {
+      "titre": "Taux de prélèvements obligatoires rapportés au produit intérieur brut (Insee)",
+      "url": "https://www.insee.fr/fr/statistiques/2381412",
+      "consulte_le": "2026-08-22"
+    }
+  },
+  "verdict": {
+    "cran": "hors_perimetre",
+    "confusion": "perimetre_geographique",
+    "phrase": "Le niveau français est bien parmi les plus élevés qui se mesurent, mais « du monde » désigne un périmètre que le chiffre ne couvre pas : la série harmonisée s'arrête à l'Union européenne et à quelques pays voisins. Dans ce périmètre-là, la France n'est même pas première — le Danemark prélève davantage."
+  },
+  "chiffres": [
+    {
+      "dit": "championne du monde",
+      "observe": {
+        "indicateur": "eurostat_prelevements_obligatoires_pib",
+        "niveau": "pays",
+        "code": "FR",
+        "periode": "2024",
+        "valeur": 45.2
+      },
+      "registre": "fait_comptable",
+      "lecture": "Les prélèvements obligatoires français : 45,2 % du PIB en 2024."
+    },
+    {
+      "dit": "personne ne prélève plus",
+      "observe": {
+        "indicateur": "eurostat_prelevements_obligatoires_pib",
+        "niveau": "pays",
+        "code": "DK",
+        "periode": "2024",
+        "valeur": 45.4
+      },
+      "registre": "fait_comptable",
+      "lecture": "Le Danemark en prélève 45,4 % la même année, même définition."
+    },
+    {
+      "dit": "bien au-dessus de la moyenne",
+      "observe": {
+        "indicateur": "eurostat_prelevements_obligatoires_pib",
+        "niveau": "pays",
+        "code": "EU27_2020",
+        "periode": "2024",
+        "valeur": 40.2
+      },
+      "registre": "fait_comptable",
+      "lecture": "L'Union à vingt-sept en prélève 40,2 % : cinq points de moins."
+    }
+  ],
+  "hypotheses": [
+    "Le taux rapporte des prélèvements à un produit intérieur brut : deux pays qui financent différemment la même protection sociale n'auront pas le même taux, même à couverture identique. Une retraite financée par cotisation compte dedans, la même retraite financée par une épargne privée n'y compte pas.",
+    "La série harmonisée d'Eurostat couvre l'Union, l'Espace économique européen et quelques candidats. Comparer la France aux États-Unis ou au Japon demande une autre source, avec une autre définition — c'est précisément ce que « du monde » suppose et que ce chiffre ne permet pas."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {
+      "titre": "Recettes des administrations publiques par catégorie (Eurostat, gov_10a_taxag)",
+      "url": "https://ec.europa.eu/eurostat/databrowser/view/gov_10a_taxag/default/table",
+      "consulte_le": "2026-08-22"
+    },
+    {
+      "titre": "Taux de prélèvements obligatoires au sein de l'Union européenne (Insee)",
+      "url": "https://www.insee.fr/fr/statistiques/2381410",
+      "consulte_le": "2026-08-22"
+    }
+  ],
+  "simulateur": {
+    "budget": "",
+    "contrat": "",
+    "lecture": "Le simulateur règle des recettes en euros, pas un taux rapporté au produit intérieur brut : baisser un impôt y fait bouger le solde, jamais directement ce ratio."
+  },
+  "mises_a_jour": [],
+  "verifie_contre": ""
+}

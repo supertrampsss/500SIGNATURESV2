@@ -1944,6 +1944,19 @@ tbody tr:hover {
   background: var(--accent);
 }
 
+/* La glose sous l'intitulé d'une fonction : « Services généraux » est le nom
+   officiel et ne dit rien à personne — c'est pourtant là que vit la charge de
+   la dette. Elle passe SOUS le nom, jamais à côté : la colonne est déjà
+   étroite, et une glose en incise couperait la lecture de la colonne. */
+.fonction__glose {
+  display: block;
+  font-size: var(--texte-xs);
+  color: var(--encre-douce);
+  line-height: 1.35;
+  margin-top: 0.1rem;
+  max-width: 26rem;
+}
+
 /* La Sécu : mêmes tables sobres que les fonctions ; les soldes s'alignent en
    chiffres tabulaires, le signe porte le sens — aucune couleur morale. */
 .secu {
@@ -3334,6 +3347,14 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 }
 .apu__valeur { text-align: right; font-size: var(--texte-m); font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .apu__total { border-top: 2px solid var(--serie-3); font-weight: 700; }
+
+/* La comparaison européenne : le tableau `.comparaison`, avec la ligne de la
+   France tenue à l'œil. Un fond teinté aurait été un jugement ; un filet à
+   gauche et un gras sur le nom disent « c'est vous » sans dire « c'est bien »
+   — la même règle que les évolutions du site, qui n'ont pas de couleur. */
+.europe__france th[scope="row"] { font-weight: 700; box-shadow: inset 2px 0 0 var(--encre); }
+.europe__france td { font-weight: 600; }
+.europe__millesime { font-weight: 400; font-size: var(--texte-xs); color: var(--encre-douce); }
 
 /* Les recettes de l'État : la taille suit le montant. Six crans (depuis que
    la TICPE est sortie du reste et prend sa propre ligne), du plus gros au
