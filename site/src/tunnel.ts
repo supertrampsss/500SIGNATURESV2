@@ -144,7 +144,7 @@ export const TELEX: Telex[] = [
   {
     id: "greve",
     nom: "Grève générale",
-    texte: "Le pays s'arrête un mardi, puis un jeudi. L'activité ralentit, les recettes fondent — et le patronat vous le fait savoir.",
+    texte: "Le pays s'arrête un mardi, puis un jeudi. L'activité ralentit, les recettes fondent, et le patronat vous le fait savoir.",
     effet: -1500,
     soutiens: { entreprises: -4 },
     declenche: (j) => j.opinion < SEUIL_RUPTURE + 10,
@@ -168,7 +168,7 @@ export const TELEX: Telex[] = [
   {
     id: "perspective",
     nom: "Perspective relevée",
-    texte: "Les agences de notation saluent le cap des 50 000 M€ trouvés. Emprunter coûte un peu moins cher — les marchés respirent.",
+    texte: "Les agences de notation saluent le cap des 50 000 M€ trouvés. Emprunter coûte un peu moins cher : les marchés respirent.",
     effet: 0,
     soutiens: { marches: 6 },
     declenche: (_j, combleM) => combleM >= 50000,
@@ -402,7 +402,7 @@ export function profil(etat: EtatTunnel): { nom: string; phrase: string } {
   if (depenses > recettes + economies) {
     return {
       nom: "La relance assumée",
-      phrase: "Vous avez dépensé plus que vous n'avez trouvé — c'est un choix, il a un coût, il est affiché.",
+      phrase: "Vous avez dépensé plus que vous n'avez trouvé. C'est un choix, il a un coût, il est affiché.",
     };
   }
   if (recettes > 2 * economies) {
@@ -419,7 +419,7 @@ export function profil(etat: EtatTunnel): { nom: string; phrase: string } {
   }
   return {
     nom: "L'équilibriste",
-    phrase: "Moitié recettes, moitié coupes — le plan qui fâche tout le monde un peu.",
+    phrase: "Moitié recettes, moitié coupes : le plan qui fâche tout le monde un peu.",
   };
 }
 
@@ -541,7 +541,7 @@ export const DECORATIONS: { id: string; nom: string; detail: string }[] = [
   { id: "sans-censure", nom: "Jamais censuré", detail: "Finir la pile, les quatre soutiens debout." },
   { id: "parole-x4", nom: "Parole tenue ×4", detail: "Jouer sous les quatre engagements à la fois." },
   { id: "zero-impot", nom: "Zéro impôt levé", detail: "Aucune recette nouvelle adoptée." },
-  { id: "funambule", nom: "Le funambule", detail: "Finir avec un soutien à 15 % ou moins — sans tomber." },
+  { id: "funambule", nom: "Le funambule", detail: "Finir avec un soutien à 15 % ou moins, sans tomber." },
   { id: "duel-gagne", nom: "Duel gagné", detail: "Battre le score d'un défi reçu." },
   { id: "grand-chelem", nom: "Le grand chelem", detail: "Trois paliers, et les quatre soutiens à 40 % ou plus." },
   { id: "integrale", nom: "L'intégrale", detail: "Tamponner les 78 mesures, sans engagement pour alléger la pile." },
@@ -630,13 +630,13 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
   const n = etat.engagements.length;
   const phrase =
     n === 0
-      ? "Aucun engagement — l'exercice facile. Personne ne vous croira."
+      ? "Aucun engagement : l'exercice facile. Personne ne vous croira."
       : n === 1
-        ? `1 engagement signé — ${retirees} mesures quittent la pile. L'exercice intéressant commence à deux.`
-        : `${n} engagements signés — ${retirees} mesures quittent la pile. Chacun ferme des portes, c'est le jeu.`;
+        ? `1 engagement signé : ${retirees} mesures quittent la pile. L'exercice intéressant commence à deux.`
+        : `${n} engagements signés : ${retirees} mesures quittent la pile. Chacun ferme des portes, c'est le jeu.`;
   const defi = etat.defi
     ? `<p class="tunnel__defi">Défi reçu&nbsp;: quelqu'un a trouvé
-        <strong>${echapper(millions(etat.defi.comble * 1e6))}</strong> — faites mieux.
+        <strong>${echapper(millions(etat.defi.comble * 1e6))}</strong>. Faites mieux.
         Ses engagements sont pré-signés.</p>`
     : "";
   return `
@@ -644,13 +644,13 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
       <p class="tunnel__surtitre">Votre mission</p>
       <p class="tunnel__compteur-geant">${compteur(missionEuros)}</p>
       <p class="tunnel__chapeau">C'est ce qui manque aux budgets publics pour tenir sans
-        emprunter — le vrai compteur, calculé sur les comptes publiés. Toute la scène
+        emprunter : le vrai compteur, calculé sur les comptes publiés. Toute la scène
         politique va défiler : à vous de tamponner.</p>
-      <p class="tunnel__surtitre">Signez vos engagements — chacun retire ses mesures de la pile</p>
+      <p class="tunnel__surtitre">Signez vos engagements : chacun retire ses mesures de la pile</p>
       <div class="tunnel__engagements">${chips}</div>
       <p class="tunnel__note">${echapper(phrase)}</p>
       <button type="button" class="tunnel__engagement${etat.chrono ? " tunnel__engagement--signe" : ""}"
-        data-action="chrono" aria-pressed="${etat.chrono ? "true" : "false"}">Conseil de crise — ${CHRONO_SECONDES}&#8239;s par mesure</button>
+        data-action="chrono" aria-pressed="${etat.chrono ? "true" : "false"}">Conseil de crise : ${CHRONO_SECONDES}&#8239;s par mesure</button>
       ${defi}
       <button type="button" class="tunnel__commencer" data-action="commencer">Prendre mes fonctions&nbsp;&#8594;</button>
     </div>`;
@@ -696,7 +696,7 @@ function renduJournal(etat: EtatTunnel): string {
     .join("");
   return `<div class="tunnel__journal" aria-label="Vos derniers tampons">
     <p class="tunnel__surtitre">Vos tampons</p>
-    ${lignes || '<p class="tunnel__note">Aucun encore — le premier dossier attend.</p>'}
+    ${lignes || '<p class="tunnel__note">Aucun encore. Le premier dossier attend.</p>'}
   </div>`;
 }
 
@@ -706,7 +706,7 @@ function renduTelex(id: string): string {
   return `
     <article class="tunnel__carte tunnel__carte--telex" aria-live="assertive">
       <header class="tunnel__carte-tete">
-        <span class="tunnel__carte-chapitre">Télex — entre deux mesures</span>
+        <span class="tunnel__carte-chapitre">Télex · entre deux mesures</span>
       </header>
       <h3 class="tunnel__carte-titre">${echapper(t.nom)}</h3>
       <p class="tunnel__carte-detail">${echapper(t.texte)}</p>
@@ -787,7 +787,7 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
           <button type="button" class="tunnel__adopter" data-geste="adopter">Adopter</button>
         </div>
         <div class="tunnel__seconds">
-          <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner — elle reviendra en fin de pile</button>
+          <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>
           ${etat.historique.length ? '<button type="button" class="tunnel__ajourner" data-geste="annuler">&#8592; Annuler le dernier tampon</button>' : ""}
         </div>
       </article>`}
@@ -801,7 +801,7 @@ export function renduVerdict(etat: EtatTunnel, missionEuros: number): string {
   const p = etat.censure
     ? {
         nom: "Censuré",
-        phrase: `${etat.censure} a lâché — le gouvernement tombe, le compteur s'arrête à ${millions(combleM * 1e6)}. Annulez le tampon de trop, ou rejouez autrement.`,
+        phrase: `${etat.censure} a lâché : le gouvernement tombe, le compteur s'arrête à ${millions(combleM * 1e6)}. Annulez le tampon de trop, ou rejouez autrement.`,
       }
     : profil(etat);
   const paliers = paliersTunnel(etat, missionEuros);
@@ -828,7 +828,7 @@ export function renduVerdict(etat: EtatTunnel, missionEuros: number): string {
           : combleM === etat.defi.comble
             ? "Défi à <strong>égalité</strong>"
             : "Défi <strong>manqué</strong>"
-      } — ${echapper(millions(combleM * 1e6))} contre ${echapper(millions(etat.defi.comble * 1e6))}.</p>`
+      } : ${echapper(millions(combleM * 1e6))} contre ${echapper(millions(etat.defi.comble * 1e6))}.</p>`
     : "";
   return `
     <div class="tunnel__verdict">
@@ -879,7 +879,7 @@ export function bilanTexte(etat: EtatTunnel, missionEuros: number): string {
   const p = profil(etat);
   const nFranchis = paliersTunnel(etat, missionEuros).filter((x) => x.franchi).length;
   return (
-    `${p.nom} — ${millions(comble(etat) * 1e6)} trouvés sur les ${compteur(missionEuros)} ` +
+    `${p.nom} : ${millions(comble(etat) * 1e6)} trouvés sur les ${compteur(missionEuros)} ` +
     `qui manquent aux budgets publics (${nFranchis} palier${nFranchis > 1 ? "s" : ""} sur 4). ` +
     `Faites mieux : ${adresseDefi(etat)}`
   );
@@ -887,8 +887,8 @@ export function bilanTexte(etat: EtatTunnel, missionEuros: number): string {
 
 function renduPied(): string {
   return `<p class="tunnel__source">La mission est calculée sur les budgets publiés. Les effets
-    des mesures sont des ordres de grandeur du débat public — lois de finances, rapports
-    parlementaires, chiffrages d'instituts —, affichés avec leurs réserves. Les réactions des
+    des mesures sont des ordres de grandeur du débat public (lois de finances, rapports
+    parlementaires, chiffrages d'instituts), affichés avec leurs réserves. Les réactions des
     soutiens sont des règles du jeu, pas des mesures.</p>`;
 }
 
@@ -978,10 +978,10 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       const adresse = adresseDefi(etat);
       void navigator.clipboard?.writeText(adresse).then(
         () => {
-          cible.textContent = "Lien copié — envoyez-le";
+          cible.textContent = "Lien copié, envoyez-le";
         },
         () => {
-          window.prompt("Le lien du défi — copiez-le :", adresse);
+          window.prompt("Le lien du défi, à copier :", adresse);
         },
       );
       return;
@@ -990,12 +990,12 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       const texte = bilanTexte(etat, options.missionEuros);
       void navigator.clipboard?.writeText(texte).then(
         () => {
-          cible.textContent = "Copié — collez-le où vous défiez";
+          cible.textContent = "Copié, collez-le où vous défiez";
         },
         () => {
           // Presse-papiers refusé (permissions, contexte non sécurisé) : le
           // texte reste lisible dans une invite, plutôt que rien.
-          window.prompt("Votre bilan — copiez-le :", texte);
+          window.prompt("Votre bilan, à copier :", texte);
         },
       );
     }

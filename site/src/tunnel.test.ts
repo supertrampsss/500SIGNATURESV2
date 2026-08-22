@@ -436,7 +436,7 @@ test("les bons télex existent : franchir 50 000 M€ fait respirer les marchés
   const apres = soutiens(etat, MISSION).find((s) => s.cle === "marches")!.valeur;
   assert.ok(apres >= avant, "un bon télex ne fait pas baisser les marchés");
   const html = renduConseil(etat, MISSION);
-  assert.match(html, /Télex — entre deux mesures/);
+  assert.match(html, /Télex · entre deux mesures/);
   assert.match(html, /Perspective relevée/);
   assert.match(html, /Poursuivre/);
   assert.doesNotMatch(html, /REJETER/i);
