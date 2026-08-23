@@ -3141,3 +3141,11 @@ test("le pied de fiche ne fait pas tomber le démarrage d'une page éditoriale",
     "le garde-fou doit venir avant l'usage",
   );
 });
+
+test("la vue simulateur passe en vrai tunnel : plein écran, sauf pour un lien d'atelier", () => {
+  // Le montage pose la classe du plein écran, mais jamais quand l'adresse
+  // porte un budget ou un face-à-face : un lien partagé ouvre l'atelier
+  // qu'il promettait, dans la page.
+  assert.match(MAIN, /else \$\("tunnel"\)\.classList\.add\("tunnel--plein"\)/);
+  assert.match(MAIN, /if \(etat\.budget \|\| etat\.face\) \$\("mode-expert"\)\.hidden = false;\n  else \$\("tunnel"\)/);
+});
