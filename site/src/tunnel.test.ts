@@ -369,13 +369,13 @@ test("un repaint pendant le partage invalide l'ancien bouton mais libère une no
   }
 });
 
-test("le conseil express rend l'état, les deux camps, la preuve et la barre d'action", () => {
+test("le conseil express rend le dilemme sans bloc de preuve séparé", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
   assert.match(html, /tunnel__etat-compact/);
   assert.match(html, /tunnel__comparaison/);
   assert.match(html, /tunnel__camp--adopter/);
   assert.match(html, /tunnel__camp--rejeter/);
-  assert.match(html, /<details class="tunnel__preuve"/);
+  assert.doesNotMatch(html, /tunnel__preuve|Chiffrage, hypothèses et source/);
   assert.match(html, /tunnel__actions-fixes/);
   assert.match(html, /Acte 1/);
 });
@@ -694,8 +694,8 @@ test("le verdict se partage sans balise et dit le comblé et les paliers", () =>
   while (courante(etat)) etat = tamponner(etat, "rejete");
   const html = renduVerdict(etat, MISSION);
   assert.match(html, /Plan de recettes nouvelles/);
-  assert.match(html, /Relever le défi/);
-  assert.match(html, /Partager le bilan/);
+  assert.match(html, />Rejouer</);
+  assert.match(html, />Partager mon bilan</);
   assert.match(html, /Porter le taux normal de TVA/);
 });
 
@@ -740,25 +740,34 @@ test("le défi voyage dans l'adresse, et une adresse abîmée est ignorée en si
   });
 });
 
-test("le verdict déroule le bilan dans l'ordre budget, soutiens, promesses, conséquences, titre puis revanche", () => {
+test("le verdict condense le bilan sous un header, les soutiens et un mandat unique", () => {
   let etat = { ...etatInitial(), mode: "express" as const, graine: 42 };
   etat = commencer(etat);
-  while (courante(etat)) etat = tamponner(etat, "rejete");
+  let nAdoptions = 0;
+  while (courante(etat)) {
+    etat = tamponner(etat, nAdoptions < 3 ? "adopte" : "rejete");
+    nAdoptions += 1;
+  }
   etat = transitionApresRetour(etat, MISSION);
   const html = renduVerdict(etat, MISSION);
   const ordre = [
-    "trouvés sur les",
-    "Soutiens et stabilité",
-    "Promesses tenues",
-    "Conséquences encore ouvertes",
+    "Bilan du mandat",
+    "tunnel__verdict-chiffre",
+    "tunnel__verdict-paliers",
+    ">Soutiens</",
     'class="tunnel__verdict-nom"',
-    "Relever le défi",
+    ">Promesses</",
+    ">Conséquences</",
+    "Vos choix décisifs",
+    "Voir les 15 décisions",
+    ">Rejouer</",
   ].map((repere) => html.indexOf(repere));
   assert.ok(ordre.every((position) => position >= 0), "chaque étape obligatoire est rendue");
   assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, "le DOM suit le fil de lecture annoncé");
   assert.match(html, /aria-labelledby="tunnel-mandat"/);
+  assert.match(html, /<dl class="tunnel__mandat-resume">/);
   assert.match(html, /<details class="tunnel__historique"/);
-  assert.match(html, /Voir mes 15 choix/);
+  assert.doesNotMatch(html, /Soutiens et stabilité|Promesses tenues|Conséquences encore ouvertes|Relever le défi/);
 });
 
 test("la carte anonyme du bilan ne retient que les agrégats du mandat", () => {
@@ -938,7 +947,7 @@ test("le verdict tranche le duel : battu, égalité, manqué", () => {
   assert.match(partie(5000), /Défi <strong>battu<\/strong>/);
   assert.match(partie(8000), /Défi à <strong>égalité<\/strong>/);
   assert.match(partie(9000), /Défi <strong>manqué<\/strong>/);
-  assert.match(partie(9000), /Relever le défi/);
+  assert.match(partie(9000), />Rejouer</);
 });
 
 test("la partie survit au rechargement, et une sauvegarde abîmée est jetée entière", () => {

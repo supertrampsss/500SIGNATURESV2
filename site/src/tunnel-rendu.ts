@@ -289,16 +289,6 @@ export function renduComparaison(mesure: (typeof MESURES)[number], dilemme = dil
   </div>`;
 }
 
-/** La réserve éditoriale accompagne chaque montant au lieu d'être cachée dans la carte. */
-export function renduPreuve(mesure: (typeof MESURES)[number]): string {
-  return `<details class="tunnel__preuve">
-    <summary>Chiffrage, hypothèses et source</summary>
-    <p>${echapper(mesure.detail)}</p>
-    ${mesure.precision ? `<p>${echapper(mesure.precision)}</p>` : ""}
-    <p>Les réactions des soutiens sont des règles du jeu.</p>
-  </details>`;
-}
-
 export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   const mesure = courante(etat);
   const dilemme = mesure && etat.mode === "express" ? dilemmeDe(mesure.id) : undefined;
@@ -318,7 +308,6 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
         <h3 class="tunnel__carte-titre">${echapper(dilemme?.question ?? mesure.titre)}</h3>
         <p class="tunnel__carte-detail">${echapper(dilemme?.contradiction ?? mesure.detail)}</p>
         ${renduComparaison(mesure, dilemme)}
-        ${renduPreuve(mesure)}
         ${
           etat.reports >= REPORTS_GRATUITS - 1
             ? `<p class="tunnel__alerte" role="status">${etat.reports} report${etat.reports > 1 ? "s" : ""} : au-delà de ${REPORTS_GRATUITS}, chacun coûte 1 point à chaque soutien.</p>`
@@ -409,28 +398,14 @@ export function renduVerdict(
     : "";
   return `
     <div class="tunnel__verdict">
-      <p class="tunnel__surtitre">Votre verdict</p>
-      <p class="tunnel__verdict-bilan">
-        <strong>${echapper(millions(combleM * 1e6))}</strong> trouvés sur les
-        <strong>${compteur(missionEuros)}</strong> qui manquent ·
-        ${nFranchis} palier${nFranchis > 1 ? "s" : ""} sur ${paliers.length}${
-          resteEuros === 0 ? " · l'équilibre" : ""
-        }</p>
+      <header class="tunnel__verdict-tete">
+        <p class="tunnel__surtitre">Bilan du mandat</p>
+        <h2 class="tunnel__verdict-chiffre"><strong>${echapper(millions(combleM * 1e6))}</strong> trouvés</h2>
+        <p class="tunnel__verdict-paliers">${nFranchis} / ${paliers.length} paliers${resteEuros === 0 ? " · équilibre atteint" : ""}</p>
+      </header>
       <section class="tunnel__stabilite" aria-labelledby="tunnel-stabilite">
-        <p id="tunnel-stabilite" class="tunnel__surtitre">Soutiens et stabilité</p>
+        <p id="tunnel-stabilite" class="tunnel__surtitre">Soutiens</p>
         ${renduSoutiens(etat, missionEuros)}
-      </section>
-      <section class="tunnel__mandat" aria-labelledby="tunnel-promesses">
-        <p id="tunnel-promesses" class="tunnel__surtitre">Promesses tenues</p>
-        <p><strong>Promesses tenues</strong> : ${bilan.engagements.length
-          ? bilan.engagements.map((engagement) => `${echapper(engagement.nom)} — ${engagement.statut === "tenue" ? "tenue" : "impossibilité détectée"}`).join(" · ")
-          : "aucune promesse signée"}.</p>
-      </section>
-      <section class="tunnel__mandat" aria-labelledby="tunnel-consequences">
-        <p id="tunnel-consequences" class="tunnel__surtitre">Conséquences encore ouvertes</p>
-        <p><strong>Conséquences encore ouvertes</strong> : ${bilan.crises.length
-          ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
-          : "aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</p>
       </section>
       <section class="tunnel__mandat" aria-labelledby="tunnel-mandat">
         <p id="tunnel-mandat" class="tunnel__surtitre">Votre mandat</p>
@@ -438,8 +413,17 @@ export function renduVerdict(
         <p class="tunnel__chapeau">${echapper(p.phrase)}${
           rupture ? ` ${echapper(rupture.nom)} est au bord de la rupture.` : ""
         }</p>
+        <dl class="tunnel__mandat-resume">
+          <div><dt>Promesses</dt><dd>${bilan.engagements.length
+            ? bilan.engagements.map((engagement) => `${echapper(engagement.nom)} — ${engagement.statut === "tenue" ? "tenue" : "impossibilité détectée"}`).join(" · ")
+            : "Aucune promesse signée"}.</dd></div>
+          <div><dt>Conséquences</dt><dd>${bilan.crises.length
+            ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
+            : "Aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</dd></div>
+        </dl>
       </section>
       ${duel}
+      ${gestes ? `<section class="tunnel__verdict-gestes" aria-labelledby="tunnel-gestes"><p id="tunnel-gestes" class="tunnel__surtitre">Vos choix décisifs</p>${gestes}</section>` : ""}
       ${(() => {
         const gagnees = decorations(etat, missionEuros);
         if (!gagnees.length) return "";
@@ -451,19 +435,17 @@ export function renduVerdict(
           <p class="tunnel__note">Collection : ${collection.length} / ${DECORATIONS.length}.</p>
         </div>`;
       })()}
-      ${gestes ? `<div class="tunnel__verdict-gestes"><p class="tunnel__surtitre">Vos plus gros gestes</p>${gestes}</div>` : ""}
       <details class="tunnel__historique">
-        <summary>Voir mes ${etat.historique.length} choix</summary>
+        <summary>Voir les ${etat.historique.length} décisions</summary>
         <ol>${etat.historique.map((choix) => {
           const mesure = mesureParId(choix.id);
           return `<li>${echapper(mesure?.titre ?? choix.id)} — ${etat.tampons[choix.id] === "adopte" ? "adoptée" : "rejetée"}</li>`;
         }).join("")}</ol>
       </details>
       <div class="tunnel__verdict-boutons">
-        <button type="button" class="tunnel__adopter" data-action="revanche">Relever le défi</button>
-        <button type="button" class="tunnel__rejeter" data-action="partager">Partager le bilan</button>
+        <button type="button" class="tunnel__adopter" data-action="revanche">Rejouer</button>
+        <button type="button" class="tunnel__rejeter" data-action="partager">Partager mon bilan</button>
       </div>
-      <p class="tunnel__note">Le défi partage une URL v2 : même mode, même graine, mêmes engagements et score à battre.</p>
     </div>`;
 }
 function renduPied(): string {

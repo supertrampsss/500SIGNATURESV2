@@ -8427,9 +8427,6 @@ body[data-carte="oui"] .legende {
 .tunnel__camp-montant { color: var(--crise-encre); font-size: var(--texte-s); font-weight: 800; font-variant-numeric: tabular-nums; }
 .tunnel__reactions { display: flex; flex-wrap: wrap; gap: var(--espace-2); }
 .tunnel__reaction { padding: var(--espace-1) var(--espace-2); color: #364356; border: 1px solid var(--crise-filet); border-radius: var(--rayon-pilule); font-size: var(--texte-xs); font-variant-numeric: tabular-nums; }
-.tunnel__preuve { padding: var(--espace-3) 0; border-block: 1px solid var(--crise-filet); font-size: var(--texte-s); }
-.tunnel__preuve summary { display: flex; align-items: center; min-height: var(--cible); font-weight: 800; cursor: pointer; }
-.tunnel__preuve p { margin: var(--espace-3) 0 0; color: #455367; }
 .tunnel__alerte { margin: 0; padding: var(--espace-3); color: inherit; background: rgb(155 48 41 / .1); border-inline-start: 3px solid var(--crise-rouge); font-size: var(--texte-s); }
 .tunnel__panneau .tunnel__alerte { color: var(--crise-texte-nuit); background: rgb(155 48 41 / .2); }
 
@@ -8474,27 +8471,64 @@ body[data-carte="oui"] .legende {
 .tunnel__chrono { display: block; height: 4px; background: var(--crise-ocre); animation: tunnel-fond 20s linear forwards; transform-origin: left; }
 @keyframes tunnel-fond { from { transform: scaleX(1); } to { transform: scaleX(0); } }
 
-.tunnel__verdict { max-width: 48rem; }
-.tunnel__verdict-bilan { margin: 0; color: var(--crise-texte-souple); }
-.tunnel__verdict-bilan strong { color: #fff; font-variant-numeric: tabular-nums; }
-.tunnel__stabilite,
-.tunnel__mandat,
-.tunnel__decorations,
-.tunnel__verdict-gestes,
-.tunnel__historique {
+.tunnel__verdict { max-width: 42rem; gap: var(--espace-4); }
+.tunnel__verdict-tete { display: grid; gap: var(--espace-2); }
+.tunnel__verdict-chiffre {
+  margin: 0;
+  color: var(--crise-texte-nuit);
+  font-family: var(--serif);
+  font-size: var(--texte-4xl);
+  font-weight: 600;
+  line-height: 1;
+}
+.tunnel__verdict-chiffre strong { color: #fff; font-variant-numeric: tabular-nums; }
+.tunnel__verdict-paliers { margin: 0; color: var(--crise-texte-souple); font-size: var(--texte-s); font-variant-numeric: tabular-nums; }
+.tunnel__stabilite {
+  display: grid;
+  gap: var(--espace-3);
+  padding-block: var(--espace-4);
+  border-block: 1px solid rgb(194 209 230 / .22);
+}
+.tunnel__mandat {
+  display: grid;
+  gap: var(--espace-3);
   padding: var(--espace-4);
   color: var(--crise-texte-nuit);
   background: rgb(255 255 255 / .06);
-  border: 1px solid rgb(194 209 230 / .22);
+  border-inline-start: 3px solid var(--crise-or);
 }
 .tunnel__mandat p { margin: 0; }
+.tunnel__mandat-resume {
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0;
+  padding-top: var(--espace-3);
+  border-top: 1px solid rgb(194 209 230 / .22);
+  font-size: var(--texte-s);
+}
+.tunnel__mandat-resume div {
+  display: grid;
+  grid-template-columns: minmax(6.5rem, .35fr) minmax(0, 1fr);
+  gap: var(--espace-3);
+}
+.tunnel__mandat-resume dt { color: #f1d38d; font-weight: 800; }
+.tunnel__mandat-resume dd { min-width: 0; margin: 0; color: var(--crise-texte-souple); overflow-wrap: anywhere; }
+.tunnel__decorations,
+.tunnel__verdict-gestes,
+.tunnel__historique {
+  padding-block: var(--espace-4);
+  color: var(--crise-texte-nuit);
+  border-bottom: 1px solid rgb(194 209 230 / .22);
+}
 .tunnel__historique summary { display: flex; align-items: center; min-height: var(--cible); cursor: pointer; font-weight: 800; }
 .tunnel__historique ol { margin: var(--espace-3) 0 0; padding-inline-start: 1.4rem; }
 .tunnel__historique li + li { margin-top: var(--espace-2); }
 .tunnel__verdict-gestes,
 .tunnel__decorations { display: grid; gap: var(--espace-3); }
 .tunnel__decorations-rang,
-.tunnel__verdict-boutons { display: flex; flex-wrap: wrap; gap: var(--espace-3); }
+.tunnel__verdict-boutons { display: grid; gap: var(--espace-3); }
+.tunnel__verdict-boutons .tunnel__adopter,
+.tunnel__verdict-boutons .tunnel__rejeter { text-align: center; }
 .tunnel__decoration { padding: var(--espace-2) var(--espace-3); color: #f1d38d; border: 1px solid var(--crise-or); border-radius: var(--rayon-pilule); font-size: var(--texte-s); font-weight: 800; }
 .tunnel__source { max-width: 78rem; margin: 0 auto; padding: var(--espace-5) var(--espace-4); color: var(--crise-texte-souple); border-top: 1px solid rgb(194 209 230 / .22); font-size: var(--texte-xs); }
 .tunnel__expert { min-height: var(--cible); padding: var(--espace-2); color: var(--crise-texte-souple); background: transparent; border: 0; font: inherit; text-decoration: underline; cursor: pointer; }
@@ -8519,6 +8553,7 @@ body[data-carte="oui"] .legende {
   .tunnel__choix,
   .tunnel__tampons,
   .tunnel__actions-fixes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tunnel__verdict-boutons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tunnel__camp-parties { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tunnel__actions-fixes {
     bottom: calc(-1 * var(--espace-5));
