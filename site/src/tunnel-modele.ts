@@ -53,6 +53,10 @@ export type EtatTunnel = {
   telex: { vus: string[]; surcout: number; soutiens: Partial<Record<Soutien, number>> };
   /** Le télex affiché en ce moment — la carte de mesure attend derrière. */
   telexEnCours?: string;
+  /** Le dernier tampon a déjà eu son unique vérification télex. Ce marqueur
+   * persiste pour qu'un remontage ne transforme pas la fermeture du télex en
+   * une seconde vérification du même tampon. */
+  telexVerifie?: true;
   /** Le conseil de crise : vingt secondes par mesure, sinon elle est
    *  ajournée d'office. Choisi à l'écran de mission. */
   chrono?: boolean;
@@ -304,6 +308,7 @@ export function etatInitial(defi?: DefiTunnel | null): EtatTunnel {
       criseSurcout: 0,
       criseSoutiens: {},
       finDifferee: undefined,
+      telexVerifie: undefined,
       reports: 0,
     };
   }
@@ -324,6 +329,7 @@ export function etatInitial(defi?: DefiTunnel | null): EtatTunnel {
     criseSurcout: 0,
     criseSoutiens: {},
     finDifferee: undefined,
+    telexVerifie: undefined,
     reports: 0,
     defi: { comble: defi.comble },
   };
@@ -353,6 +359,7 @@ export function commencer(etat: EtatTunnel): EtatTunnel {
     criseSurcout: 0,
     criseSoutiens: {},
     finDifferee: undefined,
+    telexVerifie: undefined,
     reports: 0,
   };
 }
@@ -380,7 +387,14 @@ export function tamponner(etat: EtatTunnel, verdict: "adopte" | "rejete"): EtatT
   }
   const historique = [...etat.historique, { id: mesure.id, exclues }];
   const reste = etat.ordre.some((i) => !tampons[i]);
-  return { ...etat, tampons, historique, phase: "conseil", ...(reste ? {} : { finDifferee: true }) };
+  return {
+    ...etat,
+    tampons,
+    historique,
+    phase: "conseil",
+    telexVerifie: undefined,
+    ...(reste ? {} : { finDifferee: true }),
+  };
 }
 
 /**
@@ -427,8 +441,11 @@ export function resoudreApresTelex(etat: EtatTunnel, missionEuros: number): Etat
 /** Résout l'unique télex autorisé après un tampon, puis les crises et le
  * verdict éventuels. */
 export function resoudreFinConseil(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  if (etat.phase !== "conseil") return etat;
+  if (etat.telexVerifie) return resoudreApresTelex(etat, missionEuros);
   const apresTelex = verifierTelex(etat, missionEuros);
-  return apresTelex.telexEnCours ? apresTelex : resoudreApresTelex(apresTelex, missionEuros);
+  const marque = { ...apresTelex, telexVerifie: true as const };
+  return marque.telexEnCours ? marque : resoudreApresTelex(marque, missionEuros);
 }
 
 /** Applique l'arbitrage, remet le soutien déclencheur à au moins 15 et

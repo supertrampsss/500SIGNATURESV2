@@ -85,6 +85,14 @@ export function restaurer(): EtatTunnel | null {
         ? ({ Opinion: "opinion", Entreprises: "entreprises", Territoires: "territoires", Marchés: "marches" } as const)[censureHistorique]
         : undefined;
     const finHistorique = criseHistorique !== undefined && lu.ordre.every((id) => tampons[id] !== undefined);
+    const telexEnCours =
+      typeof lu.telexEnCours === "string" && TELEX.some((t) => t.id === lu.telexEnCours) ? lu.telexEnCours : undefined;
+    // Les sauvegardes antérieures au marqueur ne peuvent pas prouver que le
+    // retour du dernier tampon a déjà fini : par défaut, on vérifie donc une
+    // fois plutôt que de taire arbitrairement un télex. Un télex encore à
+    // l'écran (ou une crise historique déjà ouverte) prouve en revanche que
+    // cette vérification a bien eu lieu.
+    const telexVerifie = lu.telexVerifie === true || telexEnCours !== undefined || criseHistorique !== undefined;
     return {
       // Les sauvegardes historiques n'avaient ni version, ni mode : leur
       // ordre est celui de l'intégrale et doit rester tel quel.
@@ -121,9 +129,8 @@ export function restaurer(): EtatTunnel | null {
       criseSoutiens: lu.criseSoutiens ?? {},
       // Une sauvegarde d'avant les reports repart à zéro report.
       reports: Number.isFinite(lu.reports) && lu.reports >= 0 ? lu.reports : 0,
-      ...(typeof lu.telexEnCours === "string" && TELEX.some((t) => t.id === lu.telexEnCours)
-        ? { telexEnCours: lu.telexEnCours }
-        : {}),
+      ...(telexEnCours !== undefined ? { telexEnCours } : {}),
+      ...(telexVerifie ? { telexVerifie: true as const } : {}),
       ...(criseHistorique
         ? { criseEnCours: criseHistorique }
         : lu.criseEnCours === "opinion" || lu.criseEnCours === "entreprises" || lu.criseEnCours === "territoires" || lu.criseEnCours === "marches"

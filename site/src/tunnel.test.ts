@@ -659,6 +659,114 @@ test("un télex non terminal ne peut en ouvrir un autre qu'après le tampon suiv
   assert.equal(etat.telexEnCours, "greve");
 });
 
+test("le contrôleur restauré ne rejoue pas le télex fermé du même tampon", () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage"].filter((cle) => cle in global));
+  const stockage = new Map<string, string>();
+  const cadre = {
+    innerHTML: "",
+    addEventListener: () => {},
+    removeEventListener: () => {},
+  } as unknown as HTMLElement;
+  try {
+    global.window = { addEventListener: () => {}, removeEventListener: () => {} };
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = {
+      getItem: (cle: string) => stockage.get(cle) ?? null,
+      setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur),
+      removeItem: (cle: string) => void stockage.delete(cle),
+    };
+    let etat = {
+      ...deuxDerniersDossiers(),
+      criseSoutiens: { opinion: -34, marches: -20 },
+    };
+    etat = transitionApresRetour(tamponner(etat, "rejete"), MISSION);
+    assert.equal(etat.telexEnCours, "taux");
+    etat = trancherTelex(etat, "a", MISSION);
+    assert.equal(etat.telexEnCours, undefined);
+    stockage.set("tunnel-partie", JSON.stringify(etat));
+
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    const relu = JSON.parse(stockage.get("tunnel-partie")!) as EtatTunnel;
+    assert.deepEqual(relu.telex.vus, ["taux"]);
+    assert.equal(relu.telexEnCours, undefined, "aucun nouveau télex sans nouveau tampon");
+    assert.equal(transitionApresRetour(tamponner(relu, "rejete"), MISSION).telexEnCours, "greve");
+    demonter();
+  } finally {
+    for (const cle of ["window", "location", "sessionStorage"]) {
+      if (presents.has(cle)) global[cle] = anciens.get(cle);
+      else delete global[cle];
+    }
+  }
+});
+
+test("le marqueur de télex survit aux remontages pendant et après le retour", () => {
+  const global = globalThis as Record<string, unknown>;
+  const ancien = global.sessionStorage;
+  const memoire = new Map<string, string>();
+  global.sessionStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  const recharger = (etat: EtatTunnel): EtatTunnel => {
+    memoire.set("tunnel-partie", JSON.stringify(etat));
+    return restaurer()!;
+  };
+  try {
+    const enCours = transitionApresRetour(
+      tamponner({ ...deuxDerniersDossiers(), criseSoutiens: { marches: -20 } }, "rejete"),
+      MISSION,
+    );
+    assert.equal(enCours.telexEnCours, "taux");
+    assert.equal(transitionApresRetour(recharger(enCours), MISSION).telexEnCours, "taux", "le télex ouvert est conservé");
+
+    const sansTelex = {
+      ...deuxDerniersDossiers(),
+      telex: { vus: TELEX.map((t) => t.id), surcout: 0, soutiens: {} },
+    };
+    const nonTerminal = transitionApresRetour(tamponner(sansTelex, "rejete"), MISSION);
+    assert.equal(nonTerminal.phase, "conseil");
+    assert.equal((nonTerminal as EtatTunnel & { telexVerifie?: true }).telexVerifie, true);
+    assert.equal(transitionApresRetour(recharger(nonTerminal), MISSION).telexEnCours, undefined);
+
+    const terminal = transitionApresRetour(tamponner({ ...sansTelex, ordre: ["doubler-la-taxe-sur-les-rachats-d"], tampons: {}, historique: [] }, "rejete"), MISSION);
+    assert.equal(terminal.phase, "verdict");
+    assert.equal((terminal as EtatTunnel & { telexVerifie?: true }).telexVerifie, true);
+    assert.equal(transitionApresRetour(recharger(terminal), MISSION).phase, "verdict");
+  } finally {
+    if (ancien === undefined) delete global.sessionStorage;
+    else global.sessionStorage = ancien;
+  }
+});
+
+test("une sauvegarde antérieure sans marqueur rejoue seulement un télex dont l'état ne prouve pas la clôture", () => {
+  const global = globalThis as Record<string, unknown>;
+  const ancien = global.sessionStorage;
+  const memoire = new Map<string, string>();
+  global.sessionStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  try {
+    const attente = tamponner({ ...deuxDerniersDossiers(), criseSoutiens: { marches: -20 } }, "rejete");
+    memoire.set("tunnel-partie", JSON.stringify({ ...attente, telexEnCours: "taux" }));
+    const pendant = restaurer()!;
+    assert.equal((pendant as EtatTunnel & { telexVerifie?: true }).telexVerifie, true);
+    assert.equal(transitionApresRetour(pendant, MISSION).telexEnCours, "taux");
+
+    memoire.set("tunnel-partie", JSON.stringify(attente));
+    const ambigu = restaurer()!;
+    assert.equal((ambigu as EtatTunnel & { telexVerifie?: true }).telexVerifie, undefined);
+    assert.equal(transitionApresRetour(ambigu, MISSION).telexEnCours, "taux");
+  } finally {
+    if (ancien === undefined) delete global.sessionStorage;
+    else global.sessionStorage = ancien;
+  }
+});
+
 test("la dernière mesure sans événement ne rend le verdict qu'après le retour", () => {
   const sansEvenement = {
     ...dernierDossier(),
