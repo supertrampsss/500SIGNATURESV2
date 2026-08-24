@@ -20,8 +20,9 @@ import assert from "node:assert/strict";
 import { access, readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
-const ICI = path.dirname(new URL(import.meta.url).pathname);
+const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE_SITE = path.resolve(ICI, "..");
 const RACINE_DEPOT = path.resolve(RACINE_SITE, "..");
 const WORKFLOW = path.join(RACINE_DEPOT, ".github", "workflows", "deploy.yml");
@@ -38,7 +39,7 @@ type Etape = { bloc: string; repertoire: string; commande: string };
  * que passer en silence.
  */
 async function etapes(): Promise<Etape[]> {
-  const texte = await readFile(WORKFLOW, "utf8");
+  const texte = (await readFile(WORKFLOW, "utf8")).replace(/\r\n/g, "\n");
   return texte
     .split(/^ {6}- /m)
     .slice(1)

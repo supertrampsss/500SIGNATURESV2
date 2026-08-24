@@ -24,6 +24,7 @@ import { mkdtemp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { CHIFFRES_EXEMPLE, MESSAGE_PRINCIPAL } from "../src/accueil.ts";
 import { rendu, type Analyse } from "../src/analyse-rendu.ts";
@@ -68,7 +69,7 @@ import {
   validerImagesAnnoncees,
 } from "./prerendre.ts";
 
-const ICI = path.dirname(new URL(import.meta.url).pathname);
+const ICI = path.dirname(fileURLToPath(import.meta.url));
 const RACINE_SITE = path.resolve(ICI, "..");
 
 /** Les analyses publiées, telles que le build les lit. Le test suit le dépôt :
@@ -434,10 +435,10 @@ test("6 bis. chaque section a son image, et aucune ne dément le titre posé à 
   };
   // La section du simulateur est peinte À L'ENDROIT où la fonction d'edge
   // annonce l'image : deux chemins se seraient désaccordés en silence.
-  assert.equal(path.join("/", parNature("Simulateur").chemin, "carte.png"), IMAGE_SCENARIO);
+  assert.equal(path.posix.join("/", parNature("Simulateur").chemin, "carte.png"), IMAGE_SCENARIO);
   // Et celle de BILAN à l'endroit où son document annonce la sienne : le
   // chemin vient de `routes.ts`, jamais recopié.
-  assert.equal(path.join("/", parNature("Bilan").chemin), CHEMINS.bilan);
+  assert.equal(path.posix.join("/", parNature("Bilan").chemin), CHEMINS.bilan);
 
   // Le chapeau peint est celui de la section, jamais « Repère ». Il est lu sur
   // le SVG rendu, pas sur les données : c'est ce que le lecteur voit.
