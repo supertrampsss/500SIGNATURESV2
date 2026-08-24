@@ -78,18 +78,20 @@ test("Web Share envoie la carte anonyme lorsque le navigateur accepte le fichier
   assert.deepEqual(fichiers, [carte]);
 });
 
-test("sans partage de fichier, le bilan bascule au texte copiable", async () => {
+test("sans partage de fichier, Web Share reçoit le bilan texte et son URL", async () => {
   const carte = { name: "bilan-conseil.svg", type: "image/svg+xml" } as File;
   let partage = 0;
   let copie = 0;
+  let donneesPartagees: { text?: string; url?: string; files?: File[] } | undefined;
   const resultat = await partagerBilan("Le bilan", "https://exemple.test/defi", {
     canShare: () => false,
-    share: async () => { partage++; },
+    share: async (donnees) => { partage++; donneesPartagees = donnees; },
     clipboard: { writeText: async () => { copie++; } },
   }, undefined, { carte });
-  assert.equal(resultat, "copie");
-  assert.equal(partage, 0);
-  assert.equal(copie, 1);
+  assert.equal(resultat, "partage");
+  assert.equal(partage, 1);
+  assert.equal(copie, 0);
+  assert.deepEqual(donneesPartagees, { title: "Mon bilan du conseil", text: "Le bilan", url: "https://exemple.test/defi" });
 });
 
 test("un échec de partage et de copie télécharge clairement la carte locale", async () => {

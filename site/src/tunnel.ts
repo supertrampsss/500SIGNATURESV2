@@ -317,7 +317,7 @@ export async function partagerBilan(
       return false;
     }
   })();
-  if (typeof partager === "function" && (!options.carte || cartePartageable)) {
+  if (typeof partager === "function") {
     try {
       await partager.call(navigateur, {
         title: "Mon bilan du conseil", text: texte, url: adresse,
