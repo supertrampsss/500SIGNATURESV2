@@ -15,4 +15,5 @@ site/shot-*.mjs
 # vivant le temps d'une tâche. Le commiter enregistrerait un arbre de travail
 # comme s'il était du code.
 .claude/worktrees/
+.worktrees/
 *.egg-info/
