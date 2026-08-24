@@ -362,9 +362,9 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
           <p>${etat.engagements.length ? `${etat.engagements.length} engagement${etat.engagements.length > 1 ? "s" : ""} signé${etat.engagements.length > 1 ? "s" : ""}` : "Aucun engagement signé"}</p>
         </section>
       </aside>
-      <main class="tunnel__dilemme" aria-label="Dilemme en cours">
+      <section class="tunnel__dilemme" aria-label="Dilemme en cours">
         ${evenement}
-      </main>
+      </section>
       <aside class="tunnel__panneau tunnel__panneau--trajectoire" aria-label="Trajectoire et conséquences">
         <section class="tunnel__trajectoire" aria-labelledby="tunnel-trajectoire">
           <p id="tunnel-trajectoire" class="tunnel__panneau-titre">Trajectoire</p>

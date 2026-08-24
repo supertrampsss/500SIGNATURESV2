@@ -8172,11 +8172,6 @@ body[data-carte="oui"] .legende {
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
-   LE TUNNEL — le simulateur en jeu de mesures (maquette validée).
-
-   La scène est SOMBRE dans les deux thèmes, exprès : c'est le « mode jeu »
-   validé sur maquette — l'encre du site devient le plateau, les cartes
-/* ══════════════════════════════════════════════════════════════════════════
    CONSEIL DE CRISE — coque nuit, dossier papier
    Une seule couche souveraine : les couleurs décrivent les conséquences
    chiffrées, jamais le geste « adopter » ou « rejeter ». */
@@ -8357,9 +8352,9 @@ body[data-carte="oui"] .legende {
 }
 .tunnel__journal li span { overflow-wrap: anywhere; }
 .tunnel__journal b { font-weight: 800; }
-.tunnel__tampon--adopte { color: #92dbc4; }
-.tunnel__tampon--rejete { color: #f1c1ba; }
-.tunnel__tampon--exclue { color: #f1d38d; }
+.tunnel__tampon--adopte,
+.tunnel__tampon--rejete,
+.tunnel__tampon--exclue { color: var(--crise-texte-souple); }
 
 .tunnel__etat-compact {
   display: grid;
@@ -8455,15 +8450,16 @@ body[data-carte="oui"] .legende {
 .tunnel__rejeter {
   min-width: 0;
   padding: var(--espace-3) var(--espace-4);
+  color: var(--crise-encre);
+  background: #e7ddcd;
+  border: 1px solid #5d6877;
   border-radius: var(--rayon-s);
   font-size: var(--texte-m);
   font-weight: 800;
   text-align: start;
 }
-.tunnel__adopter { color: #fff; background: var(--crise-ocre); border: 1px solid var(--crise-ocre); }
-.tunnel__rejeter { color: var(--crise-encre); background: transparent; border: 1px solid #5d6877; }
-.tunnel__adopter:hover { background: #7e3e24; border-color: #7e3e24; }
-.tunnel__rejeter:hover { background: #eae2d4; }
+.tunnel__adopter:hover,
+.tunnel__rejeter:hover { background: #d8cbb7; border-color: var(--crise-encre); }
 .tunnel__seconds { display: flex; flex-wrap: wrap; gap: var(--espace-2) var(--espace-4); }
 .tunnel__ajourner { padding: var(--espace-2) 0; color: var(--crise-encre); background: transparent; border: 0; font-size: var(--texte-s); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .tunnel__adopter:disabled,
@@ -8506,7 +8502,9 @@ body[data-carte="oui"] .legende {
 
 .tunnel button:focus-visible,
 .tunnel summary:focus-visible,
-.tunnel__quitter:focus-visible { outline: 3px solid #ffe29b; outline-offset: 3px; }
+.tunnel__quitter:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.tunnel__carte button:focus-visible,
+.tunnel__carte summary:focus-visible { outline-color: var(--crise-encre); }
 
 @media (min-width: 60rem) {
   .tunnel__scene {

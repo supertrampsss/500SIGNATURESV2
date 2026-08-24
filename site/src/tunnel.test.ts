@@ -383,7 +383,7 @@ test("le conseil express rend l'état, les deux camps, la preuve et la barre d'a
 test("la salle de crise répartit l'état, le dilemme et la trajectoire dans trois régions utiles", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
   const soutiens = html.match(/<aside class="tunnel__panneau tunnel__panneau--soutiens"[\s\S]*?<\/aside>/)?.[0] ?? "";
-  const dilemme = html.match(/<main class="tunnel__dilemme"[\s\S]*?<\/main>/)?.[0] ?? "";
+  const dilemme = html.match(/<section class="tunnel__dilemme"[\s\S]*?<\/section>\s*<aside class="tunnel__panneau tunnel__panneau--trajectoire"/)?.[0] ?? "";
   const trajectoire = html.match(/<aside class="tunnel__panneau tunnel__panneau--trajectoire"[\s\S]*?<\/aside>/)?.[0] ?? "";
 
   assert.match(soutiens, /aria-label="Soutiens et engagement"/);
