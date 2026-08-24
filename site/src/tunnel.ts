@@ -26,9 +26,11 @@ import {
 import { millions } from "./echelle.ts";
 import { CONTRATS } from "./mission.ts";
 import { rendu as renduPur, renduVerdict as renduVerdictPur } from "./tunnel-rendu.ts";
+import { impactDecision, jouerRetour } from "./tunnel-retour.ts";
 
 export * from "./tunnel-modele.ts";
 export * from "./tunnel-rendu.ts";
+export * from "./tunnel-retour.ts";
 export { EXPRESS_PAR_ACTE, acteDe, ordreExpress, type Acte } from "./campagne.ts";
 
 /* --------------------------------------------------------------------------
@@ -194,6 +196,9 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   // avant — une seule échéance vit à la fois. À l'expiration, la mesure est
   // ajournée d'office : le conseil n'attend pas.
   let minuteur: ReturnType<typeof setTimeout> | undefined;
+  // Le tampon est déjà acquis pendant son retour visuel, mais aucun autre
+  // geste ne peut se glisser avant la carte (ou le télex) suivante.
+  let retourEnCours = false;
   const peindre = () => {
     sauver(etat);
     cadre.innerHTML = rendu(etat, options.missionEuros);
@@ -206,6 +211,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
   };
   cadre.addEventListener("click", (evenement) => {
+    if (retourEnCours) return;
     const cible = (evenement.target as HTMLElement).closest<HTMLElement>(
       "[data-geste], [data-action], [data-engagement], [data-telex]",
     );
@@ -224,12 +230,19 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     if (geste === "adopter" || geste === "rejeter") {
       // Le télex tombe AVANT la censure : ses effets peuvent être ce qui
       // censure, et le joueur doit lire pourquoi avant de tomber.
-      etat = verifierTelex(
-        tamponner(etat, geste === "adopter" ? "adopte" : "rejete"),
-        options.missionEuros,
-      );
+      const avant = etat;
+      const tampon = tamponner(etat, geste === "adopter" ? "adopte" : "rejete");
+      const impact = impactDecision(avant, tampon, options.missionEuros);
+      etat = verifierTelex(tampon, options.missionEuros);
       if (!etat.telexEnCours) etat = verifierCensure(etat, options.missionEuros);
-      return peindre();
+      sauver(etat);
+      clearTimeout(minuteur);
+      retourEnCours = true;
+      jouerRetour(cadre, impact, () => {
+        retourEnCours = false;
+        peindre();
+      });
+      return;
     }
     if (geste === "ajourner") {
       etat = ajourner(etat);

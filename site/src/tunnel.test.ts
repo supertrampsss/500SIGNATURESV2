@@ -57,6 +57,7 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
   assert.equal(typeof facade.commencer, "function");
   assert.equal(typeof facade.renduConseil, "function");
   assert.equal(typeof facade.afficherTunnel, "function");
+  assert.equal(typeof facade.impactDecision, "function");
 });
 
 test("le conseil express rend l'état, les deux camps, la preuve et la barre d'action", () => {
