@@ -24,6 +24,7 @@ import {
   collectionner,
   decorations,
   basculerEngagement,
+  afficherTunnel,
   bilanTexte,
   decoderDefi,
   encoderDefi,
@@ -59,6 +60,62 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
   assert.equal(typeof facade.renduConseil, "function");
   assert.equal(typeof facade.afficherTunnel, "function");
   assert.equal(typeof facade.impactDecision, "function");
+});
+
+test("le retour BFCache garde un unique contrôleur cliquable et réarme le chrono", () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage", "setTimeout", "clearTimeout"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage", "setTimeout", "clearTimeout"].filter((cle) => cle in global));
+  const ecouteurs = new Map<string, Set<(evenement: { persisted?: boolean }) => void>>();
+  const fenetre = {
+    addEventListener: (type: string, ecouteur: (evenement: { persisted?: boolean }) => void) => {
+      if (!ecouteurs.has(type)) ecouteurs.set(type, new Set());
+      ecouteurs.get(type)!.add(ecouteur);
+    },
+    removeEventListener: (type: string, ecouteur: (evenement: { persisted?: boolean }) => void) => ecouteurs.get(type)?.delete(ecouteur),
+    emettre: (type: string, evenement: { persisted?: boolean }) => {
+      for (const ecouteur of ecouteurs.get(type) ?? []) ecouteur(evenement);
+    },
+  };
+  const taches = new Set<{ annulee: boolean }>();
+  const stockage = new Map<string, string>();
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  let peintures = 0;
+  const cadre = {
+    set innerHTML(_html: string) { peintures++; },
+    get innerHTML() { return ""; },
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+    emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
+  } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
+  const bouton = { dataset: { action: "commencer" }, closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton } as unknown as HTMLElement;
+  try {
+    global.window = fenetre;
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
+    global.setTimeout = (() => { const tache = { annulee: false }; taches.add(tache); return tache; }) as unknown;
+    global.clearTimeout = ((tache: { annulee?: boolean } | undefined) => { if (tache) tache.annulee = true; }) as unknown;
+    stockage.set("tunnel-partie", JSON.stringify({ ...etatInitial(), chrono: true }));
+
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    cadre.emettreClic(bouton);
+    const avantRetour = peintures;
+    fenetre.emettre("pagehide", { persisted: true });
+    fenetre.emettre("pageshow", { persisted: true });
+
+    assert.equal(clics.size, 1);
+    assert.ok(peintures > avantRetour);
+    assert.equal([...taches].filter((tache) => !tache.annulee).length, 1);
+    const apresRetour = peintures;
+    cadre.emettreClic(bouton);
+    assert.equal(peintures, apresRetour + 1);
+    demonter();
+  } finally {
+    for (const [cle, valeur] of anciens) {
+      if (presents.has(cle)) global[cle] = valeur;
+      else delete global[cle];
+    }
+  }
 });
 
 test("le conseil express rend l'état, les deux camps, la preuve et la barre d'action", () => {

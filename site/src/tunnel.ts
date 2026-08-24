@@ -332,11 +332,26 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     interrompreRetour();
     clearTimeout(minuteur);
     cadre.removeEventListener("click", clic);
-    window.removeEventListener("pagehide", demonter);
+    window.removeEventListener("pagehide", pagehide);
+    window.removeEventListener("pageshow", pageshow);
     if (MONTAGES.get(cadre) === demonter) MONTAGES.delete(cadre);
   };
+  const pagehide = (evenement: PageTransitionEvent) => {
+    // Le BFCache garde le DOM : retirer l'écouteur ici le rendrait inerte au
+    // retour. On stoppe seulement ce qui peut reprendre hors contexte.
+    if (evenement.persisted) {
+      interrompreRetour();
+      clearTimeout(minuteur);
+      return;
+    }
+    demonter();
+  };
+  const pageshow = (evenement: PageTransitionEvent) => {
+    if (evenement.persisted) peindre();
+  };
   MONTAGES.set(cadre, demonter);
-  window.addEventListener("pagehide", demonter, { once: true });
+  window.addEventListener("pagehide", pagehide);
+  window.addEventListener("pageshow", pageshow);
   peindre();
   return demonter;
 }
