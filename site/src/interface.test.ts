@@ -185,6 +185,14 @@ test("le tunnel sur papier ne conserve aucune encre de la première scène sombr
     [".tunnel__verdict-bilan strong", "#0f1b2e"],
     [".tunnel__carte--telex .tunnel__carte-chapitre", "#315f4e"],
     [".tunnel__rejeter", "#8f3329"],
+    // Ces contrôles et ces faits sont rendus directement sur le papier par
+    // la mission et le verdict. Les anciennes encres claires du tunnel sombre
+    // les rendaient illisibles, et les styles de base restent nécessaires aux
+    // autres scènes : c'est donc bien leur dernière règle qui fait contrat.
+    [".tunnel__engagement", "#315f4e"],
+    [".tunnel__tampon", "#626f66"],
+    [".tunnel__tampon b", "#315f4e"],
+    [".tunnel__tampon--adopte b", "#315f4e"],
   ]) {
     const bloc = CSS.slice(CSS.lastIndexOf(`\n${selecteur} {`));
     assert.match(bloc.slice(0, bloc.indexOf("}")), new RegExp(`color:\\s*${couleur}`, "i"), selecteur);

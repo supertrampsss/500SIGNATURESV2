@@ -8712,9 +8712,29 @@ body[data-carte="oui"] .legende {
 .tunnel__duel strong,
 .tunnel__decoration { color: #315f4e; }
 .tunnel__decoration { border-color: #315f4e; }
+.tunnel__engagement {
+  color: #315f4e;
+  border-color: #315f4e;
+}
+.tunnel__fanfare { color: #315f4e; }
+.tunnel__chapitre { color: #626f66; }
+.tunnel__chapitre--actif { color: #0f1b2e; }
+.tunnel__tampon {
+  color: #626f66;
+  border-bottom-color: #c7c0b0;
+}
+.tunnel__tampon b { color: #315f4e; }
+.tunnel__tampon--adopte b { color: #315f4e; }
+.tunnel__prix,
+.tunnel__expert { color: #626f66; }
+.tunnel__jalons span { background: #c7c0b0; }
+.tunnel__jalons .tunnel__jalon--adopte,
+.tunnel__chrono { background: #315f4e; }
+.tunnel__carte--telex { border-top-color: #315f4e; }
 .tunnel__soutien-nom { color: #0f1b2e; }
 .tunnel__soutien--rupture .tunnel__soutien-nom,
 .tunnel__soutien--rupture .tunnel__soutien-valeur { color: #8f3329; }
+.tunnel__soutien--rupture .tunnel__jauge span { background: #8f3329; }
 .tunnel--plein .tunnel__cadre { overflow-y: auto; }
 .tunnel--plein .tunnel__quitter {
   display: inline-flex;
