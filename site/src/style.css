@@ -8691,6 +8691,7 @@ body[data-carte="oui"] .legende {
   color: #0f1b2e;
 }
 .tunnel--plein .tunnel__quitter:hover { color: #315f4e; }
+.tunnel--plein .tunnel__quitter:focus-visible { color: #0f1b2e; }
 .tunnel--plein .tunnel__quitter:focus-visible,
 .tunnel button:focus-visible,
 .tunnel summary:focus-visible {
