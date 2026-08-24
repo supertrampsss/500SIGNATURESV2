@@ -8540,6 +8540,21 @@ body[data-carte="oui"] .legende {
 }
 .tunnel__verdict-bilan { font-size: var(--texte-m); color: #c9cec7; margin: 0; }
 .tunnel__verdict-bilan strong { color: #ece9e1; font-variant-numeric: tabular-nums; }
+.tunnel__mandat {
+  display: grid;
+  gap: var(--espace-2);
+  padding: var(--espace-4);
+  border-inline-start: 3px solid var(--argile);
+  background: rgba(255, 255, 255, 0.06);
+}
+.tunnel__mandat p { margin: 0; }
+.tunnel__historique {
+  padding: var(--espace-3) var(--espace-4);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.tunnel__historique summary { cursor: pointer; font-weight: 700; }
+.tunnel__historique ol { margin: var(--espace-3) 0 0; padding-inline-start: 1.4rem; }
+.tunnel__historique li + li { margin-top: var(--espace-2); }
 .tunnel__verdict-gestes { display: flex; flex-direction: column; gap: var(--espace-2); }
 .tunnel__verdict-boutons { display: flex; flex-wrap: wrap; gap: var(--espace-3); }
 .tunnel__verdict-boutons .tunnel__adopter,

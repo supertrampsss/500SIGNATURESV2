@@ -26,6 +26,7 @@ import {
   basculerEngagement,
   afficherTunnel,
   bilanTexte,
+  bilanVerdict,
   decoderDefi,
   encoderDefi,
   restaurer,
@@ -35,6 +36,7 @@ import {
   courante,
   etatInitial,
   missionRestante,
+  nouvelleContrainte,
   paliersTunnel,
   pile,
   profil,
@@ -115,6 +117,68 @@ test("le retour BFCache garde un unique contrôleur cliquable et réarme le chro
   } finally {
     for (const [cle, valeur] of anciens) {
       if (presents.has(cle)) global[cle] = valeur;
+      else delete global[cle];
+    }
+  }
+});
+
+test("le retour BFCache résout une décision tamponnée une seule fois, sans la rejouer", () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage", "setTimeout", "clearTimeout", "document"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage", "setTimeout", "clearTimeout", "document"].filter((cle) => cle in global));
+  const ecouteurs = new Map<string, Set<(evenement: { persisted?: boolean }) => void>>();
+  const stockage = new Map<string, string>();
+  const evenements: unknown[] = [];
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  const fenetre = {
+    addEventListener: (type: string, ecouteur: (evenement: { persisted?: boolean }) => void) => {
+      if (!ecouteurs.has(type)) ecouteurs.set(type, new Set());
+      ecouteurs.get(type)!.add(ecouteur);
+    },
+    removeEventListener: (type: string, ecouteur: (evenement: { persisted?: boolean }) => void) => ecouteurs.get(type)?.delete(ecouteur),
+    emettre: (type: string, evenement: { persisted?: boolean }) => {
+      for (const ecouteur of ecouteurs.get(type) ?? []) ecouteur(evenement);
+    },
+  };
+  const cadre = {
+    innerHTML: "",
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+    querySelectorAll: () => [],
+    querySelector: () => null,
+    setAttribute: () => {},
+    removeAttribute: () => {},
+    emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
+  } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
+  const bouton = { dataset: { geste: "adopter" }, closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton } as unknown as HTMLElement;
+  try {
+    global.window = fenetre;
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
+    global.setTimeout = (() => ({ annulee: false })) as unknown;
+    global.clearTimeout = ((_tache: unknown) => {}) as unknown;
+    global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
+    stockage.set("tunnel-partie", JSON.stringify({
+      ...conseil(), mode: "express", ordre: ["reconduire-la-surtaxe-des-grandes-entreprises"], tampons: {}, historique: [],
+      telex: { vus: TELEX.map((telex) => telex.id), surcout: 0, soutiens: {} },
+    }));
+
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    cadre.emettreClic(bouton);
+    fenetre.emettre("pagehide", { persisted: true });
+    fenetre.emettre("pageshow", { persisted: true });
+    fenetre.emettre("pageshow", { persisted: true });
+
+    const apres = JSON.parse(stockage.get("tunnel-partie")!) as EtatTunnel;
+    assert.equal(apres.phase, "verdict");
+    assert.deepEqual(evenements, [
+      { type: "decision", acte: 1, numero: 1, verdict: "adopte" },
+      { type: "partie_terminee", mode: "express", dossiers: 1 },
+    ]);
+    demonter();
+  } finally {
+    for (const cle of ["window", "location", "sessionStorage", "setTimeout", "clearTimeout", "document"]) {
+      if (presents.has(cle)) global[cle] = anciens.get(cle);
       else delete global[cle];
     }
   }
@@ -266,24 +330,24 @@ test("les soutiens réagissent aux tampons, restent bornés, et la rupture s'ann
   assert.ok(!opinion.danger, "42 % n'est pas la rupture");
 });
 
-test("le profil nomme la forme du plan, jamais une note", () => {
-  assert.equal(profil(conseil()).nom, "L'observateur");
+test("le profil décrit la forme du plan, sans qualifier le joueur", () => {
+  assert.equal(profil(conseil()).nom, "Plan sans décisions retenues");
   let percepteur = conseil();
   percepteur = adopterId(percepteur, "porter-le-taux-normal-de-tva-a");
-  assert.equal(profil(percepteur).nom, "Le percepteur");
+  assert.equal(profil(percepteur).nom, "Plan de recettes nouvelles");
   let chirurgien = conseil();
   chirurgien = adopterId(chirurgien, "geler-le-point-d-indice-en-2026");
-  assert.equal(profil(chirurgien).nom, "Le chirurgien");
+  assert.equal(profil(chirurgien).nom, "Plan d'économies");
   let relance = conseil();
   relance = adopterId(relance, "revenir-a-62-ans");
-  assert.equal(profil(relance).nom, "La relance assumée");
+  assert.equal(profil(relance).nom, "Plan à dépenses nouvelles");
   // Dans l'ordre du catalogue : `adopterId` rejette tout ce qui précède sa
   // cible, donc on adopte en avançant, jamais en revenant.
   let equilibriste = conseil();
   equilibriste = adopterId(equilibriste, "porter-le-taux-normal-de-tva-a");
   equilibriste = adopterId(equilibriste, "repousser-l-age-legal-a-65-ans");
   equilibriste = adopterId(equilibriste, "geler-le-point-d-indice-en-2026");
-  assert.equal(profil(equilibriste).nom, "L'équilibriste");
+  assert.equal(profil(equilibriste).nom, "Plan mixte");
 });
 
 test("la pile épuisée attend la résolution de fin de séance", () => {
@@ -327,9 +391,9 @@ test("le verdict se partage sans balise et dit le comblé et les paliers", () =>
   etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
   while (courante(etat)) etat = tamponner(etat, "rejete");
   const html = renduVerdict(etat, MISSION);
-  assert.match(html, /Le percepteur/);
-  assert.match(html, /Rejouer/);
-  assert.match(html, /Copier le bilan/);
+  assert.match(html, /Plan de recettes nouvelles/);
+  assert.match(html, /Relever le défi/);
+  assert.match(html, /Partager le bilan/);
   assert.match(html, /Porter le taux normal de TVA/);
 });
 
@@ -343,7 +407,7 @@ test("le bilan copié tient en une phrase, chiffres compris", () => {
   etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
   while (courante(etat)) etat = tamponner(etat, "rejete");
   const texte = bilanTexte(etat, MISSION);
-  assert.match(texte, /Le percepteur/);
+  assert.match(texte, /Plan de recettes nouvelles/);
   assert.match(texte, /9\u202f800/);
   assert.match(texte, /Faites mieux : https:\/\/exemple\.test\/simulateur/);
   delete (globalThis as { location?: unknown }).location;
@@ -372,6 +436,45 @@ test("le défi voyage dans l'adresse, et une adresse abîmée est ignorée en si
     comble: 1200,
     engagements: ["ecole-sante"],
   });
+});
+
+test("le verdict explique le mandat avant sa revanche et garde quinze choix accessibles", () => {
+  let etat = { ...etatInitial(), mode: "express" as const, graine: 42 };
+  etat = commencer(etat);
+  while (courante(etat)) etat = tamponner(etat, "rejete");
+  etat = transitionApresRetour(etat, MISSION);
+  const html = renduVerdict(etat, MISSION);
+  assert.ok(html.indexOf("Votre mandat") < html.indexOf("Relever le défi"));
+  assert.match(html, /Promesses tenues/);
+  assert.match(html, /Conséquences encore ouvertes/);
+  assert.match(html, /<details class="tunnel__historique"/);
+  assert.match(html, /Voir mes 15 choix/);
+});
+
+test("le bilan du verdict expose les chiffres, promesses, crises, reports et trois gestes", () => {
+  let etat = { ...conseil(), engagements: ["sans-impot"], reports: 2 };
+  etat = adopterId(etat, "geler-le-point-d-indice-en-2026");
+  etat = adopterId(etat, "fermer-un-tiers-des-agences-et-operateurs");
+  etat = adopterId(etat, "doubler-les-moyens-contre-la-fraude-fiscale");
+  const bilan = bilanVerdict(etat, MISSION);
+  assert.equal(bilan.trouve, comble(etat));
+  assert.equal(bilan.reste, missionRestante(etat, MISSION));
+  assert.equal(bilan.engagements[0]?.statut, "tenue");
+  assert.equal(bilan.reports, 2);
+  assert.equal(bilan.gestes.length, 3);
+  assert.ok(bilan.gestes[0]!.montantAbsolu >= bilan.gestes[1]!.montantAbsolu);
+  assert.match(bilan.profil.nom, /Plan/);
+});
+
+test("la revanche ajoute toujours le premier engagement absent, puis varie seulement la graine", () => {
+  const etat = { ...etatInitial(), mode: "express" as const, graine: 0xffff_ffff, engagements: [] };
+  const premier = nouvelleContrainte(etat);
+  assert.deepEqual(premier.engagements, ["sans-impot"]);
+  assert.equal(premier.graine, etat.graine);
+  const tous = nouvelleContrainte({ ...etat, engagements: ["sans-impot", "sans-prestation", "ecole-sante", "sans-collectivites"] });
+  assert.deepEqual(tous.engagements, ["sans-impot", "sans-prestation", "ecole-sante", "sans-collectivites"]);
+  assert.notEqual(tous.graine, etat.graine);
+  assert.ok(tous.graine >= 0 && tous.graine <= 0xffff_ffff);
 });
 
 test("la campagne express est la mission par défaut et l'intégrale garde les 96 mesures", () => {
@@ -511,7 +614,7 @@ test("le verdict tranche le duel : battu, égalité, manqué", () => {
   assert.match(partie(5000), /Défi <strong>battu<\/strong>/);
   assert.match(partie(8000), /Défi à <strong>égalité<\/strong>/);
   assert.match(partie(9000), /Défi <strong>manqué<\/strong>/);
-  assert.match(partie(9000), /Défier quelqu'un/);
+  assert.match(partie(9000), /Relever le défi/);
 });
 
 test("la partie survit au rechargement, et une sauvegarde abîmée est jetée entière", () => {

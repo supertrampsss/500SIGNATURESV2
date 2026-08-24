@@ -27,10 +27,13 @@ import { millions } from "./echelle.ts";
 import { CONTRATS } from "./mission.ts";
 import { rendu as renduPur, renduVerdict as renduVerdictPur } from "./tunnel-rendu.ts";
 import { impactDecision, jouerRetour } from "./tunnel-retour.ts";
+import { acteDe, type Acte } from "./campagne.ts";
+import { emettreEvenement } from "./tunnel-evenements.ts";
 
 export * from "./tunnel-modele.ts";
 export * from "./tunnel-rendu.ts";
 export * from "./tunnel-retour.ts";
+export * from "./tunnel-evenements.ts";
 export { EXPRESS_PAR_ACTE, acteDe, ordreExpress, type Acte } from "./campagne.ts";
 
 /* --------------------------------------------------------------------------
@@ -222,6 +225,33 @@ export function reprendre(
   return etatInitial(recu);
 }
 
+const ORDRE_REVANCHE = ["sans-impot", "sans-prestation", "ecole-sante", "sans-collectivites"] as const;
+
+/** Une nouvelle partie, un cran de contrainte en plus — puis une nouvelle graine. */
+export function nouvelleContrainte(etat: EtatTunnel): EtatTunnel {
+  const absente = ORDRE_REVANCHE.find((cle) => !etat.engagements.includes(cle));
+  return {
+    ...etatInitial(),
+    mode: etat.mode,
+    graine: absente ? etat.graine : (etat.graine + 1) >>> 0,
+    engagements: absente ? [...etat.engagements, absente] : [...etat.engagements],
+  };
+}
+
+function acteAnonyme(etat: EtatTunnel, id: string, numero: number): Acte {
+  const acte = acteDe(id);
+  if (acte !== undefined) return acte;
+  return Math.min(3, Math.floor((numero - 1) / Math.max(1, Math.ceil(etat.ordre.length / 3))) + 1) as Acte;
+}
+
+/** Les suites qui ne deviennent vraies qu'après le retour visuel du tampon. */
+function emettreSuite(etat: EtatTunnel): void {
+  if (etat.criseEnCours) emettreEvenement({ type: "crise", soutien: etat.criseEnCours });
+  if (etat.phase === "verdict") {
+    emettreEvenement({ type: "partie_terminee", mode: etat.mode, dossiers: etat.ordre.length });
+  }
+}
+
 /** Les événements du monde ne suivent qu'après le retour du tampon persistant. */
 export function transitionApresRetour(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   return resoudreFinConseil(etat, missionEuros);
@@ -245,6 +275,9 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   // geste ne peut se glisser avant la carte (ou le télex) suivante.
   let retourEnCours = false;
   let annulerRetour: (() => void) | undefined;
+  // Le tampon reste acquis si BFCache coupe son animation : il recevra son
+  // unique résolution au retour, sans jamais rejouer le retour visuel.
+  let tamponEnRetour: EtatTunnel | undefined;
   const interrompreRetour = () => {
     annulerRetour?.();
     annulerRetour = undefined;
@@ -257,10 +290,24 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     clearTimeout(minuteur);
     if (etat.chrono && etat.phase === "conseil" && !etat.telexEnCours && !etat.criseEnCours && courante(etat)) {
       minuteur = setTimeout(() => {
+        const id = courante(etat)?.id ?? "";
         etat = ajourner(etat);
+        const numero = etat.historique.length + etat.reports;
+        emettreEvenement({ type: "decision", acte: acteAnonyme(etat, id, numero), numero, verdict: "ajourne" });
         peindre();
       }, CHRONO_SECONDES * 1000);
     }
+  };
+  const resoudreRetour = () => {
+    const tampon = tamponEnRetour;
+    if (!tampon) return;
+    tamponEnRetour = undefined;
+    annulerRetour = undefined;
+    retourEnCours = false;
+    etat = transitionApresRetour(tampon, options.missionEuros);
+    sauver(etat);
+    emettreSuite(etat);
+    peindre();
   };
   const clic = (evenement: MouseEvent) => {
     if ((evenement.target as HTMLElement).closest(".tunnel__quitter")) {
@@ -275,11 +322,13 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     const issue = cible.dataset.telex;
     if (issue) {
       etat = trancherTelex(etat, issue, options.missionEuros);
+      emettreSuite(etat);
       return peindre();
     }
     const issueCrise = cible.dataset.crise;
     if (issueCrise === "conceder" || issueCrise === "tenir") {
       etat = trancherCrise(etat, issueCrise, options.missionEuros);
+      emettreSuite(etat);
       return peindre();
     }
     const engagement = cible.dataset.engagement;
@@ -295,21 +344,28 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       const tampon = tamponner(etat, geste === "adopter" ? "adopte" : "rejete");
       const impact = impactDecision(avant, tampon, options.missionEuros);
       etat = tampon;
+      tamponEnRetour = tampon;
       sauver(etat);
+      const numero = tampon.historique.length + tampon.reports;
+      emettreEvenement({
+        type: "decision",
+        acte: acteAnonyme(tampon, courante(avant)!.id, numero),
+        numero,
+        verdict: geste === "adopter" ? "adopte" : "rejete",
+      });
       clearTimeout(minuteur);
       interrompreRetour();
       retourEnCours = true;
       annulerRetour = jouerRetour(cadre, impact, () => {
-        annulerRetour = undefined;
-        retourEnCours = false;
-        etat = transitionApresRetour(tampon, options.missionEuros);
-        sauver(etat);
-        peindre();
+        resoudreRetour();
       });
       return;
     }
     if (geste === "ajourner") {
+      const id = courante(etat)?.id ?? "";
       etat = ajourner(etat);
+      const numero = etat.historique.length + etat.reports;
+      emettreEvenement({ type: "decision", acte: acteAnonyme(etat, id, numero), numero, verdict: "ajourne" });
       return peindre();
     }
     if (geste === "annuler") {
@@ -318,6 +374,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     if (cible.dataset.action === "commencer") {
       etat = commencer(etat);
+      emettreEvenement({ type: "partie_demarre", mode: etat.mode });
       return peindre();
     }
     if (cible.dataset.action === "mode-integral") {
@@ -330,41 +387,39 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     if (cible.dataset.action === "poursuivre") {
       etat = poursuivreTelex(etat, options.missionEuros);
+      emettreSuite(etat);
       return peindre();
     }
     if (cible.dataset.action === "chrono") {
       etat = { ...etat, chrono: !etat.chrono };
       return peindre();
     }
-    if (cible.dataset.action === "rejouer") {
+    if (cible.dataset.action === "revanche") {
       effacer();
-      etat = etatInitial();
+      etat = nouvelleContrainte(etat);
+      emettreEvenement({ type: "revanche" });
       return peindre();
     }
-    if (cible.dataset.action === "defier") {
-      const adresse = adresseDefi(etat);
-      void navigator.clipboard?.writeText(adresse).then(
-        () => {
-          cible.textContent = "Lien copié, envoyez-le";
-        },
-        () => {
-          window.prompt("Le lien du défi, à copier :", adresse);
-        },
-      );
-      return;
-    }
-    if (cible.dataset.action === "copier") {
+    if (cible.dataset.action === "partager") {
       const texte = bilanTexte(etat, options.missionEuros);
-      void navigator.clipboard?.writeText(texte).then(
-        () => {
-          cible.textContent = "Copié, collez-le où vous défiez";
-        },
-        () => {
-          // Presse-papiers refusé (permissions, contexte non sécurisé) : le
-          // texte reste lisible dans une invite, plutôt que rien.
+      const adresse = adresseDefi(etat);
+      emettreEvenement({ type: "partage" });
+      void (async () => {
+        try {
+          if (typeof navigator.share === "function") {
+            await navigator.share({ title: "Mon bilan du conseil", text: texte, url: adresse });
+            return;
+          }
+        } catch {
+          // Le refus du partage reprend le chemin utilisable partout.
+        }
+        try {
+          await navigator.clipboard?.writeText(texte);
+          cible.textContent = "Copié, partagez votre bilan";
+        } catch {
           window.prompt("Votre bilan, à copier :", texte);
-        },
-      );
+        }
+      })();
     }
   };
   cadre.addEventListener("click", clic);
@@ -387,7 +442,9 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     demonter();
   };
   const pageshow = (evenement: PageTransitionEvent) => {
-    if (evenement.persisted) peindre();
+    if (!evenement.persisted) return;
+    if (tamponEnRetour) resoudreRetour();
+    else peindre();
   };
   MONTAGES.set(cadre, demonter);
   window.addEventListener("pagehide", pagehide);

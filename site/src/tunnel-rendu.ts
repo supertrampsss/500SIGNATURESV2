@@ -138,6 +138,52 @@ function renduTelex(id: string): string {
     </article>`;
 }
 
+export type BilanVerdict = {
+  trouve: number;
+  reste: number;
+  soutiens: ReturnType<typeof soutiens>;
+  engagements: { cle: string; nom: string; statut: "tenue" | "impossibilite_detectee" }[];
+  crises: EtatTunnel["crisesVues"];
+  reports: number;
+  gestes: { id: string; titre: string; effet: number; montantAbsolu: number }[];
+  profil: ReturnType<typeof profil>;
+};
+
+/** Les faits du mandat, prêts à être rendus ou repris par une autre vue. */
+export function bilanVerdict(etat: EtatTunnel, missionEuros: number): BilanVerdict {
+  const gestes = etat.ordre
+    .filter((id) => etat.tampons[id] === "adopte")
+    .map((id) => mesureParId(id))
+    .filter((mesure): mesure is NonNullable<typeof mesure> => mesure !== undefined)
+    .sort((a, b) => Math.abs(b.effet) - Math.abs(a.effet))
+    .slice(0, 3)
+    .map((mesure) => ({
+      id: mesure.id,
+      titre: mesure.titre,
+      effet: mesure.effet,
+      montantAbsolu: Math.abs(mesure.effet),
+    }));
+  const engagements = CONTRATS.filter((contrat) => etat.engagements.includes(contrat.cle)).map((contrat) => ({
+    cle: contrat.cle,
+    nom: contrat.nom,
+    statut: etat.ordre.some(
+      (id) => etat.tampons[id] === "adopte" && mesureParId(id)?.bloqueePar?.includes(contrat.cle),
+    )
+      ? "impossibilite_detectee" as const
+      : "tenue" as const,
+  }));
+  return {
+    trouve: comble(etat),
+    reste: missionRestante(etat, missionEuros),
+    soutiens: soutiens(etat, missionEuros),
+    engagements,
+    crises: [...etat.crisesVues],
+    reports: etat.reports,
+    gestes,
+    profil: profil(etat),
+  };
+}
+
 function renduCrise(soutien: Soutien): string {
   const crise = CRISES.find((x) => x.soutien === soutien);
   if (!crise) return "";
@@ -296,24 +342,20 @@ export function renduVerdict(
   missionEuros: number,
   collectionner: (gagnees: readonly { id: string }[]) => string[] = () => [],
 ): string {
-  const combleM = comble(etat);
-  const resteEuros = missionRestante(etat, missionEuros);
-  const p = profil(etat);
+  const bilan = bilanVerdict(etat, missionEuros);
+  const combleM = bilan.trouve;
+  const resteEuros = bilan.reste;
+  const p = bilan.profil;
   const paliers = paliersTunnel(etat, missionEuros);
   const nFranchis = paliers.filter((x) => x.franchi).length;
-  const adoptees = etat.ordre
-    .filter((id) => etat.tampons[id] === "adopte")
-    .map((id) => mesureParId(id)!)
-    .sort((a, b) => Math.abs(b.effet) - Math.abs(a.effet))
-    .slice(0, 5);
-  const gestes = adoptees
+  const gestes = bilan.gestes
     .map(
       (m) => `<div class="tunnel__tampon tunnel__tampon--adopte">
         <span>${echapper(m.titre)}</span><b>${echapper(millions(m.effet * 1e6))}</b>
       </div>`,
     )
     .join("");
-  const rupture = soutiens(etat, missionEuros).find((s) => s.danger);
+  const rupture = bilan.soutiens.find((s) => s.danger);
   // Le duel : le comblé contre celui du défi. Aucun qualificatif de plus —
   // « battu » et « manqué » disent le fait, les nombres disent l'écart.
   const duel = etat.defi
@@ -332,6 +374,16 @@ export function renduVerdict(
       <p class="tunnel__chapeau">${echapper(p.phrase)}${
         rupture ? ` ${echapper(rupture.nom)} est au bord de la rupture.` : ""
       }</p>
+      <section class="tunnel__mandat" aria-labelledby="tunnel-mandat">
+        <p id="tunnel-mandat" class="tunnel__surtitre">Votre mandat</p>
+        <p><strong>${echapper(millions(combleM * 1e6))}</strong> trouvés ; il reste <strong>${echapper(compteur(resteEuros))}</strong>.</p>
+        <p><strong>Promesses tenues</strong> : ${bilan.engagements.length
+          ? bilan.engagements.map((engagement) => `${echapper(engagement.nom)} — ${engagement.statut === "tenue" ? "tenue" : "impossibilité détectée"}`).join(" · ")
+          : "aucune promesse signée"}.</p>
+        <p><strong>Conséquences encore ouvertes</strong> : ${bilan.crises.length
+          ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
+          : "aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</p>
+      </section>
       <p class="tunnel__verdict-bilan">
         <strong>${echapper(millions(combleM * 1e6))}</strong> trouvés sur les
         <strong>${compteur(missionEuros)}</strong> qui manquent ·
@@ -352,13 +404,18 @@ export function renduVerdict(
       })()}
       ${gestes ? `<div class="tunnel__verdict-gestes"><p class="tunnel__surtitre">Vos plus gros gestes</p>${gestes}</div>` : ""}
       ${renduSoutiens(etat, missionEuros)}
+      <details class="tunnel__historique">
+        <summary>Voir mes ${etat.historique.length} choix</summary>
+        <ol>${etat.historique.map((choix) => {
+          const mesure = mesureParId(choix.id);
+          return `<li>${echapper(mesure?.titre ?? choix.id)} — ${etat.tampons[choix.id] === "adopte" ? "adoptée" : "rejetée"}</li>`;
+        }).join("")}</ol>
+      </details>
       <div class="tunnel__verdict-boutons">
-        <button type="button" class="tunnel__adopter" data-action="defier">Défier quelqu'un</button>
-        <button type="button" class="tunnel__rejeter" data-action="copier">Copier le bilan</button>
-        <button type="button" class="tunnel__rejeter" data-action="rejouer">Rejouer</button>
+        <button type="button" class="tunnel__adopter" data-action="revanche">Relever le défi</button>
+        <button type="button" class="tunnel__rejeter" data-action="partager">Partager le bilan</button>
       </div>
-      <p class="tunnel__note">« Défier » copie un lien : la personne joue la même pile, sous vos
-        engagements, avec votre score à battre.</p>
+      <p class="tunnel__note">Le défi partage une URL v2 : même mode, même graine, mêmes engagements et score à battre.</p>
     </div>`;
 }
 function renduPied(): string {

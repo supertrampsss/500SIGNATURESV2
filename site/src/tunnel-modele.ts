@@ -622,30 +622,30 @@ export function profil(etat: EtatTunnel): { nom: string; phrase: string } {
   }
   if (recettes + economies + depenses === 0) {
     return {
-      nom: "L'observateur",
+      nom: "Plan sans décisions retenues",
       phrase: "Tout rejeté, rien signé : le déficit vous a regardé passer.",
     };
   }
   if (depenses > recettes + economies) {
     return {
-      nom: "La relance assumée",
+      nom: "Plan à dépenses nouvelles",
       phrase: "Vous avez dépensé plus que vous n'avez trouvé. C'est un choix, il a un coût, il est affiché.",
     };
   }
   if (recettes > 2 * economies) {
     return {
-      nom: "Le percepteur",
+      nom: "Plan de recettes nouvelles",
       phrase: "L'essentiel vient de recettes nouvelles : les impôts montent, la dépense tient.",
     };
   }
   if (economies > 2 * recettes) {
     return {
-      nom: "Le chirurgien",
+      nom: "Plan d'économies",
       phrase: "L'essentiel vient de coupes : la dépense recule, les impôts tiennent.",
     };
   }
   return {
-    nom: "L'équilibriste",
+    nom: "Plan mixte",
     phrase: "Moitié recettes, moitié coupes : le plan qui fâche tout le monde un peu.",
   };
 }
