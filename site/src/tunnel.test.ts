@@ -776,6 +776,46 @@ test("un remontage pendant un télex diffère sa crise, jusqu'à sa fermeture", 
   }
 });
 
+test("une sauvegarde historique télex plus crise libère seulement la crise interrompue", () => {
+  const global = globalThis as Record<string, unknown>;
+  const ancien = global.sessionStorage;
+  const memoire = new Map<string, string>();
+  global.sessionStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  try {
+    for (const dossier of [deuxDerniersDossiers(), dernierDossier()]) {
+      const telex = transitionApresRetour(
+        tamponner({ ...dossier, criseSoutiens: { opinion: -52, entreprises: -45, marches: -20 } }, "rejete"),
+        MISSION,
+      );
+      assert.equal(telex.telexEnCours, "taux");
+      memoire.set("tunnel-partie", JSON.stringify({
+        ...telex,
+        criseEnCours: "opinion",
+        crisesVues: ["opinion", "entreprises"],
+      }));
+
+      const restaure = restaurer()!;
+      assert.equal(restaure.telexEnCours, "taux");
+      assert.equal(restaure.criseEnCours, undefined, "le télex garde la priorité dans l'état restauré");
+      assert.deepEqual(restaure.crisesVues, ["entreprises"], "seule la crise interrompue redevient éligible");
+
+      const rouverte = trancherTelex(restaure, "a", MISSION);
+      assert.equal(rouverte.criseEnCours, "opinion", "la crise critique revient exactement après le télex");
+      const apresCrise = trancherCrise(rouverte, "tenir", MISSION);
+      assert.ok(apresCrise.crisesVues.includes("entreprises"), "une crise historiquement tranchée reste vue");
+      assert.equal(apresCrise.criseEnCours, undefined, "la crise Entreprises déjà tranchée ne revient pas");
+      assert.equal(apresCrise.phase, dossier.ordre.length === 1 ? "verdict" : "conseil");
+    }
+  } finally {
+    if (ancien === undefined) delete global.sessionStorage;
+    else global.sessionStorage = ancien;
+  }
+});
+
 test("une sauvegarde antérieure sans marqueur rejoue seulement un télex dont l'état ne prouve pas la clôture", () => {
   const global = globalThis as Record<string, unknown>;
   const ancien = global.sessionStorage;

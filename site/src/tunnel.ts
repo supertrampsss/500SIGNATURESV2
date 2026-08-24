@@ -87,6 +87,22 @@ export function restaurer(): EtatTunnel | null {
     const finHistorique = criseHistorique !== undefined && lu.ordre.every((id) => tampons[id] !== undefined);
     const telexEnCours =
       typeof lu.telexEnCours === "string" && TELEX.some((t) => t.id === lu.telexEnCours) ? lu.telexEnCours : undefined;
+    const criseEnCours: EtatTunnel["crisesVues"][number] | undefined =
+      criseHistorique ??
+      (lu.criseEnCours === "opinion" || lu.criseEnCours === "entreprises" || lu.criseEnCours === "territoires" || lu.criseEnCours === "marches"
+        ? lu.criseEnCours
+        : undefined);
+    const crisesVues = Array.isArray(lu.crisesVues)
+      ? lu.crisesVues.filter((cle): cle is "opinion" | "entreprises" | "territoires" | "marches" =>
+          cle === "opinion" || cle === "entreprises" || cle === "territoires" || cle === "marches",
+        )
+      : [];
+    // Une ancienne sauvegarde pouvait avoir peint la crise avant que le télex
+    // concurrent ne prenne l'écran. Le télex l'emporte : la crise interrompue
+    // n'est pas tranchée et doit donc pouvoir revenir après sa fermeture.
+    const crisesVuesRestaurees = telexEnCours && criseEnCours
+      ? crisesVues.filter((cle) => cle !== criseEnCours)
+      : crisesVues;
     // Les sauvegardes antérieures au marqueur ne peuvent pas prouver que le
     // retour du dernier tampon a déjà fini : par défaut, on vérifie donc une
     // fois plutôt que de taire arbitrairement un télex. Un télex encore à
@@ -120,22 +136,14 @@ export function restaurer(): EtatTunnel | null {
           : { vus: [], surcout: 0, soutiens: {} },
       // Les sauvegardes historiques n'avaient pas encore de crises : elles
       // reprennent sans coût ni crise déjà consommée.
-      crisesVues: Array.isArray(lu.crisesVues)
-        ? lu.crisesVues.filter((cle): cle is "opinion" | "entreprises" | "territoires" | "marches" =>
-            cle === "opinion" || cle === "entreprises" || cle === "territoires" || cle === "marches",
-          )
-        : [],
+      crisesVues: crisesVuesRestaurees,
       criseSurcout: Number.isFinite(lu.criseSurcout) ? lu.criseSurcout : 0,
       criseSoutiens: lu.criseSoutiens ?? {},
       // Une sauvegarde d'avant les reports repart à zéro report.
       reports: Number.isFinite(lu.reports) && lu.reports >= 0 ? lu.reports : 0,
       ...(telexEnCours !== undefined ? { telexEnCours } : {}),
       ...(telexVerifie ? { telexVerifie: true as const } : {}),
-      ...(criseHistorique
-        ? { criseEnCours: criseHistorique }
-        : lu.criseEnCours === "opinion" || lu.criseEnCours === "entreprises" || lu.criseEnCours === "territoires" || lu.criseEnCours === "marches"
-          ? { criseEnCours: lu.criseEnCours }
-        : {}),
+      ...(criseEnCours !== undefined && telexEnCours === undefined ? { criseEnCours } : {}),
       ...(finHistorique || lu.finDifferee === true ? { finDifferee: true } : {}),
       ...(lu.chrono ? { chrono: true } : {}),
       ...(lu.defi && Number.isFinite(lu.defi.comble) ? { defi: { comble: lu.defi.comble } } : {}),
