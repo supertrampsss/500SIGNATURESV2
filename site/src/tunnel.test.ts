@@ -15,6 +15,7 @@ import { test } from "node:test";
 
 import { CONTRATS } from "./mission.ts";
 import { MESURES } from "./mesures.ts";
+import { ordreExpress } from "./campagne.ts";
 import {
   ajourner,
   REPORTS_GRATUITS,
@@ -60,7 +61,7 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
 
 /** Un conseil ouvert sans engagement : la pile entière. */
 function conseil(): EtatTunnel {
-  return commencer(etatInitial());
+  return commencer({ ...etatInitial(), mode: "integral" });
 }
 
 /** Tamponner la mesure courante par son id attendu — le test échoue si la
@@ -223,6 +224,8 @@ test("la pile épuisée bascule d'elle-même sur le verdict", () => {
 test("l'écran de mission écrit le vrai compteur et compte ce que chaque signature retire", () => {
   const html = renduMission(etatInitial(), MISSION);
   assert.match(html, /159\u202f297\u202fM€/);
+  assert.match(html, /data-action="mode-integral"/);
+  assert.match(html, /Conseil intégral · 96 mesures/);
   // Les intitulés sont échappés dans le rendu : « l'école » y est l&#39;école.
   const lisible = html.replace(/&#39;/g, "'");
   for (const contrat of CONTRATS) assert.ok(lisible.includes(contrat.nom), contrat.cle);
@@ -275,12 +278,17 @@ test("le bilan copié tient en une phrase, chiffres compris", () => {
 
 test("le défi voyage dans l'adresse, et une adresse abîmée est ignorée en silence", () => {
   let etat = conseil();
-  etat = { ...etat, engagements: ["ecole-sante", "sans-impot"] };
+  etat = { ...etat, graine: 123, engagements: ["ecole-sante", "sans-impot"] };
   etat = adopterId(etat, "reconduire-la-surtaxe-des-grandes-entreprises");
   const code = encoderDefi(etat);
-  assert.equal(code, "8000~ecole-sante.sans-impot");
+  assert.equal(code, "v2~integral~3f~668~ecole-sante%2Csans-impot");
   const relu = decoderDefi(code);
-  assert.deepEqual(relu, { comble: 8000, engagements: ["ecole-sante", "sans-impot"] });
+  assert.deepEqual(relu, {
+    comble: 8000,
+    engagements: ["ecole-sante", "sans-impot"],
+    mode: "integral",
+    graine: 123,
+  });
   // Ce qui ne se lit pas n'ouvre rien : ni erreur, ni défi fantôme.
   assert.equal(decoderDefi(null), null);
   assert.equal(decoderDefi("n-importe-quoi"), null);
@@ -291,6 +299,59 @@ test("le défi voyage dans l'adresse, et une adresse abîmée est ignorée en si
     comble: 1200,
     engagements: ["ecole-sante"],
   });
+});
+
+test("la campagne express est la mission par défaut et l'intégrale garde les 96 mesures", () => {
+  const depart = etatInitial();
+  assert.equal(depart.version, 2);
+  assert.equal(depart.mode, "express");
+  assert.ok(Number.isInteger(depart.graine));
+  const express = commencer(depart);
+  assert.deepEqual(express.ordre, ordreExpress(depart.engagements, depart.graine));
+  const integral = commencer({ ...depart, mode: "integral" });
+  assert.equal(integral.ordre.length, MESURES.length);
+});
+
+test("le défi v2 transporte mode, graine, score et engagements, sans casser le format historique", () => {
+  let etat = {
+    ...etatInitial(),
+    phase: "conseil" as const,
+    mode: "express",
+    graine: 123,
+    engagements: ["ecole-sante"],
+    ordre: ["reconduire-la-surtaxe-des-grandes-entreprises"],
+  };
+  etat = adopterId(etat, "reconduire-la-surtaxe-des-grandes-entreprises");
+  assert.equal(encoderDefi(etat), "v2~express~3f~668~ecole-sante");
+  assert.deepEqual(decoderDefi(encoderDefi(etat)), {
+    comble: 8000,
+    engagements: ["ecole-sante"],
+    mode: "express",
+    graine: 123,
+  });
+  assert.equal(decoderDefi("v2~express~pas-une-graine~668~ecole-sante"), null);
+  assert.deepEqual(decoderDefi("8000~ecole-sante"), { comble: 8000, engagements: ["ecole-sante"] });
+});
+
+test("une sauvegarde sans version devient une intégrale sans modifier son ordre", () => {
+  const memoire = new Map<string, string>();
+  (globalThis as { sessionStorage?: unknown }).sessionStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  try {
+    const historique = commencer({ ...etatInitial(), mode: "integral" });
+    const { version: _version, mode: _mode, graine: _graine, ...avantV2 } = historique;
+    memoire.set("tunnel-partie", JSON.stringify(avantV2));
+    const migre = restaurer();
+    assert.ok(migre);
+    assert.equal(migre!.version, 2);
+    assert.equal(migre!.mode, "integral");
+    assert.deepEqual(migre!.ordre, historique.ordre);
+  } finally {
+    delete (globalThis as { sessionStorage?: unknown }).sessionStorage;
+  }
 });
 
 test("un défi reçu pré-signe les engagements et s'affiche sur la mission", () => {

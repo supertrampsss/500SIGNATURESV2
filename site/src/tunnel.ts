@@ -11,6 +11,7 @@ import {
   courante,
   decoderDefi,
   encoderDefi,
+  estGraineValide,
   etatInitial,
   mesureParId,
   paliersTunnel,
@@ -28,6 +29,7 @@ import { rendu as renduPur, renduVerdict as renduVerdictPur } from "./tunnel-ren
 
 export * from "./tunnel-modele.ts";
 export * from "./tunnel-rendu.ts";
+export { EXPRESS_PAR_ACTE, acteDe, ordreExpress, type Acte } from "./campagne.ts";
 
 /* --------------------------------------------------------------------------
  * La partie survit au rechargement.
@@ -71,6 +73,11 @@ export function restaurer(): EtatTunnel | null {
     if (!Array.isArray(lu.ordre) || !lu.ordre.every((id) => mesureParId(id))) return null;
     if (lu.phase !== "mission" && lu.ordre.length === 0) return null;
     return {
+      // Les sauvegardes historiques n'avaient ni version, ni mode : leur
+      // ordre est celui de l'intégrale et doit rester tel quel.
+      version: 2,
+      mode: lu.version === 2 && (lu.mode === "express" || lu.mode === "integral") ? lu.mode : "integral",
+      graine: estGraineValide(lu.graine) ? lu.graine : Math.floor(Math.random() * 0x1_0000_0000),
       phase: lu.phase,
       engagements: (lu.engagements ?? []).filter((cle) => CONTRATS.some((c) => c.cle === cle)),
       ordre: lu.ordre,
@@ -234,6 +241,14 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     if (cible.dataset.action === "commencer") {
       etat = commencer(etat);
+      return peindre();
+    }
+    if (cible.dataset.action === "mode-integral") {
+      etat = { ...etat, mode: "integral" };
+      return peindre();
+    }
+    if (cible.dataset.action === "mode-express") {
+      etat = { ...etat, mode: "express" };
       return peindre();
     }
     if (cible.dataset.action === "poursuivre") {

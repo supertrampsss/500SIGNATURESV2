@@ -62,6 +62,10 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
         <strong>${echapper(millions(etat.defi.comble * 1e6))}</strong>. Faites mieux.
         Ses engagements sont pré-signés.</p>`
     : "";
+  const mode =
+    etat.mode === "express"
+      ? `<button type="button" class="tunnel__engagement" data-action="mode-integral">Conseil intégral · 96 mesures</button>`
+      : `<button type="button" class="tunnel__engagement" data-action="mode-express">Campagne express · 15 mesures</button>`;
   return `
     <div class="tunnel__mission">
       <p class="tunnel__surtitre">Votre mission</p>
@@ -74,6 +78,7 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
       <p class="tunnel__note">${echapper(phrase)}</p>
       <button type="button" class="tunnel__engagement${etat.chrono ? " tunnel__engagement--signe" : ""}"
         data-action="chrono" aria-pressed="${etat.chrono ? "true" : "false"}">Conseil de crise : ${CHRONO_SECONDES}&#8239;s par mesure</button>
+      ${mode}
       ${defi}
       <button type="button" class="tunnel__commencer" data-action="commencer">Prendre mes fonctions&nbsp;&#8594;</button>
     </div>`;

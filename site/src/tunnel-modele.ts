@@ -2,6 +2,9 @@
 
 import { CONTRATS, PALIERS } from "./mission.ts";
 import { MESURES, type Mesure, type Soutien } from "./mesures.ts";
+import { ordreExpress, type ModeTunnel } from "./campagne.ts";
+
+export type { ModeTunnel } from "./campagne.ts";
 
 /** `exclue` : écartée d'office parce qu'une mesure incompatible a été
  *  adoptée — on ne vote pas deux barèmes de l'IR. */
@@ -9,7 +12,18 @@ export type Tampon = "adopte" | "rejete" | "exclue";
 
 export type Phase = "mission" | "conseil" | "verdict";
 
+export type DefiTunnel = {
+  comble: number;
+  engagements: string[];
+  /** Absent dans un défi historique : il rejoue alors l'intégrale. */
+  mode?: ModeTunnel;
+  graine?: number;
+};
+
 export type EtatTunnel = {
+  version: 2;
+  mode: ModeTunnel;
+  graine: number;
   phase: Phase;
   /** Les clés des contrats signés à l'écran de mission. */
   engagements: string[];
@@ -199,14 +213,39 @@ export function pile(engagements: readonly string[]): Mesure[] {
   return MESURES.filter((m) => !m.bloqueePar?.some((cle) => engagements.includes(cle)));
 }
 
-export function etatInitial(defi?: { comble: number; engagements: string[] } | null): EtatTunnel {
+function graineInitiale(): number {
+  return Math.floor(Math.random() * 0x1_0000_0000);
+}
+
+export function estGraineValide(graine: unknown): graine is number {
+  return typeof graine === "number" && Number.isInteger(graine) && graine >= 0 && graine <= 0xffff_ffff;
+}
+
+export function etatInitial(defi?: DefiTunnel | null): EtatTunnel {
+  const mode = defi?.mode ?? (defi ? "integral" : "express");
+  const graineDefi = defi?.graine;
+  const graine = estGraineValide(graineDefi) ? graineDefi : graineInitiale();
   if (!defi) {
-    return { phase: "mission", engagements: [], ordre: [], tampons: {}, historique: [], telex: { vus: [], surcout: 0, soutiens: {} }, reports: 0 };
+    return {
+      version: 2,
+      mode,
+      graine,
+      phase: "mission",
+      engagements: [],
+      ordre: [],
+      tampons: {},
+      historique: [],
+      telex: { vus: [], surcout: 0, soutiens: {} },
+      reports: 0,
+    };
   }
   // Un défi pré-signe les engagements de l'adversaire : « faites mieux, sous
   // les mêmes règles ». Le joueur peut les dédire — le verdict comparera
   // quand même, et c'est sa partie qui le dira.
   return {
+    version: 2,
+    mode,
+    graine,
     phase: "mission",
     engagements: defi.engagements,
     ordre: [],
@@ -231,7 +270,10 @@ export function commencer(etat: EtatTunnel): EtatTunnel {
   return {
     ...etat,
     phase: "conseil",
-    ordre: pile(etat.engagements).map((m) => m.id),
+    ordre:
+      etat.mode === "express"
+        ? ordreExpress(etat.engagements, etat.graine)
+        : pile(etat.engagements).map((m) => m.id),
     tampons: {},
     historique: [],
     telex: { vus: [], surcout: 0, soutiens: {} },
@@ -470,11 +512,28 @@ export function profil(etat: EtatTunnel): { nom: string; phrase: string } {
 
 export function encoderDefi(etat: EtatTunnel): string {
   const engagements = etat.engagements.filter((cle) => CONTRATS.some((c) => c.cle === cle));
-  return `${Math.round(comble(etat))}${engagements.length ? "~" + engagements.join(".") : ""}`;
+  return `v2~${etat.mode}~${etat.graine.toString(36)}~${Math.round(comble(etat)).toString(36)}~${encodeURIComponent(engagements.join(","))}`;
 }
 
-export function decoderDefi(texte: string | null): { comble: number; engagements: string[] } | null {
+export function decoderDefi(texte: string | null): DefiTunnel | null {
   if (!texte) return null;
+  if (texte.startsWith("v2~")) {
+    const segments = texte.split("~");
+    if (segments.length !== 5) return null;
+    const [, mode, bruteGraine, brutScore, brutsEngagements] = segments;
+    if ((mode !== "express" && mode !== "integral") || !/^[0-9a-z]+$/.test(bruteGraine ?? "") || !/^[0-9a-z]+$/.test(brutScore ?? "")) return null;
+    const graine = Number.parseInt(bruteGraine!, 36);
+    const combleM = Number.parseInt(brutScore!, 36);
+    if (!estGraineValide(graine) || !Number.isSafeInteger(combleM) || combleM > 10_000_000) return null;
+    let csv: string;
+    try {
+      csv = decodeURIComponent(brutsEngagements ?? "");
+    } catch {
+      return null;
+    }
+    const engagements = (csv ? csv.split(",") : []).filter((cle) => CONTRATS.some((c) => c.cle === cle));
+    return { comble: combleM, engagements, mode, graine };
+  }
   const [brut, reste] = texte.split("~", 2);
   const combleM = Number(brut);
   if (!Number.isFinite(combleM) || combleM < 0 || combleM > 10_000_000) return null;
