@@ -105,8 +105,11 @@ Le centre conserve la priorité visuelle. Les panneaux latéraux ne doivent pas 
 
 La « République éditoriale » utilise :
 
-- fond ivoire et surfaces papier ;
-- bleu institutionnel profond ;
+- une **coque immersive bleu nuit** : fond de séance, panneaux latéraux,
+  progression et alertes vivent dans cette salle de crise ;
+- un **dossier central papier / ivoire** : le dilemme, ses preuves et ses
+  actions restent la seule surface claire de la séance ;
+- bleu institutionnel profond dans la coque, distinct du papier du dossier ;
 - rouge sombre pour les décisions et alertes ;
 - vert réservé aux améliorations vérifiables ;
 - serif éditoriale pour les dilemmes et verdicts ;
@@ -114,6 +117,11 @@ La « République éditoriale » utilise :
 - filets, doubles bordures et tampons avec parcimonie.
 
 L’identité doit évoquer un dossier officiel vivant, sans copier l’esthétique historique de Septennat(s).
+
+Les teintes des choix ne prennent jamais leur sens du verbe « adopter » ou
+« rejeter ». Vert, rouge et neutre signalent exclusivement un effet objectif
+sur le compteur ou une alerte explicitée par du texte ; les deux gestes restent
+éditorialement symétriques.
 
 ## 5. Composants fonctionnels
 

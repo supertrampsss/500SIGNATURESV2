@@ -240,9 +240,10 @@ function renduCote(
   perdants: readonly string[],
   montant: string,
   reactions: string,
+  impact: "positif" | "negatif" | "neutre",
 ): string {
   const titre = camp === "adopter" ? "Adopter" : "Rejeter";
-  return `<section class="tunnel__camp tunnel__camp--${camp}">
+  return `<section class="tunnel__camp tunnel__camp--${camp} tunnel__camp--impact-${impact}">
     <p class="tunnel__camp-sens">${titre}</p>
     <h4 class="tunnel__camp-titre">${echapper(libelle)}</h4>
     <p class="tunnel__camp-argument">${echapper(argument)}</p>
@@ -277,7 +278,7 @@ export function renduComparaison(mesure: (typeof MESURES)[number], dilemme = dil
     mesure.precision ? ` <small>${echapper(mesure.precision)}</small>` : ""
   }`;
   return `<div class="tunnel__comparaison">
-    ${renduCote("adopter", adopter.libelle, adopter.argument, adopter.gagnants, adopter.perdants, montant, pastilles(mesure.reactions))}
+    ${renduCote("adopter", adopter.libelle, adopter.argument, adopter.gagnants, adopter.perdants, montant, pastilles(mesure.reactions), mesure.effet > 0 ? "positif" : mesure.effet < 0 ? "negatif" : "neutre")}
     ${renduCote(
       "rejeter",
       rejeter.libelle,
@@ -286,6 +287,7 @@ export function renduComparaison(mesure: (typeof MESURES)[number], dilemme = dil
       rejeter.perdants,
       mesure.rejet ? "Rejeter a aussi un prix politique." : "Le rejet ne modifie pas le compteur.",
       pastilles(mesure.rejet ?? {}),
+      "neutre",
     )}
   </div>`;
 }
@@ -335,10 +337,46 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
         </div>
       </article>`
         : "";
+  const restants = Math.max(0, etat.ordre.length - faits);
+  const dernieresDecisions = etat.historique.slice(-3).reverse().map(({ id }) => {
+    const decision = mesureParId(id);
+    const tampon = etat.tampons[id];
+    return decision
+      ? `<li><span>${echapper(decision.titre)}</span><b class="tunnel__tampon--${tampon}">${tampon === "adopte" ? "Adoptée" : tampon === "rejete" ? "Rejetée" : "Incompatible"}</b></li>`
+      : "";
+  }).join("");
+  const alerte = etat.criseEnCours
+    ? "Crise à traiter avant la suite de la séance."
+    : etat.telexEnCours
+      ? "Une conséquence exige votre réponse."
+      : etat.reports >= REPORTS_GRATUITS - 1
+        ? `Les prochains reports fragiliseront les quatre soutiens.`
+        : "Les conséquences différées apparaîtront ici lorsqu'elles seront déclenchées.";
   return `
-    ${renduBarreEtat(etat, missionEuros)}
-    <div class="tunnel__scene">
-      ${evenement}
+    <div class="tunnel__scene" aria-label="Salle de crise">
+      <aside class="tunnel__panneau tunnel__panneau--soutiens" aria-label="Soutiens et engagement">
+        ${renduBarreEtat(etat, missionEuros)}
+        <section class="tunnel__progression" aria-labelledby="tunnel-progression">
+          <p id="tunnel-progression" class="tunnel__panneau-titre">Progression de la séance</p>
+          <p><strong>${faits}</strong> dossier${faits > 1 ? "s" : ""} tranché${faits > 1 ? "s" : ""} · ${restants} restant${restants > 1 ? "s" : ""}</p>
+          <p>${etat.engagements.length ? `${etat.engagements.length} engagement${etat.engagements.length > 1 ? "s" : ""} signé${etat.engagements.length > 1 ? "s" : ""}` : "Aucun engagement signé"}</p>
+        </section>
+      </aside>
+      <main class="tunnel__dilemme" aria-label="Dilemme en cours">
+        ${evenement}
+      </main>
+      <aside class="tunnel__panneau tunnel__panneau--trajectoire" aria-label="Trajectoire et conséquences">
+        <section class="tunnel__trajectoire" aria-labelledby="tunnel-trajectoire">
+          <p id="tunnel-trajectoire" class="tunnel__panneau-titre">Trajectoire</p>
+          <p class="tunnel__trajectoire-reste"><span>Reste à trouver</span><strong>${compteur(missionRestante(etat, missionEuros))}</strong></p>
+          <p>Acte ${Math.min(3, Math.floor(faits / Math.max(1, Math.ceil(etat.ordre.length / 3))) + 1)} · ${restants} dossier${restants > 1 ? "s" : ""} en attente</p>
+        </section>
+        <section class="tunnel__consequences" aria-labelledby="tunnel-consequences-courantes">
+          <p id="tunnel-consequences-courantes" class="tunnel__panneau-titre">Conséquences et alertes</p>
+          <p class="tunnel__alerte" role="status">${alerte}</p>
+        </section>
+        ${dernieresDecisions ? `<section class="tunnel__journal" aria-label="Derniers tampons"><p class="tunnel__panneau-titre">Derniers tampons</p><ol>${dernieresDecisions}</ol></section>` : ""}
+      </aside>
     </div>`;
 }
 

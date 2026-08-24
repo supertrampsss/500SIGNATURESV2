@@ -380,6 +380,32 @@ test("le conseil express rend l'état, les deux camps, la preuve et la barre d'a
   assert.match(html, /Acte 1/);
 });
 
+test("la salle de crise répartit l'état, le dilemme et la trajectoire dans trois régions utiles", () => {
+  const html = renduConseil(commencer(etatInitial()), MISSION);
+  const soutiens = html.match(/<aside class="tunnel__panneau tunnel__panneau--soutiens"[\s\S]*?<\/aside>/)?.[0] ?? "";
+  const dilemme = html.match(/<main class="tunnel__dilemme"[\s\S]*?<\/main>/)?.[0] ?? "";
+  const trajectoire = html.match(/<aside class="tunnel__panneau tunnel__panneau--trajectoire"[\s\S]*?<\/aside>/)?.[0] ?? "";
+
+  assert.match(soutiens, /aria-label="Soutiens et engagement"/);
+  assert.match(soutiens, /tunnel__etat-compact/);
+  assert.match(soutiens, /tunnel__soutiens/);
+  assert.match(soutiens, /Progression de la séance/);
+  assert.match(dilemme, /tunnel__carte/);
+  assert.match(dilemme, /tunnel__actions-fixes/);
+  assert.match(trajectoire, /aria-label="Trajectoire et conséquences"/);
+  assert.match(trajectoire, /Reste à trouver/);
+  assert.match(trajectoire, /Conséquences et alertes/);
+});
+
+test("les conséquences portent une classe de signe sans assimiler adopter à un résultat positif", () => {
+  const gain = renduConseil({ ...commencer(etatInitial()), ordre: ["reconduire-la-surtaxe-des-grandes-entreprises"] }, MISSION);
+  const cout = renduConseil({ ...commencer(etatInitial()), ordre: ["flat-tax-a-20-avec-abattement-protegeant"] }, MISSION);
+
+  assert.match(gain, /tunnel__camp--adopter tunnel__camp--impact-positif/);
+  assert.match(gain, /tunnel__camp--rejeter tunnel__camp--impact-neutre/);
+  assert.match(cout, /tunnel__camp--adopter tunnel__camp--impact-negatif/);
+});
+
 test("les boutons reprennent les deux camps dans le même ordre et avec leurs libellés", () => {
   const html = renduConseil({ ...commencer(etatInitial()), ordre: ["flat-tax-a-20-avec-abattement-protegeant"] }, MISSION);
   const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
