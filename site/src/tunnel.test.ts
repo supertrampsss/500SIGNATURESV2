@@ -741,6 +741,41 @@ test("le marqueur de télex survit aux remontages pendant et après le retour", 
   }
 });
 
+test("un remontage pendant un télex diffère sa crise, jusqu'à sa fermeture", () => {
+  const global = globalThis as Record<string, unknown>;
+  const ancien = global.sessionStorage;
+  const memoire = new Map<string, string>();
+  global.sessionStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  const recharger = (etat: EtatTunnel): EtatTunnel => {
+    memoire.set("tunnel-partie", JSON.stringify(etat));
+    return restaurer()!;
+  };
+  try {
+    const dossiers = [
+      deuxDerniersDossiers(),
+      dernierDossier(),
+    ];
+    for (const dossier of dossiers) {
+      const ouvert = transitionApresRetour(
+        tamponner({ ...dossier, criseSoutiens: { opinion: -52, marches: -20 } }, "rejete"),
+        MISSION,
+      );
+      assert.equal(ouvert.telexEnCours, "taux");
+      const remonte = transitionApresRetour(recharger(ouvert), MISSION);
+      assert.equal(remonte.telexEnCours, "taux", "le télex reste au premier plan au remontage");
+      assert.equal(remonte.criseEnCours, undefined, "la crise potentielle attend la fermeture du télex");
+      assert.equal(trancherTelex(remonte, "a", MISSION).criseEnCours, "opinion", "fermer le télex ouvre exactement la crise attendue");
+    }
+  } finally {
+    if (ancien === undefined) delete global.sessionStorage;
+    else global.sessionStorage = ancien;
+  }
+});
+
 test("une sauvegarde antérieure sans marqueur rejoue seulement un télex dont l'état ne prouve pas la clôture", () => {
   const global = globalThis as Record<string, unknown>;
   const ancien = global.sessionStorage;

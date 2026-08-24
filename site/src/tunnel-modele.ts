@@ -416,7 +416,7 @@ export function annuler(etat: EtatTunnel): EtatTunnel {
 
 /** Ouvre la première crise non encore vue, après le télex éventuel. */
 export function verifierCrise(etat: EtatTunnel, missionEuros: number): EtatTunnel {
-  if (etat.phase !== "conseil" || etat.criseEnCours) return etat;
+  if (etat.phase !== "conseil" || etat.telexEnCours || etat.criseEnCours) return etat;
   const tombe = soutiens(etat, missionEuros).find(
     (s) => s.valeur <= SEUIL_CENSURE && !etat.crisesVues.includes(s.cle),
   );
@@ -434,6 +434,7 @@ export function finaliserFinDifferee(etat: EtatTunnel): EtatTunnel {
 /** Après un télex, seul le cycle des crises continue : un même tampon ne
  * fait jamais tomber un deuxième télex. */
 export function resoudreApresTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  if (etat.telexEnCours) return etat;
   const apresCrise = verifierCrise(etat, missionEuros);
   return apresCrise.criseEnCours ? apresCrise : finaliserFinDifferee(apresCrise);
 }
@@ -441,7 +442,7 @@ export function resoudreApresTelex(etat: EtatTunnel, missionEuros: number): Etat
 /** Résout l'unique télex autorisé après un tampon, puis les crises et le
  * verdict éventuels. */
 export function resoudreFinConseil(etat: EtatTunnel, missionEuros: number): EtatTunnel {
-  if (etat.phase !== "conseil") return etat;
+  if (etat.phase !== "conseil" || etat.telexEnCours) return etat;
   if (etat.telexVerifie) return resoudreApresTelex(etat, missionEuros);
   const apresTelex = verifierTelex(etat, missionEuros);
   const marque = { ...apresTelex, telexVerifie: true as const };
