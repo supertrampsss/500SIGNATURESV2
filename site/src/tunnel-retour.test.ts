@@ -60,6 +60,27 @@ test("la chronologie montre les quatre états puis rend la main à 1,8 seconde",
   assert.deepEqual(chronologieRetour(true), [{ etape: "terminer", a: 400 }]);
 });
 
+test("le retour garde le cadre qui maintient le tunnel plein écran", () => {
+  const attributs = new Map<string, string>();
+  const action = {
+    setAttribute: (nom: string, valeur: string) => void attributs.set(nom, valeur),
+    removeAttribute: (nom: string) => void attributs.delete(nom),
+  };
+  const cadre = {
+    innerHTML: '<div class="tunnel__cadre"><button data-geste="adopter">Adopter</button></div>',
+    setAttribute: (nom: string, valeur: string) => void attributs.set(nom, valeur),
+    removeAttribute: (nom: string) => void attributs.delete(nom),
+    querySelector: () => null,
+    querySelectorAll: (selecteur: string) => (selecteur.startsWith("[data-geste]") ? [action] : []),
+  } as unknown as HTMLElement;
+  const avant = { ...commencer(etatInitial()), ordre: ["flat-tax-a-20-des-le-premier"] };
+
+  jouerRetour(cadre, impactDecision(avant, tamponner(avant, "adopte"), MISSION), () => undefined);
+
+  assert.match(cadre.innerHTML, /^<div class="tunnel__cadre">/);
+  assert.match(cadre.innerHTML, /<article class="tunnel__retour"/);
+});
+
 test("annuler le retour nettoie l'état et empêche son callback final", () => {
   const taches: { fn: () => void; annulee: boolean }[] = [];
   const attributs = new Map<string, string>();

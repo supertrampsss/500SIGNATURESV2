@@ -131,7 +131,7 @@ export function jouerRetour(
     action.setAttribute("inert", "");
   }
   cadre.setAttribute("aria-busy", "true");
-  cadre.innerHTML = renduImpact(impact);
+  cadre.innerHTML = `<div class="tunnel__cadre">${renduImpact(impact)}</div>`;
   const retour = cadre.querySelector<HTMLElement>(".tunnel__retour");
   const minuteurs: unknown[] = [];
   let clos = false;

@@ -101,9 +101,8 @@ for (const m of MESURES) {
   }
 }
 
-/** Sous ce niveau, un soutien fait TOMBER le gouvernement : la partie
- *  s'arrête, le compteur aussi. C'est la mort subite de septennats — un
- *  soutien n'est pas une jauge décorative. */
+/** Sous ce niveau, un soutien ouvre une crise jouable. Le conseil poursuit
+ *  après son issue : un soutien n'est pas une jauge décorative. */
 export const SEUIL_CENSURE = 10;
 
 /** Le conseil de crise : ce que dure une mesure avant d'être ajournée. */
