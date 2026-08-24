@@ -417,13 +417,18 @@ export function finaliserFinDifferee(etat: EtatTunnel): EtatTunnel {
   return { ...sansFin, phase: "verdict" };
 }
 
-/** Résout l'ordre immuable de fin de séance : télex, crise, puis verdict.
- * Le même resolver sert après le retour visuel et après les choix d'événements. */
+/** Après un télex, seul le cycle des crises continue : un même tampon ne
+ * fait jamais tomber un deuxième télex. */
+export function resoudreApresTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  const apresCrise = verifierCrise(etat, missionEuros);
+  return apresCrise.criseEnCours ? apresCrise : finaliserFinDifferee(apresCrise);
+}
+
+/** Résout l'unique télex autorisé après un tampon, puis les crises et le
+ * verdict éventuels. */
 export function resoudreFinConseil(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   const apresTelex = verifierTelex(etat, missionEuros);
-  if (apresTelex.telexEnCours) return apresTelex;
-  const apresCrise = verifierCrise(apresTelex, missionEuros);
-  return apresCrise.criseEnCours ? apresCrise : finaliserFinDifferee(apresCrise);
+  return apresTelex.telexEnCours ? apresTelex : resoudreApresTelex(apresTelex, missionEuros);
 }
 
 /** Applique l'arbitrage, remet le soutien déclencheur à au moins 15 et
@@ -450,7 +455,7 @@ export function trancherCrise(
     criseSurcout: etat.criseSurcout + issue.effet,
     criseSoutiens: cumules,
   };
-  return apres.finDifferee ? resoudreFinConseil(apres, missionEuros) : verifierCrise(apres, missionEuros);
+  return apres.finDifferee ? resoudreApresTelex(apres, missionEuros) : verifierCrise(apres, missionEuros);
 }
 
 /** Le premier télex dont la condition vient d'être remplie tombe — un seul
@@ -479,7 +484,7 @@ export function verifierTelex(etat: EtatTunnel, missionEuros: number): EtatTunne
 /** Refermer un télex sans choix — et regarder si ses effets ouvrent une crise. */
 export function poursuivreTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   const { telexEnCours: _lu, ...sans } = etat;
-  return sans.finDifferee ? resoudreFinConseil(sans, missionEuros) : verifierCrise(sans, missionEuros);
+  return sans.finDifferee ? resoudreApresTelex(sans, missionEuros) : verifierCrise(sans, missionEuros);
 }
 
 /**

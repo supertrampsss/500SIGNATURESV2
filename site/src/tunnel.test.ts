@@ -610,6 +610,55 @@ function dernierDossier(): EtatTunnel {
   return { ...conseil(), ordre: ["doubler-la-taxe-sur-les-rachats-d"], tampons: {}, historique: [] };
 }
 
+function deuxDerniersDossiers(): EtatTunnel {
+  return {
+    ...conseil(),
+    ordre: ["doubler-la-taxe-sur-les-rachats-d", "reconduire-la-surtaxe-des-grandes-entreprises"],
+    tampons: {},
+    historique: [],
+  };
+}
+
+test("un dernier tampon ne déclenche qu'un télex avant les crises", () => {
+  const dernier = {
+    ...dernierDossier(),
+    criseSoutiens: { opinion: -52, entreprises: -45, territoires: -48, marches: -31 },
+  };
+  let etat = transitionApresRetour(tamponner(dernier, "rejete"), MISSION);
+  assert.equal(etat.telexEnCours, "taux");
+  etat = trancherTelex(etat, "a", MISSION);
+  assert.deepEqual(etat.telex.vus, ["taux"]);
+  assert.equal(etat.criseEnCours, "opinion");
+  assert.equal(etat.telexEnCours, undefined);
+});
+
+test("l'issue terminale sans crise rend le verdict sans second télex", () => {
+  const dernier = {
+    ...dernierDossier(),
+    criseSoutiens: { opinion: -34, marches: -20 },
+  };
+  let etat = transitionApresRetour(tamponner(dernier, "rejete"), MISSION);
+  assert.equal(etat.telexEnCours, "taux");
+  etat = trancherTelex(etat, "a", MISSION);
+  assert.equal(etat.phase, "verdict");
+  assert.deepEqual(etat.telex.vus, ["taux"]);
+});
+
+test("un télex non terminal ne peut en ouvrir un autre qu'après le tampon suivant", () => {
+  const deux = {
+    ...deuxDerniersDossiers(),
+    criseSoutiens: { opinion: -34, marches: -20 },
+  };
+  let etat = transitionApresRetour(tamponner(deux, "rejete"), MISSION);
+  assert.equal(etat.telexEnCours, "taux");
+  etat = trancherTelex(etat, "a", MISSION);
+  assert.equal(etat.telexEnCours, undefined);
+  assert.equal(etat.criseEnCours, undefined);
+  assert.equal(courante(etat)!.id, "reconduire-la-surtaxe-des-grandes-entreprises");
+  etat = transitionApresRetour(tamponner(etat, "rejete"), MISSION);
+  assert.equal(etat.telexEnCours, "greve");
+});
+
 test("la dernière mesure sans événement ne rend le verdict qu'après le retour", () => {
   const sansEvenement = {
     ...dernierDossier(),
