@@ -184,6 +184,48 @@ test("le retour BFCache résout une décision tamponnée une seule fois, sans la
   }
 });
 
+test("sans Clipboard API, un clic Partager ouvre l'invite et émet une fois", async () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage", "document"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage", "document"].filter((cle) => cle in global));
+  const descripteurNavigateur = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  const stockage = new Map<string, string>();
+  const evenements: unknown[] = [];
+  const invites: [string, string][] = [];
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  const cadre = {
+    innerHTML: "",
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+    emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
+  } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
+  const bouton = { dataset: { action: "partager" }, textContent: "Partager le bilan", closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton } as unknown as HTMLElement;
+  try {
+    global.window = { addEventListener: () => {}, removeEventListener: () => {}, prompt: (titre: string, texte: string) => { invites.push([titre, texte]); return null; } };
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
+    global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
+    Object.defineProperty(globalThis, "navigator", { configurable: true, value: {} });
+    stockage.set("tunnel-partie", JSON.stringify({ ...conseil(), phase: "verdict" }));
+
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    cadre.emettreClic(bouton);
+    await Promise.resolve();
+    await Promise.resolve();
+    assert.deepEqual(evenements, [{ type: "partage" }]);
+    assert.equal(invites.length, 1);
+    assert.equal(invites[0]?.[0], "Votre bilan, à copier :");
+    demonter();
+  } finally {
+    if (descripteurNavigateur) Object.defineProperty(globalThis, "navigator", descripteurNavigateur);
+    else delete global.navigator;
+    for (const cle of ["window", "location", "sessionStorage", "document"]) {
+      if (presents.has(cle)) global[cle] = anciens.get(cle);
+      else delete global[cle];
+    }
+  }
+});
+
 test("le conseil express rend l'état, les deux camps, la preuve et la barre d'action", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
   assert.match(html, /tunnel__etat-compact/);

@@ -238,6 +238,40 @@ export function nouvelleContrainte(etat: EtatTunnel): EtatTunnel {
   };
 }
 
+type NavigateurPartage = {
+  share?: (donnees: { title?: string; text?: string; url?: string }) => Promise<void>;
+  clipboard?: { writeText?: (texte: string) => Promise<void> };
+};
+
+export type IssuePartage = "partage" | "copie" | "invite";
+
+/** Partage natif, puis copie, puis texte visible : aucune fausse confirmation. */
+export async function partagerBilan(
+  texte: string,
+  adresse: string,
+  navigateur: NavigateurPartage,
+  inviter: (titre: string, texte: string) => unknown,
+): Promise<IssuePartage> {
+  if (typeof navigateur.share === "function") {
+    try {
+      await navigateur.share({ title: "Mon bilan du conseil", text: texte, url: adresse });
+      return "partage";
+    } catch {
+      // Un refus ou une annulation reprend le secours local, sans événement de plus.
+    }
+  }
+  if (typeof navigateur.clipboard?.writeText === "function") {
+    try {
+      await navigateur.clipboard.writeText(texte);
+      return "copie";
+    } catch {
+      // Une permission refusée laisse tout de même le texte à copier.
+    }
+  }
+  inviter("Votre bilan, à copier :", texte);
+  return "invite";
+}
+
 function acteAnonyme(etat: EtatTunnel, id: string, numero: number): Acte {
   const acte = acteDe(id);
   if (acte !== undefined) return acte;
@@ -404,22 +438,10 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       const texte = bilanTexte(etat, options.missionEuros);
       const adresse = adresseDefi(etat);
       emettreEvenement({ type: "partage" });
-      void (async () => {
-        try {
-          if (typeof navigator.share === "function") {
-            await navigator.share({ title: "Mon bilan du conseil", text: texte, url: adresse });
-            return;
-          }
-        } catch {
-          // Le refus du partage reprend le chemin utilisable partout.
-        }
-        try {
-          await navigator.clipboard?.writeText(texte);
-          cible.textContent = "Copié, partagez votre bilan";
-        } catch {
-          window.prompt("Votre bilan, à copier :", texte);
-        }
-      })();
+      void partagerBilan(texte, adresse, navigator, window.prompt.bind(window)).then((issue) => {
+        if (issue === "copie") cible.textContent = "Copié, partagez votre bilan";
+        if (issue === "invite") cible.textContent = "Copiez ce bilan";
+      });
     }
   };
   cadre.addEventListener("click", clic);
