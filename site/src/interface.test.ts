@@ -23,11 +23,11 @@ import { renduGrille, renduMethode } from "./methode-rendu.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
 
-const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
-const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
-const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8");
-const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8");
+const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
 test("le bilan n'annonce plus une unité générique que les chiffres démentent", () => {
   // « Montants en millions d'euros. » coiffait la section quand chaque montant

@@ -568,9 +568,9 @@ test("un budget réglé se relit tel quel dans la page entière", () => {
  * Le câblage : chargement à la demande, cibles tactiles, absence silencieuse
  * ----------------------------------------------------------------------- */
 
-const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
-const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8");
-const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 // BRANCHES, DIT_LA_BRANCHE et fusionnerBranches vivent dans simulateur-volets.ts,
 // partagés avec scripts/prerendre.ts : voir ce module pour le pourquoi.
 const VOLETS = readFileSync(new URL("./simulateur-volets.ts", import.meta.url), "utf8");

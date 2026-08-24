@@ -20,6 +20,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 
 import { apercuScenario, poserApercu, IMAGE_SCENARIO } from "./apercu-scenario.ts";
 import { encoder, etatVide, reglagesDe, type Volet, type VoletBudget } from "./atelier.ts";
@@ -27,7 +28,7 @@ import { formater } from "./echelle.ts";
 import { indexer, type Budget } from "./simulateur.ts";
 import { BASE_DONNEES } from "./simulateur-volets.ts";
 
-const ICI = path.dirname(new URL(import.meta.url).pathname);
+const ICI = path.dirname(fileURLToPath(import.meta.url));
 
 /** Un montant d'écart tel que l'écran l'écrit : le million partout, et le
  *  « + » que `formater` ne met jamais. Produit, jamais tapé. */

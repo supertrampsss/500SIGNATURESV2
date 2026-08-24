@@ -304,7 +304,7 @@ test("un salaire mensuel n'est pas un agrégat et ne se lit pas en M€", () => 
   // « Salaire net mensuel moyen :0,00 millions d'euros », deux exercices de suite, avec
   // « +4 % » à côté d'un chiffre nul : la règle des millions sert à comparer
   // des masses budgétaires entre elles, pas à dire une paie.
-  const ECHELLE = fs.readFileSync(new URL("./echelle.ts", import.meta.url), "utf8");
+  const ECHELLE = fs.readFileSync(new URL("./echelle.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
   // L'assertion portait sur le contenu exact d'un ensemble d'un seul élément.
   // Il en compte dix-neuf depuis que les déciles du niveau de vie sont publiés
   // — eux aussi ce qu'une personne a pour vivre —, et figer la liste ferait
