@@ -59,6 +59,17 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
   assert.equal(typeof facade.afficherTunnel, "function");
 });
 
+test("le conseil express rend l'état, les deux camps, la preuve et la barre d'action", () => {
+  const html = renduConseil(commencer(etatInitial()), MISSION);
+  assert.match(html, /tunnel__etat-compact/);
+  assert.match(html, /tunnel__comparaison/);
+  assert.match(html, /tunnel__camp--adopter/);
+  assert.match(html, /tunnel__camp--rejeter/);
+  assert.match(html, /<details class="tunnel__preuve"/);
+  assert.match(html, /tunnel__actions-fixes/);
+  assert.match(html, /Acte 1/);
+});
+
 /** Un conseil ouvert sans engagement : la pile entière. */
 function conseil(): EtatTunnel {
   return commencer({ ...etatInitial(), mode: "integral" });

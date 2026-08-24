@@ -85,50 +85,6 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
     </div>`;
 }
 
-function renduChapitres(etat: EtatTunnel): string {
-  const enJeu = etat.ordre.map((id) => mesureParId(id)!).filter(Boolean);
-  const actuelle = courante(etat);
-  const chapitres: string[] = [];
-  for (const m of enJeu) if (!chapitres.includes(m.chapitre)) chapitres.push(m.chapitre);
-  return `<div class="tunnel__chapitres" aria-label="Chapitres de la pile">
-    <p class="tunnel__surtitre">Tous les postes y passent</p>
-    ${chapitres
-      .map((chapitre) => {
-        const siens = enJeu.filter((m) => m.chapitre === chapitre);
-        const faits = siens.filter((m) => etat.tampons[m.id]).length;
-        const actif = actuelle?.chapitre === chapitre;
-        return `<div class="tunnel__chapitre${actif ? " tunnel__chapitre--actif" : ""}">
-          <span>${echapper(chapitre)}</span><span>${faits}/${siens.length}</span>
-        </div>`;
-      })
-      .join("")}
-  </div>`;
-}
-
-function renduJournal(etat: EtatTunnel): string {
-  const faits = etat.ordre.filter((id) => etat.tampons[id]).slice(-6).reverse();
-  const lignes = faits
-    .map((id) => {
-      const m = mesureParId(id)!;
-      const tampon = etat.tampons[id];
-      return `<div class="tunnel__tampon${tampon === "adopte" ? " tunnel__tampon--adopte" : ""}">
-        <span>${echapper(m.titre)}</span>
-        <b>${
-          tampon === "adopte"
-            ? echapper(millions(m.effet * 1e6))
-            : tampon === "exclue"
-              ? "incompatible"
-              : "rejetée"
-        }</b>
-      </div>`;
-    })
-    .join("");
-  return `<div class="tunnel__journal" aria-label="Vos derniers tampons">
-    <p class="tunnel__surtitre">Vos tampons</p>
-    ${lignes || '<p class="tunnel__note">Aucun encore. Le premier dossier attend.</p>'}
-  </div>`;
-}
-
 /** Les pastilles d'un jeu de réactions : « Opinion −4 · Marchés +5 ». */
 function pastilles(jeu: Partial<Record<Soutien, number>>): string {
   return SOUTIENS.filter(({ cle }) => jeu[cle])
@@ -180,86 +136,125 @@ function renduTelex(id: string): string {
     </article>`;
 }
 
+/** La réglette de séance : le chiffre et l'avancement restent lisibles sans HUD. */
+export function renduBarreEtat(etat: EtatTunnel, missionEuros: number): string {
+  const resteEuros = Math.max(0, missionEuros - comble(etat) * 1e6);
+  const faits = etat.ordre.filter((id) => etat.tampons[id]).length;
+  const parActe = Math.max(1, Math.ceil(etat.ordre.length / 3));
+  const acte = Math.min(3, Math.floor(faits / parActe) + 1);
+  const dernierId = etat.ordre.filter((id) => etat.tampons[id]).at(-1);
+  const dernier = dernierId ? mesureParId(dernierId) : undefined;
+  const statut = dernierId ? etat.tampons[dernierId] : undefined;
+  return `<section class="tunnel__etat-compact" aria-label="État du conseil">
+    <p class="tunnel__etat-acte">Acte ${acte} <span aria-hidden="true">·</span> ${faits} / ${etat.ordre.length}</p>
+    <p class="tunnel__etat-reste"><span>Reste à trouver</span> <strong>${compteur(resteEuros)}</strong></p>
+    ${renduSoutiens(etat, missionEuros)}
+    ${
+      dernier
+        ? `<p class="tunnel__etat-dernier">Dernier tampon : ${echapper(dernier.titre)} · ${
+            statut === "exclue" ? "incompatible" : statut === "adopte" ? "adoptée" : "rejetée"
+          }</p>`
+        : ""
+    }
+  </section>`;
+}
+
+function renduCote(
+  camp: "adopter" | "rejeter",
+  libelle: string,
+  argument: string,
+  gagnants: readonly string[],
+  perdants: readonly string[],
+  montant: string,
+  reactions: string,
+): string {
+  const titre = camp === "adopter" ? "Adopter" : "Rejeter";
+  return `<section class="tunnel__camp tunnel__camp--${camp}">
+    <p class="tunnel__camp-sens">${titre}</p>
+    <h4 class="tunnel__camp-titre">${echapper(libelle)}</h4>
+    <p class="tunnel__camp-argument">${echapper(argument)}</p>
+    <dl class="tunnel__camp-parties">
+      <div><dt>Gagnants</dt><dd>${echapper(gagnants.join(", ") || "Aucun indiqué")}</dd></div>
+      <div><dt>Perdants</dt><dd>${echapper(perdants.join(", ") || "Aucun indiqué")}</dd></div>
+    </dl>
+    <p class="tunnel__camp-montant">${montant}</p>
+    <div class="tunnel__reactions" aria-label="Réactions des soutiens">${reactions || '<span class="tunnel__reaction">Aucune réaction prévue</span>'}</div>
+  </section>`;
+}
+
+/** Les deux conséquences d'un vote, sans faire porter le sens par la couleur. */
+export function renduComparaison(mesure: (typeof MESURES)[number], dilemme = dilemmeDe(mesure.id)): string {
+  const adopter = dilemme?.adopter ?? {
+    libelle: "Adopter la mesure",
+    argument: mesure.detail,
+    gagnants: [],
+    perdants: [],
+  };
+  const rejeter = dilemme?.rejeter ?? {
+    libelle: "Rejeter la mesure",
+    argument: "Le budget et les soutiens restent soumis aux règles de la séance.",
+    gagnants: [],
+    perdants: [],
+  };
+  const montant = `${mesure.effet >= 0 ? "Vous trouvez " : "Vous engagez "}${echapper(millions(mesure.effet * 1e6))}${
+    mesure.precision ? ` <small>${echapper(mesure.precision)}</small>` : ""
+  }`;
+  return `<div class="tunnel__comparaison">
+    ${renduCote("adopter", adopter.libelle, adopter.argument, adopter.gagnants, adopter.perdants, montant, pastilles(mesure.reactions))}
+    ${renduCote(
+      "rejeter",
+      rejeter.libelle,
+      rejeter.argument,
+      rejeter.gagnants,
+      rejeter.perdants,
+      mesure.rejet ? "Rejeter a aussi un prix politique." : "Le rejet ne modifie pas le compteur.",
+      pastilles(mesure.rejet ?? {}),
+    )}
+  </div>`;
+}
+
+/** La réserve éditoriale accompagne chaque montant au lieu d'être cachée dans la carte. */
+export function renduPreuve(mesure: (typeof MESURES)[number]): string {
+  return `<details class="tunnel__preuve">
+    <summary>Chiffrage, hypothèses et source</summary>
+    <p>${echapper(mesure.detail)}</p>
+    ${mesure.precision ? `<p>${echapper(mesure.precision)}</p>` : ""}
+    <p>Les réactions des soutiens sont des règles du jeu.</p>
+  </details>`;
+}
+
 export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   const mesure = courante(etat);
   if (!mesure) return "";
   const dilemme = etat.mode === "express" ? dilemmeDe(mesure.id) : undefined;
-  const resteEuros = Math.max(0, missionEuros - comble(etat) * 1e6);
   const faits = etat.ordre.filter((id) => etat.tampons[id]).length;
-  const paliers = paliersTunnel(etat, missionEuros);
-  const franchis = paliers.filter((p) => p.franchi);
-  const fanfare =
-    resteEuros === 0
-      ? "L'équilibre. Personne n'y croyait."
-      : franchis.length
-        ? `Palier franchi : ${franchis[franchis.length - 1]!.nom}`
-        : "";
-  const reactions = pastilles(mesure.reactions);
   return `
-    <div class="tunnel__hud">
-      <div class="tunnel__hud-reste">
-        <p class="tunnel__surtitre">Reste à trouver</p>
-        <p class="tunnel__compteur">${compteur(resteEuros)}</p>
-      </div>
-      <div class="tunnel__hud-pile">
-        <p class="tunnel__surtitre">Conseil des mesures · ${faits} / ${etat.ordre.length} tamponnées</p>
-        <div class="tunnel__jalons">${etat.ordre
-          .map((id) => {
-            const t = etat.tampons[id];
-            return `<span class="${
-              t === "adopte" ? "tunnel__jalon--adopte" : t ? "tunnel__jalon--rejete" : ""
-            }"></span>`;
-          })
-          .join("")}</div>
-        <p class="tunnel__fanfare">${echapper(fanfare)}</p>
-      </div>
-      ${renduSoutiens(etat, missionEuros)}
-    </div>
+    ${renduBarreEtat(etat, missionEuros)}
     <div class="tunnel__scene">
-      ${renduChapitres(etat)}
       ${etat.telexEnCours ? renduTelex(etat.telexEnCours) : `<article class="tunnel__carte" aria-live="polite">
         ${etat.chrono ? '<span class="tunnel__chrono" aria-hidden="true"></span>' : ""}
         <header class="tunnel__carte-tete">
           <span class="tunnel__carte-chapitre">${echapper(mesure.chapitre)}</span>
-          <span class="tunnel__carte-numero">mesure ${faits + 1} / ${etat.ordre.length}</span>
+          <span class="tunnel__carte-numero">Dossier ${faits + 1} / ${etat.ordre.length}</span>
         </header>
         <h3 class="tunnel__carte-titre">${echapper(dilemme?.question ?? mesure.titre)}</h3>
         <p class="tunnel__carte-detail">${echapper(dilemme?.contradiction ?? mesure.detail)}</p>
-        ${
-          dilemme
-            ? `<p class="tunnel__prix">${echapper(dilemme.adopter.argument)}</p>
-               <p class="tunnel__prix">${echapper(dilemme.rejeter.argument)}</p>`
-            : ""
-        }
-        <div class="tunnel__carte-effet">
-          <div>
-            <p class="tunnel__surtitre">${mesure.effet >= 0 ? "Si vous l'adoptez, vous trouvez" : "Si vous l'adoptez, ça coûte"}</p>
-            <p class="tunnel__montant">${echapper(millions(mesure.effet * 1e6))}${
-              mesure.precision ? ` <small>${echapper(mesure.precision)}</small>` : ""
-            }</p>
-          </div>
-          <div class="tunnel__reactions">${reactions}</div>
-        </div>
-        ${
-          mesure.rejet
-            ? `<p class="tunnel__prix">Rejeter a aussi un prix&nbsp;: ${pastilles(mesure.rejet)}</p>`
-            : ""
-        }
-        <div class="tunnel__tampons">
+        ${renduComparaison(mesure, dilemme)}
+        ${renduPreuve(mesure)}
+        <p class="tunnel__alerte" role="status">${
+          etat.reports >= REPORTS_GRATUITS - 1
+            ? `${etat.reports} report${etat.reports > 1 ? "s" : ""} : au-delà de ${REPORTS_GRATUITS}, chacun coûte 1 point à chaque soutien.`
+            : "Chaque décision modifie le compteur et peut faire réagir les soutiens."
+        }</p>
+        <div class="tunnel__actions-fixes">
           <button type="button" class="tunnel__rejeter" data-geste="rejeter">${echapper(dilemme?.rejeter.libelle ?? "Rejeter")}</button>
           <button type="button" class="tunnel__adopter" data-geste="adopter">${echapper(dilemme?.adopter.libelle ?? "Adopter")}</button>
         </div>
         <div class="tunnel__seconds">
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>
-          ${
-            etat.reports >= REPORTS_GRATUITS - 1
-              ? `<span class="tunnel__note">${etat.reports} report${etat.reports > 1 ? "s" : ""} · au-delà de ${REPORTS_GRATUITS}, chacun coûte 1 point à chaque soutien</span>`
-              : ""
-          }
           ${etat.historique.length ? '<button type="button" class="tunnel__ajourner" data-geste="annuler">&#8592; Annuler le dernier tampon</button>' : ""}
         </div>
       </article>`}
-      ${renduJournal(etat)}
     </div>`;
 }
 
