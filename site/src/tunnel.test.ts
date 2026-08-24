@@ -51,6 +51,13 @@ import {
 
 const MISSION = 159_297e6;
 
+test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", async () => {
+  const facade = await import("./tunnel.ts");
+  assert.equal(typeof facade.commencer, "function");
+  assert.equal(typeof facade.renduConseil, "function");
+  assert.equal(typeof facade.afficherTunnel, "function");
+});
+
 /** Un conseil ouvert sans engagement : la pile entière. */
 function conseil(): EtatTunnel {
   return commencer(etatInitial());
