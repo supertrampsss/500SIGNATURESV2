@@ -8296,7 +8296,7 @@ body[data-carte="oui"] .legende {
     "soutiens"
     "dilemme"
     "trajectoire";
-  gap: var(--espace-4);
+  gap: var(--espace-3);
   max-width: 92rem;
   margin: 0 auto;
   padding: var(--espace-4) var(--espace-3) calc(var(--espace-7) + env(safe-area-inset-bottom, 0px));
@@ -8387,8 +8387,8 @@ body[data-carte="oui"] .legende {
 .tunnel__carte {
   min-width: 0;
   display: grid;
-  gap: var(--espace-4);
-  padding: var(--espace-5) var(--espace-4);
+  gap: var(--espace-3);
+  padding: var(--espace-4);
   color: var(--crise-encre);
   background:
     linear-gradient(90deg, rgb(167 90 50 / .15) 0 3px, transparent 3px),
@@ -8402,12 +8402,12 @@ body[data-carte="oui"] .legende {
 .tunnel__carte-numero { color: #5c6878; font-size: var(--texte-xs); font-variant-numeric: tabular-nums; text-align: end; }
 .tunnel__carte-titre { margin: 0; font-family: var(--serif); font-size: var(--texte-3xl); line-height: 1.08; }
 .tunnel__carte-detail { margin: 0; color: #455367; font-size: var(--texte-m); }
-.tunnel__comparaison { display: grid; gap: var(--espace-3); }
+.tunnel__comparaison { display: grid; gap: var(--espace-2); }
 .tunnel__camp {
   min-width: 0;
   display: grid;
-  gap: var(--espace-3);
-  padding: var(--espace-4);
+  gap: var(--espace-2);
+  padding: var(--espace-3);
   background: var(--crise-ivoire);
   border: 1px solid var(--crise-filet);
   border-inline-start: 4px solid #6d7b8c;
@@ -8417,11 +8417,9 @@ body[data-carte="oui"] .legende {
 .tunnel__camp--impact-neutre { border-inline-start-color: #6d7b8c; }
 .tunnel__camp-sens,
 .tunnel__camp-titre,
-.tunnel__camp-argument,
 .tunnel__camp-montant { margin: 0; }
 .tunnel__camp-sens { color: #4e5b6b; font-size: var(--texte-xs); font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
 .tunnel__camp-titre { font-family: var(--serif); font-size: var(--texte-xl); line-height: 1.1; }
-.tunnel__camp-argument { color: #455367; font-size: var(--texte-s); }
 .tunnel__camp-parties { display: grid; gap: var(--espace-2); margin: 0; color: #455367; font-size: var(--texte-xs); }
 .tunnel__camp-parties div { min-width: 0; }
 .tunnel__camp-parties dt { color: var(--crise-encre); font-weight: 800; }
@@ -8440,7 +8438,7 @@ body[data-carte="oui"] .legende {
   z-index: 1;
   bottom: calc(-1 * var(--espace-4));
   display: grid;
-  gap: var(--espace-3);
+  gap: var(--espace-2);
   margin: 0 calc(-1 * var(--espace-4)) calc(-1 * var(--espace-4));
   padding: var(--espace-4) var(--espace-4) calc(var(--espace-4) + env(safe-area-inset-bottom, 0px));
   background: var(--crise-papier);
@@ -8449,6 +8447,7 @@ body[data-carte="oui"] .legende {
 .tunnel__adopter,
 .tunnel__rejeter {
   min-width: 0;
+  min-height: var(--cible);
   padding: var(--espace-3) var(--espace-4);
   color: var(--crise-encre);
   background: #e7ddcd;
@@ -8511,11 +8510,11 @@ body[data-carte="oui"] .legende {
     grid-template-areas: "soutiens dilemme trajectoire";
     grid-template-columns: minmax(12rem, .72fr) minmax(0, 2.3fr) minmax(13rem, .82fr);
     align-items: start;
-    gap: var(--espace-5);
-    padding: var(--espace-6);
+    gap: var(--espace-4);
+    padding: var(--espace-5);
   }
   .tunnel__panneau { position: sticky; top: var(--espace-4); }
-  .tunnel__carte { padding: var(--espace-7); }
+  .tunnel__carte { padding: var(--espace-5); }
   .tunnel__comparaison,
   .tunnel__choix,
   .tunnel__tampons,

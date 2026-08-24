@@ -380,6 +380,14 @@ test("le conseil express rend l'état, les deux camps, la preuve et la barre d'a
   assert.match(html, /Acte 1/);
 });
 
+test("le conseil rend les conséquences sans répétition narrative ni message générique", () => {
+  const html = renduConseil(commencer(etatInitial()), MISSION);
+
+  assert.doesNotMatch(html, /Chaque décision modifie le compteur et peut faire réagir les soutiens\./);
+  assert.doesNotMatch(html, /en bénéficient\s*;/);
+  assert.doesNotMatch(html, /en supportent le coût\./);
+});
+
 test("la salle de crise répartit l'état, le dilemme et la trajectoire dans trois régions utiles", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
   const soutiens = html.match(/<aside class="tunnel__panneau tunnel__panneau--soutiens"[\s\S]*?<\/aside>/)?.[0] ?? "";

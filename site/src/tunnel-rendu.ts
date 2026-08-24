@@ -235,7 +235,6 @@ export function renduBarreEtat(etat: EtatTunnel, missionEuros: number): string {
 function renduCote(
   camp: "adopter" | "rejeter",
   libelle: string,
-  argument: string,
   gagnants: readonly string[],
   perdants: readonly string[],
   montant: string,
@@ -246,7 +245,6 @@ function renduCote(
   return `<section class="tunnel__camp tunnel__camp--${camp} tunnel__camp--impact-${impact}">
     <p class="tunnel__camp-sens">${titre}</p>
     <h4 class="tunnel__camp-titre">${echapper(libelle)}</h4>
-    <p class="tunnel__camp-argument">${echapper(argument)}</p>
     <dl class="tunnel__camp-parties">
       <div><dt>Gagnants</dt><dd>${echapper(gagnants.join(", ") || "Aucun indiqué")}</dd></div>
       <div><dt>Perdants</dt><dd>${echapper(perdants.join(", ") || "Aucun indiqué")}</dd></div>
@@ -278,11 +276,10 @@ export function renduComparaison(mesure: (typeof MESURES)[number], dilemme = dil
     mesure.precision ? ` <small>${echapper(mesure.precision)}</small>` : ""
   }`;
   return `<div class="tunnel__comparaison">
-    ${renduCote("adopter", adopter.libelle, adopter.argument, adopter.gagnants, adopter.perdants, montant, pastilles(mesure.reactions), mesure.effet > 0 ? "positif" : mesure.effet < 0 ? "negatif" : "neutre")}
+    ${renduCote("adopter", adopter.libelle, adopter.gagnants, adopter.perdants, montant, pastilles(mesure.reactions), mesure.effet > 0 ? "positif" : mesure.effet < 0 ? "negatif" : "neutre")}
     ${renduCote(
       "rejeter",
       rejeter.libelle,
-      rejeter.argument,
       rejeter.gagnants,
       rejeter.perdants,
       mesure.rejet ? "Rejeter a aussi un prix politique." : "Le rejet ne modifie pas le compteur.",
@@ -322,11 +319,11 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
         <p class="tunnel__carte-detail">${echapper(dilemme?.contradiction ?? mesure.detail)}</p>
         ${renduComparaison(mesure, dilemme)}
         ${renduPreuve(mesure)}
-        <p class="tunnel__alerte" role="status">${
+        ${
           etat.reports >= REPORTS_GRATUITS - 1
-            ? `${etat.reports} report${etat.reports > 1 ? "s" : ""} : au-delà de ${REPORTS_GRATUITS}, chacun coûte 1 point à chaque soutien.`
-            : "Chaque décision modifie le compteur et peut faire réagir les soutiens."
-        }</p>
+            ? `<p class="tunnel__alerte" role="status">${etat.reports} report${etat.reports > 1 ? "s" : ""} : au-delà de ${REPORTS_GRATUITS}, chacun coûte 1 point à chaque soutien.</p>`
+            : ""
+        }
         <div class="tunnel__actions-fixes">
           <button type="button" class="tunnel__adopter" data-geste="adopter">Adopter — ${echapper(dilemme?.adopter.libelle ?? contexte)}</button>
           <button type="button" class="tunnel__rejeter" data-geste="rejeter">Rejeter — ${echapper(dilemme?.rejeter.libelle ?? contexte)}</button>
