@@ -8253,6 +8253,10 @@ body[data-carte="oui"] .legende {
   display: grid;
   gap: var(--espace-4);
 }
+.tunnel__modes {
+  display: grid;
+  gap: var(--espace-2);
+}
 .tunnel__compteur-geant,
 .tunnel__verdict-nom {
   margin: 0;
@@ -8281,9 +8285,17 @@ body[data-carte="oui"] .legende {
   font-size: var(--texte-s);
   font-weight: 700;
   cursor: pointer;
-  width: fit-content;
+  width: 100%;
+  text-align: start;
 }
 .tunnel__mode:hover { color: #fff; border-color: var(--crise-texte-nuit); }
+.tunnel__mode--actif {
+  color: #fff;
+  background: var(--crise-vert);
+  border-color: var(--crise-vert);
+  box-shadow: inset 4px 0 0 #d9f4dd;
+}
+.tunnel__mode--actif:hover { background: #0e4e3d; border-color: #d9f4dd; }
 .tunnel__commencer {
   width: fit-content;
   padding: var(--espace-3) var(--espace-5);
@@ -8553,6 +8565,7 @@ body[data-carte="oui"] .legende {
 .tunnel__carte summary:focus-visible { outline-color: var(--crise-encre); }
 
 @media (min-width: 60rem) {
+  .tunnel__modes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tunnel__scene {
     grid-template-areas: "soutiens dilemme trajectoire";
     grid-template-columns: minmax(12rem, .72fr) minmax(0, 2.3fr) minmax(13rem, .82fr);

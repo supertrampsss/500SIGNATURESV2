@@ -66,15 +66,19 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
   assert.equal(typeof facade.afficherTunnel, "function");
 });
 
-test("la mission présente uniquement le déficit à combler avant de choisir le mode", () => {
-  const html = renduMission(etatInitial(), MISSION);
+test("la mission affiche les deux modes et marque celui qui sera lancé", () => {
+  const express = renduMission(etatInitial(), MISSION);
+  const integral = renduMission({ ...etatInitial(), mode: "integral" }, MISSION);
 
-  assert.match(html, /Le déficit à combler/);
-  assert.match(html, /C’est le déficit que les budgets publics doivent combler pour tenir sans emprunter\. À vous de trancher\./);
-  assert.match(html, /data-action="mode-integral"/);
-  assert.match(renduMission({ ...etatInitial(), mode: "integral" }, MISSION), /data-action="mode-express"/);
-  assert.match(html, /Prendre mes fonctions/);
-  assert.doesNotMatch(html, /data-engagement|Signez vos engagements|engagements restants|Conseil de crise/);
+  assert.match(express, /Le déficit à combler/);
+  assert.match(express, /Conseil de crise · 15 mesures/);
+  assert.match(express, /Conseil intégral · 96 mesures/);
+  assert.match(express, /class="tunnel__mode tunnel__mode--actif" data-action="mode-express" aria-pressed="true"/);
+  assert.match(express, /class="tunnel__mode" data-action="mode-integral" aria-pressed="false"/);
+  assert.match(integral, /class="tunnel__mode" data-action="mode-express" aria-pressed="false"/);
+  assert.match(integral, /class="tunnel__mode tunnel__mode--actif" data-action="mode-integral" aria-pressed="true"/);
+  assert.match(express, /Prendre mes fonctions/);
+  assert.doesNotMatch(express, /data-engagement|Signez vos engagements|engagements restants|Défi reçu|Conseil de crise :/);
 });
 
 test("le retour BFCache garde un unique contrôleur cliquable et réarme le chrono", () => {

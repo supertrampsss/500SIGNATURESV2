@@ -45,10 +45,10 @@ function renduSoutiens(etat: EtatTunnel, missionEuros: number): string {
 }
 
 export function renduMission(etat: EtatTunnel, missionEuros: number): string {
-  const mode =
-    etat.mode === "express"
-      ? `<button type="button" class="tunnel__mode" data-action="mode-integral">Conseil intégral · 96 mesures</button>`
-      : `<button type="button" class="tunnel__mode" data-action="mode-express">Campagne express · 15 mesures</button>`;
+  const mode = `<div class="tunnel__modes" role="group" aria-label="Mode de séance">
+    <button type="button" class="tunnel__mode${etat.mode === "express" ? " tunnel__mode--actif" : ""}" data-action="mode-express" aria-pressed="${etat.mode === "express"}">Conseil de crise · 15 mesures</button>
+    <button type="button" class="tunnel__mode${etat.mode === "integral" ? " tunnel__mode--actif" : ""}" data-action="mode-integral" aria-pressed="${etat.mode === "integral"}">Conseil intégral · 96 mesures</button>
+  </div>`;
   return `
     <div class="tunnel__mission">
       <div class="tunnel__mission-intro">
