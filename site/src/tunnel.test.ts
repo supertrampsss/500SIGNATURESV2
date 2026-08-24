@@ -389,7 +389,7 @@ test("les boutons reprennent les deux camps dans le même ordre et avec leurs li
   assert.match(actions, /<button[^>]*class="tunnel__rejeter"[^>]*data-geste="rejeter">Rejeter — Maintenir<\/button>\s*$/);
 });
 
-test("une décision passe tout de suite au dossier suivant, sans écran de retour ni délai", () => {
+test("deux clics synchrones sur l'ancien CTA ne posent qu'un tampon", () => {
   const global = globalThis as Record<string, unknown>;
   const cles = ["window", "location", "sessionStorage", "document", "setTimeout", "clearTimeout"];
   const anciens = new Map(cles.map((cle) => [cle, global[cle]]));
@@ -428,21 +428,20 @@ test("une décision passe tout de suite au dossier suivant, sans écran de retou
     global.setTimeout = ((_fn: () => void, delai: number) => { delais.push(delai); return { annulee: false }; }) as unknown;
     global.clearTimeout = ((_tache: unknown) => {}) as unknown;
     stockage.set("tunnel-partie", JSON.stringify({
-      ...conseil(), mode: "express", ordre: ["reconduire-la-surtaxe-des-grandes-entreprises"], tampons: {}, historique: [],
+      ...conseil(), mode: "express", ordre: ["reconduire-la-surtaxe-des-grandes-entreprises", "porter-le-taux-normal-de-tva-a"], tampons: {}, historique: [],
       telex: { vus: TELEX.map((telex) => telex.id), surcout: 0, soutiens: {} },
       crisesVues: ["opinion", "entreprises", "territoires", "marches"],
     }));
 
     const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
     cadre.emettreClic(bouton);
+    cadre.emettreClic(bouton);
 
     assert.doesNotMatch(cadre.innerHTML, /tunnel__retour/);
-    assert.match(cadre.innerHTML, /Votre verdict/);
+    assert.match(cadre.innerHTML, /Dossier 2 \/ 2/);
     assert.deepEqual(delais, []);
-    assert.deepEqual(evenements, [
-      { type: "decision", acte: 1, numero: 1, verdict: "adopte" },
-      { type: "partie_terminee", mode: "express", dossiers: 1 },
-    ]);
+    assert.equal((JSON.parse(stockage.get("tunnel-partie")!) as EtatTunnel).historique.length, 1);
+    assert.deepEqual(evenements, [{ type: "decision", acte: 1, numero: 1, verdict: "adopte" }]);
     demonter();
   } finally {
     for (const cle of cles) {
@@ -450,6 +449,18 @@ test("une décision passe tout de suite au dossier suivant, sans écran de retou
       else delete global[cle];
     }
   }
+});
+
+test("la barre intégrale reprend le titre de la mesure sans répéter le verbe", () => {
+  const html = renduConseil({
+    ...commencer({ ...etatInitial(), mode: "integral" }),
+    mode: "integral",
+    ordre: ["reconduire-la-surtaxe-des-grandes-entreprises"],
+  }, MISSION);
+  const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
+
+  assert.match(actions, /data-geste="adopter">Adopter — Reconduire la surtaxe des grandes entreprises<\/button>/);
+  assert.match(actions, /data-geste="rejeter">Rejeter — Reconduire la surtaxe des grandes entreprises<\/button>/);
 });
 
 /** Un conseil ouvert sans engagement : la pile entière. */

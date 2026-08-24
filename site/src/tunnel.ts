@@ -395,6 +395,9 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   let partageEnCours = false;
   let montageActif = true;
   let generationRendu = 0;
+  // Un clic peut déjà être dans la file lorsque son bouton disparaît au
+  // repaint. Chaque CTA de décision ne peut donc être consommé qu'une fois.
+  const gestesConsommes = new WeakSet<HTMLElement>();
   const peindre = () => {
     generationRendu++;
     sauver(etat);
@@ -437,6 +440,8 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     const geste = cible.dataset.geste;
     if (geste === "adopter" || geste === "rejeter") {
+      if (gestesConsommes.has(cible)) return;
+      gestesConsommes.add(cible);
       const avant = etat;
       const tampon = tamponner(etat, geste === "adopter" ? "adopte" : "rejete");
       const numero = tampon.historique.length + tampon.reports;
