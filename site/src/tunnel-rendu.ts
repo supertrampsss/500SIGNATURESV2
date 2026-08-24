@@ -1,6 +1,7 @@
 /** Les rendus purs du simulateur en tunnel. */
 
 import { millions } from "./echelle.ts";
+import { dilemmeDe } from "./dilemmes.ts";
 import { CONTRATS } from "./mission.ts";
 import { MESURES, type Soutien } from "./mesures.ts";
 import {
@@ -182,6 +183,7 @@ function renduTelex(id: string): string {
 export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   const mesure = courante(etat);
   if (!mesure) return "";
+  const dilemme = etat.mode === "express" ? dilemmeDe(mesure.id) : undefined;
   const resteEuros = Math.max(0, missionEuros - comble(etat) * 1e6);
   const faits = etat.ordre.filter((id) => etat.tampons[id]).length;
   const paliers = paliersTunnel(etat, missionEuros);
@@ -221,8 +223,14 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
           <span class="tunnel__carte-chapitre">${echapper(mesure.chapitre)}</span>
           <span class="tunnel__carte-numero">mesure ${faits + 1} / ${etat.ordre.length}</span>
         </header>
-        <h3 class="tunnel__carte-titre">${echapper(mesure.titre)}</h3>
-        <p class="tunnel__carte-detail">${echapper(mesure.detail)}</p>
+        <h3 class="tunnel__carte-titre">${echapper(dilemme?.question ?? mesure.titre)}</h3>
+        <p class="tunnel__carte-detail">${echapper(dilemme?.contradiction ?? mesure.detail)}</p>
+        ${
+          dilemme
+            ? `<p class="tunnel__prix">${echapper(dilemme.adopter.argument)}</p>
+               <p class="tunnel__prix">${echapper(dilemme.rejeter.argument)}</p>`
+            : ""
+        }
         <div class="tunnel__carte-effet">
           <div>
             <p class="tunnel__surtitre">${mesure.effet >= 0 ? "Si vous l'adoptez, vous trouvez" : "Si vous l'adoptez, ça coûte"}</p>
@@ -238,8 +246,8 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
             : ""
         }
         <div class="tunnel__tampons">
-          <button type="button" class="tunnel__rejeter" data-geste="rejeter">Rejeter</button>
-          <button type="button" class="tunnel__adopter" data-geste="adopter">Adopter</button>
+          <button type="button" class="tunnel__rejeter" data-geste="rejeter">${echapper(dilemme?.rejeter.libelle ?? "Rejeter")}</button>
+          <button type="button" class="tunnel__adopter" data-geste="adopter">${echapper(dilemme?.adopter.libelle ?? "Adopter")}</button>
         </div>
         <div class="tunnel__seconds">
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>

@@ -312,6 +312,16 @@ test("la campagne express est la mission par défaut et l'intégrale garde les 9
   assert.equal(integral.ordre.length, MESURES.length);
 });
 
+test("la campagne express expose le dilemme éditorial, l'intégrale garde la carte générique", () => {
+  const id = "flat-tax-a-20-avec-abattement-protegeant";
+  const express = { ...etatInitial(), phase: "conseil" as const, mode: "express" as const, ordre: [id] };
+  const integral = { ...express, mode: "integral" as const };
+  assert.match(renduConseil(express, MISSION), /Baisser la flat tax tout en protégeant les revenus modestes/);
+  assert.match(renduConseil(express, MISSION), /détenteurs de capital/);
+  assert.match(renduConseil(express, MISSION), />Maintenir</);
+  assert.match(renduConseil(integral, MISSION), /Flat tax à 20 %/);
+});
+
 test("le défi v2 transporte mode, graine, score et engagements, sans casser le format historique", () => {
   let etat = {
     ...etatInitial(),
