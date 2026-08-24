@@ -370,26 +370,35 @@ export function renduVerdict(
   return `
     <div class="tunnel__verdict">
       <p class="tunnel__surtitre">Votre verdict</p>
-      <h3 class="tunnel__verdict-nom">${echapper(p.nom)}</h3>
-      <p class="tunnel__chapeau">${echapper(p.phrase)}${
-        rupture ? ` ${echapper(rupture.nom)} est au bord de la rupture.` : ""
-      }</p>
-      <section class="tunnel__mandat" aria-labelledby="tunnel-mandat">
-        <p id="tunnel-mandat" class="tunnel__surtitre">Votre mandat</p>
-        <p><strong>${echapper(millions(combleM * 1e6))}</strong> trouvés ; il reste <strong>${echapper(compteur(resteEuros))}</strong>.</p>
-        <p><strong>Promesses tenues</strong> : ${bilan.engagements.length
-          ? bilan.engagements.map((engagement) => `${echapper(engagement.nom)} — ${engagement.statut === "tenue" ? "tenue" : "impossibilité détectée"}`).join(" · ")
-          : "aucune promesse signée"}.</p>
-        <p><strong>Conséquences encore ouvertes</strong> : ${bilan.crises.length
-          ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
-          : "aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</p>
-      </section>
       <p class="tunnel__verdict-bilan">
         <strong>${echapper(millions(combleM * 1e6))}</strong> trouvés sur les
         <strong>${compteur(missionEuros)}</strong> qui manquent ·
         ${nFranchis} palier${nFranchis > 1 ? "s" : ""} sur ${paliers.length}${
           resteEuros === 0 ? " · l'équilibre" : ""
         }</p>
+      <section class="tunnel__stabilite" aria-labelledby="tunnel-stabilite">
+        <p id="tunnel-stabilite" class="tunnel__surtitre">Soutiens et stabilité</p>
+        ${renduSoutiens(etat, missionEuros)}
+      </section>
+      <section class="tunnel__mandat" aria-labelledby="tunnel-promesses">
+        <p id="tunnel-promesses" class="tunnel__surtitre">Promesses tenues</p>
+        <p><strong>Promesses tenues</strong> : ${bilan.engagements.length
+          ? bilan.engagements.map((engagement) => `${echapper(engagement.nom)} — ${engagement.statut === "tenue" ? "tenue" : "impossibilité détectée"}`).join(" · ")
+          : "aucune promesse signée"}.</p>
+      </section>
+      <section class="tunnel__mandat" aria-labelledby="tunnel-consequences">
+        <p id="tunnel-consequences" class="tunnel__surtitre">Conséquences encore ouvertes</p>
+        <p><strong>Conséquences encore ouvertes</strong> : ${bilan.crises.length
+          ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
+          : "aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</p>
+      </section>
+      <section class="tunnel__mandat" aria-labelledby="tunnel-mandat">
+        <p id="tunnel-mandat" class="tunnel__surtitre">Votre mandat</p>
+        <h3 class="tunnel__verdict-nom">${echapper(p.nom)}</h3>
+        <p class="tunnel__chapeau">${echapper(p.phrase)}${
+          rupture ? ` ${echapper(rupture.nom)} est au bord de la rupture.` : ""
+        }</p>
+      </section>
       ${duel}
       ${(() => {
         const gagnees = decorations(etat, missionEuros);
@@ -403,7 +412,6 @@ export function renduVerdict(
         </div>`;
       })()}
       ${gestes ? `<div class="tunnel__verdict-gestes"><p class="tunnel__surtitre">Vos plus gros gestes</p>${gestes}</div>` : ""}
-      ${renduSoutiens(etat, missionEuros)}
       <details class="tunnel__historique">
         <summary>Voir mes ${etat.historique.length} choix</summary>
         <ol>${etat.historique.map((choix) => {

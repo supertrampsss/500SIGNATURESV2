@@ -27,6 +27,7 @@ import {
   afficherTunnel,
   bilanTexte,
   bilanVerdict,
+  carteBilanSvg,
   decoderDefi,
   encoderDefi,
   restaurer,
@@ -262,6 +263,7 @@ test("Partager sérialise les clics et ne touche plus le bouton démonté", asyn
     global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
     global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
     Object.defineProperty(globalThis, "navigator", { configurable: true, value: {
+      canShare: () => true,
       share: () => {
         appels++;
         return new Promise<void>((resolve) => { resoudre = resolve; });
@@ -337,7 +339,7 @@ test("un repaint pendant le partage invalide l'ancien bouton mais libère une no
     global.location = { search: "", origin: "https://exemple.test" };
     global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
     global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
-    Object.defineProperty(globalThis, "navigator", { configurable: true, value: { share: () => {
+    Object.defineProperty(globalThis, "navigator", { configurable: true, value: { canShare: () => true, share: () => {
       appels++;
       return new Promise<void>((resolve) => resolutions.push(resolve));
     } } });
@@ -622,17 +624,39 @@ test("le défi voyage dans l'adresse, et une adresse abîmée est ignorée en si
   });
 });
 
-test("le verdict explique le mandat avant sa revanche et garde quinze choix accessibles", () => {
+test("le verdict déroule le bilan dans l'ordre budget, soutiens, promesses, conséquences, titre puis revanche", () => {
   let etat = { ...etatInitial(), mode: "express" as const, graine: 42 };
   etat = commencer(etat);
   while (courante(etat)) etat = tamponner(etat, "rejete");
   etat = transitionApresRetour(etat, MISSION);
   const html = renduVerdict(etat, MISSION);
-  assert.ok(html.indexOf("Votre mandat") < html.indexOf("Relever le défi"));
-  assert.match(html, /Promesses tenues/);
-  assert.match(html, /Conséquences encore ouvertes/);
+  const ordre = [
+    "trouvés sur les",
+    "Soutiens et stabilité",
+    "Promesses tenues",
+    "Conséquences encore ouvertes",
+    'class="tunnel__verdict-nom"',
+    "Relever le défi",
+  ].map((repere) => html.indexOf(repere));
+  assert.ok(ordre.every((position) => position >= 0), "chaque étape obligatoire est rendue");
+  assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, "le DOM suit le fil de lecture annoncé");
+  assert.match(html, /aria-labelledby="tunnel-mandat"/);
   assert.match(html, /<details class="tunnel__historique"/);
   assert.match(html, /Voir mes 15 choix/);
+});
+
+test("la carte anonyme du bilan ne retient que les agrégats du mandat", () => {
+  let etat = conseil();
+  etat = { ...etat, engagements: ["sans-impot"], reports: 2 };
+  etat = adopterId(etat, "porter-le-taux-normal-de-tva-a");
+  const svg = carteBilanSvg(etat, MISSION);
+  assert.match(svg, /<svg[^>]+1200[^>]+630/);
+  assert.match(svg, /BILAN ANONYME DU CONSEIL/);
+  assert.match(svg, /Soutiens stables/);
+  assert.match(svg, /Promesses : 0\/1 tenues/);
+  assert.match(svg, /Conséquences : 0 crise · 2 reports/);
+  assert.doesNotMatch(svg, /porter-le-taux-normal-de-tva-a/);
+  assert.doesNotMatch(svg, /exemple\.test/);
 });
 
 test("le bilan du verdict expose les chiffres, promesses, crises, reports et trois gestes", () => {

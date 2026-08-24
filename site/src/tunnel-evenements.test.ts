@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { emettreEvenement, type EvenementTunnel } from "./tunnel-evenements.ts";
-import { partagerBilan } from "./tunnel.ts";
+import { partagerBilan, telechargerCarteBilan } from "./tunnel.ts";
 
 test("les événements du tunnel sont anonymes et passent par le document", () => {
   const global = globalThis as Record<string, unknown>;
@@ -65,6 +65,64 @@ test("Web Share réussi ne copie pas et n'ouvre pas d'invite", async () => {
   assert.equal(partage, 1);
   assert.equal(copie, 0);
   assert.equal(invite, 0);
+});
+
+test("Web Share envoie la carte anonyme lorsque le navigateur accepte le fichier", async () => {
+  const carte = { name: "bilan-conseil.svg", type: "image/svg+xml" } as File;
+  let fichiers: readonly File[] | undefined;
+  const resultat = await partagerBilan("Le bilan", "https://exemple.test/defi", {
+    canShare: (donnees) => Array.isArray(donnees.files) && donnees.files[0] === carte,
+    share: async (donnees) => { fichiers = donnees.files; },
+  }, undefined, { carte });
+  assert.equal(resultat, "partage");
+  assert.deepEqual(fichiers, [carte]);
+});
+
+test("sans partage de fichier, le bilan bascule au texte copiable", async () => {
+  const carte = { name: "bilan-conseil.svg", type: "image/svg+xml" } as File;
+  let partage = 0;
+  let copie = 0;
+  const resultat = await partagerBilan("Le bilan", "https://exemple.test/defi", {
+    canShare: () => false,
+    share: async () => { partage++; },
+    clipboard: { writeText: async () => { copie++; } },
+  }, undefined, { carte });
+  assert.equal(resultat, "copie");
+  assert.equal(partage, 0);
+  assert.equal(copie, 1);
+});
+
+test("un échec de partage et de copie télécharge clairement la carte locale", async () => {
+  const carte = { name: "bilan-conseil.svg", type: "image/svg+xml" } as File;
+  const telecharges: File[] = [];
+  const resultat = await partagerBilan("Le bilan", "https://exemple.test/defi", {
+    canShare: () => true,
+    share: async () => { throw new Error("annulé"); },
+    clipboard: { writeText: async () => { throw new Error("refus"); } },
+  }, undefined, { carte, telecharger: (fichier) => { telecharges.push(fichier); } });
+  assert.equal(resultat, "telechargement");
+  assert.deepEqual(telecharges, [carte]);
+});
+
+test("le téléchargement local crée puis libère une URL de carte", () => {
+  const global = globalThis as Record<string, unknown>;
+  const ancienDocument = global.document;
+  const ancienURL = global.URL;
+  const carte = { name: "bilan-conseil.svg", type: "image/svg+xml" } as File;
+  const clics: string[] = [];
+  const liberees: string[] = [];
+  try {
+    global.document = { createElement: () => ({ href: "", download: "", click() { clics.push(this.download); } }) };
+    global.URL = { createObjectURL: (fichier: File) => { assert.equal(fichier, carte); return "blob:carte"; }, revokeObjectURL: (url: string) => { liberees.push(url); } };
+    telechargerCarteBilan(carte);
+    assert.deepEqual(clics, ["bilan-conseil.svg"]);
+    assert.deepEqual(liberees, ["blob:carte"]);
+  } finally {
+    if (ancienDocument === undefined) delete global.document;
+    else global.document = ancienDocument;
+    if (ancienURL === undefined) delete global.URL;
+    else global.URL = ancienURL;
+  }
 });
 
 test("un refus Web Share reprend le presse-papiers puis l'invite si nécessaire", async () => {

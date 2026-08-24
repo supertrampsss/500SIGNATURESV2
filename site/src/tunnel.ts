@@ -25,7 +25,7 @@ import {
 } from "./tunnel-modele.ts";
 import { millions } from "./echelle.ts";
 import { CONTRATS } from "./mission.ts";
-import { rendu as renduPur, renduVerdict as renduVerdictPur } from "./tunnel-rendu.ts";
+import { bilanVerdict, rendu as renduPur, renduVerdict as renduVerdictPur } from "./tunnel-rendu.ts";
 import { impactDecision, jouerRetour } from "./tunnel-retour.ts";
 import { acteDe, type Acte } from "./campagne.ts";
 import { emettreEvenement } from "./tunnel-evenements.ts";
@@ -225,6 +225,51 @@ export function reprendre(
   return etatInitial(recu);
 }
 
+function echapperSvg(texte: string): string {
+  return texte.replace(/[&<>"']/g, (caractere) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;",
+  })[caractere] as string);
+}
+
+/** Une carte légère, locale et sans identité : les seuls faits sont les agrégats du mandat. */
+export function carteBilanSvg(etat: EtatTunnel, missionEuros: number): string {
+  const bilan = bilanVerdict(etat, missionEuros);
+  const paliers = paliersTunnel(etat, missionEuros).filter((palier) => palier.franchi).length;
+  const promessesTenues = bilan.engagements.filter((engagement) => engagement.statut === "tenue").length;
+  const soutiensStables = bilan.soutiens.filter((soutien) => !soutien.danger).length;
+  const lignes = [
+    bilan.profil.nom,
+    `${millions(bilan.trouve * 1e6)} trouvés · ${millions(bilan.reste)} à trouver`,
+    `${paliers} palier${paliers > 1 ? "s" : ""} franchi${paliers > 1 ? "s" : ""} sur 4`,
+    `Soutiens stables : ${soutiensStables}/4`,
+    `Promesses : ${promessesTenues}/${bilan.engagements.length} tenues`,
+    `Conséquences : ${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}`,
+  ];
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-label="Bilan anonyme du conseil"><rect width="1200" height="630" fill="#0f1b2e"/><rect x="72" y="72" width="12" height="486" fill="#d9ac4d"/><text x="124" y="142" fill="#d9ac4d" font-family="Arial, sans-serif" font-size="26" font-weight="700" letter-spacing="4">BILAN ANONYME DU CONSEIL</text>${lignes.map((ligne, index) => `<text x="124" y="${218 + index * 58}" fill="#${index === 0 ? "fbfaf6" : "c9cec7"}" font-family="${index === 0 ? "Georgia, serif" : "Arial, sans-serif"}" font-size="${index === 0 ? 46 : 31}" font-weight="${index === 0 ? 700 : 400}">${echapperSvg(ligne)}</text>`).join("")}</svg>`;
+}
+
+/** Le fichier ne contient pas l'historique des choix, l'adresse ni aucune identité du joueur. */
+export function carteBilanFichier(etat: EtatTunnel, missionEuros: number): File | undefined {
+  if (typeof File !== "function") return undefined;
+  return new File([carteBilanSvg(etat, missionEuros)], "bilan-conseil.svg", { type: "image/svg+xml" });
+}
+
+/** Téléchargement explicite du dernier secours : aucune donnée ne quitte l'appareil. */
+export function telechargerCarteBilan(carte: File): void {
+  if (typeof document === "undefined" || typeof URL?.createObjectURL !== "function") {
+    throw new Error("Téléchargement local indisponible");
+  }
+  const adresse = URL.createObjectURL(carte);
+  try {
+    const lien = document.createElement("a");
+    lien.href = adresse;
+    lien.download = carte.name;
+    lien.click();
+  } finally {
+    URL.revokeObjectURL(adresse);
+  }
+}
+
 const ORDRE_REVANCHE = ["sans-impot", "sans-prestation", "ecole-sante", "sans-collectivites"] as const;
 
 /** Une nouvelle partie, un cran de contrainte en plus — puis une nouvelle graine. */
@@ -239,11 +284,17 @@ export function nouvelleContrainte(etat: EtatTunnel): EtatTunnel {
 }
 
 type NavigateurPartage = {
-  share?: (donnees: { title?: string; text?: string; url?: string }) => Promise<void>;
+  share?: (donnees: { title?: string; text?: string; url?: string; files?: File[] }) => Promise<void>;
+  canShare?: (donnees: { files?: File[] }) => boolean;
   clipboard?: { writeText?: (texte: string) => Promise<void> };
 };
 
-export type IssuePartage = "partage" | "copie" | "invite" | "indisponible";
+export type OptionsPartageBilan = {
+  carte?: File;
+  telecharger?: (carte: File) => unknown;
+};
+
+export type IssuePartage = "partage" | "copie" | "invite" | "telechargement" | "indisponible";
 
 /** Partage natif, puis copie, puis texte visible : aucune fausse confirmation. */
 export async function partagerBilan(
@@ -251,6 +302,7 @@ export async function partagerBilan(
   adresse: string,
   navigateur: NavigateurPartage,
   inviter?: (titre: string, texte: string) => unknown,
+  options: OptionsPartageBilan = {},
 ): Promise<IssuePartage> {
   let partager: NavigateurPartage["share"];
   try {
@@ -258,9 +310,19 @@ export async function partagerBilan(
   } catch {
     partager = undefined;
   }
-  if (typeof partager === "function") {
+  const cartePartageable = options.carte && (() => {
     try {
-      await partager.call(navigateur, { title: "Mon bilan du conseil", text: texte, url: adresse });
+      return navigateur.canShare?.({ files: [options.carte] }) === true;
+    } catch {
+      return false;
+    }
+  })();
+  if (typeof partager === "function" && (!options.carte || cartePartageable)) {
+    try {
+      await partager.call(navigateur, {
+        title: "Mon bilan du conseil", text: texte, url: adresse,
+        ...(cartePartageable ? { files: [options.carte!] } : {}),
+      });
       return "partage";
     } catch {
       // Un refus ou une annulation reprend le secours local, sans événement de plus.
@@ -280,6 +342,14 @@ export async function partagerBilan(
       return "copie";
     } catch {
       // Une permission refusée laisse tout de même le texte à copier.
+    }
+  }
+  if (options.carte && typeof options.telecharger === "function") {
+    try {
+      options.telecharger(options.carte);
+      return "telechargement";
+    } catch {
+      // Le téléchargement est un secours local : s'il est bloqué, il reste l'invite texte.
     }
   }
   if (typeof inviter !== "function") return "indisponible";
@@ -465,6 +535,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       cible.setAttribute("aria-busy", "true");
       const texte = bilanTexte(etat, options.missionEuros);
       const adresse = adresseDefi(etat);
+      const carte = carteBilanFichier(etat, options.missionEuros);
       emettreEvenement({ type: "partage" });
       let inviter: ((titre: string, texte: string) => unknown) | undefined;
       try {
@@ -472,11 +543,12 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       } catch {
         // Certains contextes embarqués refusent même l'accès à prompt.
       }
-      void partagerBilan(texte, adresse, navigator, inviter)
+      void partagerBilan(texte, adresse, navigator, inviter, carte ? { carte, telecharger: telechargerCarteBilan } : {})
         .then((issue) => {
           if (!montageActif || generationRendu !== generationPartage) return;
           if (issue === "copie") cible.textContent = "Copié, partagez votre bilan";
           if (issue === "invite") cible.textContent = "Copiez ce bilan";
+          if (issue === "telechargement") cible.textContent = "Carte téléchargée";
           if (issue === "indisponible") cible.textContent = "Partage indisponible";
         })
         .catch(() => {
