@@ -112,10 +112,9 @@ test("un maire absent n'écrit rien, comme toute donnée absente", () => {
 /** Corps de la feuille, tokens exclus : c'est là que les valeurs en dur se
  *  glissent. Le bloc `:root` et les `@font-face` ont le droit d'en contenir. */
 const CSS_CORPS = CSS.slice(CSS.indexOf("* {\n  box-sizing: border-box;\n}"));
-/** Les feuilles de ce projet se commentent beaucoup, et les commentaires citent
- *  volontiers ce qu'on vient de bannir (« @media (max-width: 640px) a été
- *  réécrit »). Un test qui cherche une interdiction doit lire les règles, pas
- *  les explications. */
+/** Les feuilles de ce projet se commentent beaucoup, et les commentaires peuvent
+ *  documenter des seuils historiques. Un test qui cherche une interdiction doit
+ *  lire les règles, pas les explications. */
 const sansCommentaires = (s: string) => s.replace(/\/\*[\s\S]*?\*\//g, "");
 const CSS_REGLES = sansCommentaires(CSS);
 const PAGE_BALISES = PAGE.replace(/<!--[\s\S]*?-->/g, "");
@@ -170,6 +169,32 @@ test("l'anneau de focus se voit : 3:1 au moins, c'est un indicateur non textuel"
   for (const fond of ["--papier", "--papier-creuse"]) {
     const r = contraste(token("--dore"), token(fond));
     assert.ok(r >= 3, `--dore sur ${fond} : ${r.toFixed(2)}:1 < 3`);
+  }
+});
+
+test("le tunnel sur papier ne conserve aucune encre de la première scène sombre", () => {
+  // La scène a quitté son fond bleu, mais quelques règles antérieures restaient
+  // plus spécifiques : #c9cec7 et #ece9e1 ne donnaient respectivement que
+  // 1,53:1 et 1,16:1 sur #fbfaf6. Cette garde vise les textes réels, dont le
+  // bouton Rejeter qui était aussi écrasé par une règle de carte plus précise.
+  const tunnelClair = CSS.slice(CSS.lastIndexOf("/* Le tunnel est désormais posé sur papier."));
+  assert.match(tunnelClair, /\.tunnel__note,\s*\.tunnel__chapeau,\s*\.tunnel__verdict-bilan,\s*\.tunnel__duel\s*\{\s*color:\s*#626f66/i);
+  assert.match(tunnelClair, /\.tunnel__duel strong,\s*\.tunnel__decoration\s*\{\s*color:\s*#315f4e/i);
+  for (const [selecteur, couleur] of [
+    [".tunnel__surtitre", "#315f4e"],
+    [".tunnel__verdict-bilan strong", "#0f1b2e"],
+    [".tunnel__carte--telex .tunnel__carte-chapitre", "#315f4e"],
+    [".tunnel__rejeter", "#8f3329"],
+  ]) {
+    const bloc = CSS.slice(CSS.lastIndexOf(`\n${selecteur} {`));
+    assert.match(bloc.slice(0, bloc.indexOf("}")), new RegExp(`color:\\s*${couleur}`, "i"), selecteur);
+  }
+  assert.doesNotMatch(CSS, /\.tunnel__carte \.tunnel__rejeter\s*\{\s*color:\s*#0f1b2e/);
+  const historique = CSS.slice(CSS.lastIndexOf("\n.tunnel__historique summary {"));
+  assert.match(historique.slice(0, historique.indexOf("}")), /min-height:\s*var\(--cible\)/);
+  for (const encre of ["#315f4e", "#626f66", "#0f1b2e", "#8f3329"]) {
+    const r = contraste(encre, "#fbfaf6");
+    assert.ok(r >= 4.5, `${encre} sur #fbfaf6 : ${r.toFixed(2)}:1 < 4,5`);
   }
 });
 

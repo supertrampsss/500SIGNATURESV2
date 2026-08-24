@@ -62,8 +62,8 @@
             travail : le panneau devient un tiroir qui monte du bas.
         --bp-petit : 40rem (640px) — téléphone : les tableaux larges
             défilent dans leur cadre, l'en-tête se resserre.
-      `@media (max-width: 640px)` a été réécrit `40rem` : même seuil, une
-      seule unité.
+      Les media queries restent en rem : les deux seuils sont ainsi lisibles
+      dans la même unité.
    ========================================================================== */
 
 /* Palette « editorial calm » — reprise du système Zephyr du commanditaire :
@@ -8501,7 +8501,6 @@ body[data-carte="oui"] .legende {
   background: transparent;
   color: inherit;
 }
-.tunnel__carte .tunnel__rejeter { color: #0f1b2e; }
 .tunnel__seconds {
   display: flex;
   flex-wrap: wrap;
@@ -8552,7 +8551,13 @@ body[data-carte="oui"] .legende {
   padding: var(--espace-3) var(--espace-4);
   border: 1px solid rgba(255, 255, 255, 0.22);
 }
-.tunnel__historique summary { cursor: pointer; font-weight: 700; }
+.tunnel__historique summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--cible);
+  cursor: pointer;
+  font-weight: 700;
+}
 .tunnel__historique ol { margin: var(--espace-3) 0 0; padding-inline-start: 1.4rem; }
 .tunnel__historique li + li { margin-top: var(--espace-2); }
 .tunnel__verdict-gestes { display: flex; flex-direction: column; gap: var(--espace-2); }
@@ -8630,7 +8635,7 @@ body[data-carte="oui"] .legende {
 /* Le télex : la carte d'événement — même papier, un liseré doré qui dit
    « ceci n'est pas une mesure, c'est le monde qui répond ». */
 .tunnel__carte--telex { border-top: 4px solid #d9ac4d; }
-.tunnel__carte--telex .tunnel__carte-chapitre { color: #b88420; }
+.tunnel__carte--telex .tunnel__carte-chapitre { color: #315f4e; }
 /* Les deux issues d'un télex de crise : chaque bouton porte son prix, et
    les deux coûtent — c'est le dilemme, il se lit avant de trancher. */
 .tunnel__choix {
@@ -8696,6 +8701,20 @@ body[data-carte="oui"] .legende {
   color: #0f1b2e;
   box-shadow: none;
 }
+/* Le tunnel est désormais posé sur papier. Les teintes de la première scène,
+   sombre, ne peuvent pas s'y transmettre : ce sont des textes, pas du chrome. */
+.tunnel__surtitre { color: #315f4e; }
+.tunnel__note,
+.tunnel__chapeau,
+.tunnel__verdict-bilan,
+.tunnel__duel { color: #626f66; }
+.tunnel__verdict-bilan strong { color: #0f1b2e; }
+.tunnel__duel strong,
+.tunnel__decoration { color: #315f4e; }
+.tunnel__decoration { border-color: #315f4e; }
+.tunnel__soutien-nom { color: #0f1b2e; }
+.tunnel__soutien--rupture .tunnel__soutien-nom,
+.tunnel__soutien--rupture .tunnel__soutien-valeur { color: #8f3329; }
 .tunnel--plein .tunnel__cadre { overflow-y: auto; }
 .tunnel--plein .tunnel__quitter {
   display: inline-flex;
