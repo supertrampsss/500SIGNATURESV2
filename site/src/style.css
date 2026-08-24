@@ -8293,11 +8293,11 @@ body[data-carte="oui"] .legende {
   color: #fff;
   background: var(--crise-vert);
   border-color: var(--crise-vert);
-  box-shadow: inset 4px 0 0 #d9f4dd;
 }
 .tunnel__mode--actif:hover { background: #0e4e3d; border-color: #d9f4dd; }
 .tunnel__commencer {
   width: fit-content;
+  justify-self: center;
   padding: var(--espace-3) var(--espace-5);
   color: #fff;
   background: var(--crise-ocre);
