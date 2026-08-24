@@ -6,6 +6,7 @@ import { CONTRATS } from "./mission.ts";
 import { MESURES, type Soutien } from "./mesures.ts";
 import {
   CHRONO_SECONDES,
+  CRISES,
   DECORATIONS,
   REPORTS_GRATUITS,
   SOUTIENS,
@@ -14,6 +15,7 @@ import {
   courante,
   decorations,
   mesureParId,
+  missionRestante,
   paliersTunnel,
   pile,
   profil,
@@ -136,9 +138,34 @@ function renduTelex(id: string): string {
     </article>`;
 }
 
+function renduCrise(soutien: Soutien): string {
+  const crise = CRISES.find((x) => x.soutien === soutien);
+  if (!crise) return "";
+  return `
+    <article class="tunnel__carte tunnel__carte--telex" aria-live="assertive">
+      <header class="tunnel__carte-tete">
+        <span class="tunnel__carte-chapitre">Crise · décision immédiate</span>
+      </header>
+      <h3 class="tunnel__carte-titre">${echapper(crise.nom)}</h3>
+      <p class="tunnel__carte-detail">${echapper(crise.texte)}</p>
+      <div class="tunnel__choix">${crise.issues
+        .map(
+          (issue) => `<div class="tunnel__issue">
+            <button type="button" class="tunnel__adopter" data-crise="${echapper(issue.cle)}">${echapper(issue.bouton)}</button>
+            <p class="tunnel__prix">${
+              issue.effet !== 0
+                ? `<span class="tunnel__reaction">${echapper(millions(Math.abs(issue.effet) * 1e6))} de plus à trouver</span>`
+                : "<span class=\"tunnel__reaction\">Aucun coût budgétaire immédiat</span>"
+            }${pastilles(issue.soutiens)}</p>
+          </div>`,
+        )
+        .join("")}</div>
+    </article>`;
+}
+
 /** La réglette de séance : le chiffre et l'avancement restent lisibles sans HUD. */
 export function renduBarreEtat(etat: EtatTunnel, missionEuros: number): string {
-  const resteEuros = Math.max(0, missionEuros - comble(etat) * 1e6);
+  const resteEuros = missionRestante(etat, missionEuros);
   const faits = etat.ordre.filter((id) => etat.tampons[id]).length;
   const parActe = Math.max(1, Math.ceil(etat.ordre.length / 3));
   const acte = Math.min(3, Math.floor(faits / parActe) + 1);
@@ -231,7 +258,7 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   return `
     ${renduBarreEtat(etat, missionEuros)}
     <div class="tunnel__scene">
-      ${etat.telexEnCours ? renduTelex(etat.telexEnCours) : `<article class="tunnel__carte" aria-live="polite">
+      ${etat.telexEnCours ? renduTelex(etat.telexEnCours) : etat.criseEnCours ? renduCrise(etat.criseEnCours) : `<article class="tunnel__carte" aria-live="polite">
         ${etat.chrono ? '<span class="tunnel__chrono" aria-hidden="true"></span>' : ""}
         <header class="tunnel__carte-tete">
           <span class="tunnel__carte-chapitre">${echapper(mesure.chapitre)}</span>
@@ -264,13 +291,8 @@ export function renduVerdict(
   collectionner: (gagnees: readonly { id: string }[]) => string[] = () => [],
 ): string {
   const combleM = comble(etat);
-  const resteEuros = Math.max(0, missionEuros - combleM * 1e6);
-  const p = etat.censure
-    ? {
-        nom: "Censuré",
-        phrase: `${etat.censure} a lâché : le gouvernement tombe, le compteur s'arrête à ${millions(combleM * 1e6)}. Annulez le tampon de trop, ou rejouez autrement.`,
-      }
-    : profil(etat);
+  const resteEuros = missionRestante(etat, missionEuros);
+  const p = profil(etat);
   const paliers = paliersTunnel(etat, missionEuros);
   const nFranchis = paliers.filter((x) => x.franchi).length;
   const adoptees = etat.ordre
@@ -327,7 +349,6 @@ export function renduVerdict(
       <div class="tunnel__verdict-boutons">
         <button type="button" class="tunnel__adopter" data-action="defier">Défier quelqu'un</button>
         <button type="button" class="tunnel__rejeter" data-action="copier">Copier le bilan</button>
-        ${etat.censure ? '<button type="button" class="tunnel__rejeter" data-geste="annuler">&#8592; Annuler</button>' : ""}
         <button type="button" class="tunnel__rejeter" data-action="rejouer">Rejouer</button>
       </div>
       <p class="tunnel__note">« Défier » copie un lien : la personne joue la même pile, sous vos

@@ -18,7 +18,8 @@ import {
   poursuivreTelex,
   tamponner,
   trancherTelex,
-  verifierCensure,
+  trancherCrise,
+  verifierCrise,
   verifierTelex,
   profil,
   type EtatTunnel,
@@ -103,14 +104,25 @@ export function restaurer(): EtatTunnel | null {
               soutiens: lu.telex.soutiens ?? {},
             }
           : { vus: [], surcout: 0, soutiens: {} },
+      // Les sauvegardes historiques n'avaient pas encore de crises : elles
+      // reprennent sans coût ni crise déjà consommée.
+      crisesVues: Array.isArray(lu.crisesVues)
+        ? lu.crisesVues.filter((cle): cle is "opinion" | "entreprises" | "territoires" | "marches" =>
+            cle === "opinion" || cle === "entreprises" || cle === "territoires" || cle === "marches",
+          )
+        : [],
+      criseSurcout: Number.isFinite(lu.criseSurcout) ? lu.criseSurcout : 0,
+      criseSoutiens: lu.criseSoutiens ?? {},
       // Une sauvegarde d'avant les reports repart à zéro report.
       reports: Number.isFinite(lu.reports) && lu.reports >= 0 ? lu.reports : 0,
       ...(typeof lu.telexEnCours === "string" && TELEX.some((t) => t.id === lu.telexEnCours)
         ? { telexEnCours: lu.telexEnCours }
         : {}),
+      ...(lu.criseEnCours === "opinion" || lu.criseEnCours === "entreprises" || lu.criseEnCours === "territoires" || lu.criseEnCours === "marches"
+        ? { criseEnCours: lu.criseEnCours }
+        : {}),
       ...(lu.chrono ? { chrono: true } : {}),
       ...(lu.defi && Number.isFinite(lu.defi.comble) ? { defi: { comble: lu.defi.comble } } : {}),
-      ...(typeof lu.censure === "string" ? { censure: lu.censure } : {}),
     };
   } catch {
     return null;
@@ -189,7 +201,7 @@ export function reprendre(
 /** Les événements du monde ne suivent qu'après le retour du tampon persistant. */
 export function transitionApresRetour(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   const apresTelex = verifierTelex(etat, missionEuros);
-  return apresTelex.telexEnCours ? apresTelex : verifierCensure(apresTelex, missionEuros);
+  return apresTelex.telexEnCours ? apresTelex : verifierCrise(apresTelex, missionEuros);
 }
 
 /** Un même cadre remonté deux fois ne laisse jamais son ancien retour vivre. */
@@ -220,7 +232,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     sauver(etat);
     cadre.innerHTML = rendu(etat, options.missionEuros);
     clearTimeout(minuteur);
-    if (etat.chrono && etat.phase === "conseil" && !etat.telexEnCours && courante(etat)) {
+    if (etat.chrono && etat.phase === "conseil" && !etat.telexEnCours && !etat.criseEnCours && courante(etat)) {
       minuteur = setTimeout(() => {
         etat = ajourner(etat);
         peindre();
@@ -234,12 +246,17 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     if (retourEnCours) return;
     const cible = (evenement.target as HTMLElement).closest<HTMLElement>(
-      "[data-geste], [data-action], [data-engagement], [data-telex]",
+      "[data-geste], [data-action], [data-engagement], [data-telex], [data-crise]",
     );
     if (!cible) return;
     const issue = cible.dataset.telex;
     if (issue) {
       etat = trancherTelex(etat, issue, options.missionEuros);
+      return peindre();
+    }
+    const issueCrise = cible.dataset.crise;
+    if (issueCrise === "conceder" || issueCrise === "tenir") {
+      etat = trancherCrise(etat, issueCrise, options.missionEuros);
       return peindre();
     }
     const engagement = cible.dataset.engagement;
@@ -250,7 +267,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     const geste = cible.dataset.geste;
     if (geste === "adopter" || geste === "rejeter") {
       // Le tampon est la seule chose qui existe pendant le retour : le télex
-      // et la censure attendent que ce geste, déjà sauvegardé, ait été lu.
+      // et les crises attendent que ce geste, déjà sauvegardé, ait été lu.
       const avant = etat;
       const tampon = tamponner(etat, geste === "adopter" ? "adopte" : "rejete");
       const impact = impactDecision(avant, tampon, options.missionEuros);

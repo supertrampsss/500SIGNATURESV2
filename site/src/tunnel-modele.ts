@@ -36,8 +36,14 @@ export type EtatTunnel = {
   /** Les tampons dans l'ordre où ils ont été posés, avec les exclusions que
    *  chacun a entraînées : c'est ce que « Annuler » dépile. */
   historique: { id: string; exclues: string[] }[];
-  /** Le soutien qui a fait tomber le gouvernement, s'il est tombé. */
-  censure?: string;
+  /** La crise qui attend une décision. Une crise ne quitte jamais le conseil. */
+  criseEnCours?: Soutien;
+  /** Chaque soutien ne peut provoquer qu'une crise par partie. */
+  crisesVues: Soutien[];
+  /** Le prix cumulé des crises, en M€ : négatif, donc davantage à trouver. */
+  criseSurcout: number;
+  /** Les réactions cumulées des décisions de crise. */
+  criseSoutiens: Partial<Record<Soutien, number>>;
   /** Les télex : les événements déjà tombés (un télex ne tombe qu'une fois),
    *  le surcoût qu'ils ont ajouté à la mission (négatif), et ce qu'ils ont
    *  fait aux soutiens. Un télex est le destin : « Annuler » n'y revient pas. */
@@ -119,12 +125,67 @@ type Telex = {
   declenche: (jauges: Record<Soutien, number>, combleM: number, poses: number) => boolean;
 };
 
+export type IssueCrise = {
+  cle: "conceder" | "tenir";
+  bouton: string;
+  effet: number;
+  soutiens: Partial<Record<Soutien, number>>;
+};
+
+export type Crise = {
+  soutien: Soutien;
+  nom: string;
+  texte: string;
+  issues: [IssueCrise, IssueCrise];
+};
+
+/** Quand une jauge tombe à 10, le gouvernement doit arbitrer, pas disparaître.
+ * Les coûts sont négatifs comme ceux des télex : ils augmentent le reste à trouver. */
+export const CRISES: Crise[] = [
+  {
+    soutien: "opinion",
+    nom: "Mouvement social",
+    texte: "La rue se tend. Un geste social desserre l'étau, tenir préserve une partie de la trajectoire mais braque les élus locaux.",
+    issues: [
+      { cle: "conceder", bouton: "Concéder : un geste social", effet: -2000, soutiens: { opinion: 8, entreprises: -2 } },
+      { cle: "tenir", bouton: "Tenir : garder le cap", effet: -500, soutiens: { opinion: 3, territoires: -3 } },
+    ],
+  },
+  {
+    soutien: "entreprises",
+    nom: "Fronde patronale",
+    texte: "Le patronat se mobilise. Céder coûte au budget ; tenir expose la crédibilité financière.",
+    issues: [
+      { cle: "conceder", bouton: "Concéder : desserrer les charges", effet: -1500, soutiens: { entreprises: 8, opinion: -2 } },
+      { cle: "tenir", bouton: "Tenir : préserver le cap", effet: 0, soutiens: { entreprises: 3, marches: -3 } },
+    ],
+  },
+  {
+    soutien: "territoires",
+    nom: "Fronde territoriale",
+    texte: "Les élus locaux ferment les rangs. Rouvrir les crédits coûte ; tenir pèse sur les marchés.",
+    issues: [
+      { cle: "conceder", bouton: "Concéder : rouvrir les crédits", effet: -1200, soutiens: { territoires: 8, marches: -2 } },
+      { cle: "tenir", bouton: "Tenir : maintenir l'effort", effet: -200, soutiens: { territoires: 3, opinion: -3 } },
+    ],
+  },
+  {
+    soutien: "marches",
+    nom: "Choc de financement",
+    texte: "Le financement se tend. Rassurer coûte immédiatement ; tenir reporte le prix sur l'économie réelle.",
+    issues: [
+      { cle: "conceder", bouton: "Concéder : sécuriser le financement", effet: -2500, soutiens: { marches: 8, opinion: -3 } },
+      { cle: "tenir", bouton: "Tenir : absorber le choc", effet: -800, soutiens: { marches: 3, entreprises: -3 } },
+    ],
+  },
+];
+
 /**
  * Les télex : le monde répond aux tampons, entre deux mesures.
  *
  * Chacun tombe UNE fois par partie, au premier tampon qui remplit sa
  * condition. Les mauvais tombent quand une jauge vacille (sous le seuil
- * d'alerte, avant la censure) ; les bons, quand un palier saute. Leurs effets
+ * d'alerte, avant le seuil critique) ; les bons, quand un palier saute. Leurs effets
  * sont des règles du jeu, comme les réactions des mesures — et comme elles,
  * ils ne s'annulent pas : un télex est le destin, pas un tampon.
  */
@@ -236,6 +297,9 @@ export function etatInitial(defi?: DefiTunnel | null): EtatTunnel {
       tampons: {},
       historique: [],
       telex: { vus: [], surcout: 0, soutiens: {} },
+      crisesVues: [],
+      criseSurcout: 0,
+      criseSoutiens: {},
       reports: 0,
     };
   }
@@ -252,6 +316,9 @@ export function etatInitial(defi?: DefiTunnel | null): EtatTunnel {
     tampons: {},
     historique: [],
     telex: { vus: [], surcout: 0, soutiens: {} },
+    crisesVues: [],
+    criseSurcout: 0,
+    criseSoutiens: {},
     reports: 0,
     defi: { comble: defi.comble },
   };
@@ -277,6 +344,9 @@ export function commencer(etat: EtatTunnel): EtatTunnel {
     tampons: {},
     historique: [],
     telex: { vus: [], surcout: 0, soutiens: {} },
+    crisesVues: [],
+    criseSurcout: 0,
+    criseSoutiens: {},
     reports: 0,
   };
 }
@@ -312,8 +382,7 @@ export function tamponner(etat: EtatTunnel, verdict: "adopte" | "rejete"): EtatT
  *
  * Le retour existe parce qu'un pouce glisse ; il dépile, il ne navigue pas :
  * revenir trois mesures en arrière se fait en annulant trois fois, et les
- * exclusions posées par le tampon annulé reviennent avec lui. Une censure
- * s'annule aussi — c'est le même geste de trop.
+ * exclusions posées par le tampon annulé reviennent avec lui.
  */
 export function annuler(etat: EtatTunnel): EtatTunnel {
   const dernier = etat.historique[etat.historique.length - 1];
@@ -321,23 +390,52 @@ export function annuler(etat: EtatTunnel): EtatTunnel {
   const tampons = { ...etat.tampons };
   delete tampons[dernier.id];
   for (const id of dernier.exclues) delete tampons[id];
-  const { censure: _censure, ...sans } = etat;
-  return { ...sans, tampons, historique: etat.historique.slice(0, -1), phase: "conseil" };
+  return { ...etat, tampons, historique: etat.historique.slice(0, -1), phase: "conseil" };
 }
 
-/** La censure : si un soutien est au tapis, la partie s'arrête là. À appeler
- *  après chaque tampon — pur, comme le reste. */
-export function verifierCensure(etat: EtatTunnel, missionEuros: number): EtatTunnel {
-  if (etat.phase !== "conseil") return etat;
-  const tombe = soutiens(etat, missionEuros).find((s) => s.valeur <= SEUIL_CENSURE);
-  return tombe ? { ...etat, phase: "verdict", censure: tombe.nom } : etat;
+/** Ouvre la première crise non encore vue, après le télex éventuel. */
+export function verifierCrise(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  if (etat.phase !== "conseil" || etat.criseEnCours) return etat;
+  const tombe = soutiens(etat, missionEuros).find(
+    (s) => s.valeur <= SEUIL_CENSURE && !etat.crisesVues.includes(s.cle),
+  );
+  return tombe ? { ...etat, criseEnCours: tombe.cle } : etat;
+}
+
+/** Applique l'arbitrage, remet le soutien déclencheur à au moins 15 et
+ * poursuit aussitôt par une autre crise si l'issue a fait tomber un soutien inédit. */
+export function trancherCrise(
+  etat: EtatTunnel,
+  cle: "conceder" | "tenir",
+  missionEuros: number,
+): EtatTunnel {
+  const crise = CRISES.find((c) => c.soutien === etat.criseEnCours);
+  const issue = crise?.issues.find((i) => i.cle === cle);
+  if (!crise || !issue) return etat;
+  const valeurs = Object.fromEntries(soutiens(etat, missionEuros).map((s) => [s.cle, s.valeur])) as Record<Soutien, number>;
+  const deltas = { ...issue.soutiens };
+  deltas[crise.soutien] = Math.max(deltas[crise.soutien] ?? 0, 15 - valeurs[crise.soutien]);
+  const cumules = { ...etat.criseSoutiens };
+  for (const [soutien, delta] of Object.entries(deltas)) {
+    cumules[soutien as Soutien] = (cumules[soutien as Soutien] ?? 0) + delta;
+  }
+  const { criseEnCours: _criseEnCours, ...sansCrise } = etat;
+  return verifierCrise(
+    {
+      ...sansCrise,
+      crisesVues: [...etat.crisesVues, crise.soutien],
+      criseSurcout: etat.criseSurcout + issue.effet,
+      criseSoutiens: cumules,
+    },
+    missionEuros,
+  );
 }
 
 /** Le premier télex dont la condition vient d'être remplie tombe — un seul
  *  par tampon, une seule fois par partie. Ses effets s'appliquent tout de
  *  suite ; l'écran, lui, attend « Poursuivre ». */
 export function verifierTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
-  if (etat.phase !== "conseil" || etat.telexEnCours) return etat;
+  if (etat.phase !== "conseil" || etat.telexEnCours || etat.criseEnCours) return etat;
   const jauges = Object.fromEntries(
     soutiens(etat, missionEuros).map((s) => [s.cle, s.valeur]),
   ) as Record<Soutien, number>;
@@ -356,10 +454,10 @@ export function verifierTelex(etat: EtatTunnel, missionEuros: number): EtatTunne
   };
 }
 
-/** Refermer un télex sans choix — et regarder si ses effets censurent. */
+/** Refermer un télex sans choix — et regarder si ses effets ouvrent une crise. */
 export function poursuivreTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   const { telexEnCours: _lu, ...sans } = etat;
-  return verifierCensure(sans, missionEuros);
+  return verifierCrise(sans, missionEuros);
 }
 
 /**
@@ -391,7 +489,7 @@ export function ajourner(etat: EtatTunnel): EtatTunnel {
   return { ...etat, ordre, reports: etat.reports + 1 };
 }
 
-/** Le solde des tampons ADOPTÉS plus le surcoût des télex, en M€ — les
+/** Le solde des tampons ADOPTÉS plus les surcoûts des télex et crises, en M€ — les
  *  mesures qui coûtent et le destin retranchent pareil. */
 export function trouve(etat: EtatTunnel): number {
   return (
@@ -399,7 +497,7 @@ export function trouve(etat: EtatTunnel): number {
       (somme, id) =>
         etat.tampons[id] === "adopte" ? somme + (PAR_ID.get(id)?.effet ?? 0) : somme,
       0,
-    ) + etat.telex.surcout
+    ) + etat.telex.surcout + etat.criseSurcout
   );
 }
 
@@ -407,6 +505,13 @@ export function trouve(etat: EtatTunnel): number {
  *  dette de mission, il ramène le compteur à son départ. */
 export function comble(etat: EtatTunnel): number {
   return Math.max(0, trouve(etat));
+}
+
+/** Ce qu'il reste réellement à financer, en euros. Contrairement au comblé
+ * borné à zéro, il peut dépasser la mission lorsqu'un télex ou une crise
+ * renchérit le plan. */
+export function missionRestante(etat: EtatTunnel, missionEuros: number): number {
+  return Math.max(0, missionEuros - trouve(etat) * 1e6);
 }
 
 /** Les jauges, après les tampons. Bornées loin de 0 et de 100 : une jauge à
@@ -418,7 +523,7 @@ export function soutiens(
   const missionM = missionEuros / 1e6;
   const c = comble(etat);
   return SOUTIENS.map(({ cle, nom, base }) => {
-    let v = base + (etat.telex.soutiens[cle] ?? 0);
+    let v = base + (etat.telex.soutiens[cle] ?? 0) + (etat.criseSoutiens[cle] ?? 0);
     for (const id of etat.ordre) {
       const tampon = etat.tampons[id];
       if (tampon === "adopte") v += PAR_ID.get(id)?.reactions[cle] ?? 0;
@@ -544,7 +649,7 @@ export function decoderDefi(texte: string | null): DefiTunnel | null {
 }
 export const DECORATIONS: { id: string; nom: string; detail: string }[] = [
   { id: "equilibre", nom: "L'équilibre", detail: "Plus un euro à trouver." },
-  { id: "sans-censure", nom: "Jamais censuré", detail: "Finir la pile, les quatre soutiens debout." },
+  { id: "sans-censure", nom: "Le conseil jusqu'au bout", detail: "Finir la pile après avoir affronté les crises." },
   { id: "parole-x4", nom: "Parole tenue ×4", detail: "Jouer sous les quatre engagements à la fois." },
   { id: "zero-impot", nom: "Zéro impôt levé", detail: "Aucune recette nouvelle adoptée." },
   { id: "funambule", nom: "Le funambule", detail: "Finir avec un soutien à 15 % ou moins, sans tomber." },
@@ -558,15 +663,13 @@ export function decorations(etat: EtatTunnel, missionEuros: number): typeof DECO
   if (etat.phase !== "verdict") return [];
   const jauges = soutiens(etat, missionEuros);
   const combleM = comble(etat);
-  const reste = Math.max(0, missionEuros - combleM * 1e6);
+  const reste = missionRestante(etat, missionEuros);
   const paliers = paliersTunnel(etat, missionEuros).filter((x) => x.franchi).length;
-  const finie = !etat.censure;
   const gagnees = new Set<string>();
   if (reste === 0) gagnees.add("equilibre");
-  if (finie) gagnees.add("sans-censure");
-  if (finie && etat.engagements.length === CONTRATS.length) gagnees.add("parole-x4");
+  gagnees.add("sans-censure");
+  if (etat.engagements.length === CONTRATS.length) gagnees.add("parole-x4");
   if (
-    finie &&
     combleM > 0 &&
     !etat.ordre.some(
       (id) => etat.tampons[id] === "adopte" && PAR_ID.get(id)?.bloqueePar?.includes("sans-impot"),
@@ -574,9 +677,9 @@ export function decorations(etat: EtatTunnel, missionEuros: number): typeof DECO
   ) {
     gagnees.add("zero-impot");
   }
-  if (finie && jauges.some((j) => j.valeur <= 15)) gagnees.add("funambule");
-  if (finie && etat.defi && combleM > etat.defi.comble) gagnees.add("duel-gagne");
-  if (finie && paliers >= 3 && jauges.every((j) => j.valeur >= 40)) gagnees.add("grand-chelem");
-  if (finie && etat.ordre.length === MESURES.length) gagnees.add("integrale");
+  if (jauges.some((j) => j.valeur <= 15)) gagnees.add("funambule");
+  if (etat.defi && combleM > etat.defi.comble) gagnees.add("duel-gagne");
+  if (paliers >= 3 && jauges.every((j) => j.valeur >= 40)) gagnees.add("grand-chelem");
+  if (etat.ordre.length === MESURES.length) gagnees.add("integrale");
   return DECORATIONS.filter((d) => gagnees.has(d.id));
 }

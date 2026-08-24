@@ -34,6 +34,7 @@ import {
   commencer,
   courante,
   etatInitial,
+  missionRestante,
   paliersTunnel,
   pile,
   profil,
@@ -44,7 +45,8 @@ import {
   soutiens,
   tamponner,
   trouve,
-  verifierCensure,
+  verifierCrise,
+  trancherCrise,
   poursuivreTelex,
   trancherTelex,
   transitionApresRetour,
@@ -422,13 +424,24 @@ test("une sauvegarde sans version devient une intégrale sans modifier son ordre
   };
   try {
     const historique = commencer({ ...etatInitial(), mode: "integral" });
-    const { version: _version, mode: _mode, graine: _graine, ...avantV2 } = historique;
+    const {
+      version: _version,
+      mode: _mode,
+      graine: _graine,
+      crisesVues: _crisesVues,
+      criseSurcout: _criseSurcout,
+      criseSoutiens: _criseSoutiens,
+      ...avantV2
+    } = historique;
     memoire.set("tunnel-partie", JSON.stringify(avantV2));
     const migre = restaurer();
     assert.ok(migre);
     assert.equal(migre!.version, 2);
     assert.equal(migre!.mode, "integral");
     assert.deepEqual(migre!.ordre, historique.ordre);
+    assert.deepEqual(migre!.crisesVues, []);
+    assert.equal(migre!.criseSurcout, 0);
+    assert.deepEqual(migre!.criseSoutiens, {});
   } finally {
     delete (globalThis as { sessionStorage?: unknown }).sessionStorage;
   }
@@ -538,27 +551,120 @@ test("adopter une mesure écarte ses incompatibles — et Annuler ramène tout",
   assert.equal(annuler(conseil()).historique.length, 0);
 });
 
-test("un soutien au tapis censure le gouvernement, et la censure s'annule", () => {
-  // Des coups durs à l'opinion, adoptions ET rejets mêlés : la flat tax
-  // sèche (−20), la TVA (−8, et les rejets de Zucman puis du panier en
-  // route), 65 ans (−12) — à 12 %, elle tient encore. Puis rejeter le
-  // retour à 62 ans (−3) et désindexer (−9) l'achèvent sous le seuil (10) :
-  // depuis que le rejet a un prix, le mépris compte autant que la coupe.
-  let etat = conseil();
-  etat = verifierCensure(adopterId(etat, "flat-tax-a-20-des-le-premier"), MISSION);
-  etat = verifierCensure(adopterId(etat, "porter-le-taux-normal-de-tva-a"), MISSION);
-  etat = verifierCensure(adopterId(etat, "repousser-l-age-legal-a-65-ans"), MISSION);
-  assert.equal(etat.phase, "conseil", "à 12 %, l'opinion tient encore");
-  etat = verifierCensure(adopterId(etat, "desindexer-les-pensions-d-un-point"), MISSION);
-  assert.equal(etat.phase, "verdict");
-  assert.equal(etat.censure, "Opinion");
-  const html = renduVerdict(etat, MISSION);
-  assert.match(html, /Censuré/);
-  assert.match(html, /le gouvernement tombe/);
-  // Le geste de trop s'annule : la partie reprend au conseil.
-  const reprise = annuler(etat);
-  assert.equal(reprise.phase, "conseil");
-  assert.equal(reprise.censure, undefined);
+function etatAvecSoutienA10(cle: "opinion" | "entreprises" | "territoires" | "marches"): EtatTunnel {
+  const bases = { opinion: 62, entreprises: 55, territoires: 58, marches: 41 };
+  return {
+    ...conseil(),
+    criseSoutiens: { [cle]: 10 - bases[cle] },
+    crisesVues: [],
+    criseSurcout: 0,
+  };
+}
+
+test("un soutien au tapis ouvre une crise et la partie continue après l'issue", () => {
+  const enCrise = verifierCrise(etatAvecSoutienA10("opinion"), MISSION);
+  assert.equal(enCrise.phase, "conseil");
+  assert.equal(enCrise.criseEnCours, "opinion");
+  const repris = trancherCrise(enCrise, "conceder", MISSION);
+  assert.equal(repris.phase, "conseil");
+  assert.equal(repris.criseEnCours, undefined);
+  assert.ok(soutiens(repris, MISSION).find((s) => s.cle === "opinion")!.valeur >= 15);
+});
+
+test("les huit issues de crise appliquent leurs coûts, réactions et le plancher de 15", () => {
+  const issues: {
+    soutien: "opinion" | "entreprises" | "territoires" | "marches";
+    choix: "conceder" | "tenir";
+    cout: number;
+    reactions: Record<string, number>;
+  }[] = [
+    { soutien: "opinion", choix: "conceder", cout: -2000, reactions: { opinion: 8, entreprises: -2 } },
+    { soutien: "opinion", choix: "tenir", cout: -500, reactions: { opinion: 3, territoires: -3 } },
+    { soutien: "entreprises", choix: "conceder", cout: -1500, reactions: { entreprises: 8, opinion: -2 } },
+    { soutien: "entreprises", choix: "tenir", cout: 0, reactions: { entreprises: 3, marches: -3 } },
+    { soutien: "territoires", choix: "conceder", cout: -1200, reactions: { territoires: 8, marches: -2 } },
+    { soutien: "territoires", choix: "tenir", cout: -200, reactions: { territoires: 3, opinion: -3 } },
+    { soutien: "marches", choix: "conceder", cout: -2500, reactions: { marches: 8, opinion: -3 } },
+    { soutien: "marches", choix: "tenir", cout: -800, reactions: { marches: 3, entreprises: -3 } },
+  ];
+  for (const issue of issues) {
+    const ouvert = verifierCrise(etatAvecSoutienA10(issue.soutien), MISSION);
+    const avant = Object.fromEntries(soutiens(ouvert, MISSION).map((s) => [s.cle, s.valeur]));
+    const apres = trancherCrise(ouvert, issue.choix, MISSION);
+    assert.equal(apres.criseSurcout, issue.cout, `${issue.soutien}/${issue.choix} coûte`);
+    assert.equal(trouve(apres), issue.cout);
+    assert.equal(missionRestante(apres, MISSION), MISSION - issue.cout * 1e6, "le coût augmente bien le reste à trouver");
+    for (const [cle, delta] of Object.entries(issue.reactions)) {
+      const valeur = soutiens(apres, MISSION).find((s) => s.cle === cle)!.valeur;
+      assert.equal(valeur, Math.max(15, avant[cle]! + delta), `${issue.soutien}/${issue.choix}: ${cle}`);
+    }
+    assert.ok(soutiens(apres, MISSION).find((s) => s.cle === issue.soutien)!.valeur >= 15);
+  }
+});
+
+test("une crise vue ne revient pas, mais une issue peut ouvrir celle d'un autre soutien", () => {
+  const dejaVue = {
+    ...etatAvecSoutienA10("opinion"),
+    crisesVues: ["opinion" as const],
+  };
+  assert.equal(verifierCrise(dejaVue, MISSION).criseEnCours, undefined);
+
+  const ouverte = verifierCrise({
+    ...etatAvecSoutienA10("entreprises"),
+    criseSoutiens: { entreprises: -45, marches: -28 },
+  }, MISSION);
+  const suivante = trancherCrise(ouverte, "tenir", MISSION);
+  assert.equal(suivante.criseEnCours, "marches");
+  assert.deepEqual(suivante.crisesVues, ["entreprises"]);
+});
+
+test("le rendu de crise annonce une décision assertive et deux choix", () => {
+  const ouvert = verifierCrise(etatAvecSoutienA10("opinion"), MISSION);
+  const html = renduConseil(ouvert, MISSION);
+  assert.match(html, /aria-live="assertive"/);
+  assert.match(html, /Mouvement social/);
+  assert.match(html, /data-crise="conceder"/);
+  assert.match(html, /data-crise="tenir"/);
+  assert.match(html, /2 000 M€ de plus à trouver/);
+  assert.doesNotMatch(html, /Censuré|Annuler/);
+});
+
+test("le contrôleur route une décision de crise vers son arbitrage", () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage"].filter((cle) => cle in global));
+  const stockage = new Map<string, string>();
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  const cadre = {
+    innerHTML: "",
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+  } as unknown as HTMLElement;
+  const bouton = {
+    dataset: { crise: "conceder" },
+    closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton,
+  } as unknown as HTMLElement;
+  try {
+    global.window = { addEventListener: () => {}, removeEventListener: () => {} };
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = {
+      getItem: (cle: string) => stockage.get(cle) ?? null,
+      setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur),
+      removeItem: (cle: string) => void stockage.delete(cle),
+    };
+    stockage.set("tunnel-partie", JSON.stringify(verifierCrise(etatAvecSoutienA10("opinion"), MISSION)));
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    for (const clic of clics) clic({ target: bouton } as MouseEvent);
+    const apres = JSON.parse(stockage.get("tunnel-partie")!) as EtatTunnel;
+    assert.deepEqual(apres.crisesVues, ["opinion"]);
+    assert.equal(apres.criseEnCours, undefined);
+    demonter();
+  } finally {
+    for (const cle of ["window", "location", "sessionStorage"]) {
+      if (presents.has(cle)) global[cle] = anciens.get(cle);
+      else delete global[cle];
+    }
+  }
 });
 
 test("le journal nomme les écartées « incompatible », jamais « rejetée »", () => {
@@ -624,16 +730,11 @@ test("un télex attend la fin du retour : le tampon seul est l'état persistant"
   assert.equal(transitionApresRetour(tampon, MISSION).telexEnCours, "taux");
 });
 
-test("la censure attend elle aussi la fin du retour", () => {
-  let tampon = conseil();
-  tampon = adopterId(tampon, "flat-tax-a-20-des-le-premier");
-  tampon = adopterId(tampon, "porter-le-taux-normal-de-tva-a");
-  tampon = adopterId(tampon, "repousser-l-age-legal-a-65-ans");
-  tampon = adopterId(tampon, "desindexer-les-pensions-d-un-point");
-  const sansTelex = { ...tampon, telex: { ...tampon.telex, vus: TELEX.map((t) => t.id) } };
+test("une crise attend elle aussi la fin du retour, après le télex", () => {
+  const tampon = { ...etatAvecSoutienA10("opinion"), telex: { vus: TELEX.map((t) => t.id), surcout: 0, soutiens: {} } };
 
-  assert.equal(sansTelex.phase, "conseil");
-  assert.equal(transitionApresRetour(sansTelex, MISSION).censure, "Opinion");
+  assert.equal(tampon.phase, "conseil");
+  assert.equal(transitionApresRetour(tampon, MISSION).criseEnCours, "opinion");
 });
 
 test("les bons télex existent : franchir 50 000 M€ fait respirer les marchés", () => {
@@ -813,11 +914,11 @@ test("l'immobilisme se paie : au-delà des reports gratuits, chaque ajournement 
   assert.equal(annuler(etat).reports, etat.reports);
 });
 
-test("tout rejeter en choisissant toujours la pire issue reste jouable : trois dilemmes, pas de censure", () => {
+test("tout rejeter en choisissant toujours la pire issue reste jouable, sans boucle et avec au plus quatre crises", () => {
   // La partie paresseuse d'avant la passe dilemmes ne rencontrait rien.
   // Elle traverse maintenant la revue de notation, les taux et la grève,
   // finit meurtrie, mais le jeu ne devient jamais imperdable par ennui ni
-  // perdu d'office : les jauges tiennent au-dessus de la censure.
+  // perdu d'office : les crises obligent à arbitrer, sans jamais terminer la partie.
   let etat = conseil();
   let garde = 0;
   while (etat.phase === "conseil" && garde++ < 400) {
@@ -826,14 +927,17 @@ test("tout rejeter en choisissant toujours la pire issue reste jouable : trois d
       etat = telex.issues ? trancherTelex(etat, "b", MISSION) : poursuivreTelex(etat, MISSION);
       continue;
     }
+    if (etat.criseEnCours) {
+      etat = trancherCrise(etat, "tenir", MISSION);
+      continue;
+    }
     if (!courante(etat)) break;
-    etat = verifierTelex(tamponner(etat, "rejete"), MISSION);
-    if (!etat.telexEnCours) etat = verifierCensure(etat, MISSION);
+    etat = transitionApresRetour(tamponner(etat, "rejete"), MISSION);
   }
   assert.equal(etat.phase, "verdict");
-  assert.equal(etat.censure, undefined);
+  assert.ok(etat.crisesVues.length <= 4);
   assert.deepEqual(etat.telex.vus, ["notation", "taux", "greve"]);
-  assert.ok(soutiens(etat, MISSION).every((s) => s.valeur > 10));
+  assert.ok(soutiens(etat, MISSION).every((s) => s.valeur >= 15 || etat.crisesVues.includes(s.cle)));
   // La revue de notation est bien le télex de mi-parcours : beaucoup de
   // tampons, peu de milliards — elle ne tombe jamais dans une partie qui
   // trouve tôt.
