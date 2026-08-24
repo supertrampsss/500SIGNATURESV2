@@ -252,13 +252,14 @@ export function renduPreuve(mesure: (typeof MESURES)[number]): string {
 
 export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   const mesure = courante(etat);
-  if (!mesure) return "";
-  const dilemme = etat.mode === "express" ? dilemmeDe(mesure.id) : undefined;
+  const dilemme = mesure && etat.mode === "express" ? dilemmeDe(mesure.id) : undefined;
   const faits = etat.ordre.filter((id) => etat.tampons[id]).length;
-  return `
-    ${renduBarreEtat(etat, missionEuros)}
-    <div class="tunnel__scene">
-      ${etat.telexEnCours ? renduTelex(etat.telexEnCours) : etat.criseEnCours ? renduCrise(etat.criseEnCours) : `<article class="tunnel__carte" aria-live="polite">
+  const evenement = etat.telexEnCours
+    ? renduTelex(etat.telexEnCours)
+    : etat.criseEnCours
+      ? renduCrise(etat.criseEnCours)
+      : mesure
+        ? `<article class="tunnel__carte" aria-live="polite">
         ${etat.chrono ? '<span class="tunnel__chrono" aria-hidden="true"></span>' : ""}
         <header class="tunnel__carte-tete">
           <span class="tunnel__carte-chapitre">${echapper(mesure.chapitre)}</span>
@@ -281,7 +282,12 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>
           ${etat.historique.length ? '<button type="button" class="tunnel__ajourner" data-geste="annuler">&#8592; Annuler le dernier tampon</button>' : ""}
         </div>
-      </article>`}
+      </article>`
+        : "";
+  return `
+    ${renduBarreEtat(etat, missionEuros)}
+    <div class="tunnel__scene">
+      ${evenement}
     </div>`;
 }
 

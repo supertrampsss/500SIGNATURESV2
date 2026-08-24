@@ -16,11 +16,10 @@ import {
   mesureParId,
   paliersTunnel,
   poursuivreTelex,
+  resoudreFinConseil,
   tamponner,
   trancherTelex,
   trancherCrise,
-  verifierCrise,
-  verifierTelex,
   profil,
   type EtatTunnel,
 } from "./tunnel-modele.ts";
@@ -75,20 +74,27 @@ export function restaurer(): EtatTunnel | null {
     if (lu.phase !== "mission" && lu.phase !== "conseil" && lu.phase !== "verdict") return null;
     if (!Array.isArray(lu.ordre) || !lu.ordre.every((id) => mesureParId(id))) return null;
     if (lu.phase !== "mission" && lu.ordre.length === 0) return null;
+    const tampons = Object.fromEntries(
+      Object.entries(lu.tampons ?? {}).filter(
+        ([id, t]) => mesureParId(id) && (t === "adopte" || t === "rejete" || t === "exclue"),
+      ),
+    );
+    const censureHistorique = (lu as unknown as { censure?: unknown }).censure;
+    const criseHistorique: EtatTunnel["crisesVues"][number] | undefined =
+      lu.phase === "verdict" && typeof censureHistorique === "string"
+        ? ({ Opinion: "opinion", Entreprises: "entreprises", Territoires: "territoires", Marchés: "marches" } as const)[censureHistorique]
+        : undefined;
+    const finHistorique = criseHistorique !== undefined && lu.ordre.every((id) => tampons[id] !== undefined);
     return {
       // Les sauvegardes historiques n'avaient ni version, ni mode : leur
       // ordre est celui de l'intégrale et doit rester tel quel.
       version: 2,
       mode: lu.version === 2 && (lu.mode === "express" || lu.mode === "integral") ? lu.mode : "integral",
       graine: estGraineValide(lu.graine) ? lu.graine : Math.floor(Math.random() * 0x1_0000_0000),
-      phase: lu.phase,
+      phase: criseHistorique ? "conseil" : lu.phase,
       engagements: (lu.engagements ?? []).filter((cle) => CONTRATS.some((c) => c.cle === cle)),
       ordre: lu.ordre,
-      tampons: Object.fromEntries(
-        Object.entries(lu.tampons ?? {}).filter(
-          ([id, t]) => mesureParId(id) && (t === "adopte" || t === "rejete" || t === "exclue"),
-        ),
-      ),
+      tampons,
       historique: Array.isArray(lu.historique)
         ? lu.historique.filter(
             (h) => h && mesureParId(h.id) && Array.isArray(h.exclues) && h.exclues.every((i) => mesureParId(i)),
@@ -118,9 +124,12 @@ export function restaurer(): EtatTunnel | null {
       ...(typeof lu.telexEnCours === "string" && TELEX.some((t) => t.id === lu.telexEnCours)
         ? { telexEnCours: lu.telexEnCours }
         : {}),
-      ...(lu.criseEnCours === "opinion" || lu.criseEnCours === "entreprises" || lu.criseEnCours === "territoires" || lu.criseEnCours === "marches"
-        ? { criseEnCours: lu.criseEnCours }
+      ...(criseHistorique
+        ? { criseEnCours: criseHistorique }
+        : lu.criseEnCours === "opinion" || lu.criseEnCours === "entreprises" || lu.criseEnCours === "territoires" || lu.criseEnCours === "marches"
+          ? { criseEnCours: lu.criseEnCours }
         : {}),
+      ...(finHistorique || lu.finDifferee === true ? { finDifferee: true } : {}),
       ...(lu.chrono ? { chrono: true } : {}),
       ...(lu.defi && Number.isFinite(lu.defi.comble) ? { defi: { comble: lu.defi.comble } } : {}),
     };
@@ -200,8 +209,7 @@ export function reprendre(
 
 /** Les événements du monde ne suivent qu'après le retour du tampon persistant. */
 export function transitionApresRetour(etat: EtatTunnel, missionEuros: number): EtatTunnel {
-  const apresTelex = verifierTelex(etat, missionEuros);
-  return apresTelex.telexEnCours ? apresTelex : verifierCrise(apresTelex, missionEuros);
+  return resoudreFinConseil(etat, missionEuros);
 }
 
 /** Un même cadre remonté deux fois ne laisse jamais son ancien retour vivre. */
@@ -213,7 +221,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   // une partie neuve. Un défi reçu pendant une partie en cours ne l'écrase
   // pas : la partie du joueur vaut plus qu'un lien.
   const recu = decoderDefi(new URLSearchParams(location.search).get("defi"));
-  let etat = reprendre(restaurer(), recu);
+  let etat = transitionApresRetour(reprendre(restaurer(), recu), options.missionEuros);
   // Le minuteur du conseil de crise : réarmé à chaque peinture, désarmé
   // avant — une seule échéance vit à la fois. À l'expiration, la mesure est
   // ajournée d'office : le conseil n'attend pas.

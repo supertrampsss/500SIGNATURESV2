@@ -286,10 +286,11 @@ test("le profil nomme la forme du plan, jamais une note", () => {
   assert.equal(profil(equilibriste).nom, "L'équilibriste");
 });
 
-test("la pile épuisée bascule d'elle-même sur le verdict", () => {
+test("la pile épuisée attend la résolution de fin de séance", () => {
   let etat = conseil();
   while (courante(etat)) etat = tamponner(etat, "rejete");
-  assert.equal(etat.phase, "verdict");
+  assert.equal(etat.phase, "conseil");
+  assert.equal(etat.finDifferee, true);
   assert.equal(Object.keys(etat.tampons).length, 96);
 });
 
@@ -447,6 +448,50 @@ test("une sauvegarde sans version devient une intégrale sans modifier son ordre
   }
 });
 
+test("une sauvegarde historique censurée devient une crise jouable, sans état verdict inerte", () => {
+  const memoire = new Map<string, string>();
+  (globalThis as { sessionStorage?: unknown }).sessionStorage = {
+    getItem: (cle: string) => memoire.get(cle) ?? null,
+    setItem: (cle: string, valeur: string) => void memoire.set(cle, valeur),
+    removeItem: (cle: string) => void memoire.delete(cle),
+  };
+  try {
+    const ancien = {
+      ...dernierDossier(),
+      phase: "verdict" as const,
+      tampons: { "doubler-la-taxe-sur-les-rachats-d": "rejete" as const },
+      historique: [{ id: "doubler-la-taxe-sur-les-rachats-d", exclues: [] }],
+      censure: "Opinion",
+    };
+    memoire.set("tunnel-partie", JSON.stringify(ancien));
+    const migre = restaurer();
+    assert.ok(migre);
+    assert.equal(migre!.phase, "conseil");
+    assert.equal(migre!.criseEnCours, "opinion");
+    assert.equal(migre!.finDifferee, true);
+    assert.equal(trancherCrise(migre!, "tenir", MISSION).phase, "verdict");
+
+    const enCours = {
+      ...ancien,
+      ordre: ["doubler-la-taxe-sur-les-rachats-d", "reconduire-la-surtaxe-des-grandes-entreprises"],
+    };
+    memoire.set("tunnel-partie", JSON.stringify(enCours));
+    const reprise = restaurer();
+    assert.ok(reprise);
+    assert.equal(reprise!.finDifferee, undefined);
+    assert.equal(trancherCrise(reprise!, "tenir", MISSION).phase, "conseil");
+    assert.equal(courante(trancherCrise(reprise!, "tenir", MISSION))!.id, "reconduire-la-surtaxe-des-grandes-entreprises");
+
+    memoire.set("tunnel-partie", JSON.stringify({ ...ancien, censure: "Inconnu" }));
+    const inconnu = restaurer();
+    assert.ok(inconnu);
+    assert.equal(inconnu!.phase, "verdict");
+    assert.equal(inconnu!.criseEnCours, undefined);
+  } finally {
+    delete (globalThis as { sessionStorage?: unknown }).sessionStorage;
+  }
+});
+
 test("un défi reçu pré-signe les engagements et s'affiche sur la mission", () => {
   const etat = etatInitial({ comble: 12500, engagements: ["sans-prestation"] });
   assert.deepEqual(etat.engagements, ["sans-prestation"]);
@@ -560,6 +605,52 @@ function etatAvecSoutienA10(cle: "opinion" | "entreprises" | "territoires" | "ma
     criseSurcout: 0,
   };
 }
+
+function dernierDossier(): EtatTunnel {
+  return { ...conseil(), ordre: ["doubler-la-taxe-sur-les-rachats-d"], tampons: {}, historique: [] };
+}
+
+test("la dernière mesure sans événement ne rend le verdict qu'après le retour", () => {
+  const sansEvenement = {
+    ...dernierDossier(),
+    telex: { vus: TELEX.map((t) => t.id), surcout: 0, soutiens: {} },
+  };
+  const tampon = tamponner(sansEvenement, "rejete");
+  assert.equal(tampon.phase, "conseil");
+  assert.equal(tampon.finDifferee, true);
+  assert.equal(transitionApresRetour(tampon, MISSION).phase, "verdict");
+});
+
+test("la dernière mesure laisse défiler télex puis crise avant le verdict", () => {
+  const dernier = {
+    ...dernierDossier(),
+    criseSoutiens: { opinion: -52 },
+    telex: { vus: TELEX.filter((t) => t.id !== "greve").map((t) => t.id), surcout: 0, soutiens: {} },
+  };
+  let etat = transitionApresRetour(tamponner(dernier, "rejete"), MISSION);
+  assert.equal(etat.telexEnCours, "greve");
+  assert.match(renduConseil(etat, MISSION), /Grève générale/);
+  etat = trancherTelex(etat, "b", MISSION);
+  assert.equal(etat.criseEnCours, "opinion");
+  assert.match(renduConseil(etat, MISSION), /Mouvement social/);
+  etat = trancherCrise(etat, "tenir", MISSION);
+  assert.equal(etat.phase, "verdict");
+  assert.equal(etat.finDifferee, undefined);
+});
+
+test("la dernière mesure laisse une crise secondaire se jouer avant le verdict", () => {
+  const dernier = {
+    ...dernierDossier(),
+    criseSoutiens: { entreprises: -45, marches: -31 },
+    telex: { vus: TELEX.map((t) => t.id), surcout: 0, soutiens: {} },
+  };
+  let etat = transitionApresRetour(tamponner(dernier, "rejete"), MISSION);
+  assert.equal(etat.criseEnCours, "entreprises");
+  etat = trancherCrise(etat, "tenir", MISSION);
+  assert.equal(etat.criseEnCours, "marches");
+  etat = trancherCrise(etat, "conceder", MISSION);
+  assert.equal(etat.phase, "verdict");
+});
 
 test("un soutien au tapis ouvre une crise et la partie continue après l'issue", () => {
   const enCrise = verifierCrise(etatAvecSoutienA10("opinion"), MISSION);
@@ -758,7 +849,9 @@ test("les décorations se gagnent au verdict, jamais en cours de partie", () => 
   let etat = conseil();
   etat = adopterId(etat, "geler-le-point-d-indice-en-2026");
   assert.deepEqual(decorations(etat, MISSION), [], "rien avant le verdict");
+  etat = { ...etat, telex: { ...etat.telex, vus: TELEX.map((t) => t.id) }, crisesVues: ["opinion", "entreprises", "territoires", "marches"] };
   while (courante(etat)) etat = tamponner(etat, "rejete");
+  etat = transitionApresRetour(etat, MISSION);
   const gagnees = decorations(etat, MISSION).map((d) => d.id);
   // Pile finie sans censure, sans recette nouvelle, les 96 tamponnées.
   assert.ok(gagnees.includes("sans-censure"));
@@ -768,12 +861,16 @@ test("les décorations se gagnent au verdict, jamais en cours de partie", () => 
   // Adopter la TVA fait perdre « Zéro impôt levé ».
   let percepteur = conseil();
   percepteur = adopterId(percepteur, "porter-le-taux-normal-de-tva-a");
+  percepteur = { ...percepteur, telex: { ...percepteur.telex, vus: TELEX.map((t) => t.id) }, crisesVues: ["opinion", "entreprises", "territoires", "marches"] };
   while (courante(percepteur)) percepteur = tamponner(percepteur, "rejete");
+  percepteur = transitionApresRetour(percepteur, MISSION);
   assert.ok(!decorations(percepteur, MISSION).map((d) => d.id).includes("zero-impot"));
   // Un duel gagné se décore.
   let duel = { ...conseil(), defi: { comble: 5000 } };
   duel = adopterId(duel, "porter-le-taux-normal-de-tva-a");
+  duel = { ...duel, telex: { ...duel.telex, vus: TELEX.map((t) => t.id) }, crisesVues: ["opinion", "entreprises", "territoires", "marches"] };
   while (courante(duel)) duel = tamponner(duel, "rejete");
+  duel = transitionApresRetour(duel, MISSION);
   assert.ok(decorations(duel, MISSION).map((d) => d.id).includes("duel-gagne"));
 });
 

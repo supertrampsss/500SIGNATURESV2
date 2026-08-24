@@ -38,6 +38,9 @@ export type EtatTunnel = {
   historique: { id: string; exclues: string[] }[];
   /** La crise qui attend une décision. Une crise ne quitte jamais le conseil. */
   criseEnCours?: Soutien;
+  /** Le dernier tampon a été posé : le retour peut encore ouvrir un télex ou
+   * une crise avant de livrer le verdict. */
+  finDifferee?: true;
   /** Chaque soutien ne peut provoquer qu'une crise par partie. */
   crisesVues: Soutien[];
   /** Le prix cumulé des crises, en M€ : négatif, donc davantage à trouver. */
@@ -300,6 +303,7 @@ export function etatInitial(defi?: DefiTunnel | null): EtatTunnel {
       crisesVues: [],
       criseSurcout: 0,
       criseSoutiens: {},
+      finDifferee: undefined,
       reports: 0,
     };
   }
@@ -319,6 +323,7 @@ export function etatInitial(defi?: DefiTunnel | null): EtatTunnel {
     crisesVues: [],
     criseSurcout: 0,
     criseSoutiens: {},
+    finDifferee: undefined,
     reports: 0,
     defi: { comble: defi.comble },
   };
@@ -347,6 +352,7 @@ export function commencer(etat: EtatTunnel): EtatTunnel {
     crisesVues: [],
     criseSurcout: 0,
     criseSoutiens: {},
+    finDifferee: undefined,
     reports: 0,
   };
 }
@@ -374,7 +380,7 @@ export function tamponner(etat: EtatTunnel, verdict: "adopte" | "rejete"): EtatT
   }
   const historique = [...etat.historique, { id: mesure.id, exclues }];
   const reste = etat.ordre.some((i) => !tampons[i]);
-  return { ...etat, tampons, historique, phase: reste ? "conseil" : "verdict" };
+  return { ...etat, tampons, historique, phase: "conseil", ...(reste ? {} : { finDifferee: true }) };
 }
 
 /**
@@ -390,7 +396,8 @@ export function annuler(etat: EtatTunnel): EtatTunnel {
   const tampons = { ...etat.tampons };
   delete tampons[dernier.id];
   for (const id of dernier.exclues) delete tampons[id];
-  return { ...etat, tampons, historique: etat.historique.slice(0, -1), phase: "conseil" };
+  const { finDifferee: _finDifferee, ...sansFin } = etat;
+  return { ...sansFin, tampons, historique: etat.historique.slice(0, -1), phase: "conseil" };
 }
 
 /** Ouvre la première crise non encore vue, après le télex éventuel. */
@@ -400,6 +407,23 @@ export function verifierCrise(etat: EtatTunnel, missionEuros: number): EtatTunne
     (s) => s.valeur <= SEUIL_CENSURE && !etat.crisesVues.includes(s.cle),
   );
   return tombe ? { ...etat, criseEnCours: tombe.cle } : etat;
+}
+
+/** Livre le verdict seulement lorsque le dernier retour n'a plus aucun
+ * événement ni aucune crise à afficher. */
+export function finaliserFinDifferee(etat: EtatTunnel): EtatTunnel {
+  if (!etat.finDifferee || etat.telexEnCours || etat.criseEnCours) return etat;
+  const { finDifferee: _finDifferee, ...sansFin } = etat;
+  return { ...sansFin, phase: "verdict" };
+}
+
+/** Résout l'ordre immuable de fin de séance : télex, crise, puis verdict.
+ * Le même resolver sert après le retour visuel et après les choix d'événements. */
+export function resoudreFinConseil(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  const apresTelex = verifierTelex(etat, missionEuros);
+  if (apresTelex.telexEnCours) return apresTelex;
+  const apresCrise = verifierCrise(apresTelex, missionEuros);
+  return apresCrise.criseEnCours ? apresCrise : finaliserFinDifferee(apresCrise);
 }
 
 /** Applique l'arbitrage, remet le soutien déclencheur à au moins 15 et
@@ -420,15 +444,13 @@ export function trancherCrise(
     cumules[soutien as Soutien] = (cumules[soutien as Soutien] ?? 0) + delta;
   }
   const { criseEnCours: _criseEnCours, ...sansCrise } = etat;
-  return verifierCrise(
-    {
-      ...sansCrise,
-      crisesVues: [...etat.crisesVues, crise.soutien],
-      criseSurcout: etat.criseSurcout + issue.effet,
-      criseSoutiens: cumules,
-    },
-    missionEuros,
-  );
+  const apres = {
+    ...sansCrise,
+    crisesVues: [...etat.crisesVues, crise.soutien],
+    criseSurcout: etat.criseSurcout + issue.effet,
+    criseSoutiens: cumules,
+  };
+  return apres.finDifferee ? resoudreFinConseil(apres, missionEuros) : verifierCrise(apres, missionEuros);
 }
 
 /** Le premier télex dont la condition vient d'être remplie tombe — un seul
@@ -457,7 +479,7 @@ export function verifierTelex(etat: EtatTunnel, missionEuros: number): EtatTunne
 /** Refermer un télex sans choix — et regarder si ses effets ouvrent une crise. */
 export function poursuivreTelex(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   const { telexEnCours: _lu, ...sans } = etat;
-  return verifierCrise(sans, missionEuros);
+  return sans.finDifferee ? resoudreFinConseil(sans, missionEuros) : verifierCrise(sans, missionEuros);
 }
 
 /**
