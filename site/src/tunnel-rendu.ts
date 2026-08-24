@@ -5,7 +5,6 @@ import { dilemmeDe } from "./dilemmes.ts";
 import { CONTRATS } from "./mission.ts";
 import { MESURES, type Soutien } from "./mesures.ts";
 import {
-  CHRONO_SECONDES,
   CRISES,
   DECORATIONS,
   REPORTS_GRATUITS,
@@ -17,7 +16,6 @@ import {
   mesureParId,
   missionRestante,
   paliersTunnel,
-  pile,
   profil,
   soutiens,
   type EtatTunnel,
@@ -47,43 +45,21 @@ function renduSoutiens(etat: EtatTunnel, missionEuros: number): string {
 }
 
 export function renduMission(etat: EtatTunnel, missionEuros: number): string {
-  const chips = CONTRATS.map((contrat) => {
-    const signe = etat.engagements.includes(contrat.cle);
-    return `<button type="button" class="tunnel__engagement${signe ? " tunnel__engagement--signe" : ""}"
-      data-engagement="${echapper(contrat.cle)}" aria-pressed="${signe}">${echapper(contrat.nom)}</button>`;
-  }).join("");
-  const retirees = MESURES.length - pile(etat.engagements).length;
-  const n = etat.engagements.length;
-  const phrase =
-    n === 0
-      ? "Aucun engagement : l'exercice facile. Personne ne vous croira."
-      : n === 1
-        ? `1 engagement signé : ${retirees} mesures quittent la pile. L'exercice intéressant commence à deux.`
-        : `${n} engagements signés : ${retirees} mesures quittent la pile. Chacun ferme des portes, c'est le jeu.`;
-  const defi = etat.defi
-    ? `<p class="tunnel__defi">Défi reçu&nbsp;: quelqu'un a trouvé
-        <strong>${echapper(millions(etat.defi.comble * 1e6))}</strong>. Faites mieux.
-        Ses engagements sont pré-signés.</p>`
-    : "";
   const mode =
     etat.mode === "express"
-      ? `<button type="button" class="tunnel__engagement" data-action="mode-integral">Conseil intégral · 96 mesures</button>`
-      : `<button type="button" class="tunnel__engagement" data-action="mode-express">Campagne express · 15 mesures</button>`;
+      ? `<button type="button" class="tunnel__mode" data-action="mode-integral">Conseil intégral · 96 mesures</button>`
+      : `<button type="button" class="tunnel__mode" data-action="mode-express">Campagne express · 15 mesures</button>`;
   return `
     <div class="tunnel__mission">
-      <p class="tunnel__surtitre">Votre mission</p>
-      <p class="tunnel__compteur-geant">${compteur(missionEuros)}</p>
-      <p class="tunnel__chapeau">C'est ce qui manque aux budgets publics pour tenir sans
-        emprunter : le vrai compteur, calculé sur les comptes publiés. Toute la scène
-        politique va défiler : à vous de tamponner.</p>
-      <p class="tunnel__surtitre">Signez vos engagements : chacun retire ses mesures de la pile</p>
-      <div class="tunnel__engagements">${chips}</div>
-      <p class="tunnel__note">${echapper(phrase)}</p>
-      <button type="button" class="tunnel__engagement${etat.chrono ? " tunnel__engagement--signe" : ""}"
-        data-action="chrono" aria-pressed="${etat.chrono ? "true" : "false"}">Conseil de crise : ${CHRONO_SECONDES}&#8239;s par mesure</button>
-      ${mode}
-      ${defi}
-      <button type="button" class="tunnel__commencer" data-action="commencer">Prendre mes fonctions&nbsp;&#8594;</button>
+      <div class="tunnel__mission-intro">
+        <p class="tunnel__surtitre">Le déficit à combler</p>
+        <p class="tunnel__compteur-geant">${compteur(missionEuros)}</p>
+        <p class="tunnel__chapeau">C’est le déficit que les budgets publics doivent combler pour tenir sans emprunter. À vous de trancher.</p>
+      </div>
+      <div class="tunnel__mission-actions">
+        ${mode}
+        <button type="button" class="tunnel__commencer" data-action="commencer">Prendre mes fonctions&nbsp;&#8594;</button>
+      </div>
     </div>`;
 }
 
@@ -448,14 +424,6 @@ export function renduVerdict(
       </div>
     </div>`;
 }
-function renduPied(): string {
-  return `<p class="tunnel__source">La mission est calculée sur les budgets publiés. Les effets
-    des mesures sont des ordres de grandeur du débat public (lois de finances, rapports
-    parlementaires, chiffrages d'instituts), affichés avec leurs réserves. Les réactions des
-    soutiens, à l'adoption comme au rejet, et les issues des télex sont des
-    règles du jeu, pas des mesures.</p>`;
-}
-
 export function rendu(
   etat: EtatTunnel,
   missionEuros: number,
@@ -469,5 +437,5 @@ export function rendu(
         : renduVerdict(etat, missionEuros, collectionner);
   // La porte de sortie du plein écran : le seul lien vers le site quand le
   // tunnel occupe tout l'écran. Invisible hors plein écran (style.css).
-  return `<div class="tunnel__cadre"><a class="tunnel__quitter" href="/">&#8592;&nbsp;Quitter le conseil</a>${corps}${renduPied()}</div>`;
+  return `<div class="tunnel__cadre"><a class="tunnel__quitter" href="/">&#8592;&nbsp;Quitter le conseil</a>${corps}</div>`;
 }

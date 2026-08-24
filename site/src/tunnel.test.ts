@@ -66,6 +66,17 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
   assert.equal(typeof facade.afficherTunnel, "function");
 });
 
+test("la mission présente uniquement le déficit à combler avant de choisir le mode", () => {
+  const html = renduMission(etatInitial(), MISSION);
+
+  assert.match(html, /Le déficit à combler/);
+  assert.match(html, /C’est le déficit que les budgets publics doivent combler pour tenir sans emprunter\. À vous de trancher\./);
+  assert.match(html, /data-action="mode-integral"/);
+  assert.match(renduMission({ ...etatInitial(), mode: "integral" }, MISSION), /data-action="mode-express"/);
+  assert.match(html, /Prendre mes fonctions/);
+  assert.doesNotMatch(html, /data-engagement|Signez vos engagements|engagements restants|Conseil de crise/);
+});
+
 test("le retour BFCache garde un unique contrôleur cliquable et réarme le chrono", () => {
   const global = globalThis as Record<string, unknown>;
   const anciens = new Map<string, unknown>(["window", "location", "sessionStorage", "setTimeout", "clearTimeout"].map((cle) => [cle, global[cle]]));
@@ -660,19 +671,15 @@ test("la pile épuisée attend la résolution de fin de séance", () => {
   assert.equal(Object.keys(etat.tampons).length, 96);
 });
 
-test("l'écran de mission écrit le vrai compteur et compte ce que chaque signature retire", () => {
+test("l'écran de mission conserve le montant et le changement de mode", () => {
   const html = renduMission(etatInitial(), MISSION);
   assert.match(html, /159\u202f297\u202fM€/);
   assert.match(html, /data-action="mode-integral"/);
   assert.match(html, /Conseil intégral · 96 mesures/);
-  // Les intitulés sont échappés dans le rendu : « l'école » y est l&#39;école.
-  const lisible = html.replace(/&#39;/g, "'");
-  for (const contrat of CONTRATS) assert.ok(lisible.includes(contrat.nom), contrat.cle);
-  const signe = basculerEngagement(etatInitial(), "ecole-sante");
-  assert.match(renduMission(signe, MISSION), /11 mesures quittent la pile/);
+  assert.match(html, /Prendre mes fonctions/);
 });
 
-test("la carte du conseil porte le montant, sa réserve, et la frontière éditoriale", () => {
+test("la carte du conseil porte le montant et sa réserve sans pied méthodologique", () => {
   const html = renduConseil(conseil(), MISSION);
   // La première carte de la pile validée : la flat tax sèche, avec sa réserve.
   assert.match(html, /Flat tax à 20 %/);
@@ -682,8 +689,8 @@ test("la carte du conseil porte le montant, sa réserve, et la frontière édito
   assert.match(html, /Adopter/);
   assert.match(html, /Ajourner/);
   const page = rendu(conseil(), MISSION);
-  assert.match(page, /ordres de grandeur du débat public/);
-  assert.match(page, /règles du jeu, pas des mesures/);
+  assert.doesNotMatch(page, /La mission est calculée sur les budgets publiés/);
+  assert.doesNotMatch(page, /ordres de grandeur du débat public/);
   // La porte vers l'atelier a été retirée de l'écran par le propriétaire.
   assert.doesNotMatch(page, /atelier expert/);
 });
@@ -928,13 +935,11 @@ test("une sauvegarde historique censurée devient une crise jouable, sans état 
   }
 });
 
-test("un défi reçu pré-signe les engagements et s'affiche sur la mission", () => {
+test("un défi reçu pré-signe les engagements sans alourdir la mission", () => {
   const etat = etatInitial({ comble: 12500, engagements: ["sans-prestation"] });
   assert.deepEqual(etat.engagements, ["sans-prestation"]);
   const html = renduMission(etat, MISSION);
-  assert.match(html, /Défi reçu/);
-  assert.match(html, /12 500 M€/);
-  assert.match(html, /pré-signés/);
+  assert.doesNotMatch(html, /Défi reçu|12 500 M€|pré-signés/);
 });
 
 test("le verdict tranche le duel : battu, égalité, manqué", () => {

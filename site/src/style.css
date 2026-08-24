@@ -8241,6 +8241,18 @@ body[data-carte="oui"] .legende {
   margin: 0 auto;
   padding: var(--espace-10) var(--espace-5);
 }
+.tunnel__mission {
+  max-width: 38rem;
+}
+.tunnel--plein .tunnel__mission {
+  min-height: calc(100dvh - var(--cible) - var(--espace-3));
+  align-content: center;
+}
+.tunnel__mission-intro,
+.tunnel__mission-actions {
+  display: grid;
+  gap: var(--espace-4);
+}
 .tunnel__compteur-geant,
 .tunnel__verdict-nom {
   margin: 0;
@@ -8250,8 +8262,6 @@ body[data-carte="oui"] .legende {
   line-height: .98;
   font-variant-numeric: tabular-nums;
 }
-.tunnel__engagements { display: flex; flex-wrap: wrap; gap: var(--espace-3); }
-.tunnel__engagement,
 .tunnel__commencer,
 .tunnel__adopter,
 .tunnel__rejeter,
@@ -8260,16 +8270,20 @@ body[data-carte="oui"] .legende {
   font: inherit;
   cursor: pointer;
 }
-.tunnel__engagement {
+.tunnel__mode {
+  min-height: var(--cible);
   padding: var(--espace-3) var(--espace-4);
   color: var(--crise-texte-nuit);
   background: transparent;
   border: 1px solid #5b6c85;
   border-radius: var(--rayon-s);
+  font: inherit;
   font-size: var(--texte-s);
   font-weight: 700;
+  cursor: pointer;
+  width: fit-content;
 }
-.tunnel__engagement--signe { color: #fff; background: var(--crise-vert); border-color: var(--crise-vert); }
+.tunnel__mode:hover { color: #fff; border-color: var(--crise-texte-nuit); }
 .tunnel__commencer {
   width: fit-content;
   padding: var(--espace-3) var(--espace-5);
@@ -8279,7 +8293,6 @@ body[data-carte="oui"] .legende {
   border-radius: var(--rayon-s);
   font-weight: 800;
 }
-.tunnel__defi,
 .tunnel__duel {
   margin: 0;
   padding: var(--espace-4);
@@ -8287,7 +8300,6 @@ body[data-carte="oui"] .legende {
   background: rgb(255 255 255 / .07);
   border-inline-start: 3px solid var(--crise-or);
 }
-.tunnel__defi strong,
 .tunnel__duel strong { color: #ffe29b; }
 
 .tunnel__scene {
@@ -8460,7 +8472,8 @@ body[data-carte="oui"] .legende {
 .tunnel__ajourner { padding: var(--espace-2) 0; color: var(--crise-encre); background: transparent; border: 0; font-size: var(--texte-s); font-weight: 700; text-decoration: underline; text-underline-offset: 3px; }
 .tunnel__adopter:disabled,
 .tunnel__rejeter:disabled,
-.tunnel__ajourner:disabled { cursor: not-allowed; opacity: .55; }
+.tunnel__ajourner:disabled,
+.tunnel__mode:disabled { cursor: not-allowed; opacity: .55; }
 
 .tunnel__choix,
 .tunnel__tampons { display: grid; gap: var(--espace-3); }
@@ -8562,6 +8575,9 @@ body[data-carte="oui"] .legende {
   }
 }
 @media (max-width: 40rem) {
+  .tunnel--plein .tunnel__mission {
+    padding: var(--espace-7) var(--espace-4) calc(var(--espace-7) + env(safe-area-inset-bottom, 0px));
+  }
   .tunnel__scene { padding-inline: var(--espace-2); }
   .tunnel__carte { padding-inline: var(--espace-3); }
   .tunnel__actions-fixes { margin-inline: calc(-1 * var(--espace-3)); padding-inline: var(--espace-3); }
