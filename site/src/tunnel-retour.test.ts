@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { commencer, etatInitial, tamponner } from "./tunnel-modele.ts";
-import { chronologieRetour, impactDecision, renduImpact } from "./tunnel-retour.ts";
+import { chronologieRetour, impactDecision, jouerRetour, renduImpact } from "./tunnel-retour.ts";
 
 const MISSION = 159_297e6;
 
@@ -58,4 +58,39 @@ test("la chronologie montre les quatre états puis rend la main à 1,8 seconde",
     { etape: "terminer", a: 1800 },
   ]);
   assert.deepEqual(chronologieRetour(true), [{ etape: "terminer", a: 400 }]);
+});
+
+test("annuler le retour nettoie l'état et empêche son callback final", () => {
+  const taches: { fn: () => void; annulee: boolean }[] = [];
+  const attributs = new Map<string, string>();
+  const action = {
+    setAttribute: (nom: string, valeur: string) => void attributs.set(nom, valeur),
+    removeAttribute: (nom: string) => void attributs.delete(nom),
+  };
+  const cadre = {
+    innerHTML: "",
+    setAttribute: (nom: string, valeur: string) => void attributs.set(nom, valeur),
+    removeAttribute: (nom: string) => void attributs.delete(nom),
+    querySelector: () => null,
+    querySelectorAll: (selecteur: string) => (selecteur.startsWith("[data-geste]") ? [action] : []),
+  } as unknown as HTMLElement;
+  const horloge = {
+    programmer: (fn: () => void) => {
+      const tache = { fn, annulee: false };
+      taches.push(tache);
+      return tache;
+    },
+    annuler: (tache: { annulee: boolean }) => void (tache.annulee = true),
+  };
+  const avant = { ...commencer(etatInitial()), ordre: ["flat-tax-a-20-des-le-premier"] };
+  let terminees = 0;
+
+  const annuler = jouerRetour(cadre, impactDecision(avant, tamponner(avant, "adopte"), MISSION), () => terminees++, horloge);
+  annuler();
+  annuler();
+  for (const tache of taches) if (!tache.annulee) tache.fn();
+
+  assert.equal(terminees, 0);
+  assert.equal(attributs.get("aria-busy"), undefined);
+  assert.equal(attributs.get("inert"), undefined);
 });

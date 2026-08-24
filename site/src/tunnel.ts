@@ -186,7 +186,17 @@ export function reprendre(
   return etatInitial(recu);
 }
 
-export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: number }): void {
+/** Les événements du monde ne suivent qu'après le retour du tampon persistant. */
+export function transitionApresRetour(etat: EtatTunnel, missionEuros: number): EtatTunnel {
+  const apresTelex = verifierTelex(etat, missionEuros);
+  return apresTelex.telexEnCours ? apresTelex : verifierCensure(apresTelex, missionEuros);
+}
+
+/** Un même cadre remonté deux fois ne laisse jamais son ancien retour vivre. */
+const MONTAGES = new WeakMap<HTMLElement, () => void>();
+
+export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: number }): () => void {
+  MONTAGES.get(cadre)?.();
   // La partie en cours d'abord ; sinon le défi que l'adresse porte ; sinon
   // une partie neuve. Un défi reçu pendant une partie en cours ne l'écrase
   // pas : la partie du joueur vaut plus qu'un lien.
@@ -199,7 +209,14 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   // Le tampon est déjà acquis pendant son retour visuel, mais aucun autre
   // geste ne peut se glisser avant la carte (ou le télex) suivante.
   let retourEnCours = false;
+  let annulerRetour: (() => void) | undefined;
+  const interrompreRetour = () => {
+    annulerRetour?.();
+    annulerRetour = undefined;
+    retourEnCours = false;
+  };
   const peindre = () => {
+    interrompreRetour();
     sauver(etat);
     cadre.innerHTML = rendu(etat, options.missionEuros);
     clearTimeout(minuteur);
@@ -210,7 +227,11 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       }, CHRONO_SECONDES * 1000);
     }
   };
-  cadre.addEventListener("click", (evenement) => {
+  const clic = (evenement: MouseEvent) => {
+    if ((evenement.target as HTMLElement).closest(".tunnel__quitter")) {
+      interrompreRetour();
+      return;
+    }
     if (retourEnCours) return;
     const cible = (evenement.target as HTMLElement).closest<HTMLElement>(
       "[data-geste], [data-action], [data-engagement], [data-telex]",
@@ -228,18 +249,21 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     const geste = cible.dataset.geste;
     if (geste === "adopter" || geste === "rejeter") {
-      // Le télex tombe AVANT la censure : ses effets peuvent être ce qui
-      // censure, et le joueur doit lire pourquoi avant de tomber.
+      // Le tampon est la seule chose qui existe pendant le retour : le télex
+      // et la censure attendent que ce geste, déjà sauvegardé, ait été lu.
       const avant = etat;
       const tampon = tamponner(etat, geste === "adopter" ? "adopte" : "rejete");
       const impact = impactDecision(avant, tampon, options.missionEuros);
-      etat = verifierTelex(tampon, options.missionEuros);
-      if (!etat.telexEnCours) etat = verifierCensure(etat, options.missionEuros);
+      etat = tampon;
       sauver(etat);
       clearTimeout(minuteur);
+      interrompreRetour();
       retourEnCours = true;
-      jouerRetour(cadre, impact, () => {
+      annulerRetour = jouerRetour(cadre, impact, () => {
+        annulerRetour = undefined;
         retourEnCours = false;
+        etat = transitionApresRetour(tampon, options.missionEuros);
+        sauver(etat);
         peindre();
       });
       return;
@@ -302,6 +326,17 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
         },
       );
     }
-  });
+  };
+  cadre.addEventListener("click", clic);
+  const demonter = () => {
+    interrompreRetour();
+    clearTimeout(minuteur);
+    cadre.removeEventListener("click", clic);
+    window.removeEventListener("pagehide", demonter);
+    if (MONTAGES.get(cadre) === demonter) MONTAGES.delete(cadre);
+  };
+  MONTAGES.set(cadre, demonter);
+  window.addEventListener("pagehide", demonter, { once: true });
   peindre();
+  return demonter;
 }

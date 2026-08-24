@@ -46,6 +46,7 @@ import {
   verifierCensure,
   poursuivreTelex,
   trancherTelex,
+  transitionApresRetour,
   verifierTelex,
   type EtatTunnel,
 } from "./tunnel.ts";
@@ -553,6 +554,29 @@ test("un télex de crise tombe une fois, ne coûte rien avant d'être tranché, 
   const apres = Object.fromEntries(soutiens(jumelle, MISSION).map((s) => [s.cle, s.valeur]));
   assert.equal(apres.marches, avant.marches + 5);
   assert.equal(apres.opinion, avant.opinion - 4);
+});
+
+test("un télex attend la fin du retour : le tampon seul est l'état persistant", () => {
+  let tampon = conseil();
+  tampon = adopterId(tampon, "flat-tax-a-20-avec-abattement-protegeant");
+  tampon = adopterId(tampon, "retablir-un-impot-sur-la-fortune-financiere");
+  tampon = adopterId(tampon, "impot-plancher-de-2-sur-les-patrimoines");
+  tampon = adopterId(tampon, "revenir-a-62-ans");
+
+  assert.equal(tampon.telexEnCours, undefined);
+  assert.equal(transitionApresRetour(tampon, MISSION).telexEnCours, "taux");
+});
+
+test("la censure attend elle aussi la fin du retour", () => {
+  let tampon = conseil();
+  tampon = adopterId(tampon, "flat-tax-a-20-des-le-premier");
+  tampon = adopterId(tampon, "porter-le-taux-normal-de-tva-a");
+  tampon = adopterId(tampon, "repousser-l-age-legal-a-65-ans");
+  tampon = adopterId(tampon, "desindexer-les-pensions-d-un-point");
+  const sansTelex = { ...tampon, telex: { ...tampon.telex, vus: TELEX.map((t) => t.id) } };
+
+  assert.equal(sansTelex.phase, "conseil");
+  assert.equal(transitionApresRetour(sansTelex, MISSION).censure, "Opinion");
 });
 
 test("les bons télex existent : franchir 50 000 M€ fait respirer les marchés", () => {

@@ -16,6 +16,16 @@ export type EtapeRetour = "engagement" | "tampon" | "impact" | "consequence";
 
 type MomentRetour = { etape: EtapeRetour | "terminer"; a: number };
 
+export type HorlogeRetour = {
+  programmer: (callback: () => void, delai: number) => unknown;
+  annuler: (identifiant: unknown) => void;
+};
+
+const horlogeNavigateur: HorlogeRetour = {
+  programmer: (callback, delai) => setTimeout(callback, delai),
+  annuler: (identifiant) => clearTimeout(identifiant as ReturnType<typeof setTimeout>),
+};
+
 /** La partition est pure pour tenir les millisecondes sans dépendre du DOM. */
 export function chronologieRetour(reduire = false): MomentRetour[] {
   return reduire
@@ -113,31 +123,49 @@ export function jouerRetour(
   cadre: HTMLElement,
   impact: ImpactDecision,
   terminer: () => void,
-): void {
+  horloge: HorlogeRetour = horlogeNavigateur,
+): () => void {
   const reduire = typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-  for (const action of cadre.querySelectorAll<HTMLElement>("[data-geste], [data-action], [data-engagement], [data-telex]")) {
+  const actions = [...cadre.querySelectorAll<HTMLElement>("[data-geste], [data-action], [data-engagement], [data-telex]")];
+  for (const action of actions) {
     action.setAttribute("inert", "");
   }
   cadre.setAttribute("aria-busy", "true");
   cadre.innerHTML = renduImpact(impact);
   const retour = cadre.querySelector<HTMLElement>(".tunnel__retour");
-  const finir = () => {
+  const minuteurs: unknown[] = [];
+  let clos = false;
+  const nettoyer = () => {
+    for (const action of actions) action.removeAttribute("inert");
     cadre.removeAttribute("aria-busy");
-    terminer();
+  };
+  const clore = (rendreLaMain: boolean) => {
+    if (clos) return;
+    clos = true;
+    for (const minuteur of minuteurs) horloge.annuler(minuteur);
+    nettoyer();
+    if (rendreLaMain) terminer();
+  };
+  const finir = () => {
+    clore(true);
+  };
+  const programmer = (callback: () => void, delai: number) => {
+    minuteurs.push(horloge.programmer(callback, delai));
   };
   if (reduire) {
     montrerEtape(cadre, "consequence", true);
     retour?.focus();
-    setTimeout(finir, chronologieRetour(true)[0].a);
-    return;
+    programmer(finir, chronologieRetour(true)[0].a);
+    return () => clore(false);
   }
   for (const moment of chronologieRetour()) {
     if (moment.etape === "terminer") {
-      setTimeout(finir, moment.a);
+      programmer(finir, moment.a);
     } else if (moment.a === 0) {
       montrerEtape(cadre, moment.etape);
     } else {
-      setTimeout(() => montrerEtape(cadre, moment.etape as EtapeRetour), moment.a);
+      programmer(() => montrerEtape(cadre, moment.etape as EtapeRetour), moment.a);
     }
   }
+  return () => clore(false);
 }
