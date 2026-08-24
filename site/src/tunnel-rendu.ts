@@ -321,8 +321,8 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
             : "Chaque décision modifie le compteur et peut faire réagir les soutiens."
         }</p>
         <div class="tunnel__actions-fixes">
-          <button type="button" class="tunnel__rejeter" data-geste="rejeter">${echapper(dilemme?.rejeter.libelle ?? "Rejeter")}</button>
-          <button type="button" class="tunnel__adopter" data-geste="adopter">${echapper(dilemme?.adopter.libelle ?? "Adopter")}</button>
+          <button type="button" class="tunnel__adopter" data-geste="adopter">Adopter — ${echapper(dilemme?.adopter.libelle ?? "Adopter la mesure")}</button>
+          <button type="button" class="tunnel__rejeter" data-geste="rejeter">Rejeter — ${echapper(dilemme?.rejeter.libelle ?? "Rejeter la mesure")}</button>
         </div>
         <div class="tunnel__seconds">
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>

@@ -26,13 +26,11 @@ import {
 import { millions } from "./echelle.ts";
 import { CONTRATS } from "./mission.ts";
 import { bilanVerdict, rendu as renduPur, renduVerdict as renduVerdictPur } from "./tunnel-rendu.ts";
-import { impactDecision, jouerRetour } from "./tunnel-retour.ts";
 import { acteDe, type Acte } from "./campagne.ts";
 import { emettreEvenement } from "./tunnel-evenements.ts";
 
 export * from "./tunnel-modele.ts";
 export * from "./tunnel-rendu.ts";
-export * from "./tunnel-retour.ts";
 export * from "./tunnel-evenements.ts";
 export { EXPRESS_PAR_ACTE, acteDe, ordreExpress, type Acte } from "./campagne.ts";
 
@@ -106,8 +104,8 @@ export function restaurer(): EtatTunnel | null {
     const crisesVuesRestaurees = telexEnCours && criseEnCours
       ? crisesVues.filter((cle) => cle !== criseEnCours)
       : crisesVues;
-    // Les sauvegardes antérieures au marqueur ne peuvent pas prouver que le
-    // retour du dernier tampon a déjà fini : par défaut, on vérifie donc une
+    // Les sauvegardes antérieures au marqueur ne peuvent pas prouver que la
+    // résolution du dernier tampon a déjà fini : par défaut, on vérifie donc une
     // fois plutôt que de taire arbitrairement un télex. Un télex encore à
     // l'écran (ou une crise historique déjà ouverte) prouve en revanche que
     // cette vérification a bien eu lieu.
@@ -367,7 +365,7 @@ function acteAnonyme(etat: EtatTunnel, id: string, numero: number): Acte {
   return Math.min(3, Math.floor((numero - 1) / Math.max(1, Math.ceil(etat.ordre.length / 3))) + 1) as Acte;
 }
 
-/** Les suites qui ne deviennent vraies qu'après le retour visuel du tampon. */
+/** Les suites d'un tampon : télex, crise ou verdict sont résolus tout de suite. */
 function emettreSuite(etat: EtatTunnel): void {
   if (etat.criseEnCours) emettreEvenement({ type: "crise", soutien: etat.criseEnCours });
   if (etat.phase === "verdict") {
@@ -375,12 +373,12 @@ function emettreSuite(etat: EtatTunnel): void {
   }
 }
 
-/** Les événements du monde ne suivent qu'après le retour du tampon persistant. */
+/** Résout les conséquences d'un tampon, au montage comme après un clic. */
 export function transitionApresRetour(etat: EtatTunnel, missionEuros: number): EtatTunnel {
   return resoudreFinConseil(etat, missionEuros);
 }
 
-/** Un même cadre remonté deux fois ne laisse jamais son ancien retour vivre. */
+/** Un même cadre remonté deux fois ne laisse jamais son ancien contrôleur vivre. */
 const MONTAGES = new WeakMap<HTMLElement, () => void>();
 
 export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: number }): () => void {
@@ -394,24 +392,11 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   // avant — une seule échéance vit à la fois. À l'expiration, la mesure est
   // ajournée d'office : le conseil n'attend pas.
   let minuteur: ReturnType<typeof setTimeout> | undefined;
-  // Le tampon est déjà acquis pendant son retour visuel, mais aucun autre
-  // geste ne peut se glisser avant la carte (ou le télex) suivante.
-  let retourEnCours = false;
-  let annulerRetour: (() => void) | undefined;
   let partageEnCours = false;
   let montageActif = true;
   let generationRendu = 0;
-  // Le tampon reste acquis si BFCache coupe son animation : il recevra son
-  // unique résolution au retour, sans jamais rejouer le retour visuel.
-  let tamponEnRetour: EtatTunnel | undefined;
-  const interrompreRetour = () => {
-    annulerRetour?.();
-    annulerRetour = undefined;
-    retourEnCours = false;
-  };
   const peindre = () => {
     generationRendu++;
-    interrompreRetour();
     sauver(etat);
     cadre.innerHTML = rendu(etat, options.missionEuros);
     clearTimeout(minuteur);
@@ -425,23 +410,10 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       }, CHRONO_SECONDES * 1000);
     }
   };
-  const resoudreRetour = () => {
-    const tampon = tamponEnRetour;
-    if (!tampon) return;
-    tamponEnRetour = undefined;
-    annulerRetour = undefined;
-    retourEnCours = false;
-    etat = transitionApresRetour(tampon, options.missionEuros);
-    sauver(etat);
-    emettreSuite(etat);
-    peindre();
-  };
   const clic = (evenement: MouseEvent) => {
     if ((evenement.target as HTMLElement).closest(".tunnel__quitter")) {
-      interrompreRetour();
       return;
     }
-    if (retourEnCours) return;
     const cible = (evenement.target as HTMLElement).closest<HTMLElement>(
       "[data-geste], [data-action], [data-engagement], [data-telex], [data-crise]",
     );
@@ -465,14 +437,8 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     }
     const geste = cible.dataset.geste;
     if (geste === "adopter" || geste === "rejeter") {
-      // Le tampon est la seule chose qui existe pendant le retour : le télex
-      // et les crises attendent que ce geste, déjà sauvegardé, ait été lu.
       const avant = etat;
       const tampon = tamponner(etat, geste === "adopter" ? "adopte" : "rejete");
-      const impact = impactDecision(avant, tampon, options.missionEuros);
-      etat = tampon;
-      tamponEnRetour = tampon;
-      sauver(etat);
       const numero = tampon.historique.length + tampon.reports;
       emettreEvenement({
         type: "decision",
@@ -481,12 +447,10 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
         verdict: geste === "adopter" ? "adopte" : "rejete",
       });
       clearTimeout(minuteur);
-      interrompreRetour();
-      retourEnCours = true;
-      annulerRetour = jouerRetour(cadre, impact, () => {
-        resoudreRetour();
-      });
-      return;
+      etat = transitionApresRetour(tampon, options.missionEuros);
+      sauver(etat);
+      emettreSuite(etat);
+      return peindre();
     }
     if (geste === "ajourner") {
       const id = courante(etat)?.id ?? "";
@@ -566,7 +530,6 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   cadre.addEventListener("click", clic);
   const demonter = () => {
     montageActif = false;
-    interrompreRetour();
     clearTimeout(minuteur);
     cadre.removeEventListener("click", clic);
     window.removeEventListener("pagehide", pagehide);
@@ -577,7 +540,6 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     // Le BFCache garde le DOM : retirer l'écouteur ici le rendrait inerte au
     // retour. On stoppe seulement ce qui peut reprendre hors contexte.
     if (evenement.persisted) {
-      interrompreRetour();
       clearTimeout(minuteur);
       return;
     }
@@ -585,8 +547,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   };
   const pageshow = (evenement: PageTransitionEvent) => {
     if (!evenement.persisted) return;
-    if (tamponEnRetour) resoudreRetour();
-    else peindre();
+    peindre();
   };
   MONTAGES.set(cadre, demonter);
   window.addEventListener("pagehide", pagehide);

@@ -64,7 +64,6 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
   assert.equal(typeof facade.commencer, "function");
   assert.equal(typeof facade.renduConseil, "function");
   assert.equal(typeof facade.afficherTunnel, "function");
-  assert.equal(typeof facade.impactDecision, "function");
 });
 
 test("le retour BFCache garde un unique contrôleur cliquable et réarme le chrono", () => {
@@ -123,7 +122,7 @@ test("le retour BFCache garde un unique contrôleur cliquable et réarme le chro
   }
 });
 
-test("le retour BFCache résout une décision tamponnée une seule fois, sans la rejouer", () => {
+test("le BFCache conserve une décision résolue une seule fois, sans la rejouer", () => {
   const global = globalThis as Record<string, unknown>;
   const anciens = new Map<string, unknown>(["window", "location", "sessionStorage", "setTimeout", "clearTimeout", "document"].map((cle) => [cle, global[cle]]));
   const presents = new Set(["window", "location", "sessionStorage", "setTimeout", "clearTimeout", "document"].filter((cle) => cle in global));
@@ -379,6 +378,78 @@ test("le conseil express rend l'état, les deux camps, la preuve et la barre d'a
   assert.match(html, /<details class="tunnel__preuve"/);
   assert.match(html, /tunnel__actions-fixes/);
   assert.match(html, /Acte 1/);
+});
+
+test("les boutons reprennent les deux camps dans le même ordre et avec leurs libellés", () => {
+  const html = renduConseil({ ...commencer(etatInitial()), ordre: ["flat-tax-a-20-avec-abattement-protegeant"] }, MISSION);
+  const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
+
+  assert.ok(html.indexOf("tunnel__camp--adopter") < html.indexOf("tunnel__camp--rejeter"));
+  assert.match(actions, /^\s*<button[^>]*class="tunnel__adopter"[^>]*data-geste="adopter">Adopter — Baisser<\/button>/);
+  assert.match(actions, /<button[^>]*class="tunnel__rejeter"[^>]*data-geste="rejeter">Rejeter — Maintenir<\/button>\s*$/);
+});
+
+test("une décision passe tout de suite au dossier suivant, sans écran de retour ni délai", () => {
+  const global = globalThis as Record<string, unknown>;
+  const cles = ["window", "location", "sessionStorage", "document", "setTimeout", "clearTimeout"];
+  const anciens = new Map(cles.map((cle) => [cle, global[cle]]));
+  const presents = new Set(cles.filter((cle) => cle in global));
+  const stockage = new Map<string, string>();
+  const ecouteurs = new Map<string, Set<(evenement: { persisted?: boolean }) => void>>();
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  const delais: number[] = [];
+  const evenements: unknown[] = [];
+  const fenetre = {
+    addEventListener: (type: string, ecouteur: (evenement: { persisted?: boolean }) => void) => {
+      if (!ecouteurs.has(type)) ecouteurs.set(type, new Set());
+      ecouteurs.get(type)!.add(ecouteur);
+    },
+    removeEventListener: (type: string, ecouteur: (evenement: { persisted?: boolean }) => void) => ecouteurs.get(type)?.delete(ecouteur),
+  };
+  const cadre = {
+    innerHTML: "",
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+    querySelector: () => null,
+    querySelectorAll: () => [],
+    setAttribute: () => {},
+    removeAttribute: () => {},
+    emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
+  } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
+  const bouton = {
+    dataset: { geste: "adopter" },
+    closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton,
+  } as unknown as HTMLElement;
+  try {
+    global.window = fenetre;
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
+    global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
+    global.setTimeout = ((_fn: () => void, delai: number) => { delais.push(delai); return { annulee: false }; }) as unknown;
+    global.clearTimeout = ((_tache: unknown) => {}) as unknown;
+    stockage.set("tunnel-partie", JSON.stringify({
+      ...conseil(), mode: "express", ordre: ["reconduire-la-surtaxe-des-grandes-entreprises"], tampons: {}, historique: [],
+      telex: { vus: TELEX.map((telex) => telex.id), surcout: 0, soutiens: {} },
+      crisesVues: ["opinion", "entreprises", "territoires", "marches"],
+    }));
+
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    cadre.emettreClic(bouton);
+
+    assert.doesNotMatch(cadre.innerHTML, /tunnel__retour/);
+    assert.match(cadre.innerHTML, /Votre verdict/);
+    assert.deepEqual(delais, []);
+    assert.deepEqual(evenements, [
+      { type: "decision", acte: 1, numero: 1, verdict: "adopte" },
+      { type: "partie_terminee", mode: "express", dossiers: 1 },
+    ]);
+    demonter();
+  } finally {
+    for (const cle of cles) {
+      if (presents.has(cle)) global[cle] = anciens.get(cle);
+      else delete global[cle];
+    }
+  }
 });
 
 /** Un conseil ouvert sans engagement : la pile entière. */
@@ -1012,7 +1083,7 @@ test("le contrôleur restauré ne rejoue pas le télex fermé du même tampon", 
   }
 });
 
-test("le marqueur de télex survit aux remontages pendant et après le retour", () => {
+test("le marqueur de télex survit aux remontages avant et après sa résolution", () => {
   const global = globalThis as Record<string, unknown>;
   const ancien = global.sessionStorage;
   const memoire = new Map<string, string>();
@@ -1153,7 +1224,7 @@ test("une sauvegarde antérieure sans marqueur rejoue seulement un télex dont l
   }
 });
 
-test("la dernière mesure sans événement ne rend le verdict qu'après le retour", () => {
+test("la dernière mesure sans événement rend le verdict à sa résolution", () => {
   const sansEvenement = {
     ...dernierDossier(),
     telex: { vus: TELEX.map((t) => t.id), surcout: 0, soutiens: {} },
@@ -1353,7 +1424,7 @@ test("un télex de crise tombe une fois, ne coûte rien avant d'être tranché, 
   assert.equal(apres.opinion, avant.opinion - 4);
 });
 
-test("un télex attend la fin du retour : le tampon seul est l'état persistant", () => {
+test("un télex suit le tampon résolu : le tampon seul est l'état persistant", () => {
   let tampon = conseil();
   tampon = adopterId(tampon, "flat-tax-a-20-avec-abattement-protegeant");
   tampon = adopterId(tampon, "retablir-un-impot-sur-la-fortune-financiere");
@@ -1364,7 +1435,7 @@ test("un télex attend la fin du retour : le tampon seul est l'état persistant"
   assert.equal(transitionApresRetour(tampon, MISSION).telexEnCours, "taux");
 });
 
-test("une crise attend elle aussi la fin du retour, après le télex", () => {
+test("une crise suit elle aussi le tampon résolu, après le télex", () => {
   const tampon = { ...etatAvecSoutienA10("opinion"), telex: { vus: TELEX.map((t) => t.id), surcout: 0, soutiens: {} } };
 
   assert.equal(tampon.phase, "conseil");
