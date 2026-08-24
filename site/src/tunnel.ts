@@ -243,33 +243,50 @@ type NavigateurPartage = {
   clipboard?: { writeText?: (texte: string) => Promise<void> };
 };
 
-export type IssuePartage = "partage" | "copie" | "invite";
+export type IssuePartage = "partage" | "copie" | "invite" | "indisponible";
 
 /** Partage natif, puis copie, puis texte visible : aucune fausse confirmation. */
 export async function partagerBilan(
   texte: string,
   adresse: string,
   navigateur: NavigateurPartage,
-  inviter: (titre: string, texte: string) => unknown,
+  inviter?: (titre: string, texte: string) => unknown,
 ): Promise<IssuePartage> {
-  if (typeof navigateur.share === "function") {
+  let partager: NavigateurPartage["share"];
+  try {
+    partager = navigateur.share;
+  } catch {
+    partager = undefined;
+  }
+  if (typeof partager === "function") {
     try {
-      await navigateur.share({ title: "Mon bilan du conseil", text: texte, url: adresse });
+      await partager({ title: "Mon bilan du conseil", text: texte, url: adresse });
       return "partage";
     } catch {
       // Un refus ou une annulation reprend le secours local, sans événement de plus.
     }
   }
-  if (typeof navigateur.clipboard?.writeText === "function") {
+  let copier: ((texte: string) => Promise<void>) | undefined;
+  try {
+    copier = navigateur.clipboard?.writeText;
+  } catch {
+    copier = undefined;
+  }
+  if (typeof copier === "function") {
     try {
-      await navigateur.clipboard.writeText(texte);
+      await copier(texte);
       return "copie";
     } catch {
       // Une permission refusée laisse tout de même le texte à copier.
     }
   }
-  inviter("Votre bilan, à copier :", texte);
-  return "invite";
+  if (typeof inviter !== "function") return "indisponible";
+  try {
+    inviter("Votre bilan, à copier :", texte);
+    return "invite";
+  } catch {
+    return "indisponible";
+  }
 }
 
 function acteAnonyme(etat: EtatTunnel, id: string, numero: number): Acte {
@@ -309,6 +326,8 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   // geste ne peut se glisser avant la carte (ou le télex) suivante.
   let retourEnCours = false;
   let annulerRetour: (() => void) | undefined;
+  let partageEnCours = false;
+  let montageActif = true;
   // Le tampon reste acquis si BFCache coupe son animation : il recevra son
   // unique résolution au retour, sans jamais rejouer le retour visuel.
   let tamponEnRetour: EtatTunnel | undefined;
@@ -435,17 +454,41 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       return peindre();
     }
     if (cible.dataset.action === "partager") {
+      if (partageEnCours) return;
+      partageEnCours = true;
+      cible.setAttribute("disabled", "");
+      cible.setAttribute("aria-busy", "true");
       const texte = bilanTexte(etat, options.missionEuros);
       const adresse = adresseDefi(etat);
       emettreEvenement({ type: "partage" });
-      void partagerBilan(texte, adresse, navigator, window.prompt.bind(window)).then((issue) => {
-        if (issue === "copie") cible.textContent = "Copié, partagez votre bilan";
-        if (issue === "invite") cible.textContent = "Copiez ce bilan";
-      });
+      let inviter: ((titre: string, texte: string) => unknown) | undefined;
+      try {
+        inviter = typeof window.prompt === "function" ? window.prompt.bind(window) : undefined;
+      } catch {
+        // Certains contextes embarqués refusent même l'accès à prompt.
+      }
+      void partagerBilan(texte, adresse, navigator, inviter)
+        .then((issue) => {
+          if (!montageActif) return;
+          if (issue === "copie") cible.textContent = "Copié, partagez votre bilan";
+          if (issue === "invite") cible.textContent = "Copiez ce bilan";
+          if (issue === "indisponible") cible.textContent = "Partage indisponible";
+        })
+        .catch(() => {
+          // Défense de dernier rang contre un navigateur exotique : jamais de rejet non géré.
+          if (montageActif) cible.textContent = "Partage indisponible";
+        })
+        .finally(() => {
+          partageEnCours = false;
+          if (!montageActif) return;
+          cible.removeAttribute("disabled");
+          cible.removeAttribute("aria-busy");
+        });
     }
   };
   cadre.addEventListener("click", clic);
   const demonter = () => {
+    montageActif = false;
     interrompreRetour();
     clearTimeout(minuteur);
     cadre.removeEventListener("click", clic);

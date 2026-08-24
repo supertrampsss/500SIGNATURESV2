@@ -78,3 +78,23 @@ test("un refus Web Share reprend le presse-papiers puis l'invite si nécessaire"
   assert.equal(copie, 1);
   assert.equal(invite, 0);
 });
+
+test("sans invite disponible, le partage ne rejette pas et signale l'indisponibilité", async () => {
+  const resultat = await partagerBilan("Le bilan", "https://exemple.test/defi", {}, undefined);
+  assert.equal(resultat, "indisponible");
+});
+
+test("une invite qui échoue ne propage jamais son exception", async () => {
+  const resultat = await partagerBilan("Le bilan", "https://exemple.test/defi", {}, () => {
+    throw new Error("bloquée");
+  });
+  assert.equal(resultat, "indisponible");
+});
+
+test("les refus Share et presse-papiers sans invite restent sans rejet", async () => {
+  const resultat = await partagerBilan("Le bilan", "https://exemple.test/defi", {
+    share: async () => { throw new Error("annulé"); },
+    clipboard: { writeText: async () => { throw new Error("refusé"); } },
+  }, undefined);
+  assert.equal(resultat, "indisponible");
+});

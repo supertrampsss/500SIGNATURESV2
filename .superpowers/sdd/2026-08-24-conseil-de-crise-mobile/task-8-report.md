@@ -39,3 +39,11 @@
 - Le partage natif est tenté en premier. Un refus ou une annulation Web Share reprend explicitement le fallback presse-papiers puis invite, sans second événement `partage`.
 - Tests ajoutés : API Clipboard absente (invite exacte + événement unique), rejet Clipboard, succès Clipboard, succès Web Share, refus Web Share avec fallback.
 - Vérifications : événements+tunnel PASS 69/69 ; `npx tsc --noEmit` PASS ; suite complète PASS 1 214/1 214 ; build PASS (avertissement Vite préexistant sur le chunk principal).
+
+## Fix round 2 — Résilience et sérialisation du partage
+
+- RED : `partagerBilan()` rejetait quand l'invite était absente ou levait, et deux clics rapides lançaient deux partages et deux événements.
+- GREEN : l'API accepte désormais une invite optionnelle et retourne toujours `partage`, `copie`, `invite` ou `indisponible`; tout accès navigateur, Share, presse-papiers et invite est protégé.
+- Le contrôleur verrouille le bouton pendant la promesse (`disabled`, `aria-busy`), ignore les clics concurrents, émet une seule fois pour la tentative acceptée puis libère le verrou. Après démontage, les continuations ne modifient plus le DOM.
+- Tests : invite absente, invite en échec, Share+presse-papiers refusés sans invite, double-clic sérialisé, nouvel essai après résolution et démontage pendant promesse.
+- Vérifications : événements+tunnel PASS 73/73 ; `npx tsc --noEmit` PASS ; suite complète PASS 1 218/1 218 ; build PASS (avertissement Vite préexistant sur le chunk principal).

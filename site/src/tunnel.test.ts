@@ -199,7 +199,11 @@ test("sans Clipboard API, un clic Partager ouvre l'invite et émet une fois", as
     removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
     emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
   } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
-  const bouton = { dataset: { action: "partager" }, textContent: "Partager le bilan", closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton } as unknown as HTMLElement;
+  const bouton = {
+    dataset: { action: "partager" }, textContent: "Partager le bilan",
+    setAttribute: () => {}, removeAttribute: () => {},
+    closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton,
+  } as unknown as HTMLElement;
   try {
     global.window = { addEventListener: () => {}, removeEventListener: () => {}, prompt: (titre: string, texte: string) => { invites.push([titre, texte]); return null; } };
     global.location = { search: "", origin: "https://exemple.test" };
@@ -216,6 +220,75 @@ test("sans Clipboard API, un clic Partager ouvre l'invite et émet une fois", as
     assert.equal(invites.length, 1);
     assert.equal(invites[0]?.[0], "Votre bilan, à copier :");
     demonter();
+  } finally {
+    if (descripteurNavigateur) Object.defineProperty(globalThis, "navigator", descripteurNavigateur);
+    else delete global.navigator;
+    for (const cle of ["window", "location", "sessionStorage", "document"]) {
+      if (presents.has(cle)) global[cle] = anciens.get(cle);
+      else delete global[cle];
+    }
+  }
+});
+
+test("Partager sérialise les clics et ne touche plus le bouton démonté", async () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage", "document"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage", "document"].filter((cle) => cle in global));
+  const descripteurNavigateur = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  const stockage = new Map<string, string>();
+  const evenements: unknown[] = [];
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  let appels = 0;
+  let resoudre: (() => void) | undefined;
+  let retraits = 0;
+  const cadre = {
+    innerHTML: "",
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+    emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
+  } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
+  const attributs = new Map<string, string>();
+  const bouton = {
+    dataset: { action: "partager" },
+    disabled: false,
+    textContent: "Partager le bilan",
+    setAttribute(nom: string, valeur: string) { attributs.set(nom, valeur); if (nom === "disabled") this.disabled = true; },
+    removeAttribute(nom: string) { attributs.delete(nom); if (nom === "disabled") this.disabled = false; retraits++; },
+    closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton,
+  } as unknown as HTMLElement & { disabled: boolean };
+  try {
+    global.window = { addEventListener: () => {}, removeEventListener: () => {}, prompt: () => null };
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
+    global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
+    Object.defineProperty(globalThis, "navigator", { configurable: true, value: {
+      share: () => {
+        appels++;
+        return new Promise<void>((resolve) => { resoudre = resolve; });
+      },
+    } });
+    stockage.set("tunnel-partie", JSON.stringify({ ...conseil(), phase: "verdict" }));
+
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    cadre.emettreClic(bouton);
+    cadre.emettreClic(bouton);
+    assert.equal(appels, 1);
+    assert.deepEqual(evenements, [{ type: "partage" }]);
+    assert.equal(bouton.disabled, true);
+    assert.equal(attributs.get("aria-busy"), "true");
+
+    resoudre!();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.equal(bouton.disabled, false);
+    cadre.emettreClic(bouton);
+    assert.equal(appels, 2, "une action terminée peut être relancée");
+    assert.deepEqual(evenements, [{ type: "partage" }, { type: "partage" }]);
+
+    const retraitsAvantDemontage = retraits;
+    demonter();
+    resoudre!();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.equal(retraits, retraitsAvantDemontage, "la promesse terminée ne touche pas un bouton démonté");
   } finally {
     if (descripteurNavigateur) Object.defineProperty(globalThis, "navigator", descripteurNavigateur);
     else delete global.navigator;
