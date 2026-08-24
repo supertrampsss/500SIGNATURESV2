@@ -299,6 +299,75 @@ test("Partager sérialise les clics et ne touche plus le bouton démonté", asyn
   }
 });
 
+test("un repaint pendant le partage invalide l'ancien bouton mais libère une nouvelle action", async () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage", "document"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage", "document"].filter((cle) => cle in global));
+  const descripteurNavigateur = Object.getOwnPropertyDescriptor(globalThis, "navigator");
+  const stockage = new Map<string, string>();
+  const evenements: unknown[] = [];
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  const ecouteurs = new Map<string, (evenement: { persisted?: boolean }) => void>();
+  const resolutions: (() => void)[] = [];
+  let appels = 0;
+  let peintures = 0;
+  const cadre = {
+    set innerHTML(_html: string) { peintures++; }, get innerHTML() { return ""; },
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+    emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
+  } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
+  const fabriquerBouton = () => {
+    let retraits = 0;
+    const bouton = {
+      dataset: { action: "partager" }, disabled: false, textContent: "Partager le bilan",
+      setAttribute(nom: string) { if (nom === "disabled") this.disabled = true; },
+      removeAttribute(nom: string) { if (nom === "disabled") this.disabled = false; retraits++; },
+      closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton,
+    } as unknown as HTMLElement & { disabled: boolean };
+    return { bouton, retraits: () => retraits };
+  };
+  const ancienBouton = fabriquerBouton();
+  const nouveauBouton = fabriquerBouton();
+  try {
+    global.window = {
+      addEventListener: (type: string, ecouteur: (evenement: { persisted?: boolean }) => void) => void ecouteurs.set(type, ecouteur),
+      removeEventListener: (type: string) => void ecouteurs.delete(type), prompt: () => null,
+    };
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
+    global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
+    Object.defineProperty(globalThis, "navigator", { configurable: true, value: { share: () => {
+      appels++;
+      return new Promise<void>((resolve) => resolutions.push(resolve));
+    } } });
+    stockage.set("tunnel-partie", JSON.stringify({ ...conseil(), phase: "verdict" }));
+
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
+    cadre.emettreClic(ancienBouton.bouton);
+    const avantRepaint = peintures;
+    ecouteurs.get("pageshow")!({ persisted: true });
+    assert.ok(peintures > avantRepaint, "le cadre est repeint");
+    resolutions.shift!()();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    assert.equal(ancienBouton.retraits(), 0, "la fin asynchrone ne touche pas le bouton détaché");
+
+    cadre.emettreClic(nouveauBouton.bouton);
+    assert.equal(appels, 2, "le verrou est libéré après la promesse périmée");
+    assert.deepEqual(evenements, [{ type: "partage" }, { type: "partage" }]);
+    resolutions.shift!()();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    demonter();
+  } finally {
+    if (descripteurNavigateur) Object.defineProperty(globalThis, "navigator", descripteurNavigateur);
+    else delete global.navigator;
+    for (const cle of ["window", "location", "sessionStorage", "document"]) {
+      if (presents.has(cle)) global[cle] = anciens.get(cle);
+      else delete global[cle];
+    }
+  }
+});
+
 test("le conseil express rend l'état, les deux camps, la preuve et la barre d'action", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
   assert.match(html, /tunnel__etat-compact/);

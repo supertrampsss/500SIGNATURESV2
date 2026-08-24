@@ -47,3 +47,11 @@
 - Le contrôleur verrouille le bouton pendant la promesse (`disabled`, `aria-busy`), ignore les clics concurrents, émet une seule fois pour la tentative acceptée puis libère le verrou. Après démontage, les continuations ne modifient plus le DOM.
 - Tests : invite absente, invite en échec, Share+presse-papiers refusés sans invite, double-clic sérialisé, nouvel essai après résolution et démontage pendant promesse.
 - Vérifications : événements+tunnel PASS 73/73 ; `npx tsc --noEmit` PASS ; suite complète PASS 1 218/1 218 ; build PASS (avertissement Vite préexistant sur le chunk principal).
+
+## Fix round 3 — Receveurs Web API et rendu périmé
+
+- RED : les méthodes extraites perdaient leur receveur (`Illegal invocation`) et une promesse de partage pouvait modifier un bouton remplacé après repaint.
+- GREEN : `share.call(navigateur, ...)` et `writeText.call(clipboard, ...)` préservent les receveurs ; les getters Web API qui échouent restent non bloquants et mènent au fallback.
+- Chaque peinture incrémente une génération. La continuation ne modifie ou ne déverrouille le bouton que si sa génération est encore courante ; le verrou interne est toujours libéré.
+- Tests : faux Share et Clipboard exigeant leur `this`, getters `share`/`clipboard`/`writeText` défaillants, repaint BFCache pendant partage, ancien bouton intact et nouveau partage possible.
+- Vérifications : événements+tunnel PASS 77/77 ; `npx tsc --noEmit` PASS ; suite complète PASS 1 222/1 222 ; build PASS (avertissement Vite préexistant sur le chunk principal).

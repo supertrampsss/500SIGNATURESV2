@@ -260,21 +260,23 @@ export async function partagerBilan(
   }
   if (typeof partager === "function") {
     try {
-      await partager({ title: "Mon bilan du conseil", text: texte, url: adresse });
+      await partager.call(navigateur, { title: "Mon bilan du conseil", text: texte, url: adresse });
       return "partage";
     } catch {
       // Un refus ou une annulation reprend le secours local, sans événement de plus.
     }
   }
   let copier: ((texte: string) => Promise<void>) | undefined;
+  let pressePapiers: NavigateurPartage["clipboard"];
   try {
-    copier = navigateur.clipboard?.writeText;
+    pressePapiers = navigateur.clipboard;
+    copier = pressePapiers?.writeText;
   } catch {
     copier = undefined;
   }
   if (typeof copier === "function") {
     try {
-      await copier(texte);
+      await copier.call(pressePapiers, texte);
       return "copie";
     } catch {
       // Une permission refusée laisse tout de même le texte à copier.
@@ -328,6 +330,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
   let annulerRetour: (() => void) | undefined;
   let partageEnCours = false;
   let montageActif = true;
+  let generationRendu = 0;
   // Le tampon reste acquis si BFCache coupe son animation : il recevra son
   // unique résolution au retour, sans jamais rejouer le retour visuel.
   let tamponEnRetour: EtatTunnel | undefined;
@@ -337,6 +340,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     retourEnCours = false;
   };
   const peindre = () => {
+    generationRendu++;
     interrompreRetour();
     sauver(etat);
     cadre.innerHTML = rendu(etat, options.missionEuros);
@@ -456,6 +460,7 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     if (cible.dataset.action === "partager") {
       if (partageEnCours) return;
       partageEnCours = true;
+      const generationPartage = generationRendu;
       cible.setAttribute("disabled", "");
       cible.setAttribute("aria-busy", "true");
       const texte = bilanTexte(etat, options.missionEuros);
@@ -469,18 +474,18 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
       }
       void partagerBilan(texte, adresse, navigator, inviter)
         .then((issue) => {
-          if (!montageActif) return;
+          if (!montageActif || generationRendu !== generationPartage) return;
           if (issue === "copie") cible.textContent = "Copié, partagez votre bilan";
           if (issue === "invite") cible.textContent = "Copiez ce bilan";
           if (issue === "indisponible") cible.textContent = "Partage indisponible";
         })
         .catch(() => {
           // Défense de dernier rang contre un navigateur exotique : jamais de rejet non géré.
-          if (montageActif) cible.textContent = "Partage indisponible";
+          if (montageActif && generationRendu === generationPartage) cible.textContent = "Partage indisponible";
         })
         .finally(() => {
           partageEnCours = false;
-          if (!montageActif) return;
+          if (!montageActif || generationRendu !== generationPartage) return;
           cible.removeAttribute("disabled");
           cible.removeAttribute("aria-busy");
         });

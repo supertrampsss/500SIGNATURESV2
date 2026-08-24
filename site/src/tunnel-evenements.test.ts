@@ -98,3 +98,35 @@ test("les refus Share et presse-papiers sans invite restent sans rejet", async (
   }, undefined);
   assert.equal(resultat, "indisponible");
 });
+
+test("Web Share conserve navigator comme receveur", async () => {
+  const navigateur = {
+    share: async function(this: unknown) {
+      assert.equal(this, navigateur);
+    },
+  };
+  assert.equal(await partagerBilan("Le bilan", "https://exemple.test/defi", navigateur, undefined), "partage");
+});
+
+test("le presse-papiers conserve son receveur", async () => {
+  const pressePapiers = {
+    writeText: async function(this: unknown, texte: string) {
+      assert.equal(this, pressePapiers);
+      assert.equal(texte, "Le bilan");
+    },
+  };
+  assert.equal(await partagerBilan("Le bilan", "https://exemple.test/defi", { clipboard: pressePapiers }, undefined), "copie");
+});
+
+test("les getters Web API qui échouent repartent vers l'invite", async () => {
+  const erreurs = [
+    Object.defineProperty({}, "share", { get: () => { throw new Error("share"); } }),
+    Object.defineProperty({}, "clipboard", { get: () => { throw new Error("clipboard"); } }),
+    { clipboard: Object.defineProperty({}, "writeText", { get: () => { throw new Error("writeText"); } }) },
+  ];
+  for (const navigateur of erreurs) {
+    let invites = 0;
+    assert.equal(await partagerBilan("Le bilan", "https://exemple.test/defi", navigateur, () => { invites++; }), "invite");
+    assert.equal(invites, 1);
+  }
+});
