@@ -35,6 +35,21 @@ export type Confusion =
   | "annuel_cumule"
   | "perimetre_geographique";
 
+/**
+ * Le libellé éditorial que les nouveaux dossiers affichent en premier.
+ *
+ * Il reste distinct du `Cran`, qui est le constat factuel du fichier source :
+ * une qualification peut évoluer côté interface sans changer les quatre JSON
+ * publiés ni leur contrat de contrôle.
+ */
+export type QualificationVerdict =
+  | "confirme"
+  | "ordre_grandeur"
+  | "contexte_manquant"
+  | "perimetre_trompeur"
+  | "non_demontre"
+  | "contredit";
+
 export type Registre =
   | "fait_comptable"
   | "donnee_officielle"
@@ -120,6 +135,65 @@ export const LIBELLE_CONFUSION: Record<Confusion, string> = {
   annuel_cumule: "Un montant annuel confondu avec un montant cumulé sur plusieurs exercices",
   perimetre_geographique: "Deux périmètres géographiques différents confondus",
 };
+
+/** Les six verdicts stables de l'interface éditoriale. */
+export const LIBELLE_QUALIFICATION: Record<QualificationVerdict, string> = {
+  confirme: "Confirmé",
+  ordre_grandeur: "Ordre de grandeur correct",
+  contexte_manquant: "Contexte manquant",
+  perimetre_trompeur: "Périmètre trompeur",
+  non_demontre: "Non démontré",
+  contredit: "Contredit",
+};
+
+function assertNever(valeur: never): never {
+  throw new Error(`Valeur de verdict non prise en charge : ${String(valeur)}`);
+}
+
+/**
+ * Les confusions du contrat existant ne changent pas le fait observé : elles
+ * changent le périmètre auquel il est attribué. Elles relèvent donc toutes du
+ * même verdict éditorial. Le `switch` reste délibérément exhaustif : ajouter
+ * une confusion au schéma impose de décider de son libellé, plutôt que de la
+ * faire glisser silencieusement dans une qualification générique.
+ */
+function qualificationConfusion(confusion: Confusion): QualificationVerdict {
+  switch (confusion) {
+    case "ae_cp":
+    case "brut_net":
+    case "vote_execute":
+    case "stock_flux":
+    case "etat_apu":
+    case "annuel_cumule":
+    case "perimetre_geographique":
+      return "perimetre_trompeur";
+    default:
+      return assertNever(confusion);
+  }
+}
+
+/**
+ * Dérive un verdict de lecture à partir du constat déjà contrôlé par le
+ * pipeline. La prose libre de `verdict.phrase` n'est jamais interrogée : elle
+ * explique le verdict, elle ne doit pas modifier sa classification.
+ */
+export function qualificationVerdict(analyse: Analyse): QualificationVerdict {
+  switch (analyse.verdict.cran) {
+    case "exact":
+      return "confirme";
+    case "introuvable":
+      return "non_demontre";
+    case "hors_perimetre": {
+      const confusion = analyse.verdict.confusion;
+      if (!confusion) {
+        throw new Error("Un verdict hors_perimetre doit préciser sa confusion");
+      }
+      return qualificationConfusion(confusion);
+    }
+    default:
+      return assertNever(analyse.verdict.cran);
+  }
+}
 
 /** Le genre de page, jamais un jugement : le site nomme ce qu'il a fait du
  *  chiffre, pas ce qu'il en pense. */

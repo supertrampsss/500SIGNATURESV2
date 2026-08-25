@@ -10,11 +10,13 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import type { Analyse } from "./analyse-rendu.ts";
+import type { Analyse, Confusion } from "./analyse-rendu.ts";
 import {
   filtrerAnalyses,
   LIBELLE_CONFUSION,
   LIBELLE_CRAN,
+  LIBELLE_QUALIFICATION,
+  qualificationVerdict,
   rendu,
   renduIndex,
 } from "./analyse-rendu.ts";
@@ -154,6 +156,46 @@ test("le cran s'affiche avec sa formulation exacte de la spec", () => {
     verdict: { cran: "introuvable", phrase: "Aucune observation ne correspond." },
   });
   assert.match(rendu(introuvable, CATALOGUE), /Aucune ligne publiée ne porte ce montant/);
+});
+
+test("la qualification distingue exactitude, périmètre et absence de preuve", () => {
+  assert.equal(
+    qualificationVerdict(analyseMinimale({ verdict: { cran: "exact", phrase: "Exact." } })),
+    "confirme",
+  );
+  assert.equal(qualificationVerdict(DEFENSE), "perimetre_trompeur");
+  assert.equal(
+    qualificationVerdict(analyseMinimale({ verdict: { cran: "introuvable", phrase: "Absent." } })),
+    "non_demontre",
+  );
+
+  const confusions: Confusion[] = [
+    "ae_cp",
+    "brut_net",
+    "vote_execute",
+    "stock_flux",
+    "etat_apu",
+    "annuel_cumule",
+    "perimetre_geographique",
+  ];
+  for (const confusion of confusions) {
+    assert.equal(
+      qualificationVerdict(
+        analyseMinimale({ verdict: { cran: "hors_perimetre", confusion, phrase: "Périmètre distinct." } }),
+      ),
+      "perimetre_trompeur",
+      `${confusion} doit rester qualifié sans recourir à la prose libre`,
+    );
+  }
+
+  assert.deepEqual(LIBELLE_QUALIFICATION, {
+    confirme: "Confirmé",
+    ordre_grandeur: "Ordre de grandeur correct",
+    contexte_manquant: "Contexte manquant",
+    perimetre_trompeur: "Périmètre trompeur",
+    non_demontre: "Non démontré",
+    contredit: "Contredit",
+  });
 });
 
 test("un cran hors_perimetre nomme toujours sa confusion à l'écran", () => {
