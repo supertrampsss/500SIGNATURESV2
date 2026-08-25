@@ -250,9 +250,7 @@ export function renduComparaison(mesure: (typeof MESURES)[number], dilemme = dil
     gagnants: [],
     perdants: [],
   };
-  const montant = `${mesure.effet >= 0 ? "Vous trouvez " : "Vous engagez "}${echapper(millions(mesure.effet * 1e6))}${
-    mesure.precision ? ` <small>${echapper(mesure.precision)}</small>` : ""
-  }`;
+  const montant = `${mesure.effet >= 0 ? "Vous trouvez " : "Vous engagez "}${echapper(millions(mesure.effet * 1e6))}`;
   const reactionsAdopter = mesure.reactions;
   const reactionsRejeter = mesure.rejet ?? {};
   const preuveOption = (

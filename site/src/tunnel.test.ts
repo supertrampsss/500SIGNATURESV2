@@ -678,11 +678,13 @@ test("l'écran de mission conserve le montant et le changement de mode", () => {
   assert.match(html, /Prendre mes fonctions/);
 });
 
-test("la carte du conseil porte le montant et sa réserve sans pied méthodologique", () => {
+test("la carte du conseil garde sa réserve de chiffrage dans le tiroir", () => {
   const html = renduConseil(conseil(), MISSION);
+  const [visible, tiroir] = html.split('<details class="tunnel-decision__details" data-details="preuve">');
   // La première carte de la pile validée : la flat tax sèche, avec sa réserve.
   assert.match(html, /Flat tax à 20 %/);
-  assert.match(html, /arithmétique brute/);
+  assert.doesNotMatch(visible, /arithmétique brute/);
+  assert.match(tiroir ?? "", /class="tunnel-decision__source">Chiffrage : arithmétique brute<\/p>/);
   assert.match(html, /150\u202f000\u202fM€/);
   assert.match(html, /data-geste="adopter"/);
   assert.match(html, /data-geste="rejeter"/);

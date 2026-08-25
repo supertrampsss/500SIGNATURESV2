@@ -37,3 +37,13 @@ actions dans le même ordre. Les détails sont repliés dans un élément natif
   sans lien avec cette tâche.
 - Le rendu a été vérifié structurellement et par build ; aucune capture sur un
   appareil physique n'a été produite dans ce worktree.
+
+## Fix round 1/5 — P1 précision dans le tiroir
+
+- RED : le test `la carte du conseil garde sa réserve de chiffrage dans le
+  tiroir` a échoué car `arithmétique brute` figurait encore avant le
+  `<details>` (dans le montant de l'option principale).
+- GREEN : le montant visible ne porte plus que l'effet budgétaire ; la
+  précision est exclusivement rendue dans
+  `.tunnel-decision__source` du tiroir `data-details="preuve"`.
+- Preuves : test ciblé 1/1 vert, puis `src/tunnel.test.ts` 73/73 verts.
