@@ -205,3 +205,39 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Le bureau pose la carte et la fiche dans deux colonnes. Quand la carte est
+   révélée sous 60rem, l'atelier redevient une seule colonne : sans remettre
+   explicitement la fiche en première colonne, son ancien `grid-column: 2`
+   crée une piste fantôme et réduit la carte à quelques pixels. */
+@media (max-width: 60rem) {
+  /* La comparaison peut être appelée directement depuis le briefing. Elle ne
+     doit jamais conserver les deux pistes du bureau : cette grille impose
+     alors une colonne de 30rem hors écran, avant même les tableaux. */
+  body[data-carte="oui"] .vue--territoire {
+    display: block;
+    grid-template-columns: none;
+  }
+
+  body[data-carte="oui"] .vue--territoire .atelier {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  body[data-carte="oui"] .vue--territoire .atelier__carte {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  body[data-carte="oui"] .vue--territoire #panneau {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  body[data-carte="oui"] .vue--territoire #palmares,
+  body[data-carte="oui"] .vue--territoire #detail {
+    width: auto;
+    max-width: 100%;
+  }
+}

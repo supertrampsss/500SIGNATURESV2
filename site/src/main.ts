@@ -798,6 +798,12 @@ function majEtiquettes(): void {
   const couche = COUCHES[etat.niveau];
   const calque = $("etiquettes");
   if (!carte) return;
+  const idCouche = `remplissage-${couche}`;
+  // `resize()` peut courir avant que la couche de la nouvelle maille soit
+  // ajoutée. MapLibre journalise une erreur même si `queryRenderedFeatures`
+  // est ensuite capturée ; on vérifie donc l'existence du calque avant toute
+  // requête.
+  if (!carte.getLayer(idCouche)) return;
   // Les communes sont 34 875 : à leur échelle, le fond de carte écrit déjà
   // les noms de villes. On n'ajoute les nôtres que sur les mailles lisibles.
   const trop = etat.niveau === "commune" && carte.getZoom() < 9.5;
@@ -807,7 +813,7 @@ function majEtiquettes(): void {
   }
   let figures: maplibregl.MapGeoJSONFeature[] = [];
   try {
-    figures = carte.queryRenderedFeatures({ layers: [`remplissage-${couche}`] });
+    figures = carte.queryRenderedFeatures({ layers: [idCouche] });
   } catch {
     return; // couche pas encore prête
   }

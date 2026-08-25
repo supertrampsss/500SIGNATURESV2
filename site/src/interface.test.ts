@@ -3250,6 +3250,23 @@ test("la carte territoriale se révèle sans être recréée", () => {
   assert.match(MAIN, /renduBriefing\(/);
 });
 
+test("la carte révélée retrouve toute la colonne sur mobile", () => {
+  const css = readFileSync(new URL("./styles/territoire-briefing.css", import.meta.url), "utf8");
+  const mobile = css.slice(css.lastIndexOf("@media (max-width: 60rem)"));
+  assert.match(mobile, /\.vue--territoire\s*\{\s*display:\s*block;\s*grid-template-columns:\s*none;/);
+  assert.match(mobile, /\.atelier\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*minmax\(0, 1fr\);/);
+  assert.match(mobile, /\.atelier__carte\s*\{\s*grid-column:\s*1;\s*grid-row:\s*1;/);
+  assert.match(mobile, /#panneau\s*\{\s*grid-column:\s*1;\s*grid-row:\s*2;/);
+  assert.match(mobile, /#palmares,[\s\S]*#detail\s*\{\s*width:\s*auto;\s*max-width:\s*100%;/);
+});
+
+test("le redimensionnement de la carte n'interroge pas une couche absente", () => {
+  const etiquettes = MAIN.slice(MAIN.indexOf("function majEtiquettes(): void {"));
+  assert.match(etiquettes, /const idCouche = `remplissage-\$\{couche\}`;/);
+  assert.match(etiquettes, /if \(!carte\.getLayer\(idCouche\)\) return;/);
+  assert.match(etiquettes, /layers: \[idCouche\]/);
+});
+
 test("les thèmes du briefing conduisent à une section détaillée", () => {
   for (const theme of ["Budget", "Fiscalité", "Dette", "Services", "Trajectoire"]) {
     assert.match(PAGE, new RegExp(`>${theme}<`));
