@@ -748,7 +748,7 @@ test("le défi voyage dans l'adresse, et une adresse abîmée est ignorée en si
   });
 });
 
-test("le verdict condense le bilan sous un header, les soutiens et un mandat unique", () => {
+test("le verdict hiérarchise le bilan en cinq blocs sans décorations concurrentes", () => {
   let etat = { ...etatInitial(), mode: "express" as const, graine: 42 };
   etat = commencer(etat);
   let nAdoptions = 0;
@@ -759,23 +759,17 @@ test("le verdict condense le bilan sous un header, les soutiens et un mandat uni
   etat = transitionApresRetour(etat, MISSION);
   const html = renduVerdict(etat, MISSION);
   const ordre = [
-    "Bilan du mandat",
-    "tunnel__verdict-chiffre",
-    "tunnel__verdict-paliers",
-    ">Soutiens</",
-    'class="tunnel__verdict-nom"',
-    ">Promesses</",
-    ">Conséquences</",
-    "Vos choix décisifs",
-    "Voir les 15 décisions",
-    ">Rejouer</",
+    "verdict__resultat",
+    "verdict__mandat",
+    "verdict__gestes",
+    "verdict__stabilite",
+    "verdict__actions",
   ].map((repere) => html.indexOf(repere));
-  assert.ok(ordre.every((position) => position >= 0), "chaque étape obligatoire est rendue");
-  assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, "le DOM suit le fil de lecture annoncé");
+  assert.ok(ordre.every((position) => position >= 0), "les cinq blocs sont rendus");
+  assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, "le DOM suit le verdict : résultat, mandat, gestes, stabilité, actions");
   assert.match(html, /aria-labelledby="tunnel-mandat"/);
-  assert.match(html, /<dl class="tunnel__mandat-resume">/);
-  assert.match(html, /<details class="tunnel__historique"/);
-  assert.doesNotMatch(html, /Soutiens et stabilité|Promesses tenues|Conséquences encore ouvertes|Relever le défi/);
+  assert.equal((html.match(/<details class="verdict__details">/g) ?? []).length, 1);
+  assert.doesNotMatch(html, /Vos décorations|Collection :|La mission est calculée/);
 });
 
 test("la carte anonyme du bilan ne retient que les agrégats du mandat", () => {

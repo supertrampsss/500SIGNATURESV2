@@ -209,3 +209,67 @@
   .tunnel__comparaison { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tunnel-decision__details { grid-column: 1 / -1; }
 }
+
+/* Verdict : le résultat ouvre la lecture, les preuves restent à un geste. */
+.tunnel__verdict {
+  width: min(100%, 42rem);
+  margin-inline: auto;
+  padding: var(--espace-3) var(--espace-2) calc(var(--espace-5) + env(safe-area-inset-bottom, 0px));
+}
+
+.verdict__resultat,
+.verdict__mandat,
+.verdict__gestes,
+.verdict__stabilite,
+.verdict__actions,
+.verdict__details {
+  min-width: 0;
+}
+
+.verdict__resultat,
+.verdict__mandat,
+.verdict__gestes,
+.verdict__stabilite,
+.verdict__details {
+  padding: var(--espace-3);
+  border: 1px solid var(--ui-trait);
+}
+
+.verdict__resultat { background: var(--ui-nuit); }
+.verdict__resultat .tunnel__verdict-chiffre { color: var(--ui-papier); }
+.verdict__resultat .tunnel__verdict-chiffre strong { color: #fff; }
+.verdict__resultat .tunnel__verdict-paliers,
+.verdict__resultat .tunnel__duel { color: var(--crise-texte-souple); }
+.verdict__resultat .tunnel__duel { margin: 0; font-size: var(--texte-s); }
+
+.verdict__mandat { background: var(--ui-papier); }
+.verdict__mandat .tunnel__chapeau { margin: 0; }
+
+.verdict__gestes,
+.verdict__stabilite,
+.verdict__details { background: var(--ui-surface); }
+.verdict__gestes .tunnel__tampon { min-width: 0; }
+.verdict__gestes .tunnel__tampon span { overflow-wrap: anywhere; }
+.verdict__stabilite .tunnel__soutiens { grid-template-columns: 1fr; }
+.verdict__stabilite .tunnel__note { margin: 0; color: var(--ui-encre-douce); font-size: var(--texte-s); }
+
+.verdict__actions { display: grid; gap: var(--espace-2); }
+.verdict__actions button,
+.verdict__details summary { min-height: 44px; }
+.verdict__actions button { width: 100%; }
+.verdict__details { color: var(--ui-encre); }
+.verdict__details summary { display: flex; align-items: center; cursor: pointer; font-weight: 800; }
+.verdict__details ol { margin: var(--espace-3) 0 0; padding-inline-start: 1.4rem; }
+.verdict__details li { overflow-wrap: anywhere; }
+.verdict__details li + li { margin-top: var(--espace-2); }
+
+@media (min-width: 60rem) {
+  .tunnel__verdict { padding: var(--espace-5); }
+  .verdict__resultat,
+  .verdict__mandat,
+  .verdict__gestes,
+  .verdict__stabilite,
+  .verdict__details { padding: var(--espace-4); }
+  .verdict__stabilite .tunnel__soutiens { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .verdict__actions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

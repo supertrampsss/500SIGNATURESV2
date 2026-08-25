@@ -6,7 +6,6 @@ import { CONTRATS } from "./mission.ts";
 import { MESURES, type Soutien } from "./mesures.ts";
 import {
   CRISES,
-  DECORATIONS,
   REPORTS_GRATUITS,
   SOUTIENS,
   TELEX,
@@ -359,6 +358,9 @@ export function renduVerdict(
     )
     .join("");
   const rupture = bilan.soutiens.find((s) => s.danger);
+  // La collection reste alimentée pour les parties existantes, sans devenir un
+  // second verdict qui détournerait du résultat du mandat.
+  collectionner(decorations(etat, missionEuros));
   // Le duel : le comblé contre celui du défi. Aucun qualificatif de plus —
   // « battu » et « manqué » disent le fait, les nombres disent l'écart.
   const duel = etat.defi
@@ -372,54 +374,43 @@ export function renduVerdict(
     : "";
   return `
     <div class="tunnel__verdict">
-      <header class="tunnel__verdict-tete">
+      <header class="verdict__resultat tunnel__verdict-tete">
         <p class="tunnel__surtitre">Bilan du mandat</p>
         <h2 class="tunnel__verdict-chiffre"><strong>${echapper(millions(combleM * 1e6))}</strong> trouvés</h2>
-        <p class="tunnel__verdict-paliers">${nFranchis} / ${paliers.length} paliers${resteEuros === 0 ? " · équilibre atteint" : ""}</p>
+        <p class="tunnel__verdict-paliers">Objectif : ${echapper(millions(missionEuros))}${resteEuros === 0 ? " · équilibre atteint" : ` · reste ${echapper(millions(resteEuros))}`}</p>
+        <p class="tunnel__verdict-paliers">${nFranchis} / ${paliers.length} paliers franchis.</p>
+        ${duel}
       </header>
-      <section class="tunnel__stabilite" aria-labelledby="tunnel-stabilite">
-        <p id="tunnel-stabilite" class="tunnel__surtitre">Soutiens</p>
-        ${renduSoutiens(etat, missionEuros)}
-      </section>
-      <section class="tunnel__mandat" aria-labelledby="tunnel-mandat">
+      <section class="verdict__mandat tunnel__mandat" aria-labelledby="tunnel-mandat">
         <p id="tunnel-mandat" class="tunnel__surtitre">Votre mandat</p>
         <h3 class="tunnel__verdict-nom">${echapper(p.nom)}</h3>
         <p class="tunnel__chapeau">${echapper(p.phrase)}${
           rupture ? ` ${echapper(rupture.nom)} est au bord de la rupture.` : ""
         }</p>
-        <dl class="tunnel__mandat-resume">
-          <div><dt>Promesses</dt><dd>${bilan.engagements.length
-            ? bilan.engagements.map((engagement) => `${echapper(engagement.nom)} — ${engagement.statut === "tenue" ? "tenue" : "impossibilité détectée"}`).join(" · ")
-            : "Aucune promesse signée"}.</dd></div>
-          <div><dt>Conséquences</dt><dd>${bilan.crises.length
-            ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
-            : "Aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</dd></div>
-        </dl>
       </section>
-      ${duel}
-      ${gestes ? `<section class="tunnel__verdict-gestes" aria-labelledby="tunnel-gestes"><p id="tunnel-gestes" class="tunnel__surtitre">Vos choix décisifs</p>${gestes}</section>` : ""}
-      ${(() => {
-        const gagnees = decorations(etat, missionEuros);
-        if (!gagnees.length) return "";
-        const collection = collectionner(gagnees);
-        return `<div class="tunnel__decorations"><p class="tunnel__surtitre">Vos décorations</p>
-          <div class="tunnel__decorations-rang">${gagnees
-            .map((d) => `<span class="tunnel__decoration" title="${echapper(d.detail)}">${echapper(d.nom)}</span>`)
-            .join("")}</div>
-          <p class="tunnel__note">Collection : ${collection.length} / ${DECORATIONS.length}.</p>
-        </div>`;
-      })()}
-      <details class="tunnel__historique">
+      <section class="verdict__gestes tunnel__verdict-gestes" aria-labelledby="tunnel-gestes">
+        <p id="tunnel-gestes" class="tunnel__surtitre">Vos choix décisifs</p>
+        ${gestes || '<p class="tunnel__note">Aucun geste adopté : le budget reste à construire.</p>'}
+      </section>
+      <section class="verdict__stabilite tunnel__stabilite" aria-labelledby="tunnel-stabilite">
+        <p id="tunnel-stabilite" class="tunnel__surtitre">Soutiens et conséquences</p>
+        ${renduSoutiens(etat, missionEuros)}
+        <p class="tunnel__note">${bilan.crises.length
+          ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
+          : "Aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</p>
+      </section>
+      <div class="verdict__actions tunnel__verdict-boutons">
+        <button type="button" class="tunnel__adopter" data-action="revanche">Rejouer</button>
+        <button type="button" class="tunnel__rejeter" data-action="expert">Comparer mon bilan</button>
+        <button type="button" class="tunnel__rejeter" data-action="partager">Partager mon bilan</button>
+      </div>
+      <details class="verdict__details">
         <summary>Voir les ${etat.historique.length} décisions</summary>
         <ol>${etat.historique.map((choix) => {
           const mesure = mesureParId(choix.id);
           return `<li>${echapper(mesure?.titre ?? choix.id)} — ${etat.tampons[choix.id] === "adopte" ? "adoptée" : "rejetée"}</li>`;
         }).join("")}</ol>
       </details>
-      <div class="tunnel__verdict-boutons">
-        <button type="button" class="tunnel__adopter" data-action="revanche">Rejouer</button>
-        <button type="button" class="tunnel__rejeter" data-action="partager">Partager mon bilan</button>
-      </div>
     </div>`;
 }
 export function rendu(
