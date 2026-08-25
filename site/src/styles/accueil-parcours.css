@@ -1,0 +1,47 @@
+/* L'accueil commence par trois choix lisibles : la grille se replie avant que
+ * les cartes ne deviennent étroites, et le parcours de simulation garde le
+ * poids visuel de l'action principale. */
+.accueil-portes {
+  margin-block: var(--espace-6);
+}
+
+.accueil-portes__grille {
+  display: grid;
+  gap: var(--espace-3);
+  grid-template-columns: 1fr;
+}
+
+.accueil-porte {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-trait);
+  border-radius: var(--rayon);
+  color: var(--ui-encre);
+  display: grid;
+  gap: var(--espace-2);
+  min-height: 9rem;
+  padding: var(--espace-4);
+  text-decoration: none;
+}
+
+.accueil-porte strong { font-size: var(--texte-l); }
+.accueil-porte span { color: var(--ui-encre-douce); }
+
+.accueil-porte:hover { box-shadow: var(--ui-ombre); }
+
+.accueil-porte:focus-visible {
+  outline: 3px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+
+.accueil-porte--simuler {
+  background: var(--ui-nuit);
+  border-color: var(--ui-nuit);
+  color: var(--ui-papier);
+  box-shadow: var(--ui-ombre);
+}
+
+.accueil-porte--simuler span { color: inherit; }
+
+@media (min-width: 60rem) {
+  .accueil-portes__grille { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

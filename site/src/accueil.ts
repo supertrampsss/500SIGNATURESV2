@@ -543,16 +543,34 @@ export type DonneesAccueil = {
   producteurs: readonly string[];
 };
 
+/** Les trois entrées de l'accueil : trois intentions distinctes, pas trois
+ * variantes d'une même navigation. Elles restent sans donnée pour que le
+ * premier écran soit immédiatement utile, y compris avant le chargement des
+ * fichiers publiés. */
+export function renduPortes(): string {
+  return `<section class="accueil-portes" aria-labelledby="accueil-parcours">
+    <h3 id="accueil-parcours">Choisissez votre parcours</h3>
+    <div class="accueil-portes__grille">
+      <a class="accueil-porte accueil-porte--france" href="/bilan">
+        <strong>Comprendre la France</strong>
+        <span>Lire l'équation nationale et les analyses publiées.</span>
+      </a>
+      <a class="accueil-porte accueil-porte--territoires" href="/territoire">
+        <strong>Explorer mon territoire</strong>
+        <span>Retrouver les comptes de ma commune, de mon département ou de ma région.</span>
+      </a>
+      <a class="accueil-porte accueil-porte--simuler" href="/simulateur">
+        <strong>Prendre les commandes</strong>
+        <span>Rejouer les arbitrages budgétaires, ligne par ligne.</span>
+      </a>
+    </div>
+  </section>`;
+}
+
 /**
- * L'accueil entier : le message principal, sa preuve, et les cinq blocs.
- *
- * Le message est immédiatement suivi de la preuve — le verdict du moment — et
- * jamais d'un développement. Entre les deux, une seule ligne : la mention
- * d'unité, posée **une fois pour toute la page** (spec §8). Les blocs ne la
- * répètent pas ; répétée, elle cesse d'être lue là où elle compte.
- *
- * Les trois appels à l'action suivent l'entonnoir, chacun dans son bloc :
- * « Lire le verdict », « Rejouer le calcul », « Chercher ma commune ».
+ * L'accueil entier : une promesse, trois portes, puis les preuves et contenus
+ * de lecture. Les composants de détail restent ceux du premier lot : aucun
+ * calcul ne vit dans la composition de parcours.
  */
 export function rendu(donnees: DonneesAccueil): string {
   const enAvant = analyseDuMoment(donnees.analyses);
@@ -560,11 +578,13 @@ export function rendu(donnees: DonneesAccueil): string {
     <section class="accueil__ouverture">
       <h2 class="accueil__message">${echapper(MESSAGE_PRINCIPAL)}</h2>
       <p class="accueil__cadrage">${MENTION_MILLIONS}.</p>
+      <p class="accueil__recherche"><a class="accueil__appel" href="${ANCRE_RECHERCHE}">Chercher un territoire</a></p>
     </section>
-    ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
-    ${renduVerifiez()}
-    ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
-    ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
+    ${renduPortes()}
     ${renduBandeConfiance(donnees.catalogue, donnees.producteurs)}
+    ${renduVerdictDuMoment(enAvant, donnees.catalogue)}
+    ${renduAnalysesRecentes(donnees.analyses, enAvant?.slug ?? null)}
+    ${renduChezVous(tirerTerritoire(donnees.territoires, donnees.alea))}
+    ${renduVerifiez()}
   </div>`;
 }

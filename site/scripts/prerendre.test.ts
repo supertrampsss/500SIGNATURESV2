@@ -901,7 +901,21 @@ test("12. le gabarit sert l'accueil écrit, message principal compris, sans exé
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" data-publication="v-essai">/);
 });
 
-test("12 bis. le tirage du pré-rendu est le premier territoire COMPLET de la liste publiée", () => {
+test("12 bis. le pré-rendu sert les mêmes trois portes que l'accueil dynamique", async () => {
+  const corps = corpsAccueil(await analysesPubliees(), CATALOGUE_EXEMPLE, LOT_ESSAI, ["INSEE", "OFGL"]);
+  const portes = [
+    ["Comprendre la France", "/bilan"],
+    ["Explorer mon territoire", "/territoire"],
+    ["Prendre les commandes", "/simulateur"],
+  ] as const;
+  const positions = portes.map(([libelle, href]) => {
+    assert.match(corps, new RegExp(`class="accueil-porte[^\"]*" href="${href}"[\\s\\S]*?${libelle}`));
+    return corps.indexOf(href);
+  });
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions);
+});
+
+test("12 ter. le tirage du pré-rendu est le premier territoire COMPLET de la liste publiée", () => {
   // Un choix, jamais un aléa refait à chaque build : deux constructions du même
   // dépôt donneraient deux pages, et le diff du site deviendrait illisible.
   assert.equal(ALEA_PRERENDU, 0);

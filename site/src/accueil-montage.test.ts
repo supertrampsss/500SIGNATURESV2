@@ -35,6 +35,7 @@ import { CHEMINS, estAccueil, vueDepuisAdresse } from "./routes.ts";
 
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
 const ACCUEIL = readFileSync(new URL("./accueil.ts", import.meta.url), "utf8");
+const PARCOURS = readFileSync(new URL("./styles/accueil-parcours.css", import.meta.url), "utf8");
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const BALISES = PAGE.replace(/<!--[\s\S]*?-->/g, "");
 
@@ -124,6 +125,13 @@ test("le tirage de l'exemple se fait au montage, jamais dans le rendu", () => {
   // `accueil.ts` reçoit son aléa (accueil.test.ts, n° 30) : c'est ici qu'il est
   // tiré, et nulle part ailleurs.
   assert.match(MAIN, /alea: Math\.random\(\)/);
+});
+
+test("le montage charge les trois portes, mobiles puis en grille", () => {
+  assert.match(MAIN, /import "\.\/styles\/accueil-parcours\.css";/);
+  assert.match(PARCOURS, /grid-template-columns:\s*1fr;/);
+  assert.match(PARCOURS, /@media \(min-width: 60rem\)[\s\S]*grid-template-columns:\s*repeat\(3,/);
+  assert.match(PARCOURS, /\.accueil-porte--simuler[\s\S]*background:\s*var\(--ui-nuit\)/);
 });
 
 /* --------------------------------------------------------------------------

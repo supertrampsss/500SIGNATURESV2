@@ -556,7 +556,38 @@ function page(overrides: Partial<Parameters<typeof rendu>[0]> = {}): string {
   });
 }
 
-test("25. la mention d'unité est posée une fois, en tête de page", () => {
+test("25. l'accueil sans donnée ouvre les trois parcours", () => {
+  const html = rendu({
+    analyses: [],
+    catalogue: [],
+    territoires: [],
+    alea: 0,
+    producteurs: [],
+  });
+  const portes = [
+    ["Comprendre la France", "/bilan"],
+    ["Explorer mon territoire", "/territoire"],
+    ["Prendre les commandes", "/simulateur"],
+  ] as const;
+  const positions = portes.map(([libelle, href]) => {
+    const position = html.indexOf(`href=\"${href}\"`);
+    assert.ok(position !== -1, `${libelle} mène à ${href}`);
+    assert.ok(html.includes(libelle), `${libelle} est proposé`);
+    return position;
+  });
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "les portes gardent leur ordre");
+  assert.ok(html.includes('class="accueil-portes"'));
+});
+
+test("26. les portes précèdent les analyses récentes", () => {
+  const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "plus-recent" })] });
+  assert.ok(
+    html.indexOf("Prendre les commandes") < html.indexOf("Les analyses récentes"),
+    "les parcours précèdent l'actualité éditoriale",
+  );
+});
+
+test("27. la mention d'unité est posée une fois, en tête de page", () => {
   const html = page();
   assert.equal(
     html.split(MENTION_MILLIONS).length - 1,
@@ -569,39 +600,36 @@ test("25. la mention d'unité est posée une fois, en tête de page", () => {
   );
 });
 
-test("26. le message principal est suivi immédiatement d'une preuve, jamais d'un développement", () => {
+test("27. la promesse ouvre la recherche et les parcours avant les preuves fraîches", () => {
   const html = page();
   assert.ok(html.includes(MESSAGE_PRINCIPAL));
-  const entreDeux = html.slice(
+  const ouverture = html.slice(
     html.indexOf(MESSAGE_PRINCIPAL) + MESSAGE_PRINCIPAL.length,
-    html.indexOf('<section class="accueil__bloc'),
+    html.indexOf('class="accueil__bloc accueil__bloc--confiance'),
   );
-  assert.equal(
-    texteLu(entreDeux).replace(`${MENTION_MILLIONS}.`, "").trim(),
-    "",
-    "entre le message et la preuve, rien d'autre que la mention d'unité",
-  );
-  // La preuve, c'est le verdict : le premier bloc porte un chiffre publié.
-  const premierBloc = html.slice(html.indexOf('<section class="accueil__bloc'));
   assert.ok(
-    premierBloc.startsWith('<section class="accueil__bloc accueil__bloc--verdict'),
+    texteLu(ouverture).includes("Chercher un territoire"),
+    "la recherche reste accessible depuis la promesse",
   );
-  assert.ok(premierBloc.includes(formater(DEFENSE.chiffres[0]!.observe!.valeur, "EUR", false)));
+  assert.ok(ouverture.includes('class="accueil-portes"'));
+  assert.ok(
+    html.indexOf('class="accueil-portes"') < html.indexOf('accueil__bloc--confiance'),
+    "la fraîcheur des données suit les portes",
+  );
 });
 
-test("27. les trois appels à l'action suivent l'entonnoir", () => {
+test("28. les appels de détail restent disponibles après les portes", () => {
   const html = page();
-  const ordre = ["Lire le verdict", "Rejouer le calcul", "Chercher ma commune"].map((appel) =>
-    html.indexOf(appel),
-  );
-  assert.ok(ordre.every((i) => i !== -1), "les trois appels existent");
-  assert.deepEqual([...ordre].sort((a, b) => a - b), ordre, "et dans cet ordre");
+  for (const appel of ["Lire le verdict", "Rejouer le calcul", "Chercher ma commune"]) {
+    assert.ok(html.includes(appel), appel);
+  }
+  assert.ok(html.indexOf("Prendre les commandes") < html.indexOf("Rejouer le calcul"));
 });
 
-test("28. les cinq blocs sont là, dans l'ordre de la spec", () => {
+test("29. les preuves et les approfondissements suivent les parcours", () => {
   const html = page({ analyses: [DEFENSE, analyseMinimale({ slug: "autre", titre: "Une autre" })] });
   const blocs = [...html.matchAll(/accueil__bloc accueil__bloc--([a-z]+)/g)].map((m) => m[1]);
-  assert.deepEqual(blocs, ["verdict", "simulateur", "territoire", "analyses", "confiance"]);
+  assert.deepEqual(blocs, ["confiance", "verdict", "analyses", "territoire", "simulateur"]);
 });
 
 test("29. aucun montant par habitant sur l'accueil entier", () => {
