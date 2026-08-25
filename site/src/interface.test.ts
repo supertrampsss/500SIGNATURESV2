@@ -22,6 +22,7 @@ import { MAXIMUM } from "./comparateur.ts";
 import { renduGrille, renduMethode } from "./methode-rendu.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
+import { carteVisibleParDefaut, REQUETE_CARTE_SECONDAIRE } from "./carte-territoriale.ts";
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -490,8 +491,8 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   // barre qui prend de la hauteur.
   assert.doesNotMatch(balises, /id="carte-bascule"/);
   assert.doesNotMatch(MAIN, /carteOuverte/);
-  // Les liens `#carte` déjà partagés continuent d'ouvrir ce qu'ils
-  // promettaient : la fiche, carte déployée — c'est désormais le seul état.
+  // Les liens `#carte` déjà partagés continuent d'ouvrir la fiche. La carte
+  // adopte ensuite sa présentation adaptée au viewport.
   // La table des alias a rejoint `routes.ts`, où elle se teste sans navigateur.
   assert.match(ROUTES, /carte: "territoire"/);
   // La carte se mesure au montage : rendue dans un conteneur replié, elle
@@ -501,8 +502,8 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   // La réécriture des liens à fragment efface le fragment : le fragment doit
   // être lu tel qu'il est arrivé, sinon les règles qui en dépendent ne
   // s'appliquent jamais au démarrage. La règle `#carte` elle-même a disparu
-  // avec l'état qu'elle posait — la carte est déployée dans tous les cas — mais
-  // la lecture du fragment initial reste, et d'autres règles s'y adossent.
+  // avec l'état qu'elle posait ; la lecture du fragment initial reste, et
+  // d'autres règles s'y adossent.
   assert.match(MAIN, /const fragmentInitial = location\.hash;/);
   const ouverture = MAIN.slice(MAIN.indexOf("const fragmentInitial = location.hash;"));
   assert.ok(
@@ -520,7 +521,7 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   // Le sommaire du BILAN, qui suivait basculerVue, est parti avec le sommaire
   // lui-même (retiré) ; la borne vise désormais le commentaire qui le suit
   // directement dans le fichier.
-  const BORNE = "/** La carte est-elle déployée ?";
+  const BORNE = "/**\n * Ouvre ou referme le fond de carte.";
   // Une borne introuvable rend −1, et `slice(a, -1)` découpe jusqu'à la fin du
   // fichier : le test resterait vert en ne mesurant plus rien. C'est ce qui
   // s'est produit quand ce commentaire a été retitré.
@@ -816,14 +817,21 @@ test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => 
   assert.doesNotMatch(MAIN, /getElementById\("exporter"\)/);
 });
 
-test("la carte est déployée d'emblée, et rien ne la replie", () => {
-  // Repliée, il fallait la demander pour voir ce qu'aucune fiche ne montre :
-  // la répartition dans l'espace. Le bouton qui permettait de la refermer est
-  // parti avec l'état qu'il commandait — le mode se pose une fois, à
-  // l'ouverture de la vue.
-  assert.match(MAIN, /appliquerModeCarte\(vue === "territoire"\)/);
-  assert.doesNotMatch(MAIN, /carteOuverte/);
-  assert.doesNotMatch(PAGE, /id="carte-bascule"/);
+test("la carte territoriale est repliée par défaut sur mobile", () => {
+  const requetes: string[] = [];
+  const mobile = (requete: string) => {
+    requetes.push(requete);
+    return { matches: false };
+  };
+
+  assert.equal(carteVisibleParDefaut(mobile), false);
+  assert.deepEqual(requetes, [REQUETE_CARTE_SECONDAIRE]);
+});
+
+test("la carte territoriale reste visible par défaut sur grand écran", () => {
+  const bureau = (requete: string) => ({ matches: requete === REQUETE_CARTE_SECONDAIRE });
+
+  assert.equal(carteVisibleParDefaut(bureau), true);
 });
 
 test("l'attribution de la carte est repliée au premier rendu", () => {

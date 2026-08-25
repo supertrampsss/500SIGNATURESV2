@@ -32,6 +32,7 @@ import {
   synchroniserThemesTerritoriaux,
   type ThemeTerritorial,
 } from "./briefing-territorial.ts";
+import { carteVisibleParDefaut } from "./carte-territoriale.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
 import { afficherTunnel } from "./tunnel.ts";
@@ -2661,8 +2662,8 @@ function basculerVue(): void {
   if (document.body.dataset.page === "editorial") return;
   const precedente = document.body.dataset.vue;
   const demandee = vueDepuisAdresse(location.pathname, location.hash);
-  // `#carte` ouvre la vue territoire ET déploie la carte : le lien tenait sa
-  // promesse quand la carte était une vue, il la tient encore.
+  // `#carte` reste un alias de la vue territoire ; la carte adopte alors son
+  // état initial adapté au viewport.
   const cible = demandee ?? "";
   // Une ancre interne — le sommaire de Décryptages vise `#bloc-etat` — passe
   // aussi par `hashchange`. Elle ne nomme pas une vue : la traiter comme une
@@ -2717,12 +2718,6 @@ function basculerVue(): void {
   if (vue !== precedente) window.scrollTo({ top: 0 });
 }
 
-/** La carte est-elle déployée ? Un mode de la vue territoire, pas une vue.
- *
- *  Elle l'est **par défaut**. Repliée, il fallait la demander pour voir ce
- *  qu'aucune fiche ne montre : la répartition dans l'espace. Le bouton reste,
- *  pour la refermer quand on vient lire plutôt que situer. */
-
 /**
  * Ouvre ou referme le fond de carte.
  *
@@ -2756,7 +2751,7 @@ function brancherBriefingTerritorial(): void {
 
   // À partir de 60rem, la carte reste visible comme un outil de contexte.
   // Le HTML part replié pour garder un premier écran mobile immédiatement lisible.
-  poserCarte(window.matchMedia("(min-width: 60.0625rem)").matches);
+  poserCarte(carteVisibleParDefaut(window.matchMedia.bind(window)));
   bouton.addEventListener("click", () => poserCarte(cadre.hidden));
 
   themes.addEventListener("click", (evenement) => {
