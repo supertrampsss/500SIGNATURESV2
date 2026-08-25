@@ -16,6 +16,8 @@ export type BriefingTerritorial = {
   exercice: string;
   code: string;
   niveau: string;
+  /** Le territoire courant puis un pair réellement comparable. */
+  comparer: string[];
 };
 
 export type EntreeBriefing = {
@@ -23,6 +25,7 @@ export type EntreeBriefing = {
   exercice: string;
   code: string;
   niveau: string;
+  comparer: readonly string[];
   chiffres: readonly {
     id: string;
     libelle: string;
@@ -74,13 +77,21 @@ export function briefingTerritorial(entree: EntreeBriefing): BriefingTerritorial
     exercice: entree.exercice,
     code: entree.code,
     niveau: entree.niveau,
+    comparer: [...entree.comparer],
   };
 }
 
 export function renduBriefing(briefing: BriefingTerritorial, territoire: Territoire): string {
-  const comparaison = `${adresseTerritoire(briefing.code, briefing.niveau)}&comparer=${encodeURIComponent(
-    briefing.code,
-  )}`;
+  const comparaison = briefing.niveau === "pays"
+    ? { href: "/bilan#france-verdict", libelle: "Comparer la France" }
+    : briefing.comparer.length >= 2
+      ? {
+          href: `${adresseTerritoire(briefing.code, briefing.niveau)}&comparer=${encodeURIComponent(
+            briefing.comparer.join(","),
+          )}`,
+          libelle: "Comparer",
+        }
+      : null;
   const chiffres = briefing.chiffres
     .map(
       (chiffre) => `<div>
@@ -95,14 +106,59 @@ export function renduBriefing(briefing: BriefingTerritorial, territoire: Territo
     <header>
       <h2>Briefing de ${echapper(territoire.nom)}</h2>
       <p>${echapper(briefing.diagnostic)}</p>
-      <p>Communes comparables : ${echapper(briefing.groupe)}</p>
+      <p>Territoires comparables : ${echapper(briefing.groupe)}</p>
     </header>
     <dl>${chiffres}</dl>
     <p>Exercice ${echapper(briefing.exercice)}</p>
     <p class="briefing-territorial__actions">
-      <a href="${echapper(comparaison)}">Comparer</a>
+      ${comparaison ? `<a href="${echapper(comparaison.href)}">${comparaison.libelle}</a>` : ""}
       <span>Le simulateur porte sur le budget national.</span>
       <a href="/simulateur">Simuler le budget national</a>
     </p>
   </section>`;
+}
+
+export type ThemeTerritorial = "budget" | "fiscalite" | "dette" | "services" | "trajectoire";
+
+const THEMES_TERRITORIAUX = new Set<ThemeTerritorial>([
+  "budget",
+  "fiscalite",
+  "dette",
+  "services",
+  "trajectoire",
+]);
+
+function estThemeTerritorial(theme: string | undefined): theme is ThemeTerritorial {
+  return theme !== undefined && THEMES_TERRITORIAUX.has(theme as ThemeTerritorial);
+}
+
+/** Un raccourci qui ne mène à rien ne reste pas au clavier. Les cibles sont
+ * aussi rendues focalisables afin que le lien soit une arrivée, pas seulement
+ * un défilement qui laisse le lecteur perdu dans la page. */
+export function synchroniserThemesTerritoriaux(
+  actions: Iterable<HTMLButtonElement>,
+  cibles: Partial<Record<ThemeTerritorial, HTMLElement>>,
+): void {
+  for (const action of actions) {
+    const cible = estThemeTerritorial(action.dataset.territoireTheme)
+      ? cibles[action.dataset.territoireTheme]
+      : undefined;
+    action.hidden = !cible;
+    action.disabled = !cible;
+    if (!cible) continue;
+    cible.dataset.territoireSection = action.dataset.territoireTheme;
+    cible.tabIndex = -1;
+  }
+}
+
+export function naviguerVersThemeTerritorial(
+  theme: string,
+  cibles: Partial<Record<ThemeTerritorial, HTMLElement>>,
+  mouvementReduit: boolean,
+): boolean {
+  const cible = estThemeTerritorial(theme) ? cibles[theme] : undefined;
+  if (!cible) return false;
+  cible.scrollIntoView({ block: "start", behavior: mouvementReduit ? "auto" : "smooth" });
+  cible.focus({ preventScroll: true });
+  return true;
 }

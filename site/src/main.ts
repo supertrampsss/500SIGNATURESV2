@@ -25,7 +25,13 @@ import {
   type Ligne as LignePalmares,
 } from "./palmares.ts";
 import { groupeDe, intituleGroupe } from "./semblables.ts";
-import { briefingTerritorial, renduBriefing } from "./briefing-territorial.ts";
+import {
+  briefingTerritorial,
+  naviguerVersThemeTerritorial,
+  renduBriefing,
+  synchroniserThemesTerritoriaux,
+  type ThemeTerritorial,
+} from "./briefing-territorial.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
 import { afficherTunnel } from "./tunnel.ts";
@@ -737,6 +743,7 @@ function afficherApercu(): void {
     comparateurs: [],
   });
   monterBriefingTerritorial("pays", "FR", france);
+  preparerAncresTerritoriales();
   poserPartageDeLaFiche("pays", "FR", france);
   appliquerVitesse();
 }
@@ -1024,12 +1031,15 @@ function monterBriefingTerritorial(niveau: string, code: string, territoire: Ter
       : `Les derniers comptes publiés de ${territoire.nom} sont prêts à être lus`;
   const groupe = repertoire?.niveau === niveau ? groupeDe(repertoire.index, code) : null;
   const comparaison = groupe ? intituleGroupe(groupe) : `${NIVEAUX[niveau] ?? "territoires"} de même niveau`;
+  const candidats = groupe?.codes ?? (repertoire?.niveau === niveau ? new Set(repertoire.index.codes) : new Set<string>());
+  const pair = [...candidats].filter((candidat) => candidat !== code).sort()[0];
   cible.innerHTML = renduBriefing(
     briefingTerritorial({
       territoire,
       exercice,
       code,
       niveau,
+      comparer: pair ? [code, pair] : [code],
       chiffres: reperes.map((repere) => ({
         id: repere.id,
         libelle: repere.role,
@@ -1045,22 +1055,27 @@ function monterBriefingTerritorial(niveau: string, code: string, territoire: Ter
 
 /** Les cinq entrées gardent le même vocabulaire d'un territoire à l'autre,
  * mais amènent toujours à un élément réellement rendu par la fiche. */
-function preparerAncresTerritoriales(): void {
+function preparerAncresTerritoriales(): Partial<Record<ThemeTerritorial, HTMLElement>> {
   const fiche = document.getElementById("fiche");
-  if (!fiche) return;
+  if (!fiche) return {};
   const blocs = fiche.querySelectorAll<HTMLElement>(".bloc-lecture");
-  const ancres: [string, HTMLElement | null][] = [
+  const ancres: [ThemeTerritorial, HTMLElement | null][] = [
     ["budget", fiche.querySelector(".reperes")],
     ["fiscalite", blocs[1] ?? blocs[0] ?? null],
     ["dette", fiche.querySelector(".note")],
     ["services", blocs[0] ?? null],
     ["trajectoire", fiche.querySelector(".tableau-exercices")],
   ];
+  const cibles: Partial<Record<ThemeTerritorial, HTMLElement>> = {};
   for (const [theme, section] of ancres) {
     if (!section) continue;
-    section.dataset.territoireSection = theme;
-    section.tabIndex = -1;
+    cibles[theme] = section;
   }
+  synchroniserThemesTerritoriaux(
+    document.querySelectorAll<HTMLButtonElement>("[data-territoire-theme]"),
+    cibles,
+  );
+  return cibles;
 }
 
 async function montrerFiche(code: string): Promise<void> {
@@ -1072,6 +1087,7 @@ async function montrerFiche(code: string): Promise<void> {
   // et son absence ne doit pas l'empêcher.
   await Promise.all([
     chargerLotsNecessaires(niveau, [code]),
+    chargerIndex(niveau).catch(() => false),
     niveau === "commune" ? chargerAssociations(code) : Promise.resolve(),
   ]);
   const territoire = entiteDe(code, niveau);
@@ -2746,14 +2762,12 @@ function brancherBriefingTerritorial(): void {
   themes.addEventListener("click", (evenement) => {
     const action = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-territoire-theme]");
     const theme = action?.dataset.territoireTheme;
-    if (!theme) return;
-    const cible = document.querySelector<HTMLElement>(`[data-territoire-section="${theme}"]`);
-    if (!cible) return;
-    cible.scrollIntoView({
-      block: "start",
-      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-    });
-    cible.focus({ preventScroll: true });
+    if (!theme || action?.disabled) return;
+    naviguerVersThemeTerritorial(
+      theme,
+      preparerAncresTerritoriales(),
+      matchMedia("(prefers-reduced-motion: reduce)").matches,
+    );
   });
 }
 

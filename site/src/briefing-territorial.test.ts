@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { Territoire } from "./donnees.ts";
-import { briefingTerritorial, renduBriefing } from "./briefing-territorial.ts";
+import {
+  briefingTerritorial,
+  naviguerVersThemeTerritorial,
+  renduBriefing,
+  synchroniserThemesTerritoriaux,
+} from "./briefing-territorial.ts";
 
 const territoire: Territoire = {
   nom: 'Saint-<Martin> & "Co', parent: "33", population: 12_000, drapeaux: {}, series: {},
@@ -13,6 +18,7 @@ const entree = {
   exercice: "2025",
   code: "33063",
   niveau: "commune",
+  comparer: ["33063", "33100"],
   diagnostic: "Une situation & solide",
   groupe: 'communes de <10 000> habitants & rurales',
   chiffres: [
@@ -42,6 +48,7 @@ test("le briefing priorise quatre chiffres, complète son diagnostic et nomme se
   assert.equal(briefing.exercice, "2025");
   assert.equal(briefing.code, "33063");
   assert.equal(briefing.niveau, "commune");
+  assert.deepEqual(briefing.comparer, ["33063", "33100"]);
 });
 
 test("le rendu montre l'exercice, échappe les textes et porte des actions adressables", () => {
@@ -51,11 +58,56 @@ test("le rendu montre l'exercice, échappe les textes et porte des actions adres
   assert.match(html, /<dl>/);
   assert.match(html, /Exercice 2025/);
   assert.match(html, /Une situation &amp; solide\./);
-  assert.match(html, /Communes comparables : communes de &lt;10 000&gt; habitants &amp; rurales/);
+  assert.match(html, /Territoires comparables : communes de &lt;10 000&gt; habitants &amp; rurales/);
   assert.match(html, />Comparer<\/a>/);
   assert.match(html, />Simuler le budget national<\/a>/);
   assert.match(html, /Le simulateur porte sur le budget national\./);
-  assert.match(html, /href="\/territoire\?niveau=commune&amp;territoire=33063&amp;comparer=33063"/);
+  assert.match(html, /href="\/territoire\?niveau=commune&amp;territoire=33063&amp;comparer=33063%2C33100"/);
   assert.match(html, /href="\/simulateur"/);
   assert.doesNotMatch(html, /Saint-%3CMartin|Simuler ce territoire/);
+});
+
+test("la France renvoie sa comparaison vers le bilan national", () => {
+  const html = renduBriefing(
+    briefingTerritorial({ ...entree, code: "FR", niveau: "pays", comparer: ["FR"] }),
+    territoire,
+  );
+
+  assert.match(html, /href="\/bilan#france-verdict">Comparer la France<\/a>/);
+  assert.doesNotMatch(html, /comparer=FR/);
+});
+
+test("les raccourcis invisibles ne prennent pas le focus, les autres y conduisent", () => {
+  const appels: unknown[] = [];
+  const budget = {
+    dataset: { territoireTheme: "budget" },
+    hidden: false,
+    disabled: false,
+  } as unknown as HTMLButtonElement;
+  const dette = {
+    dataset: { territoireTheme: "dette" },
+    hidden: false,
+    disabled: false,
+  } as unknown as HTMLButtonElement;
+  const cible = {
+    dataset: {},
+    tabIndex: 0,
+    scrollIntoView: (options: unknown) => appels.push(["scroll", options]),
+    focus: (options: unknown) => appels.push(["focus", options]),
+  } as unknown as HTMLElement;
+  const cibles = { budget: cible };
+
+  synchroniserThemesTerritoriaux([budget, dette], cibles);
+  assert.equal(budget.hidden, false);
+  assert.equal(budget.disabled, false);
+  assert.equal(dette.hidden, true);
+  assert.equal(dette.disabled, true);
+  assert.equal(cible.dataset.territoireSection, "budget");
+  assert.equal(cible.tabIndex, -1);
+  assert.equal(naviguerVersThemeTerritorial("budget", cibles, false), true);
+  assert.deepEqual(appels, [
+    ["scroll", { block: "start", behavior: "smooth" }],
+    ["focus", { preventScroll: true }],
+  ]);
+  assert.equal(naviguerVersThemeTerritorial("dette", cibles, true), false);
 });

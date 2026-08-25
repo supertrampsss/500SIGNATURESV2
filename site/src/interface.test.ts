@@ -28,6 +28,7 @@ const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const BRIEFING_TERRITORIAL = readFileSync(new URL("./briefing-territorial.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
@@ -3246,5 +3247,5 @@ test("les thèmes du briefing conduisent à une section détaillée", () => {
     assert.match(PAGE, new RegExp(`>${theme}<`));
   }
   assert.match(MAIN, /data-territoire-theme/);
-  assert.match(MAIN, /focus\(\{ preventScroll: true \}\)/);
+  assert.match(BRIEFING_TERRITORIAL, /focus\(\{ preventScroll: true \}\)/);
 });
