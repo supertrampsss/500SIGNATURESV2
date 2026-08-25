@@ -386,13 +386,14 @@ test("un repaint pendant le partage invalide l'ancien bouton mais libère une no
   }
 });
 
-test("le conseil express rend le dilemme sans bloc de preuve séparé", () => {
+test("le conseil express rend un arbitrage éclair avec ses preuves à la demande", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
-  assert.match(html, /tunnel__etat-compact/);
-  assert.match(html, /tunnel__comparaison/);
-  assert.match(html, /tunnel__camp--adopter/);
-  assert.match(html, /tunnel__camp--rejeter/);
-  assert.doesNotMatch(html, /tunnel__preuve|Chiffrage, hypothèses et source/);
+  assert.equal((html.match(/tunnel-decision__option/g) ?? []).length, 2);
+  assert.equal((html.match(/tunnel-decision__soutiens/g) ?? []).length, 0);
+  assert.equal((html.match(/data-details="preuve"/g) ?? []).length, 1);
+  assert.match(html, /Voir les conséquences et le chiffrage/);
+  assert.doesNotMatch(html, /Chiffrage, hypothèses et source/);
+  assert.doesNotMatch(html, /Chaque décision modifie/);
   assert.match(html, /tunnel__actions-fixes/);
   assert.match(html, /Acte 1/);
 });
@@ -405,21 +406,13 @@ test("le conseil rend les conséquences sans répétition narrative ni message g
   assert.doesNotMatch(html, /en supportent le coût\./);
 });
 
-test("la salle de crise répartit l'état, le dilemme et la trajectoire dans trois régions utiles", () => {
+test("l'arbitrage garde l'état et le dossier dans une scène compacte", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
-  const soutiens = html.match(/<aside class="tunnel__panneau tunnel__panneau--soutiens"[\s\S]*?<\/aside>/)?.[0] ?? "";
-  const dilemme = html.match(/<section class="tunnel__dilemme"[\s\S]*?<\/section>\s*<aside class="tunnel__panneau tunnel__panneau--trajectoire"/)?.[0] ?? "";
-  const trajectoire = html.match(/<aside class="tunnel__panneau tunnel__panneau--trajectoire"[\s\S]*?<\/aside>/)?.[0] ?? "";
-
-  assert.match(soutiens, /aria-label="Soutiens et engagement"/);
-  assert.match(soutiens, /tunnel__etat-compact/);
-  assert.match(soutiens, /tunnel__soutiens/);
-  assert.match(soutiens, /Progression de la séance/);
-  assert.match(dilemme, /tunnel__carte/);
-  assert.match(dilemme, /tunnel__actions-fixes/);
-  assert.match(trajectoire, /aria-label="Trajectoire et conséquences"/);
-  assert.match(trajectoire, /Reste à trouver/);
-  assert.match(trajectoire, /Conséquences et alertes/);
+  assert.match(html, /<div class="tunnel-decision__mission"/);
+  assert.match(html, /<section class="tunnel__dilemme"/);
+  assert.doesNotMatch(html, /tunnel__panneau--soutiens|tunnel__panneau--trajectoire/);
+  assert.match(html, /tunnel__carte/);
+  assert.match(html, /tunnel__actions-fixes/);
 });
 
 test("les conséquences portent une classe de signe sans assimiler adopter à un résultat positif", () => {
@@ -436,8 +429,8 @@ test("les boutons reprennent les deux camps dans le même ordre et avec leurs li
   const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
 
   assert.ok(html.indexOf("tunnel__camp--adopter") < html.indexOf("tunnel__camp--rejeter"));
-  assert.match(actions, /^\s*<button[^>]*class="tunnel__adopter"[^>]*data-geste="adopter">Adopter — Baisser<\/button>/);
-  assert.match(actions, /<button[^>]*class="tunnel__rejeter"[^>]*data-geste="rejeter">Rejeter — Maintenir<\/button>\s*$/);
+  assert.match(actions, /^\s*<button[^>]*class="tunnel__adopter"[^>]*data-geste="adopter">Baisser<\/button>/);
+  assert.match(actions, /<button[^>]*class="tunnel__rejeter"[^>]*data-geste="rejeter">Maintenir<\/button>\s*$/);
 });
 
 test("deux clics synchrones sur l'ancien CTA ne posent qu'un tampon", () => {
@@ -502,7 +495,7 @@ test("deux clics synchrones sur l'ancien CTA ne posent qu'un tampon", () => {
   }
 });
 
-test("la barre intégrale reprend le titre de la mesure sans répéter le verbe", () => {
+test("la barre intégrale reprend le titre de la mesure sans préfixer le geste", () => {
   const html = renduConseil({
     ...commencer({ ...etatInitial(), mode: "integral" }),
     mode: "integral",
@@ -510,8 +503,8 @@ test("la barre intégrale reprend le titre de la mesure sans répéter le verbe"
   }, MISSION);
   const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
 
-  assert.match(actions, /data-geste="adopter">Adopter — Reconduire la surtaxe des grandes entreprises<\/button>/);
-  assert.match(actions, /data-geste="rejeter">Rejeter — Reconduire la surtaxe des grandes entreprises<\/button>/);
+  assert.match(actions, /data-geste="adopter">Reconduire la surtaxe des grandes entreprises<\/button>/);
+  assert.match(actions, /data-geste="rejeter">Reconduire la surtaxe des grandes entreprises<\/button>/);
 });
 
 /** Un conseil ouvert sans engagement : la pile entière. */
@@ -691,8 +684,8 @@ test("la carte du conseil porte le montant et sa réserve sans pied méthodologi
   assert.match(html, /Flat tax à 20 %/);
   assert.match(html, /arithmétique brute/);
   assert.match(html, /150\u202f000\u202fM€/);
-  assert.match(html, /Rejeter/);
-  assert.match(html, /Adopter/);
+  assert.match(html, /data-geste="adopter"/);
+  assert.match(html, /data-geste="rejeter"/);
   assert.match(html, /Ajourner/);
   const page = rendu(conseil(), MISSION);
   assert.doesNotMatch(page, /La mission est calculée sur les budgets publiés/);
@@ -1437,11 +1430,10 @@ test("le contrôleur route une décision de crise vers son arbitrage", () => {
   }
 });
 
-test("le journal nomme les écartées « incompatible », jamais « rejetée »", () => {
+test("l'annulation reste disponible après l'écartement des incompatibles", () => {
   let etat = conseil();
   etat = adopterId(etat, "flat-tax-a-20-des-le-premier");
   const html = renduConseil(etat, MISSION);
-  assert.match(html, /incompatible/);
   assert.match(html, /Annuler le dernier tampon/);
 });
 
