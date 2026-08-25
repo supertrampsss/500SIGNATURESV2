@@ -937,14 +937,34 @@ test("la recherche porte sur le verdict et les chiffres, pas seulement sur le ti
   assert.deepEqual(slugs({ recherche: "comptes publiés" }), ["defense"]);
 });
 
-test("l'index dit dans quelle unité lire ses montants", () => {
-  // C'est la page du site où la confusion milliards/millions est la plus
-  // facile : la carte met « environ 59,9 milliards d'euros » à côté du montant
-  // publié, « 59 946 M€ ». Sans la ligne d'unité, le second se lit comme le
-  // premier (CLAUDE.md, même convention que le <caption> de l'étage 2).
+test("l'index ne force aucune unité globale et garde celle de chaque chiffre", () => {
+  // Les dossiers mélangent pourcentages, euros et ordres de grandeur : une
+  // légende « en millions » au-dessus de tous rendait les cartes non-EUR
+  // fausses. Chaque chiffre publié reste déjà formaté par son indicateur.
   const html = renduIndex([DEFENSE], CATALOGUE);
-  assert.match(html, /Montants en millions d'euros\./);
+  assert.doesNotMatch(html, /Montants en millions d'euros\./);
+  assert.match(carteDe(html, DEFENSE.titre), /59[\s ]946[\s ]M€/);
   assert.doesNotMatch(html, /\bMd€/);
+});
+
+test("l'index et chaque dossier portent leur propre titre de niveau 1", () => {
+  const index = renduIndex([DEFENSE], CATALOGUE);
+  const dossier = rendu(DEFENSE, CATALOGUE);
+  assert.match(index, /<h1 id="analyses-titre">Dossiers de vérification<\/h1>/);
+  assert.match(dossier, new RegExp(`<h1 class="analyse-rendu__titre">${DEFENSE.titre}</h1>`));
+  assert.doesNotMatch(dossier, /<h2 class="analyse-rendu__titre">/);
+  assert.match(dossier, /<h2>Confronter l'affirmation aux comptes<\/h2>/);
+  assert.doesNotMatch(dossier, /<h3>/);
+});
+
+test("chaque libellé de filtre est groupé avec son contrôle", () => {
+  const a = analyseMinimale({ slug: "a", titre: "Première", type: "decryptage", themes: ["dette"], budgets_concernes: ["etat"] });
+  const b = analyseMinimale({ slug: "b", titre: "Seconde", type: "comparaison", themes: ["securite_sociale"], budgets_concernes: ["secu"] });
+  const html = renduIndex([a, b], CATALOGUE);
+  assert.match(html, /<div class="analyses-filtres__groupe analyses-filtres__groupe--recherche">\s*<label[^>]*for="analyses-recherche"[\s\S]*?<input[^>]*id="analyses-recherche"/);
+  for (const facette of ["type", "theme", "budget"]) {
+    assert.match(html, new RegExp(`<div class="analyses-filtres__groupe">\\s*<label[^>]*for="analyses-${facette}"[\\s\\S]*?<select[^>]*id="analyses-${facette}"`));
+  }
 });
 
 test("le cran et la confusion ne se collent pas l'un à l'autre", () => {

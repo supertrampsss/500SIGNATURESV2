@@ -3273,6 +3273,19 @@ test("dossiers et registre ne conservent aucune colonne minimale sur mobile", ()
   assert.match(REGISTRE_SOURCES, /\.registre-sources__publication\s*\{[^}]*overflow-wrap:\s*anywhere;/s);
 });
 
+test("les filtres bureau gardent chaque libellé collé à son contrôle", () => {
+  const bureau = DOSSIERS_VERIFICATION.slice(DOSSIERS_VERIFICATION.indexOf("@media (min-width: 60rem)"));
+  assert.match(bureau, /\.analyses-filtres__groupe\s*\{\s*display: grid;/);
+  assert.match(bureau, /\.analyses-filtres__groupe--recherche\s*\{\s*grid-column: 1 \/ -1;/);
+});
+
+test("le registre propose un filtre de contexte qui garde le HTML intégral sans JavaScript", () => {
+  const registre = MAIN.slice(MAIN.indexOf("function brancherRegistreSources(): void {"));
+  assert.match(registre, /getElementById\("registre-sources-contexte"\)/);
+  assert.match(registre, /fiche\.dataset\.contextes/);
+  assert.match(REGISTRE_SOURCES, /\.registre-sources__groupe/);
+});
+
 test("une ancre de source donne le focus à la fiche exacte", () => {
   const registre = MAIN.slice(MAIN.indexOf("function brancherRegistreSources(): void {"));
   assert.match(registre, /const focaliserAncre = \(\) => \{/);

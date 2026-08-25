@@ -47,7 +47,7 @@ import {
 } from "./analyse-rendu.ts";
 import type { Jeu } from "./donnees.ts";
 import { formater } from "./echelle.ts";
-import type { FicheSource, StatutSource } from "./registre-sources.ts";
+import { contextesDePages, type FicheSource, type StatutSource } from "./registre-sources.ts";
 import { echapper } from "./texte.ts";
 
 /**
@@ -299,7 +299,8 @@ export function renduRegistre(fiches: readonly FicheSource[]): string {
       const pages = fiche.pages
         .map((page) => `<li><a href="${echapper(page)}">${echapper(page)}</a></li>`)
         .join("");
-      return `<article class="registre-sources__fiche" id="${echapper(fiche.id)}" data-statut="${fiche.statut}" data-texte="${echapper(texte)}">
+      const contextes = contextesDePages(fiche.pages).join(" ");
+      return `<article class="registre-sources__fiche" id="${echapper(fiche.id)}" data-statut="${fiche.statut}" data-contextes="${echapper(contextes)}" data-texte="${echapper(texte)}">
         <header>
           <p class="registre-sources__statut">${LIBELLES_STATUT_SOURCE[fiche.statut]}</p>
           <h2>${echapper(fiche.nom)}</h2>
@@ -327,16 +328,29 @@ export function renduRegistre(fiches: readonly FicheSource[]): string {
       <p>Chaque fiche distingue la publication, son statut et les pages du site qui l'utilisent.</p>
     </header>
     <form class="registre-sources__filtres" id="registre-sources-filtres" hidden>
-      <label for="registre-sources-recherche">Rechercher une source</label>
-      <input id="registre-sources-recherche" type="search" autocomplete="off" placeholder="Nom, institution, série ou périmètre" />
-      <label for="registre-sources-statut">Statut</label>
-      <select id="registre-sources-statut">
-        <option value="">Tous les statuts</option>
-        <option value="publie">Publié</option>
-        <option value="provisoire">Provisoire</option>
-        <option value="estimation">Estimation</option>
-        <option value="regle_jeu">Règle de jeu</option>
-      </select>
+      <div class="registre-sources__groupe">
+        <label for="registre-sources-recherche">Rechercher une source</label>
+        <input id="registre-sources-recherche" type="search" autocomplete="off" placeholder="Nom, institution, série ou périmètre" />
+      </div>
+      <div class="registre-sources__groupe">
+        <label for="registre-sources-statut">Statut</label>
+        <select id="registre-sources-statut">
+          <option value="">Tous les statuts</option>
+          <option value="publie">Publié</option>
+          <option value="provisoire">Provisoire</option>
+          <option value="estimation">Estimation</option>
+          <option value="regle_jeu">Règle de jeu</option>
+        </select>
+      </div>
+      <div class="registre-sources__groupe">
+        <label for="registre-sources-contexte">Utilisée sur</label>
+        <select id="registre-sources-contexte">
+          <option value="">Toutes les pages</option>
+          <option value="national">National</option>
+          <option value="territoires">Territoires</option>
+          <option value="simulateur">Simulateur</option>
+        </select>
+      </div>
       <p class="registre-sources__compte" aria-live="polite"></p>
       <button type="button" class="registre-sources__effacer" hidden>Effacer les filtres</button>
     </form>

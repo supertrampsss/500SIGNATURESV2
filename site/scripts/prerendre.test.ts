@@ -27,7 +27,7 @@ import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
 import { CHIFFRES_EXEMPLE, MESSAGE_PRINCIPAL } from "../src/accueil.ts";
-import { rendu, type Analyse } from "../src/analyse-rendu.ts";
+import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
 import { GEOMETRIE, LARGEUR, carteAnalyse, carteSection } from "../src/carte-og.ts";
 import type {
@@ -589,6 +589,18 @@ test("7 ter. le build appelle aussi le contrôle de l'image du scénario", () =>
 /* --------------------------------------------------------------------------
  * 8. Une citation ramène à la page qui la porte
  * ----------------------------------------------------------------------- */
+
+test("7 ter. l'index et chaque dossier publié ont un h1 propre", async () => {
+  const analyses = await analysesPubliees();
+  assert.ok(analyses.length > 0, "aucun dossier publié");
+  const index = renduIndex(analyses, catalogueEnEuros(analyses));
+  assert.match(index, /<h1 id="analyses-titre">Dossiers de vérification<\/h1>/);
+  for (const analyse of analyses) {
+    const html = rendu(analyse, catalogueEnEuros([analyse]));
+    assert.ok(html.includes(`<h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>`));
+    assert.doesNotMatch(html, /<h2 class="analyse-rendu__titre">/);
+  }
+});
 
 test("8. le permalien d'une citation est celui que la page annonce en og:url", async () => {
   const site = "https://exemple.test";

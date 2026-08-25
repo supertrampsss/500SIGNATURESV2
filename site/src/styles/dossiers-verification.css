@@ -97,12 +97,12 @@
   text-transform: uppercase;
 }
 
-.dossier-preuve__verdict h3,
-.dossier-preuve__confrontation h3,
-.dossier-preuve__chemin h3,
-.dossier-preuve__donnees h3,
-.dossier-preuve__limites h3,
-.dossier-preuve__sources h3 {
+.dossier-preuve__verdict h2,
+.dossier-preuve__confrontation h2,
+.dossier-preuve__chemin h2,
+.dossier-preuve__donnees h2,
+.dossier-preuve__limites h2,
+.dossier-preuve__sources h2 {
   margin: 0 0 var(--espace-3);
   color: var(--encre);
   font-family: var(--serif);
@@ -236,6 +236,12 @@
 
 .analyses-filtres__label { font-weight: 700; }
 
+.analyses-filtres__groupe {
+  display: grid;
+  min-width: 0;
+  gap: var(--espace-2);
+}
+
 .analyses-filtres__champ,
 .analyses-filtres select {
   width: 100%;
@@ -279,11 +285,12 @@
 
   .analyses-filtres {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    align-items: end;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
   }
 
-  .analyses-filtres__champ { grid-column: span 2; }
+  .analyses-filtres__groupe { display: grid; }
+  .analyses-filtres__groupe--recherche { grid-column: 1 / -1; }
   .analyses-filtres__compte,
   .analyses-filtres__vide { grid-column: 1 / -1; }
 }

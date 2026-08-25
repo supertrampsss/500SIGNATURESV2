@@ -332,7 +332,7 @@ function verdictDuDossier(analyse: Analyse): string {
       : "";
   return `<section class="dossier-preuve__verdict">
     <p class="dossier-preuve__eyebrow">Verdict</p>
-    <h3>${echapper(LIBELLE_QUALIFICATION[qualification])}</h3>
+    <h2>${echapper(LIBELLE_QUALIFICATION[qualification])}</h2>
     <p class="analyse-rendu__verdict analyse-rendu__verdict--${echapper(verdict.cran)}">${
       LIBELLE_CRAN[verdict.cran]
     }</p>
@@ -386,7 +386,7 @@ function express(
     })
     .join("");
   return `<section class="analyse-rendu__express dossier-preuve__confrontation">
-    <h3>Confronter l'affirmation aux comptes</h3>
+    <h2>Confronter l'affirmation aux comptes</h2>
     <p class="dossier-preuve__intro">Affirmation contrôlée</p>
     <blockquote class="analyse-rendu__affirmation">${echapper(affirmation.texte)}</blockquote>
     ${attribution}
@@ -470,7 +470,7 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
   </table></div>`;
 
   return `<section class="analyse-rendu__detail dossier-preuve__donnees">
-    <h3>Les données utiles</h3>
+    <h2>Les données utiles</h2>
     ${tableau}
   </section>`;
 }
@@ -481,7 +481,7 @@ function interactif(analyse: Analyse): string {
   const { simulateur } = analyse;
   if (!simulateur.budget) {
     return `<section class="analyse-rendu__interactif">
-      <h3>L'interactif</h3>
+      <h2>L'interactif</h2>
       <p class="analyse-rendu__lecture-simulateur">${echapper(simulateur.lecture)}</p>
     </section>`;
   }
@@ -489,7 +489,7 @@ function interactif(analyse: Analyse): string {
   if (simulateur.contrat) parametres.set("contrat", simulateur.contrat);
   const lien = `/simulateur?${parametres.toString()}`;
   return `<section class="analyse-rendu__interactif">
-    <h3>L'interactif</h3>
+    <h2>L'interactif</h2>
     <p class="analyse-rendu__lecture-simulateur">${echapper(simulateur.lecture)}</p>
     <a class="analyse-rendu__bouton" href="${lien}">Rejouer le calcul</a>
     <a class="analyse-rendu__bouton" href="${lien}">Créer mon alternative</a>
@@ -536,7 +536,7 @@ function preuve(analyse: Analyse, catalogue: Indicateur[], version = ""): string
     .join("");
 
   return `<section class="analyse-rendu__preuve dossier-preuve__chemin">
-    <h3>Le chemin de preuve</h3>
+    <h2>Le chemin de preuve</h2>
     ${chemins}
   </section>`;
 }
@@ -559,7 +559,7 @@ function limites(analyse: Analyse): string {
     : "";
   const contenu = hypotheses || effets || "<p>Aucune réserve spécifique n'est déclarée pour ce dossier.</p>";
   return `<section class="dossier-preuve__limites">
-    <h3>Limites et réserves</h3>
+    <h2>Limites et réserves</h2>
     ${contenu}
   </section>`;
 }
@@ -573,7 +573,7 @@ function sources(analyse: Analyse, indexSources?: IndexSources): string {
         .join("")}</ul>`
     : "<p>Aucune source primaire n'est déclarée.</p>";
   return `<section class="dossier-preuve__sources">
-    <h3>Sources et reproduction</h3>
+    <h2>Sources et reproduction</h2>
     <p class="analyse-rendu__fichier-publie">Fichier publié</p>
     ${fichiers}
   </section>`;
@@ -598,7 +598,7 @@ export function rendu(
   indexSources?: IndexSources,
 ): string {
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
-    <h2 class="analyse-rendu__titre">${echapper(analyse.titre)}</h2>
+    <h1 class="analyse-rendu__titre">${echapper(analyse.titre)}</h1>
     ${verdictDuDossier(analyse)}
     ${express(analyse, catalogue, adresse, indexSources)}
     ${preuve(analyse, catalogue, version)}
@@ -707,10 +707,12 @@ function facette(
   const options = valeurs
     .map((v) => `<option value="${echapper(v.valeur)}">${echapper(v.libelle)}</option>`)
     .join("");
-  return `<label class="analyses-filtres__label" for="analyses-${nom}">${echapper(libelle)}</label>
-      <select class="pilule pilule--menu" id="analyses-${nom}" data-facette="${nom}">
-        <option value="">${echapper(defaut)}</option>${options}
-      </select>`;
+  return `<div class="analyses-filtres__groupe">
+        <label class="analyses-filtres__label" for="analyses-${nom}">${echapper(libelle)}</label>
+        <select class="pilule pilule--menu" id="analyses-${nom}" data-facette="${nom}">
+          <option value="">${echapper(defaut)}</option>${options}
+        </select>
+      </div>`;
 }
 
 /** Les valeurs distinctes d'une facette, triées par leur libellé. */
@@ -832,9 +834,11 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       : `<button class="analyses-filtres__bouton" id="analyses-filtres-bouton" type="button"
            aria-expanded="false" aria-controls="analyses-filtres" hidden>Filtrer les dossiers</button>
     <div class="analyses-filtres" id="analyses-filtres" data-ouvert="false" hidden>
-      <label class="analyses-filtres__label" for="analyses-recherche">Chercher</label>
-      <input class="analyses-filtres__champ" id="analyses-recherche" type="search"
-             autocomplete="off" placeholder="Un mot du chiffre, du verdict ou du titre" />
+      <div class="analyses-filtres__groupe analyses-filtres__groupe--recherche">
+        <label class="analyses-filtres__label" for="analyses-recherche">Chercher</label>
+        <input class="analyses-filtres__champ" id="analyses-recherche" type="search"
+               autocomplete="off" placeholder="Un mot du chiffre, du verdict ou du titre" />
+      </div>
       ${facette(
         "type",
         "Type",
@@ -869,13 +873,13 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       </div>
     </div>`;
 
-  // « Dire l'unité là où le nombre est gros » (CLAUDE.md). C'est la page où
-  // la confusion est la plus facile : chaque carte met « environ 59,9
-  // milliards d'euros » à côté de « 59 946 M€ », et lu vite, le second se lit
-  // comme le premier. La ligne est un cadrage, pas une réserve : elle dit dans
-  // quelle unité lire les chiffres, elle ne demande pas de s'en méfier.
-  const unite = triees.length
-    ? `<p class="analyse-rendu__index-unite">Montants en millions d'euros.</p>`
-    : "";
-  return `${barre}${unite}<ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>`;
+  return `<section class="analyses-index" aria-labelledby="analyses-titre">
+    <header class="analyses-index__entete">
+      <p class="analyses-index__eyebrow">Vérifier une affirmation</p>
+      <h1 id="analyses-titre">Dossiers de vérification</h1>
+      <p>Des affirmations confrontées aux comptes et aux publications qui les documentent.</p>
+    </header>
+    ${barre}
+    <ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>
+  </section>`;
 }

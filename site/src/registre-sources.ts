@@ -10,6 +10,9 @@ import type { Indicateur, Jeu } from "./donnees.ts";
 
 export type StatutSource = "publie" | "provisoire" | "estimation" | "regle_jeu";
 
+/** Les trois pages qui peuvent effectivement consommer une publication. */
+export type ContexteSource = "national" | "territoires" | "simulateur";
+
 export type FicheSource = {
   /** Identifiant déterministe : seul contrat de lien profond vers /sources/. */
   id: string;
@@ -224,6 +227,36 @@ function indicateursParNiveau(indicateurs: readonly Indicateur[], jeu: string): 
 }
 
 /**
+ * Les usages ne sont pas déclaratifs : ils suivent la maille réellement
+ * publiée et les contrats des analyses. Une source de pays peut servir le
+ * bilan, une source locale le territoire, et seule une analyse qui expose un
+ * réglage de budget peut conduire au simulateur.
+ */
+function usagesDuJeu(indicateurs: readonly Indicateur[]): string[] {
+  const niveaux = indicateurs.flatMap((indicateur) => indicateur.niveaux ?? []);
+  return [
+    ...(niveaux.includes("pays") ? ["/bilan"] : []),
+    ...(niveaux.some((niveau) => niveau !== "pays") ? ["/territoire"] : []),
+  ];
+}
+
+function usagesDesAnalyses(analyses: readonly Analyse[]): string[] {
+  return analyses.flatMap((analyse) => [
+    `/analyses/${analyse.slug}/`,
+    ...(analyse.simulateur.budget ? ["/simulateur"] : []),
+  ]);
+}
+
+/** Contexte de lecture dérivé des mêmes chemins que les puces de la fiche. */
+export function contextesDePages(pages: readonly string[]): ContexteSource[] {
+  return [
+    ...(pages.includes("/bilan") ? ["national" as const] : []),
+    ...(pages.includes("/territoire") ? ["territoires" as const] : []),
+    ...(pages.includes("/simulateur") ? ["simulateur" as const] : []),
+  ];
+}
+
+/**
  * Agrège les publications primaires et les citations d'analyses qui les
  * réemploient. Une source citée sans jeu du manifeste reste visible, mais son
  * institution est explicitement inconnue plutôt que déduite de son URL.
@@ -266,8 +299,8 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
     ];
     const statut = statuts.sort((a, b) => ORDRE_STATUT[b] - ORDRE_STATUT[a])[0]!;
     const pages = distinctTrie([
-      ...(jeu ? ["/bilan"] : []),
-      ...accumulateur.analyses.map((analyse) => `/analyses/${analyse.slug}/`),
+      ...(jeu ? usagesDuJeu(indicateursDuJeu) : []),
+      ...usagesDesAnalyses(accumulateur.analyses),
     ]);
     const formules = indicateursDuJeu.map((indicateur) => indicateur.formule);
 
@@ -311,11 +344,12 @@ function texteRecherche(fiche: FicheSource): string {
     .toLocaleLowerCase("fr-FR");
 }
 
-/** Recherche sans accent, avec filtre de statut optionnel. */
+/** Recherche sans accent, avec filtres de statut et de contexte optionnels. */
 export function filtrerRegistre(
   fiches: readonly FicheSource[],
   requete: string,
   statut?: StatutSource,
+  contexte?: ContexteSource,
 ): FicheSource[] {
   const termes = requete
     .normalize("NFD")
@@ -327,6 +361,7 @@ export function filtrerRegistre(
   return fiches.filter(
     (fiche) =>
       (!statut || fiche.statut === statut) &&
+      (!contexte || contextesDePages(fiche.pages).includes(contexte)) &&
       termes.every((terme) => texteRecherche(fiche).includes(terme)),
   );
 }

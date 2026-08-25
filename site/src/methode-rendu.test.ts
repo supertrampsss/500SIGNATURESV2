@@ -443,7 +443,7 @@ test("le registre rend recherche filtres et fiches normalisées", () => {
     unite: "EUR",
     formule: "recettes - dépenses",
     verifieLe: "2026-08-21",
-    pages: ["/bilan"],
+    pages: ["/bilan", "/territoire", "/simulateur"],
   }];
   const html = renduRegistre(fiches);
   assert.match(html, /type="search"/);
@@ -452,4 +452,10 @@ test("le registre rend recherche filtres et fiches normalisées", () => {
   assert.match(html, /Voir la publication/);
   assert.match(html, /Administrations publiques/);
   assert.match(html, /href="\/bilan"/);
+  assert.match(html, /data-contextes="national territoires simulateur"/);
+  assert.match(html, /id="registre-sources-contexte"/);
+  assert.match(html, />National<\/option>/);
+  assert.match(html, />Territoires<\/option>/);
+  assert.match(html, />Simulateur<\/option>/);
+  assert.match(html, /id="registre-sources-filtres" hidden/);
 });

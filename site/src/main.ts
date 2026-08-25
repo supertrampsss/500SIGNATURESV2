@@ -3797,27 +3797,30 @@ function brancherRegistreSources(): void {
   if (!filtres || !liste || !vide) return;
   const champ = document.getElementById("registre-sources-recherche");
   const statut = document.getElementById("registre-sources-statut");
+  const contexte = document.getElementById("registre-sources-contexte");
   const compte = filtres.querySelector(".registre-sources__compte");
   const effacer = filtres.querySelector<HTMLButtonElement>(".registre-sources__effacer");
-  if (!(champ instanceof HTMLInputElement) || !(statut instanceof HTMLSelectElement)) return;
+  if (!(champ instanceof HTMLInputElement) || !(statut instanceof HTMLSelectElement) || !(contexte instanceof HTMLSelectElement)) return;
   const fiches = Array.from(liste.querySelectorAll<HTMLElement>(".registre-sources__fiche"));
   const normaliser = (texte: string) => texte.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("fr-FR").trim();
   const appliquer = () => {
     const termes = normaliser(champ.value).split(/\s+/).filter(Boolean);
     let visibles = 0;
     for (const fiche of fiches) {
+      const contextes = (fiche.dataset.contextes ?? "").split(" ").filter(Boolean);
       const retenue = (!statut.value || fiche.dataset.statut === statut.value) &&
+        (!contexte.value || contextes.includes(contexte.value)) &&
         termes.every((terme) => (fiche.dataset.texte ?? "").includes(terme));
       fiche.hidden = !retenue;
       if (retenue) visibles += 1;
     }
     if (compte) compte.textContent = `${visibles} source${visibles > 1 ? "s" : ""} sur ${fiches.length}`;
     vide.hidden = visibles !== 0;
-    if (effacer) effacer.hidden = !champ.value && !statut.value;
+    if (effacer) effacer.hidden = !champ.value && !statut.value && !contexte.value;
   };
   filtres.hidden = false;
   filtres.addEventListener("input", appliquer);
-  if (effacer) effacer.addEventListener("click", () => { champ.value = ""; statut.value = ""; appliquer(); champ.focus(); });
+  if (effacer) effacer.addEventListener("click", () => { champ.value = ""; statut.value = ""; contexte.value = ""; appliquer(); champ.focus(); });
   appliquer();
 
   // Une ancre de source doit donner un repère de lecture, pas seulement

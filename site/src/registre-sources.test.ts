@@ -82,6 +82,27 @@ test("le registre fusionne une source primaire et liste ses pages", () => {
   assert.match(insee.id, /^[a-z0-9-]+$/);
 });
 
+test("les usages du registre suivent les mailles publiées et les contrats de simulation", () => {
+  const indicateurTerritorial: Indicateur = {
+    ...INDICATEUR_DEFICIT,
+    id: "deficit-local",
+    niveaux: ["commune"],
+  };
+  const analyseRejouable = analyse({
+    simulateur: { budget: "etat/depense:1", contrat: "", lecture: "Réglage disponible." },
+  });
+  const fiche = construireRegistre({
+    jeux: [JEU_INSEE],
+    indicateurs: [INDICATEUR_DEFICIT, indicateurTerritorial],
+    analyses: [analyseRejouable],
+  })[0]!;
+
+  assert.deepEqual(fiche.pages, ["/analyses/deficit-public/", "/bilan", "/simulateur", "/territoire"]);
+  assert.equal(filtrerRegistre([fiche], "", undefined, "national").length, 1);
+  assert.equal(filtrerRegistre([fiche], "", undefined, "territoires").length, 1);
+  assert.equal(filtrerRegistre([fiche], "", undefined, "simulateur").length, 1);
+});
+
 test("le registre garde des identifiants et un ordre stables malgré l'ordre des entrées", () => {
   const autreJeu: Jeu = {
     ...JEU_INSEE,

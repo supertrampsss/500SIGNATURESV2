@@ -23,6 +23,7 @@
   background: var(--ui-surface-creuse);
 }
 
+.registre-sources__groupe { display: grid; min-width: 0; gap: var(--espace-2); }
 .registre-sources__filtres label { font-weight: 700; }
 .registre-sources__filtres input, .registre-sources__filtres select {
   width: 100%;
@@ -59,9 +60,7 @@
 .registre-sources__effacer:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
 
 @media (min-width: 60rem) {
-  .registre-sources__filtres { grid-template-columns: minmax(0, 2fr) minmax(14rem, 1fr); align-items: end; }
-  .registre-sources__filtres label:first-child, .registre-sources__filtres input { grid-column: 1; }
-  .registre-sources__filtres label:nth-of-type(2), .registre-sources__filtres select { grid-column: 2; }
+  .registre-sources__filtres { grid-template-columns: minmax(0, 2fr) repeat(2, minmax(11rem, 1fr)); align-items: start; }
   .registre-sources__compte, .registre-sources__effacer { grid-column: 1 / -1; }
   .registre-sources__liste { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

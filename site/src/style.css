@@ -6522,10 +6522,10 @@ summary.pont__rangee,
   border: 1px solid var(--trait);
   border-radius: var(--rayon);
 }
-.analyse-rendu__express h3,
-.analyse-rendu__detail h3,
-.analyse-rendu__interactif h3,
-.analyse-rendu__preuve h3 {
+.analyse-rendu__express h2,
+.analyse-rendu__detail h2,
+.analyse-rendu__interactif h2,
+.analyse-rendu__preuve h2 {
   margin: 0 0 var(--espace-5);
   font-size: var(--texte-xs);
   text-transform: uppercase;
