@@ -6,7 +6,8 @@ export type EquationFrance = {
 };
 
 function arrondirDeuxDecimales(valeur: number): number {
-  return Number(valeur.toFixed(2));
+  const correction = Number.EPSILON * Math.max(1, Math.abs(valeur));
+  return Math.round((valeur + correction) * 100) / 100;
 }
 
 export function equationFrance(recettes: number, depenses: number): EquationFrance {

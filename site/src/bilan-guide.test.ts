@@ -12,6 +12,15 @@ test("ramène les dépenses et le déficit à 100 € de recettes", () => {
   });
 });
 
+test("arrondit un demi-centime à la hausse", () => {
+  assert.deepEqual(equationFrance(1000, 1000.05), {
+    recettesPour100: 100,
+    depensesPour100: 100.01,
+    deficitPour100: 0.01,
+    phrase: "Pour 100 € encaissés, la France en dépense 100,01.",
+  });
+});
+
 test("refuse des recettes nulles ou négatives", () => {
   for (const recettes of [0, -1]) {
     assert.throws(
