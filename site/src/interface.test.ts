@@ -3024,6 +3024,20 @@ test("tout cadre qui défile est atteignable au clavier, la liste étant déduit
   assert.deepEqual(manquants, [], `cadres défilants sans tabindex :\n${manquants.join("\n")}`);
 });
 
+test("les tables annuelles du bilan défilent dans leur cadre aussi sur tablette", () => {
+  // Mesuré à 768 px : `.secu` et `.comparaison` poussaient le document à
+  // 985 px. Le correctif ne réduit ni les colonnes ni leur texte ; il étend à
+  // la tablette le même cadre défilant et focalisable que sur téléphone.
+  const debut = CSS.indexOf("@media (min-width: 40.001rem) and (max-width: 60rem)");
+  assert.ok(debut >= 0, "palier tablette des tableaux introuvable");
+  const bloc = CSS.slice(debut, CSS.indexOf("\n}\n\n@media", debut) + 2);
+  for (const classe of ["pont", "comparaison", "fonctions", "secu", "niches"]) {
+    assert.match(bloc, new RegExp(`\\.${classe}`), `.${classe} sort du cadre à 768 px`);
+  }
+  assert.match(bloc, /overflow-x:\s*auto/);
+  assert.match(bloc, /:focus-visible/);
+});
+
 test("qui remplit un cadre le déplie", () => {
   // Le pré-rendu REPLIE tout cadre dont il ne peut pas écrire le corps —
   // `.bloc` est bordé et ombré, et une case vide se lit comme une panne. Rien

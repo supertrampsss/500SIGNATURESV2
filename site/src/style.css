@@ -1379,6 +1379,30 @@ tbody tr:hover {
   }
 }
 
+/* À 768 px, les séries annuelles restent plus larges que leur colonne : le
+   cadre doit alors porter le défilement, jamais le document. La règle mobile
+   ci-dessus le fait déjà sous 40rem ; ce complément couvre la tablette sans
+   modifier la densité de l'en-tête ou des champs à ce palier. */
+@media (min-width: 40.001rem) and (max-width: 60rem) {
+  .pont,
+  .comparaison,
+  .fonctions,
+  .secu,
+  .niches {
+    display: block;
+    overflow-x: auto;
+    max-width: 100%;
+  }
+  .pont:focus-visible,
+  .comparaison:focus-visible,
+  .fonctions:focus-visible,
+  .secu:focus-visible,
+  .niches:focus-visible {
+    outline: 2px solid var(--dore);
+    outline-offset: 2px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
