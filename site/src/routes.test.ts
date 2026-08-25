@@ -60,6 +60,10 @@ test("le chemin d'une vue est stable", () => {
   assert.equal(cheminDeVue("inexistante"), "/territoire");
 });
 
+test("le bilan historique demeure l'adresse de la France", () => {
+  assert.equal(cheminDeVue("bilan"), "/bilan");
+});
+
 test("un alias ne désigne jamais un autre alias", () => {
   // Une chaîne d'alias se résoudrait à moitié : `vueDepuisAdresse` ne déréférence
   // qu'une fois.

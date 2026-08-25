@@ -116,8 +116,10 @@ import {
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
+import { renduNavigation } from "./navigation.ts";
 import "./style.css";
 import "./styles/fondations.css";
+import "./styles/navigation.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -1906,7 +1908,7 @@ function brancherCommandes(): void {
     const clic = evenement as MouseEvent;
     if (clic.button !== 0 || clic.metaKey || clic.ctrlKey || clic.shiftKey || clic.altKey) return;
     const lien = (clic.target as HTMLElement).closest<HTMLAnchorElement>("a[data-vue]");
-    if (!lien) return;
+    if (!lien || lien.getAttribute("aria-disabled") === "true") return;
     clic.preventDefault();
     // Les paramètres suivent : changer de vue ne doit pas perdre le territoire
     // choisi ni les réglages du simulateur.
@@ -2396,6 +2398,12 @@ function vuesConnues(): readonly string[] {
   return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
 }
 
+function rendreNavigationPrincipale(): void {
+  const navigation = document.getElementById("navigation-principale");
+  if (!navigation) return;
+  navigation.innerHTML = renduNavigation(location.pathname, exercicesParVolet.length > 0);
+}
+
 
 
 
@@ -2556,6 +2564,7 @@ function basculerVue(): void {
       ? "accueil"
       : "territoire";
   document.body.dataset.vue = vue;
+  rendreNavigationPrincipale();
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.
   appliquerModeCarte(vue === "territoire");
@@ -2573,12 +2582,6 @@ function basculerVue(): void {
   // BILAN ne porte plus que les cinq chapitres et le pied de sources.
   $("vue-bilan").hidden = vue !== "bilan";
   $("vue-simulateur").hidden = vue !== "simulateur";
-  document.querySelectorAll<HTMLAnchorElement>(".entete__nav a").forEach((a) => {
-    // Sous 60rem la barre est en bas d'écran, en colonnes égales : toutes les
-    // entrées sont visibles, il n'y a plus à ramener la courante sous les yeux.
-    if (a.dataset.vue === vue) a.setAttribute("aria-current", "page");
-    else a.removeAttribute("aria-current");
-  });
   if (vue === "simulateur") void ouvrirSimulateur();
   // Remonter en haut n'a de sens qu'en changeant de vue. Sur une page déjà
   // affichée, un `hashchange` vise une ancre interne — le sommaire des Repères
@@ -2655,13 +2658,8 @@ async function preparerSimulateur(): Promise<void> {
     }),
   );
   exercicesParVolet = trouves.filter((x) => x !== null);
+  rendreNavigationPrincipale();
   if (!exercicesParVolet.length) return;
-  document
-    .querySelector(".entete__nav")!
-    .insertAdjacentHTML(
-      "beforeend",
-      `<a href="/simulateur" data-vue="simulateur">Simulateur</a>`,
-    );
   if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur") basculerVue();
 }
 
@@ -3827,7 +3825,8 @@ async function ouvrirSimulateur(): Promise<void> {
   );
   const volets: Volet[] = charges.filter((v): v is Volet => v !== null);
   if (!volets.length) {
-    document.querySelector('.entete__nav a[data-vue="simulateur"]')?.remove();
+    exercicesParVolet = [];
+    rendreNavigationPrincipale();
     atelierMonte = false;
     return basculerVue();
   }

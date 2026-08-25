@@ -534,7 +534,8 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   // `/simulateur` donnerait `/simulateur#territoire`, et le chemin l'emporte.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.doesNotMatch(balises, /href="#(territoire|bilan|simulateur)"/);
-  assert.match(balises, /href="\/territoire" data-vue="territoire"/);
+  assert.match(balises, /id="navigation-principale"/);
+  assert.match(MAIN, /import \{ renduNavigation \} from "\.\/navigation\.ts"/);
 });
 
 test("les vues renommées portent leur nouveau nom partout", () => {
@@ -3129,19 +3130,11 @@ test("la colonne d'évolution se déclare, elle n'est pas la dernière venue", (
   assert.doesNotMatch(CSS, /\.chapitre table td:last-child/);
 });
 
-test("l'entrée ANALYSES navigue pour de bon : elle ne porte pas de data-vue", () => {
-  // ANALYSES n'est pas une vue de l'application : ses pages sont pré-rendues,
-  // une par analyse plus leur index. Le gestionnaire délégué de la barre
-  // intercepte les liens `a[data-vue]` et appelle `basculerVue` ; avec un
-  // `data-vue`, le clic aurait cherché une vue « analyses » qui n'existe pas
-  // et le lecteur serait tombé sur TERRITOIRE.
+test("ANALYSES n'est pas une destination de la navigation principale", () => {
   const nav = PAGE.slice(PAGE.indexOf('<nav class="entete__nav"'));
   const barre = nav.slice(0, nav.indexOf("</nav>"));
-  assert.match(barre, /<a href="\/analyses\/">Analyses<\/a>/);
-  assert.doesNotMatch(barre, /href="\/analyses\/"[^>]*data-vue/);
-  // Les deux autres en portent un, elles : ce sont bien des vues.
-  assert.match(barre, /href="\/territoire" data-vue="territoire"/);
-  assert.match(barre, /href="\/bilan" data-vue="bilan"/);
+  assert.doesNotMatch(barre, /Analyses|\/analyses/);
+  assert.match(MAIN, /renduNavigation\(location\.pathname, exercicesParVolet\.length > 0\)/);
 });
 
 test("l'onglet ANALYSES se marque courant, et le marquage passe avant tout", () => {

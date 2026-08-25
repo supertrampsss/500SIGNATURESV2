@@ -1,0 +1,30 @@
+/* Navigation primaire : quatre destinations constantes, du bandeau au pouce. */
+.entete__nav a[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+@media (max-width: 39.999rem) {
+  .entete__nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    left: 0;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    padding-bottom: calc(var(--espace-2) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .entete__nav a {
+    min-height: 44px;
+  }
+
+  .vue {
+    padding-bottom: calc(var(--haut-nav-basse) + var(--espace-6));
+  }
+
+  body[data-vue="simulateur"][data-session="active"] .entete__nav {
+    display: none;
+  }
+}

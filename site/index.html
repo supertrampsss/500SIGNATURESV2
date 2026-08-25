@@ -64,28 +64,7 @@
         <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
       </div>
 
-      <!-- Trois entrées, et c'est tout. ANALYSES, REPÈRES, DÉTAIL et MÉTHODE
-           disaient quatre fois « parcourez les données » et personne ne savait
-           laquelle ouvrir. Ce qu'elles montraient est réuni dans BILAN, qui
-           répond aux deux seules questions que le site existe pour traiter :
-           ma commune est-elle bien gérée, et la France l'est-elle face à ses
-           voisins. -->
-      <!-- Deux entrées écrites ici, une troisième ajoutée par le code : celle
-           du simulateur n'apparaît que si un budget est publié, et rien de
-           cliquable ne doit mener à une vue vide (main.ts). -->
-      <nav class="entete__nav" aria-label="Vues">
-        <a href="/territoire" data-vue="territoire">Territoire</a>
-        <a href="/bilan" data-vue="bilan">Bilan</a>
-        <!-- ANALYSES n'est PAS une vue de l'application : c'est un jeu de
-             documents pré-rendus, un par analyse plus leur index, servis
-             entiers par le serveur. Le lien n'a donc pas de `data-vue` — c'est
-             lui qui distingue les deux, et le gestionnaire délégué de la barre
-             ne s'applique qu'aux liens qui en portent un. Avec un `data-vue`,
-             le clic aurait été intercepté, `basculerVue` aurait cherché une
-             vue « analyses » qui n'existe pas, et le lecteur serait tombé sur
-             TERRITOIRE. Sans, le navigateur navigue pour de bon. -->
-        <a href="/analyses/">Analyses</a>
-      </nav>
+      <nav class="entete__nav" id="navigation-principale" aria-label="Navigation principale"></nav>
 
       <button type="button" class="bascule-theme" id="theme-bascule"
               aria-pressed="false" title="Basculer entre le rendu clair et le rendu sombre">
