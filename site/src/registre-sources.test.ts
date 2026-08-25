@@ -3,7 +3,13 @@ import { test } from "node:test";
 
 import type { Analyse } from "./analyse-rendu.ts";
 import type { Indicateur, Jeu } from "./donnees.ts";
-import { construireRegistre, filtrerRegistre } from "./registre-sources.ts";
+import {
+  construireRegistre,
+  filtrerRegistre,
+  indexerSources,
+  lienSource,
+  sourceIdPourUrl,
+} from "./registre-sources.ts";
 
 const JEU_INSEE: Jeu = {
   id: "insee-comptes",
@@ -187,4 +193,18 @@ test("le registre omet les métadonnées absentes d'une publication sans interro
   assert.equal(fiche.formule, undefined);
   assert.equal(fiche.perimetre, undefined);
   assert.equal(fiche.millesime, undefined);
+});
+
+test("une provenance mène à la fiche exacte du registre", () => {
+  const fiches = construireRegistre({
+    jeux: [JEU_INSEE],
+    indicateurs: [INDICATEUR_DEFICIT],
+    analyses: [analyse()],
+  });
+  const index = indexerSources(fiches);
+  const id = sourceIdPourUrl(index, "https://insee.fr/source#tableau");
+
+  assert.ok(id);
+  assert.equal(lienSource(id), `/sources/#${encodeURIComponent(id)}`);
+  assert.equal(id, fiches[0]!.id);
 });

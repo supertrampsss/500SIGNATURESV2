@@ -41,7 +41,7 @@ import { indicateursDerives } from "../src/derives.ts";
 // `rendu()` et `renduAccueil` — c'est ce qui les rend appelables ici autant que
 // dans le navigateur (`peindreMethode`, main.ts), avec le même code.
 import { renduAttribution } from "../src/methode-rendu.ts";
-import { construireRegistre, type FicheSource } from "../src/registre-sources.ts";
+import { construireRegistre, indexerSources, type FicheSource, type IndexSources } from "../src/registre-sources.ts";
 import { renduRegistre } from "../src/methode-rendu.ts";
 // Les blocs de la page REPÈRES, purs eux aussi — exactement ceux des
 // maquettes validées, un par chapitre plus la paire du chapitre 4. C'est le
@@ -1062,6 +1062,7 @@ export function injecterReperes(
   catalogue: Indicateur[],
   niches: DepensesFiscales,
   budget: BudgetEtat,
+  indexSources?: IndexSources,
 ): string {
   // Les deux fichiers restent lus et passés ici : la signature ne bouge pas à
   // chaque maquette, et le jour où un bloc du budget revient, sa donnée est
@@ -1092,7 +1093,7 @@ export function injecterReperes(
   }
 
   let html = shell;
-  for (const [id, corps] of Object.entries(renduConclusionsBilan(pays))) {
+  for (const [id, corps] of Object.entries(renduConclusionsBilan(pays, indexSources))) {
     html = remplirCadre(html, `conclusion-france-${id}`, corps);
   }
   for (const [id, corps] of ouvrants) {
@@ -1608,6 +1609,12 @@ async function main(): Promise<void> {
   await ecrireScenariosReference(analyses);
   await ecrireCartes(DIST, analyses, catalogue, version, shell);
 
+  // Le registre est construit une fois sur la même publication que les pages
+  // qu'il documente. Les renderers ne calculent aucune ancre : ils reçoivent
+  // cet index et ne peuvent donc lier qu'une fiche effectivement pré-rendue.
+  const fiches = construireRegistre({ jeux, indicateurs: catalogue, analyses });
+  const indexSources = indexerSources(fiches);
+
   const ecrites: PageEcrite[] = [];
   for (const analyse of analyses) {
     const canonique = `/analyses/${analyse.slug}/`;
@@ -1619,7 +1626,7 @@ async function main(): Promise<void> {
       // Le permalien que porteront les citations de cette page : le même que
       // `og:url`, composé par `permalien()` plutôt que recollé à la main — la
       // règle du dépôt pour toute adresse qui sort du site.
-      corps: rendu(analyse, catalogue, version, permalien(SITE, canonique, {})),
+      corps: rendu(analyse, catalogue, version, permalien(SITE, canonique, {}), indexSources),
     };
     const html = injecter(shell, page, SITE);
     await ecrirePage(path.join(DIST, "analyses", analyse.slug), html);
@@ -1639,7 +1646,6 @@ async function main(): Promise<void> {
   await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
   ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
 
-  const fiches = construireRegistre({ jeux, indicateurs: catalogue, analyses });
   const htmlSources = injecterRegistre(shell, fiches, SITE);
   await ecrirePage(path.join(DIST, "sources"), htmlSources);
   ecrites.push({ chemin: "sources/index.html", html: htmlSources });
@@ -1691,6 +1697,7 @@ async function main(): Promise<void> {
       [...catalogue, ...indicateursDerives(catalogue)],
       niches,
       budget,
+      indexSources,
     ),
     {
       titre: PAGE_BILAN.titre,

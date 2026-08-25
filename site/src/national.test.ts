@@ -13,6 +13,7 @@ import { test } from "node:test";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { millions } from "./echelle.ts";
 import { afficherNational, renduConclusionsBilan, renduDette, renduEurope } from "./national.ts";
+import { construireRegistre, indexerSources, lienSource } from "./registre-sources.ts";
 
 const FINE = " ";
 
@@ -83,6 +84,19 @@ test("le guide ouvre par l'équation France et garde quatre conclusions lisibles
     assert.match(html, /class="bilan-guide__chiffres"/);
     assert.match(html, /class="bilan-guide__viz"/);
   }
+});
+
+test("le bilan France relie un chiffre à sa fiche de registre", () => {
+  const catalogue = [{ id: "eurostat_deficit_pib", libelle: "Déficit / PIB", unite: "percent", theme: "macro", sommable: false, cadre_comptable: null, definition: "", definition_technique: "", formule: "", confiance: "publié", badges: [], jeu: "eurostat", niveaux: ["pays"], periodes: ["2025"] }] as Indicateur[];
+  const fiches = construireRegistre({
+    jeux: [{ id: "eurostat", titre: "Eurostat", producteur: "Eurostat", licence: "LO", url: "https://ec.europa.eu/eurostat", extraction: "2026-01-01" }],
+    indicateurs: catalogue,
+    analyses: [],
+  });
+  const guide = renduConclusionsBilan({ FR: territoire({ eurostat_deficit_pib: { "2025": -5.8 } }) }, indexerSources(fiches));
+
+  assert.match(guide.verdict, new RegExp(`href="${lienSource(fiches[0]!.id)}"`));
+  assert.match(guide.verdict, /Comprendre le calcul/);
 });
 
 /* -------------------------------------------------------------------------

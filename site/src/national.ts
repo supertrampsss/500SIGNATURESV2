@@ -11,6 +11,7 @@ import { nomPays } from "./pays-noms.ts";
 import { formater, montantLisible, SUFFIXE_POUR_100000 } from "./echelle.ts";
 import { equationFrance } from "./bilan-guide.ts";
 import { chiffres as chiffresOuverture } from "./ouverture.ts";
+import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
 
 const SOUS_SECTEURS = [
   "insee_dette_etat_montant",
@@ -64,13 +65,26 @@ export type ConclusionsBilan = Record<"entrees" | "sorties" | "dette" | "verdict
  * calculs ; ici, on ne fait que donner l'ordre de lecture et les deux à quatre
  * nombres qui permettent de les aborder.
  */
-export function renduConclusionsBilan(pays: Record<string, Territoire>): ConclusionsBilan {
+function preuveDe(indicateur: string, indexSources?: IndexSources): string {
+  const id = indexSources ? sourceIdPourIndicateur(indexSources, indicateur) : undefined;
+  return id ? `<p class="ui-conclusion__preuve"><a href="${lienSource(id)}">Comprendre le calcul</a></p>` : "";
+}
+
+export function renduConclusionsBilan(
+  pays: Record<string, Territoire>,
+  indexSources?: IndexSources,
+): ConclusionsBilan {
   const ouverture = chiffresOuverture(pays.FR);
   const france = pays.FR;
   const dette = derniere(france?.series.insee_dette_apu_montant);
   const dettePib = derniere(france?.series.insee_dette_apu_part_pib)
     ?? derniere(france?.series.eurostat_dette_pib);
   const deficitPib = derniere(france?.series.eurostat_deficit_pib);
+  const indicateurVerdict = deficitPib
+    ? "eurostat_deficit_pib"
+    : france?.series.insee_dette_apu_part_pib
+      ? "insee_dette_apu_part_pib"
+      : "eurostat_dette_pib";
   const chiffres = (lignes: [string, string][]) =>
     `<dl class="bilan-guide__chiffres">${lignes
       .map(([libelle, valeur]) => `<div><dt>${libelle}</dt><dd>${valeur}</dd></div>`)
@@ -127,6 +141,7 @@ export function renduConclusionsBilan(pays: Record<string, Territoire>): Conclus
           ["Déficit / PIB", deficitPib ? formater(deficitPib[1], "percent", false) : "non publié"],
           ["Année comparée", dettePib?.[0] ?? deficitPib?.[0] ?? "—"],
         ])}
+        ${preuveDe(indicateurVerdict, indexSources)}
         ${viz(dettePib?.[1] ?? 0, "Dette française rapportée au PIB")}
       </div>`
     : `<div class="ui-conclusion"><h2>Quel verdict raisonnable&nbsp;?</h2><p>Le verdict compare la France à ses voisins avec des définitions communes.</p>${chiffres([["France", "à comparer"], ["Voisins", "à consulter"]])}${viz(0, "Données européennes en attente")}</div>`;
@@ -135,8 +150,8 @@ export function renduConclusionsBilan(pays: Record<string, Territoire>): Conclus
 }
 
 /** Pose les conclusions dans le gabarit SPA, avec le même HTML que /bilan. */
-export function afficherConclusionsBilan(pays: Record<string, Territoire>): void {
-  const conclusions = renduConclusionsBilan(pays);
+export function afficherConclusionsBilan(pays: Record<string, Territoire>, indexSources?: IndexSources): void {
+  const conclusions = renduConclusionsBilan(pays, indexSources);
   for (const [id, html] of Object.entries(conclusions)) {
     const cadre = document.getElementById(`conclusion-france-${id}`);
     if (cadre) cadre.innerHTML = html;
@@ -219,7 +234,7 @@ export function renduDette(
  * publiée. Un voisin absent du lot perd sa ligne, un voisin sans valeur garde
  * la sienne en tirets — c'est le tableau qui le dit, pas ce module.
  */
-export function renduEurope(pays: Record<string, Territoire>): string {
+export function renduEurope(pays: Record<string, Territoire>, indexSources?: IndexSources): string {
   if (!pays["FR"]) return "";
   const lignes = VOISINS.filter((code) => pays[code])
     .map((code) => {
@@ -257,6 +272,7 @@ export function renduEurope(pays: Record<string, Territoire>): string {
       <tbody>${lignes}</tbody>
     </table>
     ${renduVieQuotidienne(pays)}
+    ${preuveDe("eurostat_dette_pib", indexSources)}
     <p class="avertissement">Ces chiffres viennent d'Eurostat, qui applique la même
       définition à tous les pays : c'est ce qui rend la comparaison possible. Ils
       peuvent différer légèrement des chiffres publiés par chaque institut national.
@@ -354,13 +370,14 @@ export function afficherNational(
   blocEurope: HTMLElement,
   pays: Record<string, Territoire>,
   catalogue: Indicateur[],
+  indexSources?: IndexSources,
 ): boolean {
   // La dette est partie au module « Est-ce tenable ? » (tenable.ts), qui
   // répond à la question du chapitre au lieu de la reposer. Ce peintre-ci ne
   // garde que l'Europe. Le paramètre catalogue reste : la signature est celle
   // que la garde des peintres attend.
   void catalogue;
-  const europe = renduEurope(pays);
+  const europe = renduEurope(pays, indexSources);
   if (europe) blocEurope.innerHTML = europe;
   // Qui remplit un cadre le déplie : le pré-rendu replie ce qu'il ne peut pas
   // écrire, et rien d'autre ne le rouvrirait.

@@ -17,6 +17,7 @@ import { test } from "node:test";
 import type { Indicateur } from "./donnees.ts";
 import { afficherFiche, ORDRE_THEMES, rubriqueDuTheme, THEMES_RANGES } from "./fiche.ts";
 import { THEMES } from "./themes.ts";
+import { construireRegistre, indexerSources, lienSource } from "./registre-sources.ts";
 
 /** Sources lues telles quelles : ces contrôles portent sur la forme rendue,
  *  pas sur une valeur calculée. */
@@ -163,6 +164,29 @@ test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () =
     [...html.matchAll(/<section class="bloc-lecture">\s*<h3>([^<]*)<\/h3>/g)].map((m) => m[1]),
     ["Le train de vie", "Qui règle l&#39;addition", "L&#39;ardoise"],
   );
+});
+
+test("la fiche territoriale relie ses chiffres au registre exact", () => {
+  const catalogueDuRegistre = CATALOGUE_FINANCIER.map((indicateur) => ({
+    ...indicateur,
+    confiance: "publié",
+    badges: [],
+  }));
+  const fiches = construireRegistre({
+    jeux: [{ id: "ofgl-communes", titre: "Comptes OFGL", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/comptes", extraction: "2026-01-01" }],
+    indicateurs: catalogueDuRegistre,
+    analyses: [],
+  });
+  const cible = { innerHTML: "" } as unknown as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: { nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {}, series: SERIES_BORDEAUX } as never,
+    indicateurs: CATALOGUE_FINANCIER,
+    sources: indexerSources(fiches),
+  });
+
+  assert.match(cible.innerHTML, new RegExp(`href="${lienSource(fiches[0]!.id)}"`));
+  assert.match(cible.innerHTML, /Comprendre le calcul/);
 });
 /**
  * Aucune ligne de mandat, à aucune maille.

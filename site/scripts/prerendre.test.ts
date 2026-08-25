@@ -620,7 +620,10 @@ test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", (
   // qui porterait un paramètre : `permalien()` existe pour que les caractères
   // d'une adresse ne coupent jamais celle-ci en deux.
   const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
-  assert.match(source, /corps: rendu\(analyse, catalogue, version, permalien\(SITE, canonique, \{\}\)\)/);
+  assert.match(
+    source,
+    /corps: rendu\(analyse, catalogue, version, permalien\(SITE, canonique, \{\}\), indexSources\)/,
+  );
 });
 
 test("8 ter. le dossier de preuve est servi avec sa canonique et ses métadonnées sociales", async () => {

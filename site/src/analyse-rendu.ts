@@ -20,6 +20,7 @@
 import { citable, type Citation } from "./citer.ts";
 import type { Indicateur } from "./donnees.ts";
 import { formater } from "./echelle.ts";
+import { lienSource, sourceIdPourUrl, type IndexSources } from "./registre-sources.ts";
 import { aplatir } from "./simulateur.ts";
 import { libelleTheme } from "./themes.ts";
 import { echapper } from "./texte.ts";
@@ -227,10 +228,16 @@ const LIBELLE_REGISTRE: Record<Registre, string> = {
 };
 
 /** Un lien vers une source, échappé de bout en bout. */
-function lienSource(source: Source): string {
+function lienPrimaire(source: Source): string {
   return `<a href="${echapper(source.url)}" target="_blank" rel="noopener">${echapper(
     source.titre,
   )}</a> <span class="analyse-rendu__consulte">(consulté le ${echapper(source.consulte_le)})</span>`;
+}
+
+/** Le document primaire reste cité ; le registre ajoute son chemin vérifiable. */
+function lienRegistre(source: Source, indexSources?: IndexSources): string {
+  const id = indexSources ? sourceIdPourUrl(indexSources, source.url) : undefined;
+  return id ? ` <a class="analyse-rendu__registre-source" href="${lienSource(id)}">Voir dans le registre</a>` : "";
 }
 
 /** L'unité d'un indicateur cité, lue dans le catalogue — jamais dans l'analyse :
@@ -335,7 +342,12 @@ function verdictDuDossier(analyse: Analyse): string {
 }
 
 /** Étage 1 : le chiffre cité face au chiffre publié, et le verdict. */
-function express(analyse: Analyse, catalogue: Indicateur[], adresse: string): string {
+function express(
+  analyse: Analyse,
+  catalogue: Indicateur[],
+  adresse: string,
+  indexSources?: IndexSources,
+): string {
   const { affirmation } = analyse;
   const attribution =
     affirmation.auteur !== null
@@ -378,7 +390,10 @@ function express(analyse: Analyse, catalogue: Indicateur[], adresse: string): st
     <p class="dossier-preuve__intro">Affirmation contrôlée</p>
     <blockquote class="analyse-rendu__affirmation">${echapper(affirmation.texte)}</blockquote>
     ${attribution}
-    <p class="analyse-rendu__source">${lienSource(affirmation.source)}</p>
+    <p class="analyse-rendu__source">${lienPrimaire(affirmation.source)}${lienRegistre(
+      affirmation.source,
+      indexSources,
+    )}</p>
     <ul class="analyse-rendu__chiffres-cites">${chiffresCites}</ul>
   </section>`;
 }
@@ -538,7 +553,7 @@ function limites(analyse: Analyse): string {
         .map(
           (effet) => `<li class="analyse-rendu__effet-indirect">${echapper(
             effet.texte,
-          )} — ${echapper(effet.auteur)} (${lienSource(effet.source)})</li>`,
+          )} — ${echapper(effet.auteur)} (${lienPrimaire(effet.source)})</li>`,
         )
         .join("")}</ul>`
     : "";
@@ -551,10 +566,10 @@ function limites(analyse: Analyse): string {
 
 /** Les citations primaires restent accessibles indépendamment du chemin
  * synthétique : elles permettent de retrouver le document d'origine. */
-function sources(analyse: Analyse): string {
+function sources(analyse: Analyse, indexSources?: IndexSources): string {
   const fichiers = analyse.sources.length
     ? `<ul class="analyse-rendu__fichiers">${analyse.sources
-        .map((s) => `<li>${lienSource(s)}</li>`)
+        .map((s) => `<li>${lienPrimaire(s)}${lienRegistre(s, indexSources)}</li>`)
         .join("")}</ul>`
     : "<p>Aucune source primaire n'est déclarée.</p>";
   return `<section class="dossier-preuve__sources">
@@ -580,15 +595,16 @@ export function rendu(
   catalogue: Indicateur[],
   version = "",
   adresse = "",
+  indexSources?: IndexSources,
 ): string {
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
     <h2 class="analyse-rendu__titre">${echapper(analyse.titre)}</h2>
     ${verdictDuDossier(analyse)}
-    ${express(analyse, catalogue, adresse)}
+    ${express(analyse, catalogue, adresse, indexSources)}
     ${preuve(analyse, catalogue, version)}
     ${detail(analyse, catalogue)}
     ${limites(analyse)}
-    ${sources(analyse)}
+    ${sources(analyse, indexSources)}
     ${interactif(analyse)}
   </article>`;
 }

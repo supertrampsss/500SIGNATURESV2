@@ -22,6 +22,7 @@ import {
 } from "./analyse-rendu.ts";
 import { citable, citer, type Citation } from "./citer.ts";
 import { formater } from "./echelle.ts";
+import { construireRegistre, indexerSources } from "./registre-sources.ts";
 
 const CATALOGUE = [
   { id: "etat_mission_defense_credits_votes", unite: "EUR" },
@@ -135,6 +136,15 @@ function analyseMixte(overrides: Partial<Analyse> = {}): Analyse {
     ...overrides,
   });
 }
+
+test("une provenance mène à la fiche exacte du registre", () => {
+  const analyse = analyseMinimale();
+  const fiches = construireRegistre({ jeux: [], indicateurs: [], analyses: [analyse] });
+  const html = rendu(analyse, CATALOGUE, "", "", indexerSources(fiches));
+
+  assert.match(html, new RegExp(`href="/sources/#${fiches[0]!.id}"`));
+  assert.match(html, /Voir dans le registre/);
+});
 
 test("les quatre étages sont présents dans la sortie", () => {
   const html = rendu(DEFENSE, CATALOGUE);

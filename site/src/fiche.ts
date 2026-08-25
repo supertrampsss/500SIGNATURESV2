@@ -10,6 +10,7 @@ import { rendreNote } from "./note-rendu.ts";
 import { blocs, rendreBlocs } from "./blocs.ts";
 import { exercices, rendreExercices } from "./exercices.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
 
 /** L'intitulé de chaque maille. Exporté pour que le partage d'une fiche
  *  nomme la maille avec le mot que la fiche affiche, et pas un autre. */
@@ -293,6 +294,8 @@ export function afficherFiche(
     /** Territoires de comparaison. Seul le premier sert : il situe la commune
      *  dans son département, et c'est un bouton pour y monter. */
     comparateurs?: { libelle: string; territoire: Territoire }[];
+    /** Ancres issues du registre réellement publié, jamais un slug local. */
+    sources?: IndexSources;
   },
 ): void {
   const { territoire, niveau } = options;
@@ -327,6 +330,15 @@ export function afficherFiche(
     series: territoire.series ?? {},
     catalogue: options.indicateurs,
   });
+  const idSource = options.sources
+    ? blocsDeLecture
+        .flatMap((bloc) => bloc.cites)
+        .map((indicateur) => sourceIdPourIndicateur(options.sources!, indicateur))
+        .find((id): id is string => Boolean(id))
+    : undefined;
+  const lienPreuve = idSource
+    ? `<p class="fiche__preuve-source"><a href="${lienSource(idSource)}">Comprendre le calcul</a></p>`
+    : "";
   // Les quatre repères ouvrent la fiche, puis les quatre blocs la lisent.
   //
   // Ce sont les repères qu'on vient chercher, et ils étaient noyés au milieu de
@@ -431,7 +443,7 @@ export function afficherFiche(
           series: territoire.series ?? {},
           catalogue: options.indicateurs,
         }),
-      )}<div class="fiche__situation" id="fiche-situation"></div></div>
+      )}${lienPreuve}<div class="fiche__situation" id="fiche-situation"></div></div>
     <div class="fiche__partage" id="fiche-partage"></div>`
     }
   `;

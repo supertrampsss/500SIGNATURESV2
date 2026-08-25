@@ -14,6 +14,7 @@ import { libelleTheme } from "./themes.ts";
 import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
 import { afficherFiche, NIVEAUX, rubriqueDuTheme } from "./fiche.ts";
+import { construireRegistre, indexerSources, type IndexSources } from "./registre-sources.ts";
 import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
 import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
 import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
@@ -271,6 +272,8 @@ const $ = <T extends HTMLElement>(id: string) => document.getElementById(id) as 
 let carte: maplibregl.Map;
 let catalogue: Indicateur[] = [];
 let jeux: Jeu[] = [];
+/** Ancres de la publication chargée : les écrans ne fabriquent aucun slug. */
+let sourcesPubliees: IndexSources | undefined;
 let etat: Etat;
 let populations: Record<string, number> = {};
 let entites: Record<string, Territoire> = {};
@@ -749,6 +752,7 @@ function afficherApercu(): void {
     territoire: france,
     indicateurs: nationaux,
     comparateurs: [],
+    sources: sourcesPubliees,
   });
   monterBriefingTerritorial("pays", "FR", france);
   preparerAncresTerritoriales();
@@ -1133,6 +1137,7 @@ async function montrerFiche(code: string): Promise<void> {
     // indicateur qui n'existe pas à ce niveau ferait passer une absence de
     // définition pour une absence de mesure.
     indicateurs: indicateursDeLaFiche(niveau),
+    sources: sourcesPubliees,
     // De quoi comparer, même pour les jeux sous secret de diffusion où
     // aucune médiane communale n'est publiable : la valeur du département,
     // celle de la région, celle de la France. Ce sont des chiffres publiés,
@@ -4230,6 +4235,9 @@ async function demarrer(): Promise<void> {
   // fiche, synthèse, tableau et export les traitent alors sans rien savoir de
   // leur origine. Leur badge et leur fiche disent d'où ils viennent.
   catalogue = [...catalogue, ...indicateursDerives(catalogue)];
+  sourcesPubliees = indexerSources(
+    construireRegistre({ jeux, indicateurs: catalogue, analyses: ANALYSES }),
+  );
   // L'accueil peut peindre : il compte les indicateurs publiés et nomme les
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
@@ -4600,7 +4608,7 @@ async function demarrer(): Promise<void> {
   // pays sont disponibles.
   try {
     const pays = await donnees.territoires("pays", "tous");
-    afficherConclusionsBilan(pays);
+    afficherConclusionsBilan(pays, sourcesPubliees);
     // Les cinq chapitres portent EXACTEMENT les blocs de la maquette validée,
     // et rien d'autre : la première mise en production gardait sept blocs
     // hérités que la maquette ne montrait pas, et la page livrée ne

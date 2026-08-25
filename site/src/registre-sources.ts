@@ -26,6 +26,18 @@ export type FicheSource = {
   formule?: string;
   verifieLe?: string;
   pages: string[];
+  /** Séries servies par cette publication, pour relier l'écran à cette fiche. */
+  indicateurs?: string[];
+};
+
+/**
+ * Les deux accès au registre. Ils sont construits depuis ses fiches, jamais
+ * depuis un slug recopié dans un renderer : l'ancre affichée est donc toujours
+ * celle d'une carte réellement écrite dans /sources/.
+ */
+export type IndexSources = {
+  parIndicateur: ReadonlyMap<string, string>;
+  parUrl: ReadonlyMap<string, string>;
 };
 
 type EntreeRegistre = {
@@ -50,6 +62,35 @@ const ORDRE_STATUT: Record<StatutSource, number> = {
 /** Les ancres sont des repères de lecture, jamais une nouvelle publication. */
 function sansFragment(url: string): string {
   return url.trim().split("#", 1)[0] ?? "";
+}
+
+/** L'URL intérieure d'une fiche exacte du registre, avec son ancre échappée. */
+export function lienSource(id: string): string {
+  return `/sources/#${encodeURIComponent(id)}`;
+}
+
+/** Recompose les index de lecture à partir des fiches rendues par le registre. */
+export function indexerSources(fiches: readonly FicheSource[]): IndexSources {
+  const parIndicateur = new Map<string, string>();
+  const parUrl = new Map<string, string>();
+  for (const fiche of fiches) {
+    const url = sansFragment(fiche.url);
+    if (url) parUrl.set(url, fiche.id);
+    for (const indicateur of fiche.indicateurs ?? []) {
+      parIndicateur.set(indicateur, fiche.id);
+    }
+  }
+  return { parIndicateur, parUrl };
+}
+
+/** Une source déclarée peut garder son fragment de lecture ; la carte, non. */
+export function sourceIdPourUrl(index: IndexSources, url: string): string | undefined {
+  return index.parUrl.get(sansFragment(url));
+}
+
+/** Un indicateur ne choisit jamais son ancre : le registre lui a déjà attribuée. */
+export function sourceIdPourIndicateur(index: IndexSources, indicateur: string): string | undefined {
+  return index.parIndicateur.get(indicateur);
 }
 
 /**
@@ -205,6 +246,7 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
         ...sourceAnalyse.map((source) => source.consulte_le),
       ]),
       pages,
+      indicateurs: indicateursDuJeu.map((indicateur) => indicateur.id),
     } satisfies FicheSource;
   });
 
