@@ -26,8 +26,23 @@ import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+
+test("les fondations communes rendent les états et actions accessibles", () => {
+  assert.match(FONDATIONS, /--ui-nuit:\s*#10213a;/);
+  assert.match(FONDATIONS, /--ui-papier:\s*#fbf7ee;/);
+  assert.match(FONDATIONS, /min-height:\s*44px;/);
+  assert.match(FONDATIONS, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  for (const etat of ["chargement", "vide", "erreur", "perime"]) {
+    assert.match(FONDATIONS, new RegExp(`\\.ui-etat--${etat}`));
+  }
+  for (const classe of ["ui-conclusion", "ui-action", "ui-tiroir", "ui-visually-hidden", "ui-erreur-champ"]) {
+    assert.match(FONDATIONS, new RegExp(`\\.${classe}`));
+  }
+  assert.match(MAIN, /import "\.\/styles\/fondations\.css";/);
+});
 
 test("le bilan n'annonce plus une unité générique que les chiffres démentent", () => {
   // « Montants en millions d'euros. » coiffait la section quand chaque montant

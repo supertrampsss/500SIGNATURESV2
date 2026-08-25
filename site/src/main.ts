@@ -117,6 +117,7 @@ import {
 } from "./accueil.ts";
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
 import "./style.css";
+import "./styles/fondations.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes

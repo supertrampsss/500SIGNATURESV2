@@ -1,0 +1,154 @@
+/*
+ * Fondations de la refonte : cette feuille complète style.css sans le
+ * réécrire. Les composants des lots suivants ne dépendent que des --ui-*.
+ */
+
+:root {
+  --ui-nuit: #10213a;
+  --ui-papier: #fbf7ee;
+  --ui-surface: #ffffff;
+  --ui-surface-creuse: #f1ede4;
+  --ui-encre: #10213a;
+  --ui-encre-douce: #536273;
+  --ui-trait: #c8c1b4;
+  --ui-focus: #8a5a13;
+  --ui-danger: #9e3024;
+  --ui-succes: #18634b;
+  --ui-attention: #75520e;
+  --ui-ombre: 0 0.5rem 1.5rem rgb(16 33 58 / 0.14);
+}
+
+:root[data-theme="sombre"] {
+  --ui-nuit: #dce7f4;
+  --ui-papier: #10213a;
+  --ui-surface: #172d4a;
+  --ui-surface-creuse: #0c1a2d;
+  --ui-encre: #fbf7ee;
+  --ui-encre-douce: #d5dce4;
+  --ui-trait: #718096;
+  --ui-focus: #f3c969;
+  --ui-danger: #ffb4a9;
+  --ui-succes: #8cdbc0;
+  --ui-attention: #f3d27a;
+  --ui-ombre: 0 0.5rem 1.5rem rgb(0 0 0 / 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="clair"]) {
+    --ui-nuit: #dce7f4;
+    --ui-papier: #10213a;
+    --ui-surface: #172d4a;
+    --ui-surface-creuse: #0c1a2d;
+    --ui-encre: #fbf7ee;
+    --ui-encre-douce: #d5dce4;
+    --ui-trait: #718096;
+    --ui-focus: #f3c969;
+    --ui-danger: #ffb4a9;
+    --ui-succes: #8cdbc0;
+    --ui-attention: #f3d27a;
+    --ui-ombre: 0 0.5rem 1.5rem rgb(0 0 0 / 0.35);
+  }
+}
+
+.ui-conclusion {
+  background: var(--ui-surface-creuse);
+  border-inline-start: 0.25rem solid var(--ui-nuit);
+  border-radius: var(--rayon-s);
+  color: var(--ui-encre);
+  padding: var(--espace-4);
+}
+
+.ui-action {
+  align-items: center;
+  background: var(--ui-nuit);
+  border: 2px solid var(--ui-nuit);
+  border-radius: var(--rayon-pilule);
+  color: var(--ui-papier);
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 44px;
+  padding-inline: var(--espace-4);
+  text-align: center;
+  text-decoration: none;
+}
+
+.ui-action:hover { filter: brightness(1.12); }
+
+.ui-action:focus-visible,
+.ui-tiroir button:focus-visible,
+.ui-tiroir a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--ui-focus);
+  outline-offset: 3px;
+}
+
+.ui-tiroir {
+  background: var(--ui-surface);
+  border: 1px solid var(--ui-trait);
+  border-radius: var(--rayon) var(--rayon) 0 0;
+  bottom: 0;
+  box-shadow: var(--ui-ombre);
+  color: var(--ui-encre);
+  max-height: min(85dvh, 48rem);
+  overflow: auto;
+  padding: var(--espace-5) var(--gouttiere) calc(var(--espace-5) + env(safe-area-inset-bottom, 0px));
+  position: fixed;
+  width: 100%;
+  z-index: 20;
+}
+
+/* À placer immédiatement après son contrôle, référencée par aria-describedby. */
+.ui-erreur-champ {
+  color: var(--ui-danger);
+  font-size: var(--texte-s);
+  font-weight: 700;
+  margin-block: var(--espace-1) 0;
+}
+
+.ui-etat--chargement,
+.ui-etat--vide,
+.ui-etat--erreur,
+.ui-etat--perime {
+  background: var(--ui-surface-creuse);
+  border: 1px solid var(--ui-trait);
+  border-inline-start-width: 0.25rem;
+  border-radius: var(--rayon-s);
+  color: var(--ui-encre);
+  padding: var(--espace-4);
+}
+
+.ui-etat--chargement { border-inline-start-color: var(--ui-nuit); }
+.ui-etat--vide { border-inline-start-color: var(--ui-encre-douce); }
+.ui-etat--erreur { border-inline-start-color: var(--ui-danger); }
+.ui-etat--perime { border-inline-start-color: var(--ui-attention); }
+
+.ui-visually-hidden {
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+@media (min-width: 60rem) {
+  .ui-tiroir {
+    border-radius: var(--rayon) 0 0 var(--rayon);
+    bottom: var(--espace-4);
+    right: var(--espace-4);
+    width: min(28rem, calc(100% - var(--espace-8)));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ui-action,
+  .ui-tiroir {
+    scroll-behavior: auto;
+    transition-duration: 0.01ms !important;
+  }
+}
