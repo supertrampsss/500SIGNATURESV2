@@ -136,7 +136,7 @@
 @media (min-width: 60rem) {
   .analyses-filtres__bouton { display: none; }
 
-  .analyses-filtres:not([data-ouvert="true"]) {
+  .analyses-filtres:not([hidden]):not([data-ouvert="true"]) {
     display: grid;
   }
 

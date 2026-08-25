@@ -2890,7 +2890,10 @@ test("les dossiers restent lisibles sur mobile et leurs filtres s'ouvrent sur bu
   assert.match(MAIN, /import "\.\/styles\/dossiers-verification\.css";/);
   assert.match(css, /\.analyses-filtres:not\(\[data-ouvert="true"\]\) \{\n\s*display: none;/);
   const bureau = css.slice(css.indexOf("@media (min-width: 60rem)"));
-  assert.match(bureau, /\.analyses-filtres:not\(\[data-ouvert="true"\]\) \{\n\s*display: grid;/);
+  assert.match(
+    bureau,
+    /\.analyses-filtres:not\(\[hidden\]\):not\(\[data-ouvert="true"\]\) \{\n\s*display: grid;/,
+  );
   assert.match(css, /\.dossier-index__lien:focus-visible/);
 });
 
