@@ -5,7 +5,7 @@ import { EXPRESS_PAR_ACTE } from "./campagne.ts";
 import { DILEMMES, dilemmeDe } from "./dilemmes.ts";
 
 const ATTENDUS = [
-  ["flat-tax-a-20-avec-abattement-protegeant", "Baisser la flat tax tout en protégeant les revenus modestes ?", "Baisser", ["détenteurs de capital"], ["budget public"], "Maintenir", ["budget public"], ["détenteurs de capital"]],
+  ["flat-tax-a-20-avec-abattement-protegeant", "Remplacer le barème de l'impôt sur le revenu par un taux unique de 20 % avec abattement ?", "Passer à 20 %", ["foyers imposés dans les tranches supérieures"], ["budget public"], "Garder le barème", ["budget public et progressivité"], ["foyers imposés dans les tranches supérieures"]],
   ["exonerer-de-droits-de-succession-jusqu-a", "Exonérer les successions jusqu'au seuil prévu par enfant ?", "Exonérer", ["héritiers concernés"], ["budget public"], "Conserver", ["budget public"], ["héritiers concernés"]],
   ["raboter-de-5-les-subventions-directes-aux", "Réduire de 5 % les subventions directes aux entreprises ?", "Réduire", ["budget public"], ["entreprises aidées"], "Maintenir", ["entreprises aidées"], ["contribuables"]],
   ["achever-la-suppression-de-la-cvae", "Achever la suppression de la CVAE ?", "Supprimer", ["entreprises redevables"], ["finances publiques et territoires"], "Conserver", ["finances publiques et territoires"], ["entreprises redevables"]],
@@ -47,6 +47,13 @@ test("chaque candidat express possède deux choix contradictoires complets", () 
       );
     }
   }
+});
+
+test("la flat tax à 20 % concerne l'impôt sur le revenu de tous les foyers, pas seulement le capital", () => {
+  const dilemme = dilemmeDe("flat-tax-a-20-avec-abattement-protegeant");
+  assert.ok(dilemme);
+  assert.match(`${dilemme.question} ${dilemme.contradiction}`, /tous les revenus imposables/i);
+  assert.doesNotMatch(JSON.stringify(dilemme), /capital/i);
 });
 
 test("les questions, verbes et camps de la campagne suivent la matrice éditoriale", () => {

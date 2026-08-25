@@ -25,10 +25,10 @@ function cote(libelle: string, gagnants: string[], perdants: string[]): CoteDile
 
 export const DILEMMES: Record<string, DilemmeEditorial> = {
   "flat-tax-a-20-avec-abattement-protegeant": {
-    question: "Baisser la flat tax tout en protégeant les revenus modestes ?",
-    contradiction: "Alléger le capital protège certains revenus, mais réduit aussi les ressources du budget public.",
-    adopter: cote("Baisser", ["détenteurs de capital"], ["budget public"]),
-    rejeter: cote("Maintenir", ["budget public"], ["détenteurs de capital"]),
+    question: "Remplacer le barème de l'impôt sur le revenu par un taux unique de 20 % avec abattement ?",
+    contradiction: "Le taux unique s'applique à tous les revenus imposables ; l'abattement laisse les foyers non imposables à zéro, tandis que les tranches supérieures paient moins au prix d'une baisse des recettes publiques.",
+    adopter: cote("Passer à 20 %", ["foyers imposés dans les tranches supérieures"], ["budget public"]),
+    rejeter: cote("Garder le barème", ["budget public et progressivité"], ["foyers imposés dans les tranches supérieures"]),
   },
   "exonerer-de-droits-de-succession-jusqu-a": {
     question: "Exonérer les successions jusqu'au seuil prévu par enfant ?",

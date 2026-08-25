@@ -70,10 +70,10 @@ export const MESURES: Mesure[] = [
     id: "flat-tax-a-20-avec-abattement-protegeant",
     exclut: ["tranche-a-50-au-dela-de-250", "geler-le-bareme-de-l-impot-sur", "soumettre-les-revenus-du-capital-au-bareme"],
     chapitre: "Impôts",
-    titre: "Flat tax à 20 % avec abattement protégeant les revenus modestes",
+    titre: "Impôt sur le revenu à taux unique de 20 % avec abattement",
     effet: -12000,
     precision: "selon abattement",
-    detail: "La variante réellement proposée : les non-imposables restent à zéro, les tranches hautes paient moins, et c'est précisément pour ça qu'il manque de l'ordre de 12 000 M€. Les deux effets qu'on vous promet ensemble, « ça épargne les modestes » et « ça rapporte », ne coexistent pas.",
+    detail: "Le taux de 20 % s'applique à tous les revenus imposables, avec un abattement qui maintient les foyers non imposables à zéro. Les tranches hautes paient moins, ce qui coûte de l'ordre de 12 000 M€ aux finances publiques.",
     reactions: { opinion: -6, entreprises: 5, marches: -3 },
   },
   {

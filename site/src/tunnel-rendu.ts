@@ -299,7 +299,7 @@ function renduMissionDecision(etat: EtatTunnel, missionEuros: number): string {
 
 export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   const mesure = courante(etat);
-  const dilemme = mesure && etat.mode === "express" ? dilemmeDe(mesure.id) : undefined;
+  const dilemme = mesure ? dilemmeDe(mesure.id) : undefined;
   const contexte = mesure ? libelleContextuel(mesure) : "la mesure";
   const faits = etat.ordre.filter((id) => etat.tampons[id]).length;
   const evenement = etat.telexEnCours

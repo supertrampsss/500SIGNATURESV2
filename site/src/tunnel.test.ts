@@ -461,8 +461,8 @@ test("les boutons reprennent les deux camps dans le même ordre et avec leurs li
   const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
 
   assert.ok(html.indexOf("tunnel__camp--adopter") < html.indexOf("tunnel__camp--rejeter"));
-  assert.match(actions, /^\s*<button[^>]*class="tunnel__adopter"[^>]*data-geste="adopter">Baisser<\/button>/);
-  assert.match(actions, /<button[^>]*class="tunnel__rejeter"[^>]*data-geste="rejeter">Maintenir<\/button>\s*$/);
+  assert.match(actions, /^\s*<button[^>]*class="tunnel__adopter"[^>]*data-geste="adopter">Passer à 20 %<\/button>/);
+  assert.match(actions, /<button[^>]*class="tunnel__rejeter"[^>]*data-geste="rejeter">Garder le barème<\/button>\s*$/);
 });
 
 test("deux clics synchrones sur l'ancien CTA ne posent qu'un tampon", () => {
@@ -527,7 +527,7 @@ test("deux clics synchrones sur l'ancien CTA ne posent qu'un tampon", () => {
   }
 });
 
-test("la barre intégrale reprend le titre de la mesure sans préfixer le geste", () => {
+test("la barre intégrale reprend les deux choix éditoriaux sans dupliquer le titre", () => {
   const html = renduConseil({
     ...commencer({ ...etatInitial(), mode: "integral" }),
     mode: "integral",
@@ -535,8 +535,8 @@ test("la barre intégrale reprend le titre de la mesure sans préfixer le geste"
   }, MISSION);
   const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
 
-  assert.match(actions, /data-geste="adopter">Reconduire la surtaxe des grandes entreprises<\/button>/);
-  assert.match(actions, /data-geste="rejeter">Reconduire la surtaxe des grandes entreprises<\/button>/);
+  assert.match(actions, /data-geste="adopter">Reconduire<\/button>/);
+  assert.match(actions, /data-geste="rejeter">Arrêter<\/button>/);
 });
 
 /** Un conseil ouvert sans engagement : la pile entière. */
@@ -582,6 +582,8 @@ test("les deux variantes de la flat tax coexistent, et se contredisent comme pr�
   const seche = MESURES.find((m) => m.id.startsWith("flat-tax-a-20-des"));
   const abattement = MESURES.find((m) => m.id.startsWith("flat-tax-a-20-avec"));
   assert.ok(seche && abattement);
+  assert.match(abattement.titre, /impôt sur le revenu/i);
+  assert.match(abattement.detail, /tous les revenus imposables/i);
   assert.ok(seche!.effet > 100_000 && abattement!.effet < 0);
   // Les fourchettes contestées sont AFFICHÉES : la précision fait partie du chiffre.
   assert.match(seche!.precision ?? "", /arithmétique/);
@@ -860,14 +862,16 @@ test("la campagne express est la mission par défaut et l'intégrale garde les 9
   assert.equal(integral.ordre.length, MESURES.length);
 });
 
-test("la campagne express expose le dilemme éditorial, l'intégrale garde la carte générique", () => {
+test("la flat tax garde ses deux choix explicites dans les campagnes express et intégrale", () => {
   const id = "flat-tax-a-20-avec-abattement-protegeant";
   const express = { ...etatInitial(), phase: "conseil" as const, mode: "express" as const, ordre: [id] };
   const integral = { ...express, mode: "integral" as const };
-  assert.match(renduConseil(express, MISSION), /Baisser la flat tax tout en protégeant les revenus modestes/);
-  assert.match(renduConseil(express, MISSION), /détenteurs de capital/);
-  assert.match(renduConseil(express, MISSION), />Maintenir</);
-  assert.match(renduConseil(integral, MISSION), /Flat tax à 20 %/);
+  for (const html of [renduConseil(express, MISSION), renduConseil(integral, MISSION)]) {
+    assert.match(html, /tous les revenus imposables/i);
+    assert.doesNotMatch(html, /détenteurs de capital/i);
+    assert.match(html, /data-geste="adopter">Passer à 20 %</);
+    assert.match(html, /data-geste="rejeter">Garder le barème</);
+  }
 });
 
 test("le défi v2 transporte mode, graine, score et engagements, sans casser le format historique", () => {
