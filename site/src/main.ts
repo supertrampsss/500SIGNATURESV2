@@ -118,6 +118,7 @@ import {
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
 import { renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
+import { emettreInterface } from "./evenements-interface.ts";
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
@@ -1912,6 +1913,7 @@ function brancherCommandes(): void {
     const lien = (clic.target as HTMLElement).closest<HTMLAnchorElement>("a[data-vue]");
     if (!lien || lien.getAttribute("aria-disabled") === "true") return;
     clic.preventDefault();
+    emettreInterface({ type: "navigation", destination: lien.dataset.vue as "accueil" | "france" | "territoires" | "simuler" });
     // Les paramètres suivent : changer de vue ne doit pas perdre le territoire
     // choisi ni les réglages du simulateur.
     history.pushState(null, "", `${lien.pathname}${location.search}`);
@@ -1999,6 +2001,7 @@ function brancherRecherche(champ: HTMLInputElement, liste: HTMLUListElement): vo
   liste.addEventListener("click", async (evenement) => {
     const bouton = (evenement.target as HTMLElement).closest("button");
     if (!bouton) return;
+    emettreInterface({ type: "territoire_recherche" });
     montrer(false);
     champ.value = "";
     // Choisir une commune depuis une vue régionale change la maille : sans
@@ -2390,12 +2393,49 @@ const VOLETS_PUBLIES: VoletPublie[] = [
 let exercicesParVolet: { volet: VoletPublie; exercice: string }[] = [];
 let atelierMonte = false;
 let terminerSessionImmersive: (() => void) | null = null;
+let evenementsInterfaceBranches = false;
 /** Les volets réellement montés dans l'atelier : posés une seule fois, à la
  *  première ouverture (`ouvrirSimulateur`), et relus par tout ce qui doit
  *  décoder un scénario ou construire une colonne comparée. Recharger un
  *  scénario n'est jamais un rechargement de volets — seulement un nouvel état
  *  décodé contre les mêmes volets déjà en place, voir `chargerScenario`. */
 let voletsMontes: Volet[] = [];
+
+/** Les gestes sont observés localement, une seule fois par document. Les
+ *  écouteurs délégués traversent ainsi les repeintures du tunnel sans rejouer
+ *  un événement au retour du BFCache. */
+function brancherEvenementsInterface(): void {
+  if (evenementsInterfaceBranches) return;
+  evenementsInterfaceBranches = true;
+  let dernierDossier = 0;
+
+  document.addEventListener("simulateur:evenement", (evenement) => {
+    const detail = (evenement as CustomEvent<{ type?: string; numero?: unknown }>).detail;
+    if (detail?.type === "partie_demarre") dernierDossier = 0;
+    if (detail?.type === "decision" && typeof detail.numero === "number") dernierDossier = detail.numero;
+  });
+  document.addEventListener(
+    "toggle",
+    (evenement) => {
+      const tiroir = evenement.target as HTMLDetailsElement;
+      if (tiroir.dataset.details !== "preuve" || !tiroir.open) return;
+      const contexte = document.body.dataset.vue === "simulateur"
+        ? "simulateur"
+        : document.body.dataset.page === "editorial"
+          ? "analyse"
+          : document.body.dataset.vue === "bilan"
+            ? "france"
+            : "territoire";
+      emettreInterface({ type: "preuve_ouverte", contexte });
+    },
+    true,
+  );
+  document.addEventListener("click", (evenement) => {
+    if ((evenement.target as HTMLElement).closest(".tunnel__quitter")) {
+      emettreInterface({ type: "simulateur_abandon", dossier: dernierDossier });
+    }
+  });
+}
 
 function vuesConnues(): readonly string[] {
   return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
@@ -3927,6 +3967,7 @@ async function demarrer(): Promise<void> {
   // sans rien écrire sur ces pages-là. Placé plus bas, l'onglet n'était pas
   // marqué et rien ne le disait.
   marquerOngletAnalyses();
+  brancherEvenementsInterface();
   // Avant toute donnée : la bascule de thème n'attend rien du réseau, et une
   // page en panne doit rester lisible dans le thème du lecteur.
   brancherTheme();
