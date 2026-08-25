@@ -1,5 +1,6 @@
 import type { Territoire } from "./donnees.ts";
 import { formater } from "./echelle.ts";
+import { adresseTerritoire } from "./routes.ts";
 
 export type ChiffreBriefing = {
   id: string;
@@ -12,13 +13,16 @@ export type BriefingTerritorial = {
   diagnostic: string;
   chiffres: ChiffreBriefing[];
   groupe: string;
+  exercice: string;
+  code: string;
+  niveau: string;
 };
-
-type BriefingAvecExercice = BriefingTerritorial & { exercice: string };
 
 export type EntreeBriefing = {
   territoire: Territoire;
   exercice: string;
+  code: string;
+  niveau: string;
   chiffres: readonly {
     id: string;
     libelle: string;
@@ -63,17 +67,20 @@ export function briefingTerritorial(entree: EntreeBriefing): BriefingTerritorial
       ...(chiffre.comparaison === undefined ? {} : { comparaison: chiffre.comparaison }),
     }];
   });
-  const briefing: BriefingAvecExercice = {
+  return {
     diagnostic: phrase(entree.diagnostic),
     chiffres,
     groupe: entree.groupe,
     exercice: entree.exercice,
+    code: entree.code,
+    niveau: entree.niveau,
   };
-  return briefing;
 }
 
 export function renduBriefing(briefing: BriefingTerritorial, territoire: Territoire): string {
-  const nom = encodeURIComponent(territoire.nom);
+  const comparaison = `${adresseTerritoire(briefing.code, briefing.niveau)}&comparer=${encodeURIComponent(
+    briefing.code,
+  )}`;
   const chiffres = briefing.chiffres
     .map(
       (chiffre) => `<div>
@@ -91,10 +98,11 @@ export function renduBriefing(briefing: BriefingTerritorial, territoire: Territo
       <p>Communes comparables : ${echapper(briefing.groupe)}</p>
     </header>
     <dl>${chiffres}</dl>
-    <p>Exercice ${echapper((briefing as Partial<BriefingAvecExercice>).exercice ?? "")}</p>
+    <p>Exercice ${echapper(briefing.exercice)}</p>
     <p class="briefing-territorial__actions">
-      <a href="/comparateur?territoire=${nom}">Comparer</a>
-      <a href="/simulateur?territoire=${nom}">Simuler ce territoire</a>
+      <a href="${echapper(comparaison)}">Comparer</a>
+      <span>Le simulateur porte sur le budget national.</span>
+      <a href="/simulateur">Simuler le budget national</a>
     </p>
   </section>`;
 }

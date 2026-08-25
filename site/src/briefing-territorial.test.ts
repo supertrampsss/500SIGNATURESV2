@@ -11,6 +11,8 @@ const territoire: Territoire = {
 const entree = {
   territoire,
   exercice: "2025",
+  code: "33063",
+  niveau: "commune",
   diagnostic: "Une situation & solide",
   groupe: 'communes de <10 000> habitants & rurales',
   chiffres: [
@@ -37,6 +39,9 @@ test("le briefing priorise quatre chiffres, complète son diagnostic et nomme se
   assert.equal(briefing.chiffres.length, 4);
   assert.equal(briefing.diagnostic, "Une situation & solide.");
   assert.equal(briefing.groupe, "communes de <10 000> habitants & rurales");
+  assert.equal(briefing.exercice, "2025");
+  assert.equal(briefing.code, "33063");
+  assert.equal(briefing.niveau, "commune");
 });
 
 test("le rendu montre l'exercice, échappe les textes et porte des actions adressables", () => {
@@ -48,7 +53,9 @@ test("le rendu montre l'exercice, échappe les textes et porte des actions adres
   assert.match(html, /Une situation &amp; solide\./);
   assert.match(html, /Communes comparables : communes de &lt;10 000&gt; habitants &amp; rurales/);
   assert.match(html, />Comparer<\/a>/);
-  assert.match(html, />Simuler ce territoire<\/a>/);
-  assert.match(html, /href="\/comparateur\?territoire=Saint-%3CMartin%3E%20%26%20%22Co"/);
-  assert.match(html, /href="\/simulateur\?territoire=Saint-%3CMartin%3E%20%26%20%22Co"/);
+  assert.match(html, />Simuler le budget national<\/a>/);
+  assert.match(html, /Le simulateur porte sur le budget national\./);
+  assert.match(html, /href="\/territoire\?niveau=commune&amp;territoire=33063&amp;comparer=33063"/);
+  assert.match(html, /href="\/simulateur"/);
+  assert.doesNotMatch(html, /Saint-%3CMartin|Simuler ce territoire/);
 });
