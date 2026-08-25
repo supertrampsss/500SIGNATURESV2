@@ -543,7 +543,7 @@ test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.doesNotMatch(balises, /href="#(territoire|bilan|simulateur)"/);
   assert.match(balises, /id="navigation-principale"/);
-  assert.match(MAIN, /import \{ renduNavigation \} from "\.\/navigation\.ts"/);
+  assert.match(MAIN, /import \{ (?:intercepterNavigation, )?renduNavigation \} from "\.\/navigation\.ts"/);
 });
 
 test("les vues renommées portent leur nouveau nom partout", () => {

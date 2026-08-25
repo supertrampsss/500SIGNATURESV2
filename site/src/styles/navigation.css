@@ -2,6 +2,7 @@
 .entete__nav a[aria-disabled="true"] {
   cursor: not-allowed;
   opacity: 0.55;
+  pointer-events: none;
 }
 
 @media (max-width: 39.999rem) {

@@ -74,6 +74,9 @@ test("la mission expose le déficit, les deux modes et une seule entrée", () =>
   assert.match(express, /Le déficit mesure ce que les administrations publiques dépensent au-delà de leurs recettes sur une année\./);
   assert.match(express, /Conseil de crise · 15 mesures/);
   assert.match(express, /Conseil intégral · 96 mesures/);
+  assert.match(express, /environ 5 minutes/);
+  assert.match(integral, /environ 25 minutes/);
+  assert.match(express, /À la fin, vous obtenez un bilan de votre budget, de votre mandat et de vos soutiens\./);
   assert.match(express, /class="tunnel__mode tunnel__mode--actif" data-action="mode-express" aria-pressed="true"/);
   assert.match(express, /class="tunnel__mode" data-action="mode-integral" aria-pressed="false"/);
   assert.match(integral, /class="tunnel__mode" data-action="mode-express" aria-pressed="false"/);
@@ -227,7 +230,7 @@ test("sans Clipboard API, un clic Partager ouvre l'invite et émet une fois", as
     global.sessionStorage = { getItem: (cle: string) => stockage.get(cle) ?? null, setItem: (cle: string, valeur: string) => void stockage.set(cle, valeur), removeItem: (cle: string) => void stockage.delete(cle) };
     global.document = { dispatchEvent: (evenement: { detail: unknown }) => { evenements.push(evenement.detail); return true; } };
     Object.defineProperty(globalThis, "navigator", { configurable: true, value: {} });
-    stockage.set("tunnel-partie", JSON.stringify({ ...conseil(), phase: "verdict" }));
+    stockage.set("tunnel-partie", JSON.stringify(verdictFini()));
 
     const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
     cadre.emettreClic(bouton);
@@ -285,7 +288,7 @@ test("Partager sérialise les clics et ne touche plus le bouton démonté", asyn
         return new Promise<void>((resolve) => { resoudre = resolve; });
       },
     } });
-    stockage.set("tunnel-partie", JSON.stringify({ ...conseil(), phase: "verdict" }));
+    stockage.set("tunnel-partie", JSON.stringify(verdictFini()));
 
     const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
     cadre.emettreClic(bouton);
@@ -359,7 +362,7 @@ test("un repaint pendant le partage invalide l'ancien bouton mais libère une no
       appels++;
       return new Promise<void>((resolve) => resolutions.push(resolve));
     } } });
-    stockage.set("tunnel-partie", JSON.stringify({ ...conseil(), phase: "verdict" }));
+    stockage.set("tunnel-partie", JSON.stringify(verdictFini()));
 
     const demonter = afficherTunnel(cadre, { missionEuros: MISSION });
     cadre.emettreClic(ancienBouton.bouton);
@@ -1080,6 +1083,15 @@ function dernierDossier(): EtatTunnel {
   return { ...conseil(), ordre: ["doubler-la-taxe-sur-les-rachats-d"], tampons: {}, historique: [] };
 }
 
+/** Une fixture terminale passe par le même tampon et la même résolution qu'une partie. */
+function verdictFini(): EtatTunnel {
+  const etat = transitionApresRetour(tamponner(dernierDossier(), "rejete"), MISSION);
+  assert.equal(etat.phase, "verdict");
+  assert.deepEqual(etat.historique.map(({ id }) => id), etat.ordre);
+  assert.ok(etat.ordre.every((id) => etat.tampons[id] !== undefined));
+  return etat;
+}
+
 function deuxDerniersDossiers(): EtatTunnel {
   return {
     ...conseil(),
@@ -1762,7 +1774,7 @@ test("tout rejeter en choisissant toujours la pire issue reste jouable, sans bou
 test("le plein écran a sa porte de sortie : « Quitter le conseil » ramène au site", () => {
   // La porte vit dans le cadre à toutes les phases : mission, conseil,
   // verdict. C'est le seul lien vers le site quand le tunnel occupe l'écran.
-  for (const etape of [etatInitial(), conseil(), { ...conseil(), phase: "verdict" as const }]) {
+  for (const etape of [etatInitial(), conseil(), verdictFini()]) {
     const html = rendu(etape, MISSION);
     assert.match(html, /tunnel__quitter/);
     assert.match(html, /href="\/"/);

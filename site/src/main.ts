@@ -116,7 +116,7 @@ import {
   MAILLE_EXEMPLE,
 } from "./accueil.ts";
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
-import { renduNavigation } from "./navigation.ts";
+import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import "./style.css";
@@ -1909,14 +1909,12 @@ function brancherCommandes(): void {
   // doit continuer de fonctionner sur un vrai lien.
   document.querySelector(".entete__nav")?.addEventListener("click", (evenement) => {
     const clic = evenement as MouseEvent;
-    if (clic.button !== 0 || clic.metaKey || clic.ctrlKey || clic.shiftKey || clic.altKey) return;
-    const lien = (clic.target as HTMLElement).closest<HTMLAnchorElement>("a[data-vue]");
-    if (!lien || lien.getAttribute("aria-disabled") === "true") return;
-    clic.preventDefault();
-    emettreInterface({ type: "navigation", destination: lien.dataset.vue as "accueil" | "france" | "territoires" | "simuler" });
+    const destination = intercepterNavigation(clic);
+    if (!destination) return;
+    emettreInterface({ type: "navigation", destination: destination.cle });
     // Les paramètres suivent : changer de vue ne doit pas perdre le territoire
     // choisi ni les réglages du simulateur.
-    history.pushState(null, "", `${lien.pathname}${location.search}`);
+    history.pushState(null, "", `${destination.href}${location.search}`);
     basculerVue();
   });
 

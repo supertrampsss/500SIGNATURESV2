@@ -45,8 +45,8 @@ function renduSoutiens(etat: EtatTunnel, missionEuros: number): string {
 
 export function renduMission(etat: EtatTunnel, missionEuros: number): string {
   const mode = `<div class="tunnel__modes" role="group" aria-label="Mode de séance">
-    <button type="button" class="tunnel__mode${etat.mode === "express" ? " tunnel__mode--actif" : ""}" data-action="mode-express" aria-pressed="${etat.mode === "express"}">Conseil de crise · 15 mesures</button>
-    <button type="button" class="tunnel__mode${etat.mode === "integral" ? " tunnel__mode--actif" : ""}" data-action="mode-integral" aria-pressed="${etat.mode === "integral"}">Conseil intégral · 96 mesures</button>
+    <button type="button" class="tunnel__mode${etat.mode === "express" ? " tunnel__mode--actif" : ""}" data-action="mode-express" aria-pressed="${etat.mode === "express"}">Conseil de crise · 15 mesures · environ 5 minutes</button>
+    <button type="button" class="tunnel__mode${etat.mode === "integral" ? " tunnel__mode--actif" : ""}" data-action="mode-integral" aria-pressed="${etat.mode === "integral"}">Conseil intégral · 96 mesures · environ 25 minutes</button>
   </div>`;
   return `
     <div class="tunnel__mission">
@@ -54,6 +54,7 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
         <h1 class="tunnel__mission-titre">Le déficit à combler</h1>
         <p class="tunnel__compteur-geant">${compteur(missionEuros)}</p>
         <p class="tunnel__chapeau">Le déficit mesure ce que les administrations publiques dépensent au-delà de leurs recettes sur une année.</p>
+        <p class="tunnel__mission-bilan">À la fin, vous obtenez un bilan de votre budget, de votre mandat et de vos soutiens.</p>
       </div>
       <div class="tunnel__mission-actions">
         ${mode}
