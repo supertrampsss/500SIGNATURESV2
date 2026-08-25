@@ -111,11 +111,21 @@ function dernierJour(valeurs: readonly string[]): string | undefined {
   return distinctes.length ? distinctes[distinctes.length - 1] : undefined;
 }
 
+/** Empreinte courte de l'URL canonique : le suffixe ne dépend jamais de l'ordre. */
+function empreinteUrl(url: string): string {
+  let empreinte = 0x811c9dc5;
+  for (let index = 0; index < url.length; index += 1) {
+    empreinte ^= url.charCodeAt(index);
+    empreinte = Math.imul(empreinte, 0x01000193);
+  }
+  return (empreinte >>> 0).toString(36);
+}
+
 function idDe(accumulateur: Accumulateur): string {
-  if (accumulateur.jeu) return slug(accumulateur.jeu.id);
+  if (accumulateur.jeu) return `${slug(accumulateur.jeu.id)}-${empreinteUrl(accumulateur.cle)}`;
   const analyse = [...accumulateur.analyses].sort((a, b) => a.slug.localeCompare(b.slug, "fr"))[0];
-  if (analyse) return slug(`${analyse.slug}-${accumulateur.cle}`);
-  return slug(accumulateur.cle);
+  if (analyse) return `${slug(analyse.slug)}-${empreinteUrl(accumulateur.cle)}`;
+  return `${slug(accumulateur.cle)}-${empreinteUrl(accumulateur.cle)}`;
 }
 
 function insererAccumulateur(
@@ -150,7 +160,6 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
     }
   }
 
-  const ids = new Map<string, number>();
   const fiches = [...parUrl.values()].map((accumulateur) => {
     const jeu = accumulateur.jeu;
     const indicateursDuJeu = jeu
@@ -158,15 +167,16 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
       : [];
     const sourceAnalyse = accumulateur.analyses
       .flatMap((analyse) => analyse.sources.filter((source) => sansFragment(source.url) === accumulateur.cle));
-    const baseId = idDe(accumulateur);
-    const occurrence = ids.get(baseId) ?? 0;
-    ids.set(baseId, occurrence + 1);
-    const id = occurrence ? `${baseId}-${occurrence + 1}` : baseId;
-    const statut = jeu
+    const statutJeu: StatutSource | undefined = jeu
       ? indicateursDuJeu.some(estProvisoire)
         ? "provisoire"
         : "publie"
-      : statutAnalyse(accumulateur.analyses.sort((a, b) => a.slug.localeCompare(b.slug, "fr"))[0]!);
+      : undefined;
+    const statuts: StatutSource[] = [
+      ...(statutJeu ? [statutJeu] : []),
+      ...accumulateur.analyses.map(statutAnalyse),
+    ];
+    const statut = statuts.sort((a, b) => ORDRE_STATUT[b] - ORDRE_STATUT[a])[0]!;
     const pages = distinctTrie([
       ...(jeu ? ["/bilan"] : []),
       ...accumulateur.analyses.map((analyse) => `/analyses/${analyse.slug}/`),
@@ -174,7 +184,7 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
     const formules = indicateursDuJeu.map((indicateur) => indicateur.formule);
 
     return {
-      id,
+      id: idDe(accumulateur),
       nom: jeu?.titre ?? sourceAnalyse[0]?.titre ?? "Publication sans titre",
       statut,
       institution: jeu?.producteur ?? "Institution non précisée",

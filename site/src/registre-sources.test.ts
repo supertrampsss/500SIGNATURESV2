@@ -108,7 +108,7 @@ test("le registre distingue les estimations et les règles du jeu sans les faire
     chiffres: [{ dit: "10", valeur: 10, registre: "estimation_externe", lecture: "Estimation." }],
   });
   const regle = analyse({
-    slug: "regle", 
+    slug: "regle",
     sources: [{ titre: "Hypothèse de jeu", url: "https://exemple.test/regle", consulte_le: "2026-08-22" }],
     chiffres: [{ dit: "20", valeur: 20, registre: "resultat_simulation", lecture: "Simulation." }],
     simulateur: { budget: "etat/1:1", contrat: "", lecture: "" },
@@ -130,4 +130,41 @@ test("la recherche ignore les accents et le filtre de statut", () => {
   assert.equal(filtrerRegistre(fiches, "deficit").length, 1);
   assert.equal(filtrerRegistre(fiches, "INSEE", "publie").length, 1);
   assert.equal(filtrerRegistre(fiches, "déficit", "estimation").length, 0);
+});
+
+test("des URLs canoniques distinctes gardent leur identifiant malgré un slug en collision", () => {
+  const premiere: Jeu = { ...JEU_INSEE, id: "été", titre: "Première", url: "https://source.test/a-b" };
+  const seconde: Jeu = { ...JEU_INSEE, id: "ete", titre: "Seconde", url: "https://source.test/a/b" };
+  const entree = { jeux: [premiere, seconde], indicateurs: [], analyses: [] };
+  const inverse = { ...entree, jeux: [...entree.jeux].reverse() };
+  const parUrl = (fiches: ReturnType<typeof construireRegistre>) =>
+    new Map(fiches.map((fiche) => [fiche.url, fiche.id]));
+
+  const ids = parUrl(construireRegistre(entree));
+  const idsInverses = parUrl(construireRegistre(inverse));
+
+  assert.notEqual(ids.get("https://source.test/a-b"), ids.get("https://source.test/a/b"));
+  assert.deepEqual(idsInverses, ids);
+});
+
+test("une source mixte conserve tous ses usages et le statut le plus prudent", () => {
+  const source = "https://institut.test/note#annexe";
+  const estimation = analyse({
+    slug: "a-estimation",
+    sources: [{ titre: "Note", url: source, consulte_le: "2026-08-22" }],
+    chiffres: [{ dit: "10", valeur: 10, registre: "estimation_externe", lecture: "Estimation." }],
+  });
+  const regle = analyse({
+    slug: "z-regle",
+    sources: [{ titre: "Note", url: "https://institut.test/note#methodologie", consulte_le: "2026-08-23" }],
+    chiffres: [{ dit: "20", valeur: 20, registre: "hypothese", lecture: "Hypothèse." }],
+  });
+  const entree = { jeux: [], indicateurs: [], analyses: [estimation, regle] };
+
+  const fiche = construireRegistre(entree)[0]!;
+  const inverse = construireRegistre({ ...entree, analyses: [...entree.analyses].reverse() })[0]!;
+
+  assert.equal(fiche.statut, "regle_jeu");
+  assert.deepEqual(fiche.pages, ["/analyses/a-estimation/", "/analyses/z-regle/"]);
+  assert.deepEqual(inverse, fiche);
 });
