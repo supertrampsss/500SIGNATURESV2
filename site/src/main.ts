@@ -3819,6 +3819,20 @@ function brancherRegistreSources(): void {
   filtres.addEventListener("input", appliquer);
   if (effacer) effacer.addEventListener("click", () => { champ.value = ""; statut.value = ""; appliquer(); champ.focus(); });
   appliquer();
+
+  // Une ancre de source doit donner un repère de lecture, pas seulement
+  // déplacer la page : le lecteur arrivé depuis un chiffre retrouve la fiche
+  // exacte au focus. Les identifiants du registre sont des slugs ASCII ; on
+  // ne recompose donc aucun identifiant depuis le libellé de la publication.
+  const focaliserAncre = () => {
+    const id = location.hash.startsWith("#") ? location.hash.slice(1) : "";
+    const cible = id ? document.getElementById(id) : null;
+    if (!(cible instanceof HTMLElement) || !cible.classList.contains("registre-sources__fiche")) return;
+    cible.tabIndex = -1;
+    cible.focus({ preventScroll: true });
+  };
+  focaliserAncre();
+  window.addEventListener("hashchange", focaliserAncre);
 }
 
 function brancherFiltresAnalyses(): void {
@@ -4157,6 +4171,12 @@ async function ouvrirSimulateur(): Promise<void> {
 }
 
 async function demarrer(): Promise<void> {
+  // Les documents éditoriaux pré-rendus ne passent pas par `basculerVue` :
+  // sans ce premier rendu, leur navigation mobile restait une barre vide,
+  // donc plus aucune des quatre destinations n'était atteignable au pouce.
+  // La fonction est rejouée par `basculerVue` pour les vues applicatives,
+  // avec le même contenu et sans effet de bord.
+  rendreNavigationPrincipale();
   // ANALYSES n'est pas une vue : ses pages sont pré-rendues, et `basculerVue`
   // — qui pose `aria-current` sur l'entrée courante — en sort à la première
   // ligne. Le marquage se fait donc ici, et EN PREMIER : tout ce qui suit peut

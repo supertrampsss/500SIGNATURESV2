@@ -35,6 +35,8 @@ const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const DOSSIERS_VERIFICATION = readFileSync(new URL("./styles/dossiers-verification.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const REGISTRE_SOURCES = readFileSync(new URL("./styles/registre-sources.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const BRIEFING_TERRITORIAL = readFileSync(new URL("./briefing-territorial.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -3252,6 +3254,31 @@ test("l'onglet ANALYSES se marque courant, et le marquage passe avant tout", () 
   const debut = MAIN.slice(MAIN.indexOf("async function demarrer(): Promise<void> {"));
   const avantTheme = debut.slice(0, debut.indexOf("brancherTheme();"));
   assert.match(avantTheme, /marquerOngletAnalyses\(\);/, "le marquage doit ouvrir demarrer()");
+});
+
+test("la navigation primaire est aussi rendue sur les documents éditoriaux", () => {
+  // Les analyses et le registre sortent avant `basculerVue()` : ils doivent
+  // donc peupler eux-mêmes la barre mobile, au lieu de laisser un fin cadre
+  // fixe sans destination.
+  const debut = MAIN.slice(MAIN.indexOf("async function demarrer(): Promise<void> {"));
+  const avantTheme = debut.slice(0, debut.indexOf("brancherTheme();"));
+  assert.match(avantTheme, /rendreNavigationPrincipale\(\);/);
+});
+
+test("dossiers et registre ne conservent aucune colonne minimale sur mobile", () => {
+  // Une grille à piste implicite `auto` prend la largeur du mot le plus long :
+  // sur un petit écran, le dossier ou une fiche source sort alors du viewport.
+  assert.match(DOSSIERS_VERIFICATION, /\.analyse-rendu\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s);
+  assert.match(REGISTRE_SOURCES, /\.registre-sources\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\);/s);
+  assert.match(REGISTRE_SOURCES, /\.registre-sources__publication\s*\{[^}]*overflow-wrap:\s*anywhere;/s);
+});
+
+test("une ancre de source donne le focus à la fiche exacte", () => {
+  const registre = MAIN.slice(MAIN.indexOf("function brancherRegistreSources(): void {"));
+  assert.match(registre, /const focaliserAncre = \(\) => \{/);
+  assert.match(registre, /cible\.tabIndex = -1;/);
+  assert.match(registre, /cible\.focus\(\{ preventScroll: true \}\);/);
+  assert.match(REGISTRE_SOURCES, /\.registre-sources__fiche:focus-visible/);
 });
 
 test("le pied de fiche ne fait pas tomber le démarrage d'une page éditoriale", () => {

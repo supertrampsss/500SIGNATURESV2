@@ -64,6 +64,7 @@
    puis chaque niveau de preuve se déroule sans concurrence visuelle. */
 .analyse-rendu {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--espace-5);
   max-width: 72rem;
 }

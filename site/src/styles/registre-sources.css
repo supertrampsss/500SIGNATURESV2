@@ -2,6 +2,7 @@
    sont présentes dans le HTML, les filtres ne sont qu'une aide locale. */
 .registre-sources {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--espace-5);
   max-width: 82rem;
   margin: 0 auto;
@@ -38,8 +39,8 @@
 .registre-sources__effacer { justify-self: start; min-height: var(--cible); padding-inline: var(--espace-4); border: 1px solid var(--ui-trait); border-radius: var(--rayon-pilule); background: var(--ui-surface); color: var(--ui-encre); font: inherit; font-weight: 700; cursor: pointer; }
 .registre-sources__vide, .registre-sources__absence { margin: 0; padding: var(--espace-4); border: 1px dashed var(--ui-trait); color: var(--ui-encre-douce); }
 
-.registre-sources__liste { display: grid; gap: var(--espace-4); }
-.registre-sources__fiche { display: grid; gap: var(--espace-4); padding: var(--espace-4); border: 1px solid var(--ui-trait); border-radius: var(--rayon); background: var(--ui-surface); color: var(--ui-encre); }
+.registre-sources__liste { display: grid; min-width: 0; gap: var(--espace-4); }
+.registre-sources__fiche { display: grid; min-width: 0; gap: var(--espace-4); padding: var(--espace-4); border: 1px solid var(--ui-trait); border-radius: var(--rayon); background: var(--ui-surface); color: var(--ui-encre); }
 .registre-sources__fiche h2 { margin: var(--espace-1) 0 0; font-family: var(--serif); font-size: var(--texte-l); }
 .registre-sources__institution { margin: var(--espace-1) 0 0; color: var(--ui-encre-douce); font-weight: 700; }
 .registre-sources__details { display: grid; gap: var(--espace-2); margin: 0; }
@@ -49,8 +50,13 @@
 .registre-sources__usages h3 { margin: 0 0 var(--espace-2); font-size: var(--texte-s); }
 .registre-sources__usages ul { display: flex; flex-wrap: wrap; gap: var(--espace-2); margin: 0; padding: 0; list-style: none; }
 .registre-sources__publication { color: var(--ui-encre); font-weight: 800; text-decoration-thickness: 2px; text-underline-offset: .18em; }
+.registre-sources__details dd,
+.registre-sources__usages a,
+.registre-sources__publication { overflow-wrap: anywhere; }
 .registre-sources__publication:hover { color: var(--ui-focus); }
-.registre-sources__publication:focus-visible, .registre-sources__effacer:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
+.registre-sources__fiche:focus-visible,
+.registre-sources__publication:focus-visible,
+.registre-sources__effacer:focus-visible { outline: 3px solid var(--ui-focus); outline-offset: 3px; }
 
 @media (min-width: 60rem) {
   .registre-sources__filtres { grid-template-columns: minmax(0, 2fr) minmax(14rem, 1fr); align-items: end; }
