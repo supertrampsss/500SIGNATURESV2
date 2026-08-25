@@ -44,6 +44,21 @@ test("les fondations communes rendent les états et actions accessibles", () => 
   assert.match(MAIN, /import "\.\/styles\/fondations\.css";/);
 });
 
+test("les états communs se distinguent aussi sans leur couleur", () => {
+  const marqueur = (etat: string): string => {
+    const regle = [...FONDATIONS.matchAll(new RegExp(`\\.ui-etat--${etat}\\s*\\{([^}]+)\\}`, "g"))].at(-1);
+    assert.ok(regle, `règle de l'état ${etat} introuvable`);
+    const style = regle[1].match(/border-inline-start-style:\s*([\w-]+);/);
+    assert.ok(style, `marqueur non chromatique absent pour ${etat}`);
+    return style[1];
+  };
+
+  assert.deepEqual(
+    ["chargement", "vide", "erreur", "perime"].map(marqueur),
+    ["dotted", "dashed", "solid", "double"],
+  );
+});
+
 test("le bilan n'annonce plus une unité générique que les chiffres démentent", () => {
   // « Montants en millions d'euros. » coiffait la section quand chaque montant
   // s'écrivait encore en millions bruts. Depuis `montantLisible` (échelle

@@ -121,10 +121,25 @@ textarea:focus-visible {
   padding: var(--espace-4);
 }
 
-.ui-etat--chargement { border-inline-start-color: var(--ui-nuit); }
-.ui-etat--vide { border-inline-start-color: var(--ui-encre-douce); }
-.ui-etat--erreur { border-inline-start-color: var(--ui-danger); }
-.ui-etat--perime { border-inline-start-color: var(--ui-attention); }
+.ui-etat--chargement {
+  border-inline-start-color: var(--ui-nuit);
+  border-inline-start-style: dotted;
+}
+
+.ui-etat--vide {
+  border-inline-start-color: var(--ui-encre-douce);
+  border-inline-start-style: dashed;
+}
+
+.ui-etat--erreur {
+  border-inline-start-color: var(--ui-danger);
+  border-inline-start-style: solid;
+}
+
+.ui-etat--perime {
+  border-inline-start-color: var(--ui-attention);
+  border-inline-start-style: double;
+}
 
 .ui-visually-hidden {
   clip: rect(0 0 0 0);
