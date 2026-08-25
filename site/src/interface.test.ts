@@ -3243,7 +3243,7 @@ test("ANALYSES n'est pas une destination de la navigation principale", () => {
   const nav = PAGE.slice(PAGE.indexOf('<nav class="entete__nav"'));
   const barre = nav.slice(0, nav.indexOf("</nav>"));
   assert.doesNotMatch(barre, /Analyses|\/analyses/);
-  assert.match(MAIN, /renduNavigation\(location\.pathname, exercicesParVolet\.length > 0\)/);
+  assert.match(MAIN, /renduNavigation\(location\.pathname, simulateurDisponible\)/);
 });
 
 test("l'onglet ANALYSES se marque courant, et le marquage passe avant tout", () => {
@@ -3263,6 +3263,35 @@ test("la navigation primaire est aussi rendue sur les documents éditoriaux", ()
   const debut = MAIN.slice(MAIN.indexOf("async function demarrer(): Promise<void> {"));
   const avantTheme = debut.slice(0, debut.indexOf("brancherTheme();"));
   assert.match(avantTheme, /rendreNavigationPrincipale\(\);/);
+});
+
+test("les documents éditoriaux gardent Simuler disponible sans ouvrir la SPA sans données", () => {
+  const navigation = MAIN.slice(
+    MAIN.indexOf("function rendreNavigationPrincipale(): void {"),
+    MAIN.indexOf("/* --------------------------------------------------------------------------\n * L'accueil"),
+  );
+  // Les pages pré-rendues ne chargent pas les budgets : leur lien reste une
+  // porte vers le simulateur. Les vues SPA, elles, restent liées à la présence
+  // effective des exercices.
+  assert.match(
+    navigation,
+    /const simulateurDisponible = document\.body\.dataset\.page === "editorial" \|\| exercicesParVolet\.length > 0;/,
+  );
+  assert.match(navigation, /renduNavigation\(location\.pathname, simulateurDisponible\)/);
+  assert.match(MAIN, /function vuesConnues\(\): readonly string\[\] \{\s*return exercicesParVolet\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/s);
+});
+
+test("les liens de navigation d'un document éditorial gardent leur navigation native", () => {
+  const gestionnaire = MAIN.slice(
+    MAIN.indexOf('document.querySelector(".entete__nav")?.addEventListener("click"'),
+    MAIN.indexOf("/* --------------------------------------------------------------------------\n * La navigation principale"),
+  );
+  const garde = 'if (document.body.dataset.page === "editorial") return;';
+  assert.match(gestionnaire, new RegExp(garde.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.ok(
+    gestionnaire.indexOf(garde) < gestionnaire.indexOf("const destination = intercepterNavigation(clic);"),
+    "le document éditorial doit laisser le href naviguer avant toute interception SPA",
+  );
 });
 
 test("dossiers et registre ne conservent aucune colonne minimale sur mobile", () => {

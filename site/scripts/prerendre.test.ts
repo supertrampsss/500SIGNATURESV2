@@ -38,6 +38,7 @@ import type {
   Territoire,
 } from "../src/donnees.ts";
 import { formater } from "../src/echelle.ts";
+import { renduNavigation } from "../src/navigation.ts";
 import { permalien } from "../src/partage.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
@@ -683,6 +684,30 @@ test("8 quater. le registre est pré-rendu avec sa canonique et son image propre
   assert.match(html, /registre-sources__fiche/);
   assert.match(html, new RegExp(`<link rel="canonical" href="${SITE_ESSAI}/sources/"`));
   assert.match(html, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}/sources/carte\\.png"`));
+});
+
+test("8 quinquies. les trois documents éditoriaux déclarent l'état qui laisse Simuler navigable", async () => {
+  const [analyse] = await analysesPubliees();
+  assert.ok(analyse, "aucun dossier publié");
+  const shell = GABARIT_REEL;
+  const documents = [
+    ["/analyses/", injecter(shell, { ...PAGE, canonique: "/analyses/" }, SITE_ESSAI)],
+    [
+      `/analyses/${analyse.slug}/`,
+      injecter(shell, { ...PAGE, canonique: `/analyses/${analyse.slug}/` }, SITE_ESSAI),
+    ],
+    ["/sources/", injecterRegistre(shell, [], SITE_ESSAI)],
+  ] as const;
+
+  for (const [chemin, html] of documents) {
+    assert.match(html, /<body[^>]*data-page="editorial"/);
+    assert.match(html, /id="navigation-principale"/);
+    // Le nav est monté par le paquet après lecture de data-page : la sortie
+    // reflète le lien clavier/souris réellement attendu pour chaque document.
+    const navigation = renduNavigation(chemin, true);
+    assert.match(navigation, /<a href="\/simulateur" data-vue="simuler">Simuler<\/a>/);
+    assert.doesNotMatch(navigation, /href="\/simulateur"[^>]*aria-disabled/);
+  }
 });
 
 /* --------------------------------------------------------------------------

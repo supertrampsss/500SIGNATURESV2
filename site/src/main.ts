@@ -2025,6 +2025,12 @@ function brancherCommandes(): void {
   // clic du milieu sont laissés au navigateur : « ouvrir dans un nouvel onglet »
   // doit continuer de fonctionner sur un vrai lien.
   document.querySelector(".entete__nav")?.addEventListener("click", (evenement) => {
+    // Un dossier ou le registre est un document autonome, pas une vue de la
+    // SPA : intercepter son ancre changerait seulement l'URL puis
+    // `basculerVue()` sortirait sur la garde éditoriale. Laisser le navigateur
+    // suivre le href ouvre donc réellement /simulateur — au clic comme à
+    // Entrée — sans rendre ce dernier disponible prématurément dans la SPA.
+    if (document.body.dataset.page === "editorial") return;
     const clic = evenement as MouseEvent;
     const destination = intercepterNavigation(clic);
     if (!destination) return;
@@ -2559,7 +2565,12 @@ function vuesConnues(): readonly string[] {
 function rendreNavigationPrincipale(): void {
   const navigation = document.getElementById("navigation-principale");
   if (!navigation) return;
-  navigation.innerHTML = renduNavigation(location.pathname, exercicesParVolet.length > 0);
+  // Les dossiers et le registre sont déjà des documents complets : ils ne
+  // chargent volontairement pas le paquet budgétaire. Leur lien « Simuler »
+  // reste pourtant une porte de navigation. Les vues de l'application, elles,
+  // ne le déverrouillent qu'une fois les exercices effectivement publiés.
+  const simulateurDisponible = document.body.dataset.page === "editorial" || exercicesParVolet.length > 0;
+  navigation.innerHTML = renduNavigation(location.pathname, simulateurDisponible);
 }
 
 

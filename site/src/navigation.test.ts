@@ -33,6 +33,15 @@ test("Simuler reste visible mais indisponible avant la publication des données"
   assert.match(html, /href="\/simulateur"[^>]*data-vue="simuler"[^>]*aria-disabled="true"/);
 });
 
+test("Simuler disponible reste un lien natif, atteignable au clic comme au clavier", () => {
+  const html = renduNavigation("/analyses/", true);
+  // Un vrai <a href> garde son comportement natif : clic souris et touche
+  // Entrée déclenchent le même évènement de navigation. Aucun tabindex négatif
+  // ou aria-disabled ne doit donc le sortir de la tabulation.
+  assert.match(html, /<a href="\/simulateur" data-vue="simuler">Simuler<\/a>/);
+  assert.doesNotMatch(html, /href="\/simulateur"[^>]*(?:aria-disabled|tabindex)/);
+});
+
 test("un clic sur une destination indisponible est annulé avant la navigation", () => {
   const lien = {
     dataset: { vue: "simuler" },
@@ -50,5 +59,28 @@ test("un clic sur une destination indisponible est annulé avant la navigation",
   } as unknown as MouseEvent;
 
   assert.equal(intercepterNavigation(clic), null);
+  assert.equal(preventions, 1);
+});
+
+test("le clic natif de Simuler disponible prépare la navigation interne", () => {
+  // La touche Entrée d'une ancre produit ce même clic sans modificateur : le
+  // contrat couvre donc les deux modes d'activation sans recréer un raccourci
+  // clavier parallèle.
+  const lien = {
+    dataset: { vue: "simuler" },
+    getAttribute: () => null,
+  } as unknown as HTMLAnchorElement;
+  let preventions = 0;
+  const clic = {
+    button: 0,
+    metaKey: false,
+    ctrlKey: false,
+    shiftKey: false,
+    altKey: false,
+    target: { closest: () => lien },
+    preventDefault: () => { preventions++; },
+  } as unknown as MouseEvent;
+
+  assert.deepEqual(intercepterNavigation(clic), { cle: "simuler", href: "/simulateur", libelle: "Simuler" });
   assert.equal(preventions, 1);
 });
