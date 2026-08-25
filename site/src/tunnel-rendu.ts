@@ -83,7 +83,7 @@ function renduTelex(id: string): string {
   const t = TELEX.find((x) => x.id === id);
   if (!t) return "";
   return `
-    <article class="tunnel__carte tunnel__carte--telex" aria-live="assertive">
+    <article class="tunnel-evenement--persistant tunnel__carte tunnel__carte--telex" aria-live="assertive">
       <header class="tunnel__carte-tete">
         <span class="tunnel__carte-chapitre">Télex · entre deux mesures</span>
       </header>
@@ -170,7 +170,7 @@ function renduCrise(soutien: Soutien): string {
   const crise = CRISES.find((x) => x.soutien === soutien);
   if (!crise) return "";
   return `
-    <article class="tunnel__carte tunnel__carte--telex" aria-live="assertive">
+    <article class="tunnel-evenement--persistant tunnel__carte tunnel__carte--telex" aria-live="assertive">
       <header class="tunnel__carte-tete">
         <span class="tunnel__carte-chapitre">Crise · décision immédiate</span>
       </header>

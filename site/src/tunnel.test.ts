@@ -1483,6 +1483,17 @@ test("un télex de crise tombe une fois, ne coûte rien avant d'être tranché, 
   assert.equal(apres.opinion, avant.opinion - 4);
 });
 
+test("un télex ouvert occupe seul un écran d'événement persistant", () => {
+  const etat = { ...conseil(), telexEnCours: "perspective" as const };
+
+  const html = renduConseil(etat, MISSION);
+
+  assert.match(html, /class="[^"]*tunnel-evenement--persistant/);
+  assert.match(html, /aria-live="assertive"/);
+  assert.match(html, /data-action="poursuivre"/);
+  assert.doesNotMatch(html, /data-geste="adopter"/);
+});
+
 test("un télex suit le tampon résolu : le tampon seul est l'état persistant", () => {
   let tampon = conseil();
   tampon = adopterId(tampon, "flat-tax-a-20-avec-abattement-protegeant");
