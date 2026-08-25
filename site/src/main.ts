@@ -117,6 +117,7 @@ import {
 } from "./accueil.ts";
 import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
 import { renduNavigation } from "./navigation.ts";
+import { demarrerSessionImmersive } from "./session-immersive.ts";
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
@@ -2387,6 +2388,7 @@ const VOLETS_PUBLIES: VoletPublie[] = [
 /** Les volets dont l'index annonce un exercice, et leur millésime. */
 let exercicesParVolet: { volet: VoletPublie; exercice: string }[] = [];
 let atelierMonte = false;
+let terminerSessionImmersive: (() => void) | null = null;
 /** Les volets réellement montés dans l'atelier : posés une seule fois, à la
  *  première ouverture (`ouvrirSimulateur`), et relus par tout ce qui doit
  *  décoder un scénario ou construire une colonne comparée. Recharger un
@@ -2563,6 +2565,10 @@ function basculerVue(): void {
     : estAccueil(location.pathname, location.hash)
       ? "accueil"
       : "territoire";
+  if (vue !== "simulateur") {
+    terminerSessionImmersive?.();
+    terminerSessionImmersive = null;
+  }
   document.body.dataset.vue = vue;
   rendreNavigationPrincipale();
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
@@ -3842,7 +3848,15 @@ async function ouvrirSimulateur(): Promise<void> {
   // quand l'adresse porte un budget ou un face-à-face, où c'est l'atelier
   // qu'un lien partagé promettait, et le tunnel reste un cadre dans la page.
   if (etat.budget || etat.face) $("mode-expert").hidden = false;
-  else $("tunnel").classList.add("tunnel--plein");
+  else {
+    const tunnel = $("tunnel");
+    tunnel.classList.add("tunnel--plein");
+    let demonter!: () => void;
+    demonter = demarrerSessionImmersive(tunnel, () => {
+      if (terminerSessionImmersive === demonter) terminerSessionImmersive = null;
+    });
+    terminerSessionImmersive = demonter;
+  }
   // Le budget que l'adresse porte passe par la même porte qu'un scénario
   // cliqué : c'est le chemin d'un lien partagé et du bouton « Rejouer » d'une
   // analyse, donc précisément celui où le lecteur n'a aucune autre copie de ce
