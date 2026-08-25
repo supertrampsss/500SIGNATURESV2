@@ -10,7 +10,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import type { Analyse, Confusion } from "./analyse-rendu.ts";
+import type { Analyse, Confusion, QualificationVerdict } from "./analyse-rendu.ts";
 import {
   filtrerAnalyses,
   LIBELLE_CONFUSION,
@@ -163,27 +163,30 @@ test("la qualification distingue exactitude, périmètre et absence de preuve", 
     qualificationVerdict(analyseMinimale({ verdict: { cran: "exact", phrase: "Exact." } })),
     "confirme",
   );
-  assert.equal(qualificationVerdict(DEFENSE), "perimetre_trompeur");
+  assert.equal(qualificationVerdict(DEFENSE), "contexte_manquant");
   assert.equal(
     qualificationVerdict(analyseMinimale({ verdict: { cran: "introuvable", phrase: "Absent." } })),
     "non_demontre",
   );
 
-  const confusions: Confusion[] = [
-    "ae_cp",
-    "brut_net",
-    "vote_execute",
-    "stock_flux",
-    "etat_apu",
-    "annuel_cumule",
-    "perimetre_geographique",
-  ];
-  for (const confusion of confusions) {
+  const attendues = {
+    ae_cp: "contexte_manquant",
+    brut_net: "ordre_grandeur",
+    vote_execute: "contexte_manquant",
+    stock_flux: "contredit",
+    etat_apu: "perimetre_trompeur",
+    annuel_cumule: "contredit",
+    perimetre_geographique: "perimetre_trompeur",
+  } satisfies Record<Confusion, QualificationVerdict>;
+  for (const [confusion, qualification] of Object.entries(attendues) as [
+    Confusion,
+    QualificationVerdict,
+  ][]) {
     assert.equal(
       qualificationVerdict(
         analyseMinimale({ verdict: { cran: "hors_perimetre", confusion, phrase: "Périmètre distinct." } }),
       ),
-      "perimetre_trompeur",
+      qualification,
       `${confusion} doit rester qualifié sans recourir à la prose libre`,
     );
   }

@@ -151,20 +151,22 @@ function assertNever(valeur: never): never {
 }
 
 /**
- * Les confusions du contrat existant ne changent pas le fait observé : elles
- * changent le périmètre auquel il est attribué. Elles relèvent donc toutes du
- * même verdict éditorial. Le `switch` reste délibérément exhaustif : ajouter
- * une confusion au schéma impose de décider de son libellé, plutôt que de la
- * faire glisser silencieusement dans une qualification générique.
+ * Chaque confusion du contrat existant a une qualification distincte et
+ * stable. Le `switch` reste délibérément exhaustif : ajouter une confusion au
+ * schéma impose de décider de son libellé, plutôt que de la faire glisser
+ * silencieusement dans une qualification générique.
  */
 function qualificationConfusion(confusion: Confusion): QualificationVerdict {
   switch (confusion) {
     case "ae_cp":
-    case "brut_net":
     case "vote_execute":
+      return "contexte_manquant";
+    case "brut_net":
+      return "ordre_grandeur";
     case "stock_flux":
-    case "etat_apu":
     case "annuel_cumule":
+      return "contredit";
+    case "etat_apu":
     case "perimetre_geographique":
       return "perimetre_trompeur";
     default:
