@@ -52,9 +52,9 @@ export function renduMission(etat: EtatTunnel, missionEuros: number): string {
   return `
     <div class="tunnel__mission">
       <div class="tunnel__mission-intro">
-        <p class="tunnel__surtitre">Le déficit à combler</p>
+        <h1 class="tunnel__mission-titre">Le déficit à combler</h1>
         <p class="tunnel__compteur-geant">${compteur(missionEuros)}</p>
-        <p class="tunnel__chapeau">C’est le déficit que les budgets publics doivent combler pour tenir sans emprunter. À vous de trancher.</p>
+        <p class="tunnel__chapeau">Le déficit mesure ce que les administrations publiques dépensent au-delà de leurs recettes sur une année.</p>
       </div>
       <div class="tunnel__mission-actions">
         ${mode}

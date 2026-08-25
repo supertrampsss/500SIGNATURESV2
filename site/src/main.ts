@@ -121,6 +121,7 @@ import { demarrerSessionImmersive } from "./session-immersive.ts";
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
+import "./styles/tunnel-cabinet.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes

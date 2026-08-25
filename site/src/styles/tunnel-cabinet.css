@@ -1,0 +1,87 @@
+/* L'entrée du conseil : une pièce nuit qui présente un unique dossier ivoire. */
+.tunnel__mission {
+  gap: var(--espace-5);
+  max-width: 42rem;
+  padding: var(--espace-5);
+  color: var(--ui-encre);
+  background: var(--ui-papier);
+  border: 1px solid var(--ui-trait);
+  box-shadow: var(--ui-ombre);
+}
+
+.tunnel__mission-intro,
+.tunnel__mission-actions {
+  gap: var(--espace-4);
+}
+
+.tunnel__mission-titre,
+.tunnel__compteur-geant {
+  margin: 0;
+  color: var(--ui-encre);
+  font-family: var(--serif);
+}
+
+.tunnel__mission-titre {
+  font-size: var(--texte-3xl);
+  line-height: 1.08;
+}
+
+.tunnel__compteur-geant {
+  font-size: var(--texte-4xl);
+  line-height: .98;
+}
+
+.tunnel__mission .tunnel__chapeau {
+  color: var(--ui-encre-douce);
+}
+
+.tunnel__modes {
+  gap: var(--espace-3);
+}
+
+.tunnel__mode {
+  min-height: 44px;
+  color: var(--ui-encre);
+  background: var(--ui-surface);
+  border-color: var(--ui-trait);
+}
+
+.tunnel__mode:hover {
+  color: var(--ui-encre);
+  background: var(--ui-surface-creuse);
+  border-color: var(--ui-encre);
+}
+
+.tunnel__mode[aria-pressed="true"] {
+  color: var(--ui-papier);
+  background: var(--ui-nuit);
+  border-color: var(--ui-nuit);
+}
+
+.tunnel__mode[aria-pressed="true"]:hover {
+  color: var(--ui-papier);
+  background: #1a355b;
+  border-color: #1a355b;
+}
+
+.tunnel__commencer {
+  min-height: 44px;
+  justify-self: center;
+  color: var(--ui-papier);
+  background: var(--ui-nuit);
+  border-radius: var(--rayon-pilule);
+}
+
+.tunnel__commencer:hover {
+  background: #1a355b;
+}
+
+.tunnel__mission button:focus-visible {
+  outline-color: var(--ui-focus);
+}
+
+@media (min-width: 60rem) {
+  .tunnel__mission {
+    padding: var(--espace-7);
+  }
+}

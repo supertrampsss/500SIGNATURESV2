@@ -66,11 +66,12 @@ test("la façade du tunnel conserve le moteur, les rendus et le contrôleur", as
   assert.equal(typeof facade.afficherTunnel, "function");
 });
 
-test("la mission affiche les deux modes et marque celui qui sera lancé", () => {
+test("la mission expose le déficit, les deux modes et une seule entrée", () => {
   const express = renduMission(etatInitial(), MISSION);
   const integral = renduMission({ ...etatInitial(), mode: "integral" }, MISSION);
 
   assert.match(express, /Le déficit à combler/);
+  assert.match(express, /Le déficit mesure ce que les administrations publiques dépensent au-delà de leurs recettes sur une année\./);
   assert.match(express, /Conseil de crise · 15 mesures/);
   assert.match(express, /Conseil intégral · 96 mesures/);
   assert.match(express, /class="tunnel__mode tunnel__mode--actif" data-action="mode-express" aria-pressed="true"/);
@@ -78,7 +79,8 @@ test("la mission affiche les deux modes et marque celui qui sera lancé", () => 
   assert.match(integral, /class="tunnel__mode" data-action="mode-express" aria-pressed="false"/);
   assert.match(integral, /class="tunnel__mode tunnel__mode--actif" data-action="mode-integral" aria-pressed="true"/);
   assert.match(express, /Prendre mes fonctions/);
-  assert.doesNotMatch(express, /data-engagement|Signez vos engagements|engagements restants|Défi reçu|Conseil de crise :/);
+  assert.equal((express.match(/data-action="commencer"/g) ?? []).length, 1);
+  assert.doesNotMatch(express, /engagement|contrat|décompte|compte à rebours|tunnel__source|tunnel__decorations/i);
 });
 
 test("le retour BFCache garde un unique contrôleur cliquable et réarme le chrono", () => {
