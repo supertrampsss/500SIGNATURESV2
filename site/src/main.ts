@@ -140,6 +140,7 @@ import "./styles/tunnel-cabinet.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
 import "./styles/territoire-briefing.css";
+import "./styles/dossiers-verification.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -3783,15 +3784,22 @@ function brancherPartageEditorial(): void {
 function brancherFiltresAnalyses(): void {
   const barre = document.getElementById("analyses-filtres");
   const liste = document.getElementById("analyses-index");
+  const bouton = document.getElementById("analyses-filtres-bouton");
+  const etatVide = document.getElementById("analyses-etat-vide");
   if (!barre || !liste) return;
   const cartes = Array.from(liste.querySelectorAll("li"));
   const menus = Array.from(barre.querySelectorAll("select"));
   const champ = barre.querySelector("input");
   const compte = barre.querySelector("p");
+  const effacer = barre.querySelector("[data-effacer-filtres]");
   barre.hidden = false;
-  // Un `<select>` émet `input` comme un champ de texte : un seul écouteur,
-  // posé sur la barre, suffit aux quatre réglages.
-  barre.addEventListener("input", function () {
+  if (bouton) bouton.hidden = false;
+  const ouvrir = () => {
+    const ouvert = barre.dataset.ouvert !== "true";
+    barre.dataset.ouvert = String(ouvert);
+    if (bouton) bouton.setAttribute("aria-expanded", String(ouvert));
+  };
+  const appliquer = () => {
     const criteres = { type: "", theme: "", budget: "", recherche: champ ? champ.value : "" };
     for (const menu of menus) {
       if (menu.dataset.facette === "type") criteres.type = menu.value;
@@ -3805,22 +3813,35 @@ function brancherFiltresAnalyses(): void {
           type: carte.dataset.type ?? "",
           themes: carte.dataset.themes ?? "",
           budgets: carte.dataset.budgets ?? "",
-          texte: carte.dataset.cherche ?? "",
+          texte: carte.dataset.texte ?? carte.dataset.cherche ?? "",
         },
         criteres,
       );
       carte.hidden = !retenue;
       if (retenue) retenues += 1;
     }
-    // Ce que le réglage a retranché se dit, sinon une page qui se vide ne se
-    // distingue pas d'une page en panne. Rien à dire quand rien n'est retiré.
     if (compte) {
       compte.textContent =
         retenues === cartes.length
           ? ""
           : `${retenues} analyse${retenues > 1 ? "s" : ""} sur ${cartes.length}`;
     }
-  });
+    if (etatVide) etatVide.hidden = retenues !== 0;
+  };
+  // Un `<select>` émet `input` comme un champ de texte : un seul écouteur,
+  // posé sur la barre, suffit aux quatre réglages.
+  barre.addEventListener("input", appliquer);
+  if (bouton) {
+    bouton.addEventListener("click", ouvrir);
+  }
+  if (effacer && "addEventListener" in effacer) {
+    effacer.addEventListener("click", () => {
+      if (champ) champ.value = "";
+      for (const menu of menus) menu.value = "";
+      appliquer();
+      if (champ) champ.focus();
+    });
+  }
 }
 
 /* --------------------------------------------------------------------------

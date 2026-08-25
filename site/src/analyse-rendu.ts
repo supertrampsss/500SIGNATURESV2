@@ -675,7 +675,7 @@ function chiffreEnCause(analyse: Analyse, catalogue: Indicateur[]): string {
   if (chiffre.observe) {
     const unite = uniteDe(catalogue, chiffre.observe.indicateur);
     const montant = formater(chiffre.observe.valeur, unite, false, chiffre.observe.indicateur);
-    return `<p class="analyse-rendu__index-chiffre">${dit}, publié : <strong>${montant}</strong> (exercice ${echapper(
+    return `<p class="analyse-rendu__index-chiffre dossier-index__chiffre">${dit}, publié : <strong>${montant}</strong> (exercice ${echapper(
       chiffre.observe.periode,
     )})</p>`;
   }
@@ -687,7 +687,22 @@ function chiffreEnCause(analyse: Analyse, catalogue: Indicateur[]): string {
     chiffre.valeur != null
       ? ` — ${registre} : <strong>${formater(chiffre.valeur, "EUR", false)}</strong>`
       : ` — ${registre}`;
-  return `<p class="analyse-rendu__index-chiffre">${dit}${valeur}</p>`;
+  return `<p class="analyse-rendu__index-chiffre dossier-index__chiffre">${dit}${valeur}</p>`;
+}
+
+function fraicheurDe(analyse: Analyse): string {
+  const derniereMiseAJour = analyse.mises_a_jour
+    .map((miseAJour) => miseAJour.date)
+    .sort((a, b) => b.localeCompare(a))[0];
+  const publication = `<time datetime="${echapper(analyse.publie_le)}">${echapper(
+    analyse.publie_le,
+  )}</time>`;
+  const miseAJour = derniereMiseAJour
+    ? ` · Mise à jour le <time datetime="${echapper(derniereMiseAJour)}">${echapper(
+        derniereMiseAJour,
+      )}</time>`
+    : "";
+  return `<p class="dossier-index__fraicheur">Publié le ${publication}${miseAJour}</p>`;
 }
 
 /**
@@ -702,9 +717,6 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
   const triees = [...analyses].sort((a, b) => b.publie_le.localeCompare(a.publie_le));
   const lignes = triees
     .map((a) => {
-      const badge = a.mises_a_jour.length
-        ? `<span class="analyse-rendu__badge-maj">Mise à jour</span>`
-        : "";
       // Un cran `hors_perimetre` nomme toujours la confusion (spec §9.2) : la
       // règle vaut ici comme à l'étage 1. « Le chiffre existe, mais pas pour
       // ce qu'il désigne » sans dire ce qui est confondu demande au lecteur de
@@ -716,23 +728,33 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
             )}</span>`
           : "";
       const carte = carteDeLAnalyse(a);
+      const qualification = qualificationVerdict(a);
+      const sujets = a.themes.map(libelleTheme).join(" · ");
+      const perimetre = a.budgets_concernes.map((budget) => LIBELLE_BUDGET[budget]).join(" · ");
       // Un lien de fragment (`#slug`) ne résout que si l'index et l'analyse
       // sont composés sur la même page — ce que ce module ne fait jamais :
       // `rendu()` produit un `<article>` par page, à son propre chemin
       // (tâche 4, `dist/analyses/<slug>/index.html`). C'est ce chemin réel
       // que l'index doit viser.
-      return `<li class="analyse-rendu__index-ligne" data-type="${echapper(
+      return `<li class="analyse-rendu__index-ligne dossier-index" data-type="${echapper(
         carte.type,
       )}" data-themes="${echapper(carte.themes)}" data-budgets="${echapper(
         carte.budgets,
-      )}" data-cherche="${echapper(carte.texte)}">
-        <p class="analyse-rendu__index-entete">
-          <a href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a>
-          <time datetime="${echapper(a.publie_le)}">${echapper(a.publie_le)}</time>
-          ${badge}
-        </p>
+      )}" data-cherche="${echapper(carte.texte)}" data-theme="${echapper(
+        carte.themes,
+      )}" data-verdict="${echapper(qualification)}" data-perimetre="${echapper(
+        carte.budgets,
+      )}" data-texte="${echapper(carte.texte)}">
+        <p class="dossier-index__meta"><span>${echapper(sujets)}</span><span>${echapper(perimetre)}</span></p>
+        <h2 class="dossier-index__titre"><a class="dossier-index__lien" href="/analyses/${echapper(a.slug)}/">${echapper(a.titre)}</a></h2>
+        <p class="dossier-index__affirmation">${echapper(a.affirmation.texte)}</p>
         ${chiffreEnCause(a, catalogue)}
-        <p class="analyse-rendu__index-cran">${LIBELLE_CRAN[a.verdict.cran]}${confusion}</p>
+        <p class="analyse-rendu__index-cran dossier-index__verdict"><strong>${echapper(
+          LIBELLE_QUALIFICATION[qualification],
+        )}</strong><span>${echapper(a.verdict.phrase)}</span><span class="dossier-index__precision">${LIBELLE_CRAN[
+          a.verdict.cran
+        ]}${confusion}</span></p>
+        ${fraicheurDe(a)}
       </li>`;
     })
     .join("");
@@ -742,7 +764,9 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
   const barre =
     triees.length < 2
       ? ""
-      : `<div class="analyses-filtres" id="analyses-filtres" hidden>
+      : `<button class="analyses-filtres__bouton" id="analyses-filtres-bouton" type="button"
+           aria-expanded="false" aria-controls="analyses-filtres" hidden>Filtrer les dossiers</button>
+    <div class="analyses-filtres" id="analyses-filtres" data-ouvert="false" hidden>
       <label class="analyses-filtres__label" for="analyses-recherche">Chercher</label>
       <input class="analyses-filtres__champ" id="analyses-recherche" type="search"
              autocomplete="off" placeholder="Un mot du chiffre, du verdict ou du titre" />
@@ -774,6 +798,10 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
         ),
       )}
       <p class="analyses-filtres__compte" role="status"></p>
+      <div class="analyses-filtres__vide" id="analyses-etat-vide" hidden>
+        <p>Aucun dossier ne correspond à ces filtres.</p>
+        <button type="button" data-effacer-filtres>Effacer les filtres</button>
+      </div>
     </div>`;
 
   // « Dire l'unité là où le nombre est gros » (CLAUDE.md). C'est la page où

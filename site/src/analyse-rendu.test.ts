@@ -665,6 +665,18 @@ test("la carte porte le chiffre en cause : le chiffre dit et le chiffre publié"
   assert.match(carte, /exercice 2025/);
 });
 
+test("une carte d'index donne affirmation chiffre verdict et fraîcheur", () => {
+  const html = renduIndex([DEFENSE], CATALOGUE);
+  assert.match(html, /dossier-index__affirmation/);
+  assert.match(html, /dossier-index__chiffre/);
+  assert.match(html, /dossier-index__verdict/);
+  assert.match(html, /dossier-index__fraicheur/);
+  assert.match(html, /data-theme=/);
+  assert.match(html, /data-verdict=/);
+  assert.match(html, /data-perimetre=/);
+  assert.match(html, /data-texte=/);
+});
+
 test("la carte porte le cran, et nomme la confusion quand le cran l'exige", () => {
   const carte = carteDe(renduIndex([DEFENSE], CATALOGUE), DEFENSE.titre);
   assert.ok(carte.includes(LIBELLE_CRAN.hors_perimetre), "le cran manque à la carte");
@@ -743,7 +755,7 @@ test("la barre est servie repliée : sans le paquet, aucun réglage mort, toutes
   const a = analyseMinimale({ slug: "a", titre: "Première", themes: ["budget_etat"] });
   const b = analyseMinimale({ slug: "b", titre: "Seconde", themes: ["dette"] });
   const html = renduIndex([a, b], CATALOGUE);
-  assert.match(html, /<div class="analyses-filtres" id="analyses-filtres" hidden>/);
+  assert.match(html, /<div class="analyses-filtres" id="analyses-filtres"[^>]* hidden>/);
   assert.doesNotMatch(html, /<li[^>]*\bhidden\b/);
   assert.ok(html.includes("Première") && html.includes("Seconde"));
 });

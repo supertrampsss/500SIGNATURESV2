@@ -5,7 +5,7 @@
  */
 
 import assert from "node:assert/strict";
-import { readdirSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
@@ -2781,7 +2781,7 @@ function reglerFiltres(
   reglages: { recherche?: string; type?: string; theme?: string; budget?: string },
 ): { visibles: string[]; compte: string; barreDepliee: boolean } {
   const html = renduIndex(analyses, [] as never[]);
-  const cartes: CarteSimulee[] = [...html.matchAll(/<li class="analyse-rendu__index-ligne"([^>]*)>/g)].map(
+  const cartes: CarteSimulee[] = [...html.matchAll(/<li class="[^"]*analyse-rendu__index-ligne[^"]*"([^>]*)>/g)].map(
     (balise) => {
       const dataset: Record<string, string> = {};
       for (const [, nom, valeur] of balise[1]!.matchAll(/data-([a-z]+)="([^"]*)"/g)) {
@@ -2818,7 +2818,7 @@ function reglerFiltres(
   )(document, carteRetenue);
   assert.equal(ecouteurs.length, 1, "un seul écouteur, posé sur la barre");
   ecouteurs[0]!();
-  const titres = [...html.matchAll(/<a href="\/analyses\/([a-z0-9-]+)\/">/g)].map((m) => m[1]!);
+  const titres = [...html.matchAll(/<a[^>]* href="\/analyses\/([a-z0-9-]+)\/">/g)].map((m) => m[1]!);
   return {
     visibles: titres.filter((_, i) => !cartes[i]!.hidden),
     compte: compte.textContent,
@@ -2869,6 +2869,28 @@ test("la barre se déplie quand le paquet l'a câblée, et pas avant", () => {
   // s'affiche et les cartes restent toutes lisibles.
   assert.match(renduIndex(CORPUS_INDEX, [] as never[]), /class="analyses-filtres"[^>]* hidden>/);
   assert.equal(reglerFiltres(CORPUS_INDEX, {}).barreDepliee, true);
+});
+
+test("les filtres secondaires ont un tiroir mobile et une remise à zéro", () => {
+  const html = renduIndex(CORPUS_INDEX, [] as never[]);
+  assert.match(
+    html,
+    /<button[^>]*id="analyses-filtres-bouton"[^>]*aria-expanded="false"[^>]*aria-controls="analyses-filtres"/,
+  );
+  assert.match(html, /data-effacer-filtres/);
+  assert.match(MAIN, /getElementById\("analyses-filtres-bouton"\)/);
+  assert.match(MAIN, /getElementById\("analyses-etat-vide"\)/);
+  assert.match(html, /Effacer les filtres/);
+});
+
+test("les dossiers restent lisibles sur mobile et leurs filtres s'ouvrent sur bureau", () => {
+  const chemin = new URL("./styles/dossiers-verification.css", import.meta.url);
+  assert.equal(existsSync(chemin), true, "la feuille des dossiers doit exister");
+  const css = readFileSync(chemin, "utf8").replace(/\r\n/g, "\n");
+  assert.match(MAIN, /import "\.\/styles\/dossiers-verification\.css";/);
+  assert.match(css, /\.analyses-filtres:not\(\[data-ouvert="true"\]\) \{\n\s*display: none;/);
+  assert.match(css, /@media \(min-width: 60rem\)/);
+  assert.match(css, /\.dossier-index__lien:focus-visible/);
 });
 
 test("un filtre cache les cartes écartées, il ne recompose pas la liste", () => {
