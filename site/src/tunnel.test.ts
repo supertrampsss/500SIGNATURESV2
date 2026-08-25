@@ -398,6 +398,35 @@ test("le conseil express rend un arbitrage éclair avec ses preuves à la demand
   assert.match(html, /Acte 1/);
 });
 
+test("le bouton Comparer du verdict ouvre le mécanisme expert fourni par l'hôte", () => {
+  const global = globalThis as Record<string, unknown>;
+  const anciens = new Map<string, unknown>(["window", "location", "sessionStorage"].map((cle) => [cle, global[cle]]));
+  const presents = new Set(["window", "location", "sessionStorage"].filter((cle) => cle in global));
+  const clics = new Set<(evenement: MouseEvent) => void>();
+  const cadre = {
+    innerHTML: "",
+    addEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.add(ecouteur),
+    removeEventListener: (_type: string, ecouteur: (evenement: MouseEvent) => void) => clics.delete(ecouteur),
+    emettreClic: (cible: HTMLElement) => { for (const ecouteur of clics) ecouteur({ target: cible } as MouseEvent); },
+  } as unknown as HTMLElement & { emettreClic: (cible: HTMLElement) => void };
+  const bouton = { dataset: { action: "expert" }, closest: (selecteur: string) => selecteur === ".tunnel__quitter" ? null : bouton } as unknown as HTMLElement;
+  let ouvert = 0;
+  try {
+    global.window = { addEventListener: () => {}, removeEventListener: () => {} };
+    global.location = { search: "", origin: "https://exemple.test" };
+    global.sessionStorage = { getItem: () => null, setItem: () => {}, removeItem: () => {} };
+    const demonter = afficherTunnel(cadre, { missionEuros: MISSION, ouvrirExpert: () => { ouvert += 1; } });
+    cadre.emettreClic(bouton);
+    assert.equal(ouvert, 1);
+    demonter();
+  } finally {
+    for (const [cle, valeur] of anciens) {
+      if (presents.has(cle)) global[cle] = valeur;
+      else delete global[cle];
+    }
+  }
+});
+
 test("le conseil rend les conséquences sans répétition narrative ni message générique", () => {
   const html = renduConseil(commencer(etatInitial()), MISSION);
 
@@ -757,6 +786,7 @@ test("le verdict hiérarchise le bilan en cinq blocs sans décorations concurren
     nAdoptions += 1;
   }
   etat = transitionApresRetour(etat, MISSION);
+  etat = { ...etat, criseSoutiens: { opinion: -50 } };
   const html = renduVerdict(etat, MISSION);
   const ordre = [
     "verdict__resultat",
@@ -770,6 +800,10 @@ test("le verdict hiérarchise le bilan en cinq blocs sans décorations concurren
   assert.match(html, /aria-labelledby="tunnel-mandat"/);
   assert.equal((html.match(/<details class="verdict__details">/g) ?? []).length, 1);
   assert.doesNotMatch(html, /Vos décorations|Collection :|La mission est calculée/);
+  const mandat = html.slice(html.indexOf("verdict__mandat"), html.indexOf("verdict__gestes"));
+  const stabilite = html.slice(html.indexOf("verdict__stabilite"), html.indexOf("verdict__actions"));
+  assert.doesNotMatch(mandat, /au bord de la rupture/);
+  assert.match(stabilite, /au bord de la rupture/);
 });
 
 test("la carte anonyme du bilan ne retient que les agrégats du mandat", () => {

@@ -18,3 +18,16 @@
 - `git diff --check` : propre.
 - Aucun calcul de score, profil, soutien, sérialisation de défi ou logique de partage modifié.
 - Avertissement Vite préexistant : chunk JavaScript supérieur à 500 kB ; build réussi.
+
+## Fix round 1/5
+
+### RED
+
+- Le test de clic `Comparer` échouait : le contrôleur ne relayait pas `data-action="expert"` vers l'hôte.
+- Le test de mandat à soutien en rupture échouait : l'alerte était accolée à la phrase de profil au lieu du bloc de stabilité.
+
+### GREEN
+
+- `afficherTunnel` accepte désormais une ouverture expert injectée ; `main.ts` quitte la séance immersive, révèle `#mode-expert` et y défile lors du clic Comparer.
+- La phrase du mandat est désormais exactement celle du profil ; l'alerte de rupture est rendue dans « Soutiens et conséquences ».
+- Vérifications vertes : deux tests ciblés, `src/tunnel.test.ts` (75/75) et `npm run build`.

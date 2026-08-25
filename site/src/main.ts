@@ -3844,7 +3844,16 @@ async function ouvrirSimulateur(): Promise<void> {
   // l'écran — le propriétaire l'a retirée. Il ne s'ouvre plus que d'office,
   // quand l'adresse porte un budget ou un face-à-face : un lien partagé doit
   // ouvrir ce qu'il promettait, pas un écran de mission.
-  afficherTunnel($("tunnel"), { missionEuros: aTrouverAuDepart(volets) });
+  afficherTunnel($("tunnel"), {
+    missionEuros: aTrouverAuDepart(volets),
+    ouvrirExpert: () => {
+      terminerSessionImmersive?.();
+      terminerSessionImmersive = null;
+      const expert = $("mode-expert");
+      expert.hidden = false;
+      expert.scrollIntoView({ block: "start" });
+    },
+  });
   // Le vrai tunnel : plein écran, le site disparaît derrière la scène — sauf
   // quand l'adresse porte un budget ou un face-à-face, où c'est l'atelier
   // qu'un lien partagé promettait, et le tunnel reste un cadre dans la page.

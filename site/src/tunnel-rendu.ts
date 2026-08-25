@@ -384,9 +384,7 @@ export function renduVerdict(
       <section class="verdict__mandat tunnel__mandat" aria-labelledby="tunnel-mandat">
         <p id="tunnel-mandat" class="tunnel__surtitre">Votre mandat</p>
         <h3 class="tunnel__verdict-nom">${echapper(p.nom)}</h3>
-        <p class="tunnel__chapeau">${echapper(p.phrase)}${
-          rupture ? ` ${echapper(rupture.nom)} est au bord de la rupture.` : ""
-        }</p>
+        <p class="tunnel__chapeau">${echapper(p.phrase)}</p>
       </section>
       <section class="verdict__gestes tunnel__verdict-gestes" aria-labelledby="tunnel-gestes">
         <p id="tunnel-gestes" class="tunnel__surtitre">Vos choix décisifs</p>
@@ -395,6 +393,7 @@ export function renduVerdict(
       <section class="verdict__stabilite tunnel__stabilite" aria-labelledby="tunnel-stabilite">
         <p id="tunnel-stabilite" class="tunnel__surtitre">Soutiens et conséquences</p>
         ${renduSoutiens(etat, missionEuros)}
+        ${rupture ? `<p class="tunnel__note">Alerte : ${echapper(rupture.nom)} est au bord de la rupture.</p>` : ""}
         <p class="tunnel__note">${bilan.crises.length
           ? `${bilan.crises.length} crise${bilan.crises.length > 1 ? "s" : ""} traversée${bilan.crises.length > 1 ? "s" : ""}`
           : "Aucune crise"} · ${bilan.reports} report${bilan.reports > 1 ? "s" : ""}.</p>

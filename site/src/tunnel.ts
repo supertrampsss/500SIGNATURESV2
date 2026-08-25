@@ -381,7 +381,13 @@ export function transitionApresRetour(etat: EtatTunnel, missionEuros: number): E
 /** Un même cadre remonté deux fois ne laisse jamais son ancien contrôleur vivre. */
 const MONTAGES = new WeakMap<HTMLElement, () => void>();
 
-export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: number }): () => void {
+export type OptionsTunnel = {
+  missionEuros: number;
+  /** Ouvre l'atelier comparatif, dont l'hôte garde la navigation et l'état. */
+  ouvrirExpert?: () => void;
+};
+
+export function afficherTunnel(cadre: HTMLElement, options: OptionsTunnel): () => void {
   MONTAGES.get(cadre)?.();
   // La partie en cours d'abord ; sinon le défi que l'adresse porte ; sinon
   // une partie neuve. Un défi reçu pendant une partie en cours ne l'écrase
@@ -489,6 +495,9 @@ export function afficherTunnel(cadre: HTMLElement, options: { missionEuros: numb
     if (cible.dataset.action === "chrono") {
       etat = { ...etat, chrono: !etat.chrono };
       return peindre();
+    }
+    if (cible.dataset.action === "expert") {
+      return options.ouvrirExpert?.();
     }
     if (cible.dataset.action === "revanche") {
       effacer();
