@@ -232,20 +232,16 @@ function renduOptionDecision(
   </section>`;
 }
 
-function libelleContextuel(mesure: (typeof MESURES)[number]): string {
-  return mesure.titre || "la mesure";
-}
-
 /** Les deux conséquences d'un vote, sans faire porter le sens par la couleur. */
 export function renduComparaison(mesure: (typeof MESURES)[number], dilemme = dilemmeDe(mesure.id)): string {
   const adopter = dilemme?.adopter ?? {
-    libelle: libelleContextuel(mesure),
+    libelle: "Adopter",
     argument: mesure.detail,
     gagnants: [],
     perdants: [],
   };
   const rejeter = dilemme?.rejeter ?? {
-    libelle: libelleContextuel(mesure),
+    libelle: "Rejeter",
     argument: "Le budget et les soutiens restent soumis aux règles de la séance.",
     gagnants: [],
     perdants: [],
@@ -300,7 +296,6 @@ function renduMissionDecision(etat: EtatTunnel, missionEuros: number): string {
 export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
   const mesure = courante(etat);
   const dilemme = mesure ? dilemmeDe(mesure.id) : undefined;
-  const contexte = mesure ? libelleContextuel(mesure) : "la mesure";
   const faits = etat.ordre.filter((id) => etat.tampons[id]).length;
   const evenement = etat.telexEnCours
     ? renduTelex(etat.telexEnCours)
@@ -322,8 +317,8 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
             : ""
         }
         <div class="tunnel__actions-fixes">
-          <button type="button" class="tunnel__adopter" data-geste="adopter">${echapper(dilemme?.adopter.libelle ?? contexte)}</button>
-          <button type="button" class="tunnel__rejeter" data-geste="rejeter">${echapper(dilemme?.rejeter.libelle ?? contexte)}</button>
+          <button type="button" class="tunnel__adopter" data-geste="adopter">${echapper(dilemme?.adopter.libelle ?? "Adopter")}</button>
+          <button type="button" class="tunnel__rejeter" data-geste="rejeter">${echapper(dilemme?.rejeter.libelle ?? "Rejeter")}</button>
         </div>
         <div class="tunnel__seconds">
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>

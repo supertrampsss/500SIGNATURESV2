@@ -539,6 +539,21 @@ test("la barre intégrale reprend les deux choix éditoriaux sans dupliquer le t
   assert.match(actions, /data-geste="rejeter">Arrêter<\/button>/);
 });
 
+test("une mesure sans dilemme éditorial ne répète jamais son titre sur les deux choix", () => {
+  const titre = "Flat tax à 20 % dès le premier euro : le barème disparaît, tout le monde paie";
+  const html = renduConseil({
+    ...commencer({ ...etatInitial(), mode: "integral" }),
+    mode: "integral",
+    ordre: ["flat-tax-a-20-des-le-premier"],
+  }, MISSION);
+  const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
+
+  assert.match(html, new RegExp(`<h3[^>]*>${titre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}<\\/h3>`));
+  assert.match(actions, /data-geste="adopter">Adopter<\/button>/);
+  assert.match(actions, /data-geste="rejeter">Rejeter<\/button>/);
+  assert.doesNotMatch(actions, /tout le monde paie/);
+});
+
 /** Un conseil ouvert sans engagement : la pile entière. */
 function conseil(): EtatTunnel {
   return commencer({ ...etatInitial(), mode: "integral" });
