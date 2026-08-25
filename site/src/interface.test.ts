@@ -22,7 +22,13 @@ import { MAXIMUM } from "./comparateur.ts";
 import { renduGrille, renduMethode } from "./methode-rendu.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
-import { carteVisibleParDefaut, REQUETE_CARTE_SECONDAIRE } from "./carte-territoriale.ts";
+import {
+  appliquerEtatCarte,
+  carteDemandeeParFragment,
+  carteVisibleParDefaut,
+  REQUETE_CARTE_SECONDAIRE,
+  suivreVisibiliteCarteParDefaut,
+} from "./carte-territoriale.ts";
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -486,9 +492,8 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   // sans fond de carte derrière.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.doesNotMatch(balises, /data-vue="carte"/);
-  // Et plus de bouton non plus : la carte EST cette vue, elle ne se replie
-  // pas. Un bouton qui n'a qu'un état utile n'est pas un choix, c'est une
-  // barre qui prend de la hauteur.
+  // L'ancien bouton de mode a disparu ; la commande du briefing conserve,
+  // elle, le choix de dévoiler la carte sans créer une nouvelle vue.
   assert.doesNotMatch(balises, /id="carte-bascule"/);
   assert.doesNotMatch(MAIN, /carteOuverte/);
   // Les liens `#carte` déjà partagés continuent d'ouvrir la fiche. La carte
@@ -499,18 +504,10 @@ test("la carte est un mode de la vue territoire, plus une entrée de menu", () =
   // garderait cette taille au déploiement.
   assert.match(MAIN, /requestAnimationFrame\(\(\) => carte\?\.resize\(\)\);/);
 
-  // La réécriture des liens à fragment efface le fragment : le fragment doit
-  // être lu tel qu'il est arrivé, sinon les règles qui en dépendent ne
-  // s'appliquent jamais au démarrage. La règle `#carte` elle-même a disparu
-  // avec l'état qu'elle posait ; la lecture du fragment initial reste, et
-  // d'autres règles s'y adossent.
+  // La réécriture des liens à fragment garde une copie du fragment initial :
+  // elle est nécessaire au choix explicite conservé de `#carte`, couvert par
+  // son contrat de cycle ci-dessous.
   assert.match(MAIN, /const fragmentInitial = location\.hash;/);
-  const ouverture = MAIN.slice(MAIN.indexOf("const fragmentInitial = location.hash;"));
-  assert.ok(
-    ouverture.indexOf('if (fragmentInitial === "#carte") carteOuverte = true;') <
-      ouverture.indexOf("history.replaceState"),
-    "la règle #carte doit être lue avant que la réécriture n'efface le fragment",
-  );
 });
 
 test("chaque vue a une adresse, et les anciennes ouvrent la bonne", () => {
@@ -832,6 +829,55 @@ test("la carte territoriale reste visible par défaut sur grand écran", () => {
   const bureau = (requete: string) => ({ matches: requete === REQUETE_CARTE_SECONDAIRE });
 
   assert.equal(carteVisibleParDefaut(bureau), true);
+});
+
+test("la carte suit le viewport jusqu'au premier choix explicite", () => {
+  let changement: (() => void) | undefined;
+  const media = {
+    matches: false,
+    addEventListener: (_: "change", ecouter: () => void) => { changement = ecouter; },
+  };
+  const poses: boolean[] = [];
+  const cycle = suivreVisibiliteCarteParDefaut(() => media, (ouverte) => poses.push(ouverte));
+
+  assert.deepEqual(poses, [false]);
+  media.matches = true;
+  changement?.();
+  assert.deepEqual(poses, [false, true]);
+  cycle.choisir(false);
+  media.matches = false;
+  changement?.();
+  media.matches = true;
+  changement?.();
+  assert.deepEqual(poses, [false, true, false]);
+});
+
+test("révéler la carte met à jour son état et redimensionne l'instance", () => {
+  const cadre = { hidden: true };
+  const attributs = new Map<string, string>();
+  const bouton = {
+    textContent: "",
+    setAttribute: (nom: string, valeur: string) => attributs.set(nom, valeur),
+  };
+  let redimensionnements = 0;
+
+  appliquerEtatCarte(cadre, bouton, true, () => { redimensionnements += 1; });
+  assert.equal(cadre.hidden, false);
+  assert.equal(attributs.get("aria-expanded"), "true");
+  assert.equal(bouton.textContent, "Masquer la carte");
+  assert.equal(redimensionnements, 1);
+  appliquerEtatCarte(cadre, bouton, false, () => { redimensionnements += 1; });
+  assert.equal(cadre.hidden, true);
+  assert.equal(attributs.get("aria-expanded"), "false");
+  assert.equal(bouton.textContent, "Voir sur la carte");
+  assert.equal(redimensionnements, 1);
+});
+
+test("le lien historique #carte devient un choix explicite conservé après sa réécriture", () => {
+  assert.equal(carteDemandeeParFragment("#carte"), true);
+  assert.equal(carteDemandeeParFragment("#bloc-etat"), false);
+  assert.match(MAIN, /ouvrirCarteDemandee = carteDemandeeParFragment\(fragmentInitial\);/);
+  assert.match(MAIN, /brancherBriefingTerritorial\(ouvrirCarteDemandee\);/);
 });
 
 test("l'attribution de la carte est repliée au premier rendu", () => {
@@ -3244,8 +3290,8 @@ test("le territoire place le briefing avant la carte repliable", () => {
 
 test("la carte territoriale se révèle sans être recréée", () => {
   assert.match(MAIN, /import "\.\/styles\/territoire-briefing\.css";/);
-  assert.match(MAIN, /cadre\.hidden = !ouverte/);
-  assert.match(MAIN, /bouton\.setAttribute\("aria-expanded", String\(ouverte\)\)/);
+  assert.match(MAIN, /appliquerEtatCarte\(cadre, bouton, ouverte/);
+  assert.match(MAIN, /suivreVisibiliteCarteParDefaut\(/);
   assert.match(MAIN, /carte\?\.resize\(\)/);
   assert.match(MAIN, /renduBriefing\(/);
 });

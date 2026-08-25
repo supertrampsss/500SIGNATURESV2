@@ -5,6 +5,7 @@ import type { Territoire } from "./donnees.ts";
 import {
   briefingTerritorial,
   naviguerVersThemeTerritorial,
+  positionParmiPairs,
   renduBriefing,
   synchroniserThemesTerritoriaux,
 } from "./briefing-territorial.ts";
@@ -21,6 +22,9 @@ const entree = {
   comparer: ["33063", "33100"],
   diagnostic: "Une situation & solide",
   groupe: 'communes de <10 000> habitants & rurales',
+  maille: "Commune",
+  population: 12_000,
+  position: { rang: 2, total: 3, indicateur: "Dépenses de fonctionnement" },
   chiffres: [
     { id: "autre", libelle: "Autre chiffre", unite: "EUR", valeur: 99_000_000 },
     { id: "ofgl_epargne_brute", libelle: "Épargne brute", unite: "EUR", valeur: 4_000_000 },
@@ -49,6 +53,21 @@ test("le briefing priorise quatre chiffres, complète son diagnostic et nomme se
   assert.equal(briefing.code, "33063");
   assert.equal(briefing.niveau, "commune");
   assert.deepEqual(briefing.comparer, ["33063", "33100"]);
+  assert.equal(briefing.maille, "Commune");
+  assert.equal(briefing.population, 12_000);
+  assert.deepEqual(briefing.position, { rang: 2, total: 3, indicateur: "Dépenses de fonctionnement" });
+});
+
+test("la position ne classe que les pairs aux valeurs publiées", () => {
+  assert.deepEqual(
+    positionParmiPairs("33063", ["33063", "33064", "33065"], {
+      "33063": 12,
+      "33064": 20,
+      "33065": 10,
+    }, "Dépenses de fonctionnement"),
+    { rang: 2, total: 3, indicateur: "Dépenses de fonctionnement" },
+  );
+  assert.equal(positionParmiPairs("33063", ["33063", "33064"], { "33064": 20 }, "Dépenses"), null);
 });
 
 test("le rendu montre l'exercice, échappe les textes et porte des actions adressables", () => {
@@ -59,6 +78,8 @@ test("le rendu montre l'exercice, échappe les textes et porte des actions adres
   assert.match(html, /Exercice 2025/);
   assert.match(html, /Une situation &amp; solide\./);
   assert.match(html, /Territoires comparables : communes de &lt;10 000&gt; habitants &amp; rurales/);
+  assert.match(html, /Commune · 12[ \u202f]000 habitants/);
+  assert.match(html, /2e valeur la plus élevée sur 3 territoires comparables publiés pour Dépenses de fonctionnement/);
   assert.match(html, />Comparer<\/a>/);
   assert.match(html, />Simuler le budget national<\/a>/);
   assert.match(html, /Le simulateur porte sur le budget national\./);
@@ -69,12 +90,13 @@ test("le rendu montre l'exercice, échappe les textes et porte des actions adres
 
 test("la France renvoie sa comparaison vers le bilan national", () => {
   const html = renduBriefing(
-    briefingTerritorial({ ...entree, code: "FR", niveau: "pays", comparer: ["FR"] }),
+    briefingTerritorial({ ...entree, code: "FR", niveau: "pays", comparer: ["FR"], position: null }),
     territoire,
   );
 
   assert.match(html, /href="\/bilan#france-verdict">Comparer la France<\/a>/);
   assert.doesNotMatch(html, /comparer=FR/);
+  assert.match(html, /Position parmi les territoires comparables non disponible dans les données publiées/);
 });
 
 test("les raccourcis invisibles ne prennent pas le focus, les autres y conduisent", () => {

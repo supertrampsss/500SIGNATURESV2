@@ -16,8 +16,17 @@ export type BriefingTerritorial = {
   exercice: string;
   code: string;
   niveau: string;
+  maille: string;
+  population: number | null;
+  position: PositionBriefing | null;
   /** Le territoire courant puis un pair réellement comparable. */
   comparer: string[];
+};
+
+export type PositionBriefing = {
+  rang: number;
+  total: number;
+  indicateur: string;
 };
 
 export type EntreeBriefing = {
@@ -35,7 +44,31 @@ export type EntreeBriefing = {
   }[];
   diagnostic: string;
   groupe: string;
+  maille: string;
+  population: number | null;
+  position: PositionBriefing | null;
 };
+
+/** Une place factuelle : valeur la plus élevée parmi les pairs qui publient
+ * cette même mesure. Les absences ne deviennent ni zéro ni rang inventé. */
+export function positionParmiPairs(
+  code: string,
+  pairs: Iterable<string>,
+  valeurs: Readonly<Record<string, number>>,
+  indicateur: string,
+): PositionBriefing | null {
+  const valeur = valeurs[code];
+  if (!Number.isFinite(valeur)) return null;
+  const publiees = [...pairs]
+    .map((pair) => valeurs[pair])
+    .filter((candidate): candidate is number => Number.isFinite(candidate));
+  if (publiees.length < 2) return null;
+  return {
+    rang: publiees.filter((candidate) => candidate > valeur).length + 1,
+    total: publiees.length,
+    indicateur,
+  };
+}
 
 const PRIORITES = [
   "ofgl_recettes_fonctionnement",
@@ -77,6 +110,9 @@ export function briefingTerritorial(entree: EntreeBriefing): BriefingTerritorial
     exercice: entree.exercice,
     code: entree.code,
     niveau: entree.niveau,
+    maille: entree.maille,
+    population: entree.population,
+    position: entree.position,
     comparer: [...entree.comparer],
   };
 }
@@ -102,11 +138,19 @@ export function renduBriefing(briefing: BriefingTerritorial, territoire: Territo
       </div>`,
     )
     .join("");
+  const population = Number.isFinite(briefing.population)
+    ? `${new Intl.NumberFormat("fr-FR").format(briefing.population as number)} habitants`
+    : "population non publiée";
+  const position = briefing.position
+    ? `${briefing.position.rang}e valeur la plus élevée sur ${briefing.position.total} territoires comparables publiés pour ${briefing.position.indicateur}`
+    : "Position parmi les territoires comparables non disponible dans les données publiées";
   return `<section class="briefing-territorial">
     <header>
       <h2>Briefing de ${echapper(territoire.nom)}</h2>
       <p>${echapper(briefing.diagnostic)}</p>
+      <p>${echapper(briefing.maille)} · ${echapper(population)}</p>
       <p>Territoires comparables : ${echapper(briefing.groupe)}</p>
+      <p>${echapper(position)}.</p>
     </header>
     <dl>${chiffres}</dl>
     <p>Exercice ${echapper(briefing.exercice)}</p>

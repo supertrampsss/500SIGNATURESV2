@@ -28,11 +28,16 @@ import { groupeDe, intituleGroupe } from "./semblables.ts";
 import {
   briefingTerritorial,
   naviguerVersThemeTerritorial,
+  positionParmiPairs,
   renduBriefing,
   synchroniserThemesTerritoriaux,
   type ThemeTerritorial,
 } from "./briefing-territorial.ts";
-import { carteVisibleParDefaut } from "./carte-territoriale.ts";
+import {
+  appliquerEtatCarte,
+  carteDemandeeParFragment,
+  suivreVisibiliteCarteParDefaut,
+} from "./carte-territoriale.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
 import { afficherTunnel } from "./tunnel.ts";
@@ -1040,12 +1045,19 @@ function monterBriefingTerritorial(niveau: string, code: string, territoire: Ter
   const comparaison = groupe ? intituleGroupe(groupe) : `${NIVEAUX[niveau] ?? "territoires"} de même niveau`;
   const candidats = groupe?.codes ?? (repertoire?.niveau === niveau ? new Set(repertoire.index.codes) : new Set<string>());
   const pair = [...candidats].filter((candidat) => candidat !== code).sort()[0];
+  const indicateur = indicateurCourant();
+  const position = niveau === etat.niveau
+    ? positionParmiPairs(code, candidats, brutes, traduire(indicateur.libelle))
+    : null;
   cible.innerHTML = renduBriefing(
     briefingTerritorial({
       territoire,
       exercice,
       code,
       niveau,
+      maille: NIVEAUX[niveau] ?? niveau,
+      population: territoire.population ?? null,
+      position,
       comparer: pair ? [code, pair] : [code],
       chiffres: reperes.map((repere) => ({
         id: repere.id,
@@ -1058,6 +1070,15 @@ function monterBriefingTerritorial(niveau: string, code: string, territoire: Ter
     }),
     territoire,
   );
+  // La fiche n'attend pas l'index, mais un index arrivé ensuite doit enrichir
+  // le diagnostic encore affiché si le lecteur est toujours sur ce territoire.
+  if (repertoire?.niveau !== niveau) {
+    void chargerIndex(niveau).then((chargee) => {
+      if (!chargee || etat.selection !== code) return;
+      const courant = entiteDe(code, niveau);
+      if (courant) monterBriefingTerritorial(niveau, code, courant);
+    });
+  }
 }
 
 /** Les cinq entrées gardent le même vocabulaire d'un territoire à l'autre,
@@ -2742,23 +2763,24 @@ function appliquerModeCarte(ouverte: boolean): void {
 /** La carte est secondaire sur téléphone, mais pas supprimée : son instance
  * MapLibre reste celle qui a été créée au démarrage, et ne demande qu'un
  * redimensionnement après sa révélation. */
-function brancherBriefingTerritorial(): void {
+function brancherBriefingTerritorial(ouvrirCarteDemandee = false): void {
   const cadre = document.getElementById("cadre-carte");
   const bouton = document.getElementById("afficher-carte");
   const themes = document.querySelector(".territoire-themes");
   if (!cadre || !(bouton instanceof HTMLButtonElement) || !themes) return;
 
   const poserCarte = (ouverte: boolean) => {
-    cadre.hidden = !ouverte;
-    bouton.setAttribute("aria-expanded", String(ouverte));
-    bouton.textContent = ouverte ? "Masquer la carte" : "Voir sur la carte";
-    if (ouverte) requestAnimationFrame(() => carte?.resize());
+    appliquerEtatCarte(cadre, bouton, ouverte, () => requestAnimationFrame(() => carte?.resize()));
   };
 
   // À partir de 60rem, la carte reste visible comme un outil de contexte.
   // Le HTML part replié pour garder un premier écran mobile immédiatement lisible.
-  poserCarte(carteVisibleParDefaut(window.matchMedia.bind(window)));
-  bouton.addEventListener("click", () => poserCarte(cadre.hidden));
+  const cycle = suivreVisibiliteCarteParDefaut(
+    window.matchMedia.bind(window),
+    poserCarte,
+    ouvrirCarteDemandee,
+  );
+  bouton.addEventListener("click", () => cycle.choisir(cadre.hidden));
 
   themes.addEventListener("click", (evenement) => {
     const action = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-territoire-theme]");
@@ -4121,6 +4143,7 @@ async function demarrer(): Promise<void> {
   // toucher aux paramètres. Une ancre interne (`#bloc-etat`) n'est pas une vue
   // et reste intacte.
   const fragmentInitial = location.hash;
+  const ouvrirCarteDemandee = carteDemandeeParFragment(fragmentInitial);
   const vueDuFragment = location.pathname === "/" ? vueDepuisAdresse("/", fragmentInitial) : null;
   if (vueDuFragment) {
     // La règle `#carte` vit dans `basculerVue`, mais la réécriture ci-dessous
@@ -4154,7 +4177,7 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
-  brancherBriefingTerritorial();
+  brancherBriefingTerritorial(ouvrirCarteDemandee);
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();
