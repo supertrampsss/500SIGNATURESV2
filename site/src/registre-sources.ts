@@ -28,6 +28,8 @@ export type FicheSource = {
   pages: string[];
   /** Séries servies par cette publication, pour relier l'écran à cette fiche. */
   indicateurs?: string[];
+  /** Même série, source réellement publiée pour chacune de ses mailles. */
+  indicateursParNiveau?: Record<string, string[]>;
 };
 
 /**
@@ -37,6 +39,7 @@ export type FicheSource = {
  */
 export type IndexSources = {
   parIndicateur: ReadonlyMap<string, string>;
+  parIndicateurNiveau: ReadonlyMap<string, string>;
   parUrl: ReadonlyMap<string, string>;
 };
 
@@ -72,6 +75,7 @@ export function lienSource(id: string): string {
 /** Recompose les index de lecture à partir des fiches rendues par le registre. */
 export function indexerSources(fiches: readonly FicheSource[]): IndexSources {
   const parIndicateur = new Map<string, string>();
+  const parIndicateurNiveau = new Map<string, string>();
   const parUrl = new Map<string, string>();
   for (const fiche of fiches) {
     const url = sansFragment(fiche.url);
@@ -79,8 +83,13 @@ export function indexerSources(fiches: readonly FicheSource[]): IndexSources {
     for (const indicateur of fiche.indicateurs ?? []) {
       parIndicateur.set(indicateur, fiche.id);
     }
+    for (const [niveau, indicateurs] of Object.entries(fiche.indicateursParNiveau ?? {})) {
+      for (const indicateur of indicateurs) {
+        parIndicateurNiveau.set(`${indicateur}\u0000${niveau}`, fiche.id);
+      }
+    }
   }
-  return { parIndicateur, parUrl };
+  return { parIndicateur, parIndicateurNiveau, parUrl };
 }
 
 /** Une source déclarée peut garder son fragment de lecture ; la carte, non. */
@@ -89,8 +98,13 @@ export function sourceIdPourUrl(index: IndexSources, url: string): string | unde
 }
 
 /** Un indicateur ne choisit jamais son ancre : le registre lui a déjà attribuée. */
-export function sourceIdPourIndicateur(index: IndexSources, indicateur: string): string | undefined {
-  return index.parIndicateur.get(indicateur);
+export function sourceIdPourIndicateur(
+  index: IndexSources,
+  indicateur: string,
+  niveau?: string,
+): string | undefined {
+  return (niveau ? index.parIndicateurNiveau.get(`${indicateur}\u0000${niveau}`) : undefined)
+    ?? index.parIndicateur.get(indicateur);
 }
 
 /**
@@ -183,6 +197,32 @@ function insererAccumulateur(
   return existant;
 }
 
+/** La publication d'un indicateur peut varier avec la maille qu'elle mesure. */
+function jeuDuNiveau(indicateur: Indicateur, niveau: string): string {
+  return indicateur.jeu_par_niveau?.[niveau] ?? indicateur.jeu;
+}
+
+/** Les niveaux réellement servis par un jeu, déduits du contrat du catalogue. */
+function niveauxDuJeu(indicateur: Indicateur, jeu: string): string[] {
+  return [...new Set([...(indicateur.niveaux ?? []), ...Object.keys(indicateur.jeu_par_niveau ?? {})])]
+    .filter((niveau) => jeuDuNiveau(indicateur, niveau) === jeu)
+    .sort((a, b) => a.localeCompare(b, "fr"));
+}
+
+function indicateursParNiveau(indicateurs: readonly Indicateur[], jeu: string): Record<string, string[]> {
+  const parNiveau = new Map<string, string[]>();
+  for (const indicateur of indicateurs) {
+    for (const niveau of niveauxDuJeu(indicateur, jeu)) {
+      const ids = parNiveau.get(niveau) ?? [];
+      ids.push(indicateur.id);
+      parNiveau.set(niveau, ids);
+    }
+  }
+  return Object.fromEntries(
+    [...parNiveau.entries()].map(([niveau, ids]) => [niveau, distinctTrie(ids)]),
+  );
+}
+
 /**
  * Agrège les publications primaires et les citations d'analyses qui les
  * réemploient. Une source citée sans jeu du manifeste reste visible, mais son
@@ -204,8 +244,9 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
   const fiches = [...parUrl.values()].map((accumulateur) => {
     const jeu = accumulateur.jeu;
     const indicateursDuJeu = jeu
-      ? indicateurs.filter((indicateur) => indicateur.jeu === jeu.id).sort((a, b) => a.id.localeCompare(b.id, "fr"))
+      ? indicateurs.filter((indicateur) => niveauxDuJeu(indicateur, jeu.id).length).sort((a, b) => a.id.localeCompare(b.id, "fr"))
       : [];
+    const niveauxIndicateurs = jeu ? indicateursParNiveau(indicateursDuJeu, jeu.id) : {};
     const sourceAnalyse = accumulateur.analyses
       .flatMap((analyse) => analyse.sources.filter((source) => sansFragment(source.url) === accumulateur.cle))
       .sort(
@@ -238,7 +279,7 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
       url: jeu ? sansFragment(jeu.url) : accumulateur.cle,
       serie: premiereOuJoin(indicateursDuJeu.map((indicateur) => indicateur.id)),
       millesime: premiereOuJoin(indicateursDuJeu.flatMap((indicateur) => indicateur.periodes)),
-      perimetre: premiereOuJoin(indicateursDuJeu.flatMap((indicateur) => indicateur.niveaux)),
+      perimetre: premiereOuJoin(Object.keys(niveauxIndicateurs)),
       unite: premiereOuJoin(indicateursDuJeu.map((indicateur) => indicateur.unite)),
       formule: premiereOuJoin(formules),
       verifieLe: dernierJour([
@@ -246,7 +287,10 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
         ...sourceAnalyse.map((source) => source.consulte_le),
       ]),
       pages,
-      indicateurs: indicateursDuJeu.map((indicateur) => indicateur.id),
+      indicateurs: indicateursDuJeu
+        .filter((indicateur) => indicateur.jeu === jeu?.id)
+        .map((indicateur) => indicateur.id),
+      indicateursParNiveau: niveauxIndicateurs,
     } satisfies FicheSource;
   });
 

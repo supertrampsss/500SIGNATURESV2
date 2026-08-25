@@ -166,27 +166,42 @@ test("la fiche s'ouvre sur les repères, puis les blocs, et s'arrête là", () =
   );
 });
 
-test("la fiche territoriale relie ses chiffres au registre exact", () => {
+test("la fiche territoriale relie chaque maille à son registre exact", () => {
   const catalogueDuRegistre = CATALOGUE_FINANCIER.map((indicateur) => ({
     ...indicateur,
     confiance: "publié",
     badges: [],
+    niveaux: ["commune", "departement", "region"],
+    jeu_par_niveau: { departement: "ofgl-departements", region: "ofgl-regions" },
   }));
   const fiches = construireRegistre({
-    jeux: [{ id: "ofgl-communes", titre: "Comptes OFGL", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/comptes", extraction: "2026-01-01" }],
+    jeux: [
+      { id: "ofgl-communes", titre: "Communes", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/communes", extraction: "2026-01-01" },
+      { id: "ofgl-departements", titre: "Départements", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/departements", extraction: "2026-01-01" },
+      { id: "ofgl-regions", titre: "Régions", producteur: "OFGL", licence: "LO", url: "https://ofgl.test/regions", extraction: "2026-01-01" },
+    ],
     indicateurs: catalogueDuRegistre,
     analyses: [],
   });
-  const cible = { innerHTML: "" } as unknown as HTMLElement;
-  afficherFiche(cible, {
-    niveau: "commune",
-    territoire: { nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {}, series: SERIES_BORDEAUX } as never,
-    indicateurs: CATALOGUE_FINANCIER,
-    sources: indexerSources(fiches),
-  });
+  const index = indexerSources(fiches);
+  const attendues = new Map(fiches.map((fiche) => [fiche.nom, lienSource(fiche.id)]));
 
-  assert.match(cible.innerHTML, new RegExp(`href="${lienSource(fiches[0]!.id)}"`));
-  assert.match(cible.innerHTML, /Comprendre le calcul/);
+  for (const [niveau, url] of [
+    ["commune", attendues.get("Communes")],
+    ["departement", attendues.get("Départements")],
+    ["region", attendues.get("Régions")],
+  ] as const) {
+    const cible = { innerHTML: "" } as unknown as HTMLElement;
+    afficherFiche(cible, {
+      niveau,
+      territoire: { nom: "Bordeaux", parent: "33", region: "75", population: 267_991, drapeaux: {}, series: SERIES_BORDEAUX } as never,
+      indicateurs: CATALOGUE_FINANCIER,
+      sources: index,
+    });
+    assert.ok(url, `source ${niveau} absente du registre`);
+    assert.match(cible.innerHTML, new RegExp(`href="${url}"`));
+    assert.match(cible.innerHTML, /Comprendre le calcul/);
+  }
 });
 /**
  * Aucune ligne de mandat, à aucune maille.

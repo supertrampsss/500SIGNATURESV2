@@ -333,7 +333,7 @@ export function afficherFiche(
   const idSource = options.sources
     ? blocsDeLecture
         .flatMap((bloc) => bloc.cites)
-        .map((indicateur) => sourceIdPourIndicateur(options.sources!, indicateur))
+        .map((indicateur) => sourceIdPourIndicateur(options.sources!, indicateur, niveau))
         .find((id): id is string => Boolean(id))
     : undefined;
   const lienPreuve = idSource

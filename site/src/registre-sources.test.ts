@@ -8,6 +8,7 @@ import {
   filtrerRegistre,
   indexerSources,
   lienSource,
+  sourceIdPourIndicateur,
   sourceIdPourUrl,
 } from "./registre-sources.ts";
 
@@ -207,4 +208,26 @@ test("une provenance mène à la fiche exacte du registre", () => {
   assert.ok(id);
   assert.equal(lienSource(id), `/sources/#${encodeURIComponent(id)}`);
   assert.equal(id, fiches[0]!.id);
+});
+
+test("le registre choisit la source publiée pour chaque niveau territorial", () => {
+  const jeux: Jeu[] = [
+    { ...JEU_INSEE, id: "ofgl-communes", titre: "Communes", url: "https://ofgl.test/communes" },
+    { ...JEU_INSEE, id: "ofgl-departements", titre: "Départements", url: "https://ofgl.test/departements" },
+    { ...JEU_INSEE, id: "ofgl-regions", titre: "Régions", url: "https://ofgl.test/regions" },
+  ];
+  const indicateur = {
+    ...INDICATEUR_DEFICIT,
+    id: "ofgl-depenses",
+    jeu: "ofgl-communes",
+    jeu_par_niveau: { departement: "ofgl-departements", region: "ofgl-regions" },
+    niveaux: ["commune", "departement", "region"],
+  };
+  const fiches = construireRegistre({ jeux, indicateurs: [indicateur], analyses: [] });
+  const index = indexerSources(fiches);
+  const parUrl = new Map(fiches.map((fiche) => [fiche.url, fiche.id]));
+
+  assert.equal(sourceIdPourIndicateur(index, "ofgl-depenses", "commune"), parUrl.get("https://ofgl.test/communes"));
+  assert.equal(sourceIdPourIndicateur(index, "ofgl-depenses", "departement"), parUrl.get("https://ofgl.test/departements"));
+  assert.equal(sourceIdPourIndicateur(index, "ofgl-depenses", "region"), parUrl.get("https://ofgl.test/regions"));
 });
