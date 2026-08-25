@@ -224,12 +224,12 @@ function renduOptionDecision(
   impact: "positif" | "negatif" | "neutre",
 ): string {
   const apercuReactions = reactionsEnPartie(reactions, 0, 2);
-  return `<section class="tunnel-decision__option tunnel__camp tunnel__camp--${camp} tunnel__camp--impact-${impact}">
+  return `<button type="button" class="tunnel-decision__option tunnel__camp tunnel__camp--${camp} tunnel__camp--impact-${impact}" data-geste="${camp}">
     <h4 class="tunnel__camp-titre">${echapper(libelle)}</h4>
     <p class="tunnel__camp-montant">${montant}</p>
     <p class="tunnel-decision__politique">Impact : ${echapper(perdants.join(", ") || gagnants.join(", ") || "à préciser")}</p>
     <div class="tunnel__reactions" aria-label="Réactions des soutiens">${pastilles(apercuReactions)}</div>
-  </section>`;
+  </button>`;
 }
 
 /** Les deux conséquences d'un vote, sans faire porter le sens par la couleur. */
@@ -316,10 +316,6 @@ export function renduConseil(etat: EtatTunnel, missionEuros: number): string {
             ? `<p class="tunnel__alerte" role="status">${etat.reports} report${etat.reports > 1 ? "s" : ""} : au-delà de ${REPORTS_GRATUITS}, chacun coûte 1 point à chaque soutien.</p>`
             : ""
         }
-        <div class="tunnel__actions-fixes">
-          <button type="button" class="tunnel__adopter" data-geste="adopter">${echapper(dilemme?.adopter.libelle ?? "Adopter")}</button>
-          <button type="button" class="tunnel__rejeter" data-geste="rejeter">${echapper(dilemme?.rejeter.libelle ?? "Rejeter")}</button>
-        </div>
         <div class="tunnel__seconds">
           <button type="button" class="tunnel__ajourner" data-geste="ajourner">Ajourner : elle reviendra en fin de pile</button>
           ${etat.historique.length ? '<button type="button" class="tunnel__ajourner" data-geste="annuler">&#8592; Annuler le dernier tampon</button>' : ""}

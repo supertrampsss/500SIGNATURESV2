@@ -126,7 +126,26 @@
 .tunnel__carte-titre { font-size: clamp(1.55rem, 6vw, var(--texte-3xl)); }
 .tunnel__carte-detail { font-size: var(--texte-s); }
 .tunnel__comparaison { gap: var(--espace-2); }
-.tunnel-decision__option { gap: var(--espace-1); padding: var(--espace-2) var(--espace-3); }
+.tunnel-decision__option {
+  width: 100%;
+  gap: var(--espace-1);
+  padding: var(--espace-2) var(--espace-3);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  appearance: none;
+  transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease;
+}
+.tunnel-decision__option:hover {
+  background: #f5edde;
+  border-color: #8f7d66;
+}
+.tunnel-decision__option:active { transform: translateY(1px); }
+.tunnel-decision__option:focus-visible {
+  outline: 3px solid var(--focus, #1d63d8);
+  outline-offset: 3px;
+}
 .tunnel-decision__option .tunnel__camp-titre { font-size: var(--texte-l); }
 .tunnel-decision__option .tunnel__camp-montant { font-size: var(--texte-s); }
 .tunnel-decision__politique { margin: 0; color: #455367; font-size: var(--texte-xs); }

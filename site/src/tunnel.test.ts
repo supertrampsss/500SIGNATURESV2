@@ -397,7 +397,7 @@ test("le conseil express rend un arbitrage éclair avec ses preuves à la demand
   assert.match(html, /Voir les conséquences et le chiffrage/);
   assert.doesNotMatch(html, /Chiffrage, hypothèses et source/);
   assert.doesNotMatch(html, /Chaque décision modifie/);
-  assert.match(html, /tunnel__actions-fixes/);
+  assert.doesNotMatch(html, /tunnel__actions-fixes/);
   assert.match(html, /Acte 1/);
 });
 
@@ -444,7 +444,17 @@ test("l'arbitrage garde l'état et le dossier dans une scène compacte", () => {
   assert.match(html, /<section class="tunnel__dilemme"/);
   assert.doesNotMatch(html, /tunnel__panneau--soutiens|tunnel__panneau--trajectoire/);
   assert.match(html, /tunnel__carte/);
-  assert.match(html, /tunnel__actions-fixes/);
+  assert.doesNotMatch(html, /tunnel__actions-fixes/);
+});
+
+test("les cartes du dilemme sont les deux boutons de décision sans actions dupliquées", () => {
+  const html = renduConseil({ ...commencer(etatInitial()), ordre: ["flat-tax-a-20-avec-abattement-protegeant"] }, MISSION);
+
+  assert.match(html, /<button type="button" class="tunnel-decision__option[^>]*" data-geste="adopter">/);
+  assert.match(html, /<button type="button" class="tunnel-decision__option[^>]*" data-geste="rejeter">/);
+  assert.equal((html.match(/data-geste="adopter"/g) ?? []).length, 1);
+  assert.equal((html.match(/data-geste="rejeter"/g) ?? []).length, 1);
+  assert.doesNotMatch(html, /tunnel__actions-fixes/);
 });
 
 test("les conséquences portent une classe de signe sans assimiler adopter à un résultat positif", () => {
@@ -456,13 +466,12 @@ test("les conséquences portent une classe de signe sans assimiler adopter à un
   assert.match(cout, /tunnel__camp--adopter tunnel__camp--impact-negatif/);
 });
 
-test("les boutons reprennent les deux camps dans le même ordre et avec leurs libellés", () => {
+test("les cartes-boutons reprennent les deux camps dans le même ordre et avec leurs libellés", () => {
   const html = renduConseil({ ...commencer(etatInitial()), ordre: ["flat-tax-a-20-avec-abattement-protegeant"] }, MISSION);
-  const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
 
   assert.ok(html.indexOf("tunnel__camp--adopter") < html.indexOf("tunnel__camp--rejeter"));
-  assert.match(actions, /^\s*<button[^>]*class="tunnel__adopter"[^>]*data-geste="adopter">Passer à 20 %<\/button>/);
-  assert.match(actions, /<button[^>]*class="tunnel__rejeter"[^>]*data-geste="rejeter">Garder le barème<\/button>\s*$/);
+  assert.match(html, /<button[^>]*data-geste="adopter">\s*<h4[^>]*>Passer à 20 %<\/h4>/);
+  assert.match(html, /<button[^>]*data-geste="rejeter">\s*<h4[^>]*>Garder le barème<\/h4>/);
 });
 
 test("deux clics synchrones sur l'ancien CTA ne posent qu'un tampon", () => {
@@ -527,16 +536,14 @@ test("deux clics synchrones sur l'ancien CTA ne posent qu'un tampon", () => {
   }
 });
 
-test("la barre intégrale reprend les deux choix éditoriaux sans dupliquer le titre", () => {
+test("les cartes intégrales reprennent les deux choix éditoriaux sans dupliquer le titre", () => {
   const html = renduConseil({
     ...commencer({ ...etatInitial(), mode: "integral" }),
     mode: "integral",
     ordre: ["reconduire-la-surtaxe-des-grandes-entreprises"],
   }, MISSION);
-  const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
-
-  assert.match(actions, /data-geste="adopter">Reconduire<\/button>/);
-  assert.match(actions, /data-geste="rejeter">Arrêter<\/button>/);
+  assert.match(html, /data-geste="adopter">\s*<h4[^>]*>Reconduire<\/h4>/);
+  assert.match(html, /data-geste="rejeter">\s*<h4[^>]*>Arrêter<\/h4>/);
 });
 
 test("une mesure sans dilemme éditorial ne répète jamais son titre sur les deux choix", () => {
@@ -546,12 +553,10 @@ test("une mesure sans dilemme éditorial ne répète jamais son titre sur les de
     mode: "integral",
     ordre: ["flat-tax-a-20-des-le-premier"],
   }, MISSION);
-  const actions = html.match(/<div class="tunnel__actions-fixes">([\s\S]*?)<\/div>/)?.[1] ?? "";
-
   assert.match(html, new RegExp(`<h3[^>]*>${titre.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}<\\/h3>`));
-  assert.match(actions, /data-geste="adopter">Adopter<\/button>/);
-  assert.match(actions, /data-geste="rejeter">Rejeter<\/button>/);
-  assert.doesNotMatch(actions, /tout le monde paie/);
+  assert.match(html, /data-geste="adopter">\s*<h4[^>]*>Adopter<\/h4>/);
+  assert.match(html, /data-geste="rejeter">\s*<h4[^>]*>Rejeter<\/h4>/);
+  assert.equal((html.match(/tout le monde paie/g) ?? []).length, 1);
 });
 
 /** Un conseil ouvert sans engagement : la pile entière. */
@@ -884,8 +889,8 @@ test("la flat tax garde ses deux choix explicites dans les campagnes express et 
   for (const html of [renduConseil(express, MISSION), renduConseil(integral, MISSION)]) {
     assert.match(html, /tous les revenus imposables/i);
     assert.doesNotMatch(html, /détenteurs de capital/i);
-    assert.match(html, /data-geste="adopter">Passer à 20 %</);
-    assert.match(html, /data-geste="rejeter">Garder le barème</);
+    assert.match(html, /data-geste="adopter">\s*<h4[^>]*>Passer à 20 %<\/h4>/);
+    assert.match(html, /data-geste="rejeter">\s*<h4[^>]*>Garder le barème<\/h4>/);
   }
 });
 
