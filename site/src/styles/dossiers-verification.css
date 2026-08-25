@@ -93,7 +93,7 @@
 .analyses-filtres__bouton[hidden],
 .analyses-filtres__vide[hidden] { display: none; }
 
-.analyses-filtres:not([data-ouvert="true"]) {
+.analyses-filtres:not([hidden]):not([data-ouvert="true"]) {
   display: none;
 }
 
