@@ -151,12 +151,12 @@ test("une source mixte conserve tous ses usages et le statut le plus prudent", (
   const source = "https://institut.test/note#annexe";
   const estimation = analyse({
     slug: "a-estimation",
-    sources: [{ titre: "Note", url: source, consulte_le: "2026-08-22" }],
+    sources: [{ titre: "Estimation publiée", url: source, consulte_le: "2026-08-22" }],
     chiffres: [{ dit: "10", valeur: 10, registre: "estimation_externe", lecture: "Estimation." }],
   });
   const regle = analyse({
     slug: "z-regle",
-    sources: [{ titre: "Note", url: "https://institut.test/note#methodologie", consulte_le: "2026-08-23" }],
+    sources: [{ titre: "Règle publiée", url: "https://institut.test/note#methodologie", consulte_le: "2026-08-23" }],
     chiffres: [{ dit: "20", valeur: 20, registre: "hypothese", lecture: "Hypothèse." }],
   });
   const entree = { jeux: [], indicateurs: [], analyses: [estimation, regle] };
@@ -165,6 +165,7 @@ test("une source mixte conserve tous ses usages et le statut le plus prudent", (
   const inverse = construireRegistre({ ...entree, analyses: [...entree.analyses].reverse() })[0]!;
 
   assert.equal(fiche.statut, "regle_jeu");
+  assert.equal(fiche.nom, "Estimation publiée");
   assert.deepEqual(fiche.pages, ["/analyses/a-estimation/", "/analyses/z-regle/"]);
   assert.deepEqual(inverse, fiche);
 });

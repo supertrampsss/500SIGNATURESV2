@@ -166,7 +166,13 @@ export function construireRegistre({ jeux, indicateurs, analyses }: EntreeRegist
       ? indicateurs.filter((indicateur) => indicateur.jeu === jeu.id).sort((a, b) => a.id.localeCompare(b.id, "fr"))
       : [];
     const sourceAnalyse = accumulateur.analyses
-      .flatMap((analyse) => analyse.sources.filter((source) => sansFragment(source.url) === accumulateur.cle));
+      .flatMap((analyse) => analyse.sources.filter((source) => sansFragment(source.url) === accumulateur.cle))
+      .sort(
+        (a, b) =>
+          a.titre.localeCompare(b.titre, "fr") ||
+          a.consulte_le.localeCompare(b.consulte_le, "fr") ||
+          a.url.localeCompare(b.url, "fr"),
+      );
     const statutJeu: StatutSource | undefined = jeu
       ? indicateursDuJeu.some(estProvisoire)
         ? "provisoire"
