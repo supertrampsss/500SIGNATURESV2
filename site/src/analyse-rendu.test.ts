@@ -264,12 +264,61 @@ test("les montants s'affichent en millions d'euros, jamais en Md", () => {
   assert.doesNotMatch(html, /\bMd€/);
 });
 
-test("le tableau du détail dit son unité (finding C, même convention qu'exercices.ts)", () => {
+test("le tableau du détail dit l'unité publiée de ses chiffres", () => {
   // La page la plus exposée à la confusion milliards/millions du site :
   // « environ 59,9 milliards » (l'express) et « 59 946 M€ » (le détail) y
-  // voisinent. Sans la légende, rien ne dit que le second est en millions.
+  // voisinent. La légende doit expliciter l'unité sans l'imposer à un futur
+  // dossier qui mêlerait une part du PIB à un montant.
   const html = rendu(DEFENSE, CATALOGUE);
-  assert.match(html, /<caption>Montants en millions d'euros\./);
+  assert.match(html, /<caption>Unités publiées : euros\./);
+});
+
+test("un dossier mélangeant euros et part du PIB nomme chaque unité sans légende M€ globale", () => {
+  const analyse = analyseMinimale({
+    chiffres: [
+      {
+        dit: "60 milliards d'euros",
+        observe: {
+          indicateur: "etat_mission_defense_credits_votes",
+          niveau: "pays",
+          code: "FR",
+          periode: "2025",
+          valeur: 59_946_338_573,
+        },
+        registre: "fait_comptable",
+        lecture: "Crédits de défense",
+      },
+      {
+        dit: "113 % du PIB",
+        observe: {
+          indicateur: "dette_publique_part_pib",
+          niveau: "pays",
+          code: "FR",
+          periode: "2025",
+          valeur: 113,
+        },
+        registre: "donnee_officielle",
+        lecture: "Dette publique, part du PIB",
+      },
+    ],
+  });
+  const catalogue = [
+    { id: "etat_mission_defense_credits_votes", unite: "EUR" },
+    { id: "dette_publique_part_pib", unite: "percent" },
+  ] as never[];
+  const html = rendu(analyse, catalogue);
+  const donnees = html.slice(
+    html.indexOf("dossier-preuve__donnees"),
+    html.indexOf("dossier-preuve__limites"),
+  );
+  const ligneEuros = donnees.slice(donnees.indexOf("Crédits de défense"), donnees.indexOf("</tr>", donnees.indexOf("Crédits de défense")));
+  const lignePib = donnees.slice(donnees.indexOf("Dette publique, part du PIB"), donnees.indexOf("</tr>", donnees.indexOf("Dette publique, part du PIB")));
+
+  assert.doesNotMatch(donnees, /Montants en millions d'euros/);
+  assert.match(donnees, /Unités publiées : euros ; pourcentage\./);
+  assert.match(ligneEuros, /Unité publiée : euros/);
+  assert.match(lignePib, /Unité publiée : pourcentage/);
+  assert.match(lignePib, /113\s* %/);
 });
 
 test("le mot milliards peut figurer dans la citation de l'affirmation", () => {
@@ -354,7 +403,7 @@ test("une hypothèse se dit une fois, dans les limites du dossier", () => {
   // L'unité reste avec les données, mais l'hypothèse est explicitement
   // qualifiée comme limite du dossier.
   const legende = html.slice(html.indexOf("<caption>"), html.indexOf("</caption>"));
-  assert.match(legende, /Montants en millions d'euros\./);
+  assert.match(legende, /Unités publiées : euros\./);
   assert.ok(!legende.includes(phrase), `légende : ${legende}`);
   const limites = html.slice(
     html.indexOf("dossier-preuve__limites"),

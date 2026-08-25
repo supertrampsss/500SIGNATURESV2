@@ -239,6 +239,26 @@ function uniteDe(catalogue: Indicateur[], id: string): string {
   return catalogue.find((i) => i.id === id)?.unite ?? "EUR";
 }
 
+/** L'unité publiée reste visible même lorsque le formateur choisit une échelle
+ * plus lisible (M€ pour les grandes masses, % pour un taux). */
+function libelleUnite(unite: string): string {
+  switch (unite) {
+    case "EUR":
+      return "euros";
+    case "percent":
+    case "rate":
+      return "pourcentage";
+    case "count":
+      return "nombre";
+    case "mwh":
+      return "mégawattheures";
+    case "m2":
+      return "mètres carrés";
+    default:
+      return unite;
+  }
+}
+
 /**
  * La commande « citer » d'un chiffre observé (spec §13).
  *
@@ -370,10 +390,15 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
     ...new Set(analyse.chiffres.map((c) => c.observe?.periode).filter((p): p is string => !!p)),
   ].sort();
 
+  const uniteDuChiffre = (chiffre: Analyse["chiffres"][number]) =>
+    chiffre.observe ? uniteDe(catalogue, chiffre.observe.indicateur) : "EUR";
+  const unites = [...new Set(analyse.chiffres.map(uniteDuChiffre))];
+
   const lignes = analyse.chiffres
     .map((chiffre) => {
       const observe = chiffre.observe;
       const classe = `analyse-rendu__chiffre analyse-rendu__chiffre--${echapper(chiffre.registre)}`;
+      const unite = uniteDuChiffre(chiffre);
       // Une ligne sans `observe` (interprétation, hypothèse, résultat du
       // simulateur) n'a rien à ranger sous un exercice précis : elle tient
       // une seule cellule, étalée sur les colonnes d'exercice quand il y en a
@@ -399,7 +424,6 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
         : exercices
             .map((exercice) => {
               if (observe.periode !== exercice) return "<td></td>";
-              const unite = uniteDe(catalogue, observe.indicateur);
               const montant = formater(observe.valeur, unite, false, observe.indicateur);
               return `<td class="${classe}">${montant}</td>`;
             })
@@ -407,16 +431,17 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
       return `<tr>
         <th scope="row">${echapper(chiffre.lecture)}
           <span class="analyse-rendu__registre">${echapper(LIBELLE_REGISTRE[chiffre.registre])}</span>
+          <span class="analyse-rendu__unite">Unité publiée : ${echapper(libelleUnite(unite))}</span>
         </th>
         ${cellules}
       </tr>`;
     })
     .join("");
 
-  // L'unité reste au plus près du tableau. Les hypothèses, elles, appartiennent
-  // à la section de limites qui suit : un lecteur peut ainsi les distinguer
-  // des valeurs mesurées sans les perdre dans une note de bas de tableau.
-  const legende = "<caption>Montants en millions d'euros.</caption>";
+  // L'unité reste au plus près du tableau. Une analyse peut comparer une masse
+  // en euros et une part du PIB : la légende énumère donc les unités publiées
+  // au lieu de faire passer toutes les lignes pour des millions d'euros.
+  const legende = `<caption>Unités publiées : ${unites.map(libelleUnite).map(echapper).join(" ; ")}.</caption>`;
 
   // Un exercice par colonne : sur une analyse à plusieurs millésimes, le
   // tableau déborde de la carte, et c'est lui qui défile — jamais la page

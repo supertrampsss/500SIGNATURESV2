@@ -175,6 +175,14 @@
   text-transform: uppercase;
 }
 
+.dossier-preuve__donnees .analyse-rendu__unite {
+  display: block;
+  margin-top: var(--espace-1);
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-weight: 600;
+}
+
 @media (max-width: 40rem) {
   .analyse-rendu { gap: var(--espace-4); }
 
