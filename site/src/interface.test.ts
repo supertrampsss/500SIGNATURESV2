@@ -3224,3 +3224,27 @@ test("le verdict garde une encre sombre sur ses cartes claires", () => {
     assert.ok(secondaire >= 4.5, `--ui-encre-douce sur ${fond} : ${secondaire.toFixed(2)}:1 < 4,5`);
   }
 });
+
+test("le territoire place le briefing avant la carte repliable", () => {
+  const briefing = PAGE.indexOf('id="briefing-territorial"');
+  const carte = PAGE.indexOf('id="cadre-carte"');
+  assert.ok(briefing > -1, "le cadre du briefing territorial est absent");
+  assert.ok(carte > briefing, "la carte doit suivre le briefing dans le DOM");
+  assert.match(PAGE, /id="afficher-carte"[^>]*aria-expanded="false"/);
+});
+
+test("la carte territoriale se révèle sans être recréée", () => {
+  assert.match(MAIN, /import "\.\/styles\/territoire-briefing\.css";/);
+  assert.match(MAIN, /cadre\.hidden = !ouverte/);
+  assert.match(MAIN, /bouton\.setAttribute\("aria-expanded", String\(ouverte\)\)/);
+  assert.match(MAIN, /carte\?\.resize\(\)/);
+  assert.match(MAIN, /renduBriefing\(/);
+});
+
+test("les thèmes du briefing conduisent à une section détaillée", () => {
+  for (const theme of ["Budget", "Fiscalité", "Dette", "Services", "Trajectoire"]) {
+    assert.match(PAGE, new RegExp(`>${theme}<`));
+  }
+  assert.match(MAIN, /data-territoire-theme/);
+  assert.match(MAIN, /focus\(\{ preventScroll: true \}\)/);
+});

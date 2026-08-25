@@ -24,7 +24,8 @@ import {
   voisinage,
   type Ligne as LignePalmares,
 } from "./palmares.ts";
-import { groupeDe } from "./semblables.ts";
+import { groupeDe, intituleGroupe } from "./semblables.ts";
+import { briefingTerritorial, renduBriefing } from "./briefing-territorial.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
 import { afficherTunnel } from "./tunnel.ts";
@@ -126,6 +127,7 @@ import "./styles/navigation.css";
 import "./styles/tunnel-cabinet.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
+import "./styles/territoire-briefing.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -734,6 +736,7 @@ function afficherApercu(): void {
     indicateurs: nationaux,
     comparateurs: [],
   });
+  monterBriefingTerritorial("pays", "FR", france);
   poserPartageDeLaFiche("pays", "FR", france);
   appliquerVitesse();
 }
@@ -1002,6 +1005,64 @@ function suivreLaSelection(code: string): void {
   });
 }
 
+/** Le diagnostic est la porte d'entrée de la fiche : la carte ne vient
+ * qu'après, comme contexte et changement de territoire. Les quatre chiffres
+ * reprennent les repères déjà calculés pour la fiche afin que les deux lectures
+ * ne puissent pas diverger. */
+function monterBriefingTerritorial(niveau: string, code: string, territoire: Territoire): void {
+  const cible = document.getElementById("briefing-territorial");
+  if (!cible) return;
+  const reperes = reperesDOuverture(territoire.series ?? {}, niveau);
+  const exercice = reperes[0]?.exercice ?? dernierExerciceOfgl(niveau) ?? "";
+  const epargne = reperes.find((repere) => repere.id === "ofgl_epargne_brute");
+  const depenses = reperes.find((repere) => repere.id === "ofgl_depenses_fonctionnement");
+  const recettes = reperes.find((repere) => repere.id === "ofgl_recettes_fonctionnement");
+  const diagnostic = epargne
+    ? `En ${exercice}, le fonctionnement dégage ${formater(epargne.valeur, "EUR", false, epargne.id)} d'épargne brute`
+    : depenses && recettes
+      ? `En ${exercice}, le fonctionnement ${depenses.valeur > recettes.valeur ? "dépense plus qu'il n'encaisse" : "reste à l'équilibre"}`
+      : `Les derniers comptes publiés de ${territoire.nom} sont prêts à être lus`;
+  const groupe = repertoire?.niveau === niveau ? groupeDe(repertoire.index, code) : null;
+  const comparaison = groupe ? intituleGroupe(groupe) : `${NIVEAUX[niveau] ?? "territoires"} de même niveau`;
+  cible.innerHTML = renduBriefing(
+    briefingTerritorial({
+      territoire,
+      exercice,
+      code,
+      niveau,
+      chiffres: reperes.map((repere) => ({
+        id: repere.id,
+        libelle: repere.role,
+        unite: catalogue.find((indicateur) => indicateur.id === repere.id)?.unite ?? "EUR",
+        valeur: repere.valeur,
+      })),
+      diagnostic,
+      groupe: comparaison,
+    }),
+    territoire,
+  );
+}
+
+/** Les cinq entrées gardent le même vocabulaire d'un territoire à l'autre,
+ * mais amènent toujours à un élément réellement rendu par la fiche. */
+function preparerAncresTerritoriales(): void {
+  const fiche = document.getElementById("fiche");
+  if (!fiche) return;
+  const blocs = fiche.querySelectorAll<HTMLElement>(".bloc-lecture");
+  const ancres: [string, HTMLElement | null][] = [
+    ["budget", fiche.querySelector(".reperes")],
+    ["fiscalite", blocs[1] ?? blocs[0] ?? null],
+    ["dette", fiche.querySelector(".note")],
+    ["services", blocs[0] ?? null],
+    ["trajectoire", fiche.querySelector(".tableau-exercices")],
+  ];
+  for (const [theme, section] of ancres) {
+    if (!section) continue;
+    section.dataset.territoireSection = theme;
+    section.tabIndex = -1;
+  }
+}
+
 async function montrerFiche(code: string): Promise<void> {
   suivreLaSelection(code);
   // La maille de la fiche n'est pas toujours celle de la carte : un
@@ -1058,6 +1119,8 @@ async function montrerFiche(code: string): Promise<void> {
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
   });
+  monterBriefingTerritorial(niveau, code, territoire);
+  preparerAncresTerritoriales();
   poserPartageDeLaFiche(niveau, code, territoire);
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
@@ -2659,6 +2722,41 @@ function appliquerModeCarte(ouverte: boolean): void {
   if (ouverte && !avant) requestAnimationFrame(() => carte?.resize());
 }
 
+/** La carte est secondaire sur téléphone, mais pas supprimée : son instance
+ * MapLibre reste celle qui a été créée au démarrage, et ne demande qu'un
+ * redimensionnement après sa révélation. */
+function brancherBriefingTerritorial(): void {
+  const cadre = document.getElementById("cadre-carte");
+  const bouton = document.getElementById("afficher-carte");
+  const themes = document.querySelector(".territoire-themes");
+  if (!cadre || !(bouton instanceof HTMLButtonElement) || !themes) return;
+
+  const poserCarte = (ouverte: boolean) => {
+    cadre.hidden = !ouverte;
+    bouton.setAttribute("aria-expanded", String(ouverte));
+    bouton.textContent = ouverte ? "Masquer la carte" : "Voir sur la carte";
+    if (ouverte) requestAnimationFrame(() => carte?.resize());
+  };
+
+  // À partir de 60rem, la carte reste visible comme un outil de contexte.
+  // Le HTML part replié pour garder un premier écran mobile immédiatement lisible.
+  poserCarte(window.matchMedia("(min-width: 60.0625rem)").matches);
+  bouton.addEventListener("click", () => poserCarte(cadre.hidden));
+
+  themes.addEventListener("click", (evenement) => {
+    const action = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-territoire-theme]");
+    const theme = action?.dataset.territoireTheme;
+    if (!theme) return;
+    const cible = document.querySelector<HTMLElement>(`[data-territoire-section="${theme}"]`);
+    if (!cible) return;
+    cible.scrollIntoView({
+      block: "start",
+      behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+    });
+    cible.focus({ preventScroll: true });
+  });
+}
+
 /**
  * Le thème. Le clair reste le rendu de référence : il s'affiche tant que le
  * lecteur n'a rien demandé et que son système ne demande rien non plus.
@@ -4041,6 +4139,7 @@ async function demarrer(): Promise<void> {
   // producteurs des jeux, deux choses qu'il ne pouvait pas dire avant.
   resoudrePubliee();
   construireSelecteurs();
+  brancherBriefingTerritorial();
   // La France du panneau d'accueil, demandée avant la carte : c'est la
   // première chose à l'écran, elle ne doit pas attendre les tuiles.
   void chargerFrance();

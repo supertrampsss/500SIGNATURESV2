@@ -1,0 +1,207 @@
+/* Le territoire commence par son diagnostic. La carte conserve son rôle de
+   contexte, mais ne concurrence plus les quatre chiffres ni l'action suivante. */
+.territoire-briefing {
+  max-width: var(--colonne-texte);
+  margin: 0 auto;
+  padding: var(--espace-7) var(--gouttiere) 0;
+}
+
+.briefing-territorial {
+  display: grid;
+  gap: var(--espace-6);
+  padding-bottom: var(--espace-7);
+  border-bottom: 1px solid var(--trait);
+}
+
+.briefing-territorial h2 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+}
+
+.briefing-territorial header p {
+  margin: var(--espace-3) 0 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-l);
+}
+
+.briefing-territorial header p:first-of-type {
+  color: var(--encre);
+}
+
+.briefing-territorial dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espace-4);
+  margin: 0;
+}
+
+.briefing-territorial dl > div {
+  min-width: 0;
+  padding-top: var(--espace-4);
+  border-top: 1px solid var(--trait);
+}
+
+.briefing-territorial dt {
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+.briefing-territorial dd {
+  margin: var(--espace-2) 0 0;
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.briefing-territorial dd span {
+  display: block;
+  margin-top: var(--espace-2);
+  color: var(--encre-douce);
+  font-family: var(--sans);
+  font-size: var(--texte-xs);
+}
+
+.briefing-territorial > p {
+  margin: 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+.briefing-territorial__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espace-4) var(--espace-5);
+}
+
+.briefing-territorial__actions a,
+.territoire-carte__action,
+.territoire-themes button {
+  min-height: var(--cible);
+  border: 1px solid var(--trait-fort);
+  border-radius: var(--rayon-pilule);
+  background: var(--papier);
+  color: var(--encre);
+  font: inherit;
+  font-size: var(--texte-s);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.briefing-territorial__actions a,
+.territoire-carte__action {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--espace-3) var(--espace-5);
+}
+
+.briefing-territorial__actions span {
+  flex-basis: 100%;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+}
+
+.territoire-themes {
+  display: flex;
+  gap: var(--espace-3);
+  overflow-x: auto;
+  max-width: var(--colonne-texte);
+  margin: var(--espace-6) auto 0;
+  padding: 0 var(--gouttiere) var(--espace-3);
+  scrollbar-width: thin;
+}
+
+.territoire-themes button {
+  flex: 0 0 auto;
+  padding: var(--espace-3) var(--espace-5);
+  cursor: pointer;
+}
+
+.territoire-carte__action {
+  margin: 0 var(--gouttiere) var(--espace-6);
+  cursor: pointer;
+}
+
+#cadre-carte[hidden] {
+  display: none;
+}
+
+.briefing-territorial__actions a:hover,
+.briefing-territorial__actions a:focus-visible,
+.territoire-carte__action:hover,
+.territoire-carte__action:focus-visible,
+.territoire-themes button:hover,
+.territoire-themes button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+@media (min-width: 60.0625rem) {
+  body[data-carte="oui"] .vue--territoire #briefing-territorial {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: var(--espace-7) 0 0;
+  }
+
+  body[data-carte="oui"] .vue--territoire .briefing-territorial {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    column-gap: var(--espace-8);
+  }
+
+  body[data-carte="oui"] .vue--territoire .briefing-territorial header,
+  body[data-carte="oui"] .vue--territoire .briefing-territorial__actions {
+    grid-column: 1;
+  }
+
+  body[data-carte="oui"] .vue--territoire .briefing-territorial dl {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-content: start;
+  }
+
+  body[data-carte="oui"] .vue--territoire .territoire-themes {
+    grid-column: 1;
+    grid-row: 2;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0 0 var(--espace-3);
+  }
+
+  body[data-carte="oui"] .vue--territoire .territoire-carte__action {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    margin: 0 0 var(--espace-3);
+  }
+
+  body[data-carte="oui"] .vue--territoire #cadre-carte {
+    display: contents;
+  }
+
+  body[data-carte="oui"] .vue--territoire #cadre-carte[hidden] {
+    display: none;
+  }
+
+  body[data-carte="oui"] .vue--territoire .atelier__carte {
+    grid-row: 3 / span 2;
+  }
+
+  body[data-carte="oui"] .vue--territoire #panneau {
+    grid-row: 3;
+  }
+
+  body[data-carte="oui"] .vue--territoire .territoire__tables {
+    grid-row: 4;
+  }
+}
+
+@media (max-width: 40rem) {
+  .briefing-territorial dl {
+    grid-template-columns: 1fr;
+  }
+}

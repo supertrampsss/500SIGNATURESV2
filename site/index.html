@@ -100,10 +100,17 @@
          `basculerVue` ne tranche montreraient l'accueil ET le cadre de la carte
          l'un sous l'autre. -->
     <div class="vue vue--territoire" id="vue-territoire" hidden>
-      <!-- La carte n'a plus de bouton pour la replier : elle EST cette vue, et
-           un bouton qui n'a qu'un état utile n'est pas un choix, c'est une
-           barre qui prend de la hauteur. Le mode `data-carte` reste, posé une
-           fois pour toutes à l'ouverture de la vue. -->
+      <section class="territoire-briefing" id="briefing-territorial" aria-live="polite"></section>
+      <nav class="territoire-themes" aria-label="Approfondir le diagnostic territorial">
+        <button type="button" data-territoire-theme="budget">Budget</button>
+        <button type="button" data-territoire-theme="fiscalite">Fiscalité</button>
+        <button type="button" data-territoire-theme="dette">Dette</button>
+        <button type="button" data-territoire-theme="services">Services</button>
+        <button type="button" data-territoire-theme="trajectoire">Trajectoire</button>
+      </nav>
+      <button type="button" class="territoire-carte__action" id="afficher-carte"
+              aria-expanded="false" aria-controls="cadre-carte">Voir sur la carte</button>
+      <div id="cadre-carte" hidden>
       <div class="atelier" aria-label="Carte interactive">
         <!-- La carte et ses surcouches dans un même cadre : légende, barre de
              commandes, étiquettes et infobulle se posent sur LA CARTE. Sans ce
@@ -157,6 +164,7 @@
             </div>
           </div>
         </aside>
+      </div>
       </div>
 
       <!-- Le palmarès d'un territoire, sa suite dans le panneau, et la
