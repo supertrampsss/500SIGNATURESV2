@@ -59,6 +59,7 @@ import { rendu as renduFonctions } from "../src/fonctions.ts";
 import { rendu as renduEurope } from "../src/europe-comparaison.ts";
 import { rendu as renduOuverture } from "../src/ouverture.ts";
 import { rendu as renduRedistribution } from "../src/redistribution.ts";
+import { renduConclusionsBilan } from "../src/national.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
@@ -1076,6 +1077,9 @@ export function injecterReperes(
   }
 
   let html = shell;
+  for (const [id, corps] of Object.entries(renduConclusionsBilan(pays))) {
+    html = remplirCadre(html, `conclusion-france-${id}`, corps);
+  }
   for (const [id, corps] of ouvrants) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }

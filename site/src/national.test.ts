@@ -12,7 +12,7 @@ import { test } from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { millions } from "./echelle.ts";
-import { afficherNational, renduDette, renduEurope } from "./national.ts";
+import { afficherNational, renduConclusionsBilan, renduDette, renduEurope } from "./national.ts";
 
 const FINE = " ";
 
@@ -61,6 +61,29 @@ const PAYS: Record<string, Territoire> = {
   }),
   EA20: territoire({ eurostat_dette_pib: { "2024": 87.4 } }),
 };
+
+test("le guide ouvre par l'équation France et garde quatre conclusions lisibles", () => {
+  const guide = renduConclusionsBilan({
+    FR: territoire({
+      eurostat_apu_recettes: { "2024": 1_000_000_000_000, "2025": 1_000_000_000_000 },
+      eurostat_apu_depenses: { "2024": 1_060_000_000_000, "2025": 1_097_700_000_000 },
+      eurostat_pib_montant: { "2024": 2_000_000_000_000, "2025": 2_100_000_000_000 },
+      insee_dette_apu_montant: { "2025": 3_400_000_000_000 },
+      insee_dette_apu_part_pib: { "2025": 115.6 },
+      eurostat_dette_pib: { "2025": 115.6 },
+      eurostat_deficit_pib: { "2025": -5.8 },
+    }),
+  });
+
+  assert.deepEqual(Object.keys(guide), ["entrees", "sorties", "dette", "verdict"]);
+  assert.match(guide.entrees, /class="ui-conclusion"/);
+  assert.match(guide.entrees, /Pour 100 € encaissés, la France en dépense 109,77\./);
+  for (const html of Object.values(guide)) {
+    assert.match(html, /class="ui-conclusion"/);
+    assert.match(html, /class="bilan-guide__chiffres"/);
+    assert.match(html, /class="bilan-guide__viz"/);
+  }
+});
 
 /* -------------------------------------------------------------------------
  * Le bloc DETTE

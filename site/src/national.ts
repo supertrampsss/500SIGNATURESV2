@@ -8,7 +8,9 @@
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { nomPays } from "./pays-noms.ts";
-import { formater, SUFFIXE_POUR_100000 } from "./echelle.ts";
+import { formater, montantLisible, SUFFIXE_POUR_100000 } from "./echelle.ts";
+import { equationFrance } from "./bilan-guide.ts";
+import { chiffres as chiffresOuverture } from "./ouverture.ts";
 
 const SOUS_SECTEURS = [
   "insee_dette_etat_montant",
@@ -52,6 +54,93 @@ function derniere(serie: Record<string, number> | undefined): [string, number] |
   const periodes = Object.keys(serie).sort();
   const derniereP = periodes[periodes.length - 1];
   return derniereP ? [derniereP, serie[derniereP]] : null;
+}
+
+export type ConclusionsBilan = Record<"entrees" | "sorties" | "dette" | "verdict", string>;
+
+/**
+ * Les quatre portes du bilan : le même petit rendu pur pour le navigateur et
+ * le document servi par le pré-rendu. Les peintres détaillés gardent leurs
+ * calculs ; ici, on ne fait que donner l'ordre de lecture et les deux à quatre
+ * nombres qui permettent de les aborder.
+ */
+export function renduConclusionsBilan(pays: Record<string, Territoire>): ConclusionsBilan {
+  const ouverture = chiffresOuverture(pays.FR);
+  const france = pays.FR;
+  const dette = derniere(france?.series.insee_dette_apu_montant);
+  const dettePib = derniere(france?.series.insee_dette_apu_part_pib)
+    ?? derniere(france?.series.eurostat_dette_pib);
+  const deficitPib = derniere(france?.series.eurostat_deficit_pib);
+  const chiffres = (lignes: [string, string][]) =>
+    `<dl class="bilan-guide__chiffres">${lignes
+      .map(([libelle, valeur]) => `<div><dt>${libelle}</dt><dd>${valeur}</dd></div>`)
+      .join("")}</dl>`;
+  const viz = (part: number, etiquette: string) =>
+    `<div class="bilan-guide__viz" role="img" aria-label="${etiquette}"><span style="--bilan-part: ${Math.max(0, Math.min(100, part)).toFixed(2)}%"></span></div>`;
+
+  const equation = ouverture ? equationFrance(ouverture.recettes, ouverture.depenses) : null;
+  const entrees = equation
+    ? `<div class="ui-conclusion">
+        <h2>Qu'est-ce qui entre&nbsp;?</h2>
+        <p><strong>${equation.phrase}</strong> C'est le point de départ : les recettes des administrations publiques financent le reste du bilan.</p>
+        ${chiffres([
+          ["Recettes", montantLisible(ouverture!.recettes)],
+          ["Dépenses", montantLisible(ouverture!.depenses)],
+          ["Écart à financer", montantLisible(ouverture!.emprunte)],
+        ])}
+        ${viz(100, "100 euros de recettes encaissées")}
+      </div>`
+    : `<div class="ui-conclusion"><h2>Qu'est-ce qui entre&nbsp;?</h2><p>Les recettes publiées donnent le point de départ du bilan.</p>${chiffres([["Recettes", "non publiées"], ["Dépenses", "non publiées"]])}${viz(0, "Données de recettes en attente")}</div>`;
+
+  const sorties = ouverture
+    ? `<div class="ui-conclusion">
+        <h2>Où va l'argent&nbsp;?</h2>
+        <p>Les dépenses dépassent les recettes : les lectures par fonction, par cent euros et par redistribution expliquent ce qui sort.</p>
+        ${chiffres([
+          ["Dépenses", montantLisible(ouverture.depenses)],
+          ["Part du PIB", formater(ouverture.partDepenses, "percent", false)],
+          ["À financer", montantLisible(ouverture.emprunte)],
+        ])}
+        ${viz((ouverture.depenses / ouverture.recettes) * 100, "Dépenses rapportées aux recettes")}
+      </div>`
+    : `<div class="ui-conclusion"><h2>Où va l'argent&nbsp;?</h2><p>Les dépenses sont lues par fonction, par nature et par redistribution.</p>${chiffres([["Dépenses", "non publiées"], ["Ventilation", "à consulter"]])}${viz(0, "Données de dépenses en attente")}</div>`;
+
+  const detteConclusion = dette || dettePib || ouverture
+    ? `<div class="ui-conclusion">
+        <h2>Pourquoi la dette augmente-t-elle&nbsp;?</h2>
+        <p>Quand les dépenses excèdent les recettes, l'écart doit être financé. Il s'ajoute à un stock de dette déjà constitué.</p>
+        ${chiffres([
+          ["Dette publique", dette ? montantLisible(dette[1]) : "non publiée"],
+          ["Dette / PIB", dettePib ? formater(dettePib[1], "percent", false) : "non publiée"],
+          ["Écart annuel", ouverture ? montantLisible(ouverture.emprunte) : "non publié"],
+        ])}
+        ${viz(dettePib?.[1] ?? 0, "Dette rapportée au produit intérieur brut")}
+      </div>`
+    : `<div class="ui-conclusion"><h2>Pourquoi la dette augmente-t-elle&nbsp;?</h2><p>La dette se lit avec son montant, son poids dans le PIB et le déficit annuel.</p>${chiffres([["Dette", "non publiée"], ["Déficit", "non publié"]])}${viz(0, "Données de dette en attente")}</div>`;
+
+  const verdict = dettePib || deficitPib
+    ? `<div class="ui-conclusion">
+        <h2>Quel verdict raisonnable&nbsp;?</h2>
+        <p>La comparaison européenne ne tranche pas seule : elle situe la France, puis met le déficit et la dette en regard.</p>
+        ${chiffres([
+          ["Dette / PIB", dettePib ? formater(dettePib[1], "percent", false) : "non publiée"],
+          ["Déficit / PIB", deficitPib ? formater(deficitPib[1], "percent", false) : "non publié"],
+          ["Année comparée", dettePib?.[0] ?? deficitPib?.[0] ?? "—"],
+        ])}
+        ${viz(dettePib?.[1] ?? 0, "Dette française rapportée au PIB")}
+      </div>`
+    : `<div class="ui-conclusion"><h2>Quel verdict raisonnable&nbsp;?</h2><p>Le verdict compare la France à ses voisins avec des définitions communes.</p>${chiffres([["France", "à comparer"], ["Voisins", "à consulter"]])}${viz(0, "Données européennes en attente")}</div>`;
+
+  return { entrees, sorties, dette: detteConclusion, verdict };
+}
+
+/** Pose les conclusions dans le gabarit SPA, avec le même HTML que /bilan. */
+export function afficherConclusionsBilan(pays: Record<string, Territoire>): void {
+  const conclusions = renduConclusionsBilan(pays);
+  for (const [id, html] of Object.entries(conclusions)) {
+    const cadre = document.getElementById(`conclusion-france-${id}`);
+    if (cadre) cadre.innerHTML = html;
+  }
 }
 
 /** Courbe SVG minimale : pas de bibliothèque, pas d'animation, axes lisibles. */

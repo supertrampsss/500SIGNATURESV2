@@ -26,6 +26,7 @@ import {
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
+import { afficherConclusionsBilan } from "./national.ts";
 import { afficherTunnel } from "./tunnel.ts";
 import { aTrouverAuDepart } from "./mission.ts";
 import { afficherFonctions } from "./fonctions.ts";
@@ -124,6 +125,7 @@ import "./styles/fondations.css";
 import "./styles/navigation.css";
 import "./styles/tunnel-cabinet.css";
 import "./styles/accueil-parcours.css";
+import "./styles/bilan-guide.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -4404,6 +4406,7 @@ async function demarrer(): Promise<void> {
   // pays sont disponibles.
   try {
     const pays = await donnees.territoires("pays", "tous");
+    afficherConclusionsBilan(pays);
     // Les cinq chapitres portent EXACTEMENT les blocs de la maquette validée,
     // et rien d'autre : la première mise en production gardait sept blocs
     // hérités que la maquette ne montrait pas, et la page livrée ne

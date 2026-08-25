@@ -180,84 +180,51 @@
 
     <div class="vue" id="vue-bilan" hidden>
 
-      <!-- ═══════════════════════════════════════════════════════════════
-           BILAN, EN CINQ CHAPITRES
-           ═══════════════════════════════════════════════════════════════
-           Chaque chapitre pose UNE question et n'y répond qu'UNE fois. La
-           première version de cette page gardait, sous chaque question, les
-           anciens blocs EN PLUS de ceux de la maquette validée : sept cadres
-           que la maquette ne montrait pas, et la page livrée ne ressemblait
-           plus à ce qui avait été validé. La règle depuis : un chapitre porte
-           exactement les blocs de sa maquette, rien d'hérité — un bloc qu'on
-           veut garder se fait sa place dans une maquette, pas dans le code.
-
-           Les blocs s'empilent, comme la maquette : la mise en deux colonnes
-           vit À L'INTÉRIEUR des blocs (`.chapitre__duo`), jamais entre eux. -->
       <section class="national" id="national" hidden>
-        <!-- La synthèse d'ouverture : quatre phrases qui disent ce que les
-             cinq chapitres établissent, avant le premier. Servie repliée, le
-             peintre de l'ouverture (et le pré-rendu de /bilan/) la remplit
-             puis la déplie — la règle de tout cadre du gabarit. -->
-        <p class="bilan__synthese" id="bilan-synthese" hidden></p>
-        <!-- Les quatre repères d'ouverture, en cartes, comme la fiche
-             territoire : encaissé, dépensé, emprunté, dû. Ils étaient
-             dispersés dans la prose de trois chapitres. Servi replié et
-             déplié par le peintre de l'ouverture, la règle du gabarit. -->
-        <div id="bilan-reperes" hidden></div>
-        <!-- Les titres de chapitre sont courts et ne posent plus une phrase
-             entière en question : « Combien pèse l'argent public ? » empilé
-             cinq fois dans le sommaire se lisait comme une table des matières
-             de roman. Le mot « Chapitre » et son numéro sont partis avec
-             elle — la page ne se lit pas comme un livre, et /territoire ne
-             numérote pas ses sections non plus : un intitulé seul, comme là-
-             bas. Les chapeaux de périmètre (« L'État, la Sécurité
-             sociale... ») répétaient ce que chaque bloc dit déjà dans sa
-             première phrase — partis avec les titres. -->
-        <section class="chapitre" id="chapitre-combien">
-          <h2 class="chapitre__question">L'argent public</h2>
-          <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
+        <nav class="bilan-guide__nav" aria-label="Lire le bilan France">
+          <a href="#france-entrees">Ce qui entre</a>
+          <a href="#france-sorties">Ce qui sort</a>
+          <a href="#france-dette">La dette</a>
+          <a href="#france-verdict">Le verdict</a>
+        </nav>
+
+        <section class="bilan-guide__section" id="france-entrees">
+          <div id="conclusion-france-entrees"></div>
+          <details class="bilan-details">
+            <summary>Comprendre le calcul</summary>
+            <div id="bilan-reperes" hidden></div>
+            <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
+            <p class="chapitre__pont" id="pont-perimetre" hidden></p>
+            <article class="bloc bloc--large" id="bloc-recettes-etat"></article>
+          </details>
         </section>
 
-        <section class="chapitre" id="chapitre-recettes">
-          <h2 class="chapitre__question">D'où vient l'argent</h2>
-          <!-- Le pont des périmètres : 1 562 milliards au chapitre 1, 380 ici
-               — sans cette phrase, les deux chiffres d'encaissement se
-               lisaient comme une contradiction. Rempli par le peintre de
-               l'ouverture, qui a les deux séries sous la main ; il ouvre ce
-               chapitre-ci, puisque c'est lui qui descend d'un étage. -->
-          <p class="chapitre__pont" id="pont-perimetre" hidden></p>
-          <!-- Les recettes avec leur évolution : montant 2017, montant 2025,
-               variation. Une variation sans ses deux bouts ne se vérifie pas. -->
-          <article class="bloc bloc--large" id="bloc-recettes-etat"></article>
+        <section class="bilan-guide__section" id="france-sorties">
+          <div id="conclusion-france-sorties"></div>
+          <details class="bilan-details">
+            <summary>Comprendre le calcul</summary>
+            <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
+            <article class="bloc bloc--large" id="bloc-fonctions"></article>
+            <article class="bloc bloc--large" id="bloc-redistribution"></article>
+            <article class="bloc bloc--large" id="bloc-secu"></article>
+          </details>
         </section>
 
-        <section class="chapitre" id="chapitre-depenses">
-          <h2 class="chapitre__question">Où va l'argent</h2>
-          <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
-          <!-- La même dépense, lue par finalité et non par nature : un salaire
-               d'infirmière est de la santé, un salaire de professeur de
-               l'enseignement, et le bloc du dessus les met dans la même ligne.
-               Dénominateur différent (le PIB, pas les recettes) : le bloc le
-               dit dans sa phrase d'ouverture, sous son tableau, et dans chaque
-               valeur. Le module existait, testé, depuis des mois — il n'avait
-               jamais été monté nulle part. -->
-          <article class="bloc bloc--large" id="bloc-fonctions"></article>
+        <section class="bilan-guide__section" id="france-dette">
+          <div id="conclusion-france-dette"></div>
+          <details class="bilan-details">
+            <summary>Comprendre le calcul</summary>
+            <article class="bloc bloc--large" id="bloc-dette"></article>
+          </details>
         </section>
 
-        <section class="chapitre" id="chapitre-pour-qui">
-          <h2 class="chapitre__question">Qui reçoit, qui paie</h2>
-          <article class="bloc bloc--large" id="bloc-redistribution"></article>
-          <article class="bloc bloc--large" id="bloc-secu"></article>
-        </section>
-
-        <section class="chapitre" id="chapitre-tenable">
-          <h2 class="chapitre__question">Est-ce tenable&nbsp;?</h2>
-          <article class="bloc bloc--large" id="bloc-dette"></article>
-          <!-- « La France dépense plus que les autres » ouvre tous les débats
-               budgétaires. Les séries d'Eurostat répondent pour trente-quatre
-               pays, sur la même définition ; elles étaient publiées — 54
-               indicateurs du thème `europe` — et aucune page ne les montrait. -->
-          <article class="bloc bloc--large" id="bloc-europe"></article>
+        <section class="bilan-guide__section" id="france-verdict">
+          <div id="conclusion-france-verdict"></div>
+          <p class="bilan__synthese" id="bilan-synthese" hidden></p>
+          <details class="bilan-details">
+            <summary>Comprendre le calcul</summary>
+            <article class="bloc bloc--large" id="bloc-europe"></article>
+          </details>
         </section>
       </section>
 

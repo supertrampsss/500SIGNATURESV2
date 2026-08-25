@@ -1259,6 +1259,9 @@ function territoireEssai(series: Record<string, Record<string, number>>): Territ
  */
 const PAYS_ESSAI: Record<string, Territoire> = {
   FR: territoireEssai({
+    eurostat_apu_recettes: { "2024": 1_000_000_000_000, "2025": 1_000_000_000_000 },
+    eurostat_apu_depenses: { "2024": 1_060_000_000_000, "2025": 1_097_700_000_000 },
+    eurostat_pib_montant: { "2024": 2_000_000_000_000, "2025": 2_100_000_000_000 },
     // La dette en TRIMESTRES : le bloc « Est-ce tenable ? » lit les fins
     // d'année de la série trimestrielle, comme la publication réelle.
     insee_dette_apu_montant: { "2024-Q4": 3_306_100_000_000, "2025-Q4": 3_400_000_000_000 },
@@ -1333,6 +1336,15 @@ const BUDGET_ESSAI: BudgetEtat = {
 const REPERES_ESSAI = () =>
   injecterReperes(GABARIT_REEL, PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI);
 
+test("15. le bilan suit les quatre questions dans le même ordre, dès le HTML servi", () => {
+  const html = REPERES_ESSAI();
+  const ids = ["france-entrees", "france-sorties", "france-dette", "france-verdict"];
+  const positions = ids.map((id) => html.indexOf(`id="${id}"`));
+  assert.ok(positions.every((position) => position >= 0), "une question guidée manque au bilan");
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "les questions du bilan ne sont plus dans l'ordre de lecture");
+  assert.match(html, /id="france-entrees"[\s\S]*?class="ui-conclusion"[\s\S]*?Pour 100 € encaissés/);
+});
+
 test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
   const html = REPERES_ESSAI();
   const texte = texteDuMain(html);
@@ -1390,14 +1402,14 @@ test("15 bis. la vue part dépliée, la section nationale ouverte, l'accueil rep
 });
 
 test("15 ter. un bloc sans source publiée est replié, jamais laissé vide", () => {
-  // Un cadre déplié et vide se lit comme une panne. Le fixture n'alimente que
-  // la dette et la Sécu : les quatre autres blocs des chapitres doivent partir
-  // repliés.
+  // Un cadre déplié et vide se lit comme une panne. Le fixture alimente aussi
+  // l'ouverture pour éprouver l'équation ; les peintres sans leurs séries
+  // doivent tout de même partir repliés.
   const html = REPERES_ESSAI();
   for (const id of [
-    "bloc-ouverture",
     "bloc-recettes-etat",
     "bloc-cent-euros-apu",
+    "bloc-fonctions",
     "bloc-redistribution",
   ]) {
     assert.match(html, new RegExp(`id="${id}"[^>]* hidden>`), `« ${id} » est resté déplié et vide`);
