@@ -27,6 +27,7 @@ const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").rep
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
@@ -169,6 +170,13 @@ function contraste(a: string, b: string): number {
 function token(nom: string): string {
   const m = CSS.match(new RegExp(`\\n\\s*${nom}:\\s*(#[0-9a-f]{6})\\s*;`, "i"));
   assert.ok(m, `token ${nom} introuvable`);
+  return m![1];
+}
+
+function tokenFondation(nom: string): string {
+  const racine = FONDATIONS.slice(FONDATIONS.indexOf(":root {"), FONDATIONS.indexOf("\n}"));
+  const m = racine.match(new RegExp(`\\n\\s*${nom}:\\s*(#[0-9a-f]{6})\\s*;`, "i"));
+  assert.ok(m, `token de fondation ${nom} introuvable`);
   return m![1];
 }
 
@@ -3185,4 +3193,34 @@ test("la vue simulateur passe en vrai tunnel : plein écran, sauf pour un lien d
   assert.match(MAIN, /tunnel\.classList\.add\("tunnel--plein"\)/);
   assert.match(MAIN, /demarrerSessionImmersive\(tunnel/);
   assert.match(MAIN, /if \(etat\.budget \|\| etat\.face\) \$\("mode-expert"\)\.hidden = false;\n  else \{/);
+});
+
+test("le verdict garde une encre sombre sur ses cartes claires", () => {
+  // Les trois cartes claires du verdict héritaient des blancs de la palette
+  // « crise ». Les sélecteurs restent locaux au verdict, afin de préserver
+  // l'en-tête bleu nuit qui porte volontairement un texte clair.
+  for (const selecteur of [
+    ".verdict__mandat .tunnel__verdict-nom",
+    ".verdict__gestes .tunnel__tampon",
+    ".verdict__gestes .tunnel__tampon b",
+    ".verdict__stabilite .tunnel__soutien-valeur",
+  ]) {
+    assert.match(TUNNEL_CABINET, new RegExp(`${selecteur.replace(/\./g, "\\.")}\\s*\\{[^}]*color:\\s*var\\(--ui-encre\\);`));
+  }
+  for (const selecteur of [
+    ".verdict__mandat .tunnel__surtitre",
+    ".verdict__gestes .tunnel__surtitre",
+    ".verdict__stabilite .tunnel__surtitre",
+    ".verdict__mandat .tunnel__chapeau",
+    ".verdict__stabilite .tunnel__soutien-nom",
+    ".verdict__stabilite .tunnel__note",
+  ]) {
+    assert.match(TUNNEL_CABINET, new RegExp(`${selecteur.replace(/\./g, "\\.")}[^}]*color:\\s*var\\(--ui-encre-douce\\);`));
+  }
+  for (const fond of ["--ui-papier", "--ui-surface"]) {
+    const principal = contraste(tokenFondation("--ui-encre"), tokenFondation(fond));
+    const secondaire = contraste(tokenFondation("--ui-encre-douce"), tokenFondation(fond));
+    assert.ok(principal >= 7, `--ui-encre sur ${fond} : ${principal.toFixed(2)}:1 < 7`);
+    assert.ok(secondaire >= 4.5, `--ui-encre-douce sur ${fond} : ${secondaire.toFixed(2)}:1 < 4,5`);
+  }
 });

@@ -243,14 +243,23 @@
 .verdict__resultat .tunnel__duel { margin: 0; font-size: var(--texte-s); }
 
 .verdict__mandat { background: var(--ui-papier); }
-.verdict__mandat .tunnel__chapeau { margin: 0; }
+.verdict__mandat .tunnel__surtitre,
+.verdict__gestes .tunnel__surtitre,
+.verdict__stabilite .tunnel__surtitre { color: var(--ui-encre-douce); }
+.verdict__mandat .tunnel__verdict-nom { color: var(--ui-encre); }
+.verdict__mandat .tunnel__chapeau { margin: 0; color: var(--ui-encre-douce); }
 
 .verdict__gestes,
 .verdict__stabilite,
 .verdict__details { background: var(--ui-surface); }
-.verdict__gestes .tunnel__tampon { min-width: 0; }
+.verdict__gestes .tunnel__tampon { min-width: 0; color: var(--ui-encre); }
+.verdict__gestes .tunnel__tampon b { color: var(--ui-encre); }
 .verdict__gestes .tunnel__tampon span { overflow-wrap: anywhere; }
 .verdict__stabilite .tunnel__soutiens { grid-template-columns: 1fr; }
+.verdict__stabilite .tunnel__soutien-nom { color: var(--ui-encre-douce); }
+.verdict__stabilite .tunnel__soutien-valeur { color: var(--ui-encre); }
+.verdict__stabilite .tunnel__soutien--rupture .tunnel__soutien-nom,
+.verdict__stabilite .tunnel__soutien--rupture .tunnel__soutien-valeur { color: var(--ui-danger); }
 .verdict__stabilite .tunnel__note { margin: 0; color: var(--ui-encre-douce); font-size: var(--texte-s); }
 
 .verdict__actions { display: grid; gap: var(--espace-2); }
