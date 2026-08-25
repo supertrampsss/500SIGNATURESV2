@@ -136,6 +136,10 @@
 @media (min-width: 60rem) {
   .analyses-filtres__bouton { display: none; }
 
+  .analyses-filtres:not([data-ouvert="true"]) {
+    display: grid;
+  }
+
   .analyses-filtres {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
