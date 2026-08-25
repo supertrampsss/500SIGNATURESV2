@@ -56,6 +56,7 @@ import {
   injecterAccueil,
   injecterAnnonce,
   injecterMethode,
+  injecterRegistre,
   injecterReperes,
   marqueDuGabarit,
   planDuSite,
@@ -650,6 +651,25 @@ test("8 ter. le dossier de preuve est servi avec sa canonique et ses métadonné
   assert.match(servi, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}${canonique}carte\\.png"`));
 });
 
+test("8 quater. le registre est pré-rendu avec sa canonique et son image propres", () => {
+  const html = injecterRegistre(
+    GABARIT,
+    [{
+      id: "source-essai",
+      nom: "Publication d'essai",
+      statut: "publie",
+      institution: "Institution d'essai",
+      url: "https://exemple.test/publication",
+      pages: ["/bilan"],
+    }],
+    SITE_ESSAI,
+  );
+  assert.match(html, /data-page="editorial"/);
+  assert.match(html, /registre-sources__fiche/);
+  assert.match(html, new RegExp(`<link rel="canonical" href="${SITE_ESSAI}/sources/"`));
+  assert.match(html, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}/sources/carte\\.png"`));
+});
+
 /* --------------------------------------------------------------------------
  * 9. robots.txt et le plan du site
  * ----------------------------------------------------------------------- */
@@ -709,6 +729,7 @@ test("9. le plan du site liste la racine, les chemins de vues et les analyses pu
     "/",
     ...Object.values(CHEMINS),
     "/analyses/",
+    "/sources/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
   ]);
   // Et rien d'autre : une adresse morte dans un plan de site est un signal de

@@ -169,3 +169,22 @@ test("une source mixte conserve tous ses usages et le statut le plus prudent", (
   assert.deepEqual(fiche.pages, ["/analyses/a-estimation/", "/analyses/z-regle/"]);
   assert.deepEqual(inverse, fiche);
 });
+
+test("le registre omet les métadonnées absentes d'une publication sans interrompre le pré-rendu", () => {
+  const indicateurIncomplet = {
+    ...INDICATEUR_DEFICIT,
+    formule: undefined,
+    niveaux: undefined,
+    periodes: undefined,
+  } as unknown as Indicateur;
+
+  const fiche = construireRegistre({
+    jeux: [JEU_INSEE],
+    indicateurs: [indicateurIncomplet],
+    analyses: [],
+  })[0]!;
+
+  assert.equal(fiche.formule, undefined);
+  assert.equal(fiche.perimetre, undefined);
+  assert.equal(fiche.millesime, undefined);
+});

@@ -41,6 +41,8 @@ import { indicateursDerives } from "../src/derives.ts";
 // `rendu()` et `renduAccueil` — c'est ce qui les rend appelables ici autant que
 // dans le navigateur (`peindreMethode`, main.ts), avec le même code.
 import { renduAttribution } from "../src/methode-rendu.ts";
+import { construireRegistre, type FicheSource } from "../src/registre-sources.ts";
+import { renduRegistre } from "../src/methode-rendu.ts";
 // Les blocs de la page REPÈRES, purs eux aussi — exactement ceux des
 // maquettes validées, un par chapitre plus la paire du chapitre 4. C'est le
 // motif du dépôt, « rendu pur, sans DOM : c'est lui qui est testé » : rien
@@ -524,6 +526,13 @@ const PAGE_BILAN = {
     "Sécurité sociale, les niches fiscales, et le classement des territoires.",
 };
 
+const PAGE_SOURCES = {
+  titre: "Sources — Où va l'argent public",
+  description: "Le registre des publications, estimations et règles de jeu utilisées par le site.",
+  canonique: "/sources/",
+  image: "/sources/carte.png",
+};
+
 /**
  * Le chemin de la page BILAN, lu dans `routes.ts` plutôt que recopié.
  *
@@ -629,6 +638,12 @@ export async function ecrireCartes(
       carteSection(donneesCarteSection(section.nature, section.titre, section.phrase, version, HOTE)),
     );
   }
+  await ecrire(
+    path.join(racine, "sources"),
+    carteSection(
+      donneesCarteSection("Sources", marqueDuGabarit(shell), PAGE_SOURCES.description, version, HOTE),
+    ),
+  );
 }
 
 /* --------------------------------------------------------------------------
@@ -1207,6 +1222,12 @@ export function injecter(shell: string, page: Page, site: string): string {
   );
 }
 
+/** Le registre est une page éditoriale autonome : ses fiches sont écrites au
+ * build, avec leur propre annonce pour les moteurs et les partages. */
+export function injecterRegistre(shell: string, fiches: readonly FicheSource[], site: string): string {
+  return injecter(shell, { ...PAGE_SOURCES, corps: renduRegistre(fiches) }, site);
+}
+
 /* --------------------------------------------------------------------------
  * Le programme.
  * ----------------------------------------------------------------------- */
@@ -1386,6 +1407,7 @@ export function adressesPubliees(analyses: readonly Analyse[]): string[] {
     "/",
     ...CHEMINS_DE_VUE,
     "/analyses/",
+    "/sources/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
   ];
 }
@@ -1617,6 +1639,11 @@ async function main(): Promise<void> {
   await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
   ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
 
+  const fiches = construireRegistre({ jeux, indicateurs: catalogue, analyses });
+  const htmlSources = injecterRegistre(shell, fiches, SITE);
+  await ecrirePage(path.join(DIST, "sources"), htmlSources);
+  ecrites.push({ chemin: "sources/index.html", html: htmlSources });
+
   // Le gabarit lui-même : c'est lui que Cloudflare sert pour la racine et pour
   // toutes les vues de l'application.
   //
@@ -1686,9 +1713,9 @@ async function main(): Promise<void> {
   await validerIndexation(DIST, SITE);
 
   console.log(
-    `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), dist/analyses/index.html, ` +
+    `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), dist/analyses/index.html, dist/sources/index.html, ` +
       `dist/${DOSSIER_BILAN}/index.html, ` +
-      `${analyses.length + sections(shell).length} carte(s) de partage, ` +
+      `${analyses.length + sections(shell).length + 1} carte(s) de partage, ` +
       `${adresses.length} adresse(s) au plan du site, sous ${SITE}.`,
   );
 }

@@ -66,8 +66,8 @@ function slug(texte: string): string {
   return simplifie || "source";
 }
 
-function distinctTrie(valeurs: readonly string[]): string[] {
-  return [...new Set(valeurs.filter((valeur) => valeur.trim()))].sort((a, b) =>
+function distinctTrie(valeurs: readonly (string | null | undefined)[]): string[] {
+  return [...new Set(valeurs.filter((valeur): valeur is string => typeof valeur === "string" && Boolean(valeur.trim())))].sort((a, b) =>
     a.localeCompare(b, "fr"),
   );
 }

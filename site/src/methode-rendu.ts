@@ -47,6 +47,7 @@ import {
 } from "./analyse-rendu.ts";
 import type { Jeu } from "./donnees.ts";
 import { formater } from "./echelle.ts";
+import type { FicheSource, StatutSource } from "./registre-sources.ts";
 import { echapper } from "./texte.ts";
 
 /**
@@ -257,6 +258,93 @@ export function renduAttribution(jeux: readonly Jeu[]): string {
       <dl class="methode-sources__producteurs">${listeProducteurs(groupes)}</dl>
     </details>
   `;
+}
+
+/* --------------------------------------------------------------------------
+ * Le registre des sources
+ * ----------------------------------------------------------------------- */
+
+const LIBELLES_STATUT_SOURCE: Record<StatutSource, string> = {
+  publie: "Publié",
+  provisoire: "Provisoire",
+  estimation: "Estimation",
+  regle_jeu: "Règle de jeu",
+};
+
+function normaliserRecherche(texte: string): string {
+  return texte
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLocaleLowerCase("fr-FR");
+}
+
+function dateRegistre(iso: string): string {
+  const date = new Date(iso);
+  return Number.isNaN(date.getTime()) ? echapper(iso) : date.toLocaleDateString("fr-FR");
+}
+
+function ligneRegistre(libelle: string, valeur: string | undefined): string {
+  return valeur ? `<div><dt>${libelle}</dt><dd>${echapper(valeur)}</dd></div>` : "";
+}
+
+/** Le registre reste utile sans paquet : toutes les fiches sont présentes dans
+ * le document. La recherche et les filtres arrivent cachés, puis sont activés
+ * par le contrôleur léger du navigateur. */
+export function renduRegistre(fiches: readonly FicheSource[]): string {
+  const articles = fiches
+    .map((fiche) => {
+      const texte = normaliserRecherche(
+        [fiche.nom, fiche.institution, fiche.serie, fiche.perimetre].filter(Boolean).join(" "),
+      );
+      const pages = fiche.pages
+        .map((page) => `<li><a href="${echapper(page)}">${echapper(page)}</a></li>`)
+        .join("");
+      return `<article class="registre-sources__fiche" id="${echapper(fiche.id)}" data-statut="${fiche.statut}" data-texte="${echapper(texte)}">
+        <header>
+          <p class="registre-sources__statut">${LIBELLES_STATUT_SOURCE[fiche.statut]}</p>
+          <h2>${echapper(fiche.nom)}</h2>
+          <p class="registre-sources__institution">${echapper(fiche.institution)}</p>
+        </header>
+        <dl class="registre-sources__details">
+          ${ligneRegistre("Série", fiche.serie)}
+          ${ligneRegistre("Millésime", fiche.millesime)}
+          ${ligneRegistre("Périmètre", fiche.perimetre)}
+          ${ligneRegistre("Unité", fiche.unite)}
+          ${ligneRegistre("Transformation", fiche.transformation)}
+          ${ligneRegistre("Formule", fiche.formule)}
+          ${fiche.verifieLe ? `<div><dt>Vérifiée le</dt><dd>${dateRegistre(fiche.verifieLe)}</dd></div>` : ""}
+        </dl>
+        ${pages ? `<div class="registre-sources__usages"><h3>Utilisée dans</h3><ul>${pages}</ul></div>` : ""}
+        <a class="registre-sources__publication" href="${echapper(fiche.url)}" rel="noreferrer">Voir la publication<span class="visuellement-cache"> : ${echapper(fiche.nom)}</span></a>
+      </article>`;
+    })
+    .join("\n");
+
+  return `<section class="registre-sources" aria-labelledby="registre-sources-titre">
+    <header class="registre-sources__entete">
+      <p class="registre-sources__eyebrow">Registre de vérification</p>
+      <h1 id="registre-sources-titre">Les sources des chiffres</h1>
+      <p>Chaque fiche distingue la publication, son statut et les pages du site qui l'utilisent.</p>
+    </header>
+    <form class="registre-sources__filtres" id="registre-sources-filtres" hidden>
+      <label for="registre-sources-recherche">Rechercher une source</label>
+      <input id="registre-sources-recherche" type="search" autocomplete="off" placeholder="Nom, institution, série ou périmètre" />
+      <label for="registre-sources-statut">Statut</label>
+      <select id="registre-sources-statut">
+        <option value="">Tous les statuts</option>
+        <option value="publie">Publié</option>
+        <option value="provisoire">Provisoire</option>
+        <option value="estimation">Estimation</option>
+        <option value="regle_jeu">Règle de jeu</option>
+      </select>
+      <p class="registre-sources__compte" aria-live="polite"></p>
+      <button type="button" class="registre-sources__effacer" hidden>Effacer les filtres</button>
+    </form>
+    <p class="registre-sources__vide" id="registre-sources-vide" hidden role="status">Aucune source ne correspond à ces critères.</p>
+    <div class="registre-sources__liste" id="registre-sources-liste">
+      ${articles || '<p class="registre-sources__absence">Aucune source n’est publiée pour le moment.</p>'}
+    </div>
+  </section>`;
 }
 
 /* --------------------------------------------------------------------------

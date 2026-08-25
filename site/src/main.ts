@@ -141,6 +141,7 @@ import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
 import "./styles/territoire-briefing.css";
 import "./styles/dossiers-verification.css";
+import "./styles/registre-sources.css";
 
 /** Les cinq départements d'outre-mer sont dans les données et dans les tuiles,
  *  mais la carte s'ouvrait sur un cadrage figé de la métropole : 129 communes
@@ -3781,6 +3782,40 @@ function brancherPartageEditorial(): void {
  * mort ne s'affiche et toutes les cartes restent lisibles ; c'est ici, une
  * fois les écouteurs posés, qu'elle se déplie.
  */
+/** Le registre est intégralement servi par le build. Ce contrôleur ne compose
+ * rien : il révèle les filtres une fois les écouteurs prêts et masque les
+ * articles déjà présents. */
+function brancherRegistreSources(): void {
+  const filtres = document.getElementById("registre-sources-filtres");
+  const liste = document.getElementById("registre-sources-liste");
+  const vide = document.getElementById("registre-sources-vide");
+  if (!filtres || !liste || !vide) return;
+  const champ = document.getElementById("registre-sources-recherche");
+  const statut = document.getElementById("registre-sources-statut");
+  const compte = filtres.querySelector(".registre-sources__compte");
+  const effacer = filtres.querySelector<HTMLButtonElement>(".registre-sources__effacer");
+  if (!(champ instanceof HTMLInputElement) || !(statut instanceof HTMLSelectElement)) return;
+  const fiches = Array.from(liste.querySelectorAll<HTMLElement>(".registre-sources__fiche"));
+  const normaliser = (texte: string) => texte.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLocaleLowerCase("fr-FR").trim();
+  const appliquer = () => {
+    const termes = normaliser(champ.value).split(/\s+/).filter(Boolean);
+    let visibles = 0;
+    for (const fiche of fiches) {
+      const retenue = (!statut.value || fiche.dataset.statut === statut.value) &&
+        termes.every((terme) => (fiche.dataset.texte ?? "").includes(terme));
+      fiche.hidden = !retenue;
+      if (retenue) visibles += 1;
+    }
+    if (compte) compte.textContent = `${visibles} source${visibles > 1 ? "s" : ""} sur ${fiches.length}`;
+    vide.hidden = visibles !== 0;
+    if (effacer) effacer.hidden = !champ.value && !statut.value;
+  };
+  filtres.hidden = false;
+  filtres.addEventListener("input", appliquer);
+  if (effacer) effacer.addEventListener("click", () => { champ.value = ""; statut.value = ""; appliquer(); champ.focus(); });
+  appliquer();
+}
+
 function brancherFiltresAnalyses(): void {
   const barre = document.getElementById("analyses-filtres");
   const liste = document.getElementById("analyses-index");
@@ -4136,6 +4171,7 @@ async function demarrer(): Promise<void> {
   // comprises. Ses filtres n'attendent donc rien du réseau — un manifeste muet
   // ne doit pas laisser sa barre repliée sur une liste qu'on voulait réduire.
   brancherFiltresAnalyses();
+  brancherRegistreSources();
   // Et pour la même raison encore : les chiffres citables portent déjà leur
   // charge utile, écrite par le pré-rendu. La commande « citer » n'attend donc
   // aucune donnée, et un manifeste muet ne l'emporte pas avec lui.

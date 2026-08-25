@@ -16,7 +16,8 @@ import { test } from "node:test";
 
 import type { Jeu } from "./donnees.ts";
 import { formater } from "./echelle.ts";
-import { renduAttribution, renduGrille, renduMethode, renduSources, TITRES_METHODE } from "./methode-rendu.ts";
+import { renduAttribution, renduGrille, renduMethode, renduRegistre, renduSources, TITRES_METHODE } from "./methode-rendu.ts";
+import type { FicheSource } from "./registre-sources.ts";
 
 /** Une des trois listes fermées de `controle_analyses.py`, lue dans le
  *  fichier Python lui-même — jamais recopiée. `nomVariable` doit être ancré
@@ -427,4 +428,28 @@ test("la ligne d'attribution nomme tous les producteurs et garde la liste à un 
   assert.match(html, /<summary>La liste des jeux, producteur par producteur<\/summary>/);
   assert.match(html, /href="https:\/\/exemple\.test\/a"/);
   assert.equal(renduAttribution([]), "");
+});
+
+test("le registre rend recherche filtres et fiches normalisées", () => {
+  const fiches: FicheSource[] = [{
+    id: "insee-deficit-2025",
+    nom: "Déficit public 2025",
+    statut: "publie",
+    institution: "Insee",
+    url: "https://insee.fr/source",
+    serie: "deficit",
+    millesime: "2025",
+    perimetre: "Administrations publiques",
+    unite: "EUR",
+    formule: "recettes - dépenses",
+    verifieLe: "2026-08-21",
+    pages: ["/bilan"],
+  }];
+  const html = renduRegistre(fiches);
+  assert.match(html, /type="search"/);
+  assert.match(html, /data-statut="publie"/);
+  assert.match(html, /Insee/);
+  assert.match(html, /Voir la publication/);
+  assert.match(html, /Administrations publiques/);
+  assert.match(html, /href="\/bilan"/);
 });
