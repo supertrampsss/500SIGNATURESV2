@@ -60,6 +60,134 @@
 .dossier-index__precision,
 .dossier-index__fraicheur { color: var(--encre-douce); font-size: var(--texte-xs); }
 
+/* Une page d'analyse se lit comme un dossier : la conclusion est isolée,
+   puis chaque niveau de preuve se déroule sans concurrence visuelle. */
+.analyse-rendu {
+  display: grid;
+  gap: var(--espace-5);
+  max-width: 72rem;
+}
+
+.analyse-rendu > .dossier-preuve__verdict,
+.analyse-rendu > .dossier-preuve__confrontation,
+.analyse-rendu > .dossier-preuve__chemin,
+.analyse-rendu > .dossier-preuve__donnees,
+.analyse-rendu > .dossier-preuve__limites,
+.analyse-rendu > .dossier-preuve__sources {
+  margin: 0;
+  padding: var(--espace-5);
+  border: 1px solid var(--trait);
+  border-radius: var(--rayon);
+  background: var(--papier);
+}
+
+.dossier-preuve__verdict {
+  border-inline-start: .35rem solid var(--accent) !important;
+  background: var(--papier-creuse) !important;
+}
+
+.dossier-preuve__eyebrow,
+.dossier-preuve__intro {
+  margin: 0 0 var(--espace-2);
+  color: var(--accent-fonce);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.dossier-preuve__verdict h3,
+.dossier-preuve__confrontation h3,
+.dossier-preuve__chemin h3,
+.dossier-preuve__donnees h3,
+.dossier-preuve__limites h3,
+.dossier-preuve__sources h3 {
+  margin: 0 0 var(--espace-3);
+  color: var(--encre);
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+}
+
+.dossier-preuve__verdict .analyse-rendu__verdict {
+  margin: 0;
+  color: var(--encre);
+  font-size: var(--texte-m);
+  font-weight: 800;
+}
+
+.dossier-preuve__verdict .analyse-rendu__phrase {
+  max-width: 62ch;
+}
+
+.dossier-preuve__confrontation .analyse-rendu__affirmation {
+  margin-block: var(--espace-2) var(--espace-3);
+}
+
+.dossier-preuve__chemin .analyse-rendu__chemin {
+  counter-reset: preuve;
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dossier-preuve__chemin .analyse-rendu__chemin li {
+  display: grid;
+  grid-template-columns: 1.8rem 1fr;
+  gap: var(--espace-2);
+  align-items: baseline;
+}
+
+.dossier-preuve__chemin .analyse-rendu__chemin li::before {
+  counter-increment: preuve;
+  content: counter(preuve);
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--encre);
+  color: var(--papier);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+}
+
+.dossier-preuve__limites {
+  background: var(--papier-creuse) !important;
+}
+
+.dossier-preuve__limites .analyse-rendu__hypotheses,
+.dossier-preuve__limites .analyse-rendu__effets-indirects,
+.dossier-preuve__sources .analyse-rendu__fichiers {
+  display: grid;
+  gap: var(--espace-2);
+  margin: 0;
+  padding-inline-start: 1.2rem;
+}
+
+.dossier-preuve__sources .analyse-rendu__fichier-publie {
+  margin-block: 0 var(--espace-2);
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 40rem) {
+  .analyse-rendu { gap: var(--espace-4); }
+
+  .analyse-rendu > .dossier-preuve__verdict,
+  .analyse-rendu > .dossier-preuve__confrontation,
+  .analyse-rendu > .dossier-preuve__chemin,
+  .analyse-rendu > .dossier-preuve__donnees,
+  .analyse-rendu > .dossier-preuve__limites,
+  .analyse-rendu > .dossier-preuve__sources {
+    padding: var(--espace-4);
+  }
+}
+
 .analyses-filtres__bouton {
   min-height: var(--cible);
   margin: 0 0 var(--espace-4);

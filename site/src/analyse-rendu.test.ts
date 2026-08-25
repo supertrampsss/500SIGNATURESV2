@@ -144,6 +144,47 @@ test("les quatre étages sont présents dans la sortie", () => {
   assert.match(html, /analyse-rendu__preuve/);
 });
 
+test("le dossier place verdict confrontation et preuve dans cet ordre", () => {
+  const html = rendu(DEFENSE, CATALOGUE);
+  const classes = ["verdict", "confrontation", "chemin", "donnees", "limites", "sources"];
+  const positions = classes.map((nom) => html.indexOf(`dossier-preuve__${nom}`));
+  assert.ok(
+    positions.every((position, i) => position > -1 && (!i || position > positions[i - 1]!)),
+    `ordre des sections : ${positions.join(", ")}`,
+  );
+});
+
+test("le verdict qualifié précède la confrontation entre déclaration et comptes", () => {
+  const html = rendu(DEFENSE, CATALOGUE);
+  const verdict = html.slice(
+    html.indexOf("dossier-preuve__verdict"),
+    html.indexOf("dossier-preuve__confrontation"),
+  );
+  const confrontation = html.slice(
+    html.indexOf("dossier-preuve__confrontation"),
+    html.indexOf("dossier-preuve__chemin"),
+  );
+
+  assert.match(verdict, /Contexte manquant/);
+  assert.match(verdict, /Le chiffre existe, mais pas pour ce qu'il désigne/);
+  assert.match(confrontation, /affirmation contrôlée/i);
+  assert.match(confrontation, /crédits votés/i);
+  assert.match(confrontation, /59/);
+});
+
+test("les limites et les sources omettent leurs listes vides", () => {
+  const html = rendu(analyseMinimale(), CATALOGUE);
+  const limites = html.slice(
+    html.indexOf("dossier-preuve__limites"),
+    html.indexOf("dossier-preuve__sources"),
+  );
+  const sources = html.slice(html.indexOf("dossier-preuve__sources"));
+
+  assert.doesNotMatch(limites, /<ul[^>]*><\/ul>/);
+  assert.match(sources, /Source de test/);
+  assert.doesNotMatch(sources, /<li>\s*<\/li>/);
+});
+
 test("le cran s'affiche avec sa formulation exacte de la spec", () => {
   assert.equal(LIBELLE_CRAN["exact"], "Le chiffre est celui des comptes");
   assert.equal(LIBELLE_CRAN["hors_perimetre"], "Le chiffre existe, mais pas pour ce qu'il désigne");
@@ -305,25 +346,22 @@ test("simulateur.budget non vide produit un lien vers /simulateur?budget=…", (
   assert.match(html, /href="\/simulateur\?budget=etat/);
 });
 
-test("une hypothèse se dit une fois, dans la légende, jamais en bloc après les chiffres", () => {
-  // Elle s'écrivait DEUX fois : dans le `<caption>` de l'étage 2, avec les
-  // chiffres, et de nouveau à l'étage 4 dans un `<ul>` sans intitulé, coincé
-  // entre le chemin de la preuve et « Fichier publié ». Mot pour mot la même
-  // phrase, et la seconde tombait après les chiffres — le bloc de réserve que
-  // CLAUDE.md interdit. Aucun test ne la voyait, toutes les fixtures portant
-  // `hypotheses: []`.
+test("une hypothèse se dit une fois, dans les limites du dossier", () => {
   const phrase = "Les deux séries portent sur la mission Défense, hors comptes spéciaux.";
   const html = rendu(analyseMinimale({ hypotheses: [phrase] }), CATALOGUE);
   const occurrences = html.split(phrase).length - 1;
   assert.equal(occurrences, 1, `l'hypothèse apparaît ${occurrences} fois`);
-  // Et c'est bien la légende qui la porte, à côté de la mention d'unité.
+  // L'unité reste avec les données, mais l'hypothèse est explicitement
+  // qualifiée comme limite du dossier.
   const legende = html.slice(html.indexOf("<caption>"), html.indexOf("</caption>"));
-  // L'apostrophe de la légende est littérale, pas interpolée : elle n'est
-  // donc pas échappée, contrairement à celle d'un libellé de la source.
   assert.match(legende, /Montants en millions d'euros\./);
-  assert.ok(legende.includes(phrase), `légende : ${legende}`);
-  // La preuve ne porte plus de liste d'hypothèses du tout.
-  assert.doesNotMatch(html, /analyse-rendu__hypotheses/);
+  assert.ok(!legende.includes(phrase), `légende : ${legende}`);
+  const limites = html.slice(
+    html.indexOf("dossier-preuve__limites"),
+    html.indexOf("dossier-preuve__sources"),
+  );
+  assert.match(limites, /analyse-rendu__hypotheses/);
+  assert.ok(limites.includes(phrase), `limites : ${limites}`);
 });
 
 test("l'index trie par publie_le décroissant et marque les mises_a_jour", () => {
@@ -594,7 +632,8 @@ test("un chiffre sans exercice n'offre pas la commande", () => {
   );
   // Le chiffre reste affiché, sous le nom de son registre : c'est la commande
   // qui manque, pas la ligne.
-  const express = html.slice(html.indexOf("chiffres-cites"), html.indexOf("analyse-rendu__verdict"));
+  const debutExpress = html.indexOf("chiffres-cites");
+  const express = html.slice(debutExpress, html.indexOf("</section>", debutExpress));
   assert.equal(express.match(/<li>/g)?.length, 3);
   assert.equal(express.match(/data-citer=/g)?.length, 2);
   assert.ok(express.includes("Interprétation"), express);

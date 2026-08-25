@@ -622,6 +622,34 @@ test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", (
   assert.match(source, /corps: rendu\(analyse, catalogue, version, permalien\(SITE, canonique, \{\}\)\)/);
 });
 
+test("8 ter. le dossier de preuve est servi avec sa canonique et ses métadonnées sociales", async () => {
+  const [analyse] = await analysesPubliees();
+  assert.ok(analyse, "aucune analyse publiée");
+  const canonique = `/analyses/${analyse.slug}/`;
+  const html = injecter(
+    GABARIT,
+    {
+      ...PAGE,
+      titre: analyse.titre,
+      description: analyse.verdict.phrase,
+      canonique,
+      image: `/analyses/${analyse.slug}/carte.png`,
+      corps: rendu(analyse, catalogueEnEuros([analyse]), "v-essai", permalien(SITE_ESSAI, canonique, {})),
+    },
+    SITE_ESSAI,
+  );
+  const dist = await mkdtemp(path.join(tmpdir(), "dossier-preuve-"));
+  const fichier = path.join(dist, "analyses", analyse.slug, "index.html");
+  await mkdir(path.dirname(fichier), { recursive: true });
+  await writeFile(fichier, html);
+  const servi = await readFile(fichier, "utf8");
+
+  assert.match(servi, /dossier-preuve__verdict/);
+  assert.match(servi, new RegExp(`<link rel="canonical" href="${SITE_ESSAI}${canonique}"`));
+  assert.match(servi, new RegExp(`<meta property="og:url" content="${SITE_ESSAI}${canonique}"`));
+  assert.match(servi, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}${canonique}carte\\.png"`));
+});
+
 /* --------------------------------------------------------------------------
  * 9. robots.txt et le plan du site
  * ----------------------------------------------------------------------- */

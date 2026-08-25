@@ -294,9 +294,29 @@ function commandeCiter(
   )}">Citer ce chiffre</button>`;
 }
 
+/** La conclusion du dossier précède les chiffres : elle donne le niveau de
+ * certitude et le constat contrôlé avant toute explication méthodologique. */
+function verdictDuDossier(analyse: Analyse): string {
+  const { verdict } = analyse;
+  const qualification = qualificationVerdict(analyse);
+  const confusion =
+    verdict.cran === "hors_perimetre" && verdict.confusion
+      ? `<p class="analyse-rendu__confusion">${echapper(LIBELLE_CONFUSION[verdict.confusion])}</p>`
+      : "";
+  return `<section class="dossier-preuve__verdict">
+    <p class="dossier-preuve__eyebrow">Verdict</p>
+    <h3>${echapper(LIBELLE_QUALIFICATION[qualification])}</h3>
+    <p class="analyse-rendu__verdict analyse-rendu__verdict--${echapper(verdict.cran)}">${
+      LIBELLE_CRAN[verdict.cran]
+    }</p>
+    <p class="analyse-rendu__phrase">${echapper(verdict.phrase)}</p>
+    ${confusion}
+  </section>`;
+}
+
 /** Étage 1 : le chiffre cité face au chiffre publié, et le verdict. */
 function express(analyse: Analyse, catalogue: Indicateur[], adresse: string): string {
-  const { affirmation, verdict } = analyse;
+  const { affirmation } = analyse;
   const attribution =
     affirmation.auteur !== null
       ? `<p class="analyse-rendu__attribution">— ${echapper(affirmation.auteur)}${
@@ -333,20 +353,13 @@ function express(analyse: Analyse, catalogue: Indicateur[], adresse: string): st
       )})${commandeCiter(chiffre, analyse, catalogue, adresse)}</li>`;
     })
     .join("");
-  const confusion =
-    verdict.cran === "hors_perimetre" && verdict.confusion
-      ? `<p class="analyse-rendu__confusion">${echapper(LIBELLE_CONFUSION[verdict.confusion])}</p>`
-      : "";
-  return `<section class="analyse-rendu__express">
-    <h3>L'express</h3>
+  return `<section class="analyse-rendu__express dossier-preuve__confrontation">
+    <h3>Confronter l'affirmation aux comptes</h3>
+    <p class="dossier-preuve__intro">Affirmation contrôlée</p>
     <blockquote class="analyse-rendu__affirmation">${echapper(affirmation.texte)}</blockquote>
     ${attribution}
     <p class="analyse-rendu__source">${lienSource(affirmation.source)}</p>
     <ul class="analyse-rendu__chiffres-cites">${chiffresCites}</ul>
-    <p class="analyse-rendu__verdict analyse-rendu__verdict--${echapper(verdict.cran)}">${
-      LIBELLE_CRAN[verdict.cran]
-    }</p>
-    ${confusion}
   </section>`;
 }
 
@@ -400,20 +413,10 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
     })
     .join("");
 
-  // Les incertitudes se disent dans la légende du tableau, avec les chiffres
-  // — jamais dans un bloc de réserve après eux (voir CLAUDE.md). L'unité s'y
-  // dit aussi, toujours : c'est la page la plus exposée du site à la confusion
-  // milliards/millions, avec « environ X milliards » et « Y M€ » côte à côte
-  // (même convention qu'`exercices.ts` et `analyses.ts`).
-  // Les hypothèses vivent ICI et nulle part ailleurs : dans la légende, avec
-  // les chiffres. L'étage 4 en portait une seconde copie, mot pour mot, dans
-  // un `<ul>` sans intitulé coincé entre le chemin de la preuve et « Fichier
-  // publié » — soit exactement le bloc de réserve APRÈS les chiffres que
-  // CLAUDE.md interdit, et que le commentaire d'origine de cette ligne
-  // nommait. Aucun test ne la voyait : la seule analyse publiée et toutes
-  // les fixtures portent `hypotheses: []`.
-  const hypotheses = analyse.hypotheses.map((h) => echapper(h)).join(" ");
-  const legende = `<caption>Montants en millions d'euros.${hypotheses ? ` ${hypotheses}` : ""}</caption>`;
+  // L'unité reste au plus près du tableau. Les hypothèses, elles, appartiennent
+  // à la section de limites qui suit : un lecteur peut ainsi les distinguer
+  // des valeurs mesurées sans les perdre dans une note de bas de tableau.
+  const legende = "<caption>Montants en millions d'euros.</caption>";
 
   // Un exercice par colonne : sur une analyse à plusieurs millésimes, le
   // tableau déborde de la carte, et c'est lui qui défile — jamais la page
@@ -426,21 +429,9 @@ function detail(analyse: Analyse, catalogue: Indicateur[]): string {
     <tbody>${lignes}</tbody>
   </table></div>`;
 
-  const effets = analyse.effets_indirects.length
-    ? `<ul class="analyse-rendu__effets-indirects">${analyse.effets_indirects
-        .map(
-          (effet) => `<li class="analyse-rendu__effet-indirect">${echapper(
-            effet.texte,
-          )} — ${echapper(effet.auteur)} (${lienSource(effet.source)})</li>`,
-        )
-        .join("")}</ul>`
-    : "";
-
-  return `<section class="analyse-rendu__detail">
-    <h3>Le détail</h3>
-    <p class="analyse-rendu__phrase">${echapper(analyse.verdict.phrase)}</p>
+  return `<section class="analyse-rendu__detail dossier-preuve__donnees">
+    <h3>Les données utiles</h3>
     ${tableau}
-    ${effets}
   </section>`;
 }
 
@@ -504,15 +495,45 @@ function preuve(analyse: Analyse, catalogue: Indicateur[], version = ""): string
     })
     .join("");
 
+  return `<section class="analyse-rendu__preuve dossier-preuve__chemin">
+    <h3>Le chemin de preuve</h3>
+    ${chemins}
+  </section>`;
+}
+
+/** Réserves et conséquences attribuées sont séparées des mesures publiées. */
+function limites(analyse: Analyse): string {
+  const hypotheses = analyse.hypotheses.length
+    ? `<ul class="analyse-rendu__hypotheses">${analyse.hypotheses
+        .map((hypothese) => `<li>${echapper(hypothese)}</li>`)
+        .join("")}</ul>`
+    : "";
+  const effets = analyse.effets_indirects.length
+    ? `<ul class="analyse-rendu__effets-indirects">${analyse.effets_indirects
+        .map(
+          (effet) => `<li class="analyse-rendu__effet-indirect">${echapper(
+            effet.texte,
+          )} — ${echapper(effet.auteur)} (${lienSource(effet.source)})</li>`,
+        )
+        .join("")}</ul>`
+    : "";
+  const contenu = hypotheses || effets || "<p>Aucune réserve spécifique n'est déclarée pour ce dossier.</p>";
+  return `<section class="dossier-preuve__limites">
+    <h3>Limites et réserves</h3>
+    ${contenu}
+  </section>`;
+}
+
+/** Les citations primaires restent accessibles indépendamment du chemin
+ * synthétique : elles permettent de retrouver le document d'origine. */
+function sources(analyse: Analyse): string {
   const fichiers = analyse.sources.length
     ? `<ul class="analyse-rendu__fichiers">${analyse.sources
         .map((s) => `<li>${lienSource(s)}</li>`)
         .join("")}</ul>`
-    : "";
-
-  return `<section class="analyse-rendu__preuve">
-    <h3>La preuve</h3>
-    ${chemins}
+    : "<p>Aucune source primaire n'est déclarée.</p>";
+  return `<section class="dossier-preuve__sources">
+    <h3>Sources et reproduction</h3>
     <p class="analyse-rendu__fichier-publie">Fichier publié</p>
     ${fichiers}
   </section>`;
@@ -537,10 +558,13 @@ export function rendu(
 ): string {
   return `<article class="analyse-rendu" data-slug="${echapper(analyse.slug)}">
     <h2 class="analyse-rendu__titre">${echapper(analyse.titre)}</h2>
+    ${verdictDuDossier(analyse)}
     ${express(analyse, catalogue, adresse)}
-    ${detail(analyse, catalogue)}
-    ${interactif(analyse)}
     ${preuve(analyse, catalogue, version)}
+    ${detail(analyse, catalogue)}
+    ${limites(analyse)}
+    ${sources(analyse)}
+    ${interactif(analyse)}
   </article>`;
 }
 
