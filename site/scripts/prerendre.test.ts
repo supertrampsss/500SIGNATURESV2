@@ -1343,6 +1343,15 @@ test("15. le bilan sert le verdict avant ses chapitres, dès le HTML servi", () 
   assert.match(html, /id="france-entrees"[\s\S]*?class="ui-conclusion"[\s\S]*?D'où vient l'argent/);
 });
 
+test("15 bis. le pré-rendu ne réintroduit aucun doublon du verdict", () => {
+  assert.doesNotMatch(GABARIT_REEL, /id="bilan-synthese"|id="bilan-reperes"/);
+  const html = REPERES_ESSAI();
+  assert.doesNotMatch(html, /id="bilan-synthese"|id="bilan-reperes"/);
+  assert.match(html, /<a class="bilan-guide__cta" href="\/simulateur">Passer au simulateur<\/a>/);
+  const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /syntheseOuverture|reperesOuverture/);
+});
+
 test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
   const html = REPERES_ESSAI();
   const texte = texteDuMain(html);

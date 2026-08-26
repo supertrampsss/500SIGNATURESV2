@@ -1,19 +1,22 @@
-/* Le bilan est un document : verdict, repères, puis preuves à lire d'un seul
-   mouvement. Les sections gardent une seule colonne, sans cartes emboîtées. */
-.bilan-guide__hero,
+/* Le verdict mène le document, sur toute sa largeur ; les preuves reprennent
+   ensuite une colonne de lecture plus serrée. */
+#national { max-width: 72rem; }
+
 .bilan-guide__section {
   max-width: 52rem;
   min-width: 0;
 }
 
 .bilan-guide__hero {
+  max-width: 72rem;
   margin-bottom: var(--espace-5);
+  min-width: 0;
   scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
 }
 
 .bilan-guide__hero .ui-conclusion,
 .bilan-guide__section > [id^="conclusion-france-"] > .ui-conclusion {
-  max-width: 44rem;
+  max-width: none;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -22,7 +25,13 @@
 
 .bilan-verdict {
   display: grid;
-  gap: var(--espace-3);
+  grid-template-columns: minmax(0, 1fr) minmax(18rem, .75fr);
+  column-gap: var(--espace-7);
+  row-gap: var(--espace-3);
+}
+
+.bilan-verdict > :not(.bilan-verdict__chiffres) {
+  grid-column: 1;
 }
 
 .bilan-verdict > p {
@@ -37,7 +46,9 @@
 }
 
 .bilan-verdict h2 {
-  max-width: 22ch;
+  max-width: 16ch;
+  font-size: clamp(var(--texte-xxl), 4.5vw, 4.5rem);
+  line-height: 1.05;
   overflow-wrap: anywhere;
 }
 
@@ -53,9 +64,14 @@
 
 .bilan-verdict__chiffres {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+  grid-column: 2;
+  grid-row: 1 / span 8;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--espace-3);
   margin: 0;
+  padding: var(--espace-5);
+  border-inline-start: 1px solid var(--trait);
+  background: var(--papier-creuse);
 }
 
 .bilan-verdict__chiffres div { min-width: 0; }
@@ -104,14 +120,12 @@
 .bilan-guide__section + .bilan-guide__section { margin-top: var(--espace-7); }
 
 .bilan-guide__section > .bloc,
-.bilan-guide__section > #bilan-reperes,
 .bilan-guide__section > .chapitre__pont {
   max-width: 52rem;
 }
 
 .bilan-guide__section > .bloc + .bloc,
-.bilan-guide__section > .chapitre__pont + .bloc,
-.bilan-guide__section > #bilan-reperes + .bloc {
+.bilan-guide__section > .chapitre__pont + .bloc {
   margin-top: var(--espace-6);
 }
 
@@ -125,11 +139,40 @@
 
 .bilan-guide__section > .bloc .comparaison { width: max-content; min-width: 100%; }
 
+.bilan-guide__fin {
+  max-width: 52rem;
+  margin: var(--espace-7) 0 0;
+}
+
+.bilan-guide__cta {
+  min-height: var(--cible);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: var(--espace-4);
+  border: 1px solid var(--encre);
+  border-radius: var(--rayon-pilule);
+  color: var(--encre);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.bilan-guide__cta:hover,
+.bilan-guide__cta:focus-visible {
+  background: var(--encre);
+  color: var(--sur-encre);
+}
+
 @media (max-width: 40rem) {
+  #national { max-width: 100%; }
   .bilan-guide__hero { margin-bottom: var(--espace-4); }
-  .bilan-verdict { gap: var(--espace-2); }
+  .bilan-verdict { grid-template-columns: 1fr; gap: var(--espace-2); }
   .bilan-verdict h2 { max-width: none; }
-  .bilan-verdict__chiffres { grid-template-columns: 1fr; }
+  .bilan-verdict__chiffres {
+    grid-column: 1;
+    grid-row: auto;
+    padding: var(--espace-4);
+  }
   .bilan-guide__nav { margin-bottom: var(--espace-6); }
   .bilan-guide__nav a { flex: 1 1 auto; justify-content: center; }
   .bilan-guide__section { padding-top: var(--espace-5); }

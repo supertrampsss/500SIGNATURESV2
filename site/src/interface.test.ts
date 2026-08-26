@@ -119,7 +119,21 @@ test("le bilan ouvre par le verdict et laisse l'analyse entièrement visible", (
 
 test("les introductions restent plates et le verdict tient sous 390 pixels", () => {
   assert.match(BILAN_GUIDE, /\.bilan-guide__section > \[id\^="conclusion-france-"\] > \.ui-conclusion/);
-  assert.match(BILAN_GUIDE, /@media \(max-width: 40rem\)[\s\S]*?\.bilan-verdict__chiffres \{ grid-template-columns: 1fr; \}/);
+  assert.match(BILAN_GUIDE, /@media \(max-width: 40rem\)[\s\S]*?\.bilan-verdict__chiffres\s*\{[\s\S]*?grid-column: 1;/);
+});
+
+test("le verdict n'a ni doublon ni concurrent, et conduit au simulateur", () => {
+  const bilan = PAGE_BALISES.slice(
+    PAGE_BALISES.indexOf('<section class="national"'),
+    PAGE_BALISES.indexOf('id="vue-simulateur"'),
+  );
+  assert.doesNotMatch(bilan, /id="bilan-synthese"|id="bilan-reperes"/);
+  const europe = bilan.indexOf('id="bloc-europe"');
+  const cta = bilan.indexOf('<a class="bilan-guide__cta" href="/simulateur">Passer au simulateur</a>');
+  assert.ok(europe >= 0 && cta > europe, "le simulateur doit suivre l'analyse européenne");
+  assert.match(BILAN_GUIDE, /#national \{\s*max-width: 72rem;/);
+  assert.match(BILAN_GUIDE, /\.bilan-verdict \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) minmax\(18rem, \.75fr\);/);
+  assert.match(BILAN_GUIDE, /@media \(max-width: 40rem\)[\s\S]*?\.bilan-verdict\s*\{[^}]*grid-template-columns: 1fr;/);
 });
 
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
@@ -977,12 +991,9 @@ test("le bilan se lit à plat, comme la fiche territoire", () => {
   // d'espace » nommés par le propriétaire : chaque bloc ajoutait son coussin
   // au chapitre qui a déjà le sien. À plat, séparés par le filet du chapitre.
   assert.match(CSS, /\.national \.bloc \{\n\s*border: none;\n\s*border-radius: 0;\n\s*padding: 0;/);
-  // La synthèse d'ouverture est servie repliée : le repli SPA ne doit pas
-  // montrer un paragraphe vide, et seuls le peintre et le pré-rendu de
-  // /bilan/ la remplissent puis la déplient.
-  assert.match(PAGE_BALISES, /<p class="bilan__synthese" id="bilan-synthese" hidden><\/p>/);
-  const ouverture = readFileSync(new URL("./ouverture.ts", import.meta.url), "utf8");
-  assert.match(ouverture, /\["bilan-synthese", synthese\(pays\)\]/);
+  // Le verdict porte déjà l'équation et ses trois nombres : une seconde
+  // synthèse d'ouverture doublerait le premier écran du bilan.
+  assert.doesNotMatch(PAGE_BALISES, /id="bilan-synthese"|id="bilan-reperes"/);
 });
 
 test("choisir un territoire zoome la carte sur lui, pas seulement sur sa vue", () => {
