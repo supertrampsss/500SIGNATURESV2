@@ -3400,20 +3400,20 @@ test("le verdict garde une encre sombre sur ses cartes claires", () => {
   }
 });
 
-test("le territoire place le briefing avant la carte repliable", () => {
-  const briefing = PAGE.indexOf('id="briefing-territorial"');
-  const carte = PAGE.indexOf('id="cadre-carte"');
-  assert.ok(briefing > -1, "le cadre du briefing territorial est absent");
-  assert.ok(carte > briefing, "la carte doit suivre le briefing dans le DOM");
+test("le territoire commence par ses commandes d'analyse sans briefing redondant", () => {
+  assert.doesNotMatch(PAGE, /id="briefing-territorial"/);
+  assert.doesNotMatch(MAIN, /\bmonterBriefingTerritorial\b/);
+  assert.doesNotMatch(MAIN, /\brenduBriefing\b/);
+  for (const theme of ["Budget", "Fiscalité", "Dette", "Services", "Trajectoire"]) {
+    assert.match(PAGE, new RegExp(`>${theme}<`));
+  }
   assert.match(PAGE, /id="afficher-carte"[^>]*aria-expanded="false"/);
 });
 
 test("la carte territoriale se révèle sans être recréée", () => {
-  assert.match(MAIN, /import "\.\/styles\/territoire-briefing\.css";/);
   assert.match(MAIN, /appliquerEtatCarte\(cadre, bouton, ouverte/);
   assert.match(MAIN, /suivreVisibiliteCarteParDefaut\(/);
   assert.match(MAIN, /carte\?\.resize\(\)/);
-  assert.match(MAIN, /renduBriefing\(/);
 });
 
 test("la carte révélée retrouve toute la colonne sur mobile", () => {
@@ -3433,7 +3433,7 @@ test("le redimensionnement de la carte n'interroge pas une couche absente", () =
   assert.match(etiquettes, /layers: \[idCouche\]/);
 });
 
-test("les thèmes du briefing conduisent à une section détaillée", () => {
+test("les thèmes territoriaux conduisent à une section détaillée", () => {
   for (const theme of ["Budget", "Fiscalité", "Dette", "Services", "Trajectoire"]) {
     assert.match(PAGE, new RegExp(`>${theme}<`));
   }

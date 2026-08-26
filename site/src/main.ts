@@ -25,12 +25,9 @@ import {
   voisinage,
   type Ligne as LignePalmares,
 } from "./palmares.ts";
-import { groupeDe, intituleGroupe } from "./semblables.ts";
+import { groupeDe } from "./semblables.ts";
 import {
-  briefingTerritorial,
   naviguerVersThemeTerritorial,
-  positionParmiPairs,
-  renduBriefing,
   synchroniserThemesTerritoriaux,
   type ThemeTerritorial,
 } from "./briefing-territorial.ts";
@@ -140,7 +137,6 @@ import "./styles/navigation.css";
 import "./styles/tunnel-cabinet.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
-import "./styles/territoire-briefing.css";
 import "./styles/dossiers-verification.css";
 import "./styles/registre-sources.css";
 
@@ -754,7 +750,6 @@ function afficherApercu(): void {
     comparateurs: [],
     sources: sourcesPubliees,
   });
-  monterBriefingTerritorial("pays", "FR", france);
   preparerAncresTerritoriales();
   poserPartageDeLaFiche("pays", "FR", france);
   appliquerVitesse();
@@ -1030,63 +1025,6 @@ function suivreLaSelection(code: string): void {
   });
 }
 
-/** Le diagnostic est la porte d'entrée de la fiche : la carte ne vient
- * qu'après, comme contexte et changement de territoire. Les quatre chiffres
- * reprennent les repères déjà calculés pour la fiche afin que les deux lectures
- * ne puissent pas diverger. */
-function monterBriefingTerritorial(niveau: string, code: string, territoire: Territoire): void {
-  const cible = document.getElementById("briefing-territorial");
-  if (!cible) return;
-  const reperes = reperesDOuverture(territoire.series ?? {}, niveau);
-  const exercice = reperes[0]?.exercice ?? dernierExerciceOfgl(niveau) ?? "";
-  const epargne = reperes.find((repere) => repere.id === "ofgl_epargne_brute");
-  const depenses = reperes.find((repere) => repere.id === "ofgl_depenses_fonctionnement");
-  const recettes = reperes.find((repere) => repere.id === "ofgl_recettes_fonctionnement");
-  const diagnostic = epargne
-    ? `En ${exercice}, le fonctionnement dégage ${formater(epargne.valeur, "EUR", false, epargne.id)} d'épargne brute`
-    : depenses && recettes
-      ? `En ${exercice}, le fonctionnement ${depenses.valeur > recettes.valeur ? "dépense plus qu'il n'encaisse" : "reste à l'équilibre"}`
-      : `Les derniers comptes publiés de ${territoire.nom} sont prêts à être lus`;
-  const groupe = repertoire?.niveau === niveau ? groupeDe(repertoire.index, code) : null;
-  const comparaison = groupe ? intituleGroupe(groupe) : `${NIVEAUX[niveau] ?? "territoires"} de même niveau`;
-  const candidats = groupe?.codes ?? (repertoire?.niveau === niveau ? new Set(repertoire.index.codes) : new Set<string>());
-  const pair = [...candidats].filter((candidat) => candidat !== code).sort()[0];
-  const indicateur = indicateurCourant();
-  const position = niveau === etat.niveau
-    ? positionParmiPairs(code, candidats, brutes, traduire(indicateur.libelle))
-    : null;
-  cible.innerHTML = renduBriefing(
-    briefingTerritorial({
-      territoire,
-      exercice,
-      code,
-      niveau,
-      maille: NIVEAUX[niveau] ?? niveau,
-      population: territoire.population ?? null,
-      position,
-      comparer: pair ? [code, pair] : [code],
-      chiffres: reperes.map((repere) => ({
-        id: repere.id,
-        libelle: repere.role,
-        unite: catalogue.find((indicateur) => indicateur.id === repere.id)?.unite ?? "EUR",
-        valeur: repere.valeur,
-      })),
-      diagnostic,
-      groupe: comparaison,
-    }),
-    territoire,
-  );
-  // La fiche n'attend pas l'index, mais un index arrivé ensuite doit enrichir
-  // le diagnostic encore affiché si le lecteur est toujours sur ce territoire.
-  if (repertoire?.niveau !== niveau) {
-    void chargerIndex(niveau).then((chargee) => {
-      if (!chargee || etat.selection !== code) return;
-      const courant = entiteDe(code, niveau);
-      if (courant) monterBriefingTerritorial(niveau, code, courant);
-    });
-  }
-}
-
 /** Les cinq entrées gardent le même vocabulaire d'un territoire à l'autre,
  * mais amènent toujours à un élément réellement rendu par la fiche. */
 function preparerAncresTerritoriales(): Partial<Record<ThemeTerritorial, HTMLElement>> {
@@ -1170,7 +1108,6 @@ async function montrerFiche(code: string): Promise<void> {
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
   });
-  monterBriefingTerritorial(niveau, code, territoire);
   preparerAncresTerritoriales();
   poserPartageDeLaFiche(niveau, code, territoire);
   $("panneau").classList.add("panneau--selection");
