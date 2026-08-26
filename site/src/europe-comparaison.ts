@@ -42,11 +42,9 @@
  * ─────────────────────────────────────────────────────────────────────────
  * QUELS PAYS
  * ─────────────────────────────────────────────────────────────────────────
- * L'Union à vingt-sept comme repère collectif, la France, les grands voisins,
- * et quelques cas qui déplacent les bornes — la Suède et le Danemark, souvent
- * cités comme des États providence plus lourds, le sont moins que la France
- * sur ces ratios. Un pays absent de la table reste dans le calcul du rang : la
- * table est une sélection lisible, le rang porte sur tous.
+ * L'Union à vingt-sept et la zone euro comme repères collectifs, puis la
+ * France et les cinq voisins retenus. Un pays absent de la table reste dans le
+ * calcul du rang : la table est une sélection lisible, le rang porte sur tous.
  *
  * **L'Irlande en est absente, et pas parce que son chiffre dérange.** Son PIB
  * est gonflé par les bénéfices que des multinationales y domicilient sans y
@@ -60,6 +58,7 @@
 import type { Territoire } from "./donnees.ts";
 import { pourcentage } from "./echelle.ts";
 import { estAgregat, nomPays } from "./pays-noms.ts";
+import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
 
 const DEPENSE = "eurostat_depenses_publiques_pib";
 const PRELEVEMENTS = "eurostat_prelevements_obligatoires_pib";
@@ -160,6 +159,17 @@ function combienDevant(place: number, sur: number, verbe: string): string {
 
 type Colonne = { cle: string; entete: string; exercice: string };
 
+function sourcesEurope(indexSources?: IndexSources): string {
+  const ids = indexSources
+    ? [...new Set([DEPENSE, PRELEVEMENTS, DETTE, DEFICIT]
+      .map((indicateur) => sourceIdPourIndicateur(indexSources, indicateur))
+      .filter((id): id is string => Boolean(id)))]
+    : [];
+  if (!ids.length) return `<a href="/sources/">Sources et méthode</a>.`;
+  const liens = ids.map((id) => `<a href="${lienSource(id)}">Eurostat</a>`).join(" · ");
+  return `${ids.length === 1 ? "Source" : "Sources"} : ${liens}.`;
+}
+
 /**
  * Le bloc, ou la chaîne vide tant que la dépense et les prélèvements ne sont
  * pas publiés pour la France.
@@ -168,7 +178,7 @@ type Colonne = { cle: string; entete: string; exercice: string };
  * déficit sont un bonus, et leur absence retire une colonne sans effacer le
  * bloc.
  */
-export function rendu(pays: Record<string, Territoire>): string {
+export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSources): string {
   const france = pays["FR"];
   if (!france) return "";
 
@@ -263,13 +273,17 @@ export function rendu(pays: Record<string, Territoire>): string {
       pas qu'un pays vit au-dessus de ses moyens : il dit ce qu'il a choisi de
       mettre en commun. Une retraite versée par l'État compte dans la dépense
       publique, la même retraite versée par un fonds privé n'y compte pas.
-      Source : Eurostat.</p>`;
+      ${sourcesEurope(indexSources)}</p>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se
  *  construit sur ce qui s'est réellement affiché. */
-export function afficherEurope(cadre: HTMLElement, pays: Record<string, Territoire>): boolean {
-  const html = rendu(pays);
+export function afficherEurope(
+  cadre: HTMLElement,
+  pays: Record<string, Territoire>,
+  indexSources?: IndexSources,
+): boolean {
+  const html = rendu(pays, indexSources);
   if (html) {
     cadre.innerHTML = html;
     cadre.hidden = false;

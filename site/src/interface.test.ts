@@ -88,10 +88,10 @@ test("le bilan n'annonce plus une unité générique que les chiffres démentent
 });
 
 test("le bilan ouvre par le verdict et laisse l'analyse entièrement visible", () => {
-  const bilan = PAGE_BALISES.slice(
-    PAGE_BALISES.indexOf('<section class="national"'),
-    PAGE_BALISES.indexOf('<div class="bilan__attribution"'),
-  );
+  const debut = PAGE_BALISES.indexOf('<div class="vue" id="vue-bilan"');
+  const fin = PAGE_BALISES.indexOf('<div class="vue" id="vue-simulateur"');
+  assert.ok(debut >= 0 && fin > debut, "bornes de la vue Bilan introuvables");
+  const bilan = PAGE_BALISES.slice(debut, fin);
   const position = (id: string) => {
     const index = bilan.indexOf(`id="${id}"`);
     assert.ok(index >= 0, `${id} introuvable dans le bilan`);

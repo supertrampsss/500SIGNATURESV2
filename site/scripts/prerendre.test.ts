@@ -39,6 +39,7 @@ import type {
 import { formater } from "../src/echelle.ts";
 import { renduNavigation } from "../src/navigation.ts";
 import { permalien } from "../src/partage.ts";
+import { indexerSources } from "../src/registre-sources.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
 import { lirePolices, peindre, rasteriser, type Peinture } from "./rasteriser.ts";
@@ -1332,6 +1333,43 @@ const BUDGET_ESSAI: BudgetEtat = {
 
 const REPERES_ESSAI = () =>
   injecterReperes(GABARIT_REEL, PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI);
+
+test("15. la source Europe pré-rendue résout vers une fiche effectivement servie", () => {
+  const fiche = {
+    id: "eurostat-comparaison",
+    nom: "Eurostat — comparaison européenne",
+    statut: "publie" as const,
+    institution: "Eurostat",
+    url: "https://exemple.test/eurostat",
+    pages: ["/bilan"],
+    indicateurs: ["eurostat_depenses_publiques_pib", "eurostat_prelevements_obligatoires_pib"],
+  };
+  const pays = {
+    FR: territoireEssai({
+      eurostat_depenses_publiques_pib: { "2024": 57.3 },
+      eurostat_prelevements_obligatoires_pib: { "2024": 45.2 },
+    }),
+    DE: territoireEssai({
+      eurostat_depenses_publiques_pib: { "2024": 49.4 },
+      eurostat_prelevements_obligatoires_pib: { "2024": 40.7 },
+    }),
+    EU27_2020: territoireEssai({
+      eurostat_depenses_publiques_pib: { "2024": 49.1 },
+      eurostat_prelevements_obligatoires_pib: { "2024": 40.2 },
+    }),
+  };
+  const bilan = injecterReperes(
+    GABARIT_REEL,
+    pays,
+    CATALOGUE_REPERES,
+    NICHES_ESSAI,
+    BUDGET_ESSAI,
+    indexerSources([fiche]),
+  );
+  const sources = injecterRegistre(GABARIT_REEL, [], [fiche], SITE_ESSAI);
+  assert.match(bilan, /Source : <a href="\/sources\/#eurostat-comparaison">Eurostat<\/a>\./);
+  assert.match(sources, /id="eurostat-comparaison"/);
+});
 
 test("15. le bilan sert le verdict avant ses chapitres, dès le HTML servi", () => {
   const html = REPERES_ESSAI();

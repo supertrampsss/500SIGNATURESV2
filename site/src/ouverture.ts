@@ -43,6 +43,7 @@ import { montantLisible } from "./echelle.ts";
 // L'exercice de référence des écarts. Déclaré ici pour qu'il se voie et se
 // discute, plutôt que d'être enfoui dans un calcul.
 const REFERENCE = "2017";
+const DEBUT_HISTORIQUE = "2000";
 
 const RECETTES = "eurostat_apu_recettes";
 const DEPENSES = "eurostat_apu_depenses";
@@ -90,7 +91,7 @@ export type Ouverture = {
   reelDepenses: number | null;
   reelRecettes: number | null;
   reelPib: number | null;
-  /** Les exercices du tableau d'évolution : début, un sur deux, fin. */
+  /** Les exercices publiés du tableau historique, depuis 2000 quand possible. */
   exercices: string[];
 };
 
@@ -119,10 +120,10 @@ export function chiffres(france: Territoire | undefined): Ouverture | null {
       ? (s[fin] / prix[fin] / (s[debut] / prix[debut]) - 1) * 100
       : null;
 
-  // Le tableau : le début, un exercice sur deux, et toujours la fin.
-  const exercices = communs.filter(
-    (an, i) => an >= debut && ((i - communs.indexOf(debut)) % 2 === 0 || an === fin),
-  );
+  // L'historique ne reprend pas la base narrative : 2017→2025 ne couvre que
+  // neuf exercices. Il remonte donc à 2000 dès que les séries le permettent.
+  const debutHistorique = communs.find((an) => an >= DEBUT_HISTORIQUE) ?? communs[0];
+  const exercices = communs.filter((an) => an >= debutHistorique);
 
   return {
     debut,
@@ -235,7 +236,7 @@ ${
         </table>
       </div>
     </div>
-    <p class="ouverture__source">Milliards d'euros courants, exercices ${echapper(c.debut)} à
+    <p class="ouverture__source">Milliards d'euros courants, exercices ${echapper(c.exercices[0]!)} à
       ${echapper(c.fin)}. Source&nbsp;: Eurostat.</p>`;
 }
 
@@ -260,106 +261,18 @@ export function pont(pays: Record<string, Territoire>): string {
     salaires), les collectivités (impôts locaux) et les autres organismes publics.`;
 }
 
-/**
- * La synthèse d'ouverture de la page, avant le premier chapitre.
- *
- * La page partait directement sur « L'argent public » sans jamais dire, en
- * quatre phrases, ce que ses cinq chapitres établissent — demandé par le
- * propriétaire. Chaque nombre est recalculé des séries à l'affichage, comme
- * la réponse du chapitre « Est-ce tenable ? » : le jour où les faits
- * changent, la synthèse change avec eux. La chaîne vide tant que les quatre
- * séries (recettes, dépenses, dette, taux à 10 ans) ne sont pas là — une
- * synthèse à moitié sourcée ne s'écrit pas.
- */
-export function synthese(pays: Record<string, Territoire>): string {
-  const france = pays["FR"];
-  const c = chiffres(france);
-  if (!c) return "";
-  const dette = france!.series["insee_dette_apu_montant"] ?? {};
-  const periodesDette = Object.keys(dette).sort();
-  const detteFin = dette[periodesDette[periodesDette.length - 1] ?? ""];
-  const taux = france!.series["eurostat_taux_10_ans"] ?? {};
-  const periodesTaux = Object.keys(taux).sort();
-  const tauxFin = taux[periodesTaux[periodesTaux.length - 1] ?? ""];
-  if (detteFin === undefined || tauxFin === undefined) return "";
-  return `En ${echapper(c.fin)}, les administrations publiques — l'État, la Sécurité
-    sociale, les collectivités — ont encaissé <strong>${montantLisible(c.recettes)}</strong>
-    et dépensé <strong>${montantLisible(c.depenses)}</strong> : les
-    <strong>${montantLisible(c.emprunte)}</strong> manquants ont été empruntés. La dette
-    atteint <strong>${montantLisible(detteFin)}</strong>, et l'État emprunte aujourd'hui à
-    ${PART.format(tauxFin)}&nbsp;%. Cette page dit d'où vient cet argent, où il va, qui
-    reçoit et qui paie, et si ce rythme est tenable.`;
-}
-
-/**
- * Les quatre repères d'ouverture, en cartes.
- *
- * La fiche territoire ouvre sur une grille de repères : un rôle en trois mots,
- * le nombre en Spectral, l'unité et le terme comptable dessous. Le bilan
- * ouvrait sur une phrase seule — ses quatre grands nombres étaient dispersés
- * dans la prose de trois chapitres, et aucun ne se voyait d'un coup d'œil.
- *
- * Le terme porte le PÉRIMÈTRE, et c'est tout l'enjeu : ces quatre nombres sont
- * ceux des administrations publiques au sens de Maastricht, quand le chapitre
- * suivant descend au seul budget de l'État. Les rapprocher visuellement sans
- * les nommer laisserait croire au même agrégat.
- */
-export function reperes(pays: Record<string, Territoire>): string {
-  const france = pays["FR"];
-  const c = chiffres(france);
-  if (!c) return "";
-  const dette = france!.series["insee_dette_apu_montant"] ?? {};
-  const periodes = Object.keys(dette).sort();
-  const detteFin = dette[periodes[periodes.length - 1] ?? ""];
-
-  // Le nombre seul sur la carte, l'unité et le terme comptable dessous : c'est
-  // l'anatomie du repère de la fiche. `montantLisible` colle l'unité au
-  // nombre — « 1 561,63 milliards d'euros » en Spectral 24 px tient sur deux
-  // lignes dans une carte de 9,5 rem et casse la grille.
-  const separer = (valeur: number): [string, string] => {
-    const ecrit = montantLisible(valeur);
-    const coupe = ecrit.indexOf("\u00a0");
-    return coupe < 0 ? [ecrit, ""] : [ecrit.slice(0, coupe), ecrit.slice(coupe + 1)];
-  };
-  const carte = (role: string, valeur: number, quoi: string, signe = "") => {
-    const [nombre, unite] = separer(valeur);
-    return `<div class="repere">
-      <span class="repere__role">${echapper(role)}</span>
-      <span class="repere__valeur nombre">${echapper(signe + nombre)}</span>
-      <span class="repere__terme">${echapper(`${unite} · ${quoi}`)}</span>
-    </div>`;
-  };
-
-  return `<div class="reperes">
-    ${carte("Ce qu'elles encaissent", c.recettes, `recettes ${c.fin}`)}
-    ${carte("Ce qu'elles dépensent", c.depenses, `dépenses ${c.fin}`)}
-    ${carte("Ce qui manque", c.emprunte, `emprunté en ${c.fin}`, "−")}
-    ${
-      detteFin === undefined
-        ? ""
-        : carte("Ce qu'elles doivent", detteFin, "dette publique")
-    }
-  </div>`;
-}
-
-/** L'enveloppe DOM. `false` quand rien n'est peint. Le pont et la synthèse
- *  sont remplis ici aussi : le même peintre a toutes les séries sous la
- *  main. */
+/** L'enveloppe DOM. `false` quand rien n'est peint. Le pont est rempli ici :
+ *  le même peintre porte les séries de ses deux périmètres. */
 export function afficherOuverture(cadre: HTMLElement, pays: Record<string, Territoire>): boolean {
   const html = rendu(pays);
   if (html) {
     cadre.innerHTML = html;
     cadre.hidden = false;
-    for (const [id, corps] of [
-      ["pont-perimetre", pont(pays)],
-      ["bilan-synthese", synthese(pays)],
-      ["bilan-reperes", reperes(pays)],
-    ] as const) {
-      const cible = document.getElementById(id);
-      if (cible && corps) {
-        cible.innerHTML = corps;
-        cible.hidden = false;
-      }
+    const perimetre = document.getElementById("pont-perimetre");
+    const corps = pont(pays);
+    if (perimetre && corps) {
+      perimetre.innerHTML = corps;
+      perimetre.hidden = false;
     }
   }
   return html !== "";

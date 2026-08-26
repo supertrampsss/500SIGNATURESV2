@@ -367,7 +367,7 @@ test("les intertitres de la page sont exactement la liste fermée du module", ()
   // La garde structurelle contre la réserve qui s'excuse : les six blocs
   // retirés du site étaient tous annoncés par leur titre. Une section ajoutée
   // à cette page — quelle que soit sa prose — fait échouer ce test.
-  const titres = [...PAGE().matchAll(/<h[34][^>]*>([^<]+)<\/h[34]>/g)].map((m) => m[1]!.trim());
+  const titres = [...PAGE().matchAll(/<h[23][^>]*>([^<]+)<\/h[23]>/g)].map((m) => m[1]!.trim());
   assert.deepEqual([...titres].sort(), [...TITRES_METHODE].sort());
 });
 
@@ -430,6 +430,14 @@ test("la page Sources et méthode place la méthode avant le registre et garde l
   assert.ok(html.indexOf('id="methode"') < html.indexOf('id="registre-sources-titre"'));
   assert.match(html, /id="source-essai"/);
   assert.ok(html.includes(JEUX[0]!.titre));
+});
+
+test("la page Sources et méthode descend de h1 à h2 puis h3", () => {
+  const html = renduSourcesEtMethode(JEUX, []);
+  assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>[\s\S]*<h2>Les sources<\/h2>/);
+  assert.match(html, /<h2>La méthode<\/h2>[\s\S]*<h3>Les chiffres, du fichier du producteur au fichier publié<\/h3>/);
+  assert.match(html, /<h2>La grille de verdicts<\/h2>[\s\S]*<h3>Le verdict, en trois crans<\/h3>/);
+  assert.doesNotMatch(html, /<h1[\s\S]*?<h3>Les sources<\/h3>/);
 });
 
 test("le registre rend recherche filtres et fiches normalisées", () => {

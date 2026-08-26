@@ -194,8 +194,7 @@ function pluriel(nombre: number): string {
  */
 /** La liste des jeux, producteur par producteur — une liste de définitions,
  *  pas des intertitres : le nom d'un producteur définit les jeux qui le
- *  suivent. Partagée entre le grand bloc (`renduSources`) et la ligne
- *  d'attribution du pied de /bilan/ (`renduAttribution`). */
+ *  suivent. Partagée par les rendus de la page Sources et méthode. */
 function listeProducteurs(groupes: { producteur: string; jeux: Jeu[] }[]): string {
   return groupes
     .map(
@@ -220,7 +219,7 @@ export function renduSources(jeux: readonly Jeu[]): string {
   const groupes = parProducteur(jeux);
   const liste = listeProducteurs(groupes);
   return `
-    <h3>${TITRES.sources}</h3>
+    <h2>${TITRES.sources}</h2>
     <p class="methode-sources__intro">
       ${formater(jeux.length, "count", false)} ${jeux.length > 1 ? "jeux" : "jeu"} de données,
       de ${formater(groupes.length, "count", false)} producteur${pluriel(groupes.length)}.
@@ -377,7 +376,7 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
  */
 export function renduMethode(): string {
   return `
-    <h3>${TITRES.methode}</h3>
+    <h2>${TITRES.methode}</h2>
     <details class="methode__pli">
     <summary>Voir comment un chiffre passe du fichier du producteur à l'écran</summary>
     <p class="methode-methode__intro">
@@ -388,7 +387,7 @@ export function renduMethode(): string {
       porte.
     </p>
 
-    <h4>${TITRES.chiffres}</h4>
+    <h3>${TITRES.chiffres}</h3>
     <ol class="methode-methode__etapes">
       <li><strong>Collecte.</strong> Chaque jeu est lu par l'API de son producteur
         quand elle existe, sinon par son téléchargement officiel.</li>
@@ -411,7 +410,7 @@ export function renduMethode(): string {
         entrepôt à moitié rempli ne remplace pas un site complet.</li>
     </ol>
 
-    <h4>${TITRES.analyses}</h4>
+    <h3>${TITRES.analyses}</h3>
     <p class="methode-methode__d11">
       L'exactitude d'une analyse est garantie par une machine, pas par une
       relecture (décision D11) : un relecteur ne peut pas confronter à la main
@@ -447,7 +446,7 @@ export function renduMethode(): string {
       peut être publié, la fusion reste un geste humain.
     </p>
 
-    <h4>${TITRES.ecran}</h4>
+    <h3>${TITRES.ecran}</h3>
     <ul class="methode-methode__ecran">
       <li>L'unité d'un montant s'écrit en toutes lettres — « 417,14 millions
         d'euros », « 3 536,10 milliards d'euros » — et l'échelle est choisie sur
@@ -481,7 +480,7 @@ export function renduMethode(): string {
         partagées et dans les citations ; ailleurs, elle est sur cette page.</li>
     </ul>
 
-    <h4>${TITRES.navigateur}</h4>
+    <h3>${TITRES.navigateur}</h3>
     <p class="methode-methode__reseau">
       Les polices et le moteur de carte sont servis par le site lui-même. La page
       ne charge aucun script tiers, aucun widget social et aucune mesure
@@ -516,7 +515,7 @@ export function renduGrille(): string {
     .join("");
 
   return `
-    <h3>${TITRES.grille}</h3>
+    <h2>${TITRES.grille}</h2>
     <details class="methode__pli">
     <summary>Voir les crans du verdict, les confusions et les registres</summary>
     <p class="methode-grille__intro">
@@ -526,7 +525,7 @@ export function renduGrille(): string {
       choisit les sujets.
     </p>
 
-    <h4>${TITRES.crans}</h4>
+    <h3>${TITRES.crans}</h3>
     <dl class="methode-grille__crans">${crans}</dl>
     <p>
       Aucun cran ne porte de jugement. « Trompeur », « mensonger », « exagéré »
@@ -534,14 +533,14 @@ export function renduGrille(): string {
       compare deux nombres et nomme ce qui les sépare.
     </p>
 
-    <h4>${TITRES.confusions}</h4>
+    <h3>${TITRES.confusions}</h3>
     <p class="methode-grille__aide">
       Un verdict <code>hors_perimetre</code> nomme toujours laquelle de ces sept
       confusions est en cause.
     </p>
     <dl class="methode-grille__confusions">${confusions}</dl>
 
-    <h4>${TITRES.registres}</h4>
+    <h3>${TITRES.registres}</h3>
     <p class="methode-grille__aide">
       Chaque chiffre cité par une analyse appartient à l'un de ces registres.
     </p>
@@ -551,7 +550,7 @@ export function renduGrille(): string {
       qualifie une mesure de bonne ou de mauvaise, souhaitable ou non.</li>
     </ol>
 
-    <h4>${TITRES.sujets}</h4>
+    <h3>${TITRES.sujets}</h3>
     <p>
       Est analysé un chiffre qui circule largement et qui touche une ligne que
       le site publie. Ni l'auteur du chiffre, ni son orientation n'entrent

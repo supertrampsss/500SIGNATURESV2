@@ -4607,7 +4607,7 @@ async function demarrer(): Promise<void> {
     if (afficherTenable($("bloc-dette"), pays, catalogue)) {
       $("national").hidden = false;
     }
-    if (afficherEurope($("bloc-europe"), pays)) {
+    if (afficherEurope($("bloc-europe"), pays, sourcesPubliees)) {
       $("national").hidden = false;
     }
   } catch {

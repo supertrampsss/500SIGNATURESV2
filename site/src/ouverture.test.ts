@@ -10,7 +10,7 @@ import { test } from "node:test";
 import { readFileSync } from "node:fs";
 
 import type { Territoire } from "./donnees.ts";
-import { chiffres, pont, rendu, reperes, variation, synthese } from "./ouverture.ts";
+import { chiffres, pont, rendu, variation } from "./ouverture.ts";
 
 const Md = 1e9;
 const SERIES: Record<string, Record<string, number>> = {
@@ -97,29 +97,43 @@ test("les recettes s'écrivent en positif, les dépenses en négatif", () => {
   assert.match(html, /flux--plus">\+/);
   assert.match(html, /flux--moins">−/);
   const lu = texte(html);
-  // Les trois montants d'ensemble ne sont plus dans une phrase du chapitre :
-  // ils ouvrent la page en repères, comme la fiche territoire ouvre sur ses
-  // quatre cartes. Le chapitre les redisait une troisième fois — après la
-  // synthèse, après les repères.
+  // Les montants d'ensemble restent dans le verdict : le chapitre ne les
+  // répète donc pas en prose avant son tableau historique.
   assert.doesNotMatch(lu, /encaissé \+1 561,63/);
-  const cartes = texte(reperes({ FR: territoire(SERIES) }));
-  assert.match(cartes, /Ce qu'elles encaissent 1 561,63 milliards d'euros/);
-  assert.match(cartes, /Ce qu'elles dépensent 1 714,14 milliards d'euros/);
-  assert.match(cartes, /Ce qui manque −152,51 milliards d'euros/);
-  // Le tableau d'évolution : un exercice sur deux à partir de la base — le
-  // fixture ne porte que les années impaires, donc trois colonnes ici, cinq
-  // sur les séries réelles. Recettes +, dépenses −, emprunt −.
-  assert.match(lu, /Recettes \+1 244 \+1 326 \+1 562/);
-  assert.match(lu, /Dépenses −1 321 −1 491 −1 714/);
-  assert.match(lu, /Emprunté −77 −165 −153/);
+  // Le tableau d'évolution garde tous les exercices publiés. Recettes +,
+  // dépenses −, emprunt −.
+  assert.match(lu, /Recettes \+1 244 \+1 288 \+1 326 \+1 456 \+1 562/);
+  assert.match(lu, /Dépenses −1 321 −1 346 −1 491 −1 608 −1 714/);
+  assert.match(lu, /Emprunté −77 −58 −165 −152 −153/);
 });
 
 test("le tableau d'évolution donne ses deux bouts, du début à la fin", () => {
   const c = chiffres(territoire(SERIES));
   assert.ok(c);
-  // Un exercice sur deux depuis la base, la fin toujours comprise : le
-  // fixture ne portant que les impaires, l'échantillon en garde une sur deux.
-  assert.deepEqual(c.exercices, ["2017", "2021", "2025"]);
+  // Tous les exercices publiés à partir de la base historique sont gardés.
+  assert.deepEqual(c.exercices, ["2017", "2019", "2021", "2023", "2025"]);
+});
+
+test("l'historique remonte à 2000 quand les séries le permettent, sans déplacer la base narrative", () => {
+  const annuelles = Object.fromEntries(
+    Array.from({ length: 26 }, (_, index) => {
+      const annee = String(2000 + index);
+      return [annee, 1_000 * Md + index * Md];
+    }),
+  );
+  const c = chiffres(territoire({
+    eurostat_apu_recettes: annuelles,
+    eurostat_apu_depenses: Object.fromEntries(
+      Object.entries(annuelles).map(([annee, valeur]) => [annee, valeur + 100 * Md]),
+    ),
+    eurostat_pib_montant: Object.fromEntries(
+      Object.entries(annuelles).map(([annee, valeur]) => [annee, valeur * 2]),
+    ),
+  }));
+  assert.ok(c);
+  assert.equal(c.debut, "2017", "la comparaison narrative garde sa base déclarée");
+  assert.equal(c.exercices[0], "2000", "le tableau ne part pas de la seule base narrative");
+  assert.ok(c.exercices.length >= 10, "l'historique doit montrer au moins dix exercices publiés");
 });
 
 test("la phrase du décrochage disparaît le jour où elle serait fausse", () => {
@@ -195,27 +209,8 @@ test("deux exercices au moins, sinon rien : une photo n'est pas un bilan", () =>
   assert.equal(rendu({ FR: territoire(seul) }), "");
 });
 
-test("la synthèse d'ouverture dit les quatre chiffres de la page, ou se tait", () => {
-  const Md = 1e9;
-  const avec = {
-    FR: territoire({
-      ...SERIES,
-      insee_dette_apu_montant: { "2025-Q4": 3460.5 * Md, "2026-Q1": 3536.1 * Md },
-      eurostat_taux_10_ans: { "2017": 0.81, "2025": 3.34979 },
-    }),
-  };
-  const html = synthese(avec);
-  assert.match(html, /encaissé <strong>1\u202f561,63\u00a0milliards d'euros<\/strong>/);
-  assert.match(html, /dépensé <strong>1\u202f714,14\u00a0milliards d'euros<\/strong>/);
-  assert.match(html, /152,51\u00a0milliards d'euros<\/strong> manquants ont été empruntés/);
-  assert.match(html, /La dette\s+atteint <strong>3\u202f536,10\u00a0milliards d'euros<\/strong>/);
-  assert.match(html, /emprunte aujourd'hui à\s+3,3&nbsp;%/);
-  // Sans la dette ou sans le taux, pas de synthèse : à moitié sourcée, elle
-  // ne s'écrit pas.
-  assert.equal(synthese({ FR: territoire(SERIES) }), "");
-  // La dette absente SEULE se tait aussi : le taux publié ne suffit pas.
-  assert.equal(
-    synthese({ FR: territoire({ ...SERIES, eurostat_taux_10_ans: { "2025": 3.3 } }) }),
-    "",
-  );
+test("l'ouverture ne calcule plus les synthèses et repères retirés du gabarit", () => {
+  const source = readFileSync(new URL("./ouverture.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /\bexport function synthese\b|\bexport function reperes\b/);
+  assert.doesNotMatch(source, /\["bilan-synthese", synthese\(pays\)\]|\["bilan-reperes", reperes\(pays\)\]/);
 });

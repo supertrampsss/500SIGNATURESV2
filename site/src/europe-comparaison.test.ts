@@ -16,6 +16,7 @@ import { test } from "node:test";
 
 import type { Territoire } from "./donnees.ts";
 import { rendu } from "./europe-comparaison.ts";
+import { indexerSources } from "./registre-sources.ts";
 
 const DEPENSE = "eurostat_depenses_publiques_pib";
 const PRELEVEMENTS = "eurostat_prelevements_obligatoires_pib";
@@ -95,6 +96,19 @@ test("les repères européens attendus restent affichés quand leurs séries exi
   }
 });
 
+test("la source Europe mène à la fiche Eurostat réellement indexée", () => {
+  const html = rendu(REPERES_STABLES, indexerSources([{
+    id: "eurostat-comparaison",
+    nom: "Eurostat — comparaison européenne",
+    statut: "publie",
+    institution: "Eurostat",
+    url: "https://exemple.test/eurostat",
+    pages: ["/bilan"],
+    indicateurs: [DEPENSE, PRELEVEMENTS, DETTE, DEFICIT],
+  }]));
+  assert.match(html, /Source : <a href="\/sources\/#eurostat-comparaison">Eurostat<\/a>\./);
+});
+
 test("le tableau est trié sur la dépense, du plus haut au plus bas", () => {
   const html = rendu(PAYS);
   const parts = [...html.matchAll(/<tr[^>]*>\s*<th scope="row">[^<]+<\/th>\s*<td>([^<]*)<\/td>/g)]
@@ -151,6 +165,12 @@ test("le déficit garde son signe", () => {
   const html = rendu(PAYS);
   assert.match(html, /Italie<\/th>[\s\S]{0,120}<td>−3,1[^<]*<\/td>/);
   assert.match(html, /France<\/th>[\s\S]{0,120}<td>−5,1[^<]*<\/td>/);
+});
+
+test("l'excédent luxembourgeois reste positif", () => {
+  const html = rendu(REPERES_STABLES);
+  assert.match(html, /Luxembourg<\/th>[\s\S]{0,180}<td>0,1[^<]*<\/td>/);
+  assert.doesNotMatch(html, /Luxembourg<\/th>[\s\S]{0,180}<td>−0,1[^<]*<\/td>/);
 });
 
 test("sans dépense ni prélèvements pour la France, le bloc ne s'affiche pas", () => {

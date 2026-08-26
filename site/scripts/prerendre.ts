@@ -1049,7 +1049,7 @@ export function injecterReperes(
     ["bloc-redistribution", renduRedistribution(pays, catalogue)],
     ["bloc-secu", renduSecu(pays, catalogue)],
     ["bloc-dette", renduTenable(pays, catalogue)],
-    ["bloc-europe", renduEurope(pays)],
+    ["bloc-europe", renduEurope(pays, indexSources)],
   ];
   if (!ouvrants.some(([, corps]) => corps !== "")) {
     throw new Error(
