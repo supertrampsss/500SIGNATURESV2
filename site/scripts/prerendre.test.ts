@@ -688,7 +688,8 @@ test("8 quater. Sources et méthode est pré-rendue avec sa canonique et son ima
     SITE_ESSAI,
   );
   assert.match(html, /data-page="editorial"/);
-  assert.match(html, /<h1>Sources et méthode<\/h1>/);
+  assert.equal([...html.matchAll(/<main\b/g)].length, 1, "la page servie ne contient qu'un landmark main");
+  assert.match(html, /<h1 id="sources-methode-titre">Sources et méthode<\/h1>/);
   assert.ok(html.indexOf('id="methode"') < html.indexOf('id="registre-sources-titre"'));
   assert.match(html, /registre-sources__fiche/);
   assert.match(html, /id="source-essai"/);

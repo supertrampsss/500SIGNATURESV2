@@ -25,3 +25,15 @@
 ## Réserve
 
 Aucune réserve fonctionnelle.
+
+## Correctif — landmark de `/sources/`
+
+- RED observé : `node --experimental-strip-types --test src/methode-rendu.test.ts scripts/prerendre.test.ts` a échoué comme attendu. Le test d'intégration comptait `2 !== 1` balises `<main>` dans le document servi.
+- GREEN : `renduSourcesEtMethode()` rend désormais une `<section>` étiquetée par
+  son titre, au lieu d'un `<main>` imbriqué dans le `<main id="contenu">` du
+  shell.
+- Commande verte : `node --experimental-strip-types --test src/methode-rendu.test.ts scripts/prerendre.test.ts` — 81 tests, 0 échec.
+- Vérification de production : `npm run build` passe ;
+  `dist/sources/index.html` contient une seule balise `<main>` et le conteneur
+  Sources et méthode attendu.
+- `git diff --check` passe.

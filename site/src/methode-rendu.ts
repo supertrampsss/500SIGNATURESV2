@@ -339,10 +339,10 @@ export function renduRegistre(fiches: readonly FicheSource[]): string {
  * précède le registre qui permet d'en vérifier l'application, et chaque fiche
  * conserve son identifiant pour que les liens profonds publiés restent stables. */
 export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly FicheSource[]): string {
-  return `<main class="sources-methode">
+  return `<section class="sources-methode" aria-labelledby="sources-methode-titre">
     <header class="sources-methode__entete">
       <p class="sources-methode__eyebrow">Transparence</p>
-      <h1>Sources et méthode</h1>
+      <h1 id="sources-methode-titre">Sources et méthode</h1>
       <p>Retrouvez l’origine des chiffres, leurs définitions et les contrôles appliqués.</p>
     </header>
     <section id="methode" class="sources-methode__methode">
@@ -351,7 +351,7 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
       ${renduGrille()}
     </section>
     ${renduRegistre(fiches)}
-  </main>`;
+  </section>`;
 }
 
 /* --------------------------------------------------------------------------
