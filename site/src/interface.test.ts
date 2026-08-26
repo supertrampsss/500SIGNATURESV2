@@ -87,7 +87,7 @@ test("le bilan n'annonce plus une unité générique que les chiffres démentent
   assert.doesNotMatch(section, /La France dans son ensemble/);
 });
 
-test("le bilan ouvre par le verdict et laisse l'analyse entièrement visible", () => {
+test("le bilan ouvre sur trois portes et garde l'analyse entièrement visible", () => {
   const debut = PAGE_BALISES.indexOf('<div class="vue" id="vue-bilan"');
   const fin = PAGE_BALISES.indexOf('<div class="vue" id="vue-simulateur"');
   assert.ok(debut >= 0 && fin > debut, "bornes de la vue Bilan introuvables");
@@ -98,10 +98,16 @@ test("le bilan ouvre par le verdict et laisse l'analyse entièrement visible", (
     return index;
   };
 
-  assert.ok(position("conclusion-france-verdict") < bilan.indexOf('<nav class="bilan-guide__nav"'));
+  assert.equal((bilan.match(/class="bilan-portes__lien"/g) ?? []).length, 3);
+  assert.match(bilan, /href="#france-entrees"/);
+  assert.match(bilan, /href="#france-sorties"/);
+  assert.match(bilan, /href="#france-dette"/);
+  assert.doesNotMatch(bilan, /href="#france-europe"/);
+  assert.ok(position("conclusion-france-verdict") < position("france-entrees"));
   assert.ok(position("conclusion-france-entrees") < position("conclusion-france-sorties"));
   assert.ok(position("conclusion-france-sorties") < position("conclusion-france-dette"));
-  assert.ok(position("conclusion-france-dette") < position("bloc-europe"));
+  assert.ok(position("bloc-dette") < position("bloc-europe"));
+  assert.ok(position("bloc-europe") < bilan.indexOf('href="/simulateur"'));
   assert.doesNotMatch(bilan, /<details class="bilan-details">|<summary>Comprendre le calcul<\/summary>/);
   for (const id of [
     "bloc-ouverture",
@@ -113,7 +119,8 @@ test("le bilan ouvre par le verdict et laisse l'analyse entièrement visible", (
     "bloc-dette",
     "bloc-europe",
   ]) {
-    assert.match(bilan, new RegExp(`<article class="bloc bloc--large(?: ouverture)?" id="${id}"></article>`));
+    const slots = bilan.match(new RegExp(`<article class="bloc bloc--large(?: ouverture)?" id="${id}"></article>`, "g")) ?? [];
+    assert.equal(slots.length, 1, `${id} doit être présent une seule fois`);
   }
 });
 

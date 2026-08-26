@@ -188,26 +188,34 @@
     <div class="vue" id="vue-bilan" hidden>
 
       <section class="national" id="national" hidden>
-        <section class="bilan-guide__hero" id="france-verdict">
-          <div id="conclusion-france-verdict"></div>
+        <section class="bilan-couverture" id="france-verdict">
+          <div class="bilan-couverture__papier">
+            <div id="conclusion-france-verdict"></div>
+            <nav class="bilan-portes" aria-label="Les trois chapitres du bilan France">
+              <a class="bilan-portes__lien" href="#france-entrees">
+                <strong>Ce qui entre</strong>
+                <span>Les recettes qui financent l'action publique.</span>
+              </a>
+              <a class="bilan-portes__lien" href="#france-sorties">
+                <strong>Ce qui sort</strong>
+                <span>Les dépenses, les services publics et la protection sociale.</span>
+              </a>
+              <a class="bilan-portes__lien" href="#france-dette">
+                <strong>La dette et l'Europe</strong>
+                <span>Ce que la France emprunte et sa place parmi ses voisins.</span>
+              </a>
+            </nav>
+          </div>
         </section>
 
-        <nav class="bilan-guide__nav" aria-label="Lire le bilan France">
-          <a href="#france-verdict">Le verdict</a>
-          <a href="#france-entrees">Ce qui entre</a>
-          <a href="#france-sorties">Ce qui sort</a>
-          <a href="#france-dette">La dette</a>
-          <a href="#france-europe">L'Europe</a>
-        </nav>
-
-        <section class="bilan-guide__section" id="france-entrees">
+        <section class="bilan-chapitre" id="france-entrees">
           <div id="conclusion-france-entrees"></div>
           <article class="bloc bloc--large ouverture" id="bloc-ouverture"></article>
           <p class="chapitre__pont" id="pont-perimetre" hidden></p>
           <article class="bloc bloc--large" id="bloc-recettes-etat"></article>
         </section>
 
-        <section class="bilan-guide__section" id="france-sorties">
+        <section class="bilan-chapitre" id="france-sorties">
           <div id="conclusion-france-sorties"></div>
           <article class="bloc bloc--large" id="bloc-cent-euros-apu"></article>
           <article class="bloc bloc--large" id="bloc-fonctions"></article>
@@ -215,18 +223,17 @@
           <article class="bloc bloc--large" id="bloc-secu"></article>
         </section>
 
-        <section class="bilan-guide__section" id="france-dette">
+        <section class="bilan-chapitre" id="france-dette">
           <div id="conclusion-france-dette"></div>
           <article class="bloc bloc--large" id="bloc-dette"></article>
-        </section>
-
-        <section class="bilan-guide__section" id="france-europe">
           <article class="bloc bloc--large" id="bloc-europe"></article>
         </section>
 
-        <p class="bilan-guide__fin">
+        <section class="bilan-action">
+          <h2>À vous de choisir</h2>
+          <p>Explorez les effets de vos priorités sur le budget public.</p>
           <a class="bilan-guide__cta" href="/simulateur">Passer au simulateur</a>
-        </p>
+        </section>
       </section>
 
     </div>
