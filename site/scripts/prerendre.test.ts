@@ -1425,13 +1425,14 @@ const BUDGET_ESSAI: BudgetEtat = {
 const REPERES_ESSAI = () =>
   injecterReperes(GABARIT_REEL, PAYS_ESSAI, CATALOGUE_REPERES, NICHES_ESSAI, BUDGET_ESSAI);
 
-test("15. le bilan suit les quatre questions dans le même ordre, dès le HTML servi", () => {
+test("15. le bilan sert le verdict avant ses chapitres, dès le HTML servi", () => {
   const html = REPERES_ESSAI();
-  const ids = ["france-entrees", "france-sorties", "france-dette", "france-verdict"];
+  const ids = ["france-verdict", "france-entrees", "france-sorties", "france-dette", "france-europe"];
   const positions = ids.map((id) => html.indexOf(`id="${id}"`));
-  assert.ok(positions.every((position) => position >= 0), "une question guidée manque au bilan");
-  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "les questions du bilan ne sont plus dans l'ordre de lecture");
-  assert.match(html, /id="france-entrees"[\s\S]*?class="ui-conclusion"[\s\S]*?Pour 100 € encaissés/);
+  assert.ok(positions.every((position) => position >= 0), "un chapitre du parcours manque au bilan");
+  assert.deepEqual([...positions].sort((a, b) => a - b), positions, "le parcours du bilan n'est plus dans l'ordre de lecture");
+  assert.match(html, /id="france-verdict"[\s\S]*?class="ui-conclusion bilan-verdict"[\s\S]*?Pour 100 € encaissés/);
+  assert.match(html, /id="france-entrees"[\s\S]*?class="ui-conclusion"[\s\S]*?D'où vient l'argent/);
 });
 
 test("15. /bilan sert ses blocs sans exécuter une ligne", () => {

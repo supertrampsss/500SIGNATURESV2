@@ -33,6 +33,7 @@ import {
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const BILAN_GUIDE = readFileSync(new URL("./styles/bilan-guide.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const DOSSIERS_VERIFICATION = readFileSync(new URL("./styles/dossiers-verification.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -85,6 +86,41 @@ test("le bilan n'annonce plus une unité générique que les chiffres démentent
   assert.ok(section.length > 50, "section national introuvable");
   assert.doesNotMatch(section, /Montants en millions d&#39;euros\.|Montants en millions d'euros\./);
   assert.doesNotMatch(section, /La France dans son ensemble/);
+});
+
+test("le bilan ouvre par le verdict et laisse l'analyse entièrement visible", () => {
+  const bilan = PAGE_BALISES.slice(
+    PAGE_BALISES.indexOf('<section class="national"'),
+    PAGE_BALISES.indexOf('<div class="bilan__attribution"'),
+  );
+  const position = (id: string) => {
+    const index = bilan.indexOf(`id="${id}"`);
+    assert.ok(index >= 0, `${id} introuvable dans le bilan`);
+    return index;
+  };
+
+  assert.ok(position("conclusion-france-verdict") < bilan.indexOf('<nav class="bilan-guide__nav"'));
+  assert.ok(position("conclusion-france-entrees") < position("conclusion-france-sorties"));
+  assert.ok(position("conclusion-france-sorties") < position("conclusion-france-dette"));
+  assert.ok(position("conclusion-france-dette") < position("bloc-europe"));
+  assert.doesNotMatch(bilan, /<details class="bilan-details">|<summary>Comprendre le calcul<\/summary>/);
+  for (const id of [
+    "bloc-ouverture",
+    "bloc-recettes-etat",
+    "bloc-cent-euros-apu",
+    "bloc-fonctions",
+    "bloc-redistribution",
+    "bloc-secu",
+    "bloc-dette",
+    "bloc-europe",
+  ]) {
+    assert.match(bilan, new RegExp(`<article class="bloc bloc--large(?: ouverture)?" id="${id}"></article>`));
+  }
+});
+
+test("les introductions restent plates et le verdict tient sous 390 pixels", () => {
+  assert.match(BILAN_GUIDE, /\.bilan-guide__section > \[id\^="conclusion-france-"\] > \.ui-conclusion/);
+  assert.match(BILAN_GUIDE, /@media \(max-width: 40rem\)[\s\S]*?\.bilan-verdict__chiffres \{ grid-template-columns: 1fr; \}/);
 });
 
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {

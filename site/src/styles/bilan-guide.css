@@ -1,11 +1,79 @@
-/* Le bilan est un parcours de lecture : une conclusion courte d'abord, les
-   tableaux et leur méthode derrière un pli qui ne fait défiler que lui. */
+/* Le bilan est un document : verdict, repères, puis preuves à lire d'un seul
+   mouvement. Les sections gardent une seule colonne, sans cartes emboîtées. */
+.bilan-guide__hero,
+.bilan-guide__section {
+  max-width: 52rem;
+  min-width: 0;
+}
+
+.bilan-guide__hero {
+  margin-bottom: var(--espace-5);
+  scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
+}
+
+.bilan-guide__hero .ui-conclusion,
+.bilan-guide__section > [id^="conclusion-france-"] > .ui-conclusion {
+  max-width: 44rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.bilan-verdict {
+  display: grid;
+  gap: var(--espace-3);
+}
+
+.bilan-verdict > p {
+  margin: 0;
+  max-width: 64ch;
+}
+
+.bilan-verdict__millesime,
+.national .ui-conclusion__preuve {
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+.bilan-verdict h2 {
+  max-width: 22ch;
+  overflow-wrap: anywhere;
+}
+
+.bilan-verdict__equation {
+  width: fit-content;
+  max-width: 100%;
+  padding-block: var(--espace-2);
+  border-block: 1px solid var(--trait);
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  overflow-wrap: anywhere;
+}
+
+.bilan-verdict__chiffres {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+  gap: var(--espace-3);
+  margin: 0;
+}
+
+.bilan-verdict__chiffres div { min-width: 0; }
+.bilan-verdict__chiffres dt { color: var(--encre-douce); font-size: var(--texte-xs); }
+.bilan-verdict__chiffres dd {
+  margin: var(--espace-1) 0 0;
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
 .bilan-guide__nav {
   display: flex;
   flex-wrap: wrap;
   gap: var(--espace-2);
-  margin: 0 0 var(--espace-6);
-  padding: var(--espace-3) 0;
+  margin: 0 0 var(--espace-7);
+  padding-block: var(--espace-3);
   border-block: 1px solid var(--trait);
 }
 
@@ -13,7 +81,7 @@
   min-height: var(--cible);
   display: inline-flex;
   align-items: center;
-  padding: 0 var(--espace-3);
+  padding-inline: var(--espace-3);
   color: var(--encre);
   border-radius: var(--rayon-pilule);
   font-size: var(--texte-s);
@@ -22,62 +90,47 @@
 }
 
 .bilan-guide__nav a:hover,
-.bilan-guide__nav a:focus-visible { background: var(--papier-creuse); text-decoration: underline; }
+.bilan-guide__nav a:focus-visible {
+  background: var(--papier-creuse);
+  text-decoration: underline;
+}
 
-.bilan-guide__section { scroll-margin-top: var(--espace-6); }
+.bilan-guide__section {
+  scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
+  border-top: 1px solid var(--trait);
+  padding-top: var(--espace-6);
+}
+
 .bilan-guide__section + .bilan-guide__section { margin-top: var(--espace-7); }
 
-.ui-conclusion {
-  max-width: 44rem;
-  padding: var(--espace-5);
-  border-inline-start: 4px solid var(--accent);
-  background: var(--papier-creuse);
-}
-
-.ui-conclusion h2 { margin: 0; }
-.ui-conclusion > p { margin: var(--espace-3) 0 0; }
-
-.bilan-guide__chiffres {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(9rem, 100%), 1fr));
-  gap: var(--espace-3);
-  margin: var(--espace-4) 0 0;
-}
-
-.bilan-guide__chiffres div { min-width: 0; }
-.bilan-guide__chiffres dt { color: var(--encre-douce); font-size: var(--texte-xs); }
-.bilan-guide__chiffres dd { margin: var(--espace-1) 0 0; font-family: var(--serif); font-size: var(--texte-l); font-variant-numeric: tabular-nums; }
-
-.bilan-guide__viz {
-  height: .55rem;
-  margin-top: var(--espace-4);
-  overflow: hidden;
-  background: var(--trait);
-  border-radius: var(--rayon-pilule);
-}
-
-.bilan-guide__viz span { display: block; width: var(--bilan-part); min-width: 2px; height: 100%; background: var(--accent); border-radius: inherit; }
-
-.bilan-details {
+.bilan-guide__section > .bloc,
+.bilan-guide__section > #bilan-reperes,
+.bilan-guide__section > .chapitre__pont {
   max-width: 52rem;
-  margin-top: var(--espace-4);
-  border-block: 1px solid var(--trait);
 }
 
-.bilan-details > summary {
-  min-height: var(--cible);
-  display: flex;
-  align-items: center;
-  cursor: pointer;
-  color: var(--encre);
-  font-weight: 700;
+.bilan-guide__section > .bloc + .bloc,
+.bilan-guide__section > .chapitre__pont + .bloc,
+.bilan-guide__section > #bilan-reperes + .bloc {
+  margin-top: var(--espace-6);
 }
 
-.bilan-details > :not(summary) { max-width: 100%; }
-.bilan-details table { display: block; max-width: 100%; overflow-x: auto; overscroll-behavior-inline: contain; }
-.bilan-details .bloc { margin-top: var(--espace-4); }
+.bilan-guide__section > .bloc > table,
+.bilan-guide__section > .bloc .comparaison {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.bilan-guide__section > .bloc .comparaison { width: max-content; min-width: 100%; }
 
 @media (max-width: 40rem) {
-  .ui-conclusion { padding: var(--espace-4); }
-  .bilan-guide__nav { margin-inline: calc(-1 * var(--espace-2)); padding-inline: var(--espace-2); }
+  .bilan-guide__hero { margin-bottom: var(--espace-4); }
+  .bilan-verdict { gap: var(--espace-2); }
+  .bilan-verdict h2 { max-width: none; }
+  .bilan-verdict__chiffres { grid-template-columns: 1fr; }
+  .bilan-guide__nav { margin-bottom: var(--espace-6); }
+  .bilan-guide__nav a { flex: 1 1 auto; justify-content: center; }
+  .bilan-guide__section { padding-top: var(--espace-5); }
 }

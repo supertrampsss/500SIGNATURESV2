@@ -54,6 +54,12 @@ const PAYS: Record<string, Territoire> = {
   DK: territoire(47.3, 45.0, 27.9, 2.9),
 };
 
+const REPERES_STABLES: Record<string, Territoire> = {
+  ...PAYS,
+  EA20: territoire(49.2, 41.2, 88.2, -3.1),
+  LU: territoire(48.8, 42.6, 26.3, 0.1),
+};
+
 const texte = (html: string) =>
   html
     .replace(/<[^>]+>/g, " ")
@@ -71,6 +77,22 @@ test("les pays portent leur nom français, jamais leur code", () => {
   assert.ok(noms.includes("Allemagne"), `« Allemagne » manque : ${noms.join(", ")}`);
   assert.ok(noms.includes("Union européenne (27 pays)"));
   for (const nom of noms) assert.doesNotMatch(nom, /^[A-Z0-9_]{2,}$/, `« ${nom} » est un code`);
+});
+
+test("les repères européens attendus restent affichés quand leurs séries existent", () => {
+  const noms = nomsAffiches(rendu(REPERES_STABLES));
+  for (const nom of [
+    "France",
+    "Allemagne",
+    "Belgique",
+    "Luxembourg",
+    "Espagne",
+    "Italie",
+    "Union européenne (27 pays)",
+    "Zone euro (20 pays)",
+  ]) {
+    assert.ok(noms.includes(nom), `« ${nom} » manque : ${noms.join(", ")}`);
+  }
 });
 
 test("le tableau est trié sur la dépense, du plus haut au plus bas", () => {
@@ -125,10 +147,9 @@ test("la limite du ratio est écrite : elle est la première objection juste", (
   assert.doesNotMatch(lu, /trop|excessi|vertueu|mauvais/i, "aucun jugement sur les niveaux");
 });
 
-test("le déficit garde son signe, et un excédent n'est pas écrit en négatif", () => {
-  // Le Danemark est en excédent (+2,9) quand tout le monde est en déficit.
+test("le déficit garde son signe", () => {
   const html = rendu(PAYS);
-  assert.match(html, /Danemark<\/th>[\s\S]{0,120}<td>2,9[^<]*<\/td>/);
+  assert.match(html, /Italie<\/th>[\s\S]{0,120}<td>−3,1[^<]*<\/td>/);
   assert.match(html, /France<\/th>[\s\S]{0,120}<td>−5,1[^<]*<\/td>/);
 });
 

@@ -73,16 +73,13 @@ const UNION = "EU27_2020";
  *  le rendu trie ensuite sur la dépense. Un code absent des données saute. */
 const TABLE = [
   UNION,
+  "EA20",
   "FR",
   "DE",
-  "IT",
-  "ES",
   "BE",
-  "NL",
-  "AT",
-  "SE",
-  "DK",
-  "PL",
+  "LU",
+  "ES",
+  "IT",
 ];
 
 function echapper(texte: string): string {
