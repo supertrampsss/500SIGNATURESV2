@@ -162,6 +162,28 @@ test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
   }
 });
 
+test("le bilan abandonne sa double colonne avant que les textes deviennent étroits", () => {
+  // À 768 px, l'ancienne bascule à 40rem laissait encore le verdict en deux
+  // colonnes : le totem recouvrait le titre et l'introduction d'un chapitre
+  // ne disposait plus que de 154 px. Le palier tablette doit donc porter la
+  // composition à une colonne, indépendamment des resserrements du téléphone.
+  const tablette = BILAN_GUIDE.slice(
+    BILAN_GUIDE.indexOf("@media (max-width: 72rem)"),
+    BILAN_GUIDE.indexOf("@media (max-width: 60rem)"),
+  );
+  assert.ok(tablette.length > 0, "palier tablette du bilan introuvable");
+  assert.match(
+    tablette,
+    /\.bilan-verdict\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/s,
+    "le verdict reste superposé à 768 px",
+  );
+  assert.match(
+    tablette,
+    /\.bilan-chapitre\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/s,
+    "les chapitres gardent une colonne de texte trop étroite à 768 px",
+  );
+});
+
 test("le verdict n'a ni doublon ni concurrent, et conduit au simulateur", () => {
   const bilan = PAGE_BALISES.slice(
     PAGE_BALISES.indexOf('<section class="national"'),

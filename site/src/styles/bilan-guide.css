@@ -571,6 +571,37 @@ body[data-vue="bilan"] #national,
   background: transparent;
 }
 
+@media (max-width: 72rem) {
+  /* Dès la tablette, les deux compositions éditoriales ont besoin de toute la
+     ligne. Les conserver côte à côte jusqu'au breakpoint téléphone comprimait
+     l'introduction et faisait recouvrir le titre par le totem. */
+  .bilan-verdict {
+    grid-template-areas:
+      "editorial"
+      "totem"
+      "equation"
+      "secondary";
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .bilan-verdict h2 { max-width: none; }
+
+  .bilan-verdict__totem {
+    justify-self: start;
+    width: min(32rem, 100%);
+  }
+
+  .bilan-chapitre {
+    grid-template-columns: minmax(0,1fr);
+  }
+
+  .bilan-chapitre > [id^="conclusion-france-"],
+  .bilan-chapitre > .bloc,
+  .bilan-chapitre > .chapitre__pont { grid-column: 1; }
+
+  .bilan-chapitre > [id^="conclusion-france-"] { grid-row: auto; }
+}
+
 @media (max-width: 60rem) {
   /* La navigation garde le traitement sombre lorsqu'elle devient la barre de
      pouce commune. Le contenu lui rend sa place via la règle globale `.vue`. */
