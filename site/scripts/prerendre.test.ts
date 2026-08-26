@@ -1116,6 +1116,7 @@ test("14 bis. le bilan part déplié, et l'accueil replié", () => {
   // personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas.
   // C'est l'état d'avant ce pré-rendu, et il reviendrait sans un mot.
   assert.match(html, /<div class="vue" id="vue-bilan">/);
+  assert.match(html, /<body class="plein-ecran" data-vue="bilan">/);
   // L'accueil replié : le gabarit le sert déplié pour la racine, et ce
   // document-ci montrerait l'accueil au-dessus de la méthode jusqu'à ce que
   // `basculerVue` tranche — le clignotement que ce document fait disparaître.
@@ -1378,10 +1379,13 @@ test("15. le bilan servi ouvre sur trois portes et trois chapitres", () => {
   assert.ok(positions.every((position) => position >= 0), "un chapitre du parcours manque au bilan");
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, "le parcours du bilan n'est plus dans l'ordre de lecture");
   assert.equal((html.match(/class="bilan-portes__lien"/g) ?? []).length, 3);
+  assert.equal((html.match(/class="bilan-chapitre"/g) ?? []).length, 3);
   assert.match(html, /href="#france-entrees"/);
   assert.match(html, /href="#france-sorties"/);
   assert.match(html, /href="#france-dette"/);
   assert.doesNotMatch(html, /href="#france-europe"/);
+  assert.doesNotMatch(html, /bilan-guide__nav/);
+  assert.doesNotMatch(html, /id="france-europe"/);
   const position = (id: string) => {
     const index = html.indexOf(`id="${id}"`);
     assert.ok(index >= 0, `${id} introuvable dans le bilan servi`);

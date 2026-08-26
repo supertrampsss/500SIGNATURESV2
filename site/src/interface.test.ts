@@ -99,10 +99,13 @@ test("le bilan ouvre sur trois portes et garde l'analyse entièrement visible", 
   };
 
   assert.equal((bilan.match(/class="bilan-portes__lien"/g) ?? []).length, 3);
+  assert.equal((bilan.match(/class="bilan-chapitre"/g) ?? []).length, 3);
   assert.match(bilan, /href="#france-entrees"/);
   assert.match(bilan, /href="#france-sorties"/);
   assert.match(bilan, /href="#france-dette"/);
   assert.doesNotMatch(bilan, /href="#france-europe"/);
+  assert.doesNotMatch(bilan, /bilan-guide__nav/);
+  assert.doesNotMatch(bilan, /id="france-europe"/);
   assert.ok(position("conclusion-france-verdict") < position("france-entrees"));
   assert.ok(position("conclusion-france-entrees") < position("conclusion-france-sorties"));
   assert.ok(position("conclusion-france-sorties") < position("conclusion-france-dette"));
@@ -137,7 +140,11 @@ test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
   assert.match(BILAN_GUIDE, /\.bilan-chapitre\s*\{[^}]*grid-template-columns/s);
   assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*#national[\s\S]*padding:\s*0/);
   assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*\.bilan-portes[\s\S]*grid-template-columns:\s*1fr/);
-  assert.match(BILAN_GUIDE, /min-height:\s*var\(--cible\)/);
+  for (const selecteur of ["bilan-portes__lien", "bilan-guide__cta"]) {
+    const bloc = BILAN_GUIDE.match(new RegExp(`\\.${selecteur}\\s*\\{([^}]*)\\}`));
+    assert.ok(bloc, `bloc .${selecteur} introuvable`);
+    assert.match(bloc[1], /min-height:\s*var\(--cible\)/, `.${selecteur} perd sa cible tactile`);
+  }
 });
 
 test("le verdict n'a ni doublon ni concurrent, et conduit au simulateur", () => {

@@ -977,7 +977,15 @@ function replierCadre(html: string, id: string): string {
  * du bilan jusqu'à ce que `basculerVue` tranche.
  */
 export function injecterMethode(shell: string): string {
-  return replierCadre(deplierCadre(shell, "vue-bilan"), "vue-accueil");
+  const bilan = remplacer(
+    "data-vue du bilan",
+    shell,
+    shell.replace(
+      /<body([^>]*)>/,
+      (_correspondance, attributs: string) => `<body${attributs} data-vue="bilan">`,
+    ),
+  );
+  return replierCadre(deplierCadre(bilan, "vue-bilan"), "vue-accueil");
 }
 
 /* --------------------------------------------------------------------------
