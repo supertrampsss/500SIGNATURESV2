@@ -142,6 +142,9 @@ test("le verdict qualifie des comptes à l'équilibre", () => {
 test("sans ouverture, le verdict attend une période partagée sans imposer de seuil chiffré", () => {
   const guide = renduConclusionsBilan({ FR: territoire({ eurostat_deficit_pib: { "2025": -5.8 } }) });
 
+  assert.match(guide.verdict, /class="ui-conclusion bilan-verdict bilan-verdict--indisponible"/);
+  assert.match(guide.verdict, /class="bilan-verdict__editorial"/);
+  assert.doesNotMatch(guide.verdict, /data-numero=/);
   assert.match(guide.verdict, /partageront une période publiée/);
   assert.doesNotMatch(guide.verdict, /(?:\d+|deux) exercices/);
 });

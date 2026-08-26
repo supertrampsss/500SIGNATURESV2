@@ -96,12 +96,15 @@ function renduVerdict(
       : dettePib
         ? "insee_dette_apu_part_pib"
         : "eurostat_apu_recettes";
-    return introduction(
-      "01",
-      "Les comptes publics attendent leurs données publiées",
-      "Le verdict s'écrira quand recettes, dépenses et produit intérieur brut partageront une période publiée.",
-      preuveDe(indicateur, indexSources),
-    );
+    return `<div class="ui-conclusion bilan-verdict bilan-verdict--indisponible">
+      <div class="bilan-verdict__editorial">
+        <h2>Les comptes publics attendent leurs données publiées</h2>
+        <p>Le verdict s'écrira quand recettes, dépenses et produit intérieur brut partageront une période publiée.</p>
+      </div>
+      <div class="bilan-verdict__secondaire">
+        ${preuveDe(indicateur, indexSources)}
+      </div>
+    </div>`;
   }
 
   const equation = equationFrance(ouverture.recettes, ouverture.depenses);
