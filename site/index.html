@@ -109,8 +109,8 @@
       </nav>
       <button type="button" class="territoire-carte__action" id="afficher-carte"
               aria-expanded="false" aria-controls="cadre-carte">Voir sur la carte</button>
-      <div id="cadre-carte" hidden>
       <div class="atelier" aria-label="Carte interactive">
+        <div id="cadre-carte" hidden>
         <!-- La carte et ses surcouches dans un même cadre : légende, barre de
              commandes, étiquettes et infobulle se posent sur LA CARTE. Sans ce
              cadre, elles s'ancraient sur l'atelier entier et la barre des
@@ -145,6 +145,7 @@
 
           <div class="infobulle" id="infobulle" hidden></div>
         </div>
+        </div>
 
         <aside class="panneau surcouche" id="panneau" aria-label="Fiche du territoire">
           <!-- Poignée du tiroir mobile : on la fait glisser pour agrandir la
@@ -163,7 +164,6 @@
             </div>
           </div>
         </aside>
-      </div>
       </div>
 
       <!-- Le palmarès d'un territoire, sa suite dans le panneau, et la

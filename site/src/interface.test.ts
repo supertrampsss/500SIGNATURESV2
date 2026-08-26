@@ -990,22 +990,21 @@ test("l'attribution de la carte est repliée au premier rendu", () => {
   assert.doesNotMatch(geste.slice(0, 400), /once\("load"/);
 });
 
-test("la carte est à gauche, collante le long de toute la page du territoire", () => {
-  // Empilées, la carte poussait la fiche sous la ligne de flottaison. Et
-  // collée dans `.atelier`, elle s'arrêtait à la fin de la fiche : `sticky`
-  // ne dépasse pas son conteneur, et « Sa place parmi les autres » comme le
-  // panneau « davantage » défilaient sans carte en face. La grille vit donc
-  // sur la vue, l'atelier passe en `display: contents`, et la piste de la
-  // carte court sur les rangées de la fiche ET des tables.
+test("la fiche et toutes ses analyses prennent toute la largeur sous la carte", () => {
+  // La grille à deux pistes enfermait toute l'analyse territoriale dans
+  // 656 px, même sur un grand écran. Comme sur France, la lecture doit suivre
+  // une piste unique : carte en bandeau, fiche puis tables sur toute la feuille.
   const bloc = CSS.slice(CSS.indexOf('/* La grille vit sur la VUE, pas sur l\'atelier'));
-  assert.match(bloc, /body\[data-carte="oui"\] \.vue--territoire \{[^}]*grid-template-columns: minmax\(30rem, 1fr\) minmax\(0, 1\.25fr\);/);
+  assert.match(bloc, /body\[data-carte="oui"\] \.vue--territoire \{[^}]*grid-template-columns: minmax\(0, 1fr\);/);
   assert.match(bloc, /body\[data-carte="oui"\] \.vue--territoire \.atelier \{\n\s*display: contents;/);
-  assert.match(bloc, /\.atelier__carte \{\n\s*grid-column: 1;\n\s*grid-row: 2 \/ span 2;\n\s*position: sticky;/);
-  // Les tables continuent la colonne de la fiche, jamais une pleine page.
-  assert.match(bloc, /\.territoire__tables \{\n\s*grid-column: 2;\n\s*grid-row: 3;/);
-  // Sous 60rem, une colonne : deux donneraient une carte trop étroite pour
-  // viser une commune et une colonne de texte de trente caractères.
-  assert.match(bloc, /@media \(max-width: 60rem\) \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\);/);
+  assert.match(bloc, /\.atelier__carte \{\n\s*grid-column: 1;\n\s*grid-row: 3;\n\s*position: relative;/);
+  assert.match(bloc, /#panneau \{\n\s*grid-column: 1;\n\s*grid-row: 4;/);
+  assert.match(bloc, /\.territoire__tables \{\n\s*grid-column: 1;\n\s*grid-row: 5;/);
+  assert.match(
+    bloc,
+    /body\[data-vue="territoire"\] \.fiche \.bloc-lecture p \{\n\s*max-width: none;/,
+    "les quatre paragraphes d'analyse restent plafonnés à 64ch",
+  );
 });
 
 test("les surcouches de la carte s'ancrent sur la carte, pas sur la page", () => {
@@ -3480,6 +3479,25 @@ test("la carte territoriale se révèle sans être recréée", () => {
   assert.match(MAIN, /carte\?\.resize\(\)/);
 });
 
+test("replier la carte territoriale ne masque jamais la fiche", () => {
+  // Le cadre porteur de `hidden` enveloppait aussi #panneau : au téléphone,
+  // « Voir sur la carte » supprimait donc le diagnostic avec la carte et la
+  // page commençait brutalement au palmarès. Le panneau doit être son frère.
+  assert.match(
+    PAGE_BALISES,
+    /<div class="atelier"[^>]*>\s*<div id="cadre-carte" hidden>/,
+  );
+  assert.match(
+    PAGE_BALISES,
+    /<\/div>\s*<\/div>\s*<aside class="panneau surcouche" id="panneau"/,
+  );
+  const css = readFileSync(new URL("./styles/territoire-briefing.css", import.meta.url), "utf8");
+  assert.match(
+    css,
+    /#cadre-carte:not\(\[hidden\]\)\s*\{\s*display:\s*contents;/,
+  );
+});
+
 test("les commandes territoriales gardent leur feuille de styles", () => {
   assert.match(PAGE, /class="territoire-themes"/);
   assert.match(PAGE, /class="territoire-carte__action"/);
@@ -3493,7 +3511,15 @@ test("la carte révélée retrouve toute la colonne sur mobile", () => {
   assert.match(mobile, /\.atelier\s*\{\s*display:\s*grid;\s*grid-template-columns:\s*minmax\(0, 1fr\);/);
   assert.match(mobile, /\.atelier__carte\s*\{\s*grid-column:\s*1;\s*grid-row:\s*1;/);
   assert.match(mobile, /#panneau\s*\{\s*grid-column:\s*1;\s*grid-row:\s*2;/);
+  assert.match(mobile, /\.fiche\s*\{\s*padding-inline:\s*var\(--espace-6\);/);
   assert.match(mobile, /#palmares,[\s\S]*#detail\s*\{\s*width:\s*auto;\s*max-width:\s*100%;/);
+});
+
+test("la note financière devient une grille lisible sur téléphone", () => {
+  const mobile = CSS.slice(CSS.indexOf("@media (max-width: 40rem)", CSS.indexOf(".note__detail")));
+  assert.match(mobile, /\.note__detail\s*\{[^}]*display:\s*none;/s);
+  assert.match(mobile, /\.note__mobile\s*\{[^}]*display:\s*grid;/s);
+  assert.match(mobile, /\.note__mobile-valeurs\s*\{[^}]*grid-template-columns:\s*repeat\(2, minmax\(0, 1fr\)\);/s);
 });
 
 test("le redimensionnement de la carte n'interroge pas une couche absente", () => {

@@ -298,7 +298,8 @@ export function rendreNote(
   const cellule = (contenu: string | null | undefined, classe: string) =>
     `<td class="${classe}">${contenu ? echapper(contenu) : ""}</td>`;
 
-  const rangs = lignes(note)
+  const lignesNote = lignes(note);
+  const rangs = lignesNote
     .map(
       (l) => `<tr>
         <th scope="row">${echapper(l.terme)}<span class="note__unite">${echapper(
@@ -311,6 +312,31 @@ export function rendreNote(
         <td class="note__points">${echapper(l.points)}<span class="note__sur"> / ${l.sur}</span></td>
       </tr>`,
     )
+    .join("");
+
+  // Sur téléphone, cinq colonnes réduisaient les intitulés et les nombres à
+  // une suite illisible (« 20192025ÉvolutionPoints »). La même information est
+  // donc rendue en deux colonnes de paires libellé/valeur. Les cellules sans
+  // objet ne deviennent pas des cases vides : elles disparaissent de la grille.
+  const mobileMesure = (libelle: string, valeur: string | null | undefined) =>
+    valeur
+      ? `<span class="note__mobile-mesure"><span class="note__mobile-libelle">${echapper(
+          libelle,
+        )}</span><strong>${echapper(valeur)}</strong></span>`
+      : "";
+  const rangsMobiles = lignesNote
+    .map((ligne) => {
+      const evolution = ligne.evolution ?? cellulesEvolution[ligne.terme];
+      return `<div class="note__mobile-ligne">
+        <dt>${echapper(ligne.terme)}<span class="note__unite">${echapper(ligne.unite)}</span></dt>
+        <dd class="note__mobile-valeurs">
+          ${colonneDebut ? mobileMesure(premier ?? "Départ", cellulesDebut[ligne.terme]) : ""}
+          ${mobileMesure(note.mesures.exercice, ligne.mesure)}
+          ${mobileMesure("Évolution", evolution)}
+          ${mobileMesure("Points", `${ligne.points} / ${ligne.sur}`)}
+        </dd>
+      </div>`;
+    })
     .join("");
 
   const entete = `<thead><tr><th scope="col"></th>${
@@ -336,5 +362,8 @@ export function rendreNote(
       ${entete}
       <tbody>${rangs}</tbody>
     </table>
+    <dl class="note__mobile">${rangsMobiles}</dl>
+    <p class="note__source-mobile">Exercice ${echapper(note.mesures.exercice)}. Source : OFGL,
+      comptes des collectivités locales.</p>
   </section>`;
 }

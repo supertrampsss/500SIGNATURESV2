@@ -123,6 +123,10 @@
   cursor: pointer;
 }
 
+#cadre-carte:not([hidden]) {
+  display: contents;
+}
+
 #cadre-carte[hidden] {
   display: none;
 }
@@ -173,7 +177,7 @@
   }
 
   body[data-carte="oui"] .vue--territoire .territoire-carte__action {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 2;
     justify-self: end;
     margin: 0 0 var(--espace-3);
@@ -188,15 +192,18 @@
   }
 
   body[data-carte="oui"] .vue--territoire .atelier__carte {
-    grid-row: 3 / span 2;
-  }
-
-  body[data-carte="oui"] .vue--territoire #panneau {
+    grid-column: 1;
     grid-row: 3;
   }
 
-  body[data-carte="oui"] .vue--territoire .territoire__tables {
+  body[data-carte="oui"] .vue--territoire #panneau {
+    grid-column: 1;
     grid-row: 4;
+  }
+
+  body[data-carte="oui"] .vue--territoire .territoire__tables {
+    grid-column: 1;
+    grid-row: 5;
   }
 }
 
@@ -233,6 +240,10 @@
   body[data-carte="oui"] .vue--territoire #panneau {
     grid-column: 1;
     grid-row: 2;
+  }
+
+  body[data-carte="oui"] .vue--territoire .fiche {
+    padding-inline: var(--espace-6);
   }
 
   body[data-carte="oui"] .vue--territoire #palmares,

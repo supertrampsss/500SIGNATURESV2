@@ -48,6 +48,16 @@ test("le détail additionné redonne le total affiché", () => {
   assert.equal(Math.round(points.reduce((s, p) => s + p, 0) * 10) / 10, total);
 });
 
+test("la note possède une lecture empilée explicite pour le téléphone", () => {
+  const html = rendreNote(note(SOLIDE, "commune"), SOLIDE);
+  assert.match(html, /<dl class="note__mobile">/);
+  assert.match(html, /class="note__mobile-libelle">2019<\/span>/);
+  assert.match(html, /class="note__mobile-libelle">2025<\/span>/);
+  assert.match(html, /class="note__mobile-libelle">Évolution<\/span>/);
+  assert.match(html, /class="note__mobile-libelle">Points<\/span>/);
+  assert.match(html, /class="note__source-mobile">Exercice 2025\. Source : OFGL/);
+});
+
 test("la colonne de points garde sa décimale", () => {
   // Trois nombres lus de haut en bas et additionnés : « 8 » entre « 4,3 » et
   // « 3,1 » casse l'alignement de la seule colonne que le lecteur vérifie.

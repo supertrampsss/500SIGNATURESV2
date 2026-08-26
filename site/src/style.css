@@ -2611,6 +2611,10 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
 .note__detail tr:first-child td {
   border-top: 0;
 }
+.note__mobile,
+.note__source-mobile {
+  display: none;
+}
 /* L'unité de la ligne, sous son intitulé : écrite une fois, pas dans chacune
    des quatre cellules de la rangée. */
 .note__unite {
@@ -2712,11 +2716,53 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   .note {
     padding: var(--espace-6);
   }
-  .note__detail th,
-  .note__detail td {
-    padding: var(--espace-3) 0;
+  .note__detail {
+    display: none;
   }
-  .note__mesure {
+  .note__mobile {
+    display: grid;
+    gap: 0;
+    margin: var(--espace-6) 0 0;
+  }
+  .note__mobile-ligne {
+    padding: var(--espace-4) 0;
+    border-top: 1px solid var(--trait);
+  }
+  .note__mobile-ligne:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .note__mobile-ligne dt {
+    font-size: var(--texte-m);
+    font-weight: 500;
+  }
+  .note__mobile-valeurs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--espace-3) var(--espace-5);
+    margin: var(--espace-3) 0 0;
+  }
+  .note__mobile-mesure {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: var(--espace-2);
+    min-width: 0;
+    font-variant-numeric: tabular-nums;
+  }
+  .note__mobile-libelle {
+    color: var(--encre-douce);
+    font-size: var(--texte-xs);
+  }
+  .note__mobile-mesure strong {
+    font-size: var(--texte-s);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .note__source-mobile {
+    display: block;
+    margin: var(--espace-4) 0 0;
+    color: var(--encre-douce);
     font-size: var(--texte-xs);
   }
 }
@@ -6952,19 +6998,16 @@ summary.pont__rangee,
    Ces règles sont en fin de feuille pour gagner sur celles du mode plein
    cadre sans en retirer aucune : le jour où l'on veut revenir au fond
    d'écran, il suffit de supprimer ce bloc. */
-/* La grille vit sur la VUE, pas sur l'atelier : la carte doit rester collante
-   le long de TOUT ce qui suit — la fiche, puis « Sa place parmi les autres »
-   et le panneau « davantage ». Collée dans `.atelier`, elle s'arrêtait à la
-   fin de la fiche : `position: sticky` ne dépasse pas son conteneur, et les
-   tables vivaient dans une section sœur. `.atelier` passe en
-   `display: contents` (sous 60rem il redevient la colonne unique) : la carte,
-   la fiche et les tables partagent la même grille, et la piste de la carte
-   court sur les deux rangées de droite. */
+/* La grille vit sur la VUE, pas sur l'atelier. La carte est un bandeau de
+   situation ; la fiche, ses analyses et les comparaisons sont le contenu à
+   lire. Tout suit donc une seule piste pleine largeur, comme dans le bilan
+   France. `.atelier` passe en `display: contents` pour que la carte, la fiche
+   et les tables partagent cette même grille. */
 body[data-carte="oui"] .vue--territoire {
   display: grid;
-  grid-template-columns: minmax(30rem, 1fr) minmax(0, 1.25fr);
-  grid-template-rows: auto auto 1fr;
-  gap: var(--espace-6) var(--espace-7);
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto auto 1fr;
+  gap: var(--espace-6);
   align-items: start;
   height: auto;
   max-width: min(88rem, 100%);
@@ -6978,11 +7021,8 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   max-width: min(88rem, 100%);
   width: auto;
 }
-/* **La fiche est plus large que la carte.** La carte sert à viser et à situer,
-   la fiche à lire : c'est elle qui porte les chiffres, le tableau des exercices
-   et les classements, et c'est devant elle qu'on passe son temps. Elle prend
-   donc la plus grande part, sans descendre la carte sous les 30rem qu'il faut
-   pour reconnaître la France. */
+/* L'atelier ne crée aucune largeur concurrente : ses enfants deviennent des
+   éléments de la piste principale. */
 body[data-carte="oui"] .vue--territoire .atelier {
   display: contents;
 }
@@ -6991,14 +7031,13 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   grid-row: 1;
 }
 body[data-carte="oui"] .vue--territoire #panneau {
-  grid-column: 2;
-  grid-row: 2;
+  grid-column: 1;
+  grid-row: 4;
 }
-/* Les tables continuent la colonne de la fiche, à sa largeur : elles ne
-   redescendent plus dans une section pleine page sous la carte. */
+/* Les tables continuent la fiche à la même largeur utile. */
 body[data-carte="oui"] .vue--territoire .territoire__tables {
-  grid-column: 2;
-  grid-row: 3;
+  grid-column: 1;
+  grid-row: 5;
   max-width: none;
   margin: 0;
   padding: 0;
@@ -7008,14 +7047,12 @@ body[data-carte="oui"] .vue--territoire #detail {
   justify-self: stretch;
   width: auto;
 }
-/* Le cadre de la carte, et le repère de toutes ses surcouches. Collant : la
-   fiche est plus haute que lui, et une carte qui défile hors de l'écran au
-   troisième bloc ne sert plus à rien. */
+/* Le cadre de la carte forme un bandeau pleine largeur avant l'analyse. */
 body[data-carte="oui"] .atelier__carte {
   grid-column: 1;
-  grid-row: 2 / span 2;
-  position: sticky;
-  top: var(--espace-5);
+  grid-row: 3;
+  position: relative;
+  top: auto;
 }
 /* La carte tient dans l'écran sous l'en-tête, sans jamais descendre sous les
    26rem qu'il faut pour reconnaître la France et viser une commune. */
@@ -7056,6 +7093,12 @@ body[data-carte="oui"] .panneau__poignee {
 }
 body[data-carte="oui"] .fiche {
   padding-inline: 0;
+}
+/* Même composition éditoriale que France : les quatre réponses d'analyse ne
+   restent pas coincées dans l'ancienne mesure de 64ch au milieu d'une feuille
+   désormais pleine largeur. Les tableaux conservent leur propre défilement. */
+body[data-vue="territoire"] .fiche .bloc-lecture p {
+  max-width: none;
 }
 /* Les commandes et la légende se posent sur le cadre de la carte, pas sur la
    page : elles ne commandent que lui. Elles étaient ancrées sur l'atelier,
