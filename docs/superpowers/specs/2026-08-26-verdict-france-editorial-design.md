@@ -107,7 +107,7 @@ La page ne détourne pas prématurément vers le jeu avant d’avoir livré son 
 
 ### 7. Page dédiée « Sources et méthode »
 
-Les sources, définitions, conventions de périmètre et limites ne forment pas une section longue au milieu ou au bas du bilan. Elles disposent d’une page autonome, accessible à l’adresse `/sources-et-methode`.
+Les sources, définitions, conventions de périmètre et limites ne forment pas une section longue au milieu ou au bas du bilan. Elles disposent d’une page autonome, accessible à l’adresse canonique `/sources/`.
 
 Cette page documente :
 
@@ -190,7 +190,7 @@ La refonte est considérée conforme si :
 4. aucune occurrence de « Comprendre le calcul » ne masque le raisonnement principal ;
 5. les quatre indicateurs structurants disposent d’un historique d’au moins dix ans lorsque les données le permettent ;
 6. leur position est comparée aux cinq voisins européens retenus ainsi qu’aux moyennes UE et zone euro lorsque ces séries sont harmonisées ;
-7. une page autonome `/sources-et-methode` documente les calculs, sources, millésimes, ruptures de série et règles de comparaison ;
+7. une page autonome `/sources/` documente les calculs, sources, millésimes, ruptures de série et règles de comparaison ;
 8. la page France ne contient ni accordéon méthodologique ni long texte de méthode ;
 9. chaque référence courte renvoie directement à la section pertinente de la page dédiée ;
 10. le briefing territorial supérieur redondant n’apparaît plus ;

@@ -217,13 +217,13 @@ git commit -m "Retire le briefing territorial redondant"
 - Consumes: le site construit et servi localement.
 - Produces: preuves de build, tests, contrôle visuel desktop/mobile et spécification alignée sur l’URL réelle `/sources/`.
 
-- [ ] **Step 1: Run the complete automated suite**
+- [x] **Step 1: Run the complete automated suite**
 
 Run: `npm test`
 
 Expected: toutes les suites PASS, zéro échec.
 
-- [ ] **Step 2: Build the production bundle**
+- [x] **Step 2: Build the production bundle**
 
 Run: `npm run build`
 
@@ -237,7 +237,7 @@ Servir `dist`, ouvrir `/bilan`, comparer visuellement au mockup 01 et vérifier 
 
 Vérifier `/bilan`, `/sources/` et une URL `/territoire?...` à 390 × 844 : aucun débordement horizontal, aucun texte tronqué, sources accessibles, briefing absent et actions tactiles.
 
-- [ ] **Step 5: Update documentation and commit**
+- [x] **Step 5: Update documentation and commit**
 
 Cocher les tâches réellement vérifiées, aligner la spec sur l’URL `/sources/`, puis :
 
