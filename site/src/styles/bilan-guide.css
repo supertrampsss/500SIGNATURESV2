@@ -445,6 +445,35 @@ body[data-vue="bilan"] #national,
   font-size: var(--texte-s);
 }
 
+/* Le quatrième chapitre rompt avec les tableaux : six angles éditoriaux,
+   assez courts pour circuler, assez précis pour rester contestables. */
+#insights-france { min-width: 0; }
+#insights-france .insights {
+  margin: clamp(var(--espace-8), 5vw, 4.5rem) clamp(var(--espace-7), 5vw, 4.5rem) 0;
+  padding-top: clamp(var(--espace-7), 4vw, 3.5rem);
+  border-top-color: var(--bilan-encre);
+}
+#insights-france .insights__entete { max-width: 48rem; }
+#insights-france .insights__chapitre,
+#insights-france .insight__surtitre { color: var(--bilan-accent); }
+#insights-france .insights__entete h2 {
+  color: var(--bilan-encre);
+  font-size: clamp(2.35rem, 4vw, 3.75rem);
+  letter-spacing: -.03em;
+}
+#insights-france .insights__grille {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: clamp(var(--espace-7), 5vw, 4rem);
+}
+#insights-france .insight:first-child {
+  grid-column: 1 / -1;
+  padding-right: min(28%, 15rem);
+}
+#insights-france .insight:first-child h3 { font-size: clamp(2rem, 4vw, 3.2rem); }
+#insights-france .insight h3 { color: var(--bilan-encre); }
+#insights-france .insight__analyse { max-width: 54ch; }
+#insights-france .insights__methode { margin-top: var(--espace-2); }
+
 /* Une seule action conclut le document et reprend le bleu nuit du seuil. */
 .bilan-action {
   display: grid;
@@ -593,6 +622,14 @@ body[data-vue="bilan"] #national,
     text-align: left;
     hyphens: manual;
   }
+
+  #insights-france .insights {
+    margin: var(--espace-8) var(--gouttiere) 0;
+    padding-top: var(--espace-7);
+  }
+  #insights-france .insights__grille { grid-template-columns: minmax(0,1fr); }
+  #insights-france .insight:first-child { grid-column: 1; padding-right: 0; }
+  #insights-france .insight:first-child h3 { font-size: var(--texte-xxl); }
 
   .bilan-action {
     grid-template-columns: minmax(0,1fr);

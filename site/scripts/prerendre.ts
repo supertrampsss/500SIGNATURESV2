@@ -56,6 +56,8 @@ import { rendu as renduEurope } from "../src/europe-comparaison.ts";
 import { rendu as renduOuverture } from "../src/ouverture.ts";
 import { rendu as renduRedistribution } from "../src/redistribution.ts";
 import { renduConclusionsBilan } from "../src/national.ts";
+import { insightsFrance } from "../src/insights-france.ts";
+import { renduInsights } from "../src/insights-rendu.ts";
 import { carteAnalyse, carteSection, type DonneesAnalyse, type DonneesSection } from "../src/carte-og.ts";
 import { lirePolices, rasteriser } from "./rasteriser.ts";
 import { IMAGE_SCENARIO } from "../src/apercu-scenario.ts";
@@ -1073,6 +1075,12 @@ export function injecterReperes(
   for (const [id, corps] of ouvrants) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }
+  const analysesFrance = renduInsights(insightsFrance(pays.FR, catalogue), catalogue, {
+    contexte: "france",
+  });
+  html = analysesFrance
+    ? remplirCadre(html, "insights-france", analysesFrance)
+    : replierCadre(html, "insights-france");
   // Le pont entre les chapitres 1 et 2 : la phrase qui fait descendre d'un
   // étage (1 562 milliards pour l'ensemble, 380 pour l'État seul). Sans elle,
   // les deux chiffres d'encaissement se lisaient comme une contradiction.

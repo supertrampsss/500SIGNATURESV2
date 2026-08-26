@@ -38,6 +38,8 @@ import {
 } from "./carte-territoriale.ts";
 import { afficherEurope } from "./europe-comparaison.ts";
 import { afficherConclusionsBilan } from "./national.ts";
+import { insightsFrance } from "./insights-france.ts";
+import { renduInsights } from "./insights-rendu.ts";
 import { afficherTunnel } from "./tunnel.ts";
 import { aTrouverAuDepart } from "./mission.ts";
 import { afficherFonctions } from "./fonctions.ts";
@@ -4608,6 +4610,13 @@ async function demarrer(): Promise<void> {
       $("national").hidden = false;
     }
     if (afficherEurope($("bloc-europe"), pays, sourcesPubliees)) {
+      $("national").hidden = false;
+    }
+    const analysesFrance = insightsFrance(pays.FR, catalogue);
+    const cadreInsightsFrance = $("insights-france");
+    cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france" });
+    cadreInsightsFrance.hidden = analysesFrance.length === 0;
+    if (analysesFrance.length > 0) {
       $("national").hidden = false;
     }
   } catch {

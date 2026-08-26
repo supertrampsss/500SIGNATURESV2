@@ -5039,6 +5039,125 @@ summary.pont__rangee,
   min-width: 0;
 }
 
+/* Les analyses croisées ne sont ni un deuxième tableau de bord, ni une pile
+   de cartes. Elles se lisent comme les brèves d'un dossier : un verdict fort,
+   son explication visible, puis la limite et la preuve en retrait. */
+.insights {
+  min-width: 0;
+  margin-top: var(--espace-8);
+  padding-top: var(--espace-7);
+  border-top: 2px solid var(--encre);
+}
+.insights__entete {
+  max-width: 42rem;
+  margin-bottom: var(--espace-7);
+}
+.insights__chapitre,
+.insight__surtitre {
+  margin: 0;
+  color: var(--argile);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.insights__entete h2 {
+  margin: var(--espace-3) 0 0;
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.insights__entete > p:last-child {
+  margin: var(--espace-4) 0 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-m);
+  line-height: 1.55;
+}
+.insights__grille {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: insight;
+}
+.insight {
+  position: relative;
+  min-width: 0;
+  padding: var(--espace-6) 0 var(--espace-7) calc(var(--espace-7) + var(--espace-2));
+  border-top: 1px solid var(--trait);
+  counter-increment: insight;
+}
+.insight::before {
+  content: counter(insight, decimal-leading-zero);
+  position: absolute;
+  inset: var(--espace-6) auto auto 0;
+  color: var(--encre-douce);
+  font-family: var(--serif);
+  font-size: var(--texte-s);
+  font-variant-numeric: tabular-nums;
+}
+.insight article { min-width: 0; }
+.insight h3 {
+  margin: var(--espace-2) 0 0;
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  letter-spacing: -.015em;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+}
+.insight__analyse {
+  max-width: 60ch;
+  margin: var(--espace-4) 0 0;
+  color: var(--encre);
+  line-height: 1.55;
+}
+.insight__reserve {
+  max-width: 62ch;
+  margin: var(--espace-4) 0 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  line-height: 1.5;
+}
+.insight__reserve span { color: var(--encre); font-weight: 800; }
+.insight__preuves { margin-top: var(--espace-3); color: var(--encre-douce); font-size: var(--texte-xs); }
+.insight__preuves summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--cible);
+  color: var(--encre);
+  font-weight: 750;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: .18em;
+}
+.insight__preuves dl {
+  display: grid;
+  gap: var(--espace-2);
+  margin: var(--espace-2) 0 0;
+  padding: var(--espace-3) 0 0;
+  border-top: 1px solid var(--trait);
+}
+.insight__preuves dl > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--espace-3);
+}
+.insight__preuves dt { min-width: 0; }
+.insight__preuves dd { margin: 0; color: var(--encre); font-variant-numeric: tabular-nums; font-weight: 700; text-align: end; }
+.insights__methode {
+  margin: 0;
+  padding-top: var(--espace-5);
+  color: var(--encre-douce);
+  border-top: 1px solid var(--trait);
+  font-size: var(--texte-xs);
+}
+.insights__methode a { color: var(--encre); font-weight: 800; text-underline-offset: .18em; }
+.insight__preuves summary:focus-visible,
+.insights__methode a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+
 /* La bascule, sous l'identité du territoire et au-dessus de tout le reste. */
 .fiche .fiche__vitesses {
   order: -2;
@@ -5112,6 +5231,13 @@ summary.pont__rangee,
   .fiche__vitesses button {
     flex: 1 1 40%;
   }
+  .insights { margin-top: var(--espace-7); padding-top: var(--espace-6); }
+  .insights__entete { margin-bottom: var(--espace-5); }
+  .insight { padding: var(--espace-5) 0 var(--espace-6) calc(var(--espace-6) + var(--espace-2)); }
+  .insight::before { top: var(--espace-5); }
+  .insight h3 { font-size: var(--texte-xl); }
+  .insight__preuves dl > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .insight__preuves dd { text-align: start; }
 }
 
 /* ==========================================================================
