@@ -1,179 +1,658 @@
-/* Le verdict mène le document, sur toute sa largeur ; les preuves reprennent
-   ensuite une colonne de lecture plus serrée. */
-#national { max-width: 72rem; }
+/* ===========================================================================
+   BILAN FRANCE — direction 01 : le verdict d'abord
 
-.bilan-guide__section {
-  max-width: 52rem;
-  min-width: 0;
+   Cette feuille possède l'apparence de la vue Bilan. Les renderers restent
+   volontairement neutres : ici seulement, leurs preuves quittent les cartes
+   du tableau de bord pour un dossier éditorial sur papier.
+   ======================================================================== */
+
+body[data-vue="bilan"] {
+  --bilan-encre: #0b1d36;
+  --bilan-papier: #fbf8f1;
+  --bilan-accent: #b7372f;
+  --bilan-fond: #e9edf2;
+  --bilan-ligne: #c9c0af;
+  --encre: var(--bilan-encre);
+  --encre-douce: #4d5868;
+  --fond: var(--bilan-fond);
+  --papier: var(--bilan-papier);
+  --papier-creuse: #f3efe6;
+  --trait: var(--bilan-ligne);
+  --trait-fort: #8994a3;
+  color: var(--bilan-encre);
+  background: var(--bilan-fond);
 }
 
-.bilan-guide__hero {
-  max-width: 72rem;
-  margin-bottom: var(--espace-5);
-  min-width: 0;
-  scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
+/* Le pré-rendu sert la couverture avant que l'application ne pose
+   `data-vue`. Les mêmes rôles vivent donc aussi au plus près de son hôte. */
+#vue-bilan {
+  --bilan-encre: #0b1d36;
+  --bilan-papier: #fbf8f1;
+  --bilan-accent: #b7372f;
+  --bilan-fond: #e9edf2;
+  --bilan-ligne: #c9c0af;
+  --encre: var(--bilan-encre);
+  --encre-douce: #4d5868;
+  --fond: var(--bilan-fond);
+  --papier: var(--bilan-papier);
+  --papier-creuse: #f3efe6;
+  --trait: var(--bilan-ligne);
+  --trait-fort: #8994a3;
+  color: var(--bilan-encre);
+  background: var(--bilan-fond);
 }
 
-.bilan-guide__hero .ui-conclusion,
-.bilan-guide__section > [id^="conclusion-france-"] > .ui-conclusion {
+/* Le chrome devient le seuil sombre du dossier : la recherche demeure
+   disponible, mais n'entre plus en concurrence avec le verdict. */
+body[data-vue="bilan"] .entete {
+  min-height: var(--haut-entete);
+  gap: var(--espace-5);
+  padding-block: var(--espace-3);
+  color: var(--bilan-papier);
+  background: var(--bilan-encre);
+  border-bottom-color: #2c4566;
+}
+
+body[data-vue="bilan"] .entete h1 {
+  color: inherit;
+  font-size: var(--texte-xl);
+}
+
+body[data-vue="bilan"] .sous-titre {
+  color: #cad5e4;
+  font-size: var(--texte-xs);
+}
+
+body[data-vue="bilan"] .entete__recherche {
+  flex-basis: 16rem;
+  max-width: 21rem;
+}
+
+body[data-vue="bilan"] .recherche input[type="search"] {
+  min-height: var(--cible);
+  color: var(--bilan-papier);
+  background: rgb(255 255 255 / .08);
+  border-color: #5b6f8a;
+  font-size: var(--texte-s);
+}
+
+body[data-vue="bilan"] .recherche input[type="search"]::placeholder {
+  color: #cad5e4;
+  opacity: 1;
+}
+
+body[data-vue="bilan"] .recherche::before { border-color: #cad5e4; }
+body[data-vue="bilan"] .recherche::after { background: #cad5e4; }
+
+body[data-vue="bilan"] .recherche input[type="search"]:hover,
+body[data-vue="bilan"] .recherche input[type="search"]:focus-visible {
+  color: var(--bilan-encre);
+  background: var(--bilan-papier);
+  border-color: var(--bilan-papier);
+}
+
+body[data-vue="bilan"] .entete__nav { gap: 0; }
+
+body[data-vue="bilan"] .entete__nav a {
+  min-height: var(--cible);
+  display: inline-flex;
+  align-items: center;
+  color: #dbe5f1;
+  border-radius: 0;
+}
+
+body[data-vue="bilan"] .entete__nav a:hover,
+body[data-vue="bilan"] .entete__nav a:focus-visible,
+body[data-vue="bilan"] .entete__nav a[aria-current="page"] {
+  color: var(--bilan-papier);
+  background: #223a5a;
+}
+
+body[data-vue="bilan"] .bascule-theme {
+  color: var(--bilan-papier);
+  background: transparent;
+  border-color: #5b6f8a;
+}
+
+body[data-vue="bilan"] #contenu { max-width: none; }
+
+#vue-bilan {
   max-width: none;
+  margin: 0;
+  padding-inline: var(--gouttiere);
+}
+
+/* La surface chaude commence avant le hero et porte jusqu'à la dernière
+   action : ce n'est pas un empilement de cartes sur le gris de l'application. */
+body[data-vue="bilan"] #national,
+#vue-bilan #national {
+  width: min(73.75rem, 100%);
+  max-width: 73.75rem;
+  margin: var(--espace-8) auto var(--espace-8);
   padding: 0;
+  color: var(--bilan-encre);
+  background: var(--bilan-papier);
+  box-shadow: 0 var(--espace-5) var(--espace-8) rgb(11 29 54 / .08);
+}
+
+.bilan-couverture { min-width: 0; }
+
+.bilan-couverture__papier {
+  padding: clamp(var(--espace-8), 5vw, 4.5rem) clamp(var(--espace-7), 5vw, 4.5rem) var(--espace-8);
+}
+
+/* `ui-conclusion` est une fondation de composants. Sur le Bilan, le verdict
+   et les introductions sont de la composition typographique, jamais des
+   encarts à bord gauche. */
+.bilan-verdict,
+.bilan-chapitre__intro {
+  margin: 0;
+  padding: 0;
+  color: var(--bilan-encre);
+  background: transparent;
   border: 0;
   border-radius: 0;
-  background: transparent;
 }
 
 .bilan-verdict {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(18rem, .75fr);
-  column-gap: var(--espace-7);
-  row-gap: var(--espace-3);
+  grid-template-areas:
+    "editorial totem"
+    "equation equation"
+    "secondary secondary";
+  grid-template-columns: minmax(0, 1.25fr) minmax(17rem, .75fr);
+  gap: var(--espace-8) clamp(var(--espace-7), 4vw, 3.5rem);
+  min-width: 0;
 }
 
-.bilan-verdict > :not(.bilan-verdict__chiffres) {
-  grid-column: 1;
-}
-
-.bilan-verdict > p {
-  margin: 0;
-  max-width: 64ch;
-}
+.bilan-verdict__editorial { grid-area: editorial; min-width: 0; }
 
 .bilan-verdict__millesime,
-.national .ui-conclusion__preuve {
-  color: var(--encre-douce);
-  font-size: var(--texte-s);
+.bilan-chapitre__surligne {
+  margin: 0 0 var(--espace-4);
+  color: var(--bilan-accent);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  letter-spacing: .12em;
+  text-transform: uppercase;
 }
 
 .bilan-verdict h2 {
   max-width: 16ch;
-  font-size: clamp(var(--texte-xxl), 4.5vw, 4.5rem);
-  line-height: 1.05;
-  overflow-wrap: anywhere;
-}
-
-.bilan-verdict__equation {
-  width: fit-content;
-  max-width: 100%;
-  padding-block: var(--espace-2);
-  border-block: 1px solid var(--trait);
-  font-family: var(--serif);
-  font-size: var(--texte-l);
-  overflow-wrap: anywhere;
-}
-
-.bilan-verdict__chiffres {
-  display: grid;
-  grid-column: 2;
-  grid-row: 1 / span 8;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--espace-3);
   margin: 0;
-  padding: var(--espace-5);
-  border-inline-start: 1px solid var(--trait);
-  background: var(--papier-creuse);
-}
-
-.bilan-verdict__chiffres div { min-width: 0; }
-.bilan-verdict__chiffres dt { color: var(--encre-douce); font-size: var(--texte-xs); }
-.bilan-verdict__chiffres dd {
-  margin: var(--espace-1) 0 0;
+  color: var(--bilan-encre);
   font-family: var(--serif);
-  font-size: var(--texte-l);
-  font-variant-numeric: tabular-nums;
+  font-size: clamp(3.5rem, 5vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -.035em;
+  line-height: .98;
   overflow-wrap: anywhere;
 }
 
-.bilan-guide__nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--espace-2);
-  margin: 0 0 var(--espace-7);
-  padding-block: var(--espace-3);
-  border-block: 1px solid var(--trait);
+.bilan-verdict__editorial > p:not(.bilan-verdict__millesime) {
+  max-width: 60ch;
+  margin: var(--espace-7) 0 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-l);
+  line-height: 1.55;
 }
 
-.bilan-guide__nav a {
-  min-height: var(--cible);
-  display: inline-flex;
-  align-items: center;
-  padding-inline: var(--espace-3);
-  color: var(--encre);
-  border-radius: var(--rayon-pilule);
+.bilan-verdict__editorial strong { color: var(--bilan-encre); }
+
+.bilan-verdict__totem {
+  grid-area: totem;
+  align-self: start;
+  min-width: 0;
+  padding: clamp(var(--espace-6), 3vw, var(--espace-8));
+  color: var(--bilan-encre);
+  background: #fff;
+  border-top: .3125rem solid var(--bilan-accent);
+}
+
+.bilan-verdict__totem p {
+  margin: 0;
+  color: var(--encre-douce);
   font-size: var(--texte-s);
+  line-height: 1.45;
+}
+
+.bilan-verdict__totem p:first-child {
+  margin-bottom: var(--espace-5);
+  color: var(--bilan-encre);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.bilan-verdict__totem strong {
+  display: block;
+  margin-bottom: var(--espace-4);
+  color: var(--bilan-encre);
+  font-family: var(--serif);
+  font-size: clamp(2.5rem, 4vw, 4rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.04em;
+  line-height: .95;
+  overflow-wrap: anywhere;
+}
+
+.bilan-equation {
+  position: relative;
+  display: grid;
+  grid-area: equation;
+  grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);
+  gap: var(--espace-5);
+  align-items: center;
+  min-width: 0;
+  padding-block: var(--espace-7);
+  border-block: 1px solid var(--bilan-ligne);
+}
+
+.bilan-equation__legende {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.bilan-equation__terme { min-width: 0; }
+
+.bilan-equation__terme > span {
+  display: block;
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+.bilan-equation__terme strong {
+  display: block;
+  margin-top: var(--espace-2);
+  color: var(--bilan-encre);
+  font-family: var(--serif);
+  font-size: clamp(var(--texte-3xl), 2.6vw, 2.25rem);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -.02em;
+  line-height: 1.08;
+  overflow-wrap: anywhere;
+}
+
+.bilan-equation__terme--resultat strong { color: var(--bilan-accent); }
+
+.bilan-equation__signe {
+  color: var(--bilan-accent);
+  font-family: var(--serif);
+  font-size: clamp(var(--texte-3xl), 2.8vw, 2.5rem);
   font-weight: 700;
+  line-height: 1;
+}
+
+.bilan-verdict__secondaire {
+  display: grid;
+  grid-area: secondary;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: var(--espace-5) var(--espace-7);
+  align-items: end;
+  min-width: 0;
+}
+
+.bilan-verdict__secondaire > p {
+  max-width: 58ch;
+  margin: 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+  line-height: 1.5;
+}
+
+.bilan-verdict__secondaire .ui-conclusion__preuve,
+.bilan-chapitre .ui-conclusion__preuve {
+  margin: 0;
+  font-size: var(--texte-xs);
+}
+
+.bilan-verdict__secondaire a,
+.bilan-chapitre .ui-conclusion__preuve a {
+  color: var(--bilan-encre);
+  font-weight: 700;
+  text-underline-offset: .15em;
+}
+
+.bilan-verdict--indisponible {
+  grid-template-areas:
+    "editorial"
+    "secondary";
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Les portes ouvrent le récit. Leur filet commun les relie au chrome bleu
+   nuit, sans emprunter la géométrie des anciennes pilules. */
+.bilan-portes {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: var(--espace-7);
+  margin-top: clamp(var(--espace-8), 4vw, 3.5rem);
+}
+
+.bilan-portes__lien {
+  display: grid;
+  align-content: start;
+  gap: var(--espace-3);
+  min-height: var(--cible);
+  padding: var(--espace-5) 0 0;
+  color: var(--bilan-encre);
+  border-top: .1875rem solid var(--bilan-encre);
+  border-radius: 0;
   text-decoration: none;
 }
 
-.bilan-guide__nav a:hover,
-.bilan-guide__nav a:focus-visible {
-  background: var(--papier-creuse);
-  text-decoration: underline;
+.bilan-portes__lien strong {
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  line-height: 1.15;
 }
 
-.bilan-guide__section {
+.bilan-portes__lien span {
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+  line-height: 1.45;
+}
+
+.bilan-portes__lien:hover strong,
+.bilan-portes__lien:focus-visible strong { text-decoration: underline; }
+
+.bilan-portes__lien:focus-visible,
+.bilan-guide__cta:focus-visible,
+.bilan-chapitre a:focus-visible {
+  outline: .1875rem solid var(--bilan-accent);
+  outline-offset: var(--espace-2);
+}
+
+/* Chaque chapitre fixe l'introduction dans une colonne calme. Les preuves
+   partagent l'autre colonne, où leur largeur reste disponible aux tableaux et
+   graphiques. */
+.bilan-chapitre {
+  display: grid;
+  grid-template-columns: minmax(0,.62fr) minmax(0,1.38fr);
+  gap: var(--espace-7) clamp(var(--espace-7), 4vw, 3.5rem);
+  padding: clamp(var(--espace-8), 5vw, 4.5rem) clamp(var(--espace-7), 5vw, 4.5rem) 0;
   scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
-  border-top: 1px solid var(--trait);
-  padding-top: var(--espace-6);
+  border-top: 1px solid var(--bilan-ligne);
 }
 
-.bilan-guide__section + .bilan-guide__section { margin-top: var(--espace-7); }
+.bilan-chapitre + .bilan-chapitre { margin-top: clamp(var(--espace-8), 5vw, 4.5rem); }
 
-.bilan-guide__section > .bloc,
-.bilan-guide__section > .chapitre__pont {
-  max-width: 52rem;
+.bilan-chapitre > * { min-width: 0; }
+
+.bilan-chapitre > [id^="conclusion-france-"] {
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
 }
 
-.bilan-guide__section > .bloc + .bloc,
-.bilan-guide__section > .chapitre__pont + .bloc {
-  margin-top: var(--espace-6);
+.bilan-chapitre__intro h2 {
+  margin: 0;
+  color: var(--bilan-encre);
+  font-family: var(--serif);
+  font-size: clamp(var(--texte-3xl), 2.5vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -.025em;
+  line-height: 1.03;
 }
 
-.bilan-guide__section > .bloc > table,
-.bilan-guide__section > .bloc .comparaison {
+.bilan-chapitre__intro > p:not(.bilan-chapitre__surligne):not(.ui-conclusion__preuve) {
+  margin: var(--espace-5) 0 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-l);
+  line-height: 1.55;
+}
+
+.bilan-chapitre__intro .ui-conclusion__preuve { margin-top: var(--espace-6); }
+
+.bilan-chapitre > .bloc,
+.bilan-chapitre > .chapitre__pont {
+  grid-column: 2;
+  min-width: 0;
+}
+
+/* Les règles génériques de `.bloc` restent utiles hors bilan ; ici, aucun
+   fond, rayon ou ombre ne doit redessiner une carte à l'intérieur du papier. */
+.bilan-chapitre > .bloc {
+  margin: 0;
+  padding: 0;
+  color: var(--bilan-encre);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.bilan-chapitre > .bloc:first-of-type {
+  padding-top: var(--espace-5);
+  border-top: .1875rem solid var(--bilan-encre);
+}
+
+.bilan-chapitre > .bloc:not(:first-of-type) {
+  padding-top: var(--espace-7);
+  border-top: 1px solid var(--bilan-ligne);
+}
+
+.bilan-chapitre > .bloc h3 {
+  margin: 0;
+  color: var(--bilan-encre);
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+  font-weight: 700;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+
+.bilan-chapitre > .bloc:not(:first-of-type) h3 { font-size: var(--texte-xl); }
+
+.bilan-chapitre > .bloc h4 {
+  color: var(--encre-douce);
+  font-size: var(--texte-m);
+}
+
+.bilan-chapitre > .bloc p,
+.bilan-chapitre > .chapitre__pont {
+  max-width: 66ch;
+}
+
+.bilan-chapitre > .chapitre__pont {
+  margin: 0;
+  padding-top: var(--espace-5);
+  color: var(--encre-douce);
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  line-height: 1.4;
+  border-top: 1px solid var(--bilan-ligne);
+}
+
+/* Les cadres de données restent des preuves et non des cartes. Leur propre
+   défilement préserve la largeur de la feuille à tous les paliers. */
+.bilan-chapitre .pont,
+.bilan-chapitre .comparaison,
+.bilan-chapitre .fonctions,
+.bilan-chapitre .secu,
+.bilan-chapitre .niches,
+.bilan-chapitre .tableau-exercices {
   display: block;
   max-width: 100%;
   overflow-x: auto;
   overscroll-behavior-inline: contain;
+  background-image: none;
+  background-color: transparent;
 }
 
-.bilan-guide__section > .bloc .comparaison { width: max-content; min-width: 100%; }
+.bilan-chapitre .comparaison,
+.bilan-chapitre .fonctions,
+.bilan-chapitre .secu,
+.bilan-chapitre .niches { width: max-content; min-width: 100%; }
 
-.bilan-guide__fin {
-  max-width: 52rem;
-  margin: var(--espace-7) 0 0;
+.bilan-chapitre .repartition { max-width: 44rem; }
+
+.bilan-chapitre .avertissement,
+.bilan-chapitre .technique,
+.bilan-chapitre .formule {
+  color: var(--encre-douce);
+  font-size: var(--texte-s);
+}
+
+/* Une seule action conclut le document et reprend le bleu nuit du seuil. */
+.bilan-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--espace-6) var(--espace-8);
+  align-items: center;
+  margin-top: clamp(var(--espace-8), 5vw, 4.5rem);
+  padding: clamp(var(--espace-7), 4vw, 3.5rem) clamp(var(--espace-7), 5vw, 4.5rem);
+  color: var(--bilan-papier);
+  background: var(--bilan-encre);
+}
+
+.bilan-action h2 {
+  margin: 0;
+  color: inherit;
+  font-family: var(--serif);
+  font-size: var(--texte-3xl);
+  line-height: 1.05;
+}
+
+.bilan-action p {
+  grid-column: 1;
+  margin: var(--espace-3) 0 0;
+  color: #cad5e4;
+  font-size: var(--texte-m);
 }
 
 .bilan-guide__cta {
-  min-height: var(--cible);
+  grid-column: 2;
+  grid-row: 1 / span 2;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding-inline: var(--espace-4);
-  border: 1px solid var(--encre);
-  border-radius: var(--rayon-pilule);
-  color: var(--encre);
-  font-weight: 700;
+  min-height: var(--cible);
+  padding-inline: var(--espace-6);
+  color: var(--bilan-encre);
+  background: var(--bilan-papier);
+  border: 1px solid var(--bilan-papier);
+  border-radius: 0;
+  font-weight: 800;
+  text-align: center;
   text-decoration: none;
 }
 
 .bilan-guide__cta:hover,
 .bilan-guide__cta:focus-visible {
-  background: var(--encre);
-  color: var(--sur-encre);
+  color: var(--bilan-papier);
+  background: transparent;
+}
+
+@media (max-width: 60rem) {
+  /* La navigation garde le traitement sombre lorsqu'elle devient la barre de
+     pouce commune. Le contenu lui rend sa place via la règle globale `.vue`. */
+  body[data-vue="bilan"] .entete__nav {
+    background: var(--bilan-encre);
+    border-top-color: #2c4566;
+  }
+
+  body[data-vue="bilan"] .entete__nav a[aria-current="page"] {
+    color: var(--bilan-papier);
+    background: #223a5a;
+  }
 }
 
 @media (max-width: 40rem) {
-  #national { max-width: 100%; }
-  .bilan-guide__hero { margin-bottom: var(--espace-4); }
-  .bilan-verdict { grid-template-columns: 1fr; gap: var(--espace-2); }
-  .bilan-verdict h2 { max-width: none; }
-  .bilan-verdict__chiffres {
-    grid-column: 1;
-    grid-row: auto;
-    padding: var(--espace-4);
+  body[data-vue="bilan"] .entete {
+    min-height: var(--cible);
+    padding-inline: var(--gouttiere);
   }
-  .bilan-guide__nav { margin-bottom: var(--espace-6); }
-  .bilan-guide__nav a { flex: 1 1 auto; justify-content: center; }
-  .bilan-guide__section { padding-top: var(--espace-5); }
+
+  body[data-vue="bilan"] .sous-titre,
+  body[data-vue="bilan"] .entete__recherche { display: none; }
+
+  #vue-bilan {
+    padding: 0 0 calc(var(--haut-nav-basse) + var(--espace-7));
+  }
+
+  body[data-vue="bilan"] #national,
+  #vue-bilan #national {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+  }
+
+  .bilan-couverture__papier { padding: var(--espace-8) var(--gouttiere); }
+
+  .bilan-verdict {
+    grid-template-areas:
+      "editorial"
+      "totem"
+      "equation"
+      "secondary";
+    grid-template-columns: minmax(0,1fr);
+    gap: var(--espace-7);
+  }
+
+  .bilan-verdict h2 {
+    max-width: none;
+    font-size: clamp(2.5rem, 11vw, 3rem);
+  }
+
+  .bilan-verdict__totem { padding: var(--espace-7); }
+
+  .bilan-equation {
+    grid-template-columns: minmax(0,1fr);
+    gap: var(--espace-3);
+    padding-block: var(--espace-6);
+  }
+
+  .bilan-equation__signe {
+    justify-self: start;
+    margin-inline-start: var(--espace-6);
+  }
+
+  .bilan-verdict__secondaire { grid-template-columns: minmax(0,1fr); }
+
+  .bilan-portes {
+    grid-template-columns: 1fr;
+    gap: var(--espace-5);
+    margin-top: var(--espace-8);
+  }
+
+  .bilan-portes__lien { min-height: var(--cible); }
+
+  .bilan-chapitre {
+    grid-template-columns: minmax(0,1fr);
+    gap: var(--espace-6);
+    padding: var(--espace-8) var(--gouttiere) 0;
+  }
+
+  .bilan-chapitre + .bilan-chapitre { margin-top: var(--espace-8); }
+
+  .bilan-chapitre > [id^="conclusion-france-"],
+  .bilan-chapitre > .bloc,
+  .bilan-chapitre > .chapitre__pont { grid-column: 1; }
+
+  .bilan-chapitre > [id^="conclusion-france-"] { grid-row: auto; }
+
+  .bilan-chapitre__intro h2 { font-size: var(--texte-3xl); }
+
+  .bilan-action {
+    grid-template-columns: minmax(0,1fr);
+    margin-top: var(--espace-8);
+    padding: var(--espace-8) var(--gouttiere);
+  }
+
+  .bilan-action p,
+  .bilan-guide__cta { grid-column: 1; }
+
+  .bilan-guide__cta {
+    grid-row: auto;
+    width: 100%;
+    min-height: var(--cible);
+  }
 }

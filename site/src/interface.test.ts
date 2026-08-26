@@ -124,9 +124,20 @@ test("le bilan ouvre sur trois portes et garde l'analyse entièrement visible", 
   }
 });
 
-test("les introductions restent plates et le verdict tient sous 390 pixels", () => {
-  assert.match(BILAN_GUIDE, /\.bilan-guide__section > \[id\^="conclusion-france-"\] > \.ui-conclusion/);
-  assert.match(BILAN_GUIDE, /@media \(max-width: 40rem\)[\s\S]*?\.bilan-verdict__chiffres\s*\{[\s\S]*?grid-column: 1;/);
+test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
+  assert.match(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete/);
+  assert.match(BILAN_GUIDE, /#vue-bilan\s*\{[^}]*--bilan-encre/s);
+  assert.match(BILAN_GUIDE, /\.bilan-couverture__papier/);
+  assert.match(BILAN_GUIDE, /\.bilan-verdict\s*\{[^}]*grid-template-columns/s);
+  assert.match(
+    BILAN_GUIDE,
+    /\.bilan-equation\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\) auto minmax\(0,1fr\) auto minmax\(0,1fr\)/s,
+  );
+  assert.match(BILAN_GUIDE, /\.bilan-portes\s*\{[^}]*grid-template-columns:\s*repeat\(3/s);
+  assert.match(BILAN_GUIDE, /\.bilan-chapitre\s*\{[^}]*grid-template-columns/s);
+  assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*#national[\s\S]*padding:\s*0/);
+  assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*\.bilan-portes[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(BILAN_GUIDE, /min-height:\s*var\(--cible\)/);
 });
 
 test("le verdict n'a ni doublon ni concurrent, et conduit au simulateur", () => {
@@ -138,9 +149,6 @@ test("le verdict n'a ni doublon ni concurrent, et conduit au simulateur", () => 
   const europe = bilan.indexOf('id="bloc-europe"');
   const cta = bilan.indexOf('<a class="bilan-guide__cta" href="/simulateur">Passer au simulateur</a>');
   assert.ok(europe >= 0 && cta > europe, "le simulateur doit suivre l'analyse européenne");
-  assert.match(BILAN_GUIDE, /#national \{\s*max-width: 72rem;/);
-  assert.match(BILAN_GUIDE, /\.bilan-verdict \{[\s\S]*?grid-template-columns: minmax\(0, 1fr\) minmax\(18rem, \.75fr\);/);
-  assert.match(BILAN_GUIDE, /@media \(max-width: 40rem\)[\s\S]*?\.bilan-verdict\s*\{[^}]*grid-template-columns: 1fr;/);
 });
 
 test("les surcouches ne cachent pas la donnée qu'elles expliquent", () => {
