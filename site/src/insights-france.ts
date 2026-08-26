@@ -1,4 +1,5 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { insightsFranceGeneriques } from "./insights-france-generiques.ts";
 import {
   derniere,
   ecartRelatif,
@@ -355,5 +356,6 @@ export function insightsFrance(france: Territoire | undefined, catalogue: Indica
     insightChomageJeunes(france.series),
     insightPauvrete(france.series),
     insightDensiteCarcerale(france.series),
+    ...insightsFranceGeneriques(france.series, catalogue),
   ].filter((insight): insight is Insight => insight !== null);
 }

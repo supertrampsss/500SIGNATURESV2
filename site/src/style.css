@@ -209,6 +209,8 @@
      `top: 0` il passait derrière elle et les quatre compteurs disparaissaient
      au premier défilement. */
   --haut-entete: 3.6rem;
+  /* Les ancres doivent passer sous les deux rangées de l'en-tête mobile. */
+  --haut-ancre: 6rem;
   /* La barre basse de navigation, sur téléphone : deux fois son fourreau, la
      cible de ses liens, son filet. Tout ce qui se pose au-dessus d'elle s'en
      sert plutôt que de deviner. */
@@ -5047,6 +5049,7 @@ summary.pont__rangee,
   margin-top: var(--espace-8);
   padding-top: var(--espace-7);
   border-top: 2px solid var(--encre);
+  scroll-margin-top: var(--haut-ancre);
 }
 .insights__entete {
   max-width: 42rem;
@@ -5074,6 +5077,94 @@ summary.pont__rangee,
   font-size: var(--texte-m);
   line-height: 1.55;
 }
+.insights__sommaire,
+.national .insights__sommaire {
+  margin: 0 0 var(--espace-8);
+  padding: var(--espace-5) 0;
+  border-top: 1px solid var(--encre);
+  border-bottom: 1px solid var(--encre);
+  scroll-margin-top: var(--haut-ancre);
+}
+.insights__sommaire > p {
+  margin: 0 0 var(--espace-3);
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.insights__sommaire ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  background: var(--trait);
+  list-style: none;
+}
+.insights__sommaire a {
+  display: flex;
+  min-height: 4.5rem;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--espace-3);
+  padding: var(--espace-3);
+  color: var(--encre);
+  background: var(--papier);
+  font-size: var(--texte-s);
+  font-weight: 750;
+  line-height: 1.25;
+  text-decoration: none;
+}
+.insights__sommaire a:hover { background: var(--papier-creuse); }
+.insights__sommaire strong {
+  flex: 0 0 auto;
+  color: var(--argile);
+  font-family: var(--serif);
+  font-size: var(--texte-l);
+  font-variant-numeric: tabular-nums;
+}
+.insights__themes { counter-reset: insight; }
+.insights__theme,
+.national .insights__theme {
+  margin: 0 0 var(--espace-9);
+  scroll-margin-top: var(--haut-ancre);
+}
+.insights__theme-entete {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--espace-4);
+  padding: 0 0 var(--espace-4);
+  border-bottom: 3px solid var(--encre);
+}
+.insights__theme-entete p,
+.insights__theme-entete span {
+  margin: 0;
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+.insights__theme-entete h3 {
+  margin: 0;
+  font-family: var(--serif);
+  font-size: var(--texte-xxl);
+  line-height: 1.05;
+  text-wrap: balance;
+}
+.insights__theme .insights__grille { counter-reset: none; }
+.insights__retour {
+  display: inline-flex;
+  min-height: var(--cible);
+  align-items: center;
+  margin-top: var(--espace-3);
+  color: var(--encre-douce);
+  font-size: var(--texte-xs);
+  font-weight: 750;
+  text-underline-offset: .18em;
+}
 .insights__grille {
   display: grid;
   gap: 0;
@@ -5099,7 +5190,7 @@ summary.pont__rangee,
   font-variant-numeric: tabular-nums;
 }
 .insight article { min-width: 0; }
-.insight h3 {
+.insight :is(h3, h4) {
   margin: var(--espace-2) 0 0;
   font-family: var(--serif);
   font-size: var(--texte-xxl);
@@ -5155,7 +5246,9 @@ summary.pont__rangee,
 }
 .insights__methode a { color: var(--encre); font-weight: 800; text-underline-offset: .18em; }
 .insight__preuves summary:focus-visible,
-.insights__methode a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.insights__methode a:focus-visible,
+.insights__sommaire a:focus-visible,
+.insights__retour:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
 /* La bascule, sous l'identité du territoire et au-dessus de tout le reste. */
 .fiche .fiche__vitesses {
@@ -5232,9 +5325,19 @@ summary.pont__rangee,
   }
   .insights { margin-top: var(--espace-7); padding-top: var(--espace-6); }
   .insights__entete { margin-bottom: var(--espace-5); }
+  .insights__sommaire { margin-bottom: var(--espace-7); }
+  .insights__sommaire ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .insights__sommaire a { min-height: var(--cible); align-items: center; }
+  .insights__theme { margin-bottom: var(--espace-8); }
+  .insights__theme-entete {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--espace-2) var(--espace-3);
+  }
+  .insights__theme-entete p { grid-column: 1 / -1; }
+  .insights__theme-entete h3 { font-size: var(--texte-xl); }
   .insight { padding: var(--espace-5) 0 var(--espace-6) calc(var(--espace-6) + var(--espace-2)); }
   .insight::before { top: var(--espace-5); }
-  .insight h3 { font-size: var(--texte-xl); }
+  .insight :is(h3, h4) { font-size: var(--texte-xl); }
   .insight__preuves dl > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
   .insight__preuves dd { text-align: start; }
 }

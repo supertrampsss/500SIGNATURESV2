@@ -29,7 +29,7 @@ const france = (series: Territoire["series"]): Territoire => ({
   series,
 });
 
-test("insightsFrance produit douze angles sourcés sans mélanger les périodes", () => {
+test("insightsFrance produit les angles composés puis les missions disponibles", () => {
   const series = {
     depense_fiscale_totale: { "2025": 100 },
     depense_fiscale_impot_revenu: { "2025": 40 },
@@ -80,6 +80,8 @@ test("insightsFrance produit douze angles sourcés sans mélanger les périodes"
       "chomage-jeunes",
       "pauvrete",
       "densite-carcerale",
+      "mission-defense",
+      "mission-culture",
     ],
   );
   assert.equal(resultat[1].preuves[0].periode, "2024");
@@ -103,4 +105,13 @@ test("insightsFrance supprime seulement les angles dont les séries sont insuffi
   );
 
   assert.deepEqual(resultat, []);
+});
+
+test("insightsFrance ajoute le catalogue générique après les lectures composées", () => {
+  const resultat = insightsFrance(
+    france({ etat_charge_dette: { "2020": 40_000_000_000, "2025": 50_000_000_000 } }),
+    [indicateur("etat_charge_dette", "Charge de la dette de l'État")],
+  );
+
+  assert.deepEqual(resultat.map(({ id }) => id), ["charge-dette-etat"]);
 });

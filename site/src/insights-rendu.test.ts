@@ -51,3 +51,20 @@ test("renduInsights rend l'analyse, la preuve et la réserve sans HTML injecté"
 test("renduInsights ne peint pas une section vide", () => {
   assert.equal(renduInsights([], catalogue, { contexte: "france" }), "");
 });
+
+test("les arbitrages France sont tous visibles et regroupés dans un sommaire thématique", () => {
+  const fiscalite: Insight = { ...insight, id: "angle-fiscalite", famille: "fiscalite" };
+  const travail: Insight = { ...insight, id: "angle-travail", famille: "travail" };
+  const html = renduInsights([insight, fiscalite, travail], catalogue, { contexte: "france" });
+
+  assert.match(html, /3 arbitrages, 3 thèmes/);
+  assert.match(html, /href="#arbitrages-budget"/);
+  assert.match(html, /id="arbitrages-budget"/);
+  assert.match(html, /id="arbitrages-fiscalite"/);
+  assert.match(html, /id="arbitrages-travail"/);
+  assert.match(html, /Dette et budget/);
+  assert.match(html, /Fiscalité/);
+  assert.match(html, /Travail et entreprises/);
+  assert.equal((html.match(/class="insight insight--/g) ?? []).length, 3);
+  assert.doesNotMatch(html, /Afficher plus|Voir plus/);
+});
