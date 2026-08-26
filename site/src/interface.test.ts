@@ -169,6 +169,7 @@ test("France et Territoires partagent exactement le même chrome de navigation",
   for (const role of ["encre", "encre-douce", "papier", "papier-creuse", "trait", "trait-fort", "accent", "accent-teinte", "sur-encre", "dore"]) {
     assert.match(entete, new RegExp(`--${role}:\\s*var\\(--chrome-${role}\\)`));
   }
+  assert.match(entete, /color:\s*var\(--encre\)/);
   assert.doesNotMatch(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete(?:__nav|__recherche)?/);
   assert.match(NAVIGATION, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
 });

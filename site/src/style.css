@@ -530,6 +530,7 @@ body {
   --accent-teinte: var(--chrome-accent-teinte);
   --sur-encre: var(--chrome-sur-encre);
   --dore: var(--chrome-dore);
+  color: var(--encre);
   display: flex;
   align-items: center;
   gap: var(--espace-6);
