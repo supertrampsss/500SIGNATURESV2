@@ -81,6 +81,16 @@ test("le verdict éditorial montre son millésime, son solde et son calcul", () 
   assert.match(guide.verdict, /La France dépense 152,51 milliards d'euros de plus qu'elle n'encaisse/);
   assert.match(guide.verdict, /Solde public[\s\S]*−152,51 milliards d'euros/);
   assert.match(guide.verdict, /Recettes − Dépenses = Solde public/);
+  assert.match(guide.verdict, /class="bilan-verdict__editorial"/);
+  assert.match(guide.verdict, /class="bilan-verdict__totem"/);
+  assert.match(guide.verdict, /Le verdict en un chiffre/);
+  assert.equal((guide.verdict.match(/class="bilan-equation__terme(?: |")/g) ?? []).length, 3);
+  assert.match(guide.verdict, /class="bilan-equation__signe"[^>]*>−</);
+  assert.match(guide.verdict, /class="bilan-equation__signe"[^>]*>=</);
+  assert.match(guide.verdict, /à financer sur l'année/);
+  assert.match(guide.entrees, /data-numero="01"/);
+  assert.match(guide.sorties, /data-numero="02"/);
+  assert.match(guide.dette, /data-numero="03"/);
   assert.match(guide.verdict, /href="\/sources\/">Sources et méthode/);
   for (const html of Object.values(guide)) {
     assert.match(html, /class="ui-conclusion(?: |")/);
@@ -114,6 +124,19 @@ test("le verdict nomme un excédent sans le déguiser en dépense négative", ()
   assert.match(guide.verdict, /La France encaisse 200,00 milliards d'euros de plus qu'elle ne dépense/);
   assert.match(guide.verdict, /Solde public[\s\S]*200,00 milliards d'euros/);
   assert.doesNotMatch(guide.verdict, /dépense −200,00/);
+  assert.match(guide.verdict, /excédent sur l'année/);
+});
+
+test("le verdict qualifie des comptes à l'équilibre", () => {
+  const guide = renduConclusionsBilan({
+    FR: territoire({
+      eurostat_apu_recettes: { "2024": 1_000_000_000_000, "2025": 1_000_000_000_000 },
+      eurostat_apu_depenses: { "2024": 1_000_000_000_000, "2025": 1_000_000_000_000 },
+      eurostat_pib_montant: { "2024": 2_000_000_000_000, "2025": 2_100_000_000_000 },
+    }),
+  });
+
+  assert.match(guide.verdict, /comptes à l'équilibre/);
 });
 
 test("sans ouverture, le verdict attend une période partagée sans imposer de seuil chiffré", () => {

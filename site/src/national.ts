@@ -70,8 +70,14 @@ function preuveDe(indicateur: string, indexSources?: IndexSources): string {
   return `<p class="ui-conclusion__preuve"><a href="${id ? lienSource(id) : "/sources/"}">Sources et méthode</a></p>`;
 }
 
-function introduction(titre: string, analyse: string, source: string): string {
-  return `<div class="ui-conclusion">
+function introduction(
+  numero: "01" | "02" | "03",
+  titre: string,
+  analyse: string,
+  source: string,
+): string {
+  return `<div class="ui-conclusion bilan-chapitre__intro" data-numero="${numero}">
+    <p class="bilan-chapitre__surligne">Chapitre ${numero}</p>
     <h2>${titre}</h2>
     <p>${analyse}</p>
     ${source}
@@ -91,6 +97,7 @@ function renduVerdict(
         ? "insee_dette_apu_part_pib"
         : "eurostat_apu_recettes";
     return introduction(
+      "01",
       "Les comptes publics attendent leurs données publiées",
       "Le verdict s'écrira quand recettes, dépenses et produit intérieur brut partageront une période publiée.",
       preuveDe(indicateur, indexSources),
@@ -109,6 +116,11 @@ function renduVerdict(
     : solde > 0
       ? `Le solde public est de <strong>${montantLisible(solde)}</strong> en ${ouverture.fin} : cet excédent réduit le besoin de financement.`
       : `Le solde public est nul en ${ouverture.fin} : les recettes couvrent les dépenses.`;
+  const qualification = solde < 0
+    ? "à financer sur l'année"
+    : solde > 0
+      ? "excédent sur l'année"
+      : "comptes à l'équilibre";
   const trajectoire = [
     deficitPib
       ? `Le déficit représentait ${formater(deficitPib[1], "percent", false)} du PIB en ${deficitPib[0]}.`
@@ -121,18 +133,29 @@ function renduVerdict(
     .join(" ");
 
   return `<div class="ui-conclusion bilan-verdict">
-    <p class="bilan-verdict__millesime">Comptes publics français · ${ouverture.fin}</p>
-    <h2>${titre}</h2>
-    <p>${explicationSolde}</p>
-    <p class="bilan-verdict__equation">Recettes − Dépenses = Solde public</p>
-    <dl class="bilan-verdict__chiffres">
-      <div><dt>Recettes</dt><dd>${montantLisible(ouverture.recettes)}</dd></div>
-      <div><dt>Dépenses</dt><dd>${montantLisible(ouverture.depenses)}</dd></div>
-      <div><dt>Solde public</dt><dd>${montantLisible(solde)}</dd></div>
-    </dl>
-    <p>${equation.phrase}</p>
-    ${trajectoire ? `<p>${trajectoire}</p>` : ""}
-    ${preuveDe("eurostat_apu_depenses", indexSources)}
+    <div class="bilan-verdict__editorial">
+      <p class="bilan-verdict__millesime">Comptes publics français · ${ouverture.fin}</p>
+      <h2>${titre}</h2>
+      <p>${explicationSolde}</p>
+    </div>
+    <aside class="bilan-verdict__totem" aria-label="Verdict en un chiffre">
+      <p>Le verdict en un chiffre</p>
+      <strong>${montantLisible(solde)}</strong>
+      <p>${qualification}</p>
+    </aside>
+    <div class="bilan-equation" aria-label="Recettes moins dépenses égale solde public">
+      <p class="bilan-equation__legende">Recettes − Dépenses = Solde public</p>
+      <div class="bilan-equation__terme"><span>Recettes</span><strong>${montantLisible(ouverture.recettes)}</strong></div>
+      <span class="bilan-equation__signe" aria-hidden="true">−</span>
+      <div class="bilan-equation__terme"><span>Dépenses</span><strong>${montantLisible(ouverture.depenses)}</strong></div>
+      <span class="bilan-equation__signe" aria-hidden="true">=</span>
+      <div class="bilan-equation__terme bilan-equation__terme--resultat"><span>Solde public</span><strong>${montantLisible(solde)}</strong></div>
+    </div>
+    <div class="bilan-verdict__secondaire">
+      <p>${equation.phrase}</p>
+      ${trajectoire ? `<p>${trajectoire}</p>` : ""}
+      ${preuveDe("eurostat_apu_depenses", indexSources)}
+    </div>
   </div>`;
 }
 
@@ -157,9 +180,9 @@ export function renduConclusionsBilan(
 
   return {
     verdict: renduVerdict(ouverture, dettePib, deficitPib, indexSources),
-    entrees: introduction("D'où vient l'argent ?", analyseRecettes, preuveDe("eurostat_apu_recettes", indexSources)),
-    sorties: introduction("Où part-il ?", analyseDepenses, preuveDe("eurostat_apu_depenses", indexSources)),
-    dette: introduction("Pourquoi la dette monte-t-elle ?", analyseDette, preuveDe("insee_dette_apu_part_pib", indexSources)),
+    entrees: introduction("01", "D'où vient l'argent ?", analyseRecettes, preuveDe("eurostat_apu_recettes", indexSources)),
+    sorties: introduction("02", "Où part-il ?", analyseDepenses, preuveDe("eurostat_apu_depenses", indexSources)),
+    dette: introduction("03", "Pourquoi la dette monte-t-elle ?", analyseDette, preuveDe("insee_dette_apu_part_pib", indexSources)),
   };
 }
 
