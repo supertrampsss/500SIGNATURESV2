@@ -142,8 +142,19 @@ test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
   );
   assert.match(BILAN_GUIDE, /\.bilan-portes\s*\{[^}]*grid-template-columns:\s*repeat\(3/s);
   assert.match(BILAN_GUIDE, /\.bilan-chapitre\s*\{[^}]*grid-template-columns/s);
+  assert.match(BILAN_GUIDE, /\.bilan-chapitre__intro h2\s*\{[^}]*text-wrap:\s*balance/s);
+  assert.match(BILAN_GUIDE, /\.bilan-montant__valeur\s*\{[^}]*white-space:\s*nowrap/s);
+  assert.match(BILAN_GUIDE, /\.bilan-montant__unite\s*\{[^}]*display:\s*block/s);
+  assert.match(
+    BILAN_GUIDE,
+    /\.bilan-chapitre \.ouverture__piege[\s\S]*text-align:\s*justify[\s\S]*hyphens:\s*auto/,
+  );
   assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*#national[\s\S]*padding:\s*0/);
   assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*\.bilan-portes[\s\S]*grid-template-columns:\s*1fr/);
+  assert.match(
+    BILAN_GUIDE,
+    /@media \(max-width:\s*40rem\)[\s\S]*\.bilan-chapitre \.ouverture__piege[\s\S]*text-align:\s*left/,
+  );
   for (const selecteur of ["bilan-portes__lien", "bilan-guide__cta"]) {
     const bloc = BILAN_GUIDE.match(new RegExp(`\\.${selecteur}\\s*\\{([^}]*)\\}`));
     assert.ok(bloc, `bloc .${selecteur} introuvable`);

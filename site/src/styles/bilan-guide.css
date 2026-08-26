@@ -161,7 +161,8 @@ body[data-vue="bilan"] #national,
     "equation equation"
     "secondary secondary";
   grid-template-columns: minmax(0, 1.25fr) minmax(17rem, .75fr);
-  gap: var(--espace-8) clamp(var(--espace-7), 4vw, 3.5rem);
+  row-gap: clamp(var(--espace-6), 3vw, var(--espace-7));
+  column-gap: clamp(var(--espace-7), 4vw, 3.5rem);
   min-width: 0;
 }
 
@@ -186,10 +187,10 @@ body[data-vue="bilan"] #national,
   font-weight: 700;
   letter-spacing: -.035em;
   line-height: .98;
-  overflow-wrap: anywhere;
+  overflow-wrap: normal;
 }
 
-.bilan-verdict__editorial > p:not(.bilan-verdict__millesime) {
+.bilan-verdict--indisponible .bilan-verdict__editorial > p:not(.bilan-verdict__millesime) {
   max-width: 60ch;
   margin: var(--espace-7) 0 0;
   color: var(--encre-douce);
@@ -225,7 +226,7 @@ body[data-vue="bilan"] #national,
   text-transform: uppercase;
 }
 
-.bilan-verdict__totem strong {
+.bilan-verdict__totem .bilan-montant {
   display: block;
   margin-bottom: var(--espace-4);
   color: var(--bilan-encre);
@@ -234,7 +235,19 @@ body[data-vue="bilan"] #national,
   font-variant-numeric: tabular-nums;
   letter-spacing: -.04em;
   line-height: .95;
-  overflow-wrap: anywhere;
+}
+
+.bilan-montant__valeur {
+  display: block;
+  white-space: nowrap;
+}
+
+.bilan-montant__unite {
+  display: block;
+  margin-top: .18em;
+  font-size: .58em;
+  letter-spacing: -.015em;
+  line-height: 1.08;
 }
 
 .bilan-equation {
@@ -242,7 +255,7 @@ body[data-vue="bilan"] #national,
   display: grid;
   grid-area: equation;
   grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr);
-  gap: var(--espace-5);
+  gap: var(--espace-3);
   align-items: center;
   min-width: 0;
   padding-block: var(--espace-7);
@@ -266,16 +279,15 @@ body[data-vue="bilan"] #national,
   font-size: var(--texte-s);
 }
 
-.bilan-equation__terme strong {
+.bilan-equation__terme .bilan-montant {
   display: block;
   margin-top: var(--espace-2);
   color: var(--bilan-encre);
   font-family: var(--serif);
-  font-size: clamp(var(--texte-3xl), 2.6vw, 2.25rem);
+  font-size: clamp(1.75rem, 2.3vw, 2.1rem);
   font-variant-numeric: tabular-nums;
   letter-spacing: -.02em;
   line-height: 1.08;
-  overflow-wrap: anywhere;
 }
 
 .bilan-equation__terme--resultat strong { color: var(--bilan-accent); }
@@ -398,6 +410,7 @@ body[data-vue="bilan"] #national,
   font-weight: 700;
   letter-spacing: -.025em;
   line-height: 1.03;
+  text-wrap: balance;
 }
 
 .bilan-chapitre__intro > p:not(.bilan-chapitre__surligne):not(.ui-conclusion__preuve) {
@@ -457,6 +470,15 @@ body[data-vue="bilan"] #national,
 .bilan-chapitre > .bloc p,
 .bilan-chapitre > .chapitre__pont {
   max-width: 66ch;
+}
+
+.bilan-chapitre .ouverture__piege,
+.bilan-chapitre > .chapitre__pont,
+.bilan-chapitre > .bloc > p:not([class]) {
+  text-align: justify;
+  text-wrap: pretty;
+  hyphens: auto;
+  line-height: 1.45;
 }
 
 .bilan-chapitre > .chapitre__pont {
@@ -640,6 +662,13 @@ body[data-vue="bilan"] #national,
   .bilan-chapitre > [id^="conclusion-france-"] { grid-row: auto; }
 
   .bilan-chapitre__intro h2 { font-size: var(--texte-3xl); }
+
+  .bilan-chapitre .ouverture__piege,
+  .bilan-chapitre > .chapitre__pont,
+  .bilan-chapitre > .bloc > p:not([class]) {
+    text-align: left;
+    hyphens: manual;
+  }
 
   .bilan-action {
     grid-template-columns: minmax(0,1fr);

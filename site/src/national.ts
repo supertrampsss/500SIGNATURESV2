@@ -84,6 +84,19 @@ function introduction(
   </div>`;
 }
 
+/**
+ * Compose le montant sans laisser le navigateur couper son unité en plein mot.
+ * Le formateur commun garde la valeur éditoriale complète ; ce rendu ne fait
+ * que donner au chiffre et à l'unité deux lignes typographiques explicites.
+ */
+function montantCompose(valeur: number): string {
+  const lisible = montantLisible(valeur);
+  const separation = lisible.lastIndexOf("\u00a0");
+  const nombre = separation >= 0 ? lisible.slice(0, separation) : lisible;
+  const unite = separation >= 0 ? lisible.slice(separation + 1) : "";
+  return `<span class="bilan-montant__valeur">${nombre}</span>${unite ? ` <span class="bilan-montant__unite">${unite}</span>` : ""}`;
+}
+
 function renduVerdict(
   ouverture: Ouverture | null,
   dettePib: [string, number] | null,
@@ -114,11 +127,6 @@ function renduVerdict(
     : solde > 0
       ? `La France encaisse ${montantLisible(solde)} de plus qu'elle ne dépense`
       : "La France équilibre ses recettes et ses dépenses";
-  const explicationSolde = solde < 0
-    ? `Le solde public est de <strong>${montantLisible(solde)}</strong> en ${ouverture.fin} : cet écart doit être financé.`
-    : solde > 0
-      ? `Le solde public est de <strong>${montantLisible(solde)}</strong> en ${ouverture.fin} : cet excédent réduit le besoin de financement.`
-      : `Le solde public est nul en ${ouverture.fin} : les recettes couvrent les dépenses.`;
   const qualification = solde < 0
     ? "à financer sur l'année"
     : solde > 0
@@ -139,20 +147,19 @@ function renduVerdict(
     <div class="bilan-verdict__editorial">
       <p class="bilan-verdict__millesime">Comptes publics français · ${ouverture.fin}</p>
       <h2>${titre}</h2>
-      <p>${explicationSolde}</p>
     </div>
     <aside class="bilan-verdict__totem" aria-label="Verdict en un chiffre">
       <p>Le verdict en un chiffre</p>
-      <strong>${montantLisible(solde)}</strong>
+      <strong class="bilan-montant">${montantCompose(solde)}</strong>
       <p>${qualification}</p>
     </aside>
     <div class="bilan-equation" aria-label="Recettes moins dépenses égale solde public">
       <p class="bilan-equation__legende">Recettes − Dépenses = Solde public</p>
-      <div class="bilan-equation__terme"><span>Recettes</span><strong>${montantLisible(ouverture.recettes)}</strong></div>
+      <div class="bilan-equation__terme"><span>Recettes</span><strong class="bilan-montant">${montantCompose(ouverture.recettes)}</strong></div>
       <span class="bilan-equation__signe" aria-hidden="true">−</span>
-      <div class="bilan-equation__terme"><span>Dépenses</span><strong>${montantLisible(ouverture.depenses)}</strong></div>
+      <div class="bilan-equation__terme"><span>Dépenses</span><strong class="bilan-montant">${montantCompose(ouverture.depenses)}</strong></div>
       <span class="bilan-equation__signe" aria-hidden="true">=</span>
-      <div class="bilan-equation__terme bilan-equation__terme--resultat"><span>Solde public</span><strong>${montantLisible(solde)}</strong></div>
+      <div class="bilan-equation__terme bilan-equation__terme--resultat"><span>Solde public</span><strong class="bilan-montant">${montantCompose(solde)}</strong></div>
     </div>
     <div class="bilan-verdict__secondaire">
       <p>${equation.phrase}</p>
