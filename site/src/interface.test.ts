@@ -103,6 +103,10 @@ test("le bilan ouvre sur trois portes et garde l'analyse entièrement visible", 
   assert.match(bilan, /href="#france-entrees"/);
   assert.match(bilan, /href="#france-sorties"/);
   assert.match(bilan, /href="#france-dette"/);
+  assert.match(bilan, /<a class="bilan-portes__lien" href="#france-entrees">\s*<strong>D'où vient l'argent \?<\/strong>/);
+  assert.match(bilan, /<a class="bilan-portes__lien" href="#france-sorties">\s*<strong>Où part-il \?<\/strong>/);
+  assert.match(bilan, /<a class="bilan-portes__lien" href="#france-dette">\s*<strong>Pourquoi la dette monte \?<\/strong>/);
+  assert.doesNotMatch(bilan, /<strong>La dette et l'Europe<\/strong>/);
   assert.doesNotMatch(bilan, /href="#france-europe"/);
   assert.doesNotMatch(bilan, /bilan-guide__nav/);
   assert.doesNotMatch(bilan, /id="france-europe"/);

@@ -1383,6 +1383,10 @@ test("15. le bilan servi ouvre sur trois portes et trois chapitres", () => {
   assert.match(html, /href="#france-entrees"/);
   assert.match(html, /href="#france-sorties"/);
   assert.match(html, /href="#france-dette"/);
+  assert.match(html, /<a class="bilan-portes__lien" href="#france-entrees">\s*<strong>D'où vient l'argent \?<\/strong>/);
+  assert.match(html, /<a class="bilan-portes__lien" href="#france-sorties">\s*<strong>Où part-il \?<\/strong>/);
+  assert.match(html, /<a class="bilan-portes__lien" href="#france-dette">\s*<strong>Pourquoi la dette monte \?<\/strong>/);
+  assert.doesNotMatch(html, /<strong>La dette et l'Europe<\/strong>/);
   assert.doesNotMatch(html, /href="#france-europe"/);
   assert.doesNotMatch(html, /bilan-guide__nav/);
   assert.doesNotMatch(html, /id="france-europe"/);
