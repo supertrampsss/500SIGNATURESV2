@@ -162,26 +162,20 @@ test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
   }
 });
 
-test("le bilan abandonne sa double colonne avant que les textes deviennent étroits", () => {
-  // À 768 px, l'ancienne bascule à 40rem laissait encore le verdict en deux
-  // colonnes : le totem recouvrait le titre et l'introduction d'un chapitre
-  // ne disposait plus que de 154 px. Le palier tablette doit donc porter la
-  // composition à une colonne, indépendamment des resserrements du téléphone.
-  const tablette = BILAN_GUIDE.slice(
-    BILAN_GUIDE.indexOf("@media (max-width: 72rem)"),
-    BILAN_GUIDE.indexOf("@media (max-width: 60rem)"),
-  );
-  assert.ok(tablette.length > 0, "palier tablette du bilan introuvable");
-  assert.match(
-    tablette,
-    /\.bilan-verdict\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/s,
-    "le verdict reste superposé à 768 px",
-  );
-  assert.match(
-    tablette,
-    /\.bilan-chapitre\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/s,
-    "les chapitres gardent une colonne de texte trop étroite à 768 px",
-  );
+test("toutes les analyses du bilan utilisent la largeur de la feuille", () => {
+  // Les paragraphes d'analyse étaient doublement comprimés : le chapitre
+  // réservait une colonne latérale, puis la prose était plafonnée à 66ch.
+  // L'analyse doit occuper la piste complète à toutes les largeurs, pas
+  // seulement après un breakpoint responsive.
+  const chapitre = BILAN_GUIDE.match(/\.bilan-chapitre\s*\{([^}]*)\}/s)?.[1];
+  assert.ok(chapitre, "composition de chapitre introuvable");
+  assert.match(chapitre, /grid-template-columns:\s*minmax\(0,1fr\)/);
+
+  const prose = BILAN_GUIDE.match(
+    /\.bilan-chapitre > \.bloc p,\s*\.bilan-chapitre > \.chapitre__pont\s*\{([^}]*)\}/s,
+  )?.[1];
+  assert.ok(prose, "règle de largeur de la prose introuvable");
+  assert.match(prose, /max-width:\s*none/);
 });
 
 test("le verdict n'a ni doublon ni concurrent, et conduit au simulateur", () => {

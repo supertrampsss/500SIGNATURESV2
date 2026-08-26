@@ -380,13 +380,12 @@ body[data-vue="bilan"] #national,
   outline-offset: var(--espace-2);
 }
 
-/* Chaque chapitre fixe l'introduction dans une colonne calme. Les preuves
-   partagent l'autre colonne, où leur largeur reste disponible aux tableaux et
-   graphiques. */
+/* Chaque chapitre déroule introduction, analyse et preuves sur la même piste :
+   le récit et ses chiffres utilisent toute la largeur de la feuille. */
 .bilan-chapitre {
   display: grid;
-  grid-template-columns: minmax(0,.62fr) minmax(0,1.38fr);
-  gap: var(--espace-7) clamp(var(--espace-7), 4vw, 3.5rem);
+  grid-template-columns: minmax(0,1fr);
+  gap: var(--espace-7);
   padding: clamp(var(--espace-8), 5vw, 4.5rem) clamp(var(--espace-7), 5vw, 4.5rem) 0;
   scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
   border-top: 1px solid var(--bilan-ligne);
@@ -396,11 +395,11 @@ body[data-vue="bilan"] #national,
 
 .bilan-chapitre > * { min-width: 0; }
 
-.bilan-chapitre > [id^="conclusion-france-"] {
-  grid-column: 1;
-  grid-row: 1;
-  align-self: start;
-}
+.bilan-chapitre > [id^="conclusion-france-"],
+.bilan-chapitre > .bloc,
+.bilan-chapitre > .chapitre__pont { grid-column: 1; }
+
+.bilan-chapitre > [id^="conclusion-france-"] { align-self: start; }
 
 .bilan-chapitre__intro h2 {
   margin: 0;
@@ -423,10 +422,7 @@ body[data-vue="bilan"] #national,
 .bilan-chapitre__intro .ui-conclusion__preuve { margin-top: var(--espace-6); }
 
 .bilan-chapitre > .bloc,
-.bilan-chapitre > .chapitre__pont {
-  grid-column: 2;
-  min-width: 0;
-}
+.bilan-chapitre > .chapitre__pont { min-width: 0; }
 
 /* Les règles génériques de `.bloc` restent utiles hors bilan ; ici, aucun
    fond, rayon ou ombre ne doit redessiner une carte à l'intérieur du papier. */
@@ -469,7 +465,7 @@ body[data-vue="bilan"] #national,
 
 .bilan-chapitre > .bloc p,
 .bilan-chapitre > .chapitre__pont {
-  max-width: 66ch;
+  max-width: none;
 }
 
 .bilan-chapitre .ouverture__piege,
@@ -591,15 +587,6 @@ body[data-vue="bilan"] #national,
     width: min(32rem, 100%);
   }
 
-  .bilan-chapitre {
-    grid-template-columns: minmax(0,1fr);
-  }
-
-  .bilan-chapitre > [id^="conclusion-france-"],
-  .bilan-chapitre > .bloc,
-  .bilan-chapitre > .chapitre__pont { grid-column: 1; }
-
-  .bilan-chapitre > [id^="conclusion-france-"] { grid-row: auto; }
 }
 
 @media (max-width: 60rem) {
