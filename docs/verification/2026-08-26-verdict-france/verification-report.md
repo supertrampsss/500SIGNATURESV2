@@ -1,7 +1,7 @@
 # Vérification visuelle — Bilan France v2
 
 Date : 26 août 2026
-Révision contrôlée : `d68986f`
+Révision contrôlée : `a2f1a58`
 Contrat de référence : maquette **01 — « Le verdict d'abord »**, dans
 `.superpowers/brainstorm/1847-1787723803/content/10-directions-france.html`,
 et spécification v2
@@ -36,7 +36,7 @@ même grammaire visuelle avec les chiffres et sources réels.
 | Conclusion éditoriale à gauche | Le verdict « La France dépense 152,51 milliards d'euros de plus qu'elle n'en encaisse » ouvre le hero dans sa colonne éditoriale. | Conforme |
 | Chiffre-totem à droite, carte blanche et accent rouge | Le totem « Le verdict en un chiffre », bordé de rouge, présente le solde et sa qualification « à financer sur l'année ». | Conforme |
 | Équation lisible sur une ligne | Bureau : Recettes − Dépenses = Solde public est une équation horizontale complète, avec les signes visibles et le solde rouge. | Conforme |
-| Trois portes d'analyse sous le calcul | Trois portes — entrées, sorties, dette/Europe — suivent le hero ; aucune quatrième porte Europe n'est présente. | Conforme |
+| Trois portes d'analyse sous le calcul | Les libellés approuvés sont exactement « D'où vient l'argent ? », « Où part-il ? » et « Pourquoi la dette monte ? ». Europe est une preuve du troisième chapitre, jamais une porte. | Conforme |
 | Récit éditorial, pas tableau de bord | Les panneaux gris verticaux de chiffres et la navigation héritée à pilules ont disparu ; les filets, le papier et l'espace structurent la page. | Conforme |
 
 ## Mesures navigateur et parcours complet
@@ -47,14 +47,15 @@ même grammaire visuelle avec les chiffres et sources réels.
 | Hauteur document | 7 794 px | 10 239 px | Captures de page entière archivées |
 | Couverture / hero | Papier, hero en deux colonnes : éditorial à gauche et totem rouge à droite | Couverture dans la colonne utile, titre puis totem, sans chevauchement | Conforme |
 | Équation | Cinq éléments sur une rangée (trois termes et deux signes) | Étapes verticales avec signes conservés | Conforme |
-| Portes et chapitres | 3 portes, 3 chapitres | 3 portes empilées, 3 chapitres | Conforme |
-| Europe | Intégrée à la partie dette | Intégrée au troisième chapitre | Conforme |
+| Portes et chapitres | 3 portes : « D'où vient l'argent ? », « Où part-il ? », « Pourquoi la dette monte ? » ; 3 chapitres | Les mêmes 3 portes sont empilées ; 3 chapitres | Conforme |
+| Europe | Preuve intégrée à la partie dette, sans libellé de porte Europe | Preuve intégrée au troisième chapitre, sans libellé de porte Europe | Conforme |
 | Ancienne navigation / ancienne section Europe | — | `legacyNav = 0`, `#france-europe = 0` | Absentes |
 | Action finale | CTA après le troisième chapitre | CTA mesurée à 44 px de haut | Conforme |
 
-Le parcours desktop et mobile conserve ainsi trois chapitres seulement :
-« D'où vient l'argent ? », « Où part-il ? » et la dette, qui porte désormais la
-preuve européenne. La comparaison européenne ne constitue plus un écran ou une
+Le parcours desktop et mobile conserve ainsi trois chapitres seulement, ouverts
+par les portes « D'où vient l'argent ? », « Où part-il ? » et « Pourquoi la
+dette monte ? ». L'Europe reste une preuve dans le troisième chapitre : aucun
+libellé de porte ne mentionne Europe, qui ne constitue ni un écran ni une
 navigation autonome.
 
 ## Conclusion
