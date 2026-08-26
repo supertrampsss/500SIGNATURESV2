@@ -1,6 +1,6 @@
 # Vérification visuelle — verdict France
 
-Date : 26 août 2026  
+Date : 26 août 2026
 Correctif contrôlé : `1e5fbb2`
 
 ## Périmètre et méthode
