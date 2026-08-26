@@ -3,16 +3,16 @@ import { test } from "node:test";
 
 import { DESTINATIONS, intercepterNavigation, renduNavigation } from "./navigation.ts";
 
-test("la navigation expose les quatre destinations dans l'ordre convenu", () => {
+test("la navigation expose les trois destinations utiles sans lien Accueil", () => {
   assert.deepEqual(
     DESTINATIONS.map(({ cle, href, libelle }) => ({ cle, href, libelle })),
     [
-      { cle: "accueil", href: "/", libelle: "Accueil" },
       { cle: "france", href: "/bilan", libelle: "France" },
       { cle: "territoires", href: "/territoire", libelle: "Territoires" },
       { cle: "simuler", href: "/simulateur", libelle: "Simuler" },
     ],
   );
+  assert.doesNotMatch(renduNavigation("/", true), /Accueil|data-vue="accueil"/);
 });
 
 test("France est la destination courante sur le chemin historique du bilan", () => {

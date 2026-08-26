@@ -1,11 +1,10 @@
 export type Destination = {
-  cle: "accueil" | "france" | "territoires" | "simuler";
+  cle: "france" | "territoires" | "simuler";
   href: string;
   libelle: string;
 };
 
 export const DESTINATIONS: readonly Destination[] = [
-  { cle: "accueil", href: "/", libelle: "Accueil" },
   { cle: "france", href: "/bilan", libelle: "France" },
   { cle: "territoires", href: "/territoire", libelle: "Territoires" },
   { cle: "simuler", href: "/simulateur", libelle: "Simuler" },

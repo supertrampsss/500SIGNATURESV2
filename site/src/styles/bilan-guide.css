@@ -42,78 +42,6 @@ body[data-vue="bilan"] {
   background: var(--bilan-fond);
 }
 
-/* Le chrome devient le seuil sombre du dossier : la recherche demeure
-   disponible, mais n'entre plus en concurrence avec le verdict. */
-body[data-vue="bilan"] .entete {
-  min-height: var(--haut-entete);
-  gap: var(--espace-5);
-  padding-block: var(--espace-3);
-  color: var(--bilan-papier);
-  background: var(--bilan-encre);
-  border-bottom-color: #2c4566;
-}
-
-body[data-vue="bilan"] .entete h1 {
-  color: inherit;
-  font-size: var(--texte-xl);
-}
-
-body[data-vue="bilan"] .sous-titre {
-  color: #cad5e4;
-  font-size: var(--texte-xs);
-}
-
-body[data-vue="bilan"] .entete__recherche {
-  flex-basis: 16rem;
-  max-width: 21rem;
-}
-
-body[data-vue="bilan"] .recherche input[type="search"] {
-  min-height: var(--cible);
-  color: var(--bilan-papier);
-  background: rgb(255 255 255 / .08);
-  border-color: #5b6f8a;
-  font-size: var(--texte-s);
-}
-
-body[data-vue="bilan"] .recherche input[type="search"]::placeholder {
-  color: #cad5e4;
-  opacity: 1;
-}
-
-body[data-vue="bilan"] .recherche::before { border-color: #cad5e4; }
-body[data-vue="bilan"] .recherche::after { background: #cad5e4; }
-
-body[data-vue="bilan"] .recherche input[type="search"]:hover,
-body[data-vue="bilan"] .recherche input[type="search"]:focus-visible {
-  color: var(--bilan-encre);
-  background: var(--bilan-papier);
-  border-color: var(--bilan-papier);
-}
-
-body[data-vue="bilan"] .entete__nav { gap: 0; }
-
-body[data-vue="bilan"] .entete__nav a {
-  min-height: var(--cible);
-  display: inline-flex;
-  align-items: center;
-  color: #dbe5f1;
-  border-radius: 0;
-}
-
-body[data-vue="bilan"] .entete__nav a:hover,
-body[data-vue="bilan"] .entete__nav a:focus-visible,
-body[data-vue="bilan"] .entete__nav a[aria-current="page"] {
-  color: var(--bilan-papier);
-  background: #223a5a;
-}
-
-body[data-vue="bilan"] .bascule-theme {
-  color: var(--bilan-papier);
-  background: transparent;
-  border-color: #5b6f8a;
-}
-
 body[data-vue="bilan"] #contenu { max-width: none; }
 
 #vue-bilan {
@@ -589,29 +517,7 @@ body[data-vue="bilan"] #national,
 
 }
 
-@media (max-width: 60rem) {
-  /* La navigation garde le traitement sombre lorsqu'elle devient la barre de
-     pouce commune. Le contenu lui rend sa place via la règle globale `.vue`. */
-  body[data-vue="bilan"] .entete__nav {
-    background: var(--bilan-encre);
-    border-top-color: #2c4566;
-  }
-
-  body[data-vue="bilan"] .entete__nav a[aria-current="page"] {
-    color: var(--bilan-papier);
-    background: #223a5a;
-  }
-}
-
 @media (max-width: 40rem) {
-  body[data-vue="bilan"] .entete {
-    min-height: var(--cible);
-    padding-inline: var(--gouttiere);
-  }
-
-  body[data-vue="bilan"] .sous-titre,
-  body[data-vue="bilan"] .entete__recherche { display: none; }
-
   #vue-bilan {
     padding: 0 0 calc(var(--haut-nav-basse) + var(--espace-7));
   }

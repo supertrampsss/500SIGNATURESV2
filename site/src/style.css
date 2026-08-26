@@ -123,6 +123,20 @@
      #b69b53 il tombait à 2,69:1 sur blanc — invisible là où il compte. */
   --dore: #96793a;
   --alerte: #ad5438;
+  /* Le chrome est une surface commune, indépendante de la direction visuelle
+     de chaque page. France redéfinit les rôles génériques pour son dossier
+     éditorial ; ces valeurs dédiées empêchent cette palette de remonter dans
+     l'en-tête et garantissent le même header sur toutes les destinations. */
+  --chrome-encre: #0f1b2e;
+  --chrome-encre-douce: #626f66;
+  --chrome-papier: #ffffff;
+  --chrome-papier-creuse: #f2f1ec;
+  --chrome-trait: #e3e1d8;
+  --chrome-trait-fort: #c7cbc8;
+  --chrome-accent: #0f1b2e;
+  --chrome-accent-teinte: rgb(15 27 46 / 0.06);
+  --chrome-sur-encre: #ffffff;
+  --chrome-dore: #96793a;
   /* ─────────────────────────────────────────────────────────────────────
      TEINTE DE SÉRIE — mesurée, pas choisie à l'œil
      ─────────────────────────────────────────────────────────────────────
@@ -294,6 +308,16 @@
     --argile: #e08a68;
     --dore: #d4b268;
     --alerte: #e08a68;
+    --chrome-encre: #eceae2;
+    --chrome-encre-douce: #a2ada4;
+    --chrome-papier: #131d2f;
+    --chrome-papier-creuse: #1a2438;
+    --chrome-trait: #263047;
+    --chrome-trait-fort: #3a465f;
+    --chrome-accent: #eceae2;
+    --chrome-accent-teinte: rgb(236 234 226 / 0.1);
+    --chrome-sur-encre: #0d1524;
+    --chrome-dore: #d4b268;
     --ombre-1: 0 1px 0 rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.3);
     --ombre-2: 0 8px 24px rgb(0 0 0 / 0.45);
   }
@@ -317,6 +341,16 @@
   --argile: #e08a68;
   --dore: #d4b268;
   --alerte: #e08a68;
+  --chrome-encre: #eceae2;
+  --chrome-encre-douce: #a2ada4;
+  --chrome-papier: #131d2f;
+  --chrome-papier-creuse: #1a2438;
+  --chrome-trait: #263047;
+  --chrome-trait-fort: #3a465f;
+  --chrome-accent: #eceae2;
+  --chrome-accent-teinte: rgb(236 234 226 / 0.1);
+  --chrome-sur-encre: #0d1524;
+  --chrome-dore: #d4b268;
   --ombre-1: 0 1px 0 rgb(0 0 0 / 0.3), 0 1px 2px rgb(0 0 0 / 0.3);
   --ombre-2: 0 8px 24px rgb(0 0 0 / 0.45);
 }
@@ -486,6 +520,16 @@ body {
    navigation descend en barre de pouce (voir plus bas) : l'en-tête garde le
    nom et la recherche, et cesse d'empiler trois rangées défilantes. */
 .entete {
+  --encre: var(--chrome-encre);
+  --encre-douce: var(--chrome-encre-douce);
+  --papier: var(--chrome-papier);
+  --papier-creuse: var(--chrome-papier-creuse);
+  --trait: var(--chrome-trait);
+  --trait-fort: var(--chrome-trait-fort);
+  --accent: var(--chrome-accent);
+  --accent-teinte: var(--chrome-accent-teinte);
+  --sur-encre: var(--chrome-sur-encre);
+  --dore: var(--chrome-dore);
   display: flex;
   align-items: center;
   gap: var(--espace-6);
@@ -1269,7 +1313,7 @@ tbody tr:hover {
      ==========================================================================
      Elle défilait horizontalement dans l'en-tête, coupée à droite : la
      dernière entrée n'existait que pour qui pensait à pousser la barre du
-     doigt. Cinq destinations tiennent en barre basse, toutes visibles, toutes
+     doigt. Trois destinations tiennent en barre basse, toutes visibles, toutes
      à portée de pouce — et l'en-tête retrouve une seule rangée pour ce qui
      compte, le nom du site et la recherche. */
   .entete {
@@ -1368,7 +1412,7 @@ tbody tr:hover {
     font-size: var(--texte-l);
   }
   /* La barre de navigation ne défile plus dans son cadre : depuis 60rem elle
-     est en bas d'écran, en grille de colonnes égales, et cinq entrées y
+     est en bas d'écran, en grille de colonnes égales, et trois entrées y
      tiennent sans être coupées. Il ne reste qu'à serrer le texte. */
   .entete__nav {
     font-size: var(--texte-xs);

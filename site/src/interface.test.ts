@@ -33,6 +33,7 @@ const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").rep
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const CSS = readFileSync(new URL("./style.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const BILAN_GUIDE = readFileSync(new URL("./styles/bilan-guide.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const NAVIGATION = readFileSync(new URL("./styles/navigation.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const DOSSIERS_VERIFICATION = readFileSync(new URL("./styles/dossiers-verification.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -132,7 +133,7 @@ test("le bilan ouvre sur trois portes et garde l'analyse entièrement visible", 
 });
 
 test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
-  assert.match(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete/);
+  assert.doesNotMatch(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete/);
   assert.match(BILAN_GUIDE, /#vue-bilan\s*\{[^}]*--bilan-encre/s);
   assert.match(BILAN_GUIDE, /\.bilan-couverture__papier/);
   assert.match(BILAN_GUIDE, /\.bilan-verdict\s*\{[^}]*grid-template-columns/s);
@@ -160,6 +161,16 @@ test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
     assert.ok(bloc, `bloc .${selecteur} introuvable`);
     assert.match(bloc[1], /min-height:\s*var\(--cible\)/, `.${selecteur} perd sa cible tactile`);
   }
+});
+
+test("France et Territoires partagent exactement le même chrome de navigation", () => {
+  const entete = CSS.match(/\.entete\s*\{([^}]*)\}/s)?.[1];
+  assert.ok(entete, "règle commune de l'en-tête introuvable");
+  for (const role of ["encre", "encre-douce", "papier", "papier-creuse", "trait", "trait-fort", "accent", "accent-teinte", "sur-encre", "dore"]) {
+    assert.match(entete, new RegExp(`--${role}:\\s*var\\(--chrome-${role}\\)`));
+  }
+  assert.doesNotMatch(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete(?:__nav|__recherche)?/);
+  assert.match(NAVIGATION, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
 });
 
 test("toutes les analyses du bilan utilisent la largeur de la feuille", () => {
