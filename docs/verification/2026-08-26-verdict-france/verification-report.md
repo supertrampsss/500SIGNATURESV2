@@ -1,7 +1,7 @@
 # Vérification visuelle — Bilan France v2
 
 Date : 26 août 2026
-Révision contrôlée : `a2f1a58`
+Révision contrôlée : `fccd8d7`
 Contrat de référence : maquette **01 — « Le verdict d'abord »**, dans
 `.superpowers/brainstorm/1847-1787723803/content/10-directions-france.html`,
 et spécification v2
@@ -15,8 +15,8 @@ la comparaison du premier écran avec la maquette 01.
 
 | Vue | Capture | Dimensions du fichier |
 | --- | --- | --- |
-| Bilan, bureau, page entière | [bilan-desktop-1440x900.jpg](bilan-desktop-1440x900.jpg) | 1 429 × 7 793 px |
-| Bilan, mobile, page entière | [bilan-mobile-390x844.jpg](bilan-mobile-390x844.jpg) | 380 × 10 239 px |
+| Bilan, bureau, page entière | [bilan-desktop-1440x900.jpg](bilan-desktop-1440x900.jpg) | 1 429 × 7 680 px |
+| Bilan, mobile, page entière | [bilan-mobile-390x844.jpg](bilan-mobile-390x844.jpg) | 380 × 10 218 px |
 | Bilan, bureau, hero | [bilan-hero-desktop-1440x900.jpg](bilan-hero-desktop-1440x900.jpg) | 1 430 × 894 px |
 | Bilan, mobile, hero | [bilan-hero-mobile-390x844.jpg](bilan-hero-mobile-390x844.jpg) | 380 × 822 px |
 
@@ -36,6 +36,8 @@ même grammaire visuelle avec les chiffres et sources réels.
 | Conclusion éditoriale à gauche | Le verdict « La France dépense 152,51 milliards d'euros de plus qu'elle n'en encaisse » ouvre le hero dans sa colonne éditoriale. | Conforme |
 | Chiffre-totem à droite, carte blanche et accent rouge | Le totem « Le verdict en un chiffre », bordé de rouge, présente le solde et sa qualification « à financer sur l'année ». | Conforme |
 | Équation lisible sur une ligne | Bureau : Recettes − Dépenses = Solde public est une équation horizontale complète, avec les signes visibles et le solde rouge. | Conforme |
+| Montants sans césure arbitraire | Les quatre montants du hero séparent la valeur, insécable, de l'unité complète « milliards d'euros » ; aucun mot n'est coupé arbitrairement. | Conforme |
+| Aucun sous-titre redondant | La phrase qui répétait le solde sous le verdict a été retirée (`summary = 0`). | Conforme |
 | Trois portes d'analyse sous le calcul | Les libellés approuvés sont exactement « D'où vient l'argent ? », « Où part-il ? » et « Pourquoi la dette monte ? ». Europe est une preuve du troisième chapitre, jamais une porte. | Conforme |
 | Récit éditorial, pas tableau de bord | Les panneaux gris verticaux de chiffres et la navigation héritée à pilules ont disparu ; les filets, le papier et l'espace structurent la page. | Conforme |
 
@@ -43,10 +45,11 @@ même grammaire visuelle avec les chiffres et sources réels.
 
 | Vérification | Bureau 1 440 × 900 | Mobile 390 × 844 | Résultat |
 | --- | --- | --- | --- |
-| Largeur de page | `innerWidth = 1440`, `clientWidth = scrollWidth = 1430` | `innerWidth = 390`, `clientWidth = scrollWidth = 380` | Aucun débordement horizontal |
-| Hauteur document | 7 794 px | 10 239 px | Captures de page entière archivées |
+| Largeur de page | `innerWidth = clientWidth = scrollWidth = 1440` | `innerWidth = clientWidth = scrollWidth = 390` | Aucun débordement horizontal |
+| Hauteur document | 7 649 px | 10 015 px | Captures de page entière archivées |
 | Couverture / hero | Papier, hero en deux colonnes : éditorial à gauche et totem rouge à droite | Couverture dans la colonne utile, titre puis totem, sans chevauchement | Conforme |
 | Équation | Cinq éléments sur une rangée (trois termes et deux signes) | Étapes verticales avec signes conservés | Conforme |
+| Paragraphes d'analyse | Justification, césure française et interligne 1,45 sur les textes longs | Alignement à gauche rétabli pour préserver la lecture étroite | Conforme |
 | Portes et chapitres | 3 portes : « D'où vient l'argent ? », « Où part-il ? », « Pourquoi la dette monte ? » ; 3 chapitres | Les mêmes 3 portes sont empilées ; 3 chapitres | Conforme |
 | Europe | Preuve intégrée à la partie dette, sans libellé de porte Europe | Preuve intégrée au troisième chapitre, sans libellé de porte Europe | Conforme |
 | Ancienne navigation / ancienne section Europe | — | `legacyNav = 0`, `#france-europe = 0` | Absentes |
@@ -63,6 +66,8 @@ navigation autonome.
 La comparaison visuelle du premier écran, complétée par les captures intégrales
 et les mesures de DOM, confirme le contrat v2 de la maquette 01 sur `/bilan` :
 couverture éditoriale papier, header bleu nuit, conclusion et totem, équation,
-trois portes et flux de lecture à trois chapitres. Les vérifications de suite de
+trois portes et flux de lecture à trois chapitres. La passe typographique finale
+supprime la répétition du solde, empêche les montants de se casser et améliore
+la densité ainsi que la justification des analyses. Les vérifications de suite de
 tests, build et intégrité Git sont consignées dans le rapport d'exécution de la
 tâche.
