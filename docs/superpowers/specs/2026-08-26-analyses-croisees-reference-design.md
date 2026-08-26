@@ -67,14 +67,20 @@ peut pas être défendu.
 
 ### France
 
-`site/src/insights-france.ts` compose au maximum six constats :
+`site/src/insights-france.ts` compose douze constats :
 
 - montant et composition des dépenses fiscales ;
 - missions dont l'exécution s'écarte le plus du vote ;
 - évolution du rapport cotisants/retraité ;
 - écart de pension entre femmes et hommes ;
 - évolution récente des défaillances d'entreprises ;
-- effet mesuré de la redistribution sur l'inégalité.
+- effet mesuré de la redistribution sur l'inégalité ;
+- évolution de la charge d'intérêts depuis 2021 ;
+- trajectoire des prélèvements obligatoires en part de PIB ;
+- progression du taux d'emploi ;
+- chômage des jeunes comparé au taux d'ensemble ;
+- taux et nombre de personnes sous le seuil de pauvreté ;
+- évolution de la densité carcérale et du nombre de détenus.
 
 Les constats sont placés dans une quatrième section du bilan : **Les arbitrages
 derrière les comptes**. Ils complètent les trois chapitres comptables par des
@@ -82,20 +88,21 @@ angles de débat, sans dupliquer leurs chiffres.
 
 ### Territoires
 
-`site/src/insights-territoire.ts` choisit au maximum cinq constats parmi les
+`site/src/insights-territoire.ts` choisit au maximum neuf constats parmi les
 données réellement disponibles :
 
-- fiscalité contre évolution du revenu ;
-- emploi et chômage ;
-- tension du logement ;
-- évolution d'un indicateur de sécurité homogène ;
-- consommation d'énergie ou d'espace ;
-- densité d'équipements et services ;
-- trajectoire financière quand elle apporte un fait non déjà dit par la fiche.
+- évolution du taux de taxe foncière ;
+- part des chômeurs dans la population active recensée ;
+- part des logements vacants ;
+- évolution du taux de cambriolages ;
+- trajectoire de consommation électrique ;
+- évolution du parc de logements ;
+- part de passoires thermiques dans le parc social étiqueté ;
+- trajectoire de consommation de gaz ;
+- vols de véhicules rapportés à la population.
 
-Un sélecteur privilégie la profondeur temporelle, la récence et la diversité des
-familles. Deux constats de sécurité ne peuvent pas évincer le logement ou
-l'emploi.
+La liste est ordonnée pour alterner fiscalité, travail, logement, sécurité et
+énergie. Chaque constat absent ou incompatible est retiré isolément.
 
 ### Rendu
 
@@ -106,7 +113,7 @@ de cartes éditoriales à largeur de lecture bornée. Chaque carte contient :
 2. verdict ;
 3. explication ;
 4. chiffres de preuve ;
-5. réserve courte si nécessaire.
+5. réserve courte si nécessaire, sans libellé introductif répétitif.
 
 Sur mobile, les cartes forment une colonne sans carrousel horizontal. Les
 preuves restent visibles ; aucun contenu essentiel ne dépend d'un survol.

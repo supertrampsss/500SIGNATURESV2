@@ -30,7 +30,7 @@ function carte(insight: Insight, catalogue: Indicateur[]): string {
       <p class="insight__surtitre">${echapper(insight.surtitre)}</p>
       <h3>${echapper(insight.titre)}</h3>
       <p class="insight__analyse">${echapper(insight.texte)}</p>
-      <p class="insight__reserve"><span>À garder en tête</span> ${echapper(insight.reserve)}</p>
+      <p class="insight__reserve">${echapper(insight.reserve)}</p>
       <details class="insight__preuves">
         <summary>Vérifier les chiffres</summary>
         <dl>${preuves}</dl>
@@ -50,8 +50,8 @@ export function renduInsights(
     ? "Les arbitrages derrière les comptes"
     : `Ce que racontent les chiffres de ${options.nom ?? "ce territoire"}`;
   const introduction = estFrance
-    ? "Six faits pour déplacer le débat : ce que l'impôt ne rapporte pas, ce que le vote ne dépense pas toujours, et ce que les moyennes nationales dissimulent."
-    : "Fiscalité, emploi, logement, sécurité, énergie : les séries sont croisées pour faire apparaître une trajectoire, pas seulement une valeur isolée.";
+    ? "Douze faits pour déplacer le débat : ce que l'impôt ne rapporte pas, ce que la dette absorbe, et ce que les moyennes nationales dissimulent."
+    : "Fiscalité, emploi, habitat, sécurité, énergie : les séries sont croisées pour faire apparaître une trajectoire, pas seulement une valeur isolée.";
 
   return `<section class="insights insights--${options.contexte}" aria-labelledby="insights-${options.contexte}-titre">
     <header class="insights__entete">

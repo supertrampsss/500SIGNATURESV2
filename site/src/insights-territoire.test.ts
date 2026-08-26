@@ -29,6 +29,11 @@ const catalogue = [
   indicateur("insee_logements_vacants", "count"),
   indicateur("ssmsi_cambriolages_taux", "pour_1000_logements"),
   indicateur("ore_conso_electricite", "mwh"),
+  indicateur("insee_logements", "count"),
+  indicateur("rpls_logements_sociaux_etiquetes", "count"),
+  indicateur("rpls_logements_sociaux_passoires", "count"),
+  indicateur("ore_conso_gaz", "mwh"),
+  indicateur("ssmsi_vols_vehicules_taux", "pour_1000_habitants"),
 ];
 
 const territoire = (series: Territoire["series"]): Territoire => ({
@@ -39,7 +44,7 @@ const territoire = (series: Territoire["series"]): Territoire => ({
   series,
 });
 
-test("insightsTerritoire produit cinq lectures normalisées et distinctes", () => {
+test("insightsTerritoire produit neuf lectures normalisées", () => {
   const resultat = insightsTerritoire(
     territoire({
       dgfip_taux_tfb_global: { "2022": 20, "2025": 24 },
@@ -49,17 +54,34 @@ test("insightsTerritoire produit cinq lectures normalisées et distinctes", () =
       insee_logements_vacants: { "2018": 3_000, "2023": 5_200 },
       ssmsi_cambriolages_taux: { "2019": 10, "2025": 6 },
       ore_conso_electricite: { "2019": 1_000_000, "2024": 800_000 },
+      rpls_logements_sociaux_etiquetes: { "2025": 10_000 },
+      rpls_logements_sociaux_passoires: { "2025": 800 },
+      ore_conso_gaz: { "2018": 900_000, "2024": 600_000 },
+      ssmsi_vols_vehicules_taux: { "2016": 4, "2025": 2 },
     }),
     catalogue,
   );
 
   assert.deepEqual(
     resultat.map(({ id }) => id),
-    ["foncier", "chomage", "logements-vacants", "cambriolages", "electricite"],
+    [
+      "foncier",
+      "chomage",
+      "logements-vacants",
+      "cambriolages",
+      "electricite",
+      "parc-logements",
+      "passoires-sociales",
+      "gaz",
+      "vols-vehicules",
+    ],
   );
-  assert.equal(new Set(resultat.map(({ famille }) => famille)).size, 5);
   assert.match(resultat[0].texte, /4 points/);
   assert.match(resultat[1].titre, /8/);
+  assert.match(resultat[5].titre, /8,3 %/);
+  assert.match(resultat[6].titre, /8 %/);
+  assert.match(resultat[7].titre, /33,3 %/);
+  assert.match(resultat[8].titre, /2 vols/);
   assert.equal(resultat.every(({ preuves }) => preuves.length >= 2), true);
 });
 

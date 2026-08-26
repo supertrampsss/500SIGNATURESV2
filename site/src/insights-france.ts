@@ -1,5 +1,6 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
 import {
+  derniere,
   ecartRelatif,
   periodeCommune,
   variation,
@@ -208,6 +209,137 @@ function insightRedistribution(series: Series): Insight | null {
   };
 }
 
+function insightInteretsDette(series: Series): Insight | null {
+  const id = "eurostat_apu_interets";
+  const depart = series[id]?.["2021"];
+  const arrivee = derniere(series[id]);
+  if (!(depart > 0) || !arrivee || arrivee.periode === "2021") return null;
+  const hausse = ecartRelatif(depart, arrivee.valeur);
+  if (hausse === null) return null;
+  return {
+    id: "interets-dette",
+    famille: "budget",
+    surtitre: "Dette · la dépense qui ne finance aucun service",
+    titre: `${montant(arrivee.valeur)} d'intérêts en ${arrivee.periode}`,
+    texte: `La charge d'intérêts des administrations publiques a augmenté de ${pourcentage(hausse)} depuis 2021. Ce montant rémunère la dette passée avant de financer une politique publique nouvelle.`,
+    reserve: "La charge varie avec les taux, l'inflation, l'encours et le calendrier de refinancement.",
+    preuves: [
+      preuve(id, "2021", depart, "Intérêts en 2021"),
+      preuve(id, arrivee.periode, arrivee.valeur, "Derniers intérêts publiés"),
+    ],
+  };
+}
+
+function insightPrelevements(series: Series): Insight | null {
+  const id = "eurostat_prelevements_obligatoires_pib";
+  const depart = series[id]?.["2017"];
+  const arrivee = derniere(series[id]);
+  if (!(depart > 0) || !arrivee || arrivee.periode === "2017") return null;
+  const points = arrivee.valeur - depart;
+  const direction = points >= 0 ? "augmenté" : "reculé";
+  return {
+    id: "prelevements-obligatoires",
+    famille: "fiscalite",
+    surtitre: "Fiscalité · le taux et le montant ne racontent pas la même chose",
+    titre: `${nombre.format(arrivee.valeur)} % du PIB en prélèvements obligatoires`,
+    texte: `Le ratio a ${direction} de ${nombre.format(Math.abs(points))} points depuis 2017. Une baisse de part dans le PIB ne signifie pas nécessairement que chaque contribuable paie moins en euros.`,
+    reserve: "Le ratio agrège impôts et cotisations de l'ensemble des administrations publiques.",
+    preuves: [
+      preuve(id, "2017", depart, "Ratio en 2017"),
+      preuve(id, arrivee.periode, arrivee.valeur, "Dernier ratio publié"),
+    ],
+  };
+}
+
+function insightTauxEmploi(series: Series): Insight | null {
+  const id = "eurostat_taux_emploi";
+  const evolution = variation(series[id]);
+  if (!evolution || evolution.arrivee < 0) return null;
+  const points = evolution.arrivee - evolution.depart;
+  const direction = points >= 0 ? "progressé" : "reculé";
+  return {
+    id: "taux-emploi",
+    famille: "travail",
+    surtitre: "Emploi · le mouvement de fond",
+    titre: `${nombre.format(evolution.arrivee)} % des 20-64 ans en emploi`,
+    texte: `Le taux harmonisé a ${direction} de ${nombre.format(Math.abs(points))} points entre ${evolution.de} et ${evolution.a}. Il mesure la part en emploi, pas la qualité ni la durée des contrats.`,
+    reserve: "Étudiants, inactifs et personnes hors emploi ne sont pas tous comptés comme chômeurs.",
+    preuves: [
+      preuve(id, evolution.de, evolution.depart, "Taux initial"),
+      preuve(id, evolution.a, evolution.arrivee, "Dernier taux publié"),
+    ],
+  };
+}
+
+function insightChomageJeunes(series: Series): Insight | null {
+  const jeunesId = "eurostat_chomage_jeunes";
+  const ensembleId = "eurostat_chomage";
+  const periode = periodeCommune([series[jeunesId], series[ensembleId]]);
+  if (!periode) return null;
+  const jeunes = series[jeunesId][periode];
+  const ensemble = series[ensembleId][periode];
+  if (!(jeunes >= 0) || !(ensemble > 0)) return null;
+  const multiple = jeunes / ensemble;
+  return {
+    id: "chomage-jeunes",
+    famille: "travail",
+    surtitre: "Emploi · la moyenne masque l'âge",
+    titre: `Le chômage des jeunes est ${ratio.format(multiple)} fois plus élevé`,
+    texte: `En ${periode}, le taux harmonisé atteint ${nombre.format(jeunes)} % chez les 15-24 ans, contre ${nombre.format(ensemble)} % pour l'ensemble de la population active.`,
+    reserve: "Le taux porte sur les jeunes actifs, pas sur l'ensemble des 15-24 ans, dont beaucoup étudient.",
+    preuves: [
+      preuve(jeunesId, periode, jeunes, "Chômage des 15-24 ans"),
+      preuve(ensembleId, periode, ensemble, "Chômage de l'ensemble"),
+    ],
+  };
+}
+
+function insightPauvrete(series: Series): Insight | null {
+  const tauxId = "insee_taux_pauvrete_60";
+  const personnesId = "insee_personnes_pauvres_60";
+  const periode = periodeCommune([series[tauxId], series[personnesId]]);
+  if (!periode) return null;
+  const taux = series[tauxId][periode];
+  const personnes = series[personnesId][periode];
+  if (!(taux >= 0) || !(personnes >= 0)) return null;
+  return {
+    id: "pauvrete",
+    famille: "services",
+    surtitre: "Niveaux de vie · ce que la moyenne nationale efface",
+    titre: `${nombre.format(personnes / 1_000_000)} millions de personnes sous le seuil de pauvreté`,
+    texte: `En ${periode}, ${nombre.format(taux)} % de la population vit avec moins de 60 % du niveau de vie médian. Le nombre et le taux décrivent deux faces du même phénomène.`,
+    reserve: "Le seuil est relatif au niveau de vie médian : il évolue avec la distribution des revenus.",
+    preuves: [
+      preuve(personnesId, periode, personnes, "Personnes sous le seuil"),
+      preuve(tauxId, periode, taux, "Taux de pauvreté"),
+    ],
+  };
+}
+
+function insightDensiteCarcerale(series: Series): Insight | null {
+  const densiteId = "justice_densite_carcerale";
+  const detenusId = "justice_personnes_detenues";
+  const evolution = variation(series[densiteId]);
+  if (!evolution) return null;
+  const debutDetenus = series[detenusId]?.[evolution.de];
+  const finDetenus = series[detenusId]?.[evolution.a];
+  if (!(debutDetenus >= 0) || !(finDetenus >= 0)) return null;
+  return {
+    id: "densite-carcerale",
+    famille: "securite",
+    surtitre: "Justice · la capacité derrière la dépense",
+    titre: `${nombre.format(evolution.arrivee)} détenus pour 100 places`,
+    texte: `La population détenue est passée de ${nombre.format(debutDetenus)} à ${nombre.format(finDetenus)} personnes entre ${periodeLisible(evolution.de)} et ${periodeLisible(evolution.a)} ; la densité a gagné ${nombre.format(evolution.arrivee - evolution.depart)} points.`,
+    reserve: "La densité nationale agrège des établissements et quartiers dont les situations diffèrent fortement.",
+    preuves: [
+      preuve(densiteId, evolution.de, evolution.depart, "Densité initiale"),
+      preuve(densiteId, evolution.a, evolution.arrivee, "Dernière densité"),
+      preuve(detenusId, evolution.de, debutDetenus, "Détenus au départ"),
+      preuve(detenusId, evolution.a, finDetenus, "Détenus à l'arrivée"),
+    ],
+  };
+}
+
 export function insightsFrance(france: Territoire | undefined, catalogue: Indicateur[]): Insight[] {
   if (!france) return [];
   return [
@@ -217,5 +349,11 @@ export function insightsFrance(france: Territoire | undefined, catalogue: Indica
     insightPensions(france.series),
     insightDefaillances(france.series),
     insightRedistribution(france.series),
+    insightInteretsDette(france.series),
+    insightPrelevements(france.series),
+    insightTauxEmploi(france.series),
+    insightChomageJeunes(france.series),
+    insightPauvrete(france.series),
+    insightDensiteCarcerale(france.series),
   ].filter((insight): insight is Insight => insight !== null);
 }

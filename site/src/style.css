@@ -5121,7 +5121,6 @@ summary.pont__rangee,
   font-size: var(--texte-xs);
   line-height: 1.5;
 }
-.insight__reserve span { color: var(--encre); font-weight: 800; }
 .insight__preuves { margin-top: var(--espace-3); color: var(--encre-douce); font-size: var(--texte-xs); }
 .insight__preuves summary {
   display: inline-flex;

@@ -44,6 +44,7 @@ test("renduInsights rend l'analyse, la preuve et la réserve sans HTML injecté"
   assert.match(html, /2025/);
   assert.match(html, /12,5/);
   assert.match(html, /La limite est explicite/);
+  assert.doesNotMatch(html, /À garder en tête/);
   assert.match(html, /href="\/sources\/"/);
 });
 

@@ -158,6 +158,93 @@ function insightElectricite(series: Series, catalogue: Indicateur[]): Insight | 
   };
 }
 
+function insightParcLogements(series: Series, catalogue: Indicateur[]): Insight | null {
+  const id = "insee_logements";
+  if (!unite(catalogue, id, "count")) return null;
+  const evolution = variation(series[id]);
+  if (!evolution || evolution.arrivee < 0) return null;
+  const direction = evolution.delta >= 0 ? "agrandi" : "réduit";
+  return {
+    id: "parc-logements",
+    famille: "logement",
+    surtitre: "Habitat · le stock avant les promesses",
+    titre: `Le parc de logements s'est ${direction} de ${pct(evolution.pourcentage)}`,
+    texte: `Le recensement compte ${nombre.format(evolution.arrivee)} logements en ${evolution.a}, contre ${nombre.format(evolution.depart)} en ${evolution.de}.`,
+    reserve: "Une hausse du parc ne dit ni où sont les logements, ni leur prix, ni leur occupation.",
+    preuves: [
+      preuve(id, evolution.de, evolution.depart, "Parc initial"),
+      preuve(id, evolution.a, evolution.arrivee, "Dernier parc publié"),
+    ],
+  };
+}
+
+function insightPassoiresSociales(series: Series, catalogue: Indicateur[]): Insight | null {
+  const etiquetesId = "rpls_logements_sociaux_etiquetes";
+  const passoiresId = "rpls_logements_sociaux_passoires";
+  if (!unite(catalogue, etiquetesId, "count") || !unite(catalogue, passoiresId, "count")) return null;
+  const periode = Object.keys(series[etiquetesId] ?? {})
+    .filter((annee) => Number.isFinite(series[etiquetesId][annee]) && Number.isFinite(series[passoiresId]?.[annee]))
+    .sort((a, b) => a.localeCompare(b))
+    .at(-1);
+  if (!periode) return null;
+  const etiquetes = series[etiquetesId][periode];
+  const passoires = series[passoiresId][periode];
+  if (!(etiquetes > 0) || passoires < 0 || passoires > etiquetes) return null;
+  const part = (passoires / etiquetes) * 100;
+  return {
+    id: "passoires-sociales",
+    famille: "logement",
+    surtitre: "Logement social · la rénovation à accomplir",
+    titre: `${pct(part)} du parc social étiqueté est classé F ou G`,
+    texte: `En ${periode}, ${nombre.format(passoires)} logements sociaux très mal isolés sont recensés parmi ${nombre.format(etiquetes)} logements disposant d'une étiquette énergie.`,
+    reserve: "Le ratio ne couvre que les logements sociaux dont l'étiquette énergétique est connue.",
+    preuves: [
+      preuve(passoiresId, periode, passoires, "Passoires thermiques"),
+      preuve(etiquetesId, periode, etiquetes, "Logements étiquetés"),
+    ],
+  };
+}
+
+function insightGaz(series: Series, catalogue: Indicateur[]): Insight | null {
+  const id = "ore_conso_gaz";
+  if (!unite(catalogue, id, "mwh")) return null;
+  const evolution = variation(series[id]);
+  if (!evolution || evolution.arrivee < 0) return null;
+  const direction = evolution.delta >= 0 ? "augmenté" : "diminué";
+  return {
+    id: "gaz",
+    famille: "environnement",
+    surtitre: "Énergie · la dépendance au gaz en mouvement",
+    titre: `La consommation de gaz a ${direction} de ${pct(evolution.pourcentage)}`,
+    texte: `Le territoire est passé de ${nombre.format(evolution.depart)} à ${nombre.format(evolution.arrivee)} MWh entre ${evolution.de} et ${evolution.a}.`,
+    reserve: "La météo, l'activité, les rénovations et les changements d'énergie influencent cette série.",
+    preuves: [
+      preuve(id, evolution.de, evolution.depart, "Consommation initiale"),
+      preuve(id, evolution.a, evolution.arrivee, "Dernière consommation"),
+    ],
+  };
+}
+
+function insightVolsVehicules(series: Series, catalogue: Indicateur[]): Insight | null {
+  const id = "ssmsi_vols_vehicules_taux";
+  if (!unite(catalogue, id, "pour_1000_habitants")) return null;
+  const evolution = variation(series[id]);
+  if (!evolution || evolution.arrivee < 0) return null;
+  const direction = evolution.delta >= 0 ? "augmenté" : "reculé";
+  return {
+    id: "vols-vehicules",
+    famille: "securite",
+    surtitre: "Sécurité · le risque rapporté à la population",
+    titre: `${nombre.format(evolution.arrivee)} vols de véhicules pour 1 000 habitants`,
+    texte: `Le taux enregistré a ${direction} de ${pct(evolution.pourcentage)} entre ${evolution.de} et ${evolution.a}.`,
+    reserve: "Les faits enregistrés dépendent aussi du dépôt de plainte et des pratiques d'enregistrement.",
+    preuves: [
+      preuve(id, evolution.de, evolution.depart, "Taux initial"),
+      preuve(id, evolution.a, evolution.arrivee, "Dernier taux"),
+    ],
+  };
+}
+
 export function insightsTerritoire(territoire: Territoire, catalogue: Indicateur[]): Insight[] {
   return [
     insightFoncier(territoire.series, catalogue),
@@ -165,5 +252,9 @@ export function insightsTerritoire(territoire: Territoire, catalogue: Indicateur
     insightVacance(territoire.series, catalogue),
     insightCambriolages(territoire.series, catalogue),
     insightElectricite(territoire.series, catalogue),
-  ].filter((insight): insight is Insight => insight !== null).slice(0, 5);
+    insightParcLogements(territoire.series, catalogue),
+    insightPassoiresSociales(territoire.series, catalogue),
+    insightGaz(territoire.series, catalogue),
+    insightVolsVehicules(territoire.series, catalogue),
+  ].filter((insight): insight is Insight => insight !== null).slice(0, 9);
 }
