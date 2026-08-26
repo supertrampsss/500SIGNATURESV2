@@ -233,9 +233,13 @@ Expected: TypeScript, Vite et pré-rendu terminent avec le code 0 ; `dist/bilan/
 
 Servir `dist`, ouvrir `/bilan`, comparer visuellement au mockup 01 et vérifier à 1440 × 900 : verdict en premier, calcul visible, chapitres ouverts, historique et Europe lisibles, aucune méthode dans le flux.
 
+Preuve durable : [rapport de vérification visuelle](../../verification/2026-08-26-verdict-france/verification-report.md#bilan--desktop-1440--900).
+
 - [x] **Step 4: Verify mobile rendering**
 
 Vérifier `/bilan`, `/sources/` et une URL `/territoire?...` à 390 × 844 : aucun débordement horizontal, aucun texte tronqué, sources accessibles, briefing absent et actions tactiles.
+
+Preuve durable : [rapport de vérification visuelle](../../verification/2026-08-26-verdict-france/verification-report.md#mobile--sources--territoire-390--844).
 
 - [x] **Step 5: Update documentation and commit**
 
