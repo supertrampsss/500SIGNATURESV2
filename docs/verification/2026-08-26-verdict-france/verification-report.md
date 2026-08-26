@@ -1,56 +1,67 @@
-# Vérification visuelle — verdict France
+# Vérification visuelle — Bilan France v2
 
 Date : 26 août 2026
-Correctif contrôlé : `2813b45`
+Révision contrôlée : `d68986f`
+Contrat de référence : maquette **01 — « Le verdict d'abord »**, dans
+`.superpowers/brainstorm/1847-1787723803/content/10-directions-france.html`,
+et spécification v2
+`docs/superpowers/specs/2026-08-26-bilan-france-visual-overhaul-v2-design.md`.
 
-## Périmètre et méthode
+## Périmètre et captures
 
-Le pilote a rechargé la version corrigée après la revue finale. Les captures
-ci-dessous sont les preuves pérennes de la revue visuelle. Les métriques de DOM
-consignées dans la matrice complètent les zones qui ne tiennent pas dans le haut
-d'une capture mobile.
+Les captures viennent du rendu de production de `/bilan`. Les deux captures de
+page entière vérifient le parcours complet ; les deux captures de hero isolent
+la comparaison du premier écran avec la maquette 01.
 
-| Vue | Capture |
-| --- | --- |
-| Bilan, bureau, page entière | [bilan-desktop-1440x900.jpg](bilan-desktop-1440x900.jpg) |
-| Bilan, mobile, page entière | [bilan-mobile-390x844.jpg](bilan-mobile-390x844.jpg) |
-| Sources et méthode, mobile, haut de page | [sources-mobile-top-390x844.jpg](sources-mobile-top-390x844.jpg) |
-| Territoire Paris, mobile, haut de page | [territoire-paris-mobile-top-390x844.jpg](territoire-paris-mobile-top-390x844.jpg) |
-
-## Bilan — desktop 1440 × 900
-
-Métriques relevées : `clientWidth = scrollWidth = 1440 px`, hauteur de document
-`6959 px`. Le héros commence à `84 px`; les chapitres Entrées, Sorties, Dette et
-Europe commencent respectivement à `656`, `1827`, `5211` et `6344 px`.
-`methodText = false`.
-
-| Critère | Preuve | Résultat |
+| Vue | Capture | Dimensions du fichier |
 | --- | --- | --- |
-| Verdict d'abord | Le héros en deux colonnes ouvre la page avec « La France dépense 152,51 milliards d'euros de plus qu'elle n'encaisse ». | Validé |
-| Calcul visible | L'équation « Recettes − Dépenses = Solde public » et les trois montants sont immédiatement sous le verdict. | Validé |
-| Sections ouvertes | Navigation et chapitre « D'où vient l'argent ? » suivent le héros; les chapitres suivants sont présents dans la page entière. | Validé |
-| Historique lisible | La table visible couvre les exercices `2000` à `2025` (26 exercices) pour dépenses, recettes et solde ; la narration conserve explicitement sa comparaison `2017`–`2025`. | Validé |
-| Europe lisible et sourcée | Le comparatif « La France et ses voisins » est visible à `6344 px`, avec les pays et agrégats européens. Ses trois liens mènent aux fiches `/sources/#eurostat-gov-10a-exp-1ltka7k`, `/sources/#eurostat-gov-10a-taxag-1f0o6e2` et `/sources/#eurostat-gov-10dd-edpt1-45pd0a`. | Validé |
-| Aucune méthode dans le flux | `methodText = false`; aucun bloc méthodologique n'apparaît dans le bilan. | Validé |
-| CTA Bilan | « Passer au simulateur » est visible, avec destination `/simulateur`. | Validé |
+| Bilan, bureau, page entière | [bilan-desktop-1440x900.jpg](bilan-desktop-1440x900.jpg) | 1 429 × 7 793 px |
+| Bilan, mobile, page entière | [bilan-mobile-390x844.jpg](bilan-mobile-390x844.jpg) | 380 × 10 239 px |
+| Bilan, bureau, hero | [bilan-hero-desktop-1440x900.jpg](bilan-hero-desktop-1440x900.jpg) | 1 430 × 894 px |
+| Bilan, mobile, hero | [bilan-hero-mobile-390x844.jpg](bilan-hero-mobile-390x844.jpg) | 380 × 822 px |
 
-## Mobile — sources — territoire 390 × 844
+La différence entre les viewports demandés (1 440 et 390 px) et les largeurs
+des captures correspond à la barre de défilement du navigateur : les métriques
+ci-dessous portent donc sur la largeur utile réellement rendue.
 
-| Critère | Preuve | Résultat |
+## Comparaison maquette 01 → rendu réel
+
+La maquette 01 est appliquée comme **contrat de composition** : elle ne demande
+pas la copie de ses données fictives, mais la même hiérarchie de lecture et la
+même grammaire visuelle avec les chiffres et sources réels.
+
+| Contrat de la maquette 01 | Rendu réel v2 | Résultat |
 | --- | --- | --- |
-| Bilan sans débordement | `/bilan` a `clientWidth = scrollWidth = 390 px`; le héros mesure `358 × 482,5 px`, en une colonne. | Validé |
-| Bilan lisible | L'historique (`358 × 457,8 px`) et l'Europe (`358 × 712,3 px`) restent dans le flux; les tableaux plus larges ont leurs conteneurs défilants. Les trois liens de sources Europe sont présents. | Validé |
-| CTA Bilan à 44 px | « Passer au simulateur » mesure `44 px` de haut. | Validé |
-| Sources sans débordement | `/sources/` a `clientWidth = scrollWidth = 380 px`. | Validé |
-| Sources accessible | Un unique `<main>` est présent. L'outline est « Sources et méthode » (H1), puis « Les sources », « La méthode » et « La grille de verdicts » (H2), suivis de leurs intertitres (H3). | Validé |
-| Territoire Paris sans débordement | `/territoire?...territoire=75056` a `clientWidth = scrollWidth = 380 px`. | Validé |
-| Briefing territoire absent | Le briefing est absent (`0`). | Validé |
-| Fiche Paris présente | La fiche Paris est présente. | Validé |
-| Cinq thèmes et carte accessibles | Budget, Fiscalité, Dette, Services, Trajectoire et « Voir sur la carte » sont présents; chacun mesure `44 px` de haut. | Validé |
+| Chrome bleu nuit compact au-dessus d'une couverture distincte | L'en-tête Bilan est bleu nuit et la couverture est une grande surface papier chaude sur un fond froid. | Conforme |
+| Conclusion éditoriale à gauche | Le verdict « La France dépense 152,51 milliards d'euros de plus qu'elle n'en encaisse » ouvre le hero dans sa colonne éditoriale. | Conforme |
+| Chiffre-totem à droite, carte blanche et accent rouge | Le totem « Le verdict en un chiffre », bordé de rouge, présente le solde et sa qualification « à financer sur l'année ». | Conforme |
+| Équation lisible sur une ligne | Bureau : Recettes − Dépenses = Solde public est une équation horizontale complète, avec les signes visibles et le solde rouge. | Conforme |
+| Trois portes d'analyse sous le calcul | Trois portes — entrées, sorties, dette/Europe — suivent le hero ; aucune quatrième porte Europe n'est présente. | Conforme |
+| Récit éditorial, pas tableau de bord | Les panneaux gris verticaux de chiffres et la navigation héritée à pilules ont disparu ; les filets, le papier et l'espace structurent la page. | Conforme |
+
+## Mesures navigateur et parcours complet
+
+| Vérification | Bureau 1 440 × 900 | Mobile 390 × 844 | Résultat |
+| --- | --- | --- | --- |
+| Largeur de page | `innerWidth = 1440`, `clientWidth = scrollWidth = 1430` | `innerWidth = 390`, `clientWidth = scrollWidth = 380` | Aucun débordement horizontal |
+| Hauteur document | 7 794 px | 10 239 px | Captures de page entière archivées |
+| Couverture / hero | Papier, hero en deux colonnes : éditorial à gauche et totem rouge à droite | Couverture dans la colonne utile, titre puis totem, sans chevauchement | Conforme |
+| Équation | Cinq éléments sur une rangée (trois termes et deux signes) | Étapes verticales avec signes conservés | Conforme |
+| Portes et chapitres | 3 portes, 3 chapitres | 3 portes empilées, 3 chapitres | Conforme |
+| Europe | Intégrée à la partie dette | Intégrée au troisième chapitre | Conforme |
+| Ancienne navigation / ancienne section Europe | — | `legacyNav = 0`, `#france-europe = 0` | Absentes |
+| Action finale | CTA après le troisième chapitre | CTA mesurée à 44 px de haut | Conforme |
+
+Le parcours desktop et mobile conserve ainsi trois chapitres seulement :
+« D'où vient l'argent ? », « Où part-il ? » et la dette, qui porte désormais la
+preuve européenne. La comparaison européenne ne constitue plus un écran ou une
+navigation autonome.
 
 ## Conclusion
 
-Les contrôles exigés aux étapes 3 et 4 du plan sont couverts par les captures
-ci-dessus et leurs métriques associées. La revue porte explicitement sur le
-correctif `2813b45`, y compris l'historique étendu, les liens Europe vers les
-fiches Eurostat et la hiérarchie de titres de la page Sources.
+La comparaison visuelle du premier écran, complétée par les captures intégrales
+et les mesures de DOM, confirme le contrat v2 de la maquette 01 sur `/bilan` :
+couverture éditoriale papier, header bleu nuit, conclusion et totem, équation,
+trois portes et flux de lecture à trois chapitres. Les vérifications de suite de
+tests, build et intégrité Git sont consignées dans le rapport d'exécution de la
+tâche.
