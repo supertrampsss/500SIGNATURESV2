@@ -102,6 +102,27 @@ test("le bilan France relie un chiffre à sa fiche de registre", () => {
   assert.match(guide.verdict, /Sources et méthode/);
 });
 
+test("le verdict nomme un excédent sans le déguiser en dépense négative", () => {
+  const guide = renduConclusionsBilan({
+    FR: territoire({
+      eurostat_apu_recettes: { "2024": 1_000_000_000_000, "2025": 1_200_000_000_000 },
+      eurostat_apu_depenses: { "2024": 1_060_000_000_000, "2025": 1_000_000_000_000 },
+      eurostat_pib_montant: { "2024": 2_000_000_000_000, "2025": 2_100_000_000_000 },
+    }),
+  });
+
+  assert.match(guide.verdict, /La France encaisse 200,00 milliards d'euros de plus qu'elle ne dépense/);
+  assert.match(guide.verdict, /Solde public[\s\S]*200,00 milliards d'euros/);
+  assert.doesNotMatch(guide.verdict, /dépense −200,00/);
+});
+
+test("sans ouverture, le verdict attend une période partagée sans imposer de seuil chiffré", () => {
+  const guide = renduConclusionsBilan({ FR: territoire({ eurostat_deficit_pib: { "2025": -5.8 } }) });
+
+  assert.match(guide.verdict, /partageront une période publiée/);
+  assert.doesNotMatch(guide.verdict, /(?:\d+|deux) exercices/);
+});
+
 /* -------------------------------------------------------------------------
  * Le bloc DETTE
  * ---------------------------------------------------------------------- */

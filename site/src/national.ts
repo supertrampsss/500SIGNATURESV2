@@ -92,12 +92,23 @@ function renduVerdict(
         : "eurostat_apu_recettes";
     return introduction(
       "Les comptes publics attendent leurs données publiées",
-      "Le verdict s'écrira quand recettes, dépenses et produit intérieur brut couvriront au moins deux exercices communs.",
+      "Le verdict s'écrira quand recettes, dépenses et produit intérieur brut partageront une période publiée.",
       preuveDe(indicateur, indexSources),
     );
   }
 
   const equation = equationFrance(ouverture.recettes, ouverture.depenses);
+  const solde = -ouverture.emprunte;
+  const titre = solde < 0
+    ? `La France dépense ${montantLisible(-solde)} de plus qu'elle n'encaisse`
+    : solde > 0
+      ? `La France encaisse ${montantLisible(solde)} de plus qu'elle ne dépense`
+      : "La France équilibre ses recettes et ses dépenses";
+  const explicationSolde = solde < 0
+    ? `Le solde public est de <strong>${montantLisible(solde)}</strong> en ${ouverture.fin} : cet écart doit être financé.`
+    : solde > 0
+      ? `Le solde public est de <strong>${montantLisible(solde)}</strong> en ${ouverture.fin} : cet excédent réduit le besoin de financement.`
+      : `Le solde public est nul en ${ouverture.fin} : les recettes couvrent les dépenses.`;
   const trajectoire = [
     deficitPib
       ? `Le déficit représentait ${formater(deficitPib[1], "percent", false)} du PIB en ${deficitPib[0]}.`
@@ -111,13 +122,13 @@ function renduVerdict(
 
   return `<div class="ui-conclusion bilan-verdict">
     <p class="bilan-verdict__millesime">Comptes publics français · ${ouverture.fin}</p>
-    <h2>La France dépense ${montantLisible(ouverture.emprunte)} de plus qu'elle n'encaisse</h2>
-    <p>Le solde public est de <strong>${montantLisible(-ouverture.emprunte)}</strong> en ${ouverture.fin} : cet écart doit être financé.</p>
+    <h2>${titre}</h2>
+    <p>${explicationSolde}</p>
     <p class="bilan-verdict__equation">Recettes − Dépenses = Solde public</p>
     <dl class="bilan-verdict__chiffres">
       <div><dt>Recettes</dt><dd>${montantLisible(ouverture.recettes)}</dd></div>
       <div><dt>Dépenses</dt><dd>${montantLisible(ouverture.depenses)}</dd></div>
-      <div><dt>Solde public</dt><dd>${montantLisible(-ouverture.emprunte)}</dd></div>
+      <div><dt>Solde public</dt><dd>${montantLisible(solde)}</dd></div>
     </dl>
     <p>${equation.phrase}</p>
     ${trajectoire ? `<p>${trajectoire}</p>` : ""}
