@@ -229,11 +229,11 @@ Run: `npm run build`
 
 Expected: TypeScript, Vite et pré-rendu terminent avec le code 0 ; `dist/bilan/index.html` et `dist/sources/index.html` existent.
 
-- [ ] **Step 3: Verify desktop rendering**
+- [x] **Step 3: Verify desktop rendering**
 
 Servir `dist`, ouvrir `/bilan`, comparer visuellement au mockup 01 et vérifier à 1440 × 900 : verdict en premier, calcul visible, chapitres ouverts, historique et Europe lisibles, aucune méthode dans le flux.
 
-- [ ] **Step 4: Verify mobile rendering**
+- [x] **Step 4: Verify mobile rendering**
 
 Vérifier `/bilan`, `/sources/` et une URL `/territoire?...` à 390 × 844 : aucun débordement horizontal, aucun texte tronqué, sources accessibles, briefing absent et actions tactiles.
 
