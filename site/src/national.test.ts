@@ -63,11 +63,11 @@ const PAYS: Record<string, Territoire> = {
   EA20: territoire({ eurostat_dette_pib: { "2024": 87.4 } }),
 };
 
-test("le guide ouvre par l'équation France et garde quatre conclusions lisibles", () => {
+test("le verdict éditorial montre son millésime, son solde et son calcul", () => {
   const guide = renduConclusionsBilan({
     FR: territoire({
       eurostat_apu_recettes: { "2024": 1_000_000_000_000, "2025": 1_000_000_000_000 },
-      eurostat_apu_depenses: { "2024": 1_060_000_000_000, "2025": 1_097_700_000_000 },
+      eurostat_apu_depenses: { "2024": 1_060_000_000_000, "2025": 1_152_510_000_000 },
       eurostat_pib_montant: { "2024": 2_000_000_000_000, "2025": 2_100_000_000_000 },
       insee_dette_apu_montant: { "2025": 3_400_000_000_000 },
       insee_dette_apu_part_pib: { "2025": 115.6 },
@@ -76,13 +76,16 @@ test("le guide ouvre par l'équation France et garde quatre conclusions lisibles
     }),
   });
 
-  assert.deepEqual(Object.keys(guide), ["entrees", "sorties", "dette", "verdict"]);
-  assert.match(guide.entrees, /class="ui-conclusion"/);
-  assert.match(guide.entrees, /Pour 100 € encaissés, la France en dépense 109,77\./);
+  assert.deepEqual(Object.keys(guide), ["verdict", "entrees", "sorties", "dette"]);
+  assert.match(guide.verdict, /2025/);
+  assert.match(guide.verdict, /La France dépense 152,51 milliards d'euros de plus qu'elle n'encaisse/);
+  assert.match(guide.verdict, /Solde public[\s\S]*−152,51 milliards d'euros/);
+  assert.match(guide.verdict, /Recettes − Dépenses = Solde public/);
+  assert.match(guide.verdict, /href="\/sources\/">Sources et méthode/);
   for (const html of Object.values(guide)) {
-    assert.match(html, /class="ui-conclusion"/);
-    assert.match(html, /class="bilan-guide__chiffres"/);
-    assert.match(html, /class="bilan-guide__viz"/);
+    assert.match(html, /class="ui-conclusion(?: |")/);
+    assert.doesNotMatch(html, /Comprendre le calcul/);
+    assert.doesNotMatch(html, /bilan-guide__viz/);
   }
 });
 
@@ -96,7 +99,7 @@ test("le bilan France relie un chiffre à sa fiche de registre", () => {
   const guide = renduConclusionsBilan({ FR: territoire({ eurostat_deficit_pib: { "2025": -5.8 } }) }, indexerSources(fiches));
 
   assert.match(guide.verdict, new RegExp(`href="${lienSource(fiches[0]!.id)}"`));
-  assert.match(guide.verdict, /Comprendre le calcul/);
+  assert.match(guide.verdict, /Sources et méthode/);
 });
 
 /* -------------------------------------------------------------------------

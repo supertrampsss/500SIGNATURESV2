@@ -10,7 +10,7 @@ import type { Indicateur, Territoire } from "./donnees.ts";
 import { nomPays } from "./pays-noms.ts";
 import { formater, montantLisible, SUFFIXE_POUR_100000 } from "./echelle.ts";
 import { equationFrance } from "./bilan-guide.ts";
-import { chiffres as chiffresOuverture } from "./ouverture.ts";
+import { chiffres as chiffresOuverture, type Ouverture } from "./ouverture.ts";
 import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
 
 const SOUS_SECTEURS = [
@@ -67,7 +67,62 @@ export type ConclusionsBilan = Record<"entrees" | "sorties" | "dette" | "verdict
  */
 function preuveDe(indicateur: string, indexSources?: IndexSources): string {
   const id = indexSources ? sourceIdPourIndicateur(indexSources, indicateur) : undefined;
-  return id ? `<p class="ui-conclusion__preuve"><a href="${lienSource(id)}">Comprendre le calcul</a></p>` : "";
+  return `<p class="ui-conclusion__preuve"><a href="${id ? lienSource(id) : "/sources/"}">Sources et méthode</a></p>`;
+}
+
+function introduction(titre: string, analyse: string, source: string): string {
+  return `<div class="ui-conclusion">
+    <h2>${titre}</h2>
+    <p>${analyse}</p>
+    ${source}
+  </div>`;
+}
+
+function renduVerdict(
+  ouverture: Ouverture | null,
+  dettePib: [string, number] | null,
+  deficitPib: [string, number] | null,
+  indexSources?: IndexSources,
+): string {
+  if (!ouverture) {
+    const indicateur = deficitPib
+      ? "eurostat_deficit_pib"
+      : dettePib
+        ? "insee_dette_apu_part_pib"
+        : "eurostat_apu_recettes";
+    return introduction(
+      "Les comptes publics attendent leurs données publiées",
+      "Le verdict s'écrira quand recettes, dépenses et produit intérieur brut couvriront au moins deux exercices communs.",
+      preuveDe(indicateur, indexSources),
+    );
+  }
+
+  const equation = equationFrance(ouverture.recettes, ouverture.depenses);
+  const trajectoire = [
+    deficitPib
+      ? `Le déficit représentait ${formater(deficitPib[1], "percent", false)} du PIB en ${deficitPib[0]}.`
+      : "",
+    dettePib
+      ? `La dette publique représentait ${formater(dettePib[1], "percent", false)} du PIB en ${dettePib[0]}.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  return `<div class="ui-conclusion bilan-verdict">
+    <p class="bilan-verdict__millesime">Comptes publics français · ${ouverture.fin}</p>
+    <h2>La France dépense ${montantLisible(ouverture.emprunte)} de plus qu'elle n'encaisse</h2>
+    <p>Le solde public est de <strong>${montantLisible(-ouverture.emprunte)}</strong> en ${ouverture.fin} : cet écart doit être financé.</p>
+    <p class="bilan-verdict__equation">Recettes − Dépenses = Solde public</p>
+    <dl class="bilan-verdict__chiffres">
+      <div><dt>Recettes</dt><dd>${montantLisible(ouverture.recettes)}</dd></div>
+      <div><dt>Dépenses</dt><dd>${montantLisible(ouverture.depenses)}</dd></div>
+      <div><dt>Solde public</dt><dd>${montantLisible(-ouverture.emprunte)}</dd></div>
+    </dl>
+    <p>${equation.phrase}</p>
+    ${trajectoire ? `<p>${trajectoire}</p>` : ""}
+    ${preuveDe("eurostat_apu_depenses", indexSources)}
+  </div>`;
 }
 
 export function renduConclusionsBilan(
@@ -76,77 +131,25 @@ export function renduConclusionsBilan(
 ): ConclusionsBilan {
   const ouverture = chiffresOuverture(pays.FR);
   const france = pays.FR;
-  const dette = derniere(france?.series.insee_dette_apu_montant);
   const dettePib = derniere(france?.series.insee_dette_apu_part_pib)
     ?? derniere(france?.series.eurostat_dette_pib);
   const deficitPib = derniere(france?.series.eurostat_deficit_pib);
-  const indicateurVerdict = deficitPib
-    ? "eurostat_deficit_pib"
-    : france?.series.insee_dette_apu_part_pib
-      ? "insee_dette_apu_part_pib"
-      : "eurostat_dette_pib";
-  const chiffres = (lignes: [string, string][]) =>
-    `<dl class="bilan-guide__chiffres">${lignes
-      .map(([libelle, valeur]) => `<div><dt>${libelle}</dt><dd>${valeur}</dd></div>`)
-      .join("")}</dl>`;
-  const viz = (part: number, etiquette: string) =>
-    `<div class="bilan-guide__viz" role="img" aria-label="${etiquette}"><span style="--bilan-part: ${Math.max(0, Math.min(100, part)).toFixed(2)}%"></span></div>`;
+  const analyseRecettes = ouverture
+    ? `En ${ouverture.fin}, les administrations publiques ont encaissé ${montantLisible(ouverture.recettes)}. Les chapitres suivants détaillent qui les verse et par quels impôts ou cotisations.`
+    : "Les recettes publiées donnent le point de départ du bilan.";
+  const analyseDepenses = ouverture
+    ? `En ${ouverture.fin}, elles ont dépensé ${montantLisible(ouverture.depenses)}. Les dépenses par fonction, par nature et par redistribution expliquent où part cet argent.`
+    : "Les dépenses sont lues par fonction, par nature et par redistribution.";
+  const analyseDette = dettePib || deficitPib || ouverture
+    ? "Quand les dépenses dépassent les recettes, l'écart est financé par l'emprunt et s'ajoute à une dette déjà constituée."
+    : "La dette se lit avec son montant, son poids dans le PIB et le déficit annuel.";
 
-  const equation = ouverture ? equationFrance(ouverture.recettes, ouverture.depenses) : null;
-  const entrees = equation
-    ? `<div class="ui-conclusion">
-        <h2>Qu'est-ce qui entre&nbsp;?</h2>
-        <p><strong>${equation.phrase}</strong> C'est le point de départ : les recettes des administrations publiques financent le reste du bilan.</p>
-        ${chiffres([
-          ["Recettes", montantLisible(ouverture!.recettes)],
-          ["Dépenses", montantLisible(ouverture!.depenses)],
-          ["Écart à financer", montantLisible(ouverture!.emprunte)],
-        ])}
-        ${viz(100, "100 euros de recettes encaissées")}
-      </div>`
-    : `<div class="ui-conclusion"><h2>Qu'est-ce qui entre&nbsp;?</h2><p>Les recettes publiées donnent le point de départ du bilan.</p>${chiffres([["Recettes", "non publiées"], ["Dépenses", "non publiées"]])}${viz(0, "Données de recettes en attente")}</div>`;
-
-  const sorties = ouverture
-    ? `<div class="ui-conclusion">
-        <h2>Où va l'argent&nbsp;?</h2>
-        <p>Les dépenses dépassent les recettes : les lectures par fonction, par cent euros et par redistribution expliquent ce qui sort.</p>
-        ${chiffres([
-          ["Dépenses", montantLisible(ouverture.depenses)],
-          ["Part du PIB", formater(ouverture.partDepenses, "percent", false)],
-          ["À financer", montantLisible(ouverture.emprunte)],
-        ])}
-        ${viz((ouverture.depenses / ouverture.recettes) * 100, "Dépenses rapportées aux recettes")}
-      </div>`
-    : `<div class="ui-conclusion"><h2>Où va l'argent&nbsp;?</h2><p>Les dépenses sont lues par fonction, par nature et par redistribution.</p>${chiffres([["Dépenses", "non publiées"], ["Ventilation", "à consulter"]])}${viz(0, "Données de dépenses en attente")}</div>`;
-
-  const detteConclusion = dette || dettePib || ouverture
-    ? `<div class="ui-conclusion">
-        <h2>Pourquoi la dette augmente-t-elle&nbsp;?</h2>
-        <p>Quand les dépenses excèdent les recettes, l'écart doit être financé. Il s'ajoute à un stock de dette déjà constitué.</p>
-        ${chiffres([
-          ["Dette publique", dette ? montantLisible(dette[1]) : "non publiée"],
-          ["Dette / PIB", dettePib ? formater(dettePib[1], "percent", false) : "non publiée"],
-          ["Écart annuel", ouverture ? montantLisible(ouverture.emprunte) : "non publié"],
-        ])}
-        ${viz(dettePib?.[1] ?? 0, "Dette rapportée au produit intérieur brut")}
-      </div>`
-    : `<div class="ui-conclusion"><h2>Pourquoi la dette augmente-t-elle&nbsp;?</h2><p>La dette se lit avec son montant, son poids dans le PIB et le déficit annuel.</p>${chiffres([["Dette", "non publiée"], ["Déficit", "non publié"]])}${viz(0, "Données de dette en attente")}</div>`;
-
-  const verdict = dettePib || deficitPib
-    ? `<div class="ui-conclusion">
-        <h2>Quel verdict raisonnable&nbsp;?</h2>
-        <p>La comparaison européenne ne tranche pas seule : elle situe la France, puis met le déficit et la dette en regard.</p>
-        ${chiffres([
-          ["Dette / PIB", dettePib ? formater(dettePib[1], "percent", false) : "non publiée"],
-          ["Déficit / PIB", deficitPib ? formater(deficitPib[1], "percent", false) : "non publié"],
-          ["Année comparée", dettePib?.[0] ?? deficitPib?.[0] ?? "—"],
-        ])}
-        ${preuveDe(indicateurVerdict, indexSources)}
-        ${viz(dettePib?.[1] ?? 0, "Dette française rapportée au PIB")}
-      </div>`
-    : `<div class="ui-conclusion"><h2>Quel verdict raisonnable&nbsp;?</h2><p>Le verdict compare la France à ses voisins avec des définitions communes.</p>${chiffres([["France", "à comparer"], ["Voisins", "à consulter"]])}${viz(0, "Données européennes en attente")}</div>`;
-
-  return { entrees, sorties, dette: detteConclusion, verdict };
+  return {
+    verdict: renduVerdict(ouverture, dettePib, deficitPib, indexSources),
+    entrees: introduction("D'où vient l'argent ?", analyseRecettes, preuveDe("eurostat_apu_recettes", indexSources)),
+    sorties: introduction("Où part-il ?", analyseDepenses, preuveDe("eurostat_apu_depenses", indexSources)),
+    dette: introduction("Pourquoi la dette monte-t-elle ?", analyseDette, preuveDe("insee_dette_apu_part_pib", indexSources)),
+  };
 }
 
 /** Pose les conclusions dans le gabarit SPA, avec le même HTML que /bilan. */
