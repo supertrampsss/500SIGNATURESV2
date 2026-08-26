@@ -53,7 +53,7 @@ L’équation qui produit le verdict est affichée directement :
 
 Les montants, l’unité, l’année et le périmètre sont visibles. Ce contenu n’est pas placé dans un accordéon.
 
-Chaque terme peut proposer un lien secondaire « Source et méthode », mais l’ouverture de ce détail n’est jamais nécessaire pour comprendre le raisonnement principal.
+La page conserve seulement une référence courte et discrète au jeu de données. Le détail du calcul renvoie vers la page dédiée « Sources et méthode » ; aucun panneau méthodologique ne se déplie dans le récit principal.
 
 ### 3. Analyse en trois chapitres
 
@@ -68,12 +68,28 @@ Chaque chapitre contient :
 - une conclusion rédigée en une phrase ;
 - deux à quatre phrases d’analyse visibles par défaut ;
 - une visualisation principale ou un tableau court ;
-- un repère de comparaison si celui-ci éclaire réellement le chiffre ;
-- une source datée et accessible.
+- une évolution historique suffisamment longue pour distinguer tendance et accident annuel ;
+- une comparaison avec les principaux voisins européens sur une définition harmonisée ;
+- une référence courte et datée qui renvoie vers la page « Sources et méthode ».
 
 Les graphiques servent le propos du chapitre. Ils ne sont pas une galerie autonome de données.
 
-### 4. Verdict de trajectoire
+### 4. Deux repères obligatoires : le temps et l’Europe
+
+Les indicateurs structurants — recettes, dépenses, solde public et dette — ne sont jamais présentés comme des valeurs isolées.
+
+Pour chacun, la page montre :
+
+- **l’historique français**, sur au moins dix ans et, lorsque la série harmonisée le permet, depuis 2000 ;
+- **la position européenne actuelle**, face à l’Allemagne, la Belgique, le Luxembourg, l’Espagne et l’Italie, complétée par les moyennes de l’Union européenne et de la zone euro lorsqu’elles sont disponibles.
+
+Le Royaume-Uni et la Suisse ne sont ajoutés que si la définition et la période sont strictement comparables. La sélection des pays est stable d’un graphique à l’autre afin d’éviter les comparaisons opportunistes.
+
+Sur ordinateur, un graphique historique principal peut être accompagné d’une comparaison européenne compacte. Sur mobile, les deux se succèdent verticalement dans le même chapitre. Ils restent visibles sans carrousel et sans survol obligatoire.
+
+Les comparaisons utilisent en priorité des ratios harmonisés — notamment en pourcentage du PIB ou par habitant à parité de pouvoir d’achat — plutôt que des montants bruts qui favoriseraient mécaniquement les grands pays.
+
+### 5. Verdict de trajectoire
 
 Après les trois chapitres, un bloc synthétise la situation : niveau de déficit, dette rapportée au PIB et évolution récente. Si les données n’ont pas la même date, leur période est explicitement indiquée à côté de chaque chiffre.
 
@@ -83,17 +99,27 @@ Ce bloc distingue clairement :
 - l’évolution dans le temps ;
 - l’interprétation prudente que permettent les données.
 
-### 5. Action suivante
+### 6. Action suivante
 
 Le simulateur intervient après l’analyse, sous la forme d’une invitation cohérente avec ce que la personne vient d’apprendre : « À vous d’équilibrer les comptes » ou formulation équivalente.
 
 La page ne détourne pas prématurément vers le jeu avant d’avoir livré son diagnostic.
 
-### 6. Sources et méthode
+### 7. Page dédiée « Sources et méthode »
 
-Une section finale regroupe les sources, définitions, conventions de périmètre et limites. Elle complète les références courtes présentes dans chaque chapitre.
+Les sources, définitions, conventions de périmètre et limites ne forment pas une section longue au milieu ou au bas du bilan. Elles disposent d’une page autonome, accessible à l’adresse `/sources-et-methode`.
 
-Cette section peut être structurée en détails repliables. En revanche, les conclusions et explications nécessaires à la compréhension restent toujours visibles.
+Cette page documente :
+
+- la définition de chaque indicateur ;
+- les formules et agrégations utilisées ;
+- les organismes producteurs et les liens vers les jeux de données originaux ;
+- le millésime, la date de mise à jour et la fréquence de publication ;
+- les éventuelles ruptures de série ;
+- les règles d’harmonisation des comparaisons européennes ;
+- les limites d’interprétation et les écarts de périmètre connus.
+
+Sur la page France, une mention courte de type « Insee et Eurostat · données 2025 » accompagne chaque visualisation et renvoie vers l’ancre correspondante de cette page dédiée. Il n’y a ni accordéon méthodologique, ni paragraphe technique dans le récit principal.
 
 ## Page territoriale
 
@@ -125,6 +151,7 @@ La conception est mobile-first :
 - calcul empilé si nécessaire, tout en conservant le sens de l’équation ;
 - textes d’analyse visibles sans interaction préalable ;
 - visualisations utilisables au toucher, avec libellés lisibles sans survol ;
+- historique puis comparaison européenne affichés verticalement dans chaque chapitre concerné ;
 - actions d’au moins 44 px de hauteur ;
 - aucun carrousel obligatoire pour accéder aux trois chapitres.
 
@@ -135,6 +162,9 @@ Sur grand écran, la mise en page peut juxtaposer le verdict et son calcul, puis
 - Les calculs et sources existants restent la référence ; cette refonte modifie leur présentation, pas leur valeur.
 - Un millésime ou une période accompagne chaque donnée majeure.
 - Les chiffres de périodes différentes ne sont pas combinés sans avertissement explicite.
+- Les comparaisons européennes emploient une source, une définition et une période harmonisées ; à défaut, elles ne sont pas affichées.
+- Une rupture de série reste visible sur le graphique et est expliquée sur la page « Sources et méthode ».
+- Les graphiques historiques distinguent les données définitives, provisoires et prévisionnelles lorsqu’elles coexistent.
 - Toute conclusion doit être directement étayée par le graphique ou le calcul adjacent.
 - Le langage est compréhensible sans connaissances budgétaires préalables.
 - Les notions techniques utiles sont définies en une phrase au premier usage.
@@ -145,6 +175,7 @@ Sur grand écran, la mise en page peut juxtaposer le verdict et son calcul, puis
 - le briefing territorial supérieur redondant ;
 - les répétitions de chiffres entre le haut et le bas des pages ;
 - « Comprendre le calcul » comme porte d’accès à l’explication centrale ;
+- les accordéons et longs développements méthodologiques dans le flux principal ;
 - la succession de quatre cartes-conclusions traitées au même niveau ;
 - les titres génériques qui n’expriment aucun enseignement ;
 - les appels au simulateur avant que l’analyse principale soit comprise.
@@ -157,12 +188,16 @@ La refonte est considérée conforme si :
 2. le calcul recettes − dépenses = solde est visible sans clic ;
 3. les trois chapitres d’analyse sont identifiables et leurs explications sont ouvertes par défaut ;
 4. aucune occurrence de « Comprendre le calcul » ne masque le raisonnement principal ;
-5. les sources, dates et périmètres restent accessibles pour chaque donnée importante ;
-6. le briefing territorial supérieur redondant n’apparaît plus ;
-7. la page ne contient pas deux présentations concurrentes du même chiffre ;
-8. le parcours fonctionne à 390 px sans débordement horizontal, texte tronqué ni interaction dépendante du survol ;
-9. la version réelle est comparée visuellement à la maquette de référence sur mobile et desktop ;
-10. les tests de données existants continuent de passer.
+5. les quatre indicateurs structurants disposent d’un historique d’au moins dix ans lorsque les données le permettent ;
+6. leur position est comparée aux cinq voisins européens retenus ainsi qu’aux moyennes UE et zone euro lorsque ces séries sont harmonisées ;
+7. une page autonome `/sources-et-methode` documente les calculs, sources, millésimes, ruptures de série et règles de comparaison ;
+8. la page France ne contient ni accordéon méthodologique ni long texte de méthode ;
+9. chaque référence courte renvoie directement à la section pertinente de la page dédiée ;
+10. le briefing territorial supérieur redondant n’apparaît plus ;
+11. la page ne contient pas deux présentations concurrentes du même chiffre ;
+12. le parcours fonctionne à 390 px sans débordement horizontal, texte tronqué ni interaction dépendante du survol ;
+13. la version réelle est comparée visuellement à la maquette de référence sur mobile et desktop ;
+14. les tests de données existants continuent de passer.
 
 ## Hors périmètre
 
