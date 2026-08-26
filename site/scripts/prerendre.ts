@@ -37,12 +37,10 @@ import {
 } from "../src/accueil.ts";
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
 import { indicateursDerives } from "../src/derives.ts";
-// Les trois rendus de la page MÉTHODE : purs, sans DOM et sans `fetch`, comme
-// `rendu()` et `renduAccueil` — c'est ce qui les rend appelables ici autant que
-// dans le navigateur (`peindreMethode`, main.ts), avec le même code.
-import { renduAttribution } from "../src/methode-rendu.ts";
+// Le rendu de la page Sources et méthode est pur, sans DOM ni `fetch`, comme
+// `rendu()` et `renduAccueil` : le build sert donc le même document que le web.
+import { renduSourcesEtMethode } from "../src/methode-rendu.ts";
 import { construireRegistre, indexerSources, type FicheSource, type IndexSources } from "../src/registre-sources.ts";
-import { renduRegistre } from "../src/methode-rendu.ts";
 // Les blocs de la page REPÈRES, purs eux aussi — exactement ceux des
 // maquettes validées, un par chapitre plus la paire du chapitre 4. C'est le
 // motif du dépôt, « rendu pur, sans DOM : c'est lui qui est testé » : rien
@@ -527,8 +525,8 @@ const PAGE_BILAN = {
 };
 
 const PAGE_SOURCES = {
-  titre: "Sources — Où va l'argent public",
-  description: "Le registre des publications, estimations et règles de jeu utilisées par le site.",
+  titre: "Sources et méthode — Où va l'argent public",
+  description: "L’origine des chiffres, leurs définitions et les contrôles appliqués par le site.",
   canonique: "/sources/",
   image: "/sources/carte.png",
 };
@@ -892,20 +890,13 @@ export function injecterAccueil(shell: string, corps: string, version: string): 
 }
 
 /* --------------------------------------------------------------------------
- * La page MÉTHODE, écrite dans son cadre.
+ * La page BILAN, écrite dans ses cadres.
  *
- * C'est la page vers laquelle la bande de confiance de l'accueil renvoie. Servie
- * par le gabarit, elle partait vide : ni ses sources, ni sa méthode, ni sa
- * grille n'existaient dans le document, et un robot — ou un lecteur dont le
- * paquet n'arrive pas — trouvait au bout de ce lien de confiance un `<main>`
- * qui ne portait que l'accueil. Un lien de confiance qui ouvre une page vide
- * coûte plus que pas de lien.
+ * Cette page garde le récit France : les documents de confiance sont désormais
+ * pré-rendus dans `/sources/`, à leur adresse canonique propre.
  *
- * Elle se pré-rend parce que son contenu se calcule au build, entièrement :
- * `renduMethode()` et `renduGrille()` sont du texte de référence sans donnée
- * d'entrée, et `renduSources()` ne lit que le manifeste — le même fichier que
- * `chargerPublication` lit déjà. Rien n'y dépend d'un territoire choisi ni d'un
- * état d'atelier.
+ * Elle se pré-rend parce que ses blocs France se calculent au build, sans
+ * dépendre d'un territoire choisi ni d'un état d'atelier.
  *
  * Le document reste celui de l'application, PAS une page éditoriale : la
  * fraîcheur et le journal viennent de deux fichiers publiés que `peindreMethode`
@@ -986,32 +977,11 @@ function replierCadre(html: string, id: string): string {
  * c'est le plus frais qui doit gagner.
  *
  * L'accueil, lui, est replié : le gabarit le sert déplié pour la racine, et un
- * document de `/methode` qui le porterait déplié montrerait l'accueil au-dessus
- * de la méthode jusqu'à ce que `basculerVue` tranche.
+ * document de `/bilan` qui le porterait déplié montrerait l'accueil au-dessus
+ * du bilan jusqu'à ce que `basculerVue` tranche.
  */
-export function injecterMethode(shell: string, jeux: readonly Jeu[]): string {
-  const sources = renduAttribution(jeux);
-  if (!sources) {
-    throw new Error(
-      "injecterMethode() : le manifeste ne déclare aucun jeu — la page vers laquelle la bande de " +
-        "confiance de l'accueil renvoie partirait sans une seule source.",
-    );
-  }
-  let html = shell;
-  // Une seule ligne d'attribution, plus jamais des cadres : le propriétaire
-  // les a refusés, vides puis remplis. Le gabarit la sert repliée — l'appli ne
-  // la montre donc jamais — et ce document-ci, le seul à la porter, la remplit
-  // puis la déplie.
-  html = remplirCadre(html, "methode-sources", sources);
-  html = deplierCadre(html, "methode-sources");
-  // Les deux cadres que le build ne sait pas remplir : `fraicheur.json` et
-  // `journal.json` sont publiés, et c'est `peindreMethode` qui va les chercher.
-  // Repliés plutôt que laissés vides — voir `replierCadre`.
-  // La fraîcheur et le journal des corrections ont disparu avec l'onglet
-  // MÉTHODE : ils décrivaient le site, pas les comptes publics. Les sources,
-  // elles, restent — la Licence Ouverte impose de citer les producteurs.
-  html = deplierCadre(html, "vue-bilan");
-  return replierCadre(html, "vue-accueil");
+export function injecterMethode(shell: string): string {
+  return replierCadre(deplierCadre(shell, "vue-bilan"), "vue-accueil");
 }
 
 /* --------------------------------------------------------------------------
@@ -1225,8 +1195,13 @@ export function injecter(shell: string, page: Page, site: string): string {
 
 /** Le registre est une page éditoriale autonome : ses fiches sont écrites au
  * build, avec leur propre annonce pour les moteurs et les partages. */
-export function injecterRegistre(shell: string, fiches: readonly FicheSource[], site: string): string {
-  return injecter(shell, { ...PAGE_SOURCES, corps: renduRegistre(fiches) }, site);
+export function injecterRegistre(
+  shell: string,
+  jeux: readonly Jeu[],
+  fiches: readonly FicheSource[],
+  site: string,
+): string {
+  return injecter(shell, { ...PAGE_SOURCES, corps: renduSourcesEtMethode(jeux, fiches) }, site);
 }
 
 /* --------------------------------------------------------------------------
@@ -1646,7 +1621,7 @@ async function main(): Promise<void> {
   await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
   ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
 
-  const htmlSources = injecterRegistre(shell, fiches, SITE);
+  const htmlSources = injecterRegistre(shell, jeux, fiches, SITE);
   await ecrirePage(path.join(DIST, "sources"), htmlSources);
   ecrites.push({ chemin: "sources/index.html", html: htmlSources });
 
@@ -1692,7 +1667,7 @@ async function main(): Promise<void> {
   // l'autre, où l'on ne verrait plus lequel des deux catalogues chaque page lit.
   const htmlBilan = injecterAnnonce(
     injecterReperes(
-      injecterMethode(shell, jeux),
+      injecterMethode(shell),
       pays,
       [...catalogue, ...indicateursDerives(catalogue)],
       niches,

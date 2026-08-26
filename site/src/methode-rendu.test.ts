@@ -16,7 +16,7 @@ import { test } from "node:test";
 
 import type { Jeu } from "./donnees.ts";
 import { formater } from "./echelle.ts";
-import { renduAttribution, renduGrille, renduMethode, renduRegistre, renduSources, TITRES_METHODE } from "./methode-rendu.ts";
+import { renduGrille, renduMethode, renduRegistre, renduSources, renduSourcesEtMethode, TITRES_METHODE } from "./methode-rendu.ts";
 import type { FicheSource } from "./registre-sources.ts";
 
 /** Une des trois listes fermées de `controle_analyses.py`, lue dans le
@@ -403,31 +403,32 @@ test("le rendu de la méthode est pur et ne prend aucune donnée", () => {
   assert.equal(renduMethode.length, 0);
 });
 
-test("le pied de bilan est une ligne d'attribution, jamais des cadres", () => {
-  // Les trois blocs « Les sources », « La méthode », « La grille de
-  // verdicts » ont été refusés par le propriétaire, vides puis remplis. Ce
-  // qui reste est ce que la Licence Ouverte impose : une ligne qui cite les
-  // producteurs, dans le seul document pré-rendu de /bilan/. Le gabarit la
-  // sert repliée, l'appli ne la déplie jamais, et les deux autres cadres
-  // n'existent plus nulle part.
+test("le bilan ne porte plus le cadre d'attribution et la méthode reste éditoriale", () => {
   const gabarit = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-  assert.match(gabarit, /<div class="bilan__attribution" id="methode-sources" hidden><\/div>/);
-  assert.doesNotMatch(gabarit, /methode-methode|methode-grille/);
+  assert.doesNotMatch(gabarit, /methode-sources|bilan__attribution/);
   const main = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
   assert.doesNotMatch(main, /methode-rendu/);
   assert.doesNotMatch(main, /methode-sources|methode-methode|methode-grille/);
 });
 
-test("la ligne d'attribution nomme tous les producteurs et garde la liste à un geste", () => {
-  const jeux = [
-    { id: "a", titre: "Premier jeu", producteur: "INSEE", licence: "Licence Ouverte 2.0", url: "https://exemple.test/a", extraction: "2026-08-11T08:07:00Z" },
-    { id: "b", titre: "Second jeu", producteur: "DGFiP", licence: "Licence Ouverte 2.0", url: "https://exemple.test/b", extraction: "2026-08-11T08:07:00Z" },
-  ];
-  const html = renduAttribution(jeux);
-  assert.match(html, /Sources : 2 jeux de données,\s+de 2 producteurs —\s+INSEE, DGFiP\./);
-  assert.match(html, /<summary>La liste des jeux, producteur par producteur<\/summary>/);
-  assert.match(html, /href="https:\/\/exemple\.test\/a"/);
-  assert.equal(renduAttribution([]), "");
+test("la page Sources et méthode place la méthode avant le registre et garde les ancres des fiches", () => {
+  // Ce test échouerait si la page redevenait un registre seul, si l'ordre des
+  // deux documents était inversé, ou si l'identifiant de la fiche était perdu :
+  // chacun de ces défauts casse un lien profond ou sa promesse éditoriale.
+  const fiches: FicheSource[] = [{
+    id: "source-essai",
+    nom: "Publication d'essai",
+    statut: "publie",
+    institution: "Institution d'essai",
+    url: "https://exemple.test/publication",
+    pages: ["/bilan"],
+  }];
+  const html = renduSourcesEtMethode(JEUX, fiches);
+  assert.match(html, /<main class="sources-methode">/);
+  assert.match(html, /<h1>Sources et méthode<\/h1>/);
+  assert.ok(html.indexOf('id="methode"') < html.indexOf('id="registre-sources-titre"'));
+  assert.match(html, /id="source-essai"/);
+  assert.ok(html.includes(JEUX[0]!.titre));
 });
 
 test("le registre rend recherche filtres et fiches normalisées", () => {

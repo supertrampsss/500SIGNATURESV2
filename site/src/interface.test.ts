@@ -19,7 +19,6 @@ import {
 import { adresseTerritoire, estAccueil, vueDepuisAdresse } from "./routes.ts";
 import { MAILLES_HORS_CARTE, NIVEAUX_RECHERCHABLES } from "./mailles.ts";
 import { MAXIMUM } from "./comparateur.ts";
-import { renduGrille, renduMethode } from "./methode-rendu.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { carteRetenue, renduIndex, type Analyse } from "./analyse-rendu.ts";
 import {
@@ -649,7 +648,7 @@ test("ce qui se peint sur le support suit le thème du support", () => {
   }
 });
 
-test("le bilan ne porte que ses chapitres et son pied de sources", () => {
+test("le bilan ne porte que ses chapitres", () => {
   // « Un amas d'analyses qui n'ont aucun lien entre elles » : la vue portait
   // aussi seize questions d'entrée — qui doublaient le sommaire — et les
   // tableaux de territoire, qui rangent une couche de carte et n'ont rien à
@@ -661,23 +660,9 @@ test("le bilan ne porte que ses chapitres et son pied de sources", () => {
   assert.ok(debut > 0 && fin > debut, "bornes de la vue BILAN introuvables");
   const vue = balises.slice(debut, fin);
   assert.match(vue, /id="national"/);
-  // Le pied n'est plus une section de cadres : le propriétaire les a refusés,
-  // vides puis remplis. L'attribution que la Licence Ouverte impose tient en
-  // une ligne repliée, que seul le pré-rendu de /bilan/ déplie.
-  assert.match(vue, /class="bilan__attribution" id="methode-sources" hidden/);
+  assert.doesNotMatch(vue, /methode-sources|bilan__attribution/);
   for (const intrus of ['id="questions"', 'id="palmares"', 'id="detail"', 'id="tableau-donnees"']) {
     assert.ok(!vue.includes(intrus), `${intrus} est resté dans le bilan`);
-  }
-});
-
-test("le pied du bilan est replié : trois documents de référence, pas trois chapitres", () => {
-  // Mesuré au navigateur : les sources, la méthode et la grille faisaient
-  // 7 683 px pour 9 694 px de chapitres — le bilan de la France finissait sur
-  // autant d'appareil que de récit. Ils restent dans le document, à un geste.
-  for (const rendu of [renduMethode(), renduGrille()]) {
-    assert.match(rendu, /<details class="methode__pli">/);
-    assert.doesNotMatch(rendu, /<details[^>]+open/);
-    assert.match(rendu, /<summary>[^<]+<\/summary>/);
   }
 });
 

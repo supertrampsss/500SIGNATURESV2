@@ -234,32 +234,6 @@ export function renduSources(jeux: readonly Jeu[]): string {
   `;
 }
 
-/**
- * L'attribution du pied de /bilan/, en une ligne — pas en cadres.
- *
- * Les trois blocs « Les sources », « La méthode », « La grille de verdicts »
- * ont été refusés par le propriétaire, vides puis remplis. Ce qui doit rester
- * est ce que la Licence Ouverte impose : citer les producteurs. Une ligne les
- * nomme tous, et la liste des jeux — chaque fichier d'origine, sa licence, sa
- * date de lecture — reste à un geste, dans un pli sans cadre.
- */
-export function renduAttribution(jeux: readonly Jeu[]): string {
-  if (jeux.length === 0) return "";
-  const groupes = parProducteur(jeux);
-  const producteurs = groupes.map((g) => echapper(g.producteur)).join(", ");
-  return `
-    <p class="bilan__attribution-ligne">
-      Sources : ${formater(jeux.length, "count", false)} ${jeux.length > 1 ? "jeux" : "jeu"} de données,
-      de ${formater(groupes.length, "count", false)} producteur${pluriel(groupes.length)} —
-      ${producteurs}.
-    </p>
-    <details class="methode-sources__liste">
-      <summary>La liste des jeux, producteur par producteur</summary>
-      <dl class="methode-sources__producteurs">${listeProducteurs(groupes)}</dl>
-    </details>
-  `;
-}
-
 /* --------------------------------------------------------------------------
  * Le registre des sources
  * ----------------------------------------------------------------------- */
@@ -324,7 +298,7 @@ export function renduRegistre(fiches: readonly FicheSource[]): string {
   return `<section class="registre-sources" aria-labelledby="registre-sources-titre">
     <header class="registre-sources__entete">
       <p class="registre-sources__eyebrow">Registre de vérification</p>
-      <h1 id="registre-sources-titre">Les sources des chiffres</h1>
+      <h2 id="registre-sources-titre">Le registre des sources</h2>
       <p>Chaque fiche distingue la publication, son statut et les pages du site qui l'utilisent.</p>
     </header>
     <form class="registre-sources__filtres" id="registre-sources-filtres" hidden>
@@ -359,6 +333,25 @@ export function renduRegistre(fiches: readonly FicheSource[]): string {
       ${articles || '<p class="registre-sources__absence">Aucune source n’est publiée pour le moment.</p>'}
     </div>
   </section>`;
+}
+
+/** La page de confiance est un document éditorial autonome : la méthode
+ * précède le registre qui permet d'en vérifier l'application, et chaque fiche
+ * conserve son identifiant pour que les liens profonds publiés restent stables. */
+export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly FicheSource[]): string {
+  return `<main class="sources-methode">
+    <header class="sources-methode__entete">
+      <p class="sources-methode__eyebrow">Transparence</p>
+      <h1>Sources et méthode</h1>
+      <p>Retrouvez l’origine des chiffres, leurs définitions et les contrôles appliqués.</p>
+    </header>
+    <section id="methode" class="sources-methode__methode">
+      ${renduSources(jeux)}
+      ${renduMethode()}
+      ${renduGrille()}
+    </section>
+    ${renduRegistre(fiches)}
+  </main>`;
 }
 
 /* --------------------------------------------------------------------------

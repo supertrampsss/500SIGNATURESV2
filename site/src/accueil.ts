@@ -62,9 +62,8 @@ export const MESSAGE_PRINCIPAL =
  *  projet a déjà nommé et retiré une fois. */
 const ANCRE_RECHERCHE = "#recherche";
 
-/** L'ancre du journal des corrections, dans la page `/methode` où il vit
- *  (`index.html`, `#methode-sources`), au pied de BILAN. */
-const ANCRE_JOURNAL = "/bilan#methode-sources";
+/** La page autonome qui porte méthode et registre, à l'adresse historique. */
+const CHEMIN_SOURCES = "/sources/";
 
 /* --------------------------------------------------------------------------
  * Bloc 1 — Le verdict du moment
@@ -521,8 +520,8 @@ export function renduBandeConfiance(
     <p class="accueil__indicateurs">${nombre} indicateurs publiés, tirés des fichiers de leurs producteurs :</p>
     <p class="accueil__producteurs">${liste}</p>
     <p class="accueil__verifier">
-      <a href="/bilan#methode-sources">La méthode</a> ·
-      <a href="${ANCRE_JOURNAL}">D'où viennent ces chiffres</a>
+      <a href="${CHEMIN_SOURCES}">La méthode</a> ·
+      <a href="${CHEMIN_SOURCES}">D'où viennent ces chiffres</a>
     </p>
   </section>`;
 }

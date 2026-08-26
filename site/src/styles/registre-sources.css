@@ -1,5 +1,22 @@
-/* Le registre se lit d'abord comme une liste de preuves : toutes les fiches
-   sont présentes dans le HTML, les filtres ne sont qu'une aide locale. */
+/* La page se lit d'abord comme une méthode, puis comme une liste de preuves :
+   toutes les fiches sont présentes dans le HTML, les filtres ne sont qu'une
+   aide locale. */
+.sources-methode {
+  display: grid;
+  gap: var(--espace-7);
+  max-width: 82rem;
+  margin: 0 auto;
+  padding: var(--espace-5) var(--gouttiere);
+}
+
+.sources-methode__entete,
+.sources-methode__methode { max-width: 62rem; }
+.sources-methode__entete h1 { margin: 0; color: var(--ui-encre); font-family: var(--serif); font-size: var(--texte-xl); }
+.sources-methode__entete p:last-child { color: var(--ui-encre-douce); font-size: var(--texte-m); }
+.sources-methode__eyebrow { margin: 0; color: var(--ui-encre-douce); font-size: var(--texte-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.sources-methode__methode { display: grid; gap: var(--espace-5); }
+.sources-methode .registre-sources { max-width: none; margin: 0; padding: 0; }
+
 .registre-sources {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -10,7 +27,7 @@
 }
 
 .registre-sources__entete { max-width: 62rem; }
-.registre-sources__entete h1 { margin: 0; color: var(--ui-encre); font-family: var(--serif); font-size: var(--texte-xl); }
+.registre-sources__entete h2 { margin: 0; color: var(--ui-encre); font-family: var(--serif); font-size: var(--texte-xl); }
 .registre-sources__entete p:last-child { color: var(--ui-encre-douce); font-size: var(--texte-m); }
 .registre-sources__eyebrow, .registre-sources__statut { margin: 0; color: var(--ui-encre-douce); font-size: var(--texte-xs); font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 

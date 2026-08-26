@@ -34,7 +34,6 @@ import type {
   BudgetEtat,
   DepensesFiscales,
   Indicateur,
-  Jeu,
   Territoire,
 } from "../src/donnees.ts";
 import { formater } from "../src/echelle.ts";
@@ -667,9 +666,17 @@ test("8 ter. le dossier de preuve est servi avec sa canonique et ses métadonné
   assert.match(servi, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}${canonique}carte\\.png"`));
 });
 
-test("8 quater. le registre est pré-rendu avec sa canonique et son image propres", () => {
+test("8 quater. Sources et méthode est pré-rendue avec sa canonique et son image propres", () => {
   const html = injecterRegistre(
     GABARIT,
+    [{
+      id: "jeu-essai",
+      titre: "Jeu d'essai",
+      producteur: "Producteur d'essai",
+      licence: "Licence d'essai",
+      url: "https://exemple.test/jeu",
+      extraction: "2026-08-11T08:07:00Z",
+    }],
     [{
       id: "source-essai",
       nom: "Publication d'essai",
@@ -681,7 +688,10 @@ test("8 quater. le registre est pré-rendu avec sa canonique et son image propre
     SITE_ESSAI,
   );
   assert.match(html, /data-page="editorial"/);
+  assert.match(html, /<h1>Sources et méthode<\/h1>/);
+  assert.ok(html.indexOf('id="methode"') < html.indexOf('id="registre-sources-titre"'));
   assert.match(html, /registre-sources__fiche/);
+  assert.match(html, /id="source-essai"/);
   assert.match(html, new RegExp(`<link rel="canonical" href="${SITE_ESSAI}/sources/"`));
   assert.match(html, new RegExp(`<meta property="og:image" content="${SITE_ESSAI}/sources/carte\\.png"`));
 });
@@ -696,7 +706,7 @@ test("8 quinquies. les trois documents éditoriaux déclarent l'état qui laisse
       `/analyses/${analyse.slug}/`,
       injecter(shell, { ...PAGE, canonique: `/analyses/${analyse.slug}/` }, SITE_ESSAI),
     ],
-    ["/sources/", injecterRegistre(shell, [], SITE_ESSAI)],
+    ["/sources/", injecterRegistre(shell, [], [], SITE_ESSAI)],
   ] as const;
 
   for (const [chemin, html] of documents) {
@@ -1092,95 +1102,13 @@ test("13. le gabarit ne s'annonce plus comme une de ses vues", () => {
  * coûte plus que pas de lien.
  * ----------------------------------------------------------------------- */
 
-/**
- * Un manifeste d'essai : deux producteurs, trois jeux.
- *
- * Des noms d'essai, sur le domaine d'essai. La page des sources est le dernier
- * endroit du site où une source inventée passerait inaperçue ; un producteur
- * réel posé ici à côté d'une adresse fabriquée aurait été exactement cela, et
- * ce test n'a besoin que de vérifier que ce qu'on lui donne ressort servi.
- */
-const JEUX_ESSAI: Jeu[] = [
-  {
-    id: "essai-a",
-    titre: "Premier jeu d'essai",
-    producteur: "Producteur d'essai",
-    licence: "Licence d'essai",
-    url: "https://exemple.test/a",
-    extraction: "2026-08-11T08:07:00Z",
-  },
-  {
-    id: "essai-b",
-    titre: "Deuxième jeu d'essai",
-    producteur: "Producteur d'essai",
-    licence: "Licence d'essai",
-    url: "https://exemple.test/b",
-    extraction: "2026-08-11T08:07:00Z",
-  },
-  {
-    id: "essai-c",
-    titre: "Troisième jeu d'essai",
-    producteur: "Autre producteur d'essai",
-    licence: "Licence d'essai",
-    url: "https://exemple.test/c",
-    extraction: "2026-08-11T08:07:00Z",
-  },
-];
-
-test("14. /bilan sert ses sources, sa méthode et sa grille sans exécuter une ligne", () => {
-  const html = injecterMethode(GABARIT_REEL, JEUX_ESSAI);
-  const texte = texteDuMain(html);
-
-  // Les titres et producteurs du manifeste : c'est ce que la bande de confiance
-  // promet au bout de son lien. Attendus tels qu'`echapper` les écrit, jamais
-  // recopiés — l'apostrophe d'un titre part en `&#39;`, et une chaîne tapée à la
-  // main ne dirait rien de l'échappement.
-  for (const jeu of JEUX_ESSAI) {
-    assert.ok(texte.includes(echapper(jeu.titre)), `le jeu « ${jeu.titre} » n'est pas servi`);
-    assert.ok(
-      texte.includes(echapper(jeu.producteur)),
-      `le producteur « ${jeu.producteur} » n'est pas servi`,
-    );
-  }
-  // Et les liens vers les fichiers d'origine, qui ne sont pas du texte.
-  for (const jeu of JEUX_ESSAI) {
-    assert.ok(html.includes(`href="${echapper(jeu.url)}"`), `le lien de « ${jeu.titre} » n'est pas servi`);
-  }
-
-  // Les blocs « La méthode » et « La grille de verdicts » ne sont plus
-  // servis : le propriétaire a refusé les cadres du pied, vides puis remplis.
-  // Ce qui reste est l'attribution que la Licence Ouverte impose — la ligne
-  // des producteurs, et la liste des jeux dans son pli.
-  assert.doesNotMatch(html, /methode-methode|methode-grille/);
-
-  // Le compte des jeux et celui des producteurs sont produits en APPELANT
-  // `formater`, jamais tapés : une valeur recopiée à la main ne dirait rien de
-  // son séparateur.
-  assert.ok(texte.includes(`${formater(JEUX_ESSAI.length, "count", false)} jeux`));
-  assert.ok(texte.includes(`${formater(2, "count", false)} producteurs`));
+test("14. /bilan ne sert plus l'attribution ni la méthode", () => {
+  const html = injecterMethode(GABARIT_REEL);
+  assert.doesNotMatch(html, /methode-sources|bilan__attribution|methode-methode|methode-grille/);
 });
 
-test("14 bis. le séparateur de milliers du compte des jeux traverse l'injection", () => {
-  // U+202F est une espace au sens de `\s` : un `.replace(/\s+/g, " ")` ajouté
-  // demain dans le chemin d'injection le remplacerait par une espace ordinaire
-  // sans que rien ne le dise, et la page servirait « 1 500 » au lieu de
-  // « 1 500 ».
-  const beaucoup: Jeu[] = Array.from({ length: 1500 }, (_, rang) => ({
-    ...JEUX_ESSAI[0]!,
-    id: `essai-${rang}`,
-  }));
-  const compte = formater(beaucoup.length, "count", false);
-  // La sonde d'abord : sans séparateur dans la valeur attendue, l'assertion qui
-  // suit passerait quelle que soit l'espace servie.
-  assert.ok(
-    [...compte].some((caractere) => caractere.codePointAt(0) === 0x202f),
-    `« ${compte} » ne porte pas U+202F : cette sonde ne prouverait rien`,
-  );
-  assert.ok(injecterMethode(GABARIT_REEL, beaucoup).includes(`${compte} jeux`));
-});
-
-test("14 ter. le cadre de la méthode part déplié, et l'accueil replié", () => {
-  const html = injecterMethode(GABARIT_REEL, JEUX_ESSAI);
+test("14 bis. le bilan part déplié, et l'accueil replié", () => {
+  const html = injecterMethode(GABARIT_REEL);
 
   // Déplié, sans quoi la page serait écrite dans le document et servie à
   // personne : ni au lecteur sans JavaScript, ni au robot qui n'en exécute pas.
@@ -1190,31 +1118,10 @@ test("14 ter. le cadre de la méthode part déplié, et l'accueil replié", () =
   // document-ci montrerait l'accueil au-dessus de la méthode jusqu'à ce que
   // `basculerVue` tranche — le clignotement que ce document fait disparaître.
   assert.match(html, /<div class="vue vue--accueil" id="vue-accueil" hidden>/);
-  // Les cadres que le build remplit sont là et pleins. La fraîcheur et le
-  // journal ont disparu avec l'onglet MÉTHODE : ils décrivaient le site, pas
-  // les comptes publics. Les sources restent — la Licence Ouverte impose de
-  // citer les producteurs, et elles vivent désormais au pied de BILAN.
-  assert.ok(html.includes('id="methode-sources"'), "l'attribution a disparu du document");
-  assert.match(html, /<div class="bilan__attribution" id="methode-sources">/);
-  assert.doesNotMatch(html, /id="methode-fraicheur"/);
-  assert.doesNotMatch(html, /id="methode-journal"/);
-
-  // Trois défauts muets, trois échecs.
   assert.throws(
-    () => injecterMethode(GABARIT_REEL.replace('id="vue-bilan"', 'id="vue-recette"'), JEUX_ESSAI),
+    () => injecterMethode(GABARIT_REEL.replace('id="vue-bilan"', 'id="vue-recette"')),
     /vue-bilan/,
   );
-  assert.throws(
-    () =>
-      injecterMethode(
-        GABARIT_REEL.replace('id="methode-sources" hidden></div>', 'id="methode-sources" hidden>déjà</div>'),
-        JEUX_ESSAI,
-      ),
-    /n'est plus vide/,
-  );
-  // Un manifeste sans jeu : la page vers laquelle la bande de confiance renvoie
-  // partirait sans une seule source, et c'est tout ce qu'elle est.
-  assert.throws(() => injecterMethode(GABARIT_REEL, []), /sans une seule source/);
 });
 
 test("14 quater. le document de /bilan déclare sa canonique, le gabarit toujours aucune", async () => {
@@ -1254,8 +1161,8 @@ test("14 quinquies. le build écrit cette page, et l'écrit avant le plan du sit
   assert.ok(corps.length > 500, "main() introuvable dans scripts/prerendre.ts");
   assert.match(
     corps,
-    /injecterAnnonce\(\s*injecterReperes\(\s*injecterMethode\(shell, jeux\),/,
-    "main() n'écrit plus la page BILAN : le lien de confiance de l'accueil rouvrirait une page vide.",
+    /injecterAnnonce\(\s*injecterReperes\(\s*injecterMethode\(shell\),/,
+    "main() n'écrit plus la page BILAN.",
   );
   assert.match(
     corps,
@@ -1587,7 +1494,7 @@ test("15 sexies. le build écrit cette page, et l'écrit avant le plan du site",
   // blocs filtrent sur « cet indicateur est-il publié ? », et un pré-rendu qui
   // lirait le catalogue brut ferait apparaître ou disparaître un bloc à
   // l'arrivée du paquet.
-  assert.match(corps, /injecterReperes\(\s*injecterMethode\(shell, jeux\),\s*pays,\s*\[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\]/);
+  assert.match(corps, /injecterReperes\(\s*injecterMethode\(shell\),\s*pays,\s*\[\.\.\.catalogue, \.\.\.indicateursDerives\(catalogue\)\]/);
   // Sa propre carte de partage, jamais celle du site : celle-là a le chapeau
   // « Le site » et le message principal en phrase, et sous un titre qui annonce
   // la dette et les niches, c'est l'accueil qu'elle montrerait. Rien d'autre ne
