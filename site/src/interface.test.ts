@@ -3416,6 +3416,12 @@ test("la carte territoriale se révèle sans être recréée", () => {
   assert.match(MAIN, /carte\?\.resize\(\)/);
 });
 
+test("les commandes territoriales gardent leur feuille de styles", () => {
+  assert.match(PAGE, /class="territoire-themes"/);
+  assert.match(PAGE, /class="territoire-carte__action"/);
+  assert.match(MAIN, /import "\.\/styles\/territoire-briefing\.css";/);
+});
+
 test("la carte révélée retrouve toute la colonne sur mobile", () => {
   const css = readFileSync(new URL("./styles/territoire-briefing.css", import.meta.url), "utf8");
   const mobile = css.slice(css.lastIndexOf("@media (max-width: 60rem)"));

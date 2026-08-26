@@ -137,6 +137,7 @@ import "./styles/navigation.css";
 import "./styles/tunnel-cabinet.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
+import "./styles/territoire-briefing.css";
 import "./styles/dossiers-verification.css";
 import "./styles/registre-sources.css";
 
