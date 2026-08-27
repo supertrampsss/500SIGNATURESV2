@@ -35,6 +35,39 @@ test("la validation refuse un identifiant répété dans les chapitres", () => {
   assert.ok(validateScenario(scenario).includes("decision:decision-12:expected-once-in-chapters"));
 });
 
+test("la validation réserve les effets différés aux effets directs des options", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.scheduledEvents = [{
+    id: "event-delayed", title: "Événement", body: "Texte", afterDecisions: 1,
+    effects: [{
+      id: "event-effect", target: "indicator", key: "opinion", delta: -1,
+      timing: { kind: "after_decisions", count: 1 }, duration: "once", explanation: "Trop tard.",
+    }],
+  }];
+  option.promises = [{
+    id: "promise-delayed", label: "Promesse", dueAfterDecisions: 1,
+    failureEffects: [{
+      id: "promise-effect", target: "indicator", key: "opinion", delta: -1,
+      timing: { kind: "after_decisions", count: 1 }, duration: "once", explanation: "Trop tard.",
+    }],
+  }];
+  assert.ok(validateScenario(scenario).includes("event:event-delayed:effects-must-be-immediate"));
+  assert.ok(validateScenario(scenario).includes("promise:promise-delayed:failure-effects-must-be-immediate"));
+});
+
+test("la validation impose des identifiants globaux uniques aux événements et promesses", () => {
+  const scenario = validScenario();
+  const first = scenario.decisions[0]!.options[0]!;
+  const second = scenario.decisions[1]!.options[0]!;
+  first.scheduledEvents = [{ id: "shared-event", title: "A", body: "A", afterDecisions: 1, effects: [] }];
+  second.scheduledEvents = [{ id: "shared-event", title: "B", body: "B", afterDecisions: 1, effects: [] }];
+  first.promises = [{ id: "shared-promise", label: "A", dueAfterDecisions: 1, failureEffects: [] }];
+  second.promises = [{ id: "shared-promise", label: "B", dueAfterDecisions: 1, failureEffects: [] }];
+  assert.ok(validateScenario(scenario).includes("scenario:duplicate-scheduled-event-id:shared-event"));
+  assert.ok(validateScenario(scenario).includes("scenario:duplicate-promise-id:shared-promise"));
+});
+
 test("un état V3 complet est accepté", () => {
   const scenario = validScenario();
   assert.equal(isCampaignState(validCampaignState(scenario), scenario), true);
@@ -110,6 +143,63 @@ test("un état V3 refuse un événement programmé ou une promesse mal formés",
   const promiseState = validCampaignState(scenario) as unknown as Record<string, unknown>;
   promiseState.activePromises = [{ id: "promise", sourceDecisionId: "decision-1", fulfilled: "yes" }];
   assert.equal(isCampaignState(promiseState, scenario), false);
+});
+
+test("un état V3 refuse les effets différés déjà portés par un événement ou une promesse", () => {
+  const scenario = validScenario();
+  const delayedEffect = {
+    id: "effect", target: "indicator", key: "opinion", delta: -1,
+    timing: { kind: "after_decisions" as const, count: 1 }, duration: "once" as const, explanation: "Trop tard.",
+  };
+  const event = {
+    id: "event", sourceDecisionId: "decision-1", sourceOptionId: "decision-1-option-a",
+    dueAtDecision: 1, title: "Événement", body: "Texte", effects: [delayedEffect],
+  };
+  const promise = {
+    id: "promise", sourceDecisionId: "decision-1", label: "Promesse", dueAtDecision: 1,
+    fulfilled: false, failureEffects: [delayedEffect],
+  };
+  for (const field of ["scheduledEvents", "eventHistory"] as const) {
+    const state = validCampaignState(scenario);
+    state[field] = [event];
+    assert.equal(isCampaignState(state, scenario), false);
+  }
+  for (const field of ["activePromises", "promiseHistory"] as const) {
+    const state = validCampaignState(scenario);
+    state[field] = [promise];
+    assert.equal(isCampaignState(state, scenario), false);
+  }
+});
+
+test("un état V3 refuse un événement historique encore en file et toute promesse dupliquée", () => {
+  const scenario = validScenario();
+  const event = {
+    id: "event", sourceDecisionId: "decision-1", sourceOptionId: "decision-1-option-a",
+    dueAtDecision: 1, title: "Événement", body: "Texte", effects: [],
+  };
+  const eventState = validCampaignState(scenario);
+  eventState.scheduledEvents = [event];
+  eventState.eventHistory = [event];
+  assert.equal(isCampaignState(eventState, scenario), false);
+  for (const field of ["scheduledEvents", "eventHistory"] as const) {
+    const duplicateState = validCampaignState(scenario);
+    duplicateState[field] = [event, event];
+    assert.equal(isCampaignState(duplicateState, scenario), false);
+  }
+
+  const promise = {
+    id: "promise", sourceDecisionId: "decision-1", label: "Promesse", dueAtDecision: 1,
+    fulfilled: false, failureEffects: [],
+  };
+  const promiseState = validCampaignState(scenario);
+  promiseState.activePromises = [promise];
+  promiseState.promiseHistory = [promise];
+  assert.equal(isCampaignState(promiseState, scenario), false);
+  for (const field of ["activePromises", "promiseHistory"] as const) {
+    const duplicateState = validCampaignState(scenario);
+    duplicateState[field] = [promise, promise];
+    assert.equal(isCampaignState(duplicateState, scenario), false);
+  }
 });
 
 test("un état V3 refuse une crise ou une entrée causale mal formées", () => {

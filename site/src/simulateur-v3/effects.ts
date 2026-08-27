@@ -1,4 +1,5 @@
 import { clearSelection, currentDecision } from "./campaign.ts";
+import { validateScenario } from "./validation.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -38,7 +39,7 @@ function eventForDelayedEffect(decision: Decision, option: DecisionOption, effec
     dueAtDecision,
     title: `Effet différé : ${decision.title}`,
     body: effect.explanation,
-    effects: [effect],
+    effects: [{ ...effect, timing: { kind: "immediate" } }],
   };
 }
 
@@ -103,6 +104,11 @@ export function scheduleOptionConsequences(state: CampaignState, decision: Decis
     failureEffects: [...promise.failureEffects],
   }));
 
+  assertImmediateEffects(explicitEvents.flatMap((event) => event.effects), "Scheduled event");
+  assertImmediateEffects(promises.flatMap((promise) => promise.failureEffects), "Political promise");
+  assertUniqueDisjointIds("event", state.scheduledEvents, state.eventHistory, [...delayedEffects, ...explicitEvents]);
+  assertUniqueDisjointIds("promise", state.activePromises, state.promiseHistory, promises);
+
   if (delayedEffects.length === 0 && explicitEvents.length === 0 && promises.length === 0) return state;
   return {
     ...state,
@@ -116,6 +122,27 @@ function applyImmediateEffects(state: CampaignState, effects: readonly EffectRul
     (current, effect) => effect.timing.kind === "immediate" ? applyEffect(current, effect, cause) : current,
     state,
   );
+}
+
+function assertImmediateEffects(effects: readonly EffectRule[], label: string): void {
+  if (effects.some((effect) => effect.timing.kind !== "immediate")) {
+    throw new Error(`${label} effects must be immediate`);
+  }
+}
+
+function assertUniqueDisjointIds(
+  label: string,
+  active: readonly { id: string }[],
+  history: readonly { id: string }[],
+  additions: readonly { id: string }[],
+): void {
+  const ids = [...active, ...history, ...additions].map((item) => item.id);
+  if (new Set(ids).size !== ids.length) throw new Error(`Duplicate ${label} ID`);
+}
+
+function applyResolvedEffects(state: CampaignState, effects: readonly EffectRule[], cause: EffectCause): CampaignState {
+  assertImmediateEffects(effects, "Resolved consequence");
+  return effects.reduce((current, effect) => applyEffect(current, effect, cause), state);
 }
 
 function applyLocksAndUnlocks(state: CampaignState, option: DecisionOption): CampaignState {
@@ -136,6 +163,8 @@ function applyLocksAndUnlocks(state: CampaignState, option: DecisionOption): Cam
 /** Confirms the current pending decision exactly once and materializes all its consequences. */
 export function confirmSelection(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase !== "decision" || !state.pendingSelection) throw new Error("A selection required before confirmation");
+  const scenarioErrors = validateScenario(scenario);
+  if (scenarioErrors.length > 0) throw new Error(`Invalid scenario: ${scenarioErrors.join(", ")}`);
   const decision = currentDecision(state, scenario);
   const { decisionId, optionId } = state.pendingSelection;
   if (!decision || decision.id !== decisionId) throw new Error("Pending selection does not match the current decision");
@@ -179,7 +208,7 @@ export function resolveDueEvents(state: CampaignState): { state: CampaignState; 
     eventHistory: [...state.eventHistory, ...events],
   };
   for (const event of events) {
-    resolved = applyImmediateEffects(resolved, event.effects.map((effect) => ({ ...effect, timing: { kind: "immediate" } })), {
+    resolved = applyResolvedEffects(resolved, event.effects, {
       sourceType: "event",
       sourceId: event.id,
     });
@@ -199,7 +228,7 @@ export function resolveDuePromises(state: CampaignState): { state: CampaignState
   for (const promise of duePromises) {
     if (promise.fulfilled) continue;
     failedPromiseIds.push(promise.id);
-    resolved = applyImmediateEffects(resolved, promise.failureEffects, { sourceType: "promise", sourceId: promise.id });
+    resolved = applyResolvedEffects(resolved, promise.failureEffects, { sourceType: "promise", sourceId: promise.id });
   }
   return { state: resolved, failedPromiseIds };
 }

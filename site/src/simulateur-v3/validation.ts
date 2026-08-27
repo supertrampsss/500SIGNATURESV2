@@ -50,6 +50,13 @@ function isEffectRule(value: unknown): boolean {
     || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count));
 }
 
+function isImmediateEffectRule(value: unknown): boolean {
+  return isEffectRule(value)
+    && isRecord(value)
+    && isRecord(value.timing)
+    && value.timing.kind === "immediate";
+}
+
 function isScheduledEvent(value: unknown, decisions: Map<string, Decision>): boolean {
   return isRecord(value)
     && typeof value.id === "string"
@@ -58,7 +65,7 @@ function isScheduledEvent(value: unknown, decisions: Map<string, Decision>): boo
     && typeof value.title === "string"
     && typeof value.body === "string"
     && Array.isArray(value.effects)
-    && value.effects.every(isEffectRule);
+    && value.effects.every(isImmediateEffectRule);
 }
 
 function isPoliticalPromise(value: unknown, decisions: Map<string, Decision>): boolean {
@@ -70,7 +77,7 @@ function isPoliticalPromise(value: unknown, decisions: Map<string, Decision>): b
     && isPositiveInteger(value.dueAtDecision)
     && typeof value.fulfilled === "boolean"
     && Array.isArray(value.failureEffects)
-    && value.failureEffects.every(isEffectRule);
+    && value.failureEffects.every(isImmediateEffectRule);
 }
 
 function isCrisisState(value: unknown, decisions: Map<string, Decision>): boolean {
@@ -102,6 +109,14 @@ function hasUniqueKnownDecisionIds(value: unknown, decisions: Map<string, Decisi
     && !hasDuplicates(value as string[]);
 }
 
+function hasUniqueDisjointIds(first: readonly { id: string }[], second: readonly { id: string }[]): boolean {
+  const firstIds = first.map((item) => item.id);
+  const secondIds = second.map((item) => item.id);
+  return !hasDuplicates(firstIds)
+    && !hasDuplicates(secondIds)
+    && !firstIds.some((id) => secondIds.includes(id));
+}
+
 function effectRules(option: DecisionOption): readonly EffectRule[] {
   return [...option.effects, ...option.scheduledEvents.flatMap((event) => event.effects), ...option.promises.flatMap((promise) => promise.failureEffects)];
 }
@@ -116,9 +131,15 @@ function assertPositiveDelayedCounts(decision: Decision): string[] {
     }
     for (const event of option.scheduledEvents) {
       if (!isPositiveInteger(event.afterDecisions)) errors.push(`event:${event.id}:delayed-count-required`);
+      if (event.effects.some((effect) => effect.timing.kind !== "immediate")) {
+        errors.push(`event:${event.id}:effects-must-be-immediate`);
+      }
     }
     for (const promise of option.promises) {
       if (!isPositiveInteger(promise.dueAfterDecisions)) errors.push(`promise:${promise.id}:delayed-count-required`);
+      if (promise.failureEffects.some((effect) => effect.timing.kind !== "immediate")) {
+        errors.push(`promise:${promise.id}:failure-effects-must-be-immediate`);
+      }
     }
   }
   return errors;
@@ -159,6 +180,10 @@ export function validateScenario(scenario: Scenario): string[] {
   if (scenario.decisions.length !== 96) errors.push("scenario:expected-96-decisions");
 
   if (hasDuplicates(scenario.decisions.map((decision) => decision.id))) errors.push("scenario:duplicate-decision-id");
+  const scheduledEventIds = scenario.decisions.flatMap((decision) => decision.options.flatMap((option) => option.scheduledEvents.map((event) => event.id)));
+  const promiseIds = scenario.decisions.flatMap((decision) => decision.options.flatMap((option) => option.promises.map((promise) => promise.id)));
+  for (const id of duplicateValues(scheduledEventIds)) errors.push(`scenario:duplicate-scheduled-event-id:${id}`);
+  for (const id of duplicateValues(promiseIds)) errors.push(`scenario:duplicate-promise-id:${id}`);
   for (const decision of scenario.decisions) {
     if (hasDuplicates(decision.options.map((option) => option.id))) errors.push(`decision:${decision.id}:duplicate-option-id`);
   }
@@ -229,6 +254,8 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (!value.scheduledEvents.every((event) => isScheduledEvent(event, decisions))) return false;
   if (!value.eventHistory.every((event) => isScheduledEvent(event, decisions))) return false;
   if (![...value.activePromises, ...value.promiseHistory].every((promise) => isPoliticalPromise(promise, decisions))) return false;
+  if (!hasUniqueDisjointIds(value.scheduledEvents, value.eventHistory)) return false;
+  if (!hasUniqueDisjointIds(value.activePromises, value.promiseHistory)) return false;
   if (!value.crisisHistory.every((crisis) => isCrisisState(crisis, decisions))) return false;
   if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, decisions)) return false;
   if (!value.resolvedCrisisIds.every((id) => typeof id === "string") || hasDuplicates(value.resolvedCrisisIds)) return false;

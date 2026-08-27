@@ -1,4 +1,4 @@
-# Task 4 — Moteur V3 : effets et causalité
+# Task 4 - Moteur V3 : effets et causalité
 
 ## Réalisé
 
@@ -16,10 +16,10 @@
 
 ## Vérifications
 
-- `node --experimental-strip-types --test --test-name-pattern="effets immédiats|effet différé|conserve sa cause|promesse|verrou" src/simulateur-v3/effects.test.ts src/simulateur-v3/campaign.test.ts` — 7/7.
-- `node --experimental-strip-types --test src/simulateur-v3/*.test.ts` — 34/34.
-- `npm test` — 1391/1391.
-- `npm run build` — succès.
+- `node --experimental-strip-types --test --test-name-pattern="effets immédiats|effet différé|conserve sa cause|promesse|verrou" src/simulateur-v3/effects.test.ts src/simulateur-v3/campaign.test.ts` - 7/7.
+- `node --experimental-strip-types --test src/simulateur-v3/*.test.ts` - 34/34.
+- `npm test` - 1391/1391.
+- `npm run build` - succès.
 
 ## Auto-revue
 
@@ -27,3 +27,16 @@
 - Les effets différés ne passent jamais par `applyEffect` avant leur résolution.
 - Les événements résolus quittent la file et restent auditables dans `eventHistory`.
 - `git diff --check` est propre.
+
+## Correctif de revue
+
+- Les règles d'événement et les coûts de promesse sont maintenant obligatoirement immédiats : leur échéance est déjà portée par l'événement ou la promesse.
+- Les identifiants d'événement et de promesse sont globaux dans le scénario, et uniques/disjoints entre les files actives et les historiques persistés.
+- Toute conséquence invalide modifiée après chargement est refusée à la confirmation ; les résolveurs ne transforment plus silencieusement son timing.
+
+## Vérification du correctif
+
+- Tests ciblés de validation et de résolution : 7/7.
+- Suite V3 : 43/43.
+- `npm test` : 1398/1398.
+- `npm run build` : succès.

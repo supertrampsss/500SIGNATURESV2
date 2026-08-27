@@ -135,7 +135,7 @@ test("un effet différé est programmé mais jamais appliqué directement", () =
     dueAtDecision: 1,
     title: "Effet différé : Decision decision-1",
     body: "Effet test",
-    effects: [scenario.decisions[0]!.options[0]!.effects[0]!],
+    effects: [{ ...scenario.decisions[0]!.options[0]!.effects[0]!, timing: { kind: "immediate" } }],
   });
 });
 
@@ -196,4 +196,52 @@ test("un delta non fini est refusé", () => {
     timing: { kind: "immediate" }, duration: "once", explanation: "Invalide.",
   };
   assert.throws(() => applyEffect(state, effect, { sourceType: "event", sourceId: "event-1" }), /finite/);
+});
+
+test("confirmer refuse un scénario modifié avec une conséquence à échéance différée", () => {
+  const scenario = validScenario();
+  const started = startAtFirstDecision(scenario);
+  scenario.decisions[0]!.options[0]!.scheduledEvents = [{
+    id: "event-invalid", title: "Événement", body: "Texte", afterDecisions: 1,
+    effects: [{
+      id: "effect-invalid", target: "indicator", key: "opinion", delta: -1,
+      timing: { kind: "after_decisions", count: 1 }, duration: "once", explanation: "Trop tard.",
+    }],
+  }];
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
+  assert.throws(() => confirmSelection(selected, scenario), /Invalid scenario/);
+});
+
+test("résoudre un événement non valide échoue au lieu de changer son timing", () => {
+  const scenario = validScenario();
+  const state = createCampaign(scenario);
+  const malformed = {
+    ...state,
+    decisions: [{ decisionId: "decision-1", optionId: "decision-1-option-a", status: "confirmed" as const, confirmedAtIndex: 1 }],
+    scheduledEvents: [{
+      id: "event-invalid", sourceDecisionId: "decision-1", sourceOptionId: "decision-1-option-a",
+      dueAtDecision: 1, title: "Événement", body: "Texte", effects: [{
+        id: "effect-invalid", target: "indicator" as const, key: "opinion" as const, delta: -1,
+        timing: { kind: "after_decisions" as const, count: 1 }, duration: "once" as const, explanation: "Trop tard.",
+      }],
+    }],
+  };
+  assert.throws(() => resolveDueEvents(malformed), /immediate/);
+});
+
+test("résoudre une promesse non valide échoue au lieu de changer son timing", () => {
+  const scenario = validScenario();
+  const state = createCampaign(scenario);
+  const malformed = {
+    ...state,
+    decisions: [{ decisionId: "decision-1", optionId: "decision-1-option-a", status: "confirmed" as const, confirmedAtIndex: 1 }],
+    activePromises: [{
+      id: "promise-invalid", sourceDecisionId: "decision-1", label: "Promesse", dueAtDecision: 1,
+      fulfilled: false, failureEffects: [{
+        id: "effect-invalid", target: "indicator" as const, key: "opinion" as const, delta: -1,
+        timing: { kind: "after_decisions" as const, count: 1 }, duration: "once" as const, explanation: "Trop tard.",
+      }],
+    }],
+  };
+  assert.throws(() => resolveDuePromises(malformed), /immediate/);
 });
