@@ -52,8 +52,6 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   // Dette, budget et fiscalité — 15
   t("charge-dette-etat", "etat_charge_dette", "EUR", "budget", "Dette · le budget sous pression", "Charge de la dette de l'État", reserveBudget),
   t("depenses-budget-general", "etat_depenses_nettes_bg", "EUR", "budget", "État · la taille du budget", "Dépenses nettes du budget général", reserveBudget),
-  t("personnel-etat", "etat_depenses_personnel", "EUR", "budget", "Fonction publique · la masse salariale", "Dépenses de personnel de l'État", reserveBudget),
-  t("recette-impot-revenu", "etat_impot_revenu", "EUR", "fiscalite", "Impôt · ce que rapporte le revenu", "Recettes d'impôt sur le revenu", reserveBudget),
   t("recette-impot-societes", "etat_impot_societes", "EUR", "fiscalite", "Entreprises · la contribution au budget", "Recettes d'impôt sur les sociétés", reserveBudget),
   t("transferts-collectivites", "etat_psr_collectivites", "EUR", "budget", "Territoires · ce que l'État reverse", "Transferts de l'État aux collectivités", reserveBudget),
   t("contribution-ue", "etat_psr_union_europeenne", "EUR", "budget", "Europe · la contribution française", "Prélèvement au profit de l'Union européenne", reserveBudget),
@@ -63,15 +61,12 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   t("tva-conservee-etat", "etat_tva", "EUR", "fiscalite", "TVA · ce que l'État conserve", "Part de TVA conservée par l'État", "La série porte sur la part conservée par l'État, pas sur tout le produit de TVA collecté."),
   t("ticpe-etat", "etat_ticpe", "EUR", "fiscalite", "Carburants · la recette de l'État", "Part de taxe énergétique conservée par l'État", "Les transferts de fiscalité entre administrations modifient la part conservée par l'État."),
   t("dette-publique-montant", "insee_dette_apu_montant", "EUR", "budget", "Dette · l'encours nominal", "Dette publique en euros", "L'encours nominal ne tient compte ni de l'inflation ni de la richesse produite."),
-  t("dette-etat-montant", "insee_dette_etat_montant", "EUR", "budget", "Dette · la part de l'État", "Dette portée par l'État", "Cette série n'inclut pas les autres administrations publiques."),
   t("dette-securite-sociale", "insee_dette_asso_montant", "EUR", "budget", "Sécurité sociale · la dette séparée", "Dette de la Sécurité sociale", "Le partage de la dette entre administrations ne change pas l'encours public total."),
 
   // Retraites et protection sociale — 13
   t("age-depart-retraite", "drees_age_depart", "annees", "generation", "Retraites · l'âge effectif", "Âge moyen de départ à la retraite", "L'âge conjoncturel neutralise une partie des effets de génération et diffère de l'âge légal."),
   t("pension-moyenne", "drees_pension_moyenne_brute", "EUR", "generation", "Retraites · le niveau moyen", "Pension mensuelle brute moyenne", "La moyenne mélange régimes, carrières complètes et carrières incomplètes."),
   t("nombre-retraites", "drees_retraites_effectif", "count", "generation", "Retraites · le nombre à financer", "Nombre de retraités", "L'effectif ne dit rien du montant individuel des pensions."),
-  t("protection-sante", "drees_protection_sociale_sante", "EUR", "services", "Santé · la protection sociale", "Prestations sociales de santé", reserveBudget),
-  t("protection-vieillesse", "drees_protection_sociale_vieillesse", "EUR", "generation", "Retraites · le premier poste social", "Prestations vieillesse et survie", reserveBudget),
   t("protection-famille", "drees_protection_sociale_famille", "EUR", "services", "Familles · l'effort collectif", "Prestations consacrées à la famille", reserveBudget),
   t("protection-logement", "drees_protection_sociale_logement", "EUR", "logement", "Logement · les aides versées", "Prestations sociales de logement", reserveBudget),
   t("protection-emploi", "drees_protection_sociale_emploi", "EUR", "travail", "Chômage · la protection versée", "Prestations sociales liées à l'emploi", reserveBudget),
@@ -99,10 +94,8 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   // Inégalités et société — 10
   t("gini-trajectoire", "insee_gini", "ratio", "services", "Inégalités · le mouvement après redistribution", "Indice de Gini après redistribution", "Une variation faible de l'indice peut masquer des mouvements importants aux extrêmes."),
   t("rapport-interdecile", "insee_rapport_interdecile", "ratio", "services", "Inégalités · l'écart entre les seuils", "Rapport entre le neuvième et le premier décile", reserveSocial),
-  t("rapport-interquintile", "insee_rapport_interquintile", "ratio", "services", "Inégalités · la part du haut face au bas", "Rapport de niveau de vie entre les 20 % extrêmes", reserveSocial),
   t("pauvrete-seuil-50", "insee_taux_pauvrete_50", "percent", "services", "Pauvreté · le seuil le plus sévère", "Taux de pauvreté au seuil de 50 %", "Le seuil est relatif au niveau de vie médian et évolue avec lui."),
   t("intensite-pauvrete", "insee_intensite_pauvrete_60", "percent", "services", "Pauvreté · à quelle distance du seuil", "Intensité de la pauvreté", "L'intensité mesure l'écart médian au seuil parmi les personnes pauvres."),
-  t("niveau-vie-bas", "insee_niveau_vie_d1", "EUR", "services", "Niveaux de vie · le bas de l'échelle", "Seuil des 10 % les plus modestes", "Les montants sont publiés en euros constants ; le seuil ne décrit pas tous les revenus sous ce niveau."),
   t("niveau-vie-haut", "insee_niveau_vie_d9", "EUR", "services", "Niveaux de vie · le haut de l'échelle", "Seuil des 10 % les plus aisés", "Le neuvième décile est un seuil d'entrée et non la moyenne des plus aisés."),
   t("mariages", "insee_mariages", "count", "generation", "Société · le mariage recule-t-il vraiment", "Nombre de mariages", "Les restrictions de 2020 créent une rupture exceptionnelle dans la série."),
   t("pacs", "insee_pacs", "count", "generation", "Société · l'autre forme d'union", "Nombre de Pacs conclus", "Mariages et Pacs ne couvrent pas toutes les formes de vie en couple."),

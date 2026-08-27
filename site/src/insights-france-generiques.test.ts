@@ -29,14 +29,14 @@ const indicateur = (id: string, unite: string): Indicateur => ({
   periodes: [],
 });
 
-test("le catalogue déclare exactement 64 trajectoires et 24 missions uniques", () => {
-  assert.equal(RECETTES_TENDANCES.length, 64);
+test("le catalogue déclare exactement 57 trajectoires et 24 missions uniques", () => {
+  assert.equal(RECETTES_TENDANCES.length, 57);
   assert.equal(RECETTES_MISSIONS.length, 24);
   const ids = [
     ...RECETTES_TENDANCES.map(({ id }) => id),
     ...RECETTES_MISSIONS.map(({ id }) => id),
   ];
-  assert.equal(new Set(ids).size, 88);
+  assert.equal(new Set(ids).size, 81);
 });
 
 test("une trajectoire en pourcentage traverse zéro et s'exprime en points", () => {
@@ -105,7 +105,7 @@ test("une longue série nationale privilégie 2017 comme point de comparaison", 
   assert.match(resultat.texte, /entre 2017 et 2025/);
 });
 
-test("le générateur produit les 88 cartes quand chaque série est compatible", () => {
+test("le générateur produit les 81 cartes quand chaque série est compatible", () => {
   const series: Territoire["series"] = {};
   const catalogue: Indicateur[] = [];
 
@@ -121,8 +121,8 @@ test("le générateur produit les 88 cartes quand chaque série est compatible",
 
   const resultat = insightsFranceGeneriques(series, catalogue);
 
-  assert.equal(resultat.length, 88);
-  assert.equal(new Set(resultat.map(({ id }) => id)).size, 88);
+  assert.equal(resultat.length, 81);
+  assert.equal(new Set(resultat.map(({ id }) => id)).size, 81);
   assert.equal(resultat.every(({ preuves }) => preuves.length >= 2), true);
   assert.equal(
     resultat.filter(({ id }) => id.startsWith("mission-")).every(({ reserve }) => reserve === ""),

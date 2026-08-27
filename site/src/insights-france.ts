@@ -27,6 +27,11 @@ function montant(valeur: number): string {
 }
 
 function periodeLisible(periode: string): string {
+  const trimestre = /^(\d{4})-Q([1-4])$/.exec(periode);
+  if (trimestre) {
+    const rang = trimestre[2] === "1" ? "1er" : `${trimestre[2]}e`;
+    return `${rang} trimestre ${trimestre[1]}`;
+  }
   const correspondance = /^(\d{4})-(\d{2})$/.exec(periode);
   if (!correspondance) return periode;
   const annee = Number(correspondance[1]);
@@ -210,6 +215,170 @@ function insightRedistribution(series: Series): Insight | null {
   };
 }
 
+function insightPoidsPersonnelEtat(series: Series): Insight | null {
+  const personnelId = "etat_depenses_personnel";
+  const budgetId = "etat_depenses_nettes_bg";
+  const periode = periodeCommune([series[personnelId], series[budgetId]]);
+  if (!periode) return null;
+  const personnel = series[personnelId][periode];
+  const budget = series[budgetId][periode];
+  if (!(personnel >= 0) || !(budget > 0)) return null;
+  const part = (personnel / budget) * 100;
+  return {
+    id: "poids-personnel-etat",
+    famille: "budget",
+    surtitre: "Fonction publique · ce que paie le budget",
+    titre: `${pourcentage(part)} du budget général finance les personnels`,
+    texte: `En ${periode}, l'État inscrit ${montant(personnel)} de dépenses de personnel sur ${montant(budget)} de dépenses nettes du budget général. Un peu plus d'un euro sur trois est donc lié aux rémunérations et charges de personnel.`,
+    reserve: "Ce ratio porte sur le budget général de l'État, pas sur les trois fonctions publiques ni sur toute la dépense publique.",
+    preuves: [
+      preuve(personnelId, periode, personnel, "Dépenses de personnel"),
+      preuve(budgetId, periode, budget, "Dépenses nettes du budget général"),
+    ],
+  };
+}
+
+function insightPoidsImpotRevenu(series: Series): Insight | null {
+  const impotId = "etat_impot_revenu";
+  const recettesId = "etat_recettes_fiscales";
+  const periode = periodeCommune([series[impotId], series[recettesId]]);
+  if (!periode) return null;
+  const impot = series[impotId][periode];
+  const recettes = series[recettesId][periode];
+  if (!(impot >= 0) || !(recettes > 0)) return null;
+  const part = (impot / recettes) * 100;
+  return {
+    id: "poids-impot-revenu",
+    famille: "fiscalite",
+    surtitre: "Impôt sur le revenu · central dans le débat, minoritaire dans les recettes",
+    titre: `${pourcentage(part)} des recettes fiscales nettes de l'État`,
+    texte: `En ${periode}, l'impôt sur le revenu rapporte ${montant(impot)} sur ${montant(recettes)} de recettes fiscales nettes. Il concentre le débat fiscal, mais ne représente qu'environ un quart de ce que l'État encaisse par l'impôt.`,
+    reserve: "Le périmètre est celui de l'État : cotisations sociales et impôts locaux n'entrent pas dans ce total.",
+    preuves: [
+      preuve(impotId, periode, impot, "Impôt sur le revenu"),
+      preuve(recettesId, periode, recettes, "Recettes fiscales nettes"),
+    ],
+  };
+}
+
+function insightDettePorteeParEtat(series: Series): Insight | null {
+  const etatId = "insee_dette_etat_montant";
+  const totalId = "insee_dette_apu_montant";
+  const periode = periodeCommune([series[etatId], series[totalId]]);
+  if (!periode) return null;
+  const etat = series[etatId][periode];
+  const total = series[totalId][periode];
+  if (!(etat >= 0) || !(total > 0)) return null;
+  const part = (etat / total) * 100;
+  return {
+    id: "dette-portee-par-etat",
+    famille: "budget",
+    surtitre: "Dette · qui porte réellement l'addition",
+    titre: `${pourcentage(part)} de la dette publique est portée par l'État`,
+    texte: `À la fin du ${periodeLisible(periode)}, l'État porte ${montant(etat)} sur ${montant(total)} de dette publique. Le reste appartient aux organismes centraux, aux collectivités et à la Sécurité sociale.`,
+    reserve: "Cette répartition désigne le débiteur comptable ; elle ne préjuge pas de l'administration qui bénéficie de la dépense financée.",
+    preuves: [
+      preuve(etatId, periode, etat, "Dette de l'État"),
+      preuve(totalId, periode, total, "Dette publique totale"),
+    ],
+  };
+}
+
+function insightProtectionVieillesseSante(series: Series): Insight | null {
+  const vieillesseId = "drees_protection_sociale_vieillesse";
+  const santeId = "drees_protection_sociale_sante";
+  const totalId = "drees_protection_sociale_total";
+  const periode = periodeCommune([series[vieillesseId], series[santeId], series[totalId]]);
+  if (!periode) return null;
+  const vieillesse = series[vieillesseId][periode];
+  const sante = series[santeId][periode];
+  const total = series[totalId][periode];
+  if (!(vieillesse >= 0) || !(sante >= 0) || !(total > 0)) return null;
+  const part = ((vieillesse + sante) / total) * 100;
+  return {
+    id: "protection-sociale-vieillesse-sante",
+    famille: "services",
+    surtitre: "Modèle social · où part l'essentiel",
+    titre: `Vieillesse et santé absorbent ${pourcentage(part)} des prestations`,
+    texte: `En ${periode}, ces deux risques représentent ${montant(vieillesse + sante)} sur ${montant(total)} de prestations de protection sociale. Le cœur du modèle social français finance d'abord l'âge et la santé.`,
+    reserve: "Ces comptes couvrent l'ensemble de la protection sociale, au-delà des seuls budgets de l'État et de la Sécurité sociale.",
+    preuves: [
+      preuve(vieillesseId, periode, vieillesse, "Vieillesse et survie"),
+      preuve(santeId, periode, sante, "Santé"),
+      preuve(totalId, periode, total, "Total des prestations"),
+    ],
+  };
+}
+
+function insightProtectionVieillesseFamille(series: Series): Insight | null {
+  const vieillesseId = "drees_protection_sociale_vieillesse";
+  const familleId = "drees_protection_sociale_famille";
+  const periode = periodeCommune([series[vieillesseId], series[familleId]]);
+  if (!periode) return null;
+  const vieillesse = series[vieillesseId][periode];
+  const famille = series[familleId][periode];
+  if (!(vieillesse >= 0) || !(famille > 0)) return null;
+  const multiple = vieillesse / famille;
+  return {
+    id: "protection-sociale-vieillesse-famille",
+    famille: "generation",
+    surtitre: "Générations · le rapport de force budgétaire",
+    titre: `${ratio.format(multiple)} fois plus pour la vieillesse que pour la famille`,
+    texte: `En ${periode}, les prestations vieillesse et survie atteignent ${montant(vieillesse)}, contre ${montant(famille)} pour le risque famille. Ce rapport mesure la structure du système, pas le niveau de vie de chaque génération.`,
+    reserve: "Comparer les masses ne tient compte ni du nombre de bénéficiaires ni de la durée des droits.",
+    preuves: [
+      preuve(vieillesseId, periode, vieillesse, "Vieillesse et survie"),
+      preuve(familleId, periode, famille, "Famille"),
+    ],
+  };
+}
+
+function insightRedistributionInterquintile(series: Series): Insight | null {
+  const avantId = "insee_rapport_interquintile_avant_redistribution";
+  const apresId = "insee_rapport_interquintile";
+  const periode = periodeCommune([series[avantId], series[apresId]]);
+  if (!periode) return null;
+  const avant = series[avantId][periode];
+  const apres = series[apresId][periode];
+  if (!(avant > 0) || !(apres > 0) || apres > avant) return null;
+  const reduction = ((avant - apres) / avant) * 100;
+  return {
+    id: "redistribution-interquintile",
+    famille: "services",
+    surtitre: "Redistribution · ce qu'elle change vraiment",
+    titre: `L'écart entre les 20 % extrêmes recule de ${pourcentage(reduction)}`,
+    texte: `En ${periode}, le rapport de niveau de vie entre les 20 % les plus aisés et les 20 % les plus modestes passe de ${ratio.format(avant)} avant redistribution à ${ratio.format(apres)} après impôts directs et prestations.`,
+    reserve: "Ce rapport compare deux groupes entiers et ne décrit pas les écarts à l'intérieur de chacun.",
+    preuves: [
+      preuve(avantId, periode, avant, "Avant redistribution"),
+      preuve(apresId, periode, apres, "Après redistribution"),
+    ],
+  };
+}
+
+function insightRedistributionBasEchelle(series: Series): Insight | null {
+  const avantId = "insee_niveau_vie_d1_avant_redistribution";
+  const apresId = "insee_niveau_vie_d1";
+  const periode = periodeCommune([series[avantId], series[apresId]]);
+  if (!periode) return null;
+  const avant = series[avantId][periode];
+  const apres = series[apresId][periode];
+  if (!(avant > 0) || !(apres > 0) || apres < avant) return null;
+  const hausse = ((apres - avant) / avant) * 100;
+  return {
+    id: "redistribution-bas-echelle",
+    famille: "services",
+    surtitre: "Redistribution · le bas de l'échelle",
+    titre: `Le premier décile est relevé de ${pourcentage(hausse)}`,
+    texte: `En ${periode}, le seuil de niveau de vie des 10 % les plus modestes passe de ${montant(avant)} avant redistribution à ${montant(apres)} après impôts directs et prestations.`,
+    reserve: "Un décile est un seuil statistique : la différence n'est pas le transfert reçu par une même personne.",
+    preuves: [
+      preuve(avantId, periode, avant, "Seuil avant redistribution"),
+      preuve(apresId, periode, apres, "Seuil après redistribution"),
+    ],
+  };
+}
+
 function insightInteretsDette(series: Series): Insight | null {
   const id = "eurostat_apu_interets";
   const depart = series[id]?.["2021"];
@@ -350,6 +519,13 @@ export function insightsFrance(france: Territoire | undefined, catalogue: Indica
     insightPensions(france.series),
     insightDefaillances(france.series),
     insightRedistribution(france.series),
+    insightPoidsPersonnelEtat(france.series),
+    insightPoidsImpotRevenu(france.series),
+    insightDettePorteeParEtat(france.series),
+    insightProtectionVieillesseSante(france.series),
+    insightProtectionVieillesseFamille(france.series),
+    insightRedistributionInterquintile(france.series),
+    insightRedistributionBasEchelle(france.series),
     insightInteretsDette(france.series),
     insightPrelevements(france.series),
     insightTauxEmploi(france.series),

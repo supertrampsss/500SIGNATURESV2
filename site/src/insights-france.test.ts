@@ -46,6 +46,20 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
     bdf_defaillances_taille_ensemble: { "2025-06": 60_000, "2026-06": 66_000 },
     insee_gini: { "2024": 0.3 },
     insee_gini_avant_redistribution: { "2024": 0.4 },
+    etat_depenses_personnel: { "2025": 156 },
+    etat_depenses_nettes_bg: { "2025": 440 },
+    etat_impot_revenu: { "2025": 95 },
+    etat_recettes_fiscales: { "2025": 357 },
+    insee_dette_etat_montant: { "2025-Q1": 2_880 },
+    insee_dette_apu_montant: { "2025-Q1": 3_525 },
+    drees_protection_sociale_vieillesse: { "2024": 427 },
+    drees_protection_sociale_sante: { "2024": 318 },
+    drees_protection_sociale_famille: { "2024": 66 },
+    drees_protection_sociale_total: { "2024": 908 },
+    insee_rapport_interquintile_avant_redistribution: { "2024": 8.37 },
+    insee_rapport_interquintile: { "2024": 4.62 },
+    insee_niveau_vie_d1_avant_redistribution: { "2024": 9_970 },
+    insee_niveau_vie_d1: { "2024": 13_970 },
     eurostat_apu_interets: { "2021": 35_000_000_000, "2025": 66_500_000_000 },
     eurostat_prelevements_obligatoires_pib: { "2017": 48.3, "2024": 45.2 },
     eurostat_taux_emploi: { "2003": 70.1, "2025": 75.4 },
@@ -74,6 +88,13 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
       "pensions-femmes-hommes",
       "defaillances",
       "redistribution",
+      "poids-personnel-etat",
+      "poids-impot-revenu",
+      "dette-portee-par-etat",
+      "protection-sociale-vieillesse-sante",
+      "protection-sociale-vieillesse-famille",
+      "redistribution-interquintile",
+      "redistribution-bas-echelle",
       "interets-dette",
       "prelevements-obligatoires",
       "taux-emploi",
@@ -88,10 +109,17 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
   assert.match(resultat[1].titre, /Défense/);
   assert.match(resultat[3].titre, /40/);
   assert.equal(resultat[5].preuves.every(({ periode }) => periode === "2024"), true);
-  assert.match(resultat[6].titre, /66,5 Md€/);
-  assert.match(resultat[9].titre, /2,57 fois/);
-  assert.equal(resultat[10].preuves.every(({ periode }) => periode === "2024"), true);
-  assert.match(resultat[11].titre, /141,4/);
+  assert.match(resultat[6].titre, /35,5 %/);
+  assert.match(resultat[7].titre, /26,6 %/);
+  assert.match(resultat[8].texte, /1er trimestre 2025/);
+  assert.doesNotMatch(resultat[8].texte, /2025-Q1/);
+  assert.match(resultat[9].titre, /82 %/);
+  assert.match(resultat[11].titre, /44,8 %/);
+  assert.match(resultat[12].titre, /40,1 %/);
+  assert.match(resultat[13].titre, /66,5 Md€/);
+  assert.match(resultat[16].titre, /2,57 fois/);
+  assert.equal(resultat[17].preuves.every(({ periode }) => periode === "2024"), true);
+  assert.match(resultat[18].titre, /141,4/);
 });
 
 test("insightsFrance supprime seulement les angles dont les séries sont insuffisantes", () => {
