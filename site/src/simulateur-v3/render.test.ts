@@ -70,34 +70,21 @@ test("une option ne répète pas mot pour mot le contexte déjà lu", () => {
   assert.equal(occurrences(html, 'class="simulateur-v3__option-summary"'), 1);
 });
 
-test("la confirmation vit dans la carte sélectionnée", () => {
-  const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+test("les cartes tranchent directement sans confirmation intermédiaire", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
-  const option = decision.options[0]!;
-  const selected = selectOption(base, SCENARIO_V3_PREVIEW, decision.id, option.id);
-  const html = renderSimulatorV3(selected, SCENARIO_V3_PREVIEW);
-  assert.match(html, /aria-pressed="true"/);
-  assert.equal(occurrences(html, 'data-v3-action="confirm"'), 1);
-  assert.equal(occurrences(html, 'data-v3-action="cancel"'), 1);
-  const cardStart = html.indexOf(`data-option-id="${option.id}"`);
-  const cardEnd = html.indexOf("</article>", cardStart);
-  const confirmation = html.indexOf('data-v3-action="confirm"');
-  assert.ok(cardStart >= 0 && confirmation > cardStart && confirmation < cardEnd);
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(html, 'data-v3-action="select"'), decision.options.length);
+  assert.equal(occurrences(html, 'aria-label="Choisir :'), decision.options.length);
+  assert.doesNotMatch(html, /data-v3-action="confirm"|data-v3-action="cancel"|aria-pressed/);
 });
 
-test("le retour de décision reste à l'écran jusqu'à Continuer", () => {
+test("l'état technique de résultat ne produit aucun écran de validation", () => {
   const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
-  const option = decision.options[0]!;
-  const selected = selectOption(base, SCENARIO_V3_PREVIEW, decision.id, option.id);
-  const confirmed = confirmSelection(selected, SCENARIO_V3_PREVIEW);
+  const confirmed = confirmSelection(selectOption(base, SCENARIO_V3_PREVIEW, decision.id, decision.options[0]!.id), SCENARIO_V3_PREVIEW);
   const html = renderSimulatorV3(confirmed, SCENARIO_V3_PREVIEW);
-  assert.match(html, /aria-live="polite"/);
-  assert.match(html, new RegExp(option.label));
-  assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
-  assert.match(html, /Opinion -20 points/);
-  assert.match(html, /Entreprises \+4 points/);
-  assert.doesNotMatch(html, /Réaction simulée|Aucune conséquence différée/);
+  assert.doesNotMatch(html, /Décision actée|Continuer le mandat|data-v3-action="continue"/);
 });
 
 test("chaque phase rend la barre de commandement sans cadratin", () => {
@@ -177,7 +164,7 @@ test("le verdict final raconte le mandat et permet une revanche", () => {
   state.decisions[0] = { ...state.decisions[0]!, status: "suspended" };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.match(html, /Votre mandat/);
-  assert.match(html, /96 décisions/);
+  assert.match(html, /96 arbitrages/);
   assert.match(html, /1 crise/);
   assert.match(html, /1 réforme abandonnée sous pression/);
   assert.equal(occurrences(html, 'data-v3-action="restart"'), 1);

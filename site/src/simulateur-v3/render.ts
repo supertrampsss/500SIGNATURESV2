@@ -139,17 +139,17 @@ function effectLabel(effect: { target: "indicator" | "group"; key: string; delta
   return `${label} ${signed(effect.delta)} ${unit}`;
 }
 
-function renderOption(decision: Decision, option: DecisionOption, selected: boolean): string {
+function renderOption(decision: Decision, option: DecisionOption): string {
   const budget = annualBalanceEffect(option);
   return `
-    <article class="simulateur-v3__option${selected ? " simulateur-v3__option--selected" : ""}" data-option-id="${escapeHtml(option.id)}">
+    <article class="simulateur-v3__option" data-option-id="${escapeHtml(option.id)}">
       <button
         type="button"
         class="simulateur-v3__option-select"
         data-v3-action="select"
         data-decision-id="${escapeHtml(decision.id)}"
         data-option-id="${escapeHtml(option.id)}"
-        aria-pressed="${selected ? "true" : "false"}"
+        aria-label="Choisir : ${escapeHtml(option.label)}"
       >
         <span class="simulateur-v3__option-label">${escapeHtml(option.label)}</span>
         ${option.summary !== decision.context ? `<span class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</span>` : ""}
@@ -158,14 +158,6 @@ function renderOption(decision: Decision, option: DecisionOption, selected: bool
           <span>Incertitude ${escapeHtml(option.uncertainty)}</span>
         </span>
       </button>
-      ${selected ? `
-        <div class="simulateur-v3__option-confirmation" role="group" aria-label="Confirmer ce choix">
-          <p>Vous engagez la France sur cette trajectoire.</p>
-          <div>
-            <button type="button" class="simulateur-v3__confirm" data-v3-action="confirm">Confirmer ce choix</button>
-            <button type="button" class="simulateur-v3__cancel" data-v3-action="cancel">Revenir au dossier</button>
-          </div>
-        </div>` : ""}
     </article>`;
 }
 
@@ -206,36 +198,9 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
         <h1>${escapeHtml(decision.title)}</h1>
         <p class="simulateur-v3__context">${escapeHtml(decision.context)}</p>
         <section class="simulateur-v3__options" aria-label="Choix possibles">
-          ${decision.options.map((option) => renderOption(
-            decision,
-            option,
-            state.pendingSelection?.optionId === option.id,
-          )).join("")}
+          ${decision.options.map((option) => renderOption(decision, option)).join("")}
         </section>
         ${renderEvidence(decision)}
-      </article>
-    </main>`;
-}
-
-function renderDecisionResult(state: CampaignState, scenario: Scenario): string {
-  const record = state.decisions.at(-1);
-  const decision = record ? scenario.decisions.find((candidate) => candidate.id === record.decisionId) : undefined;
-  const option = decision?.options.find((candidate) => candidate.id === record?.optionId);
-  if (!decision || !option) return renderUnavailable("Le résultat de cette décision est indisponible.");
-  const budget = annualBalanceEffect(option);
-  const otherEffects = option.effects.filter((effect) => effect !== budget && effect.timing.kind === "immediate");
-  return `
-    <main class="simulateur-v3__stage">
-      <article class="simulateur-v3__dossier simulateur-v3__result" aria-live="polite">
-        <p class="simulateur-v3__eyebrow">Décision actée</p>
-        <h1>${escapeHtml(option.label)}</h1>
-        <p class="simulateur-v3__result-question">${escapeHtml(decision.title)}</p>
-        <div class="simulateur-v3__result-grid">
-          <section><h2>Effet sur les comptes</h2><p>${budget ? `${escapeHtml(formatV3Amount(budget.delta))} par an` : "Solde public inchangé"}</p></section>
-          ${otherEffects.length ? `<section><h2>Effet politique immédiat</h2><ul class="simulateur-v3__result-effects">${otherEffects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul></section>` : ""}
-          ${option.scheduledEvents.length ? `<section><h2>À surveiller</h2><p>${option.scheduledEvents.length} conséquence programmée.</p></section>` : ""}
-        </div>
-        <button type="button" class="simulateur-v3__primary" data-v3-action="continue">Continuer le mandat</button>
       </article>
     </main>`;
 }
@@ -253,6 +218,7 @@ function renderJournal(state: CampaignState, scenario: Scenario): string {
     suspended: "Suspendue après une crise",
     amended: "Amendée après une crise",
     reversed: "Renversée après une crise",
+    superseded: "Sans objet après un arbitrage précédent",
   };
   return `
     <main class="simulateur-v3__stage">
@@ -422,7 +388,8 @@ function renderChapterVerdict(state: CampaignState, scenario: Scenario): string 
 }
 
 function renderVerdict(state: CampaignState, scenario: Scenario): string {
-  const abandoned = state.decisions.filter((record) => record.status !== "confirmed").length;
+  const abandoned = state.decisions.filter((record) => ["suspended", "amended", "reversed"].includes(record.status)).length;
+  const superseded = state.decisions.filter((record) => record.status === "superseded").length;
   const crisisCount = state.crisisHistory.length;
   const balance = state.indicators.annualBalance;
   const headline = balance >= 0
@@ -430,7 +397,7 @@ function renderVerdict(state: CampaignState, scenario: Scenario): string {
     : balance >= -50_000
       ? "Vous n'avez pas tout réglé, mais la trajectoire est devenue crédible."
       : "Le déficit résiste. Votre mandat a surtout choisi qui devait être protégé.";
-  const decisive = state.decisions.slice().sort((a, b) => {
+  const decisive = state.decisions.filter((record) => record.status !== "superseded").sort((a, b) => {
     const effect = (record: typeof a) => scenario.decisions.find((decision) => decision.id === record.decisionId)?.options.find((option) => option.id === record.optionId)?.effects.find((item) => item.target === "indicator" && item.key === "annualBalance")?.delta ?? 0;
     return Math.abs(effect(b)) - Math.abs(effect(a));
   }).slice(0, 3);
@@ -439,7 +406,7 @@ function renderVerdict(state: CampaignState, scenario: Scenario): string {
       <article class="simulateur-v3__dossier simulateur-v3__verdict">
         <p class="simulateur-v3__eyebrow">Votre mandat</p>
         <h1>${escapeHtml(headline)}</h1>
-        <p class="simulateur-v3__lead">96 décisions, ${crisisCount} ${crisisCount === 1 ? "crise" : "crises"}, ${abandoned} ${abandoned === 1 ? "réforme abandonnée sous pression" : "réformes abandonnées sous pression"}.</p>
+        <p class="simulateur-v3__lead">${96 - superseded} arbitrages rendus, ${superseded} ${superseded === 1 ? "dossier devenu sans objet" : "dossiers devenus sans objet"}, ${crisisCount} ${crisisCount === 1 ? "crise" : "crises"}, ${abandoned} ${abandoned === 1 ? "réforme abandonnée sous pression" : "réformes abandonnées sous pression"}.</p>
         <div class="simulateur-v3__situation-grid">
           <section><h2>Solde annuel</h2><strong>${escapeHtml(formatV3Amount(balance))}</strong></section>
           <section><h2>Croissance</h2><strong>${state.indicators.growth.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</strong></section>
@@ -477,7 +444,7 @@ export function renderSimulatorV3(
       content = renderDecision(state, scenario);
       break;
     case "decision_result":
-      content = renderDecisionResult(state, scenario);
+      content = "";
       break;
     case "pause":
       content = renderPause(state, scenario, options.pauseView ?? "menu");

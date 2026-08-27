@@ -3521,7 +3521,7 @@ test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
   assert.match(desktop, /\.simulateur-v3__options\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s);
   assert.match(SIMULATEUR_V3, /min-height:\s*var\(--cible\);/);
   assert.match(SIMULATEUR_V3, /:focus-visible/);
-  assert.match(SIMULATEUR_V3, /\[aria-pressed="true"\]/);
+  assert.doesNotMatch(SIMULATEUR_V3, /\[aria-pressed="true"\]/);
   assert.match(SIMULATEUR_V3, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
   assert.doesNotMatch(SIMULATEUR_V3, /position:\s*fixed/);
   assert.match(SIMULATEUR_V3, /#simulateur-v3\s*\{[^}]*scroll-margin-top:\s*var\(--haut-entete\);/s);

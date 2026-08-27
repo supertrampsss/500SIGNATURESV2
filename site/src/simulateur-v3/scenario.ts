@@ -147,6 +147,13 @@ function scheduledEventsFor(measure: Mesure): Decision["options"][number]["sched
   }];
 }
 
+function conflictsFor(measure: Mesure): string[] {
+  return [...new Set([
+    ...(measure.exclut ?? []),
+    ...MESURES.filter((candidate) => candidate.exclut?.includes(measure.id)).map((candidate) => candidate.id),
+  ])];
+}
+
 function toDecision(measure: Mesure, index: number): Decision {
   const chapter = CHAPTERS[Math.floor(index / 12)]!;
   const editorial = DILEMMES[measure.id];
@@ -194,7 +201,7 @@ function toDecision(measure: Mesure, index: number): Decision {
     ?? (measure.effet >= 0 ? ["groupes affectés par la mesure"] : ["finances publiques"]);
   const keepBeneficiaries = editorial?.rejeter.gagnants ?? adoptContributors;
   const keepContributors = editorial?.rejeter.perdants ?? adoptBeneficiaries;
-  const conflicts = [...new Set(measure.exclut ?? [])];
+  const conflicts = conflictsFor(measure);
 
   return {
     id: measure.id,
@@ -214,7 +221,7 @@ function toDecision(measure: Mesure, index: number): Decision {
         scheduledEvents: scheduledEventsFor(measure),
         promises: [],
         fulfillsPromises: [],
-        locks: [],
+        locks: conflicts,
         unlocks: [],
       },
       {
@@ -247,7 +254,7 @@ function toDecision(measure: Mesure, index: number): Decision {
 const decisions = MESURES.map(toDecision);
 
 export const SCENARIO_V3_PREVIEW: Scenario = {
-  version: 2,
+  version: 3,
   title: "La France à l'épreuve des comptes",
   chapters: CHAPTERS.map((chapter, index) => ({
     ...chapter,

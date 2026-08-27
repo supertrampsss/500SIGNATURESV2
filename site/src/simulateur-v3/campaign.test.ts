@@ -65,6 +65,22 @@ test("les passages après résultat respectent les jalons du chapitre et de la c
   }
 });
 
+test("un dossier verrouillé est classé sans objet et n'est jamais présenté", () => {
+  const scenario = validScenario();
+  const first = scenario.decisions[0]!;
+  const started = { ...createCampaign(scenario), phase: "decision" as const };
+  const confirmed = confirmSelection(selectOption(started, scenario, first.id, first.options[0]!.id), scenario);
+  const withLockedNext = { ...confirmed, lockedDecisionIds: [scenario.decisions[1]!.id] };
+
+  const next = advanceAfterResult(withLockedNext, scenario);
+
+  assert.equal(next.phase, "decision");
+  assert.equal(next.decisionIndex, 2);
+  assert.equal(next.decisions[1]?.decisionId, scenario.decisions[1]!.id);
+  assert.equal(next.decisions[1]?.status, "superseded");
+  assert.equal(currentDecision(next, scenario)?.id, scenario.decisions[2]!.id);
+});
+
 test("sortir du Conseil reprend la décision suivante après les quatrième et huitième décisions", () => {
   const scenario = validScenario();
   for (const [count, decisionIndex] of [[4, 3], [8, 7]] as const) {

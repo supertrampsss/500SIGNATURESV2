@@ -83,7 +83,7 @@ export function clearSelection(state: CampaignState): CampaignState {
   return withoutSelection;
 }
 
-export function advanceAfterResult(state: CampaignState, scenario: Scenario): CampaignState {
+function advanceOneScreen(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase === "chapter_verdict") {
     return { ...state, chapterIndex: state.chapterIndex + 1, decisionIndex: 0, phase: "chapter_intro" };
   }
@@ -95,4 +95,25 @@ export function advanceAfterResult(state: CampaignState, scenario: Scenario): Ca
   if (completedDecisions % 12 === 0) return { ...state, phase: "chapter_verdict" };
   if (completedDecisions % 4 === 0) return { ...state, phase: "council" };
   return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
+}
+
+export function advanceAfterResult(state: CampaignState, scenario: Scenario): CampaignState {
+  let advanced = advanceOneScreen(state, scenario);
+  while (advanced.phase === "decision") {
+    const decision = currentDecision(advanced, scenario);
+    if (!decision || !advanced.lockedDecisionIds.includes(decision.id)) break;
+    const neutralOption = decision.options[1] ?? decision.options[0];
+    if (!neutralOption) break;
+    advanced = advanceOneScreen({
+      ...advanced,
+      phase: "decision_result",
+      decisions: [...advanced.decisions, {
+        decisionId: decision.id,
+        optionId: neutralOption.id,
+        status: "superseded",
+        confirmedAtIndex: advanced.decisions.length + 1,
+      }],
+    }, scenario);
+  }
+  return advanced;
 }

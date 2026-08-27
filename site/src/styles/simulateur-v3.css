@@ -225,8 +225,6 @@ body[data-vue="simulateur"] .entete__recherche {
 
 .simulateur-v3__primary,
 .simulateur-v3__secondary,
-.simulateur-v3__confirm,
-.simulateur-v3__cancel,
 .simulateur-v3__danger {
   display: inline-flex;
   align-items: center;
@@ -243,15 +241,13 @@ body[data-vue="simulateur"] .entete__recherche {
   cursor: pointer;
 }
 
-.simulateur-v3__primary,
-.simulateur-v3__confirm {
+.simulateur-v3__primary {
   color: #ffffff;
   background: var(--v3-red);
   border-color: var(--v3-red);
 }
 
-.simulateur-v3__secondary,
-.simulateur-v3__cancel {
+.simulateur-v3__secondary {
   color: var(--v3-ink);
   background: transparent;
   border-color: var(--v3-ink);
@@ -296,12 +292,6 @@ body[data-vue="simulateur"] .entete__recherche {
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
-.simulateur-v3__option--selected {
-  border-color: var(--v3-red);
-  border-top-color: var(--v3-red);
-  box-shadow: 0 0 0 2px rgb(155 48 41 / 0.14);
-}
-
 .simulateur-v3__option-select {
   display: grid;
   gap: var(--espace-3);
@@ -314,10 +304,6 @@ body[data-vue="simulateur"] .entete__recherche {
   font: inherit;
   text-align: left;
   cursor: pointer;
-}
-
-.simulateur-v3__option-select[aria-pressed="true"] {
-  background: rgb(155 48 41 / 0.055);
 }
 
 .simulateur-v3__option-label {
@@ -346,17 +332,6 @@ body[data-vue="simulateur"] .entete__recherche {
   font-size: var(--texte-m);
 }
 
-.simulateur-v3__option-confirmation {
-  padding: var(--espace-4) var(--espace-5) var(--espace-5);
-  border-top: 1px solid var(--v3-rule);
-}
-
-.simulateur-v3__option-confirmation p {
-  margin: 0 0 var(--espace-4);
-  line-height: 1.45;
-}
-
-.simulateur-v3__option-confirmation > div,
 .simulateur-v3__pause-actions {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -712,8 +687,7 @@ body[data-vue="simulateur"] .entete__recherche {
     transform: translateY(-2px);
   }
 
-  .simulateur-v3__primary:hover,
-  .simulateur-v3__confirm:hover {
+  .simulateur-v3__primary:hover {
     background: #7f251f;
   }
 }
@@ -731,7 +705,6 @@ body[data-vue="simulateur"] .entete__recherche {
     padding-inline: var(--espace-4);
   }
 
-  .simulateur-v3__option-confirmation > div,
   .simulateur-v3__pause-actions,
   .simulateur-v3__verdict-actions,
   .simulateur-v3__chapter-score {

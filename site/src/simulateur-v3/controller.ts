@@ -1,6 +1,5 @@
 import {
   advanceAfterResult,
-  clearSelection,
   createCampaign,
   selectOption,
 } from "./campaign.ts";
@@ -132,24 +131,21 @@ export function mountSimulatorV3(
       const decisionId = node.dataset.decisionId;
       const optionId = node.dataset.optionId;
       if (!decisionId || !optionId) return;
-      state = selectOption(state, scenario, decisionId, optionId);
-      render();
-      return;
-    }
-
-    if (action === "cancel" && state.phase === "decision") {
-      state = clearSelection(state);
-      render();
-      return;
-    }
-
-    if (action === "confirm" && state.phase === "decision" && state.pendingSelection) {
-      state = confirmSelection(state, scenario);
+      state = confirmSelection(selectOption(state, scenario, decisionId, optionId), scenario);
       emit({
         type: "decision_confirmed",
         chapter: state.chapterIndex + 1,
         position: state.decisions.length,
       });
+      state = advanceCampaign(state, scenario, crisisRules);
+      if (state.phase === "decision") {
+        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+      }
+      if (state.phase === "crisis" && state.activeCrisis) {
+        emit({ type: "crisis_triggered", crisisId: state.activeCrisis.ruleId });
+      }
+      if (state.phase === "chapter_verdict") emit({ type: "chapter_completed", chapter: state.chapterIndex + 1 });
+      if (state.phase === "verdict") emit({ type: "campaign_completed" });
       persistAndRender(true);
       return;
     }
@@ -175,6 +171,10 @@ export function mountSimulatorV3(
       const crisisId = state.activeCrisis.ruleId;
       state = resolveCrisis(state, crisisRules, resolutionId);
       emit({ type: "concession_selected", crisisId, resolutionId });
+      state = advanceCampaign(state, scenario, crisisRules);
+      if (state.phase === "decision") {
+        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+      }
       persistAndRender(true);
       return;
     }

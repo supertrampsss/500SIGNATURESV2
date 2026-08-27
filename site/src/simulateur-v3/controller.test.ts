@@ -62,45 +62,22 @@ test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   assert.equal(host.scrollCalls, 3);
 });
 
-test("choisir une carte ne déplace pas la lecture, changer d'écran la remonte", () => {
+test("choisir une carte enregistre le choix et remonte vers l'écran suivant", () => {
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const avantChoix = host.scrollCalls;
-  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
-  assert.equal(host.scrollCalls, avantChoix);
-  host.click("confirm");
+  host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
   assert.equal(host.scrollCalls, avantChoix + 1);
 });
 
-test("sélectionner, revenir et confirmer restent dans la carte", () => {
-  const host = new FakeHost();
-  const storage = memoryStorage();
-  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
-  beginDecision(host);
-  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
-  const option = decision.options[0]!;
-  host.click("select", { decisionId: decision.id, optionId: option.id });
-  assert.match(host.innerHTML, /Confirmer ce choix/);
-  host.click("cancel");
-  assert.doesNotMatch(host.innerHTML, /data-v3-action="confirm"/);
-  host.click("select", { decisionId: decision.id, optionId: option.id });
-  host.click("confirm");
-  assert.match(host.innerHTML, /Décision actée/);
-  const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
-  assert.equal(saved.decisions.length, 1);
-  assert.equal(saved.decisions[0].optionId, option.id);
-});
-
-test("Continuer avance vers le dossier suivant", () => {
+test("un choix sans événement ouvre immédiatement le dossier suivant", () => {
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
-  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
-  host.click("confirm");
-  host.click("continue");
+  host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
   assert.match(host.innerHTML, /Dossier 2 sur 96/);
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));
 });
@@ -151,6 +128,23 @@ test("démonter retire l'unique écouteur délégué", () => {
   assert.equal(host.hasListener(), false);
 });
 
+test("un clic sur une carte enregistre la décision et ouvre directement sa conséquence", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
+  beginDecision(host);
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const option = decision.options[0]!;
+
+  host.click("select", { decisionId: decision.id, optionId: option.id });
+
+  const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.equal(saved.decisions.length, 1);
+  assert.equal(saved.decisions[0].optionId, option.id);
+  assert.match(host.innerHTML, /Conseil de crise/);
+  assert.doesNotMatch(host.innerHTML, /Confirmer ce choix|Décision actée/);
+});
+
 test("une crise interrompt la progression et sa concession suspend réellement la réforme", () => {
   const host = new FakeHost();
   const storage = memoryStorage();
@@ -158,8 +152,6 @@ test("une crise interrompt la progression et sa concession suspend réellement l
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
-  host.click("confirm");
-  host.click("continue");
   assert.match(host.innerHTML, /Conseil de crise/);
   assert.match(host.innerHTML, /Suspendre la flat tax/);
 
@@ -167,7 +159,7 @@ test("une crise interrompt la progression et sa concession suspend réellement l
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
   assert.equal(saved.decisions[0].status, "suspended");
   assert.equal(saved.decisions[0].changedByCrisisId, "flat-tax-revolt");
-  host.click("continue");
+  assert.deepEqual(saved.lockedDecisionIds, []);
   assert.match(host.innerHTML, /Dossier 2 sur 96/);
 });
 
@@ -211,8 +203,6 @@ test("Pause restaurée reprend un Conseil, pas un dossier générique", () => {
   for (let index = 0; index < 4; index += 1) {
     const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
     host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
-    host.click("confirm");
-    host.click("continue");
   }
   assert.match(host.innerHTML, /Conseil après 4 décisions/);
   host.click("pause");
