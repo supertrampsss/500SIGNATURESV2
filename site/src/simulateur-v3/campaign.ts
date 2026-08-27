@@ -65,8 +65,14 @@ export function currentDecision(state: CampaignState, scenario: Scenario): Decis
   return scenario.decisions.find((decision) => decision.id === decisionId) ?? null;
 }
 
-export function selectOption(state: CampaignState, decisionId: string, optionId: string): CampaignState {
+export function selectOption(state: CampaignState, scenario: Scenario, decisionId: string, optionId: string): CampaignState {
   if (state.phase !== "decision") throw new Error("Cannot select an option outside phase decision");
+  const decision = scenario.decisions.find((candidate) => candidate.id === decisionId);
+  if (!decision) throw new Error(`Unknown decision ID: ${decisionId}`);
+  if (currentDecision(state, scenario)?.id !== decisionId) {
+    throw new Error(`Decision is not the current decision: ${decisionId}`);
+  }
+  if (!decision.options.some((option) => option.id === optionId)) throw new Error(`Unknown option ID: ${optionId}`);
   if (state.lockedDecisionIds.includes(decisionId)) throw new Error(`Cannot select a locked decision: ${decisionId}`);
   return { ...state, pendingSelection: { decisionId, optionId } };
 }

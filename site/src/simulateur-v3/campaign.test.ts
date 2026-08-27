@@ -30,7 +30,7 @@ test("la décision courante suit les huit chapitres dans leur ordre éditorial",
 test("sélectionner ne confirme pas et peut être annulé", () => {
   const scenario = validScenario();
   const started = { ...createCampaign(scenario), phase: "decision" as const };
-  const selected = selectOption(started, "decision-1", "decision-1-option-a");
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
   assert.deepEqual(selected.pendingSelection, { decisionId: "decision-1", optionId: "decision-1-option-a" });
   assert.equal(selected.decisions.length, 0);
   assert.equal(clearSelection(selected).pendingSelection, undefined);
@@ -77,9 +77,22 @@ test("les transitions de verdict de chapitre préparent le chapitre suivant", ()
 test("les sélections invalides sont refusées", () => {
   const scenario = validScenario();
   const state = createCampaign(scenario);
-  assert.throws(() => selectOption(state, "decision-1", "decision-1-option-a"), /outside phase decision/);
+  assert.throws(() => selectOption(state, scenario, "decision-1", "decision-1-option-a"), /outside phase decision/);
   const deciding = { ...state, phase: "decision" as const };
-  assert.throws(() => selectOption({ ...deciding, lockedDecisionIds: ["decision-1"] }, "decision-1", "decision-1-option-a"), /locked decision/);
+  assert.throws(() => selectOption({ ...deciding, lockedDecisionIds: ["decision-1"] }, scenario, "decision-1", "decision-1-option-a"), /locked decision/);
+});
+
+test("une décision inconnue ou non courante est refusée", () => {
+  const scenario = validScenario();
+  const state = { ...createCampaign(scenario), phase: "decision" as const };
+  assert.throws(() => selectOption(state, scenario, "unknown", "decision-1-option-a"), /Unknown decision ID/);
+  assert.throws(() => selectOption(state, scenario, "decision-2", "decision-2-option-a"), /not the current decision/);
+});
+
+test("une option inconnue est refusée", () => {
+  const scenario = validScenario();
+  const state = { ...createCampaign(scenario), phase: "decision" as const };
+  assert.throws(() => selectOption(state, scenario, "decision-1", "unknown"), /Unknown option ID/);
 });
 
 test("une campagne rejette un scénario invalide", () => {
