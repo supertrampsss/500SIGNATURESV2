@@ -954,7 +954,7 @@ git commit -m "feat: add traceable simulator v3 crises"
 **Interfaces:**
 - Consumes: `CampaignState`, `Scenario`, `isCampaignState`.
 - Produces: `V3_STORAGE_KEY`, `saveCampaign(storage: StorageLike, state: CampaignState, now?: Date): CampaignState`, `restoreCampaign(storage: StorageLike, scenario: Scenario): RestoreResult`, `clearCampaign(storage: StorageLike): void`.
-- `RestoreResult` is `{ kind: "restored"; state: CampaignState } | { kind: "new" } | { kind: "v2_found" } | { kind: "invalid" }`.
+- `RestoreResult` is `{ kind: "restored"; state: CampaignState } | { kind: "new" } | { kind: "v2_found" } | { kind: "invalid" } | { kind: "unavailable" }`.
 - `StorageLike` is `{ getItem(key: string): string | null; setItem(key: string, value: string): void; removeItem(key: string): void }`.
 
 - [ ] **Step 1: Write failing persistence tests**
@@ -1024,8 +1024,10 @@ Restoration order:
 3. parse V3 JSON;
 4. validate with `isCampaignState`;
 5. return `invalid` on parse, version or invariant failure;
-6. never delete data during restore;
-7. `clearCampaign` removes only the V3 key.
+6. return `unavailable` when `getItem` throws;
+7. never delete data during restore;
+8. `saveCampaign` returns the timestamped in-memory state even when `setItem` throws;
+9. `clearCampaign` removes only the V3 key and does not throw when storage is unavailable.
 
 - [ ] **Step 4: Run persistence and full verification**
 
