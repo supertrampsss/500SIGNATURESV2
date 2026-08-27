@@ -15,6 +15,8 @@
 - A confirmed decision cannot be deleted for free.
 - A concession must suspend, amend or reverse a real prior decision.
 - Every state variation records its cause.
+- `duration: "annual"` changes an annual run rate once; it is not re-applied on a hidden yearly tick.
+- No scheduled effect, event or promise may fall due after decision 96.
 - The engine is deterministic for identical scenario version, seed and decisions.
 - No dependency is added.
 - No portrait, face, bust, coin, seal or avatar is introduced.
@@ -184,15 +186,18 @@ export type EvidenceBlock = {
   note?: string;
 };
 
-export type EffectRule = {
+type EffectRuleBase = {
   id: string;
-  target: EffectTarget;
-  key: IndicatorKey | GroupKey;
   delta: number;
   timing: { kind: "immediate" } | { kind: "after_decisions"; count: number };
   duration: "once" | "annual" | "permanent";
   explanation: string;
 };
+
+export type EffectRule = EffectRuleBase & (
+  | { target: "indicator"; key: IndicatorKey }
+  | { target: "group"; key: GroupKey }
+);
 
 export type ScheduledEventRule = {
   id: string;
@@ -278,6 +283,7 @@ export type CausalEntry = {
   target: EffectTarget;
   key: IndicatorKey | GroupKey;
   delta: number;
+  duration: EffectRule["duration"];
   explanation: string;
   appliedAtDecision: number;
 };
@@ -438,10 +444,11 @@ Implement `validateScenario` with deterministic error order:
 10. every delayed count is a positive integer;
 11. every scheduled event ID and promise ID is globally unique;
 12. effects inside a scheduled event or promise failure use `timing.kind === "immediate"`, because the parent rule already owns the due date;
-13. every source URL begins with `https://`;
-14. no U+2014 occurs anywhere.
+13. every direct delay, scheduled event and promise is due no later than decision 96 from its decision position;
+14. every source URL begins with `https://`;
+15. no U+2014 occurs anywhere.
 
-Implement `isCampaignState` by checking schema version 3, matching scenario version, valid indices, arrays, known decision and option IDs, finite indicator values and a parseable `savedAt` date.
+Implement `isCampaignState` by checking schema version 3, matching scenario version, chapter index 0 through 7, decision index 0 through 11, unique sequential decision records, arrays, sources tied to an actually confirmed decision and option, pending selection tied to the current unlocked decision, disjoint lock lists, finite indicator values, reachable due dates through decision 96 and a parseable `savedAt` date.
 
 - [ ] **Step 4: Run focused and full verification**
 
@@ -722,6 +729,7 @@ Expected: FAIL because effect functions do not exist.
 - reject non-finite deltas;
 - clamp every group and only these indicators to 0 through 100: `publicServices`, `majority`, `reformCapacity`, `opinion`, `institutionalTrust`, `financialCredibility`;
 - append one `CausalEntry` with a stable deterministic ID;
+- copy `duration` into the causal entry so the journal distinguishes one-off, annual-rate and permanent effects;
 - never apply delayed effects directly.
 
 `confirmSelection` must:
@@ -737,7 +745,7 @@ Expected: FAIL because effect functions do not exist.
 9. clear the pending selection;
 10. set phase `decision_result`.
 
-`resolveDueEvents` returns the due events, removes them from the queue and appends them to `eventHistory` after applying their immediate effects with source type `event`. `scheduledEvents` and `eventHistory` have unique, disjoint IDs. Decision causal source IDs use the exact format `<decisionId>:<optionId>`. Event causal source IDs use the event `id` and remain verifiable through `eventHistory`.
+`scheduleOptionConsequences` copies every effect and nested timing object before storing it. It rejects a due date above decision 96. `resolveDueEvents` returns the due events, removes them from the queue and appends them to `eventHistory` after applying their immediate effects with source type `event`. `scheduledEvents` and `eventHistory` have unique, disjoint IDs. Decision causal source IDs use the exact format `<decisionId>:<optionId>`. Event causal source IDs use the event `id` and remain verifiable through `eventHistory`.
 
 `resolveDuePromises` compares each promise's `dueAtDecision` with `state.decisions.length`. Every due promise leaves `activePromises` and enters `promiseHistory`. `activePromises` and `promiseHistory` have unique, disjoint IDs. Fulfilled promises have no penalty. Unfulfilled due promises apply their immediate failure effects with source type `promise` and return their IDs. Non-due promises remain unchanged.
 
@@ -911,6 +919,8 @@ Expected: FAIL because `crises.ts` does not exist.
 - enter phase `crisis`.
 
 `availableConcessions` must filter concessions whose target decision is currently `confirmed` or `amended`.
+
+The ID `hold-course` is reserved. It is never a valid concession ID. `resolveCrisis` handles it before looking up concessions and applies only `holdCourseEffects`.
 
 `resolveCrisis` must:
 
