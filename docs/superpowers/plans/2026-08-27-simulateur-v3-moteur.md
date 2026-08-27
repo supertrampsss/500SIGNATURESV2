@@ -470,7 +470,7 @@ git commit -m "feat: validate simulator v3 scenarios"
 
 **Interfaces:**
 - Consumes: `Scenario`, `CampaignState`, `Decision`, `DecisionOption` from `types.ts` and `validateScenario` from `validation.ts`.
-- Produces: `createCampaign(scenario: Scenario, seed?: number): CampaignState`, `currentDecision(state: CampaignState, scenario: Scenario): Decision | null`, `selectOption(state: CampaignState, decisionId: string, optionId: string): CampaignState`, `clearSelection(state: CampaignState): CampaignState`, `advanceAfterResult(state: CampaignState, scenario: Scenario): CampaignState`.
+- Produces: `createCampaign(scenario: Scenario, seed?: number): CampaignState`, `currentDecision(state: CampaignState, scenario: Scenario): Decision | null`, `selectOption(state: CampaignState, scenario: Scenario, decisionId: string, optionId: string): CampaignState`, `clearSelection(state: CampaignState): CampaignState`, `advanceAfterResult(state: CampaignState, scenario: Scenario): CampaignState`.
 
 - [ ] **Step 1: Write failing campaign tests**
 
@@ -494,8 +494,8 @@ test("la décision courante suit les huit chapitres dans leur ordre éditorial",
 test("sélectionner ne confirme pas et peut être annulé", () => {
   const scenario = validScenario();
   const started = { ...createCampaign(scenario), phase: "decision" as const };
-  const selected = selectOption(started, "decision-1", "option-a");
-  assert.deepEqual(selected.pendingSelection, { decisionId: "decision-1", optionId: "option-a" });
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
+  assert.deepEqual(selected.pendingSelection, { decisionId: "decision-1", optionId: "decision-1-option-a" });
   assert.equal(selected.decisions.length, 0);
   assert.equal(clearSelection(selected).pendingSelection, undefined);
 });
@@ -628,7 +628,7 @@ function startAtFirstDecision(scenario: Scenario) {
 
 function confirmFirstDecision(scenario: Scenario) {
   const started = startAtFirstDecision(scenario);
-  return confirmSelection(selectOption(started, "decision-1", "option-a"), scenario);
+  return confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
 }
 ```
 
@@ -638,7 +638,7 @@ Then add these exact behavioral tests:
 test("confirmer applique les effets immédiats une seule fois", () => {
   const scenario = scenarioWithEffect("annualBalance", 1_000, { kind: "immediate" });
   const started = startAtFirstDecision(scenario);
-  const selected = selectOption(started, "decision-1", "option-a");
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
   const confirmed = confirmSelection(selected, scenario);
   assert.equal(confirmed.indicators.annualBalance, started.indicators.annualBalance + 1_000);
   assert.equal(confirmed.decisions[0]?.status, "confirmed");
@@ -657,9 +657,9 @@ test("chaque variation conserve sa cause lisible", () => {
   const scenario = scenarioWithEffect("opinion", -4, { kind: "immediate" });
   const confirmed = confirmFirstDecision(scenario);
   assert.deepEqual(confirmed.causalLedger.at(-1), {
-    id: "decision:decision-1:option-a:effect-1:1",
+    id: "decision:decision-1:decision-1-option-a:effect-1:1",
     sourceType: "decision",
-    sourceId: "decision-1:option-a",
+    sourceId: "decision-1:decision-1-option-a",
     target: "indicator",
     key: "opinion",
     delta: -4,
@@ -688,7 +688,7 @@ test("une promesse échue applique son coût et quitte les promesses actives", (
   const confirmed = confirmFirstDecision(scenario);
   const due = { ...confirmed, decisions: [
     ...confirmed.decisions,
-    { decisionId: "decision-2", optionId: "option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
+    { decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
   ] };
   const resolved = resolveDuePromises(due);
   assert.deepEqual(resolved.failedPromiseIds, ["promise-1"]);
