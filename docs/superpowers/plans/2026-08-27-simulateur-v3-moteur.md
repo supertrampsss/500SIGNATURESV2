@@ -15,6 +15,8 @@
 - A confirmed decision cannot be deleted for free.
 - A concession must suspend, amend or reverse a real prior decision.
 - Every state variation records its cause.
+- `duration: "annual"` changes an annual run rate once; it is not re-applied on a hidden yearly tick.
+- No scheduled effect, event or promise may fall due after decision 96.
 - The engine is deterministic for identical scenario version, seed and decisions.
 - No dependency is added.
 - No portrait, face, bust, coin, seal or avatar is introduced.
@@ -184,15 +186,18 @@ export type EvidenceBlock = {
   note?: string;
 };
 
-export type EffectRule = {
+type EffectRuleBase = {
   id: string;
-  target: EffectTarget;
-  key: IndicatorKey | GroupKey;
   delta: number;
   timing: { kind: "immediate" } | { kind: "after_decisions"; count: number };
   duration: "once" | "annual" | "permanent";
   explanation: string;
 };
+
+export type EffectRule = EffectRuleBase & (
+  | { target: "indicator"; key: IndicatorKey }
+  | { target: "group"; key: GroupKey }
+);
 
 export type ScheduledEventRule = {
   id: string;
@@ -278,6 +283,7 @@ export type CausalEntry = {
   target: EffectTarget;
   key: IndicatorKey | GroupKey;
   delta: number;
+  duration: EffectRule["duration"];
   explanation: string;
   appliedAtDecision: number;
 };
@@ -333,6 +339,7 @@ export type CampaignState = {
   indicators: IndicatorState;
   groups: GroupState;
   scheduledEvents: ScheduledEvent[];
+  eventHistory: ScheduledEvent[];
   activePromises: PoliticalPromise[];
   promiseHistory: PoliticalPromise[];
   activeCrisis?: CrisisState;
@@ -435,10 +442,17 @@ Implement `validateScenario` with deterministic error order:
 8. every decision has evidence;
 9. every option has beneficiaries, contributors and at least one effect or scheduled event;
 10. every delayed count is a positive integer;
-11. every source URL begins with `https://`;
-12. no U+2014 occurs anywhere.
+11. every scheduled event ID and promise ID is globally unique;
+12. every scheduled event has non-empty string `id`, `title` and `body`; every promise has non-empty string `id` and `label`;
+13. effects inside a scheduled event or promise failure use `timing.kind === "immediate"`, because the parent rule already owns the due date;
+14. every direct delay, scheduled event and promise is due no later than decision 96 from its decision position;
+15. every `locks` and `unlocks` ID resolves to a scenario decision, with unique and disjoint lists;
+16. every `fulfillsPromises` ID resolves to a promise declared in the scenario;
+17. every effect ID is unique within its option and every derived delayed-event ID is unique against explicit scheduled-event IDs;
+18. every source URL begins with `https://`;
+19. no U+2014 occurs anywhere.
 
-Implement `isCampaignState` by checking schema version 3, matching scenario version, valid indices, arrays, known decision and option IDs, finite indicator values and a parseable `savedAt` date.
+Implement `isCampaignState` by checking schema version 3, matching scenario version, chapter index 0 through 7, decision index 0 through 11, unique sequential decision records, arrays, sources tied to an actually confirmed decision and option, pending selection tied to the current unlocked decision, disjoint lock lists, finite indicator values, reachable due dates through decision 96 and a parseable `savedAt` date.
 
 - [ ] **Step 4: Run focused and full verification**
 
@@ -470,7 +484,7 @@ git commit -m "feat: validate simulator v3 scenarios"
 
 **Interfaces:**
 - Consumes: `Scenario`, `CampaignState`, `Decision`, `DecisionOption` from `types.ts` and `validateScenario` from `validation.ts`.
-- Produces: `createCampaign(scenario: Scenario, seed?: number): CampaignState`, `currentDecision(state: CampaignState, scenario: Scenario): Decision | null`, `selectOption(state: CampaignState, decisionId: string, optionId: string): CampaignState`, `clearSelection(state: CampaignState): CampaignState`, `advanceAfterResult(state: CampaignState, scenario: Scenario): CampaignState`.
+- Produces: `createCampaign(scenario: Scenario, seed?: number): CampaignState`, `currentDecision(state: CampaignState, scenario: Scenario): Decision | null`, `selectOption(state: CampaignState, scenario: Scenario, decisionId: string, optionId: string): CampaignState`, `clearSelection(state: CampaignState): CampaignState`, `advanceAfterResult(state: CampaignState, scenario: Scenario): CampaignState`.
 
 - [ ] **Step 1: Write failing campaign tests**
 
@@ -494,8 +508,8 @@ test("la décision courante suit les huit chapitres dans leur ordre éditorial",
 test("sélectionner ne confirme pas et peut être annulé", () => {
   const scenario = validScenario();
   const started = { ...createCampaign(scenario), phase: "decision" as const };
-  const selected = selectOption(started, "decision-1", "option-a");
-  assert.deepEqual(selected.pendingSelection, { decisionId: "decision-1", optionId: "option-a" });
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
+  assert.deepEqual(selected.pendingSelection, { decisionId: "decision-1", optionId: "decision-1-option-a" });
   assert.equal(selected.decisions.length, 0);
   assert.equal(clearSelection(selected).pendingSelection, undefined);
 });
@@ -548,7 +562,7 @@ export const INITIAL_GROUPS = Object.freeze({
 });
 ```
 
-Initialize `savedAt` to `1970-01-01T00:00:00.000Z`, `promiseHistory` and `crisisHistory` to empty arrays and every other collection to a fresh empty array. This keeps campaign creation deterministic. Storage replaces the timestamp on the first save.
+Initialize `savedAt` to `1970-01-01T00:00:00.000Z`, `eventHistory`, `promiseHistory` and `crisisHistory` to empty arrays and every other collection to a fresh empty array. This keeps campaign creation deterministic. Storage replaces the timestamp on the first save.
 
 `createCampaign` must call `validateScenario` and throw `Invalid scenario: <errors joined by comma>` when errors exist.
 
@@ -558,6 +572,7 @@ Initialize `savedAt` to `1970-01-01T00:00:00.000Z`, `promiseHistory` and `crisis
 - after decision 12 in chapters 1 to 7: `chapter_verdict`;
 - after decision 12 in chapter 8: `verdict`;
 - otherwise: increment `decisionIndex` and return `decision`;
+- advancing from `council`: increment `decisionIndex` and return `decision`;
 - advancing from `chapter_verdict`: increment chapter, reset decision index and return `chapter_intro`;
 - advancing from `chapter_intro`: return `decision`.
 
@@ -628,7 +643,7 @@ function startAtFirstDecision(scenario: Scenario) {
 
 function confirmFirstDecision(scenario: Scenario) {
   const started = startAtFirstDecision(scenario);
-  return confirmSelection(selectOption(started, "decision-1", "option-a"), scenario);
+  return confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
 }
 ```
 
@@ -638,7 +653,7 @@ Then add these exact behavioral tests:
 test("confirmer applique les effets immédiats une seule fois", () => {
   const scenario = scenarioWithEffect("annualBalance", 1_000, { kind: "immediate" });
   const started = startAtFirstDecision(scenario);
-  const selected = selectOption(started, "decision-1", "option-a");
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
   const confirmed = confirmSelection(selected, scenario);
   assert.equal(confirmed.indicators.annualBalance, started.indicators.annualBalance + 1_000);
   assert.equal(confirmed.decisions[0]?.status, "confirmed");
@@ -657,9 +672,9 @@ test("chaque variation conserve sa cause lisible", () => {
   const scenario = scenarioWithEffect("opinion", -4, { kind: "immediate" });
   const confirmed = confirmFirstDecision(scenario);
   assert.deepEqual(confirmed.causalLedger.at(-1), {
-    id: "decision:decision-1:option-a:effect-1:1",
+    id: "decision:decision-1:decision-1-option-a:effect-1:1",
     sourceType: "decision",
-    sourceId: "decision-1:option-a",
+    sourceId: "decision-1:decision-1-option-a",
     target: "indicator",
     key: "opinion",
     delta: -4,
@@ -688,7 +703,7 @@ test("une promesse échue applique son coût et quitte les promesses actives", (
   const confirmed = confirmFirstDecision(scenario);
   const due = { ...confirmed, decisions: [
     ...confirmed.decisions,
-    { decisionId: "decision-2", optionId: "option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
+    { decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
   ] };
   const resolved = resolveDuePromises(due);
   assert.deepEqual(resolved.failedPromiseIds, ["promise-1"]);
@@ -718,6 +733,7 @@ Expected: FAIL because effect functions do not exist.
 - reject non-finite deltas;
 - clamp every group and only these indicators to 0 through 100: `publicServices`, `majority`, `reformCapacity`, `opinion`, `institutionalTrust`, `financialCredibility`;
 - append one `CausalEntry` with a stable deterministic ID;
+- copy `duration` into the causal entry so the journal distinguishes one-off, annual-rate and permanent effects;
 - never apply delayed effects directly.
 
 `confirmSelection` must:
@@ -733,9 +749,9 @@ Expected: FAIL because effect functions do not exist.
 9. clear the pending selection;
 10. set phase `decision_result`.
 
-`resolveDueEvents` returns the due events and removes them from the queue after applying their effects with source type `event`.
+`scheduleOptionConsequences` copies every effect and nested timing object before storing it. It rejects a due date above decision 96. `resolveDueEvents` returns the due events, removes them from the queue and appends them to `eventHistory` after applying their immediate effects with source type `event`. `scheduledEvents` and `eventHistory` have unique, disjoint IDs. Decision causal source IDs use the exact format `<decisionId>:<optionId>`. Event causal source IDs use the event `id` and remain verifiable through `eventHistory`.
 
-`resolveDuePromises` compares each promise's `dueAtDecision` with `state.decisions.length`. Every due promise leaves `activePromises` and enters `promiseHistory`. Fulfilled promises have no penalty. Unfulfilled due promises apply their failure effects with source type `promise` and return their IDs. Non-due promises remain unchanged.
+`resolveDuePromises` compares each promise's `dueAtDecision` with `state.decisions.length`. Every due promise leaves `activePromises` and enters `promiseHistory`. `activePromises` and `promiseHistory` have unique, disjoint IDs. Fulfilled promises have no penalty. Unfulfilled due promises apply their immediate failure effects with source type `promise` and return their IDs. Non-due promises remain unchanged.
 
 - [ ] **Step 4: Run focused, full and build verification**
 
@@ -908,6 +924,8 @@ Expected: FAIL because `crises.ts` does not exist.
 
 `availableConcessions` must filter concessions whose target decision is currently `confirmed` or `amended`.
 
+The ID `hold-course` is reserved. It is never a valid concession ID. `resolveCrisis` handles it before looking up concessions and applies only `holdCourseEffects`.
+
 `resolveCrisis` must:
 
 - reject a resolution not offered by the active rule;
@@ -950,7 +968,7 @@ git commit -m "feat: add traceable simulator v3 crises"
 **Interfaces:**
 - Consumes: `CampaignState`, `Scenario`, `isCampaignState`.
 - Produces: `V3_STORAGE_KEY`, `saveCampaign(storage: StorageLike, state: CampaignState, now?: Date): CampaignState`, `restoreCampaign(storage: StorageLike, scenario: Scenario): RestoreResult`, `clearCampaign(storage: StorageLike): void`.
-- `RestoreResult` is `{ kind: "restored"; state: CampaignState } | { kind: "new" } | { kind: "v2_found" } | { kind: "invalid" }`.
+- `RestoreResult` is `{ kind: "restored"; state: CampaignState } | { kind: "new" } | { kind: "v2_found" } | { kind: "invalid" } | { kind: "unavailable" }`.
 - `StorageLike` is `{ getItem(key: string): string | null; setItem(key: string, value: string): void; removeItem(key: string): void }`.
 
 - [ ] **Step 1: Write failing persistence tests**
@@ -1020,8 +1038,10 @@ Restoration order:
 3. parse V3 JSON;
 4. validate with `isCampaignState`;
 5. return `invalid` on parse, version or invariant failure;
-6. never delete data during restore;
-7. `clearCampaign` removes only the V3 key.
+6. return `unavailable` when `getItem` throws;
+7. never delete data during restore;
+8. `saveCampaign` returns the timestamped in-memory state even when `setItem` throws;
+9. `clearCampaign` removes only the V3 key and does not throw when storage is unavailable.
 
 - [ ] **Step 4: Run persistence and full verification**
 
