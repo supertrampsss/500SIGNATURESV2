@@ -3341,13 +3341,14 @@ test("les documents éditoriaux gardent Simuler disponible sans ouvrir la SPA sa
   );
   // Les pages pré-rendues ne chargent pas les budgets : leur lien reste une
   // porte vers le simulateur. Les vues SPA, elles, restent liées à la présence
-  // effective des exercices.
+  // effective des exercices. La préversion V3, autonome, reste ouvrable par
+  // son paramètre explicite sans faire croire que la V2 a des données.
   assert.match(
     navigation,
-    /const simulateurDisponible = document\.body\.dataset\.page === "editorial" \|\| exercicesParVolet\.length > 0;/,
+    /const simulateurDisponible = document\.body\.dataset\.page === "editorial"[\s\S]*?\|\| exercicesParVolet\.length > 0[\s\S]*?\|\| versionSimulateurV3\(\);/,
   );
   assert.match(navigation, /renduNavigation\(location\.pathname, simulateurDisponible\)/);
-  assert.match(MAIN, /function vuesConnues\(\): readonly string\[\] \{\s*return exercicesParVolet\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/s);
+  assert.match(MAIN, /function vuesConnues\(\): readonly string\[\] \{\s*return exercicesParVolet\.length \|\| versionSimulateurV3\(\)[\s\S]*?\? \[\.\.\.VUES_PAGE, "simulateur"\][\s\S]*?: VUES_PAGE;/s);
 });
 
 test("les liens de navigation d'un document éditorial gardent leur navigation native", () => {
@@ -3530,4 +3531,21 @@ test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {
   const v3 = MAIN.indexOf('import "./styles/simulateur-v3.css";');
   assert.ok(historique >= 0);
   assert.ok(v3 > historique);
+});
+
+test("la préversion V3 possède son hôte et son branchement explicite", () => {
+  assert.match(PAGE, /<section id="simulateur-v3" hidden><\/section>/);
+  assert.match(MAIN, /import \{ mountSimulatorV3 \} from "\.\/simulateur-v3\/controller\.ts";/);
+  assert.match(MAIN, /import \{ SCENARIO_V3_PREVIEW \} from "\.\/simulateur-v3\/scenario\.ts";/);
+  assert.match(MAIN, /new URLSearchParams\(location\.search\)\.get\("version"\) === "3"/);
+});
+
+test("la V3 garde le chrome du site et ne déclenche jamais le plein écran historique", () => {
+  const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
+  const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
+  assert.match(brancheV3, /mountSimulatorV3\(hoteV3, SCENARIO_V3_PREVIEW\)/);
+  assert.match(brancheV3, /tunnel\.hidden = true/);
+  assert.match(brancheV3, /expert\.hidden = true/);
+  assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);
+  assert.match(MAIN, /if \(vue !== "simulateur" \|\| !versionSimulateurV3\(\)\) \{[\s\S]*?demonterApercuSimulateurV3\(\);/);
 });
