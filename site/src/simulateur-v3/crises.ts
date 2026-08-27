@@ -87,6 +87,9 @@ export function resolveCrisis(state: CampaignState, rules: readonly CrisisRule[]
       decisions: state.decisions.map((decision) => decision.decisionId === concession.targetDecisionId
         ? { ...decision, status: statusForConcession(concession), changedByCrisisId: rule.id }
         : decision),
+      lockedDecisionIds: state.lockedDecisionIds.filter(
+        (decisionId) => !(concession.unlocksDecisionIds ?? []).includes(decisionId),
+      ),
     };
     resolved = applyCrisisEffects(resolved, rule, concession.effects);
   }

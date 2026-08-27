@@ -20,7 +20,7 @@ const PHASES: readonly CampaignPhase[] = [
   "intro", "chapter_intro", "decision", "decision_result", "council", "crisis",
   "delayed_event", "chapter_verdict", "pause", "verdict",
 ];
-const DECISION_STATUSES = new Set(["confirmed", "suspended", "amended", "reversed"]);
+const DECISION_STATUSES = new Set(["confirmed", "suspended", "amended", "reversed", "superseded"]);
 const INDICATOR_KEYS = [
   "annualBalance", "debtToGdp", "interestCost", "growth", "employment", "investment",
   "publicServices", "majority", "reformCapacity", "opinion", "institutionalTrust", "financialCredibility",

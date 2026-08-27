@@ -13,7 +13,7 @@ export type CampaignPhase =
 export const SCHEMA_VERSION = 3 as const;
 
 export type Uncertainty = "faible" | "moyenne" | "forte";
-export type DecisionStatus = "confirmed" | "suspended" | "amended" | "reversed";
+export type DecisionStatus = "confirmed" | "suspended" | "amended" | "reversed" | "superseded";
 export type EffectTarget = "indicator" | "group";
 
 export type IndicatorKey =
@@ -164,6 +164,7 @@ export type CrisisConcession = {
   label: string;
   targetDecisionId: string;
   policyChange: "suspend" | "amend" | "reverse";
+  unlocksDecisionIds?: string[];
   effects: EffectRule[];
 };
 

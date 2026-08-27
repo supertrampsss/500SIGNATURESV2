@@ -13,6 +13,14 @@ export const SCENARIO_V3_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([{
     label: "Suspendre la flat tax et rétablir le barème",
     targetDecisionId: "flat-tax-a-20-des-le-premier",
     policyChange: "suspend",
+    unlocksDecisionIds: [
+      "flat-tax-a-20-avec-abattement-protegeant",
+      "tranche-a-50-au-dela-de-250",
+      "geler-le-bareme-de-l-impot-sur",
+      "soumettre-les-revenus-du-capital-au-bareme",
+      "fiscaliser-les-heures-supplementaires-comme-le",
+      "remplacer-l-abattement-des-retraites-par",
+    ],
     effects: [
       {
         id: "flat-tax-suspension:budget",

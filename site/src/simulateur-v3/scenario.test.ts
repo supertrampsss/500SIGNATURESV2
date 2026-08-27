@@ -29,10 +29,24 @@ test("chaque option dit directement ce qu'elle fait et qui paie", () => {
   }
 });
 
-test("les incompatibilités n'empêchent jamais de jouer les 96 dossiers", () => {
+test("seule l'adoption d'une mesure ferme ses dossiers incompatibles", () => {
   for (const decision of SCENARIO_V3_PREVIEW.decisions) {
-    for (const option of decision.options) assert.deepEqual(option.locks, []);
+    assert.deepEqual(new Set(decision.options[0]!.locks), new Set(decision.conflicts));
+    assert.deepEqual(decision.options[1]!.locks, []);
   }
+});
+
+test("adopter la flat tax rend sans objet les dossiers qui supposent encore le barème", () => {
+  const flatTax = SCENARIO_V3_PREVIEW.decisions.find((decision) => decision.id === "flat-tax-a-20-des-le-premier")!;
+  assert.deepEqual(new Set(flatTax.options[0]!.locks), new Set([
+    "flat-tax-a-20-avec-abattement-protegeant",
+    "tranche-a-50-au-dela-de-250",
+    "geler-le-bareme-de-l-impot-sur",
+    "soumettre-les-revenus-du-capital-au-bareme",
+    "fiscaliser-les-heures-supplementaires-comme-le",
+    "remplacer-l-abattement-des-retraites-par",
+  ]));
+  assert.deepEqual(flatTax.options[1]!.locks, []);
 });
 
 test("aucune carte d'action ne porte le libellé générique Appliquer la mesure", () => {
