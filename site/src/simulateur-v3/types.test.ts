@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { SCHEMA_VERSION, type CampaignState, type Decision, type DecisionOption } from "./types.ts";
+import { SCHEMA_VERSION, type CampaignState, type Decision, type DecisionOption, type EffectRule } from "./types.ts";
 
 test("le schéma V3 représente une décision confirmable et une campagne versionnée", () => {
   const option: DecisionOption = {
@@ -29,8 +29,18 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     dependencies: [],
     conflicts: [],
   };
-  const state = { schemaVersion: 3, scenarioVersion: 1 } as CampaignState;
+  const state = { schemaVersion: 3, scenarioVersion: 1 } satisfies Pick<CampaignState, "schemaVersion" | "scenarioVersion">;
+  const indicatorEffect = {
+    id: "effect-test",
+    target: "indicator",
+    key: "growth",
+    delta: 1,
+    timing: { kind: "immediate" },
+    duration: "once",
+    explanation: "An indicator effect.",
+  } satisfies EffectRule;
   assert.equal(SCHEMA_VERSION, 3);
   assert.equal(decision.options[0]?.id, "maintenir");
   assert.equal(state.schemaVersion, 3);
+  assert.equal(indicatorEffect.key, "growth");
 });

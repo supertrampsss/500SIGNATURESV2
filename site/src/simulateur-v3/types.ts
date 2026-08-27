@@ -52,15 +52,18 @@ export type EvidenceBlock = {
   note?: string;
 };
 
-export type EffectRule = {
+type EffectRuleBase = {
   id: string;
-  target: EffectTarget;
-  key: IndicatorKey | GroupKey;
   delta: number;
   timing: { kind: "immediate" } | { kind: "after_decisions"; count: number };
   duration: "once" | "annual" | "permanent";
   explanation: string;
 };
+
+export type EffectRule = EffectRuleBase & (
+  | { target: "indicator"; key: IndicatorKey }
+  | { target: "group"; key: GroupKey }
+);
 
 export type ScheduledEventRule = {
   id: string;
@@ -146,6 +149,7 @@ export type CausalEntry = {
   target: EffectTarget;
   key: IndicatorKey | GroupKey;
   delta: number;
+  duration: EffectRule["duration"];
   explanation: string;
   appliedAtDecision: number;
 };
@@ -180,6 +184,7 @@ export type CrisisState = {
 export type PoliticalPromise = {
   id: string;
   sourceDecisionId: string;
+  sourceOptionId: string;
   label: string;
   dueAtDecision: number;
   fulfilled: boolean;

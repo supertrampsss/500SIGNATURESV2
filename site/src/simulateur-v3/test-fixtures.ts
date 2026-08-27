@@ -101,7 +101,7 @@ export function validCampaignState(scenario = validScenario()): CampaignState {
     schemaVersion: 3,
     scenarioVersion: scenario.version,
     seed: 1,
-    phase: "decision",
+    phase: "decision_result",
     chapterIndex: 0,
     decisionIndex: 0,
     decisions: [{

@@ -1,6 +1,8 @@
 import { applyEffect } from "./effects.ts";
 import type { CampaignState, CrisisConcession, CrisisRule, DecisionStatus } from "./types.ts";
 
+const HOLD_COURSE_ID = "hold-course";
+
 function thresholdReached(state: CampaignState, rule: CrisisRule): boolean {
   const value = state.indicators[rule.indicator];
   return rule.comparator === "lte" ? value <= rule.threshold : value >= rule.threshold;
@@ -64,6 +66,7 @@ export function availableConcessions(state: CampaignState, rules: readonly Crisi
   const rule = rules.find((candidate) => candidate.id === state.activeCrisis!.ruleId);
   if (!rule) return [];
   return rule.concessions.filter((concession) => {
+    if (concession.id === HOLD_COURSE_ID) return false;
     const decision = state.decisions.find((record) => record.decisionId === concession.targetDecisionId);
     return decision?.status === "confirmed" || decision?.status === "amended";
   });
@@ -73,21 +76,19 @@ export function availableConcessions(state: CampaignState, rules: readonly Crisi
 export function resolveCrisis(state: CampaignState, rules: readonly CrisisRule[], resolutionId: string): CampaignState {
   const crisis = state.activeCrisis;
   const rule = activeRule(state, rules);
-  const concession = availableConcessions(state, rules).find((candidate) => candidate.id === resolutionId);
-  const isHoldingCourse = resolutionId === "hold-course";
-  if (!isHoldingCourse && !concession) throw new Error(`Crisis resolution not offered: ${resolutionId}`);
-
-  let resolved = state;
-  if (concession) {
+  let resolved: CampaignState;
+  if (resolutionId === HOLD_COURSE_ID) {
+    resolved = applyCrisisEffects(state, rule, rule.holdCourseEffects);
+  } else {
+    const concession = availableConcessions(state, rules).find((candidate) => candidate.id === resolutionId);
+    if (!concession) throw new Error(`Crisis resolution not offered: ${resolutionId}`);
     resolved = {
-      ...resolved,
-      decisions: resolved.decisions.map((decision) => decision.decisionId === concession.targetDecisionId
+      ...state,
+      decisions: state.decisions.map((decision) => decision.decisionId === concession.targetDecisionId
         ? { ...decision, status: statusForConcession(concession), changedByCrisisId: rule.id }
         : decision),
     };
     resolved = applyCrisisEffects(resolved, rule, concession.effects);
-  } else {
-    resolved = applyCrisisEffects(resolved, rule, rule.holdCourseEffects);
   }
 
   const { activeCrisis: _activeCrisis, ...withoutActiveCrisis } = resolved;

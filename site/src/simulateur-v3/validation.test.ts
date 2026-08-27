@@ -5,6 +5,28 @@ import { assertNoEmDash, isCampaignState, validateScenario } from "./validation.
 import { createCampaign, selectOption } from "./campaign.ts";
 import { confirmSelection, resolveDueEvents } from "./effects.ts";
 import { validCampaignState, validScenario } from "./test-fixtures.ts";
+import type { CampaignState, DecisionRecord, EffectRule, Scenario } from "./types.ts";
+
+function confirmedRecord(scenario: Scenario, index: number, confirmedAtIndex = index + 1): DecisionRecord {
+  const decision = scenario.decisions[index]!;
+  return {
+    decisionId: decision.id,
+    optionId: decision.options[0]!.id,
+    status: "confirmed",
+    confirmedAtIndex,
+  };
+}
+
+function stateAfterRecords(scenario: Scenario, decisions: DecisionRecord[]): CampaignState {
+  const count = decisions.length;
+  return {
+    ...validCampaignState(scenario),
+    phase: "decision_result",
+    chapterIndex: Math.floor((count - 1) / 12),
+    decisionIndex: (count - 1) % 12,
+    decisions,
+  };
+}
 
 test("un scénario valide contient huit chapitres de douze décisions uniques", () => {
   assert.deepEqual(validateScenario(validScenario()), []);
@@ -95,7 +117,7 @@ test("un événement résolu reste traçable et valide après persistance", () =
   }];
   const started = { ...createCampaign(scenario), phase: "decision" as const };
   const confirmed = confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
-  const resolved = resolveDueEvents({ ...confirmed, decisions: [...confirmed.decisions, {
+  const resolved = resolveDueEvents({ ...confirmed, decisionIndex: 1, decisions: [...confirmed.decisions, {
     decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed", confirmedAtIndex: 2,
   }] });
   assert.equal(resolved.state.eventHistory[0]?.id, "event-1");
@@ -156,7 +178,7 @@ test("un état V3 refuse les effets différés déjà portés par un événement
     dueAtDecision: 1, title: "Événement", body: "Texte", effects: [delayedEffect],
   };
   const promise = {
-    id: "promise", sourceDecisionId: "decision-1", label: "Promesse", dueAtDecision: 1,
+    id: "promise", sourceDecisionId: "decision-1", sourceOptionId: "decision-1-option-a", label: "Promesse", dueAtDecision: 1,
     fulfilled: false, failureEffects: [delayedEffect],
   };
   for (const field of ["scheduledEvents", "eventHistory"] as const) {
@@ -188,7 +210,7 @@ test("un état V3 refuse un événement historique encore en file et toute prome
   }
 
   const promise = {
-    id: "promise", sourceDecisionId: "decision-1", label: "Promesse", dueAtDecision: 1,
+    id: "promise", sourceDecisionId: "decision-1", sourceOptionId: "decision-1-option-a", label: "Promesse", dueAtDecision: 1,
     fulfilled: false, failureEffects: [],
   };
   const promiseState = validCampaignState(scenario);
@@ -258,4 +280,173 @@ test("un état V3 refuse une règle d'effet incomplète", () => {
     }],
   }];
   assert.equal(isCampaignState(state, scenario), false);
+});
+
+test("la validation refuse une clé de groupe portée par un effet indicateur", () => {
+  const scenario = validScenario();
+  const hostileEffect = {
+    id: "hostile-effect",
+    target: "indicator",
+    key: "farmers",
+    delta: 1,
+    timing: { kind: "immediate" },
+    duration: "once",
+    explanation: "Une cible incohérente.",
+  } as unknown as EffectRule;
+  scenario.decisions[0]!.options[0]!.effects = [hostileEffect];
+
+  assert.ok(validateScenario(scenario).includes("effect:hostile-effect:invalid-rule"));
+});
+
+test("un état V3 refuse les DecisionRecord dupliqués, hors ordre ou non séquentiels", () => {
+  const scenario = validScenario();
+  const duplicate = stateAfterRecords(scenario, [
+    confirmedRecord(scenario, 0),
+    { ...confirmedRecord(scenario, 0), confirmedAtIndex: 2 },
+  ]);
+  const outOfOrder = stateAfterRecords(scenario, [confirmedRecord(scenario, 1)]);
+  const nonSequentialIndex = stateAfterRecords(scenario, [confirmedRecord(scenario, 0, 2)]);
+
+  assert.equal(isCampaignState(duplicate, scenario), false);
+  assert.equal(isCampaignState(outOfOrder, scenario), false);
+  assert.equal(isCampaignState(nonSequentialIndex, scenario), false);
+});
+
+test("un état V3 refuse les conséquences dont la source n'a pas été confirmée", () => {
+  const scenario = validScenario();
+  const scheduled = stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]);
+  scheduled.scheduledEvents = [{
+    id: "foreign-event",
+    sourceDecisionId: "decision-2",
+    sourceOptionId: "decision-2-option-a",
+    dueAtDecision: 3,
+    title: "Événement étranger",
+    body: "La décision source manque.",
+    effects: [],
+  }];
+  const promised = stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]);
+  promised.activePromises = [{
+    id: "foreign-promise",
+    sourceDecisionId: "decision-2",
+    sourceOptionId: "decision-2-option-a",
+    label: "Promesse étrangère",
+    dueAtDecision: 3,
+    fulfilled: false,
+    failureEffects: [],
+  }];
+
+  assert.equal(isCampaignState(scheduled, scenario), false);
+  assert.equal(isCampaignState(promised, scenario), false);
+});
+
+test("un état V3 refuse une sélection incompatible et des verrous qui se chevauchent", () => {
+  const scenario = validScenario();
+  const wrongCurrentDecision = {
+    ...createCampaign(scenario),
+    phase: "decision" as const,
+    pendingSelection: { decisionId: "decision-2", optionId: "decision-2-option-a" },
+  };
+  const lockedPendingDecision = {
+    ...createCampaign(scenario),
+    phase: "decision" as const,
+    pendingSelection: { decisionId: "decision-1", optionId: "decision-1-option-a" },
+    lockedDecisionIds: ["decision-1"],
+  };
+  const overlappingLocks = {
+    ...stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]),
+    lockedDecisionIds: ["decision-3"],
+    unlockedDecisionIds: ["decision-3"],
+  };
+
+  assert.equal(isCampaignState(wrongCurrentDecision, scenario), false);
+  assert.equal(isCampaignState(lockedPendingDecision, scenario), false);
+  assert.equal(isCampaignState(overlappingLocks, scenario), false);
+});
+
+test("un état V3 refuse une phase ou une échéance persistée hors campagne", () => {
+  const scenario = validScenario();
+  const incoherentPhase = {
+    ...stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]),
+    phase: "intro" as const,
+  };
+  const unreachableEvent = stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]);
+  unreachableEvent.scheduledEvents = [{
+    id: "event-97",
+    sourceDecisionId: "decision-1",
+    sourceOptionId: "decision-1-option-a",
+    dueAtDecision: 97,
+    title: "Trop tard",
+    body: "Cette échéance dépasse la campagne.",
+    effects: [],
+  }];
+
+  assert.equal(isCampaignState(incoherentPhase, scenario), false);
+  assert.equal(isCampaignState(unreachableEvent, scenario), false);
+});
+
+test("un état V3 accepte chaque phase à sa position atteignable", () => {
+  const scenario = validScenario();
+  const records = (count: number) => Array.from({ length: count }, (_, index) => confirmedRecord(scenario, index));
+  const chapterVerdict = stateAfterRecords(scenario, records(12));
+  const verdict = stateAfterRecords(scenario, records(96));
+  const crisis = stateAfterRecords(scenario, records(1));
+  const delayedEvent = stateAfterRecords(scenario, records(2));
+  delayedEvent.scheduledEvents = [{
+    id: "due-event",
+    sourceDecisionId: "decision-1",
+    sourceOptionId: "decision-1-option-a",
+    dueAtDecision: 2,
+    title: "Événement dû",
+    body: "Il est prêt à être résolu.",
+    effects: [],
+  }];
+  const states: CampaignState[] = [
+    createCampaign(scenario),
+    { ...createCampaign(scenario), phase: "chapter_intro" },
+    { ...createCampaign(scenario), phase: "decision" },
+    stateAfterRecords(scenario, records(1)),
+    { ...stateAfterRecords(scenario, records(4)), phase: "council" },
+    {
+      ...crisis,
+      phase: "crisis",
+      activeCrisis: { ruleId: "crisis-1", triggeredByDecisionId: "decision-1", aggravatingDecisionIds: ["decision-1"] },
+    },
+    { ...delayedEvent, phase: "delayed_event" },
+    { ...chapterVerdict, phase: "chapter_verdict" },
+    { ...createCampaign(scenario), phase: "pause" },
+    { ...verdict, phase: "verdict", chapterIndex: 7, decisionIndex: 11 },
+  ];
+
+  for (const state of states) assert.equal(isCampaignState(state, scenario), true, state.phase);
+});
+
+test("la validation refuse toute règle créée à la décision 96 et due après la campagne", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[95]!.options[0]!;
+  option.effects = [{
+    id: "effect-after-96",
+    target: "indicator",
+    key: "growth",
+    delta: -1,
+    timing: { kind: "after_decisions", count: 1 },
+    duration: "once",
+    explanation: "Trop tard.",
+  }];
+  option.scheduledEvents = [{
+    id: "event-after-96",
+    title: "Trop tard",
+    body: "L'événement dépasse la campagne.",
+    afterDecisions: 1,
+    effects: [],
+  }];
+  option.promises = [{
+    id: "promise-after-96",
+    label: "Trop tard",
+    dueAfterDecisions: 1,
+    failureEffects: [],
+  }];
+
+  assert.ok(validateScenario(scenario).includes("effect:effect-after-96:due-after-campaign"));
+  assert.ok(validateScenario(scenario).includes("event:event-after-96:due-after-campaign"));
+  assert.ok(validateScenario(scenario).includes("promise:promise-after-96:due-after-campaign"));
 });

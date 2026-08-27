@@ -1,12 +1,11 @@
 import { clearSelection, currentDecision } from "./campaign.ts";
-import { validateScenario } from "./validation.ts";
+import { isEffectRule, validateScenario } from "./validation.ts";
 import type {
   CampaignState,
   CausalEntry,
   Decision,
   DecisionOption,
   EffectRule,
-  GroupKey,
   IndicatorKey,
   PoliticalPromise,
   Scenario,
@@ -31,6 +30,30 @@ function clampPoliticalIndicator(key: IndicatorKey, value: number): number {
   return CLAMPED_INDICATORS.has(key) ? Math.min(100, Math.max(0, value)) : value;
 }
 
+function cloneEffectRule(effect: EffectRule, timing = effect.timing): EffectRule {
+  const copiedTiming = timing.kind === "immediate"
+    ? { kind: "immediate" as const }
+    : { kind: "after_decisions" as const, count: timing.count };
+  return effect.target === "indicator"
+    ? { ...effect, key: effect.key, timing: copiedTiming }
+    : { ...effect, key: effect.key, timing: copiedTiming };
+}
+
+function immediateCopy(effect: EffectRule): EffectRule {
+  return cloneEffectRule(effect, { kind: "immediate" });
+}
+
+function assertEffectRule(effect: unknown): asserts effect is EffectRule {
+  if (typeof effect !== "object" || effect === null) throw new Error("Invalid effect rule");
+  if (!Number.isFinite((effect as { delta?: unknown }).delta)) throw new Error("Effect delta must be finite");
+  if (!isEffectRule(effect)) throw new Error("Invalid effect rule");
+}
+
+function assertDueAtDecision(dueAtDecision: number): void {
+  if (!Number.isInteger(dueAtDecision) || dueAtDecision <= 0) throw new Error("Consequence due date must be a positive integer");
+  if (dueAtDecision > 96) throw new Error("Consequence cannot be due after decision 96");
+}
+
 function eventForDelayedEffect(decision: Decision, option: DecisionOption, effect: EffectRule, dueAtDecision: number): ScheduledEvent {
   return {
     id: `${decision.id}:${option.id}:${effect.id}`,
@@ -39,13 +62,16 @@ function eventForDelayedEffect(decision: Decision, option: DecisionOption, effec
     dueAtDecision,
     title: `Effet différé : ${decision.title}`,
     body: effect.explanation,
-    effects: [{ ...effect, timing: { kind: "immediate" } }],
+    effects: [immediateCopy(effect)],
   };
 }
 
-/** Applies one immediate effect and records the precise causal chain that produced it. */
+/**
+ * Applies one recorded occurrence of an effect. An `annual` effect changes the annual
+ * run rate once, records that duration, and is never replayed on an implicit annual tick.
+ */
 export function applyEffect(state: CampaignState, effect: EffectRule, cause: EffectCause): CampaignState {
-  if (!Number.isFinite(effect.delta)) throw new Error("Effect delta must be finite");
+  assertEffectRule(effect);
   if (effect.timing.kind !== "immediate") throw new Error("Cannot apply a delayed effect directly");
 
   const appliedAtDecision = state.decisions.length;
@@ -56,12 +82,13 @@ export function applyEffect(state: CampaignState, effect: EffectRule, cause: Eff
     target: effect.target,
     key: effect.key,
     delta: effect.delta,
+    duration: effect.duration,
     explanation: effect.explanation,
     appliedAtDecision,
   };
 
   if (effect.target === "indicator") {
-    const key = effect.key as IndicatorKey;
+    const key = effect.key;
     const value = clampPoliticalIndicator(key, state.indicators[key] + effect.delta);
     return {
       ...state,
@@ -70,7 +97,7 @@ export function applyEffect(state: CampaignState, effect: EffectRule, cause: Eff
     };
   }
 
-  const key = effect.key as GroupKey;
+  const key = effect.key;
   return {
     ...state,
     groups: { ...state.groups, [key]: Math.min(100, Math.max(0, state.groups[key] + effect.delta)) },
@@ -81,31 +108,43 @@ export function applyEffect(state: CampaignState, effect: EffectRule, cause: Eff
 /** Queues effects, explicit events and promises which follow the selected option. */
 export function scheduleOptionConsequences(state: CampaignState, decision: Decision, option: DecisionOption): CampaignState {
   const decisionCount = state.decisions.length;
-  const delayedEffects = option.effects.flatMap((effect) =>
-    effect.timing.kind === "after_decisions"
-      ? [eventForDelayedEffect(decision, option, effect, decisionCount + effect.timing.count)]
-      : [],
-  );
-  const explicitEvents: ScheduledEvent[] = option.scheduledEvents.map((event) => ({
-    id: event.id,
-    sourceDecisionId: decision.id,
-    sourceOptionId: option.id,
-    dueAtDecision: decisionCount + event.afterDecisions,
-    title: event.title,
-    body: event.body,
-    effects: [...event.effects],
-  }));
-  const promises: PoliticalPromise[] = option.promises.map((promise) => ({
-    id: promise.id,
-    sourceDecisionId: decision.id,
-    label: promise.label,
-    dueAtDecision: decisionCount + promise.dueAfterDecisions,
-    fulfilled: false,
-    failureEffects: [...promise.failureEffects],
-  }));
+  const delayedEffects: ScheduledEvent[] = [];
+  for (const effect of option.effects) {
+    assertEffectRule(effect);
+    if (effect.timing.kind !== "after_decisions") continue;
+    const dueAtDecision = decisionCount + effect.timing.count;
+    assertDueAtDecision(dueAtDecision);
+    delayedEffects.push(eventForDelayedEffect(decision, option, effect, dueAtDecision));
+  }
+  const explicitEvents: ScheduledEvent[] = option.scheduledEvents.map((event) => {
+    const dueAtDecision = decisionCount + event.afterDecisions;
+    assertDueAtDecision(dueAtDecision);
+    assertImmediateEffects(event.effects, "Scheduled event");
+    return {
+      id: event.id,
+      sourceDecisionId: decision.id,
+      sourceOptionId: option.id,
+      dueAtDecision,
+      title: event.title,
+      body: event.body,
+      effects: event.effects.map(immediateCopy),
+    };
+  });
+  const promises: PoliticalPromise[] = option.promises.map((promise) => {
+    const dueAtDecision = decisionCount + promise.dueAfterDecisions;
+    assertDueAtDecision(dueAtDecision);
+    assertImmediateEffects(promise.failureEffects, "Political promise");
+    return {
+      id: promise.id,
+      sourceDecisionId: decision.id,
+      sourceOptionId: option.id,
+      label: promise.label,
+      dueAtDecision,
+      fulfilled: false,
+      failureEffects: promise.failureEffects.map(immediateCopy),
+    };
+  });
 
-  assertImmediateEffects(explicitEvents.flatMap((event) => event.effects), "Scheduled event");
-  assertImmediateEffects(promises.flatMap((promise) => promise.failureEffects), "Political promise");
   assertUniqueDisjointIds("event", state.scheduledEvents, state.eventHistory, [...delayedEffects, ...explicitEvents]);
   assertUniqueDisjointIds("promise", state.activePromises, state.promiseHistory, promises);
 
@@ -118,15 +157,18 @@ export function scheduleOptionConsequences(state: CampaignState, decision: Decis
 }
 
 function applyImmediateEffects(state: CampaignState, effects: readonly EffectRule[], cause: EffectCause): CampaignState {
-  return effects.reduce(
-    (current, effect) => effect.timing.kind === "immediate" ? applyEffect(current, effect, cause) : current,
-    state,
-  );
+  let applied = state;
+  for (const effect of effects) {
+    assertEffectRule(effect);
+    if (effect.timing.kind === "immediate") applied = applyEffect(applied, effect, cause);
+  }
+  return applied;
 }
 
 function assertImmediateEffects(effects: readonly EffectRule[], label: string): void {
-  if (effects.some((effect) => effect.timing.kind !== "immediate")) {
-    throw new Error(`${label} effects must be immediate`);
+  for (const effect of effects) {
+    assertEffectRule(effect);
+    if (effect.timing.kind !== "immediate") throw new Error(`${label} effects must be immediate`);
   }
 }
 
@@ -199,6 +241,7 @@ export function confirmSelection(state: CampaignState, scenario: Scenario): Camp
 
 /** Applies every event due at the current decision count, then consumes it from the queue. */
 export function resolveDueEvents(state: CampaignState): { state: CampaignState; events: ScheduledEvent[] } {
+  state.scheduledEvents.forEach((event) => assertDueAtDecision(event.dueAtDecision));
   const decisionCount = state.decisions.length;
   const events = state.scheduledEvents.filter((event) => event.dueAtDecision <= decisionCount);
   const futureEvents = state.scheduledEvents.filter((event) => event.dueAtDecision > decisionCount);
@@ -218,6 +261,7 @@ export function resolveDueEvents(state: CampaignState): { state: CampaignState; 
 
 /** Resolves due political promises, penalizing only the promises left unfulfilled. */
 export function resolveDuePromises(state: CampaignState): { state: CampaignState; failedPromiseIds: string[] } {
+  state.activePromises.forEach((promise) => assertDueAtDecision(promise.dueAtDecision));
   const decisionCount = state.decisions.length;
   const duePromises = state.activePromises.filter((promise) => promise.dueAtDecision <= decisionCount);
   const activePromises = state.activePromises.filter((promise) => promise.dueAtDecision > decisionCount);

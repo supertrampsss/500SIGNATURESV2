@@ -1,5 +1,19 @@
-import { SCHEMA_VERSION, type CampaignPhase, type CampaignState, type Decision, type DecisionOption, type EffectRule, type Scenario } from "./types.ts";
+import {
+  SCHEMA_VERSION,
+  type CampaignPhase,
+  type CampaignState,
+  type CausalEntry,
+  type Decision,
+  type DecisionRecord,
+  type EffectRule,
+  type GroupKey,
+  type IndicatorKey,
+  type Scenario,
+} from "./types.ts";
 
+const CAMPAIGN_DECISION_COUNT = 96;
+const CHAPTER_COUNT = 8;
+const DECISIONS_PER_CHAPTER = 12;
 const PHASES: readonly CampaignPhase[] = [
   "intro", "chapter_intro", "decision", "decision_result", "council", "crisis",
   "delayed_event", "chapter_verdict", "pause", "verdict",
@@ -8,19 +22,28 @@ const DECISION_STATUSES = new Set(["confirmed", "suspended", "amended", "reverse
 const INDICATOR_KEYS = [
   "annualBalance", "debtToGdp", "interestCost", "growth", "employment", "investment",
   "publicServices", "majority", "reformCapacity", "opinion", "institutionalTrust", "financialCredibility",
-] as const;
+] as const satisfies readonly IndicatorKey[];
 const GROUP_KEYS = [
   "lowIncomeHouseholds", "middleClasses", "retirees", "publicEmployees", "privateEmployees", "unions",
   "businesses", "farmers", "localAuthorities", "creditors", "europeanPartners", "parliamentaryMajority",
-] as const;
-const EFFECT_DURATIONS = new Set(["once", "annual", "permanent"]);
-const CAUSAL_SOURCE_TYPES = new Set(["decision", "event", "crisis", "promise"]);
+] as const satisfies readonly GroupKey[];
+const EFFECT_DURATIONS = new Set<EffectRule["duration"]>(["once", "annual", "permanent"]);
+const CAUSAL_SOURCE_TYPES = new Set<CausalEntry["sourceType"]>(["decision", "event", "crisis", "promise"]);
+
+type ConfirmedDecision = Pick<DecisionRecord, "decisionId" | "optionId" | "confirmedAtIndex">;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
-  typeof value === "object" && value !== null && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
+  typeof value === "object" && value !== null
+  && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
 
 const isPositiveInteger = (value: unknown): value is number =>
   typeof value === "number" && Number.isInteger(value) && value > 0;
+
+const isIndicatorKey = (value: unknown): value is IndicatorKey =>
+  typeof value === "string" && INDICATOR_KEYS.includes(value as IndicatorKey);
+
+const isGroupKey = (value: unknown): value is GroupKey =>
+  typeof value === "string" && GROUP_KEYS.includes(value as GroupKey);
 
 function hasDuplicates(values: readonly string[]): boolean {
   return new Set(values).size !== values.length;
@@ -40,70 +63,106 @@ function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readon
     && actualKeys.every((key) => typeof value[key] === "number" && Number.isFinite(value[key]));
 }
 
-function isEffectRule(value: unknown): boolean {
-  if (!isRecord(value) || typeof value.id !== "string" || typeof value.target !== "string" || typeof value.key !== "string") return false;
-  if (value.target !== "indicator" && value.target !== "group") return false;
-  if (!(value.target === "indicator" ? INDICATOR_KEYS : GROUP_KEYS).includes(value.key as never)) return false;
-  if (typeof value.delta !== "number" || !Number.isFinite(value.delta) || typeof value.explanation !== "string" || !EFFECT_DURATIONS.has(value.duration as string)) return false;
+/** Checks an untrusted effect and enforces the target to key relationship at runtime. */
+export function isEffectRule(value: unknown): value is EffectRule {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.delta !== "number" || !Number.isFinite(value.delta)) return false;
+  if (typeof value.explanation !== "string" || !EFFECT_DURATIONS.has(value.duration as EffectRule["duration"])) return false;
   if (!isRecord(value.timing) || typeof value.timing.kind !== "string") return false;
-  return value.timing.kind === "immediate"
+  const validTiming = value.timing.kind === "immediate"
     || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count));
+  if (!validTiming) return false;
+  return (value.target === "indicator" && isIndicatorKey(value.key))
+    || (value.target === "group" && isGroupKey(value.key));
 }
 
-function isImmediateEffectRule(value: unknown): boolean {
-  return isEffectRule(value)
+function isImmediateEffectRule(value: unknown): value is EffectRule {
+  return isEffectRule(value) && value.timing.kind === "immediate";
+}
+
+function effectId(value: unknown, fallback: string): string {
+  return isRecord(value) && typeof value.id === "string" ? value.id : fallback;
+}
+
+function knownDecisionAndOption(value: unknown, decisions: Map<string, Decision>): boolean {
+  if (!isRecord(value) || typeof value.decisionId !== "string" || typeof value.optionId !== "string") return false;
+  return decisions.get(value.decisionId)?.options.some((option) => option.id === value.optionId) ?? false;
+}
+
+function hasConfirmedSource(
+  decisionId: unknown,
+  optionId: unknown,
+  confirmedDecisions: Map<string, ConfirmedDecision>,
+): boolean {
+  return typeof decisionId === "string"
+    && typeof optionId === "string"
+    && confirmedDecisions.get(decisionId)?.optionId === optionId;
+}
+
+function isDecisionRecord(value: unknown, decisions: Map<string, Decision>): value is DecisionRecord {
+  return knownDecisionAndOption(value, decisions)
     && isRecord(value)
-    && isRecord(value.timing)
-    && value.timing.kind === "immediate";
+    && typeof value.status === "string"
+    && DECISION_STATUSES.has(value.status)
+    && isPositiveInteger(value.confirmedAtIndex)
+    && (value.changedByCrisisId === undefined || typeof value.changedByCrisisId === "string");
 }
 
-function isScheduledEvent(value: unknown, decisions: Map<string, Decision>): boolean {
-  return isRecord(value)
-    && typeof value.id === "string"
-    && knownDecisionAndOption({ decisionId: value.sourceDecisionId, optionId: value.sourceOptionId }, decisions)
-    && isPositiveInteger(value.dueAtDecision)
+function isScheduledEvent(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>): boolean {
+  if (!isRecord(value) || typeof value.id !== "string" || !hasConfirmedSource(value.sourceDecisionId, value.sourceOptionId, confirmedDecisions)) return false;
+  const source = confirmedDecisions.get(value.sourceDecisionId as string)!;
+  return isPositiveInteger(value.dueAtDecision)
+    && value.dueAtDecision > source.confirmedAtIndex
+    && value.dueAtDecision <= CAMPAIGN_DECISION_COUNT
     && typeof value.title === "string"
     && typeof value.body === "string"
     && Array.isArray(value.effects)
     && value.effects.every(isImmediateEffectRule);
 }
 
-function isPoliticalPromise(value: unknown, decisions: Map<string, Decision>): boolean {
-  return isRecord(value)
-    && typeof value.id === "string"
-    && typeof value.sourceDecisionId === "string"
-    && decisions.has(value.sourceDecisionId)
-    && typeof value.label === "string"
+function isPoliticalPromise(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>): boolean {
+  if (!isRecord(value) || typeof value.id !== "string" || !hasConfirmedSource(value.sourceDecisionId, value.sourceOptionId, confirmedDecisions)) return false;
+  const source = confirmedDecisions.get(value.sourceDecisionId as string)!;
+  return typeof value.label === "string"
     && isPositiveInteger(value.dueAtDecision)
+    && value.dueAtDecision > source.confirmedAtIndex
+    && value.dueAtDecision <= CAMPAIGN_DECISION_COUNT
     && typeof value.fulfilled === "boolean"
     && Array.isArray(value.failureEffects)
     && value.failureEffects.every(isImmediateEffectRule);
 }
 
-function isCrisisState(value: unknown, decisions: Map<string, Decision>): boolean {
-  return isRecord(value)
-    && typeof value.ruleId === "string"
-    && typeof value.triggeredByDecisionId === "string"
-    && decisions.has(value.triggeredByDecisionId)
-    && Array.isArray(value.aggravatingDecisionIds)
-    && value.aggravatingDecisionIds.every((id) => typeof id === "string" && decisions.has(id))
-    && (value.resolvedBy === undefined || typeof value.resolvedBy === "string");
+function isCrisisState(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>, requireResolution: boolean): boolean {
+  if (!isRecord(value) || typeof value.ruleId !== "string" || typeof value.triggeredByDecisionId !== "string") return false;
+  if (!confirmedDecisions.has(value.triggeredByDecisionId) || !Array.isArray(value.aggravatingDecisionIds)) return false;
+  if (value.aggravatingDecisionIds.length === 0 || hasDuplicates(value.aggravatingDecisionIds as string[])) return false;
+  if (!value.aggravatingDecisionIds.every((id) => typeof id === "string" && confirmedDecisions.has(id))) return false;
+  if (!value.aggravatingDecisionIds.includes(value.triggeredByDecisionId)) return false;
+  return requireResolution ? typeof value.resolvedBy === "string" : value.resolvedBy === undefined;
 }
 
-function isCausalEntry(value: unknown, sourceIds: Record<string, ReadonlySet<string>>): boolean {
-  if (!isRecord(value) || typeof value.id !== "string" || typeof value.sourceType !== "string" || !CAUSAL_SOURCE_TYPES.has(value.sourceType)) return false;
-  if (typeof value.sourceId !== "string" || !sourceIds[value.sourceType]?.has(value.sourceId)) return false;
-  if (value.target !== "indicator" && value.target !== "group") return false;
-  if (typeof value.key !== "string" || !(value.target === "indicator" ? INDICATOR_KEYS : GROUP_KEYS).includes(value.key as never)) return false;
-  return typeof value.delta === "number"
+function isCausalEntry(
+  value: unknown,
+  sourceIds: Record<CausalEntry["sourceType"], ReadonlySet<string>>,
+  decisionCount: number,
+): boolean {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.sourceType !== "string") return false;
+  if (!CAUSAL_SOURCE_TYPES.has(value.sourceType as CausalEntry["sourceType"]) || typeof value.sourceId !== "string") return false;
+  const sourceType = value.sourceType as CausalEntry["sourceType"];
+  if (!sourceIds[sourceType].has(value.sourceId)) return false;
+  const validTarget = (value.target === "indicator" && isIndicatorKey(value.key))
+    || (value.target === "group" && isGroupKey(value.key));
+  return validTarget
+    && typeof value.delta === "number"
     && Number.isFinite(value.delta)
+    && EFFECT_DURATIONS.has(value.duration as EffectRule["duration"])
     && typeof value.explanation === "string"
     && typeof value.appliedAtDecision === "number"
     && Number.isInteger(value.appliedAtDecision)
-    && value.appliedAtDecision >= 0;
+    && value.appliedAtDecision >= 0
+    && value.appliedAtDecision <= decisionCount;
 }
 
-function hasUniqueKnownDecisionIds(value: unknown, decisions: Map<string, Decision>): boolean {
+function hasUniqueKnownDecisionIds(value: unknown, decisions: Map<string, Decision>): value is string[] {
   return Array.isArray(value)
     && value.every((id) => typeof id === "string" && decisions.has(id))
     && !hasDuplicates(value as string[]);
@@ -117,32 +176,103 @@ function hasUniqueDisjointIds(first: readonly { id: string }[], second: readonly
     && !firstIds.some((id) => secondIds.includes(id));
 }
 
-function effectRules(option: DecisionOption): readonly EffectRule[] {
-  return [...option.effects, ...option.scheduledEvents.flatMap((event) => event.effects), ...option.promises.flatMap((promise) => promise.failureEffects)];
+function isAtPosition(value: Record<string, unknown>, chapterIndex: number, decisionIndex: number): boolean {
+  return value.chapterIndex === chapterIndex && value.decisionIndex === decisionIndex;
 }
 
-function assertPositiveDelayedCounts(decision: Decision): string[] {
-  const errors: string[] = [];
-  for (const option of decision.options) {
-    for (const effect of effectRules(option)) {
-      if (effect.timing.kind === "after_decisions" && !isPositiveInteger(effect.timing.count)) {
-        errors.push(`effect:${effect.id}:delayed-count-required`);
-      }
-    }
-    for (const event of option.scheduledEvents) {
-      if (!isPositiveInteger(event.afterDecisions)) errors.push(`event:${event.id}:delayed-count-required`);
-      if (event.effects.some((effect) => effect.timing.kind !== "immediate")) {
-        errors.push(`event:${event.id}:effects-must-be-immediate`);
-      }
-    }
-    for (const promise of option.promises) {
-      if (!isPositiveInteger(promise.dueAfterDecisions)) errors.push(`promise:${promise.id}:delayed-count-required`);
-      if (promise.failureEffects.some((effect) => effect.timing.kind !== "immediate")) {
-        errors.push(`promise:${promise.id}:failure-effects-must-be-immediate`);
-      }
-    }
+function matchesPositionBeforeConfirmation(value: Record<string, unknown>, decisionCount: number): boolean {
+  return decisionCount >= 0
+    && decisionCount < CAMPAIGN_DECISION_COUNT
+    && isAtPosition(value, Math.floor(decisionCount / DECISIONS_PER_CHAPTER), decisionCount % DECISIONS_PER_CHAPTER);
+}
+
+function matchesPositionAfterConfirmation(value: Record<string, unknown>, decisionCount: number): boolean {
+  return decisionCount > 0
+    && decisionCount <= CAMPAIGN_DECISION_COUNT
+    && isAtPosition(value, Math.floor((decisionCount - 1) / DECISIONS_PER_CHAPTER), (decisionCount - 1) % DECISIONS_PER_CHAPTER);
+}
+
+function hasPhasePositionConsistency(value: Record<string, unknown>, decisionCount: number): boolean {
+  switch (value.phase) {
+    case "intro":
+      return decisionCount === 0 && matchesPositionBeforeConfirmation(value, decisionCount);
+    case "chapter_intro":
+      return decisionCount < CAMPAIGN_DECISION_COUNT
+        && decisionCount % DECISIONS_PER_CHAPTER === 0
+        && matchesPositionBeforeConfirmation(value, decisionCount);
+    case "decision":
+      return matchesPositionBeforeConfirmation(value, decisionCount);
+    case "decision_result":
+    case "crisis":
+    case "delayed_event":
+      return matchesPositionAfterConfirmation(value, decisionCount);
+    case "council":
+      return matchesPositionAfterConfirmation(value, decisionCount)
+        && (decisionCount % DECISIONS_PER_CHAPTER === 4 || decisionCount % DECISIONS_PER_CHAPTER === 8);
+    case "chapter_verdict":
+      return decisionCount > 0
+        && decisionCount < CAMPAIGN_DECISION_COUNT
+        && decisionCount % DECISIONS_PER_CHAPTER === 0
+        && matchesPositionAfterConfirmation(value, decisionCount);
+    case "verdict":
+      return decisionCount === CAMPAIGN_DECISION_COUNT && matchesPositionAfterConfirmation(value, decisionCount);
+    case "pause":
+      return matchesPositionBeforeConfirmation(value, decisionCount) || matchesPositionAfterConfirmation(value, decisionCount);
+    default:
+      return false;
   }
-  return errors;
+}
+
+function validatedChapterIds(chapters: readonly unknown[]): Map<string, number> {
+  const positions = new Map<string, number>();
+  chapters.forEach((chapter, chapterIndex) => {
+    if (!isRecord(chapter) || !Array.isArray(chapter.decisionIds)) return;
+    chapter.decisionIds.forEach((id, decisionIndex) => {
+      if (typeof id === "string" && !positions.has(id)) {
+        positions.set(id, chapterIndex * DECISIONS_PER_CHAPTER + decisionIndex + 1);
+      }
+    });
+  });
+  return positions;
+}
+
+function validateDirectEffect(effect: unknown, position: number | undefined, errors: string[]): void {
+  const id = effectId(effect, "unknown");
+  if (!isEffectRule(effect)) {
+    if (isRecord(effect) && isRecord(effect.timing) && effect.timing.kind === "after_decisions" && !isPositiveInteger(effect.timing.count)) {
+      errors.push(`effect:${id}:delayed-count-required`);
+    } else {
+      errors.push(`effect:${id}:invalid-rule`);
+    }
+    return;
+  }
+  if (effect.timing.kind === "after_decisions" && position !== undefined && position + effect.timing.count > CAMPAIGN_DECISION_COUNT) {
+    errors.push(`effect:${effect.id}:due-after-campaign`);
+  }
+}
+
+function validateScheduledEvent(event: unknown, position: number | undefined, errors: string[]): void {
+  const id = effectId(event, "unknown");
+  if (!isRecord(event) || !isPositiveInteger(event.afterDecisions)) {
+    errors.push(`event:${id}:delayed-count-required`);
+  } else if (position !== undefined && position + event.afterDecisions > CAMPAIGN_DECISION_COUNT) {
+    errors.push(`event:${id}:due-after-campaign`);
+  }
+  if (!isRecord(event) || !Array.isArray(event.effects) || event.effects.some((effect) => !isImmediateEffectRule(effect))) {
+    errors.push(`event:${id}:effects-must-be-immediate`);
+  }
+}
+
+function validatePromise(promise: unknown, position: number | undefined, errors: string[]): void {
+  const id = effectId(promise, "unknown");
+  if (!isRecord(promise) || !isPositiveInteger(promise.dueAfterDecisions)) {
+    errors.push(`promise:${id}:delayed-count-required`);
+  } else if (position !== undefined && position + promise.dueAfterDecisions > CAMPAIGN_DECISION_COUNT) {
+    errors.push(`promise:${id}:due-after-campaign`);
+  }
+  if (!isRecord(promise) || !Array.isArray(promise.failureEffects) || promise.failureEffects.some((effect) => !isImmediateEffectRule(effect))) {
+    errors.push(`promise:${id}:failure-effects-must-be-immediate`);
+  }
 }
 
 /** Returns paths to each editorial em dash in JSON-compatible data. */
@@ -169,103 +299,168 @@ export function assertNoEmDash(value: unknown): string[] {
   return paths;
 }
 
+/** Validates catalogue structure and rejects malformed effects before any campaign can materialize them. */
 export function validateScenario(scenario: Scenario): string[] {
-  const errors: string[] = [];
-  if (!isPositiveInteger(scenario.version)) errors.push("scenario:version:positive-integer-required");
-  if (scenario.chapters.length !== 8) errors.push("scenario:expected-8-chapters");
-  for (const chapter of scenario.chapters) {
-    if (chapter.decisionIds.length !== 12) errors.push(`chapter:${chapter.id}:expected-12-decisions`);
-    for (const id of duplicateValues(chapter.decisionIds)) errors.push(`chapter:${chapter.id}:duplicate-decision:${id}`);
+  const rawScenario: unknown = scenario;
+  if (!isRecord(rawScenario) || !Array.isArray(rawScenario.chapters) || !Array.isArray(rawScenario.decisions)) {
+    return ["scenario:invalid-structure"];
   }
-  if (scenario.decisions.length !== 96) errors.push("scenario:expected-96-decisions");
 
-  if (hasDuplicates(scenario.decisions.map((decision) => decision.id))) errors.push("scenario:duplicate-decision-id");
-  const scheduledEventIds = scenario.decisions.flatMap((decision) => decision.options.flatMap((option) => option.scheduledEvents.map((event) => event.id)));
-  const promiseIds = scenario.decisions.flatMap((decision) => decision.options.flatMap((option) => option.promises.map((promise) => promise.id)));
+  const errors: string[] = [];
+  const chapters = rawScenario.chapters;
+  const rawDecisions = rawScenario.decisions;
+  if (!isPositiveInteger(rawScenario.version)) errors.push("scenario:version:positive-integer-required");
+  if (chapters.length !== CHAPTER_COUNT) errors.push("scenario:expected-8-chapters");
+  for (const [chapterIndex, chapter] of chapters.entries()) {
+    const chapterId = isRecord(chapter) && typeof chapter.id === "string" ? chapter.id : `index-${chapterIndex + 1}`;
+    if (!isRecord(chapter) || !Array.isArray(chapter.decisionIds) || chapter.decisionIds.length !== DECISIONS_PER_CHAPTER) {
+      errors.push(`chapter:${chapterId}:expected-12-decisions`);
+      continue;
+    }
+    const ids = chapter.decisionIds.filter((id): id is string => typeof id === "string");
+    for (const id of duplicateValues(ids)) errors.push(`chapter:${chapterId}:duplicate-decision:${id}`);
+  }
+  if (rawDecisions.length !== CAMPAIGN_DECISION_COUNT) errors.push("scenario:expected-96-decisions");
+
+  const decisions = rawDecisions.filter((decision): decision is Decision => isRecord(decision) && typeof decision.id === "string") as Decision[];
+  if (hasDuplicates(decisions.map((decision) => decision.id))) errors.push("scenario:duplicate-decision-id");
+  const scheduledEventIds = decisions.flatMap((decision) => Array.isArray(decision.options)
+    ? decision.options.flatMap((option) => isRecord(option) && Array.isArray(option.scheduledEvents)
+      ? option.scheduledEvents.map((event) => effectId(event, "unknown"))
+      : [])
+    : []);
+  const promiseIds = decisions.flatMap((decision) => Array.isArray(decision.options)
+    ? decision.options.flatMap((option) => isRecord(option) && Array.isArray(option.promises)
+      ? option.promises.map((promise) => effectId(promise, "unknown"))
+      : [])
+    : []);
   for (const id of duplicateValues(scheduledEventIds)) errors.push(`scenario:duplicate-scheduled-event-id:${id}`);
   for (const id of duplicateValues(promiseIds)) errors.push(`scenario:duplicate-promise-id:${id}`);
-  for (const decision of scenario.decisions) {
-    if (hasDuplicates(decision.options.map((option) => option.id))) errors.push(`decision:${decision.id}:duplicate-option-id`);
+  for (const decision of decisions) {
+    if (Array.isArray(decision.options) && hasDuplicates(decision.options.filter(isRecord).map((option) => typeof option.id === "string" ? option.id : "unknown"))) {
+      errors.push(`decision:${decision.id}:duplicate-option-id`);
+    }
   }
 
-  const decisionsById = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
-  for (const chapter of scenario.chapters) {
+  const decisionsById = new Map(decisions.map((decision) => [decision.id, decision]));
+  for (const chapter of chapters) {
+    if (!isRecord(chapter) || typeof chapter.id !== "string" || !Array.isArray(chapter.decisionIds)) continue;
     for (const id of chapter.decisionIds) {
-      if (decisionsById.get(id)?.chapterId !== chapter.id) errors.push(`chapter:${chapter.id}:unknown-decision:${id}`);
+      if (typeof id !== "string" || decisionsById.get(id)?.chapterId !== chapter.id) errors.push(`chapter:${chapter.id}:unknown-decision:${String(id)}`);
     }
   }
   const chapterDecisionCounts = new Map<string, number>();
-  for (const chapter of scenario.chapters) {
-    for (const id of chapter.decisionIds) chapterDecisionCounts.set(id, (chapterDecisionCounts.get(id) ?? 0) + 1);
+  for (const chapter of chapters) {
+    if (!isRecord(chapter) || !Array.isArray(chapter.decisionIds)) continue;
+    for (const id of chapter.decisionIds) {
+      if (typeof id === "string") chapterDecisionCounts.set(id, (chapterDecisionCounts.get(id) ?? 0) + 1);
+    }
   }
-  if (scenario.chapters.every((chapter) => chapter.decisionIds.length === 12)) {
-    for (const decision of scenario.decisions) {
+  if (chapters.every((chapter) => isRecord(chapter) && Array.isArray(chapter.decisionIds) && chapter.decisionIds.length === DECISIONS_PER_CHAPTER)) {
+    for (const decision of decisions) {
       if (chapterDecisionCounts.get(decision.id) !== 1) errors.push(`decision:${decision.id}:expected-once-in-chapters`);
     }
   }
 
-  for (const decision of scenario.decisions) {
-    if (decision.options.length < 2 || decision.options.length > 4) errors.push(`decision:${decision.id}:expected-2-to-4-options`);
-    if (decision.evidence.length === 0) errors.push(`decision:${decision.id}:evidence-required`);
-    for (const option of decision.options) {
-      if (option.beneficiaries.length === 0) errors.push(`option:${option.id}:beneficiaries-required`);
-      if (option.contributors.length === 0) errors.push(`option:${option.id}:contributors-required`);
-      if (option.effects.length === 0 && option.scheduledEvents.length === 0) errors.push(`option:${option.id}:effect-or-event-required`);
+  const positions = validatedChapterIds(chapters);
+  for (const decision of decisions) {
+    const options = Array.isArray(decision.options) ? decision.options : [];
+    if (options.length < 2 || options.length > 4) errors.push(`decision:${decision.id}:expected-2-to-4-options`);
+    if (!Array.isArray(decision.evidence) || decision.evidence.length === 0) errors.push(`decision:${decision.id}:evidence-required`);
+    for (const [optionIndex, option] of options.entries()) {
+      const optionId = isRecord(option) && typeof option.id === "string" ? option.id : `${decision.id}-option-${optionIndex + 1}`;
+      const effects = isRecord(option) && Array.isArray(option.effects) ? option.effects : [];
+      const events = isRecord(option) && Array.isArray(option.scheduledEvents) ? option.scheduledEvents : [];
+      const promises = isRecord(option) && Array.isArray(option.promises) ? option.promises : [];
+      if (!isRecord(option) || !Array.isArray(option.beneficiaries) || option.beneficiaries.length === 0) errors.push(`option:${optionId}:beneficiaries-required`);
+      if (!isRecord(option) || !Array.isArray(option.contributors) || option.contributors.length === 0) errors.push(`option:${optionId}:contributors-required`);
+      if (effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
+      for (const effect of effects) validateDirectEffect(effect, positions.get(decision.id), errors);
+      for (const event of events) validateScheduledEvent(event, positions.get(decision.id), errors);
+      for (const promise of promises) validatePromise(promise, positions.get(decision.id), errors);
     }
-    errors.push(...assertPositiveDelayedCounts(decision));
-    for (const evidence of decision.evidence) {
-      if (!evidence.sourceUrl.startsWith("https://")) errors.push(`evidence:${decision.id}:${evidence.label}:https-required`);
+    if (Array.isArray(decision.evidence)) {
+      for (const evidence of decision.evidence) {
+        const label = isRecord(evidence) && typeof evidence.label === "string" ? evidence.label : "unknown";
+        if (!isRecord(evidence) || typeof evidence.sourceUrl !== "string" || !evidence.sourceUrl.startsWith("https://")) {
+          errors.push(`evidence:${decision.id}:${label}:https-required`);
+        }
+      }
     }
-    if (decision.historicalPrecedent && !decision.historicalPrecedent.sourceUrl.startsWith("https://")) {
+    if (decision.historicalPrecedent && (!isRecord(decision.historicalPrecedent) || typeof decision.historicalPrecedent.sourceUrl !== "string" || !decision.historicalPrecedent.sourceUrl.startsWith("https://"))) {
       errors.push(`precedent:${decision.id}:https-required`);
     }
   }
-  for (const path of assertNoEmDash(scenario)) errors.push(`editorial:em-dash:${path}`);
+  for (const path of assertNoEmDash(rawScenario)) errors.push(`editorial:em-dash:${path}`);
   return errors;
 }
 
-function knownDecisionAndOption(value: unknown, decisions: Map<string, Decision>): boolean {
-  if (!isRecord(value) || typeof value.decisionId !== "string" || typeof value.optionId !== "string") return false;
-  return decisions.get(value.decisionId)?.options.some((option) => option.id === value.optionId) ?? false;
-}
-
-function isDecisionRecord(value: unknown, decisions: Map<string, Decision>): boolean {
-  return knownDecisionAndOption(value, decisions)
-    && isRecord(value)
-    && typeof value.status === "string"
-    && DECISION_STATUSES.has(value.status)
-    && isPositiveInteger(value.confirmedAtIndex)
-    && (value.changedByCrisisId === undefined || typeof value.changedByCrisisId === "string");
-}
-
-/** Narrow an untrusted persisted value to the V3 campaign state schema. */
+/** Narrow an untrusted persisted value to a reachable V3 campaign state. */
 export function isCampaignState(value: unknown, scenario: Scenario): value is CampaignState {
+  if (validateScenario(scenario).length > 0) return false;
   if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION || value.scenarioVersion !== scenario.version) return false;
   if (!PHASES.includes(value.phase as CampaignPhase) || !Number.isInteger(value.chapterIndex) || !Number.isInteger(value.decisionIndex)) return false;
-  if ((value.chapterIndex as number) < 0 || (value.chapterIndex as number) >= scenario.chapters.length || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) > scenario.decisions.length) return false;
+  if ((value.chapterIndex as number) < 0 || (value.chapterIndex as number) >= CHAPTER_COUNT || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) >= DECISIONS_PER_CHAPTER) return false;
   if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.eventHistory) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
   if (!isRecord(value.indicators) || !hasExactFiniteKeys(value.indicators, INDICATOR_KEYS)) return false;
   if (!isRecord(value.groups) || !hasExactFiniteKeys(value.groups, GROUP_KEYS)) return false;
   if (typeof value.seed !== "number" || !Number.isFinite(value.seed) || typeof value.savedAt !== "string" || Number.isNaN(Date.parse(value.savedAt))) return false;
 
+  const decisionRecords = value.decisions as unknown[];
+  const scheduledEvents = value.scheduledEvents as unknown[];
+  const eventHistory = value.eventHistory as unknown[];
+  const activePromises = value.activePromises as unknown[];
+  const promiseHistory = value.promiseHistory as unknown[];
+  const crisisHistory = value.crisisHistory as unknown[];
+  const resolvedCrisisIds = value.resolvedCrisisIds as unknown[];
+  const causalLedger = value.causalLedger as unknown[];
+  const unlockedDecisionIds = value.unlockedDecisionIds as unknown[];
+  const lockedDecisionIds = value.lockedDecisionIds as unknown[];
+
   const decisions = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
-  if (!value.decisions.every((record) => isDecisionRecord(record, decisions))) return false;
-  if (value.pendingSelection !== undefined && !knownDecisionAndOption(value.pendingSelection, decisions)) return false;
-  if (!value.scheduledEvents.every((event) => isScheduledEvent(event, decisions))) return false;
-  if (!value.eventHistory.every((event) => isScheduledEvent(event, decisions))) return false;
-  if (![...value.activePromises, ...value.promiseHistory].every((promise) => isPoliticalPromise(promise, decisions))) return false;
-  if (!hasUniqueDisjointIds(value.scheduledEvents, value.eventHistory)) return false;
-  if (!hasUniqueDisjointIds(value.activePromises, value.promiseHistory)) return false;
-  if (!value.crisisHistory.every((crisis) => isCrisisState(crisis, decisions))) return false;
-  if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, decisions)) return false;
-  if (!value.resolvedCrisisIds.every((id) => typeof id === "string") || hasDuplicates(value.resolvedCrisisIds)) return false;
-  if (!hasUniqueKnownDecisionIds(value.unlockedDecisionIds, decisions) || !hasUniqueKnownDecisionIds(value.lockedDecisionIds, decisions)) return false;
-  const sourceIds = {
-    decision: new Set(value.decisions.map((record) => `${(record as { decisionId: string }).decisionId}:${(record as { optionId: string }).optionId}`)),
-    event: new Set([...value.scheduledEvents, ...value.eventHistory].map((event) => (event as { id: string }).id)),
-    promise: new Set([...value.activePromises, ...value.promiseHistory].map((promise) => (promise as { id: string }).id)),
-    crisis: new Set([...(value.activeCrisis ? [value.activeCrisis] : []), ...value.crisisHistory].map((crisis) => (crisis as { ruleId: string }).ruleId).concat(value.resolvedCrisisIds as string[])),
+  const editorialOrder = scenario.chapters.flatMap((chapter) => chapter.decisionIds);
+  if (decisionRecords.length > CAMPAIGN_DECISION_COUNT || !decisionRecords.every((record) => isDecisionRecord(record, decisions))) return false;
+  if (!decisionRecords.every((record, index) => {
+    const typedRecord = record as DecisionRecord;
+    return typedRecord.decisionId === editorialOrder[index] && typedRecord.confirmedAtIndex === index + 1;
+  })) return false;
+  const confirmedDecisions = new Map<string, ConfirmedDecision>(decisionRecords.map((record) => {
+    const typedRecord = record as DecisionRecord;
+    return [typedRecord.decisionId, typedRecord];
+  }));
+  if (confirmedDecisions.size !== decisionRecords.length) return false;
+  if (!hasPhasePositionConsistency(value, decisionRecords.length)) return false;
+
+  const pendingSelection = value.pendingSelection;
+  if (pendingSelection !== undefined) {
+    if (value.phase !== "decision" || !isRecord(pendingSelection) || !knownDecisionAndOption(pendingSelection, decisions)) return false;
+    const currentDecisionId = editorialOrder[decisionRecords.length];
+    if (pendingSelection.decisionId !== currentDecisionId || (lockedDecisionIds as string[]).includes(currentDecisionId)) return false;
+  }
+  if (!scheduledEvents.every((event) => isScheduledEvent(event, confirmedDecisions))) return false;
+  if (!eventHistory.every((event) => isScheduledEvent(event, confirmedDecisions))) return false;
+  if (![...activePromises, ...promiseHistory].every((promise) => isPoliticalPromise(promise, confirmedDecisions))) return false;
+  if (!hasUniqueDisjointIds(scheduledEvents as { id: string }[], eventHistory as { id: string }[])) return false;
+  if (!hasUniqueDisjointIds(activePromises as { id: string }[], promiseHistory as { id: string }[])) return false;
+
+  if (!crisisHistory.every((crisis) => isCrisisState(crisis, confirmedDecisions, true))) return false;
+  if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, confirmedDecisions, false)) return false;
+  if ((value.phase === "crisis") !== (value.activeCrisis !== undefined)) return false;
+  if (value.phase === "delayed_event" && !(scheduledEvents as { dueAtDecision: number }[]).some((event) => event.dueAtDecision <= decisionRecords.length)) return false;
+  const crisisHistoryIds = (crisisHistory as { ruleId: string }[]).map((crisis) => crisis.ruleId);
+  if (hasDuplicates(crisisHistoryIds) || !resolvedCrisisIds.every((id) => typeof id === "string") || hasDuplicates(resolvedCrisisIds as string[])) return false;
+  if ((resolvedCrisisIds as string[]).length !== crisisHistoryIds.length || !(resolvedCrisisIds as string[]).every((id) => crisisHistoryIds.includes(id))) return false;
+  if (value.activeCrisis !== undefined && (resolvedCrisisIds as string[]).includes((value.activeCrisis as { ruleId: string }).ruleId)) return false;
+
+  if (!hasUniqueKnownDecisionIds(unlockedDecisionIds, decisions) || !hasUniqueKnownDecisionIds(lockedDecisionIds, decisions)) return false;
+  if ((lockedDecisionIds as string[]).some((id) => (unlockedDecisionIds as string[]).includes(id))) return false;
+  const sourceIds: Record<CausalEntry["sourceType"], ReadonlySet<string>> = {
+    decision: new Set(decisionRecords.map((record) => `${(record as DecisionRecord).decisionId}:${(record as DecisionRecord).optionId}`)),
+    event: new Set([...scheduledEvents, ...eventHistory].map((event) => (event as { id: string }).id)),
+    promise: new Set([...activePromises, ...promiseHistory].map((promise) => (promise as { id: string }).id)),
+    crisis: new Set([...(value.activeCrisis ? [value.activeCrisis] : []), ...crisisHistory].map((crisis) => (crisis as { ruleId: string }).ruleId)),
   };
-  if (!value.causalLedger.every((entry) => isCausalEntry(entry, sourceIds))) return false;
+  if (!causalLedger.every((entry) => isCausalEntry(entry, sourceIds, decisionRecords.length))) return false;
+  if (hasDuplicates((causalLedger as { id: string }[]).map((entry) => entry.id))) return false;
   return true;
 }

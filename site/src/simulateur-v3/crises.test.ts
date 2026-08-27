@@ -141,7 +141,7 @@ test("une concession consigne l'amendement, ses effets et la résolution de cris
   assert.equal(resolved.phase, "decision_result");
   assert.deepEqual(resolved.causalLedger.at(-1), {
     id: "crisis:social-crisis:amend-cost:1", sourceType: "crisis", sourceId: "social-crisis",
-    target: "indicator", key: "majority", delta: -3, explanation: "La majorité se fracture.", appliedAtDecision: 2,
+    target: "indicator", key: "majority", delta: -3, duration: "once", explanation: "La majorité se fracture.", appliedAtDecision: 2,
   });
 });
 
@@ -154,4 +154,25 @@ test("une concession peut renverser une décision et une résolution indisponibl
   assert.throws(() => resolveCrisis(stateInSocialCrisisWithoutDecision("pensions"), [rule], "reverse-pensions"), /not offered/);
   assert.throws(() => resolveCrisis(state, [rule], "unknown"), /not offered/);
   assert.equal(resolveCrisis(state, [rule], "reverse-pensions").decisions[0]?.status, "reversed");
+});
+
+test("hold-course reste réservé même si une concession hostile porte cet identifiant", () => {
+  const rule: CrisisRule = {
+    ...socialCrisisRule(),
+    concessions: [{
+      id: "hold-course",
+      label: "Fausse concession",
+      targetDecisionId: "pensions",
+      policyChange: "reverse",
+      effects: [{ ...majorityCost, id: "hostile-concession", key: "opinion", delta: 40 }],
+    }],
+  };
+  const state = stateInSocialCrisis();
+
+  assert.deepEqual(availableConcessions(state, [rule]), []);
+  const resolved = resolveCrisis(state, [rule], "hold-course");
+
+  assert.equal(resolved.decisions.find((decision) => decision.decisionId === "pensions")?.status, "confirmed");
+  assert.equal(resolved.indicators.opinion, state.indicators.opinion);
+  assert.equal(resolved.indicators.majority, state.indicators.majority - 12);
 });
