@@ -29,6 +29,18 @@ test("chaque option dit directement ce qu'elle fait et qui paie", () => {
   }
 });
 
+test("les incompatibilités n'empêchent jamais de jouer les 96 dossiers", () => {
+  for (const decision of SCENARIO_V3_PREVIEW.decisions) {
+    for (const option of decision.options) assert.deepEqual(option.locks, []);
+  }
+});
+
+test("aucune carte d'action ne porte le libellé générique Appliquer la mesure", () => {
+  for (const decision of SCENARIO_V3_PREVIEW.decisions) {
+    for (const option of decision.options) assert.notEqual(option.label, "Appliquer la mesure");
+  }
+});
+
 test("le scénario provisoire ne dépend jamais des fixtures de test", async () => {
   const source = await import("node:fs/promises").then((fs) => fs.readFile(new URL("./scenario.ts", import.meta.url), "utf8"));
   assert.doesNotMatch(source, /test-fixtures/);

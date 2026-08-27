@@ -61,7 +61,8 @@ body[data-vue="simulateur"] .entete__recherche {
 }
 
 .simulateur-v3__brand,
-.simulateur-v3__pause {
+.simulateur-v3__pause,
+.simulateur-v3__pause-state {
   min-height: var(--cible);
 }
 
@@ -254,6 +255,19 @@ body[data-vue="simulateur"] .entete__recherche {
   color: var(--v3-ink);
   background: transparent;
   border-color: var(--v3-ink);
+}
+
+.simulateur-v3__pause-state {
+  display: inline-flex;
+  grid-column: 2;
+  grid-row: 1;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding-inline: var(--espace-3);
+  color: var(--v3-muted-on-shell);
+  font-size: var(--texte-xs);
+  font-weight: 750;
 }
 
 .simulateur-v3__danger {
@@ -740,6 +754,7 @@ body[data-vue="simulateur"] .entete__recherche {
   .simulateur-v3__chapter-progress { grid-column: 3; grid-row: 1; }
   .simulateur-v3__decision-progress { grid-column: 4; grid-row: 1; }
   .simulateur-v3__pause { grid-column: 5; grid-row: 1; }
+  .simulateur-v3__pause-state { grid-column: 5; grid-row: 1; }
 
   .simulateur-v3__decision-progress { text-align: start; }
 

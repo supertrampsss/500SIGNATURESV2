@@ -179,7 +179,7 @@ export function mountSimulatorV3(
       return;
     }
 
-    if (action === "pause" && state.phase !== "pause") {
+    if (action === "pause" && state.phase !== "intro" && state.phase !== "pause" && state.phase !== "verdict") {
       phaseBeforePause = state.phase;
       pauseView = "menu";
       state = { ...state, phase: "pause", pausedFrom: state.phase };

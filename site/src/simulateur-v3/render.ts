@@ -31,8 +31,12 @@ function signed(value: number): string {
 
 export function formatV3Amount(value: number): string {
   const absolute = Math.abs(value);
-  if (absolute >= 1_000) return `${signed(Math.round(value / 1_000))} milliards d'euros`;
-  return `${signed(Math.round(value))} millions d'euros`;
+  if (absolute >= 1_000) {
+    const billions = Math.round(value / 1_000);
+    return `${signed(billions)} ${Math.abs(billions) === 1 ? "milliard" : "milliards"} d'euros`;
+  }
+  const millions = Math.round(value);
+  return `${signed(millions)} ${Math.abs(millions) === 1 ? "million" : "millions"} d'euros`;
 }
 
 function globalPosition(state: CampaignState): number {
@@ -40,6 +44,13 @@ function globalPosition(state: CampaignState): number {
 }
 
 function renderCommandBar(state: CampaignState): string {
+  const trailing = state.phase === "intro"
+    ? `<span class="simulateur-v3__pause-state">Mission</span>`
+    : state.phase === "pause"
+      ? `<span class="simulateur-v3__pause-state">En pause</span>`
+      : state.phase === "verdict"
+        ? `<span class="simulateur-v3__pause-state">Mandat terminé</span>`
+        : `<button type="button" class="simulateur-v3__pause" data-v3-action="pause">Pause</button>`;
   return `
     <header class="simulateur-v3__command-bar">
       <a class="simulateur-v3__brand" href="/bilan" aria-label="Où va l'argent public, revenir à France">
@@ -49,7 +60,7 @@ function renderCommandBar(state: CampaignState): string {
       <p class="simulateur-v3__mandate">Mandat 2026 à 2031</p>
       <p class="simulateur-v3__chapter-progress">Chapitre ${state.chapterIndex + 1} sur 8</p>
       <p class="simulateur-v3__decision-progress">Dossier ${globalPosition(state)} sur 96</p>
-      <button type="button" class="simulateur-v3__pause" data-v3-action="pause">Pause</button>
+      ${trailing}
     </header>`;
 }
 
@@ -301,6 +312,18 @@ function recentCauses(state: CampaignState): CausalEntry[] {
   return state.causalLedger.filter((entry) => entry.appliedAtDecision > floor).slice(-5).reverse();
 }
 
+function sourceDecisionIdForCause(state: CampaignState, cause: CausalEntry): string | undefined {
+  if (cause.sourceType === "decision") return cause.sourceId.split(":")[0];
+  if (cause.sourceType === "event") {
+    return [...state.eventHistory, ...state.scheduledEvents].find((event) => event.id === cause.sourceId)?.sourceDecisionId;
+  }
+  if (cause.sourceType === "promise") {
+    return [...state.promiseHistory, ...state.activePromises].find((promise) => promise.id === cause.sourceId)?.sourceDecisionId;
+  }
+  return [...state.crisisHistory, ...(state.activeCrisis ? [state.activeCrisis] : [])]
+    .find((crisis) => crisis.ruleId === cause.sourceId)?.triggeredByDecisionId;
+}
+
 function renderCouncil(state: CampaignState, scenario: Scenario): string {
   const causes = recentCauses(state);
   return `
@@ -316,7 +339,7 @@ function renderCouncil(state: CampaignState, scenario: Scenario): string {
           <section><h2>Confiance</h2><strong>${Math.round(state.indicators.opinion)} / 100</strong><p>Crédibilité financière ${Math.round(state.indicators.financialCredibility)}</p></section>
         </div>
         ${causes.length ? `<section class="simulateur-v3__causes"><h2>Ce qui vient de peser</h2><ul>${causes.map((cause) => {
-          const decisionId = cause.sourceType === "decision" ? cause.sourceId.split(":")[0] : undefined;
+          const decisionId = sourceDecisionIdForCause(state, cause);
           const title = scenario.decisions.find((decision) => decision.id === decisionId)?.title;
           return `<li><strong>${escapeHtml(effectLabel(cause))}</strong><span>${escapeHtml(title ?? "Événement du mandat")}</span><small>${escapeHtml(cause.explanation)}</small></li>`;
         }).join("")}</ul></section>` : ""}
@@ -361,7 +384,7 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
             <em>${rule.holdCourseEffects.map(effectLabel).map(escapeHtml).join(" · ")}</em>
           </button>
           ${concessions.map((concession) => `<button type="button" class="simulateur-v3__crisis-option simulateur-v3__crisis-option--concession" data-v3-action="resolve-crisis" data-resolution-id="${escapeHtml(concession.id)}">
-            <span>${escapeHtml(concession.label)}</span><small>Cette concession modifie réellement la décision.</small>
+            <span>${escapeHtml(concession.label)}</span><small>${concession.policyChange === "suspend" ? "La réforme sera suspendue." : concession.policyChange === "amend" ? "La réforme sera amendée." : "La réforme sera renversée."}</small>
             <em>${concession.effects.map(effectLabel).map(escapeHtml).join(" · ")}</em>
           </button>`).join("")}
         </div>

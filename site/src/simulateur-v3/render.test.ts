@@ -4,7 +4,7 @@ import test from "node:test";
 import { createCampaign, selectOption } from "./campaign.ts";
 import { detectCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
-import { renderSimulatorV3 } from "./render.ts";
+import { formatV3Amount, renderSimulatorV3 } from "./render.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import type { CampaignState } from "./types.ts";
@@ -12,6 +12,12 @@ import type { CampaignState } from "./types.ts";
 function occurrences(source: string, needle: string): number {
   return source.split(needle).length - 1;
 }
+
+test("les montants utilisent le singulier quand il le faut", () => {
+  assert.equal(formatV3Amount(1_200), "+1 milliard d'euros");
+  assert.equal(formatV3Amount(-1), "-1 million d'euros");
+  assert.equal(formatV3Amount(12_000), "+12 milliards d'euros");
+});
 
 function stateAfter(count: number, phase: CampaignState["phase"]): CampaignState {
   const base = createCampaign(SCENARIO_V3_PREVIEW);
@@ -35,6 +41,7 @@ test("l'entrée en fonction annonce la mission et un seul départ", () => {
   assert.equal(occurrences(html, 'data-v3-action="start"'), 1);
   assert.match(html, /Prendre mes fonctions/);
   assert.match(html, /href="\/bilan"/);
+  assert.doesNotMatch(html, /data-v3-action="pause"/);
 });
 
 test("l'introduction de chapitre montre les quatre domaines", () => {
@@ -174,6 +181,7 @@ test("le verdict final raconte le mandat et permet une revanche", () => {
   assert.match(html, /1 crise/);
   assert.match(html, /1 réforme abandonnée sous pression/);
   assert.equal(occurrences(html, 'data-v3-action="restart"'), 1);
+  assert.doesNotMatch(html, /data-v3-action="pause"/);
 });
 
 test("le journal de Pause liste les arbitrages et leur statut", () => {

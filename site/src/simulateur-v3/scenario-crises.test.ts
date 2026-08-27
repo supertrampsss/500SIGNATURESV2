@@ -13,7 +13,7 @@ test("le premier chapitre contient une conséquence différée lisible", () => {
 
   assert.equal(option?.scheduledEvents.length, 1);
   assert.equal(option?.scheduledEvents[0]?.afterDecisions, 1);
-  assert.match(option?.scheduledEvents[0]?.title ?? "", /Exil fiscal|recettes/i);
+  assert.match(option?.scheduledEvents[0]?.title ?? "", /tranche|départs/i);
   assert.ok((option?.scheduledEvents[0]?.effects.length ?? 0) > 0);
 });
 

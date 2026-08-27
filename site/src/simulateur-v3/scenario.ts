@@ -121,7 +121,7 @@ function scheduledEventsFor(measure: Mesure): Decision["options"][number]["sched
   if (measure.id !== "tranche-a-50-au-dela-de-250") return [];
   return [{
     id: "high-income-tax-base-reaction",
-    title: "Les recettes résistent, les départs très médiatisés commencent",
+    title: "La tranche à 50 % résiste, les départs font la une",
     body: "Un an après l'annonce, l'assiette fiscale reste largement en France, mais plusieurs départs concentrent le débat et affaiblissent le rendement attendu.",
     afterDecisions: 1,
     effects: [
@@ -205,7 +205,7 @@ function toDecision(measure: Mesure, index: number): Decision {
     options: [
       {
         id: adoptId,
-        label: clean(editorial?.adopter.libelle ?? "Appliquer la mesure"),
+        label: clean(editorial?.adopter.libelle ?? measure.titre),
         summary: clean(editorial?.adopter.argument ?? measure.detail),
         beneficiaries: adoptBeneficiaries.map(clean),
         contributors: adoptContributors.map(clean),
@@ -214,7 +214,7 @@ function toDecision(measure: Mesure, index: number): Decision {
         scheduledEvents: scheduledEventsFor(measure),
         promises: [],
         fulfillsPromises: [],
-        locks: conflicts,
+        locks: [],
         unlocks: [],
       },
       {
@@ -247,7 +247,7 @@ function toDecision(measure: Mesure, index: number): Decision {
 const decisions = MESURES.map(toDecision);
 
 export const SCENARIO_V3_PREVIEW: Scenario = {
-  version: 1,
+  version: 2,
   title: "La France à l'épreuve des comptes",
   chapters: CHAPTERS.map((chapter, index) => ({
     ...chapter,
