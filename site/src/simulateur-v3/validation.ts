@@ -13,6 +13,8 @@ const GROUP_KEYS = [
   "lowIncomeHouseholds", "middleClasses", "retirees", "publicEmployees", "privateEmployees", "unions",
   "businesses", "farmers", "localAuthorities", "creditors", "europeanPartners", "parliamentaryMajority",
 ] as const;
+const EFFECT_DURATIONS = new Set(["once", "annual", "permanent"]);
+const CAUSAL_SOURCE_TYPES = new Set(["decision", "event", "crisis", "promise"]);
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
@@ -36,6 +38,68 @@ function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readon
   return actualKeys.length === expectedKeys.length
     && expectedKeys.every((key) => Object.hasOwn(value, key))
     && actualKeys.every((key) => typeof value[key] === "number" && Number.isFinite(value[key]));
+}
+
+function isEffectRule(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.target !== "string" || typeof value.key !== "string") return false;
+  if (value.target !== "indicator" && value.target !== "group") return false;
+  if (!(value.target === "indicator" ? INDICATOR_KEYS : GROUP_KEYS).includes(value.key as never)) return false;
+  if (typeof value.delta !== "number" || !Number.isFinite(value.delta) || typeof value.explanation !== "string" || !EFFECT_DURATIONS.has(value.duration as string)) return false;
+  if (!isRecord(value.timing) || typeof value.timing.kind !== "string") return false;
+  return value.timing.kind === "immediate"
+    || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count));
+}
+
+function isScheduledEvent(value: unknown, decisions: Map<string, Decision>): boolean {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && knownDecisionAndOption({ decisionId: value.sourceDecisionId, optionId: value.sourceOptionId }, decisions)
+    && isPositiveInteger(value.dueAtDecision)
+    && typeof value.title === "string"
+    && typeof value.body === "string"
+    && Array.isArray(value.effects)
+    && value.effects.every(isEffectRule);
+}
+
+function isPoliticalPromise(value: unknown, decisions: Map<string, Decision>): boolean {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && typeof value.sourceDecisionId === "string"
+    && decisions.has(value.sourceDecisionId)
+    && typeof value.label === "string"
+    && isPositiveInteger(value.dueAtDecision)
+    && typeof value.fulfilled === "boolean"
+    && Array.isArray(value.failureEffects)
+    && value.failureEffects.every(isEffectRule);
+}
+
+function isCrisisState(value: unknown, decisions: Map<string, Decision>): boolean {
+  return isRecord(value)
+    && typeof value.ruleId === "string"
+    && typeof value.triggeredByDecisionId === "string"
+    && decisions.has(value.triggeredByDecisionId)
+    && Array.isArray(value.aggravatingDecisionIds)
+    && value.aggravatingDecisionIds.every((id) => typeof id === "string" && decisions.has(id))
+    && (value.resolvedBy === undefined || typeof value.resolvedBy === "string");
+}
+
+function isCausalEntry(value: unknown, sourceIds: Record<string, ReadonlySet<string>>): boolean {
+  if (!isRecord(value) || typeof value.id !== "string" || typeof value.sourceType !== "string" || !CAUSAL_SOURCE_TYPES.has(value.sourceType)) return false;
+  if (typeof value.sourceId !== "string" || !sourceIds[value.sourceType]?.has(value.sourceId)) return false;
+  if (value.target !== "indicator" && value.target !== "group") return false;
+  if (typeof value.key !== "string" || !(value.target === "indicator" ? INDICATOR_KEYS : GROUP_KEYS).includes(value.key as never)) return false;
+  return typeof value.delta === "number"
+    && Number.isFinite(value.delta)
+    && typeof value.explanation === "string"
+    && typeof value.appliedAtDecision === "number"
+    && Number.isInteger(value.appliedAtDecision)
+    && value.appliedAtDecision >= 0;
+}
+
+function hasUniqueKnownDecisionIds(value: unknown, decisions: Map<string, Decision>): boolean {
+  return Array.isArray(value)
+    && value.every((id) => typeof id === "string" && decisions.has(id))
+    && !hasDuplicates(value as string[]);
 }
 
 function effectRules(option: DecisionOption): readonly EffectRule[] {
@@ -162,8 +226,18 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   const decisions = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
   if (!value.decisions.every((record) => isDecisionRecord(record, decisions))) return false;
   if (value.pendingSelection !== undefined && !knownDecisionAndOption(value.pendingSelection, decisions)) return false;
-  if (!value.scheduledEvents.every((event) => isRecord(event) && typeof event.sourceDecisionId === "string" && typeof event.sourceOptionId === "string" && knownDecisionAndOption({ decisionId: event.sourceDecisionId, optionId: event.sourceOptionId }, decisions))) return false;
-  if (![...value.activePromises, ...value.promiseHistory].every((promise) => isRecord(promise) && typeof promise.sourceDecisionId === "string" && decisions.has(promise.sourceDecisionId))) return false;
-  if (![...value.unlockedDecisionIds, ...value.lockedDecisionIds].every((id) => typeof id === "string" && decisions.has(id))) return false;
+  if (!value.scheduledEvents.every((event) => isScheduledEvent(event, decisions))) return false;
+  if (![...value.activePromises, ...value.promiseHistory].every((promise) => isPoliticalPromise(promise, decisions))) return false;
+  if (!value.crisisHistory.every((crisis) => isCrisisState(crisis, decisions))) return false;
+  if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, decisions)) return false;
+  if (!value.resolvedCrisisIds.every((id) => typeof id === "string") || hasDuplicates(value.resolvedCrisisIds)) return false;
+  if (!hasUniqueKnownDecisionIds(value.unlockedDecisionIds, decisions) || !hasUniqueKnownDecisionIds(value.lockedDecisionIds, decisions)) return false;
+  const sourceIds = {
+    decision: new Set(decisions.keys()),
+    event: new Set(value.scheduledEvents.map((event) => (event as { id: string }).id)),
+    promise: new Set([...value.activePromises, ...value.promiseHistory].map((promise) => (promise as { id: string }).id)),
+    crisis: new Set([...(value.activeCrisis ? [value.activeCrisis] : []), ...value.crisisHistory].map((crisis) => (crisis as { ruleId: string }).ruleId)),
+  };
+  if (!value.causalLedger.every((entry) => isCausalEntry(entry, sourceIds))) return false;
   return true;
 }
