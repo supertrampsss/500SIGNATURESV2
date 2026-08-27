@@ -68,10 +68,10 @@ test("les montants gardent leur unité et leur ordre de grandeur", () => {
   assert.equal(formater(67_339, "count", false), "67 339".replace(" ", " "));
 });
 
-test("un montant exprimé en milliards ne garde aucune décimale", () => {
+test("les masses en millions ou milliards ne gardent aucune décimale", () => {
   assert.equal(montantLisible(152_510_000_000), "153\u00a0milliards d'euros");
   assert.equal(montantLisible(-3_536_100_000_000), "−3\u202f536\u00a0milliards d'euros");
-  assert.equal(montantLisible(380_390_000), "380,39\u00a0millions d'euros");
+  assert.equal(montantLisible(380_390_000), "380\u00a0millions d'euros");
 });
 
 test("un montant se lit en millions d'euros, du plus petit au plus grand", () => {

@@ -99,13 +99,9 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
     <h3>La Sécu est-elle en déficit ?</h3>
     <p class="bloc__complement"><strong>${
       soldeFr < 0 ? "Oui." : soldeFr > 0 ? "Non, elle est en excédent." : "Non, elle est à l'équilibre."
-    }</strong> En ${echapper(annee)}, les administrations de sécurité sociale françaises ont
-      dépensé <strong class="flux--moins">−${echapper(
-        pourcentage(depensesFr),
-      )}</strong> de la richesse produite (les prestations versées et leur gestion) et encaissé
-      <strong class="flux--plus">+${echapper(
-        pourcentage(recettesFr),
-      )}</strong> (cotisations, CSG et impôts affectés)${enEuros}.</p>
+    }</strong> En ${echapper(annee)}, la Sécurité sociale a dépensé l'équivalent de
+      <strong>${echapper(pourcentage(depensesFr))}</strong> du PIB et encaissé
+      <strong>${echapper(pourcentage(recettesFr))}</strong> du PIB${enEuros}.</p>
     <table class="secu" tabindex="0">
       <thead><tr><th scope="col">% du PIB</th>${annees
         .map((a) => `<th scope="col">${echapper(a)}</th>`)

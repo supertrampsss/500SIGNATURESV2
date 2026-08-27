@@ -7,7 +7,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { finsAnnee, HORIZON, prolongement, rendu } from "./tenable.ts";
+import { finsAnnee, rendu } from "./tenable.ts";
 
 const Md = 1e9;
 const SERIES: Record<string, Record<string, number>> = {
@@ -62,7 +62,7 @@ test("la question reçoit sa réponse, et chaque nombre vient des séries", () =
   assert.match(lu, /4,3 € sur chaque 100 € encaissés/);
 });
 
-test("la dette se lit année par année, fins d'année plus le dernier trimestre", () => {
+test("les fins d'année conservent le dernier trimestre publié", () => {
   const points = finsAnnee(SERIES["insee_dette_apu_montant"]);
   assert.deepEqual(
     points.map(([an]) => an),
@@ -70,8 +70,6 @@ test("la dette se lit année par année, fins d'année plus le dernier trimestre
   );
   // Et jamais un trimestre intermédiaire pris pour une fin d'année.
   assert.ok(!points.some(([an]) => an.includes("Q2")));
-  const lu = texte(rendu(PAYS, CATALOGUE));
-  assert.match(lu, /2017.*2 263.*2026 Q1.*3 536/s);
 });
 
 test("le coût d'un nouvel emprunt ne porte plus son propre graphique", () => {
@@ -82,12 +80,12 @@ test("le coût d'un nouvel emprunt ne porte plus son propre graphique", () => {
   assert.doesNotMatch(html, /tenable__rang--taux/);
 });
 
-test("le par-habitant et les porteurs de la dette sont écrits, dans la réponse", () => {
+test("les porteurs restent dans la réponse, le doublon par habitant disparaît", () => {
   // « Qui la porte » vivait dans la légende du graphique, sous « année par
   // année » ; il est dans la réponse elle-même, avant le graphique.
   const html = rendu(PAYS, CATALOGUE);
   const lu = texte(html);
-  assert.match(lu, /51 165 € par habitant/);
+  assert.doesNotMatch(lu, /51 165 € par habitant/);
   assert.match(lu, /L'État 2 861 milliards d'euros/);
   assert.match(lu, /Sécurité sociale 282 milliards/);
   assert.ok(html.indexOf("Qui la porte") < html.indexOf("La dette, jusqu'en"));
@@ -114,30 +112,16 @@ test("sans la dette ou sans le taux au catalogue, rien ne s'écrit", () => {
   assert.equal(rendu(sansTaux, CATALOGUE), "");
 });
 
-test("le prolongement est l'arithmétique du rythme observé, ancré au dernier point publié", () => {
-  // Cinq exercices pleins d'écart : (3000 − 2000) / 5 = 200 par an, depuis le
-  // dernier point publié (2026 T1, 3080) — jamais depuis l'exercice plein,
-  // qui poserait un second 2026 à côté du publié.
-  const annees: [string, number][] = [
-    ["2019", 1800], ["2020", 2000], ["2021", 2200], ["2022", 2400],
-    ["2023", 2600], ["2024", 2800], ["2025", 3000], ["2026 Q1", 3080],
-  ];
-  const points = prolongement(annees);
-  assert.equal(points[0]?.[0], "2027");
-  assert.equal(points[0]?.[1], 3080 + 200);
-  assert.equal(points[points.length - 1]?.[0], String(HORIZON));
-  assert.equal(points[points.length - 1]?.[1], 3080 + 200 * (HORIZON - 2026));
-  // Moins de six exercices pleins : pas de rythme mesurable, pas de trait.
-  assert.deepEqual(prolongement(annees.slice(0, 4)), []);
-});
-
-test("la dette se lit en courbe, le prolongement en pointillé, et la légende dit la méthode", () => {
+test("la dette jusqu'en 2032 compare deux scénarios institutionnels sans extrapolation maison", () => {
   const html = rendu(PAYS, CATALOGUE);
   assert.match(html, /class="graphique__dessin"/);
   assert.match(html, /La dette, jusqu'en 2032/);
-  assert.doesNotMatch(html, /tenable__rang">\s*<span class="apu__nom">20/);
-  // La figure ne remplace pas le tableau : les valeurs exactes suivent, dans
-  // un cadre qui défile, et la méthode du pointillé est écrite en entier.
+  assert.match(html, /Commission européenne — scénario central/);
+  assert.match(html, /Mission indépendante — politique inchangée/);
+  assert.equal((html.match(/class="graphique__jalon"[^>]*fill="#b43a31"/g) ?? []).length, 2);
+  assert.match(html, /131,7/);
+  assert.match(html, /plus de 130/);
   assert.match(html, /class="tenable__valeurs" tabindex="0"/);
-  assert.match(html, /un prolongement arithmétique du rythme\s+observé, pas une prévision/);
+  assert.doesNotMatch(html, /prolongement arithmétique|par habitant/);
+  assert.match(html, /Sources : Commission européenne · Mission sur la transparence des finances publiques\./);
 });

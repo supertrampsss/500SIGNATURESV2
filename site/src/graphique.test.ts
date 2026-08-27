@@ -143,6 +143,11 @@ test("un dessin étroit resserre ses marges et grossit ses étiquettes", () => {
   assert.equal(typographieDuDessin(LARGEUR_ETROITE - 1).corps, 13);
 });
 
+test("un dessin large réserve la largeur des graduations à trois chiffres", () => {
+  // « 140,0 % » était rogné en « 40,0 % » sur la trajectoire de dette.
+  assert.ok(typographieDuDessin(720).marges.gauche >= 58);
+});
+
 test("chaque texte porte sa taille, aucune ne dépend de la seule feuille de style", () => {
   const { svg } = dessiner(SERIES, { largeur: 340, formater: FORMATER, titre: "Inflation" });
   const textes = svg.match(/<text[^>]*>/g) ?? [];

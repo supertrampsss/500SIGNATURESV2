@@ -451,8 +451,7 @@ export function afficherFiche(
           series: territoire.series ?? {},
           catalogue: options.indicateurs,
         }),
-      )}${lienPreuve}${analysesCroisees}<div class="fiche__situation" id="fiche-situation"></div></div>
-    <div class="fiche__partage" id="fiche-partage"></div>`
+      )}${lienPreuve}${analysesCroisees}<div class="fiche__situation" id="fiche-situation"></div></div>`
     }
   `;
 }

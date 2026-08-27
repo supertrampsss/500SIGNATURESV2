@@ -1422,13 +1422,10 @@ test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
     assert.ok(texte.includes(phrase), `« ${phrase} » n'est pas servi`);
   }
 
-  // Un chiffre donné en entrée, ressorti formaté par le formateur commun : la
-  // preuve que les blocs ont lu les séries et pas un repli. Lu sur le HTML et
-  // non sur `texteDuMain`, qui ramène toute espace à l'espace ordinaire — les
-  // séparateurs de `millions` sont des espaces fines insécables (test 14 bis).
-  const detteMd = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 }).format(3400);
-  assert.ok(/\u202f/.test(detteMd), `« ${detteMd} » sans séparateur : cette sonde ne prouverait rien`);
-  assert.ok(html.includes(detteMd), `la dette publiée « ${detteMd} » n'est pas servie`);
+  // La trajectoire institutionnelle, et non une extrapolation nominale maison,
+  // doit être réellement pré-rendue avec le bloc.
+  assert.ok(html.includes("131,7"), "le point 2032 de la Commission européenne n'est pas servi");
+  assert.ok(html.includes("Mission indépendante"), "la seconde trajectoire publiée n'est pas servie");
 
   // Le seuil suit la mesure : 1 051 signes sur ce fixture, qui n'alimente que
   // deux des six blocs. Il a encore baissé après le 19 août — « qui la

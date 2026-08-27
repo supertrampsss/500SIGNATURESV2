@@ -38,7 +38,6 @@ const TAUX = "eurostat_taux_10_ans";
 const INTERETS = "eurostat_apu_interets";
 const RECETTES = "eurostat_apu_recettes";
 const PIB = "eurostat_pib_montant";
-const POPULATION = "eurostat_population";
 
 const REFERENCE = "2017";
 
@@ -64,7 +63,6 @@ const UNE_DECIMALE = new Intl.NumberFormat("fr-FR", {
   minimumFractionDigits: 1,
   maximumFractionDigits: 1,
 });
-const ENTIER = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
 /** Le dernier trimestre de chaque année de la série trimestrielle, plus le
  *  dernier point publié quand l'année en cours n'a pas encore son Q4. */
@@ -79,35 +77,16 @@ export function finsAnnee(serie: Record<string, number>): [string, number][] {
   return points;
 }
 
-/** L'horizon du prolongement : la question du lecteur est « et en 2032 ? ». */
-export const HORIZON = 2032;
+/** Trajectoire centrale du Debt Sustainability Monitor 2025 de la Commission
+ * européenne. Les points 2026-2032 sont repris tels quels, jamais recalculés. */
+const COMMISSION: [string, number][] = [
+  ["2026", 118.1], ["2027", 120.0], ["2028", 122.2], ["2029", 124.2],
+  ["2030", 126.5], ["2031", 129.1], ["2032", 131.7],
+];
 
-/**
- * Le prolongement de la dette au rythme observé — un prolongement
- * arithmétique, JAMAIS une prévision, et la légende le dit avec ces mots.
- *
- * Aucune institution ne publie de trajectoire de dette jusqu'à ${HORIZON} :
- * inventer une prévision serait la faute que la charte interdit (aucun
- * chiffre sans source). Ce qui peut s'écrire honnêtement est l'arithmétique
- * du rythme courant : la hausse moyenne par an sur les cinq derniers
- * exercices pleins, prolongée telle quelle. La méthode tient en une phrase et
- * la légende la porte en entier — le lecteur peut refaire le calcul de tête.
- */
-export function prolongement(annees: [string, number][]): [string, number][] {
-  // Le rythme se mesure sur les exercices PLEINS (fin d'année) ; l'ancre est
-  // le dernier point publié, trimestre en cours compris — un « 2026 projeté »
-  // posé à côté du 2026 T1 publié aurait mis deux valeurs sous la même année.
-  const pleines = annees.filter(([an]) => /^\d{4}$/.test(an));
-  if (pleines.length < 6 || !annees.length) return [];
-  const rythme = (pleines[pleines.length - 1][1] - pleines[pleines.length - 6][1]) / 5;
-  const [anAncre, valeurAncre] = annees[annees.length - 1];
-  const anneeAncre = Number(anAncre.slice(0, 4));
-  const points: [string, number][] = [];
-  for (let an = anneeAncre + 1; an <= HORIZON; an += 1) {
-    points.push([String(an), valeurAncre + rythme * (an - anneeAncre)]);
-  }
-  return points;
-}
+/** La mission indépendante publiée en juillet 2026 ne donne que deux bornes :
+ * 118 % en 2026 et plus de 130 % en 2030. Aucun point intermédiaire n'est inventé. */
+const MISSION: [string, number][] = [["2026", 118], ["2030", 130]];
 
 /** Le bloc, ou la chaîne vide tant que la dette et le taux ne sont pas
  *  publiés — la réponse cite les deux, et une réponse à moitié sourcée ne
@@ -179,51 +158,48 @@ export function rendu(
           : ""
       }${sousSecteurs ? ` Qui la porte : ${sousSecteurs}.` : ""}</p>`;
 
-  // ── La dette, en courbe, prolongée à l'horizon ─────────────────────────
-  // Les barres horizontales année par année ont été refusées : « un graphique
-  // avec courbe serait plus parlant ». La courbe observée est pleine ; le
-  // prolongement est POINTILLÉ, anchré sur le dernier point publié, et sa
-  // légende dit la méthode en entier — un prolongement arithmétique du rythme
-  // observé, jamais une prévision.
-  const enMilliards: [string, number][] = annees.map(([an, v]) => [an, v / 1e9]);
-  const projete = prolongement(enMilliards);
-  const dernierObserve = enMilliards[enMilliards.length - 1];
+  // ── La dette, en courbe, avec deux scénarios publiés ───────────────────
+  const publiee = Object.entries(serie(DETTE_PIB))
+    .filter(([an]) => an >= REFERENCE && an <= "2025")
+    .sort(([a], [b]) => a.localeCompare(b)) as [string, number][];
   const series = [
-    { nom: "Dette publiée", couleur: "#2a68c4", accent: true, points: enMilliards },
-    ...(projete.length
-      ? [
-          {
-            nom: "Prolongement",
-            couleur: "#2a68c4",
-            pointille: true,
-            points: [dernierObserve, ...projete] as [string, number][],
-          },
-        ]
+    ...(publiee.length
+      ? [{ nom: "Dette publiée", couleur: "#0f1b2e", accent: true, points: publiee }]
       : []),
+    {
+      nom: "Commission européenne — scénario central",
+      couleur: "#2a68c4",
+      pointille: true,
+      points: COMMISSION,
+    },
+    {
+      nom: "Mission indépendante — politique inchangée (> 130 % en 2030)",
+      couleur: "#b43a31",
+      pointsSeuls: true,
+      points: MISSION,
+    },
   ];
   const { svg } = dessiner(series, {
-    formater: (v) => ENTIER.format(v),
-    titre: "La dette publique, en milliards d'euros",
+    formater: (v) => `${UNE_DECIMALE.format(v)} %`,
+    titre: "Dette publique, en pourcentage du PIB",
   });
 
-  // La figure ne remplace pas le tableau, elle le précède : les valeurs
-  // exactes, année par année, dans un cadre qui défile.
-  const colonnes = [...enMilliards, ...projete];
+  const colonnes = ["2026", "2027", "2028", "2029", "2030", "2031", "2032"];
+  const cellule = (v: number | undefined) =>
+    v === undefined ? "" : `${UNE_DECIMALE.format(v)}&nbsp;%`;
+  const valeursCommission = Object.fromEntries(COMMISSION);
   const tableau = `<div class="tenable__valeurs" tabindex="0"><table class="comparaison">
-    <thead><tr><th scope="col"></th>${colonnes
-      .map(([an]) => `<th scope="col">${echapper(an)}</th>`)
+    <thead><tr><th scope="col">Scénario</th>${colonnes
+      .map((an) => `<th scope="col">${an}</th>`)
       .join("")}</tr></thead>
-    <tbody><tr><th scope="row">Dette</th>${enMilliards
-      .map(([, v]) => `<td>${ENTIER.format(v)}</td>`)
-      .join("")}${projete
-      .map(([, v]) => `<td class="tenable__projete">${ENTIER.format(v)}</td>`)
-      .join("")}</tr></tbody>
+    <tbody>
+      <tr><th scope="row">Commission européenne — scénario central</th>${colonnes
+        .map((an) => `<td>${cellule(valeursCommission[an])}</td>`).join("")}</tr>
+      <tr><th scope="row">Mission indépendante — politique inchangée</th>
+        <td>118,0&nbsp;%</td><td></td><td></td><td></td><td>plus de 130&nbsp;%</td><td></td><td></td>
+      </tr>
+    </tbody>
   </table></div>`;
-
-  const population = serie(POPULATION);
-  const habitants = population[Object.keys(population).sort().pop() ?? ""];
-  const parHabitant =
-    habitants !== undefined ? ` Soit <strong>${ENTIER.format(detteFin / habitants)}&nbsp;€</strong> par habitant.` : "";
 
   // ── Les voisins ────────────────────────────────────────────────────────
   const dernierePart = (code: string): [string, number] | null => {
@@ -251,13 +227,10 @@ export function rendu(
   return `
     ${reponse}
     <div>
-      <h3 class="sous-titre">La dette, jusqu'en ${HORIZON}</h3>
+      <h3 class="sous-titre">La dette, jusqu'en 2032</h3>
       ${svg}
       ${tableau}
-      <p class="bloc__complement">Milliards d'euros, fin d'année ; le dernier point plein est
-        le dernier trimestre publié.${parHabitant} Source : INSEE. Le pointillé prolonge la
-        hausse moyenne des cinq derniers exercices — un prolongement arithmétique du rythme
-        observé, pas une prévision.</p>
+      <p class="bloc__complement">Sources : Commission européenne · Mission sur la transparence des finances publiques.</p>
     </div>
     ${
       voisins

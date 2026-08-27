@@ -93,9 +93,9 @@ test("le rendu dit le rôle avant le terme, et l'unité en toutes lettres", () =
   // s'y écrit en toutes lettres. « M€ » demandait au lecteur de savoir que le
   // sigle vaut un million ; à la maille de l'État il fallait le savoir pour
   // comprendre que « 3 536 100 M€ » est une dette de trois mille cinq cents
-  // milliards. Deux décimales, toujours, pour que les quatre repères
-  // s'alignent quand l'un d'eux tombe rond.
-  assert.match(html, /<span class="repere__valeur">417,14<\/span>/);
+  // milliards. Les masses en millions et milliards restent entières : le
+  // détail après la virgule n'aide pas la lecture à cette échelle.
+  assert.match(html, /<span class="repere__valeur">417<\/span>/);
   assert.match(html, /millions d&#39;euros de recettes · \+18,5\s%/u);
   assert.match(html, /millions d&#39;euros d&#39;épargne · −16,8\s%/u);
   // L'élision se fait devant une voyelle : « d'épargne », jamais « de épargne ».

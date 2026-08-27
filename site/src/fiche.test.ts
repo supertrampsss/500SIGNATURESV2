@@ -63,6 +63,22 @@ test("l'ordre de lecture range l'argent public avant le reste", () => {
   assert.ok(ORDRE_THEMES.indexOf("logement") > ORDRE_THEMES.indexOf("budget_etat"));
 });
 
+test("la fiche ne termine plus par des actions de partage ou de téléchargement", () => {
+  const cible = { innerHTML: "" } as HTMLElement;
+  afficherFiche(cible, {
+    niveau: "commune",
+    territoire: {
+      nom: "Bordeaux",
+      parent: "33",
+      population: 261804,
+      drapeaux: {},
+      series: SERIES_BORDEAUX,
+    },
+    indicateurs: CATALOGUE_FINANCIER,
+  });
+  assert.doesNotMatch(cible.innerHTML, /fiche-partage|Partager cette fiche|Télécharger l'image/);
+});
+
 /* ------------------------------------------------------------------------
  * L'ouverture : quatre repères, quatre blocs, trois faits, et rien d'autre.
  * ---------------------------------------------------------------------- */

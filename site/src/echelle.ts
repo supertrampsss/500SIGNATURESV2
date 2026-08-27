@@ -321,9 +321,8 @@ export const MENTION_MILLIONS = "Montants en millions d'euros";
  *    « M€ » pour qui ne l'a jamais lu ; « milliards d'euros » l'est pour tout
  *    le monde.
  *
- * Les milliards sont arrondis à l'entier : à cette échelle, les décimales
- * donnent une fausse précision et cassent la lecture. Les millions conservent
- * deux décimales quand elles sont utiles.
+ * Les millions et les milliards sont arrondis à l'entier : à cette échelle,
+ * les décimales donnent une fausse précision et cassent la lecture.
  *
  * `millions()` reste, et reste employée là où la place manque et où l'unité
  * est déjà dite par ailleurs : une cellule de tableau sous une légende qui
@@ -334,7 +333,7 @@ export function montantLisible(valeur: number): string {
   const [diviseur, mot] =
     absolu >= 1e9 ? [1e9, "milliards d'euros"] : [1e6, "millions d'euros"];
   const echelle = valeur / diviseur;
-  const decimales = diviseur === 1e9 ? 0 : 2;
+  const decimales = 0;
   return moins(
     `${new Intl.NumberFormat("fr-FR", {
       minimumFractionDigits: decimales,

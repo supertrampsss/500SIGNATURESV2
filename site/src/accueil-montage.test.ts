@@ -31,6 +31,7 @@ import {
   type ExempleTerritoire,
 } from "./accueil.ts";
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { COUCHES } from "./carte-style.ts";
 import { CHEMINS, estAccueil, vueDepuisAdresse } from "./routes.ts";
 
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
@@ -266,11 +267,7 @@ test("la maille de l'exemple est une couche de la carte : niveauConnu la garde",
   // ramenée à « region » sans un mot, et l'exemple ouvrirait la fiche d'un
   // territoire que le lien ne nommait pas.
   assert.match(MAIN, /function niveauConnu[^}]*demande in COUCHES/s);
-  const couches = MAIN.slice(
-    MAIN.indexOf("const COUCHES: Record<string, string> = {"),
-    MAIN.indexOf("type Etat = {"),
-  );
-  assert.match(couches, new RegExp(`\\b${lien.searchParams.get("niveau")}: "`));
+  assert.ok(lien.searchParams.get("niveau")! in COUCHES);
   // Et c'est bien cette maille-là que l'exemple porte, et celle dont le
   // montage demande le lot.
   assert.equal(MAILLE_EXEMPLE, "region");

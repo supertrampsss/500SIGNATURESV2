@@ -30,6 +30,9 @@ export type Serie = {
   accent?: boolean;
   /** Les agrégats (zone euro) : pointillés, ils ne sont pas un pays. */
   pointille?: boolean;
+  /** Deux bornes publiées sans valeurs intermédiaires : deux jalons, pas une
+   * courbe qui ferait croire à une trajectoire annuelle observée. */
+  pointsSeuls?: boolean;
 };
 
 export type Geometrie = {
@@ -42,7 +45,7 @@ export type Geometrie = {
   periodes: string[];
 };
 
-const MARGES = { gauche: 46, droite: 14, haut: 14, bas: 26 };
+const MARGES = { gauche: 58, droite: 14, haut: 14, bas: 26 };
 
 /**
  * Le dessin d'un téléphone n'est pas celui d'un écran large réduit.
@@ -51,7 +54,7 @@ const MARGES = { gauche: 46, droite: 14, haut: 14, bas: 26 };
  * pixels CSS : le SVG est mis à l'échelle par sa largeur, et la feuille de
  * style ne peut rien y faire. Deux conséquences, deux corrections.
  *
- * D'abord, quarante-six unités de marge à gauche prennent six pour cent d'un
+ * D'abord, cinquante-huit unités de marge à gauche prennent huit pour cent d'un
  * dessin de 720 et onze pour cent d'un dessin de 340 : sur un téléphone, la
  * gouttière des étiquettes mange la courbe. Elles se resserrent.
  *
@@ -239,12 +242,20 @@ export function dessiner(
       ]
         .filter(Boolean)
         .join(" ");
-      return `<g class="${classes}" stroke="${echapper(s.couleur)}">${chemins(
-        s.points,
-        periodes,
-        x,
-        y,
-      )}</g>`;
+      const jalons = s.pointsSeuls
+        ? s.points
+            .map(([periode, valeur]) => {
+              const i = periodes.indexOf(periode);
+              return i < 0
+                ? ""
+                : `<circle class="graphique__jalon" fill="${echapper(s.couleur)}"
+                    stroke="#fffdf7" stroke-width="1.5" cx="${x(i).toFixed(1)}"
+                    cy="${y(valeur).toFixed(1)}" r="4.5" />`;
+            })
+            .join("")
+        : "";
+      const ligne = s.pointsSeuls ? "" : chemins(s.points, periodes, x, y);
+      return `<g class="${classes}" stroke="${echapper(s.couleur)}">${ligne}${jalons}</g>`;
     })
     .join("");
 

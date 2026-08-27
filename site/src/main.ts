@@ -6,6 +6,7 @@
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { COUCHES, styleCarte } from "./carte-style.ts";
 
 import * as donnees from "./donnees.ts";
 import { IDS_DERIVES, indicateursDerives, seriesDerivees } from "./derives.ts";
@@ -13,10 +14,9 @@ import { traduire } from "./traductions.ts";
 import { libelleTheme } from "./themes.ts";
 import { echapper, emphase } from "./texte.ts";
 import type { Indicateur, Jeu, Territoire } from "./donnees.ts";
-import { afficherFiche, NIVEAUX, rubriqueDuTheme } from "./fiche.ts";
+import { afficherFiche, rubriqueDuTheme } from "./fiche.ts";
 import { construireRegistre, indexerSources, type IndexSources } from "./registre-sources.ts";
-import { carteFiche, type ChiffreCarte } from "./carte-og.ts";
-import { OUVERTURE, reperes as reperesDOuverture } from "./reperes.ts";
+import { OUVERTURE } from "./reperes.ts";
 import { EPARGNE, RECETTES, noteDepuisCouches } from "./note.ts";
 import {
   palmares,
@@ -60,7 +60,6 @@ import { apercuScenario } from "./apercu-scenario.ts";
 import {
   offrir,
   partageAnalyse,
-  partageFiche,
   partageComparaison,
   partageScenario,
   permalien,
@@ -85,14 +84,12 @@ import { renduBarre, renduComparaison, renduDisparues, type Comparable } from ".
 import { appliquer as appliquerBareme, MODELES as MODELES_BAREME } from "./bareme.ts";
 import { afficherRecapitulatif } from "./recapitulatif.ts";
 import { afficherComparateur, type Entree, MAXIMUM } from "./comparateur.ts";
-import { nomDeFichier, sourceDuNiveau, telecharger } from "./export.ts";
 import {
   coucheEvolution,
   echelleDivergente,
   formaterVariation,
   libelleEvolution,
   modeVariation,
-  noteEvolution,
   type Evolution,
   type ModeVariation,
 } from "./evolution-carte.ts";
@@ -100,7 +97,6 @@ import { afficherSecu } from "./secu.ts";
 import {
   expressionCouleur,
   formater,
-  noteEchelle,
   parHabitantAUnSens,
   populationDeReference,
   quantiles,
@@ -167,27 +163,6 @@ const VUE_PAR_PREFIXE: Record<string, string> = {
 export function vueDuCode(code: string): string {
   return VUE_PAR_PREFIXE[code.slice(0, 3)] ?? "metropole";
 }
-
-/** Zoom à partir duquel le liseré d'une maille devient lisible, et sa largeur.
- *  Plus la maille est fine, plus le trait doit attendre : à l'échelle du pays,
- *  un contour par commune efface la donnée qu'il est censé délimiter. */
-const LISERE: Record<string, number[]> = {
-  regions: [3, 0.3, 5, 0.6, 9, 1.2],
-  departements: [4.5, 0, 6, 0.4, 10, 1],
-  communes: [7, 0, 8.5, 0.3, 12, 0.8],
-};
-
-/** Expression MapLibre, sortie du littéral de calque : son type d'union ne
- *  survit pas à l'inférence, comme pour `expressionCouleur`. */
-function largeurLisere(couche: string): unknown {
-  return ["interpolate", ["linear"], ["zoom"], ...LISERE[couche]];
-}
-
-const COUCHES: Record<string, string> = {
-  commune: "communes",
-  departement: "departements",
-  region: "regions",
-};
 
 type Etat = {
   theme: string;
@@ -566,15 +541,6 @@ function majLegende(
   }</span><span>${titrePeriode}</span><span>${
     bornes.length ? `&gt; ${lisible(bornes[bornes.length - 1])}` : ""
   }</span>`;
-  $("legende-note").textContent = evolution
-    ? noteEvolution(evolution.mode, parHabitant)
-    : noteEchelle(indicateur.unite, parHabitant);
-  // La pastille repliée : les mêmes couleurs, en dégradé, sur deux centimètres.
-  // Elle suffit à lire la carte — foncé, beaucoup ; clair, peu — sans rien
-  // recouvrir. Le détail attend le clic.
-  $("legende-vignette").style.background = `linear-gradient(to bottom, ${echelle.couleurs.join(
-    ", ",
-  )})`;
   $("legende").title = `Légende : ${traduire(indicateur.libelle)}`;
 }
 
@@ -584,8 +550,23 @@ function appliquerCouche(expression: unknown): void {
     const visible = niveau === etat.niveau;
     carte.setLayoutProperty(`remplissage-${couche}`, "visibility", visible ? "visible" : "none");
     carte.setLayoutProperty(`contour-${couche}`, "visibility", visible ? "visible" : "none");
+    carte.setLayoutProperty(`selection-${couche}`, "visibility", visible ? "visible" : "none");
   }
   carte.setPaintProperty(`remplissage-${COUCHES[etat.niveau]}`, "fill-color", expression as never);
+  marquerSelection(etat.selection);
+}
+
+/** Le territoire ouvert se distingue sans recolorer la donnée : un filet
+ * d'encre au-dessus de la choroplèthe, sur la seule maille visible. */
+function marquerSelection(code: string | null): void {
+  if (!carte) return;
+  for (const [niveau, couche] of Object.entries(COUCHES)) {
+    carte.setFilter(`selection-${couche}`, [
+      "==",
+      ["get", "code"],
+      niveau === etat.niveau && code ? code : "",
+    ]);
+  }
 }
 
 /**
@@ -748,7 +729,6 @@ function afficherApercu(): void {
     comparateurs: [],
     sources: sourcesPubliees,
   });
-  poserPartageDeLaFiche("pays", "FR", france);
   appliquerVitesse();
 }
 
@@ -773,16 +753,13 @@ function chargerFrance(): Promise<void> {
  * Étiquettes des territoires : nos noms, en français, sans survol.     *
  * ------------------------------------------------------------------ */
 
-/** Le fond de carte tiers n'écrit ses noms qu'à partir du zoom 8 — et en
- *  anglais en dessous, d'où le bridage. Résultat : la France entière était
- *  muette, on devait survoler chaque forme pour savoir ce qu'on regardait.
- *  Ces étiquettes-ci viennent de NOS tuiles : noms français du référentiel,
- *  posés au centre de chaque territoire visible.
+/** Une seule couche de noms, issue de notre référentiel français. Aucun fond
+ * tiers ne vient les doubler ni poser son filigrane sous la donnée.
  *
  *  Elles sont en HTML plutôt qu'en couche `symbol` : une couche de symboles
  *  exigerait un serveur de glyphes externe, quand le DOM nous donne la même
  *  typographie que le reste du site et se limite au nombre qu'on veut. */
-const ETIQUETTES_MAXIMUM = 70;
+const ETIQUETTES_MAXIMUM = 36;
 
 let minuteurEtiquettes: number | undefined;
 let essaisEtiquettes = 0;
@@ -807,8 +784,8 @@ function majEtiquettes(): void {
   // est ensuite capturée ; on vérifie donc l'existence du calque avant toute
   // requête.
   if (!carte.getLayer(idCouche)) return;
-  // Les communes sont 34 875 : à leur échelle, le fond de carte écrit déjà
-  // les noms de villes. On n'ajoute les nôtres que sur les mailles lisibles.
+  // Les communes sont 34 875 : leurs noms ne paraissent qu'au zoom où ils
+  // peuvent se lire sans transformer la carte en nuage de libellés.
   const trop = etat.niveau === "commune" && carte.getZoom() < 9.5;
   if (trop) {
     calque.innerHTML = "";
@@ -1037,6 +1014,7 @@ async function montrerFiche(code: string): Promise<void> {
   const territoire = entiteDe(code, niveau);
   if (!territoire) return;
   etat.selection = code;
+  marquerSelection(code);
   ecrireUrl();
   afficherFiche($("fiche"), {
     niveau,
@@ -1080,7 +1058,6 @@ async function montrerFiche(code: string): Promise<void> {
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
   });
-  poserPartageDeLaFiche(niveau, code, territoire);
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
   injecterActionsFiche();
@@ -1573,6 +1550,7 @@ function majEtatTiroir(visee?: number): void {
  */
 function fermerPanneau(): void {
   etat.selection = null;
+  marquerSelection(null);
   etat.maille = null;
   const panneau = $("panneau");
   panneau.classList.remove("panneau--selection");
@@ -3512,152 +3490,6 @@ function partageDeLaPage(): { objet: Partage; forme: Forme } | null {
   };
 }
 
-/* --------------------------------------------------------------------------
- * La fiche de territoire, quatrième objet partageable (spec §13)
- * ----------------------------------------------------------------------- */
-
-/**
- * Les trois repères de la fiche, avec ce qu'il faut pour les partager.
- *
- * `reperes()` rend le rôle, le terme et le nombre — ce qu'il faut à l'écran,
- * où l'entête de la fiche porte déjà l'unité et la source. Un chiffre qui SORT
- * du site en demande davantage : son unité, sa source et son millésime. C'est
- * `id` qui les donne, par le catalogue, et c'est pour cela qu'il existe.
- *
- * Rien n'est rendu si les trois ne partagent pas une source : `SourceCarte`
- * n'en nomme qu'une, et en choisir une pour trois serait la faute que ce lot
- * vient de corriger dans le catalogue lui-même.
- */
-function reperesPartageables(
-  niveau: string,
-  territoire: Territoire,
-): { chiffres: ChiffreCarte[]; source: string; exercice: string } | null {
-  const trois = reperesDOuverture(territoire.series ?? {}, niveau).slice(0, 3);
-  if (!trois.length) return null;
-  const decrits = trois.map((repere) => {
-    const indicateur = catalogue.find((candidat) => candidat.id === repere.id);
-    return indicateur ? { repere, indicateur } : null;
-  });
-  if (decrits.some((decrit) => decrit === null)) return null;
-  const connus = decrits as { repere: (typeof trois)[number]; indicateur: Indicateur }[];
-  const sources = new Set(
-    connus.map(({ indicateur }) => sourceDuNiveau(indicateur, niveau, jeux)),
-  );
-  if (sources.size !== 1) return null;
-  return {
-    chiffres: connus.map(({ repere, indicateur }) => ({
-      libelle: repere.role,
-      valeur: repere.valeur,
-      unite: indicateur.unite,
-      variation: repere.variation,
-    })),
-    source: [...sources][0],
-    // L'exercice du premier repère : les trois viennent du même jeu, donc du
-    // même chargement. Une carte qui daterait ses trois nombres d'un seul
-    // millésime alors qu'ils en portent deux serait fausse — d'où le refus
-    // ci-dessous plutôt qu'un « exercice le plus récent » qui masquerait l'écart.
-    exercice: connus[0].repere.exercice,
-  };
-}
-
-/** Ce qu'une fiche donne à partager : son nom, sa maille, trois chiffres. */
-function partageDeLaFiche(niveau: string, code: string, territoire: Territoire): Partage | null {
-  const lus = reperesPartageables(niveau, territoire);
-  const maille = NIVEAUX[niveau] ?? niveau;
-  return partageFiche({
-    nom: territoire.nom,
-    maille,
-    exercice: lus?.exercice ?? "",
-    reperes: lus?.chiffres ?? [],
-    permalien: new URL(adresseTerritoire(code, niveau), location.origin).toString(),
-  });
-}
-
-/**
- * L'image d'une fiche, dessinée dans le navigateur.
- *
- * Le build rasterise une image par analyse et une par section ; il n'en écrit
- * aucune par territoire, et trente-quatre mille huit cent soixante-quinze PNG
- * ne sont pas une option. `carteFiche` est pure et rend une chaîne : le SVG se
- * construit ici, au moment du geste, et `telecharger` le remet au lecteur —
- * c'est le même utilitaire que l'export CSV, avec ses tests.
- *
- * `null` quand la provenance manque : `carteFiche` **lève** dans ce cas
- * (`exigerProvenance`), et une exception au clic d'un bouton n'est pas une
- * réponse. Le bouton ne paraît alors pas.
- */
-function carteDeLaFiche(niveau: string, territoire: Territoire): string | null {
-  const lus = reperesPartageables(niveau, territoire);
-  if (!lus) return null;
-  return carteFiche({
-    territoire: `${territoire.nom} — ${NIVEAUX[niveau] ?? niveau}`,
-    chiffres: lus.chiffres,
-    exercice: lus.exercice,
-    source: { titre: lus.source, millesime: lus.exercice },
-    site: location.origin,
-  });
-}
-
-/**
- * Le cadre de partage au pied de la fiche, à toutes les mailles.
- *
- * Reposé à chaque fiche affichée — `afficherFiche` réécrit tout le panneau — et
- * ses écouteurs sont délégués sur `#fiche`, qui n'est jamais remplacé : même
- * motif que `brancherPartage` sur l'atelier.
- */
-function poserPartageDeLaFiche(niveau: string, code: string, territoire: Territoire): void {
-  const cible = document.getElementById("fiche-partage");
-  if (!cible) return;
-  fichePartagee = { niveau, code, territoire };
-  cible.innerHTML = rendrePartage(
-    [{ cle: "fiche", libelle: "Partager cette fiche" }],
-    null,
-    carteDeLaFiche(niveau, territoire) !== null,
-  );
-}
-
-/** La fiche dont le cadre de partage est posé. Les écouteurs sont délégués et
- *  survivent au repeint du panneau ; ce qu'ils partagent, non. */
-let fichePartagee: { niveau: string; code: string; territoire: Territoire } | null = null;
-
-/** Les deux gestes du pied de fiche, posés une fois sur `#fiche`.
- *
- *  **Le cadre peut ne pas exister.** Une page éditoriale — l'index des
- *  analyses, une analyse — est pré-rendue sans aucun conteneur de la vue
- *  territoire. `$` y rendait `null`, `brancherPartage` levait dessus, et
- *  `demarrer()` s'arrêtait là : tout ce qui suit dans le démarrage ne
- *  s'exécutait plus. La recherche de l'en-tête, branchée juste après, était
- *  donc MORTE sur chaque page d'analyse — le champ acceptait le texte et ne
- *  proposait jamais rien.
- *
- *  Et rien ne le disait : le rattrapage de `demarrer()` sort sans écrire sur
- *  une page éditoriale, précisément pour ne pas barbouiller un article d'un
- *  message de panne. Une levée y était donc silencieuse. */
-function brancherPartageDeLaFiche(): void {
-  const panneau = $("fiche");
-  if (!panneau) return;
-  brancherPartage(panneau, () => {
-    if (!fichePartagee) return null;
-    const objet = partageDeLaFiche(
-      fichePartagee.niveau,
-      fichePartagee.code,
-      fichePartagee.territoire,
-    );
-    return objet ? { objet, forme: "complet" as Forme } : null;
-  });
-  panneau.addEventListener("click", (evenement) => {
-    const bouton = (evenement.target as HTMLElement).closest<HTMLElement>("button[data-carte]");
-    if (!bouton || !fichePartagee) return;
-    const svg = carteDeLaFiche(fichePartagee.niveau, fichePartagee.territoire);
-    if (!svg) return;
-    telecharger(
-      svg,
-      nomDeFichier(fichePartagee.territoire.nom, fichePartagee.niveau, "carte", "svg"),
-      "image/svg+xml",
-    );
-  });
-}
-
 /**
  * Le cadre de partage d'une analyse, posé au pied de l'article.
  *
@@ -4114,7 +3946,6 @@ async function demarrer(): Promise<void> {
   // donne l'unité et la source de ses trois repères. Ses écouteurs, en
   // revanche, sont posés dès maintenant : ils sont délégués sur `#fiche`, qui
   // n'est jamais remplacé, et le cadre qu'ils servent apparaît avec la fiche.
-  brancherPartageDeLaFiche();
   // Et encore pour la même raison : l'appel « Chercher ma commune » de
   // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
   // dès le premier octet de HTML.
@@ -4180,98 +4011,9 @@ async function demarrer(): Promise<void> {
   void preparerSimulateur();
 
   maplibregl.addProtocol("pmtiles", new Protocol().tile);
-  // Le fond de carte donne le contexte que la choroplèthe seule n'a pas :
-  // villes, routes, relief des côtes. Il vient d'un tiers (Carto, données
-  // OpenStreetMap) — la donnée, elle, reste servie par nos fichiers. Deux
-  // couches raster encadrent la choroplèthe : le terrain passe dessous, les
-  // noms de villes repassent DESSUS pour rester lisibles sur la couleur. En
-  // cas de panne du fond, la carte de données vit seule sur le fond uni.
-  const carreaux = (variante: string) =>
-    ["a", "b", "c", "d"].map(
-      (s) => `https://${s}.basemaps.cartocdn.com/${variante}/{z}/{x}/{y}.png`,
-    );
   carte = new maplibregl.Map({
     container: "carte",
-    style: {
-      version: 8,
-      sources: {
-        territoires: {
-          type: "vector",
-          url: `pmtiles://${donnees.urlTuiles()}`,
-          // Le code INSEE devient l'identifiant de figure : c'est lui qui
-          // porte l'état de survol.
-          promoteId: "code",
-        },
-        "fond-terrain": {
-          type: "raster",
-          tiles: carreaux("light_nolabels"),
-          tileSize: 256,
-          maxzoom: 19,
-          attribution: "© OpenStreetMap · © CARTO",
-        },
-        "fond-noms": {
-          type: "raster",
-          tiles: carreaux("light_only_labels"),
-          tileSize: 256,
-          // Jamais sous le zoom 8 : aux échelles nationales, ce fond écrit
-          // les mers et les régions en anglais (« Bay of Biscay »,
-          // « Brittany ») — au-delà, les noms sont les noms locaux, français.
-          minzoom: 8,
-          maxzoom: 19,
-        },
-      },
-      layers: [
-        { id: "fond", type: "background", paint: { "background-color": "#f2f4f6" } },
-        {
-          id: "terrain",
-          type: "raster",
-          source: "fond-terrain",
-          paint: { "raster-saturation": -0.4, "raster-opacity": 0.9 },
-        },
-        ...Object.values(COUCHES).flatMap((couche) => [
-          {
-            id: `remplissage-${couche}`,
-            type: "fill" as const,
-            source: "territoires",
-            "source-layer": couche,
-            paint: {
-              "fill-color": "#d9d9d9",
-              // Légèrement translucide : le terrain respire sous la donnée,
-              // et le territoire survolé se densifie.
-              "fill-opacity": [
-                "case",
-                ["boolean", ["feature-state", "survol"], false],
-                0.96,
-                0.78,
-              ] as never,
-            },
-          },
-          {
-            id: `contour-${couche}`,
-            type: "line" as const,
-            source: "territoires",
-            "source-layer": couche,
-            // Un trait de largeur fixe rendait la carte illisible : à l'échelle
-            // nationale, le contour blanc de 34 772 communes couvre plus de
-            // surface que leur remplissage, et la choroplèthe se lit comme du
-            // bruit. Le trait n'apparaît donc qu'au zoom où la maille devient
-            // assez grande pour le porter — d'autant plus tard que la maille
-            // est fine.
-            paint: {
-              "line-color": "#ffffff",
-              "line-width": largeurLisere(couche) as never,
-            },
-          },
-        ]),
-        {
-          id: "noms",
-          type: "raster",
-          source: "fond-noms",
-          minzoom: 8,
-          paint: { "raster-opacity": 0.95 },
-        },
-      ],
-    },
+    style: styleCarte(donnees.urlTuiles()),
     bounds: VUES[etat.vue]?.bornes ?? VUES.metropole.bornes,
     fitBoundsOptions: { padding: paddingCarte() },
     // Rabattue par défaut : MapLibre l'affiche dépliée, et la ligne de crédits

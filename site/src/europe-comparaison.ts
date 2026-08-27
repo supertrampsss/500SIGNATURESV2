@@ -267,12 +267,7 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
       <thead><tr><th scope="col">Pays</th>${entetes}</tr></thead>
       <tbody>${rangees}</tbody>
     </table>
-    <p class="bloc__complement">En pourcentage du PIB, sur la définition
-      européenne, du plus dépensier au moins dépensier. Un ratio élevé ne dit
-      pas qu'un pays vit au-dessus de ses moyens : il dit ce qu'il a choisi de
-      mettre en commun. Une retraite versée par l'État compte dans la dépense
-      publique, la même retraite versée par un fonds privé n'y compte pas.
-      ${sourcesEurope(indexSources)}</p>`;
+    <p class="bloc__complement">${sourcesEurope(indexSources)}</p>`;
 }
 
 /** L'enveloppe DOM. `false` quand rien n'est peint : le sommaire de la page se

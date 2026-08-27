@@ -172,10 +172,10 @@ test("la ligne de la France est marquée, sans couleur de jugement", () => {
   assert.doesNotMatch(html, /style="[^"]*(color|background)/);
 });
 
-test("la limite du ratio est écrite : elle est la première objection juste", () => {
+test("la note sous la comparaison ne garde que la source", () => {
   const lu = texte(rendu(PAYS));
-  assert.match(lu, /retraite versée par l'État compte dans la dépense/);
-  assert.doesNotMatch(lu, /trop|excessi|vertueu|mauvais/i, "aucun jugement sur les niveaux");
+  assert.doesNotMatch(lu, /retraite versée par l'État compte dans la dépense/);
+  assert.match(lu, /Sources et méthode \.$/);
 });
 
 test("le déficit garde son signe", () => {

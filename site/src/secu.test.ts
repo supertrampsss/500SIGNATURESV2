@@ -52,8 +52,10 @@ test("la question du titre reçoit sa réponse, avec les choses nommées", () =>
   const html = rendu(PAYS, CATALOGUE);
   assert.match(html, /En 2025/);
   assert.match(html, /<strong>Oui\.<\/strong>/);
-  assert.match(html, /flux--moins">−/);
-  assert.match(html, /flux--plus">\+/);
+  assert.match(html, /dépensé l'équivalent de\s*<strong>26,8/);
+  assert.match(html, /encaissé\s*<strong>26,6/);
+  const reponse = html.match(/<p class="bloc__complement">([\s\S]*?)<\/p>/)?.[1] ?? "";
+  assert.doesNotMatch(reponse, /flux--moins|flux--plus|−26,8|\+26,6/);
   assert.doesNotMatch(html, /besoin de financement/);
   assert.doesNotMatch(html, /léger/i);
 });

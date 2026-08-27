@@ -209,13 +209,7 @@ export function rendu(
       </tr></thead>
       <tbody>${lignes}</tbody>
     </table>
-    <p class="bloc__complement">En pourcentage du produit intérieur brut, pas
-      des recettes : c'est l'unité dans laquelle la nomenclature COFOG est
-      publiée, et la seule qui se compare d'un pays à l'autre.${
-        depart === null
-          ? ""
-          : ` La dernière colonne est l'écart avec ${echapper(depart)}, en points de PIB.`
-      } Source : Eurostat, dépenses des administrations publiques par fonction.</p>
+    <p class="bloc__complement">Source : Eurostat.</p>
 `;
 }
 

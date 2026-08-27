@@ -149,8 +149,8 @@ test("l'évolution se dit en points de PIB, jamais en pourcents", () => {
   // comme une hausse minuscule.
   assert.equal(nombres[9], "=");
   for (const n of nombres) assert.doesNotMatch(n, /%/, `« ${n} » porte un pourcent`);
-  assert.match(texte(html), /écart avec 2013, en points de PIB/);
   assert.match(html, /Depuis 2013/);
+  assert.doesNotMatch(texte(html), /écart avec 2013, en points de PIB/);
 });
 
 test("un seul exercice publié retire la colonne d'évolution sans effacer le bloc", () => {
@@ -165,13 +165,10 @@ test("un seul exercice publié retire la colonne d'évolution sans effacer le bl
   assert.doesNotMatch(html, /class="evolution"/);
 });
 
-test("le dénominateur est nommé : c'est le PIB, jamais les recettes", () => {
-  // Le bloc voisin du même chapitre rapporte les mêmes dépenses aux recettes
-  // (« pour 100 € encaissés »). Deux dénominateurs à un écran d'intervalle ne
-  // se distinguent que par ce qui est écrit.
+test("la note sous le tableau ne répète plus son unité et ne garde que la source", () => {
   const lu = texte(rendu(PAYS, CATALOGUE));
-  assert.match(lu, /pourcentage du produit intérieur brut, pas des recettes/);
-  assert.doesNotMatch(lu, /pour 100 €/);
+  assert.doesNotMatch(lu, /pourcentage du produit intérieur brut, pas des recettes/);
+  assert.match(lu, /Source : Eurostat\.$/);
 });
 
 test("chaque fonction porte une glose qui dit ce qu'elle contient", () => {

@@ -134,7 +134,7 @@ function lu(html: string): string {
 
 const FIN = " "; // l'espace fine insécable des milliers et du signe %
 // L'insécable que `montantLisible` pose entre le nombre et son unité écrite
-// en toutes lettres : « 369,01 millions d'euros ».
+// en toutes lettres : « 369 millions d'euros ».
 const U = "\u00a0";
 
 test("les quatre blocs suivent l'argent, et dans cet ordre", () => {
@@ -155,28 +155,28 @@ test("Bordeaux se lit comme la maquette l'a écrit", () => {
   const [ou, qui, reste, paye] = deBordeaux().map((b) => lu(b.texte));
   assert.equal(
     ou,
-    `Bordeaux dépense 369,01${U}millions d'euros par an pour faire tourner ses services, soit 74,93${U}millions d'euros de plus qu'en 2019.` +
-      ` La moitié de cette augmentation tient aux salaires de ses agents, qui passent de 143,59 à 183,05${U}millions d'euros` +
+    `Bordeaux dépense 369${U}millions d'euros par an pour faire tourner ses services, soit 75${U}millions d'euros de plus qu'en 2019.` +
+      ` La moitié de cette augmentation tient aux salaires de ses agents, qui passent de 144 à 183${U}millions d'euros` +
       ` : c'est un euro sur deux du budget de fonctionnement.` +
-      ` Viennent ensuite les achats, l'énergie et les prestataires (+21,17${U}millions d'euros),` +
-      ` puis les aides et subventions versées (+13,81${U}millions d'euros).`,
+      ` Viennent ensuite les achats, l'énergie et les prestataires (+21${U}millions d'euros),` +
+      ` puis les aides et subventions versées (+14${U}millions d'euros).`,
   );
   assert.equal(
     qui,
-    `Les recettes augmentent de 65,18${U}millions d'euros.` +
-      ` La taxe foncière et les impôts des entreprises en apportent 90${FIN}%, soit 58,78${U}millions d'euros.` +
+    `Les recettes augmentent de 65${U}millions d'euros.` +
+      ` La taxe foncière et les impôts des entreprises en apportent 90${FIN}%, soit 59${U}millions d'euros.` +
       ` Pendant ce temps, ce que l'État verse à la ville diminue` +
-      ` : la dotation principale recule de 37,29 à 36,48${U}millions d'euros.`,
+      ` : la dotation principale recule de 37 à 36${U}millions d'euros.`,
   );
   assert.equal(
     reste,
-    `Il faudrait 8,6 années d'épargne pour rembourser les 412,98${U}millions d'euros que la ville doit encore,` +
+    `Il faudrait 8,6 années d'épargne pour rembourser les 413${U}millions d'euros que la ville doit encore,` +
       ` contre 4,4 années en 2019.`,
   );
   assert.equal(
     paye,
-    `La ville a investi 135,97${U}millions d'euros en 2025, contre 81,39${U}millions d'euros en 2019.` +
-      ` Les dépenses d'équipement en font 109,85${U}millions d'euros, soit 81${FIN}%.`,
+    `La ville a investi 136${U}millions d'euros en 2025, contre 81${U}millions d'euros en 2019.` +
+      ` Les dépenses d'équipement en font 110${U}millions d'euros, soit 81${FIN}%.`,
   );
 });
 
@@ -212,7 +212,7 @@ test("une décomposition qui ne somme pas au total n'est pas écrite", () => {
   assert.deepEqual(ou.cites, ["ofgl_depenses_fonctionnement"]);
   assert.equal(
     lu(ou.texte),
-    `Bordeaux dépense 369,01${U}millions d'euros par an pour faire tourner ses services, soit 74,93${U}millions d'euros de plus qu'en 2019.`,
+    `Bordeaux dépense 369${U}millions d'euros par an pour faire tourner ses services, soit 75${U}millions d'euros de plus qu'en 2019.`,
   );
   // Et rien qui s'excuse de ne pas décomposer.
   assert.doesNotMatch(lu(ou.texte), /non publié|indisponible|ne permet pas|faute de/i);
@@ -395,7 +395,7 @@ test("le verbe s'accorde avec le poste, pas avec le nombre de postes", () => {
   });
   assert.match(
     lu(unSeulSuivant[0].texte),
-    new RegExp(`Viennent ensuite les achats, l'énergie et les prestataires \\(\\+10,00${U}millions d'euros\\)\\.$`, "u"),
+    new RegExp(`Viennent ensuite les achats, l'énergie et les prestataires \\(\\+10${U}millions d'euros\\)\\.$`, "u"),
   );
 });
 
@@ -418,7 +418,7 @@ test("le titre du bloc est un h3 dans une section, sans micro-label gris", () =>
   assert.equal([...rendu.matchAll(/<section class="bloc-lecture">/gu)].length, 4);
   assert.match(rendu, /<h3>Le train de vie<\/h3>/u);
   // Le gras porte le montant, la part, le poste.
-  assert.match(rendu, /<strong>369,0/u);
+  assert.match(rendu, /<strong>369/u);
   // Le terme comptable reste dans l'infobulle.
   assert.match(rendu, /<abbr title="Frais de personnel">/u);
   assert.match(rendu, /<abbr title="Dotation globale de fonctionnement">/u);

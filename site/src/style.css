@@ -778,20 +778,18 @@ summary:focus-visible,
   border-radius: var(--rayon);
   box-shadow: var(--ombre-2);
 }
-/* La légende, repliée : une pastille de couleurs collée au bord gauche de la
-   carte. Ouverte en permanence, elle occupait le quart de l'écran pour une
-   information qu'on lit une fois — et sur téléphone elle recouvrait la moitié
-   du pays. Le dégradé suffit à lire la carte ; le détail attend le clic. */
+/* La légende est une lecture, pas une commande cachée : titre, échelle et
+   millésime restent visibles sans clic, dans un cartouche compact. */
 .surcouche--legende {
-  left: 0.9rem;
-  top: 50%;
-  bottom: auto;
-  transform: translateY(-50%);
-  width: auto;
-  max-width: calc(100% - 2rem);
-  padding: 0;
+  left: var(--espace-4);
+  top: auto;
+  bottom: var(--espace-4);
+  transform: none;
+  width: min(19rem, calc(100% - var(--espace-8)));
+  max-width: none;
+  padding: var(--espace-3) var(--espace-4);
   font-size: var(--texte-xs);
-  overflow: hidden;
+  overflow: visible;
 }
 .surcouche--legende[open] {
   width: 13.5rem;
@@ -4522,15 +4520,10 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
    Cette règle vient après `.carte-barre` : à spécificité égale, l'ordre
    décide, et un `@media` placé plus haut dans la feuille perdait. */
 @media (max-width: 60rem) {
-  /* Repliée, elle tient dans la marge gauche et ne recouvre rien. Ouverte,
-     elle repart du haut pour ne pas déborder sous le tiroir. */
   .surcouche--legende {
     left: 0.6rem;
-  }
-  .surcouche--legende[open] {
-    top: 3.4rem;
-    transform: none;
-    max-width: calc(100% - 1.2rem);
+    bottom: 0.6rem;
+    width: min(19rem, calc(100% - 1.2rem));
     padding: var(--espace-3) var(--espace-4) var(--espace-3);
   }
   .carte-barre {
@@ -4790,8 +4783,7 @@ body:not([data-carte="oui"]) .fiche .onglets-themes {
 .retirer,
 .comparer,
 .tableau__export,
-.entete__nav a,
-.legende__poignee {
+.entete__nav a {
   position: relative;
 }
 .mesure__info::after,
@@ -4806,7 +4798,6 @@ body:not([data-carte="oui"]) .fiche .onglets-themes {
 .comparer::after,
 .tableau__export::after,
 .entete__nav a::after,
-.legende__poignee::after,
 .panneau__fermer::after {
   content: "";
   position: absolute;
@@ -5117,6 +5108,9 @@ summary.pont__rangee,
   margin: 0 0 var(--espace-9);
   scroll-margin-top: var(--haut-ancre);
 }
+.insights--france .insights__theme + .insights__theme {
+  padding-top: var(--espace-9);
+}
 .insights__theme-entete {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -5259,6 +5253,7 @@ summary.pont__rangee,
   .insights__sommaire ul { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .insights__sommaire a { min-height: var(--cible); align-items: center; }
   .insights__theme { margin-bottom: var(--espace-8); }
+  .insights--france .insights__theme + .insights__theme { padding-top: var(--espace-7); }
   .insights__theme-entete {
     grid-template-columns: minmax(0, 1fr);
   }

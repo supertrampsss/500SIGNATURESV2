@@ -29,6 +29,7 @@ import {
   suivreVisibiliteCarteParDefaut,
 } from "./carte-territoriale.ts";
 import * as carteTerritoriale from "./carte-territoriale.ts";
+import { COUCHES } from "./carte-style.ts";
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -431,7 +432,7 @@ test("les onze cibles tactiles élargies portent bien un `position: relative`", 
     .filter((s) => s.endsWith("::after"));
   const bloc = CSS.slice(CSS.indexOf("CIBLES TACTILES"));
   const positionnes = bloc.slice(0, bloc.indexOf("{"));
-  for (const selecteur of ["\n.entete__nav a", "\n.pilule", "\n.legende__poignee"]) {
+  for (const selecteur of ["\n.entete__nav a", "\n.pilule"]) {
     assert.ok(positionnes.includes(selecteur), `${selecteur.trim()} n'est pas positionné`);
   }
   assert.ok(avecPseudo.length > 0);
@@ -1418,17 +1419,11 @@ async function executerOuvrirTerritoire(
  *  `niveauConnu` et `mailleConnue` — lit d'une adresse. Le banc ne recopie ni
  *  la table des couches ni celle des mailles : il testerait sa propre copie. */
 function executerLireUrl(adresse: string): Record<string, string | null> {
-  const debutCouches = MAIN.indexOf("const COUCHES");
-  const finCouches = MAIN.indexOf("type Etat = {");
   const debut = MAIN.indexOf("function niveauConnu");
   const fin = MAIN.indexOf("function ecrireUrl");
-  assert.ok(debutCouches > -1 && finCouches > debutCouches, "COUCHES introuvable dans main.ts");
   assert.ok(debut > -1 && fin > debut, "lireUrl introuvable dans main.ts");
   const corps =
-    MAIN.slice(debutCouches, finCouches).replace(
-      "const COUCHES: Record<string, string> = {",
-      "const COUCHES = {",
-    ) +
+    `const COUCHES = ${JSON.stringify(COUCHES)};\n` +
     MAIN.slice(debut, fin)
       .replace("function niveauConnu(demande: string | null): string {", "function niveauConnu(demande) {")
       .replace(
@@ -3075,46 +3070,8 @@ test("une carte cachée et une barre repliée le restent bien à l'écran", () =
  * défaut en ligne — c'est le piège que ce dépôt a déjà rencontré deux fois, un
  * test vert au-dessus d'un écran faux.
  */
-/**
- * La fiche de territoire est partageable, à toutes les mailles.
- *
- * Spec §13 : cinq objets partageables, dont « Fiche territoire — nom du
- * territoire, trois chiffres, exercice ». `carteFiche` et `partageFiche` ont
- * leurs tests ; ce qui se vérifie ici est qu'un appelant existe, et qu'il
- * existe aux DEUX endroits où la fiche s'affiche — le panneau d'accueil, qui
- * montre la France, et la sélection d'un territoire. « La même fiche à toutes
- * les mailles » (CLAUDE.md) vaut aussi pour ce qu'on peut en emporter.
- */
-test("le pied de fiche porte le partage, sur la France comme sur un territoire", () => {
-  assert.ok(
-    FICHE.includes('id="fiche-partage"'),
-    "la fiche ne laisse plus de conteneur au cadre de partage",
-  );
-  const poses = MAIN.match(/poserPartageDeLaFiche\(/g) ?? [];
-  assert.equal(
-    poses.length - 1,
-    2,
-    `le cadre de partage est posé ${poses.length - 1} fois pour deux affichages de fiche`,
-  );
-  assert.ok(
-    MAIN.includes('poserPartageDeLaFiche("pays", "FR", france)'),
-    "le panneau d'accueil, qui montre la France, n'offre pas son partage",
-  );
-  assert.ok(MAIN.includes("brancherPartageDeLaFiche();"), "les gestes ne sont branchés nulle part");
-});
-
-test("l'image d'une fiche se construit au clic, elle ne s'annonce pas comme un fichier", () => {
-  // Le build n'écrit pas 34 875 PNG : `partageFiche` rend `image: null`, et le
-  // bouton passe par `carteFiche` puis `telecharger`. Un href vers une image
-  // que rien ne produit est l'aperçu cassé que `validerImagesAnnoncees` refuse.
-  assert.ok(
-    MAIN.includes('nomDeFichier(fichePartagee.territoire.nom, fichePartagee.niveau, "carte", "svg")'),
-    "la carte de fiche ne se télécharge pas, ou pas en SVG",
-  );
-  assert.ok(
-    /button\[data-carte\]/.test(MAIN),
-    "aucun écouteur ne sert le bouton d'image construite",
-  );
+test("le pied de fiche reste éditorial, sans barre de partage ni téléchargement", () => {
+  assert.doesNotMatch(FICHE, /fiche-partage|Partager cette fiche|Télécharger l'image/);
 });
 
 /**
@@ -3432,23 +3389,6 @@ test("une ancre de source donne le focus à la fiche exacte", () => {
   assert.match(registre, /cible\.tabIndex = -1;/);
   assert.match(registre, /cible\.focus\(\{ preventScroll: true \}\);/);
   assert.match(REGISTRE_SOURCES, /\.registre-sources__fiche:focus-visible/);
-});
-
-test("le pied de fiche ne fait pas tomber le démarrage d'une page éditoriale", () => {
-  // `$("fiche")` rend `null` sur l'index des analyses et sur une analyse :
-  // `brancherPartage` levait dessus, `demarrer()` s'arrêtait là, et TOUT ce
-  // qui suit ne s'exécutait plus — à commencer par `brancherRecherche`. Le
-  // champ de recherche de l'en-tête était donc MORT sur chaque page d'analyse,
-  // et le rattrapage de `demarrer()`, muet sur les pages éditoriales, ne le
-  // disait pas.
-  const fonction = MAIN.slice(MAIN.indexOf("function brancherPartageDeLaFiche(): void {"));
-  const corps = fonction.slice(0, fonction.indexOf("\n}"));
-  assert.match(corps, /if \(!panneau\) return;/);
-  // Le garde-fou doit précéder le premier usage du cadre.
-  assert.ok(
-    corps.indexOf("if (!panneau) return;") < corps.indexOf("brancherPartage(panneau"),
-    "le garde-fou doit venir avant l'usage",
-  );
 });
 
 test("la vue simulateur passe en vrai tunnel : plein écran, sauf pour un lien d'atelier", () => {
