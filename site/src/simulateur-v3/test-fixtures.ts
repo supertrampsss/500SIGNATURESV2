@@ -113,6 +113,7 @@ export function validCampaignState(scenario = validScenario()): CampaignState {
     indicators,
     groups,
     scheduledEvents: [],
+    eventHistory: [],
     activePromises: [],
     promiseHistory: [],
     crisisHistory: [],

@@ -201,6 +201,7 @@ export type CampaignState = {
   indicators: IndicatorState;
   groups: GroupState;
   scheduledEvents: ScheduledEvent[];
+  eventHistory: ScheduledEvent[];
   activePromises: PoliticalPromise[];
   promiseHistory: PoliticalPromise[];
   activeCrisis?: CrisisState;

@@ -218,7 +218,7 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION || value.scenarioVersion !== scenario.version) return false;
   if (!PHASES.includes(value.phase as CampaignPhase) || !Number.isInteger(value.chapterIndex) || !Number.isInteger(value.decisionIndex)) return false;
   if ((value.chapterIndex as number) < 0 || (value.chapterIndex as number) >= scenario.chapters.length || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) > scenario.decisions.length) return false;
-  if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
+  if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.eventHistory) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
   if (!isRecord(value.indicators) || !hasExactFiniteKeys(value.indicators, INDICATOR_KEYS)) return false;
   if (!isRecord(value.groups) || !hasExactFiniteKeys(value.groups, GROUP_KEYS)) return false;
   if (typeof value.seed !== "number" || !Number.isFinite(value.seed) || typeof value.savedAt !== "string" || Number.isNaN(Date.parse(value.savedAt))) return false;
@@ -227,16 +227,17 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (!value.decisions.every((record) => isDecisionRecord(record, decisions))) return false;
   if (value.pendingSelection !== undefined && !knownDecisionAndOption(value.pendingSelection, decisions)) return false;
   if (!value.scheduledEvents.every((event) => isScheduledEvent(event, decisions))) return false;
+  if (!value.eventHistory.every((event) => isScheduledEvent(event, decisions))) return false;
   if (![...value.activePromises, ...value.promiseHistory].every((promise) => isPoliticalPromise(promise, decisions))) return false;
   if (!value.crisisHistory.every((crisis) => isCrisisState(crisis, decisions))) return false;
   if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, decisions)) return false;
   if (!value.resolvedCrisisIds.every((id) => typeof id === "string") || hasDuplicates(value.resolvedCrisisIds)) return false;
   if (!hasUniqueKnownDecisionIds(value.unlockedDecisionIds, decisions) || !hasUniqueKnownDecisionIds(value.lockedDecisionIds, decisions)) return false;
   const sourceIds = {
-    decision: new Set(decisions.keys()),
-    event: new Set(value.scheduledEvents.map((event) => (event as { id: string }).id)),
+    decision: new Set(value.decisions.map((record) => `${(record as { decisionId: string }).decisionId}:${(record as { optionId: string }).optionId}`)),
+    event: new Set([...value.scheduledEvents, ...value.eventHistory].map((event) => (event as { id: string }).id)),
     promise: new Set([...value.activePromises, ...value.promiseHistory].map((promise) => (promise as { id: string }).id)),
-    crisis: new Set([...(value.activeCrisis ? [value.activeCrisis] : []), ...value.crisisHistory].map((crisis) => (crisis as { ruleId: string }).ruleId)),
+    crisis: new Set([...(value.activeCrisis ? [value.activeCrisis] : []), ...value.crisisHistory].map((crisis) => (crisis as { ruleId: string }).ruleId).concat(value.resolvedCrisisIds as string[])),
   };
   if (!value.causalLedger.every((entry) => isCausalEntry(entry, sourceIds))) return false;
   return true;

@@ -48,6 +48,7 @@ export function createCampaign(scenario: Scenario, seed = 0): CampaignState {
     indicators: { ...INITIAL_INDICATORS },
     groups: { ...INITIAL_GROUPS },
     scheduledEvents: [],
+    eventHistory: [],
     activePromises: [],
     promiseHistory: [],
     crisisHistory: [],

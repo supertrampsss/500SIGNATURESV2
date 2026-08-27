@@ -8,6 +8,7 @@ import {
   currentDecision,
   selectOption,
 } from "./campaign.ts";
+import { confirmSelection } from "./effects.ts";
 import { validScenario } from "./test-fixtures.ts";
 
 test("une campagne neuve commence avant le premier chapitre", () => {
@@ -119,4 +120,12 @@ test("une campagne rejette un scénario invalide", () => {
   const scenario = validScenario();
   scenario.chapters.pop();
   assert.throws(() => createCampaign(scenario), /Invalid scenario: scenario:expected-8-chapters/);
+});
+
+test("une décision confirmée ne peut plus être sélectionnée", () => {
+  const scenario = validScenario();
+  const started = { ...createCampaign(scenario), phase: "decision" as const };
+  const confirmed = confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
+  const retry = { ...confirmed, phase: "decision" as const, pendingSelection: { decisionId: "decision-1", optionId: "decision-1-option-a" } };
+  assert.throws(() => confirmSelection(retry, scenario), /already confirmed/);
 });

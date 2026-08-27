@@ -1,0 +1,199 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+
+import { INITIAL_INDICATORS, createCampaign, selectOption } from "./campaign.ts";
+import {
+  applyEffect,
+  confirmSelection,
+  resolveDueEvents,
+  resolveDuePromises,
+  scheduleOptionConsequences,
+} from "./effects.ts";
+import { validScenario } from "./test-fixtures.ts";
+import type { EffectRule, IndicatorKey, Scenario } from "./types.ts";
+import { isCampaignState } from "./validation.ts";
+
+function scenarioWithEffect(key: IndicatorKey, delta: number, timing: EffectRule["timing"]): Scenario {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.effects = [{
+    id: "effect-1",
+    target: "indicator",
+    key,
+    delta,
+    timing,
+    duration: "once",
+    explanation: "Effet test",
+  }];
+  return scenario;
+}
+
+function startAtFirstDecision(scenario: Scenario) {
+  return { ...createCampaign(scenario, 42), phase: "decision" as const };
+}
+
+function confirmFirstDecision(scenario: Scenario) {
+  const started = startAtFirstDecision(scenario);
+  return confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
+}
+
+test("confirmer applique les effets immédiats une seule fois", () => {
+  const scenario = scenarioWithEffect("annualBalance", 1_000, { kind: "immediate" });
+  const started = startAtFirstDecision(scenario);
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
+  const confirmed = confirmSelection(selected, scenario);
+  assert.equal(confirmed.indicators.annualBalance, started.indicators.annualBalance + 1_000);
+  assert.equal(confirmed.decisions[0]?.status, "confirmed");
+  assert.equal(confirmed.phase, "decision_result");
+  assert.throws(() => confirmSelection(confirmed, scenario), /selection required/);
+});
+
+test("un effet différé attend le bon nombre de décisions", () => {
+  const scenario = scenarioWithEffect("growth", -0.4, { kind: "after_decisions", count: 2 });
+  const confirmed = confirmFirstDecision(scenario);
+  assert.equal(confirmed.indicators.growth, INITIAL_INDICATORS.growth);
+  assert.equal(confirmed.scheduledEvents[0]?.dueAtDecision, 3);
+});
+
+test("chaque variation conserve sa cause lisible", () => {
+  const scenario = scenarioWithEffect("opinion", -4, { kind: "immediate" });
+  const confirmed = confirmFirstDecision(scenario);
+  assert.deepEqual(confirmed.causalLedger.at(-1), {
+    id: "decision:decision-1:decision-1-option-a:effect-1:1",
+    sourceType: "decision",
+    sourceId: "decision-1:decision-1-option-a",
+    target: "indicator",
+    key: "opinion",
+    delta: -4,
+    explanation: "Effet test",
+    appliedAtDecision: 1,
+  });
+});
+
+test("une confirmation avec effet conserve un état persistable", () => {
+  const scenario = scenarioWithEffect("opinion", -4, { kind: "immediate" });
+  assert.equal(isCampaignState(confirmFirstDecision(scenario), scenario), true);
+});
+
+test("une promesse échue applique son coût et quitte les promesses actives", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.promises = [{
+    id: "promise-1",
+    label: "Compenser les ménages",
+    dueAfterDecisions: 1,
+    failureEffects: [{
+      id: "promise-opinion",
+      target: "indicator",
+      key: "opinion",
+      delta: -6,
+      timing: { kind: "immediate" },
+      duration: "once",
+      explanation: "La compensation promise n'est pas arrivée.",
+    }],
+  }];
+  const confirmed = confirmFirstDecision(scenario);
+  const due = { ...confirmed, decisions: [
+    ...confirmed.decisions,
+    { decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
+  ] };
+  const resolved = resolveDuePromises(due);
+  assert.deepEqual(resolved.failedPromiseIds, ["promise-1"]);
+  assert.equal(resolved.state.activePromises.length, 0);
+  assert.equal(resolved.state.indicators.opinion, confirmed.indicators.opinion - 6);
+  assert.equal(resolved.state.causalLedger.at(-1)?.sourceType, "promise");
+});
+
+test("les bornes politiques sont appliquées sans modifier l'état d'origine", () => {
+  const scenario = validScenario();
+  const state = createCampaign(scenario);
+  const effect: EffectRule = {
+    id: "clamp",
+    target: "indicator",
+    key: "opinion",
+    delta: 100,
+    timing: { kind: "immediate" },
+    duration: "once",
+    explanation: "Soutien accru.",
+  };
+  const updated = applyEffect(state, effect, { sourceType: "decision", sourceId: "decision-1" });
+  assert.equal(updated.indicators.opinion, 100);
+  assert.equal(state.indicators.opinion, INITIAL_INDICATORS.opinion);
+  assert.notEqual(updated.indicators, state.indicators);
+  assert.equal(updated.groups, state.groups);
+});
+
+test("un effet différé est programmé mais jamais appliqué directement", () => {
+  const scenario = scenarioWithEffect("growth", 2, { kind: "after_decisions", count: 1 });
+  const state = createCampaign(scenario);
+  const result = scheduleOptionConsequences(state, scenario.decisions[0]!, scenario.decisions[0]!.options[0]!);
+  assert.equal(result.indicators.growth, INITIAL_INDICATORS.growth);
+  assert.deepEqual(result.scheduledEvents[0], {
+    id: "decision-1:decision-1-option-a:effect-1",
+    sourceDecisionId: "decision-1",
+    sourceOptionId: "decision-1-option-a",
+    dueAtDecision: 1,
+    title: "Effet différé : Decision decision-1",
+    body: "Effet test",
+    effects: [scenario.decisions[0]!.options[0]!.effects[0]!],
+  });
+});
+
+test("les événements échus appliquent leurs effets et sortent de la file", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.scheduledEvents = [{
+    id: "event-1",
+    title: "Annonce publique",
+    body: "Les conséquences deviennent visibles.",
+    afterDecisions: 1,
+    effects: [{
+      id: "event-opinion",
+      target: "indicator",
+      key: "opinion",
+      delta: -3,
+      timing: { kind: "immediate" },
+      duration: "once",
+      explanation: "Réaction négative.",
+    }],
+  }];
+  const confirmed = confirmFirstDecision(scenario);
+  const resolved = resolveDueEvents({ ...confirmed, decisions: [...confirmed.decisions, {
+    decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed", confirmedAtIndex: 2,
+  }] });
+  assert.equal(resolved.events[0]?.id, "event-1");
+  assert.equal(resolved.state.scheduledEvents.length, 0);
+  assert.equal(resolved.state.eventHistory[0]?.id, "event-1");
+  assert.equal(resolved.state.indicators.opinion, confirmed.indicators.opinion - 3);
+  assert.equal(resolved.state.causalLedger.at(-1)?.sourceType, "event");
+  assert.equal(isCampaignState(resolved.state, scenario), true);
+});
+
+test("confirmer applique les verrous, déverrouillages et promesses remplies", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.locks = ["decision-3"];
+  option.unlocks = ["decision-4"];
+  option.fulfillsPromises = ["old-promise"];
+  const state = {
+    ...startAtFirstDecision(scenario),
+    activePromises: [{
+      id: "old-promise", sourceDecisionId: "decision-1", label: "Ancienne promesse", dueAtDecision: 4,
+      fulfilled: false, failureEffects: [],
+    }],
+    lockedDecisionIds: ["decision-4"],
+  };
+  const confirmed = confirmSelection(selectOption(state, scenario, "decision-1", "decision-1-option-a"), scenario);
+  assert.deepEqual(confirmed.lockedDecisionIds, ["decision-3"]);
+  assert.ok(confirmed.unlockedDecisionIds.includes("decision-4"));
+  assert.equal(confirmed.activePromises[0]?.fulfilled, true);
+});
+
+test("un delta non fini est refusé", () => {
+  const state = createCampaign(validScenario());
+  const effect: EffectRule = {
+    id: "invalid", target: "group", key: "unions", delta: Number.NaN,
+    timing: { kind: "immediate" }, duration: "once", explanation: "Invalide.",
+  };
+  assert.throws(() => applyEffect(state, effect, { sourceType: "event", sourceId: "event-1" }), /finite/);
+});

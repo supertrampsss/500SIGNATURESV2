@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { assertNoEmDash, isCampaignState, validateScenario } from "./validation.ts";
+import { createCampaign, selectOption } from "./campaign.ts";
+import { confirmSelection, resolveDueEvents } from "./effects.ts";
 import { validCampaignState, validScenario } from "./test-fixtures.ts";
 
 test("un scénario valide contient huit chapitres de douze décisions uniques", () => {
@@ -36,6 +38,35 @@ test("la validation refuse un identifiant répété dans les chapitres", () => {
 test("un état V3 complet est accepté", () => {
   const scenario = validScenario();
   assert.equal(isCampaignState(validCampaignState(scenario), scenario), true);
+});
+
+test("un état confirmé reste valide après un aller-retour de persistance", () => {
+  const scenario = validScenario();
+  const started = { ...createCampaign(scenario), phase: "decision" as const };
+  const confirmed = confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
+  assert.equal(isCampaignState(JSON.parse(JSON.stringify(confirmed)), scenario), true);
+});
+
+test("un événement résolu reste traçable et valide après persistance", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.scheduledEvents = [{
+    id: "event-1",
+    title: "Événement",
+    body: "Conséquence différée.",
+    afterDecisions: 1,
+    effects: [{
+      id: "event-effect", target: "indicator", key: "opinion", delta: -2,
+      timing: { kind: "immediate" }, duration: "once", explanation: "Réaction.",
+    }],
+  }];
+  const started = { ...createCampaign(scenario), phase: "decision" as const };
+  const confirmed = confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
+  const resolved = resolveDueEvents({ ...confirmed, decisions: [...confirmed.decisions, {
+    decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed", confirmedAtIndex: 2,
+  }] });
+  assert.equal(resolved.state.eventHistory[0]?.id, "event-1");
+  assert.equal(isCampaignState(JSON.parse(JSON.stringify(resolved.state)), scenario), true);
 });
 
 test("un état V3 refuse chaque DecisionRecord malformé", () => {
