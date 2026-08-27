@@ -1,0 +1,532 @@
+/* Simulateur V3. Cette feuille reste entièrement isolée du tunnel historique. */
+.simulateur-v3 {
+  --v3-shell: #091426;
+  --v3-shell-soft: #10213c;
+  --v3-dossier: #f8f2e6;
+  --v3-paper: #fffdf7;
+  --v3-ink: #132238;
+  --v3-muted: #4c596b;
+  --v3-rule: #c9bda8;
+  --v3-red: #9b3029;
+  --v3-gold: #d7a73e;
+  --v3-green: #17634f;
+  --v3-text-on-shell: #edf1f7;
+  --v3-muted-on-shell: #bdc8d8;
+
+  min-width: 0;
+  min-height: calc(100dvh - var(--haut-entete));
+  color: var(--v3-text-on-shell);
+  background:
+    radial-gradient(circle at 85% 0%, rgb(47 76 116 / 0.38), transparent 34rem),
+    var(--v3-shell);
+  font-family: var(--sans);
+}
+
+body[data-vue="simulateur"] .entete__recherche {
+  display: none;
+}
+
+.simulateur-v3 *,
+.simulateur-v3 *::before,
+.simulateur-v3 *::after {
+  box-sizing: border-box;
+}
+
+.simulateur-v3 button,
+.simulateur-v3 a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.simulateur-v3 button:focus-visible,
+.simulateur-v3 a:focus-visible,
+.simulateur-v3 summary:focus-visible {
+  outline: 3px solid var(--v3-gold);
+  outline-offset: 3px;
+}
+
+.simulateur-v3__command-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--espace-2) var(--espace-3);
+  align-items: center;
+  min-width: 0;
+  padding: var(--espace-3) clamp(var(--espace-3), 4vw, var(--espace-6));
+  border-bottom: 1px solid rgb(194 209 230 / 0.25);
+  background: rgb(9 20 38 / 0.88);
+}
+
+.simulateur-v3__brand,
+.simulateur-v3__pause {
+  min-height: var(--cible);
+}
+
+.simulateur-v3__brand {
+  display: inline-flex;
+  gap: var(--espace-3);
+  align-items: center;
+  width: fit-content;
+  color: var(--v3-text-on-shell);
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.simulateur-v3__flag {
+  display: grid;
+  grid-template-columns: repeat(3, 0.34rem);
+  width: 1.02rem;
+  height: 1.1rem;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.6);
+}
+
+.simulateur-v3__flag i:first-child { background: #1d3f8f; }
+.simulateur-v3__flag i:nth-child(2) { background: #ffffff; }
+.simulateur-v3__flag i:last-child { background: #d7333f; }
+
+.simulateur-v3__mandate,
+.simulateur-v3__chapter-progress,
+.simulateur-v3__decision-progress {
+  margin: 0;
+  color: var(--v3-muted-on-shell);
+  font-size: var(--texte-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.simulateur-v3__mandate {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.simulateur-v3__chapter-progress { grid-column: 1; }
+.simulateur-v3__decision-progress { grid-column: 2; text-align: end; }
+
+.simulateur-v3__pause {
+  grid-column: 2;
+  grid-row: 1;
+  padding: 0 var(--espace-4);
+  color: var(--v3-text-on-shell);
+  background: transparent;
+  border: 1px solid rgb(237 241 247 / 0.46);
+  border-radius: var(--rayon-s);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.simulateur-v3__stage {
+  display: grid;
+  place-items: start center;
+  min-width: 0;
+  padding: clamp(var(--espace-3), 4vw, var(--espace-7));
+}
+
+.simulateur-v3__stage--intro {
+  align-items: center;
+}
+
+.simulateur-v3__dossier {
+  width: min(100%, 72rem);
+  min-width: 0;
+  padding: clamp(var(--espace-5), 5vw, var(--espace-8));
+  color: var(--v3-ink);
+  background: var(--v3-dossier);
+  border-top: 5px solid var(--v3-red);
+  box-shadow: 0 1.2rem 3rem rgb(0 0 0 / 0.22);
+}
+
+.simulateur-v3__dossier h1 {
+  max-width: 18ch;
+  margin: 0;
+  font-family: var(--serif);
+  font-size: clamp(2rem, 8vw, 4.8rem);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.simulateur-v3__eyebrow {
+  margin: 0 0 var(--espace-4);
+  color: var(--v3-red);
+  font-size: var(--texte-xs);
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.simulateur-v3__lead,
+.simulateur-v3__context {
+  max-width: 64ch;
+  margin: var(--espace-5) 0 0;
+  color: var(--v3-muted);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+  line-height: 1.55;
+}
+
+.simulateur-v3__mission-number {
+  margin: var(--espace-6) 0 0;
+  color: var(--v3-red);
+  font-family: var(--serif);
+  font-size: clamp(2.25rem, 11vw, 6.5rem);
+  font-weight: 800;
+  line-height: 0.92;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums;
+}
+
+.simulateur-v3__objectives,
+.simulateur-v3__domains {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: var(--espace-6) 0;
+  padding: 0;
+  border-block: 1px solid var(--v3-rule);
+  list-style: none;
+}
+
+.simulateur-v3__objectives li,
+.simulateur-v3__domains li {
+  padding: var(--espace-3) 0;
+  border-bottom: 1px solid var(--v3-rule);
+  font-weight: 750;
+}
+
+.simulateur-v3__objectives li:last-child,
+.simulateur-v3__domains li:last-child {
+  border-bottom: 0;
+}
+
+.simulateur-v3__migration,
+.simulateur-v3__tension {
+  max-width: 64ch;
+  margin: var(--espace-5) 0;
+  padding: var(--espace-4);
+  color: var(--v3-ink);
+  background: #eee5d5;
+  border-left: 3px solid var(--v3-gold);
+  line-height: 1.5;
+}
+
+.simulateur-v3__tension strong {
+  display: block;
+  margin-bottom: var(--espace-2);
+  color: var(--v3-red);
+  font-size: var(--texte-xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.simulateur-v3__primary,
+.simulateur-v3__secondary,
+.simulateur-v3__confirm,
+.simulateur-v3__cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--cible);
+  padding: var(--espace-3) var(--espace-5);
+  border: 1px solid transparent;
+  border-radius: var(--rayon-s);
+  font: inherit;
+  font-weight: 850;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.simulateur-v3__primary,
+.simulateur-v3__confirm {
+  color: #ffffff;
+  background: var(--v3-red);
+  border-color: var(--v3-red);
+}
+
+.simulateur-v3__secondary,
+.simulateur-v3__cancel {
+  color: var(--v3-ink);
+  background: transparent;
+  border-color: var(--v3-ink);
+}
+
+.simulateur-v3__decision h1 {
+  font-size: clamp(1.9rem, 6.5vw, 4rem);
+}
+
+.simulateur-v3__options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espace-3);
+  margin-top: var(--espace-6);
+}
+
+.simulateur-v3__option {
+  min-width: 0;
+  overflow: hidden;
+  background: var(--v3-paper);
+  border: 1px solid var(--v3-rule);
+  border-top: 4px solid #718096;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.simulateur-v3__option--selected {
+  border-color: var(--v3-red);
+  border-top-color: var(--v3-red);
+  box-shadow: 0 0 0 2px rgb(155 48 41 / 0.14);
+}
+
+.simulateur-v3__option-select {
+  display: grid;
+  gap: var(--espace-3);
+  width: 100%;
+  min-height: var(--cible);
+  padding: var(--espace-5);
+  color: var(--v3-ink);
+  background: transparent;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.simulateur-v3__option-select[aria-pressed="true"] {
+  background: rgb(155 48 41 / 0.055);
+}
+
+.simulateur-v3__option-label {
+  font-family: var(--serif);
+  font-size: clamp(1.35rem, 5vw, 2rem);
+  font-weight: 800;
+  line-height: 1.08;
+}
+
+.simulateur-v3__option-summary {
+  color: var(--v3-muted);
+  line-height: 1.5;
+}
+
+.simulateur-v3__option-metrics {
+  display: grid;
+  gap: var(--espace-2);
+  padding-top: var(--espace-3);
+  border-top: 1px solid var(--v3-rule);
+  font-size: var(--texte-s);
+  font-weight: 750;
+}
+
+.simulateur-v3__option-metrics span:first-child {
+  color: var(--v3-red);
+  font-size: var(--texte-m);
+}
+
+.simulateur-v3__option-confirmation {
+  padding: var(--espace-4) var(--espace-5) var(--espace-5);
+  border-top: 1px solid var(--v3-rule);
+}
+
+.simulateur-v3__option-confirmation p {
+  margin: 0 0 var(--espace-4);
+  line-height: 1.45;
+}
+
+.simulateur-v3__option-confirmation > div,
+.simulateur-v3__pause-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espace-3);
+}
+
+.simulateur-v3__evidence {
+  margin-top: var(--espace-5);
+  border-block: 1px solid var(--v3-rule);
+}
+
+.simulateur-v3__evidence summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--cible);
+  padding: var(--espace-3) 0;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.simulateur-v3__evidence-body {
+  display: grid;
+  gap: var(--espace-5);
+  padding: 0 0 var(--espace-5);
+}
+
+.simulateur-v3__evidence h3 {
+  margin: 0 0 var(--espace-3);
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+}
+
+.simulateur-v3__evidence dl,
+.simulateur-v3__evidence dd {
+  margin: 0;
+}
+
+.simulateur-v3__evidence dl > div {
+  display: grid;
+  grid-template-columns: minmax(7rem, 0.35fr) minmax(0, 1fr);
+  gap: var(--espace-3);
+  padding: var(--espace-2) 0;
+  border-top: 1px solid var(--v3-rule);
+}
+
+.simulateur-v3__evidence dt { font-weight: 800; }
+.simulateur-v3__evidence dd { color: var(--v3-muted); }
+
+.simulateur-v3__sources {
+  display: grid;
+  gap: var(--espace-3);
+  margin: 0;
+  padding: var(--espace-4);
+  background: #eee5d5;
+  list-style: none;
+}
+
+.simulateur-v3__sources li,
+.simulateur-v3__sources small {
+  display: block;
+}
+
+.simulateur-v3__sources a {
+  color: var(--v3-ink);
+  font-weight: 850;
+}
+
+.simulateur-v3__sources span,
+.simulateur-v3__sources small {
+  margin-top: var(--espace-1);
+  color: var(--v3-muted);
+}
+
+.simulateur-v3__result-question {
+  max-width: 64ch;
+  color: var(--v3-muted);
+}
+
+.simulateur-v3__result-grid {
+  display: grid;
+  gap: 0;
+  margin: var(--espace-6) 0;
+  border-block: 1px solid var(--v3-rule);
+}
+
+.simulateur-v3__result-grid section {
+  padding: var(--espace-4) 0;
+  border-bottom: 1px solid var(--v3-rule);
+}
+
+.simulateur-v3__result-grid section:last-child { border-bottom: 0; }
+.simulateur-v3__result-grid h2 { margin: 0; font-size: var(--texte-s); text-transform: uppercase; letter-spacing: 0.06em; }
+.simulateur-v3__result-grid p { margin: var(--espace-2) 0 0; font-family: var(--serif); font-size: var(--texte-xl); line-height: 1.2; }
+
+.simulateur-v3__pause-actions {
+  margin-top: var(--espace-6);
+}
+
+.simulateur-v3__error {
+  width: min(100%, 44rem);
+  margin: 0;
+  padding: var(--espace-5);
+  color: var(--v3-ink);
+  background: var(--v3-dossier);
+  border-top: 4px solid var(--v3-red);
+}
+
+@media (hover: hover) {
+  .simulateur-v3__option:hover {
+    border-color: #8b7e6c;
+    transform: translateY(-2px);
+  }
+
+  .simulateur-v3__primary:hover,
+  .simulateur-v3__confirm:hover {
+    background: #7f251f;
+  }
+}
+
+@media (min-width: 42rem) {
+  .simulateur-v3__objectives,
+  .simulateur-v3__domains,
+  .simulateur-v3__result-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simulateur-v3__objectives li,
+  .simulateur-v3__domains li,
+  .simulateur-v3__result-grid section {
+    padding-inline: var(--espace-4);
+  }
+
+  .simulateur-v3__option-confirmation > div,
+  .simulateur-v3__pause-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 60rem) {
+  .simulateur-v3__command-bar {
+    grid-template-columns: minmax(14rem, 1fr) auto auto auto auto;
+    padding-inline: var(--espace-7);
+  }
+
+  .simulateur-v3__mandate,
+  .simulateur-v3__chapter-progress,
+  .simulateur-v3__decision-progress,
+  .simulateur-v3__pause {
+    grid-column: auto;
+    grid-row: 1;
+  }
+
+  .simulateur-v3__decision-progress { text-align: start; }
+
+  .simulateur-v3__options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simulateur-v3__option-select {
+    min-height: 16rem;
+  }
+
+  .simulateur-v3__evidence-body {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .simulateur-v3__sources {
+    grid-column: 1 / -1;
+  }
+
+  .simulateur-v3__result-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .simulateur-v3__result-grid section {
+    border-right: 1px solid var(--v3-rule);
+    border-bottom: 0;
+  }
+
+  .simulateur-v3__result-grid section:last-child { border-right: 0; }
+}
+
+@media (max-width: 23rem) {
+  .simulateur-v3__stage { padding-inline: var(--espace-2); }
+  .simulateur-v3__dossier { padding-inline: var(--espace-4); }
+  .simulateur-v3__brand span:last-child { font-size: var(--texte-s); }
+  .simulateur-v3__evidence dl > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .simulateur-v3 *,
+  .simulateur-v3 *::before,
+  .simulateur-v3 *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}

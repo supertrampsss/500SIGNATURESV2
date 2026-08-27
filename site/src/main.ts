@@ -128,6 +128,7 @@ import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
 import "./styles/tunnel-cabinet.css";
+import "./styles/simulateur-v3.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
 import "./styles/territoire-briefing.css";

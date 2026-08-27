@@ -38,6 +38,7 @@ const BILAN_GUIDE = readFileSync(new URL("./styles/bilan-guide.css", import.meta
 const NAVIGATION = readFileSync(new URL("./styles/navigation.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const SIMULATEUR_V3 = readFileSync(new URL("./styles/simulateur-v3.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const DOSSIERS_VERIFICATION = readFileSync(new URL("./styles/dossiers-verification.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const REGISTRE_SOURCES = readFileSync(new URL("./styles/registre-sources.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -3503,4 +3504,30 @@ test("aucune navigation territoriale ne duplique les sections détaillées", () 
   assert.doesNotMatch(PAGE, /data-territoire-theme/);
   assert.doesNotMatch(MAIN, /data-territoire-theme/);
   assert.doesNotMatch(MAIN, /preparerAncresTerritoriales/);
+});
+
+test("le simulateur V3 possède une palette fixe et isolée", () => {
+  for (const token of ["shell", "dossier", "ink", "rule", "red", "gold"]) {
+    assert.match(SIMULATEUR_V3, new RegExp(`--v3-${token}:\\s*#[0-9a-f]{6};`, "i"));
+  }
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3\s*\{/);
+  assert.doesNotMatch(SIMULATEUR_V3, /@media\s*\(prefers-color-scheme:/);
+});
+
+test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__options\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
+  const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 60rem)"));
+  assert.match(desktop, /\.simulateur-v3__options\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s);
+  assert.match(SIMULATEUR_V3, /min-height:\s*var\(--cible\);/);
+  assert.match(SIMULATEUR_V3, /:focus-visible/);
+  assert.match(SIMULATEUR_V3, /\[aria-pressed="true"\]/);
+  assert.match(SIMULATEUR_V3, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.doesNotMatch(SIMULATEUR_V3, /position:\s*fixed/);
+});
+
+test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {
+  const historique = MAIN.indexOf('import "./styles/tunnel-cabinet.css";');
+  const v3 = MAIN.indexOf('import "./styles/simulateur-v3.css";');
+  assert.ok(historique >= 0);
+  assert.ok(v3 > historique);
 });
