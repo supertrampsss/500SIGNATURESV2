@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/prerendre.ts",
-    "test": "node --experimental-strip-types --test src/*.test.ts scripts/*.test.ts",
+    "test": "node --experimental-strip-types --test src/*.test.ts src/simulateur-v3/*.test.ts scripts/*.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {
