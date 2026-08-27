@@ -5109,7 +5109,6 @@ summary.pont__rangee,
   text-decoration: none;
 }
 .insights__sommaire a:hover { background: var(--papier-creuse); }
-.insights__themes { counter-reset: insight; }
 .insights__theme,
 .national .insights__theme {
   margin: 0 0 var(--espace-9);
@@ -5129,7 +5128,6 @@ summary.pont__rangee,
   line-height: 1.05;
   text-wrap: balance;
 }
-.insights__theme .insights__grille { counter-reset: none; }
 .insights__retour {
   display: inline-flex;
   min-height: var(--cible);
@@ -5146,23 +5144,11 @@ summary.pont__rangee,
   margin: 0;
   padding: 0;
   list-style: none;
-  counter-reset: insight;
 }
 .insight {
-  position: relative;
   min-width: 0;
-  padding: var(--espace-6) 0 var(--espace-7) calc(var(--espace-7) + var(--espace-2));
+  padding: var(--espace-6) 0 var(--espace-7);
   border-top: 1px solid var(--trait);
-  counter-increment: insight;
-}
-.insight::before {
-  content: counter(insight, decimal-leading-zero);
-  position: absolute;
-  inset: var(--espace-6) auto auto 0;
-  color: var(--encre-douce);
-  font-family: var(--serif);
-  font-size: var(--texte-s);
-  font-variant-numeric: tabular-nums;
 }
 .insight article { min-width: 0; }
 .insight :is(h3, h4) {
@@ -5285,8 +5271,7 @@ summary.pont__rangee,
     grid-template-columns: minmax(0, 1fr);
   }
   .insights__theme-entete h3 { font-size: var(--texte-xl); }
-  .insight { padding: var(--espace-5) 0 var(--espace-6) calc(var(--espace-6) + var(--espace-2)); }
-  .insight::before { top: var(--espace-5); }
+  .insight { padding: var(--espace-5) 0 var(--espace-6); }
   .insight :is(h3, h4) { font-size: var(--texte-xl); }
 }
 
