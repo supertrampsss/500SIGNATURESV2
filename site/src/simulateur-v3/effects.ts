@@ -1,5 +1,6 @@
 import { clearSelection, currentDecision } from "./campaign.ts";
 import { isEffectRule, validateScenario } from "./validation.ts";
+import { materializedDelayedEventId } from "./types.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -56,7 +57,7 @@ function assertDueAtDecision(dueAtDecision: number): void {
 
 function eventForDelayedEffect(decision: Decision, option: DecisionOption, effect: EffectRule, dueAtDecision: number): ScheduledEvent {
   return {
-    id: `${decision.id}:${option.id}:${effect.id}`,
+    id: materializedDelayedEventId(decision.id, option.id, effect.id),
     sourceDecisionId: decision.id,
     sourceOptionId: option.id,
     dueAtDecision,

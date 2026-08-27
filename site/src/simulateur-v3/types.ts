@@ -73,6 +73,11 @@ export type ScheduledEventRule = {
   effects: EffectRule[];
 };
 
+/** Stable queue identifier used when a delayed direct effect materializes as an event. */
+export function materializedDelayedEventId(decisionId: string, optionId: string, effectId: string): string {
+  return `${decisionId}:${optionId}:${effectId}`;
+}
+
 export type PromiseRule = {
   id: string;
   label: string;

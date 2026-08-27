@@ -8,6 +8,8 @@ import {
   type EffectRule,
   type GroupKey,
   type IndicatorKey,
+  materializedDelayedEventId,
+  type PromiseRule,
   type Scenario,
 } from "./types.ts";
 
@@ -56,6 +58,10 @@ function duplicateValues(values: readonly string[]): string[] {
   return [...duplicates];
 }
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
 function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
   const actualKeys = Object.keys(value);
   return actualKeys.length === expectedKeys.length
@@ -77,6 +83,15 @@ export function isEffectRule(value: unknown): value is EffectRule {
 
 function isImmediateEffectRule(value: unknown): value is EffectRule {
   return isEffectRule(value) && value.timing.kind === "immediate";
+}
+
+function isDeclaredPromiseRule(value: unknown): value is PromiseRule {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && typeof value.label === "string"
+    && isPositiveInteger(value.dueAfterDecisions)
+    && Array.isArray(value.failureEffects)
+    && value.failureEffects.every(isImmediateEffectRule);
 }
 
 function effectId(value: unknown, fallback: string): string {
@@ -275,6 +290,80 @@ function validatePromise(promise: unknown, position: number | undefined, errors:
   }
 }
 
+function validateOptionReferences(
+  option: unknown,
+  optionId: string,
+  decisionIds: ReadonlySet<string>,
+  promiseIds: ReadonlySet<string>,
+  errors: string[],
+): void {
+  const locks = isRecord(option) ? option.locks : undefined;
+  const unlocks = isRecord(option) ? option.unlocks : undefined;
+  const fulfillsPromises = isRecord(option) ? option.fulfillsPromises : undefined;
+
+  if (!isStringArray(locks)) {
+    errors.push(`option:${optionId}:locks-must-be-string-array`);
+  } else {
+    for (const id of duplicateValues(locks)) errors.push(`option:${optionId}:duplicate-lock:${id}`);
+    for (const id of locks) if (!decisionIds.has(id)) errors.push(`option:${optionId}:lock-unknown-decision:${id}`);
+  }
+  if (!isStringArray(unlocks)) {
+    errors.push(`option:${optionId}:unlocks-must-be-string-array`);
+  } else {
+    for (const id of duplicateValues(unlocks)) errors.push(`option:${optionId}:duplicate-unlock:${id}`);
+    for (const id of unlocks) if (!decisionIds.has(id)) errors.push(`option:${optionId}:unlock-unknown-decision:${id}`);
+  }
+  if (isStringArray(locks) && isStringArray(unlocks)) {
+    for (const id of locks) if (unlocks.includes(id)) errors.push(`option:${optionId}:lock-unlock-overlap:${id}`);
+  }
+  if (!isStringArray(fulfillsPromises)) {
+    errors.push(`option:${optionId}:fulfills-promises-must-be-string-array`);
+  } else {
+    for (const id of duplicateValues(fulfillsPromises)) errors.push(`option:${optionId}:duplicate-fulfilled-promise:${id}`);
+    for (const id of fulfillsPromises) if (!promiseIds.has(id)) errors.push(`option:${optionId}:unknown-fulfilled-promise:${id}`);
+  }
+}
+
+function optionEffectRules(
+  effects: readonly unknown[],
+  events: readonly unknown[],
+  promises: readonly unknown[],
+): EffectRule[] {
+  const rules = effects.filter(isEffectRule);
+  for (const event of events) {
+    if (isRecord(event) && Array.isArray(event.effects)) rules.push(...event.effects.filter(isEffectRule));
+  }
+  for (const promise of promises) {
+    if (isRecord(promise) && Array.isArray(promise.failureEffects)) rules.push(...promise.failureEffects.filter(isEffectRule));
+  }
+  return rules;
+}
+
+function validateOptionEffectIds(
+  decisionId: string,
+  optionId: string,
+  effects: readonly unknown[],
+  events: readonly unknown[],
+  promises: readonly unknown[],
+  explicitEventIds: ReadonlySet<string>,
+  errors: string[],
+): string[] {
+  for (const id of duplicateValues(optionEffectRules(effects, events, promises).map((effect) => effect.id))) {
+    errors.push(`option:${optionId}:duplicate-effect-id:${id}`);
+  }
+  const delayedEventIds = effects
+    .filter(isEffectRule)
+    .filter((effect) => effect.timing.kind === "after_decisions")
+    .map((effect) => materializedDelayedEventId(decisionId, optionId, effect.id));
+  for (const id of duplicateValues(delayedEventIds)) {
+    errors.push(`option:${optionId}:duplicate-materialized-event-id:${id}`);
+  }
+  for (const id of delayedEventIds) {
+    if (explicitEventIds.has(id)) errors.push(`option:${optionId}:materialized-event-id-collides:${id}`);
+  }
+  return delayedEventIds;
+}
+
 /** Returns paths to each editorial em dash in JSON-compatible data. */
 export function assertNoEmDash(value: unknown): string[] {
   const paths: string[] = [];
@@ -334,6 +423,12 @@ export function validateScenario(scenario: Scenario): string[] {
       ? option.promises.map((promise) => effectId(promise, "unknown"))
       : [])
     : []);
+  const declaredPromiseIds = new Set(decisions.flatMap((decision) => Array.isArray(decision.options)
+    ? decision.options.flatMap((option) => isRecord(option) && Array.isArray(option.promises)
+      ? option.promises.filter(isDeclaredPromiseRule).map((promise) => promise.id)
+      : [])
+    : []));
+  const explicitScheduledEventIds = new Set(scheduledEventIds);
   for (const id of duplicateValues(scheduledEventIds)) errors.push(`scenario:duplicate-scheduled-event-id:${id}`);
   for (const id of duplicateValues(promiseIds)) errors.push(`scenario:duplicate-promise-id:${id}`);
   for (const decision of decisions) {
@@ -343,6 +438,7 @@ export function validateScenario(scenario: Scenario): string[] {
   }
 
   const decisionsById = new Map(decisions.map((decision) => [decision.id, decision]));
+  const decisionIds = new Set(decisionsById.keys());
   for (const chapter of chapters) {
     if (!isRecord(chapter) || typeof chapter.id !== "string" || !Array.isArray(chapter.decisionIds)) continue;
     for (const id of chapter.decisionIds) {
@@ -363,6 +459,7 @@ export function validateScenario(scenario: Scenario): string[] {
   }
 
   const positions = validatedChapterIds(chapters);
+  const materializedDelayedEventIds: string[] = [];
   for (const decision of decisions) {
     const options = Array.isArray(decision.options) ? decision.options : [];
     if (options.length < 2 || options.length > 4) errors.push(`decision:${decision.id}:expected-2-to-4-options`);
@@ -372,6 +469,10 @@ export function validateScenario(scenario: Scenario): string[] {
       const effects = isRecord(option) && Array.isArray(option.effects) ? option.effects : [];
       const events = isRecord(option) && Array.isArray(option.scheduledEvents) ? option.scheduledEvents : [];
       const promises = isRecord(option) && Array.isArray(option.promises) ? option.promises : [];
+      validateOptionReferences(option, optionId, decisionIds, declaredPromiseIds, errors);
+      materializedDelayedEventIds.push(
+        ...validateOptionEffectIds(decision.id, optionId, effects, events, promises, explicitScheduledEventIds, errors),
+      );
       if (!isRecord(option) || !Array.isArray(option.beneficiaries) || option.beneficiaries.length === 0) errors.push(`option:${optionId}:beneficiaries-required`);
       if (!isRecord(option) || !Array.isArray(option.contributors) || option.contributors.length === 0) errors.push(`option:${optionId}:contributors-required`);
       if (effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
@@ -390,6 +491,9 @@ export function validateScenario(scenario: Scenario): string[] {
     if (decision.historicalPrecedent && (!isRecord(decision.historicalPrecedent) || typeof decision.historicalPrecedent.sourceUrl !== "string" || !decision.historicalPrecedent.sourceUrl.startsWith("https://"))) {
       errors.push(`precedent:${decision.id}:https-required`);
     }
+  }
+  for (const id of duplicateValues(materializedDelayedEventIds)) {
+    errors.push(`scenario:duplicate-materialized-event-id:${id}`);
   }
   for (const path of assertNoEmDash(rawScenario)) errors.push(`editorial:em-dash:${path}`);
   return errors;

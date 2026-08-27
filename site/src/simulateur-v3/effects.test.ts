@@ -172,19 +172,24 @@ test("les événements échus appliquent leurs effets et sortent de la file", ()
 
 test("confirmer applique les verrous, déverrouillages et promesses remplies", () => {
   const scenario = validScenario();
-  const option = scenario.decisions[0]!.options[0]!;
+  const firstOption = scenario.decisions[0]!.options[0]!;
+  firstOption.promises = [{
+    id: "old-promise",
+    label: "Ancienne promesse",
+    dueAfterDecisions: 3,
+    failureEffects: [],
+  }];
+  const option = scenario.decisions[1]!.options[0]!;
   option.locks = ["decision-3"];
   option.unlocks = ["decision-4"];
   option.fulfillsPromises = ["old-promise"];
   const state = {
-    ...startAtFirstDecision(scenario),
-    activePromises: [{
-      id: "old-promise", sourceDecisionId: "decision-1", sourceOptionId: "decision-1-option-a", label: "Ancienne promesse", dueAtDecision: 4,
-      fulfilled: false, failureEffects: [],
-    }],
+    ...confirmFirstDecision(scenario),
+    phase: "decision" as const,
+    decisionIndex: 1,
     lockedDecisionIds: ["decision-4"],
   };
-  const confirmed = confirmSelection(selectOption(state, scenario, "decision-1", "decision-1-option-a"), scenario);
+  const confirmed = confirmSelection(selectOption(state, scenario, "decision-2", "decision-2-option-a"), scenario);
   assert.deepEqual(confirmed.lockedDecisionIds, ["decision-3"]);
   assert.ok(confirmed.unlockedDecisionIds.includes("decision-4"));
   assert.equal(confirmed.activePromises[0]?.fulfilled, true);

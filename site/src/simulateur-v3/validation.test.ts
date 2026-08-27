@@ -450,3 +450,111 @@ test("la validation refuse toute règle créée à la décision 96 et due après
   assert.ok(validateScenario(scenario).includes("event:event-after-96:due-after-campaign"));
   assert.ok(validateScenario(scenario).includes("promise:promise-after-96:due-after-campaign"));
 });
+
+test("la validation refuse les verrous inconnus, dupliqués ou chevauchants", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.locks = ["missing-decision", "decision-3", "decision-3"];
+  option.unlocks = ["other-missing-decision", "decision-3", "decision-3"];
+
+  const errors = validateScenario(scenario);
+
+  assert.ok(errors.includes("option:decision-1-option-a:lock-unknown-decision:missing-decision"));
+  assert.ok(errors.includes("option:decision-1-option-a:unlock-unknown-decision:other-missing-decision"));
+  assert.ok(errors.includes("option:decision-1-option-a:duplicate-lock:decision-3"));
+  assert.ok(errors.includes("option:decision-1-option-a:duplicate-unlock:decision-3"));
+  assert.ok(errors.includes("option:decision-1-option-a:lock-unlock-overlap:decision-3"));
+
+  const malformedScenario = validScenario();
+  const malformedOption = malformedScenario.decisions[0]!.options[0]! as unknown as {
+    locks: unknown;
+    unlocks: unknown;
+  };
+  malformedOption.locks = "decision-3";
+  malformedOption.unlocks = [42];
+  const malformedErrors = validateScenario(malformedScenario);
+  assert.ok(malformedErrors.includes("option:decision-1-option-a:locks-must-be-string-array"));
+  assert.ok(malformedErrors.includes("option:decision-1-option-a:unlocks-must-be-string-array"));
+});
+
+test("la validation refuse les promesses accomplies inconnues ou dupliquées", () => {
+  const scenario = validScenario();
+  scenario.decisions[1]!.options[0]!.promises = [{
+    id: "declared-promise",
+    label: "Promesse déclarée",
+    dueAfterDecisions: 1,
+    failureEffects: [],
+  }];
+  const option = scenario.decisions[0]!.options[0]!;
+  option.fulfillsPromises = ["missing-promise", "missing-promise"];
+
+  const errors = validateScenario(scenario);
+
+  assert.ok(errors.includes("option:decision-1-option-a:unknown-fulfilled-promise:missing-promise"));
+  assert.ok(errors.includes("option:decision-1-option-a:duplicate-fulfilled-promise:missing-promise"));
+
+  const malformedScenario = validScenario();
+  (malformedScenario.decisions[0]!.options[0]! as unknown as { fulfillsPromises: unknown }).fulfillsPromises = [42];
+  assert.ok(
+    validateScenario(malformedScenario).includes("option:decision-1-option-a:fulfills-promises-must-be-string-array"),
+  );
+});
+
+test("la validation réserve les identifiants matérialisés dans la même option", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  const immediateEffect = {
+    id: "shared-effect",
+    target: "indicator" as const,
+    key: "growth" as const,
+    delta: 1,
+    timing: { kind: "immediate" as const },
+    duration: "once" as const,
+    explanation: "Effet immédiat",
+  };
+  const delayedEffect = {
+    id: "same-delayed-effect",
+    target: "indicator" as const,
+    key: "growth" as const,
+    delta: 1,
+    timing: { kind: "after_decisions" as const, count: 1 },
+    duration: "once" as const,
+    explanation: "Effet différé",
+  };
+  option.effects = [immediateEffect, delayedEffect, { ...delayedEffect }];
+  option.scheduledEvents = [{
+    id: "event-with-shared-effect",
+    title: "Événement local",
+    body: "Événement explicite",
+    afterDecisions: 1,
+    effects: [{ ...immediateEffect }],
+  }];
+  option.promises = [{
+    id: "promise-with-shared-effect",
+    label: "Promesse avec effet partagé",
+    dueAfterDecisions: 1,
+    failureEffects: [{ ...immediateEffect }],
+  }];
+  scenario.decisions[1]!.options[0]!.scheduledEvents = [{
+    id: "decision-1:decision-1-option-a:same-delayed-effect",
+    title: "Collision distante",
+    body: "Événement explicite",
+    afterDecisions: 1,
+    effects: [],
+  }];
+
+  const errors = validateScenario(scenario);
+
+  assert.ok(errors.includes("option:decision-1-option-a:duplicate-effect-id:shared-effect"));
+  assert.ok(errors.includes("option:decision-1-option-a:duplicate-effect-id:same-delayed-effect"));
+  assert.ok(
+    errors.includes(
+      "option:decision-1-option-a:duplicate-materialized-event-id:decision-1:decision-1-option-a:same-delayed-effect",
+    ),
+  );
+  assert.ok(
+    errors.includes(
+      "option:decision-1-option-a:materialized-event-id-collides:decision-1:decision-1-option-a:same-delayed-effect",
+    ),
+  );
+});

@@ -38,3 +38,36 @@ All final-review findings were corrected in the V3 core engine. The domain now r
 
 - Vite still reports the repository's existing large generated JavaScript chunk warning. The build succeeds and this change does not add a bundle dependency.
 - A persisted V3 save from before these schema hardenings that lacks causal `duration` or promise `sourceOptionId` is intentionally rejected as invalid rather than trusted.
+
+## Catalogue-reference hardening addendum
+
+### TDD evidence
+
+- RED targeted command:
+  `node --experimental-strip-types --test src/simulateur-v3/validation.test.ts src/simulateur-v3/storage.test.ts`
+  Result: 37 passed and 3 expected failures. The failing regressions covered unknown or duplicate locks, unknown or duplicate fulfilled promises, and duplicate materialized delayed-event identifiers.
+
+- GREEN targeted rerun of the same command: 40 passed, 0 failed.
+
+- V3 suite initially exposed one historical fixture that fulfilled an undeclared promise. The fixture was made realistic by materializing that declared promise on decision 1 before fulfilling it on decision 2. Final V3 result: 82 passed, 0 failed.
+
+### Changes
+
+- `types.ts` exports `materializedDelayedEventId`, the one stable identifier function for delayed effects converted to queued events.
+- `validation.ts` verifies that `locks`, `unlocks`, and `fulfillsPromises` are string arrays; validates known decision and declared-promise references; rejects duplicate and overlapping lock lists; rejects repeated `EffectRule.id` values across a single option's direct, event, and promise-failure effects; and rejects materialized delayed-event IDs that collide with explicit queued events or another delayed effect.
+- `effects.ts` uses the same materialized-event identifier function when scheduling consequences, preventing validation and runtime ID generation from diverging.
+- `effects.test.ts` now models the promise lifecycle that the strengthened catalogue invariant requires.
+- `storage.test.ts` adds a concrete catalogue to create, select, confirm, validate, save, restore, and validate again with locks, a promise, and a delayed effect.
+
+### Final verification
+
+- Targeted validation and storage tests: 40 passed, 0 failed.
+- V3 suite: 82 passed, 0 failed.
+- `npm test`: 1437 passed, 0 failed.
+- `npm run build`: passed, including TypeScript, Vite, and prerender.
+- `git diff --check`: passed.
+- U+2014 scan of `site/src/simulateur-v3` and this report: no matches.
+
+### Concerns
+
+- Vite continues to emit its pre-existing large generated chunk warning. It does not fail the build and is outside this validation hardening scope.

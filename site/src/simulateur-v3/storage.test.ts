@@ -13,8 +13,10 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike {
 }
 
 import { clearCampaign, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
-import { createCampaign } from "./campaign.ts";
+import { createCampaign, selectOption } from "./campaign.ts";
+import { confirmSelection } from "./effects.ts";
 import { validScenario } from "./test-fixtures.ts";
+import { isCampaignState, validateScenario } from "./validation.ts";
 
 test("une campagne V3 sauvegardée est restaurée sans perte", () => {
   const storage = memoryStorage();
@@ -116,4 +118,47 @@ test("une erreur d'effacement ne propage pas", () => {
     removeItem() { throw new Error("storage unavailable"); },
   };
   assert.doesNotThrow(() => clearCampaign(storage));
+});
+
+test("un état avec verrous, promesse et effet différé reste restaurable", () => {
+  const storage = memoryStorage();
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.locks = ["decision-3"];
+  option.unlocks = ["decision-4"];
+  option.effects = [{
+    id: "persistent-delayed-effect",
+    target: "indicator",
+    key: "growth",
+    delta: 2,
+    timing: { kind: "after_decisions", count: 1 },
+    duration: "once",
+    explanation: "Conséquence différée",
+  }];
+  option.promises = [{
+    id: "persistent-promise",
+    label: "Promesse persistante",
+    dueAfterDecisions: 1,
+    failureEffects: [],
+  }];
+  option.fulfillsPromises = ["persistent-promise"];
+
+  assert.deepEqual(validateScenario(scenario), []);
+
+  const selected = selectOption(
+    { ...createCampaign(scenario), phase: "decision" as const },
+    scenario,
+    "decision-1",
+    "decision-1-option-a",
+  );
+  const confirmed = confirmSelection(selected, scenario);
+  assert.equal(isCampaignState(confirmed, scenario), true);
+
+  const saved = saveCampaign(storage, confirmed, new Date("2026-08-27T12:00:00.000Z"));
+  const restored = restoreCampaign(storage, scenario);
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    assert.deepEqual(restored.state, saved);
+    assert.equal(isCampaignState(restored.state, scenario), true);
+  }
 });
