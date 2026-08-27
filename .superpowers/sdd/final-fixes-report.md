@@ -71,3 +71,34 @@ All final-review findings were corrected in the V3 core engine. The domain now r
 ### Concerns
 
 - Vite continues to emit its pre-existing large generated chunk warning. It does not fail the build and is outside this validation hardening scope.
+
+## Event and promise field hardening addendum
+
+### TDD evidence
+
+- RED targeted command:
+  `node --experimental-strip-types --test src/simulateur-v3/validation.test.ts src/simulateur-v3/effects.test.ts`
+  Result: 46 passed and 11 expected failures. The failures covered each malformed or empty scheduled-event and promise field, plus rejection before confirmation.
+
+- GREEN rerun of the same command: 57 passed, 0 failed.
+
+### Changes
+
+- `validation.ts` now requires trimmed non-empty strings for `ScheduledEventRule.id`, `title`, and `body`, and for `PromiseRule.id` and `label`.
+- The declared-promise lookup uses the same non-empty identifier and label rule, so a malformed rule cannot satisfy `fulfillsPromises`.
+- Existing positive-integer validation for `afterDecisions` and `dueAfterDecisions` remains in place and has explicit regression coverage.
+- `validation.test.ts` has independent cases for wrong-type and empty values of all five required fields.
+- `effects.test.ts` proves `confirmSelection` rejects an edited malformed catalogue before it schedules its consequence.
+
+### Final verification
+
+- Targeted validation suite: 39 passed, 0 failed.
+- V3 suite: 94 passed, 0 failed.
+- `npm test`: 1449 passed, 0 failed.
+- `npm run build`: passed, including TypeScript, Vite, and prerender.
+- `git diff --check`: passed.
+- U+2014 scan of `site/src/simulateur-v3` and this report: no matches.
+
+### Concerns
+
+- Vite continues to emit its existing large generated chunk warning. It does not fail the build and is outside this validation hardening scope.

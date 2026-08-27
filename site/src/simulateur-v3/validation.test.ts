@@ -558,3 +558,70 @@ test("la validation réserve les identifiants matérialisés dans la même optio
     ),
   );
 });
+
+for (const [description, field, value, expectedError] of [
+  ["un identifiant d'événement non textuel", "id", 42, "event:unknown:id-must-be-non-empty-string"],
+  ["un identifiant d'événement vide", "id", "", "event:unknown:id-must-be-non-empty-string"],
+  ["un titre d'événement non textuel", "title", 42, "event:event:title-must-be-non-empty-string"],
+  ["un titre d'événement vide", "title", "", "event:event:title-must-be-non-empty-string"],
+  ["un corps d'événement non textuel", "body", 42, "event:event:body-must-be-non-empty-string"],
+  ["un corps d'événement vide", "body", "", "event:event:body-must-be-non-empty-string"],
+] as const) {
+  test(`la validation refuse ${description}`, () => {
+    const scenario = validScenario();
+    const event: Record<string, unknown> = {
+      id: "event",
+      title: "Événement",
+      body: "Texte",
+      afterDecisions: 1,
+      effects: [],
+    };
+    event[field] = value;
+    scenario.decisions[0]!.options[0]!.scheduledEvents = [event] as unknown as Scenario["decisions"][number]["options"][number]["scheduledEvents"];
+
+    assert.ok(validateScenario(scenario).includes(expectedError));
+  });
+}
+
+for (const [description, field, value, expectedError] of [
+  ["un identifiant de promesse non textuel", "id", 42, "promise:unknown:id-must-be-non-empty-string"],
+  ["un identifiant de promesse vide", "id", "", "promise:unknown:id-must-be-non-empty-string"],
+  ["un libellé de promesse non textuel", "label", 42, "promise:promise:label-must-be-non-empty-string"],
+  ["un libellé de promesse vide", "label", "", "promise:promise:label-must-be-non-empty-string"],
+] as const) {
+  test(`la validation refuse ${description}`, () => {
+    const scenario = validScenario();
+    const promise: Record<string, unknown> = {
+      id: "promise",
+      label: "Promesse",
+      dueAfterDecisions: 1,
+      failureEffects: [],
+    };
+    promise[field] = value;
+    scenario.decisions[0]!.options[0]!.promises = [promise] as unknown as Scenario["decisions"][number]["options"][number]["promises"];
+
+    assert.ok(validateScenario(scenario).includes(expectedError));
+  });
+}
+
+test("la validation conserve les délais positifs des événements et promesses", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.scheduledEvents = [{
+    id: "event-with-invalid-delay",
+    title: "Événement",
+    body: "Texte",
+    afterDecisions: 0,
+    effects: [],
+  }];
+  option.promises = [{
+    id: "promise-with-invalid-delay",
+    label: "Promesse",
+    dueAfterDecisions: 0,
+    failureEffects: [],
+  }];
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes("event:event-with-invalid-delay:delayed-count-required"));
+  assert.ok(errors.includes("promise:promise-with-invalid-delay:delayed-count-required"));
+});

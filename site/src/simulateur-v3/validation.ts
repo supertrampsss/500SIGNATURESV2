@@ -62,6 +62,10 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === "string");
 }
 
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
   const actualKeys = Object.keys(value);
   return actualKeys.length === expectedKeys.length
@@ -87,8 +91,8 @@ function isImmediateEffectRule(value: unknown): value is EffectRule {
 
 function isDeclaredPromiseRule(value: unknown): value is PromiseRule {
   return isRecord(value)
-    && typeof value.id === "string"
-    && typeof value.label === "string"
+    && isNonEmptyString(value.id)
+    && isNonEmptyString(value.label)
     && isPositiveInteger(value.dueAfterDecisions)
     && Array.isArray(value.failureEffects)
     && value.failureEffects.every(isImmediateEffectRule);
@@ -267,7 +271,10 @@ function validateDirectEffect(effect: unknown, position: number | undefined, err
 }
 
 function validateScheduledEvent(event: unknown, position: number | undefined, errors: string[]): void {
-  const id = effectId(event, "unknown");
+  const id = isRecord(event) && isNonEmptyString(event.id) ? event.id : "unknown";
+  if (!isRecord(event) || !isNonEmptyString(event.id)) errors.push(`event:${id}:id-must-be-non-empty-string`);
+  if (!isRecord(event) || !isNonEmptyString(event.title)) errors.push(`event:${id}:title-must-be-non-empty-string`);
+  if (!isRecord(event) || !isNonEmptyString(event.body)) errors.push(`event:${id}:body-must-be-non-empty-string`);
   if (!isRecord(event) || !isPositiveInteger(event.afterDecisions)) {
     errors.push(`event:${id}:delayed-count-required`);
   } else if (position !== undefined && position + event.afterDecisions > CAMPAIGN_DECISION_COUNT) {
@@ -279,7 +286,9 @@ function validateScheduledEvent(event: unknown, position: number | undefined, er
 }
 
 function validatePromise(promise: unknown, position: number | undefined, errors: string[]): void {
-  const id = effectId(promise, "unknown");
+  const id = isRecord(promise) && isNonEmptyString(promise.id) ? promise.id : "unknown";
+  if (!isRecord(promise) || !isNonEmptyString(promise.id)) errors.push(`promise:${id}:id-must-be-non-empty-string`);
+  if (!isRecord(promise) || !isNonEmptyString(promise.label)) errors.push(`promise:${id}:label-must-be-non-empty-string`);
   if (!isRecord(promise) || !isPositiveInteger(promise.dueAfterDecisions)) {
     errors.push(`promise:${id}:delayed-count-required`);
   } else if (position !== undefined && position + promise.dueAfterDecisions > CAMPAIGN_DECISION_COUNT) {

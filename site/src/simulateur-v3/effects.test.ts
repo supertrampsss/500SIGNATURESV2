@@ -218,6 +218,21 @@ test("confirmer refuse un scénario modifié avec une conséquence à échéance
   assert.throws(() => confirmSelection(selected, scenario), /Invalid scenario/);
 });
 
+test("confirmer refuse un scénario modifié avec un événement sans titre", () => {
+  const scenario = validScenario();
+  const started = startAtFirstDecision(scenario);
+  scenario.decisions[0]!.options[0]!.scheduledEvents = [{
+    id: "event-without-title",
+    title: "",
+    body: "Texte",
+    afterDecisions: 1,
+    effects: [],
+  }];
+
+  const selected = selectOption(started, scenario, "decision-1", "decision-1-option-a");
+  assert.throws(() => confirmSelection(selected, scenario), /event:event-without-title:title-must-be-non-empty-string/);
+});
+
 test("résoudre un événement non valide échoue au lieu de changer son timing", () => {
   const scenario = validScenario();
   const state = createCampaign(scenario);
