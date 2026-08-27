@@ -124,10 +124,13 @@ import { carteRetenue, type Analyse } from "./analyse-rendu.ts";
 import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
+import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
+import { SCENARIO_V3_PREVIEW } from "./simulateur-v3/scenario.ts";
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
 import "./styles/tunnel-cabinet.css";
+import "./styles/simulateur-v3.css";
 import "./styles/accueil-parcours.css";
 import "./styles/bilan-guide.css";
 import "./styles/territoire-briefing.css";
@@ -2400,6 +2403,7 @@ const VOLETS_PUBLIES: VoletPublie[] = [
 let exercicesParVolet: { volet: VoletPublie; exercice: string }[] = [];
 let atelierMonte = false;
 let terminerSessionImmersive: (() => void) | null = null;
+let demonterSimulateurV3: (() => void) | null = null;
 let evenementsInterfaceBranches = false;
 /** Les volets réellement montés dans l'atelier : posés une seule fois, à la
  *  première ouverture (`ouvrirSimulateur`), et relus par tout ce qui doit
@@ -2444,8 +2448,14 @@ function brancherEvenementsInterface(): void {
   });
 }
 
+function versionSimulateurV3(): boolean {
+  return new URLSearchParams(location.search).get("version") === "3";
+}
+
 function vuesConnues(): readonly string[] {
-  return exercicesParVolet.length ? [...VUES_PAGE, "simulateur"] : VUES_PAGE;
+  return exercicesParVolet.length || versionSimulateurV3()
+    ? [...VUES_PAGE, "simulateur"]
+    : VUES_PAGE;
 }
 
 function rendreNavigationPrincipale(): void {
@@ -2455,7 +2465,9 @@ function rendreNavigationPrincipale(): void {
   // chargent volontairement pas le paquet budgétaire. Leur lien « Simuler »
   // reste pourtant une porte de navigation. Les vues de l'application, elles,
   // ne le déverrouillent qu'une fois les exercices effectivement publiés.
-  const simulateurDisponible = document.body.dataset.page === "editorial" || exercicesParVolet.length > 0;
+  const simulateurDisponible = document.body.dataset.page === "editorial"
+    || exercicesParVolet.length > 0
+    || versionSimulateurV3();
   navigation.innerHTML = renduNavigation(location.pathname, simulateurDisponible);
 }
 
@@ -2618,9 +2630,10 @@ function basculerVue(): void {
     : estAccueil(location.pathname, location.hash)
       ? "accueil"
       : "territoire";
-  if (vue !== "simulateur") {
+  if (vue !== "simulateur" || !versionSimulateurV3()) {
     terminerSessionImmersive?.();
     terminerSessionImmersive = null;
+    demonterApercuSimulateurV3();
   }
   document.body.dataset.vue = vue;
   rendreNavigationPrincipale();
@@ -3811,6 +3824,25 @@ function brancherScenarios(): void {
  * laisser une section vide au milieu de la page.
  */
 async function ouvrirSimulateur(): Promise<void> {
+  const hoteV3 = $<HTMLElement>("simulateur-v3");
+  const tunnel = $<HTMLElement>("tunnel");
+  const expert = $<HTMLElement>("mode-expert");
+
+  if (versionSimulateurV3()) {
+    terminerSessionImmersive?.();
+    terminerSessionImmersive = null;
+    tunnel.hidden = true;
+    expert.hidden = true;
+    hoteV3.hidden = false;
+    if (!demonterSimulateurV3) {
+      demonterSimulateurV3 = mountSimulatorV3(hoteV3, SCENARIO_V3_PREVIEW);
+    }
+    return;
+  }
+
+  demonterApercuSimulateurV3();
+  hoteV3.hidden = true;
+  tunnel.hidden = false;
   if (atelierMonte || !exercicesParVolet.length) return;
   atelierMonte = true;
   const charges = await Promise.all(
@@ -3909,6 +3941,11 @@ async function ouvrirSimulateur(): Promise<void> {
   await chargerReferences();
   brancherScenarios();
   montrerScenarios();
+}
+
+function demonterApercuSimulateurV3(): void {
+  demonterSimulateurV3?.();
+  demonterSimulateurV3 = null;
 }
 
 async function demarrer(): Promise<void> {

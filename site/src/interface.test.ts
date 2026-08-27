@@ -38,6 +38,7 @@ const BILAN_GUIDE = readFileSync(new URL("./styles/bilan-guide.css", import.meta
 const NAVIGATION = readFileSync(new URL("./styles/navigation.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
+const SIMULATEUR_V3 = readFileSync(new URL("./styles/simulateur-v3.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const DOSSIERS_VERIFICATION = readFileSync(new URL("./styles/dossiers-verification.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const REGISTRE_SOURCES = readFileSync(new URL("./styles/registre-sources.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -3340,13 +3341,14 @@ test("les documents éditoriaux gardent Simuler disponible sans ouvrir la SPA sa
   );
   // Les pages pré-rendues ne chargent pas les budgets : leur lien reste une
   // porte vers le simulateur. Les vues SPA, elles, restent liées à la présence
-  // effective des exercices.
+  // effective des exercices. La préversion V3, autonome, reste ouvrable par
+  // son paramètre explicite sans faire croire que la V2 a des données.
   assert.match(
     navigation,
-    /const simulateurDisponible = document\.body\.dataset\.page === "editorial" \|\| exercicesParVolet\.length > 0;/,
+    /const simulateurDisponible = document\.body\.dataset\.page === "editorial"[\s\S]*?\|\| exercicesParVolet\.length > 0[\s\S]*?\|\| versionSimulateurV3\(\);/,
   );
   assert.match(navigation, /renduNavigation\(location\.pathname, simulateurDisponible\)/);
-  assert.match(MAIN, /function vuesConnues\(\): readonly string\[\] \{\s*return exercicesParVolet\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/s);
+  assert.match(MAIN, /function vuesConnues\(\): readonly string\[\] \{\s*return exercicesParVolet\.length \|\| versionSimulateurV3\(\)[\s\S]*?\? \[\.\.\.VUES_PAGE, "simulateur"\][\s\S]*?: VUES_PAGE;/s);
 });
 
 test("les liens de navigation d'un document éditorial gardent leur navigation native", () => {
@@ -3503,4 +3505,48 @@ test("aucune navigation territoriale ne duplique les sections détaillées", () 
   assert.doesNotMatch(PAGE, /data-territoire-theme/);
   assert.doesNotMatch(MAIN, /data-territoire-theme/);
   assert.doesNotMatch(MAIN, /preparerAncresTerritoriales/);
+});
+
+test("le simulateur V3 possède une palette fixe et isolée", () => {
+  for (const token of ["shell", "dossier", "ink", "rule", "red", "gold"]) {
+    assert.match(SIMULATEUR_V3, new RegExp(`--v3-${token}:\\s*#[0-9a-f]{6};`, "i"));
+  }
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3\s*\{/);
+  assert.doesNotMatch(SIMULATEUR_V3, /@media\s*\(prefers-color-scheme:/);
+});
+
+test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__options\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
+  const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 60rem)"));
+  assert.match(desktop, /\.simulateur-v3__options\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s);
+  assert.match(SIMULATEUR_V3, /min-height:\s*var\(--cible\);/);
+  assert.match(SIMULATEUR_V3, /:focus-visible/);
+  assert.match(SIMULATEUR_V3, /\[aria-pressed="true"\]/);
+  assert.match(SIMULATEUR_V3, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.doesNotMatch(SIMULATEUR_V3, /position:\s*fixed/);
+  assert.match(SIMULATEUR_V3, /#simulateur-v3\s*\{[^}]*scroll-margin-top:\s*var\(--haut-entete\);/s);
+});
+
+test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {
+  const historique = MAIN.indexOf('import "./styles/tunnel-cabinet.css";');
+  const v3 = MAIN.indexOf('import "./styles/simulateur-v3.css";');
+  assert.ok(historique >= 0);
+  assert.ok(v3 > historique);
+});
+
+test("la préversion V3 possède son hôte et son branchement explicite", () => {
+  assert.match(PAGE, /<section id="simulateur-v3" hidden><\/section>/);
+  assert.match(MAIN, /import \{ mountSimulatorV3 \} from "\.\/simulateur-v3\/controller\.ts";/);
+  assert.match(MAIN, /import \{ SCENARIO_V3_PREVIEW \} from "\.\/simulateur-v3\/scenario\.ts";/);
+  assert.match(MAIN, /new URLSearchParams\(location\.search\)\.get\("version"\) === "3"/);
+});
+
+test("la V3 garde le chrome du site et ne déclenche jamais le plein écran historique", () => {
+  const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
+  const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
+  assert.match(brancheV3, /mountSimulatorV3\(hoteV3, SCENARIO_V3_PREVIEW\)/);
+  assert.match(brancheV3, /tunnel\.hidden = true/);
+  assert.match(brancheV3, /expert\.hidden = true/);
+  assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);
+  assert.match(MAIN, /if \(vue !== "simulateur" \|\| !versionSimulateurV3\(\)\) \{[\s\S]*?demonterApercuSimulateurV3\(\);/);
 });
