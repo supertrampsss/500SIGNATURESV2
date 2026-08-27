@@ -34,6 +34,13 @@ const catalogue = [
   indicateur("rpls_logements_sociaux_passoires", "count"),
   indicateur("ore_conso_gaz", "mwh"),
   indicateur("ssmsi_vols_vehicules_taux", "pour_1000_habitants"),
+  indicateur("ofgl_recettes_fonctionnement", "EUR"),
+  indicateur("ofgl_depenses_fonctionnement", "EUR"),
+  indicateur("ofgl_epargne_brute", "EUR"),
+  indicateur("ofgl_encours_dette", "EUR"),
+  indicateur("ofgl_frais_personnel", "EUR"),
+  indicateur("ofgl_charges_financieres", "EUR"),
+  indicateur("ofgl_impots_locaux", "EUR"),
 ];
 
 const territoire = (series: Territoire["series"]): Territoire => ({
@@ -44,7 +51,7 @@ const territoire = (series: Territoire["series"]): Territoire => ({
   series,
 });
 
-test("insightsTerritoire produit neuf lectures normalisées", () => {
+test("insightsTerritoire ajoute les arbitrages financiers aux lectures de contexte", () => {
   const resultat = insightsTerritoire(
     territoire({
       dgfip_taux_tfb_global: { "2022": 20, "2025": 24 },
@@ -58,6 +65,13 @@ test("insightsTerritoire produit neuf lectures normalisées", () => {
       rpls_logements_sociaux_passoires: { "2025": 800 },
       ore_conso_gaz: { "2018": 900_000, "2024": 600_000 },
       ssmsi_vols_vehicules_taux: { "2016": 4, "2025": 2 },
+      ofgl_recettes_fonctionnement: { "2019": 40_000_000, "2025": 50_000_000 },
+      ofgl_depenses_fonctionnement: { "2019": 35_000_000, "2025": 45_000_000 },
+      ofgl_epargne_brute: { "2019": 5_000_000, "2025": 5_000_000 },
+      ofgl_encours_dette: { "2019": 25_000_000, "2025": 30_000_000 },
+      ofgl_frais_personnel: { "2019": 14_000_000, "2025": 18_000_000 },
+      ofgl_charges_financieres: { "2019": 1_500_000, "2025": 2_000_000 },
+      ofgl_impots_locaux: { "2019": 15_000_000, "2025": 20_000_000 },
     }),
     catalogue,
   );
@@ -66,6 +80,11 @@ test("insightsTerritoire produit neuf lectures normalisées", () => {
     resultat.map(({ id }) => id),
     [
       "foncier",
+      "impots-face-depenses",
+      "taux-epargne",
+      "dette-sur-epargne",
+      "poids-personnel",
+      "interets-sur-impots",
       "chomage",
       "logements-vacants",
       "cambriolages",
@@ -77,11 +96,16 @@ test("insightsTerritoire produit neuf lectures normalisées", () => {
     ],
   );
   assert.match(resultat[0].texte, /4 points/);
-  assert.match(resultat[1].titre, /8/);
-  assert.match(resultat[5].titre, /8,3 %/);
-  assert.match(resultat[6].titre, /8 %/);
-  assert.match(resultat[7].titre, /33,3 %/);
-  assert.match(resultat[8].titre, /2 vols/);
+  assert.match(resultat[1].titre, /Impôts locaux \+33,3 % · dépenses \+28,6 %/);
+  assert.match(resultat[2].titre, /10 % des recettes/);
+  assert.match(resultat[3].titre, /6 années d'épargne brute/);
+  assert.match(resultat[4].titre, /40 % des dépenses/);
+  assert.match(resultat[5].titre, /10 % des impôts locaux/);
+  assert.match(resultat[6].titre, /8/);
+  assert.match(resultat[10].titre, /8,3 %/);
+  assert.match(resultat[11].titre, /8 %/);
+  assert.match(resultat[12].titre, /33,3 %/);
+  assert.match(resultat[13].titre, /2 vols/);
   assert.equal(resultat.every(({ preuves }) => preuves.length >= 2), true);
 });
 

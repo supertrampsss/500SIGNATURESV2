@@ -67,8 +67,7 @@ function echapper(texte: string): string {
 }
 
 const MILLIARDS = new Intl.NumberFormat("fr-FR", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
+  maximumFractionDigits: 0,
 });
 
 /** Un montant en milliards, signé + : une recette entre. */

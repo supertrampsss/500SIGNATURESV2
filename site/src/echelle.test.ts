@@ -10,6 +10,7 @@ import { test } from "node:test";
 import {
   expressionCouleur,
   formater,
+  montantLisible,
   noteEchelle,
   parHabitantAUnSens,
   populationDeReference,
@@ -65,6 +66,12 @@ test("les montants gardent leur unité et leur ordre de grandeur", () => {
   assert.match(formater(-124_205_673_501.55, "EUR", false), /−124\u202f206\u202fM€/);
   assert.match(formater(456, "EUR", true), /456/);
   assert.equal(formater(67_339, "count", false), "67 339".replace(" ", " "));
+});
+
+test("un montant exprimé en milliards ne garde aucune décimale", () => {
+  assert.equal(montantLisible(152_510_000_000), "153\u00a0milliards d'euros");
+  assert.equal(montantLisible(-3_536_100_000_000), "−3\u202f536\u00a0milliards d'euros");
+  assert.equal(montantLisible(380_390_000), "380,39\u00a0millions d'euros");
 });
 
 test("un montant se lit en millions d'euros, du plus petit au plus grand", () => {

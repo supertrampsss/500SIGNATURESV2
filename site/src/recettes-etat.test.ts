@@ -46,10 +46,10 @@ test("chaque évolution donne ses deux bouts : 2017, 2025, puis la variation", (
   // le reproche du lecteur sur la maquette, et la raison d'être du module.
   const lu = texte(rendu({ FR: territoire(SERIES) }, CATALOGUE));
   assert.match(lu, /2017 2025 Variation/);
-  assert.match(lu, /Impôt sur le revenu \+73,0 \+94,9 \+30,1 %/);
-  assert.match(lu, /Impôt sur les sociétés \+35,7 \+59,9 \+67,8 %/);
-  assert.match(lu, /Taxe sur les produits énergétiques \(TICPE\) \+10,1 \+16,3 \+61,2 %/);
-  assert.match(lu, /Total encaissé par l'État \+309,5 \+380,4 \+22,9 %/);
+  assert.match(lu, /Impôt sur le revenu \+73 \+95 \+30,1 %/);
+  assert.match(lu, /Impôt sur les sociétés \+36 \+60 \+67,8 %/);
+  assert.match(lu, /Taxe sur les produits énergétiques \(TICPE\) \+10 \+16 \+61,2 %/);
+  assert.match(lu, /Total encaissé par l'État \+310 \+380 \+22,9 %/);
 });
 
 test("la TVA ne porte pas de variation nue : sa note de périmètre la remplace", () => {
@@ -63,13 +63,13 @@ test("la TVA ne porte pas de variation nue : sa note de périmètre la remplace"
   assert.doesNotMatch(rangTva, /−35,7/);
   assert.match(rangTva, /recettes__note">une part croissante est reversée</);
   // Les deux bouts, eux, restent écrits : le lecteur voit 152 puis 98.
-  assert.match(rangTva, /\+152,4/);
-  assert.match(rangTva, /\+98,1/);
+  assert.match(rangTva, /\+152/);
+  assert.match(rangTva, /\+98/);
 });
 
 test("les recettes s'écrivent en positif, du plus gros au plus petit", () => {
   const html = rendu({ FR: territoire(SERIES) }, CATALOGUE);
-  assert.match(html, /flux--plus">\+98,1/);
+  assert.match(html, /flux--plus">\+98/);
   assert.doesNotMatch(texte(html), /−9[48],/);
   // Le tri suit le dernier exercice, et la hiérarchie typographique le suit :
   // le rang 0 est la TVA.

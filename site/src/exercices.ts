@@ -186,10 +186,11 @@ function echelleDuTableau(lignes: readonly { valeurs: readonly (number | null)[]
 
 /** Un montant à l'échelle du tableau, sans son unité : la légende la porte. */
 function sansSigle(valeur: number, diviseur: number): string {
+  const decimales = diviseur === 1e9 ? 0 : 2;
   return moins(
     new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
     }).format(valeur / diviseur),
   );
 }

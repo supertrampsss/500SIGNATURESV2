@@ -60,7 +60,7 @@ export function creerInsightTendance(
     famille: recette.famille,
     surtitre: recette.surtitre,
     titre: `${recette.sujet} : ${amplitude}`,
-    texte: `La série publiée passe de ${formater(depart.valeur, recette.unite, false)} à ${formater(arrivee.valeur, recette.unite, false)} entre ${depart.periode} et ${arrivee.periode}, soit ${mouvement} de ${nombre.format(Math.abs(evolution))} ${enPoints ? "points" : "%"}.`,
+    texte: `La série publiée passe de ${formater(depart.valeur, recette.unite, false, recette.indicateur)} à ${formater(arrivee.valeur, recette.unite, false, recette.indicateur)} entre ${depart.periode} et ${arrivee.periode}, soit ${mouvement} de ${nombre.format(Math.abs(evolution))} ${enPoints ? "points" : "%"}.`,
     reserve: recette.reserve,
     comparaison: recette.indicateur.startsWith("eurostat_")
       ? comparaisonVoisins(pays, recette.indicateur, arrivee.periode, recette.unite)

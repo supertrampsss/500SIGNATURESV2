@@ -1,5 +1,6 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
-import { variation, type Insight, type PreuveInsight } from "./insights.ts";
+import { formater } from "./echelle.ts";
+import { periodeCommune, variation, type Insight, type PreuveInsight } from "./insights.ts";
 
 type Series = Territoire["series"];
 type BorneCommune = {
@@ -15,6 +16,11 @@ const nombre = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
 
 function pct(valeur: number): string {
   return `${nombre.format(Math.abs(valeur))} %`;
+}
+
+function pctSigne(valeur: number): string {
+  const signe = valeur > 0 ? "+" : valeur < 0 ? "−" : "";
+  return `${signe}${pct(valeur)}`;
 }
 
 function preuve(indicateur: string, periode: string, valeur: number, libelle: string): PreuveInsight {
@@ -60,6 +66,133 @@ function insightFoncier(series: Series, catalogue: Indicateur[]): Insight | null
     preuves: [
       preuve(id, evolution.de, evolution.depart, "Taux initial"),
       preuve(id, evolution.a, evolution.arrivee, "Dernier taux"),
+    ],
+  };
+}
+
+function insightImpotsFaceDepenses(series: Series, catalogue: Indicateur[]): Insight | null {
+  const impotsId = "ofgl_impots_locaux";
+  const depensesId = "ofgl_depenses_fonctionnement";
+  if (!unite(catalogue, impotsId, "EUR") || !unite(catalogue, depensesId, "EUR")) return null;
+  const bornes = bornesCommunes(series[impotsId], series[depensesId]);
+  if (!bornes || bornes.debutA <= 0 || bornes.debutB <= 0 || bornes.finA < 0 || bornes.finB < 0) return null;
+  const impots = ((bornes.finA - bornes.debutA) / bornes.debutA) * 100;
+  const depenses = ((bornes.finB - bornes.debutB) / bornes.debutB) * 100;
+  const ecart = impots - depenses;
+  const lecture = ecart >= 0
+    ? `Les impôts ont progressé ${nombre.format(Math.abs(ecart))} points plus vite que les dépenses courantes.`
+    : `Les dépenses courantes ont progressé ${nombre.format(Math.abs(ecart))} points plus vite que les impôts.`;
+  return {
+    id: "impots-face-depenses",
+    famille: "fiscalite",
+    surtitre: "Fiscalité locale · ce que la hausse finance",
+    titre: `Impôts locaux ${pctSigne(impots)} · dépenses ${pctSigne(depenses)}`,
+    texte: `${lecture} Comparaison entre ${bornes.debut} et ${bornes.fin}.`,
+    reserve: "",
+    preuves: [
+      preuve(impotsId, bornes.debut, bornes.debutA, "Impôts locaux initiaux"),
+      preuve(impotsId, bornes.fin, bornes.finA, "Derniers impôts locaux"),
+      preuve(depensesId, bornes.debut, bornes.debutB, "Dépenses initiales"),
+      preuve(depensesId, bornes.fin, bornes.finB, "Dernières dépenses"),
+    ],
+  };
+}
+
+function insightTauxEpargne(series: Series, catalogue: Indicateur[]): Insight | null {
+  const recettesId = "ofgl_recettes_fonctionnement";
+  const epargneId = "ofgl_epargne_brute";
+  if (!unite(catalogue, recettesId, "EUR") || !unite(catalogue, epargneId, "EUR")) return null;
+  const periode = periodeCommune([series[recettesId], series[epargneId]]);
+  if (!periode) return null;
+  const recettes = series[recettesId][periode];
+  const epargne = series[epargneId][periode];
+  if (!(recettes > 0) || !Number.isFinite(epargne)) return null;
+  const part = (epargne / recettes) * 100;
+  const titre = part >= 0
+    ? `${pct(part)} des recettes reste après le fonctionnement`
+    : `Le fonctionnement dépasse les recettes de ${pct(part)}`;
+  return {
+    id: "taux-epargne",
+    famille: "budget",
+    surtitre: "Budget local · la marge pour investir",
+    titre,
+    texte: `En ${periode}, l'épargne brute atteint ${formater(epargne, "EUR", false)} sur ${formater(recettes, "EUR", false)} de recettes de fonctionnement.`,
+    reserve: "",
+    preuves: [
+      preuve(epargneId, periode, epargne, "Épargne brute"),
+      preuve(recettesId, periode, recettes, "Recettes de fonctionnement"),
+    ],
+  };
+}
+
+function insightDetteSurEpargne(series: Series, catalogue: Indicateur[]): Insight | null {
+  const detteId = "ofgl_encours_dette";
+  const epargneId = "ofgl_epargne_brute";
+  if (!unite(catalogue, detteId, "EUR") || !unite(catalogue, epargneId, "EUR")) return null;
+  const periode = periodeCommune([series[detteId], series[epargneId]]);
+  if (!periode) return null;
+  const dette = series[detteId][periode];
+  const epargne = series[epargneId][periode];
+  if (dette < 0 || !(epargne > 0)) return null;
+  const annees = dette / epargne;
+  return {
+    id: "dette-sur-epargne",
+    famille: "budget",
+    surtitre: "Dette locale · la capacité de désendettement",
+    titre: `La dette représente ${nombre.format(annees)} années d'épargne brute`,
+    texte: `En ${periode}, ${formater(dette, "EUR", false)} de dette sont rapportés à ${formater(epargne, "EUR", false)} d'épargne brute.`,
+    reserve: "",
+    preuves: [
+      preuve(detteId, periode, dette, "Encours de dette"),
+      preuve(epargneId, periode, epargne, "Épargne brute"),
+    ],
+  };
+}
+
+function insightPoidsPersonnel(series: Series, catalogue: Indicateur[]): Insight | null {
+  const personnelId = "ofgl_frais_personnel";
+  const depensesId = "ofgl_depenses_fonctionnement";
+  if (!unite(catalogue, personnelId, "EUR") || !unite(catalogue, depensesId, "EUR")) return null;
+  const periode = periodeCommune([series[personnelId], series[depensesId]]);
+  if (!periode) return null;
+  const personnel = series[personnelId][periode];
+  const depenses = series[depensesId][periode];
+  if (personnel < 0 || !(depenses > 0) || personnel > depenses) return null;
+  const part = (personnel / depenses) * 100;
+  return {
+    id: "poids-personnel",
+    famille: "services",
+    surtitre: "Services publics · le poids de la masse salariale",
+    titre: `Le personnel représente ${pct(part)} des dépenses de fonctionnement`,
+    texte: `En ${periode}, les frais de personnel atteignent ${formater(personnel, "EUR", false)} sur ${formater(depenses, "EUR", false)} de dépenses courantes.`,
+    reserve: "",
+    preuves: [
+      preuve(personnelId, periode, personnel, "Frais de personnel"),
+      preuve(depensesId, periode, depenses, "Dépenses de fonctionnement"),
+    ],
+  };
+}
+
+function insightInteretsSurImpots(series: Series, catalogue: Indicateur[]): Insight | null {
+  const interetsId = "ofgl_charges_financieres";
+  const impotsId = "ofgl_impots_locaux";
+  if (!unite(catalogue, interetsId, "EUR") || !unite(catalogue, impotsId, "EUR")) return null;
+  const periode = periodeCommune([series[interetsId], series[impotsId]]);
+  if (!periode) return null;
+  const interets = series[interetsId][periode];
+  const impots = series[impotsId][periode];
+  if (interets < 0 || !(impots > 0)) return null;
+  const part = (interets / impots) * 100;
+  return {
+    id: "interets-sur-impots",
+    famille: "budget",
+    surtitre: "Dette locale · le coût des intérêts",
+    titre: `Les intérêts équivalent à ${pct(part)} des impôts locaux`,
+    texte: `En ${periode}, les charges financières atteignent ${formater(interets, "EUR", false)}, contre ${formater(impots, "EUR", false)} d'impôts locaux.`,
+    reserve: "",
+    preuves: [
+      preuve(interetsId, periode, interets, "Charges financières"),
+      preuve(impotsId, periode, impots, "Impôts locaux"),
     ],
   };
 }
@@ -248,6 +381,11 @@ function insightVolsVehicules(series: Series, catalogue: Indicateur[]): Insight 
 export function insightsTerritoire(territoire: Territoire, catalogue: Indicateur[]): Insight[] {
   return [
     insightFoncier(territoire.series, catalogue),
+    insightImpotsFaceDepenses(territoire.series, catalogue),
+    insightTauxEpargne(territoire.series, catalogue),
+    insightDetteSurEpargne(territoire.series, catalogue),
+    insightPoidsPersonnel(territoire.series, catalogue),
+    insightInteretsSurImpots(territoire.series, catalogue),
     insightChomage(territoire.series, catalogue),
     insightVacance(territoire.series, catalogue),
     insightCambriolages(territoire.series, catalogue),
@@ -256,5 +394,5 @@ export function insightsTerritoire(territoire: Territoire, catalogue: Indicateur
     insightPassoiresSociales(territoire.series, catalogue),
     insightGaz(territoire.series, catalogue),
     insightVolsVehicules(territoire.series, catalogue),
-  ].filter((insight): insight is Insight => insight !== null).slice(0, 9);
+  ].filter((insight): insight is Insight => insight !== null);
 }

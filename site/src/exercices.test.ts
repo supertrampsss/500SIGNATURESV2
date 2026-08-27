@@ -116,7 +116,7 @@ test("un tableau de l'État se lit en milliards, pas en millions", () => {
     // L'espace des milliers est une fine insécable : tapée à la main dans le
   // motif, elle passe pour une espace ordinaire et le test échoue sur une
   // valeur pourtant juste. Septième fois cette session.
-  assert.match(html, /<td>1\u202f176,40<\/td>/u);
+  assert.match(html, /<td>1\u202f176<\/td>/u);
 });
 
 /**

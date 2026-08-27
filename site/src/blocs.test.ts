@@ -238,8 +238,8 @@ test("la France nomme la famille de recettes qui porte la hausse", () => {
   assert.deepEqual([depenses.titre, recettes.titre], ["Le train de vie", "Qui règle l'addition"]);
   assert.equal(
     lu(recettes.texte),
-    `Les recettes augmentent de 85,13${U}milliards d'euros.` +
-      ` Les impôts que l'État perçoit en apportent 88${FIN}%, soit 75,11${U}milliards d'euros.`,
+    `Les recettes augmentent de 85${U}milliards d'euros.` +
+      ` Les impôts que l'État perçoit en apportent 88${FIN}%, soit 75${U}milliards d'euros.`,
   );
   assert.deepEqual(recettes.cites, ["etat_recettes_nettes_bg", "etat_recettes_fiscales"]);
   // Le terme du fichier publié reste sous le curseur, comme pour une commune.
@@ -258,8 +258,8 @@ test("la dépense de l'État pose son total sans rien décomposer ni s'en excuse
   assert.deepEqual(depenses.cites, ["etat_depenses_nettes_bg"]);
   assert.equal(
     lu(depenses.texte),
-    `L'État dépense 441,19${U}milliards d'euros par an sur son budget général,` +
-      ` soit 105,13${U}milliards d'euros de plus qu'en 2019.`,
+    `L'État dépense 441${U}milliards d'euros par an sur son budget général,` +
+      ` soit 105${U}milliards d'euros de plus qu'en 2019.`,
   );
   assert.doesNotMatch(lu(depenses.texte), /non publié|indisponible|décomposition|faute de/i);
 });
@@ -285,7 +285,7 @@ test("une composante que la table ne nomme pas ne se dit pas, même décomposée
         : i
     ),
   });
-  assert.equal(lu(recettes.texte), `Les recettes augmentent de 85,13${U}milliards d'euros.`);
+  assert.equal(lu(recettes.texte), `Les recettes augmentent de 85${U}milliards d'euros.`);
   assert.deepEqual(recettes.cites, ["etat_recettes_nettes_bg"]);
   assert.doesNotMatch(recettes.texte, /Impôt sur le revenu|Impôt sur les sociétés/u);
 });

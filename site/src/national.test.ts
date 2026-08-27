@@ -82,8 +82,8 @@ test("le verdict éditorial montre son millésime, son solde et son calcul", () 
 
   assert.deepEqual(Object.keys(guide), ["verdict", "entrees", "sorties", "dette"]);
   assert.match(guide.verdict, /2025/);
-  assert.match(guide.verdict, /La France dépense 152,51 milliards d'euros de plus qu'elle n'encaisse/);
-  assert.match(texteVisible(guide.verdict), /Solde public[\s\S]*−152,51 milliards d'euros/);
+  assert.match(guide.verdict, /La France dépense 153 milliards d'euros de plus qu'elle n'encaisse/);
+  assert.match(texteVisible(guide.verdict), /Solde public[\s\S]*−153 milliards d'euros/);
   assert.match(guide.verdict, /Recettes − Dépenses = Solde public/);
   assert.match(guide.verdict, /class="bilan-verdict__editorial"/);
   assert.match(guide.verdict, /class="bilan-verdict__totem"/);
@@ -91,7 +91,7 @@ test("le verdict éditorial montre son millésime, son solde et son calcul", () 
   assert.doesNotMatch(guide.verdict, /Le solde public est de/);
   assert.match(
     guide.verdict,
-    /class="bilan-verdict__totem"[\s\S]*class="bilan-montant__valeur">−152,51<\/span>[\s\S]*class="bilan-montant__unite">milliards d'euros<\/span>/,
+    /class="bilan-verdict__totem"[\s\S]*class="bilan-montant__valeur">−153<\/span>[\s\S]*class="bilan-montant__unite">milliards d'euros<\/span>/,
   );
   assert.equal((guide.verdict.match(/class="bilan-montant"/g) ?? []).length, 4);
   assert.equal((guide.verdict.match(/class="bilan-equation__terme(?: |")/g) ?? []).length, 3);
@@ -131,9 +131,9 @@ test("le verdict nomme un excédent sans le déguiser en dépense négative", ()
     }),
   });
 
-  assert.match(guide.verdict, /La France encaisse 200,00 milliards d'euros de plus qu'elle ne dépense/);
-  assert.match(texteVisible(guide.verdict), /Solde public[\s\S]*200,00 milliards d'euros/);
-  assert.doesNotMatch(guide.verdict, /dépense −200,00/);
+  assert.match(guide.verdict, /La France encaisse 200 milliards d'euros de plus qu'elle ne dépense/);
+  assert.match(texteVisible(guide.verdict), /Solde public[\s\S]*200 milliards d'euros/);
+  assert.doesNotMatch(guide.verdict, /dépense −200/);
   assert.match(guide.verdict, /excédent sur l'année/);
 });
 

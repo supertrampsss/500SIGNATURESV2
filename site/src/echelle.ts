@@ -321,9 +321,9 @@ export const MENTION_MILLIONS = "Montants en millions d'euros";
  *    « M€ » pour qui ne l'a jamais lu ; « milliards d'euros » l'est pour tout
  *    le monde.
  *
- * Deux décimales, toujours : c'est ce qui permet à une colonne de rester
- * alignée quand un montant tombe rond (la règle de la décimale fixe), et deux
- * suffisent — personne ne lit le troisième rang après la virgule.
+ * Les milliards sont arrondis à l'entier : à cette échelle, les décimales
+ * donnent une fausse précision et cassent la lecture. Les millions conservent
+ * deux décimales quand elles sont utiles.
  *
  * `millions()` reste, et reste employée là où la place manque et où l'unité
  * est déjà dite par ailleurs : une cellule de tableau sous une légende qui
@@ -334,11 +334,12 @@ export function montantLisible(valeur: number): string {
   const [diviseur, mot] =
     absolu >= 1e9 ? [1e9, "milliards d'euros"] : [1e6, "millions d'euros"];
   const echelle = valeur / diviseur;
+  const decimales = diviseur === 1e9 ? 0 : 2;
   return moins(
     `${new Intl.NumberFormat("fr-FR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    }).format(sansZeroNegatif(echelle, 2))}\u00a0${mot}`,
+      minimumFractionDigits: decimales,
+      maximumFractionDigits: decimales,
+    }).format(sansZeroNegatif(echelle, decimales))}\u00a0${mot}`,
   );
 }
 

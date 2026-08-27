@@ -13,6 +13,7 @@ import {
 type Series = Territoire["series"];
 
 const nombre = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+const milliards = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 const ratio = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
 const moisAnnee = new Intl.DateTimeFormat("fr-FR", { month: "long", year: "numeric", timeZone: "UTC" });
 
@@ -22,7 +23,7 @@ function pourcentage(valeur: number): string {
 
 function montant(valeur: number): string {
   const absolu = Math.abs(valeur);
-  if (absolu >= 1_000_000_000) return `${nombre.format(valeur / 1_000_000_000)} Md€`;
+  if (absolu >= 1_000_000_000) return `${milliards.format(valeur / 1_000_000_000)} Md€`;
   if (absolu >= 1_000_000) return `${nombre.format(valeur / 1_000_000)} M€`;
   return `${nombre.format(valeur)} €`;
 }

@@ -83,6 +83,29 @@ test("une baisse ne reçoit jamais un signe positif dans l'analyse", () => {
   assert.doesNotMatch(resultat.texte, /baisse de \+25 %/);
 });
 
+test("une valeur individuelle en euros ne devient jamais 0,00 M€", () => {
+  const recette: RecetteTendance = {
+    id: "salaire-test",
+    indicateur: "insee_salaire_net_eqtp_mensuel",
+    unite: "EUR",
+    famille: "travail",
+    surtitre: "Salaires · la moyenne nationale",
+    sujet: "Salaire net mensuel moyen",
+    reserve: "",
+  };
+
+  const resultat = creerInsightTendance(
+    recette,
+    { insee_salaire_net_eqtp_mensuel: { "2022": 2_500, "2023": 2_600 } },
+    [indicateur("insee_salaire_net_eqtp_mensuel", "EUR")],
+  );
+
+  assert.ok(resultat);
+  assert.match(resultat.texte, /2\s?500\s?€/);
+  assert.match(resultat.texte, /2\s?600\s?€/);
+  assert.doesNotMatch(resultat.texte, /M€/);
+});
+
 test("une longue série nationale privilégie 2017 comme point de comparaison", () => {
   const recette: RecetteTendance = {
     id: "serie-longue-test",

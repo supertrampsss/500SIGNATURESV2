@@ -58,7 +58,7 @@ test("la question reçoit sa réponse, et chaque nombre vient des séries", () =
   assert.match(lu, /richesse produite augmentait de 30,5 %/);
   assert.match(lu, /à 3,3 % contre 0,8 % en 2017/);
   // 66,64 Md€ d'intérêts, soit 4,3 € sur 100 € encaissés.
-  assert.match(lu, /66,64 milliards d'euros/);
+  assert.match(lu, /67 milliards d'euros/);
   assert.match(lu, /4,3 € sur chaque 100 € encaissés/);
 });
 
@@ -88,8 +88,8 @@ test("le par-habitant et les porteurs de la dette sont écrits, dans la réponse
   const html = rendu(PAYS, CATALOGUE);
   const lu = texte(html);
   assert.match(lu, /51 165 € par habitant/);
-  assert.match(lu, /L'État 2 861,40 milliards d'euros/);
-  assert.match(lu, /Sécurité sociale 281,50 milliards/);
+  assert.match(lu, /L'État 2 861 milliards d'euros/);
+  assert.match(lu, /Sécurité sociale 282 milliards/);
   assert.ok(html.indexOf("Qui la porte") < html.indexOf("La dette, jusqu'en"));
 });
 

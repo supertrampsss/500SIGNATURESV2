@@ -62,7 +62,7 @@ test("le total encaissé s'écrit en toutes lettres, pas en sept rangs suivis d'
   // pour lire mille cinq cents milliards derrière deux lettres. C'est la règle
   // que `montantLisible` porte, et que ce bloc a d'abord enfreinte.
   const lu = texte(rendu({ FR: territoire(SERIES) }));
-  assert.match(lu, /1\s?561,63\s?milliards d'euros/);
+  assert.match(lu, /1\s?562\s?milliards d'euros/);
   assert.doesNotMatch(lu, /M€/);
 });
 

@@ -116,7 +116,7 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
   assert.match(resultat[9].titre, /82 %/);
   assert.match(resultat[11].titre, /44,8 %/);
   assert.match(resultat[12].titre, /40,1 %/);
-  assert.match(resultat[13].titre, /66,5 Md€/);
+  assert.match(resultat[13].titre, /67 Md€/);
   assert.match(resultat[16].titre, /2,57 fois/);
   assert.equal(resultat[17].preuves.every(({ periode }) => periode === "2024"), true);
   assert.match(resultat[18].titre, /141,4/);

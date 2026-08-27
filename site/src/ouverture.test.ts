@@ -158,8 +158,8 @@ test("le pont des périmètres nomme les deux encaissements", () => {
   // déplacement.
   const lu = texte(pont({ FR: territoire(SERIES) }));
   assert.doesNotMatch(lu, /descend d'un étage/);
-  assert.match(lu, /1 561,63 milliards d'euros/);
-  assert.match(lu, /380,39 milliards d'euros/);
+  assert.match(lu, /1 562 milliards d'euros/);
+  assert.match(lu, /380 milliards d'euros/);
   assert.match(lu, /Sécurité sociale/);
   // Sans la série de l'État, pas de pont : une phrase à moitié sourcée ne
   // s'écrit pas.
