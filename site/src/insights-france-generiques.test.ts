@@ -123,5 +123,9 @@ test("le générateur produit les 88 cartes quand chaque série est compatible",
 
   assert.equal(resultat.length, 88);
   assert.equal(new Set(resultat.map(({ id }) => id)).size, 88);
-  assert.equal(resultat.every(({ preuves, reserve }) => preuves.length >= 2 && reserve.length > 0), true);
+  assert.equal(resultat.every(({ preuves }) => preuves.length >= 2), true);
+  assert.equal(
+    resultat.filter(({ id }) => id.startsWith("mission-")).every(({ reserve }) => reserve === ""),
+    true,
+  );
 });

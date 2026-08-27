@@ -32,7 +32,7 @@ const insight: Insight = {
   preuves: [{ indicateur: "test", periode: "2025", valeur: 12.5, libelle: "Mesure" }],
 };
 
-test("renduInsights rend l'analyse, la preuve et la réserve sans HTML injecté", () => {
+test("renduInsights rend l'analyse et la réserve sans HTML injecté", () => {
   const html = renduInsights([insight], catalogue, {
     contexte: "territoire",
     nom: "Ville-test",
@@ -41,10 +41,10 @@ test("renduInsights rend l'analyse, la preuve et la réserve sans HTML injecté"
   assert.match(html, /Ce que racontent les chiffres de Ville-test/);
   assert.match(html, /Le fait &lt;vérifié&gt;/);
   assert.match(html, /L&#39;analyse reste visible/);
-  assert.match(html, /2025/);
-  assert.match(html, /12,5/);
   assert.match(html, /La limite est explicite/);
   assert.doesNotMatch(html, /À garder en tête/);
+  assert.doesNotMatch(html, /Vérifier les chiffres/);
+  assert.doesNotMatch(html, /insight__preuves/);
   assert.match(html, /href="\/sources\/"/);
 });
 
@@ -57,7 +57,10 @@ test("les arbitrages France sont tous visibles et regroupés dans un sommaire th
   const travail: Insight = { ...insight, id: "angle-travail", famille: "travail" };
   const html = renduInsights([insight, fiscalite, travail], catalogue, { contexte: "france" });
 
-  assert.match(html, /3 arbitrages, 3 thèmes/);
+  assert.doesNotMatch(html, /3 arbitrages, 3 thèmes/);
+  assert.doesNotMatch(html, /Thème 0[1-9]/);
+  assert.doesNotMatch(html, />1 arbitrage</);
+  assert.doesNotMatch(html, /<strong>1<\/strong>/);
   assert.match(html, /href="#arbitrages-budget"/);
   assert.match(html, /id="arbitrages-budget"/);
   assert.match(html, /id="arbitrages-fiscalite"/);
@@ -67,4 +70,12 @@ test("les arbitrages France sont tous visibles et regroupés dans un sommaire th
   assert.match(html, /Travail et entreprises/);
   assert.equal((html.match(/class="insight insight--/g) ?? []).length, 3);
   assert.doesNotMatch(html, /Afficher plus|Voir plus/);
+});
+
+test("une réserve vide ne crée pas de paragraphe fantôme", () => {
+  const html = renduInsights([{ ...insight, reserve: "" }], catalogue, {
+    contexte: "france",
+  });
+
+  assert.doesNotMatch(html, /insight__reserve/);
 });

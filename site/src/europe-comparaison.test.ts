@@ -109,6 +109,23 @@ test("la source Europe mène à la fiche Eurostat réellement indexée", () => {
   assert.match(html, /Source : <a href="\/sources\/#eurostat-comparaison">Eurostat<\/a>\./);
 });
 
+test("plusieurs séries Eurostat ne répètent pas le même producteur", () => {
+  const indicateurs = [DEPENSE, PRELEVEMENTS, DETTE, DEFICIT];
+  const html = rendu(REPERES_STABLES, indexerSources(indicateurs.map((indicateur, index) => ({
+    id: `eurostat-${index + 1}`,
+    nom: `Eurostat — série ${index + 1}`,
+    statut: "publie" as const,
+    institution: "Eurostat",
+    url: `https://exemple.test/eurostat/${index + 1}`,
+    pages: ["/bilan"],
+    indicateurs: [indicateur],
+  }))));
+
+  assert.match(html, /Source : <a href="\/sources\/#eurostat-1">Eurostat<\/a>\./);
+  assert.equal((html.match(/>Eurostat<\/a>/g) ?? []).length, 1);
+  assert.doesNotMatch(html, /Sources :/);
+});
+
 test("le tableau est trié sur la dépense, du plus haut au plus bas", () => {
   const html = rendu(PAYS);
   const parts = [...html.matchAll(/<tr[^>]*>\s*<th scope="row">[^<]+<\/th>\s*<td>([^<]*)<\/td>/g)]

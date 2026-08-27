@@ -567,8 +567,11 @@ function limites(analyse: Analyse): string {
 /** Les citations primaires restent accessibles indépendamment du chemin
  * synthétique : elles permettent de retrouver le document d'origine. */
 function sources(analyse: Analyse, indexSources?: IndexSources): string {
-  const fichiers = analyse.sources.length
-    ? `<ul class="analyse-rendu__fichiers">${analyse.sources
+  const uniques = analyse.sources.filter((source, index, liste) =>
+    liste.findIndex((candidate) => candidate.url.trim() === source.url.trim()) === index
+  );
+  const fichiers = uniques.length
+    ? `<ul class="analyse-rendu__fichiers">${uniques
         .map((s) => `<li>${lienPrimaire(s)}${lienRegistre(s, indexSources)}</li>`)
         .join("")}</ul>`
     : "<p>Aucune source primaire n'est déclarée.</p>";

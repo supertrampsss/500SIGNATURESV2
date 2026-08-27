@@ -5085,14 +5085,6 @@ summary.pont__rangee,
   border-bottom: 1px solid var(--encre);
   scroll-margin-top: var(--haut-ancre);
 }
-.insights__sommaire > p {
-  margin: 0 0 var(--espace-3);
-  color: var(--encre-douce);
-  font-size: var(--texte-xs);
-  font-weight: 800;
-  letter-spacing: .08em;
-  text-transform: uppercase;
-}
 .insights__sommaire ul {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -5117,13 +5109,6 @@ summary.pont__rangee,
   text-decoration: none;
 }
 .insights__sommaire a:hover { background: var(--papier-creuse); }
-.insights__sommaire strong {
-  flex: 0 0 auto;
-  color: var(--argile);
-  font-family: var(--serif);
-  font-size: var(--texte-l);
-  font-variant-numeric: tabular-nums;
-}
 .insights__themes { counter-reset: insight; }
 .insights__theme,
 .national .insights__theme {
@@ -5132,20 +5117,10 @@ summary.pont__rangee,
 }
 .insights__theme-entete {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr);
   align-items: baseline;
-  gap: var(--espace-4);
   padding: 0 0 var(--espace-4);
   border-bottom: 3px solid var(--encre);
-}
-.insights__theme-entete p,
-.insights__theme-entete span {
-  margin: 0;
-  color: var(--encre-douce);
-  font-size: var(--texte-xs);
-  font-weight: 750;
-  text-transform: uppercase;
-  letter-spacing: .06em;
 }
 .insights__theme-entete h3 {
   margin: 0;
@@ -5212,31 +5187,6 @@ summary.pont__rangee,
   font-size: var(--texte-xs);
   line-height: 1.5;
 }
-.insight__preuves { margin-top: var(--espace-3); color: var(--encre-douce); font-size: var(--texte-xs); }
-.insight__preuves summary {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--cible);
-  color: var(--encre);
-  font-weight: 750;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: .18em;
-}
-.insight__preuves dl {
-  display: grid;
-  gap: var(--espace-2);
-  margin: var(--espace-2) 0 0;
-  padding: var(--espace-3) 0 0;
-  border-top: 1px solid var(--trait);
-}
-.insight__preuves dl > div {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--espace-3);
-}
-.insight__preuves dt { min-width: 0; }
-.insight__preuves dd { margin: 0; color: var(--encre); font-variant-numeric: tabular-nums; font-weight: 700; text-align: end; }
 .insights__methode {
   margin: 0;
   padding-top: var(--espace-5);
@@ -5245,7 +5195,6 @@ summary.pont__rangee,
   font-size: var(--texte-xs);
 }
 .insights__methode a { color: var(--encre); font-weight: 800; text-underline-offset: .18em; }
-.insight__preuves summary:focus-visible,
 .insights__methode a:focus-visible,
 .insights__sommaire a:focus-visible,
 .insights__retour:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
@@ -5330,16 +5279,12 @@ summary.pont__rangee,
   .insights__sommaire a { min-height: var(--cible); align-items: center; }
   .insights__theme { margin-bottom: var(--espace-8); }
   .insights__theme-entete {
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: var(--espace-2) var(--espace-3);
+    grid-template-columns: minmax(0, 1fr);
   }
-  .insights__theme-entete p { grid-column: 1 / -1; }
   .insights__theme-entete h3 { font-size: var(--texte-xl); }
   .insight { padding: var(--espace-5) 0 var(--espace-6) calc(var(--espace-6) + var(--espace-2)); }
   .insight::before { top: var(--espace-5); }
   .insight :is(h3, h4) { font-size: var(--texte-xl); }
-  .insight__preuves dl > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .insight__preuves dd { text-align: start; }
 }
 
 /* ==========================================================================

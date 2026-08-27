@@ -160,14 +160,13 @@ function combienDevant(place: number, sur: number, verbe: string): string {
 type Colonne = { cle: string; entete: string; exercice: string };
 
 function sourcesEurope(indexSources?: IndexSources): string {
-  const ids = indexSources
-    ? [...new Set([DEPENSE, PRELEVEMENTS, DETTE, DEFICIT]
+  const id = indexSources
+    ? [DEPENSE, PRELEVEMENTS, DETTE, DEFICIT]
       .map((indicateur) => sourceIdPourIndicateur(indexSources, indicateur))
-      .filter((id): id is string => Boolean(id)))]
-    : [];
-  if (!ids.length) return `<a href="/sources/">Sources et méthode</a>.`;
-  const liens = ids.map((id) => `<a href="${lienSource(id)}">Eurostat</a>`).join(" · ");
-  return `${ids.length === 1 ? "Source" : "Sources"} : ${liens}.`;
+      .find((source): source is string => Boolean(source))
+    : undefined;
+  if (!id) return `<a href="/sources/">Sources et méthode</a>.`;
+  return `Source : <a href="${lienSource(id)}">Eurostat</a>.`;
 }
 
 /**

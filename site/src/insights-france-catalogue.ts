@@ -40,7 +40,7 @@ const m = (
   consomme: `etat_mission_${slug}_credits_consommes`,
   famille,
   sujet,
-  reserve: "Un écart d'exécution ne permet pas, à lui seul, de juger l'utilité ou l'efficacité de la dépense.",
+  reserve: "",
 });
 
 const reserveBudget = "Les montants courants ne retirent pas l'inflation et le périmètre budgétaire peut évoluer.";
@@ -150,4 +150,3 @@ export const RECETTES_MISSIONS: RecetteMission[] = [
   m("mission-france-2030", "investir_france_2030", "travail", "Investir pour la France de 2030"),
   m("mission-regimes-retraite", "regimes_sociaux_retraite", "generation", "Régimes sociaux et de retraite"),
 ];
-

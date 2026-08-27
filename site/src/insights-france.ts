@@ -113,7 +113,7 @@ function insightExecution(series: Series, catalogue: Indicateur[]): Insight | nu
     surtitre: "Budget · le vote face à l'exécution",
     titre: `${mission} : ${montant(Math.abs(maximum.ecart))} d'écart`,
     texte: `En ${maximum.periode}, cette mission a consommé ${pourcentage(relatif)} ${direction} des crédits votés. C'est le plus grand écart en euros parmi les missions comparables publiées.`,
-    reserve: "Un écart d'exécution ne dit pas, à lui seul, si la dépense était utile ou évitable.",
+    reserve: "",
     preuves: [
       preuve(maximum.voteId, maximum.periode, maximum.vote, "Crédits votés"),
       preuve(maximum.consommeId, maximum.periode, maximum.consomme, "Crédits consommés"),

@@ -146,6 +146,13 @@ test("une provenance mène à la fiche exacte du registre", () => {
   assert.match(html, /Voir dans le registre/);
 });
 
+test("une même source primaire n'est listée qu'une fois", () => {
+  const source = { titre: "Source de test", url: "https://exemple.test", consulte_le: "2026-01-01" };
+  const html = rendu(analyseMinimale({ sources: [source, source] }), CATALOGUE);
+
+  assert.equal((html.match(/<li><a href="https:\/\/exemple\.test"/g) ?? []).length, 1);
+});
+
 test("les quatre étages sont présents dans la sortie", () => {
   const html = rendu(DEFENSE, CATALOGUE);
   assert.match(html, /analyse-rendu__express/);
