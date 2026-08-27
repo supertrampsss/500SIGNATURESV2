@@ -117,6 +117,36 @@ function directQuestion(measure: Mesure): string {
   return `${title} ?`;
 }
 
+function scheduledEventsFor(measure: Mesure): Decision["options"][number]["scheduledEvents"] {
+  if (measure.id !== "tranche-a-50-au-dela-de-250") return [];
+  return [{
+    id: "high-income-tax-base-reaction",
+    title: "Les recettes résistent, les départs très médiatisés commencent",
+    body: "Un an après l'annonce, l'assiette fiscale reste largement en France, mais plusieurs départs concentrent le débat et affaiblissent le rendement attendu.",
+    afterDecisions: 1,
+    effects: [
+      {
+        id: "high-income-tax-base-reaction:businesses",
+        target: "group",
+        key: "businesses",
+        delta: -2,
+        timing: { kind: "immediate" },
+        duration: "once",
+        explanation: "Les organisations patronales durcissent leur opposition à la réforme.",
+      },
+      {
+        id: "high-income-tax-base-reaction:credibility",
+        target: "indicator",
+        key: "financialCredibility",
+        delta: -1,
+        timing: { kind: "immediate" },
+        duration: "once",
+        explanation: "Le rendement futur de la mesure devient plus incertain.",
+      },
+    ],
+  }];
+}
+
 function toDecision(measure: Mesure, index: number): Decision {
   const chapter = CHAPTERS[Math.floor(index / 12)]!;
   const editorial = DILEMMES[measure.id];
@@ -181,7 +211,7 @@ function toDecision(measure: Mesure, index: number): Decision {
         contributors: adoptContributors.map(clean),
         uncertainty: uncertainty(measure),
         effects: adoptEffects,
-        scheduledEvents: [],
+        scheduledEvents: scheduledEventsFor(measure),
         promises: [],
         fulfillsPromises: [],
         locks: conflicts,
