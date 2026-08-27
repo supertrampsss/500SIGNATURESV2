@@ -443,13 +443,14 @@ Implement `validateScenario` with deterministic error order:
 9. every option has beneficiaries, contributors and at least one effect or scheduled event;
 10. every delayed count is a positive integer;
 11. every scheduled event ID and promise ID is globally unique;
-12. effects inside a scheduled event or promise failure use `timing.kind === "immediate"`, because the parent rule already owns the due date;
-13. every direct delay, scheduled event and promise is due no later than decision 96 from its decision position;
-14. every `locks` and `unlocks` ID resolves to a scenario decision, with unique and disjoint lists;
-15. every `fulfillsPromises` ID resolves to a promise declared in the scenario;
-16. every effect ID is unique within its option and every derived delayed-event ID is unique against explicit scheduled-event IDs;
-17. every source URL begins with `https://`;
-18. no U+2014 occurs anywhere.
+12. every scheduled event has non-empty string `id`, `title` and `body`; every promise has non-empty string `id` and `label`;
+13. effects inside a scheduled event or promise failure use `timing.kind === "immediate"`, because the parent rule already owns the due date;
+14. every direct delay, scheduled event and promise is due no later than decision 96 from its decision position;
+15. every `locks` and `unlocks` ID resolves to a scenario decision, with unique and disjoint lists;
+16. every `fulfillsPromises` ID resolves to a promise declared in the scenario;
+17. every effect ID is unique within its option and every derived delayed-event ID is unique against explicit scheduled-event IDs;
+18. every source URL begins with `https://`;
+19. no U+2014 occurs anywhere.
 
 Implement `isCampaignState` by checking schema version 3, matching scenario version, chapter index 0 through 7, decision index 0 through 11, unique sequential decision records, arrays, sources tied to an actually confirmed decision and option, pending selection tied to the current unlocked decision, disjoint lock lists, finite indicator values, reachable due dates through decision 96 and a parseable `savedAt` date.
 
