@@ -436,8 +436,10 @@ Implement `validateScenario` with deterministic error order:
 8. every decision has evidence;
 9. every option has beneficiaries, contributors and at least one effect or scheduled event;
 10. every delayed count is a positive integer;
-11. every source URL begins with `https://`;
-12. no U+2014 occurs anywhere.
+11. every scheduled event ID and promise ID is globally unique;
+12. effects inside a scheduled event or promise failure use `timing.kind === "immediate"`, because the parent rule already owns the due date;
+13. every source URL begins with `https://`;
+14. no U+2014 occurs anywhere.
 
 Implement `isCampaignState` by checking schema version 3, matching scenario version, valid indices, arrays, known decision and option IDs, finite indicator values and a parseable `savedAt` date.
 
@@ -735,9 +737,9 @@ Expected: FAIL because effect functions do not exist.
 9. clear the pending selection;
 10. set phase `decision_result`.
 
-`resolveDueEvents` returns the due events, removes them from the queue and appends them to `eventHistory` after applying their effects with source type `event`. Decision causal source IDs use the exact format `<decisionId>:<optionId>`. Event causal source IDs use the event `id` and remain verifiable through `eventHistory`.
+`resolveDueEvents` returns the due events, removes them from the queue and appends them to `eventHistory` after applying their immediate effects with source type `event`. `scheduledEvents` and `eventHistory` have unique, disjoint IDs. Decision causal source IDs use the exact format `<decisionId>:<optionId>`. Event causal source IDs use the event `id` and remain verifiable through `eventHistory`.
 
-`resolveDuePromises` compares each promise's `dueAtDecision` with `state.decisions.length`. Every due promise leaves `activePromises` and enters `promiseHistory`. Fulfilled promises have no penalty. Unfulfilled due promises apply their failure effects with source type `promise` and return their IDs. Non-due promises remain unchanged.
+`resolveDuePromises` compares each promise's `dueAtDecision` with `state.decisions.length`. Every due promise leaves `activePromises` and enters `promiseHistory`. `activePromises` and `promiseHistory` have unique, disjoint IDs. Fulfilled promises have no penalty. Unfulfilled due promises apply their immediate failure effects with source type `promise` and return their IDs. Non-due promises remain unchanged.
 
 - [ ] **Step 4: Run focused, full and build verification**
 
