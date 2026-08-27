@@ -8,19 +8,17 @@ function advanceFromDecisionResult(
   scenario: Scenario,
   crisisRules: readonly CrisisRule[],
 ): CampaignState {
-  const eventResolution = resolveDueEvents(state);
-  const promiseHistoryBefore = eventResolution.state.promiseHistory.length;
-  const promiseResolution = resolveDuePromises(eventResolution.state);
-  const hasVisibleConsequence = eventResolution.events.length > 0
-    || promiseResolution.state.promiseHistory.length > promiseHistoryBefore;
+  const decisionCount = state.decisions.length;
+  const hasVisibleConsequence = state.scheduledEvents.some((event) => event.dueAtDecision <= decisionCount)
+    || state.activePromises.some((promise) => promise.dueAtDecision <= decisionCount);
 
   if (hasVisibleConsequence) {
-    return { ...promiseResolution.state, phase: "delayed_event" };
+    return { ...state, phase: "delayed_event" };
   }
 
-  const crisis = detectCrisis(promiseResolution.state, crisisRules);
+  const crisis = detectCrisis(state, crisisRules);
   if (crisis.phase === "crisis") return crisis;
-  return advanceAfterResult(promiseResolution.state, scenario);
+  return advanceAfterResult(state, scenario);
 }
 
 /**
@@ -37,7 +35,9 @@ export function advanceCampaign(
   }
 
   if (state.phase === "delayed_event") {
-    const afterEvent = { ...state, phase: "decision_result" as const };
+    const eventResolution = resolveDueEvents(state);
+    const promiseResolution = resolveDuePromises(eventResolution.state);
+    const afterEvent = { ...promiseResolution.state, phase: "decision_result" as const };
     const crisis = detectCrisis(afterEvent, crisisRules);
     if (crisis.phase === "crisis") return crisis;
     return advanceAfterResult(afterEvent, scenario);

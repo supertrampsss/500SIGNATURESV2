@@ -513,6 +513,9 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (validateScenario(scenario).length > 0) return false;
   if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION || value.scenarioVersion !== scenario.version) return false;
   if (!PHASES.includes(value.phase as CampaignPhase) || !Number.isInteger(value.chapterIndex) || !Number.isInteger(value.decisionIndex)) return false;
+  if (value.pausedFrom !== undefined) {
+    if (value.phase !== "pause" || value.pausedFrom === "pause" || !PHASES.includes(value.pausedFrom as CampaignPhase)) return false;
+  }
   if ((value.chapterIndex as number) < 0 || (value.chapterIndex as number) >= CHAPTER_COUNT || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) >= DECISIONS_PER_CHAPTER) return false;
   if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.eventHistory) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
   if (!isRecord(value.indicators) || !hasExactFiniteKeys(value.indicators, INDICATOR_KEYS)) return false;

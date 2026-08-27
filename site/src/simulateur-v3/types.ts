@@ -204,6 +204,7 @@ export type CampaignState = {
   scenarioVersion: number;
   seed: number;
   phase: CampaignPhase;
+  pausedFrom?: Exclude<CampaignPhase, "pause">;
   chapterIndex: number;
   decisionIndex: number;
   pendingSelection?: { decisionId: string; optionId: string };

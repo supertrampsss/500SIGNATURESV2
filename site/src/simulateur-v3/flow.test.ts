@@ -41,14 +41,15 @@ test("une conséquence échue occupe un écran avant la transition normale", () 
 
   const event = advanceCampaign(state, scenario, []);
   assert.equal(event.phase, "delayed_event");
-  assert.equal(event.indicators.opinion, 46);
-  assert.equal(event.scheduledEvents.length, 0);
-  assert.equal(event.eventHistory.at(-1)?.id, "event-1");
+  assert.equal(event.indicators.opinion, 50);
+  assert.equal(event.scheduledEvents.length, 1);
+  assert.equal(event.eventHistory.length, 0);
 
   const next = advanceCampaign(event, scenario, []);
   assert.equal(next.phase, "decision");
   assert.equal(next.decisionIndex, 1);
   assert.equal(next.indicators.opinion, 46);
+  assert.equal(next.eventHistory.at(-1)?.id, "event-1");
   assert.equal(next.causalLedger.filter((entry) => entry.sourceId === "event-1").length, 1);
 });
 
@@ -89,9 +90,11 @@ test("un événement est lu avant la crise qu'il déclenche", () => {
   const event = advanceCampaign(state, scenario, [crisis]);
   assert.equal(event.phase, "delayed_event");
   assert.equal(event.activeCrisis, undefined);
+  assert.equal(event.indicators.opinion, 12);
 
   const crisisState = advanceCampaign(event, scenario, [crisis]);
   assert.equal(crisisState.phase, "crisis");
+  assert.equal(crisisState.indicators.opinion, 9);
   assert.equal(crisisState.activeCrisis?.ruleId, "opinion-crisis");
 });
 

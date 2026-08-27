@@ -625,3 +625,11 @@ test("la validation conserve les délais positifs des événements et promesses"
   assert.ok(errors.includes("event:event-with-invalid-delay:delayed-count-required"));
   assert.ok(errors.includes("promise:promise-with-invalid-delay:delayed-count-required"));
 });
+test("Pause peut mémoriser précisément l'écran interrompu", () => {
+  const scenario = validScenario();
+  const council = stateAfterRecords(scenario, Array.from({ length: 4 }, (_, index) => confirmedRecord(scenario, index)));
+  const paused = { ...council, phase: "pause" as const, pausedFrom: "council" as const };
+  assert.equal(isCampaignState(paused, scenario), true);
+  assert.equal(isCampaignState({ ...paused, pausedFrom: "pause" }, scenario), false);
+  assert.equal(isCampaignState({ ...paused, phase: "council" }, scenario), false);
+});
