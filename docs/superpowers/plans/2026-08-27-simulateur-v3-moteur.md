@@ -558,6 +558,7 @@ Initialize `savedAt` to `1970-01-01T00:00:00.000Z`, `promiseHistory` and `crisis
 - after decision 12 in chapters 1 to 7: `chapter_verdict`;
 - after decision 12 in chapter 8: `verdict`;
 - otherwise: increment `decisionIndex` and return `decision`;
+- advancing from `council`: increment `decisionIndex` and return `decision`;
 - advancing from `chapter_verdict`: increment chapter, reset decision index and return `chapter_intro`;
 - advancing from `chapter_intro`: return `decision`.
 
