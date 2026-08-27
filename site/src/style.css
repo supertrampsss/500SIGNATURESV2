@@ -2250,6 +2250,9 @@ tbody tr:hover {
   margin: 0 auto;
   padding-inline: var(--gouttiere);
 }
+.vue[hidden] {
+  display: none !important;
+}
 /* La vue territoire porte la carte, qui déborde la colonne quand elle
    s'ouvre : elle gère ses marges elle-même. */
 .vue--territoire {

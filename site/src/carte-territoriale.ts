@@ -1,6 +1,14 @@
 /** Le même seuil que la grille desktop du briefing territorial. */
 export const REQUETE_CARTE_SECONDAIRE = "(min-width: 60.0625rem)";
 
+/** L'état plein cadre ne doit jamais survivre à un changement de vue. */
+export function carteActivePourVue(
+  vue: string | undefined,
+  ouverte: boolean,
+): boolean {
+  return vue === "territoire" && ouverte;
+}
+
 /**
  * La carte ne vole pas le premier écran sur mobile ; elle demeure en revanche
  * visible sur un grand écran comme outil de contexte du diagnostic.

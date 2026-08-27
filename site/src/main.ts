@@ -27,6 +27,7 @@ import {
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
 import {
+  carteActivePourVue,
   carteDemandeeParFragment,
   suivreVisibiliteCarteParDefaut,
 } from "./carte-territoriale.ts";
@@ -2647,7 +2648,7 @@ function basculerVue(): void {
   rendreNavigationPrincipale();
   // La carte n'est un mode que de la vue territoire : ailleurs, le fond plein
   // cadre n'aurait rien à cadrer.
-  appliquerModeCarte(vue === "territoire");
+  appliquerModeCarte(carteActivePourVue(vue, !$("cadre-carte").hidden));
   $("vue-accueil").hidden = vue !== "accueil";
   if (vue === "accueil") void peindreAccueil();
   $("vue-territoire").hidden = vue !== "territoire";
@@ -2694,7 +2695,7 @@ function brancherBriefingTerritorial(ouvrirCarteDemandee = false): void {
 
   const poserCarte = (ouverte: boolean) => {
     cadre.hidden = !ouverte;
-    appliquerModeCarte(ouverte);
+    appliquerModeCarte(carteActivePourVue(document.body.dataset.vue, ouverte));
   };
 
   // À partir de 60rem, la carte reste visible comme un outil de contexte.

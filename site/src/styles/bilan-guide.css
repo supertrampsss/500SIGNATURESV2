@@ -10,7 +10,7 @@ body[data-vue="bilan"] {
   --bilan-encre: #0b1d36;
   --bilan-papier: #fbf8f1;
   --bilan-accent: #b7372f;
-  --bilan-fond: #e9edf2;
+  --bilan-fond: #fbf8f1;
   --bilan-ligne: #c9c0af;
   --encre: var(--bilan-encre);
   --encre-douce: #4d5868;
@@ -29,7 +29,7 @@ body[data-vue="bilan"] {
   --bilan-encre: #0b1d36;
   --bilan-papier: #fbf8f1;
   --bilan-accent: #b7372f;
-  --bilan-fond: #e9edf2;
+  --bilan-fond: #fbf8f1;
   --bilan-ligne: #c9c0af;
   --encre: var(--bilan-encre);
   --encre-douce: #4d5868;

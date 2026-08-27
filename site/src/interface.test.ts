@@ -28,6 +28,7 @@ import {
   REQUETE_CARTE_SECONDAIRE,
   suivreVisibiliteCarteParDefaut,
 } from "./carte-territoriale.ts";
+import * as carteTerritoriale from "./carte-territoriale.ts";
 
 const PAGE = readFileSync(new URL("../index.html", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const MAIN = readFileSync(new URL("./main.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
@@ -166,6 +167,26 @@ test("France et Territoires partagent exactement le même chrome de navigation",
   assert.match(entete, /color:\s*var\(--encre\)/);
   assert.doesNotMatch(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete(?:__nav|__recherche)?/);
   assert.match(NAVIGATION, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+});
+
+test("la carte ne peut être active que dans la vue Territoires", () => {
+  const carteActivePourVue = (carteTerritoriale as unknown as {
+    carteActivePourVue?: (vue: string | undefined, ouverte: boolean) => boolean;
+  }).carteActivePourVue;
+
+  assert.equal(typeof carteActivePourVue, "function");
+  assert.equal(carteActivePourVue?.("bilan", true), false);
+  assert.equal(carteActivePourVue?.("simulateur", true), false);
+  assert.equal(carteActivePourVue?.("territoire", false), false);
+  assert.equal(carteActivePourVue?.("territoire", true), true);
+});
+
+test("une vue masquée ne peut jamais être repeinte et France reste sur son papier chaud", () => {
+  const vueMasquee = CSS.match(/\.vue\[hidden\]\s*\{([^}]*)\}/s)?.[1];
+  assert.ok(vueMasquee, "la règle qui protège les vues masquées manque");
+  assert.match(vueMasquee, /display:\s*none\s*!important/);
+  assert.doesNotMatch(BILAN_GUIDE, /#e9edf2/i);
+  assert.match(BILAN_GUIDE, /--bilan-fond:\s*#fbf8f1/);
 });
 
 test("toutes les analyses du bilan utilisent la largeur de la feuille", () => {
@@ -3481,7 +3502,10 @@ test("le territoire commence directement par son analyse sans rangée de boutons
 
 test("la carte territoriale se révèle sans être recréée", () => {
   assert.match(MAIN, /cadre\.hidden = !ouverte/);
-  assert.match(MAIN, /appliquerModeCarte\(ouverte\)/);
+  assert.match(
+    MAIN,
+    /appliquerModeCarte\(carteActivePourVue\(document\.body\.dataset\.vue, ouverte\)\)/,
+  );
   assert.match(MAIN, /suivreVisibiliteCarteParDefaut\(/);
   assert.match(MAIN, /carte\?\.resize\(\)/);
 });
