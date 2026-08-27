@@ -56,3 +56,64 @@ test("effacer retire uniquement la sauvegarde V3", () => {
   assert.equal(storage.getItem(V3_STORAGE_KEY), null);
   assert.equal(storage.getItem("tunnel-partie"), "v2");
 });
+
+test("un stockage V3 indisponible n'accède à aucune autre clé", () => {
+  const accessed: string[] = [];
+  const storage: StorageLike = {
+    getItem(key) {
+      accessed.push(key);
+      throw new Error("storage unavailable");
+    },
+    setItem() {},
+    removeItem() {},
+  };
+  assert.deepEqual(restoreCampaign(storage, validScenario()), { kind: "unavailable" });
+  assert.deepEqual(accessed, [V3_STORAGE_KEY]);
+});
+
+test("un stockage V2 indisponible après absence de V3 est signalé", () => {
+  const accessed: string[] = [];
+  const storage: StorageLike = {
+    getItem(key) {
+      accessed.push(key);
+      if (key === V3_STORAGE_KEY) return null;
+      throw new Error("storage unavailable");
+    },
+    setItem() {},
+    removeItem() {},
+  };
+  assert.deepEqual(restoreCampaign(storage, validScenario()), { kind: "unavailable" });
+  assert.deepEqual(accessed, [V3_STORAGE_KEY, "tunnel-partie"]);
+});
+
+test("une V3 invalide ne se replie pas sur une V2 valide", () => {
+  const storage = memoryStorage({
+    [V3_STORAGE_KEY]: "{not-json",
+    "tunnel-partie": JSON.stringify({ version: 2 }),
+  });
+  assert.deepEqual(restoreCampaign(storage, validScenario()), { kind: "invalid" });
+});
+
+test("une erreur d'écriture ne propage pas et ne mute pas la campagne", () => {
+  const state = createCampaign(validScenario());
+  const storage: StorageLike = {
+    getItem() { return null; },
+    setItem() { throw new Error("storage unavailable"); },
+    removeItem() {},
+  };
+  const saved = saveCampaign(storage, state, new Date("2026-08-27T12:00:00.000Z"));
+  assert.deepEqual(saved, {
+    ...state,
+    savedAt: "2026-08-27T12:00:00.000Z",
+  });
+  assert.equal(state.savedAt, "1970-01-01T00:00:00.000Z");
+});
+
+test("une erreur d'effacement ne propage pas", () => {
+  const storage: StorageLike = {
+    getItem() { return null; },
+    setItem() {},
+    removeItem() { throw new Error("storage unavailable"); },
+  };
+  assert.doesNotThrow(() => clearCampaign(storage));
+});
