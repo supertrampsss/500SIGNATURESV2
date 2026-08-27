@@ -1,4 +1,4 @@
-import type { Decision, Scenario } from "./types.ts";
+import type { CampaignState, Decision, GroupState, IndicatorState, Scenario } from "./types.ts";
 
 function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
   const id = `decision-${(chapterNumber - 1) * 12 + decisionNumber}`;
@@ -65,5 +65,61 @@ export function validScenario(): Scenario {
       };
     }),
     decisions,
+  };
+}
+
+export function validCampaignState(scenario = validScenario()): CampaignState {
+  const indicators: IndicatorState = {
+    annualBalance: 0,
+    debtToGdp: 0,
+    interestCost: 0,
+    growth: 0,
+    employment: 0,
+    investment: 0,
+    publicServices: 0,
+    majority: 0,
+    reformCapacity: 0,
+    opinion: 0,
+    institutionalTrust: 0,
+    financialCredibility: 0,
+  };
+  const groups: GroupState = {
+    lowIncomeHouseholds: 0,
+    middleClasses: 0,
+    retirees: 0,
+    publicEmployees: 0,
+    privateEmployees: 0,
+    unions: 0,
+    businesses: 0,
+    farmers: 0,
+    localAuthorities: 0,
+    creditors: 0,
+    europeanPartners: 0,
+    parliamentaryMajority: 0,
+  };
+  return {
+    schemaVersion: 3,
+    scenarioVersion: scenario.version,
+    seed: 1,
+    phase: "decision",
+    chapterIndex: 0,
+    decisionIndex: 0,
+    decisions: [{
+      decisionId: "decision-1",
+      optionId: "decision-1-option-a",
+      status: "confirmed",
+      confirmedAtIndex: 1,
+    }],
+    indicators,
+    groups,
+    scheduledEvents: [],
+    activePromises: [],
+    promiseHistory: [],
+    crisisHistory: [],
+    resolvedCrisisIds: [],
+    causalLedger: [],
+    unlockedDecisionIds: [],
+    lockedDecisionIds: [],
+    savedAt: "2026-01-01T00:00:00.000Z",
   };
 }

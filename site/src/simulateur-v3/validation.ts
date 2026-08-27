@@ -4,6 +4,15 @@ const PHASES: readonly CampaignPhase[] = [
   "intro", "chapter_intro", "decision", "decision_result", "council", "crisis",
   "delayed_event", "chapter_verdict", "pause", "verdict",
 ];
+const DECISION_STATUSES = new Set(["confirmed", "suspended", "amended", "reversed"]);
+const INDICATOR_KEYS = [
+  "annualBalance", "debtToGdp", "interestCost", "growth", "employment", "investment",
+  "publicServices", "majority", "reformCapacity", "opinion", "institutionalTrust", "financialCredibility",
+] as const;
+const GROUP_KEYS = [
+  "lowIncomeHouseholds", "middleClasses", "retirees", "publicEmployees", "privateEmployees", "unions",
+  "businesses", "farmers", "localAuthorities", "creditors", "europeanPartners", "parliamentaryMajority",
+] as const;
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && (Object.getPrototypeOf(value) === Object.prototype || Object.getPrototypeOf(value) === null);
@@ -13,6 +22,20 @@ const isPositiveInteger = (value: unknown): value is number =>
 
 function hasDuplicates(values: readonly string[]): boolean {
   return new Set(values).size !== values.length;
+}
+
+function duplicateValues(values: readonly string[]): string[] {
+  const seen = new Set<string>();
+  const duplicates = new Set<string>();
+  for (const value of values) (seen.has(value) ? duplicates : seen).add(value);
+  return [...duplicates];
+}
+
+function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
+  const actualKeys = Object.keys(value);
+  return actualKeys.length === expectedKeys.length
+    && expectedKeys.every((key) => Object.hasOwn(value, key))
+    && actualKeys.every((key) => typeof value[key] === "number" && Number.isFinite(value[key]));
 }
 
 function effectRules(option: DecisionOption): readonly EffectRule[] {
@@ -67,6 +90,7 @@ export function validateScenario(scenario: Scenario): string[] {
   if (scenario.chapters.length !== 8) errors.push("scenario:expected-8-chapters");
   for (const chapter of scenario.chapters) {
     if (chapter.decisionIds.length !== 12) errors.push(`chapter:${chapter.id}:expected-12-decisions`);
+    for (const id of duplicateValues(chapter.decisionIds)) errors.push(`chapter:${chapter.id}:duplicate-decision:${id}`);
   }
   if (scenario.decisions.length !== 96) errors.push("scenario:expected-96-decisions");
 
@@ -79,6 +103,15 @@ export function validateScenario(scenario: Scenario): string[] {
   for (const chapter of scenario.chapters) {
     for (const id of chapter.decisionIds) {
       if (decisionsById.get(id)?.chapterId !== chapter.id) errors.push(`chapter:${chapter.id}:unknown-decision:${id}`);
+    }
+  }
+  const chapterDecisionCounts = new Map<string, number>();
+  for (const chapter of scenario.chapters) {
+    for (const id of chapter.decisionIds) chapterDecisionCounts.set(id, (chapterDecisionCounts.get(id) ?? 0) + 1);
+  }
+  if (scenario.chapters.every((chapter) => chapter.decisionIds.length === 12)) {
+    for (const decision of scenario.decisions) {
+      if (chapterDecisionCounts.get(decision.id) !== 1) errors.push(`decision:${decision.id}:expected-once-in-chapters`);
     }
   }
 
@@ -107,18 +140,27 @@ function knownDecisionAndOption(value: unknown, decisions: Map<string, Decision>
   return decisions.get(value.decisionId)?.options.some((option) => option.id === value.optionId) ?? false;
 }
 
+function isDecisionRecord(value: unknown, decisions: Map<string, Decision>): boolean {
+  return knownDecisionAndOption(value, decisions)
+    && isRecord(value)
+    && typeof value.status === "string"
+    && DECISION_STATUSES.has(value.status)
+    && isPositiveInteger(value.confirmedAtIndex)
+    && (value.changedByCrisisId === undefined || typeof value.changedByCrisisId === "string");
+}
+
 /** Narrow an untrusted persisted value to the V3 campaign state schema. */
 export function isCampaignState(value: unknown, scenario: Scenario): value is CampaignState {
   if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION || value.scenarioVersion !== scenario.version) return false;
   if (!PHASES.includes(value.phase as CampaignPhase) || !Number.isInteger(value.chapterIndex) || !Number.isInteger(value.decisionIndex)) return false;
   if ((value.chapterIndex as number) < 0 || (value.chapterIndex as number) >= scenario.chapters.length || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) > scenario.decisions.length) return false;
   if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
-  if (!isRecord(value.indicators) || !Object.values(value.indicators).every((indicator) => typeof indicator === "number" && Number.isFinite(indicator))) return false;
-  if (!isRecord(value.groups) || !Object.values(value.groups).every((group) => typeof group === "number" && Number.isFinite(group))) return false;
+  if (!isRecord(value.indicators) || !hasExactFiniteKeys(value.indicators, INDICATOR_KEYS)) return false;
+  if (!isRecord(value.groups) || !hasExactFiniteKeys(value.groups, GROUP_KEYS)) return false;
   if (typeof value.seed !== "number" || !Number.isFinite(value.seed) || typeof value.savedAt !== "string" || Number.isNaN(Date.parse(value.savedAt))) return false;
 
   const decisions = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
-  if (!value.decisions.every((record) => knownDecisionAndOption(record, decisions))) return false;
+  if (!value.decisions.every((record) => isDecisionRecord(record, decisions))) return false;
   if (value.pendingSelection !== undefined && !knownDecisionAndOption(value.pendingSelection, decisions)) return false;
   if (!value.scheduledEvents.every((event) => isRecord(event) && typeof event.sourceDecisionId === "string" && typeof event.sourceOptionId === "string" && knownDecisionAndOption({ decisionId: event.sourceDecisionId, optionId: event.sourceOptionId }, decisions))) return false;
   if (![...value.activePromises, ...value.promiseHistory].every((promise) => isRecord(promise) && typeof promise.sourceDecisionId === "string" && decisions.has(promise.sourceDecisionId))) return false;
