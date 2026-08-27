@@ -7,6 +7,7 @@ import {
   type RecetteTendance,
 } from "./insights-france-catalogue.ts";
 import { periodeCommune, type Insight, type PreuveInsight } from "./insights.ts";
+import { comparaisonVoisins } from "./insights-europe.ts";
 
 type Series = Territoire["series"];
 type Point = { periode: string; valeur: number };
@@ -36,6 +37,7 @@ export function creerInsightTendance(
   recette: RecetteTendance,
   series: Series,
   catalogue: Indicateur[],
+  pays?: Record<string, Territoire>,
 ): Insight | null {
   if (!uniteValide(catalogue, recette.indicateur, recette.unite)) return null;
   const observations = points(series[recette.indicateur]);
@@ -60,6 +62,9 @@ export function creerInsightTendance(
     titre: `${recette.sujet} : ${amplitude}`,
     texte: `La série publiée passe de ${formater(depart.valeur, recette.unite, false)} à ${formater(arrivee.valeur, recette.unite, false)} entre ${depart.periode} et ${arrivee.periode}, soit ${mouvement} de ${nombre.format(Math.abs(evolution))} ${enPoints ? "points" : "%"}.`,
     reserve: recette.reserve,
+    comparaison: recette.indicateur.startsWith("eurostat_")
+      ? comparaisonVoisins(pays, recette.indicateur, arrivee.periode, recette.unite)
+      : undefined,
     preuves: [
       preuve(recette.indicateur, depart, "Point de départ"),
       preuve(recette.indicateur, arrivee, "Dernière observation"),
@@ -95,9 +100,13 @@ function creerInsightMission(
   };
 }
 
-export function insightsFranceGeneriques(series: Series, catalogue: Indicateur[]): Insight[] {
+export function insightsFranceGeneriques(
+  series: Series,
+  catalogue: Indicateur[],
+  pays?: Record<string, Territoire>,
+): Insight[] {
   return [
-    ...RECETTES_TENDANCES.map((recette) => creerInsightTendance(recette, series, catalogue)),
+    ...RECETTES_TENDANCES.map((recette) => creerInsightTendance(recette, series, catalogue, pays)),
     ...RECETTES_MISSIONS.map((recette) => creerInsightMission(recette, series, catalogue)),
   ].filter((insight): insight is Insight => insight !== null);
 }

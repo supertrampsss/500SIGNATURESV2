@@ -5180,12 +5180,15 @@ summary.pont__rangee,
   color: var(--encre);
   line-height: 1.55;
 }
-.insight__reserve {
-  max-width: 62ch;
+.insight__comparaison {
+  max-width: 66ch;
   margin: var(--espace-4) 0 0;
-  color: var(--encre-douce);
+  padding-top: var(--espace-3);
+  color: var(--encre);
+  border-top: 1px solid var(--trait);
   font-size: var(--texte-xs);
-  line-height: 1.5;
+  font-weight: 750;
+  line-height: 1.4;
 }
 .insights__methode {
   margin: 0;

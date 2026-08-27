@@ -29,10 +29,11 @@ const insight: Insight = {
   titre: "Une conclusion & son chiffre",
   texte: "L'analyse reste visible.",
   reserve: "La limite est explicite.",
+  comparaison: "Voisins européens — Allemagne 42,4 % · Belgique 47,2 %.",
   preuves: [{ indicateur: "test", periode: "2025", valeur: 12.5, libelle: "Mesure" }],
 };
 
-test("renduInsights rend l'analyse et la réserve sans HTML injecté", () => {
+test("renduInsights rend l'analyse et la comparaison, jamais la réserve", () => {
   const html = renduInsights([insight], catalogue, {
     contexte: "territoire",
     nom: "Ville-test",
@@ -41,7 +42,10 @@ test("renduInsights rend l'analyse et la réserve sans HTML injecté", () => {
   assert.match(html, /Ce que racontent les chiffres de Ville-test/);
   assert.match(html, /Le fait &lt;vérifié&gt;/);
   assert.match(html, /L&#39;analyse reste visible/);
-  assert.match(html, /La limite est explicite/);
+  assert.doesNotMatch(html, /La limite est explicite/);
+  assert.doesNotMatch(html, /insight__reserve/);
+  assert.match(html, /Voisins européens — Allemagne 42,4 % · Belgique 47,2 %/);
+  assert.match(html, /insight__comparaison/);
   assert.doesNotMatch(html, /À garder en tête/);
   assert.doesNotMatch(html, /Vérifier les chiffres/);
   assert.doesNotMatch(html, /insight__preuves/);
@@ -72,10 +76,10 @@ test("les arbitrages France sont tous visibles et regroupés dans un sommaire th
   assert.doesNotMatch(html, /Afficher plus|Voir plus/);
 });
 
-test("une réserve vide ne crée pas de paragraphe fantôme", () => {
-  const html = renduInsights([{ ...insight, reserve: "" }], catalogue, {
+test("une carte sans comparaison ne crée pas de paragraphe fantôme", () => {
+  const html = renduInsights([{ ...insight, comparaison: undefined }], catalogue, {
     contexte: "france",
   });
 
-  assert.doesNotMatch(html, /insight__reserve/);
+  assert.doesNotMatch(html, /insight__comparaison/);
 });

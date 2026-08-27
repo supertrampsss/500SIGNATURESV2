@@ -1,5 +1,6 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { insightsFranceGeneriques } from "./insights-france-generiques.ts";
+import { comparaisonVoisins } from "./insights-europe.ts";
 import {
   derniere,
   ecartRelatif,
@@ -400,7 +401,7 @@ function insightInteretsDette(series: Series): Insight | null {
   };
 }
 
-function insightPrelevements(series: Series): Insight | null {
+function insightPrelevements(series: Series, pays?: Record<string, Territoire>): Insight | null {
   const id = "eurostat_prelevements_obligatoires_pib";
   const depart = series[id]?.["2017"];
   const arrivee = derniere(series[id]);
@@ -414,6 +415,7 @@ function insightPrelevements(series: Series): Insight | null {
     titre: `${nombre.format(arrivee.valeur)} % du PIB en prélèvements obligatoires`,
     texte: `Le ratio a ${direction} de ${nombre.format(Math.abs(points))} points depuis 2017. Une baisse de part dans le PIB ne signifie pas nécessairement que chaque contribuable paie moins en euros.`,
     reserve: "Le ratio agrège impôts et cotisations de l'ensemble des administrations publiques.",
+    comparaison: comparaisonVoisins(pays, id, arrivee.periode, "percent"),
     preuves: [
       preuve(id, "2017", depart, "Ratio en 2017"),
       preuve(id, arrivee.periode, arrivee.valeur, "Dernier ratio publié"),
@@ -421,7 +423,7 @@ function insightPrelevements(series: Series): Insight | null {
   };
 }
 
-function insightTauxEmploi(series: Series): Insight | null {
+function insightTauxEmploi(series: Series, pays?: Record<string, Territoire>): Insight | null {
   const id = "eurostat_taux_emploi";
   const evolution = variation(series[id]);
   if (!evolution || evolution.arrivee < 0) return null;
@@ -434,6 +436,7 @@ function insightTauxEmploi(series: Series): Insight | null {
     titre: `${nombre.format(evolution.arrivee)} % des 20-64 ans en emploi`,
     texte: `Le taux harmonisé a ${direction} de ${nombre.format(Math.abs(points))} points entre ${evolution.de} et ${evolution.a}. Il mesure la part en emploi, pas la qualité ni la durée des contrats.`,
     reserve: "Étudiants, inactifs et personnes hors emploi ne sont pas tous comptés comme chômeurs.",
+    comparaison: comparaisonVoisins(pays, id, evolution.a, "percent"),
     preuves: [
       preuve(id, evolution.de, evolution.depart, "Taux initial"),
       preuve(id, evolution.a, evolution.arrivee, "Dernier taux publié"),
@@ -441,7 +444,7 @@ function insightTauxEmploi(series: Series): Insight | null {
   };
 }
 
-function insightChomageJeunes(series: Series): Insight | null {
+function insightChomageJeunes(series: Series, pays?: Record<string, Territoire>): Insight | null {
   const jeunesId = "eurostat_chomage_jeunes";
   const ensembleId = "eurostat_chomage";
   const periode = periodeCommune([series[jeunesId], series[ensembleId]]);
@@ -457,6 +460,7 @@ function insightChomageJeunes(series: Series): Insight | null {
     titre: `Le chômage des jeunes est ${ratio.format(multiple)} fois plus élevé`,
     texte: `En ${periode}, le taux harmonisé atteint ${nombre.format(jeunes)} % chez les 15-24 ans, contre ${nombre.format(ensemble)} % pour l'ensemble de la population active.`,
     reserve: "Le taux porte sur les jeunes actifs, pas sur l'ensemble des 15-24 ans, dont beaucoup étudient.",
+    comparaison: comparaisonVoisins(pays, jeunesId, periode, "percent"),
     preuves: [
       preuve(jeunesId, periode, jeunes, "Chômage des 15-24 ans"),
       preuve(ensembleId, periode, ensemble, "Chômage de l'ensemble"),
@@ -510,7 +514,11 @@ function insightDensiteCarcerale(series: Series): Insight | null {
   };
 }
 
-export function insightsFrance(france: Territoire | undefined, catalogue: Indicateur[]): Insight[] {
+export function insightsFrance(
+  france: Territoire | undefined,
+  catalogue: Indicateur[],
+  pays?: Record<string, Territoire>,
+): Insight[] {
   if (!france) return [];
   return [
     insightNiches(france.series),
@@ -527,11 +535,11 @@ export function insightsFrance(france: Territoire | undefined, catalogue: Indica
     insightRedistributionInterquintile(france.series),
     insightRedistributionBasEchelle(france.series),
     insightInteretsDette(france.series),
-    insightPrelevements(france.series),
-    insightTauxEmploi(france.series),
-    insightChomageJeunes(france.series),
+    insightPrelevements(france.series, pays),
+    insightTauxEmploi(france.series, pays),
+    insightChomageJeunes(france.series, pays),
     insightPauvrete(france.series),
     insightDensiteCarcerale(france.series),
-    ...insightsFranceGeneriques(france.series, catalogue),
+    ...insightsFranceGeneriques(france.series, catalogue, pays),
   ].filter((insight): insight is Insight => insight !== null);
 }

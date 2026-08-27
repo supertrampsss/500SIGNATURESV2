@@ -129,3 +129,37 @@ test("le générateur produit les 81 cartes quand chaque série est compatible",
     true,
   );
 });
+
+test("une trajectoire Eurostat reçoit la comparaison des voisins au même exercice", () => {
+  const recette: RecetteTendance = {
+    id: "europe-test",
+    indicateur: "eurostat_test",
+    unite: "percent",
+    famille: "budget",
+    surtitre: "Europe · le niveau comparé",
+    sujet: "Indicateur européen",
+    reserve: "Cette réserve ne doit pas être rendue.",
+  };
+  const pays = Object.fromEntries([
+    ["DE", 42.4],
+    ["BE", 47.2],
+    ["ES", 38.1],
+    ["IT", 41.8],
+  ].map(([code, valeur]) => [code, {
+    nom: code,
+    parent: null,
+    population: null,
+    drapeaux: {},
+    series: { eurostat_test: { "2025": valeur } },
+  }])) as Record<string, Territoire>;
+
+  const resultat = creerInsightTendance(
+    recette,
+    { eurostat_test: { "2020": 40, "2025": 45 } },
+    [indicateur("eurostat_test", "percent")],
+    pays,
+  );
+
+  assert.match(resultat?.comparaison ?? "", /Allemagne 42,4/);
+  assert.match(resultat?.comparaison ?? "", /Italie 41,8/);
+});

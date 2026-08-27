@@ -4612,7 +4612,7 @@ async function demarrer(): Promise<void> {
     if (afficherEurope($("bloc-europe"), pays, sourcesPubliees)) {
       $("national").hidden = false;
     }
-    const analysesFrance = insightsFrance(pays.FR, catalogue);
+    const analysesFrance = insightsFrance(pays.FR, catalogue, pays);
     const cadreInsightsFrance = $("insights-france");
     cadreInsightsFrance.innerHTML = renduInsights(analysesFrance, catalogue, { contexte: "france" });
     cadreInsightsFrance.hidden = analysesFrance.length === 0;

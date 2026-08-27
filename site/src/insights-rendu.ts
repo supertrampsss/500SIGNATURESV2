@@ -13,7 +13,7 @@ function carte(insight: Insight, niveauTitre: 3 | 4 = 3): string {
       <p class="insight__surtitre">${echapper(insight.surtitre)}</p>
       <h${niveauTitre}>${echapper(insight.titre)}</h${niveauTitre}>
       <p class="insight__analyse">${echapper(insight.texte)}</p>
-      ${insight.reserve ? `<p class="insight__reserve">${echapper(insight.reserve)}</p>` : ""}
+      ${insight.comparaison ? `<p class="insight__comparaison">${echapper(insight.comparaison)}</p>` : ""}
     </article>
   </li>`;
 }

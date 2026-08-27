@@ -22,6 +22,9 @@ export type Insight = {
   titre: string;
   texte: string;
   reserve: string;
+  /** Comparaison harmonisée au même exercice, uniquement quand Eurostat
+   * publie la même série pour plusieurs voisins. */
+  comparaison?: string;
   preuves: PreuveInsight[];
 };
 
