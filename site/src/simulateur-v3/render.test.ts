@@ -36,6 +36,14 @@ test("un dossier rend une carte cliquable par option sans rangée d'actions dupl
   assert.match(html, /https:\/\/plateforme-9sz\.pages\.dev\/sources\//);
 });
 
+test("une option ne répète pas mot pour mot le contexte déjà lu", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  assert.equal(decision.options[0]!.summary, decision.context);
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(html, 'class="simulateur-v3__option-summary"'), 1);
+});
+
 test("la confirmation vit dans la carte sélectionnée", () => {
   const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
@@ -61,6 +69,9 @@ test("le retour de décision reste à l'écran jusqu'à Continuer", () => {
   assert.match(html, /aria-live="polite"/);
   assert.match(html, new RegExp(option.label));
   assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
+  assert.match(html, /Opinion -20 points/);
+  assert.match(html, /Entreprises \+4 points/);
+  assert.doesNotMatch(html, /Réaction simulée|Aucune conséquence différée/);
 });
 
 test("chaque phase rend la barre de commandement sans cadratin", () => {

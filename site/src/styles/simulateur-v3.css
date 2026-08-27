@@ -26,6 +26,10 @@ body[data-vue="simulateur"] .entete__recherche {
   display: none;
 }
 
+#simulateur-v3 {
+  scroll-margin-top: var(--haut-entete);
+}
+
 .simulateur-v3 *,
 .simulateur-v3 *::before,
 .simulateur-v3 *::after {
@@ -40,8 +44,9 @@ body[data-vue="simulateur"] .entete__recherche {
 .simulateur-v3 button:focus-visible,
 .simulateur-v3 a:focus-visible,
 .simulateur-v3 summary:focus-visible {
-  outline: 3px solid var(--v3-gold);
-  outline-offset: 3px;
+  outline: 2px solid var(--v3-paper);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 5px var(--v3-red);
 }
 
 .simulateur-v3__command-bar {
@@ -424,6 +429,16 @@ body[data-vue="simulateur"] .entete__recherche {
 .simulateur-v3__result-grid section:last-child { border-bottom: 0; }
 .simulateur-v3__result-grid h2 { margin: 0; font-size: var(--texte-s); text-transform: uppercase; letter-spacing: 0.06em; }
 .simulateur-v3__result-grid p { margin: var(--espace-2) 0 0; font-family: var(--serif); font-size: var(--texte-xl); line-height: 1.2; }
+.simulateur-v3__result-effects {
+  display: grid;
+  gap: var(--espace-2);
+  margin: var(--espace-3) 0 0;
+  padding: 0;
+  font-family: var(--serif);
+  font-size: var(--texte-xl);
+  line-height: 1.2;
+  list-style: none;
+}
 
 .simulateur-v3__pause-actions {
   margin-top: var(--espace-6);
@@ -475,13 +490,11 @@ body[data-vue="simulateur"] .entete__recherche {
     padding-inline: var(--espace-7);
   }
 
-  .simulateur-v3__mandate,
-  .simulateur-v3__chapter-progress,
-  .simulateur-v3__decision-progress,
-  .simulateur-v3__pause {
-    grid-column: auto;
-    grid-row: 1;
-  }
+  .simulateur-v3__brand { grid-column: 1; grid-row: 1; }
+  .simulateur-v3__mandate { grid-column: 2; grid-row: 1; }
+  .simulateur-v3__chapter-progress { grid-column: 3; grid-row: 1; }
+  .simulateur-v3__decision-progress { grid-column: 4; grid-row: 1; }
+  .simulateur-v3__pause { grid-column: 5; grid-row: 1; }
 
   .simulateur-v3__decision-progress { text-align: start; }
 
@@ -501,9 +514,7 @@ body[data-vue="simulateur"] .entete__recherche {
     grid-column: 1 / -1;
   }
 
-  .simulateur-v3__result-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+  .simulateur-v3__result-grid { grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
 
   .simulateur-v3__result-grid section {
     border-right: 1px solid var(--v3-rule);

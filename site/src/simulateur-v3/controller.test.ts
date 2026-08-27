@@ -17,6 +17,7 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike & { va
 
 class FakeHost implements SimulatorV3Host {
   innerHTML = "";
+  scrollCalls = 0;
   private listener?: EventListener;
 
   addEventListener(_type: "click", listener: EventListener): void {
@@ -25,6 +26,10 @@ class FakeHost implements SimulatorV3Host {
 
   removeEventListener(_type: "click", listener: EventListener): void {
     if (this.listener === listener) this.listener = undefined;
+  }
+
+  scrollIntoView(): void {
+    this.scrollCalls += 1;
   }
 
   click(action: string, data: Record<string, string> = {}): void {
@@ -47,10 +52,25 @@ test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
   assert.match(host.innerHTML, /Prendre mes fonctions/);
+  assert.equal(host.scrollCalls, 1);
   host.click("start");
   assert.match(host.innerHTML, /La ligne de fracture/);
+  assert.equal(host.scrollCalls, 2);
   host.click("open-chapter");
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[0]!.title));
+  assert.equal(host.scrollCalls, 3);
+});
+
+test("choisir une carte ne déplace pas la lecture, changer d'écran la remonte", () => {
+  const host = new FakeHost();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
+  beginDecision(host);
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const avantChoix = host.scrollCalls;
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  assert.equal(host.scrollCalls, avantChoix);
+  host.click("confirm");
+  assert.equal(host.scrollCalls, avantChoix + 1);
 });
 
 test("sélectionner, revenir et confirmer restent dans la carte", () => {

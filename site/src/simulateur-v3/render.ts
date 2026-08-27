@@ -89,6 +89,31 @@ function annualBalanceEffect(option: DecisionOption): EffectRule | undefined {
   return option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance");
 }
 
+const EFFECT_LABELS: Record<string, string> = {
+  opinion: "Opinion",
+  financialCredibility: "Marchés",
+  reformCapacity: "Capacité de réforme",
+  majority: "Majorité",
+  institutionalTrust: "Confiance institutionnelle",
+  businesses: "Entreprises",
+  localAuthorities: "Territoires",
+  unions: "Syndicats",
+  farmers: "Agriculteurs",
+  retirees: "Retraités",
+  lowIncomeHouseholds: "Ménages modestes",
+  middleClasses: "Classes moyennes",
+  publicEmployees: "Agents publics",
+  privateEmployees: "Salariés du privé",
+  creditors: "Créanciers",
+  europeanPartners: "Partenaires européens",
+  parliamentaryMajority: "Majorité parlementaire",
+};
+
+function effectLabel(effect: EffectRule): string {
+  const label = EFFECT_LABELS[effect.key] ?? effect.key;
+  return `${label} ${signed(effect.delta)} points`;
+}
+
 function renderOption(decision: Decision, option: DecisionOption, selected: boolean): string {
   const budget = annualBalanceEffect(option);
   return `
@@ -102,7 +127,7 @@ function renderOption(decision: Decision, option: DecisionOption, selected: bool
         aria-pressed="${selected ? "true" : "false"}"
       >
         <span class="simulateur-v3__option-label">${escapeHtml(option.label)}</span>
-        <span class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</span>
+        ${option.summary !== decision.context ? `<span class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</span>` : ""}
         <span class="simulateur-v3__option-metrics">
           <span>${budget ? `${escapeHtml(formatV3Amount(budget.delta))} par an` : "Solde public inchangé"}</span>
           <span>Incertitude ${escapeHtml(option.uncertainty)}</span>
@@ -173,7 +198,7 @@ function renderDecisionResult(state: CampaignState, scenario: Scenario): string 
   const option = decision?.options.find((candidate) => candidate.id === record?.optionId);
   if (!decision || !option) return renderUnavailable("Le résultat de cette décision est indisponible.");
   const budget = annualBalanceEffect(option);
-  const otherEffects = option.effects.filter((effect) => effect !== budget);
+  const otherEffects = option.effects.filter((effect) => effect !== budget && effect.timing.kind === "immediate");
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__result" aria-live="polite">
@@ -182,8 +207,8 @@ function renderDecisionResult(state: CampaignState, scenario: Scenario): string 
         <p class="simulateur-v3__result-question">${escapeHtml(decision.title)}</p>
         <div class="simulateur-v3__result-grid">
           <section><h2>Effet sur les comptes</h2><p>${budget ? `${escapeHtml(formatV3Amount(budget.delta))} par an` : "Solde public inchangé"}</p></section>
-          <section><h2>Effet politique immédiat</h2><p>${otherEffects.length ? escapeHtml(otherEffects.map((effect) => effect.explanation).join(" ")) : "Aucune variation immédiate mesurée."}</p></section>
-          <section><h2>Ce qui reste à venir</h2><p>${option.scheduledEvents.length ? `${option.scheduledEvents.length} conséquence programmée.` : "Aucune conséquence différée programmée dans cette version."}</p></section>
+          ${otherEffects.length ? `<section><h2>Effet politique immédiat</h2><ul class="simulateur-v3__result-effects">${otherEffects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul></section>` : ""}
+          ${option.scheduledEvents.length ? `<section><h2>À surveiller</h2><p>${option.scheduledEvents.length} conséquence programmée.</p></section>` : ""}
         </div>
         <button type="button" class="simulateur-v3__primary" data-v3-action="continue">Continuer le mandat</button>
       </article>

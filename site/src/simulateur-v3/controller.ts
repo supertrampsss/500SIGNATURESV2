@@ -18,6 +18,7 @@ export type SimulatorV3Host = {
   innerHTML: string;
   addEventListener(type: "click", listener: EventListener): void;
   removeEventListener(type: "click", listener: EventListener): void;
+  scrollIntoView?(options?: ScrollIntoViewOptions): void;
 };
 
 export type SimulatorV3Dependencies = {
@@ -60,6 +61,13 @@ function inferredPhaseBeforePause(state: CampaignState): CampaignPhase {
   return state.decisions.length > position ? "decision_result" : "decision";
 }
 
+function resetScrollAfterBrowserRestore(host: SimulatorV3Host): void {
+  if (typeof requestAnimationFrame === "undefined") return;
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => host.scrollIntoView?.({ block: "start" }));
+  });
+}
+
 export function mountSimulatorV3(
   host: SimulatorV3Host,
   scenario: Scenario,
@@ -75,13 +83,14 @@ export function mountSimulatorV3(
     ? inferredPhaseBeforePause(state)
     : undefined;
 
-  const render = () => {
+  const render = (resetScroll = false) => {
     host.innerHTML = renderSimulatorV3(state, scenario, { v2Found });
+    if (resetScroll) host.scrollIntoView?.({ block: "start" });
   };
 
-  const persistAndRender = () => {
+  const persistAndRender = (resetScroll = false) => {
     state = saveCampaign(storage, state, now());
-    render();
+    render(resetScroll);
   };
 
   const emit = (detail: Parameters<typeof emitSimulatorV3Event>[0]) => {
@@ -102,14 +111,14 @@ export function mountSimulatorV3(
     if (action === "start" && state.phase === "intro") {
       state = { ...state, phase: "chapter_intro" };
       emit({ type: "campaign_started" });
-      persistAndRender();
+      persistAndRender(true);
       return;
     }
 
     if (action === "open-chapter" && state.phase === "chapter_intro") {
       state = advanceAfterResult(state, scenario);
       emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
-      persistAndRender();
+      persistAndRender(true);
       return;
     }
 
@@ -135,7 +144,7 @@ export function mountSimulatorV3(
         chapter: state.chapterIndex + 1,
         position: state.decisions.length,
       });
-      persistAndRender();
+      persistAndRender(true);
       return;
     }
 
@@ -144,26 +153,27 @@ export function mountSimulatorV3(
       if (state.phase === "decision") {
         emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
       }
-      persistAndRender();
+      persistAndRender(true);
       return;
     }
 
     if (action === "pause" && state.phase !== "pause") {
       phaseBeforePause = state.phase;
       state = { ...state, phase: "pause" };
-      persistAndRender();
+      persistAndRender(true);
       return;
     }
 
     if (action === "resume" && state.phase === "pause") {
       state = { ...state, phase: phaseBeforePause ?? inferredPhaseBeforePause(state) };
       emit({ type: "campaign_resumed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
-      persistAndRender();
+      persistAndRender(true);
     }
   };
 
   host.addEventListener("click", onClick);
-  render();
+  render(true);
+  resetScrollAfterBrowserRestore(host);
 
   return () => {
     host.removeEventListener("click", onClick);

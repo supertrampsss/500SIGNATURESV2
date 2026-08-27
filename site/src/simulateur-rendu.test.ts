@@ -611,15 +611,17 @@ test("il n'y a plus de barre de pastilles : une seule page, pas deux vues", () =
   assert.doesNotMatch(CSS, /\.simu__budgets/);
 });
 
-test("sans fichier publié, ni entrée de menu ni adresse", () => {
+test("sans fichier publié, la V2 reste fermée mais la préversion V3 est adressable", () => {
   // L'entrée de menu est écrite par le code, après les index — jamais dans la
   // page. Et `#simulateur` n'est une vue du site qu'à la même condition : un
-  // budget publié au moins, quel qu'il soit.
+  // budget publié au moins, quel qu'il soit. Seul `?version=3`, qui embarque
+  // son catalogue autonome, ouvre explicitement la préversion.
   assert.doesNotMatch(PAGE.replace(/<!--[\s\S]*?-->/g, ""), /data-vue="simulateur"/);
   assert.match(
     MAIN,
-    /return exercicesParVolet\.length \? \[\.\.\.VUES_PAGE, "simulateur"\] : VUES_PAGE;/,
+    /return exercicesParVolet\.length \|\| versionSimulateurV3\(\)[\s\S]*?\? \[\.\.\.VUES_PAGE, "simulateur"\][\s\S]*?: VUES_PAGE;/,
   );
+  assert.match(MAIN, /new URLSearchParams\(location\.search\)\.get\("version"\) === "3"/);
   // La vue de repli est « territoire » : la carte n'est plus la porte d'entrée
   // — et elle n'est même plus une vue, seulement un mode de celle-ci. Depuis
   // que la racine rend l'accueil, `/simulateur` sans budget publié tombe donc

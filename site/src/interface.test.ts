@@ -3524,6 +3524,7 @@ test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
   assert.match(SIMULATEUR_V3, /\[aria-pressed="true"\]/);
   assert.match(SIMULATEUR_V3, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
   assert.doesNotMatch(SIMULATEUR_V3, /position:\s*fixed/);
+  assert.match(SIMULATEUR_V3, /#simulateur-v3\s*\{[^}]*scroll-margin-top:\s*var\(--haut-entete\);/s);
 });
 
 test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {
