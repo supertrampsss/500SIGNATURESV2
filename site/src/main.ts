@@ -125,6 +125,7 @@ import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
+import { SCENARIO_V3_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./simulateur-v3/scenario.ts";
 import "./style.css";
 import "./styles/fondations.css";
@@ -3835,7 +3836,9 @@ async function ouvrirSimulateur(): Promise<void> {
     expert.hidden = true;
     hoteV3.hidden = false;
     if (!demonterSimulateurV3) {
-      demonterSimulateurV3 = mountSimulatorV3(hoteV3, SCENARIO_V3_PREVIEW);
+      demonterSimulateurV3 = mountSimulatorV3(hoteV3, SCENARIO_V3_PREVIEW, {
+        crisisRules: SCENARIO_V3_CRISIS_RULES,
+      });
     }
     return;
   }

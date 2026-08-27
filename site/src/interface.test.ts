@@ -3544,7 +3544,7 @@ test("la préversion V3 possède son hôte et son branchement explicite", () => 
 test("la V3 garde le chrome du site et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
-  assert.match(brancheV3, /mountSimulatorV3\(hoteV3, SCENARIO_V3_PREVIEW\)/);
+  assert.match(brancheV3, /mountSimulatorV3\(hoteV3, SCENARIO_V3_PREVIEW, \{[\s\S]*?crisisRules: SCENARIO_V3_CRISIS_RULES/);
   assert.match(brancheV3, /tunnel\.hidden = true/);
   assert.match(brancheV3, /expert\.hidden = true/);
   assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);

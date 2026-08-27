@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { mountSimulatorV3, type SimulatorV3Host } from "./controller.ts";
 import { V3_STORAGE_KEY, type StorageLike } from "./storage.ts";
+import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 
 function memoryStorage(initial: Record<string, string> = {}): StorageLike & { values: Map<string, string> } {
@@ -148,4 +149,77 @@ test("démonter retire l'unique écouteur délégué", () => {
   assert.equal(host.hasListener(), true);
   unmount();
   assert.equal(host.hasListener(), false);
+});
+
+test("une crise interrompt la progression et sa concession suspend réellement la réforme", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
+  beginDecision(host);
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  host.click("confirm");
+  host.click("continue");
+  assert.match(host.innerHTML, /Conseil de crise/);
+  assert.match(host.innerHTML, /Suspendre la flat tax/);
+
+  host.click("resolve-crisis", { resolutionId: "suspend-flat-tax" });
+  const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.equal(saved.decisions[0].status, "suspended");
+  assert.equal(saved.decisions[0].changedByCrisisId, "flat-tax-revolt");
+  host.click("continue");
+  assert.match(host.innerHTML, /Dossier 2 sur 96/);
+});
+
+test("le journal s'ouvre dans Pause et revient sans perdre l'écran interrompu", () => {
+  const host = new FakeHost();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
+  beginDecision(host);
+  const before = host.innerHTML;
+  host.click("pause");
+  host.click("journal");
+  assert.match(host.innerHTML, /Journal du mandat/);
+  host.click("back-pause");
+  assert.match(host.innerHTML, /Mandat suspendu/);
+  host.click("resume");
+  assert.equal(host.innerHTML, before);
+});
+
+test("recommencer demande confirmation et ne supprime pas la sauvegarde V2", () => {
+  const legacy = JSON.stringify({ version: 2, phase: "conseil" });
+  const storage = memoryStorage({ "tunnel-partie": legacy });
+  const host = new FakeHost();
+  const events: string[] = [];
+  const eventTarget = new EventTarget();
+  eventTarget.addEventListener("simulateur-v3:evenement", (event) => events.push((event as CustomEvent).detail.type));
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, eventTarget });
+  beginDecision(host);
+  host.click("pause");
+  host.click("ask-restart");
+  assert.match(host.innerHTML, /Effacer ce mandat/);
+  host.click("restart");
+  assert.match(host.innerHTML, /Prendre mes fonctions/);
+  assert.equal(storage.values.get("tunnel-partie"), legacy);
+  assert.ok(events.includes("campaign_restarted"));
+});
+
+test("Pause restaurée reprend un Conseil, pas un dossier générique", () => {
+  const storage = memoryStorage();
+  const host = new FakeHost();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+  beginDecision(host);
+  for (let index = 0; index < 4; index += 1) {
+    const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
+    host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
+    host.click("confirm");
+    host.click("continue");
+  }
+  assert.match(host.innerHTML, /Conseil après 4 décisions/);
+  host.click("pause");
+
+  const restored = new FakeHost();
+  mountSimulatorV3(restored, SCENARIO_V3_PREVIEW, { storage });
+  assert.match(restored.innerHTML, /Mandat suspendu/);
+  restored.click("resume");
+  assert.match(restored.innerHTML, /Conseil après 4 décisions/);
 });

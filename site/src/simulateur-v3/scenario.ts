@@ -117,6 +117,36 @@ function directQuestion(measure: Mesure): string {
   return `${title} ?`;
 }
 
+function scheduledEventsFor(measure: Mesure): Decision["options"][number]["scheduledEvents"] {
+  if (measure.id !== "tranche-a-50-au-dela-de-250") return [];
+  return [{
+    id: "high-income-tax-base-reaction",
+    title: "La tranche à 50 % résiste, les départs font la une",
+    body: "Un an après l'annonce, l'assiette fiscale reste largement en France, mais plusieurs départs concentrent le débat et affaiblissent le rendement attendu.",
+    afterDecisions: 1,
+    effects: [
+      {
+        id: "high-income-tax-base-reaction:businesses",
+        target: "group",
+        key: "businesses",
+        delta: -2,
+        timing: { kind: "immediate" },
+        duration: "once",
+        explanation: "Les organisations patronales durcissent leur opposition à la réforme.",
+      },
+      {
+        id: "high-income-tax-base-reaction:credibility",
+        target: "indicator",
+        key: "financialCredibility",
+        delta: -1,
+        timing: { kind: "immediate" },
+        duration: "once",
+        explanation: "Le rendement futur de la mesure devient plus incertain.",
+      },
+    ],
+  }];
+}
+
 function toDecision(measure: Mesure, index: number): Decision {
   const chapter = CHAPTERS[Math.floor(index / 12)]!;
   const editorial = DILEMMES[measure.id];
@@ -175,16 +205,16 @@ function toDecision(measure: Mesure, index: number): Decision {
     options: [
       {
         id: adoptId,
-        label: clean(editorial?.adopter.libelle ?? "Appliquer la mesure"),
+        label: clean(editorial?.adopter.libelle ?? measure.titre),
         summary: clean(editorial?.adopter.argument ?? measure.detail),
         beneficiaries: adoptBeneficiaries.map(clean),
         contributors: adoptContributors.map(clean),
         uncertainty: uncertainty(measure),
         effects: adoptEffects,
-        scheduledEvents: [],
+        scheduledEvents: scheduledEventsFor(measure),
         promises: [],
         fulfillsPromises: [],
-        locks: conflicts,
+        locks: [],
         unlocks: [],
       },
       {
@@ -217,7 +247,7 @@ function toDecision(measure: Mesure, index: number): Decision {
 const decisions = MESURES.map(toDecision);
 
 export const SCENARIO_V3_PREVIEW: Scenario = {
-  version: 1,
+  version: 2,
   title: "La France à l'épreuve des comptes",
   chapters: CHAPTERS.map((chapter, index) => ({
     ...chapter,
