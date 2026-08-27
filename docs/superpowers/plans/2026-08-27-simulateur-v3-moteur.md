@@ -333,6 +333,7 @@ export type CampaignState = {
   indicators: IndicatorState;
   groups: GroupState;
   scheduledEvents: ScheduledEvent[];
+  eventHistory: ScheduledEvent[];
   activePromises: PoliticalPromise[];
   promiseHistory: PoliticalPromise[];
   activeCrisis?: CrisisState;
@@ -548,7 +549,7 @@ export const INITIAL_GROUPS = Object.freeze({
 });
 ```
 
-Initialize `savedAt` to `1970-01-01T00:00:00.000Z`, `promiseHistory` and `crisisHistory` to empty arrays and every other collection to a fresh empty array. This keeps campaign creation deterministic. Storage replaces the timestamp on the first save.
+Initialize `savedAt` to `1970-01-01T00:00:00.000Z`, `eventHistory`, `promiseHistory` and `crisisHistory` to empty arrays and every other collection to a fresh empty array. This keeps campaign creation deterministic. Storage replaces the timestamp on the first save.
 
 `createCampaign` must call `validateScenario` and throw `Invalid scenario: <errors joined by comma>` when errors exist.
 
@@ -734,7 +735,7 @@ Expected: FAIL because effect functions do not exist.
 9. clear the pending selection;
 10. set phase `decision_result`.
 
-`resolveDueEvents` returns the due events and removes them from the queue after applying their effects with source type `event`.
+`resolveDueEvents` returns the due events, removes them from the queue and appends them to `eventHistory` after applying their effects with source type `event`. Decision causal source IDs use the exact format `<decisionId>:<optionId>`. Event causal source IDs use the event `id` and remain verifiable through `eventHistory`.
 
 `resolveDuePromises` compares each promise's `dueAtDecision` with `state.decisions.length`. Every due promise leaves `activePromises` and enters `promiseHistory`. Fulfilled promises have no penalty. Unfulfilled due promises apply their failure effects with source type `promise` and return their IDs. Non-due promises remain unchanged.
 
