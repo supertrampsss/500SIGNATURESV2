@@ -64,6 +64,26 @@ test("les passages après résultat respectent les jalons du chapitre et de la c
   }
 });
 
+test("sortir du Conseil reprend la décision suivante après les quatrième et huitième décisions", () => {
+  const scenario = validScenario();
+  for (const [count, decisionIndex] of [[4, 3], [8, 7]] as const) {
+    const state = {
+      ...createCampaign(scenario),
+      phase: "council" as const,
+      decisionIndex,
+      decisions: Array.from({ length: count }, (_, index) => ({
+        decisionId: scenario.decisions[index]!.id,
+        optionId: scenario.decisions[index]!.options[0]!.id,
+        status: "confirmed" as const,
+        confirmedAtIndex: index + 1,
+      })),
+    };
+    const next = advanceAfterResult(state, scenario);
+    assert.equal(next.phase, "decision");
+    assert.equal(next.decisionIndex, decisionIndex + 1);
+  }
+});
+
 test("les transitions de verdict de chapitre préparent le chapitre suivant", () => {
   const scenario = validScenario();
   const verdict = { ...createCampaign(scenario), phase: "chapter_verdict" as const, chapterIndex: 0, decisionIndex: 11 };

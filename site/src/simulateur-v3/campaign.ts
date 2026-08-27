@@ -87,6 +87,7 @@ export function advanceAfterResult(state: CampaignState, scenario: Scenario): Ca
     return { ...state, chapterIndex: state.chapterIndex + 1, decisionIndex: 0, phase: "chapter_intro" };
   }
   if (state.phase === "chapter_intro") return { ...state, phase: "decision" };
+  if (state.phase === "council") return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 
   const completedDecisions = state.decisions.length;
   if (completedDecisions === 96) return { ...state, phase: "verdict" };
