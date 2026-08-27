@@ -9,7 +9,6 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { nomPays } from "./pays-noms.ts";
 import { formater, montantLisible, SUFFIXE_POUR_100000 } from "./echelle.ts";
-import { equationFrance } from "./bilan-guide.ts";
 import { chiffres as chiffresOuverture, type Ouverture } from "./ouverture.ts";
 import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
 
@@ -99,28 +98,16 @@ function montantCompose(valeur: number): string {
 
 function renduVerdict(
   ouverture: Ouverture | null,
-  dettePib: [string, number] | null,
-  deficitPib: [string, number] | null,
-  indexSources?: IndexSources,
 ): string {
   if (!ouverture) {
-    const indicateur = deficitPib
-      ? "eurostat_deficit_pib"
-      : dettePib
-        ? "insee_dette_apu_part_pib"
-        : "eurostat_apu_recettes";
     return `<div class="ui-conclusion bilan-verdict bilan-verdict--indisponible">
       <div class="bilan-verdict__editorial">
         <h2>Les comptes publics attendent leurs données publiées</h2>
         <p>Le verdict s'écrira quand recettes, dépenses et produit intérieur brut partageront une période publiée.</p>
       </div>
-      <div class="bilan-verdict__secondaire">
-        ${preuveDe(indicateur, indexSources)}
-      </div>
     </div>`;
   }
 
-  const equation = equationFrance(ouverture.recettes, ouverture.depenses);
   const solde = -ouverture.emprunte;
   const titre = solde < 0
     ? `La France dépense ${montantLisible(-solde)} de plus qu'elle n'encaisse`
@@ -132,17 +119,6 @@ function renduVerdict(
     : solde > 0
       ? "excédent sur l'année"
       : "comptes à l'équilibre";
-  const trajectoire = [
-    deficitPib
-      ? `Le déficit représentait ${formater(deficitPib[1], "percent", false)} du PIB en ${deficitPib[0]}.`
-      : "",
-    dettePib
-      ? `La dette publique représentait ${formater(dettePib[1], "percent", false)} du PIB en ${dettePib[0]}.`
-      : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
   return `<div class="ui-conclusion bilan-verdict">
     <div class="bilan-verdict__editorial">
       <p class="bilan-verdict__millesime">Comptes publics français · ${ouverture.fin}</p>
@@ -160,11 +136,6 @@ function renduVerdict(
       <div class="bilan-equation__terme"><span>Dépenses</span><strong class="bilan-montant">${montantCompose(ouverture.depenses)}</strong></div>
       <span class="bilan-equation__signe" aria-hidden="true">=</span>
       <div class="bilan-equation__terme bilan-equation__terme--resultat"><span>Solde public</span><strong class="bilan-montant">${montantCompose(solde)}</strong></div>
-    </div>
-    <div class="bilan-verdict__secondaire">
-      <p>${equation.phrase}</p>
-      ${trajectoire ? `<p>${trajectoire}</p>` : ""}
-      ${preuveDe("eurostat_apu_depenses", indexSources)}
     </div>
   </div>`;
 }
@@ -189,7 +160,7 @@ export function renduConclusionsBilan(
     : "La dette se lit avec son montant, son poids dans le PIB et le déficit annuel.";
 
   return {
-    verdict: renduVerdict(ouverture, dettePib, deficitPib, indexSources),
+    verdict: renduVerdict(ouverture),
     entrees: introduction("01", "D'où vient l'argent ?", analyseRecettes, preuveDe("eurostat_apu_recettes", indexSources)),
     sorties: introduction("02", "Où part-il ?", analyseDepenses, preuveDe("eurostat_apu_depenses", indexSources)),
     dette: introduction("03", "Pourquoi la dette monte-t-elle ?", analyseDette, preuveDe("insee_dette_apu_part_pib", indexSources)),

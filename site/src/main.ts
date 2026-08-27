@@ -27,12 +27,6 @@ import {
 } from "./palmares.ts";
 import { groupeDe } from "./semblables.ts";
 import {
-  naviguerVersThemeTerritorial,
-  synchroniserThemesTerritoriaux,
-  type ThemeTerritorial,
-} from "./briefing-territorial.ts";
-import {
-  appliquerEtatCarte,
   carteDemandeeParFragment,
   suivreVisibiliteCarteParDefaut,
 } from "./carte-territoriale.ts";
@@ -753,7 +747,6 @@ function afficherApercu(): void {
     comparateurs: [],
     sources: sourcesPubliees,
   });
-  preparerAncresTerritoriales();
   poserPartageDeLaFiche("pays", "FR", france);
   appliquerVitesse();
 }
@@ -1028,31 +1021,6 @@ function suivreLaSelection(code: string): void {
   });
 }
 
-/** Les cinq entrées gardent le même vocabulaire d'un territoire à l'autre,
- * mais amènent toujours à un élément réellement rendu par la fiche. */
-function preparerAncresTerritoriales(): Partial<Record<ThemeTerritorial, HTMLElement>> {
-  const fiche = document.getElementById("fiche");
-  if (!fiche) return {};
-  const blocs = fiche.querySelectorAll<HTMLElement>(".bloc-lecture");
-  const ancres: [ThemeTerritorial, HTMLElement | null][] = [
-    ["budget", fiche.querySelector(".reperes")],
-    ["fiscalite", blocs[1] ?? blocs[0] ?? null],
-    ["dette", fiche.querySelector(".note")],
-    ["services", blocs[0] ?? null],
-    ["trajectoire", fiche.querySelector(".tableau-exercices")],
-  ];
-  const cibles: Partial<Record<ThemeTerritorial, HTMLElement>> = {};
-  for (const [theme, section] of ancres) {
-    if (!section) continue;
-    cibles[theme] = section;
-  }
-  synchroniserThemesTerritoriaux(
-    document.querySelectorAll<HTMLButtonElement>("[data-territoire-theme]"),
-    cibles,
-  );
-  return cibles;
-}
-
 async function montrerFiche(code: string): Promise<void> {
   suivreLaSelection(code);
   // La maille de la fiche n'est pas toujours celle de la carte : un
@@ -1111,7 +1079,6 @@ async function montrerFiche(code: string): Promise<void> {
             ? [{ libelle: "la France", territoire: parentDe("FR", "pays")! }]
             : [],
   });
-  preparerAncresTerritoriales();
   poserPartageDeLaFiche(niveau, code, territoire);
   $("panneau").classList.add("panneau--selection");
   majEtatTiroir();
@@ -2723,33 +2690,20 @@ function appliquerModeCarte(ouverte: boolean): void {
  * redimensionnement après sa révélation. */
 function brancherBriefingTerritorial(ouvrirCarteDemandee = false): void {
   const cadre = document.getElementById("cadre-carte");
-  const bouton = document.getElementById("afficher-carte");
-  const themes = document.querySelector(".territoire-themes");
-  if (!cadre || !(bouton instanceof HTMLButtonElement) || !themes) return;
+  if (!cadre) return;
 
   const poserCarte = (ouverte: boolean) => {
-    appliquerEtatCarte(cadre, bouton, ouverte, () => requestAnimationFrame(() => carte?.resize()));
+    cadre.hidden = !ouverte;
+    appliquerModeCarte(ouverte);
   };
 
   // À partir de 60rem, la carte reste visible comme un outil de contexte.
   // Le HTML part replié pour garder un premier écran mobile immédiatement lisible.
-  const cycle = suivreVisibiliteCarteParDefaut(
+  suivreVisibiliteCarteParDefaut(
     window.matchMedia.bind(window),
     poserCarte,
     ouvrirCarteDemandee,
   );
-  bouton.addEventListener("click", () => cycle.choisir(cadre.hidden));
-
-  themes.addEventListener("click", (evenement) => {
-    const action = (evenement.target as HTMLElement).closest<HTMLButtonElement>("[data-territoire-theme]");
-    const theme = action?.dataset.territoireTheme;
-    if (!theme || action?.disabled) return;
-    naviguerVersThemeTerritorial(
-      theme,
-      preparerAncresTerritoriales(),
-      matchMedia("(prefers-reduced-motion: reduce)").matches,
-    );
-  });
 }
 
 /**

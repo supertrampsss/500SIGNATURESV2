@@ -75,9 +75,7 @@
   gap: var(--espace-4) var(--espace-5);
 }
 
-.briefing-territorial__actions a,
-.territoire-carte__action,
-.territoire-themes button {
+.briefing-territorial__actions a {
   min-height: var(--cible);
   border: 1px solid var(--trait-fort);
   border-radius: var(--rayon-pilule);
@@ -89,8 +87,7 @@
   text-decoration: none;
 }
 
-.briefing-territorial__actions a,
-.territoire-carte__action {
+.briefing-territorial__actions a {
   display: inline-flex;
   align-items: center;
   padding: var(--espace-3) var(--espace-5);
@@ -102,27 +99,6 @@
   font-size: var(--texte-xs);
 }
 
-.territoire-themes {
-  display: flex;
-  gap: var(--espace-3);
-  overflow-x: auto;
-  max-width: var(--colonne-texte);
-  margin: var(--espace-6) auto 0;
-  padding: 0 var(--gouttiere) var(--espace-3);
-  scrollbar-width: thin;
-}
-
-.territoire-themes button {
-  flex: 0 0 auto;
-  padding: var(--espace-3) var(--espace-5);
-  cursor: pointer;
-}
-
-.territoire-carte__action {
-  margin: 0 var(--gouttiere) var(--espace-6);
-  cursor: pointer;
-}
-
 #cadre-carte:not([hidden]) {
   display: contents;
 }
@@ -132,11 +108,7 @@
 }
 
 .briefing-territorial__actions a:hover,
-.briefing-territorial__actions a:focus-visible,
-.territoire-carte__action:hover,
-.territoire-carte__action:focus-visible,
-.territoire-themes button:hover,
-.territoire-themes button:focus-visible {
+.briefing-territorial__actions a:focus-visible {
   border-color: var(--accent);
   color: var(--accent);
 }
@@ -165,22 +137,6 @@
     grid-column: 2;
     grid-row: 1 / span 2;
     align-content: start;
-  }
-
-  body[data-carte="oui"] .vue--territoire .territoire-themes {
-    grid-column: 1;
-    grid-row: 2;
-    width: auto;
-    max-width: none;
-    margin: 0;
-    padding: 0 0 var(--espace-3);
-  }
-
-  body[data-carte="oui"] .vue--territoire .territoire-carte__action {
-    grid-column: 1;
-    grid-row: 2;
-    justify-self: end;
-    margin: 0 0 var(--espace-3);
   }
 
   body[data-carte="oui"] .vue--territoire #cadre-carte {

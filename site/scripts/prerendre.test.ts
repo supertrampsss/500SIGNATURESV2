@@ -1372,20 +1372,17 @@ test("15. la source Europe pré-rendue résout vers une fiche effectivement serv
   assert.match(sources, /id="eurostat-comparaison"/);
 });
 
-test("15. le bilan servi ouvre sur trois portes et trois chapitres", () => {
+test("15. le bilan servi enchaîne directement le verdict et les trois chapitres", () => {
   const html = REPERES_ESSAI();
   const ids = ["france-verdict", "france-entrees", "france-sorties", "france-dette"];
   const positions = ids.map((id) => html.indexOf(`id="${id}"`));
   assert.ok(positions.every((position) => position >= 0), "un chapitre du parcours manque au bilan");
   assert.deepEqual([...positions].sort((a, b) => a - b), positions, "le parcours du bilan n'est plus dans l'ordre de lecture");
-  assert.equal((html.match(/class="bilan-portes__lien"/g) ?? []).length, 3);
+  assert.doesNotMatch(html, /bilan-portes/);
   assert.equal((html.match(/class="bilan-chapitre"/g) ?? []).length, 3);
-  assert.match(html, /href="#france-entrees"/);
-  assert.match(html, /href="#france-sorties"/);
-  assert.match(html, /href="#france-dette"/);
-  assert.match(html, /<a class="bilan-portes__lien" href="#france-entrees">\s*<strong>D'où vient l'argent \?<\/strong>/);
-  assert.match(html, /<a class="bilan-portes__lien" href="#france-sorties">\s*<strong>Où part-il \?<\/strong>/);
-  assert.match(html, /<a class="bilan-portes__lien" href="#france-dette">\s*<strong>Pourquoi la dette monte \?<\/strong>/);
+  assert.doesNotMatch(html, /href="#france-entrees"/);
+  assert.doesNotMatch(html, /href="#france-sorties"/);
+  assert.doesNotMatch(html, /href="#france-dette"/);
   assert.doesNotMatch(html, /<strong>La dette et l'Europe<\/strong>/);
   assert.doesNotMatch(html, /href="#france-europe"/);
   assert.doesNotMatch(html, /bilan-guide__nav/);
@@ -1397,7 +1394,7 @@ test("15. le bilan servi ouvre sur trois portes et trois chapitres", () => {
   };
   assert.ok(position("bloc-dette") < position("bloc-europe"));
   assert.ok(position("bloc-europe") < html.indexOf('href="/simulateur"'));
-  assert.match(html, /id="france-verdict"[\s\S]*?class="ui-conclusion bilan-verdict"[\s\S]*?Pour 100 € encaissés/);
+  assert.doesNotMatch(html, /id="france-verdict"[\s\S]*?class="ui-conclusion bilan-verdict"[\s\S]*?Pour 100 € encaissés/);
   assert.match(html, /id="france-entrees"[\s\S]*?class="ui-conclusion[^"]*"[\s\S]*?D'où vient l'argent/);
 });
 

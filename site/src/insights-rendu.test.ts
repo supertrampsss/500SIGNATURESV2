@@ -74,6 +74,8 @@ test("les arbitrages France sont tous visibles et regroupés dans un sommaire th
   assert.match(html, /Travail et entreprises/);
   assert.equal((html.match(/class="insight insight--/g) ?? []).length, 3);
   assert.doesNotMatch(html, /Afficher plus|Voir plus/);
+  assert.doesNotMatch(html, /Revenir aux thèmes/);
+  assert.doesNotMatch(html, /insights__retour/);
 });
 
 test("une carte sans comparaison ne crée pas de paragraphe fantôme", () => {

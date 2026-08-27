@@ -5128,16 +5128,6 @@ summary.pont__rangee,
   line-height: 1.05;
   text-wrap: balance;
 }
-.insights__retour {
-  display: inline-flex;
-  min-height: var(--cible);
-  align-items: center;
-  margin-top: var(--espace-3);
-  color: var(--encre-douce);
-  font-size: var(--texte-xs);
-  font-weight: 750;
-  text-underline-offset: .18em;
-}
 .insights__grille {
   display: grid;
   gap: 0;
@@ -5185,8 +5175,7 @@ summary.pont__rangee,
 }
 .insights__methode a { color: var(--encre); font-weight: 800; text-underline-offset: .18em; }
 .insights__methode a:focus-visible,
-.insights__sommaire a:focus-visible,
-.insights__retour:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.insights__sommaire a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 
 /* La bascule, sous l'identité du territoire et au-dessus de tout le reste. */
 .fiche .fiche__vitesses {

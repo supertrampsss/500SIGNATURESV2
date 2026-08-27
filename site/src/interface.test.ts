@@ -38,7 +38,6 @@ const FONDATIONS = readFileSync(new URL("./styles/fondations.css", import.meta.u
 const TUNNEL_CABINET = readFileSync(new URL("./styles/tunnel-cabinet.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const DOSSIERS_VERIFICATION = readFileSync(new URL("./styles/dossiers-verification.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const REGISTRE_SOURCES = readFileSync(new URL("./styles/registre-sources.css", import.meta.url), "utf8").replace(/\r\n/g, "\n");
-const BRIEFING_TERRITORIAL = readFileSync(new URL("./briefing-territorial.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const FICHE = readFileSync(new URL("./fiche.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 const ROUTES = readFileSync(new URL("./routes.ts", import.meta.url), "utf8").replace(/\r\n/g, "\n");
 
@@ -88,7 +87,7 @@ test("le bilan n'annonce plus une unité générique que les chiffres démentent
   assert.doesNotMatch(section, /La France dans son ensemble/);
 });
 
-test("le bilan ouvre sur trois portes et garde l'analyse entièrement visible", () => {
+test("le bilan enchaîne directement le verdict et ses trois chapitres", () => {
   const debut = PAGE_BALISES.indexOf('<div class="vue" id="vue-bilan"');
   const fin = PAGE_BALISES.indexOf('<div class="vue" id="vue-simulateur"');
   assert.ok(debut >= 0 && fin > debut, "bornes de la vue Bilan introuvables");
@@ -99,14 +98,10 @@ test("le bilan ouvre sur trois portes et garde l'analyse entièrement visible", 
     return index;
   };
 
-  assert.equal((bilan.match(/class="bilan-portes__lien"/g) ?? []).length, 3);
+  assert.equal((bilan.match(/class="bilan-portes__lien"/g) ?? []).length, 0);
   assert.equal((bilan.match(/class="bilan-chapitre"/g) ?? []).length, 3);
-  assert.match(bilan, /href="#france-entrees"/);
-  assert.match(bilan, /href="#france-sorties"/);
-  assert.match(bilan, /href="#france-dette"/);
-  assert.match(bilan, /<a class="bilan-portes__lien" href="#france-entrees">\s*<strong>D'où vient l'argent \?<\/strong>/);
-  assert.match(bilan, /<a class="bilan-portes__lien" href="#france-sorties">\s*<strong>Où part-il \?<\/strong>/);
-  assert.match(bilan, /<a class="bilan-portes__lien" href="#france-dette">\s*<strong>Pourquoi la dette monte \?<\/strong>/);
+  assert.doesNotMatch(bilan, /aria-label="Les trois chapitres du bilan France"/);
+  assert.doesNotMatch(bilan, /class="bilan-portes/);
   assert.doesNotMatch(bilan, /<strong>La dette et l'Europe<\/strong>/);
   assert.doesNotMatch(bilan, /href="#france-europe"/);
   assert.doesNotMatch(bilan, /bilan-guide__nav/);
@@ -141,7 +136,7 @@ test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
     BILAN_GUIDE,
     /\.bilan-equation\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\) auto minmax\(0,1fr\) auto minmax\(0,1fr\)/s,
   );
-  assert.match(BILAN_GUIDE, /\.bilan-portes\s*\{[^}]*grid-template-columns:\s*repeat\(3/s);
+  assert.doesNotMatch(BILAN_GUIDE, /\.bilan-portes(?:__lien)?\s*\{/);
   assert.match(BILAN_GUIDE, /\.bilan-chapitre\s*\{[^}]*grid-template-columns/s);
   assert.match(BILAN_GUIDE, /\.bilan-chapitre__intro h2\s*\{[^}]*text-wrap:\s*balance/s);
   assert.match(BILAN_GUIDE, /\.bilan-montant__valeur\s*\{[^}]*white-space:\s*nowrap/s);
@@ -151,12 +146,11 @@ test("le bilan tient la composition éditoriale v2, jusque sur mobile", () => {
     /\.bilan-chapitre \.ouverture__piege[\s\S]*text-align:\s*justify[\s\S]*hyphens:\s*auto/,
   );
   assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*#national[\s\S]*padding:\s*0/);
-  assert.match(BILAN_GUIDE, /@media \(max-width:\s*40rem\)[\s\S]*\.bilan-portes[\s\S]*grid-template-columns:\s*1fr/);
   assert.match(
     BILAN_GUIDE,
     /@media \(max-width:\s*40rem\)[\s\S]*\.bilan-chapitre \.ouverture__piege[\s\S]*text-align:\s*left/,
   );
-  for (const selecteur of ["bilan-portes__lien", "bilan-guide__cta"]) {
+  for (const selecteur of ["bilan-guide__cta"]) {
     const bloc = BILAN_GUIDE.match(new RegExp(`\\.${selecteur}\\s*\\{([^}]*)\\}`));
     assert.ok(bloc, `bloc .${selecteur} introuvable`);
     assert.match(bloc[1], /min-height:\s*var\(--cible\)/, `.${selecteur} perd sa cible tactile`);
@@ -3475,26 +3469,26 @@ test("le verdict garde une encre sombre sur ses cartes claires", () => {
   }
 });
 
-test("le territoire commence par ses commandes d'analyse sans briefing redondant", () => {
+test("le territoire commence directement par son analyse sans rangée de boutons", () => {
   assert.doesNotMatch(PAGE, /id="briefing-territorial"/);
   assert.doesNotMatch(MAIN, /\bmonterBriefingTerritorial\b/);
   assert.doesNotMatch(MAIN, /\brenduBriefing\b/);
-  for (const theme of ["Budget", "Fiscalité", "Dette", "Services", "Trajectoire"]) {
-    assert.match(PAGE, new RegExp(`>${theme}<`));
-  }
-  assert.match(PAGE, /id="afficher-carte"[^>]*aria-expanded="false"/);
+  assert.doesNotMatch(PAGE, /class="territoire-themes"/);
+  assert.doesNotMatch(PAGE, /data-territoire-theme/);
+  assert.doesNotMatch(PAGE, /id="afficher-carte"/);
+  assert.doesNotMatch(PAGE, /class="territoire-carte__action"/);
 });
 
 test("la carte territoriale se révèle sans être recréée", () => {
-  assert.match(MAIN, /appliquerEtatCarte\(cadre, bouton, ouverte/);
+  assert.match(MAIN, /cadre\.hidden = !ouverte/);
+  assert.match(MAIN, /appliquerModeCarte\(ouverte\)/);
   assert.match(MAIN, /suivreVisibiliteCarteParDefaut\(/);
   assert.match(MAIN, /carte\?\.resize\(\)/);
 });
 
 test("replier la carte territoriale ne masque jamais la fiche", () => {
-  // Le cadre porteur de `hidden` enveloppait aussi #panneau : au téléphone,
-  // « Voir sur la carte » supprimait donc le diagnostic avec la carte et la
-  // page commençait brutalement au palmarès. Le panneau doit être son frère.
+  // Le cadre porteur de `hidden` ne doit jamais envelopper #panneau : sur
+  // téléphone, la carte est absente mais le diagnostic reste visible.
   assert.match(
     PAGE_BALISES,
     /<div class="atelier"[^>]*>\s*<div id="cadre-carte" hidden>/,
@@ -3510,9 +3504,9 @@ test("replier la carte territoriale ne masque jamais la fiche", () => {
   );
 });
 
-test("les commandes territoriales gardent leur feuille de styles", () => {
-  assert.match(PAGE, /class="territoire-themes"/);
-  assert.match(PAGE, /class="territoire-carte__action"/);
+test("la carte territoriale conserve sa feuille de mise en page sans commandes", () => {
+  assert.doesNotMatch(PAGE, /class="territoire-themes"/);
+  assert.doesNotMatch(PAGE, /class="territoire-carte__action"/);
   assert.match(MAIN, /import "\.\/styles\/territoire-briefing\.css";/);
 });
 
@@ -3541,10 +3535,8 @@ test("le redimensionnement de la carte n'interroge pas une couche absente", () =
   assert.match(etiquettes, /layers: \[idCouche\]/);
 });
 
-test("les thèmes territoriaux conduisent à une section détaillée", () => {
-  for (const theme of ["Budget", "Fiscalité", "Dette", "Services", "Trajectoire"]) {
-    assert.match(PAGE, new RegExp(`>${theme}<`));
-  }
-  assert.match(MAIN, /data-territoire-theme/);
-  assert.match(BRIEFING_TERRITORIAL, /focus\(\{ preventScroll: true \}\)/);
+test("aucune navigation territoriale ne duplique les sections détaillées", () => {
+  assert.doesNotMatch(PAGE, /data-territoire-theme/);
+  assert.doesNotMatch(MAIN, /data-territoire-theme/);
+  assert.doesNotMatch(MAIN, /preparerAncresTerritoriales/);
 });

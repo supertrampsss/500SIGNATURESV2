@@ -51,7 +51,6 @@ function renduFranceParThemes(insights: Insight[]): string {
       <ol class="insights__grille">
         ${cartes.map((insight) => carte(insight, 4)).join("")}
       </ol>
-      <a class="insights__retour" href="#insights-france-sommaire">Revenir aux thèmes ↑</a>
     </section>`).join("");
 
   return `<nav class="insights__sommaire" id="insights-france-sommaire" aria-label="Thèmes des arbitrages">

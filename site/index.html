@@ -100,15 +100,6 @@
          `basculerVue` ne tranche montreraient l'accueil ET le cadre de la carte
          l'un sous l'autre. -->
     <div class="vue vue--territoire" id="vue-territoire" hidden>
-      <nav class="territoire-themes" aria-label="Approfondir le diagnostic territorial">
-        <button type="button" data-territoire-theme="budget">Budget</button>
-        <button type="button" data-territoire-theme="fiscalite">Fiscalité</button>
-        <button type="button" data-territoire-theme="dette">Dette</button>
-        <button type="button" data-territoire-theme="services">Services</button>
-        <button type="button" data-territoire-theme="trajectoire">Trajectoire</button>
-      </nav>
-      <button type="button" class="territoire-carte__action" id="afficher-carte"
-              aria-expanded="false" aria-controls="cadre-carte">Voir sur la carte</button>
       <div class="atelier" aria-label="Carte interactive">
         <div id="cadre-carte" hidden>
         <!-- La carte et ses surcouches dans un même cadre : légende, barre de
@@ -191,20 +182,6 @@
         <section class="bilan-couverture" id="france-verdict">
           <div class="bilan-couverture__papier">
             <div id="conclusion-france-verdict"></div>
-            <nav class="bilan-portes" aria-label="Les trois chapitres du bilan France">
-              <a class="bilan-portes__lien" href="#france-entrees">
-                <strong>D'où vient l'argent ?</strong>
-                <span>Les recettes qui financent l'action publique.</span>
-              </a>
-              <a class="bilan-portes__lien" href="#france-sorties">
-                <strong>Où part-il ?</strong>
-                <span>Les dépenses, les services publics et la protection sociale.</span>
-              </a>
-              <a class="bilan-portes__lien" href="#france-dette">
-                <strong>Pourquoi la dette monte ?</strong>
-                <span>Ce que la France emprunte et sa place parmi ses voisins.</span>
-              </a>
-            </nav>
           </div>
         </section>
 

@@ -98,10 +98,14 @@ test("le verdict éditorial montre son millésime, son solde et son calcul", () 
   assert.match(guide.verdict, /class="bilan-equation__signe"[^>]*>−</);
   assert.match(guide.verdict, /class="bilan-equation__signe"[^>]*>=</);
   assert.match(guide.verdict, /à financer sur l'année/);
+  assert.doesNotMatch(guide.verdict, /Pour 100 € encaissés/);
+  assert.doesNotMatch(guide.verdict, /Le déficit représentait/);
+  assert.doesNotMatch(guide.verdict, /La dette publique représentait/);
+  assert.doesNotMatch(guide.verdict, /Sources et méthode/);
+  assert.doesNotMatch(guide.verdict, /bilan-verdict__secondaire/);
   assert.match(guide.entrees, /data-numero="01"/);
   assert.match(guide.sorties, /data-numero="02"/);
   assert.match(guide.dette, /data-numero="03"/);
-  assert.match(guide.verdict, /href="\/sources\/">Sources et méthode/);
   for (const html of Object.values(guide)) {
     assert.match(html, /class="ui-conclusion(?: |")/);
     assert.doesNotMatch(html, /Comprendre le calcul/);
@@ -109,7 +113,7 @@ test("le verdict éditorial montre son millésime, son solde et son calcul", () 
   }
 });
 
-test("le bilan France relie un chiffre à sa fiche de registre", () => {
+test("le verdict ne répète pas la source sous son calcul", () => {
   const catalogue = [{ id: "eurostat_deficit_pib", libelle: "Déficit / PIB", unite: "percent", theme: "macro", sommable: false, cadre_comptable: null, definition: "", definition_technique: "", formule: "", confiance: "publié", badges: [], jeu: "eurostat", niveaux: ["pays"], periodes: ["2025"] }] as Indicateur[];
   const fiches = construireRegistre({
     jeux: [{ id: "eurostat", titre: "Eurostat", producteur: "Eurostat", licence: "LO", url: "https://ec.europa.eu/eurostat", extraction: "2026-01-01" }],
@@ -118,8 +122,8 @@ test("le bilan France relie un chiffre à sa fiche de registre", () => {
   });
   const guide = renduConclusionsBilan({ FR: territoire({ eurostat_deficit_pib: { "2025": -5.8 } }) }, indexerSources(fiches));
 
-  assert.match(guide.verdict, new RegExp(`href="${lienSource(fiches[0]!.id)}"`));
-  assert.match(guide.verdict, /Sources et méthode/);
+  assert.doesNotMatch(guide.verdict, new RegExp(`href="${lienSource(fiches[0]!.id)}"`));
+  assert.doesNotMatch(guide.verdict, /Sources et méthode/);
 });
 
 test("le verdict nomme un excédent sans le déguiser en dépense négative", () => {
