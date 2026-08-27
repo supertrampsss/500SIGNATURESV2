@@ -254,7 +254,7 @@ function toDecision(measure: Mesure, index: number): Decision {
 const decisions = MESURES.map(toDecision);
 
 export const SCENARIO_V3_PREVIEW: Scenario = {
-  version: 3,
+  version: 4,
   title: "La France à l'épreuve des comptes",
   chapters: CHAPTERS.map((chapter, index) => ({
     ...chapter,

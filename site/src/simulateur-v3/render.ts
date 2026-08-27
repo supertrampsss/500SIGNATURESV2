@@ -296,7 +296,7 @@ function renderCouncil(state: CampaignState, scenario: Scenario): string {
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__council">
         <p class="simulateur-v3__eyebrow">Conseil après ${state.decisions.length} décisions</p>
-        <h1>Le pays vous présente l'addition.</h1>
+        <h1>Bilan intermédiaire du Conseil.</h1>
         <p class="simulateur-v3__lead">Le Conseil relie les mouvements du mandat aux arbitrages qui viennent d'être pris.</p>
         <div class="simulateur-v3__situation-grid">
           <section><h2>Finances</h2><strong>${escapeHtml(formatV3Amount(state.indicators.annualBalance))}</strong><p>Solde public annuel</p></section>
@@ -377,8 +377,8 @@ function renderChapterVerdict(state: CampaignState, scenario: Scenario): string 
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__chapter-verdict">
-        <p class="simulateur-v3__eyebrow">Chapitre terminé</p>
-        <h1>${escapeHtml(chapter.title)}</h1>
+        <p class="simulateur-v3__eyebrow">Chapitre ${state.chapterIndex + 1} terminé · ${escapeHtml(chapter.title)}</p>
+        <h1>Le pays vous présente l'addition.</h1>
         <p class="simulateur-v3__lead">${records.length} décisions ont fixé votre ligne.</p>
         <div class="simulateur-v3__chapter-score"><section><h2>Solde annuel</h2><strong>${escapeHtml(formatV3Amount(budget))}</strong></section><section><h2>Opinion</h2><strong>${signed(opinion)} points</strong></section></div>
         <section class="simulateur-v3__contradiction"><h2>Contradiction ouverte</h2><p>${escapeHtml(contradiction)}</p></section>

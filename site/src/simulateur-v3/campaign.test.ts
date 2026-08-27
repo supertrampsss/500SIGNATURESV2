@@ -41,11 +41,11 @@ test("sélectionner ne confirme pas et peut être annulé", () => {
 test("les passages après résultat respectent les jalons du chapitre et de la campagne", () => {
   const scenario = validScenario();
   const cases = [
-    [4, "council", 0, 3],
-    [8, "council", 0, 7],
+    [4, "decision", 0, 3],
+    [8, "decision", 0, 7],
     [12, "chapter_verdict", 0, 11],
-    [16, "council", 1, 3],
-    [92, "council", 7, 7],
+    [16, "decision", 1, 3],
+    [92, "decision", 7, 7],
     [96, "verdict", 7, 11],
   ] as const;
   for (const [count, phase, chapterIndex, decisionIndex] of cases) {
@@ -79,26 +79,6 @@ test("un dossier verrouillé est classé sans objet et n'est jamais présenté",
   assert.equal(next.decisions[1]?.decisionId, scenario.decisions[1]!.id);
   assert.equal(next.decisions[1]?.status, "superseded");
   assert.equal(currentDecision(next, scenario)?.id, scenario.decisions[2]!.id);
-});
-
-test("sortir du Conseil reprend la décision suivante après les quatrième et huitième décisions", () => {
-  const scenario = validScenario();
-  for (const [count, decisionIndex] of [[4, 3], [8, 7]] as const) {
-    const state = {
-      ...createCampaign(scenario),
-      phase: "council" as const,
-      decisionIndex,
-      decisions: Array.from({ length: count }, (_, index) => ({
-        decisionId: scenario.decisions[index]!.id,
-        optionId: scenario.decisions[index]!.options[0]!.id,
-        status: "confirmed" as const,
-        confirmedAtIndex: index + 1,
-      })),
-    };
-    const next = advanceAfterResult(state, scenario);
-    assert.equal(next.phase, "decision");
-    assert.equal(next.decisionIndex, decisionIndex + 1);
-  }
 });
 
 test("les transitions de verdict de chapitre préparent le chapitre suivant", () => {

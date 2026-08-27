@@ -98,7 +98,7 @@ test("un événement est lu avant la crise qu'il déclenche", () => {
   assert.equal(crisisState.activeCrisis?.ruleId, "opinion-crisis");
 });
 
-test("la quatrième décision mène au Conseil quand rien ne l'interrompt", () => {
+test("la quatrième décision mène directement au dossier suivant", () => {
   const scenario = validScenario();
   const state = validCampaignState(scenario);
   state.indicators.opinion = 50;
@@ -112,6 +112,6 @@ test("la quatrième décision mène au Conseil quand rien ne l'interrompt", () =
 
   const result = advanceCampaign(state, scenario, []);
 
-  assert.equal(result.phase, "council");
-  assert.equal(result.decisionIndex, 3);
+  assert.equal(result.phase, "decision");
+  assert.equal(result.decisionIndex, 4);
 });

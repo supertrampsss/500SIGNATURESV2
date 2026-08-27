@@ -93,7 +93,6 @@ function advanceOneScreen(state: CampaignState, scenario: Scenario): CampaignSta
   const completedDecisions = state.decisions.length;
   if (completedDecisions === 96) return { ...state, phase: "verdict" };
   if (completedDecisions % 12 === 0) return { ...state, phase: "chapter_verdict" };
-  if (completedDecisions % 4 === 0) return { ...state, phase: "council" };
   return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 }
 

@@ -104,21 +104,6 @@ test("chaque phase rend la barre de commandement sans cadratin", () => {
   }
 });
 
-test("le Conseil relie quatre familles de situation aux décisions récentes", () => {
-  const state = stateAfter(4, "council");
-  state.indicators.annualBalance += 12_000;
-  state.indicators.opinion -= 6;
-  state.causalLedger = [{
-    id: "cause-1", sourceType: "decision", sourceId: `${state.decisions[3]!.decisionId}:${state.decisions[3]!.optionId}`,
-    target: "indicator", key: "opinion", delta: -6, duration: "once",
-    explanation: "Cette décision divise le pays.", appliedAtDecision: 4,
-  }];
-  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  for (const label of ["Finances", "Économie réelle", "Pouvoir", "Confiance"]) assert.match(html, new RegExp(label));
-  assert.match(html, /Cette décision divise le pays/);
-  assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
-});
-
 test("une conséquence différée rappelle la décision d'origine et ses effets", () => {
   const state = stateAfter(4, "delayed_event");
   const source = SCENARIO_V3_PREVIEW.decisions[2]!;
@@ -150,9 +135,11 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
 
 test("la fin de chapitre raconte les choix et la contradiction laissée ouverte", () => {
   const html = renderSimulatorV3(stateAfter(12, "chapter_verdict"), SCENARIO_V3_PREVIEW);
-  assert.match(html, /Chapitre terminé/);
+  assert.match(html, /Le pays vous présente l'addition/);
+  assert.match(html, /Impôts, patrimoine et transmission/);
   assert.match(html, /12 décisions/);
   assert.match(html, /Contradiction ouverte/);
+  assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
 });
 
 test("le verdict final raconte le mandat et permet une revanche", () => {

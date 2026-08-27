@@ -195,7 +195,7 @@ test("recommencer demande confirmation et ne supprime pas la sauvegarde V2", () 
   assert.ok(events.includes("campaign_restarted"));
 });
 
-test("Pause restaurée reprend un Conseil, pas un dossier générique", () => {
+test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire", () => {
   const storage = memoryStorage();
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
@@ -204,12 +204,13 @@ test("Pause restaurée reprend un Conseil, pas un dossier générique", () => {
     const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
     host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
   }
-  assert.match(host.innerHTML, /Conseil après 4 décisions/);
+  assert.match(host.innerHTML, /Dossier 5 sur 96/);
+  assert.doesNotMatch(host.innerHTML, /Le pays vous présente l'addition/);
   host.click("pause");
 
   const restored = new FakeHost();
   mountSimulatorV3(restored, SCENARIO_V3_PREVIEW, { storage });
   assert.match(restored.innerHTML, /Mandat suspendu/);
   restored.click("resume");
-  assert.match(restored.innerHTML, /Conseil après 4 décisions/);
+  assert.match(restored.innerHTML, /Dossier 5 sur 96/);
 });
