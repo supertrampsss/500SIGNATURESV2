@@ -63,14 +63,14 @@ test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   assert.equal(host.scrollCalls, 3);
 });
 
-test("choisir une carte enregistre le choix et remonte vers l'écran suivant", () => {
+test("choisir une carte conserve la position de lecture", () => {
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const avantChoix = host.scrollCalls;
   host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
-  assert.equal(host.scrollCalls, avantChoix + 1);
+  assert.equal(host.scrollCalls, avantChoix);
 });
 
 test("un choix sans événement ouvre immédiatement le dossier suivant", () => {
@@ -156,7 +156,9 @@ test("une crise interrompt la progression et sa concession suspend réellement l
   assert.match(host.innerHTML, /Conseil de crise/);
   assert.match(host.innerHTML, /Suspendre la flat tax/);
 
+  const avantConcession = host.scrollCalls;
   host.click("resolve-crisis", { resolutionId: "suspend-flat-tax" });
+  assert.equal(host.scrollCalls, avantConcession);
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
   assert.equal(saved.decisions[0].status, "suspended");
   assert.equal(saved.decisions[0].changedByCrisisId, "flat-tax-revolt");

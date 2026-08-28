@@ -195,7 +195,7 @@ export function mountSimulatorV3(
       }
       if (state.phase === "chapter_verdict") emit({ type: "chapter_completed", chapter: state.chapterIndex + 1 });
       if (state.phase === "verdict") emit({ type: "campaign_completed" });
-      persistAndRender(true);
+      persistAndRender();
       return;
     }
 
@@ -224,7 +224,7 @@ export function mountSimulatorV3(
       if (state.phase === "decision") {
         emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
       }
-      persistAndRender(true);
+      persistAndRender();
       return;
     }
 
