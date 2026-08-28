@@ -4,9 +4,15 @@
  */
 
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import { ALIAS, CHEMINS, cheminDeVue, vueDepuisAdresse } from "./routes.ts";
+
+test("la racine publique redirige vers la page France", () => {
+  const redirects = readFileSync(new URL("../public/_redirects", import.meta.url), "utf8");
+  assert.match(redirects, /^\/\s+\/bilan\s+301\s*$/m);
+});
 
 test("un chemin nomme sa vue", () => {
   assert.equal(vueDepuisAdresse("/territoire", ""), "territoire");
