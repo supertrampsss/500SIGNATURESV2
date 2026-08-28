@@ -123,12 +123,13 @@ def synchroniser_dns(api: Cloudflare, projet: str, domaines: list[str]) -> None:
             print(f"DNS {domaine} -> {cible}")
         else:
             print(f"DNS {domaine} déjà conforme")
-        # PATCH sans modification demande à Pages de rejouer sa validation.
-        api.appeler(
-            f"/projects/{projet_encode}/domains/{domaine_encode}",
-            methode="PATCH",
-            corps={},
-        )
+        if not conforme or fiche_domaine.get("status") != "active":
+            # PATCH sans modification demande à Pages de rejouer sa validation.
+            api.appeler(
+                f"/projects/{projet_encode}/domains/{domaine_encode}",
+                methode="PATCH",
+                corps={},
+            )
 
 
 def attendre(api: Cloudflare, projet: str, domaines: list[str], tentatives: int = 120) -> None:
