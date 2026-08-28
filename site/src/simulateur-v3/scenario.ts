@@ -7,6 +7,7 @@ import type {
   Scenario,
   Uncertainty,
 } from "./types.ts";
+import { V3_MODELED_EFFECT_MARKER } from "./types.ts";
 
 const SOURCE_URL = "https://plateforme-9sz.pages.dev/sources/";
 
@@ -100,14 +101,85 @@ function supportEffect(decisionId: string, optionId: string, support: Soutien, d
   }
 }
 
+function scaledPoliticalDelta(delta: number): number {
+  return Math.sign(delta) * Math.max(1, Math.round(Math.abs(delta) / 2));
+}
+
+function scaledGrowthDelta(support: Soutien, delta: number): number {
+  const coefficient = support === "entreprises" ? 0.015 : 0.01;
+  return Math.round(delta * coefficient * 1_000) / 1_000;
+}
+
+function modeledEffects(decisionId: string, optionId: string, support: Soutien, delta: number): EffectRule[] {
+  const id = (indicator: string) => `${decisionId}:${optionId}${V3_MODELED_EFFECT_MARKER}${support}:${indicator}`;
+  const immediate = { kind: "immediate" } as const;
+  if (support === "opinion") {
+    return [{
+      id: id("majority"),
+      target: "indicator",
+      key: "majority",
+      delta: scaledPoliticalDelta(delta),
+      timing: immediate,
+      duration: "once",
+      explanation: "Règle du jeu : la réaction de l'opinion se répercute sur la solidité de la majorité.",
+    }];
+  }
+  if (support === "entreprises") {
+    return [
+      {
+        id: id("growth"),
+        target: "indicator",
+        key: "growth",
+        delta: scaledGrowthDelta(support, delta),
+        timing: immediate,
+        duration: "annual",
+        explanation: "Règle du jeu : la réaction des entreprises influe sur l'activité économique.",
+      },
+      {
+        id: id("investment"),
+        target: "indicator",
+        key: "investment",
+        delta,
+        timing: immediate,
+        duration: "once",
+        explanation: "Règle du jeu : la réaction des entreprises influe sur l'investissement.",
+      },
+    ];
+  }
+  if (support === "marches") {
+    return [{
+      id: id("growth"),
+      target: "indicator",
+      key: "growth",
+      delta: scaledGrowthDelta(support, delta),
+      timing: immediate,
+      duration: "annual",
+      explanation: "Règle du jeu : les conditions de financement influent sur l'activité économique.",
+    }];
+  }
+  return [{
+    id: id("publicServices"),
+    target: "indicator",
+    key: "publicServices",
+    delta: scaledPoliticalDelta(delta),
+    timing: immediate,
+    duration: "once",
+    explanation: "Règle du jeu : la réaction des territoires influe sur la continuité des services publics.",
+  }];
+}
+
 function supportEffects(
   decisionId: string,
   optionId: string,
   reactions: Mesure["reactions"] | Mesure["rejet"],
 ): EffectRule[] {
-  return Object.entries(reactions ?? {}).map(([support, delta]) => (
-    supportEffect(decisionId, optionId, support as Soutien, delta)
-  ));
+  return Object.entries(reactions ?? {}).flatMap(([supportName, delta]) => {
+    const support = supportName as Soutien;
+    return [
+      supportEffect(decisionId, optionId, support, delta),
+      ...modeledEffects(decisionId, optionId, support, delta),
+    ];
+  });
 }
 
 function directQuestion(measure: Mesure): string {
@@ -254,7 +326,7 @@ function toDecision(measure: Mesure, index: number): Decision {
 const decisions = MESURES.map(toDecision);
 
 export const SCENARIO_V3_PREVIEW: Scenario = {
-  version: 4,
+  version: 5,
   title: "La France à l'épreuve des comptes",
   chapters: CHAPTERS.map((chapter, index) => ({
     ...chapter,

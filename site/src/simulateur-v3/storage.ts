@@ -1,4 +1,5 @@
-import type { CampaignState, Scenario } from "./types.ts";
+import { applyEffect } from "./effects.ts";
+import { V3_MODELED_EFFECT_MARKER, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
 export const V3_STORAGE_KEY = "simulateur-v3-campaign";
@@ -36,10 +37,52 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
 
   try {
     const parsed: unknown = JSON.parse(v3.value);
-    return isCampaignState(parsed, scenario) ? { kind: "restored", state: parsed } : { kind: "invalid" };
+    if (isCampaignState(parsed, scenario)) return { kind: "restored", state: parsed };
+    const migrated = migratePreviousModeledEffects(parsed, scenario);
+    if (!migrated) return { kind: "invalid" };
+    try {
+      storage.setItem(V3_STORAGE_KEY, JSON.stringify(migrated));
+    } catch {
+      // The corrected state can still be used for this session when persistence is unavailable.
+    }
+    return { kind: "restored", state: migrated };
   } catch {
     return { kind: "invalid" };
   }
+}
+
+function migratePreviousModeledEffects(value: unknown, scenario: Scenario): CampaignState | null {
+  if (typeof value !== "object" || value === null) return null;
+  const previousVersion = (value as { scenarioVersion?: unknown }).scenarioVersion;
+  if (typeof previousVersion !== "number" || scenario.version !== previousVersion + 1) return null;
+  const hasModeledEffects = scenario.decisions.some((decision) => (
+    decision.options.some((option) => option.effects.some((effect) => effect.id.includes(V3_MODELED_EFFECT_MARKER)))
+  ));
+  if (!hasModeledEffects) return null;
+
+  const candidate = { ...(value as CampaignState), scenarioVersion: scenario.version };
+  if (!isCampaignState(candidate, scenario)) return null;
+
+  let migrated = candidate;
+  for (const record of candidate.decisions) {
+    if (record.status === "superseded") continue;
+    migrated = applyModeledDecisionEffects(migrated, scenario, record);
+  }
+  return isCampaignState(migrated, scenario) ? migrated : null;
+}
+
+function applyModeledDecisionEffects(state: CampaignState, scenario: Scenario, record: DecisionRecord): CampaignState {
+  const decision = scenario.decisions.find((candidate) => candidate.id === record.decisionId);
+  const option = decision?.options.find((candidate) => candidate.id === record.optionId);
+  if (!option) return state;
+  const sourceId = `${record.decisionId}:${record.optionId}`;
+  return option.effects
+    .filter((effect) => effect.timing.kind === "immediate" && effect.id.includes(V3_MODELED_EFFECT_MARKER))
+    .reduce((current, effect) => applyEffect(current, effect, {
+      sourceType: "decision",
+      sourceId,
+      appliedAtDecision: record.confirmedAtIndex,
+    }), state);
 }
 
 export function clearCampaign(storage: StorageLike): void {

@@ -16,6 +16,16 @@ test("le scénario provisoire satisfait toutes les portes du moteur V3", () => {
   assert.deepEqual(assertNoEmDash(SCENARIO_V3_PREVIEW), []);
 });
 
+test("les réactions des dossiers alimentent les indicateurs visibles du verdict", () => {
+  assert.equal(SCENARIO_V3_PREVIEW.version, 5);
+  const effects = SCENARIO_V3_PREVIEW.decisions.flatMap((decision) => (
+    decision.options.flatMap((option) => option.effects)
+  ));
+
+  assert.ok(effects.some((effect) => effect.key === "growth" && effect.id.includes(":model:")));
+  assert.ok(effects.some((effect) => effect.key === "majority" && effect.id.includes(":model:")));
+});
+
 test("chaque option dit directement ce qu'elle fait et qui paie", () => {
   for (const decision of SCENARIO_V3_PREVIEW.decisions) {
     assert.equal(decision.options.length, 2);

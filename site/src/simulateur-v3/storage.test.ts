@@ -15,7 +15,9 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike {
 import { clearCampaign, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 import { createCampaign, selectOption } from "./campaign.ts";
 import { confirmSelection } from "./effects.ts";
+import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { validScenario } from "./test-fixtures.ts";
+import type { Scenario } from "./types.ts";
 import { isCampaignState, validateScenario } from "./validation.ts";
 
 test("une campagne V3 sauvegardée est restaurée sans perte", () => {
@@ -40,6 +42,42 @@ test("un scénario mis à jour invalide proprement l'ancienne campagne", () => {
   saveCampaign(storage, createCampaign(oldScenario));
   const newScenario = { ...oldScenario, version: oldScenario.version + 1 };
   assert.deepEqual(restoreCampaign(storage, newScenario), { kind: "invalid" });
+});
+
+test("la campagne V4 reçoit les nouveaux effets du verdict sans perdre les choix déjà rendus", () => {
+  assert.equal(SCENARIO_V3_PREVIEW.version, 5);
+  const oldScenario: Scenario = {
+    ...SCENARIO_V3_PREVIEW,
+    version: 4,
+    decisions: SCENARIO_V3_PREVIEW.decisions.map((decision) => ({
+      ...decision,
+      options: decision.options.map((option) => ({
+        ...option,
+        effects: option.effects.filter((effect) => !effect.id.includes(":model:")),
+      })),
+    })),
+  };
+  const decision = oldScenario.decisions[0]!;
+  const option = decision.options[0]!;
+  const oldState = confirmSelection(
+    selectOption({ ...createCampaign(oldScenario), phase: "decision" }, oldScenario, decision.id, option.id),
+    oldScenario,
+  );
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(oldState) });
+
+  const restored = restoreCampaign(storage, SCENARIO_V3_PREVIEW);
+
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    assert.equal(restored.state.scenarioVersion, 5);
+    assert.deepEqual(restored.state.decisions, oldState.decisions);
+    assert.notEqual(restored.state.indicators.growth, oldState.indicators.growth);
+    assert.notEqual(restored.state.indicators.majority, oldState.indicators.majority);
+    const modeled = restored.state.causalLedger.filter((entry) => entry.id.includes(":model:"));
+    assert.ok(modeled.length >= 2);
+    assert.ok(modeled.every((entry) => entry.appliedAtDecision === 1));
+    assert.equal(isCampaignState(restored.state, SCENARIO_V3_PREVIEW), true);
+  }
 });
 
 test("une sauvegarde V3 invalide est refusée sans effacer les données", () => {

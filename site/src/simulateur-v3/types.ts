@@ -11,6 +11,7 @@ export type CampaignPhase =
   | "verdict";
 
 export const SCHEMA_VERSION = 3 as const;
+export const V3_MODELED_EFFECT_MARKER = ":model:" as const;
 
 export type Uncertainty = "faible" | "moyenne" | "forte";
 export type DecisionStatus = "confirmed" | "suspended" | "amended" | "reversed" | "superseded";

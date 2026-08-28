@@ -46,3 +46,13 @@ test("les 96 dossiers restent jouables en choisissant toujours la seconde option
   assert.equal(state.decisions.length, 96);
   assert.equal(new Set(state.decisions.map((decision) => decision.decisionId)).size, 96);
 });
+
+test("deux lignes politiques opposées produisent des verdicts économiques et politiques différents", () => {
+  const adoption = playFullCampaign(0);
+  const statuQuo = playFullCampaign(1);
+
+  assert.notEqual(adoption.indicators.growth, statuQuo.indicators.growth);
+  assert.notEqual(adoption.indicators.majority, statuQuo.indicators.majority);
+  assert.ok(adoption.causalLedger.some((entry) => entry.key === "growth"));
+  assert.ok(adoption.causalLedger.some((entry) => entry.key === "majority"));
+});

@@ -16,6 +16,7 @@ import type {
 export type EffectCause = {
   sourceType: CausalEntry["sourceType"];
   sourceId: string;
+  appliedAtDecision?: number;
 };
 
 const CLAMPED_INDICATORS = new Set<IndicatorKey>([
@@ -75,7 +76,10 @@ export function applyEffect(state: CampaignState, effect: EffectRule, cause: Eff
   assertEffectRule(effect);
   if (effect.timing.kind !== "immediate") throw new Error("Cannot apply a delayed effect directly");
 
-  const appliedAtDecision = state.decisions.length;
+  const appliedAtDecision = cause.appliedAtDecision ?? state.decisions.length;
+  if (!Number.isInteger(appliedAtDecision) || appliedAtDecision < 0 || appliedAtDecision > state.decisions.length) {
+    throw new Error("Effect application position must match the campaign history");
+  }
   const causalEntry: CausalEntry = {
     id: `${cause.sourceType}:${cause.sourceId}:${effect.id}:${state.causalLedger.length + 1}`,
     sourceType: cause.sourceType,
