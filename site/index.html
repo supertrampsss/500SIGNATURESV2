@@ -44,24 +44,12 @@
   <body class="plein-ecran">
     <a class="evitement" href="#contenu">Aller au contenu</a>
 
-    <!-- L'en-tête porte les trois seules commandes permanentes : le nom du
-         site, la recherche d'un territoire, et le choix de la vue. La
-         recherche y est **une fois pour tout le site** : elle vivait dans le
-         panneau de la carte et se dédoublait dans ANALYSES, où le second champ
-         cherchait dans le même index mais ne partageait ni son état ni ses
-         correctifs. -->
+    <!-- L'en-tête porte la marque et les trois destinations permanentes. La
+         recherche appartient désormais à Territoires, seule vue où elle sert. -->
     <header class="entete">
       <div class="entete__marque">
         <h1>Où va l'argent public</h1>
         <p class="sous-titre">Données officielles, territoire par territoire</p>
-      </div>
-
-      <div class="recherche entete__recherche">
-        <label for="recherche" class="visuellement-cache">Rechercher un territoire</label>
-        <input id="recherche" type="search" autocomplete="off" role="combobox"
-               aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
-               placeholder="Chercher une commune, un département…" />
-        <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
       </div>
 
       <nav class="entete__nav" id="navigation-principale" aria-label="Navigation principale"></nav>
@@ -100,6 +88,20 @@
          `basculerVue` ne tranche montreraient l'accueil ET le cadre de la carte
          l'un sous l'autre. -->
     <div class="vue vue--territoire" id="vue-territoire" hidden>
+      <section class="territoire-recherche" aria-labelledby="territoire-recherche-titre">
+        <div class="territoire-recherche__introduction">
+          <p class="territoire-recherche__surtitre">Territoires</p>
+          <h2 id="territoire-recherche-titre">Comprendre mon territoire</h2>
+          <p>Retrouvez les comptes de votre commune, département ou région.</p>
+        </div>
+        <div class="recherche territoire-recherche__champ">
+          <label for="recherche" class="visuellement-cache">Rechercher un territoire</label>
+          <input id="recherche" type="search" autocomplete="off" role="combobox"
+                 aria-expanded="false" aria-controls="suggestions" aria-autocomplete="list"
+                 placeholder="Rechercher une commune, un département ou une région" />
+          <ul id="suggestions" role="listbox" aria-label="Territoires trouvés" hidden></ul>
+        </div>
+      </section>
       <div class="atelier" aria-label="Carte interactive">
         <div id="cadre-carte" hidden>
         <!-- La carte et ses surcouches dans un même cadre : légende, barre de

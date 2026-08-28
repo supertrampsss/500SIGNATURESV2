@@ -438,7 +438,7 @@ test("18. une série qui partait de zéro n'affiche pas de variation infinie", (
 test("19. le bloc vise le champ de recherche du site, il n'en construit pas un second", () => {
   const html = renduChezVous(territoire("Complet"));
   assert.ok(!html.includes("<input"), "aucun second champ de recherche");
-  assert.ok(html.includes('href="#recherche"'), "l'appel vise le champ de l'en-tête");
+  assert.ok(html.includes('href="/territoire#recherche"'), "l'appel vise le champ de Territoires");
   // L'exemple mène à sa fiche, avec les paramètres que l'adresse du site porte.
   assert.ok(html.includes("/territoire?niveau=commune&territoire=33063"));
 });

@@ -2554,38 +2554,6 @@ async function peindreAccueil(): Promise<void> {
   accueilPeint = true;
 }
 
-/**
- * « Chercher ma commune » ouvre le champ de recherche du site.
- *
- * L'appel porte `#recherche`, l'identifiant du seul champ du site — celui de
- * l'en-tête, câblé une fois par `brancherRecherche`. Laissé au navigateur, ce
- * lien pousse l'ancre dans l'adresse et fait défiler vers un champ déjà à
- * l'écran sans y poser le curseur : l'appel promet une recherche et ne la
- * commence pas. Il n'est pas question d'en construire un second — deux champs
- * qui cherchent dans le même index sans partager leur état est un défaut que ce
- * projet a déjà nommé et retiré.
- *
- * Un écouteur délégué, posé une fois sur un conteneur que rien ne remplace —
- * le motif de `brancherScenarios`, `brancherPartage` et `brancherCitations` —
- * plutôt qu'un écouteur reposé à chaque peinture. Les modificateurs et le clic
- * du milieu restent au navigateur, comme pour la navigation de l'en-tête.
- */
-function brancherAppelRecherche(): void {
-  // Une page éditoriale remplace le contenu de `<main>` : le cadre de l'accueil
-  // n'y est pas, et `$` renverrait `null`.
-  const cadre = document.getElementById("vue-accueil");
-  if (!cadre) return;
-  cadre.addEventListener("click", (evenement) => {
-    const clic = evenement as MouseEvent;
-    if (clic.button !== 0 || clic.metaKey || clic.ctrlKey || clic.shiftKey || clic.altKey) return;
-    if (!(clic.target as HTMLElement).closest('a[href="#recherche"]')) return;
-    clic.preventDefault();
-    const champ = $<HTMLInputElement>("recherche");
-    champ.scrollIntoView({ block: "nearest" });
-    champ.focus();
-  });
-}
-
 /** L'onglet ANALYSES, marqué courant sur ses propres pages.
  *
  *  Elles ne passent pas par `basculerVue` — un document éditoriale en sort à
@@ -3992,7 +3960,6 @@ async function demarrer(): Promise<void> {
   // Et encore pour la même raison : l'appel « Chercher ma commune » de
   // l'accueil ne fait que donner le curseur au champ de l'en-tête, qui existe
   // dès le premier octet de HTML.
-  brancherAppelRecherche();
   // L'état AVANT la première bascule de vue. `basculerVue` peint la vue
   // demandée, et ANALYSES lit `etat.selection` pour savoir si elle a un
   // territoire à détailler : lu avant d'être écrit, il levait

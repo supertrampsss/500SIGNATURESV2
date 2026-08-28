@@ -60,7 +60,7 @@ export const MESSAGE_PRINCIPAL =
  *  (`index.html`). L'accueil n'en construit pas un second : deux champs qui
  *  cherchent dans le même index sans partager leur état est un défaut que ce
  *  projet a déjà nommé et retiré une fois. */
-const ANCRE_RECHERCHE = "#recherche";
+const ANCRE_RECHERCHE = "/territoire#recherche";
 
 /** La page autonome qui porte méthode et registre, à l'adresse historique. */
 const CHEMIN_SOURCES = "/sources/";
@@ -412,10 +412,10 @@ function renduVariation(chiffre: ChiffreTerritoire): string {
 }
 
 /**
- * Le bloc « Et chez vous ? » : le champ de recherche du site, et un exemple.
+ * Le bloc « Et chez vous ? » : le champ de recherche de Territoires et un exemple.
  *
- * Le champ n'est pas construit ici — c'est celui de l'en-tête (`#recherche`),
- * que ce bloc vise. L'exemple est un territoire à la fois : trois chiffres
+ * Le champ n'est pas construit ici : le lien ouvre celui de la page
+ * Territoires. L'exemple est un territoire à la fois : trois chiffres
  * publiés, chacun avec son exercice, jamais deux territoires mis en regard, qui
  * seraient un classement à deux lignes.
  */

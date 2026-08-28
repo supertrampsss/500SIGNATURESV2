@@ -689,14 +689,20 @@ test("les vues renommées portent leur nouveau nom partout", () => {
   assert.doesNotMatch(MAIN, /const VUES_PAGE = \[[^\]]*"donnees"/);
 });
 
-test("un seul champ de recherche pour tout le site", () => {
+test("le header ne contient plus la recherche, qui vit une seule fois dans Territoires", () => {
   // Il y en avait deux, `#recherche` et `#recherche-analyses`, câblés par la
   // même fonction sur le même index mais sans état commun : ce que l'un
   // trouvait, l'autre l'ignorait. Et la règle éditoriale demande le champ du
   // site, pas un autre.
   const balises = PAGE.replace(/<!--[\s\S]*?-->/g, "");
   assert.equal(balises.match(/type="search"/g)?.length, 1);
-  assert.match(balises, /<header class="entete">[\s\S]*id="recherche"[\s\S]*<\/header>/);
+  const header = balises.slice(balises.indexOf('<header class="entete">'), balises.indexOf("</header>") + 9);
+  const territoire = balises.slice(balises.indexOf('id="vue-territoire"'), balises.indexOf('id="vue-bilan"'));
+  assert.doesNotMatch(header, /id="recherche"|entete__recherche/);
+  assert.match(territoire, /class="territoire-recherche"/);
+  assert.match(territoire, /<h2 id="territoire-recherche-titre">Comprendre mon territoire<\/h2>/);
+  assert.equal((balises.match(/id="recherche"/g) ?? []).length, 1);
+  assert.equal((balises.match(/id="suggestions"/g) ?? []).length, 1);
   assert.equal(MAIN.match(/brancherRecherche\(/g)?.length, 2); // la définition et son seul appel
   // Le champ s'annonce `combobox` : un combobox qui dit toujours « replié » ne
   // dit rien à qui l'écoute.

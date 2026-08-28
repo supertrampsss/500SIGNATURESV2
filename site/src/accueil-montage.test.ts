@@ -180,7 +180,7 @@ test("un lien déjà partagé ne change pas de destination", () => {
  * ----------------------------------------------------------------------- */
 
 test("il n'y a qu'un champ de recherche, et l'accueil vise celui-là", () => {
-  // Un seul `input` de recherche dans la page, celui de l'en-tête.
+  // Un seul `input` de recherche dans la page, celui de Territoires.
   assert.equal(BALISES.match(/id="recherche"/g)?.length, 1);
   // Et un seul câblage, sur ce champ-là : l'accueil n'en construit pas un
   // second, et n'en câble pas un second.
@@ -191,24 +191,10 @@ test("il n'y a qu'un champ de recherche, et l'accueil vise celui-là", () => {
   );
 });
 
-test("« Chercher ma commune » donne le curseur au champ du site", () => {
-  // Le lien porte `#recherche`. Laissé au navigateur, il défile vers un champ
-  // déjà à l'écran sans y poser le curseur : l'appel promet une recherche et ne
-  // la commence pas.
-  const corps = MAIN.slice(
-    MAIN.indexOf("function brancherAppelRecherche"),
-    MAIN.indexOf("function basculerVue"),
-  );
-  assert.ok(corps.length > 200, "corps de brancherAppelRecherche introuvable");
-  assert.match(corps, /closest\('a\[href="#recherche"\]'\)/);
-  assert.match(corps, /\$<HTMLInputElement>\("recherche"\)/);
-  assert.match(corps, /champ\.focus\(\);/);
-  // Un écouteur délégué, posé une fois sur le cadre que rien ne remplace —
-  // même motif que `brancherPartage`, `brancherScenarios` et
-  // `brancherCitations`. C'est l'intérieur du cadre que `peindreAccueil`
-  // réécrit, jamais le cadre.
-  assert.match(corps, /cadre\.addEventListener\("click"/);
-  assert.doesNotMatch(corps, /innerHTML/);
+test("« Chercher ma commune » ouvre le champ de la page Territoires", () => {
+  assert.match(BALISES, /id="vue-territoire"[\s\S]*id="recherche"/);
+  assert.match(ACCUEIL, /const ANCRE_RECHERCHE = "\/territoire#recherche"/);
+  assert.doesNotMatch(MAIN, /function brancherAppelRecherche/);
 });
 
 /* --------------------------------------------------------------------------

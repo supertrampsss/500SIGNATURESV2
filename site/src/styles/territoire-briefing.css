@@ -1,5 +1,54 @@
 /* Le territoire commence par son diagnostic. La carte conserve son rôle de
    contexte, mais ne concurrence plus les quatre chiffres ni l'action suivante. */
+.territoire-recherche {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(20rem, 1.2fr);
+  align-items: end;
+  gap: var(--espace-6);
+  padding: var(--espace-6) var(--gouttiere);
+  background: var(--ui-nuit);
+  color: var(--ui-papier);
+}
+
+.territoire-recherche__surtitre {
+  margin: 0 0 var(--espace-2);
+  color: #f2b544;
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.territoire-recherche h2 {
+  margin: 0;
+  color: inherit;
+  font-family: var(--serif);
+  font-size: var(--texte-2xl);
+}
+
+.territoire-recherche__introduction > p:last-child {
+  margin: var(--espace-2) 0 0;
+  color: #c9d3df;
+}
+
+.territoire-recherche__champ {
+  width: 100%;
+}
+
+.territoire-recherche__champ input {
+  min-height: 3.25rem;
+  border-color: #9cabbc;
+  background: #fffdf7;
+}
+
+@media (max-width: 40rem) {
+  .territoire-recherche {
+    grid-template-columns: 1fr;
+    gap: var(--espace-4);
+    padding: var(--espace-5) var(--espace-4);
+  }
+}
+
 .territoire-briefing {
   max-width: var(--colonne-texte);
   margin: 0 auto;
