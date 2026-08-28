@@ -103,6 +103,23 @@ test("classe trois choix distincts et ne transporte pas la question à répéter
   assert.ok(view.decisiveChoices.every((choice) => choice.chapter.length > 0));
 });
 
+test("rend autonomes les libellés courts des décisions décisives", () => {
+  const state = completedCampaign();
+  const scenario = structuredClone(SCENARIO_V3_PREVIEW);
+  const retirementIndex = state.decisions.findIndex((record) => record.decisionId === "repousser-l-age-legal-a-65-ans");
+  const retirement = scenario.decisions.find((decision) => decision.id === "repousser-l-age-legal-a-65-ans");
+  assert.notEqual(retirementIndex, -1);
+  assert.ok(retirement);
+  state.decisions = [{
+    ...state.decisions[retirementIndex]!,
+    optionId: retirement.options[0]!.id,
+  }];
+
+  const view = buildMandateVerdictViewModel(state, scenario, SCENARIO_V3_CRISIS_RULES);
+
+  assert.equal(view.decisiveChoices[0]!.label, "Repousser l'âge légal à 65 ans");
+});
+
 test("raconte une crise et la réforme réellement suspendue", () => {
   const state = completedCampaign();
   const first = state.decisions[0]!;

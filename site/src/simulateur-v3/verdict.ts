@@ -194,6 +194,13 @@ function impactScore(option: DecisionOption): number {
   return budget * 100 + structural;
 }
 
+function selfContainedChoiceLabel(decisionTitle: string | undefined, optionLabel: string): string {
+  const title = decisionTitle?.replace(/\s*\?\s*$/, "").trim();
+  const label = optionLabel.trim();
+  if (!title || label.split(/\s+/).length > 3) return label;
+  return title.toLocaleLowerCase("fr-FR").startsWith(label.toLocaleLowerCase("fr-FR")) ? title : label;
+}
+
 function buildDecisiveChoices(state: CampaignState, scenario: Scenario): VerdictChoice[] {
   return state.decisions
     .filter((record) => record.status !== "superseded")
@@ -206,10 +213,10 @@ function buildDecisiveChoices(state: CampaignState, scenario: Scenario): Verdict
     .filter((item): item is typeof item & { option: DecisionOption } => Boolean(item.option))
     .sort((left, right) => impactScore(right.option) - impactScore(left.option))
     .slice(0, 3)
-    .map(({ record, option, chapter }, index) => ({
+    .map(({ record, decision, option, chapter }, index) => ({
       rank: index + 1,
       decisionId: record.decisionId,
-      label: option.label,
+      label: selfContainedChoiceLabel(decision?.title, option.label),
       chapter: chapter?.title ?? "Mandat national",
       budgetDelta: immediateBudgetDelta(option),
       structuralEffect: strongestStructuralEffect(option),
