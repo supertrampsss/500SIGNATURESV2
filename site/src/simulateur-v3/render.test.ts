@@ -161,20 +161,40 @@ test("la fin de chapitre raconte les choix et la contradiction laissée ouverte"
   assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
 });
 
-test("le verdict final raconte le mandat et permet une revanche", () => {
+test("le verdict final devient une scène éditoriale sans grille générique", () => {
   const state = stateAfter(96, "verdict");
   state.crisisHistory = [{
     ruleId: "flat-tax-revolt", triggeredByDecisionId: state.decisions[0]!.decisionId,
     aggravatingDecisionIds: [state.decisions[0]!.decisionId], resolvedBy: "suspend-flat-tax",
   }];
   state.decisions[0] = { ...state.decisions[0]!, status: "suspended" };
-  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  assert.match(html, /Votre mandat/);
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW, { crisisRules: SCENARIO_V3_CRISIS_RULES });
+  assert.match(html, /simulateur-v3__verdict-hero/);
+  assert.match(html, /simulateur-v3__verdict-signals/);
+  assert.match(html, /simulateur-v3__verdict-trajectory/);
+  assert.match(html, /simulateur-v3__verdict-choices/);
+  assert.match(html, /simulateur-v3__verdict-aftermath/);
   assert.match(html, /96 arbitrages/);
-  assert.match(html, /1 crise/);
-  assert.match(html, /1 réforme abandonnée sous pression/);
+  assert.match(html, /1 crise traversée/);
+  assert.match(html, /1 réforme modifiée sous pression/);
+  assert.doesNotMatch(html, /simulateur-v3__situation-grid/);
+  assert.doesNotMatch(html, /[\u2013\u2014]/u);
+  assert.equal(occurrences(html, 'data-v3-action="share-verdict"'), 1);
   assert.equal(occurrences(html, 'data-v3-action="restart"'), 1);
+  assert.match(html, /href="\/bilan"/);
   assert.doesNotMatch(html, /data-v3-action="pause"/);
+});
+
+test("le verdict ne répète pas les questions dans les trois choix décisifs", () => {
+  const state = stateAfter(96, "verdict");
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  const firstDecision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const firstOption = firstDecision.options[0]!;
+
+  if (html.includes(firstOption.label)) {
+    assert.equal(occurrences(html, firstOption.label), 1);
+  }
+  assert.doesNotMatch(html, /Les trois gestes qui ont le plus pesé/);
 });
 
 test("le journal de Pause liste les arbitrages et leur statut", () => {

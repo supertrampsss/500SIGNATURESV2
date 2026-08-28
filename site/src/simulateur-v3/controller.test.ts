@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { createCampaign } from "./campaign.ts";
 import { mountSimulatorV3, type SimulatorV3Host } from "./controller.ts";
 import { V3_STORAGE_KEY, type StorageLike } from "./storage.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
@@ -213,4 +214,43 @@ test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire
   assert.match(restored.innerHTML, /Mandat suspendu/);
   restored.click("resume");
   assert.match(restored.innerHTML, /Dossier 5 sur 96/);
+});
+
+test("partager le verdict copie un résultat dynamique sans quitter la scène finale", async () => {
+  const base = createCampaign(SCENARIO_V3_PREVIEW);
+  const verdict = {
+    ...base,
+    phase: "verdict" as const,
+    chapterIndex: 7,
+    decisionIndex: 11,
+    decisions: SCENARIO_V3_PREVIEW.decisions.map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+    indicators: { ...base.indicators, annualBalance: -42_000, growth: 1.4, majority: 54, opinion: 49 },
+  };
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(verdict) });
+  const copies: string[] = [];
+  const events: string[] = [];
+  const eventTarget = new EventTarget();
+  eventTarget.addEventListener("simulateur-v3:evenement", (event) => events.push((event as CustomEvent).detail.type));
+  const host = new FakeHost();
+
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, {
+    storage,
+    eventTarget,
+    currentUrl: () => "https://example.test/simulateur?version=3",
+    shareChannels: { copier: async (text) => { copies.push(text); } },
+  });
+  host.click("share-verdict");
+  await new Promise((resolve) => setTimeout(resolve, 0));
+
+  assert.equal(copies.length, 1);
+  assert.match(copies[0]!, /Solde annuel : -42 milliards d'euros/);
+  assert.match(copies[0]!, /https:\/\/example\.test\/simulateur\?version=3/);
+  assert.match(host.innerHTML, /simulateur-v3__verdict-hero/);
+  assert.ok(events.includes("verdict_shared"));
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).phase, "verdict");
 });
