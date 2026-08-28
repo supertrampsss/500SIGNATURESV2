@@ -1011,8 +1011,9 @@ test("12 bis. le pré-rendu sert les mêmes trois portes que l'accueil dynamique
     ["Prendre les commandes", "/simulateur"],
   ] as const;
   const positions = portes.map(([libelle, href]) => {
-    assert.match(corps, new RegExp(`class="accueil-porte[^\"]*" href="${href}"[\\s\\S]*?${libelle}`));
-    return corps.indexOf(href);
+    const porte = corps.match(new RegExp(`<a class="accueil-porte[^\"]*" href="${href}"[\\s\\S]*?${libelle}`));
+    assert.ok(porte, `porte ${libelle} introuvable`);
+    return porte.index!;
   });
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
 });

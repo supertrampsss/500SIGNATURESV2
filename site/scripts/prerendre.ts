@@ -456,7 +456,7 @@ export function descriptionDuGabarit(shell: string): string {
 }
 
 /**
- * La marque du site : le `<h1>` de l'en-tête, « Où va l'argent public ».
+ * La marque du site : le nom éditorial de l'en-tête, « Où va l'argent public ».
  *
  * C'est le titre des cartes de section qui ne décrivent pas une page
  * pré-rendue — l'index des analyses, le simulateur. Ce que ces images-là nomment
@@ -470,9 +470,10 @@ export function descriptionDuGabarit(shell: string): string {
  * les deux endroits le sont : l'onglet et l'en-tête.
  */
 export function marqueDuGabarit(shell: string): string {
-  const marque = shell
-    .match(/<div class="entete__marque">[\s\S]*?<h1>([\s\S]*?)<\/h1>/)?.[1]
-    ?.trim();
+  const marque = (
+    shell.match(/<a class="entete__marque"[^>]*>[\s\S]*?<span class="entete__nom">([\s\S]*?)<\/span>/)?.[1]
+    ?? shell.match(/<div class="entete__marque">[\s\S]*?<h1>([\s\S]*?)<\/h1>/)?.[1]
+  )?.trim();
   if (!marque) throw new Error("Le gabarit ne porte pas de marque : une carte de section n'a rien à peindre.");
   return marque;
 }
