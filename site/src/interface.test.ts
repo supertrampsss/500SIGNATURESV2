@@ -3527,13 +3527,19 @@ test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
   assert.match(SIMULATEUR_V3, /#simulateur-v3\s*\{[^}]*scroll-margin-top:\s*var\(--haut-entete\);/s);
 });
 
-test("le bureau de décision V3 retrouve la composition desktop de la maquette", () => {
+test("le bureau de décision V3 retrouve la composition centrale de la planche EPR", () => {
   assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\] #vue-simulateur\s*\{[^}]*max-width:\s*none;[^}]*padding-inline:\s*0;/s);
   const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 75rem)"));
-  assert.match(desktop, /\.simulateur-v3__decision-layout\s*\{[^}]*grid-template-columns:\s*minmax\(11rem,\s*15rem\)\s+minmax\(0,\s*48rem\)\s+minmax\(11rem,\s*15rem\);/s);
-  assert.match(desktop, /\.simulateur-v3__rail\s*\{[^}]*display:\s*grid;/s);
-  assert.doesNotMatch(desktop, /\.simulateur-v3__option-select\s*\{[^}]*min-height:\s*16rem;/s);
-  assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*max-width:\s*24ch;[^}]*font-size:\s*clamp\(2rem,\s*3vw,\s*3rem\);/s);
+  assert.match(desktop, /\.simulateur-v3__decision-layout\s*\{[^}]*width:\s*min\(100%,\s*82rem\);/s);
+  assert.match(desktop, /\.simulateur-v3__mandate-dashboard\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/s);
+  assert.doesNotMatch(SIMULATEUR_V3, /\.simulateur-v3__rail(?:\s|\{|--)/);
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__decision-illustration\s*\{/s);
+  assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*max-width:\s*28ch;[^}]*font-size:\s*clamp\(2\.5rem,\s*3\.4vw,\s*4rem\);/s);
+});
+
+test("le chrome desktop du simulateur reprend la barre institutionnelle sombre", () => {
+  assert.match(SIMULATEUR_V3, /body\[data-simulateur-version="3"\] \.entete\s*\{[^}]*background:\s*var\(--v3-shell\);/s);
+  assert.match(SIMULATEUR_V3, /body\[data-simulateur-version="3"\] \.entete__nav a\s*\{[^}]*color:\s*#ffffff;/s);
 });
 
 test("le verdict V3 possède une scène finale responsive et autonome", () => {

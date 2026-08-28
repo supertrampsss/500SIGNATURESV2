@@ -28,7 +28,7 @@ test("les réactions des dossiers alimentent les indicateurs visibles du verdict
 
 test("chaque option dit directement ce qu'elle fait et qui paie", () => {
   for (const decision of SCENARIO_V3_PREVIEW.decisions) {
-    assert.equal(decision.options.length, 2);
+    assert.ok(decision.options.length >= 2 && decision.options.length <= 3);
     for (const option of decision.options) {
       assert.ok(option.label.trim());
       assert.ok(option.summary.trim());
@@ -39,10 +39,25 @@ test("chaque option dit directement ce qu'elle fait et qui paie", () => {
   }
 });
 
+test("le dossier nucléaire reprend les trois voies de la planche validée", () => {
+  const nuclear = SCENARIO_V3_PREVIEW.decisions.find((decision) => decision.id === "engager-six-epr2-part-annuelle-de-l")!;
+  assert.equal(nuclear.title, "Quel avenir pour le nucléaire ?");
+  assert.deepEqual(nuclear.options.map((option) => option.label), [
+    "Engager six EPR2",
+    "Engager quatorze EPR2",
+    "Ne lancer aucun nouveau réacteur",
+  ]);
+  const fourteen = nuclear.options[1]!;
+  const budget = fourteen.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance")!;
+  const growth = fourteen.effects.find((effect) => effect.target === "indicator" && effect.key === "growth")!;
+  assert.equal(budget.delta, -4_000);
+  assert.equal(growth.delta, 0.09);
+});
+
 test("seule l'adoption d'une mesure ferme ses dossiers incompatibles", () => {
   for (const decision of SCENARIO_V3_PREVIEW.decisions) {
     assert.deepEqual(new Set(decision.options[0]!.locks), new Set(decision.conflicts));
-    assert.deepEqual(decision.options[1]!.locks, []);
+    assert.deepEqual(decision.options.at(-1)!.locks, []);
   }
 });
 

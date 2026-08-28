@@ -275,7 +275,7 @@ function toDecision(measure: Mesure, index: number): Decision {
   const keepContributors = editorial?.rejeter.perdants ?? adoptBeneficiaries;
   const conflicts = conflictsFor(measure);
 
-  return {
+  const decision: Decision = {
     id: measure.id,
     version: 1,
     chapterId: chapter.id,
@@ -320,6 +320,44 @@ function toDecision(measure: Mesure, index: number): Decision {
     }],
     dependencies: [],
     conflicts,
+  };
+
+  if (measure.id !== "engager-six-epr2-part-annuelle-de-l") return decision;
+
+  const six = {
+    ...decision.options[0]!,
+    label: "Engager six EPR2",
+    summary: "Lancer le premier programme de six réacteurs et assumer sa montée en charge industrielle.",
+  };
+  const fourteen = {
+    ...decision.options[0]!,
+    id: `${measure.id}:fourteen`,
+    label: "Engager quatorze EPR2",
+    summary: "Étendre immédiatement le programme à quatorze réacteurs pour accélérer le renouvellement du parc.",
+    uncertainty: "forte" as const,
+    effects: decision.options[0]!.effects.map((effect) => ({
+      ...effect,
+      id: effect.id.replace(":apply:", ":fourteen:"),
+      delta: effect.target === "indicator" && effect.key === "annualBalance"
+        ? effect.delta * 2
+        : effect.target === "indicator" && effect.key === "growth"
+          ? Math.round(effect.delta * 2 * 1_000) / 1_000
+        : Math.sign(effect.delta) * Math.max(1, Math.round(Math.abs(effect.delta) * 1.5)),
+      explanation: effect.target === "indicator" && effect.key === "annualBalance"
+        ? "Hypothèse de jeu : montée en charge publique doublée par rapport au programme de six EPR2."
+        : effect.explanation,
+    })),
+  };
+  const none = {
+    ...decision.options[1]!,
+    label: "Ne lancer aucun nouveau réacteur",
+    summary: "Ne pas engager de nouveau programme et prolonger la stratégie actuelle hors nouveaux EPR2.",
+  };
+  return {
+    ...decision,
+    title: "Quel avenir pour le nucléaire ?",
+    context: "Le parc actuel vieillit. Trois trajectoires engagent les finances publiques, l'industrie et le système électrique pour plusieurs décennies.",
+    options: [six, fourteen, none],
   };
 }
 

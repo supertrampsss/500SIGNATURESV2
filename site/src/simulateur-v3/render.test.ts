@@ -100,15 +100,47 @@ test("aucun intitulé de choix ne redevient un paragraphe sur téléphone", () =
   }
 });
 
-test("un dossier desktop compose une salle de décision en trois zones", () => {
+test("un dossier desktop suit la planche EPR avec une scène centrale et un tableau compact", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.match(html, /class="simulateur-v3__decision-layout"/);
-  assert.match(html, /<aside class="simulateur-v3__rail simulateur-v3__rail--country" aria-label="Situation du pays">/);
-  assert.match(html, /<aside class="simulateur-v3__rail simulateur-v3__rail--mandate" aria-label="État du mandat">/);
-  assert.match(html, />Opinion</);
-  assert.match(html, />Majorité</);
-  assert.match(html, />Solde annuel</);
+  assert.doesNotMatch(html, /simulateur-v3__rail/);
+  assert.match(html, /class="simulateur-v3__mandate-dashboard"/);
+  assert.match(html, />Finances</);
+  assert.match(html, />Pays</);
+  assert.match(html, />Pouvoir</);
+  assert.match(html, />Confiance</);
+  const dossier = html.slice(html.indexOf('class="simulateur-v3__dossier simulateur-v3__decision"'));
+  assert.ok(dossier.indexOf('class="simulateur-v3__mandate-dashboard"') < dossier.lastIndexOf("</article>"));
+});
+
+test("chaque choix reçoit une illustration éditoriale dans la carte cliquable", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(html, 'class="simulateur-v3__decision-illustration'), decision.options.length);
+  assert.equal(occurrences(html, 'aria-hidden="true" viewBox="0 0 180 104"'), decision.options.length);
+});
+
+test("la trajectoire des finances du tableau réagit au registre causal", () => {
+  const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const moved: CampaignState = {
+    ...base,
+    indicators: { ...base.indicators, annualBalance: base.indicators.annualBalance + 10_000 },
+    causalLedger: [{
+      id: "visual-budget-move",
+      sourceType: "decision",
+      sourceId: "flat-tax-a-20-des-le-premier:flat-tax-a-20-des-le-premier:apply",
+      target: "indicator",
+      key: "annualBalance",
+      delta: 10_000,
+      duration: "annual",
+      explanation: "Mouvement de test.",
+      appliedAtDecision: 1,
+    }],
+  };
+  const points = (html: string) => html.match(/simulateur-v3__sparkline[\s\S]*?<polyline points="([^"]+)"/)?.[1];
+  assert.notEqual(points(renderSimulatorV3(base, SCENARIO_V3_PREVIEW)), points(renderSimulatorV3(moved, SCENARIO_V3_PREVIEW)));
 });
 
 test("les cartes montrent les conséquences politiques essentielles avant le clic", () => {
@@ -208,6 +240,7 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   assert.match(html, new RegExp(decision.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(html, /Suspendre la flat tax/);
   assert.equal(occurrences(html, 'data-v3-action="resolve-crisis"'), 2);
+  assert.match(html, /class="simulateur-v3__crisis-visual"/);
   assert.match(html, /simulateur-v3__scene-header/);
   assert.match(html, /simulateur-v3__scene-body/);
 });

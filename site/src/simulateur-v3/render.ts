@@ -182,7 +182,7 @@ function effectLabel(effect: { target: "indicator" | "group"; key: string; delta
 function meter(label: string, value: number): string {
   const level = Math.max(0, Math.min(100, Math.round(value)));
   return `
-    <div class="simulateur-v3__rail-metric">
+    <div class="simulateur-v3__dashboard-metric">
       <span>${escapeHtml(label)}</span>
       <strong>${level}</strong>
       <span class="simulateur-v3__meter" role="meter" aria-label="${escapeHtml(label)} : ${level} sur 100" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${level}">
@@ -191,32 +191,101 @@ function meter(label: string, value: number): string {
     </div>`;
 }
 
-function renderCountryRail(state: CampaignState): string {
+function sparkline(values: readonly number[]): string {
+  const minimum = Math.min(...values);
+  const maximum = Math.max(...values);
+  const range = maximum - minimum || 1;
+  const width = values.length > 1 ? 80 / (values.length - 1) : 80;
+  const points = values.map((value, index) => {
+    const y = 32 - ((value - minimum) / range) * 24;
+    return `${Math.round(index * width)},${Math.round(y)}`;
+  }).join(" ");
   return `
-    <aside class="simulateur-v3__rail simulateur-v3__rail--country" aria-label="Situation du pays">
-      <p class="simulateur-v3__rail-kicker">Situation du pays</p>
-      <h2>Le pays réagit</h2>
-      ${meter("Opinion", state.indicators.opinion)}
-      ${meter("Services publics", state.indicators.publicServices)}
-      ${meter("Marchés", state.indicators.financialCredibility)}
-    </aside>`;
+    <svg class="simulateur-v3__sparkline" aria-hidden="true" viewBox="0 0 80 38" preserveAspectRatio="none">
+      <polyline points="${points}"></polyline>
+    </svg>`;
 }
 
-function renderMandateRail(state: CampaignState): string {
+function annualBalanceSeries(state: CampaignState): number[] {
+  const movements = state.causalLedger
+    .filter((entry) => entry.target === "indicator" && entry.key === "annualBalance")
+    .slice(-4);
+  let cursor = state.indicators.annualBalance;
+  const values = [cursor];
+  for (const movement of [...movements].reverse()) {
+    cursor -= movement.delta;
+    values.unshift(cursor);
+  }
+  return values.length > 1 ? values : [cursor, cursor];
+}
+
+function renderMandateDashboard(state: CampaignState): string {
+  const growth = state.indicators.growth.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   return `
-    <aside class="simulateur-v3__rail simulateur-v3__rail--mandate" aria-label="État du mandat">
-      <p class="simulateur-v3__rail-kicker">État du mandat</p>
-      <h2>Votre marge de manœuvre</h2>
-      <div class="simulateur-v3__rail-balance">
-        <span>Solde annuel</span>
+    <aside class="simulateur-v3__mandate-dashboard" aria-label="Tableau de situation du mandat">
+      <section class="simulateur-v3__dashboard-group simulateur-v3__dashboard-group--finances">
+        <p>Finances</p>
         <strong>${escapeHtml(formatV3Amount(state.indicators.annualBalance))}</strong>
-      </div>
-      ${meter("Majorité", state.indicators.majority)}
-      ${meter("Capacité de réforme", state.indicators.reformCapacity)}
+        <span>Solde annuel</span>
+        ${sparkline(annualBalanceSeries(state))}
+      </section>
+      <section class="simulateur-v3__dashboard-group">
+        <p>Pays</p>
+        <div class="simulateur-v3__dashboard-pair"><span>Croissance</span><strong>${growth} %</strong></div>
+        ${meter("Services", state.indicators.publicServices)}
+      </section>
+      <section class="simulateur-v3__dashboard-group">
+        <p>Pouvoir</p>
+        ${meter("Majorité", state.indicators.majority)}
+        ${meter("Réformes", state.indicators.reformCapacity)}
+      </section>
+      <section class="simulateur-v3__dashboard-group">
+        <p>Confiance</p>
+        ${meter("Opinion", state.indicators.opinion)}
+        ${meter("Marchés", state.indicators.financialCredibility)}
+      </section>
     </aside>`;
 }
 
-function renderOption(decision: Decision, option: DecisionOption): string {
+function illustrationKind(decision: Decision): string {
+  const words = `${decision.chapterId} ${decision.id} ${decision.title}`.toLocaleLowerCase("fr");
+  if (/epr|nuclé|réacteur/.test(words)) return "nuclear";
+  if (/défense|armée|otan|militaire/.test(words)) return "defence";
+  if (/energy|climat|agriculture|transport|train|vélo|voiture|véhicule|avion/.test(words)) return "transport";
+  if (/hôpital|santé|soin|médic/.test(words)) return "health";
+  if (/école|université|enseign/.test(words)) return "education";
+  if (/logement|loyer|foncier/.test(words)) return "housing";
+  if (/retraite|travail|salaire|chômage/.test(words)) return "work";
+  if (/impôt|tax|tva|fiscal|succession|patrimoine/.test(words)) return "tax";
+  return "state";
+}
+
+function illustrationDrawing(kind: string, variant: number): string {
+  if (kind === "nuclear") {
+    if (variant === 2) return `<path d="M15 84h150M27 84c7-17 9-34 5-52h24c-4 18-2 35 5 52M72 84c7-17 9-34 5-52h24c-4 18-2 35 5 52M117 84c7-17 9-34 5-52h24c-4 18-2 35 5 52M30 51h28M75 51h28M120 51h28"/><path d="M40 25c-8-8 5-12-3-19M85 25c-8-8 5-12-3-19M130 25c-8-8 5-12-3-19"/><path d="M151 7h15v15h-15z"/>`;
+    if (variant === 3) return `<path d="M36 84h108M58 84c9-20 11-39 7-58h34c-4 19-2 38 7 58M62 49h40"/><path d="M77 20c-9-9 5-13-3-20M126 17l20-20M126-3l20 20"/>`;
+  }
+  const drawings: Record<string, string> = {
+    nuclear: `<path d="M22 84h136M42 84c9-20 11-39 7-58h26c-4 19-2 38 7 58M98 84c9-20 11-39 7-58h26c-4 19-2 38 7 58M45 48h33M101 48h33"/><path d="M55 20c-9-9 5-13-3-20M116 20c-9-9 5-13-3-20"/>`,
+    tax: `<ellipse cx="55" cy="75" rx="31" ry="10"/><path d="M24 56v19c0 6 14 11 31 11s31-5 31-11V56M24 56c0 6 14 11 31 11s31-5 31-11-14-11-31-11-31 5-31 11Z"/><circle cx="122" cy="47" r="28"/><path d="M122 31v32M112 38c3-8 22-7 22 2 0 13-24 5-24 17 0 9 20 10 25 1"/>`,
+    defence: `<path d="M28 79h124M44 72V35l42-17 50 22v32M59 72V50h62v22M76 72V57h28v15"/><path d="M85 18V7l23 8-22 8"/>`,
+    transport: `<path d="M22 78h136M41 69h96l-13-34H56L41 69Z"/><circle cx="61" cy="74" r="10"/><circle cx="117" cy="74" r="10"/><path d="M66 35l12 34M107 35l-8 34M28 27h31M19 38h27"/>`,
+    health: `<path d="M73 19h34v22h22v34h-22v22H73V75H51V41h22V19Z"/><path d="M24 90h132"/>`,
+    education: `<path d="M20 42l70-28 70 28-70 27-70-27Z"/><path d="M48 54v25c20 14 64 14 84 0V54M151 46v38"/>`,
+    housing: `<path d="M25 85h130M39 85V45l51-31 51 31v40M62 85V58h23v27M103 52h19v19h-19V52Z"/>`,
+    work: `<circle cx="57" cy="39" r="19"/><path d="M24 88c4-25 16-37 33-37s29 12 33 37M112 77h45M121 77V51h27v26M134 51V35"/>`,
+    state: `<path d="M22 85h136M34 78h112M45 71V39M69 71V39M93 71V39M117 71V39M141 71V39M30 32h126L93 11 30 32Z"/>`,
+  };
+  const marker = variant === 1 ? `<circle cx="153" cy="17" r="8"/>` : variant === 2 ? `<path d="M146 9h15v15h-15z"/>` : `<path d="M145 23l16-16M145 7l16 16"/>`;
+  return `${drawings[kind] ?? drawings.state}${marker}`;
+}
+
+function renderIllustration(decision: Decision, optionIndex: number): string {
+  const kind = illustrationKind(decision);
+  return `<svg class="simulateur-v3__decision-illustration simulateur-v3__decision-illustration--${kind} simulateur-v3__decision-illustration--variant-${optionIndex + 1}" aria-hidden="true" viewBox="0 0 180 104">${illustrationDrawing(kind, optionIndex + 1)}</svg>`;
+}
+
+function renderOption(decision: Decision, option: DecisionOption, optionIndex: number): string {
   const budget = annualBalanceEffect(option);
   const visibleEffects = option.effects
     .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
@@ -234,6 +303,7 @@ function renderOption(decision: Decision, option: DecisionOption): string {
         data-option-id="${escapeHtml(option.id)}"
         aria-label="Choisir : ${escapeHtml(option.label)}"
       >
+        ${renderIllustration(decision, optionIndex)}
         <span class="simulateur-v3__option-head">
           <span class="simulateur-v3__option-label">${escapeHtml(compactOptionLabel(option.label))}</span>
           <strong class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}">${escapeHtml(budgetLabel)}</strong>
@@ -242,7 +312,7 @@ function renderOption(decision: Decision, option: DecisionOption): string {
         <span class="simulateur-v3__option-effects">
           ${visibleEffects.map((effect) => `<span>${escapeHtml(effectLabel(effect))}</span>`).join("")}
         </span>
-        <span class="simulateur-v3__option-confidence">Incertitude ${escapeHtml(option.uncertainty)}</span>
+        <span class="simulateur-v3__option-confidence">Risque ${escapeHtml(option.uncertainty)}<i aria-hidden="true" data-risk="${option.uncertainty}"></i></span>
       </button>
     </article>`;
 }
@@ -284,7 +354,6 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--decision">
       <div class="simulateur-v3__decision-layout">
-        ${renderCountryRail(state)}
         <article class="simulateur-v3__dossier simulateur-v3__decision">
           <header class="simulateur-v3__scene-header">
             <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state)}</p>
@@ -292,13 +361,13 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
             <p class="simulateur-v3__context">${escapeHtml(compactText(decision.context))}</p>
           </header>
           <div class="simulateur-v3__scene-body">
-            <section class="simulateur-v3__options" aria-label="Choix possibles">
-              ${decision.options.map((option) => renderOption(decision, option)).join("")}
+            <section class="simulateur-v3__options simulateur-v3__options--${decision.options.length}" aria-label="Choix possibles">
+              ${decision.options.map((option, index) => renderOption(decision, option, index)).join("")}
             </section>
+            ${renderMandateDashboard(state)}
             ${renderEvidence(decision)}
           </div>
         </article>
-        ${renderMandateRail(state)}
       </div>
     </main>`;
 }
@@ -408,12 +477,7 @@ function renderCouncil(state: CampaignState, scenario: Scenario): string {
           <h1>Le pays réagit à vos arbitrages.</h1>
           <p class="simulateur-v3__lead">${state.decisions.length} décisions ont déplacé les comptes et votre capacité d'agir.</p>
         </header>
-        <div class="simulateur-v3__scene-body"><div class="simulateur-v3__situation-grid">
-          <section><h2>Finances</h2><strong>${escapeHtml(formatV3Amount(state.indicators.annualBalance))}</strong><p>Solde public annuel</p></section>
-          <section><h2>Économie réelle</h2><strong>${state.indicators.growth.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</strong><p>Croissance, investissement ${Math.round(state.indicators.investment)}</p></section>
-          <section><h2>Pouvoir</h2><strong>${Math.round(state.indicators.majority)} / 100</strong><p>Capacité de réforme ${Math.round(state.indicators.reformCapacity)}</p></section>
-          <section><h2>Confiance</h2><strong>${Math.round(state.indicators.opinion)} / 100</strong><p>Crédibilité financière ${Math.round(state.indicators.financialCredibility)}</p></section>
-        </div>
+        <div class="simulateur-v3__scene-body">${renderMandateDashboard(state)}
         ${causes.length ? `<section class="simulateur-v3__causes"><h2>Ce qui vient de peser</h2><ul>${causes.map((cause) => {
           const decisionId = sourceDecisionIdForCause(state, cause);
           const title = scenario.decisions.find((decision) => decision.id === decisionId)?.title;
@@ -454,6 +518,14 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__crisis">
+        <div class="simulateur-v3__crisis-visual" aria-hidden="true">
+          <svg viewBox="0 0 1200 330" preserveAspectRatio="xMidYMid slice">
+            <path class="simulateur-v3__crisis-sky" d="M0 0h1200v330H0z"/>
+            <path class="simulateur-v3__crisis-city" d="M0 245h62v-74h44v74h75v-118h66v118h59v-63h83v63h56v-151h82v151h61v-90h65v90h89v-122h71v122h49v-71h90v71h60v-137h66v137h74v85H0z"/>
+            <path class="simulateur-v3__crisis-crowd" d="M0 288c95-33 176-13 251-30 81-19 159-29 255 4 85 29 167-22 260-5 87 16 170 42 264 8 62-22 119-15 170 3v62H0z"/>
+            <path class="simulateur-v3__crisis-flare" d="M160 265l34-105 35 105M932 270l38-129 42 129"/>
+          </svg>
+        </div>
         <header class="simulateur-v3__scene-header">
           <p class="simulateur-v3__eyebrow">Conseil de crise</p>
           <h1>${escapeHtml(rule.title)}</h1>
