@@ -3528,6 +3528,7 @@ test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
 });
 
 test("le bureau de décision V3 retrouve la composition desktop de la maquette", () => {
+  assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\] #vue-simulateur\s*\{[^}]*max-width:\s*none;[^}]*padding-inline:\s*0;/s);
   const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 75rem)"));
   assert.match(desktop, /\.simulateur-v3__decision-layout\s*\{[^}]*grid-template-columns:\s*minmax\(11rem,\s*15rem\)\s+minmax\(0,\s*48rem\)\s+minmax\(11rem,\s*15rem\);/s);
   assert.match(desktop, /\.simulateur-v3__rail\s*\{[^}]*display:\s*grid;/s);

@@ -26,6 +26,11 @@ body[data-vue="simulateur"] .entete__recherche {
   display: none;
 }
 
+body[data-vue="simulateur"] #vue-simulateur {
+  max-width: none;
+  padding-inline: 0;
+}
+
 #simulateur-v3 {
   scroll-margin-top: var(--haut-entete);
 }
