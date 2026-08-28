@@ -1,5 +1,13 @@
 import { currentDecision } from "./campaign.ts";
 import { availableConcessions } from "./crises.ts";
+import { buildMandateVerdictViewModel } from "./verdict.ts";
+import type {
+  MandateVerdictViewModel,
+  VerdictAftermath,
+  VerdictChoice,
+  VerdictCheckpoint,
+  VerdictSignal,
+} from "./verdict.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -51,6 +59,10 @@ function renderCommandBar(state: CampaignState): string {
       : state.phase === "verdict"
         ? `<span class="simulateur-v3__pause-state">Mandat terminé</span>`
         : `<button type="button" class="simulateur-v3__pause" data-v3-action="pause">Pause</button>`;
+  const progress = state.phase === "verdict"
+    ? `<p class="simulateur-v3__verdict-progress">Verdict du mandat</p>`
+    : `<p class="simulateur-v3__chapter-progress">Chapitre ${state.chapterIndex + 1} sur 8</p>
+      <p class="simulateur-v3__decision-progress">Dossier ${globalPosition(state)} sur 96</p>`;
   return `
     <header class="simulateur-v3__command-bar">
       <a class="simulateur-v3__brand" href="/bilan" aria-label="Où va l'argent public, revenir à France">
@@ -58,8 +70,7 @@ function renderCommandBar(state: CampaignState): string {
         <span>Où va l'argent public</span>
       </a>
       <p class="simulateur-v3__mandate">Mandat 2026 à 2031</p>
-      <p class="simulateur-v3__chapter-progress">Chapitre ${state.chapterIndex + 1} sur 8</p>
-      <p class="simulateur-v3__decision-progress">Dossier ${globalPosition(state)} sur 96</p>
+      ${progress}
       ${trailing}
     </header>`;
 }
@@ -435,38 +446,132 @@ function renderChapterVerdict(state: CampaignState, scenario: Scenario): string 
     </main>`;
 }
 
-function renderVerdict(state: CampaignState, scenario: Scenario): string {
-  const abandoned = state.decisions.filter((record) => ["suspended", "amended", "reversed"].includes(record.status)).length;
-  const superseded = state.decisions.filter((record) => record.status === "superseded").length;
-  const crisisCount = state.crisisHistory.length;
-  const balance = state.indicators.annualBalance;
-  const headline = balance >= 0
-    ? "Vous avez remis les comptes à l'équilibre. Le prix du mandat reste politique."
-    : balance >= -50_000
-      ? "Vous n'avez pas tout réglé, mais la trajectoire est devenue crédible."
-      : "Le déficit résiste. Votre mandat a surtout choisi qui devait être protégé.";
-  const decisive = state.decisions.filter((record) => record.status !== "superseded").sort((a, b) => {
-    const effect = (record: typeof a) => scenario.decisions.find((decision) => decision.id === record.decisionId)?.options.find((option) => option.id === record.optionId)?.effects.find((item) => item.target === "indicator" && item.key === "annualBalance")?.delta ?? 0;
-    return Math.abs(effect(b)) - Math.abs(effect(a));
-  }).slice(0, 3);
+function formatVerdictSignal(signal: VerdictSignal): string {
+  if (signal.key === "growth") {
+    return `${signal.value.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
+  }
+  return `${Math.round(signal.value)} / 100`;
+}
+
+function formatVerdictDelta(signal: VerdictSignal): string {
+  if (signal.key === "growth") {
+    const value = signal.delta.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+    return `${signal.delta > 0 ? "+" : ""}${value} point depuis le début`;
+  }
+  const rounded = Math.round(signal.delta);
+  return `${signed(rounded)} ${Math.abs(rounded) === 1 ? "point" : "points"} depuis le début`;
+}
+
+function renderVerdictSignal(signal: VerdictSignal): string {
+  const level = signal.key === "growth"
+    ? Math.max(0, Math.min(100, Math.round(((signal.value + 1) / 4) * 100)))
+    : Math.max(0, Math.min(100, Math.round(signal.value)));
+  return `<li class="simulateur-v3__verdict-signal simulateur-v3__verdict-signal--${signal.key}">
+    <span class="simulateur-v3__verdict-signal-label">${escapeHtml(signal.label)}</span>
+    <strong>${escapeHtml(formatVerdictSignal(signal))}</strong>
+    <span class="simulateur-v3__verdict-signal-delta">${escapeHtml(formatVerdictDelta(signal))}</span>
+    <span class="simulateur-v3__verdict-signal-track" aria-hidden="true"><i style="--v3-verdict-level: ${level}%"></i></span>
+    <small>${escapeHtml(signal.descriptor)}</small>
+  </li>`;
+}
+
+function renderVerdictCheckpoint(point: VerdictCheckpoint): string {
+  return `<li class="simulateur-v3__verdict-checkpoint${point.decisionCount === 96 ? " simulateur-v3__verdict-checkpoint--final" : ""}">
+    <span class="simulateur-v3__verdict-checkpoint-dot" aria-hidden="true"></span>
+    <span class="simulateur-v3__verdict-checkpoint-label">${escapeHtml(point.label)}</span>
+    <strong>${escapeHtml(formatV3Amount(point.annualBalance))}</strong>
+    <small>Pouvoir ${Math.round(point.majority)} / 100</small>
+  </li>`;
+}
+
+function formatStructuralEffect(choice: VerdictChoice): string {
+  const effect = choice.structuralEffect;
+  if (!effect) return "Aucun second effet chiffré";
+  const value = effect.delta.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
+  const unit = Math.abs(effect.delta) === 1 ? "point" : "points";
+  return `${effect.label} ${effect.delta > 0 ? "+" : ""}${value} ${unit}`;
+}
+
+function renderVerdictChoice(choice: VerdictChoice): string {
+  return `<li class="simulateur-v3__verdict-choice">
+    <span class="simulateur-v3__verdict-choice-rank" aria-hidden="true">${String(choice.rank).padStart(2, "0")}</span>
+    <div class="simulateur-v3__verdict-choice-copy">
+      <p>${escapeHtml(choice.chapter)}</p>
+      <h3>${escapeHtml(choice.label)}</h3>
+      <dl>
+        <div><dt>Solde annuel</dt><dd>${choice.budgetDelta === 0 ? "Inchangé" : `${escapeHtml(formatV3Amount(choice.budgetDelta))} par an`}</dd></div>
+        <div><dt>Second effet</dt><dd>${escapeHtml(formatStructuralEffect(choice))}</dd></div>
+      </dl>
+      <span class="simulateur-v3__verdict-choice-status">${escapeHtml(choice.status)}</span>
+    </div>
+  </li>`;
+}
+
+function renderVerdictAftermath(item: VerdictAftermath): string {
+  return `<li class="simulateur-v3__verdict-aftermath-item simulateur-v3__verdict-aftermath-item--${item.kind}">
+    <div>
+      <span>${item.kind === "crisis" ? "Crise traversée" : escapeHtml(item.status ?? "Réforme modifiée")}</span>
+      <h3>${escapeHtml(item.title)}</h3>
+    </div>
+    <p>${escapeHtml(item.detail)}</p>
+  </li>`;
+}
+
+function renderVerdict(view: MandateVerdictViewModel): string {
   return `
-    <main class="simulateur-v3__stage">
-      <article class="simulateur-v3__dossier simulateur-v3__verdict">
-        <p class="simulateur-v3__eyebrow">Votre mandat</p>
-        <h1>${escapeHtml(headline)}</h1>
-        <p class="simulateur-v3__lead">${96 - superseded} arbitrages rendus, ${superseded} ${superseded === 1 ? "dossier devenu sans objet" : "dossiers devenus sans objet"}, ${crisisCount} ${crisisCount === 1 ? "crise" : "crises"}, ${abandoned} ${abandoned === 1 ? "réforme abandonnée sous pression" : "réformes abandonnées sous pression"}.</p>
-        <div class="simulateur-v3__situation-grid">
-          <section><h2>Solde annuel</h2><strong>${escapeHtml(formatV3Amount(balance))}</strong></section>
-          <section><h2>Croissance</h2><strong>${state.indicators.growth.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</strong></section>
-          <section><h2>Pouvoir</h2><strong>${Math.round(state.indicators.majority)} / 100</strong></section>
-          <section><h2>Opinion</h2><strong>${Math.round(state.indicators.opinion)} / 100</strong></section>
-        </div>
-        <section class="simulateur-v3__decisive"><h2>Les trois gestes qui ont le plus pesé</h2><ol>${decisive.map((record) => {
-          const decision = scenario.decisions.find((candidate) => candidate.id === record.decisionId);
-          const option = decision?.options.find((candidate) => candidate.id === record.optionId);
-          return `<li><strong>${escapeHtml(option?.label ?? record.optionId)}</strong><span>${escapeHtml(decision?.title ?? record.decisionId)}</span></li>`;
-        }).join("")}</ol></section>
-        <div class="simulateur-v3__verdict-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="restart">Prendre ma revanche</button><a class="simulateur-v3__secondary" href="/bilan">Revenir à France</a></div>
+    <main class="simulateur-v3__stage simulateur-v3__stage--verdict">
+      <article class="simulateur-v3__verdict">
+        <header class="simulateur-v3__verdict-hero">
+          <div class="simulateur-v3__verdict-hero-copy">
+            <p class="simulateur-v3__eyebrow">Le verdict du pays</p>
+            <h1>${escapeHtml(view.headline)}</h1>
+            <p class="simulateur-v3__verdict-summary">${escapeHtml(view.summary)}</p>
+          </div>
+          <div class="simulateur-v3__verdict-totem">
+            <span>Solde annuel</span>
+            <strong>${escapeHtml(formatV3Amount(view.annualBalance))}</strong>
+            <small>Écart au départ : ${escapeHtml(formatV3Amount(view.annualBalanceDelta))}</small>
+          </div>
+        </header>
+
+        <section class="simulateur-v3__verdict-section simulateur-v3__verdict-signals" aria-labelledby="v3-verdict-signals-title">
+          <div class="simulateur-v3__verdict-section-heading">
+            <p class="simulateur-v3__eyebrow">État du mandat</p>
+            <h2 id="v3-verdict-signals-title">Le pays au dernier jour</h2>
+          </div>
+          <ul>${view.signals.map(renderVerdictSignal).join("")}</ul>
+        </section>
+
+        <section class="simulateur-v3__verdict-section simulateur-v3__verdict-trajectory" aria-labelledby="v3-trajectory-title">
+          <div class="simulateur-v3__verdict-section-heading">
+            <p class="simulateur-v3__eyebrow">Cinq ans de décisions</p>
+            <h2 id="v3-trajectory-title">Votre trajectoire de pouvoir</h2>
+          </div>
+          <ol>${view.trajectory.map(renderVerdictCheckpoint).join("")}</ol>
+        </section>
+
+        <section class="simulateur-v3__verdict-section simulateur-v3__verdict-choices" aria-labelledby="v3-choices-title">
+          <div class="simulateur-v3__verdict-section-heading">
+            <p class="simulateur-v3__eyebrow">Votre ligne politique</p>
+            <h2 id="v3-choices-title">Les trois décisions qui définissent votre mandat</h2>
+          </div>
+          <ol>${view.decisiveChoices.map(renderVerdictChoice).join("")}</ol>
+        </section>
+
+        ${view.aftermath.length ? `<section class="simulateur-v3__verdict-section simulateur-v3__verdict-aftermath" aria-labelledby="v3-aftermath-title">
+          <div class="simulateur-v3__verdict-section-heading">
+            <p class="simulateur-v3__eyebrow">Ce que le pouvoir vous a coûté</p>
+            <h2 id="v3-aftermath-title">Crises et réformes sous pression</h2>
+          </div>
+          <ul>${view.aftermath.map(renderVerdictAftermath).join("")}</ul>
+        </section>` : ""}
+
+        <footer class="simulateur-v3__verdict-actions">
+          <button type="button" class="simulateur-v3__primary" data-v3-action="share-verdict">Partager mon verdict</button>
+          <button type="button" class="simulateur-v3__secondary" data-v3-action="restart">Refaire un mandat</button>
+          <a class="simulateur-v3__verdict-france" href="/bilan">Retourner à France</a>
+          <p class="simulateur-v3__verdict-share-status" aria-live="polite"></p>
+        </footer>
       </article>
     </main>`;
 }
@@ -510,7 +615,7 @@ export function renderSimulatorV3(
       content = renderChapterVerdict(state, scenario);
       break;
     case "verdict":
-      content = renderVerdict(state, scenario);
+      content = renderVerdict(buildMandateVerdictViewModel(state, scenario, options.crisisRules ?? []));
       break;
     default:
       content = renderUnavailable("Cet écran du mandat n'est pas disponible.");
