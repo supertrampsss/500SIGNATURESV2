@@ -47,7 +47,7 @@ class Cloudflare:
 def associations(api: Cloudflare) -> dict[str, str]:
     """Retourne domaine -> projet pour tous les projets Pages du compte."""
     trouves: dict[str, str] = {}
-    projets = api.appeler("/projects?per_page=100") or []
+    projets = api.appeler("/projects") or []
     for projet in projets:
         nom = projet["name"]
         chemin = urllib.parse.quote(nom, safe="")

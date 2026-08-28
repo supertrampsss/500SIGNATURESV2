@@ -11,7 +11,7 @@ class FauxCloudflare:
 
     def appeler(self, chemin, methode="GET", corps=None):
         self.appels.append((chemin, methode, corps))
-        if chemin == "/projects?per_page=100":
+        if chemin == "/projects":
             return [{"name": nom} for nom in self.domaines]
         if chemin.endswith("/domains") and methode == "GET":
             projet = chemin.split("/")[2]
