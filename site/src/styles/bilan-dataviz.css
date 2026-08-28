@@ -39,6 +39,22 @@
 .dataviz--composition li { display: grid; grid-template-columns: .75rem minmax(0, 1fr) auto; align-items: center; gap: var(--espace-2); }
 .dataviz__puce { width: .75rem; height: .75rem; border-radius: 2px; }
 
+.dataviz--barres { --dataviz-accent: var(--dv-nuit); }
+.dataviz--barres figcaption strong { font: 700 var(--texte-xl) var(--serif); }
+.dataviz--barres ol { margin: var(--espace-4) 0 0; padding: 0; list-style: none; }
+.dataviz--barres li {
+  display: grid;
+  grid-template-columns: minmax(11rem, 1.2fr) minmax(12rem, 2fr) minmax(5rem, auto);
+  align-items: center;
+  gap: var(--espace-3);
+  min-height: 2.7rem;
+  border-top: 1px solid var(--bordure);
+}
+.dataviz__barres-libelle { line-height: 1.2; }
+.dataviz__barres-rail { height: .72rem; background: color-mix(in srgb, var(--dataviz-accent) 12%, var(--fond)); }
+.dataviz__barres-rail > span { display: block; height: 100%; min-width: 2px; background: var(--dataviz-accent); }
+.dataviz--barres li > strong { text-align: right; font-variant-numeric: tabular-nums; }
+
 .dataviz--halteres figcaption { display: flex; justify-content: space-between; gap: var(--espace-4); align-items: end; }
 .dataviz--halteres figcaption > strong { font: 700 var(--texte-xl) var(--serif); }
 .dataviz--halteres figcaption > span { display: flex; align-items: center; gap: var(--espace-2); font-size: var(--texte-xs); }
@@ -56,6 +72,7 @@ i.dataviz__borne { position: static; display: inline-block; transform: none; }
 
 .dataviz--solde ol { padding: 0; list-style: none; }
 .dataviz--solde li { display: grid; grid-template-columns: 4rem minmax(0, 1fr) 5.5rem; align-items: center; gap: var(--espace-3); min-height: 2.1rem; }
+.dataviz--solde-long li { grid-template-columns: minmax(11rem, 1.25fr) minmax(10rem, 2fr) minmax(5.5rem, auto); }
 .dataviz__solde-rail { position: relative; height: 1rem; background: linear-gradient(90deg, transparent calc(50% - .5px), var(--bordure-forte) calc(50% - .5px), var(--bordure-forte) calc(50% + .5px), transparent calc(50% + .5px)); }
 .dataviz__barre { position: absolute; top: .15rem; height: .7rem; min-width: 2px; }
 .dataviz__barre--negative { background: var(--dv-rouge); }
@@ -82,6 +99,16 @@ i.dataviz__borne { position: static; display: inline-block; transform: none; }
 .dataviz__donnees summary { min-height: var(--cible); display: flex; align-items: center; width: fit-content; cursor: pointer; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; }
 .dataviz__donnees summary:focus-visible { outline: var(--focus); outline-offset: 3px; }
 .dataviz__tableau { overflow-x: auto; }
+.davantage__sans-reference { margin: var(--espace-3) 0; padding: 0; list-style: none; }
+.davantage__sans-reference li {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto;
+  gap: var(--espace-1) var(--espace-3);
+  padding: var(--espace-3) 0;
+  border-top: 1px solid var(--bordure);
+}
+.davantage__sans-reference strong { font-variant-numeric: tabular-nums; }
+.davantage__sans-reference small { grid-column: 1 / -1; color: var(--texte-secondaire); }
 .tenable__rang--france { font-weight: 800; }
 .tenable__rang--france .apu__piste > span { background: var(--dv-rouge); }
 
@@ -93,7 +120,15 @@ i.dataviz__borne { position: static; display: inline-block; transform: none; }
   .dataviz__haltere { grid-template-columns: 1fr; gap: var(--espace-2); }
   .dataviz__valeurs { justify-content: start; }
   .dataviz__valeurs span::after { content: " →"; }
-  .dataviz--solde li { grid-template-columns: 3rem minmax(0, 1fr) 4.75rem; gap: var(--espace-2); }
+  .dataviz--solde li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--espace-1) var(--espace-2);
+    padding-block: var(--espace-2);
+  }
+  .dataviz--solde li > span:first-child { grid-column: 1; grid-row: 1; line-height: 1.25; }
+  .dataviz__solde-rail { grid-column: 1 / -1; grid-row: 2; }
+  .dataviz--solde li > strong { grid-column: 2; grid-row: 1; text-align: right; }
+  .dataviz--barres li { grid-template-columns: minmax(7rem, 1fr) minmax(6rem, 1.25fr) minmax(4.25rem, auto); gap: var(--espace-2); font-size: var(--texte-xs); }
   .dataviz__axe, .dataviz__point text { font-size: 14px; }
   .dataviz--fonctions li { grid-template-columns: minmax(7rem, 1fr) minmax(7rem, 1.5fr) 3.75rem; font-size: var(--texte-xs); }
 }

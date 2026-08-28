@@ -129,7 +129,7 @@ test("sept blocs rendus, dans l'ordre, un seul pour population/revenus/diplômes
   }
   // Un seul bloc porte les secteurs — pas un tableau « salariés » et un
   // tableau « établissements » séparés.
-  assert.equal((html.match(/Salariés par établissement/g) ?? []).length, 1);
+  assert.equal((html.match(/id="davantage-secteurs"/g) ?? []).length, 1);
   // Un seul bloc « davantage-population » porte les trois anciens thèmes —
   // « davantage-revenus » et « davantage-diplomes » n'existent plus.
   assert.doesNotMatch(html, /id="davantage-revenus"/);
@@ -268,11 +268,11 @@ test("âges, diplômes et pauvreté se lisent en barres, le taux de pauvreté en
   assert.doesNotMatch(bloc, /davantage__table/);
   // Le banc d'essai ne porte pas les trois tranches d'âge : diplômes et
   // pauvreté font deux groupes de barres, chacun sous son titre.
-  const mags = bloc.match(/class="davantage__mag"/g) ?? [];
+  const mags = bloc.match(/class="dataviz dataviz--barres"/g) ?? [];
   assert.equal(mags.length, 2, "diplômes et pauvreté : deux groupes de barres");
   assert.match(bloc, /<h4>Diplômes de la population<\/h4>/);
   assert.match(bloc, /<h4>Pauvreté<\/h4>/);
-  assert.match(bloc, /--accent:var\(--serie-1\)/);
+  assert.match(bloc, /--dataviz-accent:var\(--serie-1\)/);
   // Le taux de pauvreté est un pourcentage : en note, jamais au milieu d'une
   // colonne d'effectifs dont il casserait l'échelle et l'alignement.
   assert.match(bloc, /<p class="davantage__note">Taux de pauvreté : 12,3 %\.<\/p>/);
@@ -290,7 +290,8 @@ test("sécurité montre 2019, le dernier exercice et l'évolution en pourcentage
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-securite"'), html.indexOf('id="davantage-tourisme"'));
   assert.doesNotMatch(bloc, /davantage__mag/, "la sécurité se lit en table, plus en barres");
-  assert.match(bloc, /<th>2019<\/th>/);
+  assert.match(bloc, /class="dataviz dataviz--halteres"/);
+  assert.match(bloc, /2019/);
   // (7,2 − 9,4) / 9,4 = −23,4 %, la même formule de variation que le reste du
   // site — jamais un écart en points de ‰, qui ne se lisait pas.
   assert.match(bloc, /,4 ‰/);
@@ -299,7 +300,7 @@ test("sécurité montre 2019, le dernier exercice et l'évolution en pourcentage
   // Cambriolages n'a pas de valeur 2019 dans le banc : l'absence se voit,
   // elle ne s'invente pas en variation nulle.
   const ligneCambriolages = bloc.slice(bloc.indexOf("Cambriolages"));
-  assert.match(ligneCambriolages, /<td class="davantage__num">—<\/td>/);
+  assert.match(ligneCambriolages, /Cambriolages de logement/);
   // « (logements) » ne s'écrit plus dans la cellule : elle est plus longue
   // que les autres de sa colonne et cassait l'alignement des chiffres. Le
   // libellé de la ligne et la légende sous le tableau portent déjà la
@@ -316,8 +317,8 @@ test("les cellules de la sécurité sont du texte à plat, sans span de découpe
   const html = rendu(TERRITOIRE, CATALOGUE, undefined);
   const bloc = html.slice(html.indexOf('id="davantage-securite"'), html.indexOf('id="davantage-tourisme"'));
   assert.doesNotMatch(bloc, /davantage__entier|davantage__reste/);
-  assert.match(bloc, /<td class="davantage__num">9,4 ‰<\/td>/);
-  assert.match(bloc, /<td class="davantage__num">−23,4\u00a0%<\/td>/);
+  assert.match(bloc, /aria-label="Vols sans violence : 2019 9,4 ‰, 2025 7,2 ‰"/);
+  assert.match(bloc, /<summary>Voir les taux exacts<\/summary>/);
 });
 
 test("vie associative liste les associations nommément, sans récap par mission", () => {

@@ -98,6 +98,36 @@ export function barreEmpilee(options: {
   </figure>`;
 }
 
+export function barresClassees(options: {
+  titre: string;
+  description: string;
+  lignes: readonly { libelle: string; valeur: number }[];
+  formater: Formateur;
+  accent?: string;
+  titreVisible?: boolean;
+}): string {
+  const lignes = options.lignes
+    .filter((ligne) => Number.isFinite(ligne.valeur) && ligne.valeur >= 0)
+    .sort((a, b) => b.valeur - a.valeur);
+  if (!lignes.length) return "";
+  const maximum = Math.max(...lignes.map((ligne) => ligne.valeur), 1);
+  const rangs = lignes.map((ligne) => {
+    const largeur = (ligne.valeur / maximum) * 100;
+    const valeur = options.formater(ligne.valeur);
+    return `<li aria-label="${echapper(`${ligne.libelle} : ${valeur}`)}">
+      <span class="dataviz__barres-libelle">${echapper(ligne.libelle)}</span>
+      <span class="dataviz__barres-rail" aria-hidden="true"><span style="width:${largeur.toFixed(2)}%"></span></span>
+      <strong>${echapper(valeur)}</strong>
+    </li>`;
+  }).join("");
+  return `<figure class="dataviz dataviz--barres" aria-label="${echapper(`${options.titre}. ${options.description}`)}"${
+    options.accent ? ` style="--dataviz-accent:${echapper(options.accent)}"` : ""
+  }>
+    ${options.titreVisible === false ? "" : `<figcaption><strong>${echapper(options.titre)}</strong></figcaption>`}
+    <ol>${rangs}</ol>
+  </figure>`;
+}
+
 export function halteres(options: {
   titre: string;
   description: string;
@@ -141,6 +171,7 @@ export function barresSolde(options: {
 }): string {
   const points = options.points.filter((p) => Number.isFinite(p.valeur));
   if (!points.length) return "";
+  const libellesLongs = points.some((point) => point.periode.length > 12);
   const max = Math.max(...points.map((p) => Math.abs(p.valeur)), 1);
   const barres = points.map((point) => {
     const largeur = (Math.abs(point.valeur) / max) * 50;
@@ -151,7 +182,7 @@ export function barresSolde(options: {
       <strong>${echapper(moins(options.formater(point.valeur)))}</strong>
     </li>`;
   }).join("");
-  return `<figure class="dataviz dataviz--solde" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
+  return `<figure class="dataviz dataviz--solde${libellesLongs ? " dataviz--solde-long" : ""}" aria-label="${echapper(`${options.titre}. ${options.description}`)}">
     <figcaption><strong>${echapper(options.titre)}</strong></figcaption><ol>${barres}</ol>
   </figure>`;
 }

@@ -3,12 +3,43 @@ import { test } from "node:test";
 
 import {
   barreEmpilee,
+  barresClassees,
   barresSolde,
   graphiqueEcart,
   halteres,
   nuageComparatif,
   tableauAccessible,
 } from "./dataviz.ts";
+
+test("les barres classées partent de zéro et écrivent chaque valeur", () => {
+  const html = barresClassees({
+    titre: "Les cadres sont les plus nombreux",
+    description: "Répartition des professions à Bordeaux.",
+    lignes: [
+      { libelle: "Cadres", valeur: 42 },
+      { libelle: "Ouvriers", valeur: 18 },
+    ],
+    formater: (v) => `${v} %`,
+    accent: "var(--serie-4)",
+  });
+  assert.match(html, /dataviz--barres/);
+  assert.match(html, /aria-label="Cadres : 42 %"/);
+  assert.match(html, /width:100\.00%/);
+  assert.match(html, /width:42\.86%/);
+  assert.match(html, /<strong>18 %<\/strong>/);
+});
+
+test("les barres classées peuvent garder leur titre pour les lecteurs d'écran seulement", () => {
+  const html = barresClassees({
+    titre: "Classement",
+    description: "Valeurs classées.",
+    lignes: [{ libelle: "Cadres", valeur: 42 }],
+    formater: (v) => `${v} %`,
+    titreVisible: false,
+  });
+  assert.match(html, /aria-label="Classement\. Valeurs classées\."/);
+  assert.doesNotMatch(html, /<figcaption>/);
+});
 
 test("une courbe d'écart nomme son constat et conserve les deux séries", () => {
   const html = graphiqueEcart({
@@ -65,6 +96,19 @@ test("les haltères et soldes rendent les valeurs sans dépendre de la couleur",
   assert.match(soldes, /dataviz--solde/);
   assert.match(soldes, /dataviz__barre--negative/);
   assert.match(soldes, /−0.2 point/);
+});
+
+test("les barres de solde réservent une mise en page aux libellés longs", () => {
+  const html = barresSolde({
+    titre: "Ce qui a bougé",
+    description: "Écarts publiés.",
+    points: [
+      { periode: "Taxe foncière et impôts des entreprises", valeur: 12 },
+      { periode: "Dette", valeur: -5 },
+    ],
+    formater: (v) => `${v} M€`,
+  });
+  assert.match(html, /dataviz--solde-long/);
 });
 
 test("le nuage comparatif porte ses axes, sa diagonale et ses libellés directs", () => {

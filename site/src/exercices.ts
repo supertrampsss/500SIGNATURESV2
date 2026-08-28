@@ -34,6 +34,7 @@
  */
 
 import type { Indicateur } from "./donnees.ts";
+import { barresSolde, graphiqueEcart, tableauAccessible } from "./dataviz.ts";
 import { moins } from "./echelle.ts";
 import { accentuer } from "./traductions.ts";
 
@@ -248,14 +249,52 @@ export function rendreExercices(tableau: Tableau | null): string {
         .join("")}${rendreEvolution(evolution, premier, dernier)}</tr>`,
     )
     .join("");
+  const tableExacte = `<table>
+    <caption>Montants en ${mot}. Une colonne vide : l'agrégat n'est pas publié cet exercice-là.</caption>
+    <thead><tr><th scope="col"></th>${entetes}<th scope="col" class="tableau-exercices__evo">${premier}\u2009\u2192\u2009${dernier}</th></tr></thead>
+    <tbody>${corps}</tbody>
+  </table>`;
+  const ligneDepenses = tableau.lignes.find((ligne) => ligne.id === "ofgl_depenses_fonctionnement");
+  const ligneRecettes = tableau.lignes.find((ligne) => ligne.id === "ofgl_recettes_fonctionnement");
+  const points = ligneDepenses && ligneRecettes
+    ? tableau.exercices.flatMap((periode, index) => {
+        const depenses = ligneDepenses.valeurs[index];
+        const recettes = ligneRecettes.valeurs[index];
+        return depenses === null || recettes === null ? [] : [{ periode, haut: depenses, bas: recettes }];
+      })
+    : [];
+  const formaterGraphique = (valeur: number) => `${new Intl.NumberFormat("fr-FR", {
+    maximumFractionDigits: 0,
+  }).format(valeur / diviseur)} ${diviseur === 1e9 ? "Md€" : "M€"}`;
+  const dernierPoint = points[points.length - 1];
+  const tendance = points.length > 1 && dernierPoint
+    ? graphiqueEcart({
+        titre: dernierPoint.haut <= dernierPoint.bas
+          ? "Les dépenses restent sous les recettes"
+          : "Les dépenses dépassent les recettes",
+        description: `Évolution des dépenses et des recettes de fonctionnement de ${premier} à ${dernier}.`,
+        points,
+        noms: ["Dépenses", "Recettes"],
+        formater: formaterGraphique,
+      })
+    : "";
+  const mouvements = tableau.lignes
+    .filter((ligne) => !["ofgl_depenses_fonctionnement", "ofgl_recettes_fonctionnement"].includes(ligne.id))
+    .flatMap((ligne) => ligne.evolution ? [{ periode: ligne.libelle, valeur: ligne.evolution.ecart }] : [])
+    .sort((a, b) => Math.abs(b.valeur) - Math.abs(a.valeur))
+    .slice(0, 7);
+  const variations = mouvements.length
+    ? barresSolde({
+        titre: `Ce qui a le plus bougé depuis ${premier}`,
+        description: `Écart entre le premier et le dernier exercice publié, en ${mot}.`,
+        points: mouvements,
+        formater: formaterGraphique,
+      })
+    : "";
   return `<section class="bloc-lecture bloc-lecture--tableau">
     <h3>Évolution</h3>
-    <div class="tableau-exercices" tabindex="0">
-      <table>
-        <caption>Montants en ${mot}. Une colonne vide : l'agrégat n'est pas publié cet exercice-là.</caption>
-        <thead><tr><th scope="col"></th>${entetes}<th scope="col" class="tableau-exercices__evo">${premier}\u2009\u2192\u2009${dernier}</th></tr></thead>
-        <tbody>${corps}</tbody>
-      </table>
-    </div>
+    ${tendance}
+    ${variations}
+    ${tableauAccessible("Voir les montants exacts", `<div class="tableau-exercices" tabindex="0">${tableExacte}</div>`)}
   </section>`;
 }

@@ -43,6 +43,7 @@
  */
 
 import { valeurLisible } from "./analyses.ts";
+import { barresClassees, halteres, tableauAccessible } from "./dataviz.ts";
 import type { Indicateur, SubventionsCommune, Territoire } from "./donnees.ts";
 import { pourcentage } from "./echelle.ts";
 import { variation } from "./ouverture.ts";
@@ -95,19 +96,14 @@ function dernieresValeurs(territoire: Territoire, indicateurs: Indicateur[]): Li
 
 function barresMagnitude(lignes: Ligne[], accent: string): string {
   if (!lignes.length) return "";
-  const triees = [...lignes].sort((a, b) => b.brut - a.brut);
-  const max = triees[0].brut || 1;
-  return `<div class="davantage__mag" style="--accent:${accent}">${triees
-    .map(
-      (l) =>
-        `<div class="davantage__rang"><span class="davantage__etiq">${echapper(
-          l.libelle,
-        )}</span><span class="davantage__piste"><span style="width:${Math.max(
-          0,
-          Math.min(100, (l.brut / max) * 100),
-        ).toFixed(1)}%"></span></span><span class="davantage__val">${echapper(l.texte)}</span></div>`,
-    )
-    .join("")}</div>`;
+  return barresClassees({
+    titre: "Classement",
+    description: "Valeurs classées de la plus élevée à la plus faible.",
+    lignes: lignes.map((ligne) => ({ libelle: ligne.libelle, valeur: ligne.brut })),
+    formater: (valeur) => lignes.find((ligne) => ligne.brut === valeur)?.texte ?? valeurLisible(valeur, lignes[0]!.unite),
+    accent,
+    titreVisible: false,
+  });
 }
 
 function cartesChiffres(lignes: { texte: string; libelle: string; exercice?: string }[]): string {
@@ -464,17 +460,13 @@ function themeSecteurs(territoire: Territoire): string {
   }).filter((l): l is { libelle: string; exercice: string; ratio: number } => l !== null);
   if (!lignes.length) return "";
   const triees = [...lignes].sort((a, b) => b.ratio - a.ratio);
-  const max = triees[0].ratio || 1;
-  const barres = `<div class="davantage__mag" style="--accent:var(--serie-5)">${triees
-    .map(
-      (l) =>
-        `<div class="davantage__rang"><span class="davantage__etiq">${echapper(
-          l.libelle,
-        )}</span><span class="davantage__piste"><span style="width:${Math.max(0, Math.min(100, (l.ratio / max) * 100)).toFixed(
-          1,
-        )}%"></span></span><span class="davantage__val">${echapper(formaterRatio(l.ratio))}</span></div>`,
-    )
-    .join("")}</div>`;
+  const barres = barresClassees({
+    titre: "Salariés par établissement",
+    description: "Rapport entre les salariés et les établissements employeurs de chaque secteur.",
+    lignes: triees.map((ligne) => ({ libelle: ligne.libelle, valeur: ligne.ratio })),
+    formater: formaterRatio,
+    accent: "var(--serie-5)",
+  });
   const t = triees[0];
   const phrase = `<b>${echapper(t.libelle)}</b> compte le plus de salariés pour un établissement : ${echapper(
     formaterRatio(t.ratio),
@@ -560,16 +552,36 @@ function themeSecurite(indicateurs: Indicateur[], territoire: Territoire): strin
     .map(
       (l) =>
         `<tr><td>${echapper(l.libelle)}</td><td class="davantage__num">${
-          l.depart === null ? "—" : echapper(tauxTable(l.depart))
+          l.depart === null ? "Non publié" : echapper(tauxTable(l.depart))
         }</td><td class="davantage__num">${echapper(tauxTable(l.arrivee))}</td><td class="davantage__num">${
-          l.depart === null || l.depart === 0 ? "—" : echapper(variation(l.depart, l.arrivee))
+          l.depart === null || l.depart === 0 ? "Non publié" : echapper(variation(l.depart, l.arrivee))
         }</td></tr>`,
     )
     .join("")}</tbody></table>`;
+  const comparables = triees.filter((ligne) => ligne.depart !== null);
+  const comparaison = comparables.length
+    ? halteres({
+        titre: `Entre ${EXERCICE_REFERENCE} et ${dernier}`,
+        description: "Évolution des taux publiés par catégorie.",
+        lignes: comparables.map((ligne) => ({
+          libelle: ligne.libelle,
+          avant: ligne.depart as number,
+          apres: ligne.arrivee,
+        })),
+        noms: [EXERCICE_REFERENCE, dernier],
+        formater: tauxTable,
+      })
+    : "";
+  const sansReference = triees.filter((ligne) => ligne.depart === null);
+  const derniersSeuls = sansReference.length
+    ? `<ul class="davantage__sans-reference">${sansReference.map((ligne) => `<li><span>${echapper(
+        ligne.libelle,
+      )}</span><strong>${echapper(tauxTable(ligne.arrivee))}</strong><small>${echapper(dernier)}, sans valeur ${EXERCICE_REFERENCE}</small></li>`).join("")}</ul>`
+    : "";
   return section(
     "securite",
     "Sécurité",
-    `${ouverture}${tableau}`,
+    `${ouverture}${comparaison}${derniersSeuls}${tableauAccessible("Voir les taux exacts", tableau)}`,
     "Source : SSMSI, taux pour 1 000 habitants (sauf cambriolages, pour 1 000 logements). Décomptes bruts et catégories sans valeur au dernier exercice non repris.",
   );
 }

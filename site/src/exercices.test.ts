@@ -91,12 +91,41 @@ test("l'unité est dans la légende, à l'échelle du tableau entier", () => {
   // qu'il fallait diviser de tête. Deux décimales toujours, pour que la
   // colonne reste alignée quand un montant tombe rond.
   const html = rendreExercices(
-    exercices({ cites: ["ofgl_depenses_fonctionnement"], series: SERIES, catalogue: CATALOGUE }),
+    exercices({
+      cites: [
+        "ofgl_depenses_fonctionnement",
+        "ofgl_frais_personnel",
+        "ofgl_recettes_fonctionnement",
+      ],
+      series: SERIES,
+      catalogue: CATALOGUE,
+    }),
   );
   assert.match(html, /<td>294,10<\/td>/);
-  const corps = html.replace(/<caption>[\s\S]*?<\/caption>/, "");
+  const corps = html.slice(html.indexOf("<table>")).replace(/<caption>[\s\S]*?<\/caption>/, "");
   assert.doesNotMatch(corps, /M€|millions|milliards/);
   assert.match(html, /<caption>Montants en millions d'euros\./);
+  assert.match(html, /class="dataviz dataviz--ecart"/);
+  assert.match(html, /class="dataviz dataviz--solde(?: [^"]+)?"/);
+  assert.match(html, /<details class="dataviz__donnees">/);
+});
+
+test("le tableau exact est replié derrière les graphiques", () => {
+  const html = rendreExercices(
+    exercices({
+      cites: [
+        "ofgl_depenses_fonctionnement",
+        "ofgl_frais_personnel",
+        "ofgl_recettes_fonctionnement",
+      ],
+      series: SERIES,
+      catalogue: CATALOGUE,
+    }),
+  );
+  assert.match(html, /Les dépenses restent sous les recettes/);
+  assert.match(html, /Ce qui a le plus bougé depuis 2019/);
+  assert.match(html, /<summary>Voir les montants exacts<\/summary>/);
+  assert.equal((html.match(/<table>/g) ?? []).length, 1);
 });
 
 test("un tableau de l'État se lit en milliards, pas en millions", () => {
