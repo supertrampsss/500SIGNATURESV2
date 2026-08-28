@@ -3533,7 +3533,7 @@ test("le bureau de décision V3 retrouve la composition desktop de la maquette",
   assert.match(desktop, /\.simulateur-v3__decision-layout\s*\{[^}]*grid-template-columns:\s*minmax\(11rem,\s*15rem\)\s+minmax\(0,\s*48rem\)\s+minmax\(11rem,\s*15rem\);/s);
   assert.match(desktop, /\.simulateur-v3__rail\s*\{[^}]*display:\s*grid;/s);
   assert.doesNotMatch(desktop, /\.simulateur-v3__option-select\s*\{[^}]*min-height:\s*16rem;/s);
-  assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*font-size:\s*clamp\(2rem,\s*3vw,\s*3rem\);/s);
+  assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*max-width:\s*24ch;[^}]*font-size:\s*clamp\(2rem,\s*3vw,\s*3rem\);/s);
 });
 
 test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {

@@ -818,7 +818,7 @@ body[data-vue="simulateur"] #vue-simulateur {
   }
 
   .simulateur-v3__decision h1 {
-    max-width: 16ch;
+    max-width: 24ch;
     font-size: clamp(2rem, 3vw, 3rem);
     line-height: 1;
   }
