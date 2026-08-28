@@ -131,6 +131,15 @@ body[data-vue="simulateur"] .entete__recherche {
   align-items: center;
 }
 
+.simulateur-v3__decision-layout {
+  width: 100%;
+  min-width: 0;
+}
+
+.simulateur-v3__rail {
+  display: none;
+}
+
 .simulateur-v3__dossier {
   width: min(100%, 72rem);
   min-width: 0;
@@ -292,8 +301,13 @@ body[data-vue="simulateur"] .entete__recherche {
   transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
 
+.simulateur-v3__option:first-child {
+  border-top-color: var(--v3-red);
+}
+
 .simulateur-v3__option-select {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--espace-3);
   width: 100%;
   min-height: var(--cible);
@@ -318,9 +332,27 @@ body[data-vue="simulateur"] .entete__recherche {
   line-height: 1.5;
 }
 
+.simulateur-v3__option-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espace-2);
+  min-height: 1.75rem;
+}
+
+.simulateur-v3__option-effects > span {
+  padding: 0.25rem 0.5rem;
+  color: var(--v3-ink);
+  background: #eee5d5;
+  border-radius: 999px;
+  font-size: var(--texte-xs);
+  font-weight: 750;
+  line-height: 1.2;
+}
+
 .simulateur-v3__option-metrics {
   display: grid;
   gap: var(--espace-2);
+  margin-top: auto;
   padding-top: var(--espace-3);
   border-top: 1px solid var(--v3-rule);
   font-size: var(--texte-s);
@@ -740,7 +772,7 @@ body[data-vue="simulateur"] .entete__recherche {
   }
 
   .simulateur-v3__option-select {
-    min-height: 16rem;
+    height: 100%;
   }
 
   .simulateur-v3__evidence-body {
@@ -759,6 +791,134 @@ body[data-vue="simulateur"] .entete__recherche {
   }
 
   .simulateur-v3__result-grid section:last-child { border-right: 0; }
+}
+
+@media (min-width: 75rem) {
+  .simulateur-v3__stage--decision {
+    padding-inline: clamp(var(--espace-4), 2.5vw, var(--espace-7));
+  }
+
+  .simulateur-v3__decision-layout {
+    display: grid;
+    grid-template-columns: minmax(11rem, 15rem) minmax(0, 48rem) minmax(11rem, 15rem);
+    gap: clamp(var(--espace-3), 1.5vw, var(--espace-5));
+    justify-content: center;
+    align-items: start;
+    max-width: 82rem;
+  }
+
+  .simulateur-v3__decision {
+    width: 100%;
+    padding: clamp(var(--espace-5), 2.6vw, var(--espace-7));
+  }
+
+  .simulateur-v3__decision h1 {
+    max-width: 16ch;
+    font-size: clamp(2rem, 3vw, 3rem);
+    line-height: 1;
+  }
+
+  .simulateur-v3__decision .simulateur-v3__context {
+    margin-top: var(--espace-4);
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .simulateur-v3__decision .simulateur-v3__options {
+    gap: var(--espace-3);
+    margin-top: var(--espace-5);
+  }
+
+  .simulateur-v3__decision .simulateur-v3__option-select {
+    padding: var(--espace-4);
+  }
+
+  .simulateur-v3__decision .simulateur-v3__option-label {
+    font-size: clamp(1.25rem, 1.7vw, 1.65rem);
+  }
+
+  .simulateur-v3__rail {
+    display: grid;
+    gap: var(--espace-5);
+    min-width: 0;
+    padding: var(--espace-5);
+    color: var(--v3-text-on-shell);
+    background: rgb(16 33 60 / 0.92);
+    border-top: 4px solid var(--v3-gold);
+    box-shadow: 0 1rem 2.4rem rgb(0 0 0 / 0.2);
+  }
+
+  .simulateur-v3__rail--mandate {
+    border-top-color: var(--v3-red);
+  }
+
+  .simulateur-v3__rail-kicker {
+    margin: 0;
+    color: var(--v3-gold);
+    font-size: var(--texte-xs);
+    font-weight: 850;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+
+  .simulateur-v3__rail h2 {
+    margin: calc(-1 * var(--espace-3)) 0 0;
+    color: #ffffff;
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    line-height: 1.05;
+  }
+
+  .simulateur-v3__rail-metric {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--espace-2);
+    align-items: baseline;
+    padding-top: var(--espace-3);
+    border-top: 1px solid rgb(194 209 230 / 0.22);
+    color: var(--v3-muted-on-shell);
+    font-size: var(--texte-xs);
+  }
+
+  .simulateur-v3__rail-metric strong {
+    color: #ffffff;
+    font-size: var(--texte-l);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .simulateur-v3__meter {
+    grid-column: 1 / -1;
+    height: 0.24rem;
+    overflow: hidden;
+    background: rgb(237 241 247 / 0.18);
+  }
+
+  .simulateur-v3__meter i {
+    display: block;
+    width: var(--v3-meter);
+    height: 100%;
+    background: var(--v3-gold);
+  }
+
+  .simulateur-v3__rail-balance {
+    display: grid;
+    gap: var(--espace-2);
+    padding: var(--espace-4) 0;
+    border-block: 1px solid rgb(194 209 230 / 0.22);
+  }
+
+  .simulateur-v3__rail-balance span {
+    color: var(--v3-muted-on-shell);
+    font-size: var(--texte-xs);
+  }
+
+  .simulateur-v3__rail-balance strong {
+    color: #ffffff;
+    font-family: var(--serif);
+    font-size: 1.45rem;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 @media (max-width: 23rem) {

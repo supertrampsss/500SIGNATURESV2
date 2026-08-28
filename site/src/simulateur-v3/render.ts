@@ -139,8 +139,49 @@ function effectLabel(effect: { target: "indicator" | "group"; key: string; delta
   return `${label} ${signed(effect.delta)} ${unit}`;
 }
 
+function meter(label: string, value: number): string {
+  const level = Math.max(0, Math.min(100, Math.round(value)));
+  return `
+    <div class="simulateur-v3__rail-metric">
+      <span>${escapeHtml(label)}</span>
+      <strong>${level}</strong>
+      <span class="simulateur-v3__meter" role="meter" aria-label="${escapeHtml(label)} : ${level} sur 100" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${level}">
+        <i style="--v3-meter: ${level}%"></i>
+      </span>
+    </div>`;
+}
+
+function renderCountryRail(state: CampaignState): string {
+  return `
+    <aside class="simulateur-v3__rail simulateur-v3__rail--country" aria-label="Situation du pays">
+      <p class="simulateur-v3__rail-kicker">Situation du pays</p>
+      <h2>Le pays réagit</h2>
+      ${meter("Opinion", state.indicators.opinion)}
+      ${meter("Services publics", state.indicators.publicServices)}
+      ${meter("Marchés", state.indicators.financialCredibility)}
+    </aside>`;
+}
+
+function renderMandateRail(state: CampaignState): string {
+  return `
+    <aside class="simulateur-v3__rail simulateur-v3__rail--mandate" aria-label="État du mandat">
+      <p class="simulateur-v3__rail-kicker">État du mandat</p>
+      <h2>Votre marge de manœuvre</h2>
+      <div class="simulateur-v3__rail-balance">
+        <span>Solde annuel</span>
+        <strong>${escapeHtml(formatV3Amount(state.indicators.annualBalance))}</strong>
+      </div>
+      ${meter("Majorité", state.indicators.majority)}
+      ${meter("Capacité de réforme", state.indicators.reformCapacity)}
+    </aside>`;
+}
+
 function renderOption(decision: Decision, option: DecisionOption): string {
   const budget = annualBalanceEffect(option);
+  const visibleEffects = option.effects
+    .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
+    .filter((effect) => effect.timing.kind === "immediate")
+    .slice(0, 3);
   return `
     <article class="simulateur-v3__option" data-option-id="${escapeHtml(option.id)}">
       <button
@@ -153,6 +194,9 @@ function renderOption(decision: Decision, option: DecisionOption): string {
       >
         <span class="simulateur-v3__option-label">${escapeHtml(option.label)}</span>
         ${option.summary !== decision.context ? `<span class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</span>` : ""}
+        <span class="simulateur-v3__option-effects">
+          ${visibleEffects.map((effect) => `<span>${escapeHtml(effectLabel(effect))}</span>`).join("")}
+        </span>
         <span class="simulateur-v3__option-metrics">
           <span>${budget ? `${escapeHtml(formatV3Amount(budget.delta))} par an` : "Solde public inchangé"}</span>
           <span>Incertitude ${escapeHtml(option.uncertainty)}</span>
@@ -192,16 +236,20 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
   if (!decision) return renderUnavailable("Ce dossier n'est plus disponible.");
   const chapter = scenario.chapters[state.chapterIndex]!;
   return `
-    <main class="simulateur-v3__stage">
-      <article class="simulateur-v3__dossier simulateur-v3__decision">
-        <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state)}</p>
-        <h1>${escapeHtml(decision.title)}</h1>
-        <p class="simulateur-v3__context">${escapeHtml(decision.context)}</p>
-        <section class="simulateur-v3__options" aria-label="Choix possibles">
-          ${decision.options.map((option) => renderOption(decision, option)).join("")}
-        </section>
-        ${renderEvidence(decision)}
-      </article>
+    <main class="simulateur-v3__stage simulateur-v3__stage--decision">
+      <div class="simulateur-v3__decision-layout">
+        ${renderCountryRail(state)}
+        <article class="simulateur-v3__dossier simulateur-v3__decision">
+          <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state)}</p>
+          <h1>${escapeHtml(decision.title)}</h1>
+          <p class="simulateur-v3__context">${escapeHtml(decision.context)}</p>
+          <section class="simulateur-v3__options" aria-label="Choix possibles">
+            ${decision.options.map((option) => renderOption(decision, option)).join("")}
+          </section>
+          ${renderEvidence(decision)}
+        </article>
+        ${renderMandateRail(state)}
+      </div>
     </main>`;
 }
 

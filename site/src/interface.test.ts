@@ -3527,6 +3527,14 @@ test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
   assert.match(SIMULATEUR_V3, /#simulateur-v3\s*\{[^}]*scroll-margin-top:\s*var\(--haut-entete\);/s);
 });
 
+test("le bureau de décision V3 retrouve la composition desktop de la maquette", () => {
+  const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 75rem)"));
+  assert.match(desktop, /\.simulateur-v3__decision-layout\s*\{[^}]*grid-template-columns:\s*minmax\(11rem,\s*15rem\)\s+minmax\(0,\s*48rem\)\s+minmax\(11rem,\s*15rem\);/s);
+  assert.match(desktop, /\.simulateur-v3__rail\s*\{[^}]*display:\s*grid;/s);
+  assert.doesNotMatch(desktop, /\.simulateur-v3__option-select\s*\{[^}]*min-height:\s*16rem;/s);
+  assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*font-size:\s*clamp\(2rem,\s*3vw,\s*3rem\);/s);
+});
+
 test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {
   const historique = MAIN.indexOf('import "./styles/tunnel-cabinet.css";');
   const v3 = MAIN.indexOf('import "./styles/simulateur-v3.css";');

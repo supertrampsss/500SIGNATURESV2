@@ -62,6 +62,25 @@ test("un dossier rend une carte cliquable par option sans rangée d'actions dupl
   assert.match(html, /https:\/\/plateforme-9sz\.pages\.dev\/sources\//);
 });
 
+test("un dossier desktop compose une salle de décision en trois zones", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.match(html, /class="simulateur-v3__decision-layout"/);
+  assert.match(html, /<aside class="simulateur-v3__rail simulateur-v3__rail--country" aria-label="Situation du pays">/);
+  assert.match(html, /<aside class="simulateur-v3__rail simulateur-v3__rail--mandate" aria-label="État du mandat">/);
+  assert.match(html, />Opinion</);
+  assert.match(html, />Majorité</);
+  assert.match(html, />Solde annuel</);
+});
+
+test("les cartes montrent les conséquences politiques essentielles avant le clic", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(html, 'class="simulateur-v3__option-effects"'), decision.options.length);
+  assert.match(html, /Opinion [+-]\d+ points?/);
+});
+
 test("une option ne répète pas mot pour mot le contexte déjà lu", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
