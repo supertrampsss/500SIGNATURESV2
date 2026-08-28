@@ -1,6 +1,7 @@
 import {
   advanceAfterResult,
   createCampaign,
+  normalizeChapterTransition,
   selectOption,
 } from "./campaign.ts";
 import { resolveCrisis } from "./crises.ts";
@@ -120,7 +121,10 @@ export function mountSimulatorV3(
   const currentUrl = dependencies.currentUrl ?? defaultCurrentUrl;
   const restored = restoreCampaign(storage, scenario);
   const v2Found = restored.kind === "v2_found";
-  let state = restored.kind === "restored" ? restored.state : createCampaign(scenario);
+  let state = normalizeChapterTransition(
+    restored.kind === "restored" ? restored.state : createCampaign(scenario),
+    scenario,
+  );
   let phaseBeforePause: CampaignPhase | undefined = state.phase === "pause"
     ? state.pausedFrom ?? inferredPhaseBeforePause(state)
     : undefined;
@@ -193,13 +197,13 @@ export function mountSimulatorV3(
       if (state.phase === "crisis" && state.activeCrisis) {
         emit({ type: "crisis_triggered", crisisId: state.activeCrisis.ruleId });
       }
-      if (state.phase === "chapter_verdict") emit({ type: "chapter_completed", chapter: state.chapterIndex + 1 });
+      if (state.phase === "chapter_intro") emit({ type: "chapter_completed", chapter: state.chapterIndex });
       if (state.phase === "verdict") emit({ type: "campaign_completed" });
       persistAndRender();
       return;
     }
 
-    if (action === "continue" && ["decision_result", "delayed_event", "council", "chapter_verdict"].includes(state.phase)) {
+    if (action === "continue" && ["decision_result", "delayed_event", "council"].includes(state.phase)) {
       const previousPhase = state.phase;
       state = advanceCampaign(state, scenario, crisisRules);
       if (state.phase === "decision") {
@@ -208,7 +212,7 @@ export function mountSimulatorV3(
       if (state.phase === "crisis" && previousPhase !== "crisis" && state.activeCrisis) {
         emit({ type: "crisis_triggered", crisisId: state.activeCrisis.ruleId });
       }
-      if (state.phase === "chapter_verdict") emit({ type: "chapter_completed", chapter: state.chapterIndex + 1 });
+      if (state.phase === "chapter_intro") emit({ type: "chapter_completed", chapter: state.chapterIndex });
       if (state.phase === "verdict") emit({ type: "campaign_completed" });
       persistAndRender(true);
       return;

@@ -270,15 +270,10 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   assert.match(html, /simulateur-v3__scene-body/);
 });
 
-test("la fin de chapitre raconte les choix et la contradiction laissée ouverte", () => {
+test("aucune scène ne présente une addition de fin de chapitre", () => {
   const html = renderSimulatorV3(stateAfter(12, "chapter_verdict"), SCENARIO_V3_PREVIEW);
-  assert.match(html, /Le pays vous présente l'addition/);
-  assert.match(html, /Impôts, patrimoine et transmission/);
-  assert.match(html, /12 décisions/);
-  assert.match(html, /Contradiction ouverte/);
-  assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
-  assert.match(html, /simulateur-v3__scene-header/);
-  assert.match(html, /simulateur-v3__scene-body/);
+  assert.doesNotMatch(html, /Le pays vous présente l'addition|Contradiction ouverte|Ouvrir le chapitre suivant/);
+  assert.doesNotMatch(html, /simulateur-v3__chapter-verdict/);
 });
 
 test("le verdict final devient une scène éditoriale sans grille générique", () => {

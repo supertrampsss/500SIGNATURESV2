@@ -83,16 +83,24 @@ export function clearSelection(state: CampaignState): CampaignState {
   return withoutSelection;
 }
 
+function nextChapter(state: CampaignState): CampaignState {
+  return { ...state, chapterIndex: state.chapterIndex + 1, decisionIndex: 0, phase: "chapter_intro" };
+}
+
+export function normalizeChapterTransition(state: CampaignState, scenario: Scenario): CampaignState {
+  if (state.phase !== "chapter_verdict") return state;
+  if (state.decisions.length >= scenario.decisions.length) return { ...state, phase: "verdict" };
+  return nextChapter(state);
+}
+
 function advanceOneScreen(state: CampaignState, scenario: Scenario): CampaignState {
-  if (state.phase === "chapter_verdict") {
-    return { ...state, chapterIndex: state.chapterIndex + 1, decisionIndex: 0, phase: "chapter_intro" };
-  }
+  if (state.phase === "chapter_verdict") return normalizeChapterTransition(state, scenario);
   if (state.phase === "chapter_intro") return { ...state, phase: "decision" };
   if (state.phase === "council") return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 
   const completedDecisions = state.decisions.length;
-  if (completedDecisions === 96) return { ...state, phase: "verdict" };
-  if (completedDecisions % 12 === 0) return { ...state, phase: "chapter_verdict" };
+  if (completedDecisions >= scenario.decisions.length) return { ...state, phase: "verdict" };
+  if (completedDecisions > 0 && completedDecisions % 12 === 0) return nextChapter(state);
   return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 }
 

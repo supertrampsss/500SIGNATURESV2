@@ -552,39 +552,6 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
     </main>`;
 }
 
-function chapterLedger(state: CampaignState): CausalEntry[] {
-  const start = state.chapterIndex * 12;
-  return state.causalLedger.filter((entry) => entry.appliedAtDecision > start && entry.appliedAtDecision <= start + 12);
-}
-
-function renderChapterVerdict(state: CampaignState, scenario: Scenario): string {
-  const chapter = scenario.chapters[state.chapterIndex]!;
-  const records = state.decisions.filter((record) => record.confirmedAtIndex > state.chapterIndex * 12 && record.confirmedAtIndex <= (state.chapterIndex + 1) * 12);
-  const ledger = chapterLedger(state);
-  const budget = ledger.filter((entry) => entry.target === "indicator" && entry.key === "annualBalance").reduce((sum, entry) => sum + entry.delta, 0);
-  const opinion = ledger.filter((entry) => entry.target === "indicator" && entry.key === "opinion").reduce((sum, entry) => sum + entry.delta, 0);
-  const contradiction = budget > 0 && opinion < 0
-    ? "Les comptes progressent, mais le consentement recule. La suite du mandat dépendra de votre capacité à tenir cette ligne."
-    : budget < 0 && opinion > 0
-      ? "Le pays respire politiquement, mais la trajectoire financière se dégrade. Le prochain chapitre devra financer ce répit."
-      : "Vous avez réduit une tension sans la faire disparaître. Les effets différés peuvent encore déplacer ce bilan.";
-  return `
-    <main class="simulateur-v3__stage">
-      <article class="simulateur-v3__dossier simulateur-v3__chapter-verdict">
-        <header class="simulateur-v3__scene-header">
-          <p class="simulateur-v3__eyebrow">Chapitre ${state.chapterIndex + 1} terminé · ${escapeHtml(chapter.title)}</p>
-          <h1>Le pays vous présente l'addition.</h1>
-          <p class="simulateur-v3__lead">${records.length} décisions ont fixé votre ligne.</p>
-        </header>
-        <div class="simulateur-v3__scene-body">
-          <div class="simulateur-v3__chapter-score"><section><h2>Solde annuel</h2><strong>${escapeHtml(formatV3Amount(budget))}</strong></section><section><h2>Opinion</h2><strong>${signed(opinion)} points</strong></section></div>
-          <section class="simulateur-v3__contradiction"><h2>Contradiction ouverte</h2><p>${escapeHtml(contradiction)}</p></section>
-        </div>
-        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="continue">Ouvrir le chapitre suivant</button></footer>
-      </article>
-    </main>`;
-}
-
 function formatVerdictSignal(signal: VerdictSignal): string {
   if (signal.key === "growth") {
     return `${signal.value.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} %`;
@@ -749,9 +716,6 @@ export function renderSimulatorV3(
       break;
     case "crisis":
       content = renderCrisis(state, scenario, options.crisisRules ?? []);
-      break;
-    case "chapter_verdict":
-      content = renderChapterVerdict(state, scenario);
       break;
     case "verdict":
       content = renderVerdict(buildMandateVerdictViewModel(state, scenario, options.crisisRules ?? []));

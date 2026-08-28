@@ -236,6 +236,28 @@ test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire
   assert.match(restored.innerHTML, /Dossier 5 sur 96/);
 });
 
+test("une ancienne sauvegarde de fin de chapitre reprend au chapitre suivant", () => {
+  const base = createCampaign(SCENARIO_V3_PREVIEW);
+  const legacy = {
+    ...base,
+    phase: "chapter_verdict" as const,
+    chapterIndex: 0,
+    decisionIndex: 11,
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, 12).map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options.at(-1)!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  const host = new FakeHost();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, {
+    storage: memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(legacy) }),
+  });
+  assert.match(host.innerHTML, /Chapitre 2 sur 8/);
+  assert.doesNotMatch(host.innerHTML, /Le pays vous présente l'addition/);
+});
+
 test("partager le verdict copie un résultat dynamique sans quitter la scène finale", async () => {
   const base = createCampaign(SCENARIO_V3_PREVIEW);
   const verdict = {

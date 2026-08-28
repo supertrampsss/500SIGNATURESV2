@@ -6,6 +6,7 @@ import {
   clearSelection,
   createCampaign,
   currentDecision,
+  normalizeChapterTransition,
   selectOption,
 } from "./campaign.ts";
 import { confirmSelection } from "./effects.ts";
@@ -43,7 +44,7 @@ test("les passages après résultat respectent les jalons du chapitre et de la c
   const cases = [
     [4, "decision", 0, 3],
     [8, "decision", 0, 7],
-    [12, "chapter_verdict", 0, 11],
+    [12, "chapter_intro", 0, 11],
     [16, "decision", 1, 3],
     [92, "decision", 7, 7],
     [96, "verdict", 7, 11],
@@ -81,14 +82,39 @@ test("un dossier verrouillé est classé sans objet et n'est jamais présenté",
   assert.equal(currentDecision(next, scenario)?.id, scenario.decisions[2]!.id);
 });
 
-test("les transitions de verdict de chapitre préparent le chapitre suivant", () => {
+test("la douzième décision ouvre directement le chapitre suivant", () => {
   const scenario = validScenario();
-  const verdict = { ...createCampaign(scenario), phase: "chapter_verdict" as const, chapterIndex: 0, decisionIndex: 11 };
-  const intro = advanceAfterResult(verdict, scenario);
+  const state = {
+    ...createCampaign(scenario),
+    phase: "decision_result" as const,
+    chapterIndex: 0,
+    decisionIndex: 11,
+    decisions: scenario.decisions.slice(0, 12).map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  const intro = advanceAfterResult(state, scenario);
   assert.deepEqual({ phase: intro.phase, chapterIndex: intro.chapterIndex, decisionIndex: intro.decisionIndex }, {
     phase: "chapter_intro", chapterIndex: 1, decisionIndex: 0,
   });
   assert.equal(advanceAfterResult(intro, scenario).phase, "decision");
+});
+
+test("une sauvegarde historique au verdict de chapitre avance sans écran intermédiaire", () => {
+  const scenario = validScenario();
+  const legacy = {
+    ...createCampaign(scenario),
+    phase: "chapter_verdict" as const,
+    chapterIndex: 0,
+    decisionIndex: 11,
+  };
+  const next = normalizeChapterTransition(legacy, scenario);
+  assert.deepEqual({ phase: next.phase, chapterIndex: next.chapterIndex, decisionIndex: next.decisionIndex }, {
+    phase: "chapter_intro", chapterIndex: 1, decisionIndex: 0,
+  });
 });
 
 test("les sélections invalides sont refusées", () => {
