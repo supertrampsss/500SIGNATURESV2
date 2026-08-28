@@ -99,28 +99,19 @@ const BASE = process.env.VITE_DONNEES_URL ?? BASE_DONNEES;
  * image. Il faut donc un domaine — et un domaine inventé sur une image qui
  * circule serait un faux publié.
  *
- * `deploy.yml` ne donne que `--project-name=plateforme`. **Le déduire du nom
- * du projet donnerait `plateforme.pages.dev`, qui est faux** : Cloudflare a
- * attribué au projet le sous-domaine `plateforme-9sz`. Ce n'est pas une
- * supposition — la dernière étape du même workflow (`python -m plateforme.cors`)
- * rejoue à chaque déploiement la requête du navigateur avec l'en-tête
- * `Origin: https://plateforme-9sz.pages.dev` (défaut de `plateforme/cors.py`)
- * et échoue si le bucket ne l'autorise pas ; le README publie la même adresse.
- * C'est donc l'adresse dont ce dépôt dispose vraiment.
- *
- * Elle reste pour autant un **paramètre**, comme `VITE_DONNEES_URL` ci-dessus :
+ * Elle reste un **paramètre**, comme `VITE_DONNEES_URL` ci-dessus :
  * `SITE_URL` la remplace, et `deploy.yml` la pose une seule fois pour le
  * pré-rendu comme pour le contrôle CORS. Le jour où le site prend un domaine
  * propre, une ligne du workflow change — pas une constante enfouie dans un
  * script.
  */
-export const ADRESSE_PUBLIEE = "https://plateforme-9sz.pages.dev";
+export const ADRESSE_PUBLIEE = "https://500signatures.fr";
 
 /**
  * L'adresse du site, lue dans l'environnement, sans barre finale.
  *
  * Ce qui n'est pas une origine absolue est **refusé** plutôt que recollé :
- * `SITE_URL=/` ou `SITE_URL=plateforme-9sz.pages.dev` produiraient des
+ * `SITE_URL=/` ou `SITE_URL=500signatures.fr` produiraient des
  * `og:image` que les robots ne résolvent pas, c'est-à-dire exactement le défaut
  * que les balises absolues existent pour éviter — et il ne se verrait qu'une
  * fois le lien partagé.
@@ -142,7 +133,7 @@ const SITE = adresseSite(process.env);
  * L'adresse telle qu'une carte la peint : l'hôte seul.
  *
  * Le pied d'une carte réserve un tiers de sa largeur à l'adresse. L'URL entière
- * n'y tenait pas et sortait coupée — « https://plateforme-9sz.pages.… » — soit
+ * n'y tenait pas et sortait coupée, soit
  * une adresse fausse sur une image qui circule, pour huit caractères de schéma
  * que personne ne lit. C'est aussi la forme que `carte-og.ts` attend : son
  * champ `site` est un hôte, pas un lien.

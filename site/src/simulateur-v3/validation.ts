@@ -505,7 +505,7 @@ export function validateScenario(scenario: Scenario): string[] {
         const label = isRecord(evidence) && typeof evidence.label === "string" ? evidence.label : "unknown";
         if (!isRecord(evidence) || typeof evidence.sourceUrl !== "string" || !evidence.sourceUrl.startsWith("https://")) {
           errors.push(`evidence:${decision.id}:${label}:https-required`);
-        } else if (evidence.sourceUrl === "https://plateforme-9sz.pages.dev/sources/") {
+        } else if (evidence.sourceUrl === "https://500signatures.fr/sources/") {
           errors.push(`evidence:${decision.id}:${label}:direct-source-required`);
         }
       }

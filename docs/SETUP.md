@@ -60,8 +60,8 @@ toute la base est reconstructible depuis les snapshots R2.
 >   immutabilité, nettoyage) via l'API S3 de R2 — credentials dérivés du
 >   token : `access_key_id` = id du token, `secret_access_key` = SHA-256 du
 >   token. Un seul secret alimente donc management ET stockage.
-> - Zone `500signatures.fr` active ; le DNS n'est pas modifié avant le
->   déploiement du site (T-17/T-19).
+> - Zone `500signatures.fr` active ; l'apex et `www` sont rattachés au projet
+>   Pages `plateforme` par le workflow de déploiement.
 
 Procédure d'origine (si re-création de zéro) : compte Free, activer R2, créer
 les deux buckets, créer le token custom ci-dessus, brancher Pages/Workers à

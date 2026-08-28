@@ -27,6 +27,12 @@ const RACINE_SITE = path.resolve(ICI, "..");
 const RACINE_DEPOT = path.resolve(RACINE_SITE, "..");
 const WORKFLOW = path.join(RACINE_DEPOT, ".github", "workflows", "deploy.yml");
 
+test("le domaine public canonique est 500signatures.fr", async () => {
+  const workflow = await readFile(WORKFLOW, "utf8");
+  assert.match(workflow, /SITE_URL:\s*https:\/\/500signatures\.fr/);
+  assert.doesNotMatch(workflow, /SITE_URL:\s*https:\/\/plateforme-9sz\.pages\.dev/);
+});
+
 /** Une étape du workflow : son bloc de texte, tel que le fichier l'écrit. */
 type Etape = { bloc: string; repertoire: string; commande: string };
 

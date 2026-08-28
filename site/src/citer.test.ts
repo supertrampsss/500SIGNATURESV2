@@ -30,7 +30,7 @@ import { formater } from "./echelle.ts";
 import { formaterVariation, modeVariation } from "./evolution-carte.ts";
 import { permalien } from "./partage.ts";
 
-const ORIGINE = "https://plateforme-9sz.pages.dev";
+const ORIGINE = "https://500signatures.fr";
 
 /** Le chiffre de la seule analyse publiée du dépôt, avec la provenance que
  *  cette analyse déclare elle-même — jamais une source inventée pour le test. */

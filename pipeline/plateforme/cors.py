@@ -141,7 +141,7 @@ NAVIGATEUR = (
 )
 
 
-def verifier(origine: str = "https://plateforme-9sz.pages.dev", tentatives: int = 3) -> str:
+def verifier(origine: str = "https://500signatures.fr", tentatives: int = 3) -> str:
     """Rejoue la requête du navigateur, en-tête `Origin` compris.
 
     Sans cet en-tête, R2 répond 200 sans rien dire de CORS : c'est exactement ce
@@ -188,7 +188,7 @@ def verifier(origine: str = "https://plateforme-9sz.pages.dev", tentatives: int 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--bucket", default="plateforme-published")
-    parser.add_argument("--origine", default="https://plateforme-9sz.pages.dev")
+    parser.add_argument("--origine", default="https://500signatures.fr")
     parser.add_argument(
         "--verifier-seulement",
         action="store_true",

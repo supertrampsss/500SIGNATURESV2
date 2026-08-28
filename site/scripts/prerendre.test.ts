@@ -368,6 +368,7 @@ test("4. les balises de partage portent des adresses absolues", () => {
 test("5. l'adresse du site est un paramètre, et elle doit être absolue", () => {
   // Le défaut est l'adresse que le déploiement vérifie déjà à chaque
   // publication (`plateforme.cors`, dernière étape de deploy.yml).
+  assert.equal(ADRESSE_PUBLIEE, "https://500signatures.fr");
   assert.equal(adresseSite({}), ADRESSE_PUBLIEE);
   assert.match(ADRESSE_PUBLIEE, /^https:\/\/[a-z0-9.-]+$/);
   // La barre finale se retire : sans quoi les adresses porteraient « //analyses ».

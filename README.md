@@ -26,7 +26,7 @@ journaliste, un économiste, un élu, un citoyen ou la Cour des comptes.
 
 ## État du projet
 
-**En ligne** : <https://plateforme-9sz.pages.dev>. Le socle est en production —
+**En ligne** : <https://500signatures.fr>. Le socle est en production :
 ingestion, contrôles, publication, carte — et s'enrichit source par source.
 
 Au 1er août 2026 : **37 indicateurs** issus de **19 jeux de données** de six

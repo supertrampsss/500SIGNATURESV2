@@ -45,14 +45,14 @@ def test_le_message_dit_quoi_lancer(monkeypatch):
 def test_une_origine_etrangere_echoue(monkeypatch):
     repondre(monkeypatch, {"Access-Control-Allow-Origin": "https://exemple.test"})
     with pytest.raises(RuntimeError, match="origine autorisée"):
-        cors.verifier("https://plateforme-9sz.pages.dev")
+        cors.verifier("https://500signatures.fr")
 
 
 def test_l_etoile_et_l_origine_exacte_passent(monkeypatch):
     repondre(monkeypatch, {"Access-Control-Allow-Origin": "*"})
     assert cors.verifier() == "*"
-    repondre(monkeypatch, {"Access-Control-Allow-Origin": "https://plateforme-9sz.pages.dev"})
-    assert cors.verifier("https://plateforme-9sz.pages.dev").endswith("pages.dev")
+    repondre(monkeypatch, {"Access-Control-Allow-Origin": "https://500signatures.fr"})
+    assert cors.verifier("https://500signatures.fr") == "https://500signatures.fr"
 
 
 def test_la_requete_porte_bien_un_en_tete_origine(monkeypatch):
@@ -65,8 +65,8 @@ def test_la_requete_porte_bien_un_en_tete_origine(monkeypatch):
         return FausseReponse({"Access-Control-Allow-Origin": "*"})
 
     monkeypatch.setattr(urllib.request, "urlopen", espion)
-    cors.verifier("https://plateforme-9sz.pages.dev")
-    assert vues["origin"] == "https://plateforme-9sz.pages.dev"
+    cors.verifier("https://500signatures.fr")
+    assert vues["origin"] == "https://500signatures.fr"
 
 
 def test_seules_la_lecture_et_la_prelecture_sont_ouvertes():

@@ -493,10 +493,8 @@ function dessiner(cadre: Cadre): string {
   // c'est ce que l'adresse occupe vraiment qui dit ce qui reste à gauche.
   //
   // **Et elle ne se borne pas.** Elle était coupée au tiers de la largeur
-  // utile — 352 unités — quand l'adresse de publication de ce dépôt en demande
-  // 373 : les six cartes que le build écrit portaient toutes
-  // « https://plateforme-9sz.pages.… ». Une adresse est la seule chaîne de la
-  // carte qui devient INUTILE en perdant sa fin : elle ne se retape pas, et
+  // utile. Une adresse est la seule chaîne de la carte qui devient INUTILE en
+  // perdant sa fin : elle ne se retape pas, et
   // c'est elle qui existe pour ramener ici le lecteur qui a vu l'image passer.
   // Les autres se lisent tronquées ; celle-ci ne se lit plus du tout.
   //

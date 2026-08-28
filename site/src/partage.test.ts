@@ -41,7 +41,7 @@ import {
 } from "./partage.ts";
 import { indexer, type Budget } from "./simulateur.ts";
 
-const ORIGINE = "https://plateforme-9sz.pages.dev";
+const ORIGINE = "https://500signatures.fr";
 
 /* --------------------------------------------------------------------------
  * De quoi fabriquer un scénario réel, encodé par l'atelier lui-même

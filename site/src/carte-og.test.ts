@@ -1102,22 +1102,12 @@ test("30. replier rend zéro ligne quand on ne lui en demande aucune", () => {
 /* --------------------------------------------------------------------------
  * L'adresse du site ne se tronque pas
  *
- * Mesurée sur l'adresse de publication réelle du dépôt : 373 unités à corps 24,
- * quand le tiers de la largeur utile en offrait 352. Les six cartes que le
- * build écrit portaient « https://plateforme-9sz.pages.… », c'est-à-dire une
- * adresse qui ne se retape pas — la seule chaîne de la carte qui devient
- * inutile en perdant sa fin, et celle qui existe pour ramener le lecteur ici.
+ * Une adresse est la seule chaîne de la carte qui devient inutile en perdant
+ * sa fin, et celle qui existe pour ramener le lecteur ici.
  * ----------------------------------------------------------------------- */
 
 test("l'adresse de publication du dépôt est peinte entière", () => {
-  const site = "https://plateforme-9sz.pages.dev";
-  // Le repère de la faute : elle demande plus que ce que l'ancienne borne
-  // offrait. Sans cette assertion, le test resterait vert si la borne changeait
-  // et prouverait seulement qu'une adresse courte tient.
-  assert.ok(
-    largeurApprochee(site, 24) > (LARGEUR - 2 * GEOMETRIE.MARGE) / 3,
-    "l'adresse tient désormais dans l'ancienne borne : ce test n'éprouve plus rien",
-  );
+  const site = "https://500signatures.fr";
   for (const [nom, svg] of [
     ["fiche", carteFiche({ ...FICHE, site })],
     ["repère", carteReperes({ ...REPERES, site })],

@@ -647,7 +647,7 @@ test("aucune réserve qui s'excuse dans le module lui-même", () => {
  * « Citer » : la commande n'est posée que là où les cinq éléments existent
  * ----------------------------------------------------------------------- */
 
-const ADRESSE = "https://plateforme-9sz.pages.dev/analyses/defense-credits-votes-consommes-2025/";
+const ADRESSE = "https://500signatures.fr/analyses/defense-credits-votes-consommes-2025/";
 
 /** Les charges utiles `data-citer` d'un rendu, relues comme le fait `main.ts` :
  *  l'attribut est du JSON échappé pour l'attribut HTML, jamais du texte gratté

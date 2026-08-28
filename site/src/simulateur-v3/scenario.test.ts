@@ -26,7 +26,7 @@ test("chaque dossier cite une publication directe et bannit les textes de secour
   for (const decision of SCENARIO_V3_PREVIEW.decisions) {
     assert.ok(decision.evidence.length > 0, decision.id);
     assert.ok(decision.evidence.every((item) => item.sourceUrl.startsWith("https://")), decision.id);
-    assert.ok(decision.evidence.every((item) => item.sourceUrl !== "https://plateforme-9sz.pages.dev/sources/"), decision.id);
+    assert.ok(decision.evidence.every((item) => item.sourceUrl !== "https://500signatures.fr/sources/"), decision.id);
     assert.ok(decision.evidence.every((item) => item.sourceName !== "Sources budgétaires recensées"), decision.id);
     assert.ok(decision.options.every((option) => !option.summary.startsWith("La règle actuelle reste en vigueur")), decision.id);
   }
