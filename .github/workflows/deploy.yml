@@ -13,6 +13,7 @@ on:
   push:
     paths:
       - "site/**"
+      - "pipeline/plateforme/domaine.py"
       - ".github/deploy-request.json"
       - ".github/workflows/deploy.yml"
 
@@ -23,17 +24,15 @@ jobs:
     #
     # Le pré-rendu en a besoin : les balises `og:image` et `og:url` des pages
     # d'analyse doivent être **absolues**, sans quoi les robots des plateformes
-    # ne les résolvent pas et le lien part sans aperçu. Elle ne se déduit pas de
-    # `--project-name=plateforme` : Cloudflare a donné au projet le sous-domaine
-    # `plateforme-9sz`, et une adresse devinée sur une image qui circule serait
-    # un faux publié.
+    # ne les résolvent pas et le lien part sans aperçu. Le domaine public est
+    # celui de la marque, rattaché au projet Pages juste après la publication.
     #
     # La même valeur sert à la dernière étape, qui rejoue depuis cette origine
     # la requête du navigateur contre le bucket de données : si elle cesse
     # d'être l'adresse du site, ce contrôle-là échoue. C'est ce qui la tient
     # vraie, plutôt qu'un commentaire.
     env:
-      SITE_URL: https://plateforme-9sz.pages.dev
+      SITE_URL: https://500signatures.fr
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -72,6 +71,14 @@ jobs:
           npx --yes wrangler@4 pages deploy dist \
             --project-name=plateforme --branch=main --commit-dirty=true
 
+      - name: Servir la production sur 500signatures.fr
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          python -m plateforme.domaine --project plateforme \
+            --domain 500signatures.fr --domain www.500signatures.fr
+
       - name: Autoriser le navigateur à lire les données
         # Le site et les données ne sont pas sur la même origine. Sans politique
         # CORS sur le bucket, la page n'affiche que « Les données n'ont pas pu
@@ -83,3 +90,4 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_TOKEN_ID: f142f16ee69b9e33f8b2b4acd83d7f6a # id du token, non secret
         run: python -m plateforme.cors --bucket plateforme-published --origine "$SITE_URL"
+
