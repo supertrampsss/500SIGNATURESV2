@@ -62,6 +62,44 @@ test("un dossier rend une carte cliquable par option sans rangée d'actions dupl
   assert.match(html, /https:\/\/plateforme-9sz\.pages\.dev\/sources\//);
 });
 
+test("un dossier garde l'analyse complète dans le tiroir et présente une tension courte", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  const beforeEvidence = html.slice(0, html.indexOf('<details class="simulateur-v3__evidence'));
+  const evidence = html.slice(html.indexOf('<details class="simulateur-v3__evidence'));
+  const escapedContext = decision.context.replaceAll("'", "&#39;");
+
+  assert.doesNotMatch(beforeEvidence, new RegExp(decision.context.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(evidence, new RegExp(escapedContext.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(beforeEvidence, /class="simulateur-v3__context"[^>]*>[^<]{20,190}<\/p>/);
+});
+
+test("les choix retirent la démonstration répétée après les deux-points", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+
+  assert.match(html, /simulateur-v3__option-label">Flat tax à 20 % dès le premier euro<\/span>/);
+  assert.doesNotMatch(html, /simulateur-v3__option-label">Flat tax à 20 % dès le premier euro : le barème disparaît/);
+});
+
+test("aucun intitulé de choix ne redevient un paragraphe sur téléphone", () => {
+  for (let index = 0; index < SCENARIO_V3_PREVIEW.decisions.length; index += 1) {
+    const state = {
+      ...createCampaign(SCENARIO_V3_PREVIEW),
+      phase: "decision" as const,
+      chapterIndex: Math.floor(index / 12),
+      decisionIndex: index % 12,
+    };
+    const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+    const labels = html
+      .split('class="simulateur-v3__option-label">')
+      .slice(1)
+      .map((part) => part.split("</span>")[0]!.replaceAll("&#39;", "'"));
+    assert.ok(labels.every((label) => label.length <= 86), `dossier ${index + 1}: ${labels.join(" | ")}`);
+  }
+});
+
 test("un dossier desktop compose une salle de décision en trois zones", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
@@ -123,6 +161,24 @@ test("chaque phase rend la barre de commandement sans cadratin", () => {
   }
 });
 
+test("la barre de commandement garde le solde et une progression lisibles sur mobile", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+
+  assert.match(html, /class="simulateur-v3__command-balance"/);
+  assert.match(html, /-153 milliards d&#39;euros/);
+  assert.match(html, /class="simulateur-v3__command-progress"/);
+  assert.match(html, /--v3-command-progress:\s*0%/);
+});
+
+test("un gain budgétaire et un coût budgétaire ne portent pas le même signal", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+
+  assert.match(html, /simulateur-v3__option-budget--positive/);
+  assert.match(html, /simulateur-v3__option-budget--neutral/);
+});
+
 test("une conséquence différée rappelle la décision d'origine et ses effets", () => {
   const state = stateAfter(4, "delayed_event");
   const source = SCENARIO_V3_PREVIEW.decisions[2]!;
@@ -138,6 +194,8 @@ test("une conséquence différée rappelle la décision d'origine et ses effets"
   assert.match(html, /Les recettes résistent/);
   assert.match(html, new RegExp(source.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(html, /Marchés -1 point/);
+  assert.match(html, /simulateur-v3__scene-header/);
+  assert.match(html, /simulateur-v3__scene-body/);
 });
 
 test("la crise expose sa cause et une concession qui modifie la réforme", () => {
@@ -150,6 +208,8 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   assert.match(html, new RegExp(decision.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(html, /Suspendre la flat tax/);
   assert.equal(occurrences(html, 'data-v3-action="resolve-crisis"'), 2);
+  assert.match(html, /simulateur-v3__scene-header/);
+  assert.match(html, /simulateur-v3__scene-body/);
 });
 
 test("la fin de chapitre raconte les choix et la contradiction laissée ouverte", () => {
@@ -159,6 +219,8 @@ test("la fin de chapitre raconte les choix et la contradiction laissée ouverte"
   assert.match(html, /12 décisions/);
   assert.match(html, /Contradiction ouverte/);
   assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
+  assert.match(html, /simulateur-v3__scene-header/);
+  assert.match(html, /simulateur-v3__scene-body/);
 });
 
 test("le verdict final devient une scène éditoriale sans grille générique", () => {
@@ -204,4 +266,6 @@ test("le journal de Pause liste les arbitrages et leur statut", () => {
   assert.match(html, /Journal du mandat/);
   assert.match(html, /Suspendue après une crise/);
   assert.equal(occurrences(html, 'data-v3-action="back-pause"'), 1);
+  assert.match(html, /simulateur-v3__scene-header/);
+  assert.match(html, /simulateur-v3__scene-body/);
 });

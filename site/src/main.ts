@@ -2635,6 +2635,7 @@ function basculerVue(): void {
     terminerSessionImmersive?.();
     terminerSessionImmersive = null;
     demonterApercuSimulateurV3();
+    delete document.body.dataset.simulateurVersion;
   }
   document.body.dataset.vue = vue;
   rendreNavigationPrincipale();
@@ -3832,6 +3833,7 @@ async function ouvrirSimulateur(): Promise<void> {
   if (versionSimulateurV3()) {
     terminerSessionImmersive?.();
     terminerSessionImmersive = null;
+    document.body.dataset.simulateurVersion = "3";
     tunnel.hidden = true;
     expert.hidden = true;
     hoteV3.hidden = false;
@@ -3844,6 +3846,7 @@ async function ouvrirSimulateur(): Promise<void> {
   }
 
   demonterApercuSimulateurV3();
+  delete document.body.dataset.simulateurVersion;
   hoteV3.hidden = true;
   tunnel.hidden = false;
   if (atelierMonte || !exercicesParVolet.length) return;

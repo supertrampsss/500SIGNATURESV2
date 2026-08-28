@@ -37,6 +37,24 @@ function signed(value: number): string {
   return value > 0 ? `+${value}` : String(value);
 }
 
+function compactText(value: string, maximum = 176): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  const sentence = normalized.match(/^.{24,}?[.!?](?:\s|$)/)?.[0]?.trim() ?? normalized;
+  if (sentence.length <= maximum) return sentence;
+  const cut = sentence.slice(0, maximum + 1).lastIndexOf(" ");
+  return `${sentence.slice(0, cut > 80 ? cut : maximum).replace(/[,:;.!?]+$/, "")}…`;
+}
+
+function compactOptionLabel(label: string): string {
+  const normalized = label
+    .replace(/\s+/g, " ")
+    .replace("Réserver les prestations non contributives aux nationaux et aux étrangers présents depuis 5 ans", "Conditionner les prestations non contributives à la nationalité ou à 5 ans de présence")
+    .trim()
+    .replace(/\s*\?$/, "");
+  const beforeExplanation = normalized.split(/\s+:\s+/, 1)[0]?.trim();
+  return beforeExplanation && beforeExplanation.length >= 12 ? beforeExplanation : normalized;
+}
+
 export function formatV3Amount(value: number): string {
   const absolute = Math.abs(value);
   if (absolute >= 1_000) {
@@ -52,6 +70,7 @@ function globalPosition(state: CampaignState): number {
 }
 
 function renderCommandBar(state: CampaignState): string {
+  const progressLevel = Math.max(0, Math.min(100, Math.round((state.decisions.length / 96) * 100)));
   const trailing = state.phase === "intro"
     ? `<span class="simulateur-v3__pause-state">Mission</span>`
     : state.phase === "pause"
@@ -70,7 +89,9 @@ function renderCommandBar(state: CampaignState): string {
         <span>Où va l'argent public</span>
       </a>
       <p class="simulateur-v3__mandate">Mandat 2026 à 2031</p>
+      <p class="simulateur-v3__command-balance"><span>Solde annuel</span><strong>${escapeHtml(formatV3Amount(state.indicators.annualBalance))}</strong></p>
       ${progress}
+      <span class="simulateur-v3__command-progress" aria-hidden="true"><i style="--v3-command-progress: ${progressLevel}%"></i></span>
       ${trailing}
     </header>`;
 }
@@ -79,18 +100,22 @@ function renderIntro(options: RenderSimulatorV3Options): string {
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--intro">
       <article class="simulateur-v3__dossier simulateur-v3__intro">
-        <p class="simulateur-v3__eyebrow">Votre mission</p>
-        <h1>Reprendre le contrôle des comptes sans perdre le pays.</h1>
-        <p class="simulateur-v3__mission-number">153 milliards d'euros</p>
-        <p class="simulateur-v3__lead">La France emprunte cette somme cette année. Vous avez cinq ans pour réduire le déficit, préserver l'activité et conserver la capacité d'agir.</p>
-        <ul class="simulateur-v3__objectives" aria-label="Objectifs du mandat">
-          <li>Redresser les finances</li>
-          <li>Préserver l'économie réelle</li>
-          <li>Conserver une majorité</li>
-          <li>Maintenir la confiance</li>
-        </ul>
-        ${options.v2Found ? `<p class="simulateur-v3__migration" role="status">Une ancienne partie a été trouvée. Elle reste intacte. Ce nouveau mandat repart avec les règles V3.</p>` : ""}
-        <button type="button" class="simulateur-v3__primary" data-v3-action="start">Prendre mes fonctions</button>
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Votre mission</p>
+          <h1>Reprendre le contrôle des comptes sans perdre le pays.</h1>
+          <p class="simulateur-v3__mission-number">153 milliards d'euros</p>
+          <p class="simulateur-v3__lead">La France emprunte cette somme cette année. Vous avez cinq ans pour réduire le déficit, préserver l'activité et conserver la capacité d'agir.</p>
+        </header>
+        <div class="simulateur-v3__scene-body">
+          <ul class="simulateur-v3__objectives" aria-label="Objectifs du mandat">
+            <li>Redresser les finances</li>
+            <li>Préserver l'économie réelle</li>
+            <li>Conserver une majorité</li>
+            <li>Maintenir la confiance</li>
+          </ul>
+          ${options.v2Found ? `<p class="simulateur-v3__migration" role="status">Une ancienne partie a été trouvée. Elle reste intacte. Ce nouveau mandat repart avec les règles V3.</p>` : ""}
+        </div>
+        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="start">Prendre mes fonctions</button></footer>
       </article>
     </main>`;
 }
@@ -100,14 +125,18 @@ function renderChapterIntro(state: CampaignState, scenario: Scenario): string {
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__chapter-intro">
-        <p class="simulateur-v3__eyebrow">Chapitre ${state.chapterIndex + 1}</p>
-        <h1>${escapeHtml(chapter.title)}</h1>
-        <p class="simulateur-v3__lead">${escapeHtml(chapter.opening)}</p>
-        <ul class="simulateur-v3__domains" aria-label="Domaines de ce chapitre">
-          ${chapter.domains.map((domain) => `<li>${escapeHtml(domain)}</li>`).join("")}
-        </ul>
-        <p class="simulateur-v3__tension"><strong>La ligne de fracture</strong>${escapeHtml(chapter.tension)}</p>
-        <button type="button" class="simulateur-v3__primary" data-v3-action="open-chapter">Ouvrir le premier dossier</button>
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Chapitre ${state.chapterIndex + 1}</p>
+          <h1>${escapeHtml(chapter.title)}</h1>
+          <p class="simulateur-v3__lead">${escapeHtml(chapter.opening)}</p>
+        </header>
+        <div class="simulateur-v3__scene-body">
+          <ul class="simulateur-v3__domains" aria-label="Domaines de ce chapitre">
+            ${chapter.domains.map((domain) => `<li>${escapeHtml(domain)}</li>`).join("")}
+          </ul>
+          <p class="simulateur-v3__tension"><strong>La ligne de fracture</strong>${escapeHtml(chapter.tension)}</p>
+        </div>
+        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="open-chapter">Ouvrir le premier dossier</button></footer>
       </article>
     </main>`;
 }
@@ -192,7 +221,9 @@ function renderOption(decision: Decision, option: DecisionOption): string {
   const visibleEffects = option.effects
     .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
     .filter((effect) => effect.timing.kind === "immediate")
-    .slice(0, 3);
+    .slice(0, 2);
+  const budgetLabel = budget ? `${formatV3Amount(budget.delta)} par an` : "Solde inchangé";
+  const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
   return `
     <article class="simulateur-v3__option" data-option-id="${escapeHtml(option.id)}">
       <button
@@ -203,15 +234,15 @@ function renderOption(decision: Decision, option: DecisionOption): string {
         data-option-id="${escapeHtml(option.id)}"
         aria-label="Choisir : ${escapeHtml(option.label)}"
       >
-        <span class="simulateur-v3__option-label">${escapeHtml(option.label)}</span>
+        <span class="simulateur-v3__option-head">
+          <span class="simulateur-v3__option-label">${escapeHtml(compactOptionLabel(option.label))}</span>
+          <strong class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}">${escapeHtml(budgetLabel)}</strong>
+        </span>
         ${option.summary !== decision.context ? `<span class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</span>` : ""}
         <span class="simulateur-v3__option-effects">
           ${visibleEffects.map((effect) => `<span>${escapeHtml(effectLabel(effect))}</span>`).join("")}
         </span>
-        <span class="simulateur-v3__option-metrics">
-          <span>${budget ? `${escapeHtml(formatV3Amount(budget.delta))} par an` : "Solde public inchangé"}</span>
-          <span>Incertitude ${escapeHtml(option.uncertainty)}</span>
-        </span>
+        <span class="simulateur-v3__option-confidence">Incertitude ${escapeHtml(option.uncertainty)}</span>
       </button>
     </article>`;
 }
@@ -221,6 +252,10 @@ function renderEvidence(decision: Decision): string {
     <details class="simulateur-v3__evidence">
       <summary>Voir l'analyse et les sources</summary>
       <div class="simulateur-v3__evidence-body">
+        <section class="simulateur-v3__analysis">
+          <h3>Le dossier</h3>
+          <p>${escapeHtml(decision.context)}</p>
+        </section>
         ${decision.options.map((option) => `
           <section>
             <h3>${escapeHtml(option.label)}</h3>
@@ -251,13 +286,17 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
       <div class="simulateur-v3__decision-layout">
         ${renderCountryRail(state)}
         <article class="simulateur-v3__dossier simulateur-v3__decision">
-          <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state)}</p>
-          <h1>${escapeHtml(decision.title)}</h1>
-          <p class="simulateur-v3__context">${escapeHtml(decision.context)}</p>
-          <section class="simulateur-v3__options" aria-label="Choix possibles">
-            ${decision.options.map((option) => renderOption(decision, option)).join("")}
-          </section>
-          ${renderEvidence(decision)}
+          <header class="simulateur-v3__scene-header">
+            <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state)}</p>
+            <h1>${escapeHtml(decision.title)}</h1>
+            <p class="simulateur-v3__context">${escapeHtml(compactText(decision.context))}</p>
+          </header>
+          <div class="simulateur-v3__scene-body">
+            <section class="simulateur-v3__options" aria-label="Choix possibles">
+              ${decision.options.map((option) => renderOption(decision, option)).join("")}
+            </section>
+            ${renderEvidence(decision)}
+          </div>
         </article>
         ${renderMandateRail(state)}
       </div>
@@ -282,21 +321,26 @@ function renderJournal(state: CampaignState, scenario: Scenario): string {
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__journal">
-        <p class="simulateur-v3__eyebrow">Mémoire de la campagne</p>
-        <h1>Journal du mandat</h1>
-        <p class="simulateur-v3__lead">Chaque arbitrage confirmé reste ici, y compris lorsqu'une crise vous a forcé à le modifier.</p>
-        <ol class="simulateur-v3__journal-list">
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Mémoire de la campagne</p>
+          <h1>Journal du mandat</h1>
+          <p class="simulateur-v3__lead">Vos arbitrages, leur statut et les concessions arrachées pendant le mandat.</p>
+        </header>
+        <div class="simulateur-v3__scene-body"><ol class="simulateur-v3__journal-list">
           ${state.decisions.map((record, index) => {
             const { decision, option } = decisionAndOption(state, scenario, index);
+            const optionLabel = compactOptionLabel(option?.label ?? record.optionId);
+            const decisionTitle = decision?.title ?? record.decisionId;
+            const repeatsDecision = decisionTitle.replace(/\s*\?$/, "").startsWith(optionLabel);
             return `<li>
               <span class="simulateur-v3__journal-index">${index + 1}</span>
-              <div><h2>${escapeHtml(option?.label ?? record.optionId)}</h2>
-              <p>${escapeHtml(decision?.title ?? record.decisionId)}</p>
+              <div><h2>${escapeHtml(optionLabel)}</h2>
+              ${repeatsDecision ? "" : `<p>${escapeHtml(decisionTitle)}</p>`}
               <strong>${escapeHtml(statuses[record.status] ?? record.status)}</strong></div>
             </li>`;
           }).join("") || "<li>Aucune décision confirmée.</li>"}
-        </ol>
-        <button type="button" class="simulateur-v3__secondary" data-v3-action="back-pause">Revenir à Pause</button>
+        </ol></div>
+        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__secondary" data-v3-action="back-pause">Revenir à Pause</button></footer>
       </article>
     </main>`;
 }
@@ -307,10 +351,12 @@ function renderPause(state: CampaignState, scenario: Scenario, view: RenderSimul
     return `
       <main class="simulateur-v3__stage">
         <article class="simulateur-v3__dossier simulateur-v3__pause-menu">
-          <p class="simulateur-v3__eyebrow">Recommencer</p>
-          <h1>Effacer ce mandat et repartir de zéro ?</h1>
-          <p class="simulateur-v3__lead">Vos décisions V3 seront remplacées. Une éventuelle partie V2 restera intacte.</p>
-          <div class="simulateur-v3__pause-actions">
+          <header class="simulateur-v3__scene-header">
+            <p class="simulateur-v3__eyebrow">Recommencer</p>
+            <h1>Effacer ce mandat et repartir de zéro ?</h1>
+            <p class="simulateur-v3__lead">Vos décisions V3 seront remplacées. Une éventuelle partie V2 restera intacte.</p>
+          </header>
+          <div class="simulateur-v3__scene-actions simulateur-v3__pause-actions">
             <button type="button" class="simulateur-v3__danger" data-v3-action="restart">Oui, recommencer</button>
             <button type="button" class="simulateur-v3__secondary" data-v3-action="back-pause">Conserver ce mandat</button>
           </div>
@@ -320,9 +366,12 @@ function renderPause(state: CampaignState, scenario: Scenario, view: RenderSimul
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__pause-menu">
-        <p class="simulateur-v3__eyebrow">Mandat suspendu</p>
-        <h1>Le Conseil vous attend.</h1>
-        <div class="simulateur-v3__pause-actions">
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Mandat suspendu</p>
+          <h1>Le Conseil vous attend.</h1>
+          <p class="simulateur-v3__lead">Reprenez le dossier en cours ou consultez la trace de vos décisions.</p>
+        </header>
+        <div class="simulateur-v3__scene-actions simulateur-v3__pause-actions">
           <button type="button" class="simulateur-v3__primary" data-v3-action="resume">Reprendre</button>
           <button type="button" class="simulateur-v3__secondary" data-v3-action="journal">Ouvrir le journal</button>
           <button type="button" class="simulateur-v3__secondary" data-v3-action="ask-restart">Recommencer la campagne</button>
@@ -354,10 +403,12 @@ function renderCouncil(state: CampaignState, scenario: Scenario): string {
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__council">
-        <p class="simulateur-v3__eyebrow">Conseil après ${state.decisions.length} décisions</p>
-        <h1>Bilan intermédiaire du Conseil.</h1>
-        <p class="simulateur-v3__lead">Le Conseil relie les mouvements du mandat aux arbitrages qui viennent d'être pris.</p>
-        <div class="simulateur-v3__situation-grid">
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Point de situation</p>
+          <h1>Le pays réagit à vos arbitrages.</h1>
+          <p class="simulateur-v3__lead">${state.decisions.length} décisions ont déplacé les comptes et votre capacité d'agir.</p>
+        </header>
+        <div class="simulateur-v3__scene-body"><div class="simulateur-v3__situation-grid">
           <section><h2>Finances</h2><strong>${escapeHtml(formatV3Amount(state.indicators.annualBalance))}</strong><p>Solde public annuel</p></section>
           <section><h2>Économie réelle</h2><strong>${state.indicators.growth.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %</strong><p>Croissance, investissement ${Math.round(state.indicators.investment)}</p></section>
           <section><h2>Pouvoir</h2><strong>${Math.round(state.indicators.majority)} / 100</strong><p>Capacité de réforme ${Math.round(state.indicators.reformCapacity)}</p></section>
@@ -367,8 +418,8 @@ function renderCouncil(state: CampaignState, scenario: Scenario): string {
           const decisionId = sourceDecisionIdForCause(state, cause);
           const title = scenario.decisions.find((decision) => decision.id === decisionId)?.title;
           return `<li><strong>${escapeHtml(effectLabel(cause))}</strong><span>${escapeHtml(title ?? "Événement du mandat")}</span><small>${escapeHtml(cause.explanation)}</small></li>`;
-        }).join("")}</ul></section>` : ""}
-        <button type="button" class="simulateur-v3__primary" data-v3-action="continue">Retourner aux dossiers</button>
+        }).join("")}</ul></section>` : ""}</div>
+        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="continue">Retourner aux dossiers</button></footer>
       </article>
     </main>`;
 }
@@ -381,12 +432,16 @@ function renderDelayedEvent(state: CampaignState, scenario: Scenario): string {
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__event">
-        <p class="simulateur-v3__eyebrow">Conséquence différée</p>
-        <h1>${escapeHtml(first?.title ?? "Une promesse revient dans le débat.")}</h1>
-        ${source ? `<p class="simulateur-v3__event-source"><strong>Décision d'origine</strong>${escapeHtml(source.title)}</p>` : ""}
-        ${events.map((event) => `<section class="simulateur-v3__event-card"><p>${escapeHtml(event.body)}</p><ul>${event.effects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul></section>`).join("")}
-        ${promises.map((promise) => `<section class="simulateur-v3__event-card"><h2>${escapeHtml(promise.label)}</h2><p>${promise.fulfilled ? "Promesse tenue." : "Promesse non tenue. Le coût politique est appliqué."}</p>${promise.fulfilled ? "" : `<ul>${promise.failureEffects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul>`}</section>`).join("")}
-        <button type="button" class="simulateur-v3__primary" data-v3-action="continue">Assumer la suite</button>
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Conséquence différée</p>
+          <h1>${escapeHtml(first?.title ?? "Une promesse revient dans le débat.")}</h1>
+          ${source ? `<p class="simulateur-v3__event-source"><strong>Décision d'origine</strong>${escapeHtml(source.title)}</p>` : ""}
+        </header>
+        <div class="simulateur-v3__scene-body">
+          ${events.map((event) => `<section class="simulateur-v3__event-card"><p>${escapeHtml(event.body)}</p><ul>${event.effects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul></section>`).join("")}
+          ${promises.map((promise) => `<section class="simulateur-v3__event-card"><h2>${escapeHtml(promise.label)}</h2><p>${promise.fulfilled ? "Promesse tenue." : "Promesse non tenue. Le coût politique est appliqué."}</p>${promise.fulfilled ? "" : `<ul>${promise.failureEffects.map((effect) => `<li>${escapeHtml(effectLabel(effect))}</li>`).join("")}</ul>`}</section>`).join("")}
+        </div>
+        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="continue">Assumer la suite</button></footer>
       </article>
     </main>`;
 }
@@ -399,11 +454,14 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__crisis">
-        <p class="simulateur-v3__eyebrow">Conseil de crise</p>
-        <h1>${escapeHtml(rule.title)}</h1>
-        <p class="simulateur-v3__lead">${escapeHtml(rule.body)}</p>
-        <p class="simulateur-v3__crisis-cause"><strong>Décision déclencheuse</strong>${escapeHtml(trigger?.title ?? state.activeCrisis.triggeredByDecisionId)}</p>
-        <div class="simulateur-v3__crisis-options">
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Conseil de crise</p>
+          <h1>${escapeHtml(rule.title)}</h1>
+          <p class="simulateur-v3__lead">${escapeHtml(rule.body)}</p>
+        </header>
+        <div class="simulateur-v3__scene-body">
+          <p class="simulateur-v3__crisis-cause"><strong>Décision déclencheuse</strong>${escapeHtml(trigger?.title ?? state.activeCrisis.triggeredByDecisionId)}</p>
+          <div class="simulateur-v3__crisis-options">
           <button type="button" class="simulateur-v3__crisis-option" data-v3-action="resolve-crisis" data-resolution-id="hold-course">
             <span>Maintenir le cap</span><small>La réforme reste en vigueur.</small>
             <em>${rule.holdCourseEffects.map(effectLabel).map(escapeHtml).join(" · ")}</em>
@@ -412,6 +470,7 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
             <span>${escapeHtml(concession.label)}</span><small>${concession.policyChange === "suspend" ? "La réforme sera suspendue." : concession.policyChange === "amend" ? "La réforme sera amendée." : "La réforme sera renversée."}</small>
             <em>${concession.effects.map(effectLabel).map(escapeHtml).join(" · ")}</em>
           </button>`).join("")}
+          </div>
         </div>
       </article>
     </main>`;
@@ -436,12 +495,16 @@ function renderChapterVerdict(state: CampaignState, scenario: Scenario): string 
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__chapter-verdict">
-        <p class="simulateur-v3__eyebrow">Chapitre ${state.chapterIndex + 1} terminé · ${escapeHtml(chapter.title)}</p>
-        <h1>Le pays vous présente l'addition.</h1>
-        <p class="simulateur-v3__lead">${records.length} décisions ont fixé votre ligne.</p>
-        <div class="simulateur-v3__chapter-score"><section><h2>Solde annuel</h2><strong>${escapeHtml(formatV3Amount(budget))}</strong></section><section><h2>Opinion</h2><strong>${signed(opinion)} points</strong></section></div>
-        <section class="simulateur-v3__contradiction"><h2>Contradiction ouverte</h2><p>${escapeHtml(contradiction)}</p></section>
-        <button type="button" class="simulateur-v3__primary" data-v3-action="continue">Ouvrir le chapitre suivant</button>
+        <header class="simulateur-v3__scene-header">
+          <p class="simulateur-v3__eyebrow">Chapitre ${state.chapterIndex + 1} terminé · ${escapeHtml(chapter.title)}</p>
+          <h1>Le pays vous présente l'addition.</h1>
+          <p class="simulateur-v3__lead">${records.length} décisions ont fixé votre ligne.</p>
+        </header>
+        <div class="simulateur-v3__scene-body">
+          <div class="simulateur-v3__chapter-score"><section><h2>Solde annuel</h2><strong>${escapeHtml(formatV3Amount(budget))}</strong></section><section><h2>Opinion</h2><strong>${signed(opinion)} points</strong></section></div>
+          <section class="simulateur-v3__contradiction"><h2>Contradiction ouverte</h2><p>${escapeHtml(contradiction)}</p></section>
+        </div>
+        <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="continue">Ouvrir le chapitre suivant</button></footer>
       </article>
     </main>`;
 }

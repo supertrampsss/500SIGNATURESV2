@@ -3562,12 +3562,23 @@ test("la préversion V3 possède son hôte et son branchement explicite", () => 
   assert.match(MAIN, /new URLSearchParams\(location\.search\)\.get\("version"\) === "3"/);
 });
 
-test("la V3 garde le chrome du site et ne déclenche jamais le plein écran historique", () => {
+test("la V3 remplace le chrome mobile par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
   assert.match(brancheV3, /mountSimulatorV3\(hoteV3, SCENARIO_V3_PREVIEW, \{[\s\S]*?crisisRules: SCENARIO_V3_CRISIS_RULES/);
   assert.match(brancheV3, /tunnel\.hidden = true/);
   assert.match(brancheV3, /expert\.hidden = true/);
   assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);
+  assert.match(brancheV3, /document\.body\.dataset\.simulateurVersion = "3"/);
+  assert.match(SIMULATEUR_V3, /@media \(max-width:\s*40rem\)[\s\S]*body\[data-simulateur-version="3"\] \.entete[\s\S]*display:\s*none/);
+  assert.match(SIMULATEUR_V3, /@media \(max-width:\s*40rem\)[\s\S]*body\[data-simulateur-version="3"\] \.entete__nav[\s\S]*display:\s*none/);
   assert.match(MAIN, /if \(vue !== "simulateur" \|\| !versionSimulateurV3\(\)\) \{[\s\S]*?demonterApercuSimulateurV3\(\);/);
+});
+
+test("toutes les scènes secondaires V3 partagent la même composition éditoriale", () => {
+  for (const selector of ["scene-header", "scene-body", "scene-actions"]) {
+    assert.match(SIMULATEUR_V3, new RegExp(`\\.simulateur-v3__${selector}\\s*\\{`));
+  }
+  assert.match(SIMULATEUR_V3, /\.simulateur-v3__decision \.simulateur-v3__context\s*\{[^}]*max-width:\s*58ch/s);
+  assert.match(SIMULATEUR_V3, /@media \(max-width:\s*40rem\)[\s\S]*\.simulateur-v3__decision[\s\S]*padding:\s*var\(--espace-4\)/);
 });
