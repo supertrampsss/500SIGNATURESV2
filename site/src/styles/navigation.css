@@ -6,26 +6,40 @@
 }
 
 @media (max-width: 39.999rem) {
+  .entete {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--espace-2) var(--espace-3);
+    padding: var(--espace-2) var(--espace-4) 0;
+  }
+
+  .entete__signature {
+    display: none;
+  }
+
   .entete__nav {
+    grid-column: 1 / -1;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    left: 0;
-    position: fixed;
-    right: 0;
-    bottom: 0;
-    z-index: 30;
-    padding-bottom: calc(var(--espace-2) + env(safe-area-inset-bottom, 0px));
+    width: 100%;
+    padding: 0;
+    background: transparent;
+    border-radius: 0;
   }
 
   .entete__nav a {
     min-height: 44px;
+    padding-inline: var(--espace-2);
+    border-bottom: 3px solid transparent;
+    border-radius: 0;
   }
 
-  .vue {
-    padding-bottom: calc(var(--haut-nav-basse) + var(--espace-6));
+  .entete__nav a[aria-current="page"] {
+    color: var(--chrome-encre);
+    background: transparent;
+    border-bottom-color: var(--chrome-accent);
   }
 
-  body[data-vue="simulateur"][data-session="active"] .entete__nav {
+  body[data-vue="simulateur"][data-session="active"] .entete {
     display: none;
   }
 }

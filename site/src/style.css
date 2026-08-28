@@ -506,23 +506,10 @@ body {
 }
 
 /* ===========================================================================
-   L'EN-TÊTE — trois commandes permanentes, une seule ligne
+   L'EN-TÊTE JOURNAL DE BORD
    ===========================================================================
-   Le nom du site, la recherche d'un territoire, le choix de la vue. Rien
-   d'autre n'y a sa place : tout ce qui dépend de ce qu'on regarde vit dans la
-   vue, pas au-dessus d'elle.
-
-   La recherche a quitté le panneau de la carte pour venir ici. Elle y gagne
-   deux choses qu'elle n'avait pas : elle est atteignable depuis n'importe
-   quelle vue — ce que la règle « toute page qui montre un territoire doit
-   permettre d'en changer » demande —, et elle est **unique**. Il y en avait
-   deux, `#recherche` et `#recherche-analyses`, câblées par la même fonction
-   sur le même index mais sans état commun : ce que l'une trouvait, l'autre
-   l'ignorait.
-
-   Une seule ligne au-dessus de 60rem, hauteur bornée à 4rem. En dessous, la
-   navigation descend en barre de pouce (voir plus bas) : l'en-tête garde le
-   nom et la recherche, et cesse d'empiler trois rangées défilantes. */
+   Une marque éditoriale, trois destinations et le thème. La recherche reste
+   dans Territoires, au plus près de son usage. */
 .entete {
   --encre: var(--chrome-encre);
   --encre-douce: var(--chrome-encre-douce);
@@ -534,72 +521,68 @@ body {
   --accent-teinte: var(--chrome-accent-teinte);
   --sur-encre: var(--chrome-sur-encre);
   --dore: var(--chrome-dore);
-  color: var(--encre);
-  display: flex;
+  color: var(--chrome-encre);
+  display: grid;
+  grid-template-columns: minmax(13rem, 1fr) auto auto;
   align-items: center;
-  gap: var(--espace-6);
-  padding: var(--espace-4) var(--gouttiere);
+  gap: var(--espace-4);
+  padding: var(--espace-3) var(--gouttiere);
   min-height: var(--haut-entete);
-  background: var(--papier);
-  border-bottom: 1px solid var(--trait);
+  background: var(--chrome-papier);
+  border-bottom: 1px solid var(--chrome-trait);
   position: sticky;
   top: 0;
   z-index: 30;
 }
-.entete h1 {
+.entete__marque {
+  min-width: 0;
+  color: var(--chrome-encre);
+  text-decoration: none;
+}
+.entete__nom {
+  display: block;
   font-family: var(--serif);
   font-size: var(--texte-xl);
   font-weight: 650;
-  margin: 0;
   letter-spacing: -0.015em;
-  line-height: 1.15;
+  line-height: 1.1;
   white-space: nowrap;
 }
-.sous-titre {
-  margin: 0;
-  color: var(--encre-douce);
+.entete__signature {
+  display: block;
+  margin-top: 0.12rem;
+  color: var(--chrome-encre-douce);
   font-size: var(--texte-xs);
   letter-spacing: 0.01em;
   white-space: nowrap;
 }
-.entete__marque {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  flex: 0 0 auto;
-}
-
-/* La recherche prend la place qui reste, jusqu'à 30rem. C'est le geste
-   d'entrée du site : posée en 11rem au bout d'une barre, elle se lisait comme
-   un filtre accessoire. */
-.entete__recherche {
-  flex: 1 1 22rem;
-  max-width: 30rem;
-  min-width: 0;
-  padding: 0;
-}
 
 .entete__nav {
   display: flex;
-  gap: var(--espace-2);
+  gap: var(--espace-1);
+  padding: var(--espace-1);
+  background: var(--chrome-papier-creuse);
+  border-radius: var(--rayon-pilule);
   font-size: var(--texte-m);
   white-space: nowrap;
-  flex: 0 0 auto;
 }
 .entete__nav a {
-  color: var(--encre-douce);
+  min-height: var(--cible);
+  display: grid;
+  place-items: center;
+  color: var(--chrome-encre-douce);
   text-decoration: none;
-  padding: var(--espace-3) var(--espace-5);
+  padding-inline: var(--espace-5);
   border-radius: var(--rayon-pilule);
   transition: background var(--transition), color var(--transition);
 }
 .entete__nav a:hover {
-  color: var(--encre);
-  background: var(--papier-creuse);
+  color: var(--chrome-encre);
+  background: var(--chrome-papier);
 }
 .entete__nav a[aria-current="page"] {
-  color: var(--sur-encre);
-  background: var(--encre);
+  color: var(--chrome-sur-encre);
+  background: var(--chrome-encre);
 }
 
 /* La bascule clair / sombre. Un rond de la taille d'une cible tactile, dont
@@ -1306,66 +1289,6 @@ tbody tr:hover {
   }
   .panneau__fermer {
     top: 1.15rem;
-  }
-  .sous-titre {
-    display: none;
-  }
-
-  /* ==========================================================================
-     LA NAVIGATION DESCEND SOUS LE POUCE
-     ==========================================================================
-     Elle défilait horizontalement dans l'en-tête, coupée à droite : la
-     dernière entrée n'existait que pour qui pensait à pousser la barre du
-     doigt. Trois destinations tiennent en barre basse, toutes visibles, toutes
-     à portée de pouce — et l'en-tête retrouve une seule rangée pour ce qui
-     compte, le nom du site et la recherche. */
-  .entete {
-    gap: var(--espace-5);
-    flex-wrap: wrap;
-  }
-  .entete__recherche {
-    order: 3;
-    flex: 1 0 100%;
-    max-width: none;
-  }
-  .entete__nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 30;
-    gap: 0;
-    display: grid;
-    grid-auto-flow: column;
-    grid-auto-columns: 1fr;
-    background: var(--papier);
-    border-top: 1px solid var(--trait);
-    padding: var(--espace-2) var(--espace-2)
-      calc(var(--espace-2) + env(safe-area-inset-bottom, 0px));
-    font-size: var(--texte-xs);
-  }
-  .entete__nav a {
-    text-align: center;
-    padding: var(--espace-4) var(--espace-2);
-    border-radius: var(--rayon-s);
-    min-height: var(--cible);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  /* Sous le pouce, l'entrée courante se marque au filet et non à l'aplat :
-     cinq pastilles noires en bas d'écran pèsent plus que la page. */
-  .entete__nav a[aria-current="page"] {
-    background: var(--accent-teinte);
-    color: var(--encre);
-    font-weight: 600;
-  }
-  /* La barre basse recouvre la fin de chaque vue : on lui rend sa place. */
-  .vue {
-    padding-bottom: calc(var(--cible) + var(--espace-6) + env(safe-area-inset-bottom, 0px));
-  }
-  .panneau {
-    padding-bottom: calc(var(--cible) + env(safe-area-inset-bottom, 0px));
   }
 }
 
@@ -4474,17 +4397,8 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   color: var(--encre);
 }
 
-/* La recherche entre dans le panneau, dans la même langue que les pilules du
-   bas : arrondie, sans bordure lourde, avec sa loupe. */
-/* Le champ de recherche du site. Un seul, en-tête (voir plus haut).
-   La loupe est dessinée en `currentColor` et non en gris codé en dur : à
-   `stroke='%236e7d73'` elle disparaissait dans le rendu sombre, seule icône
-   du site à ne pas suivre son texte.
-
-   Aucun `flex` ici : cette règle est écrite après celle de l'en-tête et, à
-   specificité égale, c'est la dernière qui gagne. Le `flex: 0 0 auto` qu'elle
-   portait écrasait donc le `flex: 1 1 22rem` de `.entete__recherche`, et le
-   champ se repliait sur son contenu — placeholder coupé au milieu d'un mot. */
+/* L'unique recherche du site vit dans Territoires. Sa loupe suit la couleur
+   du texte pour rester visible dans les deux thèmes. */
 .recherche {
   position: relative;
 }

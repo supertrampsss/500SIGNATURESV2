@@ -166,7 +166,7 @@ test("France et Territoires partagent exactement le même chrome de navigation",
   for (const role of ["encre", "encre-douce", "papier", "papier-creuse", "trait", "trait-fort", "accent", "accent-teinte", "sur-encre", "dore"]) {
     assert.match(entete, new RegExp(`--${role}:\\s*var\\(--chrome-${role}\\)`));
   }
-  assert.match(entete, /color:\s*var\(--encre\)/);
+  assert.match(entete, /color:\s*var\(--chrome-encre\)/);
   assert.doesNotMatch(BILAN_GUIDE, /body\[data-vue="bilan"\] \.entete(?:__nav|__recherche)?/);
   assert.match(NAVIGATION, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
 });
@@ -710,6 +710,18 @@ test("le header ne contient plus la recherche, qui vit une seule fois dans Terri
   assert.match(MAIN, /champ\.setAttribute\("aria-expanded", String\(ouverte\)\)/);
 });
 
+test("le header Journal porte sa signature et une navigation en pilule", () => {
+  assert.match(PAGE, /class="entete__signature">Les comptes publics, enfin lisibles<\/span>/);
+  assert.match(CSS, /\.entete__nav\s*\{[^}]*background:\s*var\(--chrome-papier-creuse\)/s);
+  assert.match(CSS, /\.entete__nav a\[aria-current="page"\][^{]*\{[^}]*background:\s*var\(--chrome-encre\)/s);
+});
+
+test("sur mobile les trois destinations restent visibles sans barre flottante basse", () => {
+  const navigationMobile = NAVIGATION.match(/@media \(max-width:\s*39\.999rem\)[\s\S]*/)?.[0] ?? "";
+  assert.match(navigationMobile, /grid-template-columns:\s*repeat\(3/);
+  assert.doesNotMatch(navigationMobile, /position:\s*fixed|bottom:\s*0/);
+});
+
 test("les trois états d'une zone de données se distinguent", () => {
   // Vide, en cours, en échec s'écrivaient en trois paragraphes gris
   // interchangeables : une page vide et une page en panne se lisaient pareil.
@@ -885,14 +897,10 @@ test("le Back vers `/` n'est plus avalé par la garde des ancres internes", () =
 });
 
 test("sous le pouce, la navigation ne se coupe plus", () => {
-  // Elle défilait horizontalement dans l'en-tête, coupée à droite : la
-  // dernière entrée n'existait que pour qui pensait à pousser la barre.
-  const petit = CSS.slice(CSS.indexOf("@media (max-width: 60rem)"), CSS.indexOf("@media (max-width: 40rem)"));
-  assert.match(petit, /\.entete__nav \{[\s\S]*?position: fixed;/);
-  assert.match(petit, /grid-auto-columns: 1fr;/);
-  assert.match(petit, /env\(safe-area-inset-bottom, 0px\)/);
-  // Et la barre basse ne recouvre pas la fin de la vue.
-  assert.match(petit, /\.vue \{\n\s*padding-bottom:/);
+  const petit = NAVIGATION.slice(NAVIGATION.indexOf("@media (max-width: 39.999rem)"));
+  assert.match(petit, /grid-template-columns:\s*repeat\(3,\s*minmax\(0,\s*1fr\)\)/);
+  assert.match(petit, /\.entete__nav a\s*\{[^}]*min-height:\s*44px;/s);
+  assert.doesNotMatch(petit, /position:\s*fixed|bottom:\s*0|padding-bottom:\s*calc\(var\(--haut-nav-basse\)/);
 });
 
 test("la vue DONNÉES est retirée, et ses anciens liens ne cassent pas", () => {
@@ -3543,9 +3551,9 @@ test("le bureau de décision V3 retrouve la composition centrale de la planche E
   assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*max-width:\s*28ch;[^}]*font-size:\s*clamp\(2\.5rem,\s*3\.4vw,\s*4rem\);/s);
 });
 
-test("le chrome desktop du simulateur reprend la barre institutionnelle sombre", () => {
-  assert.match(SIMULATEUR_V3, /body\[data-simulateur-version="3"\] \.entete\s*\{[^}]*background:\s*var\(--v3-shell\);/s);
-  assert.match(SIMULATEUR_V3, /body\[data-simulateur-version="3"\] \.entete__nav a\s*\{[^}]*color:\s*#ffffff;/s);
+test("la barre de commandement remplace le header global pendant toute la V3", () => {
+  assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\]\[data-simulateur-version="3"\] \.entete\s*\{[^}]*display:\s*none;/s);
+  assert.doesNotMatch(SIMULATEUR_V3, /body\[data-simulateur-version="3"\] \.entete__nav a\s*\{/s);
 });
 
 test("le verdict V3 possède une scène finale responsive et autonome", () => {
@@ -3574,7 +3582,7 @@ test("la V3 possède son hôte et son branchement par le routeur", () => {
   assert.match(MAIN, /modeSimulateur\(location\.pathname, location\.search\) === "v3"/);
 });
 
-test("la V3 remplace le chrome mobile par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
+test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
   assert.match(brancheV3, /mountSimulatorV3\(hoteV3, SCENARIO_V3_PREVIEW, \{[\s\S]*?crisisRules: SCENARIO_V3_CRISIS_RULES/);
@@ -3582,8 +3590,7 @@ test("la V3 remplace le chrome mobile par sa barre de commandement et ne déclen
   assert.match(brancheV3, /expert\.hidden = true/);
   assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);
   assert.match(brancheV3, /document\.body\.dataset\.simulateurVersion = "3"/);
-  assert.match(SIMULATEUR_V3, /@media \(max-width:\s*40rem\)[\s\S]*body\[data-simulateur-version="3"\] \.entete[\s\S]*display:\s*none/);
-  assert.match(SIMULATEUR_V3, /@media \(max-width:\s*40rem\)[\s\S]*body\[data-simulateur-version="3"\] \.entete__nav[\s\S]*display:\s*none/);
+  assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\]\[data-simulateur-version="3"\] \.entete\s*\{[^}]*display:\s*none;/s);
   assert.match(MAIN, /if \(vue !== "simulateur" \|\| !versionSimulateurV3\(\)\) \{[\s\S]*?demonterApercuSimulateurV3\(\);/);
 });
 

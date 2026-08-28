@@ -37,57 +37,13 @@ body[data-simulateur-version="3"] {
   font-family: var(--sans);
 }
 
-body[data-vue="simulateur"] .entete__recherche { display: none; }
-
 body[data-vue="simulateur"] #vue-simulateur {
   max-width: none;
   padding-inline: 0;
 }
 
-body[data-simulateur-version="3"] .entete {
-  width: min(calc(100% - 2 * var(--espace-5)), 86rem);
-  min-height: 4.5rem;
-  margin: var(--espace-4) auto 0;
-  padding: var(--espace-3) var(--espace-5);
-  color: #ffffff;
-  background: var(--v3-shell);
-  border: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: var(--rayon-m);
-  box-shadow: 0 1rem 3rem rgb(0 0 0 / 0.18);
-}
-
-body[data-simulateur-version="3"] .entete__marque {
-  position: relative;
-  padding-left: var(--espace-6);
-}
-
-body[data-simulateur-version="3"] .entete__marque::before {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 1.15rem;
-  height: 1.65rem;
-  margin-block: auto;
-  background: linear-gradient(90deg, #1d3f8f 0 33.333%, #ffffff 33.333% 66.666%, #d7333f 66.666%);
-  border: 1px solid rgb(255 255 255 / 0.6);
-  content: "";
-}
-
-body[data-simulateur-version="3"] .entete h1 { color: #ffffff; font-size: var(--texte-xl); }
-body[data-simulateur-version="3"] .entete .sous-titre { display: none; }
-
-body[data-simulateur-version="3"] .entete__nav a {
-  color: #ffffff;
-  border: 1px solid transparent;
-}
-
-body[data-simulateur-version="3"] .entete__nav a:hover { color: #ffffff; background: rgb(255 255 255 / 0.08); }
-body[data-simulateur-version="3"] .entete__nav a[aria-current="page"] { color: var(--v3-shell); background: var(--v3-gold); }
-
-body[data-simulateur-version="3"] .bascule-theme {
-  color: #ffffff;
-  background: transparent;
-  border-color: rgb(255 255 255 / 0.3);
-}
+body[data-vue="simulateur"][data-simulateur-version="3"] .entete { display: none; }
+body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-height: 100dvh; }
 
 #simulateur-v3 { scroll-margin-top: var(--haut-entete); }
 
@@ -641,8 +597,6 @@ body[data-simulateur-version="3"] .bascule-theme {
 }
 
 @media (max-width: 40rem) {
-  body[data-simulateur-version="3"] .entete,
-  body[data-simulateur-version="3"] .entete__nav { display: none; }
   body[data-simulateur-version="3"] .vue { padding-bottom: 0; }
   body[data-simulateur-version="3"] .simulateur-v3 { min-height: 100dvh; }
   .simulateur-v3__command-bar { padding: var(--espace-3) var(--espace-4); }
