@@ -56,6 +56,7 @@
  */
 
 import type { Territoire } from "./donnees.ts";
+import { nuageComparatif, tableauAccessible } from "./dataviz.ts";
 import { pourcentage } from "./echelle.ts";
 import { estAgregat, nomPays } from "./pays-noms.ts";
 import { lienSource, sourceIdPourIndicateur, type IndexSources } from "./registre-sources.ts";
@@ -236,6 +237,10 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
       echapper(c.exercice)
     }</span></th>`)
     .join("");
+  const tableau = `<table class="comparaison europe" tabindex="0">
+    <thead><tr><th scope="col">Pays</th>${entetes}</tr></thead>
+    <tbody>${rangees}</tbody>
+  </table>`;
 
   // La phrase d'ouverture : le rang de la France sur les deux ratios qui
   // portent la question, jamais sur les quatre — quatre rangs d'affilée se
@@ -259,14 +264,30 @@ export function rendu(pays: Record<string, Territoire>, indexSources?: IndexSour
           } : ${combienDevant(rangDepense.place, rangDepense.sur, "dépense")}. Les
           prélèvements obligatoires suivent, à <strong>${pourcent(prelevementsFr)}</strong> :
           ${combienDevant(rangPrelevements.place, rangPrelevements.sur, "prélève")}.</p>`;
+  const indexDepense = colonnes.findIndex((c) => c.cle === DEPENSE);
+  const indexPrelevements = colonnes.findIndex((c) => c.cle === PRELEVEMENTS);
+  const points = lignes.flatMap((ligne) => {
+    const y = ligne.cellules[indexDepense];
+    const x = ligne.cellules[indexPrelevements];
+    return x === null || y === null
+      ? []
+      : [{ id: ligne.code, libelle: ligne.nom, x, y, accent: ligne.code === "FR" }];
+  });
+  const graphique = nuageComparatif({
+    titre: "La France prélève et dépense davantage que ses voisins",
+    description: "Prélèvements obligatoires et dépense publique en pourcentage du PIB.",
+    axeX: "Prélèvements obligatoires",
+    axeY: "Dépense publique",
+    points,
+    formater: (nombre) => `${nombre.toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %`,
+    diagonale: true,
+  });
 
   return `
     <h3 class="sous-titre">La France et ses voisins</h3>
     ${phrase}
-    <table class="comparaison europe" tabindex="0">
-      <thead><tr><th scope="col">Pays</th>${entetes}</tr></thead>
-      <tbody>${rangees}</tbody>
-    </table>
+    ${graphique}
+    ${tableauAccessible("Voir les chiffres", tableau)}
     <p class="bloc__complement">${sourcesEurope(indexSources)}</p>`;
 }
 

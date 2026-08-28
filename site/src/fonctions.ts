@@ -43,6 +43,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { tableauAccessible } from "./dataviz.ts";
 import { pourcentage } from "./echelle.ts";
 import { nomPays } from "./pays-noms.ts";
 
@@ -190,6 +191,25 @@ export function rendu(
     const v = valeur(code, TOTAL);
     return v === undefined ? "" : ` · ${echapper(nom)} : ${echapper(pourcentage(v))}`;
   }).join("");
+  const tableau = `<table class="fonctions" tabindex="0">
+    <thead><tr><th scope="col">Fonction</th><th scope="col">France</th>
+      ${COMPARES.map(([, nom]) => `<th scope="col">${echapper(nom)}</th>`).join("")}
+      ${depart === null ? "" : `<th scope="col" class="evolution">Depuis ${echapper(depart)}</th>`}
+    </tr></thead>
+    <tbody>${lignes}</tbody>
+  </table>`;
+  const maximum = Math.max(...retenues.flatMap(({ id, fr }) => [fr, ...COMPARES.map(([code]) => valeur(code, id) ?? 0)]));
+  const comparatif = `<figure class="dataviz dataviz--fonctions" aria-label="Comparaison des dépenses publiques par fonction">
+    <figcaption><strong>La France comparée à ses voisins</strong><span>En % du PIB</span></figcaption>
+    <div class="dataviz__fonctions-legende"><span>● France</span>${COMPARES.map(([, nom], i) => `<span>${i === 0 ? "○" : "◆"} ${echapper(nom)}</span>`).join("")}</div>
+    <ol>${retenues.sort((a, b) => b.fr - a.fr).map(({ id, fr }) => {
+      const autres = COMPARES.map(([code, nom], i) => {
+        const v = valeur(code, id);
+        return v === undefined ? "" : `<i class="dataviz__fonction-point dataviz__fonction-point--${i + 1}" style="left:${(v / maximum * 100).toFixed(2)}%" title="${echapper(nom)} : ${echapper(pourcentage(v, true))}"></i>`;
+      }).join("");
+      return `<li><span>${echapper(libelle(id))}</span><span class="dataviz__fonction-rail"><i class="dataviz__fonction-point dataviz__fonction-point--fr" style="left:${(fr / maximum * 100).toFixed(2)}%" title="France : ${echapper(pourcentage(fr, true))}"></i>${autres}</span><strong>${echapper(pourcentage(fr, true))}</strong></li>`;
+    }).join("")}</ol>
+  </figure>`;
 
   return `
     <h3 class="sous-titre">À quoi ça sert</h3>
@@ -202,13 +222,8 @@ export function rendu(
       collectivités et Sécurité sociale réunis) ont dépensé <strong>${
         echapper(pourcentage(totalFr))
       } du produit intérieur brut</strong>${totauxCompares}.</p>
-    <table class="fonctions" tabindex="0">
-      <thead><tr><th scope="col">Fonction</th><th scope="col">France</th>
-        ${COMPARES.map(([, nom]) => `<th scope="col">${echapper(nom)}</th>`).join("")}
-        ${depart === null ? "" : `<th scope="col" class="evolution">Depuis ${echapper(depart)}</th>`}
-      </tr></thead>
-      <tbody>${lignes}</tbody>
-    </table>
+    ${comparatif}
+    ${tableauAccessible("Voir les chiffres", tableau)}
     <p class="bloc__complement">Source : Eurostat.</p>
 `;
 }

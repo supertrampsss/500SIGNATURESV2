@@ -7,7 +7,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
 
-import { ALIAS, CHEMINS, cheminDeVue, vueDepuisAdresse } from "./routes.ts";
+import * as routes from "./routes.ts";
+
+const { ALIAS, CHEMINS, cheminDeVue, vueDepuisAdresse } = routes;
 
 test("la racine publique redirige vers la page France", () => {
   const redirects = readFileSync(new URL("../public/_redirects", import.meta.url), "utf8");
@@ -83,4 +85,18 @@ test("les segments s'accommodent des barres obliques", () => {
   // Le comparateur de scénarios vit sous le simulateur : le premier segment
   // suffit à nommer la vue.
   assert.equal(vueDepuisAdresse("/simulateur/comparer", ""), "simulateur");
+});
+
+test("le simulateur V3 est l'entrée par défaut sans casser les permaliens V2", () => {
+  const mode = (routes as unknown as {
+    modeSimulateur?: (pathname: string, search: string) => "v2" | "v3";
+  }).modeSimulateur;
+
+  assert.equal(typeof mode, "function");
+  assert.equal(mode?.("/simulateur", ""), "v3");
+  assert.equal(mode?.("/simulateur", "?version=3"), "v3");
+  assert.equal(mode?.("/simulateur", "?version=2"), "v2");
+  assert.equal(mode?.("/simulateur", "?defi=ancien-defi"), "v2");
+  assert.equal(mode?.("/simulateur", "?budget=R1%3A10"), "v2");
+  assert.equal(mode?.("/simulateur/comparer", ""), "v2");
 });

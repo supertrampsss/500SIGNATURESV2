@@ -53,6 +53,7 @@
 import type { Territoire } from "./donnees.ts";
 import { montantLisible } from "./echelle.ts";
 import { dessiner } from "./graphique.ts";
+import { barreEmpilee } from "./dataviz.ts";
 
 const RECETTES = "eurostat_apu_recettes";
 const DEPENSES = "eurostat_apu_depenses";
@@ -291,6 +292,22 @@ export function rendu(pays: Record<string, Territoire>): string {
     (ligne): ligne is readonly [string, number] => ligne[1] !== null,
   );
   const autresRecettes = 100 - ressources.reduce((somme, [, valeur]) => somme + valeur, 0);
+  const recettesTable = `<table class="comparaison" tabindex="0">
+    <thead><tr><th scope="col">D'où viennent les 100 €</th><th scope="col">Montant</th></tr></thead>
+    <tbody>${ressources.map(([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th><td class="flux--plus">+${pour100(valeur)}</td></tr>`).join("")}
+      <tr><th scope="row">Ventes de services et autres recettes</th><td class="flux--plus">+${pour100(autresRecettes)}</td></tr>
+      <tr class="souligne"><th scope="row">Total encaissé</th><td class="flux--plus">+${pour100(100)}</td></tr>
+    </tbody>
+  </table>`;
+  const recettesGraphique = barreEmpilee({
+    titre: "D'où viennent les 100 €",
+    description: "Composition des recettes de l'ensemble des administrations publiques.",
+    segments: [
+      ...ressources.map(([libelle, valeur]) => ({ libelle, valeur })),
+      { libelle: "Ventes de services et autres recettes", valeur: autresRecettes },
+    ],
+    formater: pour100,
+  });
 
   // « Où ils vont » : une seule liste de postes-feuilles, triée du plus lourd
   // au plus léger — demandé par le propriétaire. Le premier poste, quand sa
@@ -335,22 +352,9 @@ export function rendu(pays: Record<string, Territoire>): string {
           empruntés : c'est le déficit public. Le premier poste, retraites, chômage et
           allocations, en prend plus du tiers, et à l'intérieur, <strong>la retraite pèse
           neuf fois le chômage</strong>.</p>
-        <table class="comparaison" tabindex="0">
-          <thead><tr><th scope="col">D'où viennent les 100 €</th>
-            <th scope="col">Montant</th></tr></thead>
-          <tbody>${ressources
-            .map(
-              ([libelle, valeur]) => `<tr><th scope="row">${echapper(libelle)}</th>
-                <td class="flux--plus">+${pour100(valeur)}</td></tr>`,
-            )
-            .join("")}
-            <tr><th scope="row">Ventes de services et autres recettes</th>
-              <td class="flux--plus">+${pour100(autresRecettes)}</td></tr>
-            <tr class="souligne"><th scope="row">Total encaissé</th>
-              <td class="flux--plus">+${pour100(100)}</td></tr>
-          </tbody>
-        </table>
-        <p class="bloc__complement">Source : Eurostat.</p>
+        ${recettesGraphique}
+        <div class="ui-visually-hidden">${recettesTable}
+        <p class="bloc__complement">Source : Eurostat.</p></div>
       </div>
       <div>
         <h3 class="sous-titre">Où ils vont</h3>

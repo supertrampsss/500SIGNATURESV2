@@ -114,7 +114,7 @@ import { situation, rendreSituation } from "./situation.ts";
 import { creerGarde } from "./garde-geste.ts";
 import { creerFile, squeletteFiche } from "./chargement.ts";
 import { filtrer, rendreSommaire, type EntreeSommaire } from "./sommaire.ts";
-import { adresseTerritoire, cheminDeVue, estAccueil, vueDepuisAdresse } from "./routes.ts";
+import { adresseTerritoire, cheminDeVue, estAccueil, modeSimulateur, vueDepuisAdresse } from "./routes.ts";
 import {
   rendu as renduAccueil,
   exemplesTerritoires,
@@ -2450,7 +2450,7 @@ function brancherEvenementsInterface(): void {
 }
 
 function versionSimulateurV3(): boolean {
-  return new URLSearchParams(location.search).get("version") === "3";
+  return modeSimulateur(location.pathname, location.search) === "v3";
 }
 
 function vuesConnues(): readonly string[] {

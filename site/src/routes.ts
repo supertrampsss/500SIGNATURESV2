@@ -22,6 +22,36 @@ export const CHEMINS: Record<string, string> = {
   simulateur: "/simulateur",
 };
 
+/** Les permaliens V2 portent un état qui n'a aucun sens dans la campagne V3.
+ *
+ * La porte nue `/simulateur` est désormais la V3. Les anciennes adresses
+ * partagées restent cependant lisibles : leur charge utile sélectionne
+ * explicitement l'ancien contrôleur, sans jamais consulter le stockage local.
+ */
+const PARAMETRES_SIMULATEUR_V2 = new Set([
+  "defi",
+  "budget",
+  "contrat",
+  "nom",
+  "face",
+  "face-nom",
+  "face-exercice",
+  "face-source",
+]);
+
+export type ModeSimulateur = "v2" | "v3";
+
+/** La version du simulateur demandée par l'adresse, indépendante des sauvegardes. */
+export function modeSimulateur(pathname: string, search: string): ModeSimulateur {
+  const parametres = new URLSearchParams(search);
+  if (parametres.get("version") === "2") return "v2";
+  if ([...PARAMETRES_SIMULATEUR_V2].some((cle) => parametres.has(cle))) return "v2";
+
+  const chemin = pathname.replace(/\/+$/, "") || "/";
+  if (chemin.startsWith(`${CHEMINS.simulateur}/`)) return "v2";
+  return "v3";
+}
+
 /**
  * Les anciens noms, et ce qu'ils ouvrent aujourd'hui.
  *

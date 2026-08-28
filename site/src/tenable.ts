@@ -28,6 +28,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { tableauAccessible } from "./dataviz.ts";
 import { dessiner } from "./graphique.ts";
 import { montantLisible } from "./echelle.ts";
 import { nomPays } from "./pays-noms.ts";
@@ -210,10 +211,11 @@ export function rendu(
   };
   const partFr = dernierePart("FR");
   const voisins = partFr
-    ? VOISINS.map((code) => {
+    ? VOISINS.flatMap((code) => {
         const part = pays[code]?.series?.[DETTE_PIB]?.[partFr[0]];
-        if (part === undefined) return "";
-        return `<div class="tenable__rang" style="grid-template-columns:minmax(6rem,11rem) minmax(0,1fr) 4.6rem">
+        return part === undefined ? [] : [{ code, part }];
+      }).map(({ code, part }) => {
+        return `<div class="tenable__rang${code === "FR" ? " tenable__rang--france" : ""}" style="grid-template-columns:minmax(6rem,11rem) minmax(0,1fr) 4.6rem">
           <span class="apu__nom">${echapper(nomPays(code))}</span>
           <span class="apu__piste"><span style="width:${Math.min(100, (part / Math.max(...VOISINS.map((c) => pays[c]?.series?.[DETTE_PIB]?.[partFr[0]] ?? 0))) * 100).toFixed(1)}%"></span></span>
           <span class="apu__valeur">${UNE_DECIMALE.format(part)}&nbsp;%</span>
@@ -229,7 +231,7 @@ export function rendu(
     <div>
       <h3 class="sous-titre">La dette, jusqu'en 2032</h3>
       ${svg}
-      ${tableau}
+      ${tableauAccessible("Voir les scénarios chiffrés", tableau)}
       <p class="bloc__complement">Sources : Commission européenne · Mission sur la transparence des finances publiques.</p>
     </div>
     ${

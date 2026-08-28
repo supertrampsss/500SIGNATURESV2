@@ -47,6 +47,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { halteres, tableauAccessible } from "./dataviz.ts";
 import { variation } from "./ouverture.ts";
 
 const REFERENCE = "2017";
@@ -202,6 +203,27 @@ export function rendu(
       </tr>`,
     )
     .join("");
+  const tableau = `<table class="comparaison recettes" tabindex="0">
+    <thead><tr><th scope="col">Recettes</th><th scope="col">${echapper(debut)}</th>
+      <th scope="col">${echapper(fin)}</th><th scope="col">Variation</th></tr></thead>
+    <tbody>${rangees}</tbody>
+    <tfoot><tr><th scope="row">${echapper(total.libelle)}</th>
+      <td class="flux--plus">${plus(total.avant)}</td>
+      <td class="flux--plus">${plus(total.apres)}</td>
+      <td>${echapper(variation(total.avant, total.apres))}</td></tr></tfoot>
+  </table>`;
+  const graphique = halteres({
+    titre: "Ce que l'État encaisse a changé de composition",
+    description: `Recettes nettes de l'État en ${debut} et ${fin}, en milliards d'euros.`,
+    lignes: donnees.lignes.map((ligne) => ({
+      libelle: ligne.libelle,
+      avant: ligne.avant / 1e9,
+      apres: ligne.apres / 1e9,
+      detail: ligne.note,
+    })),
+    noms: [debut, fin],
+    formater: (valeur) => `+${MILLIARDS.format(valeur)} Md€`,
+  });
 
   // L'affirmation à gauche, la preuve à droite, comme la maquette validée.
   // Pas de titre de bloc : la question du chapitre, juste au-dessus, le porte
@@ -226,15 +248,8 @@ export function rendu(
           cette part-là qui diminue.</p>
       </div>
       <div>
-        <table class="comparaison recettes" tabindex="0">
-          <thead><tr><th scope="col">Recettes</th><th scope="col">${echapper(debut)}</th>
-            <th scope="col">${echapper(fin)}</th><th scope="col">Variation</th></tr></thead>
-          <tbody>${rangees}</tbody>
-          <tfoot><tr><th scope="row">${echapper(total.libelle)}</th>
-            <td class="flux--plus">${plus(total.avant)}</td>
-            <td class="flux--plus">${plus(total.apres)}</td>
-            <td>${echapper(variation(total.avant, total.apres))}</td></tr></tfoot>
-        </table>
+        ${graphique}
+        ${tableauAccessible("Voir les chiffres", tableau)}
         <p class="bloc__complement">Milliards d'euros, exercices réellement exécutés.
           Source : situation mensuelle budgétaire de l'État.</p>
       </div>

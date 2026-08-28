@@ -38,6 +38,7 @@
  */
 
 import type { Territoire } from "./donnees.ts";
+import { graphiqueEcart, tableauAccessible } from "./dataviz.ts";
 import { montantLisible } from "./echelle.ts";
 
 // L'exercice de référence des écarts. Déclaré ici pour qu'il se voie et se
@@ -199,6 +200,32 @@ ${
       .map((an) => `<td>${cellule(an)}</td>`)
       .join("")}<td class="evolution">${evolution}</td></tr>`;
 
+  const tableau = `<table class="comparaison ouverture__evolution" tabindex="0">
+    <thead><tr><th scope="col"></th>${colonnes}<th scope="col" class="evolution">${echapper(
+      `${c.debut}\u2009→\u2009${c.fin}`,
+    )}</th></tr></thead>
+    <tbody>
+      ${ligne("Recettes", (an) => `<span class="flux--plus">${milliards(r[an], "+")}</span>`, evolutionDe(r))}
+      ${ligne("Dépenses", (an) => `<span class="flux--moins">${milliards(d[an], "−")}</span>`, evolutionDe(d))}
+      ${ligne(
+        "Emprunté",
+        (an) => `<strong>${milliards(d[an] - r[an], "−")}</strong>`,
+        evolutionDe(Object.fromEntries(c.exercices.concat(c.debut, c.fin).map((an) => [an, d[an] - r[an]]))),
+      )}
+    </tbody>
+  </table>`;
+  const graphique = graphiqueEcart({
+    titre: "Les dépenses restent au-dessus des recettes",
+    description: `Recettes et dépenses publiques de ${c.exercices[0]} à ${c.fin}, en milliards d'euros.`,
+    points: c.exercices.map((periode) => ({
+      periode,
+      haut: d[periode] / 1e9,
+      bas: r[periode] / 1e9,
+    })),
+    noms: ["Dépenses", "Recettes"],
+    formater: (valeur) => `${EUROS.format(valeur)} Md€`,
+  });
+
   // La maquette validée pose l'affirmation à gauche et sa preuve à droite :
   // les phrases dans une colonne, le tableau dans l'autre. Sous 56 rem, la
   // grille retombe en pile et l'ordre de lecture reste le même.
@@ -208,32 +235,8 @@ ${
         ${piege}
       </div>
       <div>
-        <table class="comparaison ouverture__evolution" tabindex="0">
-          <thead><tr><th scope="col"></th>${colonnes}<th scope="col" class="evolution">${echapper(
-            `${c.debut}\u2009→\u2009${c.fin}`,
-          )}</th></tr></thead>
-          <tbody>
-            ${ligne(
-              "Recettes",
-              (an) => `<span class="flux--plus">${milliards(r[an], "+")}</span>`,
-              evolutionDe(r),
-            )}
-            ${ligne(
-              "Dépenses",
-              (an) => `<span class="flux--moins">${milliards(d[an], "−")}</span>`,
-              evolutionDe(d),
-            )}
-            ${ligne(
-              "Emprunté",
-              (an) => `<strong>${milliards(d[an] - r[an], "−")}</strong>`,
-              evolutionDe(
-                Object.fromEntries(
-                  c.exercices.concat(c.debut, c.fin).map((an) => [an, d[an] - r[an]]),
-                ),
-              ),
-            )}
-          </tbody>
-        </table>
+        ${graphique}
+        ${tableauAccessible("Voir les chiffres", tableau)}
       </div>
     </div>
     <p class="ouverture__source">Milliards d'euros courants, exercices ${echapper(c.exercices[0]!)} à

@@ -3561,11 +3561,11 @@ test("la feuille V3 surcharge le tunnel historique sans le modifier", () => {
   assert.ok(v3 > historique);
 });
 
-test("la préversion V3 possède son hôte et son branchement explicite", () => {
+test("la V3 possède son hôte et son branchement par le routeur", () => {
   assert.match(PAGE, /<section id="simulateur-v3" hidden><\/section>/);
   assert.match(MAIN, /import \{ mountSimulatorV3 \} from "\.\/simulateur-v3\/controller\.ts";/);
   assert.match(MAIN, /import \{ SCENARIO_V3_PREVIEW \} from "\.\/simulateur-v3\/scenario\.ts";/);
-  assert.match(MAIN, /new URLSearchParams\(location\.search\)\.get\("version"\) === "3"/);
+  assert.match(MAIN, /modeSimulateur\(location\.pathname, location\.search\) === "v3"/);
 });
 
 test("la V3 remplace le chrome mobile par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {

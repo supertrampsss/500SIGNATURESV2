@@ -22,6 +22,7 @@
  */
 
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { barresSolde, tableauAccessible } from "./dataviz.ts";
 import { moins, montantLisible, pourcentage } from "./echelle.ts";
 
 export const DEPENSES = "eurostat_secu_depenses_pib";
@@ -94,6 +95,20 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
     v === undefined ? "—" : echapper(ecrire(v));
   const rangee = (valeurs: Record<string, number>, classe: string, ecrire: (n: number) => string) =>
     annees.map((a) => `<td class="${classe}">${cellule(valeurs[a], ecrire)}</td>`).join("");
+  const tableau = `<table class="secu" tabindex="0">
+    <thead><tr><th scope="col">% du PIB</th>${annees.map((a) => `<th scope="col">${echapper(a)}</th>`).join("")}</tr></thead>
+    <tbody>
+      <tr><th scope="row">Recettes</th>${rangee(serie(RECETTES), "flux--plus", (n) => `+${pourcentage(n, true)}`)}</tr>
+      <tr><th scope="row">Dépenses</th>${rangee(serie(DEPENSES), "flux--moins", (n) => `−${pourcentage(n, true)}`)}</tr>
+    </tbody>
+    <tfoot><tr><th scope="row">Solde</th>${annees.map((a) => `<td class="${soldes[a] < 0 ? "secu__besoin" : "secu__capacite"}">${echapper(points(soldes[a]))}</td>`).join("")}</tr></tfoot>
+  </table>`;
+  const graphique = barresSolde({
+    titre: "Le solde de la Sécurité sociale",
+    description: `Excédents et déficits de ${annees[0]} à ${annee}, en pourcentage du PIB.`,
+    points: annees.map((periode) => ({ periode, valeur: soldes[periode] })),
+    formater: points,
+  });
 
   return `
     <h3>La Sécu est-elle en déficit ?</h3>
@@ -102,20 +117,8 @@ export function rendu(pays: Record<string, Territoire>, catalogue: Indicateur[])
     }</strong> En ${echapper(annee)}, la Sécurité sociale a dépensé l'équivalent de
       <strong>${echapper(pourcentage(depensesFr))}</strong> du PIB et encaissé
       <strong>${echapper(pourcentage(recettesFr))}</strong> du PIB${enEuros}.</p>
-    <table class="secu" tabindex="0">
-      <thead><tr><th scope="col">% du PIB</th>${annees
-        .map((a) => `<th scope="col">${echapper(a)}</th>`)
-        .join("")}</tr></thead>
-      <tbody>
-        <tr><th scope="row">Recettes</th>${rangee(serie(RECETTES), "flux--plus", (n) => `+${pourcentage(n, true)}`)}</tr>
-        <tr><th scope="row">Dépenses</th>${rangee(serie(DEPENSES), "flux--moins", (n) => `−${pourcentage(n, true)}`)}</tr>
-      </tbody>
-      <tfoot><tr><th scope="row">Solde</th>${annees
-        .map(
-          (a) => `<td class="${soldes[a] < 0 ? "secu__besoin" : "secu__capacite"}">${echapper(points(soldes[a]))}</td>`,
-        )
-        .join("")}</tr></tfoot>
-    </table>
+    ${graphique}
+    ${tableauAccessible("Voir les chiffres", tableau)}
     <p class="bloc__complement">Source : Eurostat.</p>
 `;
 }
