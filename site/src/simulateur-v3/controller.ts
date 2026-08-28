@@ -14,12 +14,20 @@ import {
   type StorageLike,
 } from "./storage.ts";
 import type { CampaignPhase, CampaignState, CrisisRule, Scenario } from "./types.ts";
+import { buildMandateVerdictViewModel } from "./verdict.ts";
+import {
+  buildVerdictShare,
+  offerVerdictShare,
+  type VerdictShareChannels,
+  type VerdictShareIssue,
+} from "./verdict-share.ts";
 
 export type SimulatorV3Host = {
   innerHTML: string;
   addEventListener(type: "click", listener: EventListener): void;
   removeEventListener(type: "click", listener: EventListener): void;
   scrollIntoView?(options?: ScrollIntoViewOptions): void;
+  querySelector?(selector: string): { textContent: string | null } | null;
 };
 
 export type SimulatorV3Dependencies = {
@@ -28,6 +36,8 @@ export type SimulatorV3Dependencies = {
   eventTarget?: EventTarget;
   now?: () => Date;
   crisisRules?: readonly CrisisRule[];
+  shareChannels?: VerdictShareChannels;
+  currentUrl?: () => string;
 };
 
 type ActionNode = {
@@ -59,6 +69,32 @@ function defaultNavigate(path: string): void {
   if (typeof window !== "undefined") window.location.assign(path);
 }
 
+function defaultCurrentUrl(): string {
+  return typeof window === "undefined" ? "/simulateur?version=3" : window.location.href;
+}
+
+function defaultShareChannels(): VerdictShareChannels {
+  return {
+    partager: typeof navigator !== "undefined" && typeof navigator.share === "function"
+      ? (payload) => navigator.share(payload)
+      : undefined,
+    copier: typeof navigator !== "undefined" && navigator.clipboard
+      ? (value) => navigator.clipboard.writeText(value)
+      : undefined,
+    proposer: typeof window !== "undefined" && typeof window.prompt === "function"
+      ? (message, value) => { window.prompt(message, value); }
+      : undefined,
+  };
+}
+
+function shareStatus(issue: VerdictShareIssue): string {
+  if (issue === "partagé") return "Partage ouvert.";
+  if (issue === "copié") return "Verdict copié.";
+  if (issue === "proposé") return "Texte prêt à copier.";
+  if (issue === "indisponible") return "Le partage n'est pas disponible sur ce navigateur.";
+  return "";
+}
+
 function inferredPhaseBeforePause(state: CampaignState): CampaignPhase {
   const position = state.chapterIndex * 12 + state.decisionIndex;
   return state.decisions.length > position ? "decision_result" : "decision";
@@ -80,6 +116,8 @@ export function mountSimulatorV3(
   const navigate = dependencies.navigate ?? defaultNavigate;
   const now = dependencies.now ?? (() => new Date());
   const crisisRules = dependencies.crisisRules ?? [];
+  const shareChannels = dependencies.shareChannels ?? defaultShareChannels();
+  const currentUrl = dependencies.currentUrl ?? defaultCurrentUrl;
   const restored = restoreCampaign(storage, scenario);
   const v2Found = restored.kind === "v2_found";
   let state = restored.kind === "restored" ? restored.state : createCampaign(scenario);
@@ -110,6 +148,17 @@ export function mountSimulatorV3(
 
     if (action === "quit") {
       navigate("/bilan");
+      return;
+    }
+
+    if (action === "share-verdict" && state.phase === "verdict") {
+      const view = buildMandateVerdictViewModel(state, scenario, crisisRules);
+      const share = buildVerdictShare(view, currentUrl());
+      void offerVerdictShare(share, shareChannels).then((issue) => {
+        const status = host.querySelector?.(".simulateur-v3__verdict-share-status");
+        if (status) status.textContent = shareStatus(issue);
+        if (["partagé", "copié", "proposé"].includes(issue)) emit({ type: "verdict_shared" });
+      });
       return;
     }
 
