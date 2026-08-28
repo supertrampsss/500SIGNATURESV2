@@ -332,8 +332,8 @@ export function rendu(pays: Record<string, Territoire>): string {
           financent) ont encaissé <strong>${montantLisible(total)}</strong> en
           ${echapper(exercice)} et dépensé <strong>${pour100(depense)}</strong> pour chaque
           100 € reçus. Les <strong>${pour100(Math.abs(solde))}</strong> manquants ont été
-          empruntés : c'est le déficit public. Le premier poste — retraites, chômage,
-          allocations — en prend plus du tiers, et à l'intérieur, <strong>la retraite pèse
+          empruntés : c'est le déficit public. Le premier poste, retraites, chômage et
+          allocations, en prend plus du tiers, et à l'intérieur, <strong>la retraite pèse
           neuf fois le chômage</strong>.</p>
         <table class="comparaison" tabindex="0">
           <thead><tr><th scope="col">D'où viennent les 100 €</th>

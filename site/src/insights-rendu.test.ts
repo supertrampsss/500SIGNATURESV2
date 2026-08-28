@@ -29,7 +29,7 @@ const insight: Insight = {
   titre: "Une conclusion & son chiffre",
   texte: "L'analyse reste visible.",
   reserve: "La limite est explicite.",
-  comparaison: "Voisins européens — Allemagne 42,4 % · Belgique 47,2 %.",
+  comparaison: "Voisins européens : Allemagne 42,4 % · Belgique 47,2 %.",
   preuves: [{ indicateur: "test", periode: "2025", valeur: 12.5, libelle: "Mesure" }],
 };
 
@@ -44,7 +44,7 @@ test("renduInsights rend l'analyse et la comparaison, jamais la réserve", () =>
   assert.match(html, /L&#39;analyse reste visible/);
   assert.doesNotMatch(html, /La limite est explicite/);
   assert.doesNotMatch(html, /insight__reserve/);
-  assert.match(html, /Voisins européens — Allemagne 42,4 % · Belgique 47,2 %/);
+  assert.match(html, /Voisins européens : Allemagne 42,4 % · Belgique 47,2 %/);
   assert.match(html, /insight__comparaison/);
   assert.doesNotMatch(html, /À garder en tête/);
   assert.doesNotMatch(html, /Vérifier les chiffres/);

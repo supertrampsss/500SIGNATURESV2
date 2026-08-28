@@ -56,7 +56,6 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   t("transferts-collectivites", "etat_psr_collectivites", "EUR", "budget", "Territoires · ce que l'État reverse", "Transferts de l'État aux collectivités", reserveBudget),
   t("contribution-ue", "etat_psr_union_europeenne", "EUR", "budget", "Europe · la contribution française", "Prélèvement au profit de l'Union européenne", reserveBudget),
   t("recettes-fiscales-etat", "etat_recettes_fiscales", "EUR", "fiscalite", "Fiscalité · le rendement total", "Recettes fiscales nettes de l'État", reserveBudget),
-  t("recettes-non-fiscales", "etat_recettes_non_fiscales", "EUR", "budget", "État · les recettes hors impôts", "Recettes non fiscales", reserveBudget),
   t("remboursements-impots", "etat_remboursements_impots_etat", "EUR", "fiscalite", "Fiscalité · ce qui est rendu", "Remboursements et dégrèvements d'impôts", reserveBudget),
   t("tva-conservee-etat", "etat_tva", "EUR", "fiscalite", "TVA · ce que l'État conserve", "Part de TVA conservée par l'État", "La série porte sur la part conservée par l'État, pas sur tout le produit de TVA collecté."),
   t("ticpe-etat", "etat_ticpe", "EUR", "fiscalite", "Carburants · la recette de l'État", "Part de taxe énergétique conservée par l'État", "Les transferts de fiscalité entre administrations modifient la part conservée par l'État."),
@@ -82,13 +81,10 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   t("defaillances-entreprises-indice", "eurostat_defaillances", "indice", "travail", "Entreprises · les cessations judiciaires", "Indice des défaillances d'entreprises", "Une défaillance judiciaire n'est pas synonyme de disparition définitive de l'activité."),
   t("croissance-pib", "eurostat_croissance_pib", "percent", "travail", "Économie · la croissance réelle", "Croissance du PIB sur un an", "Une variation trimestrielle sur un an reste sensible au point de comparaison."),
   t("inflation-harmonisee", "eurostat_inflation_ipch", "percent", "travail", "Prix · l'inflation européenne", "Inflation harmonisée", "Le taux moyen ne reflète pas le panier de consommation de chaque ménage."),
-  t("inflation-insee", "insee_inflation_ipc", "percent", "travail", "Pouvoir d'achat · le thermomètre français", "Inflation mesurée par l'Insee", "L'indice des prix n'est pas un indice du coût de la vie individuel."),
   t("investissement-entreprises", "eurostat_investissement_entreprises_pib", "percent", "travail", "Entreprises · l'investissement productif", "Investissement des entreprises dans le PIB", reserveMacro),
   t("marge-entreprises", "eurostat_marge_entreprises", "percent", "travail", "Entreprises · le partage de la valeur", "Taux de marge des entreprises", "Le taux de marge n'est ni le bénéfice net ni le revenu des actionnaires."),
-  t("pib-habitant", "eurostat_pib_habitant_spa", "count", "travail", "Niveau de vie · la richesse produite", "PIB par habitant en pouvoir d'achat", "Le PIB par habitant est une moyenne de production, pas un revenu distribué."),
   t("production-industrielle", "eurostat_production_industrielle", "indice", "travail", "Industrie · le décrochage ou le rebond", "Production industrielle", "L'indice agrège des branches industrielles dont les trajectoires diffèrent."),
   t("epargne-menages", "eurostat_taux_epargne_menages", "percent", "travail", "Ménages · l'argent non consommé", "Taux d'épargne des ménages", "Une forte épargne moyenne peut coexister avec des ménages sans capacité d'épargne."),
-  t("creations-entreprises-nombre", "insee_creations_entreprises", "count", "travail", "Entreprises · le record brut", "Nombre de créations d'entreprises", "Le total inclut des microentreprises et ne mesure pas les emplois créés ni la survie."),
   t("salaire-net-moyen", "insee_salaire_net_eqtp_mensuel", "EUR", "travail", "Salaires · la moyenne nationale", "Salaire net mensuel moyen", "La moyenne est supérieure à la médiane et ne décrit pas les temps partiels."),
 
   // Inégalités et société — 10
@@ -97,9 +93,6 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   t("pauvrete-seuil-50", "insee_taux_pauvrete_50", "percent", "services", "Pauvreté · le seuil le plus sévère", "Taux de pauvreté au seuil de 50 %", "Le seuil est relatif au niveau de vie médian et évolue avec lui."),
   t("intensite-pauvrete", "insee_intensite_pauvrete_60", "percent", "services", "Pauvreté · à quelle distance du seuil", "Intensité de la pauvreté", "L'intensité mesure l'écart médian au seuil parmi les personnes pauvres."),
   t("niveau-vie-haut", "insee_niveau_vie_d9", "EUR", "services", "Niveaux de vie · le haut de l'échelle", "Seuil des 10 % les plus aisés", "Le neuvième décile est un seuil d'entrée et non la moyenne des plus aisés."),
-  t("mariages", "insee_mariages", "count", "generation", "Société · le mariage recule-t-il vraiment", "Nombre de mariages", "Les restrictions de 2020 créent une rupture exceptionnelle dans la série."),
-  t("pacs", "insee_pacs", "count", "generation", "Société · l'autre forme d'union", "Nombre de Pacs conclus", "Mariages et Pacs ne couvrent pas toutes les formes de vie en couple."),
-  t("nuptialite", "insee_taux_nuptialite", "pour_1000_habitants", "generation", "Société · l'union rapportée à la population", "Taux de nuptialité", "Le taux dépend aussi de la structure par âge de la population."),
 
   // Sécurité — 13
   t("escroqueries", "ssmsi_escroqueries_nombre", "count", "securite", "Fraudes · la délinquance qui se déplace", "Victimes d'escroqueries enregistrées", reserveSecurite),
@@ -109,9 +102,6 @@ export const RECETTES_TENDANCES: RecetteTendance[] = [
   t("violences-hors-famille", "ssmsi_violences_hors_famille_nombre", "count", "securite", "Violences · hors du cercle familial", "Victimes de violences physiques hors famille", reserveSecurite),
   t("violences-intrafamiliales", "ssmsi_violences_intrafamiliales_nombre", "count", "securite", "Famille · les violences révélées", "Victimes de violences intrafamiliales", reserveSecurite),
   t("violences-sexuelles", "ssmsi_violences_sexuelles_nombre", "count", "securite", "Violences sexuelles · le nombre enregistré", "Victimes de violences sexuelles", "La hausse peut refléter à la fois les faits et une libération de la parole ou un meilleur accueil des plaintes."),
-  t("vols-armes", "ssmsi_vols_armes_nombre", "count", "securite", "Vols · la violence armée", "Vols avec armes enregistrés", reserveSecurite),
-  t("vols-dans-vehicules", "ssmsi_vols_dans_vehicules_nombre", "count", "securite", "Automobile · les vols dans l'habitacle", "Véhicules touchés par un vol intérieur", reserveSecurite),
-  t("vols-sans-violence", "ssmsi_vols_sans_violence_nombre", "count", "securite", "Vols · la masse des atteintes", "Victimes de vols sans violence", reserveSecurite),
   t("vols-vehicules-france", "ssmsi_vols_vehicules_nombre", "count", "securite", "Automobile · les véhicules volés", "Véhicules volés", reserveSecurite),
   t("cambriolages-france", "ssmsi_cambriolages_nombre", "count", "securite", "Logement · les cambriolages", "Cambriolages de logement enregistrés", reserveSecurite),
   t("degradations", "ssmsi_degradations_nombre", "count", "securite", "Cadre de vie · les dégradations", "Destructions et dégradations enregistrées", reserveSecurite),

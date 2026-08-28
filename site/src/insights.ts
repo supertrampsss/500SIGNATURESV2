@@ -25,6 +25,8 @@ export type Insight = {
   /** Comparaison harmonisée au même exercice, uniquement quand Eurostat
    * publie la même série pour plusieurs voisins. */
   comparaison?: string;
+  /** Publications officielles absentes de l'entrepôt et listées sur /sources/. */
+  sourceIds?: string[];
   preuves: PreuveInsight[];
 };
 

@@ -3,11 +3,12 @@ import test from "node:test";
 
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { insightsFrance } from "./insights-france.ts";
+import { IDS_SOURCES_ARBITRAGES } from "./insights-sources.ts";
 
-const indicateur = (id: string, libelle = id): Indicateur => ({
+const indicateur = (id: string, libelle = id, unite = "EUR"): Indicateur => ({
   id,
   libelle,
-  unite: "EUR",
+  unite,
   theme: "test",
   sommable: false,
   cadre_comptable: null,
@@ -48,8 +49,9 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
     insee_gini_avant_redistribution: { "2024": 0.4 },
     etat_depenses_personnel: { "2025": 156 },
     etat_depenses_nettes_bg: { "2025": 440 },
-    etat_impot_revenu: { "2025": 95 },
-    etat_recettes_fiscales: { "2025": 357 },
+    etat_impot_revenu: { "2025": 95_000_000_000 },
+    etat_recettes_fiscales: { "2025": 357_000_000_000 },
+    etat_charge_dette: { "2025": 66_500_000_000 },
     insee_dette_etat_montant: { "2025-Q1": 2_880 },
     insee_dette_apu_montant: { "2025-Q1": 3_525 },
     drees_protection_sociale_vieillesse: { "2024": 427 },
@@ -69,15 +71,22 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
     insee_personnes_pauvres_60: { "2024": 9_817_000 },
     justice_densite_carcerale: { "2025-01": 129.4, "2026-07": 141.4 },
     justice_personnes_detenues: { "2025-01": 80_514, "2026-07": 89_283 },
+    eurostat_pib_habitant_spa: { "2017": 108, "2025": 104 },
   };
   const catalogue = [
     indicateur("etat_mission_defense_credits_votes", "Défense — crédits votés"),
     indicateur("etat_mission_defense_credits_consommes", "Défense — crédits consommés"),
     indicateur("etat_mission_culture_credits_votes", "Culture — crédits votés"),
     indicateur("etat_mission_culture_credits_consommes", "Culture — crédits consommés"),
+    indicateur("etat_charge_dette"),
+    indicateur("etat_impot_revenu"),
+    indicateur("eurostat_pib_habitant_spa", "PIB par habitant en SPA", "count"),
   ];
+  const pays = {
+    PL: france({ eurostat_pib_habitant_spa: { "2017": 70, "2025": 87 } }),
+  };
 
-  const resultat = insightsFrance(france(series), catalogue);
+  const resultat = insightsFrance(france(series), catalogue, pays);
 
   assert.deepEqual(
     resultat.map(({ id }) => id),
@@ -101,6 +110,16 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
       "chomage-jeunes",
       "pauvrete",
       "densite-carcerale",
+      "ir-foyers-imposes",
+      "tres-hauts-revenus",
+      "redistribution-ocde",
+      "pauvrete-actifs-retraites",
+      "majoration-trois-enfants",
+      "projection-charge-dette",
+      "charge-dette-sur-ir",
+      "surtaxe-exceptionnelle-prolongee",
+      "rattrapage-pologne",
+      "sncf-financement-public",
       "mission-defense",
       "mission-culture",
     ],
@@ -120,6 +139,14 @@ test("insightsFrance produit les angles composés puis les missions disponibles"
   assert.match(resultat[16].titre, /2,57 fois/);
   assert.equal(resultat[17].preuves.every(({ periode }) => periode === "2024"), true);
   assert.match(resultat[18].titre, /141,4/);
+  assert.match(resultat.find(({ id }) => id === "charge-dette-sur-ir")?.titre ?? "", /70/);
+  assert.match(resultat.find(({ id }) => id === "rattrapage-pologne")?.titre ?? "", /84 %/);
+  assert.equal(
+    resultat
+      .flatMap(({ sourceIds = [] }) => sourceIds)
+      .every((sourceId) => IDS_SOURCES_ARBITRAGES.has(sourceId)),
+    true,
+  );
 });
 
 test("insightsFrance supprime seulement les angles dont les séries sont insuffisantes", () => {
@@ -132,7 +159,19 @@ test("insightsFrance supprime seulement les angles dont les séries sont insuffi
     [],
   );
 
-  assert.deepEqual(resultat, []);
+  assert.deepEqual(
+    resultat.map(({ id }) => id),
+    [
+      "ir-foyers-imposes",
+      "tres-hauts-revenus",
+      "redistribution-ocde",
+      "pauvrete-actifs-retraites",
+      "majoration-trois-enfants",
+      "projection-charge-dette",
+      "surtaxe-exceptionnelle-prolongee",
+      "sncf-financement-public",
+    ],
+  );
 });
 
 test("insightsFrance ajoute le catalogue générique après les lectures composées", () => {
@@ -141,5 +180,15 @@ test("insightsFrance ajoute le catalogue générique après les lectures compos�
     [indicateur("etat_charge_dette", "Charge de la dette de l'État")],
   );
 
-  assert.deepEqual(resultat.map(({ id }) => id), ["charge-dette-etat"]);
+  assert.deepEqual(resultat.map(({ id }) => id), [
+    "ir-foyers-imposes",
+    "tres-hauts-revenus",
+    "redistribution-ocde",
+    "pauvrete-actifs-retraites",
+    "majoration-trois-enfants",
+    "projection-charge-dette",
+    "surtaxe-exceptionnelle-prolongee",
+    "sncf-financement-public",
+    "charge-dette-etat",
+  ]);
 });

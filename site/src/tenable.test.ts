@@ -116,8 +116,8 @@ test("la dette jusqu'en 2032 compare deux scénarios institutionnels sans extrap
   const html = rendu(PAYS, CATALOGUE);
   assert.match(html, /class="graphique__dessin"/);
   assert.match(html, /La dette, jusqu'en 2032/);
-  assert.match(html, /Commission européenne — scénario central/);
-  assert.match(html, /Mission indépendante — politique inchangée/);
+  assert.match(html, /Commission européenne : scénario central/);
+  assert.match(html, /Mission indépendante : politique inchangée/);
   assert.equal((html.match(/class="graphique__jalon"[^>]*fill="#b43a31"/g) ?? []).length, 2);
   assert.match(html, /131,7/);
   assert.match(html, /plus de 130/);

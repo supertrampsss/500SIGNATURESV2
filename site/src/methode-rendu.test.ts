@@ -440,6 +440,30 @@ test("la page Sources et méthode descend de h1 à h2 puis h3", () => {
   assert.doesNotMatch(html, /<h1[\s\S]*?<h3>Les sources<\/h3>/);
 });
 
+test("la page Sources regroupe les études officielles utilisées par les arbitrages", () => {
+  const html = renduSourcesEtMethode(JEUX, []);
+
+  assert.match(html, /id="sources-arbitrages"/);
+  assert.match(html, /Études utilisées dans les arbitrages/);
+  assert.match(html, /DGFiP/);
+  assert.match(html, /DREES/);
+  assert.match(html, /OCDE/);
+  assert.match(html, /Cour des comptes/);
+  assert.match(html, /Assemblée nationale/);
+  assert.match(html, /https:\/\/www\.impots\.gouv\.fr\//);
+  assert.match(html, /https:\/\/www\.insee\.fr\//);
+  assert.match(html, /https:\/\/www\.oecd\.org\//);
+});
+
+test("les études officielles ont une liste éditoriale et une ancre dégagée de l'entête", () => {
+  const css = readFileSync(new URL("./style.css", import.meta.url), "utf8");
+
+  assert.match(css, /\.methode-sources__arbitrages\s*\{[^}]*scroll-margin-top:\s*var\(--haut-ancre\)/s);
+  assert.match(css, /\.methode-sources__arbitrages ul\s*\{[^}]*display:\s*grid/s);
+  assert.match(css, /\.methode-sources__arbitrages li\s*\{[^}]*grid-template-columns/s);
+  assert.match(css, /@media \(max-width:\s*40rem\)[\s\S]*?\.methode-sources__arbitrages li/s);
+});
+
 test("le registre rend recherche filtres et fiches normalisées", () => {
   const fiches: FicheSource[] = [{
     id: "insee-deficit-2025",

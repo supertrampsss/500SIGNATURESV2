@@ -3155,6 +3155,70 @@ body[data-carte="oui"] .vue--territoire .vue-barre {
   scroll-margin-top: calc(var(--haut-entete) + var(--espace-6));
 }
 
+/* Les études citées par les arbitrages se lisent comme un index éditorial,
+   pas comme la liste bleue par défaut du navigateur. L'ancre conserve le
+   titre sous l'en-tête collant lorsqu'un arbitrage pointe directement ici. */
+.methode-sources__arbitrages {
+  margin-top: var(--espace-7);
+  padding-top: var(--espace-6);
+  border-top: 1px solid var(--trait);
+  scroll-margin-top: var(--haut-ancre);
+}
+.methode-sources__arbitrages h2 {
+  margin: 0 0 var(--espace-4);
+}
+.methode-sources__arbitrages ul {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 var(--espace-6);
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--trait);
+  list-style: none;
+}
+.methode-sources__arbitrages li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: var(--espace-2);
+  min-width: 0;
+  padding: var(--espace-3) 0;
+  border-bottom: 1px solid var(--trait);
+  font-size: var(--texte-s);
+}
+.methode-sources__arbitrages li strong {
+  color: var(--rouge);
+  font-size: var(--texte-xs);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.methode-sources__arbitrages li a {
+  min-width: 0;
+  color: var(--encre);
+  overflow-wrap: anywhere;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.16em;
+}
+.methode-sources__arbitrages li span {
+  color: var(--encre-douce);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+@media (max-width: 40rem) {
+  .methode-sources__arbitrages ul {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .methode-sources__arbitrages li {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--espace-1) var(--espace-3);
+    padding: var(--espace-4) 0;
+  }
+  .methode-sources__arbitrages li a {
+    grid-column: 1 / -1;
+  }
+}
+
 /* Camembert des 100 € : la figure demandée, faite proprement — anneaux
    nets, valeurs sur les parts lisibles, « Autres » regroupé et détaillé au
    survol, l'exhaustif en repli dessous. */

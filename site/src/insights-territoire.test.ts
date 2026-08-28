@@ -41,6 +41,12 @@ const catalogue = [
   indicateur("ofgl_frais_personnel", "EUR"),
   indicateur("ofgl_charges_financieres", "EUR"),
   indicateur("ofgl_impots_locaux", "EUR"),
+  indicateur("rpls_logements_sociaux", "count"),
+  indicateur("insee_residences_principales", "count"),
+  indicateur("insee_pcs_retraites", "count"),
+  indicateur("insee_population_15_24_ans", "count"),
+  indicateur("dgfip_ircom_impot_net", "EUR"),
+  indicateur("dgfip_ircom_foyers_fiscaux", "count"),
 ];
 
 const territoire = (series: Territoire["series"]): Territoire => ({
@@ -70,8 +76,14 @@ test("insightsTerritoire ajoute les arbitrages financiers aux lectures de contex
       ofgl_epargne_brute: { "2019": 5_000_000, "2025": 5_000_000 },
       ofgl_encours_dette: { "2019": 25_000_000, "2025": 30_000_000 },
       ofgl_frais_personnel: { "2019": 14_000_000, "2025": 18_000_000 },
-      ofgl_charges_financieres: { "2019": 1_500_000, "2025": 2_000_000 },
+      ofgl_charges_financieres: { "2019": 900_000, "2025": 2_000_000 },
       ofgl_impots_locaux: { "2019": 15_000_000, "2025": 20_000_000 },
+      rpls_logements_sociaux: { "2025": 12_000 },
+      insee_residences_principales: { "2023": 50_000 },
+      insee_pcs_retraites: { "2023": 18_000 },
+      insee_population_15_24_ans: { "2023": 12_000 },
+      dgfip_ircom_impot_net: { "2024": 90_000_000 },
+      dgfip_ircom_foyers_fiscaux: { "2024": 50_000 },
     }),
     catalogue,
   );
@@ -81,12 +93,15 @@ test("insightsTerritoire ajoute les arbitrages financiers aux lectures de contex
     [
       "foncier",
       "impots-face-depenses",
+      "impot-revenu-par-foyer",
       "taux-epargne",
       "dette-sur-epargne",
       "poids-personnel",
       "interets-sur-impots",
+      "retraites-pour-cent-jeunes",
       "chomage",
       "logements-vacants",
+      "part-logements-sociaux",
       "cambriolages",
       "electricite",
       "parc-logements",
@@ -95,17 +110,24 @@ test("insightsTerritoire ajoute les arbitrages financiers aux lectures de contex
       "vols-vehicules",
     ],
   );
-  assert.match(resultat[0].texte, /4 points/);
-  assert.match(resultat[1].titre, /Impôts locaux \+33,3 % · dépenses \+28,6 %/);
-  assert.match(resultat[2].titre, /10 % des recettes/);
-  assert.match(resultat[3].titre, /6 années d'épargne brute/);
-  assert.match(resultat[4].titre, /40 % des dépenses/);
-  assert.match(resultat[5].titre, /10 % des impôts locaux/);
-  assert.match(resultat[6].titre, /8/);
-  assert.match(resultat[10].titre, /8,3 %/);
-  assert.match(resultat[11].titre, /8 %/);
-  assert.match(resultat[12].titre, /33,3 %/);
-  assert.match(resultat[13].titre, /2 vols/);
+  const parId = new Map(resultat.map((insight) => [insight.id, insight]));
+  assert.match(parId.get("foncier")?.texte ?? "", /4 points/);
+  assert.match(parId.get("impots-face-depenses")?.titre ?? "", /Impôts locaux \+33,3 % · dépenses \+28,6 %/);
+  assert.match(parId.get("impot-revenu-par-foyer")?.titre ?? "", /1\s?800 € par foyer fiscal/);
+  assert.match(parId.get("taux-epargne")?.titre ?? "", /10 % des recettes/);
+  assert.match(parId.get("dette-sur-epargne")?.titre ?? "", /6 années d'épargne brute/);
+  assert.match(parId.get("poids-personnel")?.titre ?? "", /40 % des dépenses/);
+  assert.match(parId.get("interets-sur-impots")?.titre ?? "", /10 % des impôts locaux/);
+  assert.match(parId.get("interets-sur-impots")?.texte ?? "", /4 points/);
+  assert.match(parId.get("retraites-pour-cent-jeunes")?.titre ?? "", /150 retraités pour 100 jeunes/);
+  assert.match(parId.get("chomage")?.titre ?? "", /8/);
+  assert.match(parId.get("logements-vacants")?.titre ?? "", /8 %/);
+  assert.match(parId.get("part-logements-sociaux")?.titre ?? "", /24 % des résidences principales/);
+  assert.match(parId.get("part-logements-sociaux")?.texte ?? "", /parc social 2025.*recensées en 2023/);
+  assert.match(parId.get("parc-logements")?.titre ?? "", /8,3 %/);
+  assert.match(parId.get("passoires-sociales")?.titre ?? "", /8 %/);
+  assert.match(parId.get("gaz")?.titre ?? "", /33,3 %/);
+  assert.match(parId.get("vols-vehicules")?.titre ?? "", /2 vols/);
   assert.equal(resultat.every(({ preuves }) => preuves.length >= 2), true);
 });
 

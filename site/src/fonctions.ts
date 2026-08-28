@@ -194,7 +194,7 @@ export function rendu(
   return `
     <h3 class="sous-titre">À quoi ça sert</h3>
     <p class="bloc__complement">Le tableau du dessus dit de quelle
-      <strong>nature</strong> est la dépense — des pensions, des salaires, des
+      <strong>nature</strong> est la dépense : des pensions, des salaires, des
       achats. Celui-ci dit à quoi elle <strong>sert</strong> : un salaire
       d'infirmière est de la santé, un salaire de professeur de l'enseignement,
       et la lecture par nature les met dans la même ligne.

@@ -1,4 +1,5 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
+import { insightsFranceDebat } from "./insights-france-debat.ts";
 import { insightsFranceGeneriques } from "./insights-france-generiques.ts";
 import { comparaisonVoisins } from "./insights-europe.ts";
 import {
@@ -541,6 +542,7 @@ export function insightsFrance(
     insightChomageJeunes(france.series, pays),
     insightPauvrete(france.series),
     insightDensiteCarcerale(france.series),
+    ...insightsFranceDebat(france.series, catalogue, pays),
     ...insightsFranceGeneriques(france.series, catalogue, pays),
   ].filter((insight): insight is Insight => insight !== null);
 }

@@ -47,6 +47,7 @@ import {
 } from "./analyse-rendu.ts";
 import type { Jeu } from "./donnees.ts";
 import { formater } from "./echelle.ts";
+import { SOURCES_ARBITRAGES } from "./insights-sources.ts";
 import { contextesDePages, type FicheSource, type StatutSource } from "./registre-sources.ts";
 import { echapper } from "./texte.ts";
 
@@ -74,6 +75,8 @@ const TITRES = {
   registres: "Les sept registres d'énoncé",
   sujets: "Le choix des sujets",
 } as const;
+
+const TITRE_SOURCES_ARBITRAGES = "Études utilisées dans les arbitrages";
 
 /** Les titres, exposés pour le test qui ferme la liste. */
 export const TITRES_METHODE: readonly string[] = Object.values(TITRES);
@@ -233,6 +236,21 @@ export function renduSources(jeux: readonly Jeu[]): string {
   `;
 }
 
+function renduSourcesArbitrages(): string {
+  const lignes = SOURCES_ARBITRAGES.map(
+    (source) => `<li id="source-arbitrage-${echapper(source.id)}">
+      <strong>${echapper(source.institution)}</strong>
+      <a href="${echapper(source.url)}" rel="noreferrer">${echapper(source.titre)}</a>
+      <span>${echapper(source.millesime)}</span>
+    </li>`,
+  ).join("");
+
+  return `<section id="sources-arbitrages" class="methode-sources__arbitrages">
+    <h2>${TITRE_SOURCES_ARBITRAGES}</h2>
+    <ul>${lignes}</ul>
+  </section>`;
+}
+
 /* --------------------------------------------------------------------------
  * Le registre des sources
  * ----------------------------------------------------------------------- */
@@ -346,6 +364,7 @@ export function renduSourcesEtMethode(jeux: readonly Jeu[], fiches: readonly Fic
     </header>
     <section id="methode" class="sources-methode__methode">
       ${renduSources(jeux)}
+      ${renduSourcesArbitrages()}
       ${renduMethode()}
       ${renduGrille()}
     </section>

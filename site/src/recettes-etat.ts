@@ -221,8 +221,8 @@ export function rendu(
         <p class="bloc__complement">La TVA semble s'effondrer dans ce tableau&nbsp;: elle n'a
           pas baissé. Ce que la taxe rapporte continue d'augmenter, mais une part croissante
           en est <strong>reversée chaque année à la Sécurité sociale et aux
-          collectivités</strong> — pour compenser des cotisations et des impôts locaux
-          supprimés — et le tableau ne compte que la part que l'État garde pour lui. C'est
+          collectivités</strong>, pour compenser des cotisations et des impôts locaux
+          supprimés. Le tableau ne compte que la part que l'État garde pour lui. C'est
           cette part-là qui diminue.</p>
       </div>
       <div>

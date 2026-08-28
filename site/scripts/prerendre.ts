@@ -1075,7 +1075,7 @@ export function injecterReperes(
   for (const [id, corps] of ouvrants) {
     html = corps ? remplirCadre(html, id, corps) : replierCadre(html, id);
   }
-  const analysesFrance = renduInsights(insightsFrance(pays.FR, catalogue), catalogue, {
+  const analysesFrance = renduInsights(insightsFrance(pays.FR, catalogue, pays), catalogue, {
     contexte: "france",
   });
   html = analysesFrance

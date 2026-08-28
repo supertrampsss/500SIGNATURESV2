@@ -1407,6 +1407,11 @@ test("15 bis. le pré-rendu ne réintroduit aucun doublon du verdict", () => {
   assert.doesNotMatch(source, /syntheseOuverture|reperesOuverture/);
 });
 
+test("15 ter. le pré-rendu transmet les pays aux comparaisons des arbitrages France", () => {
+  const source = readFileSync(new URL("./prerendre.ts", import.meta.url), "utf8");
+  assert.match(source, /insightsFrance\(pays\.FR,\s*catalogue,\s*pays\)/);
+});
+
 test("15. /bilan sert ses blocs sans exécuter une ligne", () => {
   const html = REPERES_ESSAI();
   const texte = texteDuMain(html);

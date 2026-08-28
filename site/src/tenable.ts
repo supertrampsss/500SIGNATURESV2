@@ -167,13 +167,13 @@ export function rendu(
       ? [{ nom: "Dette publiée", couleur: "#0f1b2e", accent: true, points: publiee }]
       : []),
     {
-      nom: "Commission européenne — scénario central",
+      nom: "Commission européenne : scénario central",
       couleur: "#2a68c4",
       pointille: true,
       points: COMMISSION,
     },
     {
-      nom: "Mission indépendante — politique inchangée (> 130 % en 2030)",
+      nom: "Mission indépendante : politique inchangée (> 130 % en 2030)",
       couleur: "#b43a31",
       pointsSeuls: true,
       points: MISSION,
@@ -193,9 +193,9 @@ export function rendu(
       .map((an) => `<th scope="col">${an}</th>`)
       .join("")}</tr></thead>
     <tbody>
-      <tr><th scope="row">Commission européenne — scénario central</th>${colonnes
+      <tr><th scope="row">Commission européenne : scénario central</th>${colonnes
         .map((an) => `<td>${cellule(valeursCommission[an])}</td>`).join("")}</tr>
-      <tr><th scope="row">Mission indépendante — politique inchangée</th>
+      <tr><th scope="row">Mission indépendante : politique inchangée</th>
         <td>118,0&nbsp;%</td><td></td><td></td><td></td><td>plus de 130&nbsp;%</td><td></td><td></td>
       </tr>
     </tbody>

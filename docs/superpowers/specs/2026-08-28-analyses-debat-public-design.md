@@ -21,7 +21,7 @@ Les dix nouveaux angles sont :
 9. rattrapage du PIB par habitant de la Pologne face à la France ;
 10. décomposition du chiffre de financement public attribué à la SNCF.
 
-Les cartes Mariages, Pacs, Nuptialité, inflation Insee, créations d'entreprises en nombre, trois séries de vols, recettes non fiscales et part de TICPE conservée par l'État quittent le catalogue. Le total reste exactement égal à 100 quand les données de production sont présentes.
+Les cartes Mariages, Pacs, Nuptialité, inflation Insee, créations d'entreprises en nombre, trois séries de vols, recettes non fiscales et PIB par habitant sans comparaison quittent le catalogue. Le total reste exactement égal à 100 quand les données de production sont présentes.
 
 ## Territoires
 

@@ -24,5 +24,5 @@ export function comparaisonVoisins(
 
   // Une valeur isolée n'est pas une comparaison européenne.
   if (valeurs.length < 2) return undefined;
-  return `Voisins européens — ${valeurs.join(" · ")}.`;
+  return `Voisins européens : ${valeurs.join(" · ")}.`;
 }

@@ -22,7 +22,7 @@ test("la comparaison aligne seulement les voisins publiés au même exercice", (
 
   assert.equal(
     comparaison,
-    "Voisins européens — Allemagne 42,4\u202f% · Belgique 47,2\u202f% · Espagne 38,1\u202f%.",
+    "Voisins européens : Allemagne 42,4\u202f% · Belgique 47,2\u202f% · Espagne 38,1\u202f%.",
   );
 });
 

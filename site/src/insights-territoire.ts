@@ -1,6 +1,6 @@
 import type { Indicateur, Territoire } from "./donnees.ts";
 import { formater } from "./echelle.ts";
-import { periodeCommune, variation, type Insight, type PreuveInsight } from "./insights.ts";
+import { derniere, periodeCommune, variation, type Insight, type PreuveInsight } from "./insights.ts";
 
 type Series = Territoire["series"];
 type BorneCommune = {
@@ -13,6 +13,7 @@ type BorneCommune = {
 };
 
 const nombre = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 });
+const entier = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 0 });
 
 function pct(valeur: number): string {
   return `${nombre.format(Math.abs(valeur))} %`;
@@ -98,6 +99,30 @@ function insightImpotsFaceDepenses(series: Series, catalogue: Indicateur[]): Ins
   };
 }
 
+function insightImpotParFoyer(series: Series, catalogue: Indicateur[]): Insight | null {
+  const impotId = "dgfip_ircom_impot_net";
+  const foyersId = "dgfip_ircom_foyers_fiscaux";
+  if (!unite(catalogue, impotId, "EUR") || !unite(catalogue, foyersId, "count")) return null;
+  const periode = periodeCommune([series[impotId], series[foyersId]]);
+  if (!periode) return null;
+  const impot = series[impotId][periode];
+  const foyers = series[foyersId][periode];
+  if (impot < 0 || !(foyers > 0)) return null;
+  const parFoyer = impot / foyers;
+  return {
+    id: "impot-revenu-par-foyer",
+    famille: "fiscalite",
+    surtitre: "Revenus · l'impôt localisé",
+    titre: `${entier.format(parFoyer)} € par foyer fiscal`,
+    texte: `En ${periode}, l'impôt net déclaré dans le territoire atteint ${formater(impot, "EUR", false)} pour ${entier.format(foyers)} foyers fiscaux.`,
+    reserve: "",
+    preuves: [
+      preuve(impotId, periode, impot, "Impôt net"),
+      preuve(foyersId, periode, foyers, "Foyers fiscaux"),
+    ],
+  };
+}
+
 function insightTauxEpargne(series: Series, catalogue: Indicateur[]): Insight | null {
   const recettesId = "ofgl_recettes_fonctionnement";
   const epargneId = "ofgl_epargne_brute";
@@ -177,22 +202,47 @@ function insightInteretsSurImpots(series: Series, catalogue: Indicateur[]): Insi
   const interetsId = "ofgl_charges_financieres";
   const impotsId = "ofgl_impots_locaux";
   if (!unite(catalogue, interetsId, "EUR") || !unite(catalogue, impotsId, "EUR")) return null;
-  const periode = periodeCommune([series[interetsId], series[impotsId]]);
-  if (!periode) return null;
-  const interets = series[interetsId][periode];
-  const impots = series[impotsId][periode];
-  if (interets < 0 || !(impots > 0)) return null;
-  const part = (interets / impots) * 100;
+  const bornes = bornesCommunes(series[interetsId], series[impotsId]);
+  if (!bornes || bornes.debutA < 0 || bornes.finA < 0 || !(bornes.debutB > 0) || !(bornes.finB > 0)) return null;
+  const debut = (bornes.debutA / bornes.debutB) * 100;
+  const fin = (bornes.finA / bornes.finB) * 100;
+  const points = fin - debut;
   return {
     id: "interets-sur-impots",
     famille: "budget",
     surtitre: "Dette locale · le coût des intérêts",
-    titre: `Les intérêts équivalent à ${pct(part)} des impôts locaux`,
-    texte: `En ${periode}, les charges financières atteignent ${formater(interets, "EUR", false)}, contre ${formater(impots, "EUR", false)} d'impôts locaux.`,
+    titre: `Les intérêts équivalent à ${pct(fin)} des impôts locaux`,
+    texte: `Le ratio est passé de ${pct(debut)} en ${bornes.debut} à ${pct(fin)} en ${bornes.fin}, soit ${nombre.format(Math.abs(points))} points de ${points >= 0 ? "plus" : "moins"}.`,
     reserve: "",
     preuves: [
-      preuve(interetsId, periode, interets, "Charges financières"),
-      preuve(impotsId, periode, impots, "Impôts locaux"),
+      preuve(interetsId, bornes.debut, bornes.debutA, "Charges financières initiales"),
+      preuve(impotsId, bornes.debut, bornes.debutB, "Impôts locaux initiaux"),
+      preuve(interetsId, bornes.fin, bornes.finA, "Dernières charges financières"),
+      preuve(impotsId, bornes.fin, bornes.finB, "Derniers impôts locaux"),
+    ],
+  };
+}
+
+function insightRetraitesPourJeunes(series: Series, catalogue: Indicateur[]): Insight | null {
+  const retraitesId = "insee_pcs_retraites";
+  const jeunesId = "insee_population_15_24_ans";
+  if (!unite(catalogue, retraitesId, "count") || !unite(catalogue, jeunesId, "count")) return null;
+  const periode = periodeCommune([series[retraitesId], series[jeunesId]]);
+  if (!periode) return null;
+  const retraites = series[retraitesId][periode];
+  const jeunes = series[jeunesId][periode];
+  if (retraites < 0 || !(jeunes > 0)) return null;
+  const ratio = (retraites / jeunes) * 100;
+  return {
+    id: "retraites-pour-cent-jeunes",
+    famille: "generation",
+    surtitre: "Générations · le rapport local",
+    titre: `${entier.format(ratio)} retraités pour 100 jeunes de 15 à 24 ans`,
+    texte: `Le recensement compte ${entier.format(retraites)} retraités et ${entier.format(jeunes)} habitants de 15 à 24 ans en ${periode}.`,
+    reserve: "",
+    preuves: [
+      preuve(retraitesId, periode, retraites, "Retraités"),
+      preuve(jeunesId, periode, jeunes, "Habitants de 15 à 24 ans"),
     ],
   };
 }
@@ -247,6 +297,31 @@ function insightVacance(series: Series, catalogue: Indicateur[]): Insight | null
       preuve(vacantsId, bornes.fin, bornes.finB, "Logements vacants"),
       preuve(logementsId, bornes.debut, bornes.debutA, "Logements initiaux"),
       preuve(vacantsId, bornes.debut, bornes.debutB, "Vacants initiaux"),
+    ],
+  };
+}
+
+function insightPartLogementsSociaux(series: Series, catalogue: Indicateur[]): Insight | null {
+  const sociauxId = "rpls_logements_sociaux";
+  const residencesId = "insee_residences_principales";
+  if (!unite(catalogue, sociauxId, "count") || !unite(catalogue, residencesId, "count")) return null;
+  const sociauxPublies = derniere(series[sociauxId]);
+  const residencesPubliees = derniere(series[residencesId]);
+  if (!sociauxPublies || !residencesPubliees) return null;
+  const sociaux = sociauxPublies.valeur;
+  const residences = residencesPubliees.valeur;
+  if (sociaux < 0 || !(residences > 0) || sociaux > residences) return null;
+  const part = (sociaux / residences) * 100;
+  return {
+    id: "part-logements-sociaux",
+    famille: "logement",
+    surtitre: "Logement · la place du parc social",
+    titre: `${pct(part)} des résidences principales sont des logements sociaux`,
+    texte: `Le parc social ${sociauxPublies.periode} compte ${entier.format(sociaux)} logements, rapportés aux ${entier.format(residences)} résidences principales recensées en ${residencesPubliees.periode}.`,
+    reserve: "",
+    preuves: [
+      preuve(sociauxId, sociauxPublies.periode, sociaux, "Logements sociaux"),
+      preuve(residencesId, residencesPubliees.periode, residences, "Résidences principales"),
     ],
   };
 }
@@ -382,12 +457,15 @@ export function insightsTerritoire(territoire: Territoire, catalogue: Indicateur
   return [
     insightFoncier(territoire.series, catalogue),
     insightImpotsFaceDepenses(territoire.series, catalogue),
+    insightImpotParFoyer(territoire.series, catalogue),
     insightTauxEpargne(territoire.series, catalogue),
     insightDetteSurEpargne(territoire.series, catalogue),
     insightPoidsPersonnel(territoire.series, catalogue),
     insightInteretsSurImpots(territoire.series, catalogue),
+    insightRetraitesPourJeunes(territoire.series, catalogue),
     insightChomage(territoire.series, catalogue),
     insightVacance(territoire.series, catalogue),
+    insightPartLogementsSociaux(territoire.series, catalogue),
     insightCambriolages(territoire.series, catalogue),
     insightElectricite(territoire.series, catalogue),
     insightParcLogements(territoire.series, catalogue),
