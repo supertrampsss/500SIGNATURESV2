@@ -36,10 +36,9 @@ test("la validation refuse un scénario incomplet et un choix sans preuve", () =
   const scenario = validScenario();
   scenario.chapters[0]!.decisionIds.pop();
   scenario.decisions[0]!.evidence = [];
-  assert.deepEqual(validateScenario(scenario), [
-    "chapter:chapter-1:expected-12-decisions",
-    "decision:decision-1:evidence-required",
-  ]);
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes("chapter:chapter-1:expected-12-decisions"));
+  assert.ok(errors.includes("decision:decision-1:evidence-required"));
 });
 
 test("le contrôle éditorial trouve tout cadratin dans un objet imbriqué", () => {

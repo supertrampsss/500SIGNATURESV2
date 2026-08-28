@@ -1,0 +1,115 @@
+import { delayedEvent, existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
+
+const CHAPTER = "taxes-assets-transmission";
+const p = (copy: Omit<ExistingPolicyCopy, "chapterId">) => existingPolicy({ ...copy, chapterId: CHAPTER });
+const taxBarometer = ["flat-tax-a-20-des-le-premier", "flat-tax-a-20-avec-abattement-protegeant", "tranche-a-50-au-dela-de-250", "soumettre-les-revenus-du-capital-au-bareme"];
+const inheritances = ["exonerer-de-droits-de-succession-jusqu-a", "abolir-les-droits-de-succession"];
+
+export const TAX_DECISIONS = [
+  p({
+    id: "geler-le-bareme-de-l-impot-sur", kind: "gestion",
+    title: "Faut-il geler le barème de l'impôt sur le revenu ?",
+    context: "Sans indexation, l'inflation fait entrer des foyers dans l'impôt ou dans une tranche supérieure, même si leur pouvoir d'achat ne progresse pas.",
+    adoptLabel: "Geler le barème", adoptSummary: "Le rendement augmente mécaniquement, au prix d'une hausse d'impôt diffuse pour les foyers imposables.",
+    keepLabel: "Indexer sur l'inflation", keepSummary: "Le pouvoir d'achat fiscal est protégé, mais l'État renonce à la recette supplémentaire.",
+    beneficiaries: ["finances publiques"], contributors: ["foyers imposables"], sourceKeys: ["budget-recettes-2026"],
+    conflicts: taxBarometer,
+  }),
+  p({
+    id: "porter-le-taux-normal-de-tva-a", kind: "gestion",
+    title: "Faut-il porter le taux normal de TVA à 21 % ?",
+    context: "Un point de TVA fournit une recette massive et rapide, mais renchérit les achats au taux normal si les entreprises le répercutent.",
+    adoptLabel: "Passer la TVA à 21 %", adoptSummary: "Le déficit baisse rapidement, tandis que consommateurs et entreprises absorbent la hausse des prix.",
+    keepLabel: "Maintenir la TVA à 20 %", keepSummary: "Les prix ne subissent pas cette hausse fiscale, mais près de dix milliards d'euros restent à trouver.",
+    beneficiaries: ["finances publiques"], contributors: ["consommateurs"], sourceKeys: ["budget-recettes-2026"],
+  }),
+  p({
+    id: "doubler-la-taxe-sur-les-rachats-d", kind: "gestion",
+    title: "Faut-il doubler la taxe sur les rachats d'actions ?",
+    context: "Les rachats rémunèrent les actionnaires et soutiennent le cours des entreprises. Leur taxation rapporte peu à l'échelle du déficit, mais vise un symbole puissant.",
+    adoptLabel: "Doubler la taxe", adoptSummary: "Les grands groupes cotés contribuent davantage, avec un rendement budgétaire limité.",
+    keepLabel: "Conserver le taux actuel", keepSummary: "La fiscalité des groupes cotés reste stable et l'État renonce à cette recette ciblée.",
+    beneficiaries: ["finances publiques"], contributors: ["actionnaires des groupes cotés"], sourceKeys: ["budget-recettes-2026"],
+  }),
+  p({
+    id: "raboter-l-avantage-successoral-de-l-assurance", kind: "gestion",
+    title: "Faut-il réduire l'avantage successoral de l'assurance-vie ?",
+    context: "L'assurance-vie bénéficie de règles de transmission distinctes. Les resserrer rapproche son traitement de celui des autres héritages.",
+    adoptLabel: "Réduire l'avantage", adoptSummary: "Les transmissions via assurance-vie sont davantage taxées et le budget récupère une partie de la dépense fiscale.",
+    keepLabel: "Préserver l'avantage", keepSummary: "Les épargnants conservent la règle actuelle et l'État maintient son coût fiscal.",
+    beneficiaries: ["finances publiques"], contributors: ["héritiers de contrats d'assurance-vie"], sourceKeys: ["budget-niches-2026", "france-strategie-heritages"],
+    conflicts: inheritances,
+  }),
+  p({
+    id: "tranche-a-50-au-dela-de-250", kind: "transformation",
+    title: "Faut-il créer une tranche à 50 % au-delà de 250 000 euros ?",
+    context: "La mesure augmente la progressivité sur les très hauts revenus. Son rendement dépend de l'assiette réellement maintenue et des comportements d'optimisation.",
+    adoptLabel: "Créer la tranche à 50 %", adoptSummary: "Les très hauts revenus paient davantage et le barème devient plus progressif.",
+    keepLabel: "Conserver le taux supérieur actuel", keepSummary: "Les très hauts revenus évitent la nouvelle tranche, mais le budget renonce à son rendement.",
+    beneficiaries: ["finances publiques", "progressivité fiscale"], contributors: ["très hauts revenus"], sourceKeys: ["budget-recettes-2026"], conflicts: taxBarometer,
+    event: delayedEvent("tax-base-reaction", "Les départs fiscaux font la une", "Le rendement résiste, mais plusieurs départs très médiatisés relancent le débat sur l'assiette.", 2, "financialCredibility", -2),
+  }),
+  p({
+    id: "retablir-un-impot-sur-la-fortune-financiere", kind: "transformation",
+    title: "Faut-il rétablir un impôt sur la fortune financière ?",
+    context: "Un impôt sur les actifs financiers élargit la taxation du patrimoine au-delà de l'immobilier. Son assiette est mobile et sensible aux exemptions.",
+    adoptLabel: "Rétablir l'impôt", adoptSummary: "Les grands patrimoines financiers contribuent à nouveau, avec un risque d'optimisation accru.",
+    keepLabel: "Conserver l'impôt immobilier", keepSummary: "La fiscalité reste concentrée sur l'immobilier et aucune recette nouvelle n'est créée.",
+    beneficiaries: ["finances publiques"], contributors: ["grands patrimoines financiers"], sourceKeys: ["budget-recettes-2026", "cour-finances-2025"],
+    conflicts: ["impot-plancher-de-2-sur-les-patrimoines"],
+  }),
+  p({
+    id: "soumettre-les-revenus-du-capital-au-bareme", kind: "transformation",
+    title: "Faut-il soumettre les revenus du capital au barème ?",
+    context: "Le prélèvement forfaitaire limite aujourd'hui le taux sur les revenus financiers. Le supprimer rétablit le barème progressif, avec une assiette plus sensible aux arbitrages.",
+    adoptLabel: "Supprimer le prélèvement forfaitaire", adoptSummary: "Les détenteurs de capital imposés dans les tranches hautes paient davantage.",
+    keepLabel: "Conserver le prélèvement forfaitaire", keepSummary: "Le taux reste lisible et stable pour l'épargne, sans recette supplémentaire.",
+    beneficiaries: ["finances publiques", "progressivité fiscale"], contributors: ["détenteurs de capital"], sourceKeys: ["budget-recettes-2026"], conflicts: taxBarometer,
+  }),
+  p({
+    id: "exonerer-de-droits-de-succession-jusqu-a", kind: "transformation",
+    title: "Faut-il exonérer jusqu'à 300 000 euros transmis par enfant ?",
+    context: "L'abattement faciliterait les transmissions familiales, mais concentrerait l'avantage sur les héritages les plus élevés et réduirait les recettes.",
+    adoptLabel: "Porter l'abattement à 300 000 euros", adoptSummary: "Davantage d'héritages échappent aux droits, au prix d'une perte de recettes durable.",
+    keepLabel: "Conserver les abattements actuels", keepSummary: "Les recettes sont préservées et les transmissions supérieures restent taxées.",
+    beneficiaries: ["héritiers de patrimoines élevés"], contributors: ["finances publiques"], sourceKeys: ["france-strategie-heritages", "budget-recettes-2026"], conflicts: inheritances,
+  }),
+  p({
+    id: "flat-tax-a-20-des-le-premier", kind: "rupture",
+    title: "Faut-il remplacer le barème par une flat tax à 20 % dès le premier euro ?",
+    context: "Le barème progressif disparaît. Tous les revenus déclarés sont taxés au même taux et les foyers aujourd'hui non imposables entrent dans l'impôt.",
+    adoptLabel: "Passer à 20 % dès le premier euro", adoptSummary: "L'impôt est simplifié et rapporte beaucoup plus, mais près de six foyers sur dix passent de zéro à 20 %.",
+    keepLabel: "Garder le barème progressif", keepSummary: "Les foyers modestes restent protégés et la progressivité demeure, au prix d'un rendement inférieur.",
+    beneficiaries: ["finances publiques", "hauts revenus"], contributors: ["foyers aujourd'hui non imposables", "classes moyennes"], sourceKeys: ["budget-recettes-2026", "insee-france-sociale-2025"], conflicts: taxBarometer,
+  }),
+  p({
+    id: "flat-tax-a-20-avec-abattement-protegeant", kind: "rupture",
+    title: "Faut-il instaurer une flat tax à 20 % avec abattement ?",
+    context: "Un abattement laisse les foyers modestes à zéro, puis un taux unique remplace toutes les tranches. Les revenus élevés bénéficient de la baisse de taux.",
+    adoptLabel: "Adopter le taux unique avec abattement", adoptSummary: "Les non-imposables restent protégés, les hauts revenus paient moins et le budget perd des recettes.",
+    keepLabel: "Garder le barème progressif", keepSummary: "Les taux augmentent avec le revenu et le rendement actuel est préservé.",
+    beneficiaries: ["hauts revenus", "simplicité fiscale"], contributors: ["finances publiques"], sourceKeys: ["budget-recettes-2026", "insee-france-sociale-2025"], conflicts: taxBarometer,
+  }),
+  p({
+    id: "impot-plancher-de-2-sur-les-patrimoines", kind: "rupture",
+    title: "Faut-il imposer à 2 % minimum les patrimoines supérieurs à 100 millions d'euros ?",
+    context: "L'impôt vise les patrimoines dont le taux effectif reste faible. Le rendement varie fortement selon la valorisation, les départs et le traitement des actifs professionnels.",
+    adoptLabel: "Créer l'impôt plancher", adoptSummary: "Les patrimoines au-delà de 100 millions paient au moins 2 %, sous forte incertitude de rendement.",
+    keepLabel: "Écarter l'impôt plancher", keepSummary: "Le risque juridique et les départs potentiels sont évités, sans recette nouvelle.",
+    beneficiaries: ["finances publiques", "redistribution"], contributors: ["patrimoines supérieurs à 100 millions d'euros"], sourceKeys: ["budget-recettes-2026", "cour-finances-2025"],
+    conflicts: ["retablir-un-impot-sur-la-fortune-financiere"],
+  }),
+  standalonePolicy({
+    id: "abolir-les-droits-de-succession", chapterId: CHAPTER, kind: "rupture",
+    title: "Faut-il abolir les droits de succession ?",
+    context: "La transmission familiale ne serait plus taxée, quelle que soit la taille du patrimoine. Le manque à gagner doit être financé ailleurs et les inégalités de patrimoine se transmettent davantage.",
+    sourceKeys: ["france-strategie-heritages", "budget-recettes-2026", "itm-50-decisions"],
+    evidenceLabel: "Recettes des droits de mutation et distribution des héritages.",
+    evidenceNote: "Le coût retenu par le jeu est un ordre de grandeur annuel construit à partir des recettes observées.",
+    conflicts: inheritances,
+    options: [
+      { id: "adopt", label: "Abolir les droits", summary: "Tous les héritages sont transmis sans impôt et le budget perd une recette importante.", budgetDelta: -18_000, beneficiaries: ["héritiers", "grands patrimoines"], contributors: ["finances publiques"], uncertainty: "moyenne", indicatorEffects: { opinion: 4, financialCredibility: -4 }, locks: inheritances, scheduledEvents: [delayedEvent("inheritance-wealth-gap", "Le patrimoine se concentre", "Les transmissions nettes d'impôt creusent l'écart entre héritiers et non-héritiers.", 4, "institutionalTrust", -3)] },
+      { id: "keep", label: "Maintenir les droits", summary: "Les héritages restent taxés avec abattements et progressivité, et la recette est conservée.", budgetDelta: 0, beneficiaries: ["finances publiques", "non-héritiers"], contributors: ["héritiers"], indicatorEffects: { opinion: -2 } },
+    ],
+  }),
+].map(policyDecision);

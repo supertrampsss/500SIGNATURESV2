@@ -335,14 +335,18 @@ function renderEvidence(decision: Decision): string {
               <div><dt>Incertitude</dt><dd>${escapeHtml(option.uncertainty)}</dd></div>
             </dl>
           </section>`).join("")}
-        <ul class="simulateur-v3__sources">
-          ${decision.evidence.map((evidence) => `
+        <section class="simulateur-v3__source-block">
+          <h3>Sources</h3>
+          <p>${escapeHtml(decision.evidence[0]?.label ?? "")}</p>
+          <ul class="simulateur-v3__sources">
+            ${decision.evidence.map((evidence) => `
             <li>
               <a href="${escapeHtml(evidence.sourceUrl)}">${escapeHtml(evidence.sourceName)}</a>
-              <span>${escapeHtml(evidence.label)}</span>
+              <time datetime="${escapeHtml(evidence.publishedAt)}">${escapeHtml(evidence.publishedAt.slice(0, 4))}</time>
               ${evidence.note ? `<small>${escapeHtml(evidence.note)}</small>` : ""}
             </li>`).join("")}
-        </ul>
+          </ul>
+        </section>
       </div>
     </details>`;
 }
@@ -354,7 +358,7 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--decision">
       <div class="simulateur-v3__decision-layout">
-        <article class="simulateur-v3__dossier simulateur-v3__decision">
+        <article class="simulateur-v3__dossier simulateur-v3__decision simulateur-v3__decision--${decision.kind}">
           <header class="simulateur-v3__scene-header">
             <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state)}</p>
             <h1>${escapeHtml(decision.title)}</h1>

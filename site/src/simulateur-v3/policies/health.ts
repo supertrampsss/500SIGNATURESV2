@@ -1,0 +1,108 @@
+import { delayedEvent, existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
+
+const CHAPTER = "health-social-protection";
+const p = (copy: Omit<ExistingPolicyCopy, "chapterId">) => existingPolicy({ ...copy, chapterId: CHAPTER });
+
+export const HEALTH_DECISIONS = [
+  p({
+    id: "doubler-les-franchises-medicales", kind: "gestion",
+    title: "Faut-il doubler les franchises médicales ?",
+    context: "Le reste à charge augmente sur les médicaments et actes concernés. L'Assurance maladie économise, mais les patients fréquents paient davantage.",
+    adoptLabel: "Doubler les franchises", adoptSummary: "Les patients financent une part plus élevée des soins et les comptes sociaux économisent.",
+    keepLabel: "Conserver les franchises", keepSummary: "Le reste à charge ne monte pas et l'économie prévue disparaît.",
+    beneficiaries: ["Assurance maladie"], contributors: ["patients réguliers", "malades chroniques"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "imposer-generiques-et-biosimilaires-en-premiere-intention", kind: "gestion",
+    title: "Faut-il imposer génériques et biosimilaires en première intention ?",
+    context: "Le médicament moins cher devient la règle, sauf justification médicale. L'économie dépend de l'écart de prix et de l'adhésion des prescripteurs.",
+    adoptLabel: "Rendre la substitution obligatoire", adoptSummary: "Les prescriptions se déplacent vers les produits moins chers et les laboratoires de marque perdent des volumes.",
+    keepLabel: "Laisser le choix au prescripteur", keepSummary: "La liberté de prescription est préservée et les économies restent plus lentes.",
+    beneficiaries: ["Assurance maladie", "patients sans reste à charge"], contributors: ["laboratoires de marque"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "derembourser-les-cures-thermales", kind: "gestion",
+    title: "Faut-il dérembourser les cures thermales ?",
+    context: "La dépense est faible à l'échelle de la santé, mais vitale pour certaines stations. Les patients doivent payer ou renoncer.",
+    adoptLabel: "Dérembourser les cures", adoptSummary: "L'Assurance maladie économise et le coût bascule vers les curistes et les stations thermales.",
+    keepLabel: "Maintenir le remboursement", keepSummary: "Les curistes et territoires conservent le financement collectif, sans économie.",
+    beneficiaries: ["Assurance maladie"], contributors: ["curistes", "stations thermales"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "renforcer-le-controle-des-arrets-de-travail", kind: "gestion",
+    title: "Faut-il renforcer le contrôle des arrêts de travail ?",
+    context: "Des contrôles supplémentaires peuvent réduire les abus et les prescriptions évitables. Ils mobilisent des médecins contrôleurs et exposent les malades à des erreurs.",
+    adoptLabel: "Renforcer les contrôles", adoptSummary: "Les arrêts injustifiés reculent, avec davantage de contrôles pour les salariés et prescripteurs.",
+    keepLabel: "Conserver le contrôle actuel", keepSummary: "Les malades évitent une procédure supplémentaire et l'économie attendue n'est pas réalisée.",
+    beneficiaries: ["Assurance maladie", "employeurs"], contributors: ["salariés contrôlés", "médecins"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "creer-5-000-postes-de-soignants", kind: "transformation",
+    title: "Faut-il créer 5 000 postes de soignants ?",
+    context: "Les postes améliorent les équipes si les recrutements aboutissent. Le salaire annuel est certain, l'effet sur l'accès aux soins dépend de la pénurie locale.",
+    adoptLabel: "Créer 5 000 postes", adoptSummary: "Les établissements gagnent des effectifs et le budget assume leur masse salariale chaque année.",
+    keepLabel: "Maintenir les effectifs prévus", keepSummary: "La dépense n'augmente pas et les tensions d'effectifs persistent.",
+    beneficiaries: ["patients", "équipes hospitalières"], contributors: ["finances sociales"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "loi-grand-age-50-000-recrutements", kind: "transformation",
+    title: "Faut-il recruter 50 000 professionnels du grand âge ?",
+    context: "Ehpad et domicile manquent de bras. Le recrutement améliore l'accompagnement si les métiers deviennent attractifs, avec un coût récurrent élevé.",
+    adoptLabel: "Recruter 50 000 professionnels", adoptSummary: "Le taux d'encadrement augmente et les finances sociales portent la dépense durablement.",
+    keepLabel: "Conserver les moyens programmés", keepSummary: "Aucune dépense nouvelle n'est engagée et le sous-effectif perdure.",
+    beneficiaries: ["personnes âgées", "aidants", "professionnels"], contributors: ["finances sociales"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "fusionner-agences-sanitaires-et-echelons-des-ars", kind: "transformation",
+    title: "Faut-il fusionner les agences sanitaires et des échelons d'ARS ?",
+    context: "La fusion réduit les fonctions support et le nombre d'interlocuteurs. Elle crée une transition longue et peut éloigner la décision des territoires.",
+    adoptLabel: "Fusionner les structures", adoptSummary: "Les doublons administratifs reculent, au prix d'une réorganisation du pilotage territorial.",
+    keepLabel: "Conserver l'organisation", keepSummary: "Les responsabilités locales restent stables et les économies de structure disparaissent.",
+    beneficiaries: ["finances sociales", "administration centrale"], contributors: ["agents concernés", "territoires"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "fiscalite-nutritionnelle-au-niveau-recommande", kind: "transformation",
+    title: "Faut-il augmenter les taxes sur le sucre et l'alcool ?",
+    context: "La taxe renchérit les produits ciblés pour réduire leur consommation et financer la santé. Son poids est plus élevé dans le budget des ménages modestes.",
+    adoptLabel: "Augmenter les taxes nutritionnelles", adoptSummary: "Les produits sucrés et alcoolisés coûtent plus cher et les recettes de santé augmentent.",
+    keepLabel: "Conserver les taxes actuelles", keepSummary: "Les prix n'augmentent pas pour ce motif et la recette nouvelle est abandonnée.",
+    beneficiaries: ["prévention", "finances sociales"], contributors: ["consommateurs", "producteurs concernés"], sourceKeys: ["cour-securite-sociale-2025"],
+  }),
+  p({
+    id: "supprimer-l-aide-medicale-d-etat", kind: "rupture",
+    title: "Faut-il supprimer l'aide médicale d'État ?",
+    context: "La couverture dédiée disparaît pour les étrangers sans titre. Une partie des soins est reportée, retardée ou prise en charge par les urgences.",
+    adoptLabel: "Supprimer l'aide médicale d'État", adoptSummary: "Le crédit dédié disparaît, tandis que les hôpitaux reprennent une partie des soins non évitables.",
+    keepLabel: "Maintenir l'aide médicale d'État", keepSummary: "Les soins restent accessibles dans le cadre actuel et la dépense demeure au budget.",
+    beneficiaries: ["budget de l'État à court terme"], contributors: ["personnes sans titre", "hôpitaux"], sourceKeys: ["cour-securite-sociale-2025", "cour-immigration-2024"],
+    event: delayedEvent("ame-emergency-transfer", "Les urgences reprennent la facture", "Les soins retardés arrivent à l'hôpital, réduisant une partie de l'économie initiale.", 3, "publicServices", -4),
+  }),
+  p({
+    id: "verser-le-rsa-automatiquement-fin-du-non", kind: "rupture",
+    title: "Faut-il verser automatiquement le RSA aux personnes éligibles ?",
+    context: "Le versement automatique réduit le non-recours et rend le droit effectif. Il augmente mécaniquement la dépense puisque davantage d'éligibles perçoivent l'aide.",
+    adoptLabel: "Automatiser le versement", adoptSummary: "Les personnes éligibles reçoivent leur droit sans demande et les départements financent davantage d'allocataires.",
+    keepLabel: "Conserver la demande", keepSummary: "La dépense reste plus basse, mais une part importante des éligibles ne reçoit toujours rien.",
+    beneficiaries: ["personnes pauvres en non-recours"], contributors: ["finances sociales", "départements"], sourceKeys: ["drees-minima-2025"],
+    conflicts: ["conditionner-le-rsa-a-15-heures", "allocation-sociale-unique"],
+  }),
+  p({
+    id: "porter-le-rsa-au-seuil-de", kind: "rupture",
+    title: "Faut-il porter le RSA au seuil de pauvreté ?",
+    context: "Le minimum augmente d'environ 30 %. La pauvreté monétaire recule pour les bénéficiaires, mais l'écart avec les bas salaires se resserre.",
+    adoptLabel: "Porter le RSA au seuil de pauvreté", adoptSummary: "Le revenu des allocataires augmente fortement et la dépense sociale progresse chaque année.",
+    keepLabel: "Conserver le barème actuel", keepSummary: "L'écart avec le salaire minimum est maintenu et les allocataires restent sous le seuil de pauvreté.",
+    beneficiaries: ["allocataires du RSA"], contributors: ["finances sociales"], sourceKeys: ["drees-minima-2025", "insee-france-sociale-2025"],
+    conflicts: ["allocation-sociale-unique"],
+  }),
+  standalonePolicy({
+    id: "assurance-maladie-publique-unique", chapterId: CHAPTER, kind: "rupture",
+    title: "Faut-il remplacer les complémentaires par une assurance maladie publique unique ?",
+    context: "La Sécurité sociale reprend la couverture aujourd'hui assurée par les complémentaires. Les primes privées baissent ou disparaissent, mais cotisations et dépenses publiques augmentent.",
+    sourceKeys: ["cour-securite-sociale-2025"], evidenceLabel: "Répartition des remboursements entre Assurance maladie, complémentaires et ménages.",
+    options: [
+      { id: "adopt", label: "Créer l'assurance publique unique", summary: "La couverture devient commune et la Sécurité sociale absorbe les remboursements des complémentaires.", budgetDelta: -24_000, beneficiaries: ["assurés aux contrats coûteux", "patients chroniques"], contributors: ["finances sociales", "organismes complémentaires"], uncertainty: "forte", indicatorEffects: { publicServices: 6, opinion: 5, reformCapacity: -4 }, groupEffects: { businesses: -4 }, scheduledEvents: [delayedEvent("health-transition-billing", "La bascule administrative dérape", "Les systèmes de facturation peinent à absorber le transfert et les retards de remboursement augmentent.", 2, "institutionalTrust", -4)] },
+      { id: "keep", label: "Conserver le système à deux étages", summary: "Assurance maladie et complémentaires continuent de se partager la couverture.", budgetDelta: 0, beneficiaries: ["organismes complémentaires"], contributors: ["assurés payant une prime"], indicatorEffects: { reformCapacity: -1 } },
+    ],
+  }),
+].map(policyDecision);

@@ -233,6 +233,9 @@ body[data-simulateur-version="3"] .bascule-theme {
 }
 
 .simulateur-v3__decision { width: 100%; border-top-width: 4px; }
+.simulateur-v3__decision--gestion { border-top-color: #718096; }
+.simulateur-v3__decision--transformation { border-top-color: var(--v3-gold); }
+.simulateur-v3__decision--rupture { border-top-color: var(--v3-red); }
 
 .simulateur-v3__scene-header {
   display: grid;
@@ -443,10 +446,12 @@ body[data-simulateur-version="3"] .bascule-theme {
 .simulateur-v3__evidence dt { font-weight: 800; }
 .simulateur-v3__evidence dd { color: var(--v3-muted); }
 .simulateur-v3__sources { display: grid; gap: var(--espace-3); margin: 0; padding: 0; list-style: none; }
-.simulateur-v3__sources li { display: grid; gap: var(--espace-2); }
+.simulateur-v3__source-block > p { max-width: 68ch; margin: 0 0 var(--espace-3); color: var(--v3-muted); line-height: 1.5; }
+.simulateur-v3__sources li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--espace-1) var(--espace-3); }
 .simulateur-v3__sources a { color: var(--v3-ink); font-weight: 850; }
+.simulateur-v3__sources time { color: var(--v3-muted); font-variant-numeric: tabular-nums; }
 .simulateur-v3__sources span,
-.simulateur-v3__sources small { color: var(--v3-muted); }
+.simulateur-v3__sources small { grid-column: 1 / -1; color: var(--v3-muted); }
 
 .simulateur-v3__mandate-dashboard {
   display: grid;

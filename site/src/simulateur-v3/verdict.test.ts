@@ -117,7 +117,7 @@ test("rend autonomes les libellés courts des décisions décisives", () => {
 
   const view = buildMandateVerdictViewModel(state, scenario, SCENARIO_V3_CRISIS_RULES);
 
-  assert.equal(view.decisiveChoices[0]!.label, "Repousser l'âge légal à 65 ans");
+  assert.equal(view.decisiveChoices[0]!.label, "Porter l'âge légal à 65 ans");
 });
 
 test("raconte une crise et la réforme réellement suspendue", () => {

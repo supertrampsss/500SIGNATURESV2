@@ -5,6 +5,7 @@ function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
   return {
     id,
     version: 1,
+    kind: decisionNumber <= 4 ? "gestion" : decisionNumber <= 8 ? "transformation" : "rupture",
     chapterId: `chapter-${chapterNumber}`,
     title: `Decision ${id}`,
     context: "A test context.",

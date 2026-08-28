@@ -31,6 +31,7 @@ const GROUP_KEYS = [
 ] as const satisfies readonly GroupKey[];
 const EFFECT_DURATIONS = new Set<EffectRule["duration"]>(["once", "annual", "permanent"]);
 const CAUSAL_SOURCE_TYPES = new Set<CausalEntry["sourceType"]>(["decision", "event", "crisis", "promise"]);
+const DECISION_KINDS = ["gestion", "transformation", "rupture"] as const;
 
 type ConfirmedDecision = Pick<DecisionRecord, "decisionId" | "optionId" | "confirmedAtIndex">;
 
@@ -453,6 +454,15 @@ export function validateScenario(scenario: Scenario): string[] {
     for (const id of chapter.decisionIds) {
       if (typeof id !== "string" || decisionsById.get(id)?.chapterId !== chapter.id) errors.push(`chapter:${chapter.id}:unknown-decision:${String(id)}`);
     }
+    const chapterDecisions = chapter.decisionIds
+      .filter((id): id is string => typeof id === "string")
+      .map((id) => decisionsById.get(id))
+      .filter((decision): decision is Decision => decision !== undefined);
+    for (const kind of DECISION_KINDS) {
+      if (chapterDecisions.filter((decision) => decision.kind === kind).length !== 4) {
+        errors.push(`chapter:${chapter.id}:expected-4-${kind}`);
+      }
+    }
   }
   const chapterDecisionCounts = new Map<string, number>();
   for (const chapter of chapters) {
@@ -471,6 +481,7 @@ export function validateScenario(scenario: Scenario): string[] {
   const materializedDelayedEventIds: string[] = [];
   for (const decision of decisions) {
     const options = Array.isArray(decision.options) ? decision.options : [];
+    if (!DECISION_KINDS.includes(decision.kind)) errors.push(`decision:${decision.id}:invalid-kind`);
     if (options.length < 2 || options.length > 4) errors.push(`decision:${decision.id}:expected-2-to-4-options`);
     if (!Array.isArray(decision.evidence) || decision.evidence.length === 0) errors.push(`decision:${decision.id}:evidence-required`);
     for (const [optionIndex, option] of options.entries()) {
@@ -494,6 +505,8 @@ export function validateScenario(scenario: Scenario): string[] {
         const label = isRecord(evidence) && typeof evidence.label === "string" ? evidence.label : "unknown";
         if (!isRecord(evidence) || typeof evidence.sourceUrl !== "string" || !evidence.sourceUrl.startsWith("https://")) {
           errors.push(`evidence:${decision.id}:${label}:https-required`);
+        } else if (evidence.sourceUrl === "https://plateforme-9sz.pages.dev/sources/") {
+          errors.push(`evidence:${decision.id}:${label}:direct-source-required`);
         }
       }
     }

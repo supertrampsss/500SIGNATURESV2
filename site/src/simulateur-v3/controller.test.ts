@@ -50,6 +50,24 @@ function beginDecision(host: FakeHost): void {
   host.click("open-chapter");
 }
 
+function stateBefore(decisionId: string) {
+  const index = SCENARIO_V3_PREVIEW.decisions.findIndex((decision) => decision.id === decisionId);
+  assert.ok(index >= 0);
+  const base = createCampaign(SCENARIO_V3_PREVIEW);
+  return {
+    ...base,
+    phase: "decision" as const,
+    chapterIndex: Math.floor(index / 12),
+    decisionIndex: index % 12,
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, index).map((decision, decisionIndex) => ({
+      decisionId: decision.id,
+      optionId: decision.options.at(-1)!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: decisionIndex + 1,
+    })),
+  };
+}
+
 test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
@@ -59,7 +77,7 @@ test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   assert.match(host.innerHTML, /La ligne de fracture/);
   assert.equal(host.scrollCalls, 2);
   host.click("open-chapter");
-  assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[0]!.title));
+  assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[0]!.title.replaceAll("'", "&#39;")));
   assert.equal(host.scrollCalls, 3);
 });
 
@@ -131,27 +149,27 @@ test("démonter retire l'unique écouteur délégué", () => {
 
 test("un clic sur une carte enregistre la décision et ouvre directement sa conséquence", () => {
   const host = new FakeHost();
-  const storage = memoryStorage();
+  const initial = stateBefore("flat-tax-a-20-des-le-premier");
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(initial) });
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
-  beginDecision(host);
-  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
   const option = decision.options[0]!;
 
   host.click("select", { decisionId: decision.id, optionId: option.id });
 
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
-  assert.equal(saved.decisions.length, 1);
-  assert.equal(saved.decisions[0].optionId, option.id);
+  assert.equal(saved.decisions.length, initial.decisions.length + 1);
+  assert.equal(saved.decisions.at(-1).optionId, option.id);
   assert.match(host.innerHTML, /Conseil de crise/);
   assert.doesNotMatch(host.innerHTML, /Confirmer ce choix|Décision actée/);
 });
 
 test("une crise interrompt la progression et sa concession suspend réellement la réforme", () => {
   const host = new FakeHost();
-  const storage = memoryStorage();
+  const initial = stateBefore("flat-tax-a-20-des-le-premier");
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(initial) });
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
-  beginDecision(host);
-  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
   host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
   assert.match(host.innerHTML, /Conseil de crise/);
   assert.match(host.innerHTML, /Suspendre la flat tax/);
@@ -160,10 +178,10 @@ test("une crise interrompt la progression et sa concession suspend réellement l
   host.click("resolve-crisis", { resolutionId: "suspend-flat-tax" });
   assert.equal(host.scrollCalls, avantConcession);
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
-  assert.equal(saved.decisions[0].status, "suspended");
-  assert.equal(saved.decisions[0].changedByCrisisId, "flat-tax-revolt");
+  assert.equal(saved.decisions.at(-1).status, "suspended");
+  assert.equal(saved.decisions.at(-1).changedByCrisisId, "flat-tax-revolt");
   assert.deepEqual(saved.lockedDecisionIds, []);
-  assert.match(host.innerHTML, /Dossier 2 sur 96/);
+  assert.match(host.innerHTML, /Dossier 10 sur 96/);
 });
 
 test("le journal s'ouvre dans Pause et revient sans perdre l'écran interrompu", () => {

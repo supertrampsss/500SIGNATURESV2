@@ -19,7 +19,6 @@ export const SCENARIO_V3_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([{
       "geler-le-bareme-de-l-impot-sur",
       "soumettre-les-revenus-du-capital-au-bareme",
       "fiscaliser-les-heures-supplementaires-comme-le",
-      "remplacer-l-abattement-des-retraites-par",
     ],
     effects: [
       {

@@ -14,6 +14,7 @@ export const SCHEMA_VERSION = 3 as const;
 export const V3_MODELED_EFFECT_MARKER = ":model:" as const;
 
 export type Uncertainty = "faible" | "moyenne" | "forte";
+export type DecisionKind = "gestion" | "transformation" | "rupture";
 export type DecisionStatus = "confirmed" | "suspended" | "amended" | "reversed" | "superseded";
 export type EffectTarget = "indicator" | "group";
 
@@ -104,6 +105,7 @@ export type DecisionOption = {
 export type Decision = {
   id: string;
   version: number;
+  kind: DecisionKind;
   chapterId: string;
   title: string;
   context: string;

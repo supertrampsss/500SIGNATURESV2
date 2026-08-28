@@ -59,7 +59,7 @@ test("un dossier rend une carte cliquable par option sans rangée d'actions dupl
   assert.equal(occurrences(html, 'data-v3-action="select"'), decision.options.length);
   assert.doesNotMatch(html, /actions-fixes|Adopter\s*[|/]\s*Rejeter/i);
   assert.match(html, /<details class="simulateur-v3__evidence"/);
-  assert.match(html, /https:\/\/plateforme-9sz\.pages\.dev\/sources\//);
+  assert.match(html, /https:\/\/www\.budget\.gouv\.fr\/documentation\/file-download\/30583/);
 });
 
 test("un dossier garde l'analyse complète dans le tiroir et présente une tension courte", () => {
@@ -75,12 +75,28 @@ test("un dossier garde l'analyse complète dans le tiroir et présente une tensi
   assert.match(beforeEvidence, /class="simulateur-v3__context"[^>]*>[^<]{20,190}<\/p>/);
 });
 
+test("le niveau de rupture structure la scène et la date de publication reste dans le tiroir", () => {
+  const index = SCENARIO_V3_PREVIEW.decisions.findIndex((decision) => decision.kind === "rupture");
+  const state = {
+    ...createCampaign(SCENARIO_V3_PREVIEW),
+    phase: "decision" as const,
+    chapterIndex: Math.floor(index / 12),
+    decisionIndex: index % 12,
+  };
+  const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  const evidenceIndex = html.indexOf('<details class="simulateur-v3__evidence');
+  assert.match(html, /simulateur-v3__decision--rupture/);
+  assert.doesNotMatch(html.slice(0, evidenceIndex), new RegExp(decision.evidence[0]!.publishedAt));
+  assert.match(html.slice(evidenceIndex), new RegExp(`datetime="${decision.evidence[0]!.publishedAt}"`));
+});
+
 test("les choix retirent la démonstration répétée après les deux-points", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
 
-  assert.match(html, /simulateur-v3__option-label">Flat tax à 20 % dès le premier euro<\/span>/);
-  assert.doesNotMatch(html, /simulateur-v3__option-label">Flat tax à 20 % dès le premier euro : le barème disparaît/);
+  assert.match(html, /simulateur-v3__option-label">Geler le barème<\/span>/);
+  assert.doesNotMatch(html, /simulateur-v3__option-label">Geler le barème de l'impôt sur le revenu \(non-indexation\)/);
 });
 
 test("aucun intitulé de choix ne redevient un paragraphe sur téléphone", () => {
@@ -110,7 +126,7 @@ test("un dossier desktop suit la planche EPR avec une scène centrale et un tabl
   assert.match(html, />Pays</);
   assert.match(html, />Pouvoir</);
   assert.match(html, />Confiance</);
-  const dossier = html.slice(html.indexOf('class="simulateur-v3__dossier simulateur-v3__decision"'));
+  const dossier = html.slice(html.indexOf('class="simulateur-v3__dossier simulateur-v3__decision '));
   assert.ok(dossier.indexOf('class="simulateur-v3__mandate-dashboard"') < dossier.lastIndexOf("</article>"));
 });
 
@@ -154,9 +170,9 @@ test("les cartes montrent les conséquences politiques essentielles avant le cli
 test("une option ne répète pas mot pour mot le contexte déjà lu", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
-  assert.equal(decision.options[0]!.summary, decision.context);
+  assert.notEqual(decision.options[0]!.summary, decision.context);
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  assert.equal(occurrences(html, 'class="simulateur-v3__option-summary"'), 1);
+  assert.equal(occurrences(html, 'class="simulateur-v3__option-summary"'), 2);
 });
 
 test("les cartes tranchent directement sans confirmation intermédiaire", () => {
@@ -224,20 +240,29 @@ test("une conséquence différée rappelle la décision d'origine et ses effets"
   }];
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.match(html, /Les recettes résistent/);
-  assert.match(html, new RegExp(source.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(html, new RegExp(source.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(html, /Marchés -1 point/);
   assert.match(html, /simulateur-v3__scene-header/);
   assert.match(html, /simulateur-v3__scene-body/);
 });
 
 test("la crise expose sa cause et une concession qui modifie la réforme", () => {
-  const base = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
-  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  const decisionIndex = SCENARIO_V3_PREVIEW.decisions.findIndex((candidate) => candidate.id === "flat-tax-a-20-des-le-premier");
+  const fresh = createCampaign(SCENARIO_V3_PREVIEW);
+  const base = {
+    ...fresh,
+    phase: "decision" as const,
+    decisionIndex,
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, decisionIndex).map((previous, index) => ({
+      decisionId: previous.id, optionId: previous.options.at(-1)!.id, status: "confirmed" as const, confirmedAtIndex: index + 1,
+    })),
+  };
+  const decision = SCENARIO_V3_PREVIEW.decisions[decisionIndex]!;
   const confirmed = confirmSelection(selectOption(base, SCENARIO_V3_PREVIEW, decision.id, decision.options[0]!.id), SCENARIO_V3_PREVIEW);
   const crisis = detectCrisis(confirmed, SCENARIO_V3_CRISIS_RULES);
   const html = renderSimulatorV3(crisis, SCENARIO_V3_PREVIEW, { crisisRules: SCENARIO_V3_CRISIS_RULES });
   assert.match(html, /Le pays se fracture sur/);
-  assert.match(html, new RegExp(decision.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  assert.match(html, new RegExp(decision.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   assert.match(html, /Suspendre la flat tax/);
   assert.equal(occurrences(html, 'data-v3-action="resolve-crisis"'), 2);
   assert.match(html, /class="simulateur-v3__crisis-visual"/);

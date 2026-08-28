@@ -44,16 +44,26 @@ test("un scénario mis à jour invalide proprement l'ancienne campagne", () => {
   assert.deepEqual(restoreCampaign(storage, newScenario), { kind: "invalid" });
 });
 
-test("la campagne V4 reçoit les nouveaux effets du verdict sans perdre les choix déjà rendus", () => {
-  assert.equal(SCENARIO_V3_PREVIEW.version, 5);
+test("la campagne V5 reçoit les nouveaux effets du verdict sans perdre les choix déjà rendus", () => {
+  assert.equal(SCENARIO_V3_PREVIEW.version, 6);
   const oldScenario: Scenario = {
     ...SCENARIO_V3_PREVIEW,
-    version: 4,
+    version: 5,
     decisions: SCENARIO_V3_PREVIEW.decisions.map((decision) => ({
       ...decision,
       options: decision.options.map((option) => ({
         ...option,
-        effects: option.effects.filter((effect) => !effect.id.includes(":model:")),
+        effects: option.effects.filter((effect) => !effect.id.includes(":model:")).length > 0
+          ? option.effects.filter((effect) => !effect.id.includes(":model:"))
+          : [{
+              id: `${option.id}:legacy-capacity`,
+              target: "indicator" as const,
+              key: "reformCapacity" as const,
+              delta: option.id.endsWith(":adopt") ? 1 : -1,
+              timing: { kind: "immediate" as const },
+              duration: "once" as const,
+              explanation: "Ancien effet de jeu conservé pour la migration.",
+            }],
       })),
     })),
   };
@@ -69,7 +79,7 @@ test("la campagne V4 reçoit les nouveaux effets du verdict sans perdre les choi
 
   assert.equal(restored.kind, "restored");
   if (restored.kind === "restored") {
-    assert.equal(restored.state.scenarioVersion, 5);
+    assert.equal(restored.state.scenarioVersion, 6);
     assert.deepEqual(restored.state.decisions, oldState.decisions);
     assert.notEqual(restored.state.indicators.growth, oldState.indicators.growth);
     assert.notEqual(restored.state.indicators.majority, oldState.indicators.majority);
