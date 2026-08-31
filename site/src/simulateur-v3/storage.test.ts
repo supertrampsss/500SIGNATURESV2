@@ -80,6 +80,25 @@ test("un vrai premier choix V9 actif demande un redémarrage V10 sans toucher au
   assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
 });
 
+test("une V4 V9 vierge à l'écran du premier dossier migre et réécrit la sauvegarde V10", () => {
+  const pristineV9 = {
+    ...createCampaign(SCENARIO_V9),
+    phase: "decision" as const,
+    ...positionBeforeNext(SCENARIO_V9, 0)!,
+    schemaVersion: 4 as const,
+    scenarioVersion: 9,
+  };
+  const serialized = JSON.stringify(pristineV9);
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
+
+  assert.equal(pristineV9.decisions.length, 0);
+  const restored = restoreCampaign(storage, SCENARIO_V10);
+  assert.equal(restored.kind, "restored");
+  assert.equal(restored.kind === "restored" && restored.state.scenarioVersion, 10);
+  assert.notEqual(storage.getItem(V3_STORAGE_KEY), serialized);
+  assert.equal(JSON.parse(storage.getItem(V3_STORAGE_KEY)!).scenarioVersion, 10);
+});
+
 test("la détection V4 couvre les surfaces persistées avec une frontière d'identifiant stricte", () => {
   const target = "flat-tax-a-20-des-le-premier";
   const base = () => ({ ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 4 as const, scenarioVersion: 9 }) as unknown as Record<string, unknown>;

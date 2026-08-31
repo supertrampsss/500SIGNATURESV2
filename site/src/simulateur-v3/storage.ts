@@ -155,7 +155,8 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
 /**
  * A completed V9 verdict is read-only historical evidence. We normalize the
  * schema discriminator in memory only, never write it back and never replay
- * reducer effects. Active V9 saves remain restart-required under V10.
+ * reducer effects. V9 saves with any recorded decision remain restart-required
+ * under V10.
  */
 export function completedV9StateFromStorage(storage: StorageLike): CampaignState | null {
   const stored = readItem(storage, V3_STORAGE_KEY);
