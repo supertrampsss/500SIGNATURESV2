@@ -1,7 +1,16 @@
 import type { Scenario } from "./types.ts";
 
 // Generated once from the pre-V10 scenario. Keep this file self-contained.
-export const SCENARIO_V9_SNAPSHOT: Scenario = Object.freeze(
+function deepFreeze<T>(value: T, seen = new WeakSet<object>()): T {
+  if (value !== null && typeof value === "object" && !seen.has(value)) {
+    seen.add(value);
+    for (const nestedValue of Object.values(value)) deepFreeze(nestedValue, seen);
+    Object.freeze(value);
+  }
+  return value;
+}
+
+export const SCENARIO_V9_SNAPSHOT: Scenario = deepFreeze(
 {
   "version": 9,
   "title": "La France à l'épreuve des comptes",
