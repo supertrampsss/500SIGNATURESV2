@@ -181,7 +181,7 @@ git commit -m "test: define 60 decision campaign topology"
 - Consumes: `CAMPAIGN_DECISION_IDS` from Task 1.
 - Produces: `SCENARIO_V3_CATALOGUE` with 96 decisions and `SCENARIO_V3` with 60 decisions.
 
-- [ ] **Step 1: Replace the scenario count test**
+- [ ] **Step 1: Replace the stale scenario shape tests**
 
 ```ts
 test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
@@ -192,7 +192,18 @@ test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
     SCENARIO_V3_CATALOGUE.decisions.some((candidate) => candidate.id === id),
   ));
 });
+
+test("chaque chapitre joué conserve les trois niveaux de choix", () => {
+  for (const chapter of SCENARIO_V3.chapters) {
+    const kinds = new Set(chapter.decisionIds.map((id) =>
+      SCENARIO_V3.decisions.find((decision) => decision.id === id)!.kind,
+    ));
+    assert.deepEqual(kinds, new Set(["gestion", "transformation", "rupture"]), chapter.title);
+  }
+});
 ```
+
+Delete the obsolete assertion requiring four decisions of every kind in every chapter. That 12-item invariant is incompatible with the production topology. The replacement keeps the useful editorial gate: every played chapter contains all three levels of political choice.
 
 - [ ] **Step 2: Run the scenario test**
 
@@ -315,9 +326,11 @@ function chapterIsComplete(state: CampaignState, scenario: Scenario): boolean {
 }
 
 if (completedDecisions >= totalDecisions(scenario)) return { ...state, phase: "verdict" };
-if (chapterIsComplete(state, scenario)) return { ...state, phase: "chapter_verdict" };
+if (chapterIsComplete(state, scenario)) return nextChapter(state);
 return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 ```
+
+Do not emit a new `chapter_verdict` screen. The renderer intentionally has no such scene. Task 4 inserts councils only at the five annual checkpoints; other chapter boundaries go directly to the next chapter introduction. Keep legacy `chapter_verdict` normalization only as long as stored-state migration requires it.
 
 - [ ] **Step 5: Bound delayed consequences by scenario length**
 
@@ -394,7 +407,9 @@ export type MandateYear = 0 | 1 | 2 | 3 | 4 | 5;
 export type MandateBaseline = {
   nominalGdpMillions: number;
   debtMillions: number;
+  annualBalanceMillions: number;
   interestCostMillions: number;
+  nominalGrowthPercent: number;
   sourceIds: string[];
   dataVersion: string;
 };
@@ -441,7 +456,7 @@ export function projectYear(
 }
 ```
 
-The controller must construct the real baseline from the latest common published period of `eurostat_pib_montant`, `insee_dette_apu_part_pib` and the registered interest-cost series. If no common valid baseline exists, the campaign entry screen must be unavailable with a factual data error. Do not add a numeric fallback.
+The controller must construct the real baseline from the latest common published period of `eurostat_pib_montant`, `insee_dette_apu_part_pib`, `insee_apu_solde` and `eurostat_apu_interets`. Compute the debt stock from GDP times the published debt ratio. Derive nominal growth from the last two valid GDP amount observations rather than substituting the real-growth series. Initialise `annualBalance`, `debtToGdp`, `interestCost` and `growth` from this baseline; delete their numeric production defaults. `sourceIds` must contain all four indicator IDs. If no common valid baseline and preceding GDP value exist, the campaign entry screen must be unavailable with a factual data error. Do not add a numeric fallback. The explicitly ludic political and service indices may retain documented neutral starting values.
 
 - [ ] **Step 5: Create annual checkpoints at chapter boundaries**
 
@@ -489,7 +504,7 @@ test("chaque option publiée porte un mécanisme et un horizon", () => {
 
 test("aucun effet politique n'est créé par miroir automatique", async () => {
   const source = await readFile(new URL("./policy-catalogue.ts", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /Math\.round\([^)]*\/\s*3\)/);
+  assert.doesNotMatch(source, /function\s+supportEffects|supportEffects\s*\(/);
 });
 ```
 
@@ -666,7 +681,7 @@ git commit -m "feat: expose complete policy library"
 ### Task 8: Run the complete engine gate
 
 **Files:**
-- Modify only if a test reveals a defect: files changed in Tasks 1 to 6.
+- Modify only if a test reveals a defect: files changed in Tasks 1 to 7.
 
 **Interfaces:**
 - Consumes: complete engine work.
