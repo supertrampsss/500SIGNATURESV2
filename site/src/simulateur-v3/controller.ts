@@ -25,10 +25,13 @@ import {
 
 export type SimulatorV3Host = {
   innerHTML: string;
-  addEventListener(type: "click", listener: EventListener): void;
-  removeEventListener(type: "click", listener: EventListener): void;
+  addEventListener(type: "click" | "keydown", listener: EventListener): void;
+  removeEventListener(type: "click" | "keydown", listener: EventListener): void;
   scrollIntoView?(options?: ScrollIntoViewOptions): void;
-  querySelector?(selector: string): { textContent: string | null } | null;
+  querySelector?(selector: string): {
+    textContent: string | null;
+    focus?(options?: FocusOptions): void;
+  } | null;
 };
 
 export type SimulatorV3Dependencies = {
@@ -105,11 +108,9 @@ function inferredPhaseBeforePause(state: CampaignState, scenario: Scenario): Cam
   return state.decisions.length > position ? "decision_result" : "decision";
 }
 
-function resetScrollAfterBrowserRestore(host: SimulatorV3Host): void {
-  if (typeof requestAnimationFrame === "undefined") return;
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => host.scrollIntoView?.({ block: "start" }));
-  });
+function optionSelector(optionId: string): string {
+  const safeId = optionId.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+  return `.simulateur-v3__option-select[data-option-id="${safeId}"]`;
 }
 
 export function mountSimulatorV3(
@@ -126,6 +127,7 @@ export function mountSimulatorV3(
   const restored = restoreCampaign(storage, scenario);
   const v2Found = restored.kind === "v2_found";
   const restartRequired = restored.kind === "restart_required";
+  let saveFailed = restored.kind === "unavailable";
   let state = normalizeChapterTransition(
     restored.kind === "restored" ? restored.state : createCampaign(scenario, dependencies.baseline),
     scenario,
@@ -135,14 +137,46 @@ export function mountSimulatorV3(
     : undefined;
   let pauseView: RenderSimulatorV3Options["pauseView"] = "menu";
 
-  const render = (resetScroll = false) => {
-    host.innerHTML = renderSimulatorV3(state, scenario, { v2Found, restartRequired, crisisRules, pauseView });
-    if (resetScroll) host.scrollIntoView?.({ block: "start" });
+  const render = (resetScene = false) => {
+    host.innerHTML = renderSimulatorV3(state, scenario, {
+      v2Found,
+      restartRequired,
+      crisisRules,
+      pauseView,
+      saveFailed,
+    });
+    if (!resetScene) return;
+    host.scrollIntoView?.({ block: "start" });
+    host.querySelector?.(".simulateur-v3__stage h1")?.focus?.({ preventScroll: true });
   };
 
-  const persistAndRender = (resetScroll = false) => {
-    state = saveCampaign(storage, state, now());
-    render(resetScroll);
+  const observableStorage: StorageLike = {
+    getItem: (key) => storage.getItem(key),
+    setItem: (key, value) => {
+      try {
+        storage.setItem(key, value);
+        saveFailed = false;
+      } catch (error) {
+        saveFailed = true;
+        throw error;
+      }
+    },
+    removeItem: (key) => storage.removeItem(key),
+  };
+
+  const persistAndRender = (resetScene = false) => {
+    state = saveCampaign(observableStorage, state, now());
+    render(resetScene);
+  };
+
+  const clearPendingSelection = (returnFocus = false) => {
+    if (!state.pendingSelection) return;
+    const selectedOptionId = state.pendingSelection.optionId;
+    state = clearSelection(state);
+    persistAndRender();
+    if (returnFocus) {
+      host.querySelector?.(optionSelector(selectedOptionId))?.focus?.({ preventScroll: true });
+    }
   };
 
   const emit = (detail: Parameters<typeof emitSimulatorV3Event>[0]) => {
@@ -197,8 +231,7 @@ export function mountSimulatorV3(
     }
 
     if (action === "modify" && state.phase === "decision" && state.pendingSelection) {
-      state = clearSelection(state);
-      persistAndRender();
+      clearPendingSelection(true);
       return;
     }
 
@@ -238,7 +271,7 @@ export function mountSimulatorV3(
       if (state.phase === "decision") {
         emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
       }
-      persistAndRender();
+      persistAndRender(true);
       return;
     }
 
@@ -287,11 +320,19 @@ export function mountSimulatorV3(
     }
   };
 
+  const onKeydown: EventListener = (event) => {
+    const keyboardEvent = event as KeyboardEvent;
+    if (keyboardEvent.key !== "Escape" || state.phase !== "decision" || !state.pendingSelection) return;
+    keyboardEvent.preventDefault();
+    clearPendingSelection(true);
+  };
+
   host.addEventListener("click", onClick);
+  host.addEventListener("keydown", onKeydown);
   render(true);
-  resetScrollAfterBrowserRestore(host);
 
   return () => {
     host.removeEventListener("click", onClick);
+    host.removeEventListener("keydown", onKeydown);
   };
 }

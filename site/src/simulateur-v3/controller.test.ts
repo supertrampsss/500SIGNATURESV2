@@ -39,14 +39,19 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike & { va
 class FakeHost implements SimulatorV3Host {
   innerHTML = "";
   scrollCalls = 0;
-  private listener?: EventListener;
+  focusCalls = 0;
+  lastFocusedSelector = "";
+  private clickListener?: EventListener;
+  private keydownListener?: EventListener;
 
-  addEventListener(_type: "click", listener: EventListener): void {
-    this.listener = listener;
+  addEventListener(type: "click" | "keydown", listener: EventListener): void {
+    if (type === "click") this.clickListener = listener;
+    else this.keydownListener = listener;
   }
 
-  removeEventListener(_type: "click", listener: EventListener): void {
-    if (this.listener === listener) this.listener = undefined;
+  removeEventListener(type: "click" | "keydown", listener: EventListener): void {
+    if (type === "click" && this.clickListener === listener) this.clickListener = undefined;
+    if (type === "keydown" && this.keydownListener === listener) this.keydownListener = undefined;
   }
 
   scrollIntoView(): void {
@@ -56,11 +61,26 @@ class FakeHost implements SimulatorV3Host {
   click(action: string, data: Record<string, string> = {}): void {
     const node = { dataset: { v3Action: action, ...data } };
     const target = { closest: () => node };
-    this.listener?.({ target } as unknown as Event);
+    this.clickListener?.({ target } as unknown as Event);
+  }
+
+  keydown(key: string): void {
+    this.keydownListener?.({ key, preventDefault() {} } as unknown as KeyboardEvent);
+  }
+
+  querySelector(selector: string): { textContent: string | null; focus(options?: FocusOptions): void } | null {
+    if (!this.innerHTML.includes("<h1") && selector.includes("h1")) return null;
+    return {
+      textContent: "",
+      focus: () => {
+        this.focusCalls += 1;
+        this.lastFocusedSelector = selector;
+      },
+    };
   }
 
   hasListener(): boolean {
-    return Boolean(this.listener);
+    return Boolean(this.clickListener && this.keydownListener);
   }
 }
 
@@ -91,12 +111,14 @@ test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
   assert.match(host.innerHTML, /Prendre mes fonctions/);
   assert.equal(host.scrollCalls, 1);
+  assert.equal(host.focusCalls, 1);
   host.click("start");
   assert.match(host.innerHTML, /La ligne de fracture/);
   assert.equal(host.scrollCalls, 2);
   host.click("open-chapter");
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[0]!.title.replaceAll("'", "&#39;")));
   assert.equal(host.scrollCalls, 3);
+  assert.equal(host.focusCalls, 3);
 });
 
 test("choisir une carte conserve la position de lecture", () => {
@@ -105,8 +127,29 @@ test("choisir une carte conserve la position de lecture", () => {
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const avantChoix = host.scrollCalls;
+  const avantFocus = host.focusCalls;
   host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
   assert.equal(host.scrollCalls, avantChoix);
+  assert.equal(host.focusCalls, avantFocus);
+});
+
+test("Échap ferme le détail sélectionné, rend le focus au choix et ne déplace pas la page", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+  beginDecision(host);
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  const scrollBeforeEscape = host.scrollCalls;
+  const focusBeforeEscape = host.focusCalls;
+
+  host.keydown("Escape");
+
+  assert.equal(host.scrollCalls, scrollBeforeEscape);
+  assert.equal(host.focusCalls, focusBeforeEscape + 1);
+  assert.match(host.lastFocusedSelector, /option-select/);
+  assert.doesNotMatch(host.innerHTML, /simulateur-v3__option-detail/);
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).pendingSelection, undefined);
 });
 
 test("sélectionner, changer, confirmer puis continuer sont quatre états distincts", () => {
@@ -196,8 +239,10 @@ test("un stockage indisponible ne bloque pas la partie", () => {
     removeItem: () => { throw new Error("blocked"); },
   };
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: unavailable });
+  assert.match(host.innerHTML, /sauvegarde locale est indisponible/);
   beginDecision(host);
   assert.match(host.innerHTML, /Dossier 1/);
+  assert.match(host.innerHTML, /sauvegarde locale est indisponible/);
 });
 
 test("démonter retire l'unique écouteur délégué", () => {
@@ -247,7 +292,7 @@ test("une crise interrompt la progression et sa concession suspend réellement l
 
   const avantConcession = host.scrollCalls;
   host.click("resolve-crisis", { resolutionId: "suspend-flat-tax" });
-  assert.equal(host.scrollCalls, avantConcession);
+  assert.equal(host.scrollCalls, avantConcession + 1);
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
   assert.equal(saved.decisions.at(-1).status, "suspended");
   assert.equal(saved.decisions.at(-1).changedByCrisisId, "flat-tax-revolt");

@@ -180,6 +180,14 @@ test("chaque bouton fermé expose exactement nom, budget, un impact principal et
     assert.equal(occurrences(button, 'data-v3-fact="budget"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="impact"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="risk"'), 1);
+    assert.doesNotMatch(button, /aria-label=/);
+    const labelledBy = button.match(/aria-labelledby="([^"]+)"/)?.[1];
+    const describedBy = button.match(/aria-describedby="([^"]+)"/)?.[1]?.split(" ") ?? [];
+    assert.ok(labelledBy);
+    assert.equal(describedBy.length, 3);
+    for (const id of [labelledBy, ...describedBy]) {
+      assert.equal(occurrences(button, `id="${id}"`), 1, `référence accessible absente : ${id}`);
+    }
     assert.doesNotMatch(button, /simulateur-v3__option-summary|Mécanisme|Bénéficiaires|Contributeurs/);
   }
 });
@@ -282,7 +290,7 @@ test("le résultat confirmé reste lisible et causal jusqu'à une continuation e
   assert.match(html, /Décision enregistrée/);
   assert.ok(html.includes(escapedHtml(decision.options[0]!.mechanism)));
   assert.match(html, /class="[^"]*simulateur-v3__result[^"]*" aria-live="polite"/);
-  assert.match(html, /-153 milliards d&#39;euros[\s\S]*-151 milliards d&#39;euros/);
+  assert.match(html, /Avant[\s\S]*-153 milliards d&#39;euros[\s\S]*Après[\s\S]*-151 milliards d&#39;euros/);
   assert.equal(occurrences(html, 'data-v3-action="continue"'), 1);
   assert.match(html, /Dossier suivant/);
 });
@@ -311,6 +319,7 @@ test("la barre de commandement garde le solde et une progression lisibles sur mo
   assert.match(html, /class="simulateur-v3__command-balance"/);
   assert.match(html, /-153 milliards d&#39;euros/);
   assert.match(html, /class="simulateur-v3__command-progress"/);
+  assert.match(html, /role="progressbar"[^>]*aria-valuenow="0"/);
   assert.match(html, /--v3-command-progress:\s*0%/);
 });
 
@@ -394,7 +403,11 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   };
   const decision = SCENARIO_V3_PREVIEW.decisions[decisionIndex]!;
   const confirmed = confirmSelection(selectOption(base, SCENARIO_V3_PREVIEW, decision.id, decision.options[0]!.id), SCENARIO_V3_PREVIEW);
-  const crisis = detectCrisis({ ...confirmed, indicators: { ...confirmed.indicators, opinion: 39 } }, SCENARIO_V3_CRISIS_RULES);
+  const crisis = detectCrisis(
+    { ...confirmed, indicators: { ...confirmed.indicators, opinion: 39 } },
+    SCENARIO_V3_PREVIEW,
+    SCENARIO_V3_CRISIS_RULES,
+  );
   const html = renderSimulatorV3(crisis, SCENARIO_V3_PREVIEW, { crisisRules: SCENARIO_V3_CRISIS_RULES });
   assert.match(html, /Le pays se fracture sur/);
   assert.match(html, new RegExp(decision.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
@@ -447,13 +460,31 @@ test("le verdict ne répète pas les questions dans les trois choix décisifs", 
   assert.doesNotMatch(html, /Les trois gestes qui ont le plus pesé/);
 });
 
-test("le journal de Pause liste les arbitrages et leur statut", () => {
+test("le journal de Pause groupe les arbitrages par chapitre et année sans les perdre", () => {
   const state = stateAfter(2, "pause");
   state.decisions[0] = { ...state.decisions[0]!, status: "suspended", changedByCrisisId: "flat-tax-revolt" };
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW, { pauseView: "journal" });
   assert.match(html, /Journal du mandat/);
   assert.match(html, /Suspendue après une crise/);
+  assert.equal(occurrences(html, 'class="simulateur-v3__journal-group"'), 1);
+  assert.equal(occurrences(html, 'class="simulateur-v3__journal-decision"'), 2);
+  assert.match(html, /année 1/);
   assert.equal(occurrences(html, 'data-v3-action="back-pause"'), 1);
   assert.match(html, /simulateur-v3__scene-header/);
   assert.match(html, /simulateur-v3__scene-body/);
+});
+
+test("le journal complet contient 60 lignes dans huit groupes repliables", () => {
+  const html = renderSimulatorV3(stateAfter(60, "pause"), SCENARIO_V3_PREVIEW, { pauseView: "journal" });
+  assert.equal(occurrences(html, 'class="simulateur-v3__journal-group"'), 8);
+  assert.equal(occurrences(html, 'class="simulateur-v3__journal-decision"'), 60);
+  assert.doesNotMatch(html, /simulateur-v3__journal-list/);
+});
+
+test("le journal vide explique son état et offre une sortie", () => {
+  const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "pause" as const };
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW, { pauseView: "journal" });
+  assert.match(html, /Aucune décision enregistrée/);
+  assert.match(html, /class="simulateur-v3__empty-state"/);
+  assert.equal(occurrences(html, 'data-v3-action="back-pause"'), 1);
 });

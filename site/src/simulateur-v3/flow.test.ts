@@ -17,7 +17,10 @@ const crisis: CrisisRule = {
   indicator: "opinion",
   threshold: 10,
   comparator: "lte",
-  aggravatingDecisionIds: ["decision-1"],
+  eligibleFromChapterIndex: 0,
+  maxOccurrences: 1,
+  requiredDecisionIds: ["decision-1"],
+  aggravatingChoices: [{ decisionId: "decision-1", optionIds: ["decision-1-option-a"] }],
   concessions: [],
   holdCourseEffects: [],
 };
@@ -251,7 +254,10 @@ test("un dossier final verrouillé repasse par conséquences, promesses et crise
     indicator: "opinion",
     threshold: 10,
     comparator: "lte",
-    aggravatingDecisionIds: [source.decisionId],
+    eligibleFromChapterIndex: 6,
+    maxOccurrences: 1,
+    requiredDecisionIds: [source.decisionId],
+    aggravatingChoices: [{ decisionId: source.decisionId, optionIds: [source.optionId] }],
     concessions: [],
     holdCourseEffects: [{
       id: "locked-year-crisis-balance",

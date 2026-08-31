@@ -1,16 +1,54 @@
 import { applyEffect } from "./effects.ts";
-import type { CampaignState, CrisisConcession, CrisisRule, DecisionStatus } from "./types.ts";
+import type {
+  CampaignState,
+  CrisisConcession,
+  CrisisRule,
+  DecisionRecord,
+  DecisionStatus,
+  Scenario,
+  TriggeredCrisisChoiceRef,
+} from "./types.ts";
 
 const HOLD_COURSE_ID = "hold-course";
+const MAX_MANDATE_CRISES = 8;
 
 function thresholdReached(state: CampaignState, rule: CrisisRule): boolean {
   const value = state.indicators[rule.indicator];
   return rule.comparator === "lte" ? value <= rule.threshold : value >= rule.threshold;
 }
 
-function confirmedAggravatingDecisions(state: CampaignState, rule: CrisisRule) {
-  return state.decisions
-    .filter((decision) => decision.status === "confirmed" && rule.aggravatingDecisionIds.includes(decision.decisionId));
+function currentChapterIndex(state: CampaignState, scenario: Scenario): number | null {
+  const latest = state.decisions.reduce<DecisionRecord | null>((candidate, decision) => (
+    candidate === null || decision.confirmedAtIndex > candidate.confirmedAtIndex ? decision : candidate
+  ), null);
+  if (!latest) return null;
+  const chapterIndex = scenario.chapters.findIndex((chapter) => chapter.decisionIds.includes(latest.decisionId));
+  return chapterIndex >= 0 ? chapterIndex : null;
+}
+
+function hasRequiredDecisions(state: CampaignState, rule: CrisisRule): boolean {
+  return rule.requiredDecisionIds.every((decisionId) => state.decisions.some((decision) => (
+    decision.decisionId === decisionId
+      && (decision.status === "confirmed" || decision.status === "amended")
+  )));
+}
+
+function confirmedAggravatingChoices(state: CampaignState, rule: CrisisRule): TriggeredCrisisChoiceRef[] {
+  const allowedOptions = new Map(rule.aggravatingChoices.map((choice) => [choice.decisionId, new Set(choice.optionIds)]));
+  return state.decisions.flatMap((decision) => (
+    decision.status === "confirmed" && allowedOptions.get(decision.decisionId)?.has(decision.optionId)
+      ? [{ decisionId: decision.decisionId, optionId: decision.optionId }]
+      : []
+  ));
+}
+
+function ruleOccurrenceCount(state: CampaignState, ruleId: string): number {
+  return state.crisisHistory.filter((crisis) => crisis.ruleId === ruleId).length
+    + (state.activeCrisis?.ruleId === ruleId ? 1 : 0);
+}
+
+function crisisCount(state: CampaignState): number {
+  return state.crisisHistory.length + (state.activeCrisis ? 1 : 0);
 }
 
 function activeRule(state: CampaignState, rules: readonly CrisisRule[]): CrisisRule {
@@ -35,24 +73,41 @@ function applyCrisisEffects(state: CampaignState, rule: CrisisRule, effects: rea
   );
 }
 
-/** Enters the first eligible crisis and preserves the decisions which caused it. */
-export function detectCrisis(state: CampaignState, rules: readonly CrisisRule[]): CampaignState {
+/** Enters the first eligible crisis and preserves the exact choices which caused it. */
+export function detectCrisis(
+  state: CampaignState,
+  scenario: Scenario,
+  rules: readonly CrisisRule[],
+): CampaignState {
   if (state.activeCrisis) return state;
+  if (crisisCount(state) >= MAX_MANDATE_CRISES) return state;
+
+  const chapterIndex = currentChapterIndex(state, scenario);
+  if (chapterIndex === null) return state;
+  if (state.crisisHistory.some((crisis) => crisis.triggeredChapterIndex === chapterIndex)) return state;
 
   for (const rule of rules) {
-    if (state.resolvedCrisisIds.includes(rule.id) || !thresholdReached(state, rule)) continue;
-    const aggravatingDecisions = confirmedAggravatingDecisions(state, rule);
-    if (aggravatingDecisions.length === 0) continue;
-    const trigger = aggravatingDecisions.reduce((latest, decision) =>
-      decision.confirmedAtIndex > latest.confirmedAtIndex ? decision : latest,
-    );
+    if (chapterIndex < rule.eligibleFromChapterIndex
+        || ruleOccurrenceCount(state, rule.id) >= rule.maxOccurrences
+        || state.resolvedCrisisIds.includes(rule.id)
+        || !thresholdReached(state, rule)
+        || !hasRequiredDecisions(state, rule)) continue;
+    const aggravatingChoices = confirmedAggravatingChoices(state, rule);
+    if (aggravatingChoices.length === 0) continue;
+    const aggravatingDecisionIds = [...new Set(aggravatingChoices.map((choice) => choice.decisionId))];
+    const trigger = state.decisions
+      .filter((decision) => aggravatingDecisionIds.includes(decision.decisionId))
+      .reduce((latest, decision) => decision.confirmedAtIndex > latest.confirmedAtIndex ? decision : latest);
     return {
       ...state,
       phase: "crisis",
       activeCrisis: {
         ruleId: rule.id,
+        triggeredAtDecisionCount: state.decisions.length,
+        triggeredChapterIndex: chapterIndex,
+        aggravatingChoices,
         triggeredByDecisionId: trigger.decisionId,
-        aggravatingDecisionIds: aggravatingDecisions.map((decision) => decision.decisionId),
+        aggravatingDecisionIds,
       },
     };
   }
@@ -67,6 +122,9 @@ export function availableConcessions(state: CampaignState, rules: readonly Crisi
   if (!rule) return [];
   return rule.concessions.filter((concession) => {
     if (concession.id === HOLD_COURSE_ID) return false;
+    if (!state.activeCrisis?.aggravatingChoices.some((choice) => choice.decisionId === concession.targetDecisionId)) {
+      return false;
+    }
     const decision = state.decisions.find((record) => record.decisionId === concession.targetDecisionId);
     return decision?.status === "confirmed" || decision?.status === "amended";
   });

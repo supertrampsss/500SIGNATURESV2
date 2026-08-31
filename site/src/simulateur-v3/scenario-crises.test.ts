@@ -2,65 +2,173 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { currentDecision, selectOption } from "./campaign.ts";
-import { resolveCrisis } from "./crises.ts";
+import { availableConcessions, detectCrisis, resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
-import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
-import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
-import type { CampaignState } from "./types.ts";
+import { SCENARIO_V3 } from "./scenario.ts";
+import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
+import type { CampaignState, CrisisRule, DecisionOption } from "./types.ts";
+import { positionAfterCompleted } from "./validation.ts";
 
-const INITIAL_INDICATORS = createCampaign(validScenario()).indicators;
+type Strategy = (options: readonly DecisionOption[], decisionIndex: number) => DecisionOption;
 
-function playToFlatTaxCrisis(): CampaignState {
-  const scenario = SCENARIO_V3_PREVIEW;
-  let state: CampaignState = { ...createCampaign(scenario), phase: "chapter_intro" };
-  for (let step = 0; step < 100 && state.phase !== "crisis"; step += 1) {
+function xorshift(seed: number): () => number {
+  let value = seed >>> 0;
+  return () => {
+    value ^= value << 13;
+    value ^= value >>> 17;
+    value ^= value << 5;
+    return value >>> 0;
+  };
+}
+
+function playReferenceTrajectory(strategy: Strategy, seed = 1): CampaignState {
+  let state: CampaignState = { ...createCampaign(SCENARIO_V3, seed), phase: "chapter_intro" };
+  for (let step = 0; step < 1_000 && state.phase !== "verdict"; step += 1) {
     if (state.phase === "decision") {
-      const decision = currentDecision(state, scenario)!;
-      const option = decision.id === "flat-tax-a-20-des-le-premier"
-        ? decision.options.find((candidate) => candidate.id.endsWith(":adopt"))!
-        : decision.options.at(-1)!;
-      state = confirmSelection(selectOption(state, scenario, decision.id, option.id), scenario);
+      const decision = currentDecision(state, SCENARIO_V3);
+      assert.ok(decision);
+      const option = strategy(decision.options, state.decisions.length);
+      state = confirmSelection(selectOption(state, SCENARIO_V3, decision.id, option.id), SCENARIO_V3);
+    } else if (state.phase === "crisis") {
+      const crisis = state.activeCrisis;
+      assert.ok(crisis);
+      assert.ok(crisis.aggravatingChoices.length > 0);
+      for (const choice of crisis.aggravatingChoices) {
+        const record = state.decisions.find((decision) => decision.decisionId === choice.decisionId);
+        assert.equal(record?.optionId, choice.optionId);
+        const rule = SCENARIO_V3_CRISIS_RULES.find((candidate) => candidate.id === crisis.ruleId)!;
+        assert.ok(rule.aggravatingChoices.some((reference) =>
+          reference.decisionId === choice.decisionId && reference.optionIds.includes(choice.optionId)));
+      }
+      const concession = availableConcessions(state, SCENARIO_V3_CRISIS_RULES)[0];
+      state = resolveCrisis(state, SCENARIO_V3_CRISIS_RULES, concession?.id ?? "hold-course");
     } else {
-      state = advanceCampaign(state, scenario, SCENARIO_V3_CRISIS_RULES);
+      state = advanceCampaign(state, SCENARIO_V3, SCENARIO_V3_CRISIS_RULES);
     }
   }
-  assert.equal(state.phase, "crisis");
   return state;
 }
 
-test("le premier chapitre contient une conséquence différée lisible", () => {
-  const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "tranche-a-50-au-dela-de-250");
-  const option = decision?.options.find((candidate) => candidate.id.endsWith(":adopt"));
+function directStateForRule(rule: CrisisRule): CampaignState {
+  const count = SCENARIO_V3.chapters
+    .slice(0, rule.eligibleFromChapterIndex + 1)
+    .reduce((total, chapter) => total + chapter.decisionIds.length, 0);
+  const concessionTarget = rule.concessions[0]?.targetDecisionId;
+  const aggravating = rule.aggravatingChoices.find((choice) => choice.decisionId === concessionTarget)
+    ?? rule.aggravatingChoices[0]!;
+  const decisions = SCENARIO_V3.chapters.flatMap((chapter) => chapter.decisionIds).slice(0, count).map((decisionId, index) => {
+    const decision = SCENARIO_V3.decisions.find((candidate) => candidate.id === decisionId)!;
+    return {
+      decisionId,
+      optionId: decisionId === aggravating.decisionId ? aggravating.optionIds[0]! : decision.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    };
+  });
+  const state: CampaignState = {
+    ...createCampaign(SCENARIO_V3),
+    phase: "decision_result",
+    ...positionAfterCompleted(SCENARIO_V3, count)!,
+    decisions,
+  };
+  state.indicators[rule.indicator] = rule.threshold;
+  return state;
+}
 
-  assert.equal(option?.scheduledEvents.length, 1);
-  assert.ok((option?.scheduledEvents[0]?.afterDecisions ?? 0) > 0);
-  assert.match(option?.scheduledEvents[0]?.title ?? "", /stress|assiette/i);
-  assert.ok((option?.scheduledEvents[0]?.effects.length ?? 0) > 0);
+test("le scénario déclare huit familles exactes, une par chapitre", () => {
+  assert.equal(SCENARIO_V3_CRISIS_RULES.length, 8);
+  assert.deepEqual(SCENARIO_V3_CRISIS_RULES.map((rule) => rule.eligibleFromChapterIndex), [0, 1, 2, 3, 4, 5, 6, 7]);
+  assert.equal(new Set(SCENARIO_V3_CRISIS_RULES.map((rule) => rule.id)).size, 8);
+
+  for (const rule of SCENARIO_V3_CRISIS_RULES) {
+    assert.equal(rule.maxOccurrences, 1, rule.id);
+    assert.ok(rule.requiredDecisionIds.length > 0, rule.id);
+    assert.ok(rule.aggravatingChoices.length > 0, rule.id);
+    assert.ok(rule.holdCourseEffects.some((effect) => effect.delta !== 0), rule.id);
+    for (const choice of rule.aggravatingChoices) {
+      const decision = SCENARIO_V3.decisions.find((candidate) => candidate.id === choice.decisionId);
+      assert.ok(decision, `${rule.id}:${choice.decisionId}`);
+      assert.ok(choice.optionIds.length > 0, `${rule.id}:${choice.decisionId}`);
+      assert.ok(choice.optionIds.every((optionId) => decision.options.some((option) => option.id === optionId)));
+    }
+    assert.ok(rule.requiredDecisionIds.every((decisionId) => SCENARIO_V3.decisions.some((decision) => decision.id === decisionId)));
+    assert.ok(rule.concessions.every((concession) =>
+      concession.effects.length > 0 && concession.effects.every((effect) => effect.delta !== 0)));
+  }
 });
 
-test("la crise de la flat tax cite la réforme et permet de la suspendre réellement", () => {
-  const crisis = playToFlatTaxCrisis();
-  const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
-  assert.equal(crisis.activeCrisis?.triggeredByDecisionId, decision.id);
+test("chacune des huit familles peut se déclencher et sa concession modifie une politique active", () => {
+  for (const rule of SCENARIO_V3_CRISIS_RULES) {
+    const crisis = detectCrisis(directStateForRule(rule), SCENARIO_V3, [rule]);
+    assert.equal(crisis.activeCrisis?.ruleId, rule.id, rule.id);
+    assert.equal(crisis.activeCrisis?.triggeredChapterIndex, rule.eligibleFromChapterIndex, rule.id);
+    assert.ok(crisis.activeCrisis?.aggravatingChoices.length, rule.id);
 
-  const suspended = resolveCrisis(crisis, SCENARIO_V3_CRISIS_RULES, "suspend-flat-tax");
-  const flatTax = suspended.decisions.find((record) => record.decisionId === decision.id);
-  assert.equal(flatTax?.status, "suspended");
-  assert.equal(flatTax?.changedByCrisisId, "flat-tax-revolt");
-  assert.equal(suspended.indicators.annualBalance, INITIAL_INDICATORS.annualBalance);
-  assert.equal(suspended.crisisHistory[0]?.resolvedBy, "suspend-flat-tax");
+    const concession = availableConcessions(crisis, [rule])[0];
+    assert.ok(concession, `${rule.id}:concession disponible`);
+    const resolved = resolveCrisis(crisis, [rule], concession.id);
+    assert.notEqual(
+      resolved.decisions.find((decision) => decision.decisionId === concession.targetDecisionId)?.status,
+      "confirmed",
+      rule.id,
+    );
+    assert.ok(resolved.causalLedger.some((entry) => entry.sourceType === "crisis" && entry.sourceId === rule.id), rule.id);
+  }
 });
 
-test("maintenir le cap conserve la réforme mais aggrave la crise politique", () => {
-  const crisis = playToFlatTaxCrisis();
+test("la trajectoire toute prudence rencontre entre quatre et huit crises", () => {
+  const state = playReferenceTrajectory((options) => options.at(-1)!);
+  assert.equal(state.phase, "verdict");
+  assert.ok(state.crisisHistory.length >= 4 && state.crisisHistory.length <= 8, state.crisisHistory.map((crisis) => crisis.ruleId).join(","));
+});
 
-  const held = resolveCrisis(crisis, SCENARIO_V3_CRISIS_RULES, "hold-course");
+test("la trajectoire toute rupture rencontre entre quatre et huit crises", () => {
+  const state = playReferenceTrajectory((options) => options[0]!);
+  assert.equal(state.phase, "verdict");
+  assert.ok(state.crisisHistory.length >= 4 && state.crisisHistory.length <= 8, state.crisisHistory.map((crisis) => crisis.ruleId).join(","));
+});
 
-  assert.equal(held.decisions.find((record) => record.decisionId === "flat-tax-a-20-des-le-premier")?.status, "confirmed");
-  assert.ok(held.indicators.opinion < crisis.indicators.opinion);
-  assert.ok(held.indicators.majority < crisis.indicators.majority);
+for (const seed of [7, 19, 43, 97, 1_337]) {
+  test(`la trajectoire de référence seed ${seed} rencontre entre quatre et huit crises`, () => {
+    const random = xorshift(seed);
+    const state = playReferenceTrajectory((options) => options[random() % options.length]!, seed);
+    const chapters = state.crisisHistory.map((crisis) => crisis.triggeredChapterIndex);
+
+    assert.equal(state.phase, "verdict");
+    assert.ok(state.crisisHistory.length >= 4 && state.crisisHistory.length <= 8, state.crisisHistory.map((crisis) => crisis.ruleId).join(","));
+    assert.equal(new Set(chapters).size, chapters.length);
+    assert.ok(state.crisisHistory.every((crisis) => crisis.triggeredAtDecisionCount >= 1 && crisis.triggeredAtDecisionCount <= 60));
+  });
+}
+
+test("la crise de la flat tax cite le choix exact et permet de suspendre la réforme", () => {
+  const target = "flat-tax-a-20-des-le-premier";
+  const decisionIndex = SCENARIO_V3.decisions.findIndex((decision) => decision.id === target);
+  const choices = Object.fromEntries(SCENARIO_V3.decisions.slice(0, decisionIndex).map((decision) => [decision.id, decision.options.at(-1)!.id]));
+  choices[target] = `${target}:adopt`;
+  const count = decisionIndex + 1;
+  const state: CampaignState = {
+    ...createCampaign(SCENARIO_V3),
+    phase: "decision_result",
+    ...positionAfterCompleted(SCENARIO_V3, count)!,
+    decisions: SCENARIO_V3.decisions.slice(0, count).map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: choices[decision.id]!,
+      status: "confirmed",
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  const rule = SCENARIO_V3_CRISIS_RULES[0]!;
+  const crisis = detectCrisis(state, SCENARIO_V3, [rule]);
+
+  assert.ok(crisis.activeCrisis?.aggravatingChoices.some((choice) =>
+    choice.decisionId === target && choice.optionId === `${target}:adopt`));
+  assert.equal(crisis.activeCrisis?.triggeredByDecisionId, target);
+  const suspended = resolveCrisis(crisis, [rule], "suspend-flat-tax");
+  assert.equal(suspended.decisions.find((record) => record.decisionId === target)?.status, "suspended");
+  assert.equal(suspended.decisions.find((record) => record.decisionId === target)?.changedByCrisisId, "flat-tax-revolt");
 });
 
 test("les textes des crises ne contiennent aucun cadratin", () => {

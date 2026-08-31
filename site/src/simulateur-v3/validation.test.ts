@@ -590,7 +590,17 @@ test("un état V3 accepte chaque phase à sa position atteignable", () => {
     {
       ...crisis,
       phase: "crisis",
-      activeCrisis: { ruleId: "crisis-1", triggeredByDecisionId: "decision-1", aggravatingDecisionIds: ["decision-1"] },
+      activeCrisis: {
+        ruleId: "crisis-1",
+        triggeredAtDecisionCount: 1,
+        triggeredChapterIndex: 0,
+        triggeredByDecisionId: "decision-1",
+        aggravatingDecisionIds: ["decision-1"],
+        aggravatingChoices: [{
+          decisionId: "decision-1",
+          optionId: scenario.decisions[0]!.options[0]!.id,
+        }],
+      },
     },
     { ...delayedEvent, phase: "delayed_event" },
     { ...chapterVerdict, phase: "chapter_verdict" },

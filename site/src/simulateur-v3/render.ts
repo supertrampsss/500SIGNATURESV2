@@ -1,6 +1,7 @@
 import { currentDecision } from "./campaign.ts";
 import { availableConcessions } from "./crises.ts";
 import { INDICATOR_META } from "./indicator-meta.ts";
+import { groupJournal } from "./presentation.ts";
 import { totalDecisions } from "./validation.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
 import type {
@@ -27,6 +28,7 @@ export type RenderSimulatorV3Options = {
   restartRequired?: boolean;
   crisisRules?: readonly CrisisRule[];
   pauseView?: "menu" | "journal" | "restart";
+  saveFailed?: boolean;
 };
 
 function escapeHtml(value: string): string {
@@ -100,7 +102,7 @@ function renderCommandBar(state: CampaignState, scenario: Scenario): string {
       <p class="simulateur-v3__mandate">Mandat 2026 à 2031</p>
       <p class="simulateur-v3__command-balance"><span>Solde annuel</span><strong>${escapeHtml(formatV3Amount(state.indicators.annualBalance))}</strong></p>
       ${progress}
-      <span class="simulateur-v3__command-progress" aria-hidden="true"><i style="--v3-command-progress: ${progressLevel}%"></i></span>
+      <span class="simulateur-v3__command-progress" role="progressbar" aria-label="Progression du mandat" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progressLevel}"><i style="--v3-command-progress: ${progressLevel}%"></i></span>
       ${trailing}
     </header>`;
 }
@@ -335,6 +337,10 @@ function renderOption(decision: Decision, option: DecisionOption, selected: bool
     : "Solde inchangé";
   const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
   const detailId = `v3-option-detail-${option.id}`;
+  const labelId = `v3-option-label-${option.id}`;
+  const budgetId = `v3-option-budget-${option.id}`;
+  const impactId = `v3-option-impact-${option.id}`;
+  const riskId = `v3-option-risk-${option.id}`;
   return `
     <article class="simulateur-v3__option${selected ? " simulateur-v3__option--selected" : ""}" data-option-id="${escapeHtml(option.id)}">
       <button
@@ -343,20 +349,32 @@ function renderOption(decision: Decision, option: DecisionOption, selected: bool
         data-v3-action="select"
         data-decision-id="${escapeHtml(decision.id)}"
         data-option-id="${escapeHtml(option.id)}"
-        aria-label="Choisir : ${escapeHtml(option.label)}"
+        aria-labelledby="${escapeHtml(labelId)}"
+        aria-describedby="${escapeHtml(`${budgetId} ${impactId} ${riskId}`)}"
         aria-pressed="${selected}"
         ${selected ? `aria-controls="${escapeHtml(detailId)}"` : ""}
       >
-        <span class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
-        <strong class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
-        <span class="simulateur-v3__option-impact" data-v3-fact="impact">${escapeHtml(principalImpact ? effectLabelWithTiming(principalImpact) : "Impact détaillé dans le mécanisme")}</span>
-        <span class="simulateur-v3__option-confidence" data-v3-fact="risk">Incertitude ${escapeHtml(option.uncertainty)}</span>
+        <span id="${escapeHtml(labelId)}" class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
+        <strong id="${escapeHtml(budgetId)}" class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
+        <span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact" data-v3-fact="impact">${escapeHtml(principalImpact ? effectLabelWithTiming(principalImpact) : "Impact détaillé dans le mécanisme")}</span>
+        <span id="${escapeHtml(riskId)}" class="simulateur-v3__option-confidence" data-v3-fact="risk">Incertitude ${escapeHtml(option.uncertainty)}</span>
       </button>
       ${selected ? renderOptionDetail(option) : ""}
     </article>`;
 }
 
 function renderEvidence(decision: Decision): string {
+  const sources = decision.evidence.length === 0
+    ? `<li class="simulateur-v3__source-unavailable" role="status">Aucune source n'est disponible pour ce dossier. Le mécanisme documenté reste consultable ci-dessus.</li>`
+    : decision.evidence.map((evidence) => `
+            <li>
+              ${evidence.sourceUrl
+                ? `<a href="${escapeHtml(evidence.sourceUrl)}">${escapeHtml(evidence.sourceName)}</a>`
+                : `<span class="simulateur-v3__source-name">${escapeHtml(evidence.sourceName)}</span>`}
+              <time datetime="${escapeHtml(evidence.publishedAt)}">${escapeHtml(evidence.publishedAt.slice(0, 4))}</time>
+              ${evidence.sourceUrl ? "" : `<small role="status">Lien source indisponible.</small>`}
+              ${evidence.note ? `<small>${escapeHtml(evidence.note)}</small>` : ""}
+            </li>`).join("");
   return `
     <details class="simulateur-v3__evidence">
       <summary>Preuves, réserves et sources</summary>
@@ -367,14 +385,9 @@ function renderEvidence(decision: Decision): string {
         </section>
         <section class="simulateur-v3__source-block">
           <h3>Sources</h3>
-          <p>${escapeHtml(decision.evidence[0]?.label ?? "")}</p>
+          <p>${escapeHtml(decision.evidence[0]?.label ?? "Les sources seront ajoutées dès qu'elles seront disponibles.")}</p>
           <ul class="simulateur-v3__sources">
-            ${decision.evidence.map((evidence) => `
-            <li>
-              <a href="${escapeHtml(evidence.sourceUrl)}">${escapeHtml(evidence.sourceName)}</a>
-              <time datetime="${escapeHtml(evidence.publishedAt)}">${escapeHtml(evidence.publishedAt.slice(0, 4))}</time>
-              ${evidence.note ? `<small>${escapeHtml(evidence.note)}</small>` : ""}
-            </li>`).join("")}
+            ${sources}
           </ul>
         </section>
       </div>
@@ -417,6 +430,7 @@ function renderDecisionResult(state: CampaignState, scenario: Scenario): string 
   const option = decision?.options.find((candidate) => candidate.id === record?.optionId);
   if (!record || !decision || !option) return renderUnavailable("Le résultat de cette décision n'est plus disponible.");
 
+  const impactUnavailable = record.impact === undefined;
   const changes = record.impact?.indicators.slice(0, 3) ?? [];
   const nextEvent = [...state.scheduledEvents]
     .filter((event) => event.sourceDecisionId === decision.id && event.sourceOptionId === option.id)
@@ -440,10 +454,17 @@ function renderDecisionResult(state: CampaignState, scenario: Scenario): string 
           <p class="simulateur-v3__lead">${escapeHtml(decision.title)}</p>
         </header>
         <div class="simulateur-v3__scene-body">
-          ${changes.length > 0 ? `<dl class="simulateur-v3__result-metrics">${changes.map((change) => `
+          ${impactUnavailable
+            ? `<p class="simulateur-v3__result-history-unavailable" role="status">Détail historique indisponible pour cette ancienne décision. Son mécanisme et son calendrier restent consultables.</p>`
+            : changes.length > 0 ? `<dl class="simulateur-v3__result-metrics">${changes.map((change) => `
             <div>
               <dt>${escapeHtml(INDICATOR_META[change.key].label)}</dt>
-              <dd><span>${escapeHtml(formatIndicatorSnapshotValue(change.key, change.before))}</span><span aria-hidden="true">→</span><span>${escapeHtml(formatIndicatorSnapshotValue(change.key, change.after))}</span><strong>${escapeHtml(effectLabel({ target: "indicator", key: change.key, delta: change.delta }))}</strong></dd>
+              <dd>
+                <span class="simulateur-v3__result-value"><small>Avant</small><span>${escapeHtml(formatIndicatorSnapshotValue(change.key, change.before))}</span></span>
+                <span class="simulateur-v3__result-arrow" aria-hidden="true">→</span>
+                <span class="simulateur-v3__result-value"><small>Après</small><span>${escapeHtml(formatIndicatorSnapshotValue(change.key, change.after))}</span></span>
+                <strong>${escapeHtml(effectLabel({ target: "indicator", key: change.key, delta: change.delta }))}</strong>
+              </dd>
             </div>`).join("")}</dl>` : `<p class="simulateur-v3__result-no-metric">Aucun indicateur ne change immédiatement. Les effets arrivent selon le calendrier annoncé.</p>`}
           <section class="simulateur-v3__result-cause" aria-label="Chaîne causale">
             <h2>Ce qui change</h2>
@@ -460,14 +481,65 @@ function renderDecisionResult(state: CampaignState, scenario: Scenario): string 
     </main>`;
 }
 
-function decisionAndOption(state: CampaignState, scenario: Scenario, recordIndex: number) {
-  const record = state.decisions[recordIndex];
-  const decision = record ? scenario.decisions.find((candidate) => candidate.id === record.decisionId) : undefined;
-  const option = decision?.options.find((candidate) => candidate.id === record?.optionId);
-  return { record, decision, option };
+function renderJournalImpact(record: CampaignState["decisions"][number]): string {
+  if (!record.impact) {
+    return `<p class="simulateur-v3__journal-history-unavailable">Détail historique immédiat indisponible.</p>`;
+  }
+  if (record.impact.indicators.length === 0) {
+    return `<p class="simulateur-v3__journal-no-immediate">Aucun indicateur modifié immédiatement.</p>`;
+  }
+  return `<dl class="simulateur-v3__journal-impact">${record.impact.indicators.map((impact) => `
+    <div>
+      <dt>${escapeHtml(INDICATOR_META[impact.key].label)}</dt>
+      <dd><span>Avant ${escapeHtml(formatIndicatorSnapshotValue(impact.key, impact.before))}</span><span>Après ${escapeHtml(formatIndicatorSnapshotValue(impact.key, impact.after))}</span><strong>${escapeHtml(effectLabel({ target: "indicator", key: impact.key, delta: impact.delta }))}</strong></dd>
+    </div>`).join("")}</dl>`;
 }
 
-function renderJournal(state: CampaignState, scenario: Scenario): string {
+function journalCauseSource(
+  state: CampaignState,
+  cause: CausalEntry,
+  scenario: Scenario,
+  crisisRules: readonly CrisisRule[],
+): { kind: string; title: string; dueAtDecision?: number } {
+  if (cause.sourceType === "event") {
+    const event = [...state.eventHistory, ...state.scheduledEvents].find((candidate) => candidate.id === cause.sourceId);
+    return { kind: "Effet différé", title: event?.title ?? "Événement du mandat", dueAtDecision: event?.dueAtDecision };
+  }
+  if (cause.sourceType === "promise") {
+    const promise = [...state.promiseHistory, ...state.activePromises].find((candidate) => candidate.id === cause.sourceId);
+    return { kind: "Promesse arrivée à échéance", title: promise?.label ?? "Promesse du mandat", dueAtDecision: promise?.dueAtDecision };
+  }
+  if (cause.sourceType === "crisis") {
+    const rule = crisisRules.find((candidate) => candidate.id === cause.sourceId);
+    return { kind: "Effet de crise", title: rule?.title ?? cause.sourceId };
+  }
+  const sourceDecisionId = sourceDecisionIdsForCause(state, cause).at(0);
+  const decision = scenario.decisions.find((candidate) => candidate.id === sourceDecisionId);
+  return { kind: "Effet immédiat", title: decision?.title ?? "Décision du mandat" };
+}
+
+function renderJournalCause(
+  state: CampaignState,
+  cause: CausalEntry,
+  decisionTitle: string,
+  scenario: Scenario,
+  crisisRules: readonly CrisisRule[],
+): string {
+  const source = journalCauseSource(state, cause, scenario, crisisRules);
+  const due = source.dueAtDecision === undefined ? "" : ` · échéance dossier ${source.dueAtDecision}`;
+  return `<li>
+    <strong>${escapeHtml(effectLabel(cause))}</strong>
+    <span>${escapeHtml(source.kind)} : ${escapeHtml(source.title)}</span>
+    <small>Décision source : ${escapeHtml(decisionTitle)}${escapeHtml(due)} · appliqué au dossier ${cause.appliedAtDecision}</small>
+    <p>${escapeHtml(cause.explanation)}</p>
+  </li>`;
+}
+
+function renderJournal(
+  state: CampaignState,
+  scenario: Scenario,
+  crisisRules: readonly CrisisRule[],
+): string {
   const statuses: Record<string, string> = {
     confirmed: "En vigueur",
     suspended: "Suspendue après une crise",
@@ -475,6 +547,52 @@ function renderJournal(state: CampaignState, scenario: Scenario): string {
     reversed: "Renversée après une crise",
     superseded: "Sans objet après un arbitrage précédent",
   };
+  const groups = groupJournal(state.decisions, scenario);
+  const journalBody = groups.length === 0
+    ? `<section class="simulateur-v3__empty-state"><h2>Aucune décision enregistrée</h2><p>Le journal se remplira après votre premier arbitrage.</p><button type="button" class="simulateur-v3__secondary" data-v3-action="resume">Revenir au dossier en cours</button></section>`
+    : `<div class="simulateur-v3__journal-groups">${groups.map((group) => {
+      const activeCauseIds = new Set(group.records
+        .filter((record) => record.status === "confirmed" || record.status === "amended")
+        .flatMap((record) => state.causalLedger.filter((entry) => (
+          entry.duration !== "once" && sourceDecisionIdsForCause(state, entry).includes(record.decisionId)
+        )))
+        .map((entry) => entry.id));
+      const latest = group.records.at(-1);
+      const latestImpact = latest?.impact?.indicators.at(0);
+      const latestResult = latestImpact
+        ? `${INDICATOR_META[latestImpact.key].label} : ${formatIndicatorSnapshotValue(latestImpact.key, latestImpact.before)} → ${formatIndicatorSnapshotValue(latestImpact.key, latestImpact.after)}`
+        : `Dernier arbitrage : ${statuses[latest?.status ?? ""] ?? "détail historique indisponible"}`;
+      const yearLabel = group.mandateYear === null ? "année non disponible" : `année ${group.mandateYear}`;
+      return `<details class="simulateur-v3__journal-group">
+        <summary>
+          <span>${escapeHtml(group.chapterTitle)} · ${escapeHtml(yearLabel)}</span>
+          <strong>${group.records.length} ${group.records.length === 1 ? "décision" : "décisions"}</strong>
+          <small>${activeCauseIds.size} ${activeCauseIds.size === 1 ? "effet encore actif" : "effets encore actifs"} · ${escapeHtml(latestResult)}</small>
+        </summary>
+        <ol>${group.records.map((record) => {
+          const decision = scenario.decisions.find((candidate) => candidate.id === record.decisionId);
+          const option = decision?.options.find((candidate) => candidate.id === record.optionId);
+          const decisionTitle = decision?.title ?? record.decisionId;
+          const immediateIds = new Set(record.impact?.indicators.flatMap((impact) => impact.causalEntryIds) ?? []);
+          const laterCauses = state.causalLedger.filter((entry) => (
+            sourceDecisionIdsForCause(state, entry).includes(record.decisionId) && !immediateIds.has(entry.id)
+          ));
+          const crisis = record.changedByCrisisId
+            ? crisisRules.find((candidate) => candidate.id === record.changedByCrisisId)
+            : undefined;
+          return `<li><details class="simulateur-v3__journal-decision">
+            <summary><span>${escapeHtml(compactOptionLabel(option?.label ?? record.optionId))}</span><strong>${escapeHtml(statuses[record.status] ?? record.status)}</strong></summary>
+            <div>
+              <p>${escapeHtml(decisionTitle)}</p>
+              <p><strong>Statut :</strong> ${escapeHtml(statuses[record.status] ?? record.status)}${crisis ? ` · modifiée par ${escapeHtml(crisis.title)}` : ""}</p>
+              ${option ? `<p><strong>Horizon :</strong> ${escapeHtml(horizonLabel(option.horizon))}</p>` : ""}
+              <section class="simulateur-v3__journal-immediate" aria-label="Effets immédiats"><h3>Au moment de la décision</h3>${renderJournalImpact(record)}</section>
+              <section class="simulateur-v3__journal-later" aria-label="Conséquences ultérieures"><h3>Conséquences ultérieures</h3>${laterCauses.length > 0 ? `<ul>${laterCauses.map((cause) => renderJournalCause(state, cause, decisionTitle, scenario, crisisRules)).join("")}</ul>` : `<p>Aucune conséquence ultérieure appliquée à ce stade.</p>`}</section>
+            </div>
+          </details></li>`;
+        }).join("")}</ol>
+      </details>`;
+    }).join("")}</div>`;
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__journal">
@@ -483,27 +601,19 @@ function renderJournal(state: CampaignState, scenario: Scenario): string {
           <h1>Journal du mandat</h1>
           <p class="simulateur-v3__lead">Vos arbitrages, leur statut et les concessions arrachées pendant le mandat.</p>
         </header>
-        <div class="simulateur-v3__scene-body"><ol class="simulateur-v3__journal-list">
-          ${state.decisions.map((record, index) => {
-            const { decision, option } = decisionAndOption(state, scenario, index);
-            const optionLabel = compactOptionLabel(option?.label ?? record.optionId);
-            const decisionTitle = decision?.title ?? record.decisionId;
-            const repeatsDecision = decisionTitle.replace(/\s*\?$/, "").startsWith(optionLabel);
-            return `<li>
-              <span class="simulateur-v3__journal-index">${index + 1}</span>
-              <div><h2>${escapeHtml(optionLabel)}</h2>
-              ${repeatsDecision ? "" : `<p>${escapeHtml(decisionTitle)}</p>`}
-              <strong>${escapeHtml(statuses[record.status] ?? record.status)}</strong></div>
-            </li>`;
-          }).join("") || "<li>Aucune décision confirmée.</li>"}
-        </ol></div>
+        <div class="simulateur-v3__scene-body">${journalBody}</div>
         <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__secondary" data-v3-action="back-pause">Revenir à Pause</button></footer>
       </article>
     </main>`;
 }
 
-function renderPause(state: CampaignState, scenario: Scenario, view: RenderSimulatorV3Options["pauseView"]): string {
-  if (view === "journal") return renderJournal(state, scenario);
+function renderPause(
+  state: CampaignState,
+  scenario: Scenario,
+  view: RenderSimulatorV3Options["pauseView"],
+  crisisRules: readonly CrisisRule[],
+): string {
+  if (view === "journal") return renderJournal(state, scenario, crisisRules);
   if (view === "restart") {
     return `
       <main class="simulateur-v3__stage">
@@ -543,16 +653,32 @@ function recentCauses(state: CampaignState): CausalEntry[] {
   return state.causalLedger.filter((entry) => entry.appliedAtDecision > floor).slice(-5).reverse();
 }
 
-function sourceDecisionIdForCause(state: CampaignState, cause: CausalEntry): string | undefined {
-  if (cause.sourceType === "decision") return cause.sourceId.split(":")[0];
+function sourceDecisionIdsForCause(state: CampaignState, cause: CausalEntry): string[] {
+  if (cause.sourceType === "decision") {
+    const record = state.decisions.find((candidate) => (
+      cause.sourceId === `${candidate.decisionId}:${candidate.optionId}`
+    ));
+    return [record?.decisionId ?? cause.sourceId.split(":")[0]!];
+  }
   if (cause.sourceType === "event") {
-    return [...state.eventHistory, ...state.scheduledEvents].find((event) => event.id === cause.sourceId)?.sourceDecisionId;
+    const decisionId = [...state.eventHistory, ...state.scheduledEvents]
+      .find((event) => event.id === cause.sourceId)?.sourceDecisionId;
+    return decisionId ? [decisionId] : [];
   }
   if (cause.sourceType === "promise") {
-    return [...state.promiseHistory, ...state.activePromises].find((promise) => promise.id === cause.sourceId)?.sourceDecisionId;
+    const decisionId = [...state.promiseHistory, ...state.activePromises]
+      .find((promise) => promise.id === cause.sourceId)?.sourceDecisionId;
+    return decisionId ? [decisionId] : [];
   }
-  return [...state.crisisHistory, ...(state.activeCrisis ? [state.activeCrisis] : [])]
-    .find((crisis) => crisis.ruleId === cause.sourceId)?.triggeredByDecisionId;
+  const crisis = [...state.crisisHistory, ...(state.activeCrisis ? [state.activeCrisis] : [])]
+    .find((candidate) => candidate.ruleId === cause.sourceId);
+  if (!crisis) return [];
+  const exactDecisionIds = crisis.aggravatingChoices?.map((choice) => choice.decisionId) ?? [];
+  return exactDecisionIds.length > 0 ? [...new Set(exactDecisionIds)] : [crisis.triggeredByDecisionId];
+}
+
+function sourceDecisionIdForCause(state: CampaignState, cause: CausalEntry): string | undefined {
+  return sourceDecisionIdsForCause(state, cause).at(0);
 }
 
 function renderCouncil(state: CampaignState, scenario: Scenario): string {
@@ -665,7 +791,11 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
   const rule = rules.find((candidate) => candidate.id === state.activeCrisis?.ruleId);
   if (!rule || !state.activeCrisis) return renderUnavailable("Cette crise n'est plus disponible.");
   const trigger = scenario.decisions.find((decision) => decision.id === state.activeCrisis?.triggeredByDecisionId);
-  const concessions = availableConcessions(state, rules);
+  // Une crise reste un arbitrage binaire à l'écran : tenir ou céder sur le
+  // premier compromis encore applicable. Les règles peuvent conserver des
+  // concessions de repli pour d'autres combinaisons de décisions, sans
+  // transformer la scène compacte en troisième catalogue d'options.
+  const concessions = availableConcessions(state, rules).slice(0, 1);
   return `
     <main class="simulateur-v3__stage">
       <article class="simulateur-v3__dossier simulateur-v3__crisis">
@@ -844,7 +974,7 @@ export function renderSimulatorV3(
       content = renderDecisionResult(state, scenario);
       break;
     case "pause":
-      content = renderPause(state, scenario, options.pauseView ?? "menu");
+      content = renderPause(state, scenario, options.pauseView ?? "menu", options.crisisRules ?? []);
       break;
     case "council":
       content = renderCouncil(state, scenario);
@@ -861,5 +991,9 @@ export function renderSimulatorV3(
     default:
       content = renderUnavailable("Cet écran du mandat n'est pas disponible.");
   }
-  return `<section class="simulateur-v3">${renderCommandBar(state, scenario)}${content}</section>`;
+  const accessibleContent = content.replace("<h1>", '<h1 tabindex="-1">');
+  const saveWarning = options.saveFailed
+    ? `<p class="simulateur-v3__save-error" role="status">La sauvegarde locale est indisponible. La partie continue dans cet onglet.</p>`
+    : "";
+  return `<section class="simulateur-v3">${renderCommandBar(state, scenario)}${saveWarning}${accessibleContent}</section>`;
 }

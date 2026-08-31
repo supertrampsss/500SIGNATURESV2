@@ -3532,7 +3532,7 @@ test("le simulateur V3 possède une palette fixe et isolée", () => {
 test("le simulateur V3 est mobile-first, tactile et sans HUD fixe", () => {
   assert.match(SIMULATEUR_V3, /\.simulateur-v3__options\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
   const desktop = SIMULATEUR_V3.slice(SIMULATEUR_V3.indexOf("@media (min-width: 60rem)"));
-  assert.match(desktop, /\.simulateur-v3__options\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\);/s);
+  assert.match(desktop, /\.simulateur-v3__options,\s*\.simulateur-v3__options--3\s*\{[^}]*grid-template-columns:\s*minmax\(0,\s*1fr\);/s);
   assert.match(SIMULATEUR_V3, /min-height:\s*var\(--cible\);/);
   assert.match(SIMULATEUR_V3, /:focus-visible/);
   assert.doesNotMatch(SIMULATEUR_V3, /\[aria-pressed="true"\]/);
@@ -3547,8 +3547,8 @@ test("le bureau de décision V3 retrouve la composition centrale de la planche E
   assert.match(desktop, /\.simulateur-v3__decision-layout\s*\{[^}]*width:\s*min\(100%,\s*82rem\);/s);
   assert.match(desktop, /\.simulateur-v3__mandate-dashboard\s*\{[^}]*grid-template-columns:\s*repeat\(4,\s*minmax\(0,\s*1fr\)\);/s);
   assert.doesNotMatch(SIMULATEUR_V3, /\.simulateur-v3__rail(?:\s|\{|--)/);
-  assert.match(SIMULATEUR_V3, /\.simulateur-v3__decision-illustration\s*\{/s);
-  assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*max-width:\s*28ch;[^}]*font-size:\s*clamp\(2\.5rem,\s*3\.4vw,\s*4rem\);/s);
+  assert.doesNotMatch(SIMULATEUR_V3, /\.simulateur-v3__decision-illustration\s*\{/s);
+  assert.match(desktop, /\.simulateur-v3__decision h1\s*\{[^}]*max-width:\s*28ch;[^}]*font-size:\s*2\.5rem;/s);
 });
 
 test("la barre de commandement remplace le header global pendant toute la V3", () => {

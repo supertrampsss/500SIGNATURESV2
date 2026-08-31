@@ -201,6 +201,18 @@ export type CrisisConcession = {
   effects: EffectRule[];
 };
 
+/** Exact scenario choices which are allowed to aggravate a crisis family. */
+export type CrisisChoiceRef = {
+  decisionId: string;
+  optionIds: string[];
+};
+
+/** One option which was actually confirmed when a crisis was detected. */
+export type TriggeredCrisisChoiceRef = {
+  decisionId: string;
+  optionId: string;
+};
+
 export type CrisisRule = {
   id: string;
   title: string;
@@ -208,14 +220,22 @@ export type CrisisRule = {
   indicator: IndicatorKey;
   threshold: number;
   comparator: "lte" | "gte";
-  aggravatingDecisionIds: string[];
+  eligibleFromChapterIndex: number;
+  maxOccurrences: 1;
+  requiredDecisionIds: string[];
+  aggravatingChoices: CrisisChoiceRef[];
   concessions: CrisisConcession[];
   holdCourseEffects: EffectRule[];
 };
 
 export type CrisisState = {
   ruleId: string;
+  triggeredAtDecisionCount: number;
+  triggeredChapterIndex: number;
+  aggravatingChoices: TriggeredCrisisChoiceRef[];
+  /** Compatibility projection for the existing crisis and verdict copy. */
   triggeredByDecisionId: string;
+  /** Compatibility projection; exact option-level causes live above. */
   aggravatingDecisionIds: string[];
   resolvedBy?: string;
 };

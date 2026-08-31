@@ -3,6 +3,7 @@ import {
   type CampaignPhase,
   type CampaignState,
   type CausalEntry,
+  type CrisisRule,
   type Decision,
   type DecisionOption,
   type DecisionRecord,
@@ -40,7 +41,7 @@ const EFFECT_DURATIONS = new Set<EffectRule["duration"]>(["once", "annual", "per
 const CAUSAL_SOURCE_TYPES = new Set<CausalEntry["sourceType"]>(["decision", "event", "crisis", "promise"]);
 const DECISION_KINDS = ["gestion", "transformation", "rupture"] as const;
 
-type ConfirmedDecision = Pick<DecisionRecord, "decisionId" | "optionId" | "confirmedAtIndex">;
+type ConfirmedDecision = Pick<DecisionRecord, "decisionId" | "optionId" | "confirmedAtIndex" | "status">;
 
 export const totalDecisions = (scenario: Scenario): number =>
   scenario.chapters.reduce((sum, chapter) => sum + chapter.decisionIds.length, 0);
@@ -335,13 +336,59 @@ function isPoliticalPromise(value: unknown, confirmedDecisions: Map<string, Conf
     && value.failureEffects.every(isImmediateEffectRule);
 }
 
-function isCrisisState(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>, requireResolution: boolean): boolean {
-  if (!isRecord(value) || typeof value.ruleId !== "string" || typeof value.triggeredByDecisionId !== "string") return false;
-  if (!confirmedDecisions.has(value.triggeredByDecisionId) || !Array.isArray(value.aggravatingDecisionIds)) return false;
-  if (value.aggravatingDecisionIds.length === 0 || hasDuplicates(value.aggravatingDecisionIds as string[])) return false;
-  if (!value.aggravatingDecisionIds.every((id) => typeof id === "string" && confirmedDecisions.has(id))) return false;
-  if (!value.aggravatingDecisionIds.includes(value.triggeredByDecisionId)) return false;
-  return requireResolution ? typeof value.resolvedBy === "string" : value.resolvedBy === undefined;
+function chapterIndexAtDecisionCount(scenario: Scenario, decisionCount: number): number | null {
+  if (!Number.isInteger(decisionCount) || decisionCount < 1) return null;
+  let completed = 0;
+  for (let chapterIndex = 0; chapterIndex < scenario.chapters.length; chapterIndex += 1) {
+    completed += scenario.chapters[chapterIndex]!.decisionIds.length;
+    if (decisionCount <= completed) return chapterIndex;
+  }
+  return null;
+}
+
+function isCrisisState(
+  value: unknown,
+  confirmedDecisions: Map<string, ConfirmedDecision>,
+  requireResolution: boolean,
+  scenario: Scenario,
+  currentDecisionCount: number,
+): boolean {
+  if (!isRecord(value)
+      || !isNonEmptyString(value.ruleId)
+      || !isPositiveInteger(value.triggeredAtDecisionCount)
+      || value.triggeredAtDecisionCount > currentDecisionCount
+      || !Number.isInteger(value.triggeredChapterIndex)
+      || (value.triggeredChapterIndex as number) < 0
+      || (value.triggeredChapterIndex as number) >= scenario.chapters.length
+      || chapterIndexAtDecisionCount(scenario, value.triggeredAtDecisionCount) !== value.triggeredChapterIndex
+      || typeof value.triggeredByDecisionId !== "string"
+      || !Array.isArray(value.aggravatingDecisionIds)
+      || !Array.isArray(value.aggravatingChoices)) return false;
+  if (!requireResolution && value.triggeredAtDecisionCount !== currentDecisionCount) return false;
+
+  const exactChoices = value.aggravatingChoices as unknown[];
+  if (exactChoices.length === 0) return false;
+  const exactChoiceKeys = new Set<string>();
+  const exactDecisionIds: string[] = [];
+  let latest: ConfirmedDecision | null = null;
+  for (const choice of exactChoices) {
+    if (!isRecord(choice) || typeof choice.decisionId !== "string" || typeof choice.optionId !== "string") return false;
+    const record = confirmedDecisions.get(choice.decisionId);
+    if (!record
+        || record.optionId !== choice.optionId
+        || record.confirmedAtIndex > value.triggeredAtDecisionCount
+        || (!requireResolution && record.status !== "confirmed")) return false;
+    const key = `${choice.decisionId}\u0000${choice.optionId}`;
+    if (exactChoiceKeys.has(key)) return false;
+    exactChoiceKeys.add(key);
+    if (!exactDecisionIds.includes(choice.decisionId)) exactDecisionIds.push(choice.decisionId);
+    if (latest === null || record.confirmedAtIndex > latest.confirmedAtIndex) latest = record;
+  }
+
+  if (value.aggravatingDecisionIds.length !== exactDecisionIds.length
+      || !value.aggravatingDecisionIds.every((id, index) => id === exactDecisionIds[index])) return false;
+  if (latest?.decisionId !== value.triggeredByDecisionId) return false;
+  return requireResolution ? isNonEmptyString(value.resolvedBy) : value.resolvedBy === undefined;
 }
 
 function isCausalEntry(
@@ -866,6 +913,125 @@ export function validatePolicyCatalogue(scenario: Scenario): string[] {
   return validateScenario(scenario, { allowConsequencesBeyondCampaign: true });
 }
 
+/** Validates crisis rules against the exact decisions and options of one campaign. */
+export function validateCrisisRules(scenario: Scenario, rules: readonly CrisisRule[]): string[] {
+  if (validateScenario(scenario).length > 0) return ["crises:invalid-scenario"];
+  if (!Array.isArray(rules)) return ["crises:rules-must-be-array"];
+
+  const errors: string[] = [];
+  const decisions = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
+  const rawRules = rules as readonly unknown[];
+  const ruleIds = rawRules.flatMap((rule) => isRecord(rule) && typeof rule.id === "string" ? [rule.id] : []);
+  for (const id of duplicateValues(ruleIds)) errors.push(`crisis:${id}:duplicate-rule-id`);
+
+  for (const [ruleIndex, value] of rawRules.entries()) {
+    const id = isRecord(value) && isNonEmptyString(value.id) ? value.id : `index-${ruleIndex}`;
+    if (!isRecord(value)) {
+      errors.push(`crisis:${id}:invalid-rule`);
+      continue;
+    }
+    if (!isNonEmptyString(value.id)) errors.push(`crisis:${id}:id-required`);
+    if (!isNonEmptyString(value.title)) errors.push(`crisis:${id}:title-required`);
+    if (!isNonEmptyString(value.body)) errors.push(`crisis:${id}:body-required`);
+    if (!isIndicatorKey(value.indicator)) errors.push(`crisis:${id}:invalid-indicator`);
+    if (typeof value.threshold !== "number" || !Number.isFinite(value.threshold)) errors.push(`crisis:${id}:finite-threshold-required`);
+    if (value.comparator !== "lte" && value.comparator !== "gte") errors.push(`crisis:${id}:invalid-comparator`);
+    if (!Number.isInteger(value.eligibleFromChapterIndex)
+        || (value.eligibleFromChapterIndex as number) < 0
+        || (value.eligibleFromChapterIndex as number) >= scenario.chapters.length) {
+      errors.push(`crisis:${id}:invalid-eligible-chapter`);
+    }
+    if (value.maxOccurrences !== 1) errors.push(`crisis:${id}:max-occurrences-must-be-one`);
+
+    if (!isStringArray(value.requiredDecisionIds)) {
+      errors.push(`crisis:${id}:required-decisions-must-be-array`);
+    } else {
+      for (const duplicate of duplicateValues(value.requiredDecisionIds)) {
+        errors.push(`crisis:${id}:duplicate-required-decision:${duplicate}`);
+      }
+      for (const decisionId of value.requiredDecisionIds) {
+        if (!decisions.has(decisionId)) errors.push(`crisis:${id}:unknown-required-decision:${decisionId}`);
+      }
+    }
+
+    const aggravatingDecisionIds: string[] = [];
+    if (!Array.isArray(value.aggravatingChoices) || value.aggravatingChoices.length === 0) {
+      errors.push(`crisis:${id}:aggravating-choices-required`);
+    } else {
+      for (const [choiceIndex, choice] of value.aggravatingChoices.entries()) {
+        const choiceId = isRecord(choice) && typeof choice.decisionId === "string"
+          ? choice.decisionId
+          : `index-${choiceIndex}`;
+        if (!isRecord(choice) || !isNonEmptyString(choice.decisionId)) {
+          errors.push(`crisis:${id}:aggravating-choice:${choiceId}:decision-required`);
+          continue;
+        }
+        aggravatingDecisionIds.push(choice.decisionId);
+        const decision = decisions.get(choice.decisionId);
+        if (!decision) errors.push(`crisis:${id}:unknown-aggravating-decision:${choice.decisionId}`);
+        if (!isStringArray(choice.optionIds) || choice.optionIds.length === 0) {
+          errors.push(`crisis:${id}:aggravating-choice:${choice.decisionId}:options-required`);
+          continue;
+        }
+        for (const duplicate of duplicateValues(choice.optionIds)) {
+          errors.push(`crisis:${id}:aggravating-choice:${choice.decisionId}:duplicate-option:${duplicate}`);
+        }
+        for (const optionId of choice.optionIds) {
+          if (!decision?.options.some((option) => option.id === optionId)) {
+            errors.push(`crisis:${id}:aggravating-choice:${choice.decisionId}:unknown-option:${optionId}`);
+          }
+        }
+      }
+      for (const duplicate of duplicateValues(aggravatingDecisionIds)) {
+        errors.push(`crisis:${id}:duplicate-aggravating-decision:${duplicate}`);
+      }
+    }
+
+    if (!Array.isArray(value.concessions)) {
+      errors.push(`crisis:${id}:concessions-must-be-array`);
+    } else {
+      const concessionIds = value.concessions.flatMap((concession) =>
+        isRecord(concession) && typeof concession.id === "string" ? [concession.id] : []);
+      for (const duplicate of duplicateValues(concessionIds)) {
+        errors.push(`crisis:${id}:duplicate-concession:${duplicate}`);
+      }
+      for (const [concessionIndex, concession] of value.concessions.entries()) {
+        const concessionId = isRecord(concession) && isNonEmptyString(concession.id)
+          ? concession.id
+          : `index-${concessionIndex}`;
+        if (!isRecord(concession)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:invalid`);
+          continue;
+        }
+        if (!isNonEmptyString(concession.id) || concession.id === "hold-course") {
+          errors.push(`crisis:${id}:concession:${concessionId}:invalid-id`);
+        }
+        if (!isNonEmptyString(concession.label)) errors.push(`crisis:${id}:concession:${concessionId}:label-required`);
+        if (typeof concession.targetDecisionId !== "string" || !decisions.has(concession.targetDecisionId)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:unknown-target`);
+        } else if (!aggravatingDecisionIds.includes(concession.targetDecisionId)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:target-not-aggravating-choice`);
+        }
+        if (!new Set(["suspend", "amend", "reverse"]).has(concession.policyChange as string)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:invalid-policy-change`);
+        }
+        if (!Array.isArray(concession.effects)
+            || !concession.effects.every((effect) => isEffectRule(effect) && effect.timing.kind === "immediate")) {
+          errors.push(`crisis:${id}:concession:${concessionId}:effects-must-be-immediate`);
+        }
+      }
+    }
+
+    if (!Array.isArray(value.holdCourseEffects)
+        || !value.holdCourseEffects.every((effect) => isEffectRule(effect) && effect.timing.kind === "immediate")
+        || !value.holdCourseEffects.some((effect) => isEffectRule(effect) && effect.delta !== 0)) {
+      errors.push(`crisis:${id}:hold-course-needs-nonzero-immediate-effect`);
+    }
+  }
+
+  return errors;
+}
+
 /** Narrow an untrusted persisted value to a reachable V3 campaign state. */
 export function isCampaignState(value: unknown, scenario: Scenario): value is CampaignState {
   if (validateScenario(scenario).length > 0) return false;
@@ -926,8 +1092,20 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (!hasUniqueDisjointIds(scheduledEvents as { id: string }[], eventHistory as { id: string }[])) return false;
   if (!hasUniqueDisjointIds(activePromises as { id: string }[], promiseHistory as { id: string }[])) return false;
 
-  if (!crisisHistory.every((crisis) => isCrisisState(crisis, confirmedDecisions, true))) return false;
-  if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, confirmedDecisions, false)) return false;
+  if (!crisisHistory.every((crisis) => isCrisisState(
+    crisis,
+    confirmedDecisions,
+    true,
+    scenario,
+    decisionRecords.length,
+  ))) return false;
+  if (value.activeCrisis !== undefined && !isCrisisState(
+    value.activeCrisis,
+    confirmedDecisions,
+    false,
+    scenario,
+    decisionRecords.length,
+  )) return false;
   if ((value.phase === "crisis") !== (value.activeCrisis !== undefined)) return false;
   if (value.phase === "delayed_event"
       && !(scheduledEvents as { dueAtDecision: number }[]).some((event) => event.dueAtDecision <= decisionRecords.length)

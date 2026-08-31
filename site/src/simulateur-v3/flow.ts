@@ -9,6 +9,7 @@ import type { CampaignState, CrisisRule, Scenario } from "./types.ts";
 
 function consequenceOrCrisis(
   state: CampaignState,
+  scenario: Scenario,
   crisisRules: readonly CrisisRule[],
 ): CampaignState | null {
   const decisionCount = state.decisions.length;
@@ -16,7 +17,7 @@ function consequenceOrCrisis(
     || state.activePromises.some((promise) => promise.dueAtDecision <= decisionCount);
   if (hasVisibleConsequence) return { ...state, phase: "delayed_event" };
 
-  const crisis = detectCrisis(state, crisisRules);
+  const crisis = detectCrisis(state, scenario, crisisRules);
   return crisis.phase === "crisis" ? crisis : null;
 }
 
@@ -32,7 +33,7 @@ function advanceAndResolveAutoSuperseded(
       && advanced.decisions.length > current.decisions.length;
     if (!autoSuperseded) return advanced;
 
-    const interruption = consequenceOrCrisis(advanced, crisisRules);
+    const interruption = consequenceOrCrisis(advanced, scenario, crisisRules);
     if (interruption) return interruption;
     const chapter = scenario.chapters[advanced.chapterIndex];
     const chapterComplete = chapter !== undefined && advanced.decisionIndex + 1 >= chapter.decisionIds.length;
@@ -59,7 +60,7 @@ function advanceFromDecisionResult(
   scenario: Scenario,
   crisisRules: readonly CrisisRule[],
 ): CampaignState {
-  const interruption = consequenceOrCrisis(state, crisisRules);
+  const interruption = consequenceOrCrisis(state, scenario, crisisRules);
   if (interruption) return interruption;
   return advanceNormallyOrToCouncil(state, scenario, crisisRules);
 }
@@ -81,7 +82,7 @@ export function advanceCampaign(
     const eventResolution = resolveDueEvents(state);
     const promiseResolution = resolveDuePromises(eventResolution.state);
     const afterEvent = { ...promiseResolution.state, phase: "decision_result" as const };
-    const crisis = detectCrisis(afterEvent, crisisRules);
+    const crisis = detectCrisis(afterEvent, scenario, crisisRules);
     if (crisis.phase === "crisis") return crisis;
     return advanceNormallyOrToCouncil(afterEvent, scenario, crisisRules);
   }
