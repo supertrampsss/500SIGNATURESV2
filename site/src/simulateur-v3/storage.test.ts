@@ -125,6 +125,7 @@ test("la migration historique 5 vers 6 ajoute les effets modélisés sans perdre
 
 test("la transition topologique 6 vers 7 exige un nouveau mandat sans rejouer les effets modélisés", () => {
   const scenarioV6: Scenario = { ...SCENARIO_V3_PREVIEW, version: 6 };
+  const scenarioV7: Scenario = { ...SCENARIO_V3_PREVIEW, version: 7 };
   const decision = scenarioV6.decisions[0]!;
   const option = decision.options[0]!;
   const oldState = confirmSelection(
@@ -134,7 +135,7 @@ test("la transition topologique 6 vers 7 exige un nouveau mandat sans rejouer le
   const serialized = JSON.stringify(oldState);
   const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
 
-  assert.deepEqual(restoreCampaign(storage, SCENARIO_V3_PREVIEW), { kind: "restart_required" });
+  assert.deepEqual(restoreCampaign(storage, scenarioV7), { kind: "restart_required" });
   assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
 });
 
