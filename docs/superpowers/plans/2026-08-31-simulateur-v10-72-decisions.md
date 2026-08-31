@@ -13,7 +13,7 @@
 - `SCENARIO_V10.version` vaut `10` et `SCHEMA_VERSION` vaut `5`; `SCENARIO_V9` reste disponible en lecture.
 - La bibliothèque contient exactement 96 `Decision` uniques et 192 options; V10 contient exactement 72 décisions et 144 options, longueur figée au build.
 - La topologie a huit chapitres, un noyau ordonné de 60 identifiants et exactement 12 promotions `promoted`; les décisions verrouillées restent journalisées mais ne rendent pas de carte, d'où environ 62 à 68 cartes affichées selon le parcours.
-- Toute option a exactement deux alternatives réelles, avec les identifiants internes uniformes `adopt` et `keep`. Pour EPR2, ces identifiants portent les libellés visibles `Engager six EPR2` et `Ne pas engager de nouvel EPR2`.
+- Toute `PolicyOptionDefinition.id` locale vaut `adopt` ou `keep`; le compilateur produit les `DecisionOption.id` entièrement qualifiés `${decisionId}:adopt` et `${decisionId}:keep`. Pour EPR2, ces options portent les libellés visibles `Engager six EPR2` et `Ne pas engager de nouvel EPR2`.
 - Aucun texte rendu ne contient `—`; aucune carte ne montre opinion, confiance, marchés ou groupes avant le choix.
 - Aucun flux non nul n'est accepté sans entrée de registre, source primaire, assiette, millésime, nature, calcul brut, décote comportementale, coût récurrent et clé de périmètre exclusive.
 - `unifier-ir-csg-bareme-continu` est neutre; la prime d'activité est recyclée à plus ou moins 1 M€; aucune flat tax fictive à 150 000 M€ n'existe.
@@ -32,7 +32,7 @@
 | `site/src/simulateur-v3/policy-catalogue.ts`, `policy-consequences.ts` et `policies/*.ts` | Compilation des options réelles à deux choix à partir du profil V10, sans ancien contrat budgétaire. |
 | `site/src/simulateur-v3/campaign-topology.ts` et `promotion-report.ts` | Noyau, promotions, rapport figé, longueur 72 et checkpoints dérivés. |
 | `site/src/simulateur-v3/effects.ts`, `timeline.ts`, `flow.ts`, `validation.ts` | Planification, matérialisation et annulation sûre des flux. |
-| `site/src/simulateur-v3/scenario-v9.ts`, `scenario-v10.ts`, `scenario-resolver.ts`, `storage.ts` | Résolution par version et migration v4 vers v5 sans rejouer le passé. |
+| `site/src/simulateur-v3/scenario-v9.snapshot.ts`, `scenario-v9.ts`, `scenario-v10.ts`, `scenario-resolver.ts`, `storage.ts` | Snapshot V9 autonome, résolution par version et migration v4 vers v5 sans rejouer le passé. |
 | `site/src/simulateur-v3/scenario-crises.ts`, `crises.ts` | Crises compatibles V10 et renversement causal complet. |
 | `site/src/simulateur-v3/balanced-paths.ts` | Trois parcours publiés et calcul du maximum compatible. |
 | `site/src/simulateur-v3/render.ts`, `presentation.ts`, `style.css` | Compteur dérivé, cartes sobres et rendu mobile sans débordement. |
@@ -78,7 +78,7 @@ export type BudgetProfile = { estimateKey: string | null; runRateMillions: numbe
 export type BudgetEstimate = { key: string; baseYear: number; baseAmountMillions: number; baseNature: "realise" | "prevision" | "objectif" | "notifie" | "recouvre"; scope: string; grossActionMillions: number; behavioralOffsetMillions: number; recurringOperatingCostMillions: number; runRateMillions: number; transitionFlows: BudgetTransitionFlow[]; sourceKeys: readonly string[]; estimateStatus: "observe" | "ex_ante" | "scenario"; uncertainty: Uncertainty; exclusiveScopeKeys: readonly string[] };
 ```
 
-`validateBudgetProfile` impose une clé et un calendrier pour tout flux non nul, un identifiant ponctuel unique, une échéance dans la campagne, l'égalité `grossActionMillions - behavioralOffsetMillions - recurringOperatingCostMillions === runRateMillions`, et aucune clé pour `keep`. Remplacer dans `PolicyOptionDefinition` les trois champs `budgetDelta`, `budgetDuration`, `budgetTiming` par `budgetProfile`, puis compiler uniquement les effets budgétaires dérivés de ce profil. Dans `policy-consequences.ts`, retirer les métadonnées budgétaires héritées, conserver seulement les conséquences non budgétaires et faire vérifier par `policy-consequences.test.ts` que ni `budgetDuration` ni `budgetTiming` ni un delta `annualBalance` ne peut y être déclaré.
+`validateBudgetProfile` impose une clé et un calendrier pour tout flux non nul, un identifiant ponctuel unique, une échéance dans la campagne, l'égalité `grossActionMillions - behavioralOffsetMillions - recurringOperatingCostMillions === runRateMillions`, et aucune clé pour `keep`. Remplacer dans `PolicyOptionDefinition` les trois champs `budgetDelta`, `budgetDuration`, `budgetTiming` par `budgetProfile`; valider ses IDs locaux `adopt`/`keep`; puis compiler uniquement les effets budgétaires dérivés de ce profil avec `DecisionOption.id` égal à `decisionId + ":" + localOptionId`. Dans `policy-consequences.ts`, retirer les métadonnées budgétaires héritées, conserver seulement les conséquences non budgétaires et faire vérifier par `policy-consequences.test.ts` que ni `budgetDuration` ni `budgetTiming` ni un delta `annualBalance` ne peut y être déclaré.
 
 - [ ] **Step 4: Run the focused tests and type check.**
 
@@ -117,7 +117,7 @@ git commit -m "feat: add typed simulator budget registry"
 assert.equal(SCENARIO_V10_CATALOGUE.decisions.length, 96);
 assert.equal(SCENARIO_V10_CATALOGUE.decisions.flatMap((d) => d.options).length, 192);
 assert.equal(policyById("flat-tax-a-20-des-le-premier"), undefined);
-assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.id), ["adopt", "keep"]);
+assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.id), ["engager-six-epr2-part-annuelle-de-l:adopt", "engager-six-epr2-part-annuelle-de-l:keep"]);
 assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.label), ["Engager six EPR2", "Ne pas engager de nouvel EPR2"]);
 assert.equal(policyById("relever-tva-restauration-commerciale")!.chapterId, "taxes-assets-transmission");
 assert.equal(policyById("unifier-ir-csg-bareme-continu")!.options.find((option) => option.id === "adopt")!.budgetProfile.runRateMillions, 0);
@@ -151,7 +151,7 @@ The former estimate has `grossActionMillions: 7_300`; the latter has `grossActio
 
 Run: `node --experimental-strip-types --test src/simulateur-v3/policy-catalogue.test.ts src/simulateur-v3/causal-contract-source.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/campaign.test.ts`
 
-Expected: PASS; 96 decisions, 192 options, no flat-tax decision, no 150 000 M€ fiscal effect, EPR2 IDs `adopt`/`keep`, neutral IR-CSG, prime d'activité recycled within 1 M€ and no surtax/TVA scope collision.
+Expected: PASS; 96 decisions, 192 options, no flat-tax decision, no 150 000 M€ fiscal effect, EPR2 compiled IDs fully qualified from local `adopt`/`keep`, neutral IR-CSG, prime d'activité recycled within 1 M€ and no surtax/TVA scope collision.
 
 - [ ] **Step 5: Commit.**
 
@@ -228,6 +228,7 @@ git commit -m "feat: publish fixed 72-decision topology"
 - Modify: `site/src/simulateur-v3/effects.test.ts`
 - Modify: `site/src/simulateur-v3/timeline.test.ts`
 - Modify: `site/src/simulateur-v3/flow.test.ts`
+- Modify: `site/src/simulateur-v3/validation.test.ts`
 
 **Interfaces:**
 - Produces `scheduleBudgetProfile`, `reverseDecisionConsequences` and causal entries carrying the unique transition-flow ID.
@@ -261,7 +262,7 @@ Expected: PASS; a one-off receipt affects one checkpoint only, recurring flow pe
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/effects.ts site/src/simulateur-v3/timeline.ts site/src/simulateur-v3/flow.ts site/src/simulateur-v3/campaign.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/effects.test.ts site/src/simulateur-v3/timeline.test.ts site/src/simulateur-v3/flow.test.ts
+git add site/src/simulateur-v3/effects.ts site/src/simulateur-v3/timeline.ts site/src/simulateur-v3/flow.ts site/src/simulateur-v3/campaign.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/effects.test.ts site/src/simulateur-v3/timeline.test.ts site/src/simulateur-v3/flow.test.ts site/src/simulateur-v3/validation.test.ts
 git commit -m "feat: schedule and reverse budget profiles"
 ```
 
@@ -269,8 +270,10 @@ git commit -m "feat: schedule and reverse budget profiles"
 
 **Files:**
 - Create: `site/src/simulateur-v3/scenario-v9.ts`
+- Create: `site/src/simulateur-v3/scenario-v9.snapshot.ts`
 - Create: `site/src/simulateur-v3/scenario-v10.ts`
 - Create: `site/src/simulateur-v3/scenario-resolver.ts`
+- Create: `site/scripts/snapshot-scenario-v9.ts`
 - Modify: `site/src/simulateur-v3/scenario.ts`
 - Modify: `site/src/simulateur-v3/storage.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.ts`
@@ -278,6 +281,8 @@ git commit -m "feat: schedule and reverse budget profiles"
 - Modify: `site/src/main.ts`
 - Modify: `site/src/simulateur-v3/storage.test.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.test.ts`
+- Create: `site/src/simulateur-v3/scenario-v9.snapshot.test.ts`
+- Modify: `site/src/simulateur-v3/render.test.ts`
 - Modify: `site/src/interface.test.ts`
 
 **Interfaces:**
@@ -289,6 +294,8 @@ git commit -m "feat: schedule and reverse budget profiles"
 ```ts
 assert.equal(scenarioForVersion(9), SCENARIO_V9);
 assert.equal(scenarioForVersion(10), SCENARIO_V10);
+assert.deepEqual(SCENARIO_V9, SCENARIO_V9_SNAPSHOT);
+assert.match(renderSimulatorV3(completedStateFor(SCENARIO_V9), SCENARIO_V9), /verdict/i);
 assert.equal(restoreCampaign(storageWithV4Unchanged, SCENARIO_V10).kind, "restored");
 assert.equal(restoreCampaign(storageWithReplacedFlatTax, SCENARIO_V10).kind, "restart_required");
 assert.equal(SCENARIO_V10_CRISIS_RULES.flatMap((rule) => rule.concessions).filter((x) => x.targetDecisionId === "unifier-ir-csg-bareme-continu").length, 1);
@@ -303,18 +310,18 @@ Expected: FAIL because current storage accepts only schema 4 and crises referenc
 
 - [ ] **Step 3: Implement versioned resolution and explicit migration.**
 
-Move the existing scenario 9 objects unchanged to `scenario-v9.ts`; construct V10 in `scenario-v10.ts`; make all current callers resolve instead of silently importing a mutable current scenario. In `main.ts`, replace the V3 preview import at the simulator mount with `const scenario = scenarioForVersion(10); if (!scenario) throw new Error("Scenario V10 unavailable"); mountSimulatorV3(hoteV3, scenario, ...)`. `interface.test.ts` must read the mounted branch and prove that this resolver call precedes `mountSimulatorV3`, so an application build cannot accidentally mount V9. `migrateV4ToV5` creates simple profiles only when `decisionId`, `optionId`, meaning and scope are unchanged. For any replaced ID found in decisions, locks, queued events, promises, crisis state or causal ledger, return `restart_required` while preserving the serialized save. Replace the flat-tax crisis with two executable answers: keep `unifier-ir-csg-bareme-continu`, or reverse it through Task 4 and retain separate levies with sourced transition costs. Audit the state-reform crisis so each rule has two applicable causes and two applicable answers, all published in V10.
+Before changing policies or consequences, run `site/scripts/snapshot-scenario-v9.ts` against the current scenario and write `scenario-v9.snapshot.ts` as a static `Scenario` literal. The script imports the pre-refactor scenario only while this capture is made; the committed snapshot imports no V10 policy, consequence, registry or topology module. Make `scenario-v9.ts` export `SCENARIO_V9` from that literal and add `scenario-v9.snapshot.test.ts` to prove byte-for-byte stable JSON parity with the captured pre-refactor scenario. Add a separate `render.test.ts` case that restores a completed V9 state, resolves version 9, and renders its final verdict after V10 has replaced the live catalogue. Construct V10 in `scenario-v10.ts`; make all current callers resolve instead of silently importing a mutable current scenario. In `main.ts`, replace the V3 preview import at the simulator mount with `const scenario = scenarioForVersion(10); if (!scenario) throw new Error("Scenario V10 unavailable"); mountSimulatorV3(hoteV3, scenario, ...)`. `interface.test.ts` must read the mounted branch and prove that this resolver call precedes `mountSimulatorV3`, so an application build cannot accidentally mount V9. `migrateV4ToV5` creates simple profiles only when `decisionId`, `optionId`, meaning and scope are unchanged. For any replaced ID found in decisions, locks, queued events, promises, crisis state or causal ledger, return `restart_required` while preserving the serialized save. Replace the flat-tax crisis with two executable answers: keep `unifier-ir-csg-bareme-continu`, or reverse it through Task 4 and retain separate levies with sourced transition costs. Audit the state-reform crisis so each rule has two applicable causes and two applicable answers, all published in V10.
 
 - [ ] **Step 4: Run restore and crisis tests.**
 
-Run: `node --experimental-strip-types --test src/simulateur-v3/storage.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/scenario-crises.test.ts src/simulateur-v3/crises.test.ts src/interface.test.ts`
+Run: `node --experimental-strip-types --test src/simulateur-v3/storage.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/scenario-v9.snapshot.test.ts src/simulateur-v3/scenario-crises.test.ts src/simulateur-v3/crises.test.ts src/simulateur-v3/render.test.ts src/interface.test.ts`
 
-Expected: PASS; V9 remains renderable, V10 never reinterprets a replaced decision and reverse clears only future consequences.
+Expected: PASS; the static V9 snapshot has pre-refactor parity and renders a completed verdict, V10 never reinterprets a replaced decision and reverse clears only future consequences.
 
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/scenario-v9.ts site/src/simulateur-v3/scenario-v10.ts site/src/simulateur-v3/scenario-resolver.ts site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/main.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/scenario-crises.test.ts site/src/interface.test.ts
+git add site/src/simulateur-v3/scenario-v9.snapshot.ts site/src/simulateur-v3/scenario-v9.ts site/src/simulateur-v3/scenario-v10.ts site/src/simulateur-v3/scenario-resolver.ts site/scripts/snapshot-scenario-v9.ts site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/main.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/scenario-v9.snapshot.test.ts site/src/simulateur-v3/scenario-crises.test.ts site/src/simulateur-v3/render.test.ts site/src/interface.test.ts
 git commit -m "feat: migrate simulator saves to scenario v10"
 ```
 

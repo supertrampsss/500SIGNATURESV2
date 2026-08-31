@@ -139,7 +139,7 @@ Le build V10 publie trois parcours nommés, chacun constitué d'une option par d
 
 ### 5.1 Contrat canonique d'intégration
 
-Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossiers. Chaque dossier possède exactement les options `adopt` et `keep`. L'option `keep` a un flux budgétaire nul et ne revendique aucune clé de périmètre. Les `transitionFlows` non nuls doivent être chiffrés dans le registre avant toute modification du catalogue.
+Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossiers. Chaque `PolicyOptionDefinition.id` local vaut exactement `adopt` ou `keep`; le compilateur forme ensuite le `DecisionOption.id` public entièrement qualifié `${decisionId}:adopt` ou `${decisionId}:keep`. L'option locale `keep` a un flux budgétaire nul et ne revendique aucune clé de périmètre. Les `transitionFlows` non nuls doivent être chiffrés dans le registre avant toute modification du catalogue.
 
 | Rang de cœur | `decisionId` cible | `chapterId` | Option de référence | `runRateMillions` | Premier effet plein | `exclusiveScopeKeys` | Source de départ |
 |---:|---|---|---|---:|---|---|---|
