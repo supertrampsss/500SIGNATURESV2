@@ -153,6 +153,40 @@ const AUDITED_ENTRIES: Record<string, BudgetEstimate> = {
 /** V10 joins are frozen after the V9 carry-forward migration and audited additions. */
 export const BUDGET_ESTIMATES: Readonly<Record<string, BudgetEstimate>> = deepFreeze({ ...AUDITED_ENTRIES, ...carryForwardEntries() });
 
+/**
+ * Crisis transitions are separate from policy run-rates: they are one-off
+ * implementation costs and cannot be folded into a policy estimate.
+ */
+export const CRISIS_TRANSITION_ESTIMATES: Readonly<Record<string, BudgetEstimate>> = deepFreeze({
+  "reverse-ir-csg-unification-transition": {
+    key: "reverse-ir-csg-unification-transition",
+    baseYear: 2020,
+    baseAmountMillions: 178.8,
+    baseNature: "realise",
+    scope: "Proxy de reconfiguration du prélèvement à la source DGFiP, sans chiffrer un coût propre à l'unification IR-CSG.",
+    grossActionMillions: 0,
+    behavioralOffsetMillions: 0,
+    recurringOperatingCostMillions: 0,
+    runRateMillions: 0,
+    transitionFlows: [{
+      id: "crisis:reverse-ir-csg-unification:pas-reconfiguration",
+      amountMillions: -179,
+      timing: { kind: "immediate" },
+      sourceKey: "plr-2020-programme-156-pas",
+    }],
+    sourceKeys: ["plr-2020-programme-156-pas"],
+    estimateStatus: "scenario",
+    uncertainty: "forte",
+    exclusiveScopeKeys: ["crisis-pas-reconfiguration-proxy"],
+  },
+});
+
+export function crisisTransitionEstimateFor(key: string): BudgetEstimate {
+  const estimate = CRISIS_TRANSITION_ESTIMATES[key];
+  if (!estimate) throw new Error(`Unknown crisis transition estimate: ${key}`);
+  return estimate;
+}
+
 export function hasBudgetEstimate(decisionId: string, optionId: string, estimateKey: string): boolean {
   return Object.hasOwn(BUDGET_ESTIMATES, registryId(decisionId, optionId, estimateKey));
 }

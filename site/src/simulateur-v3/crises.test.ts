@@ -15,6 +15,7 @@ import type {
 import { positionAfterCompleted } from "./validation.ts";
 import { SCENARIO_V10_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
+import { restoreCampaign, V3_STORAGE_KEY } from "./storage.ts";
 
 const majorityCost: EffectRule = {
   id: "majority-cost",
@@ -106,7 +107,7 @@ function resolvedCrisis(
   };
 }
 
-test("la concession IR-CSG V10 appelle la révocation causale sans flux budgétaire inventé", () => {
+test("la concession IR-CSG V10 appelle la révocation causale et son coût ponctuel sourcé", () => {
   const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-tax-legitimacy")!;
   const count = Math.max(...rule.requiredDecisionIds.map((id) => SCENARIO_V10.decisions.findIndex((decision) => decision.id === id))) + 1;
   const choices = Object.fromEntries(SCENARIO_V10.decisions.slice(0, count).map((decision) => [decision.id,
@@ -117,7 +118,20 @@ test("la concession IR-CSG V10 appelle la révocation causale sans flux budgéta
   assert.deepEqual(availableConcessions(crisis, [rule]).map((concession) => concession.id), ["reverse-ir-csg-unification"]);
   const resolved = resolveCrisis(crisis, [rule], "reverse-ir-csg-unification");
   assert.equal(resolved.decisions.find((record) => record.decisionId === "unifier-ir-csg-bareme-continu")?.status, "reversed");
-  assert.equal(resolved.indicators.annualBalance, crisis.indicators.annualBalance);
+  assert.equal(resolved.indicators.annualBalance, crisis.indicators.annualBalance - 179);
+  assert.equal(resolved.causalLedger.filter((entry) => entry.id.includes("reverse-ir-csg-unification:pas-reconfiguration")).length, 1);
+
+  const storage = {
+    getItem: (key: string) => key === V3_STORAGE_KEY ? JSON.stringify(resolved) : null,
+    setItem() {},
+    removeItem() {},
+  };
+  const restored = restoreCampaign(storage, SCENARIO_V10);
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    assert.equal(restored.state.indicators.annualBalance, resolved.indicators.annualBalance);
+    assert.equal(restored.state.causalLedger.filter((entry) => entry.id.includes("reverse-ir-csg-unification:pas-reconfiguration")).length, 1);
+  }
 });
 
 test("une crise persiste le chapitre, le compteur et chaque choix aggravant exact", () => {

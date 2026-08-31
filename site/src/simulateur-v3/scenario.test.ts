@@ -9,7 +9,7 @@ import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 import { SCENARIO_V10_CRISIS_RULES } from "./scenario-crises.ts";
-import { assertNoEmDash, validatePolicyCatalogue, validateScenario } from "./validation.ts";
+import { assertNoEmDash, validateCrisisRules, validatePolicyCatalogue, validateScenario } from "./validation.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
 
@@ -20,6 +20,33 @@ test("le resolver fermé restitue les scénarios autonomes V9 et V10", () => {
   assert.deepEqual(SCENARIO_V9, SCENARIO_V9_SNAPSHOT);
   assert.equal(SCENARIO_V10.decisions.length, 72);
   assert.equal(SCENARIO_V10.decisions.flatMap((decision) => decision.options).length, 144);
+});
+
+test("le scénario V10 publié passe la validation stricte et clôt la règle d'or à 72", () => {
+  assert.deepEqual(validateScenario(SCENARIO_V10), []);
+  assert.deepEqual(validateCrisisRules(SCENARIO_V10, SCENARIO_V10_CRISIS_RULES), []);
+
+  const goldenRule = SCENARIO_V10.decisions.find((decision) => decision.id === "regle-d-or-constitutionnelle")!;
+  const adopt = goldenRule.options.find((option) => option.id.endsWith(":adopt"))!;
+  assert.deepEqual(adopt.horizon, { kind: "after_decisions", count: 1 });
+  assert.ok(adopt.effects.every((effect) => effect.timing.kind === "after_decisions" && effect.timing.count === 1));
+  assert.deepEqual(adopt.scheduledEvents.map((event) => event.afterDecisions), [1]);
+  assert.equal(SCENARIO_V10.decisions.findIndex((decision) => decision.id === goldenRule.id) + 2, 72);
+});
+
+test("une crise V10 ne peut pas déclarer un effet budgétaire non sourcé", () => {
+  const rules = structuredClone(SCENARIO_V10_CRISIS_RULES);
+  rules[0]!.concessions[0]!.effects.push({
+    id: "unsourced-crisis-budget",
+    target: "indicator",
+    key: "annualBalance",
+    delta: -1,
+    timing: { kind: "immediate" },
+    duration: "once",
+    explanation: "Effet non sourcé de test.",
+  });
+  delete rules[0]!.concessions[0]!.transitionEstimateKey;
+  assert.ok(validateCrisisRules(SCENARIO_V10, rules).includes("crisis:v10-tax-legitimacy:concession:reverse-ir-csg-unification:budget-effect-estimate-required"));
 });
 
 test("le scénario V9 reste historique tandis que le catalogue V10 est publié sur 72 dossiers", () => {

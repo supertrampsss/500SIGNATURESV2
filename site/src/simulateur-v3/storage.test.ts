@@ -12,16 +12,17 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike {
   };
 }
 
-import { clearCampaign, hasReplacedReference, migrateV4ToV5, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
+import { clearCampaign, completedV9StateFromStorage, hasReplacedReference, migrateV4ToV5, restoreCampaign, saveCampaign, V10_SEMANTIC_COMPATIBILITY, V3_STORAGE_KEY } from "./storage.ts";
 import { selectOption } from "./campaign.ts";
 import { applyEffect, confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
+import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline, validScenario } from "./test-fixtures.ts";
 import { advanceMandateYear } from "./timeline.ts";
 import type { Scenario } from "./types.ts";
-import { isCampaignState, positionAfterCompleted, validateScenario } from "./validation.ts";
+import { isCampaignState, positionAfterCompleted, positionBeforeNext, validateScenario } from "./validation.ts";
 
 test("une sauvegarde V4 sans référence remplacée migre vers le schéma 5 et V10", () => {
   const v4 = { ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 4 as const, scenarioVersion: 9 };
@@ -35,6 +36,22 @@ test("une sauvegarde V4 sans référence remplacée migre vers le schéma 5 et V
   assert.equal(restoreCampaign(storage, SCENARIO_V10).kind, "restored");
 });
 
+test("le registre sémantique documente les options V9 identiques sans inventer un préfixe V10", () => {
+  const entry = V10_SEMANTIC_COMPATIBILITY["porter-le-taux-normal-de-tva-a:adopt"]!;
+  assert.deepEqual(entry, {
+    decisionId: "porter-le-taux-normal-de-tva-a",
+    optionId: "porter-le-taux-normal-de-tva-a:adopt",
+    label: SCENARIO_V10.decisions.find((decision) => decision.id === entry.decisionId)!.options.find((option) => option.id === entry.optionId)!.label,
+    summary: SCENARIO_V10.decisions.find((decision) => decision.id === entry.decisionId)!.options.find((option) => option.id === entry.optionId)!.summary,
+    mechanism: SCENARIO_V10.decisions.find((decision) => decision.id === entry.decisionId)!.options.find((option) => option.id === entry.optionId)!.mechanism,
+    beneficiaries: SCENARIO_V10.decisions.find((decision) => decision.id === entry.decisionId)!.options.find((option) => option.id === entry.optionId)!.beneficiaries,
+    contributors: SCENARIO_V10.decisions.find((decision) => decision.id === entry.decisionId)!.options.find((option) => option.id === entry.optionId)!.contributors,
+    runRateMillions: 9_800,
+    runRateTiming: { kind: "immediate" },
+    scope: "Profil V9 conservé pour porter-le-taux-normal-de-tva-a; assiette distincte des réformes auditées V10.",
+  });
+});
+
 test("une référence V9 remplacée impose un redémarrage sans réécrire l'octet sauvegardé", () => {
   const v4 = { ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 4 as const, scenarioVersion: 9 };
   v4.lockedDecisionIds = ["flat-tax-a-20-des-le-premier"];
@@ -42,6 +59,23 @@ test("une référence V9 remplacée impose un redémarrage sans réécrire l'oct
   const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
 
   assert.equal(hasReplacedReference(v4), true);
+  assert.deepEqual(restoreCampaign(storage, SCENARIO_V10), { kind: "restart_required" });
+  assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+});
+
+test("un vrai premier choix V9 actif demande un redémarrage V10 sans toucher aux octets", () => {
+  const firstDecision = SCENARIO_V9.decisions[0]!;
+  const opened = { ...createCampaign(SCENARIO_V9), phase: "decision" as const, ...positionBeforeNext(SCENARIO_V9, 0)! };
+  const selected = selectOption(opened, SCENARIO_V9, firstDecision.id, firstDecision.options[0]!.id);
+  const activeV9 = {
+    ...confirmSelection(selected, SCENARIO_V9),
+    schemaVersion: 4 as const,
+    scenarioVersion: 9,
+  };
+  const serialized = JSON.stringify(activeV9);
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
+
+  assert.equal(activeV9.decisions[0]!.decisionId, "geler-le-bareme-de-l-impot-sur");
   assert.deepEqual(restoreCampaign(storage, SCENARIO_V10), { kind: "restart_required" });
   assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
 });

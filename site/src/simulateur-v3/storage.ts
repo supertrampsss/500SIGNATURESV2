@@ -1,4 +1,6 @@
 import { applyEffect } from "./effects.ts";
+import { budgetEstimateFor } from "./budget-registry.ts";
+import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { SCHEMA_VERSION, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
@@ -31,6 +33,57 @@ export const REPLACED_V9_DECISION_IDS = Object.freeze([
   "diviser-par-deux-le-nombre-de-parlementaires",
   "deux-jours-de-carence-dans-la-fonction",
 ] as const);
+
+export type V10SemanticCompatibility = Readonly<{
+  decisionId: string;
+  optionId: string;
+  label: string;
+  summary: string;
+  mechanism: string;
+  beneficiaries: readonly string[];
+  contributors: readonly string[];
+  runRateMillions: number;
+  runRateTiming: unknown;
+  scope: string;
+}>;
+
+function annualEffect(option: Scenario["decisions"][number]["options"][number]) {
+  return option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance" && effect.duration === "annual");
+}
+
+/**
+ * Archive-grade proof for unchanged retained options. This table does not make
+ * a V9 campaign migrable: the two published editorial orders have no common
+ * non-empty prefix, and every real V9 prefix starts with a retired decision.
+ */
+export const V10_SEMANTIC_COMPATIBILITY: Readonly<Record<string, V10SemanticCompatibility>> = Object.freeze(
+  Object.fromEntries(SCENARIO_V9.decisions.flatMap((v9Decision) => v9Decision.options.flatMap((v9Option) => {
+    const v10Decision = SCENARIO_V10.decisions.find((decision) => decision.id === v9Decision.id);
+    const v10Option = v10Decision?.options.find((option) => option.id === v9Option.id);
+    const v9Annual = annualEffect(v9Option);
+    if (!v10Decision || !v10Option || !v9Annual || v10Option.budgetProfile.estimateKey === null
+        || v10Option.label !== v9Option.label || v10Option.summary !== v9Option.summary
+        || v10Option.mechanism !== v9Option.mechanism
+        || JSON.stringify(v10Option.beneficiaries) !== JSON.stringify(v9Option.beneficiaries)
+        || JSON.stringify(v10Option.contributors) !== JSON.stringify(v9Option.contributors)
+        || v10Option.budgetProfile.runRateMillions !== v9Annual.delta
+        || JSON.stringify(v10Option.budgetProfile.runRateTiming) !== JSON.stringify(v9Annual.timing)) return [];
+    const localOptionId = v9Option.id.split(":").at(-1)!;
+    const estimate = budgetEstimateFor(v9Decision.id, localOptionId, v10Option.budgetProfile.estimateKey);
+    return [[v9Option.id, Object.freeze({
+      decisionId: v9Decision.id,
+      optionId: v9Option.id,
+      label: v9Option.label,
+      summary: v9Option.summary,
+      mechanism: v9Option.mechanism,
+      beneficiaries: Object.freeze([...v9Option.beneficiaries]),
+      contributors: Object.freeze([...v9Option.contributors]),
+      runRateMillions: v9Annual.delta,
+      runRateTiming: structuredClone(v9Annual.timing),
+      scope: estimate.scope,
+    })] as const];
+  }))),
+);
 
 export type StorageLike = {
   getItem(key: string): string | null;
@@ -96,6 +149,24 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
     return { kind: "invalid" };
   } catch {
     return { kind: "invalid" };
+  }
+}
+
+/**
+ * A completed V9 verdict is read-only historical evidence. We normalize the
+ * schema discriminator in memory only, never write it back and never replay
+ * reducer effects. Active V9 saves remain restart-required under V10.
+ */
+export function completedV9StateFromStorage(storage: StorageLike): CampaignState | null {
+  const stored = readItem(storage, V3_STORAGE_KEY);
+  if (stored.kind === "unavailable" || stored.value === null) return null;
+  try {
+    const value: unknown = JSON.parse(stored.value);
+    if (!isSchemaVersion(value, 4) || value.scenarioVersion !== 9 || value.phase !== "verdict") return null;
+    const candidate = { ...value, schemaVersion: SCHEMA_VERSION };
+    return isCampaignState(candidate, SCENARIO_V9) ? candidate : null;
+  } catch {
+    return null;
   }
 }
 
@@ -165,8 +236,22 @@ export function hasReplacedReference(value: unknown): boolean {
 export function migrateV4ToV5(value: unknown): CampaignState | null {
   if (!isSchemaVersion(value, 4) || hasReplacedReference(value)) return null;
   const candidate: Record<string, unknown> = { ...value, schemaVersion: SCHEMA_VERSION, scenarioVersion: 10 };
-  if (Array.isArray(candidate.decisions) && candidate.decisions.length > 0) return null;
+  if (!hasCompatibleV10Prefix(candidate)) return null;
   return isCampaignState(candidate, SCENARIO_V10) ? candidate : null;
+}
+
+function hasCompatibleV10Prefix(value: Record<string, unknown>): boolean {
+  if (!Array.isArray(value.decisions)) return false;
+  const v10Prefix = SCENARIO_V10.decisions.slice(0, value.decisions.length);
+  return value.decisions.every((record, index) => {
+    if (typeof record !== "object" || record === null) return false;
+    const candidate = record as Record<string, unknown>;
+    const decision = v10Prefix[index];
+    return typeof candidate.decisionId === "string" && typeof candidate.optionId === "string"
+      && candidate.decisionId === decision?.id
+      && candidate.optionId.startsWith(`${decision.id}:`)
+      && Object.hasOwn(V10_SEMANTIC_COMPATIBILITY, candidate.optionId);
+  });
 }
 
 function isValidCampaignFromAnotherScenarioVersion(value: unknown, scenario: Scenario): boolean {

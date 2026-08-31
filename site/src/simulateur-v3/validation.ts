@@ -23,7 +23,8 @@ import {
   mandateYearForChapter,
   validateBaseline,
 } from "./timeline.ts";
-import { budgetEstimateFor, hasBudgetEstimate, validateBudgetEstimate, validateBudgetProfile, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
+import { budgetEstimateFor, crisisTransitionEstimateFor, hasBudgetEstimate, validateBudgetEstimate, validateBudgetProfile, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
+import { POLICY_SOURCES } from "./policy-sources.ts";
 import type { BudgetProfile } from "./types.ts";
 
 const PHASES: readonly CampaignPhase[] = [
@@ -1062,6 +1063,27 @@ export function validateCrisisRules(scenario: Scenario, rules: readonly CrisisRu
             || !concession.effects.every((effect) => isEffectRule(effect) && effect.timing.kind === "immediate")) {
           errors.push(`crisis:${id}:concession:${concessionId}:effects-must-be-immediate`);
         }
+        const budgetEffects = Array.isArray(concession.effects)
+          ? concession.effects.filter((effect) => isEffectRule(effect) && effect.target === "indicator" && effect.key === "annualBalance" && effect.delta !== 0)
+          : [];
+        if (scenario.version >= 10 && budgetEffects.length > 0 && !isNonEmptyString(concession.transitionEstimateKey)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:budget-effect-estimate-required`);
+        }
+        if (concession.transitionEstimateKey !== undefined) {
+          if (!isNonEmptyString(concession.transitionEstimateKey)) {
+            errors.push(`crisis:${id}:concession:${concessionId}:transition-estimate-invalid`);
+          } else {
+            try {
+              const estimate = crisisTransitionEstimateFor(concession.transitionEstimateKey);
+              errors.push(...validateBudgetEstimate(estimate));
+              if (!estimate.transitionFlows.every((flow) => Object.hasOwn(POLICY_SOURCES, flow.sourceKey))) {
+                errors.push(`crisis:${id}:concession:${concessionId}:transition-estimate-source-missing`);
+              }
+            } catch {
+              errors.push(`crisis:${id}:concession:${concessionId}:transition-estimate-missing`);
+            }
+          }
+        }
       }
     }
 
@@ -1077,7 +1099,7 @@ export function validateCrisisRules(scenario: Scenario, rules: readonly CrisisRu
 
 /** Narrow an untrusted persisted value to a reachable V3 campaign state. */
 export function isCampaignState(value: unknown, scenario: Scenario): value is CampaignState {
-  if (validateScenario(scenario, { allowConsequencesBeyondCampaign: scenario.version >= 10 }).length > 0) return false;
+  if (validateScenario(scenario).length > 0) return false;
   if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION || value.scenarioVersion !== scenario.version) return false;
   if (!PHASES.includes(value.phase as CampaignPhase) || !Number.isInteger(value.chapterIndex) || !Number.isInteger(value.decisionIndex)) return false;
   if (value.pausedFrom !== undefined) {

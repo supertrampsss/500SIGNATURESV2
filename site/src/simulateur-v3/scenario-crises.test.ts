@@ -2,12 +2,13 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { currentDecision, selectOption } from "./campaign.ts";
-import { availableConcessions, detectCrisis, resolveCrisis } from "./crises.ts";
+import { availableConcessions, availableResolutionIds, detectCrisis, resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
 import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { SCENARIO_V3 } from "./scenario.ts";
 import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
 import type { CampaignState, CrisisRule, DecisionOption } from "./types.ts";
@@ -197,11 +198,12 @@ test("les crises V10 ne citent que des causes et réponses publiées", () => {
   }
 });
 
-test("la crise V10 IR-CSG ne propose que le maintien implicite ou la révocation neutre", () => {
+test("la crise V10 IR-CSG ne propose que le maintien implicite ou une révocation sourcée", () => {
   const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-tax-legitimacy")!;
   assert.deepEqual(rule.concessions.map((concession) => concession.id), ["reverse-ir-csg-unification"]);
   assert.equal(rule.concessions[0]!.targetDecisionId, "unifier-ir-csg-bareme-continu");
   assert.equal(rule.concessions[0]!.policyChange, "reverse");
+  assert.equal(rule.concessions[0]!.transitionEstimateKey, "reverse-ir-csg-unification-transition");
   assert.equal(rule.concessions[0]!.effects.some((effect) => effect.target === "indicator" && effect.key === "annualBalance"), false);
 });
 
@@ -210,4 +212,30 @@ test("la crise V10 de réforme de l'État offre exactement maintien et une conce
   assert.equal(rule.aggravatingChoices.length, 2);
   assert.equal(rule.concessions.length, 1);
   assert.equal(rule.concessions[0]!.targetDecisionId, rule.aggravatingChoices[0]!.decisionId);
+});
+
+test("les deux causes de la crise V10 de l'État exposent exactement maintien et concession", () => {
+  const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-state-capacity")!;
+  for (const cause of rule.aggravatingChoices) {
+    const confirmedChoices = rule.aggravatingChoices.map((choice, index) => ({
+      decisionId: choice.decisionId,
+      optionId: choice.optionIds[0]!,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    }));
+    const state = {
+      ...createCampaign(SCENARIO_V10),
+      phase: "crisis" as const,
+      decisions: confirmedChoices,
+      activeCrisis: {
+        ruleId: rule.id,
+        triggeredAtDecisionCount: confirmedChoices.length,
+        triggeredChapterIndex: 7,
+        aggravatingChoices: confirmedChoices.map(({ decisionId, optionId }) => ({ decisionId, optionId })),
+        triggeredByDecisionId: cause.decisionId,
+        aggravatingDecisionIds: confirmedChoices.map(({ decisionId }) => decisionId),
+      },
+    };
+    assert.deepEqual(availableResolutionIds(state, [rule]), ["hold-course", rule.concessions[0]!.id]);
+  }
 });

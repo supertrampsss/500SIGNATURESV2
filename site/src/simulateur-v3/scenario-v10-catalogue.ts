@@ -68,7 +68,21 @@ function retainedOption(source: Decision, option: DecisionOption, local: "adopt"
   const other = clone.effects.filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"));
   const oldLocal = option.id.split(":").at(-1)!;
   const remappedOther = other.map((effect) => ({ ...effect, id: effect.id.replace(`${source.id}:${oldLocal}:`, `${source.id}:${local}:`) }));
-  return { ...clone, id: `${source.id}:${local}`, label: label ?? clone.label, budgetProfile: profile, effects: remappedOther };
+  const isFinalGoldenRuleAdoption = source.id === "regle-d-or-constitutionnelle" && local === "adopt";
+  const finalTiming = { kind: "after_decisions" as const, count: 1 };
+  return {
+    ...clone,
+    id: `${source.id}:${local}`,
+    label: label ?? clone.label,
+    horizon: isFinalGoldenRuleAdoption ? finalTiming : clone.horizon,
+    budgetProfile: profile,
+    effects: isFinalGoldenRuleAdoption
+      ? remappedOther.map((effect) => ({ ...effect, timing: finalTiming }))
+      : remappedOther,
+    scheduledEvents: isFinalGoldenRuleAdoption
+      ? clone.scheduledEvents.map((event) => ({ ...event, afterDecisions: 1 }))
+      : clone.scheduledEvents,
+  };
 }
 const FINAL_V10_RELATIONSHIPS: Readonly<Record<string, Readonly<{
   dependencies: readonly string[];

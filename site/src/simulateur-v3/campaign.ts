@@ -42,7 +42,7 @@ export function initialIndicators(baseline: MandateBaseline): IndicatorState {
 }
 
 export function createCampaign(scenario: Scenario, baseline: MandateBaseline, seed = 0): CampaignState {
-  const errors = validateScenario(scenario, { allowConsequencesBeyondCampaign: scenario.version >= 10 });
+  const errors = validateScenario(scenario);
   if (errors.length > 0) throw new Error(`Invalid scenario: ${errors.join(", ")}`);
   validateBaseline(baseline);
 

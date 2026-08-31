@@ -6,12 +6,13 @@ import {
   type SimulatorV3Dependencies,
   type SimulatorV3Host,
 } from "./controller.ts";
-import { V3_STORAGE_KEY, type StorageLike } from "./storage.ts";
+import { completedV9StateFromStorage, V3_STORAGE_KEY, type StorageLike } from "./storage.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline } from "./test-fixtures.ts";
 import type { Scenario } from "./types.ts";
-import { positionBeforeNext } from "./validation.ts";
+import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
 
 const IMMEDIATE_FLAT_TAX_CRISIS_RULES = SCENARIO_V3_CRISIS_RULES.map((rule) => ({
   ...rule,
@@ -105,6 +106,35 @@ function stateBefore(decisionId: string) {
     })),
   };
 }
+
+test("un verdict V9 schema 4 est relu sans réécriture puis monté comme verdict V9", () => {
+  const verdict = {
+    ...createCampaign(SCENARIO_V9),
+    schemaVersion: 4 as const,
+    scenarioVersion: 9,
+    phase: "verdict" as const,
+    ...positionAfterCompleted(SCENARIO_V9, SCENARIO_V9.decisions.length)!,
+    decisions: SCENARIO_V9.decisions.map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options.at(-1)!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+    annualCheckpoints: testAnnualCheckpoints(SCENARIO_V9),
+  };
+  const serialized = JSON.stringify(verdict);
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
+  const restored = completedV9StateFromStorage(storage);
+
+  assert.ok(restored);
+  assert.equal(restored!.schemaVersion, 5);
+  assert.equal(storage.values.get(V3_STORAGE_KEY), serialized);
+
+  const host = new FakeHost();
+  mountSimulatorV3(host, SCENARIO_V9, { storage, initialState: restored! });
+  assert.match(host.innerHTML, /simulateur-v3__verdict-hero/);
+  assert.equal(storage.values.get(V3_STORAGE_KEY), serialized);
+});
 
 test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   const host = new FakeHost();

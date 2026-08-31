@@ -3613,9 +3613,11 @@ test("la V3 attend une baseline nationale publiée avant tout montage", () => {
 test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));
-  assert.ok(brancheV3.indexOf("scenarioForVersion(10)") < brancheV3.indexOf("mountSimulatorV3("));
-  assert.match(brancheV3, /if \(!scenario\) throw new Error\("Scenario V10 unavailable"\);/);
-  assert.match(brancheV3, /mountSimulatorV3\(hoteV3, scenario, \{[\s\S]*?crisisRules: SCENARIO_V10_CRISIS_RULES/);
+  assert.ok(brancheV3.indexOf("completedV9StateFromStorage(localStorage)") < brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 10)"));
+  assert.ok(brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 10)") < brancheV3.indexOf("mountSimulatorV3("));
+  assert.match(brancheV3, /if \(!scenario\) throw new Error\("Requested simulator scenario unavailable"\);/);
+  assert.match(brancheV3, /crisisRules: scenario\.version === 9 \? SCENARIO_V9_CRISIS_RULES : SCENARIO_V10_CRISIS_RULES/);
+  assert.match(brancheV3, /initialState: historicalV9 \?\? undefined/);
   assert.match(brancheV3, /tunnel\.hidden = true/);
   assert.match(brancheV3, /expert\.hidden = true/);
   assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);

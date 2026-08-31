@@ -1,4 +1,5 @@
 import { applyEffect, reverseDecisionConsequences } from "./effects.ts";
+import { crisisTransitionEstimateFor } from "./budget-registry.ts";
 import type {
   CampaignState,
   CrisisConcession,
@@ -130,6 +131,31 @@ export function availableConcessions(state: CampaignState, rules: readonly Crisi
   });
 }
 
+function applyCrisisTransitionCost(state: CampaignState, rule: CrisisRule, concession: CrisisConcession): CampaignState {
+  if (!concession.transitionEstimateKey) return state;
+  const estimate = crisisTransitionEstimateFor(concession.transitionEstimateKey);
+  return estimate.transitionFlows.reduce((current, flow) => {
+    if (flow.timing.kind !== "immediate") throw new Error(`Crisis transition ${flow.id} must be immediate`);
+    if (current.causalLedger.some((entry) => entry.sourceType === "crisis" && entry.sourceId === rule.id && entry.id.includes(flow.id))) {
+      return current;
+    }
+    return applyEffect(current, {
+      id: flow.id,
+      target: "indicator",
+      key: "annualBalance",
+      delta: flow.amountMillions,
+      timing: { kind: "immediate" },
+      duration: "once",
+      explanation: estimate.scope,
+    }, { sourceType: "crisis", sourceId: rule.id });
+  }, state);
+}
+
+/** The visible choices always include the implicit decision to maintain course. */
+export function availableResolutionIds(state: CampaignState, rules: readonly CrisisRule[]): string[] {
+  return state.activeCrisis ? [HOLD_COURSE_ID, ...availableConcessions(state, rules).map((concession) => concession.id)] : [];
+}
+
 /** Resolves the active crisis, records the choice, and applies its political consequences. */
 export function resolveCrisis(state: CampaignState, rules: readonly CrisisRule[], resolutionId: string): CampaignState {
   const crisis = state.activeCrisis;
@@ -157,6 +183,7 @@ export function resolveCrisis(state: CampaignState, rules: readonly CrisisRule[]
         (decisionId) => !(concession.unlocksDecisionIds ?? []).includes(decisionId),
       ),
     };
+    resolved = applyCrisisTransitionCost(resolved, rule, concession);
     resolved = applyCrisisEffects(resolved, rule, concession.effects);
   }
 

@@ -125,8 +125,9 @@ import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
-import { SCENARIO_V10_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
+import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V9_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
 import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
+import { completedV9StateFromStorage } from "./simulateur-v3/storage.ts";
 import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
 import { brancherQuestions } from "./questions-ui.ts";
 import type { MandateBaseline } from "./simulateur-v3/types.ts";
@@ -3858,11 +3859,13 @@ async function ouvrirSimulateur(): Promise<void> {
       return;
     }
     if (!demonterSimulateurV3) {
-      const scenario = scenarioForVersion(10);
-      if (!scenario) throw new Error("Scenario V10 unavailable");
+      const historicalV9 = completedV9StateFromStorage(localStorage);
+      const scenario = scenarioForVersion(historicalV9 ? 9 : 10);
+      if (!scenario) throw new Error("Requested simulator scenario unavailable");
       demonterSimulateurV3 = mountSimulatorV3(hoteV3, scenario, {
         baseline: baselineSimulateurV3,
-        crisisRules: SCENARIO_V10_CRISIS_RULES,
+        crisisRules: scenario.version === 9 ? SCENARIO_V9_CRISIS_RULES : SCENARIO_V10_CRISIS_RULES,
+        initialState: historicalV9 ?? undefined,
       });
     }
     return;

@@ -15,6 +15,7 @@ import { createTestCampaign as createCampaign, validScenario } from "./test-fixt
 import { restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 import { decisionCountAtMandateYearEnd } from "./timeline.ts";
 import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import type { EffectRule, IndicatorKey, Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
@@ -54,6 +55,24 @@ function confirmFirstDecision(scenario: Scenario) {
   const started = startAtFirstDecision(scenario);
   return confirmSelection(selectOption(started, scenario, "decision-1", "decision-1-option-a"), scenario);
 }
+
+test("la règle d'or V10 matérialise son événement final exactement à la décision 72", () => {
+  const decision = SCENARIO_V10.decisions[70]!;
+  const option = decision.options.find((candidate) => candidate.id.endsWith(":adopt"))!;
+  const state = {
+    ...createCampaign(SCENARIO_V10),
+    phase: "decision" as const,
+    decisions: SCENARIO_V10.decisions.slice(0, 71).map((prior, index) => ({
+      decisionId: prior.id,
+      optionId: prior.options.at(-1)!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  const scheduled = scheduleOptionConsequences(state, decision, option, SCENARIO_V10);
+  assert.equal(scheduled.scheduledEvents.find((event) => event.id === "golden-rule-recession")?.dueAtDecision, 72);
+  assert.ok(scheduled.scheduledEvents.every((event) => event.dueAtDecision === 72));
+});
 
 test("confirmer applique les effets immédiats une seule fois", () => {
   const scenario = scenarioWithEffect("annualBalance", 1_000, { kind: "immediate" });

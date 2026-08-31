@@ -1,6 +1,7 @@
 import type { EvidenceBlock } from "./types.ts";
 
 export const POLICY_SOURCES = {
+  "plr-2020-programme-156-pas": { sourceName: "Direction du Budget", sourceUrl: "https://www.budget.gouv.fr/documentation/file-download/10396", publishedAt: "2020-01-01", note: "PLR 2020, programme 156 : proxy DGFiP de reconfiguration du prélèvement à la source." },
   "dgfip-ir-2024": { sourceName: "DGFiP", sourceUrl: "https://www.impots.gouv.fr/dgfip-statistiques-limpot-sur-le-revenu-2024-ete-plus-dynamique-que-les-revenus", publishedAt: "2024-12-01", note: "Statistiques de l'impôt sur le revenu 2024." },
   "ccss-csg-2025": { sourceName: "Commission des comptes de la sécurité sociale", sourceUrl: "https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/CCSS/2025/CCSS_octobre%202025_VDEF.pdf", publishedAt: "2025-10-01", note: "Comptes et recettes de la sécurité sociale." },
   "cgi-197": { sourceName: "Légifrance", sourceUrl: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000053542636/2026-05-21", publishedAt: "2026-05-21", note: "Article 197 du code général des impôts consolidé." },

@@ -4,6 +4,12 @@ Date : 31 août 2026
 
 Statut : annexe d'implémentation issue de l'audit primaire ; référence de chiffrage du registre V10.
 
+## Transition de crise hors profil de politique
+
+| Clé | Base | Décomposition | Nature et incertitude | Périmètre et source |
+| --- | --- | --- | --- | --- |
+| `reverse-ir-csg-unification-transition` | 2020 / 178,8 M€ / réalisé | flux ponctuel de **-179 M€**, sans run-rate ni décote | investissement stricto sensu ; scénario, incertitude forte | Proxy de reconfiguration du prélèvement à la source DGFiP, non spécifique à IR-CSG ; [PLR 2020, programme 156](https://www.budget.gouv.fr/documentation/file-download/10396) |
+
 ## Règle de calcul et périmètre
 
 Chaque `runRateMillions` est annuel, récurrent et net : `grossActionMillions - behavioralOffsetMillions - recurringOperatingCostMillions = runRateMillions`. Les zéros de décote ou d'opex sont des hypothèses explicites d'absence de décote ou de coût récurrent officiellement chiffré, jamais une omission.

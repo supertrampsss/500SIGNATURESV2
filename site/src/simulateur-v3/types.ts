@@ -242,6 +242,8 @@ export type CrisisConcession = {
   targetDecisionId: string;
   policyChange: "suspend" | "amend" | "reverse";
   unlocksDecisionIds?: string[];
+  /** Registered one-off transition cost, if the concession changes a live system. */
+  transitionEstimateKey?: string;
   effects: EffectRule[];
 };
 

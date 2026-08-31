@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   BUDGET_ESTIMATES,
+  CRISIS_TRANSITION_ESTIMATES,
   budgetEstimateFor,
   findExclusiveScopeCollisions,
   hasBudgetEstimate,
@@ -30,6 +31,31 @@ test("un profil keep nul est un contrat budgétaire valide", () => {
     transitionFlows: [],
     exclusiveScopeKeys: [],
   }, "d", "keep"), []);
+});
+
+test("le reverse IR-CSG porte un coût ponctuel sourcé et causal", () => {
+  const estimate = CRISIS_TRANSITION_ESTIMATES["reverse-ir-csg-unification-transition"]!;
+  assert.deepEqual(estimate, {
+    key: "reverse-ir-csg-unification-transition",
+    baseYear: 2020,
+    baseAmountMillions: 178.8,
+    baseNature: "realise",
+    scope: "Proxy de reconfiguration du prélèvement à la source DGFiP, sans chiffrer un coût propre à l'unification IR-CSG.",
+    grossActionMillions: 0,
+    behavioralOffsetMillions: 0,
+    recurringOperatingCostMillions: 0,
+    runRateMillions: 0,
+    transitionFlows: [{
+      id: "crisis:reverse-ir-csg-unification:pas-reconfiguration",
+      amountMillions: -179,
+      timing: { kind: "immediate" },
+      sourceKey: "plr-2020-programme-156-pas",
+    }],
+    sourceKeys: ["plr-2020-programme-156-pas"],
+    estimateStatus: "scenario",
+    uncertainty: "forte",
+    exclusiveScopeKeys: ["crisis-pas-reconfiguration-proxy"],
+  });
 });
 
 test("un profil keep malformé retourne des erreurs au lieu de lever une exception", () => {

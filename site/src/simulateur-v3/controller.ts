@@ -42,6 +42,8 @@ export type SimulatorV3Dependencies = {
   crisisRules?: readonly CrisisRule[];
   shareChannels?: VerdictShareChannels;
   currentUrl?: () => string;
+  /** A read-only historical state selected before mounting (not replayed). */
+  initialState?: CampaignState;
 };
 
 type ActionNode = {
@@ -118,7 +120,9 @@ export function mountSimulatorV3(
   const crisisRules = dependencies.crisisRules ?? [];
   const shareChannels = dependencies.shareChannels ?? defaultShareChannels();
   const currentUrl = dependencies.currentUrl ?? defaultCurrentUrl;
-  const restored = restoreCampaign(storage, scenario);
+  const restored = dependencies.initialState
+    ? { kind: "restored" as const, state: dependencies.initialState }
+    : restoreCampaign(storage, scenario);
   const v2Found = restored.kind === "v2_found";
   const restartRequired = restored.kind === "restart_required";
   let saveFailed = restored.kind === "unavailable";

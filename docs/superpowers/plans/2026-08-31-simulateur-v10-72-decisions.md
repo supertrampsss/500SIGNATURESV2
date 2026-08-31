@@ -328,6 +328,10 @@ git commit -m "feat: schedule and reverse budget profiles"
 
 ### Task 5: Résolution V9/V10, migration v4-v5 et crises
 
+**Compatibilité explicitement bornée.** Une sauvegarde V9 au verdict, encore au schéma 4, est relue avec `SCENARIO_V9` en mémoire (discriminateur élevé en mémoire seulement, octets persistés inchangés) afin de rendre son verdict sans rejouer le moteur. Toute V9 active non vide redémarre : son premier record est nécessairement `geler-le-bareme-de-l-impot-sur`, identifiant retiré, et V9/V10 n'ont aucun préfixe topologique non vide commun. La V4 vierge est donc la seule continuité de campagne V10. Le registre de compatibilité sémantique archive les options inchangées (texte, bénéficiaires, contributeurs, delta, nature, timing, assiette), mais n'autorise jamais à fabriquer les dossiers ou le préfixe V10 manquants.
+
+**Transition de crise IR-CSG.** La révocation de `unifier-ir-csg-bareme-continu` annule d'abord ses conséquences futures puis applique une seule fois le flux ponctuel causal `crisis:reverse-ir-csg-unification:pas-reconfiguration`, soit -179 M€. C'est un proxy de coût de reconfiguration DGFiP du prélèvement à la source, issu du PLR 2020 programme 156, et non un coût attribué spécifiquement à l'unification IR-CSG.
+
 **Files:**
 - Create: `site/src/simulateur-v3/scenario-v9.ts`
 - Create: `site/src/simulateur-v3/scenario-v10.ts`

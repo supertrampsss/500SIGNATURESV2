@@ -447,7 +447,7 @@ function v10Crisis(definition: V10CrisisDefinition): CrisisRule {
       policyChange: "amend" as const,
       effects: [
         crisisEffect(`${definition.id}:amend-${index + 1}:services`, "publicServices", 2, "Le compromis rétablit une partie de la capacité publique."),
-        crisisEffect(`${definition.id}:amend-${index + 1}:budget`, "annualBalance", -250, "Le compromis réduit la marge budgétaire annuelle."),
+        crisisEffect(`${definition.id}:amend-${index + 1}:capacity`, "reformCapacity", -1, "Le compromis réduit la marge de réforme restante."),
       ],
     })),
     holdCourseEffects: [
@@ -466,6 +466,7 @@ export const SCENARIO_V10_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([
       label: "Revenir à des prélèvements distincts",
       targetDecisionId: "unifier-ir-csg-bareme-continu",
       policyChange: "reverse",
+      transitionEstimateKey: "reverse-ir-csg-unification-transition",
       effects: [crisisEffect("reverse-ir-csg-unification:opinion", "opinion", 3, "Le retour à des prélèvements distincts désamorce une partie de la contestation.")],
     }],
   },
