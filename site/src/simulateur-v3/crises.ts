@@ -1,4 +1,4 @@
-import { applyEffect } from "./effects.ts";
+import { applyEffect, reverseDecisionConsequences } from "./effects.ts";
 import type {
   CampaignState,
   CrisisConcession,
@@ -140,12 +140,20 @@ export function resolveCrisis(state: CampaignState, rules: readonly CrisisRule[]
   } else {
     const concession = availableConcessions(state, rules).find((candidate) => candidate.id === resolutionId);
     if (!concession) throw new Error(`Crisis resolution not offered: ${resolutionId}`);
+    resolved = concession.policyChange === "reverse"
+      ? reverseDecisionConsequences(state, concession.targetDecisionId)
+      : {
+        ...state,
+        decisions: state.decisions.map((decision) => decision.decisionId === concession.targetDecisionId
+          ? { ...decision, status: statusForConcession(concession), changedByCrisisId: rule.id }
+          : decision),
+      };
     resolved = {
-      ...state,
-      decisions: state.decisions.map((decision) => decision.decisionId === concession.targetDecisionId
-        ? { ...decision, status: statusForConcession(concession), changedByCrisisId: rule.id }
+      ...resolved,
+      decisions: resolved.decisions.map((decision) => decision.decisionId === concession.targetDecisionId
+        ? { ...decision, changedByCrisisId: rule.id }
         : decision),
-      lockedDecisionIds: state.lockedDecisionIds.filter(
+      lockedDecisionIds: resolved.lockedDecisionIds.filter(
         (decisionId) => !(concession.unlocksDecisionIds ?? []).includes(decisionId),
       ),
     };

@@ -822,6 +822,14 @@ export function validateScenario(
         const localOptionId = optionId.split(":").at(-1) ?? optionId;
         const hasRegisteredEstimate = typeof profile.estimateKey === "string"
           && hasBudgetEstimate(decision.id, localOptionId, profile.estimateKey);
+        if (scenario.version >= 10 && profile.runRateTiming?.kind === "after_decisions") {
+          const estimate = hasRegisteredEstimate
+            ? budgetEstimateFor(decision.id, localOptionId, profile.estimateKey as string)
+            : null;
+          if (!profile.estimateKey?.startsWith("carry-forward-") || estimate?.estimateStatus !== "scenario") {
+            errors.push(`option:${optionId}:run-rate-after-decisions-requires-carry-forward`);
+          }
+        }
         if (scenario.version >= 10 && typeof profile.estimateKey === "string" && profile.estimateKey.startsWith("legacy:")) {
           errors.push(`option:${optionId}:legacy-budget-estimate-forbidden`);
         }
@@ -845,30 +853,7 @@ export function validateScenario(
       const budgetEffects = effects.filter((effect) => isEffectRule(effect)
         && effect.target === "indicator" && effect.key === "annualBalance");
       if (profile && scenario.version >= 10) {
-        const annualEffects = budgetEffects.filter((effect) => effect.duration === "annual");
-        const onceEffects = budgetEffects.filter((effect) => effect.duration === "once");
-        if ((profile.runRateMillions === 0 && annualEffects.length !== 0)
-            || (profile.runRateMillions !== 0 && (annualEffects.length !== 1 || annualEffects[0]!.delta !== profile.runRateMillions))) {
-          errors.push(`option:${optionId}:run-rate-effect-mismatch`);
-        }
-        const localOptionId = optionId.split(":").at(-1) ?? optionId;
-        const transitionFlows = Array.isArray(profile.transitionFlows) ? profile.transitionFlows : [];
-        const hasMatchingTransitionEffect = (flow: BudgetProfile["transitionFlows"][number]): boolean => onceEffects.some((effect) => (
-          effect.id === `${decision.id}:${localOptionId}:transition:${flow.id}`
-          && effect.delta === flow.amountMillions
-          && effect.duration === "once"
-          && JSON.stringify(effect.timing) === JSON.stringify(flow.timing)
-        ));
-        if (onceEffects.length !== transitionFlows.length
-            || !transitionFlows.every(hasMatchingTransitionEffect)
-            || !onceEffects.every((effect) => transitionFlows.some((flow) => (
-              effect.id === `${decision.id}:${localOptionId}:transition:${flow.id}`
-              && effect.delta === flow.amountMillions
-              && effect.duration === "once"
-              && JSON.stringify(effect.timing) === JSON.stringify(flow.timing)
-            )))) {
-          errors.push(`option:${optionId}:transition-flow-effect-mismatch`);
-        }
+        if (budgetEffects.length !== 0) errors.push(`option:${optionId}:budget-effect-must-be-scheduled`);
       }
       const minimumDueAtDecision = isRecord(option) && hasValidPolicyHorizon(option.horizon)
         ? dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario)

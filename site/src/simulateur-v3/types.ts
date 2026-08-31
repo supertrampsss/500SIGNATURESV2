@@ -73,6 +73,7 @@ export type BudgetTransitionFlow = {
 
 export type RunRateTiming =
   | { kind: "immediate" }
+  | { kind: "after_decisions"; count: number }
   | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
 
 export type BudgetProfile = {

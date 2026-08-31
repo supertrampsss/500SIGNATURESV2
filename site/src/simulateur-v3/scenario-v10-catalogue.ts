@@ -1,7 +1,7 @@
 import { BUDGET_ESTIMATES } from "./budget-registry.ts";
 import { policyEvidence, type PolicySourceKey } from "./policy-sources.ts";
 import { SCENARIO_V3_CATALOGUE } from "./scenario.ts";
-import type { BudgetProfile, Decision, DecisionKind, DecisionOption, EffectRule, GroupKey, IndicatorKey, Scenario } from "./types.ts";
+import type { BudgetProfile, Decision, DecisionKind, DecisionOption, GroupKey, IndicatorKey, Scenario } from "./types.ts";
 
 export { STRUCTURAL_ADOPT_DECISION_IDS } from "./budget-registry.ts";
 
@@ -43,9 +43,8 @@ function auditedProfile(replacement: Replacement): BudgetProfile {
 function replacementOption(replacement: Replacement, local: "adopt" | "keep"): DecisionOption {
   const adopt = local === "adopt";
   const profile = adopt ? auditedProfile(replacement) : structuredClone(NULL_PROFILE);
-  const annual: EffectRule[] = profile.runRateMillions === 0 ? [] : [{ id: `${replacement.id}:${local}:indicator:annualBalance`, target: "indicator", key: "annualBalance", delta: profile.runRateMillions, timing: profile.runRateTiming!, duration: "annual", explanation: "Effet budgétaire sourcé du registre V10." }];
   const polarity = adopt ? 1 : -1;
-  return { id: `${replacement.id}:${local}`, label: adopt ? `Mettre en œuvre ${replacement.subject}` : `Ne pas modifier ${replacement.subject}`, summary: adopt ? `La décision engage ${replacement.subject} selon un périmètre audité.` : `Le cadre actuel est conservé et la réforme n'est pas engagée.`, mechanism: adopt ? `Mettre en œuvre ${replacement.subject}.` : `Maintenir le cadre actuel sans engager ${replacement.subject}.`, horizon: { kind: "immediate" }, legalConstraints: [replacement.legal], budgetProfile: profile, beneficiaries: adopt ? replacement.beneficiaries : replacement.contributors, contributors: adopt ? replacement.contributors : replacement.beneficiaries, uncertainty: "moyenne", effects: [...annual, { id: `${replacement.id}:${local}:indicator:${replacement.indicator}`, target: "indicator", key: replacement.indicator, delta: 2 * polarity, timing: { kind: "immediate" }, duration: "once", explanation: adopt ? `Conséquence institutionnelle de ${replacement.subject}.` : `Conséquence du maintien du cadre actuel.` }, { id: `${replacement.id}:${local}:group:${replacement.group}`, target: "group", key: replacement.group, delta: -polarity, timing: { kind: "immediate" }, duration: "once", explanation: adopt ? `Effet distributif de ${replacement.subject}.` : "Effet distributif du maintien." }], scheduledEvents: [], promises: [], fulfillsPromises: [], locks: [], unlocks: [] };
+  return { id: `${replacement.id}:${local}`, label: adopt ? `Mettre en œuvre ${replacement.subject}` : `Ne pas modifier ${replacement.subject}`, summary: adopt ? `La décision engage ${replacement.subject} selon un périmètre audité.` : `Le cadre actuel est conservé et la réforme n'est pas engagée.`, mechanism: adopt ? `Mettre en œuvre ${replacement.subject}.` : `Maintenir le cadre actuel sans engager ${replacement.subject}.`, horizon: { kind: "immediate" }, legalConstraints: [replacement.legal], budgetProfile: profile, beneficiaries: adopt ? replacement.beneficiaries : replacement.contributors, contributors: adopt ? replacement.contributors : replacement.beneficiaries, uncertainty: "moyenne", effects: [{ id: `${replacement.id}:${local}:indicator:${replacement.indicator}`, target: "indicator", key: replacement.indicator, delta: 2 * polarity, timing: { kind: "immediate" }, duration: "once", explanation: adopt ? `Conséquence institutionnelle de ${replacement.subject}.` : `Conséquence du maintien du cadre actuel.` }, { id: `${replacement.id}:${local}:group:${replacement.group}`, target: "group", key: replacement.group, delta: -polarity, timing: { kind: "immediate" }, duration: "once", explanation: adopt ? `Effet distributif de ${replacement.subject}.` : "Effet distributif du maintien." }], scheduledEvents: [], promises: [], fulfillsPromises: [], locks: [], unlocks: [] };
 }
 function replacementDecision(replacement: Replacement): Decision { return { id: replacement.id, version: 10, kind: replacement.kind, chapterId: replacement.chapterId, title: replacement.title, context: replacement.context, evidence: policyEvidence(replacement.sourceKeys, "Source primaire du dossier V10."), options: [replacementOption(replacement, "adopt"), replacementOption(replacement, "keep")], dependencies: [], conflicts: [] }; }
 
@@ -53,24 +52,22 @@ function retainedProfile(source: Decision, option: DecisionOption, local: "adopt
   if (local === "keep" || (option.budgetProfile.runRateMillions === 0 && option.budgetProfile.transitionFlows.length === 0)) return structuredClone(NULL_PROFILE);
   const key = `carry-forward-${source.id}-${local}`;
   const estimate = BUDGET_ESTIMATES[`${source.id}:${local}:${key}`]!;
-  return { estimateKey: key, runRateMillions: estimate.runRateMillions, runRateTiming: structuredClone(option.budgetProfile.runRateTiming), transitionFlows: structuredClone(estimate.transitionFlows), exclusiveScopeKeys: [...estimate.exclusiveScopeKeys] };
+  const annual = option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance" && effect.duration !== "once");
+  const runRateTiming = annual?.timing.kind === "immediate"
+    ? { kind: "immediate" as const }
+    : annual?.timing.kind === "after_decisions"
+      ? { kind: "after_decisions" as const, count: annual.timing.count }
+    : annual?.timing.kind === "mandate_year"
+      ? { kind: "mandate_year" as const, year: annual.timing.year }
+      : option.budgetProfile.runRateTiming;
+  return { estimateKey: key, runRateMillions: estimate.runRateMillions, runRateTiming: structuredClone(runRateTiming), transitionFlows: structuredClone(estimate.transitionFlows), exclusiveScopeKeys: [...estimate.exclusiveScopeKeys] };
 }
 function retainedOption(source: Decision, option: DecisionOption, local: "adopt" | "keep", label?: string): DecisionOption {
   const profile = retainedProfile(source, option, local); const clone = structuredClone(option);
-  const sourceBudget = clone.effects.filter((effect) => effect.target === "indicator" && effect.key === "annualBalance");
   const other = clone.effects.filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"));
-  const usedFlows = new Set<string>();
-  const budget = sourceBudget.map((effect) => {
-    if (effect.duration !== "once") return { ...effect, id: `${source.id}:${local}:indicator:annualBalance` };
-    const flow = profile.transitionFlows.find((candidate) => !usedFlows.has(candidate.id)
-      && candidate.amountMillions === effect.delta && JSON.stringify(candidate.timing) === JSON.stringify(effect.timing));
-    if (!flow) throw new Error(`Missing carry-forward transition identity: ${source.id}:${local}:${effect.id}`);
-    usedFlows.add(flow.id);
-    return { ...effect, id: `${source.id}:${local}:transition:${flow.id}` };
-  });
   const oldLocal = option.id.split(":").at(-1)!;
   const remappedOther = other.map((effect) => ({ ...effect, id: effect.id.replace(`${source.id}:${oldLocal}:`, `${source.id}:${local}:`) }));
-  return { ...clone, id: `${source.id}:${local}`, label: label ?? clone.label, budgetProfile: profile, effects: [...budget, ...remappedOther] };
+  return { ...clone, id: `${source.id}:${local}`, label: label ?? clone.label, budgetProfile: profile, effects: remappedOther };
 }
 function retainedDecision(source: Decision): Decision {
   if (source.id === "engager-six-epr2-part-annuelle-de-l") { const six = source.options.find((option) => option.id.endsWith(":six"))!; const none = source.options.find((option) => option.id.endsWith(":none"))!; return { ...structuredClone(source), version: 10, options: [retainedOption(source, six, "adopt", "Engager six EPR2"), retainedOption(source, none, "keep", "Ne pas engager de nouvel EPR2")] }; }
@@ -79,6 +76,22 @@ function retainedDecision(source: Decision): Decision {
 function deepFreeze<T>(value: T): T { if (value && typeof value === "object") { for (const child of Object.values(value)) deepFreeze(child); Object.freeze(value); } return value; }
 const decisions = SCENARIO_V3_CATALOGUE.decisions.map((decision) => REPLACEMENTS[decision.id] ? replacementDecision(REPLACEMENTS[decision.id]!) : retainedDecision(decision));
 const known = new Set(decisions.map((decision) => decision.id));
-const normalized = decisions.map((decision) => ({ ...decision, dependencies: decision.dependencies.filter((id) => known.has(id)), conflicts: decision.conflicts.filter((id) => known.has(id)), options: decision.options.map((option) => ({ ...option, locks: option.locks.filter((id) => known.has(id)), unlocks: option.unlocks.filter((id) => known.has(id)) })) }));
+const UNPUBLISHED_V10_RELATIONSHIPS: Readonly<Record<string, readonly string[]>> = {
+  "abolir-les-droits-de-succession": ["raboter-l-avantage-successoral-de-l-assurance"],
+  "service-militaire-volontaire-de-50-000": ["generaliser-le-service-national-universel"],
+};
+const normalized = decisions.map((decision) => {
+  const removed = new Set(UNPUBLISHED_V10_RELATIONSHIPS[decision.id] ?? []);
+  return {
+    ...decision,
+    dependencies: decision.dependencies.filter((id) => known.has(id) && !removed.has(id)),
+    conflicts: decision.conflicts.filter((id) => known.has(id) && !removed.has(id)),
+    options: decision.options.map((option) => ({
+      ...option,
+      locks: option.locks.filter((id) => known.has(id) && !removed.has(id)),
+      unlocks: option.unlocks.filter((id) => known.has(id) && !removed.has(id)),
+    })),
+  };
+});
 export const SCENARIO_V10_CATALOGUE: Scenario = deepFreeze({ version: 10, title: "Bibliothèque V10 des politiques", chapters: SCENARIO_V3_CATALOGUE.chapters.map((chapter) => ({ ...structuredClone(chapter), decisionIds: normalized.filter((decision) => decision.chapterId === chapter.id).map((decision) => decision.id) })), decisions: normalized });
 export function v10PolicyById(id: string): Decision | undefined { return SCENARIO_V10_CATALOGUE.decisions.find((decision) => decision.id === id); }

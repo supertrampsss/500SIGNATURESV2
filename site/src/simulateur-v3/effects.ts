@@ -221,6 +221,121 @@ function assertUniqueDisjointIds(
   if (new Set(ids).size !== ids.length) throw new Error(`Duplicate ${label} ID`);
 }
 
+function budgetEffect(
+  id: string,
+  delta: number,
+  duration: "once" | "annual",
+  explanation: string,
+): EffectRule {
+  return {
+    id,
+    target: "indicator",
+    key: "annualBalance",
+    delta,
+    timing: { kind: "immediate" },
+    duration,
+    explanation,
+  };
+}
+
+function scheduledBudgetEvent(
+  decision: Decision,
+  option: DecisionOption,
+  id: string,
+  dueAtDecision: number,
+  effect: EffectRule,
+): ScheduledEvent {
+  return {
+    id,
+    sourceDecisionId: decision.id,
+    sourceOptionId: option.id,
+    dueAtDecision,
+    title: `Flux budgétaire : ${decision.title}`,
+    body: effect.explanation,
+    effects: [effect],
+  };
+}
+
+/** Schedules V10 budget profiles without duplicating them in policy EffectRules. */
+export function scheduleBudgetProfile(
+  state: CampaignState,
+  decision: Decision,
+  option: DecisionOption,
+  scenario: Scenario,
+): CampaignState {
+  const decisionCount = state.decisions.length;
+  const sourceId = `${decision.id}:${option.id}`;
+  let scheduled = state;
+  const additions: ScheduledEvent[] = [];
+  const queue = (id: string, dueAtDecision: number, effect: EffectRule) => {
+    assertDueAtDecision(dueAtDecision, scenario);
+    additions.push(scheduledBudgetEvent(decision, option, id, dueAtDecision, effect));
+  };
+  const applyOrQueue = (id: string, dueAtDecision: number, effect: EffectRule) => {
+    if (dueAtDecision === decisionCount) {
+      scheduled = applyEffect(scheduled, effect, { sourceType: "decision", sourceId, appliedAtDecision: decisionCount });
+    } else {
+      queue(id, dueAtDecision, effect);
+    }
+  };
+
+  const profile = option.budgetProfile;
+  if (profile.runRateMillions !== 0 && profile.runRateTiming !== null) {
+    const id = `${decision.id}:${option.id}:run-rate`;
+    const dueAtDecision = profile.runRateTiming.kind === "immediate"
+      ? decisionCount
+      : profile.runRateTiming.kind === "after_decisions"
+        ? decisionCount + profile.runRateTiming.count
+        : decisionCountAtMandateYearEnd(scenario, profile.runRateTiming.year);
+    applyOrQueue(id, dueAtDecision, budgetEffect(id, profile.runRateMillions, "annual", "Flux annuel sourcé du profil budgétaire."));
+  }
+  for (const flow of profile.transitionFlows) {
+    const id = `${decision.id}:${option.id}:transition:${flow.id}`;
+    const dueAtDecision = flow.timing.kind === "immediate"
+      ? decisionCount
+      : dueAtDecisionForTiming(flow.timing, decisionCount, scenario);
+    applyOrQueue(id, dueAtDecision, budgetEffect(id, flow.amountMillions, "once", `Flux ponctuel sourcé : ${flow.id}.`));
+  }
+  assertUniqueDisjointIds("event", scheduled.scheduledEvents, scheduled.eventHistory, additions);
+  return additions.length === 0 ? scheduled : { ...scheduled, scheduledEvents: [...scheduled.scheduledEvents, ...additions] };
+}
+
+/** Removes future consequences and neutralizes only the future annual run rate. */
+export function reverseDecisionConsequences(state: CampaignState, decisionId: string): CampaignState {
+  const record = state.decisions.find((decision) => decision.decisionId === decisionId);
+  if (!record || record.status === "reversed") return state;
+  const directSourceId = `${decisionId}:${record.optionId}`;
+  const materializedEventIds = new Set(state.eventHistory
+    .filter((event) => event.sourceDecisionId === decisionId)
+    .map((event) => event.id));
+  const activeAnnualRunRate = state.causalLedger
+    .filter((entry) => entry.target === "indicator" && entry.key === "annualBalance" && entry.duration === "annual"
+      && (entry.sourceId === directSourceId || materializedEventIds.has(entry.sourceId)))
+    .reduce((sum, entry) => sum + entry.delta, 0);
+  let reversed: CampaignState = {
+    ...state,
+    scheduledEvents: state.scheduledEvents.filter((event) => event.sourceDecisionId !== decisionId),
+    activePromises: state.activePromises.filter((promise) => promise.sourceDecisionId !== decisionId),
+    decisions: state.decisions.map((decision) => decision.decisionId === decisionId
+      ? { ...decision, status: "reversed" as const }
+      : decision),
+  };
+  if (activeAnnualRunRate !== 0) {
+    const compensation = budgetEffect(
+      `reverse:${decisionId}:run-rate`,
+      -activeAnnualRunRate,
+      "annual",
+      "Neutralisation du flux annuel après révocation.",
+    );
+    reversed = applyEffect(reversed, compensation, {
+      sourceType: "crisis",
+      sourceId: `reverse:${decisionId}`,
+      appliedAtDecision: state.decisions.length,
+    });
+  }
+  return reversed;
+}
+
 function applyResolvedEffects(state: CampaignState, effects: readonly EffectRule[], cause: EffectCause): CampaignState {
   assertImmediateEffects(effects, "Resolved consequence");
   return effects.reduce((current, effect) => applyEffect(current, effect, cause), state);
@@ -267,13 +382,19 @@ export function confirmSelection(state: CampaignState, scenario: Scenario): Camp
       confirmedAtIndex,
     }],
   };
-  const withImmediateEffects = applyImmediateEffects(confirmed, option.effects, {
+  const directEffects = scenario.version >= 10
+    ? option.effects.filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
+    : option.effects;
+  const withImmediateEffects = applyImmediateEffects(confirmed, directEffects, {
     sourceType: "decision",
     sourceId: `${decisionId}:${optionId}`,
   });
-  const immediateCausalEntries = withImmediateEffects.causalLedger.slice(ledgerLengthBefore);
+  const withBudgetProfile = scenario.version >= 10
+    ? scheduleBudgetProfile(withImmediateEffects, decision, option, scenario)
+    : withImmediateEffects;
+  const immediateCausalEntries = withBudgetProfile.causalLedger.slice(ledgerLengthBefore);
   const indicatorKeys = (Object.keys(INDICATOR_META) as IndicatorKey[])
-    .filter((key) => withImmediateEffects.indicators[key] !== indicatorsBefore[key]);
+    .filter((key) => withBudgetProfile.indicators[key] !== indicatorsBefore[key]);
   indicatorKeys.sort((left, right) => INDICATOR_META[right].priority - INDICATOR_META[left].priority);
   const impact = {
     decisionId,
@@ -282,17 +403,17 @@ export function confirmSelection(state: CampaignState, scenario: Scenario): Camp
     indicators: indicatorKeys.map((key) => ({
       key,
       before: indicatorsBefore[key],
-      after: withImmediateEffects.indicators[key],
-      delta: withImmediateEffects.indicators[key] - indicatorsBefore[key],
+      after: withBudgetProfile.indicators[key],
+      delta: withBudgetProfile.indicators[key] - indicatorsBefore[key],
       causalEntryIds: immediateCausalEntries
         .filter((entry) => entry.target === "indicator" && entry.key === key)
         .map((entry) => entry.id),
     })),
   };
   const withImpact = {
-    ...withImmediateEffects,
-    decisions: withImmediateEffects.decisions.map((record, index) =>
-      index === withImmediateEffects.decisions.length - 1 ? { ...record, impact } : record),
+    ...withBudgetProfile,
+    decisions: withBudgetProfile.decisions.map((record, index) =>
+      index === withBudgetProfile.decisions.length - 1 ? { ...record, impact } : record),
   };
   const withConsequences = scheduleOptionConsequences(withImpact, decision, option, scenario);
   const withFulfilledPromises = option.fulfillsPromises.length === 0

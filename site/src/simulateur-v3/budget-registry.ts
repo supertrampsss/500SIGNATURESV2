@@ -151,6 +151,7 @@ function isRunRateTiming(value: unknown): value is RunRateTiming {
   if (!value || typeof value !== "object" || !("kind" in value)) return false;
   const timing = value as Record<string, unknown>;
   return timing.kind === "immediate"
+    || (timing.kind === "after_decisions" && Number.isInteger(timing.count) && (timing.count as number) > 0)
     || (timing.kind === "mandate_year" && Number.isInteger(timing.year) && (timing.year as number) >= 1 && (timing.year as number) <= 5);
 }
 

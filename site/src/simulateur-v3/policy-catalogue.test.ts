@@ -89,7 +89,7 @@ test("les vingt substitutions V10 ne réemploient aucun contrat éditorial ou ca
   }
 });
 
-test("les dossiers conservés gardent exactement leurs flux V9 après remappage local", () => {
+test("les dossiers conservés portent exactement leurs flux V9 dans le profil planifié", () => {
   const retired = new Set(["geler-le-bareme-de-l-impot-sur", "flat-tax-a-20-des-le-premier", "flat-tax-a-20-avec-abattement-protegeant", "tranche-a-50-au-dela-de-250", "soumettre-les-revenus-du-capital-au-bareme", "supprimer-les-allegements-de-cotisations-entre-2", "fiscaliser-les-heures-supplementaires-comme-le", "raboter-de-5-les-subventions-directes-aux", "raboter-le-credit-d-impot-recherche-de", "allocation-sociale-unique", "imposer-generiques-et-biosimilaires-en-premiere-intention", "renforcer-le-controle-des-arrets-de-travail", "derembourser-les-cures-thermales", "verser-le-rsa-automatiquement-fin-du-non", "interdire-les-voitures-thermiques-en-2030", "reduire-de-5-les-dotations-aux-collectivites", "geler-le-point-d-indice-en-2026", "fermer-un-tiers-des-agences-et-operateurs", "diviser-par-deux-le-nombre-de-parlementaires", "deux-jours-de-carence-dans-la-fonction"]);
   for (const historical of SCENARIO_V9_SNAPSHOT.decisions) {
     if (retired.has(historical.id)) continue;
@@ -101,7 +101,18 @@ test("les dossiers conservés gardent exactement leurs flux V9 après remappage 
       const local = oldOption.id.endsWith(":six") ? "adopt" : oldOption.id.split(":").at(-1)!;
       const actual = current.options.find((option) => option.id.endsWith(`:${local}`))!;
       const oldFlows = oldOption.effects.filter((effect) => effect.target === "indicator" && effect.key === "annualBalance").map(({ delta, timing, duration }) => ({ delta, timing, duration }));
-      const newFlows = actual.effects.filter((effect) => effect.target === "indicator" && effect.key === "annualBalance").map(({ delta, timing, duration }) => ({ delta, timing, duration }));
+      const newFlows = [
+        ...(actual.budgetProfile.runRateMillions === 0 ? [] : [{
+          delta: actual.budgetProfile.runRateMillions,
+          timing: actual.budgetProfile.runRateTiming!,
+          duration: "annual",
+        }]),
+        ...actual.budgetProfile.transitionFlows.map((flow) => ({
+          delta: flow.amountMillions,
+          timing: flow.timing,
+          duration: "once" as const,
+        })),
+      ];
       assert.deepEqual(newFlows, oldFlows, `${historical.id}:${local}`);
     }
   }
@@ -122,6 +133,12 @@ test("EPR2 ne conserve aucun identifiant d'option retirée dans ses effets", () 
   const epr2 = v10PolicyById("engager-six-epr2-part-annuelle-de-l")!;
   for (const option of epr2.options) {
     assert.doesNotMatch(JSON.stringify(option), /:six:|:fourteen:|:none:/);
+  }
+});
+
+test("le catalogue V10 laisse ses flux budgétaires au scheduler, sans effet annualBalance dupliqué", () => {
+  for (const option of SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)) {
+    assert.equal(option.effects.some((effect) => effect.target === "indicator" && effect.key === "annualBalance"), false, option.id);
   }
 });
 

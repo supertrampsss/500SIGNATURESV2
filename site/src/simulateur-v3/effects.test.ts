@@ -7,10 +7,14 @@ import {
   confirmSelection,
   resolveDueEvents,
   resolveDuePromises,
+  reverseDecisionConsequences,
+  scheduleBudgetProfile,
   scheduleOptionConsequences,
 } from "./effects.ts";
 import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
 import { restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
+import { decisionCountAtMandateYearEnd } from "./timeline.ts";
+import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 import type { EffectRule, IndicatorKey, Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
@@ -229,6 +233,160 @@ test("un effet différé est programmé mais jamais appliqué directement", () =
     body: "Effet test",
     effects: [{ ...scenario.decisions[0]!.options[0]!.effects[0]!, timing: { kind: "immediate" } }],
   });
+});
+
+test("le profil budgétaire planifie un run-rate immédiat et un flux ponctuel causal unique", () => {
+  const scenario = validScenario();
+  const decision = scenario.decisions[0]!;
+  const option = decision.options[0]!;
+  option.budgetProfile = {
+    estimateKey: "audit-test",
+    runRateMillions: 2_700,
+    runRateTiming: { kind: "immediate" },
+    transitionFlows: [{ id: "migration", amountMillions: -450, timing: { kind: "after_decisions", count: 2 }, sourceKey: "audit-test" }],
+    exclusiveScopeKeys: ["test-scope"],
+  };
+  const started = createCampaign(scenario);
+  const selected = { ...started, decisions: [{ decisionId: decision.id, optionId: option.id, status: "confirmed" as const, confirmedAtIndex: 1 }] };
+  const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
+
+  assert.equal(scheduled.indicators.annualBalance, started.indicators.annualBalance + 2_700);
+  assert.equal(scheduled.scheduledEvents[0]?.id, `${decision.id}:${option.id}:transition:migration`);
+  assert.equal(scheduled.scheduledEvents[0]?.dueAtDecision, 3);
+  const due = { ...scheduled, decisions: [
+    ...scheduled.decisions,
+    { decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
+    { decisionId: "decision-3", optionId: "decision-3-option-a", status: "confirmed" as const, confirmedAtIndex: 3 },
+  ] };
+  const resolved = resolveDueEvents(due).state;
+  assert.equal(resolved.indicators.annualBalance, started.indicators.annualBalance + 2_700 - 450);
+  assert.equal(resolveDueEvents(resolved).state.causalLedger.length, resolved.causalLedger.length);
+});
+
+test("le run-rate V10 conserve ses échéances after_decisions et mandate_year", () => {
+  const scenario = validScenario();
+  const decision = scenario.decisions[0]!;
+  const option = decision.options[0]!;
+  const selected = {
+    ...createCampaign(scenario),
+    decisions: [{ decisionId: decision.id, optionId: option.id, status: "confirmed" as const, confirmedAtIndex: 1 }],
+  };
+
+  option.budgetProfile = {
+    estimateKey: "audit-test",
+    runRateMillions: 120,
+    runRateTiming: { kind: "after_decisions", count: 3 } as never,
+    transitionFlows: [],
+    exclusiveScopeKeys: ["test-scope"],
+  };
+  const delayed = scheduleBudgetProfile(selected, decision, option, scenario);
+  assert.equal(delayed.scheduledEvents[0]?.dueAtDecision, 4);
+
+  option.budgetProfile.runRateTiming = { kind: "mandate_year", year: 2 };
+  const yearly = scheduleBudgetProfile(selected, decision, option, scenario);
+  assert.equal(yearly.scheduledEvents[0]?.dueAtDecision, decisionCountAtMandateYearEnd(scenario, 2));
+});
+
+test("le carry-forward cheque-education active son rythme une seule fois à J+3 et le conserve", () => {
+  const scenario = SCENARIO_V10_CATALOGUE;
+  const decision = scenario.decisions.find((candidate) => candidate.id === "cheque-education-par-eleve")!;
+  const option = decision.options.find((candidate) => candidate.id === "cheque-education-par-eleve:adopt")!;
+  // The full 96-entry catalogue intentionally includes unpublished late effects;
+  // scheduling this retained profile needs only a neutral mutable campaign state.
+  const initial = createCampaign(validScenario());
+  const selected = {
+    ...initial,
+    decisions: [{ decisionId: decision.id, optionId: option.id, status: "confirmed" as const, confirmedAtIndex: 1 }],
+  };
+  const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
+  assert.equal(scheduled.scheduledEvents[0]?.dueAtDecision, 4);
+  assert.equal(scheduled.indicators.annualBalance, initial.indicators.annualBalance);
+  const atDue = {
+    ...scheduled,
+    decisions: Array.from({ length: 4 }, (_, index) => ({
+      decisionId: scenario.decisions[index]!.id,
+      optionId: scenario.decisions[index]!.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  const activated = resolveDueEvents(atDue).state;
+  assert.equal(activated.indicators.annualBalance, initial.indicators.annualBalance - 1_000);
+  assert.equal(activated.causalLedger.filter((entry) => entry.duration === "annual").length, 1);
+  const persisted = resolveDueEvents(activated).state;
+  assert.equal(persisted.indicators.annualBalance, activated.indicators.annualBalance);
+  assert.equal(persisted.causalLedger.length, activated.causalLedger.length);
+});
+
+test("le scheduler refuse une collision causale et une échéance après la dernière décision", () => {
+  const scenario = validScenario();
+  const decision = scenario.decisions[0]!;
+  const option = decision.options[0]!;
+  const selected = {
+    ...createCampaign(scenario),
+    decisions: [{ decisionId: decision.id, optionId: option.id, status: "confirmed" as const, confirmedAtIndex: 1 }],
+  };
+  option.budgetProfile = {
+    estimateKey: "audit-test",
+    runRateMillions: 0,
+    runRateTiming: null,
+    transitionFlows: [{ id: "same", amountMillions: 1, timing: { kind: "after_decisions", count: 1 }, sourceKey: "audit-test" }],
+    exclusiveScopeKeys: ["test-scope"],
+  };
+  const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
+  assert.throws(() => scheduleBudgetProfile(scheduled, decision, option, scenario), /Duplicate event ID/);
+
+  const finalDecision = scenario.decisions.at(-1)!;
+  const finalOption = finalDecision.options[0]!;
+  finalOption.budgetProfile = {
+    estimateKey: "audit-test",
+    runRateMillions: 10,
+    runRateTiming: { kind: "after_decisions", count: 1 } as never,
+    transitionFlows: [],
+    exclusiveScopeKeys: ["test-scope-final"],
+  };
+  const atEnd = {
+    ...createCampaign(scenario),
+    decisions: Array.from({ length: scenario.decisions.length }, (_, index) => ({
+      decisionId: scenario.decisions[index]!.id,
+      optionId: scenario.decisions[index]!.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  assert.throws(() => scheduleBudgetProfile(atEnd, finalDecision, finalOption, scenario), /cannot be due after/i);
+});
+
+test("la révocation retire le futur sans effacer les flux déjà matérialisés", () => {
+  const scenario = validScenario();
+  const decision = scenario.decisions[0]!;
+  const option = decision.options[0]!;
+  option.budgetProfile = {
+    estimateKey: "audit-test",
+    runRateMillions: 100,
+    runRateTiming: { kind: "immediate" },
+    transitionFlows: [{ id: "transition", amountMillions: -20, timing: { kind: "after_decisions", count: 1 }, sourceKey: "audit-test" }],
+    exclusiveScopeKeys: ["test-scope"],
+  };
+  const started = createCampaign(scenario);
+  const selected = { ...started, decisions: [{ decisionId: decision.id, optionId: option.id, status: "confirmed" as const, confirmedAtIndex: 1 }], activePromises: [{
+    id: "future-promise", sourceDecisionId: decision.id, sourceOptionId: option.id, label: "Promesse", dueAtDecision: 2, fulfilled: false, failureEffects: [],
+  }] };
+  const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
+  const reversedBefore = reverseDecisionConsequences(scheduled, decision.id);
+  assert.equal(reversedBefore.scheduledEvents.length, 0);
+  assert.equal(reversedBefore.activePromises.length, 0);
+  assert.equal(reversedBefore.decisions[0]?.status, "reversed");
+  assert.equal(reversedBefore.indicators.annualBalance, started.indicators.annualBalance);
+
+  const materialized = resolveDueEvents({ ...scheduled, decisions: [
+    ...scheduled.decisions,
+    { decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
+  ] }).state;
+  const reversedAfter = reverseDecisionConsequences(materialized, decision.id);
+  assert.equal(reversedAfter.eventHistory.length, materialized.eventHistory.length);
+  assert.ok(reversedAfter.causalLedger.length > materialized.causalLedger.length);
+  assert.equal(reversedAfter.indicators.annualBalance, started.indicators.annualBalance - 20);
 });
 
 test("les événements échus appliquent leurs effets et sortent de la file", () => {

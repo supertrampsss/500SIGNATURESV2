@@ -12,6 +12,7 @@ import {
 import { selectOption } from "./campaign.ts";
 import { confirmSelection, resolveDueEvents } from "./effects.ts";
 import { SCENARIO_V3 } from "./scenario.ts";
+import { SCENARIO_V10_CATALOGUE } from "./scenario-v10-catalogue.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, validCampaignState, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, DecisionRecord, EffectRule, Scenario } from "./types.ts";
 
@@ -129,7 +130,7 @@ test("V10 exige une estimation enregistrée même pour un profil d'audit neutre"
   );
 });
 
-test("V10 compare les flux de transition par identifiant, montant, échéance et durée", () => {
+test("V10 interdit les effets budgétaires compilés et les laisse au scheduler", () => {
   const scenario = validScenario();
   scenario.version = 10;
   for (const decision of scenario.decisions) {
@@ -149,7 +150,22 @@ test("V10 compare les flux de transition par identifiant, montant, échéance et
     timing: { kind: "immediate" }, duration: "once", explanation: "Flux différent.",
   });
 
-  assert.ok(validateScenario(scenario).includes("option:decision-1:adopt:transition-flow-effect-mismatch"));
+  assert.ok(validateScenario(scenario).includes("option:decision-1:adopt:budget-effect-must-be-scheduled"));
+});
+
+test("V10 réserve le run-rate after_decisions aux seuls carry-forward V9", () => {
+  const catalogue = structuredClone(SCENARIO_V10_CATALOGUE);
+  const cheque = catalogue.decisions.find((decision) => decision.id === "cheque-education-par-eleve")!
+    .options.find((option) => option.id === "cheque-education-par-eleve:adopt")!;
+  assert.deepEqual(cheque.budgetProfile.runRateTiming, { kind: "after_decisions", count: 3 });
+  assert.equal(validateScenario(catalogue).some((error) => error.includes("run-rate-after-decisions-requires-carry-forward")), false);
+
+  const auditedPromotion = catalogue.decisions.find((decision) => decision.id === "perenniser-surtaxe-grandes-entreprises")!
+    .options.find((option) => option.id === "perenniser-surtaxe-grandes-entreprises:adopt")!;
+  auditedPromotion.budgetProfile.runRateTiming = { kind: "after_decisions", count: 3 };
+  assert.ok(validateScenario(catalogue).includes(
+    "option:perenniser-surtaxe-grandes-entreprises:adopt:run-rate-after-decisions-requires-carry-forward",
+  ));
 });
 
 test("la validation impose un profil budgétaire, listes nettoyées et contrat budgétaire cohérent", () => {
@@ -175,7 +191,7 @@ test("la validation impose un profil budgétaire, listes nettoyées et contrat b
   assert.ok(errors.includes("option:decision-1-option-a:blank-legal-constraint"));
   assert.ok(errors.includes("option:decision-1-option-a:duplicate-beneficiary:ménages"));
   assert.ok(errors.includes("option:decision-1-option-a:blank-contributor"));
-  assert.ok(errors.includes("option:decision-1-option-a:transition-flow-effect-mismatch"));
+  assert.ok(errors.includes("option:decision-1-option-a:budget-effect-must-be-scheduled"));
 });
 
 test("la validation refuse une année d'effet antérieure au chapitre de la décision", () => {
@@ -520,7 +536,7 @@ test("un état V3 refuse les listes d'identifiants dupliquées ou inconnues", ()
   assert.equal(isCampaignState(confirmedUnlockedState, scenario), false);
 });
 
-test("la validation refuse un flux de transition sans effet de solde", () => {
+test("la validation V10 autorise un flux de transition sans effet de solde compilé", () => {
   const scenario = validScenario();
   scenario.version = 10;
   const option = scenario.decisions[0]!.options[0]!;
@@ -532,7 +548,7 @@ test("la validation refuse un flux de transition sans effet de solde", () => {
     exclusiveScopeKeys: [],
   };
 
-  assert.ok(validateScenario(scenario).includes(`option:${option.id}:transition-flow-effect-mismatch`));
+  assert.equal(validateScenario(scenario).includes(`option:${option.id}:budget-effect-must-be-scheduled`), false);
 });
 
 test("un état V3 refuse une règle d'effet incomplète", () => {

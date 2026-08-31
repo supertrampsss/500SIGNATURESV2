@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { availableConcessions, detectCrisis, resolveCrisis } from "./crises.ts";
+import { applyEffect } from "./effects.ts";
 import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
 import type {
   CampaignState,
@@ -217,6 +218,63 @@ test("une concession suspend réellement une politique active", () => {
   assert.equal(resolved.decisions.find((entry) => entry.decisionId === "decision-1")?.status, "suspended");
   assert.equal(resolved.decisions.find((entry) => entry.decisionId === "decision-1")?.changedByCrisisId, "social-crisis");
   assert.equal(resolved.activeCrisis, undefined);
+});
+
+test("une révocation de crise retire le futur avant les effets de concession", () => {
+  const state = triggeredSocialCrisis();
+  const withRunRate = applyEffect(state, {
+    id: "decision-1:decision-1-option-a:run-rate",
+    target: "indicator",
+    key: "annualBalance",
+    delta: 100,
+    timing: { kind: "immediate" },
+    duration: "annual",
+    explanation: "Flux annuel à neutraliser.",
+  }, { sourceType: "decision", sourceId: "decision-1:decision-1-option-a" });
+  const pending = {
+    ...withRunRate,
+    scheduledEvents: [{
+      id: "decision-1:decision-1-option-a:transition:future",
+      sourceDecisionId: "decision-1",
+      sourceOptionId: "decision-1-option-a",
+      dueAtDecision: 3,
+      title: "Flux futur",
+      body: "À annuler.",
+      effects: [],
+    }],
+    activePromises: [{
+      id: "decision-1-promise",
+      sourceDecisionId: "decision-1",
+      sourceOptionId: "decision-1-option-a",
+      label: "Promesse future",
+      dueAtDecision: 3,
+      fulfilled: false,
+      failureEffects: [],
+    }],
+  };
+  const rule = socialCrisisRule({
+    concessions: [{
+      id: "reverse-first-policy",
+      label: "Retirer la première réforme",
+      targetDecisionId: "decision-1",
+      policyChange: "reverse",
+      effects: [{
+        id: "concession-annual-balance",
+        target: "indicator",
+        key: "annualBalance",
+        delta: 7,
+        timing: { kind: "immediate" },
+        duration: "once",
+        explanation: "Coût de la concession.",
+      }],
+    }],
+  });
+
+  const resolved = resolveCrisis(pending, [rule], "reverse-first-policy");
+  assert.equal(resolved.decisions[0]?.status, "reversed");
+  assert.equal(resolved.scheduledEvents.length, 0);
+  assert.equal(resolved.activePromises.length, 0);
+  assert.equal(resolved.indicators.annualBalance, state.indicators.annualBalance + 7);
 });
 
 test("une concession indisponible n'est jamais proposée", () => {
