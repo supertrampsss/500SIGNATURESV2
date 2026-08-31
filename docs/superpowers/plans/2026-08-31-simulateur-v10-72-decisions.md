@@ -51,6 +51,8 @@
 - [ ] **Step 1: Write the red parity test before editing policies or consequences.**
 
 ```ts
+import { SCENARIO_V3 as SCENARIO_V3_PRE_REFACTOR } from "./scenario.ts";
+import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
 assert.deepEqual(JSON.parse(JSON.stringify(SCENARIO_V9_SNAPSHOT)), JSON.parse(JSON.stringify(SCENARIO_V3_PRE_REFACTOR)));
 ```
 
@@ -62,7 +64,7 @@ Expected: FAIL because the static V9 snapshot has not yet been generated.
 
 - [ ] **Step 3: Generate and freeze the V9 literal.**
 
-Run `node --experimental-strip-types scripts/snapshot-scenario-v9.ts` while `SCENARIO_V3_PRE_REFACTOR` still resolves to the unmodified scenario. The script serializes that value into `scenario-v9.snapshot.ts` as `export const SCENARIO_V9_SNAPSHOT: Scenario = Object.freeze(...)`; it must not leave an import of the pre-refactor scenario in the generated file.
+In `site/scripts/snapshot-scenario-v9.ts`, import the pre-refactor source with `import { SCENARIO_V3 as SCENARIO_V3_PRE_REFACTOR } from "../src/simulateur-v3/scenario.ts";`. Run `node --experimental-strip-types scripts/snapshot-scenario-v9.ts` while that alias still resolves to the unmodified scenario. The script serializes that value into `scenario-v9.snapshot.ts` as `export const SCENARIO_V9_SNAPSHOT: Scenario = Object.freeze(...)`; it must not leave an import of the pre-refactor scenario in the generated file.
 
 - [ ] **Step 4: Run the green parity test.**
 
