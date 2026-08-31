@@ -168,28 +168,30 @@ test("la trajectoire des finances reste disponible au Conseil, pas dans chaque d
   assert.notEqual(points(renderSimulatorV3(base, SCENARIO_V3_PREVIEW)), points(renderSimulatorV3(moved, SCENARIO_V3_PREVIEW)));
 });
 
-test("chaque carte expose directement un résumé court, le budget, un impact principal et le risque", () => {
+test("chaque carte expose le résumé complet, le budget et un impact principal en pilule", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   const buttons = closedOptionButtons(html);
   assert.equal(buttons.length, decision.options.length);
   for (const button of buttons) {
-    assert.equal(occurrences(button, "data-v3-fact="), 5);
+    assert.equal(occurrences(button, "data-v3-fact="), 4);
     assert.equal(occurrences(button, 'data-v3-fact="name"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="summary"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="budget"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="impact"'), 1);
-    assert.equal(occurrences(button, 'data-v3-fact="risk"'), 1);
-    assert.doesNotMatch(button, /aria-label=/);
+    assert.equal(occurrences(button, 'data-v3-fact="risk"'), 0);
+    assert.equal(occurrences(button, "aria-labelledby="), 1);
     const labelledBy = button.match(/aria-labelledby="([^"]+)"/)?.[1];
     const describedBy = button.match(/aria-describedby="([^"]+)"/)?.[1]?.split(" ") ?? [];
     assert.ok(labelledBy);
-    assert.equal(describedBy.length, 4);
+    assert.equal(describedBy.length, 3);
     for (const id of [labelledBy, ...describedBy]) {
       assert.equal(occurrences(button, `id="${id}"`), 1, `référence accessible absente : ${id}`);
     }
     assert.match(button, /simulateur-v3__option-summary/);
+    assert.match(button, /simulateur-v3__option-impact-pill/);
+    assert.doesNotMatch(button, /Incertitude|simulateur-v3__option-confidence/);
     assert.doesNotMatch(button, /Mécanisme|Bénéficiaires|Contributeurs/);
   }
 });
@@ -219,20 +221,22 @@ test("l'impact principal est unique, priorisé par INDICATOR_META et garde son �
   const html = renderSimulatorV3(state, scenario);
   const firstButton = closedOptionButtons(html)[0]!;
 
-  assert.match(firstButton, /Investissement \+4 points d&#39;indice · année 3/);
+  assert.match(firstButton, />Investissement \+4 · an 3</);
+  assert.match(firstButton, /aria-label="Investissement \+4 points d&#39;indice · année 3"/);
   assert.doesNotMatch(firstButton, /Opinion -2 points d&#39;indice/);
   assert.equal(occurrences(firstButton, 'data-v3-fact="impact"'), 1);
 });
 
-test("le résumé de chaque option est visible sans ouvrir de détail", () => {
+test("le résumé complet de chaque option est visible sans troncature ni détail", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   assert.notEqual(decision.options[0]!.summary, decision.context);
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.equal(occurrences(html, 'class="simulateur-v3__option-summary"'), decision.options.length);
   for (const option of decision.options) {
-    assert.ok(html.includes(escapedHtml(option.summary)) || html.includes("…"));
+    assert.ok(html.includes(escapedHtml(option.summary)));
   }
+  assert.doesNotMatch(html, /…/);
   assert.doesNotMatch(html, /simulateur-v3__option-detail|data-v3-action="confirm"|data-v3-action="modify"/);
 });
 

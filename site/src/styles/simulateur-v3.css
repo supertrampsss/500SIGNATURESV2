@@ -355,6 +355,7 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
 }
 
 .simulateur-v3__option-copy { display: grid; gap: var(--espace-2); min-width: 0; }
+.simulateur-v3__option-signals { display: flex; flex-wrap: wrap; gap: var(--espace-2); align-items: center; min-width: 0; }
 
 .simulateur-v3__option-label {
   font-family: var(--serif);
@@ -369,17 +370,24 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
 .simulateur-v3__option-budget--positive { color: var(--v3-green); }
 .simulateur-v3__option-budget--negative { color: var(--v3-red); }
 .simulateur-v3__option-budget--neutral { color: var(--v3-muted); }
-.simulateur-v3__option-impact { color: var(--v3-ink); font-size: var(--texte-s); font-weight: 750; }
-.simulateur-v3__option-confidence { color: var(--v3-muted); font-size: var(--texte-xs); font-weight: 800; }
 .simulateur-v3__option-summary {
-  display: -webkit-box;
   margin: 0;
-  overflow: hidden;
   color: var(--v3-muted);
   font-size: var(--texte-s);
   line-height: 1.4;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
+}
+.simulateur-v3__option-impact-pill {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  padding: 0.25rem 0.55rem;
+  color: var(--v3-ink);
+  background: #efe7d9;
+  border-radius: var(--rayon-pilule);
+  font-size: var(--texte-xs);
+  font-weight: 800;
+  line-height: 1.2;
 }
 
 .simulateur-v3__event-group summary,
@@ -705,7 +713,8 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
   .simulateur-v3__options,
   .simulateur-v3__options--3 { grid-template-columns: minmax(0, 1fr); }
   .simulateur-v3__crisis-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .simulateur-v3__option-select { grid-template-columns: minmax(8rem, 2fr) minmax(7rem, 1fr) minmax(9rem, 1.5fr) minmax(6rem, 0.8fr); gap: var(--espace-3); align-items: center; min-height: 9.25rem; }
+  .simulateur-v3__option-select { grid-template-columns: minmax(0, 1fr) auto; gap: var(--espace-4); align-items: center; min-height: var(--cible); }
+  .simulateur-v3__option-signals { justify-content: flex-end; max-width: 25rem; }
   .simulateur-v3__evidence-body { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .simulateur-v3__analysis,
   .simulateur-v3__sources { grid-column: 1 / -1; }
