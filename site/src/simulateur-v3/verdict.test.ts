@@ -1,14 +1,26 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
+import { BALANCED_PATHS, simulatePath } from "./balanced-paths.ts";
+import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, CausalEntry } from "./types.ts";
 import { totalDecisions } from "./validation.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
 
 const INITIAL_INDICATORS = createCampaign(validScenario()).indicators;
+
+test("le verdict V10 reste unique après chaque parcours budgétaire publié", () => {
+  for (const path of BALANCED_PATHS) {
+    const finalState = simulatePath(path, SCENARIO_V10);
+    const verdict = buildMandateVerdictViewModel(finalState, SCENARIO_V10, SCENARIO_V10_CRISIS_RULES);
+    assert.equal(finalState.phase, "verdict");
+    assert.equal(verdict.trajectory.at(-1)?.label, "Verdict final");
+    assert.equal(verdict.annualBalance, finalState.indicators.annualBalance);
+  }
+});
 
 function completedCampaign(): CampaignState {
   const base = createCampaign(SCENARIO_V3_PREVIEW);

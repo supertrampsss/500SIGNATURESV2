@@ -2,17 +2,29 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { currentDecision, selectOption } from "./campaign.ts";
+import { BALANCED_PATHS, simulatePath } from "./balanced-paths.ts";
 import { availableConcessions, resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3, SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { SCENARIO_V10 } from "./scenario-v10.ts";
 import { restoreCampaign, saveCampaign, type StorageLike } from "./storage.ts";
 import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
 import type { CampaignState } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
 type Choice = "adopt" | "keep";
+
+test("les parcours V10 passent par le reducer complet et consomment toutes leurs crises", () => {
+  for (const path of BALANCED_PATHS) {
+    const result = simulatePath(path, SCENARIO_V10);
+    assert.equal(result.phase, "verdict");
+    assert.equal(result.decisions.length, 72);
+    assert.equal(result.annualCheckpoints.length, 5);
+    assert.deepEqual(result.crisisHistory.map((crisis) => `${crisis.ruleId}:${crisis.resolvedBy}`), path.crisisChoiceIds);
+  }
+});
 
 function memoryStorage(): StorageLike {
   const values = new Map<string, string>();
