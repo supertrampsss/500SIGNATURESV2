@@ -1,5 +1,6 @@
 import { currentDecision } from "./campaign.ts";
 import { availableConcessions } from "./crises.ts";
+import { INDICATOR_META } from "./indicator-meta.ts";
 import { totalDecisions } from "./validation.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
 import type {
@@ -156,17 +157,7 @@ function annualBalanceEffect(option: DecisionOption): EffectRule | undefined {
   return option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance");
 }
 
-const EFFECT_LABELS: Record<string, string> = {
-  annualBalance: "Solde public",
-  growth: "Croissance",
-  employment: "Emploi",
-  investment: "Investissement",
-  publicServices: "Services publics",
-  opinion: "Opinion",
-  financialCredibility: "Marchés",
-  reformCapacity: "Capacité de réforme",
-  majority: "Majorité",
-  institutionalTrust: "Confiance institutionnelle",
+const GROUP_EFFECT_LABELS: Record<string, string> = {
   businesses: "Entreprises",
   localAuthorities: "Territoires",
   unions: "Syndicats",
@@ -182,12 +173,24 @@ const EFFECT_LABELS: Record<string, string> = {
 };
 
 function effectLabel(effect: { target: "indicator" | "group"; key: string; delta: number }): string {
-  const label = EFFECT_LABELS[effect.key] ?? effect.key;
-  if (effect.target === "indicator" && effect.key === "annualBalance") {
-    return `${label} ${formatV3Amount(effect.delta)}`;
+  const label = effect.target === "indicator"
+    ? INDICATOR_META[effect.key as keyof typeof INDICATOR_META]?.label ?? effect.key
+    : GROUP_EFFECT_LABELS[effect.key] ?? effect.key;
+  if (effect.target === "indicator") {
+    const meta = INDICATOR_META[effect.key as keyof typeof INDICATOR_META];
+    if (meta?.unit === "M€") return `${label} ${formatV3Amount(effect.delta)}`;
+    const value = effect.delta.toLocaleString("fr-FR", {
+      maximumFractionDigits: meta?.precision ?? 2,
+    });
+    const signedValue = `${effect.delta > 0 ? "+" : ""}${value}`;
+    const point = Math.abs(effect.delta) <= 1 ? "point" : "points";
+    if (meta?.unit === "% du PIB") return `${label} ${signedValue} ${point} de PIB`;
+    if (meta?.unit === "% par an") return `${label} ${signedValue} ${point} de pourcentage par an`;
+    return `${label} ${signedValue} ${point} d'indice`;
   }
-  const unit = Math.abs(effect.delta) === 1 ? "point" : "points";
-  return `${label} ${signed(effect.delta)} ${unit}`;
+  const value = effect.delta.toLocaleString("fr-FR", { maximumFractionDigits: 2 });
+  const point = Math.abs(effect.delta) <= 1 ? "point" : "points";
+  return `${label} ${effect.delta > 0 ? "+" : ""}${value} ${point} d'indice`;
 }
 
 function meter(label: string, value: number): string {
@@ -242,7 +245,7 @@ function renderMandateDashboard(state: CampaignState): string {
       </section>
       <section class="simulateur-v3__dashboard-group">
         <p>Pays</p>
-        <div class="simulateur-v3__dashboard-pair"><span>Croissance</span><strong>${growth} %</strong></div>
+        <div class="simulateur-v3__dashboard-pair"><span>${INDICATOR_META.growth.label}</span><strong>${growth} %</strong></div>
         ${meter("Services", state.indicators.publicServices)}
       </section>
       <section class="simulateur-v3__dashboard-group">
@@ -302,7 +305,9 @@ function renderOption(decision: Decision, option: DecisionOption, optionIndex: n
     .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
     .filter((effect) => effect.timing.kind === "immediate")
     .slice(0, 2);
-  const budgetLabel = budget ? `${formatV3Amount(budget.delta)} par an` : "Solde inchangé";
+  const budgetLabel = budget
+    ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}`
+    : "Solde inchangé";
   const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
   return `
     <article class="simulateur-v3__option" data-option-id="${escapeHtml(option.id)}">
@@ -573,10 +578,11 @@ function formatVerdictSignal(signal: VerdictSignal): string {
 function formatVerdictDelta(signal: VerdictSignal): string {
   if (signal.key === "growth") {
     const value = signal.delta.toLocaleString("fr-FR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-    return `${signal.delta > 0 ? "+" : ""}${value} point depuis le début`;
+    const point = Math.abs(signal.delta) <= 1 ? "point" : "points";
+    return `${signal.delta > 0 ? "+" : ""}${value} ${point} de pourcentage depuis le début`;
   }
   const rounded = Math.round(signal.delta);
-  return `${signed(rounded)} ${Math.abs(rounded) === 1 ? "point" : "points"} depuis le début`;
+  return `${signed(rounded)} ${Math.abs(rounded) <= 1 ? "point" : "points"} d'indice depuis le début`;
 }
 
 function renderVerdictSignal(signal: VerdictSignal): string {
@@ -604,9 +610,7 @@ function renderVerdictCheckpoint(point: VerdictCheckpoint, campaignLength: numbe
 function formatStructuralEffect(choice: VerdictChoice): string {
   const effect = choice.structuralEffect;
   if (!effect) return "Aucun second effet chiffré";
-  const value = effect.delta.toLocaleString("fr-FR", { maximumFractionDigits: 1 });
-  const unit = Math.abs(effect.delta) === 1 ? "point" : "points";
-  return `${effect.label} ${effect.delta > 0 ? "+" : ""}${value} ${unit}`;
+  return effectLabel(effect);
 }
 
 function renderVerdictChoice(choice: VerdictChoice): string {
@@ -616,7 +620,7 @@ function renderVerdictChoice(choice: VerdictChoice): string {
       <p>${escapeHtml(choice.chapter)}</p>
       <h3>${escapeHtml(choice.label)}</h3>
       <dl>
-        <div><dt>Solde annuel</dt><dd>${choice.budgetDelta === 0 ? "Inchangé" : `${escapeHtml(formatV3Amount(choice.budgetDelta))} par an`}</dd></div>
+        <div><dt>${choice.budgetDuration === "once" ? "Impact ponctuel" : "Solde annuel"}</dt><dd>${choice.budgetDelta === 0 ? "Inchangé" : `${escapeHtml(formatV3Amount(choice.budgetDelta))} ${choice.budgetDuration === "once" ? "une seule fois" : "par an"}`}</dd></div>
         <div><dt>Second effet</dt><dd>${escapeHtml(formatStructuralEffect(choice))}</dd></div>
       </dl>
       <span class="simulateur-v3__verdict-choice-status">${escapeHtml(choice.status)}</span>

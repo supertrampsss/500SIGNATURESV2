@@ -27,6 +27,17 @@ function scenarioWithEffect(key: IndicatorKey, delta: number, timing: EffectRule
     duration: "once",
     explanation: "Effet test",
   }];
+  if (key === "annualBalance" || key === "interestCost") {
+    option.effects.push({
+      id: "required-non-budget-effect",
+      target: "indicator",
+      key: "financialCredibility",
+      delta: 1,
+      timing: { kind: "immediate" },
+      duration: "once",
+      explanation: "Effet hors budget requis par le contrat de scénario.",
+    });
+  }
   return scenario;
 }
 
@@ -286,16 +297,13 @@ test("un effet hostile indicateur vers farmers est rejeté sans créer de NaN", 
 });
 
 test("un effet annual est appliqué une fois et journalisé comme rythme annuel", () => {
-  const scenario = validScenario();
-  scenario.decisions[0]!.options[0]!.effects = [{
+  const scenario = scenarioWithEffect("annualBalance", 1_200, { kind: "immediate" });
+  scenario.decisions[0]!.options[0]!.effects[0] = {
+    ...scenario.decisions[0]!.options[0]!.effects[0]!,
     id: "annual-balance",
-    target: "indicator",
-    key: "annualBalance",
-    delta: 1_200,
-    timing: { kind: "immediate" },
     duration: "annual",
     explanation: "Le rythme annuel est relevé.",
-  }];
+  };
 
   const confirmed = confirmFirstDecision(scenario);
   const resolvedEvents = resolveDueEvents(confirmed);
@@ -303,7 +311,7 @@ test("un effet annual est appliqué une fois et journalisé comme rythme annuel"
 
   assert.equal(confirmed.indicators.annualBalance, INITIAL_INDICATORS.annualBalance + 1_200);
   assert.equal(resolvedPromises.state.indicators.annualBalance, INITIAL_INDICATORS.annualBalance + 1_200);
-  assert.deepEqual(confirmed.causalLedger, [{
+  assert.deepEqual(confirmed.causalLedger.find((entry) => entry.id.includes(":annual-balance:")), {
     id: "decision:decision-1:decision-1-option-a:annual-balance:1",
     sourceType: "decision",
     sourceId: "decision-1:decision-1-option-a",
@@ -313,7 +321,7 @@ test("un effet annual est appliqué une fois et journalisé comme rythme annuel"
     duration: "annual",
     explanation: "Le rythme annuel est relevé.",
     appliedAtDecision: 1,
-  }]);
+  });
 });
 
 test("les conséquences matérialisées ne changent pas après mutation du scénario", () => {

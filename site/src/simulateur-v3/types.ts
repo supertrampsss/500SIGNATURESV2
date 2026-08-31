@@ -11,12 +11,16 @@ export type CampaignPhase =
   | "verdict";
 
 export const SCHEMA_VERSION = 4 as const;
-export const V3_MODELED_EFFECT_MARKER = ":model:" as const;
 
 export type Uncertainty = "faible" | "moyenne" | "forte";
 export type DecisionKind = "gestion" | "transformation" | "rupture";
 export type DecisionStatus = "confirmed" | "suspended" | "amended" | "reversed" | "superseded";
 export type EffectTarget = "indicator" | "group";
+
+export type PolicyHorizon =
+  | { kind: "immediate" }
+  | { kind: "after_decisions"; count: number }
+  | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
 
 export type IndicatorKey =
   | "annualBalance"
@@ -91,6 +95,10 @@ export type DecisionOption = {
   id: string;
   label: string;
   summary: string;
+  mechanism: string;
+  horizon: PolicyHorizon;
+  legalConstraints: string[];
+  budgetDuration: "annual" | "once";
   beneficiaries: string[];
   contributors: string[];
   uncertainty: Uncertainty;

@@ -1,4 +1,4 @@
-import { delayedEvent, existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
+import { existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
 
 const CHAPTER = "security-immigration-justice";
 const p = (copy: Omit<ExistingPolicyCopy, "chapterId">) => existingPolicy({ ...copy, chapterId: CHAPTER });
@@ -51,7 +51,6 @@ export const SECURITY_DECISIONS = [
     adoptLabel: "Doubler les éloignements", adoptSummary: "L'État mobilise davantage de moyens pour exécuter les décisions, sans garantie de doubler le résultat.",
     keepLabel: "Conserver les moyens actuels", keepSummary: "La dépense supplémentaire est évitée et l'écart entre décisions et exécutions persiste.",
     beneficiaries: ["exécution des décisions"], contributors: ["finances publiques", "personnes éloignées"], sourceKeys: ["eloignements-2025", "immigration-2025"],
-    event: delayedEvent("consular-bottleneck", "Les consulats bloquent la cadence", "Les laissez-passer ne suivent pas et le doublement des moyens ne produit pas le double d'éloignements.", 2, "reformCapacity", -3),
   }),
   p({
     id: "doubler-les-moyens-de-l-integration-francais", kind: "transformation",
@@ -76,7 +75,6 @@ export const SECURITY_DECISIONS = [
     adoptLabel: "Imposer cinq ans de résidence", adoptSummary: "L'accès aux prestations est retardé et le contentieux juridique devient immédiat.",
     keepLabel: "Conserver les conditions actuelles", keepSummary: "Les résidents éligibles gardent leurs droits et aucune économie incertaine n'est comptée.",
     beneficiaries: ["finances sociales selon le chiffrage haut"], contributors: ["étrangers récemment installés", "collectivités"], sourceKeys: ["drees-minima-2025", "immigration-2025"],
-    event: delayedEvent("benefits-constitutional-review", "Le juge censure une partie du dispositif", "Plusieurs prestations doivent être rétablies et l'économie est revue à la baisse.", 2, "institutionalTrust", -4),
   }),
   standalonePolicy({
     id: "quotas-annuels-d-immigration", chapterId: CHAPTER, kind: "rupture",
@@ -84,8 +82,8 @@ export const SECURITY_DECISIONS = [
     context: "Le Parlement fixerait des objectifs par motif ou métier. Les quotas peuvent orienter l'immigration de travail, mais l'asile et la vie familiale obéissent à des droits distincts.",
     sourceKeys: ["immigration-2025", "cour-immigration-2024"], evidenceLabel: "Flux d'entrée par motif et contraintes juridiques des politiques migratoires.",
     options: [
-      { id: "adopt", label: "Faire voter les quotas", summary: "Le Parlement fixe chaque année les volumes recherchés, sous contrôle du juge et des engagements internationaux.", budgetDelta: -200, beneficiaries: ["métiers en tension", "pilotage parlementaire"], contributors: ["administration", "candidats hors quota"], uncertainty: "forte", indicatorEffects: { opinion: 4, institutionalTrust: -2 }, groupEffects: { businesses: 2, europeanPartners: -2 } },
-      { id: "keep", label: "Conserver les règles par droit et motif", summary: "Les admissions continuent de dépendre des titres, de l'asile, de la famille et du travail.", budgetDelta: 0, beneficiaries: ["candidats remplissant les règles actuelles"], contributors: ["pilotage politique"], indicatorEffects: { opinion: -2 } },
+      { id: "adopt", label: "Faire voter les quotas", summary: "Le Parlement fixe chaque année les volumes recherchés, sous contrôle du juge et des engagements internationaux.", budgetDelta: -200, beneficiaries: ["métiers en tension", "pilotage parlementaire"], contributors: ["administration", "candidats hors quota"], uncertainty: "forte" },
+      { id: "keep", label: "Conserver les règles par droit et motif", summary: "Les admissions continuent de dépendre des titres, de l'asile, de la famille et du travail.", budgetDelta: 0, beneficiaries: ["candidats remplissant les règles actuelles"], contributors: ["pilotage politique"] },
     ],
   }),
   standalonePolicy({
@@ -93,10 +91,9 @@ export const SECURITY_DECISIONS = [
     title: "Faut-il imposer des peines planchers automatiques aux récidivistes ?",
     context: "Une peine minimale limite l'individualisation par le juge. Elle alourdit les durées prononcées et la pression sur des prisons déjà surpeuplées.",
     sourceKeys: ["justice-2025", "itm-50-decisions"], evidenceLabel: "Condamnations, récidive et occupation des établissements pénitentiaires.",
-    dependencies: ["construire-15-000-places-de-prison-supplementaires"],
     options: [
-      { id: "adopt", label: "Imposer les peines planchers", summary: "Les récidivistes reçoivent une peine minimale et la population carcérale augmente.", budgetDelta: -1_100, beneficiaries: ["partisans d'une réponse pénale uniforme"], contributors: ["finances publiques", "administration pénitentiaire"], uncertainty: "forte", indicatorEffects: { opinion: 5, publicServices: -4, institutionalTrust: -2 }, groupEffects: { publicEmployees: -3 } },
-      { id: "keep", label: "Laisser le juge individualiser", summary: "Le juge conserve la maîtrise de la peine dans le cadre légal actuel.", budgetDelta: 0, beneficiaries: ["individualisation des peines"], contributors: ["partisans des automatismes"], indicatorEffects: { opinion: -2, institutionalTrust: 1 } },
+      { id: "adopt", label: "Imposer les peines planchers", summary: "Les récidivistes reçoivent une peine minimale et la population carcérale augmente.", budgetDelta: -1_100, beneficiaries: ["partisans d'une réponse pénale uniforme"], contributors: ["finances publiques", "administration pénitentiaire"], uncertainty: "forte" },
+      { id: "keep", label: "Laisser le juge individualiser", summary: "Le juge conserve la maîtrise de la peine dans le cadre légal actuel.", budgetDelta: 0, beneficiaries: ["individualisation des peines"], contributors: ["partisans des automatismes"] },
     ],
   }),
   p({

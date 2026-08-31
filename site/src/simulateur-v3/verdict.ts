@@ -1,4 +1,5 @@
 import { initialIndicators } from "./campaign.ts";
+import { INDICATOR_META } from "./indicator-meta.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -27,6 +28,7 @@ export type VerdictCheckpoint = {
 };
 
 export type VerdictStructuralEffect = {
+  target: "indicator" | "group";
   key: string;
   label: string;
   delta: number;
@@ -38,6 +40,7 @@ export type VerdictChoice = {
   label: string;
   chapter: string;
   budgetDelta: number;
+  budgetDuration: "annual" | "once";
   structuralEffect?: VerdictStructuralEffect;
   status: string;
 };
@@ -69,16 +72,7 @@ const CLAMPED_INDICATORS = new Set<IndicatorKey>([
   "financialCredibility",
 ]);
 
-const EFFECT_LABELS: Record<string, string> = {
-  growth: "Croissance",
-  employment: "Emploi",
-  investment: "Investissement",
-  publicServices: "Services publics",
-  majority: "Pouvoir",
-  reformCapacity: "Capacité de réforme",
-  opinion: "Opinion",
-  institutionalTrust: "Confiance",
-  financialCredibility: "Crédibilité financière",
+const GROUP_EFFECT_LABELS: Record<string, string> = {
   lowIncomeHouseholds: "Ménages modestes",
   middleClasses: "Classes moyennes",
   retirees: "Retraités",
@@ -144,7 +138,7 @@ function descriptorFor(key: VerdictSignal["key"], value: number): string {
 function buildSignals(state: CampaignState): VerdictSignal[] {
   const initial = initialIndicators(state.baseline);
   return ([
-    ["growth", "Croissance"],
+    ["growth", INDICATOR_META.growth.label],
     ["majority", "Pouvoir"],
     ["opinion", "Opinion"],
   ] as const).map(([key, label]) => ({
@@ -174,23 +168,48 @@ function immediateBudgetDelta(option: DecisionOption): number {
     .reduce((sum, effect) => sum + effect.delta, 0);
 }
 
+function budgetDuration(option: DecisionOption): "annual" | "once" {
+  return option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance")?.duration === "once"
+    ? "once"
+    : "annual";
+}
+
+function effectPriority(effect: DecisionOption["effects"][number]): number {
+  return effect.target === "indicator" ? INDICATOR_META[effect.key].priority : 60;
+}
+
+function normalizedEffectMagnitude(effect: DecisionOption["effects"][number]): number {
+  const epsilon = effect.target === "indicator" ? INDICATOR_META[effect.key].epsilon : 1;
+  return Math.abs(effect.delta) / epsilon;
+}
+
 function strongestStructuralEffect(option: DecisionOption): VerdictStructuralEffect | undefined {
   const effects = option.effects.filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"));
-  const strongest = effects.sort((left, right) => Math.abs(right.delta) - Math.abs(left.delta))[0];
+  const strongest = [...effects].sort((left, right) => (
+    effectPriority(right) - effectPriority(left)
+    || normalizedEffectMagnitude(right) - normalizedEffectMagnitude(left)
+  ))[0];
   if (!strongest) return undefined;
   return {
+    target: strongest.target,
     key: strongest.key,
-    label: EFFECT_LABELS[strongest.key] ?? strongest.key,
+    label: strongest.target === "indicator"
+      ? INDICATOR_META[strongest.key].label
+      : GROUP_EFFECT_LABELS[strongest.key] ?? strongest.key,
     delta: strongest.delta,
   };
 }
 
-function impactScore(option: DecisionOption): number {
-  const budget = Math.abs(immediateBudgetDelta(option));
-  const structural = option.effects
-    .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
-    .reduce((largest, effect) => Math.max(largest, Math.abs(effect.delta)), 0);
-  return budget * 100 + structural;
+function compareImpact(left: DecisionOption, right: DecisionOption): number {
+  const budgetDifference = Math.abs(immediateBudgetDelta(right)) - Math.abs(immediateBudgetDelta(left));
+  if (budgetDifference !== 0) return budgetDifference;
+  const leftStructural = strongestStructuralEffect(left);
+  const rightStructural = strongestStructuralEffect(right);
+  if (!leftStructural || !rightStructural) return Number(Boolean(rightStructural)) - Number(Boolean(leftStructural));
+  const leftEffect = left.effects.find((effect) => effect.key === leftStructural.key && effect.delta === leftStructural.delta)!;
+  const rightEffect = right.effects.find((effect) => effect.key === rightStructural.key && effect.delta === rightStructural.delta)!;
+  return effectPriority(rightEffect) - effectPriority(leftEffect)
+    || normalizedEffectMagnitude(rightEffect) - normalizedEffectMagnitude(leftEffect);
 }
 
 function selfContainedChoiceLabel(decisionTitle: string | undefined, optionLabel: string): string {
@@ -210,7 +229,7 @@ function buildDecisiveChoices(state: CampaignState, scenario: Scenario): Verdict
       return { record, decision, option, chapter };
     })
     .filter((item): item is typeof item & { option: DecisionOption } => Boolean(item.option))
-    .sort((left, right) => impactScore(right.option) - impactScore(left.option))
+    .sort((left, right) => compareImpact(left.option, right.option))
     .slice(0, 3)
     .map(({ record, decision, option, chapter }, index) => ({
       rank: index + 1,
@@ -218,6 +237,7 @@ function buildDecisiveChoices(state: CampaignState, scenario: Scenario): Verdict
       label: selfContainedChoiceLabel(decision?.title, option.label),
       chapter: chapter?.title ?? "Mandat national",
       budgetDelta: immediateBudgetDelta(option),
+      budgetDuration: budgetDuration(option),
       structuralEffect: strongestStructuralEffect(option),
       status: STATUS_LABELS[record.status],
     }));

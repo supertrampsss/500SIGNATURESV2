@@ -165,7 +165,33 @@ test("les cartes montrent les conséquences politiques essentielles avant le cli
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.equal(occurrences(html, 'class="simulateur-v3__option-effects"'), decision.options.length);
-  assert.match(html, /Opinion [+-]\d+ points?/);
+  assert.match(html, /Confiance institutionnelle [+-]\d+ points? d&#39;indice/);
+});
+
+test("les conséquences affichent l'unité propre à chaque indicateur", () => {
+  const scenario = structuredClone(SCENARIO_V3_PREVIEW);
+  scenario.decisions[0]!.options[0]!.effects = [{
+    id: "growth-test",
+    target: "indicator",
+    key: "growth",
+    delta: 0.12,
+    timing: { kind: "immediate" },
+    duration: "once",
+    explanation: "Hypothèse de test.",
+  }, {
+    id: "interest-test",
+    target: "indicator",
+    key: "interestCost",
+    delta: 12_000,
+    timing: { kind: "immediate" },
+    duration: "annual",
+    explanation: "Hypothèse de test.",
+  }];
+  const state = { ...createCampaign(scenario), phase: "decision" as const };
+  const html = renderSimulatorV3(state, scenario);
+
+  assert.match(html, /Croissance nominale annuelle \+0,12 point de pourcentage par an/);
+  assert.match(html, /Charge d&#39;intérêt annuelle \+12 milliards d&#39;euros/);
 });
 
 test("une option ne répète pas mot pour mot le contexte déjà lu", () => {
@@ -249,7 +275,7 @@ test("une conséquence différée rappelle la décision d'origine et ses effets"
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.match(html, /Les recettes résistent/);
   assert.match(html, new RegExp(source.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  assert.match(html, /Marchés -1 point/);
+  assert.match(html, /Crédibilité financière -1 point/);
   assert.match(html, /simulateur-v3__scene-header/);
   assert.match(html, /simulateur-v3__scene-body/);
 });

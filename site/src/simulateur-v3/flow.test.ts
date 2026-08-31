@@ -278,7 +278,7 @@ test("un dossier final verrouillé repasse par conséquences, promesses et crise
   }
 });
 
-test("la sortie de l'euro résout la conversion avant le Conseil atteint par deux dossiers verrouillés", () => {
+test("la sortie de l'euro résout la conversion après un dossier joué, sans verrou automatique", () => {
   let state: CampaignState = { ...createTestCampaign(SCENARIO_V3_PREVIEW), phase: "chapter_intro" };
   state = advanceCampaign(state, SCENARIO_V3_PREVIEW, []);
   while (state.decisions.length < 36) {
@@ -297,17 +297,38 @@ test("la sortie de l'euro résout la conversion avant le Conseil atteint par deu
     SCENARIO_V3_PREVIEW,
   );
 
+  const referendum = advanceCampaign(state, SCENARIO_V3_PREVIEW, []);
+  assert.equal(referendum.phase, "decision");
+  assert.equal(referendum.decisions.length, 37);
+  assert.equal(currentDecision(referendum, SCENARIO_V3_PREVIEW)?.id, "referendum-sur-la-sortie-de-l-ue");
+  assert.ok(referendum.scheduledEvents.some((event) => event.id === "currency-conversion" && event.dueAtDecision === 38));
+
+  const referendumDecision = currentDecision(referendum, SCENARIO_V3_PREVIEW)!;
+  state = confirmSelection(
+    selectOption(referendum, SCENARIO_V3_PREVIEW, referendumDecision.id, referendumDecision.options.at(-1)!.id),
+    SCENARIO_V3_PREVIEW,
+  );
   const delayed = advanceCampaign(state, SCENARIO_V3_PREVIEW, []);
   assert.equal(delayed.phase, "delayed_event");
   assert.equal(delayed.decisions.length, 38);
-  assert.equal(delayed.decisions.at(-1)?.status, "superseded");
+  assert.equal(delayed.decisions.at(-1)?.status, "confirmed");
   assert.ok(delayed.scheduledEvents.some((event) => event.id === "currency-conversion" && event.dueAtDecision === 38));
   assert.equal(delayed.annualCheckpoints.length, 2);
 
-  const council = advanceCampaign(delayed, SCENARIO_V3_PREVIEW, []);
+  const army = advanceCampaign(delayed, SCENARIO_V3_PREVIEW, []);
+  assert.equal(army.phase, "decision");
+  assert.equal(currentDecision(army, SCENARIO_V3_PREVIEW)?.id, "creer-une-armee-europeenne");
+  assert.ok(army.eventHistory.some((event) => event.id === "currency-conversion"));
+
+  const armyDecision = currentDecision(army, SCENARIO_V3_PREVIEW)!;
+  state = confirmSelection(
+    selectOption(army, SCENARIO_V3_PREVIEW, armyDecision.id, armyDecision.options.at(-1)!.id),
+    SCENARIO_V3_PREVIEW,
+  );
+  const council = advanceCampaign(state, SCENARIO_V3_PREVIEW, []);
   assert.equal(council.phase, "council");
   assert.equal(council.decisions.length, 39);
-  assert.equal(council.decisions.at(-1)?.status, "superseded");
+  assert.equal(council.decisions.at(-1)?.status, "confirmed");
   assert.ok(council.eventHistory.some((event) => event.id === "currency-conversion"));
   assert.ok(council.scheduledEvents.every((event) => event.dueAtDecision > council.decisions.length));
   assert.equal(council.annualCheckpoints.at(-1)?.afterDecisionCount, 39);

@@ -1,11 +1,12 @@
 import { applyEffect } from "./effects.ts";
-import { SCHEMA_VERSION, V3_MODELED_EFFECT_MARKER, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
+import { SCHEMA_VERSION, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
 export const V3_STORAGE_KEY = "simulateur-v3-campaign";
 const V2_STORAGE_KEY = "tunnel-partie";
 const MODELED_EFFECT_SOURCE_VERSION = 5;
 const MODELED_EFFECT_TARGET_VERSION = 6;
+const HISTORICAL_MODELED_EFFECT_MARKER = ":model:";
 
 export type StorageLike = {
   getItem(key: string): string | null;
@@ -78,7 +79,7 @@ function migratePreviousModeledEffects(value: unknown, scenario: Scenario): Camp
   const previousVersion = (value as { scenarioVersion?: unknown }).scenarioVersion;
   if (previousVersion !== MODELED_EFFECT_SOURCE_VERSION || scenario.version !== MODELED_EFFECT_TARGET_VERSION) return null;
   const hasModeledEffects = scenario.decisions.some((decision) => (
-    decision.options.some((option) => option.effects.some((effect) => effect.id.includes(V3_MODELED_EFFECT_MARKER)))
+    decision.options.some((option) => option.effects.some((effect) => effect.id.includes(HISTORICAL_MODELED_EFFECT_MARKER)))
   ));
   if (!hasModeledEffects) return null;
 
@@ -99,7 +100,7 @@ function applyModeledDecisionEffects(state: CampaignState, scenario: Scenario, r
   if (!option) return state;
   const sourceId = `${record.decisionId}:${record.optionId}`;
   return option.effects
-    .filter((effect) => effect.timing.kind === "immediate" && effect.id.includes(V3_MODELED_EFFECT_MARKER))
+    .filter((effect) => effect.timing.kind === "immediate" && effect.id.includes(HISTORICAL_MODELED_EFFECT_MARKER))
     .reduce((current, effect) => applyEffect(current, effect, {
       sourceType: "decision",
       sourceId,

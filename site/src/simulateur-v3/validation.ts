@@ -4,6 +4,7 @@ import {
   type CampaignState,
   type CausalEntry,
   type Decision,
+  type DecisionOption,
   type DecisionRecord,
   type EffectRule,
   type GroupKey,
@@ -12,6 +13,7 @@ import {
   type PromiseRule,
   type Scenario,
 } from "./types.ts";
+import { optionDistanceDimensions } from "./policy-catalogue.ts";
 import { mandateYearEndingAfterChapter, validateBaseline } from "./timeline.ts";
 
 const PHASES: readonly CampaignPhase[] = [
@@ -82,6 +84,26 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function isDistanceComparableOption(value: unknown): value is DecisionOption {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && isNonEmptyString(value.mechanism)
+    && hasValidPolicyHorizon(value.horizon)
+    && isStringArray(value.legalConstraints)
+    && (value.budgetDuration === "annual" || value.budgetDuration === "once")
+    && isStringArray(value.beneficiaries)
+    && isStringArray(value.contributors)
+    && isStringArray(value.locks)
+    && isStringArray(value.unlocks)
+    && isStringArray(value.fulfillsPromises)
+    && Array.isArray(value.effects)
+    && value.effects.every(isEffectRule)
+    && Array.isArray(value.scheduledEvents)
+    && value.scheduledEvents.every(isDeclaredScheduledEventRule)
+    && Array.isArray(value.promises)
+    && value.promises.every(isDeclaredPromiseRule);
+}
+
 function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
   const actualKeys = Object.keys(value);
   return actualKeys.length === expectedKeys.length
@@ -133,7 +155,7 @@ function hasValidAnnualCheckpoints(value: unknown, scenario: Scenario, decisionC
 /** Checks an untrusted effect and enforces the target to key relationship at runtime. */
 export function isEffectRule(value: unknown): value is EffectRule {
   if (!isRecord(value) || typeof value.id !== "string" || typeof value.delta !== "number" || !Number.isFinite(value.delta)) return false;
-  if (typeof value.explanation !== "string" || !EFFECT_DURATIONS.has(value.duration as EffectRule["duration"])) return false;
+  if (!isNonEmptyString(value.explanation) || !EFFECT_DURATIONS.has(value.duration as EffectRule["duration"])) return false;
   if (!isRecord(value.timing) || typeof value.timing.kind !== "string") return false;
   const validTiming = value.timing.kind === "immediate"
     || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count));
@@ -142,8 +164,25 @@ export function isEffectRule(value: unknown): value is EffectRule {
     || (value.target === "group" && isGroupKey(value.key));
 }
 
+function hasValidPolicyHorizon(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.kind !== "string") return false;
+  return value.kind === "immediate"
+    || (value.kind === "after_decisions" && isPositiveInteger(value.count))
+    || (value.kind === "mandate_year" && Number.isInteger(value.year) && (value.year as number) >= 1 && (value.year as number) <= 5);
+}
+
 function isImmediateEffectRule(value: unknown): value is EffectRule {
   return isEffectRule(value) && value.timing.kind === "immediate";
+}
+
+function isDeclaredScheduledEventRule(value: unknown): boolean {
+  return isRecord(value)
+    && isNonEmptyString(value.id)
+    && isNonEmptyString(value.title)
+    && isNonEmptyString(value.body)
+    && isPositiveInteger(value.afterDecisions)
+    && Array.isArray(value.effects)
+    && value.effects.every(isImmediateEffectRule);
 }
 
 function isDeclaredPromiseRule(value: unknown): value is PromiseRule {
@@ -550,10 +589,27 @@ export function validateScenario(scenario: Scenario): string[] {
       );
       if (!isRecord(option) || !Array.isArray(option.beneficiaries) || option.beneficiaries.length === 0) errors.push(`option:${optionId}:beneficiaries-required`);
       if (!isRecord(option) || !Array.isArray(option.contributors) || option.contributors.length === 0) errors.push(`option:${optionId}:contributors-required`);
+      if (!isRecord(option) || !isNonEmptyString(option.mechanism)) errors.push(`option:${optionId}:mechanism-required`);
+      if (!isRecord(option) || !hasValidPolicyHorizon(option.horizon)) errors.push(`option:${optionId}:valid-horizon-required`);
+      if (!isRecord(option) || !isStringArray(option.legalConstraints)) errors.push(`option:${optionId}:legal-constraints-required`);
+      if (!isRecord(option) || (option.budgetDuration !== "annual" && option.budgetDuration !== "once")) errors.push(`option:${optionId}:budget-duration-required`);
       if (effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
+      if (!effects.some((effect) => isEffectRule(effect) && effect.target === "indicator" && effect.key !== "annualBalance")) {
+        errors.push(`option:${optionId}:non-budget-indicator-required`);
+      }
       for (const effect of effects) validateDirectEffect(effect, positions.get(decision.id), campaignLength, errors);
       for (const event of events) validateScheduledEvent(event, positions.get(decision.id), campaignLength, errors);
       for (const promise of promises) validatePromise(promise, positions.get(decision.id), campaignLength, errors);
+    }
+    for (let left = 0; left < options.length; left += 1) {
+      for (let right = left + 1; right < options.length; right += 1) {
+        const leftOption = options[left];
+        const rightOption = options[right];
+        if (isDistanceComparableOption(leftOption) && isDistanceComparableOption(rightOption)
+            && optionDistanceDimensions(leftOption, rightOption).length < 2) {
+          errors.push(`decision:${decision.id}:options-too-close:${String(leftOption.id)}:${String(rightOption.id)}`);
+        }
+      }
     }
     if (Array.isArray(decision.evidence)) {
       for (const evidence of decision.evidence) {

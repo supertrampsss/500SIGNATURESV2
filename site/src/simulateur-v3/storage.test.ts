@@ -78,7 +78,40 @@ test("un scénario mis à jour exige explicitement un nouveau mandat", () => {
 });
 
 test("la migration historique 5 vers 6 ajoute les effets modélisés sans perdre les choix", () => {
-  const modeledScenarioV6: Scenario = { ...SCENARIO_V3_PREVIEW, version: 6 };
+  const explicitFixture = validScenario();
+  const firstDecisionId = explicitFixture.decisions[0]!.id;
+  const firstOptionId = explicitFixture.decisions[0]!.options[0]!.id;
+  const modeledScenarioV6: Scenario = {
+    ...explicitFixture,
+    version: 6,
+    decisions: explicitFixture.decisions.map((decision) => decision.id !== firstDecisionId ? decision : {
+      ...decision,
+      options: decision.options.map((option) => option.id !== firstOptionId ? option : {
+        ...option,
+        effects: [
+          ...option.effects,
+          {
+            id: `${option.id}:model:growth`,
+            target: "indicator" as const,
+            key: "growth" as const,
+            delta: 0.2,
+            timing: { kind: "immediate" as const },
+            duration: "once" as const,
+            explanation: "Effet de croissance ajouté par la migration historique.",
+          },
+          {
+            id: `${option.id}:model:majority`,
+            target: "indicator" as const,
+            key: "majority" as const,
+            delta: 2,
+            timing: { kind: "immediate" as const },
+            duration: "once" as const,
+            explanation: "Effet de majorité ajouté par la migration historique.",
+          },
+        ],
+      }),
+    }),
+  };
   const oldScenario: Scenario = {
     ...modeledScenarioV6,
     version: 5,
@@ -86,17 +119,7 @@ test("la migration historique 5 vers 6 ajoute les effets modélisés sans perdre
       ...decision,
       options: decision.options.map((option) => ({
         ...option,
-        effects: option.effects.filter((effect) => !effect.id.includes(":model:")).length > 0
-          ? option.effects.filter((effect) => !effect.id.includes(":model:"))
-          : [{
-              id: `${option.id}:legacy-capacity`,
-              target: "indicator" as const,
-              key: "reformCapacity" as const,
-              delta: option.id.endsWith(":adopt") ? 1 : -1,
-              timing: { kind: "immediate" as const },
-              duration: "once" as const,
-              explanation: "Ancien effet de jeu conservé pour la migration.",
-            }],
+        effects: option.effects.filter((effect) => !effect.id.includes(":model:")),
       })),
     })),
   };

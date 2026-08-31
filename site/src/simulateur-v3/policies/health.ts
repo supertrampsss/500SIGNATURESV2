@@ -1,4 +1,4 @@
-import { delayedEvent, existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
+import { existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
 
 const CHAPTER = "health-social-protection";
 const p = (copy: Omit<ExistingPolicyCopy, "chapterId">) => existingPolicy({ ...copy, chapterId: CHAPTER });
@@ -75,7 +75,6 @@ export const HEALTH_DECISIONS = [
     adoptLabel: "Supprimer l'aide médicale d'État", adoptSummary: "Le crédit dédié disparaît, tandis que les hôpitaux reprennent une partie des soins non évitables.",
     keepLabel: "Maintenir l'aide médicale d'État", keepSummary: "Les soins restent accessibles dans le cadre actuel et la dépense demeure au budget.",
     beneficiaries: ["budget de l'État à court terme"], contributors: ["personnes sans titre", "hôpitaux"], sourceKeys: ["cour-securite-sociale-2025", "cour-immigration-2024"],
-    event: delayedEvent("ame-emergency-transfer", "Les urgences reprennent la facture", "Les soins retardés arrivent à l'hôpital, réduisant une partie de l'économie initiale.", 3, "publicServices", -4),
   }),
   p({
     id: "verser-le-rsa-automatiquement-fin-du-non", kind: "rupture",
@@ -84,7 +83,6 @@ export const HEALTH_DECISIONS = [
     adoptLabel: "Automatiser le versement", adoptSummary: "Les personnes éligibles reçoivent leur droit sans demande et les départements financent davantage d'allocataires.",
     keepLabel: "Conserver la demande", keepSummary: "La dépense reste plus basse, mais une part importante des éligibles ne reçoit toujours rien.",
     beneficiaries: ["personnes pauvres en non-recours"], contributors: ["finances sociales", "départements"], sourceKeys: ["drees-minima-2025"],
-    conflicts: ["conditionner-le-rsa-a-15-heures", "allocation-sociale-unique"],
   }),
   p({
     id: "porter-le-rsa-au-seuil-de", kind: "rupture",
@@ -93,7 +91,6 @@ export const HEALTH_DECISIONS = [
     adoptLabel: "Porter le RSA au seuil de pauvreté", adoptSummary: "Le revenu des allocataires augmente fortement et la dépense sociale progresse chaque année.",
     keepLabel: "Conserver le barème actuel", keepSummary: "L'écart avec le salaire minimum est maintenu et les allocataires restent sous le seuil de pauvreté.",
     beneficiaries: ["allocataires du RSA"], contributors: ["finances sociales"], sourceKeys: ["drees-minima-2025", "insee-france-sociale-2025"],
-    conflicts: ["allocation-sociale-unique"],
   }),
   standalonePolicy({
     id: "assurance-maladie-publique-unique", chapterId: CHAPTER, kind: "rupture",
@@ -101,8 +98,8 @@ export const HEALTH_DECISIONS = [
     context: "La Sécurité sociale reprend la couverture aujourd'hui assurée par les complémentaires. Les primes privées baissent ou disparaissent, mais cotisations et dépenses publiques augmentent.",
     sourceKeys: ["cour-securite-sociale-2025"], evidenceLabel: "Répartition des remboursements entre Assurance maladie, complémentaires et ménages.",
     options: [
-      { id: "adopt", label: "Créer l'assurance publique unique", summary: "La couverture devient commune et la Sécurité sociale absorbe les remboursements des complémentaires.", budgetDelta: -24_000, beneficiaries: ["assurés aux contrats coûteux", "patients chroniques"], contributors: ["finances sociales", "organismes complémentaires"], uncertainty: "forte", indicatorEffects: { publicServices: 6, opinion: 5, reformCapacity: -4 }, groupEffects: { businesses: -4 }, scheduledEvents: [delayedEvent("health-transition-billing", "La bascule administrative dérape", "Les systèmes de facturation peinent à absorber le transfert et les retards de remboursement augmentent.", 2, "institutionalTrust", -4)] },
-      { id: "keep", label: "Conserver le système à deux étages", summary: "Assurance maladie et complémentaires continuent de se partager la couverture.", budgetDelta: 0, beneficiaries: ["organismes complémentaires"], contributors: ["assurés payant une prime"], indicatorEffects: { reformCapacity: -1 } },
+      { id: "adopt", label: "Créer l'assurance publique unique", summary: "La couverture devient commune et la Sécurité sociale absorbe les remboursements des complémentaires.", budgetDelta: -24_000, beneficiaries: ["assurés aux contrats coûteux", "patients chroniques"], contributors: ["finances sociales", "organismes complémentaires"], uncertainty: "forte" },
+      { id: "keep", label: "Conserver le système à deux étages", summary: "Assurance maladie et complémentaires continuent de se partager la couverture.", budgetDelta: 0, beneficiaries: ["organismes complémentaires"], contributors: ["assurés payant une prime"] },
     ],
   }),
 ].map(policyDecision);
