@@ -1495,6 +1495,7 @@ export function renduIndex(analyses: Analyse[], catalogue: Indicateur[]): string
       <p class="analyses-index__eyebrow">Vérifier une affirmation</p>
       <h1 id="analyses-titre">Dossiers de vérification</h1>
       <p>Des affirmations confrontées aux comptes et aux publications qui les documentent.</p>
+      <p><a class="analyses-index__questions" href="/questions/">Poser une question déjà documentée</a></p>
     </header>
     ${barre}
     <ul class="analyse-rendu__index" id="analyses-index">${lignes}</ul>

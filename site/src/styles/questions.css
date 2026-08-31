@@ -70,6 +70,16 @@
 .questions__preuve { display: inline-block; padding: .8rem 1rem; border-radius: .6rem; background: var(--encre, #16324a); color: #fff; font-weight: 750; }
 .questions__note { max-width: 42rem; color: var(--encre-sourde, #4c6478); font-size: .9rem; }
 
+.analyses-index__questions {
+  display: inline-block;
+  margin-top: .35rem;
+  padding: .7rem .9rem;
+  border: 1px solid currentColor;
+  border-radius: .6rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
 @media (max-width: 34rem) {
   .questions__form div { grid-template-columns: 1fr; }
 }

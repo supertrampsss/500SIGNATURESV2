@@ -1163,6 +1163,10 @@ test("l'index et chaque dossier portent leur propre titre de niveau 1", () => {
   assert.doesNotMatch(dossier, /<h3>/);
 });
 
+test("l'index donne accès aux réponses pré-rendues", () => {
+  assert.match(renduIndex([DEFENSE], CATALOGUE), /href="\/questions\/">Poser une question déjà documentée<\/a>/);
+});
+
 test("chaque libellé de filtre est groupé avec son contrôle", () => {
   const a = analyseMinimale({ slug: "a", titre: "Première", type: "decryptage", themes: ["dette"], budgets_concernes: ["etat"] });
   const b = analyseMinimale({ slug: "b", titre: "Seconde", type: "comparaison", themes: ["securite_sociale"], budgets_concernes: ["secu"] });
