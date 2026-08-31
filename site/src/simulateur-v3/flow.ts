@@ -97,3 +97,30 @@ export function advanceCampaign(
 
   return state;
 }
+
+const INVISIBLE_CAMPAIGN_PHASES = new Set<CampaignState["phase"]>([
+  "decision_result",
+  "delayed_event",
+  "council",
+  "chapter_verdict",
+]);
+
+/**
+ * Resolves the historical intermediary phases without presenting them as
+ * screens. The persistent reducer remains one phase at a time so old saves
+ * stay readable, while the controller can always render a playable scene.
+ */
+export function advanceToVisiblePhase(
+  state: CampaignState,
+  scenario: Scenario,
+  crisisRules: readonly CrisisRule[],
+): CampaignState {
+  let current = state;
+  for (let transitions = 0; INVISIBLE_CAMPAIGN_PHASES.has(current.phase); transitions += 1) {
+    if (transitions >= 8) throw new Error("Campaign did not reach a visible phase");
+    const next = advanceCampaign(current, scenario, crisisRules);
+    if (next === current) throw new Error(`Campaign is stuck in invisible phase ${current.phase}`);
+    current = next;
+  }
+  return current;
+}

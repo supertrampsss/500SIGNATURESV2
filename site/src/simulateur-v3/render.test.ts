@@ -5,7 +5,7 @@ import { selectOption } from "./campaign.ts";
 import { detectCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { formatV3Amount, renderSimulatorV3 } from "./render.ts";
-import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
+import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { SCENARIO_V9 } from "./scenario-v9.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
@@ -97,6 +97,35 @@ test("EPR2 V10 rend exactement ses deux choix publiés sans troisième variante"
   assert.match(html, /Engager six EPR2/);
   assert.match(html, /Ne pas engager de nouvel EPR2/);
   assert.doesNotMatch(html, /Quatorze EPR2|fourteen|:six|:none/);
+});
+
+test("une crise V10 ne montre que deux réponses lisibles sans delta politique", () => {
+  const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-labour-blockade")!;
+  const state = {
+    ...createCampaign(SCENARIO_V10),
+    phase: "crisis" as const,
+    decisions: rule.requiredDecisionIds.map((decisionId, index) => ({
+      decisionId,
+      optionId: `${decisionId}:adopt`,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+    activeCrisis: {
+      ruleId: rule.id,
+      triggeredAtDecisionCount: rule.requiredDecisionIds.length,
+      triggeredChapterIndex: rule.eligibleFromChapterIndex,
+      triggeredByDecisionId: rule.requiredDecisionIds.at(-1)!,
+      aggravatingDecisionIds: [...rule.requiredDecisionIds],
+      aggravatingChoices: rule.requiredDecisionIds.map((decisionId) => ({ decisionId, optionId: `${decisionId}:adopt` })),
+    },
+  };
+  const html = renderSimulatorV3(state, SCENARIO_V10, { crisisRules: SCENARIO_V10_CRISIS_RULES });
+
+  assert.equal(occurrences(html, 'data-v3-action="resolve-crisis"'), 2);
+  assert.match(html, /Maintenir le cap/);
+  assert.match(html, /Renoncer au relèvement de l&#39;âge légal à 65 ans/);
+  assert.doesNotMatch(html, /<em>|Opinion|Confiance|Majorité|points? d'indice/);
+  assert.doesNotMatch(html, /Amender [a-z]+-[a-z]+/);
 });
 
 test("le verdict V9 historique reste rendu après le chargement du scénario V10", () => {

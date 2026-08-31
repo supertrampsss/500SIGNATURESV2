@@ -828,11 +828,9 @@ function renderCrisis(state: CampaignState, scenario: Scenario, rules: readonly 
           <div class="simulateur-v3__crisis-options">
           <button type="button" class="simulateur-v3__crisis-option" data-v3-action="resolve-crisis" data-resolution-id="hold-course">
             <span>Maintenir le cap</span><small>La réforme reste en vigueur.</small>
-            <em>${rule.holdCourseEffects.map(effectLabel).map(escapeHtml).join(" · ")}</em>
           </button>
           ${concessions.map((concession) => `<button type="button" class="simulateur-v3__crisis-option simulateur-v3__crisis-option--concession" data-v3-action="resolve-crisis" data-resolution-id="${escapeHtml(concession.id)}">
             <span>${escapeHtml(concession.label)}</span><small>${concession.policyChange === "suspend" ? "La réforme sera suspendue." : concession.policyChange === "amend" ? "La réforme sera amendée." : "La réforme sera renversée."}</small>
-            <em>${concession.effects.map(effectLabel).map(escapeHtml).join(" · ")}</em>
           </button>`).join("")}
           </div>
         </div>

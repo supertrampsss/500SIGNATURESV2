@@ -6,7 +6,7 @@ import {
 import { resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { emitSimulatorV3Event } from "./events.ts";
-import { advanceCampaign } from "./flow.ts";
+import { advanceCampaign, advanceToVisiblePhase } from "./flow.ts";
 import { renderSimulatorV3, type RenderSimulatorV3Options } from "./render.ts";
 import { isCampaignState } from "./validation.ts";
 import {
@@ -130,10 +130,10 @@ export function mountSimulatorV3(
   const v2Found = restored.kind === "v2_found";
   const restartRequired = restored.kind === "restart_required";
   let saveFailed = restored.kind === "unavailable";
-  let state = normalizeChapterTransition(
+  let state = advanceToVisiblePhase(normalizeChapterTransition(
     restored.kind === "restored" ? restored.state : createCampaign(scenario, dependencies.baseline),
     scenario,
-  );
+  ), scenario, crisisRules);
   let phaseBeforePause: CampaignPhase | undefined = state.phase === "pause"
     ? state.pausedFrom ?? inferredPhaseBeforePause(state, scenario)
     : undefined;
@@ -176,7 +176,7 @@ export function mountSimulatorV3(
   };
 
   const advanceToNextScene = (previousPhase: CampaignPhase) => {
-    state = advanceCampaign(state, scenario, crisisRules);
+    state = advanceToVisiblePhase(state, scenario, crisisRules);
     if (state.phase === "decision") {
       emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
     }
@@ -218,7 +218,7 @@ export function mountSimulatorV3(
     }
 
     if (action === "open-chapter" && state.phase === "chapter_intro") {
-      state = advanceCampaign(state, scenario, crisisRules);
+      state = advanceToVisiblePhase(advanceCampaign(state, scenario, crisisRules), scenario, crisisRules);
       if (state.phase === "decision") {
         emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
       }
@@ -252,7 +252,7 @@ export function mountSimulatorV3(
       const crisisId = state.activeCrisis.ruleId;
       state = resolveCrisis(state, crisisRules, resolutionId);
       emit({ type: "concession_selected", crisisId, resolutionId });
-      state = advanceCampaign(state, scenario, crisisRules);
+      state = advanceToVisiblePhase(state, scenario, crisisRules);
       if (state.phase === "decision") {
         emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
       }

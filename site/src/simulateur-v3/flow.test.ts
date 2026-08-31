@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { currentDecision, selectOption } from "./campaign.ts";
 import { resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
-import { advanceCampaign } from "./flow.ts";
+import { advanceCampaign, advanceToVisiblePhase } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { createTestCampaign, testAnnualCheckpoints, validCampaignState, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, CrisisRule } from "./types.ts";
@@ -59,6 +59,37 @@ test("une conséquence échue occupe un écran avant la transition normale", () 
   assert.equal(next.indicators.opinion, 46);
   assert.equal(next.eventHistory.at(-1)?.id, "event-1");
   assert.equal(next.causalLedger.filter((entry) => entry.sourceId === "event-1").length, 1);
+});
+
+test("les conséquences échues sont résolues silencieusement une seule fois avant le dossier suivant", () => {
+  const scenario = validScenario();
+  const state = validCampaignState(scenario);
+  state.indicators.opinion = 50;
+  state.scheduledEvents = [{
+    id: "silent-event",
+    sourceDecisionId: "decision-1",
+    sourceOptionId: "decision-1-option-a",
+    dueAtDecision: 1,
+    title: "Effet silencieux",
+    body: "Cet effet ne doit pas interrompre le mandat.",
+    effects: [{
+      id: "silent-event-opinion",
+      target: "indicator",
+      key: "opinion",
+      delta: -4,
+      timing: { kind: "immediate" },
+      duration: "once",
+      explanation: "La contestation progresse.",
+    }],
+  }];
+
+  const next = advanceToVisiblePhase(state, scenario, []);
+
+  assert.equal(next.phase, "decision");
+  assert.equal(next.decisionIndex, 1);
+  assert.equal(next.indicators.opinion, 46);
+  assert.equal(next.eventHistory.filter((event) => event.id === "silent-event").length, 1);
+  assert.equal(advanceToVisiblePhase(next, scenario, []).eventHistory.filter((event) => event.id === "silent-event").length, 1);
 });
 
 test("une crise causée par la dernière décision précède le dossier suivant", () => {
@@ -149,6 +180,13 @@ test("les cinq Conseils surviennent uniquement après 16, 32, 39, 53 et 60 déci
     const result = advanceCampaign(stateAfterPreviewDecisions(count), SCENARIO_V3_PREVIEW, []);
     assert.equal(result.phase, "chapter_intro", `aucun Conseil attendu après ${count} décisions`);
   }
+});
+
+test("un Conseil annuel est calculé sans devenir une scène visible", () => {
+  const next = advanceToVisiblePhase(stateAfterPreviewDecisions(16), SCENARIO_V3_PREVIEW, []);
+
+  assert.equal(next.phase, "chapter_intro");
+  assert.equal(next.annualCheckpoints.at(-1)?.afterDecisionCount, 16);
 });
 
 test("le Conseil final précède le verdict", () => {

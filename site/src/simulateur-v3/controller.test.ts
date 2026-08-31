@@ -184,6 +184,52 @@ test("un clic sur une carte confirme le choix et ouvre directement le dossier su
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));
 });
 
+test("un choix en frontière annuelle rejoint la scène suivante sans rendre le Conseil", () => {
+  const decisionId = SCENARIO_V3_PREVIEW.chapters[1]!.decisionIds.at(-1)!;
+  const initialState = stateBefore(decisionId);
+  const storage = memoryStorage();
+  const host = new FakeHost();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, initialState });
+  const beforeScroll = host.scrollCalls;
+  const beforeFocus = host.focusCalls;
+  const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === decisionId)!;
+
+  host.click("select", { decisionId, optionId: decision.options[0]!.id });
+
+  const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.equal(saved.phase, "chapter_intro");
+  assert.equal(saved.annualCheckpoints.at(-1)?.afterDecisionCount, initialState.decisions.length + 1);
+  assert.match(host.innerHTML, /La ligne de fracture/);
+  assert.doesNotMatch(host.innerHTML, /Le pays réagit à vos arbitrages/);
+  assert.equal(host.scrollCalls, beforeScroll + 1);
+  assert.equal(host.focusCalls, beforeFocus + 1);
+});
+
+test("une sauvegarde en phase intermédiaire est normalisée avant le premier rendu", () => {
+  const decisionCount = SCENARIO_V3_PREVIEW.chapters.slice(0, 2)
+    .reduce((sum, chapter) => sum + chapter.decisionIds.length, 0);
+  const restored = {
+    ...createCampaign(SCENARIO_V3_PREVIEW),
+    phase: "decision_result" as const,
+    ...positionAfterCompleted(SCENARIO_V3_PREVIEW, decisionCount)!,
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, decisionCount).map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  const host = new FakeHost();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, {
+    storage: memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(restored) }),
+  });
+
+  assert.match(host.innerHTML, /La ligne de fracture/);
+  assert.doesNotMatch(host.innerHTML, /Décision enregistrée|Le pays réagit à vos arbitrages/);
+  assert.equal(host.scrollCalls, 1);
+  assert.equal(host.focusCalls, 1);
+});
+
 test("Pause reprend exactement la phase interrompue et Quitter vise France", () => {
   const host = new FakeHost();
   const navigations: string[] = [];

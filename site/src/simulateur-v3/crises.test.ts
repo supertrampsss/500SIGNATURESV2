@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { availableConcessions, detectCrisis, resolveCrisis } from "./crises.ts";
-import { applyEffect } from "./effects.ts";
+import { currentDecision, selectOption } from "./campaign.ts";
+import { applyEffect, confirmSelection } from "./effects.ts";
+import { advanceCampaign, advanceToVisiblePhase } from "./flow.ts";
 import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
 import type {
   CampaignState,
@@ -107,6 +109,26 @@ function resolvedCrisis(
   };
 }
 
+function playThroughRuleCauses(rule: CrisisRule): CampaignState {
+  let state: CampaignState = { ...createCampaign(SCENARIO_V10), phase: "decision" };
+  while (!rule.requiredDecisionIds.every((decisionId) => state.decisions.some((decision) => decision.decisionId === decisionId))) {
+    if (state.phase === "chapter_intro") {
+      state = advanceToVisiblePhase(advanceCampaign(state, SCENARIO_V10, []), SCENARIO_V10, []);
+    }
+    assert.equal(state.phase, "decision");
+    const decision = currentDecision(state, SCENARIO_V10)!;
+    const optionId = rule.requiredDecisionIds.includes(decision.id)
+      ? `${decision.id}:adopt`
+      : decision.options.find((option) => option.id.endsWith(":keep"))!.id;
+    state = advanceToVisiblePhase(
+      confirmSelection(selectOption(state, SCENARIO_V10, decision.id, optionId), SCENARIO_V10),
+      SCENARIO_V10,
+      [],
+    );
+  }
+  return state;
+}
+
 test("la concession IR-CSG V10 appelle la révocation causale et son coût ponctuel sourcé", () => {
   const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-tax-legitimacy")!;
   const count = Math.max(...rule.requiredDecisionIds.map((id) => SCENARIO_V10.decisions.findIndex((decision) => decision.id === id))) + 1;
@@ -132,6 +154,68 @@ test("la concession IR-CSG V10 appelle la révocation causale et son coût ponct
     assert.equal(restored.state.indicators.annualBalance, resolved.indicators.annualBalance);
     assert.equal(restored.state.causalLedger.filter((entry) => entry.id.includes("reverse-ir-csg-unification:pas-reconfiguration")).length, 1);
   }
+});
+
+test("chaque concession V10 nomme précisément le compromis proposé", () => {
+  const labelsByRule = new Map<string, readonly string[]>([
+    ["v10-tax-legitimacy", ["Revenir à des prélèvements distincts"]],
+    ["v10-labour-blockade", ["Renoncer au relèvement de l'âge légal à 65 ans", "Abandonner la dégressivité de l'assurance chômage"]],
+    ["v10-care-access", ["Renoncer au doublement des franchises médicales", "Renoncer aux économies sur les achats de santé"]],
+    ["v10-rule-of-law", ["Renoncer au doublement des éloignements OQTF", "Renoncer à la préférence nationale pour les prestations"]],
+    ["v10-currency-shock", ["Renoncer à la sortie de l'euro", "Renoncer au référendum de sortie de l'Union européenne"]],
+    ["v10-energy-bottleneck", ["Renoncer au doublement de MaPrimeRénov'", "Renoncer au plan ferroviaire renforcé"]],
+    ["v10-education-housing", ["Renoncer à la revalorisation des enseignants", "Renoncer au doublement des bourses étudiantes"]],
+    ["v10-state-capacity", ["Renoncer à la clarification des compétences territoriales"]],
+  ]);
+
+  assert.deepEqual(
+    SCENARIO_V10_CRISIS_RULES.map((rule) => [rule.id, rule.concessions.map((concession) => concession.label)]),
+    [...labelsByRule],
+  );
+  for (const rule of SCENARIO_V10_CRISIS_RULES) {
+    for (const concession of rule.concessions) {
+      assert.doesNotMatch(concession.label, /^Amender |[a-z]+-[a-z]+/);
+    }
+  }
+});
+
+test("une concession V10 retire l'événement budgétaire futur de la politique abandonnée", () => {
+  const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-labour-blockade")!;
+  const prepared = playThroughRuleCauses(rule);
+  prepared.indicators[rule.indicator] = rule.threshold;
+  const targetDecisionId = rule.concessions[0]!.targetDecisionId;
+  assert.ok(prepared.scheduledEvents.some((event) => event.sourceDecisionId === targetDecisionId
+    && event.effects.some((effect) => effect.key === "annualBalance" && effect.duration === "annual")));
+  const crisis = detectCrisis(prepared, SCENARIO_V10, [rule]);
+  const resolved = resolveCrisis(crisis, [rule], rule.concessions[0]!.id);
+
+  assert.equal(resolved.decisions.find((decision) => decision.decisionId === targetDecisionId)?.status, "reversed");
+  assert.equal(resolved.indicators.annualBalance, prepared.indicators.annualBalance);
+  assert.equal(resolved.scheduledEvents.some((event) => event.sourceDecisionId === targetDecisionId), false);
+  assert.equal(resolved.causalLedger.some((entry) => entry.sourceId === `reverse:${targetDecisionId}`), false);
+});
+
+test("une concession V10 neutralise une recette annuelle déjà matérialisée", () => {
+  const rule = SCENARIO_V10_CRISIS_RULES.find((candidate) => candidate.id === "v10-care-access")!;
+  const prepared = playThroughRuleCauses(rule);
+  prepared.indicators[rule.indicator] = rule.threshold;
+  const targetDecisionId = rule.concessions[0]!.targetDecisionId;
+  const target = prepared.decisions.find((decision) => decision.decisionId === targetDecisionId)!;
+  const adoptedRunRate = prepared.causalLedger
+    .filter((entry) => entry.sourceType === "decision" && entry.sourceId === `${targetDecisionId}:${target.optionId}`
+      && entry.key === "annualBalance" && entry.duration === "annual")
+    .reduce((sum, entry) => sum + entry.delta, 0);
+  assert.equal(adoptedRunRate, 800);
+  const crisis = detectCrisis(prepared, SCENARIO_V10, [rule]);
+  const resolved = resolveCrisis(crisis, [rule], rule.concessions[0]!.id);
+
+  assert.equal(resolved.decisions.find((decision) => decision.decisionId === targetDecisionId)?.status, "reversed");
+  assert.equal(resolved.indicators.annualBalance, prepared.indicators.annualBalance - adoptedRunRate);
+  const compensations = resolved.causalLedger.filter((entry) => entry.sourceType === "crisis"
+    && entry.sourceId === `reverse:${targetDecisionId}`
+    && entry.key === "annualBalance");
+  assert.equal(compensations.length, 1);
+  assert.equal(compensations[0]?.delta, -adoptedRunRate);
 });
 
 test("une crise persiste le chapitre, le compteur et chaque choix aggravant exact", () => {
