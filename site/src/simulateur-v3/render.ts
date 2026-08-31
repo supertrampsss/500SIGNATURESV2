@@ -21,6 +21,7 @@ import type {
 
 export type RenderSimulatorV3Options = {
   v2Found?: boolean;
+  restartRequired?: boolean;
   crisisRules?: readonly CrisisRule[];
   pauseView?: "menu" | "journal" | "restart";
 };
@@ -101,14 +102,18 @@ function renderCommandBar(state: CampaignState, scenario: Scenario): string {
     </header>`;
 }
 
-function renderIntro(options: RenderSimulatorV3Options): string {
+function formatV3AbsoluteAmount(value: number): string {
+  return formatV3Amount(Math.abs(value)).replace(/^\+/, "");
+}
+
+function renderIntro(state: CampaignState, options: RenderSimulatorV3Options): string {
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--intro">
       <article class="simulateur-v3__dossier simulateur-v3__intro">
         <header class="simulateur-v3__scene-header">
           <p class="simulateur-v3__eyebrow">Votre mission</p>
           <h1>Reprendre le contrôle des comptes sans perdre le pays.</h1>
-          <p class="simulateur-v3__mission-number">153 milliards d'euros</p>
+          <p class="simulateur-v3__mission-number">${escapeHtml(formatV3AbsoluteAmount(state.baseline.annualBalanceMillions))}</p>
           <p class="simulateur-v3__lead">La France emprunte cette somme cette année. Vous avez cinq ans pour réduire le déficit, préserver l'activité et conserver la capacité d'agir.</p>
         </header>
         <div class="simulateur-v3__scene-body">
@@ -119,6 +124,7 @@ function renderIntro(options: RenderSimulatorV3Options): string {
             <li>Maintenir la confiance</li>
           </ul>
           ${options.v2Found ? `<p class="simulateur-v3__migration" role="status">Une ancienne partie a été trouvée. Elle reste intacte. Ce nouveau mandat repart avec les règles V3.</p>` : ""}
+          ${options.restartRequired ? `<p class="simulateur-v3__migration" role="status">Cette sauvegarde utilise les anciennes règles. Un nouveau mandat est nécessaire pour continuer.</p>` : ""}
         </div>
         <footer class="simulateur-v3__scene-actions"><button type="button" class="simulateur-v3__primary" data-v3-action="start">Prendre mes fonctions</button></footer>
       </article>
@@ -699,7 +705,7 @@ export function renderSimulatorV3(
   let content: string;
   switch (state.phase) {
     case "intro":
-      content = renderIntro(options);
+      content = renderIntro(state, options);
       break;
     case "chapter_intro":
       content = renderChapterIntro(state, scenario);

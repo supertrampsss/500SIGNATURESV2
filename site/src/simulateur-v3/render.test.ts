@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createCampaign, selectOption } from "./campaign.ts";
+import { selectOption } from "./campaign.ts";
 import { detectCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { formatV3Amount, renderSimulatorV3 } from "./render.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
 import type { CampaignState } from "./types.ts";
 import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
 
@@ -39,7 +40,7 @@ function stateAfter(count: number, phase: CampaignState["phase"]): CampaignState
 
 test("l'entrée en fonction annonce la mission et un seul départ", () => {
   const html = renderSimulatorV3(createCampaign(SCENARIO_V3_PREVIEW), SCENARIO_V3_PREVIEW);
-  assert.match(html, /153 milliards d'euros/);
+  assert.match(html, /153 milliards d&#39;euros/);
   assert.equal(occurrences(html, 'data-v3-action="start"'), 1);
   assert.match(html, /Prendre mes fonctions/);
   assert.match(html, /href="\/bilan"/);

@@ -9,10 +9,10 @@ import {
   totalDecisions,
   validateScenario,
 } from "./validation.ts";
-import { createCampaign, selectOption } from "./campaign.ts";
+import { selectOption } from "./campaign.ts";
 import { confirmSelection, resolveDueEvents } from "./effects.ts";
 import { SCENARIO_V3 } from "./scenario.ts";
-import { validCampaignState, validScenario } from "./test-fixtures.ts";
+import { createTestCampaign as createCampaign, testAnnualCheckpoints, validCampaignState, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, DecisionRecord, EffectRule, Scenario } from "./types.ts";
 
 function confirmedRecord(scenario: Scenario, index: number, confirmedAtIndex = index + 1): DecisionRecord {
@@ -417,6 +417,10 @@ test("un état V3 accepte chaque phase à sa position atteignable", () => {
   const chapterVerdict = stateAfterRecords(scenario, records(12));
   const campaignLength = totalDecisions(scenario);
   const verdict = stateAfterRecords(scenario, records(campaignLength));
+  verdict.annualCheckpoints = testAnnualCheckpoints(scenario);
+  const council = stateAfterRecords(scenario, records(24));
+  council.phase = "council";
+  council.annualCheckpoints = testAnnualCheckpoints(scenario, 1);
   const crisis = stateAfterRecords(scenario, records(1));
   const delayedEvent = stateAfterRecords(scenario, records(2));
   delayedEvent.scheduledEvents = [{
@@ -433,7 +437,7 @@ test("un état V3 accepte chaque phase à sa position atteignable", () => {
     { ...createCampaign(scenario), phase: "chapter_intro" },
     { ...createCampaign(scenario), phase: "decision" },
     stateAfterRecords(scenario, records(1)),
-    { ...stateAfterRecords(scenario, records(4)), phase: "council" },
+    council,
     {
       ...crisis,
       phase: "crisis",

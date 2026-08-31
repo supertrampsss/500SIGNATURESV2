@@ -1,12 +1,25 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createCampaign } from "./campaign.ts";
-import { mountSimulatorV3, type SimulatorV3Host } from "./controller.ts";
+import {
+  mountSimulatorV3 as mountProductionSimulatorV3,
+  type SimulatorV3Dependencies,
+  type SimulatorV3Host,
+} from "./controller.ts";
 import { V3_STORAGE_KEY, type StorageLike } from "./storage.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline } from "./test-fixtures.ts";
+import type { Scenario } from "./types.ts";
 import { positionBeforeNext } from "./validation.ts";
+
+function mountSimulatorV3(
+  host: SimulatorV3Host,
+  scenario: Scenario,
+  dependencies: Omit<SimulatorV3Dependencies, "baseline"> = {},
+): () => void {
+  return mountProductionSimulatorV3(host, scenario, { baseline: testBaseline(), ...dependencies });
+}
 
 function memoryStorage(initial: Record<string, string> = {}): StorageLike & { values: Map<string, string> } {
   const values = new Map(Object.entries(initial));
@@ -125,6 +138,17 @@ test("une sauvegarde V2 est signalée sans être supprimée", () => {
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
   assert.match(host.innerHTML, /ancienne partie a été trouvée/);
   assert.equal(storage.values.get("tunnel-partie"), legacy);
+});
+
+test("une sauvegarde schema 3 demande un nouveau mandat sans conversion", () => {
+  const old = { ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 3 };
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(old) });
+  const host = new FakeHost();
+
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+
+  assert.match(host.innerHTML, /anciennes règles/);
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).schemaVersion, 3);
 });
 
 test("un stockage indisponible ne bloque pas la partie", () => {
@@ -271,6 +295,7 @@ test("partager le verdict copie un résultat dynamique sans quitter la scène fi
       status: "confirmed" as const,
       confirmedAtIndex: index + 1,
     })),
+    annualCheckpoints: testAnnualCheckpoints(SCENARIO_V3_PREVIEW, 5, -42_000),
     indicators: { ...base.indicators, annualBalance: -42_000, growth: 1.4, majority: 54, opinion: 49 },
   };
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(verdict) });

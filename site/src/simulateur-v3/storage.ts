@@ -15,6 +15,7 @@ export type StorageLike = {
 
 export type RestoreResult =
   | { kind: "restored"; state: CampaignState }
+  | { kind: "restart_required" }
   | { kind: "new" }
   | { kind: "v2_found" }
   | { kind: "invalid" }
@@ -39,6 +40,10 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
 
   try {
     const parsed: unknown = JSON.parse(v3.value);
+    if (typeof parsed === "object" && parsed !== null
+        && (parsed as { schemaVersion?: unknown }).schemaVersion === 3) {
+      return { kind: "restart_required" };
+    }
     if (isCampaignState(parsed, scenario)) return { kind: "restored", state: parsed };
     const migrated = migratePreviousModeledEffects(parsed, scenario);
     if (!migrated) return { kind: "invalid" };

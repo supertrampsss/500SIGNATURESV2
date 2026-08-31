@@ -13,10 +13,10 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike {
 }
 
 import { clearCampaign, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
-import { createCampaign, selectOption } from "./campaign.ts";
+import { selectOption } from "./campaign.ts";
 import { confirmSelection } from "./effects.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
-import { validScenario } from "./test-fixtures.ts";
+import { createTestCampaign as createCampaign, testBaseline, validScenario } from "./test-fixtures.ts";
 import type { Scenario } from "./types.ts";
 import { isCampaignState, validateScenario } from "./validation.ts";
 
@@ -29,6 +29,26 @@ test("une campagne V3 sauvegardée est restaurée sans perte", () => {
     kind: "restored",
     state: { ...state, savedAt: "2026-08-27T12:00:00.000Z" },
   });
+});
+
+test("une sauvegarde schema 3 exige explicitement un nouveau départ", () => {
+  const scenario = validScenario();
+  const schema3 = { ...createCampaign(scenario), schemaVersion: 3 };
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(schema3) });
+
+  assert.deepEqual(restoreCampaign(storage, scenario), { kind: "restart_required" });
+  assert.equal(JSON.parse(storage.getItem(V3_STORAGE_KEY)!).schemaVersion, 3);
+});
+
+test("une sauvegarde schema 4 conserve sa baseline et sa version de publication", () => {
+  const scenario = validScenario();
+  const baseline = { ...testBaseline(), dataVersion: "publication-figée" };
+  const state = { ...createCampaign(scenario), baseline };
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(state) });
+
+  const restored = restoreCampaign(storage, scenario);
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") assert.deepEqual(restored.state.baseline, baseline);
 });
 
 test("une sauvegarde V2 est détectée mais jamais convertie silencieusement", () => {

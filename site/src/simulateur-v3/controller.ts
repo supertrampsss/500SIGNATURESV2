@@ -14,7 +14,7 @@ import {
   saveCampaign,
   type StorageLike,
 } from "./storage.ts";
-import type { CampaignPhase, CampaignState, CrisisRule, Scenario } from "./types.ts";
+import type { CampaignPhase, CampaignState, CrisisRule, MandateBaseline, Scenario } from "./types.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
 import {
   buildVerdictShare,
@@ -32,6 +32,7 @@ export type SimulatorV3Host = {
 };
 
 export type SimulatorV3Dependencies = {
+  baseline: MandateBaseline;
   storage?: StorageLike;
   navigate?: (path: string) => void;
   eventTarget?: EventTarget;
@@ -114,7 +115,7 @@ function resetScrollAfterBrowserRestore(host: SimulatorV3Host): void {
 export function mountSimulatorV3(
   host: SimulatorV3Host,
   scenario: Scenario,
-  dependencies: SimulatorV3Dependencies = {},
+  dependencies: SimulatorV3Dependencies,
 ): () => void {
   const storage = dependencies.storage ?? defaultStorage();
   const navigate = dependencies.navigate ?? defaultNavigate;
@@ -124,8 +125,9 @@ export function mountSimulatorV3(
   const currentUrl = dependencies.currentUrl ?? defaultCurrentUrl;
   const restored = restoreCampaign(storage, scenario);
   const v2Found = restored.kind === "v2_found";
+  const restartRequired = restored.kind === "restart_required";
   let state = normalizeChapterTransition(
-    restored.kind === "restored" ? restored.state : createCampaign(scenario),
+    restored.kind === "restored" ? restored.state : createCampaign(scenario, dependencies.baseline),
     scenario,
   );
   let phaseBeforePause: CampaignPhase | undefined = state.phase === "pause"
@@ -134,7 +136,7 @@ export function mountSimulatorV3(
   let pauseView: RenderSimulatorV3Options["pauseView"] = "menu";
 
   const render = (resetScroll = false) => {
-    host.innerHTML = renderSimulatorV3(state, scenario, { v2Found, crisisRules, pauseView });
+    host.innerHTML = renderSimulatorV3(state, scenario, { v2Found, restartRequired, crisisRules, pauseView });
     if (resetScroll) host.scrollIntoView?.({ block: "start" });
   };
 
@@ -262,7 +264,7 @@ export function mountSimulatorV3(
     }
 
     if (action === "restart") {
-      state = createCampaign(scenario, state.seed + 1);
+      state = createCampaign(scenario, dependencies.baseline, state.seed + 1);
       phaseBeforePause = undefined;
       pauseView = "menu";
       emit({ type: "campaign_restarted" });

@@ -3582,6 +3582,34 @@ test("la V3 possède son hôte et son branchement par le routeur", () => {
   assert.match(MAIN, /modeSimulateur\(location\.pathname, location\.search\) === "v3"/);
 });
 
+test("la V3 attend une baseline nationale publiée avant tout montage", () => {
+  const chargement = MAIN.slice(
+    MAIN.indexOf("async function chargerBaselineSimulateurV3"),
+    MAIN.indexOf("async function ouvrirSimulateur"),
+  );
+  const demarrage = MAIN.slice(MAIN.indexOf("async function demarrer"), MAIN.indexOf("demarrer().catch"));
+  const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
+  const indisponible = MAIN.slice(
+    MAIN.indexOf("function rendreSimulateurV3Indisponible"),
+    MAIN.indexOf("async function chargerBaselineSimulateurV3"),
+  );
+
+  assert.match(chargement, /donnees\.territoires\("pays", "tous"\)/);
+  assert.match(chargement, /const france = pays\.FR/);
+  for (const id of [
+    "eurostat_pib_montant",
+    "insee_dette_apu_part_pib",
+    "insee_apu_solde",
+    "eurostat_apu_interets",
+  ]) assert.match(chargement, new RegExp(`france\\.series\\.${id}`));
+  assert.match(chargement, /dataVersion: donnees\.version\(\)/);
+  assert.ok(demarrage.indexOf("await donnees.initialiser()") < demarrage.indexOf("await chargerBaselineSimulateurV3()"));
+  assert.ok(ouverture.indexOf("if (!baselineSimulateurV3)") < ouverture.indexOf("mountSimulatorV3("));
+  assert.match(indisponible, /disabled>Commencer le mandat/);
+  assert.match(indisponible, /Réessayer/);
+  assert.match(indisponible, /Retourner à France/);
+});
+
 test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jamais le plein écran historique", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
   const brancheV3 = ouverture.slice(0, ouverture.indexOf("if (atelierMonte"));

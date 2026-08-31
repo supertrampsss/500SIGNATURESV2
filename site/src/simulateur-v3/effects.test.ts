@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { INITIAL_INDICATORS, createCampaign, selectOption } from "./campaign.ts";
+import { selectOption } from "./campaign.ts";
 import {
   applyEffect,
   confirmSelection,
@@ -9,9 +9,11 @@ import {
   resolveDuePromises,
   scheduleOptionConsequences,
 } from "./effects.ts";
-import { validScenario } from "./test-fixtures.ts";
+import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
 import type { EffectRule, IndicatorKey, Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
+
+const INITIAL_INDICATORS = createCampaign(validScenario()).indicators;
 
 function scenarioWithEffect(key: IndicatorKey, delta: number, timing: EffectRule["timing"]): Scenario {
   const scenario = validScenario();

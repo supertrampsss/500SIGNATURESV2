@@ -1,9 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { createCampaign } from "./campaign.ts";
 import { availableConcessions, detectCrisis, resolveCrisis } from "./crises.ts";
-import { validScenario } from "./test-fixtures.ts";
+import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, CrisisRule, DecisionRecord, EffectRule } from "./types.ts";
 
 const majorityCost: EffectRule = {

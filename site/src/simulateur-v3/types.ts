@@ -10,7 +10,7 @@ export type CampaignPhase =
   | "pause"
   | "verdict";
 
-export const SCHEMA_VERSION = 3 as const;
+export const SCHEMA_VERSION = 4 as const;
 export const V3_MODELED_EFFECT_MARKER = ":model:" as const;
 
 export type Uncertainty = "faible" | "moyenne" | "forte";
@@ -203,6 +203,31 @@ export type PoliticalPromise = {
 export type IndicatorState = Record<IndicatorKey, number>;
 export type GroupState = Record<GroupKey, number>;
 
+export type MandateYear = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type MandateBaseline = {
+  period: string;
+  debtPeriod: string;
+  nominalGdpMillions: number;
+  debtMillions: number;
+  annualBalanceMillions: number;
+  interestCostMillions: number;
+  nominalGrowthPercent: number;
+  sourceIds: string[];
+  dataVersion: string;
+};
+
+export type AnnualCheckpoint = {
+  year: MandateYear;
+  afterDecisionCount: number;
+  nominalGdpMillions: number;
+  debtMillions: number;
+  debtToGdp: number;
+  annualBalance: number;
+  interestCost: number;
+  causes: string[];
+};
+
 export type CampaignState = {
   schemaVersion: typeof SCHEMA_VERSION;
   scenarioVersion: number;
@@ -213,6 +238,8 @@ export type CampaignState = {
   decisionIndex: number;
   pendingSelection?: { decisionId: string; optionId: string };
   decisions: DecisionRecord[];
+  baseline: MandateBaseline;
+  annualCheckpoints: AnnualCheckpoint[];
   indicators: IndicatorState;
   groups: GroupState;
   scheduledEvents: ScheduledEvent[];

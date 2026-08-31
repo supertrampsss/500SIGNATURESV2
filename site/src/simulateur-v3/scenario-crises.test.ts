@@ -1,11 +1,14 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { INITIAL_INDICATORS, createCampaign, selectOption } from "./campaign.ts";
+import { selectOption } from "./campaign.ts";
 import { detectCrisis, resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
+
+const INITIAL_INDICATORS = createCampaign(validScenario()).indicators;
 
 function stateBefore(decisionId: string) {
   const index = SCENARIO_V3_PREVIEW.decisions.findIndex((decision) => decision.id === decisionId);

@@ -4,25 +4,32 @@ import { test } from "node:test";
 import {
   advanceAfterResult,
   clearSelection,
-  createCampaign,
   currentDecision,
   normalizeChapterTransition,
   selectOption,
 } from "./campaign.ts";
+import { createCampaign as createProductionCampaign } from "./campaign.ts";
 import { confirmSelection } from "./effects.ts";
 import { SCENARIO_V3 } from "./scenario.ts";
-import { validScenario } from "./test-fixtures.ts";
+import { createTestCampaign as createCampaign, testBaseline, validScenario } from "./test-fixtures.ts";
 import { positionAfterCompleted, positionBeforeNext, totalDecisions } from "./validation.ts";
 
 test("une campagne neuve commence avant le premier chapitre", () => {
   const state = createCampaign(validScenario(), 42);
-  assert.equal(state.schemaVersion, 3);
+  assert.equal(state.schemaVersion, 4);
+  assert.deepEqual(state.baseline, testBaseline());
+  assert.deepEqual(state.annualCheckpoints, []);
   assert.equal(state.seed, 42);
   assert.equal(state.phase, "intro");
   assert.equal(state.decisions.length, 0);
   assert.equal(state.savedAt, "1970-01-01T00:00:00.000Z");
   assert.notEqual(state.indicators, createCampaign(validScenario()).indicators);
   assert.notEqual(state.groups, createCampaign(validScenario()).groups);
+});
+
+test("une campagne neuve exige une baseline explicite", () => {
+  const withoutBaseline = createProductionCampaign as unknown as (scenario: ReturnType<typeof validScenario>) => unknown;
+  assert.throws(() => withoutBaseline(validScenario()), /baseline/i);
 });
 
 test("la décision courante suit les huit chapitres dans leur ordre éditorial", () => {

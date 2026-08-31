@@ -127,6 +127,8 @@ import { emettreInterface } from "./evenements-interface.ts";
 import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./simulateur-v3/scenario.ts";
+import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
+import type { MandateBaseline } from "./simulateur-v3/types.ts";
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
@@ -2405,6 +2407,8 @@ let exercicesParVolet: { volet: VoletPublie; exercice: string }[] = [];
 let atelierMonte = false;
 let terminerSessionImmersive: (() => void) | null = null;
 let demonterSimulateurV3: (() => void) | null = null;
+let baselineSimulateurV3: MandateBaseline | null = null;
+let erreurBaselineSimulateurV3: string | null = null;
 let evenementsInterfaceBranches = false;
 /** Les volets réellement montés dans l'atelier : posés une seule fois, à la
  *  première ouverture (`ouvrirSimulateur`), et relus par tout ce qui doit
@@ -3793,6 +3797,44 @@ function brancherScenarios(): void {
  * différer. Un volet qui échoue à se charger sort de la liste plutôt que de
  * laisser une section vide au milieu de la page.
  */
+function rendreSimulateurV3Indisponible(hote: HTMLElement, message: string, retry: boolean): void {
+  hote.innerHTML = `<section class="simulateur-v3"><main class="simulateur-v3__stage">
+    <article class="simulateur-v3__dossier simulateur-v3__intro">
+      <header class="simulateur-v3__scene-header">
+        <p class="simulateur-v3__eyebrow">Données du mandat</p>
+        <h1>Le simulateur est temporairement indisponible.</h1>
+        <p class="simulateur-v3__lead" role="alert">${echapper(message)}</p>
+      </header>
+      <footer class="simulateur-v3__scene-actions">
+        <button type="button" class="simulateur-v3__primary" disabled>Commencer le mandat</button>
+        ${retry ? `<button type="button" class="simulateur-v3__secondary" onclick="location.reload()">Réessayer</button>` : ""}
+        <a class="simulateur-v3__secondary" href="/bilan">Retourner à France</a>
+      </footer>
+    </article>
+  </main></section>`;
+}
+
+async function chargerBaselineSimulateurV3(): Promise<void> {
+  try {
+    const pays = await donnees.territoires("pays", "tous");
+    const france = pays.FR;
+    if (!france) throw new Error("La série nationale française est absente de la publication.");
+    const baseline = buildMandateBaseline({
+      gdp: france.series.eurostat_pib_montant ?? {},
+      debtToGdp: france.series.insee_dette_apu_part_pib ?? {},
+      balance: france.series.insee_apu_solde ?? {},
+      interest: france.series.eurostat_apu_interets ?? {},
+      dataVersion: donnees.version(),
+    });
+    if (!baseline) throw new Error("Les séries nationales publiées ne partagent aucune année complète avec une dette au quatrième trimestre et un PIB précédent.");
+    baselineSimulateurV3 = baseline;
+    erreurBaselineSimulateurV3 = null;
+  } catch (error) {
+    baselineSimulateurV3 = null;
+    erreurBaselineSimulateurV3 = error instanceof Error ? error.message : "Les données nationales publiées sont illisibles.";
+  }
+}
+
 async function ouvrirSimulateur(): Promise<void> {
   const hoteV3 = $<HTMLElement>("simulateur-v3");
   const tunnel = $<HTMLElement>("tunnel");
@@ -3805,8 +3847,17 @@ async function ouvrirSimulateur(): Promise<void> {
     tunnel.hidden = true;
     expert.hidden = true;
     hoteV3.hidden = false;
+    if (!baselineSimulateurV3) {
+      rendreSimulateurV3Indisponible(
+        hoteV3,
+        erreurBaselineSimulateurV3 ?? "Chargement des données nationales publiées.",
+        erreurBaselineSimulateurV3 !== null,
+      );
+      return;
+    }
     if (!demonterSimulateurV3) {
       demonterSimulateurV3 = mountSimulatorV3(hoteV3, SCENARIO_V3_PREVIEW, {
+        baseline: baselineSimulateurV3,
         crisisRules: SCENARIO_V3_CRISIS_RULES,
       });
     }
@@ -3999,6 +4050,10 @@ async function demarrer(): Promise<void> {
   // (`brancherTheme()`), et la navigation n'est que des liens sans `data-vue`
   // qui se rechargent — exactement le comportement voulu ici.
   if (document.body.dataset.page === "editorial") return;
+  await chargerBaselineSimulateurV3();
+  if (vueDepuisAdresse(location.pathname, location.hash) === "simulateur" && versionSimulateurV3()) {
+    void ouvrirSimulateur();
+  }
   jeux = manifeste.jeux;
   catalogue = await donnees.indicateurs();
   // Les indicateurs calculés entrent au catalogue comme les autres : thèmes,
@@ -4493,6 +4548,12 @@ demarrer().catch((erreur: Error) => {
   // `null` — la panne se doublait d'une levée dans son propre rattrapage.
   if (document.body.dataset.page === "editorial") return;
   const detail = erreur?.message ? String(erreur.message) : "cause inconnue";
+  if (document.body.dataset.vue === "simulateur" && versionSimulateurV3()) {
+    const hoteSimulateur = $<HTMLElement>("simulateur-v3");
+    hoteSimulateur.hidden = false;
+    rendreSimulateurV3Indisponible(hoteSimulateur, detail, true);
+    return;
+  }
   // Un `div`, pas un `p` : `<details>` est du contenu de flux, et un paragraphe
   // n'accepte que du contenu de phrasé. L'analyseur HTML fermait donc le
   // paragraphe avant le pli et le jetait — le détail technique, seul élément

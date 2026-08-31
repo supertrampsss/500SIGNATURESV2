@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createCampaign, currentDecision, selectOption } from "./campaign.ts";
+import { currentDecision, selectOption } from "./campaign.ts";
 import { availableConcessions, resolveCrisis } from "./crises.ts";
 import { confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
 import type { CampaignState } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 

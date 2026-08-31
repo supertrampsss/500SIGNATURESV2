@@ -1,5 +1,4 @@
-import { INITIAL_INDICATORS } from "./campaign.ts";
-import { totalDecisions } from "./validation.ts";
+import { initialIndicators } from "./campaign.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -114,7 +113,7 @@ function orderedLedger(ledger: readonly CausalEntry[]): CausalEntry[] {
 }
 
 function reconstructAt(state: CampaignState, decisionCount: number): IndicatorState {
-  const indicators: IndicatorState = { ...INITIAL_INDICATORS };
+  const indicators: IndicatorState = initialIndicators(state.baseline);
   for (const entry of orderedLedger(state.causalLedger)) {
     if (entry.appliedAtDecision > decisionCount || entry.target !== "indicator") continue;
     const key = entry.key as IndicatorKey;
@@ -143,6 +142,7 @@ function descriptorFor(key: VerdictSignal["key"], value: number): string {
 }
 
 function buildSignals(state: CampaignState): VerdictSignal[] {
+  const initial = initialIndicators(state.baseline);
   return ([
     ["growth", "Croissance"],
     ["majority", "Pouvoir"],
@@ -151,28 +151,21 @@ function buildSignals(state: CampaignState): VerdictSignal[] {
     key,
     label,
     value: state.indicators[key],
-    initialValue: INITIAL_INDICATORS[key],
-    delta: state.indicators[key] - INITIAL_INDICATORS[key],
+    initialValue: initial[key],
+    delta: state.indicators[key] - initial[key],
     descriptor: descriptorFor(key, state.indicators[key]),
   }));
 }
 
-function checkpointDecisionCounts(scenario: Scenario): number[] {
-  const campaignLength = totalDecisions(scenario);
-  return [...new Set([0, 0.25, 0.5, 0.75, 1].map((share) => Math.round(campaignLength * share)))];
-}
-
-function buildTrajectory(state: CampaignState, scenario: Scenario): VerdictCheckpoint[] {
-  const campaignLength = totalDecisions(scenario);
-  return checkpointDecisionCounts(scenario).map((decisionCount) => {
-    const indicators = decisionCount === campaignLength ? state.indicators : reconstructAt(state, decisionCount);
-    return {
-      decisionCount,
-      label: decisionCount === 0 ? "Début du mandat" : decisionCount === campaignLength ? "Verdict final" : `Après ${decisionCount} dossiers`,
-      annualBalance: indicators.annualBalance,
-      majority: indicators.majority,
-    };
-  });
+function buildTrajectory(state: CampaignState): VerdictCheckpoint[] {
+  return state.annualCheckpoints.map((checkpoint) => ({
+    decisionCount: checkpoint.afterDecisionCount,
+    label: checkpoint.year === 5 ? "Verdict final" : `Fin de l'année ${checkpoint.year}`,
+    annualBalance: checkpoint.annualBalance,
+    majority: checkpoint.year === 5
+      ? state.indicators.majority
+      : reconstructAt(state, checkpoint.afterDecisionCount).majority,
+  }));
 }
 
 function immediateBudgetDelta(option: DecisionOption): number {
@@ -295,9 +288,9 @@ export function buildMandateVerdictViewModel(
     headline: headlineFor(state.indicators.annualBalance, state.indicators.majority, state.indicators.opinion),
     summary: summaryFor(state),
     annualBalance: state.indicators.annualBalance,
-    annualBalanceDelta: state.indicators.annualBalance - INITIAL_INDICATORS.annualBalance,
+    annualBalanceDelta: state.indicators.annualBalance - state.baseline.annualBalanceMillions,
     signals: buildSignals(state),
-    trajectory: buildTrajectory(state, scenario),
+    trajectory: buildTrajectory(state),
     decisiveChoices: buildDecisiveChoices(state, scenario),
     aftermath: buildAftermath(state, scenario, crisisRules),
   };

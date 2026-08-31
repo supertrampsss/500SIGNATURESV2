@@ -1,7 +1,23 @@
 import { advanceAfterResult } from "./campaign.ts";
 import { detectCrisis } from "./crises.ts";
 import { resolveDueEvents, resolveDuePromises } from "./effects.ts";
+import {
+  advanceMandateYear,
+  annualCouncilDecisionCounts,
+  mandateYearEndingAfterChapter,
+  mandateYearEndingAtDecisionCount,
+} from "./timeline.ts";
 import type { CampaignState, CrisisRule, Scenario } from "./types.ts";
+
+function advanceNormallyOrToCouncil(state: CampaignState, scenario: Scenario): CampaignState {
+  const chapter = scenario.chapters[state.chapterIndex];
+  const chapterComplete = chapter !== undefined && state.decisionIndex + 1 >= chapter.decisionIds.length;
+  const year = chapterComplete ? mandateYearEndingAfterChapter(state.chapterIndex) : null;
+  if (year !== null) return advanceMandateYear(state, year);
+  const advanced = advanceAfterResult(state, scenario, annualCouncilDecisionCounts(scenario));
+  const crossedYear = mandateYearEndingAtDecisionCount(scenario, advanced.decisions.length);
+  return crossedYear === null ? advanced : advanceMandateYear(advanced, crossedYear);
+}
 
 function advanceFromDecisionResult(
   state: CampaignState,
@@ -18,7 +34,7 @@ function advanceFromDecisionResult(
 
   const crisis = detectCrisis(state, crisisRules);
   if (crisis.phase === "crisis") return crisis;
-  return advanceAfterResult(state, scenario);
+  return advanceNormallyOrToCouncil(state, scenario);
 }
 
 /**
@@ -40,7 +56,7 @@ export function advanceCampaign(
     const afterEvent = { ...promiseResolution.state, phase: "decision_result" as const };
     const crisis = detectCrisis(afterEvent, crisisRules);
     if (crisis.phase === "crisis") return crisis;
-    return advanceAfterResult(afterEvent, scenario);
+    return advanceNormallyOrToCouncil(afterEvent, scenario);
   }
 
   if (state.phase === "council" || state.phase === "chapter_verdict" || state.phase === "chapter_intro") {

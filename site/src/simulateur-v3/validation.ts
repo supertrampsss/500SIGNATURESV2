@@ -12,6 +12,7 @@ import {
   type PromiseRule,
   type Scenario,
 } from "./types.ts";
+import { mandateYearEndingAfterChapter, validateBaseline } from "./timeline.ts";
 
 const PHASES: readonly CampaignPhase[] = [
   "intro", "chapter_intro", "decision", "decision_result", "council", "crisis",
@@ -86,6 +87,47 @@ function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readon
   return actualKeys.length === expectedKeys.length
     && expectedKeys.every((key) => Object.hasOwn(value, key))
     && actualKeys.every((key) => typeof value[key] === "number" && Number.isFinite(value[key]));
+}
+
+function hasValidBaseline(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  try {
+    validateBaseline(value as CampaignState["baseline"]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function expectedAnnualCheckpoints(scenario: Scenario): Map<number, number> {
+  const expected = new Map<number, number>();
+  let decisionCount = 0;
+  scenario.chapters.forEach((chapter, chapterIndex) => {
+    decisionCount += chapter.decisionIds.length;
+    const year = mandateYearEndingAfterChapter(chapterIndex);
+    if (year !== null) expected.set(year, decisionCount);
+  });
+  return expected;
+}
+
+function hasValidAnnualCheckpoints(value: unknown, scenario: Scenario, decisionCount: number): boolean {
+  if (!Array.isArray(value) || value.length > 5) return false;
+  const expected = expectedAnnualCheckpoints(scenario);
+  return value.every((checkpoint, index) => {
+    if (!isRecord(checkpoint) || checkpoint.year !== index + 1) return false;
+    if (checkpoint.afterDecisionCount !== expected.get(index + 1)
+        || (checkpoint.afterDecisionCount as number) > decisionCount) return false;
+    if (!Array.isArray(checkpoint.causes)
+        || checkpoint.causes.some((id) => typeof id !== "string")
+        || hasDuplicates(checkpoint.causes as string[])) return false;
+    return [
+      checkpoint.nominalGdpMillions,
+      checkpoint.debtMillions,
+      checkpoint.debtToGdp,
+      checkpoint.annualBalance,
+      checkpoint.interestCost,
+    ].every((item) => typeof item === "number" && Number.isFinite(item));
+  });
 }
 
 /** Checks an untrusted effect and enforces the target to key relationship at runtime. */
@@ -545,6 +587,7 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   const chapter = scenario.chapters[value.chapterIndex as number];
   if (!chapter || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) >= chapter.decisionIds.length) return false;
   if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.eventHistory) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
+  if (!hasValidBaseline(value.baseline) || !hasValidAnnualCheckpoints(value.annualCheckpoints, scenario, value.decisions.length)) return false;
   if (!isRecord(value.indicators) || !hasExactFiniteKeys(value.indicators, INDICATOR_KEYS)) return false;
   if (!isRecord(value.groups) || !hasExactFiniteKeys(value.groups, GROUP_KEYS)) return false;
   if (typeof value.seed !== "number" || !Number.isFinite(value.seed) || typeof value.savedAt !== "string" || Number.isNaN(Date.parse(value.savedAt))) return false;
@@ -574,6 +617,11 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   }));
   if (confirmedDecisions.size !== decisionRecords.length) return false;
   if (!hasPhasePositionConsistency(value, scenario, decisionRecords.length)) return false;
+  if (value.phase === "council") {
+    const latest = (value.annualCheckpoints as unknown[]).at(-1);
+    if (!isRecord(latest) || latest.afterDecisionCount !== decisionRecords.length) return false;
+  }
+  if (value.phase === "verdict" && (value.annualCheckpoints as unknown[]).length !== 5) return false;
 
   const pendingSelection = value.pendingSelection;
   if (pendingSelection !== undefined) {
@@ -606,5 +654,14 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   };
   if (!causalLedger.every((entry) => isCausalEntry(entry, sourceIds, decisionRecords.length))) return false;
   if (hasDuplicates((causalLedger as { id: string }[]).map((entry) => entry.id))) return false;
+  const causalEntries = new Map((causalLedger as CausalEntry[]).map((entry) => [entry.id, entry]));
+  if (!(value.annualCheckpoints as CampaignState["annualCheckpoints"]).every((checkpoint) => (
+    checkpoint.causes.every((id) => {
+      const entry = causalEntries.get(id);
+      return entry?.target === "indicator"
+        && ["annualBalance", "growth", "interestCost"].includes(entry.key)
+        && entry.appliedAtDecision <= checkpoint.afterDecisionCount;
+    })
+  ))) return false;
   return true;
 }

@@ -39,7 +39,7 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     duration: "once",
     explanation: "An indicator effect.",
   } satisfies EffectRule;
-  assert.equal(SCHEMA_VERSION, 3);
+  assert.equal(SCHEMA_VERSION, 4);
   assert.equal(decision.options[0]?.id, "maintenir");
   assert.equal(state.schemaVersion, 3);
   assert.equal(indicatorEffect.key, "growth");
