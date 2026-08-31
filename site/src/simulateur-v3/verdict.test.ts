@@ -5,6 +5,7 @@ import { createCampaign, INITIAL_INDICATORS } from "./campaign.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import type { CampaignState, CausalEntry } from "./types.ts";
+import { totalDecisions } from "./validation.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
 
 function completedCampaign(): CampaignState {
@@ -54,7 +55,7 @@ function completedCampaign(): CampaignState {
     ...base,
     phase: "verdict",
     chapterIndex: 7,
-    decisionIndex: 11,
+    decisionIndex: 6,
     decisions,
     causalLedger,
     indicators: {
@@ -70,17 +71,36 @@ function completedCampaign(): CampaignState {
 test("reconstruit cinq jalons et termine sur les indicateurs réels", () => {
   const state = completedCampaign();
   const view = buildMandateVerdictViewModel(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
+  const total = totalDecisions(SCENARIO_V3_PREVIEW);
 
-  assert.deepEqual(view.trajectory.map((point) => point.decisionCount), [0, 24, 48, 72, 96]);
+  assert.deepEqual(view.trajectory.map((point) => point.decisionCount), [0, 15, 30, 45, 60]);
+  assert.ok(view.trajectory.every((point) => point.decisionCount <= total));
   assert.deepEqual(view.trajectory.at(-1), {
-    decisionCount: 96,
+    decisionCount: total,
     label: "Verdict final",
     annualBalance: state.indicators.annualBalance,
     majority: state.indicators.majority,
   });
   assert.equal(view.trajectory[0]!.annualBalance, INITIAL_INDICATORS.annualBalance);
   assert.equal(view.trajectory[1]!.annualBalance, -133_000);
-  assert.equal(view.trajectory[2]!.majority, 55);
+  assert.equal(view.trajectory[3]!.majority, INITIAL_INDICATORS.majority);
+});
+
+test("dédoublonne les jalons arrondis d'une petite topologie", () => {
+  const state = completedCampaign();
+  const scenario = {
+    ...SCENARIO_V3_PREVIEW,
+    chapters: [{
+      ...SCENARIO_V3_PREVIEW.chapters[0]!,
+      decisionIds: SCENARIO_V3_PREVIEW.chapters[0]!.decisionIds.slice(0, 2),
+    }],
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, 2),
+  };
+
+  const view = buildMandateVerdictViewModel(state, scenario, []);
+
+  assert.deepEqual(view.trajectory.map((point) => point.decisionCount), [0, 1, 2]);
+  assert.equal(view.trajectory.at(-1)?.label, "Verdict final");
 });
 
 test("calcule les écarts des signaux depuis le début du mandat", () => {

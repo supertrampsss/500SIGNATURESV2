@@ -1,4 +1,5 @@
 import { INITIAL_INDICATORS } from "./campaign.ts";
+import { totalDecisions } from "./validation.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -60,7 +61,6 @@ export type MandateVerdictViewModel = {
   aftermath: VerdictAftermath[];
 };
 
-const CHECKPOINTS = [0, 24, 48, 72, 96] as const;
 const CLAMPED_INDICATORS = new Set<IndicatorKey>([
   "publicServices",
   "majority",
@@ -157,12 +157,18 @@ function buildSignals(state: CampaignState): VerdictSignal[] {
   }));
 }
 
-function buildTrajectory(state: CampaignState): VerdictCheckpoint[] {
-  return CHECKPOINTS.map((decisionCount) => {
-    const indicators = decisionCount === 96 ? state.indicators : reconstructAt(state, decisionCount);
+function checkpointDecisionCounts(scenario: Scenario): number[] {
+  const campaignLength = totalDecisions(scenario);
+  return [...new Set([0, 0.25, 0.5, 0.75, 1].map((share) => Math.round(campaignLength * share)))];
+}
+
+function buildTrajectory(state: CampaignState, scenario: Scenario): VerdictCheckpoint[] {
+  const campaignLength = totalDecisions(scenario);
+  return checkpointDecisionCounts(scenario).map((decisionCount) => {
+    const indicators = decisionCount === campaignLength ? state.indicators : reconstructAt(state, decisionCount);
     return {
       decisionCount,
-      label: decisionCount === 0 ? "Début du mandat" : decisionCount === 96 ? "Verdict final" : `Après ${decisionCount} dossiers`,
+      label: decisionCount === 0 ? "Début du mandat" : decisionCount === campaignLength ? "Verdict final" : `Après ${decisionCount} dossiers`,
       annualBalance: indicators.annualBalance,
       majority: indicators.majority,
     };
@@ -291,7 +297,7 @@ export function buildMandateVerdictViewModel(
     annualBalance: state.indicators.annualBalance,
     annualBalanceDelta: state.indicators.annualBalance - INITIAL_INDICATORS.annualBalance,
     signals: buildSignals(state),
-    trajectory: buildTrajectory(state),
+    trajectory: buildTrajectory(state, scenario),
     decisiveChoices: buildDecisiveChoices(state, scenario),
     aftermath: buildAftermath(state, scenario, crisisRules),
   };
