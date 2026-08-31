@@ -14,7 +14,7 @@ Exclusion explicite : aucune collecte, connexion ou exploitation de X
 
 La V3 transforme le simulateur actuel en une campagne courte et causale :
 
-- 24 arbitrages structurants sont joués pendant une partie ;
+- 60 arbitrages structurants sont joués pendant une partie ;
 - les 96 décisions existantes sont conservées comme bibliothèque éditoriale ;
 - les sujets non joués alimentent les variantes, les conséquences différées et les décisions de crise ;
 - les effets se propagent pendant un mandat de cinq ans au lieu d'être additionnés une seule fois ;
@@ -57,29 +57,29 @@ Le projet reste dans le dépôt V2. La mention V3 désigne une évolution du pro
 
 La V3 possède quatre espaces complémentaires :
 
-1. **Campagne** : 24 arbitrages, événements, crises et verdict.
+1. **Campagne** : 60 arbitrages, événements, crises et verdict.
 2. **Bibliothèque des mesures** : les 96 sujets existants, consultables sans obligation de les jouer.
 3. **Analyses France** : sélection éditoriale, recherche, filtres et dossiers sourcés.
 4. **Questions** : recherche conversationnelle dans un corpus de réponses validées.
 
 La campagne reste la porte d'entrée ludique. La bibliothèque explique les politiques. Les analyses documentent le réel. Les questions rendent ces contenus accessibles sans connaître la structure du site.
 
-## 4. Campagne de 24 arbitrages
+## 4. Campagne de 60 arbitrages
 
 ### 4.1 Structure
 
-La campagne comprend huit chapitres de trois arbitrages. Chaque chapitre couvre une tension différente du mandat.
+La campagne comprend huit chapitres de sept ou huit arbitrages. Chaque chapitre couvre une tension différente du mandat. Un bilan intermédiaire et une possibilité de pause sont proposés à la fin de chaque chapitre.
 
-| Chapitre | Arbitrage 1 | Arbitrage 2 | Arbitrage 3 |
-|---|---|---|---|
-| Urgence budgétaire | trajectoire du déficit | dépenses de l'administration | financement de l'effort initial |
-| Travail et production | retraites | assurance chômage | temps de travail et salaire minimum |
-| Fiscalité et redistribution | impôt sur le revenu | patrimoine et capital | TVA et fiscalité de consommation |
-| Services publics | santé | école | effectifs et rémunération publics |
-| Énergie et climat | place du nucléaire | gaz, chauffage et carbone | renouvelables et réseaux |
-| Logement et générations | accession à la propriété | construction et loyers | transmission et solidarité entre générations |
-| Autorité et institutions | immigration | sécurité et justice | représentation et organisation territoriale |
-| Europe et souveraineté | règles et budget européens | défense | industrie, commerce et protections stratégiques |
+| Chapitre | Nombre | Noyaux obligatoires |
+|---|---:|---|
+| Urgence budgétaire | 8 | trajectoire du déficit, dépenses de l'administration, financement de l'effort initial |
+| Travail et production | 8 | retraites, assurance chômage, temps de travail et salaire minimum |
+| Fiscalité et redistribution | 8 | impôt sur le revenu, patrimoine et capital, TVA et fiscalité de consommation |
+| Services publics | 8 | santé, école, effectifs et rémunération publics |
+| Énergie et climat | 7 | place du nucléaire, gaz, chauffage et carbone, renouvelables et réseaux |
+| Logement et générations | 7 | accession à la propriété, construction et loyers, transmission et solidarité entre générations |
+| Autorité et institutions | 7 | immigration, sécurité et justice, représentation et organisation territoriale |
+| Europe et souveraineté | 7 | règles et budget européens, défense, industrie, commerce et protections stratégiques |
 
 Cette liste définit les tensions à couvrir. Les intitulés publics et les options sont soumis aux contrôles éditoriaux du projet avant publication.
 
@@ -113,7 +113,7 @@ Les 96 décisions actuelles deviennent un catalogue versionné. Chaque entrée r
 - réponse à une crise ;
 - contenu de bibliothèque uniquement.
 
-Aucune mesure n'est supprimée uniquement parce qu'elle ne figure pas dans les 24 arbitrages. Les anciennes progressions sauvegardées restent lisibles. Une migration de version empêche qu'une partie V2 soit silencieusement interprétée comme une partie V3.
+Aucune mesure n'est supprimée uniquement parce qu'elle ne figure pas dans les 60 arbitrages. Les 36 autres sujets alimentent en priorité les sous-mesures, décisions conditionnelles, réponses aux crises et contenus de bibliothèque. Les anciennes progressions sauvegardées restent lisibles. Une migration de version empêche qu'une partie V2 soit silencieusement interprétée comme une partie V3.
 
 ## 5. Modèle causal du mandat
 
@@ -171,7 +171,7 @@ Chaque variation visible doit pouvoir répondre à la question : « quelles déc
 
 ### 5.4 Crises
 
-Une partie rencontre deux à quatre crises selon les décisions et l'état du pays. Une crise n'est pas tirée au hasard sans justification. Elle déclare :
+Une partie rencontre quatre à huit crises selon les décisions et l'état du pays, avec au maximum une crise majeure par chapitre. Une crise n'est pas tirée au hasard sans justification. Elle déclare :
 
 - son déclencheur principal ;
 - ses facteurs aggravants ;
@@ -419,8 +419,8 @@ Ces liens amorcent l'ingestion. La publication reste bloquée si la définition,
 
 ### 12.1 Simulateur
 
-- Une nouvelle partie contient exactement 24 arbitrages principaux.
-- Les huit chapitres contiennent trois arbitrages chacun.
+- Une nouvelle partie contient exactement 60 arbitrages principaux.
+- Les huit chapitres contiennent quatre groupes de huit arbitrages et quatre groupes de sept arbitrages.
 - Les 96 sujets restent accessibles dans la bibliothèque.
 - La dette et la charge d'intérêt évoluent dans le temps lorsque les règles documentées l'exigent.
 - Une conséquence visible possède une cause consultable.
@@ -457,7 +457,7 @@ Ces liens amorcent l'ingestion. La publication reste bloquée si la définition,
 ## 13. Ordre de réalisation recommandé
 
 1. Contrats, migrations et modèle causal.
-2. Sélection et adaptation des 24 arbitrages.
+2. Sélection et adaptation des 60 arbitrages.
 3. Écran de décision compact, journal et verdict multidimensionnel.
 4. Ingestion et publication des cinq analyses.
 5. Corpus de questions et recherche locale.
