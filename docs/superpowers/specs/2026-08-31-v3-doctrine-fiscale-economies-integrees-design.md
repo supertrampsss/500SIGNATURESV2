@@ -467,7 +467,7 @@ La conception est correctement implémentée si :
 6. la disparition de la prime d'activité est compensée avec une différence inférieure ou égale à 1 M€ dans le registre par une baisse des prélèvements sur le travail ;
 7. le parcours doctrinal de référence, défini par les 18 options `adopt` ci-dessus, atteint exactement 38 500 M€ de `runRateMillions` au checkpoint final dérivé, après application des verrous et des échéances ; ses coûts ponctuels ont bien affecté la trajectoire ;
 8. aucune combinaison compatible de ces seules 18 options ne dépasse 38 500 M€ ; ce plafond ne s'applique pas aux autres dossiers du catalogue ;
-9. trois constantes de build regroupées dans `BALANCED_PATHS` documentent `doctrine-38500`, `redressement-prudent` et `reformes-structurelles`, chacun avec une option par dossier publié ; un test de simulation complet prouve que chacun atteint un solde annuel nul ou positif au checkpoint final dérivé, sans énumérer les combinaisons possibles ;
+9. trois constantes de build regroupées dans `BALANCED_PATHS` documentent `doctrine-38500`, `redressement-prudent` et `reformes-structurelles`, chacun avec une option par dossier publié et une réponse nommée à chaque crise déclenchée ; un test de simulation complet résout ces crises jusqu'au verdict et prouve que chacun atteint un solde annuel nul ou positif au checkpoint final dérivé, sans énumérer les combinaisons possibles ;
 10. les coûts de transition sont appliqués une seule fois et restent présents après sauvegarde et restauration ;
 11. les flux annuels persistent à partir de leur date d'entrée en vigueur ;
 12. les recettes ponctuelles disparaissent du rythme annuel suivant ;
@@ -479,7 +479,7 @@ La conception est correctement implémentée si :
 18. aucune carte de décision n'affiche de pilule d'opinion, confiance, marchés, groupes ou autre impact non budgétaire avant le choix ;
 19. aucun texte visible n'emploie de cadratin ;
 20. un test navigateur à 390 par 844 vérifie pour les phases critiques que `scrollWidth` ne dépasse pas `clientWidth`.
-21. le dossier `engager-six-epr2-part-annuelle-de-l` présente exactement deux options, `engager-six` et `ne-pas-engager`, sans troisième variante ni texte visible contenant un cadratin.
+21. le dossier `engager-six-epr2-part-annuelle-de-l` présente exactement deux options internes, `adopt` et `keep`. Ses libellés visibles sont respectivement `Engager six EPR2` et `Ne pas engager de nouvel EPR2`; il n'existe aucune troisième variante ni texte visible contenant un cadratin.
 
 ## 12. Sources institutionnelles de cadrage
 

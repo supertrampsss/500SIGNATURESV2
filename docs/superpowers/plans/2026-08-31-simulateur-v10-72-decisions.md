@@ -13,7 +13,7 @@
 - `SCENARIO_V10.version` vaut `10` et `SCHEMA_VERSION` vaut `5`; `SCENARIO_V9` reste disponible en lecture.
 - La bibliothèque contient exactement 96 `Decision` uniques et 192 options; V10 contient exactement 72 décisions et 144 options, longueur figée au build.
 - La topologie a huit chapitres, un noyau ordonné de 60 identifiants et exactement 12 promotions `promoted`; les décisions verrouillées restent journalisées mais ne rendent pas de carte, d'où environ 62 à 68 cartes affichées selon le parcours.
-- Toute option a exactement deux alternatives réelles. `engager-six-epr2-part-annuelle-de-l` expose seulement `engager-six` et `ne-pas-engager`.
+- Toute option a exactement deux alternatives réelles, avec les identifiants internes uniformes `adopt` et `keep`. Pour EPR2, ces identifiants portent les libellés visibles `Engager six EPR2` et `Ne pas engager de nouvel EPR2`.
 - Aucun texte rendu ne contient `—`; aucune carte ne montre opinion, confiance, marchés ou groupes avant le choix.
 - Aucun flux non nul n'est accepté sans entrée de registre, source primaire, assiette, millésime, nature, calcul brut, décote comportementale, coût récurrent et clé de périmètre exclusive.
 - `unifier-ir-csg-bareme-continu` est neutre; la prime d'activité est recyclée à plus ou moins 1 M€; aucune flat tax fictive à 150 000 M€ n'existe.
@@ -29,7 +29,7 @@
 |---|---|
 | `site/src/simulateur-v3/types.ts` | Contrats de profil, état, schéma 5 et écritures causales de flux. |
 | `site/src/simulateur-v3/budget-registry.ts` | Registre typé, jointure `decisionId:optionId:estimateKey` et contrôle des périmètres exclusifs. |
-| `site/src/simulateur-v3/policy-catalogue.ts` et `policies/*.ts` | Compilation des options réelles à deux choix à partir du profil V10. |
+| `site/src/simulateur-v3/policy-catalogue.ts`, `policy-consequences.ts` et `policies/*.ts` | Compilation des options réelles à deux choix à partir du profil V10, sans ancien contrat budgétaire. |
 | `site/src/simulateur-v3/campaign-topology.ts` et `promotion-report.ts` | Noyau, promotions, rapport figé, longueur 72 et checkpoints dérivés. |
 | `site/src/simulateur-v3/effects.ts`, `timeline.ts`, `flow.ts`, `validation.ts` | Planification, matérialisation et annulation sûre des flux. |
 | `site/src/simulateur-v3/scenario-v9.ts`, `scenario-v10.ts`, `scenario-resolver.ts`, `storage.ts` | Résolution par version et migration v4 vers v5 sans rejouer le passé. |
@@ -44,11 +44,13 @@
 - Create: `site/src/simulateur-v3/budget-registry.test.ts`
 - Modify: `site/src/simulateur-v3/types.ts`
 - Modify: `site/src/simulateur-v3/policy-catalogue.ts`
+- Modify: `site/src/simulateur-v3/policy-consequences.ts`
 - Modify: `site/src/simulateur-v3/validation.ts`
 - Test: `site/src/simulateur-v3/types.test.ts`
+- Test: `site/src/simulateur-v3/policy-consequences.test.ts`
 
 **Interfaces:**
-- Produces `BudgetProfile`, `BudgetEstimate`, `validateBudgetProfile(profile, decisionId, optionId): string[]`, `budgetEstimateFor(decisionId, optionId, estimateKey): BudgetEstimate` and `findExclusiveScopeCollisions(profiles): string[]`.
+- Produces `BudgetProfile`, `BudgetEstimate`, `validateBudgetProfile(profile, decisionId, optionId): string[]`, `budgetEstimateFor(decisionId, optionId, estimateKey): BudgetEstimate`, `primeActivityRecycleDifferenceMillions(): number` and `findExclusiveScopeCollisions(profiles): string[]`.
 - Consumes `EffectTiming`, `DecisionOption` and `PolicyOptionDefinition` from the current simulator contract.
 
 - [ ] **Step 1: Write failing tests for a valid typed estimate, an absent estimate, a duplicate scope and a null keep profile.**
@@ -57,6 +59,8 @@
 assert.deepEqual(validateBudgetProfile({ estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] }, "d", "keep"), []);
 assert.throws(() => budgetEstimateFor("d", "adopt", "missing"), /Unknown budget estimate/);
 assert.deepEqual(findExclusiveScopeCollisions([profile("scope-a"), profile("scope-a")]), ["scope-a"]);
+assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
+assert.doesNotMatch(readFileSync(new URL("./policy-consequences.ts", import.meta.url), "utf8"), /budgetDuration|budgetTiming|annualBalance/);
 ```
 
 - [ ] **Step 2: Run the red test.**
@@ -74,18 +78,18 @@ export type BudgetProfile = { estimateKey: string | null; runRateMillions: numbe
 export type BudgetEstimate = { key: string; baseYear: number; baseAmountMillions: number; baseNature: "realise" | "prevision" | "objectif" | "notifie" | "recouvre"; scope: string; grossActionMillions: number; behavioralOffsetMillions: number; recurringOperatingCostMillions: number; runRateMillions: number; transitionFlows: BudgetTransitionFlow[]; sourceKeys: readonly string[]; estimateStatus: "observe" | "ex_ante" | "scenario"; uncertainty: Uncertainty; exclusiveScopeKeys: readonly string[] };
 ```
 
-`validateBudgetProfile` impose une clé et un calendrier pour tout flux non nul, un identifiant ponctuel unique, une échéance dans la campagne, l'égalité `grossActionMillions - behavioralOffsetMillions - recurringOperatingCostMillions === runRateMillions`, et aucune clé pour `keep`. Remplacer dans `PolicyOptionDefinition` les trois champs `budgetDelta`, `budgetDuration`, `budgetTiming` par `budgetProfile`, puis compiler uniquement les effets budgétaires dérivés de ce profil.
+`validateBudgetProfile` impose une clé et un calendrier pour tout flux non nul, un identifiant ponctuel unique, une échéance dans la campagne, l'égalité `grossActionMillions - behavioralOffsetMillions - recurringOperatingCostMillions === runRateMillions`, et aucune clé pour `keep`. Remplacer dans `PolicyOptionDefinition` les trois champs `budgetDelta`, `budgetDuration`, `budgetTiming` par `budgetProfile`, puis compiler uniquement les effets budgétaires dérivés de ce profil. Dans `policy-consequences.ts`, retirer les métadonnées budgétaires héritées, conserver seulement les conséquences non budgétaires et faire vérifier par `policy-consequences.test.ts` que ni `budgetDuration` ni `budgetTiming` ni un delta `annualBalance` ne peut y être déclaré.
 
 - [ ] **Step 4: Run the focused tests and type check.**
 
-Run: `node --experimental-strip-types --test src/simulateur-v3/budget-registry.test.ts src/simulateur-v3/types.test.ts && npx tsc -p tsconfig.type-tests.json --noEmit`
+Run: `node --experimental-strip-types --test src/simulateur-v3/budget-registry.test.ts src/simulateur-v3/types.test.ts src/simulateur-v3/policy-consequences.test.ts && npx tsc -p tsconfig.type-tests.json --noEmit`
 
 Expected: PASS; une clé exclusive réutilisée par deux décisions est refusée.
 
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/types.ts site/src/simulateur-v3/budget-registry.ts site/src/simulateur-v3/budget-registry.test.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/types.test.ts
+git add site/src/simulateur-v3/types.ts site/src/simulateur-v3/budget-registry.ts site/src/simulateur-v3/budget-registry.test.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/policy-consequences.ts site/src/simulateur-v3/policy-consequences.test.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/types.test.ts
 git commit -m "feat: add typed simulator budget registry"
 ```
 
@@ -99,6 +103,8 @@ git commit -m "feat: add typed simulator budget registry"
 - Modify: `site/src/simulateur-v3/policies/state.ts`
 - Modify: `site/src/simulateur-v3/policy-sources.ts`
 - Modify: `site/src/simulateur-v3/policy-catalogue.test.ts`
+- Modify: `site/src/simulateur-v3/scenario.test.ts`
+- Modify: `site/src/simulateur-v3/campaign.test.ts`
 - Test: `site/src/simulateur-v3/causal-contract-source.test.ts`
 
 **Interfaces:**
@@ -111,8 +117,15 @@ git commit -m "feat: add typed simulator budget registry"
 assert.equal(SCENARIO_V10_CATALOGUE.decisions.length, 96);
 assert.equal(SCENARIO_V10_CATALOGUE.decisions.flatMap((d) => d.options).length, 192);
 assert.equal(policyById("flat-tax-a-20-des-le-premier"), undefined);
-assert.equal(policyById("engager-six-epr2-part-annuelle-de-l")!.options.length, 2);
+assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.id), ["adopt", "keep"]);
+assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.label), ["Engager six EPR2", "Ne pas engager de nouvel EPR2"]);
 assert.equal(policyById("relever-tva-restauration-commerciale")!.chapterId, "taxes-assets-transmission");
+assert.equal(policyById("unifier-ir-csg-bareme-continu")!.options.find((option) => option.id === "adopt")!.budgetProfile.runRateMillions, 0);
+assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
+assert.deepEqual(findExclusiveScopeCollisions([
+  policyById("perenniser-surtaxe-grandes-entreprises")!.options[0]!.budgetProfile,
+  policyById("relever-tva-restauration-commerciale")!.options[0]!.budgetProfile,
+]), []);
 ```
 
 - [ ] **Step 2: Run the red tests.**
@@ -132,18 +145,18 @@ Define the two added promotions with IDs, source keys and scopes exactly as foll
 "relever-tva-restauration-commerciale": { estimateKey: "commercial-restaurant-vat-net", exclusiveScopeKeys: ["commercial-restaurant-vat-10"], sourceKeys: ["bofip-tva-restauration-2024", "evm-2026-tva-restauration"] },
 ```
 
-The former estimate has `grossActionMillions: 7_300`; the latter has `grossActionMillions: 2_275` and a strictly lower net run rate. Register the 18 structural adopt estimates, including their source keys, scope, base year, gross, behavior, operating cost, timing and transition flows. Give every `keep` option the null profile. Delete the `fourteen` EPR2 alternative; rename the remaining IDs `engager-six` and `ne-pas-engager`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
+The former estimate has `grossActionMillions: 7_300`; the latter has `grossActionMillions: 2_275` and a strictly lower net run rate. Register the 18 structural adopt estimates, including their source keys, scope, base year, gross, behavior, operating cost, timing and transition flows. Give every `keep` option the null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
 
 - [ ] **Step 4: Run catalogue and source tests.**
 
-Run: `node --experimental-strip-types --test src/simulateur-v3/policy-catalogue.test.ts src/simulateur-v3/causal-contract-source.test.ts`
+Run: `node --experimental-strip-types --test src/simulateur-v3/policy-catalogue.test.ts src/simulateur-v3/causal-contract-source.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/campaign.test.ts`
 
-Expected: PASS; 96 decisions, 192 options, no flat-tax decision, no 150 000 M€ fiscal effect and exactly two EPR2 options.
+Expected: PASS; 96 decisions, 192 options, no flat-tax decision, no 150 000 M€ fiscal effect, EPR2 IDs `adopt`/`keep`, neutral IR-CSG, prime d'activité recycled within 1 M€ and no surtax/TVA scope collision.
 
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/policies site/src/simulateur-v3/policy-sources.ts site/src/simulateur-v3/policy-catalogue.test.ts site/src/simulateur-v3/causal-contract-source.test.ts
+git add site/src/simulateur-v3/policies site/src/simulateur-v3/policy-sources.ts site/src/simulateur-v3/policy-catalogue.test.ts site/src/simulateur-v3/causal-contract-source.test.ts site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/campaign.test.ts
 git commit -m "feat: rebuild v10 policy catalogue"
 ```
 
@@ -155,6 +168,8 @@ git commit -m "feat: rebuild v10 policy catalogue"
 - Create: `site/src/simulateur-v3/promotion-report.test.ts`
 - Modify: `site/src/simulateur-v3/campaign-topology.test.ts`
 - Modify: `site/src/simulateur-v3/scenario.ts`
+- Modify: `site/src/simulateur-v3/scenario.test.ts`
+- Modify: `site/src/simulateur-v3/campaign.test.ts`
 
 **Interfaces:**
 - Produces `CAMPAIGN_CHAPTERS`, `CAMPAIGN_DECISION_IDS`, `campaignLength`, `PROMOTION_REPORT`, `validatePublishedCampaign()` and `decisionCountAtMandateYearEnd()` inputs derived from the sole topology.
@@ -183,12 +198,11 @@ Declare eight chapter arrays with the exact 60 core IDs from spec section 6.3. I
 
 ```ts
 export type PromotionEvidence = { proof: string; score: 8 | 9 | 10; status: "promoted" | "rejected"; rejectionReason: null | string };
-export const CAMPAIGN_CHAPTERS: readonly { chapterId: string; decisionIds: readonly string[] }[] = /* eight frozen lists */;
 export const CAMPAIGN_DECISION_IDS = CAMPAIGN_CHAPTERS.flatMap((chapter) => chapter.decisionIds);
 export const campaignLength = CAMPAIGN_DECISION_IDS.length;
 ```
 
-`validatePublishedCampaign` requires eight nonempty unique chapters, 60 ordered core IDs, 12 promoted candidates, 72 known unique IDs, chapter membership, five derived checkpoints and no unpublished references in locks or crises. It must not offer a variable-length fallback.
+Write `CAMPAIGN_CHAPTERS` literally as the eight ordered chapter lists in spec section 6.3, then insert the 12 candidates listed above after their anchors. Freeze each `decisionIds` list and the enclosing array. `validatePublishedCampaign` requires eight nonempty unique chapters, 60 ordered core IDs, 12 promoted candidates, 72 known unique IDs, chapter membership, five derived checkpoints and no unpublished references in locks or crises. It must not offer a variable-length fallback. Add scenario and campaign assertions that the resolved V10 catalogue has 96 decisions and 192 options, while its published scenario has 72 decisions and 144 options.
 
 - [ ] **Step 4: Run topology tests.**
 
@@ -199,7 +213,7 @@ Expected: PASS; the fifth checkpoint is 72 and final-decision event, promise and
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/campaign-topology.ts site/src/simulateur-v3/campaign-topology.test.ts site/src/simulateur-v3/promotion-report.ts site/src/simulateur-v3/promotion-report.test.ts site/src/simulateur-v3/scenario.ts
+git add site/src/simulateur-v3/campaign-topology.ts site/src/simulateur-v3/campaign-topology.test.ts site/src/simulateur-v3/promotion-report.ts site/src/simulateur-v3/promotion-report.test.ts site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/campaign.test.ts
 git commit -m "feat: publish fixed 72-decision topology"
 ```
 
@@ -261,8 +275,10 @@ git commit -m "feat: schedule and reverse budget profiles"
 - Modify: `site/src/simulateur-v3/storage.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.ts`
 - Modify: `site/src/simulateur-v3/crises.ts`
+- Modify: `site/src/main.ts`
 - Modify: `site/src/simulateur-v3/storage.test.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.test.ts`
+- Modify: `site/src/interface.test.ts`
 
 **Interfaces:**
 - Produces `scenarioForVersion(version): Scenario | null`, `migrateV4ToV5(value): CampaignState | null` and `hasReplacedReference(state): boolean`.
@@ -276,6 +292,7 @@ assert.equal(scenarioForVersion(10), SCENARIO_V10);
 assert.equal(restoreCampaign(storageWithV4Unchanged, SCENARIO_V10).kind, "restored");
 assert.equal(restoreCampaign(storageWithReplacedFlatTax, SCENARIO_V10).kind, "restart_required");
 assert.equal(SCENARIO_V10_CRISIS_RULES.flatMap((rule) => rule.concessions).filter((x) => x.targetDecisionId === "unifier-ir-csg-bareme-continu").length, 1);
+assert.match(readFileSync(new URL("./main.ts", import.meta.url), "utf8"), /scenarioForVersion\(10\)[\s\S]*mountSimulatorV3\(/);
 ```
 
 - [ ] **Step 2: Run the red tests.**
@@ -286,18 +303,18 @@ Expected: FAIL because current storage accepts only schema 4 and crises referenc
 
 - [ ] **Step 3: Implement versioned resolution and explicit migration.**
 
-Move the existing scenario 9 objects unchanged to `scenario-v9.ts`; construct V10 in `scenario-v10.ts`; make all current callers resolve instead of silently importing a mutable current scenario. `migrateV4ToV5` creates simple profiles only when `decisionId`, `optionId`, meaning and scope are unchanged. For any replaced ID found in decisions, locks, queued events, promises, crisis state or causal ledger, return `restart_required` while preserving the serialized save. Replace the flat-tax crisis with two executable answers: keep `unifier-ir-csg-bareme-continu`, or reverse it through Task 4 and retain separate levies with sourced transition costs. Audit the state-reform crisis so each rule has two applicable causes and two applicable answers, all published in V10.
+Move the existing scenario 9 objects unchanged to `scenario-v9.ts`; construct V10 in `scenario-v10.ts`; make all current callers resolve instead of silently importing a mutable current scenario. In `main.ts`, replace the V3 preview import at the simulator mount with `const scenario = scenarioForVersion(10); if (!scenario) throw new Error("Scenario V10 unavailable"); mountSimulatorV3(hoteV3, scenario, ...)`. `interface.test.ts` must read the mounted branch and prove that this resolver call precedes `mountSimulatorV3`, so an application build cannot accidentally mount V9. `migrateV4ToV5` creates simple profiles only when `decisionId`, `optionId`, meaning and scope are unchanged. For any replaced ID found in decisions, locks, queued events, promises, crisis state or causal ledger, return `restart_required` while preserving the serialized save. Replace the flat-tax crisis with two executable answers: keep `unifier-ir-csg-bareme-continu`, or reverse it through Task 4 and retain separate levies with sourced transition costs. Audit the state-reform crisis so each rule has two applicable causes and two applicable answers, all published in V10.
 
 - [ ] **Step 4: Run restore and crisis tests.**
 
-Run: `node --experimental-strip-types --test src/simulateur-v3/storage.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/scenario-crises.test.ts src/simulateur-v3/crises.test.ts`
+Run: `node --experimental-strip-types --test src/simulateur-v3/storage.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/scenario-crises.test.ts src/simulateur-v3/crises.test.ts src/interface.test.ts`
 
 Expected: PASS; V9 remains renderable, V10 never reinterprets a replaced decision and reverse clears only future consequences.
 
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/scenario-v9.ts site/src/simulateur-v3/scenario-v10.ts site/src/simulateur-v3/scenario-resolver.ts site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/scenario-crises.test.ts
+git add site/src/simulateur-v3/scenario-v9.ts site/src/simulateur-v3/scenario-v10.ts site/src/simulateur-v3/scenario-resolver.ts site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/main.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/scenario-crises.test.ts site/src/interface.test.ts
 git commit -m "feat: migrate simulator saves to scenario v10"
 ```
 
@@ -310,7 +327,7 @@ git commit -m "feat: migrate simulator saves to scenario v10"
 - Modify: `site/src/simulateur-v3/verdict.test.ts`
 
 **Interfaces:**
-- Produces `BALANCED_PATHS`, `simulatePath(path, scenario)` and `maximumCompatibleRunRate(scenario): number`.
+- Produces `type BalancedPathFixture = Readonly<{ id: "doctrine-38500" | "redressement-prudent" | "reformes-structurelles"; optionIds: readonly \`${string}:${"adopt" | "keep"}\`[]; crisisChoiceIds: readonly \`${string}:${string}\`[] }>;`, `BALANCED_PATHS`, `simulatePath(path, scenario)` and `maximumCompatibleRunRate(scenario): number`.
 - Consumes fixed `CAMPAIGN_DECISION_IDS`, Task 1 registry and Task 4 engine.
 
 - [ ] **Step 1: Write red path tests.**
@@ -318,9 +335,16 @@ git commit -m "feat: migrate simulator saves to scenario v10"
 ```ts
 assert.deepEqual(BALANCED_PATHS.map((path) => path.id), ["doctrine-38500", "redressement-prudent", "reformes-structurelles"]);
 for (const path of BALANCED_PATHS) assert.equal(path.optionIds.length, 72);
-assert.equal(simulatePath(BALANCED_PATHS[0]!, SCENARIO_V10).indicators.annualBalance >= 0, true);
+for (const path of BALANCED_PATHS) {
+  const result = simulatePath(path, SCENARIO_V10);
+  assert.equal(result.phase, "verdict");
+  assert.equal(result.indicators.annualBalance >= 0, true);
+  assert.deepEqual(result.crisisHistory.map((crisis) => `${crisis.ruleId}:${crisis.resolvedBy}`), path.crisisChoiceIds);
+}
 assert.equal(structuralRunRate(BALANCED_PATHS[0]!), 38_500);
+assert.equal(maximumCompatibleRunRate(SCENARIO_V10) >= 175_000, true);
 assert.equal(maximumCompatibleRunRate(SCENARIO_V10) <= 185_000, true);
+assert.equal(maximumCompatibleProvenance(SCENARIO_V10).every((estimate) => BUDGET_ESTIMATES[estimate.key] === estimate), true);
 ```
 
 - [ ] **Step 2: Run the red tests.**
@@ -331,13 +355,13 @@ Expected: FAIL because no full compatible paths or registry-based optimizer exis
 
 - [ ] **Step 3: Define and validate the three paths.**
 
-Store every path as 72 fully qualified `decisionId:optionId` strings in topology order. `simulatePath` must drive `selectOption`, `confirmSelection` and `advanceCampaign` rather than sum cards. Reject a path with an unknown ID, duplicate decision, missing decision, locked option or collision. `maximumCompatibleRunRate` searches only registered `runRateMillions`, checks exclusive keys and locks, and returns a documented value in the interval 175 000 to 185 000; do not insert any synthetic offset to make that interval pass.
+Store every path as one `BalancedPathFixture`: 72 fully qualified `decisionId:adopt` or `decisionId:keep` strings in topology order, plus one `crisisRuleId:choiceId` entry for every crisis the path triggers. `simulatePath` must drive `selectOption`, `confirmSelection`, `advanceCampaign` and the named crisis concession rather than sum cards; it may reach `verdict` only after consuming all triggered crises in `crisisChoiceIds`. Reject a fixture with an unknown ID, duplicate decision, missing decision, locked option, unresolved crisis or collision. `maximumCompatibleRunRate` searches only registered `runRateMillions`, checks exclusive keys and locks, returns a documented value in the interval 175 000 to 185 000, and exposes `maximumCompatibleProvenance` containing exactly the registry estimates used; do not insert any synthetic offset to make that interval pass.
 
 - [ ] **Step 4: Run full path tests.**
 
 Run: `node --experimental-strip-types --test src/simulateur-v3/balanced-paths.test.ts src/simulateur-v3/campaign-e2e.test.ts src/simulateur-v3/verdict.test.ts`
 
-Expected: PASS; each path has 72 journal records, five councils, one verdict and a nonnegative final annual balance.
+Expected: PASS; each path has 72 journal records, five councils, every triggered crisis resolved according to its fixture, one verdict and a nonnegative final annual balance.
 
 - [ ] **Step 5: Commit.**
 
@@ -354,7 +378,12 @@ git commit -m "test: prove balanced v10 decision paths"
 - Modify: `site/src/simulateur-v3/render.test.ts`
 - Modify: `site/src/simulateur-v3/presentation.test.ts`
 - Modify: `site/src/style.css`
+- Modify: `site/src/main.ts`
+- Modify: `site/src/simulateur-v3/controller.ts`
+- Create: `site/src/simulateur-v3/mobile-fixtures.ts`
+- Create: `site/src/simulateur-v3/mobile-fixtures.test.ts`
 - Create: `site/tests/simulateur-v10-mobile.test.mjs`
+- Create: `site/playwright.mobile390.config.ts`
 - Modify: `site/package.json`
 
 **Interfaces:**
@@ -370,11 +399,14 @@ assert.doesNotMatch(renderSimulatorV3(active, SCENARIO_V10), /—/);
 ```
 
 ```js
-for (const phase of ["decision", "decision_result", "council", "crisis", "verdict"]) {
+import { test, expect } from "@playwright/test";
+const phases = ["decision", "decision_result", "council", "crisis", "verdict"];
+for (const phase of phases) test(`V10 ${phase} at 390`, async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`${serverUrl}/simulateur?phase=${phase}`);
-  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true);
-}
+  await page.goto(`/simulateur?e2e-phase=${phase}`);
+  await expect(page.locator("#simulateur-v3")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
 ```
 
 - [ ] **Step 2: Run the red tests.**
@@ -385,7 +417,9 @@ Expected: FAIL because the mobile script and dynamic V10 presentation do not exi
 
 - [ ] **Step 3: Implement output that derives solely from scenario state.**
 
-Add `test:mobile390` using `@playwright/test`. Render annual run-rate labels as `+N milliards d'euros par an`, `-N millions d'euros par an` or `Solde public inchangé`; put transition costs only in analysis and trajectory. Filter `superseded` decisions before card rendering while preserving automatic journal records and progress at 72. Remove EPR2 third-choice layout and any pre-choice non-budget pill. Add wrapping, minimum-width and overflow rules needed for the five phases at 390 x 844; do not hide body overflow to mask a layout fault.
+Add `@playwright/test` to `devDependencies`, `test:mobile390:server` as `vite --mode test --host 127.0.0.1 --port 4175 --strictPort`, and `test:mobile390` as `playwright test --config playwright.mobile390.config.ts`. Set `site/playwright.mobile390.config.ts` to `testDir: "./tests"`, `testMatch: "simulateur-v10-mobile.test.mjs"`, `use: { baseURL: "http://127.0.0.1:4175" }`, and `webServer: { command: "npm run test:mobile390:server", url: "http://127.0.0.1:4175/simulateur", reuseExistingServer: false, timeout: 120_000 }`.
+
+Create `stateForE2ePhase(phase, scenario): CampaignState` in `mobile-fixtures.ts` for exactly `decision`, `decision_result`, `council`, `crisis` and `verdict`, each obtained through the real campaign reducer and a V10 fixture. In `main.ts`, only when `import.meta.env.MODE === "test"`, read `e2e-phase` and pass that state as `initialState` to `mountSimulatorV3`; extend the controller options to accept that validated state. This makes every browser URL above mount the requested real phase rather than a cosmetic data attribute. Render annual run-rate labels as `+N milliards d'euros par an`, `-N millions d'euros par an` or `Solde public inchangé`; put transition costs only in analysis and trajectory. Filter `superseded` decisions before card rendering while preserving automatic journal records and progress at 72. Remove EPR2 third-choice layout and any pre-choice non-budget pill. Add wrapping, minimum-width and overflow rules needed for the five phases at 390 x 844; do not hide body overflow to mask a layout fault.
 
 - [ ] **Step 4: Run visual and content tests.**
 
@@ -396,7 +430,7 @@ Expected: PASS; all five phases satisfy `scrollWidth <= clientWidth` and the vis
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/render.ts site/src/simulateur-v3/presentation.ts site/src/simulateur-v3/render.test.ts site/src/simulateur-v3/presentation.test.ts site/src/style.css site/tests/simulateur-v10-mobile.test.mjs site/package.json site/package-lock.json
+git add site/src/simulateur-v3/render.ts site/src/simulateur-v3/presentation.ts site/src/simulateur-v3/render.test.ts site/src/simulateur-v3/presentation.test.ts site/src/simulateur-v3/controller.ts site/src/simulateur-v3/mobile-fixtures.ts site/src/simulateur-v3/mobile-fixtures.test.ts site/src/main.ts site/src/style.css site/tests/simulateur-v10-mobile.test.mjs site/playwright.mobile390.config.ts site/package.json site/package-lock.json
 git commit -m "feat: render fixed v10 campaign on mobile"
 ```
 
