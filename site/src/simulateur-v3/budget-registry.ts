@@ -3,6 +3,8 @@ import type { BudgetEstimate, BudgetProfile, BudgetTransitionFlow, EffectTiming,
 const PRIME_ACTIVITY_DECISION_ID = "remplacer-prime-activite-prelevements-travail";
 const PRIME_ACTIVITY_OPTION_ID = "adopt";
 const PRIME_ACTIVITY_ESTIMATE_KEY = "prime-activity-recycle-2024";
+const PRIME_ACTIVITY_OUTGOING_MILLIONS = 10_300;
+const PRIME_ACTIVITY_WORK_LEVY_REDUCTION_MILLIONS = 10_300;
 
 function registryId(decisionId: string, optionId: string, estimateKey: string): string {
   return `${decisionId}:${optionId}:${estimateKey}`;
@@ -11,12 +13,15 @@ function registryId(decisionId: string, optionId: string, estimateKey: string): 
 const PRIME_ACTIVITY_RECYCLE: BudgetEstimate = {
   key: PRIME_ACTIVITY_ESTIMATE_KEY,
   baseYear: 2024,
-  baseAmountMillions: 10_300,
+  baseAmountMillions: PRIME_ACTIVITY_OUTGOING_MILLIONS,
   baseNature: "realise",
   scope: "Dépenses de prime d'activité 2024 intégralement recyclées en baisse des prélèvements sur les premiers revenus du travail.",
-  grossActionMillions: 10_300,
+  // This entry documents a neutral recycling operation. The outgoing benefit
+  // envelope and the matching levy reduction stay outside the operating-cost
+  // equation so the registry does not invent a recurring expense.
+  grossActionMillions: 0,
   behavioralOffsetMillions: 0,
-  recurringOperatingCostMillions: 10_300,
+  recurringOperatingCostMillions: 0,
   runRateMillions: 0,
   transitionFlows: [],
   sourceKeys: ["cnaf-prime-activite-2024"],
@@ -76,23 +81,23 @@ export function validateBudgetProfile(profile: BudgetProfile, decisionId: string
   if (!profile || typeof profile !== "object") return [`${prefix}:required`];
   if (!isFiniteNumber(profile.runRateMillions)) errors.push(`${prefix}:run-rate-must-be-finite`);
   if (profile.estimateKey !== null && !isNonEmptyString(profile.estimateKey)) errors.push(`${prefix}:estimate-key-invalid`);
-  if (!Array.isArray(profile.transitionFlows) || !profile.transitionFlows.every(isTransitionFlow)) errors.push(`${prefix}:transition-flows-invalid`);
-  if (!Array.isArray(profile.exclusiveScopeKeys) || !profile.exclusiveScopeKeys.every(isNonEmptyString)) errors.push(`${prefix}:exclusive-scope-keys-invalid`);
-  if (Array.isArray(profile.exclusiveScopeKeys) && new Set(profile.exclusiveScopeKeys).size !== profile.exclusiveScopeKeys.length) {
+  const transitionFlows = Array.isArray(profile.transitionFlows) ? profile.transitionFlows : [];
+  const exclusiveScopeKeys = Array.isArray(profile.exclusiveScopeKeys) ? profile.exclusiveScopeKeys : [];
+  if (!Array.isArray(profile.transitionFlows) || !transitionFlows.every(isTransitionFlow)) errors.push(`${prefix}:transition-flows-invalid`);
+  if (!Array.isArray(profile.exclusiveScopeKeys) || !exclusiveScopeKeys.every(isNonEmptyString)) errors.push(`${prefix}:exclusive-scope-keys-invalid`);
+  if (new Set(exclusiveScopeKeys).size !== exclusiveScopeKeys.length) {
     errors.push(`${prefix}:duplicate-exclusive-scope-key`);
   }
-  if (Array.isArray(profile.transitionFlows)) {
-    const ids = profile.transitionFlows.map((flow) => flow.id);
-    if (ids.length !== new Set(ids).size) errors.push(`${prefix}:duplicate-transition-flow-id`);
-  }
-  const hasBudgetFlow = profile.runRateMillions !== 0 || (Array.isArray(profile.transitionFlows) && profile.transitionFlows.length > 0);
+  const ids = transitionFlows.filter(isTransitionFlow).map((flow) => flow.id);
+  if (ids.length !== new Set(ids).size) errors.push(`${prefix}:duplicate-transition-flow-id`);
+  const hasBudgetFlow = profile.runRateMillions !== 0 || transitionFlows.length > 0;
   if (hasBudgetFlow && !isNonEmptyString(profile.estimateKey)) errors.push(`${prefix}:estimate-key-required`);
   if (profile.runRateMillions === 0 ? profile.runRateTiming !== null : !isRunRateTiming(profile.runRateTiming)) {
     errors.push(`${prefix}:run-rate-timing-invalid`);
   }
   if (optionId === "keep") {
     if (profile.estimateKey !== null || profile.runRateMillions !== 0 || profile.runRateTiming !== null
-        || profile.transitionFlows.length !== 0 || profile.exclusiveScopeKeys.length !== 0) {
+        || transitionFlows.length !== 0 || exclusiveScopeKeys.length !== 0) {
       errors.push(`${prefix}:keep-must-be-null-profile`);
     }
   }
@@ -127,7 +132,5 @@ export function findExclusiveScopeCollisions(profiles: readonly BudgetProfile[])
 }
 
 export function primeActivityRecycleDifferenceMillions(): number {
-  return PRIME_ACTIVITY_RECYCLE.grossActionMillions
-    - PRIME_ACTIVITY_RECYCLE.recurringOperatingCostMillions
-    - PRIME_ACTIVITY_RECYCLE.runRateMillions;
+  return PRIME_ACTIVITY_OUTGOING_MILLIONS - PRIME_ACTIVITY_WORK_LEVY_REDUCTION_MILLIONS;
 }

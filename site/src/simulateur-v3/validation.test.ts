@@ -67,6 +67,47 @@ test("V10 refuse un chiffrage non enregistré et une collision de périmètre", 
   assert.ok(errors.includes("scenario:exclusive-scope-collision:shared-scope"));
 });
 
+test("V10 refuse une clé legacy même pour un profil budgétairement neutre", () => {
+  const scenario = validScenario();
+  scenario.version = 10;
+  for (const decision of scenario.decisions) {
+    decision.options[0]!.id = `${decision.id}:adopt`;
+    decision.options[1]!.id = `${decision.id}:keep`;
+  }
+  scenario.decisions[0]!.options[0]!.budgetProfile = {
+    estimateKey: "legacy:decision-1:adopt",
+    runRateMillions: 0,
+    runRateTiming: null,
+    transitionFlows: [],
+    exclusiveScopeKeys: [],
+  };
+
+  assert.ok(validateScenario(scenario).includes("option:decision-1:adopt:legacy-budget-estimate-forbidden"));
+});
+
+test("V10 compare les flux de transition par identifiant, montant, échéance et durée", () => {
+  const scenario = validScenario();
+  scenario.version = 10;
+  for (const decision of scenario.decisions) {
+    decision.options[0]!.id = `${decision.id}:adopt`;
+    decision.options[1]!.id = `${decision.id}:keep`;
+  }
+  const option = scenario.decisions[0]!.options[0]!;
+  option.budgetProfile = {
+    estimateKey: "unsourced",
+    runRateMillions: 0,
+    runRateTiming: null,
+    transitionFlows: [{ id: "flow-a", amountMillions: -1, timing: { kind: "immediate" }, sourceKey: "source-a" }],
+    exclusiveScopeKeys: [],
+  };
+  option.effects.push({
+    id: "wrong-transition", target: "indicator", key: "annualBalance", delta: -2,
+    timing: { kind: "immediate" }, duration: "once", explanation: "Flux différent.",
+  });
+
+  assert.ok(validateScenario(scenario).includes("option:decision-1:adopt:transition-flow-effect-mismatch"));
+});
+
 test("la validation impose un profil budgétaire, listes nettoyées et contrat budgétaire cohérent", () => {
   const scenario = validScenario();
   scenario.version = 10;

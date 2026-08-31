@@ -4,6 +4,7 @@ import test from "node:test";
 import { optionDistanceDimensions, policyDecision, type PolicyDecisionDefinition } from "./policy-catalogue.ts";
 import { POLICY_CONSEQUENCES } from "./policy-consequences.ts";
 import { policyById, SCENARIO_V3_CATALOGUE } from "./scenario.ts";
+import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
 import type { DecisionOption } from "./types.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
@@ -172,4 +173,36 @@ test("la sortie de l'euro conserve le coût d'intérêt annuel séparé", () => 
   const interest = option.effects.find((effect) => effect.target === "indicator" && effect.key === "interestCost")!;
   assert.equal(interest.delta, 12_000);
   assert.equal(interest.duration, "annual");
+});
+
+const annualBalanceEffects = (decision: { options: DecisionOption[] }) =>
+  decision.options.map((option) => [
+    option.id,
+    option.effects
+      .filter((effect) => effect.target === "indicator" && effect.key === "annualBalance")
+      .map((effect) => ({ delta: effect.delta, duration: effect.duration, timing: effect.timing })),
+  ] as const).sort(([left], [right]) => left.localeCompare(right));
+
+test("le pont V9 préserve exactement les effets de solde du snapshot historique", () => {
+  const currentById = new Map(SCENARIO_V3_CATALOGUE.decisions.map((decision) => [decision.id, decision]));
+  for (const historicalDecision of SCENARIO_V9_SNAPSHOT.decisions) {
+    const current = currentById.get(historicalDecision.id);
+    assert.ok(current, historicalDecision.id);
+    assert.deepEqual(annualBalanceEffects(current), annualBalanceEffects(historicalDecision), historicalDecision.id);
+  }
+});
+
+test("le pont V9 conserve les cinq flux ponctuels avec leurs échéances exactes", () => {
+  const once = SCENARIO_V3_CATALOGUE.decisions
+    .flatMap((decision) => decision.options)
+    .flatMap((option) => option.effects
+      .filter((effect) => effect.target === "indicator" && effect.key === "annualBalance" && effect.duration === "once")
+      .map((effect) => ({ optionId: option.id, delta: effect.delta, timing: effect.timing })));
+  assert.deepEqual(once, [
+    { optionId: "sortir-de-l-euro:adopt", delta: -35_000, timing: { kind: "immediate" } },
+    { optionId: "referendum-sur-la-sortie-de-l-ue:adopt", delta: -500, timing: { kind: "immediate" } },
+    { optionId: "nationaliser-les-entreprises-strategiques:adopt", delta: -25_000, timing: { kind: "immediate" } },
+    { optionId: "nationaliser-les-autoroutes:adopt", delta: -18_000, timing: { kind: "immediate" } },
+    { optionId: "ceder-des-participations-non-strategiques-de-l:adopt", delta: 2_000, timing: { kind: "immediate" } },
+  ]);
 });

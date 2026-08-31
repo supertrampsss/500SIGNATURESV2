@@ -100,6 +100,43 @@ export type OptionDistanceDimension =
 
 const MEASURES_BY_ID = new Map(MESURES.map((measure) => [measure.id, measure]));
 type Stakeholders = { beneficiaries: string[]; contributors: string[] };
+type LegacyBudgetSchedule = { duration: "annual" | "once"; timing: EffectRule["timing"] };
+
+const legacyImmediate = { kind: "immediate" } as const;
+const legacyAfter = (count: number): EffectRule["timing"] => ({ kind: "after_decisions", count });
+const legacyYear = (year: 1 | 2 | 3 | 4 | 5): EffectRule["timing"] => ({ kind: "mandate_year", year });
+
+/** Exact V9 budget scheduling, kept outside public policy contracts and V10 estimates. */
+const LEGACY_V9_BUDGET_SCHEDULES: Readonly<Record<string, LegacyBudgetSchedule>> = {
+  "repousser-l-age-legal-a-65-ans:adopt": { duration: "annual", timing: legacyYear(5) },
+  "revenir-a-62-ans:adopt": { duration: "annual", timing: legacyYear(5) },
+  "durcir-l-assurance-chomage-degressivite-duree:adopt": { duration: "annual", timing: legacyYear(2) },
+  "retablir-la-semaine-de-39-heures:adopt": { duration: "annual", timing: legacyYear(2) },
+  "allocation-sociale-unique:adopt": { duration: "annual", timing: legacyYear(3) },
+  "fusionner-agences-sanitaires-et-echelons-des-ars:adopt": { duration: "annual", timing: legacyYear(3) },
+  "assurance-maladie-publique-unique:adopt": { duration: "annual", timing: legacyYear(4) },
+  "etendre-le-dedoublement-des-classes-au-cm1:adopt": { duration: "annual", timing: legacyAfter(3) },
+  "ouvrir-200-000-places-de-creche:adopt": { duration: "annual", timing: legacyAfter(4) },
+  "cheque-education-par-eleve:adopt": { duration: "annual", timing: legacyAfter(3) },
+  "supprimer-le-financement-public-du-prive:adopt": { duration: "annual", timing: legacyAfter(2) },
+  "generaliser-le-service-national-universel:adopt": { duration: "annual", timing: legacyAfter(4) },
+  "autonomie-complete-des-etablissements:adopt": { duration: "annual", timing: legacyAfter(3) },
+  "ne-pas-remplacer-un-depart-administratif-sur:adopt": { duration: "annual", timing: legacyAfter(3) },
+  "fermer-un-tiers-des-agences-et-operateurs:adopt": { duration: "annual", timing: legacyAfter(2) },
+  "diviser-par-deux-le-nombre-de-parlementaires:adopt": { duration: "annual", timing: legacyYear(5) },
+  "supprimer-le-cese:adopt": { duration: "annual", timing: legacyYear(5) },
+  "reduire-de-5-les-dotations-aux-collectivites:adopt": { duration: "annual", timing: legacyAfter(3) },
+  "regle-d-or-constitutionnelle:adopt": { duration: "annual", timing: legacyAfter(3) },
+  "supprimer-le-senat:adopt": { duration: "annual", timing: legacyYear(5) },
+  "supprimer-les-departements:adopt": { duration: "annual", timing: legacyAfter(3) },
+  "sortir-de-l-euro:adopt": { duration: "once", timing: legacyImmediate },
+  "referendum-sur-la-sortie-de-l-ue:adopt": { duration: "once", timing: legacyImmediate },
+  "nationaliser-les-entreprises-strategiques:adopt": { duration: "once", timing: legacyImmediate },
+  "nationaliser-les-autoroutes:adopt": { duration: "once", timing: legacyImmediate },
+  "ceder-des-participations-non-strategiques-de-l:adopt": { duration: "once", timing: legacyImmediate },
+};
+
+const legacyBudgetSchedules = new WeakMap<PolicyOptionDefinition, LegacyBudgetSchedule>();
 
 /** Explicit editorial contract for the 71 existing-policy `keep` branches. */
 const EXISTING_POLICY_KEEP_STAKEHOLDERS: Record<string, Stakeholders> = {
@@ -234,9 +271,9 @@ function compiledOption(decisionId: string, definition: PolicyOptionDefinition):
       `${decisionId}:${definition.id}:indicator:annualBalance`,
       "indicator",
       "annualBalance",
-      { delta: definition.budgetProfile.runRateMillions, duration: "annual" },
+      { delta: definition.budgetProfile.runRateMillions, duration: legacyBudgetSchedules.get(definition)?.duration ?? "annual" },
       `${mechanism} Impact budgétaire retenu par le jeu : ${definition.budgetProfile.runRateMillions} millions d'euros.`,
-      definition.budgetProfile.runRateTiming!,
+      legacyBudgetSchedules.get(definition)?.timing ?? definition.budgetProfile.runRateTiming!,
     ));
   }
   for (const flow of definition.budgetProfile.transitionFlows) {
@@ -302,18 +339,23 @@ function legacyBudgetProfile(
   optionId: string,
   budgetDelta: number,
   horizon: PolicyHorizon,
+  schedule: LegacyBudgetSchedule,
 ): BudgetProfile {
   if (optionId === "keep") {
     return { estimateKey: null, runRateMillions: 0, runRateTiming: null, transitionFlows: [], exclusiveScopeKeys: [] };
   }
-  const runRateTiming = horizon.kind === "mandate_year"
+  const runRateTiming = schedule.timing.kind === "mandate_year"
+    ? { kind: "mandate_year" as const, year: schedule.timing.year }
+    : horizon.kind === "mandate_year"
     ? { kind: "mandate_year" as const, year: horizon.year }
     : { kind: "immediate" as const };
   return {
     estimateKey: `legacy:${decisionId}:${optionId}`,
-    runRateMillions: budgetDelta,
-    runRateTiming: budgetDelta === 0 ? null : runRateTiming,
-    transitionFlows: [],
+    runRateMillions: schedule.duration === "once" ? 0 : budgetDelta,
+    runRateTiming: schedule.duration === "once" || budgetDelta === 0 ? null : runRateTiming,
+    transitionFlows: schedule.duration === "once" && budgetDelta !== 0
+      ? [{ id: `legacy:${decisionId}:${optionId}:transition`, amountMillions: budgetDelta, timing: schedule.timing, sourceKey: `legacy:${decisionId}:${optionId}` }]
+      : [],
     exclusiveScopeKeys: [],
   };
 }
@@ -323,12 +365,13 @@ function consequenceOption(
   draft: LegacyPolicyOptionDraft,
 ): PolicyOptionDefinition {
   const consequence = policyConsequence(decisionId, draft.id);
-  return {
+  const schedule = LEGACY_V9_BUDGET_SCHEDULES[`${decisionId}:${draft.id}`] ?? { duration: "annual", timing: legacyImmediate };
+  const definition: PolicyOptionDefinition = {
     ...draft,
     mechanism: consequence.mechanism,
     horizon: consequence.horizon,
     legalConstraints: consequence.legalConstraints,
-    budgetProfile: legacyBudgetProfile(decisionId, draft.id, draft.budgetDelta, consequence.horizon),
+    budgetProfile: legacyBudgetProfile(decisionId, draft.id, draft.budgetDelta, consequence.horizon, schedule),
     indicatorEffects: consequence.indicatorEffects,
     groupEffects: consequence.groupEffects,
     uncertainty: consequence.uncertainty ?? draft.uncertainty,
@@ -338,6 +381,8 @@ function consequenceOption(
     promises: [],
     fulfillsPromises: [],
   };
+  legacyBudgetSchedules.set(definition, schedule);
+  return definition;
 }
 
 export function policyDecision(definition: PolicyDecisionDefinition): Decision {

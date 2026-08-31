@@ -23,7 +23,7 @@ import {
   mandateYearForChapter,
   validateBaseline,
 } from "./timeline.ts";
-import { budgetEstimateFor, hasBudgetEstimate, validateBudgetProfile } from "./budget-registry.ts";
+import { budgetEstimateFor, hasBudgetEstimate, validateBudgetEstimate, validateBudgetProfile } from "./budget-registry.ts";
 import type { BudgetProfile } from "./types.ts";
 
 const PHASES: readonly CampaignPhase[] = [
@@ -806,7 +806,11 @@ export function validateScenario(
         errors.push(`option:${optionId}:budget-profile-required`);
       } else {
         errors.push(...validateBudgetProfile(profile, decision.id, optionId));
-        budgetProfiles.push({ decisionId: decision.id, optionId, profile });
+        const transitionFlows = Array.isArray(profile.transitionFlows) ? profile.transitionFlows : [];
+        const exclusiveScopeKeys = Array.isArray(profile.exclusiveScopeKeys) ? profile.exclusiveScopeKeys : [];
+        if (Array.isArray(profile.transitionFlows) && Array.isArray(profile.exclusiveScopeKeys)) {
+          budgetProfiles.push({ decisionId: decision.id, optionId, profile });
+        }
         if (profile.runRateTiming?.kind === "mandate_year"
             && decisionYear !== null && profile.runRateTiming.year < decisionYear) {
           errors.push(`option:${optionId}:run-rate-before-decision-year`);
@@ -815,16 +819,24 @@ export function validateScenario(
             && dueAtDecisionForTiming(profile.runRateTiming, positions.get(decision.id), scenario) === undefined) {
           errors.push(`option:${optionId}:run-rate-year-without-checkpoint`);
         }
-        if (scenario.version >= 10 && (profile.runRateMillions !== 0 || profile.transitionFlows.length > 0)) {
-          if (profile.estimateKey === null || !hasBudgetEstimate(decision.id, optionId.split(":").at(-1) ?? optionId, profile.estimateKey)) {
+        const localOptionId = optionId.split(":").at(-1) ?? optionId;
+        const hasRegisteredEstimate = typeof profile.estimateKey === "string"
+          && hasBudgetEstimate(decision.id, localOptionId, profile.estimateKey);
+        if (scenario.version >= 10 && typeof profile.estimateKey === "string" && profile.estimateKey.startsWith("legacy:")) {
+          errors.push(`option:${optionId}:legacy-budget-estimate-forbidden`);
+        }
+        if (scenario.version >= 10 && hasRegisteredEstimate) {
+          const estimate = budgetEstimateFor(decision.id, localOptionId, profile.estimateKey as string);
+          errors.push(...validateBudgetEstimate(estimate));
+          if (estimate.runRateMillions !== profile.runRateMillions
+              || JSON.stringify(estimate.transitionFlows) !== JSON.stringify(transitionFlows)
+              || JSON.stringify(estimate.exclusiveScopeKeys) !== JSON.stringify(exclusiveScopeKeys)) {
+            errors.push(`option:${optionId}:budget-profile-does-not-match-estimate`);
+          }
+        }
+        if (scenario.version >= 10 && (profile.runRateMillions !== 0 || transitionFlows.length > 0)) {
+          if (profile.estimateKey === null || !hasRegisteredEstimate) {
             errors.push(`option:${optionId}:unregistered-budget-estimate`);
-          } else {
-            const estimate = budgetEstimateFor(decision.id, optionId.split(":").at(-1) ?? optionId, profile.estimateKey);
-            if (estimate.runRateMillions !== profile.runRateMillions
-                || JSON.stringify(estimate.transitionFlows) !== JSON.stringify(profile.transitionFlows)
-                || JSON.stringify(estimate.exclusiveScopeKeys) !== JSON.stringify(profile.exclusiveScopeKeys)) {
-              errors.push(`option:${optionId}:budget-profile-does-not-match-estimate`);
-            }
           }
         }
       }
@@ -841,7 +853,24 @@ export function validateScenario(
             || (profile.runRateMillions !== 0 && (annualEffects.length !== 1 || annualEffects[0]!.delta !== profile.runRateMillions))) {
           errors.push(`option:${optionId}:run-rate-effect-mismatch`);
         }
-        if (onceEffects.length !== profile.transitionFlows.length) errors.push(`option:${optionId}:transition-flow-effect-mismatch`);
+        const localOptionId = optionId.split(":").at(-1) ?? optionId;
+        const transitionFlows = Array.isArray(profile.transitionFlows) ? profile.transitionFlows : [];
+        const hasMatchingTransitionEffect = (flow: BudgetProfile["transitionFlows"][number]): boolean => onceEffects.some((effect) => (
+          effect.id === `${decision.id}:${localOptionId}:transition:${flow.id}`
+          && effect.delta === flow.amountMillions
+          && effect.duration === "once"
+          && JSON.stringify(effect.timing) === JSON.stringify(flow.timing)
+        ));
+        if (onceEffects.length !== transitionFlows.length
+            || !transitionFlows.every(hasMatchingTransitionEffect)
+            || !onceEffects.every((effect) => transitionFlows.some((flow) => (
+              effect.id === `${decision.id}:${localOptionId}:transition:${flow.id}`
+              && effect.delta === flow.amountMillions
+              && effect.duration === "once"
+              && JSON.stringify(effect.timing) === JSON.stringify(flow.timing)
+            )))) {
+          errors.push(`option:${optionId}:transition-flow-effect-mismatch`);
+        }
       }
       const minimumDueAtDecision = isRecord(option) && hasValidPolicyHorizon(option.horizon)
         ? dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario)
