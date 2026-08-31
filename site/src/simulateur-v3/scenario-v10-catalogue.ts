@@ -85,6 +85,45 @@ const FINAL_V10_RELATIONSHIPS: Readonly<Record<string, Readonly<{
   },
 };
 
+const LEGACY_V10_RELATIONSHIP_CONTRACTS: Readonly<Record<string, Readonly<{
+  dependencies: readonly string[];
+  conflicts: readonly string[];
+  options: readonly Readonly<{ localId: "adopt" | "keep"; locks: readonly string[]; unlocks: readonly string[] }>[];
+}>>> = {
+  "abolir-les-droits-de-succession": {
+    dependencies: [],
+    conflicts: ["exonerer-de-droits-de-succession-jusqu-a", "raboter-l-avantage-successoral-de-l-assurance"],
+    options: [
+      { localId: "adopt", locks: ["exonerer-de-droits-de-succession-jusqu-a", "raboter-l-avantage-successoral-de-l-assurance"], unlocks: [] },
+      { localId: "keep", locks: [], unlocks: [] },
+    ],
+  },
+  "service-militaire-volontaire-de-50-000": {
+    dependencies: [], conflicts: ["generaliser-le-service-national-universel"],
+    options: [
+      { localId: "adopt", locks: ["generaliser-le-service-national-universel"], unlocks: [] },
+      { localId: "keep", locks: [], unlocks: [] },
+    ],
+  },
+};
+
+function assertLegacyV10RelationshipContract(decision: Decision): void {
+  const expected = LEGACY_V10_RELATIONSHIP_CONTRACTS[decision.id];
+  if (!expected) return;
+  const actual = {
+    dependencies: decision.dependencies,
+    conflicts: decision.conflicts,
+    options: decision.options.map((option) => ({
+      localId: option.id.split(":").at(-1),
+      locks: option.locks,
+      unlocks: option.unlocks,
+    })),
+  };
+  if (JSON.stringify(actual) !== JSON.stringify(expected)) {
+    throw new Error(`legacy-v10-relationship-contract:${decision.id}`);
+  }
+}
+
 function applyFinalV10Relationships(decision: Decision): Decision {
   const final = FINAL_V10_RELATIONSHIPS[decision.id];
   if (!final) return decision;
@@ -101,6 +140,7 @@ function applyFinalV10Relationships(decision: Decision): Decision {
 }
 
 function retainedDecision(source: Decision): Decision {
+  assertLegacyV10RelationshipContract(source);
   const migrated = source.id === "engager-six-epr2-part-annuelle-de-l"
     ? (() => { const six = source.options.find((option) => option.id.endsWith(":six"))!; const none = source.options.find((option) => option.id.endsWith(":none"))!; return { ...structuredClone(source), version: 10 as const, options: [retainedOption(source, six, "adopt", "Engager six EPR2"), retainedOption(source, none, "keep", "Ne pas engager de nouvel EPR2")] }; })()
     : { ...structuredClone(source), version: 10 as const, options: source.options.map((option) => retainedOption(source, option, option.id.split(":").at(-1)! as "adopt" | "keep")) };

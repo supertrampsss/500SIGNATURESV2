@@ -932,6 +932,15 @@ export function validateScenario(
         }
       }
     }
+    const profilesByOptionId = new Map(budgetProfiles.map(({ optionId, profile }) => [optionId, profile]));
+    for (const [optionId, count] of Object.entries(V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS)) {
+      const profile = profilesByOptionId.get(optionId);
+      if (profile?.runRateTiming?.kind !== "after_decisions") {
+        errors.push(`option:${optionId}:run-rate-after-decisions-missing-canonical`);
+      } else if (profile.runRateTiming.count !== count) {
+        errors.push(`option:${optionId}:run-rate-after-decisions-not-canonical`);
+      }
+    }
   }
   for (const id of duplicateValues(materializedDelayedEventIds)) {
     errors.push(`scenario:duplicate-materialized-event-id:${id}`);

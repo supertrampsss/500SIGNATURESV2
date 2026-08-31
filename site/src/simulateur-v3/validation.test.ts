@@ -174,6 +174,14 @@ test("V10 réserve le run-rate after_decisions aux seuls carry-forward V9", () =
   assert.ok(validateScenario(changedTiming).includes(
     "option:cheque-education-par-eleve:adopt:run-rate-after-decisions-not-canonical",
   ));
+
+  const missingTiming = structuredClone(SCENARIO_V10_CATALOGUE);
+  missingTiming.decisions.find((decision) => decision.id === "cheque-education-par-eleve")!
+    .options.find((option) => option.id === "cheque-education-par-eleve:adopt")!
+    .budgetProfile.runRateTiming = { kind: "immediate" };
+  assert.ok(validateScenario(missingTiming).includes(
+    "option:cheque-education-par-eleve:adopt:run-rate-after-decisions-missing-canonical",
+ ));
 });
 
 test("V10 refuse la collision globale de deux flux de transition", () => {

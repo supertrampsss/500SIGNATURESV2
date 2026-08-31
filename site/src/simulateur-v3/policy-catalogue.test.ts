@@ -6,7 +6,7 @@ import { POLICY_CONSEQUENCES } from "./policy-consequences.ts";
 import { policyById, SCENARIO_V3_CATALOGUE } from "./scenario.ts";
 import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
 import { SCENARIO_V10_CATALOGUE, STRUCTURAL_ADOPT_DECISION_IDS, buildV10Catalogue, v10PolicyById } from "./scenario-v10-catalogue.ts";
-import { hasBudgetEstimate, primeActivityRecycleDifferenceMillions, V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS } from "./budget-registry.ts";
+import { hasBudgetEstimate, primeActivityRecycleDifferenceMillions, V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
 import type { DecisionOption } from "./types.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
@@ -143,10 +143,17 @@ test("le catalogue V10 laisse ses flux budgétaires au scheduler, sans effet ann
 });
 
 test("les neuf reports annuels V9 autorisés sont exhaustifs et leurs flux ponctuels sont globaux", () => {
-  const delayed = SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)
-    .filter((option) => option.budgetProfile.runRateTiming?.kind === "after_decisions")
-    .map((option) => option.id);
-  assert.deepEqual(delayed, V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS);
+  const timings = Object.fromEntries(SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)
+    .flatMap((option) => option.budgetProfile.runRateTiming?.kind === "after_decisions"
+      ? [[option.id, option.budgetProfile.runRateTiming.count] as const]
+      : []));
+  assert.deepEqual(Object.keys(timings), V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS);
+  assert.deepEqual(timings, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS);
+  for (const option of SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)) {
+    if (!(option.id in V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS)) {
+      assert.notEqual(option.budgetProfile.runRateTiming?.kind, "after_decisions", option.id);
+    }
+  }
   const flowIds = SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)
     .flatMap((option) => option.budgetProfile.transitionFlows.map((flow) => flow.id));
   assert.equal(new Set(flowIds).size, flowIds.length);
@@ -158,6 +165,25 @@ test("une référence V10 supprimée ne peut pas être gommée pendant la constr
   const decision = source.decisions.find((candidate) => candidate.id === "porter-le-taux-normal-de-tva-a")!;
   decision.options[0]!.locks.push("flat-tax-a-20-des-le-premier");
   assert.throws(() => buildV10Catalogue(source), /lock-unknown-decision:flat-tax-a-20-des-le-premier/);
+});
+
+test("la migration V10 refuse toute dérive du contrat relationnel legacy spécial", () => {
+  const specialIds = ["abolir-les-droits-de-succession", "service-militaire-volontaire-de-50-000"];
+  const mutations: readonly [string, (decision: (typeof SCENARIO_V3_CATALOGUE.decisions)[number]) => void][] = [
+    ["ajoute une dépendance", (decision) => decision.dependencies.push("porter-le-taux-normal-de-tva-a")],
+    ["ajoute un conflit", (decision) => decision.conflicts.push("porter-le-taux-normal-de-tva-a")],
+    ["ajoute un verrou", (decision) => decision.options[0]!.locks.push("porter-le-taux-normal-de-tva-a")],
+    ["ajoute un déverrouillage", (decision) => decision.options[0]!.unlocks.push("porter-le-taux-normal-de-tva-a")],
+    ["modifie un conflit", (decision) => { decision.conflicts[0] = "porter-le-taux-normal-de-tva-a"; }],
+    ["supprime un verrou", (decision) => { decision.options[0]!.locks.pop(); }],
+  ];
+  for (const specialId of specialIds) {
+    for (const [label, mutate] of mutations) {
+      const source = structuredClone(SCENARIO_V3_CATALOGUE);
+      mutate(source.decisions.find((decision) => decision.id === specialId)!);
+      assert.throws(() => buildV10Catalogue(source), new RegExp(`legacy-v10-relationship-contract:${specialId}`), `${specialId}: ${label}`);
+    }
+  }
 });
 
 const VALID: PolicyDecisionDefinition = {
