@@ -17,7 +17,8 @@
 - Unsupported questions receive no generated answer.
 - Ambiguous questions receive no answer until the user selects a canonical question.
 - Raw user questions are never stored in a URL.
-- Every answer references validated analysis, indicator and source IDs.
+- Every answer references validated analysis, indicator and source IDs. Shape validation runs in shared code; referential validation runs at build time against the published registries.
+- Question IDs are unique canonical slugs matching `^[a-z0-9]+(?:-[a-z0-9]+)*$`; no raw ID may reach `path.join()` or history routing before validation.
 - Model-assisted editorial output must use Structured Outputs, be reviewed and be committed before publication.
 - The normal `npm run build` command must work without `OPENAI_API_KEY`.
 - No X integration and no em dash in public copy.
@@ -60,7 +61,7 @@
 ```ts
 test("le corpus initial couvre les neuf analyses longues", () => {
   const corpus = loadQuestionCorpus();
-  assert.deepEqual(new Set(corpus.map(({ analysisId }) => analysisId)), new Set([
+  assert.deepEqual(new Set(corpus.flatMap(({ analyseIds }) => analyseIds)), new Set([
     "championne-du-monde-prelevements-2024",
     "defense-credits-votes-consommes-2025",
     "la-depense-publique-baisse-2024",
@@ -86,8 +87,8 @@ export type QuestionAnswer = {
   shortAnswer: string;
   detailedAnswer: string;
   limits: string;
-  analysisId: string;
-  indicatorIds: string[];
+  analyseIds: string[];
+  indicateurIds: string[];
   sourceIds: string[];
   dataVersion: string;
   reviewedAt: string;
@@ -112,7 +113,7 @@ Use these canonical questions, exactly:
 ]
 ```
 
-Populate answers only from the corresponding analysis verdict, figures and hypotheses. Do not introduce a new number or explanation in the corpus. Each `sourceIds` value must resolve through the published source registry.
+Populate answers only from the corresponding analysis verdict, figures and hypotheses. Do not introduce a new number or explanation in the corpus. `analyseIds` and `indicateurIds` are the canonical field names from the product spec. Every referenced analysis, indicator and source must resolve through the publication registries, and every indicator must be attributable to at least one referenced analysis or source.
 
 - [ ] **Step 4: Implement runtime validation**
 
@@ -120,10 +121,10 @@ Populate answers only from the corresponding analysis verdict, figures and hypot
 export function validateQuestionAnswer(value: unknown): string[] {
   if (!isRecord(value)) return ["entry:not-object"];
   const errors: string[] = [];
-  for (const key of ["id", "canonicalQuestion", "shortAnswer", "detailedAnswer", "limits", "analysisId", "dataVersion", "reviewedAt"]) {
+  for (const key of ["id", "canonicalQuestion", "shortAnswer", "detailedAnswer", "limits", "dataVersion", "reviewedAt"]) {
     if (typeof value[key] !== "string" || !(value[key] as string).trim()) errors.push(`${key}:required`);
   }
-  for (const key of ["variants", "keywords", "indicatorIds", "sourceIds"]) {
+  for (const key of ["variants", "keywords", "analyseIds", "indicateurIds", "sourceIds"]) {
     if (!Array.isArray(value[key]) || !(value[key] as unknown[]).every((item) => typeof item === "string" && item.trim())) {
       errors.push(`${key}:string-array-required`);
     }
@@ -132,7 +133,9 @@ export function validateQuestionAnswer(value: unknown): string[] {
 }
 ```
 
-`loadQuestionCorpus()` throws on duplicate IDs, duplicate normalised aliases, missing source IDs, missing analysis slugs or an em dash.
+`loadQuestionCorpus()` performs deterministic shape validation only. It throws on an invalid slug, duplicate IDs, empty arrays, duplicate normalised canonical questions or aliases, collisions after accent/case normalisation, invalid ISO dates or an em dash. Add tests for blank and punctuation-only aliases.
+
+Add `validateQuestionCorpusReferences(corpus, { analyses, indicators, sources, dataVersion })` to the pre-render build. It checks every `analyseIds`, `indicateurIds` and `sourceIds` value against the actual publication registries and rejects a `reviewedAt` or `dataVersion` inconsistent with the artifacts being published. Browser code consumes only the already validated corpus and never attempts to reconstruct server-side registries.
 
 - [ ] **Step 5: Run and commit**
 
@@ -165,7 +168,7 @@ test("une variante exacte retrouve la réponse canonique", () => {
 test("une paraphrase suffisamment proche retrouve le dossier", () => {
   const result = searchQuestions("est-ce le nucléaire qui explique l'électricité chère allemande", CORPUS);
   assert.equal(result.status, "matched");
-  assert.equal(result.answer?.analysisId, "nucleaire-allemand-prix-energie");
+  assert.ok(result.answer?.analyseIds.includes("nucleaire-allemand-prix-energie"));
 });
 
 test("une question sans preuve est refusée avec trois suggestions au plus", () => {
@@ -217,7 +220,7 @@ function score(query: string, answer: QuestionAnswer): number {
 }
 ```
 
-Return `exact` for a normalised canonical question or variant. Return `matched` only when the best score is at least `0.55` and exceeds the second score by at least `0.08`. Return `ambiguous` when at least two non-zero candidates are within `0.08` and expose two or three canonical suggestions without an answer. Return `unsupported` only when no candidate reaches the minimum evidence threshold.
+Apply this order exactly: return `exact` for a normalised canonical question or variant; build the eligible set from candidates scoring at least `0.55`; return `unsupported` when the eligible set is empty; return `ambiguous` when the two best eligible candidates are within `0.08`; otherwise return `matched`. Ambiguity never promotes two weak non-zero matches. Suggestions contain at most three canonical IDs and never an answer.
 
 - [ ] **Step 4: Add an ambiguity regression test**
 
@@ -262,6 +265,13 @@ test("une réponse rend ses limites et ses sources", () => {
   assert.match(html, /href="\/sources\/#/);
 });
 
+test("le rendu échappe le corpus et ne compose jamais une ancre brute", () => {
+  const html = renderQuestionResult(matchWithText(`<script>alert("x")</script> & preuve`));
+  assert.doesNotMatch(html, /<script>/);
+  assert.match(html, /&lt;script&gt;/);
+  assert.doesNotMatch(html, /href="\/sources\/#[^\"]*[ /#]/);
+});
+
 test("une ambiguïté propose des questions sans rendre de réponse", () => {
   const html = renderQuestionResult(ambiguousMatch());
   assert.match(html, /question-answer__suggestions/);
@@ -271,7 +281,7 @@ test("une ambiguïté propose des questions sans rendre de réponse", () => {
 
 - [ ] **Step 2: Implement semantic markup**
 
-The form contains a visible label, search input, submit button and five initial suggestions. The page states the real scope, `9 réponses validées aujourd'hui`. The result uses `aria-live="polite"`. Render exactly one answer at a time. A `matched` result names the canonical question it selected. The unsupported copy is exactly:
+The form contains a visible label, search input, submit button and five initial suggestions. The page states the computed scope, for example `9 réponses validées`, plus the explicit review date; never hard-code `aujourd'hui`. The result uses `aria-live="polite"`. Render exactly one answer at a time. A `matched` result names the canonical question it selected. Source anchors are generated through the shared `lienSource()` helper or equivalent `encodeURIComponent` encoding, never by string concatenation. Test text, attributes and URLs containing quotes, `<`, `>`, `&`, spaces, `#`, `/` and accented characters. The unsupported copy is exactly:
 
 ```html
 <p>Nous n'avons pas encore de réponse validée à cette question.</p>
@@ -331,7 +341,9 @@ assert.deepEqual(questionAction({ type: "submit", value: "prix gaz" }, CORPUS), 
 
 - [ ] **Step 3: Wire the page**
 
-On submit, keep the raw query only in memory. For `exact` or `matched`, call `history.replaceState()` with `/questions/<answer.id>/`, update only the result region and focus its heading. For `ambiguous` or `unsupported`, keep `/questions/` and render suggestions. On page load, resolve the canonical path segment only. Suggestion buttons use the answer ID. Do not call `fetch()`.
+On submit, keep the raw query only in memory. For `exact` or `matched`, call `history.replaceState()` with `/questions/<answer.id>/` only after the ID has passed canonical slug validation, update only the result region and focus its heading. For `ambiguous` or `unsupported`, keep `/questions/` and render suggestions. On page load, resolve the canonical path segment only; an unknown ID renders a not-found question state and must never fall through to the territory view. Suggestion buttons use the validated answer ID. Do not call `fetch()`.
+
+Move the editorial-route guard in `main.ts` before `donnees.initialiser()`. Question pages initialise only their local controller, so enabling JavaScript does not add a manifest or data-network dependency to an otherwise static answer.
 
 - [ ] **Step 4: Run and commit**
 
@@ -358,16 +370,17 @@ git commit -m "feat: add local questions route"
 
 ```ts
 assert.ok(ecrites.some(({ chemin }) => chemin === "questions/index.html"));
-assert.match(planDuSite(analyses, corpus), /<loc>https:\/\/500signatures\.fr\/questions\/<\/loc>/);
+const adresses = adressesPrerendues(analyses, corpus);
+assert.match(planDuSite("https://500signatures.fr", adresses), /<loc>https:\/\/500signatures\.fr\/questions\/<\/loc>/);
 for (const answer of corpus) {
   assert.ok(ecrites.some(({ chemin }) => chemin === `questions/${answer.id}/index.html`));
-  assert.match(planDuSite(analyses, corpus), new RegExp(`/questions/${answer.id}/`));
+  assert.match(planDuSite("https://500signatures.fr", adresses), new RegExp(`/questions/${answer.id}/`));
 }
 ```
 
 - [ ] **Step 2: Add static fallback content**
 
-The pre-rendered index includes the search form and a list of canonical questions linked to their pages. It does not stack the nine complete answers. Each canonical page contains its full answer, limits, precise source anchors and analysis link without requiring JavaScript.
+Before any `path.join()`, validate every ID with the canonical slug rule and reject duplicates. The pre-rendered index includes the search form and a list of canonical questions linked to their pages. It does not stack the nine complete answers. Each canonical page contains its full answer, limits, precise source anchors and analysis link without requiring JavaScript. Add hostile-corpus tests proving that `..`, `/`, `?`, control characters and HTML cannot escape `dist/questions`, enter the sitemap or appear unescaped.
 
 - [ ] **Step 3: Run and commit**
 
@@ -479,7 +492,7 @@ git commit -m "feat: add offline question variant suggestions"
 
 - [ ] **Step 1: Create labelled evaluation cases**
 
-Each corpus entry gets at least two unseen paraphrases. Add ambiguous cases for electricity versus gas, price versus consumption, homeowner versus recent buyer, and subjective satisfaction versus objective living conditions. Add clearly unsupported political prediction questions.
+Each corpus entry gets at least two unseen paraphrases. Add ambiguous cases for electricity versus gas, price versus consumption, homeowner versus recent buyer, and subjective satisfaction versus objective living conditions. Add clearly unsupported political prediction questions, plus blank, whitespace-only and punctuation-only inputs.
 
 - [ ] **Step 2: Enforce evaluation thresholds**
 
@@ -498,6 +511,8 @@ Tune only variants and transparent thresholds. Do not add a model fallback.
 assert.doesNotMatch(MAIN_SOURCE, /api\.openai\.com|OPENAI_API_KEY|new OpenAI/);
 assert.doesNotMatch(FUNCTION_SOURCES, /api\.openai\.com|OPENAI_API_KEY|new OpenAI/);
 ```
+
+Add markup and interaction assertions for labelled controls, `aria-describedby`, `aria-live`, focus transfer after a result, Escape where a disclosure is modal, visible focus, 44 px targets and `prefers-reduced-motion`. The build may still fetch versioned public data artifacts; the enforced promise is zero model calls and zero tokens at request time, not an unrelated fully offline publication build.
 
 - [ ] **Step 4: Run full gates and commit**
 
