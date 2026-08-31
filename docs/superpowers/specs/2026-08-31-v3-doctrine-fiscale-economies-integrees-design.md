@@ -4,7 +4,7 @@ Date : 31 août 2026
 
 Statut : conception validée dans la conversation, à relire avant plan d'implémentation
 
-Périmètre : catalogue de 96 dossiers, campagne de 60 dossiers, chiffrages, incompatibilités et trajectoire budgétaire
+Périmètre : catalogue de 96 dossiers, campagne publiée de 60 à 70 dossiers, chiffrages, incompatibilités et trajectoire budgétaire
 
 ## 1. Résultat attendu
 
@@ -18,13 +18,24 @@ Cette doctrine complète la spécification `2026-08-31-v3-flux-continu-design.md
 
 - La bibliothèque contient exactement 96 dossiers.
 - Chaque dossier possède exactement deux options, soit 192 options dans la bibliothèque.
-- La campagne active en joue exactement 60, répartis entre les huit chapitres existants selon la topologie `8, 8, 8, 8, 7, 7, 7, 7`.
-- La campagne active contient exactement 120 options.
+- La campagne possède un noyau obligatoire de 60 dossiers et peut promouvoir jusqu'à 10 dossiers supplémentaires.
+- La longueur publiée est figée au build entre 60 et 70 dossiers. Elle ne varie jamais pendant une partie.
+- Chaque dossier ayant deux options, la campagne publiée contient entre 120 et 140 options.
 - Les nouvelles réformes structurantes appartiennent à la campagne active. Elles ne sont pas cachées dans une variante ou une campagne secondaire.
 - Il n'existe aucun paquet nommé `État simple`, `Retour à l'équilibre`, `Plan de rupture` ou équivalent.
 - Une réforme est une décision atomique avec exactement deux options réelles, une source primaire, un mécanisme, un calendrier, des gagnants, des contributeurs et des effets causaux.
 - Un clic choisit immédiatement l'option. Le flux continu, les conseils de crise et le verdict unique restent inchangés.
 - Aucun cadratin n'est introduit dans le texte visible.
+
+## 2.1 Approches examinées
+
+Trois approches ont été comparées :
+
+1. imposer 70 dossiers, rejeté car le nombre deviendrait un objectif de remplissage ;
+2. choisir dynamiquement 60 à 70 dossiers selon la partie, rejeté car deux joueurs ne partageraient plus le même mandat et les sauvegardes deviendraient fragiles ;
+3. conserver 60 dossiers de cœur et promouvoir au build uniquement les candidats qui passent un filtre de qualité, approche retenue.
+
+La liste publiée est donc immuable pour une version de scénario. Un changement de longueur ou d'ordre impose une nouvelle `scenarioVersion`.
 
 ## 3. Sens des montants budgétaires
 
@@ -123,28 +134,28 @@ Le numérique n'a pas de cagnotte autonome. Il peut être le moyen de réaliser 
 
 ### 5.1 Contrat canonique d'intégration
 
-Les positions ci-dessous sont les emplacements réservés dans la campagne. Chaque dossier possède exactement les options `adopt` et `keep`. L'option `keep` a un flux budgétaire nul et ne revendique aucune clé de périmètre. Les `transitionFlows` non nuls doivent être chiffrés dans le registre avant toute modification du catalogue.
+Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossiers. Chaque dossier possède exactement les options `adopt` et `keep`. L'option `keep` a un flux budgétaire nul et ne revendique aucune clé de périmètre. Les `transitionFlows` non nuls doivent être chiffrés dans le registre avant toute modification du catalogue.
 
-| Position | `decisionId` cible | `chapterId` | Option de référence | `runRateMillions` | Premier effet plein | `exclusiveScopeKeys` | Source de départ |
+| Rang de cœur | `decisionId` cible | `chapterId` | Option de référence | `runRateMillions` | Premier effet plein | `exclusiveScopeKeys` | Source de départ |
 |---:|---|---|---|---:|---|---|---|
 | 1 | `unifier-ir-csg-bareme-continu` | `taxes-assets-transmission` | `adopt` | 0 | sans effet budgétaire | aucune | `dgfip-ir-2024`, `ccss-csg-2025`, `cgi-197` |
 | 2 | `supprimer-niches-fiscales-menages-capital` | `taxes-assets-transmission` | `adopt` | 5 000 | année 2 | `tax-exp-household-capital-selected` | `evm-2026` |
 | 3 | `facturation-electronique-controle-tva` | `taxes-assets-transmission` | `adopt` | 2 700 | année 2 | `vat-fraud-einvoice` | `plan-antifraude-facturation-electronique` |
-| 9 | `recentrer-allegements-exonerations-sociales` | `work-wages-pensions` | `adopt` | 6 000 | année 2 | `social-exemptions-selected` | `plfss-2025-annexe-4` |
-| 10 | `cibler-aides-apprentissage` | `work-wages-pensions` | `adopt` | 3 000 | année 2 | `apprenticeship-aid-selected`, `apprenticeship-exemption-selected` | `plfss-2026-annexe-9`, `pap-travail-2026` |
-| 11 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 3 000 | année 2 | `business-budget-subsidies-selected` | `hcsp-aides-entreprises-2025` |
-| 12 | `recentrer-cir-niches-fiscales-entreprises` | `work-wages-pensions` | `adopt` | 4 000 | année 2 | `tax-exp-business-selected`, `tax-exp-cir-selected` | `evm-2026` |
-| 16 | `remplacer-prime-activite-prelevements-travail` | `work-wages-pensions` | `adopt` | 0 | sans effet budgétaire | aucune | `cnaf-prime-activite-2024` |
-| 17 | `medicaments-comparables-achats-sante` | `health-social-protection` | `adopt` | 1 800 | année 3 | `health-drugs-procurement-selected` | `ccss-ondam-2025` |
-| 18 | `reduire-arrets-evitables-prescription` | `health-social-protection` | `adopt` | 1 200 | année 3 | `health-sick-leave-selected` | `ccss-ondam-2025` |
-| 19 | `recouvrer-fraude-sociale-additionnelle` | `health-social-protection` | `adopt` | 800 | année 3 | `social-fraud-additional-recovery` | `urssaf-fraude-2024`, `cnaf-fraude-2024` |
-| 20 | `unifier-instruction-prestations-solidarite` | `health-social-protection` | `adopt` | 400 | année 3 | `benefits-backoffice-selected` | `budget-programme-304`, `cnaf-gestion` |
-| 46 | `supprimer-niches-fiscales-brunes` | `energy-climate-transport-agriculture` | `adopt` | 3 000 | année 5 | `tax-exp-brown-selected` | `evm-2026` |
-| 54 | `clarifier-competences-doublons-territoriaux` | `state-institutions-territories` | `adopt` | 3 000 | année 5 | `local-competency-staff-overlap` | `igf-collectivites-2024`, `senat-ravignon` |
-| 55 | `mutualiser-achats-publics` | `state-institutions-territories` | `adopt` | 2 500 | année 5 | `public-procurement-selected` | `dae-2025`, `igf-collectivites-2024` |
-| 56 | `rationaliser-operateurs-ingenierie-territoriale` | `state-institutions-territories` | `adopt` | 200 | année 5 | `territorial-engineering-operators` | `igf-ingenierie-territoriale-2025` |
-| 57 | `reduire-surfaces-loyers-publics` | `state-institutions-territories` | `adopt` | 1 000 | année 5 | `public-property-rent-maintenance` | `die-2025` |
-| 58 | `reduire-cout-absences-fonctions-publiques` | `state-institutions-territories` | `adopt` | 900 | année 5 | `public-workforce-absence-replacement` | `dgafp-temps-2024`, `igf-igas-absences` |
+| 1 | `recentrer-allegements-exonerations-sociales` | `work-wages-pensions` | `adopt` | 6 000 | année 2 | `social-exemptions-selected` | `plfss-2025-annexe-4` |
+| 2 | `cibler-aides-apprentissage` | `work-wages-pensions` | `adopt` | 3 000 | année 2 | `apprenticeship-aid-selected`, `apprenticeship-exemption-selected` | `plfss-2026-annexe-9`, `pap-travail-2026` |
+| 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 3 000 | année 2 | `business-budget-subsidies-selected` | `hcsp-aides-entreprises-2025` |
+| 4 | `recentrer-cir-niches-fiscales-entreprises` | `work-wages-pensions` | `adopt` | 4 000 | année 2 | `tax-exp-business-selected`, `tax-exp-cir-selected` | `evm-2026` |
+| 8 | `remplacer-prime-activite-prelevements-travail` | `work-wages-pensions` | `adopt` | 0 | sans effet budgétaire | aucune | `cnaf-prime-activite-2024` |
+| 1 | `medicaments-comparables-achats-sante` | `health-social-protection` | `adopt` | 1 800 | année 3 | `health-drugs-procurement-selected` | `ccss-ondam-2025` |
+| 2 | `reduire-arrets-evitables-prescription` | `health-social-protection` | `adopt` | 1 200 | année 3 | `health-sick-leave-selected` | `ccss-ondam-2025` |
+| 3 | `recouvrer-fraude-sociale-additionnelle` | `health-social-protection` | `adopt` | 800 | année 3 | `social-fraud-additional-recovery` | `urssaf-fraude-2024`, `cnaf-fraude-2024` |
+| 4 | `unifier-instruction-prestations-solidarite` | `health-social-protection` | `adopt` | 400 | année 3 | `benefits-backoffice-selected` | `budget-programme-304`, `cnaf-gestion` |
+| 7 | `supprimer-niches-fiscales-brunes` | `energy-climate-transport-agriculture` | `adopt` | 3 000 | année 5 | `tax-exp-brown-selected` | `evm-2026` |
+| 1 | `clarifier-competences-doublons-territoriaux` | `state-institutions-territories` | `adopt` | 3 000 | année 5 | `local-competency-staff-overlap` | `igf-collectivites-2024`, `senat-ravignon` |
+| 2 | `mutualiser-achats-publics` | `state-institutions-territories` | `adopt` | 2 500 | année 5 | `public-procurement-selected` | `dae-2025`, `igf-collectivites-2024` |
+| 3 | `rationaliser-operateurs-ingenierie-territoriale` | `state-institutions-territories` | `adopt` | 200 | année 5 | `territorial-engineering-operators` | `igf-ingenierie-territoriale-2025` |
+| 4 | `reduire-surfaces-loyers-publics` | `state-institutions-territories` | `adopt` | 1 000 | année 5 | `public-property-rent-maintenance` | `die-2025` |
+| 5 | `reduire-cout-absences-fonctions-publiques` | `state-institutions-territories` | `adopt` | 900 | année 5 | `public-workforce-absence-replacement` | `dgafp-temps-2024`, `igf-igas-absences` |
 
 Le premier effet plein est comptabilisé au checkpoint indiqué, sans prorata infra-annuel. Les coûts ponctuels antérieurs sont néanmoins appliqués à leur checkpoint propre.
 
@@ -154,9 +165,9 @@ Le plan d'implémentation doit compléter ce tableau par, pour chaque option `ad
 
 ### 6.1 Maintien des compteurs
 
-La refonte se fait à effectif constant : 96 dossiers et 192 options en bibliothèque, 60 dossiers dans la campagne. Les dossiers redondants, symboliques ou faiblement budgétaires passent en bibliothèque ou sont remplacés. Les nouveaux dossiers structurants ci-dessus entrent tous dans la campagne active.
+La refonte conserve 96 dossiers et 192 options en bibliothèque. La campagne publiée contient le noyau de 60 dossiers et les seules promotions admises par la section 6.4, sans jamais dépasser 70. Les dossiers redondants, symboliques ou faiblement budgétaires restent en bibliothèque. Les nouveaux dossiers structurants ci-dessus entrent tous dans le noyau actif.
 
-Les huit chapitres et leurs tailles ne changent pas. Le plan d'implémentation doit reprendre la liste exacte des 60 identifiants définie en section 6.3 avant toute modification de `campaign-topology.ts`.
+Les huit chapitres ne changent pas. Leur taille publiée est dérivée du noyau et des promotions admises. Le plan d'implémentation doit reprendre la liste exacte des 60 identifiants définie en section 6.3 avant toute modification de `campaign-topology.ts`.
 
 ### 6.2 Réemploi des dossiers existants
 
@@ -195,11 +206,11 @@ Les 18 substitutions suivantes maintiennent le catalogue à 96 dossiers :
 
 Les anciens identifiants restent disponibles uniquement dans le scénario historique nécessaire à la lecture des sauvegardes. Ils ne figurent plus dans la bibliothèque du scénario 10.
 
-### 6.3 Liste canonique des 60 dossiers
+### 6.3 Noyau canonique des 60 dossiers
 
-Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
+Cette liste constitue le minimum obligatoire. Son ordre relatif est normatif. Les promotions définies en section 6.5 s'insèrent aux emplacements déclarés sans modifier l'ordre relatif du noyau.
 
-1. `taxes-assets-transmission`, positions 1 à 8 :
+1. `taxes-assets-transmission`, rangs du noyau 1 à 8 :
    `unifier-ir-csg-bareme-continu`,
    `supprimer-niches-fiscales-menages-capital`,
    `facturation-electronique-controle-tva`,
@@ -208,7 +219,7 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `retablir-un-impot-sur-la-fortune-financiere`,
    `exonerer-de-droits-de-succession-jusqu-a`,
    `abolir-les-droits-de-succession`.
-2. `work-wages-pensions`, positions 9 à 16 :
+2. `work-wages-pensions`, rangs du noyau 9 à 16 :
    `recentrer-allegements-exonerations-sociales`,
    `cibler-aides-apprentissage`,
    `supprimer-subventions-directes-entreprises`,
@@ -217,7 +228,7 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `desindexer-les-pensions-d-un-point`,
    `durcir-l-assurance-chomage-degressivite-duree`,
    `remplacer-prime-activite-prelevements-travail`.
-3. `health-social-protection`, positions 17 à 24 :
+3. `health-social-protection`, rangs du noyau 17 à 24 :
    `medicaments-comparables-achats-sante`,
    `reduire-arrets-evitables-prescription`,
    `recouvrer-fraude-sociale-additionnelle`,
@@ -226,7 +237,7 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `loi-grand-age-50-000-recrutements`,
    `supprimer-l-aide-medicale-d-etat`,
    `assurance-maladie-publique-unique`.
-4. `security-immigration-justice`, positions 25 à 32 :
+4. `security-immigration-justice`, rangs du noyau 25 à 32 :
    `recruter-10-000-policiers-et-gendarmes`,
    `construire-15-000-places-de-prison-supplementaires`,
    `recruter-3-000-magistrats-et-greffiers`,
@@ -235,7 +246,7 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `reserver-les-prestations-non-contributives-aux-nationaux`,
    `quotas-annuels-d-immigration`,
    `legaliser-et-taxer-le-cannabis`.
-5. `defence-europe-sovereignty`, positions 33 à 39 :
+5. `defence-europe-sovereignty`, rangs du noyau 33 à 39 :
    `porter-l-effort-de-defense-vers-3`,
    `doubler-la-reserve-operationnelle`,
    `service-militaire-volontaire-de-50-000`,
@@ -243,7 +254,7 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `sortir-de-l-euro`,
    `referendum-sur-la-sortie-de-l-ue`,
    `creer-une-armee-europeenne`.
-6. `energy-climate-transport-agriculture`, positions 40 à 46 :
+6. `energy-climate-transport-agriculture`, rangs du noyau 40 à 46 :
    `doubler-maprimerenov`,
    `plan-ferroviaire-3-000-m-de-plus`,
    `engager-six-epr2-part-annuelle-de-l`,
@@ -251,7 +262,7 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `sortie-du-nucleaire-en-2040`,
    `moratoire-sur-les-renouvelables`,
    `supprimer-niches-fiscales-brunes`.
-7. `education-housing-family`, positions 47 à 53 :
+7. `education-housing-family`, rangs du noyau 47 à 53 :
    `revaloriser-les-enseignants-de-5`,
    `doubler-les-bourses-etudiantes-sur-criteres`,
    `financer-100-000-logements-sociaux-de-plus`,
@@ -259,7 +270,7 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `cheque-education-par-eleve`,
    `supprimer-le-financement-public-du-prive`,
    `autonomie-complete-des-etablissements`.
-8. `state-institutions-territories`, positions 54 à 60 :
+8. `state-institutions-territories`, rangs du noyau 54 à 60 :
    `clarifier-competences-doublons-territoriaux`,
    `mutualiser-achats-publics`,
    `rationaliser-operateurs-ingenierie-territoriale`,
@@ -268,7 +279,51 @@ Cette liste remplace `CAMPAIGN_DECISION_IDS`. Son ordre est normatif.
    `regle-d-or-constitutionnelle`,
    `proportionnelle-integrale`.
 
-Les 36 autres dossiers restent consultables dans la bibliothèque. Ils ne peuvent pas être injectés dynamiquement dans la campagne en cours.
+Les autres dossiers restent consultables dans la bibliothèque. Ils ne peuvent pas être injectés dynamiquement dans une campagne en cours.
+
+### 6.4 Filtre de promotion
+
+Un candidat à l'une des dix promotions possibles doit franchir tous les verrous suivants :
+
+- assiette distincte des 18 réformes structurantes, matérialisée par une `exclusiveScopeKey` ;
+- source institutionnelle directe publiée ou mise à jour depuis le 1er janvier 2022 ; un texte normatif antérieur encore en vigueur n'est admis qu'avec une assiette ou une donnée d'exécution 2025 ou 2026 ;
+- effet annuel atteignable pendant le mandat, avec transition et calendrier documentés ;
+- impact matériel, défini par un effet annuel net absolu d'au moins 500 M€ au plus tard en année 5 ou par une modification nationale documentée d'un droit, d'un service public ou d'un niveau d'administration ;
+- exactement deux options non factices ;
+- gagnants, contributeurs et conséquences de second tour identifiés ;
+- aucun double compte avec une mesure déjà publiée.
+
+Après ces verrous, le candidat doit obtenir au moins 8 points sur 10 selon la grille déterministe suivante :
+
+- qualité de la preuve chiffrée, 0 si aucun calcul reproductible, 1 si l'assiette est seulement indirecte ou ancienne, 2 si une source primaire donne l'assiette et permet de refaire le calcul, 3 si le calcul primaire reproductible inclut en plus une fourchette de sensibilité ;
+- indépendance du périmètre, 0 si une collision demeure, 1 si l'assiette est séparée éditorialement mais pas encore testée, 2 si chaque ligne possède une clé exclusive et si le test de collision passe ;
+- qualité du chiffrage annuel et du calendrier, 0 si le rendement est arbitraire ou ponctuel, 1 si le rendement annuel est établi mais la transition incomplète, 2 si rendement net, coûts de transition et dates sont tous documentés ;
+- faisabilité pendant le mandat, 1 si les actes juridiques, opérationnels et leur délai tiennent dans les cinq années simulées, 0 sinon ;
+- réalité du dilemme, 1 si les deux options modifient réellement des droits, des prix, des services ou des contributions et identifient des parties opposées, 0 sinon ;
+- saillance dans le débat public, 1 si la mesure figure depuis le 1er janvier 2024 dans un projet de loi, une proposition de loi, un rapport parlementaire, un rapport d'une juridiction financière ou une communication gouvernementale, 0 sinon.
+
+Un thème populaire sans chiffrage propre est refusé. Une petite mesure administrative sans véritable choix est refusée. Le nombre 70 est une capacité maximale, pas une cible éditoriale.
+
+### 6.5 Liste de promotion auditée
+
+Les dix dossiers ci-dessous forment la seule liste de promotion de cette version. Leur inclusion reste conditionnée à un registre complet et à la note minimale de 8 sur 10. En cas d'échec d'un candidat, la campagne publiée compte moins de 70 dossiers ; aucun remplaçant plus faible n'est ajouté.
+
+| `decisionId` | Insertion | Utilité propre | Condition particulière |
+|---|---|---|---|
+| `revenir-a-62-ans` | après `repousser-l-age-legal-a-65-ans` | vrai contre-choix sur l'âge légal, avec coût annuel majeur | verrou mutuel ; si le passage à 65 ans est adopté, ce dossier devient `superseded` |
+| `doubler-les-franchises-medicales` | après `medicaments-comparables-achats-sante` | arbitrage direct entre reste à charge et financement de la santé | chiffrage net après plafonds, exonérations et effet de consommation |
+| `fiscalite-nutritionnelle-au-niveau-recommande` | après `medicaments-comparables-achats-sante` | dilemme prévention, prix et recettes | assiettes sucre et alcool séparées de la TVA et des niches brunes ; en cas de deux promotions après la même ancre, l'ordre de cette table fait foi |
+| `reduire-les-delais-de-traitement-de-l` | après `doubler-l-execution-des-eloignements-oqtf` | performance de l'asile distincte du durcissement des droits | seuls les coûts nets d'hébergement évités sont retenus après moyens d'instruction |
+| `etaler-la-marche-2026-de-la-programmation` | après `porter-l-effort-de-defense-vers-3` | arbitrage entre redressement immédiat et capacité militaire | verrou mutuel avec la hausse de l'effort de défense |
+| `reduire-l-aide-publique-au-developpement-de` | après `porter-l-effort-de-defense-vers-3` | économie lisible face aux engagements internationaux | contrats et engagements pluriannuels déduits du rendement ; en cas de deux promotions après la même ancre, l'ordre de cette table fait foi |
+| `supprimer-le-bonus-automobile-electrique` | après `doubler-maprimerenov` | choix clair entre subvention de transition et économie | bonus explicitement exclu du panier de niches brunes |
+| `renforcer-la-taxe-sur-les-billets-d` | après `plan-ferroviaire-3-000-m-de-plus` | recette climat directement compréhensible | TVA, ETS et affectations existantes exclus de l'assiette |
+| `supprimer-les-departements` | après `clarifier-competences-doublons-territoriaux` | alternative institutionnelle de rupture | `locks` bilatéraux avec la clarification territoriale ; coûts de transfert, dette, agents, SI et immobilier inclus ; opérateurs, surfaces, loyers et absences sont retranchés de son assiette |
+| `ne-pas-remplacer-un-depart-administratif-sur` | après `mutualiser-achats-publics` | choix sur les effectifs de l'État central | clé exclusive `central-state-support-staff`; la clarification territoriale exclut explicitement cette assiette |
+
+La présence de dix candidats ne préjuge pas du résultat du filtre. Avant la compilation du scénario, chaque candidat reçoit un statut versionné `promoted` ou `rejected`. Un candidat est `promoted` si et seulement s'il franchit tous les verrous et obtient au moins 8 sur 10. `CAMPAIGN_CHAPTERS` insère ensuite, dans l'ordre stable de la table, les seuls candidats `promoted` après leur ancre du noyau.
+
+Le rapport contient les preuves, le détail du score, le statut et la raison de tout rejet. C'est un artefact statique et versionné, produit au build. Il n'est jamais recalculé pendant une partie, lors d'une restauration ou selon le profil du joueur. Les 38 500 M€ de la section 5 restent le total propre aux 18 réformes structurantes ; les promotions sont chiffrées séparément et ne modifient pas ce plafond.
 
 ## 7. Incompatibilités et absence de double compte
 
@@ -283,7 +338,7 @@ Le prélèvement personnel unifié remplace dans la campagne active les dossiers
 - l'intégration isolée du capital au barème ;
 - les deux variantes de flat tax à 20 %.
 
-Les variantes retirées restent consultables uniquement dans le scénario historique, pas dans la bibliothèque du scénario 10. Les modifications isolées du capital ou de la tranche supérieure qui restent dans les 36 dossiers de bibliothèque ne sont pas des cibles de `locks`, puisqu'elles ne figurent pas dans les 60 dossiers actifs. Les impôts sur le patrimoine et les successions restent indépendants.
+Les variantes retirées restent consultables uniquement dans le scénario historique, pas dans la bibliothèque du scénario 10. Les modifications isolées du capital ou de la tranche supérieure qui restent hors de la campagne publiée ne sont pas des cibles de `locks`. Les impôts sur le patrimoine et les successions restent indépendants.
 
 ### 7.2 Verrous sociaux
 
@@ -302,6 +357,8 @@ Chaque ligne budgétaire officielle reçoit un seul propriétaire dans un regist
 - achats exclus des économies de millefeuille et d'immobilier ;
 - surfaces libérées exclues de toute seconde économie de télétravail ;
 - absences publiques exclues des économies de santé et des non-remplacements territoriaux ;
+- fonctions support de l'État central attribuées à `central-state-support-staff` et exclues de la clarification des compétences territoriales ;
+- suppression des départements calculée nette des assiettes déjà attribuées aux opérateurs, surfaces, loyers, absences et achats ;
 - produits de cession exclus des loyers annuels évités.
 
 Le test de meilleur parcours doit utiliser les `locks`, les échéances et les coûts de transition réels. Une simple somme des montants du catalogue est interdite.
@@ -352,10 +409,14 @@ type BudgetTransitionFlow = {
   sourceKey: string;
 };
 
+type RunRateTiming =
+  | { kind: "immediate" }
+  | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
+
 type BudgetProfile = {
   estimateKey: string | null;
   runRateMillions: number;
-  runRateTiming: EffectTiming | null;
+  runRateTiming: RunRateTiming | null;
   transitionFlows: BudgetTransitionFlow[];
   exclusiveScopeKeys: string[];
 };
@@ -363,11 +424,19 @@ type BudgetProfile = {
 
 Une option peut déclarer au plus un flux annuel et plusieurs flux ponctuels. `estimateKey` est obligatoire et typé sur le registre lorsque `runRateMillions` est non nul ou lorsque `transitionFlows` n'est pas vide. `runRateTiming` est obligatoire pour un flux annuel non nul et vaut `null` dans un profil entièrement nul. La jointure du registre est `decisionId:optionId:estimateKey`.
 
-Un flux ponctuel possède un identifiant causal unique dans tout le scénario, ne peut précéder la décision et ne peut dépasser le checkpoint 60. Une option à flux annuel nul peut porter un coût de transition, à condition de le sourcer. Il n'existe aucun prorata infra-annuel : un flux récurrent prend son effet plein au checkpoint déclaré. `mandate_year: 1..5` se convertit respectivement aux checkpoints 16, 32, 39, 53 et 60. `after_decisions: n` se convertit au premier checkpoint dont le nombre de décisions terminées atteint l'échéance calculée. Les flux des positions 46 et 54 à 58 utilisent explicitement `runRateTiming: { kind: "mandate_year", year: 5 }`.
+Un flux ponctuel possède un identifiant causal unique dans tout le scénario, ne peut précéder la décision et ne peut dépasser le checkpoint final dérivé de `campaignLength`. Une option à flux annuel nul peut porter un coût de transition, à condition de le sourcer. Il n'existe aucun prorata infra-annuel : un flux récurrent prend son effet plein au checkpoint déclaré.
+
+La topologie publiée est décrite par une unique constante `CAMPAIGN_CHAPTERS`, composée des huit `chapterId` et de leurs listes immuables d'identifiants. `CAMPAIGN_DECISION_IDS`, les tailles de chapitres et `campaignLength` en sont dérivés. Un validateur de publication refuse une longueur inférieure à 60 ou supérieure à 70, un nombre de chapitres différent de huit, un chapitre manquant, dupliqué ou vide, un doublon de dossier, un identifiant inconnu, une décision rangée dans le mauvais chapitre, une somme de tailles différente de `campaignLength`, une année de mandat sans checkpoint ou un checkpoint final différent de `campaignLength`.
+
+Le validateur prouve également que les 60 dossiers du noyau sont présents une seule fois et conservent leur ordre relatif, que seuls les candidats au statut `promoted` sont insérés, et que toute promotion rejetée disparaît avec ses `locks`, crises et références de topologie propres. Un changement de statut, d'ordre ou de longueur change la `scenarioVersion`.
+
+Les cinq années conservent la règle `CHAPTER_MANDATE_YEARS = [1, 1, 2, 2, 3, 4, 4, 5]`. Les checkpoints sont recalculés depuis les tailles réellement publiées par `decisionCountAtMandateYearEnd`; aucun tableau absolu comme `16, 32, 39, 53, 60` n'est conservé. `mandate_year: 1..5` se convertit au checkpoint dérivé de l'année correspondante. Pour les flux annuels, `runRateTiming` n'accepte que `immediate` ou `mandate_year`; le calendrier exact `after_decisions: n` reste réservé aux événements, promesses et flux ponctuels et conserve sa sémantique actuelle au dossier exact `position + n`. Les flux des dossiers `supprimer-niches-fiscales-brunes`, `clarifier-competences-doublons-territoriaux`, `mutualiser-achats-publics`, `rationaliser-operateurs-ingenierie-territoriale`, `reduire-surfaces-loyers-publics` et `reduire-cout-absences-fonctions-publiques` utilisent explicitement `runRateTiming: { kind: "mandate_year", year: 5 }`.
 
 Le modèle doit passer du couple `budgetDelta` et `budgetDuration` à un profil budgétaire explicite. Une migration de schéma est nécessaire afin de restaurer les anciennes parties sans réappliquer les effets.
 
 Le compilateur peut continuer à produire un effet `annualBalance` récurrent pour le flux annuel, mais il doit aussi produire les flux ponctuels datés. Le validateur doit autoriser au plus un flux récurrent et plusieurs flux ponctuels aux identifiants uniques. Chaque flux doit se retrouver dans le registre causal et dans un seul checkpoint.
+
+Les tests de topologie couvrent une publication de 60 dossiers, une publication de 70 dossiers et les rejets à 59 et 71. Ils couvrent des promotions réparties dans plusieurs chapitres, les cinq checkpoints dérivés, un événement, une promesse et un flux ponctuel dus exactement au dossier final, le cinquième conseil suivi du verdict unique, un journal de `campaignLength` entrées et l'invalidation ou la migration d'une sauvegarde dont la topologie publiée diffère.
 
 La version de scénario passe de 9 à 10 et la version de schéma de 4 à 5. La migration v4 vers v5 s'exécute avant validation et possède un registre dédié. Les anciennes options dont le sens, le `decisionId`, le `optionId` et l'assiette n'ont pas changé sont migrées automatiquement vers un profil simple. Une décision remplacée n'est jamais réinterprétée silencieusement avec le nouveau contrat.
 
@@ -375,30 +444,32 @@ Un résolveur charge le scénario figé correspondant à `scenarioVersion`. Le b
 
 Les références de `scenario-crises.ts` sont auditées lors du changement de version. Toute référence vers un identifiant remplacé est soit migrée vers une cause sémantiquement identique, soit supprimée avec un test prouvant que la crise conserve deux causes et deux réponses applicables.
 
-La crise actuellement liée à la flat tax est réécrite autour du prélèvement personnel unifié, avec deux réponses applicables : conserver la fusion ou renverser la décision et maintenir les prélèvements séparés. Le renversement applique ses propres coûts ponctuels sourcés et annule les flux futurs non matérialisés de cette décision. Cette règle étend explicitement le moteur de crise afin qu'une décision `reversed` retire aussi ses événements et flux futurs encore en file. La crise de réforme de l'État est reliée aux nouveaux dossiers territoriaux, opérateurs et absences qui l'aggravent réellement. Aucune crise ne référence un dossier sorti des 60.
+La crise actuellement liée à la flat tax est réécrite autour du prélèvement personnel unifié, avec deux réponses applicables : conserver la fusion ou renverser la décision et maintenir les prélèvements séparés. Le renversement applique ses propres coûts ponctuels sourcés et annule les flux futurs non matérialisés de cette décision. Cette règle étend explicitement le moteur de crise afin qu'une décision `reversed` retire aussi ses événements et flux futurs encore en file. La crise de réforme de l'État est reliée aux nouveaux dossiers territoriaux, opérateurs et absences qui l'aggravent réellement. Aucune crise ne référence un dossier absent de la campagne publiée.
 
 ## 11. Critères d'acceptation
 
 La conception est correctement implémentée si :
 
-1. le catalogue contient exactement 96 dossiers uniques et 192 options ; la campagne contient exactement 60 dossiers et 120 options dans l'ordre canonique ;
-2. les 18 dossiers structurants ci-dessus appartiennent au `chapterId` déclaré et sont jouables dans la campagne ;
-3. aucun écran ne propose un paquet ou un mode spécial ;
-4. le prélèvement personnel unifié n'engendre ni crédit remboursable, ni versement cash, ni rendement budgétaire artificiel ;
-5. la disparition de la prime d'activité est compensée avec une différence inférieure ou égale à 1 M€ dans le registre par une baisse des prélèvements sur le travail ;
-6. le parcours doctrinal de référence, défini par les 18 options `adopt` ci-dessus, atteint exactement 38 500 M€ de `runRateMillions` au checkpoint 60, après application des verrous et des échéances ; ses coûts ponctuels ont bien affecté la trajectoire ;
-7. aucune combinaison compatible de ces seules 18 options ne dépasse 38 500 M€ ; ce plafond ne s'applique pas aux autres dossiers du catalogue ;
-8. au moins un parcours compatible de l'ensemble de la campagne atteint un solde annuel nul ou positif au checkpoint 60 ;
-9. les coûts de transition sont appliqués une seule fois et restent présents après sauvegarde et restauration ;
-10. les flux annuels persistent à partir de leur date d'entrée en vigueur ;
-11. les recettes ponctuelles disparaissent du rythme annuel suivant ;
-12. les verrous rendent les dossiers incompatibles `superseded` avant rendu ;
-13. chaque flux budgétaire déclaré par une option de politique possède une source, une assiette, un millésime, une nature et une décomposition nette ;
-14. la somme automatisée par `exclusiveScopeKeys` détecte toute collision de périmètre ;
-15. le verdict final reste unique et le journal retrace les 60 arbitrages ;
-16. aucune carte de décision n'affiche de pilule d'opinion, confiance, marchés, groupes ou autre impact non budgétaire avant le choix ;
-17. aucun texte visible n'emploie de cadratin ;
-18. un test navigateur à 390 par 844 vérifie pour les phases critiques que `scrollWidth` ne dépasse pas `clientWidth`.
+1. le catalogue contient exactement 96 dossiers uniques et 192 options ; la campagne publiée contient entre 60 et 70 dossiers et exactement deux fois plus d'options ;
+2. chaque candidat est publié si et seulement s'il passe tous les verrous de la section 6.4 et obtient au moins 8 sur 10 ; son score, son statut et ses preuves apparaissent dans le rapport statique de validation ;
+3. les 18 dossiers structurants ci-dessus appartiennent au `chapterId` déclaré et sont jouables dans la campagne ;
+4. aucun écran ne propose un paquet ou un mode spécial ;
+5. le prélèvement personnel unifié n'engendre ni crédit remboursable, ni versement cash, ni rendement budgétaire artificiel ;
+6. la disparition de la prime d'activité est compensée avec une différence inférieure ou égale à 1 M€ dans le registre par une baisse des prélèvements sur le travail ;
+7. le parcours doctrinal de référence, défini par les 18 options `adopt` ci-dessus, atteint exactement 38 500 M€ de `runRateMillions` au checkpoint final dérivé, après application des verrous et des échéances ; ses coûts ponctuels ont bien affecté la trajectoire ;
+8. aucune combinaison compatible de ces seules 18 options ne dépasse 38 500 M€ ; ce plafond ne s'applique pas aux autres dossiers du catalogue ;
+9. une constante de build `BALANCED_PATH_OPTION_IDS` documente un parcours compatible de l'ensemble de la campagne publiée ; un test de simulation complet prouve qu'il atteint un solde annuel nul ou positif au checkpoint final dérivé, sans énumérer les combinaisons possibles ;
+10. les coûts de transition sont appliqués une seule fois et restent présents après sauvegarde et restauration ;
+11. les flux annuels persistent à partir de leur date d'entrée en vigueur ;
+12. les recettes ponctuelles disparaissent du rythme annuel suivant ;
+13. les verrous rendent les dossiers incompatibles `superseded` avant rendu ;
+14. chaque flux budgétaire déclaré par une option de politique possède une source, une assiette, un millésime, une nature et une décomposition nette ;
+15. la somme automatisée par `exclusiveScopeKeys` détecte toute collision de périmètre ;
+16. le verdict final reste unique et le journal retrace exactement `campaignLength` arbitrages ;
+17. le compteur `Dossier X sur N`, la progression, les échéances et le verdict dérivent tous de `campaignLength` ;
+18. aucune carte de décision n'affiche de pilule d'opinion, confiance, marchés, groupes ou autre impact non budgétaire avant le choix ;
+19. aucun texte visible n'emploie de cadratin ;
+20. un test navigateur à 390 par 844 vérifie pour les phases critiques que `scrollWidth` ne dépasse pas `clientWidth`.
 
 ## 12. Sources institutionnelles de cadrage
 
