@@ -540,71 +540,216 @@ git add site/src/simulateur-v3 site/src/main.ts site/src/interface.test.ts
 git commit -m "feat: add sourced five year campaign timeline"
 ```
 
-### Task 5: Make consequences and crises mechanically meaningful
+### Task 5A: Version the causal rewrite before changing effects
+
+**Files:**
+- Modify: `site/src/simulateur-v3/scenario.ts`
+- Modify: `site/src/simulateur-v3/storage.ts`
+- Modify: `site/src/simulateur-v3/storage.test.ts`
+- Modify: `site/src/simulateur-v3/types.test.ts`
+- Modify: `site/src/simulateur-v3/test-fixtures.ts`
+
+**Interfaces:**
+- Consumes: persisted schema 4 campaigns created with scenario version 7.
+- Produces: scenario version 8 and an explicit `restart_required` result for any incompatible scenario version.
+
+- [ ] **Step 1: Write the migration regression first**
+
+Add a failing test proving that a valid schema 4 save made with scenario version 7 is never restored, replayed or combined with version 8 effects. It returns `restart_required`, preserves the stored payload and never falls back to V2. Keep the schema at 4: the JSON shape is still valid, but its causal semantics changed.
+
+- [ ] **Step 2: Increment the scenario version**
+
+Set `SCENARIO_V3.version` to 8. Do not recalculate past decisions and do not reuse the historical 5-to-6 modeled-effect migration. A scenario-version mismatch always requests a new mandate.
+
+- [ ] **Step 3: Run and commit**
+
+Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/storage.test.ts src/simulateur-v3/types.test.ts`
+
+Expected: PASS, with version 7 reported as `restart_required`.
+
+```bash
+git add site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/types.test.ts site/src/simulateur-v3/test-fixtures.ts
+git commit -m "chore: version explicit campaign effects"
+```
+
+### Task 5B: Replace mirrored reactions with explicit option mechanisms
+
+**Files:**
+- Create: `site/src/simulateur-v3/indicator-meta.ts`
+- Create: `site/src/simulateur-v3/indicator-meta.test.ts`
+- Modify: `site/src/simulateur-v3/types.ts`
+- Modify: `site/src/simulateur-v3/policy-catalogue.ts`
+- Modify: `site/src/simulateur-v3/policy-catalogue.test.ts`
+- Modify: `site/src/simulateur-v3/policies/*.ts`
+- Modify: `site/src/simulateur-v3/scenario.test.ts`
+- Modify: `site/src/simulateur-v3/validation.ts`
+- Modify: `site/src/simulateur-v3/validation.test.ts`
+- Modify: `site/src/simulateur-v3/test-fixtures.ts`
+
+**Interfaces:**
+- Consumes: the complete 96-policy catalogue and the selected 60-decision campaign.
+- Produces: 193 explicit option definitions, including 121 playable options, with no generated political mirror or capacity fallback.
+
+- [ ] **Step 1: Add failing editorial integrity tests**
+
+```ts
+test("chaque option publiée porte un mécanisme, un horizon et un impact visible", () => {
+  for (const decision of SCENARIO_V3_CATALOGUE.decisions) {
+    for (const option of decision.options) {
+      assert.ok(option.mechanism.trim(), `${decision.id}:${option.id}`);
+      assert.ok(option.horizon.kind === "immediate"
+        || option.horizon.kind === "after_decisions"
+        || option.horizon.kind === "mandate_year");
+      assert.ok(Array.isArray(option.legalConstraints));
+      assert.ok(option.effects.some((effect) =>
+        effect.target === "indicator" && effect.key !== "annualBalance"));
+    }
+  }
+});
+
+test("aucun effet n'est dérivé des anciennes réactions", async () => {
+  const source = await readFile(new URL("./policy-catalogue.ts", import.meta.url), "utf8");
+  assert.doesNotMatch(source, /supportEffects|MESURES\.(?:reactions|rejet)|measure\.(?:reactions|rejet)/);
+  assert.doesNotMatch(source, /V3_MODELED_EFFECT_MARKER.*capacity/);
+});
+```
+
+Test both all 193 catalogue options and the 121 playable options. In the final code, `V3_MODELED_EFFECT_MARKER` may remain only in the isolated historical 5-to-6 storage migration; it must not mark new editorial effects.
+
+- [ ] **Step 2: Extend the explicit option contract**
+
+```ts
+export type PolicyHorizon =
+  | { kind: "immediate" }
+  | { kind: "after_decisions"; count: number }
+  | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
+
+export type DecisionOption = {
+  // existing fields
+  mechanism: string;
+  horizon: PolicyHorizon;
+  legalConstraints: string[];
+};
+```
+
+An empty `legalConstraints` array explicitly means that no specific legal constraint was identified; it is not a missing value. Validate non-empty unique strings when entries exist. `after_decisions` is relative to confirmation and must remain inside the 60-decision campaign. `mandate_year` is absolute and cannot precede the year in which the option is played.
+
+Add the same required fields to `PolicyOptionDefinition` and to both branches of `ExistingPolicyCopy`. Increment each rewritten `Decision.version` from 2 to 3. The type and compiler must make an omitted mechanism impossible.
+
+- [ ] **Step 3: Declare units and meaningful distance thresholds**
+
+Create `INDICATOR_META`, with label, unit, bounds where applicable, display precision and comparison epsilon for every indicator. At minimum:
+
+- `annualBalance`, `interestCost`: millions of euros;
+- `debtToGdp`: percent of GDP;
+- `growth`: annual nominal GDP growth in percent, matching the sourced Task 4 baseline;
+- remaining economic, service and political indicators: documented game indices or percentage-point scales.
+
+Never compare one million euros with one point as if they shared a unit. Preserve `interestCost: 12_000` for euro exit.
+
+Implement a canonical `optionDistanceDimensions(a, b)` that counts materially distinct dimensions across budget, non-budget indicators, groups, horizon, beneficiaries/contributors, legal constraints, locks/unlocks, uncertainty and scheduled consequences. Use indicator-specific epsilons. Every option pair in a published decision must differ on at least two dimensions; a difference below epsilon does not count.
+
+- [ ] **Step 4: Rewrite the catalogue explicitly, then delete generators**
+
+Use the existing 71 `existingPolicy()` dossiers only as an inventory. Write the adopted and maintained effects explicitly in the eight policy modules, including their mechanism, horizon and legal constraints. Complete the 25 standalone policies the same way. Do not mechanically preserve the old opinion-to-majority, business-to-growth, markets-to-growth or local-authority-to-services hypotheses unless the policy definition explicitly justifies that exact effect.
+
+Only after all definitions compile and the tests are green, delete:
+
+- the `Soutien` import;
+- `supportEffects()`;
+- reads of `measure.reactions` and `measure.rejet`;
+- the automatic keep-side inversion;
+- the `reformCapacity +/-1` empty-effect fallback.
+
+Every playable option requires at least one non-budget indicator effect because the compact interface must never throw when selecting its primary impact. Budget effects remain optional.
+
+- [ ] **Step 5: Run and commit**
+
+Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/indicator-meta.test.ts src/simulateur-v3/policy-catalogue.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/validation.test.ts && npx tsc --noEmit`
+
+Expected: PASS with 96 decisions, 193 explicit options, 60 playable decisions and 121 playable options.
+
+```bash
+git add site/src/simulateur-v3/indicator-meta.ts site/src/simulateur-v3/indicator-meta.test.ts site/src/simulateur-v3/types.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/policy-catalogue.test.ts site/src/simulateur-v3/policies site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/validation.test.ts site/src/simulateur-v3/test-fixtures.ts
+git commit -m "feat: declare explicit campaign consequences"
+```
+
+### Task 5C: Tie crises to exact aggravating choices
 
 **Files:**
 - Modify: `site/src/simulateur-v3/types.ts`
 - Modify: `site/src/simulateur-v3/validation.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.ts`
 - Modify: `site/src/simulateur-v3/crises.ts`
-- Modify: `site/src/simulateur-v3/scenario.test.ts`
+- Modify: `site/src/simulateur-v3/crises.test.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.test.ts`
+- Modify: `site/src/simulateur-v3/flow.ts`
+- Modify: `site/src/simulateur-v3/flow.test.ts`
+- Modify: `site/src/simulateur-v3/campaign-e2e.test.ts`
+- Modify: `site/src/simulateur-v3/storage.test.ts`
+- Modify: `site/src/simulateur-v3/test-fixtures.ts`
 
 **Interfaces:**
-- Consumes: 60 selected decisions, groups, dependencies and annual checkpoints.
-- Produces: validated causal mechanisms and four to eight eligible crises.
+- Consumes: confirmed decision-option pairs, scenario topology, groups, dependencies and annual checkpoints.
+- Produces: eight traceable crisis families, one per chapter, with at most one crisis in a chapter and at most eight in a mandate.
 
-- [ ] **Step 1: Add failing editorial integrity tests**
-
-```ts
-test("chaque option publiée porte un mécanisme et un horizon", () => {
-  for (const decision of SCENARIO_V3.decisions) {
-    for (const option of decision.options) {
-      assert.ok(option.mechanism.trim(), `${decision.id}:${option.id}`);
-      assert.ok(option.horizon.kind === "immediate" || option.horizon.year >= 1);
-      assert.ok(option.effects.some((effect) => effect.target === "indicator"));
-    }
-  }
-});
-
-test("aucun effet politique n'est créé par miroir automatique", async () => {
-  const source = await readFile(new URL("./policy-catalogue.ts", import.meta.url), "utf8");
-  assert.doesNotMatch(source, /function\s+supportEffects|supportEffects\s*\(/);
-});
-```
-
-- [ ] **Step 2: Extend `DecisionOption`**
+- [ ] **Step 1: Replace decision-only aggravation with exact choices**
 
 ```ts
-export type DecisionOption = {
-  // existing fields
-  mechanism: string;
-  horizon: { kind: "immediate" } | { kind: "year"; year: 1 | 2 | 3 | 4 | 5 };
-  legalConstraints: string[];
+export type CrisisChoiceRef = {
+  decisionId: string;
+  optionIds: string[];
+};
+
+export type CrisisRule = {
+  // existing descriptive and threshold fields
+  eligibleFromChapterIndex: number;
+  maxOccurrences: 1;
+  requiredDecisionIds: string[];
+  aggravatingChoices: CrisisChoiceRef[];
 };
 ```
 
-Update `definePolicy()` so every policy module must provide these fields. Delete the generic opinion-to-majority, business-to-growth and local-authority-to-public-services mirroring rules. Each retained effect must be declared by the policy definition.
+`requiredDecisionIds` means that every listed dossier must already have a confirmed record. `aggravatingChoices` means that at least one exact listed option must have been confirmed. Seeing a dossier or selecting its non-aggravating option never counts.
 
-- [ ] **Step 3: Validate option distance**
+Persist `triggeredAtDecisionCount`, `triggeredChapterIndex` and the exact aggravating decision-option references in `CrisisState`. Derive the chapter from the supplied scenario, not from a stale `triggeredByDecisionId` alone.
 
-Add a validation error when two options have identical non-zero effect keys and deltas, identical horizon and identical locks. Add a validation error if an option has neither a budget effect nor another indicator effect.
+- [ ] **Step 2: Make detection scenario-aware and bounded**
 
-- [ ] **Step 4: Rebuild crisis gates**
+Change the signature to `detectCrisis(state, scenario, rules)`. Reject a rule before its zero-based `eligibleFromChapterIndex`, after `maxOccurrences`, when its required decisions are absent, or when no exact aggravating choice matches. Refuse a second major crisis in the same chapter and cap a mandate at eight crises.
 
-Each `CrisisRule` must add `eligibleFromChapter`, `maxOccurrences: 1` and `requiredDecisionIds`. `detectCrisis()` must require at least one confirmed aggravating decision and must refuse a second major crisis in the same chapter. Create eight rule families, one per chapter, while allowing only four to eight to trigger in a playthrough.
+Validate that every rule references only known decisions and options from the 60-decision scenario. Each concession must amend a confirmed active policy or apply at least one non-zero, correctly unit-tagged effect.
 
-- [ ] **Step 5: Run content and crisis tests**
+- [ ] **Step 3: Build eight editorial families and reference trajectories**
 
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/scenario.test.ts src/simulateur-v3/validation.test.ts src/simulateur-v3/crises.test.ts src/simulateur-v3/scenario-crises.test.ts`
+Create one family per chapter. A crisis must expose the threshold, the exact aggravating choices and its causal contributions. Do not force a crisis without an aggravating choice merely to satisfy a count.
 
-Expected: PASS with every selected option carrying a declared mechanism.
+The runtime invariant is zero to eight conditional crises, at most one per chapter. The editorial target is four to eight on representative full campaigns. Add at least all-prudence, all-rupture and several seeded reference trajectories and require each of those curated paths to encounter four to eight crises. This is an evaluation gate, not a false proof over every possible combination.
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 4: Add boundary and persistence tests**
+
+Cover all of the following:
+
+- before the eligible chapter: no crisis;
+- threshold reached with the wrong option from the right dossier: no crisis;
+- all required decisions must be confirmed;
+- the same rule cannot repeat;
+- a second crisis in the same chapter is refused;
+- a crisis may occur in a later chapter;
+- every triggered crisis cites at least one exact confirmed aggravating choice;
+- crisis occurrence fields survive schema 4 persistence;
+- due events and promises still resolve before crisis detection and before the five Councils;
+- concessions actually suspend, amend or reverse an active policy, or apply a non-zero effect.
+
+- [ ] **Step 5: Run and commit**
+
+Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/scenario.test.ts src/simulateur-v3/validation.test.ts src/simulateur-v3/crises.test.ts src/simulateur-v3/scenario-crises.test.ts src/simulateur-v3/flow.test.ts src/simulateur-v3/campaign-e2e.test.ts src/simulateur-v3/storage.test.ts && npx tsc --noEmit`
+
+Expected: PASS with exact option-level causal traces and no more than one crisis per chapter.
 
 ```bash
-git add site/src/simulateur-v3/types.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/policies site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/scenario-crises.test.ts
-git commit -m "feat: make campaign consequences causal"
+git add site/src/simulateur-v3/types.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/simulateur-v3/crises.test.ts site/src/simulateur-v3/scenario-crises.test.ts site/src/simulateur-v3/flow.ts site/src/simulateur-v3/flow.test.ts site/src/simulateur-v3/campaign-e2e.test.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/test-fixtures.ts
+git commit -m "feat: tie crises to aggravating choices"
 ```
 
 ### Task 6: Produce a multidimensional verdict
