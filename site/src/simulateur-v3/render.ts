@@ -1,5 +1,6 @@
 import { currentDecision } from "./campaign.ts";
 import { availableConcessions } from "./crises.ts";
+import { totalDecisions } from "./validation.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
 import type {
   MandateVerdictViewModel,
@@ -65,12 +66,16 @@ export function formatV3Amount(value: number): string {
   return `${signed(millions)} ${Math.abs(millions) === 1 ? "million" : "millions"} d'euros`;
 }
 
-function globalPosition(state: CampaignState): number {
-  return Math.min(96, state.chapterIndex * 12 + state.decisionIndex + 1);
+function globalPosition(state: CampaignState, scenario: Scenario): number {
+  const before = scenario.chapters
+    .slice(0, state.chapterIndex)
+    .reduce((sum, chapter) => sum + chapter.decisionIds.length, 0);
+  return Math.min(totalDecisions(scenario), before + state.decisionIndex + 1);
 }
 
-function renderCommandBar(state: CampaignState): string {
-  const progressLevel = Math.max(0, Math.min(100, Math.round((state.decisions.length / 96) * 100)));
+function renderCommandBar(state: CampaignState, scenario: Scenario): string {
+  const total = totalDecisions(scenario);
+  const progressLevel = Math.max(0, Math.min(100, Math.round((state.decisions.length / total) * 100)));
   const trailing = state.phase === "intro"
     ? `<span class="simulateur-v3__pause-state">Mission</span>`
     : state.phase === "pause"
@@ -80,8 +85,8 @@ function renderCommandBar(state: CampaignState): string {
         : `<button type="button" class="simulateur-v3__pause" data-v3-action="pause">Pause</button>`;
   const progress = state.phase === "verdict"
     ? `<p class="simulateur-v3__verdict-progress">Verdict du mandat</p>`
-    : `<p class="simulateur-v3__chapter-progress">Chapitre ${state.chapterIndex + 1} sur 8</p>
-      <p class="simulateur-v3__decision-progress">Dossier ${globalPosition(state)} sur 96</p>`;
+    : `<p class="simulateur-v3__chapter-progress">Chapitre ${state.chapterIndex + 1} sur ${scenario.chapters.length}</p>
+      <p class="simulateur-v3__decision-progress">Dossier ${globalPosition(state, scenario)} sur ${total}</p>`;
   return `
     <header class="simulateur-v3__command-bar">
       <a class="simulateur-v3__brand" href="/bilan" aria-label="Où va l'argent public, revenir à France">
@@ -360,7 +365,7 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
       <div class="simulateur-v3__decision-layout">
         <article class="simulateur-v3__dossier simulateur-v3__decision simulateur-v3__decision--${decision.kind}">
           <header class="simulateur-v3__scene-header">
-            <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state)}</p>
+            <p class="simulateur-v3__eyebrow">${escapeHtml(chapter.title)} · Dossier ${globalPosition(state, scenario)}</p>
             <h1>${escapeHtml(decision.title)}</h1>
             <p class="simulateur-v3__context">${escapeHtml(compactText(decision.context))}</p>
           </header>
@@ -581,8 +586,8 @@ function renderVerdictSignal(signal: VerdictSignal): string {
   </li>`;
 }
 
-function renderVerdictCheckpoint(point: VerdictCheckpoint): string {
-  return `<li class="simulateur-v3__verdict-checkpoint${point.decisionCount === 96 ? " simulateur-v3__verdict-checkpoint--final" : ""}">
+function renderVerdictCheckpoint(point: VerdictCheckpoint, campaignLength: number): string {
+  return `<li class="simulateur-v3__verdict-checkpoint${point.decisionCount === campaignLength ? " simulateur-v3__verdict-checkpoint--final" : ""}">
     <span class="simulateur-v3__verdict-checkpoint-dot" aria-hidden="true"></span>
     <span class="simulateur-v3__verdict-checkpoint-label">${escapeHtml(point.label)}</span>
     <strong>${escapeHtml(formatV3Amount(point.annualBalance))}</strong>
@@ -623,7 +628,7 @@ function renderVerdictAftermath(item: VerdictAftermath): string {
   </li>`;
 }
 
-function renderVerdict(view: MandateVerdictViewModel): string {
+function renderVerdict(view: MandateVerdictViewModel, scenario: Scenario): string {
   return `
     <main class="simulateur-v3__stage simulateur-v3__stage--verdict">
       <article class="simulateur-v3__verdict">
@@ -653,7 +658,7 @@ function renderVerdict(view: MandateVerdictViewModel): string {
             <p class="simulateur-v3__eyebrow">Cinq ans de décisions</p>
             <h2 id="v3-trajectory-title">Votre trajectoire de pouvoir</h2>
           </div>
-          <ol>${view.trajectory.map(renderVerdictCheckpoint).join("")}</ol>
+          <ol>${view.trajectory.map((point) => renderVerdictCheckpoint(point, totalDecisions(scenario))).join("")}</ol>
         </section>
 
         <section class="simulateur-v3__verdict-section simulateur-v3__verdict-choices" aria-labelledby="v3-choices-title">
@@ -718,10 +723,10 @@ export function renderSimulatorV3(
       content = renderCrisis(state, scenario, options.crisisRules ?? []);
       break;
     case "verdict":
-      content = renderVerdict(buildMandateVerdictViewModel(state, scenario, options.crisisRules ?? []));
+      content = renderVerdict(buildMandateVerdictViewModel(state, scenario, options.crisisRules ?? []), scenario);
       break;
     default:
       content = renderUnavailable("Cet écran du mandat n'est pas disponible.");
   }
-  return `<section class="simulateur-v3">${renderCommandBar(state)}${content}</section>`;
+  return `<section class="simulateur-v3">${renderCommandBar(state, scenario)}${content}</section>`;
 }

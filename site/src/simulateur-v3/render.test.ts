@@ -8,6 +8,7 @@ import { formatV3Amount, renderSimulatorV3 } from "./render.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import type { CampaignState } from "./types.ts";
+import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
 
 function occurrences(source: string, needle: string): number {
   return source.split(needle).length - 1;
@@ -21,11 +22,12 @@ test("les montants utilisent le singulier quand il le faut", () => {
 
 function stateAfter(count: number, phase: CampaignState["phase"]): CampaignState {
   const base = createCampaign(SCENARIO_V3_PREVIEW);
+  const position = positionAfterCompleted(SCENARIO_V3_PREVIEW, count)
+    ?? positionBeforeNext(SCENARIO_V3_PREVIEW, count)!;
   return {
     ...base,
     phase,
-    chapterIndex: Math.min(7, Math.floor(Math.max(0, count - 1) / 12)),
-    decisionIndex: Math.min(11, Math.max(0, count - 1) % 12),
+    ...position,
     decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, count).map((decision, index) => ({
       decisionId: decision.id,
       optionId: decision.options[0]!.id,
@@ -80,8 +82,7 @@ test("le niveau de rupture structure la scène et la date de publication reste d
   const state = {
     ...createCampaign(SCENARIO_V3_PREVIEW),
     phase: "decision" as const,
-    chapterIndex: Math.floor(index / 12),
-    decisionIndex: index % 12,
+    ...positionBeforeNext(SCENARIO_V3_PREVIEW, index)!,
   };
   const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
@@ -104,8 +105,7 @@ test("aucun intitulé de choix ne redevient un paragraphe sur téléphone", () =
     const state = {
       ...createCampaign(SCENARIO_V3_PREVIEW),
       phase: "decision" as const,
-      chapterIndex: Math.floor(index / 12),
-      decisionIndex: index % 12,
+      ...positionBeforeNext(SCENARIO_V3_PREVIEW, index)!,
     };
     const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
     const labels = html
@@ -204,7 +204,7 @@ test("chaque phase rend la barre de commandement sans cadratin", () => {
     const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
     assert.match(html, /simulateur-v3__command-bar/);
     assert.match(html, /Chapitre 1 sur 8/);
-    assert.match(html, /Dossier 1 sur 96/);
+    assert.match(html, /Dossier 1 sur 60/);
     assert.doesNotMatch(html, /\u2014/);
   }
 });
@@ -217,6 +217,13 @@ test("la barre de commandement garde le solde et une progression lisibles sur mo
   assert.match(html, /-153 milliards d&#39;euros/);
   assert.match(html, /class="simulateur-v3__command-progress"/);
   assert.match(html, /--v3-command-progress:\s*0%/);
+});
+
+test("la barre de commandement calcule sa progression sur les 60 dossiers", () => {
+  const html = renderSimulatorV3(stateAfter(30, "pause"), SCENARIO_V3_PREVIEW);
+
+  assert.match(html, /Dossier 30 sur 60/);
+  assert.match(html, /--v3-command-progress:\s*50%/);
 });
 
 test("un gain budgétaire et un coût budgétaire ne portent pas le même signal", () => {
@@ -271,13 +278,13 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
 });
 
 test("aucune scène ne présente une addition de fin de chapitre", () => {
-  const html = renderSimulatorV3(stateAfter(12, "chapter_verdict"), SCENARIO_V3_PREVIEW);
+  const html = renderSimulatorV3(stateAfter(8, "chapter_verdict"), SCENARIO_V3_PREVIEW);
   assert.doesNotMatch(html, /Le pays vous présente l'addition|Contradiction ouverte|Ouvrir le chapitre suivant/);
   assert.doesNotMatch(html, /simulateur-v3__chapter-verdict/);
 });
 
 test("le verdict final devient une scène éditoriale sans grille générique", () => {
-  const state = stateAfter(96, "verdict");
+  const state = stateAfter(60, "verdict");
   state.crisisHistory = [{
     ruleId: "flat-tax-revolt", triggeredByDecisionId: state.decisions[0]!.decisionId,
     aggravatingDecisionIds: [state.decisions[0]!.decisionId], resolvedBy: "suspend-flat-tax",
@@ -289,7 +296,7 @@ test("le verdict final devient une scène éditoriale sans grille générique", 
   assert.match(html, /simulateur-v3__verdict-trajectory/);
   assert.match(html, /simulateur-v3__verdict-choices/);
   assert.match(html, /simulateur-v3__verdict-aftermath/);
-  assert.match(html, /96 arbitrages/);
+  assert.match(html, /60 arbitrages/);
   assert.match(html, /1 crise traversée/);
   assert.match(html, /1 réforme modifiée sous pression/);
   assert.doesNotMatch(html, /simulateur-v3__situation-grid/);
@@ -301,7 +308,7 @@ test("le verdict final devient une scène éditoriale sans grille générique", 
 });
 
 test("le verdict ne répète pas les questions dans les trois choix décisifs", () => {
-  const state = stateAfter(96, "verdict");
+  const state = stateAfter(60, "verdict");
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   const firstDecision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const firstOption = firstDecision.options[0]!;

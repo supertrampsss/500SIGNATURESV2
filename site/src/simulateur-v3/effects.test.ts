@@ -127,7 +127,7 @@ test("les bornes politiques sont appliquées sans modifier l'état d'origine", (
 test("un effet différé est programmé mais jamais appliqué directement", () => {
   const scenario = scenarioWithEffect("growth", 2, { kind: "after_decisions", count: 1 });
   const state = createCampaign(scenario);
-  const result = scheduleOptionConsequences(state, scenario.decisions[0]!, scenario.decisions[0]!.options[0]!);
+  const result = scheduleOptionConsequences(state, scenario.decisions[0]!, scenario.decisions[0]!.options[0]!, scenario);
   assert.equal(result.indicators.growth, INITIAL_INDICATORS.growth);
   assert.deepEqual(result.scheduledEvents[0], {
     id: "decision-1:decision-1-option-a:effect-1",
@@ -390,9 +390,16 @@ test("les conséquences matérialisées ne changent pas après mutation du scén
   assert.equal(promises.state.indicators.majority, INITIAL_INDICATORS.majority - 4);
 });
 
-test("la matérialisation refuse une conséquence créée à la décision 96 et due après la campagne", () => {
-  const scenario = validScenario();
-  const decision = scenario.decisions[95]!;
+test("la matérialisation borne une conséquence à la longueur du scénario", () => {
+  const source = validScenario();
+  const decisions = source.decisions.slice(0, 3);
+  const scenario: Scenario = {
+    ...source,
+    chapters: [{ ...source.chapters[0]!, decisionIds: decisions.map((decision) => decision.id) }],
+    decisions,
+  };
+  const base = createCampaign(scenario);
+  const decision = scenario.decisions[2]!;
   const option = decision.options[0]!;
   option.effects = [{
     id: "after-campaign",
@@ -404,7 +411,7 @@ test("la matérialisation refuse une conséquence créée à la décision 96 et 
     explanation: "Cette règle arrive trop tard.",
   }];
   const state = {
-    ...createCampaign(validScenario()),
+    ...base,
     decisions: scenario.decisions.map((candidate, index) => ({
       decisionId: candidate.id,
       optionId: candidate.options[0]!.id,
@@ -413,5 +420,5 @@ test("la matérialisation refuse une conséquence créée à la décision 96 et 
     })),
   };
 
-  assert.throws(() => scheduleOptionConsequences(state, decision, option), /after decision 96/);
+  assert.throws(() => scheduleOptionConsequences(state, decision, option, scenario), /after decision 3/);
 });

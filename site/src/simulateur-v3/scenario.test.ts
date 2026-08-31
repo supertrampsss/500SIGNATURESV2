@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
+import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
 import { SCENARIO_V3, SCENARIO_V3_CATALOGUE, SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { assertNoEmDash, validateScenario } from "./validation.ts";
 
@@ -11,6 +12,13 @@ test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
   assert.ok(SCENARIO_V3.decisions.every(({ id }) =>
     SCENARIO_V3_CATALOGUE.decisions.some((candidate) => candidate.id === id),
   ));
+});
+
+test("la campagne suit exactement l'ordre explicite de sa topologie", () => {
+  assert.deepEqual(
+    SCENARIO_V3.chapters.flatMap((chapter) => chapter.decisionIds),
+    [...CAMPAIGN_DECISION_IDS],
+  );
 });
 
 test("chaque chapitre joué conserve les trois niveaux de choix", () => {

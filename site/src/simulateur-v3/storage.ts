@@ -4,6 +4,8 @@ import { isCampaignState } from "./validation.ts";
 
 export const V3_STORAGE_KEY = "simulateur-v3-campaign";
 const V2_STORAGE_KEY = "tunnel-partie";
+const MODELED_EFFECT_SOURCE_VERSION = 5;
+const MODELED_EFFECT_TARGET_VERSION = 6;
 
 export type StorageLike = {
   getItem(key: string): string | null;
@@ -54,7 +56,7 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
 function migratePreviousModeledEffects(value: unknown, scenario: Scenario): CampaignState | null {
   if (typeof value !== "object" || value === null) return null;
   const previousVersion = (value as { scenarioVersion?: unknown }).scenarioVersion;
-  if (typeof previousVersion !== "number" || scenario.version !== previousVersion + 1) return null;
+  if (previousVersion !== MODELED_EFFECT_SOURCE_VERSION || scenario.version !== MODELED_EFFECT_TARGET_VERSION) return null;
   const hasModeledEffects = scenario.decisions.some((decision) => (
     decision.options.some((option) => option.effects.some((effect) => effect.id.includes(V3_MODELED_EFFECT_MARKER)))
   ));

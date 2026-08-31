@@ -1,5 +1,5 @@
 import { clearSelection, currentDecision } from "./campaign.ts";
-import { isEffectRule, validateScenario } from "./validation.ts";
+import { isEffectRule, totalDecisions, validateScenario } from "./validation.ts";
 import { materializedDelayedEventId } from "./types.ts";
 import type {
   CampaignState,
@@ -51,9 +51,14 @@ function assertEffectRule(effect: unknown): asserts effect is EffectRule {
   if (!isEffectRule(effect)) throw new Error("Invalid effect rule");
 }
 
-function assertDueAtDecision(dueAtDecision: number): void {
+function assertPositiveDueAtDecision(dueAtDecision: number): void {
   if (!Number.isInteger(dueAtDecision) || dueAtDecision <= 0) throw new Error("Consequence due date must be a positive integer");
-  if (dueAtDecision > 96) throw new Error("Consequence cannot be due after decision 96");
+}
+
+function assertDueAtDecision(dueAtDecision: number, scenario: Scenario): void {
+  assertPositiveDueAtDecision(dueAtDecision);
+  const campaignLength = totalDecisions(scenario);
+  if (dueAtDecision > campaignLength) throw new Error(`Consequence cannot be due after decision ${campaignLength}`);
 }
 
 function eventForDelayedEffect(decision: Decision, option: DecisionOption, effect: EffectRule, dueAtDecision: number): ScheduledEvent {
@@ -111,19 +116,24 @@ export function applyEffect(state: CampaignState, effect: EffectRule, cause: Eff
 }
 
 /** Queues effects, explicit events and promises which follow the selected option. */
-export function scheduleOptionConsequences(state: CampaignState, decision: Decision, option: DecisionOption): CampaignState {
+export function scheduleOptionConsequences(
+  state: CampaignState,
+  decision: Decision,
+  option: DecisionOption,
+  scenario: Scenario,
+): CampaignState {
   const decisionCount = state.decisions.length;
   const delayedEffects: ScheduledEvent[] = [];
   for (const effect of option.effects) {
     assertEffectRule(effect);
     if (effect.timing.kind !== "after_decisions") continue;
     const dueAtDecision = decisionCount + effect.timing.count;
-    assertDueAtDecision(dueAtDecision);
+    assertDueAtDecision(dueAtDecision, scenario);
     delayedEffects.push(eventForDelayedEffect(decision, option, effect, dueAtDecision));
   }
   const explicitEvents: ScheduledEvent[] = option.scheduledEvents.map((event) => {
     const dueAtDecision = decisionCount + event.afterDecisions;
-    assertDueAtDecision(dueAtDecision);
+    assertDueAtDecision(dueAtDecision, scenario);
     assertImmediateEffects(event.effects, "Scheduled event");
     return {
       id: event.id,
@@ -137,7 +147,7 @@ export function scheduleOptionConsequences(state: CampaignState, decision: Decis
   });
   const promises: PoliticalPromise[] = option.promises.map((promise) => {
     const dueAtDecision = decisionCount + promise.dueAfterDecisions;
-    assertDueAtDecision(dueAtDecision);
+    assertDueAtDecision(dueAtDecision, scenario);
     assertImmediateEffects(promise.failureEffects, "Political promise");
     return {
       id: promise.id,
@@ -232,7 +242,7 @@ export function confirmSelection(state: CampaignState, scenario: Scenario): Camp
     sourceType: "decision",
     sourceId: `${decisionId}:${optionId}`,
   });
-  const withConsequences = scheduleOptionConsequences(withImmediateEffects, decision, option);
+  const withConsequences = scheduleOptionConsequences(withImmediateEffects, decision, option, scenario);
   const withFulfilledPromises = option.fulfillsPromises.length === 0
     ? withConsequences
     : {
@@ -246,7 +256,7 @@ export function confirmSelection(state: CampaignState, scenario: Scenario): Camp
 
 /** Applies every event due at the current decision count, then consumes it from the queue. */
 export function resolveDueEvents(state: CampaignState): { state: CampaignState; events: ScheduledEvent[] } {
-  state.scheduledEvents.forEach((event) => assertDueAtDecision(event.dueAtDecision));
+  state.scheduledEvents.forEach((event) => assertPositiveDueAtDecision(event.dueAtDecision));
   const decisionCount = state.decisions.length;
   const events = state.scheduledEvents.filter((event) => event.dueAtDecision <= decisionCount);
   const futureEvents = state.scheduledEvents.filter((event) => event.dueAtDecision > decisionCount);
@@ -266,7 +276,7 @@ export function resolveDueEvents(state: CampaignState): { state: CampaignState; 
 
 /** Resolves due political promises, penalizing only the promises left unfulfilled. */
 export function resolveDuePromises(state: CampaignState): { state: CampaignState; failedPromiseIds: string[] } {
-  state.activePromises.forEach((promise) => assertDueAtDecision(promise.dueAtDecision));
+  state.activePromises.forEach((promise) => assertPositiveDueAtDecision(promise.dueAtDecision));
   const decisionCount = state.decisions.length;
   const duePromises = state.activePromises.filter((promise) => promise.dueAtDecision <= decisionCount);
   const activePromises = state.activePromises.filter((promise) => promise.dueAtDecision > decisionCount);

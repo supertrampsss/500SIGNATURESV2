@@ -54,12 +54,12 @@ export const CAMPAIGN_DECISION_IDS = [
   "cheque-education-par-eleve",
   "supprimer-le-financement-public-du-prive",
   "autonomie-complete-des-etablissements",
+  "reduire-de-5-les-dotations-aux-collectivites",
+  "regle-d-or-constitutionnelle",
   "geler-le-point-d-indice-en-2026",
   "ne-pas-remplacer-un-depart-administratif-sur",
   "fermer-un-tiers-des-agences-et-operateurs",
   "diviser-par-deux-le-nombre-de-parlementaires",
-  "reduire-de-5-les-dotations-aux-collectivites",
-  "regle-d-or-constitutionnelle",
   "proportionnelle-integrale",
 ] as const;
 

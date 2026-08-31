@@ -6,6 +6,7 @@ import { mountSimulatorV3, type SimulatorV3Host } from "./controller.ts";
 import { V3_STORAGE_KEY, type StorageLike } from "./storage.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { positionBeforeNext } from "./validation.ts";
 
 function memoryStorage(initial: Record<string, string> = {}): StorageLike & { values: Map<string, string> } {
   const values = new Map(Object.entries(initial));
@@ -57,8 +58,7 @@ function stateBefore(decisionId: string) {
   return {
     ...base,
     phase: "decision" as const,
-    chapterIndex: Math.floor(index / 12),
-    decisionIndex: index % 12,
+    ...positionBeforeNext(SCENARIO_V3_PREVIEW, index)!,
     decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, index).map((decision, decisionIndex) => ({
       decisionId: decision.id,
       optionId: decision.options.at(-1)!.id,
@@ -97,7 +97,7 @@ test("un choix sans événement ouvre immédiatement le dossier suivant", () => 
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
-  assert.match(host.innerHTML, /Dossier 2 sur 96/);
+  assert.match(host.innerHTML, /Dossier 2 sur 60/);
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));
 });
 
@@ -181,7 +181,7 @@ test("une crise interrompt la progression et sa concession suspend réellement l
   assert.equal(saved.decisions.at(-1).status, "suspended");
   assert.equal(saved.decisions.at(-1).changedByCrisisId, "flat-tax-revolt");
   assert.deepEqual(saved.lockedDecisionIds, []);
-  assert.match(host.innerHTML, /Dossier 10 sur 96/);
+  assert.match(host.innerHTML, /Dossier 8 sur 60/);
 });
 
 test("le journal s'ouvre dans Pause et revient sans perdre l'écran interrompu", () => {
@@ -225,7 +225,7 @@ test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire
     const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
     host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
   }
-  assert.match(host.innerHTML, /Dossier 5 sur 96/);
+  assert.match(host.innerHTML, /Dossier 5 sur 60/);
   assert.doesNotMatch(host.innerHTML, /Le pays vous présente l'addition/);
   host.click("pause");
 
@@ -233,7 +233,7 @@ test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire
   mountSimulatorV3(restored, SCENARIO_V3_PREVIEW, { storage });
   assert.match(restored.innerHTML, /Mandat suspendu/);
   restored.click("resume");
-  assert.match(restored.innerHTML, /Dossier 5 sur 96/);
+  assert.match(restored.innerHTML, /Dossier 5 sur 60/);
 });
 
 test("une ancienne sauvegarde de fin de chapitre reprend au chapitre suivant", () => {
@@ -242,8 +242,8 @@ test("une ancienne sauvegarde de fin de chapitre reprend au chapitre suivant", (
     ...base,
     phase: "chapter_verdict" as const,
     chapterIndex: 0,
-    decisionIndex: 11,
-    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, 12).map((decision, index) => ({
+    decisionIndex: 7,
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, 8).map((decision, index) => ({
       decisionId: decision.id,
       optionId: decision.options.at(-1)!.id,
       status: "confirmed" as const,
@@ -264,7 +264,7 @@ test("partager le verdict copie un résultat dynamique sans quitter la scène fi
     ...base,
     phase: "verdict" as const,
     chapterIndex: 7,
-    decisionIndex: 11,
+    decisionIndex: 6,
     decisions: SCENARIO_V3_PREVIEW.decisions.map((decision, index) => ({
       decisionId: decision.id,
       optionId: decision.options[0]!.id,

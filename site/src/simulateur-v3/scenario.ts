@@ -86,8 +86,13 @@ function normalizeDecisionReferences(decision: Decision): Decision {
 }
 
 const catalogueDecisions = rawDecisions.map(normalizeDecisionReferences);
+const catalogueById = new Map(catalogueDecisions.map((decision) => [decision.id, decision]));
 const selected = new Set<string>(CAMPAIGN_DECISION_IDS);
-const campaignDecisions = catalogueDecisions.filter(({ id }) => selected.has(id)).map((decision) => ({
+const campaignDecisions = CAMPAIGN_DECISION_IDS.map((id) => {
+  const decision = catalogueById.get(id);
+  if (!decision) throw new Error(`Unknown campaign decision ID: ${id}`);
+  return decision;
+}).map((decision) => ({
   ...decision,
   options: decision.options.map((option) => ({
     ...option,

@@ -96,8 +96,11 @@ function shareStatus(issue: VerdictShareIssue): string {
   return "";
 }
 
-function inferredPhaseBeforePause(state: CampaignState): CampaignPhase {
-  const position = state.chapterIndex * 12 + state.decisionIndex;
+function inferredPhaseBeforePause(state: CampaignState, scenario: Scenario): CampaignPhase {
+  const position = scenario.chapters
+    .slice(0, state.chapterIndex)
+    .reduce((sum, chapter) => sum + chapter.decisionIds.length, 0)
+    + state.decisionIndex;
   return state.decisions.length > position ? "decision_result" : "decision";
 }
 
@@ -126,7 +129,7 @@ export function mountSimulatorV3(
     scenario,
   );
   let phaseBeforePause: CampaignPhase | undefined = state.phase === "pause"
-    ? state.pausedFrom ?? inferredPhaseBeforePause(state)
+    ? state.pausedFrom ?? inferredPhaseBeforePause(state, scenario)
     : undefined;
   let pauseView: RenderSimulatorV3Options["pauseView"] = "menu";
 
@@ -268,7 +271,7 @@ export function mountSimulatorV3(
     }
 
     if (action === "resume" && state.phase === "pause") {
-      const resumedPhase = phaseBeforePause ?? state.pausedFrom ?? inferredPhaseBeforePause(state);
+      const resumedPhase = phaseBeforePause ?? state.pausedFrom ?? inferredPhaseBeforePause(state, scenario);
       const { pausedFrom: _pausedFrom, ...withoutPauseMarker } = state;
       state = { ...withoutPauseMarker, phase: resumedPhase };
       pauseView = "menu";

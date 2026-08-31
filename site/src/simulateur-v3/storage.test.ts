@@ -44,12 +44,12 @@ test("un scénario mis à jour invalide proprement l'ancienne campagne", () => {
   assert.deepEqual(restoreCampaign(storage, newScenario), { kind: "invalid" });
 });
 
-test("la campagne V5 reçoit les nouveaux effets du verdict sans perdre les choix déjà rendus", () => {
-  assert.equal(SCENARIO_V3_PREVIEW.version, 6);
+test("la migration historique 5 vers 6 ajoute les effets modélisés sans perdre les choix", () => {
+  const modeledScenarioV6: Scenario = { ...SCENARIO_V3_PREVIEW, version: 6 };
   const oldScenario: Scenario = {
-    ...SCENARIO_V3_PREVIEW,
+    ...modeledScenarioV6,
     version: 5,
-    decisions: SCENARIO_V3_PREVIEW.decisions.map((decision) => ({
+    decisions: modeledScenarioV6.decisions.map((decision) => ({
       ...decision,
       options: decision.options.map((option) => ({
         ...option,
@@ -75,7 +75,7 @@ test("la campagne V5 reçoit les nouveaux effets du verdict sans perdre les choi
   );
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(oldState) });
 
-  const restored = restoreCampaign(storage, SCENARIO_V3_PREVIEW);
+  const restored = restoreCampaign(storage, modeledScenarioV6);
 
   assert.equal(restored.kind, "restored");
   if (restored.kind === "restored") {
@@ -86,8 +86,23 @@ test("la campagne V5 reçoit les nouveaux effets du verdict sans perdre les choi
     const modeled = restored.state.causalLedger.filter((entry) => entry.id.includes(":model:"));
     assert.ok(modeled.length >= 2);
     assert.ok(modeled.every((entry) => entry.appliedAtDecision === 1));
-    assert.equal(isCampaignState(restored.state, SCENARIO_V3_PREVIEW), true);
+    assert.equal(isCampaignState(restored.state, modeledScenarioV6), true);
   }
+});
+
+test("la transition topologique 6 vers 7 invalide la sauvegarde sans rejouer les effets modélisés", () => {
+  const scenarioV6: Scenario = { ...SCENARIO_V3_PREVIEW, version: 6 };
+  const decision = scenarioV6.decisions[0]!;
+  const option = decision.options[0]!;
+  const oldState = confirmSelection(
+    selectOption({ ...createCampaign(scenarioV6), phase: "decision" }, scenarioV6, decision.id, option.id),
+    scenarioV6,
+  );
+  const serialized = JSON.stringify(oldState);
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
+
+  assert.deepEqual(restoreCampaign(storage, SCENARIO_V3_PREVIEW), { kind: "invalid" });
+  assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
 });
 
 test("une sauvegarde V3 invalide est refusée sans effacer les données", () => {

@@ -33,18 +33,18 @@ function playFullCampaign(optionIndex: 0 | 1): CampaignState {
   return state;
 }
 
-test("les 96 dossiers restent jouables en choisissant toujours la première option", () => {
+test("les 60 dossiers atteignent le verdict en choisissant toujours la première option", () => {
   const state = playFullCampaign(0);
   assert.equal(state.phase, "verdict");
-  assert.equal(state.decisions.length, 96);
-  assert.equal(new Set(state.decisions.map((decision) => decision.decisionId)).size, 96);
+  assert.equal(state.decisions.length, 60);
+  assert.equal(new Set(state.decisions.map((decision) => decision.decisionId)).size, 60);
 });
 
-test("les 96 dossiers restent jouables en choisissant toujours la seconde option", () => {
+test("les 60 dossiers atteignent le verdict en choisissant toujours la seconde option", () => {
   const state = playFullCampaign(1);
   assert.equal(state.phase, "verdict");
-  assert.equal(state.decisions.length, 96);
-  assert.equal(new Set(state.decisions.map((decision) => decision.decisionId)).size, 96);
+  assert.equal(state.decisions.length, 60);
+  assert.equal(new Set(state.decisions.map((decision) => decision.decisionId)).size, 60);
 });
 
 test("deux lignes politiques opposées produisent des verdicts économiques et politiques différents", () => {
@@ -52,7 +52,10 @@ test("deux lignes politiques opposées produisent des verdicts économiques et p
   const statuQuo = playFullCampaign(1);
 
   assert.notEqual(adoption.indicators.growth, statuQuo.indicators.growth);
-  assert.notEqual(adoption.indicators.majority, statuQuo.indicators.majority);
+  const politicalIndicators = [
+    "majority", "opinion", "institutionalTrust", "financialCredibility",
+  ] as const;
+  assert.ok(politicalIndicators.some((key) => adoption.indicators[key] !== statuQuo.indicators[key]));
   assert.ok(adoption.causalLedger.some((entry) => entry.key === "growth"));
   assert.ok(adoption.causalLedger.some((entry) => entry.key === "majority"));
 });

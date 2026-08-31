@@ -1,9 +1,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { assertNoEmDash, isCampaignState, validateScenario } from "./validation.ts";
+import {
+  assertNoEmDash,
+  isCampaignState,
+  positionAfterCompleted,
+  positionBeforeNext,
+  totalDecisions,
+  validateScenario,
+} from "./validation.ts";
 import { createCampaign, selectOption } from "./campaign.ts";
 import { confirmSelection, resolveDueEvents } from "./effects.ts";
+import { SCENARIO_V3 } from "./scenario.ts";
 import { validCampaignState, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, DecisionRecord, EffectRule, Scenario } from "./types.ts";
 
@@ -19,17 +27,37 @@ function confirmedRecord(scenario: Scenario, index: number, confirmedAtIndex = i
 
 function stateAfterRecords(scenario: Scenario, decisions: DecisionRecord[]): CampaignState {
   const count = decisions.length;
+  const position = positionAfterCompleted(scenario, count) ?? positionBeforeNext(scenario, count)!;
   return {
     ...validCampaignState(scenario),
     phase: "decision_result",
-    chapterIndex: Math.floor((count - 1) / 12),
-    decisionIndex: (count - 1) % 12,
+    ...position,
     decisions,
   };
 }
 
-test("un scénario valide contient huit chapitres de douze décisions uniques", () => {
+test("un scénario valide contient chaque décision une seule fois", () => {
   assert.deepEqual(validateScenario(validScenario()), []);
+});
+
+test("le positionnement suit des chapitres de longueurs variables", () => {
+  assert.deepEqual(positionAfterCompleted(SCENARIO_V3, 8), { chapterIndex: 0, decisionIndex: 7 });
+  assert.deepEqual(positionBeforeNext(SCENARIO_V3, 8), { chapterIndex: 1, decisionIndex: 0 });
+  assert.deepEqual(positionBeforeNext(SCENARIO_V3, 53), { chapterIndex: 7, decisionIndex: 0 });
+  assert.equal(totalDecisions(SCENARIO_V3), 60);
+});
+
+test("la validation accepte une petite topologie non uniforme", () => {
+  const source = validScenario();
+  const decisions = source.decisions.slice(0, 3);
+  const scenario: Scenario = {
+    ...source,
+    chapters: [{ ...source.chapters[0]!, decisionIds: decisions.map((decision) => decision.id) }],
+    decisions,
+  };
+
+  assert.deepEqual(validateScenario(scenario), []);
+  assert.equal(totalDecisions(scenario), 3);
 });
 
 test("la validation refuse un scénario incomplet et un choix sans preuve", () => {
@@ -37,7 +65,7 @@ test("la validation refuse un scénario incomplet et un choix sans preuve", () =
   scenario.chapters[0]!.decisionIds.pop();
   scenario.decisions[0]!.evidence = [];
   const errors = validateScenario(scenario);
-  assert.ok(errors.includes("chapter:chapter-1:expected-12-decisions"));
+  assert.ok(errors.includes("decision:decision-12:expected-once-in-chapters"));
   assert.ok(errors.includes("decision:decision-1:evidence-required"));
 });
 
@@ -373,7 +401,7 @@ test("un état V3 refuse une phase ou une échéance persistée hors campagne", 
     id: "event-97",
     sourceDecisionId: "decision-1",
     sourceOptionId: "decision-1-option-a",
-    dueAtDecision: 97,
+    dueAtDecision: totalDecisions(scenario) + 1,
     title: "Trop tard",
     body: "Cette échéance dépasse la campagne.",
     effects: [],
@@ -387,7 +415,8 @@ test("un état V3 accepte chaque phase à sa position atteignable", () => {
   const scenario = validScenario();
   const records = (count: number) => Array.from({ length: count }, (_, index) => confirmedRecord(scenario, index));
   const chapterVerdict = stateAfterRecords(scenario, records(12));
-  const verdict = stateAfterRecords(scenario, records(96));
+  const campaignLength = totalDecisions(scenario);
+  const verdict = stateAfterRecords(scenario, records(campaignLength));
   const crisis = stateAfterRecords(scenario, records(1));
   const delayedEvent = stateAfterRecords(scenario, records(2));
   delayedEvent.scheduledEvents = [{
@@ -413,15 +442,16 @@ test("un état V3 accepte chaque phase à sa position atteignable", () => {
     { ...delayedEvent, phase: "delayed_event" },
     { ...chapterVerdict, phase: "chapter_verdict" },
     { ...createCampaign(scenario), phase: "pause" },
-    { ...verdict, phase: "verdict", chapterIndex: 7, decisionIndex: 11 },
+    { ...verdict, phase: "verdict" },
   ];
 
   for (const state of states) assert.equal(isCampaignState(state, scenario), true, state.phase);
 });
 
-test("la validation refuse toute règle créée à la décision 96 et due après la campagne", () => {
+test("la validation refuse toute règle créée à la dernière décision et due après la campagne", () => {
   const scenario = validScenario();
-  const option = scenario.decisions[95]!.options[0]!;
+  const finalDecision = totalDecisions(scenario) - 1;
+  const option = scenario.decisions[finalDecision]!.options[0]!;
   option.effects = [{
     id: "effect-after-96",
     target: "indicator",

@@ -1,5 +1,5 @@
 import { SCHEMA_VERSION, type CampaignState, type Decision, type Scenario } from "./types.ts";
-import { validateScenario } from "./validation.ts";
+import { totalDecisions, validateScenario } from "./validation.ts";
 
 export const INITIAL_INDICATORS = Object.freeze({
   annualBalance: -153_000,
@@ -89,18 +89,22 @@ function nextChapter(state: CampaignState): CampaignState {
 
 export function normalizeChapterTransition(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase !== "chapter_verdict") return state;
-  if (state.decisions.length >= scenario.decisions.length) return { ...state, phase: "verdict" };
+  if (state.decisions.length >= totalDecisions(scenario)) return { ...state, phase: "verdict" };
   return nextChapter(state);
+}
+
+function chapterIsComplete(state: CampaignState, scenario: Scenario): boolean {
+  const chapter = scenario.chapters[state.chapterIndex];
+  return chapter !== undefined && state.decisionIndex + 1 >= chapter.decisionIds.length;
 }
 
 function advanceOneScreen(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase === "chapter_verdict") return normalizeChapterTransition(state, scenario);
   if (state.phase === "chapter_intro") return { ...state, phase: "decision" };
-  if (state.phase === "council") return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 
   const completedDecisions = state.decisions.length;
-  if (completedDecisions >= scenario.decisions.length) return { ...state, phase: "verdict" };
-  if (completedDecisions > 0 && completedDecisions % 12 === 0) return nextChapter(state);
+  if (completedDecisions >= totalDecisions(scenario)) return { ...state, phase: "verdict" };
+  if (chapterIsComplete(state, scenario)) return nextChapter(state);
   return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 }
 
