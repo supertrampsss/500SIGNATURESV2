@@ -225,6 +225,17 @@ test("2. la carte d'une analyse porte sa source et le millésime de son chiffre"
   assert.ok(donnees.lecture.trim(), "l'analyse publiée ne déclare pas de lecture");
 });
 
+test("2 bis. une analyse longue attribue sa carte à la source de la preuve correspondante", async () => {
+  const analyses = await analysesPubliees();
+  const analyse = analyses.find((candidate) => candidate.slug === "electricite-exportee-facture-francais")!;
+  const valeur = analyse.chiffres[0]!.valeur;
+  const preuve = analyse.dossier!.preuves.find((candidate) => candidate.value === valeur)!;
+  const source = analyse.sources.find((candidate) => candidate.id === preuve.sourceId)!;
+  const donnees = donneesCarteAnalyse(analyse, catalogueEnEuros([analyse]), "exemple.test");
+  assert.equal(donnees.source.titre, source.titre);
+  assert.equal(donnees.source.millesime, preuve.period);
+});
+
 test("2 ter. la carte reçoit tous les chiffres publiés que le verdict oppose", async () => {
   const analyse = (await analysesPubliees()).find(
     (candidate) => candidate.chiffres.filter((chiffre) => chiffre.observe).length > 1,

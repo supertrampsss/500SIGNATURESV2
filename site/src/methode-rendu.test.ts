@@ -88,7 +88,7 @@ test("aucun cran ne porte de jugement — la page le dit explicitement", () => {
   assert.match(html, /compare deux nombres et nomme ce qui les sépare/);
 });
 
-test("les neuf confusions figurent, chacune avec ce qu'elle désigne", () => {
+test("les dix confusions figurent, chacune avec ce qu'elle désigne", () => {
   const html = renduGrille();
   const confusions = [
     "ae_cp",
@@ -100,6 +100,7 @@ test("les neuf confusions figurent, chacune avec ce qu'elle désigne", () => {
     "perimetre_geographique",
     "gros_detail",
     "panier_partiel",
+    "indicateur_partiel",
   ];
   for (const confusion of confusions) {
     assert.match(html, new RegExp(confusion), `${confusion} absente de la grille`);
@@ -115,11 +116,12 @@ test("les neuf confusions figurent, chacune avec ce qu'elle désigne", () => {
   assert.match(html, /territoriaux|géographiques/i);
   assert.match(html, /prix de gros.*facture de détail/i);
   assert.match(html, /sous-panier.*dépense totale/i);
+  assert.match(html, /indicateur partiel.*concept plus large/i);
 });
 
-test("le cran hors_perimetre est rattaché aux neuf confusions", () => {
+test("le cran hors_perimetre est rattaché aux dix confusions", () => {
   const html = renduGrille();
-  assert.match(html, /hors_perimetre[\s\S]{0,400}(ae_cp|Les neuf confusions)/i);
+  assert.match(html, /hors_perimetre[\s\S]{0,400}(ae_cp|Les dix confusions)/i);
 });
 
 test("les sept registres figurent, et le septième dit que l'opinion n'existe pas", () => {

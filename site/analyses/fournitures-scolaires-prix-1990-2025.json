@@ -7,19 +7,18 @@
   "budgets_concernes": ["etat"],
   "mise_en_avant": true,
   "affirmation": {
-    "texte": "Le coût de la rentrée scolaire augmente beaucoup plus vite que tous les autres prix.",
+    "texte": "L'indice des prix des autres fournitures scolaires et de bureau atteint 113,02 en 2025, base 100 en 2015.",
     "auteur": null,
     "date": null,
     "source": {"titre": "Affirmation courante confrontée aux indices de prix de l'Insee", "url": "https://www.insee.fr/fr/statistiques/serie/telecharger?code=001765036", "consulte_le": "2026-08-30"}
   },
   "verdict": {
-    "cran": "hors_perimetre",
-    "confusion": "panier_partiel",
-    "phrase": "L'Insee mesure le prix d'un sous-panier intitulé « autres fournitures scolaires et de bureau », pas le budget total d'une rentrée. Son indice est passé de 64,70 en 1990 à 113,02 en 2025, base 100 en 2015. Il permet de suivre les prix à contenu comparable, pas d'additionner cartable, vêtements, cantine, ordinateur et activités."
+    "cran": "exact",
+    "phrase": "Le chiffre est publié par l'Insee, mais il mesure un sous-panier intitulé « autres fournitures scolaires et de bureau », pas le budget total d'une rentrée. Entre 1990 et 2025, son indice progresse moins que l'indice d'ensemble des prix à la consommation."
   },
   "chiffres": [
-    {"dit": "la rentrée scolaire a doublé", "valeur": 113.02, "registre": "donnee_officielle", "lecture": "L'indice Insee du sous-panier atteint 113,02 en 2025, base 100 en 2015."},
-    {"dit": "toutes les dépenses de rentrée sont mesurées", "valeur": 64.7, "registre": "donnee_officielle", "lecture": "La série remonte à 64,70 en 1990 mais ne couvre que les autres fournitures scolaires et de bureau."}
+    {"dit": "indice 113,02 en 2025, base 100 en 2015", "valeur": 113.02, "registre": "donnee_officielle", "lecture": "L'indice Insee du sous-panier atteint 113,02 en 2025, base 100 en 2015."},
+    {"dit": "indice 64,70 en 1990, base 100 en 2015", "valeur": 64.7, "registre": "donnee_officielle", "lecture": "La série remonte à 64,70 en 1990 mais ne couvre que les autres fournitures scolaires et de bureau."}
   ],
   "hypotheses": [
     "Un indice de prix mesure l'évolution d'un panier à qualité aussi constante que possible ; il ne donne pas le montant dépensé par une famille.",
@@ -28,7 +27,8 @@
   ],
   "effets_indirects": [],
   "sources": [
-    {"id": "insee-fournitures", "titre": "Insee BDM — IPC, autres fournitures scolaires et de bureau, série 001765036", "url": "https://api.insee.fr/series/BDM/V1/data/SERIES_BDM/001765036", "consulte_le": "2026-08-30"}
+    {"id": "insee-fournitures", "titre": "Insee BDM : IPC, autres fournitures scolaires et de bureau, série 001765036", "url": "https://api.insee.fr/series/BDM/V1/data/SERIES_BDM/001765036", "consulte_le": "2026-08-30"},
+    {"id": "insee-ipc-ensemble", "titre": "Insee BDM : IPC d'ensemble, série 001764363", "url": "https://api.insee.fr/series/BDM/V1/data/SERIES_BDM/001764363", "consulte_le": "2026-08-30"}
   ],
   "simulateur": {"budget": "", "contrat": "", "lecture": "Le simulateur arbitre des politiques éducatives ; il ne transforme pas un indice de prix en budget familial."},
   "mises_a_jour": [],
@@ -37,20 +37,23 @@
     "chapo": "La statistique officielle disponible est utile, mais plus étroite que l'expression « coût de la rentrée ». Elle suit un sous-panier de fournitures et doit rester présentée comme tel.",
     "sommaire": ["mesure", "evolution", "limite"],
     "series": [
-      {"id": "fournitures", "libelle": "Autres fournitures scolaires et de bureau", "unit": "index_2015_100", "definition": "Indice annuel des prix à la consommation, base 100 en 2015, série Insee 001765036.", "sourceId": "insee-fournitures", "observations": [{"period": "1990", "value": 64.7}, {"period": "2015", "value": 100}, {"period": "2025", "value": 113.02}]}
+      {"id": "fournitures", "libelle": "Autres fournitures scolaires et de bureau", "unit": "index_2015_100", "definition": "Indice annuel des prix à la consommation, base 100 en 2015, série Insee 001765036.", "sourceId": "insee-fournitures", "observations": [{"period": "1990", "value": 64.7}, {"period": "2015", "value": 100}, {"period": "2025", "value": 113.02, "qualityFlags": ["provisional"]}]},
+      {"id": "ipc-ensemble", "libelle": "Ensemble des prix à la consommation", "unit": "index_2015_100", "definition": "Indice annuel des prix à la consommation pour l'ensemble des ménages, base 100 en 2015, série Insee 001764363.", "sourceId": "insee-ipc-ensemble", "observations": [{"period": "1990", "value": 62.1}, {"period": "2015", "value": 100}, {"period": "2025", "value": 119.37}]}
     ],
     "preuves": [
       {"id": "preuve-1990", "libelle": "Indice des fournitures en 1990", "value": 64.7, "unit": "index_2015_100", "period": "1990", "definition": "Indice annuel base 100 en 2015 du sous-panier de fournitures.", "sourceId": "insee-fournitures", "seriesId": "fournitures"},
-      {"id": "preuve-2025", "libelle": "Indice des fournitures en 2025", "value": 113.02, "unit": "index_2015_100", "period": "2025", "definition": "Indice annuel base 100 en 2015 du sous-panier de fournitures.", "sourceId": "insee-fournitures", "seriesId": "fournitures"}
+      {"id": "preuve-2025", "libelle": "Indice des fournitures en 2025", "value": 113.02, "unit": "index_2015_100", "period": "2025", "definition": "Indice annuel base 100 en 2015 du sous-panier de fournitures.", "sourceId": "insee-fournitures", "seriesId": "fournitures", "qualityFlags": ["provisional"]},
+      {"id": "preuve-ensemble-1990", "libelle": "Indice d'ensemble en 1990", "value": 62.1, "unit": "index_2015_100", "period": "1990", "definition": "Indice annuel d'ensemble des prix à la consommation, base 100 en 2015.", "sourceId": "insee-ipc-ensemble", "seriesId": "ipc-ensemble"},
+      {"id": "preuve-ensemble-2025", "libelle": "Indice d'ensemble en 2025", "value": 119.37, "unit": "index_2015_100", "period": "2025", "definition": "Indice annuel d'ensemble des prix à la consommation, base 100 en 2015.", "sourceId": "insee-ipc-ensemble", "seriesId": "ipc-ensemble"}
     ],
     "visualisations": [
-      {"id": "courbe-prix", "type": "line", "titre": "Indice des autres fournitures scolaires et de bureau", "resume": "La série suit un sous-panier à définition constante, base 100 en 2015.", "seriesIds": ["fournitures"]}
+      {"id": "table-prix", "type": "snapshot_table", "titre": "Repères pour les fournitures et l'indice d'ensemble", "resume": "Les valeurs de 1990 et 2025 sont comparées sans tracer de trajectoire pour les années non affichées.", "preuveIds": ["preuve-1990", "preuve-2025", "preuve-ensemble-1990", "preuve-ensemble-2025"]}
     ],
     "sections": [
       {"id": "mesure", "titre": "Ce que l'Insee mesure", "paragraphes": ["La série 001765036 suit les prix d'un sous-panier précis. Elle ne publie aucun « coût moyen d'une rentrée » en euros."], "preuveIds": ["preuve-2025"]},
-      {"id": "evolution", "titre": "Une longue hausse, plus modérée depuis 2015", "paragraphes": ["Entre 1990 et 2025, l'indice passe de 64,70 à 113,02. Depuis la base 2015, la hausse du sous-panier est de 13,02 %."], "preuveIds": ["preuve-1990", "preuve-2025"], "visualisationIds": ["courbe-prix"]},
+      {"id": "evolution", "titre": "Une hausse inférieure à celle de l'indice d'ensemble sur la période", "paragraphes": ["Entre 1990 et 2025, l'indice des fournitures passe de 64,70 à 113,02. L'indice d'ensemble passe de 62,10 à 119,37. Les fournitures n'ont donc pas augmenté plus vite que l'ensemble des prix sur cette fenêtre."], "preuveIds": ["preuve-1990", "preuve-2025", "preuve-ensemble-1990", "preuve-ensemble-2025"], "visualisationIds": ["table-prix"]},
       {"id": "limite", "titre": "Pourquoi ce n'est pas le budget total de rentrée", "paragraphes": ["Les quantités achetées, les promotions, le réemploi, les vêtements, le numérique et les frais annexes changent le budget réellement payé. L'indice de prix ne les additionne pas."]}
     ],
-    "limitations": ["Les points affichés résument la série officielle complète disponible dans le pipeline.", "L'indice 001765036 est un sous-panier et ne doit jamais être renommé « coût de la rentrée ».", "La comparaison avec l'indice d'ensemble ne prouve aucune causalité."]
+    "limitations": ["Les points affichés résument les séries officielles complètes disponibles dans le pipeline.", "La valeur 2025 des fournitures est provisoire et pourra être révisée par l'Insee.", "L'indice 001765036 est un sous-panier et ne doit jamais être renommé « coût de la rentrée ».", "La comparaison avec l'indice d'ensemble ne prouve aucune causalité."]
   }
 }

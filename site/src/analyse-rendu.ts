@@ -46,7 +46,8 @@ export type Confusion =
   | "annuel_cumule"
   | "perimetre_geographique"
   | "gros_detail"
-  | "panier_partiel";
+  | "panier_partiel"
+  | "indicateur_partiel";
 
 /**
  * Le libellé éditorial que les nouveaux dossiers affichent en premier.
@@ -168,6 +169,7 @@ export const LIBELLE_CONFUSION: Record<Confusion, string> = {
   perimetre_geographique: "Deux périmètres géographiques différents confondus",
   gros_detail: "Un prix de gros de l'électricité confondu avec une facture de détail",
   panier_partiel: "Le prix d'un sous-panier confondu avec une dépense totale",
+  indicateur_partiel: "Un indicateur partiel confondu avec un concept plus large",
 };
 
 /** Les six verdicts stables de l'interface éditoriale. */
@@ -196,6 +198,7 @@ function qualificationConfusion(confusion: Confusion): QualificationVerdict {
     case "vote_execute":
     case "gros_detail":
     case "panier_partiel":
+    case "indicateur_partiel":
       return "contexte_manquant";
     case "brut_net":
       return "ordre_grandeur";

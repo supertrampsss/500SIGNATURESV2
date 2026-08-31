@@ -26,6 +26,7 @@ REQUIRED_EXTERNAL_IDS = {
     "insee-enl-2002": "1376575",
     "insee-enl-2013-primo-age": "7765775",
     "insee-hvp-2017-2018": "5371267",
+    "insee-logement-france-30-ans-2017": "2586003",
     "melodi-srcv-satisfaction": "DS_SRCV_SATISFACTION",
 }
 

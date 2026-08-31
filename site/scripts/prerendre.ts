@@ -337,6 +337,9 @@ export function donneesCarteAnalyse(
   if (!chiffre) {
     throw new Error(`L'analyse "${analyse.slug}" ne porte aucun chiffre : rien à peindre sur une carte.`);
   }
+  const preuveDossier = chiffre.valeur === undefined || chiffre.valeur === null
+    ? analyse.dossier?.preuves[0]
+    : analyse.dossier?.preuves.find((preuve) => preuve.value === chiffre.valeur);
   const exercice =
     chiffre.observe?.periode ??
     analyse.chiffres
@@ -344,7 +347,7 @@ export function donneesCarteAnalyse(
       .filter((periode): periode is string => !!periode)
       .sort()
       .pop() ??
-    analyse.dossier?.preuves[0]?.period;
+    preuveDossier?.period;
   if (!exercice) {
     throw new Error(
       `L'analyse "${analyse.slug}" ne déclare aucun exercice : sa carte de partage circulerait ` +
@@ -385,7 +388,9 @@ export function donneesCarteAnalyse(
   // « preuve » de la page cite (analyse-rendu.ts), jamais un champ du
   // catalogue que le rendu ne peut pas vérifier, et jamais la source de la
   // déclaration mise en cause (voir la docstring).
-  const source = analyse.sources[0];
+  const source = preuveDossier
+    ? analyse.sources.find((candidate) => candidate.id === preuveDossier.sourceId)
+    : analyse.sources[0];
   if (!source) {
     throw new Error(
       `L'analyse "${analyse.slug}" ne déclare aucune source : sa carte de partage circulerait ` +

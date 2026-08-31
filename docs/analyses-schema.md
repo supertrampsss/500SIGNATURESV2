@@ -104,6 +104,8 @@ Applicables uniquement quand `verdict.cran = hors_perimetre`.
   commercialisation et prélèvements.
 - `panier_partiel` — confusion entre l'indice de prix d'un sous-panier et le
   montant total d'une dépense qui inclut d'autres produits et services.
+- `indicateur_partiel` : confusion entre une mesure portant sur une dimension
+  précise et un concept plus large qui en comprend plusieurs.
 
 ## Registres
 

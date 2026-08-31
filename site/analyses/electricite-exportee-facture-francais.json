@@ -19,7 +19,7 @@
   "verdict": {
     "cran": "hors_perimetre",
     "confusion": "gros_detail",
-    "phrase": "L'affirmation mélange deux étages différents. Les échanges avec les voisins sont valorisés sur les marchés de gros, selon les prix des zones et les capacités d'interconnexion. La facture d'un ménage est un prix de détail qui inclut aussi l'approvisionnement lissé dans le temps, le réseau, la commercialisation, les prélèvements et la TVA. Il n'existe pas de mécanisme où les Français rachèteraient les électrons qu'ils viennent d'exporter."
+    "phrase": "L'affirmation mélange deux étages différents. Les valeurs publiées par RTE portent sur l'ensemble des exportations d'électricité, pas sur un flux nucléaire isolé. Ces échanges sont valorisés sur les marchés de gros, selon les prix des zones et les capacités d'interconnexion. La facture d'un ménage est un prix de détail qui inclut aussi l'approvisionnement lissé dans le temps, le réseau, la commercialisation, les prélèvements et la TVA. Il n'existe pas de mécanisme où les Français rachèteraient les électrons qu'ils viennent d'exporter."
   },
   "chiffres": [
     {
@@ -50,31 +50,31 @@
   "sources": [
     {
       "id": "rte-echanges-2024",
-      "titre": "RTE — Bilan électrique 2024, échanges",
+      "titre": "RTE : bilan électrique 2024, échanges",
       "url": "https://analysesetdonnees.rte-france.com/bilan-electrique-2024/echanges",
       "consulte_le": "2026-08-30"
     },
     {
       "id": "rte-echanges-2025",
-      "titre": "RTE — Bilan électrique 2025, échanges",
+      "titre": "RTE : bilan électrique 2025, échanges",
       "url": "https://analysesetdonnees.rte-france.com/bilan-electrique-2025/echanges",
       "consulte_le": "2026-08-30"
     },
     {
       "id": "cre-trve",
-      "titre": "CRE — Comprendre les tarifs réglementés de vente d'électricité",
+      "titre": "CRE : comprendre les tarifs réglementés de vente d'électricité",
       "url": "https://www.cre.fr/consommateurs/comprendre-les-tarifs-reglementes-de-vente-delectricite-trve.html",
       "consulte_le": "2026-08-30"
     },
     {
       "id": "cre-trve-2025",
-      "titre": "CRE — Proposition de baisse des tarifs réglementés au 1er février 2025",
+      "titre": "CRE : proposition de baisse des tarifs réglementés au 1er février 2025",
       "url": "https://www.cre.fr/actualites/toute-lactualite/la-cre-propose-une-baisse-moyenne-de-15-des-tarifs-reglementes-de-vente-delectricite-ttc-au-1er-fevrier-2025-pour-les-consommateurs-souscrivant-une-puissance-inferieure-ou-egale-a-36-kva.html",
       "consulte_le": "2026-08-30"
     },
     {
       "id": "cre-arenh",
-      "titre": "CRE — Accès régulé à l'électricité nucléaire historique",
+      "titre": "CRE : accès régulé à l'électricité nucléaire historique",
       "url": "https://www.cre.fr/electricite/marche-de-gros-de-lelectricite/acces-regule-a-lelectricite-nucleaire-historique-arenh.html",
       "consulte_le": "2026-08-30"
     }
@@ -102,25 +102,13 @@
         ]
       },
       {
-        "id": "valorisations-gros-2025",
-        "libelle": "Valorisations de gros publiées par RTE",
-        "unit": "EUR_per_MWh",
-        "definition": "Prix moyen 2025 selon trois conventions : volumes exportés au prix français, prix spot moyen français et volumes exportés aux prix moyens des destinations.",
-        "sourceId": "rte-echanges-2025",
-        "observations": [
-          {"period": "export-prix-francais", "value": 59},
-          {"period": "spot-france", "value": 61},
-          {"period": "export-prix-destinations", "value": 101.5}
-        ]
-      },
-      {
         "id": "trve-moyen-ttc",
         "libelle": "Tarif réglementé résidentiel moyen TTC",
         "unit": "EUR_per_MWh",
-        "definition": "Niveau moyen TTC du tarif réglementé pour les consommateurs d'une puissance inférieure ou égale à 36 kVA, publié par la CRE.",
+        "definition": "Niveau moyen TTC du tarif réglementé proposé par la CRE pour les consommateurs d'une puissance inférieure ou égale à 36 kVA.",
         "sourceId": "cre-trve-2025",
         "observations": [
-          {"period": "2024", "value": 281},
+          {"period": "2024-02", "value": 281},
           {"period": "2025-02", "value": 239}
         ]
       }
@@ -160,7 +148,7 @@
         "value": 61,
         "unit": "EUR_per_MWh",
         "period": "2025",
-        "definition": "Prix moyen journalier du marché de gros français en 2025.",
+        "definition": "Prix spot moyen français sur l'année 2025.",
         "sourceId": "rte-echanges-2025"
       },
       {
@@ -223,7 +211,7 @@
         "id": "echanges",
         "titre": "Pourquoi exporter quand l'électricité française est abondante",
         "paragraphes": [
-          "Quand la production française disponible dépasse la demande intérieure, exporter évite de réduire davantage les moyens de production et permet de valoriser le surplus. En 2024 comme en 2025, la France a été très largement exportatrice nette.",
+          "Quand la production française disponible dépasse la demande intérieure, exporter offre un débouché à la production excédentaire. En 2024 comme en 2025, la France a été très largement exportatrice nette.",
           "RTE montre aussi pourquoi la formule « vendu moins cher aux voisins » est trompeuse : en 2025, le mégawattheure exporté vaut 59 euros au prix français, presque le prix spot français de 61 euros, tandis que la valorisation aux prix des pays de destination atteint 101,5 euros. Ces deux valorisations encadrent le même flux avec des conventions différentes ; elles ne décrivent pas un cadeau suivi d'un rachat."
         ],
         "preuveIds": ["preuve-solde-2024", "preuve-solde-2025"],
@@ -234,7 +222,7 @@
         "titre": "Pourquoi la facture française est plus élevée qu'un prix spot",
         "paragraphes": [
           "Une facture de détail ne reprend pas simplement le prix spot du jour. Elle agrège le coût d'approvisionnement du fournisseur, souvent couvert à l'avance, la capacité, l'utilisation des réseaux, la commercialisation, les prélèvements et la TVA.",
-          "Le tarif réglementé moyen est passé de 281 à 239 euros par mégawattheure TTC au 1er février 2025 lorsque les coûts d'approvisionnement ont baissé. Ce mouvement confirme que le prix de détail réagit aux coûts de gros, mais avec sa propre composition et son propre calendrier."
+          "La CRE a proposé de faire passer le tarif réglementé moyen de 281 à 239 euros par mégawattheure TTC au 1er février 2025, en raison notamment de la baisse des coûts d'approvisionnement. Cette proposition illustre comment le prix de détail réagit aux coûts de gros, avec sa propre composition et son propre calendrier."
         ],
         "preuveIds": ["preuve-trve-2025"]
       },

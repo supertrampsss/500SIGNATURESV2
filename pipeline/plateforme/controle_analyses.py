@@ -184,6 +184,7 @@ CONFUSIONS = {
     "perimetre_geographique",
     "gros_detail",
     "panier_partiel",
+    "indicateur_partiel",
 }
 REGISTRES = {
     "fait_comptable",

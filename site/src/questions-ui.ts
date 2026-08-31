@@ -28,6 +28,16 @@ export function brancherQuestions(): void {
       resultat.append(texte, liste);
       return;
     }
+    if (resolution.statut === "matched") {
+      const suggestion = resolution.reponse;
+      const rapprochement = document.createElement("p");
+      rapprochement.textContent = "Une question proche est documentée :";
+      const lien = document.createElement("a");
+      lien.href = `/questions/${suggestion.slug}/`;
+      lien.textContent = suggestion.question;
+      resultat.append(rapprochement, lien);
+      return;
+    }
     const reponse = resolution.reponse;
     const texte = document.createElement("p");
     texte.textContent = reponse.reponse;
