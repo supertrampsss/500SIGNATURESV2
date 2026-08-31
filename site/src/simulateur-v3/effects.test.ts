@@ -24,7 +24,7 @@ function scenarioWithEffect(key: IndicatorKey, delta: number, timing: EffectRule
     key,
     delta,
     timing,
-    duration: "once",
+    duration: key === "annualBalance" ? "annual" : "once",
     explanation: "Effet test",
   }];
   if (key === "annualBalance" || key === "interestCost") {
@@ -66,6 +66,36 @@ test("un effet différé attend le bon nombre de décisions", () => {
   const confirmed = confirmFirstDecision(scenario);
   assert.equal(confirmed.indicators.growth, INITIAL_INDICATORS.growth);
   assert.equal(confirmed.scheduledEvents[0]?.dueAtDecision, 3);
+});
+
+test("un effet d'année de mandat est programmé à la frontière annuelle du scénario", () => {
+  const scenario = scenarioWithEffect(
+    "employment",
+    2,
+    { kind: "mandate_year", year: 3 } as EffectRule["timing"],
+  );
+  const confirmed = confirmFirstDecision(scenario);
+
+  assert.equal(confirmed.indicators.employment, INITIAL_INDICATORS.employment);
+  assert.equal(confirmed.scheduledEvents[0]?.dueAtDecision, 60);
+  assert.deepEqual(confirmed.scheduledEvents[0]?.effects[0]?.timing, { kind: "immediate" });
+});
+
+test("un événement explicite n'arrive jamais avant l'horizon annuel de la réforme", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.horizon = { kind: "mandate_year", year: 2 };
+  option.effects[0]!.timing = { kind: "mandate_year", year: 2 };
+  option.scheduledEvents = [{
+    id: "implementation-stress",
+    title: "La mise en œuvre est testée",
+    body: "Le stress ne peut suivre une réforme qui n'est pas encore entrée en vigueur.",
+    afterDecisions: 1,
+    effects: [],
+  }];
+
+  const confirmed = confirmFirstDecision(scenario);
+  assert.equal(confirmed.scheduledEvents.find((event) => event.id === "implementation-stress")?.dueAtDecision, 48);
 });
 
 test("chaque variation conserve sa cause lisible", () => {
@@ -193,7 +223,7 @@ test("confirmer applique les verrous, déverrouillages et promesses remplies", (
     failureEffects: [],
   }];
   const option = scenario.decisions[1]!.options[0]!;
-  option.locks = ["decision-3"];
+  option.locks = ["decision-1", "decision-3"];
   option.unlocks = ["decision-4"];
   option.fulfillsPromises = ["old-promise"];
   const state = {
@@ -201,11 +231,29 @@ test("confirmer applique les verrous, déverrouillages et promesses remplies", (
     phase: "decision" as const,
     decisionIndex: 1,
     lockedDecisionIds: ["decision-4"],
+    unlockedDecisionIds: ["decision-2"],
   };
   const confirmed = confirmSelection(selectOption(state, scenario, "decision-2", "decision-2-option-a"), scenario);
   assert.deepEqual(confirmed.lockedDecisionIds, ["decision-3"]);
   assert.ok(confirmed.unlockedDecisionIds.includes("decision-4"));
   assert.equal(confirmed.activePromises[0]?.fulfilled, true);
+});
+
+test("confirmer n'enregistre pas un déverrouillage rétroactif", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[1]!.options[0]!;
+  option.locks = ["decision-3"];
+  option.unlocks = ["decision-1", "decision-4"];
+  const state = {
+    ...confirmFirstDecision(scenario),
+    phase: "decision" as const,
+    decisionIndex: 1,
+    lockedDecisionIds: ["decision-4"],
+  };
+
+  const confirmed = confirmSelection(selectOption(state, scenario, "decision-2", option.id), scenario);
+  assert.deepEqual(confirmed.lockedDecisionIds, ["decision-3"]);
+  assert.deepEqual(confirmed.unlockedDecisionIds, ["decision-4"]);
 });
 
 test("un delta non fini est refusé", () => {
@@ -408,6 +456,10 @@ test("la matérialisation borne une conséquence à la longueur du scénario", (
     chapters: [{ ...source.chapters[0]!, decisionIds: decisions.map((decision) => decision.id) }],
     decisions,
   };
+  const finalAlternative = scenario.decisions.at(-1)!.options[1]!;
+  finalAlternative.horizon = { kind: "immediate" };
+  finalAlternative.effects[0]!.timing = { kind: "immediate" };
+  finalAlternative.beneficiaries = ["alternative beneficiary"];
   const base = createCampaign(scenario);
   const decision = scenario.decisions[2]!;
   const option = decision.options[0]!;

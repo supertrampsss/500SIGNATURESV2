@@ -14,7 +14,13 @@ import {
   type Scenario,
 } from "./types.ts";
 import { optionDistanceDimensions } from "./policy-catalogue.ts";
-import { mandateYearEndingAfterChapter, validateBaseline } from "./timeline.ts";
+import {
+  CHAPTER_MANDATE_YEARS,
+  decisionCountAtMandateYearEnd,
+  mandateYearEndingAfterChapter,
+  mandateYearForChapter,
+  validateBaseline,
+} from "./timeline.ts";
 
 const PHASES: readonly CampaignPhase[] = [
   "intro", "chapter_intro", "decision", "decision_result", "council", "crisis",
@@ -91,6 +97,7 @@ function isDistanceComparableOption(value: unknown): value is DecisionOption {
     && hasValidPolicyHorizon(value.horizon)
     && isStringArray(value.legalConstraints)
     && (value.budgetDuration === "annual" || value.budgetDuration === "once")
+    && isEffectTiming(value.budgetTiming)
     && isStringArray(value.beneficiaries)
     && isStringArray(value.contributors)
     && isStringArray(value.locks)
@@ -133,8 +140,8 @@ function expectedAnnualCheckpoints(scenario: Scenario): Map<number, number> {
 }
 
 function hasValidAnnualCheckpoints(value: unknown, scenario: Scenario, decisionCount: number): boolean {
-  if (!Array.isArray(value) || value.length > 5) return false;
   const expected = expectedAnnualCheckpoints(scenario);
+  if (!Array.isArray(value) || value.length > expected.size) return false;
   return value.every((checkpoint, index) => {
     if (!isRecord(checkpoint) || checkpoint.year !== index + 1) return false;
     if (checkpoint.afterDecisionCount !== expected.get(index + 1)
@@ -158,7 +165,11 @@ export function isEffectRule(value: unknown): value is EffectRule {
   if (!isNonEmptyString(value.explanation) || !EFFECT_DURATIONS.has(value.duration as EffectRule["duration"])) return false;
   if (!isRecord(value.timing) || typeof value.timing.kind !== "string") return false;
   const validTiming = value.timing.kind === "immediate"
-    || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count));
+    || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count))
+    || (value.timing.kind === "mandate_year"
+      && Number.isInteger(value.timing.year)
+      && (value.timing.year as number) >= 1
+      && (value.timing.year as number) <= 5);
   if (!validTiming) return false;
   return (value.target === "indicator" && isIndicatorKey(value.key))
     || (value.target === "group" && isGroupKey(value.key));
@@ -169,6 +180,56 @@ function hasValidPolicyHorizon(value: unknown): boolean {
   return value.kind === "immediate"
     || (value.kind === "after_decisions" && isPositiveInteger(value.count))
     || (value.kind === "mandate_year" && Number.isInteger(value.year) && (value.year as number) >= 1 && (value.year as number) <= 5);
+}
+
+function isEffectTiming(value: unknown): value is EffectRule["timing"] {
+  if (!isRecord(value) || typeof value.kind !== "string") return false;
+  return value.kind === "immediate"
+    || (value.kind === "after_decisions" && isPositiveInteger(value.count))
+    || (value.kind === "mandate_year"
+      && Number.isInteger(value.year)
+      && (value.year as number) >= 1
+      && (value.year as number) <= 5);
+}
+
+function sameTiming(left: EffectRule["timing"], right: EffectRule["timing"]): boolean {
+  if (left.kind !== right.kind) return false;
+  if (left.kind === "after_decisions" && right.kind === "after_decisions") return left.count === right.count;
+  if (left.kind === "mandate_year" && right.kind === "mandate_year") return left.year === right.year;
+  return left.kind === "immediate" && right.kind === "immediate";
+}
+
+function normalizeContractString(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function validateNormalizedContractList(
+  values: unknown[],
+  label: "beneficiary" | "contributor" | "legal-constraint",
+  optionId: string,
+  errors: string[],
+): void {
+  const normalized = values.map((value) => typeof value === "string" ? normalizeContractString(value) : "");
+  if (normalized.some((value) => value.length === 0)) errors.push(`option:${optionId}:blank-${label}`);
+  for (const duplicate of duplicateValues(normalized.filter(Boolean))) {
+    errors.push(`option:${optionId}:duplicate-${label}:${duplicate}`);
+  }
+}
+
+function dueAtDecisionForTiming(
+  horizon: DecisionOption["horizon"] | EffectRule["timing"],
+  position: number | undefined,
+  scenario: Scenario,
+): number | undefined {
+  if (horizon.kind === "mandate_year") {
+    try {
+      return decisionCountAtMandateYearEnd(scenario, horizon.year);
+    } catch {
+      return undefined;
+    }
+  }
+  if (position === undefined) return undefined;
+  return horizon.kind === "immediate" ? position : position + horizon.count;
 }
 
 function isImmediateEffectRule(value: unknown): value is EffectRule {
@@ -226,7 +287,7 @@ function isScheduledEvent(value: unknown, confirmedDecisions: Map<string, Confir
   if (!isRecord(value) || typeof value.id !== "string" || !hasConfirmedSource(value.sourceDecisionId, value.sourceOptionId, confirmedDecisions)) return false;
   const source = confirmedDecisions.get(value.sourceDecisionId as string)!;
   return isPositiveInteger(value.dueAtDecision)
-    && value.dueAtDecision > source.confirmedAtIndex
+    && value.dueAtDecision >= source.confirmedAtIndex
     && value.dueAtDecision <= campaignLength
     && typeof value.title === "string"
     && typeof value.body === "string"
@@ -358,7 +419,16 @@ function validatedChapterIds(chapters: readonly unknown[]): Map<string, number> 
   return positions;
 }
 
-function validateDirectEffect(effect: unknown, position: number | undefined, campaignLength: number, errors: string[]): void {
+function validateDirectEffect(
+  effect: unknown,
+  position: number | undefined,
+  decisionYear: number | null,
+  minimumDueAtDecision: number | undefined,
+  scenario: Scenario,
+  campaignLength: number,
+  enforceCampaignBounds: boolean,
+  errors: string[],
+): void {
   const id = effectId(effect, "unknown");
   if (!isEffectRule(effect)) {
     if (isRecord(effect) && isRecord(effect.timing) && effect.timing.kind === "after_decisions" && !isPositiveInteger(effect.timing.count)) {
@@ -368,19 +438,42 @@ function validateDirectEffect(effect: unknown, position: number | undefined, cam
     }
     return;
   }
-  if (effect.timing.kind === "after_decisions" && position !== undefined && position + effect.timing.count > campaignLength) {
+  if (effect.timing.kind === "after_decisions" && enforceCampaignBounds && position !== undefined && position + effect.timing.count > campaignLength) {
     errors.push(`effect:${effect.id}:due-after-campaign`);
+  }
+  if (effect.timing.kind === "mandate_year" && decisionYear !== null && effect.timing.year < decisionYear) {
+    errors.push(`effect:${effect.id}:timing-before-decision-year`);
+  }
+  const effectDueAtDecision = dueAtDecisionForTiming(effect.timing, position, scenario);
+  if (effect.timing.kind === "mandate_year" && effectDueAtDecision === undefined) {
+    errors.push(`effect:${effect.id}:timing-year-without-checkpoint`);
+  }
+  if (position !== undefined && effectDueAtDecision !== undefined && effectDueAtDecision < position) {
+    errors.push(`effect:${effect.id}:timing-before-decision`);
+  }
+  const isBudgetEffect = effect.target === "indicator" && effect.key === "annualBalance";
+  if (!isBudgetEffect && effectDueAtDecision !== undefined && minimumDueAtDecision !== undefined
+      && effectDueAtDecision < minimumDueAtDecision) {
+    errors.push(`effect:${effect.id}:timing-before-option-horizon`);
   }
 }
 
-function validateScheduledEvent(event: unknown, position: number | undefined, campaignLength: number, errors: string[]): void {
+function validateScheduledEvent(
+  event: unknown,
+  position: number | undefined,
+  minimumDueAtDecision: number | undefined,
+  campaignLength: number,
+  enforceCampaignBounds: boolean,
+  errors: string[],
+): void {
   const id = isRecord(event) && isNonEmptyString(event.id) ? event.id : "unknown";
   if (!isRecord(event) || !isNonEmptyString(event.id)) errors.push(`event:${id}:id-must-be-non-empty-string`);
   if (!isRecord(event) || !isNonEmptyString(event.title)) errors.push(`event:${id}:title-must-be-non-empty-string`);
   if (!isRecord(event) || !isNonEmptyString(event.body)) errors.push(`event:${id}:body-must-be-non-empty-string`);
   if (!isRecord(event) || !isPositiveInteger(event.afterDecisions)) {
     errors.push(`event:${id}:delayed-count-required`);
-  } else if (position !== undefined && position + event.afterDecisions > campaignLength) {
+  } else if (enforceCampaignBounds && position !== undefined
+      && Math.max(position + event.afterDecisions, minimumDueAtDecision ?? position) > campaignLength) {
     errors.push(`event:${id}:due-after-campaign`);
   }
   if (!isRecord(event) || !Array.isArray(event.effects) || event.effects.some((effect) => !isImmediateEffectRule(effect))) {
@@ -388,13 +481,19 @@ function validateScheduledEvent(event: unknown, position: number | undefined, ca
   }
 }
 
-function validatePromise(promise: unknown, position: number | undefined, campaignLength: number, errors: string[]): void {
+function validatePromise(
+  promise: unknown,
+  position: number | undefined,
+  campaignLength: number,
+  enforceCampaignBounds: boolean,
+  errors: string[],
+): void {
   const id = isRecord(promise) && isNonEmptyString(promise.id) ? promise.id : "unknown";
   if (!isRecord(promise) || !isNonEmptyString(promise.id)) errors.push(`promise:${id}:id-must-be-non-empty-string`);
   if (!isRecord(promise) || !isNonEmptyString(promise.label)) errors.push(`promise:${id}:label-must-be-non-empty-string`);
   if (!isRecord(promise) || !isPositiveInteger(promise.dueAfterDecisions)) {
     errors.push(`promise:${id}:delayed-count-required`);
-  } else if (position !== undefined && position + promise.dueAfterDecisions > campaignLength) {
+  } else if (enforceCampaignBounds && position !== undefined && position + promise.dueAfterDecisions > campaignLength) {
     errors.push(`promise:${id}:due-after-campaign`);
   }
   if (!isRecord(promise) || !Array.isArray(promise.failureEffects) || promise.failureEffects.some((effect) => !isImmediateEffectRule(effect))) {
@@ -465,7 +564,7 @@ function validateOptionEffectIds(
   }
   const delayedEventIds = effects
     .filter(isEffectRule)
-    .filter((effect) => effect.timing.kind === "after_decisions")
+    .filter((effect) => effect.timing.kind !== "immediate")
     .map((effect) => materializedDelayedEventId(decisionId, optionId, effect.id));
   for (const id of duplicateValues(delayedEventIds)) {
     errors.push(`option:${optionId}:duplicate-materialized-event-id:${id}`);
@@ -501,17 +600,22 @@ export function assertNoEmDash(value: unknown): string[] {
 }
 
 /** Validates catalogue structure and rejects malformed effects before any campaign can materialize them. */
-export function validateScenario(scenario: Scenario): string[] {
+export function validateScenario(
+  scenario: Scenario,
+  options: { allowConsequencesBeyondCampaign?: boolean } = {},
+): string[] {
   const rawScenario: unknown = scenario;
   if (!isRecord(rawScenario) || !Array.isArray(rawScenario.chapters) || !Array.isArray(rawScenario.decisions)) {
     return ["scenario:invalid-structure"];
   }
 
   const errors: string[] = [];
+  const enforceCampaignBounds = !options.allowConsequencesBeyondCampaign;
   const chapters = rawScenario.chapters;
   const rawDecisions = rawScenario.decisions;
   if (!isPositiveInteger(rawScenario.version)) errors.push("scenario:version:positive-integer-required");
   if (chapters.length === 0) errors.push("scenario:chapters-required");
+  if (chapters.length > CHAPTER_MANDATE_YEARS.length) errors.push("scenario:chapters-exceed-mandate-calendar");
   for (const [chapterIndex, chapter] of chapters.entries()) {
     const chapterId = isRecord(chapter) && typeof chapter.id === "string" ? chapter.id : `index-${chapterIndex + 1}`;
     if (!isRecord(chapter) || !Array.isArray(chapter.decisionIds) || chapter.decisionIds.length === 0) {
@@ -569,6 +673,9 @@ export function validateScenario(scenario: Scenario): string[] {
   }
 
   const positions = validatedChapterIds(chapters);
+  const chapterIndexById = new Map(chapters.flatMap((chapter, chapterIndex) =>
+    isRecord(chapter) && typeof chapter.id === "string" ? [[chapter.id, chapterIndex] as const] : [],
+  ));
   const campaignLength = chapters.every((chapter) => isRecord(chapter) && Array.isArray(chapter.decisionIds))
     ? totalDecisions(scenario)
     : rawDecisions.length;
@@ -576,6 +683,8 @@ export function validateScenario(scenario: Scenario): string[] {
   for (const decision of decisions) {
     const options = Array.isArray(decision.options) ? decision.options : [];
     if (!DECISION_KINDS.includes(decision.kind)) errors.push(`decision:${decision.id}:invalid-kind`);
+    const decisionChapterIndex = chapterIndexById.get(decision.chapterId);
+    const decisionYear = decisionChapterIndex === undefined ? null : mandateYearForChapter(decisionChapterIndex);
     if (options.length < 2 || options.length > 4) errors.push(`decision:${decision.id}:expected-2-to-4-options`);
     if (!Array.isArray(decision.evidence) || decision.evidence.length === 0) errors.push(`decision:${decision.id}:evidence-required`);
     for (const [optionIndex, option] of options.entries()) {
@@ -587,19 +696,112 @@ export function validateScenario(scenario: Scenario): string[] {
       materializedDelayedEventIds.push(
         ...validateOptionEffectIds(decision.id, optionId, effects, events, promises, explicitScheduledEventIds, errors),
       );
-      if (!isRecord(option) || !Array.isArray(option.beneficiaries) || option.beneficiaries.length === 0) errors.push(`option:${optionId}:beneficiaries-required`);
-      if (!isRecord(option) || !Array.isArray(option.contributors) || option.contributors.length === 0) errors.push(`option:${optionId}:contributors-required`);
+      if (!isRecord(option) || !Array.isArray(option.beneficiaries) || option.beneficiaries.length === 0) {
+        errors.push(`option:${optionId}:beneficiaries-required`);
+      } else {
+        validateNormalizedContractList(option.beneficiaries, "beneficiary", optionId, errors);
+      }
+      if (!isRecord(option) || !Array.isArray(option.contributors) || option.contributors.length === 0) {
+        errors.push(`option:${optionId}:contributors-required`);
+      } else {
+        validateNormalizedContractList(option.contributors, "contributor", optionId, errors);
+      }
       if (!isRecord(option) || !isNonEmptyString(option.mechanism)) errors.push(`option:${optionId}:mechanism-required`);
-      if (!isRecord(option) || !hasValidPolicyHorizon(option.horizon)) errors.push(`option:${optionId}:valid-horizon-required`);
-      if (!isRecord(option) || !isStringArray(option.legalConstraints)) errors.push(`option:${optionId}:legal-constraints-required`);
+      if (!isRecord(option) || !hasValidPolicyHorizon(option.horizon)) {
+        errors.push(`option:${optionId}:valid-horizon-required`);
+      } else {
+        if (option.horizon.kind === "mandate_year" && decisionYear !== null && option.horizon.year < decisionYear) {
+          errors.push(`option:${optionId}:horizon-before-decision-year`);
+        }
+        if (enforceCampaignBounds && option.horizon.kind === "after_decisions"
+            && positions.get(decision.id) !== undefined
+            && positions.get(decision.id)! + option.horizon.count > campaignLength) {
+          errors.push(`option:${optionId}:horizon-after-campaign`);
+        }
+        if (option.horizon.kind === "mandate_year"
+            && dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario) === undefined) {
+          errors.push(`option:${optionId}:horizon-year-without-checkpoint`);
+        }
+        const horizonDueAtDecision = dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario);
+        if (horizonDueAtDecision !== undefined && positions.get(decision.id) !== undefined
+            && horizonDueAtDecision < positions.get(decision.id)!) {
+          errors.push(`option:${optionId}:horizon-before-decision`);
+        }
+      }
+      if (!isRecord(option) || !isStringArray(option.legalConstraints)) {
+        errors.push(`option:${optionId}:legal-constraints-required`);
+      } else {
+        validateNormalizedContractList(option.legalConstraints, "legal-constraint", optionId, errors);
+      }
       if (!isRecord(option) || (option.budgetDuration !== "annual" && option.budgetDuration !== "once")) errors.push(`option:${optionId}:budget-duration-required`);
+      if (!isRecord(option) || !isEffectTiming(option.budgetTiming)) {
+        errors.push(`option:${optionId}:budget-timing-required`);
+      } else {
+        if (option.budgetTiming.kind === "mandate_year" && decisionYear !== null && option.budgetTiming.year < decisionYear) {
+          errors.push(`option:${optionId}:budget-timing-before-decision-year`);
+        }
+        if (enforceCampaignBounds && option.budgetTiming.kind === "after_decisions"
+            && positions.get(decision.id) !== undefined
+            && positions.get(decision.id)! + option.budgetTiming.count > campaignLength) {
+          errors.push(`option:${optionId}:budget-timing-after-campaign`);
+        }
+        if (option.budgetTiming.kind === "mandate_year"
+            && dueAtDecisionForTiming(option.budgetTiming, positions.get(decision.id), scenario) === undefined) {
+          errors.push(`option:${optionId}:budget-timing-year-without-checkpoint`);
+        }
+        const budgetDueAtDecision = dueAtDecisionForTiming(option.budgetTiming, positions.get(decision.id), scenario);
+        if (budgetDueAtDecision !== undefined && positions.get(decision.id) !== undefined
+            && budgetDueAtDecision < positions.get(decision.id)!) {
+          errors.push(`option:${optionId}:budget-timing-before-decision`);
+        }
+      }
       if (effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
       if (!effects.some((effect) => isEffectRule(effect) && effect.target === "indicator" && effect.key !== "annualBalance")) {
         errors.push(`option:${optionId}:non-budget-indicator-required`);
       }
-      for (const effect of effects) validateDirectEffect(effect, positions.get(decision.id), campaignLength, errors);
-      for (const event of events) validateScheduledEvent(event, positions.get(decision.id), campaignLength, errors);
-      for (const promise of promises) validatePromise(promise, positions.get(decision.id), campaignLength, errors);
+      const budgetEffects = effects.filter((effect) => isEffectRule(effect)
+        && effect.target === "indicator" && effect.key === "annualBalance");
+      if (budgetEffects.length > 1) errors.push(`option:${optionId}:multiple-budget-effects`);
+      if (isRecord(option) && option.budgetDuration === "once" && budgetEffects.length === 0) {
+        errors.push(`option:${optionId}:once-budget-effect-required`);
+      }
+      if (isRecord(option) && isEffectTiming(option.budgetTiming)) {
+        if (budgetEffects.some((effect) => !sameTiming(effect.timing, option.budgetTiming))) {
+          errors.push(`option:${optionId}:budget-timing-mismatch`);
+        }
+        if ((option.budgetDuration === "annual" || option.budgetDuration === "once")
+            && budgetEffects.some((effect) => effect.duration !== option.budgetDuration)) {
+          errors.push(`option:${optionId}:budget-duration-mismatch`);
+        }
+      }
+      const minimumDueAtDecision = isRecord(option) && hasValidPolicyHorizon(option.horizon)
+        ? dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario)
+        : undefined;
+      for (const effect of effects) validateDirectEffect(
+        effect,
+        positions.get(decision.id),
+        decisionYear,
+        minimumDueAtDecision,
+        scenario,
+        campaignLength,
+        enforceCampaignBounds,
+        errors,
+      );
+      for (const event of events) validateScheduledEvent(
+        event,
+        positions.get(decision.id),
+        minimumDueAtDecision,
+        campaignLength,
+        enforceCampaignBounds,
+        errors,
+      );
+      for (const promise of promises) validatePromise(
+        promise,
+        positions.get(decision.id),
+        campaignLength,
+        enforceCampaignBounds,
+        errors,
+      );
     }
     for (let left = 0; left < options.length; left += 1) {
       for (let right = left + 1; right < options.length; right += 1) {
@@ -630,6 +832,10 @@ export function validateScenario(scenario: Scenario): string[] {
   }
   for (const path of assertNoEmDash(rawScenario)) errors.push(`editorial:em-dash:${path}`);
   return errors;
+}
+
+export function validatePolicyCatalogue(scenario: Scenario): string[] {
+  return validateScenario(scenario, { allowConsequencesBeyondCampaign: true });
 }
 
 /** Narrow an untrusted persisted value to a reachable V3 campaign state. */
@@ -677,7 +883,8 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
     const latest = (value.annualCheckpoints as unknown[]).at(-1);
     if (!isRecord(latest) || latest.afterDecisionCount !== decisionRecords.length) return false;
   }
-  if (value.phase === "verdict" && (value.annualCheckpoints as unknown[]).length !== 5) return false;
+  if (value.phase === "verdict"
+      && (value.annualCheckpoints as unknown[]).length !== expectedAnnualCheckpoints(scenario).size) return false;
 
   const pendingSelection = value.pendingSelection;
   if (pendingSelection !== undefined) {
@@ -694,7 +901,9 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (!crisisHistory.every((crisis) => isCrisisState(crisis, confirmedDecisions, true))) return false;
   if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, confirmedDecisions, false)) return false;
   if ((value.phase === "crisis") !== (value.activeCrisis !== undefined)) return false;
-  if (value.phase === "delayed_event" && !(scheduledEvents as { dueAtDecision: number }[]).some((event) => event.dueAtDecision <= decisionRecords.length)) return false;
+  if (value.phase === "delayed_event"
+      && !(scheduledEvents as { dueAtDecision: number }[]).some((event) => event.dueAtDecision <= decisionRecords.length)
+      && !(activePromises as { dueAtDecision: number }[]).some((promise) => promise.dueAtDecision <= decisionRecords.length)) return false;
   const crisisHistoryIds = (crisisHistory as { ruleId: string }[]).map((crisis) => crisis.ruleId);
   if (hasDuplicates(crisisHistoryIds) || !resolvedCrisisIds.every((id) => typeof id === "string") || hasDuplicates(resolvedCrisisIds as string[])) return false;
   if ((resolvedCrisisIds as string[]).length !== crisisHistoryIds.length || !(resolvedCrisisIds as string[]).every((id) => crisisHistoryIds.includes(id))) return false;
@@ -702,6 +911,8 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
 
   if (!hasUniqueKnownDecisionIds(unlockedDecisionIds, decisions) || !hasUniqueKnownDecisionIds(lockedDecisionIds, decisions)) return false;
   if ((lockedDecisionIds as string[]).some((id) => (unlockedDecisionIds as string[]).includes(id))) return false;
+  const confirmedDecisionIds = new Set(decisionRecords.map((record) => (record as DecisionRecord).decisionId));
+  if ([...lockedDecisionIds, ...unlockedDecisionIds].some((id) => confirmedDecisionIds.has(id as string))) return false;
   const sourceIds: Record<CausalEntry["sourceType"], ReadonlySet<string>> = {
     decision: new Set(decisionRecords.map((record) => `${(record as DecisionRecord).decisionId}:${(record as DecisionRecord).optionId}`)),
     event: new Set([...scheduledEvents, ...eventHistory].map((event) => (event as { id: string }).id)),

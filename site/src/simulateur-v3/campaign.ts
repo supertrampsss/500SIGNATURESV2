@@ -133,6 +133,7 @@ export function advanceAfterResult(
     const superseded: CampaignState = {
       ...advanced,
       phase: "decision_result",
+      lockedDecisionIds: advanced.lockedDecisionIds.filter((id) => id !== decision.id),
       decisions: [...advanced.decisions, {
         decisionId: decision.id,
         optionId: neutralOption.id,

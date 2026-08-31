@@ -1,4 +1,4 @@
-import type { CampaignState, MandateBaseline, MandateYear } from "./types.ts";
+import type { CampaignState, MandateBaseline, MandateYear, Scenario } from "./types.ts";
 
 export const REQUIRED_BASELINE_INDICATORS = [
   "eurostat_pib_montant",
@@ -16,7 +16,7 @@ export type PublishedBaselineSeries = {
 };
 
 const EURO_PER_MILLION = 1_000_000;
-const CHAPTER_MANDATE_YEARS = [1, 1, 2, 2, 3, 4, 4, 5] as const;
+export const CHAPTER_MANDATE_YEARS = [1, 1, 2, 2, 3, 4, 4, 5] as const;
 
 function sameIds(actual: readonly string[], expected: readonly string[]): boolean {
   return actual.length === expected.length
@@ -96,6 +96,22 @@ export function mandateYearEndingAfterChapter(chapterIndex: number): Exclude<Man
   const current = CHAPTER_MANDATE_YEARS[chapterIndex];
   if (current === undefined) return null;
   return CHAPTER_MANDATE_YEARS[chapterIndex + 1] === current ? null : current;
+}
+
+export function mandateYearForChapter(chapterIndex: number): Exclude<MandateYear, 0> | null {
+  return CHAPTER_MANDATE_YEARS[chapterIndex] ?? null;
+}
+
+export function decisionCountAtMandateYearEnd(
+  scenario: Pick<Scenario, "chapters">,
+  year: Exclude<MandateYear, 0>,
+): number {
+  let decisionCount = 0;
+  for (const [chapterIndex, chapter] of scenario.chapters.entries()) {
+    decisionCount += chapter.decisionIds.length;
+    if (mandateYearEndingAfterChapter(chapterIndex) === year) return decisionCount;
+  }
+  throw new Error(`Mandate year ${year} has no checkpoint in this scenario`);
 }
 
 export function advanceMandateYear(

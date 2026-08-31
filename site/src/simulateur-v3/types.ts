@@ -58,10 +58,15 @@ export type EvidenceBlock = {
   note?: string;
 };
 
+export type EffectTiming =
+  | { kind: "immediate" }
+  | { kind: "after_decisions"; count: number }
+  | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
+
 type EffectRuleBase = {
   id: string;
   delta: number;
-  timing: { kind: "immediate" } | { kind: "after_decisions"; count: number };
+  timing: EffectTiming;
   duration: "once" | "annual" | "permanent";
   explanation: string;
 };
@@ -99,6 +104,7 @@ export type DecisionOption = {
   horizon: PolicyHorizon;
   legalConstraints: string[];
   budgetDuration: "annual" | "once";
+  budgetTiming: EffectTiming;
   beneficiaries: string[];
   contributors: string[];
   uncertainty: Uncertainty;

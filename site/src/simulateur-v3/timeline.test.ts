@@ -3,10 +3,24 @@ import test from "node:test";
 
 import {
   buildMandateBaseline,
+  decisionCountAtMandateYearEnd,
   projectYear,
   REQUIRED_BASELINE_INDICATORS,
   validateBaseline,
 } from "./timeline.ts";
+import { SCENARIO_V3 } from "./scenario.ts";
+import { validScenario } from "./test-fixtures.ts";
+
+test("les frontières annuelles sont dérivées de la taille réelle des chapitres", () => {
+  assert.deepEqual(
+    [1, 2, 3, 4, 5].map((year) => decisionCountAtMandateYearEnd(SCENARIO_V3, year as 1 | 2 | 3 | 4 | 5)),
+    [16, 32, 39, 53, 60],
+  );
+  assert.deepEqual(
+    [1, 2, 3, 4, 5].map((year) => decisionCountAtMandateYearEnd(validScenario(), year as 1 | 2 | 3 | 4 | 5)),
+    [24, 48, 60, 84, 96],
+  );
+});
 
 test("un déficit annuel augmente le stock de dette une seule fois", () => {
   const baseline = {

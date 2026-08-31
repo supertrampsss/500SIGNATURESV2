@@ -101,6 +101,7 @@ test("un dossier verrouillé est classé sans objet et n'est jamais présenté",
   assert.equal(next.decisionIndex, 2);
   assert.equal(next.decisions[1]?.decisionId, scenario.decisions[1]!.id);
   assert.equal(next.decisions[1]?.status, "superseded");
+  assert.deepEqual(next.lockedDecisionIds, []);
   assert.equal(currentDecision(next, scenario)?.id, scenario.decisions[2]!.id);
 });
 

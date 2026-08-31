@@ -193,6 +193,23 @@ function effectLabel(effect: { target: "indicator" | "group"; key: string; delta
   return `${label} ${effect.delta > 0 ? "+" : ""}${value} ${point} d'indice`;
 }
 
+function timingLabel(timing: EffectRule["timing"]): string {
+  if (timing.kind === "immediate") return "";
+  if (timing.kind === "mandate_year") return `année ${timing.year}`;
+  return `après ${timing.count} ${timing.count === 1 ? "décision" : "décisions"}`;
+}
+
+function effectLabelWithTiming(effect: EffectRule): string {
+  const timing = timingLabel(effect.timing);
+  return timing ? `${effectLabel(effect)} · ${timing}` : effectLabel(effect);
+}
+
+function horizonLabel(horizon: DecisionOption["horizon"]): string {
+  if (horizon.kind === "immediate") return "Immédiat";
+  if (horizon.kind === "mandate_year") return `Année ${horizon.year}`;
+  return `Après ${horizon.count} ${horizon.count === 1 ? "décision" : "décisions"}`;
+}
+
 function meter(label: string, value: number): string {
   const level = Math.max(0, Math.min(100, Math.round(value)));
   return `
@@ -303,10 +320,10 @@ function renderOption(decision: Decision, option: DecisionOption, optionIndex: n
   const budget = annualBalanceEffect(option);
   const visibleEffects = option.effects
     .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
-    .filter((effect) => effect.timing.kind === "immediate")
     .slice(0, 2);
+  const budgetTiming = budget ? timingLabel(budget.timing) : "";
   const budgetLabel = budget
-    ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}`
+    ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}${budgetTiming ? ` · ${budgetTiming}` : ""}`
     : "Solde inchangé";
   const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
   return `
@@ -326,7 +343,7 @@ function renderOption(decision: Decision, option: DecisionOption, optionIndex: n
         </span>
         ${option.summary !== decision.context ? `<span class="simulateur-v3__option-summary">${escapeHtml(option.summary)}</span>` : ""}
         <span class="simulateur-v3__option-effects">
-          ${visibleEffects.map((effect) => `<span>${escapeHtml(effectLabel(effect))}</span>`).join("")}
+          ${visibleEffects.map((effect) => `<span>${escapeHtml(effectLabelWithTiming(effect))}</span>`).join("")}
         </span>
         <span class="simulateur-v3__option-confidence">Risque ${escapeHtml(option.uncertainty)}<i aria-hidden="true" data-risk="${option.uncertainty}"></i></span>
       </button>
@@ -346,10 +363,13 @@ function renderEvidence(decision: Decision): string {
           <section>
             <h3>${escapeHtml(option.label)}</h3>
             <dl>
+              <div><dt>Mécanisme</dt><dd>${escapeHtml(option.mechanism)}</dd></div>
+              <div><dt>Horizon</dt><dd>${escapeHtml(horizonLabel(option.horizon))}</dd></div>
               <div><dt>Bénéficiaires</dt><dd>${escapeHtml(option.beneficiaries.join(", "))}</dd></div>
               <div><dt>Contributeurs</dt><dd>${escapeHtml(option.contributors.join(", "))}</dd></div>
               <div><dt>Incertitude</dt><dd>${escapeHtml(option.uncertainty)}</dd></div>
             </dl>
+            ${option.legalConstraints.length > 0 ? `<p><strong>Contraintes juridiques :</strong> ${escapeHtml(option.legalConstraints.join(" ; "))}</p>` : ""}
           </section>`).join("")}
         <section class="simulateur-v3__source-block">
           <h3>Sources</h3>

@@ -18,7 +18,6 @@ export const SCENARIO_V3_CRISIS_RULES: readonly CrisisRule[] = Object.freeze([{
       "tranche-a-50-au-dela-de-250",
       "geler-le-bareme-de-l-impot-sur",
       "soumettre-les-revenus-du-capital-au-bareme",
-      "fiscaliser-les-heures-supplementaires-comme-le",
     ],
     effects: [
       {

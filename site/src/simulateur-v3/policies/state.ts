@@ -58,7 +58,8 @@ export const STATE_DECISIONS = [
     context: "La vente réduit la dette une seule fois et supprime des dividendes futurs. Elle ne réduit le déficit annuel que si les intérêts évités dépassent les revenus perdus.",
     adoptLabel: "Vendre les participations", adoptSummary: "L'État encaisse immédiatement et perd le contrôle et les dividendes correspondants.",
     keepLabel: "Conserver le portefeuille", keepSummary: "L'État garde ses actifs, risques et dividendes, sans recette exceptionnelle.",
-    beneficiaries: ["dette publique à court terme", "acheteurs"], contributors: ["patrimoine public", "dividendes futurs"], sourceKeys: ["cour-finances-2025"],
+    beneficiaries: ["dette publique à court terme", "acheteurs"], contributors: ["patrimoine public", "dividendes futurs"], sourceKeys: ["ape-portefeuille", "ape-rapport-activite", "cour-finances-2025"],
+    evidenceNote: "Les 2 000 millions d'euros sont une hypothèse de cession ponctuelle affectée au désendettement, pas une amélioration annuelle du déficit. L'État échange un actif contre de la trésorerie et renonce aux dividendes futurs.",
   }),
   p({
     id: "reduire-de-5-les-dotations-aux-collectivites", kind: "transformation",
@@ -73,6 +74,7 @@ export const STATE_DECISIONS = [
     title: "Faut-il inscrire l'équilibre budgétaire dans la Constitution ?",
     context: "Une règle d'or limite le déficit hors circonstances exceptionnelles. Elle impose de décider à l'avance comment traiter récession, guerre et investissement.",
     sourceKeys: ["cour-finances-2025", "eurostat-finances"], evidenceLabel: "Déficit structurel, dette et règles budgétaires européennes.",
+    evidenceNote: "Les 8 000 millions d'euros par an sont une forte hypothèse de correction du scénario au premier budget contrôlé par la règle, après adoption de la révision. Les sources ne documentent pas un rendement automatique de ce montant.",
     options: [
       { id: "adopt", label: "Inscrire la règle d'or", summary: "Gouvernement et Parlement doivent financer toute dépense nouvelle ou déclencher une clause d'exception.", budgetDelta: 8_000, beneficiaries: ["créanciers", "générations futures"], contributors: ["marge budgétaire en crise", "majorités politiques"], uncertainty: "forte" },
       { id: "keep", label: "Conserver les règles actuelles", summary: "Les objectifs restent législatifs et européens, avec une flexibilité politique plus large.", budgetDelta: 0, beneficiaries: ["politique contracyclique"], contributors: ["crédibilité budgétaire"] },

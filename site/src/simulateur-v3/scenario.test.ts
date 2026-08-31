@@ -3,13 +3,13 @@ import test from "node:test";
 
 import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
 import { SCENARIO_V3, SCENARIO_V3_CATALOGUE, SCENARIO_V3_PREVIEW } from "./scenario.ts";
-import { assertNoEmDash, validateScenario } from "./validation.ts";
+import { assertNoEmDash, validatePolicyCatalogue, validateScenario } from "./validation.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
 
 test("le catalogue garde 96 sujets et la campagne en joue 60", () => {
-  assert.equal(SCENARIO_V3_CATALOGUE.version, 8);
-  assert.equal(SCENARIO_V3.version, 8);
+  assert.equal(SCENARIO_V3_CATALOGUE.version, 9);
+  assert.equal(SCENARIO_V3.version, 9);
   assert.equal(SCENARIO_V3_CATALOGUE.decisions.length, 96);
   assert.equal(SCENARIO_V3.decisions.length, 60);
   assert.equal(SCENARIO_V3_CATALOGUE.decisions.flatMap((decision) => decision.options).length, 193);
@@ -67,7 +67,8 @@ test("les conséquences structurantes ne sont pas décoratives", () => {
 });
 
 test("le scénario provisoire satisfait toutes les portes du moteur V3", () => {
-  assert.deepEqual(validateScenario(SCENARIO_V3_CATALOGUE), []);
+  assert.deepEqual(validatePolicyCatalogue(SCENARIO_V3_CATALOGUE), []);
+  assert.deepEqual(validateScenario(SCENARIO_V3), []);
   assert.deepEqual(assertNoEmDash(SCENARIO_V3_CATALOGUE), []);
 });
 

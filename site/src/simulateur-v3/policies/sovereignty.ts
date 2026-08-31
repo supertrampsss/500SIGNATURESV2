@@ -50,13 +50,15 @@ export const SOVEREIGNTY_DECISIONS = [
     context: "Effectifs, technologies et surveillance augmentent. La capacité de prévention progresse, avec des enjeux plus lourds de contrôle démocratique et de recrutement.",
     adoptLabel: "Doubler les moyens", adoptSummary: "Le renseignement gagne des capacités humaines et techniques sous un contrôle à renforcer.",
     keepLabel: "Maintenir la trajectoire", keepSummary: "La dépense reste contenue et la montée en puissance demeure progressive.",
-    beneficiaries: ["services de renseignement", "sécurité nationale"], contributors: ["finances publiques", "vie privée"], sourceKeys: ["defense-lpm", "justice-2025"],
+    beneficiaries: ["services de renseignement", "sécurité nationale"], contributors: ["finances publiques", "vie privée"], sourceKeys: ["pap-police-2025", "lopmi-2023"],
+    evidenceNote: "Les 300 millions d'euros par an sont une hypothèse incrémentale du jeu; les périmètres budgétaires du renseignement sont éclatés ou protégés et les sources ne chiffrent pas un doublement littéral.",
   }),
   standalonePolicy({
     id: "achats-militaires-europeens-prioritaires", chapterId: CHAPTER, kind: "transformation",
     title: "Faut-il réserver les grands achats militaires aux industriels européens ?",
     context: "La préférence européenne renforce une base industrielle commune. Elle peut réduire la concurrence, renchérir certains achats et exclure des équipements américains disponibles plus vite.",
-    sourceKeys: ["defense-lpm", "commission-budget-ue"], evidenceLabel: "Programmation des équipements et coopération industrielle européenne.",
+    sourceKeys: ["directive-defense-2009-81", "defense-lpm", "commission-budget-ue"], evidenceLabel: "Programmation des équipements et coopération industrielle européenne.",
+    evidenceNote: "Le surcoût de 1 500 millions d'euros est une hypothèse du jeu; la directive encadre l'accès au marché et l'article 346 TFUE ne permet une dérogation qu'au cas par cas.",
     options: [
       { id: "adopt", label: "Acheter européen en priorité", summary: "Les commandes soutiennent l'industrie européenne, même lorsqu'une offre extérieure est moins chère ou plus rapide.", budgetDelta: -1_500, beneficiaries: ["industrie européenne", "autonomie stratégique"], contributors: ["finances publiques", "fournisseurs non européens"], uncertainty: "forte" },
       { id: "keep", label: "Acheter au meilleur compromis", summary: "Chaque programme arbitre librement coût, délai, performance et souveraineté.", budgetDelta: 0, beneficiaries: ["budget d'équipement"], contributors: ["industrie européenne"] },
@@ -66,7 +68,8 @@ export const SOVEREIGNTY_DECISIONS = [
     id: "budget-europeen-de-defense", chapterId: CHAPTER, kind: "transformation",
     title: "Faut-il créer un budget européen de défense financé en commun ?",
     context: "Un emprunt ou impôt européen finance des capacités communes. La France mutualise la charge, mais partage la décision sur les priorités et les fournisseurs.",
-    sourceKeys: ["commission-budget-ue", "defense-lpm"], evidenceLabel: "Budget européen et besoins capacitaires des États membres.",
+    sourceKeys: ["tfue-article-311", "commission-budget-ue", "defense-lpm"], evidenceLabel: "Budget européen et besoins capacitaires des États membres.",
+    evidenceNote: "Le gain français de 2 000 millions d'euros par an est une hypothèse nette du jeu, pas une conséquence automatique d'une nouvelle ressource propre ou d'un emprunt commun.",
     options: [
       { id: "adopt", label: "Mutualiser le financement", summary: "L'Union finance des capacités communes et la France cède une part du pilotage.", budgetDelta: 2_000, beneficiaries: ["armées européennes", "finances françaises"], contributors: ["contribuables européens", "autonomie nationale de décision"], uncertainty: "forte" },
       { id: "keep", label: "Garder des budgets nationaux", summary: "Chaque État conserve ses crédits et ses choix, avec moins de mutualisation.", budgetDelta: 0, beneficiaries: ["souveraineté nationale"], contributors: ["coopération européenne"] },
@@ -77,6 +80,7 @@ export const SOVEREIGNTY_DECISIONS = [
     title: "Faut-il sortir de l'euro et rétablir une monnaie nationale ?",
     context: "La France récupère son taux de change et une politique monétaire nationale. Contrats, dépôts, dette, inflation et relations européennes entrent dans une transition sans précédent.",
     sourceKeys: ["bce-euro", "eurostat-finances", "itm-50-decisions"], evidenceLabel: "Fonctionnement de l'euro, dette publique et intégration financière.",
+    evidenceNote: "Le choc ponctuel de 35 milliards d'euros et la charge d'intérêt de 12 milliards par an sont des hypothèses de stress du jeu, pas des prévisions officielles.",
     options: [
       { id: "adopt", label: "Rétablir une monnaie nationale", summary: "Les contrats sont convertis et la nouvelle monnaie flotte, avec un risque immédiat sur les prix et le financement.", budgetDelta: -35_000, beneficiaries: ["secteurs exportateurs après dépréciation", "politique monétaire nationale"], contributors: ["épargnants", "importateurs", "finances publiques"], uncertainty: "forte" },
       { id: "keep", label: "Rester dans l'euro", summary: "La monnaie unique et la politique de la BCE restent le cadre monétaire français.", budgetDelta: 0, beneficiaries: ["épargnants", "importateurs", "stabilité financière"], contributors: ["autonomie monétaire nationale"] },
@@ -96,7 +100,8 @@ export const SOVEREIGNTY_DECISIONS = [
     id: "creer-une-armee-europeenne", chapterId: CHAPTER, kind: "rupture",
     title: "Faut-il intégrer une partie des armées dans une armée européenne ?",
     context: "Commandement, doctrine et capacités deviennent communs. L'échelle augmente, mais la France ne décide plus seule de l'emploi des unités intégrées.",
-    sourceKeys: ["defense-lpm", "commission-budget-ue"], evidenceLabel: "Capacités militaires françaises et financement commun européen.",
+    sourceKeys: ["tue-article-42", "defense-lpm", "commission-budget-ue"], evidenceLabel: "Capacités militaires françaises et financement commun européen.",
+    evidenceNote: "Le gain français de 3 000 millions d'euros par an est une hypothèse de mutualisation du jeu; il dépend des dépenses nationales réellement substituées et des coûts de transition.",
     options: [
       { id: "adopt", label: "Créer l'armée européenne", summary: "Des forces passent sous commandement commun et les États partagent dépenses et décisions d'engagement.", budgetDelta: 3_000, beneficiaries: ["capacités européennes", "mutualisation"], contributors: ["autonomie militaire nationale"], uncertainty: "forte" },
       { id: "keep", label: "Conserver des armées nationales", summary: "Les coopérations continuent sans transfert permanent du commandement.", budgetDelta: 0, beneficiaries: ["souveraineté militaire"], contributors: ["mutualisation européenne"] },
@@ -106,7 +111,8 @@ export const SOVEREIGNTY_DECISIONS = [
     id: "nationaliser-les-entreprises-strategiques", chapterId: CHAPTER, kind: "rupture",
     title: "Faut-il nationaliser les grandes entreprises stratégiques ?",
     context: "L'État prend le contrôle d'entreprises de l'énergie, des transports ou de la défense. Il récupère la stratégie et assume le prix d'achat, les dettes et les risques industriels.",
-    sourceKeys: ["cour-finances-2025", "defense-lpm"], evidenceLabel: "Participations publiques, valorisations et enjeux de souveraineté industrielle.",
+    sourceKeys: ["ddhc-article-17", "ape-portefeuille", "cour-finances-2025", "defense-lpm"], evidenceLabel: "Participations publiques, valorisations et enjeux de souveraineté industrielle.",
+    evidenceNote: "Les 25 milliards d'euros sont une hypothèse de panier et de valorisation du jeu. La valeur du portefeuille APE existant n'est pas le prix des entreprises à acquérir.",
     options: [
       { id: "adopt", label: "Nationaliser les entreprises clés", summary: "L'État contrôle les décisions stratégiques et finance l'acquisition des actionnaires privés.", budgetDelta: -25_000, beneficiaries: ["État stratège", "salariés protégés"], contributors: ["finances publiques", "actionnaires privés"], uncertainty: "forte" },
       { id: "keep", label: "Conserver les participations actuelles", summary: "L'État garde ses leviers existants sans acheter de nouveaux blocs de contrôle.", budgetDelta: 0, beneficiaries: ["finances publiques", "actionnaires privés"], contributors: ["contrôle public"] },

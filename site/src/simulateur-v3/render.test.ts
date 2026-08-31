@@ -8,7 +8,7 @@ import { formatV3Amount, renderSimulatorV3 } from "./render.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { createTestCampaign as createCampaign } from "./test-fixtures.ts";
-import type { CampaignState } from "./types.ts";
+import type { CampaignState, EffectRule } from "./types.ts";
 import { positionAfterCompleted, positionBeforeNext } from "./validation.ts";
 
 function occurrences(source: string, needle: string): number {
@@ -168,9 +168,39 @@ test("les cartes montrent les conséquences politiques essentielles avant le cli
   assert.match(html, /Confiance institutionnelle [+-]\d+ points? d&#39;indice/);
 });
 
+test("les cartes montrent aussi les impacts principaux différés avec leur échéance", () => {
+  const scenario = structuredClone(SCENARIO_V3_PREVIEW);
+  const option = scenario.decisions[0]!.options[0]!;
+  option.horizon = { kind: "immediate" };
+  option.effects = [{
+    id: "delayed-investment",
+    target: "indicator",
+    key: "investment",
+    delta: 4,
+    timing: { kind: "after_decisions", count: 2 },
+    duration: "once",
+    explanation: "Les commandes deviennent visibles.",
+  }, {
+    id: "delayed-opinion",
+    target: "indicator",
+    key: "opinion",
+    delta: -2,
+    timing: { kind: "mandate_year", year: 3 } as EffectRule["timing"],
+    duration: "once",
+    explanation: "La réforme entre en vigueur.",
+  }] as typeof option.effects;
+  const state = { ...createCampaign(scenario), phase: "decision" as const };
+  const html = renderSimulatorV3(state, scenario);
+
+  assert.match(html, /Investissement \+4 points d&#39;indice · après 2 décisions/);
+  assert.match(html, /Opinion -2 points d&#39;indice · année 3/);
+});
+
 test("les conséquences affichent l'unité propre à chaque indicateur", () => {
   const scenario = structuredClone(SCENARIO_V3_PREVIEW);
-  scenario.decisions[0]!.options[0]!.effects = [{
+  const option = scenario.decisions[0]!.options[0]!;
+  option.horizon = { kind: "immediate" };
+  option.effects = [{
     id: "growth-test",
     target: "indicator",
     key: "growth",
@@ -293,7 +323,7 @@ test("la crise expose sa cause et une concession qui modifie la réforme", () =>
   };
   const decision = SCENARIO_V3_PREVIEW.decisions[decisionIndex]!;
   const confirmed = confirmSelection(selectOption(base, SCENARIO_V3_PREVIEW, decision.id, decision.options[0]!.id), SCENARIO_V3_PREVIEW);
-  const crisis = detectCrisis(confirmed, SCENARIO_V3_CRISIS_RULES);
+  const crisis = detectCrisis({ ...confirmed, indicators: { ...confirmed.indicators, opinion: 39 } }, SCENARIO_V3_CRISIS_RULES);
   const html = renderSimulatorV3(crisis, SCENARIO_V3_PREVIEW, { crisisRules: SCENARIO_V3_CRISIS_RULES });
   assert.match(html, /Le pays se fracture sur/);
   assert.match(html, new RegExp(decision.title.replaceAll("'", "&#39;").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));

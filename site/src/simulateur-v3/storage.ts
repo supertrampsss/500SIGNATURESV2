@@ -71,7 +71,24 @@ function isValidCampaignFromAnotherScenarioVersion(value: unknown, scenario: Sce
       || campaign.scenarioVersion === scenario.version) {
     return false;
   }
-  return isCampaignState({ ...campaign, scenarioVersion: scenario.version }, scenario);
+  const confirmedDecisionIds = new Set(
+    Array.isArray(campaign.decisions)
+      ? campaign.decisions.flatMap((record) => typeof record === "object" && record !== null
+          && typeof (record as { decisionId?: unknown }).decisionId === "string"
+        ? [(record as { decisionId: string }).decisionId]
+        : [])
+      : [],
+  );
+  const withoutConfirmedReferences = (ids: unknown): unknown => Array.isArray(ids)
+    ? ids.filter((id) => typeof id !== "string" || !confirmedDecisionIds.has(id))
+    : ids;
+  const detectionCandidate = {
+    ...campaign,
+    scenarioVersion: scenario.version,
+    lockedDecisionIds: withoutConfirmedReferences(campaign.lockedDecisionIds),
+    unlockedDecisionIds: withoutConfirmedReferences(campaign.unlockedDecisionIds),
+  };
+  return isCampaignState(detectionCandidate, scenario);
 }
 
 function migratePreviousModeledEffects(value: unknown, scenario: Scenario): CampaignState | null {

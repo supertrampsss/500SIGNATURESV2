@@ -118,10 +118,10 @@ function reconstructAt(state: CampaignState, decisionCount: number): IndicatorSt
 
 function descriptorFor(key: VerdictSignal["key"], value: number): string {
   if (key === "growth") {
-    if (value < 0) return "Récession";
-    if (value < 1) return "Activité faible";
-    if (value < 2) return "Activité modérée";
-    return "Activité soutenue";
+    if (value < 0) return "Croissance nominale négative";
+    if (value < 1) return "Croissance nominale faible";
+    if (value < 2) return "Croissance nominale modérée";
+    return "Croissance nominale soutenue";
   }
   if (key === "majority") {
     if (value < 35) return "Pouvoir très fragile";
@@ -187,7 +187,9 @@ function strongestStructuralEffect(option: DecisionOption): VerdictStructuralEff
   const effects = option.effects.filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"));
   const strongest = [...effects].sort((left, right) => (
     effectPriority(right) - effectPriority(left)
-    || normalizedEffectMagnitude(right) - normalizedEffectMagnitude(left)
+    || (left.target === right.target && left.key === right.key
+      ? normalizedEffectMagnitude(right) - normalizedEffectMagnitude(left)
+      : 0)
   ))[0];
   if (!strongest) return undefined;
   return {
@@ -208,8 +210,11 @@ function compareImpact(left: DecisionOption, right: DecisionOption): number {
   if (!leftStructural || !rightStructural) return Number(Boolean(rightStructural)) - Number(Boolean(leftStructural));
   const leftEffect = left.effects.find((effect) => effect.key === leftStructural.key && effect.delta === leftStructural.delta)!;
   const rightEffect = right.effects.find((effect) => effect.key === rightStructural.key && effect.delta === rightStructural.delta)!;
-  return effectPriority(rightEffect) - effectPriority(leftEffect)
-    || normalizedEffectMagnitude(rightEffect) - normalizedEffectMagnitude(leftEffect);
+  const priorityDifference = effectPriority(rightEffect) - effectPriority(leftEffect);
+  if (priorityDifference !== 0) return priorityDifference;
+  return leftEffect.target === rightEffect.target && leftEffect.key === rightEffect.key
+    ? normalizedEffectMagnitude(rightEffect) - normalizedEffectMagnitude(leftEffect)
+    : 0;
 }
 
 function selfContainedChoiceLabel(decisionTitle: string | undefined, optionLabel: string): string {

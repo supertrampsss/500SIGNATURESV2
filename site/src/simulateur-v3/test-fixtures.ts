@@ -1,6 +1,6 @@
 import { createCampaign } from "./campaign.ts";
 import { mandateYearEndingAfterChapter, projectYear } from "./timeline.ts";
-import type { AnnualCheckpoint, CampaignState, Decision, GroupState, IndicatorState, MandateBaseline, Scenario } from "./types.ts";
+import type { AnnualCheckpoint, CampaignState, Decision, GroupState, IndicatorState, MandateBaseline, PolicyHorizon, Scenario } from "./types.ts";
 
 export function testBaseline(): MandateBaseline {
   return {
@@ -65,6 +65,11 @@ export function testAnnualCheckpoints(
 
 function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
   const id = `decision-${(chapterNumber - 1) * 12 + decisionNumber}`;
+  const horizonFor = (suffix: string): PolicyHorizon => suffix === "a"
+    ? { kind: "immediate" }
+    : chapterNumber === 8 && decisionNumber === 12
+      ? { kind: "mandate_year", year: 5 }
+      : { kind: "after_decisions", count: 1 };
   return {
     id,
     version: 1,
@@ -72,14 +77,17 @@ function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
     chapterId: `chapter-${chapterNumber}`,
     title: `Decision ${id}`,
     context: "A test context.",
-    options: ["a", "b"].map((suffix) => ({
+    options: ["a", "b"].map((suffix) => {
+      const horizon = horizonFor(suffix);
+      return {
       id: `${id}-option-${suffix}`,
       label: `Option ${suffix}`,
       summary: "A test option.",
       mechanism: "Apply the explicit test rule.",
-      horizon: suffix === "a" ? { kind: "immediate" } : { kind: "after_decisions", count: 1 },
+      horizon,
       legalConstraints: [],
       budgetDuration: "annual",
+      budgetTiming: { kind: "immediate" },
       beneficiaries: ["beneficiary"],
       contributors: ["contributor"],
       uncertainty: "moyenne",
@@ -88,7 +96,7 @@ function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
         target: "indicator",
         key: "growth",
         delta: suffix === "a" ? 1 : -1,
-        timing: { kind: "immediate" },
+        timing: { ...horizon },
         duration: "once",
         explanation: "A test effect.",
       }],
@@ -97,7 +105,8 @@ function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
       fulfillsPromises: [],
       locks: [],
       unlocks: [],
-    })),
+      };
+    }),
     evidence: [{
       label: "A source",
       sourceName: "Test source",

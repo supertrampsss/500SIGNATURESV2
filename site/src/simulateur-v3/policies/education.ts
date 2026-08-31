@@ -10,7 +10,8 @@ export const EDUCATION_DECISIONS = [
     context: "La hausse améliore immédiatement les rémunérations. Son effet sur l'attractivité dépend aussi des débuts de carrière, des conditions de travail et des affectations.",
     adoptLabel: "Augmenter de 5 %", adoptSummary: "Tous les enseignants gagnent davantage et l'État finance la hausse chaque année.",
     keepLabel: "Conserver la grille actuelle", keepSummary: "La masse salariale n'augmente pas et le décrochage d'attractivité reste à traiter autrement.",
-    beneficiaries: ["enseignants"], contributors: ["finances publiques"], sourceKeys: ["depp-ecole-2025", "education-chiffres-2025"],
+    beneficiaries: ["enseignants"], contributors: ["finances publiques"], sourceKeys: ["education-daf-budget", "depp-ecole-2025", "education-chiffres-2025"],
+    evidenceNote: "Le jeu retient 3 000 millions d'euros par an, soit environ 5 % d'une assiette arrondie à 60 milliards. La DAF indique 58 milliards hors CAS Pensions en LFI 2025; les 88 817 millions couvrent un périmètre plus large et ne servent pas de multiplicande.",
   }),
   p({
     id: "etendre-le-dedoublement-des-classes-au-cm1", kind: "gestion",

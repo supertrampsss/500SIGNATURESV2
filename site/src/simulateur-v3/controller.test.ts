@@ -13,6 +13,11 @@ import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseli
 import type { Scenario } from "./types.ts";
 import { positionBeforeNext } from "./validation.ts";
 
+const IMMEDIATE_FLAT_TAX_CRISIS_RULES = SCENARIO_V3_CRISIS_RULES.map((rule) => ({
+  ...rule,
+  threshold: 100,
+}));
+
 function mountSimulatorV3(
   host: SimulatorV3Host,
   scenario: Scenario,
@@ -175,7 +180,7 @@ test("un clic sur une carte enregistre la décision et ouvre directement sa cons
   const host = new FakeHost();
   const initial = stateBefore("flat-tax-a-20-des-le-premier");
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(initial) });
-  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: IMMEDIATE_FLAT_TAX_CRISIS_RULES });
   const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
   const option = decision.options[0]!;
 
@@ -192,7 +197,7 @@ test("une crise interrompt la progression et sa concession suspend réellement l
   const host = new FakeHost();
   const initial = stateBefore("flat-tax-a-20-des-le-premier");
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(initial) });
-  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: IMMEDIATE_FLAT_TAX_CRISIS_RULES });
   const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
   host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
   assert.match(host.innerHTML, /Conseil de crise/);

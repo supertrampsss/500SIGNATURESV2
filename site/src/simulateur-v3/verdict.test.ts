@@ -115,6 +115,7 @@ test("calcule les écarts des signaux depuis le début du mandat", () => {
     ["opinion", INITIAL_INDICATORS.opinion - 7, -7],
   ]);
   assert.equal(view.annualBalanceDelta, 20_000);
+  assert.equal(view.signals[0]!.descriptor, "Croissance nominale soutenue");
 });
 
 test("classe trois choix distincts et ne transporte pas la question à répéter", () => {

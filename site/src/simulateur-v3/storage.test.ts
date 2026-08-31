@@ -15,8 +15,9 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike {
 import { clearCampaign, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 import { selectOption } from "./campaign.ts";
 import { confirmSelection } from "./effects.ts";
+import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
-import { createTestCampaign as createCampaign, testBaseline, validScenario } from "./test-fixtures.ts";
+import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline, validScenario } from "./test-fixtures.ts";
 import type { Scenario } from "./types.ts";
 import { isCampaignState, validateScenario } from "./validation.ts";
 
@@ -51,17 +52,84 @@ test("une sauvegarde schema 4 conserve sa baseline et sa version de publication"
   if (restored.kind === "restored") assert.deepEqual(restored.state.baseline, baseline);
 });
 
-test("une sauvegarde du scénario 7 exige un nouveau mandat face au scénario 8", () => {
-  const scenarioV7: Scenario = { ...SCENARIO_V3_PREVIEW, version: 7 };
+test("une sauvegarde du scénario 8 exige un nouveau mandat face au scénario 9", () => {
   const scenarioV8: Scenario = { ...SCENARIO_V3_PREVIEW, version: 8 };
-  const serialized = JSON.stringify(createCampaign(scenarioV7));
+  const serialized = JSON.stringify(createCampaign(scenarioV8));
   const storage = memoryStorage({
     [V3_STORAGE_KEY]: serialized,
     "tunnel-partie": JSON.stringify({ version: 2, phase: "conseil" }),
   });
 
-  assert.deepEqual(restoreCampaign(storage, scenarioV8), { kind: "restart_required" });
+  assert.deepEqual(restoreCampaign(storage, SCENARIO_V3_PREVIEW), { kind: "restart_required" });
   assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+});
+
+test("les anciens verrous rétroactifs V8 imposent un redémarrage sans altérer la sauvegarde", () => {
+  const scenarioV8: Scenario = { ...SCENARIO_V3_PREVIEW, version: 8 };
+  const decision = scenarioV8.decisions[0]!;
+  const confirmed = confirmSelection(
+    selectOption({ ...createCampaign(scenarioV8), phase: "decision" }, scenarioV8, decision.id, decision.options[0]!.id),
+    scenarioV8,
+  );
+
+  for (const field of ["lockedDecisionIds", "unlockedDecisionIds"] as const) {
+    const serialized = JSON.stringify({ ...confirmed, [field]: [decision.id] });
+    const storage = memoryStorage({ [V3_STORAGE_KEY]: serialized });
+    assert.deepEqual(restoreCampaign(storage, SCENARIO_V3_PREVIEW), { kind: "restart_required" }, field);
+    assert.equal(storage.getItem(V3_STORAGE_KEY), serialized, field);
+  }
+});
+
+test("une promesse seule peut être sauvegardée puis restaurée sur l'écran différé", () => {
+  const scenario = validScenario();
+  scenario.decisions[0]!.options[0]!.promises = [{
+    id: "promise-only",
+    label: "Promesse différée seule",
+    dueAfterDecisions: 1,
+    failureEffects: [],
+  }];
+  let state = { ...createCampaign(scenario), phase: "decision" as const };
+  for (const decision of scenario.decisions.slice(0, 2)) {
+    state = confirmSelection(selectOption(state, scenario, decision.id, decision.options[0]!.id), scenario);
+    state = advanceCampaign(state, scenario, []);
+  }
+  assert.equal(state.phase, "delayed_event");
+  assert.equal(state.scheduledEvents.length, 0);
+  assert.equal(state.activePromises[0]?.id, "promise-only");
+
+  const storage = memoryStorage();
+  const saved = saveCampaign(storage, state, new Date("2026-08-30T12:00:00.000Z"));
+  assert.deepEqual(restoreCampaign(storage, scenario), { kind: "restored", state: saved });
+});
+
+test("un verdict d'une campagne courte conserve son unique checkpoint après restauration", () => {
+  const source = validScenario();
+  const scenario: Scenario = {
+    ...source,
+    chapters: source.chapters.slice(0, 2),
+    decisions: source.decisions.slice(0, 24),
+  };
+  const finalAlternative = scenario.decisions.at(-1)!.options[1]!;
+  finalAlternative.horizon = { kind: "mandate_year", year: 1 };
+  finalAlternative.effects[0]!.timing = { kind: "mandate_year", year: 1 };
+  const state = {
+    ...createCampaign(scenario),
+    phase: "verdict" as const,
+    chapterIndex: 1,
+    decisionIndex: 11,
+    decisions: scenario.decisions.map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+    annualCheckpoints: testAnnualCheckpoints(scenario, 1),
+  };
+  const storage = memoryStorage();
+  const saved = saveCampaign(storage, state, new Date("2026-08-30T13:00:00.000Z"));
+
+  assert.equal(saved.annualCheckpoints.length, 1);
+  assert.deepEqual(restoreCampaign(storage, scenario), { kind: "restored", state: saved });
 });
 
 test("une sauvegarde V2 est détectée mais jamais convertie silencieusement", () => {

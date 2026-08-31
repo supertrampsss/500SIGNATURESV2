@@ -1,6 +1,7 @@
 import { clearSelection, currentDecision } from "./campaign.ts";
 import { isEffectRule, totalDecisions, validateScenario } from "./validation.ts";
 import { materializedDelayedEventId } from "./types.ts";
+import { decisionCountAtMandateYearEnd } from "./timeline.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -35,7 +36,9 @@ function clampPoliticalIndicator(key: IndicatorKey, value: number): number {
 function cloneEffectRule(effect: EffectRule, timing = effect.timing): EffectRule {
   const copiedTiming = timing.kind === "immediate"
     ? { kind: "immediate" as const }
-    : { kind: "after_decisions" as const, count: timing.count };
+    : timing.kind === "after_decisions"
+      ? { kind: "after_decisions" as const, count: timing.count }
+      : { kind: "mandate_year" as const, year: timing.year };
   return effect.target === "indicator"
     ? { ...effect, key: effect.key, timing: copiedTiming }
     : { ...effect, key: effect.key, timing: copiedTiming };
@@ -71,6 +74,23 @@ function eventForDelayedEffect(decision: Decision, option: DecisionOption, effec
     body: effect.explanation,
     effects: [immediateCopy(effect)],
   };
+}
+
+function dueAtDecisionForTiming(
+  timing: Exclude<EffectRule["timing"], { kind: "immediate" }>,
+  decisionCount: number,
+  scenario: Scenario,
+): number {
+  return timing.kind === "after_decisions"
+    ? decisionCount + timing.count
+    : decisionCountAtMandateYearEnd(scenario, timing.year);
+}
+
+function implementationDueAtDecision(option: DecisionOption, decisionCount: number, scenario: Scenario): number {
+  if (option.horizon.kind === "immediate") return decisionCount;
+  return option.horizon.kind === "after_decisions"
+    ? decisionCount + option.horizon.count
+    : decisionCountAtMandateYearEnd(scenario, option.horizon.year);
 }
 
 /**
@@ -126,13 +146,16 @@ export function scheduleOptionConsequences(
   const delayedEffects: ScheduledEvent[] = [];
   for (const effect of option.effects) {
     assertEffectRule(effect);
-    if (effect.timing.kind !== "after_decisions") continue;
-    const dueAtDecision = decisionCount + effect.timing.count;
+    if (effect.timing.kind === "immediate") continue;
+    const dueAtDecision = dueAtDecisionForTiming(effect.timing, decisionCount, scenario);
     assertDueAtDecision(dueAtDecision, scenario);
     delayedEffects.push(eventForDelayedEffect(decision, option, effect, dueAtDecision));
   }
   const explicitEvents: ScheduledEvent[] = option.scheduledEvents.map((event) => {
-    const dueAtDecision = decisionCount + event.afterDecisions;
+    const dueAtDecision = Math.max(
+      decisionCount + event.afterDecisions,
+      implementationDueAtDecision(option, decisionCount, scenario),
+    );
     assertDueAtDecision(dueAtDecision, scenario);
     assertImmediateEffects(event.effects, "Scheduled event");
     return {
@@ -203,14 +226,16 @@ function applyResolvedEffects(state: CampaignState, effects: readonly EffectRule
 }
 
 function applyLocksAndUnlocks(state: CampaignState, option: DecisionOption): CampaignState {
-  if (option.locks.length === 0 && option.unlocks.length === 0) return state;
-  const locked = new Set(state.lockedDecisionIds);
-  const unlocked = new Set(state.unlockedDecisionIds);
+  const confirmed = new Set(state.decisions.map((record) => record.decisionId));
+  const locked = new Set(state.lockedDecisionIds.filter((id) => !confirmed.has(id)));
+  const unlocked = new Set(state.unlockedDecisionIds.filter((id) => !confirmed.has(id)));
   for (const id of option.locks) {
+    if (confirmed.has(id)) continue;
     locked.add(id);
     unlocked.delete(id);
   }
   for (const id of option.unlocks) {
+    if (confirmed.has(id)) continue;
     locked.delete(id);
     unlocked.add(id);
   }

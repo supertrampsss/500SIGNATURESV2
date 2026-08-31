@@ -10,15 +10,16 @@ export const SECURITY_DECISIONS = [
     context: "Les recrutements renforcent les effectifs disponibles, mais leur impact dépend de la formation, de l'affectation et du temps réellement passé sur le terrain.",
     adoptLabel: "Recruter 10 000 agents", adoptSummary: "Les forces de sécurité gagnent des effectifs et l'État assume la masse salariale chaque année.",
     keepLabel: "Maintenir les recrutements prévus", keepSummary: "La dépense n'augmente pas et les tensions d'effectifs restent inchangées.",
-    beneficiaries: ["forces de sécurité", "territoires sous-dotés"], contributors: ["finances publiques"], sourceKeys: ["justice-2025"],
+    beneficiaries: ["forces de sécurité", "territoires sous-dotés"], contributors: ["finances publiques"], sourceKeys: ["pap-police-2025", "pap-gendarmerie-2025", "lopmi-2023"],
   }),
   p({
     id: "construire-15-000-places-de-prison-supplementaires", kind: "gestion",
     title: "Faut-il construire 15 000 places de prison supplémentaires ?",
     context: "Les nouvelles places réduisent la surpopulation si les incarcérations n'augmentent pas au même rythme. Construction et fonctionnement engagent plusieurs années de crédits.",
-    adoptLabel: "Construire 15 000 places", adoptSummary: "La capacité pénitentiaire augmente et le budget finance bâtiments, surveillants et entretien.",
+    adoptLabel: "Construire 15 000 places", adoptSummary: "La capacité pénitentiaire augmente progressivement; le jeu retient 500 millions d'euros par an pendant dix ans pour les sites, travaux, surveillants et entretien.",
     keepLabel: "Ne pas lancer le programme", keepSummary: "La dépense est évitée et la surpopulation continue de peser sur les établissements.",
     beneficiaries: ["détenus", "personnels pénitentiaires", "justice"], contributors: ["finances publiques"], sourceKeys: ["justice-2025"],
+    evidenceNote: "Le coût du scénario est de 500 millions d'euros par an pendant dix ans; les nouvelles places ouvrent progressivement.",
   }),
   p({
     id: "recruter-3-000-magistrats-et-greffiers", kind: "gestion",
@@ -34,7 +35,7 @@ export const SECURITY_DECISIONS = [
     context: "Des places supplémentaires facilitent la rétention avant éloignement. Elles ne créent ni laissez-passer consulaire ni liaison aérienne.",
     adoptLabel: "Étendre les centres", adoptSummary: "La capacité de rétention augmente et l'État finance davantage de places et de personnels.",
     keepLabel: "Conserver la capacité actuelle", keepSummary: "La dépense est évitée et les capacités restent saturées lors des pics.",
-    beneficiaries: ["administration des éloignements"], contributors: ["finances publiques", "personnes retenues"], sourceKeys: ["cour-immigration-2024", "immigration-2025"],
+    beneficiaries: ["administration des éloignements"], contributors: ["finances publiques", "personnes retenues"], sourceKeys: ["ceseda", "directive-retour-2008", "cour-immigration-2024"],
   }),
   p({
     id: "reduire-les-delais-de-traitement-de-l", kind: "transformation",
@@ -50,7 +51,7 @@ export const SECURITY_DECISIONS = [
     context: "L'objectif exige escortes, places, accords consulaires et vols. Le coût est immédiat, le résultat dépend aussi des pays d'origine et des décisions de justice.",
     adoptLabel: "Doubler les éloignements", adoptSummary: "L'État mobilise davantage de moyens pour exécuter les décisions, sans garantie de doubler le résultat.",
     keepLabel: "Conserver les moyens actuels", keepSummary: "La dépense supplémentaire est évitée et l'écart entre décisions et exécutions persiste.",
-    beneficiaries: ["exécution des décisions"], contributors: ["finances publiques", "personnes éloignées"], sourceKeys: ["eloignements-2025", "immigration-2025"],
+    beneficiaries: ["exécution des décisions"], contributors: ["finances publiques", "personnes éloignées"], sourceKeys: ["directive-retour-2008", "ceseda", "eloignements-2025"],
   }),
   p({
     id: "doubler-les-moyens-de-l-integration-francais", kind: "transformation",
@@ -66,7 +67,7 @@ export const SECURITY_DECISIONS = [
     context: "L'allocation couvre les besoins élémentaires pendant la procédure. Sa suppression réduit le crédit, mais reporte une partie du coût vers l'urgence sociale et les collectivités.",
     adoptLabel: "Supprimer l'allocation", adoptSummary: "Le budget de l'asile baisse et les demandeurs sans ressources se reportent vers d'autres aides.",
     keepLabel: "Maintenir l'allocation", keepSummary: "Le minimum de subsistance reste financé pendant la procédure.",
-    beneficiaries: ["budget de l'État à court terme"], contributors: ["demandeurs d'asile", "urgence sociale"], sourceKeys: ["cour-immigration-2024"],
+    beneficiaries: ["budget de l'État à court terme"], contributors: ["demandeurs d'asile", "urgence sociale"], sourceKeys: ["ceseda", "cour-immigration-2024"],
   }),
   p({
     id: "reserver-les-prestations-non-contributives-aux-nationaux", kind: "rupture",
@@ -74,7 +75,8 @@ export const SECURITY_DECISIONS = [
     context: "Le délai exclut temporairement des étrangers en séjour régulier de prestations financées par l'impôt. Son rendement et sa conformité aux normes supérieures sont très contestés.",
     adoptLabel: "Imposer cinq ans de résidence", adoptSummary: "L'accès aux prestations est retardé et le contentieux juridique devient immédiat.",
     keepLabel: "Conserver les conditions actuelles", keepSummary: "Les résidents éligibles gardent leurs droits et aucune économie incertaine n'est comptée.",
-    beneficiaries: ["finances sociales selon le chiffrage haut"], contributors: ["étrangers récemment installés", "collectivités"], sourceKeys: ["drees-minima-2025", "immigration-2025"],
+    beneficiaries: ["finances sociales selon le chiffrage haut"], contributors: ["étrangers récemment installés", "collectivités"], sourceKeys: ["drees-minima-2025", "ceseda", "immigration-2025"],
+    evidenceNote: "Le gain de 9 000 millions d'euros est une hypothèse forte et contestée du jeu. Les règles doivent être examinées prestation par prestation et catégorie par catégorie; les recours retardent l'application sans réduire ici le périmètre chiffré.",
   }),
   standalonePolicy({
     id: "quotas-annuels-d-immigration", chapterId: CHAPTER, kind: "rupture",
@@ -88,11 +90,11 @@ export const SECURITY_DECISIONS = [
   }),
   standalonePolicy({
     id: "peines-planchers-automatiques", chapterId: CHAPTER, kind: "rupture",
-    title: "Faut-il imposer des peines planchers automatiques aux récidivistes ?",
-    context: "Une peine minimale limite l'individualisation par le juge. Elle alourdit les durées prononcées et la pression sur des prisons déjà surpeuplées.",
+    title: "Faut-il instaurer une peine minimale avec dérogation motivée ?",
+    context: "Une peine minimale encadre l'individualisation, mais le juge peut y déroger par une décision spécialement motivée. La pression carcérale augmente.",
     sourceKeys: ["justice-2025", "itm-50-decisions"], evidenceLabel: "Condamnations, récidive et occupation des établissements pénitentiaires.",
     options: [
-      { id: "adopt", label: "Imposer les peines planchers", summary: "Les récidivistes reçoivent une peine minimale et la population carcérale augmente.", budgetDelta: -1_100, beneficiaries: ["partisans d'une réponse pénale uniforme"], contributors: ["finances publiques", "administration pénitentiaire"], uncertainty: "forte" },
+      { id: "adopt", label: "Instaurer des peines minimales", summary: "La loi fixe un seuil pour la récidive, mais le juge peut y déroger par une décision spécialement motivée; la pression carcérale augmente.", budgetDelta: -1_100, beneficiaries: ["partisans d'une réponse pénale uniforme"], contributors: ["finances publiques", "administration pénitentiaire"], uncertainty: "forte" },
       { id: "keep", label: "Laisser le juge individualiser", summary: "Le juge conserve la maîtrise de la peine dans le cadre légal actuel.", budgetDelta: 0, beneficiaries: ["individualisation des peines"], contributors: ["partisans des automatismes"] },
     ],
   }),
@@ -102,6 +104,7 @@ export const SECURITY_DECISIONS = [
     context: "La vente passe dans un marché réglementé et taxé. Une partie du trafic disparaît, tandis que santé publique, prix et accès deviennent des choix de régulation.",
     adoptLabel: "Légaliser et taxer", adoptSummary: "L'État régule le produit et encaisse une taxe, avec un nouveau marché légal à surveiller.",
     keepLabel: "Maintenir l'interdiction", keepSummary: "La prohibition et les sanctions demeurent, ainsi que le marché clandestin.",
-    beneficiaries: ["finances publiques", "consommateurs sortant du marché clandestin"], contributors: ["trafiquants", "acteurs de santé publique"], sourceKeys: ["justice-2025", "cour-finances-2025"],
+    beneficiaries: ["finances publiques", "consommateurs sortant du marché clandestin"], contributors: ["trafiquants", "acteurs de santé publique"], sourceKeys: ["cae-cannabis", "justice-2025"],
+    evidenceNote: "Les recettes et économies sont un scénario d'expertise repris par le jeu, pas un rendement garanti.",
   }),
 ].map(policyDecision);

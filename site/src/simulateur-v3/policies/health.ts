@@ -96,9 +96,10 @@ export const HEALTH_DECISIONS = [
     id: "assurance-maladie-publique-unique", chapterId: CHAPTER, kind: "rupture",
     title: "Faut-il remplacer les complémentaires par une assurance maladie publique unique ?",
     context: "La Sécurité sociale reprend la couverture aujourd'hui assurée par les complémentaires. Les primes privées baissent ou disparaissent, mais cotisations et dépenses publiques augmentent.",
-    sourceKeys: ["cour-securite-sociale-2025"], evidenceLabel: "Répartition des remboursements entre Assurance maladie, complémentaires et ménages.",
+    sourceKeys: ["hcaam-assurance-maladie", "drees-complementaire-sante-2024", "cour-securite-sociale-2025"], evidenceLabel: "Répartition des remboursements entre Assurance maladie, complémentaires et ménages.",
+    evidenceNote: "Les 24 000 millions d'euros par an mesurent dans le jeu un transfert brut des remboursements privés vers les comptes publics. Ce n'est pas une perte nette nationale: les primes complémentaires ont vocation à baisser.",
     options: [
-      { id: "adopt", label: "Créer l'assurance publique unique", summary: "La couverture devient commune et la Sécurité sociale absorbe les remboursements des complémentaires.", budgetDelta: -24_000, beneficiaries: ["assurés aux contrats coûteux", "patients chroniques"], contributors: ["finances sociales", "organismes complémentaires"], uncertainty: "forte" },
+      { id: "adopt", label: "Créer l'assurance publique unique", summary: "La couverture devient commune: 24 milliards d'euros par an basculent vers le solde public en transfert brut, tandis que les primes privées ont vocation à baisser.", budgetDelta: -24_000, beneficiaries: ["assurés aux contrats coûteux", "patients chroniques"], contributors: ["finances sociales", "organismes complémentaires"], uncertainty: "forte" },
       { id: "keep", label: "Conserver le système à deux étages", summary: "Assurance maladie et complémentaires continuent de se partager la couverture.", budgetDelta: 0, beneficiaries: ["organismes complémentaires"], contributors: ["assurés payant une prime"] },
     ],
   }),
