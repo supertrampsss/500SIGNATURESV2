@@ -125,12 +125,13 @@ import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
+import { stateForE2ePhase, type E2ePhase } from "./simulateur-v3/mobile-fixtures.ts";
 import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V9_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
 import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
 import { completedV9StateFromStorage } from "./simulateur-v3/storage.ts";
 import { buildMandateBaseline } from "./simulateur-v3/timeline.ts";
 import { brancherQuestions } from "./questions-ui.ts";
-import type { MandateBaseline } from "./simulateur-v3/types.ts";
+import type { CampaignState, MandateBaseline, Scenario as SimulatorScenario } from "./simulateur-v3/types.ts";
 import "./style.css";
 import "./styles/fondations.css";
 import "./styles/navigation.css";
@@ -2460,6 +2461,14 @@ function versionSimulateurV3(): boolean {
   return modeSimulateur(location.pathname, location.search) === "v3";
 }
 
+function e2eInitialState(scenario: SimulatorScenario): CampaignState | undefined {
+  if (import.meta.env.MODE !== "test" || scenario.version !== 10) return undefined;
+  const value = new URLSearchParams(location.search).get("e2e-phase");
+  const phases: readonly E2ePhase[] = ["decision", "decision_result", "council", "crisis", "verdict"];
+  const phase = phases.find((candidate) => candidate === value);
+  return phase ? stateForE2ePhase(phase, scenario) : undefined;
+}
+
 function vuesConnues(): readonly string[] {
   return exercicesParVolet.length || versionSimulateurV3()
     ? [...VUES_PAGE, "simulateur"]
@@ -3865,7 +3874,7 @@ async function ouvrirSimulateur(): Promise<void> {
       demonterSimulateurV3 = mountSimulatorV3(hoteV3, scenario, {
         baseline: baselineSimulateurV3,
         crisisRules: scenario.version === 9 ? SCENARIO_V9_CRISIS_RULES : SCENARIO_V10_CRISIS_RULES,
-        initialState: historicalV9 ?? undefined,
+        initialState: historicalV9 ?? e2eInitialState(scenario),
       });
     }
     return;

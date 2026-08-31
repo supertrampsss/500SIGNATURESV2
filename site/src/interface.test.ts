@@ -3617,13 +3617,22 @@ test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jam
   assert.ok(brancheV3.indexOf("scenarioForVersion(historicalV9 ? 9 : 10)") < brancheV3.indexOf("mountSimulatorV3("));
   assert.match(brancheV3, /if \(!scenario\) throw new Error\("Requested simulator scenario unavailable"\);/);
   assert.match(brancheV3, /crisisRules: scenario\.version === 9 \? SCENARIO_V9_CRISIS_RULES : SCENARIO_V10_CRISIS_RULES/);
-  assert.match(brancheV3, /initialState: historicalV9 \?\? undefined/);
+  assert.match(brancheV3, /initialState: historicalV9 \?\? e2eInitialState\(scenario\)/);
   assert.match(brancheV3, /tunnel\.hidden = true/);
   assert.match(brancheV3, /expert\.hidden = true/);
   assert.doesNotMatch(brancheV3, /demarrerSessionImmersive/);
   assert.match(brancheV3, /document\.body\.dataset\.simulateurVersion = "3"/);
   assert.match(SIMULATEUR_V3, /body\[data-vue="simulateur"\]\[data-simulateur-version="3"\] \.entete\s*\{[^}]*display:\s*none;/s);
   assert.match(MAIN, /if \(vue !== "simulateur" \|\| !versionSimulateurV3\(\)\) \{[\s\S]*?demonterApercuSimulateurV3\(\);/);
+});
+
+test("le mode navigateur de test injecte seulement une scène V10 validée par le reducer", () => {
+  const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
+  assert.match(MAIN, /import \{ stateForE2ePhase, type E2ePhase \} from "\.\/simulateur-v3\/mobile-fixtures\.ts";/);
+  assert.match(MAIN, /import\.meta\.env\.MODE !== "test"/);
+  assert.match(MAIN, /new URLSearchParams\(location\.search\)\.get\("e2e-phase"\)/);
+  assert.match(MAIN, /stateForE2ePhase\(phase, scenario\)/);
+  assert.match(ouverture, /initialState: historicalV9 \?\? e2eInitialState\(scenario\)/);
 });
 
 test("toutes les scènes secondaires V3 partagent la même composition éditoriale", () => {

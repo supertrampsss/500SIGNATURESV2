@@ -8,6 +8,7 @@ import { confirmSelection } from "./effects.ts";
 import { emitSimulatorV3Event } from "./events.ts";
 import { advanceCampaign } from "./flow.ts";
 import { renderSimulatorV3, type RenderSimulatorV3Options } from "./render.ts";
+import { isCampaignState } from "./validation.ts";
 import {
   restoreCampaign,
   saveCampaign,
@@ -114,6 +115,9 @@ export function mountSimulatorV3(
   scenario: Scenario,
   dependencies: SimulatorV3Dependencies,
 ): () => void {
+  if (dependencies.initialState && !isCampaignState(dependencies.initialState, scenario)) {
+    throw new Error("Initial simulator state is invalid for this scenario");
+  }
   const storage = dependencies.storage ?? defaultStorage();
   const navigate = dependencies.navigate ?? defaultNavigate;
   const now = dependencies.now ?? (() => new Date());

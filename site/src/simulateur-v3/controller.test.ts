@@ -136,6 +136,19 @@ test("un verdict V9 schema 4 est relu sans réécriture puis monté comme verdic
   assert.equal(storage.values.get(V3_STORAGE_KEY), serialized);
 });
 
+test("un état initial injecté doit correspondre au scénario monté", () => {
+  const host = new FakeHost();
+  const incompatible = {
+    ...createCampaign(SCENARIO_V3_PREVIEW),
+    scenarioVersion: 10,
+  };
+
+  assert.throws(
+    () => mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage(), initialState: incompatible }),
+    /Initial simulator state is invalid/,
+  );
+});
+
 test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   const host = new FakeHost();
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });

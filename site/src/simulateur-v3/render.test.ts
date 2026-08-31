@@ -56,6 +56,49 @@ function stateAfter(count: number, phase: CampaignState["phase"]): CampaignState
   };
 }
 
+function v10StateBefore(decisionId: string): CampaignState {
+  const index = SCENARIO_V10.decisions.findIndex((decision) => decision.id === decisionId);
+  assert.ok(index >= 0, `dossier V10 introuvable : ${decisionId}`);
+  const base = createCampaign(SCENARIO_V10);
+  return {
+    ...base,
+    phase: "decision",
+    ...positionBeforeNext(SCENARIO_V10, index)!,
+    decisions: SCENARIO_V10.decisions.slice(0, index).map((decision, decisionIndex) => ({
+      decisionId: decision.id,
+      optionId: decision.options.at(-1)!.id,
+      status: "confirmed",
+      confirmedAtIndex: decisionIndex + 1,
+    })),
+  };
+}
+
+test("une carte V10 affiche uniquement son BudgetProfile et aucun impact avant le choix", () => {
+  const state = v10StateBefore("perenniser-surtaxe-grandes-entreprises");
+  const html = renderSimulatorV3(state, SCENARIO_V10);
+
+  assert.match(html, /Dossier \d+ sur 72/);
+  assert.match(html, /\+7 milliards d&#39;euros par an/);
+  assert.doesNotMatch(html, /simulateur-v3__option-impact-pill|data-v3-fact="impact"|Opinion|Confiance|Marchés/);
+  assert.doesNotMatch(html, /\u2014/);
+});
+
+test("une carte V10 ne conserve aucun libellé de la campagne historique", () => {
+  const html = renderSimulatorV3(v10StateBefore("perenniser-surtaxe-grandes-entreprises"), SCENARIO_V10);
+
+  assert.doesNotMatch(html, /Dossier \d+ sur (?:60|96)|flat[ -]tax/i);
+});
+
+test("EPR2 V10 rend exactement ses deux choix publiés sans troisième variante", () => {
+  const state = v10StateBefore("engager-six-epr2-part-annuelle-de-l");
+  const html = renderSimulatorV3(state, SCENARIO_V10);
+
+  assert.equal(occurrences(html, 'data-v3-action="select"'), 2);
+  assert.match(html, /Engager six EPR2/);
+  assert.match(html, /Ne pas engager de nouvel EPR2/);
+  assert.doesNotMatch(html, /Quatorze EPR2|fourteen|:six|:none/);
+});
+
 test("le verdict V9 historique reste rendu après le chargement du scénario V10", () => {
   assert.equal(SCENARIO_V10.version, 10);
   const decisions = SCENARIO_V9.decisions.map((decision, index) => ({

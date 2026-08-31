@@ -340,14 +340,23 @@ function principalIndicatorEffect(option: DecisionOption): Extract<EffectRule, {
     || left.id.localeCompare(right.id, "fr")).at(0);
 }
 
-function renderOption(decision: Decision, option: DecisionOption): string {
+function budgetProfileLabel(option: DecisionOption): string {
+  const runRate = option.budgetProfile.runRateMillions;
+  return runRate === 0 ? "Solde public inchangé" : `${formatV3Amount(runRate)} par an`;
+}
+
+function renderOption(decision: Decision, option: DecisionOption, scenario: Scenario): string {
   const budget = annualBalanceEffect(option);
   const principalImpact = principalIndicatorEffect(option);
+  const isV10 = scenario.version >= 10;
   const budgetTiming = budget ? timingLabel(budget.timing) : "";
-  const budgetLabel = budget
-    ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}${budgetTiming ? ` · ${budgetTiming}` : ""}`
-    : "Solde inchangé";
-  const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
+  const budgetLabel = isV10
+    ? budgetProfileLabel(option)
+    : budget
+      ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}${budgetTiming ? ` · ${budgetTiming}` : ""}`
+      : "Solde inchangé";
+  const budgetValue = isV10 ? option.budgetProfile.runRateMillions : budget?.delta ?? 0;
+  const budgetSignal = budgetValue === 0 ? "neutral" : budgetValue > 0 ? "positive" : "negative";
   const impactLabel = principalImpact ? compactImpactLabel(principalImpact) : "Impact non chiffré";
   const impactDescription = principalImpact ? effectLabelWithTiming(principalImpact) : impactLabel;
   const labelId = `v3-option-label-${option.id}`;
@@ -363,7 +372,7 @@ function renderOption(decision: Decision, option: DecisionOption): string {
         data-decision-id="${escapeHtml(decision.id)}"
         data-option-id="${escapeHtml(option.id)}"
         aria-labelledby="${escapeHtml(labelId)}"
-        aria-describedby="${escapeHtml(`${summaryId} ${budgetId} ${impactId}`)}"
+        aria-describedby="${escapeHtml(isV10 ? `${summaryId} ${budgetId}` : `${summaryId} ${budgetId} ${impactId}`)}"
       >
         <span class="simulateur-v3__option-copy">
           <span id="${escapeHtml(labelId)}" class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
@@ -371,7 +380,7 @@ function renderOption(decision: Decision, option: DecisionOption): string {
         </span>
         <span class="simulateur-v3__option-signals">
           <strong id="${escapeHtml(budgetId)}" class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
-          <span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact-pill" data-v3-fact="impact" aria-label="${escapeHtml(impactDescription)}">${escapeHtml(impactLabel)}</span>
+          ${isV10 ? "" : `<span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact-pill" data-v3-fact="impact" aria-label="${escapeHtml(impactDescription)}">${escapeHtml(impactLabel)}</span>`}
         </span>
       </button>
     </article>`;
@@ -424,7 +433,7 @@ function renderDecision(state: CampaignState, scenario: Scenario): string {
           <div class="simulateur-v3__scene-body">
             <fieldset class="simulateur-v3__options simulateur-v3__options--${decision.options.length}">
               <legend>Choix possibles</legend>
-              ${decision.options.map((option) => renderOption(decision, option)).join("")}
+              ${decision.options.map((option) => renderOption(decision, option, scenario)).join("")}
             </fieldset>
             ${renderEvidence(decision)}
           </div>

@@ -6,6 +6,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && tsc -p tsconfig.scripts.json && tsc -p tsconfig.functions.json && vite build && node --experimental-strip-types scripts/prerendre.ts",
     "test": "tsc -p tsconfig.type-tests.json --noEmit && node --experimental-strip-types --test src/*.test.ts src/simulateur-v3/*.test.ts scripts/*.test.ts",
+    "test:mobile390:server": "vite --mode test --host 127.0.0.1 --port 4175 --strictPort",
+    "test:mobile390": "playwright test --config playwright.mobile390.config.ts",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -13,6 +15,7 @@
     "pmtiles": "^4.4.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@resvg/resvg-wasm": "^2.6.2",
     "@types/node": "^22.20.1",
     "typescript": "^5.9.0",
