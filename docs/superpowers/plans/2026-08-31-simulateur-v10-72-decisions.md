@@ -37,6 +37,46 @@
 | `site/src/simulateur-v3/balanced-paths.ts` | Trois parcours publiés et calcul du maximum compatible. |
 | `site/src/simulateur-v3/render.ts`, `presentation.ts`, `style.css` | Compteur dérivé, cartes sobres et rendu mobile sans débordement. |
 
+### Task 0: Capturer le scénario V9 avant toute modification V10
+
+**Files:**
+- Create: `site/scripts/snapshot-scenario-v9.ts`
+- Create: `site/src/simulateur-v3/scenario-v9.snapshot.ts`
+- Create: `site/src/simulateur-v3/scenario-v9.snapshot.test.ts`
+
+**Interfaces:**
+- Produces `SCENARIO_V9_SNAPSHOT: Scenario`, un littéral statique qui n'importe ni policies, ni consequences, ni registre, ni topologie V10.
+- Consumes exclusivement le scénario courant pré-refonte pendant l'exécution unique du script de capture.
+
+- [ ] **Step 1: Write the red parity test before editing policies or consequences.**
+
+```ts
+assert.deepEqual(JSON.parse(JSON.stringify(SCENARIO_V9_SNAPSHOT)), JSON.parse(JSON.stringify(SCENARIO_V3_PRE_REFACTOR)));
+```
+
+- [ ] **Step 2: Run the red test.**
+
+Run: `node --experimental-strip-types --test src/simulateur-v3/scenario-v9.snapshot.test.ts`
+
+Expected: FAIL because the static V9 snapshot has not yet been generated.
+
+- [ ] **Step 3: Generate and freeze the V9 literal.**
+
+Run `node --experimental-strip-types scripts/snapshot-scenario-v9.ts` while `SCENARIO_V3_PRE_REFACTOR` still resolves to the unmodified scenario. The script serializes that value into `scenario-v9.snapshot.ts` as `export const SCENARIO_V9_SNAPSHOT: Scenario = Object.freeze(...)`; it must not leave an import of the pre-refactor scenario in the generated file.
+
+- [ ] **Step 4: Run the green parity test.**
+
+Run: `node --experimental-strip-types --test src/simulateur-v3/scenario-v9.snapshot.test.ts`
+
+Expected: PASS; the snapshot equals the pre-refactor scenario and is self-contained.
+
+- [ ] **Step 5: Commit the immutable historical input.**
+
+```bash
+git add site/scripts/snapshot-scenario-v9.ts site/src/simulateur-v3/scenario-v9.snapshot.ts site/src/simulateur-v3/scenario-v9.snapshot.test.ts
+git commit -m "test: freeze simulator scenario v9"
+```
+
 ### Task 1: Contrat budgétaire et registre de chiffrage
 
 **Files:**
@@ -120,7 +160,7 @@ assert.equal(policyById("flat-tax-a-20-des-le-premier"), undefined);
 assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.id), ["engager-six-epr2-part-annuelle-de-l:adopt", "engager-six-epr2-part-annuelle-de-l:keep"]);
 assert.deepEqual(policyById("engager-six-epr2-part-annuelle-de-l")!.options.map((option) => option.label), ["Engager six EPR2", "Ne pas engager de nouvel EPR2"]);
 assert.equal(policyById("relever-tva-restauration-commerciale")!.chapterId, "taxes-assets-transmission");
-assert.equal(policyById("unifier-ir-csg-bareme-continu")!.options.find((option) => option.id === "adopt")!.budgetProfile.runRateMillions, 0);
+assert.equal(policyById("unifier-ir-csg-bareme-continu")!.options.find((option) => option.id === "unifier-ir-csg-bareme-continu:adopt")!.budgetProfile.runRateMillions, 0);
 assert.equal(Math.abs(primeActivityRecycleDifferenceMillions()) <= 1, true);
 assert.deepEqual(findExclusiveScopeCollisions([
   policyById("perenniser-surtaxe-grandes-entreprises")!.options[0]!.budgetProfile,
@@ -270,10 +310,8 @@ git commit -m "feat: schedule and reverse budget profiles"
 
 **Files:**
 - Create: `site/src/simulateur-v3/scenario-v9.ts`
-- Create: `site/src/simulateur-v3/scenario-v9.snapshot.ts`
 - Create: `site/src/simulateur-v3/scenario-v10.ts`
 - Create: `site/src/simulateur-v3/scenario-resolver.ts`
-- Create: `site/scripts/snapshot-scenario-v9.ts`
 - Modify: `site/src/simulateur-v3/scenario.ts`
 - Modify: `site/src/simulateur-v3/storage.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.ts`
@@ -281,7 +319,6 @@ git commit -m "feat: schedule and reverse budget profiles"
 - Modify: `site/src/main.ts`
 - Modify: `site/src/simulateur-v3/storage.test.ts`
 - Modify: `site/src/simulateur-v3/scenario-crises.test.ts`
-- Create: `site/src/simulateur-v3/scenario-v9.snapshot.test.ts`
 - Modify: `site/src/simulateur-v3/render.test.ts`
 - Modify: `site/src/interface.test.ts`
 
@@ -310,7 +347,7 @@ Expected: FAIL because current storage accepts only schema 4 and crises referenc
 
 - [ ] **Step 3: Implement versioned resolution and explicit migration.**
 
-Before changing policies or consequences, run `site/scripts/snapshot-scenario-v9.ts` against the current scenario and write `scenario-v9.snapshot.ts` as a static `Scenario` literal. The script imports the pre-refactor scenario only while this capture is made; the committed snapshot imports no V10 policy, consequence, registry or topology module. Make `scenario-v9.ts` export `SCENARIO_V9` from that literal and add `scenario-v9.snapshot.test.ts` to prove byte-for-byte stable JSON parity with the captured pre-refactor scenario. Add a separate `render.test.ts` case that restores a completed V9 state, resolves version 9, and renders its final verdict after V10 has replaced the live catalogue. Construct V10 in `scenario-v10.ts`; make all current callers resolve instead of silently importing a mutable current scenario. In `main.ts`, replace the V3 preview import at the simulator mount with `const scenario = scenarioForVersion(10); if (!scenario) throw new Error("Scenario V10 unavailable"); mountSimulatorV3(hoteV3, scenario, ...)`. `interface.test.ts` must read the mounted branch and prove that this resolver call precedes `mountSimulatorV3`, so an application build cannot accidentally mount V9. `migrateV4ToV5` creates simple profiles only when `decisionId`, `optionId`, meaning and scope are unchanged. For any replaced ID found in decisions, locks, queued events, promises, crisis state or causal ledger, return `restart_required` while preserving the serialized save. Replace the flat-tax crisis with two executable answers: keep `unifier-ir-csg-bareme-continu`, or reverse it through Task 4 and retain separate levies with sourced transition costs. Audit the state-reform crisis so each rule has two applicable causes and two applicable answers, all published in V10.
+Consume the immutable `SCENARIO_V9_SNAPSHOT` created by mandatory Task 0. Make `scenario-v9.ts` export `SCENARIO_V9` from that literal without importing any V10 policy, consequence, registry or topology module. Add a separate `render.test.ts` case that restores a completed V9 state, resolves version 9, and renders its final verdict after V10 has replaced the live catalogue. Construct V10 in `scenario-v10.ts`; make all current callers resolve instead of silently importing a mutable current scenario. In `main.ts`, replace the V3 preview import at the simulator mount with `const scenario = scenarioForVersion(10); if (!scenario) throw new Error("Scenario V10 unavailable"); mountSimulatorV3(hoteV3, scenario, ...)`. `interface.test.ts` must read the mounted branch and prove that this resolver call precedes `mountSimulatorV3`, so an application build cannot accidentally mount V9. `migrateV4ToV5` creates simple profiles only when `decisionId`, `optionId`, meaning and scope are unchanged. For any replaced ID found in decisions, locks, queued events, promises, crisis state or causal ledger, return `restart_required` while preserving the serialized save. Replace the flat-tax crisis with two executable answers: keep `unifier-ir-csg-bareme-continu`, or reverse it through Task 4 and retain separate levies with sourced transition costs. Audit the state-reform crisis so each rule has two applicable causes and two applicable answers, all published in V10.
 
 - [ ] **Step 4: Run restore and crisis tests.**
 
@@ -321,7 +358,7 @@ Expected: PASS; the static V9 snapshot has pre-refactor parity and renders a com
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/scenario-v9.snapshot.ts site/src/simulateur-v3/scenario-v9.ts site/src/simulateur-v3/scenario-v10.ts site/src/simulateur-v3/scenario-resolver.ts site/scripts/snapshot-scenario-v9.ts site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/main.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/scenario-v9.snapshot.test.ts site/src/simulateur-v3/scenario-crises.test.ts site/src/simulateur-v3/render.test.ts site/src/interface.test.ts
+git add site/src/simulateur-v3/scenario-v9.ts site/src/simulateur-v3/scenario-v10.ts site/src/simulateur-v3/scenario-resolver.ts site/src/simulateur-v3/scenario.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/scenario-crises.ts site/src/simulateur-v3/crises.ts site/src/main.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/scenario-crises.test.ts site/src/simulateur-v3/render.test.ts site/src/interface.test.ts
 git commit -m "feat: migrate simulator saves to scenario v10"
 ```
 
