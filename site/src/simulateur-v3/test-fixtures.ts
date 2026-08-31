@@ -1,7 +1,75 @@
-import type { CampaignState, Decision, GroupState, IndicatorState, Scenario } from "./types.ts";
+import { createCampaign } from "./campaign.ts";
+import { mandateYearEndingAfterChapter, projectYear } from "./timeline.ts";
+import type { AnnualCheckpoint, CampaignState, Decision, GroupState, IndicatorState, MandateBaseline, PolicyHorizon, Scenario } from "./types.ts";
+
+export function testBaseline(): MandateBaseline {
+  return {
+    period: "2025",
+    debtPeriod: "2025-Q4",
+    nominalGdpMillions: 2_991_055.9,
+    debtMillions: 3_460_651.6763,
+    annualBalanceMillions: -152_532,
+    interestCostMillions: 66_635.9,
+    nominalGrowthPercent: 1.9011968652765887,
+    sourceIds: [
+      "eurostat_pib_montant",
+      "insee_dette_apu_part_pib",
+      "insee_apu_solde",
+      "eurostat_apu_interets",
+    ],
+    dataVersion: "2026-08-22T1939",
+  };
+}
+
+export function createTestCampaign(scenario: Scenario, seed = 0): CampaignState {
+  return createCampaign(scenario, testBaseline(), seed);
+}
+
+export function testAnnualCheckpoints(
+  scenario: Scenario,
+  completedYears = 5,
+  annualBalance = testBaseline().annualBalanceMillions,
+): AnnualCheckpoint[] {
+  const baseline = testBaseline();
+  const interestRatePercent = baseline.interestCostMillions / baseline.debtMillions * 100;
+  let previous = {
+    nominalGdpMillions: baseline.nominalGdpMillions,
+    debtMillions: baseline.debtMillions,
+    interestCostMillions: baseline.interestCostMillions,
+  };
+  let decisionCount = 0;
+  const checkpoints: AnnualCheckpoint[] = [];
+  scenario.chapters.forEach((chapter, chapterIndex) => {
+    decisionCount += chapter.decisionIds.length;
+    const year = mandateYearEndingAfterChapter(chapterIndex);
+    if (year === null || year > completedYears) return;
+    const projected = projectYear(previous, {
+      annualBalance,
+      nominalGrowthPercent: baseline.nominalGrowthPercent,
+      interestRatePercent,
+    });
+    checkpoints.push({
+      year,
+      afterDecisionCount: decisionCount,
+      nominalGdpMillions: projected.nominalGdpMillions,
+      debtMillions: projected.debtMillions,
+      debtToGdp: projected.debtToGdp,
+      annualBalance,
+      interestCost: projected.interestCostMillions,
+      causes: [],
+    });
+    previous = { ...projected };
+  });
+  return checkpoints;
+}
 
 function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
   const id = `decision-${(chapterNumber - 1) * 12 + decisionNumber}`;
+  const horizonFor = (suffix: string): PolicyHorizon => suffix === "a"
+    ? { kind: "immediate" }
+    : chapterNumber === 8 && decisionNumber === 12
+      ? { kind: "mandate_year", year: 5 }
+      : { kind: "after_decisions", count: 1 };
   return {
     id,
     version: 1,
@@ -9,10 +77,17 @@ function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
     chapterId: `chapter-${chapterNumber}`,
     title: `Decision ${id}`,
     context: "A test context.",
-    options: ["a", "b"].map((suffix) => ({
+    options: ["a", "b"].map((suffix) => {
+      const horizon = horizonFor(suffix);
+      return {
       id: `${id}-option-${suffix}`,
       label: `Option ${suffix}`,
       summary: "A test option.",
+      mechanism: "Apply the explicit test rule.",
+      horizon,
+      legalConstraints: [],
+      budgetDuration: "annual",
+      budgetTiming: { kind: "immediate" },
       beneficiaries: ["beneficiary"],
       contributors: ["contributor"],
       uncertainty: "moyenne",
@@ -20,8 +95,8 @@ function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
         id: `${id}-effect-${suffix}`,
         target: "indicator",
         key: "growth",
-        delta: 1,
-        timing: { kind: "immediate" },
+        delta: suffix === "a" ? 1 : -1,
+        timing: { ...horizon },
         duration: "once",
         explanation: "A test effect.",
       }],
@@ -30,7 +105,8 @@ function decisionFor(chapterNumber: number, decisionNumber: number): Decision {
       fulfillsPromises: [],
       locks: [],
       unlocks: [],
-    })),
+      };
+    }),
     evidence: [{
       label: "A source",
       sourceName: "Test source",
@@ -99,7 +175,7 @@ export function validCampaignState(scenario = validScenario()): CampaignState {
     parliamentaryMajority: 0,
   };
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     scenarioVersion: scenario.version,
     seed: 1,
     phase: "decision_result",
@@ -111,6 +187,8 @@ export function validCampaignState(scenario = validScenario()): CampaignState {
       status: "confirmed",
       confirmedAtIndex: 1,
     }],
+    baseline: testBaseline(),
+    annualCheckpoints: [],
     indicators,
     groups,
     scheduledEvents: [],

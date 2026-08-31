@@ -10,13 +10,17 @@ export type CampaignPhase =
   | "pause"
   | "verdict";
 
-export const SCHEMA_VERSION = 3 as const;
-export const V3_MODELED_EFFECT_MARKER = ":model:" as const;
+export const SCHEMA_VERSION = 4 as const;
 
 export type Uncertainty = "faible" | "moyenne" | "forte";
 export type DecisionKind = "gestion" | "transformation" | "rupture";
 export type DecisionStatus = "confirmed" | "suspended" | "amended" | "reversed" | "superseded";
 export type EffectTarget = "indicator" | "group";
+
+export type PolicyHorizon =
+  | { kind: "immediate" }
+  | { kind: "after_decisions"; count: number }
+  | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
 
 export type IndicatorKey =
   | "annualBalance"
@@ -54,10 +58,15 @@ export type EvidenceBlock = {
   note?: string;
 };
 
+export type EffectTiming =
+  | { kind: "immediate" }
+  | { kind: "after_decisions"; count: number }
+  | { kind: "mandate_year"; year: 1 | 2 | 3 | 4 | 5 };
+
 type EffectRuleBase = {
   id: string;
   delta: number;
-  timing: { kind: "immediate" } | { kind: "after_decisions"; count: number };
+  timing: EffectTiming;
   duration: "once" | "annual" | "permanent";
   explanation: string;
 };
@@ -91,6 +100,11 @@ export type DecisionOption = {
   id: string;
   label: string;
   summary: string;
+  mechanism: string;
+  horizon: PolicyHorizon;
+  legalConstraints: string[];
+  budgetDuration: "annual" | "once";
+  budgetTiming: EffectTiming;
   beneficiaries: string[];
   contributors: string[];
   uncertainty: Uncertainty;
@@ -132,11 +146,27 @@ export type Scenario = {
   decisions: Decision[];
 };
 
+export type IndicatorImpactSnapshot = {
+  key: IndicatorKey;
+  before: number;
+  after: number;
+  delta: number;
+  causalEntryIds: string[];
+};
+
+export type DecisionImpactSnapshot = {
+  decisionId: string;
+  optionId: string;
+  confirmedAtIndex: number;
+  indicators: IndicatorImpactSnapshot[];
+};
+
 export type DecisionRecord = {
   decisionId: string;
   optionId: string;
   status: DecisionStatus;
   confirmedAtIndex: number;
+  impact?: DecisionImpactSnapshot;
   changedByCrisisId?: string;
 };
 
@@ -171,6 +201,18 @@ export type CrisisConcession = {
   effects: EffectRule[];
 };
 
+/** Exact scenario choices which are allowed to aggravate a crisis family. */
+export type CrisisChoiceRef = {
+  decisionId: string;
+  optionIds: string[];
+};
+
+/** One option which was actually confirmed when a crisis was detected. */
+export type TriggeredCrisisChoiceRef = {
+  decisionId: string;
+  optionId: string;
+};
+
 export type CrisisRule = {
   id: string;
   title: string;
@@ -178,14 +220,22 @@ export type CrisisRule = {
   indicator: IndicatorKey;
   threshold: number;
   comparator: "lte" | "gte";
-  aggravatingDecisionIds: string[];
+  eligibleFromChapterIndex: number;
+  maxOccurrences: 1;
+  requiredDecisionIds: string[];
+  aggravatingChoices: CrisisChoiceRef[];
   concessions: CrisisConcession[];
   holdCourseEffects: EffectRule[];
 };
 
 export type CrisisState = {
   ruleId: string;
+  triggeredAtDecisionCount: number;
+  triggeredChapterIndex: number;
+  aggravatingChoices: TriggeredCrisisChoiceRef[];
+  /** Compatibility projection for the existing crisis and verdict copy. */
   triggeredByDecisionId: string;
+  /** Compatibility projection; exact option-level causes live above. */
   aggravatingDecisionIds: string[];
   resolvedBy?: string;
 };
@@ -203,6 +253,31 @@ export type PoliticalPromise = {
 export type IndicatorState = Record<IndicatorKey, number>;
 export type GroupState = Record<GroupKey, number>;
 
+export type MandateYear = 0 | 1 | 2 | 3 | 4 | 5;
+
+export type MandateBaseline = {
+  period: string;
+  debtPeriod: string;
+  nominalGdpMillions: number;
+  debtMillions: number;
+  annualBalanceMillions: number;
+  interestCostMillions: number;
+  nominalGrowthPercent: number;
+  sourceIds: string[];
+  dataVersion: string;
+};
+
+export type AnnualCheckpoint = {
+  year: MandateYear;
+  afterDecisionCount: number;
+  nominalGdpMillions: number;
+  debtMillions: number;
+  debtToGdp: number;
+  annualBalance: number;
+  interestCost: number;
+  causes: string[];
+};
+
 export type CampaignState = {
   schemaVersion: typeof SCHEMA_VERSION;
   scenarioVersion: number;
@@ -213,6 +288,8 @@ export type CampaignState = {
   decisionIndex: number;
   pendingSelection?: { decisionId: string; optionId: string };
   decisions: DecisionRecord[];
+  baseline: MandateBaseline;
+  annualCheckpoints: AnnualCheckpoint[];
   indicators: IndicatorState;
   groups: GroupState;
   scheduledEvents: ScheduledEvent[];

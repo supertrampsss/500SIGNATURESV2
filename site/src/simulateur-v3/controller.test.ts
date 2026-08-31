@@ -1,11 +1,30 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createCampaign } from "./campaign.ts";
-import { mountSimulatorV3, type SimulatorV3Host } from "./controller.ts";
+import {
+  mountSimulatorV3 as mountProductionSimulatorV3,
+  type SimulatorV3Dependencies,
+  type SimulatorV3Host,
+} from "./controller.ts";
 import { V3_STORAGE_KEY, type StorageLike } from "./storage.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline } from "./test-fixtures.ts";
+import type { Scenario } from "./types.ts";
+import { positionBeforeNext } from "./validation.ts";
+
+const IMMEDIATE_FLAT_TAX_CRISIS_RULES = SCENARIO_V3_CRISIS_RULES.map((rule) => ({
+  ...rule,
+  threshold: 100,
+}));
+
+function mountSimulatorV3(
+  host: SimulatorV3Host,
+  scenario: Scenario,
+  dependencies: Omit<SimulatorV3Dependencies, "baseline"> = {},
+): () => void {
+  return mountProductionSimulatorV3(host, scenario, { baseline: testBaseline(), ...dependencies });
+}
 
 function memoryStorage(initial: Record<string, string> = {}): StorageLike & { values: Map<string, string> } {
   const values = new Map(Object.entries(initial));
@@ -20,14 +39,19 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike & { va
 class FakeHost implements SimulatorV3Host {
   innerHTML = "";
   scrollCalls = 0;
-  private listener?: EventListener;
+  focusCalls = 0;
+  lastFocusedSelector = "";
+  private clickListener?: EventListener;
+  private keydownListener?: EventListener;
 
-  addEventListener(_type: "click", listener: EventListener): void {
-    this.listener = listener;
+  addEventListener(type: "click" | "keydown", listener: EventListener): void {
+    if (type === "click") this.clickListener = listener;
+    else this.keydownListener = listener;
   }
 
-  removeEventListener(_type: "click", listener: EventListener): void {
-    if (this.listener === listener) this.listener = undefined;
+  removeEventListener(type: "click" | "keydown", listener: EventListener): void {
+    if (type === "click" && this.clickListener === listener) this.clickListener = undefined;
+    if (type === "keydown" && this.keydownListener === listener) this.keydownListener = undefined;
   }
 
   scrollIntoView(): void {
@@ -37,11 +61,26 @@ class FakeHost implements SimulatorV3Host {
   click(action: string, data: Record<string, string> = {}): void {
     const node = { dataset: { v3Action: action, ...data } };
     const target = { closest: () => node };
-    this.listener?.({ target } as unknown as Event);
+    this.clickListener?.({ target } as unknown as Event);
+  }
+
+  keydown(key: string): void {
+    this.keydownListener?.({ key, preventDefault() {} } as unknown as KeyboardEvent);
+  }
+
+  querySelector(selector: string): { textContent: string | null; focus(options?: FocusOptions): void } | null {
+    if (!this.innerHTML.includes("<h1") && selector.includes("h1")) return null;
+    return {
+      textContent: "",
+      focus: () => {
+        this.focusCalls += 1;
+        this.lastFocusedSelector = selector;
+      },
+    };
   }
 
   hasListener(): boolean {
-    return Boolean(this.listener);
+    return Boolean(this.clickListener && this.keydownListener);
   }
 }
 
@@ -57,8 +96,7 @@ function stateBefore(decisionId: string) {
   return {
     ...base,
     phase: "decision" as const,
-    chapterIndex: Math.floor(index / 12),
-    decisionIndex: index % 12,
+    ...positionBeforeNext(SCENARIO_V3_PREVIEW, index)!,
     decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, index).map((decision, decisionIndex) => ({
       decisionId: decision.id,
       optionId: decision.options.at(-1)!.id,
@@ -73,12 +111,14 @@ test("le contrôleur ouvre le chapitre puis le premier dossier", () => {
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
   assert.match(host.innerHTML, /Prendre mes fonctions/);
   assert.equal(host.scrollCalls, 1);
+  assert.equal(host.focusCalls, 1);
   host.click("start");
   assert.match(host.innerHTML, /La ligne de fracture/);
   assert.equal(host.scrollCalls, 2);
   host.click("open-chapter");
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[0]!.title.replaceAll("'", "&#39;")));
   assert.equal(host.scrollCalls, 3);
+  assert.equal(host.focusCalls, 3);
 });
 
 test("choisir une carte conserve la position de lecture", () => {
@@ -87,18 +127,71 @@ test("choisir une carte conserve la position de lecture", () => {
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const avantChoix = host.scrollCalls;
+  const avantFocus = host.focusCalls;
   host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
   assert.equal(host.scrollCalls, avantChoix);
+  assert.equal(host.focusCalls, avantFocus);
 });
 
-test("un choix sans événement ouvre immédiatement le dossier suivant", () => {
+test("Échap ferme le détail sélectionné, rend le focus au choix et ne déplace pas la page", () => {
   const host = new FakeHost();
-  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: memoryStorage() });
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
   beginDecision(host);
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  const scrollBeforeEscape = host.scrollCalls;
+  const focusBeforeEscape = host.focusCalls;
+
+  host.keydown("Escape");
+
+  assert.equal(host.scrollCalls, scrollBeforeEscape);
+  assert.equal(host.focusCalls, focusBeforeEscape + 1);
+  assert.match(host.lastFocusedSelector, /option-select/);
+  assert.doesNotMatch(host.innerHTML, /simulateur-v3__option-detail/);
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).pendingSelection, undefined);
+});
+
+test("sélectionner, changer, confirmer puis continuer sont quatre états distincts", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+  beginDecision(host);
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  assert.match(host.innerHTML, /aria-pressed="true"/);
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions.length, 0);
+
   host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
-  assert.match(host.innerHTML, /Dossier 2 sur 96/);
+  assert.ok(host.innerHTML.includes(decision.options[1]!.summary.replaceAll("'", "&#39;")));
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions.length, 0);
+
+  host.click("confirm");
+  const confirmed = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.equal(confirmed.decisions.length, 1);
+  assert.equal(confirmed.decisions[0].optionId, decision.options[1]!.id);
+  assert.equal(confirmed.phase, "decision_result");
+  assert.match(host.innerHTML, /Décision enregistrée/);
+
+  host.click("continue");
+  assert.match(host.innerHTML, /Dossier 2 sur 60/);
   assert.match(host.innerHTML, new RegExp(SCENARIO_V3_PREVIEW.decisions[1]!.options[0]!.label));
+});
+
+test("Modifier ferme le détail sans appliquer le moindre effet", () => {
+  const host = new FakeHost();
+  const storage = memoryStorage();
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+  beginDecision(host);
+  const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
+  host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  host.click("modify");
+
+  const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
+  assert.equal(saved.decisions.length, 0);
+  assert.equal(saved.pendingSelection, undefined);
+  assert.doesNotMatch(host.innerHTML, /data-v3-action="confirm"|simulateur-v3__option-detail/);
 });
 
 test("Pause reprend exactement la phase interrompue et Quitter vise France", () => {
@@ -127,6 +220,17 @@ test("une sauvegarde V2 est signalée sans être supprimée", () => {
   assert.equal(storage.values.get("tunnel-partie"), legacy);
 });
 
+test("une sauvegarde schema 3 demande un nouveau mandat sans conversion", () => {
+  const old = { ...createCampaign(SCENARIO_V3_PREVIEW), schemaVersion: 3 };
+  const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(old) });
+  const host = new FakeHost();
+
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage });
+
+  assert.match(host.innerHTML, /anciennes règles/);
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).schemaVersion, 3);
+});
+
 test("un stockage indisponible ne bloque pas la partie", () => {
   const host = new FakeHost();
   const unavailable: StorageLike = {
@@ -135,8 +239,10 @@ test("un stockage indisponible ne bloque pas la partie", () => {
     removeItem: () => { throw new Error("blocked"); },
   };
   mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage: unavailable });
+  assert.match(host.innerHTML, /sauvegarde locale est indisponible/);
   beginDecision(host);
   assert.match(host.innerHTML, /Dossier 1/);
+  assert.match(host.innerHTML, /sauvegarde locale est indisponible/);
 });
 
 test("démonter retire l'unique écouteur délégué", () => {
@@ -147,41 +253,51 @@ test("démonter retire l'unique écouteur délégué", () => {
   assert.equal(host.hasListener(), false);
 });
 
-test("un clic sur une carte enregistre la décision et ouvre directement sa conséquence", () => {
+test("une crise n'est évaluée qu'après sélection, confirmation et lecture du résultat", () => {
   const host = new FakeHost();
   const initial = stateBefore("flat-tax-a-20-des-le-premier");
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(initial) });
-  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: IMMEDIATE_FLAT_TAX_CRISIS_RULES });
   const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
   const option = decision.options[0]!;
 
   host.click("select", { decisionId: decision.id, optionId: option.id });
+  assert.equal(JSON.parse(storage.values.get(V3_STORAGE_KEY)!).decisions.length, initial.decisions.length);
+  assert.doesNotMatch(host.innerHTML, /Conseil de crise/);
+
+  host.click("confirm");
+  assert.match(host.innerHTML, /Décision enregistrée/);
+  assert.doesNotMatch(host.innerHTML, /Conseil de crise/);
 
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
   assert.equal(saved.decisions.length, initial.decisions.length + 1);
   assert.equal(saved.decisions.at(-1).optionId, option.id);
+  assert.equal(saved.phase, "decision_result");
+
+  host.click("continue");
   assert.match(host.innerHTML, /Conseil de crise/);
-  assert.doesNotMatch(host.innerHTML, /Confirmer ce choix|Décision actée/);
 });
 
 test("une crise interrompt la progression et sa concession suspend réellement la réforme", () => {
   const host = new FakeHost();
   const initial = stateBefore("flat-tax-a-20-des-le-premier");
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(initial) });
-  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: SCENARIO_V3_CRISIS_RULES });
+  mountSimulatorV3(host, SCENARIO_V3_PREVIEW, { storage, crisisRules: IMMEDIATE_FLAT_TAX_CRISIS_RULES });
   const decision = SCENARIO_V3_PREVIEW.decisions.find((candidate) => candidate.id === "flat-tax-a-20-des-le-premier")!;
   host.click("select", { decisionId: decision.id, optionId: decision.options[0]!.id });
+  host.click("confirm");
+  host.click("continue");
   assert.match(host.innerHTML, /Conseil de crise/);
   assert.match(host.innerHTML, /Suspendre la flat tax/);
 
   const avantConcession = host.scrollCalls;
   host.click("resolve-crisis", { resolutionId: "suspend-flat-tax" });
-  assert.equal(host.scrollCalls, avantConcession);
+  assert.equal(host.scrollCalls, avantConcession + 1);
   const saved = JSON.parse(storage.values.get(V3_STORAGE_KEY)!);
   assert.equal(saved.decisions.at(-1).status, "suspended");
   assert.equal(saved.decisions.at(-1).changedByCrisisId, "flat-tax-revolt");
   assert.deepEqual(saved.lockedDecisionIds, []);
-  assert.match(host.innerHTML, /Dossier 10 sur 96/);
+  assert.match(host.innerHTML, /Dossier 8 sur 60/);
 });
 
 test("le journal s'ouvre dans Pause et revient sans perdre l'écran interrompu", () => {
@@ -224,8 +340,10 @@ test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire
   for (let index = 0; index < 4; index += 1) {
     const decision = SCENARIO_V3_PREVIEW.decisions[index]!;
     host.click("select", { decisionId: decision.id, optionId: decision.options[1]!.id });
+    host.click("confirm");
+    host.click("continue");
   }
-  assert.match(host.innerHTML, /Dossier 5 sur 96/);
+  assert.match(host.innerHTML, /Dossier 5 sur 60/);
   assert.doesNotMatch(host.innerHTML, /Le pays vous présente l'addition/);
   host.click("pause");
 
@@ -233,7 +351,7 @@ test("Pause restaurée reprend le cinquième dossier sans Conseil intermédiaire
   mountSimulatorV3(restored, SCENARIO_V3_PREVIEW, { storage });
   assert.match(restored.innerHTML, /Mandat suspendu/);
   restored.click("resume");
-  assert.match(restored.innerHTML, /Dossier 5 sur 96/);
+  assert.match(restored.innerHTML, /Dossier 5 sur 60/);
 });
 
 test("une ancienne sauvegarde de fin de chapitre reprend au chapitre suivant", () => {
@@ -242,8 +360,8 @@ test("une ancienne sauvegarde de fin de chapitre reprend au chapitre suivant", (
     ...base,
     phase: "chapter_verdict" as const,
     chapterIndex: 0,
-    decisionIndex: 11,
-    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, 12).map((decision, index) => ({
+    decisionIndex: 7,
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, 8).map((decision, index) => ({
       decisionId: decision.id,
       optionId: decision.options.at(-1)!.id,
       status: "confirmed" as const,
@@ -264,13 +382,14 @@ test("partager le verdict copie un résultat dynamique sans quitter la scène fi
     ...base,
     phase: "verdict" as const,
     chapterIndex: 7,
-    decisionIndex: 11,
+    decisionIndex: 6,
     decisions: SCENARIO_V3_PREVIEW.decisions.map((decision, index) => ({
       decisionId: decision.id,
       optionId: decision.options[0]!.id,
       status: "confirmed" as const,
       confirmedAtIndex: index + 1,
     })),
+    annualCheckpoints: testAnnualCheckpoints(SCENARIO_V3_PREVIEW, 5, -42_000),
     indicators: { ...base.indicators, annualBalance: -42_000, growth: 1.4, majority: 54, opinion: 49 },
   };
   const storage = memoryStorage({ [V3_STORAGE_KEY]: JSON.stringify(verdict) });

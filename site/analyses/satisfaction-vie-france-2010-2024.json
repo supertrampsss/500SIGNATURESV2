@@ -1,0 +1,58 @@
+{
+  "slug": "satisfaction-vie-france-2010-2024",
+  "titre": "Peut-on dire que la qualité de vie s'est dégradée en France ?",
+  "type": "decryptage",
+  "publie_le": "2026-08-30",
+  "themes": ["population", "macro"],
+  "budgets_concernes": ["etat"],
+  "mise_en_avant": true,
+  "affirmation": {
+    "texte": "La qualité de vie baisse continûment en France depuis quinze ans.",
+    "auteur": null,
+    "date": null,
+    "source": {"titre": "Affirmation confrontée à l'indicateur de satisfaction dans la vie de l'Insee", "url": "https://www.insee.fr/fr/statistiques/8617661", "consulte_le": "2026-08-30"}
+  },
+  "verdict": {
+    "cran": "hors_perimetre",
+    "confusion": "indicateur_partiel",
+    "phrase": "L'Insee publie une satisfaction moyenne déclarée sur une échelle de 0 à 10, pas un indice total de « qualité de vie ». Pour la France métropolitaine, elle vaut 7,3 en 2010, descend notamment à 6,8 en 2021 puis atteint 7,2 en 2024. Ces trois repères ne décrivent pas une baisse continue, et les ruptures de série ou de méthode autour de 2020 et 2022 imposent de la prudence."
+  },
+  "chiffres": [
+    {"dit": "la qualité de vie baisse sans interruption", "valeur": 7.2, "registre": "donnee_officielle", "lecture": "La satisfaction moyenne déclarée atteint 7,2 sur 10 en 2024, contre 7,3 en 2010 et 6,8 en 2021."},
+    {"dit": "une seule note résume toutes les dimensions de la qualité de vie", "valeur": 6.8, "registre": "donnee_officielle", "lecture": "Le point bas récent retenu ici est une note subjective moyenne, pas l'agrégation du logement, de la santé, du revenu et de l'environnement."}
+  ],
+  "hypotheses": [
+    "La satisfaction dans la vie est une réponse subjective moyenne, pas un bilan exhaustif de toutes les conditions de vie.",
+    "Le champ publié couvre les personnes de 16 ans ou plus vivant en logement ordinaire en France métropolitaine.",
+    "Les ruptures signalées autour de 2020 et 2022 empêchent de lire chaque petite variation comme une évolution certaine."
+  ],
+  "effets_indirects": [],
+  "sources": [
+    {"id": "insee-satisfaction", "titre": "Insee : satisfaction dans la vie, données annuelles", "url": "https://www.insee.fr/fr/statistiques/8617661", "consulte_le": "2026-08-30"},
+    {"id": "insee-catalogue-satisfaction", "titre": "Catalogue Insee : DS_SRCV_SATISFACTION", "url": "https://catalogue-donnees.insee.fr/fr/catalogue/recherche/DS_SRCV_SATISFACTION", "consulte_le": "2026-08-30"}
+  ],
+  "simulateur": {"budget": "", "contrat": "", "lecture": "Le simulateur suit plusieurs soutiens politiques ; ils ne sont pas une mesure statistique de satisfaction dans la vie."},
+  "mises_a_jour": [],
+  "verifie_contre": "Insee SRCV, DS_SRCV_SATISFACTION, 2010-2024",
+  "dossier": {
+    "chapo": "Une note de satisfaction apporte une information directe sur le ressenti des personnes. Elle ne résume cependant pas, à elle seule, la qualité de vie et ne doit pas masquer les ruptures de série.",
+    "sommaire": ["indicateur", "evolution", "ruptures"],
+    "series": [
+      {"id": "satisfaction", "libelle": "Satisfaction moyenne dans la vie", "unit": "score_0_10", "definition": "Note moyenne déclarée de 0 à 10 par les personnes de 16 ans ou plus vivant en logement ordinaire en France métropolitaine.", "sourceId": "insee-satisfaction", "observations": [{"period": "2010", "value": 7.3}, {"period": "2021", "value": 6.8, "qualityFlags": ["contexte-pandemie"]}, {"period": "2024", "value": 7.2, "qualityFlags": ["ruptures-2020-2022"]}]}
+    ],
+    "preuves": [
+      {"id": "preuve-2010", "libelle": "Satisfaction moyenne en 2010", "value": 7.3, "unit": "score_0_10", "period": "2010", "definition": "Note moyenne déclarée sur une échelle de 0 à 10.", "sourceId": "insee-satisfaction", "seriesId": "satisfaction"},
+      {"id": "preuve-2021", "libelle": "Satisfaction moyenne en 2021", "value": 6.8, "unit": "score_0_10", "period": "2021", "definition": "Note moyenne déclarée sur une échelle de 0 à 10.", "sourceId": "insee-satisfaction", "seriesId": "satisfaction", "qualityFlags": ["contexte-pandemie"]},
+      {"id": "preuve-2024", "libelle": "Satisfaction moyenne en 2024", "value": 7.2, "unit": "score_0_10", "period": "2024", "definition": "Note moyenne déclarée sur une échelle de 0 à 10.", "sourceId": "insee-satisfaction", "seriesId": "satisfaction", "qualityFlags": ["ruptures-2020-2022"]}
+    ],
+    "visualisations": [
+      {"id": "table-satisfaction", "type": "snapshot_table", "titre": "Trois repères de satisfaction dans la vie", "resume": "Ces trois observations ne sont pas reliées par une courbe : les années intermédiaires ne sont pas représentées ici.", "preuveIds": ["preuve-2010", "preuve-2021", "preuve-2024"]}
+    ],
+    "sections": [
+      {"id": "indicateur", "titre": "Ce que mesure la note", "paragraphes": ["La question demande aux personnes d'évaluer leur satisfaction dans la vie de 0 à 10. Cette mesure subjective complète les indicateurs de revenu, santé ou logement ; elle ne les remplace pas."], "preuveIds": ["preuve-2024"]},
+      {"id": "evolution", "titre": "Trois repères ne montrent pas une baisse continue", "paragraphes": ["La note vaut 7,3 en 2010, 6,8 en 2021 et 7,2 en 2024. Le niveau de 2024 reste légèrement inférieur à celui de 2010, mais ces seuls repères ne décrivent pas les variations des années intermédiaires."], "preuveIds": ["preuve-2010", "preuve-2021", "preuve-2024"], "visualisationIds": ["table-satisfaction"]},
+      {"id": "ruptures", "titre": "Les ruptures comptent autant que les décimales", "paragraphes": ["L'Insee signale une rupture de série après la refonte de SRCV en 2020, puis une légère rupture liée à une nouvelle pondération du bien-être en 2022. Une différence d'un dixième ne doit donc pas être surinterprétée."]}
+    ],
+    "limitations": ["La série ne couvre pas les personnes vivant en institution.", "Le champ est la France métropolitaine pour les repères présentés.", "Les ruptures de série ou de méthode autour de 2020 et 2022 limitent les comparaisons fines.", "La satisfaction dans la vie n'est pas un indice composite de qualité de vie : revenu, santé, logement, emploi et sécurité doivent être lus séparément."]
+  }
+}

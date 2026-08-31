@@ -3,14 +3,15 @@ name: Deploy site
 # Déploiement sur Cloudflare Pages. Le site est indexable depuis que les sept
 # vérifications du lot 4 ont été constatées sur le déploiement (décision D1).
 #
-# Aucun filtre de branche : le projet n'a qu'un site et qu'une branche de
-# développement, et le déploiement doit suivre le travail en cours. Le fichier
-# `deploy-request.json` permet de redéployer sans toucher au site — l'app
+# La production ne suit que `main`. Une branche de travail peut toucher
+# `site/**` sans remplacer 500signatures.fr avant revue. Le fichier
+# `deploy-request.json` permet de redéployer sans toucher au site ; l'app
 # GitHub de l'agent n'a pas le droit `workflow_dispatch`.
 
 on:
   workflow_dispatch:
   push:
+    branches: [main]
     paths:
       - "site/**"
       - "pipeline/plateforme/domaine.py"
@@ -20,6 +21,7 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     # L'adresse du site, écrite une fois pour tout le déploiement.
     #
     # Le pré-rendu en a besoin : les balises `og:image` et `og:url` des pages

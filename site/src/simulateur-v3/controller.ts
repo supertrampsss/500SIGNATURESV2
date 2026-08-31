@@ -1,5 +1,5 @@
 import {
-  advanceAfterResult,
+  clearSelection,
   createCampaign,
   normalizeChapterTransition,
   selectOption,
@@ -14,7 +14,7 @@ import {
   saveCampaign,
   type StorageLike,
 } from "./storage.ts";
-import type { CampaignPhase, CampaignState, CrisisRule, Scenario } from "./types.ts";
+import type { CampaignPhase, CampaignState, CrisisRule, MandateBaseline, Scenario } from "./types.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
 import {
   buildVerdictShare,
@@ -25,13 +25,17 @@ import {
 
 export type SimulatorV3Host = {
   innerHTML: string;
-  addEventListener(type: "click", listener: EventListener): void;
-  removeEventListener(type: "click", listener: EventListener): void;
+  addEventListener(type: "click" | "keydown", listener: EventListener): void;
+  removeEventListener(type: "click" | "keydown", listener: EventListener): void;
   scrollIntoView?(options?: ScrollIntoViewOptions): void;
-  querySelector?(selector: string): { textContent: string | null } | null;
+  querySelector?(selector: string): {
+    textContent: string | null;
+    focus?(options?: FocusOptions): void;
+  } | null;
 };
 
 export type SimulatorV3Dependencies = {
+  baseline: MandateBaseline;
   storage?: StorageLike;
   navigate?: (path: string) => void;
   eventTarget?: EventTarget;
@@ -96,22 +100,23 @@ function shareStatus(issue: VerdictShareIssue): string {
   return "";
 }
 
-function inferredPhaseBeforePause(state: CampaignState): CampaignPhase {
-  const position = state.chapterIndex * 12 + state.decisionIndex;
+function inferredPhaseBeforePause(state: CampaignState, scenario: Scenario): CampaignPhase {
+  const position = scenario.chapters
+    .slice(0, state.chapterIndex)
+    .reduce((sum, chapter) => sum + chapter.decisionIds.length, 0)
+    + state.decisionIndex;
   return state.decisions.length > position ? "decision_result" : "decision";
 }
 
-function resetScrollAfterBrowserRestore(host: SimulatorV3Host): void {
-  if (typeof requestAnimationFrame === "undefined") return;
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => host.scrollIntoView?.({ block: "start" }));
-  });
+function optionSelector(optionId: string): string {
+  const safeId = optionId.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
+  return `.simulateur-v3__option-select[data-option-id="${safeId}"]`;
 }
 
 export function mountSimulatorV3(
   host: SimulatorV3Host,
   scenario: Scenario,
-  dependencies: SimulatorV3Dependencies = {},
+  dependencies: SimulatorV3Dependencies,
 ): () => void {
   const storage = dependencies.storage ?? defaultStorage();
   const navigate = dependencies.navigate ?? defaultNavigate;
@@ -121,23 +126,57 @@ export function mountSimulatorV3(
   const currentUrl = dependencies.currentUrl ?? defaultCurrentUrl;
   const restored = restoreCampaign(storage, scenario);
   const v2Found = restored.kind === "v2_found";
+  const restartRequired = restored.kind === "restart_required";
+  let saveFailed = restored.kind === "unavailable";
   let state = normalizeChapterTransition(
-    restored.kind === "restored" ? restored.state : createCampaign(scenario),
+    restored.kind === "restored" ? restored.state : createCampaign(scenario, dependencies.baseline),
     scenario,
   );
   let phaseBeforePause: CampaignPhase | undefined = state.phase === "pause"
-    ? state.pausedFrom ?? inferredPhaseBeforePause(state)
+    ? state.pausedFrom ?? inferredPhaseBeforePause(state, scenario)
     : undefined;
   let pauseView: RenderSimulatorV3Options["pauseView"] = "menu";
 
-  const render = (resetScroll = false) => {
-    host.innerHTML = renderSimulatorV3(state, scenario, { v2Found, crisisRules, pauseView });
-    if (resetScroll) host.scrollIntoView?.({ block: "start" });
+  const render = (resetScene = false) => {
+    host.innerHTML = renderSimulatorV3(state, scenario, {
+      v2Found,
+      restartRequired,
+      crisisRules,
+      pauseView,
+      saveFailed,
+    });
+    if (!resetScene) return;
+    host.scrollIntoView?.({ block: "start" });
+    host.querySelector?.(".simulateur-v3__stage h1")?.focus?.({ preventScroll: true });
   };
 
-  const persistAndRender = (resetScroll = false) => {
-    state = saveCampaign(storage, state, now());
-    render(resetScroll);
+  const observableStorage: StorageLike = {
+    getItem: (key) => storage.getItem(key),
+    setItem: (key, value) => {
+      try {
+        storage.setItem(key, value);
+        saveFailed = false;
+      } catch (error) {
+        saveFailed = true;
+        throw error;
+      }
+    },
+    removeItem: (key) => storage.removeItem(key),
+  };
+
+  const persistAndRender = (resetScene = false) => {
+    state = saveCampaign(observableStorage, state, now());
+    render(resetScene);
+  };
+
+  const clearPendingSelection = (returnFocus = false) => {
+    if (!state.pendingSelection) return;
+    const selectedOptionId = state.pendingSelection.optionId;
+    state = clearSelection(state);
+    persistAndRender();
+    if (returnFocus) {
+      host.querySelector?.(optionSelector(selectedOptionId))?.focus?.({ preventScroll: true });
+    }
   };
 
   const emit = (detail: Parameters<typeof emitSimulatorV3Event>[0]) => {
@@ -174,8 +213,10 @@ export function mountSimulatorV3(
     }
 
     if (action === "open-chapter" && state.phase === "chapter_intro") {
-      state = advanceAfterResult(state, scenario);
-      emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+      state = advanceCampaign(state, scenario, crisisRules);
+      if (state.phase === "decision") {
+        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+      }
       persistAndRender(true);
       return;
     }
@@ -184,21 +225,23 @@ export function mountSimulatorV3(
       const decisionId = node.dataset.decisionId;
       const optionId = node.dataset.optionId;
       if (!decisionId || !optionId) return;
-      state = confirmSelection(selectOption(state, scenario, decisionId, optionId), scenario);
+      state = selectOption(state, scenario, decisionId, optionId);
+      persistAndRender();
+      return;
+    }
+
+    if (action === "modify" && state.phase === "decision" && state.pendingSelection) {
+      clearPendingSelection(true);
+      return;
+    }
+
+    if (action === "confirm" && state.phase === "decision" && state.pendingSelection) {
+      state = confirmSelection(state, scenario);
       emit({
         type: "decision_confirmed",
         chapter: state.chapterIndex + 1,
         position: state.decisions.length,
       });
-      state = advanceCampaign(state, scenario, crisisRules);
-      if (state.phase === "decision") {
-        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
-      }
-      if (state.phase === "crisis" && state.activeCrisis) {
-        emit({ type: "crisis_triggered", crisisId: state.activeCrisis.ruleId });
-      }
-      if (state.phase === "chapter_intro") emit({ type: "chapter_completed", chapter: state.chapterIndex });
-      if (state.phase === "verdict") emit({ type: "campaign_completed" });
       persistAndRender();
       return;
     }
@@ -228,7 +271,7 @@ export function mountSimulatorV3(
       if (state.phase === "decision") {
         emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
       }
-      persistAndRender();
+      persistAndRender(true);
       return;
     }
 
@@ -259,7 +302,7 @@ export function mountSimulatorV3(
     }
 
     if (action === "restart") {
-      state = createCampaign(scenario, state.seed + 1);
+      state = createCampaign(scenario, dependencies.baseline, state.seed + 1);
       phaseBeforePause = undefined;
       pauseView = "menu";
       emit({ type: "campaign_restarted" });
@@ -268,7 +311,7 @@ export function mountSimulatorV3(
     }
 
     if (action === "resume" && state.phase === "pause") {
-      const resumedPhase = phaseBeforePause ?? state.pausedFrom ?? inferredPhaseBeforePause(state);
+      const resumedPhase = phaseBeforePause ?? state.pausedFrom ?? inferredPhaseBeforePause(state, scenario);
       const { pausedFrom: _pausedFrom, ...withoutPauseMarker } = state;
       state = { ...withoutPauseMarker, phase: resumedPhase };
       pauseView = "menu";
@@ -277,11 +320,19 @@ export function mountSimulatorV3(
     }
   };
 
+  const onKeydown: EventListener = (event) => {
+    const keyboardEvent = event as KeyboardEvent;
+    if (keyboardEvent.key !== "Escape" || state.phase !== "decision" || !state.pendingSelection) return;
+    keyboardEvent.preventDefault();
+    clearPendingSelection(true);
+  };
+
   host.addEventListener("click", onClick);
+  host.addEventListener("keydown", onKeydown);
   render(true);
-  resetScrollAfterBrowserRestore(host);
 
   return () => {
     host.removeEventListener("click", onClick);
+    host.removeEventListener("keydown", onKeydown);
   };
 }

@@ -1,0 +1,85 @@
+.questions {
+  width: min(100% - 2rem, 54rem);
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 5rem) 0;
+  color: var(--encre, #16324a);
+}
+
+.questions header {
+  max-width: 46rem;
+}
+
+.questions h1 {
+  max-width: 18ch;
+  margin: .45rem 0 1rem;
+  font-size: clamp(2rem, 6vw, 4.5rem);
+  line-height: .98;
+  letter-spacing: -.045em;
+}
+
+.questions__eyebrow {
+  margin: 0;
+  color: var(--encre-sourde, #4c6478);
+  font-size: .78rem;
+  font-weight: 750;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.questions__form {
+  margin: 2rem 0;
+  padding: 1rem;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 1rem;
+  background: color-mix(in srgb, var(--fond, #fff) 92%, #d9e8f3);
+}
+
+.questions__form label {
+  display: block;
+  margin-bottom: .55rem;
+  font-weight: 700;
+}
+
+.questions__form div {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: .6rem;
+}
+
+.questions__form input,
+.questions__form button {
+  min-height: 3rem;
+  border: 1px solid currentColor;
+  border-radius: .65rem;
+  font: inherit;
+}
+
+.questions__form input { padding: 0 .8rem; background: var(--fond, #fff); color: inherit; }
+.questions__form button { padding: 0 1rem; background: var(--encre, #16324a); color: #fff; font-weight: 750; cursor: pointer; }
+
+.questions__resultat:not(:empty) {
+  margin: 0 0 2rem;
+  padding: 1rem;
+  border-left: .3rem solid currentColor;
+}
+
+.questions__liste { display: grid; gap: .6rem; padding: 0; list-style: none; }
+.questions__liste a { display: block; padding: .9rem 1rem; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: .75rem; }
+.questions--reponse nav { display: flex; gap: .5rem; margin-bottom: 2rem; }
+.questions__reponse { max-width: 42rem; font-size: clamp(1.2rem, 3vw, 1.65rem); line-height: 1.45; }
+.questions__preuve { display: inline-block; padding: .8rem 1rem; border-radius: .6rem; background: var(--encre, #16324a); color: #fff; font-weight: 750; }
+.questions__note { max-width: 42rem; color: var(--encre-sourde, #4c6478); font-size: .9rem; }
+
+.analyses-index__questions {
+  display: inline-block;
+  margin-top: .35rem;
+  padding: .7rem .9rem;
+  border: 1px solid currentColor;
+  border-radius: .6rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+@media (max-width: 34rem) {
+  .questions__form div { grid-template-columns: 1fr; }
+}

@@ -1,14 +1,18 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createCampaign, INITIAL_INDICATORS } from "./campaign.ts";
 import { SCENARIO_V3_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
+import { createTestCampaign as createCampaign, testAnnualCheckpoints, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, CausalEntry } from "./types.ts";
+import { totalDecisions } from "./validation.ts";
 import { buildMandateVerdictViewModel } from "./verdict.ts";
+
+const INITIAL_INDICATORS = createCampaign(validScenario()).indicators;
 
 function completedCampaign(): CampaignState {
   const base = createCampaign(SCENARIO_V3_PREVIEW);
+  const finalAnnualBalance = base.indicators.annualBalance + 20_000;
   const decisions = SCENARIO_V3_PREVIEW.decisions.map((decision, index) => ({
     decisionId: decision.id,
     optionId: decision.options[0]!.id,
@@ -54,15 +58,16 @@ function completedCampaign(): CampaignState {
     ...base,
     phase: "verdict",
     chapterIndex: 7,
-    decisionIndex: 11,
+    decisionIndex: 6,
     decisions,
+    annualCheckpoints: testAnnualCheckpoints(SCENARIO_V3_PREVIEW, 5, finalAnnualBalance),
     causalLedger,
     indicators: {
       ...base.indicators,
-      annualBalance: -133_000,
-      growth: 1.3,
-      majority: 55,
-      opinion: 51,
+      annualBalance: finalAnnualBalance,
+      growth: base.indicators.growth + 0.4,
+      majority: base.indicators.majority - 7,
+      opinion: base.indicators.opinion - 7,
     },
   };
 }
@@ -70,28 +75,73 @@ function completedCampaign(): CampaignState {
 test("reconstruit cinq jalons et termine sur les indicateurs réels", () => {
   const state = completedCampaign();
   const view = buildMandateVerdictViewModel(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
+  const total = totalDecisions(SCENARIO_V3_PREVIEW);
 
-  assert.deepEqual(view.trajectory.map((point) => point.decisionCount), [0, 24, 48, 72, 96]);
+  assert.deepEqual(view.trajectory.map((point) => point.decisionCount), [16, 32, 39, 53, 60]);
+  assert.ok(view.trajectory.every((point) => point.decisionCount <= total));
   assert.deepEqual(view.trajectory.at(-1), {
-    decisionCount: 96,
+    decisionCount: total,
     label: "Verdict final",
     annualBalance: state.indicators.annualBalance,
     majority: state.indicators.majority,
   });
-  assert.equal(view.trajectory[0]!.annualBalance, INITIAL_INDICATORS.annualBalance);
-  assert.equal(view.trajectory[1]!.annualBalance, -133_000);
-  assert.equal(view.trajectory[2]!.majority, 55);
+  assert.equal(view.trajectory[0]!.annualBalance, state.indicators.annualBalance);
+  assert.equal(view.trajectory[2]!.majority, INITIAL_INDICATORS.majority);
+});
+
+test("le verdict distingue le flux ponctuel du dernier exercice et le rythme annuel final", () => {
+  const state = completedCampaign();
+  const finalRunRate = state.indicators.annualBalance;
+  const finalRecord = state.decisions.at(-1)!;
+  const oneOffCause: CausalEntry = {
+    id: "decision:final:one-off:4",
+    sourceType: "decision",
+    sourceId: `${finalRecord.decisionId}:${finalRecord.optionId}`,
+    target: "indicator",
+    key: "annualBalance",
+    delta: -5_000,
+    duration: "once",
+    explanation: "Le dernier exercice absorbe un coût ponctuel.",
+    appliedAtDecision: finalRecord.confirmedAtIndex,
+  };
+  state.causalLedger.push(oneOffCause);
+  state.annualCheckpoints.at(-1)!.annualBalance = finalRunRate - 5_000;
+  state.annualCheckpoints.at(-1)!.causes.push(oneOffCause.id);
+
+  const view = buildMandateVerdictViewModel(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
+
+  assert.equal(view.trajectory.at(-1)?.annualBalance, finalRunRate - 5_000);
+  assert.equal(view.annualBalance, finalRunRate);
+  assert.equal(view.annualBalanceDelta, finalRunRate - state.baseline.annualBalanceMillions);
+});
+
+test("la trajectoire relit les jalons persistés sans les recalculer depuis le scénario", () => {
+  const state = completedCampaign();
+  const scenario = {
+    ...SCENARIO_V3_PREVIEW,
+    chapters: [{
+      ...SCENARIO_V3_PREVIEW.chapters[0]!,
+      decisionIds: SCENARIO_V3_PREVIEW.chapters[0]!.decisionIds.slice(0, 2),
+    }],
+    decisions: SCENARIO_V3_PREVIEW.decisions.slice(0, 2),
+  };
+
+  const view = buildMandateVerdictViewModel(state, scenario, []);
+
+  assert.deepEqual(view.trajectory.map((point) => point.decisionCount), [16, 32, 39, 53, 60]);
+  assert.equal(view.trajectory.at(-1)?.label, "Verdict final");
 });
 
 test("calcule les écarts des signaux depuis le début du mandat", () => {
   const view = buildMandateVerdictViewModel(completedCampaign(), SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
 
-  assert.deepEqual(view.signals.map((signal) => [signal.key, signal.value, signal.delta]), [
-    ["growth", 1.3, 0.4],
-    ["majority", 55, -7],
-    ["opinion", 51, -7],
+  assert.ok(Math.abs(view.signals[0]!.delta - 0.4) < 1e-12);
+  assert.deepEqual(view.signals.slice(1).map((signal) => [signal.key, signal.value, signal.delta]), [
+    ["majority", INITIAL_INDICATORS.majority - 7, -7],
+    ["opinion", INITIAL_INDICATORS.opinion - 7, -7],
   ]);
   assert.equal(view.annualBalanceDelta, 20_000);
+  assert.equal(view.signals[0]!.descriptor, "Croissance nominale soutenue");
 });
 
 test("classe trois choix distincts et ne transporte pas la question à répéter", () => {

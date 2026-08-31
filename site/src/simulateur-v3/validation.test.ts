@@ -1,10 +1,18 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { assertNoEmDash, isCampaignState, validateScenario } from "./validation.ts";
-import { createCampaign, selectOption } from "./campaign.ts";
+import {
+  assertNoEmDash,
+  isCampaignState,
+  positionAfterCompleted,
+  positionBeforeNext,
+  totalDecisions,
+  validateScenario,
+} from "./validation.ts";
+import { selectOption } from "./campaign.ts";
 import { confirmSelection, resolveDueEvents } from "./effects.ts";
-import { validCampaignState, validScenario } from "./test-fixtures.ts";
+import { SCENARIO_V3 } from "./scenario.ts";
+import { createTestCampaign as createCampaign, testAnnualCheckpoints, validCampaignState, validScenario } from "./test-fixtures.ts";
 import type { CampaignState, DecisionRecord, EffectRule, Scenario } from "./types.ts";
 
 function confirmedRecord(scenario: Scenario, index: number, confirmedAtIndex = index + 1): DecisionRecord {
@@ -19,17 +27,154 @@ function confirmedRecord(scenario: Scenario, index: number, confirmedAtIndex = i
 
 function stateAfterRecords(scenario: Scenario, decisions: DecisionRecord[]): CampaignState {
   const count = decisions.length;
+  const position = positionAfterCompleted(scenario, count) ?? positionBeforeNext(scenario, count)!;
   return {
     ...validCampaignState(scenario),
     phase: "decision_result",
-    chapterIndex: Math.floor((count - 1) / 12),
-    decisionIndex: (count - 1) % 12,
+    ...position,
     decisions,
   };
 }
 
-test("un scénario valide contient huit chapitres de douze décisions uniques", () => {
+test("un scénario valide contient chaque décision une seule fois", () => {
   assert.deepEqual(validateScenario(validScenario()), []);
+});
+
+test("la validation impose timing budgétaire, listes nettoyées et contrat budgétaire cohérent", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]! as unknown as Record<string, unknown>;
+  option.budgetTiming = { kind: "after_decisions", count: 2 };
+  option.legalConstraints = ["Voter la loi", " Voter la loi ", "   "];
+  option.beneficiaries = ["ménages", " ménages "];
+  option.contributors = ["   "];
+  const effects = option.effects as EffectRule[];
+  effects.push({
+    id: "budget-contract",
+    target: "indicator",
+    key: "annualBalance",
+    delta: 1,
+    timing: { kind: "immediate" },
+    duration: "once",
+    explanation: "Un budget incohérent.",
+  });
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes("option:decision-1-option-a:duplicate-legal-constraint:Voter la loi"));
+  assert.ok(errors.includes("option:decision-1-option-a:blank-legal-constraint"));
+  assert.ok(errors.includes("option:decision-1-option-a:duplicate-beneficiary:ménages"));
+  assert.ok(errors.includes("option:decision-1-option-a:blank-contributor"));
+  assert.ok(errors.includes("option:decision-1-option-a:budget-timing-mismatch"));
+  assert.ok(errors.includes("option:decision-1-option-a:budget-duration-mismatch"));
+});
+
+test("la validation refuse une année d'effet antérieure au chapitre de la décision", () => {
+  const scenario = validScenario();
+  const decision = scenario.decisions[60]!;
+  decision.options[0]!.horizon = { kind: "mandate_year", year: 1 };
+  decision.options[0]!.effects[0]!.timing = { kind: "mandate_year", year: 1 } as EffectRule["timing"];
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes(`option:${decision.options[0]!.id}:horizon-before-decision-year`));
+  assert.ok(errors.includes(`effect:${decision.options[0]!.effects[0]!.id}:timing-before-decision-year`));
+});
+
+test("la validation refuse un effet direct non budgétaire antérieur à l'horizon de l'option", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.horizon = { kind: "mandate_year", year: 3 };
+  option.effects[0]!.timing = { kind: "immediate" };
+  option.effects.push({
+    id: "early-budget-independent-from-horizon",
+    target: "indicator",
+    key: "annualBalance",
+    delta: -10,
+    timing: { kind: "immediate" },
+    duration: "annual",
+    explanation: "Le budget de préparation précède la mise en œuvre.",
+  });
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes(`effect:${option.effects[0]!.id}:timing-before-option-horizon`));
+  assert.equal(errors.includes("effect:early-budget-independent-from-horizon:timing-before-option-horizon"), false);
+});
+
+test("la validation accepte un effet direct non budgétaire postérieur à l'horizon de l'option", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.horizon = { kind: "after_decisions", count: 2 };
+  option.effects[0]!.timing = { kind: "mandate_year", year: 2 };
+
+  assert.deepEqual(validateScenario(scenario), []);
+});
+
+test("la validation refuse une année de mandat sans checkpoint dans la topologie", () => {
+  const source = validScenario();
+  const decisions = source.decisions.slice(0, 3);
+  const scenario: Scenario = {
+    ...source,
+    chapters: [{ ...source.chapters[0]!, decisionIds: decisions.map((decision) => decision.id) }],
+    decisions,
+  };
+  const option = scenario.decisions[0]!.options[0]!;
+  option.horizon = { kind: "mandate_year", year: 3 };
+  option.budgetTiming = { kind: "mandate_year", year: 3 };
+  option.effects[0]!.timing = { kind: "mandate_year", year: 3 };
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes(`option:${option.id}:horizon-year-without-checkpoint`));
+  assert.ok(errors.includes(`option:${option.id}:budget-timing-year-without-checkpoint`));
+  assert.ok(errors.includes(`effect:${option.effects[0]!.id}:timing-year-without-checkpoint`));
+});
+
+test("la validation refuse un chapitre au-delà du calendrier du mandat", () => {
+  const scenario = validScenario();
+  const decision = scenario.decisions.at(-1)!;
+  scenario.chapters.at(-1)!.decisionIds.pop();
+  decision.chapterId = "chapter-9";
+  scenario.chapters.push({
+    id: "chapter-9",
+    title: "Chapitre hors mandat",
+    domains: ["a", "b", "c", "d"],
+    opening: "Le mandat est déjà achevé.",
+    tension: "Cette séquence ne dispose d'aucun checkpoint.",
+    decisionIds: [decision.id],
+  });
+  const option = decision.options[0]!;
+  option.horizon = { kind: "mandate_year", year: 5 };
+  option.budgetTiming = { kind: "mandate_year", year: 5 };
+  option.effects[0]!.timing = { kind: "mandate_year", year: 5 };
+
+  const errors = validateScenario(scenario);
+  assert.ok(errors.includes("scenario:chapters-exceed-mandate-calendar"));
+  assert.ok(errors.includes(`option:${option.id}:horizon-before-decision`));
+  assert.ok(errors.includes(`option:${option.id}:budget-timing-before-decision`));
+  assert.ok(errors.includes(`effect:${option.effects[0]!.id}:timing-before-decision`));
+});
+
+test("le positionnement suit des chapitres de longueurs variables", () => {
+  assert.deepEqual(positionAfterCompleted(SCENARIO_V3, 8), { chapterIndex: 0, decisionIndex: 7 });
+  assert.deepEqual(positionBeforeNext(SCENARIO_V3, 8), { chapterIndex: 1, decisionIndex: 0 });
+  assert.deepEqual(positionBeforeNext(SCENARIO_V3, 53), { chapterIndex: 7, decisionIndex: 0 });
+  assert.equal(totalDecisions(SCENARIO_V3), 60);
+});
+
+test("la validation accepte une petite topologie non uniforme", () => {
+  const source = validScenario();
+  const decisions = source.decisions.slice(0, 3);
+  decisions.slice(1).forEach((decision) => { decision.chapterId = source.chapters[1]!.id; });
+  const scenario: Scenario = {
+    ...source,
+    chapters: [
+      { ...source.chapters[0]!, decisionIds: [decisions[0]!.id] },
+      { ...source.chapters[1]!, decisionIds: decisions.slice(1).map((decision) => decision.id) },
+    ],
+    decisions,
+  };
+  scenario.decisions.at(-1)!.options[1]!.horizon = { kind: "mandate_year", year: 1 };
+  scenario.decisions.at(-1)!.options[1]!.effects[0]!.timing = { kind: "mandate_year", year: 1 };
+
+  assert.deepEqual(validateScenario(scenario), []);
+  assert.equal(totalDecisions(scenario), 3);
 });
 
 test("la validation refuse un scénario incomplet et un choix sans preuve", () => {
@@ -37,7 +182,7 @@ test("la validation refuse un scénario incomplet et un choix sans preuve", () =
   scenario.chapters[0]!.decisionIds.pop();
   scenario.decisions[0]!.evidence = [];
   const errors = validateScenario(scenario);
-  assert.ok(errors.includes("chapter:chapter-1:expected-12-decisions"));
+  assert.ok(errors.includes("decision:decision-12:expected-once-in-chapters"));
   assert.ok(errors.includes("decision:decision-1:evidence-required"));
 });
 
@@ -256,6 +401,22 @@ test("un état V3 refuse les listes d'identifiants dupliquées ou inconnues", ()
   const lockedState = validCampaignState(scenario) as unknown as Record<string, unknown>;
   lockedState.lockedDecisionIds = ["unknown-decision"];
   assert.equal(isCampaignState(lockedState, scenario), false);
+
+  const confirmedLockedState = stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]);
+  confirmedLockedState.lockedDecisionIds = ["decision-1"];
+  assert.equal(isCampaignState(confirmedLockedState, scenario), false);
+
+  const confirmedUnlockedState = stateAfterRecords(scenario, [confirmedRecord(scenario, 0)]);
+  confirmedUnlockedState.unlockedDecisionIds = ["decision-1"];
+  assert.equal(isCampaignState(confirmedUnlockedState, scenario), false);
+});
+
+test("la validation refuse une durée budgétaire ponctuelle sans effet de solde", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.budgetDuration = "once";
+
+  assert.ok(validateScenario(scenario).includes(`option:${option.id}:once-budget-effect-required`));
 });
 
 test("un état V3 refuse une règle d'effet incomplète", () => {
@@ -309,6 +470,22 @@ test("un état V3 refuse les DecisionRecord dupliqués, hors ordre ou non séque
   assert.equal(isCampaignState(duplicate, scenario), false);
   assert.equal(isCampaignState(outOfOrder, scenario), false);
   assert.equal(isCampaignState(nonSequentialIndex, scenario), false);
+});
+
+test("un instantané de résultat refuse une cause étrangère ou un delta falsifié", () => {
+  const scenario = validScenario();
+  const started = { ...createCampaign(scenario), phase: "decision" as const };
+  const confirmed = confirmSelection(
+    selectOption(started, scenario, "decision-1", "decision-1-option-a"),
+    scenario,
+  );
+  const foreignCause = structuredClone(confirmed);
+  foreignCause.decisions[0]!.impact!.indicators[0]!.causalEntryIds = ["cause-étrangère"];
+  const falseDelta = structuredClone(confirmed);
+  falseDelta.decisions[0]!.impact!.indicators[0]!.delta += 1;
+
+  assert.equal(isCampaignState(foreignCause, scenario), false);
+  assert.equal(isCampaignState(falseDelta, scenario), false);
 });
 
 test("un état V3 refuse les conséquences dont la source n'a pas été confirmée", () => {
@@ -373,7 +550,7 @@ test("un état V3 refuse une phase ou une échéance persistée hors campagne", 
     id: "event-97",
     sourceDecisionId: "decision-1",
     sourceOptionId: "decision-1-option-a",
-    dueAtDecision: 97,
+    dueAtDecision: totalDecisions(scenario) + 1,
     title: "Trop tard",
     body: "Cette échéance dépasse la campagne.",
     effects: [],
@@ -387,7 +564,12 @@ test("un état V3 accepte chaque phase à sa position atteignable", () => {
   const scenario = validScenario();
   const records = (count: number) => Array.from({ length: count }, (_, index) => confirmedRecord(scenario, index));
   const chapterVerdict = stateAfterRecords(scenario, records(12));
-  const verdict = stateAfterRecords(scenario, records(96));
+  const campaignLength = totalDecisions(scenario);
+  const verdict = stateAfterRecords(scenario, records(campaignLength));
+  verdict.annualCheckpoints = testAnnualCheckpoints(scenario);
+  const council = stateAfterRecords(scenario, records(24));
+  council.phase = "council";
+  council.annualCheckpoints = testAnnualCheckpoints(scenario, 1);
   const crisis = stateAfterRecords(scenario, records(1));
   const delayedEvent = stateAfterRecords(scenario, records(2));
   delayedEvent.scheduledEvents = [{
@@ -404,24 +586,35 @@ test("un état V3 accepte chaque phase à sa position atteignable", () => {
     { ...createCampaign(scenario), phase: "chapter_intro" },
     { ...createCampaign(scenario), phase: "decision" },
     stateAfterRecords(scenario, records(1)),
-    { ...stateAfterRecords(scenario, records(4)), phase: "council" },
+    council,
     {
       ...crisis,
       phase: "crisis",
-      activeCrisis: { ruleId: "crisis-1", triggeredByDecisionId: "decision-1", aggravatingDecisionIds: ["decision-1"] },
+      activeCrisis: {
+        ruleId: "crisis-1",
+        triggeredAtDecisionCount: 1,
+        triggeredChapterIndex: 0,
+        triggeredByDecisionId: "decision-1",
+        aggravatingDecisionIds: ["decision-1"],
+        aggravatingChoices: [{
+          decisionId: "decision-1",
+          optionId: scenario.decisions[0]!.options[0]!.id,
+        }],
+      },
     },
     { ...delayedEvent, phase: "delayed_event" },
     { ...chapterVerdict, phase: "chapter_verdict" },
     { ...createCampaign(scenario), phase: "pause" },
-    { ...verdict, phase: "verdict", chapterIndex: 7, decisionIndex: 11 },
+    { ...verdict, phase: "verdict" },
   ];
 
   for (const state of states) assert.equal(isCampaignState(state, scenario), true, state.phase);
 });
 
-test("la validation refuse toute règle créée à la décision 96 et due après la campagne", () => {
+test("la validation refuse toute règle créée à la dernière décision et due après la campagne", () => {
   const scenario = validScenario();
-  const option = scenario.decisions[95]!.options[0]!;
+  const finalDecision = totalDecisions(scenario) - 1;
+  const option = scenario.decisions[finalDecision]!.options[0]!;
   option.effects = [{
     id: "effect-after-96",
     target: "indicator",

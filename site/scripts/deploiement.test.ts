@@ -33,6 +33,16 @@ test("le domaine public canonique est 500signatures.fr", async () => {
   assert.doesNotMatch(workflow, /SITE_URL:\s*https:\/\/plateforme-9sz\.pages\.dev/);
 });
 
+test("seule la branche main peut déclencher le déploiement de production", async () => {
+  const workflow = (await readFile(WORKFLOW, "utf8")).replace(/\r\n/g, "\n");
+  const declencheurs = workflow.slice(workflow.indexOf("on:"), workflow.indexOf("jobs:"));
+  assert.match(declencheurs, /push:\s*\n\s+branches:\s*\[main\]/);
+  assert.match(
+    workflow,
+    /if:\s*github\.ref == 'refs\/heads\/main'/,
+  );
+});
+
 /** Une étape du workflow : son bloc de texte, tel que le fichier l'écrit. */
 type Etape = { bloc: string; repertoire: string; commande: string };
 

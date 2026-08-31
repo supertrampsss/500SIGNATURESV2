@@ -99,6 +99,13 @@ Applicables uniquement quand `verdict.cran = hors_perimetre`.
 - `perimetre_geographique` — confusion entre deux mailles ou périmètres
   territoriaux différents (ex. une commune et son intercommunalité, un
   département et sa région).
+- `gros_detail` — confusion entre un prix formé sur le marché de gros et le
+  prix de détail facturé au consommateur, qui ajoute notamment acheminement,
+  commercialisation et prélèvements.
+- `panier_partiel` — confusion entre l'indice de prix d'un sous-panier et le
+  montant total d'une dépense qui inclut d'autres produits et services.
+- `indicateur_partiel` : confusion entre une mesure portant sur une dimension
+  précise et un concept plus large qui en comprend plusieurs.
 
 ## Registres
 

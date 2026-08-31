@@ -36,6 +36,12 @@ import {
   MESSAGE_PRINCIPAL,
 } from "../src/accueil.ts";
 import { rendu, renduIndex, type Analyse } from "../src/analyse-rendu.ts";
+import {
+  REPONSES_STATIQUES,
+  renduQuestionsIndex,
+  renduReponseQuestion,
+  validerCorpusQuestions,
+} from "../src/questions.ts";
 import { indicateursDerives } from "../src/derives.ts";
 // Le rendu de la page Sources et méthode est pur, sans DOM ni `fetch`, comme
 // `rendu()` et `renduAccueil` : le build sert donc le même document que le web.
@@ -331,13 +337,17 @@ export function donneesCarteAnalyse(
   if (!chiffre) {
     throw new Error(`L'analyse "${analyse.slug}" ne porte aucun chiffre : rien à peindre sur une carte.`);
   }
+  const preuveDossier = chiffre.valeur === undefined || chiffre.valeur === null
+    ? analyse.dossier?.preuves[0]
+    : analyse.dossier?.preuves.find((preuve) => preuve.value === chiffre.valeur);
   const exercice =
     chiffre.observe?.periode ??
     analyse.chiffres
       .map((autre) => autre.observe?.periode)
       .filter((periode): periode is string => !!periode)
       .sort()
-      .pop();
+      .pop() ??
+    preuveDossier?.period;
   if (!exercice) {
     throw new Error(
       `L'analyse "${analyse.slug}" ne déclare aucun exercice : sa carte de partage circulerait ` +
@@ -378,7 +388,9 @@ export function donneesCarteAnalyse(
   // « preuve » de la page cite (analyse-rendu.ts), jamais un champ du
   // catalogue que le rendu ne peut pas vérifier, et jamais la source de la
   // déclaration mise en cause (voir la docstring).
-  const source = analyse.sources[0];
+  const source = preuveDossier
+    ? analyse.sources.find((candidate) => candidate.id === preuveDossier.sourceId)
+    : analyse.sources[0];
   if (!source) {
     throw new Error(
       `L'analyse "${analyse.slug}" ne déclare aucune source : sa carte de partage circulerait ` +
@@ -1374,7 +1386,9 @@ export function adressesPubliees(analyses: readonly Analyse[]): string[] {
     ...CHEMINS_DE_VUE,
     "/analyses/",
     "/sources/",
+    "/questions/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
+    ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),
   ];
 }
 
@@ -1581,6 +1595,7 @@ async function main(): Promise<void> {
   const indexSources = indexerSources(fiches);
 
   const ecrites: PageEcrite[] = [];
+  validerCorpusQuestions(analyses);
   for (const analyse of analyses) {
     const canonique = `/analyses/${analyse.slug}/`;
     const page: Page = {
@@ -1610,6 +1625,30 @@ async function main(): Promise<void> {
   const htmlIndex = injecter(shell, pageIndex, SITE);
   await ecrirePage(path.join(DIST, "analyses"), htmlIndex);
   ecrites.push({ chemin: "analyses/index.html", html: htmlIndex });
+
+  const pageQuestions: Page = {
+    titre: "Questions vérifiées",
+    description: "Des réponses sourcées et pré-rendues, sans appel à un modèle en direct.",
+    canonique: "/questions/",
+    image: "/carte.png",
+    corps: renduQuestionsIndex(),
+  };
+  const htmlQuestions = injecter(shell, pageQuestions, SITE);
+  await ecrirePage(path.join(DIST, "questions"), htmlQuestions);
+  ecrites.push({ chemin: "questions/index.html", html: htmlQuestions });
+  for (const reponse of REPONSES_STATIQUES) {
+    const canonique = `/questions/${reponse.slug}/`;
+    const pageReponse: Page = {
+      titre: reponse.question,
+      description: reponse.reponse,
+      canonique,
+      image: "/carte.png",
+      corps: renduReponseQuestion(reponse),
+    };
+    const htmlReponse = injecter(shell, pageReponse, SITE);
+    await ecrirePage(path.join(DIST, "questions", reponse.slug), htmlReponse);
+    ecrites.push({ chemin: `questions/${reponse.slug}/index.html`, html: htmlReponse });
+  }
 
   const htmlSources = injecterRegistre(shell, jeux, fiches, SITE);
   await ecrirePage(path.join(DIST, "sources"), htmlSources);
@@ -1685,7 +1724,7 @@ async function main(): Promise<void> {
   await validerIndexation(DIST, SITE);
 
   console.log(
-    `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), dist/analyses/index.html, dist/sources/index.html, ` +
+    `Pré-rendu : l'accueil dans dist/index.html, ${analyses.length} analyse(s), ${REPONSES_STATIQUES.length} réponse(s), dist/analyses/index.html, dist/sources/index.html, ` +
       `dist/${DOSSIER_BILAN}/index.html, ` +
       `${analyses.length + sections(shell).length + 1} carte(s) de partage, ` +
       `${adresses.length} adresse(s) au plan du site, sous ${SITE}.`,

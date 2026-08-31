@@ -1,4 +1,5 @@
 import { offrir, resume, type Canaux, type Issue, type Partage } from "../partage.ts";
+import { INDICATOR_META } from "./indicator-meta.ts";
 import type { MandateVerdictViewModel } from "./verdict.ts";
 
 export type VerdictShareChannels = Canaux & {
@@ -25,7 +26,7 @@ export function buildVerdictShare(view: MandateVerdictViewModel, url: string): P
     permalien: url,
     lignes: [
       `${view.headline} Solde annuel : ${formatBillions(view.annualBalance)}.`,
-      `Croissance ${formatGrowth(growth)} %, Pouvoir ${Math.round(majority)} / 100, Opinion ${Math.round(opinion)} / 100.`,
+      `${INDICATOR_META.growth.label} ${formatGrowth(growth)} %, Pouvoir ${Math.round(majority)} / 100, Opinion ${Math.round(opinion)} / 100.`,
     ],
     compact: null,
     image: null,
@@ -41,4 +42,3 @@ export async function offerVerdictShare(
   channels.proposer("Copiez votre verdict", resume(share));
   return "proposé";
 }
-

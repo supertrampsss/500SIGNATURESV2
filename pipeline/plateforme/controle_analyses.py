@@ -182,6 +182,9 @@ CONFUSIONS = {
     "etat_apu",
     "annuel_cumule",
     "perimetre_geographique",
+    "gros_detail",
+    "panier_partiel",
+    "indicateur_partiel",
 }
 REGISTRES = {
     "fait_comptable",

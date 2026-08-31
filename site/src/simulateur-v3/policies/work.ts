@@ -1,8 +1,7 @@
-import { delayedEvent, existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
+import { existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
 
 const CHAPTER = "work-wages-pensions";
 const p = (copy: Omit<ExistingPolicyCopy, "chapterId">) => existingPolicy({ ...copy, chapterId: CHAPTER });
-const retirementPaths = ["repousser-l-age-legal-a-65-ans", "revenir-a-62-ans", "ouvrir-un-etage-de-capitalisation-collective"];
 
 export const WORK_DECISIONS = [
   p({
@@ -43,8 +42,7 @@ export const WORK_DECISIONS = [
     context: "Le système gagne des cotisations et verse certaines pensions plus tard. L'effort se concentre sur les actifs qui ne peuvent pas partir avant l'âge légal.",
     adoptLabel: "Porter l'âge légal à 65 ans", adoptSummary: "L'équilibre des retraites s'améliore à terme et les actifs concernés travaillent plus longtemps.",
     keepLabel: "Ne pas aller jusqu'à 65 ans", keepSummary: "L'âge actuel est conservé et le besoin de financement reste plus élevé.",
-    beneficiaries: ["finances sociales", "cotisants futurs"], contributors: ["actifs proches de la retraite"], sourceKeys: ["cor-2025"], conflicts: retirementPaths,
-    event: delayedEvent("senior-employment-test", "L'emploi des seniors devient le juge de paix", "Les économies attendues baissent car une partie des seniors bascule vers le chômage ou l'invalidité.", 3, "employment", -3),
+    beneficiaries: ["finances sociales", "cotisants futurs"], contributors: ["actifs proches de la retraite"], sourceKeys: ["cor-2025"],
   }),
   p({
     id: "revenir-a-62-ans", kind: "transformation",
@@ -52,7 +50,7 @@ export const WORK_DECISIONS = [
     context: "Le départ plus précoce rend du temps aux actifs concernés, mais accroît le nombre d'années de pension et le besoin de financement.",
     adoptLabel: "Rétablir 62 ans", adoptSummary: "Les générations concernées partent plus tôt et les comptes de retraite se dégradent durablement.",
     keepLabel: "Conserver l'âge actuel", keepSummary: "La réforme en vigueur poursuit sa montée en charge et limite le déficit futur.",
-    beneficiaries: ["actifs proches de la retraite"], contributors: ["finances sociales", "cotisants futurs"], sourceKeys: ["cor-2025"], conflicts: retirementPaths,
+    beneficiaries: ["actifs proches de la retraite"], contributors: ["finances sociales", "cotisants futurs"], sourceKeys: ["cor-2025"],
   }),
   p({
     id: "desindexer-les-pensions-d-un-point", kind: "transformation",
@@ -76,7 +74,7 @@ export const WORK_DECISIONS = [
     context: "Une partie des cotisations finance un portefeuille collectif au lieu des pensions courantes. La transition oblige une génération à financer simultanément les deux étages.",
     adoptLabel: "Créer l'étage de capitalisation", adoptSummary: "Les actifs accumulent des réserves investies, tandis que l'État finance le trou de transition.",
     keepLabel: "Rester en répartition intégrale", keepSummary: "Les cotisations continuent de payer les pensions courantes, sans nouvelle réserve financière.",
-    beneficiaries: ["actifs futurs", "marchés de capitaux"], contributors: ["finances publiques pendant la transition"], sourceKeys: ["cor-2025", "itm-50-decisions"], conflicts: retirementPaths,
+    beneficiaries: ["actifs futurs", "marchés de capitaux"], contributors: ["finances publiques pendant la transition"], sourceKeys: ["cor-2025", "itm-50-decisions"],
   }),
   standalonePolicy({
     id: "retablir-la-semaine-de-39-heures", chapterId: CHAPTER, kind: "rupture",
@@ -84,8 +82,8 @@ export const WORK_DECISIONS = [
     context: "La durée légale passe de 35 à 39 heures. Sans hausse proportionnelle du salaire mensuel, le coût horaire baisse. Avec compensation, le gain de compétitivité se réduit.",
     sourceKeys: ["insee-france-sociale-2025", "itm-50-decisions"], evidenceLabel: "Durée du travail, salaires et emploi.",
     options: [
-      { id: "adopt", label: "Passer à 39 heures", summary: "Quatre heures redeviennent ordinaires et le partage du gain entre salariés et employeurs devient central.", budgetDelta: 2_000, beneficiaries: ["employeurs", "finances publiques"], contributors: ["salariés sans compensation intégrale"], uncertainty: "forte", indicatorEffects: { growth: 0.12, employment: -2, opinion: -8 }, groupEffects: { businesses: 5, unions: -8 }, scheduledEvents: [delayedEvent("hours-wage-bargain", "Les salaires rouvrent le conflit", "La négociation sur la compensation des quatre heures bloque plusieurs branches.", 2, "majority", -4)] },
-      { id: "keep", label: "Conserver 35 heures", summary: "Les heures au-delà de 35 restent supplémentaires et le droit actuel ne change pas.", budgetDelta: 0, beneficiaries: ["salariés"], contributors: ["employeurs"], indicatorEffects: { opinion: 2 } },
+      { id: "adopt", label: "Passer à 39 heures", summary: "Quatre heures redeviennent ordinaires et le partage du gain entre salariés et employeurs devient central.", budgetDelta: 2_000, beneficiaries: ["employeurs", "finances publiques"], contributors: ["salariés sans compensation intégrale"], uncertainty: "forte" },
+      { id: "keep", label: "Conserver 35 heures", summary: "Les heures au-delà de 35 restent supplémentaires et le droit actuel ne change pas.", budgetDelta: 0, beneficiaries: ["salariés"], contributors: ["employeurs"] },
     ],
   }),
   standalonePolicy({
@@ -94,8 +92,8 @@ export const WORK_DECISIONS = [
     context: "La hausse augmente le salaire brut au bas de l'échelle. Son coût se partage entre employeurs, prix, emploi et allègements de cotisations.",
     sourceKeys: ["insee-france-sociale-2025", "cour-securite-sociale-2025"], evidenceLabel: "Salaires, emploi et allègements au voisinage du SMIC.",
     options: [
-      { id: "adopt", label: "Augmenter le SMIC de 10 %", summary: "Les salariés au SMIC gagnent davantage et les secteurs à faible marge absorbent le choc.", budgetDelta: -3_000, beneficiaries: ["salariés au SMIC"], contributors: ["employeurs", "finances publiques"], uncertainty: "forte", indicatorEffects: { opinion: 7, employment: -3, growth: 0.03 }, groupEffects: { lowIncomeHouseholds: 8, businesses: -6 } },
-      { id: "keep", label: "Conserver l'indexation actuelle", summary: "Le SMIC suit les prix et les salaires, sans coup de pouce exceptionnel.", budgetDelta: 0, beneficiaries: ["employeurs"], contributors: ["salariés au SMIC"], indicatorEffects: { opinion: -3 } },
+      { id: "adopt", label: "Augmenter le SMIC de 10 %", summary: "Les salariés au SMIC gagnent davantage et les secteurs à faible marge absorbent le choc.", budgetDelta: -3_000, beneficiaries: ["salariés au SMIC"], contributors: ["employeurs", "finances publiques"], uncertainty: "forte" },
+      { id: "keep", label: "Conserver l'indexation actuelle", summary: "Le SMIC suit les prix et les salaires, sans coup de pouce exceptionnel.", budgetDelta: 0, beneficiaries: ["employeurs"], contributors: ["salariés au SMIC"] },
     ],
   }),
   standalonePolicy({
@@ -103,10 +101,9 @@ export const WORK_DECISIONS = [
     title: "Faut-il fusionner les aides dans une allocation sociale unique ?",
     context: "RSA, prime d'activité et aides au logement seraient regroupés dans un barème unique. La simplicité crée nécessairement des gagnants et des perdants si l'enveloppe reste constante.",
     sourceKeys: ["drees-minima-2025", "cour-securite-sociale-2025"], evidenceLabel: "Montants, publics et articulation des prestations de solidarité.",
-    dependencies: ["verser-le-rsa-automatiquement-fin-du-non"],
     options: [
-      { id: "adopt", label: "Créer l'allocation unique", summary: "Le versement devient automatique et lisible, mais certains ménages perdent au nouveau barème.", budgetDelta: 1_000, beneficiaries: ["allocataires en non-recours", "administration"], contributors: ["perdants du nouveau barème"], uncertainty: "forte", indicatorEffects: { reformCapacity: 5, institutionalTrust: 2 }, groupEffects: { lowIncomeHouseholds: 2 }, scheduledEvents: [delayedEvent("single-benefit-losers", "Les perdants se découvrent", "Le premier versement révèle des baisses importantes pour certaines configurations familiales.", 3, "opinion", -5)] },
-      { id: "keep", label: "Conserver des aides distinctes", summary: "Chaque prestation garde son objectif, avec les mêmes démarches et effets de seuil.", budgetDelta: 0, beneficiaries: ["allocataires protégés par les règles actuelles"], contributors: ["non-recourants", "administration"], indicatorEffects: { reformCapacity: -2 } },
+      { id: "adopt", label: "Créer l'allocation unique", summary: "Le versement devient automatique et lisible, mais certains ménages perdent au nouveau barème.", budgetDelta: 1_000, beneficiaries: ["allocataires en non-recours", "administration"], contributors: ["perdants du nouveau barème"], uncertainty: "forte" },
+      { id: "keep", label: "Conserver des aides distinctes", summary: "Chaque prestation garde son objectif, avec les mêmes démarches et effets de seuil.", budgetDelta: 0, beneficiaries: ["allocataires protégés par les règles actuelles"], contributors: ["non-recourants", "administration"] },
     ],
   }),
 ].map(policyDecision);

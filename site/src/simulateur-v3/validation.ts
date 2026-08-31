@@ -3,7 +3,9 @@ import {
   type CampaignPhase,
   type CampaignState,
   type CausalEntry,
+  type CrisisRule,
   type Decision,
+  type DecisionOption,
   type DecisionRecord,
   type EffectRule,
   type GroupKey,
@@ -12,10 +14,16 @@ import {
   type PromiseRule,
   type Scenario,
 } from "./types.ts";
+import { optionDistanceDimensions } from "./policy-catalogue.ts";
+import { INDICATOR_META } from "./indicator-meta.ts";
+import {
+  CHAPTER_MANDATE_YEARS,
+  decisionCountAtMandateYearEnd,
+  mandateYearEndingAfterChapter,
+  mandateYearForChapter,
+  validateBaseline,
+} from "./timeline.ts";
 
-const CAMPAIGN_DECISION_COUNT = 96;
-const CHAPTER_COUNT = 8;
-const DECISIONS_PER_CHAPTER = 12;
 const PHASES: readonly CampaignPhase[] = [
   "intro", "chapter_intro", "decision", "decision_result", "council", "crisis",
   "delayed_event", "chapter_verdict", "pause", "verdict",
@@ -33,7 +41,24 @@ const EFFECT_DURATIONS = new Set<EffectRule["duration"]>(["once", "annual", "per
 const CAUSAL_SOURCE_TYPES = new Set<CausalEntry["sourceType"]>(["decision", "event", "crisis", "promise"]);
 const DECISION_KINDS = ["gestion", "transformation", "rupture"] as const;
 
-type ConfirmedDecision = Pick<DecisionRecord, "decisionId" | "optionId" | "confirmedAtIndex">;
+type ConfirmedDecision = Pick<DecisionRecord, "decisionId" | "optionId" | "confirmedAtIndex" | "status">;
+
+export const totalDecisions = (scenario: Scenario): number =>
+  scenario.chapters.reduce((sum, chapter) => sum + chapter.decisionIds.length, 0);
+
+export function positionBeforeNext(scenario: Scenario, completed: number): { chapterIndex: number; decisionIndex: number } | null {
+  let remaining = completed;
+  for (let chapterIndex = 0; chapterIndex < scenario.chapters.length; chapterIndex += 1) {
+    const size = scenario.chapters[chapterIndex]!.decisionIds.length;
+    if (remaining < size) return { chapterIndex, decisionIndex: remaining };
+    remaining -= size;
+  }
+  return null;
+}
+
+export function positionAfterCompleted(scenario: Scenario, completed: number): { chapterIndex: number; decisionIndex: number } | null {
+  return completed === 0 ? null : positionBeforeNext(scenario, completed - 1);
+}
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null
@@ -67,6 +92,27 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function isDistanceComparableOption(value: unknown): value is DecisionOption {
+  return isRecord(value)
+    && typeof value.id === "string"
+    && isNonEmptyString(value.mechanism)
+    && hasValidPolicyHorizon(value.horizon)
+    && isStringArray(value.legalConstraints)
+    && (value.budgetDuration === "annual" || value.budgetDuration === "once")
+    && isEffectTiming(value.budgetTiming)
+    && isStringArray(value.beneficiaries)
+    && isStringArray(value.contributors)
+    && isStringArray(value.locks)
+    && isStringArray(value.unlocks)
+    && isStringArray(value.fulfillsPromises)
+    && Array.isArray(value.effects)
+    && value.effects.every(isEffectRule)
+    && Array.isArray(value.scheduledEvents)
+    && value.scheduledEvents.every(isDeclaredScheduledEventRule)
+    && Array.isArray(value.promises)
+    && value.promises.every(isDeclaredPromiseRule);
+}
+
 function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readonly string[]): boolean {
   const actualKeys = Object.keys(value);
   return actualKeys.length === expectedKeys.length
@@ -74,20 +120,132 @@ function hasExactFiniteKeys(value: Record<string, unknown>, expectedKeys: readon
     && actualKeys.every((key) => typeof value[key] === "number" && Number.isFinite(value[key]));
 }
 
+function hasValidBaseline(value: unknown): boolean {
+  if (!isRecord(value)) return false;
+  try {
+    validateBaseline(value as CampaignState["baseline"]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function expectedAnnualCheckpoints(scenario: Scenario): Map<number, number> {
+  const expected = new Map<number, number>();
+  let decisionCount = 0;
+  scenario.chapters.forEach((chapter, chapterIndex) => {
+    decisionCount += chapter.decisionIds.length;
+    const year = mandateYearEndingAfterChapter(chapterIndex);
+    if (year !== null) expected.set(year, decisionCount);
+  });
+  return expected;
+}
+
+function hasValidAnnualCheckpoints(value: unknown, scenario: Scenario, decisionCount: number): boolean {
+  const expected = expectedAnnualCheckpoints(scenario);
+  if (!Array.isArray(value) || value.length > expected.size) return false;
+  return value.every((checkpoint, index) => {
+    if (!isRecord(checkpoint) || checkpoint.year !== index + 1) return false;
+    if (checkpoint.afterDecisionCount !== expected.get(index + 1)
+        || (checkpoint.afterDecisionCount as number) > decisionCount) return false;
+    if (!Array.isArray(checkpoint.causes)
+        || checkpoint.causes.some((id) => typeof id !== "string")
+        || hasDuplicates(checkpoint.causes as string[])) return false;
+    return [
+      checkpoint.nominalGdpMillions,
+      checkpoint.debtMillions,
+      checkpoint.debtToGdp,
+      checkpoint.annualBalance,
+      checkpoint.interestCost,
+    ].every((item) => typeof item === "number" && Number.isFinite(item));
+  });
+}
+
 /** Checks an untrusted effect and enforces the target to key relationship at runtime. */
 export function isEffectRule(value: unknown): value is EffectRule {
   if (!isRecord(value) || typeof value.id !== "string" || typeof value.delta !== "number" || !Number.isFinite(value.delta)) return false;
-  if (typeof value.explanation !== "string" || !EFFECT_DURATIONS.has(value.duration as EffectRule["duration"])) return false;
+  if (!isNonEmptyString(value.explanation) || !EFFECT_DURATIONS.has(value.duration as EffectRule["duration"])) return false;
   if (!isRecord(value.timing) || typeof value.timing.kind !== "string") return false;
   const validTiming = value.timing.kind === "immediate"
-    || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count));
+    || (value.timing.kind === "after_decisions" && isPositiveInteger(value.timing.count))
+    || (value.timing.kind === "mandate_year"
+      && Number.isInteger(value.timing.year)
+      && (value.timing.year as number) >= 1
+      && (value.timing.year as number) <= 5);
   if (!validTiming) return false;
   return (value.target === "indicator" && isIndicatorKey(value.key))
     || (value.target === "group" && isGroupKey(value.key));
 }
 
+function hasValidPolicyHorizon(value: unknown): boolean {
+  if (!isRecord(value) || typeof value.kind !== "string") return false;
+  return value.kind === "immediate"
+    || (value.kind === "after_decisions" && isPositiveInteger(value.count))
+    || (value.kind === "mandate_year" && Number.isInteger(value.year) && (value.year as number) >= 1 && (value.year as number) <= 5);
+}
+
+function isEffectTiming(value: unknown): value is EffectRule["timing"] {
+  if (!isRecord(value) || typeof value.kind !== "string") return false;
+  return value.kind === "immediate"
+    || (value.kind === "after_decisions" && isPositiveInteger(value.count))
+    || (value.kind === "mandate_year"
+      && Number.isInteger(value.year)
+      && (value.year as number) >= 1
+      && (value.year as number) <= 5);
+}
+
+function sameTiming(left: EffectRule["timing"], right: EffectRule["timing"]): boolean {
+  if (left.kind !== right.kind) return false;
+  if (left.kind === "after_decisions" && right.kind === "after_decisions") return left.count === right.count;
+  if (left.kind === "mandate_year" && right.kind === "mandate_year") return left.year === right.year;
+  return left.kind === "immediate" && right.kind === "immediate";
+}
+
+function normalizeContractString(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function validateNormalizedContractList(
+  values: unknown[],
+  label: "beneficiary" | "contributor" | "legal-constraint",
+  optionId: string,
+  errors: string[],
+): void {
+  const normalized = values.map((value) => typeof value === "string" ? normalizeContractString(value) : "");
+  if (normalized.some((value) => value.length === 0)) errors.push(`option:${optionId}:blank-${label}`);
+  for (const duplicate of duplicateValues(normalized.filter(Boolean))) {
+    errors.push(`option:${optionId}:duplicate-${label}:${duplicate}`);
+  }
+}
+
+function dueAtDecisionForTiming(
+  horizon: DecisionOption["horizon"] | EffectRule["timing"],
+  position: number | undefined,
+  scenario: Scenario,
+): number | undefined {
+  if (horizon.kind === "mandate_year") {
+    try {
+      return decisionCountAtMandateYearEnd(scenario, horizon.year);
+    } catch {
+      return undefined;
+    }
+  }
+  if (position === undefined) return undefined;
+  return horizon.kind === "immediate" ? position : position + horizon.count;
+}
+
 function isImmediateEffectRule(value: unknown): value is EffectRule {
   return isEffectRule(value) && value.timing.kind === "immediate";
+}
+
+function isDeclaredScheduledEventRule(value: unknown): boolean {
+  return isRecord(value)
+    && isNonEmptyString(value.id)
+    && isNonEmptyString(value.title)
+    && isNonEmptyString(value.body)
+    && isPositiveInteger(value.afterDecisions)
+    && Array.isArray(value.effects)
+    && value.effects.every(isImmediateEffectRule);
 }
 
 function isDeclaredPromiseRule(value: unknown): value is PromiseRule {
@@ -124,40 +282,113 @@ function isDecisionRecord(value: unknown, decisions: Map<string, Decision>): val
     && typeof value.status === "string"
     && DECISION_STATUSES.has(value.status)
     && isPositiveInteger(value.confirmedAtIndex)
+    && (value.impact === undefined || isDecisionImpactSnapshot(value.impact, value))
     && (value.changedByCrisisId === undefined || typeof value.changedByCrisisId === "string");
 }
 
-function isScheduledEvent(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>): boolean {
+function isDecisionImpactSnapshot(value: unknown, record: Record<string, unknown>): boolean {
+  if (!isRecord(value)
+      || value.decisionId !== record.decisionId
+      || value.optionId !== record.optionId
+      || value.confirmedAtIndex !== record.confirmedAtIndex
+      || !Array.isArray(value.indicators)) return false;
+  const keys: IndicatorKey[] = [];
+  for (const indicator of value.indicators) {
+    if (!isRecord(indicator)
+        || !isIndicatorKey(indicator.key)
+        || typeof indicator.before !== "number" || !Number.isFinite(indicator.before)
+        || typeof indicator.after !== "number" || !Number.isFinite(indicator.after)
+        || typeof indicator.delta !== "number" || !Number.isFinite(indicator.delta)
+        || Math.abs((indicator.after - indicator.before) - indicator.delta) > 1e-9
+        || indicator.delta === 0
+        || !Array.isArray(indicator.causalEntryIds)
+        || indicator.causalEntryIds.length === 0
+        || !indicator.causalEntryIds.every((id) => typeof id === "string" && id.length > 0)
+        || hasDuplicates(indicator.causalEntryIds as string[])) return false;
+    keys.push(indicator.key);
+  }
+  if (new Set(keys).size !== keys.length) return false;
+  return keys.every((key, index) => index === 0
+    || INDICATOR_META[keys[index - 1]!].priority >= INDICATOR_META[key].priority);
+}
+
+function isScheduledEvent(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>, campaignLength: number): boolean {
   if (!isRecord(value) || typeof value.id !== "string" || !hasConfirmedSource(value.sourceDecisionId, value.sourceOptionId, confirmedDecisions)) return false;
   const source = confirmedDecisions.get(value.sourceDecisionId as string)!;
   return isPositiveInteger(value.dueAtDecision)
-    && value.dueAtDecision > source.confirmedAtIndex
-    && value.dueAtDecision <= CAMPAIGN_DECISION_COUNT
+    && value.dueAtDecision >= source.confirmedAtIndex
+    && value.dueAtDecision <= campaignLength
     && typeof value.title === "string"
     && typeof value.body === "string"
     && Array.isArray(value.effects)
     && value.effects.every(isImmediateEffectRule);
 }
 
-function isPoliticalPromise(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>): boolean {
+function isPoliticalPromise(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>, campaignLength: number): boolean {
   if (!isRecord(value) || typeof value.id !== "string" || !hasConfirmedSource(value.sourceDecisionId, value.sourceOptionId, confirmedDecisions)) return false;
   const source = confirmedDecisions.get(value.sourceDecisionId as string)!;
   return typeof value.label === "string"
     && isPositiveInteger(value.dueAtDecision)
     && value.dueAtDecision > source.confirmedAtIndex
-    && value.dueAtDecision <= CAMPAIGN_DECISION_COUNT
+    && value.dueAtDecision <= campaignLength
     && typeof value.fulfilled === "boolean"
     && Array.isArray(value.failureEffects)
     && value.failureEffects.every(isImmediateEffectRule);
 }
 
-function isCrisisState(value: unknown, confirmedDecisions: Map<string, ConfirmedDecision>, requireResolution: boolean): boolean {
-  if (!isRecord(value) || typeof value.ruleId !== "string" || typeof value.triggeredByDecisionId !== "string") return false;
-  if (!confirmedDecisions.has(value.triggeredByDecisionId) || !Array.isArray(value.aggravatingDecisionIds)) return false;
-  if (value.aggravatingDecisionIds.length === 0 || hasDuplicates(value.aggravatingDecisionIds as string[])) return false;
-  if (!value.aggravatingDecisionIds.every((id) => typeof id === "string" && confirmedDecisions.has(id))) return false;
-  if (!value.aggravatingDecisionIds.includes(value.triggeredByDecisionId)) return false;
-  return requireResolution ? typeof value.resolvedBy === "string" : value.resolvedBy === undefined;
+function chapterIndexAtDecisionCount(scenario: Scenario, decisionCount: number): number | null {
+  if (!Number.isInteger(decisionCount) || decisionCount < 1) return null;
+  let completed = 0;
+  for (let chapterIndex = 0; chapterIndex < scenario.chapters.length; chapterIndex += 1) {
+    completed += scenario.chapters[chapterIndex]!.decisionIds.length;
+    if (decisionCount <= completed) return chapterIndex;
+  }
+  return null;
+}
+
+function isCrisisState(
+  value: unknown,
+  confirmedDecisions: Map<string, ConfirmedDecision>,
+  requireResolution: boolean,
+  scenario: Scenario,
+  currentDecisionCount: number,
+): boolean {
+  if (!isRecord(value)
+      || !isNonEmptyString(value.ruleId)
+      || !isPositiveInteger(value.triggeredAtDecisionCount)
+      || value.triggeredAtDecisionCount > currentDecisionCount
+      || !Number.isInteger(value.triggeredChapterIndex)
+      || (value.triggeredChapterIndex as number) < 0
+      || (value.triggeredChapterIndex as number) >= scenario.chapters.length
+      || chapterIndexAtDecisionCount(scenario, value.triggeredAtDecisionCount) !== value.triggeredChapterIndex
+      || typeof value.triggeredByDecisionId !== "string"
+      || !Array.isArray(value.aggravatingDecisionIds)
+      || !Array.isArray(value.aggravatingChoices)) return false;
+  if (!requireResolution && value.triggeredAtDecisionCount !== currentDecisionCount) return false;
+
+  const exactChoices = value.aggravatingChoices as unknown[];
+  if (exactChoices.length === 0) return false;
+  const exactChoiceKeys = new Set<string>();
+  const exactDecisionIds: string[] = [];
+  let latest: ConfirmedDecision | null = null;
+  for (const choice of exactChoices) {
+    if (!isRecord(choice) || typeof choice.decisionId !== "string" || typeof choice.optionId !== "string") return false;
+    const record = confirmedDecisions.get(choice.decisionId);
+    if (!record
+        || record.optionId !== choice.optionId
+        || record.confirmedAtIndex > value.triggeredAtDecisionCount
+        || (!requireResolution && record.status !== "confirmed")) return false;
+    const key = `${choice.decisionId}\u0000${choice.optionId}`;
+    if (exactChoiceKeys.has(key)) return false;
+    exactChoiceKeys.add(key);
+    if (!exactDecisionIds.includes(choice.decisionId)) exactDecisionIds.push(choice.decisionId);
+    if (latest === null || record.confirmedAtIndex > latest.confirmedAtIndex) latest = record;
+  }
+
+  if (value.aggravatingDecisionIds.length !== exactDecisionIds.length
+      || !value.aggravatingDecisionIds.every((id, index) => id === exactDecisionIds[index])) return false;
+  if (latest?.decisionId !== value.triggeredByDecisionId) return false;
+  return requireResolution ? isNonEmptyString(value.resolvedBy) : value.resolvedBy === undefined;
 }
 
 function isCausalEntry(
@@ -200,44 +431,49 @@ function isAtPosition(value: Record<string, unknown>, chapterIndex: number, deci
   return value.chapterIndex === chapterIndex && value.decisionIndex === decisionIndex;
 }
 
-function matchesPositionBeforeConfirmation(value: Record<string, unknown>, decisionCount: number): boolean {
-  return decisionCount >= 0
-    && decisionCount < CAMPAIGN_DECISION_COUNT
-    && isAtPosition(value, Math.floor(decisionCount / DECISIONS_PER_CHAPTER), decisionCount % DECISIONS_PER_CHAPTER);
+function matchesPositionBeforeConfirmation(value: Record<string, unknown>, scenario: Scenario, decisionCount: number): boolean {
+  const position = positionBeforeNext(scenario, decisionCount);
+  return position !== null && isAtPosition(value, position.chapterIndex, position.decisionIndex);
 }
 
-function matchesPositionAfterConfirmation(value: Record<string, unknown>, decisionCount: number): boolean {
-  return decisionCount > 0
-    && decisionCount <= CAMPAIGN_DECISION_COUNT
-    && isAtPosition(value, Math.floor((decisionCount - 1) / DECISIONS_PER_CHAPTER), (decisionCount - 1) % DECISIONS_PER_CHAPTER);
+function matchesPositionAfterConfirmation(value: Record<string, unknown>, scenario: Scenario, decisionCount: number): boolean {
+  const position = positionAfterCompleted(scenario, decisionCount);
+  return position !== null && isAtPosition(value, position.chapterIndex, position.decisionIndex);
 }
 
-function hasPhasePositionConsistency(value: Record<string, unknown>, decisionCount: number): boolean {
+function isChapterBoundary(scenario: Scenario, decisionCount: number): boolean {
+  const completed = positionAfterCompleted(scenario, decisionCount);
+  const next = positionBeforeNext(scenario, decisionCount);
+  return completed !== null
+    && next !== null
+    && next.chapterIndex === completed.chapterIndex + 1
+    && next.decisionIndex === 0;
+}
+
+function hasPhasePositionConsistency(value: Record<string, unknown>, scenario: Scenario, decisionCount: number): boolean {
+  const campaignLength = totalDecisions(scenario);
   switch (value.phase) {
     case "intro":
-      return decisionCount === 0 && matchesPositionBeforeConfirmation(value, decisionCount);
+      return decisionCount === 0 && matchesPositionBeforeConfirmation(value, scenario, decisionCount);
     case "chapter_intro":
-      return decisionCount < CAMPAIGN_DECISION_COUNT
-        && decisionCount % DECISIONS_PER_CHAPTER === 0
-        && matchesPositionBeforeConfirmation(value, decisionCount);
+      return (decisionCount === 0 || isChapterBoundary(scenario, decisionCount))
+        && matchesPositionBeforeConfirmation(value, scenario, decisionCount);
     case "decision":
-      return matchesPositionBeforeConfirmation(value, decisionCount);
+      return matchesPositionBeforeConfirmation(value, scenario, decisionCount);
     case "decision_result":
     case "crisis":
     case "delayed_event":
-      return matchesPositionAfterConfirmation(value, decisionCount);
+      return matchesPositionAfterConfirmation(value, scenario, decisionCount);
     case "council":
-      return matchesPositionAfterConfirmation(value, decisionCount)
-        && (decisionCount % DECISIONS_PER_CHAPTER === 4 || decisionCount % DECISIONS_PER_CHAPTER === 8);
+      return matchesPositionAfterConfirmation(value, scenario, decisionCount);
     case "chapter_verdict":
-      return decisionCount > 0
-        && decisionCount < CAMPAIGN_DECISION_COUNT
-        && decisionCount % DECISIONS_PER_CHAPTER === 0
-        && matchesPositionAfterConfirmation(value, decisionCount);
+      return isChapterBoundary(scenario, decisionCount)
+        && matchesPositionAfterConfirmation(value, scenario, decisionCount);
     case "verdict":
-      return decisionCount === CAMPAIGN_DECISION_COUNT && matchesPositionAfterConfirmation(value, decisionCount);
+      return decisionCount === campaignLength && matchesPositionAfterConfirmation(value, scenario, decisionCount);
     case "pause":
-      return matchesPositionBeforeConfirmation(value, decisionCount) || matchesPositionAfterConfirmation(value, decisionCount);
+      return matchesPositionBeforeConfirmation(value, scenario, decisionCount)
+        || matchesPositionAfterConfirmation(value, scenario, decisionCount);
     default:
       return false;
   }
@@ -245,18 +481,29 @@ function hasPhasePositionConsistency(value: Record<string, unknown>, decisionCou
 
 function validatedChapterIds(chapters: readonly unknown[]): Map<string, number> {
   const positions = new Map<string, number>();
-  chapters.forEach((chapter, chapterIndex) => {
+  let completed = 0;
+  chapters.forEach((chapter) => {
     if (!isRecord(chapter) || !Array.isArray(chapter.decisionIds)) return;
     chapter.decisionIds.forEach((id, decisionIndex) => {
       if (typeof id === "string" && !positions.has(id)) {
-        positions.set(id, chapterIndex * DECISIONS_PER_CHAPTER + decisionIndex + 1);
+        positions.set(id, completed + decisionIndex + 1);
       }
     });
+    completed += chapter.decisionIds.length;
   });
   return positions;
 }
 
-function validateDirectEffect(effect: unknown, position: number | undefined, errors: string[]): void {
+function validateDirectEffect(
+  effect: unknown,
+  position: number | undefined,
+  decisionYear: number | null,
+  minimumDueAtDecision: number | undefined,
+  scenario: Scenario,
+  campaignLength: number,
+  enforceCampaignBounds: boolean,
+  errors: string[],
+): void {
   const id = effectId(effect, "unknown");
   if (!isEffectRule(effect)) {
     if (isRecord(effect) && isRecord(effect.timing) && effect.timing.kind === "after_decisions" && !isPositiveInteger(effect.timing.count)) {
@@ -266,19 +513,42 @@ function validateDirectEffect(effect: unknown, position: number | undefined, err
     }
     return;
   }
-  if (effect.timing.kind === "after_decisions" && position !== undefined && position + effect.timing.count > CAMPAIGN_DECISION_COUNT) {
+  if (effect.timing.kind === "after_decisions" && enforceCampaignBounds && position !== undefined && position + effect.timing.count > campaignLength) {
     errors.push(`effect:${effect.id}:due-after-campaign`);
+  }
+  if (effect.timing.kind === "mandate_year" && decisionYear !== null && effect.timing.year < decisionYear) {
+    errors.push(`effect:${effect.id}:timing-before-decision-year`);
+  }
+  const effectDueAtDecision = dueAtDecisionForTiming(effect.timing, position, scenario);
+  if (effect.timing.kind === "mandate_year" && effectDueAtDecision === undefined) {
+    errors.push(`effect:${effect.id}:timing-year-without-checkpoint`);
+  }
+  if (position !== undefined && effectDueAtDecision !== undefined && effectDueAtDecision < position) {
+    errors.push(`effect:${effect.id}:timing-before-decision`);
+  }
+  const isBudgetEffect = effect.target === "indicator" && effect.key === "annualBalance";
+  if (!isBudgetEffect && effectDueAtDecision !== undefined && minimumDueAtDecision !== undefined
+      && effectDueAtDecision < minimumDueAtDecision) {
+    errors.push(`effect:${effect.id}:timing-before-option-horizon`);
   }
 }
 
-function validateScheduledEvent(event: unknown, position: number | undefined, errors: string[]): void {
+function validateScheduledEvent(
+  event: unknown,
+  position: number | undefined,
+  minimumDueAtDecision: number | undefined,
+  campaignLength: number,
+  enforceCampaignBounds: boolean,
+  errors: string[],
+): void {
   const id = isRecord(event) && isNonEmptyString(event.id) ? event.id : "unknown";
   if (!isRecord(event) || !isNonEmptyString(event.id)) errors.push(`event:${id}:id-must-be-non-empty-string`);
   if (!isRecord(event) || !isNonEmptyString(event.title)) errors.push(`event:${id}:title-must-be-non-empty-string`);
   if (!isRecord(event) || !isNonEmptyString(event.body)) errors.push(`event:${id}:body-must-be-non-empty-string`);
   if (!isRecord(event) || !isPositiveInteger(event.afterDecisions)) {
     errors.push(`event:${id}:delayed-count-required`);
-  } else if (position !== undefined && position + event.afterDecisions > CAMPAIGN_DECISION_COUNT) {
+  } else if (enforceCampaignBounds && position !== undefined
+      && Math.max(position + event.afterDecisions, minimumDueAtDecision ?? position) > campaignLength) {
     errors.push(`event:${id}:due-after-campaign`);
   }
   if (!isRecord(event) || !Array.isArray(event.effects) || event.effects.some((effect) => !isImmediateEffectRule(effect))) {
@@ -286,13 +556,19 @@ function validateScheduledEvent(event: unknown, position: number | undefined, er
   }
 }
 
-function validatePromise(promise: unknown, position: number | undefined, errors: string[]): void {
+function validatePromise(
+  promise: unknown,
+  position: number | undefined,
+  campaignLength: number,
+  enforceCampaignBounds: boolean,
+  errors: string[],
+): void {
   const id = isRecord(promise) && isNonEmptyString(promise.id) ? promise.id : "unknown";
   if (!isRecord(promise) || !isNonEmptyString(promise.id)) errors.push(`promise:${id}:id-must-be-non-empty-string`);
   if (!isRecord(promise) || !isNonEmptyString(promise.label)) errors.push(`promise:${id}:label-must-be-non-empty-string`);
   if (!isRecord(promise) || !isPositiveInteger(promise.dueAfterDecisions)) {
     errors.push(`promise:${id}:delayed-count-required`);
-  } else if (position !== undefined && position + promise.dueAfterDecisions > CAMPAIGN_DECISION_COUNT) {
+  } else if (enforceCampaignBounds && position !== undefined && position + promise.dueAfterDecisions > campaignLength) {
     errors.push(`promise:${id}:due-after-campaign`);
   }
   if (!isRecord(promise) || !Array.isArray(promise.failureEffects) || promise.failureEffects.some((effect) => !isImmediateEffectRule(effect))) {
@@ -363,7 +639,7 @@ function validateOptionEffectIds(
   }
   const delayedEventIds = effects
     .filter(isEffectRule)
-    .filter((effect) => effect.timing.kind === "after_decisions")
+    .filter((effect) => effect.timing.kind !== "immediate")
     .map((effect) => materializedDelayedEventId(decisionId, optionId, effect.id));
   for (const id of duplicateValues(delayedEventIds)) {
     errors.push(`option:${optionId}:duplicate-materialized-event-id:${id}`);
@@ -399,27 +675,32 @@ export function assertNoEmDash(value: unknown): string[] {
 }
 
 /** Validates catalogue structure and rejects malformed effects before any campaign can materialize them. */
-export function validateScenario(scenario: Scenario): string[] {
+export function validateScenario(
+  scenario: Scenario,
+  options: { allowConsequencesBeyondCampaign?: boolean } = {},
+): string[] {
   const rawScenario: unknown = scenario;
   if (!isRecord(rawScenario) || !Array.isArray(rawScenario.chapters) || !Array.isArray(rawScenario.decisions)) {
     return ["scenario:invalid-structure"];
   }
 
   const errors: string[] = [];
+  const enforceCampaignBounds = !options.allowConsequencesBeyondCampaign;
   const chapters = rawScenario.chapters;
   const rawDecisions = rawScenario.decisions;
   if (!isPositiveInteger(rawScenario.version)) errors.push("scenario:version:positive-integer-required");
-  if (chapters.length !== CHAPTER_COUNT) errors.push("scenario:expected-8-chapters");
+  if (chapters.length === 0) errors.push("scenario:chapters-required");
+  if (chapters.length > CHAPTER_MANDATE_YEARS.length) errors.push("scenario:chapters-exceed-mandate-calendar");
   for (const [chapterIndex, chapter] of chapters.entries()) {
     const chapterId = isRecord(chapter) && typeof chapter.id === "string" ? chapter.id : `index-${chapterIndex + 1}`;
-    if (!isRecord(chapter) || !Array.isArray(chapter.decisionIds) || chapter.decisionIds.length !== DECISIONS_PER_CHAPTER) {
-      errors.push(`chapter:${chapterId}:expected-12-decisions`);
+    if (!isRecord(chapter) || !Array.isArray(chapter.decisionIds) || chapter.decisionIds.length === 0) {
+      errors.push(`chapter:${chapterId}:decisions-required`);
       continue;
     }
     const ids = chapter.decisionIds.filter((id): id is string => typeof id === "string");
     for (const id of duplicateValues(ids)) errors.push(`chapter:${chapterId}:duplicate-decision:${id}`);
   }
-  if (rawDecisions.length !== CAMPAIGN_DECISION_COUNT) errors.push("scenario:expected-96-decisions");
+  if (rawDecisions.length === 0) errors.push("scenario:decisions-required");
 
   const decisions = rawDecisions.filter((decision): decision is Decision => isRecord(decision) && typeof decision.id === "string") as Decision[];
   if (hasDuplicates(decisions.map((decision) => decision.id))) errors.push("scenario:duplicate-decision-id");
@@ -454,15 +735,6 @@ export function validateScenario(scenario: Scenario): string[] {
     for (const id of chapter.decisionIds) {
       if (typeof id !== "string" || decisionsById.get(id)?.chapterId !== chapter.id) errors.push(`chapter:${chapter.id}:unknown-decision:${String(id)}`);
     }
-    const chapterDecisions = chapter.decisionIds
-      .filter((id): id is string => typeof id === "string")
-      .map((id) => decisionsById.get(id))
-      .filter((decision): decision is Decision => decision !== undefined);
-    for (const kind of DECISION_KINDS) {
-      if (chapterDecisions.filter((decision) => decision.kind === kind).length !== 4) {
-        errors.push(`chapter:${chapter.id}:expected-4-${kind}`);
-      }
-    }
   }
   const chapterDecisionCounts = new Map<string, number>();
   for (const chapter of chapters) {
@@ -471,17 +743,23 @@ export function validateScenario(scenario: Scenario): string[] {
       if (typeof id === "string") chapterDecisionCounts.set(id, (chapterDecisionCounts.get(id) ?? 0) + 1);
     }
   }
-  if (chapters.every((chapter) => isRecord(chapter) && Array.isArray(chapter.decisionIds) && chapter.decisionIds.length === DECISIONS_PER_CHAPTER)) {
-    for (const decision of decisions) {
-      if (chapterDecisionCounts.get(decision.id) !== 1) errors.push(`decision:${decision.id}:expected-once-in-chapters`);
-    }
+  for (const decision of decisions) {
+    if (chapterDecisionCounts.get(decision.id) !== 1) errors.push(`decision:${decision.id}:expected-once-in-chapters`);
   }
 
   const positions = validatedChapterIds(chapters);
+  const chapterIndexById = new Map(chapters.flatMap((chapter, chapterIndex) =>
+    isRecord(chapter) && typeof chapter.id === "string" ? [[chapter.id, chapterIndex] as const] : [],
+  ));
+  const campaignLength = chapters.every((chapter) => isRecord(chapter) && Array.isArray(chapter.decisionIds))
+    ? totalDecisions(scenario)
+    : rawDecisions.length;
   const materializedDelayedEventIds: string[] = [];
   for (const decision of decisions) {
     const options = Array.isArray(decision.options) ? decision.options : [];
     if (!DECISION_KINDS.includes(decision.kind)) errors.push(`decision:${decision.id}:invalid-kind`);
+    const decisionChapterIndex = chapterIndexById.get(decision.chapterId);
+    const decisionYear = decisionChapterIndex === undefined ? null : mandateYearForChapter(decisionChapterIndex);
     if (options.length < 2 || options.length > 4) errors.push(`decision:${decision.id}:expected-2-to-4-options`);
     if (!Array.isArray(decision.evidence) || decision.evidence.length === 0) errors.push(`decision:${decision.id}:evidence-required`);
     for (const [optionIndex, option] of options.entries()) {
@@ -493,12 +771,122 @@ export function validateScenario(scenario: Scenario): string[] {
       materializedDelayedEventIds.push(
         ...validateOptionEffectIds(decision.id, optionId, effects, events, promises, explicitScheduledEventIds, errors),
       );
-      if (!isRecord(option) || !Array.isArray(option.beneficiaries) || option.beneficiaries.length === 0) errors.push(`option:${optionId}:beneficiaries-required`);
-      if (!isRecord(option) || !Array.isArray(option.contributors) || option.contributors.length === 0) errors.push(`option:${optionId}:contributors-required`);
+      if (!isRecord(option) || !Array.isArray(option.beneficiaries) || option.beneficiaries.length === 0) {
+        errors.push(`option:${optionId}:beneficiaries-required`);
+      } else {
+        validateNormalizedContractList(option.beneficiaries, "beneficiary", optionId, errors);
+      }
+      if (!isRecord(option) || !Array.isArray(option.contributors) || option.contributors.length === 0) {
+        errors.push(`option:${optionId}:contributors-required`);
+      } else {
+        validateNormalizedContractList(option.contributors, "contributor", optionId, errors);
+      }
+      if (!isRecord(option) || !isNonEmptyString(option.mechanism)) errors.push(`option:${optionId}:mechanism-required`);
+      if (!isRecord(option) || !hasValidPolicyHorizon(option.horizon)) {
+        errors.push(`option:${optionId}:valid-horizon-required`);
+      } else {
+        if (option.horizon.kind === "mandate_year" && decisionYear !== null && option.horizon.year < decisionYear) {
+          errors.push(`option:${optionId}:horizon-before-decision-year`);
+        }
+        if (enforceCampaignBounds && option.horizon.kind === "after_decisions"
+            && positions.get(decision.id) !== undefined
+            && positions.get(decision.id)! + option.horizon.count > campaignLength) {
+          errors.push(`option:${optionId}:horizon-after-campaign`);
+        }
+        if (option.horizon.kind === "mandate_year"
+            && dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario) === undefined) {
+          errors.push(`option:${optionId}:horizon-year-without-checkpoint`);
+        }
+        const horizonDueAtDecision = dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario);
+        if (horizonDueAtDecision !== undefined && positions.get(decision.id) !== undefined
+            && horizonDueAtDecision < positions.get(decision.id)!) {
+          errors.push(`option:${optionId}:horizon-before-decision`);
+        }
+      }
+      if (!isRecord(option) || !isStringArray(option.legalConstraints)) {
+        errors.push(`option:${optionId}:legal-constraints-required`);
+      } else {
+        validateNormalizedContractList(option.legalConstraints, "legal-constraint", optionId, errors);
+      }
+      if (!isRecord(option) || (option.budgetDuration !== "annual" && option.budgetDuration !== "once")) errors.push(`option:${optionId}:budget-duration-required`);
+      if (!isRecord(option) || !isEffectTiming(option.budgetTiming)) {
+        errors.push(`option:${optionId}:budget-timing-required`);
+      } else {
+        if (option.budgetTiming.kind === "mandate_year" && decisionYear !== null && option.budgetTiming.year < decisionYear) {
+          errors.push(`option:${optionId}:budget-timing-before-decision-year`);
+        }
+        if (enforceCampaignBounds && option.budgetTiming.kind === "after_decisions"
+            && positions.get(decision.id) !== undefined
+            && positions.get(decision.id)! + option.budgetTiming.count > campaignLength) {
+          errors.push(`option:${optionId}:budget-timing-after-campaign`);
+        }
+        if (option.budgetTiming.kind === "mandate_year"
+            && dueAtDecisionForTiming(option.budgetTiming, positions.get(decision.id), scenario) === undefined) {
+          errors.push(`option:${optionId}:budget-timing-year-without-checkpoint`);
+        }
+        const budgetDueAtDecision = dueAtDecisionForTiming(option.budgetTiming, positions.get(decision.id), scenario);
+        if (budgetDueAtDecision !== undefined && positions.get(decision.id) !== undefined
+            && budgetDueAtDecision < positions.get(decision.id)!) {
+          errors.push(`option:${optionId}:budget-timing-before-decision`);
+        }
+      }
       if (effects.length === 0 && events.length === 0) errors.push(`option:${optionId}:effect-or-event-required`);
-      for (const effect of effects) validateDirectEffect(effect, positions.get(decision.id), errors);
-      for (const event of events) validateScheduledEvent(event, positions.get(decision.id), errors);
-      for (const promise of promises) validatePromise(promise, positions.get(decision.id), errors);
+      if (!effects.some((effect) => isEffectRule(effect) && effect.target === "indicator" && effect.key !== "annualBalance")) {
+        errors.push(`option:${optionId}:non-budget-indicator-required`);
+      }
+      const budgetEffects = effects.filter((effect) => isEffectRule(effect)
+        && effect.target === "indicator" && effect.key === "annualBalance");
+      if (budgetEffects.length > 1) errors.push(`option:${optionId}:multiple-budget-effects`);
+      if (isRecord(option) && option.budgetDuration === "once" && budgetEffects.length === 0) {
+        errors.push(`option:${optionId}:once-budget-effect-required`);
+      }
+      if (isRecord(option) && isEffectTiming(option.budgetTiming)) {
+        if (budgetEffects.some((effect) => !sameTiming(effect.timing, option.budgetTiming))) {
+          errors.push(`option:${optionId}:budget-timing-mismatch`);
+        }
+        if ((option.budgetDuration === "annual" || option.budgetDuration === "once")
+            && budgetEffects.some((effect) => effect.duration !== option.budgetDuration)) {
+          errors.push(`option:${optionId}:budget-duration-mismatch`);
+        }
+      }
+      const minimumDueAtDecision = isRecord(option) && hasValidPolicyHorizon(option.horizon)
+        ? dueAtDecisionForTiming(option.horizon, positions.get(decision.id), scenario)
+        : undefined;
+      for (const effect of effects) validateDirectEffect(
+        effect,
+        positions.get(decision.id),
+        decisionYear,
+        minimumDueAtDecision,
+        scenario,
+        campaignLength,
+        enforceCampaignBounds,
+        errors,
+      );
+      for (const event of events) validateScheduledEvent(
+        event,
+        positions.get(decision.id),
+        minimumDueAtDecision,
+        campaignLength,
+        enforceCampaignBounds,
+        errors,
+      );
+      for (const promise of promises) validatePromise(
+        promise,
+        positions.get(decision.id),
+        campaignLength,
+        enforceCampaignBounds,
+        errors,
+      );
+    }
+    for (let left = 0; left < options.length; left += 1) {
+      for (let right = left + 1; right < options.length; right += 1) {
+        const leftOption = options[left];
+        const rightOption = options[right];
+        if (isDistanceComparableOption(leftOption) && isDistanceComparableOption(rightOption)
+            && optionDistanceDimensions(leftOption, rightOption).length < 2) {
+          errors.push(`decision:${decision.id}:options-too-close:${String(leftOption.id)}:${String(rightOption.id)}`);
+        }
+      }
     }
     if (Array.isArray(decision.evidence)) {
       for (const evidence of decision.evidence) {
@@ -521,6 +909,129 @@ export function validateScenario(scenario: Scenario): string[] {
   return errors;
 }
 
+export function validatePolicyCatalogue(scenario: Scenario): string[] {
+  return validateScenario(scenario, { allowConsequencesBeyondCampaign: true });
+}
+
+/** Validates crisis rules against the exact decisions and options of one campaign. */
+export function validateCrisisRules(scenario: Scenario, rules: readonly CrisisRule[]): string[] {
+  if (validateScenario(scenario).length > 0) return ["crises:invalid-scenario"];
+  if (!Array.isArray(rules)) return ["crises:rules-must-be-array"];
+
+  const errors: string[] = [];
+  const decisions = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
+  const rawRules = rules as readonly unknown[];
+  const ruleIds = rawRules.flatMap((rule) => isRecord(rule) && typeof rule.id === "string" ? [rule.id] : []);
+  for (const id of duplicateValues(ruleIds)) errors.push(`crisis:${id}:duplicate-rule-id`);
+
+  for (const [ruleIndex, value] of rawRules.entries()) {
+    const id = isRecord(value) && isNonEmptyString(value.id) ? value.id : `index-${ruleIndex}`;
+    if (!isRecord(value)) {
+      errors.push(`crisis:${id}:invalid-rule`);
+      continue;
+    }
+    if (!isNonEmptyString(value.id)) errors.push(`crisis:${id}:id-required`);
+    if (!isNonEmptyString(value.title)) errors.push(`crisis:${id}:title-required`);
+    if (!isNonEmptyString(value.body)) errors.push(`crisis:${id}:body-required`);
+    if (!isIndicatorKey(value.indicator)) errors.push(`crisis:${id}:invalid-indicator`);
+    if (typeof value.threshold !== "number" || !Number.isFinite(value.threshold)) errors.push(`crisis:${id}:finite-threshold-required`);
+    if (value.comparator !== "lte" && value.comparator !== "gte") errors.push(`crisis:${id}:invalid-comparator`);
+    if (!Number.isInteger(value.eligibleFromChapterIndex)
+        || (value.eligibleFromChapterIndex as number) < 0
+        || (value.eligibleFromChapterIndex as number) >= scenario.chapters.length) {
+      errors.push(`crisis:${id}:invalid-eligible-chapter`);
+    }
+    if (value.maxOccurrences !== 1) errors.push(`crisis:${id}:max-occurrences-must-be-one`);
+
+    if (!isStringArray(value.requiredDecisionIds)) {
+      errors.push(`crisis:${id}:required-decisions-must-be-array`);
+    } else {
+      for (const duplicate of duplicateValues(value.requiredDecisionIds)) {
+        errors.push(`crisis:${id}:duplicate-required-decision:${duplicate}`);
+      }
+      for (const decisionId of value.requiredDecisionIds) {
+        if (!decisions.has(decisionId)) errors.push(`crisis:${id}:unknown-required-decision:${decisionId}`);
+      }
+    }
+
+    const aggravatingDecisionIds: string[] = [];
+    if (!Array.isArray(value.aggravatingChoices) || value.aggravatingChoices.length === 0) {
+      errors.push(`crisis:${id}:aggravating-choices-required`);
+    } else {
+      for (const [choiceIndex, choice] of value.aggravatingChoices.entries()) {
+        const choiceId = isRecord(choice) && typeof choice.decisionId === "string"
+          ? choice.decisionId
+          : `index-${choiceIndex}`;
+        if (!isRecord(choice) || !isNonEmptyString(choice.decisionId)) {
+          errors.push(`crisis:${id}:aggravating-choice:${choiceId}:decision-required`);
+          continue;
+        }
+        aggravatingDecisionIds.push(choice.decisionId);
+        const decision = decisions.get(choice.decisionId);
+        if (!decision) errors.push(`crisis:${id}:unknown-aggravating-decision:${choice.decisionId}`);
+        if (!isStringArray(choice.optionIds) || choice.optionIds.length === 0) {
+          errors.push(`crisis:${id}:aggravating-choice:${choice.decisionId}:options-required`);
+          continue;
+        }
+        for (const duplicate of duplicateValues(choice.optionIds)) {
+          errors.push(`crisis:${id}:aggravating-choice:${choice.decisionId}:duplicate-option:${duplicate}`);
+        }
+        for (const optionId of choice.optionIds) {
+          if (!decision?.options.some((option) => option.id === optionId)) {
+            errors.push(`crisis:${id}:aggravating-choice:${choice.decisionId}:unknown-option:${optionId}`);
+          }
+        }
+      }
+      for (const duplicate of duplicateValues(aggravatingDecisionIds)) {
+        errors.push(`crisis:${id}:duplicate-aggravating-decision:${duplicate}`);
+      }
+    }
+
+    if (!Array.isArray(value.concessions)) {
+      errors.push(`crisis:${id}:concessions-must-be-array`);
+    } else {
+      const concessionIds = value.concessions.flatMap((concession) =>
+        isRecord(concession) && typeof concession.id === "string" ? [concession.id] : []);
+      for (const duplicate of duplicateValues(concessionIds)) {
+        errors.push(`crisis:${id}:duplicate-concession:${duplicate}`);
+      }
+      for (const [concessionIndex, concession] of value.concessions.entries()) {
+        const concessionId = isRecord(concession) && isNonEmptyString(concession.id)
+          ? concession.id
+          : `index-${concessionIndex}`;
+        if (!isRecord(concession)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:invalid`);
+          continue;
+        }
+        if (!isNonEmptyString(concession.id) || concession.id === "hold-course") {
+          errors.push(`crisis:${id}:concession:${concessionId}:invalid-id`);
+        }
+        if (!isNonEmptyString(concession.label)) errors.push(`crisis:${id}:concession:${concessionId}:label-required`);
+        if (typeof concession.targetDecisionId !== "string" || !decisions.has(concession.targetDecisionId)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:unknown-target`);
+        } else if (!aggravatingDecisionIds.includes(concession.targetDecisionId)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:target-not-aggravating-choice`);
+        }
+        if (!new Set(["suspend", "amend", "reverse"]).has(concession.policyChange as string)) {
+          errors.push(`crisis:${id}:concession:${concessionId}:invalid-policy-change`);
+        }
+        if (!Array.isArray(concession.effects)
+            || !concession.effects.every((effect) => isEffectRule(effect) && effect.timing.kind === "immediate")) {
+          errors.push(`crisis:${id}:concession:${concessionId}:effects-must-be-immediate`);
+        }
+      }
+    }
+
+    if (!Array.isArray(value.holdCourseEffects)
+        || !value.holdCourseEffects.every((effect) => isEffectRule(effect) && effect.timing.kind === "immediate")
+        || !value.holdCourseEffects.some((effect) => isEffectRule(effect) && effect.delta !== 0)) {
+      errors.push(`crisis:${id}:hold-course-needs-nonzero-immediate-effect`);
+    }
+  }
+
+  return errors;
+}
+
 /** Narrow an untrusted persisted value to a reachable V3 campaign state. */
 export function isCampaignState(value: unknown, scenario: Scenario): value is CampaignState {
   if (validateScenario(scenario).length > 0) return false;
@@ -529,8 +1040,10 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   if (value.pausedFrom !== undefined) {
     if (value.phase !== "pause" || value.pausedFrom === "pause" || !PHASES.includes(value.pausedFrom as CampaignPhase)) return false;
   }
-  if ((value.chapterIndex as number) < 0 || (value.chapterIndex as number) >= CHAPTER_COUNT || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) >= DECISIONS_PER_CHAPTER) return false;
+  const chapter = scenario.chapters[value.chapterIndex as number];
+  if (!chapter || (value.decisionIndex as number) < 0 || (value.decisionIndex as number) >= chapter.decisionIds.length) return false;
   if (!Array.isArray(value.decisions) || !Array.isArray(value.scheduledEvents) || !Array.isArray(value.eventHistory) || !Array.isArray(value.activePromises) || !Array.isArray(value.promiseHistory) || !Array.isArray(value.crisisHistory) || !Array.isArray(value.resolvedCrisisIds) || !Array.isArray(value.causalLedger) || !Array.isArray(value.unlockedDecisionIds) || !Array.isArray(value.lockedDecisionIds)) return false;
+  if (!hasValidBaseline(value.baseline) || !hasValidAnnualCheckpoints(value.annualCheckpoints, scenario, value.decisions.length)) return false;
   if (!isRecord(value.indicators) || !hasExactFiniteKeys(value.indicators, INDICATOR_KEYS)) return false;
   if (!isRecord(value.groups) || !hasExactFiniteKeys(value.groups, GROUP_KEYS)) return false;
   if (typeof value.seed !== "number" || !Number.isFinite(value.seed) || typeof value.savedAt !== "string" || Number.isNaN(Date.parse(value.savedAt))) return false;
@@ -548,7 +1061,8 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
 
   const decisions = new Map(scenario.decisions.map((decision) => [decision.id, decision]));
   const editorialOrder = scenario.chapters.flatMap((chapter) => chapter.decisionIds);
-  if (decisionRecords.length > CAMPAIGN_DECISION_COUNT || !decisionRecords.every((record) => isDecisionRecord(record, decisions))) return false;
+  const campaignLength = totalDecisions(scenario);
+  if (decisionRecords.length > campaignLength || !decisionRecords.every((record) => isDecisionRecord(record, decisions))) return false;
   if (!decisionRecords.every((record, index) => {
     const typedRecord = record as DecisionRecord;
     return typedRecord.decisionId === editorialOrder[index] && typedRecord.confirmedAtIndex === index + 1;
@@ -558,7 +1072,13 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
     return [typedRecord.decisionId, typedRecord];
   }));
   if (confirmedDecisions.size !== decisionRecords.length) return false;
-  if (!hasPhasePositionConsistency(value, decisionRecords.length)) return false;
+  if (!hasPhasePositionConsistency(value, scenario, decisionRecords.length)) return false;
+  if (value.phase === "council") {
+    const latest = (value.annualCheckpoints as unknown[]).at(-1);
+    if (!isRecord(latest) || latest.afterDecisionCount !== decisionRecords.length) return false;
+  }
+  if (value.phase === "verdict"
+      && (value.annualCheckpoints as unknown[]).length !== expectedAnnualCheckpoints(scenario).size) return false;
 
   const pendingSelection = value.pendingSelection;
   if (pendingSelection !== undefined) {
@@ -566,16 +1086,30 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
     const currentDecisionId = editorialOrder[decisionRecords.length];
     if (pendingSelection.decisionId !== currentDecisionId || (lockedDecisionIds as string[]).includes(currentDecisionId)) return false;
   }
-  if (!scheduledEvents.every((event) => isScheduledEvent(event, confirmedDecisions))) return false;
-  if (!eventHistory.every((event) => isScheduledEvent(event, confirmedDecisions))) return false;
-  if (![...activePromises, ...promiseHistory].every((promise) => isPoliticalPromise(promise, confirmedDecisions))) return false;
+  if (!scheduledEvents.every((event) => isScheduledEvent(event, confirmedDecisions, campaignLength))) return false;
+  if (!eventHistory.every((event) => isScheduledEvent(event, confirmedDecisions, campaignLength))) return false;
+  if (![...activePromises, ...promiseHistory].every((promise) => isPoliticalPromise(promise, confirmedDecisions, campaignLength))) return false;
   if (!hasUniqueDisjointIds(scheduledEvents as { id: string }[], eventHistory as { id: string }[])) return false;
   if (!hasUniqueDisjointIds(activePromises as { id: string }[], promiseHistory as { id: string }[])) return false;
 
-  if (!crisisHistory.every((crisis) => isCrisisState(crisis, confirmedDecisions, true))) return false;
-  if (value.activeCrisis !== undefined && !isCrisisState(value.activeCrisis, confirmedDecisions, false)) return false;
+  if (!crisisHistory.every((crisis) => isCrisisState(
+    crisis,
+    confirmedDecisions,
+    true,
+    scenario,
+    decisionRecords.length,
+  ))) return false;
+  if (value.activeCrisis !== undefined && !isCrisisState(
+    value.activeCrisis,
+    confirmedDecisions,
+    false,
+    scenario,
+    decisionRecords.length,
+  )) return false;
   if ((value.phase === "crisis") !== (value.activeCrisis !== undefined)) return false;
-  if (value.phase === "delayed_event" && !(scheduledEvents as { dueAtDecision: number }[]).some((event) => event.dueAtDecision <= decisionRecords.length)) return false;
+  if (value.phase === "delayed_event"
+      && !(scheduledEvents as { dueAtDecision: number }[]).some((event) => event.dueAtDecision <= decisionRecords.length)
+      && !(activePromises as { dueAtDecision: number }[]).some((promise) => promise.dueAtDecision <= decisionRecords.length)) return false;
   const crisisHistoryIds = (crisisHistory as { ruleId: string }[]).map((crisis) => crisis.ruleId);
   if (hasDuplicates(crisisHistoryIds) || !resolvedCrisisIds.every((id) => typeof id === "string") || hasDuplicates(resolvedCrisisIds as string[])) return false;
   if ((resolvedCrisisIds as string[]).length !== crisisHistoryIds.length || !(resolvedCrisisIds as string[]).every((id) => crisisHistoryIds.includes(id))) return false;
@@ -583,6 +1117,8 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
 
   if (!hasUniqueKnownDecisionIds(unlockedDecisionIds, decisions) || !hasUniqueKnownDecisionIds(lockedDecisionIds, decisions)) return false;
   if ((lockedDecisionIds as string[]).some((id) => (unlockedDecisionIds as string[]).includes(id))) return false;
+  const confirmedDecisionIds = new Set(decisionRecords.map((record) => (record as DecisionRecord).decisionId));
+  if ([...lockedDecisionIds, ...unlockedDecisionIds].some((id) => confirmedDecisionIds.has(id as string))) return false;
   const sourceIds: Record<CausalEntry["sourceType"], ReadonlySet<string>> = {
     decision: new Set(decisionRecords.map((record) => `${(record as DecisionRecord).decisionId}:${(record as DecisionRecord).optionId}`)),
     event: new Set([...scheduledEvents, ...eventHistory].map((event) => (event as { id: string }).id)),
@@ -591,5 +1127,28 @@ export function isCampaignState(value: unknown, scenario: Scenario): value is Ca
   };
   if (!causalLedger.every((entry) => isCausalEntry(entry, sourceIds, decisionRecords.length))) return false;
   if (hasDuplicates((causalLedger as { id: string }[]).map((entry) => entry.id))) return false;
+  const causalEntries = new Map((causalLedger as CausalEntry[]).map((entry) => [entry.id, entry]));
+  for (const record of decisionRecords as DecisionRecord[]) {
+    if (!record.impact) continue;
+    const expectedSourceId = `${record.decisionId}:${record.optionId}`;
+    for (const indicator of record.impact.indicators) {
+      if (!indicator.causalEntryIds.every((id) => {
+        const entry = causalEntries.get(id);
+        return entry?.sourceType === "decision"
+          && entry.sourceId === expectedSourceId
+          && entry.target === "indicator"
+          && entry.key === indicator.key
+          && entry.appliedAtDecision === record.confirmedAtIndex;
+      })) return false;
+    }
+  }
+  if (!(value.annualCheckpoints as CampaignState["annualCheckpoints"]).every((checkpoint) => (
+    checkpoint.causes.every((id) => {
+      const entry = causalEntries.get(id);
+      return entry?.target === "indicator"
+        && ["annualBalance", "growth", "interestCost"].includes(entry.key)
+        && entry.appliedAtDecision <= checkpoint.afterDecisionCount;
+    })
+  ))) return false;
   return true;
 }

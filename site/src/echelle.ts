@@ -391,6 +391,90 @@ export function formater(
   return moins(formaterNombre(valeur, unite, parHabitant, id));
 }
 
+/**
+ * Libellé développé des unités propres aux dossiers éditoriaux.
+ *
+ * Ces unités viennent des publications, pas d'une conversion du renderer. Une
+ * base d'indice ou une échelle de satisfaction fait partie de la définition
+ * du nombre : elle doit donc rester lisible à côté de chaque axe et tableau.
+ */
+export function libelleUniteAnalyse(unite: string): string {
+  switch (unite) {
+    case "EUR_per_kWh":
+      return "euros par kilowattheure";
+    case "EUR_per_100_kWh":
+      return "euros par 100 kilowattheures";
+    case "EUR_per_MWh":
+      return "euros par mégawattheure";
+    case "GWH":
+    case "GWh":
+      return "gigawattheures";
+    case "gCO2_per_kWh":
+      return "grammes de CO₂e par kilowattheure";
+    case "index_2015_100":
+      return "indice, base 2015 = 100";
+    case "index_2025_100":
+      return "indice, base 2025 = 100";
+    case "score_0_10":
+      return "score de 0 à 10";
+    case "years":
+    case "annees":
+      return "années";
+    case "EUR":
+      return "euros";
+    case "percent":
+    case "rate":
+      return "pourcentage";
+    case "count":
+      return "nombre";
+    case "mwh":
+      return "mégawattheures";
+    case "m2":
+      return "mètres carrés";
+    default:
+      return unite;
+  }
+}
+
+/**
+ * Valeur d'une série éditoriale dans son unité native.
+ *
+ * Le renderer long ne choisit jamais une échelle en fonction de l'ordre de
+ * grandeur. Il garde notamment €/kWh distinct de €/MWh et un indice distinct
+ * d'un pourcentage. La précision maximale suit celle des sources ciblées ;
+ * aucune décimale fixe n'est ajoutée à une observation qui n'en porte pas.
+ */
+export function formaterValeurAnalyse(valeur: number, unite: string): string {
+  const nombre = (maximumFractionDigits: number) =>
+    moins(
+      new Intl.NumberFormat("fr-FR", { maximumFractionDigits }).format(
+        sansZeroNegatif(valeur, maximumFractionDigits),
+      ),
+    );
+  switch (unite) {
+    case "EUR_per_kWh":
+      return `${nombre(4)}\u202f€/kWh`;
+    case "EUR_per_100_kWh":
+      return `${nombre(2)}\u202f€/100 kWh`;
+    case "EUR_per_MWh":
+      return `${nombre(2)}\u202f€/MWh`;
+    case "GWH":
+    case "GWh":
+      return `${nombre(1)}\u202fGWh`;
+    case "gCO2_per_kWh":
+      return `${nombre(1)}\u202fgCO₂e/kWh`;
+    case "index_2015_100":
+    case "index_2025_100":
+      return nombre(2);
+    case "score_0_10":
+      return nombre(1);
+    case "years":
+      return `${nombre(2)}\u202fans`;
+    default:
+      return formater(valeur, unite, false);
+  }
+}
+
 function formaterNombre(
   valeur: number,
   unite: string,

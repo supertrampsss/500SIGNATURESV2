@@ -39,6 +39,7 @@ import type {
 import { formater } from "../src/echelle.ts";
 import { renduNavigation } from "../src/navigation.ts";
 import { permalien } from "../src/partage.ts";
+import { REPONSES_STATIQUES } from "../src/questions.ts";
 import { indexerSources } from "../src/registre-sources.ts";
 import { CHEMINS } from "../src/routes.ts";
 import { echapper } from "../src/texte.ts";
@@ -211,7 +212,10 @@ test("2. la carte d'une analyse porte sa source et le millésime de son chiffre"
   // Les deux viennent de l'analyse, pas d'une constante du script : la source
   // qu'elle déclare, et l'exercice du chiffre qu'elle oppose.
   assert.equal(donnees.source.titre, analyse.sources[0].titre);
-  assert.equal(donnees.source.millesime, analyse.chiffres[0].observe?.periode);
+  assert.equal(
+    donnees.source.millesime,
+    analyse.chiffres[0].observe?.periode ?? analyse.dossier?.preuves[0]?.period,
+  );
   assert.equal(donnees.titre, analyse.titre);
   assert.equal(donnees.dit, analyse.chiffres[0].dit);
   // Et ce que ce chiffre-là désigne, dans les mots de l'analyse : c'est la
@@ -221,8 +225,22 @@ test("2. la carte d'une analyse porte sa source et le millésime de son chiffre"
   assert.ok(donnees.lecture.trim(), "l'analyse publiée ne déclare pas de lecture");
 });
 
+test("2 bis. une analyse longue attribue sa carte à la source de la preuve correspondante", async () => {
+  const analyses = await analysesPubliees();
+  const analyse = analyses.find((candidate) => candidate.slug === "electricite-exportee-facture-francais")!;
+  const valeur = analyse.chiffres[0]!.valeur;
+  const preuve = analyse.dossier!.preuves.find((candidate) => candidate.value === valeur)!;
+  const source = analyse.sources.find((candidate) => candidate.id === preuve.sourceId)!;
+  const donnees = donneesCarteAnalyse(analyse, catalogueEnEuros([analyse]), "exemple.test");
+  assert.equal(donnees.source.titre, source.titre);
+  assert.equal(donnees.source.millesime, preuve.period);
+});
+
 test("2 ter. la carte reçoit tous les chiffres publiés que le verdict oppose", async () => {
-  const [analyse] = await analysesPubliees();
+  const analyse = (await analysesPubliees()).find(
+    (candidate) => candidate.chiffres.filter((chiffre) => chiffre.observe).length > 1,
+  )!;
+  assert.ok(analyse, "aucune analyse ne confronte plusieurs observations publiées");
   const publies = analyse.chiffres.filter((chiffre) => chiffre.observe);
   assert.ok(
     publies.length > 1,
@@ -259,7 +277,10 @@ test("2 ter. la carte reçoit tous les chiffres publiés que le verdict oppose",
 });
 
 test("2 quater. un chiffre d'un autre exercice n'est pas peint sous ce millésime", async () => {
-  const [analyse] = await analysesPubliees();
+  const analyse = (await analysesPubliees()).find(
+    (candidate) => candidate.chiffres.filter((chiffre) => chiffre.observe).length > 1,
+  )!;
+  assert.ok(analyse, "aucune analyse ne confronte plusieurs exercices publiés");
   // La carte ne porte qu'un millésime — celui du premier chiffre. Un montant
   // d'un autre exercice peint dessous serait daté faux, sur une image qui
   // circule seule et que rien ne vient corriger.
@@ -641,7 +662,7 @@ test("8 bis. le pré-rendu passe ce permalien au rendu, il ne le recolle pas", (
 });
 
 test("8 ter. le dossier de preuve est servi avec sa canonique et ses métadonnées sociales", async () => {
-  const [analyse] = await analysesPubliees();
+  const analyse = (await analysesPubliees()).find((candidate) => candidate.dossier === undefined)!;
   assert.ok(analyse, "aucune analyse publiée");
   const canonique = `/analyses/${analyse.slug}/`;
   const html = injecter(
@@ -783,7 +804,9 @@ test("9. le plan du site liste la racine, les chemins de vues et les analyses pu
     ...Object.values(CHEMINS),
     "/analyses/",
     "/sources/",
+    "/questions/",
     ...analyses.map((analyse) => `/analyses/${analyse.slug}/`),
+    ...REPONSES_STATIQUES.map((reponse) => `/questions/${reponse.slug}/`),
   ]);
   // Et rien d'autre : une adresse morte dans un plan de site est un signal de
   // mauvaise qualité envoyé aux moteurs.

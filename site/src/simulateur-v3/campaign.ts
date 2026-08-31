@@ -1,18 +1,15 @@
-import { SCHEMA_VERSION, type CampaignState, type Decision, type Scenario } from "./types.ts";
-import { validateScenario } from "./validation.ts";
+import { validateBaseline } from "./timeline.ts";
+import { SCHEMA_VERSION, type CampaignState, type Decision, type IndicatorState, type MandateBaseline, type Scenario } from "./types.ts";
+import { totalDecisions, validateScenario } from "./validation.ts";
 
-export const INITIAL_INDICATORS = Object.freeze({
-  annualBalance: -153_000,
-  debtToGdp: 115.7,
-  interestCost: 55_000,
-  growth: 0.9,
+const NEUTRAL_LUDIC_INDICATORS = Object.freeze({
   employment: 100,
   investment: 100,
-  publicServices: 55,
-  majority: 62,
-  reformCapacity: 68,
-  opinion: 58,
-  institutionalTrust: 44,
+  publicServices: 50,
+  majority: 50,
+  reformCapacity: 50,
+  opinion: 50,
+  institutionalTrust: 50,
   financialCredibility: 50,
 });
 
@@ -33,9 +30,21 @@ export const INITIAL_GROUPS = Object.freeze({
 
 const EPOCH = "1970-01-01T00:00:00.000Z";
 
-export function createCampaign(scenario: Scenario, seed = 0): CampaignState {
+export function initialIndicators(baseline: MandateBaseline): IndicatorState {
+  validateBaseline(baseline);
+  return {
+    annualBalance: baseline.annualBalanceMillions,
+    debtToGdp: baseline.debtMillions / baseline.nominalGdpMillions * 100,
+    interestCost: baseline.interestCostMillions,
+    growth: baseline.nominalGrowthPercent,
+    ...NEUTRAL_LUDIC_INDICATORS,
+  };
+}
+
+export function createCampaign(scenario: Scenario, baseline: MandateBaseline, seed = 0): CampaignState {
   const errors = validateScenario(scenario);
   if (errors.length > 0) throw new Error(`Invalid scenario: ${errors.join(", ")}`);
+  validateBaseline(baseline);
 
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -45,7 +54,9 @@ export function createCampaign(scenario: Scenario, seed = 0): CampaignState {
     chapterIndex: 0,
     decisionIndex: 0,
     decisions: [],
-    indicators: { ...INITIAL_INDICATORS },
+    baseline: structuredClone(baseline),
+    annualCheckpoints: [],
+    indicators: initialIndicators(baseline),
     groups: { ...INITIAL_GROUPS },
     scheduledEvents: [],
     eventHistory: [],
@@ -89,38 +100,49 @@ function nextChapter(state: CampaignState): CampaignState {
 
 export function normalizeChapterTransition(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase !== "chapter_verdict") return state;
-  if (state.decisions.length >= scenario.decisions.length) return { ...state, phase: "verdict" };
+  if (state.decisions.length >= totalDecisions(scenario)) return { ...state, phase: "verdict" };
   return nextChapter(state);
+}
+
+function chapterIsComplete(state: CampaignState, scenario: Scenario): boolean {
+  const chapter = scenario.chapters[state.chapterIndex];
+  return chapter !== undefined && state.decisionIndex + 1 >= chapter.decisionIds.length;
 }
 
 function advanceOneScreen(state: CampaignState, scenario: Scenario): CampaignState {
   if (state.phase === "chapter_verdict") return normalizeChapterTransition(state, scenario);
   if (state.phase === "chapter_intro") return { ...state, phase: "decision" };
-  if (state.phase === "council") return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 
   const completedDecisions = state.decisions.length;
-  if (completedDecisions >= scenario.decisions.length) return { ...state, phase: "verdict" };
-  if (completedDecisions > 0 && completedDecisions % 12 === 0) return nextChapter(state);
+  if (completedDecisions >= totalDecisions(scenario)) return { ...state, phase: "verdict" };
+  if (chapterIsComplete(state, scenario)) return nextChapter(state);
   return { ...state, decisionIndex: state.decisionIndex + 1, phase: "decision" };
 }
 
-export function advanceAfterResult(state: CampaignState, scenario: Scenario): CampaignState {
+export function advanceAfterResult(
+  state: CampaignState,
+  scenario: Scenario,
+  stopAfterSuperseded = false,
+): CampaignState {
   let advanced = advanceOneScreen(state, scenario);
   while (advanced.phase === "decision") {
     const decision = currentDecision(advanced, scenario);
     if (!decision || !advanced.lockedDecisionIds.includes(decision.id)) break;
     const neutralOption = decision.options[1] ?? decision.options[0];
     if (!neutralOption) break;
-    advanced = advanceOneScreen({
+    const superseded: CampaignState = {
       ...advanced,
       phase: "decision_result",
+      lockedDecisionIds: advanced.lockedDecisionIds.filter((id) => id !== decision.id),
       decisions: [...advanced.decisions, {
         decisionId: decision.id,
         optionId: neutralOption.id,
         status: "superseded",
         confirmedAtIndex: advanced.decisions.length + 1,
       }],
-    }, scenario);
+    };
+    if (stopAfterSuperseded) return superseded;
+    advanced = advanceOneScreen(superseded, scenario);
   }
   return advanced;
 }

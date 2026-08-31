@@ -1,9 +1,7 @@
-import { delayedEvent, existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
+import { existingPolicy, policyDecision, standalonePolicy, type ExistingPolicyCopy } from "../policy-catalogue.ts";
 
 const CHAPTER = "state-institutions-territories";
 const p = (copy: Omit<ExistingPolicyCopy, "chapterId">) => existingPolicy({ ...copy, chapterId: CHAPTER });
-const institutions = ["diviser-par-deux-le-nombre-de-parlementaires", "supprimer-le-senat", "proportionnelle-integrale"];
-const territories = ["reduire-de-5-les-dotations-aux-collectivites", "supprimer-les-departements"];
 
 export const STATE_DECISIONS = [
   p({
@@ -44,7 +42,7 @@ export const STATE_DECISIONS = [
     context: "La réforme est spectaculaire et l'économie minuscule face au déficit. Chaque élu représente davantage d'habitants et le travail en commission se concentre.",
     adoptLabel: "Diviser le nombre par deux", adoptSummary: "Le Parlement rétrécit fortement et l'économie reste surtout symbolique.",
     keepLabel: "Conserver les deux assemblées actuelles", keepSummary: "La représentation territoriale et les effectifs parlementaires restent inchangés.",
-    beneficiaries: ["symbole de sobriété", "finances publiques"], contributors: ["représentation territoriale", "pluralisme"], sourceKeys: ["cour-finances-2025", "collectivites-chiffres-2025"], conflicts: institutions,
+    beneficiaries: ["symbole de sobriété", "finances publiques"], contributors: ["représentation territoriale", "pluralisme"], sourceKeys: ["cour-finances-2025", "collectivites-chiffres-2025"],
   }),
   p({
     id: "supprimer-le-cese", kind: "transformation",
@@ -60,7 +58,8 @@ export const STATE_DECISIONS = [
     context: "La vente réduit la dette une seule fois et supprime des dividendes futurs. Elle ne réduit le déficit annuel que si les intérêts évités dépassent les revenus perdus.",
     adoptLabel: "Vendre les participations", adoptSummary: "L'État encaisse immédiatement et perd le contrôle et les dividendes correspondants.",
     keepLabel: "Conserver le portefeuille", keepSummary: "L'État garde ses actifs, risques et dividendes, sans recette exceptionnelle.",
-    beneficiaries: ["dette publique à court terme", "acheteurs"], contributors: ["patrimoine public", "dividendes futurs"], sourceKeys: ["cour-finances-2025"],
+    beneficiaries: ["dette publique à court terme", "acheteurs"], contributors: ["patrimoine public", "dividendes futurs"], sourceKeys: ["ape-portefeuille", "ape-rapport-activite", "cour-finances-2025"],
+    evidenceNote: "Les 2 000 millions d'euros sont une hypothèse de cession ponctuelle affectée au désendettement, pas une amélioration annuelle du déficit. L'État échange un actif contre de la trésorerie et renonce aux dividendes futurs.",
   }),
   p({
     id: "reduire-de-5-les-dotations-aux-collectivites", kind: "transformation",
@@ -68,47 +67,47 @@ export const STATE_DECISIONS = [
     context: "L'État améliore son solde, mais communes, départements et régions doivent réduire les dépenses, les investissements ou augmenter leurs recettes.",
     adoptLabel: "Réduire les dotations", adoptSummary: "Le budget de l'État économise et les collectivités répercutent la coupe sur leurs choix locaux.",
     keepLabel: "Maintenir les dotations", keepSummary: "Les budgets locaux sont préservés et l'État ne réalise pas l'économie.",
-    beneficiaries: ["budget de l'État"], contributors: ["collectivités", "usagers locaux"], sourceKeys: ["ofgl-rapports", "collectivites-chiffres-2025"], conflicts: territories,
-    event: delayedEvent("local-investment-cut", "Les chantiers locaux s'arrêtent", "Les collectivités concentrent la coupe sur l'investissement et les entreprises locales perdent des commandes.", 3, "investment", -5),
+    beneficiaries: ["budget de l'État"], contributors: ["collectivités", "usagers locaux"], sourceKeys: ["ofgl-rapports", "collectivites-chiffres-2025"],
   }),
   standalonePolicy({
     id: "regle-d-or-constitutionnelle", chapterId: CHAPTER, kind: "rupture",
     title: "Faut-il inscrire l'équilibre budgétaire dans la Constitution ?",
     context: "Une règle d'or limite le déficit hors circonstances exceptionnelles. Elle impose de décider à l'avance comment traiter récession, guerre et investissement.",
     sourceKeys: ["cour-finances-2025", "eurostat-finances"], evidenceLabel: "Déficit structurel, dette et règles budgétaires européennes.",
+    evidenceNote: "Les 8 000 millions d'euros par an sont une forte hypothèse de correction du scénario au premier budget contrôlé par la règle, après adoption de la révision. Les sources ne documentent pas un rendement automatique de ce montant.",
     options: [
-      { id: "adopt", label: "Inscrire la règle d'or", summary: "Gouvernement et Parlement doivent financer toute dépense nouvelle ou déclencher une clause d'exception.", budgetDelta: 8_000, beneficiaries: ["créanciers", "générations futures"], contributors: ["marge budgétaire en crise", "majorités politiques"], uncertainty: "forte", indicatorEffects: { financialCredibility: 10, reformCapacity: -5, opinion: -3 }, groupEffects: { creditors: 8, parliamentaryMajority: -5 }, scheduledEvents: [delayedEvent("golden-rule-recession", "La croissance cale sous la règle", "Le ralentissement réduit les recettes et force un nouvel ajustement en pleine baisse d'activité.", 3, "growth", -0.35)] },
-      { id: "keep", label: "Conserver les règles actuelles", summary: "Les objectifs restent législatifs et européens, avec une flexibilité politique plus large.", budgetDelta: 0, beneficiaries: ["politique contracyclique"], contributors: ["crédibilité budgétaire"], indicatorEffects: { financialCredibility: -2 } },
+      { id: "adopt", label: "Inscrire la règle d'or", summary: "Gouvernement et Parlement doivent financer toute dépense nouvelle ou déclencher une clause d'exception.", budgetDelta: 8_000, beneficiaries: ["créanciers", "générations futures"], contributors: ["marge budgétaire en crise", "majorités politiques"], uncertainty: "forte" },
+      { id: "keep", label: "Conserver les règles actuelles", summary: "Les objectifs restent législatifs et européens, avec une flexibilité politique plus large.", budgetDelta: 0, beneficiaries: ["politique contracyclique"], contributors: ["crédibilité budgétaire"] },
     ],
   }),
   standalonePolicy({
     id: "supprimer-le-senat", chapterId: CHAPTER, kind: "rupture",
     title: "Faut-il supprimer le Sénat ?",
     context: "Le Parlement devient monocaméral. Les lois vont plus vite et la représentation spécifique des collectivités disparaît.",
-    sourceKeys: ["collectivites-chiffres-2025", "cour-finances-2025"], evidenceLabel: "Organisation des institutions nationales et représentation des territoires.", conflicts: institutions,
+    sourceKeys: ["collectivites-chiffres-2025", "cour-finances-2025"], evidenceLabel: "Organisation des institutions nationales et représentation des territoires.",
     options: [
-      { id: "adopt", label: "Supprimer le Sénat", summary: "L'Assemblée nationale devient l'unique chambre et les territoires perdent leur représentation dédiée.", budgetDelta: 350, beneficiaries: ["rapidité législative", "finances publiques"], contributors: ["représentation territoriale", "contre-pouvoir parlementaire"], uncertainty: "faible", indicatorEffects: { reformCapacity: 6, institutionalTrust: -5, opinion: 4 }, groupEffects: { localAuthorities: -8 }, locks: institutions },
-      { id: "keep", label: "Conserver le bicamérisme", summary: "Les deux chambres continuent d'examiner les textes et de se contrôler.", budgetDelta: 0, beneficiaries: ["territoires", "contre-pouvoirs"], contributors: ["rapidité législative"], indicatorEffects: { institutionalTrust: 2 } },
+      { id: "adopt", label: "Supprimer le Sénat", summary: "L'Assemblée nationale devient l'unique chambre et les territoires perdent leur représentation dédiée.", budgetDelta: 350, beneficiaries: ["rapidité législative", "finances publiques"], contributors: ["représentation territoriale", "contre-pouvoir parlementaire"], uncertainty: "faible" },
+      { id: "keep", label: "Conserver le bicamérisme", summary: "Les deux chambres continuent d'examiner les textes et de se contrôler.", budgetDelta: 0, beneficiaries: ["territoires", "contre-pouvoirs"], contributors: ["rapidité législative"] },
     ],
   }),
   standalonePolicy({
     id: "supprimer-les-departements", chapterId: CHAPTER, kind: "rupture",
     title: "Faut-il supprimer les départements ?",
     context: "Leurs compétences sociales, routières et scolaires passent aux régions ou intercommunalités. Les élus disparaissent vite, les services et agents doivent être transférés sans rupture.",
-    sourceKeys: ["ofgl-rapports", "collectivites-chiffres-2025"], evidenceLabel: "Compétences, budgets et personnels des départements.", conflicts: territories,
+    sourceKeys: ["ofgl-rapports", "collectivites-chiffres-2025"], evidenceLabel: "Compétences, budgets et personnels des départements.",
     options: [
-      { id: "adopt", label: "Supprimer les départements", summary: "Les compétences sont redistribuées et les doublons espérés ne deviennent des économies qu'après la transition.", budgetDelta: 2_500, beneficiaries: ["régions", "simplification territoriale"], contributors: ["agents transférés", "territoires ruraux", "finances de transition"], uncertainty: "forte", indicatorEffects: { reformCapacity: 7, publicServices: -6, opinion: -2 }, groupEffects: { localAuthorities: -9, publicEmployees: -5 }, locks: territories, scheduledEvents: [delayedEvent("department-social-transfer", "Le transfert social se grippe", "Les systèmes d'aide sociale ne communiquent pas et les délais de paiement augmentent.", 1, "institutionalTrust", -6)] },
-      { id: "keep", label: "Conserver les départements", summary: "Les compétences de proximité restent à cet échelon et les doublons persistent.", budgetDelta: 0, beneficiaries: ["continuité des services", "territoires ruraux"], contributors: ["simplification institutionnelle"], indicatorEffects: { publicServices: 2 } },
+      { id: "adopt", label: "Supprimer les départements", summary: "Les compétences sont redistribuées et les doublons espérés ne deviennent des économies qu'après la transition.", budgetDelta: 2_500, beneficiaries: ["régions", "simplification territoriale"], contributors: ["agents transférés", "territoires ruraux", "finances de transition"], uncertainty: "forte" },
+      { id: "keep", label: "Conserver les départements", summary: "Les compétences de proximité restent à cet échelon et les doublons persistent.", budgetDelta: 0, beneficiaries: ["continuité des services", "territoires ruraux"], contributors: ["simplification institutionnelle"] },
     ],
   }),
   standalonePolicy({
     id: "proportionnelle-integrale", chapterId: CHAPTER, kind: "rupture",
     title: "Faut-il élire l'Assemblée nationale à la proportionnelle intégrale ?",
     context: "Les sièges reflètent les voix nationales. La représentation gagne en fidélité et les majorités absolues deviennent plus rares.",
-    sourceKeys: ["collectivites-chiffres-2025"], evidenceLabel: "Architecture institutionnelle et représentation politique.", conflicts: institutions,
+    sourceKeys: ["collectivites-chiffres-2025"], evidenceLabel: "Architecture institutionnelle et représentation politique.",
     options: [
-      { id: "adopt", label: "Passer à la proportionnelle intégrale", summary: "Chaque courant obtient des sièges proches de son poids et les gouvernements doivent former des coalitions.", budgetDelta: 0, beneficiaries: ["petits partis", "pluralisme"], contributors: ["stabilité majoritaire"], uncertainty: "moyenne", indicatorEffects: { institutionalTrust: 5, majority: -10, reformCapacity: -5 }, groupEffects: { parliamentaryMajority: -8 }, locks: institutions },
-      { id: "keep", label: "Conserver le scrutin majoritaire", summary: "Les circonscriptions et la prime aux grands blocs sont maintenues.", budgetDelta: 0, beneficiaries: ["majorités cohérentes", "ancrage local"], contributors: ["représentation proportionnelle"], indicatorEffects: { majority: 3 } },
+      { id: "adopt", label: "Passer à la proportionnelle intégrale", summary: "Chaque courant obtient des sièges proches de son poids et les gouvernements doivent former des coalitions.", budgetDelta: 0, beneficiaries: ["petits partis", "pluralisme"], contributors: ["stabilité majoritaire"], uncertainty: "moyenne" },
+      { id: "keep", label: "Conserver le scrutin majoritaire", summary: "Les circonscriptions et la prime aux grands blocs sont maintenues.", budgetDelta: 0, beneficiaries: ["majorités cohérentes", "ancrage local"], contributors: ["représentation proportionnelle"] },
     ],
   }),
 ].map(policyDecision);

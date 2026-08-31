@@ -4,17 +4,21 @@ import { test } from "node:test";
 import {
   advanceAfterResult,
   clearSelection,
-  createCampaign,
   currentDecision,
   normalizeChapterTransition,
   selectOption,
 } from "./campaign.ts";
+import { createCampaign as createProductionCampaign } from "./campaign.ts";
 import { confirmSelection } from "./effects.ts";
-import { validScenario } from "./test-fixtures.ts";
+import { SCENARIO_V3 } from "./scenario.ts";
+import { createTestCampaign as createCampaign, testBaseline, validScenario } from "./test-fixtures.ts";
+import { positionAfterCompleted, positionBeforeNext, totalDecisions } from "./validation.ts";
 
 test("une campagne neuve commence avant le premier chapitre", () => {
   const state = createCampaign(validScenario(), 42);
-  assert.equal(state.schemaVersion, 3);
+  assert.equal(state.schemaVersion, 4);
+  assert.deepEqual(state.baseline, testBaseline());
+  assert.deepEqual(state.annualCheckpoints, []);
   assert.equal(state.seed, 42);
   assert.equal(state.phase, "intro");
   assert.equal(state.decisions.length, 0);
@@ -23,10 +27,22 @@ test("une campagne neuve commence avant le premier chapitre", () => {
   assert.notEqual(state.groups, createCampaign(validScenario()).groups);
 });
 
+test("une campagne neuve exige une baseline explicite", () => {
+  const withoutBaseline = createProductionCampaign as unknown as (scenario: ReturnType<typeof validScenario>) => unknown;
+  assert.throws(() => withoutBaseline(validScenario()), /baseline/i);
+});
+
 test("la décision courante suit les huit chapitres dans leur ordre éditorial", () => {
   const scenario = validScenario();
   const state = { ...createCampaign(scenario, 42), phase: "decision" as const };
   assert.equal(currentDecision(state, scenario)?.id, scenario.chapters[0]!.decisionIds[0]);
+});
+
+test("le passage de chapitre suit les longueurs 8 puis 7", () => {
+  assert.deepEqual(positionAfterCompleted(SCENARIO_V3, 8), { chapterIndex: 0, decisionIndex: 7 });
+  assert.deepEqual(positionBeforeNext(SCENARIO_V3, 8), { chapterIndex: 1, decisionIndex: 0 });
+  assert.deepEqual(positionBeforeNext(SCENARIO_V3, 53), { chapterIndex: 7, decisionIndex: 0 });
+  assert.equal(totalDecisions(SCENARIO_V3), 60);
 });
 
 test("sélectionner ne confirme pas et peut être annulé", () => {
@@ -40,29 +56,35 @@ test("sélectionner ne confirme pas et peut être annulé", () => {
 });
 
 test("les passages après résultat respectent les jalons du chapitre et de la campagne", () => {
-  const scenario = validScenario();
+  const scenario = SCENARIO_V3;
   const cases = [
-    [4, "decision", 0, 3],
-    [8, "decision", 0, 7],
-    [12, "chapter_intro", 0, 11],
-    [16, "decision", 1, 3],
-    [92, "decision", 7, 7],
-    [96, "verdict", 7, 11],
+    [4, "decision", 0, 4],
+    [8, "chapter_intro", 1, 0],
+    [16, "chapter_intro", 2, 0],
+    [39, "chapter_intro", 5, 0],
+    [53, "chapter_intro", 7, 0],
+    [60, "verdict", 7, 6],
   ] as const;
-  for (const [count, phase, chapterIndex, decisionIndex] of cases) {
+  const editorialOrder = scenario.chapters.flatMap((chapter) => chapter.decisionIds)
+    .map((id) => scenario.decisions.find((decision) => decision.id === id)!);
+  for (const [count, phase, expectedChapterIndex, expectedDecisionIndex] of cases) {
+    const position = positionAfterCompleted(scenario, count)!;
     const state = {
       ...createCampaign(scenario),
       phase: "decision_result" as const,
-      chapterIndex,
-      decisionIndex,
+      ...position,
       decisions: Array.from({ length: count }, (_, index) => ({
-        decisionId: scenario.decisions[index]!.id,
-        optionId: scenario.decisions[index]!.options[0]!.id,
+        decisionId: editorialOrder[index]!.id,
+        optionId: editorialOrder[index]!.options[0]!.id,
         status: "confirmed" as const,
         confirmedAtIndex: index + 1,
       })),
     };
-    assert.equal(advanceAfterResult(state, scenario).phase, phase);
+    const advanced = advanceAfterResult(state, scenario);
+    assert.deepEqual(
+      { phase: advanced.phase, chapterIndex: advanced.chapterIndex, decisionIndex: advanced.decisionIndex },
+      { phase, chapterIndex: expectedChapterIndex, decisionIndex: expectedDecisionIndex },
+    );
   }
 });
 
@@ -79,6 +101,7 @@ test("un dossier verrouillé est classé sans objet et n'est jamais présenté",
   assert.equal(next.decisionIndex, 2);
   assert.equal(next.decisions[1]?.decisionId, scenario.decisions[1]!.id);
   assert.equal(next.decisions[1]?.status, "superseded");
+  assert.deepEqual(next.lockedDecisionIds, []);
   assert.equal(currentDecision(next, scenario)?.id, scenario.decisions[2]!.id);
 });
 
@@ -141,7 +164,7 @@ test("une option inconnue est refusée", () => {
 test("une campagne rejette un scénario invalide", () => {
   const scenario = validScenario();
   scenario.chapters.pop();
-  assert.throws(() => createCampaign(scenario), /Invalid scenario: scenario:expected-8-chapters/);
+  assert.throws(() => createCampaign(scenario), /expected-once-in-chapters/);
 });
 
 test("une décision confirmée ne peut plus être sélectionnée", () => {

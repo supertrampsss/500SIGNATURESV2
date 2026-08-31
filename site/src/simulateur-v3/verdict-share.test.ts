@@ -10,7 +10,7 @@ const VIEW: MandateVerdictViewModel = {
   annualBalance: -42_000,
   annualBalanceDelta: 111_000,
   signals: [
-    { key: "growth", label: "Croissance", value: 1.4, initialValue: 0.9, delta: 0.5, descriptor: "Activité modérée" },
+    { key: "growth", label: "Croissance nominale annuelle", value: 1.4, initialValue: 0.9, delta: 0.5, descriptor: "Activité modérée" },
     { key: "majority", label: "Pouvoir", value: 54, initialValue: 62, delta: -8, descriptor: "Majorité étroite" },
     { key: "opinion", label: "Opinion", value: 49, initialValue: 58, delta: -9, descriptor: "Pays contestataire" },
   ],
@@ -24,7 +24,7 @@ test("résume le verdict en deux lignes sans répéter le lien", () => {
 
   assert.equal(share.lignes.length, 2);
   assert.match(share.lignes[0]!, /Solde annuel : -42 milliards d'euros/);
-  assert.match(share.lignes[1]!, /Croissance 1,4 %.*Pouvoir 54.*Opinion 49/);
+  assert.match(share.lignes[1]!, /Croissance nominale annuelle 1,4 %.*Pouvoir 54.*Opinion 49/);
   assert.ok(share.lignes.every((line) => !line.includes(share.permalien)));
   assert.equal(share.image, null);
 });
@@ -53,4 +53,3 @@ test("propose le texte à copier si les deux API sont indisponibles", async () =
   assert.equal(prompts.length, 1);
   assert.match(prompts[0]!, /https:\/\/example\.test\/simulateur/);
 });
-

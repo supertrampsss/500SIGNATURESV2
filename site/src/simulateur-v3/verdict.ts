@@ -1,4 +1,5 @@
-import { INITIAL_INDICATORS } from "./campaign.ts";
+import { initialIndicators } from "./campaign.ts";
+import { INDICATOR_META } from "./indicator-meta.ts";
 import type {
   CampaignState,
   CausalEntry,
@@ -27,6 +28,7 @@ export type VerdictCheckpoint = {
 };
 
 export type VerdictStructuralEffect = {
+  target: "indicator" | "group";
   key: string;
   label: string;
   delta: number;
@@ -38,6 +40,7 @@ export type VerdictChoice = {
   label: string;
   chapter: string;
   budgetDelta: number;
+  budgetDuration: "annual" | "once";
   structuralEffect?: VerdictStructuralEffect;
   status: string;
 };
@@ -60,7 +63,6 @@ export type MandateVerdictViewModel = {
   aftermath: VerdictAftermath[];
 };
 
-const CHECKPOINTS = [0, 24, 48, 72, 96] as const;
 const CLAMPED_INDICATORS = new Set<IndicatorKey>([
   "publicServices",
   "majority",
@@ -70,16 +72,7 @@ const CLAMPED_INDICATORS = new Set<IndicatorKey>([
   "financialCredibility",
 ]);
 
-const EFFECT_LABELS: Record<string, string> = {
-  growth: "Croissance",
-  employment: "Emploi",
-  investment: "Investissement",
-  publicServices: "Services publics",
-  majority: "Pouvoir",
-  reformCapacity: "Capacité de réforme",
-  opinion: "Opinion",
-  institutionalTrust: "Confiance",
-  financialCredibility: "Crédibilité financière",
+const GROUP_EFFECT_LABELS: Record<string, string> = {
   lowIncomeHouseholds: "Ménages modestes",
   middleClasses: "Classes moyennes",
   retirees: "Retraités",
@@ -114,7 +107,7 @@ function orderedLedger(ledger: readonly CausalEntry[]): CausalEntry[] {
 }
 
 function reconstructAt(state: CampaignState, decisionCount: number): IndicatorState {
-  const indicators: IndicatorState = { ...INITIAL_INDICATORS };
+  const indicators: IndicatorState = initialIndicators(state.baseline);
   for (const entry of orderedLedger(state.causalLedger)) {
     if (entry.appliedAtDecision > decisionCount || entry.target !== "indicator") continue;
     const key = entry.key as IndicatorKey;
@@ -125,10 +118,10 @@ function reconstructAt(state: CampaignState, decisionCount: number): IndicatorSt
 
 function descriptorFor(key: VerdictSignal["key"], value: number): string {
   if (key === "growth") {
-    if (value < 0) return "Récession";
-    if (value < 1) return "Activité faible";
-    if (value < 2) return "Activité modérée";
-    return "Activité soutenue";
+    if (value < 0) return "Croissance nominale négative";
+    if (value < 1) return "Croissance nominale faible";
+    if (value < 2) return "Croissance nominale modérée";
+    return "Croissance nominale soutenue";
   }
   if (key === "majority") {
     if (value < 35) return "Pouvoir très fragile";
@@ -143,30 +136,30 @@ function descriptorFor(key: VerdictSignal["key"], value: number): string {
 }
 
 function buildSignals(state: CampaignState): VerdictSignal[] {
+  const initial = initialIndicators(state.baseline);
   return ([
-    ["growth", "Croissance"],
+    ["growth", INDICATOR_META.growth.label],
     ["majority", "Pouvoir"],
     ["opinion", "Opinion"],
   ] as const).map(([key, label]) => ({
     key,
     label,
     value: state.indicators[key],
-    initialValue: INITIAL_INDICATORS[key],
-    delta: state.indicators[key] - INITIAL_INDICATORS[key],
+    initialValue: initial[key],
+    delta: state.indicators[key] - initial[key],
     descriptor: descriptorFor(key, state.indicators[key]),
   }));
 }
 
 function buildTrajectory(state: CampaignState): VerdictCheckpoint[] {
-  return CHECKPOINTS.map((decisionCount) => {
-    const indicators = decisionCount === 96 ? state.indicators : reconstructAt(state, decisionCount);
-    return {
-      decisionCount,
-      label: decisionCount === 0 ? "Début du mandat" : decisionCount === 96 ? "Verdict final" : `Après ${decisionCount} dossiers`,
-      annualBalance: indicators.annualBalance,
-      majority: indicators.majority,
-    };
-  });
+  return state.annualCheckpoints.map((checkpoint) => ({
+    decisionCount: checkpoint.afterDecisionCount,
+    label: checkpoint.year === 5 ? "Verdict final" : `Fin de l'année ${checkpoint.year}`,
+    annualBalance: checkpoint.annualBalance,
+    majority: checkpoint.year === 5
+      ? state.indicators.majority
+      : reconstructAt(state, checkpoint.afterDecisionCount).majority,
+  }));
 }
 
 function immediateBudgetDelta(option: DecisionOption): number {
@@ -175,23 +168,53 @@ function immediateBudgetDelta(option: DecisionOption): number {
     .reduce((sum, effect) => sum + effect.delta, 0);
 }
 
+function budgetDuration(option: DecisionOption): "annual" | "once" {
+  return option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance")?.duration === "once"
+    ? "once"
+    : "annual";
+}
+
+function effectPriority(effect: DecisionOption["effects"][number]): number {
+  return effect.target === "indicator" ? INDICATOR_META[effect.key].priority : 60;
+}
+
+function normalizedEffectMagnitude(effect: DecisionOption["effects"][number]): number {
+  const epsilon = effect.target === "indicator" ? INDICATOR_META[effect.key].epsilon : 1;
+  return Math.abs(effect.delta) / epsilon;
+}
+
 function strongestStructuralEffect(option: DecisionOption): VerdictStructuralEffect | undefined {
   const effects = option.effects.filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"));
-  const strongest = effects.sort((left, right) => Math.abs(right.delta) - Math.abs(left.delta))[0];
+  const strongest = [...effects].sort((left, right) => (
+    effectPriority(right) - effectPriority(left)
+    || (left.target === right.target && left.key === right.key
+      ? normalizedEffectMagnitude(right) - normalizedEffectMagnitude(left)
+      : 0)
+  ))[0];
   if (!strongest) return undefined;
   return {
+    target: strongest.target,
     key: strongest.key,
-    label: EFFECT_LABELS[strongest.key] ?? strongest.key,
+    label: strongest.target === "indicator"
+      ? INDICATOR_META[strongest.key].label
+      : GROUP_EFFECT_LABELS[strongest.key] ?? strongest.key,
     delta: strongest.delta,
   };
 }
 
-function impactScore(option: DecisionOption): number {
-  const budget = Math.abs(immediateBudgetDelta(option));
-  const structural = option.effects
-    .filter((effect) => !(effect.target === "indicator" && effect.key === "annualBalance"))
-    .reduce((largest, effect) => Math.max(largest, Math.abs(effect.delta)), 0);
-  return budget * 100 + structural;
+function compareImpact(left: DecisionOption, right: DecisionOption): number {
+  const budgetDifference = Math.abs(immediateBudgetDelta(right)) - Math.abs(immediateBudgetDelta(left));
+  if (budgetDifference !== 0) return budgetDifference;
+  const leftStructural = strongestStructuralEffect(left);
+  const rightStructural = strongestStructuralEffect(right);
+  if (!leftStructural || !rightStructural) return Number(Boolean(rightStructural)) - Number(Boolean(leftStructural));
+  const leftEffect = left.effects.find((effect) => effect.key === leftStructural.key && effect.delta === leftStructural.delta)!;
+  const rightEffect = right.effects.find((effect) => effect.key === rightStructural.key && effect.delta === rightStructural.delta)!;
+  const priorityDifference = effectPriority(rightEffect) - effectPriority(leftEffect);
+  if (priorityDifference !== 0) return priorityDifference;
+  return leftEffect.target === rightEffect.target && leftEffect.key === rightEffect.key
+    ? normalizedEffectMagnitude(rightEffect) - normalizedEffectMagnitude(leftEffect)
+    : 0;
 }
 
 function selfContainedChoiceLabel(decisionTitle: string | undefined, optionLabel: string): string {
@@ -211,7 +234,7 @@ function buildDecisiveChoices(state: CampaignState, scenario: Scenario): Verdict
       return { record, decision, option, chapter };
     })
     .filter((item): item is typeof item & { option: DecisionOption } => Boolean(item.option))
-    .sort((left, right) => impactScore(right.option) - impactScore(left.option))
+    .sort((left, right) => compareImpact(left.option, right.option))
     .slice(0, 3)
     .map(({ record, decision, option, chapter }, index) => ({
       rank: index + 1,
@@ -219,6 +242,7 @@ function buildDecisiveChoices(state: CampaignState, scenario: Scenario): Verdict
       label: selfContainedChoiceLabel(decision?.title, option.label),
       chapter: chapter?.title ?? "Mandat national",
       budgetDelta: immediateBudgetDelta(option),
+      budgetDuration: budgetDuration(option),
       structuralEffect: strongestStructuralEffect(option),
       status: STATUS_LABELS[record.status],
     }));
@@ -289,7 +313,7 @@ export function buildMandateVerdictViewModel(
     headline: headlineFor(state.indicators.annualBalance, state.indicators.majority, state.indicators.opinion),
     summary: summaryFor(state),
     annualBalance: state.indicators.annualBalance,
-    annualBalanceDelta: state.indicators.annualBalance - INITIAL_INDICATORS.annualBalance,
+    annualBalanceDelta: state.indicators.annualBalance - state.baseline.annualBalanceMillions,
     signals: buildSignals(state),
     trajectory: buildTrajectory(state),
     decisiveChoices: buildDecisiveChoices(state, scenario),

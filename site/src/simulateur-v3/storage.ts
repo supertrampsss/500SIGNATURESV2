@@ -1,9 +1,12 @@
 import { applyEffect } from "./effects.ts";
-import { V3_MODELED_EFFECT_MARKER, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
+import { SCHEMA_VERSION, type CampaignState, type DecisionRecord, type Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
 
 export const V3_STORAGE_KEY = "simulateur-v3-campaign";
 const V2_STORAGE_KEY = "tunnel-partie";
+const MODELED_EFFECT_SOURCE_VERSION = 5;
+const MODELED_EFFECT_TARGET_VERSION = 6;
+const HISTORICAL_MODELED_EFFECT_MARKER = ":model:";
 
 export type StorageLike = {
   getItem(key: string): string | null;
@@ -13,6 +16,7 @@ export type StorageLike = {
 
 export type RestoreResult =
   | { kind: "restored"; state: CampaignState }
+  | { kind: "restart_required" }
   | { kind: "new" }
   | { kind: "v2_found" }
   | { kind: "invalid" }
@@ -37,26 +41,62 @@ export function restoreCampaign(storage: StorageLike, scenario: Scenario): Resto
 
   try {
     const parsed: unknown = JSON.parse(v3.value);
+    if (typeof parsed === "object" && parsed !== null
+        && (parsed as { schemaVersion?: unknown }).schemaVersion === 3) {
+      return { kind: "restart_required" };
+    }
     if (isCampaignState(parsed, scenario)) return { kind: "restored", state: parsed };
     const migrated = migratePreviousModeledEffects(parsed, scenario);
-    if (!migrated) return { kind: "invalid" };
-    try {
-      storage.setItem(V3_STORAGE_KEY, JSON.stringify(migrated));
-    } catch {
-      // The corrected state can still be used for this session when persistence is unavailable.
+    if (migrated) {
+      try {
+        storage.setItem(V3_STORAGE_KEY, JSON.stringify(migrated));
+      } catch {
+        // The corrected state can still be used for this session when persistence is unavailable.
+      }
+      return { kind: "restored", state: migrated };
     }
-    return { kind: "restored", state: migrated };
+    if (isValidCampaignFromAnotherScenarioVersion(parsed, scenario)) return { kind: "restart_required" };
+    return { kind: "invalid" };
   } catch {
     return { kind: "invalid" };
   }
 }
 
+function isValidCampaignFromAnotherScenarioVersion(value: unknown, scenario: Scenario): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  const campaign = value as Record<string, unknown>;
+  if (campaign.schemaVersion !== SCHEMA_VERSION
+      || typeof campaign.scenarioVersion !== "number"
+      || !Number.isFinite(campaign.scenarioVersion)
+      || campaign.scenarioVersion === scenario.version) {
+    return false;
+  }
+  const confirmedDecisionIds = new Set(
+    Array.isArray(campaign.decisions)
+      ? campaign.decisions.flatMap((record) => typeof record === "object" && record !== null
+          && typeof (record as { decisionId?: unknown }).decisionId === "string"
+        ? [(record as { decisionId: string }).decisionId]
+        : [])
+      : [],
+  );
+  const withoutConfirmedReferences = (ids: unknown): unknown => Array.isArray(ids)
+    ? ids.filter((id) => typeof id !== "string" || !confirmedDecisionIds.has(id))
+    : ids;
+  const detectionCandidate = {
+    ...campaign,
+    scenarioVersion: scenario.version,
+    lockedDecisionIds: withoutConfirmedReferences(campaign.lockedDecisionIds),
+    unlockedDecisionIds: withoutConfirmedReferences(campaign.unlockedDecisionIds),
+  };
+  return isCampaignState(detectionCandidate, scenario);
+}
+
 function migratePreviousModeledEffects(value: unknown, scenario: Scenario): CampaignState | null {
   if (typeof value !== "object" || value === null) return null;
   const previousVersion = (value as { scenarioVersion?: unknown }).scenarioVersion;
-  if (typeof previousVersion !== "number" || scenario.version !== previousVersion + 1) return null;
+  if (previousVersion !== MODELED_EFFECT_SOURCE_VERSION || scenario.version !== MODELED_EFFECT_TARGET_VERSION) return null;
   const hasModeledEffects = scenario.decisions.some((decision) => (
-    decision.options.some((option) => option.effects.some((effect) => effect.id.includes(V3_MODELED_EFFECT_MARKER)))
+    decision.options.some((option) => option.effects.some((effect) => effect.id.includes(HISTORICAL_MODELED_EFFECT_MARKER)))
   ));
   if (!hasModeledEffects) return null;
 
@@ -77,7 +117,7 @@ function applyModeledDecisionEffects(state: CampaignState, scenario: Scenario, r
   if (!option) return state;
   const sourceId = `${record.decisionId}:${record.optionId}`;
   return option.effects
-    .filter((effect) => effect.timing.kind === "immediate" && effect.id.includes(V3_MODELED_EFFECT_MARKER))
+    .filter((effect) => effect.timing.kind === "immediate" && effect.id.includes(HISTORICAL_MODELED_EFFECT_MARKER))
     .reduce((current, effect) => applyEffect(current, effect, {
       sourceType: "decision",
       sourceId,

@@ -8,6 +8,11 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     id: "maintenir",
     label: "Maintenir le cap",
     summary: "La politique reste en vigueur.",
+    mechanism: "Conserver le droit existant.",
+    horizon: { kind: "immediate" },
+    legalConstraints: [],
+    budgetDuration: "annual",
+    budgetTiming: { kind: "immediate" },
     beneficiaries: ["entreprises"],
     contributors: ["budget_public"],
     uncertainty: "moyenne",
@@ -21,6 +26,7 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
   const decision: Decision = {
     id: "decision-test",
     version: 1,
+    kind: "gestion",
     chapterId: "chapitre-test",
     title: "Que décider ?",
     context: "Un contexte testable.",
@@ -29,7 +35,7 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     dependencies: [],
     conflicts: [],
   };
-  const state = { schemaVersion: 3, scenarioVersion: 1 } satisfies Pick<CampaignState, "schemaVersion" | "scenarioVersion">;
+  const state = { schemaVersion: 4, scenarioVersion: 1 } satisfies Pick<CampaignState, "schemaVersion" | "scenarioVersion">;
   const indicatorEffect = {
     id: "effect-test",
     target: "indicator",
@@ -39,8 +45,14 @@ test("le schéma V3 représente une décision confirmable et une campagne versio
     duration: "once",
     explanation: "An indicator effect.",
   } satisfies EffectRule;
-  assert.equal(SCHEMA_VERSION, 3);
+  const mandateYearEffect = {
+    ...indicatorEffect,
+    id: "effect-year-test",
+    timing: { kind: "mandate_year", year: 3 },
+  } satisfies EffectRule;
+  assert.equal(SCHEMA_VERSION, 4);
   assert.equal(decision.options[0]?.id, "maintenir");
-  assert.equal(state.schemaVersion, 3);
+  assert.equal(state.schemaVersion, 4);
   assert.equal(indicatorEffect.key, "growth");
+  assert.equal(mandateYearEffect.timing.year, 3);
 });

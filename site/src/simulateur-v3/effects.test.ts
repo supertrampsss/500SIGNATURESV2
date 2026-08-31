@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { INITIAL_INDICATORS, createCampaign, selectOption } from "./campaign.ts";
+import { selectOption } from "./campaign.ts";
 import {
   applyEffect,
   confirmSelection,
@@ -9,9 +9,12 @@ import {
   resolveDuePromises,
   scheduleOptionConsequences,
 } from "./effects.ts";
-import { validScenario } from "./test-fixtures.ts";
+import { createTestCampaign as createCampaign, validScenario } from "./test-fixtures.ts";
+import { restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 import type { EffectRule, IndicatorKey, Scenario } from "./types.ts";
 import { isCampaignState } from "./validation.ts";
+
+const INITIAL_INDICATORS = createCampaign(validScenario()).indicators;
 
 function scenarioWithEffect(key: IndicatorKey, delta: number, timing: EffectRule["timing"]): Scenario {
   const scenario = validScenario();
@@ -22,9 +25,20 @@ function scenarioWithEffect(key: IndicatorKey, delta: number, timing: EffectRule
     key,
     delta,
     timing,
-    duration: "once",
+    duration: key === "annualBalance" ? "annual" : "once",
     explanation: "Effet test",
   }];
+  if (key === "annualBalance" || key === "interestCost") {
+    option.effects.push({
+      id: "required-non-budget-effect",
+      target: "indicator",
+      key: "financialCredibility",
+      delta: 1,
+      timing: { kind: "immediate" },
+      duration: "once",
+      explanation: "Effet hors budget requis par le contrat de scénario.",
+    });
+  }
   return scenario;
 }
 
@@ -48,11 +62,88 @@ test("confirmer applique les effets immédiats une seule fois", () => {
   assert.throws(() => confirmSelection(confirmed, scenario), /selection required/);
 });
 
+test("la confirmation persiste un instantané exact avant, après et causes", () => {
+  const scenario = scenarioWithEffect("annualBalance", 1_000, { kind: "immediate" });
+  const started = startAtFirstDecision(scenario);
+  const confirmed = confirmSelection(
+    selectOption(started, scenario, "decision-1", "decision-1-option-a"),
+    scenario,
+  );
+  const impact = confirmed.decisions[0]!.impact!;
+
+  assert.equal(impact.decisionId, "decision-1");
+  assert.equal(impact.optionId, "decision-1-option-a");
+  assert.equal(impact.confirmedAtIndex, 1);
+  assert.deepEqual(impact.indicators.map(({ key, before, after, delta }) => ({ key, before, after, delta })), [{
+    key: "annualBalance",
+    before: started.indicators.annualBalance,
+    after: started.indicators.annualBalance + 1_000,
+    delta: 1_000,
+  }, {
+    key: "financialCredibility",
+    before: started.indicators.financialCredibility,
+    after: started.indicators.financialCredibility + 1,
+    delta: 1,
+  }]);
+  assert.ok(impact.indicators.every((indicator) => indicator.causalEntryIds.length === 1));
+});
+
+test("un résultat tout différé persiste un instantané vide après sauvegarde et reprise", () => {
+  const scenario = scenarioWithEffect("growth", -0.4, { kind: "after_decisions", count: 2 });
+  const confirmed = confirmFirstDecision(scenario);
+  assert.deepEqual(confirmed.decisions[0]!.impact?.indicators, []);
+
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => { values.set(key, value); },
+    removeItem: (key: string) => { values.delete(key); },
+  };
+  saveCampaign(storage, confirmed, new Date("2026-08-30T12:00:00.000Z"));
+  assert.ok(values.has(V3_STORAGE_KEY));
+  const restored = restoreCampaign(storage, scenario);
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    assert.equal(restored.state.phase, "decision_result");
+    assert.deepEqual(restored.state.decisions[0]!.impact, confirmed.decisions[0]!.impact);
+  }
+});
+
 test("un effet différé attend le bon nombre de décisions", () => {
   const scenario = scenarioWithEffect("growth", -0.4, { kind: "after_decisions", count: 2 });
   const confirmed = confirmFirstDecision(scenario);
   assert.equal(confirmed.indicators.growth, INITIAL_INDICATORS.growth);
   assert.equal(confirmed.scheduledEvents[0]?.dueAtDecision, 3);
+});
+
+test("un effet d'année de mandat est programmé à la frontière annuelle du scénario", () => {
+  const scenario = scenarioWithEffect(
+    "employment",
+    2,
+    { kind: "mandate_year", year: 3 } as EffectRule["timing"],
+  );
+  const confirmed = confirmFirstDecision(scenario);
+
+  assert.equal(confirmed.indicators.employment, INITIAL_INDICATORS.employment);
+  assert.equal(confirmed.scheduledEvents[0]?.dueAtDecision, 60);
+  assert.deepEqual(confirmed.scheduledEvents[0]?.effects[0]?.timing, { kind: "immediate" });
+});
+
+test("un événement explicite n'arrive jamais avant l'horizon annuel de la réforme", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[0]!.options[0]!;
+  option.horizon = { kind: "mandate_year", year: 2 };
+  option.effects[0]!.timing = { kind: "mandate_year", year: 2 };
+  option.scheduledEvents = [{
+    id: "implementation-stress",
+    title: "La mise en œuvre est testée",
+    body: "Le stress ne peut suivre une réforme qui n'est pas encore entrée en vigueur.",
+    afterDecisions: 1,
+    effects: [],
+  }];
+
+  const confirmed = confirmFirstDecision(scenario);
+  assert.equal(confirmed.scheduledEvents.find((event) => event.id === "implementation-stress")?.dueAtDecision, 48);
 });
 
 test("chaque variation conserve sa cause lisible", () => {
@@ -127,7 +218,7 @@ test("les bornes politiques sont appliquées sans modifier l'état d'origine", (
 test("un effet différé est programmé mais jamais appliqué directement", () => {
   const scenario = scenarioWithEffect("growth", 2, { kind: "after_decisions", count: 1 });
   const state = createCampaign(scenario);
-  const result = scheduleOptionConsequences(state, scenario.decisions[0]!, scenario.decisions[0]!.options[0]!);
+  const result = scheduleOptionConsequences(state, scenario.decisions[0]!, scenario.decisions[0]!.options[0]!, scenario);
   assert.equal(result.indicators.growth, INITIAL_INDICATORS.growth);
   assert.deepEqual(result.scheduledEvents[0], {
     id: "decision-1:decision-1-option-a:effect-1",
@@ -180,7 +271,7 @@ test("confirmer applique les verrous, déverrouillages et promesses remplies", (
     failureEffects: [],
   }];
   const option = scenario.decisions[1]!.options[0]!;
-  option.locks = ["decision-3"];
+  option.locks = ["decision-1", "decision-3"];
   option.unlocks = ["decision-4"];
   option.fulfillsPromises = ["old-promise"];
   const state = {
@@ -188,11 +279,29 @@ test("confirmer applique les verrous, déverrouillages et promesses remplies", (
     phase: "decision" as const,
     decisionIndex: 1,
     lockedDecisionIds: ["decision-4"],
+    unlockedDecisionIds: ["decision-2"],
   };
   const confirmed = confirmSelection(selectOption(state, scenario, "decision-2", "decision-2-option-a"), scenario);
   assert.deepEqual(confirmed.lockedDecisionIds, ["decision-3"]);
   assert.ok(confirmed.unlockedDecisionIds.includes("decision-4"));
   assert.equal(confirmed.activePromises[0]?.fulfilled, true);
+});
+
+test("confirmer n'enregistre pas un déverrouillage rétroactif", () => {
+  const scenario = validScenario();
+  const option = scenario.decisions[1]!.options[0]!;
+  option.locks = ["decision-3"];
+  option.unlocks = ["decision-1", "decision-4"];
+  const state = {
+    ...confirmFirstDecision(scenario),
+    phase: "decision" as const,
+    decisionIndex: 1,
+    lockedDecisionIds: ["decision-4"],
+  };
+
+  const confirmed = confirmSelection(selectOption(state, scenario, "decision-2", option.id), scenario);
+  assert.deepEqual(confirmed.lockedDecisionIds, ["decision-3"]);
+  assert.deepEqual(confirmed.unlockedDecisionIds, ["decision-4"]);
 });
 
 test("un delta non fini est refusé", () => {
@@ -284,16 +393,13 @@ test("un effet hostile indicateur vers farmers est rejeté sans créer de NaN", 
 });
 
 test("un effet annual est appliqué une fois et journalisé comme rythme annuel", () => {
-  const scenario = validScenario();
-  scenario.decisions[0]!.options[0]!.effects = [{
+  const scenario = scenarioWithEffect("annualBalance", 1_200, { kind: "immediate" });
+  scenario.decisions[0]!.options[0]!.effects[0] = {
+    ...scenario.decisions[0]!.options[0]!.effects[0]!,
     id: "annual-balance",
-    target: "indicator",
-    key: "annualBalance",
-    delta: 1_200,
-    timing: { kind: "immediate" },
     duration: "annual",
     explanation: "Le rythme annuel est relevé.",
-  }];
+  };
 
   const confirmed = confirmFirstDecision(scenario);
   const resolvedEvents = resolveDueEvents(confirmed);
@@ -301,7 +407,7 @@ test("un effet annual est appliqué une fois et journalisé comme rythme annuel"
 
   assert.equal(confirmed.indicators.annualBalance, INITIAL_INDICATORS.annualBalance + 1_200);
   assert.equal(resolvedPromises.state.indicators.annualBalance, INITIAL_INDICATORS.annualBalance + 1_200);
-  assert.deepEqual(confirmed.causalLedger, [{
+  assert.deepEqual(confirmed.causalLedger.find((entry) => entry.id.includes(":annual-balance:")), {
     id: "decision:decision-1:decision-1-option-a:annual-balance:1",
     sourceType: "decision",
     sourceId: "decision-1:decision-1-option-a",
@@ -311,7 +417,7 @@ test("un effet annual est appliqué une fois et journalisé comme rythme annuel"
     duration: "annual",
     explanation: "Le rythme annuel est relevé.",
     appliedAtDecision: 1,
-  }]);
+  });
 });
 
 test("les conséquences matérialisées ne changent pas après mutation du scénario", () => {
@@ -390,9 +496,20 @@ test("les conséquences matérialisées ne changent pas après mutation du scén
   assert.equal(promises.state.indicators.majority, INITIAL_INDICATORS.majority - 4);
 });
 
-test("la matérialisation refuse une conséquence créée à la décision 96 et due après la campagne", () => {
-  const scenario = validScenario();
-  const decision = scenario.decisions[95]!;
+test("la matérialisation borne une conséquence à la longueur du scénario", () => {
+  const source = validScenario();
+  const decisions = source.decisions.slice(0, 3);
+  const scenario: Scenario = {
+    ...source,
+    chapters: [{ ...source.chapters[0]!, decisionIds: decisions.map((decision) => decision.id) }],
+    decisions,
+  };
+  const finalAlternative = scenario.decisions.at(-1)!.options[1]!;
+  finalAlternative.horizon = { kind: "immediate" };
+  finalAlternative.effects[0]!.timing = { kind: "immediate" };
+  finalAlternative.beneficiaries = ["alternative beneficiary"];
+  const base = createCampaign(scenario);
+  const decision = scenario.decisions[2]!;
   const option = decision.options[0]!;
   option.effects = [{
     id: "after-campaign",
@@ -404,7 +521,7 @@ test("la matérialisation refuse une conséquence créée à la décision 96 et 
     explanation: "Cette règle arrive trop tard.",
   }];
   const state = {
-    ...createCampaign(validScenario()),
+    ...base,
     decisions: scenario.decisions.map((candidate, index) => ({
       decisionId: candidate.id,
       optionId: candidate.options[0]!.id,
@@ -413,5 +530,5 @@ test("la matérialisation refuse une conséquence créée à la décision 96 et 
     })),
   };
 
-  assert.throws(() => scheduleOptionConsequences(state, decision, option), /after decision 96/);
+  assert.throws(() => scheduleOptionConsequences(state, decision, option, scenario), /after decision 3/);
 });

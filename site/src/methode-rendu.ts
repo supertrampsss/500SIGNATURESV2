@@ -71,7 +71,7 @@ const TITRES = {
   navigateur: "Ce que la page demande au réseau",
   grille: "La grille de verdicts",
   crans: "Le verdict, en trois crans",
-  confusions: "Les sept confusions",
+  confusions: "Les dix confusions",
   registres: "Les sept registres d'énoncé",
   sujets: "Le choix des sujets",
 } as const;
@@ -105,6 +105,9 @@ const ORDRE_CONFUSIONS = {
   etat_apu: true,
   annuel_cumule: true,
   perimetre_geographique: true,
+  gros_detail: true,
+  panier_partiel: true,
+  indicateur_partiel: true,
 } satisfies Record<Confusion, true>;
 
 /** Les six registres que porte le type `Registre` — leur ordre est celui de
