@@ -338,8 +338,6 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
   transition: border-color 180ms ease;
 }
 
-.simulateur-v3__option--selected { border-color: var(--v3-red); border-left-width: 4px; }
-
 .simulateur-v3__option-select {
   display: grid;
   gap: var(--espace-2);
@@ -356,6 +354,8 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
   overflow-wrap: anywhere;
 }
 
+.simulateur-v3__option-copy { display: grid; gap: var(--espace-2); min-width: 0; }
+
 .simulateur-v3__option-label {
   font-family: var(--serif);
   font-size: clamp(1.25rem, 4.8vw, 1.65rem);
@@ -371,22 +371,19 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
 .simulateur-v3__option-budget--neutral { color: var(--v3-muted); }
 .simulateur-v3__option-impact { color: var(--v3-ink); font-size: var(--texte-s); font-weight: 750; }
 .simulateur-v3__option-confidence { color: var(--v3-muted); font-size: var(--texte-xs); font-weight: 800; }
+.simulateur-v3__option-summary {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--v3-muted);
+  font-size: var(--texte-s);
+  line-height: 1.4;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
 
-.simulateur-v3__option-detail { border-top: 1px solid var(--v3-rule); }
-.simulateur-v3__option-detail > summary,
 .simulateur-v3__event-group summary,
 .simulateur-v3__event-overflow > summary { min-height: var(--cible); padding: var(--espace-3) var(--espace-4); font-weight: 850; cursor: pointer; }
-.simulateur-v3__option-detail-body { display: grid; gap: var(--espace-4); padding: 0 var(--espace-4) var(--espace-4); }
-.simulateur-v3__option-summary { max-width: 66ch; margin: 0; color: var(--v3-muted); line-height: 1.5; }
-.simulateur-v3__option-mechanism { display: grid; gap: 0; margin: 0; }
-.simulateur-v3__option-mechanism > div { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--espace-1); min-width: 0; padding-block: var(--espace-2); border-bottom: 1px solid var(--v3-rule); }
-.simulateur-v3__option-mechanism dt { font-weight: 850; }
-.simulateur-v3__option-mechanism dd { margin: 0; color: var(--v3-muted); }
-.simulateur-v3__option-all-effects h3 { margin: 0 0 var(--espace-2); font-size: var(--texte-s); }
-.simulateur-v3__option-all-effects ul { display: grid; gap: var(--espace-2); margin: 0; padding-left: var(--espace-5); }
-.simulateur-v3__legal { display: grid; gap: var(--espace-2); margin: 0; color: var(--v3-muted); line-height: 1.45; }
-.simulateur-v3__legal strong { color: var(--v3-ink); }
-.simulateur-v3__confirmation-bar { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--espace-3); padding-top: var(--espace-3); border-top: 1px solid var(--v3-rule); }
 
 .simulateur-v3__evidence { border-block: 1px solid var(--v3-rule); }
 .simulateur-v3__evidence summary { min-height: var(--cible); padding: var(--espace-4) 0; font-weight: 900; cursor: pointer; }
@@ -658,7 +655,6 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
   .simulateur-v3__mandate-dashboard { grid-template-columns: minmax(0, 1fr); }
   .simulateur-v3__dashboard-group { border-right: 0; }
   .simulateur-v3__evidence dl > div { grid-template-columns: minmax(0, 1fr); gap: 0; }
-  .simulateur-v3__option-mechanism > div,
   .simulateur-v3__result-cause dl > div { grid-template-columns: minmax(0, 1fr); gap: var(--espace-1); }
   .simulateur-v3__result-metrics dd { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); }
   .simulateur-v3__verdict-hero,
@@ -674,7 +670,6 @@ body[data-vue="simulateur"][data-simulateur-version="3"] .simulateur-v3 { min-he
   .simulateur-v3__scene-actions,
   .simulateur-v3__pause-actions,
   .simulateur-v3__verdict-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .simulateur-v3__confirmation-bar { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .simulateur-v3__verdict-france,
   .simulateur-v3__verdict-share-status { grid-column: 1 / -1; }
 }

@@ -168,15 +168,16 @@ test("la trajectoire des finances reste disponible au Conseil, pas dans chaque d
   assert.notEqual(points(renderSimulatorV3(base, SCENARIO_V3_PREVIEW)), points(renderSimulatorV3(moved, SCENARIO_V3_PREVIEW)));
 });
 
-test("chaque bouton fermé expose exactement nom, budget, un impact principal et risque", () => {
+test("chaque carte expose directement un résumé court, le budget, un impact principal et le risque", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   const buttons = closedOptionButtons(html);
   assert.equal(buttons.length, decision.options.length);
   for (const button of buttons) {
-    assert.equal(occurrences(button, "data-v3-fact="), 4);
+    assert.equal(occurrences(button, "data-v3-fact="), 5);
     assert.equal(occurrences(button, 'data-v3-fact="name"'), 1);
+    assert.equal(occurrences(button, 'data-v3-fact="summary"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="budget"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="impact"'), 1);
     assert.equal(occurrences(button, 'data-v3-fact="risk"'), 1);
@@ -184,11 +185,12 @@ test("chaque bouton fermé expose exactement nom, budget, un impact principal et
     const labelledBy = button.match(/aria-labelledby="([^"]+)"/)?.[1];
     const describedBy = button.match(/aria-describedby="([^"]+)"/)?.[1]?.split(" ") ?? [];
     assert.ok(labelledBy);
-    assert.equal(describedBy.length, 3);
+    assert.equal(describedBy.length, 4);
     for (const id of [labelledBy, ...describedBy]) {
       assert.equal(occurrences(button, `id="${id}"`), 1, `référence accessible absente : ${id}`);
     }
-    assert.doesNotMatch(button, /simulateur-v3__option-summary|Mécanisme|Bénéficiaires|Contributeurs/);
+    assert.match(button, /simulateur-v3__option-summary/);
+    assert.doesNotMatch(button, /Mécanisme|Bénéficiaires|Contributeurs/);
   }
 });
 
@@ -222,64 +224,25 @@ test("l'impact principal est unique, priorisé par INDICATOR_META et garde son �
   assert.equal(occurrences(firstButton, 'data-v3-fact="impact"'), 1);
 });
 
-test("les conséquences affichent l'unité propre à chaque indicateur", () => {
-  const scenario = structuredClone(SCENARIO_V3_PREVIEW);
-  const option = scenario.decisions[0]!.options[0]!;
-  option.horizon = { kind: "immediate" };
-  option.effects = [{
-    id: "growth-test",
-    target: "indicator",
-    key: "growth",
-    delta: 0.12,
-    timing: { kind: "immediate" },
-    duration: "once",
-    explanation: "Hypothèse de test.",
-  }, {
-    id: "interest-test",
-    target: "indicator",
-    key: "interestCost",
-    delta: 12_000,
-    timing: { kind: "immediate" },
-    duration: "annual",
-    explanation: "Hypothèse de test.",
-  }];
-  const state = { ...createCampaign(scenario), phase: "decision" as const };
-  const selected = selectOption(state, scenario, scenario.decisions[0]!.id, option.id);
-  const html = renderSimulatorV3(selected, scenario);
-  const detail = html.split('class="simulateur-v3__option-detail"')[1]!.split("</details>")[0]!;
-
-  assert.equal(occurrences(detail, "Croissance nominale annuelle +0,12 point de pourcentage par an"), 1);
-  assert.equal(occurrences(detail, "Charge d&#39;intérêt annuelle +12 milliards d&#39;euros"), 1);
-  assert.equal(occurrences(detail, "<li>"), option.effects.length);
-});
-
-test("le résumé est absent de la surface fermée puis visible uniquement dans le détail sélectionné", () => {
+test("le résumé de chaque option est visible sans ouvrir de détail", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   assert.notEqual(decision.options[0]!.summary, decision.context);
-  const closed = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
-  assert.doesNotMatch(closed, /simulateur-v3__option-summary/);
-
-  const selected = renderSimulatorV3(selectOption(state, SCENARIO_V3_PREVIEW, decision.id, decision.options[0]!.id), SCENARIO_V3_PREVIEW);
-  assert.equal(occurrences(selected, 'class="simulateur-v3__option-detail"'), 1);
-  assert.equal(occurrences(selected, 'class="simulateur-v3__option-summary"'), 1);
-  assert.ok(selected.includes(escapedHtml(decision.options[0]!.summary)));
-  assert.ok(!selected.includes(escapedHtml(decision.options[1]!.summary)));
+  const html = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
+  assert.equal(occurrences(html, 'class="simulateur-v3__option-summary"'), decision.options.length);
+  for (const option of decision.options) {
+    assert.ok(html.includes(escapedHtml(option.summary)) || html.includes("…"));
+  }
+  assert.doesNotMatch(html, /simulateur-v3__option-detail|data-v3-action="confirm"|data-v3-action="modify"/);
 });
 
-test("la sélection est réversible et la confirmation reste une action distincte", () => {
+test("les cartes sont des actions directes sans état de présélection", () => {
   const state = { ...createCampaign(SCENARIO_V3_PREVIEW), phase: "decision" as const };
   const decision = SCENARIO_V3_PREVIEW.decisions[0]!;
   const initial = renderSimulatorV3(state, SCENARIO_V3_PREVIEW);
   assert.equal(occurrences(initial, 'data-v3-action="select"'), decision.options.length);
-  assert.equal(occurrences(initial, 'aria-pressed="false"'), decision.options.length);
+  assert.equal(occurrences(initial, 'aria-pressed='), 0);
   assert.doesNotMatch(initial, /data-v3-action="confirm"|data-v3-action="modify"/);
-
-  const selectedState = selectOption(state, SCENARIO_V3_PREVIEW, decision.id, decision.options[1]!.id);
-  const selected = renderSimulatorV3(selectedState, SCENARIO_V3_PREVIEW);
-  assert.equal(occurrences(selected, 'aria-pressed="true"'), 1);
-  assert.equal(occurrences(selected, 'data-v3-action="confirm"'), 1);
-  assert.equal(occurrences(selected, 'data-v3-action="modify"'), 1);
 });
 
 test("le résultat confirmé reste lisible et causal jusqu'à une continuation explicite", () => {

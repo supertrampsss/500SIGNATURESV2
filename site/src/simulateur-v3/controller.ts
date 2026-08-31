@@ -1,5 +1,4 @@
 import {
-  clearSelection,
   createCampaign,
   normalizeChapterTransition,
   selectOption,
@@ -108,11 +107,6 @@ function inferredPhaseBeforePause(state: CampaignState, scenario: Scenario): Cam
   return state.decisions.length > position ? "decision_result" : "decision";
 }
 
-function optionSelector(optionId: string): string {
-  const safeId = optionId.replaceAll("\\", "\\\\").replaceAll('"', '\\"');
-  return `.simulateur-v3__option-select[data-option-id="${safeId}"]`;
-}
-
 export function mountSimulatorV3(
   host: SimulatorV3Host,
   scenario: Scenario,
@@ -169,18 +163,21 @@ export function mountSimulatorV3(
     render(resetScene);
   };
 
-  const clearPendingSelection = (returnFocus = false) => {
-    if (!state.pendingSelection) return;
-    const selectedOptionId = state.pendingSelection.optionId;
-    state = clearSelection(state);
-    persistAndRender();
-    if (returnFocus) {
-      host.querySelector?.(optionSelector(selectedOptionId))?.focus?.({ preventScroll: true });
-    }
-  };
-
   const emit = (detail: Parameters<typeof emitSimulatorV3Event>[0]) => {
     emitSimulatorV3Event(detail, dependencies.eventTarget);
+  };
+
+  const advanceToNextScene = (previousPhase: CampaignPhase) => {
+    state = advanceCampaign(state, scenario, crisisRules);
+    if (state.phase === "decision") {
+      emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
+    }
+    if (state.phase === "crisis" && previousPhase !== "crisis" && state.activeCrisis) {
+      emit({ type: "crisis_triggered", crisisId: state.activeCrisis.ruleId });
+    }
+    if (state.phase === "chapter_intro") emit({ type: "chapter_completed", chapter: state.chapterIndex });
+    if (state.phase === "verdict") emit({ type: "campaign_completed" });
+    persistAndRender(true);
   };
 
   const onClick: EventListener = (event) => {
@@ -225,39 +222,19 @@ export function mountSimulatorV3(
       const decisionId = node.dataset.decisionId;
       const optionId = node.dataset.optionId;
       if (!decisionId || !optionId) return;
-      state = selectOption(state, scenario, decisionId, optionId);
-      persistAndRender();
-      return;
-    }
-
-    if (action === "modify" && state.phase === "decision" && state.pendingSelection) {
-      clearPendingSelection(true);
-      return;
-    }
-
-    if (action === "confirm" && state.phase === "decision" && state.pendingSelection) {
-      state = confirmSelection(state, scenario);
+      state = confirmSelection(selectOption(state, scenario, decisionId, optionId), scenario);
       emit({
         type: "decision_confirmed",
         chapter: state.chapterIndex + 1,
         position: state.decisions.length,
       });
-      persistAndRender();
+      advanceToNextScene("decision_result");
       return;
     }
 
     if (action === "continue" && ["decision_result", "delayed_event", "council"].includes(state.phase)) {
       const previousPhase = state.phase;
-      state = advanceCampaign(state, scenario, crisisRules);
-      if (state.phase === "decision") {
-        emit({ type: "decision_viewed", chapter: state.chapterIndex + 1, position: state.decisions.length + 1 });
-      }
-      if (state.phase === "crisis" && previousPhase !== "crisis" && state.activeCrisis) {
-        emit({ type: "crisis_triggered", crisisId: state.activeCrisis.ruleId });
-      }
-      if (state.phase === "chapter_intro") emit({ type: "chapter_completed", chapter: state.chapterIndex });
-      if (state.phase === "verdict") emit({ type: "campaign_completed" });
-      persistAndRender(true);
+      advanceToNextScene(previousPhase);
       return;
     }
 
@@ -320,19 +297,10 @@ export function mountSimulatorV3(
     }
   };
 
-  const onKeydown: EventListener = (event) => {
-    const keyboardEvent = event as KeyboardEvent;
-    if (keyboardEvent.key !== "Escape" || state.phase !== "decision" || !state.pendingSelection) return;
-    keyboardEvent.preventDefault();
-    clearPendingSelection(true);
-  };
-
   host.addEventListener("click", onClick);
-  host.addEventListener("keydown", onKeydown);
   render(true);
 
   return () => {
     host.removeEventListener("click", onClick);
-    host.removeEventListener("keydown", onKeydown);
   };
 }
