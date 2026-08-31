@@ -220,6 +220,44 @@ function effectLabelWithTiming(effect: EffectRule): string {
   return timing ? `${effectLabel(effect)} · ${timing}` : effectLabel(effect);
 }
 
+const COMPACT_INDICATOR_LABELS: Record<keyof typeof INDICATOR_META, string> = {
+  annualBalance: "Solde",
+  debtToGdp: "Dette",
+  interestCost: "Intérêts",
+  growth: "Croissance",
+  employment: "Emploi",
+  investment: "Investissement",
+  publicServices: "Services publics",
+  majority: "Majorité",
+  reformCapacity: "Réformes",
+  opinion: "Opinion",
+  institutionalTrust: "Confiance",
+  financialCredibility: "Marchés",
+};
+
+function compactImpactLabel(effect: Extract<EffectRule, { target: "indicator" }>): string {
+  const key = effect.key as keyof typeof INDICATOR_META;
+  const meta = INDICATOR_META[key];
+  const label = COMPACT_INDICATOR_LABELS[key];
+  const value = effect.delta.toLocaleString("fr-FR", { maximumFractionDigits: meta.precision });
+  const signedValue = `${effect.delta > 0 ? "+" : ""}${value}`;
+  const delta = meta.unit === "M€"
+    ? Math.abs(effect.delta) >= 1_000
+      ? `${effect.delta > 0 ? "+" : ""}${(effect.delta / 1_000).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} Md€`
+      : `${signedValue} M€`
+    : meta.unit === "% du PIB"
+      ? `${signedValue} pt PIB`
+      : meta.unit === "% par an"
+        ? `${signedValue} pt/an`
+        : signedValue;
+  const timing = effect.timing.kind === "mandate_year"
+    ? ` · an ${effect.timing.year}`
+    : effect.timing.kind === "after_decisions"
+      ? ` · +${effect.timing.count} choix`
+      : "";
+  return `${label} ${delta}${timing}`;
+}
+
 function horizonLabel(horizon: DecisionOption["horizon"]): string {
   if (horizon.kind === "immediate") return "Immédiat";
   if (horizon.kind === "mandate_year") return `Année ${horizon.year}`;
@@ -294,7 +332,7 @@ function renderMandateDashboard(state: CampaignState): string {
     </aside>`;
 }
 
-function principalIndicatorEffect(option: DecisionOption): EffectRule | undefined {
+function principalIndicatorEffect(option: DecisionOption): Extract<EffectRule, { target: "indicator" }> | undefined {
   const candidates = option.effects.filter((effect): effect is Extract<EffectRule, { target: "indicator" }> =>
     effect.target === "indicator" && effect.key !== "annualBalance");
   return [...candidates].sort((left, right) =>
@@ -310,11 +348,12 @@ function renderOption(decision: Decision, option: DecisionOption): string {
     ? `${formatV3Amount(budget.delta)} ${budget.duration === "once" ? "une seule fois" : "par an"}${budgetTiming ? ` · ${budgetTiming}` : ""}`
     : "Solde inchangé";
   const budgetSignal = !budget || budget.delta === 0 ? "neutral" : budget.delta > 0 ? "positive" : "negative";
+  const impactLabel = principalImpact ? compactImpactLabel(principalImpact) : "Impact non chiffré";
+  const impactDescription = principalImpact ? effectLabelWithTiming(principalImpact) : impactLabel;
   const labelId = `v3-option-label-${option.id}`;
   const summaryId = `v3-option-summary-${option.id}`;
   const budgetId = `v3-option-budget-${option.id}`;
   const impactId = `v3-option-impact-${option.id}`;
-  const riskId = `v3-option-risk-${option.id}`;
   return `
     <article class="simulateur-v3__option" data-option-id="${escapeHtml(option.id)}">
       <button
@@ -324,15 +363,16 @@ function renderOption(decision: Decision, option: DecisionOption): string {
         data-decision-id="${escapeHtml(decision.id)}"
         data-option-id="${escapeHtml(option.id)}"
         aria-labelledby="${escapeHtml(labelId)}"
-        aria-describedby="${escapeHtml(`${summaryId} ${budgetId} ${impactId} ${riskId}`)}"
+        aria-describedby="${escapeHtml(`${summaryId} ${budgetId} ${impactId}`)}"
       >
         <span class="simulateur-v3__option-copy">
           <span id="${escapeHtml(labelId)}" class="simulateur-v3__option-label" data-v3-fact="name">${escapeHtml(compactOptionLabel(option.label))}</span>
-          <span id="${escapeHtml(summaryId)}" class="simulateur-v3__option-summary" data-v3-fact="summary">${escapeHtml(compactText(option.summary, 120))}</span>
+          <span id="${escapeHtml(summaryId)}" class="simulateur-v3__option-summary" data-v3-fact="summary">${escapeHtml(option.summary)}</span>
         </span>
-        <strong id="${escapeHtml(budgetId)}" class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
-        <span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact" data-v3-fact="impact">${escapeHtml(principalImpact ? effectLabelWithTiming(principalImpact) : "Impact détaillé dans le mécanisme")}</span>
-        <span id="${escapeHtml(riskId)}" class="simulateur-v3__option-confidence" data-v3-fact="risk">Incertitude ${escapeHtml(option.uncertainty)}</span>
+        <span class="simulateur-v3__option-signals">
+          <strong id="${escapeHtml(budgetId)}" class="simulateur-v3__option-budget simulateur-v3__option-budget--${budgetSignal}" data-v3-fact="budget">${escapeHtml(budgetLabel)}</strong>
+          <span id="${escapeHtml(impactId)}" class="simulateur-v3__option-impact-pill" data-v3-fact="impact" aria-label="${escapeHtml(impactDescription)}">${escapeHtml(impactLabel)}</span>
+        </span>
       </button>
     </article>`;
 }
@@ -442,7 +482,6 @@ function renderDecisionResult(state: CampaignState, scenario: Scenario): string 
             <p>${escapeHtml(option.mechanism)}</p>
             <dl>
               <div><dt>Horizon</dt><dd>${escapeHtml(horizonLabel(option.horizon))}</dd></div>
-              <div><dt>Incertitude</dt><dd>${escapeHtml(option.uncertainty)}</dd></div>
               ${nextDue === undefined ? "" : `<div><dt>Prochaine échéance</dt><dd>Dossier ${nextDue} sur ${totalDecisions(scenario)}</dd></div>`}
             </dl>
           </section>
