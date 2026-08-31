@@ -3604,7 +3604,7 @@ test("la V3 attend une baseline nationale publiée avant tout montage", () => {
   ]) assert.match(chargement, new RegExp(`france\\.series\\.${id}`));
   assert.match(chargement, /dataVersion: donnees\.version\(\)/);
   assert.ok(demarrage.indexOf("await donnees.initialiser()") < demarrage.indexOf("await chargerBaselineSimulateurV3()"));
-  assert.ok(ouverture.indexOf("if (!baselineSimulateurV3)") < ouverture.indexOf("mountSimulatorV3("));
+  assert.ok(ouverture.indexOf("if (!baseline)") < ouverture.indexOf("mountSimulatorV3("));
   assert.match(indisponible, /disabled>Commencer le mandat/);
   assert.match(indisponible, /Réessayer/);
   assert.match(indisponible, /Retourner à France/);
@@ -3626,12 +3626,14 @@ test("la V3 remplace le chrome par sa barre de commandement et ne déclenche jam
   assert.match(MAIN, /if \(vue !== "simulateur" \|\| !versionSimulateurV3\(\)\) \{[\s\S]*?demonterApercuSimulateurV3\(\);/);
 });
 
-test("le mode navigateur de test injecte seulement une scène V10 validée par le reducer", () => {
+test("le mode navigateur de test injecte seulement une scène V10 et une baseline déterministes", () => {
   const ouverture = MAIN.slice(MAIN.indexOf("async function ouvrirSimulateur"), MAIN.indexOf("async function demarrer"));
-  assert.match(MAIN, /import \{ stateForE2ePhase, type E2ePhase \} from "\.\/simulateur-v3\/mobile-fixtures\.ts";/);
+  assert.match(MAIN, /MOBILE_E2E_BASELINE/);
   assert.match(MAIN, /import\.meta\.env\.MODE !== "test"/);
-  assert.match(MAIN, /new URLSearchParams\(location\.search\)\.get\("e2e-phase"\)/);
-  assert.match(MAIN, /stateForE2ePhase\(phase, scenario\)/);
+  assert.match(MAIN, /const search = new URLSearchParams\(location\.search\)/);
+  assert.match(MAIN, /stateForE2ePhase\(request\.phase, scenario, request\.fixture\)/);
+  assert.match(ouverture, /const baseline = e2eBaseline\(\) \?\? baselineSimulateurV3/);
+  assert.match(ouverture, /baseline,/);
   assert.match(ouverture, /initialState: historicalV9 \?\? e2eInitialState\(scenario\)/);
 });
 

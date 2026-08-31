@@ -125,7 +125,12 @@ import { intercepterNavigation, renduNavigation } from "./navigation.ts";
 import { demarrerSessionImmersive } from "./session-immersive.ts";
 import { emettreInterface } from "./evenements-interface.ts";
 import { mountSimulatorV3 } from "./simulateur-v3/controller.ts";
-import { stateForE2ePhase, type E2ePhase } from "./simulateur-v3/mobile-fixtures.ts";
+import {
+  MOBILE_E2E_BASELINE,
+  stateForE2ePhase,
+  type E2eFixture,
+  type E2ePhase,
+} from "./simulateur-v3/mobile-fixtures.ts";
 import { SCENARIO_V10_CRISIS_RULES, SCENARIO_V9_CRISIS_RULES } from "./simulateur-v3/scenario-crises.ts";
 import { scenarioForVersion } from "./simulateur-v3/scenario-resolver.ts";
 import { completedV9StateFromStorage } from "./simulateur-v3/storage.ts";
@@ -2461,12 +2466,26 @@ function versionSimulateurV3(): boolean {
   return modeSimulateur(location.pathname, location.search) === "v3";
 }
 
-function e2eInitialState(scenario: SimulatorScenario): CampaignState | undefined {
-  if (import.meta.env.MODE !== "test" || scenario.version !== 10) return undefined;
-  const value = new URLSearchParams(location.search).get("e2e-phase");
-  const phases: readonly E2ePhase[] = ["decision", "decision_result", "council", "crisis", "verdict"];
+function e2eMobileRequest(): { phase: E2ePhase; fixture: E2eFixture } | undefined {
+  if (import.meta.env.MODE !== "test") return undefined;
+  const search = new URLSearchParams(location.search);
+  const value = search.get("e2e-phase");
+  const phases: readonly E2ePhase[] = ["decision", "crisis", "verdict"];
   const phase = phases.find((candidate) => candidate === value);
-  return phase ? stateForE2ePhase(phase, scenario) : undefined;
+  const fixture = search.get("e2e-fixture");
+  if (!phase || (fixture !== null && fixture !== "epr2") || (fixture === "epr2" && phase !== "decision")) return undefined;
+  return { phase, fixture: fixture ?? "default" };
+}
+
+function e2eInitialState(scenario: SimulatorScenario): CampaignState | undefined {
+  const request = e2eMobileRequest();
+  return request && scenario.version === 10
+    ? stateForE2ePhase(request.phase, scenario, request.fixture)
+    : undefined;
+}
+
+function e2eBaseline(): MandateBaseline | undefined {
+  return e2eMobileRequest() ? MOBILE_E2E_BASELINE : undefined;
 }
 
 function vuesConnues(): readonly string[] {
@@ -3859,7 +3878,8 @@ async function ouvrirSimulateur(): Promise<void> {
     tunnel.hidden = true;
     expert.hidden = true;
     hoteV3.hidden = false;
-    if (!baselineSimulateurV3) {
+    const baseline = e2eBaseline() ?? baselineSimulateurV3;
+    if (!baseline) {
       rendreSimulateurV3Indisponible(
         hoteV3,
         erreurBaselineSimulateurV3 ?? "Chargement des données nationales publiées.",
@@ -3872,7 +3892,7 @@ async function ouvrirSimulateur(): Promise<void> {
       const scenario = scenarioForVersion(historicalV9 ? 9 : 10);
       if (!scenario) throw new Error("Requested simulator scenario unavailable");
       demonterSimulateurV3 = mountSimulatorV3(hoteV3, scenario, {
-        baseline: baselineSimulateurV3,
+        baseline,
         crisisRules: scenario.version === 9 ? SCENARIO_V9_CRISIS_RULES : SCENARIO_V10_CRISIS_RULES,
         initialState: historicalV9 ?? e2eInitialState(scenario),
       });
