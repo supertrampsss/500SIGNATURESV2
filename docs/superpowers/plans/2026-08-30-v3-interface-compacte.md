@@ -1,45 +1,38 @@
 # V3 Compact Interface Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans. Implement one task at a time with TDD, independent review and visual verification.
 
-**Goal:** Make the 60-decision campaign fast to scan on mobile, while making selection, confirmation and causal impact unmistakable.
+**Goal:** Make the 60-decision campaign fast to scan on mobile while making selection, confirmation and causal impact unmistakable.
 
-**Architecture:** Apply the visual contract from `2026-08-30-v3-direction-design-addendum.md`, then introduce a small presentation model between campaign state and HTML. Render one compact layer by default, keep selection reversible, retain the result on the same screen, move evidence into an accessible drawer, show only changed metrics, and explicitly restore scroll and focus after navigation.
+**Architecture:** Apply the locked visual direction from `2026-08-30-v3-direction-design-addendum.md`, then put a pure presentation model between campaign state and HTML. Keep one compact dossier on screen, make selection reversible, store an exact before/after result snapshot at confirmation, retain that result until explicit continuation, use native accessible disclosure for evidence, and restore focus/scroll only when the campaign actually changes scene.
 
-**Tech Stack:** TypeScript, semantic HTML, CSS, Node test runner, existing V3 controller and renderer
+**Tech stack:** existing TypeScript and CSS, semantic HTML, Node test runner, existing V3 campaign/controller/renderer. No framework migration.
 
-## Global Constraints
+## Global constraints
 
-- Execute `2026-08-30-v3-campagne-60-impact.md` first. This plan consumes its 60-decision scenario, mechanism fields and timeline checkpoints.
-- Treat `../specs/2026-08-30-v3-direction-design-addendum.md` as a required acceptance contract.
-- Target viewport is 390 px with no horizontal overflow.
-- Campaign header uses at most two visual rows and measures at most 84 px on mobile or 64 px on desktop.
-- Public decision title size is 26 to 32 px on mobile.
-- Closed option cards show label, budget, one principal impact and one risk only.
-- Options are neutral until selected. Their order never determines a colour.
-- No decision illustration is rendered at any viewport.
-- Selection applies no effect. Confirmation applies the effect once. Result remains visible until an explicit continuation.
-- A result shows at most three changed metrics, each with cause, horizon and uncertainty.
-- Details and sources remain reachable by keyboard.
+- Execute the complete engine plan first. This interface consumes the 60-decision scenario, explicit mechanisms, unit metadata, option horizons, exact crisis causes, five checkpoints and multidimensional verdict.
+- Target 390 x 844 first, then 1440 x 900 and 200 percent text zoom.
+- No horizontal overflow at 390, 640 or 1440 px.
+- Campaign command bar has at most two visual rows and measures at most 84 px mobile or 64 px desktop.
+- Mobile decision title is 26 to 32 px. Body copy remains readable and unclipped at zoom.
+- A closed option shows label, budget when present, one principal effect and one risk. It never throws when optional presentation data is absent.
+- Options are neutral until selected. DOM position never determines colour.
+- No decision illustration and no crisis SVG at any viewport.
+- Selection applies no effect. Confirmation applies once. Result remains until explicit continuation.
+- A result shows at most three changed indicator metrics, each with before, after, signed delta, cause, horizon and uncertainty. Group-only changes may appear in details, not in the indicator table.
+- Evidence and sources remain keyboard reachable without a custom modal lifecycle.
+- Every positive/negative/crisis signal has text or a sign in addition to colour.
 - No em dash in user-facing copy.
 
----
+## File structure
 
-## File Structure
+- Create `site/src/simulateur-v3/presentation.ts` and tests.
+- Create `site/src/simulateur-v3/design-contract.test.ts`.
+- Modify campaign `types.ts`, `effects.ts`, `validation.ts`, `storage.ts` and tests to persist decision impact snapshots.
+- Modify `render.ts`, `controller.ts`, `main.ts`, interface/e2e/flow/verdict tests and their DOM host types.
+- Modify canonical tokens in `style.css`, aliases in `fondations.css`/`navigation.css`, and V3 layout in `styles/simulateur-v3.css`.
 
-- Create `site/src/simulateur-v3/presentation.ts`: compact option and changed-metric view models.
-- Create `site/src/simulateur-v3/presentation.test.ts`: prioritisation and no-duplication tests.
-- Create `site/src/simulateur-v3/design-contract.test.ts`: token, theme and neutral-option contracts.
-- Modify `site/src/style.css`: canonical visual primitives and missing token removal.
-- Modify `site/src/styles/fondations.css`: semantic aliases over canonical primitives.
-- Modify `site/src/styles/navigation.css`: one active-navigation language and 44 px controls.
-- Modify `site/src/simulateur-v3/render.ts`: semantic compact markup, detail drawer and grouped journal.
-- Modify `site/src/simulateur-v3/render.test.ts`: mobile-oriented content contracts.
-- Modify `site/src/simulateur-v3/controller.ts`: focus and scroll restoration.
-- Modify `site/src/simulateur-v3/controller.test.ts`: DOM navigation assertions.
-- Modify `site/src/styles/simulateur-v3.css`: two-row header, compact cards and responsive drawer.
-
-### Task 0: Lock the visual contract before changing layouts
+### Task 0: Lock tokens, chrome and static state contracts
 
 **Files:**
 - Create: `site/src/simulateur-v3/design-contract.test.ts`
@@ -47,315 +40,144 @@
 - Modify: `site/src/styles/fondations.css`
 - Modify: `site/src/styles/navigation.css`
 - Modify: `site/src/styles/simulateur-v3.css`
+- Modify: `site/src/main.ts`
+- Modify: `site/src/interface.test.ts`
 
-- [ ] **Step 1: Write failing token and neutrality tests**
+- [ ] RED tests fail for an undefined custom property, `--espace-9`, a positional option selector such as `:first-child`/`:nth-child`, an option/crisis illustration, theme controls below 44 px, divergent active-navigation motifs or a command bar without explicit two-row/height bounds.
+- [ ] Define one canonical primitive layer for navy, paper, ink, red, semantic green/warning, spacing 4/8/12/16/24/32, radii and focus. `--ui-*` and `--v3-*` may remain only as aliases.
+- [ ] Keep France/Territoires/editorial pages on the selected global theme. The mission intro keeps the global header; after campaign start, controller/main set an explicit root/session attribute and the two-row V3 command bar replaces it. Exit remains visible.
+- [ ] Add static contracts for loading, empty journal, factual-baseline unavailable, source-link unavailable and local-save failure. The first two may be rendered by later tasks, but their semantic classes and copy budget are locked now.
+- [ ] Remove decorative gradients, nested shadows, positional colours, decision illustrations and crisis SVGs.
+- [ ] Run `cd site && node --experimental-strip-types --test src/simulateur-v3/design-contract.test.ts src/interface.test.ts && npm run build`.
+- [ ] Commit with `style: lock compact v3 visual contract`.
 
-The tests must fail when a used custom property is undefined, when an option colour depends on `:first-child` or `:nth-child`, when the theme control is below 44 px, or when desktop and mobile use different active-navigation motifs.
+### Task 1: Persist an exact decision-result snapshot
 
-- [ ] **Step 2: Consolidate primitives and aliases**
+**Files:**
+- Modify: `site/src/simulateur-v3/types.ts`
+- Modify: `site/src/simulateur-v3/effects.ts`
+- Modify: `site/src/simulateur-v3/effects.test.ts`
+- Modify: `site/src/simulateur-v3/validation.ts`
+- Modify: `site/src/simulateur-v3/validation.test.ts`
+- Modify: `site/src/simulateur-v3/storage.test.ts`
+- Modify: `site/src/simulateur-v3/test-fixtures.ts`
 
-Keep the existing navy, paper, ink and red identity. Define values once in the root primitive layer. Convert `--ui-*` and `--v3-*` to semantic aliases where they are still useful. Remove the unresolved `--espace-9`. Keep data-series colours separate from interactive colours.
+```ts
+export type IndicatorImpactSnapshot = {
+  key: IndicatorKey;
+  before: number;
+  after: number;
+  delta: number;
+  causalEntryIds: string[];
+};
 
-- [ ] **Step 3: Lock theme and navigation behaviour**
-
-France, Territoires and analyses follow the chosen theme. The active V3 mandate remains a navy room with an ivory dossier. The global header is visible on the mission intro, then the command bar replaces it after campaign start and exposes an explicit exit. Navigation active state is text plus underline on desktop and mobile.
-
-- [ ] **Step 4: Remove positional styling**
-
-Delete option colours based on DOM order, decorative gradients and nested shadows. Closed options are neutral. Selection uses the red interactive accent plus a check or text label.
-
-- [ ] **Step 5: Run and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/design-contract.test.ts && npm run build`
-
-Expected: PASS.
-
-```bash
-git add site/src/style.css site/src/styles/fondations.css site/src/styles/navigation.css site/src/styles/simulateur-v3.css site/src/simulateur-v3/design-contract.test.ts
-git commit -m "style: lock v3 visual contract"
+export type DecisionImpactSnapshot = {
+  decisionId: string;
+  optionId: string;
+  confirmedAtIndex: number;
+  indicators: IndicatorImpactSnapshot[];
+};
 ```
 
-### Task 1: Build the compact presentation model
+Store the snapshot on the confirmed `DecisionRecord` or another explicitly persisted per-decision field. Capture it atomically inside `confirmSelection()` from the pre-confirmation state and the causal entries created by that one confirmation. Do not infer `before` later by subtracting from a mutated campaign. Store only changed indicator keys, ordered by the central indicator metadata. Scheduled events, promises and later crises receive their own ledger entries and never rewrite this immediate snapshot.
+
+- [ ] RED: confirmation creates exactly one snapshot; unchanged indicators are absent; repeated confirmation is rejected; JSON round-trip preserves values and causal IDs; malformed/foreign causal IDs are rejected.
+- [ ] GREEN: snapshots are immutable, schema-4-valid and backwards-safe only within the current scenario version.
+- [ ] Update affected campaign/e2e/flow/verdict tests that construct decision records manually.
+- [ ] Run `cd site && node --experimental-strip-types --test src/simulateur-v3/effects.test.ts src/simulateur-v3/validation.test.ts src/simulateur-v3/storage.test.ts src/simulateur-v3/campaign-e2e.test.ts`.
+- [ ] Commit with `feat: persist simulator decision impacts`.
+
+### Task 2: Build a defensive compact presentation model
 
 **Files:**
 - Create: `site/src/simulateur-v3/presentation.ts`
 - Create: `site/src/simulateur-v3/presentation.test.ts`
 
-**Interfaces:**
-- Consumes: `DecisionOption`, current `CampaignState` and previous indicator snapshot.
-- Produces: `CompactOptionView` and `ChangedMetricView[]`.
+**Produces:** `CompactOptionView`, `ChangedMetricView[]` and `JournalGroup[]`.
 
-- [ ] **Step 1: Write failing prioritisation tests**
+`compactOption()` separates annual-balance budget from other indicator effects, orders effects by `INDICATOR_META` priority and returns an optional `primaryImpact`. Production content validation should guarantee it, but the renderer must degrade to a concise `Impact détaillé dans le mécanisme` rather than throw if a fixture or future catalogue entry is incomplete.
 
-```ts
-test("une carte fermée ne retient qu'un impact principal", () => {
-  const view = compactOption(optionWithEffects([
-    indicatorEffect("annualBalance", -4_000),
-    indicatorEffect("growth", 0.2),
-    indicatorEffect("opinion", -3),
-  ]));
-  assert.equal(view.budget?.key, "annualBalance");
-  assert.equal(view.primaryImpact.key, "growth");
-  assert.equal(view.secondaryImpactCount, 1);
-  assert.equal(view.risk, option.uncertainty);
-});
+`changedMetrics(snapshot)` consumes only `IndicatorImpactSnapshot[]`; it never compares groups or scans the whole mutable state. It returns at most three display items with unit-aware formatting, signed deltas, option mechanism, horizon and uncertainty.
 
-test("le tableau ne montre que les métriques modifiées", () => {
-  assert.deepEqual(changedMetrics(before, { ...before, growth: 1.2 }).map(({ key }) => key), ["growth"]);
-});
-```
+`groupJournal()` derives chapter from `scenario.chapters[].decisionIds` and mandate year from persisted annual checkpoints/topology helpers. It never divides a global index by 12 or assumes equal chapter lengths.
 
-- [ ] **Step 2: Run the test**
+- [ ] RED: budget + one principal effect + secondary count; optional-impact fallback; indicator-only changed metrics; unit formatting; 60-entry journal grouping with variable chapter sizes and exact years.
+- [ ] GREEN: pure deterministic functions, no DOM and no positional assumptions.
+- [ ] Run `cd site && node --experimental-strip-types --test src/simulateur-v3/presentation.test.ts`.
+- [ ] Commit with `feat: add compact simulator presentation model`.
 
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/presentation.test.ts`
-
-Expected: FAIL because `presentation.ts` does not exist.
-
-- [ ] **Step 3: Implement deterministic prioritisation**
-
-```ts
-const PRIORITY: IndicatorKey[] = [
-  "annualBalance", "debtToGdp", "interestCost", "growth", "employment",
-  "publicServices", "financialCredibility", "reformCapacity", "majority",
-  "institutionalTrust", "opinion", "investment",
-];
-
-export type CompactOptionView = {
-  id: string;
-  label: string;
-  budget?: EffectRule;
-  primaryImpact: EffectRule;
-  secondaryImpactCount: number;
-  risk: string;
-};
-
-export function compactOption(option: DecisionOption): CompactOptionView {
-  const indicatorEffects = option.effects
-    .filter((effect): effect is EffectRule & { target: "indicator" } => effect.target === "indicator")
-    .sort((a, b) => PRIORITY.indexOf(a.key) - PRIORITY.indexOf(b.key));
-  const budget = indicatorEffects.find(({ key }) => key === "annualBalance");
-  const nonBudgetEffects = indicatorEffects.filter(({ key }) => key !== "annualBalance");
-  const primaryImpact = nonBudgetEffects[0];
-  if (!primaryImpact) throw new Error(`Option without visible indicator effect: ${option.id}`);
-  return {
-    id: option.id,
-    label: option.label,
-    budget,
-    primaryImpact,
-    secondaryImpactCount: Math.max(0, nonBudgetEffects.length - 1),
-    risk: option.uncertainty,
-  };
-}
-```
-
-`changedMetrics()` compares keys using `Object.is()` and returns them in `PRIORITY` order.
-
-- [ ] **Step 4: Run the test and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/presentation.test.ts`
-
-Expected: PASS.
-
-```bash
-git add site/src/simulateur-v3/presentation.ts site/src/simulateur-v3/presentation.test.ts
-git commit -m "feat: add compact simulator presentation model"
-```
-
-### Task 2: Render the five-second decision layer
+### Task 3: Render a five-second decision layer with native details
 
 **Files:**
 - Modify: `site/src/simulateur-v3/render.ts`
 - Modify: `site/src/simulateur-v3/render.test.ts`
 
-**Interfaces:**
-- Consumes: `compactOption()`.
-- Produces: compact option cards and one shared detail drawer.
+Render options in a `fieldset`. A choice is an `aria-pressed` button or a radio-labelled card. Its closed surface contains only label, budget when present, principal impact and risk. A sibling native `<details>` with a descriptive `<summary>` exposes mechanism, full effects, beneficiaries/contributors, legal constraints, reservations and evidence. Do not create a shared custom dialog, hidden fake chat or JS-only source access.
 
-- [ ] **Step 1: Replace the decision-card assertions**
+Use a two-line compact context in the main scene, with the full context inside one dossier-level disclosure. Render an inline confirmation bar only after selection, with `Modifier` and `Confirmer et voir l'impact`.
 
-```ts
-test("une option fermée montre quatre informations et garde les preuves hors carte", () => {
-  const html = renderSimulatorV3(decisionState(), SCENARIO_V3);
-  const card = html.match(/<button class="simulateur-v3__option[\s\S]*?<\/button>/)?.[0] ?? "";
-  assert.match(card, /simulateur-v3__option-label/);
-  assert.match(card, /simulateur-v3__option-budget/);
-  assert.match(card, /simulateur-v3__option-impact/);
-  assert.match(card, /simulateur-v3__option-risk/);
-  assert.doesNotMatch(card, /sourceUrl|Bénéficiaires|Contributeurs|Hypothèse/);
-  assert.match(html, /<dialog[^>]+id="simulateur-v3-details"/);
-});
-```
+- [ ] RED: semantic fieldset, neutral cards, no image/SVG, four closed-card facts maximum, source content inside native details, correct `aria-pressed`, confirmation absent before selection and present after selection.
+- [ ] GREEN: all options and confirmation fit the desktop 900 px target; mobile shows the question, first complete option and start of the next within 844 px.
+- [ ] Run `cd site && node --experimental-strip-types --test src/simulateur-v3/render.test.ts`.
+- [ ] Commit with `feat: compact simulator decision cards`.
 
-- [ ] **Step 2: Run the render test**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/render.test.ts`
-
-Expected: FAIL because the existing cards expose multiple effects and illustrations.
-
-- [ ] **Step 3: Replace option markup**
-
-```ts
-function renderCompactOption(option: DecisionOption, selected: boolean): string {
-  const view = compactOption(option);
-  return `<article class="simulateur-v3__option-shell">
-    <button class="simulateur-v3__option${selected ? " is-selected" : ""}"
-      type="button" data-v3-action="select" data-option-id="${escapeHtml(view.id)}">
-      <strong class="simulateur-v3__option-label">${escapeHtml(view.label)}</strong>
-      <span class="simulateur-v3__option-budget">${renderBudget(view.budget)}</span>
-      <span class="simulateur-v3__option-impact">${renderEffect(view.primaryImpact)}</span>
-      <span class="simulateur-v3__option-risk">Risque : ${escapeHtml(view.risk)}</span>
-    </button>
-    <button type="button" class="simulateur-v3__details-trigger"
-      data-v3-action="details" data-option-id="${escapeHtml(view.id)}"
-      aria-haspopup="dialog">Voir le mécanisme et les sources</button>
-  </article>`;
-}
-```
-
-Render the options in a `fieldset` with radios or `aria-pressed` buttons. Selection reveals one inline confirmation area with `Modifier` and `Confirmer et voir l'impact`. Render one `<dialog id="simulateur-v3-details">` after the option list for hypotheses, reservations and sources. Populate it from the chosen option rather than duplicating hidden detail content for every option.
-
-- [ ] **Step 4: Limit context and dashboard output**
-
-Render the full context inside the detail dialog and use a CSS-clamped two-line summary in the main dossier. Replace the four permanent dashboard groups with `changedMetrics()` output for the last transition.
-
-- [ ] **Step 5: Run and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/render.test.ts`
-
-Expected: PASS.
-
-```bash
-git add site/src/simulateur-v3/render.ts site/src/simulateur-v3/render.test.ts
-git commit -m "feat: compact simulator decision cards"
-```
-
-### Task 3: Separate selection, confirmation and causal result
+### Task 4: Separate selection, confirmation and persistent causal result
 
 **Files:**
 - Modify: `site/src/simulateur-v3/controller.ts`
 - Modify: `site/src/simulateur-v3/controller.test.ts`
 - Modify: `site/src/simulateur-v3/render.ts`
 - Modify: `site/src/simulateur-v3/render.test.ts`
+- Modify: `site/src/simulateur-v3/campaign-e2e.test.ts`
 
-- [ ] **Step 1: Write the state-transition tests**
+`select` only creates/replaces `pendingSelection`. `modify` clears it. `confirm` calls `confirmSelection()` exactly once, persists, and remains in `decision_result`. Only `continue` calls `advanceCampaign()`.
 
-Verify that `select` only creates `pendingSelection`, `modify` clears it, `confirm` calls `confirmSelection()` exactly once and stops in `decision_result`, and `continue` alone advances to the next screen.
+Replace the empty result branch with the same dossier shell. Render the confirmed choice, up to three snapshot metrics, before/after values, signed delta, one causal sentence, horizon, uncertainty and `Dossier suivant`. Add `aria-live="polite"`. Do not auto-advance and do not show unchanged metrics.
 
-- [ ] **Step 2: Render the persistent result**
+- [ ] RED state-transition and DOM tests for select, reselect, modify, confirm once, save failure banner, restored `decision_result` and explicit continue.
+- [ ] GREEN e2e proves one effect application and a readable persisted result after reload.
+- [ ] Run `cd site && node --experimental-strip-types --test src/simulateur-v3/controller.test.ts src/simulateur-v3/render.test.ts src/simulateur-v3/campaign-e2e.test.ts`.
+- [ ] Commit with `feat: show causal result before next dossier`.
 
-Replace the empty `decision_result` branch with the same dossier shell. Show the confirmed option, at most three before and after values, signed deltas, one causal sentence, horizon, uncertainty and `Dossier suivant`. Add an `aria-live="polite"` summary. Do not render unchanged metrics.
-
-- [ ] **Step 3: Remove automatic advancement**
-
-The `select` controller action updates only pending selection. Add explicit `modify` and `confirm` actions. The confirmation persists and renders the result, but does not call `advanceCampaign()`.
-
-- [ ] **Step 4: Run and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/controller.test.ts src/simulateur-v3/render.test.ts`
-
-Expected: PASS.
-
-```bash
-git add site/src/simulateur-v3/controller.ts site/src/simulateur-v3/controller.test.ts site/src/simulateur-v3/render.ts site/src/simulateur-v3/render.test.ts
-git commit -m "feat: show causal result before next dossier"
-```
-
-### Task 4: Restore focus and scroll on every new dossier
+### Task 5: Restore focus, scroll and keyboard state only on scene changes
 
 **Files:**
 - Modify: `site/src/simulateur-v3/controller.ts`
 - Modify: `site/src/simulateur-v3/controller.test.ts`
+- Modify: DOM host/test interfaces used by the controller
 
-**Interfaces:**
-- Consumes: phase and current decision ID before and after an action.
-- Produces: `restoreDecisionViewport(root)`.
+Pass explicit host functions for `scrollTo`, focus and keyboard events so Node tests do not depend on accidental browser globals. On a new decision ID or major phase, scroll to top and focus the scene H1 with `tabindex="-1"` and `preventScroll`. Do not scroll after selection, confirmation-bar appearance or toggling native details. `Escape` needs no custom disclosure handler because native details remain in document flow.
 
-- [ ] **Step 1: Write the failing navigation test**
+- [ ] RED: new dossier focuses/scrolls once; selection and details do neither; pause/journal return restores the interrupted scene; keyboard activation works.
+- [ ] GREEN: controller adds/removes exactly one delegated click and keydown listener and restores the global header/session attribute on unmount/exit.
+- [ ] Run `cd site && node --experimental-strip-types --test src/simulateur-v3/controller.test.ts src/interface.test.ts`.
+- [ ] Commit with `fix: restore simulator focus and chrome`.
 
-```ts
-test("continuer vers un nouveau dossier remonte et place le focus sur son titre", () => {
-  const calls: unknown[] = [];
-  const heading = { focus: () => calls.push("focus") };
-  const root = { querySelector: () => heading } as unknown as HTMLElement;
-  const scroll = () => calls.push("scroll");
-  restoreDecisionViewport(root, scroll);
-  assert.deepEqual(calls, ["scroll", "focus"]);
-});
-```
-
-- [ ] **Step 2: Implement the helper**
-
-```ts
-export function restoreDecisionViewport(
-  root: HTMLElement,
-  scroll: (options: ScrollToOptions) => void = window.scrollTo.bind(window),
-): void {
-  scroll({ top: 0, behavior: "instant" });
-  const heading = root.querySelector<HTMLElement>("[data-v3-decision-title]");
-  heading?.focus({ preventScroll: true });
-}
-```
-
-Give the heading `tabindex="-1"`. Call the helper only when the current decision ID changes, not after selection or opening details.
-
-- [ ] **Step 3: Run and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/controller.test.ts`
-
-Expected: PASS.
-
-```bash
-git add site/src/simulateur-v3/controller.ts site/src/simulateur-v3/controller.test.ts
-git commit -m "fix: restore focus on new simulator dossiers"
-```
-
-### Task 5: Implement the mobile density rules
+### Task 6: Apply compact mobile rules to every V3 scene
 
 **Files:**
 - Modify: `site/src/styles/simulateur-v3.css`
+- Modify: `site/src/simulateur-v3/render.ts`
 - Modify: `site/src/simulateur-v3/render.test.ts`
+- Modify: `site/src/simulateur-v3/verdict.test.ts`
 
-**Interfaces:**
-- Consumes: compact semantic classes from Task 2.
-- Produces: responsive layout at 390 px and desktop comparison layout.
+Use an exact two-row command grid on mobile and a single compact row on desktop, with explicit max block sizes. Use normal-flow or safe-area-compatible sticky confirmation/result actions without fixed-height content. Remove `min-height: 18rem`, large decorative heroes and any positional selector.
 
-- [ ] **Step 1: Add static CSS contract checks**
+Scene budgets:
 
-```ts
-const css = readFileSync(new URL("../styles/simulateur-v3.css", import.meta.url), "utf8");
-assert.match(css, /@media\s*\(max-width:\s*600px\)/);
-assert.match(css, /\.simulateur-v3__decision-title[\s\S]*font-size:\s*clamp\(1\.625rem,.*2rem\)/);
-assert.match(css, /\.simulateur-v3__illustration[\s\S]*display:\s*none/);
-```
+- intro: CTA before 650 px mobile; four constraints in a native disclosure;
+- decision: 128 to 160 px mobile options, 148 to 176 px desktop options;
+- result: three compact delta rows maximum;
+- crisis: threshold, exact aggravating choices and two resolutions, no city/SVG art;
+- Council: 2 x 2 mobile metrics, three causes and one upcoming risk;
+- verdict: headline, final balance, summary and six dimensions in the first desktop viewport, 2 x 3 on mobile; no global score.
 
-- [ ] **Step 2: Add the compact mobile rules**
+Static CSS tests enforce 44 px controls, visible focus, one interactive red accent, semantic green/warning plus text, `prefers-reduced-motion`, no unresolved variables and no horizontal fixed widths.
 
-```css
-@media (max-width: 600px) {
-  .simulateur-v3__command { grid-template-columns: 1fr auto; grid-template-rows: auto auto; }
-  .simulateur-v3__decision-title { font-size: clamp(1.625rem, 7vw, 2rem); line-height: 1.08; }
-  .simulateur-v3__context { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .simulateur-v3__illustration { display: none; }
-  .simulateur-v3__option { min-height: 8rem; max-height: 10rem; padding: 0.9rem; gap: 0.45rem; }
-  .simulateur-v3__dashboard { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .simulateur-v3__details { width: calc(100% - 1rem); max-height: calc(100dvh - 1rem); margin: auto 0.5rem 0.5rem; }
-}
-```
+- [ ] Run render/verdict/design-contract tests and `npm run build`.
+- [ ] Commit with `style: reduce simulator mobile density`.
 
-- [ ] **Step 3: Run render tests and build**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/render.test.ts && npm run build`
-
-Expected: PASS and build exit 0.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add site/src/styles/simulateur-v3.css site/src/simulateur-v3/render.test.ts
-git commit -m "style: reduce simulator mobile density"
-```
-
-### Task 6: Group the journal by chapter and mandate year
+### Task 7: Group the journal without hiding causality
 
 **Files:**
 - Modify: `site/src/simulateur-v3/presentation.ts`
@@ -363,75 +185,20 @@ git commit -m "style: reduce simulator mobile density"
 - Modify: `site/src/simulateur-v3/render.ts`
 - Modify: `site/src/simulateur-v3/render.test.ts`
 
-**Interfaces:**
-- Consumes: decision records, scenario chapters and annual checkpoints.
-- Produces: `JournalGroup[]` and nested `<details>` markup.
+Render one native `<details>` per chapter/year group. A closed group shows chapter, mandate year, decision count and one result line. An opened group lists compact decision rows; each row can disclose status, immediate snapshot, later causal entries, horizon and source decision. Empty journal state explains what will appear and links back to the current dossier.
 
-- [ ] **Step 1: Write grouping test**
+Use sentence case, no decorative chapter numbers. Native details may be independently opened; do not claim accordion behaviour unless controller code actually enforces it accessibly.
 
-```ts
-test("le journal groupe les décisions sans les perdre", () => {
-  const groups = groupJournal(stateWithTwelveDecisions(), SCENARIO_V3);
-  assert.equal(groups.flatMap(({ entries }) => entries).length, 12);
-  assert.ok(groups.every(({ chapterTitle, year }) => chapterTitle && year >= 1));
-});
-```
+- [ ] RED: 60 records are neither lost nor duplicated; variable chapter sizes and five checkpoints produce correct groups; superseded/reversed statuses and later events remain traceable.
+- [ ] GREEN: journal remains usable with keyboard and without JavaScript-specific disclosure state.
+- [ ] Run `cd site && node --experimental-strip-types --test src/simulateur-v3/presentation.test.ts src/simulateur-v3/render.test.ts`.
+- [ ] Commit with `feat: group simulator journal by mandate year`.
 
-- [ ] **Step 2: Implement and render groups**
+### Task 8: Verify compact UX in the real preview
 
-```ts
-export type JournalGroup = {
-  chapterId: string;
-  chapterTitle: string;
-  year: number;
-  summary: string;
-  entries: DecisionRecord[];
-};
-```
-
-Render each group as `<details class="simulateur-v3__journal-group">` with a `<summary>` containing chapter, mandate year and number of decisions. Do not render all entry explanations until the group is opened.
-
-Use sentence case, no decorative chapter number, and allow only one group open at a time on mobile. A closed group contains one result line and one count. An opened decision exposes delta, horizon, status and causal trace.
-
-- [ ] **Step 3: Run and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/presentation.test.ts src/simulateur-v3/render.test.ts`
-
-Expected: PASS.
-
-```bash
-git add site/src/simulateur-v3/presentation.ts site/src/simulateur-v3/presentation.test.ts site/src/simulateur-v3/render.ts site/src/simulateur-v3/render.test.ts
-git commit -m "feat: group simulator journal by chapter"
-```
-
-### Task 7: Verify compact UX
-
-**Files:**
-- Modify only on failure: files from Tasks 1 to 5.
-
-**Interfaces:**
-- Consumes: complete compact interface.
-- Produces: passing accessibility, render and build gates.
-
-- [ ] **Step 1: Run focused suite**
-
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/presentation.test.ts src/simulateur-v3/render.test.ts src/simulateur-v3/controller.test.ts`
-
-Expected: PASS.
-
-- [ ] **Step 2: Run full suite and build**
-
-Run: `cd site && npm test && npm run build`
-
-Expected: both commands exit 0.
-
-- [ ] **Step 3: Verify the preview at 390 x 844 and 1440 x 900**
-
-Start the existing preview command, capture the intro, first dossier, selected option, confirmation, result, crisis, council, journal and verdict at both sizes, and store the report under `docs/verification/2026-08-30-v3-compact/verification-report.md`. Also capture loading, empty, error and reduced-motion states. The report must record viewport, route, state and any deviation. Verify computed sizes, no horizontal overflow, 44 px targets, a single interactive accent and a prose measure of 60 to 66 characters.
-
-- [ ] **Step 4: Commit verification artifacts**
-
-```bash
-git add docs/verification/2026-08-30-v3-compact site/src/simulateur-v3 site/src/styles/simulateur-v3.css
-git commit -m "test: verify compact v3 campaign interface"
-```
+- [ ] Run focused presentation/render/controller/e2e/design tests.
+- [ ] Run `cd site && npm test && npx tsc --noEmit && npm run build`.
+- [ ] Start the existing preview and verify intro, dossier, selected option, confirmation, result, delayed event, crisis, Council, journal and verdict at 390 x 844 and 1440 x 900.
+- [ ] Also verify loading, empty, factual-baseline unavailable, source unavailable, save failure, reduced motion and 200 percent text zoom.
+- [ ] Record route, state, viewport, computed command-bar height, scroll width, 44 px targets, focus movement and deviations in `docs/verification/2026-08-30-v3-compact/verification-report.md`. Captures are evidence, not substitutes for assertions.
+- [ ] Fix every Critical/Important visual or accessibility deviation, rerun full gates and commit with `test: verify compact v3 campaign interface`.

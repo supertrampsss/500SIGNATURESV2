@@ -1,385 +1,344 @@
 # V3 Five Analyses Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task by task. Every task uses TDD and receives an independent review before the next task begins.
 
-**Goal:** Publish five source-backed analyses on German nuclear power and prices, school supplies, household gas prices, homebuyer age and quality of life.
+**Goal:** Publish five source-backed analyses on German nuclear power and prices, school supplies, household gas prices, home purchase age and life satisfaction.
 
-**Architecture:** Add focused normalizers to the existing Python pipeline, publish versioned country-level series, extend the analysis contract so every series and proof owns its source, then create five pre-rendered dossiers. France keeps eight thematic entry points while `/analyses/` becomes the searchable progressive catalogue.
+**Architecture:** Register every source and dataset first, archive raw official assets through the existing pipeline lineage, normalise only comparable observations, publish versioned country series, then render five pre-generated editorial dossiers. The home-purchase dossier is deliberately a table of heterogeneous official snapshots, not a reconstructed time series. `/bilan` keeps eight entry points while `/analyses/` becomes the progressive catalogue.
 
-**Tech Stack:** Python pipeline, Eurostat JSON-stat API, Insee BDM and downloadable tables, DuckDB tests, TypeScript renderer, Vite pre-render
+**Tech stack:** Python pipeline, Eurostat JSON-stat, ENTSO-E XML, Insee BDM SDMX, Insee Melodi, CRE open data, DuckDB publication tests, TypeScript contract and renderer, Vite pre-render.
 
-## Global Constraints
+## Global constraints
 
-- Every visible number has a source, period, unit and methodological reserve.
-- Treat `../specs/2026-08-30-v3-direction-design-addendum.md` as a required acceptance contract.
-- Prefer primary official sources.
-- Do not infer causality from the German nuclear chronology alone.
-- Do not describe the school-supply CPI as the complete back-to-school cost.
-- Do not confuse gas consumption with gas price.
-- Do not derive purchaser age from DVF or interpolate missing survey years.
-- Do not create a proprietary quality-of-life composite.
+- Every visible number has a source, period, unit, definition and methodological reserve.
+- Treat `../specs/2026-08-30-v3-direction-design-addendum.md` as an acceptance contract.
+- Use primary official sources. No X input.
+- Unit tests use archived fixtures and never depend on the network.
+- `npm run build` never needs an ENTSO-E token or any other secret.
+- Do not infer that German nuclear shutdowns alone caused a price movement.
+- Do not present the school-supply index as the complete cost of the school year.
+- Do not confuse gas consumption, price, CPI and supply-cost components.
+- Do not derive purchaser age from DVF, interpolate missing survey years or join incompatible survey definitions.
+- Do not publish a continuous `36 to 39 years` curve or slogan. The official points do not support it.
+- Do not create a proprietary quality-of-life composite. The MVP publishes life satisfaction on its native 0-to-10 scale.
 - No em dash in published copy.
 
----
+## File structure
 
-## File Structure
+- Modify `infra/seed/source_registry.csv` and `infra/seed/dataset_registry.csv` before ingestion.
+- Create focused normalisers and fixture tests under `pipeline/plateforme/normalize/` and `pipeline/tests/`.
+- Keep ENTSO-E ingestion in an explicit editorial/manual command, outside the standard build.
+- Create `site/src/analyse-contrat.ts`; do not repurpose `site/src/analyses.ts`, which renders territorial tables.
+- Extend `site/src/analyse-rendu.ts`, `site/src/echelle.ts` and `site/src/styles/dossiers-verification.css` for sourced series, snapshots and multi-unit figures.
+- Create five stable JSON dossiers under `site/analyses/`.
+- Add a canonical pre-rendered `/analyses/` index, while keeping `/#analyses` only as a legacy fragment for `/bilan`.
 
-- Create `pipeline/plateforme/normalize/prix_energie_menages.py`: Eurostat electricity and gas price series.
-- Create `pipeline/tests/test_prix_energie_menages.py`: filters, units, tax bands and periods.
-- Create `pipeline/plateforme/normalize/nucleaire_europe.py`: nuclear production share and chronology.
-- Create `pipeline/tests/test_nucleaire_europe.py`: Germany, France and comparable neighbours.
-- Create `pipeline/plateforme/normalize/fournitures_scolaires.py`: Insee BDM series `001765036`.
-- Create `pipeline/tests/test_fournitures_scolaires.py`: index identity and comparison with general CPI.
-- Create `pipeline/plateforme/normalize/acquisition_residence.py`: discrete Insee HVP and logement survey distributions.
-- Create `pipeline/tests/test_acquisition_residence.py`: age brackets, survey waves and non-interpolation.
-- Create `pipeline/plateforme/normalize/qualite_vie.py`: Insee and Eurostat life-satisfaction series.
-- Create `pipeline/tests/test_qualite_vie.py`: scale and separate dimensions.
-- Create five files under `site/analyses/` with stable slugs.
-- Modify `site/src/analyses.ts`: narrative sections, typed series, visualisations, anchors and proof-level source IDs.
-- Modify `site/src/analyse-rendu.ts`: answer-first long dossier with evidence beside each claim.
-- Modify `site/src/styles/dossiers-verification.css`: 60 to 68 character prose and full-width charts.
-- Modify `site/src/insights-france.ts`: add five teaser cards.
-- Modify `site/src/insights-rendu.ts`: featured and searchable catalogue modes.
-- Add or modify the `/analyses/` route and pre-rendered index.
-- Modify `site/src/insights-rendu.test.ts`, `site/src/insights-france.test.ts`, `site/scripts/prerendre.test.ts`: publication gates.
+### Task 0: Register sources, datasets and lineage
 
-### Task 1: Ingest household electricity and gas prices
+**Files:**
+- Modify: `infra/seed/source_registry.csv`
+- Modify: `infra/seed/dataset_registry.csv`
+- Create: `pipeline/tests/test_registry_analyses_v3.py`
+
+**Required dataset IDs:**
+
+- `eurostat-nrg-pc-202`
+- `eurostat-nrg-pc-204`
+- `eurostat-nrg-bal-peh`
+- `entsoe-a44-day-ahead`
+- `bdm-fournitures-001765036`
+- `bdm-ipc-ensemble-001764363`
+- `bdm-gaz-menages-011815828`
+- `cre-prvg-open-data`
+- `cre-gaz-supply-reference`
+- separate Insee publication datasets for every ENL/HVP housing asset actually used
+- `melodi-srcv-satisfaction`
+
+Add the official ENTSO-E Transparency source with `securityToken` authentication metadata, but never store the token. Each housing publication remains a separate dataset because definitions differ.
+
+- [ ] Write a failing registry test that runs the existing registry sync, resolves every required ID, rejects duplicate IDs and proves that every recorded fixture asset references a known dataset.
+- [ ] Add the registry rows with official landing URLs, owner, licence, update cadence and access mode.
+- [ ] Run `cd pipeline && pytest tests/test_registry_analyses_v3.py -q`.
+- [ ] Commit with `chore: register five analysis data sources`.
+
+### Task 1A: Ingest comparable household electricity and gas prices
 
 **Files:**
 - Create: `pipeline/plateforme/normalize/prix_energie_menages.py`
 - Create: `pipeline/tests/test_prix_energie_menages.py`
 
-**Interfaces:**
-- Consumes: Eurostat datasets `nrg_pc_204` and `nrg_pc_202` through `connectors.eurostat`.
-- Produces: harmonised country and semester observations for a declared household consumption band.
-
-- [ ] **Step 1: Write fixture tests for strict dimensions**
+**Exact Eurostat selections:**
 
 ```py
-def test_garde_une_tranche_et_separe_les_taxes(payload):
-    series = energie.lire_prix(payload, dataset="nrg_pc_202")
-    assert set(series) == {
-        "eurostat_gaz_menages_ttc",
-        "eurostat_gaz_menages_hors_taxes",
-    }
-    assert all(cle[1] in {"FR", "DE", "BE", "ES", "IT", "NL"} for valeurs in series.values() for cle in valeurs)
-    assert all(cle[2].endswith(("-S1", "-S2")) for valeurs in series.values() for cle in valeurs)
-
-def test_refuse_un_melange_de_tranches(payload):
-    charge = avec_deux_tranches(payload)
-    with pytest.raises(ValueError, match="consumption band"):
-        energie.lire_prix(charge, dataset="nrg_pc_202")
-```
-
-- [ ] **Step 2: Run the test**
-
-Run: `cd pipeline && pytest tests/test_prix_energie_menages.py -q`
-
-Expected: FAIL because the module is missing.
-
-- [ ] **Step 3: Define strict filters and indicators**
-
-```py
-DATASETS = {"electricite": "nrg_pc_204", "gaz": "nrg_pc_202"}
-PAYS = ("FR", "DE", "BE", "ES", "IT", "NL")
+ENERGIES = {
+    "gaz": {
+        "dataset": "nrg_pc_202",
+        "siec": "G3000",
+        "nrg_cons": "GJ20-199",       # D2, 20 to 199 GJ
+    },
+    "electricite": {
+        "dataset": "nrg_pc_204",
+        "siec": "E7000",
+        "nrg_cons": "KWH2500-4999",  # DC, 2,500 to 4,999 kWh
+    },
+}
+COMMON = {"freq": "S", "currency": "EUR", "unit": "KWH"}
 TAXES = {
-    "X_TAX": "hors_taxes",
     "I_TAX": "ttc",
-}
-INDICATEURS = {
-    ("electricite", "ttc"): "eurostat_electricite_menages_ttc",
-    ("electricite", "hors_taxes"): "eurostat_electricite_menages_hors_taxes",
-    ("gaz", "ttc"): "eurostat_gaz_menages_ttc",
-    ("gaz", "hors_taxes"): "eurostat_gaz_menages_hors_taxes",
+    "X_TAX": "hors_taxes_et_prelevements",
 }
 ```
 
-Use the medium household band documented by Eurostat for each energy. Filter `currency=EUR` and the price unit published per 100 kWh. Read JSON-stat dimensions by name, never by assumed array position. Convert Eurostat semester labels to `YYYY-S1` and `YYYY-S2`.
+Read JSON-stat dimensions by name. Explicitly reject `X_VAT`, other currencies, units, consumption bands and energy products. Store the raw unit as `EUR_per_kWh`; an optional `EUR_per_100_kWh` display is a declared factor of 100 applied only by presentation. Convert periods to `YYYY-S1` and `YYYY-S2`.
 
-- [ ] **Step 4: Add publication metadata**
+- [ ] RED: fixture tests covering every named dimension, wrong bands, `X_VAT`, mixed currencies, flags and period labels.
+- [ ] GREEN: one ingestion run and one archived raw asset per Eurostat dataset; observed TTC and excluding-tax series remain distinct.
+- [ ] Run `cd pipeline && pytest tests/test_prix_energie_menages.py tests/test_jsonstat.py -q`.
+- [ ] Commit with `feat: ingest household energy price bands`.
 
-Declare all four indicators as non-additive, country-level, semestrial, observed and official. The technical definition must name the chosen band, taxes status, currency and Eurostat regulation basis.
+### Task 1B: Separate current French gas-price layers
 
-- [ ] **Step 5: Run and commit**
+**Files:**
+- Create: `pipeline/plateforme/normalize/prix_gaz_france.py`
+- Create: `pipeline/tests/test_prix_gaz_france.py`
 
-Run: `cd pipeline && pytest tests/test_prix_energie_menages.py tests/test_jsonstat.py -q`
+Use three official layers without pretending they share a unit:
 
-Expected: PASS.
+- Insee BDM `011815828`, monthly household-gas CPI, base 2025;
+- CRE monthly reference supply cost;
+- CRE PRVG open-data workbook and its published price components.
 
-```bash
-git add pipeline/plateforme/normalize/prix_energie_menages.py pipeline/tests/test_prix_energie_menages.py
-git commit -m "feat: ingest household energy prices"
-```
+Archive every raw XML/workbook independently. Preserve the published units and component names. EEX spot values are outside the MVP because their redistribution/licensing contract is separate; no hidden scraping or copied chart values.
 
-### Task 2: Ingest German nuclear chronology without causal claims
+- [ ] RED: fixtures prove the exact BDM series ID, base, monthly frequency, CRE sheet/schema identity and rejection of unit mixing.
+- [ ] GREEN: publish separate CPI, reference-supply-cost and PRVG component series with their own `sourceId`, unit and frequency.
+- [ ] Run `cd pipeline && pytest tests/test_prix_gaz_france.py -q`.
+- [ ] Commit with `feat: ingest official French gas price layers`.
+
+### Task 2A: Ingest the German and French nuclear chronology
 
 **Files:**
 - Create: `pipeline/plateforme/normalize/nucleaire_europe.py`
 - Create: `pipeline/tests/test_nucleaire_europe.py`
 
-**Interfaces:**
-- Consumes: Eurostat `nrg_bal_c` and the same country list as Task 1.
-- Produces: nuclear generation and total electricity generation series with a computed, documented share.
-
-- [ ] **Step 1: Write identity tests**
+Use Eurostat `nrg_bal_peh`, never `nrg_bal_c`:
 
 ```py
-def test_part_nucleaire_est_un_ratio_documente(series):
-    resultat = nucleaire.calculer_part(series)
-    assert resultat[("DE", "2021")] == pytest.approx(
-        series[("DE", "2021", "nuclear")] / series[("DE", "2021", "total")] * 100
-    )
-
-def test_une_annee_sans_total_n_est_pas_publiee(series):
-    del series[("DE", "2021", "total")]
-    assert ("DE", "2021") not in nucleaire.calculer_part(series)
+FILTERS = {"freq": "A", "nrg_bal": "GEP", "unit": "GWH"}
+NUMERATOR = {"siec": "N900H"}
+DENOMINATOR = {"siec": "TOTAL"}
 ```
 
-- [ ] **Step 2: Implement separate observed and computed indicators**
+Publish observed nuclear generation, observed gross total generation and computed share `N900H / TOTAL * 100` as three indicators. Propagate Eurostat flags. Require common DE/FR years, keep missing years missing and enforce 0 to 100 percent. The editorial chronology may mark the official German final shutdown date, 15 April 2023, as an annotation sourced to BMUV/SMARD, not as a causal coefficient.
 
-```py
-INDICATEURS = {
-    "eurostat_electricite_nucleaire_gwh": ("gwh", "observed"),
-    "eurostat_electricite_totale_gwh": ("gwh", "observed"),
-    "eurostat_part_nucleaire_electricite": ("percent", "computed"),
-}
-```
+- [ ] RED: ratio, absent total, flags, bounds and common-year fixtures.
+- [ ] GREEN: official annual series, with no interpolation or causal claim.
+- [ ] Run `cd pipeline && pytest tests/test_nucleaire_europe.py tests/test_europe.py -q`.
+- [ ] Commit with `feat: ingest European nuclear chronology`.
 
-The ratio formula is `nuclear generation / total gross electricity generation * 100`. Store the two source observations and the computed share separately. Propagate provisional and break flags from Eurostat.
+### Task 2B: Ingest official day-ahead wholesale prices manually
 
-- [ ] **Step 3: Add plausibility and coverage gates**
+**Files:**
+- Create: `pipeline/plateforme/normalize/entsoe_prix.py`
+- Create: `pipeline/tests/test_entsoe_prix.py`
+- Add: archived XML fixtures covering hourly and 15-minute resolutions
+- Modify: the documented editorial ingestion command or manual workflow only
 
-Require the nuclear share to remain between 0 and 100. Require Germany and France to have at least ten common annual periods before publication. A missing year remains missing.
+**Request contract:**
 
-- [ ] **Step 4: Run and commit**
+- endpoint `https://web-api.tp.entsoe.eu/api`;
+- `documentType=A44`, `processType=A01`;
+- `in_Domain == out_Domain`;
+- France `10YFR-RTE------C`;
+- Germany-Luxembourg `10Y1001A1001A82H`;
+- one request per calendar year, starting in 2019 to avoid joining the old DE-AT-LU bidding zone;
+- token from `ENTSOE_API_TOKEN` only.
 
-Run: `cd pipeline && pytest tests/test_nucleaire_europe.py tests/test_europe.py -q`
+Parse XML periods and aggregate annual `EUR_per_MWh` weighted by interval duration. The test must catch the switch to 15-minute prices in October 2025. The command fails clearly when invoked without a token, but no standard pipeline test, site pre-render or build invokes it.
 
-Expected: PASS.
+- [ ] RED: XML fixtures for missing positions, duplicate positions, DST-like period boundaries, hourly and 15-minute weights.
+- [ ] GREEN: deterministic annual output from fixtures and explicit raw-asset lineage.
+- [ ] Run `cd pipeline && pytest tests/test_entsoe_prix.py -q`.
+- [ ] Run `cd site && env -u ENTSOE_API_TOKEN npm run build`.
+- [ ] Commit with `feat: add manual ENTSO-E wholesale ingestion`.
 
-```bash
-git add pipeline/plateforme/normalize/nucleaire_europe.py pipeline/tests/test_nucleaire_europe.py
-git commit -m "feat: ingest European nuclear chronology"
-```
-
-### Task 3: Ingest the school-supply price index
+### Task 3: Ingest the annual school-supply index without inventing a cost
 
 **Files:**
 - Create: `pipeline/plateforme/normalize/fournitures_scolaires.py`
 - Create: `pipeline/tests/test_fournitures_scolaires.py`
 
-**Interfaces:**
-- Consumes: Insee BDM series `001765036` and the already published general CPI series.
-- Produces: `insee_prix_fournitures_scolaires_indice` at monthly frequency.
-
-- [ ] **Step 1: Write source-identity tests**
+Use the two annual base-2015 BDM series:
 
 ```py
-def test_la_serie_bdm_est_exactement_celle_des_fournitures():
-    assert fournitures.SERIE_BDM == "001765036"
-    assert "Autres fournitures scolaires et de bureau" in fournitures.FICHE["technique"]
-
-def test_le_module_ne_publie_aucun_cout_de_rentree():
-    assert all("cout_rentree" not in identifiant for identifiant in fournitures.INDICATEURS)
+SERIES = {
+    "fournitures": "001765036",
+    "ensemble": "001764363",
+}
 ```
 
-- [ ] **Step 2: Implement the BDM normalizer**
+For each XML, require `FREQ=A`, `REF_AREA=FE`, `UNIT_MEASURE=SO`, France, all households and a title naming base 2015. The school series title must contain `09.5.4.9.2` and `Autres fournitures scolaires et de bureau`; the comparator must identify the overall CPI. Publish `index_2015_100` and compare only common years. The usable run is annual 1990 to 2025 according to the current publication.
 
-Use `connectors.insee.bdm_sdmx(SERIE_BDM)`. Reuse the existing SDMX parsing pattern from `normalize/prix.py`, retain raw monthly index levels and preserve the series base in the technical definition.
+Do not concatenate the new base-2025 series `011817559` to the old index level. Show a visible `series stopped / base changed` reserve. Never output a `cout_rentree` indicator.
 
-```py
-SERIE_BDM = "001765036"
-INDICATEUR = "insee_prix_fournitures_scolaires_indice"
-UNITE = "index"
-```
+- [ ] RED: exact IDs, titles, frequency, base, separate assets, common-year intersection and prohibition tests.
+- [ ] GREEN: two annual series and no monthly or 24-month minimum logic.
+- [ ] Run `cd pipeline && pytest tests/test_fournitures_scolaires.py tests/test_prix.py -q`.
+- [ ] Commit with `feat: ingest annual school supply indices`.
 
-- [ ] **Step 3: Add the comparison helper**
-
-Create a pure function that intersects the school series and general CPI on common months before calculating rebased chart values. It must return an empty result when fewer than 24 common months exist.
-
-- [ ] **Step 4: Run and commit**
-
-Run: `cd pipeline && pytest tests/test_fournitures_scolaires.py tests/test_prix.py -q`
-
-Expected: PASS.
-
-```bash
-git add pipeline/plateforme/normalize/fournitures_scolaires.py pipeline/tests/test_fournitures_scolaires.py
-git commit -m "feat: ingest school supply price index"
-```
-
-### Task 4: Publish discrete homebuyer age distributions
+### Task 4: Publish heterogeneous official home-purchase snapshots
 
 **Files:**
 - Create: `pipeline/plateforme/normalize/acquisition_residence.py`
 - Create: `pipeline/tests/test_acquisition_residence.py`
+- Add: one archived fixture set per official Insee publication used
 
-**Interfaces:**
-- Consumes: downloadable Insee tables linked from the HVP 2017-2018 and Logement 2024 publications.
-- Produces: percentages by survey wave, purchaser definition and age bracket.
+The output is not one annual indicator. It is a list of separately defined evidence objects, each carrying publication, survey, reference period, population, measure, unit, current-age versus purchase-age semantics and `sourceId`.
 
-- [ ] **Step 1: Write non-interpolation tests**
+The minimum editorial set is:
 
-```py
-def test_les_vagues_restent_discretes(observations):
-    periods = sorted({row["periode"] for row in observations})
-    assert periods == [row for row in periods if row in acquisition.VAGUES_PUBLIEES]
-    assert not any("2019" <= period <= "2023" for period in periods if period not in acquisition.VAGUES_PUBLIEES)
+- ENL 2002 point for first acquisitions in 1998 to 2001, reported around age 36 under that publication's definition;
+- ENL 2006 point for 2002 to 2006, reported as 35 years and 2 months, with its separately published comparison point and method note;
+- HVP 2017-2018 exact age distribution of recent principal-residence buyers when available in the official table;
+- ENL 2013 and ENL 2023-2024 points only under their literal published definitions, clearly labelled when they are age at survey or buyer share among recent movers rather than age at purchase.
 
-def test_les_parts_d_age_ferment_a_cent(observations):
-    for _, groupe in groupby_key(observations, "periode", "population"):
-        assert sum(row["value"] for row in groupe) == pytest.approx(100, abs=0.2)
-```
+Do not relabel the ENL 2013 age-at-survey value 39 as an average purchase age. Do not force brackets across publications. Archive each publication HTML and each XLSX as separate assets, even when several assets belong to one run. A sum-to-100 test applies only to a source table that is explicitly a complete distribution over one population.
 
-- [ ] **Step 2: Discover and archive the official table asset**
+- [ ] RED: every evidence object has a definition and source; no generic annual ID; no interpolation; no forced common brackets; no universal sum-to-100 assertion; reject `36.*39` narrative shortcuts.
+- [ ] GREEN: a dossier-ready snapshot table whose rows are explicitly marked `not directly comparable` unless their definitions match exactly.
+- [ ] Run `cd pipeline && pytest tests/test_acquisition_residence.py -q`.
+- [ ] Commit with `feat: ingest official home-purchase snapshots`.
 
-Fetch the publication HTML, select the official `.xlsx` data link in the article's data block, archive both HTML and spreadsheet through `entrepot.record_asset()`, and fail if zero or more than one matching data workbook is found.
-
-```py
-SOURCES = {
-    "2018": "https://www.insee.fr/fr/statistiques/5371267?sommaire=5371304",
-    "2024": "https://www.insee.fr/fr/statistiques/8727513",
-}
-```
-
-- [ ] **Step 3: Parse only declared populations and brackets**
-
-```py
-POPULATIONS = ("acquereurs_recents", "accedants", "primo_accedants")
-AGE_BRACKETS = ("moins_30", "30_39", "40_49", "50_64", "65_plus")
-INDICATEUR = "insee_acquereurs_residence_principale_part_age"
-```
-
-If a workbook uses different brackets, retain its published brackets under distinct dimension values instead of forcing them into these five. Publish no arithmetic mean unless the workbook directly supplies one under a stable definition.
-
-- [ ] **Step 4: Run and commit**
-
-Run: `cd pipeline && pytest tests/test_acquisition_residence.py -q`
-
-Expected: PASS.
-
-```bash
-git add pipeline/plateforme/normalize/acquisition_residence.py pipeline/tests/test_acquisition_residence.py
-git commit -m "feat: ingest homebuyer age distributions"
-```
-
-### Task 5: Ingest life satisfaction without a composite score
+### Task 5: Ingest life satisfaction on its published scale
 
 **Files:**
 - Create: `pipeline/plateforme/normalize/qualite_vie.py`
 - Create: `pipeline/tests/test_qualite_vie.py`
 
-**Interfaces:**
-- Consumes: Insee SRCV life-satisfaction table and Eurostat `ilc_pw01`.
-- Produces: separate satisfaction series in points on their published scale.
-
-- [ ] **Step 1: Write unit and separation tests**
+Use only Insee Melodi `DS_SRCV_SATISFACTION` for the MVP. Exact selection:
 
 ```py
-def test_la_satisfaction_est_une_note_pas_un_pourcentage():
-    assert qualite.INDICATEURS["insee_satisfaction_vie_moyenne"]["unit"] == "score_0_10"
-
-def test_aucun_indice_composite_n_est_declare():
-    assert not any("composite" in identifiant or "qualite_vie_globale" in identifiant for identifiant in qualite.INDICATEURS)
-```
-
-- [ ] **Step 2: Implement source-specific parsers**
-
-Keep Insee and Eurostat indicators distinct. Normalise period labels, not the observed values. Reject values outside 0 to 10 and preserve survey breaks as quality flags.
-
-- [ ] **Step 3: Run and commit**
-
-Run: `cd pipeline && pytest tests/test_qualite_vie.py tests/test_jsonstat.py -q`
-
-Expected: PASS.
-
-```bash
-git add pipeline/plateforme/normalize/qualite_vie.py pipeline/tests/test_qualite_vie.py
-git commit -m "feat: ingest life satisfaction series"
-```
-
-### Task 6: Register, publish and control all new indicators
-
-**Files:**
-- Modify: `pipeline/plateforme/ingest.py`
-- Modify: `pipeline/plateforme/publish.py`
-- Modify: `pipeline/tests/test_publication.py`
-- Modify: `docs/01-registre-sources.md`
-
-**Interfaces:**
-- Consumes: normalizers from Tasks 1 to 5.
-- Produces: new indicators in versioned `indicateurs.json` and country series exports.
-
-- [ ] **Step 1: Add a publication test listing required IDs**
-
-```py
-REQUIRED = {
-    "eurostat_electricite_menages_ttc",
-    "eurostat_gaz_menages_ttc",
-    "eurostat_part_nucleaire_electricite",
-    "insee_prix_fournitures_scolaires_indice",
-    "insee_acquereurs_residence_principale_part_age",
-    "insee_satisfaction_vie_moyenne",
+PARAMS = {
+    "GEO": "2025-FRANCE-FM",
+    "SRCV_MEASURE": "VIESATISF",
+    "AGE": "Y_GE16",
+    "PCS": "_T",
+    "DECILE_NIVVIE": "_T",
+    "SRCV_NB_DIFF": "_T",
+    "SEX": "_T",
+    "SRCV_HLTH_SPH": "_T",
+    "SRCV_SATISFNOTE": "_T",
+    "EDUC": "_T",
+    "TPH": "_T",
+    "NATIONALITY_TYPE": "_T",
+    "EMPSTA_ENQ": "_T",
 }
-assert REQUIRED <= {item["id"] for item in publication["indicateurs"]}
+MEASURE = "OBS_VALUE_NIVEAU"
 ```
 
-- [ ] **Step 2: Register runners and publication families**
+Publish France metropolitan, people aged 16 or over, annual 2010 to 2024, unit `score_0_10`. Reject a row when any breakdown dimension is not `_T`. Preserve the 2020 and 2022 breaks as visible quality flags. Useful fixture anchors are 2010 `7.3`, 2021 `6.8` and 2024 `7.2`; do not transform the values.
 
-Add the five modules to the existing ingestion registry. Include their source IDs and datasets in the public source registry. Publish country-level series for all declared comparison countries.
+Eurostat `ilc_pw01` is excluded from the MVP because its comparable coverage is sparse/discontinuous. No composite and no percentage conversion.
 
-- [ ] **Step 3: Run pipeline tests**
+- [ ] RED: one valid total row plus one counterexample for every breakdown dimension, bounds, flags and anchor values.
+- [ ] GREEN: one native 0-to-10 series with literal scope.
+- [ ] Run `cd pipeline && pytest tests/test_qualite_vie.py -q`.
+- [ ] Commit with `feat: ingest Insee life satisfaction`.
 
-Run: `cd pipeline && pytest tests/test_prix_energie_menages.py tests/test_nucleaire_europe.py tests/test_fournitures_scolaires.py tests/test_acquisition_residence.py tests/test_qualite_vie.py tests/test_publication.py -q`
-
-Expected: PASS.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add pipeline/plateforme/ingest.py pipeline/plateforme/publish.py pipeline/tests/test_publication.py docs/01-registre-sources.md
-git commit -m "feat: publish five new analysis datasets"
-```
-
-### Task 7: Extend the contract and renderer for sourced series dossiers
+### Task 6A: Wire runners, assets and documentation
 
 **Files:**
-- Modify: `site/src/analyses.ts`
-- Modify: `site/src/analyses.test.ts`
+- Modify: existing registry-driven ingestion workflow files
+- Modify: `infra/seed/source_registry.csv`
+- Modify: `infra/seed/dataset_registry.csv`
+- Modify: `docs/01-registre-sources.md`
+- Create or modify: focused asset-lineage tests
+
+Do not add five hard-coded branches to `pipeline/plateforme/ingest.py`. Use the existing registry and module runners. Add source modules without secrets to the standard ingestion workflow. Keep ENTSO-E in its explicit manual editorial workflow.
+
+Test exact asset counts and formats: Eurostat JSON, BDM XML, Melodi response, CRE workbook/response, Insee publication HTML and XLSX. Every asset references a known dataset and run.
+
+- [ ] Run all focused normaliser and registry tests.
+- [ ] Commit with `feat: wire analysis ingestion assets`.
+
+### Task 6B: Publish through the generic observation path
+
+**Files:**
+- Modify only if necessary: `pipeline/plateforme/publish.py`
+- Modify: `pipeline/tests/test_publish_bout_en_bout.py`
+
+Use the generic `core.observations` publication path. Change `publish.py` only when a new declared unit is not already serialized. Test with DuckDB and `LocalStore` that every series ID appears in `data/<version>/indicateurs.json`, every country series appears in `data/<version>/territoires/pays/tous.json`, and dataset/source/method/quality flags survive.
+
+Housing evidence uses distinct IDs or an editorial snapshot artifact per definition; it must never emerge as one joined annual curve.
+
+- [ ] Run `cd pipeline && pytest tests/test_publish_bout_en_bout.py -q` plus all new normaliser tests.
+- [ ] Commit with `feat: publish five analysis datasets`.
+
+### Task 7A: Add a sourced-series and snapshot dossier contract
+
+**Files:**
+- Create: `site/src/analyse-contrat.ts`
+- Create: `site/src/analyse-contrat.test.ts`
+- Modify only for integration: `site/src/analyse-rendu.ts`
+
+Do not modify `site/src/analyses.ts` to host this contract. It already renders territorial analysis tables.
+
+```ts
+type SourceAnalyse = {
+  id: string;
+  titre: string;
+  url: string;
+  consulteLe: string;
+};
+
+type SerieAnalyse = {
+  id: string;
+  libelle: string;
+  unit: string;
+  definition: string;
+  sourceId: string;
+  observations: { period: string; value: number; qualityFlags?: string[] }[];
+};
+
+type PreuveAnalyse = {
+  id: string;
+  libelle: string;
+  value: number;
+  unit: string;
+  period: string;
+  definition: string;
+  sourceId: string;
+  seriesId?: string;
+  comparableGroup?: string;
+};
+```
+
+Add chapô, stable sections/anchors, optional contents, visualisation descriptors and explicit limitations. Every source ID is dossier-local, unique and resolvable. Reject any fallback to `sources[0]`. When `seriesId` exists, verify value, period and unit against the linked observation. Keep older short dossiers backward compatible.
+
+- [ ] RED: duplicate/missing sources, mixed units, broken series links and two-proof/two-source attribution.
+- [ ] GREEN: contract parser and backwards compatibility.
+- [ ] Run `cd site && node --experimental-strip-types --test src/analyse-contrat.test.ts src/analyse-rendu.test.ts`.
+- [ ] Commit with `feat: add sourced analysis dossier contract`.
+
+### Task 7B: Render long dossiers without unit or source ambiguity
+
+**Files:**
 - Modify: `site/src/analyse-rendu.ts`
 - Modify: `site/src/analyse-rendu.test.ts`
 - Modify: `site/src/echelle.ts`
 - Modify: `site/src/echelle.test.ts`
 - Modify: `site/src/styles/dossiers-verification.css`
 
-**Interfaces:**
-- Consumes: existing fact-check dossiers and the new published time series.
-- Produces: a backwards-compatible dossier schema with narrative sections, typed series and proof-level sources.
+Render: breadcrumb/meta, question H1, chapô, `Réponse en 30 secondes`, two or three key proofs, contents, primary visual, narrative sections, `Ce que les données ne permettent pas de conclure`, method, complete data and sources. Keep prose near 60 to 68 characters while visuals may use the full width.
 
-- [ ] **Step 1: Write failing schema and attribution tests**
+Group series by unit or declare axes explicitly. Two units never share an implicit axis. A proof cites its own `sourceId`; `commandeCiter()` must not attribute every number to the first source.
 
-Require a chapô, stable section anchors, optional table of contents, `series[]` with unit, period, definition and `sourceId`, and `preuves[]` whose numbers each own a `sourceId`. Add a regression test proving that two proofs using different sources render different citations. Explicitly reject an automatic fallback to `sources[0]`.
+- [ ] RED: two series/two units and two proofs/two sources render distinct units and citations.
+- [ ] GREEN: accessible figures/tables, literal definitions, nearby sources and backwards compatibility.
+- [ ] Run `cd site && node --experimental-strip-types --test src/analyse-rendu.test.ts src/echelle.test.ts`.
+- [ ] Commit with `feat: render sourced series dossiers`.
 
-- [ ] **Step 2: Extend the schema without expanding each observation into `chiffres[]`**
-
-Represent one time series as metadata plus ordered observations. Keep the existing short dossier shape readable for older files. Allow a descriptive conclusion without forcing the three-level fact-check verdict when that language does not fit the subject.
-
-- [ ] **Step 3: Render the evidence-first hierarchy**
-
-Render in this order: breadcrumb and metadata, H1 phrased as a question, chapô, `Réponse en 30 secondes`, two or three key figures, table of contents, primary chart, narrative sections, `Ce que les données ne permettent pas de conclure`, method, complete data and sources. Keep prose between 60 and 68 characters per line while charts may use the full dossier width.
-
-- [ ] **Step 4: Run and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/analyses.test.ts src/analyse-rendu.test.ts src/echelle.test.ts`
-
-Expected: PASS.
-
-```bash
-git add site/src/analyses.ts site/src/analyses.test.ts site/src/analyse-rendu.ts site/src/analyse-rendu.test.ts site/src/echelle.ts site/src/echelle.test.ts site/src/styles/dossiers-verification.css
-git commit -m "feat: support sourced series analysis dossiers"
-```
-
-### Task 8: Create five pre-rendered analysis pages
+### Task 8: Author and pre-render the five dossiers
 
 **Files:**
 - Create: `site/analyses/nucleaire-allemand-prix-energie.json`
@@ -390,140 +349,83 @@ git commit -m "feat: support sourced series analysis dossiers"
 - Modify: `site/src/analyse-rendu.test.ts`
 - Modify: `site/scripts/prerendre.test.ts`
 
-**Interfaces:**
-- Consumes: published indicator IDs from Task 6.
-- Produces: five shareable `/analyses/<slug>/` routes and OG cards.
+Visual contract by dossier:
 
-- [ ] **Step 1: Add the publication contract test**
+- nuclear: separate nuclear-share chart, household electricity-price chart and ENTSO-E wholesale-price chart; shutdown date annotation; no causal overlay;
+- supplies: two annual base-2015 indices and a visible series-break reserve;
+- gas: D2 TTC versus excluding-tax series, plus separate French CPI/CRE component visuals when available; never mix units on one implicit axis;
+- home purchase: snapshot table only, with definition and comparability warning per row; no line chart or reconstructed average;
+- quality: annual life-satisfaction line on 0 to 10, with 2020/2022 break markers and no composite.
+
+Every number carries `unit`, `period`, `definition` and `sourceId`. Load values from the versioned publication artifact, not copied constants. Use `mise_a_jour` only when a dossier genuinely revises an earlier publication.
+
+- [ ] RED: `analysesPubliees()` returns all five slugs, resolves every source and catches prohibited representations.
+- [ ] GREEN: five canonical routes and sitemap entries usable without JavaScript.
+- [ ] Run `cd site && node --experimental-strip-types --test src/analyse-rendu.test.ts scripts/prerendre.test.ts`.
+- [ ] Commit with `feat: publish five requested analyses`.
+
+### Task 9A: Reserve `/analyses/` for editorial pages
+
+**Files:**
+- Modify: `site/src/routes.ts`
+- Modify: `site/src/routes.test.ts`
+- Modify: `site/src/main.ts`
+- Modify: `site/scripts/prerendre.ts`
+- Modify: `site/scripts/prerendre.test.ts`
+
+The conflict is the legacy `ALIAS.analyses = "bilan"`. Separate path aliases from fragment aliases.
 
 ```ts
-const slugs = new Set((await analysesPubliees()).map(({ slug }) => slug));
-for (const slug of [
-  "nucleaire-allemand-prix-energie",
-  "prix-fournitures-scolaires",
-  "evolution-prix-gaz-menages",
-  "age-achat-residence-principale",
-  "evolution-qualite-vie",
-]) assert.ok(slugs.has(slug), slug);
+assert.equal(vueDepuisAdresse("/analyses/", ""), null);
+assert.equal(vueDepuisAdresse("/analyses/un-slug/", ""), null);
+assert.equal(vueDepuisAdresse("/", "#analyses"), "bilan");
 ```
 
-- [ ] **Step 2: Author the JSON using the sourced-series contract**
+Guard editorial routes before `donnees.initialiser()`. Verify `dist/analyses/index.html` is canonical `/analyses/`, carries `data-page="editorial"` and is never repainted as Bilan.
 
-Each file contains only values read from the publication artifact for its declared indicator, country and period. Use `type: "comparaison"` for nuclear and gas and `type: "decryptage"` for supplies, quality of life and buyer age. Use `mise_a_jour` only when a dossier truly revises an earlier publication. Attach `sourceId`, unit, definition and period to every series or proof. Put causal limits in the explicit limits section, not in an unlinked footnote.
+- [ ] Commit with `fix: reserve analysis editorial routes` after route/pre-render tests pass.
 
-- [ ] **Step 3: Run pre-render tests**
-
-Run: `cd site && node --experimental-strip-types --test src/analyse-rendu.test.ts scripts/prerendre.test.ts`
-
-Expected: PASS and five new canonical routes in the site map.
-
-- [ ] **Step 4: Commit**
-
-```bash
-git add site/analyses site/src/analyse-rendu.test.ts site/scripts/prerendre.test.ts
-git commit -m "feat: publish five requested analyses"
-```
-
-### Task 9: Replace the France content wall with thematic discovery
+### Task 9B: Replace the France content wall with progressive discovery
 
 **Files:**
 - Modify: `site/src/insights-france.ts`
 - Modify: `site/src/insights-rendu.ts`
 - Modify: `site/src/insights-rendu.test.ts`
+- Modify: `site/src/insights-france.test.ts`
 - Modify: `site/src/main.ts`
-- Modify: `site/src/routes.ts`
-- Modify: `site/src/routes.test.ts`
 - Modify: `site/src/styles/bilan-guide.css`
 - Modify: `site/scripts/prerendre.ts`
 - Modify: `site/scripts/prerendre.test.ts`
 
-**Interfaces:**
-- Consumes: all `Insight` items, eight themes and canonical analysis routes.
-- Produces: eight thematic entries on `/bilan`, a separate `/analyses/` catalogue, filters, search and progressive batches of twelve.
+`/bilan` initially renders exactly eight thematic entries, one per existing theme. `/analyses/` initially paints twelve catalogue results, then filters and loads local batches of twelve. All remaining subjects stay searchable without a server or model call. Add a typed `analyseId` or canonical `link`, theme, question and tokenized keywords to short cards.
 
-- [ ] **Step 1: Write the eight-card initial-render test**
+Share local navigation across `/bilan`, `/analyses/` and `/questions/`: `Vue d'ensemble`, `Dossiers`, `Questions`. At 390 px use one column, a labelled full-width search and a select or accessible filter drawer. At 1440 px use at most two catalogue columns. Fix the `h3`/rendered-`h4` mismatch, remove unresolved `--focus`/`--espace-9` and use one breakpoint convention.
 
-```ts
-test("France peint huit analyses puis garde le catalogue recherchable", () => {
-  const html = renduInsightsFrance(manyInsights(105), { initialLimit: 8 });
-  assert.equal((html.match(/class="insight /g) ?? []).length, 8);
-  assert.deepEqual(themesRendered(html), EIGHT_THEMES);
-  assert.match(html, /href="\/analyses\/"/);
-  assert.doesNotMatch(html, /data-insights-catalogue/);
-});
+- [ ] RED: eight Bilan entries, twelve initial catalogue items, all items still locally findable, no hidden full-card duplication.
+- [ ] GREEN: local search, filters, progressive batches, 44 px controls and no overflow.
+- [ ] Run `cd site && node --experimental-strip-types --test src/insights-rendu.test.ts src/insights-france.test.ts scripts/prerendre.test.ts && npm run build`.
+- [ ] Commit with `feat: add progressive analysis discovery`.
 
-test("le catalogue peint douze résultats puis reste recherchable", () => {
-  const html = renduCatalogueAnalyses(manyInsights(105), { initialLimit: 12 });
-  assert.equal((html.match(/class="insight /g) ?? []).length, 12);
-  assert.match(html, /type="search"/);
-  assert.match(html, /data-insights-catalogue/);
-});
-```
+### Task 10: Run the full analysis publication gate
 
-- [ ] **Step 2: Add typed discovery metadata**
-
-```ts
-export type InsightRenderOptions = {
-  contexte: "france" | "catalogue" | "territoire";
-  initialLimit?: number;
-  query?: string;
-  family?: string;
-};
-```
-
-Add a stable `analysisId` or canonical `link`, theme, question and keywords to every short card. Mark exactly one item per theme for the eight France entries. The France page does not embed the complete catalogue. `/analyses/` renders twelve initial items and embeds the remaining metadata as escaped JSON for local filtering without duplicating hidden cards as full HTML.
-
-- [ ] **Step 3: Add local filtering**
-
-In `main.ts`, normalise accents and case, filter by title, question, verdict text and tokenised keywords, then render results in batches of 12. Search never requests a server. Add a local navigation shared by `/bilan`, `/analyses/` and `/questions/`: `Vue d'ensemble`, `Dossiers`, `Questions`.
-
-At 390 px, use one column, a full-width labelled search field and a select or accessible filter drawer. At 1440 px, use an asymmetric featured composition on France and at most two columns in the catalogue. Fix the existing `h3` versus rendered `h4` selector mismatch and remove unresolved `--focus` or `--espace-9` usage.
-
-- [ ] **Step 4: Run and commit**
-
-Run: `cd site && node --experimental-strip-types --test src/insights-rendu.test.ts src/insights-france.test.ts scripts/prerendre.test.ts && npm run build`
-
-Expected: PASS and build exit 0.
+- [ ] Run:
 
 ```bash
-git add site/src/insights-france.ts site/src/insights-rendu.ts site/src/insights-rendu.test.ts site/src/main.ts site/src/routes.ts site/src/routes.test.ts site/src/styles/bilan-guide.css site/scripts/prerendre.ts site/scripts/prerendre.test.ts
-git commit -m "feat: add progressive France analysis catalogue"
+cd pipeline && pytest tests/test_registry_analyses_v3.py \
+  tests/test_prix_energie_menages.py \
+  tests/test_prix_gaz_france.py \
+  tests/test_nucleaire_europe.py \
+  tests/test_entsoe_prix.py \
+  tests/test_fournitures_scolaires.py \
+  tests/test_acquisition_residence.py \
+  tests/test_qualite_vie.py \
+  tests/test_publish_bout_en_bout.py -q
+
+cd site && npm test
+env -u ENTSOE_API_TOKEN npm run build
 ```
 
-### Task 10: Run the analysis publication gate
-
-**Files:**
-- Modify only on failure: files from Tasks 1 to 9.
-
-**Interfaces:**
-- Consumes: pipeline and site work.
-- Produces: fully verified new analysis release.
-
-- [ ] **Step 1: Run complete pipeline tests**
-
-Run: `cd pipeline && pytest -q`
-
-Expected: PASS.
-
-- [ ] **Step 2: Run complete site tests and build**
-
-Run: `cd site && npm test && npm run build`
-
-Expected: PASS.
-
-- [ ] **Step 3: Verify factual prohibitions**
-
-Run: `rg -n "DVF.*âge moyen|coût total de la rentrée|nucléaire.*cause unique|indice global de qualité de vie" site/analyses site/src pipeline/plateforme`
-
-Expected: no published assertion matching these prohibited shortcuts.
-
-- [ ] **Step 4: Verify design and canonical routes**
-
-At 390 x 844 and 1440 x 900, capture France, the catalogue and each dossier family. Verify eight France entries, twelve initial catalogue results, no horizontal overflow, 44 px controls, 60 to 68 character prose, one source beside each proof and canonical routes usable without JavaScript.
-
-- [ ] **Step 5: Commit gate-only fixes**
-
-```bash
-git add pipeline site docs/01-registre-sources.md
-git commit -m "test: verify five new sourced analyses"
-```
+- [ ] Verify no published or executable use of `nrg_bal_c`, `ilc_pw01`, a monthly school-supply CPI, a `36.*39` purchase-age curve, automatic HVP/ENL joins, ENTSO-E calls from `site/` or `prerendre.ts`, model calls or X data.
+- [ ] At 390 x 844 and 1440 x 900, capture Bilan, catalogue and every dossier family. Verify no horizontal overflow, 44 px controls, 60 to 68 character prose, one nearby source per proof and canonical no-JavaScript routes.
+- [ ] Run complete `cd pipeline && pytest -q`, then `cd site && npm test && npm run build`.
+- [ ] Commit only gate fixes with `test: verify five sourced analyses`.
