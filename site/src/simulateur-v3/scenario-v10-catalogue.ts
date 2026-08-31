@@ -1,6 +1,7 @@
 import { BUDGET_ESTIMATES } from "./budget-registry.ts";
 import { policyEvidence, type PolicySourceKey } from "./policy-sources.ts";
 import { SCENARIO_V3_CATALOGUE } from "./scenario.ts";
+import { validatePolicyCatalogue } from "./validation.ts";
 import type { BudgetProfile, Decision, DecisionKind, DecisionOption, GroupKey, IndicatorKey, Scenario } from "./types.ts";
 
 export { STRUCTURAL_ADOPT_DECISION_IDS } from "./budget-registry.ts";
@@ -69,29 +70,49 @@ function retainedOption(source: Decision, option: DecisionOption, local: "adopt"
   const remappedOther = other.map((effect) => ({ ...effect, id: effect.id.replace(`${source.id}:${oldLocal}:`, `${source.id}:${local}:`) }));
   return { ...clone, id: `${source.id}:${local}`, label: label ?? clone.label, budgetProfile: profile, effects: remappedOther };
 }
-function retainedDecision(source: Decision): Decision {
-  if (source.id === "engager-six-epr2-part-annuelle-de-l") { const six = source.options.find((option) => option.id.endsWith(":six"))!; const none = source.options.find((option) => option.id.endsWith(":none"))!; return { ...structuredClone(source), version: 10, options: [retainedOption(source, six, "adopt", "Engager six EPR2"), retainedOption(source, none, "keep", "Ne pas engager de nouvel EPR2")] }; }
-  return { ...structuredClone(source), version: 10, options: source.options.map((option) => retainedOption(source, option, option.id.split(":").at(-1)! as "adopt" | "keep")) };
-}
-function deepFreeze<T>(value: T): T { if (value && typeof value === "object") { for (const child of Object.values(value)) deepFreeze(child); Object.freeze(value); } return value; }
-const decisions = SCENARIO_V3_CATALOGUE.decisions.map((decision) => REPLACEMENTS[decision.id] ? replacementDecision(REPLACEMENTS[decision.id]!) : retainedDecision(decision));
-const known = new Set(decisions.map((decision) => decision.id));
-const UNPUBLISHED_V10_RELATIONSHIPS: Readonly<Record<string, readonly string[]>> = {
-  "abolir-les-droits-de-succession": ["raboter-l-avantage-successoral-de-l-assurance"],
-  "service-militaire-volontaire-de-50-000": ["generaliser-le-service-national-universel"],
+const FINAL_V10_RELATIONSHIPS: Readonly<Record<string, Readonly<{
+  dependencies: readonly string[];
+  conflicts: readonly string[];
+  options: Readonly<Record<"adopt" | "keep", Readonly<{ locks: readonly string[]; unlocks: readonly string[] }>>>;
+}>>> = {
+  "abolir-les-droits-de-succession": {
+    dependencies: [], conflicts: ["exonerer-de-droits-de-succession-jusqu-a"],
+    options: { adopt: { locks: ["exonerer-de-droits-de-succession-jusqu-a"], unlocks: [] }, keep: { locks: [], unlocks: [] } },
+  },
+  "service-militaire-volontaire-de-50-000": {
+    dependencies: [], conflicts: [],
+    options: { adopt: { locks: [], unlocks: [] }, keep: { locks: [], unlocks: [] } },
+  },
 };
-const normalized = decisions.map((decision) => {
-  const removed = new Set(UNPUBLISHED_V10_RELATIONSHIPS[decision.id] ?? []);
+
+function applyFinalV10Relationships(decision: Decision): Decision {
+  const final = FINAL_V10_RELATIONSHIPS[decision.id];
+  if (!final) return decision;
   return {
     ...decision,
-    dependencies: decision.dependencies.filter((id) => known.has(id) && !removed.has(id)),
-    conflicts: decision.conflicts.filter((id) => known.has(id) && !removed.has(id)),
-    options: decision.options.map((option) => ({
-      ...option,
-      locks: option.locks.filter((id) => known.has(id) && !removed.has(id)),
-      unlocks: option.unlocks.filter((id) => known.has(id) && !removed.has(id)),
-    })),
+    dependencies: [...final.dependencies],
+    conflicts: [...final.conflicts],
+    options: decision.options.map((option) => {
+      const local = option.id.split(":").at(-1)! as "adopt" | "keep";
+      const relation = final.options[local];
+      return { ...option, locks: [...relation.locks], unlocks: [...relation.unlocks] };
+    }),
   };
-});
-export const SCENARIO_V10_CATALOGUE: Scenario = deepFreeze({ version: 10, title: "Bibliothèque V10 des politiques", chapters: SCENARIO_V3_CATALOGUE.chapters.map((chapter) => ({ ...structuredClone(chapter), decisionIds: normalized.filter((decision) => decision.chapterId === chapter.id).map((decision) => decision.id) })), decisions: normalized });
+}
+
+function retainedDecision(source: Decision): Decision {
+  const migrated = source.id === "engager-six-epr2-part-annuelle-de-l"
+    ? (() => { const six = source.options.find((option) => option.id.endsWith(":six"))!; const none = source.options.find((option) => option.id.endsWith(":none"))!; return { ...structuredClone(source), version: 10 as const, options: [retainedOption(source, six, "adopt", "Engager six EPR2"), retainedOption(source, none, "keep", "Ne pas engager de nouvel EPR2")] }; })()
+    : { ...structuredClone(source), version: 10 as const, options: source.options.map((option) => retainedOption(source, option, option.id.split(":").at(-1)! as "adopt" | "keep")) };
+  return applyFinalV10Relationships(migrated);
+}
+function deepFreeze<T>(value: T): T { if (value && typeof value === "object") { for (const child of Object.values(value)) deepFreeze(child); Object.freeze(value); } return value; }
+export function buildV10Catalogue(source: Scenario = SCENARIO_V3_CATALOGUE): Scenario {
+  const decisions = source.decisions.map((decision) => REPLACEMENTS[decision.id] ? replacementDecision(REPLACEMENTS[decision.id]!) : retainedDecision(decision));
+  const catalogue: Scenario = { version: 10, title: "Bibliothèque V10 des politiques", chapters: source.chapters.map((chapter) => ({ ...structuredClone(chapter), decisionIds: decisions.filter((decision) => decision.chapterId === chapter.id).map((decision) => decision.id) })), decisions };
+  const errors = validatePolicyCatalogue(catalogue);
+  if (errors.length > 0) throw new Error(`Invalid V10 catalogue: ${errors.join(", ")}`);
+  return deepFreeze(catalogue);
+}
+export const SCENARIO_V10_CATALOGUE: Scenario = buildV10Catalogue();
 export function v10PolicyById(id: string): Decision | undefined { return SCENARIO_V10_CATALOGUE.decisions.find((decision) => decision.id === id); }

@@ -267,11 +267,17 @@ export function scheduleBudgetProfile(
   const sourceId = `${decision.id}:${option.id}`;
   let scheduled = state;
   const additions: ScheduledEvent[] = [];
+  const alreadyReserved = (id: string): boolean => (
+    scheduled.scheduledEvents.some((event) => event.id === id)
+    || scheduled.eventHistory.some((event) => event.id === id)
+    || scheduled.causalLedger.some((entry) => entry.id.startsWith(`decision:${sourceId}:${id}:`))
+  );
   const queue = (id: string, dueAtDecision: number, effect: EffectRule) => {
     assertDueAtDecision(dueAtDecision, scenario);
     additions.push(scheduledBudgetEvent(decision, option, id, dueAtDecision, effect));
   };
   const applyOrQueue = (id: string, dueAtDecision: number, effect: EffectRule) => {
+    if (alreadyReserved(id)) return;
     if (dueAtDecision === decisionCount) {
       scheduled = applyEffect(scheduled, effect, { sourceType: "decision", sourceId, appliedAtDecision: decisionCount });
     } else {
@@ -290,7 +296,7 @@ export function scheduleBudgetProfile(
     applyOrQueue(id, dueAtDecision, budgetEffect(id, profile.runRateMillions, "annual", "Flux annuel sourcé du profil budgétaire."));
   }
   for (const flow of profile.transitionFlows) {
-    const id = `${decision.id}:${option.id}:transition:${flow.id}`;
+    const id = flow.id;
     const dueAtDecision = flow.timing.kind === "immediate"
       ? decisionCount
       : dueAtDecisionForTiming(flow.timing, decisionCount, scenario);

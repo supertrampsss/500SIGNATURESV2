@@ -5,8 +5,8 @@ import { optionDistanceDimensions, policyDecision, type PolicyDecisionDefinition
 import { POLICY_CONSEQUENCES } from "./policy-consequences.ts";
 import { policyById, SCENARIO_V3_CATALOGUE } from "./scenario.ts";
 import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
-import { SCENARIO_V10_CATALOGUE, STRUCTURAL_ADOPT_DECISION_IDS, v10PolicyById } from "./scenario-v10-catalogue.ts";
-import { hasBudgetEstimate, primeActivityRecycleDifferenceMillions } from "./budget-registry.ts";
+import { SCENARIO_V10_CATALOGUE, STRUCTURAL_ADOPT_DECISION_IDS, buildV10Catalogue, v10PolicyById } from "./scenario-v10-catalogue.ts";
+import { hasBudgetEstimate, primeActivityRecycleDifferenceMillions, V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS } from "./budget-registry.ts";
 import type { DecisionOption } from "./types.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
@@ -140,6 +140,24 @@ test("le catalogue V10 laisse ses flux budgétaires au scheduler, sans effet ann
   for (const option of SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)) {
     assert.equal(option.effects.some((effect) => effect.target === "indicator" && effect.key === "annualBalance"), false, option.id);
   }
+});
+
+test("les neuf reports annuels V9 autorisés sont exhaustifs et leurs flux ponctuels sont globaux", () => {
+  const delayed = SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)
+    .filter((option) => option.budgetProfile.runRateTiming?.kind === "after_decisions")
+    .map((option) => option.id);
+  assert.deepEqual(delayed, V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS);
+  const flowIds = SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)
+    .flatMap((option) => option.budgetProfile.transitionFlows.map((flow) => flow.id));
+  assert.equal(new Set(flowIds).size, flowIds.length);
+  assert.equal(flowIds.every((id) => /:adopt:transition:\d+$/.test(id)), true);
+});
+
+test("une référence V10 supprimée ne peut pas être gommée pendant la construction", () => {
+  const source = structuredClone(SCENARIO_V3_CATALOGUE);
+  const decision = source.decisions.find((candidate) => candidate.id === "porter-le-taux-normal-de-tva-a")!;
+  decision.options[0]!.locks.push("flat-tax-a-20-des-le-premier");
+  assert.throws(() => buildV10Catalogue(source), /lock-unknown-decision:flat-tax-a-20-des-le-premier/);
 });
 
 const VALID: PolicyDecisionDefinition = {

@@ -166,6 +166,23 @@ test("V10 réserve le run-rate after_decisions aux seuls carry-forward V9", () =
   assert.ok(validateScenario(catalogue).includes(
     "option:perenniser-surtaxe-grandes-entreprises:adopt:run-rate-after-decisions-requires-carry-forward",
   ));
+
+  const changedTiming = structuredClone(SCENARIO_V10_CATALOGUE);
+  changedTiming.decisions.find((decision) => decision.id === "cheque-education-par-eleve")!
+    .options.find((option) => option.id === "cheque-education-par-eleve:adopt")!
+    .budgetProfile.runRateTiming = { kind: "after_decisions", count: 4 };
+  assert.ok(validateScenario(changedTiming).includes(
+    "option:cheque-education-par-eleve:adopt:run-rate-after-decisions-not-canonical",
+  ));
+});
+
+test("V10 refuse la collision globale de deux flux de transition", () => {
+  const scenario = structuredClone(SCENARIO_V10_CATALOGUE);
+  const flows = scenario.decisions.flatMap((decision) => decision.options)
+    .flatMap((option) => option.budgetProfile.transitionFlows);
+  assert.ok(flows.length >= 2);
+  flows[1]!.id = flows[0]!.id;
+  assert.ok(validateScenario(scenario).includes(`scenario:duplicate-transition-flow-id:${flows[0]!.id}`));
 });
 
 test("la validation impose un profil budgétaire, listes nettoyées et contrat budgétaire cohérent", () => {

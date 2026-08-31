@@ -251,7 +251,7 @@ test("le profil budgétaire planifie un run-rate immédiat et un flux ponctuel c
   const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
 
   assert.equal(scheduled.indicators.annualBalance, started.indicators.annualBalance + 2_700);
-  assert.equal(scheduled.scheduledEvents[0]?.id, `${decision.id}:${option.id}:transition:migration`);
+  assert.equal(scheduled.scheduledEvents[0]?.id, "migration");
   assert.equal(scheduled.scheduledEvents[0]?.dueAtDecision, 3);
   const due = { ...scheduled, decisions: [
     ...scheduled.decisions,
@@ -285,6 +285,36 @@ test("le run-rate V10 conserve ses échéances after_decisions et mandate_year",
   option.budgetProfile.runRateTiming = { kind: "mandate_year", year: 2 };
   const yearly = scheduleBudgetProfile(selected, decision, option, scenario);
   assert.equal(yearly.scheduledEvents[0]?.dueAtDecision, decisionCountAtMandateYearEnd(scenario, 2));
+});
+
+test("le scheduler budgétaire V10 est idempotent pour tous ses calendriers", () => {
+  const scenario = validScenario();
+  const decision = scenario.decisions[0]!;
+  const option = decision.options[0]!;
+  const selected = {
+    ...createCampaign(scenario),
+    decisions: [{ decisionId: decision.id, optionId: option.id, status: "confirmed" as const, confirmedAtIndex: 1 }],
+  };
+  for (const runRateTiming of [
+    { kind: "immediate" } as const,
+    { kind: "mandate_year", year: 2 } as const,
+    { kind: "after_decisions", count: 3 } as const,
+  ]) {
+    option.budgetProfile = {
+      estimateKey: "audit-test",
+      runRateMillions: 100,
+      runRateTiming,
+      transitionFlows: [{
+        id: `decision-1:adopt:transition:${runRateTiming.kind}`,
+        amountMillions: -10,
+        timing: { kind: "after_decisions", count: 2 },
+        sourceKey: "audit-test",
+      }],
+      exclusiveScopeKeys: ["test-scope"],
+    };
+    const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
+    assert.deepEqual(scheduleBudgetProfile(scheduled, decision, option, scenario), scheduled, runRateTiming.kind);
+  }
 });
 
 test("le carry-forward cheque-education active son rythme une seule fois à J+3 et le conserve", () => {
@@ -334,7 +364,7 @@ test("le scheduler refuse une collision causale et une échéance après la dern
     exclusiveScopeKeys: ["test-scope"],
   };
   const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
-  assert.throws(() => scheduleBudgetProfile(scheduled, decision, option, scenario), /Duplicate event ID/);
+  assert.deepEqual(scheduleBudgetProfile(scheduled, decision, option, scenario), scheduled);
 
   const finalDecision = scenario.decisions.at(-1)!;
   const finalOption = finalDecision.options[0]!;

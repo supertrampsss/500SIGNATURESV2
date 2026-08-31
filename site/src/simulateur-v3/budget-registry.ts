@@ -60,6 +60,33 @@ export const STRUCTURAL_ADOPT_DECISION_IDS = [
   "rationaliser-operateurs-ingenierie-territoriale", "reduire-surfaces-loyers-publics", "reduire-cout-absences-fonctions-publiques",
 ] as const;
 
+/** The only retained V9 annual profiles whose historical activation is relative. */
+export const V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS = [
+  "etendre-le-dedoublement-des-classes-au-cm1:adopt",
+  "ouvrir-200-000-places-de-creche:adopt",
+  "cheque-education-par-eleve:adopt",
+  "supprimer-le-financement-public-du-prive:adopt",
+  "generaliser-le-service-national-universel:adopt",
+  "autonomie-complete-des-etablissements:adopt",
+  "ne-pas-remplacer-un-depart-administratif-sur:adopt",
+  "regle-d-or-constitutionnelle:adopt",
+  "supprimer-les-departements:adopt",
+] as const;
+
+export const V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS: Readonly<Record<
+  (typeof V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS)[number], number
+>> = Object.freeze({
+  "etendre-le-dedoublement-des-classes-au-cm1:adopt": 3,
+  "ouvrir-200-000-places-de-creche:adopt": 4,
+  "cheque-education-par-eleve:adopt": 3,
+  "supprimer-le-financement-public-du-prive:adopt": 2,
+  "generaliser-le-service-national-universel:adopt": 4,
+  "autonomie-complete-des-etablissements:adopt": 3,
+  "ne-pas-remplacer-un-depart-administratif-sur:adopt": 3,
+  "regle-d-or-constitutionnelle:adopt": 3,
+  "supprimer-les-departements:adopt": 3,
+});
+
 const RETIRED_V10_IDS = new Set([
   "geler-le-bareme-de-l-impot-sur", "flat-tax-a-20-des-le-premier", "flat-tax-a-20-avec-abattement-protegeant", "tranche-a-50-au-dela-de-250",
   "soumettre-les-revenus-du-capital-au-bareme", "supprimer-les-allegements-de-cotisations-entre-2", "fiscaliser-les-heures-supplementaires-comme-le",
@@ -85,7 +112,11 @@ function carryForwardEntries(): Record<string, BudgetEstimate> {
       const v10OptionId = decision.id === "engager-six-epr2-part-annuelle-de-l" && localOptionId === "six" ? "adopt" : localOptionId;
       if (v10OptionId !== "adopt" || (option.budgetProfile.runRateMillions === 0 && option.budgetProfile.transitionFlows.length === 0)) continue;
       const key = `carry-forward-${decision.id}-${v10OptionId}`;
-      const flows = option.budgetProfile.transitionFlows.map((flow, index) => ({ ...flow, id: `carry-forward-${index + 1}`, sourceKey: sourceKeys[0]! }));
+      const flows = option.budgetProfile.transitionFlows.map((flow, index) => ({
+        ...flow,
+        id: `${decision.id}:${v10OptionId}:transition:${index + 1}`,
+        sourceKey: sourceKeys[0]!,
+      }));
       result[registryId(decision.id, v10OptionId, key)] = {
         key, baseYear: 2026, baseAmountMillions: Math.max(0, Math.abs(option.budgetProfile.runRateMillions) + flows.reduce((sum, flow) => sum + Math.abs(flow.amountMillions), 0)),
         baseNature: "prevision", scope: `Profil V9 conservé pour ${decision.id}; assiette distincte des réformes auditées V10.`,

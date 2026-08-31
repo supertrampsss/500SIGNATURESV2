@@ -23,7 +23,7 @@ import {
   mandateYearForChapter,
   validateBaseline,
 } from "./timeline.ts";
-import { budgetEstimateFor, hasBudgetEstimate, validateBudgetEstimate, validateBudgetProfile } from "./budget-registry.ts";
+import { budgetEstimateFor, hasBudgetEstimate, validateBudgetEstimate, validateBudgetProfile, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
 import type { BudgetProfile } from "./types.ts";
 
 const PHASES: readonly CampaignPhase[] = [
@@ -826,8 +826,11 @@ export function validateScenario(
           const estimate = hasRegisteredEstimate
             ? budgetEstimateFor(decision.id, localOptionId, profile.estimateKey as string)
             : null;
-          if (!profile.estimateKey?.startsWith("carry-forward-") || estimate?.estimateStatus !== "scenario") {
+          const expectedCount = V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS[optionId as keyof typeof V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS];
+          if (expectedCount === undefined || profile.estimateKey !== `carry-forward-${decision.id}-${localOptionId}` || estimate?.estimateStatus !== "scenario") {
             errors.push(`option:${optionId}:run-rate-after-decisions-requires-carry-forward`);
+          } else if (profile.runRateTiming.count !== expectedCount) {
+            errors.push(`option:${optionId}:run-rate-after-decisions-not-canonical`);
           }
         }
         if (scenario.version >= 10 && typeof profile.estimateKey === "string" && profile.estimateKey.startsWith("legacy:")) {
@@ -910,6 +913,7 @@ export function validateScenario(
   }
   if (scenario.version >= 10) {
     const scopeOwners = new Map<string, string>();
+    const transitionFlowOwners = new Map<string, string>();
     for (const { decisionId, optionId, profile } of budgetProfiles) {
       for (const scope of profile.exclusiveScopeKeys) {
         const owner = scopeOwners.get(scope);
@@ -918,6 +922,14 @@ export function validateScenario(
       }
       if (new Set(profile.transitionFlows.map((flow) => flow.id)).size !== profile.transitionFlows.length) {
         errors.push(`option:${optionId}:duplicate-transition-flow-id`);
+      }
+      for (const flow of profile.transitionFlows) {
+        const owner = transitionFlowOwners.get(flow.id);
+        if (owner !== undefined && owner !== `${decisionId}:${optionId}`) {
+          errors.push(`scenario:duplicate-transition-flow-id:${flow.id}`);
+        } else {
+          transitionFlowOwners.set(flow.id, `${decisionId}:${optionId}`);
+        }
       }
     }
   }
