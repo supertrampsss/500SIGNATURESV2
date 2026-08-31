@@ -162,16 +162,31 @@ function buildTrajectory(state: CampaignState): VerdictCheckpoint[] {
   }));
 }
 
-function immediateBudgetDelta(option: DecisionOption): number {
-  return option.effects
-    .filter((effect) => effect.target === "indicator" && effect.key === "annualBalance")
-    .reduce((sum, effect) => sum + effect.delta, 0);
+type VerdictBudgetImpact = {
+  delta: number;
+  duration: "annual" | "once";
+};
+
+function legacyBudgetImpact(option: DecisionOption): VerdictBudgetImpact {
+  const effects = option.effects.filter((effect) => effect.target === "indicator" && effect.key === "annualBalance");
+  return {
+    delta: effects.reduce((sum, effect) => sum + effect.delta, 0),
+    duration: effects[0]?.duration === "once" ? "once" : "annual",
+  };
 }
 
-function budgetDuration(option: DecisionOption): "annual" | "once" {
-  return option.effects.find((effect) => effect.target === "indicator" && effect.key === "annualBalance")?.duration === "once"
-    ? "once"
-    : "annual";
+function v10BudgetImpact(option: DecisionOption): VerdictBudgetImpact {
+  const profile = option.budgetProfile;
+  if (profile.runRateMillions !== 0) return { delta: profile.runRateMillions, duration: "annual" };
+  const transition = [...profile.transitionFlows].sort((left, right) => (
+    Math.abs(right.amountMillions) - Math.abs(left.amountMillions)
+    || left.id.localeCompare(right.id, "fr")
+  ))[0];
+  return transition ? { delta: transition.amountMillions, duration: "once" } : { delta: 0, duration: "annual" };
+}
+
+function budgetImpact(option: DecisionOption, scenario: Scenario): VerdictBudgetImpact {
+  return scenario.version >= 10 ? v10BudgetImpact(option) : legacyBudgetImpact(option);
 }
 
 function effectPriority(effect: DecisionOption["effects"][number]): number {
@@ -202,8 +217,8 @@ function strongestStructuralEffect(option: DecisionOption): VerdictStructuralEff
   };
 }
 
-function compareImpact(left: DecisionOption, right: DecisionOption): number {
-  const budgetDifference = Math.abs(immediateBudgetDelta(right)) - Math.abs(immediateBudgetDelta(left));
+function compareImpact(left: DecisionOption, right: DecisionOption, scenario: Scenario): number {
+  const budgetDifference = Math.abs(budgetImpact(right, scenario).delta) - Math.abs(budgetImpact(left, scenario).delta);
   if (budgetDifference !== 0) return budgetDifference;
   const leftStructural = strongestStructuralEffect(left);
   const rightStructural = strongestStructuralEffect(right);
@@ -234,18 +249,21 @@ function buildDecisiveChoices(state: CampaignState, scenario: Scenario): Verdict
       return { record, decision, option, chapter };
     })
     .filter((item): item is typeof item & { option: DecisionOption } => Boolean(item.option))
-    .sort((left, right) => compareImpact(left.option, right.option))
+    .sort((left, right) => compareImpact(left.option, right.option, scenario))
     .slice(0, 3)
-    .map(({ record, decision, option, chapter }, index) => ({
-      rank: index + 1,
-      decisionId: record.decisionId,
-      label: selfContainedChoiceLabel(decision?.title, option.label),
-      chapter: chapter?.title ?? "Mandat national",
-      budgetDelta: immediateBudgetDelta(option),
-      budgetDuration: budgetDuration(option),
-      structuralEffect: strongestStructuralEffect(option),
-      status: STATUS_LABELS[record.status],
-    }));
+    .map(({ record, decision, option, chapter }, index) => {
+      const impact = budgetImpact(option, scenario);
+      return {
+        rank: index + 1,
+        decisionId: record.decisionId,
+        label: selfContainedChoiceLabel(decision?.title, option.label),
+        chapter: chapter?.title ?? "Mandat national",
+        budgetDelta: impact.delta,
+        budgetDuration: impact.duration,
+        structuralEffect: strongestStructuralEffect(option),
+        status: STATUS_LABELS[record.status],
+      };
+    });
 }
 
 function buildAftermath(

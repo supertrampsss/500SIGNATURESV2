@@ -22,6 +22,57 @@ test("le verdict V10 reste unique après chaque parcours budgétaire publié", (
   }
 });
 
+test("le verdict V10 classe le parcours réel par les rythmes annuels des profils publiés", () => {
+  const finalState = simulatePath(BALANCED_PATHS[0]!, SCENARIO_V10);
+  const view = buildMandateVerdictViewModel(finalState, SCENARIO_V10, SCENARIO_V10_CRISIS_RULES);
+
+  assert.deepEqual(view.decisiveChoices.map(({ decisionId, budgetDelta, budgetDuration }) => [decisionId, budgetDelta, budgetDuration]), [
+    ["perenniser-surtaxe-grandes-entreprises", 6_570, "annual"],
+    ["supprimer-niches-fiscales-menages-capital", 5_234, "annual"],
+    ["recentrer-cir-niches-fiscales-entreprises", 3_799, "annual"],
+  ]);
+});
+
+test("le verdict V10 affiche le rythme EPR2 du profil lorsque la décision est retenue", () => {
+  const finalState = simulatePath(BALANCED_PATHS[0]!, SCENARIO_V10);
+  const epr2 = SCENARIO_V10.decisions.find((decision) => decision.id === "engager-six-epr2-part-annuelle-de-l")!;
+  const state = {
+    ...finalState,
+    decisions: finalState.decisions.map((record) => {
+      const decision = SCENARIO_V10.decisions.find((candidate) => candidate.id === record.decisionId)!;
+      return {
+        ...record,
+        optionId: decision.id === epr2.id ? epr2.options.find((option) => option.id.endsWith(":adopt"))!.id : decision.options.find((option) => option.id.endsWith(":keep"))!.id,
+      };
+    }),
+  };
+  const view = buildMandateVerdictViewModel(state, SCENARIO_V10, SCENARIO_V10_CRISIS_RULES);
+
+  assert.deepEqual(view.decisiveChoices[0] && [view.decisiveChoices[0].decisionId, view.decisiveChoices[0].budgetDelta, view.decisiveChoices[0].budgetDuration], [
+    "engager-six-epr2-part-annuelle-de-l", -2_000, "annual",
+  ]);
+});
+
+test("le verdict V10 affiche un flux de transition comme impact ponctuel", () => {
+  const finalState = simulatePath(BALANCED_PATHS[0]!, SCENARIO_V10);
+  const euroExit = SCENARIO_V10.decisions.find((decision) => decision.id === "sortir-de-l-euro")!;
+  const state = {
+    ...finalState,
+    decisions: finalState.decisions.map((record) => {
+      const decision = SCENARIO_V10.decisions.find((candidate) => candidate.id === record.decisionId)!;
+      return {
+        ...record,
+        optionId: decision.id === euroExit.id ? euroExit.options.find((option) => option.id.endsWith(":adopt"))!.id : decision.options.find((option) => option.id.endsWith(":keep"))!.id,
+      };
+    }),
+  };
+  const view = buildMandateVerdictViewModel(state, SCENARIO_V10, SCENARIO_V10_CRISIS_RULES);
+
+  assert.deepEqual(view.decisiveChoices[0] && [view.decisiveChoices[0].decisionId, view.decisiveChoices[0].budgetDelta, view.decisiveChoices[0].budgetDuration], [
+    "sortir-de-l-euro", -35_000, "once",
+  ]);
+});
+
 function completedCampaign(): CampaignState {
   const base = createCampaign(SCENARIO_V3_PREVIEW);
   const finalAnnualBalance = base.indicators.annualBalance + 20_000;
