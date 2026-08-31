@@ -10,7 +10,7 @@ Périmètre : catalogue de 96 dossiers, campagne publiée fixe de 72 dossiers, c
 
 Le simulateur doit permettre de conduire une refonte fiscale, sociale et administrative ambitieuse sans créer de mode spécial, de paquet préfabriqué ni de bouton d'équilibre. Chaque réforme reste un dossier politique normal, rangé dans l'un des huit chapitres existants et soumis au même choix que les autres.
 
-Le parcours doctrinal de référence doit ajouter 38,5 milliards d'euros d'amélioration annuelle au solde. Ce montant correspond à la borne haute crédible effectivement atteignable pendant le mandat, après prise en compte des recouvrements, des comportements, des frais de fonctionnement récurrents et des incompatibilités. Il ne s'agit ni d'une somme sur cinq exercices, ni d'un rendement théorique à dix ans. Trois parcours compatibles documentés doivent chacun atteindre un solde final nul ou positif. Le maximum compatible de la bibliothèque active est visé autour de 180 milliards d'euros d'amélioration annuelle, uniquement par somme des entrées sourcées du registre après application des verrous, jamais par un gonflement de lignes sans source.
+Le parcours doctrinal de référence ajoute exactement 21 689 M€ d'amélioration annuelle structurelle auditée : 18 dossiers, dont trois neutres ou bloqués à 0. Ce montant est une somme de rendements annuels nets documentés, pas une somme sur cinq exercices ni un rendement théorique à dix ans. Les deux promotions fiscales restent hors de ce plafond : 8 617 M€ nets supplémentaires, soit 30 306 M€ pour l'ensemble structurel plus promotions. Trois parcours compatibles sont construits uniquement avec les options sourcées ; ils visent un solde final nul ou positif, mais le build doit publier l'écart honnête si les hypothèses sourcées ne le permettent pas. Le maximum compatible est calculé et rapporté depuis le registre après application des verrous, sans cible chiffrée préalable ni gonflement de ligne.
 
 Cette doctrine complète la spécification `2026-08-31-v3-flux-continu-design.md`, qui reste la référence pour le déroulement, les crises, l'exigence d'un solde nul ou positif et le verdict unique. Elle remplace seulement les sections 4.1, 4.2, 4.3 et 12.1 de `2026-08-30-v3-impact-analyses-questions-design.md`, ainsi que les anciens invariants de campagne 96 fois 12 du plan de reconstruction. Les pauses et bilans de fin de chapitre de la section 4.1 sont supprimés ; les checkpoints restent calculés sans écran. Les sections consacrées aux analyses, aux questions, au verdict et à l'accessibilité restent applicables lorsqu'elles ne contredisent pas le flux continu du 31 août.
 
@@ -70,7 +70,7 @@ Le contrat budgétaire actuel doit évoluer. Une option peut avoir :
 
 Les coûts de transfert d'agents, d'indemnisation, de migration informatique, de travaux immobiliers ou de déploiement fiscal sont appliqués une seule fois à la bonne année. Ils diminuent la trajectoire et augmentent la dette si le solde ne les absorbe pas. Ils ne sont pas lissés artificiellement dans le rendement annuel.
 
-Le montant annuel cible de 39 milliards d'euros est déjà net des charges récurrentes. Les coûts ponctuels restent en plus visibles dans les checkpoints et dans le registre causal.
+Les 21 689 M€ structurels audités et les 8 617 M€ de promotions sont des rendements annuels nets des charges récurrentes lorsqu'une telle décomposition est publiée. Les coûts ponctuels restent en plus visibles dans les checkpoints et dans le registre causal.
 
 ## 4. Doctrine fiscale et sociale
 
@@ -108,34 +108,34 @@ La réforme ne se limite pas à prélever davantage. Elle fournit trois contrepa
 
 ## 5. Dossiers structurants et chiffrage cible
 
-Les valeurs ci-dessous sont les cibles hautes du scénario retenu. Elles totalisent 38 500 millions d'euros par an. Elles ne peuvent être inscrites dans le catalogue qu'après création de l'entrée nominative correspondante dans le registre de chiffrage, avec assiette, millésime, calcul net, délai et coûts de transition. Les options moins ambitieuses peuvent retenir une partie du gisement, mais aucune combinaison compatible de ces 18 dossiers ne peut dépasser ce sous-total. Les autres dossiers de campagne conservent leurs propres effets et ne sont pas compris dans ce plafond.
+Les valeurs ci-dessous constituent le plafond structurel audité de 21 689 M€ par an. Elles ne peuvent être inscrites dans le catalogue qu'après création de l'entrée nominative correspondante dans le registre de chiffrage, avec assiette, millésime, calcul net, délai et coûts de transition. Trois dossiers sont neutres ou bloqués à 0 ; aucune combinaison compatible de ces 18 dossiers ne peut dépasser ce sous-total. Les autres dossiers de campagne, y compris les promotions, conservent leurs propres effets et ne sont pas compris dans ce plafond.
 
 | `chapterId` existant | Dossier à créer ou refondre | Effet annuel cible | Règle de périmètre |
 |---|---|---:|---|
 | `taxes-assets-transmission` | Unifier IR, CSG et prélèvements personnels dans un barème continu dès le premier revenu | 0 M€ | Réforme calibrée à rendement constant ; elle remplace les variantes de flat tax et les modifications isolées du barème. |
-| `taxes-assets-transmission` | Supprimer un panier documenté de niches fiscales des ménages et du capital | +5 000 M€ | Liste nominative tirée de l'Évaluation des voies et moyens ; exclusion du CIR, des niches sociales, des niches brunes et des mesures déjà intégrées au barème unifié. |
+| `taxes-assets-transmission` | Supprimer un panier documenté de niches fiscales des ménages et du capital | +5 234 M€ | EVM 2026, lignes 120401 et 140119 ; plafond statique de scénario forte, exclusion du CIR, des niches sociales, des niches brunes et des mesures déjà intégrées au barème unifié. |
 | `taxes-assets-transmission` | Exploiter la facturation électronique contre la fraude à la TVA | +2 700 M€ | Objectif public de 3 000 M€ diminué des frais récurrents et d'une marge d'exécution ; aucune économie privée de conformité n'est portée au solde public. |
 | `work-wages-pensions` | Remplacer la prime d'activité par une baisse des prélèvements sur le travail | 0 M€ | Enveloppe intégralement recyclée ; aucun dividende cash et aucune économie fictive. |
-| `work-wages-pensions` | Cibler les aides à l'apprentissage sur les formations et contrats à effet d'emploi démontré | +3 000 M€ | Aides employeurs et exonérations d'apprentis uniquement ; exclusion de toute ligne reprise dans les aides générales aux entreprises. |
-| `work-wages-pensions` | Supprimer les subventions directes aux entreprises insuffisamment évaluées | +3 000 M€ | Subventions budgétaires identifiées seulement ; exclusion de l'apprentissage, du CIR, des exonérations sociales et des tarifs énergétiques. |
-| `work-wages-pensions` | Recentrer le CIR et les niches fiscales bénéficiant aux entreprises | +4 000 M€ | Dispositifs fiscaux nommés, avec maintien des dépenses de recherche additionnelles démontrées ; aucun chevauchement avec les subventions directes. |
-| `work-wages-pensions` | Recentrer les allègements et exonérations sociales | +6 000 M€ | Suppression ciblée au-dessus des bas salaires et des exemptions peu évaluées ; exclusion de l'apprentissage et des prélèvements personnels fusionnés. |
-| `health-social-protection` | Généraliser les médicaments comparables les moins coûteux et mutualiser les achats | +1 800 M€ | Médicaments, biosimilaires et achats hospitaliers définis ; pas de baisse uniforme de l'ONDAM. |
-| `health-social-protection` | Réduire les arrêts évitables et responsabiliser la prescription | +1 200 M€ | Contrôles, prévention et prescription ; exclusion des absences des agents publics comptées dans le chapitre État. |
-| `health-social-protection` | Renforcer le recouvrement de la fraude sociale | +800 M€ | Hypothèse de gain net additionnel, bloquée jusqu'à documentation d'un taux de recouvrement ; détection, redressement et recouvrement ne sont jamais additionnés. |
-| `health-social-protection` | Unifier l'instruction et le versement des prestations de solidarité | +400 M€ | Économie de back-office seulement ; aucun retrait de droit, aucun gain lié au non-recours et aucune prime d'activité déjà recyclée. |
-| `state-institutions-territories` | Clarifier les compétences et supprimer les doublons territoriaux | +3 000 M€ | Non-remplacements effectivement réalisables ; exclusion des achats, bâtiments, absences et opérateurs chiffrés séparément. |
-| `state-institutions-territories` | Mutualiser et professionnaliser les achats publics | +2 500 M€ | Part réalisable des plafonds État et collectivités ; gains déjà nets des mêmes marchés touchés par les autres réformes. |
-| `state-institutions-territories` | Rationaliser les opérateurs d'ingénierie territoriale | +200 M€ | Périmètre IGF Cerema, ANCT et ADEME ; aucune fermeture générique d'un tiers des agences. |
-| `state-institutions-territories` | Réduire les surfaces et loyers publics | +1 000 M€ | Loyers et entretien récurrents évités ; produits de cession traités séparément comme ponctuels. |
-| `state-institutions-territories` | Réduire le coût des absences dans les trois fonctions publiques | +900 M€ | Hypothèse haute de remplacement et prévention ; incompatibilité avec un second chiffrage des jours de carence sur les mêmes arrêts. |
-| `energy-climate-transport-agriculture` | Supprimer un panier documenté de niches fiscales brunes | +3 000 M€ | Tarifs réduits et remboursements nommés ; exclusion des aides budgétaires, du bonus automobile et de la taxe carbone. |
+| `work-wages-pensions` | Cibler les aides à l'apprentissage sur les formations et contrats à effet d'emploi démontré | +1 200 M€ | Aides employeurs et exonérations d'apprentis uniquement ; exclusion de toute ligne reprise dans les aides générales aux entreprises. |
+| `work-wages-pensions` | Supprimer les subventions directes aux entreprises insuffisamment évaluées | 0 M€ (bloqué) | Aucun gisement retenu tant que le périmètre et le net ne sont pas documentés ; exclusion de l'apprentissage, du CIR, des exonérations sociales et des tarifs énergétiques. |
+| `work-wages-pensions` | Recentrer le CIR et les niches fiscales bénéficiant aux entreprises | +3 799 M€ | Scénario explicite de demi-taux du CIR ; aucun maintien de toute dépense de R&D additionnelle n'est présumé démontré et aucun chevauchement avec les subventions directes n'est admis. |
+| `work-wages-pensions` | Recentrer les allègements et exonérations sociales | +3 100 M€ | Suppression ciblée au-dessus des bas salaires et des exemptions peu évaluées ; exclusion de l'apprentissage et des prélèvements personnels fusionnés. |
+| `health-social-protection` | Généraliser les médicaments comparables les moins coûteux et mutualiser les achats | +300 M€ | Médicaments, biosimilaires et achats hospitaliers définis ; pas de baisse uniforme de l'ONDAM. |
+| `health-social-protection` | Réduire les arrêts évitables et responsabiliser la prescription | +103 M€ | Contrôles, prévention et prescription ; exclusion des absences des agents publics comptées dans le chapitre État. |
+| `health-social-protection` | Renforcer le recouvrement de la fraude sociale | +85 M€ | Recouvrement additionnel net seulement ; détection, redressement et recouvrement ne sont jamais additionnés. |
+| `health-social-protection` | Unifier l'instruction et le versement des prestations de solidarité | +22 M€ | Économie de back-office APL seulement ; aucun retrait de droit, aucun gain lié au non-recours et aucune prime d'activité déjà recyclée. |
+| `state-institutions-territories` | Clarifier les compétences et supprimer les doublons territoriaux | +375 M€ | Compétences et doublons documentés ; exclusion des achats, bâtiments, absences et opérateurs chiffrés séparément. |
+| `state-institutions-territories` | Mutualiser et professionnaliser les achats publics | +1 900 M€ | Part réalisable des plafonds État et collectivités ; gains déjà nets des mêmes marchés touchés par les autres réformes. |
+| `state-institutions-territories` | Rationaliser les opérateurs d'ingénierie territoriale | +25 M€ | Périmètre IGF Cerema, ANCT et ADEME ; aucune fermeture générique d'un tiers des agences. |
+| `state-institutions-territories` | Réduire les surfaces et loyers publics | +106 M€ | Loyers et entretien récurrents évités ; produits de cession traités séparément comme ponctuels. |
+| `state-institutions-territories` | Réduire le coût des absences dans les trois fonctions publiques | +400 M€ | Hypothèse auditée de prévention et remplacement ; incompatibilité avec un second chiffrage des jours de carence sur les mêmes arrêts. |
+| `energy-climate-transport-agriculture` | Supprimer un panier documenté de niches fiscales brunes | +2 340 M€ | Tarifs réduits et remboursements nommés ; exclusion des aides budgétaires, du bonus automobile et de la taxe carbone. |
 
 Le numérique n'a pas de cagnotte autonome. Il peut être le moyen de réaliser un autre dossier, mais il ne produit un effet budgétaire que lorsqu'un cas audité isole une recette ou une dépense effectivement évitée.
 
 ### 5.2 Parcours équilibrés et plafond compatible
 
-Le build V10 publie trois parcours nommés, chacun constitué d'une option par dossier publié et évalué par le moteur complet avec ses échéances, `locks`, décisions `superseded`, coûts ponctuels, crises et intérêts : `doctrine-38500`, `redressement-prudent` et `reformes-structurelles`. Chacun doit atteindre un solde final annuel nul ou positif. `doctrine-38500` contient les 18 options `adopt` de la section 5 et atteint exactement 38 500 M€ de `runRateMillions` avant les effets des autres dossiers. Le calculeur de maximum compatible explore uniquement les options présentes dans le registre et vise un ordre de grandeur de 180 000 M€ d'amélioration annuelle ; il échoue si un montant absent du registre, une clé de périmètre dupliquée ou une combinaison verrouillée est nécessaire pour atteindre ce résultat.
+Le build V10 publie trois parcours nommés, chacun constitué d'une option par dossier publié et évalué par le moteur complet avec ses échéances, `locks`, décisions `superseded`, coûts ponctuels, crises et intérêts : `doctrine-21689`, `redressement-prudent` et `reformes-structurelles`. Chaque parcours vise un solde final annuel nul ou positif. `doctrine-21689` contient les 18 options `adopt` de la section 5 et atteint exactement 21 689 M€ de `runRateMillions` avant les effets des autres dossiers. Si les seules options sourcées ne permettent pas le solde nul ou positif, le build doit produire et afficher l'écart de solde, sans majorer une estimation. Le calculateur de maximum compatible explore uniquement les options présentes dans le registre, applique clés exclusives et verrous, puis rapporte sa valeur et sa provenance sans seuil attendu.
 
 ### 5.1 Contrat canonique d'intégration
 
@@ -144,27 +144,27 @@ Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossie
 | Rang de cœur | `decisionId` cible | `chapterId` | Option de référence | `runRateMillions` | Premier effet plein | `exclusiveScopeKeys` | Source de départ |
 |---:|---|---|---|---:|---|---|---|
 | 1 | `unifier-ir-csg-bareme-continu` | `taxes-assets-transmission` | `adopt` | 0 | sans effet budgétaire | aucune | `dgfip-ir-2024`, `ccss-csg-2025`, `cgi-197` |
-| 2 | `supprimer-niches-fiscales-menages-capital` | `taxes-assets-transmission` | `adopt` | 5 000 | année 2 | `tax-exp-household-capital-selected` | `evm-2026` |
+| 2 | `supprimer-niches-fiscales-menages-capital` | `taxes-assets-transmission` | `adopt` | 5 234 | année 2 | `tax-exp-household-capital-selected` | `evm-2026` |
 | 3 | `facturation-electronique-controle-tva` | `taxes-assets-transmission` | `adopt` | 2 700 | année 2 | `vat-fraud-einvoice` | `plan-antifraude-facturation-electronique` |
-| 1 | `recentrer-allegements-exonerations-sociales` | `work-wages-pensions` | `adopt` | 6 000 | année 2 | `social-exemptions-selected` | `plfss-2025-annexe-4` |
-| 2 | `cibler-aides-apprentissage` | `work-wages-pensions` | `adopt` | 3 000 | année 2 | `apprenticeship-aid-selected`, `apprenticeship-exemption-selected` | `plfss-2026-annexe-9`, `pap-travail-2026` |
-| 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 3 000 | année 2 | `business-budget-subsidies-selected` | `hcsp-aides-entreprises-2025` |
-| 4 | `recentrer-cir-niches-fiscales-entreprises` | `work-wages-pensions` | `adopt` | 4 000 | année 2 | `tax-exp-business-selected`, `tax-exp-cir-selected` | `evm-2026` |
+| 1 | `recentrer-allegements-exonerations-sociales` | `work-wages-pensions` | `adopt` | 3 100 | année 2 | `social-exemptions-selected` | `plfss-2025-annexe-4` |
+| 2 | `cibler-aides-apprentissage` | `work-wages-pensions` | `adopt` | 1 200 | année 2 | `apprenticeship-aid-selected`, `apprenticeship-exemption-selected` | `plfss-2026-annexe-9`, `pap-travail-2026` |
+| 3 | `supprimer-subventions-directes-entreprises` | `work-wages-pensions` | `adopt` | 0 (bloqué) | non activable | `business-budget-subsidies-selected` | `hcsp-aides-entreprises-2025` |
+| 4 | `recentrer-cir-niches-fiscales-entreprises` | `work-wages-pensions` | `adopt` | 3 799 | année 2 | `tax-exp-business-selected`, `tax-exp-cir-selected` | `evm-2026` |
 | 8 | `remplacer-prime-activite-prelevements-travail` | `work-wages-pensions` | `adopt` | 0 | sans effet budgétaire | aucune | `cnaf-prime-activite-2024` |
-| 1 | `medicaments-comparables-achats-sante` | `health-social-protection` | `adopt` | 1 800 | année 3 | `health-drugs-procurement-selected` | `ccss-ondam-2025` |
-| 2 | `reduire-arrets-evitables-prescription` | `health-social-protection` | `adopt` | 1 200 | année 3 | `health-sick-leave-selected` | `ccss-ondam-2025` |
-| 3 | `recouvrer-fraude-sociale-additionnelle` | `health-social-protection` | `adopt` | 800 | année 3 | `social-fraud-additional-recovery` | `urssaf-fraude-2024`, `cnaf-fraude-2024` |
-| 4 | `unifier-instruction-prestations-solidarite` | `health-social-protection` | `adopt` | 400 | année 3 | `benefits-backoffice-selected` | `budget-programme-304`, `cnaf-gestion` |
-| 7 | `supprimer-niches-fiscales-brunes` | `energy-climate-transport-agriculture` | `adopt` | 3 000 | année 5 | `tax-exp-brown-selected` | `evm-2026` |
-| 1 | `clarifier-competences-doublons-territoriaux` | `state-institutions-territories` | `adopt` | 3 000 | année 5 | `local-competency-staff-overlap` | `igf-collectivites-2024`, `senat-ravignon` |
-| 2 | `mutualiser-achats-publics` | `state-institutions-territories` | `adopt` | 2 500 | année 5 | `public-procurement-selected` | `dae-2025`, `igf-collectivites-2024` |
-| 3 | `rationaliser-operateurs-ingenierie-territoriale` | `state-institutions-territories` | `adopt` | 200 | année 5 | `territorial-engineering-operators` | `igf-ingenierie-territoriale-2025` |
-| 4 | `reduire-surfaces-loyers-publics` | `state-institutions-territories` | `adopt` | 1 000 | année 5 | `public-property-rent-maintenance` | `die-2025` |
-| 5 | `reduire-cout-absences-fonctions-publiques` | `state-institutions-territories` | `adopt` | 900 | année 5 | `public-workforce-absence-replacement` | `dgafp-temps-2024`, `igf-igas-absences` |
+| 1 | `medicaments-comparables-achats-sante` | `health-social-protection` | `adopt` | 300 | année 3 | `health-drugs-procurement-selected` | `ccss-ondam-2025` |
+| 2 | `reduire-arrets-evitables-prescription` | `health-social-protection` | `adopt` | 103 | année 3 | `health-sick-leave-selected` | `ccss-ondam-2025` |
+| 3 | `recouvrer-fraude-sociale-additionnelle` | `health-social-protection` | `adopt` | 85 | année 3 | `social-fraud-additional-recovery` | `urssaf-fraude-2024`, `cnaf-fraude-2024` |
+| 4 | `unifier-instruction-prestations-solidarite` | `health-social-protection` | `adopt` | 22 | année 3 | `benefits-backoffice-selected` | `budget-programme-304`, `cnaf-gestion` |
+| 7 | `supprimer-niches-fiscales-brunes` | `energy-climate-transport-agriculture` | `adopt` | 2 340 | année 5 | `tax-exp-brown-selected` | `evm-2026` |
+| 1 | `clarifier-competences-doublons-territoriaux` | `state-institutions-territories` | `adopt` | 375 | année 5 | `local-competency-staff-overlap` | `igf-collectivites-2024`, `senat-ravignon` |
+| 2 | `mutualiser-achats-publics` | `state-institutions-territories` | `adopt` | 1 900 | année 5 | `public-procurement-selected` | `dae-2025`, `igf-collectivites-2024` |
+| 3 | `rationaliser-operateurs-ingenierie-territoriale` | `state-institutions-territories` | `adopt` | 25 | année 5 | `territorial-engineering-operators` | `igf-ingenierie-territoriale-2025` |
+| 4 | `reduire-surfaces-loyers-publics` | `state-institutions-territories` | `adopt` | 106 | année 5 | `public-property-rent-maintenance` | `die-2025` |
+| 5 | `reduire-cout-absences-fonctions-publiques` | `state-institutions-territories` | `adopt` | 400 | année 5 | `public-workforce-absence-replacement` | `dgafp-temps-2024`, `igf-igas-absences` |
 
 Le premier effet plein est comptabilisé au checkpoint indiqué, sans prorata infra-annuel. Les coûts ponctuels antérieurs sont néanmoins appliqués à leur checkpoint propre.
 
-Le plan d'implémentation doit compléter ce tableau par, pour chaque option `adopt`, le détail des lignes officielles retenues, le calcul brut, la décote comportementale, les charges récurrentes et chaque `transitionFlow`. Tant que cette annexe de chiffrage ne justifie pas une ligne, cette ligne est bloquée pour le code. Si le total documenté est inférieur à 38 500 M€, il faut soit réduire honnêtement la cible, soit identifier un autre dossier public distinct ; il est interdit de gonfler une ligne existante.
+L'annexe `2026-08-31-v10-budget-estimates-audit.md` documente, pour chaque option `adopt`, les lignes officielles retenues, le calcul net, les hypothèses et chaque `transitionFlow`. Tant qu'elle ne justifie pas une ligne, cette ligne est bloquée pour le code. Il est interdit de gonfler une ligne existante pour atteindre un objectif externe au registre.
 
 ## 6. Catalogue et campagne
 
@@ -332,7 +332,7 @@ Les douze dossiers ci-dessous forment la seule liste de promotion de cette versi
 
 La présence de douze candidats ne préjuge pas du résultat du filtre. Avant la compilation du scénario, chaque candidat reçoit un statut versionné `promoted` ou `rejected`. Un candidat est `promoted` si et seulement s'il franchit tous les verrous et obtient au moins 8 sur 10. Le build V10 exige 12 statuts `promoted`. `CAMPAIGN_CHAPTERS` insère ensuite, dans l'ordre stable de la table, les candidats `promoted` après leur ancre du noyau.
 
-Le rapport contient les preuves, le détail du score, le statut et la raison de tout rejet. C'est un artefact statique et versionné, produit au build. Il n'est jamais recalculé pendant une partie, lors d'une restauration ou selon le profil du joueur. Les 38 500 M€ de la section 5 restent le total propre aux 18 réformes structurantes ; les promotions sont chiffrées séparément et ne modifient pas ce plafond.
+Le rapport contient les preuves, le détail du score, le statut et la raison de tout rejet. C'est un artefact statique et versionné, produit au build. Il n'est jamais recalculé pendant une partie, lors d'une restauration ou selon le profil du joueur. Les 21 689 M€ de la section 5 restent le total propre aux 18 réformes structurantes ; les promotions sont chiffrées séparément (6 570 M€ de surtaxe IS et 2 047 M€ de TVA restauration, soit 8 617 M€) et ne modifient pas ce plafond.
 
 ## 7. Incompatibilités et absence de double compte
 
@@ -465,9 +465,9 @@ La conception est correctement implémentée si :
 4. aucun écran ne propose un paquet ou un mode spécial ;
 5. le prélèvement personnel unifié n'engendre ni crédit remboursable, ni versement cash, ni rendement budgétaire artificiel ;
 6. la disparition de la prime d'activité est compensée avec une différence inférieure ou égale à 1 M€ dans le registre par une baisse des prélèvements sur le travail ;
-7. le parcours doctrinal de référence, défini par les 18 options `adopt` ci-dessus, atteint exactement 38 500 M€ de `runRateMillions` au checkpoint final dérivé, après application des verrous et des échéances ; ses coûts ponctuels ont bien affecté la trajectoire ;
-8. aucune combinaison compatible de ces seules 18 options ne dépasse 38 500 M€ ; ce plafond ne s'applique pas aux autres dossiers du catalogue ;
-9. trois constantes de build regroupées dans `BALANCED_PATHS` documentent `doctrine-38500`, `redressement-prudent` et `reformes-structurelles`, chacun avec une option par dossier publié et une réponse nommée à chaque crise déclenchée ; un test de simulation complet résout ces crises jusqu'au verdict et prouve que chacun atteint un solde annuel nul ou positif au checkpoint final dérivé, sans énumérer les combinaisons possibles ;
+7. le parcours doctrinal de référence, défini par les 18 options `adopt` ci-dessus, atteint exactement 21 689 M€ de `runRateMillions` au checkpoint final dérivé, après application des verrous et des échéances ; ses coûts ponctuels ont bien affecté la trajectoire ;
+8. aucune combinaison compatible de ces seules 18 options ne dépasse 21 689 M€ ; les deux promotions totalisent séparément 8 617 M€ nets, et le total structurel plus promotions est 30 306 M€ ;
+9. trois constantes de build regroupées dans `BALANCED_PATHS` documentent `doctrine-21689`, `redressement-prudent` et `reformes-structurelles`, chacun avec une option par dossier publié et une réponse nommée à chaque crise déclenchée ; un test de simulation complet résout ces crises jusqu'au verdict et prouve un solde annuel nul ou positif lorsque les seules options sourcées le permettent, sinon publie l'écart de solde sans chiffrage ajouté ;
 10. les coûts de transition sont appliqués une seule fois et restent présents après sauvegarde et restauration ;
 11. les flux annuels persistent à partir de leur date d'entrée en vigueur ;
 12. les recettes ponctuelles disparaissent du rythme annuel suivant ;

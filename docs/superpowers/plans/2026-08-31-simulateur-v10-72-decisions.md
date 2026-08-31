@@ -18,8 +18,8 @@
 - Aucun flux non nul n'est accepté sans entrée de registre, source primaire, assiette, millésime, nature, calcul brut, décote comportementale, coût récurrent et clé de périmètre exclusive.
 - `unifier-ir-csg-bareme-continu` est neutre; la prime d'activité est recyclée à plus ou moins 1 M€; aucune flat tax fictive à 150 000 M€ n'existe.
 - Les 18 substitutions doctrinales et les deux emplacements fiscaux de promotion maintiennent le total 96. Les deux variantes de flat tax sont remplacées par `perenniser-surtaxe-grandes-entreprises` et `relever-tva-restauration-commerciale`.
-- `perenniser-surtaxe-grandes-entreprises` utilise `corporate-profit-surtax-2026`, la borne brute Sénat PLF 2026 de 7 300 M€ et un rendement net documenté. `relever-tva-restauration-commerciale` utilise `commercial-restaurant-vat-10`, distincte de la TVA normale, avec rendement net strictement inférieur à 2 275 M€.
-- Les trois parcours `doctrine-38500`, `redressement-prudent` et `reformes-structurelles` ont une option par décision publiée, passent les `locks`, intègrent crises, échéances et coûts ponctuels, et finissent avec un solde annuel nul ou positif. Le maximum compatible vise environ 180 000 M€ seulement à partir des écritures sourcées.
+- Les 18 substitutions structurelles totalisent exactement 21 689 M€ nets, dont trois dossiers neutres ou bloqués à 0. `perenniser-surtaxe-grandes-entreprises` utilise `corporate-profit-surtax-2026`: 7 300 M€ bruts moins 730 M€ de décote comportementale, soit 6 570 M€ nets. `relever-tva-restauration-commerciale` utilise `commercial-restaurant-vat-10`, distincte de la TVA normale: 2 275 M€ bruts moins 228 M€ de décote, soit 2 047 M€ nets. Les promotions totalisent 8 617 M€ et le total structurel plus promotions est 30 306 M€; elles ne relèvent pas du plafond des 18.
+- Les trois parcours `doctrine-21689`, `redressement-prudent` et `reformes-structurelles` ont une option par décision publiée, passent les `locks`, intègrent crises, échéances et coûts ponctuels. Ils visent un solde annuel final nul ou positif uniquement à partir des options sourcées; à défaut, le build publie l'écart honnête. Le maximum compatible est calculé et rapporté depuis les écritures sourcées, sans seuil imposé.
 
 ---
 
@@ -29,6 +29,7 @@
 |---|---|
 | `site/src/simulateur-v3/types.ts` | Contrats de profil, état, schéma 5 et écritures causales de flux. |
 | `site/src/simulateur-v3/budget-registry.ts` | Registre typé, jointure `decisionId:optionId:estimateKey` et contrôle des périmètres exclusifs. |
+| `docs/superpowers/specs/2026-08-31-v10-budget-estimates-audit.md` | Annexe primaire des bases, formules, sources et réserves du registre V10. |
 | `site/src/simulateur-v3/policy-catalogue.ts`, `policy-consequences.ts` et `policies/*.ts` | Compilation des options réelles à deux choix à partir du profil V10, sans ancien contrat budgétaire. |
 | `site/src/simulateur-v3/campaign-topology.ts` et `promotion-report.ts` | Noyau, promotions, rapport figé, longueur 72 et checkpoints dérivés. |
 | `site/src/simulateur-v3/effects.ts`, `timeline.ts`, `flow.ts`, `validation.ts` | Planification, matérialisation et annulation sûre des flux. |
@@ -82,6 +83,7 @@ git commit -m "test: freeze simulator scenario v9"
 ### Task 1: Contrat budgétaire et registre de chiffrage
 
 **Files:**
+- Modify: `docs/superpowers/specs/2026-08-31-v10-budget-estimates-audit.md`
 - Create: `site/src/simulateur-v3/budget-registry.ts`
 - Create: `site/src/simulateur-v3/budget-registry.test.ts`
 - Modify: `site/src/simulateur-v3/types.ts`
@@ -131,7 +133,7 @@ Expected: PASS; une clé exclusive réutilisée par deux décisions est refusée
 - [ ] **Step 5: Commit.**
 
 ```bash
-git add site/src/simulateur-v3/types.ts site/src/simulateur-v3/budget-registry.ts site/src/simulateur-v3/budget-registry.test.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/policy-consequences.ts site/src/simulateur-v3/policy-consequences.test.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/types.test.ts
+git add docs/superpowers/specs/2026-08-31-v10-budget-estimates-audit.md site/src/simulateur-v3/types.ts site/src/simulateur-v3/budget-registry.ts site/src/simulateur-v3/budget-registry.test.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/policy-consequences.ts site/src/simulateur-v3/policy-consequences.test.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/types.test.ts
 git commit -m "feat: add typed simulator budget registry"
 ```
 
@@ -187,7 +189,7 @@ Define the two added promotions with IDs, source keys and scopes exactly as foll
 "relever-tva-restauration-commerciale": { estimateKey: "commercial-restaurant-vat-net", exclusiveScopeKeys: ["commercial-restaurant-vat-10"], sourceKeys: ["bofip-tva-restauration-2024", "evm-2026-tva-restauration"] },
 ```
 
-The former estimate has `grossActionMillions: 7_300`; the latter has `grossActionMillions: 2_275` and a strictly lower net run rate. Register the 18 structural adopt estimates, including their source keys, scope, base year, gross, behavior, operating cost, timing and transition flows. Give every `keep` option the null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
+The former estimate is exactly `grossActionMillions: 7_300`, `behavioralOffsetMillions: 730`, `recurringOperatingCostMillions: 0`, `runRateMillions: 6_570`; the latter is exactly `2_275`, `228`, `0`, `2_047`. Register the 18 structural adopt estimates with the exact net amounts and only the base, gross, behavior, operating-cost, timing and transition values documented in `2026-08-31-v10-budget-estimates-audit.md`; preserve every `à compléter` reserve as an explicit incomplete-audit state rather than fabricating a number. Give every `keep` option the null profile. Delete the `fourteen` EPR2 alternative; retain its two internal IDs as `adopt` and `keep`, with visible labels `Engager six EPR2` and `Ne pas engager de nouvel EPR2`. Confirm source URLs point to the Senate PLF 2026 report, BOFiP restaurant VAT and the 2026 Voies et moyens table.
 
 - [ ] **Step 4: Run catalogue and source tests.**
 
@@ -373,23 +375,22 @@ git commit -m "feat: migrate simulator saves to scenario v10"
 - Modify: `site/src/simulateur-v3/verdict.test.ts`
 
 **Interfaces:**
-- Produces `type BalancedPathFixture = Readonly<{ id: "doctrine-38500" | "redressement-prudent" | "reformes-structurelles"; optionIds: readonly \`${string}:${"adopt" | "keep"}\`[]; crisisChoiceIds: readonly \`${string}:${string}\`[] }>;`, `BALANCED_PATHS`, `simulatePath(path, scenario)` and `maximumCompatibleRunRate(scenario): number`.
+- Produces `type BalancedPathFixture = Readonly<{ id: "doctrine-21689" | "redressement-prudent" | "reformes-structurelles"; optionIds: readonly \`${string}:${"adopt" | "keep"}\`[]; crisisChoiceIds: readonly \`${string}:${string}\`[] }>;`, `BALANCED_PATHS`, `simulatePath(path, scenario)` and `maximumCompatibleRunRate(scenario): number`.
 - Consumes fixed `CAMPAIGN_DECISION_IDS`, Task 1 registry and Task 4 engine.
 
 - [ ] **Step 1: Write red path tests.**
 
 ```ts
-assert.deepEqual(BALANCED_PATHS.map((path) => path.id), ["doctrine-38500", "redressement-prudent", "reformes-structurelles"]);
+assert.deepEqual(BALANCED_PATHS.map((path) => path.id), ["doctrine-21689", "redressement-prudent", "reformes-structurelles"]);
 for (const path of BALANCED_PATHS) assert.equal(path.optionIds.length, 72);
 for (const path of BALANCED_PATHS) {
   const result = simulatePath(path, SCENARIO_V10);
   assert.equal(result.phase, "verdict");
-  assert.equal(result.indicators.annualBalance >= 0, true);
+  assert.equal(result.status === "balanced" ? result.indicators.annualBalance >= 0 : result.honestGapMillions > 0, true);
   assert.deepEqual(result.crisisHistory.map((crisis) => `${crisis.ruleId}:${crisis.resolvedBy}`), path.crisisChoiceIds);
 }
-assert.equal(structuralRunRate(BALANCED_PATHS[0]!), 38_500);
-assert.equal(maximumCompatibleRunRate(SCENARIO_V10) >= 175_000, true);
-assert.equal(maximumCompatibleRunRate(SCENARIO_V10) <= 185_000, true);
+assert.equal(structuralRunRate(BALANCED_PATHS[0]!), 21_689);
+assert.equal(Number.isFinite(maximumCompatibleRunRate(SCENARIO_V10)), true);
 assert.equal(maximumCompatibleProvenance(SCENARIO_V10).every((estimate) => BUDGET_ESTIMATES[estimate.key] === estimate), true);
 ```
 
@@ -401,13 +402,13 @@ Expected: FAIL because no full compatible paths or registry-based optimizer exis
 
 - [ ] **Step 3: Define and validate the three paths.**
 
-Store every path as one `BalancedPathFixture`: 72 fully qualified `decisionId:adopt` or `decisionId:keep` strings in topology order, plus one `crisisRuleId:choiceId` entry for every crisis the path triggers. `simulatePath` must drive `selectOption`, `confirmSelection`, `advanceCampaign` and the named crisis concession rather than sum cards; it may reach `verdict` only after consuming all triggered crises in `crisisChoiceIds`. Reject a fixture with an unknown ID, duplicate decision, missing decision, locked option, unresolved crisis or collision. `maximumCompatibleRunRate` searches only registered `runRateMillions`, checks exclusive keys and locks, returns a documented value in the interval 175 000 to 185 000, and exposes `maximumCompatibleProvenance` containing exactly the registry estimates used; do not insert any synthetic offset to make that interval pass.
+Store every path as one `BalancedPathFixture`: 72 fully qualified `decisionId:adopt` or `decisionId:keep` strings in topology order, plus one `crisisRuleId:choiceId` entry for every crise déclenchée. `simulatePath` must drive `selectOption`, `confirmSelection`, `advanceCampaign` and the named crisis concession rather than sum cards; it may reach `verdict` only after consuming all triggered crises in `crisisChoiceIds`. Its result exposes `status: "balanced" | "budget_gap"` and `honestGapMillions`; `balanced` exige un solde annuel final nul ou positif, `budget_gap` conserve le verdict et l'écart calculé sans montant synthétique. Reject a fixture with an unknown ID, duplicate decision, missing decision, locked option, unresolved crisis or collision. `maximumCompatibleRunRate` searches only registered `runRateMillions`, checks exclusive keys and locks, returns the computed documented value, and exposes `maximumCompatibleProvenance` containing exactly the registry estimates used; do not insert any synthetic offset.
 
 - [ ] **Step 4: Run full path tests.**
 
 Run: `node --experimental-strip-types --test src/simulateur-v3/balanced-paths.test.ts src/simulateur-v3/campaign-e2e.test.ts src/simulateur-v3/verdict.test.ts`
 
-Expected: PASS; each path has 72 journal records, five councils, every triggered crisis resolved according to its fixture, one verdict and a nonnegative final annual balance.
+Expected: PASS; each path has 72 journal records, five councils, every triggered crisis resolved according to its fixture and one verdict; its result is either nonnegative and `balanced`, or `budget_gap` carries the computed deficit without chiffrage ajouté.
 
 - [ ] **Step 5: Commit.**
 
@@ -524,8 +525,8 @@ git commit -m "feat: complete simulator v10 72-decision release"
 
 ## Self-review
 
-- Spec coverage: Tasks 1 and 2 cover `BudgetProfile`, register, 18 substitutions, fiscal doctrine, two-option EPR2 and source boundaries. Task 3 covers fixed 72, 12 promotions, 96/192 inventory, report and dynamic checkpoints. Task 4 covers run rates, transition flows, causal ledger, locks and reversals. Task 5 covers V9/V10 resolution, v4-v5 migration, active-save restart and both crisis families. Task 6 covers the three balanced paths, 38 500 M€ structural ceiling and sourced maximum. Task 7 covers card wording, superseded visibility, no cadratin and mobile 390. Task 8 runs full verification.
-- Placeholder scan: this document contains no unfinished marker, deferred implementation marker or unspecified interface.
+- Spec coverage: Tasks 1 and 2 cover `BudgetProfile`, register, the audit annexe, 18 substitutions, fiscal doctrine, two-option EPR2 and source boundaries. Task 3 covers fixed 72, 12 promotions, 96/192 inventory, report and dynamic checkpoints. Task 4 covers run rates, transition flows, causal ledger, locks and reversals. Task 5 covers V9/V10 resolution, v4-v5 migration, active-save restart and both crisis families. Task 6 covers the three balanced paths, the 21 689 M€ structural ceiling, the separate 8 617 M€ promotions and registry-derived maximum. Task 7 covers card wording, superseded visibility, no cadratin and mobile 390. Task 8 runs full verification.
+- Scan des marqueurs : le plan ne contient aucun marqueur de travail différé ni interface non spécifiée. L'annexe d'audit emploie seulement `à compléter` lorsqu'une donnée de base n'a pas été transmise, afin d'empêcher l'invention d'un chiffrage.
 - Type consistency: `BudgetProfile`, `BudgetEstimate`, `CAMPAIGN_CHAPTERS`, `PROMOTION_REPORT`, `scenarioForVersion`, `migrateV4ToV5`, `BALANCED_PATHS`, `simulatePath` and `maximumCompatibleRunRate` are introduced once and consumed under the same names in later tasks.
 
 Plan complete and saved to `docs/superpowers/plans/2026-08-31-simulateur-v10-72-decisions.md`. Two execution options:
