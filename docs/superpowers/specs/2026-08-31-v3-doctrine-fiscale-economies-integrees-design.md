@@ -1,16 +1,16 @@
-# Simulateur V3 : doctrine fiscale et économies intégrées
+# Simulateur V10 : doctrine fiscale et économies intégrées
 
 Date : 31 août 2026
 
 Statut : conception validée dans la conversation, à relire avant plan d'implémentation
 
-Périmètre : catalogue de 96 dossiers, campagne publiée de 60 à 70 dossiers, chiffrages, incompatibilités et trajectoire budgétaire
+Périmètre : catalogue de 96 dossiers, campagne publiée fixe de 72 dossiers, chiffrages, incompatibilités et trajectoire budgétaire
 
 ## 1. Résultat attendu
 
 Le simulateur doit permettre de conduire une refonte fiscale, sociale et administrative ambitieuse sans créer de mode spécial, de paquet préfabriqué ni de bouton d'équilibre. Chaque réforme reste un dossier politique normal, rangé dans l'un des huit chapitres existants et soumis au même choix que les autres.
 
-Le parcours le plus exigeant mais cohérent doit ajouter environ 39 milliards d'euros d'amélioration annuelle au solde par rapport au catalogue actuel. Ce montant correspond à la borne haute crédible effectivement atteignable pendant le mandat, après prise en compte des recouvrements, des comportements, des frais de fonctionnement récurrents et des incompatibilités. Il ne s'agit ni d'une somme sur cinq exercices, ni d'un rendement théorique à dix ans.
+Le parcours doctrinal de référence doit ajouter 38,5 milliards d'euros d'amélioration annuelle au solde. Ce montant correspond à la borne haute crédible effectivement atteignable pendant le mandat, après prise en compte des recouvrements, des comportements, des frais de fonctionnement récurrents et des incompatibilités. Il ne s'agit ni d'une somme sur cinq exercices, ni d'un rendement théorique à dix ans. Trois parcours compatibles documentés doivent chacun atteindre un solde final nul ou positif. Le maximum compatible de la bibliothèque active est visé autour de 180 milliards d'euros d'amélioration annuelle, uniquement par somme des entrées sourcées du registre après application des verrous, jamais par un gonflement de lignes sans source.
 
 Cette doctrine complète la spécification `2026-08-31-v3-flux-continu-design.md`, qui reste la référence pour le déroulement, les crises, l'exigence d'un solde nul ou positif et le verdict unique. Elle remplace seulement les sections 4.1, 4.2, 4.3 et 12.1 de `2026-08-30-v3-impact-analyses-questions-design.md`, ainsi que les anciens invariants de campagne 96 fois 12 du plan de reconstruction. Les pauses et bilans de fin de chapitre de la section 4.1 sont supprimés ; les checkpoints restent calculés sans écran. Les sections consacrées aux analyses, aux questions, au verdict et à l'accessibilité restent applicables lorsqu'elles ne contredisent pas le flux continu du 31 août.
 
@@ -18,9 +18,10 @@ Cette doctrine complète la spécification `2026-08-31-v3-flux-continu-design.md
 
 - La bibliothèque contient exactement 96 dossiers.
 - Chaque dossier possède exactement deux options, soit 192 options dans la bibliothèque.
-- La campagne possède un noyau obligatoire de 60 dossiers et peut promouvoir jusqu'à 10 dossiers supplémentaires.
-- La longueur publiée est figée au build entre 60 et 70 dossiers. Elle ne varie jamais pendant une partie.
-- Chaque dossier ayant deux options, la campagne publiée contient entre 120 et 140 options.
+- La campagne V10 possède un noyau obligatoire de 60 dossiers et 12 promotions qualifiées, soit exactement 72 dossiers publiés.
+- La longueur publiée est figée au build à 72 dossiers. Elle ne varie jamais pendant une partie.
+- Chaque dossier ayant deux options, la campagne V10 publiée contient exactement 144 options, et aucune publication ne peut en contenir davantage.
+- Les verrous peuvent rendre `superseded` des dossiers déjà publiés avant leur rendu : le journal conserve 72 arbitrages, mais environ 62 à 68 cartes de choix sont effectivement montrées selon le parcours.
 - Les nouvelles réformes structurantes appartiennent à la campagne active. Elles ne sont pas cachées dans une variante ou une campagne secondaire.
 - Il n'existe aucun paquet nommé `État simple`, `Retour à l'équilibre`, `Plan de rupture` ou équivalent.
 - Une réforme est une décision atomique avec exactement deux options réelles, une source primaire, un mécanisme, un calendrier, des gagnants, des contributeurs et des effets causaux.
@@ -31,9 +32,9 @@ Cette doctrine complète la spécification `2026-08-31-v3-flux-continu-design.md
 
 Trois approches ont été comparées :
 
-1. imposer 70 dossiers, rejeté car le nombre deviendrait un objectif de remplissage ;
-2. choisir dynamiquement 60 à 70 dossiers selon la partie, rejeté car deux joueurs ne partageraient plus le même mandat et les sauvegardes deviendraient fragiles ;
-3. conserver 60 dossiers de cœur et promouvoir au build uniquement les candidats qui passent un filtre de qualité, approche retenue.
+1. imposer une longueur variable par partie, rejeté car deux joueurs ne partageraient plus le même mandat et les sauvegardes deviendraient fragiles ;
+2. compléter un noyau avec des dossiers faibles pour atteindre un quota, rejeté car le nombre deviendrait un objectif de remplissage ;
+3. conserver 60 dossiers de cœur et 12 promotions préqualifiées, puis publier les 72 identifiants dans un ordre figé au build, approche retenue.
 
 La liste publiée est donc immuable pour une version de scénario. Un changement de longueur ou d'ordre impose une nouvelle `scenarioVersion`.
 
@@ -132,6 +133,10 @@ Les valeurs ci-dessous sont les cibles hautes du scénario retenu. Elles totalis
 
 Le numérique n'a pas de cagnotte autonome. Il peut être le moyen de réaliser un autre dossier, mais il ne produit un effet budgétaire que lorsqu'un cas audité isole une recette ou une dépense effectivement évitée.
 
+### 5.2 Parcours équilibrés et plafond compatible
+
+Le build V10 publie trois parcours nommés, chacun constitué d'une option par dossier publié et évalué par le moteur complet avec ses échéances, `locks`, décisions `superseded`, coûts ponctuels, crises et intérêts : `doctrine-38500`, `redressement-prudent` et `reformes-structurelles`. Chacun doit atteindre un solde final annuel nul ou positif. `doctrine-38500` contient les 18 options `adopt` de la section 5 et atteint exactement 38 500 M€ de `runRateMillions` avant les effets des autres dossiers. Le calculeur de maximum compatible explore uniquement les options présentes dans le registre et vise un ordre de grandeur de 180 000 M€ d'amélioration annuelle ; il échoue si un montant absent du registre, une clé de périmètre dupliquée ou une combinaison verrouillée est nécessaire pour atteindre ce résultat.
+
 ### 5.1 Contrat canonique d'intégration
 
 Les rangs ci-dessous sont relatifs au chapitre, jamais au nombre total de dossiers. Chaque dossier possède exactement les options `adopt` et `keep`. L'option `keep` a un flux budgétaire nul et ne revendique aucune clé de périmètre. Les `transitionFlows` non nuls doivent être chiffrés dans le registre avant toute modification du catalogue.
@@ -165,7 +170,7 @@ Le plan d'implémentation doit compléter ce tableau par, pour chaque option `ad
 
 ### 6.1 Maintien des compteurs
 
-La refonte conserve 96 dossiers et 192 options en bibliothèque. La campagne publiée contient le noyau de 60 dossiers et les seules promotions admises par la section 6.4, sans jamais dépasser 70. Les dossiers redondants, symboliques ou faiblement budgétaires restent en bibliothèque. Les nouveaux dossiers structurants ci-dessus entrent tous dans le noyau actif.
+La refonte conserve exactement 96 dossiers et 192 options en bibliothèque. La campagne V10 publiée contient le noyau de 60 dossiers et les 12 promotions qualifiées de la section 6.5, soit exactement 72 dossiers et 144 options. Les dossiers redondants, symboliques ou faiblement budgétaires restent en bibliothèque. Les nouveaux dossiers structurants ci-dessus entrent tous dans le noyau actif.
 
 Les huit chapitres ne changent pas. Leur taille publiée est dérivée du noyau et des promotions admises. Le plan d'implémentation doit reprendre la liste exacte des 60 identifiants définie en section 6.3 avant toute modification de `campaign-topology.ts`.
 
@@ -181,13 +186,15 @@ Un identifiant existant peut être conservé seulement si le sujet reste le mêm
 
 Un changement de sujet impose un nouvel identifiant et la suppression propre de l'ancien contrat causal. Aucun alias trompeur n'est autorisé.
 
-Les 18 substitutions suivantes maintiennent le catalogue à 96 dossiers :
+Les 20 substitutions suivantes maintiennent le catalogue à 96 dossiers : elles comprennent les 18 remplacements doctrinaux et les deux emplacements fiscaux réaffectés aux promotions V10.
 
 | Ancien `decisionId` retiré du scénario 10 | Nouveau `decisionId` |
 |---|---|
 | `geler-le-bareme-de-l-impot-sur` | `facturation-electronique-controle-tva` |
-| `flat-tax-a-20-des-le-premier` | `unifier-ir-csg-bareme-continu` |
-| `flat-tax-a-20-avec-abattement-protegeant` | `supprimer-niches-fiscales-menages-capital` |
+| `flat-tax-a-20-des-le-premier` | `perenniser-surtaxe-grandes-entreprises` |
+| `flat-tax-a-20-avec-abattement-protegeant` | `relever-tva-restauration-commerciale` |
+| `tranche-a-50-au-dela-de-250` | `unifier-ir-csg-bareme-continu` |
+| `soumettre-les-revenus-du-capital-au-bareme` | `supprimer-niches-fiscales-menages-capital` |
 | `supprimer-les-allegements-de-cotisations-entre-2` | `recentrer-allegements-exonerations-sociales` |
 | `fiscaliser-les-heures-supplementaires-comme-le` | `cibler-aides-apprentissage` |
 | `raboter-de-5-les-subventions-directes-aux` | `supprimer-subventions-directes-entreprises` |
@@ -283,7 +290,7 @@ Les autres dossiers restent consultables dans la bibliothèque. Ils ne peuvent p
 
 ### 6.4 Filtre de promotion
 
-Un candidat à l'une des dix promotions possibles doit franchir tous les verrous suivants :
+Un candidat à l'une des douze promotions possibles doit franchir tous les verrous suivants :
 
 - assiette distincte des 18 réformes structurantes, matérialisée par une `exclusiveScopeKey` ;
 - source institutionnelle directe publiée ou mise à jour depuis le 1er janvier 2022 ; un texte normatif antérieur encore en vigueur n'est admis qu'avec une assiette ou une donnée d'exécution 2025 ou 2026 ;
@@ -302,15 +309,17 @@ Après ces verrous, le candidat doit obtenir au moins 8 points sur 10 selon la g
 - réalité du dilemme, 1 si les deux options modifient réellement des droits, des prix, des services ou des contributions et identifient des parties opposées, 0 sinon ;
 - saillance dans le débat public, 1 si la mesure figure depuis le 1er janvier 2024 dans un projet de loi, une proposition de loi, un rapport parlementaire, un rapport d'une juridiction financière ou une communication gouvernementale, 0 sinon.
 
-Un thème populaire sans chiffrage propre est refusé. Une petite mesure administrative sans véritable choix est refusée. Le nombre 70 est une capacité maximale, pas une cible éditoriale.
+Un thème populaire sans chiffrage propre est refusé. Une petite mesure administrative sans véritable choix est refusée. Les 72 dossiers constituent la publication V10 fixe : un échec de qualification bloque le build V10 jusqu'à correction documentaire ou retrait de la version, sans remplacement faible ni longueur alternative.
 
 ### 6.5 Liste de promotion auditée
 
-Les dix dossiers ci-dessous forment la seule liste de promotion de cette version. Leur inclusion reste conditionnée à un registre complet et à la note minimale de 8 sur 10. En cas d'échec d'un candidat, la campagne publiée compte moins de 70 dossiers ; aucun remplaçant plus faible n'est ajouté.
+Les douze dossiers ci-dessous forment la seule liste de promotion de cette version. Leur inclusion reste conditionnée à un registre complet et à la note minimale de 8 sur 10. La compilation V10 exige que les douze soient qualifiés et publie 72 dossiers ; aucun remplaçant plus faible n'est ajouté.
 
 | `decisionId` | Insertion | Utilité propre | Condition particulière |
 |---|---|---|---|
 | `revenir-a-62-ans` | après `repousser-l-age-legal-a-65-ans` | vrai contre-choix sur l'âge légal, avec coût annuel majeur | verrou mutuel ; si le passage à 65 ans est adopté, ce dossier devient `superseded` |
+| `relever-tva-restauration-commerciale` | après `porter-le-taux-normal-de-tva-a` | arbitrage ciblé entre prix de la restauration commerciale et rendement fiscal | clé exclusive `commercial-restaurant-vat-10`; la restauration commerciale à 10 % est une assiette distincte du taux normal général ; le registre documente une borne haute nette strictement inférieure au plafond brut de 2 275 M€, les comportements et les mesures d'accompagnement |
+| `perenniser-surtaxe-grandes-entreprises` | après `doubler-la-taxe-sur-les-rachats-d` | arbitrage entre compétitivité des grands groupes et consolidation budgétaire | clé exclusive `corporate-profit-surtax-2026` ; borne brute 7 300 M€ issue du rapport du Sénat sur le PLF 2026, diminuée des comportements, frais récurrents et calendriers avant inscription en `runRateMillions` |
 | `doubler-les-franchises-medicales` | après `medicaments-comparables-achats-sante` | arbitrage direct entre reste à charge et financement de la santé | chiffrage net après plafonds, exonérations et effet de consommation |
 | `fiscalite-nutritionnelle-au-niveau-recommande` | après `medicaments-comparables-achats-sante` | dilemme prévention, prix et recettes | assiettes sucre et alcool séparées de la TVA et des niches brunes ; en cas de deux promotions après la même ancre, l'ordre de cette table fait foi |
 | `reduire-les-delais-de-traitement-de-l` | après `doubler-l-execution-des-eloignements-oqtf` | performance de l'asile distincte du durcissement des droits | seuls les coûts nets d'hébergement évités sont retenus après moyens d'instruction |
@@ -321,7 +330,7 @@ Les dix dossiers ci-dessous forment la seule liste de promotion de cette version
 | `supprimer-les-departements` | après `clarifier-competences-doublons-territoriaux` | alternative institutionnelle de rupture | `locks` bilatéraux avec la clarification territoriale ; coûts de transfert, dette, agents, SI et immobilier inclus ; opérateurs, surfaces, loyers et absences sont retranchés de son assiette |
 | `ne-pas-remplacer-un-depart-administratif-sur` | après `mutualiser-achats-publics` | choix sur les effectifs de l'État central | clé exclusive `central-state-support-staff`; la clarification territoriale exclut explicitement cette assiette |
 
-La présence de dix candidats ne préjuge pas du résultat du filtre. Avant la compilation du scénario, chaque candidat reçoit un statut versionné `promoted` ou `rejected`. Un candidat est `promoted` si et seulement s'il franchit tous les verrous et obtient au moins 8 sur 10. `CAMPAIGN_CHAPTERS` insère ensuite, dans l'ordre stable de la table, les seuls candidats `promoted` après leur ancre du noyau.
+La présence de douze candidats ne préjuge pas du résultat du filtre. Avant la compilation du scénario, chaque candidat reçoit un statut versionné `promoted` ou `rejected`. Un candidat est `promoted` si et seulement s'il franchit tous les verrous et obtient au moins 8 sur 10. Le build V10 exige 12 statuts `promoted`. `CAMPAIGN_CHAPTERS` insère ensuite, dans l'ordre stable de la table, les candidats `promoted` après leur ancre du noyau.
 
 Le rapport contient les preuves, le détail du score, le statut et la raison de tout rejet. C'est un artefact statique et versionné, produit au build. Il n'est jamais recalculé pendant une partie, lors d'une restauration ou selon le profil du joueur. Les 38 500 M€ de la section 5 restent le total propre aux 18 réformes structurantes ; les promotions sont chiffrées séparément et ne modifient pas ce plafond.
 
@@ -331,7 +340,7 @@ Le moteur doit empêcher les combinaisons incohérentes, pas seulement corriger 
 
 ### 7.1 Verrous fiscaux
 
-Le prélèvement personnel unifié remplace dans la campagne active les dossiers suivants :
+Le prélèvement personnel unifié absorbe dans la doctrine active les dossiers suivants. Les deux variantes de flat tax sortent du scénario 10 et leurs deux emplacements de bibliothèque sont réaffectés, par les substitutions de la section 6.2, à `perenniser-surtaxe-grandes-entreprises` et `relever-tva-restauration-commerciale` :
 
 - le gel isolé du barème ;
 - la création isolée d'une tranche à 50 % ;
@@ -426,9 +435,9 @@ Une option peut déclarer au plus un flux annuel et plusieurs flux ponctuels. `e
 
 Un flux ponctuel possède un identifiant causal unique dans tout le scénario, ne peut précéder la décision et ne peut dépasser le checkpoint final dérivé de `campaignLength`. Une option à flux annuel nul peut porter un coût de transition, à condition de le sourcer. Il n'existe aucun prorata infra-annuel : un flux récurrent prend son effet plein au checkpoint déclaré.
 
-La topologie publiée est décrite par une unique constante `CAMPAIGN_CHAPTERS`, composée des huit `chapterId` et de leurs listes immuables d'identifiants. `CAMPAIGN_DECISION_IDS`, les tailles de chapitres et `campaignLength` en sont dérivés. Un validateur de publication refuse une longueur inférieure à 60 ou supérieure à 70, un nombre de chapitres différent de huit, un chapitre manquant, dupliqué ou vide, un doublon de dossier, un identifiant inconnu, une décision rangée dans le mauvais chapitre, une somme de tailles différente de `campaignLength`, une année de mandat sans checkpoint ou un checkpoint final différent de `campaignLength`.
+La topologie publiée est décrite par une unique constante `CAMPAIGN_CHAPTERS`, composée des huit `chapterId` et de leurs listes immuables d'identifiants. `CAMPAIGN_DECISION_IDS`, les tailles de chapitres et `campaignLength` en sont dérivés. V10 fixe `campaignLength` à 72 et publie donc 144 options ; un validateur de publication refuse toute longueur différente de 72, un nombre de chapitres différent de huit, un chapitre manquant, dupliqué ou vide, un doublon de dossier, un identifiant inconnu, une décision rangée dans le mauvais chapitre, une somme de tailles différente de `campaignLength`, une année de mandat sans checkpoint ou un checkpoint final différent de `campaignLength`.
 
-Le validateur prouve également que les 60 dossiers du noyau sont présents une seule fois et conservent leur ordre relatif, que seuls les candidats au statut `promoted` sont insérés, et que toute promotion rejetée disparaît avec ses `locks`, crises et références de topologie propres. Un changement de statut, d'ordre ou de longueur change la `scenarioVersion`.
+Le validateur prouve également que les 60 dossiers du noyau sont présents une seule fois et conservent leur ordre relatif, que les 12 candidats au statut `promoted` sont insérés, et qu'aucune promotion ne peut être absente, dupliquée ou accompagnée de références propres non publiées. Un changement de statut, d'ordre ou de longueur change la `scenarioVersion`.
 
 Les cinq années conservent la règle `CHAPTER_MANDATE_YEARS = [1, 1, 2, 2, 3, 4, 4, 5]`. Les checkpoints sont recalculés depuis les tailles réellement publiées par `decisionCountAtMandateYearEnd`; aucun tableau absolu comme `16, 32, 39, 53, 60` n'est conservé. `mandate_year: 1..5` se convertit au checkpoint dérivé de l'année correspondante. Pour les flux annuels, `runRateTiming` n'accepte que `immediate` ou `mandate_year`; le calendrier exact `after_decisions: n` reste réservé aux événements, promesses et flux ponctuels et conserve sa sémantique actuelle au dossier exact `position + n`. Les flux des dossiers `supprimer-niches-fiscales-brunes`, `clarifier-competences-doublons-territoriaux`, `mutualiser-achats-publics`, `rationaliser-operateurs-ingenierie-territoriale`, `reduire-surfaces-loyers-publics` et `reduire-cout-absences-fonctions-publiques` utilisent explicitement `runRateTiming: { kind: "mandate_year", year: 5 }`.
 
@@ -436,7 +445,7 @@ Le modèle doit passer du couple `budgetDelta` et `budgetDuration` à un profil 
 
 Le compilateur peut continuer à produire un effet `annualBalance` récurrent pour le flux annuel, mais il doit aussi produire les flux ponctuels datés. Le validateur doit autoriser au plus un flux récurrent et plusieurs flux ponctuels aux identifiants uniques. Chaque flux doit se retrouver dans le registre causal et dans un seul checkpoint.
 
-Les tests de topologie couvrent une publication de 60 dossiers, une publication de 70 dossiers et les rejets à 59 et 71. Ils couvrent des promotions réparties dans plusieurs chapitres, les cinq checkpoints dérivés, un événement, une promesse et un flux ponctuel dus exactement au dossier final, le cinquième conseil suivi du verdict unique, un journal de `campaignLength` entrées et l'invalidation ou la migration d'une sauvegarde dont la topologie publiée diffère.
+Les tests de topologie couvrent une publication de 72 dossiers, les rejets à 71 et 73, les 12 promotions réparties dans plusieurs chapitres et leur rapport statique. Ils couvrent les cinq checkpoints dérivés, un événement, une promesse et un flux ponctuel dus exactement au dossier final, le cinquième conseil suivi du verdict unique, un journal de 72 entrées et l'invalidation ou la migration d'une sauvegarde dont la topologie publiée diffère.
 
 La version de scénario passe de 9 à 10 et la version de schéma de 4 à 5. La migration v4 vers v5 s'exécute avant validation et possède un registre dédié. Les anciennes options dont le sens, le `decisionId`, le `optionId` et l'assiette n'ont pas changé sont migrées automatiquement vers un profil simple. Une décision remplacée n'est jamais réinterprétée silencieusement avec le nouveau contrat.
 
@@ -444,21 +453,21 @@ Un résolveur charge le scénario figé correspondant à `scenarioVersion`. Le b
 
 Les références de `scenario-crises.ts` sont auditées lors du changement de version. Toute référence vers un identifiant remplacé est soit migrée vers une cause sémantiquement identique, soit supprimée avec un test prouvant que la crise conserve deux causes et deux réponses applicables.
 
-La crise actuellement liée à la flat tax est réécrite autour du prélèvement personnel unifié, avec deux réponses applicables : conserver la fusion ou renverser la décision et maintenir les prélèvements séparés. Le renversement applique ses propres coûts ponctuels sourcés et annule les flux futurs non matérialisés de cette décision. Cette règle étend explicitement le moteur de crise afin qu'une décision `reversed` retire aussi ses événements et flux futurs encore en file. La crise de réforme de l'État est reliée aux nouveaux dossiers territoriaux, opérateurs et absences qui l'aggravent réellement. Aucune crise ne référence un dossier absent de la campagne publiée.
+La crise actuellement liée à la flat tax est réécrite autour du prélèvement personnel unifié, avec deux réponses applicables : conserver la fusion ou renverser la décision et maintenir les prélèvements séparés. Le renversement applique ses propres coûts ponctuels sourcés et annule les flux futurs non matérialisés de cette décision. Cette règle étend explicitement le moteur de crise afin qu'une décision `reversed` retire aussi ses événements, promesses et flux futurs encore en file. La crise de réforme de l'État est reliée aux nouveaux dossiers territoriaux, opérateurs et absences qui l'aggravent réellement. Aucune crise ne référence un dossier absent de la campagne publiée.
 
 ## 11. Critères d'acceptation
 
 La conception est correctement implémentée si :
 
-1. le catalogue contient exactement 96 dossiers uniques et 192 options ; la campagne publiée contient entre 60 et 70 dossiers et exactement deux fois plus d'options ;
-2. chaque candidat est publié si et seulement s'il passe tous les verrous de la section 6.4 et obtient au moins 8 sur 10 ; son score, son statut et ses preuves apparaissent dans le rapport statique de validation ;
+1. le catalogue contient exactement 96 dossiers uniques et 192 options ; la campagne V10 publiée contient exactement 72 dossiers et 144 options ;
+2. les 12 candidats sont publiés si et seulement s'ils passent tous les verrous de la section 6.4 et obtiennent au moins 8 sur 10 ; leur score, leur statut et leurs preuves apparaissent dans le rapport statique de validation ;
 3. les 18 dossiers structurants ci-dessus appartiennent au `chapterId` déclaré et sont jouables dans la campagne ;
 4. aucun écran ne propose un paquet ou un mode spécial ;
 5. le prélèvement personnel unifié n'engendre ni crédit remboursable, ni versement cash, ni rendement budgétaire artificiel ;
 6. la disparition de la prime d'activité est compensée avec une différence inférieure ou égale à 1 M€ dans le registre par une baisse des prélèvements sur le travail ;
 7. le parcours doctrinal de référence, défini par les 18 options `adopt` ci-dessus, atteint exactement 38 500 M€ de `runRateMillions` au checkpoint final dérivé, après application des verrous et des échéances ; ses coûts ponctuels ont bien affecté la trajectoire ;
 8. aucune combinaison compatible de ces seules 18 options ne dépasse 38 500 M€ ; ce plafond ne s'applique pas aux autres dossiers du catalogue ;
-9. une constante de build `BALANCED_PATH_OPTION_IDS` documente un parcours compatible de l'ensemble de la campagne publiée ; un test de simulation complet prouve qu'il atteint un solde annuel nul ou positif au checkpoint final dérivé, sans énumérer les combinaisons possibles ;
+9. trois constantes de build regroupées dans `BALANCED_PATHS` documentent `doctrine-38500`, `redressement-prudent` et `reformes-structurelles`, chacun avec une option par dossier publié ; un test de simulation complet prouve que chacun atteint un solde annuel nul ou positif au checkpoint final dérivé, sans énumérer les combinaisons possibles ;
 10. les coûts de transition sont appliqués une seule fois et restent présents après sauvegarde et restauration ;
 11. les flux annuels persistent à partir de leur date d'entrée en vigueur ;
 12. les recettes ponctuelles disparaissent du rythme annuel suivant ;
@@ -470,6 +479,7 @@ La conception est correctement implémentée si :
 18. aucune carte de décision n'affiche de pilule d'opinion, confiance, marchés, groupes ou autre impact non budgétaire avant le choix ;
 19. aucun texte visible n'emploie de cadratin ;
 20. un test navigateur à 390 par 844 vérifie pour les phases critiques que `scrollWidth` ne dépasse pas `clientWidth`.
+21. le dossier `engager-six-epr2-part-annuelle-de-l` présente exactement deux options, `engager-six` et `ne-pas-engager`, sans troisième variante ni texte visible contenant un cadratin.
 
 ## 12. Sources institutionnelles de cadrage
 
@@ -479,6 +489,8 @@ La conception est correctement implémentée si :
 - [Cnaf, dépenses de prime d'activité 2024](https://caf.fr/professionnels/etudes-et-international/5-en-2024-les-depenses-de-prime-d-activite-augmentent-de-14) : 10,3 Md€ versés.
 - [PLFSS 2025, annexe 4](https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/PLFSS/2025/PLFSS2025_Annexe04.pdf) et [PLFSS 2026, annexe 9](https://www.securite-sociale.fr/files/live/sites/SSFR/files/medias/PLFSS/2026/PLFSS2026-Annexe09-GenerationXBOOK_avec%20couverture.pdf) : allègements, exonérations et apprentissage.
 - [Budget de l'État, Évaluation des voies et moyens 2026](https://www.budget.gouv.fr/documentation/file-download/30586) : dépenses fiscales et liste des dispositifs.
+- [Sénat, rapport sur le PLF 2026](https://www.senat.fr/rap/l25-312/l25-3128.html) : prévision gouvernementale de 7,3 Md€ pour la contribution exceptionnelle sur les bénéfices des grandes entreprises ; c'est une borne brute, pas le rendement net de scénario.
+- [BOFiP, TVA des ventes à consommer sur place](https://bofip.impots.gouv.fr/bofip/256-PGP.html/identifiant%3DBOI-TVA-LIQ-30-20-10-20-20240807) et [Évaluation des voies et moyens 2026, taux de 10 %](https://www.assemblee-nationale.fr/dyn/dyn/contenu/visualisation/1087933/file/Voies_et_moyens_Tome_2_2026.pdf) : assiette juridique de la restauration commerciale et plafond brut de 2 275 M€ à décoter dans le registre.
 - [Haut-commissariat à la stratégie et au plan, aides aux entreprises](https://www.strategie-plan.gouv.fr/publications/les-aides-aux-entreprises-en-france-de-quoi-parle-t) : périmètres comparés des aides budgétaires, fiscales et sociales.
 - [IGF, masse salariale et achats des collectivités](https://www.igf.finances.gouv.fr/igf/accueil/nos-activites/rapports-de-missions/liste-de-tous-les-rapports-de-mi/masse-salariale-et-achats-et-cha.html) : emplois et achats locaux.
 - [Sénat, coût de l'enchevêtrement des compétences](https://www.senat.fr/rap/a25-749/a25-7490.html) : plafond de coût de coordination, qui ne doit pas être confondu avec une économie récupérable intégralement.
