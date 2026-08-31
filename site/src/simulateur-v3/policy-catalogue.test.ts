@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { policyById, policyDecision, type PolicyDecisionDefinition } from "./policy-catalogue.ts";
-import { SCENARIO_V3_CATALOGUE } from "./scenario.ts";
+import { policyDecision, type PolicyDecisionDefinition } from "./policy-catalogue.ts";
+import { policyById, SCENARIO_V3_CATALOGUE } from "./scenario.ts";
 
 const VALID: PolicyDecisionDefinition = {
   id: "test-policy",

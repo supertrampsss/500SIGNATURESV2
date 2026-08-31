@@ -7,7 +7,6 @@ import { STATE_DECISIONS } from "./policies/state.ts";
 import { TAX_DECISIONS } from "./policies/taxes.ts";
 import { WORK_DECISIONS } from "./policies/work.ts";
 import { CAMPAIGN_DECISION_IDS } from "./campaign-topology.ts";
-import { registerPolicyCatalogue } from "./policy-catalogue.ts";
 import type { Chapter, Decision, Scenario } from "./types.ts";
 
 const CHAPTERS: Omit<Chapter, "decisionIds">[] = [
@@ -120,6 +119,9 @@ function buildScenario(title: string, version: number, selectedDecisions: Decisi
 }
 
 export const SCENARIO_V3_CATALOGUE = buildScenario("Bibliothèque des politiques", 7, catalogueDecisions);
-registerPolicyCatalogue(SCENARIO_V3_CATALOGUE.decisions);
 export const SCENARIO_V3 = buildScenario("La France à l'épreuve des comptes", 7, campaignDecisions);
 export const SCENARIO_V3_PREVIEW = SCENARIO_V3;
+
+export function policyById(id: string): Decision | undefined {
+  return SCENARIO_V3_CATALOGUE.decisions.find((decision) => decision.id === id);
+}
