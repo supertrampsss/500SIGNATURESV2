@@ -452,7 +452,7 @@ test("la révocation retire le futur sans effacer les flux déjà matérialisés
     id: "future-promise", sourceDecisionId: decision.id, sourceOptionId: option.id, label: "Promesse", dueAtDecision: 2, fulfilled: false, failureEffects: [],
   }] };
   const scheduled = scheduleBudgetProfile(selected, decision, option, scenario);
-  const reversedBefore = reverseDecisionConsequences(scheduled, decision.id);
+  const reversedBefore = reverseDecisionConsequences(scheduled, decision.id, "test-crisis");
   assert.equal(reversedBefore.scheduledEvents.length, 0);
   assert.equal(reversedBefore.activePromises.length, 0);
   assert.equal(reversedBefore.decisions[0]?.status, "reversed");
@@ -462,7 +462,7 @@ test("la révocation retire le futur sans effacer les flux déjà matérialisés
     ...scheduled.decisions,
     { decisionId: "decision-2", optionId: "decision-2-option-a", status: "confirmed" as const, confirmedAtIndex: 2 },
   ] }).state;
-  const reversedAfter = reverseDecisionConsequences(materialized, decision.id);
+  const reversedAfter = reverseDecisionConsequences(materialized, decision.id, "test-crisis");
   assert.equal(reversedAfter.eventHistory.length, materialized.eventHistory.length);
   assert.ok(reversedAfter.causalLedger.length > materialized.causalLedger.length);
   assert.equal(reversedAfter.indicators.annualBalance, started.indicators.annualBalance - 20);

@@ -307,7 +307,11 @@ export function scheduleBudgetProfile(
 }
 
 /** Removes future consequences and neutralizes only the future annual run rate. */
-export function reverseDecisionConsequences(state: CampaignState, decisionId: string): CampaignState {
+export function reverseDecisionConsequences(
+  state: CampaignState,
+  decisionId: string,
+  crisisRuleId: string,
+): CampaignState {
   const record = state.decisions.find((decision) => decision.decisionId === decisionId);
   if (!record || record.status === "reversed") return state;
   const directSourceId = `${decisionId}:${record.optionId}`;
@@ -335,7 +339,7 @@ export function reverseDecisionConsequences(state: CampaignState, decisionId: st
     );
     reversed = applyEffect(reversed, compensation, {
       sourceType: "crisis",
-      sourceId: `reverse:${decisionId}`,
+      sourceId: crisisRuleId,
       appliedAtDecision: state.decisions.length,
     });
   }

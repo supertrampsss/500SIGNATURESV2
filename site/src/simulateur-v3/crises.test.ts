@@ -14,10 +14,10 @@ import type {
   EffectRule,
   Scenario,
 } from "./types.ts";
-import { positionAfterCompleted } from "./validation.ts";
+import { isCampaignState, positionAfterCompleted } from "./validation.ts";
 import { SCENARIO_V10_CRISIS_RULES } from "./scenario-crises.ts";
 import { SCENARIO_V10 } from "./scenario-v10.ts";
-import { restoreCampaign, V3_STORAGE_KEY } from "./storage.ts";
+import { restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 
 const majorityCost: EffectRule = {
   id: "majority-cost",
@@ -212,7 +212,7 @@ test("une concession V10 neutralise une recette annuelle déjà matérialisée",
   assert.equal(resolved.decisions.find((decision) => decision.decisionId === targetDecisionId)?.status, "reversed");
   assert.equal(resolved.indicators.annualBalance, prepared.indicators.annualBalance - adoptedRunRate);
   const compensations = resolved.causalLedger.filter((entry) => entry.sourceType === "crisis"
-    && entry.sourceId === `reverse:${targetDecisionId}`
+    && entry.sourceId === rule.id
     && entry.key === "annualBalance");
   assert.equal(compensations.length, 1);
   assert.equal(compensations[0]?.delta, -adoptedRunRate);
@@ -335,7 +335,8 @@ test("une concession suspend réellement une politique active", () => {
 });
 
 test("une révocation de crise retire le futur avant les effets de concession", () => {
-  const state = triggeredSocialCrisis();
+  const scenario = validScenario();
+  const state = triggeredSocialCrisis(scenario);
   const withRunRate = applyEffect(state, {
     id: "decision-1:decision-1-option-a:run-rate",
     target: "indicator",
@@ -389,6 +390,36 @@ test("une révocation de crise retire le futur avant les effets de concession", 
   assert.equal(resolved.scheduledEvents.length, 0);
   assert.equal(resolved.activePromises.length, 0);
   assert.equal(resolved.indicators.annualBalance, state.indicators.annualBalance + 7);
+
+  const compensations = resolved.causalLedger.filter((entry) => entry.sourceType === "crisis"
+    && entry.sourceId === rule.id
+    && entry.key === "annualBalance"
+    && entry.duration === "annual");
+  assert.deepEqual(compensations.map((entry) => entry.delta), [-100]);
+  assert.equal(isCampaignState(resolved, scenario), true);
+
+  const values = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+    removeItem: (key: string) => values.delete(key),
+  };
+  const saved = saveCampaign(storage, resolved, new Date("2026-08-31T12:00:00.000Z"));
+  const serialized = values.get(V3_STORAGE_KEY);
+  assert.ok(serialized);
+  assert.equal(isCampaignState(JSON.parse(serialized), scenario), true);
+
+  const restored = restoreCampaign(storage, scenario);
+  assert.equal(restored.kind, "restored");
+  if (restored.kind === "restored") {
+    const restoredCompensations = restored.state.causalLedger.filter((entry) => entry.sourceType === "crisis"
+      && entry.sourceId === rule.id
+      && entry.key === "annualBalance"
+      && entry.duration === "annual");
+    assert.equal(restoredCompensations.length, 1);
+    assert.equal(restoredCompensations[0]?.delta, -100);
+  }
+  assert.equal(saved.causalLedger.filter((entry) => entry.id === compensations[0]?.id).length, 1);
 });
 
 test("une concession indisponible n'est jamais proposée", () => {

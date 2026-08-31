@@ -167,7 +167,7 @@ export function resolveCrisis(state: CampaignState, rules: readonly CrisisRule[]
     const concession = availableConcessions(state, rules).find((candidate) => candidate.id === resolutionId);
     if (!concession) throw new Error(`Crisis resolution not offered: ${resolutionId}`);
     resolved = concession.policyChange === "reverse"
-      ? reverseDecisionConsequences(state, concession.targetDecisionId)
+      ? reverseDecisionConsequences(state, concession.targetDecisionId, rule.id)
       : {
         ...state,
         decisions: state.decisions.map((decision) => decision.decisionId === concession.targetDecisionId
