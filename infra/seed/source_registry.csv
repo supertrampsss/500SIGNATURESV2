@@ -12,15 +12,16 @@ ign,Geoplateforme / Geoservices,IGN,C,https://geoservices.ign.fr,https://geoserv
 ban,API Adresse (BAN),DINUM / IGN,A,https://api-adresse.data.gouv.fr,https://adresse.data.gouv.fr,,Licence Ouverte 2.0,FR
 api-geo,API Geo,DINUM / Etalab,A,https://geo.api.gouv.fr,https://geo.api.gouv.fr/decoupage-administratif,,Licence Ouverte 2.0,FR
 eurostat,API de diffusion Eurostat,Eurostat,A,https://ec.europa.eu/eurostat/api/dissemination/statistics/1.0/data/,https://ec.europa.eu/eurostat/web/main/data/web-services,,Licence Eurostat (reutilisation libre avec mention),EU
+entsoe-transparency,ENTSO-E Transparency Platform,ENTSO-E,B,https://web-api.tp.entsoe.eu/api,https://www.entsoe.eu/data/transparency-platform/,securityToken query parameter via ENTSOE_API_TOKEN,ENTSO-E Transparency Platform terms of use,EU
+uba,Umweltbundesamt data,Umweltbundesamt,C,https://www.umweltbundesamt.de/daten,https://www.umweltbundesamt.de/daten/energie,,Nutzungsbedingungen des Umweltbundesamtes,EU
+cre,Open data CRE,Commission de regulation de l'energie,C,https://www.cre.fr/documents/open-data.html,https://www.cre.fr/documents/open-data.html,,Licence Ouverte 2.0,FR
 gisco,GISCO (geometries NUTS/LAU),Eurostat,C,https://gisco-services.ec.europa.eu,https://ec.europa.eu/eurostat/web/gisco,,Licence Eurostat (reutilisation libre avec mention),EU
-urssaf,open.urssaf.fr,URSSAF,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
+urssaf,open.urssaf.fr,URSSAF Caisse nationale,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
 banque-de-france,Webstat,Banque de France,A,https://webstat.banque-france.fr/api/explore/v2.1/,https://webstat.banque-france.fr,cle selon volume,Conditions BdF (verifier par jeu),FR
 data-education,data.education.gouv.fr,Ministère de l'Éducation nationale,A,https://data.education.gouv.fr/api/explore/v2.1/,https://data.education.gouv.fr,,Licence Ouverte 2.0,FR
-sdes,Service des donnees et etudes statistiques,Ministere de la transition ecologique (SDES),A,https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1,https://www.statistiques.developpement-durable.gouv.fr/catalogue,aucune,LO2.0,FR
+sdes,Donnees statistiques SDES,SDES (ministere de la Transition ecologique),A,https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1/,https://www.statistiques.developpement-durable.gouv.fr/catalogue,,Licence Ouverte 2.0,FR
 data-unedic,data.unedic.org,Unedic,A,https://data.unedic.org/api/explore/v2.1/,https://data.unedic.org,,Licence Ouverte 2.0,FR
 data-ameli,data.ameli.fr,CNAM,A,https://data.ameli.fr/api/explore/v2.1/,https://data.ameli.fr,,ODbL,FR
-urssaf,open.urssaf.fr,URSSAF Caisse nationale,A,https://open.urssaf.fr/api/explore/v2.1/,https://open.urssaf.fr,,Licence Ouverte 2.0,FR
-sdes,Donnees statistiques SDES,SDES (ministere de la Transition ecologique),A,https://data.statistiques.developpement-durable.gouv.fr/dido/api/v1/,https://www.statistiques.developpement-durable.gouv.fr,,Licence Ouverte 2.0,FR
 europe-en-france,Europe en France,ANCT,C,https://www.europe-en-france.gouv.fr,https://www.europe-en-france.gouv.fr,,Licence Ouverte 2.0,FR
 data-drees,data.drees.solidarites-sante.gouv.fr,DREES,A,https://data.drees.solidarites-sante.gouv.fr/api/explore/v2.1/,https://data.drees.solidarites-sante.gouv.fr,,Licence Ouverte 2.0,FR
 data-caf,data.caf.fr,CNAF,A,https://data.caf.fr/api/explore/v2.1/,https://data.caf.fr,,Licence Ouverte 2.0,FR
