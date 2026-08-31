@@ -49,6 +49,82 @@ test("le catalogue V10 relie tous ses profils non nuls ou audités au registre",
   assert.equal(structuralTotal, 21_689);
 });
 
+test("les vingt substitutions V10 ne réemploient aucun contrat éditorial ou causal V9", () => {
+  const replacements: Record<string, string> = {
+    "geler-le-bareme-de-l-impot-sur": "facturation-electronique-controle-tva",
+    "flat-tax-a-20-des-le-premier": "perenniser-surtaxe-grandes-entreprises",
+    "flat-tax-a-20-avec-abattement-protegeant": "relever-tva-restauration-commerciale",
+    "tranche-a-50-au-dela-de-250": "unifier-ir-csg-bareme-continu",
+    "soumettre-les-revenus-du-capital-au-bareme": "supprimer-niches-fiscales-menages-capital",
+    "supprimer-les-allegements-de-cotisations-entre-2": "recentrer-allegements-exonerations-sociales",
+    "fiscaliser-les-heures-supplementaires-comme-le": "cibler-aides-apprentissage",
+    "raboter-de-5-les-subventions-directes-aux": "supprimer-subventions-directes-entreprises",
+    "raboter-le-credit-d-impot-recherche-de": "recentrer-cir-niches-fiscales-entreprises",
+    "allocation-sociale-unique": "remplacer-prime-activite-prelevements-travail",
+    "imposer-generiques-et-biosimilaires-en-premiere-intention": "medicaments-comparables-achats-sante",
+    "renforcer-le-controle-des-arrets-de-travail": "reduire-arrets-evitables-prescription",
+    "derembourser-les-cures-thermales": "recouvrer-fraude-sociale-additionnelle",
+    "verser-le-rsa-automatiquement-fin-du-non": "unifier-instruction-prestations-solidarite",
+    "interdire-les-voitures-thermiques-en-2030": "supprimer-niches-fiscales-brunes",
+    "reduire-de-5-les-dotations-aux-collectivites": "clarifier-competences-doublons-territoriaux",
+    "geler-le-point-d-indice-en-2026": "mutualiser-achats-publics",
+    "fermer-un-tiers-des-agences-et-operateurs": "rationaliser-operateurs-ingenierie-territoriale",
+    "diviser-par-deux-le-nombre-de-parlementaires": "reduire-surfaces-loyers-publics",
+    "deux-jours-de-carence-dans-la-fonction": "reduire-cout-absences-fonctions-publiques",
+  };
+  for (const [oldId, newId] of Object.entries(replacements)) {
+    const oldDecision = SCENARIO_V3_CATALOGUE.decisions.find((decision) => decision.id === oldId)!;
+    const newDecision = v10PolicyById(newId)!;
+    const oldContract = JSON.stringify({ title: oldDecision.title, context: oldDecision.context, options: oldDecision.options.map((option) => ({ label: option.label, summary: option.summary, mechanism: option.mechanism, legalConstraints: option.legalConstraints, beneficiaries: option.beneficiaries, contributors: option.contributors, effects: option.effects.filter((effect) => effect.key !== "annualBalance"), scheduledEvents: option.scheduledEvents, promises: option.promises, locks: option.locks, unlocks: option.unlocks })) });
+    const newContract = JSON.stringify({ title: newDecision.title, context: newDecision.context, options: newDecision.options.map((option) => ({ label: option.label, summary: option.summary, mechanism: option.mechanism, legalConstraints: option.legalConstraints, beneficiaries: option.beneficiaries, contributors: option.contributors, effects: option.effects.filter((effect) => effect.key !== "annualBalance"), scheduledEvents: option.scheduledEvents, promises: option.promises, locks: option.locks, unlocks: option.unlocks })) });
+    assert.notEqual(newContract, oldContract, `${oldId} -> ${newId}`);
+    assert.doesNotMatch(JSON.stringify(newDecision), new RegExp(oldId), `${oldId} leaked into ${newId}`);
+    assert.equal(newDecision.options.every((option) => option.scheduledEvents.length === 0 && option.promises.length === 0 && option.locks.length === 0 && option.unlocks.length === 0), true, newId);
+  }
+  assert.match(v10PolicyById("facturation-electronique-controle-tva")!.options[0]!.mechanism, /facturation électronique/i);
+  assert.match(v10PolicyById("remplacer-prime-activite-prelevements-travail")!.options[0]!.mechanism, /prime d'activité/i);
+  const newDossiers = Object.values(replacements).map((id) => v10PolicyById(id)!);
+  for (const forbidden of ["tax-base-reaction", "single-benefit-losers", "local-investment-cut", "agency-mission-transfer", "porter-le-rsa-au-seuil-de"]) {
+    assert.equal(newDossiers.some((decision) => JSON.stringify(decision).includes(forbidden)), false, forbidden);
+  }
+});
+
+test("les dossiers conservés gardent exactement leurs flux V9 après remappage local", () => {
+  const retired = new Set(["geler-le-bareme-de-l-impot-sur", "flat-tax-a-20-des-le-premier", "flat-tax-a-20-avec-abattement-protegeant", "tranche-a-50-au-dela-de-250", "soumettre-les-revenus-du-capital-au-bareme", "supprimer-les-allegements-de-cotisations-entre-2", "fiscaliser-les-heures-supplementaires-comme-le", "raboter-de-5-les-subventions-directes-aux", "raboter-le-credit-d-impot-recherche-de", "allocation-sociale-unique", "imposer-generiques-et-biosimilaires-en-premiere-intention", "renforcer-le-controle-des-arrets-de-travail", "derembourser-les-cures-thermales", "verser-le-rsa-automatiquement-fin-du-non", "interdire-les-voitures-thermiques-en-2030", "reduire-de-5-les-dotations-aux-collectivites", "geler-le-point-d-indice-en-2026", "fermer-un-tiers-des-agences-et-operateurs", "diviser-par-deux-le-nombre-de-parlementaires", "deux-jours-de-carence-dans-la-fonction"]);
+  for (const historical of SCENARIO_V9_SNAPSHOT.decisions) {
+    if (retired.has(historical.id)) continue;
+    const current = v10PolicyById(historical.id)!;
+    const historicalOptions = historical.id === "engager-six-epr2-part-annuelle-de-l"
+      ? [historical.options.find((option) => option.id.endsWith(":six"))!]
+      : historical.options;
+    for (const oldOption of historicalOptions) {
+      const local = oldOption.id.endsWith(":six") ? "adopt" : oldOption.id.split(":").at(-1)!;
+      const actual = current.options.find((option) => option.id.endsWith(`:${local}`))!;
+      const oldFlows = oldOption.effects.filter((effect) => effect.target === "indicator" && effect.key === "annualBalance").map(({ delta, timing, duration }) => ({ delta, timing, duration }));
+      const newFlows = actual.effects.filter((effect) => effect.target === "indicator" && effect.key === "annualBalance").map(({ delta, timing, duration }) => ({ delta, timing, duration }));
+      assert.deepEqual(newFlows, oldFlows, `${historical.id}:${local}`);
+    }
+  }
+});
+
+test("le catalogue V10 est isolé et profondément gelé du snapshot V9", () => {
+  const v10 = v10PolicyById("porter-le-taux-normal-de-tva-a")!;
+  const v9 = SCENARIO_V3_CATALOGUE.decisions.find((decision) => decision.id === v10.id)!;
+  assert.notEqual(v10, v9);
+  assert.notEqual(v10.options[0], v9.options[0]);
+  assert.equal(Object.isFrozen(SCENARIO_V10_CATALOGUE), true);
+  assert.equal(Object.isFrozen(v10.options[0]!.effects), true);
+  assert.throws(() => { (v10.options[0]!.effects as unknown as { push(value: unknown): void }).push({}); }, TypeError);
+  assert.equal(v9.options[0]!.effects.length > 0, true);
+});
+
+test("EPR2 ne conserve aucun identifiant d'option retirée dans ses effets", () => {
+  const epr2 = v10PolicyById("engager-six-epr2-part-annuelle-de-l")!;
+  for (const option of epr2.options) {
+    assert.doesNotMatch(JSON.stringify(option), /:six:|:fourteen:|:none:/);
+  }
+});
+
 const VALID: PolicyDecisionDefinition = {
   id: "test-policy",
   chapterId: "test-chapter",
