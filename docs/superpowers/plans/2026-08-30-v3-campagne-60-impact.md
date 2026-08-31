@@ -281,6 +281,8 @@ git commit -m "feat: split policy catalogue from 60 decision campaign"
 - Modify: `site/src/simulateur-v3/storage.test.ts`
 - Modify: `site/src/simulateur-v3/verdict.ts`
 - Modify: `site/src/simulateur-v3/verdict.test.ts`
+- Modify: `site/src/simulateur-v3/verdict-share.ts`
+- Modify: `site/src/simulateur-v3/verdict-share.test.ts`
 
 **Interfaces:**
 - Consumes: `scenario.chapters[*].decisionIds` and topology helpers.
@@ -581,9 +583,16 @@ git commit -m "chore: version explicit campaign effects"
 - Modify: `site/src/simulateur-v3/policy-catalogue.ts`
 - Modify: `site/src/simulateur-v3/policy-catalogue.test.ts`
 - Modify: `site/src/simulateur-v3/policies/*.ts`
+- Modify: `site/src/simulateur-v3/render.ts`
+- Modify: `site/src/simulateur-v3/render.test.ts`
 - Modify: `site/src/simulateur-v3/scenario.test.ts`
+- Modify: `site/src/simulateur-v3/storage.ts`
+- Modify: `site/src/simulateur-v3/storage.test.ts`
+- Modify: `site/src/simulateur-v3/types.test.ts`
 - Modify: `site/src/simulateur-v3/validation.ts`
 - Modify: `site/src/simulateur-v3/validation.test.ts`
+- Modify: `site/src/simulateur-v3/verdict.ts`
+- Modify: `site/src/simulateur-v3/verdict.test.ts`
 - Modify: `site/src/simulateur-v3/test-fixtures.ts`
 
 **Interfaces:**
@@ -616,6 +625,8 @@ test("aucun effet n'est dérivé des anciennes réactions", async () => {
 
 Test both all 193 catalogue options and the 121 playable options. In the final code, `V3_MODELED_EFFECT_MARKER` may remain only in the isolated historical 5-to-6 storage migration; it must not mark new editorial effects.
 
+Add a behavioural regression proving that newly compiled effects contain no `:model:` marker. Keep the historical migration test independent by constructing an explicit synthetic version-6 fixture instead of deriving it from the current scenario.
+
 - [ ] **Step 2: Extend the explicit option contract**
 
 ```ts
@@ -636,6 +647,8 @@ An empty `legalConstraints` array explicitly means that no specific legal constr
 
 Add the same required fields to `PolicyOptionDefinition` and to both branches of `ExistingPolicyCopy`. Increment each rewritten `Decision.version` from 2 to 3. The type and compiler must make an omitted mechanism impossible.
 
+Make the budget basis explicit as well. Every `PolicyOptionDefinition` with a non-zero `budgetDelta` declares `budgetDuration: "annual" | "once"`; zero-budget options may use `"annual"` as a neutral value. Preserve the published M€ amount while distinguishing annual run rate from a one-off cash impact. At minimum, euro transition, EU referendum setup, strategic nationalisation, motorway concession buyout and sale of non-strategic state holdings require a reviewed `once` basis rather than inheriting an annual default.
+
 - [ ] **Step 3: Declare units and meaningful distance thresholds**
 
 Create `INDICATOR_META`, with label, unit, bounds where applicable, display precision and comparison epsilon for every indicator. At minimum:
@@ -645,7 +658,7 @@ Create `INDICATOR_META`, with label, unit, bounds where applicable, display prec
 - `growth`: annual nominal GDP growth in percent, matching the sourced Task 4 baseline;
 - remaining economic, service and political indicators: documented game indices or percentage-point scales.
 
-Never compare one million euros with one point as if they shared a unit. Preserve `interestCost: 12_000` for euro exit.
+Never compare one million euros with one point as if they shared a unit. Preserve `interestCost: 12_000` for euro exit. Replace remaining interface and verdict copy that presents `growth` as generic real activity with the declared nominal-GDP label, or consume the metadata directly. The verdict's decisive-choice ranking and primary structural effect must use typed editorial priority or another stable unit-aware ordering; they must not compare or sum raw M€, percentage rates and game-index points.
 
 Implement a canonical `optionDistanceDimensions(a, b)` that counts materially distinct dimensions across budget, non-budget indicators, groups, horizon, beneficiaries/contributors, legal constraints, locks/unlocks, uncertainty and scheduled consequences. Use indicator-specific epsilons. Every option pair in a published decision must differ on at least two dimensions; a difference below epsilon does not count.
 
@@ -665,16 +678,55 @@ Every playable option requires at least one non-budget indicator effect because 
 
 - [ ] **Step 5: Run and commit**
 
-Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/indicator-meta.test.ts src/simulateur-v3/policy-catalogue.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/validation.test.ts && npx tsc --noEmit`
+Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/indicator-meta.test.ts src/simulateur-v3/policy-catalogue.test.ts src/simulateur-v3/scenario.test.ts src/simulateur-v3/storage.test.ts src/simulateur-v3/validation.test.ts src/simulateur-v3/render.test.ts src/simulateur-v3/verdict.test.ts src/simulateur-v3/verdict-share.test.ts && npx tsc --noEmit && npm test`
 
 Expected: PASS with 96 decisions, 193 explicit options, 60 playable decisions and 121 playable options.
 
 ```bash
-git add site/src/simulateur-v3/indicator-meta.ts site/src/simulateur-v3/indicator-meta.test.ts site/src/simulateur-v3/types.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/policy-catalogue.test.ts site/src/simulateur-v3/policies site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/validation.test.ts site/src/simulateur-v3/test-fixtures.ts
+git add site/src/simulateur-v3/indicator-meta.ts site/src/simulateur-v3/indicator-meta.test.ts site/src/simulateur-v3/types.ts site/src/simulateur-v3/types.test.ts site/src/simulateur-v3/policy-catalogue.ts site/src/simulateur-v3/policy-catalogue.test.ts site/src/simulateur-v3/policies site/src/simulateur-v3/render.ts site/src/simulateur-v3/render.test.ts site/src/simulateur-v3/scenario.test.ts site/src/simulateur-v3/storage.ts site/src/simulateur-v3/storage.test.ts site/src/simulateur-v3/validation.ts site/src/simulateur-v3/validation.test.ts site/src/simulateur-v3/verdict.ts site/src/simulateur-v3/verdict.test.ts site/src/simulateur-v3/verdict-share.ts site/src/simulateur-v3/verdict-share.test.ts site/src/simulateur-v3/test-fixtures.ts
 git commit -m "feat: declare explicit campaign consequences"
 ```
 
-### Task 5C: Tie crises to exact aggravating choices
+### Task 5C: Apply one-off budget effects to one fiscal year only
+
+**Files:**
+- Modify: `site/src/simulateur-v3/timeline.ts`
+- Modify: `site/src/simulateur-v3/timeline.test.ts`
+- Modify: `site/src/simulateur-v3/effects.test.ts`
+- Modify: `site/src/simulateur-v3/flow.test.ts`
+- Modify: `site/src/simulateur-v3/verdict.test.ts`
+
+**Interfaces:**
+- Consumes: causal-ledger `annualBalance` entries whose duration is `annual`, `permanent` or `once`.
+- Produces: the exact fiscal-year balance used by each checkpoint and a current run rate with expired one-off effects removed.
+
+- [ ] **Step 1: Write stock-flow regressions**
+
+Prove that an annual budget effect contributes to every later checkpoint, while a `once` budget effect contributes only to the first checkpoint after it is applied. The one-off amount changes debt through that year's balance, then disappears from `state.indicators.annualBalance` and from later annual flows without deleting its causal entry. A save/reload immediately before or after the checkpoint must produce the same result.
+
+- [ ] **Step 2: Derive each checkpoint balance from the ledger**
+
+For checkpoint `N`, start from `baseline.annualBalanceMillions`:
+
+- include every `annual` or `permanent` annual-balance entry applied by decision `N`;
+- include a `once` entry only when its `appliedAtDecision` is greater than the preceding checkpoint's decision count and at most `N`;
+- never replay or duplicate a causal entry;
+- after projection, reset the current annual-balance indicator to baseline plus all still-active annual/permanent entries.
+
+Use the resulting fiscal-year balance in `projectYear()`, the checkpoint, Council and verdict. Keep the one-off cause in the checkpoint that consumed it. Do not change other indicator-duration semantics in this task.
+
+- [ ] **Step 3: Run and commit**
+
+Run: `cd site && node --experimental-strip-types --test src/simulateur-v3/timeline.test.ts src/simulateur-v3/effects.test.ts src/simulateur-v3/flow.test.ts src/simulateur-v3/verdict.test.ts src/simulateur-v3/storage.test.ts && npx tsc --noEmit`
+
+Expected: PASS with one-off cash impacts affecting debt once and annual run rates remaining stable.
+
+```bash
+git add site/src/simulateur-v3/timeline.ts site/src/simulateur-v3/timeline.test.ts site/src/simulateur-v3/effects.test.ts site/src/simulateur-v3/flow.test.ts site/src/simulateur-v3/verdict.test.ts
+git commit -m "fix: expire one-off campaign budget effects"
+```
+
+### Task 5D: Tie crises to exact aggravating choices
 
 **Files:**
 - Modify: `site/src/simulateur-v3/types.ts`
