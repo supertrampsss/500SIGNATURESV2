@@ -89,6 +89,32 @@ test("reconstruit cinq jalons et termine sur les indicateurs réels", () => {
   assert.equal(view.trajectory[2]!.majority, INITIAL_INDICATORS.majority);
 });
 
+test("le verdict distingue le flux ponctuel du dernier exercice et le rythme annuel final", () => {
+  const state = completedCampaign();
+  const finalRunRate = state.indicators.annualBalance;
+  const finalRecord = state.decisions.at(-1)!;
+  const oneOffCause: CausalEntry = {
+    id: "decision:final:one-off:4",
+    sourceType: "decision",
+    sourceId: `${finalRecord.decisionId}:${finalRecord.optionId}`,
+    target: "indicator",
+    key: "annualBalance",
+    delta: -5_000,
+    duration: "once",
+    explanation: "Le dernier exercice absorbe un coût ponctuel.",
+    appliedAtDecision: finalRecord.confirmedAtIndex,
+  };
+  state.causalLedger.push(oneOffCause);
+  state.annualCheckpoints.at(-1)!.annualBalance = finalRunRate - 5_000;
+  state.annualCheckpoints.at(-1)!.causes.push(oneOffCause.id);
+
+  const view = buildMandateVerdictViewModel(state, SCENARIO_V3_PREVIEW, SCENARIO_V3_CRISIS_RULES);
+
+  assert.equal(view.trajectory.at(-1)?.annualBalance, finalRunRate - 5_000);
+  assert.equal(view.annualBalance, finalRunRate);
+  assert.equal(view.annualBalanceDelta, finalRunRate - state.baseline.annualBalanceMillions);
+});
+
 test("la trajectoire relit les jalons persistés sans les recalculer depuis le scénario", () => {
   const state = completedCampaign();
   const scenario = {

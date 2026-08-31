@@ -1,4 +1,4 @@
-import type { CampaignState, MandateBaseline, MandateYear, Scenario } from "./types.ts";
+import type { CampaignState, CausalEntry, MandateBaseline, MandateYear, Scenario } from "./types.ts";
 
 export const REQUIRED_BASELINE_INDICATORS = [
   "eurostat_pib_montant",
@@ -114,6 +114,37 @@ export function decisionCountAtMandateYearEnd(
   throw new Error(`Mandate year ${year} has no checkpoint in this scenario`);
 }
 
+type AnnualBalanceProfile = {
+  fiscalYearBalance: number;
+  activeRunRate: number;
+  fiscalCauseIds: Set<string>;
+};
+
+function annualBalanceProfile(
+  state: CampaignState,
+  previousDecisionCount: number,
+  currentDecisionCount: number,
+): AnnualBalanceProfile {
+  const appliedBudgetEntries = state.causalLedger.filter((entry): entry is CausalEntry => (
+    entry.target === "indicator"
+      && entry.key === "annualBalance"
+      && entry.appliedAtDecision <= currentDecisionCount
+  ));
+  const recurringEntries = appliedBudgetEntries.filter((entry) =>
+    entry.duration === "annual" || entry.duration === "permanent",
+  );
+  const oneOffEntries = appliedBudgetEntries.filter((entry) =>
+    entry.duration === "once" && entry.appliedAtDecision > previousDecisionCount,
+  );
+  const recurringDelta = recurringEntries.reduce((sum, entry) => sum + entry.delta, 0);
+  const oneOffDelta = oneOffEntries.reduce((sum, entry) => sum + entry.delta, 0);
+  return {
+    fiscalYearBalance: state.baseline.annualBalanceMillions + recurringDelta + oneOffDelta,
+    activeRunRate: state.baseline.annualBalanceMillions + recurringDelta,
+    fiscalCauseIds: new Set([...recurringEntries, ...oneOffEntries].map((entry) => entry.id)),
+  };
+}
+
 export function advanceMandateYear(
   state: CampaignState,
   year: Exclude<MandateYear, 0>,
@@ -125,6 +156,9 @@ export function advanceMandateYear(
     debtMillions: state.baseline.debtMillions,
     interestCost: state.baseline.interestCostMillions,
   };
+  const previousDecisionCount = state.annualCheckpoints.at(-1)?.afterDecisionCount ?? 0;
+  const currentDecisionCount = state.decisions.length;
+  const balanceProfile = annualBalanceProfile(state, previousDecisionCount, currentDecisionCount);
   const interestRatePercent = previous.debtMillions === 0
     ? 0
     : state.indicators.interestCost / previous.debtMillions * 100;
@@ -133,20 +167,23 @@ export function advanceMandateYear(
     debtMillions: previous.debtMillions,
     interestCostMillions: previous.interestCost,
   }, {
-    annualBalance: state.indicators.annualBalance,
+    annualBalance: balanceProfile.fiscalYearBalance,
     nominalGrowthPercent: state.indicators.growth,
     interestRatePercent,
   });
   const causes = state.causalLedger
     .filter((entry) => entry.target === "indicator"
-      && ["annualBalance", "growth", "interestCost"].includes(entry.key)
-      && entry.appliedAtDecision <= state.decisions.length)
+      && entry.appliedAtDecision <= currentDecisionCount
+      && (entry.key === "annualBalance"
+        ? balanceProfile.fiscalCauseIds.has(entry.id)
+        : ["growth", "interestCost"].includes(entry.key)))
     .map((entry) => entry.id);
   return {
     ...state,
     phase: "council",
     indicators: {
       ...state.indicators,
+      annualBalance: balanceProfile.activeRunRate,
       debtToGdp: projected.debtToGdp,
       interestCost: projected.interestCostMillions,
     },
@@ -156,7 +193,7 @@ export function advanceMandateYear(
       nominalGdpMillions: projected.nominalGdpMillions,
       debtMillions: projected.debtMillions,
       debtToGdp: projected.debtToGdp,
-      annualBalance: state.indicators.annualBalance,
+      annualBalance: balanceProfile.fiscalYearBalance,
       interestCost: projected.interestCostMillions,
       causes: [...new Set(causes)],
     }],

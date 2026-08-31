@@ -171,6 +171,14 @@ test("une conséquence différée est résolue avant le Conseil annuel", () => {
       timing: { kind: "immediate" },
       duration: "annual",
       explanation: "Le solde annuel progresse.",
+    }, {
+      id: "annual-event-one-off",
+      target: "indicator",
+      key: "annualBalance",
+      delta: -2_500,
+      timing: { kind: "immediate" },
+      duration: "once",
+      explanation: "La transition est payée sur cet exercice seulement.",
     }],
   }];
 
@@ -178,8 +186,10 @@ test("une conséquence différée est résolue avant le Conseil annuel", () => {
   assert.equal(delayed.phase, "delayed_event");
   const council = advanceCampaign(delayed, SCENARIO_V3_PREVIEW, []);
   assert.equal(council.phase, "council");
-  assert.equal(council.annualCheckpoints[0]?.annualBalance, state.indicators.annualBalance + 1_000);
+  assert.equal(council.annualCheckpoints[0]?.annualBalance, state.indicators.annualBalance + 1_000 - 2_500);
+  assert.equal(council.indicators.annualBalance, state.indicators.annualBalance + 1_000);
   assert.ok(council.annualCheckpoints[0]?.causes.includes("event:annual-event:annual-event-balance:1"));
+  assert.ok(council.annualCheckpoints[0]?.causes.includes("event:annual-event:annual-event-one-off:2"));
 });
 
 test("un dossier final verrouillé repasse par conséquences, promesses et crise avant le Conseil", () => {
@@ -290,6 +300,7 @@ test("la sortie de l'euro résout la conversion après un dossier joué, sans ve
     while (state.phase !== "decision");
   }
 
+  const runRateBeforeExit = state.indicators.annualBalance;
   const euroExit = currentDecision(state, SCENARIO_V3_PREVIEW)!;
   assert.equal(euroExit.id, "sortir-de-l-euro");
   state = confirmSelection(
@@ -332,4 +343,12 @@ test("la sortie de l'euro résout la conversion après un dossier joué, sans ve
   assert.ok(council.eventHistory.some((event) => event.id === "currency-conversion"));
   assert.ok(council.scheduledEvents.every((event) => event.dueAtDecision > council.decisions.length));
   assert.equal(council.annualCheckpoints.at(-1)?.afterDecisionCount, 39);
+  assert.equal(council.annualCheckpoints.at(-1)?.annualBalance, runRateBeforeExit - 35_000);
+  assert.equal(council.indicators.annualBalance, runRateBeforeExit);
+  const euroExitBudgetCause = council.causalLedger.find((entry) =>
+    entry.sourceId === `${euroExit.id}:${euroExit.options[0]!.id}`
+      && entry.key === "annualBalance"
+      && entry.duration === "once");
+  assert.ok(euroExitBudgetCause);
+  assert.ok(council.annualCheckpoints.at(-1)?.causes.includes(euroExitBudgetCause.id));
 });

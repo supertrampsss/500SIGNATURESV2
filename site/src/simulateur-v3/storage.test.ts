@@ -14,12 +14,13 @@ function memoryStorage(initial: Record<string, string> = {}): StorageLike {
 
 import { clearCampaign, restoreCampaign, saveCampaign, V3_STORAGE_KEY } from "./storage.ts";
 import { selectOption } from "./campaign.ts";
-import { confirmSelection } from "./effects.ts";
+import { applyEffect, confirmSelection } from "./effects.ts";
 import { advanceCampaign } from "./flow.ts";
 import { SCENARIO_V3_PREVIEW } from "./scenario.ts";
 import { createTestCampaign as createCampaign, testAnnualCheckpoints, testBaseline, validScenario } from "./test-fixtures.ts";
+import { advanceMandateYear } from "./timeline.ts";
 import type { Scenario } from "./types.ts";
-import { isCampaignState, validateScenario } from "./validation.ts";
+import { isCampaignState, positionAfterCompleted, validateScenario } from "./validation.ts";
 
 test("une campagne V3 sauvegardée est restaurée sans perte", () => {
   const storage = memoryStorage();
@@ -62,6 +63,60 @@ test("une sauvegarde du scénario 8 exige un nouveau mandat face au scénario 9"
 
   assert.deepEqual(restoreCampaign(storage, SCENARIO_V3_PREVIEW), { kind: "restart_required" });
   assert.equal(storage.getItem(V3_STORAGE_KEY), serialized);
+});
+
+test("une sauvegarde V9 avant ou après le Conseil consomme un flux ponctuel exactement une fois", () => {
+  const scenario = SCENARIO_V3_PREVIEW;
+  const atDecisionCount = (state: ReturnType<typeof createCampaign>, count: number) => ({
+    ...state,
+    phase: "decision_result" as const,
+    ...positionAfterCompleted(scenario, count)!,
+    decisions: scenario.decisions.slice(0, count).map((decision, index) => ({
+      decisionId: decision.id,
+      optionId: decision.options[0]!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  });
+
+  let state = advanceMandateYear(atDecisionCount(createCampaign(scenario), 16), 1);
+  state = advanceMandateYear(atDecisionCount(state, 32), 2);
+  state = atDecisionCount(state, 39);
+  const euroExit = scenario.decisions.find((decision) => decision.id === "sortir-de-l-euro")!;
+  const option = euroExit.options[0]!;
+  const budget = option.effects.find((effect) =>
+    effect.target === "indicator" && effect.key === "annualBalance" && effect.duration === "once")!;
+  state = applyEffect(state, budget, {
+    sourceType: "decision",
+    sourceId: `${euroExit.id}:${option.id}`,
+    appliedAtDecision: 37,
+  });
+  assert.equal(isCampaignState(state, scenario), true);
+
+  const beforeStorage = memoryStorage();
+  const savedBefore = saveCampaign(beforeStorage, state, new Date("2026-08-30T14:00:00.000Z"));
+  const restoredBefore = restoreCampaign(beforeStorage, scenario);
+  assert.equal(restoredBefore.kind, "restored");
+  if (restoredBefore.kind !== "restored") return;
+
+  const directCouncil = advanceCampaign(savedBefore, scenario, []);
+  const restoredCouncil = advanceCampaign(restoredBefore.state, scenario, []);
+  assert.deepEqual(restoredCouncil, directCouncil);
+  assert.equal(restoredCouncil.annualCheckpoints[2]?.annualBalance, state.baseline.annualBalanceMillions - 35_000);
+  assert.equal(restoredCouncil.indicators.annualBalance, state.baseline.annualBalanceMillions);
+  assert.equal(restoredCouncil.causalLedger.length, 1);
+
+  const afterStorage = memoryStorage();
+  const savedAfter = saveCampaign(afterStorage, restoredCouncil, new Date("2026-08-30T15:00:00.000Z"));
+  const restoredAfter = restoreCampaign(afterStorage, scenario);
+  assert.deepEqual(restoredAfter, { kind: "restored", state: savedAfter });
+  if (restoredAfter.kind !== "restored") return;
+  assert.deepEqual(advanceMandateYear(restoredAfter.state, 3), restoredAfter.state);
+
+  const yearFour = advanceMandateYear(atDecisionCount(restoredAfter.state, 53), 4);
+  assert.equal(yearFour.annualCheckpoints[3]?.annualBalance, state.baseline.annualBalanceMillions);
+  assert.equal(yearFour.causalLedger.length, 1);
+  assert.ok(!yearFour.annualCheckpoints[3]?.causes.includes(yearFour.causalLedger[0]!.id));
 });
 
 test("les anciens verrous rétroactifs V8 imposent un redémarrage sans altérer la sauvegarde", () => {
