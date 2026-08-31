@@ -23,7 +23,7 @@ import {
   mandateYearForChapter,
   validateBaseline,
 } from "./timeline.ts";
-import { budgetEstimateFor, crisisTransitionEstimateFor, hasBudgetEstimate, validateBudgetEstimate, validateBudgetProfile, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
+import { budgetEstimateFor, crisisTransitionEstimateFor, hasBudgetEstimate, validateBudgetEstimate, validateBudgetProfile, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS, V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
 import { POLICY_SOURCES } from "./policy-sources.ts";
 import type { BudgetProfile } from "./types.ts";
 
@@ -827,7 +827,8 @@ export function validateScenario(
           const estimate = hasRegisteredEstimate
             ? budgetEstimateFor(decision.id, localOptionId, profile.estimateKey as string)
             : null;
-          const expectedCount = V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS[optionId as keyof typeof V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS];
+          const expectedCount = V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS[optionId as keyof typeof V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS]
+            ?? V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS[optionId as keyof typeof V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS];
           if (expectedCount === undefined || profile.estimateKey !== `carry-forward-${decision.id}-${localOptionId}` || estimate?.estimateStatus !== "scenario") {
             errors.push(`option:${optionId}:run-rate-after-decisions-requires-carry-forward`);
           } else if (profile.runRateTiming.count !== expectedCount) {
@@ -934,7 +935,11 @@ export function validateScenario(
       }
     }
     const profilesByOptionId = new Map(budgetProfiles.map(({ optionId, profile }) => [optionId, profile]));
-    for (const [optionId, count] of Object.entries(V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS)) {
+    const canonicalRelativeTimings = {
+      ...V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS,
+      ...V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS,
+    };
+    for (const [optionId, count] of Object.entries(canonicalRelativeTimings)) {
       const profile = profilesByOptionId.get(optionId);
       const timing = profile?.runRateTiming;
       if (profile === undefined && scenario.decisions.length === 96) {

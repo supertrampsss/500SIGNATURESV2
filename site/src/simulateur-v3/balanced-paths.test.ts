@@ -52,6 +52,13 @@ test("le maximum compatible ne retient que des estimations enregistrées avec pr
   assert.equal(first.every((estimate) => Object.values(BUDGET_ESTIMATES).includes(estimate)), true);
 });
 
+test("le maximum compatible respecte aussi un conflit déclaré par une décision déjà retenue", () => {
+  const scenario = structuredClone(SCENARIO_V10);
+  scenario.decisions.find((decision) => decision.id === "supprimer-niches-fiscales-menages-capital")!.conflicts = ["facturation-electronique-controle-tva"];
+  assert.equal(maximumCompatibleRunRate(scenario), 104_956);
+  assert.equal(maximumCompatibleProvenance(scenario).some((estimate) => estimate.key === "vat-einvoice-control-net"), false);
+});
+
 test("le runner journalise le keep automatique et refuse une option verrouillée à sa place", () => {
   const doctrine = BALANCED_PATHS.find((path) => path.id === "doctrine-21689")!;
   const withAutomaticFallback = {

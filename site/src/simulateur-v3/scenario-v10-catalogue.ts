@@ -70,12 +70,15 @@ function retainedOption(source: Decision, option: DecisionOption, local: "adopt"
   const remappedOther = other.map((effect) => ({ ...effect, id: effect.id.replace(`${source.id}:${oldLocal}:`, `${source.id}:${local}:`) }));
   const isFinalGoldenRuleAdoption = source.id === "regle-d-or-constitutionnelle" && local === "adopt";
   const finalTiming = { kind: "after_decisions" as const, count: 1 };
+  const finalProfile = isFinalGoldenRuleAdoption
+    ? { ...profile, runRateTiming: finalTiming }
+    : profile;
   return {
     ...clone,
     id: `${source.id}:${local}`,
     label: label ?? clone.label,
     horizon: isFinalGoldenRuleAdoption ? finalTiming : clone.horizon,
-    budgetProfile: profile,
+    budgetProfile: finalProfile,
     effects: isFinalGoldenRuleAdoption
       ? remappedOther.map((effect) => ({ ...effect, timing: finalTiming }))
       : remappedOther,

@@ -29,9 +29,16 @@ test("le scénario V10 publié passe la validation stricte et clôt la règle d'
   const goldenRule = SCENARIO_V10.decisions.find((decision) => decision.id === "regle-d-or-constitutionnelle")!;
   const adopt = goldenRule.options.find((option) => option.id.endsWith(":adopt"))!;
   assert.deepEqual(adopt.horizon, { kind: "after_decisions", count: 1 });
+  assert.deepEqual(adopt.budgetProfile.runRateTiming, { kind: "after_decisions", count: 1 });
   assert.ok(adopt.effects.every((effect) => effect.timing.kind === "after_decisions" && effect.timing.count === 1));
   assert.deepEqual(adopt.scheduledEvents.map((event) => event.afterDecisions), [1]);
   assert.equal(SCENARIO_V10.decisions.findIndex((decision) => decision.id === goldenRule.id) + 2, 72);
+
+  const staleProfile = structuredClone(SCENARIO_V10);
+  staleProfile.decisions.find((decision) => decision.id === goldenRule.id)!
+    .options.find((option) => option.id.endsWith(":adopt"))!
+    .budgetProfile.runRateTiming = { kind: "after_decisions", count: 3 };
+  assert.ok(validateScenario(staleProfile).includes("option:regle-d-or-constitutionnelle:adopt:run-rate-after-decisions-not-canonical"));
 });
 
 test("une crise V10 ne peut pas déclarer un effet budgétaire non sourcé", () => {

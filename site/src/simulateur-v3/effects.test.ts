@@ -74,6 +74,36 @@ test("la règle d'or V10 matérialise son événement final exactement à la dé
   assert.ok(scheduled.scheduledEvents.every((event) => event.dueAtDecision === 72));
 });
 
+test("le profil budgétaire V10 de la règle d'or s'active une seule fois à la décision 72", () => {
+  const decision = SCENARIO_V10.decisions[70]!;
+  const option = decision.options.find((candidate) => candidate.id.endsWith(":adopt"))!;
+  const state = {
+    ...createCampaign(SCENARIO_V10),
+    phase: "decision" as const,
+    decisions: SCENARIO_V10.decisions.slice(0, 71).map((prior, index) => ({
+      decisionId: prior.id,
+      optionId: prior.options.at(-1)!.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: index + 1,
+    })),
+  };
+  const scheduled = scheduleBudgetProfile(state, decision, option, SCENARIO_V10);
+  const repeated = scheduleBudgetProfile(scheduled, decision, option, SCENARIO_V10);
+  const runRateId = "regle-d-or-constitutionnelle:regle-d-or-constitutionnelle:adopt:run-rate";
+  assert.equal(scheduled.scheduledEvents.find((event) => event.id === runRateId)?.dueAtDecision, 72);
+  assert.equal(repeated.scheduledEvents.filter((event) => event.id === runRateId).length, 1);
+  const due = resolveDueEvents({
+    ...repeated,
+    decisions: [...repeated.decisions, {
+      decisionId: decision.id,
+      optionId: option.id,
+      status: "confirmed" as const,
+      confirmedAtIndex: 72,
+    }],
+  }).state;
+  assert.equal(due.causalLedger.filter((entry) => entry.sourceId === runRateId).length, 1);
+});
+
 test("confirmer applique les effets immédiats une seule fois", () => {
   const scenario = scenarioWithEffect("annualBalance", 1_000, { kind: "immediate" });
   const started = startAtFirstDecision(scenario);

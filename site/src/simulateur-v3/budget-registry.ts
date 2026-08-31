@@ -69,7 +69,6 @@ export const V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS = [
   "generaliser-le-service-national-universel:adopt",
   "autonomie-complete-des-etablissements:adopt",
   "ne-pas-remplacer-un-depart-administratif-sur:adopt",
-  "regle-d-or-constitutionnelle:adopt",
   "supprimer-les-departements:adopt",
 ] as const;
 
@@ -83,8 +82,12 @@ export const V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS: Readonly<Record<
   "generaliser-le-service-national-universel:adopt": 4,
   "autonomie-complete-des-etablissements:adopt": 3,
   "ne-pas-remplacer-un-depart-administratif-sur:adopt": 3,
-  "regle-d-or-constitutionnelle:adopt": 3,
   "supprimer-les-departements:adopt": 3,
+});
+
+/** The sole V10 topology adaptation: rank 71 must activate at the final rank 72. */
+export const V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS = Object.freeze({
+  "regle-d-or-constitutionnelle:adopt": 1,
 });
 
 const RETIRED_V10_IDS = new Set([

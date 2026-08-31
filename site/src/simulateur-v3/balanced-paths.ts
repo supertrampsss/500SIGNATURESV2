@@ -279,7 +279,8 @@ function maximumSelection(scenario: Scenario): Candidate[] {
       return;
     }
     const candidate = candidates[index]!;
-    const conflicts = candidate.decision.conflicts.some((id) => chosen.some((item) => item.decision.id === id));
+    const conflicts = candidate.decision.conflicts.some((id) => chosen.some((item) => item.decision.id === id))
+      || chosen.some((item) => item.decision.conflicts.includes(candidate.decision.id));
     const dependencyMissing = candidate.decision.dependencies.some((id) => !chosen.some((item) => item.decision.id === id));
     const scopeConflict = candidate.option.budgetProfile.exclusiveScopeKeys.some((key) => scopes.has(key));
     if (!locks.has(candidate.decision.id) && !conflicts && !dependencyMissing && !scopeConflict) {

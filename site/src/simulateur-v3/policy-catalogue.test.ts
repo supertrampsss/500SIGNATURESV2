@@ -6,7 +6,7 @@ import { POLICY_CONSEQUENCES } from "./policy-consequences.ts";
 import { policyById, SCENARIO_V3_CATALOGUE } from "./scenario.ts";
 import { SCENARIO_V9_SNAPSHOT } from "./scenario-v9.snapshot.ts";
 import { SCENARIO_V10_CATALOGUE, STRUCTURAL_ADOPT_DECISION_IDS, buildV10Catalogue, v10PolicyById } from "./scenario-v10-catalogue.ts";
-import { hasBudgetEstimate, primeActivityRecycleDifferenceMillions, V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
+import { hasBudgetEstimate, primeActivityRecycleDifferenceMillions, V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS, V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS } from "./budget-registry.ts";
 import type { DecisionOption } from "./types.ts";
 
 const HISTORICAL_EFFECT_MARKER = [":", "model", ":"].join("");
@@ -89,7 +89,7 @@ test("les vingt substitutions V10 ne réemploient aucun contrat éditorial ou ca
   }
 });
 
-test("les dossiers conservés portent exactement leurs flux V9 dans le profil planifié", () => {
+test("les dossiers conservés portent exactement leurs flux V9, sauf l'adaptation topologique explicite de la règle d'or", () => {
   const retired = new Set(["geler-le-bareme-de-l-impot-sur", "flat-tax-a-20-des-le-premier", "flat-tax-a-20-avec-abattement-protegeant", "tranche-a-50-au-dela-de-250", "soumettre-les-revenus-du-capital-au-bareme", "supprimer-les-allegements-de-cotisations-entre-2", "fiscaliser-les-heures-supplementaires-comme-le", "raboter-de-5-les-subventions-directes-aux", "raboter-le-credit-d-impot-recherche-de", "allocation-sociale-unique", "imposer-generiques-et-biosimilaires-en-premiere-intention", "renforcer-le-controle-des-arrets-de-travail", "derembourser-les-cures-thermales", "verser-le-rsa-automatiquement-fin-du-non", "interdire-les-voitures-thermiques-en-2030", "reduire-de-5-les-dotations-aux-collectivites", "geler-le-point-d-indice-en-2026", "fermer-un-tiers-des-agences-et-operateurs", "diviser-par-deux-le-nombre-de-parlementaires", "deux-jours-de-carence-dans-la-fonction"]);
   for (const historical of SCENARIO_V9_SNAPSHOT.decisions) {
     if (retired.has(historical.id)) continue;
@@ -113,7 +113,13 @@ test("les dossiers conservés portent exactement leurs flux V9 dans le profil pl
           duration: "once" as const,
         })),
       ];
-      assert.deepEqual(newFlows, oldFlows, `${historical.id}:${local}`);
+      const expectedFlows = historical.id === "regle-d-or-constitutionnelle" && local === "adopt"
+        ? oldFlows.map((flow) => ({
+          ...flow,
+          timing: { kind: "after_decisions" as const, count: 1 },
+        }))
+        : oldFlows;
+      assert.deepEqual(newFlows, expectedFlows, `${historical.id}:${local}`);
     }
   }
 });
@@ -142,15 +148,22 @@ test("le catalogue V10 laisse ses flux budgétaires au scheduler, sans effet ann
   }
 });
 
-test("les neuf reports annuels V9 autorisés sont exhaustifs et leurs flux ponctuels sont globaux", () => {
+test("les huit reports V9 et l'unique adaptation topologique V10 sont exhaustifs", () => {
   const timings = Object.fromEntries(SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)
     .flatMap((option) => option.budgetProfile.runRateTiming?.kind === "after_decisions"
       ? [[option.id, option.budgetProfile.runRateTiming.count] as const]
       : []));
-  assert.deepEqual(Object.keys(timings), V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS);
-  assert.deepEqual(timings, V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS);
+  assert.deepEqual(new Set(Object.keys(timings)), new Set([
+    ...V10_CARRY_FORWARD_AFTER_DECISION_OPTION_IDS,
+    ...Object.keys(V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS),
+  ]));
+  assert.deepEqual(timings, {
+    ...V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS,
+    ...V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS,
+  });
   for (const option of SCENARIO_V10_CATALOGUE.decisions.flatMap((decision) => decision.options)) {
-    if (!(option.id in V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS)) {
+    if (!(option.id in V10_CARRY_FORWARD_AFTER_DECISION_TIMINGS)
+        && !(option.id in V10_TOPOLOGICAL_AFTER_DECISION_TIMINGS)) {
       assert.notEqual(option.budgetProfile.runRateTiming?.kind, "after_decisions", option.id);
     }
   }

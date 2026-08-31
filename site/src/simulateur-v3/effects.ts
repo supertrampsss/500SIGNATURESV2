@@ -293,19 +293,7 @@ export function scheduleBudgetProfile(
       : profile.runRateTiming.kind === "after_decisions"
         ? decisionCount + profile.runRateTiming.count
         : decisionCountAtMandateYearEnd(scenario, profile.runRateTiming.year);
-    // V10's final-decision golden-rule override deliberately shortens its
-    // published implementation horizon without rewriting the V9 carry-forward
-    // profile retained for audit comparison. All other profiles keep their
-    // canonical timing verbatim.
-    const isGoldenRuleFinalOverride = scenario.version >= 10
-      && decision.id === "regle-d-or-constitutionnelle"
-      && option.id === "regle-d-or-constitutionnelle:adopt"
-      && option.horizon.kind === "after_decisions"
-      && option.horizon.count === 1;
-    const dueAtDecision = isGoldenRuleFinalOverride
-      ? implementationDueAtDecision(option, decisionCount, scenario)
-      : profileDueAtDecision;
-    applyOrQueue(id, dueAtDecision, budgetEffect(id, profile.runRateMillions, "annual", "Flux annuel sourcé du profil budgétaire."));
+    applyOrQueue(id, profileDueAtDecision, budgetEffect(id, profile.runRateMillions, "annual", "Flux annuel sourcé du profil budgétaire."));
   }
   for (const flow of profile.transitionFlows) {
     const id = flow.id;
